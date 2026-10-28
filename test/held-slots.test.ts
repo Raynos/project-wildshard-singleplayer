@@ -88,3 +88,14 @@ test('binding phase and construction yielding are finite admitted data', () => {
   for (const input of [{...rows,bindAt:'kit'}, {...rows,bindAt:()=> 'entered'},
     {...rows,pause:1}, {...rows,pause:()=>true}]) expect(()=>parseHeldSlots(input)).toThrow();
 });
+
+
+test('only explicit polearm geometry can wait until selection; legacy rows stay byte-identical', () => {
+  const original=mounted(), eager=parseHeldSlots(original);
+  expect(eager.slots.find(row=>row.kind==='polearm')).not.toHaveProperty('geometry');
+  const late={...original,slots:original.slots.map(row=>row.kind==='polearm'?{...row,geometry:'on-select'}:row)};
+  expect(parseHeldSlots(late).slots.find(row=>row.kind==='polearm')).toMatchObject({geometry:'on-select'});
+  for(const geometry of ['lazy','',false,()=>null])expect(()=>parseHeldSlots({...original,slots:original.slots.map(row=>row.kind==='polearm'?{...row,geometry}:row)})).toThrow();
+  for(const kind of ['blade','bow','firearm'])expect(()=>parseHeldSlots({...original,slots:original.slots.map(row=>row.kind===kind?{...row,geometry:'on-select'}:row)})).toThrow();
+  expect(parseHeldSlots(original)).toEqual(eager);
+});

@@ -364,7 +364,12 @@ export class HeldClaims {
       // Metadata/book admission survives retirement, but its native pool caches may have been evicted.
       // Rehydrate them before this owner's synchronous weapon factories can borrow their parts.
       for(const row of blades){await row.value.prepare(metadata.product);check();}
-      for(const row of polearms){await row.value.prepare(metadata.product);check();}
+      for(const row of polearms){
+        const slot=this.slots.slots.find(candidate=>candidate.id===row.id);
+        if(slot?.kind!=='polearm')throw new Error('Held polearm source was replaced');
+        await (slot.geometry==='on-select'?row.value.prepare(metadata.product,{geometry:'on-select'}):row.value.prepare(metadata.product));
+        check();
+      }
       if(!metadata.loaded){
         const book=v.parse(SpecimenBookSchema,await metadata.product.json(metadata.file));check();
         const packed=book.packed;if(packed===undefined)throw new Error('Held specimen book has no packed source');
@@ -500,7 +505,7 @@ export class HeldClaims {
             built.set(row.id,{kind:'starter',weapon});
             if(row.id===rows.equipment.primary)primarySword=weapon;
           }
-        } else if(row.kind==='polearm')built.set(row.id,{kind:'polearm',weapon:new (this.polearm(row.id).Weapon)(world,targets,{allowUnlocked})});
+        } else if(row.kind==='polearm')built.set(row.id,{kind:'polearm',weapon:new (this.polearm(row.id).Weapon)(world,targets,{allowUnlocked,owner:scope})});
         else if(row.kind==='bow'){
           const {profile}=await this.loadBow(ctx.product,row.file);check();
           built.set(row.id,{kind:'bow',profile,weapon:new Bow(world,targets,{row:catalogue.equipment(row.item),profile,allowUnlocked})});
@@ -513,6 +518,12 @@ export class HeldClaims {
         if(rows.pause&&index+1<rows.slots.length){await macrotask();check();}
       }
       check();
+      // Required first views retain the original pre-control readiness. Other
+      // explicitly deferred pools are prepared by the selection gate below.
+      for(const id of new Set([rows.equipment.primary,...rows.selection.initial===undefined?[]:[rows.selection.initial]])){
+        const slot=built.get(id);
+        if(slot?.kind==='polearm'&&rows.slots.some(row=>row.id===id&&row.kind==='polearm'&&row.geometry==='on-select')&&slot.weapon.needsPreparation){await slot.weapon.prepareView();check();}
+      }
       const need=(id:string):BuiltSlot=>{const slot=built.get(id);if(slot===undefined)throw new Error('Held slot has no built weapon');return slot;};
       const kit:HeldSlotKit={
         weapon:id=>{active();return need(id).weapon;},
@@ -558,11 +569,23 @@ export class HeldClaims {
       }
       check();record.kit=kit;
       const equipmentRows=rows.equipment;
+      const deferred=rows.slots.flatMap(row=>{if(row.kind!=='polearm'||row.geometry!=='on-select')return [];const slot=need(row.id);return slot.kind==='polearm'&&slot.weapon.needsPreparation?[slot]:[];});
       return {primary:need(equipmentRows.primary).weapon,rifle:equipmentRows.rifle===undefined?null:need(equipmentRows.rifle).weapon,
         secondary:equipmentRows.secondary===undefined?null:need(equipmentRows.secondary).weapon,
         ...(equipmentRows.extras.length===0&&this.originalRows!==null&&'kind' in this.originalRows?{}:{extras:equipmentRows.extras.map(id=>need(id).weapon)}),
         ...(equipmentRows.order===undefined?{}:{order:equipmentRows.order.map(id=>need(id).weapon.id)}),
-        ...(rows.selection.unlock.length===0&&rows.selection.initial===undefined?{}:{install:(weapons:EquipmentService)=>{active();for(const id of rows.selection.unlock)weapons.unlock(need(id).weapon.id);if(rows.selection.initial!==undefined)weapons.select(need(rows.selection.initial).weapon.id,true);}})};
+        ...(rows.selection.unlock.length===0&&rows.selection.initial===undefined&&deferred.length===0?{}:{install:(weapons:EquipmentService)=>{
+          active();
+          for(const slot of deferred)if(slot.kind==='polearm'){
+            const weapon=slot.weapon;
+            // oxlint-disable-next-line typescript/unbound-method -- Snapshot only; invocation retains its original receiver.
+            const prepare=weapon.prepareView;
+            const selected=():void=>{active();if(metadata!==null&&metadata.ready!==ready||weapon.prepareView!==prepare)throw new Error('Held selection preparation was replaced');};
+            weapons.prepareOnSelect(weapon.id,async()=>{selected();await prepare.call(weapon);selected();});
+          }
+          for(const id of rows.selection.unlock)weapons.unlock(need(id).weapon.id);
+          if(rows.selection.initial!==undefined)weapons.select(need(rows.selection.initial).weapon.id,true);
+        }})};
     };
   }
 

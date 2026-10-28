@@ -8,6 +8,7 @@ import type { Events } from '../events/events';
 import type { EquipmentPickup, EquipmentPickupHost, PickupLoadout } from './EquipmentPickup';
 
 const SWAP_TIME = 0.25, STOW_TIME = 0.25;
+interface PendingSelection { readonly to: Weapon; instant: boolean; waiting: boolean; pending: Promise<void>; readonly supersede: () => void }
 
 export class EquipmentService implements WeaponHooks {
   readonly list: Weapon[];
@@ -26,6 +27,8 @@ export class EquipmentService implements WeaponHooks {
   private order: WeaponId[] | undefined;
   private swapping: { from: Weapon; to: Weapon; t: number; switched: boolean } | null = null;
   private readonly pickups = new Map<string, EquipmentPickup>();
+  private readonly preparations = new Map<Weapon, () => Promise<void>>();
+  private selection: PendingSelection | undefined;
 
   /** Place the active level's declarations using its installed equipment rows. */
   placePickups(loadout: PickupLoadout, host: EquipmentPickupHost): void {
@@ -83,6 +86,7 @@ export class EquipmentService implements WeaponHooks {
     this.input = opts.input;
     this.events = opts.events;
     this.list = []; this.current = first; this.order = opts.order;
+    this.scope.onDispose(() => { this.preparations.clear(); });
     this.add(first, { locked: false });
     const input = opts.input;
     input?.bind('swap', () => this.swap(), this.scope);
@@ -127,6 +131,8 @@ export class EquipmentService implements WeaponHooks {
     next.holster = previous.holster;
     next.install({ scope: this.scope.child(next.row.id), ...(this.events === undefined ? {} : { events: this.events }) }); this.wire(next);
     this.list[index] = next;
+    this.preparations.delete(previous);
+    if (this.selection?.to === previous) { this.selection.supersede(); this.selection = undefined; }
     if (this.current === previous) this.current = next;
     if (this.swapping?.from === previous) this.swapping.from = next;
     if (this.swapping?.to === previous) this.swapping.to = next;
@@ -200,6 +206,7 @@ export class EquipmentService implements WeaponHooks {
     if (owned === null) return;
     this.loaned = null;
     this.unlocked = owned;
+    if (this.selection !== undefined && !owned.has(this.selection.to.id)) { this.selection.supersede(); this.selection = undefined; }
     this.apply();
     const first = this.list.find((w) => owned.has(w.id));
     if (!owned.has(this.current.id) && first !== undefined) this.select(first.id, true);
@@ -209,6 +216,69 @@ export class EquipmentService implements WeaponHooks {
   select(id: WeaponId, instant = false): void {
     if (!this.unlocked.has(id)) return;
     const to = this.get(id);
+    const previous = this.selection;
+    if (previous?.waiting === true && previous.to === to) { previous.instant ||= instant; return; }
+    previous?.supersede();
+    this.selection = undefined;
+    if (to === this.current && this.swapping === null) return;
+    const prepare = this.preparations.get(to);
+    if (prepare === undefined) { this.commitSelection(to, instant); return; }
+    let cancel: () => void = () => undefined;
+    let supersede: () => void = () => undefined;
+    const closed = new Promise<never>((_resolve, reject) => { cancel = () => { reject(new Error('Equipment preparation owner left')); }; });
+    const redirected = new Promise<void>(resolve => { supersede = resolve; });
+    const forget = this.scope.capture('disposers', cancel);
+    const request:PendingSelection={to,instant,waiting:true,pending:Promise.resolve(),supersede};
+    this.selection=request;
+    const started = (async()=>{
+      await Promise.resolve();
+      if (this.scope.disposed || this.scope.disposing) throw new Error('Equipment preparation owner left');
+      await this.scope.run(prepare);
+      if (this.preparations.get(to) === prepare) this.preparations.delete(to);
+    })();
+    request.pending=this.finishSelection(request,started,closed,redirected,forget);
+    void this.observeSelection(request);
+  }
+  private async finishSelection(request:PendingSelection,started:Promise<void>,closed:Promise<never>,redirected:Promise<void>,forget:()=>void):Promise<void>{
+    const to=request.to;
+    try{
+      await Promise.race([started,closed,redirected]);
+      if (this.scope.disposed || this.scope.disposing) throw new Error('Equipment preparation owner left');
+      if (this.selection !== request || !this.list.includes(to) || !this.unlocked.has(to.id)) return;
+      this.commitSelection(to, request.instant);
+    }catch(error:unknown){
+      if (!this.scope.disposed && !this.scope.disposing && (this.selection !== request || !this.list.includes(to) || !this.unlocked.has(to.id))) return;
+      throw error;
+    }finally{request.waiting=false;forget();}
+  }
+  private async observeSelection(request:PendingSelection):Promise<void>{
+    try{await request.pending;}
+    catch(error:unknown){
+      if (!this.scope.disposed && !this.scope.disposing && this.selection === request) console.error('Equipment preparation failed', error);
+    }
+  }
+  /** Register a native late-view preparation before exposing an inactive slot.
+   * Profiles/ownership remain synchronous; selection keeps the current weapon
+   * until this exact weapon's preparation succeeds. */
+  prepareOnSelect(id: WeaponId, prepare: () => Promise<void>): void {
+    if (this.scope.disposed || this.scope.disposing) throw new Error('Equipment preparation owner left');
+    const weapon = this.get(id);
+    if (weapon === this.current) throw new Error('Initial equipment must be prepared before publication');
+    if (this.preparations.has(weapon)) throw new Error('Equipment preparation already registered');
+    this.preparations.set(weapon, prepare);
+  }
+  /** Initial/restored selection is a readiness fence before controls. Redirects
+   * join the latest request; a genuine failure or retirement still refuses. */
+  async settleSelection(): Promise<void> {
+    for (;;) {
+      if (this.scope.disposed || this.scope.disposing) throw new Error('Equipment preparation owner left');
+      const selection = this.selection;
+      if (selection === undefined) return;
+      await selection.pending;
+      if (this.selection === selection) { this.selection = undefined; return; }
+    }
+  }
+  private commitSelection(to: Weapon, instant: boolean): void {
     if (to === this.current && this.swapping === null) return;
     if (this.swapping !== null) { if (this.swapping.to === to) return; this.finishSwap(); if (to === this.current) return; }
     if (instant) {
@@ -220,7 +290,7 @@ export class EquipmentService implements WeaponHooks {
     this.swapping = { from: this.current, to, t: 0, switched: false };
     this.apply();
     this.events?.emit('weapon.swap', { to: to.row.id });
-    this.onSwap?.(id);
+    this.onSwap?.(to.id);
   }
   /** Select the next owned slot, if there is one. */
   swap(): void { this.step(1); }
@@ -228,7 +298,7 @@ export class EquipmentService implements WeaponHooks {
   step(dir: 1 | -1): void {
     const list = this.available;
     if (list.length < 2) return;
-    const i = list.indexOf(this.current);
+    const i = list.indexOf(this.selection?.waiting === true ? this.selection.to : this.current);
     const next = list[(i + dir + list.length) % list.length];
     if (next !== undefined) this.select(next.id);
   }

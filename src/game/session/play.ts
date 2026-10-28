@@ -357,6 +357,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
     onNear: (inside) => audio.pickupHum(inside),
     onPickup: (row) => { audio.hitMarker(); music.sting('pickup'); hud.pickupCard({ name: row.ui.name, icon: row.ui.icon }); },
     hold: params.get('weapon') === 'iron' ? 'weapon.sword-iron' : undefined });
+  await weapons.settleSelection();
   // ── Nalati's adventure (NALATI-MERGE Q1–Q5: the camp's people, the quest line, places with saved discovery on the full map;
   // src/shards/nalati-grasslands/adventure.ts on the shared quest core) — null on any other shard ──
   // Registered cosmetics restyle the held model and persist in this shard's locker.

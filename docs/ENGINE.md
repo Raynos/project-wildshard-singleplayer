@@ -2167,6 +2167,7 @@ abstract class Tool extends Equipment { slot: 'tool' | 'offhand'; actions: reado
 
 `EquipmentService` accepts an explicit `input` binding port. The client session connects it to `app.input` and
 the active weapon's enabled predicate; a simulation service can omit device bindings.
+`prepareOnSelect(id, prepare)` gates an inactive weapon on its first selection; the current weapon stays active until preparation succeeds. `settleSelection()` fences initial/restored selection before controls, including redirects, failures and retirement. Profiles and ownership remain eager.
 
 Mount a finished custom model in `app.equipmentHost.viewmodel` during `play`, and remove it with your scope.
 The engine keeps the camera in the scene and owns one depth clear at transparent render order 999. Added meshes

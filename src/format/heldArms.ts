@@ -80,7 +80,7 @@ const bladeSource = v.variant('kind', [
 const heldSlot = v.variant('kind', [
   v.strictObject({ id: slotId, kind: v.literal('blade'), item: slotWeapon, source: bladeSource }),
   v.strictObject({ id: slotId, kind: v.literal('bow'), item: slotWeapon, file: slotFile }),
-  v.strictObject({ id: slotId, kind: v.literal('polearm'), item: slotWeapon, file: slotFile }),
+  v.strictObject({ id: slotId, kind: v.literal('polearm'), item: slotWeapon, file: slotFile, geometry: v.exactOptional(v.literal('on-select')) }),
   v.strictObject({ id: slotId, kind: v.literal('firearm'), item: slotWeapon, file: slotFile, muzzleLight: v.boolean() }),
   v.strictObject({ id: slotId, kind: v.literal('tool'), item: slotTool, tool: v.literal('grapple'), source: slotFile, presentation: slotFile }),
 ]);
@@ -451,6 +451,7 @@ interface HeldSlotsRowsInputFields {
         kind: 'polearm';
         item: string;
         file: string;
+        geometry?: 'on-select';
     }) | ({
         id: string;
         kind: 'firearm';
@@ -525,6 +526,7 @@ interface HeldSlotsRowsFields {
         kind: 'polearm';
         item: string;
         file: string;
+        geometry?: 'on-select';
     }) | ({
         id: string;
         kind: 'firearm';

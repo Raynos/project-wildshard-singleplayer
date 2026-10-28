@@ -3,6 +3,9 @@ import { smoothstep as sstep } from '@wildshard/engine/core/noise';
 import { gameplayRandom, app } from '@wildshard/engine/app/runtime';
 import { aimRay, fovForAspect } from '@wildshard/engine/combat/blocks/melee';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { withOwner } from '@wildshard/engine/app/ownership';
+import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import { Melee } from '@wildshard/engine/combat/Melee';
 import type { MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 import type { Targets, TargetAnimal } from '@wildshard/engine/combat/types';
@@ -59,9 +62,10 @@ export interface HeldPolearmOptions<P extends HeldPolearmProfile> {
   readonly javelin: JavelinProfile;
   readonly view: HeldPolearmView;
   readonly program: unknown;
-  readonly geometry: ReadonlyMap<string,THREE.BufferGeometry>;
+  readonly geometry: ReadonlyMap<string,THREE.BufferGeometry> | (() => Promise<ReadonlyMap<string,THREE.BufferGeometry>>);
   readonly presentation: PolearmPresentation;
   readonly allowUnlocked?: boolean;
+  readonly owner?: Scope;
 }
 
 const Y = new THREE.Vector3(0, 1, 0);
@@ -113,7 +117,11 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
   private leftArm: THREE.Mesh = new THREE.Mesh(); private rightArm: THREE.Mesh = new THREE.Mesh();
   private leftWrist = new THREE.Vector3(); private rightWrist = new THREE.Vector3();
   private arc: THREE.Points = new THREE.Points(); private arcPos: Float32Array; private arcAttr: THREE.BufferAttribute = new THREE.BufferAttribute(new Float32Array(),3); private arcMat: THREE.PointsMaterial = new THREE.PointsMaterial();
-  private readonly world: THREE.InstancedMesh;
+  private worldDraw: THREE.InstancedMesh | null = null;
+  private get world(): THREE.InstancedMesh { if (this.worldDraw === null) throw new Error('Polearm view is not prepared'); return this.worldDraw; }
+  private visualReady = false;
+  private viewPending: Promise<void> | undefined;
+  private viewOwner: Scope;
   private javs: Jav[] = [];
 
   private thrustT = -1; private hitDone = false; private queued = false;
@@ -132,7 +140,8 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
 
   private readonly view: HeldPolearmView;
   private readonly law:HeldDecision;
-  private readonly geometry:ReadonlyMap<string,THREE.BufferGeometry>;
+  private geometry:ReadonlyMap<string,THREE.BufferGeometry>;
+  private readonly readGeometry: (() => Promise<ReadonlyMap<string,THREE.BufferGeometry>>) | undefined;
   private readonly presentation:PolearmPresentation;
   private attackPending=false;private tapPending=false;private decisionT=0;private lanceActive=false;
 
@@ -141,15 +150,19 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
     const carried = opts.javelin.carried;
     this.state = quiverState({ bolts: carried, loaded: true, reloading: false, reloadProgress: 0, ads: false }, carried);
     this.projectile = opts.javelin; this.javelins = carried;
+    for (let i = 0; i < this.projectile.pool; i++) this.javs.push({ state: 0, pos: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion(), age: 0 });
     this.arcPos = new Float32Array(this.projectile.arcPoints * 3);
-    this.view = opts.view;this.law=new HeldDecision(opts.program,w.game.levelScope);this.geometry=opts.geometry;this.presentation=opts.presentation;
+    this.view = opts.view;this.law=new HeldDecision(opts.program,w.game.levelScope);this.presentation=opts.presentation;
+    this.viewOwner=opts.owner??w.game.levelScope;
+    this.readGeometry=typeof opts.geometry==='function'?opts.geometry:undefined;
+    this.geometry=typeof opts.geometry==='function'?new Map():opts.geometry;
     this.row = { ...this.row, ui: { ...this.row.ui, inputContext: opts.profile.id } };
     this.game = w.game; this.sky = w.sky; this.player = w.player;
     this.setAimSource(() => this.player.sampleAimCommand());
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
-    this.world = this.build();
+    if(this.readGeometry===undefined){this.worldDraw=this.build();this.visualReady=true;}
     const cam = this.game.camera;
     this.game.viewmodel.mountOwnPass(this.model, cam); // its own depth clear; staged while its cell prepares (op-hitch41)
     if (!cam.parent) this.game.scene.add(cam);
@@ -167,8 +180,33 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
   private readonly aimBlock: ReturnType<typeof aimRay>;
   override install(ctx: EquipContext): void {
     super.install(ctx); this.bindInput(ctx);
-    ctx.scope.onDispose(() => { this.model.removeFromParent(); this.world.removeFromParent(); this.arc.removeFromParent(); });
+    this.viewOwner=ctx.scope;
+    ctx.scope.onDispose(() => { this.model.removeFromParent(); this.worldDraw?.removeFromParent(); this.arc.removeFromParent(); });
   }
+  /** Native profiles/state exist before control. Only an explicitly deferred
+   * pool and its exact visual parts wait for the service's first-select fence. */
+  get needsPreparation():boolean{return !this.visualReady;}
+  prepareView():Promise<void>{
+    if(this.visualReady)return Promise.resolve();
+    const owner=this.viewOwner;
+    const live=():boolean=>this.viewOwner===owner&&!owner.disposed&&!owner.disposing;
+    const check=():void=>{if(!live())throw new Error('Polearm preparation owner left');};
+    check();
+    this.viewPending??=(async()=>{
+      try{
+        if(this.worldDraw===null){
+          const read=this.readGeometry;if(read===undefined)throw new Error('Polearm geometry has no preparation');
+          this.geometry=await read();check();
+          this.worldDraw=withOwner(owner,()=>this.build());
+          ownSceneTree(this.model,owner,app.assets);ownSceneTree(this.worldDraw,owner,app.assets);ownSceneTree(this.arc,owner,app.assets);
+        }
+        await this.game.warmSceneRoots([this.model,this.worldDraw],live);check();
+        this.visualReady=true;
+      }catch(error:unknown){this.viewPending=undefined;throw error;}
+    })();
+    return this.viewPending;
+  }
+  override setActive(on:boolean):void{if(on&&!this.visualReady)throw new Error('Polearm view is not prepared');super.setActive(on);}
   private bindInput(ctx: EquipContext): void {
     const allowed = weaponActionGate(this, this.player);
     app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
@@ -238,7 +276,6 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
     const world = new THREE.InstancedMesh(this.part(this.presentation.parts.world), painterlyMaterial(this.sky, { vertexColors: true, rim: look.worldRim }), this.projectile.pool);
     world.count = 0; world.castShadow = true; world.receiveShadow = true; world.frustumCulled = false;
     this.game.scene.add(world);
-    for (let i = 0; i < this.projectile.pool; i++) this.javs.push({ state: 0, pos: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion(), age: 0 });
     return world;
   }
 
@@ -333,6 +370,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
       }
     }
 
+    if(this.worldDraw===null)return;
     let n = 0;
     for (const j of this.javs) {
       if (j.state === 0) continue;
@@ -445,6 +483,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
     this.lookBlock.step(this.lookState, this.lookDelta.set(dYaw, dPitch), dt);
     this.lagYaw = this.lookState.yaw; this.lagPitch = this.lookState.pitch;
     this.lagYawVel = this.lookState.yawVelocity; this.lagPitchVel = this.lookState.pitchVelocity;
+    if(!this.visualReady)return;
 
     const sp = _v1, sq = _q, { rest: REST, cock: COCK, jab: JAB, leftLow: LEFT_LOW, sprint: SPRINT, lance: LANCE, javCock: JAV_COCK, javOut: JAV_OUT } = this.view.poses;
     sp.copy(REST.pos); sq.copy(REST.q);
@@ -519,23 +558,29 @@ const spearPose=(row:PolearmRows['view']['poses']['rest']):HeldPolearmPose=>({po
 /** Client-only native polearm binding. Model parts, view poses, physics policy and
  * the <=10 Hz guest are admitted rows; no shard callbacks or subclasses. */
 export class PolearmSet {
- private data:{parts:ReturnType<typeof createModelLibrary<never,never>>;profile:HeldPolearmProfile;javelin:JavelinProfile;view:HeldPolearmView;rows:PolearmData}|null=null;
+ private data:{parts:ReturnType<typeof createModelLibrary<never,never>>;profile:HeldPolearmProfile;javelin:JavelinProfile;view:HeldPolearmView;rows:PolearmData;deferred:boolean}|null=null;
  constructor(private readonly rows:{file:string;item:`weapon.${string}`}){}
- readonly Weapon:new(world:HeldPolearmWorld,targets?:Targets,opts?:{allowUnlocked?:boolean;profile?:HeldPolearmProfile})=>HeldPolearm=((owner:PolearmSet)=>class extends HeldPolearm {
-  constructor(world:HeldPolearmWorld,targets?:Targets,opts:{allowUnlocked?:boolean;profile?:HeldPolearmProfile}={}){
-   const r=owner.need();super(world,targets,{profile:opts.profile??r.profile,javelin:r.javelin,view:r.view,allowUnlocked:opts.allowUnlocked??false,program:r.rows.program,presentation:r.rows.presentation,geometry:new Map(r.rows.pool.parts.map(id=>[id,owner.geometry(id)]))});
+ readonly Weapon:new(world:HeldPolearmWorld,targets?:Targets,opts?:{allowUnlocked?:boolean;profile?:HeldPolearmProfile;owner?:Scope})=>HeldPolearm=((owner:PolearmSet)=>class extends HeldPolearm {
+  constructor(world:HeldPolearmWorld,targets?:Targets,opts:{allowUnlocked?:boolean;profile?:HeldPolearmProfile;owner?:Scope}={}){
+   const r=owner.need();
+   const geometries=():ReadonlyMap<string,THREE.BufferGeometry>=>new Map(r.rows.pool.parts.map(id=>{
+    const part=r.parts.geometry(id);if(part===null)throw new Error(`Missing polearm part ${id}`);return [id,part] as const;
+   }));
+   super(world,targets,{profile:opts.profile??r.profile,javelin:r.javelin,view:r.view,allowUnlocked:opts.allowUnlocked??false,...(opts.owner===undefined?{}:{owner:opts.owner}),program:r.rows.program,presentation:r.rows.presentation,
+    geometry:r.deferred?async()=>{await r.parts.preload();return geometries();}:geometries()});
   }
  })(this);
  private need():NonNullable<PolearmSet['data']>{if(this.data===null)throw new Error('Polearm rows not prepared');return this.data;}
- async prepare(product:Pick<ShardProduct,'file'|'shardfile'|'hasFile'|'url'>):Promise<void>{
+ async prepare(product:Pick<ShardProduct,'file'|'shardfile'|'hasFile'|'url'>,options?:{readonly geometry:'on-select'}):Promise<void>{
   const rows=schema.parse(PolearmRowsSchema,JSON.parse(new TextDecoder().decode(await product.file(this.rows.file))));
   // a pool the product names (GR6) loads by its content-addressed URL; any other pool URL is fetched as written
   const pool=product.hasFile(rows.pool.url)?{...rows.pool,url:product.url(rows.pool.url)}:rows.pool;
   const item=product.shardfile.items.rows.find(row=>row.id===this.rows.item);
   const javelin=schema.parse(ThrownWeaponProfileSchema,item?.kind==='weapon'?item.profile:undefined);
-  const parts=createModelLibrary<never,never>({meshes:[],hd:[],meshUrls:{},hdUrls:{},hdLooks:{},aoFloor:1,geometryPools:[pool]},'held-polearm');await parts.preload();
+  const parts=createModelLibrary<never,never>({meshes:[],hd:[],meshUrls:{},hdUrls:{},hdLooks:{},aoFloor:1,geometryPools:[pool]},'held-polearm');
+  const deferred=options?.geometry==='on-select';if(!deferred)await parts.preload();
   const p=rows.view.poses;
-  this.data={parts,rows,profile:{...SWORD_WOOD,...new ItemCatalogue(product.shardfile.items).equipment(this.rows.item),parent:SWORD_WOOD.id,...rows.profile},javelin,view:{...rows.view,poses:{rest:spearPose(p.rest),cock:spearPose(p.cock),jab:spearPose(p.jab),leftLow:spearPose(p.leftLow),sprint:spearPose(p.sprint),lance:spearPose(p.lance),javCock:spearPose(p.javCock),javOut:spearPose(p.javOut)},wrists:{left:new THREE.Vector3(...rows.view.wrists.left),right:new THREE.Vector3(...rows.view.wrists.right)},elbows:{left:new THREE.Vector3(...rows.view.elbows.left),right:new THREE.Vector3(...rows.view.elbows.right)}}};
+  this.data={parts,rows,deferred,profile:{...SWORD_WOOD,...new ItemCatalogue(product.shardfile.items).equipment(this.rows.item),parent:SWORD_WOOD.id,...rows.profile},javelin,view:{...rows.view,poses:{rest:spearPose(p.rest),cock:spearPose(p.cock),jab:spearPose(p.jab),leftLow:spearPose(p.leftLow),sprint:spearPose(p.sprint),lance:spearPose(p.lance),javCock:spearPose(p.javCock),javOut:spearPose(p.javOut)},wrists:{left:new THREE.Vector3(...rows.view.wrists.left),right:new THREE.Vector3(...rows.view.wrists.right)},elbows:{left:new THREE.Vector3(...rows.view.elbows.left),right:new THREE.Vector3(...rows.view.elbows.right)}}};
  }
  geometry(name:string):THREE.BufferGeometry{const part=this.need().parts.geometry(name);if(part===null)throw new Error(`Missing polearm part ${name}`);return part;}
  profile():HeldPolearmProfile{return this.need().profile;}

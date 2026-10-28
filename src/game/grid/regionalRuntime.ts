@@ -394,6 +394,8 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               // Trusted play can install encounter creatures; validate the complete herd before publishing readiness.
               ports.continuation?.restore(localPlay.animals);
               const equipment = request.page.equipment, weapons = localPlay.weapons;
+              await weapons.settleSelection();
+              if(owner.disposed||owner.disposing)throw new Error('Regional runtime left while preparing selected equipment');
               if (equipment !== undefined) installEnteredRuntimeService(entered, entry => { equipment.bind(weapons, entry); });
               for (const animal of localPlay.animals.animals) animal.motionConstraint = hostConstraint(host, animal.dims.bodyRadius * animal.scale);
               // G217 stays up until the actual page composer has warmed this newly entered world and kit.

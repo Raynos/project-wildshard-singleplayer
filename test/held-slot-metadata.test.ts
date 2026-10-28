@@ -22,14 +22,14 @@ const file='models/gear-book.json';
 const book={rows:[{key:'reward',model:{id:'fixture/reward',name:'Reward',file:'fixture.ts',category:'gear',pipeline:'code',defaults:{}},source:{kind:'packed'}}],
   packed:{bin:'/assets/fixture/gear.bin',bytes:0,rows:[{key:'reward',parts:[]}]},materials:{}};
 afterEach(()=>{vi.restoreAllMocks();});
-function fixture(slotInput?:unknown){
+function fixture(slotInput?:unknown,input:unknown=declaration){
   const parent=new Scope('metadata-parent'),scope=parent.child('metadata-entry'),events:string[]=[];
   const source={...emptyShardfile({slug:'metadata-fixture',name:'Metadata fixture',author:'Fixture',revision:1,seed:1}),items:parseItems(items)};
   const read=vi.fn((hash:string)=>{events.push(hash==='slots'?'slots':'book');return Promise.resolve(new TextEncoder().encode(JSON.stringify(hash==='slots'?slotInput:book)));});
   const files=new Map([file,'weapons/blade.json','weapons/polearm.json'].map(name=>[name,{hash:'a'.repeat(64),url:`/fixture/${name}`} ]));
   if(slotInput!==undefined)files.set('held/slots.json',{hash:'slots',url:'/fixture/slots'});
   const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),files,read});
-  const held=HeldClaims.fromProductSlots(product,declaration,file),blade=held.blade('blade'),polearm=held.polearm('polearm');
+  const held=HeldClaims.fromProductSlots(product,input,file),blade=held.blade('blade'),polearm=held.polearm('polearm');
   const bladePrepare=vi.spyOn(blade,'prepare').mockImplementation(()=>{events.push('blade');return Promise.resolve();});
   const polearmPrepare=vi.spyOn(polearm,'prepare').mockImplementation(()=>{events.push('polearm');return Promise.resolve();});
   vi.spyOn(blade,'profile').mockReturnValue(legacyDouble<ReturnType<typeof blade.profile>>({}));
@@ -160,5 +160,14 @@ test('a mismatched declared slot identity refuses before native source preparati
     await expect(prepareHeldClaimsEntry(f.ctx,declaration.id,{slots:'held/slots.json',library:file})).rejects.toThrow('identity differs');
     expect(f.events).toEqual(['slots']);expect(f.bladePrepare).not.toHaveBeenCalled();expect(f.polearmPrepare).not.toHaveBeenCalled();
     expect(()=>entryOwner(f.scope,'claims',declaration.id)).toThrow('Missing live entry owner');
+  }finally{f.parent.dispose();}
+});
+
+
+test('explicit spare pools defer only geometry while every original metadata/book boundary remains eager',async()=>{
+  const rows={...declaration,slots:declaration.slots.map(row=>row.kind==='polearm'?Object.assign(structuredClone(row),{geometry:'on-select'}):row)},f=fixture(undefined,rows);
+  try{await f.held.prepareSlotSources(f.ctx);expect(f.events).toEqual(['blade','polearm','book','packed:/assets/fixture/gear.bin']);
+    expect(f.polearmPrepare).toHaveBeenCalledExactlyOnceWith(f.product,{geometry:'on-select'});expect(f.bladePrepare).toHaveBeenCalledExactlyOnceWith(f.product);
+    expect(f.held.model('reward').id).toBe('fixture/reward');f.held.installPage(f.ctx);expect(f.weapon).toHaveBeenCalledOnce();
   }finally{f.parent.dispose();}
 });
