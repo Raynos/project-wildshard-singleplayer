@@ -21,11 +21,12 @@
  * def adds the rise on top of buildTerrain's field (nalati-grasslands.ts TERRAIN), and the one bake —
  * public/assets/baked/nalati-grasslands/terrain.bin and navmesh.bin — carries it.
  */
-import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
+import { terrainFieldPolicy } from '@wildshard/sdk/bake/terrain';
 import { Noise2D, smoothstep, clamp } from '@wildshard/sdk/noise';
 import * as layout from './layout';
 
 const { CAMP, PASTURE } = layout;
+const { half: CHUNK_HALF, roadWidth: ROAD_WIDTH } = terrainFieldPolicy();
 
 export function riverZAt(x: number): number {
   return 168 + 4 * Math.exp(-((x / 70) ** 2)) + 5 * Math.sin(x * 0.017) + 3 * Math.sin(x * 0.041 + 1.3) - 3 * Math.sin(1.3);

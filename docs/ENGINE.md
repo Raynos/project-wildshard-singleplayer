@@ -5002,6 +5002,11 @@ native JSON actor projection. ABI2, declared signal/field/channel names and
 operation references are checked by the defining parser before publication;
 no compiler, live actor or continuation is created. The finite author format
 selectors also retain the exact mounted-seat and client-riding validators.
+The bake terrain module exposes createTerrainField for the complete native
+author field and terrainFieldPolicy for its mandatory cell/entry-road
+dimensions. The bake forest module exposes forestDefaultTreeSpecs with the
+original readonly ordered traits and identity. These ports compile or select
+build metadata without installing a runtime terrain, forest or service.
 `arenaView.AuthorViewProgramRows` retains the complete mutable native view
 bank. `arenaView.arenaChainTell` and the `eliteEntryRows` fields and source/tell
 helpers retain native ordered columns and owner labels. Constructing metadata

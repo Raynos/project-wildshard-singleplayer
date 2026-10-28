@@ -1,6 +1,6 @@
 import { smoothstep } from '@wildshard/sdk/noise';
 import { Rng } from '@wildshard/sdk/random';
-import { TREE_SPECS } from '@wildshard/engine/world/forest/treeSpec';
+import { forestDefaultTreeSpecs } from '@wildshard/sdk/bake/forest';
 /**
  * Spruce — a Tian Shan spruce (Picea schrenkiana) for Nalati's gullies, in the painterly style (style B).
  *
@@ -32,6 +32,7 @@ import * as THREE from 'three';
  * scripts/bake-chunk.mjs plants the shard's forest with TREE_SPECS to bake the undergrowth decision log, and a
  * tree's trunk radius is the only variant number that log depends on.
  */
+const TREE_SPECS = forestDefaultTreeSpecs();
 export const SPRUCE_SPECS: readonly [{ readonly height: 15; readonly trunk: 0.42; readonly seed: 11; }, { readonly height: 12.5; readonly trunk: 0.34; readonly seed: 12; }, { readonly height: 18.5; readonly trunk: 0.5; readonly seed: 13; }, { readonly height: 10.5; readonly trunk: 0.27; readonly seed: 14; }] = [
   { height: 15, trunk: TREE_SPECS[0].trunk, seed: 11 },
   { height: 12.5, trunk: TREE_SPECS[1].trunk, seed: 12 },
