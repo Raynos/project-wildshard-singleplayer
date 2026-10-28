@@ -5,9 +5,10 @@
 Archived today: loading, iphone-downloads, grid-crossing, shared-waits, open-plots (hologram), mega-build, finish-line,
 NM pilot, remaster-open-plots, grid-ready, build-speed, custom-code-freeze (LD9 / LD10), tile-streaming (9be158bc79).
 
-**LIVE a6701db713** (14:26). The QA-fix release rides the first SHA containing 0681662319 (NR7 pins) with full CI + exact
-six-leg smoke green; CI 40776218534 on 288396674e contains it. Every red since 460 / 538 / ced / c408 is fixed. sp-ci-deploy's
-goal UI shows 'blocked' only as a stale flag (its tool can't set active); it is monitoring.
+**LIVE a6701db713** (14:26). **Release late (17:25), two reds block it:** 288396674e (FR2) breaks
+test/vite-boot-modules:169 (world.scenes gained ./tileContent; sp-o5 fixes forward), and 1575ab8de4 (hologram codec fix,
+cyan sheets gone) puts the 13 small open plots ~0.15 MB over phone-wire ceilings (sp-o4 raises them, approved). The release
+is the first SHA with both fixes, full CI and the exact six-leg smoke green (sp-ci-deploy).
 
 **Jake's QA 10-28 PASSED:** Night Market (G827), loading / M2 (G831), tiles / T10 (G832), DW phone cut B (G833).
 **Done today (Opus):** Far Reach islets (18aaab1583) + FR2 whole-cell ring (288396674e, G857 nothing past the cell), FR1 / FR4,
@@ -15,9 +16,9 @@ pier QF12, Nine title (f2e66fd723), NR2 (3cadfddf16), NR3 sky, NR5 n/r, NR7, NM 
 RM8.1e witness: half A parity; half B breaks 13 hologram open plots (cyan sheets; 6e9a4660dd Int16 positions).
 
 **Open Opus queue (G853 order):**
-- sp-o3: NR4 before / after captures (unblocks sp-x1's data fix), NR8 closing sheet, then the hologram codec fix.
-- sp-o5: FR3 Sunrest underside + darker keel, then the NR3 / NR6 / NR7 residuals from sp-o3's NR8 sheet.
-- sp-o4: Pine LUT removal (G854), then QF6's first-5 s post-reveal tail if cheap. QF10 not reproduced (Jake's playtest checks).
+- sp-o3: NR4 board + NR8 sheet done; Nine B-back gold sign (dim on Chromium) and wall pallor.
+- sp-o4: hologram codec fix 1575ab8de4 (RM8.1e), then the small-plot wire ceilings and its visual preview.
+- sp-o5: boot-modules red, FR3 Sunrest underside + darker keel, then the Nine brown facade windows (programShare lead).
 Driftwood keeps its clouds / planks (G855). B6 accepted miss at 69 (G856, sp-x2 marks). Damage: T6 D202, T7, D199, D201.
 
 **Rules (10-28):** G848 no visual work on Codex. G844 / G858 look commits land with a labelled golden-or-before vs after
