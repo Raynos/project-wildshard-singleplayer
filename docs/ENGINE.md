@@ -5014,6 +5014,10 @@ native JSON actor projection. ABI2, declared signal/field/channel names and
 operation references are checked by the defining parser before publication;
 no compiler, live actor or continuation is created. The finite author format
 selectors also retain the exact mounted-seat and client-riding validators.
+Finite author format identities include the native ground-record factory
+and complete forager continuation. Factory overloads and validator metadata
+retain exact identity. The rows module exposes AuthorDayClock as the complete
+native readonly schedule/selection contract, with no clock construction.
 The species module prepares speciesFieldReader from finite defining native
 field names, preserving strict selected-field grammar, complete inferred
 outputs, defaults and issue order. The interactions module exposes

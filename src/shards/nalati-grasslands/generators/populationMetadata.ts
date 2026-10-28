@@ -1,9 +1,10 @@
 import * as v from 'valibot';
-import { ForagerContinuation } from '@wildshard/format/ambientLife';
 import { nameBlob,type NamedBlob } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { namedJsonSchema, authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
 import rows from '../data/physicsRows.json' with {type:'json'};
+
+const ForagerContinuation: ReturnType<typeof authorFormatSchema<'ambientLife.ForagerContinuation'>> = authorFormatSchema('ambientLife.ForagerContinuation');
 
 /** Population metadata is admitted by the existing named JSON reader. The
  * authored canopy count is part of this file's schema, not a runtime profile. */

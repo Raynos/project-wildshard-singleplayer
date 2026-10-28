@@ -1,4 +1,5 @@
 import { RowsSchema as GameRowsSchema, parseRows as gameParseRows, type ShardRows as GameShardRows } from '@wildshard/format/rows';
+import type { DayClockRow } from '@wildshard/format/dayCycle';
 import { isJsonData as gameIsJsonData } from '@wildshard/format/json';
 import { parseItems as gameParseItems, type ShardItems as GameShardItems } from '@wildshard/format/items';
 import { parseClientChannels as gameParseClientChannels, type ClientChannelProgram as GameClientChannelProgram } from '@wildshard/format/clientChannels';
@@ -28,6 +29,9 @@ import { parseGraphArms } from '@wildshard/format/graphArmsRows';
 import { MountedLoadoutSchema } from '@wildshard/format/loadout';
 import { BowVariantSchema } from '@wildshard/format/bowVariantRows';
 import { parseHeldSlots, HeldArmsSchema } from '@wildshard/format/heldArms';
+
+/** Complete authored day clock, including readonly schedules and fixed/preset selections. */
+export type AuthorDayClock = DayClockRow;
 
 /** Admit the complete native mounted arsenal declaration before compiling its slot rows. */
 export function mountedLoadoutRows(input: unknown): v.InferOutput<typeof MountedLoadoutSchema> { return v.parse(MountedLoadoutSchema, input); }

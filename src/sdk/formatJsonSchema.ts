@@ -8,7 +8,7 @@ import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
 import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
 import { BinarySourceSchema } from '@wildshard/format/binarySource';
-import { NativeGroundFileSchema, nativeBodySchema, nativeColliderRecordSchema, type NativeColliderRecord, type NativeArrayStorage } from '@wildshard/format/nativePhysics';
+import { NativeGroundFileSchema, nativeBodySchema, nativeColliderRecordSchema, nativeGroundRecordSchema, type NativeColliderRecord, type NativeArrayStorage } from '@wildshard/format/nativePhysics';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { BowVariantSchema } from '@wildshard/format/bowVariantRows';
@@ -122,7 +122,7 @@ import { UiSchema } from '@wildshard/format/ui';
 import { ClientScriptsSchema } from '@wildshard/format/clientScripts';
 import { ClientChannelsSchema, ClientChannelProgramSchema, PrivateSceneSchema, WorldSceneSchema, NumericPoseSchema } from '@wildshard/format/clientChannels';
 
-import { ForestLifeSchema, AmbientFlockSchema, AmbientPerchesSchema } from '@wildshard/format/ambientLife';
+import { ForestLifeSchema, AmbientFlockSchema, AmbientPerchesSchema, ForagerContinuation } from '@wildshard/format/ambientLife';
 
 import { MemoryMeasurementSchema, RuntimeCostSchema, RegionalSimCostSchema } from '@wildshard/format/runtimeCost';
 import { RuntimeSchema, LegacyRuntimeSchema, ClientPlanRuntimeSchema } from '@wildshard/format/runtime';
@@ -660,6 +660,8 @@ export function composeNamedJsonSchema(composition: NamedJsonComposition): Reado
 
 /** Exact defining pure-format objects for checked author compositions. */
 interface AuthorFormatObjects {
+  readonly 'nativePhysics.nativeGroundRecordSchema': typeof nativeGroundRecordSchema;
+  readonly 'ambientLife.ForagerContinuation': typeof ForagerContinuation;
   readonly 'riding.ClientRidingSessionSchema': typeof ClientRidingSessionSchema;
   readonly 'mountedSpecimenRows.MountedSpecimenSeatSchema': typeof MountedSpecimenSeatSchema;
   readonly 'lootEconomy.ClaimedPickupSchema': typeof ClaimedPickupSchema;
@@ -710,6 +712,8 @@ interface AuthorFormatObjects {
   readonly 'nativePhysics.nativeColliderRecordSchema': typeof nativeColliderRecordSchema;
 }
 const authorFormats: AuthorFormatObjects = {
+  'nativePhysics.nativeGroundRecordSchema': nativeGroundRecordSchema,
+  'ambientLife.ForagerContinuation': ForagerContinuation,
   'riding.ClientRidingSessionSchema': ClientRidingSessionSchema,
   'mountedSpecimenRows.MountedSpecimenSeatSchema': MountedSpecimenSeatSchema,
   'lootEconomy.ClaimedPickupSchema': ClaimedPickupSchema,
