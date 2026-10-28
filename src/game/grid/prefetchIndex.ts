@@ -1,3 +1,4 @@
+import type {Scope} from '@wildshard/engine/app/scope';
 import * as v from 'valibot';
 import {pageScope} from '@wildshard/engine/app/resources';
 import {readOutputDownloadIndex,type OutputDownloadIndex} from '@wildshard/format/outputDownload';
@@ -14,7 +15,11 @@ const message=v.variant('kind',[
 
 /** A short-lived admission worker borrows the existing content-cache writer
  * through transfers. Page code never sees complete decoded product bodies. */
-export async function readPrefetchIndex(request:PrefetchIndexRequest,content:PrefetchIndexCache):Promise<OutputDownloadIndex|null> {
+export async function readPrefetchIndex(request:PrefetchIndexRequest,content:PrefetchIndexCache,owner:Scope=pageScope):Promise<OutputDownloadIndex|null> {
+  const live=():void=>{if(owner.disposed||owner.disposing)throw new DOMException('Prefetch index owner ended','AbortError');};
+  live();
+  const checked:PrefetchIndexCache={get:async key=>{live();const bytes=await content.get(key);live();return bytes;},
+    put:async(key,bytes,keep)=>{live();const stored=await content.put(key,bytes,keep);live();return stored;}};
   let worker:Worker;
   try {
     if(typeof Worker==='undefined')throw new Error('No Worker');
@@ -22,10 +27,11 @@ export async function readPrefetchIndex(request:PrefetchIndexRequest,content:Pre
   }catch {
     // Unsupported workers retain the original checked admission, not an
     // unchecked schedule. This fallback is also the renderer-free Node path.
-    return (await import('./prefetchIndexCore')).preparePrefetchIndex(request,content);
+    const index=await (await import('./prefetchIndexCore')).preparePrefetchIndex(request,checked);
+    live();return index;
   }
   let scope:ReturnType<typeof pageScope.child>;
-  try { scope=pageScope.child('prefetch-index'); }catch(error){worker.terminate();throw error;}
+  try { scope=owner.child('prefetch-index'); }catch(error){worker.terminate();throw error;}
   try {
     return await new Promise<OutputDownloadIndex|null>((resolve,reject)=>{
       let finished=false;
@@ -48,7 +54,7 @@ export async function readPrefetchIndex(request:PrefetchIndexRequest,content:Pre
         }
         const respond=async():Promise<void>=>{
           try {
-            const result=value.kind==='cache-get'?await content.get(value.hash):await content.put(value.hash,value.bytes,true);
+            const result=value.kind==='cache-get'?await checked.get(value.hash):await checked.put(value.hash,value.bytes,true);
             if(finished||scope.disposed)return;
             const transfer=result instanceof Uint8Array&&result.buffer instanceof ArrayBuffer?[result.buffer]:[];
             worker.postMessage({kind:'cache-result',id:value.id,ok:true,value:result},{transfer});

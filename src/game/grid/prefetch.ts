@@ -258,21 +258,27 @@ function everyProduct(): string[] {
 /** G727 / I9: the wire bytes "Download everything" still has to fetch: each product's files of this device's tier (I1's
  *  filter, as the prefetch reads them), counted once across products, less what the content cache already holds. The
  *  code bundle is not counted (a few MB beside the products; the worker warms it alongside). Null without a cache. */
-export async function remainingDownloadBytes(): Promise<number | null> {
+export async function remainingDownloadBytes(owner?: Scope): Promise<number | null> {
+  const live = (): void => { if (owner?.disposed === true || owner?.disposing === true) throw new DOMException('Offline estimate left view', 'AbortError'); };
+  live();
   if (typeof caches === 'undefined') return null;
   const tier = (await import('@wildshard/engine/core/tier')).TIER;
   prepareContentHash();
   const content = browserContentStore(caches), indexes = import.meta.env.DEV ? null : builtIndexHashes(), seen = new Set<string>();
   let bytes = 0;
   for (const slug of everyProduct()) {
+    live();
     const manifest = findTitleManifest(slug), descriptor = manifest?.shardfile ?? manifest?.gridShardfile;
     if (descriptor === undefined) continue;
-    const index = await readPrefetchIndex({ url: new URL(descriptor, location.href).href, indexHashes: indexes === null ? null : [...indexes], phone: tier === 'phone' }, content);
+    const index = await readPrefetchIndex({ url: new URL(descriptor, location.href).href, indexHashes: indexes === null ? null : [...indexes], phone: tier === 'phone' }, content, owner);
+    live();
     if (index === null) return null;
     for (const row of [...index.sections, ...index.schemas, ...index.files.map(file => ({ hash: file.hash, bytes: file.compressed }))]) {
       if (seen.has(row.hash)) continue;
       seen.add(row.hash);
-      if (!await content.holds(row.hash, row.bytes)) bytes += row.bytes;
+      live();
+      const held = await content.holds(row.hash, row.bytes); live();
+      if (!held) bytes += row.bytes;
     }
   }
   return bytes;

@@ -39,7 +39,7 @@ startPageServices();
 installTitleManifests(TITLE_MANIFESTS);
 // G727 / I9: Settings' "Download everything"; the prefetch loads only when the player opens or presses it
 installOfflineDownload({
-  size: async () => (await import('@wildshard/game/grid/prefetch')).remainingDownloadBytes(),
+  size: async owner => (await import('@wildshard/game/grid/prefetch')).remainingDownloadBytes(owner),
   start: async (owner, progress) => (await import('@wildshard/game/grid/prefetch')).downloadEverything(owner, progress),
 });
 persistHomeScreen();

@@ -1479,6 +1479,7 @@ Bows use manual hold/release draw on both devices; the automatic-shot action has
 |---|---|
 | `UiLayers`, `UiLayer`, `UiView`, `UiHandle` | `app.ui`: layers `'hud' · 'gameMenu' · 'menu' · 'modal' · 'error'`. Pushing a view gives it the one Escape / back handler and the pointer lock; z-order comes from the layer. `UiView.embedded` registers nested map/Debug placement and lifetime without blocking, receiving back, or inerting its ancestor menu |
 | `uiScope`, `mountUi` | a UI scope and mount helper for engine-side views |
+| `OfflineDownload`, `buildOfflineRow` | Installed offline-download port. `size(owner)` borrows a visible row scope; hiding or inerting its menu cancels speculative estimation and admission workers. An explicit `start(owner, progress)` keeps its independent download lifetime. |
 | `isDev`, `setDev`, `onDev` | the saved Developer switch, its current state and live subscription (unsubscribe returned). The game reveals hidden title cards through this switch. |
 | `hudSlots`, `HudBand`, `DiscSpot`, `TouchRelabel` | the one shared HUD. Bands `'band.1'` … `'band.6'`; disc spots `'r0' · 'r1' · 'r2' · 'r3' · 'aim' · 'up0' · 'lean-l' · 'lean-r' · 'edge-r' · 'edge-l' · 'lock' · 'jump'` |
 | `HudVerbs`, `VerbSlotOpts` | the scoped verbs on `ctx.hud` |

@@ -9,8 +9,8 @@ import { engineString } from '../strings';
 export type OfflineDownloadEnd = 'done' | 'quota' | 'stopped' | 'error';
 
 export interface OfflineDownload {
-  /** the wire bytes still to download for offline play (null: not known, e.g. no content cache) */
-  readonly size: () => Promise<number | null>;
+  /** The wire bytes still to download (null: unknown). Stop admission when the visible row owner retires. */
+  readonly size: (owner: Scope) => Promise<number | null>;
   /** download all of it; `progress(done, total)` in wire bytes as it goes; resolves when it ends. `owner` paces it. */
   readonly start: (owner: Scope, progress: (done: number, total: number) => void) => Promise<OfflineDownloadEnd>;
 }
@@ -28,16 +28,42 @@ function offlineRow(scope: Scope, port: OfflineDownload): HTMLElement & { refres
   const label = document.createElement('div'); label.className = 'ws-gmenu-label'; label.textContent = engineString('s_offline_title');
   const note = document.createElement('div'); note.className = 'ws-gmenu-note'; note.textContent = engineString('s_offline_note');
   const status = document.createElement('div'); status.className = 'ws-gmenu-note'; status.setAttribute('role', 'status');
-  let busy = false;
+  let busy = false, visible = false, intersecting = false, sizing: Scope | undefined;
   const go = document.createElement('button'); go.type = 'button'; go.className = 'ws-gmenu-btn';
+  go.disabled = true; go.textContent = engineString('s_offline_sizing');
+  const cancelSize = (): void => { const pending = sizing; sizing = undefined; pending?.dispose(); };
   const size = (): void => {
+    if (!visible || busy || sizing !== undefined || scope.disposed || scope.disposing) return;
+    const pending = scope.child('offline-size'); sizing = pending;
     go.disabled = true; go.textContent = engineString('s_offline_sizing');
-    void port.size().then((bytes) => {
-      if (busy) return undefined;
+    void Promise.resolve().then(() => {
+      if (pending.disposed || pending.disposing) throw new DOMException('Offline estimate left view', 'AbortError');
+      return port.size(pending);
+    }).then((bytes) => {
+      if (busy || pending.disposed || sizing !== pending) return undefined;
       go.textContent = bytes === 0 ? engineString('s_offline_ready') : bytes === null ? engineString('s_offline_unknown') : engineString('s_offline_download', [megabytes(bytes)]);
       go.disabled = bytes === 0; return undefined;
-    }).catch(() => { if (!busy) { go.textContent = engineString('s_offline_unknown'); go.disabled = false; } });
+    }).catch(() => {
+      if (!busy && !pending.disposed && sizing === pending) { go.textContent = engineString('s_offline_unknown'); go.disabled = false; }
+    }).finally(() => { if (sizing === pending) sizing = undefined; pending.dispose(); });
   };
+  // A hidden Settings/save panel must not admit every product just to label
+  // a button. Its estimate yields ownership as soon as the row leaves view.
+  const syncVisibility = (): void => {
+    visible = intersecting && box.closest('[inert], [hidden]') === null;
+    if (visible) size(); else cancelSize();
+  };
+  const observer = new IntersectionObserver(entries => {
+    for (const entry of entries) if (entry.target === box) {
+      intersecting = entry.isIntersecting; syncVisibility();
+    }
+  });
+  // Menu shells fade out without leaving the viewport. Inert retirement must
+  // cancel their work even when their intersection rectangle never changes.
+  const menus = new MutationObserver(syncVisibility);
+  menus.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['inert', 'hidden'] });
+  observer.observe(box);
+  scope.onDispose(() => { observer.disconnect(); menus.disconnect(); cancelSize(); });
   scope.listen(go, 'click', () => {
     if (busy) return;
     busy = true; go.disabled = true;
@@ -46,7 +72,6 @@ function offlineRow(scope: Scope, port: OfflineDownload): HTMLElement & { refres
       .catch(() => { status.textContent = engineString('s_offline_stopped'); })
       .finally(() => { busy = false; size(); });
   });
-  size();
   box.append(label, note, go, status);
   return Object.assign(box, { refresh: (): void => { if (!busy) size(); } });
 }
