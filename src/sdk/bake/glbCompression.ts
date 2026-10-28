@@ -76,11 +76,12 @@ export function compressGlb(input: Uint8Array): Uint8Array {
 /** Re-encode authored channels with the native separate-layout meshopt writer.
  * No reorder, quantization transform or filter is applied. Deduplication is explicit. */
 export async function meshoptGlb(input: Uint8Array, options: { readonly deduplicate?: boolean } = {}): Promise<Uint8Array> {
+  const bytes = Uint8Array.from(input), deduplicate = options.deduplicate === true;
   await Promise.all([MeshoptEncoder.ready, MeshoptDecoder.ready]);
   const io = new WebIO().setVertexLayout(VertexLayout.SEPARATE).registerExtensions([EXTMeshoptCompression])
     .registerDependencies({ 'meshopt.encoder': MeshoptEncoder, 'meshopt.decoder': MeshoptDecoder });
-  const document = await io.readBinary(input);
-  if (options.deduplicate === true) await document.transform(dedup());
+  const document = await io.readBinary(bytes);
+  if (deduplicate) await document.transform(dedup());
   document.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({ method: EXTMeshoptCompression.EncoderMethod.QUANTIZE });
   return io.writeBinary(document);
 }
