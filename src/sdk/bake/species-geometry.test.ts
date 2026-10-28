@@ -1,11 +1,18 @@
-import { expect, test } from 'vitest';
+import { expect, expectTypeOf, test } from 'vitest';
 import { SphereGeometry, type BufferGeometry } from 'three';
 import { Rng } from '../random';
 import { Rng as NativeRng } from '@wildshard/engine/core/rng';
 import { loft as nativeLoft, skinPlain as nativeSkin, S as nativeStation, isLowPoly } from '@wildshard/engine/entities/species/loft';
 import { BEAR_LOOK } from '@wildshard/game/systems/species/view/bear';
 import { BOAR_LOOK } from '@wildshard/game/systems/species/view/boar';
-import { bakeCommonBody, commonBodyVariants, loft, skinPlain, S, withSpeciesGeometry, type Paint } from './species';
+import type { AnimalDims as NativeDims, AnimalSpecies as NativeBody, BoneDef as NativeBone } from '@wildshard/engine/entities/species/registry';
+import { bakeCommonBody, commonBodyVariants, loft, skinPlain, S, withSpeciesGeometry, type AnimalDims, type AnimalSpecies, type BoneDef, type Paint } from './species';
+
+test('owned species geometry types retain the complete native data contract', () => {
+  expectTypeOf<AnimalDims>().toEqualTypeOf<NativeDims>();
+  expectTypeOf<AnimalSpecies>().toEqualTypeOf<NativeBody>();
+  expectTypeOf<BoneDef>().toEqualTypeOf<NativeBone>();
+});
 
 function expectGeometry(actual: BufferGeometry, expected: BufferGeometry): void {
   expect(actual.index?.array).toEqual(expected.index?.array);

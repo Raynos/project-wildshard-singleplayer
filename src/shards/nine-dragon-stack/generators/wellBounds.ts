@@ -2,7 +2,7 @@
 // region builders lay it out at build time, baked: ./layoutBake.ts): the shaft, its run north and the far run, the south
 // rim, the gondola's cable; the rim's colliders and floor (./colliders.ts), and the two records the layout fills that the
 // page keeps — the crossings' colliders and the fog sheets' heights.
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
 import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 
 const { WELL, Y0 } = NINE_LAYOUT_PLAN;

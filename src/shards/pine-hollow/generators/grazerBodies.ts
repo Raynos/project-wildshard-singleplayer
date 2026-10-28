@@ -1,4 +1,4 @@
-import type { AnimalDims, AnimalSpecies, BoneDef } from '@wildshard/engine/entities/species/registry';
+import type { AnimalDims, AnimalSpecies, BoneDef } from '@wildshard/sdk/bake/species';
 
 /**
  * The deer's and the elk's bodies as data (SHARD-PLATFORM, sp-o194): Pine draws both only on their rigged hulls

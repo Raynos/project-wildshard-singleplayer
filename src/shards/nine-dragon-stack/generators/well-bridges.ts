@@ -27,7 +27,7 @@ import { WORDS } from './words';
 import { stand } from './well-galleries';
 import { NEON, clamp } from './util';
 import { Rng } from '@wildshard/sdk/random';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
 
 const SURF = paint.surfaces;
 
