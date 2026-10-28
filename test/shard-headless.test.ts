@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { QuestState } from '../src/engine/quest/core';
 import { Flags } from '../src/engine/world/interact/flags';
 import { afterAll, expect, it, vi } from 'vitest';
-import { parseShardfile } from '../src/format/shardSchema';
+import { parseShardfileField } from '../src/sdk/shardfile';
 import { decodeSimSnapshot } from '../src/engine/sim/snapshot';
 import { HeadlessSimulation } from '../src/sdk/headless';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
@@ -12,8 +12,8 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { createNativeProofWorker } from './fixtures/headless-worker';
-// Admit the same verified products the native scenarios run. Authored-world
-// fixtures are deliberately loaded only after all native workers are disposed.
+// Admit the same verified products the native scenarios run. Quest-source
+// declarations are checked separately without constructing whole author worlds.
 const cases = await Promise.all([
   '_template', 'pastel-plain', 'driftwood-isle', 'pine-hollow',
   'nalati-grasslands', 'nine-dragon-stack', 'sunscar-dunes', 'far-reach',
@@ -69,24 +69,26 @@ for (const { slug, product } of cases) for (const row of product.shardfile.quest
   } finally { quest.dispose(); }
 });
 
-// Keep the independent source oracle, but never overlap its compiler/Wasm world
-// construction with the native workers above. Compare complete inventories so a
-// producer cannot silently drop a quest (or its flags, triggers or dialogue).
+// Keep the independent complete source oracle without baking geometry, textures
+// or Wasm merely to read quest declarations. These are the same quest leaves and
+// achievement compositions the eight original product constructors consume.
 it('admitted quest inventories match the original source declarations', async () => {
-  const [template, pastel, driftwood, pine, nalati, nine, signal, skyRows, navigation, movers] = await Promise.all([
-    import('./fixtures/templateSource'), import('./fixtures/pastelSource'),
-    import('./fixtures/driftwood-product-source'), import('./fixtures/pine-program'),
-    import('./fixtures/nalati-product-source'), import('./fixtures/nine-product-inputs'),
-    import('./fixtures/sunscar-source-program'), import('../src/shards/far-reach/generators/product'),
-    import('./fixtures/sky-navigation'), import('./fixtures/sky-movers'),
+  const [template, pastel, driftwood, driftwoodFeats, pine, pineFeats, nalati, nalatiFeats, signal, sky] = await Promise.all([
+    import('../src/shards/_template/data/quests.json'), import('../src/shards/pastel-plain/data/quests.json'),
+    import('../src/shards/driftwood-isle/generators/quests'), import('../src/shards/driftwood-isle/generators/questInventory'),
+    import('../src/shards/pine-hollow/generators/quests'), import('../src/shards/pine-hollow/generators/questInventory'),
+    import('../src/shards/nalati-grasslands/data/questContent.json'), import('../src/shards/nalati-grasslands/data/feats.json'),
+    import('../src/shards/sunscar-dunes/generators/quests'), import('../src/shards/far-reach/generators/quests'),
   ]);
   const expected = {
-    '_template': template.TEMPLATE_SOURCE, 'pastel-plain': pastel.PASTEL_SOURCE,
-    'driftwood-isle': driftwood.default, 'pine-hollow': pine.PINE,
-    'nalati-grasslands': nalati.default, 'nine-dragon-stack': nine.default,
-    'sunscar-dunes': signal.source,
-    'far-reach': skyRows.skyProductRows(navigation.originalSkyNavigation(), movers.originalSkyMovers()),
+    '_template': template.default, 'pastel-plain': pastel.default,
+    'driftwood-isle': { ...driftwood.DRIFTWOOD_QUESTS, achievements: driftwoodFeats.DRIFTWOOD_FEATS },
+    'pine-hollow': { ...pine.PINE_QUESTS, achievements: pineFeats.PINE_FEATS },
+    'nalati-grasslands': { ...nalati.default.quests, achievements: nalatiFeats.default },
+    // Nine's product keeps emptyShardfile's unmodified quest default.
+    'nine-dragon-stack': undefined,
+    'sunscar-dunes': signal.SIGNAL_QUESTS, 'far-reach': sky.SKY_QUESTS,
   };
   expect(Object.fromEntries(cases.map(({ slug, product }) => [slug, product.shardfile.quests])))
-    .toStrictEqual(Object.fromEntries(Object.entries(expected).map(([slug, input]) => [slug, parseShardfile(input).quests])));
+    .toStrictEqual(Object.fromEntries(Object.entries(expected).map(([slug, input]) => [slug, parseShardfileField('quests', input)])));
 }, 120_000);
