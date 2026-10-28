@@ -2168,7 +2168,7 @@ function kurganFabric(supplyCarving: (variant: number, seed: number) => THREE.Bu
         ...this.statues.map((mesh, i): [string, THREE.BufferGeometry] => [`dungeon:statue:${String(i)}`, mesh.geometry]),
         ['dungeon:heap', this.heap.geometry], ['dungeon:sand', this.sandMesh.geometry], ...fxFabric()];
     }
-    private *chamberSteps(kit: PaintKit, rng: Rng): Generator<void, void> {
+    private *chamberSteps(kit: PaintKit, rng: PaintKit['rng']): Generator<void, void> {
       // ── floor: long larch boards, dusty toward the walls ──
       for (let i = 0; i < 40; i++) {
         const z = -CH + 0.25 + i * 0.5;
@@ -2302,7 +2302,7 @@ function kurganFabric(supplyCarving: (variant: number, seed: number) => THREE.Bu
       for (const f of FALLEN) kit.add(pole(v3(f.a.x, f.r, f.a.z), v3(f.b.x, f.r * 0.95, f.b.z), f.r, f.r * 0.9, 10), chamberColours.larchOld, { brush: 0.14 });
     }
 
-    private buildDromos(kit: PaintKit, rng: Rng): void {
+    private buildDromos(kit: PaintKit, rng: PaintKit['rng']): void {
       const z0 = CH + 0.2, z1 = DROMOS_END;
       for (let i = 0; i < 7; i++) {
         const x = -DW + 0.22 + i * 0.43;
@@ -2349,11 +2349,11 @@ function kurganFabric(supplyCarving: (variant: number, seed: number) => THREE.Bu
       }
     }
 
-    private goldBowl(kit: PaintKit, rng: Rng, x: number, z: number, r: number, y = 0): void {
+    private goldBowl(kit: PaintKit, rng: PaintKit['rng'], x: number, z: number, r: number, y = 0): void {
       kit.add(lathe([[0.0, 0.0], [r * 0.55, 0.0], [r * 0.9, r * 0.25], [r, r * 0.6], [r * 0.93, r * 0.62], [r * 0.82, r * 0.3], [0.0, r * 0.12]], 14), rng.next() < 0.7 ? chamberColours.gold : chamberColours.goldDark, { matrix: M(x, y, z, rng.range(0, 6)), brush: 0.18 });
     }
 
-    private buildGraveGoods(kit: PaintKit, rng: Rng): void {
+    private buildGraveGoods(kit: PaintKit, rng: PaintKit['rng']): void {
       const G = kit;
       const nearWall = (): [number, number] => {
         const side = rng.int(0, 3), t = rng.range(-CH + 1.2, CH - 1.2), d = rng.range(0.7, 1.9);
@@ -2417,7 +2417,7 @@ function kurganFabric(supplyCarving: (variant: number, seed: number) => THREE.Bu
     }
 
     /** the pieces that move or come and go: the coffin lid, the four niche balbals, the heap of plaques */
-    *movableSteps(mat: THREE.MeshBasicMaterial, rng: Rng): Generator<void, void> {
+    *movableSteps(mat: THREE.MeshBasicMaterial, rng: PaintKit['rng']): Generator<void, void> {
       {
         const kit = new PaintKit(0x11d);
         kit.add(new THREE.BoxGeometry(COFFIN.wid + 0.14, 0.18, COFFIN.len + 0.14, 2, 1, 40), (p, n) => (n.y > 0.5 && horseMask(p.z / COFFIN.len * 3 % 1 + 0.5, p.x / COFFIN.wid + 0.5) ? chamberColours.larchOld : chamberColours.larch), { flat: true, brush: 0.1 });

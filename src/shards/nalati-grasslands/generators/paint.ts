@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type materials from '../data/campMaterials.json';
 import { Noise2D, smoothstep } from '@wildshard/sdk/noise';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 import { bakeGeometryBoundsSteps as geometryBoundsSteps } from '@wildshard/sdk/bake/geometryBounds';
 import { voxelAO, aoTint, hemisphere } from '@wildshard/engine/world/voxelAO';
 
