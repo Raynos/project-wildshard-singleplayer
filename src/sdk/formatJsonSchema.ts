@@ -57,7 +57,7 @@ import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, Sp
 import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema, QuestPageTalksSchema } from '@wildshard/format/npcs';
 import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema, HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
-import { finite, strictObject, object, looseObject, tuple, array, literal as literalSchema, parse, pipe, check as sourceCheck, number, string, boolean, unknown, null as nullSchema, integer, minValue, maxValue, minLength, maxLength, startsWith, length, picklist, record, nullable, exactOptional, safeInteger, regex as sourceRegex, maxEntries, union, variant, assert, is as sourceIs, type VariantOptions, type GenericSchema, type InferInput, type InferOutput } from 'valibot';
+import { finite, strictObject, object, looseObject, tuple, tupleWithRest, optional, array, literal as literalSchema, parse, pipe, check as sourceCheck, number, string, boolean, unknown, null as nullSchema, integer, minValue, maxValue, minLength, maxLength, startsWith, length, picklist, record, nullable, exactOptional, safeInteger, regex as sourceRegex, maxEntries, union, variant, assert, is as sourceIs, type VariantOptions, type GenericSchema, type InferInput, type InferOutput } from 'valibot';
 import { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import { EdgeProfileSchema, EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { PlumbingSchema } from '@wildshard/format/plumbing';
@@ -645,17 +645,20 @@ export type NamedJsonComposition = string | GenericSchema
   | { readonly kind: 'array'; readonly item: NamedJsonComposition; readonly min?: number; readonly max?: number; readonly length?: number }
   | { readonly kind: 'object'; readonly entries: Readonly<Record<string, NamedJsonComposition>>; readonly mode?: 'strict' | 'strip' | 'loose' }
   | { readonly kind: 'tuple'; readonly items: readonly NamedJsonComposition[] }
+  | { readonly kind: 'tuple-rest'; readonly items: readonly NamedJsonComposition[]; readonly rest: NamedJsonComposition }
   | { readonly kind: 'record'; readonly key: { readonly kind: 'string'; readonly min?: number; readonly max?: number; readonly startsWith?: string; readonly regex?: RegExp }; readonly value: NamedJsonComposition; readonly maxEntries?: number }
   | { readonly kind: 'union'; readonly options: readonly NamedJsonComposition[] }
   | { readonly kind: 'variant'; readonly key: string; readonly options: readonly NamedJsonComposition[] }
-  | { readonly kind: 'nullable' | 'exact-optional'; readonly item: NamedJsonComposition };
+  | { readonly kind: 'nullable' | 'exact-optional'; readonly item: NamedJsonComposition }
+  | { readonly kind: 'optional'; readonly item: NamedJsonComposition; readonly default?: object | string | number | boolean | null };
 
-type OptionalCompositionKeys<E extends Readonly<Record<string, NamedJsonComposition>>> = {
-  [K in keyof E]: E[K] extends { readonly kind: 'exact-optional' } ? K : never
+type OptionalCompositionKeys<E extends Readonly<Record<string, NamedJsonComposition>>, M extends 'input' | 'output'> = {
+  [K in keyof E]: E[K] extends { readonly kind: 'exact-optional' } ? K
+    : E[K] extends { readonly kind: 'optional' } ? M extends 'input' ? K : E[K] extends { readonly default: unknown } ? never : K : never
 }[keyof E];
 type CompositionObjectValue<E extends Readonly<Record<string, NamedJsonComposition>>, M extends 'input' | 'output'> = {
-  -readonly [K in Exclude<keyof E, OptionalCompositionKeys<E>>]: NamedRowValue<E[K], M>
-} & { -readonly [K in OptionalCompositionKeys<E>]?: E[K] extends { readonly item: infer I extends NamedJsonComposition } ? NamedRowValue<I, M> : never };
+  -readonly [K in Exclude<keyof E, OptionalCompositionKeys<E, M>>]: NamedRowValue<E[K], M>
+} & { -readonly [K in OptionalCompositionKeys<E, M>]?: E[K] extends { readonly kind: 'exact-optional'; readonly item: infer I extends NamedJsonComposition } ? NamedRowValue<I, M> : NamedRowValue<E[K], M> };
 type FlattenCompositionObject<T> = { [K in keyof T]: T[K] };
 
 /** Mutable native output, retaining tuple lengths, exact optionality and literal
@@ -670,11 +673,13 @@ export type NamedRowValue<C extends NamedJsonComposition, M extends 'input' | 'o
   : C extends { readonly kind: 'picklist'; readonly values: readonly (infer L)[] } ? L
   : C extends { readonly kind: 'array'; readonly item: infer I extends NamedJsonComposition } ? NamedRowValue<I, M>[]
   : C extends { readonly kind: 'tuple'; readonly items: infer I extends readonly NamedJsonComposition[] } ? { -readonly [K in keyof I]: NamedRowValue<I[K], M> }
+  : C extends { readonly kind: 'tuple-rest'; readonly items: infer I extends readonly NamedJsonComposition[]; readonly rest: infer R extends NamedJsonComposition } ? [...{ -readonly [K in keyof I]: NamedRowValue<I[K], M> }, ...NamedRowValue<R, M>[]]
   : C extends { readonly kind: 'object'; readonly entries: infer E extends Readonly<Record<string, NamedJsonComposition>> } ? C extends { readonly mode: 'loose' } ? FlattenCompositionObject<CompositionObjectValue<E, M>> & Record<string, unknown> : FlattenCompositionObject<CompositionObjectValue<E, M>>
   : C extends { readonly kind: 'record'; readonly value: infer V extends NamedJsonComposition } ? Record<string, NamedRowValue<V, M>>
   : C extends { readonly kind: 'union' | 'variant'; readonly options: infer O extends readonly NamedJsonComposition[] } ? NamedRowValue<O[number], M>
   : C extends { readonly kind: 'nullable'; readonly item: infer I extends NamedJsonComposition } ? NamedRowValue<I, M> | null
   : C extends { readonly kind: 'exact-optional'; readonly item: infer I extends NamedJsonComposition } ? NamedRowValue<I, M> | undefined
+  : C extends { readonly kind: 'optional'; readonly item: infer I extends NamedJsonComposition } ? NamedRowValue<I, M> | (M extends 'output' ? C extends { readonly default: unknown } ? never : undefined : undefined)
   : unknown;
 
 /** Original assertion input, including native leaves that transform on parse. */
@@ -722,6 +727,7 @@ function resolveNamedComposition(node: NamedJsonComposition): GenericSchema {
       return schema;
     }
     case 'tuple': return tuple(node.items.map(resolveNamedComposition));
+    case 'tuple-rest': return tupleWithRest(node.items.map(resolveNamedComposition), resolveNamedComposition(node.rest));
     case 'object': {
       const entries = Object.fromEntries(Object.entries(node.entries).map(([name, item]) => [name, resolveNamedComposition(item)]));
       return node.mode === 'strip' ? object(entries) : node.mode === 'loose' ? looseObject(entries) : strictObject(entries);
@@ -734,6 +740,7 @@ function resolveNamedComposition(node: NamedJsonComposition): GenericSchema {
     case 'variant': return variant(node.key, node.options.map(resolveNamedComposition) as VariantOptions<string>);
     case 'nullable': return nullable(resolveNamedComposition(node.item));
     case 'exact-optional': return exactOptional(resolveNamedComposition(node.item));
+    case 'optional': return optional(resolveNamedComposition(node.item), node.default);
     default: throw new Error('Unknown named row composition');
   }
 }
@@ -742,7 +749,7 @@ function resolveNamedComposition(node: NamedJsonComposition): GenericSchema {
  * wire schema from that same grammar. Custom checks stay author-side; asking
  * for their wire schema still refuses unless the defining bridge knows them. */
 export interface NamedRows<T = unknown, I = T> {
-  readonly schema: GenericSchema<unknown, T>;
+  readonly schema: GenericSchema<I, T>;
   readonly jsonSchema: Readonly<Record<string, unknown>>;
   readonly parse: (input: unknown) => T;
   /** Validate and retain the original object, including unknown stripped fields. */

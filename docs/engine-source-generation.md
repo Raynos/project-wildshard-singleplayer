@@ -197,3 +197,11 @@ and native leaves retain their definitions. Source refinements execute after
 the full shape with their original message; their wire conversion still
 refuses unless the defining converter knows the check. No input-derived
 schema, runtime service or alternate validator is introduced.
+
+Named source contracts also accept `tuple-rest` (`items`, `rest`) and
+`optional` (`item`, optional data `default`) descriptors. Tuple prefixes,
+rest values and nested defaults use native admission and conversion.
+Defaulted fields remain optional in `NamedRowInput` and required in parsed
+output; exact optionals retain their explicit-undefined policy. Lending a
+contract's `schema` to a parent preserves separate transformed-leaf input
+and output types, so identity admission never claims a parsed value.
