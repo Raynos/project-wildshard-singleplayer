@@ -25,7 +25,8 @@ const versionSchema = v.object({ build: v.string() });
 const stateCode = 'window.__wildshard.shard.grid.state()';
 const readyCode = 'window.__wildshard?.shard?.grid?.state().live?.live?.gameplayReady === true';
 const arg = (key: string): string | undefined => process.argv.find(value => value.startsWith(`--${key}=`))?.slice(key.length + 3);
-const base = arg('base'), pin = arg('pin');
+const base = arg('base'), pin = arg('pin'), network = arg('network') ?? 'local';
+if (!['local', 'fast4g-crossing'].includes(network)) throw new Error('Unknown entry crawl network');
 if (base === undefined || pin === undefined || !/^[a-f0-9]{40}$/u.test(pin)) throw new Error('Requires --base and --pin=<landed full SHA>');
 const origin = new URL(base);
 if (!['http:', 'https:'].includes(origin.protocol)) throw new Error('HTTP preview required');
@@ -95,6 +96,8 @@ try {
           instance: home.instance, slug: home.slug, catalogue: catalogueId, at: Date.now(), reason: 'reload',
           road: { x: home.cell[0] * declared.pitch + declared.pitch / 2 + 3.6, z: home.cell[1] * declared.pitch, yaw: 0 } } });
         const page = await context.newPage(), errors: string[] = [];
+        const cdp = await context.newCDPSession(page);
+        if (network === 'fast4g-crossing') await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
         page.on('pageerror', error => { errors.push(error.stack ?? error.message); });
         context.on('request', request => {
           const url = new URL(request.url());
@@ -105,6 +108,10 @@ try {
         await openGrid(page, false);
         const state = await page.evaluate(stateCode) as FloorGridState;
         if (state.home !== home.instance || state.live.live.residents.includes(cell.instance)) throw new Error('Crawl target is not a cold entry');
+        if (network === 'fast4g-crossing') {
+          await cdp.send('Network.enable');
+          await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 150, downloadThroughput: 9e6 / 8, uploadThroughput: 1.5e6 / 8 });
+        }
         const identity = await page.evaluate(gridFloorDocumentIdentity), route = floorGridEntryRoute(gridFloorPlans(state, 'cell', { cell: cell.instance, roadApproach: true }), cell.instance);
         for (const plan of [...route.setup, route.entry]) {
           const live = await page.evaluate(stateCode) as FloorGridState, resolved = await gridFloorDeclaredPlan(page, live, plan);
@@ -121,7 +128,7 @@ try {
         const hold = spansForEntry[0]; if (hold === undefined) throw new Error('Entry span missing');
         const urls = entryDemandUrls(cell.slug, source, demands.filter(row => row.at >= timeOrigin + hold.startTime && row.at <= timeOrigin + hold.startTime + hold.duration));
         for (const url of urls) await read(url);
-        console.log(`${cell.instance}/${tier}: ${urls.length} verified entry bodies`);
+        console.log(JSON.stringify({ region: cell.instance, tier, pin, network, complete: true, errors, heldMs: hold.duration, files: urls.length }));
       } finally { await context.close(); }
     },
   });
