@@ -60,7 +60,7 @@ import { findShard } from '../shard/registry';
 import { gridPostCosts, gridShardfileProduct, prioritizeGridProduct, type GridProductMetadata } from './products';
 import { preparationAdmission, type GridAdmissionMetadata } from './preparationAdmission';
 import { gridPostPairRefusal } from './postPairs';
-import { postStackCost } from '@wildshard/format/postStack';
+import {productPostCost} from '../shardfile/productCost';
 import { gridRecovery, type GridRecoveryReason, type GridRecoveryRecord } from './recovery';
 import { RoadRecovery, onRoad, type RoadPoint, type RoadRecoveryCell } from './roadRecovery';
 import { GridCellWaitingError } from './refusal';
@@ -651,7 +651,7 @@ export class LiveGridSession {
     // SF59: the original metadata admission owns the adjacent post-stack check.
     // Rehydration verifies input bytes without moving that policy check to each visit.
     if (metadata) {
-      const costs = gridPostCosts(this.ports.allocator), own = postStackCost(source, (hash) => assets.get(hash)).cost;
+      const costs = gridPostCosts(this.ports.allocator), own = productPostCost(source, (hash) => assets.get(hash));
       const pair = gridPostPairRefusal(this.ports.assembly, cell, own, (slug) => costs.get(slug));
       if (pair !== null) throw new Error(pair);
     }

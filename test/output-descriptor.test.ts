@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Device-cost source fixture uses one tracked bounded KTX2 file.
 import { readFileSync } from 'node:fs';
 import { parseKtx2, ktx2DeviceCosts, ktx2DeviceGpu } from '../src/format/ktx2Cost';
-import { runtimeOnlyProductFiles, deviceLibraryCostPaced, productResidentBytes, productResidentBytesSteps } from '../src/game/shardfile/productCost';
+import { runtimeOnlyProductFiles, deviceLibraryCostPaced, productResidentBytes, productResidentBytesSteps, productPostCost } from '../src/game/shardfile/productCost';
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson as canonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
@@ -1286,12 +1286,15 @@ test('native first-party loading has no visited fallback, digest or client admis
 test('built product residency is the emitted value without another source walk',async()=>{
   const f=fixture(),expected=productResidentBytes(f.source);
   const previous=Object.getOwnPropertyDescriptor(globalThis,'__SHARDFILE_VERDICTS__');
-  Object.defineProperty(globalThis,'__SHARDFILE_VERDICTS__',{configurable:true,value:[{sourceHash:f.index.build.sourceHash,residentBytes:expected}]});
+  const postCost={passes:1,instructions:7,inputs:{colour:true,depth:false,normal:false}};
+  Object.defineProperty(globalThis,'__SHARDFILE_VERDICTS__',{configurable:true,value:[{sourceHash:f.index.build.sourceHash,residentBytes:expected,postCost}]});
   try{
     const source=await resolveOutputDescriptor(f.index,{firstParty:true,offline:false,hash:()=>{throw new Error('No client hash');},read:()=>{throw new Error('No checked fallback');},
       built:{indexHash:'compiled',read:path=>{const bytes=f.wires.get(path);if(bytes===undefined)throw new Error('Missing section');return Promise.resolve(bytes);}}});
     if(!isBuildValidatedOutput(source))throw new Error('Missing built source');
     expect(productResidentBytes(source)).toBe(expected);
+    expect(productPostCost(source,()=>{throw new Error('No entry-time graph validation');})).toStrictEqual(postCost);
     const steps=productResidentBytesSteps(source,1);expect(steps.next()).toEqual({done:true,value:expected});
   }finally{if(previous===undefined)Reflect.deleteProperty(globalThis,'__SHARDFILE_VERDICTS__');else Object.defineProperty(globalThis,'__SHARDFILE_VERDICTS__',previous);}
 });
+

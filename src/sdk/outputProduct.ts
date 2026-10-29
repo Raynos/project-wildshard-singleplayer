@@ -3,6 +3,7 @@ import { controlFileHashes, playLibrarySteps } from '@wildshard/format/admission
 import { entryFileSteps } from '@wildshard/format/tierSelection';
 import { HEADLESS_CONTEXT_SECTIONS } from './headlessSections';
 import {publishedSourceResidency} from '@wildshard/format/sourceResidency';
+import {postStackCost} from '@wildshard/format/postStack';
 /** Author-only format-2 emission and on-disk inventory validation. */
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI owns its explicit product output directory.
 import { existsSync, lstatSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -226,7 +227,7 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   const published=validateOutputProduct(destination);
   const cost = preflightDeclaredCosts(source,offlineMemoryAdmission('warn')).worst;
   const discovery = options.discovery === undefined ? undefined : parseDiscoveryValues(options.discovery);
-  put(destination,'validation.json',jsonBytes({revision:index.build.validator,sourceHash:hashImmutableBytes(validationSourceBytes(source)),indexHash:hashImmutableBytes(jsonBytes(index)),worst:cost,residentBytes:publishedSourceResidency(published.shard),gridReady:structuralGridEvidence(source),
+  put(destination,'validation.json',jsonBytes({revision:index.build.validator,sourceHash:hashImmutableBytes(validationSourceBytes(source)),indexHash:hashImmutableBytes(jsonBytes(index)),worst:cost,residentBytes:publishedSourceResidency(published.shard),postCost:postStackCost(published.shard,hash=>published.assets.get(hash)).cost,gridReady:structuralGridEvidence(source),
     ...(discovery === undefined ? {} : { discovery: { hash: hashImmutableBytes(jsonBytes(discovery)), values: discovery } }) }));
   return index;
 }

@@ -1,4 +1,5 @@
 import type { worstContentCost } from './budget';
+import type {PostStackCost} from './postStack';
 
 declare const __SHARDFILE_VALIDATOR__: string;
 declare const __SHARDFILE_VERDICTS__: unknown;
@@ -14,6 +15,20 @@ export function builtProductResidency(sourceHash:string):number|undefined{
   for(const item of rows){
     const row:unknown=item;
     if(typeof row==='object'&&row!==null&&'sourceHash' in row&&row.sourceHash===sourceHash&&'residentBytes' in row&&typeof row.residentBytes==='number')return row.residentBytes;
+  }
+  return undefined;
+}
+/** Static post cost is validated with the published graph bytes, never recosted at entry. */
+export function builtProductPostCost(sourceHash:string):PostStackCost|undefined{
+  const rows:unknown=typeof __SHARDFILE_VERDICTS__==='object'?__SHARDFILE_VERDICTS__:null;
+  if(!Array.isArray(rows))return undefined;
+  for(const item of rows){
+    const row:unknown=item;
+    if(typeof row!=='object'||row===null||!('sourceHash' in row)||row.sourceHash!==sourceHash||!('postCost' in row))continue;
+    const cost=row.postCost;
+    if(typeof cost!=='object'||cost===null||!('passes' in cost)||typeof cost.passes!=='number'||!('instructions' in cost)||typeof cost.instructions!=='number'||!('inputs' in cost))return undefined;
+    const inputs=cost.inputs;
+    if(typeof inputs==='object'&&inputs!==null&&'colour' in inputs&&typeof inputs.colour==='boolean'&&'depth' in inputs&&typeof inputs.depth==='boolean'&&'normal' in inputs&&typeof inputs.normal==='boolean')return {passes:cost.passes,instructions:cost.instructions,inputs:{colour:inputs.colour,depth:inputs.depth,normal:inputs.normal}};
   }
   return undefined;
 }

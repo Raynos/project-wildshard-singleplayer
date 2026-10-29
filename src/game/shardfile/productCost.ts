@@ -11,6 +11,8 @@ import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
 import { preflightShardfile, preflightShardfileSteps } from '@wildshard/format/preflight';
 import { jsonDataHeapBytes } from '@wildshard/format/json';
 import { outputDescriptor, isBuildValidatedOutput } from './outputDescriptor';
+import {builtProductPostCost} from '@wildshard/format/validationReceipt';
+import {postStackCost,type PostStackCost} from '@wildshard/format/postStack';
 import { isPlatformDataSection } from '@wildshard/format/outputFields';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { parseWorldSceneModels, worldSceneModelGraphs, worldSceneModelResources } from '@wildshard/format/worldSceneModels';
@@ -290,6 +292,16 @@ export function jsonResidentBytes(input: unknown): number {
   const bytes = jsonDataHeapBytes(input);
   if (bytes === undefined) throw new Error('Product residency needs bounded plain JSON');
   return bytes;
+}
+/** Reuse publication's graph cost; only Node/external sources need to validate graph bytes here. */
+export function productPostCost(source:Shardfile,bytes:(hash:string)=>Uint8Array|undefined):PostStackCost{
+  const descriptor=outputDescriptor(source);
+  if(descriptor?.built===true){
+    const cost=builtProductPostCost(descriptor.index.build.sourceHash);
+    if(cost===undefined)throw new Error('Build must publish post cost');
+    return cost;
+  }
+  return postStackCost(source,bytes).cost;
 }
 /** Conservative transport/source heap claim: two parsed-source copies, owned asset buffers and map/object overhead. */
 export function productResidentBytes(source: Shardfile): number {

@@ -12,9 +12,8 @@ import { ProductLeases } from './productLeases';
 import { ApproachInputsDeferredError, ProductInputs, type ProductInputLease } from './productInputs';
 import type { ClientAssets } from '../shardfile/clientAssets';
 import { GridPostCosts } from './postPairs';
-import { postStackCost } from '@wildshard/format/postStack';
 import type { ResidencyAllocator } from './allocator';
-import { neighbourProductFilesPaced } from '../shardfile/productCost';
+import { neighbourProductFilesPaced, productPostCost } from '../shardfile/productCost';
 import { outputBlobPath } from '@wildshard/format/outputAddress';
 import type { OutputIndex } from '@wildshard/format/outputIndex';
 import { FarSchema, ShardReferenceSchema } from '@wildshard/format/shardSections';
@@ -296,7 +295,7 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode
     const admitted = await timeClientPreparation(slug, 'product.read', () => admitProduct(input, { ...options, reserve }));
     const selectedInputs = [...admitted.assets.keys()];
     // admission already refused a stack past the budget on its own; the cost is what placement sums per adjacent pair
-    gridPostCosts(owner.allocator).record(slug, postStackCost(admitted.source, (hash) => admitted.assets.get(hash)).cost);
+    gridPostCosts(owner.allocator).record(slug, productPostCost(admitted.source, (hash) => admitted.assets.get(hash)));
     const preparation: { inputs?: ProductInputs } = {};
     accountTransportRelease(admitted, releaseBytes, ref => preparation.inputs?.retains(ref) === true);
     // Drop runtime-only wires before neighbours can copy their map. Entered product.file() reads the
