@@ -83,7 +83,7 @@ export class BossBar {
     this.hp = this.lagHp = 1; this.write();
     this.bar.classList.add('show');
   }
-  hideBar(): void { this.bar.classList.remove('show', 'shield'); }
+  hideBar(): void { this.bar.classList.toggle('show', false); this.bar.classList.toggle('shield', false); } // FC14: called every frame; writes only on change
   get barShown(): boolean { return this.bar.classList.contains('show'); }
   setHp(frac: number): void {
     const f = Math.max(0, Math.min(1, frac));

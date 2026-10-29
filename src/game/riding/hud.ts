@@ -50,6 +50,7 @@ export class RideHUD {
   private readonly trustRow: HTMLElement; private readonly trustRowFill: HTMLElement;
   /** QB18: where the phone shows TRUST (Settings ▸ Debug ▸ TRUST meter): B a status row (ships), A the old top arc, C a lower, smaller arc */
   private trustStyle: 'row' | 'arc' | 'low' = 'row';
+  private trustShown = -1;
   private readonly ear: HTMLElement; private earCol = '';
   private readonly hold: HTMLElement; private readonly holdRound: HTMLElement; private readonly holdMark: SVGGElement;
   private readonly tags = new Map<string, { el: HTMLElement; name: HTMLElement }>();   // per horse (a rename at the rail re-labels it)
@@ -194,7 +195,8 @@ export class RideHUD {
     this.trust.classList.toggle('show', trust !== null && !breaking && !row);
     this.trust.classList.toggle('low', this.trustStyle === 'low' && hudSlots.touch);
     this.trustRow.classList.toggle('show', trust !== null && !breaking && row);
-    if (trust !== null) {
+    if (trust !== null && trust !== this.trustShown) { // FC14: only when trust moves
+      this.trustShown = trust;
       this.trustFill.setAttribute('stroke-dasharray', `${Math.max(0.5, trust).toFixed(1)} 100`);
       this.trustRowFill.style.transform = `scaleX(${(Math.max(0.5, trust) / 100).toFixed(3)})`;
     }
@@ -205,7 +207,7 @@ export class RideHUD {
       if (col !== this.earCol) { this.earCol = col; this.ear.innerHTML = SVG_EAR(col); }
       this.ear.style.transform = `translate(${_p.x.toFixed(1)}px, ${_p.y.toFixed(1)}px)`;
       this.ear.classList.add('show');
-    } else this.ear.classList.remove('show');
+    } else this.ear.classList.toggle('show', false); // FC14: every frame; writes only on change
     const round = view?.round ?? null;
     this.hold.classList.toggle('show', round !== null);
     if (round !== null && view !== null) {

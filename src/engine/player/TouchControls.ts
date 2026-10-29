@@ -449,7 +449,7 @@ export class TouchControls {
       let button = this.verbs.get(slot);
       const visible = verb !== undefined && verb.show?.() !== false;
       if (!visible) {
-        if (button !== undefined) { button.style.display = 'none'; button.classList.remove('show'); }
+        if (button !== undefined) { if (button.style.display !== 'none') button.style.display = 'none'; button.classList.toggle('show', false); }
         const held = this.heldVerbs.get(slot); if (held !== undefined) { this.heldVerbs.delete(slot); app.input.setHeld(held, false); }
         delete this.verbActions[slot]; delete this.verbSpecs[slot];
         continue;
@@ -472,10 +472,12 @@ export class TouchControls {
         listenDom(this.scope, own, 'pointerup', release); listenDom(this.scope, own, 'pointercancel', release);
         this.scope.onDispose(() => { const held = this.heldVerbs.get(slot); if (held !== undefined) app.input.setHeld(held, false); });
       }
-      button.classList.add('ws-touch-verb', slot === 'verb.1' ? 'verb-one' : 'verb-two');
-      if (!button.classList.contains('at-edge-l')) button.classList.remove('at', 'at-aim');
-      if (verb.element === undefined) button.classList.add('ws-touch-disc');
-      button.style.display = ''; button.classList.add('show'); button.hidden = false;
+      // FC14: every frame repaints the slot, so each write is a no-op unless its value changed
+      button.classList.toggle('ws-touch-verb', true); button.classList.toggle(slot === 'verb.1' ? 'verb-one' : 'verb-two', true);
+      if (!button.classList.contains('at-edge-l')) { button.classList.toggle('at', false); button.classList.toggle('at-aim', false); }
+      if (verb.element === undefined) button.classList.toggle('ws-touch-disc', true);
+      if (button.style.display !== '') button.style.display = '';
+      button.classList.toggle('show', true); if (button.hidden !== false) button.hidden = false;
       const previous = this.verbMarkup[slot];
       if (previous?.button !== button || previous.icon !== verb.icon || previous.label !== verb.label) {
         button.innerHTML = verb.icon;

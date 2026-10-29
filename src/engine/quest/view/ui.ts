@@ -72,7 +72,8 @@ export class ObjectiveLine {
     if (name !== this.lastNav) { this.lastNav = name; this.navName.textContent = name; }
     const d = `${Math.round(metres)} m`;
     if (this.navDist.textContent !== d) this.navDist.textContent = d;
-    this.arrow.style.transform = `rotate(${(rel * 180) / Math.PI}deg)`;
+    const turn = `rotate(${Math.round((rel * 180) / Math.PI)}deg)`; // FC14: whole degrees, written only on change
+    if (this.arrow.style.transform !== turn) this.arrow.style.transform = turn;
   }
 
   /** keep it under the minimap, right-aligned to its right edge (the minimap's size and top differ per layout and the

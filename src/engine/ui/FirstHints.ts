@@ -253,7 +253,7 @@ export class FirstHints {
     ts.left = `${best.l}px`; ts.top = `${best.t}px`;
     // the notch points at the control: under the tag when the control is below it, else on the side toward it
     const side = cx < best.l + 10 ? 'left' : cx > best.l + tw - 10 ? 'right' : 'down';
-    this.tag.dataset['notch'] = side;
+    if (this.tag.dataset['notch'] !== side) this.tag.dataset['notch'] = side; // FC14: only on change
     ts.setProperty('--nx', `${Math.max(10, Math.min(tw - 10, cx - best.l))}px`);
   }
 }

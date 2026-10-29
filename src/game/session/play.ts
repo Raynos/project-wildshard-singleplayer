@@ -316,7 +316,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   const noteBadge = noteDisc.querySelector('b');
   const syncNoteDisc = () => {
     noteDisc.classList.toggle('show', quickNote() && touchUi() && hud.entered);
-    const q = queuedCount(); noteDisc.classList.toggle('queued', q > 0); if (noteBadge) noteBadge.textContent = String(q);
+    const q = queuedCount(), badge = String(q); noteDisc.classList.toggle('queued', q > 0); if (noteBadge !== null && noteBadge.textContent !== badge) noteBadge.textContent = badge; // FC14: only on change
   };
   onReview(syncNoteDisc);
   progress.onEarned = (d) => { if (app.events.ask('feat.toast', { id: d.id, ...(d.event === undefined ? {} : { event: d.event }), allowed: true }).allowed) hud.toast(`Achievement · ${d.name} — title unlocked: ${d.title}`); if (!audio.cue('cue.feat.earned')) audio.hitMarker(); }; // a Nalati chapter's own caption announces its title
