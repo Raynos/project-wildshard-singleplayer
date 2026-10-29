@@ -282,7 +282,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   })},
   'world.scenes': { phase: 'world', rank: 20, lifetime: 'resident', sections: ['world/scenes'],
     install: loadFeature(async () => {
-      const [{ installWorldScenes }, { noteTileBytes, residentTiles, followResidentTiles, productTileRing }] = await Promise.all([import('./worldScenes'), import('./tileDriver')]);
+      const [{ installWorldScenes }, { noteTileBytes, residentTiles, followResidentTiles, productTileRing, cameraCone }] = await Promise.all([import('./worldScenes'), import('./tileDriver')]);
       return async (ctx, _row, resident) => {
         const value = await installWorldScenes(ctx, ctx.product.section('world/scenes'), resident);
         publishClientSceneHandles(ctx.product, resident, value);
@@ -294,7 +294,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
         if (value.tiled().length === 0) return;
         if (world === undefined || world === null) throw new Error('Tiled world scenes require a world');
         noteTileBytes(resident, source.tiles); await residentTiles(resident, value.tiled(), source.spawn, source.entryways, productTileRing(source));
-        const follow = followResidentTiles(resident, () => world.player.position);
+        const follow = followResidentTiles(resident, () => world.player.position, () => cameraCone(world.game.camera));
         if (follow !== null) ctx.system({ id: 'client.world.scene-tiles', phase: 'update', run: () => { follow(); } });
       };
     }) },

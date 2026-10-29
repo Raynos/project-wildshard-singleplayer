@@ -16,7 +16,7 @@ import { installWorldScenes } from './worldScenes';
 import { bakedTileContents, residentBakedTiles, type BakedTiles } from './bakedTiles';
 import { publishEntryOwner, lendEntryOwner, entryOwner, presentEntryOwner } from './entryOwners';
 import { timeClientPreparation } from './preparationTiming';
-import { followResidentTiles, noteTileBytes, residentTiles } from './tileDriver';
+import { cameraCone, followResidentTiles, noteTileBytes, residentTiles } from './tileDriver';
 import { farStandIn } from './farStandIn';
 import { wholeRefinementCover } from './wholeRefinementCover';
 
@@ -117,6 +117,6 @@ export async function installClientWorldAssembly(ctx: ShardContext, row: Extract
     if (standIn !== null) scenes.addTiled(standIn);
   }
   noteTileBytes(owner, source.tiles); await residentTiles(owner, scenes.tiled(), source.spawn, source.entryways); live();
-  const follow = followResidentTiles(owner, () => world.player.position);
+  const follow = followResidentTiles(owner, () => world.player.position, () => cameraCone(world.game.camera));
   if (follow !== null) ctx.system({ id: 'client.world.tiles', phase: 'update', run: () => { follow(); } });
 }

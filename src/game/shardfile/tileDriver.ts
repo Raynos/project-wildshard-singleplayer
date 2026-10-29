@@ -30,6 +30,8 @@ let loaderMode = false;
 const task = (): Promise<void> => new Promise(resolve => { pageScope.timeout(0, resolve); });
 /** MF5: a settling driver that is busy with no spawn-view job running for this long waits on one outside the fence. */
 const SETTLE_IDLE_MS = 1000;
+/** MF13: the longest a render tile in view waits to refine out of sight */
+const VIEW_DEFER_MS = 3000;
 /**
  * MF5 (reveal = spawn view complete): while the loader's spawn-view fence is open (prepareSpawnView), drive every live
  * driver on tasks instead of frames, nearest first, until the fence's part of its render ring is attached or it waits
@@ -69,6 +71,10 @@ export class TileDriver {
     liveDrivers.add(this); scope.onDispose(() => { liveDrivers.delete(this); });
   }
   private last: { readonly x: number; readonly z: number } | null = null;
+  /** MF13: the camera's view, and when each wanted render tile was first wanted (an in-view one waits up to VIEW_DEFER_MS) */
+  private view: (() => ViewCone | null) | null = null;
+  private readonly wantedAt = new Map<number, number>();
+  setView(view: () => ViewCone | null): void { this.view = view; }
   /** MF5 (settleTileDrivers): step on tasks until nothing of the render ring inside the fence is left to start, or the
    *  one attach in flight has waited SETTLE_IDLE_MS with no spawn-view job running (one outside the fence: it runs after
    *  control). A shorter wait reads an attach in its own budget pause (a frame wait, capped) as that. */
@@ -127,10 +133,12 @@ export class TileDriver {
       this.attached[layer].delete(key); tile.scope.dispose();
     }
     if (this.busy) return;
+    const now = diagnosticNow(), cone = loaderMode || this.view === null ? null : this.view();
+    for (const key of this.wantedAt.keys()) if (!wanted.render.has(key)) this.wantedAt.delete(key);
     for (const layer of ['colliders', 'render'] as const) {
       const next = plan.nearest[layer].find(key => {
         const tile = this.attached[layer].get(key);
-        return this.inView(key) && (tile === undefined || this.contents.some(content => !tile.done.has(content) && (layer === 'colliders' || content.ready?.() !== false))) && !this.failed.has(`${layer}:${String(key)}`);
+        return this.inView(key) && !(layer === 'render' && this.deferred(key, cone, now)) && (tile === undefined || this.contents.some(content => !tile.done.has(content) && (layer === 'colliders' || content.ready?.() !== false))) && !this.failed.has(`${layer}:${String(key)}`);
       });
       if (next === undefined) continue;
       this.busy = true;
@@ -158,6 +166,19 @@ export class TileDriver {
     if (!loaderMode || this.last === null) return true;
     const half = TILES_PER_SIDE * TILE_SIZE / 2;
     return Math.hypot(-half + (key % TILES_PER_SIDE + 0.5) * TILE_SIZE - this.last.x, -half + (Math.floor(key / TILES_PER_SIDE) + 0.5) * TILE_SIZE - this.last.z) <= SPAWN_VIEW_M;
+  }
+
+  /** MF13: a render tile the camera sees refines only once it leaves the view, or VIEW_DEFER_MS after it was first wanted
+   *  (the refinement swap happens out of sight; the coarse cover keeps the view until then) */
+  private deferred(key: number, cone: ViewCone | null, now: number): boolean {
+    if (cone === null || this.last === null) return false;
+    const first = this.wantedAt.get(key) ?? now; if (!this.wantedAt.has(key)) this.wantedAt.set(key, now);
+    if (now - first >= VIEW_DEFER_MS) return false;
+    const half = TILES_PER_SIDE * TILE_SIZE / 2;
+    const dx = -half + (key % TILES_PER_SIDE + 0.5) * TILE_SIZE - this.last.x, dz = -half + (Math.floor(key / TILES_PER_SIDE) + 0.5) * TILE_SIZE - this.last.z;
+    const distance = Math.hypot(dx, dz); if (distance < TILE_SIZE) return false; // the player's own tile and its touching ones never wait
+    const angle = Math.acos(Math.max(-1, Math.min(1, (dx * cone.x + dz * cone.z) / distance)));
+    return angle <= cone.half + Math.atan(TILE_SIZE * Math.SQRT1_2 / distance);
   }
 
   /** Coarse coverage stays until every declared fine visual actually publishes. */
@@ -289,9 +310,20 @@ export function residentTiles(resident: Scope, contents: readonly TileContent[],
   started.set(resident, { pending, state: preparation });
   return pending;
 }
-/** T4: once a frame while a world is entered, its resident's tiles follow the player's cell-local position. */
-export function followResidentTiles(resident: Scope, position: () => { readonly x: number; readonly z: number }): (() => void) | null {
+/** T4: once a frame while a world is entered, its resident's tiles follow the player's cell-local position. `view`
+ *  (MF13): the camera's horizontal view, so a tile in it attaches only once it leaves the view or VIEW_DEFER_MS on. */
+export function followResidentTiles(resident: Scope, position: () => { readonly x: number; readonly z: number }, view?: () => ViewCone | null): (() => void) | null {
   const driver = drivers.get(resident);
   if (driver === undefined) return null;
+  if (view !== undefined) driver.setView(view);
   return () => { const at = position(); driver.step(at.x, at.z); };
+}
+
+/** MF13: a camera's horizontal view: its forward on the ground (unit x, z) and half its horizontal field (radians). */
+export interface ViewCone { readonly x: number; readonly z: number; readonly half: number }
+/** The view cone of a perspective camera (null when it looks straight up or down). */
+export function cameraCone(camera: { readonly fov: number; readonly aspect: number; readonly matrixWorld: { readonly elements: ArrayLike<number> } }): ViewCone | null {
+  const e = camera.matrixWorld.elements, x = -(e[8] ?? 0), z = -(e[10] ?? 0), length = Math.hypot(x, z);
+  if (length < 1e-3) return null;
+  return { x: x / length, z: z / length, half: Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect) };
 }
