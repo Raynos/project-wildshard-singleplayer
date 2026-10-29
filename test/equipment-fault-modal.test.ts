@@ -1,11 +1,12 @@
 // @vitest-environment happy-dom
-import {expect,test,vi} from 'vitest';
+import {afterEach,beforeEach,expect,test,vi} from 'vitest';
 import {Group} from 'three';
 import {Scope} from '../src/engine/app/scope';
 import {Weapon} from '../src/engine/combat/Weapon';
 import type {EquipmentRow} from '../src/engine/combat/Equipment';
 import {EquipmentService} from '../src/engine/combat/EquipmentService';
 import {installErrorModal} from '../src/engine/ui/ErrorModal';
+import {isDev,setDev} from '../src/engine/core/devMode';
 import {emitFault,setLoopState,onFault,type Fault} from '../src/engine/core/faults';
 import {bindClientChannelInputs} from '../src/game/plugin/channels';
 import {SWORD_WOOD} from '../src/game/weapons/starterMeleeProfile';
@@ -18,9 +19,14 @@ class TestWeapon extends Weapon {
   tryFire():void{this.state.ammo--;}
   update():void{this.tick();}
 }
+// G901: a recoverable report opens the full modal only with Developer on (the public build shows the chip,
+// src/engine/ui/error-modal-public.test.ts); both contracts here are the Developer modal's
+const previousDeveloper=isDev();
+beforeEach(()=>{setDev(true);});
+afterEach(()=>{setDev(previousDeveloper);});
 const weaponRow=(id:EquipmentRow['id'],slot:'bow'|'sword'):EquipmentRow=>({...SWORD_WOOD,id,legacySlot:slot});
 
-test('a NaN crossbow frame skips only that weapon and opens the existing error modal',()=>{
+test('with Developer on, a NaN crossbow frame skips only that weapon and opens the existing error modal',()=>{
   vi.useFakeTimers();
   vi.stubGlobal('fetch',vi.fn(()=>Promise.resolve(new Response('{}',{status:200,headers:{'content-type':'application/json'}}))));
   const scope=new Scope('equipment-modal-test'),crossbow=new TestWeapon(weaponRow('weapon.crossbow','bow')),
