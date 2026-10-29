@@ -152,6 +152,8 @@ export interface SharedGroupPorts<E> {
   readonly hearing: (radii: readonly [number, number, number, number], player: Vector3, speed: number) => number;
   readonly downwind: (x: number, z: number, player: Vector3) => boolean;
   readonly inBounds: (x: number, z: number, margin?: number) => boolean; readonly normalY: (x: number, z: number) => number;
+  /** the standing (untrampled) grass height: a herd's guest keeps its graze spots and flights in cover (QB19) */
+  readonly grassHeightAt: (x: number, z: number) => number;
   readonly onEvent: (name: string, x: number, z: number) => void;
 }
 export function sharedGroupPorts<E extends WildSenses & { onEvent: (name: string, x: number, z: number) => void }>(environment: E,
@@ -161,6 +163,7 @@ export function sharedGroupPorts<E extends WildSenses & { onEvent: (name: string
     hearing: (radii: readonly [number,number,number,number],player: Vector3,speed: number) => environment.hearing(radii,player,speed),
     downwind: (x: number,z: number,player: Vector3) => environment.downwind(x,z,player),
     inBounds: (x: number,z: number,margin = 0) => world.inBounds(x,z,margin), normalY: world.normalY,
+    grassHeightAt: (x: number,z: number) => environment.grassStandingAt(x,z),
     onEvent: (name: string,x: number,z: number) => { environment.onEvent(name,x,z); } };
 }
 /** G600 L5: a group's bite / charge contact from its declared strike rows, with the context's own reach and hurt authority. */

@@ -10,6 +10,9 @@ import {S,C,M,A,Read,Do} from './herdBindings';
 @inline function hypot(x:f64,z:f64):f64{return Math.sqrt(x*x+z*z);}
 @inline function distance(a:i32,b:i32):f64{const dx=m(a,M.x)-m(b,M.x),dy=m(a,M.y)-m(b,M.y),dz=m(a,M.z)-m(b,M.z);return Math.sqrt(dx*dx+dy*dy+dz*dz);}
 @inline function pause(pc:i32):void{Do.resume(pc);}
+// QB19: the herd stays where it can be stalked: a graze spot or a flight's look-ahead needs standing grass at least as
+// tall as the stealth's long grass (data/stealth.json longGrass), so the Tulpar never settles on the ice or bare rock
+const COVER:f64=.7;
 @inline function inBounds(x:f64,z:f64,margin:f64):bool{return x>=c(C.minX)+margin&&x<=c(C.maxX)-margin&&z>=c(C.minZ)+margin&&z<=c(C.maxZ)-margin;}
 @inline function state(next:i32,after:i32):void{
  w(S.stateReturn,after);w(S.stateRequested,next);
@@ -248,9 +251,11 @@ export function run(signal:i32,pc:i32):void{
   case 130:{const st=role(S.stallion);if(s(S.stateRequested)==2&&st>=0){Do.native(A.event,c(C.stallionDisplay),m(st,M.x),m(st,M.z));pause(131);return;}pause(i32(s(S.stateReturn)));return;}
   case 131:pause(i32(s(S.stateReturn)));return;
   case 140:pickAttempt();return;
-  case 142:if(c(C.reply)<.85||hypot(s(S.pickX)-c(C.px),s(S.pickZ)-c(C.pz))<40){pickAgain();return;}w(S.spotX,s(S.pickX));w(S.spotZ,s(S.pickZ));w(S.spotT,60+Read.contextRandom()*60);pause(i32(s(S.pickReturn)));return;
+  case 142:if(c(C.reply)<.85||hypot(s(S.pickX)-c(C.px),s(S.pickZ)-c(C.pz))<40){pickAgain();return;}Do.native(A.grass,s(S.pickX),s(S.pickZ));pause(143);return;
+  case 143:if(c(C.reply)<COVER){pickAgain();return;}w(S.spotX,s(S.pickX));w(S.spotZ,s(S.pickZ));w(S.spotT,60+Read.contextRandom()*60);pause(i32(s(S.pickReturn)));return;
   case 150:bendAttempt();return;
-  case 152:if(c(C.reply)>.72){pause(153);return;}bendAgain();return;
+  case 152:if(c(C.reply)>.72){Do.native(A.grass,s(S.pickX),s(S.pickZ));pause(154);return;}bendAgain();return;
+  case 154:if(c(C.reply)>=COVER){pause(153);return;}bendAgain();return;
   case 153:if(s(S.fleeRun)>s(S.fleeLen)||s(S.modeT)>16){w(S.mode,4);w(S.modeT,0);w(S.stampeding,0);}pause(120);return;
   case 160:w(S.stallion,c(C.argHandle));state(0,0);return;
  }

@@ -50,7 +50,7 @@ function makeFixture<H extends FixtureHerd>(Owner:new(members:AnimalSim[],defini
  if(count<roster.length)roster.length=count;
  while(roster.length<count){const i=roster.length;roster.push(makeBody(`mare-${i}`,'mare',i*2-5,i%3+2));}
  const random=new Rng(seed),contextRandom=new Rng(seed+1002),log:(string|number)[][]=[];
- const ports:HerdPorts<AnimalSim>={sharedRng:()=>random,environment:()=>({playerMounted:false,playerCrouched:false}),visibility:()=>1,hearing:()=>8,downwind:()=>false,inBounds:()=>true,normalY:()=>1,
+ const ports:HerdPorts<AnimalSim>={sharedRng:()=>random,environment:()=>({playerMounted:false,playerCrouched:false}),visibility:()=>1,hearing:()=>8,downwind:()=>false,inBounds:()=>true,normalY:()=>1,grassHeightAt:()=>1,
  passThrough:(a,through)=>{log.push(['pass',a.entityId,Number(through)]);},chargeContact:(a,_c,r)=>{log.push(['contact',a.entityId,r]);},scarePack:()=>false};
  const pending:AnimalSim[]=[],threats:AnimalSim[]=[];const herd=new Owner(roster,spec,ports);herd.initialize();
  herd.findThreat=(x,z,r)=>{let nearest:AnimalSim|null=null,distance=r;for(const actor of threats)if(actor.alive){const d=Math.hypot(actor.position.x-x,actor.position.z-z);if(d<distance){nearest=actor;distance=d;}}return nearest;};ports.resolveActor=id=>[...threats,...pending].find(actor=>actor.entityId===id)??null;
@@ -795,4 +795,22 @@ test('publication reads reference pins in order and stops at the first changed f
   expect(()=>publication.commit()).toThrow('Changed herd guest publication owner');
   expect(reads).toEqual(['0:body','0:group','0:slot']);expect(f.random.snapshot()).toEqual(random);
  }finally{f.scope.dispose();}
+});
+
+test('QB19: a new graze spot stands in long grass, and with none in reach the herd keeps its spot',()=>{
+ const pick=(grass:(x:number,z:number)=>number)=>{
+  const f=fixture('graze','watch',false,4);
+  try{
+   const snapshot=saved(f.herd);snapshot.state['spotT']=0;f.herd.restore(JSON.stringify(snapshot));
+   f.ports.inBounds=(x,z,margin)=>x>=-250+margin&&x<=250-margin&&z>=-250+margin&&z<=250-margin;
+   f.ports.grassHeightAt=grass;f.ctx.player.set(400,0,400);
+   execute(f,0,false,'tick');
+   const state=v.parse(v.object({state:v.object({spotX:v.number(),spotZ:v.number()})}),JSON.parse(f.herd.snapshot())).state;
+   return {x:state.spotX,z:state.spotZ};
+  }finally{f.scope.dispose();}
+ };
+ // grass only west of the lead (the old spot, x 45, is outside it): the new spot is in it
+ const west=pick((x)=>x<-5?1:0);expect(west.x).toBeLessThan(-5);
+ // bare ground everywhere (the ice): the spot stays where it was
+ expect(pick(()=>0)).toEqual({x:45,z:20});
 });

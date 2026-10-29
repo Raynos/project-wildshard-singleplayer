@@ -77,6 +77,8 @@ export interface GuardedHerdPorts<A extends AnimalSim> {
   hearing: (radii: readonly [number, number, number, number], player: Vector3, speed: number) => number;
   downwind: (x: number, z: number, player: Vector3) => boolean;
   inBounds: (x: number, z: number, margin: number) => boolean; normalY: (x: number, z: number) => number;
+  /** the standing grass height at a point, for a guest that keeps its herd in cover (absent: no grass query) */
+  grassHeightAt?: (x: number, z: number) => number;
   passThrough: (actor: A, player: boolean) => void; chargeContact: (actor: A, context: GuardedHerdContext<A>, radius: number) => void;
   scarePack: (actor: A, radius: number) => boolean; resolveActor?: (id: string) => A | null;
   onEvent?: (event: string, x: number, z: number) => void; onKnockdown?: (x: number, z: number, strength: number) => void;
@@ -533,6 +535,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     return {input:{group:binding.group,handle:binding.handle,profile:binding.rows.profile,signal:call.signal,tick:0,state:call.bank,members,references,
       random:call.random,...(selection===undefined?{}:{capture:{common:selection.common,slots:[...slots]}}),...(context === undefined ? {} : {contextRandom:context.rng})},
       native:{scope:binding.scope,members,references,group:{kind:'herd',owner:this},ground:this.herdPorts,
+        ...(this.herdPorts.grassHeightAt === undefined ? {} : {grass:{grassHeightAt:this.herdPorts.grassHeightAt}}),
         ...(context === undefined ? {} : {contexts:members.map(() => context)})},resume:binding.rows.resume};
   }
   protected override prepareGuestCommit(frame: GroupGuestFrameV2<A>,values: Readonly<Record<string,GroupBankValueV2>>): GroupGuestPublicationV2 {
