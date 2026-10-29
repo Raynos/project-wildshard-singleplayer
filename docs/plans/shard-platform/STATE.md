@@ -4,9 +4,9 @@
 (G845).** Only legacy-deletion (LD4b goldens done; tag legacy-final; LD5-LD10 all at once on Jake's word, G840 / G843 / G851).
 Archived today: 12 mini plans (loading ... tile-streaming 9be158bc79).
 
-**LIVE a6701db713** (14:26). **Release in flight (20:13):** beb02d8043 is fully proven (CI 40792808914 all 36, exact six
-40796021105); deploy 40797540678 is building, with 40797869253 queued behind it (sp-ci-deploy posts the build id). Newer PL9 test
-reds (ac4d29acb5) are with x6 and don't hold it.
+**LIVE beb02d8043 (build beb02d804-mvsuz7t1, ~20:25 Cancun)**: the QA-fix release (G841), with CI 40792808914 all 36 and the
+exact six 40796021105 green; What's New included. Next hourly: the NM motion fix and newer landings, once their CI and the exact six
+are green (PL9 test reds with x6). The report-only Sim phone-route xcrun timeout is retained; no Sim pass is claimed.
 
 **Jake's QA 10-28 PASSED:** NM, loading / M2, tiles / T10, DW cut B (G827 / G831-G833).
 **Marks:** Nine done NR1-3, 5-7, 12 (NR3 windows 4c4fadb4d2; NR12 walls + coarse look 2b304160d0); open NR4, NR8, NR10, NR13-14. Far Reach FR1-4
