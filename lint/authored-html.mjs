@@ -2,8 +2,7 @@
 // reach HTML. Use the lint AST and reachable declaration syntax, never a checker.
 import { globSync, readFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
-import { parseSync } from 'vite';
-import { createSyntaxGraph, syntaxChild as child, syntaxChildren as children, syntaxFunctions as functions } from './syntax-values.mjs';
+import { parseSyntaxModule, createSyntaxGraph, syntaxChild as child, syntaxChildren as children, syntaxFunctions as functions } from './syntax-values.mjs';
 
 const sinks = new Set(['innerHTML', 'outerHTML', 'srcdoc']);
 const sinkProperties = new Set([...sinks, '__html']);
@@ -29,7 +28,7 @@ const trusted = new Map([
 export function authoredHtmlSites(root, filename, supplied = null) {
   const absolute = resolve(root, filename), file = relative(root, absolute).replaceAll('\\', '/');
   const source = readFileSync(absolute, 'utf8');
-  const parsed = supplied === null ? parseSync(file, source) : null;
+  const parsed = supplied === null ? parseSyntaxModule(absolute, source) : null;
   if (parsed && parsed.errors.length > 0) throw new Error(`HTML lint source must parse: ${file}`);
   const program = supplied ?? parsed.program;
   const graph = createSyntaxGraph(root, file, program), { primary, make, values, property, lookup, origins } = graph;
@@ -116,7 +115,7 @@ export function authoredHtmlSites(root, filename, supplied = null) {
         if (/\.generated\./u.test(candidate)) continue;
         const candidateSource = readFileSync(resolve(root, candidate), 'utf8');
         if (!pattern.test(candidateSource)) continue;
-        const result = parseSync(candidate, candidateSource);
+        const result = parseSyntaxModule(resolve(root, candidate), candidateSource);
         if (result.errors.length > 0) { open = true; break; }
         const check = current => {
           if (current.type === 'TSInterfaceDeclaration' && current.id.name === name && (current.extends.length > 0 || current.body.body.some(entry => entry.type === 'TSIndexSignature'))) open = true;

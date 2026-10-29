@@ -28,6 +28,18 @@ export const syntaxChildren = node => {
 };
 const parsedModules = new Map();
 
+// Shared by provenance graphs and their declaration census. Current bytes are
+// always supplied by the caller; changed bytes replace both AST and scopes.
+export function parseSyntaxModule(filename, text) {
+  const cached = parsedModules.get(filename);
+  if (cached?.text === text) return cached;
+  const parsed = parseSync(filename, text);
+  const entry = { text, program: parsed.program, errors: parsed.errors, units: new Map() };
+  parsedModules.set(filename, entry);
+  return entry;
+}
+
+
 function moduleFile(root, from, source) {
   let path;
   if (source.startsWith('.')) path = resolve(root, dirname(from), source);
@@ -125,18 +137,11 @@ export function createSyntaxGraph(root, file, program) {
   function load(target) {
     if (target === null) return null;
     if (units.has(target)) return units.get(target);
-    const text = readFileSync(resolve(root, target), 'utf8'), cached = parsedModules.get(resolve(root, target));
-    let ast = cached?.text === text ? cached.program : null;
-    if (ast === null) {
-      const result = parseSync(target, text);
-      if (result.errors.length > 0) throw new Error(`Syntax dependency must parse: ${target}`);
-      ast = result.program;
-      parsedModules.set(resolve(root, target), { text, program: ast, units: new Map() });
-    }
-    // Only our parsed dependency ASTs own reusable lexical scopes. The supplied
-    // primary AST belongs to oxlint's current file and is never retained here.
-    // Re-read every dependency above; changed bytes replace both AST and scopes.
-    const entry = parsedModules.get(resolve(root, target));
+    const absolute = resolve(root, target), text = readFileSync(absolute, 'utf8');
+    const entry = parseSyntaxModule(absolute, text);
+    if (entry.errors.length > 0) throw new Error(`Syntax dependency must parse: ${target}`);
+    const ast = entry.program;
+    // Never retain oxlint's supplied primary AST; only dependency-owned scopes.
     const key = `${root}\0${target}`;
     let unit = entry.units.get(key);
     if (unit === undefined) { unit = syntaxUnit(target, ast); entry.units.set(key, unit); }

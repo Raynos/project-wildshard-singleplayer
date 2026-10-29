@@ -688,14 +688,25 @@ const noInlineUiString = rule('Player-facing engine strings belong in the string
 const noAuthoredHtml = rule('Shardfile-sourced and unknown text uses textContent, never HTML (SF58)', (context) => {
   if (!pathOf(context).startsWith('src/')) return {};
   let html = false;
+  const sinks = new Set(['innerHTML', 'outerHTML', 'srcdoc', '__html', 'insertAdjacentHTML', 'createContextualFragment', 'write', 'writeln']);
   return {
-    AssignmentExpression(node) { if (['innerHTML', 'outerHTML', 'srcdoc'].includes(propName(node.left) ?? stringOf(node.left?.property))) html = true; },
-    CallExpression(node) { if (['insertAdjacentHTML', 'createContextualFragment', 'write', 'writeln', 'assign'].includes(calleeName(node.callee))) html = true; },
-    Property(node) { if (['innerHTML', 'outerHTML', 'srcdoc', '__html'].includes(node.key?.name ?? stringOf(node.key))) html = true; },
+    AssignmentExpression(node) {
+      const left = unwrap(node.left);
+      if (sinks.has(propName(left))) html = true;
+    },
+    MemberExpression(node) { if (sinks.has(propName(node))) html = true; },
+    CallExpression(node) {
+      const callee = unwrap(node.callee);
+      if (sinks.has(calleeName(callee))) html = true;
+    },
+    Property(node) { if (sinks.has(node.key?.name ?? stringOf(node.key))) html = true; },
+    Literal(node) { if (sinks.has(node.value)) html = true; },
+    TemplateElement(node) { if (sinks.has(node.value.cooked)) html = true; },
     'Program:exit'(program) {
-      // Resolve computed HTML property names and aliases from the supplied AST.
-      const text = context.sourceCode.text;
-      if (!html && !/innerHTML|outerHTML|srcdoc|insertAdjacentHTML|createContextualFragment|document\.(write|writeln)/u.test(text)) return;
+      // Comments and unrelated Object.assign calls do not establish an HTML
+      // sink. Literal/template keys and aliasable sink references remain
+      // conservative candidates for the full lexical provenance analysis.
+      if (!html) return;
       for (const site of authoredHtmlSites(process.cwd(), context.filename, program)) context.report({ loc: { line: site.line, column: site.column }, message: site.message });
     },
   };

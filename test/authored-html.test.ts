@@ -7,6 +7,7 @@ import { dirname, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Invoke the current runtime without a shell.
 import { execPath } from 'node:process';
 import { expect, test } from 'vitest';
+import * as v from 'valibot';
 import { parseSync } from 'vite';
 import { authoredHtmlSites } from '../lint/authored-html.mjs';
 
@@ -195,4 +196,30 @@ test('default object arguments cannot conceal unsafe actual values',()=>{
 
 test('exported function values retain unknown external callers',()=>{
  expect(count(`declare const node:HTMLElement;export const fill=(html:string)=>{node.innerHTML=html;};fill('safe');`)).toBe(1);
+});
+
+
+test('AST sink prefilter retains native provenance diagnostics and ignores comments',()=>{
+ const cases=[
+  'node.innerHTML=label;',
+  'const key="innerHTML";node[key]=label;',
+  'const append=node.insertAdjacentHTML.bind(node);append("beforeend",label);',
+  'Reflect.set(node,"innerHTML",label);',
+  'Object.defineProperty(node,"innerHTML",{value:label});',
+  'const props={__html:label};',
+  'const write=document.writeln;write(label);',
+  'node.textContent=label; // innerHTML is forbidden',
+  'Object.assign(node,{textContent:label});',
+ ];
+ const f=fixture('export {};');
+ try{
+  const files=cases.map((source,index)=>f.put(`src/engine/case-${index}.ts`,`declare const node:HTMLElement,label:string;${source}`));
+  const expected=files.map(file=>authoredHtmlSites(f.root,file).length);
+  const config=f.put('policy.json',JSON.stringify({jsPlugins:[resolve('lint/wildshard-plugin.js')],categories:{correctness:'off'},rules:{'wildshard/no-authored-html':'error'}}));
+  const result=spawnSync(resolve('node_modules/.bin/oxlint'),['--no-ignore','-c',config,'-f','json',...files],{cwd:f.root,encoding:'utf8'});
+  expect(result.status,result.stderr).toBe(1);
+  const output=v.parse(v.object({diagnostics:v.array(v.object({filename:v.string()}))}),JSON.parse(result.stdout));
+  const counts=files.map(file=>output.diagnostics.filter(row=>resolve(f.root,row.filename)===file).length);
+  expect(counts).toEqual(expected);
+ }finally{f.close();}
 });
