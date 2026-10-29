@@ -10,7 +10,7 @@ function fixture() {
   const prepare = vi.fn((_build: string) => Promise.resolve(true));
   const claim = vi.fn(() => { if (taken) return false; taken = true; return true; });
   const reload = vi.fn<() => void>();
-  const ports = {base, runningBuild: 'old-build', version, prepare, claimed: () => taken, claim, reload};
+  const ports = {allowed: () => true, base, runningBuild: 'old-build', version, prepare, claimed: () => taken, claim, reload};
   return {ports, version, prepare, claim, reload};
 }
 test('only same-origin deployment code and sheets classify as stale chunk failures', () => {
@@ -44,4 +44,20 @@ test('adoption must finish before the new document starts and unrelated errors n
   expect(await pending).toBe(true);
   const ordinary = fixture(); expect(await createChunkRecovery(ordinary.ports)(new Error('real source refusal'))).toBe(false);
   expect(ordinary.version).not.toHaveBeenCalled();
+});
+
+test('a live world never probes or reloads and entering during discovery cancels adoption', async () => {
+  const f = fixture(); let title = false;
+  const ports = {...f.ports, allowed: () => title};
+  expect(await createChunkRecovery(ports)(missingJs)).toBe(false);
+  expect(f.version).not.toHaveBeenCalled(); expect(f.prepare).not.toHaveBeenCalled();
+  title = true; f.version.mockImplementation(() => {title = false; return Promise.resolve('new-build');});
+  expect(await createChunkRecovery(ports)(missingCss)).toBe(false);
+  expect(f.prepare).not.toHaveBeenCalled(); expect(f.claim).not.toHaveBeenCalled();
+});
+test('a world entered during worker preparation cannot spend the reload claim', async () => {
+  const f = fixture(); let title = true;
+  f.prepare.mockImplementation(() => {title = false; return Promise.resolve(true);});
+  expect(await createChunkRecovery({...f.ports, allowed: () => title})(missingCss)).toBe(false);
+  expect(f.claim).not.toHaveBeenCalled(); expect(f.reload).not.toHaveBeenCalled();
 });

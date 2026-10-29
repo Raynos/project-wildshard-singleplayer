@@ -220,7 +220,8 @@ function version(): Promise<SwVersion | null> {
 
 /** A stale chunk may reload only after the matching new worker owns its next document.
  * Discovery, install and claim share one bound; late installers cannot navigate. */
-export function refreshWorkerForChunkRecovery(build: string): Promise<boolean> {
+export function refreshWorkerForChunkRecovery(build: string, allowed: () => boolean = () => true): Promise<boolean> {
+  if (!allowed()) return Promise.resolve(false);
   if (!sw || !swAllowed() || sw.controller === null) return Promise.resolve(true);
   const container = sw;
   return new Promise<boolean>(resolve => {
@@ -234,6 +235,7 @@ export function refreshWorkerForChunkRecovery(build: string): Promise<boolean> {
         if (worker.state !== 'installed' || owner.disposed) return;
         const identity = await buildOf(worker);
         if (owner.disposed || identity?.startsWith(`${build}-`) !== true) return;
+        if (!allowed()) { finish(false); return; }
         owner.listen(container, 'controllerchange', () => { if (container.controller === worker) finish(true); });
         // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker messages have no targetOrigin.
         worker.postMessage({ type: 'SKIP_WAITING' });
@@ -244,6 +246,8 @@ export function refreshWorkerForChunkRecovery(build: string): Promise<boolean> {
     void container.getRegistration().then(async registration => {
       if (owner.disposed) return undefined;
       if (registration === undefined) { finish(true); return undefined; }
+      const active = container.controller;
+      if (active !== null && (await buildOf(active))?.startsWith(`${build}-`) === true) { finish(allowed()); return undefined; }
       const observe = (): void => { track(registration.installing ?? registration.waiting); };
       owner.listen(registration, 'updatefound', observe);
       observe(); await registration.update(); observe(); return undefined;

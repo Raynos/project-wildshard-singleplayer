@@ -15,6 +15,8 @@ function claimBootSelfReload(): boolean {
     saveStorage('session').setItem('boot.selfReload', '1'); return true;
   } catch { return false; }
 }
+let worldRunning = false;
+const recoveryAllowed = (): boolean => !worldRunning;
 let recover: ((error: unknown) => Promise<boolean>) | undefined;
 async function latestVersion(): Promise<string | null> {
   const owner = pageScope.child('chunk-version'), controller = new AbortController();
@@ -33,11 +35,11 @@ async function latestVersion(): Promise<string | null> {
 /** Only a confirmed newer deployment can replace a rejected boot/lazy module or stylesheet. */
 export function recoverChunkFailure(error: unknown): Promise<boolean> {
   if (typeof window === 'undefined' || typeof __BUILD_ID__ !== 'string') return Promise.resolve(false);
-  recover ??= createChunkRecovery({base: location.href, runningBuild: __BUILD_ID__, version: latestVersion,
+  recover ??= createChunkRecovery({allowed: recoveryAllowed, base: location.href, runningBuild: __BUILD_ID__, version: latestVersion,
     claimed: bootSelfReloadClaimed, claim: claimBootSelfReload,
     prepare: async build => {
       const wait = beginLoadingWait('Activating updated application', {kind: 'worker', resource: '/sw.js', deadlineMs: 15000});
-      try { return await (await import('./sw')).refreshWorkerForChunkRecovery(build); }
+      try { return await (await import('./sw')).refreshWorkerForChunkRecovery(build, recoveryAllowed); }
       finally { finishLoadingWait(wait); }
     },
     reload: () => { countReload(); markReload('stale deployment code'); location.reload(); },
@@ -51,6 +53,10 @@ let installed = false;
 export function installChunkRecovery(): void {
   if (installed || typeof window === 'undefined') return;
   installed = true;
+  pageScope.listen(document, 'ws:ready', () => {
+    if (!document.documentElement.classList.contains('title-first')) worldRunning = true;
+  });
+  pageScope.listen(document, 'ws:control-ready', () => { worldRunning = true; });
   pageScope.listen(window, 'unhandledrejection', event => { void recoverChunkFailure(event.reason); });
   pageScope.listen(window, 'vite:preloadError', event => { void recoverChunkFailure(Reflect.get(event, 'payload')); });
 }

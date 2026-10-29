@@ -12,6 +12,7 @@ export function staleChunkFailure(error: unknown, base: string): boolean {
   } catch { return false; }
 }
 export interface ChunkRecoveryPorts {
+  readonly allowed: () => boolean;
   readonly base: string;
   readonly runningBuild: string;
   readonly version: () => Promise<string | null>;
@@ -26,12 +27,12 @@ export function createChunkRecovery(ports: ChunkRecoveryPorts): (error: unknown)
   const run = async (): Promise<boolean> => {
     try {
       const next = await ports.version();
-      if (next === null || next === ports.runningBuild || ports.claimed() || !await ports.prepare(next) || !ports.claim()) return false;
+      if (next === null || next === ports.runningBuild || !ports.allowed() || ports.claimed() || !await ports.prepare(next) || !ports.allowed() || !ports.claim()) return false;
       ports.reload(); return true;
     } catch { return false; }
   };
   function recover(failure: unknown): Promise<boolean> {
-    if (ports.runningBuild === '' || ports.claimed() || !staleChunkFailure(failure, ports.base)) return Promise.resolve(false);
+    if (!ports.allowed() || ports.runningBuild === '' || ports.claimed() || !staleChunkFailure(failure, ports.base)) return Promise.resolve(false);
     pending ??= run().finally(() => { pending = undefined; });
     return pending;
   }
