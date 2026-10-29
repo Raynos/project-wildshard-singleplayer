@@ -3,8 +3,8 @@
 **G872 (Jake, 10-29): AUTONOMOUS BUILDER. NEVER WAIT FOR JAKE.** A row that needs a pick gets the recommended option, landed
 and logged below; Jake reviews later with wildshard-v (an overturn becomes a new row). No 'standby' / 'PICK pending'; no idle lane.
 
-**Autonomous decisions (for Jake's review):** D183 = B (tiles win; Sky return rebuilds), was the standing default. D185 = keep
-UASTC look; drop the never-fetched astc6 copies (x10). PL15 = A main thread; worker path + Debug row deleted (x2). PL16 row kept
+**Autonomous decisions (for Jake's review):** D183 = B (tiles win; Sky return rebuilds), was the standing default. D185 = keep both
+paths (grid already ships astc6, standalone UASTC; x10 proof), no deletion. PL15 = A main thread; worker path + Debug row deleted (x2). PL16 row kept
 default off (G867 try-out). D53 CLIs kept as debt. Pine pond: keep SHARDFILE. G99 isles kept. Pine drive (D12 14 / 15): G815.
 
 **G824: SHARD-PLATFORM archives today; after the archive commit EVERY lane and the coordinator stop until Jake's retro
@@ -15,10 +15,10 @@ Archived today: 12 mini plans (loading ... tile-streaming 9be158bc79).
 CI 40845957128 + exact six 40848443671. Sim phone-route leg still report-only (xcrun timeout).
 
 **Jake's QA 10-28 PASSED:** NM, loading / M2, tiles / T10, DW cut B (G827 / G831-G833).
-**Marks:** Nine NR1-NR16 done (NR16 38e6343f6e + tiles 2f92beda2c); Far Reach FR1-FR4, FR6 done, FR5 landing. Goldens 133 / 144.
+**Marks:** Nine NR1-NR16 done (NR16 38e6343f6e + tiles 2f92beda2c); Far Reach FR1-FR6 done; Nine + Far Reach plans archived 44c51cc4ac. Goldens 133 / 144.
 QF6 / 11 / 19-26 done or moved (G868); D196, D199 / D201 (not reproduced), D200, D203, D204, D207 done; PL6 done 6060134624.
 **Jake 10-29 (G868-G871):** FR5 = A (sp-o3 landing), FR6 / D205 kept (tone gaps = match), LEGACY yes once wildshard-v's 144 rerun is clean.
-Prep: x9 writes the LD5-LD10 chain (no deletion), sp-ci-deploy tags legacy-final via the API on go. Open rows: x10 PL2 / PL5, x2 QF1,
+FR5 landed cdeb31eabb. o3 builds D206 forest pines (G872). Prep: x9 writes the LD5-LD10 chain (no deletion), sp-ci-deploy tags legacy-final via the API on go. Open rows: x10 PL2 / PL5, x2 QF1,
 o4 QF10, x6 QF17.B2, ci QF16 mark; PL15 decided (above).
 **D12 official Sim 14 / 15 on both paths** (ced8848e01; KTX2 = iPhone path): only Pine interior drive fails (p95 38, max 75),
 its long frames in Pine's cell-entry hooks = in-play WebKit link time that G815 accepts. Pine memory fine on KTX2 (D207). Damage: D12, D199, D201, D202, T7.
