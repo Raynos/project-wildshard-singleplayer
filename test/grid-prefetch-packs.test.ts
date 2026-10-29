@@ -4,7 +4,8 @@ import {hashImmutableBytes} from '../src/sdk/immutable';
 import {parseOutputIndex} from '../src/format/outputIndex';
 import {installTitleManifests, titleManifests, type TitleManifest} from '../src/game/shard/titleList';
 import {startGridPrefetch, startTitlePrefetch, gridPrefetchStatus} from '../src/game/grid/prefetch';
-import {startSpawnDownload} from '../src/game/boot/spawnDownload';
+import {startSpawnDownload, adoptCompletedSpawnDownload} from '../src/game/boot/spawnDownload';
+import {installEntryDownloadTap, startEntryDownload} from '../src/game/shardfile/entryTransport';
 
 const initialStorage = globalThis.localStorage;
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); vi.stubGlobal('localStorage', initialStorage); });
@@ -69,10 +70,19 @@ test.each(['play', 'title', 'title-stop', 'title-adopt'] as const)('%s uses its 
     if (mode === 'title-adopt') {
       const foreground = startSpawnDownload('_template', 'client', 'phone');
       if (foreground === null) throw new Error('Missing foreground adoption');
+      expect(adoptCompletedSpawnDownload('_template', 'client', 'phone')).toBeNull();
       titleRun?.stop(); await foreground.ready;
       expect(foreground.snapshot().complete).toBe(true); expect(aborted).toBe(false);
       // A late title callback cannot start or replace the active world's job.
       expect(startTitlePrefetch(['_template'])).toBeNull();
+      const readsBefore = reads.length;
+      expect(adoptCompletedSpawnDownload('_template', 'client', 'phone')).toBe(foreground);
+      expect(adoptCompletedSpawnDownload('_template', 'grid', 'phone')).toBeNull();
+      expect(adoptCompletedSpawnDownload('absent', 'client', 'phone')).toBeNull();
+      address.totalBytes++;
+      expect(adoptCompletedSpawnDownload('_template', 'client', 'phone')).toBeNull();
+      address.totalBytes--;
+      expect(reads).toHaveLength(readsBefore);
     }
     if (mode === 'title-stop') {
       await vi.waitFor(() => {expect(reads).toContain(`http://localhost/alpha/blobs/bin/${hashes[0] ?? ''}.bin`);});
@@ -88,4 +98,22 @@ test.each(['play', 'title', 'title-stop', 'title-adopt'] as const)('%s uses its 
     expect(titleRun?.snapshot() ?? gridPrefetchStatus()).toMatchObject({knownFiles: 2, knownBytes: 3, storedFiles: 2, storedBytes: 3});
     titleRun?.stop();
   } finally { installTitleManifests(previous); }
+});
+
+test('title tap ownership is synchronous, disposable and cannot block navigation', () => {
+  vi.stubGlobal('document', {getElementById: () => null});
+  const first = vi.fn(() => true), second = vi.fn(() => true);
+  const stopFirst = installEntryDownloadTap(first);
+  try {
+    startEntryDownload('example');
+    expect(first).toHaveBeenCalledExactlyOnceWith('example', 'client');
+    const stopSecond = installEntryDownloadTap(second);
+    try {
+      stopFirst(); startEntryDownload('example', 'grid');
+      expect(second).toHaveBeenCalledExactlyOnceWith('example', 'grid');
+    } finally {stopSecond();}
+    startEntryDownload('example'); expect(second).toHaveBeenCalledTimes(1);
+    const stopBroken = installEntryDownloadTap(() => {throw new Error('Optional title painter retired');});
+    try {expect(() => startEntryDownload('example')).not.toThrow();} finally {stopBroken();}
+  } finally {stopFirst();}
 });

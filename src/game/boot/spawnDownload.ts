@@ -101,7 +101,10 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
     resolve: input => {const url = new URL(input, base); return url.origin === new URL(base).origin ? aliases.get(url.pathname) ?? url.href : url.href;}, cancel: () => {controller.abort(); listeners.clear();}};
 }
 
-let current: {url: string; download: SpawnDownload; foreground: boolean} | undefined;
+let current: {address: SpawnManifestAddress; download: SpawnDownload; foreground: boolean} | undefined;
+function sameAddress(left: SpawnManifestAddress, right: SpawnManifestAddress): boolean {
+  return left.url === right.url && left.bytes === right.bytes && left.totalBytes === right.totalBytes && left.files === right.files;
+}
 /** The selected entry is explicit; no engine import is needed on the title. */
 export function startSpawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode = '000'): SpawnDownload | null {
   return spawnDownload(slug, flow, tier, mode, true);
@@ -115,15 +118,27 @@ export function prefetchSpawnDownload(slug: string, tier: 'phone' | 'desktop'): 
     if (current?.download === download && !current.foreground) {download.cancel(); current = undefined;}
   }};
 }
-function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string, foreground: boolean): SpawnDownload | null {
+function spawnSelection(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string): {address: SpawnManifestAddress; cacheName: unknown} | null {
   const text = document.getElementById('boot-module-files')?.textContent; if (!text) return null;
   const bank: unknown = JSON.parse(text), get = (value: unknown, key: string): unknown => typeof value === 'object' && value !== null ? Reflect.get(value, key) : undefined;
   const manifests = get(bank, 'spawnManifests'), roots = flow === 'grid' ? get(get(manifests, flow), mode) : get(manifests, flow);
   const pair = get(get(roots, slug), tier);
   if (pair === undefined) return null;
-  const address = readSpawnManifestAddress(pair);
-  if (current?.url === address.url) {current.foreground ||= foreground; return current.download;}
-  const cacheName = get(manifests, 'cacheName');
+  return {address: readSpawnManifestAddress(pair), cacheName: get(manifests, 'cacheName')};
+}
+/** Adopt only a matching complete live operation. This performs no cache or
+ * network IO and never promotes a receipt, saved size or inferred progress. */
+export function adoptCompletedSpawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode = '000'): SpawnDownload | null {
+  const selected = spawnSelection(slug, flow, tier, mode);
+  const held = current;
+  if (selected === null || held === undefined || !sameAddress(held.address, selected.address) || !held.download.snapshot().complete) return null;
+  held.foreground = true;
+  return held.download;
+}
+function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string, foreground: boolean): SpawnDownload | null {
+  const selected = spawnSelection(slug, flow, tier, mode); if (selected === null) return null;
+  const {address, cacheName} = selected;
+  if (current !== undefined && sameAddress(current.address, address)) {current.foreground ||= foreground; return current.download;}
   const store = typeof caches === 'undefined' ? null : typeof cacheName === 'string' ? caches.open(cacheName) : null;
   const controller = navigator.serviceWorker?.controller;
   const download = downloadSpawnManifest(address, {
@@ -136,7 +151,7 @@ function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'd
     }}),
     ...(store === null || controller !== undefined && controller !== null ? {} : {store: async (url: string, response: Response) => {await (await store).put(url, response);}}),
   }, document.baseURI);
-  current?.download.cancel(); current = {url: address.url, download, foreground}; return download;
+  current?.download.cancel(); current = {address, download, foreground}; return download;
 }
 export function currentSpawnDownload(): SpawnDownload | undefined { return current?.download; }
 
@@ -147,6 +162,8 @@ export function paintSpawnDownload(download: SpawnDownload, root: HTMLElement): 
   return download.subscribe(row => {
     const percent = row.complete ? 100 : row.totalBytes === 0 ? 0 : Math.min(99, Math.floor(row.completedBytes / row.totalBytes * 100));
     root.dataset['download'] = String(percent); root.dataset['entryDownloadBytes'] = String(row.totalBytes);
+    root.dataset['declaredBytes'] = String(row.totalBytes); root.dataset['pendingBytes'] = String(row.totalBytes - row.completedBytes);
+    root.dataset['cachedBytes'] = String(row.cachedBytes);
     root.dataset['readBytes'] = String(row.completedBytes); root.dataset['readCachedBytes'] = String(row.cachedBytes);
     root.dataset['readUnknownSourceBytes'] = '0'; root.dataset['readsClosed'] = String(row.complete);
     root.dataset['spawnFilesDone'] = String(row.filesDone); root.dataset['spawnFilesTotal'] = String(row.filesTotal);

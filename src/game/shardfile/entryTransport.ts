@@ -15,9 +15,18 @@ export interface EntryDownloadRow {
   readonly members: readonly string[];
 }
 const transportKey = 'wildshard.entry-transport';
+let tap: ((slug: string, flow: 'client' | 'grid') => boolean) | undefined;
+
+/** The title lends a synchronous already-complete manifest painter. Removing
+ * an older title cannot remove a newer title's callback. No IO is installed. */
+export function installEntryDownloadTap(paint: NonNullable<typeof tap>): () => void {
+  tap = paint;
+  return () => {if (tap === paint) tap = undefined;};
+}
 
 /** Start the descriptor GET at the title tap, before the fresh document. */
 export function startEntryDownload(slug: string, flow: 'client' | 'grid' = 'client'): void {
+  try { if (tap?.(slug, flow) === true) return; } catch { /* Optional title progress cannot refuse navigation; the entry still reads its real manifest. */ }
   installEntryDownloadTotal(slug, flow);
   const raw = document.getElementById('boot-module-files')?.textContent;
   if (!raw) return;

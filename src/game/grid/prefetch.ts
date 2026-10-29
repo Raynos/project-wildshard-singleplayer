@@ -29,9 +29,12 @@ import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { builtIndexHash, builtIndexHashes } from '@wildshard/format/builtIndexes';
 import { readPrefetchIndex } from './prefetchIndex';
 import type { GridAssembly } from './assembly';
-import {TIER, type Tier} from '@wildshard/engine/core/tier';
+import {TIER, MOBILE_DEVICE, type Tier} from '@wildshard/engine/core/tier';
 import { prefetchRing } from './titleOrder';
-import {prefetchSpawnDownload} from '../boot/spawnDownload';
+import {prefetchSpawnDownload, adoptCompletedSpawnDownload, paintSpawnDownload} from '../boot/spawnDownload';
+import {installEntryDownloadTap} from '../shardfile/entryTransport';
+import {setting} from '@wildshard/engine/ui/Settings';
+import {gridMode, DEVSERVER} from './menu';
 
 /** Files in flight at once: the page's own reads keep most of the pipe. */
 const CONCURRENCY = 2;
@@ -272,8 +275,18 @@ function launchPrefetch(run: GridPrefetch): void {
  * neighbouring worlds. Foreground adoption retains the same cache operation. */
 export function startTitlePrefetch(slugs: readonly string[]): {snapshot: () => GridPrefetchStatus; stop: () => void} | null {
   const target = slugs.at(-1); if (target === undefined || typeof caches === 'undefined') return null;
-  const held = prefetchSpawnDownload(target, TIER); if (held === null) return null;
-  return {stop: held.stop, snapshot: () => {
+  const preferred = setting('tier'), tier = preferred === 'auto' ? TIER : preferred;
+  const held = prefetchSpawnDownload(target, tier); if (held === null) return null;
+  const stopTap = installEntryDownloadTap((slug, flow) => {
+    // Auto desktop still needs its actual GPU pick. Never paint a guessed tier.
+    if (preferred === 'auto' && !MOBILE_DEVICE) return false;
+    const card = document.querySelector<HTMLElement>('.ws-load'); if (card === null) return false;
+    const mode = gridMode(DEVSERVER), selected = adoptCompletedSpawnDownload(slug, flow, tier,
+      `${Number(mode.developer)}${Number(mode.devserver)}${Number(mode.nineDragon)}`);
+    if (selected === null) return false;
+    paintSpawnDownload(selected, card)(); return true;
+  });
+  return {stop: () => {stopTap(); held.stop();}, snapshot: () => {
     const row = held.download.snapshot();
     return {phase: row.error !== null ? 'error' : row.complete ? 'done' : 'running', reason: row.error,
       products: 1, productsRead: row.complete ? 1 : 0, knownFiles: row.filesTotal, knownBytes: row.totalBytes,

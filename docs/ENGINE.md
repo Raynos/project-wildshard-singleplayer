@@ -974,7 +974,8 @@ MF4's `format/spawnManifest` is the build-owned URL/hash/size list.
 `writeSpawnManifests` selects active entry files; URLs count once.
 Named native assemblies include the exact default `readWholeGeometry` inputs:
 L0 props/additional files, then whole-library refs, in native reader order.
-`game/boot/spawnDownload` needs no engine, renderer or worker imports.
+`game/boot/spawnDownload` keeps native presence renderer-free; cold IO
+lazily loads the shared boot retry reader.
 `startSpawnDownload` selects shard/tier/flow; `paintSpawnDownload` updates
 existing card numbers/text. `ready` awaits every exact-sized file; warm
 cache presence needs no body read or checksum. First installs fill the same
@@ -987,7 +988,12 @@ Manifest entries start no automatic whole-product copy or ring prefetch in play;
 late title read-ahead cannot replace the foreground operation.
 The world-only root starts this job after actual tier/route selection, before
 Three and author preparation. Its early card painter retires on completion;
-Loading adopts the same operation. Title-only pages never import the reader.
+Loading adopts the same operation. The title critical graph excludes the reader.
+`adoptCompletedSpawnDownload` selects only a complete live operation with the
+exact same manifest URL, size, count and total. The title may paint that native
+fact synchronously at the tap; unknown/different lists get no completion.
+Its scoped `installEntryDownloadTap` callback retires on title leave, does no
+IO and cannot block navigation. No completion receipt is persisted.
 
 `Loading.setPrefetchSource(read)` reports the separate on-disk prefetch set,
 its known files/bytes, products checked and quota/failure state. These facts
