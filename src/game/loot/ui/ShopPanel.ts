@@ -130,7 +130,7 @@ export class ShopPanel<G extends ShopGood> {
     const first = this.o.goods.findIndex((g) => this.o.state(g) !== 'owned');
     this.i = first === -1 ? 0 : first;
     this.render();
-    this.layer = app.ui.push('modal', { root: this.counter, order: -40, back: () => { this.close(); } }, this.scope); this.openT = app.clock.real * 1000;
+    this.layer = app.ui.push('modal', { root: this.counter, presentation: 'glass', order: -40, back: () => { this.close(); } }, this.scope); this.openT = app.clock.real * 1000;
     this.hideHud(true);
     this.counter.classList.add('show');
     this.onOpen?.();

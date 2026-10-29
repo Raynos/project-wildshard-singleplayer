@@ -47,7 +47,7 @@ export class DataPanel extends DeclaredPanel {
           view.on(guard.ref, 'beforeinput', event => { if (diagnosticNow() - opened < guard.milliseconds) event.preventDefault(); }, live);
         }
         if (data.layer !== undefined) {
-          const layer = app.ui.push('modal', { root: view.root, order: data.layer.order, back: close }, live);
+          const layer = app.ui.push('modal', { root: view.root, presentation: 'glass', order: data.layer.order, back: close }, live);
           state.layer = layer;
           live.onDispose(() => { layer.dispose(); });
         }

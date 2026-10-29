@@ -1,4 +1,5 @@
 import type { Scope } from '../app/scope';
+import {pagePresentation,type ForegroundView} from '../app/view/presentation';
 
 export type UiLayer = 'hud' | 'gameMenu' | 'menu' | 'modal' | 'error';
 export interface UiView {
@@ -10,6 +11,8 @@ export interface UiView {
   embedded?: boolean;
   /** the menu actions (pause, map, inventory) close this view and open the game menu instead of being ignored under it (a dialogue box, E385) */
   yieldsToMenu?: boolean;
+  /** Presentation only; input ownership, placement and styling are unchanged. */
+  presentation?: 'opaque' | 'glass' | 'world';
 }
 export interface UiHandle { readonly active: boolean; readonly top: boolean; dispose: () => void }
 interface Entry { layer: UiLayer; view: UiView; handle: UiHandle; resident: Scope | null; forget: () => void }
@@ -22,6 +25,9 @@ export class UiLayers {
   closedAt: number = Number.NEGATIVE_INFINITY;
   private entries: Entry[] = [];
   private readonly stills = new Set<Scope>();
+  private readonly covers = new Set<Scope>();
+  private readonly observers = new Set<() => void>();
+  private readonly bindings = new WeakSet<Scope>();
   /** called when the first still hold starts, so the owner can draw the one frame the world is held on */
   onStill: (() => void) | undefined;
   private changed: (() => void) | undefined;
@@ -48,6 +54,25 @@ export class UiLayers {
     this.refresh();
   }
   get still(): boolean { return this.stills.size > 0; }
+  /** Loading widgets cover the world without becoming a new input/DOM layer. */
+  holdCovered(scope: Scope): void {
+    if (scope.disposed || scope.disposing || this.covers.has(scope)) return;
+    this.covers.add(scope);scope.onDispose(() => {this.covers.delete(scope);this.refresh();});this.refresh();
+  }
+  get presentation(): ForegroundView {
+    if (this.covers.size > 0) return 'covered';
+    const front=this.input().at(-1);
+    const kind=front?.view.presentation ?? (front?.layer === 'hud' || front === undefined ? 'world' : 'opaque');
+    if(kind==='opaque')return 'covered';
+    return kind==='glass'||this.still?'still':'play';
+  }
+  /** Explicit page composition binding: constructing a layer stack installs nothing. */
+  bindPresentation(scope: Scope, wake?: () => void): void {
+    if(scope.disposed||scope.disposing||this.bindings.has(scope))return;
+    this.bindings.add(scope);
+    const update=():void=>{pagePresentation.setCoverage(this.presentation);pagePresentation.refresh();wake?.();};
+    this.observers.add(update);scope.onDispose(()=>{this.observers.delete(update);});update();
+  }
   isTop(handle: UiHandle): boolean { return this.input().at(-1)?.handle === handle; }
   push(layer: UiLayer, view: UiView, scope: Scope): UiHandle {
     let active = !scope.disposed;
@@ -84,5 +109,6 @@ export class UiLayers {
     const visible = this.input(), top = visible.at(-1);
     for (const entry of visible) entry.view.root.inert = entry !== top;
     this.changed?.();
+    for(const update of this.observers)update();
   }
 }

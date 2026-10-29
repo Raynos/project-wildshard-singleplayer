@@ -88,7 +88,7 @@ export class JournalView {
     if (entryId !== undefined) this.goTo(entryId);
     this.render();
     if (this._open) return;
-    this.layer = app.ui.push('gameMenu', { root: this.root, order: 5, back: () => { this.close(); } }, this.scope);
+    this.layer = app.ui.push('gameMenu', { root: this.root, presentation: 'glass', order: 5, back: () => { this.close(); } }, this.scope);
     this.root.inert = false;
     this.root.classList.add('show');
     this.onOpen?.();

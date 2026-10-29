@@ -265,7 +265,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   const titleFrame = menuFirst ? prepareTitleFrame({
     later: (ms, run) => { levelScope.timeout(ms, run); }, next: run => { levelScope.raf(run); },
     onDispose: run => { levelScope.onDispose(run); }, disposed: () => levelScope.disposed,
-    skip: () => hud.entered || exploring(), frame: () => game.frameCount, prime: () => { game.primeFrame(); },
+    skip: () => hud.entered || exploring(), frame: () => game.frameCount, prime: () => { game.hiddenFrame(); },
   }) : Promise.resolve();
   levelScope.onDispose(app.debug.scopedExpose('titlePreparation', observeTitlePreparation(titleShaders, titleFrame)));
   const handle = { ...world, get physics() { return world.physics; }, boundary, water, streams: edgeDressing.streams, hands, props, animals, interactables, crossbow, hud, audio, music, lockSys, lockState, weapons, get arena() { return getArena(); }, playground: getPlayground, ...boot.runtime.objects };

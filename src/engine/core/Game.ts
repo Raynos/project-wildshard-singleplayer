@@ -3,6 +3,8 @@ import { engineString } from '../strings';
 import { Scope } from '../app/scope';
 import { FrameDrawRanges, type FrameDrawRange } from '../render/frameDrawRange';
 import { installBrowserScopeEnvironment } from '../app/view/scopeEnvironment';
+import {pagePresentation} from '../app/view/presentation';
+import {PresentationLoop} from '../app/view/presentationLoop';
 import { SceneOwnership, sceneResourceOwner } from '../app/sceneOwnership';
 import { UploadOwnership } from '../render/uploadOwnership';
 import { composerAllocations, cachedResourceAllocations, type ResourceAllocation } from '../render/textureBytes';
@@ -372,10 +374,12 @@ export class Game {
   /** WebGL context loss bookkeeping (iOS drops the context in the background); the perf meter shows it */
   gl = { lostAt: 0, restoredAt: 0, events: 0 };
   /** Return false to skip a whole frame (updaters + render): a menu covering the canvas, a still title on a phone. */
-  frameGate: () => boolean = () => true;
+  private gate: () => boolean = () => true;
+  get frameGate(): () => boolean { return this.gate; }
+  set frameGate(gate: () => boolean) { this.gate=gate;pagePresentation.refresh();this.kickLoop(); }
   /** GPU recovery (src/engine/core/GpuRecovery.ts): true while the WebGL context is lost or being rebuilt — no tick, no draw, not even a forced frame */
   hold = false;
-  /** Restart the frame loop if it has not run for a second (a browser that dropped its animation frame across an app switch). Set by start(). */
+  /** Re-evaluate presentation after input or ownership changes; a covered world remains parked. Set by start(). */
   kickLoop: () => void = () => undefined;
   /**
    * E183: draw ONE whole frame (the systems' step and the draw) at the next animation frame even though the gate is shut —
@@ -1251,6 +1255,7 @@ export class Game {
     this.compositionChanged = true;
     this._composer?.setSize(w, h); // a resize can land before buildComposer() / buildSky()
     this._sky?.csm.updateFrustums();
+    this.kickLoop();
   }
 
   start(): void {
@@ -1262,12 +1267,11 @@ export class Game {
     // Returning from the background: draw one frame at once (bypassing the gate). The 1–2 s of black on an
     // iOS app switch is iOS restoring a suspended standalone web app before any of this runs — investigated
     // and accepted (overlay / mirror / hidden canvas / wake lock / keep-alive audio made no difference).
-    let forceFrame = false;
-    this.engineScope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'visible') forceFrame = true; });
+    pagePresentation.bindGate(this.engineScope,()=>!this.dead&&this.frameGate());
     this.engineScope.listen(this.canvas, 'webglcontextlost', () => { this.gl.lostAt = diagnosticNow(); this.gl.events++; console.warn('[gl] context lost'); });
     this.engineScope.listen(this.canvas, 'webglcontextrestored', () => { this.gl.restoredAt = diagnosticNow(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
     // (A timer-driven loop was tried for iOS Low Power Mode: timers are throttled to ~30 ms there too. rAF it is.)
-    const schedule = (fn: () => void) => { this.engineScope.raf(fn); };
+    // PresentationLoop owns the only world request and cancels it while covered.
     // One chain only: every animation-frame callback of a frame gets the same timestamp, so a second chain (kickLoop
     // restarting a loop that was merely paused) finds its frame taken and ends there.
     let lastNow = -1, lastRun = diagnosticNow();
@@ -1277,10 +1281,9 @@ export class Game {
     // available callback at 30 Hz (iOS Low Power). A skipped vsync does nothing, including the clock: dt and fixed
     // steps account for the whole interval, and input includes everything since the previous draw.
     let lastDrawn = -Infinity;
-    const loop = (now?: number) => {
+    const loop = (now:number|undefined, forceFrame:boolean) => {
       if (now !== undefined) { if (now === lastNow) return; lastNow = now; }
       if (this.dead) return; // a core system died (faults.ts): the fatal modal is up, nothing more to draw
-      schedule(loop);
       lastRun = diagnosticNow();
       // G782: held at a cell's wall with build slices running, skip vsyncs up to the 30 fps held floor (framePacing.ts);
       // like a capped vsync, a skipped one does nothing, so the drawn frame's dt is the whole interval
@@ -1293,7 +1296,6 @@ export class Game {
       }
       if (this.hold) { this.clock.getDelta(); return; } // the context is lost / being rebuilt (GpuRecovery.ts): a draw now would re-link every program in one stall
       if (!forceFrame && !this.frameGate()) { this.clock.getDelta(); return; } // keep the clock moving so the next frame's dt is sane
-      forceFrame = false;
       this.renderer.info.reset();
       const liveDt = Math.min(0.1, this.clock.getDelta());
       const realDt = this.app.clock.delta(liveDt);
@@ -1362,12 +1364,17 @@ export class Game {
       this.stats.frames++; this.stats.acc += realDt;
       if (this.stats.acc >= 0.5) { this.stats.fps = Math.round(this.stats.frames / this.stats.acc); this.stats.frames = 0; this.stats.acc = 0; }
     };
-    this.kickLoop = () => { if (!this.dead && diagnosticNow() - lastRun > 1000) this.engineScope.raf(loop); };
-    this.primeFrame = () => { if (!this.dead) forceFrame = true; };
-    this.hiddenFrame = () => { if (this.dead) return; forceFrame = true; loop(); };
-    this.app.ui.onStill = () => { this.primeFrame(); }; // FC3: the frame a glass screen holds the world on (the shop's turn to the trader)
+    const driver=new PresentationLoop(this.engineScope,pagePresentation,{
+      draw:loop,parked:()=>{this.clock.getDelta();lastDrawn=-Infinity;},
+    });
+    this.kickLoop=()=>{driver.wake();};
+    this.app.ui.bindPresentation(this.engineScope,this.kickLoop);
+    for(const state of ['play','explore','practice','playground','capture'] as const)this.app.onEnter(state,this.kickLoop,this.engineScope);
+    this.primeFrame=()=>{if(!this.dead)driver.primeFrame();};
+    this.hiddenFrame=()=>{if(!this.dead)driver.hiddenFrame();};
+    this.app.ui.onStill=()=>{driver.stillFrame();};
     setLoopState('running');
-    loop();
+    driver.wake();
   }
 
   /** Stop the page engine and release its renderer and scopes. */
