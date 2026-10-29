@@ -58,10 +58,11 @@ type PrefetchCache = Required<Pick<ProductCache, 'holds' | 'keepAsset'>> & {
   readonly fetchKeep?: (url: string, hash: string, bytes: number) => Promise<boolean | null>;
 };
 
-/** The verified disk cache owns persistence; HTTP must not retain a second body. */
-export async function readGridPrefetch(url: string, maximum: number, fetcher: typeof fetch = fetch): Promise<Uint8Array> {
+/** The verified disk cache owns persistence. A title read borrows its
+ * abort signal so the tap can release bandwidth before travel/adoption. */
+export async function readGridPrefetch(url: string, maximum: number, fetcher: typeof fetch = fetch, signal?: AbortSignal): Promise<Uint8Array> {
   if (!Number.isSafeInteger(maximum) || maximum < 0 || maximum > IN_FLIGHT_BYTES) throw new Error('Invalid prefetch body size');
-  const response = await fetcher(url, { cache: 'no-store' });
+  const response = await fetcher(url, { cache: 'no-store', ...(signal === undefined ? {} : {signal}) });
   if (!response.ok) throw new Error(`Prefetch read failed: ${url}`);
   if (response.body === null) return new Uint8Array();
   const reader = response.body.getReader(), chunks: Uint8Array[] = [];
@@ -94,6 +95,7 @@ export function gridPrefetchOrder(assembly: Pick<GridAssembly, 'cells'>, at: Rea
 
 class GridPrefetch {
   private readonly memory = new PrefetchBytes(IN_FLIGHT_BYTES);
+  private readonly transfer = new AbortController();
   private readonly queue: string[] = [];
   private readonly known = new Set<string>();
   private readonly hashes = new Set<string>();
@@ -117,7 +119,7 @@ class GridPrefetch {
   snapshot(): GridPrefetchStatus { return { ...this.status, inFlightBytes: this.memory.usedBytes,
     peakInFlightBytes: this.memory.peakBytes, limitInFlightBytes: this.memory.limit }; }
   stop(reason: string, phase: 'quota' | 'stopped' | 'error' = 'stopped'): void {
-    if (this.status.reason === null) { this.status.reason = reason; this.status.phase = phase; }
+    if (this.status.reason === null) { this.status.reason = reason; this.status.phase = phase; if (this.title) this.transfer.abort(); }
   }
   async run(): Promise<void> {
     try {
@@ -133,8 +135,10 @@ class GridPrefetch {
         if (this.tier === 'phone' && !this.explicit && !this.ring.has(next)) continue;
         try { await this.product(next, quota); }
         catch (error: unknown) {
-          if (this.title) this.stop(error instanceof Error ? error.message : String(error), 'error');
-          console.warn(`[grid prefetch] ${next} skipped`, error);
+          if (this.status.reason === null) {
+            if (this.title) this.stop(error instanceof Error ? error.message : String(error), 'error');
+            console.warn(`[grid prefetch] ${next} skipped`, error);
+          }
         } // an ordinary grid run still skips only the failed product
         this.status.productsRead++;
       }
@@ -154,8 +158,9 @@ class GridPrefetch {
     const content = browserContentStore(caches), indexes = import.meta.env.DEV ? null : builtIndexHashes();
     const holds: PrefetchCache['holds'] = (hash, size) => content.holds(hash, size);
     const keepAsset: PrefetchCache['keepAsset'] = (hash, body) => content.put(hash, body, true);
-    // The page never sees a prefetched body: the worker reads, verifies and keeps it (G639).
-    const fetchKeep = content instanceof ContentCacheWorker ? async (file: string, hash: string, size: number): Promise<boolean | null> =>
+    // Ordinary prefetch stays worker-owned (G639). Title reads must be
+    // abortable at the tap; their bounded page bytes use the same verifier.
+    const fetchKeep = !this.title && content instanceof ContentCacheWorker ? async (file: string, hash: string, size: number): Promise<boolean | null> =>
       (await content.fetchVerified(file, hash, size, { reply: 'stored', keep: true }))?.stored ?? null : undefined;
     const index = await readPrefetchIndex({url:url.href,indexHashes:indexes===null?null:[...indexes],phone:this.tier==='phone'},content);
     if(index===null){this.stop('a newer deployment');return;}
@@ -198,10 +203,12 @@ class GridPrefetch {
     try {
       release = await this.memory.reserve(pack.bytes);
       if (this.status.reason !== null) return;
-      const bytes = await readGridPrefetch(new URL(pack.path, base).href, pack.bytes);
+      const bytes = await readGridPrefetch(new URL(pack.path, base).href, pack.bytes, fetch, this.title ? this.transfer.signal : undefined);
       if (bytes.length !== pack.bytes || await hash(bytes) !== pack.hash) throw new Error('Prefetched pack differs from its index');
+      if (this.status.reason !== null) return;
       const at = new Map(pack.entries.map(entry => [entry.hash, entry] as const));
       for (const row of missing) {
+        if (this.status.reason !== null) return;
         const entry = at.get(row.hash);
         if (entry === undefined || entry.bytes !== row.bytes) throw new Error('Prefetched pack member differs from its index');
         if (!await cache.keepAsset(row.hash, bytes.slice(entry.offset, entry.offset + entry.bytes))) { this.stop('content cache full', 'quota'); return; }
@@ -223,14 +230,15 @@ class GridPrefetch {
       const url = new URL(row.path, base).href;
       const kept = await cache.fetchKeep?.(url, row.hash, row.bytes) ?? null;
       if (kept !== null) { if (kept) stored = row.bytes; else this.stop('content cache full', 'quota'); return; }
-      bytes = await readGridPrefetch(url, row.bytes);
+      bytes = await readGridPrefetch(url, row.bytes, fetch, this.title ? this.transfer.signal : undefined);
       let actual: string | undefined;
       if (bytes.length !== row.bytes) throw new Error('Prefetched file differs from its index');
       if (hashOwned !== undefined) {
         try { ({ hash: actual, bytes } = await hashOwned(bytes)); }
-        catch { if (bytes.byteLength !== row.bytes) bytes = await readGridPrefetch(url, row.bytes); } // a failed transfer: read it again
+        catch { if (bytes.byteLength !== row.bytes) bytes = await readGridPrefetch(url, row.bytes, fetch, this.title ? this.transfer.signal : undefined); } // a failed transfer: read it again
       }
       if (bytes.length !== row.bytes || (actual ?? await hash(bytes)) !== row.hash) throw new Error('Prefetched file differs from its index');
+      if (this.status.reason !== null) return;
       if (await cache.keepAsset(row.hash, bytes)) stored = bytes.length; else this.stop('content cache full', 'quota');
     } finally {
       bytes = undefined; release?.(); reservation.finish(stored);

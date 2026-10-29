@@ -80,12 +80,15 @@ function required<T extends HTMLElement>(root: ParentNode, selector: string, typ
 /** Build the shared title menu from its supplied deck and callbacks. */
 export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
   const owner = pageScope.child('title-prefetch');
+  let leavingTitle = false;
+  let stopReadAhead: (() => void) | undefined;
+  const leaveTitle = (): void => { leavingTitle = true; stopReadAhead?.(); };
   const mode = opts.mode ?? menuMode;
   const { notice, onGrid, screen: first, cards = titleCards(), whatsNew = WHATS_NEW, whatsNewStore, ...deckOpts } = opts;
   // leaving the title for a world resets it: pause ▸ EXIT TO MAIN opens on the main menu again
   const deck = buildTitleDeck({ ...deckOpts, cards,
-    onEnter: (card, entry) => { screen = 'main'; deckOpts.onEnter(card, entry); },
-    onExplore: (card) => { screen = 'main'; deckOpts.onExplore(card); } });
+    onEnter: (card, entry) => { leaveTitle(); screen = 'main'; deckOpts.onEnter(card, entry); },
+    onExplore: (card) => { leaveTitle(); screen = 'main'; deckOpts.onExplore(card); } });
   const grid = gridEntryShown(mode());
   const s = GAME_STRINGS.mainMenu;
   const dev = mode().developer;
@@ -150,7 +153,7 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
   };
   deck.onTap(selectCard, () => { show('select'); deck.start(); });
   const gridCard = main.querySelector('.ws-main-grid');
-  if (gridCard instanceof HTMLButtonElement) deck.onTap(gridCard, () => { if (gridEntryShown(mode())) onGrid(); });
+  if (gridCard instanceof HTMLButtonElement) deck.onTap(gridCard, () => { if (gridEntryShown(mode())) { leaveTitle(); onGrid(); } });
   // PL13: only the home/last product, after the title paints. This is verified
   // disk prefetch, never world construction or a hidden offline-size scan.
   let started = false;
@@ -161,10 +164,12 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
       const targets = titlePrefetchTargets(titlePrefetchOrder(gridMode(mode().devserver, mode()))[0], titlePrefetchChoice(saves).read(), titleManifests(), mode().developer);
       const load = async (): Promise<void> => {
         const {startTitlePrefetch} = await import('./grid/prefetch');
-        if (owner.disposed) return;
+        if (owner.disposed || leavingTitle) return;
         const run = startTitlePrefetch(targets);
         if (run === null) return;
+        stopReadAhead = run.stop;
         owner.onDispose(run.stop);
+        owner.listen(window, 'beforeunload', leaveTitle);
         const lines = [main, deck.root].map(parent => {
           const line = document.createElement('div'); line.className = parent === main ? 'ws-main-notice' : 'ws-menu-recovery';
           line.setAttribute('role', 'status');

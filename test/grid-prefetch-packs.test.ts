@@ -9,7 +9,7 @@ const initialStorage = globalThis.localStorage;
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); vi.stubGlobal('localStorage', initialStorage); });
 
 // iPhone downloads I5: the grid prefetch stores a pack's members from one read of the pack, never their own paths.
-test.each(['play', 'title'] as const)('%s packed members are stored from one verified read, including metered title prefetch', async mode => {
+test.each(['play', 'title', 'title-stop'] as const)('%s packed members are stored from one verified read, including metered title prefetch', async mode => {
   const first = new Uint8Array([1, 2]), second = new Uint8Array([3]);
   const hashes = [hashImmutableBytes(first), hashImmutableBytes(second)];
   const packBytes = new Uint8Array([...first, ...second]), packHash = hashImmutableBytes(packBytes), packPath = `blobs/pack/${packHash}.pack`;
@@ -41,16 +41,32 @@ test.each(['play', 'title'] as const)('%s packed members are stored from one ver
   };
   vi.stubGlobal('window', new EventTarget());
   vi.stubGlobal('location', {href: 'http://localhost/', origin: 'http://localhost'});
-  vi.stubGlobal('navigator', {onLine: true, connection: {saveData: mode === 'title'}, storage: {persist: () => Promise.resolve(true), estimate: () => Promise.resolve({usage: 0, quota: 1024 ** 3})}});
+  vi.stubGlobal('navigator', {onLine: true, connection: {saveData: mode !== 'play'}, storage: {persist: () => Promise.resolve(true), estimate: () => Promise.resolve({usage: 0, quota: 1024 ** 3})}});
   vi.stubGlobal('caches', {open: () => Promise.resolve(cache), delete: () => Promise.resolve(true)});
   vi.stubGlobal('Worker', undefined);
-  vi.stubGlobal('fetch', (input: RequestInfo | URL): Promise<Response> => {
+  let aborted = false;
+  vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url = urlOf(input); reads.push(url);
+    if (mode === 'title-stop' && url.endsWith('.pack')) return new Promise<Response>((_resolve, reject) => {
+      const signal = init?.signal;
+      if (signal === undefined || signal === null) { reject(new Error('Missing title abort signal')); return; }
+      signal.addEventListener('abort', () => {aborted = true; reject(new DOMException('Title left', 'AbortError'));}, {once: true});
+    });
     return Promise.resolve(url.endsWith('/index.json') ? Response.json(index) : url.endsWith('.pack') ? new Response(packBytes) : new Response(null, {status: 404}));
   });
   try {
-    if (mode === 'title') expect(startTitlePrefetch(['_template'])).not.toBeNull();
-    else startGridPrefetch(['_template']);
+    const titleRun = mode === 'play' ? null : startTitlePrefetch(['_template']);
+    if (mode === 'play') startGridPrefetch(['_template']);
+    else expect(titleRun).not.toBeNull();
+    if (mode === 'title-stop') {
+      await vi.waitFor(() => {expect(reads).toContain(`http://localhost/alpha/${packPath}`);});
+      titleRun?.stop();
+      await vi.waitFor(() => {expect(gridPrefetchStatus()).toMatchObject({phase: 'stopped', storedFiles: 0, storedBytes: 0, inFlightBytes: 0});});
+      expect(aborted).toBe(true);
+      expect(reads).toHaveLength(2);
+      expect([...disk.keys()].filter(url => hashes.some(hash => url.endsWith(`/${hash}`)))).toEqual([]);
+      return;
+    }
     await vi.waitFor(() => {expect(gridPrefetchStatus()?.phase).toBe('done');});
     expect(reads).toEqual(['http://localhost/alpha/index.json', `http://localhost/alpha/${packPath}`]);
     expect(gridPrefetchStatus()).toMatchObject({knownFiles: 2, knownBytes: 3, storedFiles: 2, storedBytes: 3});
