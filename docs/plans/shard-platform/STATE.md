@@ -4,8 +4,8 @@
 (G845).** Only legacy-deletion (LD4b goldens done; tag legacy-final; LD5-LD10 all at once on Jake's word, G840 / G843 / G851).
 Archived today: 12 mini plans (loading ... tile-streaming 9be158bc79).
 
-**LIVE c05f6ac3b8 (c05f6ac3b-mvsxjh1p); deploying bf07819a93** (CI 40827254162 + exact six 40828917866 green; title-cycle fix
-edb49f5a82, lantern 4e009207dd, What's New; deploy 40830747863). a3bc0e338f smoke stays red (24621a6c4a, fixed).
+**LIVE bf07819a93 (build bf07819a9-mvt78a70, ~02:30 Cancun 10-29):** title-cycle fix edb49f5a82, lantern 4e009207dd, Nine NR3-NR15
+looks, FR6 meadow, preset env parity, 29 Oct What's New; CI 40827254162 + exact six 40828917866. Sim phone-route leg still report-only.
 
 **Jake's QA 10-28 PASSED:** NM, loading / M2, tiles / T10, DW cut B (G827 / G831-G833).
 **Marks:** Nine done NR1-3, 5-7, 12-14 (+ 21 roof c6df3155cd); NR4 / NR7 view-F done; open NR8, NR16 (tea-house; graph byte cap 64 -> 96 KB approved). Far Reach FR1-4 done;
