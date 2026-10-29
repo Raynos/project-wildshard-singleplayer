@@ -2,6 +2,7 @@ import { workerScope } from '../app/workerScope.js';
 /* MF1: one URL cache, one build shell, and one previous generation of code.
  * No body reconstruction, checksums, receipts, packs, retries or work timers. */
 const BUILD = '__BUILD_ID__';
+const DOCUMENT = '__DOCUMENT__';
 const ASSETS = '__ASSET_CACHE__';
 const BOOKS = 'ws-builds-v1';
 const SHELL_PREFIX = 'ws-shell-v3-';
@@ -127,7 +128,7 @@ workerScope.listen(self, 'fetch', event => {
   if (request.method !== 'GET' || url.origin !== self.location.origin || url.searchParams.get('sw') === '0') return;
   if (url.pathname === '/version.json' || url.pathname === '/sw.js' || url.pathname.startsWith('/api/')) return;
   if (request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') {
-    event.respondWith(cached(new Request(abs('/index.html')), SHELL));
+    event.respondWith(new Response(DOCUMENT, { headers: { 'content-type': 'text/html;charset=utf-8', 'cache-control': 'no-store' } }));
     return;
   }
   if (immutable(url)) {

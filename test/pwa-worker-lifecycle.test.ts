@@ -8,14 +8,15 @@ import { ASSET_CACHE_NAME } from '../src/engine/pwa/cacheNames';
 const origin = 'https://worker.test';
 const url = (path: string): string => new URL(path, origin).href;
 const shared = '/assets/shared-ssssssss.js';
-const shell = ['/index.html', '/manifest.webmanifest'];
+const shell = ['/manifest.webmanifest'];
+const document = '<!doctype html><html><body>worker shell π</body></html>';
 interface WorkerEvent {
   request?: Request;
   data?: { type: string };
   ports?: { postMessage: (value: unknown) => void }[];
   source?: { postMessage: (value: unknown) => void };
   waitUntil: (work: Promise<unknown>) => void;
-  respondWith: (work: Promise<Response>) => void;
+  respondWith: (work: Response | Promise<Response>) => void;
 }
 class StoredCache {
   readonly entries = new Map<string, Response>();
@@ -44,14 +45,14 @@ function fixture(read?: (request: Request) => Promise<Response>) {
       addEventListener: (kind: string, listener: (event: WorkerEvent) => void) => { listeners.set(kind, [...listeners.get(kind) ?? [], listener]); } };
     const owner = readFileSync('src/engine/app/workerScope.js', 'utf8').replaceAll(/^export /gmu, '');
     const source = readFileSync('src/engine/pwa/sw.js', 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '').replaceAll('__BUILD_ID__', build)
-      .replaceAll('__ASSET_CACHE__', ASSET_CACHE_NAME).replace("'__FILES__'", JSON.stringify(JSON.stringify(files)))
+      .replaceAll('__ASSET_CACHE__', ASSET_CACHE_NAME).replace("'__DOCUMENT__'", JSON.stringify(document)).replace("'__FILES__'", JSON.stringify(JSON.stringify(files)))
       .replace("'__SHELL_FILES__'", JSON.stringify(JSON.stringify(shellFiles)));
     // Deliberately no clock, crypto, scheduler or accounting ports.
     runInNewContext(`${owner}\n${source}`, { self, caches, fetch, URL, Request, Response, Set, JSON, encodeURIComponent });
     const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'request' | 'data' | 'ports' | 'source'> = {}): Promise<Response | undefined> => {
       const work: Promise<unknown>[] = []; let response: Response | undefined;
       for (const listener of listeners.get(kind) ?? []) listener({ ...payload,
-        waitUntil: promise => { work.push(promise); }, respondWith: promise => { work.push(promise.then(value => { response = value; return value; })); } });
+        waitUntil: promise => { work.push(promise); }, respondWith: promise => { work.push(Promise.resolve(promise).then(value => { response = value; return value; })); } });
       await Promise.all(work); return response;
     };
     return { dispatch, claim, skipWaiting };
@@ -62,14 +63,25 @@ function fixture(read?: (request: Request) => Promise<Response>) {
 test('install precaches its complete shell and hashed files before publishing a generation', async () => {
   const f = fixture(), worker = f.load('A', ['/assets/a-aaaaaaaa.js', shared]);
   await worker.dispatch('install'); await worker.dispatch('activate');
-  expect(f.fetch).toHaveBeenCalledTimes(4); expect(worker.claim).not.toHaveBeenCalled();
+  expect(f.fetch).toHaveBeenCalledTimes(3); expect(worker.claim).not.toHaveBeenCalled();
   const assets = await f.open(ASSET_CACHE_NAME), current = await f.open('ws-shell-v3-A');
   expect(await (await assets.match(url(shared)))?.text()).toBe(`body:${url(shared)}`);
-  expect(await (await current.match(url('/index.html')))?.text()).toBe(`body:${url('/index.html')}`);
+  expect(await current.match(url('/index.html'))).toBeUndefined();
   f.fetch.mockRejectedValue(new Error('offline'));
   expect(await (await worker.dispatch('fetch', { request: new Request(url(shared)) }))?.text()).toBe(`body:${url(shared)}`);
-  expect(await (await worker.dispatch('fetch', { request: new Request(url('/')) }))?.text()).toBe(`body:${url('/index.html')}`);
-  expect(f.fetch).toHaveBeenCalledTimes(4);
+  expect(await (await worker.dispatch('fetch', { request: new Request(url('/')) }))?.text()).toBe(document);
+  expect(f.fetch).toHaveBeenCalledTimes(3);
+});
+
+test('navigation serves the exact built document without any storage or network operation', async () => {
+  const f = fixture(), open = vi.spyOn(f.caches, 'open').mockRejectedValue(new DOMException('denied', 'SecurityError'));
+  const worker = f.load('A', []);
+  for (const path of ['/', '/index.html', '/?chunk=fixture']) {
+    const response = await worker.dispatch('fetch', {request: new Request(url(path))});
+    expect(response?.status).toBe(200); expect(response?.headers.get('content-type')).toBe('text/html;charset=utf-8');
+    expect(response?.headers.get('cache-control')).toBe('no-store'); expect(await response?.text()).toBe(document);
+  }
+  expect(open).not.toHaveBeenCalled(); expect(f.fetch).not.toHaveBeenCalled();
 });
 
 test('a worker reuses its installed cache handles across navigation and content reads', async () => {

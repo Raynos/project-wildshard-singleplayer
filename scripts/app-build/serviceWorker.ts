@@ -13,7 +13,7 @@ export function workerScripts(core: string): { fileName: string; bootstrap: stri
 }
 
 function shellFiles(html: string, root: string, sources: ReadonlyMap<string, string>): string[] {
-  const files = new Set(['/index.html', '/manifest.webmanifest']);
+  const files = new Set(['/manifest.webmanifest']);
   const publicRoot = resolve(root, 'public');
   const add = (url: string): void => {
     if (!url.startsWith('/') || url.startsWith('//') || url.includes('?') || url.includes('#')) return;
@@ -52,7 +52,8 @@ export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>,
   const build = `${buildId}-${digest.digest('hex').slice(0, 10)}`;
   const core = source.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_CACHE__', ASSET_CACHE_NAME)
     .replace("'__FILES__'", JSON.stringify(JSON.stringify(hashed)))
-    .replace("'__SHELL_FILES__'", JSON.stringify(JSON.stringify(shell)));
+    .replace("'__SHELL_FILES__'", JSON.stringify(JSON.stringify(shell)))
+    .replace("'__DOCUMENT__'", JSON.stringify(html));
   return { core, build, assets: ASSET_CACHE_NAME, hashed };
 }
 

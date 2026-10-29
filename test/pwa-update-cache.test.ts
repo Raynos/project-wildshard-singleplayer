@@ -25,8 +25,19 @@ test('the plain emitter stamps the real worker without a boot bank or code-pack 
   expect(first.assets).toBe('ws-assets-v1'); expect(first.build).toMatch(/^fixture-[a-f0-9]{10}$/u);
   expect(first.core).not.toContain('import { workerScope'); expect(first.core).not.toContain('__BUILD_ID__');
   expect(first.core).not.toContain('__SHELL_FILES__'); expect(first.core).not.toContain('__FILES__');
+  expect(first.core).not.toContain('__DOCUMENT__');
+  expect(first.core).toContain(`const DOCUMENT = ${JSON.stringify(new TextDecoder().decode(document.source))};`);
   expect(first.core).not.toContain('PREPARE_CODE_PACK'); expect(first.core).not.toContain('server-timing');
   expect(next.build).not.toBe(first.build); expect(workerScripts(next.core).fileName).not.toBe(workerScripts(first.core).fileName);
+});
+
+test('document bytes remain data even when they contain worker marker text', () => {
+  const html = `<!doctype html><html><body>π 😀 '__FILES__' '__BUILD_ID__' '__DOCUMENT__'</body></html>`;
+  const {core} = serviceWorkerCore({'index.html': {type: 'asset', source: new TextEncoder().encode(html)}}, process.cwd(), 'fixture');
+  const literal = /^const DOCUMENT = (.+);$/mu.exec(core)?.[1];
+  if (literal === undefined) throw new Error('Missing document literal');
+  expect(JSON.parse(literal)).toBe(html);
+  expect(core).toContain('const FILES = JSON.parse("[]");');
 });
 
 test('worker updates revalidate unchanged bytes and fetch a changed script in full', async () => {
