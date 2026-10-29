@@ -265,7 +265,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   // pause ▸ Settings ▸ SAVES (SF33b, G83): a card per shard save, NEW GAME's before → after sheet; HERE is the grid cell you stand in, else this shard's copy
   const homeInstance = ((): string => { try { return firstPartyInstance(manifest.slug); } catch { return manifest.slug; } })();
-  installSavesSettings(menu, { scope: game.levelScope, grid: grid !== null,
+  installSavesSettings(menu, { scope: game.levelScope, grid: grid !== null, toTitle: () => { void exitSessionToTitle(game); },
     ...(gridLive === null ? {} : { beforeReset: (instance) => {
       const commit = gridLive.prepareNewGameRecovery(instance);
       return () => { commit(); game.hold = true; };

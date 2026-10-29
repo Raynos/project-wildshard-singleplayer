@@ -91,6 +91,8 @@ export interface SavesSettingsOptions {
   grid: boolean;
   /** Capture location before resetting; returned callback runs only after success, before reload. */
   beforeReset?: (instance: LocalSaveInstance) => (() => void);
+  /** RL10: a standalone world's New game leaves for the title (the main-menu exit) instead of reloading the world */
+  toTitle?: () => void;
   scope: Scope;
 }
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text = ''): HTMLElementTagNameMap[K] => {
@@ -131,6 +133,9 @@ function openSheet(card: SaveCardSpec, live: boolean, opts: SavesSettingsOptions
     try { afterReset = opts.beforeReset?.(card.instance); }
     catch { status.textContent = SAVES_STRINGS.refused; status.hidden = false; confirm.disabled = false; return; }
     if (!reset(card.instance)) { status.textContent = SAVES_STRINGS.refused; status.hidden = false; confirm.disabled = false; return; }
+    // RL10 (Jake 13:56: New game landed on the boot shell): a standalone world goes to the title in place of a reload; the
+    // grid keeps its reload, which resumes on the road from the reset save (prepareNewGameRecovery)
+    if (live && !opts.grid && opts.toTitle !== undefined) { opts.toTitle(); return; }
     if (live || opts.grid) { afterReset?.(); markReload('new game', 'new-game'); location.reload(); return; } // the live bindings rebind from the reset save
     close(); done();
   });
