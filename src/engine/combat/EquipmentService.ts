@@ -1,6 +1,6 @@
 import type { Vector3 } from 'three';
 import { Scope } from '../app/scope';
-import { emitFault, NumericInputError } from '../core/faults';
+import { emitFault } from '../core/faults';
 import type { Equipment, WeaponId } from './Equipment';
 import type { Weapon, WeaponHooks, WeaponState, AimInfo } from './Weapon';
 import { Tool } from './Tool';
@@ -30,7 +30,7 @@ export class EquipmentService implements WeaponHooks {
   private readonly pickups = new Map<string, EquipmentPickup>();
   private readonly preparations = new Map<Weapon, () => Promise<void>>();
   private selection: PendingSelection | undefined;
-  private readonly reportedInputs = new WeakSet<Equipment>();
+  private readonly reportedUpdates = new WeakSet<Equipment>();
 
   /** Place the active level's declarations using its installed equipment rows. */
   placePickups(loadout: PickupLoadout, host: EquipmentPickupHost): void {
@@ -355,18 +355,20 @@ export class EquipmentService implements WeaponHooks {
     }
     this.stowT = Math.min(1, Math.max(0, this.stowT + (this._stowed ? dt : -dt) / STOW_TIME));
     if (this.swapping === null) this.current.holster = this.stowT;
-    for (const w of this.list) {
-      try { w.update(dt, t); }
-      catch (error) {
-        if (!(error instanceof NumericInputError)) throw error;
-        if (!this.reportedInputs.has(w)) {
-          this.reportedInputs.add(w);
-          emitFault({system: `equipment.${w.row.id}`, error, verdict: 'retry'});
-        }
-      }
-    }
-    for (const tool of this.tools) if (this.has(tool.id)) tool.update(dt, t);
+    for (const w of this.list) this.updateItem(w, dt, t);
+    for (const tool of this.tools) if (this.has(tool.id)) this.updateItem(tool, dt, t);
     // Item presentation may animate visibility; the session's explicit hidden gate still wins at the border or menu.
     if (!this._visible) this.current.model.visible = false;
+  }
+
+  /** A bad observation skips this item for one frame; other items and later frames still run. */
+  private updateItem(item: Equipment, dt: number, t: number): void {
+    try { item.update(dt, t); }
+    catch (error) {
+      if (!this.reportedUpdates.has(item)) {
+        this.reportedUpdates.add(item);
+        emitFault({ system: `equipment.${item.row.id}`, error, verdict: 'uncaught' });
+      }
+    }
   }
 }

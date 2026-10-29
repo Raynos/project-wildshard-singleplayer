@@ -12,7 +12,7 @@ import { app } from '../app/runtime';
  *
  * Every error is reported to the server (src/engine/core/errorReport.ts → api/errors.ts → `pnpm inbox:pull`), and (G880,
  * QB8: "we need a full screen error modal, whatever they are") every reported error opens the modal, in the game's glass:
- * the boot failed, a core system stopped the loop, a frame-loop system switched off (src/engine/core/faults.ts), or an
+ * the boot failed, a core system stopped the loop, a frame-loop system skipped a failed frame, or an
  * uncaught error / rejection. One line says what failed (the system and the error's first line). RELOAD HERE (back where
  * the player stood: `?at=` + `?glreload`, the GPU-recovery reload, src/engine/core/GpuRecovery.ts), TITLE SCREEN, and
  * KEEP PLAYING while the loop is still alive; a collapsed DETAILS with the system, message, stack and the report's
@@ -217,8 +217,8 @@ function report(system: string, error: unknown, flags: { fatal?: boolean; disabl
 /** a fault from the frame loop or the window: report it and open the modal (G880: every reported error) */
 function handle(f: Fault): void {
   const fatal = f.verdict === 'fatal' || (f.verdict === 'uncaught' && loopState() === 'boot');
-  const sent = report(f.system, f.error, { fatal, disabled: f.verdict === 'off' });
-  if (!fatal && f.verdict !== 'off' && f.verdict !== 'uncaught') return; // a retry the loop absorbs is reported, not shown
+  const sent = report(f.system, f.error, { fatal });
+  if (!fatal && f.verdict !== 'uncaught') return; // internal retry bookkeeping is not a separate report
   const d = describeError(f.error); showFatal(d.message, d.stack, sent, f.system);
 }
 

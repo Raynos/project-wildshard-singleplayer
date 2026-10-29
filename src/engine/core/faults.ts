@@ -5,8 +5,6 @@
  * one try/catch. A throw lands in `recordFault`, which decides:
  *
  *   'retry'  — log it (the first time, with its stack), report it, run the system again next frame
- *   'off'    — it threw FAULT_STREAK frames in a row, or FAULT_BURST times inside FAULT_WINDOW_MS: switch that one
- *              system off; everything else keeps running and the frame keeps rendering
  *   'fatal'  — the same trip on a CORE system (the render, the sky, the physics step, the player's step): the game
  *              cannot go on without it, so the loop stops and the fatal modal goes up (src/engine/ui/ErrorModal.ts)
  *
@@ -19,21 +17,21 @@
 
 import { onOwnerDispose } from '../app/ownership';
 
-/** frames in a row that throw before a system is switched off */
+/** frames in a row that throw before a core system stops the loop */
 export const FAULT_STREAK = 3;
-/** throws inside FAULT_WINDOW_MS before a system is switched off, frames in a row or not */
+/** throws inside FAULT_WINDOW_MS before a core system stops the loop, consecutive or not */
 export const FAULT_BURST = 5;
 export const FAULT_WINDOW_MS = 10_000;
 
-export type FaultVerdict = 'retry' | 'off' | 'fatal';
+export type FaultVerdict = 'retry' | 'fatal';
 
 export interface GameSystem<F> {
   readonly fn: F;
   /** what a report calls it: the registration's label, else the function's name, else `<phase>#<n>` */
   readonly label: string;
-  /** the game cannot run without it: tripping it is fatal instead of switching it off */
+  /** the game cannot run without it: repeated failures stop the loop */
   readonly core: boolean;
-  /** false once switched off */
+  /** false only after a core failure stops the loop */
   on: boolean;
   /** every throw, ever */
   faults: number;
@@ -51,8 +49,8 @@ export function makeSystem<F>(fn: F, label: string | undefined, core: boolean, f
 }
 
 /**
- * Count one throw of `s` during frame `frame` at time `now` (ms), and say what happens to it. A 'off' / 'fatal' verdict
- * switches the system off here; the caller only reports and (fatal) stops the loop.
+ * Count one throw of `s` during frame `frame` at time `now` (ms). Non-core systems always retry;
+ * only a repeated core failure stops the loop. Registration lifetime never changes on a non-core fault.
  */
 export function recordFault(s: GameSystem<unknown>, frame: number, now: number): FaultVerdict {
   if (frame !== s.lastFrame) s.streak = frame === s.lastFrame + 1 ? s.streak + 1 : 1;
@@ -64,9 +62,9 @@ export function recordFault(s: GameSystem<unknown>, frame: number, now: number):
   // the oldest of the last FAULT_BURST throws: all of them inside the window → a burst
   const oldest = ring[s.faults % FAULT_BURST] ?? Number.NEGATIVE_INFINITY;
   const burst = s.faults >= FAULT_BURST && now - oldest <= FAULT_WINDOW_MS;
-  if (s.streak < FAULT_STREAK && !burst) return 'retry';
+  if (!s.core || (s.streak < FAULT_STREAK && !burst)) return 'retry';
   s.on = false;
-  return s.core ? 'fatal' : 'off';
+  return 'fatal';
 }
 
 // ── the hub: the loop's state and every fault, for the reporter (src/engine/core/errorReport.ts) and the modal ──
@@ -81,7 +79,7 @@ export interface Fault {
   /** the system's label ('window' for window.onerror / unhandledrejection, 'boot' for main().catch) */
   system: string;
   error: unknown;
-  /** retry / off / fatal for a loop system; 'uncaught' for a window error or rejection, 'fatal' for main().catch */
+  /** Recoverable frame failures use uncaught so they open the modal; fatal stops the loop. */
   verdict: FaultVerdict | 'uncaught';
 }
 type Listener = (f: Fault) => void;
@@ -98,19 +96,18 @@ export function emitFault(f: Fault): void {
 export function systemFault(s: GameSystem<unknown>, error: unknown, frame: number, now: number): FaultVerdict {
   const verdict = recordFault(s, frame, now);
   if (s.faults === 1) console.error(`[faults] system "${s.label}" threw:`, error);
-  if (verdict === 'off') console.warn(`[faults] system "${s.label}" switched off after ${s.faults} throws; the game keeps running without it`);
   if (verdict === 'fatal') {
     console.error(`[faults] core system "${s.label}" failed ${s.faults} times: the frame loop stops`);
     loop = 'dead'; // before the listeners hear it: the modal must not offer KEEP PLAYING on a loop that is stopping
   }
-  emitFault({ system: s.label, error, verdict });
+  if (s.faults === 1 || verdict === 'fatal') emitFault({ system: s.label, error, verdict: verdict === 'fatal' ? 'fatal' : 'uncaught' });
   return verdict;
 }
 
 /** A refused numeric observation; callers may isolate its owning frame while
  * keeping unrelated systems running. Admission still rejects the same input. */
 export class NumericInputError extends Error {
-  constructor(input: string) { super(`Invalid numeric input ${input}`); this.name = 'NumericInputError'; }
+  constructor(input: string, message = `Invalid numeric input ${input}`) { super(message); this.name = 'NumericInputError'; }
 }
 
 /** an error already described as text (main().catch hands the modal strings): reported as-is */

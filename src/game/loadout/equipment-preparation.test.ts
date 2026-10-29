@@ -37,7 +37,7 @@ test('a refused draw skips only its weapon frame, reports once and recovers with
   if (read === undefined) throw new Error('Missing actual channel reader');
   const badFrame = vi.spyOn(f.first, 'update').mockImplementation(() => { read(); });
   vi.spyOn(f.next, 'update').mockImplementation(() => { healthy(); });
-  const off = onFault(fault => { reports.push(fault.system); expect(fault.error).toBeInstanceOf(NumericInputError); });
+  const off = onFault(fault => { reports.push(fault.system); expect(fault.error).toBeInstanceOf(NumericInputError); expect(fault.verdict).toBe('uncaught'); });
   try {
     input.draw = Number.NaN;
     for (let frame = 0; frame < 4; frame++) expect(() => f.service.update(1 / 21, frame / 21)).not.toThrow();
@@ -47,8 +47,21 @@ test('a refused draw skips only its weapon frame, reports once and recovers with
     expect(healthy).toHaveBeenCalledTimes(5); expect(reports).toHaveLength(1);
     const unrelated = new Error('Actual unrelated weapon defect');
     badFrame.mockImplementation(() => { throw unrelated; });
-    expect(() => f.service.update(1 / 60, 2)).toThrow(unrelated);
+    expect(() => f.service.update(1 / 60, 2)).not.toThrow();
+    expect(healthy).toHaveBeenCalledTimes(6);
   } finally {off(); f.scope.dispose();}
+});
+
+test('an unexpected weapon failure also preserves its sibling updates and later retries',()=>{
+  const f=fixture(),failure=new Error('Unexpected weapon failure'),reports:{system:string;verdict:string;error:unknown}[]=[];
+  const bad=vi.spyOn(f.first,'update').mockImplementation(()=>{throw failure;}),healthy=vi.spyOn(f.next,'update');
+  const off=onFault(fault=>{reports.push(fault);});
+  try{
+    for(let frame=0;frame<5;frame++)expect(()=>f.service.update(1/60,frame/60)).not.toThrow();
+    expect(bad).toHaveBeenCalledTimes(5);expect(healthy).toHaveBeenCalledTimes(5);
+    expect(reports).toHaveLength(1);expect(reports[0]?.error).toBe(failure);expect(reports[0]?.verdict).toBe('uncaught');
+    bad.mockImplementation(()=>undefined);f.service.update(1/60,1);expect(healthy).toHaveBeenCalledTimes(6);
+  }finally{off();f.scope.dispose();}
 });
 
 test('ordinary selection remains synchronous without a preparation port', () => {

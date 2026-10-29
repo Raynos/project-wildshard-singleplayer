@@ -307,8 +307,8 @@ ctx.system({ id: 'template.lantern', phase: 'update', run: (dt) => {
 } });
 ```
 
-A fault in a system is isolated (3 in a row: retry, 5 in 10 s: off). Mark a system `core` only if the game can't run
-without it; its fault is fatal.
+Non-core faults retry and report `uncaught` once; equipment isolates each item. Core faults stop the loop after
+3 consecutive failures or 5 in 10 s.
 
 ## 2. Clock and RNG
 
