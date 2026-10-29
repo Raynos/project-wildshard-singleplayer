@@ -31,7 +31,9 @@ export interface OutputDescriptorReader {
   /** Trusted transport returns owned bytes already checked against this exact hash and size.
    * `stored` proves durable content-cache persistence, not merely a scheduled write. */
   verified?: (hash: string, path: string, maximum: number) => Promise<{ bytes: Uint8Array; cached: boolean; stored: boolean } | null>;
-  cached?: (hash: string, path: string, maximum: number) => Promise<Uint8Array | null>;
+  /** Only the private content-cache port may return verified owned bytes. Raw
+   * cache hints still pass the page hash; both retain the same bounded hint turn. */
+  cached?: (hash: string, path: string, maximum: number) => Promise<Uint8Array | { readonly verified: Uint8Array } | null>;
   /** Online packed sections may leave a slow cache hint after this visible turn.
    * Offline reads still await durable bytes; every fallback pack/member is verified. */
   cacheHintTurn?: (signal: AbortSignal) => Promise<void>;
@@ -150,7 +152,7 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   const packed = current === null || reader.pack === undefined || reader.offline ? undefined
     : packReads(current.packs, new Set([...current.sections, ...current.schemas].map(entry => entry.hash)), reader.pack, reader.hash);
   let cached = reader.cached !== undefined || reader.verified !== undefined;
-  const cachedSection = async (section: OutputIndex['sections'][number], inPack: boolean): Promise<Uint8Array | null | undefined> => {
+  const cachedSection = async (section: OutputIndex['sections'][number], inPack: boolean): Promise<Uint8Array | { readonly verified: Uint8Array } | null | undefined> => {
     if (reader.cached === undefined) return undefined;
     const pending = reader.cached(section.hash, section.path, section.bytes);
     if (!inPack || reader.offline || reader.cacheHintTurn === undefined) return pending;
@@ -163,12 +165,17 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   const load = async (section: OutputIndex['sections'][number]): Promise<readonly [string, unknown]> => {
     const inPack = packed?.has(section.hash) === true;
     const verified = inPack || reader.verified === undefined ? null : await reader.verified(section.hash, section.path, section.bytes);
-    let bytes = verified?.bytes ?? await cachedSection(section, inPack);
+    const held = verified === null ? await cachedSection(section, inPack) : undefined;
+    let bytes = verified?.bytes ?? (held instanceof Uint8Array ? held : held?.verified);
     if (verified !== null && verified !== undefined) {
       bytes = verified.bytes;
       if (bytes.length !== section.bytes) throw new Error('Shardfile section hash or size mismatch');
       if (!verified.stored) cached = false;
       if (verified.cached) reader.cacheHit?.(section.path, section.hash, verified.bytes.length);
+    } else if (held !== null && held !== undefined && !(held instanceof Uint8Array)) {
+      bytes = held.verified;
+      if (bytes.length !== section.bytes) throw new Error('Cached shardfile section hash or size mismatch');
+      reader.cacheHit?.(section.path, section.hash, bytes.length);
     } else if (bytes === null || bytes === undefined) {
       if (reader.offline) throw new IncompleteOutputCacheError();
       if (inPack && packed !== undefined) { bytes = await packed.read(section.hash); reader.packedHit?.(section.path); }

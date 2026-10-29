@@ -742,8 +742,8 @@ test('every section request starts before a slow first response completes', asyn
   await expect(pending).resolves.toBeDefined();
 });
 
-test.each(['network', 'cache', 'quota'] as const)('verified %s sections avoid page hashing and duplicate writes', async mode => {
-  const f = fixture(), store = cacheStore(), pageHash = vi.fn(hash), fetch = vi.fn(options(f.wires).fetch);
+test.each(['network', 'cache', 'quota', 'packed-cache'] as const)('verified %s sections avoid page hashing and duplicate writes', async mode => {
+  const f = mode === 'packed-cache' ? packedSectionFixture() : fixture(), store = cacheStore(), pageHash = vi.fn(hash), fetch = vi.fn(options(f.wires).fetch);
   const checked = vi.fn(async (url: string, expected: string, maximum: number) => {
     const wire = f.wires.get(url.slice(base.length));
     if (wire === undefined) throw new Error('Missing verified section');
@@ -752,7 +752,7 @@ test.each(['network', 'cache', 'quota'] as const)('verified %s sections avoid pa
     if (mode !== 'quota') store.bytes.set(expected, new Uint8Array(wire));
     return { bytes: new Uint8Array(wire), cached: false, stored: mode !== 'quota' };
   });
-  if (mode === 'cache') for (const section of f.index.sections) {
+  if (mode === 'cache' || mode === 'packed-cache') for (const section of f.index.sections) {
     const wire = f.wires.get(section.path); if (wire === undefined) throw new Error('Missing cache section');
     store.bytes.set(section.hash, wire);
   }
@@ -765,7 +765,7 @@ test.each(['network', 'cache', 'quota'] as const)('verified %s sections avoid pa
   const sectionHashes = new Set(f.index.sections.map(section => section.hash));
   expect(pageHash.mock.calls.filter(([wire]) => sectionHashes.has(hashImmutableBytes(wire)))).toHaveLength(0);
   expect(fetch.mock.calls.map(([url]) => url.slice(base.length))).toEqual(['shard.json']);
-  expect(checked).toHaveBeenCalledTimes(mode === 'cache' ? 0 : f.index.sections.length);
+  expect(checked).toHaveBeenCalledTimes(mode === 'cache' || mode === 'packed-cache' ? 0 : f.index.sections.length);
   expect(raw).not.toHaveBeenCalled(); expect(put).not.toHaveBeenCalled();
   expect(outputDescriptor(source)?.cached).toBe(mode !== 'quota');
   await admitProduct(source, opts);
@@ -781,6 +781,26 @@ test('verified section transport retains size refusals, failure and ordinary has
   const first = f.index.sections[0]; if (first === undefined) throw new Error('Missing section');
   f.wires.set(first.path, new Uint8Array(first.bytes));
   await expect(readProductDescriptor({ ...opts, transport: () => Promise.resolve(null) })).rejects.toThrow('section hash or size mismatch');
+});
+
+test('verified packed cache still refuses a wrong-sized section', async () => {
+  const f = packedSectionFixture(), store = cacheStore();
+  await expect(readProductDescriptor({ ...options(f.wires), cache: { ...store.cache,
+    verifiedAsset: () => Promise.resolve(new Uint8Array()),
+  } })).rejects.toThrow('section hash or size mismatch');
+});
+
+test('a verified-cache miss retains whole-pack transport and member verification', async () => {
+  const f = packedSectionFixture(), store = cacheStore(), plain = options(f.wires), fetch = vi.fn(plain.fetch);
+  const transport = vi.fn(() => Promise.reject(new Error('Packed cache miss must not fetch one member')));
+  const pageHash = vi.fn(hash);
+  const result = await readProductDescriptor({ ...plain, fetch, hash: pageHash, transport,
+    cache: { ...store.cache, verifiedAsset: () => Promise.resolve(null) } });
+  expect(result).toEqual(f.source);
+  expect(fetch.mock.calls.map(([url]) => url.slice(base.length))).toEqual(['shard.json', f.path]);
+  expect(transport).not.toHaveBeenCalled();
+  const sectionHashes = new Set(f.index.sections.map(section => section.hash));
+  expect(pageHash.mock.calls.filter(([wire]) => sectionHashes.has(hashImmutableBytes(wire)))).toHaveLength(f.index.sections.length);
 });
 
 test('cold sections build before disk writes while offline publication waits for durability', async () => {

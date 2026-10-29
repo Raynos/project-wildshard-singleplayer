@@ -28,6 +28,7 @@ import { runtimeBoundWorldFiles } from '../plugin/headless';
 import { neighbourProductFilesPaced, runtimeOnlyProductFilesPaced, tierLibrarySourcePaced, tierProductFilesPaced, urlImageLibrarySourcePaced, scopedSpecimenLibrarySourcePaced, playLibrarySourcePaced, deviceLibraryCostPaced } from './productCost';
 import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
 import { checkedProductCosts, parseCheckedProduct, prepareCheckedProduct, validateCheckedProductAssets } from './productChecks';
+import { clientPreparationBatch } from './preparationTiming';
 
 
 const HASH = /^[a-f0-9]{64}$/u;
@@ -228,8 +229,16 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
       })(), 'file'),
     }),
     ...(cache === undefined && options.cachedResponse === undefined ? {} : {
-      cached: async (hash: string, path: string, maximum: number) => await cache?.asset(base, hash)
-        ?? await options.cachedResponse?.(new URL(path, base).href, hash, maximum) ?? null,
+      cached: async (hash: string, path: string, maximum: number) => {
+        if (cache?.verifiedAsset !== undefined) {
+          const verified = await cache.verifiedAsset(hash);
+          if (verified !== null) return { verified };
+        } else {
+          const bytes = await cache?.asset(base, hash);
+          if (bytes !== null && bytes !== undefined) return bytes;
+        }
+        return await options.cachedResponse?.(new URL(path, base).href, hash, maximum) ?? null;
+      },
     }),
     ...(cache === undefined ? {} : {
       store: async (hash: string, bytes: Uint8Array) => await cache.putAsset(base, hash, bytes) !== false,
@@ -337,11 +346,15 @@ export async function readProductInput(input: unknown, options: ProductOptions):
 
 /** The shared browser digest, available before product admission loads. */
 export function browserContentHash(bytes: Uint8Array): Promise<string> { return contentHash(bytes); }
+type AdmissionPhase = 'visited' | 'sections' | 'source' | 'files' | 'costs' | 'store' | 'finish';
 /** Validate a visited format-2 product again, including cached Wasm.
  * Refill at most sixteen immutable read slots after verification. A refusal stops
  * new reads and drains started work before authored-order refusal or publication. */
 export function admitProduct(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
-  return waitFor('Admit product', admitProductWork(input, options), 'admission');
+  const trace = clientPreparationBatch<AdmissionPhase>(options.descriptorPath ?? options.base, 'admission-phases',
+    ['visited', 'sections', 'source', 'files', 'costs', 'store', 'finish']);
+  const pending = admitProductWork(input, options, trace);
+  return waitFor('Admit product', trace === undefined ? pending : pending.finally(() => { trace.finish(); }), 'admission');
 }
 /** Drain a bounded window before refusal or publication; cache operations keep their authored error order. */
 async function cacheRows<T>(rows: readonly T[], batch: boolean, work: (row: T) => Promise<void>): Promise<void> {
@@ -368,7 +381,7 @@ function currentOutputLineage(input: unknown, source: Shardfile): unknown {
   return { identity: historical.identity, state: typeof state === 'object' && state !== null && 'state' in state ? state.state : undefined };
 }
 
-async function admitProductWork(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
+async function admitProductWork(input: unknown, options: ProductOptions, trace?: { readonly mark: (phase: AdmissionPhase) => void }): Promise<AdmittedProduct> {
   const base = new URL('.', options.base).href;
   const descriptorPath = options.descriptorPath ?? new URL(base).pathname;
   options.progress?.({ phase: 'cache-read', detail: `Checking visited product · ${descriptorPath}`, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0 });
@@ -377,7 +390,9 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   const cached = options.offline ? visited : null;
   if (cached !== null && cached !== undefined && !isOutputIndex(cached.source)) throw new Error('Cached shardfile requires a format-2 rebuild');
   const descriptorInput = cached?.source ?? input;
+  trace?.mark('visited');
   const raw = await resolveDescriptor(descriptorInput, options);
+  trace?.mark('sections');
   await options.pause?.();
   if (!isBuildValidatedOutput(raw)) preflightShardfile(raw);
   if (version(raw) !== SHARDFILE_VERSION) throw new Error('Shardfile needs the current format');
@@ -473,6 +488,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     options.progress?.({ phase, detail, bytesRead, bytesTotal, filesDone, filesTotal: addresses.length });
   };
   progress('assets', `Reading immutable assets · ${reference}`);
+  trace?.mark('source');
   const load = async ([hash, cap]: [string, number]): Promise<Uint8Array> => {
     const role = roles.get(hash) ?? 'shared product data';
     const url = outputBlobUrl(source, ownFiles.has(hash) ? hash : `commons:${hash}`, base);
@@ -536,6 +552,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     if (bytes === undefined) throw new Error('Asset was not admitted');
     assets.set(ref, bytes);
   }
+  trace?.mark('files');
   progress('validation', `${receipt === null ? 'Validating assets, simulation and entries' : 'Verified exact product validation receipt'} · ${reference}`);
   if (receipt === null) {
     await validateCheckedProductAssets(source, assets, (bytes) => {
@@ -556,6 +573,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     acceptValidatedCost(source, await deviceLibraryCostPaced(playSource, assets, options.textures, options.pause, source), options.memory);
     await options.pause?.();
   }
+  trace?.mark('costs');
   if (!options.offline && options.cache !== undefined) {
     progress('cache', `Saving verified offline assets · ${reference}`);
     const cache = options.cache, descriptor = outputDescriptor(source);
@@ -595,11 +613,13 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
       }
     } finally { release?.(); }
   }
+  trace?.mark('store');
   progress('complete', `Product admitted · ${reference}`);
   await options.pause?.();
   const deferredDescriptor = outputDescriptor(source);
   const completeCache = deferredDescriptor === undefined ? undefined : productCacheCompletion(source, options, selected, remaining, { source: deferredDescriptor.index, firstParty: options.firstParty,
     ...(revisionKey === null ? {} : { validation: { revision: revisionKey, sourceHash, indexHash: deferredDescriptor.indexHash, worst } }) });
+  trace?.mark('finish');
   return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? { releaseTransport: transportRelease(source, assets, options), releasePreparedTransport: transportRelease(source, assets, options, true), ...completeCache === undefined ? {} : { completeCache } } : {}), ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
 }
 /** Browser Cache Storage retains exact hash bytes separately from the last completely admitted visited product. */
