@@ -11,6 +11,7 @@ import { groupBankSourceV2 } from '../src/sdk/as/groupBankV2';
 import { groupStepLayoutV2, parseGroupStepV2 } from '../src/format/scriptGroupStepV2';
 import { GroupStepV2,type GroupStepNativeResultV2 } from '../src/engine/script/groupStepV2';
 import { Scope } from '../src/engine/app/scope';
+import { onFault,type Fault } from '../src/engine/core/faults';
 import { Rng } from '../src/engine/core/rng';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { PackBrain, type PackPorts,type PackSpec } from '../src/engine/ai/pack';
@@ -266,14 +267,17 @@ test('hostile binding accessors and incompatible banks refuse before initializat
  }finally{scope.dispose();}
 });
 
-test('independently retired native scope refuses before capture or guest effects', {timeout:120_000},async()=>{
+test('independently retired native scope skips before capture or guest effects', {timeout:120_000},async()=>{
  const bytes=await program(),scope=new Scope('pack-retirement'),f=side('retired',[]);
  const spec=nativeGroupBrain({...brains.pack,id:'pack',home:[60,40],members:['wolf']});if(spec.kind!=='pack')throw new Error('Missing spec');
  let reads=0;const environment=f.ports.environment;f.ports.environment=()=>{reads++;return environment();};
  const pack=new ScriptedPack(new GroupStepV2(bytes,PACK_ROWS,scope),scope,'pack',100,f.wolves,{x:60,z:40},spec,f.ports);pack.initialize();
- const before={reads,calls:pack.segments,random:f.contextRng.snapshot()};scope.dispose();
- expect(()=>pack.tick(f.context0(.1,new Vector3(150,0,40)))).toThrow();
- expect({reads,calls:pack.segments,random:f.contextRng.snapshot()}).toEqual(before);
+ const before={reads,calls:pack.segments,random:f.contextRng.snapshot()},faults:Fault[]=[],off=onFault(fault=>{faults.push(fault);});scope.dispose();
+ try{
+  pack.tick(f.context0(.1,new Vector3(150,0,40)));pack.tick(f.context0(.1,new Vector3(150,0,40)));
+  expect({reads,calls:pack.segments,random:f.contextRng.snapshot()}).toEqual(before);
+  expect(faults).toHaveLength(1);expect(faults[0]).toMatchObject({system:'ai.group',verdict:'retry',error:{message:'Replaced pack guest binding'}});
+ }finally{off();}
 });
 
 test('the full sixteen-member pack retains ordered effects within the fuel cap', {timeout:120_000},async()=>{
@@ -391,16 +395,17 @@ test('a refused pack scalar getter releases preparation depth before the next ca
  const bytes=await program(),scope=new Scope('pack-scalar-refusal'),f=side('scratch',[]);
  const spec=nativeGroupBrain({...brains.pack,id:'pack',home:[60,40],members:['wolf']});if(spec.kind!=='pack')throw new Error('Missing spec');
  const guest=new ScriptedPack(new GroupStepV2(bytes,PACK_ROWS,scope),scope,'pack',100,f.wolves,{x:60,z:40},spec,f.ports);
+ const faults:Fault[]=[],off=onFault(fault=>{faults.push(fault);});
  try{
   guest.initialize();let refused=false,value=guest.awareness;
   const before=guest.snapshot(),random=f.contextRng.snapshot();
   Object.defineProperty(guest,'awareness',{configurable:true,get:()=>{if(!refused){refused=true;throw new Error('scalar refusal');}return value;},set:(next:number)=>{value=next;}});
   const actor=f.wolves[0];if(actor===undefined)throw new Error('Missing wolf');
   const context=f.context0(.1,new Vector3(150,0,40));
-  expect(()=>guest.drive(actor,context)).toThrow('scalar refusal');
+  guest.drive(actor,context);expect(faults).toHaveLength(1);expect(faults[0]).toMatchObject({verdict:'retry',error:{message:'scalar refusal'}});
   expect(guest.snapshot()).toBe(before);expect(f.contextRng.snapshot()).toEqual(random);
   expect([...guest.memberOwners].every(member=>member.self.actor===null&&member.context?.calm===true&&member.context.playerSpeed===0&&member.player.position.x===0&&member.observed.size===0)).toBe(true);
   guest.drive(actor,context);expect(guest.banks.size).toBe(1);
-  expect(f.wolves.every(wolf=>Number.isFinite(wolf.desiredSpeed))).toBe(true);
- }finally{scope.dispose();}
+  expect(f.wolves.every(wolf=>Number.isFinite(wolf.desiredSpeed))).toBe(true);expect(faults).toHaveLength(1);
+ }finally{off();scope.dispose();}
 });

@@ -1017,7 +1017,8 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
   private targetFacing(): number { return this.prey !== null ? this.prey.yaw : Math.atan2(this.packPorts.environment().playerFwdX, this.packPorts.environment().playerFwdZ); }
 
   /** the pack-level tick: senses, phase changes, the attack token (once per AI tick, whichever wolf thinks first) */
-  tick(c: CirclingPackContext<A>): void { this.requirePack();
+  tick(c: CirclingPackContext<A>): void {
+    try{ this.requirePack();
     if (!this.initialized) throw new Error('Pack is not initialized');
     if(this.packGuest!==undefined&&Math.abs(c.t-this.groupTime)<1e-8)return;
     if (this.runPack('tick', c, c.rng)) return;
@@ -1105,6 +1106,7 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
       }
       // no default
     }
+    }catch(error){if(this.packGuest===undefined)throw error;this.skipGuestFrame(error);}
   }
 
   /** hand the attack token(s) to the wolves best placed behind the target */
@@ -1136,7 +1138,8 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
   }
 
   /** steer one wolf for this tick (after `tick`) */
-  drive(a: A, c: CirclingPackContext<A>, body = false): void { this.requirePack();
+  drive(a: A, c: CirclingPackContext<A>, body = false): void {
+    try{ this.requirePack();
     if (!this.initialized) throw new Error('Pack is not initialized');
     if(this.packGuest!==undefined&&body!==(this.phase==='encircle'&&(a.mem['lunge']??0)!==0))return;
     if (this.runPack(`${body ? 'body' : 'drive'}.${this.members.indexOf(a)}`, c, c.rng,this.members.indexOf(a))) return;
@@ -1265,6 +1268,7 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
     m['howl'] = ease(m['howl'] ?? 0, howl, dt * 4);
     // stealth: still in tall grass and more than 10 m out → hidden (off the minimap, out of aim assist)
     m['hidden'] = a.speed < 0.5 && d > 10 && this.packPorts.environment().grassHeightAt(a.position.x, a.position.z) >= 0.8 ? 1 : 0;
+    }catch(error){if(this.packGuest===undefined)throw error;this.skipGuestFrame(error);}
   }
 
   /** the ring angle (bearing from the target) this wolf should hold: slots spread round the back, out of the view cone */

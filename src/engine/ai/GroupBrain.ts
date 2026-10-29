@@ -4,6 +4,7 @@ import type {V2ColumnOwners} from '../script/observationColumnsV2';
 import type {GroupStepRowsV2} from '@wildshard/format/scriptGroupStepV2';
 import type {GroupBankValueV2} from '@wildshard/format/scriptGroupBankV2';
 import { AggressionDirector } from './director';
+import { emitFault } from '../core/faults';
 import * as v from 'valibot';
 
 const groupState = v.strictObject({
@@ -37,6 +38,7 @@ export class GroupBrain<A extends GroupMember> {
   readonly members: A[];
   readonly blackboard: Map<string, unknown> = new Map<string, unknown>();
   private readonly guestResumes=new WeakMap<object,FixedGuestResume>();
+  private reportedGuestFrame=false;
   protected groupTime: typeof Infinity = -Infinity;
   private directors: Map<number, AggressionDirector<A>> | undefined;
   constructor(members: A[]) { this.members = members; }
@@ -86,6 +88,11 @@ export class GroupBrain<A extends GroupMember> {
   protected captureGuest(_replies:readonly GroupStepNativeResultV2[]):GroupGuestFrameV2<A & AnimalSim> { throw new Error('Missing native group guest capture'); }
   /** Validate the original codec before RNG acceptance; commit performs only scalar/role publication. */
   protected prepareGuestCommit(_frame:GroupGuestFrameV2<A & AnimalSim>,_values:Readonly<Record<string,GroupBankValueV2>>):GroupGuestPublicationV2 { throw new Error('Missing native group guest publication'); }
+  /** A frame failure is handled, never a request to fall through to another
+   * controller. Keep accepted native effects; direct/init callers stay strict. */
+  protected skipGuestFrame(error:unknown):void {
+    if(!this.reportedGuestFrame){this.reportedGuestFrame=true;emitFault({system:'ai.group',error,verdict:'retry'});}
+  }
  /** Only fully frozen data rows can omit repeated continuation-table scans. */
  private fixedGuestResume(resume:GroupGuestFrameV2['resume'],states:readonly number[]):FixedGuestResume|undefined{
   if(!Object.isFrozen(resume))return undefined;

@@ -772,7 +772,8 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
   }
 
   /** the herd-level tick: senses, alarms, mode changes (once per AI tick) */
-  tick(c: GuardedHerdContext<A>): void { this.requireHerd();
+  tick(c: GuardedHerdContext<A>): void {
+    try{ this.requireHerd();
     if (!this.initialized) throw new Error('Herd is not initialized');
     if(this.guest!==undefined&&Math.abs(c.t-this.groupTime)<1e-8){this.validateHerdGuest();return;}
     if (this.runHerdGuest('tick',c)) return;
@@ -879,6 +880,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     }
     // stallion state machine (distance to the player, standing / crouched, trust)
     if (st?.alive === true) this.stallionTick(c, dt, dCentre);
+    }catch(error){if(this.guest===undefined)throw error;this.skipGuestFrame(error);}
   }
 
   private pickSpot(c: GuardedHerdContext<A>): void {
@@ -1023,7 +1025,8 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
   }
 
   /** steer one horse for this tick (after `tick`) */
-  drive(a: A, c: GuardedHerdContext<A>, body = false): void { this.requireHerd();
+  drive(a: A, c: GuardedHerdContext<A>, body = false): void {
+    try{ this.requireHerd();
     if (!this.initialized) throw new Error('Herd is not initialized');
     if(this.guest!==undefined){
       this.validateHerdGuest();
@@ -1114,6 +1117,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     if ((this.mode === 'graze' || this.mode === 'drift') && (m['aw'] ?? 0) > 0.2) { a.lookTarget.copy(c.player); a.lookWeight = 0.7; }
     m['headUp'] = headUp;
     c.confine(a);
+    }catch(error){if(this.guest===undefined)throw error;this.skipGuestFrame(error);}
   }
 
   private driveStallion(a: A, c: GuardedHerdContext<A>): void {

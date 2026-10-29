@@ -1,3 +1,4 @@
+import {onFault,type Fault} from '../src/engine/core/faults';
 import {GrazerBrain as OriginalGrazerBrain} from './fixtures/grazer-herd-original';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import {scriptAdmissionRows} from '../src/format/scriptContract';
@@ -658,15 +659,16 @@ test('publication validation reuses field pins without rebuilding scalar snapsho
 });
 
 
-test('a sense cannot change the player scalar pinned by its pending native operations',()=>{
- const f=fixture('graze','watch');
+test('a changed player scalar skips the frame before later pending native operations',()=>{
+ const f=fixture('graze','watch'),faults:Fault[]=[],off=onFault(fault=>{faults.push(fault);});
  try{
   let hearing=0;
   f.ports.visibility=()=>{f.ctx.playerSpeed=.8;return .8;};
   f.ports.hearing=()=>{hearing++;return 12;};
-  expect(()=>execute(f,0,false,'tick')).toThrow('Retired or replaced native group result owner');
+  execute(f,0,false,'tick');
+  expect(faults).toHaveLength(1);expect(faults[0]).toMatchObject({system:'ai.group',verdict:'retry',error:{message:'Retired or replaced native group result owner'}});
   expect(hearing).toBe(0);
- }finally{f.scope.dispose();}
+ }finally{off();f.scope.dispose();}
 });
 
 test.each(['accessor','readonly','nonconfigurable-readonly','deleted'] as const)('publication still refuses %s storage replacement at the barrier',kind=>{
@@ -813,4 +815,30 @@ test('QB19: a new graze spot stands in long grass, and with none in reach the he
  const west=pick((x)=>x<-5?1:0);expect(west.x).toBeLessThan(-5);
  // bare ground everywhere (the ice): the spot stays where it was
  expect(pick(()=>0)).toEqual({x:45,z:20});
+});
+
+
+test('a replaced guest skips only the herd frame and resumes with its original owner',()=>{
+ const f=fixture('graze','watch'),other=fixture('graze','watch'),faults:Fault[]=[],off=onFault(fault=>{faults.push(fault);});
+ try{
+  const {program}=bindNativeGuest(f);bindNativeGuest(other);f.herd.initialize();other.herd.initialize();
+  const before={state:f.herd.snapshot(),random:f.random.snapshot(),context:f.contextRandom.snapshot(),captures:f.herd.captures,log:[...f.log]};
+  const prepare=program.prepareGroup;program.prepareGroup=()=>{throw new Error('Replaced prepare must not run');};
+  const actor=f.roster[0];if(actor===undefined)throw new Error('Missing original herd member');
+  f.herd.tick(f.ctx);f.herd.drive(actor,f.ctx);
+  expect({state:f.herd.snapshot(),random:f.random.snapshot(),context:f.contextRandom.snapshot(),captures:f.herd.captures,log:[...f.log]}).toEqual(before);
+  expect(faults).toHaveLength(1);expect(faults[0]).toMatchObject({system:'ai.group',verdict:'retry',error:{message:'Replaced herd guest binding'}});
+  const otherCaptures=other.herd.captures;other.herd.tick(other.ctx);expect(other.herd.captures).toBeGreaterThan(otherCaptures);
+  program.prepareGroup=prepare;f.herd.tick(f.ctx);expect(f.herd.captures).toBeGreaterThan(before.captures);expect(faults).toHaveLength(1);
+ }finally{off();f.scope.dispose();other.scope.dispose();}
+});
+
+test('guest initialization remains strict before any frame can be skipped',()=>{
+ const f=fixture('graze','watch');
+ try{
+  const {program}=bindNativeGuest(f);program.prepareGroup=()=>{throw new Error('Replaced initialization must not run');};
+  const before=[f.random.snapshot(),f.contextRandom.snapshot()];
+  expect(()=>f.herd.initialize()).toThrow('Replaced herd guest binding');
+  expect([f.random.snapshot(),f.contextRandom.snapshot()]).toEqual(before);
+ }finally{f.scope.dispose();}
 });

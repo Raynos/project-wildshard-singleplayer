@@ -13528,6 +13528,10 @@ captures fresh owners before the next segment. The original codec validates
 before state/RNG acceptance and commits only original scalar/role fields before
 native effects. A throwing native effect retains that accepted prefix, as the
 original owner does; no replay, rollback, clock or save envelope is introduced.
+Bound pack/herd `tick` and `drive` frame callbacks skip a refused group and
+report once through the internal retry path. They neither invoke the legacy
+controller nor replay native effects. Initialization, public mutations and
+direct `runGuest` calls retain their strict refusals.
 GroupGuestBindingSchema in format/groupBrains admits profile, parameters and a
 bounded resume field/value set. Its optional capture row names common columns,
 bank fields holding focus slots and bank fields holding focus reference handles.
