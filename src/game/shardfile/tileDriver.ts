@@ -141,6 +141,8 @@ export class TileDriver {
         return this.inView(key) && !(layer === 'render' && this.deferred(key, cone, now)) && (tile === undefined || this.contents.some(content => !tile.done.has(content) && (layer === 'colliders' || content.ready?.() !== false))) && !this.failed.has(`${layer}:${String(key)}`);
       });
       if (next === undefined) continue;
+      // MF13: in play, each render tile's attach and whether the camera sees it then (the walk probes read these)
+      if (layer === 'render' && cone !== null) performance.mark('wildshard.tile.render', { detail: { key: next, seen: this.seen(next, cone), waited: Math.round(now - (this.wantedAt.get(next) ?? now)) } });
       this.busy = true;
       void this.attach(next, layer).finally(() => { this.busy = false; });
       return;
@@ -173,10 +175,14 @@ export class TileDriver {
   private deferred(key: number, cone: ViewCone | null, now: number): boolean {
     if (cone === null || this.last === null) return false;
     const first = this.wantedAt.get(key) ?? now; if (!this.wantedAt.has(key)) this.wantedAt.set(key, now);
-    if (now - first >= VIEW_DEFER_MS) return false;
+    return now - first < VIEW_DEFER_MS && this.seen(key, cone);
+  }
+  /** Whether the camera's horizontal view meets tile `key` (the player's own tile and its touching ones: never) */
+  private seen(key: number, cone: ViewCone): boolean {
+    if (this.last === null) return false;
     const half = TILES_PER_SIDE * TILE_SIZE / 2;
     const dx = -half + (key % TILES_PER_SIDE + 0.5) * TILE_SIZE - this.last.x, dz = -half + (Math.floor(key / TILES_PER_SIDE) + 0.5) * TILE_SIZE - this.last.z;
-    const distance = Math.hypot(dx, dz); if (distance < TILE_SIZE) return false; // the player's own tile and its touching ones never wait
+    const distance = Math.hypot(dx, dz); if (distance < TILE_SIZE) return false;
     const angle = Math.acos(Math.max(-1, Math.min(1, (dx * cone.x + dz * cone.z) / distance)));
     return angle <= cone.half + Math.atan(TILE_SIZE * Math.SQRT1_2 / distance);
   }
