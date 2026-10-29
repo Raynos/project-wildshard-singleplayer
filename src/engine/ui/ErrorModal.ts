@@ -10,8 +10,9 @@ import { app } from '../app/runtime';
  *   installErrorModal();              // once, before anything else runs (main.ts)
  *   showError('what', 'detail…');     // explicit: a fatal error (main().catch — the boot failed)
  *
- * Every error is reported to the server (src/engine/core/errorReport.ts → api/errors.ts → `pnpm inbox:pull`), and (G880,
- * QB8: "we need a full screen error modal, whatever they are") every reported error opens the modal, in the game's glass:
+ * Every error is reported to the server (src/engine/core/errorReport.ts → api/errors.ts → `pnpm inbox:pull`). With Developer
+ * on (G880 / G901) every reported error opens the modal; with it off only a play-breaking one does, and a recoverable one
+ * shows the quiet chip ("A glitch was reported ✓", once a session, fading by itself). The modal, in the game's glass:
  * the boot failed, a core system stopped the loop, a frame-loop system skipped a failed frame, or an
  * uncaught error / rejection. One line says what failed (the system and the error's first line). RELOAD HERE (back where
  * the player stood: `?at=` + `?glreload`, the GPU-recovery reload, src/engine/core/GpuRecovery.ts), TITLE SCREEN, and
@@ -24,6 +25,7 @@ import { app } from '../app/runtime';
  * entry point is wrapped so the modal itself never throws.
  */
 import { DescribedError, describeError, emitFault, loopState, onFault, type Fault } from '../core/faults';
+import { isDev } from '../core/devMode';
 import { ErrorReporter, lastReportId, safeUrl, sendReport as send, type ReportOutcome } from '../core/errorReport';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { installLifeTrace } from '../core/lifeTrace';
@@ -47,6 +49,8 @@ let root: HTMLElement | null = null;
 const closeFatal = (): void => { fatalLayer?.dispose(); fatalLayer = null; root?.remove(); root = null; };
 let count = 0;
 let firstText = '';
+const CHIP_MS = 7000;
+let chipShown = false;
 let reporter: ErrorReporter | null = null;
 // lib.dom says these always exist; they don't (clipboard needs a secure context, older Safari has no hardwareConcurrency)
 const nav: { clipboard?: Clipboard | undefined; hardwareConcurrency?: number | undefined } = navigator;
@@ -67,6 +71,10 @@ const STYLE = `
   #wserr .tag { margin: 0 0 10px; font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase; color: #8fe3ff; }
   #wserr .tag::before { content: ''; display: inline-block; width: 6px; height: 6px; margin: 0 10px 1px 0; background: #ffb86b; box-shadow: 0 0 8px #ffb86b; vertical-align: middle; }
   #wserr h1 { margin: 0 0 8px; font: 700 22px/1.15 Rajdhani, "JetBrains Mono", sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; }
+  #wserr-chip { position: fixed; left: 50%; top: calc(22vh + env(safe-area-inset-top, 0px)); z-index: calc(var(--ws-layer-error, 2147482500) + -100); transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 6px 11px; background: rgba(13, 27, 38, 0.72); border: 1px solid rgba(143, 227, 255, 0.35); color: rgba(230, 242, 248, 0.85); font: 10px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: 0.2em; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: opacity 0.4s ease; -webkit-user-select: none; user-select: none; }
+  #wserr-chip::before { content: ''; width: 5px; height: 5px; background: #ffb86b; box-shadow: 0 0 6px #ffb86b; }
+  #wserr-chip.out { opacity: 0; pointer-events: none; }
+  #wserr-chip b { color: #7ef0b0; font-weight: 400; }
   #wserr .what { margin: 0 0 10px; font-size: 13px; line-height: 1.45; color: #ffb86b; overflow-wrap: anywhere; }
   #wserr .line { margin: 0 0 16px; font-size: 12.5px; line-height: 1.55; color: rgba(230, 242, 248, 0.82); }
   #wserr .rule { height: 1px; margin: 0 0 14px; background: rgba(143, 227, 255, 0.18); }
@@ -201,6 +209,24 @@ function showFatal(message: string, stack: string, sent: Promise<ReportOutcome> 
   } catch { /* the modal must never throw */ }
 }
 
+/** the quiet chip for a non-fatal error: once a session, fades by itself, a tap dismisses it */
+function showChip(sent: Promise<ReportOutcome>): void {
+  if (chipShown || root) return;
+  chipShown = true;
+  try {
+    ensureStyle();
+    const chip = document.createElement('div');
+    chip.id = 'wserr-chip';
+    chip.setAttribute('role', 'status');
+    chip.textContent = engineString('s_f589420f0639');
+    const out = (): void => { chip.classList.add('out'); scope.timeout(500, () => { chip.remove(); }); };
+    scope.listen(chip, 'click', out);
+    mount(chip);
+    scope.timeout(CHIP_MS, out);
+    void (async () => { const o = await sent; if (o === 'sent' || o === 'dup') { const b = document.createElement('b'); b.textContent = engineString('s_456509849d2d'); chip.append(b); } })();
+  } catch { /* never throw from here */ }
+}
+
 function report(system: string, error: unknown, flags: { fatal?: boolean; disabled?: boolean }): Promise<ReportOutcome> {
   if (system !== 'lifecycle') {
     let level = '';
@@ -222,6 +248,9 @@ function handle(f: Fault): void {
   const fatal = f.verdict === 'fatal' || (f.verdict === 'uncaught' && loopState() === 'boot');
   const sent = report(f.system, f.error, { fatal });
   if (!fatal && f.verdict !== 'uncaught') return; // internal retry bookkeeping is not a separate report
+  // G901 (refines G880): with Developer on every error opens the modal; with it off only a play-breaking one does (the loop
+  // stopped, or the boot failed), and a recoverable error (the system goes on, MF6) gets the quiet chip
+  if (!fatal && !isDev()) { showChip(sent); return; }
   const d = describeError(f.error); showFatal(d.message, d.stack, sent, f.system);
 }
 
