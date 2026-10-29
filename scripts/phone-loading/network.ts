@@ -3,6 +3,27 @@ import type {ErrorRow, RequestAccounting, RequestRow} from './model.ts';
 
 const ACCOUNTING_DEADLINE_MS = 5000;
 interface Job {row: RequestRow; stage: string; active: boolean; done: Promise<void>}
+function measured(value: unknown): value is number {return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;}
+/** Native encoded transfer can be zero/-1 for SW/cache/blob responses, and
+ * Playwright subtracts response-header estimates even then (or after a 304).
+ * Preserve unknown fields and their raw values; never substitute decoded
+ * bodies, Content-Length, zero, or another redirect hop's measurements. */
+function accountSizes(row: RequestRow, body: unknown, headers: unknown): void {
+  row.nativeSizes = {responseBodySize: typeof body === 'number' && Number.isFinite(body) ? body : null,
+    responseHeadersSize: typeof headers === 'number' && Number.isFinite(headers) ? headers : null};
+  if (measured(body)) row.bytes = body;
+  if (measured(headers)) row.headerBytes = headers;
+  const reasons: string[] = [];
+  for (const [field, value] of [['response-body', body], ['response-headers', headers]] as const) {
+    if (measured(value)) continue;
+    if (value === undefined || value === null) reasons.push(`${field}-missing`);
+    else if (typeof value === 'number' && Number.isSafeInteger(value) && value < 0) reasons.push(`${field}-negative`);
+    else throw new Error(`Invalid native request sizes: body=${String(body)}, headers=${String(headers)}`);
+  }
+  if (reasons.length > 0) {
+    row.sizeBasis = 'unavailable'; row.accounting = 'unavailable'; row.sizeUnavailable = reasons;
+  } else {row.sizeBasis = 'native-encoded'; row.accounting = 'complete';}
+}
 /** One context owns one request ledger, across both visits and their gap.
  * Native response/size metadata cannot hold the measured visit indefinitely. */
 export function observeRequests(attach: (start: (request: Request) => void, finish: (request: Request) => void) => () => void): {
@@ -43,10 +64,8 @@ export function observeRequests(attach: (start: (request: Request) => void, fini
         job.stage = 'request.sizes';
         const sizes = await request.sizes();
         if (!job.active) return;
-        if (!Number.isFinite(sizes.responseBodySize) || sizes.responseBodySize < 0
-          || !Number.isFinite(sizes.responseHeadersSize) || sizes.responseHeadersSize < 0) throw new Error('Invalid native request sizes');
-        row.bytes = sizes.responseBodySize; row.headerBytes = sizes.responseHeadersSize;
-        row.accounting = 'complete'; job.active = false;
+        accountSizes(row, sizes.responseBodySize, sizes.responseHeadersSize);
+        job.active = false;
       } catch (error) {incomplete(job, String(error));}
       finally {jobs.delete(job);}
     })();
@@ -62,8 +81,14 @@ export function observeRequests(attach: (start: (request: Request) => void, fini
       const pending = selected.filter(job => job.active);
       for (const job of pending) incomplete(job, `Incomplete native ${job.stage} after ${ACCOUNTING_DEADLINE_MS}ms accounting deadline`);
       const incompleteRows = rows.filter(row => row.start >= since && row.accounting === 'incomplete');
+      const unavailable = rows.filter(row => row.start >= since && row.accounting === 'unavailable').length;
+      const inFlight = rows.filter(row => row.start >= since && row.end === null).length;
+      const unknownByReason: Record<string, number> = {};
+      for (const row of rows) if (row.start >= since) for (const reason of row.sizeUnavailable ?? [])
+        unknownByReason[reason] = (unknownByReason[reason] ?? 0) + 1;
       return {complete: incompleteRows.length === 0, incomplete: incompleteRows.length,
-        pending: pending.filter(job => job.row.start >= since).length, deadlineMs: ACCOUNTING_DEADLINE_MS};
+        pending: pending.filter(job => job.row.start >= since).length, deadlineMs: ACCOUNTING_DEADLINE_MS,
+        ...(unavailable === 0 ? {} : {unavailable, unknownByReason}), ...(inFlight === 0 ? {} : {inFlight})};
     } finally {if (timer !== undefined) clearTimeout(timer);}
   }, stop: () => {
     stopped = true; detach();

@@ -187,6 +187,10 @@ try {
         const from = capture.tap ?? 0, to = capture.control ?? capture.stoppedAt ?? Date.now();
         const errorDetails = [...capture.errorDetails ?? [], ...errors, ...network.errors.filter(error => error.at >= visitStart),
           ...(chromium?.errors ?? []).map(message => ({message, source: 'CDP auto-attach', url, at: Date.now()}))];
+        // Page-close and the next visit can finish still-running requests,
+        // but cannot rewrite this visit's measured unknowns.
+        const requests = [];
+        for (const row of network.rows) if (row.start >= from && row.start <= to) requests.push({...row});
         const run: Run = {...capture, schema: 1, at: new Date().toISOString(), build, url, engine, flow: values.flow,
           preset: values.preset, cache, profile, totalMs: capture.tap !== null && capture.control !== null ? capture.control - capture.tap : null,
           applied: {pageCPU: chromium !== undefined, pageNetwork: chromium !== undefined, workerNetwork: chromium?.workerNetwork() ?? false,
@@ -194,7 +198,7 @@ try {
           rows: capture.rows, measures: capture.measures.filter(row => row.start >= from && row.start <= to),
           longTasks: capture.longTasks.filter(row => row.start >= from && row.start <= to),
           frameGaps: capture.frameGaps.filter(row => row.start >= from && row.start <= to),
-          requests: network.rows.filter(row => row.start >= from && row.start <= to), requestAccounting, postControl, errorDetails,
+          requests, requestAccounting, postControl, errorDetails,
           errors: errorDetails.map(error => error.message)};
         // Publish the measured/partial data before artifact APIs can fail.
         await writeFile(`${directory}/${name}.json`, JSON.stringify(run, null, 2));

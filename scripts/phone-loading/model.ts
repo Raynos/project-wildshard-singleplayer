@@ -9,9 +9,15 @@ export const profiles: Record<string, Profile> = {
 export interface Row {key: string; label: string; start: number | null; end: number | null; duration: number; wallMs: number | null;
   state?: 'todo' | 'on' | 'ok'; startBasis?: 'native' | 'observed'; endBasis?: 'native' | 'observed'; detail?: string}
 export interface ErrorRow {message: string; source: string; url: string; at: number}
+/** Bytes are native encoded body transfer, not decoded or cached payload size.
+ * SW/cache/local zero-transfer responses do not duplicate a worker's fetch. */
 export interface RequestRow {url: string; start: number; end: number | null; source: 'worker' | 'service-worker' | 'network'; bytes: number | null; headerBytes?: number; status: number; failure: string | null;
-  accounting?: 'pending' | 'complete' | 'incomplete'; accountingError?: string}
-export interface RequestAccounting {complete: boolean; pending: number; incomplete: number; deadlineMs: number}
+  accounting?: 'pending' | 'complete' | 'unavailable' | 'incomplete'; accountingError?: string;
+  sizeBasis?: 'native-encoded' | 'unavailable'; sizeUnavailable?: readonly string[];
+  nativeSizes?: {responseBodySize: number | null; responseHeadersSize: number | null}}
+/** Complete means the ledger settled without invalid/stalled native metadata.
+ * Explicit unavailable sizes retain null bytes and their own count. */
+export interface RequestAccounting {complete: boolean; pending: number; incomplete: number; deadlineMs: number; unavailable?: number; inFlight?: number; unknownByReason?: Readonly<Record<string, number>>}
 export interface Mark {name: string; start: number; duration: number; detail: unknown}
 export interface PanelRow {at: number; clock: string; download: number | null; downloadFact?: string; header: string; wait: string; step: string; activeLabel: string | null}
 export interface ControlWitness {
@@ -60,13 +66,14 @@ export function printRun(run: Run): void {
   const summary = (source: RequestRow['source']) => {
     const rows = run.requests.filter(row => row.source === source);
     const unknown = rows.filter(row => row.bytes === null).length;
-    return `${rows.length} / ${(rows.reduce((sum, row) => sum + (row.bytes ?? 0), 0) / 1e6).toFixed(3)} MB known${unknown === 0 ? '' : ` + ${unknown} unknown`}`;
+    return `${rows.length} / ${(rows.reduce((sum, row) => sum + (row.bytes ?? 0), 0) / 1e6).toFixed(3)} MB encoded known${unknown === 0 ? '' : ` + ${unknown} unknown`}`;
   };
   console.log(`\n${run.engine} ${run.flow} ${run.cache} ${run.build} [${run.preset}]`);
   console.table([{seconds: run.totalMs === null ? 'INCOMPLETE' : (run.totalMs / 1000).toFixed(3),
     world: run.controlWitness?.gridHome?.slug ?? run.controlWitness?.shard ?? run.lastWitness?.shard ?? 'unqualified',
     'page network': summary('network'), 'worker network': summary('worker'), 'page via SW': summary('service-worker'),
-    accounting: run.requestAccounting?.complete === false ? `INCOMPLETE (${run.requestAccounting.incomplete} rows, ${run.requestAccounting.pending} timed out)` : 'settled',
+    accounting: run.requestAccounting?.complete === false ? `INCOMPLETE (${run.requestAccounting.incomplete} rows, ${run.requestAccounting.pending} timed out)`
+      : `settled${run.requestAccounting?.unavailable === undefined ? '' : ` (${run.requestAccounting.unavailable} rows have unknown sizes)`}${run.requestAccounting?.inFlight === undefined ? '' : ` (${run.requestAccounting.inFlight} requests still in flight)`}`,
     longTasks: run.longTasks.length, frameGaps: run.frameGaps.length, errors: run.errors.length}]);
   const secondsAt = (at: number | null): string => at === null ? 'pending' : ((at - (run.tap ?? 0)) / 1000).toFixed(3);
   console.table(run.rows.filter(row => row.state !== 'todo').map(row => ({step: row.label, 'start +s': secondsAt(row.start), 'end +s': secondsAt(row.end),
