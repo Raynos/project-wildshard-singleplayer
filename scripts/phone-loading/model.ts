@@ -20,7 +20,8 @@ export interface RequestRow {url: string; start: number; end: number | null; sou
  * requests retain their separate inFlight count; failures remain on each row. */
 export interface RequestAccounting {complete: boolean; pending: number; incomplete: number; deadlineMs: number; inFlight?: number;}
 export interface Mark {name: string; start: number; duration: number; detail: unknown}
-export interface PanelRow {at: number; clock: string; download: number | null; downloadFact?: string; header: string; wait: string; step: string; activeLabel: string | null; documentToken?: string; navigation?: boolean}
+export interface PanelCounters {declaredBytes: number | null; pendingBytes: number | null; entryDownloadBytes: number | null}
+export interface PanelRow {at: number; clock: string; download: number | null; downloadFact?: string; header: string; wait: string; step: string; activeLabel: string | null; documentToken?: string; navigation?: boolean; content?: PanelCounters}
 /** Admit a passive old-document sample without granting control to that document. */
 export function readNavigationPanel(input: unknown): PanelRow | null {
   const row = record(input), {at, clock, download, downloadFact, header, wait, step, activeLabel, documentToken, navigation} = row;
@@ -28,7 +29,14 @@ export function readNavigationPanel(input: unknown): PanelRow | null {
     || download !== null && (typeof download !== 'number' || !Number.isFinite(download) || download < 0 || download > 100)
     || typeof downloadFact !== 'string' || typeof header !== 'string' || typeof wait !== 'string' || typeof step !== 'string'
     || activeLabel !== null && typeof activeLabel !== 'string' || typeof documentToken !== 'string' || documentToken === '' || navigation !== true) return null;
-  return {at, clock, download, downloadFact, header, wait, step, activeLabel, documentToken, navigation};
+  let content: PanelCounters | undefined;
+  if (row['content'] !== undefined) {
+    const counters = record(row['content']), {declaredBytes, pendingBytes, entryDownloadBytes} = counters;
+    const bytes = (value: unknown): value is number | null => value === null || typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+    if (!bytes(declaredBytes) || !bytes(pendingBytes) || !bytes(entryDownloadBytes)) return null;
+    content = {declaredBytes, pendingBytes, entryDownloadBytes};
+  }
+  return {at, clock, download, downloadFact, header, wait, step, activeLabel, documentToken, navigation, ...(content === undefined ? {} : {content})};
 }
 export interface ControlWitness {
   at: number; documentToken: string; timeOrigin: number; initialURL: string; url: string; initialChunk: string | null;

@@ -14,6 +14,10 @@ test('old-page navigation panels retain their identity and numbers without becom
   expect(readNavigationPanel({...row, download: 101})).toBeNull();
   expect(readNavigationPanel({...row, documentToken: ''})).toBeNull();
   expect(readNavigationPanel({...row, navigation: false})).toBeNull();
+  const content = {declaredBytes: 100, pendingBytes: 30, entryDownloadBytes: 100};
+  expect(readNavigationPanel({...row, content})?.content).toEqual(content);
+  expect(readNavigationPanel({...row, content: {...content, pendingBytes: -1}})).toBeNull();
+  expect(readNavigationPanel({...row, content: {declaredBytes: null, pendingBytes: null, entryDownloadBytes: 100}})?.content?.pendingBytes).toBeNull();
   expect(controlQualification({...run(), panels: [row]}, null)).toContain('document');
 });
 

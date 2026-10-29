@@ -145,8 +145,14 @@ export function instrument(flow: string): void {
       if ((at - lastPanelAt >= 100 || navigation && !navigationPublished) && data.control === null) {
         const text = (field: string): string => root.querySelector(`[data-el="${field}"]`)?.textContent ?? '';
         const download = Number.parseFloat(text('dlPct'));
+        const bytes = (fieldName: string): number | null => {
+          const raw = root instanceof HTMLElement ? root.dataset[fieldName] : undefined;
+          if (raw === undefined || raw === '') return null;
+          const value = Number(raw); return Number.isSafeInteger(value) && value >= 0 ? value : null;
+        };
         const panel: PanelRow = {at, clock: text('clock'), download: Number.isFinite(download) ? download : null, downloadFact: text('dlFact'),
-          header: text('suFact'), wait: text('foot'), step: root instanceof HTMLElement ? root.dataset['step'] ?? '' : '', activeLabel, documentToken, navigation};
+          header: text('suFact'), wait: text('foot'), step: root instanceof HTMLElement ? root.dataset['step'] ?? '' : '', activeLabel, documentToken, navigation,
+          content: {declaredBytes: bytes('declaredBytes'), pendingBytes: bytes('pendingBytes'), entryDownloadBytes: bytes('entryDownloadBytes')}};
         data.panels?.push(panel);
         if (navigation) {
           navigationPublished = true;
