@@ -967,7 +967,7 @@ export class Game {
    * in live slices spaced by drawn frames, as an entered frame's own roots link (G639: without them the first road frame
    * linked each environment's variant, 150-270 ms each). Roots whose owner has left are dropped. Call once control is up.
    */
-  async warmDeferredEntryRoots(current: () => boolean): Promise<void> {
+  async warmDeferredEntryRoots(current: () => boolean, idle?: () => Promise<boolean>): Promise<void> {
     const pending = this.deferredEntryRoots;
     this.deferredEntryRoots = [];
     const composer = this._composer;
@@ -977,8 +977,12 @@ export class Game {
       if (owner.disposed || owner.disposing) continue;
       const live = (): boolean => current() && !owner.disposed && !owner.disposing && this._composer === composer;
       if (!live()) return;
+      const pause = async (): Promise<void> => {
+        await waitForDrawnFrame(owner, () => this.frameCount, live);
+        if (idle !== undefined && !await idle()) throw new Error('Shader warm-up owner left');
+      };
       await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, live,
-        () => waitForDrawnFrame(owner, () => this.frameCount, live), LIVE_UPLOAD_BUDGET, false, undefined, undefined, true,
+        pause, LIVE_UPLOAD_BUDGET, false, undefined, undefined, true,
         this.camera.getWorldPosition(new THREE.Vector3()));
     }
   }

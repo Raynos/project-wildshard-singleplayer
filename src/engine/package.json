@@ -123,6 +123,7 @@
     "./boot/extras": "./boot/extras.ts",
     "./boot/filePolicy": "./boot/filePolicy.ts",
     "./boot/gpuFiles": "./boot/gpuFiles.ts",
+    "./boot/idle": "./boot/idle.ts",
     "./boot/lastEnd": "./boot/lastEnd.ts",
     "./boot/pack": "./boot/pack.ts",
     "./boot/plan": "./boot/plan.ts",

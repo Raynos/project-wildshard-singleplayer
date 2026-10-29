@@ -10,11 +10,12 @@ import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadingStage } from '@wildshard/engine/boot/waits';
 import { startShardPrefetch } from '@wildshard/engine/boot/shardPrefetch';
 import { afterControl, reachControl } from '@wildshard/engine/boot/prefetch';
+import { controlIdle, idleTurn } from '@wildshard/engine/boot/idle';
 import { installGpuRecovery } from '@wildshard/engine/core/GpuRecovery';
 import { TIER } from '@wildshard/engine/core/tier';
 import { installProbe } from '@wildshard/engine/debug/probe';
 import { lockOn as lockState } from '@wildshard/engine/player/AimTargets';
-import { liveWarmPacing, precompileLevel } from '@wildshard/engine/render/precompile';
+import { liveWarmPacing, precompileLevel, waitForDrawnFrame } from '@wildshard/engine/render/precompile';
 import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
 import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
@@ -182,10 +183,17 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   };
   const warmRest = async (): Promise<void> => {
     await afterExplorer();
+    if (!await controlIdle(levelScope)) return;
+    const current = (): boolean => !levelScope.disposed && !levelScope.disposing;
+    const idle = (): Promise<boolean> => idleTurn(levelScope);
+    const pause = async (): Promise<void> => {
+      await waitForDrawnFrame(levelScope, () => game.frameCount, current);
+      if (!await idle()) throw new Error('Shader warm-up owner left');
+    };
     // what the boot left (shaders: drawnOnly) links nearest-first under the live slice budget
     try {
-      await precompileLevel(game, undefined, { sliceMs: 6, current: () => !levelScope.disposed, nearest: true, ...liveWarmPacing() });
-      await game.warmDeferredEntryRoots(() => !levelScope.disposed);
+      await precompileLevel(game, undefined, { sliceMs: 6, current, pause, nearest: true, ...liveWarmPacing() });
+      await game.warmDeferredEntryRoots(current, idle);
     }
     catch (error: unknown) {
       if (!levelScope.disposed) console.warn('[shaders] the in-play warm-up stopped:', error);
@@ -242,16 +250,20 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     try { await completeManifestCache(manifest, levelScope, ctx.product); }
     catch (error: unknown) { if (!levelScope.disposed && !levelScope.disposing) console.info('[cache] deferred offline copy', error); }
   };
+  const backgroundDownloads = async (): Promise<void> => {
+    if (!await idleTurn(levelScope)) return;
+    void completeOfflineCopy();
+    if (!await idleTurn(levelScope)) return;
+    if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position), gridPrefetchOrder(ctx.grid.assembly, player.position, 'phone'));
+    // Native grids already prefetch their phone ring through verified product packs.
+    if (ctx.grid === null) asShell(() => { startShardPrefetch(manifest); });
+  };
   afterControl(game.levelScope, run => { game.onLate(run, 'game.boot.background'); },
     () => hud.entered && !hud.paused && !app.clock.paused && game.frameGate(), () => {
       document.dispatchEvent(new Event('ws:control-ready'));
       reachControl(game.levelScope);
-      void completeOfflineCopy();
       if (deferredAudio || hasLateAudio(files)) void decodeAfterBoot();
-      if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position), gridPrefetchOrder(ctx.grid.assembly, player.position, 'phone'));
-      // Native grids already prefetch their phone ring through verified product packs.
-      // The older full-catalogue boot prefetch belongs only to standalone entries.
-      if (ctx.grid === null) asShell(() => { startShardPrefetch(manifest); });
+      void backgroundDownloads();
     });
 
 
