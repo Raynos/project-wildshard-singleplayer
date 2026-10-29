@@ -24,7 +24,7 @@ const MAX_FILE = 25_000_000, MAX_INDEX = 2_000_000;
 
 /** The index size is an allocation hint, never authority over the stream/hash.
  * Consume chunks into one bounded destination instead of retaining them all. */
-async function read(response: Response, maximum: number, expected = 0): Promise<Uint8Array> {
+async function read(response: Response, maximum: number, expected = 0): Promise<Uint8Array<ArrayBuffer>> {
   if (!response.ok) throw new Error('Unavailable cached content');
   if (response.body === null) return new Uint8Array();
   const reader = response.body.getReader(); let bytes = 0, result = new Uint8Array(Math.min(maximum, expected));
@@ -199,7 +199,7 @@ export class ContentCache {
     const cache = await this.open().catch(() => undefined); if (cache === undefined) return null;
     const response = await cache.match(key);
     if (response === undefined && this.index[hash] === undefined) return null;
-    let bytes: Uint8Array | undefined;
+    let bytes: Uint8Array<ArrayBuffer> | undefined;
     const expected = response === undefined ? undefined : this.expectedBytes(hash, response);
     try { if (response !== undefined && expected !== undefined) bytes = await read(response, MAX_FILE, expected); }
     catch { bytes = undefined; }

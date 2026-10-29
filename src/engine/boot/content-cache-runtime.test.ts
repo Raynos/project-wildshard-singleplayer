@@ -80,12 +80,18 @@ test('worker consumes private fetch and posted-write backing without another sna
     expect(a.ok).toBe(true);
     if (!a.ok || a.value === null || typeof a.value !== 'object' || !('fetched' in a.value)) throw new Error('Missing verified worker bytes');
     expect(a.value.fetched).toEqual(one); expect(a.value.stored).toBe(true); expect(a.value.cached).toBe(false);
-    hints.set(stale, new Response(Uint8Array.of(0, 0, 0)));
+    hints.set(stale, new Response(Uint8Array.of(0, 0)));
     const b = await send({ op: 'fetch', url: stale, hash: second, bytes: two.length, reply: 'bytes', urlCache: true });
     expect(b.ok).toBe(true);
     if (!b.ok || b.value === null || typeof b.value !== 'object' || !('fetched' in b.value)) throw new Error('Missing retried worker bytes');
     expect(b.value.fetched).toEqual(two); expect(b.value.stored).toBe(true); expect(b.value.cached).toBe(false);
     expect(fetched.filter(value => value === stale)).toHaveLength(1);
+    const beforeReads = fetched.length, beforeHashes = hashed.size;
+    const again = await send({ op: 'fetch', url, hash: first, bytes: one.length, reply: 'bytes' });
+    expect(again.ok).toBe(true);
+    if (!again.ok || again.value === null || typeof again.value !== 'object' || !('fetched' in again.value)) throw new Error('Missing cached worker bytes');
+    expect(again.value.fetched).toEqual(one); expect(again.value.cached).toBe(true); expect(again.value.stored).toBe(true);
+    expect(fetched).toHaveLength(beforeReads); expect(hashed.size).toBe(beforeHashes);
     refuse = true;
     const c = await send({ op: 'fetch', url: full, hash: third, bytes: three.length, reply: 'bytes', keep: true });
     expect(c.ok).toBe(true);
@@ -93,7 +99,7 @@ test('worker consumes private fetch and posted-write backing without another sna
     expect(c.value.fetched).toEqual(three); expect(c.value.stored).toBe(false);
     refuse = false;
     await send({ op: 'flush' });
-    expect(transfers).toEqual([1, 2, 3].map(() => ({ verified: true, bytes: 3, detached: true })));
+    expect(transfers).toEqual([true, true, false, true].map(verified => ({ verified, bytes: 3, detached: true })));
     const persisted = disk.get(`${origin}/__ws_content__/v0/${first}`);
     if (persisted === undefined) throw new Error('Missing durable fetched body');
     expect(new Uint8Array(await persisted.arrayBuffer())).toEqual(one);

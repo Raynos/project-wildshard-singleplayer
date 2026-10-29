@@ -28,6 +28,11 @@ function timing(url: string): FetchedContent['timing'] {
 async function fetchVerified(command: FetchCommand): Promise<FetchedContent> {
   const url = new URL(command.url);
   if (url.origin !== self.location.origin) throw new Error('Cache reads stay on this origin');
+  const held = await cache.get(command.hash);
+  if (held !== null && held.length === command.bytes) {
+    const bytes = held.buffer instanceof ArrayBuffer ? new Uint8Array(held.buffer, held.byteOffset, held.byteLength) : Uint8Array.from(held);
+    return { fetched: command.reply === 'bytes' ? bytes : null, stored: true, cached: true, origin: performance.timeOrigin, timing: null };
+  }
   let body: Uint8Array<ArrayBuffer> | null = null, cached = false, receipt: FetchedContent['timing'] = null;
   if (command.urlCache === true) {
     try {
@@ -35,6 +40,8 @@ async function fetchVerified(command: FetchCommand): Promise<FetchedContent> {
       if (response !== undefined) { body = await bounded(response, command.bytes); cached = body.length === command.bytes; if (!cached) body = null; }
     } catch { body = null; } // An evicted or stale URL cache falls through to the network.
   }
+  // G881: an exact URL hit is already durable. Do not checksum or rewrite it.
+  if (body !== null && cached) return { fetched: command.reply === 'bytes' ? body : null, stored: false, cached: true, origin: performance.timeOrigin, timing: null };
   if (body === null) {
     body = await bounded(await fetch(url.href, command.keep === true ? { cache: 'no-store' } : undefined), command.bytes);
     receipt = timing(url.href);

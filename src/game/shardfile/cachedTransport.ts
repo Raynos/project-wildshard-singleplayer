@@ -24,26 +24,22 @@ function hintResponse(storage: Pick<CacheStorage, 'match'>, url: string, signal?
   return Promise.race([ready, stopped]).finally(() => { owner.dispose(); });
 }
 
-/** URL caches are hints: only bounded bytes with an independently expected hash can replace a request. */
+/** G881: trust an exact content/version key; a size mismatch falls through to the normal transport. */
 export async function cachedTransport(storage: Pick<CacheStorage, 'match'>, url: string, maximum: number,
-  hash: (bytes: Uint8Array) => Promise<string>, accepts: (hash: string) => boolean,
-  hashOwned?: (bytes: Uint8Array) => Promise<{ bytes: Uint8Array; hash: string }>, signal?: AbortSignal): Promise<{ bytes: Uint8Array; hash: string } | null> {
+  expected: { hash: string; bytes?: number }, signal?: AbortSignal): Promise<{ bytes: Uint8Array; hash: string } | null> {
   const cancelled = (): boolean => signal?.aborted === true;
   try {
     if (cancelled()) return null;
+    if (!/^[a-f0-9]{64}$/u.test(expected.hash)) return null;
+    const address = new URL(url), version = address.searchParams.get('v');
+    const named = /\/([a-f0-9]{64})\.[a-z0-9]+$/u.exec(address.pathname)?.[1];
+    if (named !== undefined && named !== expected.hash || version !== null && version !== expected.hash.slice(0, 8)) return null;
     const label = productResourceRole(url);
     const response = await waitFor(`URL cache ${label}`, hintResponse(storage, url, signal), 'file');
     if (response === undefined) return null;
     if (cancelled()) { discardResponse(response); return null; }
-    const original = await boundedResponse(response, maximum);
+    const bytes = await boundedResponse(response, maximum);
     if (cancelled()) return null;
-    let bytes = original, actual: string;
-    if (hashOwned === undefined) actual = await waitFor(`Hash ${label}`, hash(bytes), 'worker');
-    else {
-      try { ({ bytes, hash: actual } = await waitFor(`Hash ${label}`, hashOwned(new Uint8Array(original)), 'worker')); }
-      catch { if (cancelled()) return null; bytes = original; actual = await waitFor(`Hash ${label} fallback`, hash(bytes), 'worker'); }
-    }
-    if (cancelled()) return null;
-    return bytes.length === original.length && accepts(actual) ? { bytes, hash: actual } : null;
+    return expected.bytes === undefined || bytes.length === expected.bytes ? { bytes, hash: expected.hash } : null;
   } catch { return null; } // Evicted, stale or unavailable URL caches fall through to ordinary verified transport.
 }

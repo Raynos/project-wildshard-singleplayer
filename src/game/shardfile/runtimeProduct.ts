@@ -4,7 +4,7 @@ import { lateFiles } from './controlFiles';
 import { productCacheCompletion } from './productCacheCompletion';
 import { lendLooks } from './lentLooks';
 import { recoverStaleClient } from '@wildshard/engine/boot/stuck';
-import { builtIndexHashes } from '@wildshard/format/builtIndexes';
+import { builtIndexHash, builtIndexHashes } from '@wildshard/format/builtIndexes';
 import type { Material } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -28,7 +28,7 @@ import { graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/mat
 import type { ShardContext } from '../plugin/context';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { cachedTransport } from './cachedTransport';
-import { recordCachedDownload } from '@wildshard/engine/boot/download';
+import { recordCachedDownload, recordReadDownload } from '@wildshard/engine/boot/download';
 import { hashOwnedBytes, prepareContentHash } from '@wildshard/engine/boot/contentHash';
 import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { browserContentStore } from './contentStore';
@@ -105,20 +105,22 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     if (entryTransport()?.has(url)) return null;
     const path = new URL(url, base);
     const sent = await waitFor(`Verify ${productResourceRole(path.href)}`, content.fetchVerified(path.href, hash, bytes, { reply: 'bytes', urlCache: indexed !== undefined }), 'worker');
+    if (sent?.fetched !== null && sent?.fetched !== undefined) recordReadDownload(path.href, sent.fetched.length, sent.cached);
     return sent === null || sent.fetched === null ? null : { bytes: sent.fetched, cached: sent.cached, stored: sent.stored };
   } : undefined;
   return { ...(parseJson === undefined ? {} : { parseJson }), base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: verifiedHash, hashOwned: hashOwnedBytes,
     backgroundFetch: (url, signal) => fetch(url, { priority: 'low', ...(signal === undefined ? {} : { signal }) }),
     fetch: (url, signal) => waitFor(`Read ${productResourceRole(url, base)}`, (async () => {
       if (indexed !== undefined && new URL(url, base).pathname.endsWith('/shard.json')) {
-        const held = await cachedTransport(caches, url, limits.sourceBytes, verifiedHash, digest => indexed.has(digest), undefined, signal);
+        const hash = builtIndexHash(new URL(url, base).pathname);
+        const held = hash === null || !indexed.has(hash) ? null : await cachedTransport(caches, url, limits.sourceBytes, { hash }, signal);
         if (held !== null) { recordCachedDownload(held.hash, held.bytes.length, url); return new Response(new Uint8Array(held.bytes)); }
       }
       signal?.throwIfAborted();
       const early = await entryTransport()?.take(url, signal);
       if (early !== null && early !== undefined) return early;
       return fetch(url, signal === undefined ? {} : { signal });
-    })(), 'file'),
+    })(), 'file', url),
     revalidateAfterControl: run => {
       if (typeof document === 'undefined') return;
       const refresh = async (): Promise<void> => { try { await run(); } catch (error: unknown) { console.info('[cache] descriptor revalidation', error); } };
@@ -127,9 +129,9 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     },
     ...(firstParty ? { fetchRange: (url: string, start: number, end: number, priority?: 'low') => waitFor(`Fetch pack range ${start}-${end}`, fetch(url, { headers: { Range: `bytes=${start}-${end}` }, ...(priority === undefined ? {} : { priority }) }), 'file') } : {}),
     ...(indexed === undefined ? {} : { cachedResponse: async (url: string, hash: string, maximum: number) =>
-      (await cachedTransport(caches, url, maximum, browserContentHash, actual => actual === hash))?.bytes ?? null,
+      (await cachedTransport(caches, url, maximum, { hash, bytes: maximum }))?.bytes ?? null,
     verifiedResponse: async (url: string, hash: string, maximum: number, signal?: AbortSignal) =>
-      (await cachedTransport(caches, url, maximum, browserContentHash, actual => actual === hash, hashOwnedBytes, signal))?.bytes ?? null }),
+      (await cachedTransport(caches, url, maximum, { hash, bytes: maximum }, signal))?.bytes ?? null }),
     ...(transport === undefined ? {} : { transport }),
     cacheHintTurn: signal => {
       const owner = pageScope.child('foreground-url-cache-turn');
