@@ -69,6 +69,9 @@ export class WorldScenePlacement {
   private authored: Map<number, ColliderDesc[]> | undefined;
   private warming = false;
   private ranges: Promise<{ readonly placed: Placed; readonly contents: readonly TileContent[] }> | undefined;
+  /** FC12: a culled ranged placement's resident tiles (holders per tile) and the culler's version of them */
+  private readonly holders = new Map<number, number>();
+  private residentVersion = 0;
   constructor(private readonly ctx: ShardContext, private readonly row: WorldScenePlacementRow,
     private readonly catalogue: Pick<ReturnType<typeof defineWorldSceneCatalogue>, 'model'>, private readonly owner: Scope,
     private readonly materials: Map<string, Material>, private readonly sources: readonly Extract<WorldScenesSection['materials'][number], { kind: 'source' }>[], private readonly handles?: Pick<SceneHandles, 'object'>,
@@ -109,6 +112,7 @@ export class WorldScenePlacement {
         container.add(object);
       }
       await Promise.all(ranged.contents.map(content => content.tiles().has(tile) ? content.attach(tile, scope) : Promise.resolve()));
+      if (this.row.cull !== undefined) this.holdResident(tile, scope);
       return ranged.placed;
     }
     const placed = await this.tileBuilds().hold(tile, scope);
@@ -151,20 +155,39 @@ export class WorldScenePlacement {
     return this.shared;
   }
   /**
-   * T3 (one draw per model): an instanced or merged placement spanning tiles, not drawn into a set, culled by a culler of
-   * its own or following a copy, draws all its copies in one draw, each resident tile drawing its range of it (its copies'
-   * instances, or its copies' triangles by centroid: `tiledMesh`), so tiling never multiplies its draws.
+   * T3 (one draw per model): an instanced or merged placement spanning tiles, not drawn into a set nor following a copy,
+   * draws all its copies in one draw, each resident tile drawing its range of it (its copies' instances, or its copies'
+   * triangles by centroid: `tiledMesh`), so tiling never multiplies its draws. FC12 (G913): an instanced one culled per
+   * copy too (Nine's facade pieces and crowd, one draw per tile each): its culler keeps only the resident tiles' copies.
    */
   private ranged(): boolean {
-    const row = this.row;
+    const row = this.row, cull = row.cull;
     return (row.draw === 'instanced' || row.draw === 'batched' || row.draw === 'merged') && row.drawnInto === undefined
-      && row.cull === undefined && row.piece?.follows === undefined && this.bucketed().size > 1;
+      && (cull === undefined || row.draw !== 'merged' && cull.lodBy !== 'set' && cull.view === undefined)
+      && row.piece?.follows === undefined && this.bucketed().size > 1;
+  }
+  /** FC12: `tile`'s copies draw while `scope` holds it (the culler re-chooses on the version) */
+  private holdResident(tile: number, scope: Scope): void {
+    this.holders.set(tile, (this.holders.get(tile) ?? 0) + 1); this.residentVersion++;
+    scope.onDispose(() => {
+      const left = (this.holders.get(tile) ?? 0) - 1;
+      if (left > 0) this.holders.set(tile, left); else this.holders.delete(tile);
+      this.residentVersion++;
+    });
+  }
+  /** FC12: the culler's resident filter over the copies, by their tiles */
+  private residentCopies(): NonNullable<CullOptions['resident']> {
+    const of = new Int32Array(this.row.poses.length).fill(-1);
+    for (const [tile, copies] of this.bucketed()) for (const copy of copies) of[copy] = tile;
+    return { has: (i: number) => this.holders.has(of[i] ?? -1), version: () => this.residentVersion };
   }
   /** T3: the ranged placement's one draw (built whole, once, with no colliders: the collider ring has them) and the tile
    *  contents its meshes draw by; nothing draws until a tile attaches. */
   private rangedDraw(): Promise<{ readonly placed: Placed; readonly contents: readonly TileContent[] }> {
     this.ranges ??= (async () => {
       const placed = await this.build(null, this.owner, undefined, 'whole');
+      // a culled set draws by its culler's resident filter (`holdResident`), not by ranges
+      if (this.row.cull !== undefined) return { placed, contents: [] };
       // each mesh by tile in cell-local space: its transform relative to the cell's world group (copies are posed cell-local)
       const cell = placed.object.parent;
       cell?.updateMatrixWorld(true); placed.object.updateMatrixWorld(true);
@@ -207,7 +230,7 @@ export class WorldScenePlacement {
     if (row.drawnInto !== undefined && borrowed === undefined) throw new Error('Scene placement needs its named part owner');
     await this.prepareMaterials(world.sky);
     requireLive(owner);
-    const cull = this.cullOptions(world.forest);
+    const cull = ranged === 'whole' && row.cull !== undefined ? { ...this.cullOptions(world.forest), resident: this.residentCopies() } : this.cullOptions(world.forest);
     // Tiled draws never consume the whole authored table: the collider ring admits and partitions it once.
     if (tile !== undefined && row.colliders !== undefined) this.authoredByTile();
     const preplaced = tile !== undefined || row.colliders === undefined ? undefined : readColliderRows(row.colliders, COLLIDER_ROWS)

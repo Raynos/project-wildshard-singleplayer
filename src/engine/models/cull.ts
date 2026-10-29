@@ -69,6 +69,12 @@ export interface CullOptions {
    * With `cells` it filters after the cell and range tests (a tile ring over a forest floor, tile streaming P4)
    */
   readonly test?: (i: number, d2: number) => boolean;
+  /**
+   * the copies that may draw at all (a placement drawn as one set over a ring of streamed tiles: its resident tiles'
+   * copies), before every other test; a new `version` re-chooses with the camera still (a tile attached or retired).
+   * Instanced copies only (`InstancedCull`).
+   */
+  readonly resident?: { readonly has: (i: number) => boolean; readonly version: () => number };
 }
 
 /** metres: the square a culler buckets its copies in (`Chooser.begin`), and the fewest copies it buckets */
@@ -150,6 +156,7 @@ class Chooser {
   /** squared start of each level's dissolve band (`ModelLod.fade`): from there the level before it is drawn with it; ∞ without one */
   private readonly fade2: Float64Array;
   private readonly test: ((i: number, d2: number) => boolean) | null;
+  private readonly resident: ((i: number) => boolean) | null;
   /** the distance² of the copy the last `level` call chose for (`also` and a part's `until` read it) */
   d2 = 0;
   private readonly far2: number;
@@ -172,6 +179,7 @@ class Chooser {
     this.origins = origins;
     this.fade2 = Float64Array.from(from, (d, l) => { const f = fades[l] ?? 0; return l > 0 && f > 0 ? (d - f) * (d - f) : Number.POSITIVE_INFINITY; });
     this.test = o.test ?? null;
+    this.resident = o.resident?.has ?? null;
     this.from2 = Float32Array.from(from, (d) => d * d);
     this.from = Float64Array.from(from);
     this.far = o.far ?? Number.POSITIVE_INFINITY;
@@ -247,6 +255,7 @@ class Chooser {
     this.cellOf = cellOf; this.cellBoxes = boxes; this.cellPoints = Float64Array.from(points); this.skip = new Uint8Array(boxes.length);
   }
   level(i: number, view: View): number {
+    if (this.resident !== null && !this.resident(i)) return -1;
     if (this.cellOf !== null && this.skip[this.cellOf[i] ?? 0] === 1) return -1;
     const b = this.bounds, x = b[i * 4] ?? 0, y = b[i * 4 + 1] ?? 0, z = b[i * 4 + 2] ?? 0, r = b[i * 4 + 3] ?? 0;
     const d2 = this.dist2(i, view.eye);
@@ -354,6 +363,9 @@ const viewFor = (o: CullOptions): View => new View(o.frustum === false ? o.step 
 
 export class InstancedCull {
   private readonly view: View;
+  /** `CullOptions.resident`'s version, and the one the copies were last chosen at */
+  private readonly resident: (() => number) | null;
+  private chosen = 0;
   /** the casting cascades' frusta, read as each choice starts (`CullOptions.casters`) */
   private readonly casting: () => readonly THREE.Frustum[];
   private readonly chooser: Chooser;
@@ -378,10 +390,12 @@ export class InstancedCull {
     this.view = viewFor(o);
     this.chooser = new Chooser(from, o, bounds, origins, fades);
     this.sinks = new Sinks(groups, matrices, colors, scales);
+    this.resident = o.resident?.version ?? null;
   }
 
   update(camera: THREE.Camera): void {
-    if (this.view.changed(camera)) this.choose();
+    const moved = this.view.changed(camera), version = this.resident?.() ?? 0;
+    if (moved || version !== this.chosen) { this.chosen = version; this.choose(); }
   }
 
   /** a view handed in (`CullOptions.view`) */
