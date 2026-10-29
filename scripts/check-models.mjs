@@ -71,19 +71,7 @@ export const ON_CONTRACT = [
  *    declares world — each with why, and how many of what (a declared file that grows one more fails too).
  */
 export const DONE = {
-  'driftwood-isle': {
-    'src/shards/driftwood-isle-legacy/world/rockKit.ts': { why: 'Frozen rock kit retains the original stone-part weld (rockKit.ts:373); primary uses baked rock scene models (8e830e0be)', counts: { mergeGeometries: 1 } },
-    'src/shards/driftwood-isle-legacy/weapons/swordView.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
-    'src/shards/driftwood-isle-legacy/creatures/Enemies.ts': { why: "the island's enemies, drawn by their live system (creatures, M5)", counts: { InstancedMesh: 1 } },
-    'src/shards/driftwood-isle-legacy/world/Boat.ts': { why: "the mooring lines: world geometry between the placed sailboat and the pier's bollards", counts: { mergeGeometries: 1 } },
-    'src/shards/driftwood-isle-legacy/world/Seabed.ts': { why: 'the reef weld: every coral / seaweed / starfish copy in one mesh (the models placed drawnInto it)', counts: { mergeGeometries: 1 } },
-    'src/shards/driftwood-isle-legacy/world/Trailside.ts': { why: "the trail's weld: its ropes, rails and trestle stairs are world (piece `trailside`, their treads); its posts, signposts and steps are models drawnInto it", counts: { 'registry add with object': 1, mergeGeometries: 1 } },
-    'src/shards/driftwood-isle-legacy/world/Wreck.ts': { why: "the wreck site's weld: the vessel and the cove's surroundings in one kit (the AO and the lanterns' light over all of it) and the reef rocks' smooth mesh — its models placed drawnInto them", counts: { mergeGeometries: 1 } },
-    'src/shards/driftwood-isle-legacy/world/Cove.ts': { why: 'the frozen sea cave retains its original world geometry weld and reef-rock merge; the primary Cove now admits baked geometry', counts: { 'registry add with object': 1, mergeGeometries: 2 } },
-    'src/shards/driftwood-isle-legacy/world/GroundCover.ts': { why: 'Frozen ground cover retains the original scatter mesh; the primary composes the existing streamed-cover host from authored rows', counts: { InstancedMesh: 1 } },
-    'src/shards/driftwood-isle-legacy/world/Gulls.ts': { why: 'the gulls are creatures (M5)', counts: { InstancedMesh: 1 } },
-    'src/shards/driftwood-isle-legacy/world/islandInstances.ts': { why: "G144 / G173 (E435, E450): the Blender island's placements drawn instanced per tile set (the merged tiles retired): the cove's own drawing of its copies (the cove families stay placed drawnInto the island's group)", counts: { InstancedMesh: 1 } },
-  },
+  'driftwood-isle': {},
   'nalati-grasslands': {},
   'nine-dragon-stack': {
     'src/shards/nine-dragon-stack-legacy/vm/swordSupport.ts': { why: "Gear: the jian's hidden support rig (the old kit wood sword, unchanged) that sets the animated arms' blade reach (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },

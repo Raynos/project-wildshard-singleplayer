@@ -72,7 +72,6 @@
     "./ai/CreatureBrain": "./ai/CreatureBrain.ts",
     "./ai/EliteBrain": "./ai/EliteBrain.ts",
     "./ai/GroupBrain": "./ai/GroupBrain.ts",
-    "./ai/bossDefinition": "./ai/bossDefinition.ts",
     "./ai/encounters": "./ai/encounters.ts",
     "./ai/inspect": "./ai/inspect.ts",
     "./ai/pinning": "./ai/pinning.ts",

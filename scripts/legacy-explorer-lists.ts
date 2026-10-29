@@ -148,7 +148,6 @@ async function capture(slug: string, side: string): Promise<Capture> {
     };
     const { installLegacyKitSpecies } = await import('../src/game/systems/species/install');
     await installLegacyKitSpecies();
-    if (slug === 'driftwood-isle') (await import('../src/shards/driftwood-isle-legacy/species/install')).installDriftwoodSpecies();
     lists.models = ids((await module(`src/shards/${slug}-legacy/roster.ts`)).ROSTER);
     const manifest = object((await module(`src/shards/${slug}-legacy/manifest.ts`)).default);
     lists.world = ids(manifest.pois ?? []);

@@ -9,7 +9,6 @@ describe('model contract after client relocation', () => {
   });
 
   it.each([
-    ['src/shards/driftwood-isle-legacy/world/rockKit.ts', 1],
     ['src/shards/pine-hollow-legacy/runtime/weapons/LeverRifle.ts', 8],
     ['src/shards/pine-hollow-legacy/runtime/weapons/crossbow/Crossbow.ts', 4],
   ] as const)('retains only the exact frozen merge ceiling at %s', (file, ceiling) => {
@@ -90,7 +89,6 @@ describe('model contract after client relocation', () => {
     ['src/game/boss/arenaFire.ts', 'new THREE.InstancedMesh();', 2],
     ['src/game/practice/course.ts', 'registry.add({ object });', 1],
     ['src/game/weapons/heldPolearm.ts', 'new THREE.InstancedMesh();', 1],
-    ['src/shards/driftwood-isle-legacy/creatures/Enemies.ts', 'new InstancedMesh();', 1],
     ['src/shards/nine-dragon-stack-legacy/world/portals.ts', 'new InstancedMesh();', 2],
   ] as const)('retains the relocated draw ceiling at %s', (file, draw, ceiling) => {
     expect(checkModels({ [file]: draw.repeat(ceiling) }).violations).toEqual([]);

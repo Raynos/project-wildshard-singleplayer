@@ -134,14 +134,6 @@
       "base64Chars": 0,
       "dataUris": 7
     },
-    "src/shards/driftwood-isle-legacy/runtime/navmesh.baked.json": {
-      "base64Chars": 229396,
-      "dataUris": 0
-    },
-    "src/shards/driftwood-isle-legacy/runtime/physics.baked.json": {
-      "base64Chars": 533320,
-      "dataUris": 0
-    },
     "src/shards/ink-cel-valley/data/rows.json": {
       "base64Chars": 0,
       "dataUris": 1

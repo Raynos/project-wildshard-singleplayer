@@ -79,7 +79,6 @@
     "./director": "./director.ts",
     "./clientScripts": "./clientScripts.ts",
     "./clientChannels": "./clientChannels.ts",
-    "./brains": "./brains.ts",
     "./speciesBrains": "./speciesBrains.ts",
     "./phasedBoss": "./phasedBoss.ts",
     "./admission": "./admission.ts",
@@ -97,7 +96,6 @@
     "./weapons/bowProfile": "./weapons/bowProfile.ts",
     "./bake/textureWasm": "./bake/textureWasm.ts",
     "./bake/worldLod": "./bake/worldLod.ts",
-    "./runtime/weapons/Sword": "./runtime/weapons/Sword.ts",
     "./runtime/weapons/starterBow": "./runtime/weapons/starterBow.ts",
     "./bake/worldCollision": "./bake/worldCollision.ts",
     "./bake/nativeLattice": "./bake/nativeLattice.ts",
@@ -416,10 +414,6 @@
         "types": "./dist/types/sdk/clientChannels.d.ts",
         "default": "./dist/clientChannels.js"
       },
-      "./brains": {
-        "types": "./dist/types/sdk/brains.d.ts",
-        "default": "./dist/brains.js"
-      },
       "./speciesBrains": {
         "types": "./dist/types/sdk/speciesBrains.d.ts",
         "default": "./dist/speciesBrains.js"
@@ -491,10 +485,6 @@
       "./bake/worldLod": {
         "types": "./dist/types/sdk/bake/worldLod.d.ts",
         "default": "./dist/bake/worldLod.js"
-      },
-      "./runtime/weapons/Sword": {
-        "types": "./dist/types/sdk/runtime/weapons/Sword.d.ts",
-        "default": "./dist/runtime/weapons/Sword.js"
       },
       "./runtime/weapons/starterBow": {
         "types": "./dist/types/sdk/runtime/weapons/starterBow.d.ts",

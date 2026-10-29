@@ -6,7 +6,7 @@ import type { ShardEntryMode } from '../shard/manifest';
 const selected = (choice: ShardEntryMode) => (manifest: Parameters<typeof shardEntry>[0]) =>
   shardEntry(manifest, true, () => ({ read: () => choice, choose: () => undefined }));
 
-test.each(['driftwood-isle', 'pine-hollow'] as const)('%s primary data-only metadata still enters its registered frozen copy', slug => {
+test.each(['pine-hollow', 'nine-dragon-stack'] as const)('%s primary data-only metadata still enters its registered frozen copy', slug => {
   const primary = { slug, entries: { legacy: false, shardfile: true } } as const;
   const copy = { slug: `${slug}-legacy`, legacy: true, entries: { legacy: true, shardfile: false } } as const;
   const rows = [primary, copy];

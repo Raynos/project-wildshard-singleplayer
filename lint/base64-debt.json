@@ -14,8 +14,6 @@
     "src/game/population/spawnScript.ts": 5,
     "src/sdk/buildBehaviour.ts": 1,
     "src/sdk/returnProjectionV2.ts": 2,
-    "src/shards/driftwood-isle-legacy/runtime/baked.ts": 1,
-    "src/shards/driftwood-isle-legacy/runtime/headless.ts": 1,
     "src/shards/nine-dragon-stack/generators/bake-glyphs.mjs": 2,
     "src/shards/pine-hollow-legacy/runtime/baked.ts": 1
   }

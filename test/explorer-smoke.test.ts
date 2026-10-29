@@ -12,7 +12,7 @@ const catalogue = [
   {slug:'nine-dragon-stack',status:'experimental',legacy:false},
   {slug:'_template',status:'hidden',legacy:false},
   {slug:'open-plot-alien-plain',status:'hidden',legacy:false,shardSelect:false},
-  {slug:'driftwood-isle-legacy',status:'live',legacy:true},
+  {slug:'pine-hollow-legacy',status:'live',legacy:true},
 ];
 
 function fixtureBrowser(evaluate: Page['evaluate']): { browser: Browser; close: ReturnType<typeof vi.fn<BrowserContext['close']>> } {
