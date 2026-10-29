@@ -3,6 +3,7 @@ import { parseAchievementCounterData } from '../src/format/achievementCounters';
 import { PINE_PREPARED_OUTPUT as pineOutput } from './fixtures/pine-program';
 import { output as driftwoodOutput } from '../src/shards/driftwood-isle/generators/output';
 import { createAchievementCounters } from '../src/game/achievements';
+import {onFault, type Fault} from '../src/engine/core/faults';
 import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';
 import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/generators/questInventory';
 
@@ -24,10 +25,17 @@ test('old progress advances with original matching, identities, saturation and w
   policy.kill('deer','ghost');expect(pine['ghost']).toBeGreaterThan(saved??0);policy.event('resin',1000);expect(pine['resin']).toBeLessThanOrEqual(30);
   const last=pine['resin'];policy.event('resin',0);expect(pine['resin']).toBe(last);
 });
-test('unknown explicit feat and malformed row bounds refuse without writes',()=>{
-  let written=false;const ports={read:()=>({}),write:()=>{written=true;},emit:()=>undefined};
-  const counter=createAchievementCounters(driftwoodData,ports);expect(()=>counter.count('missing',1)).toThrow();expect(()=>counter.count('crab10',Number.NaN)).toThrow();expect(written).toBe(false);
-  expect(()=>createAchievementCounters({...DRIFTWOOD_FEAT_COUNTERS,feats:[{id:'bad',count:Infinity}]},ports)).toThrow();
+test('unknown and nonfinite observations skip without writes, report once, and keep the counter live',()=>{
+  let state:Record<string,number>={},written=0;const emitted:string[]=[],faults:Fault[]=[],off=onFault(fault=>{faults.push(fault);});
+  const ports={read:()=>({...state}),write:(next:Record<string,number>)=>{written++;state=next;},emit:(_fact:string,id:string)=>{emitted.push(id);}};
+  try{
+    const counter=createAchievementCounters(driftwoodData,ports);
+    for(let n=0;n<2;n++){expect(()=>counter.count('missing',1)).not.toThrow();expect(()=>counter.count('crab10',Number.NaN)).not.toThrow();}
+    expect(written).toBe(0);expect(emitted).toEqual([]);expect(state).toEqual({});
+    expect(faults).toHaveLength(2);expect(faults.every(fault=>fault.system==='achievement.counters'&&fault.verdict==='retry')).toBe(true);
+    counter.count('crab10',1);expect(state['crab10']).toBe(1);expect(written).toBe(1);expect(emitted).toEqual(['crab10:1']);
+    expect(()=>createAchievementCounters({...DRIFTWOOD_FEAT_COUNTERS,feats:[{id:'bad',count:Infinity}]},ports)).toThrow();
+  }finally{off();}
 });
 
 test('flag rows preserve old counters, callback order and malformed-row refusal',()=>{

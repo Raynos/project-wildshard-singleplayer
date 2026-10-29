@@ -1,4 +1,5 @@
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
+import { emitFault } from '@wildshard/engine/core/faults';
 import type { ShardContext } from '../plugin/context';
 import type { SimHost } from '@wildshard/engine/sim';
 import { parseWeatherProgram, parseWeatherReactions, WeatherWorldSchema, type WeatherProgram, type WeatherReactionRows } from '@wildshard/format/weatherProgram';
@@ -28,6 +29,12 @@ export class WeatherReactions {
   private readonly grid = new TreeGrid<{ x: number; z: number; r: number; top: number; index: number }>();
   private readonly listeners = new Map<string, ((event: WeatherReactionEvent) => void)[]>();
   private readonly events = new Map<string, Record<string, number>>();
+  private reported: Set<'clock' | 'event' | 'field'> | undefined;
+  private reject(kind: 'clock' | 'event' | 'field', message: string): void {
+    const reported = this.reported ??= new Set();
+    if (reported.has(kind)) return;
+    reported.add(kind); emitFault({system: 'weather.reactions', error: new Error(message), verdict: 'retry'});
+  }
   constructor(readonly weather: WeatherContinuation, readonly rows: WeatherReactionRows, private readonly program: ReturnProgram) {
     rows.points.forEach(([x, z, top], index) => { this.grid.add({ x, z, r: 0, top, index }); });
     for (const emit of rows.steps.flatMap(step => step.emit)) {
@@ -42,10 +49,13 @@ export class WeatherReactions {
   register(name: string): number { return this.weather.registers[name] ?? 0; }
   /** An event's last fields and its `age` (seconds since it was raised; 1e6 before the first), for presentation rows. */
   record(event: string): WeatherReactionEvent { const record = this.events.get(event); if (record === undefined) throw new Error(`Undeclared weather reaction: ${event}`); return record; }
-  /** Raise a declared event from outside the rows (a scripted bolt): its record and its subscribers, as a step would. */
+  /** Raise a declared event from outside the rows (a scripted bolt): its record and its subscribers, as a step would.
+   * Bad runtime events/fields report once and leave the complete record untouched. */
   raise(event: string, fields: Readonly<Record<string, number>>): void {
-    const record = this.events.get(event); if (record === undefined) throw new Error(`Undeclared weather reaction: ${event}`);
-    for (const [field, value] of Object.entries(fields)) { if (!Object.hasOwn(record, field) || field === 'age' || !Number.isFinite(value)) throw new Error(`Invalid weather reaction field: ${field}`); record[field] = value; }
+    const record = this.events.get(event); if (record === undefined) {this.reject('event', `Undeclared weather reaction: ${event}`); return;}
+    const entries = Object.entries(fields), invalid = entries.find(([field, value]) => !Object.hasOwn(record, field) || field === 'age' || !Number.isFinite(value));
+    if (invalid !== undefined) {this.reject('field', `Invalid weather reaction field: ${invalid[0]}`); return;}
+    for (const [field, value] of entries) record[field] = value;
     record['age'] = 0; for (const fn of (this.listeners.get(event)?.slice()??[])) fn(record);
   }
   private hudKey = '';
@@ -65,6 +75,7 @@ export class WeatherReactions {
   }
   /** One frame: the phase loop, then (at the rows' cadence) the actions and the steps in order. True on a decision tick. */
   update(dt: number): boolean {
+    if (!Number.isFinite(dt)) {this.reject('clock', 'Invalid weather reaction clock'); return false;}
     if (dt <= 0) return false;
     this.weather.update(dt); this.elapsed += dt;
     for (const record of this.events.values()) record['age'] = Math.min(1e6, (record['age'] ?? 0) + dt);
@@ -100,7 +111,7 @@ export class WeatherReactions {
     }
     for (const emit of row.emit) {
       if (output[emit.when] === undefined) continue;
-      const event = this.events.get(emit.event); if (event === undefined) throw new Error(`Undeclared weather reaction: ${emit.event}`);
+      const event = this.events.get(emit.event); if (event === undefined) {this.reject('event', `Undeclared weather reaction: ${emit.event}`); continue;}
       for (const [field, ref] of emit.fields) event[field] = this.read(ref, dt, output);
       event['age'] = 0; for (const fn of (this.listeners.get(emit.event)?.slice()??[])) fn(event);
     }

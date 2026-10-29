@@ -1,6 +1,7 @@
 import { afterEach, expect, test } from 'vitest';
 import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { Scope } from '../src/engine/app/scope';
+import {onFault, type Fault} from '../src/engine/core/faults';
 import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
 import { parseWeatherProgram, parseWeatherReactions } from '../src/format/weatherProgram';
 import { App } from '../src/engine/app/app';
@@ -88,7 +89,43 @@ test('event records keep their last fields and age; raise fires a declared event
   marshWeather.raise('flicker', { far: 40, towards: 1 });
   expect(heard).toEqual([40]); expect(marshWeather.record('flicker')['age']).toBe(0);
   marshWeather.update(.05); expect(marshWeather.record('flicker')['age']).toBeCloseTo(.05);
-  expect(() => { marshWeather.raise('flicker', { age: 3 }); }).toThrow(); expect(() => { marshWeather.raise('missing', {}); }).toThrow();
+  const before = {...marshWeather.record('flicker')}, faults: Fault[] = [], off = onFault(fault => {faults.push(fault);});
+  try {
+    for (let frame = 0; frame < 2; frame++) {
+      expect(() => {marshWeather.raise('flicker', {far: 999, age: 3});}).not.toThrow();
+      expect(() => {marshWeather.raise('missing', {});}).not.toThrow();
+    }
+    expect(marshWeather.record('flicker')).toEqual(before); expect(heard).toEqual([40]);
+    expect(faults).toHaveLength(2); expect(faults.every(fault => fault.verdict === 'retry')).toBe(true);
+    marshWeather.raise('flicker', {far: 41}); expect(heard).toEqual([40, 41]);
+  } finally {off();}
+});
+
+test('nonfinite frame clocks leave weather and reaction continuation untouched and report once', () => {
+  const reactions = install(); reactions.raise('flicker', {far: 3});
+  const before = reactions.snapshot(), faults: Fault[] = [], off = onFault(fault => {faults.push(fault);});
+  try {
+    for (const delta of [Number.NaN, Infinity]) expect(reactions.update(delta)).toBe(false);
+    expect(reactions.snapshot()).toEqual(before); expect(faults).toHaveLength(1);
+    expect(faults[0]).toMatchObject({system: 'weather.reactions', verdict: 'retry'});
+    reactions.update(.05); expect(reactions.record('flicker')['age']).toBeCloseTo(.05);
+  } finally {off();}
+});
+
+test('an event binding lost after admission skips only that emission and keeps later declared events running', () => {
+  const reactions = install(), faults: Fault[] = [], heard: number[] = [];
+  reactions.weather.force('rain', .2); reactions.weather.hold = true;
+  const step = reactions.rows.steps[0], emission = step?.emit[0];
+  if (step === undefined || emission === undefined) throw new Error('Missing admitted weather emission');
+  step.emit.unshift({...emission, event: 'missing'});
+  reactions.on('flicker', event => {heard.push(event['far'] ?? 0);});
+  const off = onFault(fault => {faults.push(fault);});
+  try {
+    expect(() => {reactions.update(.2); reactions.update(.2);}).not.toThrow();
+    expect(heard).toHaveLength(2); expect(heard.every(distance => distance >= 500 && distance <= 1200)).toBe(true);
+    expect(faults).toHaveLength(1); expect(faults[0]).toMatchObject({system: 'weather.reactions', verdict: 'retry'});
+    expect(() => reactions.record('missing')).toThrow('Undeclared');
+  } finally {off();}
 });
 
 test('hud rows name the phase, count it down and report only changes', () => {

@@ -11,6 +11,7 @@
  * Progress / earned state / the worn title live in src/game/Progress.ts.
  */
 import type { IconId } from '@wildshard/engine/ui/icons';
+import { emitFault } from '@wildshard/engine/core/faults';
 
 export interface AchievementDef {
   /** unique within the shard, persisted */
@@ -91,8 +92,10 @@ export class AchievementCounterBook {
     const facts = this.facts; this.facts = []; return facts;
   }
 }
-/** Match bounded authored outcomes and submit only newly reached stable identities. */
+/** Match bounded authored outcomes and submit only newly reached stable identities.
+ * Bad runtime counts/identities report once without writes; authored rows still refuse at binding. */
 export function createAchievementCounters(profile:AchievementCounterRows,ports:AchievementCounterPorts):AchievementCounters {
+  let reportedCount = false, reportedIdentity = false;
   if(profile.feats.length>256||new Set(profile.feats.map(row=>row.id)).size!==profile.feats.length||profile.prefix.length>96
     ||profile.feats.some(row=>!(/^[a-z][a-z0-9-]{0,95}$/u.test(row.id))||['constructor','prototype','__proto__'].includes(row.id)||!Number.isSafeInteger(row.count)||row.count<1||row.count>4096))throw new Error('Invalid achievement counter rows');
   const flagRows=profile.flags??[];
@@ -105,7 +108,10 @@ export function createAchievementCounters(profile:AchievementCounterRows,ports:A
   const advance=(row:typeof rows[number],state:Record<string,number>,total?:number):void=>{
     const before=state[row.feat.id]??0,requested=total??(before+1);
     const after=Math.min(row.feat.count,Math.max(before,profile.floorTotals?Math.floor(requested):requested));
-    if(profile.validateTotals&&(!Number.isFinite(after)||after<0))throw new RangeError('Invalid achievement count');
+    if(profile.validateTotals&&(!Number.isFinite(after)||after<0)){
+      if(!reportedCount){reportedCount=true;emitFault({system:'achievement.counters',error:new RangeError('Invalid achievement count'),verdict:'retry'});}
+      return;
+    }
     if(before===after)return;state[row.feat.id]=after;
     if(profile.write==='each'){
       for(let n=before;n<after;n++){state[row.feat.id]=n+1;ports.write(state);const entity=row.entities[n];if(entity!==undefined)ports.emit(row.fact,entity);}
@@ -116,7 +122,10 @@ export function createAchievementCounters(profile:AchievementCounterRows,ports:A
     for(const row of rows)if(kind==='kill'?row.feat.kind===name&&(row.feat.variant===undefined||row.feat.variant===variant):row.feat.event===name)advance(row,state,total);
   };
   return {kill:(kind,variant)=>{outcome('kill',kind,variant);},event:(event,total)=>{outcome('event',event,undefined,total);},
-    count:(id,total)=>{const row=rows.find(entry=>entry.feat.id===id);if(row===undefined)throw new Error(`Unknown achievement ${id}`);advance(row,ports.read(),total);},
+    count:(id,total)=>{const row=rows.find(entry=>entry.feat.id===id);if(row===undefined){
+      if(!reportedIdentity){reportedIdentity=true;emitFault({system:'achievement.counters',error:new Error(`Unknown achievement ${id}`),verdict:'retry'});}
+      return;
+    }advance(row,ports.read(),total);},
     syncFlags:(flags,submit)=>{
       for(const row of flagRows){
         const value=row.value;
