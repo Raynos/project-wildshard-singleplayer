@@ -117,6 +117,7 @@ import { installSavesSettings } from '../savesSettings';
 import type { LiveGridSession } from '../grid/liveSession';
 import { pickInteractable } from '@wildshard/engine/world/interact/Interactables';
 import { terrainDatum } from '@wildshard/engine/world/terrainHeight';
+import { createViewProgramKeeper } from '@wildshard/engine/render/programRetention';
 
 /** T10: the grid page's background waits for this much drawn play after control at spawn (ms)… */
 const GRID_SPAWN_SETTLE_MS = 3000;
@@ -142,6 +143,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   const keepAlive = new KeepAlive();
   let gridBackgroundReady = false;
   let gridControlReady = false;
+  let viewPrograms: ReturnType<typeof createViewProgramKeeper> | undefined;
   await macrotask();
   // SF21a / the grid client: EXPERIMENTAL Wildshard's 3 × 3 around this home cell (deck, soft walls, neighbours' far proxies)
   const grid = await step('assembly', async p => {
@@ -158,6 +160,10 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
     prepareTile: (tile) => game.warmSceneRoots([tile.group], () => !tile.scope.disposed),
     prepareView: (root, current) => game.warmSceneRoots([root], () => !game.levelScope.disposed && current()),
     prepareViews: (roots, current) => game.warmSceneRoots(roots, () => !game.levelScope.disposed && current()),
+    keepViewPrograms: (view) => {
+      try { (viewPrograms ??= createViewProgramKeeper(game.renderer, game.levelScope, game.camera, game.rootScene))(view); }
+      catch (error: unknown) { console.warn('[grid] view programs not kept', error); }
+    },
     prepareSkyLayers: () => game.warmSkyLayers(),
     ...(ctx.session.residency === undefined ? {} : { residency: ctx.session.residency }),
     onFixed: (fn) => { game.onFixed('post', fn, 'game.grid.session'); },

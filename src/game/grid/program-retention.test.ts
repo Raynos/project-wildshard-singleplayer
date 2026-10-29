@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import type { Material } from 'three';
-import { createProgramKeeper, pinProgramReferences, RETAINED_PROGRAM_LIMIT, type ProgramReference, type ProgramRenderer } from '@wildshard/engine/render/programRetention';
+import { BoxGeometry, Group, Mesh, MeshBasicMaterial, type Material } from 'three';
+import { createProgramKeeper, createViewProgramKeeper, pinProgramReferences, RETAINED_PROGRAM_LIMIT, type ProgramReference, type ProgramRenderer } from '@wildshard/engine/render/programRetention';
 import { Scope } from '@wildshard/engine/app/scope';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { selectedBootCell } from './bootProgramSelection';
@@ -73,4 +73,26 @@ test('past its limit the oldest cell releases first; a renderer over the limit k
   programs.push({ cacheKey: 'd', usedTimes: 1 }, { cacheKey: 'e', usedTimes: 1 });
   expect(keeper.keep('nine')).toBe(0); expect(keeper.size).toBe(1);
   owner.dispose();
+});
+
+test('D12: a view keeper holds a retired view\'s programs for the page, once each, up to its limit', () => {
+  const renderer = keeperRenderer([]), owner = new Scope('page'), geometry = new BoxGeometry();
+  const view = (...programs: ProgramReference[]): { root: Group; material: MeshBasicMaterial } => {
+    const material = new MeshBasicMaterial(), root = new Group();
+    root.add(new Mesh(geometry, material));
+    for (const program of programs) renderer.properties.get(material).programs.set(program.cacheKey, program); // as three's compile
+    return { root, material };
+  };
+  const a = { cacheKey: 'near-painterly', usedTimes: 1 }, b = { cacheKey: 'far-toon', usedTimes: 1 }, c = { cacheKey: 'far-pbr', usedTimes: 1 };
+  const keep = createViewProgramKeeper(renderer, owner, camera, scene, 2), first = view(a);
+  expect(keep(first.root)).toBe(1); expect(a.usedTimes).toBe(2);
+  first.material.dispose(); // the near view retires: its program stays linked
+  expect(a.usedTimes).toBe(1);
+  const again = view(a); a.usedTimes += 1; // it returns and three reuses the cached program
+  expect(keep(again.root)).toBe(1); expect(a.usedTimes).toBe(2); // kept once, not twice
+  expect(keep(view(b).root)).toBe(2); expect(b.usedTimes).toBe(2);
+  expect(keep(view(c).root)).toBe(2); expect(c.usedTimes).toBe(1); // past the limit: not kept
+  owner.dispose(); expect(a.usedTimes).toBe(1); expect(b.usedTimes).toBe(1);
+  expect(keep(view(c).root)).toBe(0);
+  geometry.dispose();
 });

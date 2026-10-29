@@ -164,6 +164,8 @@ export interface GridSessionHost {
   readonly renderer?: Renderer;
   /** Prepare a streamed view while hidden; its current fence cancels work before retirement. */
   readonly prepareView?: (root: Object3D, current: () => boolean) => Promise<void>;
+  /** D12: keep a prepared far / near view's programs for the page, so a view that retires and returns links nothing again. */
+  readonly keepViewPrograms?: (view: Object3D) => void;
   /** Refresh stable page-owned views as one complete material/object inventory. */
   readonly prepareViews?: (roots: readonly Object3D[], current: () => boolean) => Promise<void>;
   /** Prepare every attached sky layer's domes under the page's lights now (`Game.warmSkyLayers`). */
@@ -716,6 +718,7 @@ export class GridSession {
           await host.prepareView?.(holder, () => !host.scope.disposed && haze.parent === holder);
         }
         await host.prepareView?.(root, () => !host.scope.disposed && view.mesh.parent === root);
+        if (view.mesh.parent === root) host.keepViewPrograms?.(view.mesh);
       } }),
       root: (id) => { const root = roots.get(id); if (root === undefined) throw new Error(`No grid cell root ${id}`); return root; },
       load: async (id) => {
@@ -747,7 +750,10 @@ export class GridSession {
       load: (id) => loadNear(this.assembly.cell(id).slug),
       cover: (id, covered) => { const drawn = drawnFar.get(id); if (drawn !== undefined) drawn.view.mesh.visible = !covered && drawn.excluded.size < 16; },
       mask: (id) => drawnFar.get(id)?.excluded ?? new Set<number>(),
-      ...(host.prepareView === undefined ? {} : { prepare: (view: FarProxyView, current: () => boolean) => host.prepareView?.(view.mesh, current) ?? Promise.resolve() }) });
+      ...(host.prepareView === undefined ? {} : { prepare: async (view: FarProxyView, current: () => boolean) => {
+        await host.prepareView?.(view.mesh, current);
+        if (current()) host.keepViewPrograms?.(view.mesh);
+      } }) });
     this.near = near;
     host.scope.onDispose(() => { near.dispose(); });
     const farPorts = { ...framedPorts, upload: (tile: RingTile, data: FarPrepared) => {

@@ -1,4 +1,4 @@
-import { BufferGeometry, Float32BufferAttribute, Mesh, MeshBasicMaterial, type Camera, type Scene } from 'three';
+import { BufferGeometry, Float32BufferAttribute, Mesh, MeshBasicMaterial, type Camera, type Object3D, type Scene } from 'three';
 import type { Scope } from '../app/scope';
 import type { Renderer } from './renderer';
 
@@ -96,5 +96,43 @@ export function createProgramKeeper(renderer: ProgramRenderer, owner: Scope, cam
       return next.held.size;
     },
     get size() { return distinct(); },
+  };
+}
+
+/** The most distinct programs a view keeper holds (`createViewProgramKeeper`). */
+export const VIEW_PROGRAM_LIMIT = 48;
+
+/** The programs three compiled for `material` (its ordinary program map), none when it has not compiled. */
+function materialPrograms(renderer: ProgramRenderer, material: object): ProgramReference[] {
+  const properties: unknown = Reflect.get(renderer, 'properties');
+  const get: unknown = typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'get') : undefined;
+  const data: unknown = typeof get === 'function' ? Reflect.apply(get, properties, [material]) : undefined;
+  const programs: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'programs') : undefined;
+  return programMap(programs) ? [...programs.values()] : [];
+}
+
+/**
+ * D12: keep the programs a streamed view's materials linked for `owner`'s life, so a view that retires and comes back (a
+ * near placeholder the eye leaves and nears again, a far proxy refined away and restored) reuses them rather than linking
+ * again: the Simulator spawn relinked one near placeholder's program 3 s after retiring it, and on WebKit every link in
+ * play costs a 33-45 ms frame. One page-owned holder; a program kept once stays kept; past `limit` distinct programs a
+ * view's new ones are not kept. Returns the keep, which answers the programs kept so far (0 once `owner` left).
+ */
+export function createViewProgramKeeper(renderer: ProgramRenderer, owner: Scope, camera: Camera, scene: Scene, limit: number = VIEW_PROGRAM_LIMIT): (root: Object3D) => number {
+  let holder: ReturnType<typeof programHolder> | null = null;
+  return root => {
+    if (owner.disposed || owner.disposing) return 0;
+    const programs = new Map<string, ProgramReference>();
+    root.traverse(object => {
+      const material: unknown = Reflect.get(object, 'material');
+      const list: readonly unknown[] = Array.isArray(material) ? material : [material];
+      for (const one of list) {
+        if (typeof one === 'object' && one !== null && Reflect.get(one, 'isMaterial') === true) for (const program of materialPrograms(renderer, one)) programs.set(program.cacheKey, program);
+      }
+    });
+    holder ??= programHolder(renderer, owner, camera, scene);
+    const held = holder.held, fresh = [...programs.keys()].filter(key => !held.has(key)).length;
+    if (fresh === 0 || held.size + fresh > limit) return held.size;
+    return pinProgramReferences(held, [...programs.values()]);
   };
 }
