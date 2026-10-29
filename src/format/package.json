@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./spawnManifest": "./spawnManifest.ts",
     "./colourLut": "./colourLut.ts",
     "./entryReads": "./entryReads.ts",
     "./admissionControl": "./admissionControl.ts",

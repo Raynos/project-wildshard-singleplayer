@@ -1018,19 +1018,16 @@ size mismatch, unsafe/duplicate URLs, overlaps and retired entries refuse.
 Changing observers cannot retarget it. The selected hashed inventory retains
 its size/SHA checks and adds no model, image, audio or physics prefetches.
 
-Expected progress uses file-content sizes before HTTP compression, including
-content supplied by a cache. The network line uses observed transfers or
-explicitly labelled encoded-body hints. An unknown transfer size remains unknown;
-a decoded JS/CSS size never fills a missing wire receipt. Product binary sizes
-still refer to their original stored file encoding; HTTP compression is a
-separate transport layer.
-
-`observeDownloadAccounting(accounting)` adds a disposable page-activity observer
-without replacing the active boot attempt. Declarations, verified cache reads and
-worker receipts reach both; each observer keeps its own start time and receipt
-identity. Scoped `Loading` panels use this port, label their byte line as page
-activity during that load (including background downloads), and report their
-own running step instead of unrelated page-global `bootWaits()`.
+MF4's `format/spawnManifest` is the ordered build-owned URL/hash/size list.
+`writeSpawnManifests` writes its content-named JSON from the same required,
+active entry selection as read-ahead. Product, code and public URLs count once.
+`game/boot/spawnDownload` starts it without engine, renderer or worker imports.
+`startSpawnDownload` selects the shard/tier/flow; `paintSpawnDownload` paints
+only the existing card's numbers/text. `ready` resolves only after every file
+is present in the worker cache or read at its exact size. Warm presence needs
+no body read or checksum. Uncontrolled first installs fill that same cache.
+There is no timer, forced finish or receipt-derived completion. Later streams
+are outside this immutable list. Loading adopts its snapshot and lifetime.
 
 `Loading.setPrefetchSource(read)` reports the separate on-disk prefetch set,
 its known files/bytes, products checked and quota/failure state. These facts

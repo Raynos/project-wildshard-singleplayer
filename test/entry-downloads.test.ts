@@ -9,7 +9,7 @@ import {createHash} from 'node:crypto';
 import {emptyShardfile} from '@wildshard/sdk/author';
 import {outputSectionPayloads} from '../src/format/outputFields';
 import {writeEntryBootstrap} from '../scripts/app-build/entryDownloads';
-import {entryTotals} from '../scripts/app-build/entryTotals';
+import {entryTotals, writeSpawnManifests} from '../scripts/app-build/entryTotals';
 import {gridEntryDownloads} from '../scripts/app-build/gridEntryDownloads';
 import {startGridStripDownload, gridStripDownloadRows} from '../src/game/grid/entryDownloads';
 
@@ -43,6 +43,12 @@ test('plain build schedules exact tier/phase packs and rejects changed section b
       products: {'/shardfiles/example/': [Buffer.byteLength(indexBytes), 1_000_000, 900_000, 800_000]},
       extras: {}, code: {entries: {}}}, {}, root);
     expect(totals.client['example']).toEqual([expected, expected]);
+    const manifests = writeSpawnManifests(out, {common: [], client: [], grid: [], selection: {}, optional: {files: [], groups: {}},
+      products: {'/shardfiles/example/': [Buffer.byteLength(indexBytes), 1_000_000]}, extras: {}, code: {entries: {}}}, {}, root);
+    const spawn = manifests.client['example']; if (spawn === undefined) throw new Error('Missing spawn manifests');
+    expect(spawn.phone.totalBytes).toBe(expected); expect(spawn.desktop.totalBytes).toBe(expected);
+    const phone = readFileSync(resolve(out, spawn.phone.url.slice(1)), 'utf8');
+    expect(phone).toContain(hashes[0]); expect(phone).not.toContain(hashes[1]); expect(phone).not.toContain(hashes[2]);
     writeFileSync(resolve(out, 'index.html'), '<head><script type="application/json" id="boot-module-files">{"common":[]}</script></head>');
     writeEntryBootstrap(out, root);
     const html = readFileSync(resolve(out, 'index.html'), 'utf8'), match = /id="boot-module-files">([^<]+)</u.exec(html);
