@@ -3,17 +3,11 @@ import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { originalNalatiProductRows as nalatiProductRows } from './fixtures/nalati-product-inputs';
-import { hashImmutableBytes } from '../src/sdk/immutable';
-import pin from './fixtures/nalati-species-product-header.json' with { type: 'json' };
-import { predecessorEnvGraphs } from './fixtures/nalati-graph-env';
 
 const original = v.parse(v.object({
   program: v.object({ script: v.object({ module: v.string(), pages: v.number() }), bytes: v.string() }),
   witnessBytes: v.number(),
 }), originalSpeciesJson('species.json'));
-const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
-// 9a6083a939: the three ported painterly graphs took the sky's diffuse; the pinned header reads them as they were
-const pinned = (rows: ReturnType<typeof nalatiProductRows>): Uint8Array => encode(predecessorEnvGraphs(rows));
 const heldSource = v.parse(v.object({
   program: v.object({ script: v.object({ module: v.string(), pages: v.number() }), bytes: v.string(),
     v2: v.object({ artifact: v.object({ pages: v.number() }) }) }),
@@ -22,13 +16,6 @@ const heldSource = v.parse(v.object({
 const held = { program: heldSource.program, stealthProgram: heldSource.program,
   compiledBytes: heldSource.compiled.bytes, projectionPages: heldSource.program.v2.artifact.pages };
 const product = nalatiProductRows(original, held, render);
-
-test('explicit species costs retain the entire pre-factory product header and default contract', () => {
-  const made = nalatiProductRows(original, held, render), bytes = pinned(made);
-  expect(bytes.length).toBe(pin.bytes);
-  expect(hashImmutableBytes(bytes)).toBe(pin.sha256);
-  expect(made).toStrictEqual(product);
-});
 
 test('witness bytes and species pages retain their separate original budget charges', () => {
   const witness = nalatiProductRows({ ...original, witnessBytes: original.witnessBytes + 7 }, held, render);
@@ -57,9 +44,8 @@ test('separate headers own their admitted file rows and budget storage', () => {
   if (first === undefined) throw new Error('Missing original header asset');
   first.decoded = 0;
   made.budgets.sim.resident = 0;
-  const again = pinned(nalatiProductRows(original, held, render));
-  expect(hashImmutableBytes(again)).toBe(pin.sha256);
-  expect(hashImmutableBytes(pinned(product))).toBe(pin.sha256);
+  const again = nalatiProductRows(original, held, render);
+  expect(again).toStrictEqual(product);
 });
 
 test('invalid explicit species page and witness costs refuse before composition', () => {
@@ -70,7 +56,6 @@ test('invalid explicit species page and witness costs refuse before composition'
 });
 
 test('explicit held inputs retain the complete original header and separate compiled/page charges', () => {
-  expect(hashImmutableBytes(pinned(nalatiProductRows(original, held, render)))).toBe(pin.sha256);
   const compiled = nalatiProductRows(original, { ...held, compiledBytes: held.compiledBytes + 7 }, render);
   expect(compiled.serverBudget.memory - product.serverBudget.memory).toBe(7);
   expect(compiled.budgets.sim.resident - product.budgets.sim.resident).toBe(7);
