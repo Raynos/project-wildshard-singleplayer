@@ -823,9 +823,14 @@ spawn publisher use the same exact absolute URL keys. Content-named and
 versioned responses are trusted without a checksum on reads; this cache owns
 no page-side LRU, leases, accounting receipts or worker command queue.
 
-The worker serves the exact final build document from its compiled literal,
-without a storage or network await on navigation. Other shell files are
-precached; immutable code and content use cache-first reads. Current and
+The worker keeps the exact final build document as its offline navigation
+fallback, without a storage or network await. When native static routing is
+available, bare same-origin title navigations race that fallback with the
+network; installed code, styles, title images and fonts read their existing
+cache directly, without starting or dispatching the worker. Query-bearing
+reads and explicit content retries retain the fetch handler. Unsupported
+browsers retain the ordinary worker routes. Other shell files are precached;
+immutable code and content use cache-first reads. Current and
 previous build code remain available. `version.json` stays on the network.
 `BUILD` and `VERSION` reply with identity only; old byte counters are not a
 progress API. Installation never claims a running document. Explicit adoption

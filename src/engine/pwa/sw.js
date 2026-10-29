@@ -66,7 +66,18 @@ async function importPrevious(assets, books) {
 }
 
 workerScope.listen(self, 'install', event => {
+  // Native cache routes avoid waking the worker for already installed title code.
+  // The mutable document races its exact offline shell; neither path waits for the other.
+  const pattern = pathname => ({ protocol: self.location.protocol.slice(0, -1), hostname: self.location.hostname,
+    port: self.location.port, pathname, search: '' });
+  const routes = typeof event.addRoutes === 'function' ? event.addRoutes([
+    ...['/', '/index.html'].map(pathname => ({ condition: { urlPattern: pattern(pathname), requestMode: 'navigate', requestMethod: 'GET' }, source: 'race-network-and-fetch-handler' })),
+    ...['script', 'style'].map(requestDestination => ({ condition: { urlPattern: pattern('/assets/*'), requestDestination, requestMethod: 'GET' }, source: { cacheName: ASSETS } })),
+    { condition: { urlPattern: pattern('/assets/title/*'), requestDestination: 'image', requestMethod: 'GET' }, source: { cacheName: ASSETS } },
+    { condition: { urlPattern: pattern('/fonts/*'), requestDestination: 'font', requestMethod: 'GET' }, source: { cacheName: SHELL } },
+  ]) : undefined;
   event.waitUntil((async () => {
+    await routes;
     const [assets, shell, books] = await Promise.all([store(ASSETS), store(SHELL), caches.open(BOOKS)]);
     await importPrevious(assets, books);
     const namedShell = SHELL_FILES.filter(path => immutable(new URL(abs(path))));

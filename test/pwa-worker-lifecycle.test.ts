@@ -12,6 +12,7 @@ const shell = ['/manifest.webmanifest'];
 const document = '<!doctype html><html><body>worker shell π</body></html>';
 interface WorkerEvent {
   request?: Request;
+  addRoutes?: (rules: unknown) => Promise<void>;
   data?: { type: string };
   ports?: { postMessage: (value: unknown) => void }[];
   source?: { postMessage: (value: unknown) => void };
@@ -28,7 +29,7 @@ class StoredCache {
   keys(): Promise<Request[]> { return Promise.resolve([...this.entries.keys()].map(key => new Request(key))); }
   delete(input: Request | string): Promise<boolean> { return Promise.resolve(this.entries.delete(this.key(input))); }
 }
-function fixture(read?: (request: Request) => Promise<Response>) {
+function fixture(read?: (request: Request) => Promise<Response>, nativeRoutes = false) {
   const books = new Map<string, StoredCache>();
   const open = (name: string): Promise<StoredCache> => {
     let cache = books.get(name);
@@ -41,6 +42,7 @@ function fixture(read?: (request: Request) => Promise<Response>) {
   const load = (build: string, files: string[], shellFiles = shell) => {
     const listeners = new Map<string, ((event: WorkerEvent) => void)[]>();
     const claim = vi.fn(() => Promise.resolve()), skipWaiting = vi.fn(() => Promise.resolve());
+    const routes = vi.fn<(rules: unknown) => Promise<void>>(() => Promise.resolve());
     const self = { location: new URL(origin), registration: { scope: `${origin}/` }, clients: { claim }, skipWaiting,
       addEventListener: (kind: string, listener: (event: WorkerEvent) => void) => { listeners.set(kind, [...listeners.get(kind) ?? [], listener]); } };
     const owner = readFileSync('src/engine/app/workerScope.js', 'utf8').replaceAll(/^export /gmu, '');
@@ -51,11 +53,11 @@ function fixture(read?: (request: Request) => Promise<Response>) {
     runInNewContext(`${owner}\n${source}`, { self, caches, fetch, URL, Request, Response, Set, JSON, encodeURIComponent });
     const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'request' | 'data' | 'ports' | 'source'> = {}): Promise<Response | undefined> => {
       const work: Promise<unknown>[] = []; let response: Response | undefined;
-      for (const listener of listeners.get(kind) ?? []) listener({ ...payload,
+      for (const listener of listeners.get(kind) ?? []) listener({ ...payload, ...(nativeRoutes && kind === 'install' ? {addRoutes: routes} : {}),
         waitUntil: promise => { work.push(promise); }, respondWith: promise => { work.push(Promise.resolve(promise).then(value => { response = value; return value; })); } });
       await Promise.all(work); return response;
     };
-    return { dispatch, claim, skipWaiting };
+    return { dispatch, claim, skipWaiting, routes };
   };
   return { caches, open, books, fetch, load };
 }
@@ -73,7 +75,27 @@ test('install precaches its complete shell and hashed files before publishing a 
   expect(f.fetch).toHaveBeenCalledTimes(3);
 });
 
-test('navigation serves the exact built document without any storage or network operation', async () => {
+test('native title routes use exact same-origin bare GETs and the existing cache owners', async () => {
+  const f = fixture(undefined, true), worker = f.load('A', [shared]);
+  await worker.dispatch('install'); await worker.dispatch('activate');
+  const pattern = (pathname: string): object => ({protocol: 'https', hostname: 'worker.test', port: '', pathname, search: ''});
+  expect(worker.routes).toHaveBeenCalledExactlyOnceWith([
+    ...['/', '/index.html'].map(pathname => ({condition: {urlPattern: pattern(pathname), requestMode: 'navigate', requestMethod: 'GET'}, source: 'race-network-and-fetch-handler'})),
+    ...['script', 'style'].map(requestDestination => ({condition: {urlPattern: pattern('/assets/*'), requestDestination, requestMethod: 'GET'}, source: {cacheName: ASSET_CACHE_NAME}})),
+    {condition: {urlPattern: pattern('/assets/title/*'), requestDestination: 'image', requestMethod: 'GET'}, source: {cacheName: ASSET_CACHE_NAME}},
+    {condition: {urlPattern: pattern('/fonts/*'), requestDestination: 'font', requestMethod: 'GET'}, source: {cacheName: 'ws-shell-v3-A'}},
+  ]);
+  expect(worker.claim).not.toHaveBeenCalled(); expect(worker.skipWaiting).not.toHaveBeenCalled();
+});
+
+test('refused native routes cannot publish an installed generation', async () => {
+  const f = fixture(undefined, true), worker = f.load('A', [shared]), refusal = new TypeError('Native route refused');
+  worker.routes.mockRejectedValueOnce(refusal);
+  await expect(worker.dispatch('install')).rejects.toBe(refusal);
+  expect(f.books.size).toBe(0); expect(f.fetch).not.toHaveBeenCalled();
+});
+
+test('navigation fallback serves the exact document without storage or network', async () => {
   const f = fixture(), open = vi.spyOn(f.caches, 'open').mockRejectedValue(new DOMException('denied', 'SecurityError'));
   const worker = f.load('A', []);
   for (const path of ['/', '/index.html', '/?chunk=fixture']) {
