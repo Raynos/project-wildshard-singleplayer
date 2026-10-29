@@ -4,7 +4,7 @@
 
 Jake, 2026-10-28 ~18:05 Cancun, loading grill: *"Plan it as a draft park outside of shard platform."* (G866, in
 [shard-platform/decisions.md](shard-platform/decisions.md)). Read at HEAD ef860948ef. Sources: the phone-speed recording
-([phone-loading 10-28](shard-platform/phone-loading-2026-10-28-mini-plan.md),
+([phone-loading 10-28](../../project/archive/2026-10-29-phone-loading.md),
 [numbers](../../art/loading/round-1-phone-speed/numbers.md)), its raw `wildshard.prepare` marks, and a Pine road-entry
 run at Chromium CPU 4× (1618c6730f, 10-28).
 

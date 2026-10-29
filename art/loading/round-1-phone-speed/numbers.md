@@ -1,7 +1,7 @@
 # Phone-speed loading, round 1 (live `a6701db71-mvsi9z8w`, 2026-10-28)
 
 Golden flow: title → INFINITE WILDSHARD (Developer on) → control (`ws:control-ready`). Plan:
-[phone-loading-2026-10-28](../../../docs/plans/shard-platform/phone-loading-2026-10-28-mini-plan.md).
+[phone-loading-2026-10-28](../../../project/archive/2026-10-29-phone-loading.md).
 Chromium as iPhone 16 Pro (402×874, DPR 3, phone tier), muted, through `scripts/browser-lane.sh`; CDP throttles both the
 page and the service worker. WebKit check: iOS Simulator Safari (iPhone 17 Pro) through `scripts/sim-lane.sh`, Mac speed.
 
