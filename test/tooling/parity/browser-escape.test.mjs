@@ -14,6 +14,7 @@ import {createServer} from 'node:net';
 import {once} from 'node:events';
 import {nativeSocketTemporary} from '../../fixtures/native-socket-temp.mjs';
 import {drainNativeBrowser} from '../../fixtures/native-browser-drain.mjs';
+import {measureNativeVersion, nativeStorageState} from '../../fixtures/native-version-probe.mjs';
 
 /** @param {number | undefined} pid */
 function stopFixturePid(pid) {
@@ -23,12 +24,17 @@ function stopFixturePid(pid) {
 }
 
 test('Escape sends only its own trusted down and up', () => {
-  const args = ['--experimental-transform-types', 'test/fixtures/native-browser-escape.ts'];
+  const args = ['--experimental-transform-types', 'test/fixtures/native-browser-escape.ts',
+    ...(process.platform === 'linux' ? ['--cold-version-probe'] : [])];
   // The shared Mac takes its existing lease. Each isolated Linux CI runner
   // owns one inert native-input browser; no game or external page is loaded.
   const command = process.platform === 'darwin' ? 'scripts/browser-lane.sh' : process.execPath;
   const output = execFileSync(command, process.platform === 'darwin' ? ['--max', '2', process.execPath, ...args] : args,
     {encoding: 'utf8', timeout: 25_000});
+  // The sole requested Linux experiment is retained on success as well as in
+  // a failing child's captured stdout. It changes no pass/fail input oracle.
+  for (const line of output.split('\n')) if (line.startsWith('Native cold version probe:') || line.startsWith('Native profile storage:')
+    || process.platform === 'linux' && line.startsWith('{"cleanup":"complete"')) console.info(line);
   expect(output).toContain('original trusted Escape pair preserved');
   const raw = output.split('\n').find(line => line.startsWith('{"cleanup":"complete"'));
   if (raw === undefined) throw new Error('Missing native cleanup completion');
@@ -40,6 +46,45 @@ test('Escape sends only its own trusted down and up', () => {
   expect(existsSync(cleanup.profile)).toBe(false);
   expect(existsSync(resolve(cleanup.socketTemp, '..'))).toBe(false);
   expect(output.indexOf(raw)).toBeLessThan(output.indexOf('original trusted Escape pair preserved'));
+});
+
+test('the version discriminator measures one native invocation and actual filesystem identities', async () => {
+  const root = mkdtempSync(resolve('tmp/native-version-control-'));
+  const profile = resolve(root, 'profile'), runnerTmp = resolve(root, 'runner-tmp');
+  mkdirSync(profile); mkdirSync(runnerTmp);
+  try {
+    // This exercises the measurement with Node's real binary, not a second
+    // Chrome invocation that could pre-warm the Linux experiment.
+    const result = await measureNativeVersion(process.execPath);
+    expect(result).toMatchObject({executable: process.execPath, code: 0, signal: null, timedOut: false, error: null, cleanupError: null, deadlineMs: 10_000});
+    expect(result.stdout.trim()).toBe(process.version);
+    expect(result.versionLineAtMs).toBeGreaterThan(0);
+    expect(result.elapsedMs).toBeGreaterThan(0);
+    const storage = nativeStorageState(profile, runnerTmp);
+    expect(storage.profile.path).toBe(profile);
+    expect(storage.runnerTmp?.path).toBe(runnerTmp);
+    expect(storage.profile.error).toBeNull();
+    expect(storage.profile.device).toBe(storage.runnerTmp?.device);
+    expect(storage.profileAndRunnerSameDevice).toBe(true);
+    expect(storage.profile.filesystem).toMatch(/^0x[0-9a-f]+$/u);
+    expect(nativeStorageState(profile, undefined).profileAndRunnerSameDevice).toBeNull();
+    expect(existsSync(profile)).toBe(true); // Measurement never relocates/removes the profile.
+  } finally {rmSync(root, {recursive: true, force: true});}
+});
+
+test('a stalled version probe retains its bounded measurement and drains its own process before refusing', async () => {
+  const root = mkdtempSync(resolve('tmp/native-version-deadline-'));
+  try {
+    const binary = resolve(root, 'no-version.mjs');
+    writeFileSync(binary, `#!${process.execPath}\nconsole.error('original version deadline sentinel');setInterval(()=>{},1000);`, {mode: 0o700});
+    const result = await measureNativeVersion(binary);
+    expect(result).toMatchObject({code: null, signal: 'SIGKILL', timedOut: true, error: null, cleanupError: null,
+      firstStdoutAtMs: null, versionLineAtMs: null, deadlineMs: 10_000});
+    expect(result.stderr).toContain('original version deadline sentinel');
+    expect(result.stdout).toBe('');
+    expect(result.elapsedMs).toBeGreaterThan(0);
+    expect(result.cleanupMs).toBeGreaterThanOrEqual(0);
+  } finally {rmSync(root, {recursive: true, force: true});}
 });
 
 test('native startup refusal retains its signal and bounded stderr, never claims trusted input, and cleans its profile', () => {

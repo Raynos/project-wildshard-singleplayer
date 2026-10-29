@@ -12,6 +12,7 @@ import {chromium} from 'playwright';
 import {pressEscape} from '../../scripts/parity/browser-escape.mjs';
 import {nativeSocketTemporary} from './native-socket-temp.mjs';
 import {drainNativeBrowser} from './native-browser-drain.mjs';
+import {measureNativeVersion, nativeFilesystem, nativeStorageState} from './native-version-probe.mjs';
 
 // CI declares its supported system Chrome. Use it before an optional cached
 // Playwright binary; explicit caller selection still wins, with no retry.
@@ -19,10 +20,20 @@ const candidates = [process.env['CHROME_PATH'], process.env['CHROME_BIN'],
   ...(process.platform === 'linux' ? ['/usr/bin/google-chrome', '/usr/bin/chromium'] : []), chromium.executablePath()];
 const executable = candidates.find((file): file is string => file !== undefined && existsSync(file));
 if (executable === undefined) throw new Error('No installed Chromium for the original trusted-input control');
+const coldProbe = process.argv.includes('--cold-version-probe') ? await measureNativeVersion(executable) : undefined;
+if (coldProbe !== undefined) {
+  console.log(`Native cold version probe: ${JSON.stringify({protocol: 'version-first/no-cache-purge', version: coldProbe,
+    profileParent: nativeFilesystem(resolve('tmp')), runnerTmp: process.env['RUNNER_TEMP'] === undefined ? null : nativeFilesystem(process.env['RUNNER_TEMP']),
+    systemTmp: nativeFilesystem('/tmp'), profileAllocated: false})}`);
+  if (coldProbe.code !== 0 || coldProbe.timedOut || coldProbe.cleanupError !== null)
+    throw new Error('Cold native --version probe refused; original browser was not started');
+}
 const directory = await mkdtemp(resolve('tmp/escape-control-'));
 const socketTemp = await nativeSocketTemporary(directory).catch(async (error: unknown) => {
   await rm(directory, {recursive: true, force: true}); throw error;
 });
+if (coldProbe !== undefined) console.log(`Native profile storage: ${JSON.stringify({headlessStartup: 'post-version/potentially-cache-warmed',
+  storage: nativeStorageState(directory, process.env['RUNNER_TEMP'])})}`);
 // Observe only owned native files/kernel counters, never the inherited
 // environment or command lines. In particular, DBus warnings are not a cause.
 const boundedRead = (file: string, bytes: number): string => {
@@ -43,6 +54,7 @@ const child = spawn(executable, ['--headless=new', '--remote-debugging-port=0', 
 {detached: true, stdio: ['ignore', 'ignore', 'pipe'], env: {...process.env, TMPDIR: socketTemp.path}});
 const initialPressure = cpuPressure(), initialCpu = cgroupCpu();
 let spawnedAt: number | null = null, firstStderrAt: number | null = null, lastStderrAt: number | null = null;
+let endpointAtMs: number | null = null;
 child.once('spawn', () => {spawnedAt = performance.now() - startedAt;});
 const nativeState = (): object => {
   const pid = child.pid;
@@ -81,7 +93,7 @@ try {
       const incoming = output + chunk.toString();
       output = incoming.slice(-16_384);
       const address = /DevTools listening on (ws:\/\/[^\s]+)/u.exec(incoming)?.[1];
-      if (address !== undefined && performance.now() - startedAt < 10_000) {clearTimeout(timer); done(address);}
+      if (address !== undefined && lastStderrAt < 10_000) {endpointAtMs = lastStderrAt; clearTimeout(timer); done(address);}
     });
   });
   const ws = new WebSocket(endpoint); socket = ws;
@@ -125,5 +137,5 @@ try {
   ]);
 } finally {process.off('SIGTERM', terminate); await close();}
 console.log(JSON.stringify({cleanup: 'complete', profile: directory, socketTemp: socketTemp.path,
-  startup: {spawnedAt, firstStderrAt, lastStderrAt}}));
+  startup: {spawnedAt, firstStderrAt, lastStderrAt, endpointAtMs}}));
 console.log('original trusted Escape pair preserved');
