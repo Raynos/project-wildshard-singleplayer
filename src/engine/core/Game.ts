@@ -56,6 +56,8 @@ import { cullPlaced } from '../models/place';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
+/** the draw rate behind the pause menu or the title (G890: no full-rate work while nothing moves) */
+const PAUSED_FPS = 10;
 /** the frame cap's tolerance for vsync timestamp jitter (see Game.start) */
 const FRAME_CAP_SLACK_MS = 4;
 /**
@@ -1268,7 +1270,8 @@ export class Game {
       // G782: held at a cell's wall with build slices running, skip vsyncs up to the 30 fps held floor (framePacing.ts);
       // like a capped vsync, a skipped one does nothing, so the drawn frame's dt is the whole interval
       if (!forceFrame && heldDrawDeferred()) return;
-      const cap = frameCapFps();
+      // G890: the pause menu (and a title over a live world) shows a frozen world, so it draws at a low rate
+      const cap = this.app.state === 'paused' || this.app.state === 'title' ? PAUSED_FPS : frameCapFps();
       if (cap > 0 && !forceFrame) {
         const anchor = frameCapAnchor(lastDrawn, now ?? lastRun, cap);
         if (anchor === null) return;
