@@ -1,5 +1,5 @@
 import { PLANET_DIST, SkyBackdropView, cloudLayer, paintedSkyEnvironment } from './skyBackdrop';
-import { cascadeRedraws } from './shadowCadence';
+import { cascadeRedraws, idleFrames, stillRedraws } from './shadowCadence';
 import { ownSceneResource } from '../app/sceneOwnership';
 import { BackdropLayer, applyLayers, layerKeyedSky, seedLayerTargets, type LayeredSkyBackdrop, type LayerEnvironmentOnly } from './backdropLayer';
 import { app } from '../app/runtime';
@@ -420,6 +420,17 @@ export class SkyRig {
    */
   private farEveryOther = false;
   private farTick = 0;
+  /** FC13: the view a frame ago, and how many frames it has stood still (Debug ▸ Idle frames) */
+  private readonly lastView = new THREE.Matrix4();
+  private stillFrames = 0;
+  private viewStill(): boolean {
+    const now = this.camera.matrixWorld.elements, was = this.lastView.elements;
+    let moved = false;
+    for (let i = 0; i < 16; i++) if (Math.abs((now[i] ?? 0) - (was[i] ?? 0)) > 1e-4) { moved = true; break; }
+    this.lastView.copy(this.camera.matrixWorld);
+    this.stillFrames = moved ? 0 : this.stillFrames + 1;
+    return this.stillFrames >= 2;
+  }
   private fitNormalBias(): void {
     for (const l of this.csm.lights) {
       const texel = (l.shadow.camera.right - l.shadow.camera.left) / l.shadow.mapSize.x;
@@ -459,8 +470,9 @@ export class SkyRig {
     if (this.texelBias) this.fitNormalBias();
     this.shadowFade?.update(dt); // after the CSM and its bias: each ghost copies its cascade's square
     if (this.farEveryOther) {
-      this.farTick = (this.farTick + 1) % 4;
-      const redraw = cascadeRedraws(this.farTick, this.csm.lights.length);
+      this.farTick = (this.farTick + 1) % 8;
+      const still = this.viewStill() && idleFrames() === 'hold';
+      const redraw = (still ? stillRedraws : cascadeRedraws)(this.farTick, this.csm.lights.length);
       this.csm.lights.forEach((light, i) => { light.shadow.autoUpdate = redraw[i] ?? true; });
     }
     this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;

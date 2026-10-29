@@ -30,6 +30,7 @@ import { settingsReloadUrl } from './Settings';
 import type { DebugRowSpec } from '../level/context';
 import { isDev, onDev } from '../core/devMode';
 import { setTileResidency, tileResidency, TILE_RESIDENCY, setRoadResidency, roadResidency, ROAD_RESIDENCY } from './tileResidency';
+import { IDLE_FRAMES, idleFrames, setIdleFrames } from '../world/shadowCadence';
 
 const scope = uiScope('debugOptions', app.engineScope);
 
@@ -172,6 +173,12 @@ const phoneBloomRow: DebugRow = { id: 'phoneBloom', group: 'look', label: engine
   get: () => phoneBloom() ? 'on' : 'off', set: value => { if (value === 'on' || value === 'off') setPhoneBloom(value === 'on'); },
   on: () => undefined, reload: true, when: () => TIER === 'phone', note: engineString('s_phone_bloom_note'), ask: 'E435', reviewBy: '2026-12-30' };
 
+/** FC13 (G912): idle-frame reuse, default off until a phone reading backs it; the winner ships and this goes. */
+const idleFramesRow: DebugRow = { purpose: 'developer', id: 'idleFrames', group: 'perf', label: engineString('s_idle_frames'),
+  choices: () => [{ v: 'off', text: engineString('s_ca7981b46ecf') }, { v: 'hold', text: engineString('s_idle_frames_hold') }],
+  get: () => idleFrames(), set: value => { const pick = IDLE_FRAMES.find(choice => choice === value); if (pick !== undefined && isDev()) setIdleFrames(pick); },
+  on: () => undefined, reload: false, when: () => TIER === 'phone', note: engineString('s_idle_frames_note'), ask: 'E435', reviewBy: '2026-11-12' };
+
 /** G867: one default-off initial spawn-readiness experiment. */
 const spawnRingRevealRow: DebugRow = {purpose: 'developer', id: 'spawnRingReveal', group: 'loading', label: engineString('s_spawn_ring_reveal'),
   choices: () => [{v: 'off', text: engineString('s_ca7981b46ecf')}, {v: 'on', text: engineString('s_130011756125')}],
@@ -191,6 +198,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Performance ──
   tileResidencyRow,
   roadResidencyRow,
+  idleFramesRow,
 
   // ── Loading & memory ──
   clearDownloadsRow,
