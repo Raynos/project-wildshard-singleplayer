@@ -50,7 +50,9 @@ workerScope.listen(self, 'install', event => {
   event.waitUntil((async () => {
     const [assets, shell, books] = await Promise.all([caches.open(ASSETS), caches.open(SHELL), caches.open(BOOKS)]);
     await importPrevious(assets, books);
-    await Promise.all([precache(shell, SHELL_FILES), precache(assets, FILES, true)]);
+    const namedShell = SHELL_FILES.filter(path => immutable(new URL(abs(path))));
+    await Promise.all([precache(shell, SHELL_FILES.filter(path => !namedShell.includes(path))),
+      precache(assets, [...FILES, ...namedShell], true)]);
     // Only a completely installed build is a generation. Failed installs never evict working code.
     await books.put(bookKey(BUILD), Response.json({ files: FILES.map(abs) }));
   })());

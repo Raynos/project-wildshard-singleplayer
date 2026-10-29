@@ -37,7 +37,7 @@ function fixture(read?: (request: Request) => Promise<Response>) {
   const caches = { open, keys: () => Promise.resolve([...books.keys()]), delete: (name: string) => Promise.resolve(books.delete(name)) };
   const fetch = vi.fn((input: Request | string) => read?.(typeof input === 'string' ? new Request(input) : input)
     ?? Promise.resolve(new Response(`body:${typeof input === 'string' ? input : input.url}`)));
-  const load = (build: string, files: string[]) => {
+  const load = (build: string, files: string[], shellFiles = shell) => {
     const listeners = new Map<string, ((event: WorkerEvent) => void)[]>();
     const claim = vi.fn(() => Promise.resolve()), skipWaiting = vi.fn(() => Promise.resolve());
     const self = { location: new URL(origin), registration: { scope: `${origin}/` }, clients: { claim }, skipWaiting,
@@ -45,7 +45,7 @@ function fixture(read?: (request: Request) => Promise<Response>) {
     const owner = readFileSync('src/engine/app/workerScope.js', 'utf8').replaceAll(/^export /gmu, '');
     const source = readFileSync('src/engine/pwa/sw.js', 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '').replaceAll('__BUILD_ID__', build)
       .replaceAll('__ASSET_CACHE__', ASSET_CACHE_NAME).replace("'__FILES__'", JSON.stringify(JSON.stringify(files)))
-      .replace("'__SHELL_FILES__'", JSON.stringify(JSON.stringify(shell)));
+      .replace("'__SHELL_FILES__'", JSON.stringify(JSON.stringify(shellFiles)));
     // Deliberately no clock, crypto, scheduler or accounting ports.
     runInNewContext(`${owner}\n${source}`, { self, caches, fetch, URL, Request, Response, Set, JSON, encodeURIComponent });
     const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'request' | 'data' | 'ports' | 'source'> = {}): Promise<Response | undefined> => {
@@ -70,6 +70,17 @@ test('install precaches its complete shell and hashed files before publishing a 
   expect(await (await worker.dispatch('fetch', { request: new Request(url(shared)) }))?.text()).toBe(`body:${url(shared)}`);
   expect(await (await worker.dispatch('fetch', { request: new Request(url('/')) }))?.text()).toBe(`body:${url('/index.html')}`);
   expect(f.fetch).toHaveBeenCalledTimes(4);
+});
+
+test('named shell artwork is installed into the same asset cache its fetch route reads', async () => {
+  const image = '/assets/title/hero-0123456789abcdef.jpg', f = fixture();
+  const worker = f.load('A', [], ['/index.html', image]);
+  await worker.dispatch('install'); await worker.dispatch('activate');
+  expect(await (await f.open(ASSET_CACHE_NAME)).match(url(image))).toBeDefined();
+  expect(await (await f.open('ws-shell-v3-A')).match(url(image))).toBeUndefined();
+  f.fetch.mockRejectedValue(new Error('offline'));
+  expect(await (await worker.dispatch('fetch', {request: new Request(url(image))}))?.text()).toBe(`body:${url(image)}`);
+  expect(f.fetch).toHaveBeenCalledTimes(2);
 });
 
 test('same-build content and versioned metadata read from the one asset cache without network', async () => {
