@@ -29,6 +29,11 @@ test.each(['play', 'title', 'title-stop'] as const)('%s packed members are store
   try {previous = titleManifests();} catch { /* This isolated test need not install runnable worlds. */ }
   installTitleManifests([title]);
   const reads: string[] = [], disk = new Map<string, Response>();
+  const spawn = JSON.stringify({version: 1, shard: '_template', tier: 'phone', flow: 'client', totalBytes: 3,
+    files: [first, second].map((bytes, i) => ({url: `/alpha/blobs/bin/${hashes[i] ?? ''}.bin`, hash: hashes[i], bytes: bytes.length}))});
+  const address = {url: '/assets/spawn/template-1234567890abcdef.json', bytes: spawn.length, totalBytes: 3, files: 2};
+  vi.stubGlobal('document', {baseURI: 'http://localhost/', getElementById: () => ({textContent: JSON.stringify({spawnManifests: {
+    cacheName: 'ws-assets-v1', client: {_template: {phone: address, desktop: address}}}})})});
   const urlOf = (input: RequestInfo | URL): string => input instanceof Request ? input.url : String(input);
   const cache: Cache = {
     add: () => Promise.reject(new Error('Unexpected unverified cache add')),
@@ -47,28 +52,31 @@ test.each(['play', 'title', 'title-stop'] as const)('%s packed members are store
   let aborted = false;
   vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url = urlOf(input); reads.push(url);
-    if (mode === 'title-stop' && url.endsWith('.pack')) return new Promise<Response>((_resolve, reject) => {
+    if (mode === 'title-stop' && url.endsWith('.bin')) return new Promise<Response>((_resolve, reject) => {
       const signal = init?.signal;
       if (signal === undefined || signal === null) { reject(new Error('Missing title abort signal')); return; }
       signal.addEventListener('abort', () => {aborted = true; reject(new DOMException('Title left', 'AbortError'));}, {once: true});
     });
-    return Promise.resolve(url.endsWith('/index.json') ? Response.json(index) : url.endsWith('.pack') ? new Response(packBytes) : new Response(null, {status: 404}));
+    return Promise.resolve(url.endsWith('/index.json') ? Response.json(index) : url.endsWith('.pack') ? new Response(packBytes)
+      : url.endsWith(address.url) ? new Response(spawn) : url.endsWith(`${hashes[0] ?? ''}.bin`) ? new Response(first)
+      : url.endsWith(`${hashes[1] ?? ''}.bin`) ? new Response(second) : new Response(null, {status: 404}));
   });
   try {
-    const titleRun = mode === 'play' ? null : startTitlePrefetch(['_template']);
+    const titleRun = mode === 'play' ? null : startTitlePrefetch(['never-read', '_template']);
     if (mode === 'play') startGridPrefetch(['_template']);
     else expect(titleRun).not.toBeNull();
     if (mode === 'title-stop') {
-      await vi.waitFor(() => {expect(reads).toContain(`http://localhost/alpha/${packPath}`);});
+      await vi.waitFor(() => {expect(reads).toContain(`http://localhost/alpha/blobs/bin/${hashes[0] ?? ''}.bin`);});
       titleRun?.stop();
-      await vi.waitFor(() => {expect(gridPrefetchStatus()).toMatchObject({phase: 'stopped', storedFiles: 0, storedBytes: 0, inFlightBytes: 0});});
       expect(aborted).toBe(true);
-      expect(reads).toHaveLength(2);
+      expect(reads).toHaveLength(3);
       expect([...disk.keys()].filter(url => hashes.some(hash => url.endsWith(`/${hash}`)))).toEqual([]);
       return;
     }
-    await vi.waitFor(() => {expect(gridPrefetchStatus()?.phase).toBe('done');});
-    expect(reads).toEqual(['http://localhost/alpha/index.json', `http://localhost/alpha/${packPath}`]);
-    expect(gridPrefetchStatus()).toMatchObject({knownFiles: 2, knownBytes: 3, storedFiles: 2, storedBytes: 3});
+    await vi.waitFor(() => {expect((titleRun?.snapshot() ?? gridPrefetchStatus())?.phase).toBe('done');});
+    expect(reads).toEqual(mode === 'play' ? ['http://localhost/alpha/index.json', `http://localhost/alpha/${packPath}`]
+      : [`http://localhost${address.url}`, ...hashes.map(hash => `http://localhost/alpha/blobs/bin/${hash}.bin`)]);
+    expect(titleRun?.snapshot() ?? gridPrefetchStatus()).toMatchObject({knownFiles: 2, knownBytes: 3, storedFiles: 2, storedBytes: 3});
+    titleRun?.stop();
   } finally { installTitleManifests(previous); }
 });

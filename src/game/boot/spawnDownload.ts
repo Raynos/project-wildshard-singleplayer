@@ -82,16 +82,27 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
     resolve: input => {const url = new URL(input, base); return url.origin === new URL(base).origin ? aliases.get(url.pathname) ?? url.href : url.href;}, cancel: () => {controller.abort(); listeners.clear();}};
 }
 
-let current: {url: string; download: SpawnDownload} | undefined;
+let current: {url: string; download: SpawnDownload; foreground: boolean} | undefined;
 /** The selected entry is explicit; no engine import is needed on the title. */
 export function startSpawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode = '000'): SpawnDownload | null {
+  return spawnDownload(slug, flow, tier, mode, true);
+}
+/** Title read-ahead borrows this same manifest operation. Leaving the title
+ * cancels only an unadopted prefetch, never a tap's foreground download. */
+export function prefetchSpawnDownload(slug: string, tier: 'phone' | 'desktop'): {download: SpawnDownload; stop: () => void} | null {
+  const download = spawnDownload(slug, 'client', tier, '000', false);
+  return download === null ? null : {download, stop: () => {
+    if (current?.download === download && !current.foreground) {download.cancel(); current = undefined;}
+  }};
+}
+function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string, foreground: boolean): SpawnDownload | null {
   const text = document.getElementById('boot-module-files')?.textContent; if (!text) return null;
   const bank: unknown = JSON.parse(text), get = (value: unknown, key: string): unknown => typeof value === 'object' && value !== null ? Reflect.get(value, key) : undefined;
   const manifests = get(bank, 'spawnManifests'), roots = flow === 'grid' ? get(get(manifests, flow), mode) : get(manifests, flow);
   const pair = get(get(roots, slug), tier);
   if (pair === undefined) return null;
   const address = readSpawnManifestAddress(pair);
-  if (current?.url === address.url) return current.download;
+  if (current?.url === address.url) {current.foreground ||= foreground; return current.download;}
   const cacheName = get(manifests, 'cacheName');
   const store = typeof caches === 'undefined' ? null : typeof cacheName === 'string' ? caches.open(cacheName) : null;
   const controller = navigator.serviceWorker?.controller;
@@ -100,7 +111,7 @@ export function startSpawnDownload(slug: string, flow: 'client' | 'grid', tier: 
     cached: async url => typeof caches === 'undefined' ? undefined : store === null ? caches.match(url, {ignoreVary: true}) : (await store).match(url, {ignoreVary: true}),
     ...(store === null || controller !== undefined && controller !== null ? {} : {store: async (url: string, response: Response) => {await (await store).put(url, response);}}),
   }, document.baseURI);
-  current?.download.cancel(); current = {url: address.url, download}; return download;
+  current?.download.cancel(); current = {url: address.url, download, foreground}; return download;
 }
 export function currentSpawnDownload(): SpawnDownload | undefined { return current?.download; }
 

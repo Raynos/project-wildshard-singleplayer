@@ -29,8 +29,9 @@ import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { builtIndexHash, builtIndexHashes } from '@wildshard/format/builtIndexes';
 import { readPrefetchIndex } from './prefetchIndex';
 import type { GridAssembly } from './assembly';
-import type { Tier } from '@wildshard/engine/core/tier';
+import {TIER, type Tier} from '@wildshard/engine/core/tier';
 import { prefetchRing } from './titleOrder';
+import {prefetchSpawnDownload} from '../boot/spawnDownload';
 
 /** Files in flight at once: the page's own reads keep most of the pipe. */
 const CONCURRENCY = 2;
@@ -267,13 +268,19 @@ function launchPrefetch(run: GridPrefetch): void {
     catch (error: unknown) { run.stop(error instanceof Error ? error.message : String(error), 'error'); console.warn('[grid prefetch] stopped', error); }
   })();
 }
-/** One bounded verified downloader, shared with normal grid/offline progress.
- * A live world/download owns its existing run; a title never replaces it. */
+/** G897: only the last selected shard's spawn files, not whole products or
+ * neighbouring worlds. Foreground adoption retains the same cache operation. */
 export function startTitlePrefetch(slugs: readonly string[]): {snapshot: () => GridPrefetchStatus; stop: () => void} | null {
-  if (slugs.length === 0 || typeof caches === 'undefined' || !('storage' in navigator) || current?.snapshot().phase === 'running') return null;
-  const run = new GridPrefetch(); current = run; run.title = true; run.prioritize(slugs, slugs);
-  launchPrefetch(run);
-  return {snapshot: () => run.snapshot(), stop: () => {run.stop('left title');}};
+  const target = slugs.at(-1); if (target === undefined || typeof caches === 'undefined') return null;
+  const held = prefetchSpawnDownload(target, TIER); if (held === null) return null;
+  return {stop: held.stop, snapshot: () => {
+    const row = held.download.snapshot();
+    return {phase: row.error !== null ? 'error' : row.complete ? 'done' : 'running', reason: row.error,
+      products: 1, productsRead: row.complete ? 1 : 0, knownFiles: row.filesTotal, knownBytes: row.totalBytes,
+      presentFiles: row.complete && row.cachedBytes === row.totalBytes ? row.filesDone : 0, presentBytes: row.cachedBytes,
+      storedFiles: row.filesDone, storedBytes: row.completedBytes - row.cachedBytes,
+      inFlightBytes: row.totalBytes - row.completedBytes, peakInFlightBytes: 0, limitInFlightBytes: 0};
+  }};
 }
 /** The run's counts (null before any start): for the loading screen's download line and captures. */
 export function gridPrefetchStatus(): GridPrefetchStatus | null { return current?.snapshot() ?? null; }
