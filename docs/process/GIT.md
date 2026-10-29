@@ -37,61 +37,26 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   touching the candidate index or running checks.
   Invalid messages refuse immediately; valid messages still run every normal
   pre-commit and commit-message hook. This shares the entry-time budget.
-  Pre-commit guards and CF1 execute outside the shared commit lock against the
-  candidate index and a pinned HEAD view. Their input receipts are freshness
-  metadata, never cached results. Under the lock, a peer's disjoint commits
-  are retained by applying only the checked delta to current HEAD. Changes to
-  named paths or recorded check inputs refuse and require fresh checks; unknown
-  hooks conservatively depend on the entire predecessor tree. Named stage,
-  working-byte, hook-source/configuration and candidate-tree changes refuse too.
-  Git's pre-commit boundary verifies the completed invocation proof again;
-  ordinary commit-message policies, signing and post-commit hooks still run.
-  Pre-commit runs storage policy, fast lint and staged guards in parallel under a soft five-second budget.
-  The optional type-aware lint attempt stays within that cap (G636), without oxlint's `--type-check` (G657);
-  `tsc` owns TypeScript diagnostics. Timeout warns and hands those exact staged blobs' typed lint to pre-push;
-  actual errors still refuse. Missing verified generated inputs defer typed lint to full CI explicitly.
-  Staged relative imports must name modules in the candidate Git tree. Named
-  imports and re-exports must resolve exported names through that tree's alias,
-  type-only and star-export edges; loose files or loose export additions cannot
-  satisfy them. Ambiguous star names refuse. Exact declared generated outputs
-  retain their existing CI deferral; external package exports stay with tsc.
-  **CF1 (G689):** staged `src/`, `test/` and `scripts/` paths select related
-  Vitest cases, alongside touched layer `tsc -p` checks when their
-  incremental metadata is warm. **G703 keeps the test run regardless of size:**
-  every staged test runs, plus at most 20 nearest importer suites from the
-  candidate's static import graph. Distance, matching source/test names and
-  stable path order determine that bounded extra selection; the hook prints
-  its selected paths and actual run count. CI keeps the complete selection.
-  A single **60-second allowance starts at `commit.sh` entry**, including
-  lock wait and earlier guards; CF1 never starts
-  a fresh allowance afterward. Mandatory serialized Git completion remains
-  safe and any total overrun is printed separately. Each invocation prints its
-  total wall time including the lock wait, plus separate lock-wait and
-  work durations and the time actually holding the lock. Work includes checks
-  outside the lock; older ledger rows' work was entirely serialized. A requested-lock marker distinguishes a queued
-  invocation from one already executing checks; these timings never renew
-  its deadline. Finished invocations append timing/outcome metadata to
-  `.git/commit-times.jsonl` for `scripts/agent-time.py`; refusals stay in the
-  distribution. Messages and file contents are not logged. Diagnostic write
-  failures never change the commit verdict, and a missing ledger is reported
-  as unavailable rather than a passing zero.
-  A per-file Vite override uses candidate-index bytes for differing tracked
-  modules, including peer edits; loose files and the index stay untouched.
-  An executed failing test refuses even if another test later times out.
-  After the related worker exits with its own executed-test refusal, CF1
-  drains remaining warm type jobs immediately. It never stops the selected
-  test run for a test failure; green workers and nested fixture reds retain
-  their normal type checks. Cancelled type work cannot turn a refusal green.
-  Staged layer imports outside the project's includes and referenced projects
-  refuse as TS6307, including type imports. Collection/runner failures, missing
-  prerequisites, cold types and deadline exhaustion print **DEFERRED TO CI**
-  and land; warm working-tree type diagnostics also defer because they may
-  include peer WIP. Loose tests absent from the candidate index are excluded
-  from local related discovery; newly staged failing tests still refuse.
-  Tool failure never becomes a passing proof. Each attempt
-  prints staged path count, collected suite count when available, and wall time.
-  No mirror, generator, build or full suite runs at commit.
-  Fix a refusal and retry. Message conventions and the existing lock/legacy policies remain.
+  Pre-commit runs outside the shared commit lock against the candidate index
+  and a pinned HEAD view. Under the lock, disjoint peer commits are retained
+  by applying only the named delta to current HEAD; a named overlap refuses
+  and requires a fresh candidate. Shared stages and loose peer edits stay intact.
+  Message conventions, signing and post-commit hooks keep Git's normal path.
+  Storage policy and eligible touched-file typed lint share a **five-second
+  wall-clock cap** (G768/G769). A completed failure refuses; work unfinished
+  at the cap belongs to CI and the commit lands. The linter does not own
+  TypeScript checking: builders run touched types and CI runs the full gate.
+  **GS4 (G798)** is the one exception: a staged registered input regenerates
+  its committed source tables before the hook cap, and those outputs join the
+  candidate. It cannot publish another lane's loose generated bytes.
+  CF1's related walk, warm type projects, checker snapshots, candidate planner
+  and handoff protocol were retired by DL3 (`18fa9fcfe6`); the live input/job
+  helpers remain. Related tests run in CI.
+  Each invocation prints total wall time, lock wait, work outside the lock and
+  time holding the lock. The timings include refused attempts and never renew
+  the cap. Completed invocations append timing/outcome metadata to
+  `.git/commit-times.jsonl` for `scripts/agent-time.py`; messages and file
+  contents are not logged. Diagnostic write failures do not change a verdict.
 - **Commits are pushed by the scheduled loop (G568, Jake, 2026-10-21).** `scripts/push-loop.py` runs every
   60 seconds. Lanes commit their green source; `scripts/push-main.sh` requests one scheduled tick when needed.
   These are temporary coordinator processes, never launchd services (G582). `scripts/sp-tools.sh start` opens
@@ -101,18 +66,15 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   Tool source lives in `scripts/`; disposable tool logs live in `tmp/sp-tools/`. The pane inherits the current
   tool environment without version-pinned Codex PATH entries.
   Never run `git push` or start the retired carrier/full local push gate.
-- **The local push gate has a 45-second ceiling and no source preparation (G675).** Binary-JSON, storage,
-  architecture/closed-component policy, deleted-path and ratchet checks read exact Git objects and run before
-  fast lint. A configuration mismatch short-circuits before any source-closure traversal. Fast lint checks
-  changed files only when their transitive literal imports, lint policy and configuration match the candidate;
-  changed or unavailable inputs print `DEFERRED TO CI` and have a `deferred` P3 step, never a green result.
-  Rules use the existing oxlint parser and rule implementations; policy vocabulary is read from static committed
-  declarations in memory. Three small checker modules and temporary configuration are the only tool files copied;
-  no checkout, generated asset, source tree, generator, build, mirror or persistent snapshot cache is prepared.
-  The push gate defers typed lint and tests to CI; CF1 owns the bounded local
-  commit checks above. CI remains the full gate. Under Jake's budget ruling,
-  only an observed check failure is red. A step exhausting the shared budget is marked `deferred`, and each
-  unattempted check gets an explicit CI handoff. P3 records every phase in `.git/push.log`.
+- **The local push gate has one hard 45-second wall clock (G568/G768).**
+  Checks read committed changes. A check that completes with a failure inside
+  the cap ejects its source commit to the owning lane. Slow, unfinished or
+  unverifiable work belongs to CI and does not refuse publication; no source
+  culprit is invented when a check did not execute. Full types and tests run
+  in CI. There is no CI-subset batch, split or Gate-deferred tag protocol.
+  Main or deploy being red does not hold a push, and the loop does not pause
+  for the official quiet lock. The breaker fixes forward. The existing
+  committed policy and rule implementations still decide completed checks.
 - **A red commit is ejected back to its lane; the checked green prefix can still push.** The loop attributes the
   refusal, checks the prefix within the same budget, pushes that prefix and sends the owner a Herdr message beginning
   `[push-loop]`, naming the phase, offending SHA and `tmp/push-loop/current.log`. The offending commit and its suffix
