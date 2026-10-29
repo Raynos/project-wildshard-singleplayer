@@ -31,7 +31,8 @@ export function loadingPath(id: LoadingPathId, own?: Readonly<Record<string, { l
     ...(id === 'grid' ? [step('home', 'Home region', ['crossing']),
       ...[admission, world, loadout].map(row => repeatedStep(row, 2)),
       step('homePrograms', 'Home region shader preparation'), step('road', 'Road system')] : []),
-    leaf('shaders'), leaf('firstFrame'), leaf('audio')],
+    leaf('shaders'), leaf('firstFrame'), step('readyFrame', 'First drawn frames and minimap'),
+    step('spawnPrograms', 'Spawn program links'), leaf('audio')],
     ignored: native ? [] : BOOT_STEPS.filter(key => !selected.has(key)) };
 
 }

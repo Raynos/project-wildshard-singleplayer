@@ -63,6 +63,27 @@ it.each(['legacy', 'shardfile', 'grid'] as const)('attributes the real level.pla
   } finally { release(); }
 });
 
+it.each(['legacy', 'shardfile', 'grid'] as const)('names actual final frame/map and program-link awaits on %s', async path => {
+  let clock = 0;
+  const timeline = new LoadingTimeline(loadingPath(path), 0, () => clock), release = installLoadingTimeline(timeline);
+  try {
+    await loadingStage('finish', async () => {
+      clock += 20;
+      await loadingStage('readyFrame', () => {
+        expect(timeline.snapshot().current).toBe('readyFrame'); clock += 1200;
+      });
+      await loadingStage('spawnPrograms', () => {
+        expect(timeline.snapshot().current).toBe('spawnPrograms'); clock += 12000;
+      });
+    });
+    const rows = timeline.snapshot().rows;
+    expect(rows.find(row => row.key === 'readyFrame')).toMatchObject({label: 'First drawn frames and minimap', ms: 1200});
+    expect(rows.find(row => row.key === 'spawnPrograms')).toMatchObject({label: 'Spawn program links', ms: 12000});
+    expect(rows.find(row => row.key === 'finish')?.ms).toBe(20);
+    expect(rows.reduce((sum, row) => sum + row.ms, 0)).toBe(clock);
+  } finally {release();}
+});
+
 it('accounts for destination preparation, boundary wait, save, commit and activation separately', () => {
   const rows = crossingLoadingRows({ from: null, to: 'home', requestedAt: 10, readyAt: 30,
     start: 40, checkpointEnd: 42, commitEnd: 44, end: 50 });

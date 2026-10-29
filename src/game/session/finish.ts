@@ -141,7 +141,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   game.start();
   const drawnFrom = game.frameCount;
   const drawn = new Promise<void>((resolve) => { const check = (): void => { if (game.frameCount >= drawnFrom + 2) resolve(); else game.levelScope.raf(check); }; check(); });
-  await Promise.race([Promise.all([drawn, ctx.minimap.prepare()]), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })]);
+  await loadingStage('readyFrame', () => Promise.race([Promise.all([drawn, ctx.minimap.prepare()]), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })]));
   // P0: the phone's spawn programs settle while loading still covers the reveal.
   // Undrawn world programs remain in the sliced after-control warm-up below.
   // A boot that lands on the title reveals nothing yet: it draws no frame before ENTER (CI's 0.3 fps runner spent ~70 s
