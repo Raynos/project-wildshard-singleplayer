@@ -218,6 +218,39 @@ function version(): Promise<SwVersion | null> {
   });
 }
 
+/** A stale chunk may reload only after the matching new worker owns its next document.
+ * Discovery, install and claim share one bound; late installers cannot navigate. */
+export function refreshWorkerForChunkRecovery(build: string): Promise<boolean> {
+  if (!sw || !swAllowed() || sw.controller === null) return Promise.resolve(true);
+  const container = sw;
+  return new Promise<boolean>(resolve => {
+    const owner = pageScope.child('stale-chunk-worker'), tracked = new Set<ServiceWorker>();
+    const finish = (ready: boolean): void => { resolve(ready); owner.dispose(); };
+    owner.onDispose(() => { resolve(false); }); owner.timeout(15000, () => { finish(false); });
+    const track = (worker: ServiceWorker | null): void => {
+      if (worker === null || owner.disposed || tracked.has(worker)) return;
+      tracked.add(worker);
+      const claim = async (): Promise<void> => {
+        if (worker.state !== 'installed' || owner.disposed) return;
+        const identity = await buildOf(worker);
+        if (owner.disposed || identity?.startsWith(`${build}-`) !== true) return;
+        owner.listen(container, 'controllerchange', () => { if (container.controller === worker) finish(true); });
+        // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker messages have no targetOrigin.
+        worker.postMessage({ type: 'SKIP_WAITING' });
+      };
+      owner.listen(worker, 'statechange', () => { void claim().catch(() => { finish(false); }); });
+      void claim().catch(() => { finish(false); });
+    };
+    void container.getRegistration().then(async registration => {
+      if (owner.disposed) return undefined;
+      if (registration === undefined) { finish(true); return undefined; }
+      const observe = (): void => { track(registration.installing ?? registration.waiting); };
+      owner.listen(registration, 'updatefound', observe);
+      observe(); await registration.update(); observe(); return undefined;
+    }).catch(() => { finish(false); });
+  });
+}
+
 function boot(): Promise<void> {
   if (!sw || !swAllowed()) {
     // `?sw=0` / dev: make sure no earlier worker keeps serving a stale bundle underneath us.

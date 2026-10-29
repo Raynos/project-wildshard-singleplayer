@@ -1,3 +1,4 @@
+import { recoverChunkFailure } from './browserChunkRecovery';
 /** Retry an async module download after 800 ms and 2500 ms; preserve the final rejection.
  * A cached module evaluation error is rethrown by the module loader, without evaluating it again.
  * This leaf is also used before the engine and its scopes have loaded.
@@ -9,5 +10,9 @@ export async function retried<T>(load: () => Promise<T>): Promise<T> {
       await new Promise<void>((resolve) => { globalThis.setTimeout(resolve, wait); });
     }
   }
-  return load();
+  try { return await load(); }
+  catch (error) {
+    if (await recoverChunkFailure(error)) return new Promise<never>(() => { /* The new document resumes the original entry. */ });
+    throw error;
+  }
 }
