@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 import {expect, test, vi} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own and remove the complete output-metadata fixture.
 import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
@@ -50,6 +51,9 @@ test('plain build schedules exact tier/phase packs and rejects changed section b
       const path: unknown = Reflect.get(pair, tier); if (typeof path !== 'string') throw new Error('Missing tier schedule');
       const text = readFileSync(resolve(out, path.slice(1)), 'utf8');
       expect(text).toContain(packs[included]?.path); expect(text).not.toContain(packs[excluded]?.path); expect(text).not.toContain(packs[2]?.path);
+      const rows = v.parse(v.array(v.object({path: v.string(), phase: v.picklist(['metadata', 'body'])})), JSON.parse(text) as unknown);
+      expect(rows.find(row => row.path.endsWith(packs[included]?.path ?? 'missing'))?.phase).toBe('body');
+      for (const section of sections) expect(rows.find(row => row.path.endsWith(section.path))?.phase).toBe('metadata');
     }
     expect(html).toContain('installEntryTransport();'); expect(html).not.toContain('export function');
     const first = sections[0]; if (first === undefined) throw new Error('Missing original section');

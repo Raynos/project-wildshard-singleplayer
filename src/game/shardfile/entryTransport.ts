@@ -7,6 +7,8 @@ export interface EntryTransport {
   stop: () => void;
 }
 export interface EntryDownloadRow {
+  /** Only metadata may overlap mandatory code. Older schedules default to body. */
+  readonly phase?: 'metadata' | 'body';
   readonly path: string;
   readonly bytes: number;
   /** Member addresses, rather than the pack address, are persisted by admission. */
@@ -107,13 +109,14 @@ export function installEntryTransport(): void {
     let reserved = 0;
     for (const candidate of input as unknown[]) {
       if (typeof candidate !== 'object' || candidate === null) return;
-      const path: unknown = Reflect.get(candidate, 'path'), bytes: unknown = Reflect.get(candidate, 'bytes'), members: unknown = Reflect.get(candidate, 'members');
+      const path: unknown = Reflect.get(candidate, 'path'), bytes: unknown = Reflect.get(candidate, 'bytes'), members: unknown = Reflect.get(candidate, 'members'), phase: unknown = Reflect.get(candidate, 'phase');
       if (typeof path !== 'string' || !path.startsWith(`/shardfiles/${selected}/`) || !/^\/[a-zA-Z0-9_./-]+$/u.test(path) || path.includes('..')
         || typeof bytes !== 'number' || !Number.isSafeInteger(bytes) || bytes < 0 || bytes > 25_000_000
+        || phase !== undefined && phase !== 'metadata' && phase !== 'body'
         || !Array.isArray(members) || members.length > 8192 || !members.every((hash: unknown) => typeof hash === 'string' && /^[a-f0-9]{64}$/u.test(hash))) return;
       reserved += bytes;
       if (reserved > 48_000_000) return;
-      rows.push({path, bytes, members});
+      rows.push({path, bytes, members, phase: phase === 'metadata' ? 'metadata' : 'body'});
     }
     // Metadata is a skip hint only. A stale row can lose read-ahead, never
     // authorize a body: original cache/network admission still checks it.
@@ -125,6 +128,7 @@ export function installEntryTransport(): void {
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) cached = value as Record<string, unknown>;
       }
     } catch { /* No cache is also a valid cold entry. */ }
+    if (stopped) return;
     const pending: {row: EntryDownloadRow; finish: (response: Response | null) => void}[] = [];
     for (const row of rows) {
       if (row.members.length > 0 && row.members.every(hash => Object.hasOwn(cached, hash))) continue;
@@ -158,12 +162,16 @@ export function installEntryTransport(): void {
         if (stopped) return;
         const job = pending[next++]; if (job === undefined) return;
         job.finish(await read(job.row));
-        await codeReady;
       }
     };
-    // One header pack overlaps startup. Bulk waits for original descriptor
-    // verification (including its hash worker), or actual admission demand.
-    await Promise.all(Array.from({length: 6}, async (_, slot) => { if (slot > 0) await codeReady; await worker(); }));
+    // A warm title can already hold every header. Never promote its next
+    // uncached body into the one early metadata slot and starve code.
+    const headerIndex = pending.findIndex(job => job.row.phase === 'metadata');
+    const header = headerIndex === -1 ? undefined : pending.splice(headerIndex, 1)[0];
+    await Promise.all(Array.from({length: 6}, async (_, slot) => {
+      if (slot === 0 && header !== undefined) header.finish(stopped ? null : await read(header.row));
+      await codeReady; await worker();
+    }));
     for (const job of pending) job.finish(null);
   };
   void run().catch(() => { stop(); });

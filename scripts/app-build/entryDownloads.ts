@@ -34,14 +34,14 @@ export function writeEntryDownloads(outDir: string, root: string): {entryDownloa
     const inactive = turn.value;
     const wanted = new Set([...index.sections, ...index.schemas].map(row => row.hash));
     for (const file of index.files) if (required.has(file.hash) && !inactive.has(file.hash)) wanted.add(file.hash);
-    const rows: EntryDownloadRow[] = [], packed = new Set<string>();
+    const rows: EntryDownloadRow[] = [], packed = new Set<string>(), metadata = new Set([...index.sections, ...index.schemas].map(row => row.hash));
     for (const pack of index.packs ?? []) {
       if (!pack.entries.some(row => wanted.has(row.hash))) continue;
-      rows.push({path: `${prefix}${pack.path}`, bytes: pack.bytes, members: pack.entries.map(row => row.hash)});
+      rows.push({path: `${prefix}${pack.path}`, bytes: pack.bytes, members: pack.entries.map(row => row.hash), phase: pack.entries.every(row => metadata.has(row.hash)) ? 'metadata' : 'body'});
       for (const row of pack.entries) packed.add(row.hash);
     }
     for (const file of [...index.sections, ...index.schemas, ...index.files.map(row => ({path: row.path, hash: row.hash, bytes: row.compressed}))]) {
-      if (wanted.has(file.hash) && !packed.has(file.hash)) rows.push({path: `${prefix}${file.path}`, bytes: file.bytes, members: [file.hash]});
+      if (wanted.has(file.hash) && !packed.has(file.hash)) rows.push({path: `${prefix}${file.path}`, bytes: file.bytes, members: [file.hash], phase: metadata.has(file.hash) ? 'metadata' : 'body'});
     }
     // Never speculate beyond the bounded loan. Preserve order (section packs
     // first); unscheduled files retain ordinary demand, including desktop.
