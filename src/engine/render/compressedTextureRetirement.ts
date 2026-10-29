@@ -7,12 +7,6 @@ const installed = new WeakMap<DrawTarget, WeakSet<THREE.Texture>>();
 /** each observed renderer's record of the native allocation a retired texture was drawn with */
 const allocations = new Set<WeakMap<THREE.Texture, unknown>>();
 
-/** The texture's storage is given back and allocated again on purpose (T6.2's lease, `leaseOutKtx2` / `leaseInKtx2`):
- *  forget the allocation its retirement recorded, so its next first draw records the new one instead of refusing it. */
-export function forgetCompressedAllocation(texture: THREE.Texture): void {
-  for (const retired of allocations) retired.delete(texture);
-}
-
 /** Observe completed first draws without importing upload scheduling or boot services.
  * Explicit immutable inputs need both native versions. Loader inputs keep their final-preparation fence. */
 export function installCompressedTextureRetirement(renderer: DrawTarget): WeakSet<THREE.Texture> {

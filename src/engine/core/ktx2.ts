@@ -29,9 +29,7 @@ import { labelAsset } from '../render/gpuLabels';
 import { ScopedWorkerPool } from './scopedWorkerPool';
 import { Ktx2Sources } from './ktx2Sources';
 import { uploadCompressedTexture } from '../render/compressedUpload';
-import { forgetCompressedAllocation } from '../render/compressedTextureRetirement';
-import { registerCompressedMipmaps, compressedMipmapsUploaded, restoreCompressedMipmaps } from '../render/compressedMipmaps';
-import { dispatchRebind } from '../app/scope';
+import { registerCompressedMipmaps, compressedMipmapsUploaded } from '../render/compressedMipmaps';
 import { harnessPins } from '../app/identity';
 import { applyKtx2Probe, ktx2ProbeResult, linearAstcSurvives } from '../render/ktx2Probe';
 import { workSlice } from './workSlice';
@@ -250,12 +248,6 @@ export function installGltfKtx2(type: typeof GLTFLoader): void {
  */
 const transcoded = new Map<string, Promise<THREE.CompressedTexture>>();
 const sources = new Ktx2Sources();
-/** each file-backed texture's file, its first mip and a copy of its last (a few bytes), for the T6.2 lease */
-const files = new WeakMap<THREE.Texture, { readonly url: string; readonly level: number; readonly tail: THREE.CompressedTextureMipmap | undefined }>();
-const fileOf = (texture: THREE.CompressedTexture, url: string, level: number): void => {
-  const last = texture.mipmaps.at(-1);
-  files.set(texture, { url, level, tail: last === undefined ? undefined : { data: last.data.slice(), width: last.width, height: last.height } });
-};
 /** The bytes in flight per resolved URL: concurrent loads of one file share one read, and so (KTX2Loader keys its
  *  transcode on the buffer) one texture, as three's FileLoader shares them. */
 const reading = new Map<string, Promise<ArrayBuffer>>();
@@ -302,7 +294,6 @@ export async function ktx2File(url: string): Promise<THREE.CompressedTexture> {
   t.flipY = false;
   t.generateMipmaps = false;
   sources.share(t, url, 0);
-  fileOf(t, url, 0);
   return labelAsset(releaseAfterUpload(t), 'engine/ktx2File', url);
 }
 
@@ -341,65 +332,7 @@ export async function ktx2Texture(served: string, maxSize: typeof Infinity = Inf
   t.flipY = false;
   t.generateMipmaps = false;
   sources.share(t, url, Math.max(0, skip));
-  fileOf(t, url, Math.max(0, skip));
   return labelAsset(releaseAfterUpload(t), 'engine/ktx2Texture', url);
-}
-
-/**
- * Tile streaming T6.2's texture lease: a KTX2 texture loaded from its own file (`ktx2File` / `ktx2Texture`) can give its
- * GPU storage back while every owner keeps the texture (a binding-only dispose, `dispatchRebind`), and take it again
- * later from the same file into the same texture, so materials, clones and batches that hold it need no rebinding.
- *
- *   leaseOutKtx2(texture)          → true: storage freed (false: not a file-backed KTX2 texture, or already out)
- *   await leaseInKtx2(texture)     re-transcodes the file's mips into it and uploads them before resolving
- *
- * Between the two the caller hides what reads it: the texture holds only its last mip (a stray draw samples that).
- */
-const leased = new WeakMap<THREE.Texture, Promise<void> | null>();
-export function leaseOutKtx2(texture: THREE.Texture): boolean {
-  const file = files.get(texture);
-  if (file?.tail === undefined || leased.has(texture) || !(texture instanceof THREE.CompressedTexture)) return false;
-  leased.set(texture, null);
-  dispatchRebind(texture);
-  forgetCompressedAllocation(texture);
-  // until the lease ends it holds only its chain's last mip (a texture never drawn held all of them): a stray upload (a
-  // warm-up's stand-in of a hidden rig) takes a few bytes, never an empty chain
-  restoreCompressedMipmaps(texture);
-  ownSource(texture);
-  texture.mipmaps = [file.tail];
-  texture.needsUpdate = true;
-  return true;
-}
-/** A fresh source of its own: three allocates its storage anew at the next upload (a stray upload made the placeholder's
- *  storage one level deep), and no texture sharing the old one uploads again. */
-function ownSource(texture: THREE.Texture): void {
-  const image: unknown = texture.source.data;
-  texture.source = new THREE.Texture(image).source;
-}
-/** Whether `texture` is leased out (or still being taken back). */
-export function ktx2Leased(texture: THREE.Texture): boolean { return leased.has(texture); }
-export function leaseInKtx2(texture: THREE.Texture): Promise<void> {
-  const file = files.get(texture), pending = leased.get(texture);
-  if (pending !== null && pending !== undefined) return pending;
-  if (file === undefined || pending === undefined || !(texture instanceof THREE.CompressedTexture)) return Promise.resolve();
-  const back = (async (): Promise<void> => {
-    const fresh = await load(file.url, true), mips = fresh.mipmaps.slice(file.level);
-    if (mips.length === 0 || fresh.format !== texture.format) throw new Error(`KTX2 lease of ${file.url}: the file no longer matches its texture`);
-    // QB7: a warm-up may have uploaded the leased tail. Drop that binding before the source changes, as leaseOutKtx2
-    // does: three's next init keeps the old cache key and skips a new allocation, and dispose then reads
-    // newSource[oldKey].usedTimes from nothing ('Scope level disposal failed' on Jake's legacy Pine exit)
-    dispatchRebind(texture);
-    restoreCompressedMipmaps(texture);
-    forgetCompressedAllocation(texture);
-    ownSource(texture);
-    texture.mipmaps = mips;
-    texture.needsUpdate = true;
-    await prepareCompressedTexture(texture);
-    leased.delete(texture);
-  })();
-  leased.set(texture, back);
-  back.catch(() => { leased.set(texture, null); });
-  return back;
 }
 
 /**

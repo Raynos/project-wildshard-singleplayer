@@ -1,4 +1,5 @@
 import { clearBody as clearNativeBody } from './bodyClear';
+import { poseEvery } from './poseCadence';
 import { EntityIds } from './ids';
 import { app } from '../app/runtime';
 import { ParticlePool } from '../fx/ParticlePool';
@@ -140,7 +141,6 @@ const ANIM_LOD = 140;
 /** E297 body clearance: the player's capsule radius (Player.ts RADIUS) + a margin for the camera's near plane (m) */
 
 const SHELL_DIST = 18, SHELL_MAX = 4;   // fur shells: nearest SHELL_MAX animals within SHELL_DIST m
-const LEASE_GRACE = 10;   // T6.2: seconds a model's animals all stay asleep before its textures go back (no churn at the ring's edge)
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _p = new THREE.Vector3();
 
@@ -304,11 +304,6 @@ export class AnimalManager {
   /** Tile streaming T6: from the viewer, which animals stay awake (a resident ring); null: every animal */
   private residency: ((viewer: THREE.Vector3) => (x: number, z: number) => boolean) | null = null;
   private resident: ((x: number, z: number) => boolean) | null = null;
-  /** T6.2 lease: per model, its animals, when one was last awake, and the woken models still taking textures back */
-  private readonly modelOf = new WeakMap<Animal, AnimalModel>();
-  private readonly modelCounts = new WeakMap<AnimalModel, { count: number; awake: boolean; lastAwake: number | undefined }>();
-  private readonly modelOrder: AnimalModel[] = [];
-  private readonly waking = new Set<AnimalModel>();
   private dodgeId = dodgeFx.id;
   private playerSprinting = false;
   private blood!: BloodFX;
@@ -384,7 +379,7 @@ export class AnimalManager {
         app.combat.targetPort(animal.combatActor(), animal, (velocity) => { animal.impulse(velocity); },
           () => !scope.disposed && app.levelScope === scope && !animal.hidden && animal !== app.equipmentHost?.player.mountedOn)));
       app.events.on('weapon.fired', () => { if (app.levelScope === scope) this.interruptTargets('target.attack'); }, scope);
-      scope.onDispose(() => { this.scheduler.reset(); this.factory.returnLeases(); });
+      scope.onDispose(() => { this.scheduler.reset(); });
     }
   }
 
@@ -498,7 +493,6 @@ export class AnimalManager {
     const model = this.factory.model(kind, v.id);
     const rig = this.factory.instantiate(model, rigSeed);
     const a = new Animal(rig, model, seed, scale, identity ?? this.entityIds.allocate(placement?.entityId));
-    this.modelOf.set(a, model);
     a.maxHp = a.hp = v.hp ?? this.tuningFor(a).hp;
     const physics = this.physics ?? worldPhysics();
     const fromY = placement?.fromY ?? Math.max(activeLevel().spawn.y ?? heightAt(x, z), heightAt(x, z)) + 1;
@@ -583,52 +577,12 @@ export class AnimalManager {
     const resident = this.resident;
     return resident !== null && !a.simulationBound && !a.harnessHold && !a.drawPinned && !a.driven && !brainPinned(a) && !resident(a.position.x, a.position.z);
   }
-  /** dormant: outside the ring, or woken while its model still takes its textures back (it shows once they are drawn) */
-  private dormant(a: Animal): boolean {
-    const model = this.waking.size === 0 ? undefined : this.modelOf.get(a);
-    return this.outside(a) || (model !== undefined && this.waking.has(model));
-  }
-
-  /**
-   * T6.2, the last-reader lease: a model none of whose animals has been awake for LEASE_GRACE seconds gives its textures'
-   * GPU storage back (`AnimalFactory.leaseOut`), when this manager owns every rig made from it; the first animal to wake
-   * asks for them again and its model's animals stay dormant until they are back (`leaseIn`). Identity, state and the
-   * spawn RNG never change: only what the hidden rigs would have drawn with comes and goes.
-   */
-  private leaseModels(now: number): void {
-    const counts = this.modelCounts, order = this.modelOrder;
-    // Only model identities are retained between polls; counts live in weak,
-    // private records. Reset in place and refill the first-animal order without
-    // clearing/rebuilding a Map and Set on every frame.
-    for (let index = 0; index < order.length; index++) {
-      const model = order[index], row = model === undefined ? undefined : counts.get(model);
-      if (row !== undefined) { row.count = 0; row.awake = false; }
-    }
-    if (this.waking.size > 0) this.waking.clear();
-    let used = 0;
-    for (const a of this.animals) {
-      const model = this.modelOf.get(a);
-      if (model === undefined) continue;
-      let row = counts.get(model);
-      if (row === undefined) { row = { count: 0, awake: false, lastAwake: undefined }; counts.set(model, row); }
-      if (row.count === 0) order[used++] = model;
-      row.count++;
-      if (!this.outside(a)) row.awake = true;
-    }
-    order.length = used;
-    for (let index = 0; index < used; index++) {
-      const model = order[index]; if (model === undefined) continue;
-      const row = counts.get(model); if (row === undefined) continue;
-      if (row.awake) { row.lastAwake = now; if (!this.factory.leaseIn(model)) this.waking.add(model); continue; }
-      if (row.lastAwake === undefined) row.lastAwake = now;
-      else if (now - row.lastAwake >= LEASE_GRACE && row.count === this.factory.rigsOf(model)) this.factory.leaseOut(model);
-    }
-  }
+  /** dormant: outside the ring (MF11: no texture lease; a woken model draws at once, its textures never left) */
+  private dormant(a: Animal): boolean { return this.outside(a); }
 
   update(dt: number, t: number, playerPos: THREE.Vector3, playerSprinting = false, viewPos: THREE.Vector3 = playerPos, camera: THREE.PerspectiveCamera | null = null): void {
     this.playerPos.copy(playerPos);
     this.resident = this.residency === null ? null : this.residency(playerPos);
-    this.leaseModels(t);
     this.playerSprinting = playerSprinting;
     this.scheduler.beginFrame(dt, playerPos);
     this.hunt.beginTick(dt);
@@ -674,6 +628,7 @@ export class AnimalManager {
       if (this.dormant(a)) { a.mesh.visible = false; (this.casters.get(a) ?? a.mesh).castShadow = false; continue; }   // T6: asleep outside the ring
       const d2 = a.position.distanceToSquared(viewPos);
       const near = d2 < ANIM_LOD * ANIM_LOD;
+      a.poseEvery = poseEvery(d2);
       const bodyDt = a.harnessHold ? 0 : a.simulationBound ? dt : this.scheduler.bodyDt(this.tickRate(a), a);
       if (bodyDt > 0) {
         if (!a.simulationBound && a.alive && !a.stunned && a.state === 'charge' && speciesDef(a.kind).think === undefined) this.hunt.advanceCharge(a, bodyDt, playerPos);
