@@ -9,8 +9,7 @@ type Path = Parameters<Loading['setPath']>[0];
 const step = (key: string, label: string, aliases: readonly string[] = []): Path['steps'][number] => ({ key, label, aliases, weight: 1 });
 /** A grid shell has no regional terrain, trees or physics to report; its real home has its own row. */
 export function loadingPath(id: LoadingPathId, own?: Readonly<Record<string, { label: string; weight: number }>>, hybrid = false): Path {
-  const admission = step('admission', 'Product admission', ['product']);
-  const early = [step('modules', 'Application modules'), admission,
+  const early = [step('modules', 'Application modules'),
     step('runtimeModules', 'Runtime modules', ['manifest.load']),
     step('data', 'Texture formats and audio catalogue', ['level.data', 'ktx2', 'audio.preload']),
     step('audioFiles', 'Selected audio downloads')];
@@ -20,7 +19,7 @@ export function loadingPath(id: LoadingPathId, own?: Readonly<Record<string, { l
     label: own?.[key]?.label ?? STEP_INFO[key].label, weight: own?.[key]?.weight ?? STEP_INFO[key].weight });
   const worldKeys = BOOT_STEPS.filter(key => !['weapon', 'assembly', 'menu', 'shaders', 'firstFrame', 'audio'].includes(key));
   const native = id === 'legacy' || hybrid;
-  if (id === 'cell') return { id, steps: [step('admission', 'Product admission'), step('world', 'Region world'),
+  if (id === 'cell') return { id, steps: [step('world', 'Region world'),
     step('loadout', 'Equipment and HUD'), step('gameplay', 'Gameplay and saved state'), step('warm', 'Entry warm-up'),
     step('colliders', 'Colliders and simulation'), step('enter', 'Enter the cell')], ignored: [] };
   if (id === 'crossing') return { id, steps: [step('prepare', 'Prepare destination'), step('boundary', 'Await transfer boundary'),
@@ -30,7 +29,7 @@ export function loadingPath(id: LoadingPathId, own?: Readonly<Record<string, { l
     loadout, leaf('weapon'), step('gameplay', 'Gameplay and saved state', ['level.play']),
     ...(native || id === 'grid' ? [leaf('assembly')] : []), leaf('menu'), step('finish', 'Final activation', ['finish']),
     ...(id === 'grid' ? [step('home', 'Home region', ['crossing']),
-      ...[admission, world, loadout].map(row => repeatedStep(row, 2)),
+      ...[world, loadout].map(row => repeatedStep(row, 2)),
       step('homePrograms', 'Home region shader preparation'), step('road', 'Road system')] : []),
     // MF5: the spawn view's refinement and the first world frame are named steps (no bar share: Nine-only / short)
     { ...step('spawnDetail', 'Spawn detail'), weight: 0.01 }, leaf('shaders'), leaf('firstFrame'), { ...step('worldFrame', 'First world frame'), weight: 0.01 },

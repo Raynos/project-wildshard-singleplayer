@@ -9,7 +9,7 @@ it('publishes the measured cold entry boundaries without timing-based credit', (
   // Preserve the official native timestamps. Completed work now owns credit;
   // elapsed time and the old calibration cannot advance an active stage.
   const origin = 28;
-  const starts = [1052, 2512, 2520] as const;
+  const starts = [2512, 2520] as const;
   let now = origin;
   vi.useFakeTimers();
   vi.spyOn(performance, 'now').mockImplementation(() => now);
@@ -28,14 +28,13 @@ it('publishes the measured cold entry boundaries without timing-based credit', (
     const timeline = currentLoadingTimeline();
     if (timeline === undefined) throw new Error('Missing loading timeline');
     now = starts[0];
-    loading.paintAdmission({phase: 'descriptor', detail: 'Read /shardfiles/sunscar-dunes/shard.json',
-      filesDone: 0, filesTotal: 1, bytesRead: 0, bytesTotal: 1});
-    now = starts[1]; loading.endAdmission();
+    loading.endAdmission();
     const runtime = timeline.begin('runtimeModules');
-    now = starts[2]; runtime.end();
+    now = starts[1]; runtime.end();
     const data = timeline.begin('data');
-    const measured = timeline.snapshot().rows.filter(row => ['admission', 'runtimeModules', 'data'].includes(row.key));
-    expect(measured).toHaveLength(3);
+    const measured = timeline.snapshot().rows.filter(row => ['runtimeModules', 'data'].includes(row.key));
+    expect(measured).toHaveLength(2);
+    expect(timeline.snapshot().rows.some(row=>row.key==='admission'||row.label==='Product admission')).toBe(false);
     for (const [index, row] of measured.entries()) {
       expect(row.startedAt).toBe(starts[index]);
       expect(row.setupAtStart, row.key).toBeTypeOf('number');
