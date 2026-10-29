@@ -18,6 +18,26 @@
 import type { BootSpec } from '../level/spec';
 import type { ChunkFiles } from './bytes';
 import type { Scope } from '../app/scope';
+import { pageScope } from '../app/resources';
+
+let documentEnded = false, observesDocumentEnd = false;
+function ended(): boolean { return documentEnded || pageScope.disposed || pageScope.disposing; }
+function endError(): DOMException { return new DOMException('Boot prefetch document ended', 'AbortError'); }
+/** A cancelled native read can settle while WebKit is tearing down its
+ * origin. Never let that settlement start the next queued request. */
+function observeDocumentEnd(): void {
+  if (observesDocumentEnd) return;
+  observesDocumentEnd = true;
+  // WebKit rejects in-flight fetches before pagehide, while the old origin
+  // still runs promise callbacks. beforeunload precedes that cancellation.
+  pageScope.listen(window, 'beforeunload', () => { documentEnded = true; });
+  pageScope.listen(window, 'pagehide', event => {
+    if (!(event instanceof PageTransitionEvent) || !event.persisted) documentEnded = true;
+  });
+  // A retained document can return from the back/forward cache. Its old
+  // optional queue has ended; future demands use ordinary verified fetches.
+  pageScope.listen(window, 'pageshow', () => { documentEnded = false; });
+}
 
 /** I2: the host's first controllable frame precedes speculative I/O. Recheck after the paint/task boundary;
  * a pause rearms the same observer, and retirement cancels the queued scope work. */
@@ -86,56 +106,83 @@ const landing = (p: string): { done: Promise<void>; settle: () => void } => {
  * that was never queued resolves at once. Waiting here keeps the queue's order and concurrency — a plain early fetch()
  * would start the file on the spot, ahead of the files the world's steps need first.
  */
-export function whenPrefetched(url: string): Promise<void> { return landed.get(pathOf(url))?.done ?? Promise.resolve(); }
+export function whenPrefetched(url: string): Promise<void> {
+  if (ended()) return Promise.reject(endError());
+  return (landed.get(pathOf(url))?.done ?? Promise.resolve()).then(() => { if (ended()) throw endError(); return undefined; });
+}
 
 /**
  * Queue `paths` once `after` has settled (the boot pack streamed): the art and the audio wait for the shard's own files
  * instead of splitting the pipe with them. `whenPrefetched` already knows them, so nobody jumps the queue meanwhile.
  */
 export function prefetchAfter(paths: readonly string[], after: Promise<unknown>): void {
+  observeDocumentEnd();
+  if (ended()) return;
   for (const p of paths) landing(p);
   void (async () => {
     try { await after; } catch { /* a failed pack frees the pipe all the same */ }
+    if (ended()) { for (const p of paths) landing(p).settle(); return; }
     prefetch(paths, EXTRA_CONCURRENCY);
   })();
 }
 
 /** Queue `paths` now; the first plain GET of each is served the prefetched response. Returns how many were queued. */
 export function prefetch(paths: readonly string[], concurrency: number = CONCURRENCY): number {
+  observeDocumentEnd();
+  if (ended()) return 0;
   const fetchNow = window.fetch.bind(window);
   const queue = [...new Set(paths)];
   const queued = new Set(queue);
   for (const p of queue) landing(p);
   const started = new Map<string, Promise<Response>>();
-  let active = 0;
+  let active = 0, closed = false;
   const start = (p: string): Promise<Response> => {
     queued.delete(p);
     active++;
     // read to the end here: the download finishing (not its headers) is what frees the slot for the next file
     const res = fetchNow(p)
       .then(async (r) => (r.ok ? new Response(await r.blob(), { status: r.status, statusText: r.statusText, headers: r.headers }) : r))
-      .finally(() => { active--; landing(p).settle(); pump(); });
+      .finally(() => { active--; landing(p).settle(); if (!closed && !ended()) pump(); });
     res.catch(() => undefined); // a failed prefetch is re-asked for (and its error surfaced) by the step that needs it
     started.set(p, res);
     return res;
   };
   function pump(): void {
+    if (closed || ended()) return;
     for (let free = concurrency - active; free > 0;) {
       const p = queue.shift();
       if (p === undefined) return;
       if (queued.has(p)) { void start(p); free--; }
     }
   }
-  pump();
-  window.fetch = (input, init) => {
+  const redirect: typeof fetch = (input, init) => {
     const req = input instanceof Request ? input : null;
     const method = (init?.method ?? req?.method ?? 'GET').toUpperCase();
     const p = pathOf(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url);
     if (method !== 'GET') return fetchNow(input, init);
+    if (ended()) return Promise.reject(endError());
     const hit = started.get(p) ?? (queued.has(p) ? start(p) : undefined); // asked for before its turn: now
     if (hit === undefined) return fetchNow(input, init);
     started.delete(p); // a body is read once: a second ask for the same file makes its own request
-    return hit.then((r) => (r.ok ? r : fetchNow(input, init)), () => fetchNow(input, init));
+    return hit.then(r => { if (closed || ended()) throw endError(); return r.ok ? r : fetchNow(input, init); }, () => {
+      if (closed || ended()) throw endError();
+      return fetchNow(input, init);
+    });
   };
+  const onHide = (): void => { if (ended()) stop(); };
+  function stop(): void {
+    if (closed) return;
+    closed = true; queue.length = 0; queued.clear(); started.clear();
+    for (const path of paths) landing(path).settle();
+    // Keep the empty redirect as the ending document's fetch fence: a late
+    // cache hint or failed borrowed read must not resurrect a native request.
+    // pageshow reopens ordinary demand if this document returns from BFCache.
+    pageScope.unlisten(window, 'beforeunload', onHide);
+    pageScope.unlisten(window, 'pagehide', onHide);
+  }
+  pageScope.listen(window, 'beforeunload', onHide);
+  pageScope.listen(window, 'pagehide', onHide); pageScope.onDispose(stop);
+  pump();
+  if (!closed) window.fetch = redirect;
   return queued.size + started.size;
 }
