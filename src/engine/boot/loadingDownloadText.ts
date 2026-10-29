@@ -34,7 +34,7 @@ export function loadingDownloadFraction(transfer: DownloadSnapshot, done: boolea
 export function loadingDownloadText(transfer: DownloadSnapshot): string {
   if (transfer.reads !== undefined) {
     const unknown = transfer.reads.unknownSourceBytes === 0 ? '' : ` · ${formatMB(transfer.reads.unknownSourceBytes)} source unknown`;
-    return `${formatMB(transfer.reads.bytes)} · ${formatMB(transfer.reads.cachedBytes)} from cache${unknown}`;
+    return `Spawn view · ${formatMB(transfer.reads.bytes)} · ${formatMB(transfer.reads.cachedBytes)} from cache${unknown}`;
   }
   const network = transfer.unclassifiedFiles > 0 && transfer.unclassifiedBytes === 0
     ? `${formatMB(transfer.networkBytes)} network · ${transfer.unclassifiedFiles} transfers with unknown wire size`
@@ -57,5 +57,5 @@ export function loadingPrefetchText(prefetch: LoadingPrefetchSnapshot): string {
   const bytes = prefetch.presentBytes + prefetch.storedBytes, files = prefetch.presentFiles + prefetch.storedFiles;
   const state = prefetch.phase === 'running' ? 'prefetching' : prefetch.phase === 'done' ? 'prefetch finished' : 'prefetch stopped';
   // Even a finished run can skip a failed product: its discovered set is not an invented whole-set total.
-  return `On disk: ${formatMB(bytes)} of ${formatMB(prefetch.knownBytes)} known so far · ${files} / ${prefetch.knownFiles} files · ${prefetch.productsRead} / ${prefetch.products} products checked · ${state}${prefetch.reason === null ? '' : ` (${prefetch.reason})`}`;
+  return `Streams in play · On disk: ${formatMB(bytes)} of ${formatMB(prefetch.knownBytes)} known so far · ${files} / ${prefetch.knownFiles} files · ${prefetch.productsRead} / ${prefetch.products} products checked · ${state}${prefetch.reason === null ? '' : ` (${prefetch.reason})`}`;
 }

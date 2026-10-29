@@ -26,9 +26,9 @@ export interface OutputDescriptorReader {
   declare?: (path: string, bytes: number) => void;
   read: (path: string, maximum: number) => Promise<Uint8Array>;
   /** I5: read a pack (relative path, exact size); a packed section missing from the cache then comes from its pack */
-  pack?: (path: string, maximum: number) => Promise<Uint8Array>;
+  pack?: (path: string, maximum: number, members: NonNullable<OutputIndex['packs']>[number]['entries']) => Promise<Uint8Array>;
   /** I5: a section served from its pack (no request of its own) completes its declared path. */
-  packedHit?: (path: string) => void;
+  packedHit?: (path: string, hash: string) => void;
   hash: (bytes: Uint8Array) => Promise<string>;
   /** Trusted transport returns owned bytes already checked against this exact hash and size.
    * `stored` proves durable content-cache persistence, not merely a scheduled write. */
@@ -183,7 +183,7 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
       reader.cacheHit?.(section.path, section.hash, bytes.length);
     } else if (bytes === null || bytes === undefined) {
       if (reader.offline) throw new IncompleteOutputCacheError();
-      if (inPack && packed !== undefined) { bytes = await packed.read(section.hash); reader.packedHit?.(section.path); }
+      if (inPack && packed !== undefined) { bytes = await packed.read(section.hash); reader.packedHit?.(section.path, section.hash); }
       else bytes = await reader.read(section.path, section.bytes);
       if (bytes.length !== section.bytes || await reader.hash(bytes) !== section.hash) throw new Error('Shardfile section hash or size mismatch');
       if (reader.backgroundStore !== undefined) {

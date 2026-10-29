@@ -27,14 +27,14 @@ it('closes actual entry reads at ready without completing unused product-bank de
     loading.waiting('Prepared entry content');
     now = 400; vi.advanceTimersByTime(32);
     expect(loading.root.dataset['download']).toBe('99');
-    expect(loading.root.querySelector('[data-el="dlFact"]')?.textContent).toBe('52.0 MB · 51.6 MB from cache');
+    expect(loading.root.querySelector('[data-el="dlFact"]')?.textContent).toBe('Spawn view · 52.0 MB · 51.6 MB from cache');
     const done = loading.done();
     expect(loading.root.dataset['download']).toBe('100');
     expect(loading.root.dataset['readBytes']).toBe('52000000');
     expect(loading.root.dataset['pendingBytes']).toBe('41000000');
     expect(loading.root.dataset['readsClosed']).toBe('true');
     recordReadDownload('/background.bin', 1_000_000, false);
-    expect(loading.root.querySelector('[data-el="dlFact"]')?.textContent).toBe('52.0 MB · 51.6 MB from cache');
+    expect(loading.root.querySelector('[data-el="dlFact"]')?.textContent).toBe('Spawn view · 52.0 MB · 51.6 MB from cache');
     await vi.advanceTimersByTimeAsync(317); await done;
   } finally { loading.scope.dispose(); }
 });

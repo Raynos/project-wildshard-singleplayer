@@ -985,8 +985,8 @@ only their sections and schemas. The boot byte counter declares selected
 audio and menu art before prefetch or decoding starts; background audio
 inventories remain separate. Entry DOWNLOAD uses `trackReads()` and
 `recordReadDownload(url, bytes, cached?)`: actual unique delivered bodies,
-with the cache subset labelled separately. Pack members and unused product
-banks grant no body receipt. A validated Home snapshot counts its own
+with cache provenance. `declareDownloadPack` maps consumed members once;
+its envelope and unused catalogues add no content. A validated Home snapshot counts its own
 cache payload, not skipped source GLBs. Unknown provenance stays explicit.
 `beginDownloadRead(url)` observes existing demand; it starts no IO.
 `closeReads()` freezes the entry at Loading.done; later prefetch cannot

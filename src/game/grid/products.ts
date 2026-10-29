@@ -23,7 +23,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { EntrywaysSchema } from '@wildshard/format/entryways';
 import * as v from 'valibot';
-import { recordCachedDownload, recordReadDownload } from '@wildshard/engine/boot/download';
+import { declareDownloadPack, recordCachedDownload, recordPackedDownload, recordReadDownload } from '@wildshard/engine/boot/download';
 import { GridAdmissionPriority } from './admissionPriority';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
 import { readCheckedOutputIndex } from '../shardfile/outputIndexChecks';
@@ -61,7 +61,8 @@ async function readGridProductIndex(url: string, identity: string, options: Prod
   }
   const { slug: declaredIdentity } = index.identity;
   if (declaredIdentity !== identity.replace(/^_/u, '')) throw new Error('Grid product index identity differs from its cell');
-  const packed = packReads(index.packs, new Set([...index.sections, ...index.schemas].map(row => row.hash)), async (path, maximum) => {
+  const packed = packReads(index.packs, new Set([...index.sections, ...index.schemas].map(row => row.hash)), async (path, maximum, members) => {
+    declareDownloadPack(new URL(path, url).href, maximum, members);
     const response = await options.fetch(new URL(path, url).href);
     if (response.status === 206) { await response.body?.cancel(); throw new Error('Grid pack requires a whole response'); }
     const packBytes = await boundedResponse(response, maximum);
@@ -81,6 +82,7 @@ async function readGridProductFile(at: GridProductIndex, path: string, hash: str
   if (held !== null && held !== undefined) { recordCachedDownload(hash, bytes.length); recordReadDownload(address, bytes.length, true); }
   else {
     if (!at.packed.has(hash)) recordReadDownload(address, bytes.length);
+    else recordPackedDownload(address, hash);
     const cache = options.cache;
     // These verified render bytes publish no visited/offline product. A cache
     // with the explicit background port must not hold ringsReady on disk IO;

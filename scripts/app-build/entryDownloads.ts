@@ -2,8 +2,7 @@ import {createHash} from 'node:crypto';
 import {readFileSync, writeFileSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {assembleOutputShardfile, parseOutputIndex} from '../../src/format/outputIndex';
-import {controlFileHashes} from '../../src/format/admissionControl';
-import {entryFileSteps} from '../../src/format/tierSelection';
+import {entryReadSet} from './entryReadSet';
 import {bootProductTotals} from './bootProducts';
 import type {EntryDownloadRow} from '../../src/game/shardfile/entryTransport';
 import ts from '@typescript/typescript6';
@@ -26,15 +25,11 @@ export function writeEntryDownloads(outDir: string, root: string): {entryDownloa
       if (body.length !== row.bytes || createHash('sha256').update(body).digest('hex') !== row.hash) throw new Error('Entry section differs from index');
       sections.set(row.name, JSON.parse(body.toString('utf8')));
     }
-    const source = assembleOutputShardfile(input, sections), required = controlFileHashes(source);
+    const source = assembleOutputShardfile(input, sections);
     indexes[directory] = `${prefix}shard.json?v=${createHash('sha256').update(bytes).digest('hex').slice(0, 8)}`;
     const pair = {phone: '', desktop: ''};
     for (const tier of ['phone', 'desktop'] as const) {
-    const selection = entryFileSteps(source, tier, {index, sections});
-    let turn = selection.next(); while (turn.done !== true) turn = selection.next();
-    const inactive = turn.value;
-    const wanted = new Set([...index.sections, ...index.schemas].map(row => row.hash));
-    for (const file of index.files) if (required.has(file.hash) && !inactive.has(file.hash)) wanted.add(file.hash);
+    const wanted = entryReadSet(source, tier, index, sections);
     const rows: EntryDownloadRow[] = [], packed = new Set<string>(), metadata = new Set([...index.sections, ...index.schemas].map(row => row.hash));
     for (const pack of index.packs ?? []) {
       if (!pack.entries.some(row => wanted.has(row.hash))) continue;

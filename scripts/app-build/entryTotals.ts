@@ -5,6 +5,9 @@ import {join} from 'node:path';
 import {PickupCatalogueSchema} from '../../src/format/specimenCatalogue';
 import {assetTableAddresses, readAssetTables} from './assetTables.mjs';
 import {readGridSeams} from './gridSeams.mjs';
+import {assembleOutputShardfile, parseOutputIndex} from '../../src/format/outputIndex';
+import {entryReadSet} from './entryReadSet';
+import {createHash} from 'node:crypto';
 
 const size = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
 const files = v.array(v.tuple([v.string(), size]));
@@ -27,7 +30,7 @@ export interface EntryTotals {
  * input. Transport receipts remain the sole completion authority. */
 export function entryTotals(input: unknown, strips: Readonly<Record<string, Readonly<Record<string, readonly Address[]>>>>,
   root: string): EntryTotals {
-  const bank = v.parse(schema, input), shared = new Map<string, number>();
+  const bank = v.parse(schema, input), shared = new Map<string, number>(), entrySizes = new Map<string, number>();
   const addPublic = (url: string): void => {
     if (!url.startsWith('/assets/') || url.split('/').some(part => part === '..')) throw new Error('Invalid entry public file');
     shared.set(url, statSync(join(root, 'public', url)).size);
@@ -62,9 +65,28 @@ export function entryTotals(input: unknown, strips: Readonly<Record<string, Read
     }
     if (flow === 'grid' && seams !== undefined) selected.set(seams.url, seams.bytes);
     for (const row of addresses) selected.set(row.url, row.bytes);
+    // An extras catalogue is not a demand for every art/model it can name.
     const extra = flow === 'client' ? bank.extras[prefix] : undefined;
-    if (extra !== undefined) selected.set(extra[0], extra[1] + extra[2]);
-    return (product.length === 4 ? product[tier + 2] ?? product[1] : product[1])
+    if (extra !== undefined) selected.set(extra[0], extra[1]);
+    const path = join(root, 'out', slug, 'shard.json'), key = `${slug}:${tier}`;
+    let entryBytes = entrySizes.get(key);
+    if (entryBytes === undefined) {
+    entryBytes = product.length === 4 ? product[tier + 2] ?? product[1] : product[1];
+    if (existsSync(path)) {
+      const bytes = readFileSync(path), productInput: unknown = JSON.parse(bytes.toString('utf8')), index = parseOutputIndex(productInput);
+      const sections = new Map<string, unknown>();
+      for (const row of index.sections) {
+        const body = readFileSync(join(root, 'out', slug, row.path));
+        if (body.length !== row.bytes || createHash('sha256').update(body).digest('hex') !== row.hash) throw new Error('Entry total section differs from index');
+        sections.set(row.name, JSON.parse(body.toString('utf8')));
+      }
+      const wanted = entryReadSet(assembleOutputShardfile(productInput, sections), tier === 0 ? 'phone' : 'desktop', index, sections);
+      entryBytes = bytes.length + [...index.sections, ...index.schemas].reduce((sum, row) => sum + row.bytes, 0)
+        + index.files.reduce((sum, row) => sum + (wanted.has(row.hash) ? row.compressed : 0), 0);
+    }
+    entrySizes.set(key, entryBytes);
+    }
+    return entryBytes
       + [...selected.values()].reduce((sum, bytes) => sum + bytes, 0);
   };
   const client: Record<string, Pair> = {}, grid: Record<string, Record<string, Pair>> = {};

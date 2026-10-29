@@ -1,7 +1,7 @@
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
 import { isDev } from '@wildshard/engine/core/devMode';
 import { memoryAttribution } from '@wildshard/engine/core/memoryAttribution';
-import { declareDownloadFile, recordCachedDownload, recordPackedDownload, recordReadDownload } from '@wildshard/engine/boot/download';
+import { declareDownloadFile, declareDownloadPack, recordCachedDownload, recordPackedDownload, recordReadDownload } from '@wildshard/engine/boot/download';
 import { boundedResponse, type ProductOptions } from './product';
 import { outputBlobUrl, outputDescriptor } from './outputDescriptor';
 import { readPackWhole } from './packReads';
@@ -105,7 +105,8 @@ export class ClientAssets {
     const member = pack?.entries.find(entry => entry.hash === ref);
     if (packs === undefined || pack === undefined || member === undefined) return undefined;
     if (member.bytes !== cap) throw new Error('Resident packed member size mismatch');
-    const wire = await readPackWhole(packs, pack, async (path, maximum) => {
+    const wire = await readPackWhole(packs, pack, async (path, maximum, members) => {
+      declareDownloadPack(new URL(path, this.options.base).href, maximum, members);
       const fetch = priority === 'low' ? this.options.backgroundFetch ?? this.options.fetch : this.options.fetch;
       const response = await fetch(new URL(path, this.options.base).href);
       if (response.status === 206) { await response.body?.cancel(); throw new Error('Resident pack requires a whole response'); }

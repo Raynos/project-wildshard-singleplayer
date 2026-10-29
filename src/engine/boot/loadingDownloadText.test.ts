@@ -7,7 +7,7 @@ const traffic = { networkBytes: 1_300_000, cachedBytes: 2_000_000, pendingBytes:
 it('labels actual delivered content and its cache subset without a guessed tier denominator', () => {
   const reads = {bytes: 52_000_000, cachedBytes: 51_600_000, unknownSourceBytes: 0, pendingBytes: 0, pendingFiles: 0, closed: false};
   const snapshot = {...traffic, expectedBytes: 101_300_000, reads};
-  expect(loadingDownloadText(snapshot)).toBe('52.0 MB · 51.6 MB from cache');
+  expect(loadingDownloadText(snapshot)).toBe('Spawn view · 52.0 MB · 51.6 MB from cache');
   expect(loadingDownloadFraction(snapshot, false)).toBe(0.99);
   expect(loadingDownloadFraction({...snapshot, reads: {...reads, closed: true}}, true)).toBe(1);
   expect(loadingDownloadText({...snapshot, reads: {...reads, unknownSourceBytes: 1_000_000}})).toContain('1.00 MB source unknown');
@@ -62,7 +62,7 @@ it('counts Safari\'s unsized service-worker transfers by body size, never as a m
 
 it('the grid prefetch row reports disk progress against the set known so far, and stops honestly', () => {
   expect(loadingPrefetchFraction(prefetch)).toBe(0.5);
-  expect(loadingPrefetchText(prefetch)).toBe('On disk: 10.0 MB of 20.0 MB known so far · 5 / 10 files · 3 / 25 products checked · prefetching');
+  expect(loadingPrefetchText(prefetch)).toBe('Streams in play · On disk: 10.0 MB of 20.0 MB known so far · 5 / 10 files · 3 / 25 products checked · prefetching');
   expect(loadingPrefetchText({ ...prefetch, phase: 'quota', reason: 'storage quota' })).toContain('prefetch stopped (storage quota)');
   const cached = { ...prefetch, productsRead: 25, presentFiles: 7, presentBytes: 14_000_000 };
   expect(loadingPrefetchFraction(cached)).toBeLessThan(1);

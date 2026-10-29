@@ -1,5 +1,5 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
-import { declareDownloadFile, noteDownloadRead, recordCachedDownload, recordPackedDownload, recordReadDownload } from '@wildshard/engine/boot/download';
+import { declareDownloadFile, declareDownloadPack, noteDownloadRead, recordCachedDownload, recordPackedDownload, recordReadDownload } from '@wildshard/engine/boot/download';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -225,11 +225,12 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
       const url = new URL(path, base).href, bytes = await boundedResponse(await options.fetch(url), cap);
       recordReadDownload(url, bytes.length); return bytes;
     },
-    pack: async (path, cap) => {
+    pack: async (path, cap, members) => {
+      declareDownloadPack(new URL(path, base).href, cap, members);
       const url = new URL(path, base).href, bytes = await boundedResponse(await options.fetch(url), cap);
       recordReadDownload(url, bytes.length); return bytes;
     },
-    packedHit: path => { recordPackedDownload(new URL(path, base).href); },
+    packedHit: (path, hash) => { recordPackedDownload(new URL(path, base).href, hash); },
     ...(cache?.verifiedAsset === undefined && options.transport === undefined ? {} : {
       verified: (hash: string, path: string, cap: number) => waitFor(`Read ${productResourceRole(path)}`, (async () => {
         const bytes = await cache?.verifiedAsset?.(hash);
@@ -495,7 +496,8 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
   };
   // I5: a file missing from the cache comes from its pack (one read for the phase's small files) instead of its own request
   const packed = options.offline ? undefined : packReads(outputDescriptor(source)?.index.packs, new Set(addresses.map(([hash]) => hash)),
-    async (path, cap) => {
+    async (path, cap, members) => {
+      declareDownloadPack(new URL(path, base).href, cap, members);
       const url = new URL(path, base).href, bytes = await boundedResponse(await options.fetch(url), cap);
       recordReadDownload(url, bytes.length); return bytes;
     }, options.hash);

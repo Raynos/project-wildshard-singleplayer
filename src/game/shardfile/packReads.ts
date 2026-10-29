@@ -9,7 +9,7 @@ const sharedPacks = new WeakMap<object, Map<string, SharedPack>>();
  * and later demand waves. Failed attempts leave no retained rejection. The weak
  * owner lets the bytes go with their product, rather than a global URL cache. */
 export function readPackWhole(owner: object, pack: Pack,
-  read: (path: string, maximum: number) => Promise<Uint8Array>, hash: (bytes: Uint8Array) => Promise<string>, identity: object = hash): Promise<Uint8Array> {
+  read: (path: string, maximum: number, members: Pack['entries']) => Promise<Uint8Array>, hash: (bytes: Uint8Array) => Promise<string>, identity: object = hash): Promise<Uint8Array> {
   if (pack.bytes < 1 || pack.bytes > 4_194_304) return Promise.reject(new Error('Shardfile pack size exceeds 4 MiB'));
   let whole = wholePacks.get(owner);
   if (whole === undefined) { whole = new Map(); wholePacks.set(owner, whole); }
@@ -24,7 +24,7 @@ export function readPackWhole(owner: object, pack: Pack,
   if (known?.pending !== undefined) { held.set(key, known.pending); return known.pending; }
   if (present !== undefined) { const borrowed = Promise.resolve(present); held.set(key, borrowed); return borrowed; }
   const bytes = (async () => {
-    const wire = await read(pack.path, pack.bytes);
+    const wire = await read(pack.path, pack.bytes, pack.entries);
     if (wire.length !== pack.bytes || await hash(wire) !== pack.hash) throw new Error('Shardfile pack hash or size mismatch');
     return wire;
   })();
@@ -49,7 +49,7 @@ export interface PackReads {
 /** One phase's pack reads (a descriptor's sections, or an admission's files): `members` limits which packs it may read,
  *  so a phase never fetches the other phase's pack. Whole verified bytes are shared only within this index's lifetime. */
 export function packReads(packs: OutputIndex['packs'], members: ReadonlySet<string>,
-  read: (path: string, maximum: number) => Promise<Uint8Array>, hash: (bytes: Uint8Array) => Promise<string>): PackReads {
+  read: (path: string, maximum: number, members: Pack['entries']) => Promise<Uint8Array>, hash: (bytes: Uint8Array) => Promise<string>): PackReads {
   const where = new Map<string, { readonly pack: NonNullable<OutputIndex['packs']>[number]; readonly offset: number; readonly bytes: number }>();
   for (const pack of packs ?? []) {
     // Admission may request only the control subset of a compiler pack. Do not

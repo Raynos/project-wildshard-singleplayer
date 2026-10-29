@@ -91,6 +91,8 @@ export class DownloadAccounting {
   private readsClosed = false;
   private readonly bodies = new Map<string, ReadBody>();
   private readonly requests = new Map<string, number>();
+  private readonly packMembers = new Map<string, {pack: string; bytes: number}>();
+  private readonly consumedMembers = new Map<string, Set<string>>();
   /** Observe selected reads, rather than treating a whole product as demand. */
   trackReads(): void { this.readsEnabled = true; }
   /** The native entry barrier closes this observation window, not its IO. */
@@ -109,6 +111,11 @@ export class DownloadAccounting {
     else {
       prior.bytes = Math.max(prior.bytes, bytes);
       if (cached !== undefined && (prior.cached === undefined || at < prior.sourceAt)) { prior.cached = cached; prior.sourceAt = at; }
+    }
+    const receipt = this.bodies.get(key);
+    if (receipt !== undefined && this.files.get(key)?.container === true) for (const member of this.consumedMembers.get(key) ?? []) {
+      const body = this.bodies.get(member);
+      if (body !== undefined) this.read(member, body.bytes, receipt.cached, receipt.sourceAt);
     }
   }
   private expected: number | undefined;
@@ -163,6 +170,12 @@ export class DownloadAccounting {
     this.declare(input, bytes);
     const file = this.files.get(this.url(input)); if (file !== undefined) file.container = true;
   }
+  /** The verified envelope and its members represent the same content bytes. */
+  pack(input: string, bytes: number, members: readonly {readonly hash: string; readonly bytes: number}[]): void {
+    this.container(input, bytes);
+    const pack = this.url(input);
+    for (const member of members) this.packMembers.set(member.hash, {pack, bytes: member.bytes});
+  }
   /** Reserve an exact compiler-known directory total before its index is read.
    * File declarations replace the reserve byte for byte; only receipts credit completion. */
   reserve(input: string, bytes: number): void {
@@ -210,8 +223,16 @@ export class DownloadAccounting {
   }
   /** iPhone downloads I5: a member read from its pack completes without a receipt of its own (the pack's receipt
    *  carries the bytes). */
-  packed(input: string): void {
-    const file = this.files.get(this.url(input)); if (file !== undefined) file.complete = true;
+  packed(input: string, identity?: string): void {
+    const key = this.url(input), file = this.files.get(key); if (file !== undefined) file.complete = true;
+    const hash = identity ?? /[a-f0-9]{64}/u.exec(key)?.[0], member = hash === undefined ? undefined : this.packMembers.get(hash);
+    if (member !== undefined) {
+      let consumed = this.consumedMembers.get(member.pack);
+      if (consumed === undefined) { consumed = new Set(); this.consumedMembers.set(member.pack, consumed); }
+      consumed.add(key);
+      const receipt = this.bodies.get(member.pack);
+      this.read(key, member.bytes, receipt?.cached, receipt?.sourceAt);
+    }
     this.activity++;
   }
   /** A validated derived result replaces this exact canonical input. */
@@ -274,7 +295,8 @@ export class DownloadAccounting {
     this.unknown.forEach(receipt => { unclassifiedBytes += Math.max(receipt.bytes,
       this.bodyHints.get(receipt.url) ?? 0); });
     let readBytes = 0, readCachedBytes = 0, unknownSourceBytes = 0, readPendingBytes = 0, readPendingFiles = 0;
-    for (const body of this.bodies.values()) { readBytes += body.bytes; if (body.cached === true) readCachedBytes += body.bytes; else if (body.cached === undefined) unknownSourceBytes += body.bytes; }
+    for (const [url, body] of this.bodies) { if (this.files.get(url)?.container === true) continue;
+      readBytes += body.bytes; if (body.cached === true) readCachedBytes += body.bytes; else if (body.cached === undefined) unknownSourceBytes += body.bytes; }
     if (!this.readsClosed) for (const key of this.requests.keys()) if (!this.bodies.has(key)) { readPendingBytes += this.files.get(key)?.bytes ?? 0; readPendingFiles++; }
     return { networkBytes: this.network, cachedBytes, pendingBytes, filesDone: this.completed + this.cache.size,
       filesTotal: this.completed + this.cache.size + pendingFiles, unclassifiedBytes, unclassifiedFiles: this.unknown.size,
@@ -332,6 +354,10 @@ export function observeDownloadAccounting(accounting: DownloadAccounting): () =>
 export function declareDownloadFile(url: string, bytes: number): void { accountingTargets(accounting => { accounting.declare(url, bytes); }); }
 /** Record a container's transport without adding its members' content twice. */
 export function declareDownloadContainer(url: string, bytes: number): void { accountingTargets(accounting => { accounting.container(url, bytes); }); }
+/** Observed pack membership; only actual member consumption credits content. */
+export function declareDownloadPack(url: string, bytes: number, members: readonly {readonly hash: string; readonly bytes: number}[]): void {
+  accountingTargets(accounting => { accounting.pack(url, bytes, members); });
+}
 /** Reserve only a selected directory, never another home's bytes or completion. */
 export function reserveDownloadGroup(url: string, bytes: number): void { accountingTargets(accounting => { accounting.reserve(url, bytes); }); }
 /** Reserve and then itemize a compiler-owned per-home asset list. */
@@ -375,7 +401,7 @@ export function declareModuleFiles(input: unknown): void {
 /** Verified immutable cache reads stay separate from downloaded bytes. */
 export function recordCachedDownload(key: string, bytes: number, url?: string): void { accountingTargets(accounting => { accounting.cached(key, bytes, url); }); }
 /** I5: a declared file served from its pack is complete; the pack's own receipt counts the bytes. */
-export function recordPackedDownload(url: string): void { accountingTargets(accounting => { accounting.packed(url); }); }
+export function recordPackedDownload(url: string, hash?: string): void { accountingTargets(accounting => { accounting.packed(url, hash); }); }
 /** Successful derived restoration satisfies named inputs without a wire/cache credit. */
 export function recordRestoredDownload(url: string, bytes: number): void { accountingTargets(accounting => { accounting.restored(url, bytes); }); }
 /** Actual delivered bodies, with cache provenance only when the reader knows. */

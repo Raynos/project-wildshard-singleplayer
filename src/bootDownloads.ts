@@ -1,5 +1,5 @@
 import type {AssetTableAddress} from './assetTables';
-import { declareDownloadFile, reserveDownloadGroup, reserveDownloadBank, preloadModuleGroups, declareModuleGroups } from '@wildshard/engine/boot/download';
+import { declareDownloadFile, readDownloadFiles, preloadModuleGroups, declareModuleGroups } from '@wildshard/engine/boot/download';
 import { prepareCodePack } from '@wildshard/engine/boot/codePack';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { gridStripDownloadRows } from '@wildshard/game/grid/entryDownloads';
@@ -96,7 +96,8 @@ export function reserveHomeDownload(input: unknown, descriptor: string | undefin
     || typeof full !== 'number' || !Number.isSafeInteger(full) || full < indexBytes
     || row.length === 4 && !row.slice(2).every(value => typeof value === 'number' && Number.isSafeInteger(value) && value >= indexBytes && value <= full)
     || typeof total !== 'number' || !Number.isSafeInteger(total) || total < indexBytes) throw new Error('Invalid home download total');
-  reserveDownloadGroup(prefix.href, total);
+  // The full product contains later streaming and inactive variants. Knowing
+  // their sizes is not a demand for those bodies. Readers declare their set.
   declareDownloadFile(url.href, indexBytes);
 }
 
@@ -120,7 +121,7 @@ export function prepareHomeExtras(input: unknown, descriptor: string | undefined
     || typeof expectedHash !== 'string' || !/^[a-f0-9]{64}$/u.test(expectedHash) || !url.endsWith(`-${expectedHash.slice(0, 8)}.json`)) throw new Error('Invalid home extra inventory');
   const target = new URL(url, base).href;
   const live = (): void => { if (owner.disposed) throw new Error('Retired home download inventory'); };
-  live(); const itemize = reserveDownloadBank(target, total); declareDownloadFile(target, bytes);
+  live(); declareDownloadFile(target, bytes);
   return { read: async () => {
     live();
     const response = await fetcher(target); live();
@@ -143,6 +144,10 @@ export function prepareHomeExtras(input: unknown, descriptor: string | undefined
     const hash = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
     if (hash !== expectedHash) throw new Error('Home download inventory hash differs');
     const files: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(wire));
-    itemize(files);
+    const rows = readDownloadFiles(files);
+    if (rows.reduce((sum, file) => sum + file[1], 0) !== total
+      || new Set(rows.map(file => new URL(file[0], base).href)).size !== rows.length) throw new Error('Download bank total differs');
+    // This is a catalogue of possible public assets, not an instruction to
+    // fetch every one. Actual reads retain their own declarations/receipts.
   } };
 }

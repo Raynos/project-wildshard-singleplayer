@@ -9,6 +9,7 @@ import {createHash} from 'node:crypto';
 import {emptyShardfile} from '@wildshard/sdk/author';
 import {outputSectionPayloads} from '../src/format/outputFields';
 import {writeEntryBootstrap} from '../scripts/app-build/entryDownloads';
+import {entryTotals} from '../scripts/app-build/entryTotals';
 import {gridEntryDownloads} from '../scripts/app-build/gridEntryDownloads';
 import {startGridStripDownload, gridStripDownloadRows} from '../src/game/grid/entryDownloads';
 
@@ -37,6 +38,11 @@ test('plain build schedules exact tier/phase packs and rejects changed section b
       admission: {budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps,
         critical: source.critical, library: source.library, late: source.late}, sections, schemas: [], files, packs, runtime: null};
     const indexBytes = JSON.stringify(index); writeFileSync(resolve(product, 'shard.json'), indexBytes);
+    const expected = Buffer.byteLength(indexBytes) + sections.reduce((sum, row) => sum + row.bytes, 0) + 3;
+    const totals = entryTotals({common: [], client: [], grid: [], selection: {}, optional: {files: [], groups: {}},
+      products: {'/shardfiles/example/': [Buffer.byteLength(indexBytes), 1_000_000, 900_000, 800_000]},
+      extras: {}, code: {entries: {}}}, {}, root);
+    expect(totals.client['example']).toEqual([expected, expected]);
     writeFileSync(resolve(out, 'index.html'), '<head><script type="application/json" id="boot-module-files">{"common":[]}</script></head>');
     writeEntryBootstrap(out, root);
     const html = readFileSync(resolve(out, 'index.html'), 'utf8'), match = /id="boot-module-files">([^<]+)</u.exec(html);

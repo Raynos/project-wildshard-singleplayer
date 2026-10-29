@@ -15,17 +15,19 @@ it('counts delivered bodies rather than the unused remainder of a tier bank', ()
   expect(accounting.snapshot().reads?.bytes).toBe(60_300_000);
 });
 
-it('counts one delivered pack envelope without inventing reads of its members or restored inputs', () => {
+it('counts consumed pack members once, never their envelope or unused siblings', () => {
   const accounting = new DownloadAccounting('https://example.test/'); accounting.trackReads();
-  accounting.container('/pack.bin', 80); accounting.declare('/member.bin', 200);
+  accounting.pack('/pack.bin', 80, [{hash: 'member', bytes: 50}, {hash: 'unused', bytes: 30}]); accounting.declare('/member.bin', 50);
   accounting.resource({name: 'https://example.test/pack.bin', startTime: 1, transferSize: 120,
     encodedBodySize: 80, decodedBodySize: 80, workerStart: 0, serverTiming: []});
-  accounting.read('/pack.bin', 80, false, 2); accounting.packed('/member.bin');
+  accounting.read('/pack.bin', 80, false, 2); accounting.packed('/member.bin', 'member');
   accounting.restored('/original.glb', 500);
   expect(accounting.snapshot()).toMatchObject({networkBytes: 120, restoredBytes: 500,
-    reads: {bytes: 80, cachedBytes: 0, unknownSourceBytes: 0}});
+    reads: {bytes: 50, cachedBytes: 0, unknownSourceBytes: 0}});
+  accounting.cached('member', 50, '/member.bin');
+  expect(accounting.snapshot().reads).toMatchObject({bytes: 50, cachedBytes: 0});
   accounting.read('cache:home:validated-snapshot', 300, true);
-  expect(accounting.snapshot().reads).toMatchObject({bytes: 380, cachedBytes: 300});
+  expect(accounting.snapshot().reads).toMatchObject({bytes: 350, cachedBytes: 300});
 });
 
 it('deduplicates page, worker and verified-body evidence while retaining the first known supplier', () => {

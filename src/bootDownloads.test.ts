@@ -3,12 +3,13 @@ import { reserveHomeDownload, prepareHomeExtras } from './bootDownloads';
 import { DownloadAccounting, installDownloadAccounting } from '@wildshard/engine/boot/download';
 
 const base = 'https://game.test/';
-test('only the chosen home reserves bytes, before index receipt and individual declarations', () => {
+test('only the chosen index is declared; a full product budget is not entry demand', () => {
   const accounting = new DownloadAccounting(base), close = installDownloadAccounting(accounting);
   try {
     const rows = { '/shardfiles/first/': [10, 100], '/shardfiles/other/': [50, 5000] };
     reserveHomeDownload(rows, '/shardfiles/first/shard.json', base);
-    expect(accounting.snapshot()).toMatchObject({ declaredBytes: 100, declaredDoneBytes: 0, declaredFiles: 1, unitemizedBytes: 90, networkBytes: 0 });
+    expect(accounting.snapshot()).toMatchObject({ declaredBytes: 10, declaredDoneBytes: 0, declaredFiles: 1, networkBytes: 0 });
+    expect(accounting.snapshot().unitemizedBytes).toBeUndefined();
     accounting.declare('/shardfiles/first/sections/world.json', 30);
     accounting.declare('/shardfiles/first/blobs/body.bin', 60);
     reserveHomeDownload(rows, '/shardfiles/first/shard.json', base);
@@ -27,7 +28,7 @@ test('legacy/external paths do not reserve a product and malformed selected fact
   } finally { close(); }
 });
 
-test('selected extras replace their reserve exactly after hash/size admission, without fetching model bytes', async () => {
+test('selected extras verify the full catalogue without declaring or fetching its unused model bodies', async () => {
   const accounting = new DownloadAccounting(base), close = installDownloadAccounting(accounting);
   try {
     const text = JSON.stringify([['/assets/model.glb', 30], ['/assets/card.webp', 10]]);
@@ -36,11 +37,11 @@ test('selected extras replace their reserve exactly after hash/size admission, w
     const url = `/assets/boot-first-${hash.slice(0, 8)}.json`, reads: string[] = [];
     const read: typeof fetch = input => { reads.push(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url); return Promise.resolve(new Response(text)); };
     const load = prepareHomeExtras({ '/shardfiles/first/': [url, bytes.length, 40, hash] }, '/shardfiles/first/shard.json', base, { disposed: false }, read);
-    expect(accounting.snapshot()).toMatchObject({ declaredBytes: 40 + bytes.length, unitemizedBytes: 40, declaredFiles: 1 });
+    expect(accounting.snapshot()).toMatchObject({ declaredBytes: bytes.length, declaredFiles: 1 });
     if (load === null) throw new Error('Missing bank');
     await load.read();
     expect(reads).toEqual([new URL(url, base).href]);
-    expect(accounting.snapshot()).toMatchObject({ declaredBytes: 40 + bytes.length, declaredDoneBytes: 0, declaredFiles: 3 });
+    expect(accounting.snapshot()).toMatchObject({ declaredBytes: bytes.length, declaredDoneBytes: 0, declaredFiles: 1 });
     expect(accounting.snapshot().unitemizedBytes).toBeUndefined();
   } finally { close(); }
 });
@@ -53,7 +54,8 @@ test('changed/oversized/retired metadata never publishes a file prefix', async (
         '/shardfiles/first/shard.json', base, owner, () => { if (mode === 'retired') owner.disposed = true; return Promise.resolve(new Response(body)); });
       if (load === null) throw new Error('Missing bank');
       await expect(load.read()).rejects.toThrow(mode === 'size' ? 'Oversized' : mode === 'retired' ? 'Retired' : 'hash differs');
-      expect(accounting.snapshot()).toMatchObject({ declaredFiles: 1, unitemizedBytes: 40, declaredDoneBytes: 0 });
+      expect(accounting.snapshot()).toMatchObject({ declaredFiles: 1, declaredDoneBytes: 0 });
+      expect(accounting.snapshot().unitemizedBytes).toBeUndefined();
     } finally { close(); }
   }
 });
