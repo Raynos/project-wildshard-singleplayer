@@ -10,6 +10,7 @@ import { workSlice } from '@wildshard/engine/core/workSlice';
 import { presenting } from '@wildshard/engine/core/framePacing';
 import { constructionCheckpoint } from '../shardfile/constructionCheckpoint';
 import { PreparationReads } from '../shardfile/preparationReads';
+import { wholeGeometryInputs } from '../shardfile/wholeInputs';
 import { TIER } from '@wildshard/engine/core/tier';
 import { readHomeBuildGeometry, saveHomeBuildGeometry } from '../shardfile/homeBuildCache';
 import { defineSceneModels, type BakedModelMetadata } from '@wildshard/engine/models/model';
@@ -2000,8 +2001,7 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
   if (product === null) throw new Error('Whole geometry needs an admitted or declared product');
   const timing = clientPreparationBatch(product.source.identity.slug, 'whole', WHOLE_TIMING_PHASES);
   const props = typeof source === 'string' ? product.source.props : source.props;
-  const hashes = refs ?? [...props?.tiles.filter(row => row.lod === 0).flatMap(row => [row.file].concat(row.additionalFiles ?? [])) ?? [],
-    ...typeof source === 'string' ? props?.wholeLibrary ?? [] : []];
+  const hashes = refs ?? wholeGeometryInputs(props, typeof source === 'string');
   const homeKey = `whole:${JSON.stringify([hashes, TIER])}`;
   const restored = await readHomeBuildGeometry(product.source, homeKey);
   if (restored !== null) {

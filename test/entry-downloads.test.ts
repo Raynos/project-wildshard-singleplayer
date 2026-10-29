@@ -11,6 +11,32 @@ import {writeEntryBootstrap} from '../scripts/app-build/entryDownloads';
 import {writeSpawnManifests} from '../scripts/app-build/entryTotals';
 import {gridEntryDownloads} from '../scripts/app-build/gridEntryDownloads';
 import {startGridStripDownload, gridStripDownloadRows} from '../src/game/grid/entryDownloads';
+import {entryReadSet} from '../scripts/app-build/entryReadSet';
+import {wholeGeometryInputs} from '../src/game/shardfile/wholeInputs';
+
+test('named native assembly declares the same ordered whole inputs it actually reads', () => {
+  const source = emptyShardfile({slug: 'example', name: 'Example', author: 'Test', revision: 1, seed: 1});
+  const [fine, extra, coarse, library] = ['1', '2', '3', '4'].map(value => value.repeat(64));
+  if (fine === undefined || extra === undefined || coarse === undefined || library === undefined) throw new Error('Missing input fixture');
+  source.props = {version: 1, family: 'fixture', tiles: [
+    {lod: 0, x: 6, z: 4, file: fine, additionalFiles: [extra]}, {lod: 0, x: 7, z: 4, file: fine},
+    {lod: 1, x: 3, z: 2, file: coarse},
+  ], wholeLibrary: [library], models: [], panels: [], colliders: [], textures: [], far: null};
+  source.files.push(...[fine, extra, coarse, library].map(hash => ({hash, kind: 'glb' as const, compressed: 1,
+    decoded: 1, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false})));
+  source.library.push(library);
+  // Input order and duplicates form the native geometry-cache identity.
+  expect(wholeGeometryInputs(source.props, false)).toEqual([fine, extra, fine]);
+  expect(wholeGeometryInputs(source.props, true)).toEqual([fine, extra, fine, library]);
+  const index = {files: source.files.map(row => ({...row, kind: 'glb' as const, path: `blobs/glb/${row.hash}.glb`})), sections: [], schemas: []};
+  const required = entryReadSet(source, 'phone', index, new Map());
+  expect([...required]).toEqual([library]);
+  const sections = new Map<string, unknown>([['client/plan', {version: 1, features: [
+    {kind: 'world.assembly', library: 'fixture', catalogue: 'models.json', rows: {stages: [{kind: 'group', id: 'root', label: 'Root', part: 'root'}]}},
+  ]}]]);
+  const named = entryReadSet(source, 'phone', index, sections);
+  expect([...named]).toEqual([library, fine, extra]); expect(named.has(coarse)).toBe(false);
+});
 
 test('plain build publishes exact tier spawn files and rejects changed section bytes', () => {
   mkdirSync('tmp/entry-downloads', {recursive: true});

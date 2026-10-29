@@ -958,6 +958,8 @@ before publication; disposal releases all leases.
 
 MF4's `format/spawnManifest` is the build-owned URL/hash/size list.
 `writeSpawnManifests` selects active entry files; URLs count once.
+Named native assemblies include the exact default `readWholeGeometry` inputs:
+L0 props/additional files, then whole-library refs, in native reader order.
 `game/boot/spawnDownload` needs no engine, renderer or worker imports.
 `startSpawnDownload` selects shard/tier/flow; `paintSpawnDownload` updates
 existing card numbers/text. `ready` awaits every exact-sized file; warm
