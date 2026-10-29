@@ -2271,7 +2271,7 @@ fifth argument of `addLamp`. The page publishes ignition before `step`;
 an omitted state means always lit. The host reads values and never invokes
 shard code. Pine waystones retain one box per stone; Sunscar publishes
 brazier ignition into boxes before updating its shared pool. Room ranking,
-anchor transforms and flicker stay in the light host. `test/site-lights.test.ts`
+anchor transforms and flicker stay in the light host. `src/engine/fx/site-lights.test.ts`
 checks both shipped lamp rows, ignition changes and an empty pool slot.
 
 **Damage request motion fields (G21).** These optional fields are currently metadata, not movement commands.
@@ -7540,7 +7540,7 @@ the same configured variant, one job per source material, configured
 just before its compile (`CompileJob.prepare`), so the first shadow
 draw finds its program issued and linked (sp-o289: Pine Hollow's road
 entry built and queried them inside 107-164 ms travel frames).
-`test/precompile-variants.test.ts`.
+`src/engine/render/precompile-variants.test.ts`.
 
 ### Conditional quest page prompts
 
