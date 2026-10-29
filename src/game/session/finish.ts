@@ -15,7 +15,8 @@ import { installGpuRecovery } from '@wildshard/engine/core/GpuRecovery';
 import { TIER } from '@wildshard/engine/core/tier';
 import { installProbe } from '@wildshard/engine/debug/probe';
 import { lockOn as lockState } from '@wildshard/engine/player/AimTargets';
-import { liveWarmPacing, precompileLevel } from '@wildshard/engine/render/precompile';
+import { liveWarmPacing, precompileLevel, queuedLinks } from '@wildshard/engine/render/precompile';
+import { boundEntryWarmup, ENTRY_NO_FRAME_MS, EntryWarmupStallError } from '@wildshard/engine/render/entryWarmupBound';
 import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
 import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
@@ -31,6 +32,22 @@ const EXPLORER_POLL_MS = 1000, EXPLORER_OPEN_MS = 30_000;
  *  it moved nothing (warm step 2.10 -> 2.17 s, f040ca2936): one material's job overruns any such slice there, and the step
  *  is its node builds' CPU, not its painted frames. */
 const BOOT_SHADER_SLICE_MS = 48;
+/** QA8: presented time the world's undrawn programs may take to link under the loader on WebKit (ms); the rest link in play. */
+const WORLD_LINK_MS = 6000;
+
+/** QA8: link the world's programs the spawn view did not draw before the reveal, nearest first, at the in-play pace (a few
+ *  programs a frame, each link polled), so play starts with nothing left to compile in its frames. A stall or the cap is
+ *  never a load error (G830, G837): the in-play warm-up links whatever is left. */
+async function linkWorldUnderLoader(game: Awaited<ReturnType<typeof playStage>>['game']): Promise<void> {
+  const scope = game.levelScope;
+  try {
+    await boundEntryWarmup(scope, () => game.frameCount, () => 'world-program-links', async current => {
+      await precompileLevel(game, undefined, { sliceMs: 6, current, owner: scope, nearest: true, ...liveWarmPacing() });
+    }, { noFrameMs: ENTRY_NO_FRAME_MS, totalMs: WORLD_LINK_MS });
+  } catch (error) {
+    if (!(error instanceof EntryWarmupStallError) || scope.disposed) throw error;
+  }
+}
 
 export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
   const { manifest, boot, slug, loading, audioProfile, files, bootSteps, plan, step, audioLoad, deferredAudio, world, game, sky, player, chunk, fragileBoot, failGpuBoot, onBootContextLost, edgeDressing, boundary, water, interactables, props, disableBootGpuGuard, level, animals, getArena, crossbow, weapons, lockSys, hud, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground, leakPhysics } = ctx;
@@ -163,7 +180,14 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     const previousGate = game.frameGate;
     const spawnGate = (): boolean => ctx.gridLive?.gameplayReady() ?? true;
     game.frameGate = spawnGate;
-    try { await loadingStage('spawnPrograms', () => settleEntryPrograms(game)); }
+    try {
+      await loadingStage('spawnPrograms', () => settleEntryPrograms(game));
+      // QA8: on WebKit every compile runs in the GPU process, and a frame queues behind it: the ~17 world programs the
+      // spawn view does not draw (Driftwood's off-screen graph materials, the loot coin) linked one a frame in play cost
+      // an iPhone ~8 s at 7-11 fps (366 ms frames) right after PLAY. They link here, under the loader, paced the same way
+      // and capped; what the cap leaves still links in play (warmRest).
+      if (queuedLinks()) await loadingStage('worldPrograms', () => linkWorldUnderLoader(game));
+    }
     finally { if (game.frameGate === spawnGate) game.frameGate = previousGate; }
   }
   const readyFrameGate = game.frameGate, loadingFrameGate = (): boolean => false;
