@@ -1,0 +1,27 @@
+# QA 10-29: everything from Jake's phone QA today, as one buildable list
+
+**State:** `open` 2026-10-29 ~10:20 Cancun. Written by wildshard-v for wildshard-new, which hands the rows to lanes and
+marks them. Jake, 10:15: *"All the fucking QA I'm doing goes into a new mini plan, and in the mini plan is like QA in
+today's date."* Every problem from his QA today becomes a row here, the moment he reports it. Part of
+[finish-everything](finish-everything-2026-10-29-mini-spike.md): it closes before the SHARD-PLATFORM archive, and the
+legacy deletion comes after his QA (G873). The builder is autonomous (G872): it never waits for Jake; it decides on the
+recommended fix and logs the call in STATE.md.
+
+His QA so far: iPhone 17 Pro portrait Safari PWA, live `a8a440cfa`, entering Driftwood (SHARDFILE), from 10:10.
+
+## Rows
+
+| Row | What Jake saw | Fix / done when | Lane | Size |
+|---|---|---|---|---|
+| QA1 | **The RELOAD pill does nothing** (10:12, loading screen): a tap shows "Update on next travel / title" and the page never reloads. *"How fucking hard is it to call window.reload?"* Cause: `src/engine/ui/Update.ts` `reload()` sends any tap off the title to `requestInstall()`, which only repaints the text. | An explicit tap on the pill always reloads: adopt a waiting service worker first when there is one, then `location.reload()`, on the title, the loading screen and the pause menu. `src/engine/ui/update-boundary.test.ts` updated to match; a WebKit tap on the loading screen reloads. | Codex | S |
+| QA2 | **The RELOAD pill overlaps the fps chip** at the top of the loading screen (10:12 screenshot: "max 246…" runs under "UPDATE ON NEXT TRAVEL / TITLE"). | The pill and the fps chip never overlap at iPhone portrait width, in either text state; phone before / after capture. | Opus | S |
+| QA3 | **The page froze 68 s on a cold load** (10:12): "Spawn program links" 66.4 s, "Largest observed frame-update gap 67.9 s", load 01:49.1. Breaks G837 (the page never freezes). A warm load at 10:14 was fine: 16.2 s, spawn links 1.2 s, largest gap 0.2 s. | With P1's 3 s cap (finish-everything spike, PL17), a cold WebKit load (Simulator, G874 P6) shows no frame gap over 1 s on the loading screen and spawn links ≤ 3 s; the links finish after the reveal. | Opus (sp-o3) | M |
+| QA4 | **"Hold at loading screen" should be a nicer toggle button** (10:10, G875). | A proper on / off toggle in the loading card's style; state readable at a glance; phone before / after capture. | Opus | S |
+| QA5 | **The DOWNLOAD bar doesn't know its total** (10:14): "53.1 MB of 53.2 MB content", but the total keeps growing during the load (the 10-28 round-1 board saw 2.2 → 68 MB and the % going backwards). *"It needs to fucking know … put the total size of each one of the shard files in there."* | The build bakes one byte total per entry flow per shard (code packs, the home shardfile's spawn-ring packs, the assets the flow reads) from `src/game/boot/bytes.generated.ts` and each shardfile's member / pack sizes. The bar's denominator is set at the tap and never grows. On a cold phone-preset run, the total shown in the first second is within 5 % of the final total and the % never drops. | Codex | M |
+
+## From the golden rerun (run `2026-10-29-744c3ab7e2`, 141 / 144 Great; verdicts `fa2c2849d8`)
+
+| Row | Gap | Done when | Lane | Size |
+|---|---|---|---|---|
+| QA6 | Nine cams 17 and 18 (portal decks): the hazy lower band of lit towers in the far skyline is missing (NR12's leftover; missing geometry). | The band draws at cams 17 and 18 and matches the LEGACY golden on a golden / before / after board. | Opus | S |
+| QA7 | Far Reach cam 8 (ruin): the tall wild-grass clump at the foot of the ruin bridge is gone (missing cover, not the meadow tone G870 accepts). | The clump draws at cam 8 and matches the golden on a golden / before / after board. | Opus | S |
