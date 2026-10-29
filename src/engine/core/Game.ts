@@ -1034,8 +1034,9 @@ export class Game {
     if (this.frameCount === 0) {
       // Only completed world materials can overlap construction. Post, shadow
       // and offscreen jobs need the final page state and keep their normal step.
+      // PL6: with what the first frame's warm turns show, so those world programs build here, not in the shader step
       await precompileLevel(this, progress, {current: live, owner, onStage, chunkCasters: false, sliceMs: 12, sceneOnly: true, drawnOnly: true,
-        futureLighting, ...(futureEnvironment === null ? {} : {futureEnvironment})});
+        turns: this.warmTurnYaws(), futureLighting, ...(futureEnvironment === null ? {} : {futureEnvironment})});
       return;
     }
     const pause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, live) : undefined;

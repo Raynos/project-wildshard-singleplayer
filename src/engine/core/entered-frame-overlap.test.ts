@@ -247,7 +247,7 @@ test('page preparation uses final program inputs without drawing and fences a ch
   const owner = new Scope('page-programs'), root = new Group(), models = new Group(), scene = new Scene();
   const environment = new DataTexture(new Uint8Array(8), 1, 2); scene.environment = environment;
   let draws = 0;
-  const composer = {render: (): void => {draws++;}}, game = {scene, frameCount: 1, _composer: composer,
+  const composer = {render: (): void => {draws++;}}, game = {scene, frameCount: 1, _composer: composer, warmTurnYaws: (): number[] => [Math.PI],
     viewmodel: {staged: (scope: Scope): Group => {expect(scope).toBe(owner); return models;}}};
   const stage = (): void => undefined, progress = (): void => undefined;
   try {
@@ -262,9 +262,9 @@ test('page preparation uses final program inputs without drawing and fences a ch
     await Reflect.apply(method, game, [owner, composer, () => !owner.disposed, root, undefined, stage, progress, environment]);
     const bootOptions = calls[1]?.[2];
     if (typeof bootOptions !== 'object' || bootOptions === null) throw new Error('Missing initial census options');
-    expect(Object.keys(bootOptions).sort()).toEqual(['chunkCasters', 'current', 'drawnOnly', 'futureEnvironment', 'futureLighting', 'onStage', 'owner', 'sceneOnly', 'sliceMs']);
+    expect(Object.keys(bootOptions).sort()).toEqual(['chunkCasters', 'current', 'drawnOnly', 'futureEnvironment', 'futureLighting', 'onStage', 'owner', 'sceneOnly', 'sliceMs', 'turns']);
     expect(Reflect.get(bootOptions, 'current')).toBeTypeOf('function');
-    expect(bootOptions).toMatchObject({owner, onStage: stage, chunkCasters: false, sliceMs: 12, sceneOnly: true, drawnOnly: true, futureLighting: root, futureEnvironment: environment});
+    expect(bootOptions).toMatchObject({owner, onStage: stage, chunkCasters: false, sliceMs: 12, sceneOnly: true, drawnOnly: true, turns: [Math.PI], futureLighting: root, futureEnvironment: environment});
     expect(draws).toBe(0); expect(waits).toHaveLength(0);
     game.frameCount = 1;
     const pause: unknown = Reflect.get(options, 'pause'), current: unknown = Reflect.get(options, 'current');

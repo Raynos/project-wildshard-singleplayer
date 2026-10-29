@@ -27,8 +27,9 @@ import { observeTitlePreparation, prepareTitleFrame } from './titlePreparation';
 
 /** how often the in-play warm-up asks whether an arrival's Explorer has closed, and how long it waits for one to open */
 const EXPLORER_POLL_MS = 1000, EXPLORER_OPEN_MS = 30_000;
-/** PL6: the boot shader step's slice (ms). At phone CPU 10x one material's job overran 12 ms, so each of ~120 jobs took
- *  its own painted loading frame and the per-frame cost ran the step; the loader's text still updates well inside its 1 s. */
+/** PL6: the boot shader step's slice (ms); the loader's text still updates well inside its 1 s. Measured at phone CPU 10x
+ *  it moved nothing (warm step 2.10 -> 2.17 s, f040ca2936): one material's job overruns any such slice there, and the step
+ *  is its node builds' CPU, not its painted frames. */
 const BOOT_SHADER_SLICE_MS = 48;
 
 export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
