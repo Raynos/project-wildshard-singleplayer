@@ -1302,6 +1302,9 @@ export class Game {
         sky.update(realDt);
         // planet + sun disc travel with the camera so they stay "infinitely" far
         sky.clouds?.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.raysDir, 1500);
+        // FR5 (G869): a rays-only disc is parentless and GodRaysEffect draws it with matrixAutoUpdate off: compose it here,
+        // or the rays come from the world origin (E398's painted sun never reached the rays)
+        sky.sunDisc.updateMatrix();
         const lookStart = this.app.cpu.enabled ? diagnosticNow() : 0;
         try { this.lookStrategy?.frame?.(realDt, t); }
         finally { if (this.app.cpu.enabled && this.lookStrategy?.frame !== undefined) this.app.cpu.record(this.app.cpu.ticket(this.levelScope), diagnosticNow() - lookStart); }
