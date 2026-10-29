@@ -73,6 +73,34 @@ const graphs = architectureGraphs();
 test('held material files declare their admitted texture dependencies', () => {
   expect(graphFileRules(product, hash => heldGraphFiles.assets.get(hash))).toEqual([]);
 });
+/** the reads in `main` of a variable no enclosing block (nor both arms of an if / else in one) has assigned */
+function undominatedReads(shader: string): string[] {
+  const parent = new Map<number, number>(), arms = new Map<number, number>(), direct = new Map<number, Set<string>>(), stack = [0], bad = new Set<string>();
+  let next = 1;
+  const open = (): void => { parent.set(next, stack.at(-1) ?? 0); stack.push(next++); };
+  const defined = (name: string, block: number): boolean => direct.get(block)?.has(name) === true
+    || [...arms].some(([then, other]) => parent.get(then) === block && defined(name, then) && defined(name, other));
+  for (const raw of shader.slice(shader.indexOf('void main()')).split('\n')) {
+    const line = raw.trim();
+    if (line.startsWith('} else {')) { const then = stack.pop() ?? 0; open(); arms.set(then, stack.at(-1) ?? 0); continue; }
+    for (let i = 0; i < line.split('}').length - 1; i++) stack.pop();
+    const write = /^(nodeVar\d+)\s*=\s*(.*);$/u.exec(line);
+    for (const [name] of (write?.[2] ?? line).matchAll(/\bnodeVar\d+\b/gu)) {
+      if ([...direct.values()].some(set => set.has(name)) && !stack.some(block => defined(name, block))) bad.add(name);
+    }
+    const assigned = write?.[1], block = stack.at(-1) ?? 0;
+    if (assigned !== undefined) direct.set(block, new Set([...(direct.get(block) ?? []), assigned]));
+    for (let i = 0; i < line.split('{').length - 1; i++) open();
+  }
+  return [...bad];
+}
+
+test('every kit graph value is assigned on every path that reads it', () => {
+  // NR16 (D204's sibling): the kit's ink is a chain of branched selects, `lines = select(kind == k, max(lines', ink),
+  // lines')`; each lines' was assigned inside its costly arm, so every other kind read it unassigned and the kit drew no ink
+  for (const [id, graph] of Object.entries(graphs)) expect(undominatedReads(build(graph, true).fragment), id).toEqual([]);
+});
+
 test('each existing material fits both caps and compiles its real instance channels', () => {
   for (const [id, graph] of Object.entries(graphs)) {
     expect(validateGraph(graph, { trustedBudget: true }).ok, id).toBe(true);

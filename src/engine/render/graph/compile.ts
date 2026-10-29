@@ -954,6 +954,51 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     }
     return uses;
   }
+  // D204's select sibling (NR16): a node's value is assigned where it first builds. A branched select whose arms share a
+  // node (Nine's kit ink, `lines = select(kind == k, max(lines', ink), lines')`), or read one that something outside the
+  // select also reads, built that assignment inside its first arm, and the other arm (every pixel the condition rejects)
+  // read it unassigned: the kit drew no ink on any kind. Those operands build in the condition, before the branch.
+  const graphIds = new WeakMap<Scope, ReadonlyMap<GraphNode, string>>(), nodeReaders = new WeakMap<Scope, ReadonlyMap<string, readonly string[]>>();
+  function branchShared(n: GraphNode, scope: Scope): string[] {
+    let ids = graphIds.get(scope);
+    if (ids === undefined) { ids = new Map(Object.entries(scope.nodes).map(([id, node]) => [node, id])); graphIds.set(scope, ids); }
+    let back = nodeReaders.get(scope);
+    if (back === undefined) {
+      const lists = new Map<string, string[]>();
+      for (const [id, node] of Object.entries(scope.nodes)) for (const r of node.in ?? []) if (typeof r === 'string') lists.set(r, [...(lists.get(r) ?? []), id]);
+      back = lists; nodeReaders.set(scope, back);
+    }
+    const reach = (from: readonly (GraphRef | undefined)[]): Set<string> => {
+      const out = new Set<string>(), stack = [...from];
+      while (stack.length > 0) {
+        const r = stack.pop();
+        if (typeof r !== 'string' || out.has(r)) continue;
+        const node = scope.nodes[r]; if (node === undefined) continue;
+        out.add(r); stack.push(...(node.in ?? []));
+      }
+      return out;
+    };
+    const self = ids.get(n), x = reach([n.in?.[1]]), y = reach([n.in?.[2]]), arms = new Set([...x, ...y]), uses = readersIn(scope);
+    const frontier = [...arms].filter(k => {
+      const node = scope.nodes[k]; if (node === undefined || node.op === 'varying' || (node.in ?? []).length === 0) return false;
+      if (x.has(k) && y.has(k)) return true;
+      const inside = (back.get(k) ?? []).filter(reader => reader === self || arms.has(reader)).length;
+      return (uses.get(k) ?? 0) > inside;
+    });
+    const below = reach(frontier.flatMap(k => scope.nodes[k]?.in ?? []));
+    return frontier.filter(k => !below.has(k));
+  }
+  /** the select's condition with its shared operands built first (a zero sum of them, so the condition is unchanged) */
+  function dominated(cond: Val, n: GraphNode, scope: Scope): Node<'bool'> {
+    let zero: Node | null = null;
+    for (const k of branchShared(n, scope)) {
+      const v = ref(k, scope);
+      const term: Node | null = v.t === 'float' ? new OperatorNode('*', v.n, float(0)) : v.t === 'bool' ? new OperatorNode('*', new ConvertNode<'float'>(v.n, 'float'), float(0))
+        : v.t === 'vec2' ? new MathNode('dot', v.n, vec2(0, 0)) : v.t === 'vec3' ? new MathNode('dot', v.n, vec3(0, 0, 0)) : v.t === 'vec4' ? new MathNode('dot', v.n, vec4(0, 0, 0, 0)) : null;
+      if (term !== null) zero = zero === null ? term : new OperatorNode('+', zero, term);
+    }
+    return zero === null ? asBool(cond) : new ConvertNode<'bool'>(new OperatorNode('&&', new OperatorNode('<', zero, float(1)), asBool(cond)), 'bool');
+  }
   // Implicit texture derivatives need coherent execution on both sides of a select.
   // Follow references in their lexical scope, including a loop's actual output.
   const sampleOps = new Set(['texture', 'texture3D', 'textureArray', 'textureLod', 'textureGrad', 'meshMap', 'sceneColour', 'sceneColourAt', 'sceneDepth', 'sceneNormal']);
@@ -1228,7 +1273,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
           selects.light++;
           return { t: 'bool', n: new ConvertNode<'bool'>(new MathNode('mix', new ConvertNode<'float'>(y.n, 'float'), new ConvertNode<'float'>(x.n, 'float'), new ConvertNode<'float'>(cond.n, 'float')), 'bool') };
         }
-        if (x.t === 'bool' && y.t === 'bool') { selects.branch++; return { t: 'bool', n: new ConditionalNode(asBool(cond), x.n, y.n) }; }
+        if (x.t === 'bool' && y.t === 'bool') { selects.branch++; return { t: 'bool', n: new ConditionalNode(dominated(cond, n, scope), x.n, y.n) }; }
         const t = widest([x, y]);
         // A numeric loop select used to evaluate both arms unconditionally,
         // including costly fog bands that its condition had already rejected.
@@ -1239,7 +1284,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
         if ((scope.parent === null || pureLoop) && !bothSample &&
           Math.max(ownCost(n.in?.[1], scope.nodes, readersIn(scope)), ownCost(n.in?.[2], scope.nodes, readersIn(scope))) > BRANCH_LIGHT_COST) {
           selects.branch++;
-          return { t, n: new ConditionalNode(asBool(cond), widen(x, t), widen(y, t)) };
+          return { t, n: new ConditionalNode(dominated(cond, n, scope), widen(x, t), widen(y, t)) };
         }
         selects.light++;
         return { t, n: new MathNode('mix', widen(y, t), widen(x, t), new ConvertNode<'float'>(cond.n, 'float')) };
