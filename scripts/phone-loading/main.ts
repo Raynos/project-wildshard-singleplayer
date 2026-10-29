@@ -74,7 +74,7 @@ try {
     const network = observeRequests((start, finish) => {
       context.on('request', start); context.on('requestfinished', finish); context.on('requestfailed', finish);
       return () => {context.off('request', start); context.off('requestfinished', finish); context.off('requestfailed', finish);};
-    });
+    }, chromium?.nativeSizes);
     const interrupt = (): void => {process.exitCode = 130; void context.close();};
     process.once('SIGINT', interrupt); process.once('SIGTERM', interrupt);
     try {

@@ -136,11 +136,11 @@ test('one network ledger retains a cold request finishing during warm and still 
     events.set('request', start); events.set('requestfinished', finish); events.set('requestfailed', finish);
     return () => {events.clear();};
   });
-  const request = (url: string, startTime: number): Request => legacyDouble<Request>({url: () => url,
+  const request = (url: string, startTime: number): Request => legacyDouble<Request>({url: () => url, method: () => 'GET',
     timing: () => ({startTime, domainLookupStart: 0, domainLookupEnd: 0, connectStart: 0, connectEnd: 0, secureConnectionStart: 0,
       requestStart: 0, responseStart: 0, responseEnd: 0}),
     serviceWorker: () => null, failure: () => null,
-    response: () => Promise.resolve({...legacyDouble<Response>({status: () => 200, fromServiceWorker: () => false})}),
+    response: () => Promise.resolve({...legacyDouble<Response>({headers: () => ({}), body: () => Promise.resolve(Buffer.alloc(4)), status: () => 200, fromServiceWorker: () => false})}),
     sizes: () => Promise.resolve({requestBodySize: 0, requestHeadersSize: 0, responseBodySize: 4, responseHeadersSize: 0})});
   try {
     const cold = request('https://game.test/cold', 100), warm = request('https://game.test/warm', 400);

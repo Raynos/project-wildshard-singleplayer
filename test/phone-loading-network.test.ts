@@ -6,15 +6,15 @@ import {observeRequests} from '../scripts/phone-loading/network';
 afterEach(() => {vi.useRealTimers();});
 type Sizes = Awaited<ReturnType<Request['sizes']>>;
 const sizes: Sizes = {requestBodySize: 0, requestHeadersSize: 0, responseBodySize: 4, responseHeadersSize: 2};
-const response = (): Response => ({...legacyDouble<Response>({status: () => 200, fromServiceWorker: () => true})});
-function fixture() {
+const response = (): Response => ({...legacyDouble<Response>({status: () => 200, fromServiceWorker: () => true, headers: () => ({}), body: () => Promise.resolve(Buffer.alloc(4))})});
+function fixture(native?: Parameters<typeof observeRequests>[1]) {
   const events = new Map<string, (request: Request) => void>();
   const network = observeRequests((start, finish) => {
     events.set('start', start); events.set('finish', finish);
     return () => {events.clear();};
-  });
+  }, native);
   const request = (name: string, reply: () => Promise<Response | null>, size: () => Promise<Sizes>): Request => legacyDouble<Request>({
-    url: () => `https://game.test/${name}`, serviceWorker: () => null, failure: () => null,
+    url: () => name.includes(':') ? name : `https://game.test/${name}`, method: () => 'GET', serviceWorker: () => null, failure: () => null,
     timing: () => ({startTime: 100, domainLookupStart: 0, domainLookupEnd: 0, connectStart: 0, connectEnd: 0,
       secureConnectionStart: 0, requestStart: 0, responseStart: 0, responseEnd: 0}), response: reply, sizes: size,
   });
@@ -77,46 +77,30 @@ test('stop detaches listeners and prevents unresolved native jobs from mutating 
   expect(JSON.stringify(network.rows)).toBe(before);
 });
 
-test('negative cache and service-worker body sizes stay unknown, with raw measurements retained', async () => {
+test('zero-transfer cache and SW replies retain real decoded body sizes and raw native fields', async () => {
   const {network, request, finish} = fixture();
   try {
     finish(request('sw', () => Promise.resolve(response()), () => Promise.resolve({...sizes, responseBodySize: -379, responseHeadersSize: 379})));
-    const cached: Response = {...legacyDouble<Response>({status: () => 200, fromServiceWorker: () => false})};
+    const cached: Response = {...legacyDouble<Response>({status: () => 200, fromServiceWorker: () => false, headers: () => ({}), body: () => Promise.resolve(Buffer.alloc(4))})};
     finish(request('disk-cache', () => Promise.resolve(cached), () => Promise.resolve({...sizes, responseBodySize: -97, responseHeadersSize: 97})));
-    expect(await network.settle()).toEqual({complete: true, incomplete: 0, pending: 0, deadlineMs: 5000, unavailable: 2,
-      unknownByReason: {'response-body-negative': 2}});
+    expect(await network.settle()).toEqual({complete: true, incomplete: 0, pending: 0, deadlineMs: 5000});
     expect(network.errors).toEqual([]);
     expect(network.rows).toMatchObject([
-      {source: 'service-worker', bytes: null, headerBytes: 379, sizeBasis: 'unavailable', nativeSizes: {responseBodySize: -379, responseHeadersSize: 379}},
-      {source: 'network', bytes: null, headerBytes: 97, sizeBasis: 'unavailable', nativeSizes: {responseBodySize: -97, responseHeadersSize: 97}},
+      {source: 'service-worker', bytes: 0, decodedBytes: 4, transferBytes: 0, headerBytes: 0, sizeBasis: 'native-encoded', nativeSizes: {responseBodySize: -379, responseHeadersSize: 379}},
+      {source: 'network', bytes: 0, decodedBytes: 4, transferBytes: 0, headerBytes: 0, sizeBasis: 'native-encoded', nativeSizes: {responseBodySize: -97, responseHeadersSize: 97}},
     ]);
   } finally {network.stop();}
 });
 
-test('unavailable local metadata stays null and counted, retaining independently known bytes', async () => {
-  const {network, request, finish} = fixture();
-  try {
-    finish(request('sw-unknown', () => Promise.resolve(response()), () => Promise.resolve({...sizes, responseBodySize: -1, responseHeadersSize: -1})));
-    finish(request('sw-header-unknown', () => Promise.resolve(response()), () => Promise.resolve({...sizes, responseBodySize: 41, responseHeadersSize: -1})));
-    expect(await network.settle()).toEqual({complete: true, incomplete: 0, pending: 0, deadlineMs: 5000, unavailable: 2,
-      unknownByReason: {'response-body-negative': 1, 'response-headers-negative': 2}});
-    expect(network.rows).toMatchObject([{bytes: null, accounting: 'unavailable', sizeBasis: 'unavailable'},
-      {bytes: 41, accounting: 'unavailable', sizeBasis: 'unavailable'}]);
-    expect(network.rows[1]?.headerBytes).toBeUndefined(); expect(network.errors).toEqual([]);
-  } finally {network.stop();}
-});
-
-test('unknown transfer sentinel, revalidation mismatch and missing fields are counted by reason', async () => {
-  const {network, request, finish} = fixture();
+test('native events recover real cache/revalidation sizes even when Playwright fields are missing', async () => {
+  const {network, request, finish} = fixture(() => ({requestId: 'native:1', transferBytes: 164, encodedBytes: 0, decodedBytes: 4600}));
   const absent = {...sizes}; Reflect.deleteProperty(absent, 'responseHeadersSize');
   try {
-    finish(request('blob-sentinel', () => Promise.resolve(response()), () => Promise.resolve({...sizes, responseBodySize: -59, responseHeadersSize: 58})));
-    finish(request('revalidation', () => Promise.resolve(response()), () => Promise.resolve({...sizes, responseBodySize: -352, responseHeadersSize: 516})));
-    finish(request('missing-header', () => Promise.resolve(response()), () => Promise.resolve(absent)));
-    expect(await network.settle()).toEqual({complete: true, incomplete: 0, pending: 0, deadlineMs: 5000, unavailable: 3,
-      unknownByReason: {'response-body-negative': 2, 'response-headers-missing': 1}});
-    expect(network.rows.map(row => row.bytes)).toEqual([null, null, 4]);
-    expect(network.rows.map(row => row.headerBytes)).toEqual([58, 516, undefined]);
+    finish(request('revalidated', () => Promise.resolve(response()), () => Promise.resolve({...sizes, responseBodySize: -352, responseHeadersSize: 516})));
+    finish(request('missing', () => Promise.resolve(response()), () => Promise.resolve(absent)));
+    expect(await network.settle()).toEqual({complete: true, incomplete: 0, pending: 0, deadlineMs: 5000});
+    expect(network.rows).toMatchObject([{bytes: 0, decodedBytes: 4600, transferBytes: 164, headerBytes: 164, sizeBasis: 'native-events'},
+      {bytes: 0, decodedBytes: 4600, transferBytes: 164, headerBytes: 164, sizeBasis: 'native-events'}]);
     expect(network.errors).toEqual([]);
   } finally {network.stop();}
 });
@@ -138,12 +122,13 @@ test('compressed bytes and redirect hops retain their own sizes without decoded-
   const {network, request, finish} = fixture();
   const redirect: Response = {...legacyDouble<Response>({status: () => 302, fromServiceWorker: () => false})};
   const compressed: Response = {...legacyDouble<Response>({status: () => 200, fromServiceWorker: () => false,
-    body: () => Promise.reject(new Error('Accounting must not fetch or substitute decoded bodies'))})};
+    headers: () => ({'content-encoding': 'gzip'}), body: () => Promise.resolve(Buffer.alloc(4600))})};
   try {
     finish(request('same-url', () => Promise.resolve(redirect), () => Promise.resolve({...sizes, responseBodySize: 0, responseHeadersSize: 77})));
     finish(request('same-url', () => Promise.resolve(compressed), () => Promise.resolve({...sizes, responseBodySize: 83, responseHeadersSize: 110})));
     expect((await network.settle()).complete).toBe(true);
     expect(network.rows.map(row => [row.status, row.bytes, row.headerBytes])).toEqual([[302, 0, 77], [200, 83, 110]]);
+    expect(network.rows.map(row => row.decodedBytes)).toEqual([0, 4600]);
     expect(network.errors).toEqual([]);
   } finally {network.stop();}
 });
@@ -155,5 +140,22 @@ test('unfinished requests remain counted with unknown bytes at the measurement b
     expect(await network.settle()).toEqual({complete: true, incomplete: 0, pending: 0, deadlineMs: 5000, inFlight: 1});
     expect(network.rows).toMatchObject([{bytes: null, end: null, accounting: 'pending'}]);
     expect(network.errors).toEqual([]);
+  } finally {network.stop();}
+});
+
+test('a late body reply cannot rewrite a sealed native accounting timeout', async () => {
+  vi.useFakeTimers();
+  const {network, request, finish} = fixture(() => ({requestId: 'body-wait', encodedBytes: 0, transferBytes: 0}));
+  let deliverBody: (bytes: Buffer) => void = () => {throw new Error('Body resolver missing');};
+  const body = new Promise<Buffer>(resolve => {deliverBody = resolve;});
+  const pendingResponse: Response = {...legacyDouble<Response>({status: () => 200, fromServiceWorker: () => true,
+    headers: () => ({}), body: () => body})};
+  try {
+    finish(request('late-body', () => Promise.resolve(pendingResponse), () => Promise.resolve({...sizes, responseBodySize: -2})));
+    const settled = network.settle(); await vi.advanceTimersByTimeAsync(5000);
+    expect(await settled).toMatchObject({complete: false, incomplete: 1, pending: 1});
+    expect(network.errors).toMatchObject([{source: 'response.body'}]);
+    const sealed = JSON.stringify(network.rows); deliverBody(Buffer.alloc(400)); await vi.advanceTimersByTimeAsync(0);
+    expect(JSON.stringify(network.rows)).toBe(sealed);
   } finally {network.stop();}
 });

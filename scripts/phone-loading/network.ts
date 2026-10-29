@@ -1,32 +1,54 @@
-import type {Request} from 'playwright';
+import type {Request, Response} from 'playwright';
+import type {NativeSizes} from './native-sizes.ts';
 import type {ErrorRow, RequestAccounting, RequestRow} from './model.ts';
 
 const ACCOUNTING_DEADLINE_MS = 5000;
 interface Job {row: RequestRow; stage: string; active: boolean; done: Promise<void>}
 function measured(value: unknown): value is number {return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;}
-/** Native encoded transfer can be zero/-1 for SW/cache/blob responses, and
- * Playwright subtracts response-header estimates even then (or after a 304).
- * Preserve unknown fields and their raw values; never substitute decoded
- * bodies, Content-Length, zero, or another redirect hop's measurements. */
-function accountSizes(row: RequestRow, body: unknown, headers: unknown): void {
+/** Keep encoded transfer and the decoded HTTP body separate. Body fallbacks
+ * preserve the original response while its target lives; native body reads
+ * never fetch the resource again. */
+async function accountSizes(row: RequestRow, request: Request, response: Response | null,
+  body: unknown, headers: unknown, native: NativeSizes | null, stage: (value: string) => void): Promise<Partial<RequestRow>> {
   row.nativeSizes = {responseBodySize: typeof body === 'number' && Number.isFinite(body) ? body : null,
     responseHeadersSize: typeof headers === 'number' && Number.isFinite(headers) ? headers : null};
-  if (measured(body)) row.bytes = body;
-  if (measured(headers)) row.headerBytes = headers;
-  const reasons: string[] = [];
-  for (const [field, value] of [['response-body', body], ['response-headers', headers]] as const) {
-    if (measured(value)) continue;
-    if (value === undefined || value === null) reasons.push(`${field}-missing`);
-    else if (typeof value === 'number' && Number.isSafeInteger(value) && value < 0) reasons.push(`${field}-negative`);
-    else throw new Error(`Invalid native request sizes: body=${String(body)}, headers=${String(headers)}`);
+  for (const value of [body, headers]) if (value !== undefined && value !== null && (typeof value !== 'number' || !Number.isSafeInteger(value)))
+    throw new Error(`Invalid native request sizes: body=${String(body)}, headers=${String(headers)}`);
+  if (response === null) throw new Error(`Request has no response: ${row.failure ?? row.url}`);
+  const local = /^(?:blob|data):/u.test(row.url);
+  let transfer = native?.transferBytes;
+  if (transfer === undefined && typeof body === 'number' && typeof headers === 'number' && measured(body + headers)) transfer = body + headers;
+  if (transfer === undefined && local) transfer = 0;
+  let encoded = native?.encodedBytes ?? (measured(body) ? body : undefined);
+  if (transfer === 0) encoded = 0;
+  if (!measured(transfer) || !measured(encoded) || encoded > transfer) throw new Error('Native encoded transfer is incomplete');
+  let decoded = native?.decodedBytes;
+  let bodyBasis: RequestRow['bodyBasis'] = 'native-data';
+  if (decoded === undefined) {
+    const status = response.status(), noBody = request.method() === 'HEAD' || status === 204 || status === 304 || (status >= 300 && status < 400 && body === 0);
+    if (noBody) {decoded = 0; bodyBasis = 'http-no-body';}
+    else {
+      const encoding = response.headers()['content-encoding'];
+      if (measured(body) && body > 0 && (encoding === undefined || encoding === 'identity')) {decoded = body; bodyBasis = 'native-identity';}
+      else {
+        const length = response.headers()['content-length'];
+        if (row.failure === null && (encoding === undefined || encoding === 'identity') && length !== undefined && /^\d+$/u.test(length) && measured(Number(length))) {
+          decoded = Number(length); bodyBasis = 'content-length-identity';
+        } else if (row.failure !== null && transfer === 0) {decoded = 0; bodyBasis = 'native-aborted';}
+        else {
+          stage('response.body');
+          decoded = native?.readBody === undefined ? (await response.body()).byteLength : await native.readBody();
+          bodyBasis = native?.readBody === undefined ? 'response-body' : 'native-body';
+        }
+      }
+    }
   }
-  if (reasons.length > 0) {
-    row.sizeBasis = 'unavailable'; row.accounting = 'unavailable'; row.sizeUnavailable = reasons;
-  } else {row.sizeBasis = 'native-encoded'; row.accounting = 'complete';}
+  return {bytes: encoded, headerBytes: transfer - encoded, transferBytes: transfer, decodedBytes: decoded, bodyBasis,
+    sizeBasis: native === null ? 'native-encoded' : 'native-events', sizeComplete: native?.partial !== true && row.failure === null, ...(native === null ? {} : {nativeRequestId: native.requestId}), accounting: 'complete'};
 }
 /** One context owns one request ledger, across both visits and their gap.
  * Native response/size metadata cannot hold the measured visit indefinitely. */
-export function observeRequests(attach: (start: (request: Request) => void, finish: (request: Request) => void) => () => void): {
+export function observeRequests(attach: (start: (request: Request) => void, finish: (request: Request) => void) => () => void, nativeSizes?: (request: Request) => NativeSizes | null): {
   readonly rows: RequestRow[]; readonly errors: ErrorRow[]; settle: (since?: number) => Promise<RequestAccounting>; stop: () => void;
 } {
   const rows: RequestRow[] = [], errors: ErrorRow[] = [], jobs = new Set<Job>();
@@ -36,7 +58,7 @@ export function observeRequests(attach: (start: (request: Request) => void, fini
     if (!job.active) return;
     job.active = false; jobs.delete(job);
     job.row.accounting = 'incomplete'; job.row.accountingError = reason;
-    errors.push({message: `Request accounting: ${reason}`, source: job.stage, url: job.row.url, at: Date.now()});
+    errors.push({message: `Request accounting: ${reason}`, source: job.stage, url: job.row.url, at: job.row.end ?? Date.now()});
   };
   const start = (request: Request): void => {
     if (stopped) return;
@@ -64,8 +86,9 @@ export function observeRequests(attach: (start: (request: Request) => void, fini
         job.stage = 'request.sizes';
         const sizes = await request.sizes();
         if (!job.active) return;
-        accountSizes(row, sizes.responseBodySize, sizes.responseHeadersSize);
-        job.active = false;
+        const recovered = await accountSizes(row, request, response, sizes.responseBodySize, sizes.responseHeadersSize, nativeSizes?.(request) ?? null, value => {job.stage = value;});
+        if (!job.active) return;
+        Object.assign(row, recovered); job.active = false;
       } catch (error) {incomplete(job, String(error));}
       finally {jobs.delete(job);}
     })();
@@ -81,14 +104,10 @@ export function observeRequests(attach: (start: (request: Request) => void, fini
       const pending = selected.filter(job => job.active);
       for (const job of pending) incomplete(job, `Incomplete native ${job.stage} after ${ACCOUNTING_DEADLINE_MS}ms accounting deadline`);
       const incompleteRows = rows.filter(row => row.start >= since && row.accounting === 'incomplete');
-      const unavailable = rows.filter(row => row.start >= since && row.accounting === 'unavailable').length;
       const inFlight = rows.filter(row => row.start >= since && row.end === null).length;
-      const unknownByReason: Record<string, number> = {};
-      for (const row of rows) if (row.start >= since) for (const reason of row.sizeUnavailable ?? [])
-        unknownByReason[reason] = (unknownByReason[reason] ?? 0) + 1;
       return {complete: incompleteRows.length === 0, incomplete: incompleteRows.length,
         pending: pending.filter(job => job.row.start >= since).length, deadlineMs: ACCOUNTING_DEADLINE_MS,
-        ...(unavailable === 0 ? {} : {unavailable, unknownByReason}), ...(inFlight === 0 ? {} : {inFlight})};
+        ...(inFlight === 0 ? {} : {inFlight})};
     } finally {if (timer !== undefined) clearTimeout(timer);}
   }, stop: () => {
     stopped = true; detach();
