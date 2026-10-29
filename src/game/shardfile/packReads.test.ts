@@ -71,4 +71,9 @@ test('a released owner reads its pack again rather than holding it for its lifet
   releasePackWholes(owner);
   await readPackWhole(owner, pack, read, digest, {});
   expect(read).toHaveBeenCalledTimes(2);
+  // after release a read in flight is still shared, but nothing settled is kept: the next wave reads again
+  const [first, second] = await Promise.all([readPackWhole(owner, pack, read, digest, {}), readPackWhole(owner, pack, read, digest, {})]);
+  expect(first).toBe(second); expect(read).toHaveBeenCalledTimes(3);
+  await readPackWhole(owner, pack, read, digest, {});
+  expect(read).toHaveBeenCalledTimes(4);
 });

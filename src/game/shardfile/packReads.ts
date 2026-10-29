@@ -4,6 +4,7 @@ type Pack = NonNullable<OutputIndex['packs']>[number];
 const wholePacks = new WeakMap<object, Map<string, Promise<Uint8Array>>>();
 interface SharedPack { readonly pending?: Promise<Uint8Array>; readonly bytes?: WeakRef<Uint8Array> }
 const sharedPacks = new WeakMap<object, Map<string, SharedPack>>();
+const releasedOwners = new WeakSet();
 
 /** One verified whole GET per immutable index inventory, shared across admission
  * and later demand waves. Failed attempts leave no retained rejection. The weak
@@ -21,14 +22,18 @@ export function readPackWhole(owner: object, pack: Pack,
   // Separate parses of the same immutable index can overlap (notably WebKit's
   // descriptor and admission). Coalesce their verified bytes without making
   // the page table a new strong backing owner after those products retire.
-  if (known?.pending !== undefined) { held.set(key, known.pending); return known.pending; }
-  if (present !== undefined) { const borrowed = Promise.resolve(present); held.set(key, borrowed); return borrowed; }
+  // a released owner (MF7) coalesces a read in flight, never keeps its settled bytes
+  const keep = !releasedOwners.has(owner), forget = (pending: Promise<Uint8Array>): void => {
+    if (!keep) void pending.then(() => { if (held.get(key) === pending) held.delete(key); return undefined; }, () => undefined);
+  };
+  if (known?.pending !== undefined) { held.set(key, known.pending); forget(known.pending); return known.pending; }
+  if (present !== undefined) { const borrowed = Promise.resolve(present); if (keep) held.set(key, borrowed); return borrowed; }
   const bytes = (async () => {
     const wire = await read(pack.path, pack.bytes, pack.entries);
     if (wire.length !== pack.bytes || await hash(wire) !== pack.hash) throw new Error('Shardfile pack hash or size mismatch');
     return wire;
   })();
-  held.set(key, bytes); common.set(key, { pending: bytes });
+  held.set(key, bytes); common.set(key, { pending: bytes }); forget(bytes);
   if (common.size > 512) { const oldest = common.keys().next().value; if (oldest !== undefined) common.delete(oldest); }
   void bytes.then(wire => { common.set(key, { bytes: new WeakRef(wire) }); return undefined; }, () => {
     if (held.get(key) === bytes) held.delete(key);
@@ -38,9 +43,10 @@ export function readPackWhole(owner: object, pack: Pack,
   return bytes;
 }
 
-/** MF7: let `owner`'s verified whole packs go once its boot has built what they fed; a later demand wave reads and
- *  verifies the pack again (from the content cache when it is there), as every released member does. */
-export function releasePackWholes(owner: object): void { wholePacks.delete(owner); }
+/** MF7: let `owner`'s verified whole packs go once its boot has built what they fed, and keep none it reads later (in-play
+ *  demand re-read and held all 11 of Pine Hollow's, 41.8 MB): each later wave reads and verifies its pack again (from the
+ *  content cache when it is there), as every released member does. */
+export function releasePackWholes(owner: object): void { wholePacks.delete(owner); releasedOwners.add(owner); }
 
 /** iPhone downloads I5: a phase's packed members (I5.1's `index.packs`) served from one verified read of each pack. */
 export interface PackReads {
