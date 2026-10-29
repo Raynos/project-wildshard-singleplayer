@@ -54,7 +54,6 @@
  "src/engine/boot/grid-tap-paint.test.ts": 0.1,
  "src/engine/boot/ktx2-decode-bound.test.ts": 0,
  "src/engine/boot/loadingDownloadText.test.ts": 0,
- "src/engine/boot/pathTiming.test.ts": 0,
  "src/engine/boot/plan-gaps.test.ts": 0,
  "src/engine/boot/prefetch-control.test.ts": 0,
  "src/engine/boot/prefetchQuota.test.ts": 0,
