@@ -3,6 +3,8 @@ import { expect, test } from 'vitest';
 import { cwd } from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind native model reads to the actual declared public root.
 import { resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Own and remove only this bounded native discovery cache.
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 import { parseDiscoveryValues } from '@wildshard/format/discoveryValues';
 import { generated as signalProgram } from './fixtures/sunscar-source-program';
@@ -12,8 +14,13 @@ import { fixedLayoutFiles as skyFiles, skyMapPalette } from '../src/shards/far-r
 import * as skySource from '../src/shards/far-reach/generators/layout';
 import * as signalSource from '../src/shards/sunscar-dunes/generators/layout';
 import * as crownSource from '../src/shards/far-reach/generators/crownLayout';
-import { readProjectAssets } from '../src/sdk/project';
-import { decisionLegacyLines } from '../scripts/decision-legacy-lines.mjs';
+import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { skyCreatureRigOutput } from '../src/shards/far-reach/generators/creatureRigOutput';
+import { skyRigAssetSources } from '../src/shards/far-reach/generators/rigAssetSources';
+import { skyProductBoot } from '../src/shards/far-reach/generators/bootInventory';
+import { skyViewDiscovery } from '../src/shards/far-reach/generators/viewData';
+import { GPU_FILES } from '../src/shards/far-reach/ktx2.generated';
+import { originalSkyNavigation } from './fixtures/sky-navigation';
 
 // The old transport sorts top-level export names; Vite namespaces retain
 // declaration order, so keep the original wire ordering in these byte oracles.
@@ -21,6 +28,21 @@ const ordered = (rows: Readonly<Record<string, unknown>>) => Object.fromEntries(
   Object.entries(rows).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
 const signal = ordered(signalSource), sky = ordered(skySource), crown = ordered(crownSource);
 const skyMap = skyMapPalette();
+
+/** The same complete discovery composition as generate(), without constructing unrelated world/map output. */
+async function skyDiscovery(): Promise<ReturnType<typeof parseDiscoveryValues>> {
+  mkdirSync('tmp', { recursive: true });
+  const cache = mkdtempSync(resolve('tmp', 'sky-layout-discovery-')), project = resolve('src/shards/far-reach');
+  try {
+    const context = createProjectGeneration(project, 'f'.repeat(64), new Map(), cache, [
+      { prefix: '/src/shards/far-reach/', directory: project },
+      { prefix: '/assets/', directory: resolve('public/assets') },
+    ]);
+    const rigs = await skyCreatureRigOutput(context);
+    return parseDiscoveryValues({ ...skyProductBoot(skyRigAssetSources(rigs.files, GPU_FILES)),
+      ...skyViewDiscovery(), mapPalette: skyMapPalette(), navigation: originalSkyNavigation() });
+  } finally { rmSync(cache, { recursive: true, force: true }); }
+}
 
 test('the source palette retains its complete original wire after fixed-layout retirement', () => {
   const wire = (): Uint8Array => new TextEncoder().encode(`${JSON.stringify(skyMapPalette())}\n`);
@@ -56,15 +78,7 @@ for (const [label, compile, rows] of [
 
 for (const [slug, palette] of [['far-reach', skyMap], ['sunscar-dunes', signalMap]] as const) {
   test(`${slug} discovery lends fixed palette JSON without executable authoring`, async () => {
-    let discovery: ReturnType<typeof parseDiscoveryValues> | undefined;
-    if (slug === 'sunscar-dunes') discovery = parseDiscoveryValues(signalProgram.discovery);
-    else {
-      const lines = decisionLegacyLines(cwd(), slug);
-      if (lines === undefined) throw new Error('Missing original Far Reach decision budget');
-      discovery = (await readProjectAssets(`src/shards/${slug}`, undefined, {
-        folder: slug, imageRoots: [{ prefix: '/assets/', directory: resolve('public/assets') }],
-      }, { decisionLegacyLines: lines })).output.discovery;
-    }
+    const discovery = slug === 'sunscar-dunes' ? parseDiscoveryValues(signalProgram.discovery) : await skyDiscovery();
     if (discovery === undefined) throw new Error('Missing current source discovery');
     const source = authoredManifestSource(cwd(), slug, { discovery });
     expect(source).toContain(`mapPalette: ${JSON.stringify(palette)}`);
