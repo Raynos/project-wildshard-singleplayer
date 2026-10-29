@@ -72,7 +72,7 @@ export interface DownloadSnapshot {
   /** Fixed compiled entry content total, independent of late file discovery. */
   expectedBytes?: number;
 }
-interface File { bytes: number; complete: boolean }
+interface File { bytes: number; complete: boolean; container?: boolean }
 export interface DownloadTiming {
   name: string; startTime: number; transferSize: number; encodedBodySize: number; decodedBodySize?: number;
   workerStart: number; serverTiming: readonly { name: string; duration: number }[];
@@ -125,6 +125,12 @@ export class DownloadAccounting {
       if (addresses === undefined) { addresses = new Set(); this.addressed.set(hash, addresses); }
       addresses.add(declared);
     }
+  }
+  /** A transport envelope has wire activity, but its declared members already
+   * own content bytes. Counting both makes cold and warm content incomparable. */
+  container(input: string, bytes: number): void {
+    this.declare(input, bytes);
+    const file = this.files.get(this.url(input)); if (file !== undefined) file.container = true;
   }
   /** Reserve an exact compiler-known directory total before its index is read.
    * File declarations replace the reserve byte for byte; only receipts credit completion. */
@@ -214,8 +220,8 @@ export class DownloadAccounting {
     return remainder;
   }
   snapshot(): DownloadSnapshot {
-    let pendingBytes = 0, pendingFiles = 0, cachedBytes = this.browserCache, declaredBytes = 0;
-    this.files.forEach(file => { declaredBytes += file.bytes; if (!file.complete) { pendingBytes += file.bytes; pendingFiles++; } });
+    let pendingBytes = 0, pendingFiles = 0, cachedBytes = this.browserCache, declaredBytes = 0, declaredFiles = 0;
+    this.files.forEach(file => { if (file.container === true) return; declaredFiles++; declaredBytes += file.bytes; if (!file.complete) { pendingBytes += file.bytes; pendingFiles++; } });
     let unitemizedBytes = this.reservedRemainder();
     this.banks.forEach(bytes => { unitemizedBytes += bytes; });
     declaredBytes += unitemizedBytes; pendingBytes += unitemizedBytes;
@@ -225,7 +231,7 @@ export class DownloadAccounting {
       this.bodyHints.get(receipt.url) ?? 0); });
     return { networkBytes: this.network, cachedBytes, pendingBytes, filesDone: this.completed + this.cache.size,
       filesTotal: this.completed + this.cache.size + pendingFiles, unclassifiedBytes, unclassifiedFiles: this.unknown.size,
-      declaredBytes, declaredDoneBytes: declaredBytes - pendingBytes, declaredFiles: this.files.size, declaredFilesDone: this.files.size - pendingFiles,
+      declaredBytes, declaredDoneBytes: declaredBytes - pendingBytes, declaredFiles, declaredFilesDone: declaredFiles - pendingFiles,
       ...(this.expected === undefined ? {} : {expectedBytes: this.expected}), ...(unitemizedBytes === 0 ? {} : { unitemizedBytes }) };
   }
 }
@@ -275,6 +281,8 @@ export function observeDownloadAccounting(accounting: DownloadAccounting): () =>
 /** Expected content-body bytes before HTTP compression, not measured wire size.
  * Product indexes describe the encoded file itself; JS/CSS facts describe code. */
 export function declareDownloadFile(url: string, bytes: number): void { accountingTargets(accounting => { accounting.declare(url, bytes); }); }
+/** Record a container's transport without adding its members' content twice. */
+export function declareDownloadContainer(url: string, bytes: number): void { accountingTargets(accounting => { accounting.container(url, bytes); }); }
 /** Reserve only a selected directory, never another home's bytes or completion. */
 export function reserveDownloadGroup(url: string, bytes: number): void { accountingTargets(accounting => { accounting.reserve(url, bytes); }); }
 /** Reserve and then itemize a compiler-owned per-home asset list. */

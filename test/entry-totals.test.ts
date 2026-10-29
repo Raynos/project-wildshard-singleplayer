@@ -15,8 +15,9 @@ test('entry totals union code once and select exact product tiers and grid addre
       products: {'/shardfiles/example/': [3, 1000, 100, 200]}, extras: {},
       code: {entries: {example: ['/assets/code/pack.pack', 7, 100, [0]]}}};
     const totals = entryTotals(input, {'100': {example: [{url: '/assets/seam.bin', bytes: 9}]}}, root);
-    expect(totals.client['example']).toEqual([146, 246]);
-    expect(totals.grid['100']?.['example']).toEqual([173, 273]);
+    // The code pack is a transport envelope for these same module bodies.
+    expect(totals.client['example']).toEqual([139, 239]);
+    expect(totals.grid['100']?.['example']).toEqual([166, 266]);
     expect(() => entryTotals({...input, products: {'/shardfiles/example/': [3, -1]}}, {}, root)).toThrow();
     expect(() => entryTotals({...input, optional: {...input.optional, groups: {'home:/shardfiles/example/': [9]}}}, {}, root)).toThrow('module index');
   } finally {rmSync(root, {recursive: true, force: true});}

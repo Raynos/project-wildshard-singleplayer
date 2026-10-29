@@ -1,5 +1,5 @@
 import type { Scope } from '../app/scope';
-import { declareDownloadFile, noteDownloadRead, beginLoadingWait, reportLoadingWait, finishLoadingWait } from './download';
+import { declareDownloadContainer, noteDownloadRead, beginLoadingWait, reportLoadingWait, finishLoadingWait } from './download';
 
 /** Compiler-owned, content-addressed transport; module URLs remain unchanged. */
 export function readCodePack(input: unknown): readonly [string, number, number] {
@@ -20,7 +20,7 @@ export function readCodePack(input: unknown): readonly [string, number, number] 
 export async function prepareCodePack(input: unknown, owner: Scope): Promise<(() => void) | null> {
   const [url, bytes, decoded] = readCodePack(input), worker = navigator.serviceWorker?.controller;
   if (worker === null || worker === undefined || owner.disposed) return null;
-  const declare = (): void => { declareDownloadFile(url, bytes); };
+  const declare = (): void => { declareDownloadContainer(url, bytes); };
   const channel = new MessageChannel();
   let stored = false, received = 0;
   const waitId = beginLoadingWait('application code download', { kind: 'file', totalBytes: bytes, resource: url });

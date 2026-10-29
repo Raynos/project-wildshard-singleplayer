@@ -11,6 +11,18 @@ it('the compiled entry denominator is immutable and grants no completed bytes', 
   expect(() => accounting.expect(-1)).toThrow('fixed download total');
 });
 
+it('a code container retains wire receipts without duplicating its module content', () => {
+  const accounting = new DownloadAccounting('https://example.test/');
+  accounting.declare('/assets/member.js', 200);
+  accounting.container('/assets/code/bank.pack', 80);
+  accounting.resource({name: 'https://example.test/assets/code/bank.pack', startTime: 1,
+    transferSize: 120, encodedBodySize: 80, workerStart: 0, serverTiming: []});
+  expect(accounting.snapshot()).toMatchObject({networkBytes: 120, declaredBytes: 200, pendingBytes: 200,
+    declaredFiles: 1, declaredDoneBytes: 0});
+  accounting.cached('member', 200, '/assets/member.js');
+  expect(accounting.snapshot()).toMatchObject({networkBytes: 120, declaredBytes: 200, pendingBytes: 0, declaredDoneBytes: 200});
+});
+
 const base = 'https://game.test/';
 const timing = (name: string, extra: Partial<DownloadTiming> = {}): DownloadTiming => ({
   name: new URL(name, base).href, startTime: 1, transferSize: 1300, encodedBodySize: 1000,

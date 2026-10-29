@@ -192,6 +192,28 @@ test('receipted phone admission defers unused bytes and publishes offline only a
   } finally { scope.dispose(); restore(); }
 });
 
+test('a verified warm offline-copy read itemizes its reserved body without downloading again', async () => {
+  const row = fixture(true, 0, 1, 'loader-fixture', true), restore = installIndexReceipt(row.index), store = cacheStore();
+  const scope = new Scope('warm-offline-receipt'), opts = options(row.wires, store.cache); opts.tier = 'phone';
+  const accounting = new DownloadAccounting(base), release = installDownloadAccounting(accounting);
+  const fetcher = vi.fn(opts.fetch); opts.fetch = fetcher;
+  try {
+    const file = row.source.files[0]; if (file === undefined) throw new Error('Missing fixture file');
+    const bytes = row.wires.get(`blobs/bin/${file.hash}.bin`); if (bytes === undefined) throw new Error('Missing fixture body');
+    store.bytes.set(file.hash, bytes);
+    const admitted = await admitProduct(row.index, opts), finish = admitted.completeCache;
+    if (finish === undefined) throw new Error('Missing deferred offline completion');
+    const before = accounting.snapshot();
+    accounting.reserve(new URL('.', base).href, before.declaredBytes + file.compressed);
+    expect(accounting.snapshot().pendingBytes).toBe(before.pendingBytes + file.compressed);
+    fetcher.mockClear();
+    await finish(scope);
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(accounting.snapshot()).toMatchObject({pendingBytes: 0, declaredDoneBytes: before.declaredBytes + file.compressed});
+    expect(store.product()?.source).toStrictEqual(row.index);
+  } finally { release(); scope.dispose(); restore(); }
+});
+
 test('poisoned late cache or a retired owner cannot publish a complete offline product', async () => {
   for (const retired of [false, true]) {
     const row = fixture(true, 0, 1, 'loader-fixture', true), restore = installIndexReceipt(row.index), store = cacheStore();
