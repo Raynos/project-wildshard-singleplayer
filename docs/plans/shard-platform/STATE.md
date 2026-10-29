@@ -4,8 +4,9 @@
 (G845).** Only legacy-deletion (LD4b goldens done; tag legacy-final; LD5-LD10 all at once on Jake's word, G840 / G843 / G851).
 Archived today: 12 mini plans (loading ... tile-streaming 9be158bc79).
 
-**LIVE beb02d8043 (build beb02d804-mvsuz7t1, ~20:25 Cancun).** Next release c05f6ac3b8 (CI 40801902717 all 36 green: NM motion,
-spawn-stall fix, lend contract 0823ccccba, PL test fixes, What's New); exact smoke 40804172656 running, deploy on green (sp-ci-deploy).
+**LIVE c05f6ac3b8 (build c05f6ac3b-mvsxjh1p, ~21:35 Cancun):** NM motion, the spawn-stall fix (no 10x fatal), lend contract,
+PL test fixes, What's New; CI 40801902717 all 36 + exact six 40804172656. Previous: beb02d804-mvsuz7t1. Sim phone-route leg still
+times out on xcrun (report-only; no Sim pass claimed).
 ~21:10: the BURN-DAMAGE-LIST working copy was truncated (sp-o3) and restored to HEAD; its unlanded delta is unrecoverable, lanes told.
 
 **Jake's QA 10-28 PASSED:** NM, loading / M2, tiles / T10, DW cut B (G827 / G831-G833).
