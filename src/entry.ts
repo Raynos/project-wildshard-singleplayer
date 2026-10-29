@@ -130,7 +130,7 @@ async function startSelected(): Promise<void> {
     await selection.prepareSelectedShard();
     return selection;
   });
-  const [{ completePageCatalogue }, { game }, { beginLoading }, { TIER }] = await Promise.all([
+  const [{ preparePageCatalogue, completePageCatalogue }, { game }, { beginLoading }, { TIER }] = await Promise.all([
     selected, retried(() => import('@wildshard/game/shard/registry')), retried(() => import('@wildshard/engine/ui/Loading')),
     retried(() => import('@wildshard/engine/core/tier')),
   ]);
@@ -143,6 +143,9 @@ async function startSelected(): Promise<void> {
   const [entrySelection, gridSelection, { gridMode, DEVSERVER }] = await Promise.all([entryModule, gridEntryModule, gridMenuModule]);
   const earlyPath = gridSelection.pageGridRecovery() !== null || gridSelection.pendingGridEntry(game.shard.slug)
     ? 'grid' : entrySelection.shardEntry(game.shard);
+  // Read mandatory primary declarations while services and the yielding memory
+  // bank prepare. Capture any failure now; publish only at the original barrier.
+  const catalogue = earlyPath === 'grid' ? prepareBootImports(preparePageCatalogue()) : null;
   const homeDescriptor = homeDownloadSource(game.shard, earlyPath === 'grid');
   if (earlyPath === 'grid') {
     declareGridHomeDownload(gridMode(DEVSERVER), gridSelection.pageGridRecovery()?.instance ?? gridSelection.gridHome().instance);
@@ -219,7 +222,7 @@ async function startSelected(): Promise<void> {
     const source = pageGridRecovery() === null ? await configuredShardfile(document, browserShardfileOptions(document.baseURI)) : null;
     page = preparePageResidency(game.shard, source?.identity.slug);
     await (await retried(() => import('./assetTables'))).prepareAssetPacks(page.mode === 'grid' || TIER !== 'phone' ? undefined : game.shard.slug);
-    await completePageCatalogue(page.mode);
+    await completePageCatalogue(page.mode, catalogue?.ready);
     const path = page.mode === 'grid' ? 'grid' : source !== null || shardEntry(game.shard) === 'shardfile' ? 'shardfile' : 'legacy';
     // Publish every selected bank together before reading the descriptor.
     if (source === null) reserveHomeDownload(typeof moduleRows === 'object' && moduleRows !== null && 'products' in moduleRows ? moduleRows.products : undefined, homeDescriptor, document.baseURI, TIER);

@@ -5,7 +5,7 @@ import { installShards } from '@wildshard/game/shard/list';
 import { titleManifests,findTitleManifest } from '@wildshard/game/shard/titleList';
 import { retried } from '@wildshard/engine/boot/retry';
 import type { PageMode } from '@wildshard/game/grid/pageMode';
-import { selectedManifests, gridManifests } from './selectedManifests';
+import { selectedManifests, gridManifests, type SelectedManifests } from './selectedManifests';
 
 /** Compiler facts cover only the discovery graph this page actually loads. */
 function modules(selection?:string):void {
@@ -33,9 +33,14 @@ export async function prepareSelectedShard():Promise<void>{
 
 /** A grid may synchronously read every primary neighbour after consuming its
  * intent. Frozen standalone copies remain available through their own loaders. */
-export async function completePageCatalogue(mode:PageMode):Promise<void>{
+export function preparePageCatalogue():Promise<SelectedManifests>{
+  return gridManifests(titleManifests(),SHARD_LOADERS,LEGACY_CONTENT_IDENTITIES,modules);
+}
+
+/** Only the original publication barrier installs a prepared catalogue. */
+export async function completePageCatalogue(mode:PageMode, prepared:()=>Promise<SelectedManifests>=preparePageCatalogue):Promise<void>{
   if(mode==='grid'){
-    const prepared=await gridManifests(titleManifests(),SHARD_LOADERS,LEGACY_CONTENT_IDENTITIES,modules);
-    installShards(prepared.manifests,prepared.contentIdentities);
+    const catalogue=await prepared();
+    installShards(catalogue.manifests,catalogue.contentIdentities);
   }
 }

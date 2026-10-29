@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { selectedManifests, gridManifests } from '../src/selectedManifests';
 import { legacyContentIdentity, shards } from '../src/game/shard/list';
+import { prepareBootImports } from '../src/bootDownloads';
 
 function fixture() {
   const copy = shards().find(row => row.legacy === true);
@@ -88,5 +89,23 @@ test('a grid retains the full primary readiness barrier and refuses swapped mani
   await expect(gridManifests([f.primary, f.other], { ...f.loaders,
     [f.primary.slug]: () => Promise.resolve(f.copy),
   }, {}, f.before)).rejects.toThrow('identity differs');
+  expect(shards()).toBe(installed);
+});
+
+test('staged primary reads settle without publication and retain the original refusal', async () => {
+  const f = fixture(), installed = shards(), refusal = new Error('Primary declaration failed');
+  let release = (): void => { throw new Error('Grid read was not started'); };
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const pending = prepareBootImports(gridManifests([f.primary, f.other], { ...f.loaders,
+    [f.other.slug]: async () => { await gate; throw refusal; },
+  }, {}, f.before));
+  expect(f.calls).toEqual([f.primary.slug]);
+  expect(f.declared).toEqual([f.primary.slug, f.other.slug]);
+  expect(shards()).toBe(installed);
+  // Earlier boot work can complete before the original catalogue barrier.
+  release(); await Promise.resolve(); await Promise.resolve();
+  expect(shards()).toBe(installed);
+  await expect(pending.ready()).rejects.toBe(refusal);
+  await expect(pending.refuse(new Error('Later input refused'))).rejects.toBe(refusal);
   expect(shards()).toBe(installed);
 });
