@@ -5,6 +5,7 @@ import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entitie
 import { lookAngles, squashBody } from '@wildshard/engine/entities/species/rigs';
 import {admittedClientChannels,bindClientChannelInputs} from './channels';
 import { parsePackedCreatureLooks } from '@wildshard/format/speciesLooks';
+import { emitFault, NumericInputError } from '@wildshard/engine/core/faults';
 
 /** Copied values may be an existing common read vector or a named observation for independently authored DAGs. */
 export interface ChannelProgramObservation {readonly time:number;readonly delta:number;readonly values:readonly number[]|Readonly<Record<string,number>>}
@@ -28,7 +29,8 @@ export function admittedChannelTable(input:unknown):readonly ClientChannelProgra
  let rows=tables.get(input);if(rows===undefined){rows=freeze(parseClientChannels(input));tables.set(input,rows);}
  return rows;
 }
-/** One bounded group of the existing visual DAG owner; supplied owners expose only explicitly declared numeric fields. */
+/** One bounded group of the existing visual DAG owner; supplied owners expose only explicitly declared numeric fields.
+ * Runtime numeric refusals skip the group and report once; malformed declarations still fail admission. */
 export function installChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<string,unknown>):{
  evaluate:(observation:ChannelProgramObservation)=>void;capture:()=>()=>void;readonly ids:readonly string[]
 }{return buildChannelPrograms(input,group,owners);}
@@ -47,26 +49,33 @@ function buildChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<stri
   return {lane,inputs,readers,ports,restoreOnly,values,indices,observation:{time:0,delta:0,values}};
  });
  const ids=Object.freeze(selected.map(row=>row.id));
+ let reported=false;
  return Object.freeze({ids,
   evaluate:(observation:ChannelProgramObservation):void=>{
+   try {
    const external=observation.values,isVector=vector(external);
    // Snapshot every borrowed read before any field is published, including cross-program dependencies.
    if(copiedNames!==undefined){
     if(!isVector||external.length!==copiedNames.length)throw new Error('Invalid copied pose vector');
-    for(let index=0;index<external.length;index++){const value=external[index];if(value===undefined||!Number.isFinite(value)||Math.abs(value)>1e12)throw new Error('Invalid copied pose value');}
+    for(let index=0;index<external.length;index++){const value=external[index];if(value===undefined||!Number.isFinite(value)||Math.abs(value)>1e12)throw new NumericInputError(copiedNames[index]??String(index),'Invalid copied pose value');}
     for(const {indices,values}of lanes){if(indices===undefined)throw new Error('Missing copied pose indices');for(let index=0;index<indices.length;index++)values[index]=external[indices[index]??-1]??Number.NaN;}
    }else for(const {lane,inputs,readers,values} of lanes){
     if(isVector&&(inputs.size>0||external.length!==values.length))throw new Error('Numeric channel vector differs from its declared reads');
     const reads=lane.reads;
     for(let index=0;index<reads.length;index++){
      const id=reads[index]??'',read=readers[index],value=read===undefined?isVector?external[index]:Object.hasOwn(external,id)?external[id]:undefined:read();
-     if(value===undefined||!Number.isFinite(value)||Math.abs(value)>1e12)throw new Error(`Missing or invalid channel observation: ${id}`);
+     if(value===undefined||!Number.isFinite(value)||Math.abs(value)>1e12)throw new NumericInputError(id,`Missing or invalid channel observation: ${id}`);
      values[index]=value;
     }
    }
    // Existing evaluators publish only finite complete frames; no visual target changes on a refused input.
    for(const {lane,observation:frame} of lanes){frame.time=observation.time;frame.delta=observation.delta;lane.evaluate(frame);}
    for(const {lane,ports} of lanes)ports.apply(lane.frame);
+   } catch(error) {
+    // Detached pose lanes belong to their actor; the caller reports that actor.
+    if(!(error instanceof NumericInputError)||copiedNames!==undefined)throw error;
+    if(!reported){reported=true;emitFault({system:`channels.${group}`,error,verdict:'uncaught'});}
+   }
   },
   capture:()=>{const restore=lanes.flatMap(row=>[row.ports.capture(),row.restoreOnly.capture()]);return()=>{for(const run of restore)run();};},
  });
@@ -75,7 +84,8 @@ function buildChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<stri
 /** A bone rotation's pending axes (see numericCreaturePose). */
 interface Turn { readonly euler: Euler; x: number; y: number; z: number; dirty: boolean }
 /** Numeric pose rows on existing joints. Each rig lends its frame and transforms to the existing channel evaluator;
- * optional bones are skipped, and no actor memory, clock, random stream or continuation is added. */
+ * optional bones are skipped, and no actor memory, clock, random stream or continuation is added.
+ * A runtime numeric refusal preserves that actor's last pose, reports once and retries on its next frame. */
 export function numericCreaturePose(poseData: unknown): (ctx: AnimalRigContext) => void {
   return compileNumericCreaturePose(poseSchema.parse(NumericPoseSchema, poseData));
 }
@@ -146,6 +156,7 @@ function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPo
     dimensions['legLen'] = c.dims.legLen; dimensions['halfWidth'] = c.dims.halfWidth; dimensions['bodyPitch'] = c.dims.bodyPitch;
   };
   let available: ReturnType<typeof makeObservation> | undefined;
+  const reported = new WeakSet<AnimalRigContext['animal']>();
   return c => {
     if ((row.alive !== undefined && row.alive !== c.alive)
       || (row.variant !== undefined && (!('variant' in c.animal) || c.animal.variant !== row.variant))) return;
@@ -163,7 +174,7 @@ function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPo
         value=key==='mem'?poseMemory(c.mem,field):!Object.hasOwn(dimensions,field)?undefined:dimensions[field];
       }else value=c[key];
       const number = value ?? scalar.fallback;
-      if (typeof number !== 'number' || !Number.isFinite(number)) throw new Error('Invalid creature pose scalar observation');
+      if (typeof number !== 'number' || !Number.isFinite(number)) throw new NumericInputError(scalar.name, 'Invalid creature pose scalar observation');
       scalarValues[i] = number;
     }
     let rig = rigs.get(c.bones);
@@ -220,7 +231,7 @@ function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPo
       const value = input.kind === 'frame' ? frame[input.field] : input.kind === 'scalar'
         ? record !== undefined && Object.hasOwn(record, input.name) ? record[input.name] : undefined : input.kind === 'look' ? rig.look[input.axis]
         : joint?.[input.transform][input.axis];
-      if (value === undefined || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new Error(`Invalid numeric input ${input.input}`);
+      if (value === undefined || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new NumericInputError(input.input);
       rig.observation.values[index] = value;
     }
     rig.observation.time = c.t; rig.observation.delta = c.dt;
@@ -231,6 +242,9 @@ function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPo
     }
     const body = row.squash === undefined ? undefined : c.bones[row.squash];
     if (body !== undefined) squashBody(body, c.flinch);
+    } catch(error) {
+      if(!(error instanceof NumericInputError))throw error;
+      if(!reported.has(c.animal)){reported.add(c.animal);emitFault({system:`creature.${row.group}`,error,verdict:'uncaught'});}
     } finally { available = observation; }
   };
 }

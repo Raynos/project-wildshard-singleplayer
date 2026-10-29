@@ -1,4 +1,5 @@
 import {expect,it} from 'vitest';
+import {onFault,type Fault} from '../src/engine/core/faults';
 import {Color} from 'three';
 import {ClientChannels} from '@wildshard/sdk/clientChannels';
 import {parseClientChannels,type ClientChannelProgram} from '@wildshard/format/clientChannels';
@@ -19,9 +20,16 @@ it('snapshots all inputs before publishing, and restores only declared private f
  host.evaluate({time:0,delta:.1,values:{}});expect(owner).toEqual({a:2,b:1,held:9});
  owner.held=7;restore();expect(owner).toEqual({a:1,b:2,held:9});
 });
-it('refuses missing or invalid observations before any output and preserves private recurrence',()=>{
+it('skips invalid numeric frames before any output and preserves private recurrence',()=>{
  const owner={a:1,b:2};const host=installChannelPrograms([programRow('first','a','root',['a']),programRow('second','b','root',['b'])],'test',new Map([['root',owner]]));
- expect(()=>host.evaluate({time:0,delta:.1,values:{a:4,b:Number.NaN}})).toThrow();expect(owner).toEqual({a:1,b:2});
+ const reports:Fault[]=[],stop=onFault(fault=>{reports.push(fault);});
+ try{
+  expect(()=>host.evaluate({time:0,delta:.1,values:{a:4,b:Number.NaN}})).not.toThrow();expect(owner).toEqual({a:1,b:2});
+  expect(reports.map(fault=>[fault.system,fault.verdict])).toEqual([['channels.test','uncaught']]);
+  host.evaluate({time:0,delta:.1,values:{a:4,b:5}});expect(owner).toEqual({a:4,b:5});
+  host.evaluate({time:0,delta:.1,values:{a:4,b:Number.NaN}});expect(owner).toEqual({a:4,b:5});expect(reports).toHaveLength(1);
+ }finally{stop();}
+ owner.a=1;owner.b=2;
  expect(()=>host.evaluate({time:0,delta:.1,values:[4,5]})).toThrow();expect(owner).toEqual({a:1,b:2});
  const dag=new ClientChannels('accumulate'),previous=dag.local(0),next=dag.binary('add',previous,dag.read('delta'));dag.retain(previous,next);dag.output('value',next);
  const programs=parseClientChannels([{...dag.build(),numeric:{group:'test',outputs:[{property:'value',target:'root',path:['a']}]}}]);

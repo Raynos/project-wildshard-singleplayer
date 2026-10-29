@@ -135,8 +135,9 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
   };
   const evaluate = (observation: ClientChannelObservation): void => {
     const { time, delta, values } = observation;
-    if (!Number.isFinite(time) || !Number.isFinite(delta) || delta < 0 || Math.abs(time) > 1e12 || delta > 1e12 || values.length !== reads.length) throw new Error('Invalid copied client observation');
-    for (let i = 0; i < reads.length; i++) { const value = values[i]; if (value === undefined || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new Error('Invalid copied client state'); reads[i] = value; }
+    if (values.length !== reads.length) throw new Error('Invalid copied client observation');
+    if (!Number.isFinite(time) || !Number.isFinite(delta) || delta < 0 || Math.abs(time) > 1e12 || delta > 1e12) throw new NumericInputError('time/delta', 'Invalid copied client observation');
+    for (let i = 0; i < reads.length; i++) { const value = values[i]; if (value === undefined || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new NumericInputError(program.reads[i] ?? String(i), 'Invalid copied client state'); reads[i] = value; }
     for (let i = 0; i < slots.length; i++) {
       const slot = slots[i]; if (slot === undefined) throw new Error('Missing private client slot');
       previous[i] = initialized ? locals[i] ?? Number.NaN : slot.initial.op === 'constant' ? slot.initial.value : reads[slot.initial.index] ?? Number.NaN;
@@ -174,7 +175,7 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
         case 21: value = Number(a > b); break;
         default: value = rowValue(node, a, b, time, delta); break;
       }
-      if (!Number.isFinite(value) || Math.abs(value) > 1e12) throw new Error('Non-finite or excessive client expression');
+      if (!Number.isFinite(value) || Math.abs(value) > 1e12) throw new NumericInputError(String(i), 'Non-finite or excessive client expression');
       scratch[i] = value;
     }
     for (let i = 0; i < slots.length; i++) {

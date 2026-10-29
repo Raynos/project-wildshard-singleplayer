@@ -8,6 +8,7 @@ import { Bone, Euler, Vector3 } from 'three';
 import { expect, test } from 'vitest';
 import type { AnimalRigContext } from '../src/engine/entities/animalRig';
 import { numericCreaturePose } from '../src/game/plugin/channelPrograms';
+import {onFault,type Fault} from '../src/engine/core/faults';
 import { CRAB_CLIPS } from '../src/shards/driftwood-isle/generators/crabClips';
 import { THRALL_CLIPS } from '../src/shards/pine-hollow/generators/thrallClips';
 import { shippingCrab } from './fixtures/animal-pose/customShipping';
@@ -63,7 +64,7 @@ test('creature pose admission refuses non-joint outputs and stateful or unbounde
   expect(() => numericCreaturePose({ ...SAILOR_CLIPS, scalars: [SAILOR_CLIPS.scalars[0], SAILOR_CLIPS.scalars[0]] })).toThrow();
   const c = context(humanoidNames), before = transforms(c), animate = numericCreaturePose(SAILOR_CLIPS);
   c.mem['rise'] = Number.NaN;
-  expect(() => animate(c)).toThrow('scalar observation'); expect(transforms(c)).toEqual(before);
+  expect(() => animate(c)).not.toThrow(); expect(transforms(c)).toEqual(before);
 });
 
 test('humanoid rows preserve frozen joints and sailor lift on native and rendered rigs', () => {
@@ -130,7 +131,7 @@ test('typed creature inputs keep node order and snapshot all reads before output
   expect(() => animate(context([]))).not.toThrow();
   c.mem['offset'] = Number.NaN;
   const retained = transforms(c);
-  expect(() => animate(c)).toThrow('Invalid numeric input');
+  expect(() => animate(c)).not.toThrow();
   expect(transforms(c)).toEqual(retained);
 });
 
@@ -150,7 +151,7 @@ test('pose vectors join reordered reads and optional-rig subsets without publish
    if(c.bones['head']!==undefined){expect(c.bones['head'].position.y).toBe(13-value);expect(Object.is(c.bones['head'].rotation.x,value)).toBe(true);}
   }
   const before=transforms(c);c.mem['b']=Number.POSITIVE_INFINITY;
-  expect(()=>animate(c)).toThrow('Invalid numeric input');expect(transforms(c)).toEqual(before);
+  expect(()=>animate(c)).not.toThrow();expect(transforms(c)).toEqual(before);
  }
 });
 
@@ -181,7 +182,7 @@ test('pose dimensions include optional bodyPitch and retain its absent-field fal
   const fromDimension = numericCreaturePose(creaturePoseRows({ group: 'creature.pose', programs: direct }));
   fromDimension(c); expect(body.rotation.x).toBe(0.375);
   delete c.dims.bodyPitch;
-  expect(() => fromDimension(c)).toThrow('Invalid numeric input');
+  expect(() => fromDimension(c)).not.toThrow();
   expect(body.rotation.x).toBe(0.375);
   expect(() => creaturePoseRows({ group: 'creature.pose', programs,
     scalars: [{ name: 'pitch', path: ['dims', 'feet'], fallback: 0 }] })).toThrow();
@@ -229,7 +230,7 @@ test('reentrant pose observations keep separate scalar and frame snapshots', () 
   expect(inner.bones['body']?.position.toArray()).toEqual([8, 9, 7]);
   outer.mem['offset'] = Number.NaN;
   const retained = transforms(outer);
-  expect(() => animate(outer)).toThrow('scalar observation');
+  expect(() => animate(outer)).not.toThrow();
   expect(transforms(outer)).toEqual(retained);
   outer.mem['offset'] = -0; outer.t = 5; animate(outer);
   expect(outer.bones['body']?.position.toArray()).toEqual([2, 5, -0]);
@@ -250,4 +251,23 @@ test('reused pose observations preserve dimension and clock sampling order', () 
   animate(c);
   expect(order).toEqual([...dimensions, ...dimensions, 't', ...dimensions, 't']);
   expect(c.bones['body']?.position.x).toBe(.25); expect(c.bones['body']?.position.y).toBe(2);
+});
+
+
+test('a numeric pose failure skips only its actor, reports once and recovers next frame',()=>{
+  const programs=numericChannelPrograms('pose.skip','creature.pose',[
+    {target:'joint.body',path:['position','x'],expr:(_b,read)=>read('frame',['mem','offset'])},
+  ]);
+  const animate=numericCreaturePose(creaturePoseRows({group:'creature.pose',programs}));
+  const first=context(['body']),other=context(['body']);first.mem['offset']=1;other.mem['offset']=2;
+  animate(first);animate(other);
+  const reports:Fault[]=[],stop=onFault(fault=>{reports.push(fault);});
+  try{
+    first.mem['offset']=Number.NaN;other.mem['offset']=3;
+    expect(()=>{animate(first);animate(other);}).not.toThrow();
+    expect(first.bones['body']?.position.x).toBe(1);expect(other.bones['body']?.position.x).toBe(3);
+    expect(reports.map(fault=>[fault.system,fault.verdict])).toEqual([['creature.creature.pose','uncaught']]);
+    first.mem['offset']=4;animate(first);expect(first.bones['body']?.position.x).toBe(4);
+    first.mem['offset']=Number.NaN;animate(first);expect(reports).toHaveLength(1);
+  }finally{stop();}
 });

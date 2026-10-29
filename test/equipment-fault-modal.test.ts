@@ -6,7 +6,7 @@ import {Weapon} from '../src/engine/combat/Weapon';
 import type {EquipmentRow} from '../src/engine/combat/Equipment';
 import {EquipmentService} from '../src/engine/combat/EquipmentService';
 import {installErrorModal} from '../src/engine/ui/ErrorModal';
-import {setLoopState,onFault,type Fault} from '../src/engine/core/faults';
+import {emitFault,setLoopState,onFault,type Fault} from '../src/engine/core/faults';
 import {bindClientChannelInputs} from '../src/game/plugin/channels';
 import {SWORD_WOOD} from '../src/game/weapons/starterMeleeProfile';
 
@@ -47,4 +47,18 @@ test('a NaN crossbow frame skips only that weapon and opens the existing error m
     expect(crossbow.tick).toHaveBeenCalledTimes(8);expect(sword.tick).toHaveBeenCalledTimes(8);
     expect(reports).toHaveLength(1);expect(service.enabled).toBe(true);
   }finally{stop();scope.dispose();setLoopState('boot');vi.clearAllTimers();vi.useRealTimers();}
+});
+
+
+test('a later fatal report retires the existing modal resume action',()=>{
+  vi.useFakeTimers();setLoopState('running');installErrorModal();
+  try{
+    emitFault({system:'test.core',error:new Error('initial core fault'),verdict:'uncaught'});
+    const keep=document.querySelector<HTMLButtonElement>('#wserr .keep');
+    if(keep===null)throw new Error('Missing existing modal action');
+    expect(keep.hidden).toBe(false);
+    setLoopState('dead');emitFault({system:'test.core',error:new Error('fatal core fault'),verdict:'fatal'});
+    expect(keep.hidden).toBe(true);keep.click();
+    expect(document.querySelector('#wserr[role="alertdialog"]')).not.toBeNull();
+  }finally{setLoopState('running');document.querySelector<HTMLButtonElement>('#wserr .keep')?.click();setLoopState('boot');vi.clearAllTimers();vi.useRealTimers();}
 });
