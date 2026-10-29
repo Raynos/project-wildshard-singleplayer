@@ -27,7 +27,7 @@ import { runtimeBoundWorldFiles } from '../plugin/headless';
 import { neighbourProductFilesPaced, runtimeOnlyProductFilesPaced, tierLibrarySourcePaced, tierProductFilesPaced, urlImageLibrarySourcePaced, scopedSpecimenLibrarySourcePaced, playLibrarySourcePaced, deviceLibraryCostPaced } from './productCost';
 import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
 import { checkedProductCosts, parseCheckedProduct, prepareCheckedProduct, validateCheckedProductAssets } from './productChecks';
-import { clientPreparationBatch } from './preparationTiming';
+import { clientPreparationBatch, timeClientPreparation } from './preparationTiming';
 
 const HASH = /^[a-f0-9]{64}$/u;
 const MAX_FILE_BYTES = 25_000_000;
@@ -324,14 +324,15 @@ export async function readProductDescriptor(options: ProductOptions, declaredUrl
   const indexHash = options.firstParty && url.pathname.endsWith('/shard.json') ? builtIndexHash(url.pathname) : null;
   if (indexHash !== null && options.descriptorHash !== undefined && options.descriptorHash !== indexHash) throw new Error('Shardfile descriptor hash mismatch');
   if (indexHash !== null) url.searchParams.set('v', indexHash.slice(0, 8));
-  if(options.firstParty&&options.firstPartyRead!==undefined){
-    const bytes=await options.firstPartyRead(url.href,undefined,undefined,options.descriptorHash??indexHash??undefined);
+  const builtRead=options.firstParty?options.firstPartyRead:undefined;
+  if(builtRead!==undefined)return timeClientPreparation(new URL('.',url).pathname,'product.source',async()=>{
+    const bytes=await builtRead(url.href,undefined,undefined,options.descriptorHash??indexHash??undefined);
     await options.pause?.();
     const input:unknown=options.parseJson===undefined?JSON.parse(descriptorDecoder.decode(bytes)):await options.parseJson(bytes);
     const source=await resolveDescriptor(input,options);
     if(!isBuildValidatedOutput(source))throw new Error('First-party reader did not assemble its build output');
     return source;
-  }
+  });
   if(!(import.meta.env?.SSR??true))throw new Error('Client product needs its build-owned reader');
   // Observe a failed cache read without making a healthy network response depend on it.
   const cached = (async () => { try { return { value: await options.cache?.product(base) }; } catch (error: unknown) { return { error }; } })();
@@ -388,7 +389,8 @@ type AdmissionPhase = 'visited' | 'sections' | 'source' | 'files' | 'costs' | 's
  * Refill at most sixteen immutable read slots after verification. A refusal stops
  * new reads and drains started work before authored-order refusal or publication. */
 export function admitProduct(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
-  if(options.firstParty&&options.firstPartyRead!==undefined)return readBuiltProduct(input,options,options.firstPartyRead);
+  const builtRead=options.firstParty?options.firstPartyRead:undefined;
+  if(builtRead!==undefined)return timeClientPreparation(new URL('.',options.base).pathname,'product.read',()=>readBuiltProduct(input,options,builtRead));
   if(!(import.meta.env?.SSR??true))throw new Error('Client product needs its build-owned reader');
   const trace = clientPreparationBatch<AdmissionPhase>(options.descriptorPath ?? options.base, 'admission-phases',
     ['visited', 'sections', 'source', 'files', 'costs', 'store', 'finish']);
