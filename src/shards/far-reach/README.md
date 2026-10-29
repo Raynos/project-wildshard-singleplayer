@@ -83,4 +83,4 @@ seen from the crown. The code models stay as the stand-ins (`rocCode`, `goatCode
 
 - E364: the shard (this rebuild, Z3 round 4); own SFX and a wind bed are a later polish ask.
 
-DS0.1: Sky owns its cone fan and strikes, lift proof and edge walk. The frozen `far-reach-legacy` tree stays untouched; its original game lift proof / engine edge walk and SDK flyer, grazer, lift and silent-score adapters remain compatibility dependencies only. Live Sky imports the defining shared parsers and audio installer directly. `world/build.ts` retains its asynchronous piece-by-piece build yields.
+DS0.1: Sky owns its cone fan and strikes, lift proof and edge walk. G882 retired the frozen `far-reach-legacy` tree after Jake approved Sky Reach. Its legacy-only compatibility adapters retire in the same packet (G883 includes Signal Dunes). Live Sky imports the defining shared parsers and audio installer directly. `world/build.ts` retains its asynchronous piece-by-piece build yields.

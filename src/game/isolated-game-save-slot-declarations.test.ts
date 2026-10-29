@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["saves","grapple/sim","grid/continuations","plugin/brain","plugin/context","population/pageGroups","quest/interactionRows","quest/legacyRecords","quest/persistence","shardfile/socketLift","weapons/Sword"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["saves","grapple/sim","grid/continuations","plugin/brain","plugin/context","population/pageGroups","quest/interactionRows","quest/legacyRecords","quest/persistence","weapons/Sword"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);

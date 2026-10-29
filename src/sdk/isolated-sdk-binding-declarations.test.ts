@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ['admission','audio','behaviourSource','buildBehaviour','clientScripts','commons','commonsCosts','headless','interactions','ledger','plumbing','projectOutput','questGraph','quests','socketLift','species','version','as/ws'])test(`${name} emits isolated SDK declarations`,()=>{
+for(const name of ['admission','audio','behaviourSource','buildBehaviour','clientScripts','commons','commonsCosts','headless','interactions','ledger','plumbing','projectOutput','questGraph','quests','species','version','as/ws'])test(`${name} emits isolated SDK declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/sdk/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,
   compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);

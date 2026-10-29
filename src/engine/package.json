@@ -414,7 +414,6 @@
     "./script/state": "./script/state.ts",
     "./script/lane": "./script/lane.ts",
     "./ai/platform": "./ai/platform.ts",
-    "./world/terrainTileData": "./world/terrainTileData.ts",
     "./world/terrainTileView": "./world/terrainTileView.ts",
     "./world/coarseTileMask": "./world/coarseTileMask.ts",
     "./physics/terrainTiles": "./physics/terrainTiles.ts",
