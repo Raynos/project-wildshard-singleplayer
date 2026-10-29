@@ -1244,3 +1244,25 @@ test('live parsing retains main-thread receipts and the original hash refusal', 
   await expect(readProductDescriptor({ ...options(bad.wires), parseJson: parse })).rejects.toThrow('section hash or size mismatch');
   expect(parse.mock.calls.some(([bytes]) => bytes.length === section.bytes && bytes.every(byte => byte === 32))).toBe(false);
 });
+
+test('build-owned client sections assemble exact hosts without hashing or downloading schemas',async()=>{
+  const f=fixture(),path='sections/custom/build-probe.json',schemaPath='schemas/custom/build-probe.schema.json';
+  const value={enabled:true},wire=encodeCanonicalJson(value),schema=encodeCanonicalJson({type:'object',properties:{enabled:{type:'boolean'}},required:['enabled'],additionalProperties:false});
+  const measured=(name:string,bytes:Uint8Array)=>({path:name,bytes:bytes.length,hash:hashImmutableBytes(bytes)});
+  const index=parseOutputIndex({...f.index,sections:[...f.index.sections,{name:'custom/build-probe',schema:schemaPath,...measured(path,wire)}],schemas:[measured(schemaPath,schema)]});
+  f.wires.set(path,wire);
+  const reads:string[]=[],digest=vi.fn<(bytes:Uint8Array)=>Promise<string>>(()=>{throw new Error('No client digest');});
+  const source=await resolveOutputDescriptor(index,{offline:false,firstParty:true,hash:digest,read:()=>{throw new Error('No checked-reader fallback');},
+    built:{indexHash:'compiled-index-key',read:(name,bytes)=>{reads.push(name);const body=f.wires.get(name);if(body===undefined||body.length!==bytes)throw new Error('Missing emitted bytes');return Promise.resolve(body);}}});
+  expect(source).toStrictEqual(f.source);expect(digest).not.toHaveBeenCalled();expect(reads).toEqual(index.sections.map(row=>row.path));expect(reads).not.toContain(schemaPath);
+  if(!isBuildValidatedOutput(source))throw new Error('Missing build authority');
+  expect(outputDescriptor(source)?.sections.get('custom/build-probe')).toStrictEqual(value);expect(outputDescriptor(source)?.indexHash).toBe('compiled-index-key');
+});
+
+test('a supplied build reader cannot bypass external descriptor validation',async()=>{
+  const f=fixture(),first=f.index.sections[0];if(first===undefined)throw new Error('Missing section');
+  const corrupt=new Uint8Array(f.wires.get(first.path)??[]);corrupt[0]=0;
+  const built=vi.fn<(path:string,bytes:number)=>Promise<Uint8Array>>(()=>{throw new Error('External input has no build authority');});
+  await expect(resolveOutputDescriptor(f.index,{offline:false,firstParty:false,hash:bytes=>Promise.resolve(hash(bytes)),built:{read:built,indexHash:'not-authority'},read:path=>Promise.resolve(path===first.path?corrupt:f.wires.get(path)??new Uint8Array())})).rejects.toThrow('section hash or size mismatch');
+  expect(built).not.toHaveBeenCalled();
+});

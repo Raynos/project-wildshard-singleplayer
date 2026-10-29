@@ -16,6 +16,9 @@ export interface OutputDescriptorChecks {
 }
 /** Byte readers are injected: the section adapter runs in browsers and renderer-free Node admission. */
 export interface OutputDescriptorReader {
+  /** Build-owned browser transport; the producer already checked these files.
+   * Authored JSON cannot supply this capability. Node/external readers omit it. */
+  built?: {readonly read:(path:string,bytes:number)=>Promise<Uint8Array>;readonly indexHash:string};
   /** Node author bundles supply their defining checked port; authored JSON cannot provide it. */
   checks?: OutputDescriptorChecks;
   /** Optional live parser; hashes, receipts and all admission checks remain here. */
@@ -130,12 +133,42 @@ async function ownedBuildIndex(input: unknown, reader: OutputDescriptorReader): 
   return receipt === null ? null : { index: owned, receipt, digest };
 }
 
+/** G887: assemble our emitted files; strict checks remain in the build publisher. */
+async function readBuiltOutput(index:OutputIndex,reader:OutputDescriptorReader,built:NonNullable<OutputDescriptorReader['built']>):Promise<Shardfile>{
+  const sections=new Map<string,unknown>();
+  // Schemas validated these sections at publication; the client never downloads them to repeat that work.
+  const rows=index.sections;
+  for(const row of rows)reader.declare?.(row.path,row.bytes);
+  if(reader.deferAssetDeclarations!==true)for(const file of index.files)reader.declare?.(outputBlobPath(file),file.compressed);
+  const values=await Promise.allSettled(rows.map(async row=>{
+    const bytes=await built.read(row.path,row.bytes);
+    const value:unknown=reader.parseJson===undefined?JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)):await reader.parseJson(bytes);
+    return [row.name,value] as const;
+  }));
+  // Drain every started read and retain authored publication/error order.
+  for(const value of values){if(value.status==='rejected')throw value.reason;sections.set(...value.value);}
+  const source=assembleOutputTransport(index,sections);
+  if(!isBuiltClientSource(source,reader))throw new Error('Built output needs its first-party reader');
+  buildValidated.add(source);descriptors.set(source.files,{index,sections,cached:false,indexHash:built.indexHash});
+  return source;
+}
+
+/** The native build reader is the type authority here, not an authored field.
+ * G887 moves schema proof to publication; no client source hash or parser is involved. */
+function isBuiltClientSource(value:unknown,reader:OutputDescriptorReader):value is Shardfile{
+  return typeof value==='object'&&value!==null&&reader.firstParty===true&&reader.built!==undefined;
+}
+
 /**
  * Read all sections needed by today's complete Shardfile hosts, checking exact
  * byte sizes and hashes before assembly. Already assembled in-memory models
  * remain host inputs; disk readers separately require a format-2 index.
  */
 export async function resolveOutputDescriptor(input: unknown, reader: OutputDescriptorReader): Promise<unknown> {
+  if(reader.firstParty===true&&reader.built!==undefined){
+    if(isBuildValidatedOutput(input))return input;
+    return readBuiltOutput(input as OutputIndex,reader,reader.built);
+  }
   // This root was reconstructed here already. Admission still rechecks exposed
   // values; recognizing a model must not load the disk-index grammar again.
   if (reader.firstParty === true && isBuildValidatedOutput(input)) {

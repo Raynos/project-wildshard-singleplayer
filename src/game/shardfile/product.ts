@@ -62,6 +62,10 @@ export interface ProductProgress {
 }
 /** Loading is explicit about connectivity and first-party provenance, never inferred from an author field. */
 export interface ProductOptions {
+  /** Native first-party build capability. Publication validates the content;
+   * this reader fetches its canonical URL and compares the declared length.
+   * Node author and external readers omit it and retain checked admission. */
+  firstPartyRead?: (url:string,expectedBytes:number|undefined,read?:(bytes:number)=>void)=>Promise<Uint8Array>;
   /** The spawn manifest names individual files, never transport envelopes. */
   directFiles?: boolean;
   /** Optional live parser; boot and receipts stay on the page. Hashes/validators retain admission. */
@@ -215,7 +219,10 @@ async function readBoundedResponse(response: Response, maximum: number, read?: (
 }
 function resolveDescriptor(input: unknown, options: ProductOptions, lineage = false, background = false): Promise<unknown> {
   const base = new URL('.', options.base).href, cache = options.cache, backgroundStore = cache?.putAssetBackground;
+  const builtRead=options.firstParty?options.firstPartyRead:undefined;
   return resolveOutputDescriptor(input, {
+    ...(builtRead===undefined?{}:{built:{read:(path:string,bytes:number)=>builtRead(new URL(path,base).href,bytes),
+      indexHash:options.descriptorHash??builtIndexHash(new URL(options.descriptorPath??'shard.json',base).pathname)??''}}),
     ...(options.parseJson === undefined ? {} : { parseJson: options.parseJson }),
     offline: options.offline, hash: options.hash, firstParty: options.firstParty, deferAssetDeclarations: true, ...(lineage ? { lineage } : {}),
     ...(options.cacheHintTurn === undefined ? {} : { cacheHintTurn: options.cacheHintTurn }),
