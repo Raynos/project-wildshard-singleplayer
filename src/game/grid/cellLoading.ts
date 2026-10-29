@@ -47,7 +47,7 @@ export function cellLoadingStep(input: CellLoadingInput): CellLoadingStep {
     return { kind: 'step', key: 'warm', detail: work === null ? phase : `${phase} · ${work.detail}` };
   }
   const hooksDone = (last: string): boolean => !input.hybrid || input.hooks.has(last);
-  if (!input.product) return { kind: 'step', key: 'admission', detail: input.requested ? 'reading and verifying its product' : 'requested as you approach' };
+  if (!input.product) return { kind: 'step', key: 'world', detail: input.requested ? 'reading its region files' : 'requested as you approach' };
   const running = input.hook === null ? '' : ` · ${input.hook}`;
   if (!hooksDone('afterWorld')) return { kind: 'step', key: 'world', detail: `${input.claimedMB.toFixed(0)} MB admitted${running}` };
   if (!hooksDone('afterKit')) return { kind: 'step', key: 'loadout', detail: `weapons, held items and HUD${running}` };

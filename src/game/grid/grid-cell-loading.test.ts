@@ -7,10 +7,12 @@ const base: CellLoadingInput = { instance: 'pine-hollow', slug: 'pine-hollow', n
   entered: false, gameplayReady: false };
 const key = (input: Partial<CellLoadingInput>): string => { const step = cellLoadingStep({ ...base, ...input }); return step.kind === 'step' ? step.key : step.kind; };
 
-test('G555: a cell entry walks the cell path step by step, on its live admission', () => {
+test('G555: a cell entry walks the retained path on its live readiness', () => {
   const steps = loadingPath('cell').steps.map(row => row.key);
-  expect(steps).toEqual(['admission', 'world', 'loadout', 'gameplay', 'warm', 'colliders', 'enter']);
-  expect(key({})).toBe('admission');
+  expect(steps).toEqual(['world', 'loadout', 'gameplay', 'warm', 'colliders', 'enter']);
+  expect(key({})).toBe('world');
+  expect(cellLoadingStep(base)).toEqual({kind:'step',key:'world',detail:'reading its region files'});
+  expect(cellLoadingStep({...base,requested:false})).toEqual({kind:'step',key:'world',detail:'requested as you approach'});
   expect(key({ product: true, hook: 'world' })).toBe('world');
   expect(key({ product: true, hooks: new Set(['afterWorld']) })).toBe('loadout');
   expect(key({ product: true, hooks: new Set(['afterWorld', 'afterKit']) })).toBe('gameplay');
