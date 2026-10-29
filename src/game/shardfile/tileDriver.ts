@@ -17,11 +17,11 @@ import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
 import { buildYield, WORK_SLICE_MS } from '@wildshard/engine/core/workSlice';
 import { followTile, ring, ringRadius, tileKey, type TileContent } from './tileContent';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { tileOf, tileOrder, type CellTile, type TileEntryway } from './tileOrder';
+import { TILE_SIZE, TILES_PER_SIDE, tileOf, tileOrder, type CellTile, type TileEntryway } from './tileOrder';
 import { noteEnteredTiles } from './enteredTileReadout';
 import { residentTileEntry } from './tileEntry';
 import { pageScope } from '@wildshard/engine/app/resources';
-import { spawnViewBusy } from './controlRefinement';
+import { SPAWN_VIEW_M, spawnViewBusy } from './controlRefinement';
 
 /** MF5: the live drivers, and whether the loader is settling them (no world frames under the card since FC2). */
 const liveDrivers = new Set<TileDriver>();
@@ -67,7 +67,7 @@ export class TileDriver {
     let idle = 0;
     for (let turn = 0; turn < turns && this.last !== null && !this.scope.disposed && !this.scope.disposing; turn++) {
       this.step(this.last.x, this.last.z);
-      const plan = this.plan, pending = plan !== null && plan.nearest.render.some(key => this.attached.render.get(key) === undefined || !this.complete(key));
+      const plan = this.plan, pending = plan !== null && plan.nearest.render.some(key => this.inView(key) && (this.attached.render.get(key) === undefined || !this.complete(key)));
       if (!this.busy && !pending) return;
       idle = this.busy && !spawnViewBusy() ? idle + 1 : 0;
       if (idle > 2) return;
@@ -93,6 +93,8 @@ export class TileDriver {
   /** T11: centre the rings on (`x`, `z`) before the first step, then build every content's coarse stand-in (the skyline
    *  beyond the render ring), each leaving out the tiles the render ring draws as it moves. */
   async coarse(x: number, z: number): Promise<void> {
+    // the loader settles from here (MF5): no world frame has stepped the driver under the card
+    this.last ??= { x, z };
     this.centre = followTile(null, x, z); this.renderRing = this.ringPlan(this.centre, this.radius()).wanted.render;
     const scope = this.coarseScope ??= this.scope.child('tiles:coarse');
     for (; this.coarseCount < this.contents.length; this.coarseCount++) {
@@ -119,7 +121,7 @@ export class TileDriver {
     for (const layer of ['colliders', 'render'] as const) {
       const next = plan.nearest[layer].find(key => {
         const tile = this.attached[layer].get(key);
-        return (tile === undefined || this.contents.some(content => !tile.done.has(content) && (layer === 'colliders' || content.ready?.() !== false))) && !this.failed.has(`${layer}:${String(key)}`);
+        return this.inView(key) && (tile === undefined || this.contents.some(content => !tile.done.has(content) && (layer === 'colliders' || content.ready?.() !== false))) && !this.failed.has(`${layer}:${String(key)}`);
       });
       if (next === undefined) continue;
       this.busy = true;
@@ -139,6 +141,14 @@ export class TileDriver {
     const plan = { i: centre.i, j: centre.j, radius, wanted, nearest: { render: ordered(wanted.render), colliders: ordered(wanted.colliders) } };
     this.plan = plan;
     return plan;
+  }
+
+  /** While the loader settles (MF5), only tiles whose centre is inside the spawn-view fence: one attach waiting on a job
+   *  outside it would hold back the in-view tiles ordered after it. Otherwise every tile. */
+  private inView(key: number): boolean {
+    if (!loaderMode || this.last === null) return true;
+    const half = TILES_PER_SIDE * TILE_SIZE / 2;
+    return Math.hypot(-half + (key % TILES_PER_SIDE + 0.5) * TILE_SIZE - this.last.x, -half + (Math.floor(key / TILES_PER_SIDE) + 0.5) * TILE_SIZE - this.last.z) <= SPAWN_VIEW_M;
   }
 
   /** Coarse coverage stays until every declared fine visual actually publishes. */
