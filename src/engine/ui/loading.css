@@ -47,6 +47,8 @@
 .ws-load .ws-load-log { margin-top: 12px; font-size: 9.5px; letter-spacing: 0.08em; color: rgba(196, 220, 232, 0.4); min-height: 70px; line-height: 1.6; }
 .ws-load .ws-load-foot { display: flex; justify-content: space-between; padding: 0 44px 26px; font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(196, 220, 232, 0.4); }
 .ws-load[data-stalled="true"] [data-el="foot"] { color: #ffcd73; }
+/* QS2: a long fault (a file path) wraps; at its unbreakable min-content width it pushed RETRY off a 402 px screen */
+.ws-load [data-el="foot"] { min-width: 0; overflow-wrap: anywhere; }
 
 /* panel */
 .ws-load .ws-load-meta-1 { grid-template-columns: 1fr; margin: 10px 0 8px; }
