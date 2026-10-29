@@ -63,9 +63,6 @@
     },
     {
       "path": "./admin/tools/tsconfig.json"
-    },
-    {
-      "path": "./scripts/tsconfig.test.json"
     }
   ]
 }

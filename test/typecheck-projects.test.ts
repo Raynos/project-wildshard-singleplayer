@@ -21,11 +21,13 @@ function project(file: string): ts.ParsedCommandLine {
 
 test('every source file has a layer owner, while the root covers all tests and ambient declarations', () => {
   const pending = [resolve('tsconfig.layers.json')], seen = new Set<string>(), sources = new Set<string>();
+  const ownersByProject = new Map<string, ts.ParsedCommandLine>();
   while (pending.length > 0) {
     const file = pending.pop();
     if (file === undefined || seen.has(file)) continue;
     seen.add(file);
     const parsed = project(file);
+    ownersByProject.set(file, parsed);
     for (const source of parsed.fileNames) sources.add(source);
     for (const reference of parsed.projectReferences ?? []) pending.push(ts.resolveProjectReferencePath(reference));
   }
@@ -37,6 +39,13 @@ test('every source file has a layer owner, while the root covers all tests and a
   expect(missing.map(file => relative('.', file))).toEqual([]);
   expect(root.fileNames.filter(file => file.includes('/src/') && !/\.d\.(?:[cm]?ts|[^/]+\.ts)$/u.test(file))).toEqual([]);
   expect(root.options.disableSourceOfProjectReferenceRedirect).not.toBe(true);
+  const helpers = root.fileNames.filter(file => file.startsWith(`${resolve('scripts')}/`)
+    || file === resolve('vite.config.ts') || file.startsWith(`${resolve('vite')}/`));
+  expect(helpers.length).toBeGreaterThan(0);
+  for (const helper of helpers) {
+    const owners = [...ownersByProject].filter(([, parsed]) => parsed.fileNames.includes(helper)).map(([file]) => file);
+    expect(owners).toEqual([resolve('test/tsconfig.json')]);
+  }
   expect(new Set(root.projectReferences?.map(reference => ts.resolveProjectReferencePath(reference))
     .filter(file => !file.endsWith('/tsconfig.test.json')))).toEqual(
     new Set([...seen].filter(file => /^tsconfig\.(?:engine|format|game|sdk|commons|shards|app)\.json$/u.test(relative('.', file)))),
