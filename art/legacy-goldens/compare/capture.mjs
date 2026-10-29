@@ -108,6 +108,11 @@ try{for(const slug of slugs){
    // spawn, so its eye became spawn's): an eye-height camera puts it back before its eye is read
    const drifted=!free&&await page.evaluate(p=>{const q=window.__wildshard.world.player.position;return Math.hypot(q.x-p.x,q.z-p.z)>2;},at);
    if(drifted){await page.evaluate(p=>window.__wildshard.pose(p),at);await frames(page,30);}
+   // QF20: a probe without a height takes the ground under it at pose time. Posed before a structure's colliders stream in
+   // (Driftwood's pier after the aerial cameras) the player stood under the deck (y -0.87 instead of 1.22) and its body
+   // shadow fell under it; once streaming settles, such a probe is posed again on the ground now resident
+   const sunk=!free&&!drifted&&at.y===undefined&&await page.evaluate(p=>{const before=window.__wildshard.world.player.position.y;return window.__wildshard.pose(p).then(()=>Math.abs(window.__wildshard.world.player.position.y-before)>0.5);},at);
+   if(sunk)await frames(page,30);
    // the eye becomes the game camera: set in the late phase of every frame, so the next update culls and streams for it
    await page.evaluate(c=>{const w=window.__wildshard.world,g=w.game,cam=g.camera,settled=cam.position.toArray();
     window.__wsEye={eye:c.eye??[settled[0],settled[1]+(c.lift??0),settled[2]],pitch:c.pitch*Math.PI/180,yaw:-c.yaw*Math.PI/180,fov:c.fov,settled};
@@ -137,7 +142,7 @@ try{for(const slug of slugs){
     await page.screenshot({path:shot,type:'png',scale:'device'});await hide.evaluate(e=>e.remove());}
    else await page.screenshot({path:shot,type:'png',scale:'css'});
    await page.evaluate(()=>{for(const o of window.__wsBoards??[])o.visible=true;window.__wsBoards=[];});
-   row.poses.push({n:c.n??i+1,name:c.name,free,drifted,idle,live,...observed,...(exp?{exp:expResult}:{}),shot});
+   row.poses.push({n:c.n??i+1,name:c.name,free,drifted,sunk,idle,live,...observed,...(exp?{exp:expResult}:{}),shot});
    writeFileSync(`${root}/receipts-${slug}.json`,JSON.stringify(row,null,1));
   }
   row.status=row.errors.length===0?'complete':'errors';
