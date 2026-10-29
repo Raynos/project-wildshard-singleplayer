@@ -2218,7 +2218,7 @@ export const PUBLIC_BYTES = {
   "/assets/tex/wood_trunk_wall/nor_gl_1k.jpg": 138432,
   "/assets/tex/wood_trunk_wall/nor_gl_1k.phone.webp": 59412,
   "/assets/title/driftwood-isle-portrait.jpg": 50826,
-  "/assets/title/launch-1206x2622-880e3aa07fa7.png": 1625877,
+  "/assets/title/launch-1206x2622-4aac2b539e76.png": 1626413,
   "/assets/title/main-crossroads-landscape.jpg": 131510,
   "/assets/title/main-crossroads-square.jpg": 216862,
   "/assets/title/nalati-grasslands-portrait.jpg": 72112,

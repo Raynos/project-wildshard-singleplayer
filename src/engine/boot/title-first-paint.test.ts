@@ -50,16 +50,18 @@ test('a fresh document clock retains the real handoff elapsed time without movin
   expect(root.querySelector('[data-el="clock"]')?.textContent).toBe('00:01.9');
 });
 
-test('plain launch paints the approved hero and an indeterminate boat without application modules', () => {
+test('plain launch paints the approved hero and an indeterminate thin bar without application modules', () => {
   const window = firstDocument(''), panel = window.document.querySelector('[data-title-shell]');
   if (panel === null) throw new Error('Missing inline title');
   expect(window.document.documentElement.classList.contains('title-first')).toBe(true);
   expect(window.getComputedStyle(panel).display).toBe('flex');
   expect(window.getComputedStyle(panel).position).toBe('fixed');
-  const hero = panel.querySelector('.ws-launch-hero'), boat = panel.querySelector('.ws-launch-boat');
-  if (hero === null || boat === null) throw new Error('Missing title art/progress');
+  // QB3: no boat; a thin bar in the loading card's style
+  const hero = panel.querySelector('.ws-launch-hero'), bar = panel.querySelector('.ws-launch-progress i');
+  if (hero === null || bar === null) throw new Error('Missing title art/progress');
+  expect(panel.querySelector('svg')).toBeNull();
   expect(window.getComputedStyle(hero).backgroundImage).toContain('main-crossroads-square.jpg');
-  expect(window.getComputedStyle(boat).animation).toContain('ws-launch-sail');
+  expect(window.getComputedStyle(bar).animation).toContain('ws-launch-run');
   expect(panel.querySelector('[role="progressbar"]')?.hasAttribute('aria-valuenow')).toBe(false);
   expect(window.document.querySelector('link[as="image"]')?.getAttribute('href')).toBe('/assets/title/main-crossroads-square.jpg');
   expect(window.document.querySelector('#hud')?.childElementCount).toBe(0);
@@ -129,6 +131,8 @@ test('the inline eight-second retry uses real byte progress, including per-pack 
   const root = window.document.querySelector('.ws-load[data-shell]'), wait = window.document.querySelector('.ws-launch-wait');
   if (!(root instanceof window.HTMLElement) || !(wait instanceof window.HTMLElement)) throw new Error('Missing inline loading UI');
   const frame = (at: number): void => { frames.now = at; for (const run of frames.callbacks.splice(0)) run(at); };
+  // a page reloaded by its own stall a moment ago shows the wait instead of reloading again (QB3)
+  window.sessionStorage.setItem('wildshard.boot.selfReload', String(Date.now()));
   frame(7999); expect(wait.hidden).toBe(true);
   frame(8000); expect(wait.hidden).toBe(false); expect(wait.textContent).toContain('Waiting for Application modules · 8.0 s');
   const state = loadingWaitState(window.document);
@@ -145,6 +149,19 @@ test('the inline eight-second retry uses real byte progress, including per-pack 
   pack.loadedBytes = 1048576; pack.progressAt = 24000; frame(24000); expect(wait.hidden).toBe(true);
   pack.label = 'Stylesheet /held.css'; frame(32000);
   expect(wait.textContent).toContain('Waiting for Stylesheet /held.css · 8.0 s');
+});
+
+test('QB3: a first stall reloads the page by itself and shows no wait; Retry only after a reloaded page stalls again', () => {
+  const frames: Frames = { now: 0, callbacks: [] }, window = firstDocument('', frames);
+  const wait = window.document.querySelector('.ws-launch-wait');
+  if (!(wait instanceof window.HTMLElement)) throw new Error('Missing inline title wait');
+  const reloads = vi.fn<() => void>();
+  for (const entry of loadingWaitState(window.document).pending.values()) entry.retry = reloads;
+  const frame = (at: number): void => { frames.now = at; for (const run of frames.callbacks.splice(0)) run(at); };
+  frame(8000);
+  expect(reloads).toHaveBeenCalledTimes(1); expect(wait.hidden).toBe(true);
+  expect(Number(window.sessionStorage.getItem('wildshard.boot.selfReload'))).toBeGreaterThan(0);
+  frame(9000); frame(20000); expect(reloads).toHaveBeenCalledTimes(1);
 });
 
 test('the first-paint panel survives failed title start and retires only after the real deck is mounted', () => {
