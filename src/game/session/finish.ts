@@ -19,13 +19,15 @@ import { liveWarmPacing, precompileLevel, queuedLinks } from '@wildshard/engine/
 import { boundEntryWarmup, ENTRY_NO_FRAME_MS, EntryWarmupStallError } from '@wildshard/engine/render/entryWarmupBound';
 import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
-import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
+import { lastEnd, registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
 import { gridPrefetchOrder, startGridPrefetch } from '../grid/prefetch';
 import { admittedRuntimeProduct, completeManifestCache, releaseManifestTransport } from '../shardfile/runtimeProduct';
 import { enterSkyClock } from './clockSettings';
 import { settleEntryPrograms } from './settlePrograms';
 import { prepareSpawnView } from '../shardfile/controlRefinement';
 import { observeTitlePreparation, prepareTitleFrame } from './titlePreparation';
+import { installCrashCheckpoint } from './crashResume';
+import { GAME_STRINGS } from '../strings';
 
 /** how often the in-play warm-up asks whether an arrival's Explorer has closed, and how long it waits for one to open */
 const EXPLORER_POLL_MS = 1000, EXPLORER_OPEN_MS = 30_000;
@@ -175,7 +177,12 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // the loop starts parked behind its gate and the first world frame is ONE hidden frame under the opaque card
   await loadingStage('worldFrame', () => { game.start(); game.hiddenFrame(); });
   // FC2 (L15): the ready frame is one more hidden frame (the minimap's baked map decodes beside it, at most 1.5 s)
-  await loadingStage('readyFrame', () => { game.hiddenFrame(); return Promise.race([ctx.minimap.prepare(), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })]); });
+  // MF5 + FC2: what the hidden frames registered in the spawn view (the ring's L0 tiles the first draw asks for) refines
+  // under the card too, before the reveal; the minimap's baked map decodes beside it
+  await loadingStage('readyFrame', async () => {
+    game.hiddenFrame();
+    await Promise.all([prepareSpawnView(), Promise.race([ctx.minimap.prepare(), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })])]);
+  });
   // P0: the phone's spawn programs settle while loading still covers the reveal.
   // Undrawn world programs remain in the sliced after-control warm-up below.
   // A boot that lands on the title reveals nothing yet: it draws no frame before ENTER (CI's 0.3 fps runner spent ~70 s
@@ -234,6 +241,9 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   if (arrival?.mode === 'enter' || arrival?.mode === 'arena' || ctx.continuingGridEntry || (arrival === null && loading.playRequested)) enter();
   else if (arrival?.mode === 'explore') hud.startExplore(); // import the viewer only after shader compilation and the loader's peak
   if (arrival?.mode === 'arena') hud.enterArenaNow();
+  if (ctx.gridLive === null) installCrashCheckpoint(game.levelScope, manifest.slug, () => hud.entered && !world.freeCamera && !world.tour.active && !exploring()
+    ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null);
+  if (ctx.session.crashResume !== undefined || (ctx.continuingGridEntry && lastEnd().kind === 'unexpected')) hud.toast(GAME_STRINGS.grid.shardEnded(manifest.name));
   const useBanks = (banks: AudioBanks): void => {
     if (game.levelScope.disposed) return;
     if (banks.music) music.useBank(banks.music);
