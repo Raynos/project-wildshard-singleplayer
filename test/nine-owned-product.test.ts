@@ -51,8 +51,8 @@ test('source-owned files preserve the original complete output and executable by
   const physical = (values: ReadonlyMap<string, Uint8Array>, oldOnly = false) => [...values].filter(([key]) => key !== hash && !nativeHashes.has(key) && (!oldOnly || oldOwnedAssets.includes(key)))
     .map(([key, value]) => [key, value.byteLength, hashImmutableBytes(value)]);
   expectNineDeclaration(product);
-  // Reconstruct only the two old source declarations for this unchanged raw-wire golden.
-  // The effective inventory pins all 212 files, including portal and card
+  // Reconstruct only the two old source declarations for this attributed raw-wire golden.
+  // The effective inventory pins all 193 files, including portal and card
   // channels whose complete original words have separate byte oracles.
   const legacyCasts = castBefore.castFiles.filter(row => row.kind === 'glb').map(row => ({ name: row.name, kind: 'glb',
     source: row.name === 'geometry/dragon-hook.glb' ? 'data/castHook.generated.glb' : `data/cast-${row.name.split('/').at(-1)?.replace('.glb', '')}.generated.glb` }));
@@ -82,7 +82,9 @@ test('source-owned files preserve the original complete output and executable by
     namedFiles: named.map(row => row === layout ? oldLayout : row),
     assets: projectedAssets, platform: { ...actual.platform, sections: actual.platform.sections.map(row => row === scenes ? oldScenes : row),
       files: physical(actual.platform.files).map(row => row[0] === 'sections/world/scenes.json' ? [row[0], row[1], OLD_SCENES] : row) } }))
-    .toEqual({ bytes: 159100, hash: 'f1435bf9c34d57ff2893033863bfe1c3d35acd11a113e49920c29c22b32f6bf0' });
+    // FC12 dc2f5644ad: receiver rows merge; 521a3ff672: alpha-kit fabric changes.
+    // Exact dc2^ control retains 159100/f143; dc2 is 150964/51a9; 521 is pinned here.
+    .toEqual({ bytes: 150822, hash: '8d3b5fa696a96e6fd03bd815067212173aa0f7a5c376513edb540e1211959ad2' });
   // Supply distinct proof and decal rows directly, without a file-reader fallback.
   const burst = { name: 'fixture', shape: 'flake' as const, count: 1, life: .5 };
   const suppliedInputs = { courseProgram: inputs.courseProgram, casts: inputs.casts, signs: inputs.signs, ownedWorld: inputs.ownedWorld, scenes: inputs.scenes, held: inputs.held, construction: { seed: product.identity.seed, looks: Object.keys(product.look.materials) },
