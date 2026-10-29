@@ -144,7 +144,10 @@ export class Perf {
     // reads completed draws, including a growing gap when there are none.
     this.scope.interval(PAINT_MS, () => {
       if (!this.active) return;
-      this.frameWindow.observe(game.frameCount, game.frameRafTime);
+      // QA8: a closed frame gate (the held loading card, a gated reveal) draws nothing on purpose, like a menu: its time is
+      // not a stall. Counted, Jake's 8 s on the hold card read "0 fps · max 8954 ms" for 3 s after PLAY
+      if (!game.frameGate()) this.frameWindow.reset(performance.now(), game.frameCount);
+      else this.frameWindow.observe(game.frameCount, game.frameRafTime);
       this.paint(performance.now());
     });
   }

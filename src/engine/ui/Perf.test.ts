@@ -11,7 +11,7 @@ afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 
 test('the real pill reports a freeze from its timer without another game update', () => {
   vi.useFakeTimers();
-  let now = 0, update = (): void => undefined;
+  let now = 0, gate = true, update = (): void => undefined;
   vi.spyOn(performance, 'now').mockImplementation(() => now);
   const scope = new Scope('frame-pill');
   const beforeTimers = vi.getTimerCount();
@@ -19,7 +19,7 @@ test('the real pill reports a freeze from its timer without another game update'
     level: legacyDouble<Game['level']>({ id: 'frame-pill', budgets: {} }),
     renderer: legacyDouble<Game['renderer']>({ getPixelRatio: () => 2 }),
     gl: legacyDouble<Game['gl']>({ events: 0, restoredAt: 0, lostAt: 0 }),
-    frameMs: new Float32Array(120).fill(1000 / 60), frameCount: 0, frameRafTime: null,
+    frameMs: new Float32Array(120).fill(1000 / 60), frameCount: 0, frameRafTime: null, frameGate: () => gate,
     lastFrame: { calls: 1, triangles: 1 },
     onUpdate: tick => { update = () => { tick(0, 0); }; },
   });
@@ -40,6 +40,11 @@ test('the real pill reports a freeze from its timer without another game update'
     now = 4000; vi.advanceTimersByTime(2000); // No completed draws at all.
     expect(meter.root.firstElementChild?.textContent).toBe('0');
     expect(meter.root.querySelector('.ws-perf-ms')?.textContent).toBe('max 2000 ms');
+    // QA8: a closed frame gate (the held loading card) is not a stall: the first frames after it read their own gaps
+    gate = false; now = 12000; vi.advanceTimersByTime(8000);
+    gate = true; // PLAY
+    for (let frame = 1; frame <= 6; frame++) { now += 50; game.frameCount++; game.frameRafTime = now; update(); vi.advanceTimersByTime(50); }
+    expect(Number(/^max (\d+) ms$/u.exec(meter.root.querySelector('.ws-perf-ms')?.textContent ?? '')?.[1])).toBeLessThan(100);
   } finally { scope.dispose(); }
   expect(vi.getTimerCount()).toBe(beforeTimers);
 });
@@ -49,7 +54,7 @@ function panelGame(): Game {
   return legacyDouble<Game>({ app,
     level: legacyDouble<Game['level']>({id:'lazy-panel',budgets:{}}),
     renderer: legacyDouble<Game['renderer']>({getPixelRatio:()=>2,info:legacyDouble<Game['renderer']['info']>({memory:{textures:0,geometries:0},programs:[]})}),
-    frameCount:0,frameRafTime:null,lastFrame:{calls:2,triangles:3},onUpdate:()=>undefined,
+    frameCount:0,frameRafTime:null,frameGate:()=>true,lastFrame:{calls:2,triangles:3},onUpdate:()=>undefined,
   });
 }
 
