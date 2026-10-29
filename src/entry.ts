@@ -7,7 +7,7 @@ import { startPageServices } from './pageServices';
 import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import { preloadModuleFiles, declareModuleFiles } from '@wildshard/engine/boot/download';
-import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules, declareHomeModules, prepareBootImports, prepareEntryCode } from './bootDownloads';
+import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules, declareHomeModules, prepareBootImports, prepareEntryCode, homeDownloadSource } from './bootDownloads';
 /**
  * The page's module entry. Everything the game imports statically is evaluated in ONE task when a module graph
  * runs: three.js plus the ~150 game modules at once was a 115–157 ms long task at 4× CPU before the first boot step
@@ -142,6 +142,7 @@ async function startSelected(): Promise<void> {
   const [entrySelection, gridSelection] = await Promise.all([entryModule, gridEntryModule]);
   const earlyPath = gridSelection.pageGridRecovery() !== null || gridSelection.pendingGridEntry(game.shard.slug)
     ? 'grid' : entrySelection.shardEntry(game.shard);
+  const homeDescriptor = homeDownloadSource(game.shard, earlyPath === 'grid');
   const declaredHome = earlyPath !== 'legacy' && document.getElementById('ws-shardfile') === null;
   // Establish all compiler-known denominators before crediting cached code.
   // These declarations start no transport; existing preload/read barriers stay.
@@ -150,8 +151,8 @@ async function startSelected(): Promise<void> {
     game.shard.shardfile, document.baseURI, entryScope) : null;
   if (declaredHome) {
     reserveHomeDownload(typeof moduleRows === 'object' && moduleRows !== null && 'products' in moduleRows ? moduleRows.products : undefined,
-      game.shard.shardfile, document.baseURI, TIER);
-    declareHomeModules(game.shard.shardfile, document.baseURI);
+      homeDescriptor, document.baseURI, TIER);
+    declareHomeModules(homeDescriptor, document.baseURI);
   }
   if (typeof moduleRows === 'object' && moduleRows !== null) {
     if ('common' in moduleRows) declareModuleFiles(moduleRows.common);
@@ -217,7 +218,7 @@ async function startSelected(): Promise<void> {
     await completePageCatalogue(page.mode);
     const path = page.mode === 'grid' ? 'grid' : source !== null || shardEntry(game.shard) === 'shardfile' ? 'shardfile' : 'legacy';
     // Publish every selected bank together before reading the descriptor.
-    if (source === null) reserveHomeDownload(typeof moduleRows === 'object' && moduleRows !== null && 'products' in moduleRows ? moduleRows.products : undefined, game.shard.shardfile, document.baseURI, TIER);
+    if (source === null) reserveHomeDownload(typeof moduleRows === 'object' && moduleRows !== null && 'products' in moduleRows ? moduleRows.products : undefined, homeDescriptor, document.baseURI, TIER);
     const extras = source === null && path === 'shardfile' ? homeExtras : null;
     if (source === null && path === 'shardfile') prepareHomeModules(game.shard.shardfile, document.baseURI);
     if (path === 'shardfile') modules('client');

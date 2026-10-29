@@ -1,9 +1,23 @@
 // @vitest-environment happy-dom
 import {afterEach,expect,test} from 'vitest';
-import {prepareHomeModules,declareHomeModules,reserveHomeDownload} from '../src/bootDownloads';
-import {DownloadAccounting,installDownloadAccounting,declareModuleFiles,preloadModuleGroups} from '../src/engine/boot/download';
+import {prepareHomeModules,declareHomeModules,reserveHomeDownload,homeDownloadSource} from '../src/bootDownloads';
+import {DownloadAccounting,installDownloadAccounting,declareDownloadFile,declareModuleFiles,preloadModuleGroups} from '../src/engine/boot/download';
 
 afterEach(() => {document.body.replaceChildren();for(const link of document.querySelectorAll('link[rel="modulepreload"]'))link.remove();});
+test('a hybrid grid declares its actual product before later immutable files, without changing standalone entry', () => {
+  const manifest = {gridShardfile: '/shardfiles/example/shard.json'};
+  const accounting = new DownloadAccounting(document.baseURI), dispose = installDownloadAccounting(accounting);
+  try {
+    expect(homeDownloadSource(manifest, false)).toBeUndefined();
+    const selected = homeDownloadSource(manifest, true);
+    expect(selected).toBe(manifest.gridShardfile);
+    reserveHomeDownload({'/shardfiles/example/': [10, 200, 130, 170]}, selected, document.baseURI, 'phone');
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: 130, declaredDoneBytes: 0});
+    declareDownloadFile('/shardfiles/example/blobs/bin/member.bin', 100);
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: 130, declaredDoneBytes: 0});
+    expect(homeDownloadSource({...manifest, shardfile: '/primary.json'}, true)).toBe('/primary.json');
+  } finally {dispose();}
+});
 test('the early code union fixes the denominator without starting any preload or granting a receipt', () => {
   const node = document.createElement('script'); node.id = 'boot-module-files';
   node.textContent = JSON.stringify({optional: {files: [['/assets/shared.js', 100], ['/assets/scene.js', 50]], groups: {'home:/shardfiles/example/': [0, 1]}}});

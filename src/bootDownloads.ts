@@ -2,6 +2,11 @@ import { declareDownloadFile, reserveDownloadGroup, reserveDownloadBank, preload
 import { prepareCodePack } from '@wildshard/engine/boot/codePack';
 import type { Scope } from '@wildshard/engine/app/scope';
 
+/** Match the actual grid product reader; a hybrid's standalone path may have no descriptor. */
+export function homeDownloadSource(manifest: {readonly shardfile?: string; readonly gridShardfile?: string}, grid: boolean): string | undefined {
+  return manifest.shardfile ?? (grid ? manifest.gridShardfile : undefined);
+}
+
 /** Only a selected compiled home borrows its own boot transport. The plain
  * title and external/legacy entries keep their original import path. */
 export async function prepareEntryCode(search: URLSearchParams, owner: Scope): Promise<(() => void) | null> {
