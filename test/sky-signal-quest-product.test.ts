@@ -86,8 +86,9 @@ test('Sky prompt compilation retains native command and position order', () => {
   expect(skyPrompts).toEqual({ SKY_INTERACT, SKY_ACT, QUEST_STEP, SKY_SPOTS, ROOST_IDS, KEEPER_AT });
 });
 
-// Frozen from the exact 5c6e5ff49 physics producer before moving its scout source.
+// Frozen from the exact 5c6e5ff49 physics producer before moving its scout source; QB15 widened the well's crank and
+// use radii (2026-10-29).
 test('moving the scout author changes no physics or prompt bytes', () => {
   const original = JSON.stringify(signalPhysics).replaceAll('sunscar-dunes/generators/questPresentation.ts', 'sunscar-dunes/data/questPresentation.ts');
-  expect(hashImmutableBytes(new TextEncoder().encode(`${original}\n`))).toBe('e72089068751162e0321825165cafc33a2efe18d9123e75bc8e8ce0966f3ba64');
+  expect(hashImmutableBytes(new TextEncoder().encode(`${original}\n`))).toBe('c65556baa336f219d36e7282b341b521f820404f83727b5336662eefed7e001e');
 });
