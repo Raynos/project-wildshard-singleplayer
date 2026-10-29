@@ -27,6 +27,9 @@ import { observeTitlePreparation, prepareTitleFrame } from './titlePreparation';
 
 /** how often the in-play warm-up asks whether an arrival's Explorer has closed, and how long it waits for one to open */
 const EXPLORER_POLL_MS = 1000, EXPLORER_OPEN_MS = 30_000;
+/** PL6: the boot shader step's slice (ms). At phone CPU 10x one material's job overran 12 ms, so each of ~120 jobs took
+ *  its own painted loading frame and the per-frame cost ran the step; the loader's text still updates well inside its 1 s. */
+const BOOT_SHADER_SLICE_MS = 48;
 
 export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
   const { manifest, boot, slug, loading, audioProfile, files, bootSteps, plan, step, audioLoad, deferredAudio, world, game, sky, player, chunk, fragileBoot, failGpuBoot, onBootContextLost, edgeDressing, boundary, water, interactables, props, disableBootGpuGuard, level, animals, getArena, crossbow, weapons, lockSys, hud, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground, leakPhysics } = ctx;
@@ -92,7 +95,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
       // A six-material job exceeded the loading text's one-second update
       // budget at phone CPU speed. Use the existing one-material sliced path.
       // PL6: and what the first frame's warm turns show, so none of it builds and links inside that frame
-      await precompileLevel(game, (d, n, what) => p.set(d, n, `${what} · ${programs()}`), { sliceMs: 12, warmPost: true, drawnOnly: true, turns: game.warmTurnYaws() });
+      await precompileLevel(game, (d, n, what) => p.set(d, n, `${what} · ${programs()}`), { sliceMs: BOOT_SHADER_SLICE_MS, warmPost: true, drawnOnly: true, turns: game.warmTurnYaws() });
     });
     if (fragileBoot && game.renderer.getContext().isContextLost()) throw new Error('WebGL context lost during shader compile');
     await step('firstFrame', async (p) => {
