@@ -8541,6 +8541,9 @@ entry state; script, body, lane and RNG continuations remain caller-owned.
 returning a quiet commit. The commit refuses if the installed entry references
 changed after preparation, and invokes no script, hook, persistence write or
 random source. Untouched last-hit clocks retain the historical null wire value.
+`update` isolates each refused entry for that frame and reports once through
+the internal retry path. Accepted state/effect prefixes remain; later entries
+and valid frames continue. Direct initialization and restore stay strict.
 
 `format/eliteContinuation#EliteCoreContinuationSchema.entries` composes these fields into a caller's
 strict versioned envelope. Its top-level parser can also project those core

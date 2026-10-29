@@ -17,6 +17,7 @@
 
 import * as v from 'valibot';
 import { EliteCoreContinuationSchema, type EliteCoreContinuation } from '@wildshard/format/eliteContinuation';
+import { emitFault } from '@wildshard/engine/core/faults';
 
 export type EliteCoreRule = 'always' | 'dusk' | 'night' | 'storm';
 
@@ -126,6 +127,7 @@ export class EliteCore<S extends EliteCoreScript> {
   private saved: Record<string, EliteCoreRecord>;
   private saveT = 0;
   private lastDusk = false;
+  private reportedFrames: WeakSet<EliteCoreEntry<S>> | undefined;
 
   private readonly host: EliteCoreHost;
   private readonly hooks: EliteCoreHooks<S>;
@@ -194,6 +196,7 @@ export class EliteCore<S extends EliteCoreScript> {
     const duskEdge = dusk && !this.lastDusk; this.lastDusk = dusk;
     let best: EliteCoreEntry<S> | null = null, bestD = Infinity;
     for (const e of this.entries) {
+      try {
       const def = e.script.def;
       const dl = Math.hypot(p.x - def.lair.x, p.z - def.lair.z);
       if (!e.discovered && dl < DISCOVER_R) { e.discovered = true; this.save(); }
@@ -246,6 +249,10 @@ export class EliteCore<S extends EliteCoreScript> {
       if (e.beatT > 0) { e.beatT -= dt; if (a.hp < e.lockHp) a.hp = e.lockHp; }
       e.script.tick(dt, t, e.state === 'engaged', e.state === 'leash');
       if ((e.state === 'aware' || e.state === 'engaged') && d < bestD) { best = e; bestD = d; }
+      } catch (error) {
+        const reported = this.reportedFrames ??= new WeakSet();
+        if (!reported.has(e)) { reported.add(e); emitFault({system: 'elite.rules', error, verdict: 'retry'}); }
+      }
     }
     this.saveT += dt;
     if (this.saveT > 10) { this.saveT = 0; this.save(); }
