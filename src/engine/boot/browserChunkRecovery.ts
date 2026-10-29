@@ -44,3 +44,13 @@ export function recoverChunkFailure(error: unknown): Promise<boolean> {
   });
   return recover(error);
 }
+
+let installed = false;
+/** Arm lazy-import/CSS failures after the initial entry promise has settled.
+ * The ordinary error pipeline still receives the original failure. */
+export function installChunkRecovery(): void {
+  if (installed || typeof window === 'undefined') return;
+  installed = true;
+  pageScope.listen(window, 'unhandledrejection', event => { void recoverChunkFailure(event.reason); });
+  pageScope.listen(window, 'vite:preloadError', event => { void recoverChunkFailure(Reflect.get(event, 'payload')); });
+}

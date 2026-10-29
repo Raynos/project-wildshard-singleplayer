@@ -1,4 +1,4 @@
-import { recoverChunkFailure } from './browserChunkRecovery';
+import { installChunkRecovery, recoverChunkFailure } from './browserChunkRecovery';
 import { saveStorage } from '../saves/slots';
 /**
  * The boot's safety net under the game's own error handling (E144). src/engine/ui/ErrorModal.ts is armed by src/main.ts, so a
@@ -96,6 +96,7 @@ async function showFailure(): Promise<void> {
 
 /** Watch entry.ts's main-module promise: a rejection gets a way out instead of a frozen loader. */
 export function guardBoot(entered: Promise<unknown>): void {
+  installChunkRecovery();
   void (async () => {
     try { await entered; } catch (e) { if (!await recoverChunkFailure(e)) failed(e); }
   })();

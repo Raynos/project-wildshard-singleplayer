@@ -1,15 +1,9 @@
 import { recoverChunkFailure } from './browserChunkRecovery';
-/** Retry an async module download after 800 ms and 2500 ms; preserve the final rejection.
- * A cached module evaluation error is rethrown by the module loader, without evaluating it again.
- * This leaf is also used before the engine and its scopes have loaded.
+/** Load a module once. A stale deployment starts a new document once; retrying
+ * a rejected module URL in this document cannot repair WebKit's module map.
+ * The historical name remains for callers outside the title entry.
  */
 export async function retried<T>(load: () => Promise<T>): Promise<T> {
-  for (const wait of [800, 2500]) {
-    try { return await load(); } catch {
-      // oxlint-disable-next-line wildshard/no-global-listener-patch -- Pre-engine import retries await and consume each one-shot timer; this leaf must not import a Scope.
-      await new Promise<void>((resolve) => { globalThis.setTimeout(resolve, wait); });
-    }
-  }
   try { return await load(); }
   catch (error) {
     if (await recoverChunkFailure(error)) return new Promise<never>(() => { /* The new document resumes the original entry. */ });
