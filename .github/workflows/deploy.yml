@@ -273,7 +273,9 @@ jobs:
         env:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
           DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
+          DEPLOY_MODE: ${{ steps.pin.outputs.mode }}
         run: |
+          if [ "$DEPLOY_MODE" != pinned ]; then node "$RUNNER_TEMP/deploy-pin.mjs" check-live-floor "$DEPLOY_SHA"; fi
           node "$RUNNER_TEMP/deploy-source-maps.mjs" .vercel/output/static
           url=$(vercel deploy --prebuilt --prod --yes --scope raynos-projects --token "$VERCEL_BUILD_TOKEN")
           echo "deployed $url for $DEPLOY_SHA (the pin)"

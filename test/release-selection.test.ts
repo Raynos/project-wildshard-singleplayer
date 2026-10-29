@@ -1,11 +1,46 @@
 import { expect, test } from 'vitest';
-import { ciGreen, ciRunGreen, newestCiGreen, newestCiGreenAfterBoot, PendingBootSmokeError, releaseReady, releaseSlot, workflowRunsPath } from '../scripts/deploy-pin.mjs';
+import deployWorkflow from '../.github/workflows/deploy.yml?raw';
+import { ciGreen, ciRunGreen, newestCiGreen, newestCiGreenAfterBoot, PendingBootSmokeError, productionFloor, releaseReady, releaseSlot, workflowRunsPath } from '../scripts/deploy-pin.mjs';
 
 const newer = 'a'.repeat(40), proven = 'b'.repeat(40), oldest = 'c'.repeat(40);
 const completed = '2026-10-21T14:00:00Z', now = Date.parse('2026-10-21T14:01:00Z');
 const success = `boot-smoke\tsuccess\tExact built dist passed\t${completed}`;
 const pending = `boot-smoke\tpending\tExact proof running\t${completed}`;
 const workflows = '.github/workflows/deploy.yml\t123\n.github/workflows/boot-smoke.yml\t456';
+
+test('the live floor permits only an identical or descendant automatic release', () => {
+  for (const candidate of [newer, proven]) {
+    const status = candidate === proven ? 'identical' : 'ahead';
+    const query = (args: string[]): string => {
+      expect(args[0]).toBe(`repos/Raynos/project-wildshard-singleplayer/compare/${proven.slice(0, 9)}...${candidate}`);
+      expect(args.slice(1)).toEqual(['--jq', '{status,base_commit:{sha:.base_commit.sha}}']);
+      return JSON.stringify({ status, base_commit: { sha: proven } });
+    };
+    expect(productionFloor(`${proven.slice(0, 9)}-build`, candidate, query)).toBe(proven);
+  }
+  for (const status of ['behind', 'diverged', undefined]) {
+    expect(() => productionFloor(`${proven.slice(0, 9)}-build`, oldest,
+      () => JSON.stringify({ status, base_commit: { sha: proven } }))).toThrow('does not advance production');
+  }
+});
+
+test('automatic releases check the live floor immediately before stripping and uploading', () => {
+  const workflow = deployWorkflow;
+  const deploy = workflow.slice(workflow.indexOf('- name: Deploy prebuilt output'), workflow.indexOf('- name: Verify production'));
+  expect(deploy).toMatch(/DEPLOY_MODE:\s*\$\{\{ steps\.pin\.outputs\.mode \}\}/u);
+  expect(deploy).toContain('if [ "$DEPLOY_MODE" != pinned ]; then node "$RUNNER_TEMP/deploy-pin.mjs" check-live-floor "$DEPLOY_SHA"; fi');
+  expect(deploy.indexOf('check-live-floor')).toBeLessThan(deploy.indexOf('deploy-source-maps.mjs'));
+  expect(deploy.indexOf('check-live-floor')).toBeLessThan(deploy.indexOf('url=$(vercel deploy'));
+});
+
+test('missing, foreign or unavailable live ancestry cannot authorize a release', () => {
+  for (const base of [undefined, { sha: oldest }, { sha: proven.slice(0, 8) }]) {
+    expect(() => productionFloor(`${proven.slice(0, 9)}-build`, newer,
+      () => JSON.stringify({ status: 'ahead', base_commit: base }))).toThrow('Unreadable production floor');
+  }
+  expect(() => productionFloor('unreadable', newer, () => { throw new Error('must not query'); })).toThrow('Invalid production floor');
+  expect(() => productionFloor(`${proven.slice(0, 9)}-build`, newer, () => { throw new Error('GitHub unavailable'); })).toThrow('GitHub unavailable');
+});
 
 function queryFor(candidates: readonly string[], proofs: Readonly<Record<string, string>>): (args: string[]) => string {
   return args => {

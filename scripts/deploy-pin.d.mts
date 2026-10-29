@@ -1,5 +1,7 @@
 /** Latest real built-dist boot status for this exact SHA; older successes cannot override newer failures. */
 export function bootGreen(sha: string, query?: (args: string[]) => string): boolean;
+/** Refuse automatic promotion behind or outside the live production ancestry; return its resolved full SHA. */
+export function productionFloor(build: string, candidate: string, query?: (args: string[]) => string): string;
 /** Numeric run endpoint resolved from the workflow's exact path, cached per API client. */
 export function workflowRunsPath(workflow: 'deploy.yml' | 'boot-smoke.yml', query?: (args: string[]) => string): string;
 /** Select the newest successful push CI that also passed a real boot on the exact same SHA. */

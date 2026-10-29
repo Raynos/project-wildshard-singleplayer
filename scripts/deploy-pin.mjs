@@ -6,6 +6,7 @@
 //   node scripts/deploy-pin.mjs check-gate <sha>                      # exit 0 only if <sha> has gpu-gate = success
 //   node scripts/deploy-pin.mjs release-slot                          # free= to $GITHUB_OUTPUT: no release run in the last hour
 //   node scripts/deploy-pin.mjs release-ready                         # ready=, sha= to $GITHUB_OUTPUT; no wait
+//   node scripts/deploy-pin.mjs check-live-floor <sha>                # automatic releases never move behind production
 //   node scripts/deploy-pin.mjs set <sha> --milestone M<n> --go "<where Jake OKed>"
 //   node scripts/deploy-pin.mjs rollback <sha> --go "<Jake's words>"   # any SHA proven previously live in production
 //   node scripts/deploy-pin.mjs mode newest-green --go "<…>"          # Z4 only
@@ -107,6 +108,21 @@ export function gateGreen(sha) {
 export function bootGreen(sha, query = ghApi) {
   if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error('boot-smoke requires an exact 40-hex SHA');
   return statuses(sha, query).get('boot-smoke')?.state === 'success';
+}
+
+/** Automatic releases may keep or advance production, never replace it with an older or divergent tree.
+ * Resolve the live build's abbreviated SHA through GitHub's immutable comparison, not run completion order.
+ * @param {string} build @param {string} candidate @param {(args:string[])=>string} [query] @returns {string} */
+export function productionFloor(build, candidate, query = ghApi) {
+  const short = build.split('-')[0] ?? '';
+  if (!/^[0-9a-f]{7,40}$/.test(short) || !/^[0-9a-f]{40}$/.test(candidate)) throw new Error('Invalid production floor identity');
+  const comparison = JSON.parse(query([`repos/${REPO}/compare/${short}...${candidate}`, '--jq', '{status,base_commit:{sha:.base_commit.sha}}']));
+  const live = comparison.base_commit?.sha;
+  if (typeof live !== 'string' || !/^[0-9a-f]{40}$/.test(live) || !live.startsWith(short)) throw new Error('Unreadable production floor comparison');
+  if (comparison.status !== 'ahead' && comparison.status !== 'identical') {
+    throw new Error(`release refused: ${candidate} does not advance production ${live} (${comparison.status})`);
+  }
+  return live;
 }
 
 /** Historical successful release logs bind the full pin to a matching version actually read from production.
@@ -301,6 +317,18 @@ function memoryReading(sha) {
 
 async function main() {
   const [cmd, a1] = process.argv.slice(2);
+  if (cmd === 'check-live-floor') {
+    if (!a1) throw new Error('check-live-floor <sha>');
+    const response = await fetch(`https://wildshard-singleplayer.vercel.app/version.json?release-floor=${Date.now()}`, {
+      headers: { 'Cache-Control': 'no-store' }, signal: AbortSignal.timeout(12000),
+    });
+    if (!response.ok) throw new Error(`Production floor returned HTTP ${response.status}`);
+    const version = await response.json();
+    if (typeof version?.build !== 'string') throw new Error('Production floor has no build ID');
+    const floor = productionFloor(version.build, a1);
+    console.log(`Production floor ${floor}; target ${a1}; forward-only verified`);
+    return 0;
+  }
   if (cmd === 'read') {
     const pin = readPin();
     let sha = pin.sha;
