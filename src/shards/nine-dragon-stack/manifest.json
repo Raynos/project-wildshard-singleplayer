@@ -47,7 +47,7 @@
   "tiers": {
     "phone": {
       "ao": false,
-      "slices": false,
+      "slices": true,
       "aa": "fxaa",
       "warmTurns": 0,
       "textures": "img"
