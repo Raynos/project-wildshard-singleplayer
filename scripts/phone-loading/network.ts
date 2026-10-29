@@ -83,6 +83,14 @@ export function observeRequests(attach: (start: (request: Request) => void, fini
         if (!job.active) return;
         row.source = request.serviceWorker() !== null ? 'worker' : response?.fromServiceWorker() ? 'service-worker' : 'network';
         row.status = response?.status() ?? 0;
+        if (response === null && row.failure !== null) {
+          const partial = nativeSizes?.(request);
+          const encoded = partial?.encodedBytes ?? 0, transfer = partial?.transferBytes ?? 0;
+          Object.assign(row, {bytes: encoded, decodedBytes: partial?.decodedBytes ?? 0, transferBytes: transfer,
+            headerBytes: transfer - encoded, bodyBasis: 'no-response', sizeBasis: partial === null || partial === undefined ? 'native-encoded' : 'native-events',
+            sizeComplete: false, accounting: 'complete'});
+          job.active = false; return;
+        }
         job.stage = 'request.sizes';
         const sizes = await request.sizes();
         if (!job.active) return;

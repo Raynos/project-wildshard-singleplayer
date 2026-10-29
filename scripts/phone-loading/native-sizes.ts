@@ -4,14 +4,14 @@ import {record} from './model.ts';
 export interface NativeSizes {decodedBytes?: number; encodedBytes?: number; transferBytes?: number; requestId: string; partial?: boolean; readBody?: () => Promise<number>}
 interface Entry {
   key: string; session: string; protocolId: string; seenData: Set<string>; worker: boolean; url: string; method: string; start: number; timestamp?: number; timedStart?: number;
-  decoded: number; encoded: number; chunks: boolean; cached: boolean; sw: boolean;
+  headers: Record<string, string>; decoded: number; encoded: number; chunks: boolean; cached: boolean; sw: boolean;
   initial?: number; transfer?: number; complete: boolean; revalidated?: boolean; failed?: boolean;
 }
 function size(value: unknown): value is number {return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;}
 /** Passive CDP ledger. Redirect hops keep separate entries; matching requires
  * URL, method, owner kind and the native request's own wall-clock start. */
 export class NativeSizeLedger {
-  constructor(private readonly bodyReader?: (session: string, id: string) => Promise<number>) {}
+  constructor(private readonly bodyReader?: (session: string, id: string, url: string, headers: Readonly<Record<string, string>>) => Promise<number>) {}
   private readonly active = new Map<string, Entry>();
   private readonly entries: Entry[] = [];
   private readonly requests = new WeakMap<Request, Entry>();
@@ -31,7 +31,7 @@ export class NativeSizeLedger {
       const migrated = this.entries.find(row => row.protocolId === id && row.url === url && row.method === verb && row.worker === worker && Math.abs(row.start - wall * 1000) < 0.001);
       if (migrated !== undefined) {this.active.set(key, migrated); return;}
       const entry: Entry = {key: `${key}:${this.entries.length}`, session, protocolId: id, seenData: new Set(), worker, url, method: verb, start: wall * 1000,
-        decoded: 0, encoded: 0, chunks: false, cached: false, sw: false, complete: false};
+        headers: {}, decoded: 0, encoded: 0, chunks: false, cached: false, sw: false, complete: false};
       if (typeof data['timestamp'] === 'number') entry.timestamp = data['timestamp'];
       this.entries.push(entry); this.active.set(key, entry); return;
     }
@@ -39,6 +39,8 @@ export class NativeSizeLedger {
     entry.session = session;
     if (method === 'Network.responseReceived') {
       const response = record(data['response']);
+      for (const [name, value] of Object.entries(record(response['headers'])))
+        if (typeof value === 'string' && ['etag', 'last-modified', 'content-type', 'content-encoding', 'content-length'].includes(name.toLowerCase())) entry.headers[name.toLowerCase()] = value;
       entry.cached ||= response['fromDiskCache'] === true || response['fromPrefetchCache'] === true;
       entry.sw = response['fromServiceWorker'] === true;
       if (size(response['encodedDataLength'])) entry.initial = response['encodedDataLength'];
@@ -84,9 +86,12 @@ export class NativeSizeLedger {
     else if (entry.transfer === 0 || entry.revalidated) encoded = 0;
     else if (entry.transfer !== undefined && entry.initial !== undefined && entry.transfer >= entry.initial) encoded = entry.transfer - entry.initial;
     else if (entry.encoded > 0) encoded = entry.encoded;
+    // A completed uncached POST with no encoded body and no data events is
+    // empty (e.g. the preview's 405 telemetry reply), not an unread cached GET.
+    const emptyPost = entry.method === 'POST' && !entry.cached && !entry.sw && encoded === 0;
     const reader = this.bodyReader, selected = entry;
-    return {requestId: entry.key, ...(reader === undefined ? {} : {readBody: () => reader(selected.session, selected.protocolId)}),
-      ...(entry.failed ? {partial: true} : {}), ...((entry.chunks || entry.failed) ? {decodedBytes: entry.decoded} : {}),
+    return {requestId: entry.key, ...(reader === undefined ? {} : {readBody: () => reader(selected.session, selected.protocolId, selected.url, selected.headers)}),
+      ...(entry.failed ? {partial: true} : {}), ...((entry.chunks || entry.failed || emptyPost) ? {decodedBytes: entry.decoded} : {}),
       ...(encoded === undefined ? {} : {encodedBytes: encoded}), ...(entry.transfer === undefined ? {} : {transferBytes: entry.transfer})};
   }
 }

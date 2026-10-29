@@ -95,6 +95,7 @@
     "../scripts/phone-loading/fixtures.ts",
     "../scripts/phone-loading/network.ts",
     "../scripts/phone-loading/native-sizes.ts",
+    "../scripts/phone-loading/native-body.ts",
     "../scripts/phone-loading/instrument.ts",
     "../scripts/app-build/serviceWorker.ts",
     "../scripts/bake/skyTexturesPage.ts",

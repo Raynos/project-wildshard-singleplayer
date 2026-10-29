@@ -1,0 +1,1196 @@
+{
+  "schema": 1,
+  "source": "70af0582a1e3c2ea0ff3778b1ee7a1def1682e2e",
+  "baseline": "art/loading/round-1-phone-speed/baseline-a6701db71.json",
+  "rawDirectory": "tmp/phone-loading/2026-10-29T16-04-02-018Z-70af058-mvtpp51t",
+  "rulerNativeFiles": {
+    "scripts/phone-loading/chromium.ts": "ac760469413a9d08badd45896d87a19093695d0007c2576e55b8fe5e2fbf43e9",
+    "scripts/phone-loading/network.ts": "6fb31f0da68d40177e3f934c4a258dabe4961050c50da292f9dc82b0afdeeadc",
+    "scripts/phone-loading/native-sizes.ts": "3263a5ec776af2d322f635fc76b16170f0025b37a4e22dc7a072fc52940be1a6",
+    "scripts/phone-loading/native-body.ts": "7d22940a053ca781dbfecd940587a704392c97bf46798a3d6eb54a0d626c7ebc"
+  },
+  "limitations": [
+    "Ordinary shared-Mac reading; no isolated code or physical-iPhone speed claim.",
+    "Chromium phone CPU10x, 10/2Mb/s and100ms; WebKit is explicitly unthrottled.",
+    "10-28 baseline is Chromium-only and has earlier visible-row/exclusive attribution.",
+    "All four intended-document Home/HUD controls qualify; completed requests have decoded and wire sizes; aborted/in-flight requests remain explicit.",
+    "Local preview telemetry405 errors are retained; all request-accounting errors are zero.",
+    "The maintained controller/control/request ruler precedes the concurrent QA5 navigation-panel-only bridge."
+  ],
+  "runs": [
+    {
+      "engine": "chromium",
+      "cache": "cold",
+      "flow": "grid",
+      "preset": "phone",
+      "at": "2026-10-29T16:05:08.419Z",
+      "build": "70af058-mvtpp51t",
+      "profile": {
+        "cpu": 10,
+        "down": 1250000,
+        "up": 250000,
+        "latency": 100
+      },
+      "totalMs": 56086.2998046875,
+      "qualified": true,
+      "requestAccounting": {
+        "complete": true,
+        "incomplete": 0,
+        "pending": 0,
+        "deadlineMs": 5000,
+        "inFlight": 7
+      },
+      "rows": [
+        {
+          "key": "modules",
+          "label": "Application modules",
+          "duration": 4232.5999999940395,
+          "wallMs": 4234.10009765625,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "gap:native:0",
+          "label": "gap before setup",
+          "duration": 1.5,
+          "wallMs": null,
+          "state": "ok",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "admission",
+          "label": "Product admission",
+          "duration": 6247.699999988079,
+          "wallMs": 6252.300048828125,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "runtimeModules",
+          "label": "Runtime modules",
+          "duration": 0,
+          "wallMs": 0,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "data",
+          "label": "Texture formats and audio catalogue",
+          "duration": 50.400000005960464,
+          "wallMs": 50.400146484375,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "audioFiles",
+          "label": "Selected audio downloads",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "world",
+          "label": "Region world",
+          "duration": 3613.5,
+          "wallMs": 3867.10009765625,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "renderer",
+          "label": "Renderer",
+          "duration": 253.60000002384186,
+          "wallMs": 253.60009765625,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "loadout",
+          "label": "Equipment and HUD",
+          "duration": 212.40000000596046,
+          "wallMs": 231,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "weapon",
+          "label": "Weapons · HUD",
+          "duration": 18.599999994039536,
+          "wallMs": 18.599853515625,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "gameplay",
+          "label": "Gameplay and saved state",
+          "duration": 1047.5,
+          "wallMs": 3861.60009765625,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "assembly",
+          "label": "World assembly",
+          "duration": 2747.9000000059605,
+          "wallMs": 2747.89990234375,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "menu",
+          "label": "Title art · explore",
+          "duration": 66.19999998807907,
+          "wallMs": 66.199951171875,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "finish",
+          "label": "Final activation",
+          "duration": 1208.2000000178814,
+          "wallMs": null,
+          "state": "on",
+          "startBasis": "native",
+          "endBasis": null
+        },
+        {
+          "key": "home",
+          "label": "Home region",
+          "duration": 27595.59999999404,
+          "wallMs": 27595.60009765625,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "admission#2",
+          "label": "Product admission · pass 2",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "world#2",
+          "label": "Region world · pass 2",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "loadout#2",
+          "label": "Equipment and HUD · pass 2",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "homePrograms",
+          "label": "Home region shader preparation",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "road",
+          "label": "Road system",
+          "duration": 35,
+          "wallMs": 35,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "shaders",
+          "label": "Shaders",
+          "duration": 2117,
+          "wallMs": 2117,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "firstFrame",
+          "label": "First frame",
+          "duration": 909.5999999940395,
+          "wallMs": 909.599853515625,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "readyFrame",
+          "label": "First drawn frames and minimap",
+          "duration": 723.2000000178814,
+          "wallMs": 723.199951171875,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "spawnPrograms",
+          "label": "Spawn program links",
+          "duration": 3692.399999976158,
+          "wallMs": 3692.39990234375,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "audio",
+          "label": "Audio · music + sound effects",
+          "duration": 25.5,
+          "wallMs": 25.5,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "gap:native:1",
+          "label": "gap after Application modules",
+          "duration": 0.4000000059604645,
+          "wallMs": null,
+          "state": "ok",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "gap:native:2",
+          "label": "gap after Texture formats and audio catalogue",
+          "duration": 2.0999999940395355,
+          "wallMs": null,
+          "state": "ok",
+          "startBasis": null,
+          "endBasis": null
+        }
+      ],
+      "notes": [
+        "Worker CPU throttling is unsupported by CDP",
+        "Title dwell 3000ms; post-control dwell 4000ms (outside measured total)"
+      ],
+      "requestSummary": {
+        "started": 322,
+        "finished": 319,
+        "inFlight": 3,
+        "wireBytes": 24312940,
+        "decodedHTTPBodyBytes": 137620425,
+        "partialFailures": 4,
+        "finishedMissingSizes": 0
+      },
+      "errors": [
+        {
+          "message": "Failed to load resource: the server responded with a status of 405 (Method Not Allowed)",
+          "source": "console.error:0:0",
+          "url": "http://127.0.0.1:4406/api/telemetry"
+        }
+      ]
+    },
+    {
+      "engine": "chromium",
+      "cache": "warm",
+      "flow": "grid",
+      "preset": "phone",
+      "at": "2026-10-29T16:06:01.953Z",
+      "build": "70af058-mvtpp51t",
+      "profile": {
+        "cpu": 10,
+        "down": 1250000,
+        "up": 250000,
+        "latency": 100
+      },
+      "totalMs": 43093.60009765625,
+      "qualified": true,
+      "requestAccounting": {
+        "complete": true,
+        "incomplete": 0,
+        "pending": 0,
+        "deadlineMs": 5000,
+        "inFlight": 2
+      },
+      "rows": [
+        {
+          "key": "modules",
+          "label": "Application modules",
+          "duration": 2178.7999999821186,
+          "wallMs": 2181.099853515625,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "gap:native:0",
+          "label": "gap before setup",
+          "duration": 2.300000011920929,
+          "wallMs": null,
+          "state": "ok",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "admission",
+          "label": "Product admission",
+          "duration": 877,
+          "wallMs": 883.400146484375,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "runtimeModules",
+          "label": "Runtime modules",
+          "duration": 1.300000011920929,
+          "wallMs": 1.300048828125,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "data",
+          "label": "Texture formats and audio catalogue",
+          "duration": 49.599999994039536,
+          "wallMs": 49.60009765625,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "audioFiles",
+          "label": "Selected audio downloads",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "world",
+          "label": "Region world",
+          "duration": 487.60000002384186,
+          "wallMs": 696.300048828125,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "renderer",
+          "label": "Renderer",
+          "duration": 208.69999998807907,
+          "wallMs": 208.699951171875,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "loadout",
+          "label": "Equipment and HUD",
+          "duration": 210.5,
+          "wallMs": 227.89990234375,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "weapon",
+          "label": "Weapons · HUD",
+          "duration": 17.399999976158142,
+          "wallMs": 17.39990234375,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "gameplay",
+          "label": "Gameplay and saved state",
+          "duration": 1006.1000000238419,
+          "wallMs": 3511.199951171875,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "assembly",
+          "label": "World assembly",
+          "duration": 2470.199999988079,
+          "wallMs": 2470.2001953125,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "menu",
+          "label": "Title art · explore",
+          "duration": 34.900000005960464,
+          "wallMs": 34.89990234375,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "finish",
+          "label": "Final activation",
+          "duration": 1450.800000011921,
+          "wallMs": null,
+          "state": "on",
+          "startBasis": "native",
+          "endBasis": null
+        },
+        {
+          "key": "home",
+          "label": "Home region",
+          "duration": 24814,
+          "wallMs": 24814,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "admission#2",
+          "label": "Product admission · pass 2",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "world#2",
+          "label": "Region world · pass 2",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "loadout#2",
+          "label": "Equipment and HUD · pass 2",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "homePrograms",
+          "label": "Home region shader preparation",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "road",
+          "label": "Road system",
+          "duration": 41.19999998807907,
+          "wallMs": 41.199951171875,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "shaders",
+          "label": "Shaders",
+          "duration": 2447.4000000059605,
+          "wallMs": 2447.400146484375,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "firstFrame",
+          "label": "First frame",
+          "duration": 1032.0999999940395,
+          "wallMs": 1032.10009765625,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "readyFrame",
+          "label": "First drawn frames and minimap",
+          "duration": 712.6999999880791,
+          "wallMs": 712.699951171875,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "spawnPrograms",
+          "label": "Spawn program links",
+          "duration": 3867.199999988079,
+          "wallMs": 3867.199951171875,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "audio",
+          "label": "Audio · music + sound effects",
+          "duration": 23.100000023841858,
+          "wallMs": 23.10009765625,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "gap:native:1",
+          "label": "gap after Texture formats and audio catalogue",
+          "duration": 1.9000000059604645,
+          "wallMs": null,
+          "state": "ok",
+          "startBasis": null,
+          "endBasis": null
+        }
+      ],
+      "notes": [
+        "Worker CPU throttling is unsupported by CDP",
+        "Title dwell 3000ms; post-control dwell 4000ms (outside measured total)"
+      ],
+      "requestSummary": {
+        "started": 163,
+        "finished": 162,
+        "inFlight": 1,
+        "wireBytes": 28067,
+        "decodedHTTPBodyBytes": 22587003,
+        "partialFailures": 3,
+        "finishedMissingSizes": 0
+      },
+      "errors": [
+        {
+          "message": "Failed to load resource: the server responded with a status of 405 (Method Not Allowed)",
+          "source": "console.error:0:0",
+          "url": "http://127.0.0.1:4406/api/telemetry"
+        },
+        {
+          "message": "Failed to load resource: the server responded with a status of 405 (Method Not Allowed)",
+          "source": "console.error:0:0",
+          "url": "http://127.0.0.1:4406/api/telemetry"
+        },
+        {
+          "message": "Failed to load resource: the server responded with a status of 405 (Method Not Allowed)",
+          "source": "console.error:0:0",
+          "url": "http://127.0.0.1:4406/api/errors"
+        }
+      ]
+    },
+    {
+      "engine": "webkit",
+      "cache": "cold",
+      "flow": "grid",
+      "preset": "phone",
+      "at": "2026-10-29T16:06:19.680Z",
+      "build": "70af058-mvtpp51t",
+      "profile": {
+        "cpu": 10,
+        "down": 1250000,
+        "up": 250000,
+        "latency": 100
+      },
+      "totalMs": 8612,
+      "qualified": true,
+      "requestAccounting": {
+        "complete": true,
+        "incomplete": 0,
+        "pending": 0,
+        "deadlineMs": 5000
+      },
+      "rows": [
+        {
+          "key": "modules",
+          "label": "Application modules",
+          "duration": 750,
+          "wallMs": 750,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "admission",
+          "label": "Product admission",
+          "duration": 108,
+          "wallMs": 109,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "runtimeModules",
+          "label": "Runtime modules",
+          "duration": 0,
+          "wallMs": 0,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "data",
+          "label": "Texture formats and audio catalogue",
+          "duration": 4,
+          "wallMs": 4,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "audioFiles",
+          "label": "Selected audio downloads",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "world",
+          "label": "Region world",
+          "duration": 88,
+          "wallMs": 111,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "renderer",
+          "label": "Renderer",
+          "duration": 23,
+          "wallMs": 23,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "loadout",
+          "label": "Equipment and HUD",
+          "duration": 23,
+          "wallMs": 45,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "weapon",
+          "label": "Weapons · HUD",
+          "duration": 22,
+          "wallMs": 22,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "gameplay",
+          "label": "Gameplay and saved state",
+          "duration": 78,
+          "wallMs": 585,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "assembly",
+          "label": "World assembly",
+          "duration": 432,
+          "wallMs": 432,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "menu",
+          "label": "Title art · explore",
+          "duration": 75,
+          "wallMs": 75,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "finish",
+          "label": "Final activation",
+          "duration": 6,
+          "wallMs": 6,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "home",
+          "label": "Home region",
+          "duration": 2266,
+          "wallMs": 2266,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "admission#2",
+          "label": "Product admission · pass 2",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "world#2",
+          "label": "Region world · pass 2",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "loadout#2",
+          "label": "Equipment and HUD · pass 2",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "homePrograms",
+          "label": "Home region shader preparation",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "road",
+          "label": "Road system",
+          "duration": 2,
+          "wallMs": 2,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "shaders",
+          "label": "Shaders",
+          "duration": 338,
+          "wallMs": 338,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "firstFrame",
+          "label": "First frame",
+          "duration": 116,
+          "wallMs": 116,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "readyFrame",
+          "label": "First drawn frames and minimap",
+          "duration": 98,
+          "wallMs": 98,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "spawnPrograms",
+          "label": "Spawn program links",
+          "duration": 1271,
+          "wallMs": 1271,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "audio",
+          "label": "Audio · music + sound effects",
+          "duration": 8,
+          "wallMs": 8,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "gap:native:0",
+          "label": "gap after Road system",
+          "duration": 4,
+          "wallMs": null,
+          "state": "ok",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "gap:native:1",
+          "label": "gap after First frame",
+          "duration": 2,
+          "wallMs": null,
+          "state": "ok",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "gap:native:2",
+          "label": "gap after Audio · music + sound effects",
+          "duration": 80,
+          "wallMs": null,
+          "state": "ok",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "gap:native:3",
+          "label": "gap after Spawn program links",
+          "duration": 90,
+          "wallMs": null,
+          "state": "on",
+          "startBasis": null,
+          "endBasis": null
+        }
+      ],
+      "notes": [
+        "Playwright WebKit has no CDP CPU/network emulation; unthrottled engine check, not phone-speed equivalence",
+        "Title dwell 3000ms; post-control dwell 4000ms (outside measured total)"
+      ],
+      "requestSummary": {
+        "started": 192,
+        "finished": 192,
+        "inFlight": 0,
+        "wireBytes": 8160748,
+        "decodedHTTPBodyBytes": 45521819,
+        "partialFailures": 2,
+        "finishedMissingSizes": 0
+      },
+      "errors": [
+        {
+          "message": "Failed to load resource: the server responded with a status of 405 (Method Not Allowed)",
+          "source": "console.error:0:0",
+          "url": "http://127.0.0.1:4406/api/telemetry"
+        }
+      ]
+    },
+    {
+      "engine": "webkit",
+      "cache": "warm",
+      "flow": "grid",
+      "preset": "phone",
+      "at": "2026-10-29T16:06:34.210Z",
+      "build": "70af058-mvtpp51t",
+      "profile": {
+        "cpu": 10,
+        "down": 1250000,
+        "up": 250000,
+        "latency": 100
+      },
+      "totalMs": 7000,
+      "qualified": true,
+      "requestAccounting": {
+        "complete": true,
+        "incomplete": 0,
+        "pending": 0,
+        "deadlineMs": 5000
+      },
+      "rows": [
+        {
+          "key": "modules",
+          "label": "Application modules",
+          "duration": 639,
+          "wallMs": 639,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "admission",
+          "label": "Product admission",
+          "duration": 119,
+          "wallMs": 119,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "runtimeModules",
+          "label": "Runtime modules",
+          "duration": 0,
+          "wallMs": 0,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "data",
+          "label": "Texture formats and audio catalogue",
+          "duration": 3,
+          "wallMs": 3,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "audioFiles",
+          "label": "Selected audio downloads",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "world",
+          "label": "Region world",
+          "duration": 25,
+          "wallMs": 59,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "renderer",
+          "label": "Renderer",
+          "duration": 34,
+          "wallMs": 34,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "loadout",
+          "label": "Equipment and HUD",
+          "duration": 23,
+          "wallMs": 71,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "weapon",
+          "label": "Weapons · HUD",
+          "duration": 48,
+          "wallMs": 48,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "gameplay",
+          "label": "Gameplay and saved state",
+          "duration": 84,
+          "wallMs": 573,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "assembly",
+          "label": "World assembly",
+          "duration": 422,
+          "wallMs": 422,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "menu",
+          "label": "Title art · explore",
+          "duration": 67,
+          "wallMs": 67,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "finish",
+          "label": "Final activation",
+          "duration": 6,
+          "wallMs": 7,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "home",
+          "label": "Home region",
+          "duration": 1830,
+          "wallMs": 1830,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "admission#2",
+          "label": "Product admission · pass 2",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "world#2",
+          "label": "Region world · pass 2",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "loadout#2",
+          "label": "Equipment and HUD · pass 2",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "homePrograms",
+          "label": "Home region shader preparation",
+          "duration": 0,
+          "wallMs": null,
+          "state": "todo",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "road",
+          "label": "Road system",
+          "duration": 2,
+          "wallMs": 2,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "shaders",
+          "label": "Shaders",
+          "duration": 319,
+          "wallMs": 319,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "firstFrame",
+          "label": "First frame",
+          "duration": 116,
+          "wallMs": 116,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "readyFrame",
+          "label": "First drawn frames and minimap",
+          "duration": 92,
+          "wallMs": 92,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "spawnPrograms",
+          "label": "Spawn program links",
+          "duration": 1059,
+          "wallMs": 1059,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "audio",
+          "label": "Audio · music + sound effects",
+          "duration": 2,
+          "wallMs": 2,
+          "state": "ok",
+          "startBasis": "native",
+          "endBasis": "native"
+        },
+        {
+          "key": "gap:native:0",
+          "label": "gap after Road system",
+          "duration": 4,
+          "wallMs": null,
+          "state": "ok",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "gap:native:1",
+          "label": "gap after First frame",
+          "duration": 12,
+          "wallMs": null,
+          "state": "ok",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "gap:native:2",
+          "label": "gap after Audio · music + sound effects",
+          "duration": 75,
+          "wallMs": null,
+          "state": "ok",
+          "startBasis": null,
+          "endBasis": null
+        },
+        {
+          "key": "gap:native:3",
+          "label": "gap after Spawn program links",
+          "duration": 91,
+          "wallMs": null,
+          "state": "on",
+          "startBasis": null,
+          "endBasis": null
+        }
+      ],
+      "notes": [
+        "Playwright WebKit has no CDP CPU/network emulation; unthrottled engine check, not phone-speed equivalence",
+        "Title dwell 3000ms; post-control dwell 4000ms (outside measured total)"
+      ],
+      "requestSummary": {
+        "started": 176,
+        "finished": 176,
+        "inFlight": 0,
+        "wireBytes": 8138444,
+        "decodedHTTPBodyBytes": 32859651,
+        "partialFailures": 0,
+        "finishedMissingSizes": 0
+      },
+      "errors": [
+        {
+          "message": "Failed to load resource: the server responded with a status of 405 (Method Not Allowed)",
+          "source": "console.error:0:0",
+          "url": "http://127.0.0.1:4406/api/telemetry"
+        },
+        {
+          "message": "Failed to load resource: the server responded with a status of 405 (Method Not Allowed)",
+          "source": "console.error:0:0",
+          "url": "http://127.0.0.1:4406/api/telemetry"
+        }
+      ]
+    }
+  ]
+}

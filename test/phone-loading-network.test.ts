@@ -159,3 +159,16 @@ test('a late body reply cannot rewrite a sealed native accounting timeout', asyn
     expect(JSON.stringify(network.rows)).toBe(sealed);
   } finally {network.stop();}
 });
+
+test('a canceled request with no response retains failure and measured absence without unsupported sizes calls', async () => {
+  const {network, request, finish} = fixture();
+  const size = vi.fn(() => Promise.reject(new Error('No response has no sizes API')));
+  const canceled: Request = {...request('canceled-image', () => Promise.resolve(null), size), failure: () => ({errorText: 'net::ERR_ABORTED'})};
+  try {
+    finish(canceled);
+    expect((await network.settle()).complete).toBe(true); expect(size).not.toHaveBeenCalled();
+    expect(network.rows).toMatchObject([{failure: 'net::ERR_ABORTED', status: 0, bytes: 0, decodedBytes: 0,
+      transferBytes: 0, sizeComplete: false, bodyBasis: 'no-response'}]);
+    expect(network.errors).toEqual([]);
+  } finally {network.stop();}
+});

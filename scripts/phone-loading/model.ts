@@ -14,7 +14,7 @@ export interface ErrorRow {message: string; source: string; url: string; at: num
 export interface RequestRow {url: string; start: number; end: number | null; source: 'worker' | 'service-worker' | 'network'; bytes: number | null; headerBytes?: number; status: number; failure: string | null;
   accounting?: 'pending' | 'complete' | 'incomplete'; accountingError?: string;
   sizeBasis?: 'native-encoded' | 'native-events';
-  decodedBytes?: number; transferBytes?: number; bodyBasis?: 'native-data' | 'native-identity' | 'response-body' | 'http-no-body' | 'content-length-identity' | 'native-aborted' | 'native-body'; nativeRequestId?: string; sizeComplete?: boolean;
+  decodedBytes?: number; transferBytes?: number; bodyBasis?: 'native-data' | 'native-identity' | 'response-body' | 'http-no-body' | 'content-length-identity' | 'native-aborted' | 'native-body' | 'no-response'; nativeRequestId?: string; sizeComplete?: boolean;
   nativeSizes?: {responseBodySize: number | null; responseHeadersSize: number | null}}
 /** Finished requests require real wire and decoded-body sizes. Still-running
  * requests retain their separate inFlight count; failures remain on each row. */

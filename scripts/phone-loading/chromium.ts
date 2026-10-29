@@ -1,6 +1,7 @@
 import {spawn} from 'node:child_process';
 import {mkdir} from 'node:fs/promises';
 import {chromium, type Browser, type Request} from 'playwright';
+import {nativeBodyBytes} from './native-body.ts';
 import {NativeSizeLedger, type NativeSizes} from './native-sizes.ts';
 import {record, type Profile} from './model.ts';
 
@@ -29,17 +30,17 @@ export async function launchChromium(directory: string, profile: Profile): Promi
       ws.addEventListener('error', () => reject(new Error('CDP socket error')), {once: true});});
     let serial = 0, workers = 0;
     const errors: string[] = [];
-    const sessions = new Map<string, boolean>();
+    const sessions = new Map<string, boolean>(), contexts = new Map<string, string>(), pages = new Set<string>();
     const pending = new Map<number, {resolve: (value: unknown) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout>; sessionId?: string}>();
     const send = (method: string, params: object, sessionId?: string): Promise<unknown> => new Promise((resolve, reject) => {
       const id = ++serial;
       const timer = setTimeout(() => {pending.delete(id); reject(new Error(`CDP deadline: ${method}`));}, 15_000);
       pending.set(id, {resolve, reject, timer, ...(sessionId === undefined ? {} : {sessionId})}); ws.send(JSON.stringify({id, method, params, sessionId}));
     });
-    const native = new NativeSizeLedger(async (session, id) => {
-      const result = record(await send('Network.getResponseBody', {requestId: id}, session));
-      if (typeof result['body'] !== 'string') throw new Error('Missing native body');
-      return Buffer.byteLength(result['body'], result['base64Encoded'] === true ? 'base64' : 'utf8');
+    const native = new NativeSizeLedger((session, id, url, headers) => {
+      const context = contexts.get(session);
+      const cacheSession = context === undefined ? session : [...pages].find(page => contexts.get(page) === context) ?? session;
+      return nativeBodyBytes(send, session, id, url, headers, cacheSession);
     });
     ws.addEventListener('message', event => {
       const message = record(JSON.parse(String(event.data)));
@@ -56,7 +57,7 @@ export async function launchChromium(directory: string, profile: Profile): Promi
       if (message['method'] === 'Target.detachedFromTarget') {
         const ended = record(message['params'])['sessionId'];
         if (typeof ended === 'string') {
-          sessions.delete(ended);
+          sessions.delete(ended); contexts.delete(ended); pages.delete(ended);
           for (const [id, command] of pending) if (command.sessionId === ended) {pending.delete(id); clearTimeout(command.timer); command.reject(new Error('Native target ended'));}
         }
         return;
@@ -66,6 +67,8 @@ export async function launchChromium(directory: string, profile: Profile): Promi
       const sessionId = params['sessionId'];
       if (typeof sessionId !== 'string') return;
       sessions.set(sessionId, info['type'] === 'service_worker');
+      if (typeof info['browserContextId'] === 'string') contexts.set(sessionId, info['browserContextId']);
+      if (info['type'] === 'page') pages.add(sessionId);
       void (async () => {
         let resumed = false;
         try {

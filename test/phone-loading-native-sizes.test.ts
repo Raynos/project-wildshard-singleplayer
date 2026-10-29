@@ -3,8 +3,8 @@ import type {Request} from 'playwright';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {NativeSizeLedger} from '../scripts/phone-loading/native-sizes';
 
-function request(url: string, start = 1000, worker = false): Request {
-  return legacyDouble<Request>({url: () => url, method: () => 'GET',
+function request(url: string, start = 1000, worker = false, method = 'GET'): Request {
+  return legacyDouble<Request>({url: () => url, method: () => method,
     timing: () => legacyDouble<ReturnType<Request['timing']>>({startTime: start}),
     serviceWorker: () => worker ? legacyDouble<NonNullable<ReturnType<Request['serviceWorker']>>>({}) : null});
 }
@@ -89,4 +89,15 @@ test('aborted streams retain observed bytes and a partial flag, never a fictitio
   ledger.event('session', false, 'Network.dataReceived', {requestId: '1', dataLength: 12, encodedDataLength: 4});
   ledger.event('session', false, 'Network.loadingFailed', {requestId: '1', canceled: true, errorText: 'net::ERR_ABORTED'});
   expect(ledger.read(request(url))).toMatchObject({decodedBytes: 12, encodedBytes: 4, transferBytes: 84, partial: true});
+});
+test('an uncached empty POST is zero body; a cached GET still requires body evidence', () => {
+  const ledger = new NativeSizeLedger(), url = 'https://game.test/telemetry';
+  ledger.event('s', false, 'Network.requestWillBeSent', {requestId: 'post', wallTime: 1, request: {url, method: 'POST'}});
+  ledger.event('s', false, 'Network.responseReceived', {requestId: 'post', response: {encodedDataLength: 120, status: 405}});
+  ledger.event('s', false, 'Network.loadingFinished', {requestId: 'post', encodedDataLength: 120});
+  expect(ledger.read(request(url, 1000, false, 'POST'))).toMatchObject({decodedBytes: 0, encodedBytes: 0, transferBytes: 120});
+  begin(ledger, url, 'get', 2);
+  ledger.event('session', false, 'Network.responseReceived', {requestId: 'get', response: {encodedDataLength: 0, fromDiskCache: true}});
+  ledger.event('session', false, 'Network.loadingFinished', {requestId: 'get', encodedDataLength: 0});
+  expect(ledger.read(request(url, 2000))?.decodedBytes).toBeUndefined();
 });
