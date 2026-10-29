@@ -50,6 +50,11 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
       if (pose.road) gridCells.leave();
     }
   };
+  // The initial owned home can issue its exact program inventory while kit/play
+  // construct. Allocate the same page-owned composer once before that work;
+  // standalone, legacy-grid and the reload experiment keep their prior order.
+  const eagerGridComposer = !warmGrid && ctx.session.ownedGridHome === true && ctx.gridLive !== null;
+  if (eagerGridComposer) { await game.prepareComposer(); game.buildComposer(); }
   if (!warmGrid && (ctx.gridLive !== null || ctx.session.recovery !== undefined)) await loadingStage('home', enterGrid);
   if (ctx.gridLive !== null) {
     const grid = ctx.gridLive;
@@ -69,8 +74,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // R12: a standalone page's own sky clock (a painted sky, published by its runtime) is the day cycle while the level lives
   // and takes the pinned time; on the grid each entered cell registers its own (hybrid.ts)
   if (ctx.grid === null) enterSkyClock(app, [game.levelScope], game.levelScope);
-  await game.prepareComposer();
-  game.buildComposer();
+  if (!eagerGridComposer) { await game.prepareComposer(); game.buildComposer(); }
   // The first live late/render phases would otherwise publish the home PMREM and install its grade only after
   // shaders/firstFrame, invalidating every warmed world key. Settle the same presentation owners without a tick.
   ctx.grid?.prepareFrame();

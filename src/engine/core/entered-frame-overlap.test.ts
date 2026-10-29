@@ -32,7 +32,7 @@ function fixture(early: () => Promise<void> = () => Promise.resolve(), final: ()
     { boundEntryWarmup, ENTRY_CONTENT_MS, ENTRY_NO_FRAME_MS, ENTRY_WARMUP_MS, diagnosticNow: () => 0 });
   if (typeof method !== 'function') throw new Error('Entered-frame method is not callable');
   const owner = new Scope('overlap'), root = new Group(), scene = new Scene();
-  const calls: string[] = [];
+  const calls: string[] = [], preparationEnvironments: unknown[] = [];
   let fence: () => boolean = () => true;
   let now = 0, next = 0;
   const frames = new Map<number, (at: number) => void>();
@@ -44,12 +44,13 @@ function fixture(early: () => Promise<void> = () => Promise.resolve(), final: ()
       fence = current; calls.push('world'); await early();
     },
     async warmEnteredStages(): Promise<void> { calls.push('final'); await final(); },
-    async prepareEnteredPrograms(_owner: Scope, _composer: unknown, current: () => boolean): Promise<void> {
+    async prepareEnteredPrograms(_owner: Scope, _composer: unknown, current: () => boolean, _root: unknown, _arrival: unknown, _stage: unknown, _progress: unknown, environment: unknown): Promise<void> {
+      preparationEnvironments.push(environment);
       fence = current; calls.push('page-programs'); await early();
     },
   };
-  return { owner, root, game, calls, current: () => fence(),
-    run: (before?: (prepare: Prepare, prepareFrame: () => Promise<void>) => Promise<void> | void): Promise<unknown> => Promise.resolve(Reflect.apply(method, game, [owner, root, before])),
+  return { owner, root, game, calls, preparationEnvironments, current: () => fence(),
+    run: (before?: (prepare: Prepare, prepareFrame: (environment?: DataTexture | null) => Promise<void>) => Promise<void> | void): Promise<unknown> => Promise.resolve(Reflect.apply(method, game, [owner, root, before])),
     frame: (): void => { game.frameCount++; now += 100; const due = [...frames.values()]; frames.clear(); for (const draw of due) draw(now); },
   };
 }
@@ -79,6 +80,26 @@ test('page programs overlap content without drawing or replacing the final inven
     content.resolve(); await run;
     expect(f.calls).toEqual(['page-programs', 'final']);
   } finally {content.resolve(); f.owner.dispose(); await observed;}
+});
+
+test('initial boot can overlap compilation without adding crossing first draws', async () => {
+  const content = deferred(), prepared = deferred(), f = fixture();
+  f.game.frameCount = 0;
+  const environment = new DataTexture(new Uint8Array(4), 1, 1);
+  const run = f.run(async (_roots, prepareFrame) => {
+    // The construction binding ends while its asynchronous sky preparation runs.
+    f.game.scene = new Scene();
+    await prepareFrame(environment); prepared.resolve(); await content.promise;
+  });
+  const observed = settled(run);
+  try {
+    expect(await Promise.race([prepared.promise.then(() => 'prepared'), observed])).toBe('prepared');
+    expect(f.calls).toEqual(['page-programs']);
+    expect(f.preparationEnvironments).toEqual([environment]);
+    expect(f.game.scene.environment).toBeNull();
+    content.resolve(); await run;
+    expect(f.calls).toEqual(['page-programs']);
+  } finally {content.resolve(); f.owner.dispose(); environment.dispose(); await observed;}
 });
 
 // D196: the content wait (the destination's network-bound hooks) no longer spends the warm-up's 30 s; the final warm-up
@@ -209,6 +230,16 @@ test('page preparation uses final program inputs without drawing and fences a ch
     if (typeof options !== 'object' || options === null) throw new Error('Missing program options');
     expect(options).toMatchObject({chunkCasters: false, owner, futureLighting: root, futureEnvironment: environment,
       isolateImageUploads: true, sliceMs: 6, leaving: [models], drawnOnly: false, onStage: stage, uploadBudget: {ms: 6, bytes: 1}});
+    game.frameCount = 0;
+    scene.environment = null;
+    await Reflect.apply(method, game, [owner, composer, () => !owner.disposed, root, undefined, stage, progress, environment]);
+    const bootOptions = calls[1]?.[2];
+    if (typeof bootOptions !== 'object' || bootOptions === null) throw new Error('Missing initial census options');
+    expect(Object.keys(bootOptions).sort()).toEqual(['chunkCasters', 'current', 'drawnOnly', 'futureEnvironment', 'futureLighting', 'onStage', 'owner', 'sceneOnly', 'sliceMs']);
+    expect(Reflect.get(bootOptions, 'current')).toBeTypeOf('function');
+    expect(bootOptions).toMatchObject({owner, onStage: stage, chunkCasters: false, sliceMs: 12, sceneOnly: true, drawnOnly: true, futureLighting: root, futureEnvironment: environment});
+    expect(draws).toBe(0); expect(waits).toHaveLength(0);
+    game.frameCount = 1;
     const pause: unknown = Reflect.get(options, 'pause'), current: unknown = Reflect.get(options, 'current');
     if (typeof pause !== 'function' || typeof current !== 'function') throw new Error('Missing live program fences');
     await Reflect.apply(pause, undefined, []);

@@ -4,7 +4,7 @@ import { freezeParkedMatrices } from '@wildshard/engine/render/precompile';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { clientHomeBytes } from '../shardfile/clientResidency';
-import { Object3D, Vector3 } from 'three';
+import { Object3D, Vector3, type Texture } from 'three';
 import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import type { DisposeStep, Scope } from '@wildshard/engine/app/scope';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -157,6 +157,9 @@ export interface RegionalRuntimeFoundation {
   readonly beforeWarm?: () => Promise<void> | void;
   /** Finish the admitted sky and patch currently built world materials. Does not publish post passes or entered services. */
   readonly prepareWorldMaterials?: () => Promise<void> | void;
+  /** Borrow the admitted regional scene's environment after its sky preparation.
+   * The page facade may temporarily restore another scene while construction awaits. */
+  readonly precompileEnvironment?: () => Texture | null;
 }
 
 /** Composition ports owned by the page root, with explicit absence until the engine's regional binding lands. */
@@ -311,13 +314,21 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               const equipment = new Promise<void>(resolve => { equipmentReady = resolve; });
               const content = new Promise<void>(resolve => { contentReady = resolve; });
               forgetContent = owner.capture('disposers', () => { equipmentReady(); contentReady(); });
-              enteredWarm = request.page.world.game.warmEnteredFrame(owner, view.root, async () => {
+              enteredWarm = request.page.world.game.warmEnteredFrame(owner, view.root, async (_prepareRoots, prepareWorldFrame) => {
+                if (request.page.world.game.frameCount === 0 && foundation.precompileEnvironment !== undefined) {
+                  // Initial boot lends the same completed world look to the
+                  // existing census while kit/play build. Final whole-page
+                  // preparation still follows both content rendezvous below.
+                  await (foundation.beforeWarm !== undefined ? foundation.beforeWarm() : foundation.prepareWorldMaterials?.());
+                  if (owner.disposed) throw new Error('Regional runtime left before its world warm-up');
+                  await prepareWorldFrame(foundation.precompileEnvironment());
+                }
                 await equipment;
                 if (owner.disposed) throw new Error('Regional runtime left before its equipment warm-up');
                 await content;
                 if (owner.disposed) throw new Error('Regional runtime left before its final warm-up');
-                // Final look preparation follows late content. Speculative root
-                // compilation competed with this content without reducing entry.
+                // Late content gets the same final look and complete inventory;
+                // an early census never publishes readiness or skips this fence.
                 await (foundation.beforeWarm !== undefined ? foundation.beforeWarm() : foundation.prepareWorldMaterials?.());
               }, arrivalAt());
               // Observe an early failure now; afterPlay still awaits the original rejection before readiness.

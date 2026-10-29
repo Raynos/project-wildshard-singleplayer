@@ -16,7 +16,7 @@ function deferred() {
 async function flush(): Promise<void> {for (let i = 0; i < 5; i++) await Promise.resolve();}
 async function settle(promise: Promise<void>): Promise<unknown> {try {await promise; return null;} catch (error) {return error;}}
 
-function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promise<void>; enabled?: boolean; worldOnly?: boolean} = {}) {
+function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promise<void>; enabled?: boolean; worldOnly?: boolean; boot?: boolean} = {}) {
   const source = readFileSync(new URL('regionalRuntime.ts', import.meta.url), 'utf8');
   const declarationsStart = source.indexOf('          let enteredWarm:');
   const declarationsEnd = source.indexOf('          return { ...installation, context,', declarationsStart);
@@ -36,8 +36,8 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
   const calls: string[] = [], worldReady = deferred(), finalStarted = deferred();
   // the arrival point (D188) is the runtime's own closure: a fixture with no crossing entry has none
   const ports = {owner, view: {root}, preparedModels: options.models === false ? null : models, preparing: options.enabled !== false, world: {}, arrivalAt: (): undefined => undefined,
-    foundation: {prepareWorldMaterials: (): void => {calls.push('look'); worldReady.resolve();}, ...(options.worldOnly === true ? {} : {beforeWarm: (): void => {calls.push('before-final'); worldReady.resolve();}})},
-    request: {page: {world: {game: {warmEnteredFrame: async (scope: Scope, lighting: Object3D,
+    foundation: {precompileEnvironment: (): null => null, prepareWorldMaterials: (): void => {calls.push('look'); worldReady.resolve();}, ...(options.worldOnly === true ? {} : {beforeWarm: (): void => {calls.push('before-final'); worldReady.resolve();}})},
+    request: {page: {world: {game: {frameCount: options.boot === true ? 0 : 1, warmEnteredFrame: async (scope: Scope, lighting: Object3D,
       before: (prepare: (roots: readonly Object3D[], exteriorPrograms?: boolean) => Promise<void>, prepareFrame: () => Promise<void>) => Promise<void>): Promise<void> => {
       expect(scope).toBe(owner); expect(lighting).toBe(root);
       await before(async (roots, exteriorPrograms = true) => {
@@ -139,6 +139,44 @@ test('a foundation without a final hook retains its world-material preparation',
   try {
     f.kit(); f.content(); await result;
     expect(f.calls).toEqual(['look', 'final']);
+  } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
+});
+
+test('initial world programs overlap the kit but complete content still gates readiness', async () => {
+  const census = deferred(), f = fixture({boot: true, prepare: () => census.promise});
+  await f.start(); const result = f.result(), observed = settle(result);
+  let ready = false;
+  void result.then(() => {ready = true; return undefined;}, () => undefined);
+  try {
+    await flush(); expect(f.calls).toEqual(['before-final', 'frame']);
+    expect(ready).toBe(false);
+    f.kit(); census.resolve(); await flush();
+    expect(f.calls).toEqual(['before-final', 'frame']); expect(ready).toBe(false);
+    expect(f.root.visible).toBe(false); expect(f.models.visible).toBe(false);
+    f.content(); await result;
+    expect(f.calls).toEqual(['before-final', 'frame', 'before-final', 'final']);
+    expect(ready).toBe(true);
+  } finally {census.resolve(); f.kit(); f.content(); f.owner.dispose(); await observed;}
+});
+
+test('an initial census refusal cannot publish readiness or run the final warm-up', async () => {
+  const f = fixture({boot: true, prepare: () => Promise.reject(new Error('initial census refused'))});
+  await f.start(); const result = f.result(), observed = settle(result);
+  try {
+    f.kit(); f.content();
+    expect(String(await observed)).toContain('initial census refused');
+    expect(f.calls).toEqual(['before-final', 'frame']);
+  } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
+});
+
+test('retirement after the initial census fences final content preparation', async () => {
+  const f = fixture({boot: true, worldOnly: true});
+  await f.start(); const result = f.result(), observed = settle(result);
+  try {
+    await flush(); expect(f.calls).toEqual(['look', 'frame']);
+    f.owner.dispose();
+    expect(String(await observed)).toMatch(/left before.*warm-up/u);
+    expect(f.calls).toEqual(['look', 'frame']);
   } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
 });
 

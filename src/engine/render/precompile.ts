@@ -1484,11 +1484,13 @@ export async function compileOffscreenPass(renderer: Renderer, pass: OffscreenPa
  * Whether the renderer would draw `object` from `camera` now: shown up its parents, on the camera's layers, with copies to
  * draw, and in the camera's frustum unless it is never frustum culled (three's own test).
  */
-function drawnFrom(camera: THREE.Camera): (object: THREE.Object3D) => boolean {
+function drawnFrom(camera: THREE.Camera, entering?: THREE.Object3D): (object: THREE.Object3D) => boolean {
   camera.updateMatrixWorld();
   const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
   return (object) => {
-    for (let at: THREE.Object3D | null = object; at !== null; at = at.parent) if (!at.visible) return false;
+    // The entering root alone is hidden by admission. Its authored descendants
+    // keep their own visibility, layers, instance counts and camera culling.
+    for (let at: THREE.Object3D | null = object; at !== null; at = at.parent) if (at !== entering && !at.visible) return false;
     if (!object.layers.test(camera.layers)) return false;
     if (object instanceof THREE.InstancedMesh && object.count === 0) return false;
     if (!object.frustumCulled) return true;
@@ -1553,6 +1555,8 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     /** Batch image uploads per frame under this budget (op-hitch32): several when isolated, none started past it. */ uploadBudget?: UploadBudget;
     /** Optional scalar stage timings, including painted waits. Does not retain materials or native handles. */ onStage?: PrecompileStage;
     /** Warm post draw pipelines one material per paint during initial loading; never used by live preparation. */ warmPost?: boolean;
+    /** Start completed world materials while construction continues. Other jobs and exterior variants remain
+     * mandatory in the final complete preparation, after the page's presentation owners have settled. */ sceneOnly?: boolean;
     /** A live warm-up's slice bound (LIVE_PRECOMPILE_SLICE_MS): one material a job, each slice checked against it. */ sliceMs?: number;
     /** Programs only for what the camera draws now (the first frame's); the rest is the caller's later warm-up (S1): the
      *  scene's undrawn materials, material families and the exterior (road) lighting variants, none of which draws until
@@ -1612,35 +1616,38 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const excludedRoots = entryFrameExclusions(scene, options.futureLighting);
     const kinded = (kind: string, list: CompileJob[]): CompileJob[] => { for (const job of list) job.kind = kind; return list; };
     const from = options.nearest === true ? game.camera.getWorldPosition(new THREE.Vector3()) : undefined, drawnOnly = options.drawnOnly === true || options.arrival !== undefined;
+    // The page's road/held roots can still change while its home constructs.
+    // Only the completed destination subtree lends materials to the head start.
+    const roots = options.sceneOnly === true && options.futureLighting !== undefined ? [options.futureLighting] : [scene];
     const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 }
       : live || drawnOnly
-        ? await pacedSceneJobs(scene, rt, per, [scene], excludedRoots, options.current ?? (() => true), pageScope, options.arrival ?? (drawnOnly ? drawnFrom(game.camera) : undefined), from)
-        : sceneJobs(scene, rt, per, [scene], excludedRoots);
+        ? await pacedSceneJobs(scene, rt, per, roots, excludedRoots, options.current ?? (() => true), pageScope, options.arrival ?? (drawnOnly ? drawnFrom(game.camera, options.futureLighting) : undefined), from)
+        : sceneJobs(scene, rt, per, roots, excludedRoots);
     // Diagnostic split: the entered root's own materials, else the rest of the page compiled under its lights.
     const entered = new Set<THREE.Material>();
     options.futureLighting?.traverse(object => { for (const material of materialsOf(object)) entered.add(material); });
     for (const job of jobs) job.kind = job.root.children.some(clone => materialsOf(clone).some(material => entered.has(material))) ? 'scene-entered' : 'scene-other';
     await pace();
     // material families (SF10a): live family programs the scene does not hold yet (none live: no jobs)
-    if (policy?.scene !== false) jobs.push(...kinded('family', drawnOnly ? [] : familyCompileJobs(scene, rt, per, exclusiveMaterials(scene, excludedRoots))), ...kinded('offscreen', offscreenJobs(scene, 1, excludedRoots)));
+    if (options.sceneOnly !== true && policy?.scene !== false) jobs.push(...kinded('family', drawnOnly ? [] : familyCompileJobs(scene, rt, per, exclusiveMaterials(scene, excludedRoots))), ...kinded('offscreen', offscreenJobs(scene, 1, excludedRoots)));
     await pace();
-    if (policy?.shadows !== false) jobs.push(...kinded('shadow', shadowJobs(scene, rt, per, excludedRoots, depthVariants)));
+    if (options.sceneOnly !== true && policy?.shadows !== false) jobs.push(...kinded('shadow', shadowJobs(scene, rt, per, excludedRoots, depthVariants)));
     await pace();
-    const bg = backgroundJob(scene, rt);
+    const bg = options.sceneOnly === true ? null : backgroundJob(scene, rt);
     if (bg && policy?.background !== false) jobs.push(...kinded('background', [bg])); else bg?.dispose?.();
-    const post = policy?.post === false ? [] : kinded('post', postJobs(game.composer, rt, single || options.warmPost === true ? 1 : Number.POSITIVE_INFINITY));
+    const post = options.sceneOnly === true || policy?.post === false ? [] : kinded('post', postJobs(game.composer, rt, single || options.warmPost === true ? 1 : Number.POSITIVE_INFINITY));
     // Issue the post links first so driver work overlaps the world/shadow jobs.
     if (options.warmPost === true) jobs.unshift(...post); else jobs.push(...post);
     // Three renders shadows before setupLights(), so the first entered shadow draw still uses the preceding
     // road frame's light state. Warm that depth variant too; the following shadow draw uses the future state.
-    const previousShadows = policy?.shadows !== false && options.futureLighting !== undefined && options.futureLighting !== scene
+    const previousShadows = options.sceneOnly !== true && policy?.shadows !== false && options.futureLighting !== undefined && options.futureLighting !== scene
       ? kinded('previous-shadow', shadowJobs(scene, rt, per, excludedRoots, depthVariants)) : [];
     await pace();
     if (options.futureLighting !== undefined) includeFutureLights(jobs, scene, options.futureLighting, options.futureEnvironment);
     jobs.push(...previousShadows);
-    if (policy?.scene !== false && !drawnOnly) jobs.push(...kinded('exterior', exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per, depthVariants, options.leaving, from)));
+    if (options.sceneOnly !== true && policy?.scene !== false && !drawnOnly) jobs.push(...kinded('exterior', exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per, depthVariants, options.leaving, from)));
     await pace();
-    if (policy?.post !== false) jobs.push(readbackPreparation(owner));
+    if (options.sceneOnly !== true && policy?.post !== false) jobs.push(readbackPreparation(owner));
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
     let completed = 0, total = 0;
     const warm = options.warmPost === true ? post : [];

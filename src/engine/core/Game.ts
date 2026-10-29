@@ -887,7 +887,8 @@ export class Game {
   }
 
   /** Prepare an entered frame's new world/depth/post programs before its owner publishes readiness.
-   * Initial boot has no composer yet and uses the ordinary shaders/firstFrame stages instead. No simulation tick,
+   * Initial boot uses the ordinary shaders/firstFrame stages for its final draw. If its composer already exists,
+   * `before` can lend the page compiler a head start; it never adds crossing-only first draws. No simulation tick,
    * camera turn or caster rechunking runs here; the final zero-delta composer draw warms its real pass targets.
    * A retained view may supply its whole future root, including sibling authored lights outside the bound scene.
    * `before` (the caller's last preparation, e.g. a region's sky build) runs first, inside the same time bound:
@@ -898,7 +899,7 @@ export class Game {
    * the destination content within ARRIVAL_RADIUS of it before the reveal; the rest sits out live draws (a frame gate)
    * until `warmArrivalRest` has linked and first-drawn it after the reveal, nearest first. */
   async warmEnteredFrame(owner: Scope, futureRoot?: THREE.Object3D,
-    before?: (prepare: (roots: readonly THREE.Object3D[], exteriorPrograms?: boolean) => Promise<void>, prepareFrame: () => Promise<void>) => Promise<void> | void,
+    before?: (prepare: (roots: readonly THREE.Object3D[], exteriorPrograms?: boolean) => Promise<void>, prepareFrame: (environment?: THREE.Texture | null) => Promise<void>) => Promise<void> | void,
     arrivalAt?: THREE.Vector3): Promise<void> {
     const composer = this._composer;
     const arrival = arrivalAt !== undefined && futureRoot !== undefined && futureRoot !== this.rootScene && this.frameCount > 0
@@ -922,12 +923,12 @@ export class Game {
           await this.warmEnteredRoots(owner, composer, roots, futureRoot, current, exteriorPrograms);
           trace.stages.push({ phase: 'early-scene-programs', elapsedMs: diagnosticNow() - started, units: roots.length, endAt: diagnosticNow() });
           enter('before-warm');
-        }, async () => {
+        }, async (environment) => {
           const started = diagnosticNow();
           enter('early-frame-programs');
           await this.prepareEnteredPrograms(owner, composer, current, futureRoot, arrival,
             (phase, elapsedMs, units) => { trace.stages.push({ phase: `early-frame:${phase}`, elapsedMs, units, endAt: diagnosticNow() }); },
-            (done, total, detail) => { trace.progress = { done, total, detail }; });
+            (done, total, detail) => { trace.progress = { done, total, detail }; }, environment);
           trace.stages.push({ phase: 'early-frame-programs', elapsedMs: diagnosticNow() - started, units: 1, endAt: diagnosticNow() });
           enter('before-warm');
         });
@@ -935,6 +936,10 @@ export class Game {
         enter('post-preparation');
         startWarm();
       }
+      // Boot's normal shader/firstFrame stages still own its complete inventory
+      // and first draws. An early composer lends only the compiler above; doing
+      // the crossing warm-up here would add parked/offscreen frame variants.
+      if (this.frameCount === 0) { trace.completed = true; return; }
       for (;;) {
         const pending = this.postPreparation;
         await pending;
@@ -966,6 +971,7 @@ export class Game {
    * S1: link the exterior (road) variants of the roots the boot's entry left for play (`warmEnteredRoots`), nearest first,
    * in live slices spaced by drawn frames, as an entered frame's own roots link (G639: without them the first road frame
    * linked each environment's variant, 150-270 ms each). Roots whose owner has left are dropped. Call once control is up.
+   * Background callers may add an idle opportunity after each required completed draw.
    */
   async warmDeferredEntryRoots(current: () => boolean, idle?: () => Promise<boolean>): Promise<void> {
     const pending = this.deferredEntryRoots;
@@ -1017,11 +1023,18 @@ export class Game {
    * final preparation repeats discovery so late play content and changed variants remain mandatory. */
   private async prepareEnteredPrograms(owner: Scope, composer: EffectComposer, current: () => boolean,
     futureRoot: THREE.Object3D | undefined, arrival: EntryArrival | undefined, onStage: (phase: string, elapsedMs: number, units: number) => void,
-    progress: (done: number, total: number, detail: string) => void): Promise<void> {
-    const futureLighting = futureRoot ?? this.scene, futureEnvironment = this.scene.environment;
+    progress: (done: number, total: number, detail: string) => void, futureEnvironment: THREE.Texture | null = this.scene.environment): Promise<void> {
+    const futureLighting = futureRoot ?? this.scene;
     const isolateImageUploads = navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
     const { precompileLevel, waitForDrawnFrame, arrivalPrograms, LIVE_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
     const live = (): boolean => current() && this._composer === composer;
+    if (this.frameCount === 0) {
+      // Only completed world materials can overlap construction. Post, shadow
+      // and offscreen jobs need the final page state and keep their normal step.
+      await precompileLevel(this, progress, {current: live, owner, onStage, chunkCasters: false, sliceMs: 12, sceneOnly: true, drawnOnly: true,
+        futureLighting, ...(futureEnvironment === null ? {} : {futureEnvironment})});
+      return;
+    }
     const pause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, live) : undefined;
     const uploadBudget = isolateImageUploads ? LIVE_UPLOAD_BUDGET : undefined;
     const sliceMs = this.frameCount > 0 ? LIVE_PRECOMPILE_SLICE_MS : undefined;

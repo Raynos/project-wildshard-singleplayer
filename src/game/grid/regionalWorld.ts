@@ -538,6 +538,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           await skyReady;
           if (!resident.disposed) regionLook?.sweep();
         },
+        precompileEnvironment: () => scene.environment,
         // rt3-crossing2: the look's per-frame sweep never ran on what the entered hooks added (no frame draws while they
         // install), so the warm-up compiled the page-look programs and the first frame after it the region-look ones
         beforeWarm: async () => {
