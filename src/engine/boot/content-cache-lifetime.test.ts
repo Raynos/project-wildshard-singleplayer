@@ -45,7 +45,9 @@ async function lifetime(name: string, refuse: boolean, transfer = false): Promis
       }
       caller = await read; await writing;
       expect(caller.byteLength).toBe(size);
-      expect(buffers).toHaveLength(transfer ? 1 : 2);
+      // load() now persists its one verified private snapshot, not a second
+      // public-put copy. Both ordinary and transferred owners collect below.
+      expect(buffers).toHaveLength(1);
       expect(buffers.every(ref => ref.deref() !== undefined)).toBe(true);
       expect(caller.buffer === buffers[0]?.deref()).toBe(transfer);
       caller.fill(9); // Returned bytes cannot mutate the completed durable write.
@@ -55,6 +57,7 @@ async function lifetime(name: string, refuse: boolean, transfer = false): Promis
     // Keep the same cache alive through collection, then use its real disk path.
     expect(await cache.stats()).toEqual({entries: refuse ? 0 : 1, bytes: refuse ? 0 : size});
     const again = await cache.get(hash);
+    expect(buffers).toHaveLength(1); // G881: a disk read never starts another checksum.
     if (refuse) {
       expect(again).toBeNull();
       await expect(cache.load(hash, () => Promise.reject(new Error('Unexpected offline network')), true)).rejects.toThrow('unavailable offline');
