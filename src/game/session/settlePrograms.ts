@@ -1,6 +1,6 @@
 /** The phone spawn view finishes linking under loading; undrawn programs stay deferred. */
 import type { Game } from '@wildshard/engine/core/Game';
-import { precompileLevel, waitForDrawnFrame } from '@wildshard/engine/render/precompile';
+import { liveWarmPacing, precompileLevel, waitForDrawnFrame } from '@wildshard/engine/render/precompile';
 import { boundEntryWarmup, ENTRY_NO_FRAME_MS, EntryWarmupStallError } from '@wildshard/engine/render/entryWarmupBound';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 
@@ -21,7 +21,10 @@ export async function settleEntryPrograms(game: Game): Promise<{ ms: number; bui
   let phase = 'spawn-program-links', stalled: string | null = null;
   try {
     await boundEntryWarmup(scope, () => game.frameCount, () => phase, async current => {
-      await precompileLevel(game, undefined, { sliceMs: 12, current, owner: scope, drawnOnly: true, warmPost: true });
+      // QA3 (G837): WebKit's live pacing, as every in-play warm-up has: a few programs issued a frame and each link polled
+      // with backoff. Without it the step issued the whole spawn view, then asked its links' status; each ask is a
+      // synchronous GPU-process round trip behind every queued compile, so one frame waited for them all (68 s on an iPhone).
+      await precompileLevel(game, undefined, { sliceMs: 12, current, owner: scope, drawnOnly: true, warmPost: true, ...liveWarmPacing() });
       phase = 'spawn-program-settle';
       let quiet = 0, last = built();
       while (quiet < QUIET_FRAMES && current()) {
