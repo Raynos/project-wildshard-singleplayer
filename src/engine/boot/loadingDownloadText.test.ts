@@ -10,9 +10,13 @@ it('the home track completes only after its actual declared bytes arrive', () =>
   expect(loadingDownloadFraction(traffic, false)).toBe(0.75);
   // undeclared page traffic and unsized transfers never move it
   expect(loadingDownloadFraction({ ...traffic, networkBytes: 90_000_000, unclassifiedFiles: 40, unclassifiedBytes: 50_000_000 }, false)).toBe(0.75);
-  expect(loadingDownloadFraction({ ...traffic, declaredDoneBytes: 2_000_000, pendingBytes: 0 }, false)).toBe(0.999);
+  expect(loadingDownloadFraction({ ...traffic, declaredDoneBytes: 2_000_000, pendingBytes: 0 }, false)).toBe(1);
   expect(loadingDownloadFraction({ ...traffic, declaredDoneBytes: 2_000_000, pendingBytes: 0 }, true)).toBe(1);
   expect(loadingDownloadFraction({ ...traffic, declaredBytes: 0, declaredDoneBytes: 0 }, false)).toBe(0);
+  const empty = {...traffic, declaredBytes: 0, declaredDoneBytes: 0, pendingBytes: 0};
+  expect(loadingDownloadFraction(empty, true)).toBe(1);
+  expect(loadingDownloadFraction({...empty, unclassifiedFiles: 1}, true)).toBe(0);
+  expect(loadingDownloadFraction({...empty, pendingBytes: 1}, true)).toBe(0);
   expect(loadingDownloadFraction(traffic, true)).toBe(0.75);
 });
 
