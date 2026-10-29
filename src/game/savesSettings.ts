@@ -8,6 +8,7 @@
 import './saves.css';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { app } from '@wildshard/engine/app/runtime';
+import { exitSessionToTitle } from './session/exitToTitle';
 import { markReload } from '@wildshard/engine/boot/lastEnd';
 import { isDev } from '@wildshard/engine/core/devMode';
 import type { GameMenu } from '@wildshard/engine/ui/Menu';
@@ -91,7 +92,7 @@ export interface SavesSettingsOptions {
   grid: boolean;
   /** Capture location before resetting; returned callback runs only after success, before reload. */
   beforeReset?: (instance: LocalSaveInstance) => (() => void);
-  /** RL10: a standalone world's New game leaves for the title (the main-menu exit) instead of reloading the world */
+  /** Standalone reset leaves for the fresh title; absent a host port, the same navigation is used. */
   toTitle?: () => void;
   scope: Scope;
 }
@@ -103,7 +104,7 @@ const preview = (instance: LocalSaveInstance): NewGameSummary | null => { try { 
 const reset = (instance: LocalSaveInstance): boolean => { try { return resetNewGame(app.saves, instance).applied; } catch { return false; } };
 
 /** The New game sheet over the menu: before → after, what is kept, NEW GAME / KEEP PLAYING. `done` re-renders the cards. */
-function openSheet(card: SaveCardSpec, live: boolean, opts: SavesSettingsOptions, done: () => void): void {
+function openSheet(card: SaveCardSpec, opts: SavesSettingsOptions, done: () => void): void {
   const summary = preview(card.instance);
   if (summary === null) { done(); return; }
   const scope = opts.scope.child('saves.sheet');
@@ -133,11 +134,10 @@ function openSheet(card: SaveCardSpec, live: boolean, opts: SavesSettingsOptions
     try { afterReset = opts.beforeReset?.(card.instance); }
     catch { status.textContent = SAVES_STRINGS.refused; status.hidden = false; confirm.disabled = false; return; }
     if (!reset(card.instance)) { status.textContent = SAVES_STRINGS.refused; status.hidden = false; confirm.disabled = false; return; }
-    // RL10 (Jake 13:56: New game landed on the boot shell): a standalone world goes to the title in place of a reload; the
-    // grid keeps its reload, which resumes on the road from the reset save (prepareNewGameRecovery)
-    if (live && !opts.grid && opts.toTitle !== undefined) { opts.toTitle(); return; }
-    if (live || opts.grid) { afterReset?.(); markReload('new game', 'new-game'); location.reload(); return; } // the live bindings rebind from the reset save
-    close(); done();
+    // MF10: no live standalone bindings survive any applied reset. The grid
+    // retains its own recovery checkpoint and fresh-document reload.
+    if (!opts.grid) { (opts.toTitle ?? exitSessionToTitle)(); return; }
+    afterReset?.(); markReload('new game', 'new-game'); location.reload();
   });
   scope.raf(() => { root.classList.add('show'); });
 }
@@ -161,7 +161,7 @@ export function installSavesSettings(menu: GameMenu, opts: SavesSettingsOptions)
       if (summary === null) { box.append(el('div', 'ws-saves-line', SAVES_STRINGS.unreadable)); return box; }
       const [q, inv] = cardLines(summary);
       const go = el('button', 'ws-saves-new', SAVES_STRINGS.newGame); go.type = 'button';
-      owner.listen(go, 'click', () => { openSheet(card, isHere, opts, render); });
+      owner.listen(go, 'click', () => { openSheet(card, opts, render); });
       box.append(el('div', 'ws-saves-line', q), el('div', 'ws-saves-line', inv), go);
       return box;
     }));

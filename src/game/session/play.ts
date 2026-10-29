@@ -265,7 +265,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   // pause ▸ Settings ▸ SAVES (SF33b, G83): a card per shard save, NEW GAME's before → after sheet; HERE is the grid cell you stand in, else this shard's copy
   const homeInstance = ((): string => { try { return firstPartyInstance(manifest.slug); } catch { return manifest.slug; } })();
-  installSavesSettings(menu, { scope: game.levelScope, grid: grid !== null, toTitle: () => { void exitSessionToTitle(game); },
+  installSavesSettings(menu, { scope: game.levelScope, grid: grid !== null, toTitle: () => { exitSessionToTitle(); },
     ...(gridLive === null ? {} : { beforeReset: (instance) => {
       const commit = gridLive.prepareNewGameRecovery(instance);
       return () => { commit(); game.hold = true; };
@@ -510,7 +510,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   };
   hud.onArena = () => { void enterArena(); };
   hud.onResume = enter;
-  hud.onExitToMain = () => { void exitSessionToTitle(game); };
+  hud.onExitToMain = () => { exitSessionToTitle(); };
   hud.onExitToMenu = () => {
     getArena()?.exit(); playground?.exit(); playground = null; minimap.setPracticeArena(null); menu.setPractice(false); setAimTargets(aimList); fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show');
   };

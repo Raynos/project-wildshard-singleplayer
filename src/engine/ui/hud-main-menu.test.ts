@@ -20,7 +20,7 @@ function fixture() {
 test('main-menu exit delegates once without rebuilding a title over the retired world', () => {
   const hud = fixture(), leave = vi.fn<() => void>(); hud.onExitToMain = leave;
   invoke('exitToMenu', hud);
-  expect(hud.entered).toBe(false); expect(hud._menu.close).toHaveBeenCalledWith(true);
+  expect(hud.entered).toBe(false); expect(hud._menu.close).not.toHaveBeenCalled();
   expect(leave).toHaveBeenCalledOnce(); expect(hud.showIntro).not.toHaveBeenCalled();
   expect(hud.onExitToMenu).not.toHaveBeenCalled(); expect(hud.onEnter).not.toHaveBeenCalled();
   invoke('exitToMenu', hud); expect(leave).toHaveBeenCalledOnce();
@@ -36,4 +36,13 @@ test('practice returns to Explore without retiring the session', () => {
 test('hosts without a main-title port retain their local intro', () => {
   const hud = fixture(); invoke('exitToMenu', hud);
   expect(hud.onExitToMenu).toHaveBeenCalledOnce(); expect(hud.showIntro).toHaveBeenCalledWith(hud.onEnter);
+});
+
+
+test('a throwing menu cleanup cannot strand a fresh-page exit', () => {
+  const hud = fixture(), leave = vi.fn<() => void>(); hud.onExitToMain = leave;
+  hud._menu.close.mockImplementation(() => {throw new Error('Old menu scope teardown refused');});
+  invoke('exitToMenu', hud);
+  expect(leave).toHaveBeenCalledOnce(); expect(hud._menu.close).not.toHaveBeenCalled();
+  expect(hud.onExitToMenu).not.toHaveBeenCalled();
 });

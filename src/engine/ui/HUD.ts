@@ -26,7 +26,7 @@ import { ROW, hudSlots } from './hudSlots';
  *     — `bolts: undefined` = the weapon has no ammo (the sword): the BOLTS panel, its meter and the touch-bar strip are hidden
  *   hud.showHitMarker(headshot, killed)  hud.killFeed('Boar · headshot')  hud.toast('Bolt recovered')
  *   hud.damageFlash()  hud.setBoundaryWarning(visible)  hud.menu = gameMenu  hud.setPaused(bool)  hud.onResume = () => …  // the menu's close
- *   hud.onExitToMain = () => …   // dispose the page session and return to the main title
+ *   hud.onExitToMain = () => …   // replace the document with the main title; no local cleanup
  *   hud.onExitToMenu = () => …   // local intro / practice-to-Explore: stop/mute the retained world here
  *   hud.setAimInfo(crossbow.aimInfo)   // "BOAR · 15 M" under the crosshair
  *   hud.setAnimals([{ x, z }, …])      // world positions of live animals: the compass pins a paw at the nearest one within 120 m
@@ -661,10 +661,14 @@ export class HUD {
   /** Pause → main menu hands the session back to its host. A host without that port keeps its local intro. */
   exitToMenu(): void {
     if (!this.entered || this.intro) return;
+    if (this.onExitToMain !== undefined) {
+      this.entered = false;
+      this.onExitToMain();
+      return; // The replacement document owns cleanup; even menu.close disposes scopes.
+    }
     this._menu?.close(true);
     this.entered = false;
     if (document.pointerLockElement) document.exitPointerLock();
-    if (this.onExitToMain !== undefined) { this.onExitToMain(); return; }
     this.onExitToMenu?.(); // local-intro hosts hush their world
     if (this.onEnter) this.showIntro(this.onEnter);
   }
