@@ -89,19 +89,29 @@ function abortReason(signal?: AbortSignal): Error {
   const reason: unknown = signal?.reason;
   return reason instanceof Error ? reason : new DOMException('Content read cancelled', 'AbortError');
 }
+const retryGroups = new WeakMap<Document, Set<() => void>>();
 async function retryFromCard(error: ContentReadError, signal?: AbortSignal): Promise<void> {
   if (typeof document === 'undefined') throw error;
-  const timeline = currentLoadingTimeline(), scope = new Scope('content-read-button');
-  let id: number | undefined;
+  const target = document, timeline = currentLoadingTimeline(), scope = new Scope('content-read-button');
+  let group = retryGroups.get(target);
+  if (group === undefined) {group = new Set(); retryGroups.set(target, group);}
+  const pending = group;
+  let id: number | undefined, resume: (() => void) | undefined;
   try {
     await new Promise<void>((resolve, reject) => {
       if (signal?.aborted === true) { reject(abortReason(signal)); return; }
       if (signal !== undefined) scope.listen(signal, 'abort', () => { reject(abortReason(signal)); }, { once: true });
+      resume = resolve; pending.add(resolve);
       id = beginLoadingWait(error.message, { kind: 'file', resource: error.url,
         owner: timeline?.waitOwner ?? null, step: timeline?.snapshot().current ?? null,
-        deadlineMs: 0, retry: resolve, retryNavigation: false });
+        deadlineMs: 0, retry: () => {for (const retry of pending) retry();}, retryNavigation: false });
     });
-  } finally { if (id !== undefined) finishLoadingWait(id); scope.dispose(); }
+  } finally {
+    if (id !== undefined) finishLoadingWait(id);
+    if (resume !== undefined) pending.delete(resume);
+    if (pending.size === 0) retryGroups.delete(target);
+    scope.dispose();
+  }
 }
 
 /** Read a complete bounded file. Retry one lost/missing transport after one second,

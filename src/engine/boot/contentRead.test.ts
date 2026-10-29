@@ -83,6 +83,28 @@ test('cancelling a suspended RETRY drains its wait without restarting transport'
   expect(calls).toBe(2); expect([...loadingWaitState().pending.values()].some(row => row.resource === url)).toBe(false);
 });
 
+test('one loading-card RETRY resumes all failed content reads, excluding retired owners', async () => {
+  const retired = new AbortController(), reason = new Error('Sibling read retired'), counts = new Map<string, number>();
+  const read = (file: string, signal?: AbortSignal) => readContent(file, 1, {
+    ...(signal === undefined ? {} : {signal}), delay: immediate, fetch: address => {
+      const calls = (counts.get(address) ?? 0) + 1; counts.set(address, calls);
+      return Promise.resolve(calls <= 2 ? new Response(null, {status: 503}) : new Response(new Uint8Array([1])));
+    },
+  });
+  const paths = ['one', 'two', 'retired'].map(file => `${url}/${file}`);
+  const [one, two, old] = paths;
+  if (one === undefined || two === undefined || old === undefined) throw new Error('Missing retry fixture');
+  const first = read(one), second = read(two), cancelled = read(old, retired.signal);
+  const refusal = expect(cancelled).rejects.toBe(reason);
+  await vi.waitFor(() => {expect([...loadingWaitState().pending.values()].filter(row => paths.includes(row.resource ?? ''))).toHaveLength(3);});
+  retired.abort(reason); await refusal;
+  const row = [...loadingWaitState().pending.values()].find(wait => wait.resource === one);
+  if (row?.retry === undefined || row.retry === null) throw new Error('Missing retry action');
+  row.retry(); expect(await Promise.all([first, second])).toEqual([new Uint8Array([1]), new Uint8Array([1])]);
+  expect(counts.get(one)).toBe(3); expect(counts.get(two)).toBe(3); expect(counts.get(old)).toBe(2);
+  expect([...loadingWaitState().pending.values()].some(wait => paths.includes(wait.resource ?? ''))).toBe(false);
+});
+
 test.each([new Uint8Array([9]), new Uint8Array([9, 9, 9, 9])])('stale first-party lengths reload the same URL once', async stale => {
   const requests: { url: string; cache: RequestCache | undefined }[] = [];
   const result = await readContent(url, 3, { expectedBytes: 3, delay: immediate, fetch: (path, init) => {
