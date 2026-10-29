@@ -62,6 +62,16 @@ const service = travelService({ source: () => running, slot: travelSlot(), now: 
   navigate(request);
 } });
 function navigate(request: TravelRequest): void {
+  const ready = running === null ? window.__ws_sw?.ready : undefined;
+  if (ready !== undefined) {
+    const leaveTitle = (): void => { if (running === null) navigateNow(request); };
+    // Registration failure is unavailable caching, never a refused journey.
+    void ready.then(leaveTitle, leaveTitle);
+    return;
+  }
+  navigateNow(request);
+}
+function navigateNow(request: TravelRequest): void {
   setTitleArrival({ slug: request.to, mode: request.mode, name: findTitleManifest(request.to)?.name ?? request.to });
   const url = new URL(location.href);
   url.searchParams.set('chunk', request.to);

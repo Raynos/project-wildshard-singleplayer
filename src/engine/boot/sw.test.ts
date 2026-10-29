@@ -15,7 +15,7 @@ class WorkerHandle extends EventTarget implements ServiceWorker {
   postMessage(message:unknown,transfer?:Transferable[]|StructuredSerializeOptions):void{
     if(this.refuse)throw new Error('Worker retired');this.messages.push(message);
     const port=Array.isArray(transfer)?transfer[0]:undefined;
-    if(buildPort(port)&&this.build!==undefined){port.postMessage({build:this.build});}
+    if(buildPort(port)&&this.build!==undefined){port.postMessage({type:'VERSION',build:this.build});}
   }
 }
 
@@ -25,7 +25,7 @@ afterEach(async()=>{
   vi.restoreAllMocks();vi.unstubAllGlobals();vi.useRealTimers();
 });
 
-test('adoption skips stale workers, fences its controller and retires expired navigation callbacks',async()=>{
+test('adoption skips stale workers, fences its controller and retires unavailable navigation callbacks',async()=>{
   vi.useFakeTimers();vi.stubGlobal('__BUILD_ID__','before-build');
   const reload=vi.fn<()=>void>(),replace=vi.fn<(url:string)=>void>();
   vi.stubGlobal('location',Object.assign(new URL('https://example.com/?sw=1'),{reload,replace}));
@@ -52,7 +52,10 @@ test('adoption skips stale workers, fences its controller and retires expired na
   const boundary=new WorkerHandle();wsSw.waiting=boundary;
   const boundaryAttempt=wsSw.activate();await vi.advanceTimersByTimeAsync(999);
   expect(boundary.messages).toEqual([{type:'SKIP_WAITING'}]);
-  await vi.advanceTimersByTimeAsync(1);expect(await boundaryAttempt).toBe(false);
+  let boundaryFinished = false;
+  void boundaryAttempt.then(() => { boundaryFinished = true; return undefined; });
+  await vi.advanceTimersByTimeAsync(180_000); expect(boundaryFinished).toBe(false);
+  boundary.state='redundant'; boundary.dispatchEvent(new Event('statechange')); expect(await boundaryAttempt).toBe(false);
   container.controller=boundary;container.dispatchEvent(new Event('controllerchange'));
   expect(replace).toHaveBeenCalledTimes(1);
   const claimed=new WorkerHandle();wsSw.waiting=claimed;const claim=wsSw.activate();
@@ -60,7 +63,9 @@ test('adoption skips stale workers, fences its controller and retires expired na
   expect(await claim).toBe(true);expect(wsSw.waiting).toBeNull();
   expect(replace).toHaveBeenCalledTimes(1);
   const expired=new WorkerHandle();wsSw.waiting=expired;
-  const pending=swAdopt('/late');await vi.advanceTimersByTimeAsync(2500);await pending;
+  const pending=swAdopt('/late');await vi.advanceTimersByTimeAsync(180_000);
+  expect(replace).toHaveBeenCalledTimes(1);
+  expired.state='redundant';expired.dispatchEvent(new Event('statechange'));await pending;
   container.controller=expired;container.dispatchEvent(new Event('controllerchange'));
   expect(replace).toHaveBeenCalledTimes(1);
   const retired=new WorkerHandle();wsSw.waiting=retired;
@@ -95,4 +100,13 @@ test('adoption skips stale workers, fences its controller and retires expired na
   expect(installing.messages).toEqual([{type:'BUILD'}]);
   window.dispatchEvent(new Event('pagehide'));
   expect(installing.messages).toEqual([{type:'BUILD'}]);
+  const active=new WorkerHandle();active.state='activated';container.controller=active;
+  active.build='held-build';
+  expect(await wsSw.version()).toMatchObject({type:'VERSION',build:'held-build'});
+  active.build=undefined;
+  let replied=false;
+  const reply=wsSw.version().then(value=>{replied=true;return value;});
+  await vi.advanceTimersByTimeAsync(180_000);expect(replied).toBe(false);
+  active.state='redundant';active.dispatchEvent(new Event('statechange'));
+  expect(await reply).toBeNull();expect(vi.getTimerCount()).toBe(initial);
 });
