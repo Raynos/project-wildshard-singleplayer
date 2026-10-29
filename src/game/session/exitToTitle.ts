@@ -18,7 +18,10 @@ function browserNavigation(): TitleNavigation { return {
 export async function exitSessionToTitle(game: Pick<Game, 'dispose'>, navigation: TitleNavigation = browserNavigation()): Promise<void> {
   const title = new URL(navigation.url);
   title.search = ''; title.hash = '';
-  game.dispose();
+  // QB7 (Jake 13:48: a legacy Pine exit threw 'Scope level disposal failed' and left him on a dead page): a failed
+  // teardown is logged, and the exit still reaches the fresh title, which owns nothing of the old session
+  try { game.dispose(); }
+  catch (error: unknown) { console.error('[title] session disposal failed on exit; continuing to the title', error); }
   try { await navigation.activate(); }
   catch (error: unknown) { console.warn('[title] update activation unavailable', error); }
   navigation.replace(title.href);

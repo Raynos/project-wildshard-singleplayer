@@ -41,3 +41,15 @@ test('an unavailable update cannot keep a disposed session on its old page', asy
     expect(warning).toHaveBeenCalledOnce();
   } finally { warning.mockRestore(); }
 });
+
+test('a failed session disposal still reaches the title (QB7)', async () => {
+  const replace = vi.fn<(url: string) => void>();
+  const failure = new AggregateError([new TypeError("undefined is not an object (evaluating 'r.usedTimes')")], 'Scope level disposal failed');
+  const logged = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  try {
+    await exitSessionToTitle({ dispose: () => { throw failure; } }, { url: 'https://wildshard.io/?chunk=pine-hollow-legacy',
+      activate: () => Promise.resolve(true), replace });
+    expect(replace).toHaveBeenCalledExactlyOnceWith('https://wildshard.io/');
+    expect(logged).toHaveBeenCalledOnce(); expect(logged.mock.calls[0]?.[1]).toBe(failure);
+  } finally { logged.mockRestore(); }
+});
