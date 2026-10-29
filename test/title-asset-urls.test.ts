@@ -41,8 +41,10 @@ test('title source generation refuses stale names, missing markers and stale pub
     const image=join(root,'public/assets/title/hero.jpg'),document=join(root,'index.html');
     writeFileSync(image,'first');writeFileSync(document,'// BEGIN TITLE URLS\n// END TITLE URLS');
     const first=titleAssetTables(root),url=titleAssetURLs(root)['/assets/title/hero.jpg'];
-    writeFileSync(join(root,'scripts/title-assets.generated.json'),first['scripts/title-assets.generated.json']);
-    writeFileSync(document,first['index.html']);
+    const table=first['scripts/title-assets.generated.json'],html=first['index.html'];
+    if(table===undefined||html===undefined)throw new Error('Missing title source outputs');
+    writeFileSync(join(root,'scripts/title-assets.generated.json'),table);
+    writeFileSync(document,html);
     expect(titleAssetTables(root)).toEqual(first);
     writeFileSync(image,'other');
     expect(titleAssetURLs(root)['/assets/title/hero.jpg']).not.toBe(url);
