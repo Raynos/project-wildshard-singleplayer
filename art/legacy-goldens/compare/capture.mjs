@@ -14,7 +14,7 @@
 // FREE m from the probe's) poses the player under the eye, hovering, so the ring and colliders stand round the camera as
 // they would round a player there (its board, on the camera and under it, is hidden for the shot); an eye-height camera
 // keeps its probe. LIVE frames run at the eye before the shot.
-import {chromium,devices} from 'playwright';
+import {chromium,webkit,devices} from 'playwright';
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {readFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
@@ -34,11 +34,13 @@ const slugs=arg('shards',Object.keys(canonical).join(',')).split(',');
 const FRAMES=120,SETTLE_MS=30000,LIVE=60,FREE=4,EYE=1.7;
 mkdirSync(root,{recursive:true});
 
-const owner=await chromium.launchServer({headless:true,args:['--mute-audio','--use-angle=metal','--ignore-gpu-blocklist','--remote-debugging-port=0']});
-const directory=owner.process().spawnargs.find(x=>x.startsWith('--user-data-dir=')).slice('--user-data-dir='.length);
-const [port,path]=(await readFile(`${directory}/DevToolsActivePort`,'utf8')).trim().split('\n');
-const endpoint=`ws://127.0.0.1:${port}${path}`;
-const browser=await chromium.connectOverCDP(endpoint),rows=[];
+// --engine=webkit: Playwright's WebKit (muted by the game's volume 0; its Escape is a plain key press)
+const engine=arg('engine','chromium');if(!['chromium','webkit'].includes(engine))throw Error(`--engine=${engine}`);
+const owner=engine==='webkit'?null:await chromium.launchServer({headless:true,args:['--mute-audio','--use-angle=metal','--ignore-gpu-blocklist','--remote-debugging-port=0']});
+const directory=owner?.process().spawnargs.find(x=>x.startsWith('--user-data-dir=')).slice('--user-data-dir='.length);
+const [port,path]=owner?(await readFile(`${directory}/DevToolsActivePort`,'utf8')).trim().split('\n'):[];
+const endpoint=owner?`ws://127.0.0.1:${port}${path}`:'';
+const browser=owner?await chromium.connectOverCDP(endpoint):await webkit.launch({headless:true}),rows=[];
 
 const frames=(page,n)=>page.evaluate(async n=>{const g=window.__wildshard.world.game,from=g.frameCount;
  await new Promise(r=>{const f=()=>g.frameCount>=from+n?r():requestAnimationFrame(f);requestAnimationFrame(f);});},n);
@@ -59,7 +61,7 @@ async function settle(page,inflight){
 
 try{for(const slug of slugs){
  const dir=`${root}/${slug}`;mkdirSync(dir,{recursive:true});
- const row={slug,head,device:'iPhone 16 Pro',tier:'phone',dpr:2,seed:357,errors:[],warnings:{},poses:[]};
+ const row={slug,head,engine,device:'iPhone 16 Pro',tier:'phone',dpr:2,seed:357,errors:[],warnings:{},poses:[]};
  const context=await browser.newContext({...devices['iPhone 16 Pro']});let page;
  try{
   await developerSettings(context,{tier:'phone',volume:0,time:'midday',weather:'clear'});
@@ -83,7 +85,7 @@ try{for(const slug of slugs){
   const button=mode==='legacy'?page.locator('.ws-menu-play'):await dual.isVisible()?dual:page.locator('.ws-menu-play');
   if(await button.isDisabled())throw Error(`${mode} entry disabled`);await button.click();
   await page.waitForFunction(()=>!!window.__wildshard?.world?.hud?.entered&&!document.querySelector('.ws-load')&&window.__wildshard.world.game.frameGate(),undefined,{timeout:180000});
-  if(await page.evaluate(()=>window.__wildshard.world.hud.paused))await pressEscape(endpoint,page.url());
+  if(await page.evaluate(()=>window.__wildshard.world.hud.paused))await(owner?pressEscape(endpoint,page.url()):page.keyboard.press('Escape'));
   row.entry=await page.evaluate(()=>({url:location.href,id:window.__wildshard.world.game.level.id}));
   const want=mode==='legacy'?`${slug}-legacy`:slug;if(row.entry.id!==want)throw Error(`Not ${mode}: ${row.entry.id}`);row.mode=mode;
   // the golden camera is a spectator: its player takes no damage (Pine's bear-den elite killed it, and the death fade put it
@@ -143,4 +145,4 @@ try{for(const slug of slugs){
  finally{rows.push(row);writeFileSync(`${root}/receipts.json`,JSON.stringify(rows,null,2));await context.close();
   console.log(JSON.stringify({slug,status:row.status,poses:row.poses.length,idle:row.poses.map(p=>p.idle.settled),failure:row.failure,errors:row.errors.slice(0,3),warnings:Object.values(row.warnings).reduce((n,c)=>n+c,0)}));}
  if(row.status==='failed')process.exitCode=1;
-}}finally{try{await browser.close();}finally{await owner.close();}}
+}}finally{try{await browser.close();}finally{await owner?.close();}}
