@@ -32,8 +32,8 @@ class StoredCache {
   delete(input: Request | string): Promise<boolean> { return Promise.resolve(this.bodies.delete(this.key(input))); }
 }
 function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, warm: readonly string[] = [entry, dependency, css, lazy, later], packs?: unknown,
-  bundle: readonly string[] = [entry, dependency, css, lazy, later], fonts: readonly string[] = []) {
-  const listeners = new Map<string, ((event: WorkerEvent) => void)[]>(), books = new Map<string, StoredCache>();
+  bundle: readonly string[] = [entry, dependency, css, lazy, later], fonts: readonly string[] = [], staticHashes: Readonly<Record<string, string>> = {}, books = new Map<string, StoredCache>()) {
+  const listeners = new Map<string, ((event: WorkerEvent) => void)[]>();
   const installErrors: unknown[] = [];
   const replies: unknown[] = [];
   const responses: Response[] = [];
@@ -60,6 +60,7 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, 
   const stamps = workerIndexedStamps(bundle, warm, packs ?? { files: [], entries: {} });
   const worker = readFileSync('src/engine/pwa/sw.js', 'utf8').replace("import { workerScope, WorkerScope } from '../app/workerScope.js';\n", '').replace("import { codePackEntries, readCodePackTransport } from './codePack.js';\n", '')
     .replaceAll('__BUILD_ID__', 'unit-build').replaceAll('__ASSET_ID__', 'unit-assets')
+    .replace("'__STATIC_HASHES__'", JSON.stringify(JSON.stringify(staticHashes)))
     .replaceAll('__CONTENT_CACHE__', CONTENT_CACHE_NAME).replaceAll('__CONTENT_ROOT__', CONTENT_CACHE_ROOT)
     .replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle)))
     .replace("'__WARM__'", JSON.stringify(JSON.stringify(stamps.warm)))
@@ -74,7 +75,7 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, 
     for (const listener of listeners.get(kind) ?? []) listener({ ...payload, source: { postMessage: (value: unknown) => { replies.push(value); } }, waitUntil: work => { pending.push(work); }, respondWith: work => { pending.push(work.then(response => { responses.push(response); return response; })); } });
     await Promise.all(pending);
   };
-  return { fetch, open, caches, dispatch, navigator, installErrors, replies, responses, parsed };
+  return { fetch, open, caches, dispatch, navigator, installErrors, replies, responses, parsed, books };
 }
 afterEach(() => { vi.useRealTimers(); });
 
@@ -109,7 +110,7 @@ test('unavailable optional assets retain tolerant warming and cannot hide strict
   await f.dispatch('install');
   await f.dispatch('message', { data: { type: 'WARM_CODE' } });
   expect(f.installErrors).toEqual([]);
-  expect(await (await f.open('ws-static-unit-assets')).match(new URL(font, base).href)).toBeUndefined();
+  expect(await (await f.open('ws-static-v2')).match(new URL(font, base).href)).toBeUndefined();
   const refused = fixture(url => Promise.resolve(new Response(url.endsWith('/index.html') ? `<script src="${entry}"></script>` : 'exact bytes',
     { status: url.endsWith(css) ? 503 : 200 })), [], undefined, undefined, [font]);
   await expect(refused.dispatch('install')).rejects.toThrow('precache:');
@@ -393,13 +394,13 @@ test('activation carries unchanged packs without downloading and fetches only a 
   const kept = '/assets/packs/home-aaaaaaaa.pack', changed = '/assets/packs/home-bbbbbbbb.pack';
   const obsolete = '/assets/packs/old-cccccccc.pack';
   const f = fixture(url => Promise.resolve(url.endsWith('/asset-manifest.json')
-    ? Response.json({ [kept]: 'aaaaaaaa', [changed]: 'bbbbbbbb' }) : new Response('new pack bytes')));
+    ? Response.json({ [kept]: 'aaaaaaaa', [changed]: 'bbbbbbbb' }) : new Response('new pack bytes')), undefined, undefined, undefined, undefined, { [kept]: 'aaaaaaaa', [changed]: 'bbbbbbbb' });
   const old = await f.open('ws-static-previous');
   await old.put(new URL(kept, base).href, new Response('unchanged pack bytes'));
   await old.put(new URL(obsolete, base).href, new Response('retired pack bytes'));
   await f.dispatch('activate');
   await f.dispatch('message', { data: { type: 'GC' } });
-  const current = await f.open('ws-static-unit-assets');
+  const current = await f.open('ws-static-v2');
   expect(await (await current.match(new URL(kept, base).href))?.text()).toBe('unchanged pack bytes');
   expect(await current.match(new URL(obsolete, base).href)).toBeUndefined();
   f.fetch.mockClear();
@@ -414,21 +415,23 @@ test('activation carries unchanged packs without downloading and fetches only a 
   });
 });
 
-test('verified plain image aliases survive migration without an identical download or stale carry', async () => {
+test('content-keyed images survive migration without checksums, downloads or stale carry', async () => {
   const path = '/assets/title/hero.jpg', bytes = new TextEncoder().encode('unchanged hero');
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
   const hash = Array.from(digest.subarray(0, 4), byte => byte.toString(16).padStart(2, '0')).join('');
   const stale = '/assets/title/changed.jpg', removed = '/assets/title/removed.jpg';
   const f = fixture(url => Promise.resolve(url.endsWith('/asset-manifest.json')
-    ? Response.json({ [path]: hash, [stale]: 'ffffffff' }) : new Response('new bytes')));
+    ? Response.json({ [path]: hash, [stale]: 'ffffffff' }) : new Response('new bytes')), undefined, undefined, undefined, undefined, { [path]: hash, [stale]: 'ffffffff' });
   const old = await f.open('ws-static-previous');
-  await old.put(new URL(path, base).href, new Response(bytes));
-  await old.put(new URL(stale, base).href, new Response('old image'));
+  await old.put(new URL(`${path}?v=${hash}`, base).href, new Response(bytes));
+  const checksum = vi.spyOn(crypto.subtle, 'digest');
+  await old.put(new URL(`${stale}?v=11111111`, base).href, new Response('old image'));
   await old.put(new URL(removed, base).href, new Response('removed image'));
   await f.dispatch('activate');
   await f.dispatch('message', { data: { type: 'GC' } });
-  const current = await f.open('ws-static-unit-assets');
-  expect(await (await current.match(new URL(path, base).href))?.text()).toBe('unchanged hero');
+  const current = await f.open('ws-static-v2');
+  expect(await current.match(new URL(path, base).href)).toBeUndefined();
+  expect(checksum).not.toHaveBeenCalled();checksum.mockRestore();
   expect(await (await current.match(new URL(`${path}?v=${hash}`, base).href))?.text()).toBe('unchanged hero');
   expect(await current.match(new URL(stale, base).href)).toBeUndefined();
   expect(await current.match(new URL(removed, base).href)).toBeUndefined();
@@ -446,14 +449,14 @@ test('full content names survive static-cache migration without repeating baked 
   expect(contentNamed(`/assets/baked/fixture/${'1'.repeat(65)}.bin`)).toBe(false);
   expect(contentNamed(`${kept}/mutable`)).toBe(false);
   const f = fixture(url => Promise.resolve(url.endsWith('/asset-manifest.json')
-    ? Response.json({ [kept]: '11111111', [changed]: '22222222' }) : new Response('changed bytes')));
+    ? Response.json({ [kept]: '11111111', [changed]: '22222222' }) : new Response('changed bytes')), undefined, undefined, undefined, undefined, { [kept]: '11111111', [changed]: '22222222' });
   const old = await f.open('ws-static-previous');
   await old.put(new URL(kept, base).href, new Response('unchanged bytes'));
   await old.put(new URL(`${kept}?v=11111111`, base).href, new Response('unchanged bytes'));
   await old.put(new URL(removed, base).href, new Response('removed bytes'));
   await f.dispatch('activate');
   await f.dispatch('message', { data: { type: 'GC' } });
-  const current = await f.open('ws-static-unit-assets');
+  const current = await f.open('ws-static-v2');
   expect(await (await current.match(new URL(kept, base).href))?.text()).toBe('unchanged bytes');
   expect(await current.match(new URL(removed, base).href)).toBeUndefined();
   f.fetch.mockClear();
@@ -471,7 +474,7 @@ test('full content names survive static-cache migration without repeating baked 
 
 test('a full content name reuses only its matching legacy versioned alias offline', async () => {
   const kept = `/assets/baked/fixture/${'1'.repeat(64)}.bin`, absent = `/assets/baked/fixture/${'2'.repeat(64)}.bin`;
-  const f = fixture(), cache = await f.open('ws-static-unit-assets');
+  const f = fixture(), cache = await f.open('ws-static-v2');
   await cache.put(new URL(`${kept}?v=11111111`, base).href, new Response('verified previous alias'));
   await cache.put(new URL(`${absent}?v=ffffffff`, base).href, new Response('wrong version'));
   f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
@@ -485,7 +488,7 @@ test('a full content name reuses only its matching legacy versioned alias offlin
 test('mutable unversioned bakes keep fresh network reads and their offline fallback', async () => {
   const path = '/assets/baked/fixture/current.bin';
   expect(contentNamed(path)).toBe(false);
-  const f = fixture(() => Promise.resolve(new Response('fresh bytes'))), cache = await f.open('ws-static-unit-assets');
+  const f = fixture(() => Promise.resolve(new Response('fresh bytes'))), cache = await f.open('ws-static-v2');
   await cache.put(new URL(path, base).href, new Response('previous bytes'));
   await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
   await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
@@ -628,16 +631,17 @@ test('a cold uncached navigation has one3s total deadline even while its HTML tr
   expect(vi.getTimerCount()).toBe(0);
 });
 
-test('post-control GC tolerates an unavailable manifest and carries offline bytes', async () => {
+test('post-control GC needs no network manifest and carries exact offline content keys', async () => {
   vi.useFakeTimers();
-  const f = fixture(() => new Promise<Response>(() => { /* Manifest cannot arrive. */ }));
-  await (await f.open('ws-static-old')).put(new URL('/assets/needed.bin', base).href, new Response('old body'));
+  const path='/assets/needed.bin?v=aaaaaaaa';
+  const f = fixture(() => new Promise<Response>(() => { /* Network cannot arrive. */ }), undefined, undefined, undefined, undefined, { '/assets/needed.bin':'aaaaaaaa' });
+  await (await f.open('ws-static-old')).put(new URL(path, base).href, new Response('old body'));
   await f.dispatch('activate');
   const work = f.dispatch('message', { data: { type: 'GC' } });
   await vi.advanceTimersByTimeAsync(10000); await work;
   expect(f.replies).toContainEqual({ type: 'GC', status: 'complete' });
-  // Offline/unavailable manifest keeps carried bytes; no current-content guess.
-  expect(await (await f.open('ws-static-unit-assets')).match(new URL('/assets/needed.bin', base).href).then(r=>r?.text())).toBe('old body');
+  expect(f.fetch).not.toHaveBeenCalled();
+  expect(await (await f.open('ws-static-v2')).match(new URL(path, base).href).then(r=>r?.text())).toBe('old body');
 });
 
 test('versioned and content-addressed old static bodies remain usable before GC', async () => {
@@ -667,7 +671,7 @@ test('GC stops at30s and late cache traversal cannot delete or publish after exp
   if(finish===undefined)throw new Error('GC never reached old cache');
   finish([new Request(key)]); await vi.advanceTimersByTimeAsync(0);
   expect(await (await f.open('ws-static-old')).match(key).then(r=>r?.text())).toBe('retained');
-  expect(await (await f.open('ws-static-unit-assets')).match(key)).toBeUndefined();
+  expect(await (await f.open('ws-static-v2')).match(key)).toBeUndefined();
   expect(vi.getTimerCount()).toBe(0);
 });
 
@@ -685,14 +689,14 @@ test('GLB data reaches the page before completion and a stalled suffix cannot en
   const suffix=expect(reader.read()).rejects.toThrow('Service worker fetch stalled');
   await vi.advanceTimersByTimeAsync(10000);await suffix;reader.releaseLock();
   expect(f.fetch).toHaveBeenCalledTimes(1);
-  expect(await(await f.open('ws-static-unit-assets')).match(new URL(path,base).href)).toBeUndefined();
+  expect(await(await f.open('ws-static-v2')).match(new URL(path,base).href)).toBeUndefined();
   expect(vi.getTimerCount()).toBe(0);
 });
 
 test('shard blobs reuse only the verified content cache and leave persistence to its owner', async () => {
   const hash = 'a'.repeat(64), path = `/shardfiles/sample/blobs/glb/${hash}.glb`, url = new URL(path, base).href;
   const f = fixture(() => Promise.resolve(new Response(Uint8Array.of(1,2,3))));
-  const content = await f.open(CONTENT_CACHE_NAME), legacy = await f.open('ws-static-unit-assets');
+  const content = await f.open(CONTENT_CACHE_NAME), legacy = await f.open('ws-static-v2');
   const key = new URL(hash, new URL(CONTENT_CACHE_ROOT, base)).href;
   const contentWrites = vi.spyOn(content, 'put'), legacyWrites = vi.spyOn(legacy, 'put');
   await f.dispatch('fetch', {request:new Request(url)});
@@ -777,7 +781,7 @@ test('a permanent data refusal is not retried or published as offline content',a
   const f=fixture(()=>Promise.resolve(new Response('not found',{status:404}))),url=new URL('/assets/missing-data.json',base).href;
   await f.dispatch('fetch',{request:new Request(url)});
   expect(f.responses[0]?.status).toBe(404);expect(await f.responses[0]?.text()).toBe('not found');
-  expect(f.fetch).toHaveBeenCalledTimes(1);expect(await(await f.open('ws-static-unit-assets')).match(url)).toBeUndefined();
+  expect(f.fetch).toHaveBeenCalledTimes(1);expect(await(await f.open('ws-static-v2')).match(url)).toBeUndefined();
 });
 
 test.each(['/assets/failed-data.json',`/shardfiles/sample/blobs/bin/${'d'.repeat(64)}.bin`])(
@@ -787,7 +791,7 @@ test.each(['/assets/failed-data.json',`/shardfiles/sample/blobs/bin/${'d'.repeat
     const work=expect(f.dispatch('fetch',{request:new Request(new URL(path,base))})).rejects.toBe(errors[2]);
     await vi.advanceTimersByTimeAsync(2700);await work;
     expect(attempts).toBe(3);expect(f.responses).toHaveLength(0);expect(vi.getTimerCount()).toBe(0);
-    expect((await(await f.open('ws-static-unit-assets')).keys())).toHaveLength(0);
+    expect((await(await f.open('ws-static-v2')).keys())).toHaveLength(0);
     expect((await(await f.open(CONTENT_CACHE_NAME)).keys())).toHaveLength(0);
   });
 
@@ -867,7 +871,7 @@ test('indexed worker stamps preserve exact member ordinals and refuse undeclared
 
 test('versioned shard indexes hit exact cache keys without network or cross-version aliasing',async()=>{
   const path='/shardfiles/example/shard.json',versioned=new URL(`${path}?v=aaaaaaaa`,base).href;
-  const f=fixture(()=>Promise.resolve(new Response('new index'))),cache=await f.open('ws-static-unit-assets');
+  const f=fixture(()=>Promise.resolve(new Response('new index'))),cache=await f.open('ws-static-v2');
   await cache.put(new URL(path,base).href,new Response('unversioned stale'));
   await cache.put(versioned,new Response('exact version'));
   await f.dispatch('fetch',{request:new Request(versioned)});
@@ -900,4 +904,42 @@ test('background cancellation does not swallow an unrelated cache refusal', asyn
   const match = vi.spyOn(cache, 'match').mockRejectedValueOnce(failure);
   try { await expect(f.dispatch('message', { data: { type: 'WARM_CODE' } })).rejects.toBe(failure); }
   finally { match.mockRestore(); }
+});
+
+test('a deploy keeps unchanged static keys and fetches only the changed content', async () => {
+  const same = '/assets/title/same.jpg', changed = '/assets/title/changed.jpg';
+  const before = fixture(url => Promise.resolve(new Response(url.endsWith(same) ? 'same body' : 'old body')),
+    undefined, undefined, undefined, undefined, { [same]: 'aaaaaaaa', [changed]: 'bbbbbbbb' });
+  for (const path of [same, changed]) await before.dispatch('fetch', { request: new Request(new URL(path, base)) });
+  const cache = await before.open('ws-static-v2');
+  await vi.waitFor(async () => { expect(await cache.match(new URL(`${changed}?v=bbbbbbbb`, base).href)).toBeDefined(); });
+  const after = fixture(() => Promise.resolve(new Response('new body')), undefined, undefined, undefined, undefined,
+    { [same]: 'aaaaaaaa', [changed]: 'cccccccc' }, before.books);
+  await after.dispatch('fetch', { request: new Request(new URL(same, base)) });
+  expect(await after.responses[0]?.text()).toBe('same body'); expect(after.fetch).not.toHaveBeenCalled();
+  await after.dispatch('fetch', { request: new Request(new URL(changed, base)) });
+  expect(await after.responses[1]?.text()).toBe('new body'); expect(after.fetch).toHaveBeenCalledTimes(1);
+  const checksum = vi.spyOn(crypto.subtle, 'digest');
+  try {
+    await after.dispatch('message', { data: { type: 'GC' } });
+    expect(checksum).not.toHaveBeenCalled();
+    expect(await cache.match(new URL(`${changed}?v=bbbbbbbb`, base).href)).toBeUndefined();
+    expect(await (await cache.match(new URL(`${same}?v=aaaaaaaa`, base).href))?.text()).toBe('same body');
+  } finally { checksum.mockRestore(); }
+});
+
+test('only the exact legacy content-set identity can hand over an unversioned body without hashing', async () => {
+  const path = '/assets/title/known.jpg', unknown = '/assets/title/unknown.jpg';
+  const f = fixture(undefined, undefined, undefined, undefined, undefined, { [path]: 'aaaaaaaa', [unknown]: 'bbbbbbbb' });
+  await (await f.open('ws-static-unit-assets')).put(new URL(path, base).href, new Response('known body'));
+  await (await f.open('ws-static-foreign')).put(new URL(unknown, base).href, new Response('unproven body'));
+  const checksum = vi.spyOn(crypto.subtle, 'digest');
+  try {
+    await f.dispatch('message', { data: { type: 'GC' } });
+    expect(checksum).not.toHaveBeenCalled();
+    const current = await f.open('ws-static-v2');
+    expect(await (await current.match(new URL(`${path}?v=aaaaaaaa`, base).href))?.text()).toBe('known body');
+    expect(await current.match(new URL(`${unknown}?v=bbbbbbbb`, base).href)).toBeUndefined();
+    expect(f.fetch).not.toHaveBeenCalled();
+  } finally { checksum.mockRestore(); }
 });

@@ -47,3 +47,14 @@ export function hashTree(sub: string, root: string = process.cwd()): Record<stri
   walk(join(root, 'public', sub), `/${sub}`);
   return out;
 }
+
+/** Build-owned static keys, including files that browsers request without a version query. */
+export function staticAssetHashes(root: string): Record<string, string> {
+  const hashes: Record<string, string> = {};
+  for (const sub of ['assets', 'basis', 'fonts']) Object.assign(hashes, hashTree(sub, root));
+  for (const name of ['apple-touch-icon.png', 'favicon.png', 'icon-192.png', 'icon-512.png']) {
+    const file = join(root, 'public', name);
+    if (existsSync(file)) hashes[`/${name}`] = hashFile(file);
+  }
+  return hashes;
+}

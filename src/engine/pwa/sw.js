@@ -88,14 +88,15 @@ const CODE_PACKS = () => {
 const codePackJobs = new Map();
 const cachePublications = new Map();
 function publishCached(cache, key, response) {
-  const url = typeof key === 'string' ? key : key.url;
-  const work = cache.put(key, response).catch(() => undefined).finally(() => {
+  const cacheKey = staticCacheKey(key);
+  const url = typeof cacheKey === 'string' ? cacheKey : cacheKey.url;
+  const work = cache.put(cacheKey, response).catch(() => undefined).finally(() => {
     if (cachePublications.get(url) === work) cachePublications.delete(url);
   });
   cachePublications.set(url, work);
 }
 const SHELL = `ws-shell-${BUILD}`;
-const STATIC = `ws-static-${ASSETS}`;
+const STATIC = 'ws-static-v2';
 const IMMUTABLE_CACHE = 'ws-immutable';
 const CONTENT_CACHE = '__CONTENT_CACHE__', CONTENT_ROOT = '__CONTENT_ROOT__';
 // Content-addressed author bytes and visited manifests have their own admission/quota policy, independent of a build.
@@ -135,7 +136,6 @@ function reserveBlob(req) {
 /** E160: content names include packs, `<name>-<hash8>.<ext>` and `<sha256>.<ext>`.
  * scripts/app-build/assetHashes.ts contentNamed: keep in step. */
 const CONTENT_NAMED_RE = /^\/assets\/packs\/|-[0-9a-f]{8}\.[a-z0-9]+$|\/[0-9a-f]{64}\.[a-z0-9]+$/;
-const FONT_SET = new Set(FONTS);
 /** what the last activate freed and kept (the VERSION reply and the console) */
 const gc = { entries: 0, bytes: 0, caches: 0, kept: 0, migrated: 0, hashed: 0 };
 
@@ -154,6 +154,20 @@ const IMAGE_RE = /\.(jpe?g|png|webp|avif|gif|svg)$/;
 
 /** the device says it has no network: answer from the cache instead of a fetch that can only fail */
 const offline = () => !self.navigator.onLine;
+
+let staticHashes;
+const STATIC_HASHES = () => (staticHashes ??= JSON.parse('__STATIC_HASHES__'));
+/** Stable keys name bytes, rather than the deploy that happened to read them. */
+function staticCacheKey(input) {
+  const url = new URL(typeof input === 'string' ? input : input.url, self.registration.scope);
+  if (url.origin !== self.location.origin || url.search !== '' || IMMUTABLE_RE.test(url.pathname) || CONTENT_NAMED_RE.test(url.pathname)
+    || !STATIC_RE.test(url.pathname) && !url.pathname.startsWith('/assets/')) return input;
+  const hash = STATIC_HASHES()[url.pathname];
+  if (typeof hash !== 'string') return input;
+  url.searchParams.set('v', hash);
+  return typeof input === 'string' ? url.href : new Request(url.href, input);
+}
+
 
 const cacheFor = (pathname) => (IMMUTABLE_RE.test(pathname) ? IMMUTABLE_CACHE : STATIC);
 
@@ -217,7 +231,7 @@ async function backgroundCache(cache, url, signal) {
   signal?.throwIfAborted();
   const response = await fetchAttempt(new Request(abs(url), signal === undefined ? {} : { signal, priority: 'low' }));
   if (!response.ok) throw new Error(`precache: ${url} ${response.status}`);
-  signal?.throwIfAborted(); await cache.put(abs(url), response);
+  signal?.throwIfAborted(); await cache.put(staticCacheKey(abs(url)), response);
 }
 
 /**
@@ -226,12 +240,13 @@ async function backgroundCache(cache, url, signal) {
  */
 async function fillMissing(cache, urls, strict, signal) {
   await Promise.all(urls.map(async (u) => {
-    await cachePublications.get(abs(u));
-    if (await cache.match(abs(u), MATCH_OPTS)) return;
+    const key = staticCacheKey(abs(u));
+    await cachePublications.get(typeof key === 'string' ? key : key.url);
+    if (await cache.match(key, MATCH_OPTS)) return;
     // the previous build's static cache still holds it (the icons, the fonts): a copy, not a download (E160 — an asset
     // deploy names a new static cache before `activate` carries the old one over, and install re-fetched ~0.5 MB here)
-    const held = await caches.match(abs(u), MATCH_OPTS);
-    if (held) { await cache.put(abs(u), held); return; }
+    const held = await caches.match(key, MATCH_OPTS);
+    if (held) { await cache.put(key, held); return; }
     signal?.throwIfAborted();
     await (strict ? backgroundCache(cache, u, signal) : backgroundCache(cache, u, signal).catch(() => undefined));
   }));
@@ -330,7 +345,7 @@ function collectCaches() {
     owner.timeout(30000, () => { controller.abort(); resolve('timed-out'); });
   });
   const run = async () => {
-    const named = await assetManifest(signal);
+    const named = STATIC_HASHES();
     signal.throwIfAborted(); await migrateStatic(named, signal);
     signal.throwIfAborted(); await gcStatic(named, signal);
     for (const k of await caches.keys()) {
@@ -361,20 +376,6 @@ function collectCaches() {
  * never carried over: every asset deploy re-downloaded every pack.
  */
 
-/** path → hash8 of every file this build ships under public/assets, or null (offline at activate: verify nothing, drop nothing) */
-async function assetManifest(signal) {
-  try {
-    const r = await fetchAttempt(new Request(abs('/asset-manifest.json'), { cache: 'no-store', signal }));
-    if (r.ok) return await r.json();
-  } catch { /* offline */ }
-  return null;
-}
-
-async function hash8(res) {
-  const d = new Uint8Array(await crypto.subtle.digest('SHA-256', await res.arrayBuffer()));
-  return Array.from(d.subarray(0, 4), (b) => b.toString(16).padStart(2, '0')).join('');
-}
-
 async function sizeOf(res) {
   const len = res.headers.get('content-length');
   return len ? Number(len) : (await res.clone().arrayBuffer()).byteLength;
@@ -384,18 +385,17 @@ async function sizeOf(res) {
  * The verdict on one static entry: 'keep', 'drop', or the key it moves to (an unhashed entry whose bytes are current).
  * `fromOld`: it sits in a previous build's cache, whose unhashed entries prove nothing without their hash.
  */
-async function verdict(req, res, named, fromOld) {
-  const url = new URL(req.url);
-  const p = url.pathname;
-  if (!p.startsWith('/assets/')) return p.startsWith('/fonts/') && !FONT_SET.has(p) ? 'drop' : 'keep'; // icons, fonts, basis
+function verdict(req, named, legacyIdentity = false) {
+  const url = new URL(req.url), p = url.pathname;
   const want = named[p];
-  if (typeof want !== 'string') return 'drop'; // no longer shipped (an old pack, a removed file)
-  const v = url.searchParams.get('v');
-  if (v !== null) return v === want ? 'keep' : 'drop'; // an older version of the file
+  if (typeof want !== 'string') return p.startsWith('/assets/') || p.startsWith('/basis/') || p.startsWith('/fonts/') ? 'drop' : 'keep';
+  const versionHash = url.searchParams.get('v');
+  if (versionHash !== null) return versionHash === want ? 'keep' : 'drop';
   if (CONTENT_NAMED_RE.test(p)) return 'keep';
-  if (!fromOld) return 'keep'; // stored under this cache's name, and the name is the content of every asset: current
-  gc.hashed++;
-  return (await hash8(res.clone())) === want ? `${abs(p)}?v=${want}` : 'drop';
+  // A legacy content-set name proves these exact unchanged assets, fonts and
+  // basis files. Other unversioned legacy bodies have no identity: never hash
+  // them on a read or silently admit them under the new content key.
+  return legacyIdentity && /^\/(?:assets|basis|fonts)\//.test(p) ? `${abs(p)}?v=${want}` : 'drop';
 }
 
 /** A new static cache name = some asset's bytes changed. Carry every entry of the old caches that is still current. */
@@ -411,12 +411,8 @@ async function migrateStatic(named, signal) {
       try {
         const res = await prev.match(req, MATCH_OPTS);
         if (!res) continue;
-        const to = named ? await verdict(req, res, named, true) : 'keep'; // offline: carry as is (verified next time)
+        const to = verdict(req, named, k === `ws-static-${ASSETS}`);
         if (to === 'drop') { gc.entries++; gc.bytes += await sizeOf(res); continue; }
-        // A verified plain URL still has live readers (the inline title hero).
-        // Keep that alias in this content-named cache as well as its versioned
-        // key, instead of downloading identical bytes on the next document.
-        if (to !== 'keep' && !await next.match(req, MATCH_OPTS)) { signal.throwIfAborted(); await next.put(req, res.clone()); }
         const key = to === 'keep' ? req : to;
         if (await next.match(key, MATCH_OPTS)) continue;
         signal.throwIfAborted(); await next.put(key, res);
@@ -435,7 +431,7 @@ async function gcStatic(named, signal) {
     try {
       const res = await cache.match(req, MATCH_OPTS);
       if (!res) continue;
-      if ((await verdict(req, res, named, false)) === 'drop') { gc.entries++; gc.bytes += await sizeOf(res); signal.throwIfAborted(); await cache.delete(req, MATCH_OPTS); }
+      if (verdict(req, named) === 'drop') { gc.entries++; gc.bytes += await sizeOf(res); signal.throwIfAborted(); await cache.delete(req, MATCH_OPTS); }
       else gc.kept++;
     } catch { /* keep what cannot be judged */ }
   }
@@ -598,8 +594,9 @@ async function prefetchOne(u) {
       const cache = await caches.open(CONTENT_CACHE);
       return out(await cache.match(new URL(blobHash, abs(CONTENT_ROOT)).href, MATCH_OPTS) ? 'hit' : 'failed');
     }
-    const cache = await caches.open(cacheFor(url.pathname));
-    if (await cache.match(url.href, MATCH_OPTS)) return out('hit');
+    const name = cacheFor(url.pathname), key = name === STATIC ? staticCacheKey(url.href) : url.href;
+    const cache = await caches.open(name);
+    if (await cache.match(key, MATCH_OPTS)) return out('hit');
     try {
       signal.throwIfAborted();
       const res = await fetchAttempt(new Request(url.href, { priority: 'low', signal }));
@@ -607,7 +604,7 @@ async function prefetchOne(u) {
       let bytes = 0;
       const [keep, count] = res.body.tee();
       const counted = (async () => { const r = count.getReader(); for (;;) { const { done, value } = await r.read(); if (done) return; bytes += value.byteLength; } })();
-      await Promise.all([cache.put(url.href, new Response(keep, { status: res.status, statusText: res.statusText, headers: res.headers })), counted]);
+      await Promise.all([cache.put(key, new Response(keep, { status: res.status, statusText: res.statusText, headers: res.headers })), counted]);
       signal.throwIfAborted();
       return out('stored', bytes);
     } catch {
@@ -900,15 +897,21 @@ async function shardBlob(req, hash) {
 async function cacheFirst(req, name) {
   const lookup = async () => {
     const cache = await caches.open(name);
-    const hit = await cache.match(req, MATCH_OPTS);
+    const key = name === STATIC ? staticCacheKey(req) : req;
+    const hit = await cache.match(key, MATCH_OPTS);
     if (hit) return { cache, hit };
     // Older boot tables added ?v even to SHA-256 basenames. The same exact
     // content can now use its plain URL, including immediately after an offline
     // update. Match only its own hash prefix; never ignore arbitrary queries.
     const url = new URL(req.url);
-    if (name === STATIC && (CONTENT_NAMED_RE.test(url.pathname) || url.searchParams.has('v'))) {
-      const previous = await caches.match(req, MATCH_OPTS);
+    if (name === STATIC && (CONTENT_NAMED_RE.test(url.pathname) || url.searchParams.has('v') || key !== req)) {
+      const previous = await caches.match(key, MATCH_OPTS);
       if (previous) return { cache, hit: previous };
+    }
+    if (name === STATIC && key !== req && /^\/(?:assets|basis|fonts)\//.test(url.pathname)
+      && (await caches.keys()).includes(`ws-static-${ASSETS}`)) {
+      const previous = await (await caches.open(`ws-static-${ASSETS}`)).match(req, MATCH_OPTS);
+      if (previous) { publishCached(cache, key, previous.clone()); return { cache, hit: previous }; }
     }
     const namedHash = /\/([0-9a-f]{64})\.[a-z0-9]+$/.exec(url.pathname)?.[1];
     if (name === STATIC && url.pathname.startsWith('/assets/') && url.search === '' && namedHash !== undefined) {
@@ -965,9 +968,10 @@ async function fetchWhole(req, cache) {
  * @param {boolean} [doc] the document: stored only when it is this build's own (putDocument, E144)
  */
 async function networkFirst(req, name, key, doc = false) {
+  const cacheKey = key ?? (name === STATIC ? staticCacheKey(req) : req);
   const cache = await caches.open(name);
   if (offline()) {
-    const hit = await cache.match(key ?? req, MATCH_OPTS);
+    const hit = await cache.match(cacheKey, MATCH_OPTS);
     if (hit) return transportReceipt(hit, true);
   }
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -976,11 +980,11 @@ async function networkFirst(req, name, key, doc = false) {
       if (attempt < 2 && retryableResponse(res)) {
         await res.body?.cancel(); throw new Error(`HTTP ${res.status}`);
       }
-      if (doc) putDocument(cache, key ?? req, res.clone()).catch(() => undefined);
-      else if (res.ok) publishCached(cache, key ?? req, res.clone());
+      if (doc) putDocument(cache, cacheKey, res.clone()).catch(() => undefined);
+      else if (res.ok) publishCached(cache, cacheKey, res.clone());
       return transportReceipt(res);
     } catch (error) {
-      const hit = await cache.match(key ?? req, MATCH_OPTS);
+      const hit = await cache.match(cacheKey, MATCH_OPTS);
       if (hit) return transportReceipt(hit, true);
       if (req.signal.aborted || offline() || attempt === 2) throw error;
       await retryPause(req, attempt === 0 ? 700 : 2000);
