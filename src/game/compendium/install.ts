@@ -74,9 +74,10 @@ export function installCompendium(host: CompendiumHost): { state: CompendiumStat
   app.input.bind('journal', () => { journal.open(); }, journal.scope, () => hud.entered && !menu.isOpen && !journal.isOpen);
 
   // ── open / close: release the lock + the weapons, then resume the way the pause menu does ──
-  let holdScope = journal.scope.child('resume-hold');
+  let holdScope = journal.scope.child('resume-hold'), stillScope = journal.scope.child('still');
   journal.onOpen = () => {
     holdScope.dispose(); holdScope = journal.scope.child('resume-hold');
+    stillScope.dispose(); stillScope = journal.scope.child('still'); app.ui.holdStill(stillScope); // FC3 (G909): the world holds one still
     hud.holdPause = true;
     weapons.setEnabled(false);
     if (menu.isOpen) menu.close(true);
@@ -84,6 +85,7 @@ export function installCompendium(host: CompendiumHost): { state: CompendiumStat
     disc.classList.remove('new');
   };
   journal.onClose = () => {
+    stillScope.dispose();
     hud.onResume?.(); // main.ts's enter(): weapons back on, the pointer re-locked (the CLOSE click / the key is the gesture)
     holdScope.timeout(450, () => {
       hud.holdPause = false;
@@ -136,15 +138,16 @@ function installRetainedCompendium(host: CompendiumHost, context: ShardContext, 
     hudSlots.pill(disc, () => { if (hud.entered) journal.open(); }, journal.scope);
     scope.onDispose(bagMenu(menu).addFinds('compendium', () => compendiumFinds(state, (id) => { journal.open(id); })));
     context.app.input.bind('journal', () => { journal.open(); }, journal.scope, () => hud.entered && !menu.isOpen && !journal.isOpen);
-    let holdScope = journal.scope.child('resume-hold');
+    let holdScope = journal.scope.child('resume-hold'), stillScope = journal.scope.child('still');
     journal.onOpen = () => {
       holdScope.dispose(); holdScope = journal.scope.child('resume-hold'); hud.holdPause = true; weapons.setEnabled(false);
+      stillScope.dispose(); stillScope = journal.scope.child('still'); context.app.ui.holdStill(stillScope); // FC3 (G909)
       if (menu.isOpen) menu.close(true);
       if (document.pointerLockElement) document.exitPointerLock();
       disc.classList.remove('new');
     };
     journal.onClose = () => {
-      hud.onResume?.();
+      stillScope.dispose(); hud.onResume?.();
       holdScope.timeout(450, () => {
         hud.holdPause = false;
         if (!host.nolock && !host.touchUi() && !document.pointerLockElement && hud.entered && !menu.isOpen && !journal.isOpen) hud.setPaused(true);

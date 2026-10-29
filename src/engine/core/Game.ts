@@ -1365,6 +1365,7 @@ export class Game {
     this.kickLoop = () => { if (!this.dead && diagnosticNow() - lastRun > 1000) this.engineScope.raf(loop); };
     this.primeFrame = () => { if (!this.dead) forceFrame = true; };
     this.hiddenFrame = () => { if (this.dead) return; forceFrame = true; loop(); };
+    this.app.ui.onStill = () => { this.primeFrame(); }; // FC3: the frame a glass screen holds the world on (the shop's turn to the trader)
     setLoopState('running');
     loop();
   }

@@ -21,6 +21,9 @@ export class UiLayers {
   constructor(now: () => number = () => 0) { this.now = now; }
   closedAt: number = Number.NEGATIVE_INFINITY;
   private entries: Entry[] = [];
+  private readonly stills = new Set<Scope>();
+  /** called when the first still hold starts, so the owner can draw the one frame the world is held on */
+  onStill: (() => void) | undefined;
   private changed: (() => void) | undefined;
   private owner: (() => Scope | null) | undefined;
   connect(changed: () => void, owner?: () => Scope | null): void { this.changed = changed; this.owner = owner; }
@@ -34,6 +37,17 @@ export class UiLayers {
   get blocking(): boolean { return this.top !== 'hud'; }
   /** the input owner on top closes for the game menu (`UiView.yieldsToMenu`) */
   get topYields(): boolean { return this.input().at(-1)?.view.yieldsToMenu === true; }
+  /** FC3 (G909): a glass screen over the world (the journal, a shop, a quest board) holds the world on one still frame
+   *  while `scope` lives: no simulation and no world frames, like the pause menu, without showing the pause menu */
+  holdStill(scope: Scope): void {
+    if (scope.disposed || this.stills.has(scope)) return;
+    const first = this.stills.size === 0;
+    this.stills.add(scope);
+    scope.onDispose(() => { this.stills.delete(scope); this.refresh(); }); // the stack's owner hears the release (a parked loop wakes)
+    if (first) this.onStill?.();
+    this.refresh();
+  }
+  get still(): boolean { return this.stills.size > 0; }
   isTop(handle: UiHandle): boolean { return this.input().at(-1)?.handle === handle; }
   push(layer: UiLayer, view: UiView, scope: Scope): UiHandle {
     let active = !scope.disposed;

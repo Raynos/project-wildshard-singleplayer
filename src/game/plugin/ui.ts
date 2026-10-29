@@ -128,11 +128,14 @@ export class QuestViews {
     readonly panels?: readonly (() => { readonly isOpen: boolean; onOpen?: () => void; onClose?: () => void })[];
     readonly closeMenu?: boolean; readonly resetOnLeave?: boolean; readonly restartOnClose?: boolean;
   }): (on: boolean) => void {
-    let timer: ReturnType<Scope['timeout']> = 0;
+    let timer: ReturnType<Scope['timeout']> = 0, still: Scope | null = null;
     const hold = (on: boolean): void => {
       if (on || ports.restartOnClose === true) this.cancelTimer(timer);
       ports.stow?.(on);
+      // FC3 (G909): the world holds one still behind the open panel and resumes the moment it closes
+      still?.dispose(); still = null;
       if (on) {
+        still = (this.entered ?? this.resident).child('still'); this.context.app.ui.holdStill(still);
         ports.hud.holdPause = true; ports.weapons.setEnabled(false);
         if (ports.closeMenu === true && ports.menu.isOpen) ports.menu.close(true);
         if (document.pointerLockElement) document.exitPointerLock();
