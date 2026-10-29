@@ -11,7 +11,7 @@ import { presenting } from '@wildshard/engine/core/framePacing';
 import { constructionCheckpoint } from '../shardfile/constructionCheckpoint';
 import { PreparationReads } from '../shardfile/preparationReads';
 import { TIER } from '@wildshard/engine/core/tier';
-import { readHomeBuildGeometry, saveHomeBuildGeometry, recordHomeBuildInputs } from '../shardfile/homeBuildCache';
+import { readHomeBuildGeometry, saveHomeBuildGeometry } from '../shardfile/homeBuildCache';
 import { defineSceneModels, type BakedModelMetadata } from '@wildshard/engine/models/model';
 import { identitySpaceGeometry } from '@wildshard/engine/models/ownedGeometry';
 import * as wholeV from 'valibot';
@@ -2010,7 +2010,6 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
       await product.releaseTransport(hashes);
       if (scope.disposed || scope.disposing) throw new Error('Whole geometry unloaded while restoring');
       const result = new Map<string, WholeGeometryView>();
-      recordHomeBuildInputs(product.source, homeKey, restored, hashes);
       for (const [id, view] of restored) result.set(id, { ...view, release: scope.capture('geometries', () => view.geometry.dispose()) });
       product.assets.releaseTiles(); return result;
     } catch (error) { for (const view of restored.values()) view.geometry.dispose(); throw error; }

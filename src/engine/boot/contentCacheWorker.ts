@@ -4,7 +4,6 @@ import { diagnosticNow } from '../core/clock';
 import type { ContentCache } from './contentCache';
 import { ContentCacheQueue, isCacheRead } from './contentCacheQueue';
 import { waitFor } from './waits';
-import { receiveWorkerDownloads } from './download';
 import { CONTENT_CACHE_WIRE_CAP, CacheCommandSchema, CachePinCommandSchema, CacheReplySchema, isCacheCommand, isCacheReplyEnvelope, isCacheValue, type CacheCommand, type CacheOperation, type CacheValue, type FetchedContent } from './contentCacheProtocol';
 
 export interface CacheWorkerPort extends EventTarget {
@@ -250,7 +249,6 @@ export class ContentCacheWorker {
       ...(options.keep === true ? { keep: true } : {}), ...(options.urlCache === true ? { urlCache: true } : {}) }, true);
     if (value === null) return null;
     if (typeof value !== 'object' || !('fetched' in value) || (options.reply === 'bytes' && value.fetched?.length !== bytes)) throw new Error('Invalid cache read result');
-    if (value.timing !== null) receiveWorkerDownloads({ type: 'WS_WORKER_DOWNLOAD', origin: value.origin, timings: [value.timing] }, performance.timeOrigin);
     return value;
   }
   pin(hashes: Iterable<string>): () => void {

@@ -1,4 +1,3 @@
-import type { DownloadSnapshot } from './download';
 import { formatMB } from './plan';
 
 /** Disk-prefetch facts supplied by the application; they never credit transport bytes. */
@@ -11,39 +10,16 @@ export interface LoadingPrefetchSnapshot {
   readonly storedFiles: number; readonly storedBytes: number;
 }
 
-/** The home load's own track: the bytes of the files it declared (product indexes give exact sizes) that have arrived, from
- * the wire or the cache; done when the load is. Grid prefetch and other page traffic never move it (they have their own row). */
-export function loadingDownloadFraction(transfer: DownloadSnapshot, done: boolean): number {
-  if (transfer.reads !== undefined) {
-    if (transfer.reads.closed) return 1;
-    const total = transfer.reads.bytes + transfer.reads.pendingBytes;
-    return total === 0 ? 0 : Math.min(0.99, transfer.reads.bytes / total);
-  }
-  const total = transfer.expectedBytes ?? transfer.declaredBytes;
-  // A completed zero-byte entry is genuinely empty. Unknown or pending bytes
-  // remain incomplete; this does not turn a nonempty load's setup into credit.
-  if (total === 0) return done && transfer.pendingBytes === 0 && transfer.unclassifiedFiles === 0 ? 1 : 0;
-  const fraction = Math.min(1, transfer.declaredDoneBytes / total);
-  // Setup completion is not a byte receipt. Pending content cannot say 100%.
-  const openEntry = transfer.expectedBytes !== undefined && !done;
-  return openEntry || transfer.pendingBytes > 0 || transfer.declaredDoneBytes < total ? Math.min(0.999, fraction) : fraction;
+/** The manifest operation is the sole source of download progress. */
+export interface LoadingDownloadSnapshot {
+  readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number;
+  readonly filesTotal: number; readonly filesDone: number; readonly complete: boolean; readonly error: string | null;
 }
-
-/** Declared progress first (the fact line truncates), then the wire and the offline cache. WebKit sizes no service-worker
- * transfer: those count by their known body size, said once, never as a missing total. */
-export function loadingDownloadText(transfer: DownloadSnapshot): string {
-  if (transfer.reads !== undefined) {
-    const unknown = transfer.reads.unknownSourceBytes === 0 ? '' : ` · ${formatMB(transfer.reads.unknownSourceBytes)} source unknown`;
-    return `Spawn view · ${formatMB(transfer.reads.bytes)} · ${formatMB(transfer.reads.cachedBytes)} from cache${unknown}`;
-  }
-  const network = transfer.unclassifiedFiles > 0 && transfer.unclassifiedBytes === 0
-    ? `${formatMB(transfer.networkBytes)} network · ${transfer.unclassifiedFiles} transfers with unknown wire size`
-    : transfer.unclassifiedFiles > 0
-    ? `${formatMB(transfer.networkBytes + transfer.unclassifiedBytes)} network (${transfer.unclassifiedFiles} files by encoded body size)` : `${formatMB(transfer.networkBytes)} network`;
-  const pending = transfer.unitemizedBytes === undefined ? '' : ` · ${formatMB(transfer.unitemizedBytes)} awaiting file index`;
-  const restored = transfer.restoredBytes === undefined ? '' : ` · ${formatMB(transfer.restoredBytes)} inputs restored`;
-  if ((transfer.expectedBytes ?? transfer.declaredBytes) === 0) return `Reading download inventory · ${network} · ${formatMB(transfer.cachedBytes)} offline cache`;
-  return `${formatMB(transfer.declaredDoneBytes)} of ${formatMB(transfer.expectedBytes ?? transfer.declaredBytes)} content · ${transfer.declaredFilesDone} / ${transfer.declaredFiles} files${pending}${restored} · ${network} · ${formatMB(transfer.cachedBytes)} offline cache`;
+export function loadingDownloadFraction(row: LoadingDownloadSnapshot): number {
+  return row.complete ? 1 : row.totalBytes === 0 ? 0 : Math.min(0.999, row.completedBytes / row.totalBytes);
+}
+export function loadingDownloadText(row: LoadingDownloadSnapshot): string {
+  return `Spawn view · ${formatMB(row.completedBytes)}${row.complete ? '' : ` of ${formatMB(row.totalBytes)}`} · ${formatMB(row.cachedBytes)} from cache`;
 }
 
 /** The grid prefetch's own row: disk bytes against the set discovered so far (a finished run with every product read is 1). */

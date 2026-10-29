@@ -7,7 +7,7 @@ import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { ShardProduct } from './shardProduct';
 import { PreparationReads } from './preparationReads';
-import { homeBuildGeometryKeys, readHomeBuildGeometry, saveHomeBuildGeometry, recordHomeBuildInputs } from './homeBuildCache';
+import { homeBuildGeometryKeys, readHomeBuildGeometry, saveHomeBuildGeometry } from './homeBuildCache';
 
 type Assets = Pick<App['assets'], 'register' | 'acquireResource' | 'evictCached'>;
 type GeometryProduct = Pick<ShardProduct, 'url' | 'file'> & Partial<Pick<ShardProduct, 'shardfile'>>;
@@ -77,7 +77,6 @@ export async function readWorldSceneGeometry(owner: Scope, product: GeometryProd
   let geometry: BufferGeometry;
   if (restored !== undefined) {
     geometry = restored;
-    if (product.shardfile !== undefined && saved !== null) recordHomeBuildInputs(product.shardfile, `owned:${key}`, saved, [row.file, ...row.segments ?? []]);
   }
   else {
     const intake = createOwnedGeometry(url, row.attributes);

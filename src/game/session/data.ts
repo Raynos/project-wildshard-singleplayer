@@ -5,7 +5,7 @@ import type { getMusicStyle } from '@wildshard/engine/ui/Settings';
 import type { FieldModelsContext, ShardManifest } from '../shard/manifest';
 
 import type { ShardProduct } from '../shardfile/shardProduct';
-import { declareProductClientModules } from '../shardfile/clientModules';
+import { checkProductClientModules } from '../shardfile/clientModules';
 
 import { imagesFirstPlayingBytes } from '../grid/runtimeCost';
 import { consumeTravelHandoff } from '../travel/travel';
@@ -34,7 +34,7 @@ async function buildData(ctx: SessionContext) : Promise<{ loading: Loading; audi
   boot.handoff = consumeTravelHandoff(manifest.slug);
   if (boot.handoff !== null) session.arrival = { slug: boot.handoff.to, mode: boot.handoff.mode };
   setTexturePolicy(manifest.tiers?.[TIER]?.textures, manifest.slug, imagesFirstPlayingBytes(manifest.runtimeCost));
-  declareProductClientModules(ctx.product);
+  checkProductClientModules(ctx.product);
   if (isDev() && session.arrival?.mode === 'arena') readModuleGroups(['practice.models']);
 
   const loading = beginLoading({ id: manifest.slug, name: manifest.name, trace: manifest.boot?.phone?.trace === true });

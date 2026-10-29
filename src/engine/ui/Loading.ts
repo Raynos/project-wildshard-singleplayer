@@ -1,4 +1,5 @@
 import { uiScope, mountUi } from './ownership';
+import {app} from '../app/runtime';
 import { engineString } from '../strings';
 import { saveStorage } from '../saves/slots';
 import { formatMB, type ProgressView } from '../boot/plan';
@@ -7,8 +8,8 @@ import { TIER } from '../core/tier';
 import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';
 import { recordBootCheckpoint, recordBootProgress, startBoot } from '../boot/bootTrace';
-import { DownloadAccounting, installDownloadAccounting, observeDownloadAccounting, beginLoadingWait, adoptLoadingWait, reportLoadingWait, finishLoadingWait, loadingWaitState, type DownloadSnapshot } from '../boot/download';
-import { loadingDownloadText, loadingDownloadFraction, loadingPrefetchFraction, loadingPrefetchText, type LoadingPrefetchSnapshot } from '../boot/loadingDownloadText';
+import { beginLoadingWait, adoptLoadingWait, reportLoadingWait, finishLoadingWait, loadingWaitState } from '../boot/download';
+import { loadingDownloadText, loadingDownloadFraction, loadingPrefetchFraction, loadingPrefetchText, type LoadingPrefetchSnapshot, type LoadingDownloadSnapshot } from '../boot/loadingDownloadText';
 import { LoadingTimeline, installLoadingTimeline, type LoadingPath, type LoadingRow, type LoadingGap } from '../boot/timeline';
 import {combinedLoadingFraction, loadingFraction} from '../boot/weights';
 import { isDev, onDev } from '../core/devMode';
@@ -48,8 +49,7 @@ export interface LoadingAdmission {
  * discovers files, estimates their sizes or decides that a read is complete. */
 export interface LoadingDownloadSource {
   readonly ready: Promise<void>;
-  readonly snapshot: () => {readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number;
-    readonly filesTotal: number; readonly filesDone: number; readonly complete: boolean; readonly error: string | null};
+  readonly snapshot: () => LoadingDownloadSnapshot;
   readonly subscribe: (listener: () => void) => () => void;
 }
 /** Facts repaint at 5 Hz; the clock samples at 10 Hz. Done and errors paint at once. */
@@ -78,9 +78,6 @@ export class Loading {
   private readonly attempt: number;
   private admission: LoadingAdmission | null = null;
   private prefetchSource: (() => LoadingPrefetchSnapshot | null) | undefined;
-  private readonly downloads: DownloadAccounting;
-  private readonly downloadObserver: PerformanceObserver;
-  private readonly stopDownloadAccounting: () => void;
   private downloadSource: LoadingDownloadSource | undefined;
   private stopDownloadSource: (() => void) | undefined;
   private readonly timeline: LoadingTimeline;
@@ -102,6 +99,7 @@ export class Loading {
   private failedReason: string | null = null;
 
   constructor(chunk: { id: string; name: string; trace?: boolean }, mode: { readonly scoped?: boolean } = {}) {
+    app.ui.bindPresentation(this.scope);app.ui.holdCovered(this.scope);
     this.scoped = mode.scoped === true;
     if (!this.scoped) startBoot({ id: chunk.id, name: chunk.name }, TIER === 'phone' && chunk.trace === true);
     const nav: { hardwareConcurrency?: number | undefined } = navigator; // Safari < 15.4 has no hardwareConcurrency
@@ -131,18 +129,7 @@ export class Loading {
       : adoptLoadingWait(this.root, this.timeline.waitOwner, 'modules');
     this.scope.onDispose(() => { finishLoadingWait(this.waitId); });
     if (!this.scoped) this.scope.onDispose(installLoadingTimeline(this.timeline));
-    this.downloads = new DownloadAccounting(location.href, shell === null ? this.t0 : 0);
-    if (!this.scoped) this.downloads.trackReads();
-    delete this.root.dataset['entryDownloadBytes'];
-    this.stopDownloadAccounting = this.scoped ? observeDownloadAccounting(this.downloads) : installDownloadAccounting(this.downloads);
-    this.scope.onDispose(this.stopDownloadAccounting);
     this.scope.onDispose(() => {this.stopDownloadSource?.();});
-    this.downloadObserver = new PerformanceObserver(list => {
-      for (const entry of list.getEntries()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
-      this.dirty = true;
-    });
-    this.downloadObserver.observe({ type: 'resource', buffered: true });
-    this.scope.onDispose(() => { this.downloadObserver.disconnect(); });
     const tagline = this.root.querySelector('.ws-load-tagline'); if (tagline === null) throw new Error('Loading: no tagline'); tagline.textContent = appIdentity().tagline;
     const el = (key: ElKey): HTMLElement => { const e = this.root.querySelector<HTMLElement>(`[data-el="${key}"]`); if (!e) throw new Error(`Loading: no [data-el="${key}"]`); return e; };
     this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), pfRow: el('pfRow'), pfFact: el('pfFact'), pfPct: el('pfPct'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics'), retry: el('retry') };
@@ -178,10 +165,10 @@ export class Loading {
   /** Adopt one manifest operation and retire this panel's old receipt observer. */
   setDownloadSource(source: LoadingDownloadSource): Promise<void> {
     if (this.downloadSource === source) return source.ready;
-    this.downloadObserver.disconnect(); this.stopDownloadAccounting(); this.stopDownloadSource?.();
+    this.stopDownloadSource?.();
     this.downloadSource = source;
     this.stopDownloadSource = source.subscribe(() => {
-      const fraction = this.paintDownloads(false);
+      const fraction = this.paintDownloads();
       set(this.els.dlPct, String(Math.floor(fraction * 100))); this.els.dlBar.style.width = `${fraction * 100}%`;
       this.dirty = true;
     });
@@ -253,8 +240,8 @@ export class Loading {
     this.phase?.end(); this.phase = undefined;
     let v = view;
     v = { ...v, setup: this.setupProgress() };
-    const transfer = this.downloadProgress(v.done);
-    v = { ...v, bytesRead: transfer.networkBytes, bytesTotal: transfer.networkBytes + transfer.pendingBytes,
+    const transfer = this.downloadProgress();
+    v = { ...v, bytesRead: transfer.completedBytes, bytesTotal: transfer.totalBytes,
       filesDone: transfer.filesDone, filesTotal: transfer.filesTotal, download: transfer.fraction };
     this.view = v;
     if (!this.scoped) recordBootProgress(v);
@@ -278,7 +265,7 @@ export class Loading {
     const hardware: { hardwareConcurrency?: number | undefined } = navigator;
     set(this.els.tier, engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), hardware.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), navigator.serviceWorker?.controller ? engineString('s_5c75b0e90774') : '']));
     const pct = (f: number): string => String(Math.floor(f * 100));
-    const download = this.paintDownloads(v.done);
+    const download = this.paintDownloads();
     setData(this.root, 'setup', pct(v.setup));
     set(this.els.dlPct, pct(download));
     set(this.els.suPct, pct(v.setup));
@@ -296,7 +283,7 @@ export class Loading {
     const p = this.admission;
     if (p === null) return;
     this.dirty = false;
-    const download = this.paintDownloads(this.finished);
+    const download = this.paintDownloads();
     const setup = this.setupProgress();
     setData(this.root, 'download', String(Math.floor(download * 100)));
     setData(this.root, 'setup', String(Math.floor(setup * 100)));
@@ -307,20 +294,10 @@ export class Loading {
     this.paintRows(timeline);
   }
 
-  private downloadProgress(done: boolean) {
-    if (this.downloadSource !== undefined) {
-      const row = this.downloadSource.snapshot(), fraction = row.complete ? 1 : row.totalBytes === 0 ? 0 : Math.min(0.999, row.completedBytes / row.totalBytes);
-      return {fraction, networkBytes: 0, cachedBytes: row.cachedBytes, pendingBytes: row.totalBytes - row.completedBytes,
-        filesDone: row.filesDone, filesTotal: row.filesTotal, unclassifiedBytes: 0, unclassifiedFiles: 0,
-        declaredBytes: row.totalBytes, declaredDoneBytes: row.completedBytes, declaredFiles: row.filesTotal, declaredFilesDone: row.filesDone,
-        expectedBytes: row.totalBytes, reads: {bytes: row.completedBytes, cachedBytes: row.cachedBytes, unknownSourceBytes: 0,
-          pendingBytes: row.totalBytes - row.completedBytes, pendingFiles: row.filesTotal - row.filesDone, closed: row.complete}};
-    }
-    for (const entry of this.downloadObserver.takeRecords()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
-    if (this.finished) this.downloads.closeReads();
-    const transfer = this.downloads.snapshot();
-    const fraction = loadingDownloadFraction(transfer, done);
-    return { ...transfer, fraction: transfer.reads === undefined ? fraction : Math.max(this.paintedDownload, fraction) };
+  private downloadProgress(): LoadingDownloadSnapshot & {readonly fraction: number} {
+    const row = this.downloadSource?.snapshot() ?? {totalBytes: 0, completedBytes: 0, cachedBytes: 0,
+      filesDone: 0, filesTotal: 0, complete: false, error: null};
+    return {...row, fraction: loadingDownloadFraction(row)};
   }
 
   private setupProgress(): number {
@@ -342,26 +319,22 @@ export class Loading {
   }
 
   /** Publish each cheap progress tuple together, even between throttled paints. */
-  private paintDownloadCounters(transfer: DownloadSnapshot & { readonly fraction: number }): void {
-    setData(this.root, 'download', String(Math.floor(transfer.fraction * 100)));
-    setData(this.root, 'networkBytes', String(transfer.networkBytes));
-    setData(this.root, 'cachedBytes', String(transfer.cachedBytes));
-    setData(this.root, 'restoredBytes', String(transfer.restoredBytes ?? 0));
-    setData(this.root, 'pendingBytes', String(transfer.pendingBytes));
-    setData(this.root, 'unclassifiedFiles', String(transfer.unclassifiedFiles));
-    setData(this.root, 'unclassifiedBytes', String(transfer.unclassifiedBytes));
-    setData(this.root, 'declaredBytes', String(transfer.declaredBytes));
-    if (transfer.reads !== undefined) {
-      setData(this.root, 'readBytes', String(transfer.reads.bytes));
-      setData(this.root, 'readCachedBytes', String(transfer.reads.cachedBytes));
-      setData(this.root, 'readUnknownSourceBytes', String(transfer.reads.unknownSourceBytes));
-      setData(this.root, 'readsClosed', String(transfer.reads.closed));
-    }
-    if (transfer.expectedBytes !== undefined) setData(this.root, 'entryDownloadBytes', String(transfer.expectedBytes));
+  private paintDownloadCounters(row: LoadingDownloadSnapshot & {readonly fraction: number}): void {
+    setData(this.root, 'download', String(Math.floor(row.fraction * 100)));
+    setData(this.root, 'cachedBytes', String(row.cachedBytes));
+    setData(this.root, 'pendingBytes', String(row.totalBytes - row.completedBytes));
+    setData(this.root, 'declaredBytes', String(row.totalBytes));
+    setData(this.root, 'readBytes', String(row.completedBytes));
+    setData(this.root, 'readCachedBytes', String(row.cachedBytes));
+    setData(this.root, 'readUnknownSourceBytes', '0');
+    setData(this.root, 'readsClosed', String(row.complete));
+    setData(this.root, 'entryDownloadBytes', String(row.totalBytes));
+    setData(this.root, 'spawnFilesDone', String(row.filesDone));
+    setData(this.root, 'spawnFilesTotal', String(row.filesTotal));
   }
 
-  private paintDownloads(done: boolean): number {
-    const transfer = this.downloadProgress(done);
+  private paintDownloads(): number {
+    const transfer = this.downloadProgress();
     this.paintedDownload = transfer.fraction;
     this.paintDownloadCounters(transfer);
     const prefetch = this.prefetchSource?.() ?? null;
@@ -441,7 +414,7 @@ export class Loading {
     const step = this.view?.step ?? this.admission?.phase ?? '';
     if (step === this.lastPaintStep && now - this.lastPaintAt < PAINT_MS) return;
     this.lastPaintAt = now; this.lastPaintStep = step;
-    // Easing continues through a quiet wait without needing another producer event.
+    // Refresh explicit producer progress and the elapsed clock during quiet waits.
     if (this.view !== null) this.view = { ...this.view, setup: this.setupProgress() };
     this.dirty = true;
     this.paintNow();
@@ -454,12 +427,12 @@ export class Loading {
     // The outer admission promise has no file identity. Let the current
     // reported phase explains its paced CPU/cache work between real waits.
     const wait = files[0] ?? pending.find(row => row.id !== this.waitId && row.kind !== 'admission');
-    const transfer = this.downloads.snapshot();
+    const transfer = this.downloadProgress();
     const current = timeline.rows.find(row => row.key === timeline.current);
-    const signature = `${timeline.display}:${timeline.current}:${transfer.networkBytes}:${transfer.cachedBytes}:${this.downloads.progressVersion}:${wait?.id ?? 0}`;
+    const signature = `${timeline.display}:${timeline.current}:${transfer.completedBytes}:${transfer.cachedBytes}:${transfer.filesDone}:${wait?.id ?? 0}`;
     const label = wait?.label ?? (current === undefined ? undefined : `${current.label}${current.detail ? ` · ${current.detail}` : ''}`) ?? timeline.gaps.find(row => row.state === 'on')?.label ?? 'Final activation';
     reportLoadingWait(this.waitId, { label, step: timeline.current, progress: signature,
-      loadedBytes: transfer.declaredDoneBytes, totalBytes: transfer.declaredBytes > 0 ? transfer.declaredBytes : null });
+      loadedBytes: transfer.completedBytes, totalBytes: transfer.totalBytes > 0 ? transfer.totalBytes : null });
     const fallback = loadingWaitState().pending.get(this.waitId), selected = wait ?? fallback;
     const now = performance.now();
     const quietMs = Math.max(0, now - Math.max(selected?.progressAt ?? now, fallback?.progressAt ?? 0));
@@ -498,6 +471,13 @@ export class Loading {
    */
   done(): Promise<void> {
     if (this.completion !== undefined) return this.completion;
+    if (this.downloadSource !== undefined && !this.downloadSource.snapshot().complete) {
+      this.completion = this.downloadSource.ready.then(() => {
+        if (this.scope.disposed || this.scope.disposing) throw new DOMException('Loading retired', 'AbortError');
+        this.completion = undefined; return this.done();
+      });
+      return this.completion;
+    }
     this.tickClock(); this.clockScope.dispose();
     this.finished = true; finishLoadingWait(this.waitId); this.phase?.end(); this.phase = undefined;
     if (this.view !== null) this.paint(this.view);

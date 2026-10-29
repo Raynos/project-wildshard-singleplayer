@@ -949,75 +949,6 @@ consumers verify their bytes. Other released transport uses `ClientAssets.read`;
 KTX2 parses device GPU costs. Missing/corrupt rereads or disposed owners refuse
 before publication; disposal releases all leases.
 
-`declareDownloadFile(url, bytes)` and `recordCachedDownload(hash, bytes, url?)`
-in `@wildshard/engine/boot/download` report expected product-index sizes and verified
-cache reads to the active loading attempt. Resource Timing supplies page-wide
-network receipts, including modules and undeclared fetches. Worker-owned install,
-prefetch and document revalidation requests forward their own Resource Timing
-receipts to the page, preserving HTTP-cache hits and worker clock offsets.
-Foreground worker fetches use the same receipts; a synthetic page response
-never double-charges a worker-owned transfer or calls its HTTP-cache hit network. The loading screen
-shows downloaded bytes and cache bytes separately; unclassified worker receipts
-stay explicit. Service-worker Resource Timing batches reach the page through
-`receiveWorkerDownloads(value, pageOrigin)`; the pure receiver converts clocks
-and buffers early receipts until an attempt installs. On listener installation
-and controller changes the page requests replay from the worker's existing
-Resource Timing buffer; receipt identity prevents double counting. `ws-receipt` marks the
-synthetic page response so the actual worker fetch owns network/cache bytes
-once. Cache hits carry `ws-cache` sizes for Safari. No accounting reads or tees
-response bodies. Expected files remain pending
-until a network or cache receipt arrives; completion credits from legacy steps
-are not downloaded bytes. Code containers count wire, not duplicate content. `recordRestoredDownload(url, bytes)` settles derived inputs without wire/cache credit.
-
-`PrefetchBytes(limit)` in `@wildshard/engine/boot/prefetchQuota` admits
-declared body bytes in FIFO order until its idempotent release runs. The grid
-holds a 32 MiB payload allowance through each durable cache acknowledgement;
-worker/store copies are additional memory. Worker fetches copy streamed chunks
-directly into one declared-size buffer; exact-length and SHA checks still precede
-use or durable storage. Its status exposes current, peak and
-limit payload bytes. `readGridPrefetch(url, maximum, fetcher?)` streams with early
-size refusal and `cache: no-store`; the verified content cache owns persistence.
-No HTTP/cache receipt or process-memory estimate is invented by the allowance.
-
-A format-2 home descriptor declares every section, schema and immutable blob
-before its first section/cache read. Historical state-lineage reads declare
-only their sections and schemas. The boot byte counter declares selected
-audio and menu art before prefetch or decoding starts; background audio
-inventories remain separate. Entry DOWNLOAD uses `trackReads()` and
-`recordReadDownload(url, bytes, cached?)`: actual unique delivered bodies,
-with cache provenance. `declareDownloadPack` maps consumed members once;
-its envelope and unused catalogues add no content. A validated Home snapshot counts its own
-cache payload, not skipped source GLBs. Unknown provenance stays explicit.
-`beginDownloadRead(url)` observes existing demand; it starts no IO.
-`closeReads()` freezes the entry at Loading.done; later prefetch cannot
-change its bytes. Only this barrier shows 100%; earlier progress never
-falls. Raw declarations and wire receipts stay available independently.
-Scoped cell panels retain their declared-file ratio.
-
-
-`readModuleFiles(input)` admits detached compiler-owned `/assets/` JavaScript
-and CSS URL/body-size tuples before any declaration publishes.
-`declareModuleFiles(input)` supplies those facts to the existing download
-accounting; it creates no network or cache receipt. The web build embeds the
-actual startup static chunk closure and the separately selected compiled-client
-closure in the existing HTML. Shared chunks count once; optional dynamic
-imports and referenced image URLs are not assumed to be downloads. The entry
-chunk and the single extracted stylesheet are included. This needs no metadata
-request or worker install expansion. Per-home lazy roots remain a separate
-inventory requirement.
-
-`reserveDownloadGroup(directoryUrl, bytes)` retains the compiler's exact
-same-origin directory budget. Individual declarations replace reservations;
-changed/overlapping totals refuse. Receipts alone complete these debug
-counters. Product inventories keep their original size/hash/schema checks.
-This full-bank estimate does not supply entry DOWNLOAD's displayed total.
-
-`reserveDownloadBank(id, bytes)` captures an attempt's debug itemizer.
-Its complete verified URL/size bank replaces the reservation atomically;
-size mismatch, unsafe/duplicate URLs, overlaps and retired entries refuse.
-Changing observers cannot retarget it. The selected hashed inventory retains
-its size/SHA checks and adds no model, image, audio or physics prefetches.
-
 MF4's `format/spawnManifest` is the build-owned URL/hash/size list.
 `writeSpawnManifests` selects active entry files; URLs count once.
 `game/boot/spawnDownload` needs no engine, renderer or worker imports.
@@ -1025,7 +956,7 @@ MF4's `format/spawnManifest` is the build-owned URL/hash/size list.
 existing card numbers/text. `ready` awaits every exact-sized file; warm
 cache presence needs no body read or checksum. First installs fill the same
 cache. No timer or receipt finishes it. Loading.setDownloadSource(source)
-retires its receipt observer and returns that ready promise; plan completion
+returns that ready promise; plan completion
 cannot finish a pending manifest. Later streams remain outside the list.
 
 `Loading.setPrefetchSource(read)` reports the separate on-disk prefetch set,
@@ -1096,22 +1027,15 @@ renderer-selected pass total and closes that count only after its final draw.
 Admission rows include file counts and actual body bytes read; they are separate
 from the network-only download counter.
 
-`readModuleGroups(names)` validates and returns the selected compiler rows
-without IO or a byte ledger; original module guards and import barriers stay.
-`declareModuleGroups(names)` in `@wildshard/engine/boot/download` declares
-selected optional code from the compiler's existing module bank before its
-original import. Groups share one bounded file table; the whole selection
-validates and deduplicates before publishing bytes, without fetching code or
-crediting completion. Client features and asynchronous practice preparation use
-the same reader. An arena arrival declares practice code before loading starts;
-a later room entry declares it before model preparation. The room and its
-procedural stand-ins stay synchronous.
-The private parsed bank is reused only for the same script element and exact
-text. Changed text or replacement elements repeat full file-table admission;
-warm requests still declare the selected bytes to the current loading ledger.
+`readModuleGroups(names)` returns the compiler-selected URL/body-size rows
+without IO or a ledger. It validates and deduplicates the complete selection
+before returning; malformed suffixes and missing indexes refuse. Private
+parsing belongs to the exact script element/text, so changed or replacement
+banks repeat admission. Native imports keep their original barriers.
+`checkClientPlanModules` and `checkProductClientModules` use this same reader.
 
 `preloadModuleFiles(files)` and `preloadModuleGroups(names)` validate the same
-complete compiler bank, declare its actual byte facts and add deduplicated
+complete compiler bank and add deduplicated
 JavaScript module-preload links. They prepare code without evaluating modules
 or crediting completion; original import sites retain installation order and
 retry handling. Bootstrap services prepare in parallel. Verified selected

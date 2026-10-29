@@ -29,6 +29,8 @@ afterEach(() => {
 
 function ready(scoped = false): Loading {
   const loading = new Loading({ id: 'hold-fixture', name: 'Completed world' }, { scoped });
+  void loading.setDownloadSource({ready: Promise.resolve(), snapshot: () => ({totalBytes: 0, completedBytes: 0, cachedBytes: 0,
+    filesTotal: 0, filesDone: 0, complete: true, error: null}), subscribe: listener => {listener(); return () => undefined;}});
   owners.push(loading.scope);
   loading.setPath({ id: scoped ? 'cell' : 'shardfile', steps: [{ key: 'modules', label: 'Modules', weight: 1 }] });
   loading.waiting('Preparing application services');

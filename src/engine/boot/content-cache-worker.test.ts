@@ -3,7 +3,6 @@ import * as v from 'valibot';
 import { ContentCacheWorker } from './contentCacheWorker';
 import { CacheCommandSchema, type CacheCommand, type CacheValue } from './contentCacheProtocol';
 import { bootWaits } from './waits';
-import { DownloadAccounting, installDownloadAccounting } from './download';
 
 function replyValue(command: CacheCommand): CacheValue {
   switch (command.op) {
@@ -308,12 +307,10 @@ test('invalid pin inputs refuse synchronously before starting or publishing a le
   expect(fallback.pin).not.toHaveBeenCalled();
 });
 
-test('a worker read transfers its verified body, credits its download and is no boot wait', async () => {
+test('a worker read transfers its exact verified body without owning loading progress', async () => {
   const { worker, client } = fixture();
-  const accounting = new DownloadAccounting('https://example.test/'), restore = installDownloadAccounting(accounting);
-  try {
+  {
     const url = 'https://example.test/shardfiles/a/blobs/x.bin';
-    accounting.declare(url, 3);
     const read = client.fetchVerified(url, 'a'.repeat(64), 3, { reply: 'bytes', urlCache: true });
     expect(worker.sent).toEqual([expect.objectContaining({ op: 'fetch', url, bytes: 3, reply: 'bytes', urlCache: true })]);
     expect(bootWaits().some(wait => wait.label.includes('fetch'))).toBe(false);
@@ -321,8 +318,7 @@ test('a worker read transfers its verified body, credits its download and is no 
     const sent = await read;
     expect(sent?.fetched).toEqual(Uint8Array.of(7, 7, 7));
     expect(sent?.stored).toBe(true);
-    expect(accounting.snapshot()).toMatchObject({ declaredFilesDone: 1, networkBytes: 3 });
-  } finally { restore(); }
+  }
 });
 
 test('worker reads never queue behind the posted write cap', async () => {

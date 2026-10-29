@@ -1,4 +1,4 @@
-import { declareClientPlanModules } from './clientModules';
+import { checkClientPlanModules } from './clientModules';
 import { entryOwner as declaredOwner } from './entryOwners';
 import { prepareClientReturnModules } from './clientReturnModules';
 import { preflightIslandBook } from './islandBook';
@@ -479,7 +479,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
         product.section(name); // A listed stream section is not an admitted boot dependency.
       }
     }
-    declareClientPlanModules(plan);
+    checkClientPlanModules(plan);
     return { features: plan.features };
   } catch (error) { throw new ProductError(product.slug, 'client/plan', 'schema', error instanceof Error ? error.message : 'Invalid client plan'); }
 }

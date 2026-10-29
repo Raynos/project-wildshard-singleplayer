@@ -1,7 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, it, vi } from 'vitest';
 import { Loading } from '../src/engine/ui/Loading';
-import { declareDownloadFile } from '../src/engine/boot/download';
 import { currentLoadingTimeline } from '../src/engine/boot/timeline';
 import { loadShellTemplate } from '../src/engine/boot/shell';
 import { loadingPath } from '../src/game/boot/loadingPaths';
@@ -9,7 +8,7 @@ import { loadingPath } from '../src/game/boot/loadingPaths';
 it('publishes the measured cold entry boundaries without timing-based credit', () => {
   // Preserve the official native timestamps. Completed work now owns credit;
   // elapsed time and the old calibration cannot advance an active stage.
-  const origin = 28, declaredBytes = 20_670_833;
+  const origin = 28;
   const starts = [1052, 2512, 2520] as const;
   let now = origin;
   vi.useFakeTimers();
@@ -26,7 +25,6 @@ it('publishes the measured cold entry boundaries without timing-based credit', (
   const loading = new Loading({id: 'sunscar-dunes', name: 'Sunscar'});
   try {
     loading.setPath(loadingPath('shardfile'));
-    declareDownloadFile('/native-replay-inventory.bin', declaredBytes);
     const timeline = currentLoadingTimeline();
     if (timeline === undefined) throw new Error('Missing loading timeline');
     now = starts[0];

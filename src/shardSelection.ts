@@ -1,6 +1,6 @@
 import { SHARD_LOADERS, LEGACY_CONTENT_IDENTITIES } from '../out/.app/shardSelection.generated';
 import { TIER } from '@wildshard/engine/core/tier';
-import { declareModuleGroups } from '@wildshard/engine/boot/download';
+import { readModuleGroups } from '@wildshard/engine/boot/download';
 import { installShards } from '@wildshard/game/shard/list';
 import { titleManifests,findTitleManifest } from '@wildshard/game/shard/titleList';
 import { retried } from '@wildshard/engine/boot/retry';
@@ -9,9 +9,8 @@ import { selectedManifests, gridManifests, type SelectedManifests } from './sele
 
 /** Compiler facts cover only the discovery graph this page actually loads. */
 function modules(selection?:string):void {
-  // Existing private bank admission parses once and publishes each exact row
-  // once per accounting target, including replacement ledgers and observers.
-  declareModuleGroups(['boot.common',selection===undefined?'discovery.all':`discovery:${selection}`]);
+  // Validate the complete compiler selection before its original imports.
+  readModuleGroups(['boot.common',selection===undefined?'discovery.all':`discovery:${selection}`]);
 }
 
 async function completeCatalogue():Promise<void>{

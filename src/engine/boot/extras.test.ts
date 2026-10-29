@@ -7,7 +7,6 @@ import {declareTotals,installByteCounter,releaseByteCounter,type ChunkFiles} fro
 import {installAssetTables,publicBytes,assetVersions,musicManifests,sfxManifests,bootPacks} from './tables';
 import {NO_AUDIO,type LevelAudioProfile,type LevelAudioBank} from '../audio/levelAudio';
 import {createBootPlan,type StepProgress} from './plan';
-import {DownloadAccounting,installDownloadAccounting} from './download';
 import * as settings from '../ui/Settings';
 import {LoadingTimeline,installLoadingTimeline} from './timeline';
 import {STEP_INFO} from './steps';
@@ -42,16 +41,15 @@ test('boot declares only selected profile audio while background inventory retai
   expect(bootFiles(level,'img',profile)).toMatchObject({music:[foreignMusic],sfx:[foreignSfx]});
 });
 
-test('selected extras enter the download denominator before prefetch and never include foreign styles',()=>{
-  const accounting=new DownloadAccounting(location.href),dispose=installDownloadAccounting(accounting);
+test('selected extras retain their exact source totals without foreign styles',()=>{
   const files={...blank,art:['/assets/card.webp'],music:[music],sfx:[sfx]};
   installAssetTables({...priorTables,bytes:{[music]:3,[sfx]:3,'/assets/card.webp':7,[foreignMusic]:100,[foreignSfx]:100}});
-  try{
-    installByteCounter(createBootPlan(()=>undefined,{totals:declareTotals(files)}),files);
-    expect(accounting.snapshot()).toMatchObject({declaredFiles:3,declaredBytes:13,declaredDoneBytes:0,networkBytes:0});
-    accounting.resource({name:new URL(music,location.href).href,startTime:1,transferSize:0,encodedBodySize:3,workerStart:0,serverTiming:[]});
-    expect(accounting.snapshot()).toMatchObject({declaredFiles:3,declaredBytes:13,declaredDoneBytes:3,cachedBytes:3});
-  }finally{releaseByteCounter();dispose();}
+  try {
+    const totals = declareTotals(files), plan = createBootPlan(()=>undefined,{totals});
+    installByteCounter(plan,files);
+    expect(totals).toMatchObject({art:{bytes:7,files:1},music:{bytes:3,files:1},sfx:{bytes:3,files:1}});
+    expect(plan.view.bytesRead).toBe(0);
+  } finally {releaseByteCounter();}
 });
 
 test('active boot declares its own card; Explorer previews stay in background inventory',()=>{

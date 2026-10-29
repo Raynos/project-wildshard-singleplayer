@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { Loading } from './Loading';
+import {Loading, type LoadingDownloadSource} from './Loading';
 import type { ProgressView } from '../boot/plan';
-import { declareDownloadFile, recordCachedDownload, recordReadDownload, beginLoadingWait, finishLoadingWait, loadingWaitState, reportLoadingWait } from '../boot/download';
+import { beginLoadingWait, finishLoadingWait, loadingWaitState, reportLoadingWait } from '../boot/download';
 import { currentLoadingTimeline } from '../boot/timeline';
 import { waitFor } from '../boot/waits';
 import { loadShellTemplate } from '../boot/shell';
@@ -19,21 +19,33 @@ beforeEach(() => {
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
 
-it('closes actual entry reads at ready without completing unused product-bank declarations', async () => {
+function manifest(loading: Loading, totalBytes: number): {write: (completedBytes: number, cachedBytes: number, complete?: boolean) => void} {
+  let settle: () => void = () => undefined, notify = (): void => undefined;
+  const ready = new Promise<void>(resolve => {settle = resolve;});
+  let row = {totalBytes, completedBytes: 0, cachedBytes: 0, filesTotal: 2, filesDone: 0, complete: false, error: null};
+  const source: LoadingDownloadSource = {ready, snapshot: () => row,
+    subscribe: listener => {notify = listener; listener(); return () => {notify = () => undefined;};}};
+  void loading.setDownloadSource(source);
+  return {write: (completedBytes, cachedBytes, complete = false) => {
+    row = {...row, completedBytes, cachedBytes, complete, filesDone: complete ? 2 : completedBytes === 0 ? 0 : 1};
+    notify(); if (complete) settle();
+  }};
+}
+
+it('closes the manifest at its own ready barrier without counting later work', async () => {
   const loading = new Loading({id: 'entry-receipts', name: 'Entry receipts'});
   try {
-    declareDownloadFile('/unused.glb', 41_000_000);
-    recordCachedDownload('warm', 51_600_000, '/warm.bin'); recordReadDownload('/fresh.bin', 400_000, false);
+    const files = manifest(loading, 52_000_000); files.write(52_000_000, 51_600_000);
     loading.waiting('Prepared entry content');
     now = 400; vi.advanceTimersByTime(100);
     expect(loading.root.dataset['download']).toBe('99');
-    expect(loading.root.querySelector('[data-el="dlFact"]')?.textContent).toBe('Spawn view · 52.0 MB · 51.6 MB from cache');
-    const done = loading.done();
+    expect(loading.root.querySelector('[data-el="dlFact"]')?.textContent).toBe('Spawn view · 52.0 MB of 52.0 MB · 51.6 MB from cache');
+    files.write(52_000_000, 51_600_000, true); const done = loading.done();
     expect(loading.root.dataset['download']).toBe('100');
     expect(loading.root.dataset['readBytes']).toBe('52000000');
-    expect(loading.root.dataset['pendingBytes']).toBe('41000000');
+    expect(loading.root.dataset['pendingBytes']).toBe('0');
     expect(loading.root.dataset['readsClosed']).toBe('true');
-    recordReadDownload('/background.bin', 1_000_000, false);
+    loading.paintAdmission({phase: 'later', detail: 'Later work', bytesRead: 1_000_000, bytesTotal: 1_000_000, filesDone: 1, filesTotal: 1});
     expect(loading.root.querySelector('[data-el="dlFact"]')?.textContent).toBe('Spawn view · 52.0 MB · 51.6 MB from cache');
     await vi.advanceTimersByTimeAsync(317); await done;
   } finally { loading.scope.dispose(); }
@@ -217,13 +229,14 @@ it('offers Retry after eight seconds without bytes, including changing diagnosti
   const loading = new Loading({ id: 'wait', name: 'Wait' }, { scoped: true });
   const reload = vi.spyOn(location, 'reload').mockImplementation(() => undefined);
   try {
+    const files = manifest(loading, 64);
     loading.setPath({ id: 'cell', steps: [{ key: 'read', label: 'Read world', weight: 1 }] });
     loading.scopedStep('read', 'Reading terrain'); vi.advanceTimersByTime(100);
     now = 8100; loading.scopedStep('read', 'Still reading terrain'); vi.advanceTimersByTime(100);
     const retry = loading.root.querySelector<HTMLButtonElement>('[data-el="retry"]');
     expect(loading.root.dataset['stalled']).toBe('true'); expect(retry?.hidden).toBe(false);
     expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('Waiting for Read world');
-    recordCachedDownload('eight-second-progress', 32); now = 8400; vi.advanceTimersByTime(240);
+    files.write(32, 32); now = 8400; vi.advanceTimersByTime(240);
     expect(retry?.hidden).toBe(true);
     now = 16400; vi.advanceTimersByTime(240); expect(retry?.hidden).toBe(false);
     retry?.click(); expect(reload).toHaveBeenCalledTimes(1);
@@ -347,7 +360,7 @@ it('keeps quiet work visibly current without inventing completed work', () => {
   try {
     loading.paintAdmission({phase: 'cache-read', detail: 'Checking visited product',
       bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0});
-    declareDownloadFile('/assets/pending.bin', 100);
+    const files = manifest(loading, 100);
     now = 400; vi.advanceTimersByTime(100);
     const counters = {network: loading.root.dataset['networkBytes'], cached: loading.root.dataset['cachedBytes'],
       pending: loading.root.dataset['pendingBytes'], setup: loading.root.dataset['setup']};
@@ -361,7 +374,7 @@ it('keeps quiet work visibly current without inventing completed work', () => {
       pending: loading.root.dataset['pendingBytes'], setup: loading.root.dataset['setup']}).toEqual(counters);
     now = 10_500; vi.advanceTimersByTime(100);
     expect(loading.root.dataset['stalled']).toBe('true');
-    recordCachedDownload('pending-cache', 100);
+    files.write(100, 100, true);
     now = 10_900; vi.advanceTimersByTime(100);
     expect(foot()).not.toContain('No reported progress');
     expect(loading.root.dataset['stalled']).toBe('false');
@@ -393,23 +406,21 @@ it('does not count one parsed descriptor as half the complete admission stage', 
   } finally { loading.scope.dispose(); }
 });
 
-it('shows the actual declared ratio when a late dependency is discovered, without a 99 percent cap', () => {
+it('keeps the complete file list fixed before the second dependency arrives', () => {
   const loading = new Loading({ id: 'test', name: 'Test' }, { scoped: true });
   const view: ProgressView = { download: 0, setup: 0, done: false, error: null, step: 'audio', label: 'Audio', detail: '',
     bytes: null, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0, worldBytesReady: false, doneCount: 0, rows: [], gaps: [] };
   try {
-    declareDownloadFile('/assets/known.bin', 10);
-    recordCachedDownload('known', 10, '/assets/known.bin');
+    const files = manifest(loading, 40); files.write(10, 10);
     loading.paint(view);
-    expect(loading.root.dataset['download']).toBe('100');
-    declareDownloadFile('/assets/later.bin', 30);
+    expect(loading.root.dataset['download']).toBe('25');
     loading.paint(view);
     expect(loading.root.dataset['download']).toBe('25');
     expect(loading.root.dataset['pendingBytes']).toBe('30');
     expect(loading.root.dataset['declaredBytes']).toBe('40');
     now = 400; vi.advanceTimersByTime(100);
     expect(loading.root.querySelector<HTMLElement>('[data-el="bar"]')?.style.width).toBe('12.5%');
-    recordCachedDownload('later', 30, '/assets/later.bin');
+    files.write(40, 40, true);
     loading.paint(view);
     expect(loading.root.dataset['download']).toBe('100');
   } finally { loading.scope.dispose(); }
@@ -420,16 +431,17 @@ it('paints download bars and facts from the same fresh cache snapshot', () => {
   const view: ProgressView = { download: 0, setup: 0, done: false, error: null, step: 'terrain', label: 'Terrain', detail: '',
     bytes: null, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0, worldBytesReady: false, doneCount: 0, rows: [], gaps: [] };
   try {
-    declareDownloadFile('/assets/cache-between-paints.bin', 40);
+    const files = manifest(loading, 40);
     loading.paint(view);
     expect(loading.root.dataset['download']).toBe('0');
-    recordCachedDownload('cache-between-paints', 40, '/assets/cache-between-paints.bin');
+    files.write(40, 40, true);
     now = 400; vi.advanceTimersByTime(100);
     expect(loading.root.dataset['download']).toBe('100');
     expect(loading.root.dataset['pendingBytes']).toBe('0');
     expect(loading.root.querySelector('[data-el="dlPct"]')?.textContent).toBe('100');
     expect(loading.root.querySelector<HTMLElement>('[data-el="dlBar"]')?.style.width).toBe('100.0%');
-    expect(loading.root.querySelector('[data-el="dlFact"]')?.textContent).toContain('1 / 1 files');
+    expect(loading.root.querySelector('[data-el="dlFact"]')?.textContent).toContain('from cache');
+    expect(loading.root.dataset['spawnFilesDone']).toBe('2');
   } finally { loading.scope.dispose(); }
 });
 
@@ -453,6 +465,7 @@ it('paints completion rows and footer together without waiting for another frame
 
 it('ends a scoped cell step immediately when fading without a boot-plan view', async () => {
   const loading = new Loading({ id: 'test', name: 'Test' }, { scoped: true });
+  const files = manifest(loading, 0); files.write(0, 0, true);
   try {
     loading.setPath({ id: 'cell', steps: [{ key: 'enter', label: 'Enter', weight: 1 }] });
     loading.scopedStep('enter', 'Activating destination');

@@ -1,9 +1,6 @@
 import { expect, test } from 'vitest';
 import { Box3, BufferAttribute, BufferGeometry, Float16BufferAttribute, InterleavedBuffer, InterleavedBufferAttribute, Matrix4, Sphere, Vector3 } from 'three';
 import { homeGeometryBytes, restoreHomeGeometry, snapshotHomeGeometry } from '../src/game/shardfile/homeGeometrySnapshot';
-import { recordHomeBuildInputs } from '../src/game/shardfile/homeBuildCache';
-import { emptyShardfile } from '../src/sdk/author';
-import { DownloadAccounting, installDownloadAccounting } from '../src/engine/boot/download';
 
 test('a structured clone restores all native words, half semantics, topology, transforms and bounds', () => {
   const geometry = new BufferGeometry();
@@ -50,13 +47,3 @@ test('custom, interleaved and morph geometry refuses this cache and keeps the or
   geometry.userData['custom'] = 'keep original'; expect(snapshotHomeGeometry(source)).toBeNull(); geometry.dispose();
 });
 
-test('an arbitrary map or key census cannot satisfy a home input without a successful native restore', () => {
-  const source = emptyShardfile({slug: 'cache-fixture', name: 'Cache', author: 'Test', revision: 1, seed: 1});
-  const accounting = new DownloadAccounting('https://example.test/'), release = installDownloadAccounting(accounting);
-  accounting.declare('/shardfiles/cache-fixture/input.bin', 100);
-  try {
-    recordHomeBuildInputs(source, 'whole:[]', new Map(), ['input.bin']);
-    expect(accounting.snapshot()).toMatchObject({declaredBytes: 100, pendingBytes: 100, networkBytes: 0, cachedBytes: 0});
-    expect(accounting.snapshot().restoredBytes).toBeUndefined();
-  } finally {release();}
-});
