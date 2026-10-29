@@ -182,7 +182,7 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
     if(isBuildValidatedOutput(input))return input;
     return readBuiltOutput(input as OutputIndex,reader,reader.built);
   }
-  if(!(import.meta.env?.SSR??true))throw new Error('Client product needs its build-owned reader');
+  if(!(import.meta.env?.SSR??true)&&reader.checks===undefined)throw new Error('Client product needs its build-owned reader');
   // This root was reconstructed here already. Admission still rechecks exposed
   // values; recognizing a model must not load the disk-index grammar again.
   if (reader.firstParty === true && isBuildValidatedOutput(input)) {

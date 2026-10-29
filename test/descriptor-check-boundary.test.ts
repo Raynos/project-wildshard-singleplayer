@@ -65,30 +65,43 @@ test('browser products need a build proof and bundle no checked host intake', as
     const bytes = wires.get(path); if (bytes === undefined) throw new Error('Missing section');
     return Promise.resolve(Uint8Array.from(bytes));
   }), hash = vi.fn((bytes: Uint8Array) => Promise.resolve(hashImmutableBytes(bytes)));
-  const reader = { offline: false, firstParty: true, read, hash };
+  const nativeRead=async(path:string,size:number):Promise<Uint8Array>=>{
+    const bytes=await read(path);if(bytes.length!==size)throw new Error('Emitted section size mismatch');return bytes;
+  };
+  const reader = { offline: false, firstParty: true, read, hash,
+    built:{indexHash:hashImmutableBytes(encode(index)),read:nativeRead}};
   expect(await loaded.resolveOutputDescriptor(index, reader)).toEqual(source);
-  expect(read).toHaveBeenCalledTimes(index.sections.length);
+  expect(read).toHaveBeenCalledTimes(index.sections.length);expect(hash).not.toHaveBeenCalled();
   read.mockClear(); hash.mockClear();
-  await expect(loaded.resolveOutputDescriptor({ ...index, identity: { ...index.identity, revision: 2 } }, reader))
-    .rejects.toThrow('server validation');
+  const unprovedReader={offline:false,firstParty:true,read,hash};
+  // Authored fields and a matching receipt do not grant the native build capability.
+  await expect(loaded.resolveOutputDescriptor({ ...index, identity: { ...index.identity, revision: 2 } }, unprovedReader))
+    .rejects.toThrow('build-owned reader');
   expect(read).not.toHaveBeenCalled();
-  await expect(loaded.resolveOutputDescriptor(index, { ...reader, firstParty: false })).rejects.toThrow('server validation');
+  await expect(loaded.resolveOutputDescriptor(index, unprovedReader)).rejects.toThrow('build-owned reader');
+  await expect(loaded.resolveOutputDescriptor(index, { ...reader, firstParty: false })).rejects.toThrow('build-owned reader');
   expect(read).not.toHaveBeenCalled();
   const fetch = vi.fn((url: string) => {
     const bytes = wires.get(url.slice('https://fixture.test/'.length));
     return Promise.resolve(bytes === undefined ? new Response(null, { status: 404 }) : new Response(Uint8Array.from(bytes)));
   });
-  const options: ProductOptions = { base: 'https://fixture.test/', offline: false, firstParty: true, hash, fetch };
+  const options: ProductOptions = { base: 'https://fixture.test/', offline: false, firstParty: true, hash, fetch,
+    firstPartyRead:async(url,size)=>{
+      const response=await fetch(url);if(!response.ok)throw new Error('Missing emitted fixture file');
+      const bytes=new Uint8Array(await response.arrayBuffer());
+      if(size!==undefined&&bytes.length!==size)throw new Error('Emitted fixture size mismatch');return bytes;
+    }};
   const admitted = await loaded.admitProduct(index, options);
   expect(admitted.source).toEqual(source);
   expect((await loaded.admitProduct(admitted.source, options)).source).toBe(admitted.source);
   fetch.mockClear();
   admitted.source.identity.name = 'Changed exposed source';
-  await expect(loaded.admitProduct(admitted.source, options)).rejects.toThrow('Built shardfile changed after verification');
+  const unprovedOptions:ProductOptions={base:options.base,offline:false,firstParty:true,hash,fetch};
+  expect(()=>loaded.admitProduct(admitted.source, unprovedOptions)).toThrow('build-owned reader');
   expect(fetch).not.toHaveBeenCalled();
-  await expect(loaded.admitProduct(structuredClone(source), options)).rejects.toThrow('server validation');
+  expect(()=>loaded.admitProduct(structuredClone(source), unprovedOptions)).toThrow('build-owned reader');
   expect(fetch).not.toHaveBeenCalled();
-  await expect(loaded.admitProduct(index, { ...options, firstParty: false })).rejects.toThrow('server validation');
+  expect(()=>loaded.admitProduct(index, { ...options, firstParty: false })).toThrow('build-owned reader');
   expect(fetch).not.toHaveBeenCalled();
   await expect(loaded.readCheckedOutputIndex(index)).rejects.toThrow('server validation');
   const jsonBytes = encode({ value: 7 }), jsonHash = hashImmutableBytes(jsonBytes);
@@ -103,5 +116,8 @@ test('browser products need a build proof and bundle no checked host intake', as
   await expect(loaded.createShardProduct({ ...jsonInput, builtJson: true, read: () => Promise.resolve(new Uint8Array([255])) }).json('value.json')).rejects.toThrow();
   const first = index.sections[0]; if (first === undefined) throw new Error('Missing section');
   wires.set(first.path, new Uint8Array(first.bytes));
-  await expect(loaded.resolveOutputDescriptor(index, reader)).rejects.toThrow('section hash or size mismatch');
+  await expect(loaded.resolveOutputDescriptor(index, reader)).rejects.toMatchObject({name:'SyntaxError'});
+  wires.set(first.path,new Uint8Array(first.bytes-1));
+  await expect(loaded.resolveOutputDescriptor(index, reader)).rejects.toThrow('Emitted section size mismatch');
+  expect(hash).not.toHaveBeenCalled();
 });
