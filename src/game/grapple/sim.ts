@@ -29,6 +29,8 @@ export interface GrapplePorts { readonly physics: Physics; readonly body: Grappl
 
 /** the player's capsule, feet to crown (Player.ts BODY_HEIGHT) plus a margin: the room a zip's approach point needs */
 const grappleBODY = 1.95;
+/** QB17 (b): a rising zip's hang under the ring (s), and the longest its rise may take (s; 18 m/s: ~25 m) */
+const RISE_HANG = 0.18, RISE_LIMIT = 1.4;
 
 /** The aim: an eye, a screen projection (normalized device coordinates) and the look direction. */
 export interface GrappleView {
@@ -186,15 +188,21 @@ export class GrappleSim {
   course: GrappleCourse;
   private blocked = 0;
   private liftY = 0;
+  /** QB17 (b): this zip rises to the ring first (`rise`), and how long it has hung there */
+  private rising = false;
+  private hung = 0;
   private readonly ports: GrapplePorts;
+  /** QB17 (b) / MF15: whether a zip rises to the ring before it flies to its landing (the browser tool's Debug row; the
+   *  headless runtime and the tests keep the flat zip) */
+  private readonly rise: () => boolean;
   private events: GrappleEvent[] = [];
   drainEvents(): readonly GrappleEvent[] { const events = this.events; this.events = []; return events; }
   private readonly end = new Vector3();
   private readonly want = new Vector3();
   private readonly before = new Vector3();
 
-  constructor(ports: GrapplePorts, course: GrappleCourse) {
-    this.ports = ports; this.course = course;
+  constructor(ports: GrapplePorts, course: GrappleCourse, options: { readonly rise?: () => boolean } = {}) {
+    this.ports = ports; this.course = course; this.rise = options.rise ?? (() => false);
   }
 
   /** a crossing has started: the safety guard stays open until a safe landing or bailout, LOCK cannot let go */
@@ -204,7 +212,7 @@ export class GrappleSim {
 
   release(): void {
     const active = this.phase !== 'idle' && this.phase !== 'dock';
-    this.phase = 'idle'; this.target = null; this.armedMiss = false; this.clock = this.blocked = 0;
+    this.phase = 'idle'; this.target = null; this.armedMiss = false; this.clock = this.blocked = 0; this.rising = false;
     this.events.push({ kind: 'release', active });
   }
 
@@ -234,6 +242,12 @@ export class GrappleSim {
       this.missEnd.y -= 1.2;
     } else if (this.target.lifts) {
       this.liftY = grappleLiftTo(this.course, p, this.target.approach);
+    } else if (this.rise()) {
+      // QB17 (b): up to the ring first, the capsule hanging under it, never through what is overhead
+      const ceiling = this.target.hook.y - grappleBODY, up = ceiling - p.y;
+      const hit = up > 0.5 ? castRay(this.ports.physics, p, grappleUP, up + grappleBODY, ['WORLD'], this.ports.body.motor.collider) : null;
+      this.liftY = hit === null ? ceiling : Math.min(ceiling, p.y + Math.max(0, hit.distance - grappleBODY));
+      this.rising = this.liftY > p.y + 0.5; this.hung = 0;
     }
     this.events.push({ kind: 'fire' });
     return true;
@@ -259,7 +273,7 @@ export class GrappleSim {
     if (target === null) { this.release(); return false; }
     if (this.phase === 'bite') {
       p.velocity.set(0, 0, 0);
-      if (this.clock >= (this.course.mode ?? DEFAULT_GRAPPLE_MODE).biteTime) { this.phase = target.lifts ? 'lift' : 'zip'; this.clock = 0; p.onGround = false; this.events.push({ kind: 'zip' }); }
+      if (this.clock >= (this.course.mode ?? DEFAULT_GRAPPLE_MODE).biteTime) { this.phase = target.lifts || this.rising ? 'lift' : 'zip'; this.clock = 0; p.onGround = false; this.events.push({ kind: 'zip' }); }
       return true;
     }
     if (this.phase === 'lift') {
@@ -268,8 +282,11 @@ export class GrappleSim {
       p.motor.move(p.position, want.set(0, rise, 0), true);
       p.velocity.subVectors(p.position, before).divideScalar(dt);
       p.onGround = false;
-      if (p.position.y >= this.liftY - 0.2) { this.phase = 'zip'; this.clock = 0; }
-      else if (this.clock > 0.6) { this.release(); }
+      if (p.position.y >= this.liftY - 0.2) {
+        // QB17 (b): a rising zip hangs a beat under the ring before it flies down to its landing
+        if (this.rising && this.hung < RISE_HANG) { this.hung += dt; p.velocity.set(0, 0, 0); return true; }
+        this.phase = 'zip'; this.clock = 0; this.rising = false;
+      } else if (this.clock > (this.rising ? RISE_LIMIT : 0.6)) { this.rising = false; this.release(); }
       return true;
     }
     if (this.phase === 'vault') {

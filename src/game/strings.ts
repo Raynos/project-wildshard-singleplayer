@@ -37,6 +37,9 @@ export const GAME_STRINGS = {
     built: (version: number): string => `BUILT FOR SHARDFILE V${version}`,
     saveKept: 'YOUR SAVE IS KEPT',
   },
+  /** QB17 (b) / MF15: Settings ▸ Debug ▸ Hook zip (grapple/zipRise.ts), the rise-to-the-ring zip beside the flat one */
+  hookZip: { label: 'Hook zip', rise: 'Rise to ring', flat: 'Flat (legacy)',
+    note: 'QB17: Jake asked the zip to lift him to the hook; Rise to ring (new) climbs to the ring, hangs, then drops onto the landing; Flat is the old straight zip to the landing; live' },
   /** SF65 (G237–G241): SHARD SELECT's LEGACY / SHARDFILE entry buttons (G531: behind the Legacy shard buttons row) and each card's port badge */
   entry: {
     legacy: 'LEGACY',

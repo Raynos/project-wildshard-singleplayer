@@ -3,6 +3,7 @@ import { Tool } from '@wildshard/engine/combat/Tool';
 import type { EquipmentRow, EquipContext } from '@wildshard/engine/combat/Equipment';
 import { bindRuntimeLedger, projectRuntimeFacts } from '../plugin/headless';
 import { grappleCourse } from './course';
+import { installZipRiseRow, zipRises } from './zipRise';
 import type { GrappleRows, GrappleProfile, GrappleCourseRow } from '@wildshard/format/grapple';
 import * as v from 'valibot';
 
@@ -181,7 +182,9 @@ function installGrappleAim(ctx: EquipmentHost, shard: ShardContext, scope: Scope
   ctx.game.scene.add(...bursts.map(field => field.object));
   const hideCues = (): void => { chip.show(false); for (const m of marks) m.show(false); };
   // the law (the caller's); the view draws, sounds and animates what it does
-  const sim = new GrappleSim(ports, fragment); tool.sim = sim;
+  // QB17 (b) / MF15: the zip rises to the ring unless Settings ▸ Debug ▸ Hook zip picks the flat one
+  installZipRiseRow();
+  const sim = new GrappleSim(ports, fragment, { rise: zipRises }); tool.sim = sim;
   const callbacks = {
     fire: () => { muzzleFlash.burst(muzzle, up.set(0, 1, 0), 0); rules.cue('fire'); ctx.arms?.playLeft?.('grapple_fire'); ctx.arms?.setClawVisible?.(false); },
     miss: () => { ctx.toast(row.toasts.miss); },
