@@ -1,6 +1,6 @@
 # FOUNDATIONS: what is structurally broken, and the rewrite that fixes it
 
-**State:** draft 2026-10-29, written by wildshard-v's subagent for Jake to rule on; nothing here is approved.
+**State:** `open` 2026-10-29: **wave 1 (MF1–MF7) approved and in flight (G886)**; waves 2–3 follow. Written by wildshard-v's subagent; Jake ruled the five calls ~14:25 (G884, G887–G889: all yes) and added a battery bar (G890).
 
 Jake, 2026-10-29 ~14:15 Cancun: *"I need a sub-agent to look at everything in the second wave of QA and come up with a
 mega plan. You know, like zoom out, one and out, zoom out, see the forest through the trees, come up with a mega plan,
@@ -307,13 +307,15 @@ current slice (no mid-task re-briefs, G492); none starts new work after this is 
 
 **Supersedes:** QB15, QB16, QB17, QB11 (rest). Legacy deletion stays on Jake's per-shard word.
 
-## Decisions this needs from Jake
+## Decisions (ruled 2026-10-29 ~14:25: all five yes — 1 = G884, 2 = G887, 3 and 4 = G889, 5 = G888; plus G890 battery)
 
 1. **Nine's spawn view loads whole before the reveal**, reversing D179 B / G811 for the spawn view (NP-1). Recommended: yes (his 14:10 words).
 2. **Our client trusts our build**: no re-admission of first-party products on the phone (extends G881). Recommended: yes.
 3. **No system ever switches off** (supersedes E133's `'off'` verdict). Recommended: yes.
 4. **Memory is measured on the Simulator; the estimate stops being the reported number.** Recommended: yes.
 5. **Standalone moves are page navigations** (extends QA12 / G877). Recommended: yes.
+
+**Battery bar (G890, Jake 14:24, [iOS Battery screen](../../art/qa-2026-10-29/battery-1423.jpg): Web 20 %, Safari 13 % today, 57 % used by 14:23 vs a 24 % average):** 20 min of phone-tier play at 60 fps costs a measured, capped share of battery and the phone stays cool enough to keep playing; no work at full rate when nothing changes; the title, loading card and pause menu draw at a low rate. Measured on the Simulator (energy / CPU / GPU time per frame) and confirmed on Jake's phone. Owned by MF7 in wave 1.
 
 ## Risks and what not to do
 
