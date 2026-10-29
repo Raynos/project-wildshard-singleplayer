@@ -11,7 +11,7 @@ afterEach(()=>{for(const owner of owners.splice(0))owner.dispose();installScopeE
 function fixture(){
   const scope=new Scope('loop-test');owners.push(scope);const view=new PresentationState();view.bindGate(scope,()=>true);
   const draw=vi.fn<(now:number|undefined,forced:boolean)=>void>(),parked=vi.fn<()=>void>();
-  const loop=new PresentationLoop(scope,view,{draw,parked});return {scope,view,draw,loop};
+  const loop=new PresentationLoop(scope,view,{draw,parked});return {scope,view,draw,loop,parked};
 }
 function frame(){const batch=[...frames.values()];frames.clear();for(const render of batch)render(serial*16);}
 test('covered has zero callbacks; play schedules exactly one; cover cancels it',async()=>{
@@ -37,4 +37,12 @@ test('a gate closing between frames cancels the chain without drawing',()=>{
 });
 test('retirement blocks queued wakes, stills and explicit frames',async()=>{
   const f=fixture();f.loop.wake();f.loop.stillFrame();f.scope.dispose();f.loop.hiddenFrame();await Promise.resolve();expect(f.draw).not.toHaveBeenCalled();expect(frames.size).toBe(0);
+});
+
+
+test('a parked clock rebases once on return without resetting the live frame cap',()=>{
+  const f=fixture();f.view.setCoverage('play');expect(f.parked).toHaveBeenCalledTimes(1);
+  for(let n=0;n<30;n++)frame();expect(f.parked).toHaveBeenCalledTimes(1);
+  f.view.setCoverage('covered');expect(f.parked).toHaveBeenCalledTimes(2);
+  f.view.setCoverage('play');expect(f.parked).toHaveBeenCalledTimes(3);frame();expect(f.parked).toHaveBeenCalledTimes(3);
 });

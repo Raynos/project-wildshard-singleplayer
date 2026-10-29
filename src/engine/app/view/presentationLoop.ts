@@ -14,6 +14,7 @@ export class PresentationLoop {
   private waking=false;
   private prime=false;
   private drawing=false;
+  private active=false;
   constructor(scope:Scope,view:PresentationState,ports:LoopPorts){
     this.scope=scope;this.view=view;this.ports=ports;
     view.observe(scope,()=>{this.reconcile();});
@@ -21,9 +22,10 @@ export class PresentationLoop {
   private reconcile():void{
     if(this.view.state!=='play'){
       if(this.frame!==undefined){this.scope.cancelRaf(this.frame);this.frame=undefined;}
-      this.ports.parked();return;
+      if(this.active){this.active=false;this.ports.parked();}return;
     }
     if(this.frame===undefined&&!this.scope.disposed&&!this.scope.disposing){
+      if(!this.active){this.active=true;this.ports.parked();}
       this.frame=this.scope.raf(now=>{
         this.frame=undefined;this.view.refresh();
         if(this.view.state!=='play')return;
