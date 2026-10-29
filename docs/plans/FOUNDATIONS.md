@@ -297,12 +297,12 @@ current slice (no mid-task re-briefs, G492); none starts new work after this is 
 
 | Row | What | Rewrite / delete / done when | Lane | Size |
 |---|---|---|---|---|
-| MF14 | HUD slots from state | **Rewrite** the action-slot update as a per-frame pull (E332: herdr before and after; no layout change). Done: Nine hook shows ZIP on lock with no app switch. | Opus | S |
+| MF14 | HUD slots from state | **Rewrite** the action-slot update as a per-frame pull (E332: herdr before and after; no layout change). Done: Nine hook shows ZIP on lock with no app switch. | Opus sp-o4 (after FC12 Pine / Nalati) | S |
 | MF15 | Nine verbs | Hook lock → ZIP → lift to the hook point → land, vs LEGACY (QB17). | Opus sp-o3 (after MF13; QB17 b) | M |
 | MF16 | Dunes verbs | The well crank end to end, three times (QB15). | Opus | M |
 | MF17 | Pine verbs | Crossbow aim / fire / reload / swap 5 min, quests (QB11 rest). | Opus | S |
 | MF18 | Driftwood, Nalati, Sky verb lists | Played both modes; fix differences. | Opus | M |
-| MF19 | Nine look gaps | QB16's look half: sky distance and seams, facades, crowd; LEGACY vs SHARDFILE board. | Opus | M |
+| MF19 | Nine look gaps | QB16's look half: sky distance and seams, facades, crowd; LEGACY vs SHARDFILE board. | Opus sp-o4 (after MF14) | M |
 | MF20 | Prove the bars | Every bar in the table above on the Simulator, one before / after board, then tell Jake for his phone. | Opus | S |
 
 **Supersedes:** QB15, QB16, QB17, QB11 (rest). Legacy deletion stays on Jake's per-shard word.
