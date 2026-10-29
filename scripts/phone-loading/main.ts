@@ -2,12 +2,14 @@ import {spawn} from 'node:child_process';
 import {readFile, writeFile, mkdir} from 'node:fs/promises';
 import {resolve as resolvePath} from 'node:path';
 import {parseArgs} from 'node:util';
+import type {CDPSession} from 'playwright';
 import {instrument} from './instrument.ts';
 import {launchChromium} from './chromium.ts';
 import {contactSheet} from './recording.ts';
 import {observeRequests} from './network.ts';
 import {parseSaveFixture} from './fixtures.ts';
 import {postControlWindow} from './post-control.ts';
+import {startPageCpuProfile, type PageCpuCapture} from './cpu-profile.ts';
 import {comparisons, controlQualification, printRun, profiles, record, type Capture, type ErrorRow, type Run} from './model.ts';
 import {developerSettings, saveFixture} from '../debug-settings.mjs';
 import {loadingCardIndex} from '../loading-benchmark/catalogue.mjs';
@@ -19,9 +21,10 @@ const {values} = parseArgs({options: {preset: {type: 'string', default: 'phone'}
   'title-dwell': {type: 'string', default: '3000'},
   'after-control': {type: 'string', default: '4000'},
   'save-fixture': {type: 'string'},
+  'cpu-profile': {type: 'boolean'},
   help: {type: 'boolean'}}});
 if (values.help) {
-  console.log('pnpm phone-loading [--live | --head | --rev SHA | --url URL] [--preset phone|lte|desktop] [--flow grid|select:SLUG] [--record] [--webkit] [--compare JSON] [--timeout MS] [--title-dwell MS=3000] [--after-control MS=4000] [--save-fixture JSON]');
+  console.log('pnpm phone-loading [--live | --head | --rev SHA | --url URL] [--preset phone|lte|desktop] [--flow grid|select:SLUG] [--record] [--webkit] [--compare JSON] [--timeout MS] [--title-dwell MS=3000] [--after-control MS=4000] [--save-fixture JSON] [--cpu-profile (cold Chromium page only)]');
   return;
 }
 const profile = profiles[values.preset];
@@ -82,6 +85,9 @@ try {
         console.log(`Starting ${engine} ${values.flow} ${cache} at ${url}`);
         const page = await context.newPage();
         await page.bringToFront();
+        const name = `${engine}-${values.flow.replace(':', '-')}-${cache}`;
+        let stopCpuProfile: (() => Promise<PageCpuCapture>) | undefined;
+        let cpuSession: CDPSession | undefined;
         let tapAt: number | null = null;
         await page.exposeBinding('__phoneLoadingTap', (_source, at: unknown) => {
           if (typeof at === 'number') tapAt = at;
@@ -100,6 +106,7 @@ try {
           await cdp.send('Network.enable');
           await cdp.send('Network.emulateNetworkConditions', {offline: false, latency: profile.latency, downloadThroughput: profile.down, uploadThroughput: profile.up});
           await cdp.send('Emulation.setCPUThrottlingRate', {rate: profile.cpu});
+          if (values['cpu-profile'] && cache === 'cold') cpuSession = cdp;
         }
         let capture: Capture = {tap: null, control: null, rows: [], measures: [], longTasks: [], frameGaps: [], errors: [], rowCoverage: 'unavailable'};
         let controlDocument: string | null = null;
@@ -114,6 +121,7 @@ try {
           await page.locator('.ws-main-select').waitFor({timeout});
           // A protocol dwell, not a readiness retry. PL13 can request 10 s.
           await page.waitForTimeout(titleDwell);
+          if (cpuSession !== undefined) stopCpuProfile = await startPageCpuProfile(cpuSession);
           if (values.flow === 'grid') await page.locator('.ws-main-grid').click({timeout});
           else {
             await page.locator('.ws-main-select').click({timeout});
@@ -147,6 +155,15 @@ try {
             await page.waitForTimeout(afterControl);
           }
         } catch (error) {errorAt(String(error), 'flow');}
+        if (stopCpuProfile !== undefined) {
+          try {
+            const cpu = await stopCpuProfile();
+            await writeFile(`${directory}/${name}.cpuprofile`, JSON.stringify(cpu.profile));
+            await writeFile(`${directory}/${name}.cpuprofile.json`, JSON.stringify(cpu));
+            if (!cpu.clockAligned) errorAt('Page CPU profile clocks disagree; raw profile retained', 'page CPU profile');
+          }
+          catch (error) {errorAt(String(error), 'page CPU profile');}
+        }
         try {capture = await page.evaluate(() => Reflect.get(window, '__phoneLoading') as Capture);}
         catch (error) {errorAt(String(error), 'capture');}
         try {capture = await page.evaluate(() => {
@@ -173,13 +190,12 @@ try {
         const run: Run = {...capture, schema: 1, at: new Date().toISOString(), build, url, engine, flow: values.flow,
           preset: values.preset, cache, profile, totalMs: capture.tap !== null && capture.control !== null ? capture.control - capture.tap : null,
           applied: {pageCPU: chromium !== undefined, pageNetwork: chromium !== undefined, workerNetwork: chromium?.workerNetwork() ?? false,
-            notes: [...(chromium === undefined ? ['Playwright WebKit has no CDP CPU/network emulation; unthrottled engine check, not phone-speed equivalence'] : ['Worker CPU throttling is unsupported by CDP']), `Title dwell ${titleDwell}ms; post-control dwell ${afterControl}ms (outside measured total)`, ...fixture === undefined ? [] : [`Save fixture ${JSON.stringify(fixture)}`]]},
+            notes: [...(chromium === undefined ? ['Playwright WebKit has no CDP CPU/network emulation; unthrottled engine check, not phone-speed equivalence'] : ['Worker CPU throttling is unsupported by CDP']), `Title dwell ${titleDwell}ms; post-control dwell ${afterControl}ms (outside measured total)`, ...fixture === undefined ? [] : [`Save fixture ${JSON.stringify(fixture)}`], ...stopCpuProfile === undefined ? [] : ['Cold page CDP CPU sampling enabled; diagnostic timing']]},
           rows: capture.rows, measures: capture.measures.filter(row => row.start >= from && row.start <= to),
           longTasks: capture.longTasks.filter(row => row.start >= from && row.start <= to),
           frameGaps: capture.frameGaps.filter(row => row.start >= from && row.start <= to),
           requests: network.rows.filter(row => row.start >= from && row.start <= to), requestAccounting, postControl, errorDetails,
           errors: errorDetails.map(error => error.message)};
-        const name = `${engine}-${values.flow.replace(':', '-')}-${cache}`;
         // Publish the measured/partial data before artifact APIs can fail.
         await writeFile(`${directory}/${name}.json`, JSON.stringify(run, null, 2));
         await page.screenshot({path: `${directory}/${name}.jpg`, type: 'jpeg', quality: 75, timeout: 10_000}).catch((error: unknown) => {

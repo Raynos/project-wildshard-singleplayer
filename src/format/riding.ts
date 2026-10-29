@@ -71,12 +71,13 @@ export const RidingPresentationSchema: v.GenericSchema<RidingPresentationRowsInp
   wind: v.strictObject({ x: v.string(), z: v.string(), strength: v.string() }),
 });
 
-const nameGraphemes = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+let nameGraphemes: Intl.Segmenter | undefined;
 /** Normalize a mounted companion's display name to the admitted grapheme cap. */
 export function cleanMountName(raw: string, maximum: number): string {
   if (!Number.isInteger(maximum) || maximum < 1 || maximum > 128) throw new Error('Invalid mount name limit');
   const kept = raw.normalize('NFC').replaceAll(/[^\p{L}\p{N} '.-]/gu, '').replaceAll(/\s+/g, ' ').trim();
   const cased = kept.split(' ').map(word => word.charAt(0).toLocaleUpperCase() + word.slice(1)).join(' ');
+  nameGraphemes ??= new Intl.Segmenter(undefined, { granularity: 'grapheme' });
   return Array.from(nameGraphemes.segment(cased), row => row.segment).slice(0, maximum).join('').trim();
 }
 
