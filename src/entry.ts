@@ -26,6 +26,7 @@ import { waitForLoadingStyles } from '@wildshard/engine/boot/shell';
 import { inspectPreviousBoot, previousBootLine, previousBootLevel } from '@wildshard/engine/boot/bootTrace';
 import { Scope } from '@wildshard/engine/app/scope';
 import { bootRoute } from './bootRoute';
+import { startSpawnDownload } from '@wildshard/game/boot/spawnDownload';
 import { lastEnd } from '@wildshard/engine/boot/lastEnd';
 import { consumeCrashResume, type CrashResume } from '@wildshard/game/session/crashResume';
 
@@ -149,6 +150,11 @@ async function startSelected(): Promise<void> {
   const [entrySelection, gridSelection, { gridMode, DEVSERVER }] = await Promise.all([entryModule, gridEntryModule, gridMenuModule]);
   const earlyPath = gridSelection.pageGridRecovery() !== null || gridSelection.pendingGridEntry(game.shard.slug)
     ? 'grid' : entrySelection.shardEntry(game.shard);
+  // MF4: one spawn manifest per shard / tier / flow (grid: per menu mode) is the whole download; the bar reads only it and
+  // admission waits for it (a tap on the title started the same job, so its files may already be in the worker cache)
+  const spawnMode = gridMode(DEVSERVER), spawnJob = startSpawnDownload(game.shard.slug, earlyPath === 'grid' ? 'grid' : 'client', TIER,
+    `${Number(spawnMode.developer)}${Number(spawnMode.devserver)}${Number(spawnMode.nineDragon)}`);
+  if (spawnJob !== null) void loading.setDownloadSource(spawnJob);
   // Read mandatory primary declarations while services and the yielding memory
   // bank prepare. Capture any failure now; publish only at the original barrier.
   const catalogue = earlyPath === 'grid' ? prepareBootImports(preparePageCatalogue()) : null;
@@ -249,6 +255,7 @@ async function startSelected(): Promise<void> {
       recipes: new Map([['kit.look.boar', (row, species) => { if (row.animation.recipe !== 'kit.pose.quadruped') throw new Error('Unknown boar pose recipe'); return { ...BOAR_LOOK, id: row.id, species: species.id, kind: species.kind }; }]]),
     };
     imports.check();
+    if (spawnJob !== null) await waitFor('Spawn download', spawnJob.ready, 'file');
     const manifest = source === null
       ? await installManifestShardfile(game.shard, { ...browserShardfileOptions(document.baseURI, true), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings, imports.ready)
       : await installShardfileProduct(source, { ...browserShardfileOptions(document.baseURI), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings, imports.ready);
