@@ -8,8 +8,8 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 019fa6d0c7. **G908: Pine + Nine untouched** (no prep) until Jake's word after his final QA, likely 10-30.
 
 **LIVE 125bda0483 (build 125bda048-mvu1h3gt, a normal proven release, ~16:20)**; the repaired QA build waits on CI.
-**REPLAN (G886): [FOUNDATIONS](../FOUNDATIONS.md) wave 1, crashes first (G894).** Landed: MF2, MF3, MF6, FC2, FC8, G896,
-G901; MF1 / MF4 code in, proofs pending. **For wildshard-v (15:24):** sp-o5 is not idle: it owns MF7 (tests + Sim hold
+**REPLAN (G886): [FOUNDATIONS](../FOUNDATIONS.md) wave 1, crashes first (G894).** Landed: MF2, MF3, MF6, MF7 memory, FC2-5,
+FC8, G896, G901, QB18; MF1 / MF4 code in, proofs pending. **For wildshard-v (15:24):** sp-o5 is not idle: it owns MF7 (tests + Sim hold
 running), then QB20. sp-x8 is released for good; FC1 / FC5 / FC6 are sp-x1's. Next: sp-o3 MF5, sp-o4 FC3 / FC4 / QB18,
 sp-x2 MF10, sp-x9 G895 → FC7, sp-x10 MF1 + QB21. QB19 / GAME-S sp-o3 later. G892: open until wave 1 + Jake's QA (10-30).
 
