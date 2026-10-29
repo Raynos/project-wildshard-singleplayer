@@ -92,6 +92,8 @@ export class Loading {
   private playPicked = false;
   private shownSetup = 0;
   private paintedDownload = 0;
+  /** whether any transfer fact (a source with declared files or bytes, or its completion) has been painted */
+  private downloadKnown = false;
   private readonly admissionPhases = new Set<string>();
   private readonly paintedRows: (LoadingRow | LoadingGap)[] = [];
   /** G555: a mid-play load (a grid cell entry): no boot trace, no adopted shell, no page-wide timeline or download
@@ -170,7 +172,7 @@ export class Loading {
     this.downloadSource = source;
     this.stopDownloadSource = source.subscribe(() => {
       const fraction = this.paintDownloads();
-      set(this.els.dlPct, String(Math.floor(fraction * 100))); this.els.dlBar.style.width = `${fraction * 100}%`;
+      set(this.els.dlPct, this.downloadPct(fraction)); this.els.dlBar.style.width = `${fraction * 100}%`;
       this.dirty = true;
     });
     return source.ready;
@@ -268,7 +270,7 @@ export class Loading {
     const pct = (f: number): string => String(Math.floor(f * 100));
     const download = this.paintDownloads();
     setData(this.root, 'setup', pct(v.setup));
-    set(this.els.dlPct, pct(download));
+    set(this.els.dlPct, this.downloadPct(download));
     set(this.els.suPct, pct(v.setup));
     const dl = `${(download * 100).toFixed(1)}%`, su = `${(v.setup * 100).toFixed(1)}%`;
     if (this.els.dlBar.style.width !== dl) this.els.dlBar.style.width = dl;
@@ -288,7 +290,7 @@ export class Loading {
     const setup = this.setupProgress();
     setData(this.root, 'download', String(Math.floor(download * 100)));
     setData(this.root, 'setup', String(Math.floor(setup * 100)));
-    set(this.els.dlPct, String(Math.floor(download * 100))); set(this.els.suPct, String(Math.floor(setup * 100)));
+    set(this.els.dlPct, this.downloadPct(download)); set(this.els.suPct, String(Math.floor(setup * 100)));
     this.els.dlBar.style.width = `${download * 100}%`; this.els.suBar.style.width = `${setup * 100}%`;
     this.els.bar.style.width = `${combinedLoadingFraction(download, setup) * 100}%`;
     set(this.els.suFact, p.detail); set(this.els.line, p.detail);
@@ -334,8 +336,13 @@ export class Loading {
     setData(this.root, 'spawnFilesTotal', String(row.filesTotal));
   }
 
+  /** MF4 (sp-x6): the DOWNLOAD number before any transfer fact (no source, nothing declared) reads unknown, never an
+   *  invented 0 that a page already holding a complete download would visibly step back to */
+  private downloadPct(fraction: number): string { return this.downloadKnown ? String(Math.floor(fraction * 100)) : '—'; }
+
   private paintDownloads(): number {
     const transfer = this.downloadProgress();
+    this.downloadKnown = transfer.complete || transfer.totalBytes > 0 || transfer.filesTotal > 0;
     this.paintedDownload = transfer.fraction;
     this.paintDownloadCounters(transfer);
     const prefetch = this.prefetchSource?.() ?? null;
