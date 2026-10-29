@@ -31,6 +31,7 @@ import type { DebugRowSpec } from '../level/context';
 import { isDev, onDev } from '../core/devMode';
 import { setTileResidency, tileResidency, TILE_RESIDENCY, setRoadResidency, roadResidency, ROAD_RESIDENCY } from './tileResidency';
 import { IDLE_FRAMES, idleFrames, setIdleFrames } from '../world/shadowCadence';
+import { POSE_RATES, poseRate, setPoseRate } from '../entities/poseCadence';
 
 const scope = uiScope('debugOptions', app.engineScope);
 
@@ -179,6 +180,12 @@ const idleFramesRow: DebugRow = { purpose: 'developer', id: 'idleFrames', group:
   get: () => idleFrames(), set: value => { const pick = IDLE_FRAMES.find(choice => choice === value); if (pick !== undefined && isDev()) setIdleFrames(pick); },
   on: () => undefined, reload: false, when: () => TIER === 'phone', note: engineString('s_idle_frames_note'), ask: 'E435', reviewBy: '2026-11-12' };
 
+/** FC11: the stepped animal pose (B, shipped) beside the old every-frame pose (A); the old goes when Jake has seen it. */
+const poseRateRow: DebugRow = { purpose: 'developer', id: 'animalPoseRate', group: 'creatures', label: engineString('s_pose_rate'),
+  choices: () => [{ v: 'stepped', text: engineString('s_pose_rate_stepped') }, { v: 'every', text: engineString('s_pose_rate_every') }],
+  get: () => poseRate(), set: value => { const pick = POSE_RATES.find(choice => choice === value); if (pick !== undefined && isDev()) setPoseRate(pick); },
+  on: () => undefined, reload: false, when: always, note: engineString('s_pose_rate_note'), ask: 'E435', reviewBy: '2026-11-12' };
+
 /** G867: one default-off initial spawn-readiness experiment. */
 const spawnRingRevealRow: DebugRow = {purpose: 'developer', id: 'spawnRingReveal', group: 'loading', label: engineString('s_spawn_ring_reveal'),
   choices: () => [{v: 'off', text: engineString('s_ca7981b46ecf')}, {v: 'on', text: engineString('s_130011756125')}],
@@ -194,6 +201,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Combat & weapons ──
 
   // ── Creatures & NPCs ──
+  poseRateRow,
 
   // ── Performance ──
   tileResidencyRow,

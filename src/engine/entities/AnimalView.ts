@@ -364,6 +364,11 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
   /** counts the updates that may pose the bones (only `update` poses them): the animals' group compares a pose only when it
    *  moved on since the group last saw it */
   poseVersion = 0;
+  /** FC11: pose the bones on every Nth update (the manager sets it from the camera distance); the root moves every update */
+  poseEvery = 1;
+  private poseTick = -1;
+  /** the time since the bones were last posed, handed to the next pose (springs and the gait read the whole step) */
+  private poseDt = 0;
 
   /** true while a stagger holds it: the manager skips its think, it neither steers nor walks */
 
@@ -400,9 +405,16 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
 
     this.advancePose(this.poseLaw, dt, t, near, this.externalSimulation === null, this.debugGait);
     if (!near) { this.applyRoot(); this.poseFrozen = true; return; }
+    // FC11: a mid / far animal keeps its last bone pose between pose frames (staggered by its seed); the root still moves
+    this.poseDt += dt;
+    if (this.poseTick < 0) this.poseTick = Math.floor(this.seed * 8);
+    this.poseTick = (this.poseTick + 1) % 8;
+    if (this.poseEvery > 1 && this.poseTick % this.poseEvery !== 0) { this.applyRoot(); this.updateFade(dt); this.poseFrozen = true; return; }
+    const poseDt = this.poseDt;
+    this.poseDt = 0;
     if (this.custom) {
       const c = this.rigCtx;
-      c.dt = dt; c.t = t; c.speed = this.speed; c.strafe = this.strafe; c.phase = this.phase; c.state = this.state; c.alive = this.alive;
+      c.dt = poseDt; c.t = t; c.speed = this.speed; c.strafe = this.strafe; c.phase = this.phase; c.state = this.state; c.alive = this.alive;
       c.deathT = this.deathT; c.flinch = this.flinch; c.brace = smooth01(this.brace); c.attack = this.attackPhase; c.lookWeight = this.lookAmt; c.yaw = this.yaw;
       this.model.species.animate?.(c);
       this.applyRoot();
@@ -410,12 +422,12 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
       return;
     }
 
-    this.applyPose(dt);
+    this.applyPose(poseDt);
     const post = this.model.species.postPose;
     if (post !== undefined) {
       // species-only motion on top of the standard pose (a horse's mane and rearing, a wolf's jaw) — SpeciesDef.postPose
       const c = this.rigCtx;
-      c.dt = dt; c.t = t; c.speed = this.speed; c.strafe = this.strafe; c.phase = this.phase; c.state = this.state; c.alive = this.alive;
+      c.dt = poseDt; c.t = t; c.speed = this.speed; c.strafe = this.strafe; c.phase = this.phase; c.state = this.state; c.alive = this.alive;
       c.deathT = this.deathT; c.flinch = this.flinch; c.brace = smooth01(this.brace); c.attack = this.attackPhase; c.lookWeight = this.lookAmt; c.yaw = this.yaw;
       post(c);
     }
