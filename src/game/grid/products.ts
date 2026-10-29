@@ -4,9 +4,10 @@
  * share one product's immutable bytes; a failed admission is forgotten so a later request retries.
  */
 import { findShard } from '../shard/registry';
-import { admitProduct, boundedResponse, checkBuiltIndex, readIndexBytes, type AdmittedProduct, type ProductOptions } from '../shardfile/product';
+import { admitProduct, boundedResponse, checkBuiltIndex, readIndexBytes, readProductDescriptor, type AdmittedProduct, type ProductOptions } from '../shardfile/product';
 import { browserShardfileOptions } from '../shardfile/runtimeProduct';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
+import {builtIndexHash} from '@wildshard/format/builtIndexes';
 import { ProductLeases } from './productLeases';
 import { ApproachInputsDeferredError, ProductInputs, type ProductInputLease } from './productInputs';
 import type { ClientAssets } from '../shardfile/clientAssets';
@@ -46,13 +47,17 @@ const parsedIndexes = new Map<string, OutputIndex>();
 // The input below is parsed privately from these exact wire bytes. Only the
 // bundle's own validated index inventory proves its schema output type.
 function builtGridIndex(input: unknown, hash: string, options: ProductOptions): input is OutputIndex {
-  return typeof input === 'object' && input !== null && options.firstParty && options.built?.indexes.has(hash) === true;
+  return typeof input === 'object' && input !== null && options.firstParty && (options.firstPartyRead!==undefined||options.built?.indexes.has(hash) === true);
 }
 async function readGridProductIndex(url: string, identity: string, options: ProductOptions): Promise<GridProductIndex> {
-  const bytes = await boundedResponse(await options.fetch(url), limits.sourceBytes), key = await options.hash(bytes);
+  const native=options.firstParty?options.firstPartyRead:undefined,address=new URL(url);
+  const declared=options.descriptorHash??builtIndexHash(address.pathname)??undefined;
+  if(native!==undefined&&declared!==undefined)address.searchParams.set('v',declared.slice(0,8));
+  const bytes = native===undefined?await boundedResponse(await options.fetch(url), limits.sourceBytes):await native(address.href,undefined,undefined,declared);
+  const key = native===undefined?await options.hash(bytes):address.href;
 
   let index = parsedIndexes.get(key);
-  if (index !== undefined) await checkBuiltIndex(key, options);
+  if (index !== undefined) {if(native===undefined)await checkBuiltIndex(key, options);}
   else {
     const input = await readIndexBytes(bytes, options);
     index = builtGridIndex(input, key, options) ? input : await readCheckedOutputIndex(input);
@@ -74,6 +79,7 @@ async function readGridProductIndex(url: string, identity: string, options: Prod
  * checked; a network read is kept in the content cache like an admission's. */
 async function readGridProductFile(at: GridProductIndex, path: string, hash: string, size: number): Promise<Uint8Array> {
   const { options } = at, base = new URL('.', at.url).href, address = new URL(path, at.url).href;
+  if(options.firstParty&&options.firstPartyRead!==undefined)return options.firstPartyRead(address,size,undefined,hash);
   const held = await options.cache?.asset(base, hash) ?? await options.cachedResponse?.(address, hash, size);
   if ((held === null || held === undefined) && options.offline) throw new Error(`Missing cached grid product file ${path}`);
   const bytes = held ?? (at.packed.has(hash) ? await at.packed.read(hash) : await boundedResponse(await options.fetch(address), size));
@@ -284,8 +290,10 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode
         ...(present === undefined ? {} : { verifiedPresent: (hash: string, bytes: number) => priority.read(slug, () => present(hash, bytes)) }),
       } }),
     };
-    const input = await readIndexBytes(await boundedResponse(await options.fetch(url.href), limits.sourceBytes), options);
-    const admitted = await timeClientPreparation(slug, 'product.admission', () => admitProduct(input, { ...options, reserve }));
+    const input = options.firstPartyRead===undefined
+      ? await readIndexBytes(await boundedResponse(await options.fetch(url.href), limits.sourceBytes), options)
+      : await readProductDescriptor(options,url);
+    const admitted = await timeClientPreparation(slug, 'product.read', () => admitProduct(input, { ...options, reserve }));
     const selectedInputs = [...admitted.assets.keys()];
     // admission already refused a stack past the budget on its own; the cost is what placement sums per adjacent pair
     gridPostCosts(owner.allocator).record(slug, postStackCost(admitted.source, (hash) => admitted.assets.get(hash)).cost);

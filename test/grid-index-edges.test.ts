@@ -38,6 +38,21 @@ test('a build-owned grid index skips grammar but keeps identity and section hash
   } finally { grammar.mockRestore(); }
 });
 
+test('native first-party grid metadata reads canonical URLs with declared hashes, without rehashing',async()=>{
+  const f=fixture('native-edge-fixture'),digest=vi.fn<(bytes:Uint8Array)=>Promise<string>>(()=>{throw new Error('No client digest');});
+  const identities:({path:string;hash:string|undefined})[]=[],rootHash='a'.repeat(64);
+  const options={...f.options,firstParty:true,descriptorHash:rootHash,hash:digest,
+    firstPartyRead:(url:string,size:number|undefined,_read?:((bytes:number)=>void),hash?:string)=>{
+      const address=new URL(url);identities.push({path:address.pathname,hash});address.search='';
+      const bytes=f.wires.get(address.href);if(bytes===undefined||(size!==undefined&&size!==bytes.length))throw new Error('Missing emitted file');
+      return Promise.resolve(bytes);
+    }};
+  expect(await readGridProductEdges(f.url,f.source.identity.slug,options)).toStrictEqual({edge:f.source.edge,entryways:f.source.entryways});
+  expect(digest).not.toHaveBeenCalled();expect(f.fetch).not.toHaveBeenCalled();
+  expect(identities).toEqual([{path:new URL(f.url).pathname,hash:rootHash},{path:new URL(f.edgeUrl).pathname,hash:hashImmutableBytes(f.wires.get(f.edgeUrl)??new Uint8Array())}]);
+  await expect(readGridProductEdges(f.url,'wrong-cell',options)).rejects.toThrow('identity');
+});
+
 test.each(['third-party', 'unbundled'] as const)('%s grid metadata still loads checked grammar', async mode => {
   const f = fixture(`${mode}-edge-fixture`), wire = f.wires.get(f.url);
   if (wire === undefined) throw new Error('Missing index fixture');
