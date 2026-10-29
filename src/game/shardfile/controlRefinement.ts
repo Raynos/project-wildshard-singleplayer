@@ -15,13 +15,15 @@ interface Job {
 export const SPAWN_VIEW_M = 160;
 let spawnView: { readonly radius: number } | null = null;
 const queues = new Set<ControlRefinement>();
+/** A spawn-view job waits or runs in some queue (the tile driver's settle stops when none does). */
+export function spawnViewBusy(): boolean { return [...queues].some(queue => queue.spawnViewOpen()); }
 /** Run every queue's spawn-view jobs now and resolve once none is left (a failure rejects, as the job's own promise does). */
-export async function prepareSpawnView(radius: number = SPAWN_VIEW_M, settle?: () => void): Promise<void> {
+export async function prepareSpawnView(radius: number = SPAWN_VIEW_M, settle?: () => void | Promise<void>): Promise<void> {
   spawnView = { radius };
   if (settle !== undefined) {
     // the content a frame asks for while the fence is open (the tile driver attaches only ready content) queues its jobs
     // a few tasks after it: let them arrive before the queues are read
-    settle();
+    await settle();
     for (let turn = 0; turn < 3; turn++) await new Promise<void>(resolve => { pageScope.timeout(0, resolve); });
     performance.mark('wildshard.spawn-view.settled', { detail: [...queues].map(queue => queue.describe()) });
   }

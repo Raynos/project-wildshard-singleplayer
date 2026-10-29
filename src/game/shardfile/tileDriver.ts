@@ -20,6 +20,23 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { tileOf, tileOrder, type CellTile, type TileEntryway } from './tileOrder';
 import { noteEnteredTiles } from './enteredTileReadout';
 import { residentTileEntry } from './tileEntry';
+import { pageScope } from '@wildshard/engine/app/resources';
+import { spawnViewBusy } from './controlRefinement';
+
+/** MF5: the live drivers, and whether the loader is settling them (no world frames under the card since FC2). */
+const liveDrivers = new Set<TileDriver>();
+let loaderMode = false;
+const task = (): Promise<void> => new Promise(resolve => { pageScope.timeout(0, resolve); });
+/**
+ * MF5 (reveal = spawn view complete): while the loader's spawn-view fence is open (prepareSpawnView), drive every live
+ * driver on tasks instead of frames, nearest first, until its render ring is attached or it waits only on content that
+ * refines after control. A refining content's attach awaits its fence job, so this is what queues and runs the spawn
+ * ring's fine tiles under the card. `turns` bounds a driver that never settles.
+ */
+export async function settleTileDrivers(turns = 2000): Promise<void> {
+  loaderMode = true;
+  try { for (const driver of Array.from(liveDrivers)) await driver.settle(turns); } finally { loaderMode = false; }
+}
 
 type Layer = 'render' | 'colliders';
 type TileFailure = { readonly error: unknown } | null;
@@ -40,7 +57,23 @@ export class TileDriver {
   private coarseScope: Scope | null = null;
   private coarseCount = 0;
   constructor(private readonly scope: Scope, private readonly contents: readonly TileContent[], private readonly radius: () => number,
-    private readonly pause: () => Promise<void>) {}
+    private readonly pause: () => Promise<void>) {
+    liveDrivers.add(this); scope.onDispose(() => { liveDrivers.delete(this); });
+  }
+  private last: { readonly x: number; readonly z: number } | null = null;
+  /** MF5 (settleTileDrivers): step on tasks until nothing in the render ring is left to start, or the one attach in
+   *  flight waits on content outside the open spawn-view fence (it runs after control). */
+  async settle(turns: number): Promise<void> {
+    let idle = 0;
+    for (let turn = 0; turn < turns && this.last !== null && !this.scope.disposed && !this.scope.disposing; turn++) {
+      this.step(this.last.x, this.last.z);
+      const plan = this.plan, pending = plan !== null && plan.nearest.render.some(key => this.attached.render.get(key) === undefined || !this.complete(key));
+      if (!this.busy && !pending) return;
+      idle = this.busy && !spawnViewBusy() ? idle + 1 : 0;
+      if (idle > 2) return;
+      await task();
+    }
+  }
 
   /** The tiles attached now, by layer (the overlay and tests read them). */
   resident(layer: Layer): ReadonlySet<number> {
@@ -75,6 +108,7 @@ export class TileDriver {
    *  tile not yet attached (colliders first), one at a time. */
   step(x: number, z: number): void {
     if (this.scope.disposed || this.scope.disposing) return;
+    this.last = { x, z };
     const centre = this.centre = followTile(this.centre, x, z), plan = this.ringPlan(centre, this.radius()), wanted = plan.wanted;
     this.renderRing = wanted.render;
     for (const layer of ['render', 'colliders'] as const) for (const [key, tile] of this.attached[layer]) {
@@ -151,7 +185,7 @@ export class TileDriver {
         if (layer === 'render' && content.ready?.() === false) continue;
         // Cached stages may resolve in microtasks; share the live frame's
         // budget before admitting another stage, including background tiles.
-        if (frameBudgetSpent(WORK_SLICE_MS)) await this.pause();
+        if (frameBudgetSpent(WORK_SLICE_MS)) await (loaderMode ? task() : this.pause()); // MF5: no frames under the card
         if (tile.scope.disposed || tile.scope.disposing) return null;
         await (layer === 'render' ? content.attach(key, tile.scope) : content.attachColliders?.(key, tile.scope));
         if (tile.scope.disposed || tile.scope.disposing) return null;
