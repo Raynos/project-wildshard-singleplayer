@@ -27,9 +27,8 @@ sp-x2 MF10, sp-x9 G895 → FC7, sp-x10 MF1 + QB21. QB19 / GAME-S sp-o3 later. G8
 - New QA build for Jake asked of sp-ci-deploy: he was reporting bugs already fixed on main (QB7 14:19).
 - hud.perf world.impacts on Codex sp-x1: read-only count, FX untouched (4718a3fabd).
 - RL10: grid New game keeps its road-resume reload (1ec09517d4).
-- QB10: lanes have no Sentry credential, so sp-x1 triages from the row + /api/errors and lists issue → verdict → SHA in
-  its commit; **wildshard-v resolves them in Sentry** from that list. **wildshard-v: please add all 40 issue ids + titles
-  to the QB10 row** (only 7 are listed; sp-x1 can't read Sentry).
+- G906: GAME-81 came from the QB8 board's older pin c33bf50cfc, before gate 31d48ce97a; no bypass found (x1).
+- QB10: sp-x1 walks the 60 ids (0dd5f3060e) in MF12, id → verdict → SHA; wildshard-v resolves them in Sentry.
 - D53's 8 generator-import sites baselined (dd32fad4b0).
 - families-board retired (3e9937f146); D53 debt; Pine pond, G99 isles kept; Pine drive (D12) under G815; D206 damage list.
 - Spike section 3 taken (P1-P6, Q1-Q5, C1-C4, N1, F1, T1, L3-L6; X1 / X2 after the retro; DA1 / PF1 sent, G874).
