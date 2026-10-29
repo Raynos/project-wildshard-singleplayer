@@ -26,7 +26,7 @@ import type { ProductCache, ProductOptions } from '../shardfile/product';
 import { browserContentStore, contentHash } from '../shardfile/contentStore';
 import { hashOwnedBytes, prepareContentHash } from '@wildshard/engine/boot/contentHash';
 import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
-import { builtIndexHashes } from '@wildshard/format/builtIndexes';
+import { builtIndexHash, builtIndexHashes } from '@wildshard/format/builtIndexes';
 import { readPrefetchIndex } from './prefetchIndex';
 import type { GridAssembly } from './assembly';
 import type { Tier } from '@wildshard/engine/core/tier';
@@ -153,6 +153,8 @@ class GridPrefetch {
     const manifest = findTitleManifest(id), descriptor = manifest?.shardfile ?? manifest?.gridShardfile;
     if (descriptor === undefined) return;
     const url = new URL(descriptor, location.href), base = new URL('.', url).href;
+    const indexHash = import.meta.env.DEV ? null : builtIndexHash(url.pathname);
+    if (indexHash !== null) url.searchParams.set('v', indexHash.slice(0, 8));
     prepareContentHash();
     if (typeof caches === 'undefined') { this.stop('no content cache'); return; }
     const content = browserContentStore(caches), indexes = import.meta.env.DEV ? null : builtIndexHashes();
@@ -295,7 +297,9 @@ export async function remainingDownloadBytes(owner?: Scope): Promise<number | nu
     live();
     const manifest = findTitleManifest(slug), descriptor = manifest?.shardfile ?? manifest?.gridShardfile;
     if (descriptor === undefined) continue;
-    const index = await readPrefetchIndex({ url: new URL(descriptor, location.href).href, indexHashes: indexes === null ? null : [...indexes], phone: tier === 'phone' }, content, owner);
+    const url = new URL(descriptor, location.href), indexHash = import.meta.env.DEV ? null : builtIndexHash(url.pathname);
+    if (indexHash !== null) url.searchParams.set('v', indexHash.slice(0, 8));
+    const index = await readPrefetchIndex({ url: url.href, indexHashes: indexes === null ? null : [...indexes], phone: tier === 'phone' }, content, owner);
     live();
     if (index === null) return null;
     for (const row of [...index.sections, ...index.schemas, ...index.files.map(file => ({ hash: file.hash, bytes: file.compressed }))]) {

@@ -9,7 +9,7 @@ function discardResponse(response: Response | undefined): void {
 
 /** The browser operation is not cancellable; its observer and late body are. */
 function hintResponse(storage: Pick<CacheStorage, 'match'>, url: string, signal?: AbortSignal): Promise<Response | undefined> {
-  const lookup = storage.match(url);
+  const lookup = storage.match(url, { ignoreVary: true });
   if (signal === undefined) return lookup;
   const owner = new Scope('url-cache-response');
   const stopped = new Promise<undefined>(resolve => {

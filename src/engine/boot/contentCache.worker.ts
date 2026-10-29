@@ -36,7 +36,7 @@ async function fetchVerified(command: FetchCommand): Promise<FetchedContent> {
   let body: Uint8Array<ArrayBuffer> | null = null, cached = false, receipt: FetchedContent['timing'] = null;
   if (command.urlCache === true) {
     try {
-      const response = await caches.match(url.href);
+      const response = await caches.match(url.href, { ignoreVary: true });
       if (response !== undefined) { body = await bounded(response, command.bytes); cached = body.length === command.bytes; if (!cached) body = null; }
     } catch { body = null; } // An evicted or stale URL cache falls through to the network.
   }

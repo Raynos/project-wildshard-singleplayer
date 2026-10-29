@@ -9,7 +9,7 @@ test('URL cache bytes trust the declared content identity and retain the cap', a
   const result = await cachedTransport({ match }, 'https://game.test/section.json', 3,
     { hash, bytes: 3 });
   expect(result).toEqual({ bytes, hash });
-  expect(match).toHaveBeenCalledExactlyOnceWith('https://game.test/section.json');
+  expect(match).toHaveBeenCalledExactlyOnceWith('https://game.test/section.json', { ignoreVary: true });
 });
 
 test('stale, oversized and unavailable URL cache hints fall through without authority', async () => {
