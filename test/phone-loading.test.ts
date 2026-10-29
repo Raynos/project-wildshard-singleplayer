@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-import {expect, test} from 'vitest';
-import {comparisons, profiles, record, type Run} from '../scripts/phone-loading/model';
+import {expect, test, vi} from 'vitest';
+import {comparisons, controlQualification, profiles, record, type Capture, type Run} from '../scripts/phone-loading/model';
 import baseline from './fixtures/phone-loading-a6701db71.json';
 import {instrument} from '../scripts/phone-loading/instrument';
 import {observeRequests} from '../scripts/phone-loading/network';
@@ -52,6 +52,7 @@ test('the capture sees the real pointer-up before widget propagation stops, quic
   expect(capture).toMatchObject({rowCoverage: 'native-all-rows', fatal: fatal.textContent,
     rows: [{key: 'quick', duration: 4, wallMs: 10}], errors: [fatal.textContent]});
   document.dispatchEvent(new Event('ws:control-ready'));
+  Reflect.deleteProperty(window, '__phoneLoading');
   delete document.documentElement.dataset['wsState']; document.body.replaceChildren();
 });
 
@@ -67,7 +68,66 @@ test('legacy DOM rows separate their name, detail, exclusive duration and qualif
   expect(data['panels']).toMatchObject([{download: 42, clock: '00:01.2', header: 'Home region', wait: 'Reading model data'}]);
   const rows: readonly unknown[] = Array.isArray(data['rows']) ? data['rows'] : [];
   expect(record(rows[0])['end']).toBeTypeOf('number');
-  document.dispatchEvent(new Event('ws:control-ready')); document.body.replaceChildren();
+  document.dispatchEvent(new Event('ws:control-ready')); Reflect.deleteProperty(window, '__phoneLoading'); document.body.replaceChildren();
+});
+
+test('native grid control requires the intended birth document, uncovered HUD and two ready Home frames', () => {
+  const documentURL = new URL('http://localhost:5173/');
+  vi.stubGlobal('location', documentURL);
+  const frames: FrameRequestCallback[] = [];
+  // oxlint-disable-next-line promise/prefer-await-to-callbacks -- Drive the native rAF callback deterministically, without elapsed sleeps.
+  vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {frames.push(callback); return frames.length;});
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 100, 100));
+  let frameCount = 10, inside = 'home', ready = true;
+  const canvas = document.createElement('canvas');
+  document.body.innerHTML = '<div id="hud"><button class="ws-touch-pause">Pause</button></div><div class="ws-launch">Title</div>';
+  document.body.append(canvas);
+  for (const element of document.querySelectorAll<HTMLElement>('*')) element.style.opacity = '1';
+  const cover = document.querySelector<HTMLElement>('.ws-launch');
+  if (cover === null) throw new Error('Missing cover');
+  const grid = {state: vi.fn(() => ({home: 'home', cells: [{instance: 'home', slug: 'fixture'}]})),
+    travelState: () => ({inside, live: {live: {current: 'home', gameplayReady: ready}}})};
+  Reflect.set(window, '__wildshard', {shard: {slug: 'platform.grid', grid}, world: {
+    hud: {entered: true, paused: false}, game: {get frameCount() {return frameCount;}, frameGate: () => true,
+      app: {clock: {paused: false}, state: 'play'}, renderer: {domElement: canvas}}}});
+  const capture = (): Capture => Reflect.get(window, '__phoneLoading') as Capture;
+  const tick = (at: number): void => {frameCount++; const frame = frames.shift(); if (frame === undefined) throw new Error('No frame'); frame(at);};
+  try {
+    sessionStorage.setItem('phone-loading.tap', '1'); sessionStorage.setItem('phone-loading.expected-shard', 'fixture');
+    document.documentElement.classList.add('title-first');
+    instrument('grid'); document.dispatchEvent(new Event('ws:control-ready'));
+    tick(110); tick(220);
+    expect(capture().control).toBeNull();
+    expect(capture().lastWitness?.blockers).toContain('Not the intended entry document');
+    expect(capture().lastWitness?.covers).toContain('ws-launch');
+    document.documentElement.classList.remove('title-first'); cover.style.display = 'none';
+    tick(330); expect(capture().control).toBeNull();
+    Reflect.deleteProperty(window, '__phoneLoading'); frames.length = 0;
+    documentURL.search = '?chunk=fixture'; instrument('grid');
+    // The real grid removes chunk in this same document after boot.
+    documentURL.search = ''; document.dispatchEvent(new Event('ws:control-ready'));
+    ready = false; tick(440); tick(550); expect(capture().control).toBeNull();
+    ready = true; inside = 'other'; tick(660); expect(capture().control).toBeNull();
+    inside = 'home'; tick(770); expect(capture().control).toBeNull(); tick(880);
+    const accepted = capture(), token = accepted.controlWitness?.documentToken ?? null;
+    expect(accepted.lastWitness?.initialURL).toContain('?chunk=fixture');
+    expect(accepted.lastWitness?.expectedShard).toBe('fixture');
+    expect(accepted.lastWitness?.blockers).toEqual([]);
+    expect(accepted.control).toBeTypeOf('number');
+    expect(accepted.controlWitness).toMatchObject({shard: 'platform.grid', initialChunk: 'fixture', valid: true,
+      gridHome: {slug: 'fixture', current: 'home', inside: 'home', ready: true, entered: true}});
+    expect(grid.state).toHaveBeenCalledTimes(2); // Once per document, never per frame.
+    expect(controlQualification(accepted, token)).toBeNull();
+    expect(controlQualification({...accepted, fatal: 'Original refusal'}, token)).toBe('Application load failed: Original refusal');
+    expect(controlQualification(accepted, 'another-document')).toMatch(/document changed/u);
+    cover.style.display = 'block'; tick(990);
+    expect(controlQualification(capture(), token)).toMatch(/Visible cover/u);
+  } finally {
+    Reflect.deleteProperty(window, '__phoneLoading'); Reflect.deleteProperty(window, '__wildshard'); frames.length = 0;
+    document.documentElement.classList.remove('title-first'); document.body.replaceChildren();
+    sessionStorage.removeItem('phone-loading.tap');
+    sessionStorage.removeItem('phone-loading.expected-shard'); vi.restoreAllMocks(); vi.unstubAllGlobals();
+  }
 });
 
 test('one network ledger retains a cold request finishing during warm and still diagnoses truly missing starts', async () => {

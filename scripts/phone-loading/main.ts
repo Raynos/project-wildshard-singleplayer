@@ -8,7 +8,7 @@ import {contactSheet} from './recording.ts';
 import {observeRequests} from './network.ts';
 import {parseSaveFixture} from './fixtures.ts';
 import {postControlWindow} from './post-control.ts';
-import {comparisons, printRun, profiles, record, type Capture, type ErrorRow, type Run} from './model.ts';
+import {comparisons, controlQualification, printRun, profiles, record, type Capture, type ErrorRow, type Run} from './model.ts';
 import {developerSettings, saveFixture} from '../debug-settings.mjs';
 import {loadingCardIndex} from '../loading-benchmark/catalogue.mjs';
 
@@ -102,6 +102,7 @@ try {
           await cdp.send('Emulation.setCPUThrottlingRate', {rate: profile.cpu});
         }
         let capture: Capture = {tap: null, control: null, rows: [], measures: [], longTasks: [], frameGaps: [], errors: [], rowCoverage: 'unavailable'};
+        let controlDocument: string | null = null;
         try {
           await page.goto(url, {waitUntil: 'commit', timeout});
           // The marker belongs to this entry, not the previous warm visit.
@@ -136,11 +137,29 @@ try {
           });
           // Match the original capture's background-copy window before the
           // warm visit; this time is outside tap-to-control accounting.
-          if (reachedControl) await page.waitForTimeout(afterControl);
+          if (reachedControl) {
+            controlDocument = await page.evaluate(() => {
+              const data: unknown = Reflect.get(window, '__phoneLoading');
+              if (typeof data !== 'object' || data === null || !('controlWitness' in data)) return null;
+              const witness: unknown = data.controlWitness;
+              return typeof witness === 'object' && witness !== null && 'documentToken' in witness && typeof witness.documentToken === 'string' ? witness.documentToken : null;
+            });
+            await page.waitForTimeout(afterControl);
+          }
         } catch (error) {errorAt(String(error), 'flow');}
         try {capture = await page.evaluate(() => Reflect.get(window, '__phoneLoading') as Capture);}
         catch (error) {errorAt(String(error), 'capture');}
+        try {capture = await page.evaluate(() => {
+          const read: unknown = Reflect.get(window, '__phoneLoadingReadControl');
+          if (typeof read !== 'function') throw new Error('Native control witness reader is unavailable');
+          Reflect.apply(read, window, []);
+          return Reflect.get(window, '__phoneLoading') as Capture;
+        });}
+        catch (error) {errorAt(String(error), 'native control capture'); capture.control = null;}
         capture.tap = tapAt ?? capture.tap;
+        const refusal = controlQualification(capture, controlDocument);
+        capture.qualified = refusal === null;
+        if (refusal !== null) {errorAt(`Native control unqualified: ${refusal}`, 'native control/document'); capture.control = null;}
         let longTasksSupported = false;
         try {longTasksSupported = await page.evaluate(() => PerformanceObserver.supportedEntryTypes.includes('longtask'));}
         catch (error) {errorAt(String(error), 'long-task capability');}

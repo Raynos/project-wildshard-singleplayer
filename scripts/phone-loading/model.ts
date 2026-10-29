@@ -12,7 +12,27 @@ export interface ErrorRow {message: string; source: string; url: string; at: num
 export interface RequestRow {url: string; start: number; end: number | null; source: 'worker' | 'service-worker' | 'network'; bytes: number; headerBytes?: number; status: number; failure: string | null}
 export interface Mark {name: string; start: number; duration: number; detail: unknown}
 export interface PanelRow {at: number; clock: string; download: number | null; header: string; wait: string; step: string; activeLabel: string | null}
-export interface Capture {tap: number | null; control: number | null; fatal?: string; stoppedAt?: number; rows: Row[]; measures: Mark[]; longTasks: Mark[]; frameGaps: {start: number; duration: number}[]; errors: string[]; errorDetails?: ErrorRow[]; panels?: PanelRow[]; rowCoverage: string}
+export interface ControlWitness {
+  at: number; documentToken: string; timeOrigin: number; initialURL: string; url: string; initialChunk: string | null;
+  expectedShard: string | null; shard: string | null; titleFirst: boolean; entered: boolean; paused: boolean | null;
+  clockPaused: boolean | null; frameGate: boolean; frames: number | null; appState: string | null;
+  gridHome: {instance: string | null; slug: string | null; current: string | null; inside: string | null; ready: boolean; entered: boolean} | null;
+  hudVisible: boolean; canvasVisible: boolean; covers: string[]; blockers: string[]; valid: boolean;
+}
+export interface Capture {tap: number | null; control: number | null; controlEventAt?: number; controlWitness?: ControlWitness;
+  lastWitness?: ControlWitness; qualified?: boolean; fatal?: string; stoppedAt?: number; rows: Row[]; measures: Mark[];
+  longTasks: Mark[]; frameGaps: {start: number; duration: number}[]; errors: string[]; errorDetails?: ErrorRow[]; panels?: PanelRow[]; rowCoverage: string}
+/** A later document, cover or retired world cannot complete an earlier visit. */
+export function controlQualification(capture: Capture, documentToken: string | null): string | null {
+  if (capture.fatal !== undefined) return `Application load failed: ${capture.fatal}`;
+  if (capture.control === null) return (capture.lastWitness?.blockers.length ?? 0) > 0
+    ? capture.lastWitness?.blockers.join('; ') ?? 'No native entered-control boundary' : 'No native entered-control boundary';
+  const first = capture.controlWitness, last = capture.lastWitness;
+  if (documentToken === null || first === undefined || last === undefined || first.documentToken !== documentToken || last.documentToken !== documentToken)
+    return 'Entry document changed or has no native control witness';
+  if (!first.valid || !last.valid) return last.blockers.join('; ') || 'Entered control is no longer uncovered';
+  return null;
+}
 export interface Run extends Capture {schema: 1; build: string; engine: string; flow: string; cache: string; preset: string; at: string; url: string; profile: Profile; applied: {pageCPU: boolean; pageNetwork: boolean; workerNetwork: boolean; notes: string[]}; requests: RequestRow[]; totalMs: number | null; postControl?: PostControl | null; video?: string; contactSheet?: string}
 export function record(value: unknown): Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value) ? Object.fromEntries(Object.entries(value)) : {};
@@ -41,6 +61,7 @@ export function printRun(run: Run): void {
   };
   console.log(`\n${run.engine} ${run.flow} ${run.cache} ${run.build} [${run.preset}]`);
   console.table([{seconds: run.totalMs === null ? 'INCOMPLETE' : (run.totalMs / 1000).toFixed(3),
+    world: run.controlWitness?.gridHome?.slug ?? run.controlWitness?.shard ?? run.lastWitness?.shard ?? 'unqualified',
     'page network': summary('network'), 'worker network': summary('worker'), 'page via SW': summary('service-worker'),
     longTasks: run.longTasks.length, frameGaps: run.frameGaps.length, errors: run.errors.length}]);
   const secondsAt = (at: number | null): string => at === null ? 'pending' : ((at - (run.tap ?? 0)) / 1000).toFixed(3);
