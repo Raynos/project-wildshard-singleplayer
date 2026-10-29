@@ -68,6 +68,7 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | [close-out](shard-platform/close-out-mini-plan.md) (the 10-28 spike to close and archive every plan) | G824, G834 | **open** 10-28: CO1–CO8; every mini plan archives today except legacy; SHARD-PLATFORM archives after legacy (CO8), counted |
 | [qa-fixes 10-28](../../project/archive/2026-10-29-qa-fixes.md) (Jake's phone QA, one buildable list) | G819–G837 | **open** 10-28: QF1–QF18 + QF2.T1–T8 + QF17.B1–B6 + the LEGACY vs SHARDFILE gaps (Nine reflections, Far Reach islets/Keeper/windmill, Driftwood sailboat, Pine cabin); one immediate release, counted |
 | [qa 10-29](shard-platform/qa-2026-10-29-mini-plan.md) (Jake's phone QA today) | G872–G875 | **open** 10-29: QA1–QA7 (reload pill, 68 s cold freeze, hold toggle, download total, two golden leftovers) |
+| [qa 10-29 (2)](shard-platform/qa-2026-10-29-2-mini-plan.md) (Jake's phone QA of the QA build) | G879 | **open** 10-29: QB1 black boot, QB2 "Preparing next world" line, QB3 boot shell boat + hung module load, QB4 one boot screen; blocks the archive |
 | [nine-regressions 10-28](../../project/archive/2026-10-29-nine-regressions.md) (Nine SHARDFILE vs LEGACY look spike: hands ink hull, wet stone, facades) | G834 | **open** 10-28: NR1–NR8 (NR1 hull projection hook first; R2 floor good on 08348223b9, bad by 93eb52800f), counted |
 | [far-reach-regressions 10-28](../../project/archive/2026-10-29-far-reach-regressions.md) (Sky SHARDFILE vs LEGACY look spike: islets, ring edge, Sunrest underside) | G834 | **open** 10-28: FR1–FR4 (CO6 islets / windmill fixed at 18aaab1583; FR2 whole-cell ring for the far blobs next), counted |
 | [phone-loading 10-28](../../project/archive/2026-10-29-phone-loading.md) (golden flow at phone speed: CPU 10×, 10 Mb/s; where the minute goes) | G837, G848 | **open** 10-28: cold 53.3 s / warm 27.6 s on live a6701db71; PL1–PL12 (PL1–PL3 overlap the 28 MB download with the work first; PL12 Opus pick), counted |
@@ -534,7 +535,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G878+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G879+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.
