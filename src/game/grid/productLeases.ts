@@ -27,7 +27,9 @@ export class ProductLeases<T> {
             if (this.closed || fresh.claim !== undefined) throw new Error('Product admission disposed or reserved twice');
             // T10: the source's residency walk (preflight and heap count) runs in steps under the frame's work slice, the
             // same checks and bytes: in a drive it was one 23-34 ms unit of a drawn frame per product at phone 4x
-            const steps = productResidentBytesSteps(source), slice = workSlice();
+            // Small iterator units matter too: a 4096-value step can exceed
+            // a live frame before the outer slice clock gets another check.
+            const steps = productResidentBytesSteps(source, 64), slice = workSlice(4);
             let step = steps.next();
             while (step.done !== true) { if (slice.due()) await slice.yield(); step = steps.next(); }
             if (this.closed || fresh.claim !== undefined) throw new Error('Product admission disposed or reserved twice');
