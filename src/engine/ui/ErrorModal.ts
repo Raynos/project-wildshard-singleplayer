@@ -144,7 +144,7 @@ function build(): HTMLElement {
   else if (!pose) here.textContent = engineString('s_bdc090ec61e3');
   scope.listen(here, 'click', () => { here.disabled = true; here.textContent = engineString('s_ea456dcf3d90'); reloadHere(!looped); });
   scope.listen(q(el, '.title'), 'click', () => { toTitle(); });
-  scope.listen(q(el, '.keep'), 'click', closeFatal);
+  scope.listen(q(el, '.keep'), 'click', () => { closeFatal(); document.dispatchEvent(new Event('ws:error-keep')); });
   const copyBtn = q(el, '.copy');
   const copy = async (): Promise<void> => {
     const clip = nav.clipboard; if (!clip) return;
@@ -189,7 +189,9 @@ function showFatal(message: string, stack: string, sent: Promise<ReportOutcome> 
       q(root, '.stack').textContent = stack || engineString('s_79b59ea37a9c');
       q(root, '.meta').textContent = engineString('s_err_system', [system, meta()]);
       if (document.pointerLockElement) document.exitPointerLock();
-      document.dispatchEvent(new Event('ws:background')); // the world pauses under it (a no-op on the title / the boot)
+      // the world pauses under it (a no-op on the title / the boot); the HUD remembers this pause for KEEP PLAYING
+      document.dispatchEvent(new Event('ws:error-pause'));
+      document.dispatchEvent(new Event('ws:background'));
       if (sent) void sent.then(setSent); else setSent('dropped');
     }
     q(root, '.n').textContent = count > 1 ? engineString('s_ffd7f4e8c95a', [count - 1, firstText.slice(0, 40)]) : '';

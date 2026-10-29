@@ -292,6 +292,10 @@ export class HUD {
     // native shells (src/engine/native/lifecycle.ts): the app went to the background → pause, never unpause;
     // Android Back → close the menu or pause; preventDefault() tells the shell it was used (else it minimizes the app)
     this.scope.listen(document, 'ws:background', () => { if (this.entered && !this.paused) this.setPaused(true); });
+    // QB8: the error modal pauses the world under it; its KEEP PLAYING resumes only a pause the modal itself made
+    let errorPaused = false;
+    this.scope.listen(document, 'ws:error-pause', () => { if (this.entered && !this.paused) { this.setPaused(true); errorPaused = true; } });
+    this.scope.listen(document, 'ws:error-keep', () => { if (errorPaused && this.paused) this.setPaused(false); errorPaused = false; });
     this.scope.listen(document, 'ws:back', (e) => { if (!this.entered) return; e.preventDefault(); this.setPaused(!this.paused); });
     this.scope.listen(document, WEATHER_EVENT, (e) => { if (e instanceof CustomEvent) this.setWeather(e.detail as WeatherHUD); });
   }
