@@ -1,359 +1,68 @@
-# Generated content (G292)
-
-Shard generators stay in `src/shards/<slug>/generators/`. `scripts/generate.mjs` discovers their bake entry points and
-reads the explicit job sidecar `scripts/generation-jobs.json`. Its DO NOT EDIT notice applies to the listed outputs.
-That sidecar names the retained source command, input roots, outputs and platform policy. Unregistered entry points
-are reported as migration gaps. The full committed-output inventory is in
-[the G292 report](../../progress/shard-platform/g292-outputs.md).
-
-`pnpm gen`, used by Vercel, CI and the push gate's Vercel export, prepares the sidecar's explicitly admitted
-`buildOutputs` before asset tables and shard packing. The first cohort is Sky's goat and Roc rigs, Nalati's bodies,
-Pine's cabins and Signal's grain tile. Each admitted file has a pinned SHA256: a cold job generates in isolation,
-a warm job verifies its cache, and only missing admitted files are restored after the complete job passes.
-Different committed bytes or generated hashes refuse the build. Other jobs remain report-only migration gaps.
-Nine Dragon's layout/specimens pilot is Darwin-normative: Linux retains those files and reports that
-its bit-exact comparison is unavailable. Native witness jobs run on Linux too, with separate OS/architecture keys.
-
-Generation defaults to logical CPU count minus four, clamped to 1–4 producers (G668). Every ordinary/proof mode uses
-that default. `node scripts/gen.mjs --parallel=N` requests 1–4 explicitly; CI pins `--parallel=4`. The legacy bare
-`--parallel` remains an explicit four-job request. Audited long jobs run first when ready; original catalogue
-read/write conflicts still govern admission, and equal/unknown costs retain catalogue ties.
-
-After the producer phase verifies, the two shard-table passes and boot tables can reuse complete local outputs
-(G668 G3). Each pass binds that phase, source/asset bytes, directory inventories, command/environment and its output
-inventory/hashes; boot also binds the installed Rapier/Basis copies. Missing, changed or incomplete tables run the
-original writer. These local receipts never restore files or grant generation/product proof. The push-input seal
-still rechecks source and table hashes; a stat memo avoids rereading unchanged bytes and an identical seal is not rewritten.
-
-Run one declared job with `node scripts/generate.mjs --job=nine-layout`. Add `--compare` to force fresh generation and
-compare both the existing cache and every committed output. `--restore` may materialize absent outputs after the same
-checks; it never overwrites different committed bytes. The pilot keeps stamp seeds because its schema imports them;
-the producer must write every declared output, so a copied seed cannot masquerade as a fresh bake. Removing these
-seeds requires separating schemas from generated data before uncommitting them.
-
-G668 G10 audits with `node scripts/generate.mjs --determinism` (or `--job=<id> --determinism`). Every selected
-job executes two fresh producer processes in the **same** private stage, with identical staged inputs. Seeds are reset,
-incidental files removed and non-output input writes refused between runs; every declared output must be rewritten.
-The audit bypasses phase snapshots and shared output caches, compares exact output SHA256s, never restores source files
-and releases its private results after downstream consumers finish. All registered jobs, including report-only jobs,
-are checked by the full command; unsupported Darwin/browser/tool requirements fail explicitly. Run the full audit on
-one committed revision with `node scripts/check-generation-determinism.mjs --rev=<full-main-sha>`. The official runner
-prepares declared inputs in a pooled build mirror, then checks all jobs under the build and browser lanes. It acquires
-the mirror before the heavy lease and releases both on completion/failure. The audit schedules at most one browser
-producer at a time, alongside the bounded non-browser producers.
-A difference names the producer, output and both hashes and publishes no cache entry. Normal generation's historical
-cache/pinned-output checks remain separate and unchanged: a stable fresh result does not approve a stale retained pin.
-
-Cold staging copies and their SHA256 checks run in a worker, requesting filesystem COW clones with ordinary-copy
-fallback (G668 G4). Stages live under the source tree's ignored `tmp/` and are removed after the producer, including
-copy failures. Immutable upstream cache loans stay live until their consumers finish. An observed cache hit creates
-no stage; a changed producer still executes with its full declared closure before recording a new read set.
-A complete successful read observation may omit unread catalogue bytes from a cache lookup (G668 G6).
-A producer that reads the catalogue still binds its exact bytes. Resolution manifests, root/build policy metadata,
-producer/tool identity and verified outputs remain required. Authored source/public JSON and binary content bind
-their bytes when actually read or imported by a complete observed producer, rather than merely sharing its broad
-input folder. Opaque work keeps every declared byte; a miss always runs the complete declared stage.
-The four boot-presence readers and Sky world's orphan cleanup opt into `catalogueOutputsOnly`: their stage keeps
-every job ID, output path, admitted path and pin, while omitting unused commands and input roots. This preserves
-cross-shard/shared assets and cleanup protection; a changed output declaration still invalidates. The scheduler
-continues to read and validate the original complete catalogue, and checks the projection again after generation.
-The isolated binary-JSON policy likewise retains only the job's declared output-path allowances. Every source
-policy row is validated before projection, the relevant projection is fenced through copying/generation/cache
-return, and the full current source guard still checks all JSON results, including cache hits. Paying down another
-job's allowance cannot re-key this one; deleting this job's allowance still refuses its encoded output.
-Generation read receipts also record attempted workspace-package export keys, including caught missing exports.
-A manifest used only for module resolution may bind those exact keys instead of every unused export; wildcard
-rows and all other manifest fields remain exact. Explicit manifest reads and unsupported exports shapes keep
-whole-file identities. Current raw manifest bytes are fenced before publishing or returning a cache loan.
-Measure normal generation twice at one landed revision with
-`node scripts/benchmark-generation.mjs --rev=<full-main-sha> --parallel=4`.
-The pooled mirror is acquired before one build lease; both runs use identical committed source. Each runs the
-normal build-input generation command, reporting its command wall and individual step times. Queue/sync time
-stays separate. An initial failure ends the attempt; a warm result never means a successful cold build or an
-unrelated-edit benchmark. The command creates no preview, source overlay or permanent benchmark receipt.
-Observation families no longer include every input filename. A complete positive-read ESM observation can reuse
-its outputs after unrelated source files are added or removed. Positive realpath probes of recorded modules use
-those modules' existing identities. Exact existence/native realpath/absent-read probes bind the verified initial
-stage's file/directory/absent ancestor chain; directory reads bind their subtree, including recursive descendants.
-That view includes immutable upstream copies, projected catalogue files, pinned external inputs and output-parent
-directories, never loose checkout files. Unsupported paths, glob/readlink probes, dependency-link scans and unresolved
-bare packages retain the full inventory; failed file resolution also binds the candidate's parent subtree.
-CommonJS resolution-only calls (including Node's ESM error hints) bind the complete filename inventory and package
-metadata. Synchronous load hooks record actual CommonJS source byte-exact, including nested require/JSON loads;
-CommonJS source never uses ESM code normalization. Native, worker and subprocess work keep the complete conservative
-byte key, including when called from a CommonJS module.
-Every miss still executes the complete current stage.
-
-Jobs hash every regular file in their declared conservative input roots plus the runner, sidecar, loader and lockfile.
-Produced files are excluded from input keys unless explicitly declared as schema seeds, so removing or restoring an
-admitted output does not invalidate its own cache. The complete output list remains verified even when only part of
-a job is admitted for build restoration. `buildOutputs` cannot admit schema seeds, Darwin-only or browser jobs.
-Bakers with dynamic reads must declare their complete source/asset closure. Conservative extra inputs cost cache hits,
-not correctness. Node commands run without a shell in a fresh, dependency-linked source copy, never against the shared
-checkout. All outputs are verified before publishing. Changing inputs during copying or generation refuses publication.
-
-`scripts/generation-cache.mjs` is the one asset/witness backend. `runGenerationJob(root, job, {generate, forceCompare})`
-passes an isolated output directory to the producer and returns its verified directory, key, hit, hashes and elapsedMs.
-Keys include exact input SHA256s, command/tool identity and Node version; native/Darwin jobs also include OS/architecture.
-Independent processes coalesce on one key. A failed job publishes nothing; corrupt warm hits regenerate. Forced
-comparison preserves an existing valid cache if new output differs. Cache files live outside git, under
-`WILDSHARD_GENERATE_CACHE` or `~/.cache/wildshard/generate`.
-**Eviction (K4/G7):** generation and shardfile caches each expire entries after
-24 hours idle and cap complete unused entries at 4 GiB, least recently used first.
-Warm reads refresh recency; no per-job history reservation overrides the cap.
-Current generation results and shardfile copies hold reader pins. Live producers,
-locks and staging directories survive pressure, so an active workload can exceed
-the cap until its loans release. Automatic sweeps run after cold publication, at
-most every ten minutes. Prune both now with
-`node scripts/prune-local-caches.mjs [--dry-run]`. Generation-only overrides:
-`node scripts/generation-cache-prune.mjs [--dry-run] [--max-age-hours=24] [--cap-gb=4]`.
-
-
-The backend elapsedMs includes waiting, isolated copying, generation, post-run input verification and publication.
-Warm elapsedMs includes output-hash verification. Initial input-map collection and key verification precede that timer. Neither is a fabricated per-producer estimate. Record cold time and portability evidence before allowing
-the small-and-expensive committed exception (<2 MB **and** >30 s). Blender GLBs remain committed under G293. Browser
-captures and other undeclared producers remain retained until their build path is explicitly proven; the inventory's
-missing producer/timing evidence is a blocker to deletion.
-
-Browser capture jobs require a pinned preview and run through `scripts/browser-lane.sh`. They hash the preview's source
-and public inputs plus the Chromium executable; the build id is fenced before/after. Invoke the producer against the
-immutable preview export, rather than mixing current working sources with an older page. Cold/forced cache comparison
-remains byte-exact. Comparison to older committed captures excludes **only** top-level `revision`, `build`, and `inputs` (where recorded);
-all nested gameplay, clock, actor and collider data stays exact. New provenance is reported and retained in the cache;
-no capture overwrites committed files. Seed outputs are explicitly declared, not copied by default.
-
-Digest-pinned external inputs (for example, uncommitted raw HDRIs) also use this backend. The sidecar declares an
-HTTPS URL and SHA256 for each input; a changed upstream file refuses publication. The verified raw source is copied
-into the isolated tree before the baker runs, so an OS temp cache or mutable discovery API cannot select different
-bytes. Encoder jobs include the executable's bytes and version output in their key. No raw source is committed.
-
-`recordedInputs` is restricted to `RECORDED_BAKES` in `bake-input-hashes.mjs`. It compares committed data using that
-existing rule: only the top-level `inputs` map may differ. Cache cold/forced hashes, including that map, must still
-match exactly. This exception cannot be applied to arbitrary outputs or combined with browser provenance exclusion.
-
-Node jobs that read active-level terrain explicitly preload `scripts/generation-level.mjs` after the TypeScript loader,
-with `--generation-shard=<slug>`. It installs that one real manifest, without discovering or loading other shards. The
-preload and the manifest belong to the declared input closure; a missing composition root never falls back to a fake level.
-
-A standalone pixel generator declares `browser: true` even when it needs no running preview (`sky-textures`).
-Its Chromium executable digest participates in the key; it uses exact bytes for both cache and committed comparisons.
-Run these jobs through `scripts/browser-lane.sh` too. This differs from `capture`, which fences a page build and has the
-explicit top-level capture-provenance comparison described above.
-
-Shared root tooling declares `shard: null`, with its real `scripts/bake-*.mjs` entry; it never receives a synthetic shard
-identity. Discovery also reports undeclared root bakers. The explicit helper list excludes only the loader, check runner,
-input-hash reader and output writer. Shared producers use the same cache, isolation, hash verification and failure rules.
-Those that query the complete level registry explicitly preload `scripts/generation-registry.mjs` after the TypeScript
-loader. Its generated manifest list and all source manifests belong to the input closure.
-
-A shared browser producer with raw binary/image outputs declares `browser: true, preview: true`, and places
-`<preview-url>` in its command argument at the producer's actual URL position. Pass `--url` and `--revision` to the runner;
-it substitutes the URL, binds the preview build and Chromium digest in the key, and checks the build again after baking.
-This grants no provenance exclusion: every output byte must match. Only `capture: true` has the existing, narrowly
-defined physics/spots JSON provenance comparison. All browser producer commands run through `scripts/browser-lane.sh`.
-
-
-## Linux portability evidence
-
-`.github/workflows/generation-compare.yml` runs `scripts/generation-linux.mjs` against a real Linux checkout. It calls
-`generateShardJob` from `scripts/generate.mjs` for every job not marked Darwin-only: a cache miss generates in isolation,
-a warm hit verifies every cached hash, and workflow-dispatch `force` requests fresh regenerate-and-compare. It uses the
-same asset/witness cache, with native keys partitioned by OS/architecture. No committed file is restored or removed.
-
-The report artifact has schema `generation-portability/1`, source pin, actual host/Node identity, and per-output retained
-and generated SHA256s. `bitExactOutputs` includes only raw byte equality. Recorded-input/provenance equivalence is a
-separate field and cannot put a differing file on that list. Producer failures, including unavailable encoder tools or
-external inputs, remain explicit `unavailable` rows; missing evidence is null. Strict refusal still occurs in the runner;
-the observer merely records it. Migration differences are report-only, not deploy gate failures. A workflow/infrastructure
-failure cannot produce a portability claim. Results must be read from the actual Linux artifact before any deletion.
-
-All six physics producers, Pine and Driftwood quest spots, and Nalati placements now run in Node with exact committed
-comparisons. These producers are Linux comparison candidates; their Darwin proofs do not establish Linux byte equality.
-Nine layout and Driftwood fixed models retain their documented Darwin-normative policy. This policy does not waive
-committed comparisons or claim Linux evidence from Darwin runs. In particular, a missing `magick` executable is a tool gap, not output inequality;
-the HDRI producer stays unavailable until that real dependency is supplied.
-
-
-## DS1.5: builds without a browser
-
-Authoring-only JSON recipes use `node --import ./src/sdk/bake/source-loader.mjs src/sdk/bake/json.mjs
-<shard-generator> <function> <output>`. The resolver admits only that shard's six authoring folders plus SDK,
-commons and format; it refuses game, engine, runtime, frozen legacy and sibling-shard imports before evaluating them,
-including computed imports. It does not install the app, simulation bindings or page services. Nine's portal-floor
-job uses this path and retains its pinned output hash. The clean room audits an authoring preload's closure too;
-the old simulation/page preloads remain blocked. Selecting a job for an incremental rehearsal does not grant a
-complete shard-product match or permission to delete its legacy source.
-
-`node scripts/build-without-browser.mjs -- pnpm build` runs the real build with a fail-closed Playwright preloader.
-All Chromium, Firefox and WebKit launches, persistent launches, browser servers and connections refuse; the preloader
-is inherited by Node children. Push/PR CI wraps its checks/build step the same way. Runtime browser proofs and GPU
-asset captures use their separate browser lane; they are not part of a cold application build.
-
-The initial DS1.5 sidecar audit at `08eb8cbd2` found these four browser/capture producers:
-
-| Job | Flag | Work | Route |
-| --- | --- | --- | --- |
-| `pine-spots` | `capture` | Native quest placement and prompt metadata | Node native construction, `d80f47f31` |
-| `driftwood-spots` | `capture` | Native quest placement, reward pose and prompt metadata | Node native construction, `6e34cb556` |
-| `nalati-places` | `browser` | Native geometry, collider rows and specimens | Node canonical producer, `27b0d8da1`; deliberate last-bit re-record |
-| `sky-textures` | `browser` | Canvas2D painting and image encoding | Retained pixel producer: Canvas2D paint and JPEG codec, no WebGL |
-
-`sky-textures` is the only remaining sidecar job with `browser: true`; none retain `capture: true`.
-No temporary `compare-*-physics-page` scripts remain tracked. All six physics producers execute in Node. The broader
-source audit also found `bake-maps` (actual WebGL map rendering), `bake-viewmodel-sets` (Canvas2D painting) and Nalati's
-`bake-coats` mode (CPU coat painting and image encoding). Those image outputs remain committed; they are not admitted
-`buildOutputs`, and a CI build never captures them. Canvas2D is recorded explicitly rather than called a WebGL bake.
-This is the pixel-bake branch of [the design system, §3.1](../plans/shard-platform/design-system.md#31-the-basis-real-threejs-in-node-g311-decided):
-pixel producers use the browser lane or an existing CPU path, while native placement and physics run in Node.
-The descriptor refuses browser/capture jobs with admitted build outputs; missing retained files fail instead of
-starting an implicit browser.
-
-## G320: removal requires a complete product
-
-`scripts/precommit-generation-removals.mjs` runs only when the commit deletes a tracked output from the predecessor's
-generation catalogue. It reads the pathspec/private index, requires the exact predecessor SHA256 in that output's
-`buildOutputs`, and requires a retained shard-owned producer plus a registered complete `shard.json` producer.
-It then rehearses the affected shard jobs from the immutable staged tree, with a new empty cache and every runtime,
-legacy directory and registered generated output removed. The complete product and the deleted output must both
-match exactly. A component-only pass, a missing product, a changed pin or a Darwin-only/browser/seeded producer
-refuses removal. A quiet window refuses the new rehearsal. Normal source commits and historical removals do no
-generation work; no working-tree output is restored or overwritten by the guard.
-
-The six Template/Pastel terrain, props and behavior component jobs pass their author-only cold and clean-room gates.
-Their **complete products are BLOCKED ON SKINS (WAITING FOR OPUS)**: the current skin exporter reaches the native
-factory, AnimalView and game species views, then copies generated fixture outputs. These rig and geometry producers
-are graphical O work. Retained component proofs cannot authorize output or legacy deletion while that closure is
-open. Linux byte parity, the build and boot gates also remain required for a subsequent per-output promotion.
-
-Nine's complete portal-entry JSON job uses the SDK's authoring-only source resolver and JSON driver. Its input list
-contains the entry scene, its data rows and the SDK/format closure; it no longer loads the simulation resolver or
-panel renderer. The unchanged veil literal is checked where the native page consumes it. The entry JSON retains its
-original pinned hash, and a fresh runtime/legacy/cache/all-output-deleted clean room rebuilds it exactly. Nine's
-complete shard product remains a separate gate; this component does not authorize any deletion.
-
-Pine’s `pine-night-director` job compiles its retained typed AssemblyScript and declared ABI through the shared confined authoring loader. Its two pinned products (the one-page module and DO-NOT-EDIT transport JSON) regenerate without runtime, legacy, seeds or a warm cache. This component proof does not admit a whole-product removal.
-
-Nalati’s `nalati-raid-director` job compiles its retained typed AssemblyScript and declared ABI through the shared confined authoring loader. Its two pinned products (the one-page module and DO-NOT-EDIT transport JSON) regenerate without runtime, legacy, seeds or a warm cache. This component proof does not admit a whole-product removal.
-
-Nine’s `nine-fronts` job builds its ten solid fronts from the retained three.js-shaped author scene. The exact scene reader, JSON writer and confined loader closure is keyed without runtime, legacy or seeds. Cold, forced and official clean-room output comparison proves the complete component; it does not admit whole-product removal.
-
-Nine’s `nine-floor-boxes` job builds its ordered floorBoxes colliders from the retained three.js-shaped author scene. The exact scene reader, JSON writer and confined loader closure is keyed without runtime, legacy or seeds. Cold, forced and official clean-room output comparison proves the complete component; it does not admit whole-product removal.
-
-Nine’s `nine-portal-floors` job builds its ordered portalFloors colliders from the retained three.js-shaped author scene. The exact scene reader, JSON writer and confined loader closure is keyed without runtime, legacy or seeds. Cold, forced and official clean-room output comparison proves the complete component; it does not admit whole-product removal.
-
-Nine’s `nine-deck-caps` job builds its ordered deckCaps colliders from the retained three.js-shaped author scene. The exact scene reader, JSON writer and confined loader closure is keyed without runtime, legacy or seeds. Cold, forced and official clean-room output comparison proves the complete component; it does not admit whole-product removal.
-
-Nalati’s `nalati-ghost-volley-director` job compiles its retained typed AssemblyScript and declared ABI through the shared confined authoring loader. Its two pinned products (the one-page module and DO-NOT-EDIT transport JSON) regenerate without runtime, legacy, seeds or a warm cache. This component proof does not admit a whole-product removal.
-
-Sky’s `sky-rising-islets` job builds its four rising socket islets from the retained three.js-shaped author scene. The exact scene reader, JSON writer and confined loader closure is keyed without runtime, legacy or seeds. Cold, forced and official clean-room output comparison proves the complete component; it does not admit whole-product removal.
-
-Driftwood’s `driftwood-director` job compiles its retained typed AssemblyScript and declared ABI through the shared confined authoring loader. Its two pinned products (the one-page module and DO-NOT-EDIT transport JSON) regenerate without runtime, legacy, seeds or a warm cache. This component proof does not admit a whole-product removal.
-
-The Driftwood director component remains report-only: its retained outputs are not admitted as buildOutputs, and no removal is authorized before its complete shard product passes.
-
-Pine’s `pine-clock-director` job compiles its retained typed AssemblyScript and declared ABI through the shared confined authoring loader. Its two pinned products (the one-page module and historical transport JSON) regenerate without runtime, legacy, seeds or a warm cache. The job remains report-only. This component proof does not admit activation or whole-product removal.
-
-Signal’s `signal-skitterer-behaviour` report-only job compiles its retained native AssemblyScript policy through the confined SDK author loader. Its exact historical transport shape and hash regenerate without runtime, legacy, seeds or a warm cache. No activation or removal is admitted until the whole shard product passes.
-
-Nalati’s existing `nalati-qara` component now runs through the confined SDK author loader with its exact compiler/retained AS closure. Cold, forced and official clean-room regeneration preserve the original transport hash. Existing activation is unchanged, and this component evidence cannot authorize whole-product removal.
-
-Pine’s `pine-elite-behaviours` report-only component compiles the four retained native elite policies after their exact shared AS prelude, through the confined SDK author loader. All four original transport hashes regenerate without runtime, legacy, seeds or a warm cache. No activation or removal is admitted until the whole shard product passes.
-
-Nalati’s `nalati-weapon-hooks` report-only component compiles retained `behaviour/weapons.as` with the typed sabre hook declaration, whose parameters come from the existing authored weapon profile. The original module and declaration hashes regenerate without runtime, legacy, generated seeds or a warm cache. No activation or removal is admitted until the whole shard product passes.
-
-### Nine static physics placements (G320)
-
-The complete `nine-physics-placements` component compiles eight ordered
-floor/front/deck/guard rest pieces from retained collider scenes and the
-floor plan. Its 7.4 KB JSON is generated on a cache miss and pinned to
-SHA-256 `044b4d71b4a17d42afbcce23672ac51fb97e2e9ece0c205d31a0fd855fd9606d`; it is never a copied physics snapshot. The
-authored physics product (`nine-physics`, G350-ND) adopts these placements
-directly; the remaining model and crossing pieces and the hooks are authored
-rows (`data/physicsRows.json`). Live guard state, grid cap selection and body
-ownership stay unchanged.
-
-### Sky static physics placements (G320)
-
-The complete `sky-physics-placements` component compiles sixteen ordered
-island-top and road-lip rest pieces from retained island rows and SocketLift
-authoring. Its 11.4 KB JSON is generated on a cache miss and pinned to
-SHA-256 `cc7ce2378d56f43ad1b40f9ab90518bc618110494de9a2456628070d88a68473`; it is never a copied physics snapshot. The native
-physics baker adopts these placements directly, keeping the remaining
-mesh-derived hulls and creature rigs as an explicitly transitional capture.
-Live islet mover poses and body ownership stay unchanged.
-This component cannot authorise removal of the complete physics product.
-
-### Signal camp physics placements (G320)
-
-The complete `signal-physics-placements` component compiles the caravan,
-well and three waymarks from retained source recipes on an authored dune
-field, simplex seed, trail bed and entry grading. It never reads captured
-heights, world constructors or recorded collider JSON. The shipping height
-law remains unchanged; the retained author version is compared exactly
-against it across seeds, terrain samples and all native placement fields.
-Its 4.5 KB JSON is generated on a cache miss and pinned to SHA-256
-`dc53caf1683fea1aa8e0117b93485ef09e6956fbd55b29846f0783e5ee8bd92f`. Remaining creature rigs, tower/model placements and prompt
-readbacks are transitional; this component permits no whole-product removal.
-
-### Signal tower colliders (G320)
-
-The complete `signal-tower-colliders` component emits forty tower boxes
-from retained leg/deck/rail/open-stair/bowl recipes and the authored dune
-height law. No retained tower JSON, world constructor, material or geometry
-producer is an input. The native producer adopts these generated rows in
-its original registration order. The cheap JSON is generated on a cache
-miss, pinned to SHA-256 `fd9796b48b293c9408a637fc0bc863da71a0009f3a95c55c1c0db6573af9439c`. Geometry/rig/body and prompt owners
-remain transitional; no whole-product output removal is authorised.
-
-### Sky bridge colliders (G320)
-
-The complete `sky-bridge-colliders` component emits eleven rope/hover/
-updraft/winch rest placements (975 boxes) from retained layout, chord,
-quaternion and sag expressions, plus authored rising-islet rows. No world,
-geometry, material, runtime helper or captured collider is an input. Live
-mode gates and winch/islet motion stay with their existing owners. The
-cheap JSON is generated on a cache miss, pinned to SHA-256 `d5545bc47278abcf37fbefea7a2fdbad75a8998b684e309a1585da081ce425f7`.
-Remaining mesh/rig/body owners are transitional; no whole-product output
-removal is authorised.
-
-### Driftwood native ground (G320)
-
-The complete `driftwood-ground` component recompiles the original 256²
-WSTR lattice from retained island, seeded noise, grading, trail and road
-source. The native physics producer uses that source directly, with the
-exact G164 drop/unshift arithmetic. No runtime, manifest, retained grid or
-captured collider is an input. The pinned output SHA-256 is `7ee9dec5bd542063dce4c19d70d3e2fe9c3f61b54eff23387c0aec5629346c43`.
-The committed terrain stays until the whole-product clean room is green.
-Navmesh completion still requires all collider/floor dependencies; a ground
-component pass grants no output removal.
-
-### Driftwood entry floors (G320)
-
-The complete `driftwood-entry-floors` primitive component builds the four
-original road-height landing slabs as SDK `BoxCollider` objects and compiles
-them through `readScene`. The world and shardfile read the admitted cached
-JSON; neither imports the generator. Coordinates, stone contacts, registration
-order and native collider/floor ownership remain the original G164/G170 ones.
-The output is a build-time cache product with pinned SHA-256 `4e49e80ad17b80e82198c38aaf929cc46d62f9ce6e44a4228dd739665a8feddd`.
-No retained output seeds the job. Full physics/navmesh and whole-product
-clean rooms remain separate requirements; this component grants no deletion.
-
-### Driftwood road-deck placements (G320)
-
-The complete `driftwood-entry-decks` numeric component derives the original
-four road-deck footprints, ocean foam slabs and column depths from the cold
-native ground lattice. The bilinear sample arithmetic and datum remain the
-shipping heightfield law. The client reads admitted cached JSON and supplies
-those exact parameters to the retained geometry factory; geometry is not
-produced or rewritten by this component.
-The cache output has pinned SHA-256 `a8e29b1476aed0e84a45e139a7492fc30603349845ee6c828a918d2b67fe9297` and no retained seed.
-Full physics/navmesh and whole-product clean rooms remain separate gates;
-this component grants no output deletion.
-
-G609: CI transfers only the fixed `.cache/generation-phase.json` receipt beside
-its same-run generated inputs. The next product preparation independently
-rechecks its recipe, source bytes, negative source inventory and output hashes;
-the artifact is not permission to skip that verification. Derived discovery
-modules written after the producer phase do not enter broad source roots, as
-on a clean producer run. An explicitly declared discovery input remains live.
-Other cache files cannot enter the preparation archive.
+# Generated content
+
+Shard producers live in `src/shards/<slug>/generators/`. Each shard's
+`shard.config.ts` declares its inputs and prepares its product through the
+SDK build context. Product construction owns the returned rows and bytes;
+there is no separate scheduler job to run for a retired producer.
+
+## Source tables
+
+`pnpm gen:source` runs the plain producers registered in
+`scripts/source-generators.mjs`, through `scripts/gen-source.mjs`. Each row
+owns explicit output paths. Producers must return exactly those paths and
+text values; duplicate owners and invalid paths refuse. Unchanged files are
+left alone.
+
+`pnpm gen:source --check` checks committed tables without writing. A stale
+table names its path and asks for regeneration. `--changed=<path>` selects
+only producers fed by that input. `scripts/commit.sh` uses the corresponding
+`--stage --changed=<path>` operation against its candidate inputs and joins
+those committed tables to the source change. Do not hand-edit generated
+text or stage a peer's unrelated output.
+
+`scripts/gen-shards.mjs` emits the shard composition and slug tables. A
+shard's discovery module is refreshed from its prepared product; the title
+and selection catalogues are build outputs under `out/.app/`. Discovery
+must describe the same product, including its actual boot inventory.
+
+## Product and app builds
+
+`pnpm gen` runs `scripts/gen.mjs` under the shared build lane. It refreshes
+source prerequisites and compiled program/discovery inputs. The
+`--inputs-only` form prepares the inputs needed by the later product build;
+it does not qualify a finished application.
+
+`pnpm build` then checks types, runs `scripts/build-shardfiles.mjs`, runs
+`scripts/build-app.mjs`, and checks the resulting distribution. The shard
+builder supports `--shard=<slug>` for a local product scope. Program-bound
+discovery providers remain required, and CI builds the complete inventory.
+A filtered product is not a complete preview inventory.
+
+Use `scripts/serve-build.sh --head` or `--rev <landed-sha>` for a pinned
+preview, from the shared checkout. Reuse its existing server and release
+your borrower when finished. The script owns the build mirror and heavy
+lease; lanes do not run independent checks in that mirror. See
+[MACHINE.md](MACHINE.md) for build/browser limits and
+[GIT.md](GIT.md) for landing and push checks.
+
+## Cache and correctness
+
+Source-table reuse is implemented by `scripts/source-table-cache.mjs`;
+native recorder reuse is implemented by `scripts/native-recorder-cache.mjs`.
+These are accelerators, not permission to change authored output. A changed
+input or producer must not reuse a result keyed by the earlier source.
+Keep the input freshness fences and original byte/value controls when
+changing a producer. A source mutation during generation refuses the run;
+resolve the defining mutation before starting another build.
+
+Build-time code uses the injected SDK capabilities for file access and
+compilation. It must remain inside its authoring closure: runtime/render
+imports are not allowed as a shortcut to obtain old generated bytes. Data
+is a plain file from a plain script, never a new Vite plugin or virtual
+module (G798/G799). Native scalar output that crosses hosts uses the
+portable math contract documented in [DEPLOY.md](DEPLOY.md).
+
+Generated outputs keep one owner. Remove a retired producer's live readers
+and stale tool/policy references in the same source packet. Keep exact
+predecessor controls when a declared codec changes transport; a cache hit
+or a repinned hash does not prove parity.
