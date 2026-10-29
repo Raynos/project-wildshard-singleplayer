@@ -7,13 +7,13 @@
  * and graph / family per channel: where the two light models part (the shade band, the terminator, the lit band, the
  * cast shadow) reads off the rows. `window.toneParity` holds the result.
  */
-import { BoxGeometry, BufferAttribute, Color, DirectionalLight, FloatType, HemisphereLight, Mesh, PCFShadowMap, PerspectiveCamera, PlaneGeometry, RGBAFormat, Scene, SphereGeometry, Vector3, WebGLRenderer, WebGLRenderTarget, type BufferGeometry, type Material } from 'three';
+import { BackSide, BoxGeometry, BufferAttribute, Color, DirectionalLight, MeshBasicMaterial, PMREMGenerator, FloatType, HemisphereLight, Mesh, PCFShadowMap, PerspectiveCamera, PlaneGeometry, RGBAFormat, Scene, SphereGeometry, Vector3, WebGLRenderer, WebGLRenderTarget, type BufferGeometry, type Material } from 'three';
 import { Scope } from '../../src/engine/app/scope';
 import { clientMaterials } from '../../src/game/shardfile/clientMaterials';
 import { emptyShardfile } from '../../src/sdk/author';
 import { GRAPH_PRESET_VERSION, parseFamilyMaterial } from '../../src/format/materialFamilies';
 
-interface ToneCase { readonly name: string; readonly entry: Readonly<Record<string, unknown>>; readonly looks: Readonly<Record<string, unknown>>; readonly hemi?: number }
+interface ToneCase { readonly name: string; readonly entry: Readonly<Record<string, unknown>>; readonly looks: Readonly<Record<string, unknown>>; readonly hemi?: number; readonly env?: boolean }
 interface ToneRow { readonly at: string; readonly ndl: number; readonly family: number[]; readonly graph: number[]; readonly ratio: number[] }
 
 /** The cases: each family at its defaults, and at the look values its shard's damage row names. */
@@ -26,6 +26,8 @@ const CASES: readonly ToneCase[] = [
   { name: 'painterly-floor0', entry: { family: 'painterly', colour: [0.62, 0.58, 0.52], floor: 0 }, looks: {} },
   { name: 'painterly-bands0', entry: { family: 'painterly', colour: [0.62, 0.58, 0.52], bands: 0 }, looks: {} },
   { name: 'painterly-rim-only', entry: { family: 'painterly', colour: [0, 0, 0], rim: 1, shade: 0, floor: 0, bands: 0 }, looks: { painterly: { rim: [3, 3, 3], grade: null, warm: 0 } }, hemi: 0 },
+  { name: 'painterly-env', entry: { family: 'painterly', colour: [0.62, 0.58, 0.52], rim: 0.3 }, looks: { painterly: { grade: null } }, env: true },
+  { name: 'toon-env', entry: { family: 'toon', colour: [0.6, 0.45, 0.3], faceted: false }, looks: {}, env: true },
   { name: 'toon-defaults', entry: { family: 'toon', colour: [0.6, 0.45, 0.3], faceted: false }, looks: {} },
   { name: 'toon-no-cloud', entry: { family: 'toon', colour: [0.6, 0.45, 0.3], faceted: false }, looks: { toon: { cloudShade: { strength: 0, scale: 60, wind: [0, 0] } } } },
 ];
@@ -53,6 +55,11 @@ async function prove(): Promise<unknown> {
   camera.updateMatrixWorld(); floorCamera.updateMatrixWorld();
   /** a world point's pixel in the target (bottom-left origin, as readRenderTargetPixels reads) */
   const pixel = (at: Vector3, cam: PerspectiveCamera): [number, number] => { const p = at.clone().project(cam); return [Math.round((p.x * 0.5 + 0.5) * SIZE), Math.round((p.y * 0.5 + 0.5) * SIZE)]; };
+  // a sky environment, as the game's sky rig sets `scene.environment`: blue above, warm ground below
+  const envScene = new Scene(), envSphere = new SphereGeometry(10, 32, 16), envColours = new Float32Array(envSphere.getAttribute('position').count * 3);
+  for (let i = 0; i < envColours.length / 3; i++) { const up = envSphere.getAttribute('position').getY(i) / 10; envColours.set(up > 0 ? [0.35 + 0.3 * up, 0.5 + 0.3 * up, 0.9] : [0.4, 0.3, 0.2], i * 3); }
+  envSphere.setAttribute('color', new BufferAttribute(envColours, 3)); envScene.add(new Mesh(envSphere, new MeshBasicMaterial({ vertexColors: true, side: BackSide })));
+  const pmrem = new PMREMGenerator(renderer), environment = pmrem.fromScene(envScene).texture;
   const results: Record<string, unknown> = {};
   try {
     for (const c of CASES) {
@@ -74,7 +81,7 @@ async function prove(): Promise<unknown> {
       // the sphere: N·L across its face
       const sphereRows = new Map<string, number[]>();
       for (const id of ['family', 'graph']) {
-        const scene = new Scene(); lights(scene);
+        const scene = new Scene(); lights(scene); scene.environment = c.env === true ? environment : null;
         scene.add(new Mesh(scope.own(coloured(new SphereGeometry(1, 128, 64))), pick(id)));
         draw(scene, camera);
         for (let gy = -3; gy <= 3; gy++) for (let gx = -3; gx <= 3; gx++) {
@@ -92,7 +99,7 @@ async function prove(): Promise<unknown> {
       // the floor: lit, and in the box's cast shadow
       const floorRows = new Map<string, number[]>();
       for (const id of ['family', 'graph']) {
-        const scene = new Scene(); lights(scene);
+        const scene = new Scene(); lights(scene); scene.environment = c.env === true ? environment : null;
         const floor = new Mesh(scope.own(coloured(new PlaneGeometry(4, 4, 8, 8))), pick(id)); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true;
         const box = new Mesh(scope.own(coloured(new BoxGeometry(0.6, 3, 0.6))), pick(id)); box.position.set(0, 1.5, 0); box.castShadow = true; box.receiveShadow = true;
         scene.add(floor, box);
@@ -109,7 +116,7 @@ async function prove(): Promise<unknown> {
       results[c.name] = { looks: c.looks, entry: c.entry, rows, materials: { family: pick('family').type, graph: pick('graph').type } };
     }
     return { pass: true, sun: SUN.toArray(), results };
-  } finally { scope.dispose(); target.dispose(); }
+  } finally { scope.dispose(); target.dispose(); environment.dispose(); pmrem.dispose(); }
 }
 
 let result: unknown;
