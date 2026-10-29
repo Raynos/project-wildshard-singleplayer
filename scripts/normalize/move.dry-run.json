@@ -782,7 +782,6 @@
     "src/engine/ui/perfLapSummary.ts",
     "src/engine/ui/perfProbe.ts",
     "src/engine/ui/ReloadPrompt.ts",
-    "src/engine/ui/Resume.ts",
     "src/engine/ui/review.ts",
     "src/engine/ui/roomMap.ts",
     "src/engine/ui/RotateGate.ts",
@@ -804,7 +803,6 @@
     "src/engine/ui/styles/playgrounds.css",
     "src/engine/ui/styles/quest.css",
     "src/engine/ui/styles/reload.css",
-    "src/engine/ui/styles/resume.css",
     "src/engine/ui/styles/rotate.css",
     "src/engine/ui/styles/touch.css",
     "src/engine/ui/styles/update.css",
@@ -4675,10 +4673,6 @@
       "to": "src/engine/ui/ReloadPrompt.ts"
     },
     {
-      "from": "src/ui/Resume.ts",
-      "to": "src/engine/ui/Resume.ts"
-    },
-    {
       "from": "src/ui/RideHUD.ts",
       "to": "src/shards/nalati-grasslands/ride/RideHUD.ts"
     },
@@ -4893,10 +4887,6 @@
     {
       "from": "src/ui/styles/reload.css",
       "to": "src/engine/ui/styles/reload.css"
-    },
-    {
-      "from": "src/ui/styles/resume.css",
-      "to": "src/engine/ui/styles/resume.css"
     },
     {
       "from": "src/ui/styles/ride.css",
