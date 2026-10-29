@@ -289,7 +289,7 @@ current slice (no mid-task re-briefs, G492); none starts new work after this is 
 | MF10 | Exits are navigations | **done** — source `5837630bca` / `92cad6de32`, native title routing `bdf605f0c6`. Containing `bdf605f0c6` iPhone 16 Pro: all 22 original standalone exits pass; Chromium 31.9–123.5 ms, WebKit 44–76 ms, zero disposal reports. WebKit Pine 827→65, Nine 854→44, Blender 885→48, Sky 971→59 ms; all 11 ≤ 500 ms. Native routes serve installed title code from the existing caches and race the network against the exact offline shell, with no timer or claim. DW New game retained 46.7 / 63 ms. | Codex sp-x2 + sp-x10 · done bdf605f0c6 | S |
 | MF11 | No leases | Upload once, dispose once; delete KTX2 lease swaps and loans outside the grid. Done: Pine / Nine Simulator footprint not worse; `usedTimes` gone from Sentry. | Opus sp-o3 · lease deleted d3e3a5d904 (+ a8f42bf20e); ownership loans fold into Family 4. Simulator Safari (iPhone 17 Pro, WebContent game process, one run each, 85d84f3bb9 → a8f42bf20e): **Nine** loading high 0.774 → 0.750 GB, play high 0.559 → 0.502 GB (GPU process 0.177 both); **Pine** loading high 0.737 → 0.705 GB, play high 0.647 → 0.779 GB from a start-of-play transient (play starts 0.58 vs 0.71 GB, before the lease's 10 s grace), steady end of play 0.550 → 0.569 GB (+19 MB: sleeping animals' textures now stay); a second Pine pair is due on the next Sim lease | M |
 | MF12 | Bookkeeping throws to the bake | Walk the 40 Sentry issues and the frame-path throws: each becomes a bake check or a skip-and-report. Done: Sentry 7-day list at zero or resolved with a line each. | Codex sp-x6 (rest; sp-x1 60-id verdicts e74ca75809, sp-x2 1c7d017b59) | M |
-| MF13 | Stream past spawn invisibly | NP-2: refines only out of view or dither-faded. Done: walk over Nine's first two bridges, no visible swap. | Opus sp-o3 (after MF11) | M |
+| MF13 | Stream past spawn invisibly | NP-2: refines only out of view or dither-faded. Done: walk over Nine's first two bridges, no visible swap. | Opus sp-o3 · slice 1 cf7426e56d + 93f6a3aaaa (12 / 20 tiles attach out of sight); dither slice after MF15 | M |
 
 **Supersedes:** QB7, QB10, QB14, RL9's split, the remaining `contentCache` / admission rows anywhere.
 
@@ -298,7 +298,7 @@ current slice (no mid-task re-briefs, G492); none starts new work after this is 
 | Row | What | Rewrite / delete / done when | Lane | Size |
 |---|---|---|---|---|
 | MF14 | HUD slots from state | **Rewrite** the action-slot update as a per-frame pull (E332: herdr before and after; no layout change). Done: Nine hook shows ZIP on lock with no app switch. | Opus sp-o4 (after FC12 Pine / Nalati) | S |
-| MF15 | Nine verbs | Hook lock → ZIP → lift to the hook point → land, vs LEGACY (QB17). | Opus sp-o3 (after MF13; QB17 b) | M |
+| MF15 | Nine verbs | Hook lock → ZIP → lift to the hook point → land, vs LEGACY (QB17). | Opus sp-o3 (next, G915 QB17 first) | M |
 | MF16 | Dunes verbs | The well crank end to end, three times (QB15). | Opus | M |
 | MF17 | Pine verbs | Crossbow aim / fire / reload / swap 5 min, quests (QB11 rest). | Opus | S |
 | MF18 | Driftwood, Nalati, Sky verb lists | Played both modes; fix differences. | Opus | M |
