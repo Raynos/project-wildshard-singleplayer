@@ -17,9 +17,12 @@ export interface PhonePage {
   engine:'simulator-safari'|'webkit-iphone'; faults:string[];
   cold:(url:string,paintScript:string)=>Promise<void>; click:(selector:string)=>Promise<void>;
   /** Reattach only after an intentional UI action navigates to this exact document. */
-  followNavigation?:(url:string)=>Promise<void>;
+  followNavigation:(url:string,previous:PhoneDocument,deadline:number)=>Promise<void>;
   evaluate:(expression:string)=>Promise<unknown>; screenshot:(path:string)=>Promise<Buffer>; close:()=>Promise<void>;
 }
+export interface PhoneDocument {readonly url:string;readonly visit:string;readonly document:string;readonly boot:string}
+export function enterPhoneGrid(page:Pick<PhonePage,'evaluate'|'click'|'followNavigation'>,url:string,deadline:number):Promise<void>;
+export function capturePhoneFailure(page:Pick<PhonePage,'screenshot'>,path:string):Promise<void>;
 export interface PhoneReceipt {
   protocol:string; rollout?:string; sha:string; version:{build:string}; engine:PhonePage['engine']; steps:string[];
   paint:{heroMs:number|null;fcpMs:number|null;heroURL:string|null}; entry:PhoneEntry|null; wall:PhoneWall|null;

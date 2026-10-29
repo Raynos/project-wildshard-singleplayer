@@ -4,16 +4,49 @@ import { Window } from 'happy-dom';
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute the real generated bootstrap against isolated storage.
 import { runInNewContext } from 'node:vm';
 import { phoneEngine } from '../scripts/parity/phone-route-runner.mjs';
-import { phoneRouteFailures, phoneRoutePlans, type PhoneReceipt, type PhoneObservation } from '../scripts/parity/phone-route.mjs';
+import { capturePhoneFailure, enterPhoneGrid, phoneRouteFailures, phoneRoutePlans, type PhoneReceipt, type PhoneObservation, type PhoneDocument } from '../scripts/parity/phone-route.mjs';
 import { phoneTouchButton, phoneWallTarget } from '../scripts/parity/phone-route-page.mjs';
-import { phoneBootstrap, phonePageTarget } from '../scripts/parity/phone-route-browser.mjs';
+import { phoneBootstrap, phoneDocumentMatches, phonePageTarget } from '../scripts/parity/phone-route-browser.mjs';
 
 test('phone bootstrap persists numeric mute after a caller replaces settings',()=>{
   const stored=new Map<string,string>();
   const localStorage={getItem:(key:string)=>stored.get(key)??null,setItem:(key:string,value:string)=>{stored.set(key,value);}};
-  runInNewContext(phoneBootstrap('localStorage.setItem("wildshard.save.v2.global",JSON.stringify({keys:{settings:{v:1,data:{tier:"phone",volume:0.8}}}}));'),{window:{},location:{href:'http://localhost/'},localStorage});
+  runInNewContext(phoneBootstrap('localStorage.setItem("wildshard.save.v2.global",JSON.stringify({keys:{settings:{v:1,data:{tier:"phone",volume:0.8}}}}));'),{window:{},location:{href:'http://localhost/'},localStorage,crypto:{randomUUID:()=> 'new-document'}});
   const saved:unknown=JSON.parse(stored.get('wildshard.save.v2.global')??'null');
   expect(saved).toMatchObject({keys:{settings:{data:{tier:'phone',volume:0}}}});
+});
+
+const priorDocument: PhoneDocument = {url:'http://localhost/?tier=phone',visit:'owned-visit',document:'old-title',boot:'http://localhost/?tier=phone'};
+test('GRID reconnect accepts only the owned fresh entry document at the exact final URL',()=>{
+  const current={url:'http://localhost/',visit:'owned-visit',document:'new-grid',boot:'http://localhost/?chunk=coast'};
+  expect(phoneDocumentMatches(current,'http://localhost/',priorDocument)).toBe(true);
+  for(const rejected of [priorDocument,{...current,document:'old-title'},{...current,visit:'another-visit'},
+    {...current,url:'http://localhost/version.json'},{...current,boot:'http://elsewhere/?chunk=coast'},
+    {...current,boot:'http://localhost/'},{...current,document:''},null])
+    expect(phoneDocumentMatches(rejected,'http://localhost/',priorDocument)).toBe(false);
+});
+
+test('GRID follows the real title click before establishing readiness in the new document',async()=>{
+  const calls:string[]=[];const deadline=123456;
+  await enterPhoneGrid({evaluate:()=>Promise.resolve(priorDocument),click:selector=>{calls.push(selector);return Promise.resolve();},
+    followNavigation:(url,previous,received)=>{expect(calls).toEqual(['.ws-main-grid']);expect(url).toBe('http://localhost/');
+      expect(previous).toEqual(priorDocument);expect(received).toBe(deadline);calls.push('fresh-document');return Promise.resolve();}},'http://localhost/',deadline);
+  expect(calls).toEqual(['.ws-main-grid','fresh-document']);
+});
+
+test('a missing owned title document refuses before the GRID action',async()=>{
+  let clicked=false;
+  await expect(enterPhoneGrid({evaluate:()=>Promise.resolve(null),click:()=>{clicked=true;return Promise.resolve();},
+    followNavigation:()=>Promise.resolve()},'http://localhost/',123456)).rejects.toThrow('no owned title document');
+  expect(clicked).toBe(false);
+});
+
+test('a failed diagnostic screenshot cannot replace the primary route failure',async()=>{
+  const failures=['Phone route evaluation lost its document'];
+  for(const screenshot of [()=>{throw new Error('xcrun ETIMEDOUT');},()=>Promise.reject(new Error('capture rejected'))]) {
+    await expect(capturePhoneFailure({screenshot},'failure.jpg')).resolves.toBeUndefined();
+    expect(failures).toEqual(['Phone route evaluation lost its document']);
+  }
 });
 
 test('native route selects its exact document instead of the older version probe',()=>{

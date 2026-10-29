@@ -84,6 +84,23 @@ async function capture(page, out, label) {
   return { label, width: metadata.width ?? 0, height: metadata.height ?? 0, darkShare: dark / pixels };
 }
 
+/** The real title action navigates. Reattach only to that visit's new exact document before polling gameplay.
+ * @param {Pick<import('./phone-route.mjs').PhonePage,'evaluate'|'click'|'followNavigation'>} page @param {string} url @param {number} deadline */
+export async function enterPhoneGrid(page,url,deadline) {
+  const prior = await page.evaluate('({url:location.href,visit:window.__phoneRouteVisit,document:window.__phoneRouteDocument,boot:window.__phoneRouteBootURL})');
+  if (typeof prior !== 'object' || prior === null || !('url' in prior) || typeof prior.url !== 'string'
+    || !('visit' in prior) || typeof prior.visit !== 'string' || !('document' in prior) || typeof prior.document !== 'string'
+    || !('boot' in prior) || typeof prior.boot !== 'string') throw new Error('Phone route has no owned title document');
+  await page.click('.ws-main-grid');
+  await page.followNavigation(url,{url:prior.url,visit:prior.visit,document:prior.document,boot:prior.boot},deadline);
+}
+
+/** Diagnostics may fail synchronously (simctl) or asynchronously without replacing the primary route refusal.
+ * @param {Pick<import('./phone-route.mjs').PhonePage,'screenshot'>} page @param {string} path */
+export async function capturePhoneFailure(page,path) {
+  try { await page.screenshot(path); } catch { /* the retained route failure remains primary */ }
+}
+
 /** @param {import('./phone-route.mjs').PhonePage} page @param {string} label */
 async function fpsWindow(page, label) {
   // G718's own completed draw clock; a freeze contributes its full wall time.
@@ -124,8 +141,9 @@ export async function phoneRoute(page, base, sha, out) {
     await page.click('.ws-main-select');
     await until(page, `document.querySelector('.ws-menu:not(.hide)')!==null`, 'SHARD SELECT', Date.now() + 150000);
     receipt.steps.push('SHARD SELECT'); await shot('SHARD SELECT'); await page.click('.ws-menu-back');
-    await page.click('.ws-main-grid');
-    await until(page, `(()=>{const p=window.__wildshard;if(!p?.world)return false;const g=p.shard.grid?.state?.();const reveal=document.querySelector('.ws-grid-reveal');if(reveal)reveal.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));return g?.live?.live?.gameplayReady===true&&g.inside===g.home&&p.requireWorld().game.frameGate();})()`, 'grid Driftwood entry', Date.now() + 150000);
+    const gridDeadline = Date.now()+150000, gridURL = new URL(base); gridURL.search=''; gridURL.hash='';
+    await enterPhoneGrid(page,gridURL.href,gridDeadline);
+    await until(page, `(()=>{const p=window.__wildshard;if(!p?.world)return false;const g=p.shard.grid?.state?.();const reveal=document.querySelector('.ws-grid-reveal');if(reveal)reveal.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));return g?.live?.live?.gameplayReady===true&&g.inside===g.home&&p.requireWorld().game.frameGate();})()`, 'grid Driftwood entry', gridDeadline);
     receipt.steps.push('grid', 'Driftwood'); await observe(); await shot('Driftwood'); receipt.fps.push(await fpsWindow(page, 'Driftwood'));
     const initial = await observe(), { market, plans } = phoneRoutePlans(initial);
     const identity = /** @type {import('../frame-floor-grid.mjs').FloorGridDocumentIdentity} */ (await page.evaluate(`(${gridFloorDocumentIdentity.toString()})()`));
@@ -156,7 +174,7 @@ export async function phoneRoute(page, base, sha, out) {
   } catch (error) {
     receipt.failures.push(String(error));
     receipt.stop = await page.evaluate(`(()=>{const api=window.__wildshard,grid=api?.shard.grid;if(!grid||typeof grid.state!=='function')return null;const state=grid.state();return {drive:window.__frameFloorGridStop??null,ringsReady:state.ringsReady,ringsWait:state.ringsWait,crossing:state.live?.crossing,live:state.live?.live};})()`).catch((/** @type {unknown} */ diagnosticError) => ({ unavailable: String(diagnosticError) }));
-    await page.screenshot(join(out, 'phone-route-failure.jpg')).catch(() => undefined);
+    await capturePhoneFailure(page,join(out, 'phone-route-failure.jpg'));
   } finally { writeFileSync(join(out, 'phone-route.json'), `${JSON.stringify(receipt, null, 2)}\n`); }
   if (receipt.failures.length > 0) throw new Error(receipt.failures.join('\n'));
   return receipt;

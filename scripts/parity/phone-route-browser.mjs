@@ -1,4 +1,4 @@
-import { spawn, spawnSync, execFileSync } from 'node:child_process';
+import { spawn, spawnSync, execFileSync, execFile } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { devices, webkit } from 'playwright';
@@ -6,6 +6,7 @@ import { soakInspector } from '../soak/inspector.mjs';
 import { bootLifecycleDiagnostic } from './boot-smoke.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { phoneTouchButton } from './phone-route-page.mjs';
+import { randomUUID } from 'node:crypto';
 
 /** @typedef {import('../soak/inspector.mjs').Inspector} Inspector */
 /** @param {unknown} result */
@@ -28,13 +29,27 @@ export function phonePageTarget(list,url) {
 }
 
 /** Compose independently valid source statements before either browser executes them.
- * @param {string} paintScript */
-export function phoneBootstrap(paintScript) {
-  return `${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};\nwindow.__wildshardHarness={seed:357,capture:null};\n${paintScript};\n${saveFixtureCode({scope:'global',key:'settings',merge:true,data:{volume:0}})};\nwindow.__phoneRouteBootURL=location.href;`;
+ * @param {string} paintScript @param {string} visit */
+export function phoneBootstrap(paintScript, visit = 'phone-route') {
+  return `${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};\nwindow.__wildshardHarness={seed:357,capture:null};\n${paintScript};\n${saveFixtureCode({scope:'global',key:'settings',merge:true,data:{volume:0}})};\nwindow.__phoneRouteBootURL=location.href;window.__phoneRouteVisit=${JSON.stringify(visit)};window.__phoneRouteDocument=crypto.randomUUID();`;
 }
+
+/** The expected navigation must arrive in this visit's new entry document, not another Safari tab or the old title.
+ * @param {unknown} snapshot @param {string} url @param {import('./phone-route.mjs').PhoneDocument} previous */
+export function phoneDocumentMatches(snapshot, url, previous) {
+  if (typeof snapshot !== 'object' || snapshot === null || !('url' in snapshot) || snapshot.url !== url
+    || !('visit' in snapshot) || snapshot.visit !== previous.visit || !('document' in snapshot) || typeof snapshot.document !== 'string'
+    || snapshot.document.length === 0 || snapshot.document === previous.document || !('boot' in snapshot) || typeof snapshot.boot !== 'string') return false;
+  try { const boot = new URL(snapshot.boot), expected = new URL(url);
+    return boot.origin === expected.origin && boot.pathname === expected.pathname && boot.searchParams.has('chunk');
+  } catch { return false; }
+}
+
+const documentExpression = '({url:location.href,visit:window.__phoneRouteVisit,document:window.__phoneRouteDocument,boot:window.__phoneRouteBootURL})';
 
 /** @param {string} engine @param {string} base @param {string} _out @returns {Promise<import('./phone-route.mjs').PhonePage>} */
 export async function openPhoneBrowser(engine, base, _out) {
+  const visit = randomUUID();
   /** @type {string[]} */ const faults = [];
   if (engine === 'webkit') {
     const browser = await webkit.launch();
@@ -45,12 +60,16 @@ export async function openPhoneBrowser(engine, base, _out) {
     page.on('response', response => { if (response.status() >= 400 && !new URL(response.url()).pathname.startsWith('/api/')) faults.push(`HTTP ${response.status()}: ${response.url()}`); });
     page.on('request', request => { if (new URL(request.url()).pathname === '/api/errors' && request.method() === 'POST') {let report;try{report=JSON.parse(request.postData()??'null');}catch{report={malformed:request.postData()};}if(!bootLifecycleDiagnostic(report,true))faults.push(`Game error report: ${JSON.stringify(report)}`);} });
     await context.route(new URL('/api/telemetry', base).href, route => route.fulfill({status:204}));
-    await context.addInitScript({ content: phoneBootstrap('') });
+    await context.addInitScript({ content: phoneBootstrap('', visit) });
     return { engine: 'webkit-iphone', faults,
       async cold(url, paintScript) { await context.addInitScript({ content: paintScript }); await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 }); },
       async click(selector) { await page.locator(selector).tap({ timeout: 10000 }); },
       evaluate: expression => page.evaluate(expression),
-      async followNavigation(url) { await page.waitForURL(url,{waitUntil:'domcontentloaded',timeout:90000}); },
+      async followNavigation(url, previous, deadline) {
+        await page.waitForURL(url,{waitUntil:'domcontentloaded',timeout:Math.max(1,Math.min(90000,deadline-Date.now()))});
+        await page.waitForFunction(`(${phoneDocumentMatches.toString()})(${documentExpression},${JSON.stringify(url)},${JSON.stringify(previous)})`,null,
+          {timeout:Math.max(1,deadline-Date.now())});
+      },
       screenshot: path => page.screenshot({ path, type: path.endsWith('.jpg') ? 'jpeg' : 'png', timeout: 10000 }),
       async close() { try { await context.close(); } finally { await browser.close(); } },
     };
@@ -61,28 +80,35 @@ export async function openPhoneBrowser(engine, base, _out) {
   const sock = simctl(['getenv', udid, 'RWI_LISTEN_SOCKET']).trim();
   const proxy = spawn('ios_webkit_debug_proxy', ['-s', `unix:${sock}`, '-c', 'null:9221,:9232-9240'], { stdio:'ignore' });
   /** @type {Inspector|null} */ let inspector = null;
-  async function connect(/** @type {string} */ url) {
+  const raw = async (/** @type {string} */ expression) => {
+    if (inspector === null) throw new Error('Safari inspector unavailable');
+    return value(await inspector.send('Runtime.evaluate', {expression, returnByValue:true, emulateUserGesture:true}));
+  };
+  async function connect(/** @type {string} */ url, /** @type {import('./phone-route.mjs').PhoneDocument|undefined} */ previous,
+    deadline = Date.now() + 90000) {
     inspector?.close(); inspector = null;
-    const deadline = Date.now() + 90000;
     while (Date.now() < deadline) {
       for (let port = 9232; port <= 9240; port++) {
         let list;
         try { list = /** @type {unknown} */ (await (await fetch(`http://127.0.0.1:${port}/json`, { signal: AbortSignal.timeout(500) })).json()); } catch { continue; }
-        const found = phonePageTarget(list,url);
-        if (found === undefined) continue;
-        inspector = soakInspector(found.webSocketDebuggerUrl);
-        await inspector.opened;
-        await inspector.waitForPageTarget(Math.max(0, Math.min(30000, deadline - Date.now())));
-        return;
+        if (!Array.isArray(list)) continue;
+        /** @type {readonly unknown[]} */ const rows = list;
+        for (const row of rows) {
+          const found = phonePageTarget([row],url);
+          if (found === undefined) continue;
+          inspector = soakInspector(found.webSocketDebuggerUrl);
+          try {
+            await inspector.opened;
+            await inspector.waitForPageTarget(Math.max(0, Math.min(30000, deadline - Date.now())));
+            if (previous === undefined || phoneDocumentMatches(await raw(documentExpression),url,previous)) return;
+          } catch { /* another/retired target is not this navigation */ }
+          inspector.close(); inspector = null;
+        }
       }
       await sleep(100);
     }
     throw new Error('No Safari inspector for exact phone preview');
   }
-  const raw = async (/** @type {string} */ expression) => {
-    if (inspector === null) throw new Error('Safari inspector unavailable');
-    return value(await inspector.send('Runtime.evaluate', {expression, returnByValue:true, emulateUserGesture:true}));
-  };
   // RWI's scalar evaluate does not await promises. Keep one owned result slot,
   // observe its completion, and preserve the real promise's rejection/deadline.
   async function evaluate(/** @type {string} */ expression) {
@@ -103,11 +129,11 @@ export async function openPhoneBrowser(engine, base, _out) {
     async cold(url, paintScript) {
       spawnSync('xcrun', ['simctl','terminate',udid,'com.apple.mobilesafari'], { stdio:'ignore' });
       const probe = new URL('/version.json',base).href;
-      simctl(['openurl',udid,probe]); await connect(probe);
+      simctl(['openurl',udid,probe]); await connect(probe,undefined);
       await evaluate(`(async()=>{localStorage.clear();sessionStorage.clear();await Promise.all((await caches.keys()).map(key=>caches.delete(key)));await Promise.all((await navigator.serviceWorker.getRegistrations()).map(row=>row.unregister()));return true;})()`);
       if (inspector === null) throw new Error('Safari inspector unavailable');
       await inspector.send('Page.enable');
-      await inspector.send('Page.setBootstrapScript', { source: phoneBootstrap(paintScript) });
+      await inspector.send('Page.setBootstrapScript', { source: phoneBootstrap(paintScript, visit) });
       // Bootstrap belongs to this page. simctl openurl may create another tab;
       // this Safari's target protocol has Runtime.evaluate, not Page.navigate.
       await raw(`setTimeout(()=>{location.href=${JSON.stringify(url)};},0);true`);
@@ -124,10 +150,13 @@ export async function openPhoneBrowser(engine, base, _out) {
       await raw(`(${phoneTouchButton.toString()})(${JSON.stringify(selector)})`);
     },
     evaluate,
-    followNavigation: connect,
-    screenshot(path) {
-      simctl(['io',udid,'screenshot',`--type=${path.endsWith('.jpg')?'jpeg':'png'}`,path]);
-      return Promise.resolve(readFileSync(path));
+    async followNavigation(url, previous, deadline) { await connect(url,previous,Math.min(deadline,Date.now()+90000)); },
+    async screenshot(path) {
+      await new Promise((resolve,reject) => {
+        execFile('xcrun',['simctl','io',udid,'screenshot',`--type=${path.endsWith('.jpg')?'jpeg':'png'}`,path],{encoding:'utf8',timeout:10000},
+          error => { if (error === null) resolve(undefined); else reject(error instanceof Error ? error : new Error('Native screenshot failed',{cause:error})); });
+      });
+      return readFileSync(path);
     },
     close() {
       inspector?.close(); proxy.kill('SIGTERM');
