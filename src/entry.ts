@@ -35,6 +35,9 @@ const entryScope = new Scope('entry');
 let selectedImages: Scope | undefined;
 const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(0, resolve); });
 /** The plain home URL paints only the title. No renderer, world, or Three.js is imported until a shard is chosen. */
+// RL3: the static module graph has arrived and run; index.html's 12 s self-reload stands down (only a hung module
+// fetch, which never gets here, reloads by itself; anything after this is guardBoot's)
+document.documentElement.dataset['booted'] = '';
 startPageServices();
 installTitleManifests(TITLE_MANIFESTS);
 // G727 / I9: Settings' "Download everything"; the prefetch loads only when the player opens or presses it

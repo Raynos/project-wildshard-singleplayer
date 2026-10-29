@@ -86,7 +86,7 @@ test('public first paint and admitted loading keep every detailed progress field
   expect(window.getComputedStyle(simple).display).toBe('none');
 });
 
-test('RL3: a boot with neither the title nor the loading card at 12 s reloads once a session, never twice', () => {
+test('RL3: a page whose entry graph never arrived reloads once at 12 s; a running slow boot, the title or the card never', () => {
   const later: (() => void)[] = [];
   const window = new Window({ url: 'https://launch.test/', settings: { enableJavaScriptEvaluation: true, disableJavaScriptFileLoading: true,
     disableCSSFileLoading: true, enableImageFileLoading: false, handleDisabledFileLoadingAsSuccess: true } });
@@ -98,7 +98,9 @@ test('RL3: a boot with neither the title nor the loading card at 12 s reloads on
   expect(later).toHaveLength(1);
   later[0]?.(); expect(reload).toHaveBeenCalledTimes(1);
   later[0]?.(); expect(reload).toHaveBeenCalledTimes(1); // once a session
-  window.sessionStorage.clear(); window.document.querySelector('[data-title-shell]')?.remove();
+  window.sessionStorage.clear(); window.document.documentElement.dataset['booted'] = '';
+  later[0]?.(); expect(reload).toHaveBeenCalledTimes(1); // the entry graph ran (a slow world boot): nothing to do
+  delete window.document.documentElement.dataset['booted']; window.document.querySelector('[data-title-shell]')?.remove();
   later[0]?.(); expect(reload).toHaveBeenCalledTimes(1); // the title arrived: nothing to do
   timers.mockRestore();
   const inline = /<script data-loading-first-paint>([\s\S]*?)<\/script>/u.exec(html)?.[1] ?? '';

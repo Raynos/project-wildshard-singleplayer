@@ -151,10 +151,10 @@
 <div class="ws-load-foot"><span data-el="foot"></span><button type="button" class="ws-load-retry" data-el="retry" hidden>Retry</button></div></div>
     <!-- data-loading-first-paint: buildIdentity.mjs keeps Vite's hoisted sheet non-blocking for this shell -->
     <script data-loading-first-paint>
-      // RL3 (Jake: "reload should just reload the page"): one self-reload. A boot that has shown neither the title nor
-      // the loading card 12 s after this document started reloads once a session; a second failure is the error card.
+      // RL3 (Jake: "reload should just reload the page"): one self-reload. A page whose entry modules have not arrived 12 s
+      // after it started (no data-booted: a hung module fetch) reloads once a session; a slow boot that runs is left alone.
       setTimeout(() => {
-        if (!document.querySelector('[data-title-shell]') || !document.querySelector('.ws-load[data-shell]')) return;
+        if (document.documentElement.hasAttribute('data-booted') || !document.querySelector('[data-title-shell]') || !document.querySelector('.ws-load[data-shell]')) return;
         try { // the session save key boot.selfReload (src/engine/saves/slots.ts), shared with stuck.ts's one retry
           const doc = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{"keys":{}}');
           if (doc.keys?.['boot.selfReload']) return;
