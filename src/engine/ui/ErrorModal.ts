@@ -144,7 +144,8 @@ function build(): HTMLElement {
   else if (!pose) here.textContent = engineString('s_bdc090ec61e3');
   scope.listen(here, 'click', () => { here.disabled = true; here.textContent = engineString('s_ea456dcf3d90'); reloadHere(!looped); });
   scope.listen(q(el, '.title'), 'click', () => { toTitle(); });
-  scope.listen(q(el, '.keep'), 'click', () => { closeFatal(); document.dispatchEvent(new Event('ws:error-keep')); });
+  // a dead loop can't be played on: KEEP PLAYING only acts while the loop still runs (it is hidden otherwise)
+  scope.listen(q(el, '.keep'), 'click', () => { if (loopState() !== 'running') return; closeFatal(); document.dispatchEvent(new Event('ws:error-keep')); });
   const copyBtn = q(el, '.copy');
   const copy = async (): Promise<void> => {
     const clip = nav.clipboard; if (!clip) return;
@@ -174,14 +175,6 @@ function showFatal(message: string, stack: string, sent: Promise<ReportOutcome> 
       mount(root);
       fatalLayer = app.ui.push('error', { root, order: 1000, back: () => { if (loopState() === 'running') closeFatal(); } }, scope);
       firstText = message;
-      const alive = loopState() === 'running';
-      const looped = recentReloads().length >= RELOADS_MAX;
-      q(root, '.line').textContent = looped
-        ? engineString('s_1a66f8e11f0a')
-        : alive
-          ? engineString('s_94fef1ec7b83')
-          : loopState() === 'boot' ? engineString('s_d80080606a96') : engineString('s_da009164dfc2');
-      q(root, '.keep').hidden = !alive;
       // what failed, in one line: the system and the error's first line
       const first = (message.split('\n')[0] ?? '').trim();
       q(root, '.what').textContent = engineString('s_err_what', [system, first.length > 140 ? `${first.slice(0, 139)}…` : first]);
@@ -194,6 +187,16 @@ function showFatal(message: string, stack: string, sent: Promise<ReportOutcome> 
       document.dispatchEvent(new Event('ws:background'));
       if (sent) void sent.then(setSent); else setSent('dropped');
     }
+    // every report refreshes the verdict: a later fault can stop the loop under an open modal (sp-x1, MF6), and then
+    // KEEP PLAYING goes and the line says it can't recover
+    const alive = loopState() === 'running';
+    const looped = recentReloads().length >= RELOADS_MAX;
+    q(root, '.line').textContent = looped
+      ? engineString('s_1a66f8e11f0a')
+      : alive
+        ? engineString('s_94fef1ec7b83')
+        : loopState() === 'boot' ? engineString('s_d80080606a96') : engineString('s_da009164dfc2');
+    q(root, '.keep').hidden = !alive;
     q(root, '.n').textContent = count > 1 ? engineString('s_ffd7f4e8c95a', [count - 1, firstText.slice(0, 40)]) : '';
   } catch { /* the modal must never throw */ }
 }
