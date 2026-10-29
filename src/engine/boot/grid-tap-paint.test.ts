@@ -83,7 +83,7 @@ test('a retired owner refuses before creating a loader or scheduling work', () =
   expect(document.querySelector('.ws-load')).toBeNull(); expect(queued.size).toBe(0); expect(navigate).not.toHaveBeenCalled();
 });
 
-test('RL4: a slow boot shows no card; a rejected boot reloads once with no card, then shows the card after a retry', async () => {
+test('RL4 / MF3: a slow boot shows nothing; a rejected boot reloads once with no card, then the error modal after a retry', async () => {
   vi.useFakeTimers();
   const reload = vi.fn<() => void>(), fetch = vi.fn();
   vi.stubGlobal('location', { href: 'https://boot.test/', pathname: '/', search: '', reload });
@@ -99,8 +99,9 @@ test('RL4: a slow boot shows no card; a rejected boot reloads once with no card,
     expect(reload).toHaveBeenCalledTimes(1); expect(document.querySelector('#wsstuck')).toBeNull(); // the error report is the only fetch
     expect(saveStorage('session').getItem('boot.selfReload')).toBeTypeOf('string'); // index.html's 12 s retry is spent too
     guardBoot(Promise.reject(new Error('main chunk 404'))); await vi.advanceTimersByTimeAsync(0);
-    expect(reload).toHaveBeenCalledTimes(1); expect(document.querySelector('#wsstuck')?.textContent).toContain('Couldn’t start');
-  } finally { finish(); await Promise.resolve(); sessionStorage.removeItem('wildshard.save.v2.session'); document.querySelector('#wsstuck')?.remove(); vi.unstubAllGlobals(); vi.useRealTimers(); }
+    await vi.waitFor(() => { expect(document.querySelector('#wserr')?.textContent ?? '').toContain('failed to start'); });
+    expect(reload).toHaveBeenCalledTimes(1); expect(document.querySelector('#wsstuck')).toBeNull();
+  } finally { finish(); await Promise.resolve(); sessionStorage.removeItem('wildshard.save.v2.session'); document.querySelector('#wserr')?.remove(); vi.unstubAllGlobals(); vi.useRealTimers(); }
 });
 
 function pendingStyle(name: string): HTMLLinkElement {

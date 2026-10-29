@@ -30,6 +30,7 @@ export function showStartTitle(buildDeck: StartTitleDeck): void {
     if (index !== -1) deck.select(index, false);
     deck.start();
     document.querySelector('[data-title-shell]')?.remove();
+    performance.mark('wildshard.title'); // MF3: the live title is up (the Simulator bar reads it)
   };
   refresh();
   scope.onDispose(onDev(refresh));

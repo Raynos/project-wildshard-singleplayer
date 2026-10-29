@@ -28,12 +28,7 @@ import { terrainDatum } from '../world/terrainHeight';
  *                                          page shows the loading card, skips the title and lands in the world under
  *                                          the pause menu (main.ts). Saves are write-through to localStorage already.
  *                                          Two reloads inside two minutes stop the loop: the error modal (RELOAD HERE).
- *   show after AWAY_MAX_MS hidden        → reload the same way (E96). After a night in the background iOS handed back a
- *                                          page whose WebGL canvas still drew but whose DOM never repainted: no HUD, no
- *                                          pause menu, white strips round a shifted canvas, and no
- *                                          event to catch it. A long absence is not worth waking in place: the reload
- *                                          lands where the player stood (or on the title, if that is where they were),
- *                                          on the newest build if its worker is waiting.
+ *   (MF3: no away-reload; a long absence wakes in place, and repaint() keeps the DOM drawn)
  *
  */
 import type { Game } from './Game';
@@ -65,8 +60,6 @@ export interface RecoveryHost {
   onLostParked?: () => void;
 }
 
-/** wall-clock time hidden after which coming back reloads instead of waking the page in place (E96) */
-const AWAY_MAX_MS = 10 * 60_000;
 /** visible seconds a lost context may stay lost before the page reloads */
 const LOST_MAX_S = 5;
 /** visible seconds an in-place restore may take before the page reloads */
@@ -233,7 +226,6 @@ export function installGpuRecovery(host: RecoveryHost): void {
     hidden = false;
     const away = Date.now() - hiddenAt;
     repaint(scope);
-    if (hiddenAt > 0 && away > AWAY_MAX_MS && (phase === 'ok' || phase === 'lost')) { traceReturn(away, 'away-reload'); reload(`back after ${Math.round(away / 60_000)} min away`, true); return; }
     if (phase !== 'ok') { traceReturn(away, `phase ${phase}`); return; } // lost / restoring / reloading: that path ends it
     if (gl.isContextLost()) { traceReturn(away, 'lost while hidden'); lose('context lost while hidden (no event)'); return; }
     traceReturn(away, 'in place');

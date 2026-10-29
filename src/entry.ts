@@ -7,7 +7,7 @@ import { startPageServices } from './pageServices';
 import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import { preloadModuleFiles, declareModuleFiles } from '@wildshard/engine/boot/download';
-import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules, declareHomeModules, prepareBootImports, prepareEntryCode, homeDownloadSource, declareGridHomeDownload, declareAssetTableDownloads } from './bootDownloads';
+import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules, declareHomeModules, prepareBootImports, homeDownloadSource, declareGridHomeDownload, declareAssetTableDownloads } from './bootDownloads';
 /**
  * The page's module entry. Everything the game imports statically is evaluated in ONE task when a module graph
  * runs: three.js plus the ~150 game modules at once was a 115–157 ms long task at 4× CPU before the first boot step
@@ -18,16 +18,13 @@ import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules, declareHome
  * Both imports can fail before the error modal is armed (main.ts arms it): a chunk the host no longer serves, a network
  * gone mid-boot. src/engine/boot/stuck.ts watches the promise so that never leaves a frozen loader (E144).
  *
- * E188: a network gone mid-boot is the common one. main is ~1.1 MB gzipped, and on LTE a hand-over drops it mid-file;
- * WebKit reports that as "Importing a module script failed". The callback is tried twice more, a beat apart, but
- * iOS26.5 keeps a failed module URL errored (L7 Simulator proof): SW network retries must finish the body before
- * WebKit sees it. A module that fetched fine but threw is not run twice: the engine keeps it errored and rethrows at once.
+ * MF3 (FOUNDATIONS): no import is retried in the page (WebKit keeps a failed module URL errored, so a retry in the same
+ * document only adds 0.8 + 2.5 s before the same failure); a failed import rejects `entered`, and guardBoot reloads once.
  */
 import { guardBoot } from '@wildshard/engine/boot/stuck';
 import { waitForLoadingStyles } from '@wildshard/engine/boot/shell';
 import { inspectPreviousBoot, previousBootLine, previousBootLevel } from '@wildshard/engine/boot/bootTrace';
 import { Scope } from '@wildshard/engine/app/scope';
-import { retried } from '@wildshard/engine/boot/retry';
 import { bootRoute } from './bootRoute';
 import { lastEnd } from '@wildshard/engine/boot/lastEnd';
 
@@ -36,7 +33,6 @@ declare const __BOOT_TABLE_ASSETS__: Parameters<typeof declareAssetTableDownload
 
 const entryScope = new Scope('entry');
 let selectedImages: Scope | undefined;
-let declareCodePack: (() => void) | null = null;
 const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(0, resolve); });
 /** The plain home URL paints only the title. No renderer, world, or Three.js is imported until a shard is chosen. */
 startPageServices();
@@ -54,7 +50,7 @@ inspectPreviousBoot();
 // renderer-free title until the player chooses a shard again.
 async function enterPage(): Promise<unknown> {
   await waitFor('Startup stylesheets', waitForLoadingStyles(entryScope), 'file');
-  const { consumeGridRecovery, gridRecoveryRefused } = await retried(() => import('@wildshard/game/grid/pageEntry'));
+  const { consumeGridRecovery, gridRecoveryRefused } = await import('@wildshard/game/grid/pageEntry');
   const end = lastEnd();
   const recovery = consumeGridRecovery({ unexpected: end.kind === 'unexpected', previous: end, search });
   if (recovery !== null) {
@@ -75,17 +71,16 @@ async function enterPage(): Promise<unknown> {
 
   /** resolves once the title or the selected shard's entry has been evaluated */
   return (gridRecoveryRefused() || (titleOnly && document.getElementById('ws-shardfile') === null)) ? showPageTitle() : (async () => {
-    declareCodePack = await prepareEntryCode(search, entryScope);
-    await retried(() => import('./assetTables')).then(module => module.prepareAssetTables());
-    const { initializeTier } = await retried(() => import('@wildshard/engine/core/tier'));
+    await import('./assetTables').then(module => module.prepareAssetTables());
+    const { initializeTier } = await import('@wildshard/engine/core/tier');
     await initializeTier();
-    await retried(() => import('three')); 
+    await import('three'); 
     await task();
-    return retried(() => import('./main'));
+    return import('./main');
   })();
 }
 async function showPageTitle(): Promise<void> {
-  const [{ showStartTitle }, { buildTitleMenu, installGridTitle }, { travel }] = await retried(() => Promise.all([import('@wildshard/engine/ui/StartTitle'), import('@wildshard/game/mainMenu'), import('@wildshard/game/travel/travel')]));
+  const [{ showStartTitle }, { buildTitleMenu, installGridTitle }, { travel }] = await Promise.all([import('@wildshard/engine/ui/StartTitle'), import('@wildshard/game/mainMenu'), import('@wildshard/game/travel/travel')]);
   // SF21a: a tap or validated recovery selects a grid; unrecorded process loss returns to title
   const grid = installGridTitle();
   // the composition root wires the game's main menu (over its shard deck) into the engine's title (E405)
@@ -98,7 +93,7 @@ async function showPageTitle(): Promise<void> {
       onGrid: grid.onGrid,
       ...(grid.screen === undefined ? {} : { screen: grid.screen }),
       // Settings needs common inventory and level predicates, without booting a renderer.
-      onSettings: () => { void retried(async () => { const { openTitleSettings } = await import('./titleSettings'); await openTitleSettings(settings); }); },
+      onSettings: () => { void (async () => { const { openTitleSettings } = await import('./titleSettings'); await openTitleSettings(settings); })(); },
       ...(lines === '' ? {} : { notice: lines }),
     });
   });
@@ -127,20 +122,20 @@ export async function start(): Promise<void> {
 }
 
 async function startSelected(): Promise<void> {
-  const selected = retried(() => import('./shardSelection')).then(async selection => {
+  const selected = import('./shardSelection').then(async selection => {
     await selection.prepareSelectedShard();
     return selection;
   });
   const [{ preparePageCatalogue, completePageCatalogue }, { game }, { beginLoading }, { TIER }] = await Promise.all([
-    selected, retried(() => import('@wildshard/game/shard/registry')), retried(() => import('@wildshard/engine/ui/Loading')),
-    retried(() => import('@wildshard/engine/core/tier')),
+    selected, import('@wildshard/game/shard/registry'), import('@wildshard/engine/ui/Loading'),
+    import('@wildshard/engine/core/tier'),
   ]);
   const loading = beginLoading({ id: game.shard.slug, name: game.shard.name, trace: game.shard.boot?.phone?.trace === true });
   const moduleText = document.getElementById('boot-module-files')?.textContent;
   const moduleRows: unknown = moduleText === undefined ? undefined : JSON.parse(moduleText);
-  const entryModule = retried(() => import('@wildshard/game/shard/entryMode'));
-  const gridEntryModule = retried(() => import('@wildshard/game/grid/pageEntry'));
-  const gridMenuModule = retried(() => import('@wildshard/game/grid/menu'));
+  const entryModule = import('@wildshard/game/shard/entryMode');
+  const gridEntryModule = import('@wildshard/game/grid/pageEntry');
+  const gridMenuModule = import('@wildshard/game/grid/menu');
   const [entrySelection, gridSelection, { gridMode, DEVSERVER }] = await Promise.all([entryModule, gridEntryModule, gridMenuModule]);
   const earlyPath = gridSelection.pageGridRecovery() !== null || gridSelection.pendingGridEntry(game.shard.slug)
     ? 'grid' : entrySelection.shardEntry(game.shard);
@@ -169,7 +164,6 @@ async function startSelected(): Promise<void> {
     const kind = earlyPath === 'grid' ? 'grid' : earlyPath === 'shardfile' ? 'client' : 'common';
     if (Object.hasOwn(moduleRows, kind)) declareModuleFiles(Reflect.get(moduleRows, kind));
   }
-  declareCodePack?.();
   const modules = (kind: 'common' | 'client' | 'grid'): void => {
     if (moduleRows === undefined) return; // Source/dev documents have no emitted chunk inventory.
     if (typeof moduleRows !== 'object' || moduleRows === null || !Object.hasOwn(moduleRows, kind)) throw new Error('Missing boot module rows');
@@ -185,22 +179,22 @@ async function startSelected(): Promise<void> {
   const [speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule, starterModule, hoverboardModule,
     voicesModule, combatModule, boarModule, familiesModule, sourceModule, runtimeModule,
     pathsModule, calibrationModule, prefetchModule] = [
-    retried(() => import('@wildshard/game/systems/species/install')), retried(() => import('@wildshard/game/icons')),
-    retried(() => import('@wildshard/game/models/specimenCatalogue')), retried(() => import('@wildshard/game/data/pickupCatalogue')),
-    retried(() => import('@wildshard/game/models/interact')), retried(() => import('@wildshard/game/bag/starter.generated')),
-    retried(() => import('@wildshard/game/systems/tools/hoverboard')), retried(() => import('@wildshard/sdk/runtime/audio/weaponVoices')), retried(() => import('@wildshard/sdk/runtime/audio/combatCues')),
-    retried(() => import('@wildshard/game/systems/species/view/boar')), retried(() => import('@wildshard/game/plugin/weaponFamily')),
-    retried(() => import('@wildshard/game/shardfile/clientSource')), retried(() => import('@wildshard/game/shardfile/runtimeProduct')),
-    retried(() => import('@wildshard/game/boot/loadingPaths')), retried(() => import('./loadingCalibration.json')),
-    retried(() => import('@wildshard/game/grid/prefetch')),
+    import('@wildshard/game/systems/species/install'), import('@wildshard/game/icons'),
+    import('@wildshard/game/models/specimenCatalogue'), import('@wildshard/game/data/pickupCatalogue'),
+    import('@wildshard/game/models/interact'), import('@wildshard/game/bag/starter.generated'),
+    import('@wildshard/game/systems/tools/hoverboard'), import('@wildshard/sdk/runtime/audio/weaponVoices'), import('@wildshard/sdk/runtime/audio/combatCues'),
+    import('@wildshard/game/systems/species/view/boar'), import('@wildshard/game/plugin/weaponFamily'),
+    import('@wildshard/game/shardfile/clientSource'), import('@wildshard/game/shardfile/runtimeProduct'),
+    import('@wildshard/game/boot/loadingPaths'), import('./loadingCalibration.json'),
+    import('@wildshard/game/grid/prefetch'),
   ] as const;
   const imports = prepareBootImports(Promise.all([speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule,
     starterModule, hoverboardModule, voicesModule, combatModule, boarModule, familiesModule, sourceModule, runtimeModule,
     gridEntryModule, pathsModule, entryModule, calibrationModule, prefetchModule]));
   // Cover the full-ALL route's five observed misses; never recycle growables.
   const [{ prepareScriptMemoryBank }, { yieldTask }, { diagnosticNow }] = await Promise.all([
-    retried(() => import('@wildshard/engine/script/moduleV2')), retried(() => import('@wildshard/engine/core/workSlice')),
-    retried(() => import('@wildshard/engine/core/clock')),
+    import('@wildshard/engine/script/moduleV2'), import('@wildshard/engine/core/workSlice'),
+    import('@wildshard/engine/core/clock'),
   ]);
   const memoryStartedAt = diagnosticNow();
   let memoryTurns = 0, memoryWaitMs = 0;
@@ -224,7 +218,7 @@ async function startSelected(): Promise<void> {
     loading.setPrefetchSource(gridPrefetchStatus);
     const source = pageGridRecovery() === null ? await configuredShardfile(document, browserShardfileOptions(document.baseURI)) : null;
     page = preparePageResidency(game.shard, source?.identity.slug);
-    await (await retried(() => import('./assetTables'))).prepareAssetPacks(page.mode === 'grid' || TIER !== 'phone' ? undefined : game.shard.slug);
+    await (await import('./assetTables')).prepareAssetPacks(page.mode === 'grid' || TIER !== 'phone' ? undefined : game.shard.slug);
     await completePageCatalogue(page.mode, catalogue?.ready);
     const path = page.mode === 'grid' ? 'grid' : source !== null || shardEntry(game.shard) === 'shardfile' ? 'shardfile' : 'legacy';
     // Publish every selected bank together before reading the descriptor.
@@ -260,7 +254,7 @@ async function startSelected(): Promise<void> {
     if (manifest.legacy === true) await installLegacyKitSpecies();
     else installKitSpecies();
     installKitIcons();
-    const [{boundedResponse,browserContentHash},{publicBytes}] = await Promise.all([retried(()=>import('@wildshard/game/shardfile/product')),retried(()=>import('@wildshard/engine/boot/tables'))]);
+    const [{boundedResponse,browserContentHash},{publicBytes}] = await Promise.all([import('@wildshard/game/shardfile/product'),import('@wildshard/engine/boot/tables')]);
     const pickupAssets=publicBytes(), pickupPath=/^\/assets\/baked\/common\/pickups\/([a-f0-9]{64})\.bin$/u;
     const pickupFiles=await preparePickupCatalogue({hasFile:file=>pickupPath.test(file)&&Object.hasOwn(pickupAssets,file),file:async file=>{
       const hash=pickupPath.exec(file)?.[1],cap=pickupAssets[file];
@@ -271,7 +265,7 @@ async function startSelected(): Promise<void> {
     }},PICKUP_CATALOGUE,entryScope);
     installPickupCatalogue(PICKUP_CATALOGUE,pickupFiles);
     installKitProps();
-    const { startSession } = await retried(() => import('@wildshard/game/session/session'));
+    const { startSession } = await import('@wildshard/game/session/session');
     await startSession(manifest, {
       items: STARTER_BAG_ITEMS,
       tools: [HOVERBOARD_TOOL],
