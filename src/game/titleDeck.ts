@@ -1,3 +1,4 @@
+import { titleAssetURL } from './titleAssets';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { isDev } from '@wildshard/engine/core/devMode';
 import { listenDom, listenTap } from '@wildshard/engine/input/dom';
@@ -227,7 +228,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   entries.forEach((card, index) => {
     const active = index === activeIndex, button = document.createElement('button'); button.type = 'button'; button.dataset['i'] = String(index);
     button.className = `ws-menu-card${active ? ' active' : ''}${card.upgrade !== undefined || card.unavailable !== undefined ? ' ws-menu-card-upgrade' : ''}${card.unavailable !== undefined ? ' ws-menu-card-unavailable' : ''}`;
-    const image = document.createElement('span'); image.className = 'ws-menu-card-img'; image.style.backgroundImage = `url('${card.thumbnail}')`;
+    const image = document.createElement('span'); image.className = 'ws-menu-card-img'; image.style.backgroundImage = `url('${titleAssetURL(card.thumbnail)}')`;
     if (card.upgrade !== undefined) image.append(words('i', 'ws-menu-card-tag ws-menu-card-needs', GAME_STRINGS.upgrade.badge));
     else if (card.unavailable !== undefined) image.append(words('i', 'ws-menu-card-tag ws-menu-card-needs', GAME_STRINGS.unavailable.badge));
     if (canEnter(card, mode())) image.append(words('i', `ws-menu-card-tag${active ? ' ok' : ''}`, active ? 'Loaded' : 'Load'));
@@ -236,7 +237,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     if (ribbon !== '') image.append(words('i', `ws-menu-card-exp${card.badge === 'Early access' && canEnter(card, mode()) ? ' ws-menu-card-ea' : ''}`, ribbon));
     const sub = card.upgrade !== undefined ? GAME_STRINGS.upgrade.built(card.upgrade.built) : card.unavailable !== undefined ? refusalReason(card.unavailable) : card.label;
     button.append(image, words('b', '', card.name), words('small', card.unavailable !== undefined ? 'ws-menu-card-reason' : '', sub)); cardTrack.append(button);
-    const dot = document.createElement('i'); dot.dataset['i'] = String(index); dot.dataset['tag'] = dotTag(card, mode()); dot.style.setProperty('--thumb', `url('${card.thumbnail}')`); dotTrack.append(dot);
+    const dot = document.createElement('i'); dot.dataset['i'] = String(index); dot.dataset['tag'] = dotTag(card, mode()); dot.style.setProperty('--thumb', `url('${titleAssetURL(card.thumbnail)}')`); dotTrack.append(dot);
   });
   if (opts.notice) {
     const notice = document.createElement('div');
@@ -273,7 +274,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   const cardEls = Array.from(root.querySelectorAll<HTMLElement>('.ws-menu-card'));
   const dots = Array.from(root.querySelectorAll<HTMLElement>('.ws-menu-dots i'));
   const portrait = (): boolean => innerWidth < innerHeight;
-  const heroUrl = (c: DeckEntry): string => (portrait() ? c.heroPortrait : c.heroLandscape);
+  const heroUrl = (c: DeckEntry): string => titleAssetURL(portrait() ? c.heroPortrait : c.heroLandscape);
   let index = Math.max(0, activeIndex);
 
   // paginated track: one card per swipe, always centred — no native scroll, so it can't rest between cards
@@ -290,7 +291,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     dots.forEach((d, i) => { d.classList.toggle('on', i === index); });
     // the card's own thumbnail (already on screen in the card) under the hero: until the hero's bytes arrive and decode
     // (a phone network, a busy page), the backdrop is the card's picture, never black (Jake's Pine Hollow, ab93dccfe)
-    hero.style.backgroundImage = `url('${heroUrl(c)}'), url('${c.thumbnail}')`;
+    hero.style.backgroundImage = `url('${heroUrl(c)}'), url('${titleAssetURL(c.thumbnail)}')`;
     hero.classList.add('show');
     hint.textContent = hintFor(c, index === activeIndex, mode());
     play.disabled = !canEnter(c, mode()) && c.draft === null;

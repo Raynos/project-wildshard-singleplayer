@@ -12,7 +12,7 @@ const NAMED = new Set(FILES);
 const MATCH = { ignoreVary: true };
 const abs = path => new URL(path, self.registration.scope).href;
 const bookKey = build => abs(`/__ws_build__/${encodeURIComponent(build)}`);
-const CONTENT = /-(?:[a-f0-9]{8}|[a-f0-9]{16})\.[a-z0-9]+$|\/[a-f0-9]{64}\.[a-z0-9]+$/;
+const CONTENT = /-[a-f0-9]{8,64}\.[a-z0-9]+$|\/[a-f0-9]{64}\.[a-z0-9]+$/;
 const HASH = /\/([a-f0-9]{64})\.[a-z0-9]+$/;
 const immutable = url => NAMED.has(url.pathname) || CONTENT.test(url.pathname)
   || /^[a-f0-9]{8,64}$/.test(url.searchParams.get('v') ?? '');

@@ -19,12 +19,15 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <script>
       // Plain launch: the shard selector is the first screen, with no world or loading panel underneath it.
+      // BEGIN TITLE URLS
+      const titleAssetURLs = {"/assets/title/driftwood-isle-portrait.jpg":"/assets/title/driftwood-isle-portrait-e9d5c9aedd5c5920.jpg","/assets/title/launch-1206x2622-142a9fb7a9e9.png":"/assets/title/launch-1206x2622-142a9fb7a9e9.png","/assets/title/main-crossroads-landscape.jpg":"/assets/title/main-crossroads-landscape-8770a258efe9a746.jpg","/assets/title/main-crossroads-square.jpg":"/assets/title/main-crossroads-square-80129d7216146c86.jpg","/assets/title/nalati-grasslands-portrait.jpg":"/assets/title/nalati-grasslands-portrait-5ac0c2e430a5a22b.jpg","/assets/title/nine-dragon-stack-portrait.jpg":"/assets/title/nine-dragon-stack-portrait-d92d65e333c1ccba.jpg","/assets/title/pine-hollow-portrait.jpg":"/assets/title/pine-hollow-portrait-30a60f74489265a0.jpg"};
+      // END TITLE URLS
       const homeParams = new URLSearchParams(location.search);
       if (homeParams.size === 0 || (homeParams.size === 1 && homeParams.has('v'))) document.documentElement.classList.add('title-first');
       if (document.documentElement.classList.contains('title-first')) {
         const hero = document.createElement('link');
         hero.rel = 'preload'; hero.as = 'image'; hero.fetchPriority = 'high';
-        hero.href = '/assets/title/main-crossroads-' + (matchMedia('(orientation: portrait)').matches ? 'square' : 'landscape') + '.jpg';
+        hero.href = titleAssetURLs['/assets/title/main-crossroads-' + (matchMedia('(orientation: portrait)').matches ? 'square' : 'landscape') + '.jpg'];
         document.head.appendChild(hero);
       }
     </script>
@@ -62,9 +65,9 @@
       html.standalone #ws-top-edge { display: block; position: fixed; top: 0; left: 0; right: 0; height: 12px; z-index: 2147483647; background: rgba(5, 8, 16, 0.004); pointer-events: none; }
       .ws-launch { display: none; }
       html.title-first .ws-launch { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; background: #0b1622; color: #eaf8ff; font-family: Rajdhani, system-ui, sans-serif; }
-      .ws-launch-hero { position: absolute; inset: 0; background: url('/assets/title/main-crossroads-landscape.jpg') center / cover no-repeat; }
+      .ws-launch-hero { position: absolute; inset: 0; background: url('/assets/title/main-crossroads-landscape-8770a258efe9a746.jpg') center / cover no-repeat; }
       .ws-launch-brand { position: relative; margin: calc(24px + env(safe-area-inset-top, 0px)) 24px 0; font-size: 44px; font-weight: 700; line-height: 1; letter-spacing: .16em; text-shadow: 0 0 18px #8fe3ff73; }
-      @media (orientation: portrait) { .ws-launch-hero { top: 50%; bottom: auto; width: 100%; aspect-ratio: 1; transform: translateY(-50%); background-image: url('/assets/title/main-crossroads-square.jpg'); } }
+      @media (orientation: portrait) { .ws-launch-hero { top: 50%; bottom: auto; width: 100%; aspect-ratio: 1; transform: translateY(-50%); background-image: url('/assets/title/main-crossroads-square-80129d7216146c86.jpg'); } }
       @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-cyrillic-ext.woff2) format('woff2');unicode-range:U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F}
       @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-cyrillic.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
       @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-greek.woff2) format('woff2');unicode-range:U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF}
@@ -109,7 +112,7 @@
       // Whitelist the filename: ?chunk is a shard selector, never an arbitrary asset path.
       const loadShard = homeParams.get('chunk') || 'driftwood-isle';
       if (['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack'].includes(loadShard)) {
-        document.documentElement.style.setProperty('--ws-load-portrait', 'url("/assets/title/' + loadShard + '-portrait.jpg")');
+        document.documentElement.style.setProperty('--ws-load-portrait', 'url("' + titleAssetURLs['/assets/title/' + loadShard + '-portrait.jpg'] + '")');
       }
       // Developer mode controls the hold switch, frame meter and build id.
       // Loading progress stays detailed for everyone (G846). No URL switch (E162).

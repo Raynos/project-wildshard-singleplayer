@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve, sep } from 'node:path';
 import { ASSET_CACHE_NAME } from '../../src/engine/pwa/cacheNames';
+import { titleAssetURLs } from '../title-assets.mjs';
 import { writtenBundle, type EmittedFile } from './writtenBundle';
 
 /** Update checks fetch this tiny bootstrap; the core URL names its exact bytes. */
@@ -11,12 +12,12 @@ export function workerScripts(core: string): { fileName: string; bootstrap: stri
   return { fileName, bootstrap: `importScripts(${JSON.stringify(`/${fileName}`)});\n` };
 }
 
-function shellFiles(html: string, root: string): string[] {
+function shellFiles(html: string, root: string, sources: ReadonlyMap<string, string>): string[] {
   const files = new Set(['/index.html', '/manifest.webmanifest']);
   const publicRoot = resolve(root, 'public');
   const add = (url: string): void => {
     if (!url.startsWith('/') || url.startsWith('//') || url.includes('?') || url.includes('#')) return;
-    const file = resolve(publicRoot, `.${url}`);
+    const file = resolve(publicRoot, `.${sources.get(url) ?? url}`);
     if (file.startsWith(`${publicRoot}${sep}`) && existsSync(file) && statSync(file).isFile()) files.add(url);
   };
   // The first-paint shell's own public images/icons, not an unrelated world bank.
@@ -36,7 +37,8 @@ export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>,
   if (document?.type !== 'asset' || document.source === undefined) throw new Error('Missing worker document');
   const html = new TextDecoder().decode(document.source);
   const hashed = Object.keys(bundle).filter(name => /^assets\/[^/]+-[\w-]{8}\.\w+$/u.test(name)).map(name => `/${name}`).sort();
-  const shell = shellFiles(html, root), digest = createHash('sha256');
+  const sources = new Map(Object.entries(titleAssetURLs(root)).map(([source, url]) => [url, source]));
+  const shell = shellFiles(html, root, sources), digest = createHash('sha256');
   const owner = readFileSync(join(root, 'src/engine/app/workerScope.js'), 'utf8').replaceAll(/^export /gmu, '');
   const worker = readFileSync(join(root, 'src/engine/pwa/sw.js'), 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '');
   const source = `${owner}\n${worker}`;
@@ -46,7 +48,7 @@ export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>,
     if (file === undefined) throw new Error(`Missing worker file: ${name}`);
     digest.update(name).update(file.type === 'chunk' ? file.code ?? '' : file.source ?? new Uint8Array());
   }
-  for (const name of shell) if (name !== '/index.html') digest.update(name).update(readFileSync(join(root, 'public', name)));
+  for (const name of shell) if (name !== '/index.html') digest.update(name).update(readFileSync(join(root, 'public', sources.get(name) ?? name)));
   const build = `${buildId}-${digest.digest('hex').slice(0, 10)}`;
   const core = source.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_CACHE__', ASSET_CACHE_NAME)
     .replace("'__FILES__'", JSON.stringify(JSON.stringify(hashed)))

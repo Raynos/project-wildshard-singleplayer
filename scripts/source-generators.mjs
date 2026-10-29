@@ -41,6 +41,11 @@ const MANIFEST_INPUTS = ['src/**/*.ts', 'src/**/*.tsx', 'src/**/*.mjs', 'src/**/
 
 /** @type {readonly SourceGenerator[]} */
 export const SOURCE_GENERATORS = [
+  {
+    id: 'title-asset-urls', outputs: ['scripts/title-assets.generated.json', 'index.html'], committed: true,
+    inputs: ['public/assets/title/*', 'scripts/title-assets.mjs', 'index.html'],
+    generate: async root => (await import(pathToFileURL(`${root}/scripts/title-assets.mjs`).href)).titleAssetTables(root),
+  },
   sectionSchemas('driftwood-isle',['src/shards/driftwood-isle/generators/sectionSchemas.ts','src/shards/driftwood-isle/runtime/productSections.d.ts'],['src/shards/driftwood-isle/data/bridgeRows.json']),
   sectionSchemas('pine-hollow',['src/shards/pine-hollow/generators/sectionSchemas.ts','src/shards/pine-hollow/runtime/productSections.d.ts']),
   starter('starter-arm-clips', 'scripts/gen-starter-arm-clips.mjs', 'src/game/systems/viewmodel/armAliases.json', 'src/game/systems/viewmodel/clips.generated.ts', 'starterArmClipsTableSource'),

@@ -46,8 +46,8 @@ test('plain launch paints only the approved hero and WILDSHARD, the launch image
   const hero = panel.querySelector('.ws-launch-hero');
   if (hero === null) throw new Error('Missing title art');
   expect([...panel.children].map(child => child.className)).toEqual(['ws-launch-hero', 'ws-launch-brand']);
-  expect(window.getComputedStyle(hero).backgroundImage).toContain('main-crossroads-square.jpg');
-  expect(window.document.querySelector('link[as="image"]')?.getAttribute('href')).toBe('/assets/title/main-crossroads-square.jpg');
+  expect(window.getComputedStyle(hero).backgroundImage).toMatch(/main-crossroads-square-[a-f0-9]{16}\.jpg/u);
+  expect(window.document.querySelector('link[as="image"]')?.getAttribute('href')).toMatch(/^\/assets\/title\/main-crossroads-square-[a-f0-9]{16}\.jpg$/u);
   expect(window.document.querySelector('#hud')?.childElementCount).toBe(0);
 });
 

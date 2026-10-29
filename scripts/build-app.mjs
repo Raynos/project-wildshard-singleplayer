@@ -10,6 +10,7 @@ import { bakeAssetTables, writeAssetTables } from './app-build/assetTables.mjs';
 import { writeChunkReport } from './app-build/chunkReport.mjs';
 import { bakeGridSeams, writeGridSeams } from './app-build/gridSeams.mjs';
 import { checkNoTopLevelAwait } from './app-build/noTopLevelAwait.mjs';
+import { writeTitleAssets } from './title-assets.mjs';
 import { copyOutputProducts } from './app-build/outputProducts.mjs';
 import { stampBuildDocuments } from './app-build/buildIdentity.mjs';
 import { carryPreviousDeploy } from './app-build/previousDeploy.mjs';
@@ -92,6 +93,8 @@ if (mode !== 'native') {
 // Native and calibration documents need it too. The worker must see these final bytes.
 const validator = shardfileValidationRevision();
 stampBuildDocuments(outDir, {validator, verdicts: buildValidationReceipts(validator)});
+
+writeTitleAssets(process.cwd(), outDir);
 
 if (mode !== 'native') {
   // the crossroads phone rig beside the bundle (was vite/crossroadsRig.ts); before the worker, which counts its files
