@@ -38,16 +38,18 @@ test('admitted zstd lanes use an owned transfer and restore every word without p
   vi.useFakeTimers();
   const clock = vi.spyOn(performance, 'now').mockReturnValue(0);
   const fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Unexpected private URL'));
-  const requests: RequestRow[] = []; let truncate = false, failWorker = false, terminated = 0;
+  const requests: RequestRow[] = [], held: (() => void)[] = [];
+  let truncate = false, failWorker = false, terminated = 0, hold = true;
   class DecodeWorker extends EventTarget {
     postMessage(input: RequestRow, options: StructuredSerializeOptions): void {
       const request = structuredClone(input, options); requests.push(request);
-      queueMicrotask(() => {
+      const complete = (): void => {
         if (failWorker) { this.dispatchEvent(new Event('error', { cancelable: true })); return; }
         const levels = request.levels.map(level => Uint8Array.from(zstdDecompressSync(level.data)));
         const first = levels[0]; if (truncate && first !== undefined) levels[0] = first.slice(0, -1);
         this.dispatchEvent(new MessageEvent('message', { data: { id: request.id, levels } }));
-      });
+      };
+      if (hold) held.push(complete); else queueMicrotask(complete);
     }
     terminate(): void { terminated++; }
   }
@@ -57,7 +59,14 @@ test('admitted zstd lanes use an owned transfer and restore every word without p
     const raw = new Uint8Array(new Uint32Array([0x80000000, 0x7fc00001, 0xffffffff, 0x3f800000]).buffer);
     const lanes = Uint8Array.from({ length: raw.length }, (_, index) => raw[index % 4 * 4 + Math.floor(index / 4)] ?? 0);
     const packed = frame(lanes), original = packed.slice();
-    const decoded = decodeLaneBytes(packed); await vi.advanceTimersByTimeAsync(0);
+    const decoded = decodeLaneBytes(packed);
+    let delivered = false;
+    const observed = decoded.then(bytes => { delivered = true; return bytes; });
+    await vi.advanceTimersByTimeAsync(180_000);
+    expect(delivered).toBe(false); expect(terminated).toBe(0); expect(vi.getTimerCount()).toBe(0);
+    hold = false;
+    const complete = held.shift(); if (complete === undefined) throw new Error('Missing worker request');
+    complete(); expect(await observed).toEqual(raw);
     expect(await decoded).toEqual(raw); expect(packed).toEqual(original);
     expect(requests).toHaveLength(1); expect(requests[0]?.levels[0]?.size).toBe(raw.length);
     const mutable = packed.slice(), captured = decodeLaneBytes(mutable); mutable.fill(255);

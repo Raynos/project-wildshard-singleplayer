@@ -63,7 +63,6 @@ function decodeLevels(levels: { data: Uint8Array; size: number }[]): Promise<Uin
   return new Promise<Uint8Array[]>((resolve, reject) => {
     const id = ++sequence, request = owner.child('decode');
     pending.set(id, { scope: request, resolve, reject });
-    request.timeout(30_000, () => { stop(new Error('zstd decode deadline'), true); });
     try { decoder.postMessage({ id, levels }, { transfer: levels.map(level => level.data.buffer) }); }
     catch (error) { stop(error instanceof Error ? error : new Error(String(error)), true); }
   });
