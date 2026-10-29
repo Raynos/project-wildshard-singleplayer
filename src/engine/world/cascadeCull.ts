@@ -86,10 +86,11 @@ class CascadeFrustum extends THREE.Frustum {
     hull(pts, this.lower, this.upper, this.poly);
   }
 
-  /** an instanced caster passes when one of its copy cells does (see CELL above); anything else as three tests it */
+  /** an instanced caster passes when one of its copy cells does (see CELL above; its own sphere can be stale: never read
+   *  here); anything else as three tests it */
   override intersectsObject(object: THREE.Object3D): boolean {
-    if (!super.intersectsObject(object)) return false;
-    if (this.off || !instanced(object)) return true;
+    if (!instanced(object)) return super.intersectsObject(object);
+    if (this.off) return true;
     const cells = cellsOf(object), scale = object.matrixWorld.getMaxScaleOnAxis();
     for (let i = 0; i + 3 < cells.length; i += 4) {
       _s.center.set(cells[i] ?? 0, cells[i + 1] ?? 0, cells[i + 2] ?? 0).applyMatrix4(object.matrixWorld);
@@ -158,6 +159,30 @@ function hull(pts: [number, number][], lower: [number, number][], upper: [number
   for (let index = 0; index < lowerCount; index++) { const p = lower[index]; if (p !== undefined) { out[used++] = p[0]; out[used++] = p[1]; } }
   for (let index = 0; index < upperCount; index++) { const p = upper[index]; if (p !== undefined) { out[used++] = p[0]; out[used++] = p[1]; } }
   lower.length = lowerCount; upper.length = upperCount; out.length = used;
+}
+
+/** shadow passes in progress (Game's shadowMap.render wrapper): only then do copy-culled casters report frustumCulled */
+let shadowPass = 0;
+/** Draw the shadow maps with copy-culled casters culled per cascade (Game wraps every shadow pass in this). */
+export function duringShadowPass(draw: () => void): void {
+  shadowPass++;
+  try { draw(); } finally { shadowPass--; }
+}
+
+/**
+ * D12: an instanced caster whose owner culls its copies for the view (`frustumCulled` false: its own sphere goes stale as
+ * copies change) is still culled per cascade by its copies. It reports `frustumCulled` only while a shadow pass draws, so
+ * the view, precompile and every other reader see it exactly as before; in the pass a cascade frustum tests its copy
+ * cells, and any other light's frustum draws it as before.
+ */
+export function cullCopiesPerCascade(mesh: THREE.InstancedMesh): void {
+  let authored = mesh.frustumCulled;
+  Object.defineProperty(mesh, 'frustumCulled', { configurable: true, enumerable: true,
+    get: (): boolean => authored || shadowPass > 0, set: (value: boolean): void => { authored = value; } });
+  mesh.intersectsFrustum = (frustum: THREE.Frustum | THREE.FrustumArray): boolean => {
+    if (frustum instanceof CascadeFrustum) return frustum.intersectsObject(mesh);
+    return !authored || frustum.intersectsObject(mesh);
+  };
 }
 
 /**

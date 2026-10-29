@@ -49,6 +49,7 @@ import { isDev } from './devMode';
 import { boundEntryWarmup, ENTRY_CONTENT_MS, ENTRY_NO_FRAME_MS, ENTRY_WARMUP_MS } from '../render/entryWarmupBound';
 import { dropOutputDepth, installMemorySaver, shadowLights } from '../render/memorySaver';
 import { dropShadowColour } from '../world/shadowVariants';
+import { duringShadowPass } from '../world/cascadeCull';
 import { recordGpuCheckpoint, traceBootPasses } from '../boot/gpuTrace';
 import { exploreEntryPending, recordExploreFrame, recordBootCheckpoint, bootTraceActive } from '../boot/bootTrace';
 import { cullPlaced } from '../models/place';
@@ -466,7 +467,7 @@ export class Game {
     shadowMap.render = (lights, scene, camera) => {
       const mask = camera.layers.mask;
       camera.layers.enable(SHADOW_LAYER);
-      try { renderShadows(lights, scene, camera); } finally { camera.layers.mask = mask; }
+      try { duringShadowPass(() => { renderShadows(lights, scene, camera); }); } finally { camera.layers.mask = mask; }
       shadowLights(lights, (rt) => { dropShadowColour(this.renderer, rt); }); // SF22d: three's maps keep their depth only
     };
     this.camera = new THREE.PerspectiveCamera(CAMERA_FOV, window.innerWidth / viewportHeight(), 0.08, 2600);

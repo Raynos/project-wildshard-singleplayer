@@ -26,6 +26,7 @@ import { frameBudgetSpent, paceYield, presenting } from '../core/framePacing';
 import { WORK_SLICE_MS, yieldTask } from '../core/workSlice';
 import * as THREE from 'three';
 import { setInstanceEnvelope } from '../render/instancedGeometry';
+import { cullCopiesPerCascade } from '../world/cascadeCull';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../core/rng';
 import { currentOwner, enteredOwner, withOwner } from '../app/ownership';
@@ -696,7 +697,7 @@ function* drawInstancedSteps<P extends object>(def: ModelDef<P>, pls: readonly P
           for (const im of meshes) { im.count = c; im.computeBoundingSphere(); }
         } else {
           const envelope = envelopeOf(boxes, copies);
-          for (const im of meshes) { im.count = 0; im.visible = false; im.frustumCulled = false; setInstanceEnvelope(im, envelope); }
+          for (const im of meshes) { im.count = 0; im.visible = false; im.frustumCulled = false; cullCopiesPerCascade(im); setInstanceEnvelope(im, envelope); }
         }
         objects.push(...meshes);
         group.push({ matrix, color, meshes, ...(until === undefined ? {} : { until }) });

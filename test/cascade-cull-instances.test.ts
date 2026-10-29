@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, Frustum, Group, InstancedMesh, Matrix4, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
-import { installCascadeCull } from '../src/engine/world/cascadeCull';
+import { cullCopiesPerCascade, duringShadowPass, installCascadeCull } from '../src/engine/world/cascadeCull';
 
 /** D12: an instanced caster draws into a cascade only when one of its copies is in that cascade's slice footprint */
 function rig(): { csm: CSM; near: () => Frustum } {
@@ -40,4 +40,16 @@ test('one copy in the slice draws them all, a moved copy is seen and an empty me
   expect(near().intersectsObject(mesh)).toBe(true);
   mesh.count = 0;
   expect(near().intersectsObject(mesh)).toBe(false);
+});
+
+test('a copy-culled caster reports frustum culling only inside a shadow pass, and only a cascade culls it', () => {
+  const { near } = rig(), mesh = copies([[-120, 0, -120], [120, 0, 120]]);
+  mesh.frustumCulled = false; cullCopiesPerCascade(mesh);
+  expect(mesh.frustumCulled).toBe(false);
+  const seen: boolean[] = [];
+  duringShadowPass(() => { seen.push(mesh.frustumCulled, mesh.intersectsFrustum(near()), mesh.intersectsFrustum(new Frustum())); });
+  expect(seen).toEqual([true, false, true]); // culled by the cascade; any other light's frustum draws it as before
+  expect(mesh.frustumCulled).toBe(false);
+  mesh.frustumCulled = true;
+  expect(mesh.frustumCulled).toBe(true);
 });

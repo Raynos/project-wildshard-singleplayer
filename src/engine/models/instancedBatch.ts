@@ -10,6 +10,7 @@
  */
 import * as THREE from 'three';
 import type { BatchSink } from './cull';
+import { cullCopiesPerCascade } from '../world/cascadeCull';
 
 /** A node (graph look) material: it never draws on a multi-draw batch (E271 / E272), only instanced. */
 export function graphLook(material: THREE.Material): boolean { return Reflect.get(material, 'isNodeMaterial') === true; }
@@ -155,7 +156,7 @@ export class InstancedBatch extends THREE.Group implements BatchSink {
 
   private widen(slot: Slot, capacity: number): void {
     const old = slot.mesh, mesh = new THREE.InstancedMesh(slot.geometry, this.material, capacity);
-    mesh.name = `${this.name}:${this.slots.indexOf(slot)}`; mesh.frustumCulled = false; mesh.count = 0;
+    mesh.name = `${this.name}:${this.slots.indexOf(slot)}`; mesh.frustumCulled = false; mesh.count = 0; cullCopiesPerCascade(mesh);
     mesh.castShadow = this.options.castShadow ?? false; mesh.receiveShadow = this.options.receiveShadow ?? false;
     const copies = new Int32Array(capacity);
     if (old !== null) {
