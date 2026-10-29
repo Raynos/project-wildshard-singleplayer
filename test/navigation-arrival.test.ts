@@ -44,8 +44,19 @@ test('cold modules retain grid, travel and title entry, and each is consumed onc
   expect(consumeTitleArrival('driftwood-isle')).toBeNull();
 });
 
+test('early download accounting can inspect a fresh grid tap without spending its one-shot authority', () => {
+  const {grid} = handoffs(10_010);
+  expect(grid.pending('driftwood-isle')).toBe(true);
+  expect(grid.pending('sunscar-dunes')).toBe(false);
+  expect(grid.pending('driftwood-isle')).toBe(true);
+  expect(grid.consume('driftwood-isle')?.instance).toBe('home');
+  expect(grid.pending('driftwood-isle')).toBe(false);
+  expect(grid.consume('driftwood-isle')).toBeNull();
+});
+
 test('a navigation starting after expiry cannot revive any old handoff', () => {
   const { grid, travel } = handoffs(70_001);
+  expect(grid.pending('driftwood-isle')).toBe(false);
   expect(grid.consume('driftwood-isle')).toBeNull();
   expect(travel.consume('driftwood-isle')).toBeNull();
   expect(consumeTitleArrival('driftwood-isle')).toBeNull();

@@ -17,6 +17,8 @@ const schema: v.GenericSchema<unknown, GridIntent | null> = v.nullable(v.object(
 export interface GridIntents {
   /** the title's tap on Infinite Wildshard: the home cell the grid boots into; false if neither copy persisted */
   set: (target: { readonly instance: string; readonly slug: string }) => boolean;
+  /** Read-only accounting hint, never entry authority; consumes neither copy. */
+  pending: (slug: string) => boolean;
   /** the boot's one read: the intent for this page's shard (fresh at document arrival, at most 60 s old) or null; both copies are removed */
   consume: (slug: string) => GridIntent | null;
 }
@@ -32,6 +34,7 @@ export function gridIntents(store: Store, now: () => number = Date.now): GridInt
     return freshPageArrival(intent.at, now()) ? intent : null;
   };
   return {
+    pending: slug => fresh(session.read(), slug) !== null || fresh(device.read(), slug) !== null,
     set: (target) => {
       const intent: GridIntent = { instance: target.instance, slug: target.slug, at: now() };
       const inSession = session.write(intent), onDevice = device.write(intent);

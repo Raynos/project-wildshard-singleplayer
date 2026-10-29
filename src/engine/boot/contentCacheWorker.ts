@@ -169,7 +169,7 @@ export class ContentCacheWorker {
   /** `background` work (a prefetch, G554) is not a boot wait: the loading screen's "now waiting for" never names it. */
   private request(operation: CacheOperation, background = false): Promise<CacheValue> {
     if (background) return this.requestWork(operation);
-    return waitFor(`Content cache ${operation.op}${'hash' in operation ? ` ${operation.hash.slice(0, 12)}` : ''}`, this.requestWork(operation), 'worker');
+    return waitFor(`Content cache ${operation.op}`, this.requestWork(operation), 'worker');
   }
   private requestWork(operation: CacheOperation): Promise<CacheValue> {
     const id = ++this.sequence, candidate: unknown = { id, ...operation };

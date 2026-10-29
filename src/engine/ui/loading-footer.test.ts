@@ -58,6 +58,22 @@ it('publishes completed step credit before the next step records its visible set
   } finally { loading.scope.dispose(); }
 });
 
+it('names the actual nested work in the header while retaining exclusive parent accounting', () => {
+  const loading = new Loading({id: 'nested-label', name: 'Nested label'});
+  try {
+    loading.setPath({id: 'nested-label', steps: ['modules', 'finish', 'home'].map(key => ({key, label: key, weight: 1}))});
+    const timeline = currentLoadingTimeline(); if (timeline === undefined) throw new Error('Missing timeline');
+    loading.endAdmission();
+    const outer = timeline.begin('finish'), inner = timeline.begin('home');
+    loading.paintAdmission({phase: 'modules', detail: 'Home preparation', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0});
+    now = 700; vi.advanceTimersByTime(32);
+    expect(loading.root.dataset['step']).toBe('home');
+    expect(loading.root.querySelector('[data-el="suFact"]')?.textContent).toContain('home');
+    expect(timeline.snapshot()).toMatchObject({current: 'home', display: 'finish'});
+    inner.end(); outer.end();
+  } finally {loading.scope.dispose();}
+});
+
 it('keeps boundary credit when the next paced paint still carries the previous view', () => {
   const loading = new Loading({id: 'paced-boundary', name: 'Paced boundary'});
   try {

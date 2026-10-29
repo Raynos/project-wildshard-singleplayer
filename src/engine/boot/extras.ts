@@ -219,7 +219,7 @@ export function startDeferredAudioPreload(files: ChunkFiles, def: BootLevel, pro
   const selectedBytes = new Map<string, ArrayBuffer>();
   const lifetime = new AbortController();
   onOwnerDispose(() => { lifetime.abort(); selectedBytes.clear(); });
-  const downloads = urls.map(url => waitFor(`Read audio ${url}`, (async () => {
+  const downloads = urls.map((url, index) => waitFor(`Read audio ${index + 1} / ${urls.length}`, (async () => {
     try {
       await whenPrefetched(url);
       const response = await fetch(url);

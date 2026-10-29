@@ -56,7 +56,7 @@ test('the capture sees the real pointer-up before widget propagation stops, quic
 });
 
 test('legacy DOM rows separate their name, detail, exclusive duration and qualified start/end boundaries', async () => {
-  document.body.innerHTML = '<div class="ws-load"><div class="on" data-key="home" data-ms="1250.5" data-started-at="100"><b>▸ 14 · Home region</b><span>Reading model data</span><i>1.3 s</i></div></div>';
+  document.body.innerHTML = '<div class="ws-load"><span data-el="suFact">Home region</span><span data-el="dlPct">42</span><span data-el="clock">00:01.2</span><span data-el="foot">Reading model data</span><div class="on" data-key="home" data-ms="1250.5" data-started-at="100"><b>▸ 14 · Home region</b><span>Reading model data</span><i>1.3 s</i></div></div>';
   instrument('grid');
   const element = document.querySelector('[data-key="home"]'); if (element === null) throw new Error('Missing row');
   element.className = 'ok';
@@ -64,6 +64,7 @@ test('legacy DOM rows separate their name, detail, exclusive duration and qualif
   const data = record(Reflect.get(window, '__phoneLoading'));
   expect(data).toMatchObject({rowCoverage: 'visible-only', rows: [{label: 'Home region', detail: 'Reading model data', duration: 1250.5,
     start: performance.timeOrigin + 100, startBasis: 'native', endBasis: 'observed', state: 'ok'}]});
+  expect(data['panels']).toMatchObject([{download: 42, clock: '00:01.2', header: 'Home region', wait: 'Reading model data'}]);
   const rows: readonly unknown[] = Array.isArray(data['rows']) ? data['rows'] : [];
   expect(record(rows[0])['end']).toBeTypeOf('number');
   document.dispatchEvent(new Event('ws:control-ready')); document.body.replaceChildren();

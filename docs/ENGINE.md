@@ -1072,7 +1072,7 @@ clock. Parallel stages keep their actual counts and detail visible while a newer
 stage owns that interval. The declared list and row numbers stay fixed: unknown
 work is named in its parent's detail, and undeclared passes reuse the last
 declared pass. `snapshot().current` retains the newest work for unit accounting;
-`snapshot().display` names the earliest running step for presentation. Ignored
+`snapshot().display` keeps the outer wait owner; Loading names `current`. Ignored
 shell stages remain in their parent. Rows retain monotonic `startedAt` and
 completed `endedAt`; `ms` excludes nested work. The first row starts at the
 attempt origin; aliases/repeats keep its first start. These are real boundaries,

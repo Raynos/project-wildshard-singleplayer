@@ -15,6 +15,7 @@ import type { PageMode } from '../plugin/context';
 import { findTitleManifest } from '../shard/titleList';
 import { chooseShardEntry } from '../shard/entryMode';
 import { travel, travelSlot } from '../travel/travel';
+import { startEntryDownload } from '../shardfile/entryTransport';
 
 // P0 (Jake's phone, tap -> loader): the page entry routes on these before anything else, so this module stays off
 // three.js and the game graph (src/entry.ts imports it first; plugin/ui's 3.2 MB closure evaluated in that task).
@@ -45,6 +46,7 @@ export function enterGrid(): void {
   const home = gridHome();
   const target = findTitleManifest(home.slug);
   if (target === undefined) throw new Error(`The grid's home cell names no shard: ${home.slug}`);
+  startEntryDownload(target.slug);
   navigating = beginNavigationShell(target.name, pageScope, () => {
     // A deliberate new player attempt starts a new guard window; automatic reloads cannot clear it.
     if (!gridRecovery(saves).clearLoop()) throw new Error('Grid recovery guard could not be cleared');
@@ -139,6 +141,9 @@ export function consumeGridRecovery(options: { assembly?: GridAssembly; saves?: 
 
 /** Same-document handoff to ordinary admission and the live road placement; progress is read from real saves. */
 export function pageGridRecovery(): NonNullable<GridRecoveryRecord> | null { return selected; }
+
+/** The compiler ledger may inspect a fresh tap without consuming its authority. */
+export function pendingGridEntry(slug: string): boolean { return pageGridIntents().pending(slug); }
 /** A failed recovery boot returns to the title and must not supply a selection to another boot. */
 export function clearGridRecovery(): void { selected = null; refused = false; loop = false; }
 /** Future or unconsumed metadata cannot enter a renderer on this boot. */

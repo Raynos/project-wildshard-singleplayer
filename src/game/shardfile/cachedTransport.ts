@@ -1,6 +1,7 @@
 import { Scope } from '@wildshard/engine/app/scope';
 import { boundedResponse } from './product';
 import { waitFor } from '@wildshard/engine/boot/waits';
+import { productResourceRole } from './resourceRole';
 
 function discardResponse(response: Response | undefined): void {
   void response?.body?.cancel().catch(() => undefined);
@@ -30,7 +31,7 @@ export async function cachedTransport(storage: Pick<CacheStorage, 'match'>, url:
   const cancelled = (): boolean => signal?.aborted === true;
   try {
     if (cancelled()) return null;
-    const label = url;
+    const label = productResourceRole(url);
     const response = await waitFor(`URL cache ${label}`, hintResponse(storage, url, signal), 'file');
     if (response === undefined) return null;
     if (cancelled()) { discardResponse(response); return null; }

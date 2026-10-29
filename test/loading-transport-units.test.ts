@@ -6,6 +6,19 @@ import { createServer, type Server } from 'node:http';
 // oxlint-disable-next-line import/no-nodejs-modules -- Independently verify the streamed proof digest.
 import { createHash } from 'node:crypto';
 import { decodedBodyCounter, observeTransport } from '../scripts/loading-benchmark/transport.mjs';
+import { productResourceRole } from '../src/game/shardfile/resourceRole';
+
+test('transport waits describe their role independently of the exact content address', () => {
+  for (const hash of ['a'.repeat(64), 'b'.repeat(64)]) {
+    for (const [path, expected] of [[`/shardfiles/example/blobs/${hash}.glb`, 'Model data'],
+      [`/shardfiles/example/blobs/${hash}.ktx2`, 'Texture data'], [`/shardfiles/example/blobs/${hash}.wasm`, 'Program data'],
+      [`/shardfiles/example/sections/${hash}.json`, 'Product data section'], [`/shardfiles/example/packs/${hash}.bin`, 'Product pack'],
+      ['/shardfiles/example/shard.json', 'Product descriptor']] as const) {
+      expect(productResourceRole(path)).toBe(expected);
+      expect(productResourceRole(path)).not.toMatch(/[a-f0-9]{12}/u);
+    }
+  }
+});
 
 test('proof receipts keep compressed wire bytes separate from exact content bytes', async () => {
   const body = new TextEncoder().encode('many repeated module words '.repeat(100));

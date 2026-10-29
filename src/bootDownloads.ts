@@ -1,4 +1,4 @@
-import { declareDownloadFile, reserveDownloadGroup, reserveDownloadBank, preloadModuleGroups } from '@wildshard/engine/boot/download';
+import { declareDownloadFile, reserveDownloadGroup, reserveDownloadBank, preloadModuleGroups, declareModuleGroups } from '@wildshard/engine/boot/download';
 import { prepareCodePack } from '@wildshard/engine/boot/codePack';
 import type { Scope } from '@wildshard/engine/app/scope';
 
@@ -45,6 +45,15 @@ export function prepareHomeModules(descriptor: string | undefined, base: string)
   if (url.origin !== new URL(base).origin || !/^\/shardfiles\/[a-zA-Z0-9_-]+\/shard\.json$/u.test(url.pathname)
     || url.search !== '' || url.hash !== '') return;
   preloadModuleGroups([`home:${new URL('.', url).pathname}`]);
+}
+
+/** Declare the same selected code union without starting or reprioritizing IO. */
+export function declareHomeModules(descriptor: string | undefined, base: string): void {
+  if (descriptor === undefined) return;
+  const url = new URL(descriptor, base);
+  if (url.origin !== new URL(base).origin || !/^\/shardfiles\/[a-zA-Z0-9_-]+\/shard\.json$/u.test(url.pathname)
+    || url.search !== '' || url.hash !== '') return;
+  declareModuleGroups([`home:${new URL('.', url).pathname}`]);
 }
 
 /** Use only the selected first-party home's compact compiler facts. External

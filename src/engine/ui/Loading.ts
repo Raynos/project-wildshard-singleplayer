@@ -338,7 +338,7 @@ export class Loading {
     // Passive capture of all rows, including collapsed quick steps. The DOM
     // owns this data; importing the module installs no observer or service.
     Reflect.set(this.root, Symbol.for('engine.loading.snapshot'), timeline);
-    const current = timeline.rows.find(row => row.key === timeline.display);
+    const current = timeline.rows.find(row => row.key === timeline.current);
     const currentGap = timeline.gaps.find(row => row.state === 'on');
     setData(this.root, 'step', current?.key ?? 'gap');
     if (current !== undefined) set(this.els.suFact, this.configured
@@ -414,13 +414,13 @@ export class Loading {
     const pending = this.scoped ? [] : loadingStepWaits(bootWaits(), timeline.display, timeline.current, this.timeline.waitOwner).filter(wait => wait.id !== this.waitId);
     const files = pending.filter(wait => wait.kind === 'file');
     // The outer admission promise has no file identity. Let the current
-    // reported phase/hash explain its paced CPU/cache work between real waits.
+    // reported phase explains its paced CPU/cache work between real waits.
     const wait = files[0] ?? pending.find(row => row.id !== this.waitId && row.kind !== 'admission');
     const transfer = this.downloads.snapshot();
-    const current = timeline.rows.find(row => row.key === timeline.display);
+    const current = timeline.rows.find(row => row.key === timeline.current);
     const signature = `${timeline.display}:${timeline.current}:${transfer.networkBytes}:${transfer.cachedBytes}:${this.downloads.progressVersion}:${wait?.id ?? 0}`;
     const label = wait?.label ?? (current === undefined ? undefined : `${current.label}${current.detail ? ` · ${current.detail}` : ''}`) ?? timeline.gaps.find(row => row.state === 'on')?.label ?? 'Final activation';
-    reportLoadingWait(this.waitId, { label, step: timeline.display, progress: signature,
+    reportLoadingWait(this.waitId, { label, step: timeline.current, progress: signature,
       loadedBytes: transfer.declaredDoneBytes, totalBytes: transfer.declaredBytes > 0 ? transfer.declaredBytes : null });
     const fallback = loadingWaitState().pending.get(this.waitId), selected = wait ?? fallback;
     const now = performance.now();

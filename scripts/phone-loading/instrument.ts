@@ -4,9 +4,10 @@ export function instrument(flow: string): void {
   const epoch = (): number => performance.timeOrigin + performance.now();
   const key = 'phone-loading.tap';
   const tap = Number(sessionStorage.getItem(key));
-  const data: Capture = {tap: tap > 0 ? tap : null, control: null, rows: [], measures: [], longTasks: [], frameGaps: [], errors: [], errorDetails: [], rowCoverage: 'visible-only'};
+  const data: Capture = {tap: tap > 0 ? tap : null, control: null, rows: [], measures: [], longTasks: [], frameGaps: [], errors: [], errorDetails: [], panels: [], rowCoverage: 'visible-only'};
   Reflect.set(window, '__phoneLoading', data);
   const seen = new Map<string, Row>();
+  let lastPanelAt = 0;
   const sample = (): void => {
     if (document.documentElement?.dataset['wsState'] === 'error') {
       data.fatal = document.querySelector('.ws-load-error')?.textContent ?? 'Application entered error state';
@@ -18,6 +19,7 @@ export function instrument(flow: string): void {
     }
     for (const root of document.querySelectorAll('.ws-load')) {
       const snapshot: unknown = Reflect.get(root, Symbol.for('engine.loading.snapshot'));
+      let activeLabel: string | null = null;
       if (typeof snapshot === 'object' && snapshot !== null && 'rows' in snapshot && Array.isArray(snapshot.rows)) {
         data.rowCoverage = 'native-all-rows';
         const values: readonly unknown[] = snapshot.rows;
@@ -28,6 +30,7 @@ export function instrument(flow: string): void {
           const start = typeof row['startedAt'] === 'number' ? performance.timeOrigin + row['startedAt'] : null;
           const end = typeof row['endedAt'] === 'number' ? performance.timeOrigin + row['endedAt'] : null;
           const state = row['state'] === 'todo' || row['state'] === 'on' || row['state'] === 'ok' ? row['state'] : undefined;
+          if ('current' in snapshot && row['key'] === snapshot.current && typeof row['label'] === 'string') activeLabel = row['label'];
           seen.set(row['key'], {key: row['key'], label: String(row['label']), start, end, duration: row['ms'],
             ...(state === undefined ? {} : {state}),
             ...(start === null ? {} : {startBasis: 'native' as const}), ...(end === null ? {} : {endBasis: 'native' as const}),
@@ -52,6 +55,14 @@ export function instrument(flow: string): void {
             startBasis: knownStart ? 'native' : 'observed', ...(end === null ? {} : {endBasis: knownEnd ? 'native' as const : 'observed' as const}),
             state: complete ? 'ok' : 'on', duration: Number.isFinite(duration) ? duration : 0, wallMs: end === null ? null : end - start});
         }
+      }
+      const at = epoch();
+      if (at - lastPanelAt >= 100 && data.control === null) {
+        const text = (field: string): string => root.querySelector(`[data-el="${field}"]`)?.textContent ?? '';
+        const download = Number.parseFloat(text('dlPct'));
+        data.panels?.push({at, clock: text('clock'), download: Number.isFinite(download) ? download : null,
+          header: text('suFact'), wait: text('foot'), step: root instanceof HTMLElement ? root.dataset['step'] ?? '' : '', activeLabel});
+        lastPanelAt = at;
       }
     }
     data.rows = [...seen.values()];

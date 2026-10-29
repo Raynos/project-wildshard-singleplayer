@@ -10,7 +10,8 @@ export interface Row {key: string; label: string; start: number | null; end: num
 export interface ErrorRow {message: string; source: string; url: string; at: number}
 export interface RequestRow {url: string; start: number; end: number | null; source: 'worker' | 'service-worker' | 'network'; bytes: number; headerBytes?: number; status: number; failure: string | null}
 export interface Mark {name: string; start: number; duration: number; detail: unknown}
-export interface Capture {tap: number | null; control: number | null; fatal?: string; stoppedAt?: number; rows: Row[]; measures: Mark[]; longTasks: Mark[]; frameGaps: {start: number; duration: number}[]; errors: string[]; errorDetails?: ErrorRow[]; rowCoverage: string}
+export interface PanelRow {at: number; clock: string; download: number | null; header: string; wait: string; step: string; activeLabel: string | null}
+export interface Capture {tap: number | null; control: number | null; fatal?: string; stoppedAt?: number; rows: Row[]; measures: Mark[]; longTasks: Mark[]; frameGaps: {start: number; duration: number}[]; errors: string[]; errorDetails?: ErrorRow[]; panels?: PanelRow[]; rowCoverage: string}
 export interface Run extends Capture {schema: 1; build: string; engine: string; flow: string; cache: string; preset: string; at: string; url: string; profile: Profile; applied: {pageCPU: boolean; pageNetwork: boolean; workerNetwork: boolean; notes: string[]}; requests: RequestRow[]; totalMs: number | null; video?: string; contactSheet?: string}
 export function record(value: unknown): Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value) ? Object.fromEntries(Object.entries(value)) : {};

@@ -23,7 +23,7 @@ export async function prepareCodePack(input: unknown, owner: Scope): Promise<(()
   const declare = (): void => { declareDownloadFile(url, bytes); };
   const channel = new MessageChannel();
   let stored = false, received = 0;
-  const waitId = beginLoadingWait(`application code ${url}`, { kind: 'file', totalBytes: bytes });
+  const waitId = beginLoadingWait('application code download', { kind: 'file', totalBytes: bytes });
   const shell = document.querySelector<HTMLElement>('.ws-load');
   const progress = (loaded: number): void => {
     noteDownloadRead(loaded - received); received = loaded;

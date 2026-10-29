@@ -31,6 +31,7 @@ import { recordCachedDownload } from '@wildshard/engine/boot/download';
 import { hashOwnedBytes, prepareContentHash } from '@wildshard/engine/boot/contentHash';
 import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { browserContentStore } from './contentStore';
+import { productResourceRole } from './resourceRole';
 
 /**
  * The trusted runtime's product reader (SHARD-PLATFORM M3 tiles-swap, G227, E435): the same `ClientAssets` in both modes,
@@ -86,12 +87,12 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
   const content = typeof caches === 'undefined' ? undefined : browserContentStore(caches);
   const transport = content instanceof ContentCacheWorker ? async (url: string, hash: string, bytes: number) => {
     const path = new URL(url, base);
-    const sent = await waitFor(`Verify ${path.pathname}`, content.fetchVerified(path.href, hash, bytes, { reply: 'bytes', urlCache: indexed !== undefined }), 'worker');
+    const sent = await waitFor(`Verify ${productResourceRole(path.href)}`, content.fetchVerified(path.href, hash, bytes, { reply: 'bytes', urlCache: indexed !== undefined }), 'worker');
     return sent === null || sent.fetched === null ? null : { bytes: sent.fetched, cached: sent.cached, stored: sent.stored };
   } : undefined;
   return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, hashOwned: hashOwnedBytes,
     backgroundFetch: (url, signal) => fetch(url, { priority: 'low', ...(signal === undefined ? {} : { signal }) }),
-    fetch: (url, signal) => waitFor(`Read ${new URL(url, base).pathname}`, (async () => {
+    fetch: (url, signal) => waitFor(`Read ${productResourceRole(url, base)}`, (async () => {
       if (indexed !== undefined && new URL(url, base).pathname.endsWith('/shard.json')) {
         const held = await cachedTransport(caches, url, limits.sourceBytes, browserContentHash, hash => indexed.has(hash), undefined, signal);
         if (held !== null) { recordCachedDownload(held.hash, held.bytes.length, url); return new Response(new Uint8Array(held.bytes)); }

@@ -1,9 +1,25 @@
 // @vitest-environment happy-dom
 import {afterEach,expect,test} from 'vitest';
-import {prepareHomeModules,reserveHomeDownload} from '../src/bootDownloads';
+import {prepareHomeModules,declareHomeModules,reserveHomeDownload} from '../src/bootDownloads';
 import {DownloadAccounting,installDownloadAccounting,declareModuleFiles,preloadModuleGroups} from '../src/engine/boot/download';
 
 afterEach(() => {document.body.replaceChildren();for(const link of document.querySelectorAll('link[rel="modulepreload"]'))link.remove();});
+test('the early code union fixes the denominator without starting any preload or granting a receipt', () => {
+  const node = document.createElement('script'); node.id = 'boot-module-files';
+  node.textContent = JSON.stringify({optional: {files: [['/assets/shared.js', 100], ['/assets/scene.js', 50]], groups: {'home:/shardfiles/example/': [0, 1]}}});
+  document.body.append(node);
+  const accounting = new DownloadAccounting(document.baseURI), dispose = installDownloadAccounting(accounting);
+  try {
+    reserveHomeDownload({'/shardfiles/example/': [10, 200]}, '/shardfiles/example/shard.json', document.baseURI);
+    declareHomeModules('/shardfiles/example/shard.json', document.baseURI);
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: 350, declaredDoneBytes: 0});
+    expect(document.querySelectorAll('link[rel="modulepreload"]')).toHaveLength(0);
+    accounting.resource({name: new URL('/assets/shared.js', document.baseURI).href, startTime: 1, transferSize: 100, encodedBodySize: 100, workerStart: 0, serverTiming: []});
+    prepareHomeModules('/shardfiles/example/shard.json', document.baseURI);
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: 350, declaredDoneBytes: 100});
+    expect(document.querySelectorAll('link[rel="modulepreload"]')).toHaveLength(2);
+  } finally {dispose();}
+});
 test('a caller without a trusted tier reserves the full bank without selecting a device',()=>{
   const accounting=new DownloadAccounting(document.baseURI),dispose=installDownloadAccounting(accounting);
   try {

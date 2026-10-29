@@ -6,8 +6,8 @@ import { installOfflineDownload } from '@wildshard/engine/ui/offlineDownload';
 import { startPageServices } from './pageServices';
 import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
 import { waitFor } from '@wildshard/engine/boot/waits';
-import { preloadModuleFiles } from '@wildshard/engine/boot/download';
-import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules, prepareBootImports, prepareEntryCode } from './bootDownloads';
+import { preloadModuleFiles, declareModuleFiles } from '@wildshard/engine/boot/download';
+import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules, declareHomeModules, prepareBootImports, prepareEntryCode } from './bootDownloads';
 /**
  * The page's module entry. Everything the game imports statically is evaluated in ONE task when a module graph
  * runs: three.js plus the ~150 game modules at once was a 115–157 ms long task at 4× CPU before the first boot step
@@ -135,9 +135,30 @@ async function startSelected(): Promise<void> {
     retried(() => import('@wildshard/engine/core/tier')),
   ]);
   const loading = beginLoading({ id: game.shard.slug, name: game.shard.name, trace: game.shard.boot?.phone?.trace === true });
-  declareCodePack?.();
   const moduleText = document.getElementById('boot-module-files')?.textContent;
   const moduleRows: unknown = moduleText === undefined ? undefined : JSON.parse(moduleText);
+  const entryModule = retried(() => import('./game/shard/entryMode'));
+  const gridEntryModule = retried(() => import('@wildshard/game/grid/pageEntry'));
+  const [entrySelection, gridSelection] = await Promise.all([entryModule, gridEntryModule]);
+  const earlyPath = gridSelection.pageGridRecovery() !== null || gridSelection.pendingGridEntry(game.shard.slug)
+    ? 'grid' : entrySelection.shardEntry(game.shard);
+  const declaredHome = earlyPath !== 'legacy' && document.getElementById('ws-shardfile') === null;
+  // Establish all compiler-known denominators before crediting cached code.
+  // These declarations start no transport; existing preload/read barriers stay.
+  const homeExtras = declaredHome && earlyPath === 'shardfile' ? prepareHomeExtras(
+    typeof moduleRows === 'object' && moduleRows !== null && 'extras' in moduleRows ? moduleRows.extras : undefined,
+    game.shard.shardfile, document.baseURI, entryScope) : null;
+  if (declaredHome) {
+    reserveHomeDownload(typeof moduleRows === 'object' && moduleRows !== null && 'products' in moduleRows ? moduleRows.products : undefined,
+      game.shard.shardfile, document.baseURI, TIER);
+    declareHomeModules(game.shard.shardfile, document.baseURI);
+  }
+  if (typeof moduleRows === 'object' && moduleRows !== null) {
+    if ('common' in moduleRows) declareModuleFiles(moduleRows.common);
+    const kind = earlyPath === 'grid' ? 'grid' : earlyPath === 'shardfile' ? 'client' : 'common';
+    if (Object.hasOwn(moduleRows, kind)) declareModuleFiles(Reflect.get(moduleRows, kind));
+  }
+  declareCodePack?.();
   const modules = (kind: 'common' | 'client' | 'grid'): void => {
     if (moduleRows === undefined) return; // Source/dev documents have no emitted chunk inventory.
     if (typeof moduleRows !== 'object' || moduleRows === null || !Object.hasOwn(moduleRows, kind)) throw new Error('Missing boot module rows');
@@ -151,16 +172,15 @@ async function startSelected(): Promise<void> {
   // cannot publish content: the memory bank and full import barrier still
   // precede admission and installation, with their original refusal order.
   const [speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule, starterModule, hoverboardModule,
-    voicesModule, combatModule, boarModule, familiesModule, sourceModule, runtimeModule, gridEntryModule,
-    pathsModule, entryModule, calibrationModule, prefetchModule] = [
+    voicesModule, combatModule, boarModule, familiesModule, sourceModule, runtimeModule,
+    pathsModule, calibrationModule, prefetchModule] = [
     retried(() => import('./game/systems/species/install')), retried(() => import('./game/icons')),
     retried(() => import('./game/models/specimenCatalogue')), retried(() => import('./game/data/pickupCatalogue.json')),
     retried(() => import('./game/models/interact')), retried(() => import('./game/bag/starter.generated')),
     retried(() => import('./game/systems/tools/hoverboard')), retried(() => import('@wildshard/sdk/runtime/audio/weaponVoices')), retried(() => import('@wildshard/sdk/runtime/audio/combatCues')),
     retried(() => import('@wildshard/game/systems/species/view/boar')), retried(() => import('@wildshard/game/plugin/weaponFamily')),
     retried(() => import('@wildshard/game/shardfile/clientSource')), retried(() => import('@wildshard/game/shardfile/runtimeProduct')),
-    retried(() => import('@wildshard/game/grid/pageEntry')), retried(() => import('./game/boot/loadingPaths')),
-    retried(() => import('./game/shard/entryMode')), retried(() => import('./loadingCalibration.json')),
+    retried(() => import('./game/boot/loadingPaths')), retried(() => import('./loadingCalibration.json')),
     retried(() => import('./game/grid/prefetch')),
   ] as const;
   const imports = prepareBootImports(Promise.all([speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule,
@@ -198,9 +218,7 @@ async function startSelected(): Promise<void> {
     const path = page.mode === 'grid' ? 'grid' : source !== null || shardEntry(game.shard) === 'shardfile' ? 'shardfile' : 'legacy';
     // Publish every selected bank together before reading the descriptor.
     if (source === null) reserveHomeDownload(typeof moduleRows === 'object' && moduleRows !== null && 'products' in moduleRows ? moduleRows.products : undefined, game.shard.shardfile, document.baseURI, TIER);
-    const extras = source === null && path === 'shardfile' ? prepareHomeExtras(
-      typeof moduleRows === 'object' && moduleRows !== null && 'extras' in moduleRows ? moduleRows.extras : undefined,
-      game.shard.shardfile, document.baseURI, entryScope) : null;
+    const extras = source === null && path === 'shardfile' ? homeExtras : null;
     if (source === null && path === 'shardfile') prepareHomeModules(game.shard.shardfile, document.baseURI);
     if (path === 'shardfile') modules('client');
     if (path === 'grid') modules('grid');
