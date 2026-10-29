@@ -776,3 +776,5 @@ PL13-title-prefetch-warm: OPEN — same10s-dwell Chromium phone10x grid entry ch
 LS4-live-lint-fixtures: CLOSED — exact current named typed lint passes for both original fixture paths; defining corrections `169de0851c` and `24621a6c4a`. Original whole-lint refusals remain in `tmp/sp-x10-lint-speed/ls4-final-fast.log`; no rules or assertions weakened.
 
 LS6-live-graph-types: CLOSED — defining Opus float-port correction `b3a8ffc8db` restores actual Node<float> contracts; complete serial and combined typechecks are green. Original cold refusal remains in `tmp/sp-x10-lint-speed/ls6-bounded-cold.log`; no Codex visual edit or type/guard waiver.
+
+QA12-WebKit-worker: OPEN — exact aac39462b7 menu lifecycle proof passes both directions on WebKit, but native console emits one prefetchIndex.worker access-control pageerror during navigation. First bad unisolated; not an established window exception or app failure. Retain tmp/sp-x9-qa12/after-webkit/result.json; owner sp-x9 for cancellation attribution, no error filter or guard waiver.
