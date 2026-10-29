@@ -487,8 +487,9 @@ function architecture(cut: boolean, nr13: boolean): GraphIr {
     return choose(g.eq(bare, 2), mul(stoneK, sw(g.u('uPaintStone'), 'x')), choose(g.op('or', [g.eq(bare, 3), g.eq(bare, 6)]), mul(stoneK, sw(g.u('uPaintStone'), 'z')),
       choose(g.op('or', [g.eq(bare, 4), g.eq(bare, 5)]), mul(pk, sw(g.u('uPaintK'), 'w')), 0)));
   })();
-  const paintStrength = own(1, mul(mul(pk, sw(g.u('uPaintK'), 'z')), sw(g.u('uPaintStone'), 'z')), own(2, mul(pk, sw(g.u('uPaintK'), 'w')), own(3, mul(mul(pk, sw(g.u('uPaintK'), 'y')), g.u('uPaintFlag')), own(5, panel?.strength ?? mul(pk, sw(g.u('uPaintK'), 'w')), surfaceStrength))));
-  // NR16: the facade cell and the wall / rough-stone surfaces paint as LEGACY's paintWall (layers 2 and 4)
+  const paintStrength = own(1, mul(mul(pk, sw(g.u('uPaintK'), 'z')), sw(g.u('uPaintStone'), 'z')), own(2, nr13 ? 0 : mul(pk, sw(g.u('uPaintK'), 'w')), own(3, mul(mul(pk, sw(g.u('uPaintK'), 'y')), g.u('uPaintFlag')), own(5, panel?.strength ?? mul(pk, sw(g.u('uPaintK'), 'w')), surfaceStrength))));
+  // NR16: the facade cell and the wall / rough-stone surfaces paint as LEGACY's paintWall (layers 2 and 4); glazed tiles
+  // (kind 2) take only their per-tile tint and ruled courses, no paint (LEGACY's surface paint skips kinds 1, 2, 3 and 5)
   const wallPaint = nr13 ? { on: choose(g.op('or', [g.eq(paintLayer, 2), g.eq(paintLayer, 4)]), 1, 0), seed } : undefined;
   const painted = choose(g.gt(paintStrength, 0), g.paint(paintAt, paintLayer, paintScale, paintStrength, own(2, 3, own(3, 2.5, 2)), wallPaint), [1, 1, 1]);
   colour = add(mul(colour, painted), choose(g.eq(kind, 1), glassAdd(), [0, 0, 0]));
