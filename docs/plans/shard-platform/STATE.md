@@ -4,14 +4,14 @@
 (G845).** Only legacy-deletion (LD4b goldens done; tag legacy-final; LD5-LD10 all at once on Jake's word, G840 / G843 / G851).
 Archived today: 12 mini plans (loading ... tile-streaming 9be158bc79).
 
-**LIVE c05f6ac3b8 (build c05f6ac3b-mvsxjh1p).** a3bc0e338f's smoke FAILED (title stuck on pending shaders): sp-x6 bisected it to
-24621a6c4a (x1 PL10, warmRest waited on control); fixed edb49f5a82 (pinned preview 12 / 12). Next release is the first SHA with edb + full CI
-+ exact six (and 4e009207dd with 31da89c501). Sim phone-route leg still an xcrun timeout (report-only).
+**LIVE c05f6ac3b8 (c05f6ac3b-mvsxjh1p); deploying bf07819a93** (CI 40827254162 + exact six 40828917866 green; title-cycle fix
+edb49f5a82, lantern 4e009207dd, What's New; deploy 40830747863). a3bc0e338f smoke stays red (24621a6c4a, fixed).
 
 **Jake's QA 10-28 PASSED:** NM, loading / M2, tiles / T10, DW cut B (G827 / G831-G833).
 **Marks:** Nine done NR1-3, 5-7, 12-14 (+ 21 roof c6df3155cd); NR4 / NR7 view-F done; open NR8, NR16 (tea-house; graph byte cap 64 -> 96 KB approved). Far Reach FR1-4 done;
-FR5 PICK pending, FR6 done. Goldens 132 / 144 (964b257bc8; Nine 20 / 24). QF6 / 11 / 19-22 / 24-26 done; D203 / D204 done; QF20 shadow flaky; QF23 / pines -> damage list. 
-**Opus:** o3 grid program retention, PL6 renderer; o4 NR16 board, 144 rerun on 4e009207dd; o5 Nalati GradeV2 relink.
+FR5 PICK pending, FR6 done. Goldens 133 / 144 (Nine 21 / 24; NR16 done 38e6343f6e). QF6 / 11 / 19-22 / 24-26 done; D203 / D204 done; QF20 shadow flaky; QF23 / pines -> damage list. 
+**Opus:** o3 PL6 renderer (3.05 -> 2.39 s); o4 D196 parked-draws fatal check; o5 per-shard memory check. D200 pop-in done
+(DW 996def3605, Pine waterfall 92faa4f4f3). D199 / D201 not reproduced on HEAD (779b506fbe).
 **D12 official Sim 13 / 15** (3f8551c4fe): spawn PASS via x1's 8483b2541e; Pine interior drive (p95 42) and Nalati interior travel
 (p95 36) fail on in-play GPU-process link time G815 accepts. Damage: D12, D199, D201, D202, T7.
 **Codex:** PL4 / 11 / 12 / 14 done; PL1 / 3 / 6 / 7 / 13 partial (named remaining costs); LS1-5, LS9 done, LS7 partial; x10 LS6 / LS8,
