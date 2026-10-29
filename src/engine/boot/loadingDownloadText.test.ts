@@ -3,6 +3,15 @@ import { loadingDownloadText, loadingDownloadFraction, loadingPrefetchFraction, 
 
 const traffic = { networkBytes: 1_300_000, cachedBytes: 2_000_000, pendingBytes: 500_000, filesDone: 4, filesTotal: 5, unclassifiedBytes: 100_000, unclassifiedFiles: 0,
   declaredBytes: 2_000_000, declaredDoneBytes: 1_500_000, declaredFiles: 4, declaredFilesDone: 3 };
+
+it('labels actual delivered content and its cache subset without a guessed tier denominator', () => {
+  const reads = {bytes: 52_000_000, cachedBytes: 51_600_000, unknownSourceBytes: 0, pendingBytes: 0, pendingFiles: 0, closed: false};
+  const snapshot = {...traffic, expectedBytes: 101_300_000, reads};
+  expect(loadingDownloadText(snapshot)).toBe('52.0 MB · 51.6 MB from cache');
+  expect(loadingDownloadFraction(snapshot, false)).toBe(0.99);
+  expect(loadingDownloadFraction({...snapshot, reads: {...reads, closed: true}}, true)).toBe(1);
+  expect(loadingDownloadText({...snapshot, reads: {...reads, unknownSourceBytes: 1_000_000}})).toContain('1.00 MB source unknown');
+});
 const prefetch: LoadingPrefetchSnapshot = { phase: 'running', reason: null, products: 25, productsRead: 3,
   knownFiles: 10, knownBytes: 20_000_000, presentFiles: 2, presentBytes: 4_000_000, storedFiles: 3, storedBytes: 6_000_000 };
 

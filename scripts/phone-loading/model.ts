@@ -20,7 +20,8 @@ export interface RequestRow {url: string; start: number; end: number | null; sou
  * requests retain their separate inFlight count; failures remain on each row. */
 export interface RequestAccounting {complete: boolean; pending: number; incomplete: number; deadlineMs: number; inFlight?: number;}
 export interface Mark {name: string; start: number; duration: number; detail: unknown}
-export interface PanelCounters {declaredBytes: number | null; pendingBytes: number | null; entryDownloadBytes: number | null; restoredBytes?: number | null}
+export interface PanelCounters {declaredBytes: number | null; pendingBytes: number | null; entryDownloadBytes: number | null; restoredBytes?: number | null;
+  readBytes?: number | null; readCachedBytes?: number | null; readUnknownSourceBytes?: number | null; readsClosed?: boolean}
 export interface PanelRow {at: number; clock: string; download: number | null; downloadFact?: string; header: string; wait: string; step: string; activeLabel: string | null; documentToken?: string; navigation?: boolean; content?: PanelCounters}
 /** Admit a passive old-document sample without granting control to that document. */
 export function readNavigationPanel(input: unknown): PanelRow | null {

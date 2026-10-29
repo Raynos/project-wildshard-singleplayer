@@ -127,10 +127,8 @@ export class Loading {
     this.scope.onDispose(() => { finishLoadingWait(this.waitId); });
     if (!this.scoped) this.scope.onDispose(installLoadingTimeline(this.timeline));
     this.downloads = new DownloadAccounting(location.href, shell === null ? this.t0 : 0);
-    if (!this.scoped) {
-      const total = Number(this.root.dataset['entryDownloadBytes'] ?? document.documentElement.dataset['entryDownloadBytes']);
-      if (Number.isSafeInteger(total) && total > 0) this.downloads.expect(total);
-    }
+    if (!this.scoped) this.downloads.trackReads();
+    delete this.root.dataset['entryDownloadBytes'];
     this.scope.onDispose(this.scoped ? observeDownloadAccounting(this.downloads) : installDownloadAccounting(this.downloads));
     this.downloadObserver = new PerformanceObserver(list => {
       for (const entry of list.getEntries()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
@@ -298,8 +296,10 @@ export class Loading {
 
   private downloadProgress(done: boolean) {
     for (const entry of this.downloadObserver.takeRecords()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
+    if (this.finished) this.downloads.closeReads();
     const transfer = this.downloads.snapshot();
-    return { ...transfer, fraction: loadingDownloadFraction(transfer, done) };
+    const fraction = loadingDownloadFraction(transfer, done);
+    return { ...transfer, fraction: transfer.reads === undefined ? fraction : Math.max(this.paintedDownload, fraction) };
   }
 
   private setupProgress(): number {
@@ -330,6 +330,12 @@ export class Loading {
     setData(this.root, 'unclassifiedFiles', String(transfer.unclassifiedFiles));
     setData(this.root, 'unclassifiedBytes', String(transfer.unclassifiedBytes));
     setData(this.root, 'declaredBytes', String(transfer.declaredBytes));
+    if (transfer.reads !== undefined) {
+      setData(this.root, 'readBytes', String(transfer.reads.bytes));
+      setData(this.root, 'readCachedBytes', String(transfer.reads.cachedBytes));
+      setData(this.root, 'readUnknownSourceBytes', String(transfer.reads.unknownSourceBytes));
+      setData(this.root, 'readsClosed', String(transfer.reads.closed));
+    }
     if (transfer.expectedBytes !== undefined) setData(this.root, 'entryDownloadBytes', String(transfer.expectedBytes));
   }
 

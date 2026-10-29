@@ -983,10 +983,17 @@ A format-2 home descriptor declares every section, schema and immutable blob
 before its first section/cache read. Historical state-lineage reads declare
 only their sections and schemas. The boot byte counter declares selected
 audio and menu art before prefetch or decoding starts; background audio
-inventories remain separate. DOWNLOAD shows the actual completed/declared
-ratio, including 100 percent when all declared files arrive. It does not
-hide a late dependency behind a maximum-so-far value or a 99.9 percent cap.
-Lazy module coverage still requires the selected build dependency graph.
+inventories remain separate. Entry DOWNLOAD uses `trackReads()` and
+`recordReadDownload(url, bytes, cached?)`: actual unique delivered bodies,
+with the cache subset labelled separately. Pack members and unused product
+banks grant no body receipt. A validated Home snapshot counts its own
+cache payload, not skipped source GLBs. Unknown provenance stays explicit.
+`beginDownloadRead(url)` observes existing demand; it starts no IO.
+`closeReads()` freezes the entry at Loading.done; later prefetch cannot
+change its bytes. Only this barrier shows 100%; earlier progress never
+falls. Raw declarations and wire receipts stay available independently.
+Scoped cell panels retain their declared-file ratio.
+
 
 `readModuleFiles(input)` admits detached compiler-owned `/assets/` JavaScript
 and CSS URL/body-size tuples before any declaration publishes.
@@ -999,16 +1006,11 @@ chunk and the single extracted stylesheet are included. This needs no metadata
 request or worker install expansion. Per-home lazy roots remain a separate
 inventory requirement.
 
-`reserveDownloadGroup(directoryUrl, bytes)` reserves an exact compiler-known
-same-origin directory total before its index is read. Its individual file
-declarations replace that reservation byte for byte. Unitemized bytes stay
-pending and are labelled as awaiting the file index; only original network or
-verified-cache receipts credit completion. Changed or overlapping reservations
-refuse. Unexpected additional files remain visible as growth. The page shell
-carries two sizes per first-party home (index and complete product); the entry
-reserves only its selected manifest's product, before application modules run.
-Full file inventories and their original size/hash/schema admission stay in the
-selected product, rather than being inlined for every shard.
+`reserveDownloadGroup(directoryUrl, bytes)` retains the compiler's exact
+same-origin directory budget. Individual declarations replace reservations;
+changed/overlapping totals refuse. Receipts alone complete these debug
+counters. Product inventories keep their original size/hash/schema checks.
+This full-bank estimate does not supply entry DOWNLOAD's displayed total.
 
 `reserveDownloadBank(id, bytes)` returns the itemizer for that attempt's
 captured counters. It reserves a detached home file list's exact content total;

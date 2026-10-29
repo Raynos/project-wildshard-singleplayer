@@ -3,7 +3,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { TIER } from '@wildshard/engine/core/tier';
 import { timeClientPreparation } from './preparationTiming';
 import { outputDescriptor } from './outputDescriptor';
-import { recordRestoredDownload } from '@wildshard/engine/boot/download';
+import { recordReadDownload, recordRestoredDownload } from '@wildshard/engine/boot/download';
 import { HomeGeometrySnapshotSchema, homeGeometryBytes, restoreHomeGeometry, snapshotHomeGeometry,
   type HomeGeometryView, type HomeGeometrySnapshot } from './homeGeometrySnapshot';
 
@@ -11,7 +11,7 @@ declare const __BUILD_ID__: string;
 /** One home's completed static geometry: at most 64 MiB of payload and 256 entries, shared across all builds. */
 export const HOME_BUILD_CACHE_BYTES: number = 64 * 1024 * 1024;
 const homes = new WeakMap<Shardfile, string>();
-const restoredSources = new WeakMap<object, {readonly source: Shardfile; readonly key: string}>();
+const restoredSources = new WeakMap<object, {readonly source: Shardfile; readonly key: string; readonly bytes: number}>();
 const size = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(HOME_BUILD_CACHE_BYTES));
 const metadata = v.strictObject({ identity: v.string(), bytes: size, entries: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(256)) });
 const record = v.strictObject({ identity: v.string(), bytes: size, snapshot: HomeGeometrySnapshotSchema });
@@ -28,6 +28,7 @@ export function bindHomeBuildCache(source: Shardfile): void {
 export function recordHomeBuildInputs(source: Shardfile, key: string, views: ReadonlyMap<string, HomeGeometryView>, refs: readonly string[]): void {
   const proof = restoredSources.get(views), descriptor = outputDescriptor(source);
   if (proof?.source !== source || proof.key !== key || descriptor === undefined || typeof document === 'undefined') return;
+  recordReadDownload(`cache:home:${encodeURIComponent(JSON.stringify([homes.get(source), key]))}`, proof.bytes, true);
   const indexed = new Map(descriptor.index.files.flatMap(file => [file.hash, file.path, ...file.name === undefined ? [] : [file.name]].map(ref => [ref, file] as const)));
   const rows = [...new Set(refs)].map(ref => indexed.get(ref));
   if (rows.some(row => row === undefined)) return;
@@ -97,7 +98,7 @@ export async function readHomeBuildGeometry(source: Shardfile, key: string): Pro
     if (!meta.success || !row.success || meta.output.identity !== identity || row.output.identity !== identity
       || meta.output.bytes > HOME_BUILD_CACHE_BYTES || row.output.bytes !== homeGeometryBytes(row.output.snapshot)) return null;
     const restored = await timeClientPreparation(source.identity.slug, key.startsWith('whole:') ? 'home.cache.whole' : 'home.cache.owned', () => restoreHomeGeometry(row.output.snapshot));
-    restoredSources.set(restored, {source, key});
+    restoredSources.set(restored, {source, key, bytes: row.output.bytes});
     return restored;
   } catch { return null; }
 }

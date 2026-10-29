@@ -1,5 +1,5 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
-import { declareDownloadFile, noteDownloadRead, recordCachedDownload, recordPackedDownload } from '@wildshard/engine/boot/download';
+import { declareDownloadFile, noteDownloadRead, recordCachedDownload, recordPackedDownload, recordReadDownload } from '@wildshard/engine/boot/download';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -221,8 +221,14 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
     ...(options.pause === undefined ? {} : { pause: options.pause }),
     declare: (path, bytes) => { declareDownloadFile(new URL(path, base).href, bytes); },
     cacheHit: (path, hash, bytes) => { recordCachedDownload(hash, bytes, new URL(path, base).href); },
-    read: async (path, cap) => boundedResponse(await options.fetch(new URL(path, base).href), cap),
-    pack: async (path, cap) => boundedResponse(await options.fetch(new URL(path, base).href), cap),
+    read: async (path, cap) => {
+      const url = new URL(path, base).href, bytes = await boundedResponse(await options.fetch(url), cap);
+      recordReadDownload(url, bytes.length); return bytes;
+    },
+    pack: async (path, cap) => {
+      const url = new URL(path, base).href, bytes = await boundedResponse(await options.fetch(url), cap);
+      recordReadDownload(url, bytes.length); return bytes;
+    },
     packedHit: path => { recordPackedDownload(new URL(path, base).href); },
     ...(cache?.verifiedAsset === undefined && options.transport === undefined ? {} : {
       verified: (hash: string, path: string, cap: number) => waitFor(`Read ${productResourceRole(path)}`, (async () => {
@@ -284,6 +290,7 @@ async function descriptorWire(options: ProductOptions, url: URL, refresh = false
         if (immutable && size > 0) renew();
         progress?.({ phase: 'descriptor', detail: `Reading shard descriptor · ${label}`, bytesRead, bytesTotal, filesDone: 0, filesTotal: 1 });
       });
+      recordReadDownload(url.href, bytes.length);
       progress?.({ phase: 'descriptor', detail: `Parsing shard descriptor · ${label}`, bytesRead, bytesTotal: bytesRead, filesDone: 1, filesTotal: 1 });
       return bytes;
     })();
@@ -488,7 +495,10 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
   };
   // I5: a file missing from the cache comes from its pack (one read for the phase's small files) instead of its own request
   const packed = options.offline ? undefined : packReads(outputDescriptor(source)?.index.packs, new Set(addresses.map(([hash]) => hash)),
-    async (path, cap) => boundedResponse(await options.fetch(new URL(path, base).href), cap), options.hash);
+    async (path, cap) => {
+      const url = new URL(path, base).href, bytes = await boundedResponse(await options.fetch(url), cap);
+      recordReadDownload(url, bytes.length); return bytes;
+    }, options.hash);
   const bytesTotal = addresses.reduce((total, [, cap]) => total + cap, 0);
   const progress = (phase: ProductProgress['phase'], detail: string, resource: string = new URL(descriptorPath, base).href): void => {
     options.progress?.({ phase, detail, resource, bytesRead, bytesTotal, filesDone, filesTotal: addresses.length });
@@ -530,6 +540,7 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
     }
     if (transported.has(hash)) noteDownloadRead(bytes.length);
     else if (fromCache) { verifiedCached.add(hash); recordCachedDownload(hash, bytes.length, url); }
+    else if (!inPack) recordReadDownload(url, bytes.length);
     filesDone++; progress('assets', `Verified ${role} · ${filesDone} / ${addresses.length} files`, url);
     return owned;
   };

@@ -23,7 +23,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { EntrywaysSchema } from '@wildshard/format/entryways';
 import * as v from 'valibot';
-import { recordCachedDownload } from '@wildshard/engine/boot/download';
+import { recordCachedDownload, recordReadDownload } from '@wildshard/engine/boot/download';
 import { GridAdmissionPriority } from './admissionPriority';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
 import { readCheckedOutputIndex } from '../shardfile/outputIndexChecks';
@@ -50,6 +50,7 @@ function builtGridIndex(input: unknown, hash: string, options: ProductOptions): 
 }
 async function readGridProductIndex(url: string, identity: string, options: ProductOptions): Promise<GridProductIndex> {
   const bytes = await boundedResponse(await options.fetch(url), limits.sourceBytes), key = await options.hash(bytes);
+  recordReadDownload(url, bytes.length);
   let index = parsedIndexes.get(key);
   if (index !== undefined) await checkBuiltIndex(key, options);
   else {
@@ -63,7 +64,8 @@ async function readGridProductIndex(url: string, identity: string, options: Prod
   const packed = packReads(index.packs, new Set([...index.sections, ...index.schemas].map(row => row.hash)), async (path, maximum) => {
     const response = await options.fetch(new URL(path, url).href);
     if (response.status === 206) { await response.body?.cancel(); throw new Error('Grid pack requires a whole response'); }
-    return boundedResponse(response, maximum);
+    const packBytes = await boundedResponse(response, maximum);
+    recordReadDownload(new URL(path, url).href, packBytes.length); return packBytes;
   }, options.hash);
   return { index, url, options, packed };
 }
@@ -76,8 +78,9 @@ async function readGridProductFile(at: GridProductIndex, path: string, hash: str
   const bytes = held ?? (at.packed.has(hash) ? await at.packed.read(hash) : await boundedResponse(await options.fetch(address), size));
   if (bytes.length !== size || await options.hash(bytes) !== hash) throw new Error(`Grid product file ${path} hash or size mismatch`);
   // a grid cell's file is not the home load's: a cache hit is credited as cache, never declared into the home track
-  if (held !== null && held !== undefined) recordCachedDownload(hash, bytes.length);
+  if (held !== null && held !== undefined) { recordCachedDownload(hash, bytes.length); recordReadDownload(address, bytes.length, true); }
   else {
+    if (!at.packed.has(hash)) recordReadDownload(address, bytes.length);
     const cache = options.cache;
     // These verified render bytes publish no visited/offline product. A cache
     // with the explicit background port must not hold ringsReady on disk IO;

@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { Loading } from './Loading';
 import type { ProgressView } from '../boot/plan';
-import { declareDownloadFile, recordCachedDownload, beginLoadingWait, finishLoadingWait, loadingWaitState, reportLoadingWait } from '../boot/download';
+import { declareDownloadFile, recordCachedDownload, recordReadDownload, beginLoadingWait, finishLoadingWait, loadingWaitState, reportLoadingWait } from '../boot/download';
 import { currentLoadingTimeline } from '../boot/timeline';
 import { waitFor } from '../boot/waits';
 import { loadShellTemplate } from '../boot/shell';
@@ -18,6 +18,26 @@ beforeEach(() => {
   });
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
+
+it('closes actual entry reads at ready without completing unused product-bank declarations', async () => {
+  const loading = new Loading({id: 'entry-receipts', name: 'Entry receipts'});
+  try {
+    declareDownloadFile('/unused.glb', 41_000_000);
+    recordCachedDownload('warm', 51_600_000, '/warm.bin'); recordReadDownload('/fresh.bin', 400_000, false);
+    loading.waiting('Prepared entry content');
+    now = 400; vi.advanceTimersByTime(32);
+    expect(loading.root.dataset['download']).toBe('99');
+    expect(loading.root.querySelector('[data-el="dlFact"]')?.textContent).toBe('52.0 MB · 51.6 MB from cache');
+    const done = loading.done();
+    expect(loading.root.dataset['download']).toBe('100');
+    expect(loading.root.dataset['readBytes']).toBe('52000000');
+    expect(loading.root.dataset['pendingBytes']).toBe('41000000');
+    expect(loading.root.dataset['readsClosed']).toBe('true');
+    recordReadDownload('/background.bin', 1_000_000, false);
+    expect(loading.root.querySelector('[data-el="dlFact"]')?.textContent).toBe('52.0 MB · 51.6 MB from cache');
+    await vi.advanceTimersByTimeAsync(317); await done;
+  } finally { loading.scope.dispose(); }
+});
 
 it.each([[-1600, '00:01.7'], [-90000, '00:00.1'], [101, '00:00.1']])('adopts bounded handoff clock %s without shifting stage timing', (clock, expected) => {
   document.body.innerHTML = `<div class="ws-load" data-shell data-started-at="0" data-clock-started-at="${clock}">${loadShellTemplate()}</div>`;

@@ -1,6 +1,6 @@
 import { currentLoadingTimeline } from './timeline';
 import { diagnosticNow } from '../core/clock';
-import { loadingWaitState, type LoadingWaitState, type LoadingWaitEntry, type LoadingWaitKind } from './download';
+import { beginDownloadRead, loadingWaitState, type LoadingWaitState, type LoadingWaitEntry, type LoadingWaitKind } from './download';
 /** Pending asynchronous work is observed without changing its owner, queue or concurrency. */
 export type WaitKind = LoadingWaitKind;
 export interface BootWait extends LoadingWaitEntry { ageMs: number }
@@ -17,8 +17,9 @@ export class WaitRegistry {
     state.pending.set(id, { id, label, kind, step, owner, startedAt: now, progressAt: now, loadedBytes: 0, totalBytes: null,
       deadlineMs: 8000, retry: typeof location === 'undefined' ? null : () => { location.reload(); }, progress: '', inline: false,
       ...(resource === undefined ? {} : {resource}) });
+    const release = resource === undefined || kind !== 'file' && kind !== 'worker' ? undefined : beginDownloadRead(resource);
     try { return await promise; }
-    finally { state.pending.delete(id); }
+    finally { state.pending.delete(id); release?.(); }
   }
   snapshot(): BootWait[] {
     const now = this.now();

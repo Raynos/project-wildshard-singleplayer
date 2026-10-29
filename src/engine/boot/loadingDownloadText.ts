@@ -14,6 +14,11 @@ export interface LoadingPrefetchSnapshot {
 /** The home load's own track: the bytes of the files it declared (product indexes give exact sizes) that have arrived, from
  * the wire or the cache; done when the load is. Grid prefetch and other page traffic never move it (they have their own row). */
 export function loadingDownloadFraction(transfer: DownloadSnapshot, done: boolean): number {
+  if (transfer.reads !== undefined) {
+    if (transfer.reads.closed) return 1;
+    const total = transfer.reads.bytes + transfer.reads.pendingBytes;
+    return total === 0 ? 0 : Math.min(0.99, transfer.reads.bytes / total);
+  }
   const total = transfer.expectedBytes ?? transfer.declaredBytes;
   // A completed zero-byte entry is genuinely empty. Unknown or pending bytes
   // remain incomplete; this does not turn a nonempty load's setup into credit.
@@ -27,6 +32,10 @@ export function loadingDownloadFraction(transfer: DownloadSnapshot, done: boolea
 /** Declared progress first (the fact line truncates), then the wire and the offline cache. WebKit sizes no service-worker
  * transfer: those count by their known body size, said once, never as a missing total. */
 export function loadingDownloadText(transfer: DownloadSnapshot): string {
+  if (transfer.reads !== undefined) {
+    const unknown = transfer.reads.unknownSourceBytes === 0 ? '' : ` · ${formatMB(transfer.reads.unknownSourceBytes)} source unknown`;
+    return `${formatMB(transfer.reads.bytes)} · ${formatMB(transfer.reads.cachedBytes)} from cache${unknown}`;
+  }
   const network = transfer.unclassifiedFiles > 0 && transfer.unclassifiedBytes === 0
     ? `${formatMB(transfer.networkBytes)} network · ${transfer.unclassifiedFiles} transfers with unknown wire size`
     : transfer.unclassifiedFiles > 0

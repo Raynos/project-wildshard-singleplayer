@@ -153,6 +153,8 @@ export function instrument(flow: string): void {
         const panel: PanelRow = {at, clock: text('clock'), download: Number.isFinite(download) ? download : null, downloadFact: text('dlFact'),
           header: text('suFact'), wait: text('foot'), step: root instanceof HTMLElement ? root.dataset['step'] ?? '' : '', activeLabel, documentToken, navigation,
           content: {declaredBytes: bytes('declaredBytes'), pendingBytes: bytes('pendingBytes'), entryDownloadBytes: bytes('entryDownloadBytes'),
+            ...(!(root instanceof HTMLElement) || root.dataset['readBytes'] === undefined ? {} : {readBytes: bytes('readBytes'),
+              readCachedBytes: bytes('readCachedBytes'), readUnknownSourceBytes: bytes('readUnknownSourceBytes'), readsClosed: root.dataset['readsClosed'] === 'true'}),
             ...(!(root instanceof HTMLElement) || root.dataset['restoredBytes'] === undefined ? {} : {restoredBytes: bytes('restoredBytes')})}};
         data.panels?.push(panel);
         if (navigation) {

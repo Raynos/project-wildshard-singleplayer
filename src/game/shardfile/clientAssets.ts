@@ -1,7 +1,7 @@
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
 import { isDev } from '@wildshard/engine/core/devMode';
 import { memoryAttribution } from '@wildshard/engine/core/memoryAttribution';
-import { declareDownloadFile, recordCachedDownload, recordPackedDownload } from '@wildshard/engine/boot/download';
+import { declareDownloadFile, recordCachedDownload, recordPackedDownload, recordReadDownload } from '@wildshard/engine/boot/download';
 import { boundedResponse, type ProductOptions } from './product';
 import { outputBlobUrl, outputDescriptor } from './outputDescriptor';
 import { readPackWhole } from './packReads';
@@ -57,6 +57,7 @@ export class ClientAssets {
       ?? (url === undefined ? undefined : await this.urlHint(url, hash, cap, priority));
     if (verified !== null && verified !== undefined) {
       if (verified.length !== cap) throw new Error('Resident tile hash or size mismatch');
+      recordCachedDownload(hash, verified.length, url);
       return this.observe(ref, verified);
     }
     let bytes = this.options.cache?.verifiedAsset === undefined ? await this.options.cache?.asset(base, hash) : null, downloaded = false, packed = false;
@@ -72,6 +73,7 @@ export class ClientAssets {
     }
     if (bytes.length !== cap || await this.hashOf(bytes) !== hash) throw new Error('Resident tile hash or size mismatch');
     if (packed) recordPackedDownload(outputBlobUrl(this.source, ref, base));
+    else if (downloaded) recordReadDownload(outputBlobUrl(this.source, ref, base), bytes.length);
     if (downloaded) {
       // The verified network response is the build input. Disk persistence must
       // not hold the home load behind a background writer or a cache refusal.
@@ -107,7 +109,9 @@ export class ClientAssets {
       const fetch = priority === 'low' ? this.options.backgroundFetch ?? this.options.fetch : this.options.fetch;
       const response = await fetch(new URL(path, this.options.base).href);
       if (response.status === 206) { await response.body?.cancel(); throw new Error('Resident pack requires a whole response'); }
-      return this.observe(pack.hash, await boundedResponse(response, maximum));
+      const bytes = await boundedResponse(response, maximum);
+      recordReadDownload(new URL(path, this.options.base).href, bytes.length);
+      return this.observe(pack.hash, bytes);
     }, bytes => this.hashOf(bytes), this.options.hash);
     return wire.slice(member.offset, member.offset + member.bytes);
   }
