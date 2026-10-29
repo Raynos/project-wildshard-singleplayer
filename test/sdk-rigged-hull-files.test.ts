@@ -101,7 +101,7 @@ it('keeps every baked coat\'s cache key on the rig\'s original public path and n
     const baked = Object.keys(GPU_FILES[tier]).filter(key => key.startsWith('procedural:/assets/pine-hollow/creatures/'));
     expect(baked.length).toBeGreaterThan(0);
     expect(coats.map(row => row.key).sort()).toEqual(baked.sort());
-    for (const row of coats) expect(row.image).toBe(`models/creatures/${row.key.slice(row.key.lastIndexOf('/') + 1)}`);
+    for (const row of coats) expect(row.image).toBe(`models/creatures/${row.key.slice(row.key.lastIndexOf('/') + 1).replace(/\.png$/u, '.ktx2')}`);
   }
   expect(pineHullResources('desktop').coats['boar:boar:thrall']?.key).toBe('procedural:/assets/pine-hollow/creatures/boar.boar.thrall.coat.png');
 });
