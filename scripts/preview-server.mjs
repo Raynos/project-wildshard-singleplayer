@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // D24 (G799: no Vite plugins): serve a finished build the way production does, as a plain Node server. It replaces
 // `vite preview` and its two plugins (the vercel.json header replay and Rapier's brotli copy), and keeps what the
-// preview server did that callers rely on: gzip of compressible files, weak ETags with 304s, byte ranges, `.html`
+// preview server did that callers rely on: encoded files, weak ETags with 304s, byte ranges, `.html`
 // rewrites, index.html for any missing path a page or fetch asks for, and localhost CORS.
 //
 //   node scripts/preview-server.mjs [--outDir dist] [--port 4173] [--host 127.0.0.1] [--root <repo>]
@@ -10,7 +10,8 @@
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve, sep } from 'node:path';
-import { brotliCompressSync, constants as zlib, createGzip } from 'node:zlib';
+import { pipeline } from 'node:stream/promises';
+import { brotliCompressSync, constants as zlib, createBrotliCompress, createGzip } from 'node:zlib';
 
 const args = process.argv.slice(2);
 /** a `--name value` or `--name=value` argument's value */
@@ -36,12 +37,38 @@ const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/ja
   '.m4a': 'audio/mp4', '.wav': 'audio/wav', '.txt': 'text/plain', '.map': 'application/json', '.glb': 'model/gltf-binary',
   '.gltf': 'model/gltf+json', '.bin': 'application/octet-stream', '.ktx2': 'image/ktx2', '.hdr': 'application/octet-stream' };
 const type = file => TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream';
-// the preview server's gzip rule: compressible types of at least 1 KB, when the client accepts gzip
-const COMPRESSIBLE = /text|javascript|\/json|xml|svg|manifest/u;
+// Production also encodes binary scene/pack/mesh payloads, not just text.
+const COMPRESSIBLE = /text|javascript|\/json|xml|svg|manifest|octet-stream|wasm|gltf|ktx2/u;
 const LOCAL_ORIGIN = /^https?:\/\/(?:(?:[^:]+\.)?localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/u;
 // Vercel's CDN brotli-compresses application/wasm (~836 KB for Rapier's 3.29 MB); answer the way production does
 const RAPIER = join(outDir, 'assets/physics/rapier.wasm');
 const rapierBr = existsSync(RAPIER) ? brotliCompressSync(readFileSync(RAPIER), { params: { [zlib.BROTLI_PARAM_QUALITY]: 11 } }) : null;
+
+/** An explicitly refused encoding must not be selected through the wildcard. */
+function encodingQuality(header, encoding) {
+  let wildcard = 0;
+  for (const entry of header.split(',')) {
+    const [name, ...parameters] = entry.trim().toLowerCase().split(';');
+    const value = parameters.map(part => part.trim()).find(part => part.startsWith('q='));
+    const quality = value === undefined ? 1 : Number(value.slice(2));
+    const weight = Number.isFinite(quality) && quality >= 0 && quality <= 1 ? quality : 0;
+    if (name === encoding) return weight;
+    if (name === '*') wildcard = weight;
+  }
+  return wildcard;
+}
+
+function varyEncoding(res) {
+  const previous = res.getHeader('Vary');
+  const fields = previous === undefined ? [] : String(previous).split(',').map(value => value.trim());
+  if (!fields.some(field => field === '*' || field.toLowerCase() === 'accept-encoding')) fields.push('Accept-Encoding');
+  res.setHeader('Vary', fields.join(', '));
+}
+
+async function streamEncoded(file, encoder, res) {
+  try { await pipeline(createReadStream(file), encoder, res); }
+  catch (error) { res.destroy(error instanceof Error ? error : new Error(String(error))); }
+}
 
 /** a file in the build for a URL path, never outside it (`.html` rewrites as the preview server did) */
 function lookup(pathname) {
@@ -69,11 +96,6 @@ const server = createServer((req, res) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') { res.statusCode = 405; res.end(); return; }
 
   const acceptEncoding = req.headers['accept-encoding'] ?? '';
-  if (rapierBr !== null && pathname === '/assets/physics/rapier.wasm' && /\bbr\b/u.test(acceptEncoding)) {
-    res.setHeader('Content-Type', 'application/wasm'); res.setHeader('Content-Encoding', 'br'); res.setHeader('Content-Length', String(rapierBr.length));
-    res.end(req.method === 'HEAD' ? undefined : rapierBr);
-    return;
-  }
   let found = lookup(pathname);
   if (found === null) {
     const accept = req.headers.accept;
@@ -84,6 +106,8 @@ const server = createServer((req, res) => {
   const { file, stat } = found, etag = `W/"${stat.size}-${stat.mtime.getTime()}"`;
   res.setHeader('Content-Type', type(file)); res.setHeader('Last-Modified', stat.mtime.toUTCString()); res.setHeader('ETag', etag);
   res.setHeader('Accept-Ranges', 'bytes');
+  const compressible = COMPRESSIBLE.test(type(file)) && stat.size >= 1024;
+  if (compressible) varyEncoding(res);
   if (req.headers['if-none-match'] === etag) { res.statusCode = 304; res.end(); return; }
   const range = /^bytes=(\d*)-(\d*)$/u.exec(req.headers.range ?? '');
   if (range !== null && (range[1] !== '' || range[2] !== '')) {
@@ -94,9 +118,20 @@ const server = createServer((req, res) => {
     if (req.method === 'HEAD') res.end(); else createReadStream(file, { start, end }).pipe(res);
     return;
   }
-  if (req.method !== 'HEAD' && /\bgzip\b/u.test(acceptEncoding) && COMPRESSIBLE.test(type(file)) && stat.size >= 1024) {
-    res.setHeader('Content-Encoding', 'gzip');
-    createReadStream(file).pipe(createGzip()).pipe(res);
+  const br = encodingQuality(acceptEncoding, 'br'), gzip = encodingQuality(acceptEncoding, 'gzip');
+  if (compressible && (br > 0 || gzip > 0)) {
+    const encoding = br >= gzip ? 'br' : 'gzip';
+    res.setHeader('Content-Encoding', encoding);
+    if (encoding === 'br' && file === RAPIER && rapierBr !== null) {
+      res.setHeader('Content-Length', String(rapierBr.length));
+      res.end(req.method === 'HEAD' ? undefined : rapierBr);
+    } else if (req.method === 'HEAD') res.end();
+    else {
+      const encoder = encoding === 'br' ? createBrotliCompress({ params: {
+        [zlib.BROTLI_PARAM_QUALITY]: 3, [zlib.BROTLI_PARAM_SIZE_HINT]: stat.size,
+      } }) : createGzip();
+      void streamEncoded(file, encoder, res);
+    }
     return;
   }
   res.setHeader('Content-Length', String(stat.size));
