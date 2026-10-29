@@ -3,7 +3,7 @@ import {spawn} from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Preserve the original complete strict event assertion.
 import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Find an installed browser without installing a dependency in CI.
-import {existsSync} from 'node:fs';
+import {existsSync, openSync, readSync, closeSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own and remove this fixture's exact browser profile.
 import {mkdtemp, rm} from 'node:fs/promises';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep the browser profile under the repository scratch root.
@@ -23,10 +23,39 @@ const directory = await mkdtemp(resolve('tmp/escape-control-'));
 const socketTemp = await nativeSocketTemporary(directory).catch(async (error: unknown) => {
   await rm(directory, {recursive: true, force: true}); throw error;
 });
+// Observe only owned native files/kernel counters, never the inherited
+// environment or command lines. In particular, DBus warnings are not a cause.
+const boundedRead = (file: string, bytes: number): string => {
+  let descriptor: number | undefined;
+  try {
+    descriptor = openSync(file, 'r');
+    const buffer = Buffer.alloc(bytes);
+    return buffer.subarray(0, readSync(descriptor, buffer, 0, bytes, 0)).toString();
+  } catch (error) {return `unavailable:${error instanceof Error && 'code' in error ? String(error.code) : 'unknown'}`;}
+  finally {if (descriptor !== undefined) closeSync(descriptor);}
+};
+const cpuPressure = (): string | null => process.platform === 'linux' ? boundedRead('/proc/pressure/cpu', 140) : null;
+const cgroupCpu = (): string | null => process.platform === 'linux' ? boundedRead('/sys/fs/cgroup/cpu.stat', 200) : null;
+const startedAt = performance.now();
 const child = spawn(executable, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${directory}`,
   '--no-first-run', '--no-default-browser-check', '--disable-extensions', '--mute-audio',
   ...(process.platform === 'darwin' ? ['--use-angle=metal', '--ignore-gpu-blocklist'] : ['--no-sandbox']), 'data:text/html,bootstrap'],
 {detached: true, stdio: ['ignore', 'ignore', 'pipe'], env: {...process.env, TMPDIR: socketTemp.path}});
+const initialPressure = cpuPressure(), initialCpu = cgroupCpu();
+let spawnedAt: number | null = null, firstStderrAt: number | null = null, lastStderrAt: number | null = null;
+child.once('spawn', () => {spawnedAt = performance.now() - startedAt;});
+const nativeState = (): object => {
+  const pid = child.pid;
+  const linux = process.platform === 'linux' && pid !== undefined ? {
+    status: boundedRead(`/proc/${pid}/status`, 4096).split('\n')
+      .filter(line => /^(?:State|Threads|VmRSS|VmSwap):/u.test(line)).join(';'),
+    scheduler: boundedRead(`/proc/${pid}/schedstat`, 100), waitChannel: boundedRead(`/proc/${pid}/wchan`, 80),
+    children: boundedRead(`/proc/${pid}/task/${pid}/children`, 120),
+    cpuPressure: cpuPressure(), cgroupCpu: cgroupCpu(),
+  } : null;
+  return {deadlineMs: 10_000, elapsedMs: performance.now() - startedAt, spawnedAt, firstStderrAt, lastStderrAt,
+    endpointFile: boundedRead(resolve(directory, 'DevToolsActivePort'), 256), initialPressure, initialCpu, linux};
+};
 let socket: WebSocket | undefined;
 let requestClose: (() => void) | undefined;
 let closing: Promise<void> | undefined;
@@ -41,16 +70,18 @@ try {
   const endpoint = await new Promise<string>((done, refuse) => {
     let output = '';
     const failed = (reason: string, code: number | null, signal: string | null): Error => new Error(
-      `Native Escape startup ${reason}; executable=${JSON.stringify(executable)}; profile=${JSON.stringify(directory)}; socketTemp=${JSON.stringify(socketTemp.path)}; code=${code}; signal=${signal}\nNative stderr (last 16384 characters):\n${output}`);
-    const timer = setTimeout(() => {refuse(failed('endpoint deadline', child.exitCode, child.signalCode));}, 10_000);
+      `Native Escape startup ${reason}; executable=${JSON.stringify(executable)}; profile=${JSON.stringify(directory)}; socketTemp=${JSON.stringify(socketTemp.path)}; code=${code}; signal=${signal}\nNative startup state: ${JSON.stringify(nativeState())}\nNative stderr (last 16384 characters):\n${output}`);
+    const timer = setTimeout(() => {refuse(failed('endpoint deadline', child.exitCode, child.signalCode));},
+      Math.max(0, 10_000 - (performance.now() - startedAt)));
     child.once('error', error => {clearTimeout(timer); refuse(failed(error.message, child.exitCode, child.signalCode));});
     // close follows stderr delivery; exit alone can lose the final native cause.
     child.once('close', (code, signal) => {clearTimeout(timer); refuse(failed('closed before endpoint', code, signal));});
     child.stderr.on('data', (chunk: Buffer) => {
+      lastStderrAt = performance.now() - startedAt; firstStderrAt ??= lastStderrAt;
       const incoming = output + chunk.toString();
       output = incoming.slice(-16_384);
       const address = /DevTools listening on (ws:\/\/[^\s]+)/u.exec(incoming)?.[1];
-      if (address !== undefined) {clearTimeout(timer); done(address);}
+      if (address !== undefined && performance.now() - startedAt < 10_000) {clearTimeout(timer); done(address);}
     });
   });
   const ws = new WebSocket(endpoint); socket = ws;
@@ -93,5 +124,6 @@ try {
     {type: 'keyup', key: 'Escape', code: 'Escape', trusted: true, repeat: false},
   ]);
 } finally {process.off('SIGTERM', terminate); await close();}
-console.log(JSON.stringify({cleanup: 'complete', profile: directory, socketTemp: socketTemp.path}));
+console.log(JSON.stringify({cleanup: 'complete', profile: directory, socketTemp: socketTemp.path,
+  startup: {spawnedAt, firstStderrAt, lastStderrAt}}));
 console.log('original trusted Escape pair preserved');

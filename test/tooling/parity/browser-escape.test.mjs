@@ -70,6 +70,38 @@ test('native startup refusal retains its signal and bounded stderr, never claims
   } finally {rmSync(root, {recursive: true, force: true});}
 });
 
+test('the original native startup deadline retains process and endpoint-file facts without accepting an unannounced endpoint', () => {
+  const root = mkdtempSync(resolve('tmp/native-endpoint-refusal-'));
+  try {
+    const binary = resolve(root, 'native-no-endpoint.mjs');
+    writeFileSync(binary, `#!${process.execPath}\nimport {writeFileSync} from 'node:fs';
+      const arg=process.argv.find(value=>value.startsWith('--user-data-dir='));
+      if(!arg)throw Error('Missing owned profile');
+      writeFileSync(arg.slice('--user-data-dir='.length)+'/DevToolsActivePort','9\\n/devtools/browser/diagnostic-only\\n');
+      console.error('Original no-endpoint sentinel');setInterval(()=>{},1000);`, {mode: 0o700});
+    const child = spawnSync(process.execPath, ['--experimental-transform-types', 'test/fixtures/native-browser-escape.ts'],
+      {encoding: 'utf8', timeout: 25_000, env: {...process.env, CHROME_PATH: binary}});
+    expect(child.status).toBe(1);
+    expect(child.stderr).toContain('Native Escape startup endpoint deadline');
+    expect(child.stderr).toContain('Original no-endpoint sentinel');
+    expect(child.stdout).not.toContain('original trusted Escape pair preserved');
+    const raw = /Native startup state: ([^\n]+)/u.exec(child.stderr)?.[1];
+    if (raw === undefined) throw new Error('Missing native startup state');
+    /** @type {unknown} */
+    const state = JSON.parse(raw);
+    expect(state).toMatchObject({deadlineMs: 10_000, endpointFile: '9\n/devtools/browser/diagnostic-only\n'});
+    if (typeof state !== 'object' || state === null || !('elapsedMs' in state) || typeof state.elapsedMs !== 'number'
+      || !('firstStderrAt' in state) || typeof state.firstStderrAt !== 'number') throw new Error('Missing monotonic startup times');
+    expect(state.firstStderrAt).toBeLessThan(state.elapsedMs);
+    const rawProfile = /profile=("[^"\n]+")/.exec(child.stderr)?.[1];
+    if (rawProfile === undefined) throw new Error('Missing owned profile');
+    /** @type {unknown} */
+    const profile = JSON.parse(rawProfile);
+    if (typeof profile !== 'string' || !profile.startsWith(resolve('tmp/escape-control-'))) throw new Error('Foreign profile');
+    expect(existsSync(profile)).toBe(false);
+  } finally {rmSync(root, {recursive: true, force: true});}
+});
+
 
 test('long native Unix socket paths refuse while the short alias binds to profile-owned data', async () => {
   const root = mkdtempSync(resolve('tmp/native-socket-control-'));
