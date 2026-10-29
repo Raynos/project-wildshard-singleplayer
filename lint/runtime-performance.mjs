@@ -170,12 +170,15 @@ export function runtimePerformanceViolations(source, filename, baseline = {}, su
 }
 
 /** Frozen files retain only exact historical site debt; changed bytes gain no historical allowance. */
+const frozenIndexes = new Map();
 export function frozenRuntimePerformanceViolations(source, filename, primary, digest, baseline, supplied = null) {
   if (createHash('sha256').update(source).digest('hex') !== digest) return runtimePerformanceViolations(source, filename, {}, supplied);
+  let sites = frozenIndexes.get(digest);
+  if (sites === undefined) { sites = runtimePerformanceSites(source, filename, supplied); frozenIndexes.set(digest, sites); }
   const counts = new Map();
-  return runtimePerformanceSites(source, filename, supplied).filter(issue => {
+  return sites.filter(issue => {
     const suffix = `:${issue.kind}:${issue.site}`, key = filename + suffix;
     const count = (counts.get(key) ?? 0) + 1; counts.set(key, count);
     return count > (baseline[key]?.count ?? baseline[primary + suffix]?.count ?? 0);
-  });
+  }).map(issue => ({ kind: issue.kind, start: issue.start, end: issue.end, line: issue.line, site: issue.site, message: issue.message }));
 }

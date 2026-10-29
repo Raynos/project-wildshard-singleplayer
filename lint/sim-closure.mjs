@@ -1,3 +1,4 @@
+import { currentSources, sourceStamp } from './source-stamps.mjs';
 // SF3a: runtime dependency graph shared by oxlint and the measured, shrink-only baseline.
 import { existsSync, readFileSync, globSync, statSync } from 'node:fs';
 import { dirname, resolve, relative } from 'node:path';
@@ -19,11 +20,11 @@ function parsed(file) {
   astCache.set(file, { text, program: result.program });
   return result.program;
 }
-function target(root, file, source) {
+function target(root, file, source, observed) {
   const pkg = /^@wildshard\/(engine|format|game|sdk|commons)\/(.+)$/u.exec(source);
   const base = pkg ? resolve(root, 'src', pkg[1], pkg[2]) : source.startsWith('.') ? resolve(dirname(file), source) : null;
   if (base === null) return null;
-  return [base, `${base}.ts`, `${base}.js`, base.replace(/\.js$/u, '.ts'), `${base}/index.ts`].find((p) => existsSync(p) && statSync(p).isFile()) ?? null;
+  return [base, `${base}.ts`, `${base}.js`, base.replace(/\.js$/u, '.ts'), `${base}/index.ts`].find((p) => { observed.set(p, sourceStamp(p)); return existsSync(p) && statSync(p).isFile(); }) ?? null;
 }
 const value = (node) => node?.type === 'Literal' && typeof node.value === 'string' ? node.value : null;
 function walk(node, visit, parent = null) {
@@ -57,7 +58,12 @@ function reference(node, parent) {
   if (['VariableDeclarator', 'FunctionDeclaration', 'ClassDeclaration'].includes(parent.type) && parent.id === node) return false;
   return true;
 }
+const closureResults = new Map();
 export function simClosure(root, entries = globSync('src/**/*.ts', { cwd: root }).filter(simRoot)) {
+  const key = JSON.stringify([root, entries]), cached = closureResults.get(key);
+  const copy = rows => rows.map(row => ({ ...row, trace: [...row.trace] }));
+  if (cached !== undefined && currentSources(cached.observed)) return copy(cached.rows);
+  const observed = new Map();
   const seen = new Set(), violations = new Map();
   const visit = (path, trace) => {
     if (seen.has(path)) return;
@@ -79,7 +85,7 @@ export function simClosure(root, entries = globSync('src/**/*.ts', { cwd: root }
           if (source !== 'three' || !node.specifiers?.length || node.specifiers.some((s) => s.importKind !== 'type' && (s.type !== 'ImportSpecifier' || !MATH.has(s.imported.name)))) add('import', source);
           return;
         }
-        const dest = target(root, file, source);
+        const dest = target(root, file, source, observed);
         if (dest === null) {
           if (source.startsWith('.') || source.startsWith('@wildshard/')) add('unresolved', source);
           return;
@@ -92,9 +98,12 @@ export function simClosure(root, entries = globSync('src/**/*.ts', { cwd: root }
       if (node.type === 'MemberExpression' && ['window', 'globalThis'].includes(node.object?.name) && DOM.has(node.property?.name) && node.property?.name !== 'window') add('global', node.property.name);
       if (node.type === 'Identifier' && reference(node, parent) && DOM.has(node.name)) add('global', node.name);
     };
+    observed.set(file, sourceStamp(file));
     for (const { node, parent } of events(parsed(file))) inspect(node, parent);
     for (const dest of next) visit(dest, [...trace, dest]);
   };
   for (const entry of entries) visit(entry, [entry]);
-  return [...violations.values()].sort((a, b) => a.id.localeCompare(b.id));
+  const rows = [...violations.values()].sort((a, b) => a.id.localeCompare(b.id));
+  closureResults.set(key, { observed, rows });
+  return copy(rows);
 }

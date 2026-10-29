@@ -280,17 +280,26 @@ const noUrlSwitch = {
 };
 
 // E357 F4: syntactic ratchets; their scope and patterns are 01 §24 / 02 F4's contract.
+// Filenames and lexical import paths are immutable during one plugin process.
+const filenamePaths = new Map(), modulePaths = new Map();
 const pathOf = (context) => {
+  const cached = filenamePaths.get(context.filename);
+  if (cached !== undefined) return cached;
   const path = relative(REPO, context.filename).replaceAll('\\', '/');
-  // Fixture repositories deliberately retain the same src/ layout.
   const index = path.lastIndexOf('/src/');
-  return index === -1 ? path : path.slice(index + 1);
+  const normalized = index === -1 ? path : path.slice(index + 1);
+  filenamePaths.set(context.filename, normalized);
+  return normalized;
 };
 const modulePath = (filename, source) => {
+  let paths = modulePaths.get(filename);
+  if (paths === undefined) { paths = new Map(); modulePaths.set(filename, paths); }
+  if (paths.has(source)) return paths.get(source);
   const target = packageTarget(source);
-  if (target !== null) return target;
-  if (!source.startsWith('.')) return source;
-  return relative(REPO, resolve(dirname(filename), source)).replaceAll('\\', '/').replace(/^.*\/src\//u, 'src/');
+  const path = target ?? (!source.startsWith('.') ? source
+    : relative(REPO, resolve(dirname(filename), source)).replaceAll('\\', '/').replace(/^.*\/src\//u, 'src/'));
+  paths.set(source, path);
+  return path;
 };
 const layerOf = (path) => {
   const match = /^src\/(engine|format|game|sdk|commons|shards)(?:\/([^/]+)?)?$/u.exec(path) ?? /^src\/(engine|format|game|sdk|commons|shards)\/([^/]+)?/u.exec(path);
