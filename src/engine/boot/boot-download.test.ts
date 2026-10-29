@@ -171,6 +171,35 @@ it('refuses changed, overlapping and invalid reserves without modifying the orig
   expect(accounting.snapshot()).toMatchObject({ declaredBytes: 100, declaredDoneBytes: 0 });
 });
 
+it('keeps repeated reserve snapshots exact across declarations, banks and receipts', () => {
+  const accounting = new DownloadAccounting(base);
+  const snapshot = (): ReturnType<DownloadAccounting['snapshot']> => {
+    const first = accounting.snapshot();
+    expect(accounting.snapshot()).toEqual(first);
+    return first;
+  };
+  accounting.declare('/assets/home/a.bin', 10);
+  expect(snapshot().declaredBytes).toBe(10);
+  accounting.reserve('/assets/home/', 100);
+  expect(snapshot()).toMatchObject({ declaredBytes: 100, pendingBytes: 100, unitemizedBytes: 90 });
+  accounting.declare('/assets/home/a.bin', 30);
+  expect(snapshot()).toMatchObject({ declaredBytes: 100, pendingBytes: 100, unitemizedBytes: 70 });
+  accounting.packed('/assets/home/a.bin');
+  expect(snapshot()).toMatchObject({ declaredDoneBytes: 30, pendingBytes: 70, networkBytes: 0 });
+  accounting.reserveBank('late', 20);
+  expect(snapshot()).toMatchObject({ declaredBytes: 120, pendingBytes: 90, unitemizedBytes: 90 });
+  accounting.itemizeBank('late', [['/assets/home/b.bin', 20]]);
+  expect(snapshot()).toMatchObject({ declaredBytes: 100, pendingBytes: 70, unitemizedBytes: 50 });
+  accounting.resource(timing('/assets/home/b.bin'));
+  expect(snapshot()).toMatchObject({ declaredDoneBytes: 50, pendingBytes: 50, networkBytes: 1300 });
+  accounting.declare('/assets/home/extra.bin', 80);
+  expect(snapshot()).toMatchObject({ declaredBytes: 130, declaredDoneBytes: 50, pendingBytes: 80 });
+  accounting.cached('extra', 80, '/assets/home/extra.bin');
+  expect(snapshot()).toMatchObject({ declaredBytes: 130, declaredDoneBytes: 130, pendingBytes: 0, cachedBytes: 80 });
+  accounting.declare('/assets/other/body.bin', 5); accounting.reserve('/assets/other/', 10);
+  expect(snapshot()).toMatchObject({ declaredBytes: 140, pendingBytes: 10, unitemizedBytes: 5 });
+});
+
 it('itemizes detached banks atomically with exact totals and no duplicate or unsafe file publication', () => {
   const accounting = new DownloadAccounting(base);
   accounting.reserveBank('home', 30);

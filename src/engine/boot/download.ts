@@ -80,6 +80,8 @@ export interface DownloadTiming {
 export class DownloadAccounting {
   private readonly files = new Map<string, File>();
   private readonly groups = new Map<string, number>();
+  /** Receipts change completion, never the directory's declared remainder. */
+  private groupRemainder: number | undefined;
   private readonly banks = new Map<string, number>();
   private readonly seen = new Set<string>();
   private readonly received = new Set<string>();
@@ -102,6 +104,7 @@ export class DownloadAccounting {
   declare(input: string, bytes: number): void {
     if (!Number.isSafeInteger(bytes) || bytes < 0) throw new Error('Invalid download declaration');
     const key = this.url(input), file = this.files.get(key);
+    this.groupRemainder = undefined;
     if (file !== undefined) { file.bytes = Math.max(file.bytes, bytes); return; }
     const hash = /[a-f0-9]{64}/u.exec(key)?.[0];
     const declared = { bytes, complete: this.received.has(key) || (hash !== undefined && this.cache.has(hash)) };
@@ -128,6 +131,7 @@ export class DownloadAccounting {
     for (const [name, file] of this.files) if (name.startsWith(key)) known += file.bytes;
     if (known > bytes) throw new Error('Download reserve understates declared files');
     this.groups.set(key, bytes);
+    this.groupRemainder = undefined;
   }
   /** A detached per-home file list is fetched once after selection. Its exact
    * compiler total stays pending until the complete list replaces it atomically. */
@@ -185,17 +189,23 @@ export class DownloadAccounting {
     // worker timing: retain the unknown transfer, including late body/index hints.
     else this.unknown.set(id, { url, bytes: body });
   }
-  snapshot(): DownloadSnapshot {
-    let pendingBytes = 0, pendingFiles = 0, cachedBytes = this.browserCache, declaredBytes = 0;
-    this.files.forEach(file => { declaredBytes += file.bytes; if (!file.complete) { pendingBytes += file.bytes; pendingFiles++; } });
-    let unitemizedBytes = 0;
+  private reservedRemainder(): number {
+    if (this.groupRemainder !== undefined) return this.groupRemainder;
+    let remainder = 0;
     this.groups.forEach((bytes, prefix) => {
       let known = 0;
       this.files.forEach((file, name) => { if (name.startsWith(prefix)) known += file.bytes; });
       // An unexpected extra file remains visible as real growth; a reserve never
       // hides later declarations or manufactures a completed file/byte receipt.
-      unitemizedBytes += Math.max(0, bytes - known);
+      remainder += Math.max(0, bytes - known);
     });
+    this.groupRemainder = remainder;
+    return remainder;
+  }
+  snapshot(): DownloadSnapshot {
+    let pendingBytes = 0, pendingFiles = 0, cachedBytes = this.browserCache, declaredBytes = 0;
+    this.files.forEach(file => { declaredBytes += file.bytes; if (!file.complete) { pendingBytes += file.bytes; pendingFiles++; } });
+    let unitemizedBytes = this.reservedRemainder();
     this.banks.forEach(bytes => { unitemizedBytes += bytes; });
     declaredBytes += unitemizedBytes; pendingBytes += unitemizedBytes;
     this.cache.forEach(bytes => { cachedBytes += bytes; });
