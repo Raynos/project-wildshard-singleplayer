@@ -34,6 +34,7 @@ import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { browserContentStore } from './contentStore';
 import { productResourceRole } from './resourceRole';
 import { entryTransport } from './entryTransport';
+import { currentSpawnDownload } from '../boot/spawnDownload';
 
 /**
  * The trusted runtime's product reader (SHARD-PLATFORM M3 tiles-swap, G227, E435): the same `ClientAssets` in both modes,
@@ -77,6 +78,7 @@ async function staleRecovery(): Promise<void> {
 let productControlsReady = false, observesProductControl = false;
 /** Browser connectivity and visited-product storage feed the same admission path as headless validation. */
 export function browserShardfileOptions(base: string, firstParty = false): ProductOptions {
+  const spawn = currentSpawnDownload(), resolve = (url: string): string => spawn?.resolve(url) ?? url;
   if (typeof document !== 'undefined' && !observesProductControl) {
     observesProductControl = true;
     pageScope.listen(document, 'ws:control-ready', () => { productControlsReady = true; entryTransport()?.stop(); });
@@ -99,7 +101,7 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
   // G639: a phone-4x Nine drive spent ~2 s of its page thread fetching, streaming, hashing and copying the product's
   // blobs into the content cache; the cache's worker does all of it and hands the page the verified body.
   const content = typeof caches === 'undefined' ? undefined : browserContentStore(caches);
-  const transport = content instanceof ContentCacheWorker ? async (url: string, hash: string, bytes: number) => {
+  const transport = spawn === undefined && content instanceof ContentCacheWorker ? async (url: string, hash: string, bytes: number) => {
     // A speculative wire is not verified content. Return it through the
     // ordinary fetch reader, retaining its complete hash/size admission.
     if (entryTransport()?.has(url)) return null;
@@ -108,9 +110,10 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     if (sent?.fetched !== null && sent?.fetched !== undefined) recordReadDownload(path.href, sent.fetched.length, sent.cached);
     return sent === null || sent.fetched === null ? null : { bytes: sent.fetched, cached: sent.cached, stored: sent.stored };
   } : undefined;
-  return { ...(parseJson === undefined ? {} : { parseJson }), base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: verifiedHash, hashOwned: hashOwnedBytes,
-    backgroundFetch: (url, signal) => fetch(url, { priority: 'low', ...(signal === undefined ? {} : { signal }) }),
+  return { ...(parseJson === undefined ? {} : { parseJson }), base, firstParty, ...(spawn === undefined ? {} : {directFiles: true}), tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: verifiedHash, hashOwned: hashOwnedBytes,
+    backgroundFetch: (url, signal) => fetch(resolve(url), { priority: 'low', ...(signal === undefined ? {} : { signal }) }),
     fetch: (url, signal) => waitFor(`Read ${productResourceRole(url, base)}`, (async () => {
+      if (spawn !== undefined) return fetch(resolve(url), signal === undefined ? {} : {signal});
       if (indexed !== undefined && new URL(url, base).pathname.endsWith('/shard.json')) {
         const hash = builtIndexHash(new URL(url, base).pathname);
         const held = hash === null || !indexed.has(hash) ? null : await cachedTransport(caches, url, limits.sourceBytes, { hash }, signal);

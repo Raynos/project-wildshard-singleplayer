@@ -1,4 +1,3 @@
-import * as v from 'valibot';
 import {expect, test, vi} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own and remove the complete output-metadata fixture.
 import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
@@ -9,11 +8,11 @@ import {createHash} from 'node:crypto';
 import {emptyShardfile} from '@wildshard/sdk/author';
 import {outputSectionPayloads} from '../src/format/outputFields';
 import {writeEntryBootstrap} from '../scripts/app-build/entryDownloads';
-import {entryTotals, writeSpawnManifests} from '../scripts/app-build/entryTotals';
+import {writeSpawnManifests} from '../scripts/app-build/entryTotals';
 import {gridEntryDownloads} from '../scripts/app-build/gridEntryDownloads';
 import {startGridStripDownload, gridStripDownloadRows} from '../src/game/grid/entryDownloads';
 
-test('plain build schedules exact tier/phase packs and rejects changed section bytes', () => {
+test('plain build publishes exact tier spawn files and rejects changed section bytes', () => {
   mkdirSync('tmp/entry-downloads', {recursive: true});
   const root = mkdtempSync(resolve('tmp/entry-downloads/compiler-')), product = resolve(root, 'out/example'), out = resolve(root, 'dist');
   const digest = (value: string): string => createHash('sha256').update(value).digest('hex');
@@ -39,38 +38,26 @@ test('plain build schedules exact tier/phase packs and rejects changed section b
         critical: source.critical, library: source.library, late: source.late}, sections, schemas: [], files, packs, runtime: null};
     const indexBytes = JSON.stringify(index); writeFileSync(resolve(product, 'shard.json'), indexBytes);
     const expected = Buffer.byteLength(indexBytes) + sections.reduce((sum, row) => sum + row.bytes, 0) + 3;
-    const totals = entryTotals({common: [], client: [], grid: [], selection: {}, optional: {files: [], groups: {}},
-      products: {'/shardfiles/example/': [Buffer.byteLength(indexBytes), 1_000_000, 900_000, 800_000]},
-      extras: {}, code: {entries: {}}}, {}, root);
-    expect(totals.client['example']).toEqual([expected, expected]);
     const manifests = writeSpawnManifests(out, {common: [], client: [], grid: [], selection: {}, optional: {files: [], groups: {}},
       products: {'/shardfiles/example/': [Buffer.byteLength(indexBytes), 1_000_000]}, extras: {}, code: {entries: {}}}, {}, root);
     const spawn = manifests.client['example']; if (spawn === undefined) throw new Error('Missing spawn manifests');
     expect(spawn.phone.totalBytes).toBe(expected); expect(spawn.desktop.totalBytes).toBe(expected);
     const phone = readFileSync(resolve(out, spawn.phone.url.slice(1)), 'utf8');
     expect(phone).toContain(hashes[0]); expect(phone).not.toContain(hashes[1]); expect(phone).not.toContain(hashes[2]);
-    writeFileSync(resolve(out, 'index.html'), '<head><script type="application/json" id="boot-module-files">{"common":[]}</script></head>');
+    const moduleBank = {common: [], client: [], grid: [], selection: {}, optional: {files: [], groups: {}},
+      products: {'/shardfiles/example/': [Buffer.byteLength(indexBytes), 1_000_000]}, extras: {}};
+    writeFileSync(resolve(out, 'index.html'), `<head><script type="application/json" id="boot-module-files">${JSON.stringify(moduleBank)}</script></head>`);
     writeEntryBootstrap(out, root);
     const html = readFileSync(resolve(out, 'index.html'), 'utf8'), match = /id="boot-module-files">([^<]+)</u.exec(html);
     const bank: unknown = JSON.parse(match?.[1] ?? 'null');
     if (typeof bank !== 'object' || bank === null) throw new Error('Missing complete compiler bank');
-    const entries: unknown = Reflect.get(bank, 'entryDownloads'), indexes: unknown = Reflect.get(bank, 'entryIndexes');
-    if (typeof entries !== 'object' || entries === null || typeof indexes !== 'object' || indexes === null) throw new Error('Missing entry compiler facts');
-    expect(Reflect.get(indexes, 'example')).toBe(`/shardfiles/example/shard.json?v=${digest(indexBytes).slice(0, 8)}`);
-    const pair: unknown = Reflect.get(entries, 'example');
-    if (typeof pair !== 'object' || pair === null) throw new Error('Missing tier pair');
-    for (const [tier, included, excluded] of [['phone', 0, 1], ['desktop', 1, 0]] as const) {
-      const path: unknown = Reflect.get(pair, tier); if (typeof path !== 'string') throw new Error('Missing tier schedule');
-      const text = readFileSync(resolve(out, path.slice(1)), 'utf8');
-      expect(text).toContain(packs[included]?.path); expect(text).not.toContain(packs[excluded]?.path); expect(text).not.toContain(packs[2]?.path);
-      const rows = v.parse(v.array(v.object({path: v.string(), phase: v.picklist(['metadata', 'body'])})), JSON.parse(text) as unknown);
-      expect(rows.find(row => row.path.endsWith(packs[included]?.path ?? 'missing'))?.phase).toBe('body');
-      for (const section of sections) expect(rows.find(row => row.path.endsWith(section.path))?.phase).toBe('metadata');
-    }
-    expect(html).toContain('installEntryTransport();'); expect(html).not.toContain('export function');
+    const published: unknown = Reflect.get(bank, 'spawnManifests');
+    expect(published).toEqual(manifests);
+    expect(html).not.toContain('entryTotals'); expect(html).not.toContain('installEntryTransport');
+    expect(html).not.toContain('blobs/pack');
     const first = sections[0]; if (first === undefined) throw new Error('Missing original section');
     writeFileSync(resolve(product, first.path), '{}');
-    expect(() => writeEntryBootstrap(out, root)).toThrow('Entry section differs from index');
+    expect(() => writeEntryBootstrap(out, root)).toThrow('Spawn section differs from index');
   } finally {rmSync(root, {recursive: true, force: true});}
 });
 

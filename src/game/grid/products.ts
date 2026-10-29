@@ -61,7 +61,7 @@ async function readGridProductIndex(url: string, identity: string, options: Prod
   }
   const { slug: declaredIdentity } = index.identity;
   if (declaredIdentity !== identity.replace(/^_/u, '')) throw new Error('Grid product index identity differs from its cell');
-  const packed = packReads(index.packs, new Set([...index.sections, ...index.schemas].map(row => row.hash)), async (path, maximum, members) => {
+  const packed = packReads(options.directFiles === true ? undefined : index.packs, new Set([...index.sections, ...index.schemas].map(row => row.hash)), async (path, maximum, members) => {
     declareDownloadPack(new URL(path, url).href, maximum, members);
     const response = await options.fetch(new URL(path, url).href);
     if (response.status === 206) { await response.body?.cancel(); throw new Error('Grid pack requires a whole response'); }

@@ -100,6 +100,7 @@ export class ClientAssets {
   /** Fetch each pack whole once for this product, across concurrent and later
    * demand waves; every decoder still receives an owned, hash-checked member. */
   private async readPacked(ref: string, cap: number, priority?: 'low'): Promise<Uint8Array | undefined> {
+    if (this.options.directFiles === true) return undefined;
     const packs = outputDescriptor(this.source)?.index.packs;
     const pack = packs?.find(row => row.entries.some(entry => entry.hash === ref));
     const member = pack?.entries.find(entry => entry.hash === ref);

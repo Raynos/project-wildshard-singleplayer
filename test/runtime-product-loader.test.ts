@@ -309,6 +309,21 @@ test.each(['hit','miss','short','refusal'] as const)('packed admission honours a
   expect(transport.mock.calls.filter(([,hash])=>hash===f.ref)).toHaveLength(0);
 });
 
+test('a manifest entry uses exact file URLs rather than unlisted pack envelopes', async () => {
+  const f = fixture(), path = `blobs/pack/${f.ref}.pack`;
+  const index = parseOutputIndex({...f.index, packs: [{path, hash: f.ref, bytes: f.blob.length,
+    entries: [{hash: f.ref, offset: 0, bytes: f.blob.length}]}]});
+  trust({...f.receipt, indexHash: hashImmutableBytes(bytes(index))});
+  const fetch = vi.fn(f.options.fetch), options = {...f.options, fetch, directFiles: true};
+  const admitted = await admitProduct(index, options);
+  expect(admitted.assets.get(f.ref)).toEqual(f.blob);
+  expect(fetch.mock.calls.some(([url]) => url.endsWith(path))).toBe(false);
+  const reader = new ClientAssets(admitted.source, new Map(), options);
+  expect(await reader.read(f.ref)).toEqual(f.blob);
+  expect(fetch.mock.calls.filter(([url]) => url.endsWith(`/bin/${f.ref}.bin`))).toHaveLength(2);
+  expect(fetch.mock.calls.some(([url]) => url.endsWith(path))).toBe(false);
+});
+
 test.each([false,true])('a cold non-play reader demands an admitted late file with its original hash (corrupt %s)', async corrupt => {
   const f=fixture();f.source.late=[{hash:f.ref}];
   const sourceHash=hashImmutableBytes(bytes(f.source)),index=parseOutputIndex({...f.index,build:{...f.index.build,sourceHash},admission:{...f.index.admission,late:f.source.late}});

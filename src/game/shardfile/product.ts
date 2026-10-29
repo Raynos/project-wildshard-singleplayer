@@ -1,4 +1,5 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
+import type {OutputIndex} from '@wildshard/format/outputIndex';
 import { declareDownloadFile, declareDownloadPack, noteDownloadRead, recordCachedDownload, recordPackedDownload, recordReadDownload } from '@wildshard/engine/boot/download';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
@@ -63,6 +64,8 @@ export interface ProductProgress {
 }
 /** Loading is explicit about connectivity and first-party provenance, never inferred from an author field. */
 export interface ProductOptions {
+  /** The spawn manifest names individual files, never transport envelopes. */
+  directFiles?: boolean;
   /** Optional live parser; boot and receipts stay on the page. Hashes/validators retain admission. */
   parseJson?: (bytes: Uint8Array) => Promise<unknown>;
   /** Trusted renderer tier; only typed host alternatives affect transport selection and resident estimates. */
@@ -225,11 +228,11 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
       const url = new URL(path, base).href, bytes = await boundedResponse(await options.fetch(url), cap);
       recordReadDownload(url, bytes.length); return bytes;
     },
-    pack: async (path, cap, members) => {
+    ...(options.directFiles === true ? {} : {pack: async (path: string, cap: number, members: NonNullable<OutputIndex['packs']>[number]['entries']) => {
       declareDownloadPack(new URL(path, base).href, cap, members);
       const url = new URL(path, base).href, bytes = await boundedResponse(await options.fetch(url), cap);
       recordReadDownload(url, bytes.length); return bytes;
-    },
+    }}),
     packedHit: (path, hash) => { recordPackedDownload(new URL(path, base).href, hash); },
     ...(cache?.verifiedAsset === undefined && options.transport === undefined ? {} : {
       verified: (hash: string, path: string, cap: number) => waitFor(`Read ${productResourceRole(path)}`, (async () => {
@@ -495,7 +498,7 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
     return sent.bytes;
   };
   // I5: a file missing from the cache comes from its pack (one read for the phase's small files) instead of its own request
-  const packed = options.offline ? undefined : packReads(outputDescriptor(source)?.index.packs, new Set(addresses.map(([hash]) => hash)),
+  const packed = options.offline || options.directFiles === true ? undefined : packReads(outputDescriptor(source)?.index.packs, new Set(addresses.map(([hash]) => hash)),
     async (path, cap, members) => {
       declareDownloadPack(new URL(path, base).href, cap, members);
       const url = new URL(path, base).href, bytes = await boundedResponse(await options.fetch(url), cap);
