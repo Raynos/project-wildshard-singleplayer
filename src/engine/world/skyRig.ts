@@ -1,5 +1,5 @@
 import { PLANET_DIST, SkyBackdropView, cloudLayer, paintedSkyEnvironment } from './skyBackdrop';
-import { cascadeRedraws, shadowCadence } from './shadowCadence';
+import { cascadeRedraws } from './shadowCadence';
 import { ownSceneResource } from '../app/sceneOwnership';
 import { BackdropLayer, applyLayers, layerKeyedSky, seedLayerTargets, type LayeredSkyBackdrop, type LayerEnvironmentOnly } from './backdropLayer';
 import { app } from '../app/runtime';
@@ -416,7 +416,7 @@ export class SkyRig {
    * drawn with (WebGLShadowMap skips a light with autoUpdate off before it updates `shadow.matrix`), so the far shadows sit
    * exactly where they were, one frame old; only a moving caster out there (a palm swaying) steps at 15 Hz. The near and
    * middle cascades (the deck, the pier, the flag, everything within 22 m) are redrawn every frame, as before.
-   * BA-3 (MF7 battery): Settings ▸ Debug ▸ Shadow cadence tries the middle every 2nd and the far every 4th (shadowCadence.ts).
+   * BA-3 (MF7 battery, G899): now the middle every 2nd and the far every 4th as well (shadowCadence.ts).
    */
   private farEveryOther = false;
   private farTick = 0;
@@ -460,7 +460,7 @@ export class SkyRig {
     this.shadowFade?.update(dt); // after the CSM and its bias: each ghost copies its cascade's square
     if (this.farEveryOther) {
       this.farTick = (this.farTick + 1) % 4;
-      const redraw = cascadeRedraws(shadowCadence(), this.farTick, this.csm.lights.length);
+      const redraw = cascadeRedraws(this.farTick, this.csm.lights.length);
       this.csm.lights.forEach((light, i) => { light.shadow.autoUpdate = redraw[i] ?? true; });
     }
     this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
