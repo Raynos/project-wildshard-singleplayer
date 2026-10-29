@@ -11,6 +11,7 @@ import {resolve} from 'node:path';
 import {chromium} from 'playwright';
 import {pressEscape} from '../../scripts/parity/browser-escape.mjs';
 import {nativeSocketTemporary} from './native-socket-temp.mjs';
+import {drainNativeBrowser} from './native-browser-drain.mjs';
 
 // CI declares its supported system Chrome. Use it before an optional cached
 // Playwright binary; explicit caller selection still wins, with no retry.
@@ -25,18 +26,14 @@ const socketTemp = await nativeSocketTemporary(directory).catch(async (error: un
 const child = spawn(executable, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${directory}`,
   '--no-first-run', '--no-default-browser-check', '--disable-extensions', '--mute-audio',
   ...(process.platform === 'darwin' ? ['--use-angle=metal', '--ignore-gpu-blocklist'] : ['--no-sandbox']), 'data:text/html,bootstrap'],
-{stdio: ['ignore', 'ignore', 'pipe'], env: {...process.env, TMPDIR: socketTemp.path}});
+{detached: true, stdio: ['ignore', 'ignore', 'pipe'], env: {...process.env, TMPDIR: socketTemp.path}});
 let socket: WebSocket | undefined;
+let requestClose: (() => void) | undefined;
 let closing: Promise<void> | undefined;
 const close = (): Promise<void> => (closing ??= (async () => {
-  try {socket?.close();}
-  finally {
-    if (child.exitCode === null && child.signalCode === null) await new Promise<void>((done, refuse) => {
-      const timer = setTimeout(() => {child.kill('SIGKILL'); refuse(new Error('Owned Escape browser did not exit'));}, 5000);
-      child.once('exit', () => {clearTimeout(timer); done();}); child.kill();
-    });
+  try {await drainNativeBrowser(child, requestClose, async () => {
     try {await socketTemp.dispose();} finally {await rm(directory, {recursive: true, force: true});}
-  }
+  });} finally {socket?.close();}
 })());
 const terminate = (): void => {void close().catch(error => {console.error(error);}).finally(() => {process.exitCode = 143;});};
 process.once('SIGTERM', terminate);
@@ -63,6 +60,7 @@ try {
     ws.addEventListener('error', () => {clearTimeout(timer); refuse(new Error('Native Escape socket refused'));}, {once: true});
   });
   let serial = 0;
+  requestClose = () => {ws.send(JSON.stringify({id: ++serial, method: 'Browser.close'}));};
   const pending = new Map<number, {done: (result: unknown) => void; refuse: (error: Error) => void; timer: ReturnType<typeof setTimeout>}>();
   ws.addEventListener('message', event => {
     const value: unknown = JSON.parse(String(event.data));
@@ -94,5 +92,6 @@ try {
     {type: 'keydown', key: 'Escape', code: 'Escape', trusted: true, repeat: false},
     {type: 'keyup', key: 'Escape', code: 'Escape', trusted: true, repeat: false},
   ]);
-  console.log('original trusted Escape pair preserved');
 } finally {process.off('SIGTERM', terminate); await close();}
+console.log(JSON.stringify({cleanup: 'complete', profile: directory, socketTemp: socketTemp.path}));
+console.log('original trusted Escape pair preserved');
