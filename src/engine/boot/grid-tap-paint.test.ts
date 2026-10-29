@@ -111,9 +111,10 @@ test('startup styles retain the first-paint owner and name each actual pending s
   document.body.insertAdjacentHTML('beforeend', `<div class="ws-load" data-shell>${loadShellTemplate()}</div>`);
   const first = pendingStyle('first'), second = pendingStyle('second'), entered = vi.fn();
   const loading = waitForLoadingStyles(owner).then(entered);
-  expect(bootWaits().map(wait => wait.label)).toEqual(['Stylesheet /first.css', 'Stylesheet /second.css']);
+  expect(bootWaits().map(wait => ({label: wait.label, resource: wait.resource}))).toEqual([
+    {label: 'Stylesheet download', resource: 'https://styles.test/first.css'}, {label: 'Stylesheet download', resource: 'https://styles.test/second.css'}]);
   first.dispatchEvent(new Event('load')); await Promise.resolve(); expect(entered).not.toHaveBeenCalled();
-  expect(bootWaits().map(wait => wait.label)).toEqual(['Stylesheet /second.css']);
+  expect(bootWaits().map(wait => ({label: wait.label, resource: wait.resource}))).toEqual([{label: 'Stylesheet download', resource: 'https://styles.test/second.css'}]);
   second.dispatchEvent(new Event('load')); await loading;
   expect(entered).toHaveBeenCalledTimes(1);
   expect(bootWaits()).toEqual([]);

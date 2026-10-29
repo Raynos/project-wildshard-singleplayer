@@ -58,6 +58,8 @@ export interface ProductCache {
 export interface ProductProgress {
   phase: 'descriptor' | 'cache-read' | 'assets' | 'hash' | 'validation' | 'cache' | 'complete';
   detail: string; bytesRead: number; bytesTotal: number; filesDone: number; filesTotal: number;
+  /** Canonical descriptor/member URI, separate from the player-facing role. */
+  resource?: string;
 }
 /** Loading is explicit about connectivity and first-party provenance, never inferred from an author field. */
 export interface ProductOptions {
@@ -181,7 +183,7 @@ function version(input: unknown): string {
 }
 /** Stream bounded wire bytes, including responses without a trustworthy Content-Length header. */
 export function boundedResponse(response: Response, maximum: number, read?: (bytes: number) => void): Promise<Uint8Array> {
-  return waitFor(`Read ${productResourceRole(response.url || 'data')}`, readBoundedResponse(response, maximum, read), 'file');
+  return waitFor(`Read ${productResourceRole(response.url || 'data')}`, readBoundedResponse(response, maximum, read), 'file', response.url === '' ? undefined : response.url);
 }
 async function readBoundedResponse(response: Response, maximum: number, read?: (bytes: number) => void): Promise<Uint8Array> {
   if (!response.ok || !Number.isSafeInteger(maximum) || maximum < 0 || maximum > MAX_FILE_BYTES) {
@@ -226,7 +228,7 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
         const sent = await options.transport?.(new URL(path, base).href, hash, cap) ?? null;
         if (sent !== null && !sent.cached) noteDownloadRead(sent.bytes.length);
         return sent;
-      })(), 'file'),
+      })(), 'file', new URL(path, base).href),
     }),
     ...(cache === undefined && options.cachedResponse === undefined ? {} : {
       cached: async (hash: string, path: string, maximum: number) => {
@@ -484,8 +486,8 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
   const packed = options.offline ? undefined : packReads(outputDescriptor(source)?.index.packs, new Set(addresses.map(([hash]) => hash)),
     async (path, cap) => boundedResponse(await options.fetch(new URL(path, base).href), cap), options.hash);
   const bytesTotal = addresses.reduce((total, [, cap]) => total + cap, 0);
-  const progress = (phase: ProductProgress['phase'], detail: string): void => {
-    options.progress?.({ phase, detail, bytesRead, bytesTotal, filesDone, filesTotal: addresses.length });
+  const progress = (phase: ProductProgress['phase'], detail: string, resource: string = new URL(descriptorPath, base).href): void => {
+    options.progress?.({ phase, detail, resource, bytesRead, bytesTotal, filesDone, filesTotal: addresses.length });
   };
   progress('assets', `Reading immutable assets · ${reference}`);
   trace?.mark('source');
@@ -497,34 +499,34 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
     // A pack replaces missing transports, not those already checked bytes.
     // Cache-only lookup must not start a per-member worker fetch on a miss.
     const verified = await waitFor(`${options.transport === undefined ? 'Verified cache' : 'Read'} ${role}`, (async () =>
-      await options.cache?.verifiedAsset?.(hash) ?? (inPack ? await options.verifiedResponse?.(url, hash, cap) : await offPage(url, hash, cap)))(), 'file');
+      await options.cache?.verifiedAsset?.(hash) ?? (inPack ? await options.verifiedResponse?.(url, hash, cap) : await offPage(url, hash, cap)))(), 'file', url);
     let bytes = verified ?? await waitFor(`Cache ${role}`, (async () =>
       (options.cache?.verifiedAsset === undefined ? await options.cache?.asset(base, hash) : null)
-        ?? (options.verifiedResponse === undefined ? await options.cachedResponse?.(url, hash, cap) : null))(), 'file');
+        ?? (options.verifiedResponse === undefined ? await options.cachedResponse?.(url, hash, cap) : null))(), 'file', url);
     const fromCache = bytes !== null && bytes !== undefined;
     if (bytes === null || bytes === undefined) {
       if (options.offline) throw new Error('Visited shardfile has an incomplete offline cache');
-      progress('assets', `Fetching ${role}`);
-      if (inPack && packed !== undefined) { bytes = await waitFor(`Pack member · ${role}`, packed.read(hash), 'file'); bytesRead += bytes.length; recordPackedDownload(url); }
-      else bytes = await boundedResponse(await options.fetch(url), cap, (size) => { bytesRead += size; progress('assets', `Reading ${role}`); });
-    } else { bytesRead += bytes.length; progress('assets', `Cached ${role}`); }
+      progress('assets', `Fetching ${role}`, url);
+      if (inPack && packed !== undefined) { bytes = await waitFor(`Pack member · ${role}`, packed.read(hash), 'file', url); bytesRead += bytes.length; recordPackedDownload(url); }
+      else bytes = await boundedResponse(await options.fetch(url), cap, (size) => { bytesRead += size; progress('assets', `Reading ${role}`, url); });
+    } else { bytesRead += bytes.length; progress('assets', `Cached ${role}`, url); }
     if (bytes.length !== cap) throw new Error('Shardfile asset wire size differs from declaration');
-    progress('hash', `Verifying ${role}`);
+    progress('hash', `Verifying ${role}`, url);
     let owned: Uint8Array;
     if (verified !== null && verified !== undefined) owned = verified;
     else {
       owned = new Uint8Array(bytes);
       let actual: string;
-      if (options.hashOwned === undefined) actual = await waitFor(`Hash ${role}`, options.hash(owned), 'worker');
+      if (options.hashOwned === undefined) actual = await waitFor(`Hash ${role}`, options.hash(owned), 'worker', url);
       else {
-        try { ({ hash: actual, bytes: owned } = await waitFor(`Hash ${role}`, options.hashOwned(owned), 'worker')); }
-        catch { owned = new Uint8Array(bytes); actual = await waitFor(`Hash ${role} fallback`, options.hash(owned), 'worker'); }
+        try { ({ hash: actual, bytes: owned } = await waitFor(`Hash ${role}`, options.hashOwned(owned), 'worker', url)); }
+        catch { owned = new Uint8Array(bytes); actual = await waitFor(`Hash ${role} fallback`, options.hash(owned), 'worker', url); }
       }
       if (actual !== hash) throw new Error('Shardfile asset hash mismatch');
     }
     if (transported.has(hash)) noteDownloadRead(bytes.length);
     else if (fromCache) { verifiedCached.add(hash); recordCachedDownload(hash, bytes.length, url); }
-    filesDone++; progress('assets', `Verified ${hash.slice(0, 12)} · ${filesDone} / ${addresses.length} files`);
+    filesDone++; progress('assets', `Verified ${role} · ${filesDone} / ${addresses.length} files`, url);
     return owned;
   };
   type ReadResult = { readonly ok: true; readonly bytes: Uint8Array } | { readonly ok: false; readonly error: unknown };
@@ -585,13 +587,14 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
         const hash = ref.replace(/^commons:/u, '');
         if (verifiedCached.has(hash)) return; // Exact cached bytes were already admitted; avoid rewriting the same immutable file.
         const role = roles.get(hash) ?? 'shared product data';
-        progress('cache', `Saving ${role}`);
+        progress('cache', `Saving ${role}`, outputBlobUrl(source, ownFiles.has(hash) ? hash : `commons:${hash}`, base));
         if (!await waitFor(`Save ${role}`, (async () => await cache.putAsset(base, hash, bytes) !== false)(), 'file')) complete = false;
       });
       const present = (hash: string, bytes: number): Promise<boolean> => waitFor(`Check saved ${roles.get(hash) ?? 'product data'}`, (async () => cache.verifiedPresent === undefined
         ? await cache.asset(base, hash) !== null : cache.verifiedPresent(hash, bytes))(), 'file');
       await cacheRows([...assets], options.cacheBatch === true, async ([ref, bytes]) => {
-        const hash = ref.replace(/^commons:/u, ''); progress('cache', `Checking saved ${hash.slice(0, 12)}`);
+        const hash = ref.replace(/^commons:/u, ''); progress('cache', `Checking saved ${roles.get(hash) ?? 'product data'}`,
+          outputBlobUrl(source, ownFiles.has(hash) ? hash : `commons:${hash}`, base));
         if (await present(hash, bytes.length)) return;
         // Another owner/browser may have evicted a previously verified hit before this publication pin.
         // Repair that miss, then recheck durable presence just as for a newly fetched file.

@@ -51,7 +51,7 @@ export async function waitForLoadingStyles(owner: Scope): Promise<void> {
   const scope = owner.child('loading.styles'), waits: number[] = [];
   try {
     await Promise.all(links.map(link => new Promise<void>((resolve, reject) => {
-      const id = beginLoadingWait('Stylesheet download', { kind: 'file' }); waits.push(id);
+      const id = beginLoadingWait('Stylesheet download', { kind: 'file', resource: link.href }); waits.push(id);
       const loaded = (): void => { finishLoadingWait(id); resolve(); };
       scope.listen(link, 'load', loaded);
       scope.listen(link, 'error', () => { reject(new Error(`Stylesheet failed: ${link.href}`)); });

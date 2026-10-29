@@ -12,10 +12,11 @@ export class WaitRegistry {
     this.state = state ?? (() => own);
   }
   /** Register an already-started operation and remove it on either resolution or rejection. */
-  async waitFor<T>(label: string, promise: Promise<T>, kind: WaitKind = 'work', step: string | null = null, owner: symbol | null = null): Promise<T> {
+  async waitFor<T>(label: string, promise: Promise<T>, kind: WaitKind = 'work', step: string | null = null, owner: symbol | null = null, resource?: string): Promise<T> {
     const state = this.state(), id = ++state.sequence, now = this.now();
     state.pending.set(id, { id, label, kind, step, owner, startedAt: now, progressAt: now, loadedBytes: 0, totalBytes: null,
-      deadlineMs: 8000, retry: typeof location === 'undefined' ? null : () => { location.reload(); }, progress: '', inline: false });
+      deadlineMs: 8000, retry: typeof location === 'undefined' ? null : () => { location.reload(); }, progress: '', inline: false,
+      ...(resource === undefined ? {} : {resource}) });
     try { return await promise; }
     finally { state.pending.delete(id); }
   }
@@ -29,9 +30,9 @@ export class WaitRegistry {
 
 const waits = new WaitRegistry(diagnosticNow, loadingWaitState);
 /** Observe an existing promise; callers retain their admission, lifetime and concurrency policy. */
-export function waitFor<T>(label: string, promise: Promise<T>, kind: WaitKind = 'work'): Promise<T> {
+export function waitFor<T>(label: string, promise: Promise<T>, kind: WaitKind = 'work', resource?: string): Promise<T> {
   const timeline = currentLoadingTimeline();
-  return waits.waitFor(label, promise, kind, timeline?.snapshot().current ?? null, timeline?.waitOwner ?? null);
+  return waits.waitFor(label, promise, kind, timeline?.snapshot().current ?? null, timeline?.waitOwner ?? null, resource);
 }
 /** Prefer waits of the displayed step, then its newest nested work. Unrelated page work never supplies the footer. */
 export function loadingStepWaits(pending: readonly BootWait[], display: string | null, current: string | null, owner: symbol | null = null): readonly BootWait[] {

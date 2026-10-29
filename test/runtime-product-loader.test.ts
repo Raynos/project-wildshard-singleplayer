@@ -104,8 +104,11 @@ test.each([false, true])('every admission phase identifies its actual descriptor
   expect(progress.some(row => row.phase === 'cache')).toBe(true);
   expect(fetch.mock.calls.some(([url]) => url.endsWith('/shard.json'))).toBe(false);
   for (const row of progress) {
-    expect(row.detail).toMatch(/\/shardfiles\/runtime-loader\/shard\.json|\b[a-f0-9]{12}\b/u);
+    if (row.resource === undefined) expect(row.detail).toMatch(/\/shardfiles\/runtime-loader\/shard\.json|\b[a-f0-9]{12}\b/u);
+    else expect([new URL('shard.json', f.options.base).href, new URL(`blobs/bin/${f.ref}.bin`, f.options.base).href])
+      .toContain(new URL(row.resource, f.options.base).href);
   }
+  expect(progress.some(row => row.resource?.includes(f.ref) && row.detail === 'Fetching data 1 / 1')).toBe(true);
 });
 
 test('inline admission without a descriptor path identifies its cache key without inventing a file', async () => {
@@ -254,7 +257,8 @@ test('worker-verified custom sections retain schema validation and named pending
   const pending = readProductDescriptor(options);
   try {
     await vi.waitFor(() => { expect(started).toHaveLength(f.index.sections.length + f.index.schemas.length); });
-    expect(bootWaits().some(row => row.label === 'Read sections/custom/facts.json' && row.kind === 'file')).toBe(true);
+    expect(bootWaits().some(row => row.label === 'Read Product data section'
+      && row.resource === new URL('sections/custom/facts.json', f.options.base).href && row.kind === 'file')).toBe(true);
   } finally { release(); }
   await expect(pending).resolves.toBeDefined();
   expect(bootWaits()).toHaveLength(0);
@@ -330,9 +334,11 @@ test('raw cache bytes remain isolated from a transferred failed hash and expose 
   const hashOwned = (wire: Uint8Array) => { structuredClone(wire, { transfer: [wire.buffer] }); return hashed; };
   const pending = admitProduct(source, { ...f.options, cache, hashOwned });
   try {
-    await vi.waitFor(() => { expect(bootWaits().some(row => row.label === `Cache ${f.ref.slice(0, 12)}`)).toBe(true); });
+    await vi.waitFor(() => { expect(bootWaits().some(row => row.label === 'Cache data 1 / 1'
+      && row.resource === new URL(`blobs/bin/${f.ref}.bin`, f.options.base).href)).toBe(true); });
     resolveCache?.(f.blob);
-    await vi.waitFor(() => { expect(bootWaits().some(row => row.label === `Hash ${f.ref.slice(0, 12)}`)).toBe(true); });
+    await vi.waitFor(() => { expect(bootWaits().some(row => row.label === 'Hash data 1 / 1'
+      && row.resource === new URL(`blobs/bin/${f.ref}.bin`, f.options.base).href)).toBe(true); });
     expect(f.blob).toEqual(new Uint8Array([1, 2, 3]));
   } finally { resolveCache?.(f.blob); rejectHash?.(new Error('Transferred worker failed')); }
   expect((await pending).assets.get(f.ref)).toEqual(f.blob);

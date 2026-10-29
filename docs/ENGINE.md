@@ -1036,10 +1036,10 @@ receipts (including hints arriving later), not an estimate of wire bytes.
 The panel names missing wire measurements, withholds download 100 percent,
 and the accuracy checker refuses acceptance while any remain.
 
-`waitFor(label, promise, kind?)` in `@wildshard/engine/boot/waits` observes
-already-started promises and removes them on either outcome. `bootWaits()`
-reads the same first-HTML wait list as `Loading`: label, observed bytes,
-quiet deadline, Retry capability, monotonic age and attempt/step identity.
+`waitFor(label, promise, kind?, resource?)` observes already-started work
+and removes it on either outcome. `bootWaits()` reads the same first-HTML
+list as `Loading`: role label, optional exact resource URI, observed bytes,
+quiet deadline, Retry, monotonic age and attempt/step identity.
 `loadingStepWaits` selects only that attempt's displayed or nested step;
 unrelated music does not supply its footer. Scheduling stays unchanged.
 `beginLoadingWait`, `reportLoadingWait` and `finishLoadingWait` in

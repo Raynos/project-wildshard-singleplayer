@@ -70,8 +70,8 @@ test('only selected monotonic pack bytes reach the shell and fallback clears the
   if (shell === null) throw new Error('Missing inline shell');
   reply({ type: 'CODE_PACK_PROGRESS', url: pack[0], total: 100, loaded: 40 });
   expect(shell.dataset['codePackLoaded']).toBe('40'); expect(shell.dataset['codePackTotal']).toBe('100');
-  const wait = [...loadingWaitState().pending.values()].find(row => row.label.includes(packUrl));
-  expect(wait).toMatchObject({ kind: 'file', loadedBytes: 40, totalBytes: 100, deadlineMs: 8000 });
+  const wait = [...loadingWaitState().pending.values()].find(row => row.resource === packUrl);
+  expect(wait).toMatchObject({ label: 'application code download', resource: packUrl, kind: 'file', loadedBytes: 40, totalBytes: 100, deadlineMs: 8000 });
   for (const bad of [
     { url: '/assets/code/other.pack', total: 100, loaded: 80 },
     { url: pack[0], total: 101, loaded: 80 },
@@ -82,5 +82,5 @@ test('only selected monotonic pack bytes reach the shell and fallback clears the
   await vi.advanceTimersByTimeAsync(15000); expect(await work).toBeNull();
   expect(shell.dataset['codePackUrl']).toBeUndefined();
   expect(shell.dataset['codePackLoaded']).toBeUndefined();
-  expect([...loadingWaitState().pending.values()].some(row => row.label.includes(packUrl))).toBe(false);
+  expect([...loadingWaitState().pending.values()].some(row => row.resource === packUrl)).toBe(false);
 });
