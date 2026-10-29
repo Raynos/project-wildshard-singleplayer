@@ -23,6 +23,7 @@ export async function prepareSpawnView(radius: number = SPAWN_VIEW_M, settle?: (
     // a few tasks after it: let them arrive before the queues are read
     settle();
     for (let turn = 0; turn < 3; turn++) await new Promise<void>(resolve => { pageScope.timeout(0, resolve); });
+    performance.mark('wildshard.spawn-view.settled', { detail: [...queues].map(queue => queue.describe()) });
   }
   // what the fence saw, for the loading rulers (a viewer far from its jobs runs nothing)
   performance.mark('wildshard.spawn-view', { detail: [...queues].map(queue => queue.describe()) });
