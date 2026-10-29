@@ -286,7 +286,7 @@ current slice (no mid-task re-briefs, G492); none starts new work after this is 
 |---|---|---|---|---|
 | MF8 | One cache | Delete the page `ContentCache`, its worker, protocol, queue and hash worker; reads go through the worker cache with a length compare. Done: warm Pine admission ≤ 1 s on the Simulator; line count in the commit. | Codex | M |
 | MF9 | Trust our build | Delete client admission of first-party products (preflight, section rehash, cost checks, 3 s fallback). Done: no admission row on a warm load; a broken product fails the build. | Codex | M |
-| MF10 | Exits are navigations | Standalone exit, New game, reset save, shard switch = `location.replace`; delete in-place disposal on those paths. Done: every shard → MAIN MENU ≤ 0.5 s, zero disposal reports. | Codex | S |
+| MF10 | Exits are navigations | Standalone exit, New game, reset save, shard switch = `location.replace`; delete in-place disposal on those paths. Done: every shard → MAIN MENU ≤ 0.5 s, zero disposal reports. | Codex sp-x2 (pulled forward, G888 / G894) | S |
 | MF11 | No leases | Upload once, dispose once; delete KTX2 lease swaps and loans outside the grid. Done: Pine / Nine Simulator footprint not worse; `usedTimes` gone from Sentry. | Opus | M |
 | MF12 | Bookkeeping throws to the bake | Walk the 40 Sentry issues and the frame-path throws: each becomes a bake check or a skip-and-report. Done: Sentry 7-day list at zero or resolved with a line each. | Codex | M |
 | MF13 | Stream past spawn invisibly | NP-2: refines only out of view or dither-faded. Done: walk over Nine's first two bridges, no visible swap. | Opus | M |

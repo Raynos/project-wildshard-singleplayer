@@ -8,9 +8,9 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 (sp-x9). Pine + Nine keep LEGACY until Jake's QA after wave 1; LD5 / LD8-LD10 with the last.
 
 **LIVE 8621318d93 (build 8621318d9-mvtvd1tf): Jake's QA build.** He QAs it now.
-**REPLAN (Jake ~14:25, G886): [FOUNDATIONS](../FOUNDATIONS.md) wave 1** at lane boundaries: MF1 sp-x10, MF2 sp-x2, MF3 + MF5
-sp-o3, MF4 sp-x6, MF6 sp-x9 + sp-o4 (modal), MF7 sp-o5 (+ G890 battery). G887 trust our build, G888 exits navigate, G889.
-Superseded QB/RL/DA/NP rows marked folded. Still open: QB10 / QB14 sp-x1; QB15 / QB17 / QB18 sp-o4; GAME-S, QB19 sp-o3.
+**REPLAN (G886): [FOUNDATIONS](../FOUNDATIONS.md) wave 1, crashes first (G894):** MF7 sp-o5 (memory) + sp-o3 (battery
+BA-1/2/3/7/8) + sp-o4 BA-6 + sp-x1 BA-4/5; MF6 sp-x1; MF10 / G888 then G895 sp-x2; MF1 + QB21 sp-x10, MF2 sp-x2, MF3 done,
+MF4 sp-x6, MF5 sp-o3. Open: QB15 / QB18 sp-o4, GAME-S / QB19 sp-o3, QB20 sp-o5. G892: open until wave 1 + Jake's QA.
 
 **Done today:** Nine + Far Reach archived, G548, CO1-CO5, PL6, QA1-QA14, D196-D207; QB2/7/8/10/14, RL2-5/9/10.
 
