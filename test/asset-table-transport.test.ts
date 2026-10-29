@@ -78,6 +78,20 @@ test('table transport refuses corruption, truncation and extra bytes before publ
     await expect(readAssetTables(f.asset.address, () => Promise.resolve(new Response(source)))).rejects.toThrow();
   }
 });
+test('a dropped boot table retries its exact build address before publishing verified values', async () => {
+  const f = fixture(), attempts: {url: string; cache: RequestCache | undefined}[] = [];
+  const value = await readAssetTables(f.asset.address, (url, init) => {
+    attempts.push({url, cache: init?.cache});
+    return attempts.length === 1 ? Promise.reject(new TypeError('Synthetic table connection dropped')) : Promise.resolve(new Response(f.source));
+  });
+  expect(value).toEqual(f.data);
+  expect(attempts).toEqual([{url: f.asset.address.url, cache: undefined}, {url: f.asset.address.url, cache: 'reload'}]);
+});
+test('HTML at the boot table address names the missing path instead of reaching JSON parsing', async () => {
+  const f = fixture(), read = vi.fn(() => Promise.resolve(new Response('<html>missing</html>', {headers: {'content-type': 'text/html'}})));
+  await expect(readAssetTables(f.asset.address, read)).rejects.toThrow(`Read failed: ${f.asset.address.url} · missing content (HTML response)`);
+  expect(read).toHaveBeenCalledTimes(2);
+});
 test('matching bytes still require the table contract and a bounded build address', async () => {
   const asset = assetTableAsset(JSON.stringify({ bytes: {}, versions: {}, music: {}, sfx: {}, packs: { bad: { phone: { bytes: -1 } } } }));
   await expect(readAssetTables(asset.address, () => Promise.resolve(new Response(asset.source)))).rejects.toThrow('Invalid asset tables');
