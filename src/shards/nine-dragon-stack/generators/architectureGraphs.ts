@@ -1,7 +1,6 @@
 import type { AuthorGraph as GraphIr, AuthorGraphRef as GraphRef, AuthorGraphStages as GraphStages } from '@wildshard/sdk/bake/materialGraph';
 import { LookGraph } from './lookGraph';
 import SHARED from '../data/sharedUniforms.json' with { type: 'json' };
-import LOOKS from '../data/lookGraphs.json' with { type: 'json' };
 
 const shapes = {
   uTime: 'float', uLinePx: 'float', uDpr: 'float', uGroundPx: 'float', uFlagJoint: 'float', uPaintFlag: 'float', uDry: 'float', uLpMax: 'float', uLpAmb: 'float', uInkMid: 'float', uFogBase: 'float', uFogStart: 'float', uWeave: 'float',
@@ -185,8 +184,10 @@ function facade(small: boolean): GraphIr {
  * coordinates no longer hold: their wall tone, with the facade's far lit-window grid (kind 11 above) laid out on the upright
  * faces, so a tower past the ring reads as walls and lit rooms, not a flat slab.
  */
-/** QA6: how much thicker than the silk fog's base air the far coarse towers' own haze is (calibrated on cams 17 / 18). */
-const COARSE_AIR = 3;
+/** QA6: the coarse towers' share of the silk fog (its `fogScale`): past the ring they stand 240-380 m off, below the portal
+ *  decks in the fog's deep air, which at full strength left them flat fog slabs where LEGACY drew a hazy band of lit towers
+ *  (cams 17 / 18). */
+const COARSE_FOG = 0.3;
 function coarseFacade(): GraphIr {
   const g = new Surface(), sw = g.sw.bind(g), mul = g.mul.bind(g), sub = g.sub.bind(g), max = g.max.bind(g), mix = g.mix.bind(g);
   const base = mul(g.op('vertexColour'), mul(g.u('uWashTint'), g.u('uFacadeWash')));
@@ -200,16 +201,7 @@ function coarseFacade(): GraphIr {
   const detail = g.smooth(2, 6, g.div(1, max(sw(fw, 'x'), sw(fw, 'y'))));
   const colour = mix(mul(base, 0.8), mix(base, mul(base, [0.42, 0.47, 0.58]), mul(win, sub(1, lit))), detail);
   const emit = mul([1, 0.7, 0.38], mul(mix(mul(upright, 0.135), mul(win, lit), detail), 1.15));
-  // QA6: past the ring the coarse towers stand 240-380 m off, below the portal decks, where the silk fog's deep air leaves
-  // nothing of them (flat fog slabs: LEGACY's hazy lower band of lit towers was missing at cams 17 / 18). They take the
-  // base air alone (`fog: false`: no silk stage), the same the output's emission compensation assumes: a far window keeps
-  // its 0.25 power through it.
-  // COARSE_AIR thickens it toward the deep air's haze: LEGACY's band reads pale, a little brighter than the fog (cams 17 / 18)
-  const air = LOOKS['nine-silk-fog'].params;
-  const trans = g.op('exp', [g.neg(mul(air.fogBase.value * COARSE_AIR, max(sub(g.depth, air.fogStart.value), 0)))]);
-  const shaded = g.add(g.shade(colour), g.div(emit, g.pow(max(trans, 1e-4), 0.75)));
-  const graph = g.finish({ surface: { colour: mix(air.fogBaseCol.value, shaded, trans), targetAlpha: g.div(g.op('cameraNear'), max(g.depth, g.op('cameraNear'))) } }, { fog: false, depthWrite: true });
-  return { ...graph, doubleSided: false };
+  return g.output(g.shade(colour), emit, 0, false, { 'vertex.scale': { fog: COARSE_FOG } });
 }
 
 /** Interior mapping stays one instanced quad per opening, including split panes. */
