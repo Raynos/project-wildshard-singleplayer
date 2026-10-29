@@ -187,7 +187,7 @@ function facade(small: boolean): GraphIr {
 /** QA6: the coarse towers' share of the silk fog (its `fogScale`): past the ring they stand 240-380 m off, below the portal
  *  decks in the fog's deep air, which at full strength left them flat fog slabs where LEGACY drew a hazy band of lit towers
  *  (cams 17 / 18). */
-const COARSE_FOG = 0.3;
+const COARSE_FOG = 0.6;
 function coarseFacade(): GraphIr {
   const g = new Surface(), sw = g.sw.bind(g), mul = g.mul.bind(g), sub = g.sub.bind(g), max = g.max.bind(g), mix = g.mix.bind(g);
   const base = mul(g.op('vertexColour'), mul(g.u('uWashTint'), g.u('uFacadeWash')));
