@@ -33,3 +33,28 @@ export async function selectedManifests(selected: Identity, loaders: Loaders,
   }));
   return { manifests, contentIdentities: primary === undefined ? {} : { [selected.slug]: primary } };
 }
+
+/** A native grid can enter every primary, but never a frozen standalone copy.
+ * Keep its complete runnable primary catalogue without evaluating those copies.
+ * The original loaders preserve placements, object values and declaration order;
+ * standalone selection still prepares its complete inventoried pair above. */
+export async function gridManifests(rows: readonly Identity[], loaders: Loaders,
+  identities: Readonly<Record<string, string>>, beforeLoad: (slug: string) => void): Promise<SelectedManifests> {
+  const indexed = new Map<string, Identity>(rows.map(row => [row.slug, row]));
+  if (indexed.size !== rows.length) throw new Error('Grid catalogue has duplicate identities');
+  for (const row of rows) {
+    const primary = Object.hasOwn(identities, row.slug) ? identities[row.slug] : undefined;
+    if ((row.legacy === true) !== (primary !== undefined)
+      || primary !== undefined && (indexed.get(primary) === undefined || indexed.get(primary)?.legacy === true)) {
+      throw new Error('Grid legacy identity is not inventoried');
+    }
+  }
+  const native = rows.filter(row => row.legacy !== true);
+  if (native.length === 0) throw new Error('Grid catalogue has no native manifests');
+  // Validate the complete request set before starting any loader.
+  for (const row of native) {
+    if (!Object.hasOwn(loaders, row.slug) || typeof loaders[row.slug] !== 'function') throw new Error('Missing grid discovery loader');
+  }
+  const prepared = await Promise.all(native.map(row => selectedManifests(row, loaders, identities, beforeLoad)));
+  return { manifests: prepared.flatMap(row => row.manifests).sort((a, b) => a.order - b.order), contentIdentities: {} };
+}

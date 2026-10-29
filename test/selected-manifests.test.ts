@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { selectedManifests } from '../src/selectedManifests';
+import { selectedManifests, gridManifests } from '../src/selectedManifests';
 import { legacyContentIdentity, shards } from '../src/game/shard/list';
 
 function fixture() {
@@ -43,4 +43,50 @@ test('a swapped or wrongly flagged loaded identity refuses the whole pair', asyn
   await expect(selectedManifests(f.copy, { ...f.loaders, [f.primary.slug]: () => Promise.resolve(f.other) }, f.identities, f.before)).rejects.toThrow('identity differs');
   await expect(selectedManifests(f.copy, { ...f.loaders, [f.primary.slug]: () => Promise.resolve({ ...f.primary, legacy: true }) }, f.identities, f.before)).rejects.toThrow('identity differs');
   await expect(selectedManifests(f.copy, { ...f.loaders, [f.copy.slug]: () => Promise.resolve({ ...f.primary, slug: f.copy.slug }) }, f.identities, f.before)).rejects.toThrow('identity differs');
+});
+
+test('a grid prepares every exact primary without evaluating frozen standalone copies', async () => {
+  const f = fixture(), installed = shards();
+  const result = await gridManifests([f.copy, f.other, f.primary], {
+    ...f.loaders, [f.copy.slug]: () => Promise.reject(new Error('Grid evaluated a frozen copy')),
+  }, f.identities, f.before);
+  const originals = [f.other, f.primary].sort((a, b) => a.order - b.order);
+  expect(result.manifests).toEqual(originals);
+  expect(result.manifests.every((row, index) => row === originals[index])).toBe(true);
+  expect(result.contentIdentities).toEqual({});
+  expect(f.calls).toEqual([f.other.slug, f.primary.slug]);
+  expect(f.declared).toEqual(f.calls);
+  expect(shards()).toBe(installed);
+  // The frozen route retains its original paired loader and content namespace.
+  const frozen = await selectedManifests(f.copy, f.loaders, f.identities, f.before);
+  expect(frozen.manifests).toEqual([f.primary, f.copy]);
+  expect(frozen.contentIdentities).toEqual(f.identities);
+});
+
+test('invalid grid inventories refuse before any manifest read', async () => {
+  const f = fixture(), rows = [f.primary, f.copy, f.other];
+  await expect(gridManifests(rows, f.loaders, {}, f.before)).rejects.toThrow('not inventoried');
+  await expect(gridManifests(rows, f.loaders, { [f.copy.slug]: f.copy.slug }, f.before)).rejects.toThrow('not inventoried');
+  await expect(gridManifests([f.copy], f.loaders, f.identities, f.before)).rejects.toThrow('not inventoried');
+  await expect(gridManifests([...rows, f.primary], f.loaders, f.identities, f.before)).rejects.toThrow('duplicate identities');
+  await expect(gridManifests([], f.loaders, {}, f.before)).rejects.toThrow('no native manifests');
+  await expect(gridManifests(rows, { [f.primary.slug]: f.loaders[f.primary.slug] }, f.identities, f.before)).rejects.toThrow('Missing grid discovery loader');
+  expect(f.calls).toEqual([]); expect(f.declared).toEqual([]);
+});
+
+test('a grid retains the full primary readiness barrier and refuses swapped manifests', async () => {
+  const f = fixture(), installed = shards();
+  let release = (): void => { throw new Error('Grid loader gate was not installed'); };
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  let complete = false;
+  const pending = gridManifests([f.primary, f.other], { ...f.loaders,
+    [f.other.slug]: async () => { await gate; return f.other; },
+  }, {}, f.before).then(value => { complete = true; return value; });
+  await Promise.resolve(); await Promise.resolve();
+  expect(complete).toBe(false); expect(shards()).toBe(installed);
+  release(); expect((await pending).manifests).toHaveLength(2);
+  await expect(gridManifests([f.primary, f.other], { ...f.loaders,
+    [f.primary.slug]: () => Promise.resolve(f.copy),
+  }, {}, f.before)).rejects.toThrow('identity differs');
+  expect(shards()).toBe(installed);
 });

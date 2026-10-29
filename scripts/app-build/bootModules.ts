@@ -281,12 +281,19 @@ export function writeBootModules(outDir: string, root: string, inlineLimit = 409
     extras[prefix] = [`/${name}`, Buffer.byteLength(source), files.reduce((sum, row) => sum + row[1], 0), hash];
   }
   const selected:Record<string,readonly ModuleFile[]>={};
-  for(const row of selectionModules(root))selected[row.slug]=bootModuleFiles(bundle,[resolve(root,row.file)]);
+  featureRoots['boot.common']=[...ids];
+  featureRoots['discovery.all']=[];
+  for(const row of selectionModules(root)){
+    const roots=[resolve(root,row.file)];
+    selected[row.slug]=bootModuleFiles(bundle,roots);
+    featureRoots[`discovery:${row.slug}`]=roots;
+  }
   let catalogueFiles:readonly ModuleFile[]=[];
   if(Object.keys(selected).length>0){
     const catalogue=resolveImport('./shardList',entry);
     if(catalogue===null)throw new Error('Missing full discovery module');
     catalogueFiles=bootModuleFiles(bundle,[catalogue.id]);
+    featureRoots['discovery.all']=[catalogue.id];
   }
   const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), grid: bootModuleFiles(bundle, gridRoots), optional: bootModuleGroups(bundle, featureRoots), selection:selected, catalogue:catalogueFiles, products, extras };
   const early = bootModuleFiles(bundle, earlyModuleRoots(root));

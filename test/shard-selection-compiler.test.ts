@@ -43,6 +43,22 @@ test('one selected discovery graph excludes other worlds and full catalogue byte
   expect(first.some(([url])=>second.some(([other])=>url===other))).toBe(false);
   const catalogue=readModuleFiles(Reflect.get(facts,'catalogue')),common=readModuleFiles(Reflect.get(facts,'common'));
   for(const row of [...first,...second]){expect(catalogue).toContainEqual(row);expect(common).not.toContainEqual(row);}
+  const optional:unknown=Reflect.get(facts,'optional');
+  if(typeof optional!=='object'||optional===null)throw new Error('Missing indexed module bank');
+  const files=readModuleFiles(Reflect.get(optional,'files')),groups:unknown=Reflect.get(optional,'groups');
+  if(typeof groups!=='object'||groups===null)throw new Error('Missing indexed module groups');
+  const group=(name:string):ReturnType<typeof readModuleFiles>=>{
+    const indices:unknown=Reflect.get(groups,name);
+    if(!Array.isArray(indices))throw new Error('Missing discovery group');
+    return indices.map((index:unknown)=>{
+      if(typeof index!=='number'||!Number.isSafeInteger(index))throw new Error('Invalid discovery group index');
+      const row=files[index];if(row===undefined)throw new Error('Missing discovery group file');return row;
+    });
+  };
+  expect(group('boot.common')).toEqual(common);
+  expect(group('discovery:first')).toEqual(first);
+  expect(group('discovery:second')).toEqual(second);
+  expect(group('discovery.all')).toEqual(catalogue);
   expect(Object.values(bundle).filter(file=>file.type==='chunk').some(file=>(file.code??'').includes('first-solo')&&(file.code??'').includes('placement'))).toBe(true);
  }finally{rmSync(root,{recursive:true,force:true});}
 });
