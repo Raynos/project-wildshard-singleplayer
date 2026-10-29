@@ -8,6 +8,8 @@
 import type { BufferGeometry } from 'three';
 
 interface KitBuilder { readonly vertexCount: number; build: () => BufferGeometry; release: () => void }
+/** the one alpha-cut kit's name */
+const ALPHA_KIT = 'cut';
 
 /** A world build's named kits: opaque, alpha-cut and swept builders by name, the reflective names and the draw distances. */
 export class KitSet<K extends KitBuilder, X extends KitBuilder> {
@@ -38,10 +40,11 @@ export class KitSet<K extends KitBuilder, X extends KitBuilder> {
     return k;
   }
 
-  /** the alpha-cut kit `name` (made on first use) */
-  alpha(name: string): K {
-    let k = this.alphaKits.get(name);
-    if (k === undefined) { k = this.makeKit(); this.alphaKits.set(name, k); }
+  /** the alpha-cut kit (made on first use). FC12 (G913): every band's cut panels share one kit, one draw (they share one
+   *  look and no draw distance); `_name` stays the caller's band, for reading */
+  alpha(_name: string): K {
+    let k = this.alphaKits.get(ALPHA_KIT);
+    if (k === undefined) { k = this.makeKit(); this.alphaKits.set(ALPHA_KIT, k); }
     return k;
   }
 

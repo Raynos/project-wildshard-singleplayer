@@ -1,13 +1,13 @@
 [
   {
     "path": "src/shards/nine-dragon-stack/data/mapAssembly.generated.json",
-    "bytes": 4363111,
-    "hash": "edf0366dc44351ed800f7bfcae9c06a35e15501d17e7738a44075dd68491bc4e"
+    "bytes": 4361989,
+    "hash": "dc75a5a5fe1713b59121d24250963a01c50a2b911daf1ac03f6987b12047077b"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/mapAssembly.generated.bin",
-    "bytes": 9126491,
-    "hash": "2d0cbb17addab9c7642c2e4de4ef44a3562297ea01696ebbf4213a95fefab80b"
+    "bytes": 9126483,
+    "hash": "c0664ae35a6ec04520709414eaf48a091e6ebebd0f2d979011862e66e95c2e8b"
   },
   {
     "path": "public/assets/nine-dragon-stack/map/top.webp",
