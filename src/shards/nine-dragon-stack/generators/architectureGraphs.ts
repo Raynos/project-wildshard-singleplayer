@@ -184,9 +184,6 @@ function facade(small: boolean): GraphIr {
  * coordinates no longer hold: their wall tone, with the facade's far lit-window grid (kind 11 above) laid out on the upright
  * faces, so a tower past the ring reads as walls and lit rooms, not a flat slab.
  */
-/** QA6: the far coarse towers' window glow through the silk fog's deep air: `gain` times a near window's from `start` to
- *  `end` metres off. */
-const COARSE_HAZE = { start: 120, end: 260, gain: 20 } as const;
 function coarseFacade(): GraphIr {
   const g = new Surface(), sw = g.sw.bind(g), mul = g.mul.bind(g), sub = g.sub.bind(g), max = g.max.bind(g), mix = g.mix.bind(g);
   const base = mul(g.op('vertexColour'), mul(g.u('uWashTint'), g.u('uFacadeWash')));
@@ -199,13 +196,14 @@ function coarseFacade(): GraphIr {
   const win = mul(mul(g.cover(sw(f, 'x'), 0.18, 0.82, sw(fw, 'x')), g.cover(sw(f, 'y'), 0.3, 0.8, sw(fw, 'y'))), upright), lit = g.step(g.hash(cell), 0.5);
   const detail = g.smooth(2, 6, g.div(1, max(sw(fw, 'x'), sw(fw, 'y'))));
   const colour = mix(mul(base, 0.8), mix(base, mul(base, [0.42, 0.47, 0.58]), mul(win, sub(1, lit))), detail);
-  // QA6: past the ring the coarse towers stand 240-380 m off, below the portal decks in the silk fog's deep air, which the
-  // output's base-air compensation does not reach: their windows drew as flat fog and LEGACY's hazy lower band of lit
-  // towers was missing (cams 17 / 18). Their glow ramps up with distance; within COARSE_HAZE's start (the aerial cams 21 /
-  // 22) it is unchanged.
-  const haze = mix(1, COARSE_HAZE.gain, g.smooth(COARSE_HAZE.start, COARSE_HAZE.end, g.distance));
-  const emit = mul(mul([1, 0.7, 0.38], mul(mix(mul(upright, 0.135), mul(win, lit), detail), 1.15)), haze);
-  return g.output(g.shade(colour), emit, 0);
+  const emit = mul([1, 0.7, 0.38], mul(mix(mul(upright, 0.135), mul(win, lit), detail), 1.15));
+  // QA6: past the ring the coarse towers stand 240-380 m off, below the portal decks, where the silk fog's deep air leaves
+  // nothing of them (flat fog slabs: LEGACY's hazy lower band of lit towers was missing at cams 17 / 18). They take the
+  // base air alone, the same the output's emission compensation assumes: a far window keeps its 0.25 power through it.
+  const trans = g.op('exp', [g.neg(mul(g.u('uFogBase'), max(sub(g.distance, g.u('uFogStart')), 0)))]);
+  const shaded = g.add(g.shade(colour), g.div(emit, g.pow(max(trans, 1e-4), 0.75)));
+  const graph = g.finish({ surface: { colour: mix(g.u('uFogBaseCol'), shaded, trans), targetAlpha: g.div(g.op('cameraNear'), max(g.depth, g.op('cameraNear'))) } }, { depthWrite: true });
+  return { ...graph, doubleSided: false };
 }
 
 /** Interior mapping stays one instanced quad per opening, including split panes. */
