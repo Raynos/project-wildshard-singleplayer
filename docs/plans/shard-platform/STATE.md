@@ -4,15 +4,15 @@
 below for Jake's review with wildshard-v (an overturn becomes a new row). No idle lane while a counted row is open.
 
 **Order:** QA rows (all archive blockers, G877/G879), then LD5-LD10 on his word (G873), then CO7 / CO8, then all stop (G845).
-**Legacy (G882 / G883 / G885 / G891):** legacy-final 91a9eef081; Sky + Signal 3be88b3081, Nalati b592b94008, Driftwood next
-(sp-x9). Pine + Nine keep LEGACY until Jake's QA after wave 1; LD5 / LD8-LD10 with the last.
+**Legacy (G882 / G883 / G885 / G891):** legacy-final 91a9eef081; Sky + Signal 3be88b3081, Nalati b592b94008, Driftwood
+next (sp-x9). **G908: Pine + Nine untouched** (no prep) until Jake's word after his final QA, likely 10-30.
 
 **LIVE 8621318d93 (build 8621318d9-mvtvd1tf): Jake's QA build.** He QAs it now.
 **REPLAN (G886): [FOUNDATIONS](../FOUNDATIONS.md) wave 1, crashes first (G894):** MF7 sp-o5 (memory) + sp-o3 (battery
 BA-1/2/3/7/8) + sp-o4 BA-6 + sp-x1 BA-4/5; MF6 sp-x1; MF10 / G888 then G895 sp-x2; MF1 + QB21 sp-x10, MF2 sp-x2, MF3 done,
-MF4 sp-x6, MF5 sp-o3. Open: QB15 / QB18 sp-o4, GAME-S / QB19 sp-o3, QB20 sp-o5. G892: open until wave 1 + Jake's QA.
+MF4 sp-x6, MF5 sp-o3. Open: QB15 / QB18 sp-o4, GAME-S / QB19 sp-o3, QB20 sp-o5. G892: open until wave 1 + Jake's QA (likely 10-30).
 
-**Done today:** Nine + Far Reach archived, G548, CO1-CO5, PL6, QA1-QA14, D196-D207; QB2/7/8/10/14, RL2-5/9/10.
+**Done today:** QA1-QA14, CO1-CO5, QB2/7/8/10/14, RL2-5/9/10, MF3, MF6.
 
 **Autonomous decisions (for Jake's review):**
 - MF3 met: launch image → title 0.7 s warm on the Sim, ~0.5 s of it iOS starting the web app before our page
