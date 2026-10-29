@@ -493,9 +493,14 @@ function architecture(cut: boolean, nr13: boolean): GraphIr {
   const wallPaint = nr13 ? { on: choose(g.op('or', [g.eq(paintLayer, 2), g.eq(paintLayer, 4)]), 1, 0), seed } : undefined;
   const painted = choose(g.gt(paintStrength, 0), g.paint(paintAt, paintLayer, paintScale, paintStrength, own(2, 3, own(3, 2.5, 2)), wallPaint), [1, 1, 1]);
   colour = add(mul(colour, painted), choose(g.eq(kind, 1), glassAdd(), [0, 0, 0]));
+  const surface = colour;
   const shaded = g.shade(colour), wetShade = mul(shaded, mul(sub(1, mul(wet, mix(0.6, 0.9, g.step(0.6, sw(g.normal, 'y'))))), mix([1, 1, 1], [0.88, 0.95, 1.1], wet)));
   colour = choose(g.eq(kind, 3), shaded, wetShade);
-  colour = add(colour, mul(mul(colour, min(spill, [0.7, 0.7, 0.7])), mul(1.3, mix(1, 0.4, accent))));
+  // NR16: LEGACY adds the baked neon spill on the unshaded surface (its kit's col), half of it on wet faces but the
+  // flagstones; the port lit the shaded colour, so a wall facing away from the key took its spill through uShade (B back's
+  // glazed tiles read lilac-grey where LEGACY's are pale pink)
+  const spillOn = nr13 ? mul(surface, choose(g.eq(kind, 3), 1, sub(1, mul(wet, 0.5)))) : colour;
+  colour = add(colour, mul(mul(spillOn, min(spill, [0.7, 0.7, 0.7])), mul(1.3, mix(1, 0.4, accent))));
   const deep = mul(sub(1, g.smooth(-150, 70, sw(g.world, 'y'))), 0.9), luminance = g.op('dot', [colour, [0.2126, 0.7152, 0.0722]]);
   const deepC = mix(g.u('uPaperDeep'), g.u('uPaper'), g.clamp(mul(luminance, 1.6)));
   colour = mix(colour, mix(deepC, mul(colour, 0.5), mul(accent, 0.6)), mul(deep, 0.85));
