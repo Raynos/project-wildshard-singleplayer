@@ -1,5 +1,5 @@
 {
- "judged": "2026-10-28-04ed616aa6",
+ "judged": "2026-10-29-4e009207dd",
  "accepted": {
   "driftwood-isle": "denser, higher clouds and warmer planks (G855); the phone geometry cut (G833).",
   "pine-hollow": "no colour LUT (G854, landed 3a2af030ec).",
@@ -120,7 +120,7 @@
   },
   "pine-hollow/11-bear-den": {
    "verdict": "great",
-   "note": "Golden re-shot (2856d1669f harness + no-damage spectator): the bear den itself, not spawn. Matches."
+   "note": "The bear walks up to the player at the den in both of this run's visits (game state; the golden caught none); the scene behind it matches."
   },
   "pine-hollow/12-mill-hamlet": {
    "verdict": "great"
@@ -481,8 +481,8 @@
   },
   "nine-dragon-stack/16-stack-north": {
    "verdict": "needs",
-   "row": "NEW",
-   "note": "The trunk matches now; the tea-house facade below the sign is flat orange without the stucco panel lines, a white unlit window sits in it, and the shop wall under it is a rubble band where LEGACY is grey."
+   "row": "NR16",
+   "note": "The tea-house facade matches now (LEGACY's facade cell a3bc0e338f, its frame ink 31da89c501 / 4e009207dd). Left: the rubble band under it is a coarse L1 tile (coarse_2_1_0) drawing 0.11 m from the eye, unmasked."
   },
   "nine-dragon-stack/17-portal-east-deck": {
    "verdict": "needs",
@@ -499,9 +499,8 @@
    "note": "The street, crowd and lanterns match (free camera, player at the eye)."
   },
   "nine-dragon-stack/20-well-floor": {
-   "verdict": "needs",
-   "row": "NR3",
-   "note": "Lit interiors match; a few shopfront panes at the well floor stay dark navy and orange where LEGACY has pale blue and peach."
+   "verdict": "great",
+   "note": "The shop panes and lit interiors match now (the kit's ink and facade cells, 31da89c501 / a3bc0e338f)."
   },
   "nine-dragon-stack/21-aerial-south": {
    "verdict": "great",
@@ -509,7 +508,7 @@
   },
   "nine-dragon-stack/22-aerial-west": {
    "verdict": "great",
-   "note": "HARNESS (was a fail): the teal pagoda roofs, the blue pyramid roof and the water tanks draw (the rooftop dressing culls on the game camera, which was the probe's). The near-left tower is a little bluer; walls and lit windows otherwise match."
+   "note": "The towers' inked grid and grime draw as in LEGACY (kit ink, 31da89c501); the rooftop dressing as before."
   },
   "nine-dragon-stack/23-hands-down": {
    "verdict": "great",
