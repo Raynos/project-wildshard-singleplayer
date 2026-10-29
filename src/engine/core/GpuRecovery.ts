@@ -22,12 +22,12 @@ import { terrainDatum } from '../world/terrainHeight';
  *   webglcontextrestored                 → canvases intact: restore in place — re-link every program in batches with
  *                                          the boot's own pacing (game.precompile), re-render what only lived on
  *                                          the GPU (`rebuild`: the sky's PMREM environment), draw, resume under the menu;
- *                                          canvases wiped, a runtime bake in the scene (gpuOnly.ts), a failed or
- *                                          overlong restore →
+ *                                          canvases wiped, a runtime bake in the scene (gpuOnly.ts), a failed
+ *                                          restore →
  *   reload                               → `location.replace` with `?at=` where the player stood and `?glreload`: the
  *                                          page shows the loading card, skips the title and lands in the world under
  *                                          the pause menu (main.ts). Saves are write-through to localStorage already.
- *                                          Two reloads inside two minutes stop the loop: the error modal (RELOAD HERE).
+ *                                          One automatic retry per session, then the error modal (RELOAD HERE).
  *   (MF3: no away-reload; a long absence wakes in place, and repaint() keeps the DOM drawn)
  *
  */
@@ -59,14 +59,8 @@ export interface RecoveryHost {
   onLostParked?: () => void;
 }
 
-/** visible seconds a lost context may stay lost before the page reloads */
-const LOST_MAX_S = 5;
-/** visible seconds an in-place restore may take before the page reloads */
-const RESTORE_MAX_S = 40;
-/** automatic reloads allowed inside RELOAD_WINDOW_MS before the page asks instead */
-const RELOADS_MAX = 2;
-const RELOAD_WINDOW_MS = 120_000;
-const RELOAD_KEY = 'gpu.reloads'; // sessionStorage, deliberately not `ws.`: the native save mirror copies every ws.* key
+/** Shared with the boot's only automatic retry; time never renews it. */
+const RELOAD_KEY = 'boot.selfReload';
 
 /** URL param the reload adds (index.html's inline script and main.ts read it; main.ts strips it and ?at= once read) */
 export const RELOAD_PARAM = 'glreload';
@@ -83,8 +77,6 @@ export function installGpuRecovery(host: RecoveryHost): void {
   let phase: Phase = 'ok';
   let hidden = document.visibilityState === 'hidden';
   let epoch = 0; // a newer loss abandons an in-flight restore / reveal
-  let visibleMs = 0; // visible time spent in the current lost / restoring phase
-  let timer: ReturnType<Scope['timeout']> = 0;
 
   // A canvas the size the browsers accelerate, painted once: a GPU-process restart wipes it with the game's own.
   // Read back only on a loss / restore — frequent readbacks would move it to the CPU and hide the wipe.
@@ -97,22 +89,19 @@ export function installGpuRecovery(host: RecoveryHost): void {
     try { const d = sctx.getImageData(32, 32, 1, 1).data; return !(d[0] === 255 && d[1] === 0 && d[2] === 255 && d[3] === 255); } catch { return true; }
   };
 
-  const stopTimer = (): void => { if (timer !== 0) { scope.cancelTimer(timer); timer = 0; } };
-  /** `away`: the long-absence reload — a player on the title gets the title back, and a waiting newer build is taken */
-  const reload = (why: string, away = false): void => {
+  /** Only confirmed canvas/context or restore failures request a reload. */
+  const reload = (why: string): void => {
     if (phase === 'reloading' || phase === 'stuck') return;
-    if (!away) recordGpuRecovery(why);
+    recordGpuRecovery(why);
     epoch++;
-    stopTimer();
     game.hold = true;
     document.dispatchEvent(new Event('ws:background'));
     console.warn(`[gl] reloading: ${why}`);
-    const now = Date.now();
-    let recent: number[] = [];
-    try { recent = (JSON.parse(savedStorage.getItem(RELOAD_KEY) ?? '[]') as number[]).filter((t) => now - t < RELOAD_WINDOW_MS); } catch { /* no session storage: allow the reload */ }
+    let retried = true;
+    try { retried = savedStorage.getItem(RELOAD_KEY) !== null; } catch { /* Unknown storage cannot grant an automatic retry. */ }
     let fragileBoot = host.fragileBoot?.() === true;
     if (!fragileBoot && host.beforeReload !== undefined) {
-      try { fragileBoot = !host.beforeReload(away ? 'background' : 'gpu'); }
+      try { fragileBoot = !host.beforeReload('gpu'); }
       catch { fragileBoot = true; }
     }
     const url = fragileBoot ? new URL('/', location.origin) : new URL(location.href);
@@ -120,35 +109,18 @@ export function installGpuRecovery(host: RecoveryHost): void {
     const pose = fragileBoot ? null : host.pose();
     // y in the level's authored frame (less its runtime datum, G164): the reload stands on the same ground in either state
     if (pose) url.searchParams.set('at', [pose.x, pose.y - terrainDatum(), pose.z, pose.yaw, pose.pitch].map((v) => (Math.round(v * 100) / 100).toString()).join(','));
-    if (!fragileBoot && (!away || pose)) url.searchParams.set(RELOAD_PARAM, '1'); // ?glreload skips the title only after a stable world
+    if (!fragileBoot) url.searchParams.set(RELOAD_PARAM, '1'); // ?glreload skips the title only after a stable world
     const to = url.toString();
-    const sw = away ? window.__ws_sw : undefined;
-    const go = (): void => {
-      void (async () => {
-        if (sw?.waiting && sw.waiting.state !== 'redundant' && await sw.adopt(to, `graphics recovery (${why})`)) return;
-        markReload(`graphics recovery: ${why}`, away ? 'background' : 'gpu');
-        location.replace(to);
-      })();
-    };
-    if (recent.length >= RELOADS_MAX) {
+    if (retried) {
       phase = 'stuck';
       // the error modal (G880) opens on a fatal fault; its RELOAD HERE is the way on
       emitFault({ system: 'gpu-recovery', error: new Error(`Graphics lost · your progress is saved (${why})`), verdict: 'fatal' });
       return;
     }
     phase = 'reloading';
-    try { savedStorage.setItem(RELOAD_KEY, JSON.stringify([...recent, now])); } catch { /* the guard just will not count this one */ }
-    go();
-  };
-
-  /** count visible time in the current phase; past `max` seconds, reload */
-  const watch = (max: number, why: string): void => {
-    stopTimer(); visibleMs = 0;
-    timer = scope.interval(500, () => {
-      if (document.visibilityState !== 'visible') return;
-      visibleMs += 500;
-      if (visibleMs > max * 1000) reload(why);
-    });
+    try { savedStorage.setItem(RELOAD_KEY, '1'); } catch { /* This document still records its reloading phase. */ }
+    markReload(`graphics recovery: ${why}`, 'gpu');
+    location.replace(to);
   };
 
   const lose = (why: string): void => {
@@ -159,8 +131,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     document.dispatchEvent(new Event('ws:background'));
     console.warn(`[gl] ${why}: holding the frame loop`);
     // the GPU process died (every canvas wiped): nothing to restore in place — do not wait for the restore event
-    if (canvasesWiped()) { reload('the GPU process restarted: every canvas was wiped'); return; }
-    watch(LOST_MAX_S, 'the context stayed lost');
+    if (canvasesWiped()) reload('the GPU process restarted: every canvas was wiped');
   };
 
   const restore = async (): Promise<void> => {
@@ -170,7 +141,6 @@ export function installGpuRecovery(host: RecoveryHost): void {
     if (bakes.length > 0) { reload(`runtime bakes cannot be restored (${bakes.join(', ')})`); return; }
     const mine = ++epoch;
     phase = 'restoring';
-    watch(RESTORE_MAX_S, 'the restore took too long');
     const t0 = performance.now();
     try {
       await precompileLevel(game);
@@ -184,20 +154,9 @@ export function installGpuRecovery(host: RecoveryHost): void {
       if (mine === epoch) reload(`the restore failed (${e instanceof Error ? e.message : String(e)})`);
       return;
     }
-    stopTimer();
     phase = 'ok';
     game.hold = false;
     console.warn(`[gl] restored in place in ${Math.round(performance.now() - t0)} ms`);
-    // the scene must actually draw again: no frame on a live, open gate within a few visible seconds → reload
-    game.lastFrame.calls = -1;
-    let waited = 0;
-    const check = scope.interval(500, () => {
-      if (mine !== epoch || phase !== 'ok') { scope.cancelTimer(check); return; }
-      if (document.visibilityState !== 'visible' || !game.frameGate()) return;
-      waited += 500;
-      if (game.lastFrame.calls > 0) scope.cancelTimer(check);
-      else if (waited > 4000) { scope.cancelTimer(check); reload('no frame after the restore'); }
-    });
   };
 
   scope.listen(canvas, 'webglcontextlost', (e) => {
@@ -224,7 +183,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
   scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') hide(); else show(); });
   scope.listen(window, 'pagehide', hide);
   scope.listen(window, 'pageshow', (e) => { if (e.persisted) show(); });
-  scope.onDispose(() => { epoch++; stopTimer(); });
+  scope.onDispose(() => { epoch++; });
 
 }
 
