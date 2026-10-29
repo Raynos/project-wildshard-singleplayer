@@ -16,7 +16,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-export const CONTENT_NAMED_RE = /^\/assets\/packs\/|-[0-9a-f]{8}\.[a-z0-9]+$|\/[0-9a-f]{64}\.[a-z0-9]+$/;
+export const CONTENT_NAMED_RE = /^\/assets\/packs\/|-(?:[0-9a-f]{8}|[0-9a-f]{16})\.[a-z0-9]+$|\/[0-9a-f]{64}\.[a-z0-9]+$/;
 export const contentNamed = (path: string): boolean => CONTENT_NAMED_RE.test(path);
 
 const memo = new Map<string, { key: string; hash: string }>();

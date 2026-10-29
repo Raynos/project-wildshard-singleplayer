@@ -943,3 +943,28 @@ test('only the exact legacy content-set identity can hand over an unversioned bo
     expect(f.fetch).not.toHaveBeenCalled();
   } finally { checksum.mockRestore(); }
 });
+
+
+test('entry transport content names use the cache on the second same-build read', async () => {
+  const path = '/assets/entry-fixture-0123456789abcdef.json';
+  expect(contentNamed(path)).toBe(true);
+  expect(contentNamed('/assets/entry-fixture-0123456789abcde.json')).toBe(false);
+  const f = fixture(() => Promise.resolve(new Response('entry bytes')));
+  await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
+  await vi.waitFor(async () => { expect(await (await f.caches.match(new URL(path, base).href))?.text()).toBe('entry bytes'); });
+  await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
+  expect(f.fetch).toHaveBeenCalledTimes(1);
+  expect(f.responses.at(-1)?.headers.get('server-timing')).toContain('ws-cache');
+});
+
+
+test('build-named plain bakes reuse their content version without changing mutable fallback', async () => {
+  const path = '/assets/baked/fixture/owned.bin';
+  const f = fixture(() => Promise.resolve(new Response('owned bytes')), [], undefined, [], [], { [path]: 'abcdef12' });
+  const url = new URL(path, base).href;
+  await f.dispatch('fetch', { request: new Request(url) });
+  await vi.waitFor(async () => { expect(await (await f.caches.match(`${url}?v=abcdef12`))?.text()).toBe('owned bytes'); });
+  await f.dispatch('fetch', { request: new Request(url) });
+  expect(f.fetch).toHaveBeenCalledTimes(1);
+  expect(f.responses.at(-1)?.headers.get('server-timing')).toContain('ws-cache');
+});

@@ -135,7 +135,7 @@ function reserveBlob(req) {
 }
 /** E160: content names include packs, `<name>-<hash8>.<ext>` and `<sha256>.<ext>`.
  * scripts/app-build/assetHashes.ts contentNamed: keep in step. */
-const CONTENT_NAMED_RE = /^\/assets\/packs\/|-[0-9a-f]{8}\.[a-z0-9]+$|\/[0-9a-f]{64}\.[a-z0-9]+$/;
+const CONTENT_NAMED_RE = /^\/assets\/packs\/|-(?:[0-9a-f]{8}|[0-9a-f]{16})\.[a-z0-9]+$|\/[0-9a-f]{64}\.[a-z0-9]+$/;
 /** what the last activate freed and kept (the VERSION reply and the console) */
 const gc = { entries: 0, bytes: 0, caches: 0, kept: 0, migrated: 0, hashed: 0 };
 
@@ -692,8 +692,10 @@ workerScope.listen(self, 'fetch', (event) => {
     event.respondWith(cacheFirst(req, cacheFor(url.pathname)));
     return;
   }
-  if (url.pathname.startsWith('/assets/baked/')) { // unversioned: fresh bake first, cache only as the offline fallback
-    event.respondWith(networkFirst(req, STATIC));
+  if (url.pathname.startsWith('/assets/baked/')) {
+    // Known public bakes acquire this build's content version before lookup.
+    // Unknown mutable URLs retain their fresh-network/offline-fallback policy.
+    event.respondWith(staticCacheKey(req) === req ? networkFirst(req, STATIC) : cacheFirst(req, STATIC));
     return;
   }
   if (IMMUTABLE_RE.test(url.pathname) || STATIC_RE.test(url.pathname)) {
