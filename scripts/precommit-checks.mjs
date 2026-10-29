@@ -2,11 +2,14 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
+import { availableParallelism } from 'node:os';
 import { compareCounts, hardRules, readLintConfig } from './guard-counts.mjs';
 import { untypedLintConfig } from './push-lint-config.mjs';
 import { ratchetApprovalFailures } from './ratchet-approval.mjs';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { legacyInventory, registeredLegacyFile } from './legacy-shards.mjs';
+
+const lintThreads = `--threads=${Math.min(8, availableParallelism())}`;
 
 /** Preserve syntax rules; type-aware rules stay in the separate typed gate.
  * @param {unknown} raw */
@@ -20,7 +23,7 @@ export function fastLint(files, executable) {
   const path = `.commit-fast-lint-${process.pid}.json`;
   writeFileSync(path, JSON.stringify(config));
   try {
-    const result = spawnSync(executable, ['--threads=2', '-c', path, ...files], { encoding: 'utf8', stdio: 'inherit' });
+    const result = spawnSync(executable, [lintThreads, '-c', path, ...files], { encoding: 'utf8', stdio: 'inherit' });
     if (result.error !== undefined) throw result.error;
     if (result.status !== 0) throw new Error('Fast staged lint refused');
   } finally { unlinkSync(path); }
@@ -41,7 +44,7 @@ export async function stagedRatchet(files, executable, repository) {
     const counted = JSON.parse(readFileSync('.oxlintrc.ratchet.json', 'utf8'));
     counted.rules['wildshard/no-authored-html'] = 'off'; counted.rules['wildshard/no-shard-host-callback'] = 'off';
     writeFileSync(resolve(directory, '.commit-ratchet-lint.json'), JSON.stringify(counted));
-    const result = spawnSync(executable, ['--threads=2', '-c', '.commit-ratchet-lint.json', '-f', 'json', ...paths], {
+    const result = spawnSync(executable, [lintThreads, '-c', '.commit-ratchet-lint.json', '-f', 'json', ...paths], {
       cwd: directory, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
       env: { ...process.env, WILDSHARD_RATCHET_FILE: resolve('.commit-baseline-ratchet.json'), WS_HTML_LINT_FILES: JSON.stringify(paths) },
     });

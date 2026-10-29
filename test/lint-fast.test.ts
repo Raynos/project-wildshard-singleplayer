@@ -6,8 +6,12 @@ import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSyn
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- invoke the current runtime and preserve the executable path
 import { env, execPath } from 'node:process';
+// oxlint-disable-next-line import/no-nodejs-modules -- assert the CLI's real available-core bound
+import { availableParallelism } from 'node:os';
 import { expect, test } from 'vitest';
 import { fastCommitLintConfig } from '../scripts/precommit-checks.mjs';
+
+const lintThreads = `--threads=${Math.min(8, availableParallelism())}`;
 
 test('fast lint shares staged rules, propagates refusals and cleans each private config',()=>{
  mkdirSync('tmp',{recursive:true});const fixture=mkdtempSync(resolve('tmp/lint-fast-'));
@@ -27,18 +31,18 @@ registerHooks({resolve(specifier,context,nextResolve){
    {cwd:fixture,encoding:'utf8',env:{PATH:env['PATH']??'',LINTER_STATUS:status,NODE_OPTIONS:`--import=${guard}`}});
   expect(run(['src/one.ts','src/two.ts']).status).toBe(0);
   const called:unknown=JSON.parse(readFileSync(resolve(fixture,'called.json'),'utf8'));
-  expect(called).toEqual({args:['--threads=2','-c',expect.stringMatching(/^\.commit-fast-lint-\d+\.json$/u),'src/one.ts','src/two.ts'],
+  expect(called).toEqual({args:[lintThreads,'-c',expect.stringMatching(/^\.commit-fast-lint-\d+\.json$/u),'src/one.ts','src/two.ts'],
    config:{options:{typeAware:false,reportUnusedDisableDirectives:'off'},
     rules:{'wildshard/no-authored-html':'error','wildshard/no-shard-branch':'error'},
     overrides:[{files:['src/**'],rules:{'wildshard/no-shard-host-callback':'error'}}]}});
   expect(run([]).status).toBe(0);
   const whole:unknown=JSON.parse(readFileSync(resolve(fixture,'called.json'),'utf8'));
-  expect(whole).toMatchObject({args:['--threads=2','-c',expect.stringMatching(/^\.commit-fast-lint-\d+\.json$/u)]});
+  expect(whole).toMatchObject({args:[lintThreads,'-c',expect.stringMatching(/^\.commit-fast-lint-\d+\.json$/u)]});
   expect(run(['src/one.ts'],'1').status).toBe(1);
   writeFileSync(resolve(fixture,'.push-tracked.json'),JSON.stringify(['src/unchanged.ts','public/image.bin']));
   expect(run([]).status).toBe(0);
   expect(JSON.parse(readFileSync(resolve(fixture,'called.json'),'utf8'))).toMatchObject({args:[
-   '--threads=2','-c',expect.stringMatching(/^\.commit-fast-lint-\d+\.json$/u),'src/unchanged.ts']});
+   lintThreads,'-c',expect.stringMatching(/^\.commit-fast-lint-\d+\.json$/u),'src/unchanged.ts']});
   writeFileSync(resolve(fixture,'.push-tracked.json'),'["../foreign.ts"]');
   expect(run([]).status).toBe(1);
   expect(run(['--type-aware']).status).toBe(2);

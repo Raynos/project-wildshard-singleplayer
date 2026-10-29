@@ -69,7 +69,7 @@ The guards (`layer`, `public-index`, `engine-words`, `shard-names`, `shard-sandb
 
 | Row | What | Owner (Codex: non-visual tooling) | Size | Done when |
 |---|---|---|---|---|
-| LS1 | `fastLint` and the staged ratchet in `scripts/precommit-checks.mjs`: `--threads=2` → `min(8, cores)` | Codex | S | full `lint-fast` ≤ 7.8 s (from 9.8) |
+| LS1 | `fastLint` and the staged ratchet in `scripts/precommit-checks.mjs`: `--threads=2` → `min(8, cores)` | **done** (sp-x10): native workers bounded at 8; full fast lint 9.442 → 7.361 s; 5 controls, scripts/root types and typed lint pass | S | full `lint-fast` ≤ 7.8 s (from 9.8) |
 | LS2 | `lint-fast.mjs` with no paths (whole repo, the `.push-tracked.json` snapshot): 4 oxlint processes × 2 threads on file partitions, diagnostics merged; same diagnostics as one process on HEAD | Codex | S | whole-repo fast lint ≤ 4 s |
 | LS3 | Plugin: one `pathOf`/`modulePath` cache per filename; memoise `runtimeCommonsClosure`, `simClosure` and the frozen runtime-performance index across files (module-level `Map`s); no rule off | Codex | M | JS-thread visitor total ≤ 3.5 s (from 6.1) with the timing wrapper; fast lint ≤ 3 s |
 | LS4 | `no-authored-html`: build `authoredHtmlSites` only when the visitors saw a sink (`html` flag) and share the `syntax-values` parse cache across files; fixture tests unchanged | Codex | M | rule ≤ 0.4 s JS; fast lint ≤ 2.5 s |
