@@ -16,7 +16,7 @@ import { createRenderer, type Renderer } from '../render/renderer';
 import { CAMERA_FOV } from './config';
 import {
   EffectComposer, type RenderPass, EffectPass, BloomEffect, FXAAEffect, VignetteEffect, ToneMappingEffect,
-  ToneMappingMode, BlendFunction, GodRaysEffect, LUT3DEffect, KernelSize, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect, NoiseEffect,
+  ToneMappingMode, BlendFunction, EffectAttribute, GodRaysEffect, LUT3DEffect, KernelSize, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect, NoiseEffect,
   type Effect, Pass,
 } from 'postprocessing';
 import type { N8AOPostPass } from 'n8ao';
@@ -528,9 +528,15 @@ export class Game {
    * the engine's chain (`c.engineChain('clean' | 'cinematic')`, built on its first ask) and its own effects, asked here,
    * once (ShardManifest.LookStrategy.compose).
    */
-  private colourPass(composer: EffectComposer, engineChain: (kind: EngineChainKind) => BuiltChain): EffectPass {
+  private colourPass(composer: EffectComposer, engineChain: (kind: EngineChainKind) => BuiltChain, aa: Effect | null): { pass: EffectPass; merged: boolean } {
+    // FC9: FXAA joins the colour pass, one full-frame pass fewer, where nothing in it is another convolution or moves UVs
+    // (postprocessing allows one of either per pass and runs it first, on the pass's input: the lit frame before grading)
+    const pass = (effects: Effect[]): { pass: EffectPass; merged: boolean } => {
+      const merged = aa !== null && effects.every(effect => (effect.getAttributes() & EffectAttribute.CONVOLUTION) === 0 && !/\bmainUv\b/u.test(effect.getFragmentShader()));
+      return { pass: new EffectPass(this.camera, ...(merged && aa !== null ? [aa, ...effects] : effects)), merged };
+    };
     const R = this.lookStrategy;
-    if (R === null || R.mode === 'replace') return new EffectPass(this.camera, ...engineChain('cinematic').order); // a 'replace' look never reaches the engine chain (replaceComposer)
+    if (R === null || R.mode === 'replace') return pass(engineChain('cinematic').order); // a 'replace' look never reaches the engine chain (replaceComposer)
     const scope = this.levelScope.child('look');
     const asked: { built: BuiltChain | null } = { built: null };
     const pick = (kind: EngineChainKind): BuiltChain => (asked.built = engineChain(kind));
@@ -540,7 +546,7 @@ export class Game {
       get fx(): EngineEffects { const b = asked.built ?? pick('cinematic'); return { ...b.fx, order: b.order }; },
       engineChain: (kind) => pick(kind).order,
     });
-    return new EffectPass(this.camera, ...(this.composition.chain ?? (asked.built ?? pick('cinematic')).order));
+    return pass(this.composition.chain ?? (asked.built ?? pick('cinematic')).order);
   }
 
   /** the strategy's passes into their slots around the engine's (ShardManifest.LookComposition): scene → AO → colour → SMAA */
@@ -678,16 +684,17 @@ export class Game {
     // the level look picks the chain (a compose may ask the clean L5 chain, E88, the user's Look Lab pick); every other
     // level keeps the original haze + grain + fringe chain. One chain is built: its effects belong to one pass
     let built: BuiltChain | null = null;
-    const colour = this.colourPass(composer, (kind) => {
+    const { pass: colour, merged: fxaaMerged } = this.colourPass(composer, (kind) => {
       built ??= chain(kind === 'clean');
       if (built.clean !== (kind === 'clean')) throw new Error(`[look] the engine chain is already built '${built.clean ? 'clean' : 'cinematic'}'; a compose asks one kind, and reading c.fx before c.engineChain() builds 'cinematic', so a look that wants 'clean' asks c.engineChain('clean') first`);
       return built;
-    });
+    }, TIER === 'phone' ? fxaa : null);
     protectDisplayColour(colour);
     composer.addPass(colour);
     this.placeShardPasses(composer, colour); // a shard's own passes around the engine's (none without a render strategy)
-    // FXAA reads its pass's input image, so it gets a pass of its own on the graded frame (EffectPass orders effects by kind)
-    if (fxaa !== null) composer.addPass(new EffectPass(this.camera, fxaa));
+    // FXAA reads its pass's input image, so outside the phone's merged colour pass it gets a pass of its own on the graded
+    // frame (EffectPass orders effects by kind)
+    if (fxaa !== null && !fxaaMerged) composer.addPass(new EffectPass(this.camera, fxaa));
     // the depth slices: every depth reader reads the scene target's own depth texture (the world + the weapon, no copy)
     const sceneDepth = composer.inputBuffer.depthTexture;
     if (slices && sceneDepth !== null) for (const p of composer.passes) if (p !== this.renderPass) p.setDepthTexture(sceneDepth);
