@@ -51,7 +51,7 @@ standing eye and the same coordinates in both modes.
 
 **Sky Reach (fixed by `18aaab1583`, 2026-10-28, sp-o3: world.scenes drives its own tiled parts when a plan has no host;
 board `art/legacy-vs-shardfile/round-2-far-reach/board.jpg` matches LEGACY at all four cameras; the rest is the
-[Far Reach regressions plan](../../../docs/plans/shard-platform/far-reach-regressions-2026-10-28-mini-plan.md)):** on this captured pin the native spawn / hover / windmill
+[Far Reach regressions plan](../../../project/archive/2026-10-29-far-reach-regressions.md)):** on this captured pin the native spawn / hover / windmill
 views lack rock underbodies and vegetation visible in LEGACY. The
 sheet explicitly labels this difference. This graphical gap has no
 confirmed owner: sp-o5 confirms its CO1 stand-in work covers Driftwood
