@@ -50,11 +50,11 @@ export function adoptChannels(geometry: BufferGeometry, channels: NonNullable<Pr
 }
 type SurfaceMaps = PropSurfaceBinding['maps'];
 /** What a prop mesh takes from its GLB material onto the family's: one shared family variant per distinct set. */
-interface Surface { colour: Color | null; roughness: number | null; metalness: number | null; map: Texture | undefined; vertexColours: boolean; side: Material['side']; transparent: boolean; opacity: number; named?: { maps: SurfaceMaps; emissive: Color | null } }
+interface Surface { colour: Color | null; roughness: number | null; metalness: number | null; map: Texture | undefined; vertexColours: boolean; flat: boolean; side: Material['side']; transparent: boolean; opacity: number; named?: { maps: SurfaceMaps; emissive: Color | null } }
 const mapsKey = (n: NonNullable<Surface['named']>): string =>
   `|${[n.maps.colour, n.maps.normal, n.maps.metallicRoughness, n.maps.occlusion, n.maps.emissive].map((t) => t?.uuid ?? '-').join(',')}|${n.maps.normalScale}|${n.maps.occlusionStrength}|${n.emissive?.getHexString() ?? '-'}`;
 const surfaceKey = (s: Surface): string =>
-  `${s.colour?.getHexString() ?? '-'}|${s.roughness ?? '-'}|${s.metalness ?? '-'}|${s.map?.uuid ?? '-'}|${s.vertexColours ? 'v' : ''}|${s.side}|${s.transparent ? 't' : ''}|${s.opacity}${s.named === undefined ? '' : mapsKey(s.named)}`;
+  `${s.colour?.getHexString() ?? '-'}|${s.roughness ?? '-'}|${s.metalness ?? '-'}|${s.map?.uuid ?? '-'}|${s.vertexColours ? 'v' : ''}${s.flat ? 'f' : ''}|${s.side}|${s.transparent ? 't' : ''}|${s.opacity}${s.named === undefined ? '' : mapsKey(s.named)}`;
 /** a graph's node material (three/webgpu) is drawn as compiled: its textures are its own params */
 const isNodeMaterial = (m: Material): boolean => Reflect.get(m, 'isNodeMaterial') === true;
 /** bind a named surface's slots (glTF's unflipped UV convention: the normal map's green runs the other way, as GLTFLoader sets it) */
@@ -91,6 +91,9 @@ function acquireVariant(family: Material, surface: Surface): Material {
     }
     if (m instanceof MeshStandardMaterial) { if (surface.roughness !== null) m.roughness = surface.roughness; if (surface.metalness !== null) m.metalness = surface.metalness; }
     m.vertexColors = surface.vertexColours; m.side = surface.side; m.transparent = surface.transparent; m.opacity = surface.opacity;
+    // glTF: a primitive without NORMAL draws flat normals (GLTFLoader flat-shades its own material); a smooth variant read
+    // (0, 0, 0) and lit NaN, which the bloom chain spread into big white blocks over the grid's ring props (QA13)
+    if (surface.flat && 'flatShading' in m) m.flatShading = true;
     if (surface.named !== undefined) applyMaps(m, surface.named);
   });
   byKey.set(key, { material, holders: 1, scope });
@@ -159,11 +162,11 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
       geometries.add(o.geometry);
       if (isInstanced(o)) instanced.add(o);
       const original = Array.isArray(o.material) ? o.material : [o.material];
-      const vertexColours = o.geometry.hasAttribute('color');
+      const vertexColours = o.geometry.hasAttribute('color'), flat = !o.geometry.hasAttribute('normal');
       const named = surfaces;
       const familyConvert = (source: Material | undefined): Material => {
         const glb = source === undefined ? null : surfaceOf(source), standard = source instanceof MeshStandardMaterial ? source : null;
-        const m = acquireVariant(family, { colour: glb?.color ?? null, roughness: standard?.roughness ?? null, metalness: standard?.metalness ?? null, map: texture, vertexColours,
+        const m = acquireVariant(family, { colour: glb?.color ?? null, roughness: standard?.roughness ?? null, metalness: standard?.metalness ?? null, map: texture, vertexColours, flat,
           side: source?.side ?? family.side, transparent: source?.transparent ?? family.transparent, opacity: source?.opacity ?? family.opacity });
         // the GLB's own material is only read: it never reaches the GPU
         source?.dispose(); held.push(m); return m;
@@ -179,7 +182,7 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
           source?.dispose(); return material;
         }
         const glb = source === undefined ? null : surfaceOf(source), standard = source instanceof MeshStandardMaterial ? source : null, base = binding.material;
-        const m = acquireVariant(base, { colour: glb?.color ?? null, roughness: standard?.roughness ?? null, metalness: standard?.metalness ?? null, map: undefined, vertexColours,
+        const m = acquireVariant(base, { colour: glb?.color ?? null, roughness: standard?.roughness ?? null, metalness: standard?.metalness ?? null, map: undefined, vertexColours, flat,
           side: source?.side ?? base.side, transparent: source?.transparent ?? base.transparent, opacity: source?.opacity ?? base.opacity,
           named: { maps: binding.maps, emissive: glb?.emissive ?? null } });
         source?.dispose(); held.push(m); bases.set(m, base); return m;
