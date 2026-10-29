@@ -1,11 +1,21 @@
 // @vitest-environment happy-dom
 import {expect, test, vi} from 'vitest';
-import {comparisons, controlQualification, profiles, record, type Capture, type Run} from '../scripts/phone-loading/model';
+import {comparisons, controlQualification, profiles, readNavigationPanel, record, type Capture, type Run} from '../scripts/phone-loading/model';
 import baseline from './fixtures/phone-loading-a6701db71.json';
 import {instrument} from '../scripts/phone-loading/instrument';
 import {observeRequests} from '../scripts/phone-loading/network';
 import type {Request, Response} from 'playwright';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
+
+test('old-page navigation panels retain their identity and numbers without becoming control evidence', () => {
+  const row = {at: 10, clock: '00:00.0', download: 0, downloadFact: '0 MB of 60 MB content', header: 'Opening', wait: '', step: 'navigation.document', activeLabel: null, documentToken: 'old-document', navigation: true};
+  expect(readNavigationPanel(row)).toEqual(row);
+  expect(readNavigationPanel({...row, at: Number.NaN})).toBeNull();
+  expect(readNavigationPanel({...row, download: 101})).toBeNull();
+  expect(readNavigationPanel({...row, documentToken: ''})).toBeNull();
+  expect(readNavigationPanel({...row, navigation: false})).toBeNull();
+  expect(controlQualification({...run(), panels: [row]}, null)).toContain('document');
+});
 
 function run(): Run {
   const profile = profiles['phone']; if (profile === undefined) throw new Error('Missing phone profile');

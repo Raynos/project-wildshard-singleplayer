@@ -20,7 +20,16 @@ export interface RequestRow {url: string; start: number; end: number | null; sou
  * requests retain their separate inFlight count; failures remain on each row. */
 export interface RequestAccounting {complete: boolean; pending: number; incomplete: number; deadlineMs: number; inFlight?: number;}
 export interface Mark {name: string; start: number; duration: number; detail: unknown}
-export interface PanelRow {at: number; clock: string; download: number | null; downloadFact?: string; header: string; wait: string; step: string; activeLabel: string | null}
+export interface PanelRow {at: number; clock: string; download: number | null; downloadFact?: string; header: string; wait: string; step: string; activeLabel: string | null; documentToken?: string; navigation?: boolean}
+/** Admit a passive old-document sample without granting control to that document. */
+export function readNavigationPanel(input: unknown): PanelRow | null {
+  const row = record(input), {at, clock, download, downloadFact, header, wait, step, activeLabel, documentToken, navigation} = row;
+  if (typeof at !== 'number' || !Number.isFinite(at) || typeof clock !== 'string'
+    || download !== null && (typeof download !== 'number' || !Number.isFinite(download) || download < 0 || download > 100)
+    || typeof downloadFact !== 'string' || typeof header !== 'string' || typeof wait !== 'string' || typeof step !== 'string'
+    || activeLabel !== null && typeof activeLabel !== 'string' || typeof documentToken !== 'string' || documentToken === '' || navigation !== true) return null;
+  return {at, clock, download, downloadFact, header, wait, step, activeLabel, documentToken, navigation};
+}
 export interface ControlWitness {
   at: number; documentToken: string; timeOrigin: number; initialURL: string; url: string; initialChunk: string | null;
   expectedShard: string | null; shard: string | null; titleFirst: boolean; entered: boolean; paused: boolean | null;

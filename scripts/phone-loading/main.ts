@@ -10,26 +10,28 @@ import {observeRequests} from './network.ts';
 import {parseSaveFixture} from './fixtures.ts';
 import {postControlWindow} from './post-control.ts';
 import {startPageCpuProfile, type PageCpuCapture} from './cpu-profile.ts';
-import {comparisons, controlQualification, printRun, profiles, record, type Capture, type ErrorRow, type Run} from './model.ts';
+import {comparisons, controlQualification, printRun, profiles, readNavigationPanel, record, type Capture, type ErrorRow, type PanelRow, type Run} from './model.ts';
 import {developerSettings, saveFixture} from '../debug-settings.mjs';
 import {loadingCardIndex} from '../loading-benchmark/catalogue.mjs';
 
 async function main(): Promise<void> {
 const {values} = parseArgs({options: {preset: {type: 'string', default: 'phone'}, flow: {type: 'string', default: 'grid'},
   live: {type: 'boolean'}, head: {type: 'boolean'}, rev: {type: 'string'}, url: {type: 'string'},
-  record: {type: 'boolean'}, webkit: {type: 'boolean'}, compare: {type: 'string'}, timeout: {type: 'string', default: '240000'},
+  record: {type: 'boolean'}, webkit: {type: 'boolean'}, engine: {type: 'string'}, compare: {type: 'string'}, timeout: {type: 'string', default: '240000'},
   'title-dwell': {type: 'string', default: '3000'},
   'after-control': {type: 'string', default: '4000'},
   'save-fixture': {type: 'string'},
   'cpu-profile': {type: 'boolean'},
   help: {type: 'boolean'}}});
 if (values.help) {
-  console.log('pnpm phone-loading [--live | --head | --rev SHA | --url URL] [--preset phone|lte|desktop] [--flow grid|select:SLUG] [--record] [--webkit] [--compare JSON] [--timeout MS] [--title-dwell MS=3000] [--after-control MS=4000] [--save-fixture JSON] [--cpu-profile (cold Chromium page only)]');
+  console.log('pnpm phone-loading [--live | --head | --rev SHA | --url URL] [--preset phone|lte|desktop] [--flow grid|select:SLUG] [--record] [--webkit | --engine chromium|webkit] [--compare JSON] [--timeout MS] [--title-dwell MS=3000] [--after-control MS=4000] [--save-fixture JSON] [--cpu-profile (cold Chromium page only)]');
   return;
 }
 const profile = profiles[values.preset];
 const fixture = parseSaveFixture(values['save-fixture']);
 if (profile === undefined) throw new Error('Unknown preset');
+if (values.engine !== undefined && values.engine !== 'chromium' && values.engine !== 'webkit') throw new Error('Unknown engine');
+if (values.engine !== undefined && values.webkit) throw new Error('Choose --engine or --webkit');
 if (values.flow !== 'grid' && !/^select:[a-z0-9_-]+$/u.test(values.flow)) throw new Error('Unknown flow');
 if ([values.live, values.head, values.rev, values.url].filter(Boolean).length > 1) throw new Error('Choose one target');
 const timeout = Number(values.timeout);
@@ -66,7 +68,7 @@ try {
   const directory = resolvePath('tmp/phone-loading', `${new Date().toISOString().replaceAll(/[:.]/gu, '-')}-${build.replaceAll(/[^\w-]/gu, '_')}`);
   await mkdir(directory, {recursive: true});
   const previous: unknown = values.compare === undefined ? undefined : JSON.parse(await readFile(values.compare, 'utf8'));
-  for (const engine of values.webkit ? ['chromium', 'webkit'] : ['chromium']) {
+  for (const engine of values.engine === undefined ? values.webkit ? ['chromium', 'webkit'] : ['chromium'] : [values.engine]) {
     const chromium = engine === 'chromium' ? await launchChromium(`${directory}/profile`, profile) : undefined;
     const browser = chromium?.browser ?? await webkit.launch({headless: true});
     const context = await browser.newContext({...devices['iPhone 16 Pro'],
@@ -89,6 +91,11 @@ try {
         let stopCpuProfile: (() => Promise<PageCpuCapture>) | undefined;
         let cpuSession: CDPSession | undefined;
         let tapAt: number | null = null;
+        const navigationPanels: PanelRow[] = [];
+        await page.exposeBinding('__phoneLoadingPanel', (_source, input: unknown) => {
+          const panel = readNavigationPanel(input);
+          if (panel !== null) navigationPanels.push(panel);
+        });
         await page.exposeBinding('__phoneLoadingTap', (_source, at: unknown) => {
           if (typeof at === 'number') tapAt = at;
         });
@@ -174,6 +181,7 @@ try {
         });}
         catch (error) {errorAt(String(error), 'native control capture'); capture.control = null;}
         capture.tap = tapAt ?? capture.tap;
+        capture.panels = [...navigationPanels.filter(row => capture.tap !== null && row.at >= capture.tap), ...capture.panels ?? []].sort((a, b) => a.at - b.at);
         const refusal = controlQualification(capture, controlDocument);
         capture.qualified = refusal === null;
         if (refusal !== null) {errorAt(`Native control unqualified: ${refusal}`, 'native control/document'); capture.control = null;}

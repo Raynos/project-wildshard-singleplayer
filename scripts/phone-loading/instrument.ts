@@ -1,4 +1,4 @@
-import type {Capture, ControlWitness, Mark, Row} from './model.ts';
+import type {Capture, ControlWitness, Mark, PanelRow, Row} from './model.ts';
 /** Executed before app scripts on every document, including tap-triggered navigation. */
 export function instrument(flow: string): void {
   const epoch = (): number => performance.timeOrigin + performance.now();
@@ -82,6 +82,7 @@ export function instrument(flow: string): void {
   Reflect.set(window, '__phoneLoadingReadControl', nativeWitness);
   const seen = new Map<string, Row>();
   let lastPanelAt = 0;
+  let navigationPublished = false;
   const sample = (): void => {
     if (document.documentElement?.dataset['wsState'] === 'error') {
       data.fatal = document.querySelector('.ws-load-error')?.textContent ?? 'Application entered error state';
@@ -140,11 +141,18 @@ export function instrument(flow: string): void {
         }
       }
       const at = epoch();
-      if (at - lastPanelAt >= 100 && data.control === null) {
+      const navigation = root instanceof HTMLElement && Object.hasOwn(root.dataset, 'navigation');
+      if ((at - lastPanelAt >= 100 || navigation && !navigationPublished) && data.control === null) {
         const text = (field: string): string => root.querySelector(`[data-el="${field}"]`)?.textContent ?? '';
         const download = Number.parseFloat(text('dlPct'));
-        data.panels?.push({at, clock: text('clock'), download: Number.isFinite(download) ? download : null, downloadFact: text('dlFact'),
-          header: text('suFact'), wait: text('foot'), step: root instanceof HTMLElement ? root.dataset['step'] ?? '' : '', activeLabel});
+        const panel: PanelRow = {at, clock: text('clock'), download: Number.isFinite(download) ? download : null, downloadFact: text('dlFact'),
+          header: text('suFact'), wait: text('foot'), step: root instanceof HTMLElement ? root.dataset['step'] ?? '' : '', activeLabel, documentToken, navigation};
+        data.panels?.push(panel);
+        if (navigation) {
+          navigationPublished = true;
+          const publish: unknown = Reflect.get(window, '__phoneLoadingPanel');
+          if (typeof publish === 'function') void Promise.resolve(Reflect.apply(publish, window, [panel])).catch(() => undefined);
+        }
         lastPanelAt = at;
       }
     }
