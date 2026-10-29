@@ -5,7 +5,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { postStackCost } from '@wildshard/format/postStack';
 import * as product from '../src/game/shardfile/product';
 import * as runtime from '../src/game/shardfile/runtimeProduct';
-import { gridShardfileProduct } from '../src/game/grid/products';
+import { gridShardfileProduct,prioritizeGridProduct } from '../src/game/grid/products';
 import { prepareHomeMetadata } from '../src/game/grid/homeMetadata';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { prepareApproachProductInputs } from '../src/game/grid/approachProductInputs';
@@ -47,8 +47,23 @@ function fixture(offline = false, playing?: number) {
   const admit = vi.spyOn(product, 'admitProduct').mockImplementation(async (_input, opts) => { await opts.reserve?.(source); return admitted; });
   const scope = new Scope('metadata product'); scopes.push(scope);
   const allocator = new ResidencyAllocator(playing === undefined ? {} : { playing });
-  return { source, wire, ref, graph, json, read, hash, fetch, admit, release, owner: { scope, allocator } };
+  return { source, wire, ref, graph, json, read, hash, fetch, admit, release,options, owner: { scope, allocator } };
 }
+
+test('native URL reads retain actual-world priority over speculative product reads',async()=>{
+  const f=fixture(),native=vi.fn(()=>Promise.resolve(Uint8Array.of(1)));
+  f.options.firstPartyRead=native;
+  vi.spyOn(product,'readProductDescriptor').mockImplementation(async(options,url)=>{
+    if(url===undefined||options.firstPartyRead===undefined)throw new Error('Missing native root reader');
+    await options.firstPartyRead(url.href,undefined);return f.source;
+  });
+  const release=prioritizeGridProduct('active-world',f.owner);
+  const pending=gridShardfileProduct('driftwood-isle',f.owner,'metadata');
+  await Promise.resolve();await Promise.resolve();
+  expect(native).not.toHaveBeenCalled();
+  release();const result=await pending;
+  expect(native).toHaveBeenCalledOnce();result?.release();
+});
 
 test('released metadata reuses its JSON and product claim without reading or hashing binary inputs', async () => {
   const f = fixture(), first = await gridShardfileProduct('driftwood-isle', f.owner);

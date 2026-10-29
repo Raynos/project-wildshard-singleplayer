@@ -279,9 +279,10 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode
   const heldCache = cache, optional = mode === 'optional-metadata' || typeof mode === 'object' && mode.signal !== undefined;
   const acquire = (): Promise<GridProduct | GridProductMetadata> => heldCache.acquire(slug, async (reserve, releaseBytes) => {
     const url = new URL(descriptor, location.href), original = browserShardfileOptions(new URL('.', url).href, true);
-    const priority = admissionPriority(owner), content = original.cache, present = content?.verifiedPresent, verified = content?.verifiedAsset;
+    const priority = admissionPriority(owner), content = original.cache, present = content?.verifiedPresent, verified = content?.verifiedAsset,native=original.firstPartyRead;
     const options: ProductOptions = { ...original, memory: owner.allocator.memory,
       fetch: address => priority.read(slug, () => original.fetch(address)),
+      ...(native===undefined?{}:{firstPartyRead:(address,bytes,read,hash,fetchPriority)=>priority.read(slug,()=>native(address,bytes,read,hash,fetchPriority))}),
       ...(content === undefined ? {} : { cache: { ...content,
         product: base => priority.read(slug, () => content.product(base)),
         asset: (base, hash) => priority.read(slug, () => content.asset(base, hash)),
