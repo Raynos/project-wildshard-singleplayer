@@ -25,7 +25,7 @@ const home: GridCell = (() => {
   return cell;
 })();
 const previous: LastEnd = { kind: 'intentional', reason: 'stuck boot recovery (app older than its product)',
-  at: 2000, build: 'old-build', mode: '', resident: '', bootedAt: 2100, discarded: false, nav: 'navigate' };
+  at: 2000, build: 'old-build', mode: '', resident: '', slug: '', bootedAt: 2100, discarded: false, nav: 'navigate' };
 const originalEnvironment = saveEnvironment();
 afterEach(() => { clearGridRecovery(); consumeTitleArrival(home.slug); installSaveEnvironment(originalEnvironment); vi.restoreAllMocks(); });
 
