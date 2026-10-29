@@ -3,7 +3,7 @@ import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { Scope } from '@wildshard/engine/app/scope';
+import type { Scope } from '@wildshard/engine/app/scope';
 import { controlFiles, deferredFiles } from './controlFiles';
 import { productCacheCompletion } from './productCacheCompletion';
 import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt } from "@wildshard/format/validationReceipt";
@@ -275,41 +275,25 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
   });
 }
 
-const DESCRIPTOR_WAIT_MS = 3000;
-/** Bound the complete descriptor transfer, including a body stalled after headers. */
-async function descriptorWire(options: ProductOptions, url: URL, refresh = false, immutable = false): Promise<Uint8Array | null> {
+/** Wait for the actual descriptor transfer. Only a rejected unversioned
+ * request can choose an independently revalidated visited product. */
+async function descriptorWire(options: ProductOptions, url: URL, refresh = false, immutable = false): Promise<{ bytes: Uint8Array } | { failure: unknown }> {
   const controller = new AbortController();
-  const owner = new Scope('product-descriptor-transfer');
-  try {
-    let deadline: ReturnType<Scope['timeout']> | undefined;
-    let renew = (): void => { /* Installed before the transport starts. */ };
-    const elapsed = new Promise<null>(resolve => {
-      renew = (): void => {
-        if (owner.disposed) return;
-        if (deadline !== undefined) owner.cancelTimer(deadline);
-        deadline = owner.timeout(immutable ? 10000 : DESCRIPTOR_WAIT_MS, () => { resolve(null); controller.abort(); });
-      };
-      renew();
-    });
-    const fetcher = refresh ? options.backgroundFetch ?? options.fetch : options.fetch;
-    const network = (async () => {
-      const progress = refresh ? undefined : options.progress, label = options.descriptorPath ?? url.pathname;
-      let bytesRead = 0;
-      progress?.({ phase: 'descriptor', detail: `Fetching shard descriptor · ${label}`, bytesRead, bytesTotal: 0, filesDone: 0, filesTotal: 1 });
-      const response = await fetcher(url.href, controller.signal), length = Number(response.headers.get('content-length'));
-      if (immutable) renew();
-      const bytesTotal = Number.isSafeInteger(length) && length > 0 ? length : 0;
-      const bytes = await boundedResponse(response, limits.sourceBytes, size => {
-        bytesRead += size;
-        if (immutable && size > 0) renew();
-        progress?.({ phase: 'descriptor', detail: `Reading shard descriptor · ${label}`, bytesRead, bytesTotal, filesDone: 0, filesTotal: 1 });
-      });
-
-      progress?.({ phase: 'descriptor', detail: `Parsing shard descriptor · ${label}`, bytesRead, bytesTotal: bytesRead, filesDone: 1, filesTotal: 1 });
-      return bytes;
-    })();
-    return await Promise.race([network, elapsed]);
-  } finally { owner.dispose(); }
+  const fetcher = refresh ? options.backgroundFetch ?? options.fetch : options.fetch;
+  const progress = refresh ? undefined : options.progress, label = options.descriptorPath ?? url.pathname;
+  let bytesRead = 0;
+  progress?.({ phase: 'descriptor', detail: `Fetching shard descriptor · ${label}`, bytesRead, bytesTotal: 0, filesDone: 0, filesTotal: 1 });
+  let response: Response;
+  try { response = await fetcher(url.href, controller.signal); }
+  catch (failure) { if (immutable) throw failure; return { failure }; }
+  const length = Number(response.headers.get('content-length'));
+  const bytesTotal = Number.isSafeInteger(length) && length > 0 ? length : 0;
+  const bytes = await boundedResponse(response, limits.sourceBytes, size => {
+    bytesRead += size;
+    progress?.({ phase: 'descriptor', detail: `Reading shard descriptor · ${label}`, bytesRead, bytesTotal, filesDone: 0, filesTotal: 1 });
+  });
+  progress?.({ phase: 'descriptor', detail: `Parsing shard descriptor · ${label}`, bytesRead, bytesTotal: bytesRead, filesDone: 1, filesTotal: 1 });
+  return { bytes };
 }
 async function checkedDescriptorWire(bytes: Uint8Array, options: ProductOptions): Promise<unknown> {
   if (options.descriptorHash !== undefined && (!HASH.test(options.descriptorHash) || await options.hash(bytes) !== options.descriptorHash)) throw new Error('Shardfile descriptor hash mismatch');
@@ -346,14 +330,13 @@ export async function readProductDescriptor(options: ProductOptions, declaredUrl
   let input: unknown = visited?.source;
   if (options.offline && indexHash !== null) await checkedDescriptorWire(validationSourceBytes(input), { ...options, descriptorHash: indexHash });
   if (!options.offline) {
-    const bytes = await descriptorWire({ ...options, base }, url, false, indexHash !== null);
-    if (bytes !== null) input = await checkedDescriptorWire(bytes, indexHash === null ? options : { ...options, descriptorHash: indexHash });
+    const wire = await descriptorWire({ ...options, base }, url, false, indexHash !== null);
+    if ('bytes' in wire) input = await checkedDescriptorWire(wire.bytes, indexHash === null ? options : { ...options, descriptorHash: indexHash });
     else {
-      if (indexHash !== null) throw new Error(`Versioned shardfile download stalled · ${url.pathname}`);
       const held = await cached;
       if ('error' in held) throw held.error;
       const previous = held.value;
-      if (previous === null || previous === undefined || options.firstParty && !previous.firstParty) throw new Error('Shardfile download exceeded 3 seconds and has no visited offline copy');
+      if (previous === null || previous === undefined || options.firstParty && !previous.firstParty) throw wire.failure;
       await preflightProduct(previous, options.pause);
       if (!isOutputIndex(previous.source)) throw new Error('Cached shardfile requires a format-2 rebuild');
       // The visited JSON is canonicalized by the same writer as publication;
@@ -362,7 +345,7 @@ export async function readProductDescriptor(options: ProductOptions, declaredUrl
       const source = await readProductInput(previous.source, { ...options, offline: true });
       options.revalidateAfterControl?.(async () => {
         const fresh = await descriptorWire({ ...options, base }, url, true);
-        if (fresh !== null) await checkedDescriptorWire(fresh, options);
+        if ('bytes' in fresh) await checkedDescriptorWire(fresh.bytes, options);
       });
       return source;
     }

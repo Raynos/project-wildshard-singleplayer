@@ -72,55 +72,41 @@ function cacheStore(): { cache: ProductCache; bytes: Map<string, Uint8Array>; pr
   } };
 }
 
-test('descriptor deadline uses a verified revisit at 3 seconds for stalled headers and bodies', async () => {
-  for (const body of [false, true]) {
-    const f = fixture(), store = cacheStore(), opts = options(f.wires, store.cache);
-    await admitProduct(await readProductDescriptor(opts), opts);
-    let aborted = false, resolved = false;
-    const refreshes: (() => Promise<void>)[] = [];
-    const held: ProductOptions = { ...opts, descriptorHash: hashImmutableBytes(encodeCanonicalJson(f.index)),
-      revalidateAfterControl: run => { refreshes.push(run); },
-      fetch: (url, signal) => {
-        if (!url.endsWith('/shard.json')) throw new Error('A revisit must verify cached sections without network');
-        if (signal === undefined) throw new Error('Missing descriptor cancellation');
-        if (body) return Promise.resolve(new Response(new ReadableStream<Uint8Array>({ start(controller) {
-          controller.enqueue(new TextEncoder().encode('{'));
-          signal.addEventListener('abort', () => { aborted = true; controller.error(signal.reason); }, { once: true });
-        } })));
-        return new Promise((_resolve, reject) => { signal.addEventListener('abort', () => { aborted = true; reject(new DOMException('Descriptor aborted', 'AbortError')); }, { once: true }); });
-      } };
-    vi.useFakeTimers();
-    try {
-      const pending = readProductDescriptor(held).then(value => { resolved = true; return value; });
-      await vi.advanceTimersByTimeAsync(2999); expect(resolved).toBe(false);
-      await vi.advanceTimersByTimeAsync(1);
-      expect(await pending).toStrictEqual(f.source);
-      expect(aborted).toBe(true); expect(refreshes).toHaveLength(1);
-      expect(vi.getTimerCount()).toBe(0);
-      // Only the real control callback starts freshness I/O; it cannot publish
-      // a replacement visited index before its assets have been admitted.
-      held.fetch = opts.fetch;
-      const refresh = refreshes[0]; if (refresh === undefined) throw new Error('Missing refresh');
-      await refresh(); expect(store.product()?.source).toStrictEqual(f.index);
-      expect(vi.getTimerCount()).toBe(0);
-    } finally { vi.useRealTimers(); }
-  }
+test('a rejected descriptor request uses a checked revisit, never elapsed time', async () => {
+  const f = fixture(), store = cacheStore(), opts = options(f.wires, store.cache);
+  await admitProduct(await readProductDescriptor(opts), opts);
+  let fail = (_error: Error): void => { throw new Error('Missing request'); };
+  const transport = new Promise<Response>((_resolve, reject) => { fail = reject; });
+  const refreshes: (() => Promise<void>)[] = [];
+  const held: ProductOptions = { ...opts, descriptorHash: hashImmutableBytes(encodeCanonicalJson(f.index)),
+    revalidateAfterControl: run => { refreshes.push(run); }, fetch: () => transport };
+  vi.useFakeTimers();
+  try {
+    let resolved = false;
+    const pending = readProductDescriptor(held).then(value => { resolved = true; return value; });
+    await vi.advanceTimersByTimeAsync(180_000); expect(resolved).toBe(false); expect(refreshes).toHaveLength(0);
+    expect(vi.getTimerCount()).toBe(0);
+    fail(new TypeError('Native connection failed'));
+    expect(await pending).toStrictEqual(f.source); expect(refreshes).toHaveLength(1);
+    held.fetch = opts.fetch;
+    const refresh = refreshes[0]; if (refresh === undefined) throw new Error('Missing refresh');
+    await refresh(); expect(store.product()?.source).toStrictEqual(f.index);
+  } finally { vi.useRealTimers(); }
 });
 
-test('descriptor deadline cannot admit an absent, foreign, changed or incomplete visited product', async () => {
+test('a failed request cannot admit an absent, foreign, changed or incomplete visited product', async () => {
   for (const refused of ['absent', 'foreign', 'changed', 'catalogue', 'incomplete'] as const) {
     const f = fixture(), store = cacheStore(), opts = options(f.wires, store.cache);
     if (refused !== 'absent') await admitProduct(await readProductDescriptor(opts), opts);
     if (refused === 'foreign') await store.cache.putProduct(base, { source: f.index, firstParty: false });
     if (refused === 'incomplete') store.bytes.clear();
     const held: ProductOptions = { ...opts, ...(refused === 'changed' ? { descriptorHash: 'f'.repeat(64) } : {}),
-      ...(refused === 'catalogue' ? { built: { indexes: new Set<string>(), stale: () => Promise.resolve() } } : {}), fetch: (_url, signal) =>
-      new Promise((_resolve, reject) => { signal?.addEventListener('abort', () => { reject(new DOMException('Descriptor aborted', 'AbortError')); }, { once: true }); }) };
+      ...(refused === 'catalogue' ? { built: { indexes: new Set<string>(), stale: () => Promise.resolve() } } : {}), fetch: () => Promise.reject(new TypeError('Native connection failed')) };
     vi.useFakeTimers();
     try {
       const expected = expect(readProductDescriptor(held)).rejects.toThrow(refused === 'changed' ? 'descriptor hash mismatch'
-        : refused === 'catalogue' ? 'older than the shard' : refused === 'incomplete' ? 'incomplete section cache' : 'no visited offline copy');
-      await vi.advanceTimersByTimeAsync(3000); await expected;
+        : refused === 'catalogue' ? 'older than the shard' : refused === 'incomplete' ? 'incomplete section cache' : 'Native connection failed');
+      await expected;
       expect(vi.getTimerCount()).toBe(0);
     } finally { vi.useRealTimers(); }
   }
@@ -1187,22 +1173,27 @@ test('a build-addressed descriptor uses its exact version and healthy progress o
   }finally{release();vi.useRealTimers();}
 });
 
-test.each([false,true])('a versioned descriptor has a finite inactive transfer without the visited race (body=%s)',async body=>{
-  const f=fixture(),store=cacheStore(),opts=options(f.wires,store.cache);
-  await admitProduct(await readProductDescriptor(opts),opts);
-  const release=installIndexReceipt(f.index,new URL('shard.json',base).pathname),refresh=vi.fn<(run:()=>Promise<void>)=>void>();let aborted=false,settled=false;
-  const held:ProductOptions={...opts,revalidateAfterControl:refresh,fetch:(_url,signal)=>{
-    if(signal===undefined)throw new Error('Missing descriptor signal');
-    if(body)return Promise.resolve(new Response(new ReadableStream<Uint8Array>({start(controller){controller.enqueue(Uint8Array.of(123));signal.addEventListener('abort',()=>{aborted=true;controller.error(signal.reason);},{once:true});}})));
-    return new Promise((_resolve,reject)=>{signal.addEventListener('abort',()=>{aborted=true;reject(new Error('Descriptor cancelled',{cause:signal.reason}));},{once:true});});
-  }};
+test.each([false, true])('versioned transfer waits for actual headers/body and retains native failure (body=%s)', async body => {
+  const f = fixture(), store = cacheStore(), opts = options(f.wires, store.cache);
+  await admitProduct(await readProductDescriptor(opts), opts);
+  const release = installIndexReceipt(f.index, new URL('shard.json', base).pathname);
+  const refresh = vi.fn<(run: () => Promise<void>) => void>();
+  let fail = (_error: Error): void => { throw new Error('Transfer not started'); };
+  let settled = false;
+  const error = new TypeError('Native descriptor transfer failed');
+  const held: ProductOptions = { ...opts, revalidateAfterControl: refresh, fetch: (_url, signal) => {
+    expect(signal?.aborted).toBe(false);
+    if (body) return Promise.resolve(new Response(new ReadableStream<Uint8Array>({ start(controller) {
+      controller.enqueue(Uint8Array.of(123)); fail = reason => { controller.error(reason); };
+    } })));
+    return new Promise((_resolve, reject) => { fail = reject; });
+  } };
   vi.useFakeTimers();
-  try{
-    const rejected=expect(readProductDescriptor(held).finally(()=>{settled=true;})).rejects.toThrow('Versioned shardfile download stalled');
-    await vi.advanceTimersByTimeAsync(3000);expect(settled).toBe(false);
-    await vi.advanceTimersByTimeAsync(7000);await rejected;
-    expect(aborted).toBe(true);expect(refresh).not.toHaveBeenCalled();expect(vi.getTimerCount()).toBe(0);
-  }finally{release();vi.useRealTimers();}
+  try {
+    const rejected = expect(readProductDescriptor(held).finally(() => { settled = true; })).rejects.toBe(error);
+    await vi.advanceTimersByTimeAsync(180_000); expect(settled).toBe(false); expect(vi.getTimerCount()).toBe(0);
+    fail(error); await rejected; expect(refresh).not.toHaveBeenCalled();
+  } finally { release(); vi.useRealTimers(); }
 });
 
 test('build-addressed descriptor bytes and caller digests retain exact refusal before section reads',async()=>{
