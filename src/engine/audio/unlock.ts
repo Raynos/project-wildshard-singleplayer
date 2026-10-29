@@ -11,9 +11,12 @@
  */
 import { currentOwner, withOwner } from '../app/ownership';
 import type { Scope } from '../app/scope';
+import {pagePresentation} from '../app/view/presentation';
+import {AudioActivity} from './activity';
 
 /** the page's one AudioContext (E155: every resident shard's Audio builds its graph on it) */
 let sharedCtx: AudioContext | undefined;
+let activity:AudioActivity|undefined;
 
 /** a new AudioContext (the constructor is a ~130 ms native task at 4× CPU), or undefined without WebAudio */
 function newContext(): AudioContext | undefined {
@@ -54,6 +57,10 @@ const GESTURES = ['pointerdown', 'touchend', 'mousedown', 'click', 'keydown'] as
 export function installAudioUnlock(scope: Scope, target: EventTarget = window): () => void {
   if (gate !== 'off') return () => undefined;
   gate = 'waiting';
+  activity=new AudioActivity(scope,pagePresentation);activity.attach(sharedCtx);
+  // Retained after first unlock: Safari can require another gesture after showing a page.
+  const retry=():void=>{if(sharedCtx!==undefined)activity?.resume();};
+  for(const type of GESTURES)scope.listen(target,type,retry,{capture:true,passive:true});
   const own = scope.child('audio.unlock');
   const remove = (): void => { own.dispose(); };
   const onGesture = (): void => {
@@ -61,7 +68,7 @@ export function installAudioUnlock(scope: Scope, target: EventTarget = window): 
     const ctx = sharedCtx;
     if (ctx === undefined) return; // nothing wanted audio yet: a later gesture resumes the context once something makes it
     if (ctx.state === 'running') { remove(); return; }
-    void ctx.resume().then(() => { if (ctx.state === 'running') remove(); return undefined; }).catch(() => undefined); // refused outside a gesture: the next one retries
+    resumePageAudioContext(ctx); // the activity owner retries a refused resume on the next gesture
   };
   for (const type of GESTURES) own.listen(target, type, onGesture, { capture: true, passive: true });
   return remove;
@@ -83,8 +90,15 @@ export function whenAudioUnlocked(fn: () => void): { cancel: () => void } {
 /** The page's context, made now when none exists (Audio's graph: after the gate, or with no gate installed); undefined without WebAudio. */
 export function claimPageAudioContext(): AudioContext | undefined {
   sharedCtx ??= newContext();
+  activity?.attach(sharedCtx);
   return sharedCtx;
 }
 
 /** A closed context leaves the page (an Audio disposed for good): the next claim makes a new one. */
-export function releasePageAudioContext(ctx: AudioContext): void { if (sharedCtx === ctx) sharedCtx = undefined; }
+export function releasePageAudioContext(ctx: AudioContext): void { if (sharedCtx === ctx) {sharedCtx=undefined;activity?.attach(undefined);} }
+
+/** All resume requests obey the page visibility/coverage policy, including late callers. */
+export function resumePageAudioContext(ctx:AudioContext):void{
+  if(activity!==undefined&&ctx===sharedCtx){activity.resume();return;}
+  if(ctx.state!=='running')void ctx.resume().catch(()=>undefined);
+}

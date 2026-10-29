@@ -18,7 +18,7 @@ import type { Scope } from '../app/scope';
 import type { CueMap, CueOpts } from './Cues';
 import type { Music } from './Music';
 import type { LevelAudioBank } from './levelAudio';
-import { audioUnlocked, claimPageAudioContext, releasePageAudioContext, whenAudioUnlocked } from './unlock';
+import { audioUnlocked, claimPageAudioContext, releasePageAudioContext, resumePageAudioContext, whenAudioUnlocked } from './unlock';
 
 /**
  * Audio — every sound is synthesised with WebAudio (no files).
@@ -311,7 +311,7 @@ export class Audio extends PlayerVoices {
       return;
     }
     const built = this.g !== undefined, c = this.ctx;
-    if (c.state !== 'running') void c.resume();
+    resumePageAudioContext(c);
     if (!built && this.underwater) { this.underwater = false; this.setUnderwater(true); } // dove before the first gesture
     if (!this.started) { this.started = true; this.startAmbient(); }
     if (!built) this.scope.timeout(1500, () => this.voices.prewarm(['hurt', 'death'])); // rendered in the background, before the first hit

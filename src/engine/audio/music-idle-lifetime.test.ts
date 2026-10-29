@@ -18,7 +18,9 @@ function fixture() {
     seq: gain, synthMix: gain, begin: () => undefined, pump: () => undefined,
     currentSpb: () => 1, warm,
   });
-  vi.spyOn(music, 'ctx', 'get').mockReturnValue(legacyDouble<AudioContext>({ currentTime: 0 }));
+  const events=new EventTarget();
+  vi.spyOn(music, 'ctx', 'get').mockReturnValue(legacyDouble<AudioContext>({ currentTime: 0,state:'running',
+    addEventListener:events.addEventListener.bind(events),removeEventListener:events.removeEventListener.bind(events) }));
   vi.spyOn(music, 'engine', 'get').mockReturnValue(engine);
   const idle: (() => void)[] = [], cancel = vi.fn<(id: number) => void>();
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');

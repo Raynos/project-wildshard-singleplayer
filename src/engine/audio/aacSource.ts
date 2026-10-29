@@ -4,6 +4,7 @@ import { AacPull } from './aacPull';
 import type { Scope } from '../app/scope';
 import { withOwner } from '../app/ownership';
 import { ownAudioSource } from './ownership';
+import {audioInterval} from './activityTimers';
 
 interface PlayingWindow { readonly source: AudioBufferSourceNode; readonly end: number }
 /** A live bounded native source feeding an existing Deck's unchanged gain / mixer. */
@@ -52,8 +53,7 @@ export class AacSource {
         this.schedule(plan.timeline < timeline ? trimAacWindow(plan, timeline) : plan, prepared.buffer);
       }
       if (this.windows.size === 0) throw new Error('AAC join exceeds its prepared native windows');
-      this.scope.interval(50, () => { void this.pump(); });
-      void this.pump();
+      audioInterval(this.scope,ports.context,50,() => {void this.pump();});
     } catch (error) { this.scope.dispose(); throw error; }
   }
   private active(): boolean { return !this.scope.disposed && !this.scope.disposing; }

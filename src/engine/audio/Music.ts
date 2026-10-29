@@ -1,4 +1,5 @@
 import { resourceScope } from '../app/resources';
+import {audioInterval,audioTimeout} from './activityTimers';
 import { observeAudioMemory } from '../core/memoryResources';
 import { withOwner } from '../app/ownership';
 import { ownAudioSource } from './ownership';
@@ -504,7 +505,7 @@ export class Music {
   private rig: { ctx: AudioContext; out: GainNode; duckGain: GainNode; engine: Engine; stemBus: GainNode } | undefined;
   /** The installed source owns the level's slot; the title is the common menu slot. */
   private pending: MusicState = { mode: 'menu', intensity: 0, underwater: false };
-  private timer: ReturnType<Scope['timeout']> = 0;
+  private timer:Scope|undefined;
   private _volume: number;
   private playing: ArrangementName | undefined;
   private combatTimer: ReturnType<Scope['timeout']> = 0;
@@ -684,7 +685,7 @@ export class Music {
     const spb = this.engine.currentSpb();
     this.engine.pump(this.ctx.currentTime + LOOKAHEAD_BARS * 4 * spb);
   }
-  private stopTimer() { if (this.timer !== 0) { this.scope.cancelTimer(this.timer); this.timer = 0; } }
+  private stopTimer() { this.timer?.dispose();this.timer=undefined; }
 
   /** the synth sequencer on (from the top of the arrangement if it was off), its share of the bus up over `fade` from `t` */
   private startSynth(t: number, fade: number): void {
@@ -694,8 +695,7 @@ export class Music {
       e.seq.gain.cancelScheduledValues(t); e.seq.gain.setValueAtTime(1, t);
       e.begin(arrangementOf(this.playing ?? 'theme'), t);
       this.synthOn = true;
-      this.pump();
-      this.timer = this.scope.interval(TICK_MS, () => { ambientTick('music.pump', () => { this.pump(); }); }); // the page's score: never a shard's interval (src/engine/app/ownership.ts)
+      this.timer = audioInterval(this.scope,this.ctx,TICK_MS, () => { ambientTick('music.pump', () => { this.pump(); }); }); // the page's score: never a shard's interval (src/engine/app/ownership.ts)
       g.cancelScheduledValues(t); g.setValueAtTime(fade > 0 ? 0 : 1, t);
     } else holdAt(g, t);
     if (fade > 0) g.linearRampToValueAtTime(1, t + fade);
@@ -706,7 +706,7 @@ export class Music {
     const g = this.engine.synthMix.gain;
     holdAt(g, t); g.linearRampToValueAtTime(0, t + fade);
     const gen = ++this.synthGen;
-    this.scope.timeout(Math.max(0, t + fade - this.ctx.currentTime) * 1000 + 150, () => {
+    audioTimeout(this.scope,this.ctx,Math.max(0, t + fade - this.ctx.currentTime) * 1000 + 150, () => {
       if (gen !== this.synthGen || !this.synthOn) return; // restarted meanwhile
       this.stopTimer(); this.synthOn = false; this.engine.end(this.ctx.currentTime);
     });
