@@ -14,4 +14,5 @@ export const WILDSHARD_IDENTITY: AppIdentity = {
   fileSlug: 'wildshard',
   exposeProbe: (probe) => { window.__wildshard = probe; },
   harness: () => (typeof window === 'undefined' ? undefined : window.__wildshardHarness),
+  errorReportOrigins: ['https://wildshard-singleplayer.vercel.app'],
 };

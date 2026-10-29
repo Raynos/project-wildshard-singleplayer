@@ -1,4 +1,5 @@
 import { Scope } from '../app/scope';
+import { harnessPins, installedIdentity } from '../app/identity';
 /** Optional, error-only Sentry channel. The existing /api/errors report remains the primary local inbox. */
 import type { captureException, getClient, init, withScope } from '@sentry/browser';
 
@@ -14,13 +15,25 @@ export interface BrowserErrorTags {
   readonly diagnostic?: Record<string, unknown>;
 }
 
-// A DSN is a public browser endpoint, not an auth token. Local/dev builds stay quiet unless opted in.
+// A DSN is a public browser endpoint, not an auth token. Only real production pages report.
 const productionDsn = 'https://ccaf25bcd6baa389433fb9efe0117c9b@o4512161165410304.ingest.us.sentry.io/4512161184088064';
 const dsn = String(import.meta.env['VITE_SENTRY_DSN'] ?? (import.meta.env.PROD ? productionDsn : '')).trim();
 interface BrowserSdk { init: typeof init; withScope: typeof withScope; captureException: typeof captureException; getClient: typeof getClient }
 let sdk: Promise<BrowserSdk | null> | null = null;
 
+/** External error delivery is opt-in by exact app origin and never by a test runner. */
+export function browserErrorDeliveryAllowed(environment: { readonly origin: string; readonly automated: boolean; readonly harness: boolean },
+  origins: readonly string[]): boolean {
+  return !environment.automated && !environment.harness && origins.includes(environment.origin);
+}
+function productionPage(): boolean {
+  if (typeof location === 'undefined' || typeof navigator === 'undefined') return false;
+  return browserErrorDeliveryAllowed({origin: location.origin, automated: navigator.webdriver, harness: harnessPins() !== undefined},
+    installedIdentity()?.errorReportOrigins ?? []);
+}
+
 function loadSdk(): Promise<BrowserSdk | null> {
+  if (!productionPage()) return Promise.resolve(null);
   sdk ??= import('@sentry/browser').then((sentry) => {
     sentry.init({
       dsn,
@@ -35,6 +48,7 @@ function loadSdk(): Promise<BrowserSdk | null> {
       maxBreadcrumbs: 0,
       normalizeDepth: 6, // context -> checkpoint array -> checkpoint -> facts
       beforeSend(event) {
+        if (!productionPage()) return null;
         if (event.request) event.request.url = `${location.origin}${location.pathname}`;
         return event;
       },
@@ -74,13 +88,13 @@ function asError(error: unknown): Error {
 
 /** Fire and forget: an absent DSN adds no request or SDK initialization to a player's boot. */
 export function captureBrowserError(error: unknown, tags: BrowserErrorTags): void {
-  if (!dsn) return;
+  if (!dsn || !productionPage()) return;
   void send(error, tags);
 }
 
 /** Durable diagnostics require a transport acknowledgement, not just captureException's event ID. */
 export async function deliverBrowserError(error: Error, tags: BrowserErrorTags): Promise<boolean> {
-  if (!dsn) return true;
+  if (!dsn || !productionPage()) return true;
   const sentry = await loadSdk();
   const client = sentry?.getClient();
   if (!sentry || !client) { sdk = null; return false; }

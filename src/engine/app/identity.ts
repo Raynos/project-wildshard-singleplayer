@@ -24,6 +24,9 @@ export interface AppIdentity {
   readonly exposeProbe: (probe: EngineProbe) => void;
   /** the harness pins a test or capture script set before the boot, when there are any */
   readonly harness: () => HarnessPins | undefined;
+  /** Exact production origins allowed to send optional browser error telemetry.
+   * Unset identities and automation never send to that external channel. */
+  readonly errorReportOrigins?: readonly string[];
 }
 
 // One slot per page, not per module instance: a page loads this module once, but a test that resets its modules
