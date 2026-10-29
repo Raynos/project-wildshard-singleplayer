@@ -9,6 +9,7 @@ import type { GroupStepNativeResultV2 } from '../script/groupStepV2';
 import { isJsonData } from '@wildshard/format/json';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { Rng } from '../core/rng';
+import { emitFault } from '../core/faults';
 import type { SimValue } from '../sim';
 import { inspectBrain } from './inspect';
 import { StrikeRunner, type StrikeSpec, type StrikeContext } from './strikes';
@@ -168,6 +169,12 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
   private get actor(): A { if (this.boundActor === null) throw new Error('Missing single grazer actor authority'); return this.boundActor; }
   private readonly profile: GrazerProfile<A>;
   private readonly contract: string;
+  private reportedFrames: Set<string> | undefined;
+  private rejectFrame(message: string): false {
+    const reported = this.reportedFrames ??= new Set();
+    if (!reported.has(message)) {reported.add(message); emitFault({system: 'ai.grazer', error: new Error(message), verdict: 'retry'});}
+    return false;
+  }
   private readonly strikes = new StrikeRunner();
   private phase: GrazerState = 'graze';
   private wanderYaw = 0;
@@ -251,23 +258,25 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     return { actor: this.actor, target: c.player, canReach: () => c.reach(this.actor), hit: spec => { if (c.strikeHit === undefined) c.hurt(spec.damage); else c.strikeHit(spec); } };
   }
   // A zero step is an interrupt's second wake in a frame; it is an ordinary admitted observation.
-  private step(c: GrazerObservation<A>): void {
-    if (this.profile.pattern === 'herd') throw new Error('Herd motion uses its shared roster cadence');
-    if (c.pattern !== this.profile.pattern) throw new Error('Incompatible grazer observation');
+  private step(c: GrazerObservation<A>): boolean {
+    if (this.profile.pattern === 'herd') return this.rejectFrame('Herd motion uses its shared roster cadence');
+    if (c.pattern !== this.profile.pattern) return this.rejectFrame('Incompatible grazer observation');
     if (!Number.isFinite(c.dt) || c.dt < 0 || c.dt > 1) {
-      throw new Error(`Invalid ${c.pattern === 'wander-ram' ? 'ram' : 'challenge'} grazer step`);
+      return this.rejectFrame(`Invalid ${c.pattern === 'wander-ram' ? 'ram' : 'challenge'} grazer step`);
     }
+    if (c.pattern === 'circle-challenge' && (!Number.isFinite(c.t) || !Number.isFinite(c.phaseOffset))) return this.rejectFrame('Invalid challenge grazer observation');
+    return true;
   }
   /** Scheduled perception: the pattern preserves distance metric, RNG order and strike tie order. */
   think(c: GrazerObservation<A>): void {
-    this.step(c);
+    if (!this.step(c)) return;
     const p = this.profile;
     if (p.pattern === 'wander-ram' && c.pattern === 'wander-ram') this.thinkWander(c, p);
     else if (p.pattern === 'circle-challenge' && c.pattern === 'circle-challenge') this.thinkCircle(c, p);
   }
   /** One fixed body tick: the owning host still executes movement, ballistic impulses and contacts. */
   act(c: GrazerObservation<A>): void {
-    this.step(c);
+    if (!this.step(c)) return;
     const p = this.profile;
     if (p.pattern === 'wander-ram' && c.pattern === 'wander-ram') this.actWander(c, p);
     else if (p.pattern === 'circle-challenge' && c.pattern === 'circle-challenge') this.actCircle(c, p);
@@ -312,7 +321,6 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     }
   }
   private actCircle(c: CircleGrazerPorts<A>, p: Extract<GrazerProfile, { pattern: 'circle-challenge' }>): void {
-    if (!Number.isFinite(c.t) || !Number.isFinite(c.phaseOffset)) throw new Error('Invalid challenge grazer observation');
     const a = this.actor; if (!a.alive) return;
     this.clock += c.dt; this.strikes.update(c.dt, this.context(c));
     const toPlayer = Math.atan2(c.player.x - a.position.x, c.player.z - a.position.z);
