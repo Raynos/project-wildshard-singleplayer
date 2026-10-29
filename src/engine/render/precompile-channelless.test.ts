@@ -7,7 +7,7 @@ import { sceneJobs, shadowJobs } from './precompile';
 test('an empty placeholder geometry waits for its first real draw', () => {
   const scene = new Scene(), placeholder = new Mesh(new BufferGeometry(), new MeshBasicMaterial()), box = new Mesh(new BoxGeometry(), new MeshBasicMaterial());
   placeholder.castShadow = true; box.castShadow = true; scene.add(placeholder, box);
-  const drawn = (jobs: { root: { children: readonly { geometry?: unknown }[] } }[]): unknown[] => jobs.flatMap(job => job.root.children.map(child => child.geometry));
+  const drawn = (jobs: ReturnType<typeof shadowJobs>): unknown[] => jobs.flatMap(job => job.root.children.map(child => 'geometry' in child ? child.geometry : undefined));
   const view = sceneJobs(scene, null);
   expect(drawn(view.jobs)).toEqual([box.geometry]);
   const shadow = drawn(shadowJobs(scene, null));
