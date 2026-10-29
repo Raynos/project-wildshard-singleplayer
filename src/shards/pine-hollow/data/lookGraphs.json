@@ -2209,7 +2209,8 @@
     "m288": {
      "op": "attribute",
      "name": "aMoss",
-     "type": "float"
+     "type": "float",
+     "default": 0.35
     },
     "m289": {
      "op": "pow",
