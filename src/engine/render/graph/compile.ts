@@ -517,6 +517,10 @@ type SunInputs = Readonly<Record<string, Node>>;
  * texture resolvers, material environments and runtime owners never enter this renderer-lived cache.
  */
 const sunLayouts = new Map<string, (inputs: SunInputs) => Node>();
+/** whether the graph reads the instance colour (`instanceColour`), directly or in a loop body */
+function readsInstanceColour(nodes: Readonly<Record<string, GraphNode>>): boolean {
+  return Object.values(nodes).some(node => node.op === 'instanceColour' || (node.body !== undefined && readsInstanceColour(node.body.nodes)));
+}
 /** Even an unfogged unlit graph may explicitly read its scene; loop bodies retain that dependency. */
 function readsSceneInputs(nodes: Readonly<Record<string, GraphNode>>): boolean {
   return Object.values(nodes).some(node => HOOK_INPUT_OPS.has(node.op) || SCENE_INPUT_OPS.has(node.op)
@@ -1556,6 +1560,8 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
   material.name = `graph:${ir.kind}`;
   if (Object.keys(attributeDefaults).length > 0) material.userData['graphAttributeDefaults'] = attributeDefaults;
   if (meshMapUsed) material.userData['graphMeshMap'] = true;
+  // a graph that reads `instanceColour` applies the tint itself: stock diffuse setup must not multiply its colour again
+  if (readsInstanceColour(ir.nodes)) material.userData['graphInstanceColour'] = true;
   // A boolean survives Material.clone(); the handler caches each clone's own depth variant.
   if (st['vertex.position']?.shadow === true || st['vertex.offset']?.shadow === true) material.userData['graphShadowDepth'] = true;
   if (ir.kind === 'material' && ir.model !== 'unlit') material.userData['graphPbrMaps'] = true;

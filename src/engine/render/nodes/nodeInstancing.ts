@@ -78,8 +78,21 @@ export function buildWithInstanceAttributes(material: NodeMaterial, build: () =>
     try { return setup(builder); }
     finally { builder.object = object; this.positionNode = position; }
   };
+  // A graph that reads the instance colour (`graphInstanceColour`, render/graph/compile.ts) tints its own colour: stock
+  // diffuse setup would multiply the whole colour by it again (NR15: Nine's rooftop dressing drew dark teal, trim too)
+  const originalDiffuse: unknown = Reflect.get(material, 'setupDiffuseColor');
+  const diffuse = material.setupDiffuseColor.bind(material);
+  if (material.userData['graphInstanceColour'] === true) material.setupDiffuseColor = function setupDiffuseColor(builder) {
+    const object = builder.object;
+    if (!(object instanceof InstancedMesh) || object.instanceColor === null) { diffuse(builder); return; }
+    builder.object = new Proxy(object, {
+      get(target, property, receiver): unknown { return property === 'instanceColor' ? null : Reflect.get(target, property, receiver); },
+    });
+    try { diffuse(builder); }
+    finally { builder.object = object; }
+  };
   try { build(); }
-  finally { Reflect.set(material, 'setupPosition', original); }
+  finally { Reflect.set(material, 'setupPosition', original); Reflect.set(material, 'setupDiffuseColor', originalDiffuse); }
 }
 
 /** Raw node shaders have no classic shader prefix. The classic binding states
