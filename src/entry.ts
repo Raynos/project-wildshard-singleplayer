@@ -181,19 +181,19 @@ async function startSelected(): Promise<void> {
   // precede admission and installation, with their original refusal order.
   const [speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule, starterModule, hoverboardModule,
     voicesModule, combatModule, boarModule, familiesModule, sourceModule, runtimeModule,
-    pathsModule, calibrationModule, prefetchModule] = [
+    pathsModule, prefetchModule] = [
     import('@wildshard/game/systems/species/install'), import('@wildshard/game/icons'),
     import('@wildshard/game/models/specimenCatalogue'), import('@wildshard/game/data/pickupCatalogue'),
     import('@wildshard/game/models/interact'), import('@wildshard/game/bag/starter.generated'),
     import('@wildshard/game/systems/tools/hoverboard'), import('@wildshard/sdk/runtime/audio/weaponVoices'), import('@wildshard/sdk/runtime/audio/combatCues'),
     import('@wildshard/game/systems/species/view/boar'), import('@wildshard/game/plugin/weaponFamily'),
     import('@wildshard/game/shardfile/clientSource'), import('@wildshard/game/shardfile/runtimeProduct'),
-    import('@wildshard/game/boot/loadingPaths'), import('./loadingCalibration.json'),
+    import('@wildshard/game/boot/loadingPaths'),
     import('@wildshard/game/grid/prefetch'),
   ] as const;
   const imports = prepareBootImports(Promise.all([speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule,
     starterModule, hoverboardModule, voicesModule, combatModule, boarModule, familiesModule, sourceModule, runtimeModule,
-    gridEntryModule, pathsModule, entryModule, calibrationModule, prefetchModule]));
+    gridEntryModule, pathsModule, entryModule, prefetchModule]));
   // Cover the full-ALL route's five observed misses; never recycle growables.
   const [{ prepareScriptMemoryBank }, { yieldTask }, { diagnosticNow }] = await Promise.all([
     import('@wildshard/engine/script/moduleV2'), import('@wildshard/engine/core/workSlice'),
@@ -210,9 +210,9 @@ async function startSelected(): Promise<void> {
     detail: { memoryTurns, memoryWaitMs } });
   const [{ sharedWeaponVoices, declaredWeaponVoices }, { BOAR_LOOK }, { declaredKitItemFamilies },
     { configuredShardfile, installShardfileProduct, installManifestShardfile, preparePageResidency }, { browserShardfileOptions },
-    { pageGridRecovery }, { loadingPath }, { shardEntry }, { default: calibration }, { gridPrefetchStatus }] = await Promise.all([
+    { pageGridRecovery }, { loadingPath }, { shardEntry }, { gridPrefetchStatus }] = await Promise.all([
     voicesModule, boarModule, familiesModule, sourceModule, runtimeModule, gridEntryModule, pathsModule, entryModule,
-    calibrationModule, prefetchModule,
+    prefetchModule,
   ]).catch(imports.refuse);
   let page: ReturnType<typeof preparePageResidency> | undefined;
   const imageOwner = entryScope.child('manifest images');
@@ -232,7 +232,7 @@ async function startSelected(): Promise<void> {
     if (path === 'grid') modules('grid');
     if (extras !== null) { loading.waiting('Reading selected download inventory'); await waitFor('Read selected download inventory', extras.read(), 'file'); }
     // Hybrid shardfile entries retain real TypeScript stages until their page is data-only.
-    loading.setPath(loadingPath(path, game.shard.boot?.steps, path === 'shardfile' && source === null && game.shard.shardfile === undefined), calibration);
+    loading.setPath(loadingPath(path, game.shard.boot?.steps, path === 'shardfile' && source === null && game.shard.shardfile === undefined));
     const declaredIcons = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel', 'sword', 'glyph', 'coin', 'purse', 'crossbow', 'rifle', 'lever', 'longbow', 'grapple', 'horse'] as const;
     const bindings: Parameters<typeof installShardfileProduct>[2] = {
       imageOwner,

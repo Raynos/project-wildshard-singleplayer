@@ -4,12 +4,13 @@ import {hashImmutableBytes} from '../src/sdk/immutable';
 import {parseOutputIndex} from '../src/format/outputIndex';
 import {installTitleManifests, titleManifests, type TitleManifest} from '../src/game/shard/titleList';
 import {startGridPrefetch, startTitlePrefetch, gridPrefetchStatus} from '../src/game/grid/prefetch';
+import {startSpawnDownload} from '../src/game/boot/spawnDownload';
 
 const initialStorage = globalThis.localStorage;
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); vi.stubGlobal('localStorage', initialStorage); });
 
 // iPhone downloads I5: the grid prefetch stores a pack's members from one read of the pack, never their own paths.
-test.each(['play', 'title', 'title-stop'] as const)('%s packed members are stored from one verified read, including metered title prefetch', async mode => {
+test.each(['play', 'title', 'title-stop', 'title-adopt'] as const)('%s uses its exact transport and preserves title cancellation ownership', async mode => {
   const first = new Uint8Array([1, 2]), second = new Uint8Array([3]);
   const hashes = [hashImmutableBytes(first), hashImmutableBytes(second)];
   const packBytes = new Uint8Array([...first, ...second]), packHash = hashImmutableBytes(packBytes), packPath = `blobs/pack/${packHash}.pack`;
@@ -31,7 +32,7 @@ test.each(['play', 'title', 'title-stop'] as const)('%s packed members are store
   const reads: string[] = [], disk = new Map<string, Response>();
   const spawn = JSON.stringify({version: 1, shard: '_template', tier: 'phone', flow: 'client', totalBytes: 3,
     files: [first, second].map((bytes, i) => ({url: `/alpha/blobs/bin/${hashes[i] ?? ''}.bin`, hash: hashes[i], bytes: bytes.length}))});
-  const address = {url: '/assets/spawn/template-1234567890abcdef.json', bytes: spawn.length, totalBytes: 3, files: 2};
+  const address = {url: `/assets/spawn/template-${mode}-1234567890abcdef.json`, bytes: spawn.length, totalBytes: 3, files: 2};
   vi.stubGlobal('document', {baseURI: 'http://localhost/', getElementById: () => ({textContent: JSON.stringify({spawnManifests: {
     cacheName: 'ws-assets-v1', client: {_template: {phone: address, desktop: address}}}})})});
   const urlOf = (input: RequestInfo | URL): string => input instanceof Request ? input.url : String(input);
@@ -65,6 +66,12 @@ test.each(['play', 'title', 'title-stop'] as const)('%s packed members are store
     const titleRun = mode === 'play' ? null : startTitlePrefetch(['never-read', '_template']);
     if (mode === 'play') startGridPrefetch(['_template']);
     else expect(titleRun).not.toBeNull();
+    if (mode === 'title-adopt') {
+      const foreground = startSpawnDownload('_template', 'client', 'phone');
+      if (foreground === null) throw new Error('Missing foreground adoption');
+      titleRun?.stop(); await foreground.ready;
+      expect(foreground.snapshot().complete).toBe(true); expect(aborted).toBe(false);
+    }
     if (mode === 'title-stop') {
       await vi.waitFor(() => {expect(reads).toContain(`http://localhost/alpha/blobs/bin/${hashes[0] ?? ''}.bin`);});
       titleRun?.stop();

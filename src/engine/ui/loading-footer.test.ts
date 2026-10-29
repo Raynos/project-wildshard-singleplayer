@@ -70,23 +70,21 @@ it('publishes completed step credit before the next step records its visible set
   const loading = new Loading({id: 'boundaries', name: 'Boundaries'});
   try {
     loading.setPath({id: 'shardfile', steps: [{key: 'modules', label: 'Modules', weight: 1},
-      {key: 'admission', label: 'Product admission', weight: 1}, {key: 'world', label: 'World', weight: 1}]},
-    [{tier: '*', path: 'shardfile', identity: '*', source: 'boundary fixture', samples: 1,
-      ms: {modules: 1000, admission: 1500, world: 1000}}]);
+      {key: 'admission', label: 'Product admission', weight: 1}, {key: 'world', label: 'World', weight: 1}]});
     loading.waiting('Preparing services');
     now = 1100; loading.paintAdmission({phase: 'descriptor', detail: 'Read /entry.json',
       filesDone: 0, filesTotal: 1, bytesRead: 0, bytesTotal: 0});
     const timeline = currentLoadingTimeline();
     if (timeline === undefined) throw new Error('Missing timeline');
-    expect(loading.root.querySelector('[data-el="suPct"]')?.textContent).toBe('28');
-    expect(timeline.snapshot().rows[1]?.setupAtStart).toBe(28);
+    expect(loading.root.querySelector('[data-el="suPct"]')?.textContent).toBe('33');
+    expect(timeline.snapshot().rows[1]?.setupAtStart).toBe(33);
     expect(Number.parseFloat(loading.root.querySelector<HTMLElement>('[data-el="bar"]')?.style.width ?? ''))
-      .toBeCloseTo(1000 / 3500 * 50);
+      .toBeCloseTo(50 / 3);
     now = 2600; loading.endAdmission();
     const world = timeline.begin('world');
-    expect(loading.root.querySelector('[data-el="suPct"]')?.textContent).toBe('71');
-    expect(timeline.snapshot().rows[2]?.setupAtStart).toBe(71);
-    expect(loading.root.dataset['setup']).toBe('71');
+    expect(loading.root.querySelector('[data-el="suPct"]')?.textContent).toBe('66');
+    expect(timeline.snapshot().rows[2]?.setupAtStart).toBe(66);
+    expect(loading.root.dataset['setup']).toBe('66');
     world.end();
   } finally { loading.scope.dispose(); }
 });
@@ -111,9 +109,7 @@ it('keeps boundary credit when the next paced paint still carries the previous v
   const loading = new Loading({id: 'paced-boundary', name: 'Paced boundary'});
   try {
     loading.setPath({id: 'shardfile', steps: ['modules', 'world', 'finish']
-      .map(key => ({key, label: key, weight: 1}))},
-    [{tier: '*', path: 'shardfile', identity: '*', source: 'boundary fixture', samples: 1,
-      ms: {modules: 1000, world: 1000, finish: 1000}}]);
+      .map(key => ({key, label: key, weight: 1}))});
     loading.waiting('Services'); now = 1100; loading.endAdmission();
     const timeline = currentLoadingTimeline();
     if (timeline === undefined) throw new Error('Missing timeline');
@@ -376,25 +372,23 @@ it('does not count one parsed descriptor as half the complete admission stage', 
   const loading = new Loading({id: 'admission-units', name: 'Admission units'});
   try {
     loading.setPath({id: 'shardfile', steps: [{key: 'modules', label: 'Modules', weight: 1},
-      {key: 'admission', label: 'Product admission', weight: 1}, {key: 'world', label: 'World', weight: 1}]},
-    [{tier: '*', path: 'shardfile', identity: '*', source: 'measured fixture', samples: 1,
-      ms: {modules: 100, admission: 1000, world: 1000}}]);
+      {key: 'admission', label: 'Product admission', weight: 1}, {key: 'world', label: 'World', weight: 1}]});
     now = 200;
     loading.paintAdmission({phase: 'descriptor', detail: 'Parsing shard descriptor', bytesRead: 50,
       bytesTotal: 50, filesDone: 1, filesTotal: 1});
     vi.advanceTimersByTime(100);
-    expect(loading.root.dataset['setup']).toBe('4');
+    expect(loading.root.dataset['setup']).toBe('33');
     expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('1 / 1 files');
     now = 400;
     loading.paintAdmission({phase: 'assets', detail: 'Reading product assets', bytesRead: 0,
       bytesTotal: 1000, filesDone: 0, filesTotal: 122});
     vi.advanceTimersByTime(100);
-    expect(loading.root.dataset['setup']).toBe('13');
+    expect(loading.root.dataset['setup']).toBe('33');
     now = 600;
     loading.paintAdmission({phase: 'assets', detail: 'Checking verified product', bytesRead: 1000,
       bytesTotal: 1000, filesDone: 122, filesTotal: 122});
     vi.advanceTimersByTime(100);
-    expect(loading.root.dataset['setup']).toBe('20');
+    expect(loading.root.dataset['setup']).toBe('33');
     expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('122 / 122 files');
   } finally { loading.scope.dispose(); }
 });

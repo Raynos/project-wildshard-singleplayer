@@ -1,44 +1,18 @@
-import { expect, it } from 'vitest';
-import { blendLoadingTimings, combinedLoadingFraction, loadingExpectations, loadingFraction, loadingTimingKey } from './weights';
+import {expect, it} from 'vitest';
+import {combinedLoadingFraction, loadingFraction} from './weights';
 
-it('combines the same download and setup tracks for players without either hiding unfinished work', () => {
+it('combines the same two tracks without hiding unfinished work', () => {
   expect(combinedLoadingFraction(1, 0.2)).toBe(0.6);
   expect(combinedLoadingFraction(0.2, 1)).toBe(0.6);
   expect(combinedLoadingFraction(1, 1)).toBe(1);
 });
-
-it('weights admission by measured time and keeps an overrunning stage below completion', () => {
-  const expected = { admission: 9000, world: 1000 };
-  const rows = [{ key: 'admission', state: 'ok', ms: 9000 }, { key: 'world', state: 'on', ms: 1000 }] as const;
-  const fraction = loadingFraction(rows, expected);
-  expect(fraction).toBeGreaterThan(0.9);
-  expect(fraction).toBeLessThan(1);
-  expect(loadingFraction([{ key: 'world', state: 'on', ms: 1_000_000 }], expected)).toBeLessThan(1);
-  expect(loadingFraction(rows, expected, true)).toBe(1);
-});
-
-it('blends local measurements and keeps history separated by tier, path and identity', () => {
-  expect(blendLoadingTimings({ world: 1000 }, { world: 3000, shaders: 100 })).toEqual({ world: 2000, shaders: 100 });
-  expect(loadingExpectations([{ key: 'world', weight: 1 }], { world: 500 }, { world: 2000 })).toEqual({ world: 2000 });
-  expect(blendLoadingTimings({ world: 500 }, { world: 2000 })).toEqual({ world: 1250 });
-  const key = { tier: 'phone', path: 'grid', identity: 'coast' } as const;
-  expect(new Set([loadingTimingKey(key), loadingTimingKey({ ...key, path: 'shardfile' }),
-    loadingTimingKey({ ...key, identity: 'forest' }), loadingTimingKey({ ...key, tier: 'desktop' })]).size).toBe(4);
-});
-
-it('uses reported units instead of elapsed easing while a counted row runs', () => {
-  const row = { key: 'models', state: 'on', ms: 1_000_000, fraction: 0.25 } as const;
-  expect(loadingFraction([row], { models: 1000 })).toBe(0.25);
-  expect(loadingFraction([{ ...row, state: 'ok' }], { models: 1000 })).toBeLessThan(1);
-  expect(loadingFraction([row], { models: 1000 }, true)).toBe(1);
-  expect(loadingFraction([{ key: 'models', state: 'on', ms: 1000 }], { models: 1000 })).toBeCloseTo(1 - Math.exp(-1));
-});
-
-it('scales only measured byte-dependent stages and preserves exact local stage history', () => {
-  const steps = [{ key: 'world', weight: 1 }, { key: 'modules', weight: 1 }, { key: 'unknown', weight: 2 }];
-  const model = { bytes: 100, steps: ['world'] };
-  expect(loadingExpectations(steps, { world: 400, modules: 200 }, {}, model, 200))
-    .toEqual({ world: 800, modules: 200, unknown: 600 });
-  expect(loadingExpectations(steps, { world: 400, modules: 200 }, { world: 300 }, model, 200)['world']).toBe(300);
-  expect(loadingExpectations(steps, { world: 400 }, {}, model, 0)['world']).toBe(400);
+it('credits completed stages and explicit units, never time passing', () => {
+  const rows = [{state: 'ok', ms: 9000}, {state: 'on', ms: 1000}] as const;
+  expect(loadingFraction(rows)).toBe(0.5);
+  const stalled = [{state: 'on', ms: 1_000_000}] as const;
+  expect(loadingFraction(stalled)).toBe(0);
+  expect(loadingFraction([{state: 'on', fraction: 0.25}])).toBe(0.25);
+  expect(loadingFraction([{state: 'on', fraction: Number.NaN}])).toBe(0);
+  expect(loadingFraction([{state: 'ok'}])).toBeLessThan(1);
+  expect(loadingFraction(rows, true)).toBe(1);
 });

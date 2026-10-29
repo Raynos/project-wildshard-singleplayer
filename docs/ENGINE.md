@@ -1052,20 +1052,10 @@ promises to the real attempt. Only real byte growth or a semantic progress
 key renews a deadline; labels and duplicate messages do not. Metadata never
 credits the separate verified download ledger. Completion removes the row.
 
-`Loading.setPath({id, steps, ignored?}, calibrations?)` accepts a data-only step
-vocabulary and measured baseline tables supplied by the composition root.
-Each calibration names its tier, path, identity, source SHA, sample count and
-per-stage milliseconds. An optional `workload: {bytes, steps}` scales only the
-named byte-dependent stage estimates against this load's declared file bytes.
-A wildcard tier/identity supplies an explicitly measured fallback model for
-uncalibrated loads, never fake shard-specific measurements. Exact tier/identity
-history still wins. Local timing keys use the fixed-path v2 schema, keeping the
-old dynamically appended rows out of new histories. Missing measurements retain
-explicit row-weight fallbacks. `done()` paints full completion for a frame
-before starting the existing 250 ms fade. Running rows use real
-completed units when available, reserving a final completion unit; unmetered
-rows approach their expected share exponentially. Only completion grants the
-full share.
+`Loading.setPath({id, steps, ignored?})` supplies a data-only vocabulary.
+Setup credits completed stages and reported work units. Time passing grants
+nothing: no calibration tables, local timing history or exponential easing.
+Download completion belongs only to its manifest, independently of setup.
 The engine contains no content identities or product measurements.
 `loadingStage(key, work)` in `@wildshard/engine/boot/waits` measures semantic
 boundaries, including LevelLoader hooks and initial home entry. Nested stages
@@ -1143,9 +1133,7 @@ reset a stall. Loader diagnostics omit reload history and identify observed
 frame-update gaps as including JS, GC, layout and suspension; they do not claim
 CPU utilisation. Home-region counts come from the actual regional world.
 
-`Loading.setPath(path, calibrations)` keys timing history by tier/path/identity.
-`boot/weights` blends baseline/local times, using reported units or easing.
-`Loading.done()` stores exclusive durations, then fades. Developer's saved
+`Loading.done()` finishes setup and fades. Developer's saved
 `holdLoading` pick freezes completed clock/rows until PLAY: `holdRequested`
 gates gameplay; `playRequested` identifies PLAY. Public/scoped cell loads
 auto-fade; disposal before entry rejects completion.

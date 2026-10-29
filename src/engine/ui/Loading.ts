@@ -10,8 +10,7 @@ import { recordBootCheckpoint, recordBootProgress, startBoot } from '../boot/boo
 import { DownloadAccounting, installDownloadAccounting, observeDownloadAccounting, beginLoadingWait, adoptLoadingWait, reportLoadingWait, finishLoadingWait, loadingWaitState, type DownloadSnapshot } from '../boot/download';
 import { loadingDownloadText, loadingDownloadFraction, loadingPrefetchFraction, loadingPrefetchText, type LoadingPrefetchSnapshot } from '../boot/loadingDownloadText';
 import { LoadingTimeline, installLoadingTimeline, type LoadingPath, type LoadingRow, type LoadingGap } from '../boot/timeline';
-import { combinedLoadingFraction, loadingExpectations, loadingFraction, type LoadingTimings, type LoadingTimingKey, type LoadingCalibration } from '../boot/weights';
-import { loadPathTimings, savePathTimings } from '../boot/pathTiming';
+import {combinedLoadingFraction, loadingFraction} from '../boot/weights';
 import { isDev, onDev } from '../core/devMode';
 import { getSetting, onSetting } from './Settings';
 import { listenTap } from '../input/dom';
@@ -89,10 +88,6 @@ export class Loading {
   private phaseKey = 'modules';
   private readonly waitId: number;
   private retryWait: (() => void) | null = null;
-  private readonly identity: string;
-  private timingKey: LoadingTimingKey;
-  private baseline: LoadingTimings = {};
-  private expectations: () => LoadingTimings = () => ({});
   private configured = false;
   private finished = false;
   private completion: Promise<void> | undefined;
@@ -107,9 +102,7 @@ export class Loading {
   private failedReason: string | null = null;
 
   constructor(chunk: { id: string; name: string; trace?: boolean }, mode: { readonly scoped?: boolean } = {}) {
-    this.identity = chunk.id;
     this.scoped = mode.scoped === true;
-    this.timingKey = { tier: TIER, path: 'pending', identity: this.identity };
     if (!this.scoped) startBoot({ id: chunk.id, name: chunk.name }, TIER === 'phone' && chunk.trace === true);
     const nav: { hardwareConcurrency?: number | undefined } = navigator; // Safari < 15.4 has no hardwareConcurrency
     // index.html paints this panel from its first bytes (src/engine/boot/shell.ts): adopt it; a page without it gets a fresh one
@@ -211,7 +204,7 @@ export class Loading {
     this.phase?.detail(detail);
     // Admission switches inventories: one descriptor, then sections, then
     // assets and cache verification. Their local counts describe the work,
-    // not a fraction of the complete stage. Use its measured time weight.
+    // not a fraction of the complete stage. Completion credits that stage.
     if (phase === 'modules') this.timeline.report(phase, detail, progress.filesDone, progress.filesTotal);
     else this.timeline.report(phase, detail);
     // Hand off the footer before exposing the new phase to the next callback;
@@ -243,15 +236,8 @@ export class Loading {
   }
 
   /** The composition root supplies the actual path's vocabulary before its product or world starts. */
-  setPath(path: LoadingPath, calibrations: readonly LoadingCalibration[] = []): void {
+  setPath(path: LoadingPath): void {
     this.timeline.configure(path); setData(this.root, 'path', path.id);
-    this.timingKey = { tier: TIER, path: path.id, identity: this.identity };
-    const calibration = calibrations.find(row => row.tier === TIER && row.path === path.id && row.identity === this.identity)
-      ?? calibrations.find(row => row.tier === TIER && row.path === path.id && row.identity === '*')
-      ?? calibrations.find(row => row.tier === '*' && row.path === path.id && row.identity === '*');
-    this.baseline = calibration?.ms ?? {};
-    const own = loadPathTimings(this.timingKey);
-    this.expectations = () => loadingExpectations(path.steps, this.baseline, own, calibration?.workload, this.downloads.snapshot().declaredBytes);
     this.configured = true;
   }
   /** End pre-session admission before LevelLoader's data/world boundaries take over. */
@@ -339,7 +325,7 @@ export class Loading {
 
   private setupProgress(): number {
     if (!this.configured) return 0;
-    this.shownSetup = Math.max(this.shownSetup, loadingFraction(this.timeline.snapshot().rows, this.expectations(), this.finished));
+    this.shownSetup = Math.max(this.shownSetup, loadingFraction(this.timeline.snapshot().rows, this.finished));
     return this.shownSetup;
   }
 
@@ -514,8 +500,6 @@ export class Loading {
     if (this.completion !== undefined) return this.completion;
     this.tickClock(); this.clockScope.dispose();
     this.finished = true; finishLoadingWait(this.waitId); this.phase?.end(); this.phase = undefined;
-    const measured = Object.fromEntries(this.timeline.snapshot().rows.filter(row => row.state !== 'todo').map(row => [row.key, row.ms]));
-    savePathTimings(this.timingKey, measured, this.baseline);
     if (this.view !== null) this.paint(this.view);
     else this.dirty = true;
     this.paintNow();
