@@ -1,0 +1,82 @@
+// @vitest-environment node
+import {afterEach, expect, test, vi} from 'vitest';
+import {entryTransport, installEntryTransport, startEntryDownload} from '../src/game/shardfile/entryTransport';
+
+const key = Symbol.for('wildshard.entry-transport'), schedule = '/assets/entry-example-0123456789abcdef.json';
+const hash = 'a'.repeat(64), origin = 'https://example.test';
+const local = (): void => { vi.stubGlobal('localStorage', {clear: (): void => undefined}); };
+local();
+const address = (url: Parameters<typeof fetch>[0]): string => typeof url === 'string' ? url : url instanceof URL ? url.href : url.url;
+function setup(rows: unknown, cached: unknown = {}): ReturnType<typeof vi.fn<typeof fetch>> {
+  vi.stubGlobal('location', new URL(`${origin}/?chunk=example`));
+  vi.stubGlobal('navigator', {userAgent: 'iPhone', platform: 'iPhone', maxTouchPoints: 5});
+  vi.stubGlobal('document', {getElementById: () => ({textContent: JSON.stringify({entryDownloads: {example: {phone: schedule}}, entryIndexes: {example: '/shardfiles/example/shard.json?v=12345678'}})})});
+  vi.stubGlobal('caches', {open: () => Promise.resolve({match: () => Promise.resolve(Response.json(cached))})});
+  const read = vi.fn<typeof fetch>(url => Promise.resolve(address(url) === schedule ? Response.json(rows) : new Response(new Uint8Array([1, 2, 3]))));
+  vi.stubGlobal('fetch', read);
+  return read;
+}
+afterEach(() => {entryTransport()?.stop(); Reflect.deleteProperty(globalThis, key); vi.unstubAllGlobals(); local();});
+
+test('early wire is borrowed exactly once without changing the bytes', async () => {
+  const path = '/shardfiles/example/blobs/bin/body.bin', read = setup([{path, bytes: 3, members: [hash]}]);
+  installEntryTransport();
+  await vi.waitFor(() => expect(entryTransport()?.has(path)).toBe(true));
+  const response = await entryTransport()?.take(`${origin}${path}`);
+  expect(response).toBeInstanceOf(Response);
+  if (!response) throw new Error('Missing wire loan');
+  expect([...new Uint8Array(await response.arrayBuffer())]).toEqual([1, 2, 3]);
+  expect(await entryTransport()?.take(path)).toBeNull();
+  expect(read.mock.calls.map(row => address(row[0]))).toEqual([schedule, path]);
+});
+
+test('warm member metadata suppresses read-ahead, not demand authority', async () => {
+  const read = setup([{path: '/shardfiles/example/pack.pack', bytes: 3, members: [hash]}], {[hash]: {bytes: 3, used: 1}});
+  installEntryTransport();
+  await vi.waitFor(() => expect(read).toHaveBeenCalledTimes(1));
+  expect(await entryTransport()?.take('/shardfiles/example/pack.pack')).toBeNull();
+});
+
+test.each([
+  {rows: [{path: '/shardfiles/foreign/body.bin', bytes: 3, members: [hash]}]},
+  {rows: [{path: '/shardfiles/example/../body.bin', bytes: 3, members: [hash]}]},
+  {rows: [{path: '/shardfiles/example/body.bin?x=1', bytes: 3, members: [hash]}]},
+  {rows: [{path: '/shardfiles/example/body.bin', bytes: 25_000_001, members: [hash]}]},
+  {rows: Array.from({length: 3}, (_, i) => ({path: `/shardfiles/example/${i}.bin`, bytes: 20_000_000, members: [hash]}))},
+])('malformed/outside-budget schedule starts no body reads (%j)', async ({rows}) => {
+  const read = setup(rows); installEntryTransport();
+  await vi.waitFor(() => expect(read).toHaveBeenCalledTimes(1));
+  expect(entryTransport()?.has('/shardfiles/example/body.bin')).toBe(false);
+});
+
+test('oversized and partial responses fall back to original demand', async () => {
+  const path = '/shardfiles/example/body.bin', read = setup([{path, bytes: 2, members: [hash]}]);
+  installEntryTransport();
+  await vi.waitFor(() => expect(read).toHaveBeenCalledTimes(2));
+  expect(await entryTransport()?.take(path)).toBeNull();
+});
+
+test('six slots bound reads, queued demand borrows the same job and stop drains it', async () => {
+  const rows = Array.from({length: 9}, (_, i) => ({path: `/shardfiles/example/${i}.bin`, bytes: 3, members: [hash]}));
+  const read = setup(rows), release: (() => void)[] = [];
+  read.mockImplementation(async (url, init) => {
+    if (address(url) === schedule) return Response.json(rows);
+    await new Promise<void>(resolve => {release.push(resolve); init?.signal?.addEventListener('abort', () => {resolve();}, {once: true});});
+    return new Response(new Uint8Array([1, 2, 3]));
+  });
+  installEntryTransport();
+  await vi.waitFor(() => expect(release).toHaveLength(1));
+  expect(read).toHaveBeenCalledTimes(2);
+  entryTransport()?.expand();
+  await vi.waitFor(() => expect(release).toHaveLength(6));
+  expect(read).toHaveBeenCalledTimes(7);
+  const queued = entryTransport()?.take(rows[8]?.path ?? '');
+  entryTransport()?.stop();
+  expect(await queued).toBeNull();
+  expect(read).toHaveBeenCalledTimes(7);
+});
+
+test('a real tap starts the versioned index request across navigation', () => {
+  const read = setup([]); startEntryDownload('example');
+  expect(read).toHaveBeenCalledWith('/shardfiles/example/shard.json?v=12345678', {keepalive: true, priority: 'high'});
+});
