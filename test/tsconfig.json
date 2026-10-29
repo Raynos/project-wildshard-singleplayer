@@ -50,7 +50,8 @@
     "**/*.mts",
     "**/*.cts",
     "**/*.tsx",
-    "**/*.json",
+    "fixtures/**/*.json",
+    "engine/fixtures/**/*.json",
     "../src/**/*.d.ts",
     "../src/**/*.d.mts",
     "../src/**/*.d.*.ts"

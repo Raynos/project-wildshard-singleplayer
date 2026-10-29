@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 /** CI forces a fresh scenario check; local no-change checks reuse its build info.
  * @param {{readonly CI?:string,readonly GITHUB_ACTIONS?:string}} [environment] */
 export function rootTypecheckArguments(environment=process.env) {
-  return ['-b','test/tsconfig.json',...(environment.CI || environment.GITHUB_ACTIONS ? ['--force'] : [])];
+  return ['-b','test/tsconfig.json','--builders','1',...(environment.CI || environment.GITHUB_ACTIONS ? ['--force'] : [])];
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===resolve(import.meta.filename)){

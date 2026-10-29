@@ -101,6 +101,6 @@ test('CI runs all five typed partitions beside one types and fast job', () => {
   expect(job).toContain('run: python3 scripts/ci-fail-fast.py -- pnpm run lint:fast');
   expect(job).toContain('fail-fast: false');
   expect(job).not.toContain('fail-fast: true');
-  expect(job.match(/pnpm exec tsc -b tsconfig\.layers\.json\n/gu)).toHaveLength(1);
+  expect(job.match(/pnpm exec tsc -b tsconfig\.layers\.json --builders 1\n/gu)).toHaveLength(1);
   expect(job).toContain('python3 scripts/ci-products.py unpack-generated');
 });
