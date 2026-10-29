@@ -10,7 +10,8 @@ it('the home track completes only after its actual declared bytes arrive', () =>
   expect(loadingDownloadFraction(traffic, false)).toBe(0.75);
   // undeclared page traffic and unsized transfers never move it
   expect(loadingDownloadFraction({ ...traffic, networkBytes: 90_000_000, unclassifiedFiles: 40, unclassifiedBytes: 50_000_000 }, false)).toBe(0.75);
-  expect(loadingDownloadFraction({ ...traffic, declaredDoneBytes: 2_000_000, pendingBytes: 0 }, false)).toBe(1);
+  expect(loadingDownloadFraction({ ...traffic, declaredDoneBytes: 2_000_000, pendingBytes: 0 }, false)).toBe(0.999);
+  expect(loadingDownloadFraction({ ...traffic, declaredDoneBytes: 2_000_000, pendingBytes: 0 }, true)).toBe(1);
   expect(loadingDownloadFraction({ ...traffic, declaredBytes: 0, declaredDoneBytes: 0 }, false)).toBe(0);
   expect(loadingDownloadFraction(traffic, true)).toBe(0.75);
 });
@@ -25,6 +26,10 @@ it('a fixed compiled entry total does not grow as declarations arrive, or reach 
   expect(loadingDownloadText(next)).toContain('of 4.00 MB content');
   expect(loadingDownloadFraction({...next, declaredDoneBytes: 4_000_000}, true)).toBeLessThan(1);
   expect(loadingDownloadFraction({...next, declaredDoneBytes: 4_000_000, pendingBytes: 0}, true)).toBe(1);
+  // Finishing one wave cannot announce 100, then fall when a later required
+  // wave declares its already-compiled files. The entry barrier closes that set.
+  expect(loadingDownloadFraction({...next, declaredDoneBytes: 4_000_000, pendingBytes: 0}, false)).toBe(0.999);
+  expect(loadingDownloadFraction({...next, declaredDoneBytes: 4_000_000, pendingBytes: 1}, false)).toBe(0.999);
 });
 
 it('leads with the declared progress, then wire and offline cache', () => {

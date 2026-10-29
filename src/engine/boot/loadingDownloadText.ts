@@ -13,12 +13,12 @@ export interface LoadingPrefetchSnapshot {
 
 /** The home load's own track: the bytes of the files it declared (product indexes give exact sizes) that have arrived, from
  * the wire or the cache; done when the load is. Grid prefetch and other page traffic never move it (they have their own row). */
-export function loadingDownloadFraction(transfer: DownloadSnapshot, _done: boolean): number {
+export function loadingDownloadFraction(transfer: DownloadSnapshot, done: boolean): number {
   const total = transfer.expectedBytes ?? transfer.declaredBytes;
   if (total === 0) return 0;
   const fraction = Math.min(1, transfer.declaredDoneBytes / total);
   // Setup completion is not a byte receipt. Pending content cannot say 100%.
-  return transfer.pendingBytes > 0 || transfer.declaredDoneBytes < total ? Math.min(0.999, fraction) : fraction;
+  return !done || transfer.pendingBytes > 0 || transfer.declaredDoneBytes < total ? Math.min(0.999, fraction) : fraction;
 }
 
 /** Declared progress first (the fact line truncates), then the wire and the offline cache. WebKit sizes no service-worker
