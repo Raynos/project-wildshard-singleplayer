@@ -4,6 +4,7 @@ import {existsSync, readFileSync, mkdirSync, writeFileSync, readdirSync} from 'n
 import {join, resolve} from 'node:path';
 import {PickupCatalogueSchema} from '../../src/format/specimenCatalogue';
 import {assetTableAddresses, readAssetTables} from './assetTables.mjs';
+import {readGridSeams} from './gridSeams.mjs';
 import {assembleOutputShardfile, parseOutputIndex} from '../../src/format/outputIndex';
 import {entryReadSet} from './entryReadSet';
 import {createHash} from 'node:crypto';
@@ -60,6 +61,7 @@ export function writeSpawnManifests(outDir: string, input: unknown,
     for (const row of pickups.geometries) if ('file' in row && !packed.has(row.file)) common.push(asset(row.file));
   }
   const tables = existsSync(join(root, 'out/.app/boot-tables.json')) ? assetTableAddresses(readAssetTables(root)) : undefined;
+  const seams = existsSync(join(root, 'out/.app/grid-seams.json')) ? readGridSeams(root).address : undefined;
   const client: Record<string, Record<'phone' | 'desktop', SpawnManifestAddress>> = {}, grid: Record<string, Record<string, Record<'phone' | 'desktop', SpawnManifestAddress>>> = {};
   mkdirSync(join(output, 'assets/spawn'), {recursive: true});
   for (const prefix of Object.keys(bank.products)) {
@@ -92,6 +94,12 @@ export function writeSpawnManifests(outDir: string, input: unknown,
         add(asset(tables.common.url, tables.common.bytes));
         const table = flow === 'grid' || tier === 'desktop' ? tables.all : tables.packs[directory];
         if (table !== undefined) add(asset(table.url, table.bytes));
+      }
+      if (flow === 'grid' && seams !== undefined) {
+        add(asset(seams.url, seams.bytes));
+        // The compiled page owns its plans; only native fallback reads the
+        // separate plan wire. Neither path declares the other one's payload.
+        if (addresses.length === 0 && seams.plans !== undefined) add(asset(seams.plans.url, seams.plans.bytes));
       }
       for (const row of addresses) add(asset(row.url, row.bytes));
       const extra = bank.extras[prefix];

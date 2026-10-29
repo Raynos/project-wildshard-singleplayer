@@ -17,7 +17,7 @@ import { DefaultLoadingManager } from 'three';
 import { TIER, TIER_CONFIG } from '../core/tier';
 import { standIn, texMode, type TexMode } from './gpuFiles';
 import { decodeImageBitmap } from './imageDecode';
-import { declareDownloadFile } from './download';
+
 import { pageScope } from '../app/resources';
 import { presenting } from '../core/framePacing';
 import { workSlice } from '../core/workSlice';
@@ -114,7 +114,7 @@ export function installByteCounter(plan: Plan<BootStep>, files: ChunkFiles): voi
   for (const f of [...files.art, ...files.music, ...files.sfx]) {
     const bytes = sizeOf(f);
     if (bytes === undefined) throw new Error(`boot: missing download size for ${f}`);
-    declareDownloadFile(f, bytes);
+
   }
   const readers = new Map<ByteKey, ByteProgress>();
   const reader = (k: ByteKey): ByteProgress => { let r = readers.get(k); if (!r) { r = plan.reader(k); readers.set(k, r); } return r; };

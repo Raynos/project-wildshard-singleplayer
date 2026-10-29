@@ -13,7 +13,6 @@ import { readProductDescriptor, admitProduct, type CachedProduct, type ProductCa
 import { provideHybridDeclaration, runtimeProduct, loadShardProduct, completeManifestCache } from '../src/game/shardfile/runtimeProduct';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
-import { DownloadAccounting, installDownloadAccounting } from '../src/engine/boot/download';
 import { saves } from '../src/engine/saves/runtime';
 import { installManifestShardfile, installShardfileProduct } from '../src/game/shardfile/clientSource';
 import { prepareBootImports } from '../src/bootDownloads';
@@ -658,16 +657,12 @@ test('an evicted section of an older visit refetches online and replaces the off
   expect((await admitProduct(null, offline)).source).toEqual(current.source);
 });
 
-test('an offline descriptor resolves named section declarations as verified cache hits', async () => {
-  const { wires } = fixture(), store = cacheStore(), opts = options(wires, store.cache);
+test('an offline descriptor resolves every original section without a network read', async () => {
+  const {source, wires} = fixture(), store = cacheStore(), opts = options(wires, store.cache);
   await admitProduct(await readProductDescriptor(opts), opts);
-  const accounting = new DownloadAccounting(base), dispose = installDownloadAccounting(accounting);
-  try {
-    await readProductDescriptor({ ...opts, offline: true, fetch: () => Promise.reject(new Error('Offline network')) });
-    expect(accounting.snapshot().pendingBytes).toBe(0);
-    expect(accounting.snapshot().cachedBytes).toBeGreaterThan(0);
-    expect(accounting.snapshot().networkBytes).toBe(0);
-  } finally { dispose(); }
+  const fetch = vi.fn(() => Promise.reject(new Error('Offline network')));
+  expect(await readProductDescriptor({...opts, offline: true, fetch})).toEqual(source);
+  expect(fetch).not.toHaveBeenCalled();
 });
 
 test('a complete older visit still enforces saved-state compatibility', async () => {

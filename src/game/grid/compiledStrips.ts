@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { unzlibSync } from 'fflate';
 import { GeometryPackData, PackedGeometryRowsSchema, type PackedGeometryRows } from '@wildshard/format/geometryPack';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { declareDownloadFile } from '@wildshard/engine/boot/download';
+
 import type { GeneratedStrip, PlatformCell, StripMesh, StripProfile } from '@wildshard/engine/sim/strips';
 import { edgeProfileJson } from '@wildshard/engine/sim/edgeProfiles';
 import type { ResidencyAllocator } from './allocator';
@@ -205,7 +205,7 @@ async function readDeclaredGridPage(page: CompiledGridPage, home: string, owner:
   let releaseSource: (() => void) | undefined, forgetSource: (() => void) | undefined, published = false;
   const reserve = (id: string, bytes: number): { readonly release: () => void } => reserveGridSource(owner, page.home, home, id, bytes);
   const fetchAsset = async (asset: CompiledGridAddress): Promise<Uint8Array<ArrayBuffer>> => {
-    liveGridOwner(owner.scope); declareDownloadFile(asset.url, asset.bytes);
+    liveGridOwner(owner.scope);
     const bytes = await readGridAssetBytes(asset, url => read(url, abort.signal), 'strips'); liveGridOwner(owner.scope); return bytes;
   };
   try {
@@ -267,7 +267,7 @@ export async function readCompiledGridStrips(selector: CompiledGridSelector | un
   let directoryLease: { readonly release: () => void } | undefined;
   try {
     directoryLease = reserveGridSource(owner, key, home, 'directory', selector.directory.bytes * 2);
-    declareDownloadFile(selector.directory.url, selector.directory.bytes);
+
     const [directory, source] = await Promise.all([
       readGridAssetBytes(selector.directory, url => read(url, abort.signal), 'strips'), platformGeometrySource(input.cells, input.empty)]);
     liveGridOwner(owner.scope);

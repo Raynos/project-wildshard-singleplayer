@@ -111,7 +111,7 @@ import { readCompiledGridStrips } from './compiledStrips';
 import { startRoadGrain } from './roadGrainPreparation';
 import { startRoadSigns } from './roadSignPreparation';
 import { clientPreparationBatch } from '../shardfile/preparationTiming';
-import { declareDownloadFile } from '@wildshard/engine/boot/download';
+
 import { admittedRuntimeProduct } from '../shardfile/runtimeProduct';
 
 /** D12: the A1 outer ring's share of a drawn frame (ms). On the phone tier its strips, colliders and road stop 4 ms after
@@ -395,7 +395,7 @@ export class GridSession {
     let prepared = 0;
     progress?.set(0, 3, 'Grid seam data · 0 / 1 files');
     const address = __GRID_SEAM_ASSET__, abort = new AbortController();
-    declareDownloadFile(address.url, address.bytes);
+
     const forget = host.scope.capture('disposers', () => { abort.abort(); });
     const data = await readGridSeamData(address, url => fetch(url, { signal: abort.signal })).finally(forget);
     timing?.mark('seam-source');
@@ -429,7 +429,7 @@ export class GridSession {
     const seamPlans = (): Promise<Map<string, readonly number[][]>> => {
       nativePlans ??= (async () => {
         if (nativePlanReader === undefined) return new Map(inlinePlans);
-        if (address.plans !== undefined) declareDownloadFile(address.plans.url, address.plans.bytes);
+
         const abortPlans = new AbortController(), forgetPlans = host.scope.capture('disposers', () => { abortPlans.abort(); });
         try {
           const rows = await nativePlanReader(url => fetch(url, { signal: abortPlans.signal }));

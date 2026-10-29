@@ -28,7 +28,7 @@ import { graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/mat
 import type { ShardContext } from '../plugin/context';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { cachedTransport } from './cachedTransport';
-import { recordCachedDownload, recordReadDownload } from '@wildshard/engine/boot/download';
+
 import { hashOwnedBytes, prepareContentHash } from '@wildshard/engine/boot/contentHash';
 import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { browserContentStore } from './contentStore';
@@ -107,7 +107,7 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     if (entryTransport()?.has(url)) return null;
     const path = new URL(url, base);
     const sent = await waitFor(`Verify ${productResourceRole(path.href)}`, content.fetchVerified(path.href, hash, bytes, { reply: 'bytes', urlCache: indexed !== undefined }), 'worker');
-    if (sent?.fetched !== null && sent?.fetched !== undefined) recordReadDownload(path.href, sent.fetched.length, sent.cached);
+
     return sent === null || sent.fetched === null ? null : { bytes: sent.fetched, cached: sent.cached, stored: sent.stored };
   } : undefined;
   return { ...(parseJson === undefined ? {} : { parseJson }), base, firstParty, ...(spawn === undefined ? {} : {directFiles: true}), tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: verifiedHash, hashOwned: hashOwnedBytes,
@@ -117,7 +117,7 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
       if (indexed !== undefined && new URL(url, base).pathname.endsWith('/shard.json')) {
         const hash = builtIndexHash(new URL(url, base).pathname);
         const held = hash === null || !indexed.has(hash) ? null : await cachedTransport(caches, url, limits.sourceBytes, { hash }, signal);
-        if (held !== null) { recordCachedDownload(held.hash, held.bytes.length, url); return new Response(new Uint8Array(held.bytes)); }
+        if (held !== null) {  return new Response(new Uint8Array(held.bytes)); }
       }
       signal?.throwIfAborted();
       const early = await entryTransport()?.take(url, signal);

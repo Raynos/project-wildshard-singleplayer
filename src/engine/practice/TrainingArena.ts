@@ -1,4 +1,5 @@
-import { declareModuleGroups } from '../boot/download';
+import {readModuleGroups} from '../boot/download';
+
 import { uiScope, mountUi } from '../ui/ownership';
 import { engineString } from '../strings';
 import { app } from '../app/runtime';
@@ -346,7 +347,7 @@ export class TrainingArena {
    */
   preload(): Promise<void> {
     if (this.loadPromise === null) {
-      declareModuleGroups(['practice.models']);
+      readModuleGroups(['practice.models']);
       this.loadPromise = this.prepareModels();
     }
     return this.loadPromise;

@@ -1,5 +1,6 @@
-import { declareModuleGroups } from '../boot/download';
+
 import { retried } from '../boot/retry';
+import {readModuleGroups} from '../boot/download';
 import { type AnimationClip, type Object3D, type Texture, BufferGeometry, DefaultLoadingManager, InstancedBufferAttribute, InstancedMesh, LoadingManager, SkinnedMesh } from 'three';
 import type * as RigParser from './rigParser';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -28,11 +29,10 @@ export interface RigInstance {
 export interface RigRef { url: string; contract: RigContract; bake: RigBake }
 
 let preparing: Promise<typeof RigParser> | undefined;
-/** Prepare code only for an actual asynchronous model read; publish compiler bytes first.
- * Each request publishes to the current loading ledger, including warm code.
+/** Check compiler selection before the original asynchronous module import.
  * Parsed files and loader instances remain with their original owners. */
 export function prepareRigLoader(): Promise<typeof RigParser> {
-  declareModuleGroups(['models.gltf']);
+  readModuleGroups(['models.gltf']);
   if (preparing === undefined) {
     const pending = retried(() => import('./rigParser'));
     preparing = pending;

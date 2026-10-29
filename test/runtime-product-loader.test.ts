@@ -25,7 +25,6 @@ import { parseImageAsset } from '../src/format/stillImage';
 import { Scope } from '../src/engine/app/scope';
 import { bootWaits } from '../src/engine/boot/waits';
 import * as customValidators from '../src/game/shardfile/customSchema';
-import { DownloadAccounting, observeDownloadAccounting } from '../src/engine/boot/download';
 
 const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); Reflect.deleteProperty(globalThis, '__SHARDFILE_VALIDATOR__'); Reflect.deleteProperty(globalThis, '__SHARDFILE_VERDICTS__'); });
@@ -853,8 +852,6 @@ test.each(['critical', 'dependency', 'reader'] as const)('a %s keeps a shared of
 
 test.each(['phone', 'desktop'] as const)('trusted %s admission never declares or fetches the other typed variant', async tier => {
   const f = tierTransportFixture(); trust(f.receipt);
-  const accounting = new DownloadAccounting(f.options.base);
-  own().onDispose(observeDownloadAccounting(accounting));
   const urls: string[] = [], progress: { bytesTotal: number; filesTotal: number }[] = [];
   const admitted = await admitProduct(f.index, { ...f.options, tier,
     fetch: url => { urls.push(url); return f.options.fetch(url); }, progress: row => { progress.push(row); } });
@@ -862,7 +859,7 @@ test.each(['phone', 'desktop'] as const)('trusted %s admission never declares or
   expect(admitted.assets.has(selected)).toBe(true); expect(admitted.assets.has(other)).toBe(false);
   expect(urls).not.toContain(new URL(`blobs/bin/${other}.bin`, f.options.base).href);
   expect(progress.at(-1)).toMatchObject({ filesTotal: 1, bytesTotal: tier === 'phone' ? 3 : 1 });
-  expect(accounting.snapshot().declaredFiles).toBe(f.index.sections.length + f.index.schemas.length + 1);
+  expect(new Set(urls).size).toBe(f.index.sections.length + f.index.schemas.length + 1);
   expect(admitted.source.files).toHaveLength(2); // Exact descriptor and its identity remain authoritative.
   expect(admitted.source.library).toHaveLength(2);
 });

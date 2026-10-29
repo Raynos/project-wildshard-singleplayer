@@ -1096,6 +1096,8 @@ renderer-selected pass total and closes that count only after its final draw.
 Admission rows include file counts and actual body bytes read; they are separate
 from the network-only download counter.
 
+`readModuleGroups(names)` validates and returns the selected compiler rows
+without IO or a byte ledger; original module guards and import barriers stay.
 `declareModuleGroups(names)` in `@wildshard/engine/boot/download` declares
 selected optional code from the compiler's existing module bank before its
 original import. Groups share one bounded file table; the whole selection

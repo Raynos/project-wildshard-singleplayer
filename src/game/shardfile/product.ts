@@ -1,6 +1,5 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
-import type {OutputIndex} from '@wildshard/format/outputIndex';
-import { declareDownloadFile, declareDownloadPack, noteDownloadRead, recordCachedDownload, recordPackedDownload, recordReadDownload } from '@wildshard/engine/boot/download';
+
 import { waitFor } from '@wildshard/engine/boot/waits';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -30,7 +29,6 @@ import { neighbourProductFilesPaced, runtimeOnlyProductFilesPaced, tierLibrarySo
 import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
 import { checkedProductCosts, parseCheckedProduct, prepareCheckedProduct, validateCheckedProductAssets } from './productChecks';
 import { clientPreparationBatch } from './preparationTiming';
-
 
 const HASH = /^[a-f0-9]{64}$/u;
 const MAX_FILE_BYTES = 25_000_000;
@@ -206,7 +204,7 @@ async function readBoundedResponse(response: Response, maximum: number, read?: (
       size += next.value.length;
       if (size > maximum) throw new Error('Shardfile wire size exceeds cap');
       chunks.push(next.value);
-      noteDownloadRead(next.value.length);
+
       read?.(next.value.length);
     }
   } catch (error) { await reader.cancel().catch(() => undefined); throw error; }
@@ -222,25 +220,24 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
     offline: options.offline, hash: options.hash, firstParty: options.firstParty, deferAssetDeclarations: true, ...(lineage ? { lineage } : {}),
     ...(options.cacheHintTurn === undefined ? {} : { cacheHintTurn: options.cacheHintTurn }),
     ...(options.pause === undefined ? {} : { pause: options.pause }),
-    declare: (path, bytes) => { declareDownloadFile(new URL(path, base).href, bytes); },
-    cacheHit: (path, hash, bytes) => { recordCachedDownload(hash, bytes, new URL(path, base).href); },
+
     read: async (path, cap) => {
       const url = new URL(path, base).href, bytes = await boundedResponse(await options.fetch(url), cap);
-      recordReadDownload(url, bytes.length); return bytes;
+       return bytes;
     },
-    ...(options.directFiles === true ? {} : {pack: async (path: string, cap: number, members: NonNullable<OutputIndex['packs']>[number]['entries']) => {
-      declareDownloadPack(new URL(path, base).href, cap, members);
+    ...(options.directFiles === true ? {} : {pack: async (path: string, cap: number) => {
+
       const url = new URL(path, base).href, bytes = await boundedResponse(await options.fetch(url), cap);
-      recordReadDownload(url, bytes.length); return bytes;
+       return bytes;
     }}),
-    packedHit: (path, hash) => { recordPackedDownload(new URL(path, base).href, hash); },
+
     ...(cache?.verifiedAsset === undefined && options.transport === undefined ? {} : {
       verified: (hash: string, path: string, cap: number) => waitFor(`Read ${productResourceRole(path)}`, (async () => {
         const bytes = await cache?.verifiedAsset?.(hash);
         if (bytes !== null && bytes !== undefined) return { bytes, cached: true, stored: true };
         if (options.offline) return null;
         const sent = await options.transport?.(new URL(path, base).href, hash, cap) ?? null;
-        if (sent !== null && !sent.cached) noteDownloadRead(sent.bytes.length);
+
         return sent;
       })(), 'file', new URL(path, base).href),
     }),
@@ -294,7 +291,7 @@ async function descriptorWire(options: ProductOptions, url: URL, refresh = false
         if (immutable && size > 0) renew();
         progress?.({ phase: 'descriptor', detail: `Reading shard descriptor · ${label}`, bytesRead, bytesTotal, filesDone: 0, filesTotal: 1 });
       });
-      recordReadDownload(url.href, bytes.length);
+
       progress?.({ phase: 'descriptor', detail: `Parsing shard descriptor · ${label}`, bytesRead, bytesTotal: bytesRead, filesDone: 1, filesTotal: 1 });
       return bytes;
     })();
@@ -486,7 +483,7 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
   }));
   // one lookup set: a product's own files against its commons (a per-asset scan of every file was quadratic in its size)
   const ownFiles = new Set(source.files.map(file => file.hash));
-  for (const [hash, cap] of addresses) declareDownloadFile(outputBlobUrl(source, ownFiles.has(hash) ? hash : `commons:${hash}`, base), cap);
+
   const verifiedCached = new Set<string>(), transported = new Set<string>();
   let bytesRead = 0, filesDone = 0;
   // The worker's read stands in for the page's URL-cache hint and network read; without one the page does both.
@@ -499,10 +496,10 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
   };
   // I5: a file missing from the cache comes from its pack (one read for the phase's small files) instead of its own request
   const packed = options.offline || options.directFiles === true ? undefined : packReads(outputDescriptor(source)?.index.packs, new Set(addresses.map(([hash]) => hash)),
-    async (path, cap, members) => {
-      declareDownloadPack(new URL(path, base).href, cap, members);
+    async (path, cap) => {
+
       const url = new URL(path, base).href, bytes = await boundedResponse(await options.fetch(url), cap);
-      recordReadDownload(url, bytes.length); return bytes;
+       return bytes;
     }, options.hash);
   const bytesTotal = addresses.reduce((total, [, cap]) => total + cap, 0);
   const progress = (phase: ProductProgress['phase'], detail: string, resource: string = new URL(descriptorPath, base).href): void => {
@@ -526,7 +523,7 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
     if (bytes === null || bytes === undefined) {
       if (options.offline) throw new Error('Visited shardfile has an incomplete offline cache');
       progress('assets', `Fetching ${role}`, url);
-      if (inPack && packed !== undefined) { bytes = await waitFor(`Pack member · ${role}`, packed.read(hash), 'file', url); bytesRead += bytes.length; recordPackedDownload(url); }
+      if (inPack && packed !== undefined) { bytes = await waitFor(`Pack member · ${role}`, packed.read(hash), 'file', url); bytesRead += bytes.length;  }
       else bytes = await boundedResponse(await options.fetch(url), cap, (size) => { bytesRead += size; progress('assets', `Reading ${role}`, url); });
     } else { bytesRead += bytes.length; progress('assets', `Cached ${role}`, url); }
     if (bytes.length !== cap) throw new Error('Shardfile asset wire size differs from declaration');
@@ -543,9 +540,7 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
       }
       if (actual !== hash) throw new Error('Shardfile asset hash mismatch');
     }
-    if (transported.has(hash)) noteDownloadRead(bytes.length);
-    else if (fromCache) { verifiedCached.add(hash); recordCachedDownload(hash, bytes.length, url); }
-    else if (!inPack) recordReadDownload(url, bytes.length);
+    if (!transported.has(hash) && fromCache) verifiedCached.add(hash);
     filesDone++; progress('assets', `Verified ${role} · ${filesDone} / ${addresses.length} files`, url);
     return owned;
   };
@@ -663,8 +658,8 @@ export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partia
       const validation = typeof rawValidation === 'object' && rawValidation !== null && 'sourceHash' in rawValidation && typeof rawValidation.sourceHash === 'string' ? readValidationReceipt(rawValidation, rawValidation.sourceHash) : null;
       return { source: value.source, firstParty: value.firstParty, ...(validation === null ? {} : { validation }) };
     },
-    asset: async (_base, hash) => { const bytes = await ownedContent.get(hash); if (bytes !== null) recordCachedDownload(hash, bytes.length); return bytes; },
-    verifiedAsset: async hash => { const bytes = await ownedContent.get(hash); if (bytes !== null) recordCachedDownload(hash, bytes.length); return bytes; },
+    asset: async (_base, hash) => { const bytes = await ownedContent.get(hash);  return bytes; },
+    verifiedAsset: async hash => { const bytes = await ownedContent.get(hash);  return bytes; },
     ...(ownedContent instanceof ContentCacheWorker ? { verifiedPresent: (hash: string, bytes: number) => ownedContent.has(hash, bytes) } : {}),
     putAsset: (_base, hash, bytes) => ownedContent.put(hash, bytes), pin: (hashes) => ownedContent.pin(hashes),
     putAssetBackground: (_base, hash, bytes) => ownedContent instanceof ContentCacheWorker ? ownedContent.put(hash, bytes, false, true) : ownedContent.put(hash, bytes),

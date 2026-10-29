@@ -3,7 +3,7 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { BoxGeometry, DefaultLoadingManager, Mesh, MeshStandardMaterial } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { prepareRigLoader, loadRigFile } from './rig';
-import { DownloadAccounting, installDownloadAccounting } from '../boot/download';
+import {readModuleGroups} from '../boot/download';
 import { loadGLTF } from '../core/assets';
 import { loadGlbPart } from '../models/glb';
 
@@ -20,39 +20,33 @@ const empty = JSON.stringify({asset:{version:'2.0'},scene:0,scenes:[{nodes:[]}],
 
 test('missing parser admission refuses before importing its code or publishing bytes', () => {
   bank({'models.gltf':[1]});
-  const accounting = new DownloadAccounting('https://fixture.invalid/'), dispose = installDownloadAccounting(accounting);
-  try {
-    expect(() => prepareRigLoader()).toThrow('Missing selected client module file');
-    expect(accounting.snapshot()).toMatchObject({declaredFiles:0,declaredBytes:0});
-  } finally { dispose(); }
+  expect(() => prepareRigLoader()).toThrow('Missing selected client module file');
 });
 
-test('parser requests publish selected bytes synchronously before awaiting the original module', async () => {
+test('parser requests check read-only compiler facts before awaiting the original module', async () => {
   bank({'models.gltf':[0]});
-  const accounting = new DownloadAccounting('https://fixture.invalid/'), dispose = installDownloadAccounting(accounting);
   try {
     const requested = prepareRigLoader();
     expect(prepareRigLoader()).toBe(requested);
-    expect(accounting.snapshot()).toMatchObject({declaredFiles:1,declaredBytes:17,networkBytes:0,cachedBytes:0});
+    expect(readModuleGroups(['models.gltf'])).toEqual([['/assets/parser.js', 17]]);
     const first = await requested, second = await prepareRigLoader();
     expect(first).toBe(second); // Native module identity; no replacement loader or memo book.
     expect(first.createRigLoader()).not.toBe(first.createRigLoader());
-    expect(accounting.snapshot()).toMatchObject({declaredFiles:1,declaredBytes:17,networkBytes:0,cachedBytes:0});
-  } finally { dispose(); }
+    expect(readModuleGroups(['models.gltf'])).toEqual([['/assets/parser.js', 17]]);
+  } finally { inventory?.remove(); }
 });
 
-test('a new loading ledger receives module facts after the parser is warm', async () => {
+test('a warm parser still checks each replacement module bank', async () => {
   bank({'models.gltf':[0]});
   const module = await prepareRigLoader();
-  const accounting = new DownloadAccounting('https://fixture.invalid/'), dispose = installDownloadAccounting(accounting);
   try {
     expect(await prepareRigLoader()).toBe(module);
-    expect(accounting.snapshot()).toMatchObject({declaredFiles:1,declaredBytes:17,networkBytes:0,cachedBytes:0});
+    expect(readModuleGroups(['models.gltf'])).toEqual([['/assets/parser.js', 17]]);
     inventory?.remove(); inventory = undefined;
     bank({'models.gltf':[1]});
     expect(() => prepareRigLoader()).toThrow('Missing selected client module file');
-    expect(accounting.snapshot()).toMatchObject({declaredFiles:1,declaredBytes:17,networkBytes:0,cachedBytes:0});
-  } finally { dispose(); }
+    expect(() => readModuleGroups(['models.gltf'])).toThrow('Missing selected client module file');
+  } finally { inventory?.remove(); }
 });
 
 test('concurrent file reads keep the original shared loader and isolated alias manager', async () => {

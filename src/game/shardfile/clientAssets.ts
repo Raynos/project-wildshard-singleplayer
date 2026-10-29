@@ -1,7 +1,7 @@
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
 import { isDev } from '@wildshard/engine/core/devMode';
 import { memoryAttribution } from '@wildshard/engine/core/memoryAttribution';
-import { declareDownloadFile, declareDownloadPack, recordCachedDownload, recordPackedDownload, recordReadDownload } from '@wildshard/engine/boot/download';
+
 import { boundedResponse, type ProductOptions } from './product';
 import { outputBlobUrl, outputDescriptor } from './outputDescriptor';
 import { readPackWhole, releasePackWholes } from './packReads';
@@ -47,9 +47,7 @@ export class ClientAssets {
   }
   private async readReleased(ref: string, cap: number, priority?: 'low'): Promise<Uint8Array> {
     const hash = ref.replace(/^commons:/u, ''), base = new URL('.', this.options.base).href;
-    // Residency rereads may have no format-2 descriptor. Accounting observes
-    // those unknown-path reads on completion and never changes cache refusals.
-    if (outputDescriptor(this.source) !== undefined) declareDownloadFile(outputBlobUrl(this.source, ref, base), cap);
+
     // a trusted content-cache read already checked its SHA-256 (ContentCache.get): no page re-hash (~150 ms of a
     // phone-tier home region); every other read is checked here, off the page where a worker can
     const url = outputDescriptor(this.source) === undefined ? undefined : outputBlobUrl(this.source, ref, base);
@@ -57,23 +55,21 @@ export class ClientAssets {
       ?? (url === undefined ? undefined : await this.urlHint(url, hash, cap, priority));
     if (verified !== null && verified !== undefined) {
       if (verified.length !== cap) throw new Error('Resident tile hash or size mismatch');
-      recordCachedDownload(hash, verified.length, url);
+
       return this.observe(ref, verified);
     }
-    let bytes = this.options.cache?.verifiedAsset === undefined ? await this.options.cache?.asset(base, hash) : null, downloaded = false, packed = false;
+    let bytes = this.options.cache?.verifiedAsset === undefined ? await this.options.cache?.asset(base, hash) : null, downloaded = false;
     if ((bytes === null || bytes === undefined) && url !== undefined && this.options.verifiedResponse === undefined) {
       bytes = await this.options.cachedResponse?.(outputBlobUrl(this.source, ref, base), hash, cap);
     }
     if (bytes === null || bytes === undefined) {
       if (this.options.offline) throw new Error('Missing cached resident tile');
-      const member = await this.readPacked(ref, cap, priority); packed = member !== undefined;
+      const member = await this.readPacked(ref, cap, priority);
       const fetch = priority === 'low' ? this.options.backgroundFetch ?? this.options.fetch : this.options.fetch;
       bytes = member ?? await boundedResponse(await fetch(outputBlobUrl(this.source, ref, base)), cap);
       downloaded = true;
     }
     if (bytes.length !== cap || await this.hashOf(bytes) !== hash) throw new Error('Resident tile hash or size mismatch');
-    if (packed) recordPackedDownload(outputBlobUrl(this.source, ref, base));
-    else if (downloaded) recordReadDownload(outputBlobUrl(this.source, ref, base), bytes.length);
     if (downloaded) {
       // The verified network response is the build input. Disk persistence must
       // not hold the home load behind a background writer or a cache refusal.
@@ -83,7 +79,6 @@ export class ClientAssets {
         return undefined;
       }).catch(() => undefined);
     }
-    else recordCachedDownload(hash, bytes.length);
     return this.observe(ref, bytes);
   }
   /** Optional URL hints cannot hold foreground demand behind unrelated browser cache work. */
@@ -106,13 +101,13 @@ export class ClientAssets {
     const member = pack?.entries.find(entry => entry.hash === ref);
     if (packs === undefined || pack === undefined || member === undefined) return undefined;
     if (member.bytes !== cap) throw new Error('Resident packed member size mismatch');
-    const wire = await readPackWhole(packs, pack, async (path, maximum, members) => {
-      declareDownloadPack(new URL(path, this.options.base).href, maximum, members);
+    const wire = await readPackWhole(packs, pack, async (path, maximum) => {
+
       const fetch = priority === 'low' ? this.options.backgroundFetch ?? this.options.fetch : this.options.fetch;
       const response = await fetch(new URL(path, this.options.base).href);
       if (response.status === 206) { await response.body?.cancel(); throw new Error('Resident pack requires a whole response'); }
       const bytes = await boundedResponse(response, maximum);
-      recordReadDownload(new URL(path, this.options.base).href, bytes.length);
+
       return this.observe(pack.hash, bytes);
     }, bytes => this.hashOf(bytes), this.options.hash);
     return wire.slice(member.offset, member.offset + member.bytes);

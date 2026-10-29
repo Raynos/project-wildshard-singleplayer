@@ -1,5 +1,4 @@
 import { installAssetTables, publicBytes, assetVersions, musicManifests, sfxManifests, bootPacks, type AssetTables, type PackDef, type PackFile, type PackPart } from '@wildshard/engine/boot/tables';
-import { declareDownloadFile } from '@wildshard/engine/boot/download';
 
 /** Exact compiler address consumed by the existing size/hash-verified table reader. */
 export interface AssetTableAddress { readonly url: string; readonly bytes: number; readonly sha256: string }
@@ -44,7 +43,7 @@ let pending: Promise<void> | undefined;
 async function load(): Promise<void> {
   try {
     const address = __BOOT_TABLE_ASSETS__.common;
-    declareDownloadFile(address.url, address.bytes);
+
     const line = document.querySelector<HTMLElement>('.ws-load [data-el="line"]');
     if (line !== null) line.textContent = 'Reading download inventory';
     installAssetTables(await readAssetTables(address, url => fetch(url)));
@@ -58,7 +57,7 @@ export function prepareAssetTables(): Promise<void> {
 const packReads = new Map<string, Promise<void>>();
 async function loadPacks(address: AssetTableAddress): Promise<void> {
   try {
-    declareDownloadFile(address.url, address.bytes);
+
     const incoming = await readAssetTables(address, url => fetch(url));
     installAssetTables({ bytes: publicBytes(), versions: assetVersions(), music: musicManifests(), sfx: sfxManifests(),
       packs: { ...bootPacks(), ...incoming.packs } });

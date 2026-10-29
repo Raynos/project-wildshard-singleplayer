@@ -1,8 +1,9 @@
+import {readModuleGroups} from '@wildshard/engine/boot/download';
 import type * as ScriptPresentation from '../plugin/ui';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type * as LootPresentation from '../loot/runtime';
 import type * as CompendiumPresentation from '../compendium/install';
-import { declareModuleGroups } from '@wildshard/engine/boot/download';
+
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { timeClientPreparation } from './preparationTiming';
 import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type ClientPhase } from './clientPlan';
@@ -213,7 +214,8 @@ export class ShardfileClient {
     this.mode = bindings.runtimeStagesOnly === true ? splatGroundFiles(data).size > 0 ? 'presentation' : 'empty' : bindings.trustedRuntime !== true ? 'full'
       : emptyHybridData(data, bindings.audioOwner, bindings.worldOwner) ? 'empty'
       : emptyHybridData(withoutPresentation(data), bindings.audioOwner, bindings.worldOwner) ? 'presentation' : 'full';
-    if (this.mode === 'full' && !hasDeclaredClientPage(source)) declareModuleGroups([
+
+    if (this.mode === 'full' && !hasDeclaredClientPage(source)) readModuleGroups([
       ...(data.clientScripts.bindings.length > 0 || data.quests.quests.length > 0 ? ['presentation'] : []),
       ...(data.rows.loot.some(row => 'gear' in row) ? ['loot'] : []),
       ...(data.rows.compendiums.length > 0 ? ['compendium'] : []),
@@ -311,7 +313,6 @@ export class ShardfileClient {
     } });
     ctx.system({ id: 'game.shardfile.presentation', phase: 'update', run: (dt) => { presentation.tick(dt); } });
   }
-
 
   async kit(ctx: ShardContext): Promise<void> {
     this.kitData(ctx);

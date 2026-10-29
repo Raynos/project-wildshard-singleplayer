@@ -455,6 +455,12 @@ function selectedModuleFiles(kinds: readonly string[]): ModuleSelection | undefi
   return { bank: admitted, files: [...selected.values()] };
 }
 
+/** Check compiler selection without installing a ledger or fetching code.
+ * Original import/admission barriers stay with their callers. */
+export function readModuleGroups(kinds: readonly string[]): readonly (readonly [string, number])[] {
+  return selectedModuleFiles(kinds)?.files ?? [];
+}
+
 function publishModuleSelection(selection: ModuleSelection): void {
   accountingTargets(accounting => {
     let published = selection.bank.published.get(accounting);
