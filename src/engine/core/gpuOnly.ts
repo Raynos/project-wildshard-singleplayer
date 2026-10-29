@@ -35,8 +35,25 @@ export function rebakeGpuContent(): void { for (const f of rebakes) f(); }
 /** what was marked (empty: an in-place restore brings the whole scene back) */
 export function gpuOnlyContent(): readonly string[] { return [...pageLabels, ...labels]; }
 
-/** BufferAttribute.onUpload: drop the CPU copy once it is on the GPU (the count stays; nothing reads the array again) */
-function releaseCpuCopy(this: BufferAttribute): void { this.array = this.array.slice(0, 0); }
+/** each released attribute's `<label>.<name>`, for the late-write report */
+const releasedAs = new WeakMap<BufferAttribute, string>();
+const lateWriters = new Set<string>();
+/**
+ * BufferAttribute.onUpload: drop the CPU copy once it is on the GPU (the count stays; nothing reads the array again).
+ * QS1 (Sentry WILDSHARD-GAME-S): a writer that marks it `needsUpdate` afterwards bumped its version over the empty array,
+ * and three's next draw threw "Resizing buffer attributes is not supported", failing the render. Such a write lands in
+ * an empty array, so it has nothing to upload: the bump is dropped and the writer named once, in the console.
+ */
+function releaseCpuCopy(this: BufferAttribute): void {
+  this.array = this.array.slice(0, 0);
+  Object.defineProperty(this, 'needsUpdate', { configurable: true, get: () => false, set: (value: boolean) => { if (value) lateWrite(this); } });
+}
+function lateWrite(attribute: BufferAttribute): void {
+  const where = releasedAs.get(attribute) ?? 'gpu-only';
+  if (lateWriters.has(where)) return;
+  lateWriters.add(where);
+  console.warn(`[gpu-only] ${where} was written after its CPU copy went to the GPU; the write is dropped`, new Error('late write').stack);
+}
 
 /**
  * E264: a static mesh's vertex data, on the GPU only once drawn. Every static attribute but `keep` gives up its CPU copy
@@ -67,6 +84,7 @@ export function gpuOnlyAttributes(g: BufferGeometry, label: string, keep: readon
   for (const [name, a] of Object.entries(g.attributes)) {
     if (keep.includes(name) || !(a instanceof BufferAttribute) || a.usage !== StaticDrawUsage) continue;
     bytes += a.array.byteLength;
+    releasedAs.set(a, `${label}.${name}`);
     a.onUpload(releaseCpuCopy);
   }
   if (bytes > 0) markGpuOnly(label);
