@@ -1,7 +1,7 @@
 import type { Vector3 } from 'three';
-import type { ThrownProfile } from '../../weapons/thrownProfile';
+import type { ThrownProfile } from '@wildshard/sdk/weapons/thrownProfile';
 
-// only *-legacy imports this; deleted with the legacy copies (SHARD-PLATFORM-NEXT N5)
+// Historical Nalati flight law, retained only as a test oracle after G885.
 export class Thrown {
   ammo: number;
   constructor(readonly profile: ThrownProfile) { this.ammo = profile.carried; }

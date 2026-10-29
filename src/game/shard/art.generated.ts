@@ -33,105 +33,91 @@ import art30 from "../../shards/far-reach/explore/world-far-reach.webp";
 import art31 from "../../shards/far-reach/thumbs/far-reach-landscape.jpg";
 import art32 from "../../shards/far-reach/thumbs/far-reach-portrait.jpg";
 import art33 from "../../shards/far-reach/thumbs/far-reach.jpg";
-import art34 from "../../shards/nalati-grasslands-legacy/explore/compare/nalati-camp-live.jpg";
-import art35 from "../../shards/nalati-grasslands-legacy/explore/compare/nalati-camp-target.jpg";
-import art36 from "../../shards/nalati-grasslands-legacy/explore/compare/nalati-gully-live.jpg";
-import art37 from "../../shards/nalati-grasslands-legacy/explore/compare/nalati-gully-target.jpg";
-import art38 from "../../shards/nalati-grasslands-legacy/explore/compare/nalati-rail-live.jpg";
-import art39 from "../../shards/nalati-grasslands-legacy/explore/compare/nalati-rail-target.jpg";
-import art40 from "../../shards/nalati-grasslands-legacy/explore/models-nalati-grasslands.webp";
-import art41 from "../../shards/nalati-grasslands-legacy/explore/playground-horse.webp";
-import art42 from "../../shards/nalati-grasslands-legacy/explore/practice-nalati-grasslands.webp";
-import art43 from "../../shards/nalati-grasslands-legacy/explore/sets-nalati-grasslands.webp";
-import art44 from "../../shards/nalati-grasslands-legacy/explore/world-nalati-grasslands.webp";
-import art45 from "../../shards/nalati-grasslands-legacy/thumbs/nalati-grasslands-landscape.jpg";
-import art46 from "../../shards/nalati-grasslands-legacy/thumbs/nalati-grasslands-portrait.jpg";
-import art47 from "../../shards/nalati-grasslands-legacy/thumbs/nalati-grasslands.jpg";
-import art48 from "../../shards/nalati-grasslands/explore/compare/nalati-camp-live.jpg";
-import art49 from "../../shards/nalati-grasslands/explore/compare/nalati-camp-target.jpg";
-import art50 from "../../shards/nalati-grasslands/explore/compare/nalati-gully-live.jpg";
-import art51 from "../../shards/nalati-grasslands/explore/compare/nalati-gully-target.jpg";
-import art52 from "../../shards/nalati-grasslands/explore/compare/nalati-rail-live.jpg";
-import art53 from "../../shards/nalati-grasslands/explore/compare/nalati-rail-target.jpg";
-import art54 from "../../shards/nalati-grasslands/explore/models-nalati-grasslands.webp";
-import art55 from "../../shards/nalati-grasslands/explore/playground-horse.webp";
-import art56 from "../../shards/nalati-grasslands/explore/practice-nalati-grasslands.webp";
-import art57 from "../../shards/nalati-grasslands/explore/sets-nalati-grasslands.webp";
-import art58 from "../../shards/nalati-grasslands/explore/world-nalati-grasslands.webp";
-import art59 from "../../shards/nalati-grasslands/thumbs/nalati-grasslands-landscape.jpg";
-import art60 from "../../shards/nalati-grasslands/thumbs/nalati-grasslands-portrait.jpg";
-import art61 from "../../shards/nalati-grasslands/thumbs/nalati-grasslands.jpg";
-import art62 from "../../shards/nine-dragon-stack-legacy/explore/models-nine-dragon-stack.webp";
-import art63 from "../../shards/nine-dragon-stack-legacy/explore/nine-gate-live.jpg";
-import art64 from "../../shards/nine-dragon-stack-legacy/explore/nine-gate-target.jpg";
-import art65 from "../../shards/nine-dragon-stack-legacy/explore/nine-stair-live.jpg";
-import art66 from "../../shards/nine-dragon-stack-legacy/explore/nine-stair-target.jpg";
-import art67 from "../../shards/nine-dragon-stack-legacy/explore/playground-grapple.webp";
-import art68 from "../../shards/nine-dragon-stack-legacy/explore/practice-nine-dragon-stack.webp";
-import art69 from "../../shards/nine-dragon-stack-legacy/explore/sets-nine-dragon-stack.webp";
-import art70 from "../../shards/nine-dragon-stack-legacy/explore/world-nine-dragon-stack.webp";
-import art71 from "../../shards/nine-dragon-stack-legacy/thumbs/nine-dragon-stack-landscape.jpg";
-import art72 from "../../shards/nine-dragon-stack-legacy/thumbs/nine-dragon-stack-portrait.jpg";
-import art73 from "../../shards/nine-dragon-stack-legacy/thumbs/nine-dragon-stack.jpg";
-import art74 from "../../shards/nine-dragon-stack/explore/models-nine-dragon-stack.webp";
-import art75 from "../../shards/nine-dragon-stack/explore/nine-gate-live.jpg";
-import art76 from "../../shards/nine-dragon-stack/explore/nine-gate-target.jpg";
-import art77 from "../../shards/nine-dragon-stack/explore/nine-stair-live.jpg";
-import art78 from "../../shards/nine-dragon-stack/explore/nine-stair-target.jpg";
-import art79 from "../../shards/nine-dragon-stack/explore/playground-grapple.webp";
-import art80 from "../../shards/nine-dragon-stack/explore/practice-nine-dragon-stack.webp";
-import art81 from "../../shards/nine-dragon-stack/explore/sets-nine-dragon-stack.webp";
-import art82 from "../../shards/nine-dragon-stack/explore/world-nine-dragon-stack.webp";
-import art83 from "../../shards/nine-dragon-stack/thumbs/nine-dragon-stack-landscape.jpg";
-import art84 from "../../shards/nine-dragon-stack/thumbs/nine-dragon-stack-portrait.jpg";
-import art85 from "../../shards/nine-dragon-stack/thumbs/nine-dragon-stack.jpg";
-import art86 from "../../shards/open-plots/thumbs/alien-plain.jpg";
-import art87 from "../../shards/open-plots/thumbs/clockwork-canyon.jpg";
-import art88 from "../../shards/open-plots/thumbs/coral-drift.jpg";
-import art89 from "../../shards/open-plots/thumbs/desert-ruin.jpg";
-import art90 from "../../shards/open-plots/thumbs/ember-forge.jpg";
-import art91 from "../../shards/open-plots/thumbs/frostline-peaks.jpg";
-import art92 from "../../shards/open-plots/thumbs/lantern-bayou.jpg";
-import art93 from "../../shards/open-plots/thumbs/mosslight-ruins.jpg";
-import art94 from "../../shards/open-plots/thumbs/night-market.jpg";
-import art95 from "../../shards/open-plots/thumbs/showcase-template.jpg";
-import art96 from "../../shards/open-plots/thumbs/sky-harbor.jpg";
-import art97 from "../../shards/open-plots/thumbs/sky-race.jpg";
-import art98 from "../../shards/open-plots/thumbs/starfall-observatory.jpg";
-import art99 from "../../shards/open-plots/thumbs/thin-ice.jpg";
-import art100 from "../../shards/pine-hollow-legacy/explore/models-pine-hollow.webp";
-import art101 from "../../shards/pine-hollow-legacy/explore/pine-den-live.jpg";
-import art102 from "../../shards/pine-hollow-legacy/explore/pine-den-target.jpg";
-import art103 from "../../shards/pine-hollow-legacy/explore/pine-hamlet-live.jpg";
-import art104 from "../../shards/pine-hollow-legacy/explore/pine-hamlet-target.jpg";
-import art105 from "../../shards/pine-hollow-legacy/explore/pine-ridge-live.jpg";
-import art106 from "../../shards/pine-hollow-legacy/explore/pine-ridge-target.jpg";
-import art107 from "../../shards/pine-hollow-legacy/explore/practice-pine-hollow.webp";
-import art108 from "../../shards/pine-hollow-legacy/explore/sets-pine-hollow.webp";
-import art109 from "../../shards/pine-hollow-legacy/explore/world-pine-hollow.webp";
-import art110 from "../../shards/pine-hollow-legacy/thumbs/pine-hollow-landscape.jpg";
-import art111 from "../../shards/pine-hollow-legacy/thumbs/pine-hollow-portrait.jpg";
-import art112 from "../../shards/pine-hollow-legacy/thumbs/pine-hollow.jpg";
-import art113 from "../../shards/pine-hollow/explore/models-pine-hollow.webp";
-import art114 from "../../shards/pine-hollow/explore/pine-den-live.jpg";
-import art115 from "../../shards/pine-hollow/explore/pine-den-target.jpg";
-import art116 from "../../shards/pine-hollow/explore/pine-hamlet-live.jpg";
-import art117 from "../../shards/pine-hollow/explore/pine-hamlet-target.jpg";
-import art118 from "../../shards/pine-hollow/explore/pine-ridge-live.jpg";
-import art119 from "../../shards/pine-hollow/explore/pine-ridge-target.jpg";
-import art120 from "../../shards/pine-hollow/explore/practice-pine-hollow.webp";
-import art121 from "../../shards/pine-hollow/explore/sets-pine-hollow.webp";
-import art122 from "../../shards/pine-hollow/explore/world-pine-hollow.webp";
-import art123 from "../../shards/pine-hollow/thumbs/pine-hollow-landscape.jpg";
-import art124 from "../../shards/pine-hollow/thumbs/pine-hollow-portrait.jpg";
-import art125 from "../../shards/pine-hollow/thumbs/pine-hollow.jpg";
-import art126 from "../../shards/sunscar-dunes/explore/models-sunscar-dunes.webp";
-import art127 from "../../shards/sunscar-dunes/explore/practice-sunscar-dunes.webp";
-import art128 from "../../shards/sunscar-dunes/explore/sets-sunscar-dunes.webp";
-import art129 from "../../shards/sunscar-dunes/explore/world-sunscar-dunes.webp";
-import art130 from "../../shards/sunscar-dunes/thumbs/sunscar-dunes-landscape.jpg";
-import art131 from "../../shards/sunscar-dunes/thumbs/sunscar-dunes-portrait.jpg";
-import art132 from "../../shards/sunscar-dunes/thumbs/sunscar-dunes.jpg";
+import art34 from "../../shards/nalati-grasslands/explore/compare/nalati-camp-live.jpg";
+import art35 from "../../shards/nalati-grasslands/explore/compare/nalati-camp-target.jpg";
+import art36 from "../../shards/nalati-grasslands/explore/compare/nalati-gully-live.jpg";
+import art37 from "../../shards/nalati-grasslands/explore/compare/nalati-gully-target.jpg";
+import art38 from "../../shards/nalati-grasslands/explore/compare/nalati-rail-live.jpg";
+import art39 from "../../shards/nalati-grasslands/explore/compare/nalati-rail-target.jpg";
+import art40 from "../../shards/nalati-grasslands/explore/models-nalati-grasslands.webp";
+import art41 from "../../shards/nalati-grasslands/explore/playground-horse.webp";
+import art42 from "../../shards/nalati-grasslands/explore/practice-nalati-grasslands.webp";
+import art43 from "../../shards/nalati-grasslands/explore/sets-nalati-grasslands.webp";
+import art44 from "../../shards/nalati-grasslands/explore/world-nalati-grasslands.webp";
+import art45 from "../../shards/nalati-grasslands/thumbs/nalati-grasslands-landscape.jpg";
+import art46 from "../../shards/nalati-grasslands/thumbs/nalati-grasslands-portrait.jpg";
+import art47 from "../../shards/nalati-grasslands/thumbs/nalati-grasslands.jpg";
+import art48 from "../../shards/nine-dragon-stack-legacy/explore/models-nine-dragon-stack.webp";
+import art49 from "../../shards/nine-dragon-stack-legacy/explore/nine-gate-live.jpg";
+import art50 from "../../shards/nine-dragon-stack-legacy/explore/nine-gate-target.jpg";
+import art51 from "../../shards/nine-dragon-stack-legacy/explore/nine-stair-live.jpg";
+import art52 from "../../shards/nine-dragon-stack-legacy/explore/nine-stair-target.jpg";
+import art53 from "../../shards/nine-dragon-stack-legacy/explore/playground-grapple.webp";
+import art54 from "../../shards/nine-dragon-stack-legacy/explore/practice-nine-dragon-stack.webp";
+import art55 from "../../shards/nine-dragon-stack-legacy/explore/sets-nine-dragon-stack.webp";
+import art56 from "../../shards/nine-dragon-stack-legacy/explore/world-nine-dragon-stack.webp";
+import art57 from "../../shards/nine-dragon-stack-legacy/thumbs/nine-dragon-stack-landscape.jpg";
+import art58 from "../../shards/nine-dragon-stack-legacy/thumbs/nine-dragon-stack-portrait.jpg";
+import art59 from "../../shards/nine-dragon-stack-legacy/thumbs/nine-dragon-stack.jpg";
+import art60 from "../../shards/nine-dragon-stack/explore/models-nine-dragon-stack.webp";
+import art61 from "../../shards/nine-dragon-stack/explore/nine-gate-live.jpg";
+import art62 from "../../shards/nine-dragon-stack/explore/nine-gate-target.jpg";
+import art63 from "../../shards/nine-dragon-stack/explore/nine-stair-live.jpg";
+import art64 from "../../shards/nine-dragon-stack/explore/nine-stair-target.jpg";
+import art65 from "../../shards/nine-dragon-stack/explore/playground-grapple.webp";
+import art66 from "../../shards/nine-dragon-stack/explore/practice-nine-dragon-stack.webp";
+import art67 from "../../shards/nine-dragon-stack/explore/sets-nine-dragon-stack.webp";
+import art68 from "../../shards/nine-dragon-stack/explore/world-nine-dragon-stack.webp";
+import art69 from "../../shards/nine-dragon-stack/thumbs/nine-dragon-stack-landscape.jpg";
+import art70 from "../../shards/nine-dragon-stack/thumbs/nine-dragon-stack-portrait.jpg";
+import art71 from "../../shards/nine-dragon-stack/thumbs/nine-dragon-stack.jpg";
+import art72 from "../../shards/open-plots/thumbs/alien-plain.jpg";
+import art73 from "../../shards/open-plots/thumbs/clockwork-canyon.jpg";
+import art74 from "../../shards/open-plots/thumbs/coral-drift.jpg";
+import art75 from "../../shards/open-plots/thumbs/desert-ruin.jpg";
+import art76 from "../../shards/open-plots/thumbs/ember-forge.jpg";
+import art77 from "../../shards/open-plots/thumbs/frostline-peaks.jpg";
+import art78 from "../../shards/open-plots/thumbs/lantern-bayou.jpg";
+import art79 from "../../shards/open-plots/thumbs/mosslight-ruins.jpg";
+import art80 from "../../shards/open-plots/thumbs/night-market.jpg";
+import art81 from "../../shards/open-plots/thumbs/showcase-template.jpg";
+import art82 from "../../shards/open-plots/thumbs/sky-harbor.jpg";
+import art83 from "../../shards/open-plots/thumbs/sky-race.jpg";
+import art84 from "../../shards/open-plots/thumbs/starfall-observatory.jpg";
+import art85 from "../../shards/open-plots/thumbs/thin-ice.jpg";
+import art86 from "../../shards/pine-hollow-legacy/explore/models-pine-hollow.webp";
+import art87 from "../../shards/pine-hollow-legacy/explore/pine-den-live.jpg";
+import art88 from "../../shards/pine-hollow-legacy/explore/pine-den-target.jpg";
+import art89 from "../../shards/pine-hollow-legacy/explore/pine-hamlet-live.jpg";
+import art90 from "../../shards/pine-hollow-legacy/explore/pine-hamlet-target.jpg";
+import art91 from "../../shards/pine-hollow-legacy/explore/pine-ridge-live.jpg";
+import art92 from "../../shards/pine-hollow-legacy/explore/pine-ridge-target.jpg";
+import art93 from "../../shards/pine-hollow-legacy/explore/practice-pine-hollow.webp";
+import art94 from "../../shards/pine-hollow-legacy/explore/sets-pine-hollow.webp";
+import art95 from "../../shards/pine-hollow-legacy/explore/world-pine-hollow.webp";
+import art96 from "../../shards/pine-hollow-legacy/thumbs/pine-hollow-landscape.jpg";
+import art97 from "../../shards/pine-hollow-legacy/thumbs/pine-hollow-portrait.jpg";
+import art98 from "../../shards/pine-hollow-legacy/thumbs/pine-hollow.jpg";
+import art99 from "../../shards/pine-hollow/explore/models-pine-hollow.webp";
+import art100 from "../../shards/pine-hollow/explore/pine-den-live.jpg";
+import art101 from "../../shards/pine-hollow/explore/pine-den-target.jpg";
+import art102 from "../../shards/pine-hollow/explore/pine-hamlet-live.jpg";
+import art103 from "../../shards/pine-hollow/explore/pine-hamlet-target.jpg";
+import art104 from "../../shards/pine-hollow/explore/pine-ridge-live.jpg";
+import art105 from "../../shards/pine-hollow/explore/pine-ridge-target.jpg";
+import art106 from "../../shards/pine-hollow/explore/practice-pine-hollow.webp";
+import art107 from "../../shards/pine-hollow/explore/sets-pine-hollow.webp";
+import art108 from "../../shards/pine-hollow/explore/world-pine-hollow.webp";
+import art109 from "../../shards/pine-hollow/thumbs/pine-hollow-landscape.jpg";
+import art110 from "../../shards/pine-hollow/thumbs/pine-hollow-portrait.jpg";
+import art111 from "../../shards/pine-hollow/thumbs/pine-hollow.jpg";
+import art112 from "../../shards/sunscar-dunes/explore/models-sunscar-dunes.webp";
+import art113 from "../../shards/sunscar-dunes/explore/practice-sunscar-dunes.webp";
+import art114 from "../../shards/sunscar-dunes/explore/sets-sunscar-dunes.webp";
+import art115 from "../../shards/sunscar-dunes/explore/world-sunscar-dunes.webp";
+import art116 from "../../shards/sunscar-dunes/thumbs/sunscar-dunes-landscape.jpg";
+import art117 from "../../shards/sunscar-dunes/thumbs/sunscar-dunes-portrait.jpg";
+import art118 from "../../shards/sunscar-dunes/thumbs/sunscar-dunes.jpg";
 export const ART_URL_BYTES: Readonly<Record<string, number>> = {
   [art0]: 84067,
   [art1]: 352881,
@@ -181,89 +167,75 @@ export const ART_URL_BYTES: Readonly<Record<string, number>> = {
   [art45]: 388674,
   [art46]: 265177,
   [art47]: 72250,
-  [art48]: 220476,
-  [art49]: 340044,
-  [art50]: 196529,
-  [art51]: 303416,
-  [art52]: 129443,
-  [art53]: 294471,
-  [art54]: 20894,
-  [art55]: 13530,
-  [art56]: 21832,
-  [art57]: 33828,
-  [art58]: 24016,
-  [art59]: 388674,
-  [art60]: 265177,
-  [art61]: 72250,
-  [art62]: 26458,
-  [art63]: 403377,
-  [art64]: 507920,
-  [art65]: 268105,
-  [art66]: 485778,
-  [art67]: 24768,
-  [art68]: 31152,
-  [art69]: 45596,
-  [art70]: 51956,
-  [art71]: 396799,
-  [art72]: 271060,
-  [art73]: 66551,
-  [art74]: 26458,
-  [art75]: 403377,
-  [art76]: 507920,
-  [art77]: 268105,
-  [art78]: 485778,
-  [art79]: 24768,
-  [art80]: 31152,
-  [art81]: 45596,
-  [art82]: 51956,
-  [art83]: 396799,
-  [art84]: 271060,
-  [art85]: 66551,
-  [art86]: 34938,
-  [art87]: 47431,
-  [art88]: 47447,
-  [art89]: 34997,
-  [art90]: 40703,
-  [art91]: 44788,
-  [art92]: 46144,
-  [art93]: 47099,
-  [art94]: 22621,
-  [art95]: 38624,
-  [art96]: 40295,
-  [art97]: 41981,
-  [art98]: 48598,
-  [art99]: 38645,
-  [art100]: 33030,
-  [art101]: 98192,
-  [art102]: 319169,
-  [art103]: 87503,
-  [art104]: 279188,
-  [art105]: 88266,
-  [art106]: 311965,
-  [art107]: 34658,
-  [art108]: 52592,
-  [art109]: 47938,
-  [art110]: 244511,
-  [art111]: 211789,
-  [art112]: 46844,
-  [art113]: 33030,
-  [art114]: 98192,
-  [art115]: 319169,
-  [art116]: 87503,
-  [art117]: 279188,
-  [art118]: 88266,
-  [art119]: 311965,
-  [art120]: 34658,
-  [art121]: 52592,
-  [art122]: 47938,
-  [art123]: 244511,
-  [art124]: 211789,
-  [art125]: 46844,
-  [art126]: 18878,
-  [art127]: 29650,
-  [art128]: 10346,
-  [art129]: 11874,
-  [art130]: 116503,
-  [art131]: 192736,
-  [art132]: 27410,
+  [art48]: 26458,
+  [art49]: 403377,
+  [art50]: 507920,
+  [art51]: 268105,
+  [art52]: 485778,
+  [art53]: 24768,
+  [art54]: 31152,
+  [art55]: 45596,
+  [art56]: 51956,
+  [art57]: 396799,
+  [art58]: 271060,
+  [art59]: 66551,
+  [art60]: 26458,
+  [art61]: 403377,
+  [art62]: 507920,
+  [art63]: 268105,
+  [art64]: 485778,
+  [art65]: 24768,
+  [art66]: 31152,
+  [art67]: 45596,
+  [art68]: 51956,
+  [art69]: 396799,
+  [art70]: 271060,
+  [art71]: 66551,
+  [art72]: 34938,
+  [art73]: 47431,
+  [art74]: 47447,
+  [art75]: 34997,
+  [art76]: 40703,
+  [art77]: 44788,
+  [art78]: 46144,
+  [art79]: 47099,
+  [art80]: 22621,
+  [art81]: 38624,
+  [art82]: 40295,
+  [art83]: 41981,
+  [art84]: 48598,
+  [art85]: 38645,
+  [art86]: 33030,
+  [art87]: 98192,
+  [art88]: 319169,
+  [art89]: 87503,
+  [art90]: 279188,
+  [art91]: 88266,
+  [art92]: 311965,
+  [art93]: 34658,
+  [art94]: 52592,
+  [art95]: 47938,
+  [art96]: 244511,
+  [art97]: 211789,
+  [art98]: 46844,
+  [art99]: 33030,
+  [art100]: 98192,
+  [art101]: 319169,
+  [art102]: 87503,
+  [art103]: 279188,
+  [art104]: 88266,
+  [art105]: 311965,
+  [art106]: 34658,
+  [art107]: 52592,
+  [art108]: 47938,
+  [art109]: 244511,
+  [art110]: 211789,
+  [art111]: 46844,
+  [art112]: 18878,
+  [art113]: 29650,
+  [art114]: 10346,
+  [art115]: 11874,
+  [art116]: 116503,
+  [art117]: 192736,
+  [art118]: 27410,
 };

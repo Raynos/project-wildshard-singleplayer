@@ -195,8 +195,6 @@
     "./shardfile/portalLinkProof": "./shardfile/portalLinkProof.ts",
     "./systems/audio/weaponVoices": "./plugin/audio.ts",
     "./systems/audio/silentScore": "./systems/audio/silentScore.ts",
-    "./systems/npc/figureRig": "./systems/npc/figureRig.ts",
-    "./systems/npc/figureMotion": "./systems/npc/figureMotion.ts",
     "./systems/npc/faceHeads": "./systems/npc/faceHeads.ts",
     "./quest/interactionRows": "./quest/interactionRows.ts",
     "./shard/titleList": "./shard/titleList.ts",

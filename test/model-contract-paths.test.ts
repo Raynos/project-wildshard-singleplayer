@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { checkModels } from '../scripts/check-models.mjs';
 
 describe('model contract after client relocation', () => {
-  it.each(['src/shards/nalati-grasslands-legacy/cragRock.ts', 'src/shards/nine-dragon-stack-legacy/vm/geo.ts'])('retains the frozen merge ceiling at %s', (file) => {
+  it.each(['src/shards/nine-dragon-stack-legacy/vm/geo.ts'])('retains the frozen merge ceiling at %s', (file) => {
     expect(checkModels({ [file]: 'mergeGeometries(parts);' }).violations).toEqual([]);
     expect(checkModels({ [file]: 'mergeGeometries(parts); mergeGeometries(parts);' }).violations)
       .toEqual([expect.stringContaining('2 × mergeGeometries')]);
@@ -20,11 +20,6 @@ describe('model contract after client relocation', () => {
     const primary = file.replace('-legacy/', '/');
     expect(checkModels({ [primary]: merge }).violations)
       .toEqual([expect.stringContaining('1 × mergeGeometries')]);
-  });
-
-  it('keeps the frozen crag on the model contract', () => {
-    expect(checkModels({ 'src/shards/nalati-grasslands-legacy/cragRock.ts': 'registerSolid(piece);' }).violations)
-      .toContainEqual(expect.stringContaining('on the model contract — it places models'));
   });
 
   it.each([['driftwood-isle', 'boat'], ['pine-hollow', 'fallenLog']])('checks the relocated %s model', (slug, name) => {
@@ -96,9 +91,6 @@ describe('model contract after client relocation', () => {
     ['src/game/practice/course.ts', 'registry.add({ object });', 1],
     ['src/game/weapons/heldPolearm.ts', 'new THREE.InstancedMesh();', 1],
     ['src/shards/driftwood-isle-legacy/creatures/Enemies.ts', 'new InstancedMesh();', 1],
-    ['src/shards/nalati-grasslands-legacy/playground/HorsePlayground.ts', 'registry.add({ object });', 1],
-    ['src/shards/nalati-grasslands-legacy/world/Bowl.ts', 'new InstancedMesh();', 2],
-    ['src/shards/nalati-grasslands-legacy/combat/stormTitan.ts', 'new InstancedMesh();', 3],
     ['src/shards/nine-dragon-stack-legacy/world/portals.ts', 'new InstancedMesh();', 2],
   ] as const)('retains the relocated draw ceiling at %s', (file, draw, ceiling) => {
     expect(checkModels({ [file]: draw.repeat(ceiling) }).violations).toEqual([]);

@@ -150,10 +150,6 @@
       "base64Chars": 0,
       "dataUris": 7
     },
-    "src/shards/nalati-grasslands-legacy/runtime/physics.baked.json": {
-      "base64Chars": 1114312,
-      "dataUris": 0
-    },
     "src/shards/pastel-plain/.wildshard/product/shard.json": {
       "base64Chars": 0,
       "dataUris": 1

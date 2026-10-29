@@ -148,7 +148,6 @@ async function capture(slug: string, side: string): Promise<Capture> {
     };
     const { installLegacyKitSpecies } = await import('../src/game/systems/species/install');
     await installLegacyKitSpecies();
-    if (slug === 'nalati-grasslands') (await import('../src/shards/nalati-grasslands-legacy/species/rows')).installNalatiSpeciesForTests();
     if (slug === 'driftwood-isle') (await import('../src/shards/driftwood-isle-legacy/species/install')).installDriftwoodSpecies();
     lists.models = ids((await module(`src/shards/${slug}-legacy/roster.ts`)).ROSTER);
     const manifest = object((await module(`src/shards/${slug}-legacy/manifest.ts`)).default);
@@ -156,7 +155,6 @@ async function capture(slug: string, side: string): Promise<Capture> {
     lists.sets = legacySets(slug, inputs);
     lists.arenas = ['practice'];
     if (slug === 'nine-dragon-stack') lists.arenas.push((await import('../src/shards/nine-dragon-stack-legacy/playground/registration')).GRAPPLE_PLAYGROUND.id);
-    if (slug === 'nalati-grasslands') lists.arenas.push((await import('../src/shards/nalati-grasslands-legacy/playground/registration')).horsePlayground(null).id);
     gaps.push('models: roster captured; world-placement registrations require a separate native world-list adapter');
     gaps.push('sets: literal id/place declaration union; conditional membership and computed identifiers are not qualified');
     gaps.push('world: manifest POIs captured; late runtime map registrations are not qualified');

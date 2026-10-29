@@ -26,7 +26,7 @@ test('Nalati compiled entry preserves original native binds, section authority, 
   expect(MANIFEST.clientPlanRuntime).toBe(true); expect(Object.hasOwn(MANIFEST, 'trustedRuntime')).toBe(false);
   expect(useOwnedGridHome('grid', MANIFEST, source)).toBe(true);
   expect(useOwnedGridHome('shard', MANIFEST, source)).toBe(false);
-  expect(existsSync('src/shards/nalati-grasslands-legacy/adventure.ts')).toBe(true);
+  expect(existsSync('src/shards/nalati-grasslands-legacy')).toBe(false);
   for (const path of ['plugin.ts', 'runtime/index.ts', 'runtime/state.ts']) {
     expect(existsSync(`src/shards/nalati-grasslands/${path}`), path).toBe(false);
   }

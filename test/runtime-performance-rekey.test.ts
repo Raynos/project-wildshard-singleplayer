@@ -10,22 +10,19 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { runtimePerformanceSites, frozenRuntimePerformanceViolations } from '../lint/runtime-performance.mjs';
 import { comparePlatformList } from '../scripts/check-platform-ratchets.mjs';
-import { legacyInventory } from '../scripts/legacy-shards.mjs';
+import frozen from './fixtures/legacy-oracles/nalati-runtime-debt.json' with { type: 'json' };
 
-test('retired Nalati primaries leave exact frozen runtime debt intact', () => {
-  const policy = v.parse(v.object({ sites: v.record(v.string(), v.object({ count: v.number(), row: v.string() })) }),
-    JSON.parse(readFileSync('lint/runtime-performance.json', 'utf8')));
-  const frozen = legacyInventory(process.cwd()).shards['nalati-grasslands-legacy'];
-  if (frozen === undefined) throw new Error('Missing reviewed Nalati frozen inventory');
-  for (const relative of ['runtime/state.ts', 'runtime/index.ts']) {
+test('historical Nalati runtime debt keeps exact-source refusal intact', () => {
+  const policy = v.parse(v.object({ sites: v.record(v.string(), v.object({ count: v.number(), row: v.string() })) }), JSON.parse(readFileSync('lint/runtime-performance.json', 'utf8')));
+  const historical = v.parse(v.object({ sites: v.record(v.string(), v.object({ count: v.number(), row: v.string() })) }), frozen);
+  for (const relative of ['runtime/state.ts', 'runtime/index.ts'] as const) {
     const file = `src/shards/nalati-grasslands-legacy/${relative}`;
     const primary = `src/shards/nalati-grasslands/${relative}`;
-    const digest = frozen.files[relative];
-    if (digest === undefined) throw new Error('Missing exact frozen source digest');
-    const source = readFileSync(file, 'utf8');
+    const digest = frozen.files[relative].hash;
+    const source = frozen.files[relative].source;
     expect(Object.keys(policy.sites).some(key => key.startsWith(`${primary}:`))).toBe(false);
-    expect(frozenRuntimePerformanceViolations(source, file, primary, digest, policy.sites)).toEqual([]);
-    expect(frozenRuntimePerformanceViolations(`${source}\nchanged();`, file, primary, digest, policy.sites).length).toBeGreaterThan(0);
+    expect(frozenRuntimePerformanceViolations(source, file, primary, digest, historical.sites)).toEqual([]);
+    expect(frozenRuntimePerformanceViolations(`${source}\nchanged();`, file, primary, digest, historical.sites).length).toBeGreaterThan(0);
   }
 });
 

@@ -82,7 +82,6 @@
     "./brains": "./brains.ts",
     "./speciesBrains": "./speciesBrains.ts",
     "./phasedBoss": "./phasedBoss.ts",
-    "./groupBrains": "./groupBrains.ts",
     "./admission": "./admission.ts",
     "./headless": "./headless.ts",
     "./headlessRuntime": "./headlessRuntime.ts",
@@ -92,16 +91,12 @@
     "./runtime/weapons/Weapon": "./runtime/weapons/Weapon.ts",
     "./weapons/firearmProfile": "./weapons/firearmProfile.ts",
     "./worldSource": "./worldSource.ts",
-    "./runtime/weapons/Melee": "./runtime/weapons/Melee.ts",
-    "./runtime/weapons/Thrown": "./runtime/weapons/Thrown.ts",
     "./weapons/meleeProfile": "./weapons/meleeProfile.ts",
     "./weapons/thrownProfile": "./weapons/thrownProfile.ts",
     "./bake/world": "./bake/world.ts",
     "./weapons/bowProfile": "./weapons/bowProfile.ts",
     "./bake/textureWasm": "./bake/textureWasm.ts",
     "./bake/worldLod": "./bake/worldLod.ts",
-    "./runtime/weapons/starterMoves": "./runtime/weapons/starterMoves.ts",
-    "./runtime/weapons/starterMeleeProfile": "./runtime/weapons/starterMeleeProfile.ts",
     "./runtime/weapons/Sword": "./runtime/weapons/Sword.ts",
     "./runtime/weapons/starterBow": "./runtime/weapons/starterBow.ts",
     "./bake/worldCollision": "./bake/worldCollision.ts",
@@ -433,10 +428,6 @@
         "types": "./dist/types/sdk/phasedBoss.d.ts",
         "default": "./dist/phasedBoss.js"
       },
-      "./groupBrains": {
-        "types": "./dist/types/sdk/groupBrains.d.ts",
-        "default": "./dist/groupBrains.js"
-      },
       "./admission": {
         "types": "./dist/types/sdk/admission.d.ts",
         "default": "./dist/admission.js"
@@ -477,14 +468,6 @@
         "types": "./dist/types/sdk/worldSource.d.ts",
         "default": "./dist/worldSource.js"
       },
-      "./runtime/weapons/Melee": {
-        "types": "./dist/types/sdk/runtime/weapons/Melee.d.ts",
-        "default": "./dist/runtime/weapons/Melee.js"
-      },
-      "./runtime/weapons/Thrown": {
-        "types": "./dist/types/sdk/runtime/weapons/Thrown.d.ts",
-        "default": "./dist/runtime/weapons/Thrown.js"
-      },
       "./weapons/meleeProfile": {
         "types": "./dist/types/sdk/weapons/meleeProfile.d.ts",
         "default": "./dist/weapons/meleeProfile.js"
@@ -508,14 +491,6 @@
       "./bake/worldLod": {
         "types": "./dist/types/sdk/bake/worldLod.d.ts",
         "default": "./dist/bake/worldLod.js"
-      },
-      "./runtime/weapons/starterMoves": {
-        "types": "./dist/types/sdk/runtime/weapons/starterMoves.d.ts",
-        "default": "./dist/runtime/weapons/starterMoves.js"
-      },
-      "./runtime/weapons/starterMeleeProfile": {
-        "types": "./dist/types/sdk/runtime/weapons/starterMeleeProfile.d.ts",
-        "default": "./dist/runtime/weapons/starterMeleeProfile.js"
       },
       "./runtime/weapons/Sword": {
         "types": "./dist/types/sdk/runtime/weapons/Sword.d.ts",
