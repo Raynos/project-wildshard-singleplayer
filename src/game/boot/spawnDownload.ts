@@ -90,6 +90,7 @@ export function startSpawnDownload(slug: string, flow: 'client' | 'grid', tier: 
 /** Title read-ahead borrows this same manifest operation. Leaving the title
  * cancels only an unadopted prefetch, never a tap's foreground download. */
 export function prefetchSpawnDownload(slug: string, tier: 'phone' | 'desktop'): {download: SpawnDownload; stop: () => void} | null {
+  if (current?.foreground === true) return null;
   const download = spawnDownload(slug, 'client', tier, '000', false);
   return download === null ? null : {download, stop: () => {
     if (current?.download === download && !current.foreground) {download.cancel(); current = undefined;}

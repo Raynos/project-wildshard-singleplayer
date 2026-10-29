@@ -29,6 +29,7 @@ import { settleTileDrivers } from '../shardfile/tileDriver';
 import { observeTitlePreparation, prepareTitleFrame } from './titlePreparation';
 import { installCrashCheckpoint } from './crashResume';
 import { GAME_STRINGS } from '../strings';
+import { currentSpawnDownload } from '../boot/spawnDownload';
 
 /** how often the in-play warm-up asks whether an arrival's Explorer has closed, and how long it waits for one to open */
 const EXPLORER_POLL_MS = 1000, EXPLORER_OPEN_MS = 30_000;
@@ -292,6 +293,9 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     catch (error: unknown) { if (!levelScope.disposed && !levelScope.disposing) console.info('[cache] deferred offline copy', error); }
   };
   const backgroundDownloads = async (): Promise<void> => {
+    // The manifest is the complete automatic entry read set. In-play demand
+    // streams its own files; the old whole-product copy/ring must not race it.
+    if (currentSpawnDownload() !== undefined) return;
     if (!await idleTurn(levelScope)) return;
     void completeOfflineCopy();
     if (!await idleTurn(levelScope)) return;

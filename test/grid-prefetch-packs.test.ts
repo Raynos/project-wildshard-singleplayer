@@ -71,6 +71,8 @@ test.each(['play', 'title', 'title-stop', 'title-adopt'] as const)('%s uses its 
       if (foreground === null) throw new Error('Missing foreground adoption');
       titleRun?.stop(); await foreground.ready;
       expect(foreground.snapshot().complete).toBe(true); expect(aborted).toBe(false);
+      // A late title callback cannot start or replace the active world's job.
+      expect(startTitlePrefetch(['_template'])).toBeNull();
     }
     if (mode === 'title-stop') {
       await vi.waitFor(() => {expect(reads).toContain(`http://localhost/alpha/blobs/bin/${hashes[0] ?? ''}.bin`);});
