@@ -325,6 +325,12 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                 }
                 await equipment;
                 if (owner.disposed) throw new Error('Regional runtime left before its equipment warm-up');
+                // PL6: the kit's creatures and the held view exist now; the same census takes them while play constructs
+                // (at phone CPU 10x they were ~0.37 s of the boot shader step)
+                if (request.page.world.game.frameCount === 0 && foundation.precompileEnvironment !== undefined) {
+                  await prepareWorldFrame(foundation.precompileEnvironment());
+                  if (owner.disposed) throw new Error('Regional runtime left during its equipment warm-up');
+                }
                 await content;
                 if (owner.disposed) throw new Error('Regional runtime left before its final warm-up');
                 // Late content gets the same final look and complete inventory;

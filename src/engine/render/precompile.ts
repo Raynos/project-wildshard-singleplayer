@@ -1638,8 +1638,8 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const from = options.nearest === true ? game.camera.getWorldPosition(new THREE.Vector3()) : undefined, drawnOnly = options.drawnOnly === true || options.arrival !== undefined;
     // The page's road/held roots can still change while its home constructs.
     // Only the completed destination subtree lends materials to the head start,
-    // with what the camera carries (PL6: the loadout builds it before the home;
-    // its arms and swords were ~0.2 s of the boot shader step at phone 10x).
+    // with what the camera carries (PL6: a grid region's kit mounts its held
+    // view before its play; regionalRuntime's census after the kit takes it).
     const roots = options.sceneOnly === true && options.futureLighting !== undefined ? [options.futureLighting, game.camera] : [scene];
     const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 }
       : live || drawnOnly

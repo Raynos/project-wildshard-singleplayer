@@ -151,10 +151,11 @@ test('initial world programs overlap the kit but complete content still gates re
     await flush(); expect(f.calls).toEqual(['before-final', 'frame']);
     expect(ready).toBe(false);
     f.kit(); census.resolve(); await flush();
-    expect(f.calls).toEqual(['before-final', 'frame']); expect(ready).toBe(false);
+    // PL6: the kit's creatures and held view take the same census while play constructs
+    expect(f.calls).toEqual(['before-final', 'frame', 'frame']); expect(ready).toBe(false);
     expect(f.root.visible).toBe(false); expect(f.models.visible).toBe(false);
     f.content(); await result;
-    expect(f.calls).toEqual(['before-final', 'frame', 'before-final', 'final']);
+    expect(f.calls).toEqual(['before-final', 'frame', 'frame', 'before-final', 'final']);
     expect(ready).toBe(true);
   } finally {census.resolve(); f.kit(); f.content(); f.owner.dispose(); await observed;}
 });
