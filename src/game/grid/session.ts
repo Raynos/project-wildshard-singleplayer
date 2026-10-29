@@ -39,7 +39,7 @@ import { publicBytes } from '@wildshard/engine/boot/tables';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { StepProgress } from '@wildshard/engine/boot/plan';
-import { workSlice } from '@wildshard/engine/core/workSlice';
+import { WORK_SLICE_MS, workSlice } from '@wildshard/engine/core/workSlice';
 import { app } from '@wildshard/engine/app/runtime';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { harnessPins } from '@wildshard/engine/app/identity';
@@ -113,6 +113,13 @@ import { startRoadSigns } from './roadSignPreparation';
 import { clientPreparationBatch } from '../shardfile/preparationTiming';
 import { declareDownloadFile } from '@wildshard/engine/boot/download';
 import { admittedRuntimeProduct } from '../shardfile/runtimeProduct';
+
+/** D12: the A1 outer ring's share of a drawn frame (ms). On the phone tier its strips, colliders and road stop 4 ms after
+ *  the last drawn frame (every other build keeps WORK_SLICE_MS): streamed at the shared 8 ms it held the grid's spawn
+ *  window at a p95 of 45 ms on the iOS Simulator, which passes once the ring has landed. */
+const OUTER_RING_SLICE_MS = TIER === 'phone' ? 4 : WORK_SLICE_MS;
+/** a stretch between its slice checks, so a stretch that starts late in the share cannot run far past it */
+const OUTER_RING_STRETCH_MS = TIER === 'phone' ? 2 : 4;
 
 /** The page lights kept for the grid's region lights (LightPool.reserve): the most one region shows at once, Pine Hollow's
  *  five cabin lights. A point light costs every lit fragment a loop step, so this is the grid's real maximum, not more;
@@ -458,7 +465,7 @@ export class GridSession {
     // the existing flat fallback. Outer failures never substitute different edges.
     const outerStrips = async (owner: Scope): Promise<readonly GeneratedStrip[]> => {
       const source = platformInputs(assembly, flatPlatform ? undefined : edges);
-      const background = workSlice(undefined, owner);
+      const background = workSlice(OUTER_RING_SLICE_MS, owner);
       const pause = async (): Promise<void> => {
         if (owner.disposed || owner.disposing || host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during outer seam preparation');
         await background.check();
@@ -466,7 +473,7 @@ export class GridSession {
       if (preparedOuter !== undefined) return preparedOuter(owner, pause);
       const compiledOuter = await readCompiledGridStrips(address.geometry, source, instance, { scope: owner, allocator },
         (url, signal) => fetch(url, { signal }), pause, 'outer');
-      return compiledOuter?.strips ?? generatePlatformSliced(source.cells, source.empty, pause, 4, await seamPlans(), (x, z) => !ring(x, z)); // T10: built in play after controls, 4 ms stretches beside the frame
+      return compiledOuter?.strips ?? generatePlatformSliced(source.cells, source.empty, pause, OUTER_RING_STRETCH_MS, await seamPlans(), (x, z) => !ring(x, z)); // T10: built in play after controls, short stretches beside the frame
     };
     const roadInput = { strips, home, pitch: assembly.pitch, layout, scene: host.scene,
       scope: roadScope, camera: () => host.frame?.camera, plans, admission, ...(tileBacking === undefined ? {} : { tileBacking }),
@@ -487,8 +494,9 @@ export class GridSession {
         outerSigns = startRoadSigns(roadScope, allocator, instance, layout.signs.filter(sign => !ring(sign.at.x, sign.at.z)), 'outer');
         if (outerSigns !== undefined) await waitFor('Grid outer road signs', outerSigns.ready, 'worker');
         if (roadScope.disposed || roadScope.disposing) throw new Error('Grid session left during outer road preparation');
+        const outerSlice = workSlice(OUTER_RING_SLICE_MS, roadScope);
         return await installPlatformRoadSliced({ ...roadInput, ...(outerSigns === undefined ? {} : { signs: outerSigns.get }),
-          allocationKey: 'road.outer', within: (x, z) => !ring(x, z), voidFloor: false }, pause);
+          allocationKey: 'road.outer', within: (x, z) => !ring(x, z), voidFloor: false }, async () => { await outerSlice.check(); }, { budgetMs: OUTER_RING_STRETCH_MS });
       } finally { outerSigns?.release(); grain?.release(); strips.length = 0; } // Collision views retain positions/indices, never render-only colours.
     };
     road.catch(() => { grain?.release(); roadScope.dispose(); });
@@ -593,11 +601,12 @@ export class GridSession {
     const outer = preparedRoad?.outer;
     if (outer !== undefined) this.startOuterRoad = () => {
       const landOuter = async (): Promise<void> => {
-        try { await this.prepareOuterStrips(); const road = await outer(); if (!host.scope.disposed) take(road, true); }
+        const timing = clientPreparationBatch('grid', 'outer-ring', ['strips', 'road']);
+        try { await this.prepareOuterStrips(); timing?.mark('strips'); const road = await outer(); timing?.mark('road'); if (!host.scope.disposed) take(road, true); }
         catch (error: unknown) {
           this.issues.set('road.outer', error instanceof Error ? error.message : String(error));
           console.warn('[grid] the outer road did not install:', error);
-        }
+        } finally { timing?.finish(); }
       };
       void landOuter();
     };
@@ -971,7 +980,7 @@ export class GridSession {
           if (claim === null) throw new Error('Outer platform native residency deferred');
           owner.onDispose(claim.release);
         }
-        const slice = workSlice(undefined, owner);
+        const slice = workSlice(OUTER_RING_SLICE_MS, owner);
         for (const { mesh } of generated) {
           active(); installStripCollider(this.host.physics, mesh, owner); await slice.check();
         }
