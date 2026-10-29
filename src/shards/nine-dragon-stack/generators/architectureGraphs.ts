@@ -184,6 +184,9 @@ function facade(small: boolean): GraphIr {
  * coordinates no longer hold: their wall tone, with the facade's far lit-window grid (kind 11 above) laid out on the upright
  * faces, so a tower past the ring reads as walls and lit rooms, not a flat slab.
  */
+/** QA6: the coarse towers' lit-window glow. Past the ring they stand 240-380 m off in Nine's silk fog, which left the old
+ *  1.15 (a near tower's window) as flat fog: the portal decks (cams 17 / 18) lost LEGACY's hazy lower band of lit towers. */
+const COARSE_GLOW = 3.45;
 function coarseFacade(): GraphIr {
   const g = new Surface(), sw = g.sw.bind(g), mul = g.mul.bind(g), sub = g.sub.bind(g), max = g.max.bind(g), mix = g.mix.bind(g);
   const base = mul(g.op('vertexColour'), mul(g.u('uWashTint'), g.u('uFacadeWash')));
@@ -196,7 +199,7 @@ function coarseFacade(): GraphIr {
   const win = mul(mul(g.cover(sw(f, 'x'), 0.18, 0.82, sw(fw, 'x')), g.cover(sw(f, 'y'), 0.3, 0.8, sw(fw, 'y'))), upright), lit = g.step(g.hash(cell), 0.5);
   const detail = g.smooth(2, 6, g.div(1, max(sw(fw, 'x'), sw(fw, 'y'))));
   const colour = mix(mul(base, 0.8), mix(base, mul(base, [0.42, 0.47, 0.58]), mul(win, sub(1, lit))), detail);
-  const emit = mul([1, 0.7, 0.38], mul(mix(mul(upright, 0.135), mul(win, lit), detail), 1.15));
+  const emit = mul([1, 0.7, 0.38], mul(mix(mul(upright, 0.135), mul(win, lit), detail), COARSE_GLOW));
   return g.output(g.shade(colour), emit, 0);
 }
 
