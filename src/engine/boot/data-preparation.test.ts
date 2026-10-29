@@ -21,7 +21,7 @@ class ControlledWorker extends EventTarget implements Worker {
     const request = this.sent[index];
     if (typeof request !== 'object' || request === null) throw new Error('Missing request');
     const id: unknown = Reflect.get(request, 'id'), kind: unknown = Reflect.get(request, 'kind');
-    if (kind !== 'parse' && kind !== 'receipt') throw new Error('Invalid test operation');
+    if (kind !== 'parse' && kind !== 'parse-pages' && kind !== 'receipt') throw new Error('Invalid test operation');
     try { this.reply({ id, kind, ok: true, value: preparationWork(kind, Reflect.get(request, 'value')) }); }
     catch (error) {
       if (!(error instanceof Error)) throw error;
@@ -122,4 +122,22 @@ test('unavailable diagnostic marks do not refuse an otherwise valid worker resul
     const { client, worker } = fixture(), pending = client.parse(new Uint8Array([49]));
     worker.complete(); expect(await pending).toBe(1);
   } finally { mark.mockRestore(); setDev(previous); }
+});
+
+
+test('paced worker replies transfer bytes while original parsing and receipts retain their ports', async () => {
+  const {client, worker} = fixture();
+  const json = JSON.stringify({rows: Array.from({length: 500}, (_, id) => ({id, title: `row-${id}`}))});
+  let pauses = 0;
+  const parsed = client.parsePaced(new TextEncoder().encode(json), () => {pauses++; return Promise.resolve();});
+  const receipt = client.receipt({a: 1});
+  worker.complete(1); worker.complete(0);
+  expect(await parsed).toEqual(JSON.parse(json)); expect(pauses).toBeGreaterThan(50);
+  expect(await receipt).toEqual(validationSourceBytes({a: 1}));
+});
+
+test('retirement during a paged result reconstruction refuses before publication', async () => {
+  const {owner, client, worker} = fixture();
+  const parsed = client.parsePaced(new TextEncoder().encode('[1,2,3]'), () => {owner.dispose(); return Promise.resolve();});
+  const refused = expect(parsed).rejects.toThrow('owner ended'); worker.complete(); await refused;
 });

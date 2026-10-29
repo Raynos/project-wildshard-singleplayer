@@ -3,6 +3,7 @@ import type { Scope } from '../app/scope';
 import { jsonSlot } from '../saves/slots';
 import { isDev } from '../core/devMode';
 import { waitFor } from './waits';
+import { decodeParsedPages } from './parsedPages';
 
 export const DATA_PREPARATION = ['main', 'workers'] as const;
 export type DataPreparation = (typeof DATA_PREPARATION)[number];
@@ -14,7 +15,7 @@ export function dataPreparation(): DataPreparation {
 }
 export function setDataPreparation(value: DataPreparation): void { if (isDev()) setting().write(value); }
 
-interface Pending { readonly kind: 'parse' | 'receipt'; readonly scope: Scope; readonly resolve: (value: unknown) => void; readonly reject: (error: Error) => void }
+interface Pending { readonly kind: 'parse' | 'parse-pages' | 'receipt'; readonly scope: Scope; readonly resolve: (value: unknown) => void; readonly reject: (error: Error) => void }
 function replyError(value: unknown): Error {
   if (typeof value !== 'object' || value === null) return new Error('Invalid data preparation failure');
   const name: unknown = Reflect.get(value, 'name'), message: unknown = Reflect.get(value, 'message');
@@ -78,7 +79,7 @@ export class DataPreparationWorker {
       throw error;
     }
   }
-  private work(kind: 'parse' | 'receipt', value: unknown): Promise<unknown> {
+  private work(kind: 'parse' | 'parse-pages' | 'receipt', value: unknown): Promise<unknown> {
     try {
       const made = this.start(), thread = this.thread;
       if (thread === null) throw new Error('Data preparation thread missing');
@@ -93,7 +94,7 @@ export class DataPreparationWorker {
         this.pending.set(id, { kind, scope: request, resolve, reject });
         request.timeout(30_000, () => { this.stop(new Error(`Data preparation deadline: ${kind}`)); });
         try {
-          if (kind === 'parse' && value instanceof Uint8Array) {
+          if ((kind === 'parse' || kind === 'parse-pages') && value instanceof Uint8Array) {
             // Preserve the verified caller/cache backing and its durable writes.
             const copy = Uint8Array.from(value);
             made.postMessage({ id, kind, value: copy }, { transfer: [copy.buffer] });
@@ -113,6 +114,21 @@ export class DataPreparationWorker {
   }
   /** Fatal UTF8 decoding and native JSON.parse, returning a detached data tree. */
   parse(bytes: Uint8Array): Promise<unknown> { return this.work('parse', bytes); }
+  /** Native worker parsing with bounded transferable pages and paced reconstruction.
+   * Avoids a whole descriptor structured clone on the live page thread. */
+  async parsePaced(bytes: Uint8Array, pause: () => Promise<void>): Promise<unknown> {
+    const result = await this.work('parse-pages', bytes);
+    if (!(result instanceof Uint8Array)) {
+      this.stop(new Error('Invalid paged data preparation reply'));
+      throw new Error('Invalid paged data preparation reply');
+    }
+    const current = async (): Promise<void> => {
+      if (this.scope.disposed || this.scope.disposing) throw new Error('Data preparation owner ended');
+      await pause();
+      if (this.scope.disposed || this.scope.disposing) throw new Error('Data preparation owner ended');
+    };
+    return decodeParsedPages(result, current);
+  }
   /** Exact format receipt bytes from a structured-cloneable admitted snapshot. */
   async receipt(source: unknown): Promise<Uint8Array> {
     const result = await this.work('receipt', source);

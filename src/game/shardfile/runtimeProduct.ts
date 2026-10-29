@@ -1,3 +1,5 @@
+import { validationSourceBytesPaced } from '@wildshard/format/validationReceipt';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { browserDataPreparation, dataPreparation } from '@wildshard/engine/boot/dataPreparation';
 import { tierProductFilesPaced } from './productCost';
 import { lateFiles } from './controlFiles';
@@ -84,12 +86,15 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     pageScope.onDispose(() => { entryTransport()?.stop(); });
   }
   prepareContentHash();
-  // Boot keeps its explicit variant. In play, parsing/receipt encoding must
-  // not join a frame's render or other cells' admission on the page thread.
-  const preparation = dataPreparation() === 'workers' || productControlsReady ? browserDataPreparation() : undefined;
+  // Boot keeps its explicit variant. Live JSON parsing stays in the worker,
+  // but its tree returns in bounded pages, avoiding a whole-tree clone. The
+  // existing paced receipt encoder likewise avoids cloning a tree to the worker.
+  const explicitWorker = dataPreparation() === 'workers';
+  const preparation = explicitWorker || productControlsReady ? browserDataPreparation() : undefined;
   const pause = pauseDescriptor();
   const dataWorker = preparation === undefined ? undefined : {
-    parse: (bytes: Uint8Array) => preparation.parse(bytes), receipt: (value: unknown) => preparation.receipt(value),
+    parse: (bytes: Uint8Array) => explicitWorker ? preparation.parse(bytes) : preparation.parsePaced(bytes, pause),
+    receipt: (value: unknown) => explicitWorker ? preparation.receipt(value) : validationSourceBytesPaced(value, pause, diagnosticNow),
   };
   const verifiedHash = async (bytes: Uint8Array): Promise<string> => {
     const result = await browserContentHash(bytes);

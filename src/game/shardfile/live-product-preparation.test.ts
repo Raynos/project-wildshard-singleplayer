@@ -7,17 +7,17 @@ import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
 import { preflightProduct } from './productPreflight';
 
-test.each([false, true])('ordinary boot stays on its chosen parser; live=%s uses the data worker', async live => {
+test.each([[false, false], [true, false], [false, true], [true, true]] as const)('parser retains boot choice and bounded live pages: live=%s workers=%s', async (live, explicit) => {
   const source = readFileSync(new URL('runtimeProduct.ts', import.meta.url), 'utf8');
   const start = source.indexOf('export function browserShardfileOptions('), end = source.indexOf('\n/** Paint before admission', start);
   if (start === -1 || end < start) throw new Error('Product options factory missing');
   const parsed = { rows: [1, 2, 3] }, calls: string[] = [], pause = (): Promise<void> => Promise.resolve();
   let cachePreparation: unknown;
-  const worker = { parse: (bytes: Uint8Array): Promise<unknown> => { expect([...bytes]).toEqual([1, 2]); calls.push('parse'); return Promise.resolve(parsed); },
+  const worker = { parse: (bytes: Uint8Array): Promise<unknown> => {expect([...bytes]).toEqual([1, 2]); calls.push('parse-original'); return Promise.resolve(parsed);}, parsePaced: (bytes: Uint8Array): Promise<unknown> => { expect([...bytes]).toEqual([1, 2]); calls.push('parse'); return Promise.resolve(parsed); },
     receipt: (): Promise<Uint8Array> => Promise.resolve(new Uint8Array([3])) };
   const method: unknown = runInNewContext(stripTypeScriptTypes(`${source.slice(start, end).replace('export function', 'function')}\nbrowserShardfileOptions`), {
     productControlsReady: live, observesProductControl: false, document: undefined, caches: {}, navigator: { onLine: true },
-    prepareContentHash: (): void => undefined, dataPreparation: () => 'main',
+    prepareContentHash: (): void => undefined, dataPreparation: () => explicit ? 'workers' : 'main', diagnosticNow: () => 0, validationSourceBytesPaced: () => Promise.resolve(new Uint8Array([3])),
     browserDataPreparation: () => { calls.push('worker'); return worker; },
     TIER_CONFIG: {}, TIER: 'phone', builtIndexes: null, ktx2TranscodeSupport: () => ({}),
     browserContentStore: () => ({}), ContentCacheWorker: class { readonly kind = 'controlled-cache'; }, hashOwnedBytes: (): void => undefined,
@@ -27,17 +27,17 @@ test.each([false, true])('ordinary boot stays on its chosen parser; live=%s uses
   const result: unknown = Reflect.apply(method, undefined, ['https://game.test/shardfiles/fixture/', true]);
   if (typeof result !== 'object' || result === null || !('pause' in result)) throw new Error('Product options missing pause');
   expect(result.pause).toBe(pause);
-  if (!live) {
+  if (!live && !explicit) {
     expect('dataWorker' in result).toBe(false); expect(calls).toEqual([]);
   } else {
     if (!('dataWorker' in result) || typeof result.dataWorker !== 'object' || result.dataWorker === null || !('parse' in result.dataWorker)
       || typeof result.dataWorker.parse !== 'function') throw new Error('Live parser missing');
     const value: unknown = await Reflect.apply(result.dataWorker.parse, result.dataWorker, [new Uint8Array([1, 2])]);
-    expect(value).toBe(parsed); expect(calls).toEqual(['worker', 'parse']);
+    expect(value).toBe(parsed); expect(calls).toEqual(['worker', explicit ? 'parse-original' : 'parse']);
   }
   if (typeof cachePreparation !== 'object' || cachePreparation === null || !('pause' in cachePreparation)) throw new Error('Visited cache preparation missing');
   expect(cachePreparation.pause).toBe(pause);
-  expect('dataWorker' in cachePreparation).toBe(live);
+  expect('dataWorker' in cachePreparation).toBe(live || explicit);
 });
 
 test('visited cache bodies use the same parser and paced complete fence before publication', async () => {

@@ -4,7 +4,7 @@ self.onmessage = (event: MessageEvent<unknown>): void => {
   const data = event.data;
   if (typeof data !== 'object' || data === null) { self.postMessage({ error: 'Invalid data preparation request' }, { transfer: [] }); return; }
   const id: unknown = Reflect.get(data, 'id'), kind: unknown = Reflect.get(data, 'kind');
-  if (typeof id !== 'number' || !Number.isSafeInteger(id) || id <= 0 || (kind !== 'parse' && kind !== 'receipt')) {
+  if (typeof id !== 'number' || !Number.isSafeInteger(id) || id <= 0 || (kind !== 'parse' && kind !== 'parse-pages' && kind !== 'receipt')) {
     self.postMessage({ error: 'Invalid data preparation request' }, { transfer: [] }); return;
   }
   try {
