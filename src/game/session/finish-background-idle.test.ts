@@ -6,12 +6,40 @@ import {stripTypeScriptTypes} from 'node:module';
 // oxlint-disable-next-line import/no-nodejs-modules -- Explicit native ports retain the production continuation's ordering.
 import {runInNewContext} from 'node:vm';
 import {Scope} from '@wildshard/engine/app/scope';
+import {observeTitlePreparation} from './titlePreparation';
 
 function deferred(): {promise: Promise<boolean>; resolve: (live: boolean) => void} {
   let finish: (live: boolean) => void = () => undefined;
   const promise = new Promise<boolean>(resolve => {finish = resolve;});
   return {promise, resolve: finish};
 }
+
+test('title shaders settle while control and live game draws have never been offered', async () => {
+  const source = readFileSync(new URL('finish.ts', import.meta.url), 'utf8');
+  const start = source.indexOf('  const warmRest ='), end = source.indexOf('\n  const titleShaders =', start);
+  if (start === -1 || end < start) throw new Error('Title shader continuation missing');
+  const owner = new Scope('title-before-control'), calls: string[] = [];
+  const method: unknown = runInNewContext(stripTypeScriptTypes(`${source.slice(start, end)}\nwarmRest`), {
+    levelScope: owner, afterExplorer: (): Promise<void> => Promise.resolve(),
+    controlIdle: (): never => {throw new Error('Title must not await control');},
+    idleTurn: (): never => {throw new Error('Title must not await speculative idle');},
+    game: {frameCount: 0, warmDeferredEntryRoots: (current: () => boolean, idle?: unknown): Promise<void> => {
+      expect(current()).toBe(true); expect(idle).toBeUndefined(); calls.push('deferred-roots'); return Promise.resolve();
+    }},
+    waitForDrawnFrame: (): never => {throw new Error('Title must not await a live game draw');}, liveWarmPacing: () => ({}),
+    precompileLevel: (_game: unknown, _progress: unknown, options: {current: () => boolean; pause?: () => Promise<void>}): Promise<void> => {
+      expect(options.current()).toBe(true); expect(options.pause).toBeUndefined(); calls.push('shaders'); return Promise.resolve();
+    },
+  });
+  if (typeof method !== 'function') throw new Error('Title shader continuation is not callable');
+  const work: Promise<void> = Promise.resolve(Reflect.apply(method, undefined, []));
+  const title = observeTitlePreparation(work, Promise.resolve());
+  try {
+    await work; await Promise.resolve();
+    expect(calls).toEqual(['shaders', 'deferred-roots']);
+    expect(title.state()).toEqual({pending: [], issue: null});
+  } finally {owner.dispose();}
+});
 
 test('offline copies and ring speculation wait for separate idle opportunities', async () => {
   const source = readFileSync(new URL('finish.ts', import.meta.url), 'utf8');

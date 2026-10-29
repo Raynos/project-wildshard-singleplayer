@@ -10,12 +10,12 @@ import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadingStage } from '@wildshard/engine/boot/waits';
 import { startShardPrefetch } from '@wildshard/engine/boot/shardPrefetch';
 import { afterControl, reachControl } from '@wildshard/engine/boot/prefetch';
-import { controlIdle, idleTurn } from '@wildshard/engine/boot/idle';
+import { idleTurn } from '@wildshard/engine/boot/idle';
 import { installGpuRecovery } from '@wildshard/engine/core/GpuRecovery';
 import { TIER } from '@wildshard/engine/core/tier';
 import { installProbe } from '@wildshard/engine/debug/probe';
 import { lockOn as lockState } from '@wildshard/engine/player/AimTargets';
-import { liveWarmPacing, precompileLevel, waitForDrawnFrame } from '@wildshard/engine/render/precompile';
+import { liveWarmPacing, precompileLevel } from '@wildshard/engine/render/precompile';
 import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
 import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
@@ -187,17 +187,14 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   };
   const warmRest = async (): Promise<void> => {
     await afterExplorer();
-    if (!await controlIdle(levelScope)) return;
+    // The title's readiness includes these shaders, so they cannot depend on
+    // control or live game draws. Keep the original paint-paced compilation;
+    // only the separate afterControl download/speculation path idles.
     const current = (): boolean => !levelScope.disposed && !levelScope.disposing;
-    const idle = (): Promise<boolean> => idleTurn(levelScope);
-    const pause = async (): Promise<void> => {
-      await waitForDrawnFrame(levelScope, () => game.frameCount, current);
-      if (!await idle()) throw new Error('Shader warm-up owner left');
-    };
     // what the boot left (shaders: drawnOnly) links nearest-first under the live slice budget
     try {
-      await precompileLevel(game, undefined, { sliceMs: 6, current, pause, nearest: true, ...liveWarmPacing() });
-      await game.warmDeferredEntryRoots(current, idle);
+      await precompileLevel(game, undefined, { sliceMs: 6, current, nearest: true, ...liveWarmPacing() });
+      await game.warmDeferredEntryRoots(current);
     }
     catch (error: unknown) {
       if (!levelScope.disposed) console.warn('[shaders] the in-play warm-up stopped:', error);
