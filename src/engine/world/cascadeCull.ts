@@ -64,6 +64,8 @@ function cellsOf(mesh: THREE.InstancedMesh): Float32Array {
 class CascadeFrustum extends THREE.Frustum {
   /** the footprint in the shadow camera's view xy: a convex polygon, counter-clockwise, [x0, y0, x1, y1, …] */
   private readonly poly: number[] = [];
+  /** how many of `poly`'s numbers are this frame's (D107: the array keeps its backing store, never trimmed a frame) */
+  private polyLength = 0;
   /** refresh's scratch (the corners in view xy, the hull's two chains), kept so a frame allocates nothing */
   private readonly pts: [number, number][] = [];
   private readonly lower: [number, number][] = [];
@@ -83,7 +85,7 @@ class CascadeFrustum extends THREE.Frustum {
     while (pts.length < corners.length) pts.push([0, 0]);
     pts.length = corners.length;
     for (let i = 0; i < corners.length; i++) { const v = corners[i], pt = pts[i]; if (v === undefined || pt === undefined) continue; _p.copy(v).applyMatrix4(this.view); pt[0] = _p.x; pt[1] = _p.y; }
-    hull(pts, this.lower, this.upper, this.poly);
+    this.polyLength = hull(pts, this.lower, this.upper, this.poly);
   }
 
   /** an instanced caster passes when one of its copy cells does (see CELL above; its own sphere can be stale: never read
@@ -103,7 +105,7 @@ class CascadeFrustum extends THREE.Frustum {
   override intersectsSphere(sphere: THREE.Sphere): boolean {
     if (!super.intersectsSphere(sphere)) return false;
     if (this.off) return true;
-    const poly = this.poly, n = poly.length / 2;
+    const poly = this.poly, n = this.polyLength / 2;
     if (n < 3) return true;
     _c.copy(sphere.center).applyMatrix4(this.view);
     const r = sphere.radius + this.pad;
@@ -125,8 +127,8 @@ class CascadeFrustum extends THREE.Frustum {
 const byXY = (a: [number, number], b: [number, number]): number => a[0] - b[0] || a[1] - b[1];
 const cross = (o: [number, number], a: [number, number], b: [number, number]): number => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
 /** Andrew's monotone chain: the convex hull of `pts` (sorted in place), counter-clockwise, flat into `out`; `lower` and
- *  `upper` are the caller's scratch chains */
-function hull(pts: [number, number][], lower: [number, number][], upper: [number, number][], out: number[]): void {
+ *  `upper` are the caller's scratch chains. Returns how many numbers of `out` it wrote. */
+function hull(pts: [number, number][], lower: [number, number][], upper: [number, number][], out: number[]): number {
   // A cascade supplies eight private points. Stable insertion order matches
   // native sort without allocating its per-frame temporary array. Keep the
   // original native path for non-finite/other-sized future inputs.
@@ -142,8 +144,8 @@ function hull(pts: [number, number][], lower: [number, number][], upper: [number
     }
     pts[at] = point;
   }
-  // Retain chain/output backing stores between frames. Pop the logical cursor;
-  // truncate only once at the end, releasing every no-longer-used point.
+  // Retain chain/output backing stores between frames: logical cursors only, never a length cut (a trimmed store
+  // regrew, a fresh backing store, on the next frame's writes; D107).
   let lowerCount = 0, upperCount = 0, used = 0;
   for (const p of pts) {
     while (lowerCount >= 2) { const a = lower[lowerCount - 2], b = lower[lowerCount - 1]; if (a === undefined || b === undefined || cross(a, b, p) > 0) break; lowerCount--; }
@@ -158,7 +160,7 @@ function hull(pts: [number, number][], lower: [number, number][], upper: [number
   lowerCount = Math.max(0, lowerCount - 1); upperCount = Math.max(0, upperCount - 1);
   for (let index = 0; index < lowerCount; index++) { const p = lower[index]; if (p !== undefined) { out[used++] = p[0]; out[used++] = p[1]; } }
   for (let index = 0; index < upperCount; index++) { const p = upper[index]; if (p !== undefined) { out[used++] = p[0]; out[used++] = p[1]; } }
-  lower.length = lowerCount; upper.length = upperCount; out.length = used;
+  return used;
 }
 
 /** shadow passes in progress (Game's shadowMap.render wrapper): only then do copy-culled casters report frustumCulled */

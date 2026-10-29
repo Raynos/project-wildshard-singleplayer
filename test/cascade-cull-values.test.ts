@@ -18,6 +18,13 @@ function numbers(input: unknown): number[] {
   return out;
 }
 
+/** the footprint the current implementation drew this frame: its first `polyLength` numbers (D107 keeps the store) */
+function footprint(frustum: object): number[] {
+  const length: unknown = Reflect.get(frustum, 'polyLength');
+  if (typeof length !== 'number') throw new Error('Missing polyLength');
+  return numbers(Reflect.get(frustum, 'poly')).slice(0, length);
+}
+
 test('every original cascade footprint byte and sphere verdict survives warm buffer reuse', () => {
   const before = create(original), after = create(installCascadeCull), sphere = new Sphere();
   let footprints = 0, verdicts = 0;
@@ -39,7 +46,7 @@ test('every original cascade footprint byte and sphere verdict survives warm buf
         const oldLight = before.csm.lights[cascade], newLight = after.csm.lights[cascade];
         if (oldLight === undefined || newLight === undefined) throw new Error('Missing actual native cascade');
         const old = oldLight.shadow.getFrustum(), now = newLight.shadow.getFrustum();
-        const oldPoly = numbers(Reflect.get(old, 'poly')), newPoly = numbers(Reflect.get(now, 'poly'));
+        const oldPoly = numbers(Reflect.get(old, 'poly')), newPoly = footprint(now);
         deepStrictEqual(new Float64Array(newPoly), new Float64Array(oldPoly)); footprints++;
         deepStrictEqual(now.planes.flatMap(plane => [...plane.normal.toArray(), plane.constant]), old.planes.flatMap(plane => [...plane.normal.toArray(), plane.constant]));
         for (let index = 0; index < 257; index++) {
@@ -72,7 +79,7 @@ test('duplicate, collinear, empty, expanded and non-finite footprints retain the
         if (typeof refresh !== 'function') throw new Error('Missing original private footprint operation');
         Reflect.apply(refresh, frustum, [box, camera, corners, .5]);
       }
-      deepStrictEqual(new Float64Array(numbers(Reflect.get(now, 'poly'))), new Float64Array(numbers(Reflect.get(old, 'poly'))));
+      deepStrictEqual(new Float64Array(footprint(now)), new Float64Array(numbers(Reflect.get(old, 'poly'))));
       expect(now.intersectsSphere(sphere)).toBe(old.intersectsSphere(sphere));
     }
   } finally { before.csm.remove(); before.csm.dispose(); after.csm.remove(); after.csm.dispose(); }

@@ -466,11 +466,17 @@ export class Game {
     // SHADOW_LAYER while — and only while — the shadow maps draw. Before this the cabins' depth proxies (PLAY-PERF lever
     // 12, 46868b5) were never drawn: the cabins cast no wall / roof shadow at all.
     const shadowMap = this.renderer.shadowMap, renderShadows = shadowMap.render.bind(shadowMap);
+    // D107: one pass's arguments ride in these slots, so the shadow pass makes no closure a frame
+    type ShadowArgs = Parameters<typeof renderShadows>;
+    let passLights: ShadowArgs[0] | null = null, passScene: ShadowArgs[1] | null = null, passCamera: ShadowArgs[2] | null = null;
+    const drawShadows = (): void => { if (passLights !== null && passScene !== null && passCamera !== null) renderShadows(passLights, passScene, passCamera); };
+    const dropColour = (rt: THREE.WebGLRenderTarget): void => { dropShadowColour(this.renderer, rt); };
     shadowMap.render = (lights, scene, camera) => {
       const mask = camera.layers.mask;
       camera.layers.enable(SHADOW_LAYER);
-      try { duringShadowPass(() => { renderShadows(lights, scene, camera); }); } finally { camera.layers.mask = mask; }
-      shadowLights(lights, (rt) => { dropShadowColour(this.renderer, rt); }); // SF22d: three's maps keep their depth only
+      passLights = lights; passScene = scene; passCamera = camera;
+      try { duringShadowPass(drawShadows); } finally { camera.layers.mask = mask; passLights = null; passScene = null; passCamera = null; }
+      shadowLights(lights, dropColour); // SF22d: three's maps keep their depth only
     };
     this.camera = new THREE.PerspectiveCamera(CAMERA_FOV, window.innerWidth / viewportHeight(), 0.08, 2600);
     this.viewmodel = new ViewmodelRoot();
