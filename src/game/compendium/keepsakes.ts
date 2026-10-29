@@ -157,6 +157,13 @@ export interface CollectionKeepers<P extends object> {
   models: ReadonlyMap<string, ModelDef<P>>;
 }
 
+/** Game.scene is a prototype accessor, so spreading a Game silently drops it.
+ * Borrow the ports explicitly while the scoped host supplies the update owner. */
+export function collectionGamePorts(game: CollectionKeepers<object>['world']['game'],
+  onUpdate: CollectionKeepsakeHost<never>['game']['onUpdate']): CollectionKeepsakeHost<never>['game'] {
+  return { scene: game.scene, camera: game.camera, renderer: game.renderer, onUpdate };
+}
+
 /** Bind existing world/adventure/player instances from rows; their legacy capability borrow is tracked by G482. */
 export async function installDeclaredCollectionKeepsakes<P extends object>(ctx: ShardContext, rows: CollectionKeepsakes, economy: DeclaredLootEconomy,
   owners: ReadonlyMap<string, CollectionKeepers<P>>): Promise<void> {
@@ -174,7 +181,7 @@ export async function installDeclaredCollectionKeepsakes<P extends object>(ctx: 
       const model = owner.models.get(key); if (model === undefined) throw new Error(`Missing collection cosmetic: ${key}`);
       return collectionCosmetic(model, modelCtx);
     },
-    game: { ...world.game, onUpdate: run => { ctx.system({ id: 'keepsakes', phase: 'update', after: ['game.loot', 'body-shadow'],
-      before: ['hud.combat', 'last place', 'first hints', 'main.world'], run }); } },
+    game: collectionGamePorts(world.game, run => { ctx.system({ id: 'keepsakes', phase: 'update', after: ['game.loot', 'body-shadow'],
+      before: ['hud.combat', 'last place', 'first hints', 'main.world'], run }); }),
   });
 }
