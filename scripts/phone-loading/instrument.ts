@@ -110,6 +110,15 @@ export function instrument(flow: string): void {
             ...(start === null ? {} : {startBasis: 'native' as const}), ...(end === null ? {} : {endBasis: 'native' as const}),
             wallMs: start !== null && end !== null ? end - start : null});
         }
+        // Gaps carry native elapsed time but no native absolute bounds.
+        // Keep those bounds unknown rather than inferring them from a poll.
+        const gaps: unknown = Reflect.get(snapshot, 'gaps');
+        if (Array.isArray(gaps)) for (const [index, gap] of gaps.entries()) {
+          if (typeof gap !== 'object' || gap === null) continue;
+          const label: unknown = Reflect.get(gap, 'label'), ms: unknown = Reflect.get(gap, 'ms'), state: unknown = Reflect.get(gap, 'state');
+          if (typeof label !== 'string' || typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0 || state !== 'ok' && state !== 'on') continue;
+          seen.set(`gap:native:${index}`, {key: `gap:native:${index}`, label, duration: ms, state, start: null, end: null, wallMs: null});
+        }
       } else {
         for (const element of root.querySelectorAll<HTMLElement>('[data-key]')) {
           const name = element.dataset['key'];
@@ -134,7 +143,7 @@ export function instrument(flow: string): void {
       if (at - lastPanelAt >= 100 && data.control === null) {
         const text = (field: string): string => root.querySelector(`[data-el="${field}"]`)?.textContent ?? '';
         const download = Number.parseFloat(text('dlPct'));
-        data.panels?.push({at, clock: text('clock'), download: Number.isFinite(download) ? download : null,
+        data.panels?.push({at, clock: text('clock'), download: Number.isFinite(download) ? download : null, downloadFact: text('dlFact'),
           header: text('suFact'), wait: text('foot'), step: root instanceof HTMLElement ? root.dataset['step'] ?? '' : '', activeLabel});
         lastPanelAt = at;
       }

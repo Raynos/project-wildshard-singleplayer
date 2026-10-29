@@ -13,7 +13,7 @@ export interface RequestRow {url: string; start: number; end: number | null; sou
   accounting?: 'pending' | 'complete' | 'incomplete'; accountingError?: string}
 export interface RequestAccounting {complete: boolean; pending: number; incomplete: number; deadlineMs: number}
 export interface Mark {name: string; start: number; duration: number; detail: unknown}
-export interface PanelRow {at: number; clock: string; download: number | null; header: string; wait: string; step: string; activeLabel: string | null}
+export interface PanelRow {at: number; clock: string; download: number | null; downloadFact?: string; header: string; wait: string; step: string; activeLabel: string | null}
 export interface ControlWitness {
   at: number; documentToken: string; timeOrigin: number; initialURL: string; url: string; initialChunk: string | null;
   expectedShard: string | null; shard: string | null; titleFirst: boolean; entered: boolean; paused: boolean | null;
