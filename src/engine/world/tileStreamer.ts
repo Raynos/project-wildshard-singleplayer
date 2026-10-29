@@ -21,6 +21,7 @@
  */
 import { CHUNK_HALF, CONTENT_CAPS as C } from '../core/config';
 import { diagnosticNow } from '../core/clock';
+import { emitFault } from '../core/faults';
 import type { Scope } from '../app/scope';
 /** The renderer borrows the caller's budget; the engine owns no game allocator. */
 export interface TileStreamLease {
@@ -243,6 +244,7 @@ export class TileStreamer<D> {
   private visibleCells: readonly LayoutCell[] = [];
   private farPlanned: FarPlan = { budget: 0, charged: 0, wanted: [], omitted: [] };
   private disposed = false;
+  private frameFaults: Set<string> | undefined;
 
   constructor(cells: readonly RingCell[], budget: TileStreamBudget, catalogue: RingCatalogue, ports: RingPorts<D>, options: RingOptions = {}) {
     if (new Set(cells.map((c) => c.instance)).size !== cells.length || cells.some((c) => c.instance.length === 0 || !Number.isFinite(c.origin.x) || !Number.isFinite(c.origin.z))) throw new RangeError('Invalid ring cells');
@@ -368,13 +370,26 @@ export class TileStreamer<D> {
     return { frame: this.frame, resident, inFlight, queued, refused: this.refused, uploads: this.uploads, evictions: this.evictions };
   }
 
+  /** A bad frame leaves the last valid demand intact and reports once; later frames still run. */
+  private skipFrame(error: Error): void {
+    const reported = this.frameFaults ??= new Set();
+    if (reported.has(error.message)) return;
+    reported.add(error.message);
+    emitFault({ system: 'world.tiles', error, verdict: 'retry' });
+  }
+
   /** One fixed step: choose, release, request, upload, re-mask. */
   step(camera: RingCamera, fullCentre: { readonly x: number; readonly z: number } = camera): void {
-    if (this.disposed) throw new Error('Render rings are disposed');
+    if (this.disposed) { this.skipFrame(new Error('Render rings are disposed')); return; }
     if (!Number.isFinite(camera.x) || !Number.isFinite(camera.z) || !Number.isFinite(camera.vx)
-      || !Number.isFinite(camera.vz) || !Number.isFinite(fullCentre.x) || !Number.isFinite(fullCentre.z)) throw new RangeError('Invalid ring camera');
-    const frame = ++this.frame, revision = this.catalogue.revision?.(), prior = this.idlePlan;
-    if (revision !== undefined && !Number.isSafeInteger(revision)) throw new RangeError('Invalid ring catalogue revision');
+      || !Number.isFinite(camera.vz) || !Number.isFinite(fullCentre.x) || !Number.isFinite(fullCentre.z)) {
+      this.skipFrame(new RangeError('Invalid ring camera')); return;
+    }
+    const revision = this.catalogue.revision?.();
+    if (revision !== undefined && !Number.isSafeInteger(revision)) {
+      this.skipFrame(new RangeError('Invalid ring catalogue revision')); return;
+    }
+    const frame = ++this.frame, prior = this.idlePlan;
     // A stationary plan can also wait for fetch completion or its exact retry
     // frame. Completion, pins, eviction and catalogue changes invalidate it;
     // queued uploads still consume their original per-frame budget.
