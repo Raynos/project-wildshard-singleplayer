@@ -1356,8 +1356,15 @@ function* placeSteps<P extends object>(def: ModelDef<P>, placements: readonly Pl
   const life = lifeOf(registry), owner = shorterOwner(registry);
   if (w !== undefined && !weldLives.has(w)) weldLives.set(w, life);
   const view = o.cull?.view, cullWith = drawn.cullWith;
-  if (view !== undefined && cullWith) view.onViewChange(cullWith); // the shard's view drives it (never per frame here)
-  else if (drawn.cull) {
+  if (view !== undefined && cullWith) {
+    view.onViewChange(cullWith); // the shard's view drives it
+    // FC12: a set drawn whole over streamed tiles follows its resident tiles between view changes (InstancedCull.update)
+    if (o.cull?.resident !== undefined && drawn.cull) {
+      const cull = drawn.cull;
+      startCuller(life, cull);
+      if (owner !== null && registry !== null) untilOwner(owner, registry, () => { stopCuller(life, cull); });
+    }
+  } else if (drawn.cull) {
     const cull = drawn.cull;
     startCuller(life, cull);
     if (owner !== null && registry !== null) untilOwner(owner, registry, () => { stopCuller(life, cull); });

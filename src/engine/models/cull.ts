@@ -366,6 +366,9 @@ export class InstancedCull {
   /** `CullOptions.resident`'s version, and the one the copies were last chosen at */
   private readonly resident: (() => number) | null;
   private chosen = 0;
+  /** FC12: a view handed in (`CullOptions.view`) drives the choice; `update` then only follows the resident tiles */
+  private readonly viewDriven: boolean;
+  private handed = false;
   /** the casting cascades' frusta, read as each choice starts (`CullOptions.casters`) */
   private readonly casting: () => readonly THREE.Frustum[];
   private readonly chooser: Chooser;
@@ -391,16 +394,21 @@ export class InstancedCull {
     this.chooser = new Chooser(from, o, bounds, origins, fades);
     this.sinks = new Sinks(groups, matrices, colors, scales);
     this.resident = o.resident?.version ?? null;
+    this.viewDriven = o.view !== undefined;
   }
 
   update(camera: THREE.Camera): void {
-    const moved = this.view.changed(camera), version = this.resident?.() ?? 0;
+    const version = this.resident?.() ?? 0;
+    // FC12: a handed-in view's culler re-chooses here only when its resident tiles changed, from the view it was last given
+    if (this.viewDriven) { if (this.handed && version !== this.chosen) { this.chosen = version; this.choose(); } return; }
+    const moved = this.view.changed(camera);
     if (moved || version !== this.chosen) { this.chosen = version; this.choose(); }
   }
 
   /** a view handed in (`CullOptions.view`) */
   updateWith(frustum: THREE.Frustum, eye: THREE.Vector3): void {
     this.view.use(frustum, eye);
+    this.handed = true; this.chosen = this.resident?.() ?? 0;
     this.choose();
   }
 

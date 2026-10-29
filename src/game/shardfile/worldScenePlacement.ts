@@ -159,11 +159,12 @@ export class WorldScenePlacement {
    * draws all its copies in one draw, each resident tile drawing its range of it (its copies' instances, or its copies'
    * triangles by centroid: `tiledMesh`), so tiling never multiplies its draws. FC12 (G913): an instanced one culled per
    * copy too (Nine's facade pieces and crowd, one draw per tile each): its culler keeps only the resident tiles' copies.
+   * Also on a forest view (Pine's boulders, stumps and logs): the forest hands the view, the culler follows the tiles.
    */
   private ranged(): boolean {
     const row = this.row, cull = row.cull;
     return (row.draw === 'instanced' || row.draw === 'batched' || row.draw === 'merged') && row.drawnInto === undefined
-      && (cull === undefined || row.draw !== 'merged' && cull.lodBy !== 'set' && cull.view === undefined)
+      && (cull === undefined || row.draw !== 'merged' && cull.lodBy !== 'set')
       && row.piece?.follows === undefined && this.bucketed().size > 1;
   }
   /** FC12: `tile`'s copies draw while `scope` holds it (the culler re-chooses on the version) */
