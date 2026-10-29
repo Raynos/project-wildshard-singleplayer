@@ -5,8 +5,8 @@ import { hashImmutableBytes } from '../immutable';
 const stores: ContentCache[] = [];
 afterEach(async () => { for (const store of stores.splice(0)) await store.flush(); });
 
-function fixture(limits: { maxBytes?: number; maxEntries?: number } = {}, beforePut?: (key: string) => Promise<void>): { open: () => ContentCache; disk: Map<string, Response>; writes: string[]; key: (hash: string) => string } {
-  const disk = new Map<string, Response>(), writes: string[] = [], root = 'https://cache.test/__ws_content__/v0/';
+function fixture(limits: { maxBytes?: number; maxEntries?: number } = {}, beforePut?: (key: string) => Promise<void>): { open: () => ContentCache; disk: Map<string, Response>; writes: string[]; hashes: string[]; key: (hash: string) => string } {
+  const disk = new Map<string, Response>(), writes: string[] = [], hashes: string[] = [], root = 'https://cache.test/__ws_content__/v0/';
   const url = (input: RequestInfo | URL): string => input instanceof Request ? input.url : String(input);
   const cache = {
     match: (input: RequestInfo | URL) => Promise.resolve(disk.get(url(input))?.clone()),
@@ -15,12 +15,37 @@ function fixture(limits: { maxBytes?: number; maxEntries?: number } = {}, before
     keys: () => Promise.resolve([...disk.keys()].map(key => new Request(key))),
   };
   let time = 0;
-  return { disk, writes, key: hash => `${root}${hash}`, open: () => {
+  return { disk, writes, hashes, key: hash => `${root}${hash}`, open: () => {
     const store = new ContentCache({ storage: { open: () => Promise.resolve(cache) }, origin: 'https://cache.test',
-      hash: bytes => Promise.resolve(hashImmutableBytes(bytes)), maxBytes: 1024, maxEntries: 8, reserveBytes: 0, now: () => ++time, ...limits });
+      hash: bytes => { const hash = hashImmutableBytes(bytes); hashes.push(hash); return Promise.resolve(hash); }, maxBytes: 1024, maxEntries: 8, reserveBytes: 0, now: () => ++time, ...limits });
     stores.push(store); return store;
   } };
 }
+
+test('G881 trusts content-named hits without hashing, including after reopening', async () => {
+  const ports = fixture(), store = ports.open(), input = Uint8Array.of(3, 4), hash = hashImmutableBytes(input);
+  await store.put(hash, input); await store.flush();
+  expect(ports.hashes).toEqual([hash]);
+  expect(await Promise.all([store.get(hash), store.get(hash), ports.open().get(hash)])).toEqual([input, input, input]);
+  expect(ports.hashes).toEqual([hash]);
+  // Cache Storage and the content name are trusted, not another per-read checksum.
+  ports.disk.set(ports.key(hash), new Response(Uint8Array.of(5, 6), { headers: { 'x-ws-bytes': '2', 'x-ws-used': '1' } }));
+  expect(await store.get(hash)).toEqual(Uint8Array.of(5, 6));
+  expect(ports.hashes).toEqual([hash]);
+});
+
+test('a length mismatch refetches only that file and preserves the other cached body', async () => {
+  const ports = fixture(), store = ports.open(), input = Uint8Array.of(3, 4), other = Uint8Array.of(7);
+  const hash = hashImmutableBytes(input), otherHash = hashImmutableBytes(other);
+  await store.put(hash, input); await store.put(otherHash, other);
+  ports.disk.set(ports.key(hash), new Response(Uint8Array.of(3), { headers: { 'x-ws-bytes': '2', 'x-ws-used': '1' } }));
+  let downloads = 0;
+  expect(await store.load(hash, () => { downloads++; return Promise.resolve(input); })).toEqual(input);
+  await store.flush();
+  expect(downloads).toBe(1); expect(await store.get(otherHash)).toEqual(other);
+  expect(await store.get(hash)).toEqual(input);
+  expect(ports.hashes).toEqual([hash, otherHash, hash]);
+});
 
 test('blob writes are durable while index updates batch until an explicit flush', async () => {
   const ports = fixture(), store = ports.open(), one = new Uint8Array([1]), two = new Uint8Array([2, 3]);

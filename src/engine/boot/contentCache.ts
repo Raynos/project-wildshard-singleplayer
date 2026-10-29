@@ -45,7 +45,7 @@ async function read(response: Response, maximum: number, expected = 0): Promise<
   return bytes === result.length ? result : result.slice(0, bytes);
 }
 
-/** Hash-verified Cache Storage with durable LRU, quota headroom and leases for active critical content. */
+/** Content-named Cache Storage with durable LRU, quota headroom and leases for active critical content. */
 export class ContentCache {
   private readonly ports: ContentCachePorts;
   private readonly root: string;
@@ -56,6 +56,7 @@ export class ContentCache {
   private opening: Promise<Pick<Cache, 'match' | 'put' | 'delete' | 'keys'>> | undefined;
   private index: Record<string, Entry> = {};
   private readonly lru = new Map<string, Entry>();
+  private readonly touches = new Map<string, { entry: Entry; bytes: number; used: number }>();
   private totalBytes = 0;
   private clock = 0;
   private dirty = false;
@@ -122,13 +123,21 @@ export class ContentCache {
     while (this.statsNow().bytes > budget || this.statsNow().entries > this.entries) if (!await this.evict(cache, '')) break;
     await this.metadata(cache); this.cache = cache; return cache;
   }
-  private statsNow(): ContentCacheStats { return { entries: this.lru.size, bytes: this.totalBytes }; }
+  private applyTouches(): void {
+    for (const [hash, touch] of this.touches) {
+      // A read preceding eviction or replacement cannot resurrect its old entry.
+      if (this.index[hash] === touch.entry) this.remember(hash, { bytes: touch.bytes, used: touch.used });
+    }
+    this.touches.clear();
+  }
+  private statsNow(): ContentCacheStats { this.applyTouches(); return { entries: this.lru.size, bytes: this.totalBytes }; }
   private remember(hash: string, entry: Entry): void {
     this.totalBytes += entry.bytes - (this.index[hash]?.bytes ?? 0);
     this.index[hash] = entry;
     this.lru.delete(hash); this.lru.set(hash, entry);
   }
   private forget(hash: string): void {
+    this.touches.delete(hash);
     const entry = this.index[hash];
     if (entry === undefined) return;
     this.totalBytes -= entry.bytes;
@@ -155,6 +164,7 @@ export class ContentCache {
     return pending;
   }
   private async metadata(cache: Pick<Cache, 'put'>): Promise<void> {
+    this.applyTouches();
     this.scope.cancelTimer(this.flushTimer);
     this.flushTimer = undefined;
     this.removePagehide?.(); this.removePagehide = undefined;
@@ -176,30 +186,40 @@ export class ContentCache {
     if (!Number.isFinite(usage) || usage < 0) return this.maximum;
     return Math.max(0, Math.min(this.maximum, Math.floor(estimate.quota / 4), this.statsNow().bytes + Math.floor(estimate.quota - usage - this.reserve)));
   }
-  /** Reads bypass writes and return owned, hash-checked bytes. LRU repairs join the write queue. */
+  /** Durable body size wins over a stale index; the content-named key is byte authority (G881). */
+  private expectedBytes(hash: string, response: Response): number | undefined {
+    const value = response.headers.get('x-ws-bytes');
+    if (value === null) return this.index[hash]?.bytes;
+    const bytes = Number(value);
+    return Number.isSafeInteger(bytes) && bytes >= 0 && bytes <= MAX_FILE ? bytes : undefined;
+  }
+  /** Reads trust the immutable key. Only length is checked; a miss refetches one file, never hashes it. */
   async get(hash: string): Promise<Uint8Array | null> {
     const key = this.key(hash);
     const cache = await this.open().catch(() => undefined); if (cache === undefined) return null;
     const response = await cache.match(key);
     if (response === undefined && this.index[hash] === undefined) return null;
     let bytes: Uint8Array | undefined;
-    try { if (response !== undefined) bytes = await read(response, MAX_FILE, this.index[hash]?.bytes); }
+    const expected = response === undefined ? undefined : this.expectedBytes(hash, response);
+    try { if (response !== undefined && expected !== undefined) bytes = await read(response, MAX_FILE, expected); }
     catch { bytes = undefined; }
-    if (bytes === undefined || await this.ports.hash(bytes) !== hash) { this.repair(hash, cache); return null; }
-    const length = bytes.length;
-    void this.serial(() => {
-      // An intervening eviction must not be resurrected by an older read.
-      if (this.index[hash] !== undefined) { this.remember(hash, { bytes: length, used: this.used() }); this.metadataChanged(); }
-    }).catch(() => undefined);
+    if (bytes === undefined || bytes.length !== expected) { this.repair(hash, cache); return null; }
+    const entry = this.index[hash];
+    if (entry !== undefined) {
+      // Coalesce each address until accounting, eviction or metadata publication.
+      this.touches.set(hash, { entry, bytes: bytes.length, used: this.used() }); this.metadataChanged();
+    }
     return bytes;
   }
   private repair(hash: string, cache: Pick<Cache, 'match' | 'delete'>): void {
     void this.serial(async () => {
-      // Recheck after pending writes: an old miss/corrupt response cannot erase a new durable put.
+      // A size miss cannot erase a valid replacement whose write we bypassed.
       const key = this.key(hash), response = await cache.match(key);
       if (response !== undefined) {
-        try { if (await this.ports.hash(await read(response, MAX_FILE, this.index[hash]?.bytes)) === hash) return; }
-        catch { /* Invalid disk bytes are removed below. */ }
+        try {
+          const expected = this.expectedBytes(hash, response);
+          if (expected !== undefined && (await read(response, MAX_FILE, expected)).length === expected) return;
+        } catch { /* Incomplete disk bytes are removed below. */ }
         await cache.delete(key);
       }
       this.forget(hash); this.metadataChanged();
@@ -230,6 +250,7 @@ export class ContentCache {
    * public writes still snapshot their caller before any await, and both paths retain full hash/quota checks. */
   private storeOwned(key: string, hash: string, bytes: Uint8Array<ArrayBuffer>, keep: boolean): Promise<boolean> {
     return this.serial(async () => {
+      this.applyTouches();
       const cache = await this.open().catch(() => undefined); if (cache === undefined) return false;
       const budget = await this.budget();
       if (bytes.length > budget || this.entries === 0) return false;
@@ -265,7 +286,7 @@ export class ContentCache {
     this.inflight.set(hash, pending);
     // Retain the shared download through persistence, but let its verified
     // response build now. A failed cache write never fails valid online bytes.
-    const stored = pending.then(bytes => this.put(hash, bytes));
+    const stored = pending.then(bytes => this.storeOwned(this.key(hash), hash, bytes, false));
     this.pendingWrites.add(stored);
     const settled = (): void => { this.pendingWrites.delete(stored); this.inflight.delete(hash); };
     void stored.then(settled, settled);
