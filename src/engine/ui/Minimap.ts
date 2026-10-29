@@ -477,21 +477,23 @@ export class Minimap {
   private paintedHash = Number.NaN; private paintedAt = -Infinity;
   private paintedGround: HTMLCanvasElement | ImageBitmap | null = null; private paintedOverlay: MapExtras | null = null;
   private hotInView = false;
-  /** A digest of everything the paint reads that can move: the player (1/8 m, 0.5 deg), the size and fade, each animal and
+  /** A digest of everything the paint reads that can move, in device pixels: the player (half a pixel, 0.5 deg), the size and fade, each animal and
    *  mark in view. Sets `hotInView` when a hostile's ring pulses (that animates, so it repaints at PAINT_HZ). */
   private signature(pos: { x: number; z: number }, deg: number, animals: readonly MinimapAnimal[], marks: readonly MapMark[], alpha: number): number {
-    let h = fold(fold(fold(fold(fold(FNV_SEED, Math.round(pos.x * 8)), Math.round(pos.z * 8)), Math.round(deg * 2)), this.size), Math.round(alpha * 100));
+    // in device pixels: a dot or the terrain only repaints when it visibly moves (the player to half a pixel)
+    const k = this.size / (2 * VIEW_RADIUS);
+    let h = fold(fold(fold(fold(fold(FNV_SEED, Math.round(pos.x * k * 2)), Math.round(pos.z * k * 2)), Math.round(deg * 2)), this.size), Math.round(alpha * 100));
     let pulse = false;
     for (const a of animals) {
       if (a.alive === false || (a.hp !== undefined && a.hp <= 0) || a.mem?.['hidden'] === 1) continue;
       const dx = a.position.x - pos.x, dz = a.position.z - pos.z;
       if (dx * dx + dz * dz > VIEW_RADIUS * VIEW_RADIUS) continue;
-      h = fold(fold(fold(h, Math.round(dx * 4)), Math.round(dz * 4)), a.rarity === 'legendary' ? 2 : a.rarity === 'rare' ? 1 : 0);
+      h = fold(fold(fold(h, Math.round(dx * k)), Math.round(dz * k)), a.rarity === 'legendary' ? 2 : a.rarity === 'rare' ? 1 : 0);
       const aggressive = a.aggressive ?? (hasSpecies(a.kind) && speciesDef(a.kind).aggressive === true);
       if (aggressive && (a.state !== undefined ? (a.state === 'charge' || a.state === 'stalk' || a.state === 'alert') : (a.hp !== undefined && a.maxHp !== undefined && a.hp < a.maxHp))) pulse = true;
     }
     h = fold(h, marks.length);
-    for (const m of marks) h = fold(fold(fold(h, Math.round(m.x * 4)), Math.round(m.z * 4)), m.color.length);
+    for (const m of marks) h = fold(fold(fold(h, Math.round(m.x * k)), Math.round(m.z * k)), m.color.length);
     this.hotInView = pulse;
     return h;
   }
