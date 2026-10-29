@@ -307,6 +307,13 @@ function programCount(renderer: Renderer): number {
 /** the object lives on the shadow pass's layer alone (no view camera ever draws it) */
 const shadowOnly = (o: THREE.Object3D): boolean => o.layers.mask === 1 << SHADOW_LAYER;
 function materialsOf(o: THREE.Object3D): THREE.Material[] { const m = (o as MeshLike).material; return Array.isArray(m) ? m : m ? [m] : []; }
+/** NR4: a geometry with no channels and no index (a refining mesh's placeholder before its first fine tile) cannot
+ *  draw; a program compiled against it reads every attribute as a constant (three warns per channel), so it waits
+ *  for its first real draw */
+function channelless(o: THREE.Object3D): boolean {
+  const geometry = (o as MeshLike).geometry;
+  return geometry instanceof THREE.BufferGeometry && geometry.index === null && Object.keys(geometry.attributes).length === 0;
+}
 
 type BatchedLike = MeshLike & { isBatchedMesh?: boolean; _colorsTexture?: THREE.DataTexture | null };
 
@@ -364,7 +371,7 @@ function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, 
     const mesh = o as MeshLike;
     // G743: a shadow-only object (its layers are the shadow pass's alone: shadowChunks.ts' pieces) is never drawn by a
     // view, so its view program is never used; the shadow jobs warm the depth program it does draw with
-    const materials = shadowOnly(o) ? [] : materialsOf(mesh), list = materials.length > 0 && include !== undefined && !include(o) ? [] : materials;
+    const materials = shadowOnly(o) || channelless(o) ? [] : materialsOf(mesh), list = materials.length > 0 && include !== undefined && !include(o) ? [] : materials;
     if (list.length === 0) { yield; continue; }
     const ok = programObjectKey(mesh);
     const wanted = list.filter((m) => { mats.add(m); const k = m.uuid + ok; if (seen.has(k)) return false; seen.add(k); return true; });
@@ -503,7 +510,7 @@ export function offscreenJobs(scene: THREE.Scene, per = 1, excludedRoots?: Reado
       const seen = new Set<string>(), clones: THREE.Object3D[] = [];
       for (const root of pass.roots()) root.traverseVisible(caster => {
         const mesh = caster as MeshLike;
-        if (!mesh.layers.test(pass.camera.layers)) return;
+        if (!mesh.layers.test(pass.camera.layers) || channelless(mesh)) return;
         // A real render builds its list from visible materials and, for arrays, authored geometry groups.
         // compile() does neither, so do not create programs for slots the pass cannot draw.
         const materials = materialsOf(mesh);
@@ -584,7 +591,7 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
   const temporary = new Set<THREE.Material>();
   compileObjects(scene, (o) => {
     const mesh = o as MeshLike;
-    if (!mesh.castShadow || !mesh.isMesh && !mesh.isPoints && !mesh.isLine) return;
+    if (!mesh.castShadow || !mesh.isMesh && !mesh.isPoints && !mesh.isLine || channelless(mesh)) return;
     const ok = programObjectKey(mesh);
     for (const m of materialsOf(mesh)) {
       const mat = m as THREE.MeshStandardMaterial;

@@ -73,7 +73,13 @@ export class RefiningWholeLibrary {
     const files = new Set(model.files), tiles = new Set([...this.files].filter(([, hashes]) => hashes.some(hash => files.has(hash))).map(([key]) => key));
     const held = new Map<number, readonly WholeGeometryPiece[]>(), sphere = mesh.geometry.boundingSphere?.clone(), box = mesh.geometry.boundingBox?.clone();
     let closed = false, owned: BufferGeometry | undefined, revision = 0, published = 0;
-    let building: Promise<void> | undefined;
+    let building: Promise<void> | undefined, hidden = false;
+    // NR4: a channel-less geometry draws nothing, and a program compiled against it warns per channel and draws collapsed:
+    // the mesh stays out of the draw (and precompile skips it) until a union gives it channels
+    const hold = (): void => {
+      const empty = !mesh.geometry.hasAttribute('position');
+      if (empty && !hidden && mesh.visible) { mesh.visible = false; hidden = true; } else if (!empty && hidden) { mesh.visible = true; hidden = false; }
+    };
     const retired = (): boolean => closed || this.owner.disposed || this.owner.disposing || lifetime.disposed || lifetime.disposing;
     const publish = (geometry: BufferGeometry): void => {
       if (sphere !== undefined) geometry.boundingSphere = sphere.clone();
@@ -86,6 +92,7 @@ export class RefiningWholeLibrary {
       const rebuild = !mesh.geometry.hasAttribute('position') && geometry.hasAttribute('position');
       const previous = owned; mesh.geometry = geometry; owned = geometry; previous?.dispose();
       if (rebuild) for (const material of [mesh.material].flat()) material.needsUpdate = true;
+      hold();
     };
     // Retirement remains synchronous: no disposed fine tile survives in the
     // draw while an asynchronous replacement is prepared.
@@ -120,6 +127,7 @@ export class RefiningWholeLibrary {
       void pending.then(complete, complete);
       return pending;
     };
+    hold();
     lifetime.onDispose(() => { closed = true; held.clear(); owned?.dispose(); owned = undefined; });
     return { id: `refine:${this.row.id}:${id}:${mesh.uuid}`, tiles: () => tiles, ready: () => this.queue.ready,
       attach: async (tile, scope) => {

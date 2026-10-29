@@ -44,11 +44,11 @@ test('original tile pieces append to one stable draw and leave with their actual
   const f = fixture(), first = f.owner.child('first'), second = f.owner.child('second'), keys = [...f.content.tiles()];
   const a = keys[0], b = keys[1]; if (a === undefined || b === undefined) throw new Error('Missing original tiles');
   try {
-    expect(f.read).not.toHaveBeenCalled(); expect(f.mesh.geometry.attributes).toEqual({});
+    expect(f.read).not.toHaveBeenCalled(); expect(f.mesh.geometry.attributes).toEqual({}); expect(f.mesh.visible).toBe(false); // NR4: out of the draw until a union gives it channels
     const material = [f.mesh.material].flat()[0], version = material?.version ?? -1;
     await f.content.attach(a, first); expect(f.read).toHaveBeenCalledTimes(1); expect(f.cover).toHaveBeenCalledTimes(1);
     // the first union over the channel-less placeholder rebuilds the programs built against it; a later union does not
-    expect(material?.version).toBe(version + 1);
+    expect(material?.version).toBe(version + 1); expect(f.mesh.visible).toBe(true);
     const firstGeometry = f.mesh.geometry, firstDisposed = vi.fn<() => void>(); firstGeometry.addEventListener('dispose', firstDisposed);
     await f.content.attach(b, second);
     expect(material?.version).toBe(version + 1);
