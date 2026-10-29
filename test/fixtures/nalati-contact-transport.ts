@@ -30,10 +30,25 @@ export function originalDressingClothTransport(blobs:readonly NamedBlob[],origin
     {decoded:blob.file.decoded-4,critical:blob.file.critical,dependencies:blob.file.dependencies}):blob);
 }
 
+/** QF26: the river pebbles' layer draws on its own painterly 'pebble' material; its predecessor named 'rock', which the
+ * statics' textured rock specimen (the fences) overwrote. The predecessor scene has no 'pebble' row and the layer back on
+ * 'rock'; every other byte is unchanged. */
+export function originalPebbleMaterial(blobs:readonly NamedBlob[]):NamedBlob[]{
+  return blobs.map(blob=>{
+    if(blob.file.name!=='world/dressing-phone.json'&&blob.file.name!=='world/dressing-desktop.json')return blob;
+    const scene=v.parse(SceneDressingSchema,JSON.parse(new TextDecoder().decode(blob.bytes)));
+    if(scene.materials['pebble']===undefined)return blob;
+    const {pebble:_pebble,...materials}=scene.materials;
+    const layers=scene.layers.map(row=>row.material==='pebble'?{...row,material:'rock'}:row);
+    return nameBlob(blob.file.name??'','json',new TextEncoder().encode(encodeCanonicalJson({...scene,materials,layers})),
+      blob.file.jsonSchema===undefined?{}:{jsonSchema:blob.file.jsonSchema});
+  });
+}
+
 /** Check every named contact loan against its original complete inline row,
  * then reconstruct only binary transport for the unchanged full-wire pins. */
 export function originalDressingContactTransport(blobs:readonly NamedBlob[],originals:ReadonlyMap<string,SceneDressingRows>):NamedBlob[]{
-  const prepared=originalDressingClothTransport(blobs,originals),files=new Map(prepared.map(row=>[row.file.name,row])),used=new Set<string>();
+  const prepared=originalDressingClothTransport(originalPebbleMaterial(blobs),originals),files=new Map(prepared.map(row=>[row.file.name,row])),used=new Set<string>();
   const output=prepared.filter(row=>!row.file.name?.startsWith('world/dressing-contacts/')).map(blob=>{
     const before=blob.file.name===undefined?undefined:originals.get(blob.file.name);if(before===undefined)return blob;
     const scene=v.parse(SceneDressingSchema,JSON.parse(new TextDecoder().decode(blob.bytes)));

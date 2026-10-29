@@ -122,7 +122,9 @@ function compileDressingScene(tier:'phone'|'desktop',profiles:NamedRowValue<type
   for(const key of ['boulder','boulder-tall','slab'])geometry[key]=actor(`dressing:${tier}:${key}`);
   for(const [name,key]of [['stone','stone'],['juniper','juniper'],['rose',phone?'rose:lite':'rose'],['willow','willow'],['lupin',phone?'lupin:lite':'lupin'],['daisy','daisy'],['reed','reed']])if(name!==undefined&&key!==undefined)geometry[name]=shape(key);
   for(const [name,key]of [['boulder','boulder-1'],['boulder-tall','boulder-2'],['slab','boulder-3']] as const)materials[name]={kind:'asset',row:specimens.assets[key]};
-  materials['rock']={kind:'painterly',rim:.3,bands:.8};materials['shrub']={kind:'painterly',rim:.5,bands:.7,sway:.05};
+  // QF26: the pebbles' own key: the statics' 'rock' (the fences) is a textured specimen and overwrote it, so the uv-less
+  // pebbles sampled one rock texel and drew as black discs
+  materials['pebble']={kind:'painterly',rim:.3,bands:.8};materials['shrub']={kind:'painterly',rim:.5,bands:.7,sway:.05};
   materials['flower']={kind:'painterly',rim:.45,bands:.6,sway:.3};materials['reed']={kind:'painterly',rim:.5,bands:.6,sway:.1};
   const contacts=(name:string)=>{
     const row=Object.entries(paint.contacts[tier]??{}).find(([key])=>key===name)?.[1];if(row===undefined)throw new Error(`Missing dressing contacts ${name}`);
@@ -131,7 +133,7 @@ function compileDressingScene(tier:'phone'|'desktop',profiles:NamedRowValue<type
   const layers=[
     ...(['boulder','boulder-tall','slab'] as const).map(name=>({id:`nalati-dress-${name}`,model:id(name==='boulder-tall'?'boulder':name),geometry:name,material:name,file:`world/dressing-${name==='boulder-tall'?'boulder':name}.json`,binary:false,far:phone?.6:1,castShadow:true,keepNear:40,contacts:contacts(name),
       select:{modulo:name==='slab'?1:3,remainder:name==='slab'?0:2,equal:name!=='boulder'}})),
-    ...(['stone','juniper','rose','willow','lupin','daisy','reed'] as const).map(name=>({id:`nalati-dress-${name}`,model:id(({rose:'wild-rose',willow:'dwarf-willow',reed:'reed'} as Record<string,string>)[name]??name),geometry:name,material:name==='stone'?'rock':name==='reed'?'reed':name==='lupin'||name==='daisy'?'flower':'shrub',file:`world/dressing-${name}.${name==='stone'||name==='daisy'?'bin':'json'}`,binary:name==='stone'||name==='daisy',far:phone?(name==='stone'||name==='lupin'||name==='daisy'?.55:.6):1,castShadow:!phone&&['juniper','rose','willow'].includes(name),keepNear:26,contacts:[]})),
+    ...(['stone','juniper','rose','willow','lupin','daisy','reed'] as const).map(name=>({id:`nalati-dress-${name}`,model:id(({rose:'wild-rose',willow:'dwarf-willow',reed:'reed'} as Record<string,string>)[name]??name),geometry:name,material:name==='stone'?'pebble':name==='reed'?'reed':name==='lupin'||name==='daisy'?'flower':'shrub',file:`world/dressing-${name}.${name==='stone'||name==='daisy'?'bin':'json'}`,binary:name==='stone'||name==='daisy',far:phone?(name==='stone'||name==='lupin'||name==='daisy'?.55:.6):1,castShadow:!phone&&['juniper','rose','willow'].includes(name),keepNear:26,contacts:[]})),
   ];
   const statics:unknown[]=['camp','bridge','roads','summerCamp','kurgans','eagleRock','cairn','crags','watchtower','dressing-statics','dressing-clutter','kokpar','outcrops'].map(name=>{
     const row=prepared.places.rows.find(candidate=>candidate.name===name),recipe=Object.entries(scenes).find(([key])=>key===name)?.[1];if(row===undefined||recipe===undefined)throw new Error('Missing dressing scene');
