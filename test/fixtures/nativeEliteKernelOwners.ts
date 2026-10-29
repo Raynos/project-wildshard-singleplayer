@@ -1,5 +1,5 @@
 import {lendNalatiAdmission} from './nalati-return-modules';
-import { vi } from 'vitest';
+import { vi, type Mock } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../../src/engine/app/scope';
 import type { SimHost } from '../../src/engine/sim';
@@ -11,7 +11,13 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { NALATI_STRIKES } from './nalati-strikes';
 import { NALATI_ECOLOGY as ecology } from '../../src/shards/nalati-grasslands/generators/ecology.mjs';
 
-export function nativeKernelOwners(scope = new Scope('native-elites')) {
+interface NativeKernelOwners {
+  scope: Scope; host: SimHost; rows: NativeEliteKernelRow[]; loans: NativeEliteKernelLoans;
+  hit: Mock; dash: Mock; signature: Mock; actor: AnimalSim;
+  combat: ReturnType<AnimalSim['combatActor']>;
+}
+
+export function nativeKernelOwners(scope = new Scope('native-elites')): NativeKernelOwners {
   lendNalatiAdmission(scope);
   const rng = new RngService(19), health = legacyDouble<SimHost['player']['health']>({});
   const hit = vi.fn(), dash = vi.fn(), signature = vi.fn();

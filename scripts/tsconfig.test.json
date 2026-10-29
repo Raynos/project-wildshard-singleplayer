@@ -1,0 +1,83 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "incremental": true,
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "../.tsc-layers/scenario-tools",
+    "rootDir": "..",
+    "tsBuildInfoFile": "../.tsc-layers/scenario-tools.tsbuildinfo",
+    "types": [
+      "vite/client",
+      "node"
+    ],
+    "allowImportingTsExtensions": true
+  },
+  "references": [
+    {
+      "path": "../tsconfig.format.json"
+    },
+    {
+      "path": "../tsconfig.engine.json"
+    },
+    {
+      "path": "../tsconfig.game.json"
+    },
+    {
+      "path": "../tsconfig.sdk.json"
+    },
+    {
+      "path": "../tsconfig.commons.json"
+    },
+    {
+      "path": "../tsconfig.shards.json"
+    },
+    {
+      "path": "../tsconfig.app.json"
+    }
+  ],
+  "files": [
+    "../scripts/app-build/bootProducts.ts",
+    "../scripts/app-build/bootProductTiers.ts",
+    "../scripts/app-build/codePacks.ts",
+    "../scripts/app-build/bootExtras.ts",
+    "../scripts/app-build/gridEntryDownloads.ts",
+    "../scripts/app-build/assetHashes.ts",
+    "../scripts/app-build/basis.ts",
+    "../scripts/docs/author-project/generators/spear.ts",
+    "../scripts/phone-loading/post-control.ts",
+    "../scripts/phone-loading/model.ts",
+    "../scripts/app-build/audioPacks.ts",
+    "../scripts/app-build/writtenBundle.ts",
+    "../vite.config.ts",
+    "../scripts/app-build/gridStripPages.ts",
+    "../scripts/app-build/entryDownloads.ts",
+    "../scripts/docs/authoring/creatures.ts",
+    "../scripts/docs/authoring/spear.ts",
+    "../scripts/app-build/bootModules.ts",
+    "../scripts/app-build/gen.ts",
+    "../scripts/bake/navmeshGround.ts",
+    "../scripts/phone-loading/fixtures.ts",
+    "../scripts/phone-loading/network.ts",
+    "../scripts/phone-loading/instrument.ts",
+    "../scripts/app-build/serviceWorker.ts",
+    "../scripts/bake/skyTexturesPage.ts",
+    "../scripts/test-build-tools.ts",
+    "../scripts/test-quarantine.ts",
+    "../scripts/bake/viewmodelBytes.ts",
+    "../scripts/vitest-shard.ts",
+    "../scripts/vitest-lane.ts",
+    "../scripts/frame-floor-timeline-session.ts",
+    "../scripts/app-build/worldMapAtlas.ts",
+    "../vite/rapier.ts",
+    "../scripts/app-build/controlChunks.ts"
+  ],
+  "include": [
+    "../src/**/*.d.ts",
+    "../src/**/*.d.mts",
+    "../src/**/*.d.*.ts"
+  ],
+  "exclude": []
+}

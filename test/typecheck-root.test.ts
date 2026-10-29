@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
 import { env, execPath } from 'node:process';
 import { expect, test } from 'vitest';
 
-test('local checks reuse the root cache, CI stays cold and compiler failures propagate',()=>{
+test('local checks reuse the scenario build, CI forces checks and failures propagate',()=>{
  mkdirSync('tmp',{recursive:true});const fixture=mkdtempSync(resolve('tmp','root-check-'));
  try{
   mkdirSync(resolve(fixture,'scripts'));mkdirSync(resolve(fixture,'node_modules/.bin'),{recursive:true});
@@ -16,9 +16,9 @@ test('local checks reuse the root cache, CI stays cold and compiler failures pro
   writeFileSync(resolve(fixture,'node_modules/.bin/tsc'),`#!/usr/bin/env node\nrequire('node:fs').writeFileSync('args.json',JSON.stringify(process.argv.slice(2)));process.exit(Number(process.env.COMPILER_STATUS??0));\n`,{mode:0o755});
   const run=(environment:Record<string,string>,args:string[]=[])=>spawnSync(execPath,['scripts/typecheck-root.mjs',...args],{cwd:fixture,encoding:'utf8',env:{PATH:env['PATH']??'',...environment}});
   expect(run({}).status).toBe(0);
-  expect(JSON.parse(readFileSync(resolve(fixture,'args.json'),'utf8'))).toEqual(['--noEmit','--incremental','--tsBuildInfoFile','node_modules/.cache/ws-root.tsbuildinfo']);
+  expect(JSON.parse(readFileSync(resolve(fixture,'args.json'),'utf8'))).toEqual(['-b','test/tsconfig.json']);
   for(const environment of [{CI:'true'},{GITHUB_ACTIONS:'true'}]){
-   expect(run(environment).status).toBe(0);expect(JSON.parse(readFileSync(resolve(fixture,'args.json'),'utf8'))).toEqual(['--noEmit']);
+   expect(run(environment).status).toBe(0);expect(JSON.parse(readFileSync(resolve(fixture,'args.json'),'utf8'))).toEqual(['-b','test/tsconfig.json','--force']);
   }
   expect(run({COMPILER_STATUS:'7'}).status).toBe(7);
   expect(run({},['--project','other']).status).toBe(2);

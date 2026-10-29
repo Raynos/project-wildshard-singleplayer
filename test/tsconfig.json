@@ -1,0 +1,62 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "incremental": true,
+    "noEmit": true,
+    "rootDir": "..",
+    "tsBuildInfoFile": "../.tsc-layers/root-tests.tsbuildinfo"
+  },
+  "references": [
+    {
+      "path": "../tsconfig.format.json"
+    },
+    {
+      "path": "../tsconfig.engine.json"
+    },
+    {
+      "path": "../tsconfig.game.json"
+    },
+    {
+      "path": "../tsconfig.sdk.json"
+    },
+    {
+      "path": "../tsconfig.commons.json"
+    },
+    {
+      "path": "../tsconfig.shards.json"
+    },
+    {
+      "path": "../tsconfig.app.json"
+    },
+    {
+      "path": "../src/engine/tsconfig.test.json"
+    },
+    {
+      "path": "../src/game/tsconfig.test.json"
+    },
+    {
+      "path": "../src/sdk/tsconfig.test.json"
+    },
+    {
+      "path": "../src/tsconfig.test.json"
+    },
+    {
+      "path": "../scripts/tsconfig.test.json"
+    }
+  ],
+  "include": [
+    "**/*.ts",
+    "**/*.mts",
+    "**/*.cts",
+    "**/*.tsx",
+    "**/*.json",
+    "../src/**/*.d.ts",
+    "../src/**/*.d.mts",
+    "../src/**/*.d.*.ts"
+  ],
+  "exclude": [
+    "../node_modules",
+    "../src/sdk/dist"
+  ]
+}

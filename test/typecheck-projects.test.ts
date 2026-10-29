@@ -29,7 +29,8 @@ test('every source file has a layer owner, while the root covers all tests and a
     for (const source of parsed.fileNames) sources.add(source);
     for (const reference of parsed.projectReferences ?? []) pending.push(ts.resolveProjectReferencePath(reference));
   }
-  const root = project('tsconfig.json'), roots = new Set(root.fileNames);
+  expect(project('tsconfig.json').fileNames).toEqual([]);
+  const root = project('test/tsconfig.json'), roots = new Set(root.fileNames);
   const original = ts.parseJsonConfigFileContent({ include: ['src', 'test'], exclude: ['node_modules', 'src/sdk/dist'] }, ts.sys, resolve('.'));
   expect(original.errors).toEqual([]);
   const missing = original.fileNames.filter(file => !sources.has(file) && !roots.has(file));
@@ -211,10 +212,12 @@ test('CI and local checks build source before tests and retain every tool/site p
   const ci = workflow.slice(start, workflow.indexOf('      - name: Fast lint\n', start));
   for (const command of [local, ci]) {
     const layers = command.indexOf('tsc -b tsconfig.layers.json');
-    const tests = command.includes('typecheck:root') ? command.indexOf('typecheck:root') : command.indexOf('tsc --noEmit');
     expect(layers).toBeGreaterThanOrEqual(0);
-    expect(tests).toBeGreaterThan(layers);
-    for (const path of ['api', 'scripts', 'drafts', 'drafts/tools', 'admin', 'admin/tools']) expect(command).toContain(`tsc --noEmit -p ${path}`);
+    expect(command.match(/tsc -b tsconfig.layers\.json/gu)).toHaveLength(1);
+    expect(command).not.toContain('tsc --noEmit');
+    for (const path of ['test', 'api', 'scripts', 'drafts', 'drafts/tools', 'admin', 'admin/tools']) {
+      expect(project('tsconfig.layers.json').projectReferences?.some(reference => ts.resolveProjectReferencePath(reference) === resolve(path,'tsconfig.json'))).toBe(true);
+    }
   }
 });
 
@@ -342,4 +345,20 @@ test('workspace Node tests consume declarations without giving production Node g
     expect(unsafe.status).not.toBe(0);
     expect(String(unsafe.stdout) + String(unsafe.stderr)).toContain('no-unsafe-return');
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('selected scenario checks retain composite membership and imported helper errors',()=>{
+ mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/composite-selected-'));
+ const put=(file:string,text:string):void=>{const path=resolve(root,file);mkdirSync(dirname(path),{recursive:true});writeFileSync(path,text);};
+ try{
+  put('tsconfig.json',JSON.stringify({files:[],references:[{path:'test'}]}));
+  put('tsconfig.layers.json',JSON.stringify({files:[],references:[{path:'test'}]}));
+  put('test/tsconfig.json',JSON.stringify({compilerOptions:{strict:true,composite:true,noEmit:true,types:[],module:'esnext',moduleResolution:'bundler'},include:['*.ts']}));
+  put('test/subject.ts','import {value} from "./helper";export const result:number=value;');
+  put('test/helper.ts','export const value:number=1;');
+  const run=()=>spawnSync(execPath,['-e',`import(${JSON.stringify(resolve('scripts/local-gate-checks.mjs'))}).then(m=>m.checkChangedTypes(['test/subject.ts'])).catch(e=>{console.error(e.message);process.exitCode=1;});`],{cwd:root,encoding:'utf8'});
+  const good=run();expect(good.status,good.stdout+good.stderr).toBe(0);
+  put('test/helper.ts','export const value:number="bad";');
+  const bad=run();expect(bad.status).toBe(1);expect(bad.stderr).toContain('TS2322');
+ }finally{rmSync(root,{recursive:true,force:true});}
 });

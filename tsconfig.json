@@ -3,12 +3,17 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "allowArbitraryExtensions": true, // Consume typed JSON declaration companions.
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["vite/client"],
+    "allowArbitraryExtensions": true,
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "vite/client"
+    ],
     "noEmit": true,
     "skipLibCheck": true,
-
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -19,7 +24,6 @@
     "noImplicitThis": true,
     "useUnknownInCatchVariables": true,
     "alwaysStrict": true,
-
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "noImplicitReturns": true,
@@ -31,26 +35,18 @@
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     "forceConsistentCasingInFileNames": true,
-
     "isolatedModules": true,
     "verbatimModuleSyntax": true
   },
-  // Source is checked and emitted once by the referenced layer projects.
-  // Tests consume those declarations; scripts and sites keep their own checks.
-  // Keep default source redirects for cold editor/type-aware lint programs.
   "references": [
-    { "path": "./tsconfig.format.json" },
-    { "path": "./tsconfig.engine.json" },
-    { "path": "./tsconfig.game.json" },
-    { "path": "./tsconfig.sdk.json" },
-    { "path": "./tsconfig.commons.json" },
-    { "path": "./tsconfig.shards.json" },
-    { "path": "./tsconfig.app.json" },
-    { "path": "./src/engine/tsconfig.test.json" },
-    { "path": "./src/game/tsconfig.test.json" },
-    { "path": "./src/sdk/tsconfig.test.json" },
-    { "path": "./src/tsconfig.test.json" }
+    {
+      "path": "./test/tsconfig.json"
+    }
   ],
-  "include": ["test", "src/**/*.d.ts", "src/**/*.d.mts", "src/**/*.d.*.ts"],
-  "exclude": ["node_modules", "src/sdk/dist"]
+  "include": [],
+  "exclude": [
+    "node_modules",
+    "src/sdk/dist"
+  ],
+  "files": []
 }

@@ -1,23 +1,71 @@
 {
-  // E362 AG4: the layers as TypeScript projects (engine → game → sdk → commons → shards; SF54 dissolved the kit), each seeing only what it
-  // references: an import that reaches up a layer, in any syntax (type-only, `import()` types, json), fails with
-  // TS6307. `tsc -b tsconfig.layers.json` checks source, including the app composition root, once.
-  // The root tsconfig.json checks tests against these declarations.
   "files": [],
   "references": [
-    { "path": "./tsconfig.engine.json" },
-    { "path": "./tsconfig.format.json" },
-    { "path": "./tsconfig.game.json" },
-    { "path": "./tsconfig.sdk.json" },
-    { "path": "./tsconfig.commons.json" },
-    { "path": "./tsconfig.shards.json" },
-    { "path": "./tsconfig.app.json" },
-    { "path": "./src/engine/tsconfig.test.json" },
-    { "path": "./src/format/tsconfig.test.json" },
-    { "path": "./src/game/tsconfig.test.json" },
-    { "path": "./src/sdk/tsconfig.test.json" },
-    { "path": "./src/commons/tsconfig.test.json" },
-    { "path": "./src/shards/tsconfig.test.json" },
-    { "path": "./src/tsconfig.test.json" }
+    {
+      "path": "./tsconfig.engine.json"
+    },
+    {
+      "path": "./tsconfig.format.json"
+    },
+    {
+      "path": "./tsconfig.game.json"
+    },
+    {
+      "path": "./tsconfig.sdk.json"
+    },
+    {
+      "path": "./tsconfig.commons.json"
+    },
+    {
+      "path": "./tsconfig.shards.json"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./src/engine/tsconfig.test.json"
+    },
+    {
+      "path": "./src/format/tsconfig.test.json"
+    },
+    {
+      "path": "./src/game/tsconfig.test.json"
+    },
+    {
+      "path": "./src/sdk/tsconfig.test.json"
+    },
+    {
+      "path": "./src/commons/tsconfig.test.json"
+    },
+    {
+      "path": "./src/shards/tsconfig.test.json"
+    },
+    {
+      "path": "./src/tsconfig.test.json"
+    },
+    {
+      "path": "./test/tsconfig.json"
+    },
+    {
+      "path": "./api/tsconfig.json"
+    },
+    {
+      "path": "./scripts/tsconfig.json"
+    },
+    {
+      "path": "./drafts/tsconfig.json"
+    },
+    {
+      "path": "./drafts/tools/tsconfig.json"
+    },
+    {
+      "path": "./admin/tsconfig.json"
+    },
+    {
+      "path": "./admin/tools/tsconfig.json"
+    },
+    {
+      "path": "./scripts/tsconfig.test.json"
+    }
   ]
 }

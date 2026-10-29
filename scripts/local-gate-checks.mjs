@@ -1,13 +1,14 @@
 // G363: changed roots with their real dependency types; CI checks all roots.
 //   node scripts/local-gate-checks.mjs types <changed.json> [--skip=<tsconfig>,…]
-// The push gate skips tsconfig.json: its `pnpm build` runs the root project's full `tsc --noEmit` anyway.
+// The full solution includes scenario tests; narrowed checks keep the same test owner.
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 /** @param {string[]} changed @param {readonly string[]} [skip] project configs left to a full check elsewhere */
 export async function checkChangedTypes(changed, skip = []) {
   const { default: ts } = await import('@typescript/typescript6');
-  const configs = ['tsconfig.json', 'scripts/tsconfig.json', 'api/tsconfig.json', 'admin/tsconfig.json', 'drafts/tsconfig.json'];
+  const tests = existsSync('test/tsconfig.json') ? 'test/tsconfig.json' : 'tsconfig.json';
+  const configs = [tests, 'scripts/tsconfig.json', 'api/tsconfig.json', 'admin/tsconfig.json', 'drafts/tsconfig.json'];
   const diagnostics = [];
   const layerDeclarations = new Set();
   const pending = existsSync('tsconfig.layers.json') ? [resolve('tsconfig.layers.json')] : [];
@@ -26,7 +27,7 @@ export async function checkChangedTypes(changed, skip = []) {
   }
   const merges = existsSync('src') ? ts.sys.readDirectory(resolve('src'),['.ts'],['**/node_modules/**','**/sdk/dist/**'],['**/*.merge.d.ts']) : [];
   for (const config of configs) {
-    if (!existsSync(config) || skip.includes(config)) continue;
+    if (!existsSync(config) || (skip.includes(config) || config === tests && skip.includes('tsconfig.json'))) continue;
     const file = ts.readConfigFile(config, path => ts.sys.readFile(path));
     if (file.error) { diagnostics.push(file.error); continue; }
     const parsed = ts.parseJsonConfigFileContent(file.config, ts.sys, resolve(config, '..'));
@@ -41,11 +42,14 @@ export async function checkChangedTypes(changed, skip = []) {
       // full program, even when a changed root does not import that file.
       return ts.createSourceFile(path,source,ts.ScriptTarget.Latest).statements.some(statement => ts.isModuleDeclaration(statement));
     });
-    if (config === 'tsconfig.json') ambient.push(...merges,...layerDeclarations);
+    if (config === tests) ambient.push(...merges,...layerDeclarations);
     // The composition project includes Node tests and SDK authoring roots.
     // Full-program imports supply Node declarations; narrowed roots need them explicitly.
-    const types = config === 'tsconfig.json' ? [...new Set([...(parsed.options.types ?? []), 'node'])] : parsed.options.types;
-    const program = ts.createProgram([...new Set([...roots, ...ambient])], { ...parsed.options, types, noEmit: true });
+    const types = config === tests ? [...new Set([...(parsed.options.types ?? []), 'node'])] : parsed.options.types;
+    // Composite membership and reference boundaries must remain real even in
+    // a selected-root request. Include the owner's roots and use its references.
+    const program = ts.createProgram({ rootNames: [...new Set([...(parsed.options.composite ? parsed.fileNames : roots), ...ambient])],
+      options: { ...parsed.options, types, noEmit: true }, projectReferences: parsed.projectReferences });
     diagnostics.push(...parsed.errors, ...ts.getPreEmitDiagnostics(program));
   }
   if (diagnostics.length > 0) throw new Error(ts.formatDiagnosticsWithColorAndContext(diagnostics, {

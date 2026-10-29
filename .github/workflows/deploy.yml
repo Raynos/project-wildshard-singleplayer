@@ -333,16 +333,7 @@ jobs:
         # Same complete checks as pnpm typecheck; inputs came from this run's
         # verified generation job, so do not regenerate them in every shard.
         run: |
-          python3 scripts/ci-fail-fast.py -- bash -e -c '
-            pnpm exec tsc -b tsconfig.layers.json
-            pnpm exec tsc --noEmit
-            pnpm exec tsc --noEmit -p api
-            pnpm exec tsc --noEmit -p scripts
-            pnpm exec tsc --noEmit -p drafts
-            pnpm exec tsc --noEmit -p drafts/tools
-            pnpm exec tsc --noEmit -p admin
-            pnpm exec tsc --noEmit -p admin/tools
-          '
+          python3 scripts/ci-fail-fast.py -- pnpm exec tsc -b tsconfig.layers.json
       - name: Fast lint
         if: matrix.shard == 'fast'
         run: python3 scripts/ci-fail-fast.py -- pnpm run lint:fast
