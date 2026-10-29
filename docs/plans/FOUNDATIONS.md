@@ -302,7 +302,7 @@ current slice (no mid-task re-briefs, G492); none starts new work after this is 
 | MF16 | Dunes verbs | The well crank end to end, three times (QB15). | Opus | M |
 | MF17 | Pine verbs | Crossbow aim / fire / reload / swap 5 min, quests (QB11 rest). | Opus | S |
 | MF18 | Driftwood, Nalati, Sky verb lists | Played both modes; fix differences. | Opus | M |
-| MF19 | Nine look gaps | QB16's look half: sky distance and seams, facades, crowd; LEGACY vs SHARDFILE board. | Opus sp-o4 (after MF14) | M |
+| MF19 | Nine look gaps · **done, no fix needed (sp-o4):** WebKit as iPhone 16 Pro on `07eda65007`, LEGACY and SHARDFILE walked the same path from the spawn deck (4 spots to 38 m, 15 s settle). SHARDFILE matches LEGACY at every spot: gate, facades, crowd, wet reflections, the painted sky. LEGACY is the glitchy one on WebKit (speckle over the sky scroll, green lanterns). Left: lantern hue (SHARDFILE red / orange) and the tree's darker tint, similar (G415). No streaks on the deck: Jake's came with the pop-in (MF5). Board [round-mf19](../../art/nine-dragon-stack/round-mf19-legacy-vs-shardfile/board.jpg) | QB16's look half: sky distance and seams, facades, crowd; LEGACY vs SHARDFILE board. | Opus sp-o4 (after MF14) | M |
 | MF20 | Prove the bars | Every bar in the table above on the Simulator, one before / after board, then tell Jake for his phone. | Opus | S |
 
 **Supersedes:** QB15, QB16, QB17, QB11 (rest). Legacy deletion stays on Jake's per-shard word.
