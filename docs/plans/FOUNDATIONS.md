@@ -298,7 +298,7 @@ current slice (no mid-task re-briefs, G492); none starts new work after this is 
 | Row | What | Rewrite / delete / done when | Lane | Size |
 |---|---|---|---|---|
 | MF14 | HUD slots from state · **done `91d6e5a07f` (sp-o4):** the per-frame repaint now re-reads each stacked context's touch spec (relabel, verbs, mode, lockable) by reference, so an in-place relabel (grapple LOCKED -> ZIP) shows the next frame; `touchChanged()` is gone. Pinned by InputService.test (relabel in place, one repaint, no signal). A live Nine hook lock was not scripted | **Rewrite** the action-slot update as a per-frame pull (E332: herdr before and after; no layout change). Done: Nine hook shows ZIP on lock with no app switch. | Opus sp-o4 (after FC12 Pine / Nalati) | S |
-| MF15 | Nine verbs | Hook lock → ZIP → lift to the hook point → land, vs LEGACY (QB17). | Opus sp-o3 (next, G915 QB17 first) | M |
+| MF15 | Nine verbs | Hook lock → ZIP → lift to the hook point → land, vs LEGACY (QB17). | Opus sp-o3 · not a port bug (sim + 31 landing floors identical); rise-to-ring default + Debug flat (Jake ask) | M |
 | MF16 | Dunes verbs | The well crank end to end, three times (QB15). | Opus | M |
 | MF17 | Pine verbs | Crossbow aim / fire / reload / swap 5 min, quests (QB11 rest). | Opus | S |
 | MF18 | Driftwood, Nalati, Sky verb lists | Played both modes; fix differences. | Opus | M |

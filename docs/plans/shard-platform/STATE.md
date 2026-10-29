@@ -15,6 +15,7 @@ CX2. **[CI-FIRST-PRINCIPLES](../CI-FIRST-PRINCIPLES.md) (G918-G923):** CI1-CI4 s
 the workflow hand-off, CI8 sp-x6; CI10-CI14 next free lane. **For wildshard-v (18:37):** G919 sent: sp-ci-deploy deletes today's red pin tests (Nine, Nalati, Sunscar) and ships the first green SHA; all lanes told no new pins. sp-o5 is not idle (FC15 Simulator readings running). sp-x8 stays released (5-Codex cap, G611); CX1 is on sp-x1 + sp-x9. 07:00 release for Jake (G917). G892: open to 10-30 QA.
 
 **Autonomous decisions (for Jake's review):**
+- QB17 (b): LEGACY's zip is flat too (31 hooks, identical floors); new default rises to the ring per Jake's ask, flat kept as Debug 'Hook zip' (o3).
 - FC10 closes with Nine at 7 real render-target switches (folding its display + FXAA risks its opacity events; o5).
 - MF11 closes on the lease deletion + footprint check; the ~770 ownership loans fold into Family 4 (o3).
 - FC13 done at G912's default-off Debug row (shadow hold, Driftwood 190 → 165 draws); held post only if Jake turns it on.
@@ -24,7 +25,6 @@ the workflow hand-off, CI8 sp-x6; CI10-CI14 next free lane. **For wildshard-v (1
 - Earlier calls: see this file's git log.
 - **For wildshard-v (QB1):** Jake's home-screen icon predates the launch image; one delete + re-add of the icon fixes the black.
 - QB18 = B: Nalati TRUST as a status row under GRASS (A crossed the minimap, C the toast; fc707ba74d, o4).
-- QB10: sp-x1 walks the 60 ids (0dd5f3060e) in MF12; wildshard-v resolves them. **Sentry S fixed by b3b1723a9a.** **wildshard-v: for Sentry-only ids with
-  no inbox stack (e.g. 7R, 6Y, 6X, 6W) add one event's build + stack to the row**; titles can't justify a fix.
+- QB10 / MF12: Sentry verdicts in e74ca75809; S fixed b3b1723a9a, 7S fixed cc75f528ea + 93cf905edc. **wildshard-v: Sentry-only ids need a build + stack.**
 
 **Rules:** G704, G807, G828, G844, G846, G848, G853, G858. No reverts (G674), no new Debug rows (G669), never herdr wildshard-v.
