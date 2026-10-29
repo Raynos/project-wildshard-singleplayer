@@ -6,9 +6,10 @@ import {instrument} from './instrument.ts';
 import {launchChromium} from './chromium.ts';
 import {contactSheet} from './recording.ts';
 import {observeRequests} from './network.ts';
+import {parseSaveFixture} from './fixtures.ts';
 import {postControlWindow} from './post-control.ts';
 import {comparisons, printRun, profiles, record, type Capture, type ErrorRow, type Run} from './model.ts';
-import {developerSettings} from '../debug-settings.mjs';
+import {developerSettings, saveFixture} from '../debug-settings.mjs';
 import {loadingCardIndex} from '../loading-benchmark/catalogue.mjs';
 
 async function main(): Promise<void> {
@@ -17,12 +18,14 @@ const {values} = parseArgs({options: {preset: {type: 'string', default: 'phone'}
   record: {type: 'boolean'}, webkit: {type: 'boolean'}, compare: {type: 'string'}, timeout: {type: 'string', default: '240000'},
   'title-dwell': {type: 'string', default: '3000'},
   'after-control': {type: 'string', default: '4000'},
+  'save-fixture': {type: 'string'},
   help: {type: 'boolean'}}});
 if (values.help) {
-  console.log('pnpm phone-loading [--live | --head | --rev SHA | --url URL] [--preset phone|lte|desktop] [--flow grid|select:SLUG] [--record] [--webkit] [--compare JSON] [--timeout MS] [--title-dwell MS=3000] [--after-control MS=4000]');
+  console.log('pnpm phone-loading [--live | --head | --rev SHA | --url URL] [--preset phone|lte|desktop] [--flow grid|select:SLUG] [--record] [--webkit] [--compare JSON] [--timeout MS] [--title-dwell MS=3000] [--after-control MS=4000] [--save-fixture JSON]');
   return;
 }
 const profile = profiles[values.preset];
+const fixture = parseSaveFixture(values['save-fixture']);
 if (profile === undefined) throw new Error('Unknown preset');
 if (values.flow !== 'grid' && !/^select:[a-z0-9_-]+$/u.test(values.flow)) throw new Error('Unknown flow');
 if ([values.live, values.head, values.rev, values.url].filter(Boolean).length > 1) throw new Error('Choose one target');
@@ -73,6 +76,7 @@ try {
     process.once('SIGINT', interrupt); process.once('SIGTERM', interrupt);
     try {
       await developerSettings(context, {volume: 0, music: 0, tier: 'phone', holdLoading: false});
+      if (fixture !== undefined) await saveFixture(context, fixture);
       await context.addInitScript(instrument, values.flow);
       for (const cache of ['cold', 'warm']) {
         console.log(`Starting ${engine} ${values.flow} ${cache} at ${url}`);
@@ -149,7 +153,7 @@ try {
         const run: Run = {...capture, schema: 1, at: new Date().toISOString(), build, url, engine, flow: values.flow,
           preset: values.preset, cache, profile, totalMs: capture.tap !== null && capture.control !== null ? capture.control - capture.tap : null,
           applied: {pageCPU: chromium !== undefined, pageNetwork: chromium !== undefined, workerNetwork: chromium?.workerNetwork() ?? false,
-            notes: [...(chromium === undefined ? ['Playwright WebKit has no CDP CPU/network emulation; unthrottled engine check, not phone-speed equivalence'] : ['Worker CPU throttling is unsupported by CDP']), `Title dwell ${titleDwell}ms; post-control dwell ${afterControl}ms (outside measured total)`]},
+            notes: [...(chromium === undefined ? ['Playwright WebKit has no CDP CPU/network emulation; unthrottled engine check, not phone-speed equivalence'] : ['Worker CPU throttling is unsupported by CDP']), `Title dwell ${titleDwell}ms; post-control dwell ${afterControl}ms (outside measured total)`, ...fixture === undefined ? [] : [`Save fixture ${JSON.stringify(fixture)}`]]},
           rows: capture.rows, measures: capture.measures.filter(row => row.start >= from && row.start <= to),
           longTasks: capture.longTasks.filter(row => row.start >= from && row.start <= to),
           frameGaps: capture.frameGaps.filter(row => row.start >= from && row.start <= to),
