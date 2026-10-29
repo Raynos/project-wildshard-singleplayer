@@ -29,6 +29,7 @@
     }
   ],
   "include": [
+    "frame-cost-report.ts",
     "types/*.d.ts",
     "parity.mjs",
     "test-template-gate.mjs",
