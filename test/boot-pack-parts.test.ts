@@ -63,20 +63,26 @@ test('emitted model cohorts in one directory combine independently through the r
     const url = `/assets/packs/fixture.phone-${await digest(bytes)}.bin`;
     bodies.set(url, bytes); return { url, bytes: bytes.length, files };
   }));
+  const lone = second[0]; if (lone === undefined) throw new Error('Missing partial fixture');
+  let releaseCache: (value: Response | undefined) => void = () => {throw new Error('Missing cache observation');};
+  const pendingCache = new Promise<Response | undefined>(resolve => {releaseCache = resolve;});
+  let observeLone = (): void => {throw new Error('Missing lone transport observation');};
+  const loneStarted = new Promise<void>(resolve => {observeLone = resolve;});
   const reads: string[] = [];
   const net: typeof fetch = input => {
     const path = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-    reads.push(path); return Promise.resolve(new Response(wire(path).slice()));
+    reads.push(path); if (path === lone) observeLone(); return Promise.resolve(new Response(wire(path).slice()));
   };
-  const reader = new TexturePackReads({ parts, bytes: parts.reduce((sum, part) => sum + part.bytes, 0), files: parts.flatMap(part => part.files) }, scope, () => Promise.resolve(undefined));
+  const reader = new TexturePackReads({ parts, bytes: parts.reduce((sum, part) => sum + part.bytes, 0), files: parts.flatMap(part => part.files) }, scope, path => path === parts[0]?.url ? pendingCache : Promise.resolve(undefined));
   const read = (path: string): Promise<Response> => {
     const response = reader.read(path, net); if (response === undefined) throw new Error('Missing declared texture'); return response;
   };
   try {
-    const lone = second[0]; if (lone === undefined) throw new Error('Missing partial fixture');
     const requested = [...first, lone];
-    const responses = await Promise.all(requested.map(read));
-    expect(reads).toEqual([parts[0]?.url, lone]);
+    const completed = Promise.all(requested.map(read));
+    await loneStarted; expect(reads).toEqual([lone]);
+    releaseCache(undefined); const responses = await completed;
+    expect(reads).toEqual([lone, parts[0]?.url]);
     expect(parts).toHaveLength(2);
     for (const [index, response] of responses.entries()) {
       const path = requested[index]; if (path === undefined) throw new Error('Missing response owner');

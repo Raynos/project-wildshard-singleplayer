@@ -27,21 +27,22 @@ async function fixture(sizes = [17, 23, 31]) {
     return Promise.resolve(new Response(body.slice()));
   });
   const cached = vi.fn<(path: string) => Promise<Response | undefined>>().mockResolvedValue(undefined);
-  const reader = new TexturePackReads(pack, scope, cached);
+  const publish = vi.fn<(path: string, response: Response) => Promise<void>>(() => Promise.resolve());
+  const reader = new TexturePackReads(pack, scope, cached, publish);
   const read = (index: number, signal?: AbortSignal) => {
     const path = paths[index], result = path === undefined ? undefined : reader.read(path, net, signal);
     if (result === undefined) throw new Error('Missing fixture demand'); return result;
   };
-  return { scope, reader, read, bodies, paths, bytes, part, pack, net, cached };
+  return { scope, reader, read, bodies, paths, bytes, part, pack, net, cached, publish };
 }
 
-test('a complete demand wave shares one verified envelope and keeps no settled backing', async () => {
+test('a complete demand wave shares one complete envelope and keeps no settled backing', async () => {
   const f = await fixture();
   try {
     const responses = await Promise.all(f.paths.map((_, i) => f.read(i)));
     const members = await Promise.all(responses.map(async response => new Uint8Array(await response.arrayBuffer())));
     expect(f.net).toHaveBeenCalledOnce();expect(f.net.mock.calls[0]?.[0]).toBe(f.part.url);expect(f.net.mock.calls[0]?.[1]?.signal).toBeInstanceOf(AbortSignal);
-    expect(members).toEqual(f.bodies); expect(f.cached).not.toHaveBeenCalled();
+    expect(members).toEqual(f.bodies); expect(f.cached).toHaveBeenCalledExactlyOnceWith(f.part.url);
     const later = new Uint8Array(await (await f.read(0)).arrayBuffer()); expect(later).toEqual(f.bodies[0]);
     expect(f.net).toHaveBeenCalledTimes(2); expect(f.net.mock.calls[1]?.[0]).toBe(f.paths[0]);
   } finally { f.reader.dispose(); f.scope.dispose(); }
@@ -59,12 +60,11 @@ test('partial waves never fetch missing members and duplicate borrowers own inde
   } finally { f.reader.dispose(); f.scope.dispose(); }
 });
 
-test.each(['corrupt', 'truncated', 'oversized'] as const)('a %s envelope refuses every borrower', async kind => {
+test.each(['truncated', 'oversized'] as const)('a %s envelope refuses every borrower', async kind => {
   const f = await fixture();
   try {
     f.net.mockImplementation(() => {
       const bytes = kind === 'truncated' ? f.bytes.slice(0, -1) : kind === 'oversized' ? new Uint8Array(f.bytes.length + 1) : f.bytes.slice();
-      if (kind === 'corrupt') bytes[0] = 99;
       return Promise.resolve(new Response(bytes));
     });
     const results = await Promise.allSettled(f.paths.map((_, i) => f.read(i)));
@@ -81,24 +81,67 @@ test('an exact cached envelope supplies a lone offline member without a network 
   } finally { f.reader.dispose(); f.scope.dispose(); }
 });
 
-test('a valid envelope hash cannot authorize a different member address', async () => {
+test('G881 trusts compiler member addresses and the exact supplied bytes without a read digest', async () => {
   const f = await fixture(), files = f.part.files.map((row, i): PackFile => i === 0 ? [row[0].replace(/-[a-f0-9]{8}\.ktx2$/u, '-00000000.ktx2'), row[1], row[2], row[3]] : row);
-  const reader = new TexturePackReads({ ...f.pack, files, parts: [{ ...f.part, files }] }, f.scope, f.cached);
+  const reader = new TexturePackReads({ ...f.pack, files, parts: [{ ...f.part, files }] }, f.scope, f.cached, f.publish);
+  const digest = vi.spyOn(crypto.subtle, 'digest').mockRejectedValue(new Error('No read digest'));
   try {
-    const results = await Promise.allSettled(files.map(row => {
-      const read = reader.read(row[0], f.net); if (read === undefined) throw new Error('Missing corrupt member demand'); return read;
+    const results = await Promise.all(files.map(row => {
+      const read = reader.read(row[0], f.net); if (read === undefined) throw new Error('Missing declared member demand'); return read;
     }));
-    expect(results.every(result => result.status === 'rejected')).toBe(true); expect(f.net).toHaveBeenCalledOnce();
-  } finally { reader.dispose(); f.reader.dispose(); f.scope.dispose(); }
+    expect(await Promise.all(results.map(async row => new Uint8Array(await row.arrayBuffer())))).toEqual(f.bodies);
+    expect(f.net).toHaveBeenCalledOnce(); expect(digest).not.toHaveBeenCalled();
+  } finally { digest.mockRestore(); reader.dispose(); f.reader.dispose(); f.scope.dispose(); }
 });
 
-test.each(['corrupt','missing'] as const)('an offline %s cached envelope stays a refusal', async kind => {
+test('an offline same-length cached mutation is used as-is, with its predecessor address retained', async () => {
+  const f = await fixture(), bytes = f.bytes.slice(); bytes[0] = 99;
+  const digest = vi.spyOn(crypto.subtle, 'digest').mockRejectedValue(new Error('No cache digest'));
+  try {
+    f.cached.mockResolvedValue(new Response(bytes)); f.net.mockRejectedValue(new Error('offline'));
+    const expected = f.bodies[0]?.slice(); if (expected === undefined) throw new Error('Missing original member'); expected[0] = 99;
+    expect(new Uint8Array(await (await f.read(0)).arrayBuffer())).toEqual(expected);
+    expect(f.part.url).not.toContain('00000000'); expect(f.net).not.toHaveBeenCalled(); expect(digest).not.toHaveBeenCalled();
+  } finally { digest.mockRestore(); f.reader.dispose(); f.scope.dispose(); }
+});
+
+test('an offline missing envelope remains a real transport refusal', async () => {
   const f = await fixture();
   try {
-    if (kind === 'corrupt') { const bytes=f.bytes.slice();bytes[0]=99;f.cached.mockResolvedValue(new Response(bytes)); }
-    const offline = new Error('offline'); f.net.mockRejectedValue(offline);
-    const read = f.read(1); await expect(read).rejects.toThrow(kind === 'corrupt' ? 'Texture pack hash differs' : 'offline');
-    expect(f.net).toHaveBeenCalledTimes(kind === 'corrupt' ? 0 : 1);
+    f.net.mockRejectedValue(new Error('offline')); await expect(f.read(1)).rejects.toThrow('offline'); expect(f.net).toHaveBeenCalledOnce();
+  } finally { f.reader.dispose(); f.scope.dispose(); }
+});
+
+test.each(['truncated', 'oversized'] as const)('a %s cached envelope refetches only the demanded member', async kind => {
+  const f = await fixture();
+  try {
+    f.cached.mockResolvedValue(new Response(kind === 'truncated' ? f.bytes.slice(0, -1) : new Uint8Array(f.bytes.length + 1)));
+    expect(new Uint8Array(await (await f.read(1)).arrayBuffer())).toEqual(f.bodies[1]);
+    expect(f.net.mock.calls.map(row => row[0])).toEqual([f.paths[1]]);
+  } finally { f.reader.dispose(); f.scope.dispose(); }
+});
+
+test('an uncontrolled complete wave is published once and the next offline wave reads the same exact body', async () => {
+  const f = await fixture(), disk = new Map<string, Uint8Array<ArrayBuffer>>();
+  f.cached.mockImplementation(path => Promise.resolve(disk.has(path) ? new Response(disk.get(path)) : undefined));
+  f.publish.mockImplementation(async (path, response) => {disk.set(path, new Uint8Array(await response.arrayBuffer()));});
+  try {
+    const cold = await Promise.all(f.paths.map((_, i) => f.read(i)));
+    expect(await Promise.all(cold.map(async row => new Uint8Array(await row.arrayBuffer())))).toEqual(f.bodies);
+    expect(disk.get(f.part.url)).toEqual(f.bytes); expect(f.publish).toHaveBeenCalledOnce();
+    f.net.mockClear(); f.net.mockRejectedValue(new Error('offline'));
+    const warm = await Promise.all(f.paths.map((_, i) => f.read(i)));
+    expect(await Promise.all(warm.map(async row => new Uint8Array(await row.arrayBuffer())))).toEqual(f.bodies);
+    expect(f.net).not.toHaveBeenCalled(); expect(f.publish).toHaveBeenCalledOnce();
+  } finally { f.reader.dispose(); f.scope.dispose(); }
+});
+
+test('quota denial preserves complete texture bytes and retirement still prevents publication to borrowers', async () => {
+  const f = await fixture(); f.publish.mockRejectedValue(new DOMException('full', 'QuotaExceededError'));
+  try {
+    const cold = await Promise.all(f.paths.map((_, i) => f.read(i)));
+    expect(await Promise.all(cold.map(async row => new Uint8Array(await row.arrayBuffer())))).toEqual(f.bodies);
+    f.reader.dispose(); expect(f.reader.read(f.paths[0] ?? '', f.net)).toBeUndefined();
   } finally { f.reader.dispose(); f.scope.dispose(); }
 });
 
@@ -115,11 +158,12 @@ test('the envelope cap keeps an oversized complete cohort on original file URLs'
 test('one cancelled borrower does not abort the other demanded textures', async () => {
   const f = await fixture(), cancelled = new AbortController();
   let deliver: (response: Response) => void = () => { throw new Error('Texture transport was not started'); };
-  let transport: AbortSignal | undefined;
+  let transport: AbortSignal | undefined, started: () => void = () => {throw new Error('Missing transport observer');};
+  const transportStarted = new Promise<void>(resolve => {started = resolve;});
   try {
-    f.net.mockImplementation((_input, init) => new Promise<Response>(resolve => { deliver = resolve; transport = init?.signal ?? undefined; }));
+    f.net.mockImplementation((_input, init) => new Promise<Response>(resolve => { deliver = resolve; transport = init?.signal ?? undefined; started(); }));
     const complete = Promise.allSettled([f.read(0, cancelled.signal), f.read(1), f.read(2)]);
-    await Promise.resolve(); cancelled.abort();
+    await transportStarted; cancelled.abort();
     expect(transport?.aborted).toBe(false); deliver(new Response(f.bytes.slice()));
     const results = await complete, first = results[0];
     if (first?.status !== 'rejected') throw new Error('Cancelled borrower published a response');
@@ -163,7 +207,7 @@ test('the public session binding preserves custom requests and disappears with i
   } finally { f.reader.dispose(); f.scope.dispose(); restoreLocation(); }
 });
 
-test('explicit empty headers and same-origin credentials share the original verified texture wave', async () => {
+test('explicit empty headers and same-origin credentials share the original complete texture wave', async () => {
   const f = await fixture(), restoreLocation = textureOrigin();
   try {
     demandPack(f.pack, f.scope);

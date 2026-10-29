@@ -14,10 +14,9 @@
  * byte counter's fetch tee never sees the packed paths. A part that fails to arrive (404 on a stale deploy, offline
  * with an empty cache) is not fatal: every packed path still waiting falls back to its own request.
  *
- * A part fetched before the service worker controlled the page (a first visit on a slow link: main.ts waits ≤ 2.5 s for
- * the claim) went past the worker's cache; once a worker controls the page it is handed the part's bytes (sw.js STORE),
- * so the next launch — and an offline one — reads it from the cache instead of downloading it again (E158: the bench's
- * Pine Hollow 4g/warm run re-downloaded the whole 18 MB pack).
+ * A part fetched before a worker controls the page publishes its complete native
+ * response into the same immutable URL cache. No claim deadline or worker RPC
+ * stands between its completion and a durable warm/offline read.
  *
  * Headless per-file record runs exercise the same unavailable-part fallback with a fetch adapter.
 
@@ -28,7 +27,8 @@ import type { Plan } from './plan';
 import type { BootStep, ByteKey } from './steps';
 import { tierUrl, versionedUrl, type ChunkFiles } from './bytes';
 import { TIER } from '../core/tier';
-import { Scope } from '../app/scope';
+import type { Scope } from '../app/scope';
+import { publishBootResponse } from './bootCache';
 import { installTexturePackReads } from './texturePack';
 
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };
@@ -60,20 +60,6 @@ interface Slot { type: string; size: number; blob: Promise<Blob>; resolve: (b: B
 
 /** A service worker controls the page (sw.ts): a fetch now passes through its cache. */
 const controlled = (): boolean => typeof navigator !== 'undefined' && 'serviceWorker' in navigator && navigator.serviceWorker.controller !== null;
-
-/**
- * Hand a part the worker never saw to its cache (sw.js STORE) once a worker controls the page — now, or at the claim.
- * Best effort: no worker, an older one without STORE, or no claim within the minute leaves it to the HTTP cache as before.
- */
-function handToWorker(url: string, blob: Blob): void {
-  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
-  const sw = navigator.serviceWorker;
-  const post = (): void => { sw.controller?.postMessage({ type: 'STORE', url, blob }); };
-  if (sw.controller) { post(); return; }
-  const scope = new Scope('pack-cache-claim');
-  scope.timeout(60_000, () => { scope.dispose(); });
-  scope.listen(sw, 'controllerchange', () => { scope.dispose(); post(); }, { once: true });
-}
 
 /**
  * The running build's slots. A page builds a shard more than once (E155: the shard host builds each shard in the page,
@@ -136,39 +122,42 @@ export function streamPack(whole: PackDef, plan: Plan<BootStep>, files: ChunkFil
   const streamPart = async (part: PackPart, { res: response, bypassed }: PartRequest, nearlyDone: () => void): Promise<void> => {
     const res = await response;
     if (!res.ok || !res.body) throw new Error(`${res.status} ${part.url}`);
+    const copy = bypassed && res.status === 200 ? res.clone() : undefined;
     const reader = res.body.getReader();
-    const blobs: Blob[] = [];
-    let i = 0, at = 0, signalled = false; // file index, bytes of the part consumed
-    let parts: Uint8Array<ArrayBuffer>[] = [];
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      let chunk = value;
-      while (chunk.byteLength > 0 && i < part.files.length) {
-        const file = part.files[i];
-        if (file === undefined) break;
-        const [p, offset, size, type] = file;
-        const take = chunk.subarray(0, Math.min(offset + size - at, chunk.byteLength));
-        parts.push(take);
-        at += take.byteLength;
-        chunk = chunk.subarray(take.byteLength);
-        const key = sourceOf.get(p);
-        if (key) plan.reader(key).add(take.byteLength);
-        if (at === offset + size) {
-          const blob = new Blob(parts, { type });
-          parts = [];
-          i++;
-          blobs.push(blob);
-          const slot = slots.get(p);
-          if (slot) { slot.url = URL.createObjectURL(blob); slot.resolve(blob); }
-          if (key) plan.fileDone(key);
+    let received = 0;
+    try {
+      let i = 0, at = 0, signalled = false; // file index, bytes of the part consumed
+      let parts: Uint8Array<ArrayBuffer>[] = [];
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        received += value.byteLength;
+        let chunk = value;
+        while (chunk.byteLength > 0 && i < part.files.length) {
+          const file = part.files[i];
+          if (file === undefined) break;
+          const [p, offset, size, type] = file;
+          const take = chunk.subarray(0, Math.min(offset + size - at, chunk.byteLength));
+          parts.push(take);
+          at += take.byteLength;
+          chunk = chunk.subarray(take.byteLength);
+          const key = sourceOf.get(p);
+          if (key) plan.reader(key).add(take.byteLength);
+          if (at === offset + size) {
+            const blob = new Blob(parts, { type });
+            parts = [];
+            i++;
+            const slot = slots.get(p);
+            if (slot) { slot.url = URL.createObjectURL(blob); slot.resolve(blob); }
+            if (key) plan.fileDone(key);
+          }
         }
+        if (!signalled && at >= part.bytes * OVERLAP) { signalled = true; nearlyDone(); }
       }
-      if (!signalled && at >= part.bytes * OVERLAP) { signalled = true; nearlyDone(); }
-    }
-    if (!signalled) nearlyDone();
-    if (i < part.files.length) throw new Error(`pack part ended after ${i} / ${part.files.length} files: ${part.url}`);
-    if (bypassed) handToWorker(part.url, new Blob(blobs, { type: 'application/octet-stream' }));
+      if (!signalled) nearlyDone();
+      if (i < part.files.length) throw new Error(`pack part ended after ${i} / ${part.files.length} files: ${part.url}`);
+      if (copy !== undefined && received === part.bytes) await publishBootResponse(part.url, copy);
+    } finally { reader.releaseLock(); void copy?.body?.cancel().catch(() => undefined); }
   };
 
   const streamed = (async () => {

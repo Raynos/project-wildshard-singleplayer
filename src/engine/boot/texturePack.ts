@@ -1,3 +1,5 @@
+import { ASSET_CACHE_NAME } from '../pwa/cacheNames';
+import { publishBootResponse } from './bootCache';
 import type { Scope } from '../app/scope';
 import type { PackDef, PackPart, PackFile } from './tables';
 
@@ -24,8 +26,10 @@ export class TexturePackReads {
   private disposed = false;
   private readonly owner: Pick<Scope, 'listen'>;
   private readonly cached: (path: string) => Promise<Response | undefined>;
-  constructor(pack: PackDef, owner: Pick<Scope, 'listen'>, cached: (path: string) => Promise<Response | undefined> = cachedPart) {
-    this.owner = owner; this.cached = cached;
+  private readonly publish: (path: string, response: Response) => Promise<void>;
+  constructor(pack: PackDef, owner: Pick<Scope, 'listen'>, cached: (path: string) => Promise<Response | undefined> = cachedPart,
+    publish: (path: string, response: Response) => Promise<void> = publishBootResponse) {
+    this.owner = owner; this.cached = cached; this.publish = publish;
     for (const part of pack.parts) for (const [index, row] of part.files.entries()) {
       if (digestOf(row[0]) !== undefined && row[2] > 0 && row[2] <= MAX_BYTES) this.members.set(row[0], { part, row, index });
     }
@@ -93,33 +97,30 @@ export class TexturePackReads {
       const first = group.entries[0], last = group.entries.at(-1);
       if (first === undefined || last === undefined) throw new Error('Missing texture pack demand');
       const part = first.member.part, together = group.entries.length > 1;
-      // Complete cached parts can also supply one later/offline member. Cache
-      // lookup never triggers a new part download or retains its backing.
-      const cached = !together && part.bytes <= MAX_BYTES ? await this.cached(part.url) : undefined;
-      const envelope = together || cached !== undefined;
-      const response = cached ?? await first.net(together ? part.url : first.path, { signal: group.controller.signal });
-      if (response.status !== 200) { await response.body?.cancel(); throw new Error('Texture pack response differs'); }
-      if (group.controller.signal.aborted) { await response.body?.cancel(); throw aborted(); }
-      const bytes = new Uint8Array(envelope ? part.bytes : first.member.row[2]);
-      const reader = response.body?.getReader(); if (reader === undefined) throw new Error('Missing texture pack body');
-      let offset = 0;
-      try {
-        for (;;) {
-          const chunk = await reader.read(); if (group.controller.signal.aborted) throw aborted(); if (chunk.done) break;
-          if (offset + chunk.value.length > bytes.length) throw new Error('Texture pack body exceeds demand');
-          bytes.set(chunk.value, offset); offset += chunk.value.length;
+      // Complete native cache bodies serve whole waves and later lone members.
+      const cached = part.bytes <= MAX_BYTES ? await this.cached(part.url).catch(() => undefined) : undefined;
+      const check = (): void => { if (this.disposed || group.controller.signal.aborted) throw aborted(); };
+      const direct = async (entry: Pending, envelope: boolean): Promise<Uint8Array<ArrayBuffer>> => {
+        check();
+        const path = envelope ? part.url : entry.path, expected = envelope ? part.bytes : entry.member.row[2];
+        const bypassed = typeof navigator === 'undefined' || !('serviceWorker' in navigator) || navigator.serviceWorker.controller === null;
+        const wire = await readBody(await entry.net(path, {signal: group.controller.signal}), expected, group.controller.signal);
+        check();
+        if (bypassed) await this.publish(path, new Response(wire, {headers: {'content-type': envelope ? 'application/octet-stream' : entry.member.row[3]}})).catch(() => undefined);
+        check(); return wire;
+      };
+      const split = (wire: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer>[] => group.entries.map(entry => wire.slice(entry.member.row[1], entry.member.row[1] + entry.member.row[2]));
+      let members: Uint8Array<ArrayBuffer>[];
+      if (cached !== undefined) {
+        try { members = split(await readBody(cached, part.bytes, group.controller.signal)); }
+        catch {
+          check();
+          // G881: a stale cache length refetches only the demanded files.
+          members = await Promise.all(group.entries.map(entry => direct(entry, false)));
         }
-        if (offset !== bytes.length) throw new Error('Texture pack body is truncated');
-      } catch (error) { await reader.cancel(); throw error; }
-      finally { reader.releaseLock(); }
-      if (envelope && !(await hash(bytes)).startsWith(/-([a-f0-9]{8})\.bin$/u.exec(part.url)?.[1] ?? 'invalid')) throw new Error('Texture pack hash differs');
-      const members = await Promise.all(group.entries.map(async entry => {
-        const at = envelope ? entry.member.row[1] : 0, wire = bytes.slice(at, at + entry.member.row[2]);
-        const digest = await hash(wire);
-        if (!digest.startsWith(digestOf(entry.path) ?? 'invalid')) throw new Error('Texture pack member hash differs');
-        return wire;
-      }));
-      if (this.disposed || group.controller.signal.aborted) throw aborted();
+      } else members = together ? split(await direct(first, true)) : [await direct(first, false)];
+      // G881: authored addresses are trusted; no read or publication computes a digest.
+      check();
       for (const [index, entry] of group.entries.entries()) {
         const member = members[index]; if (member === undefined) throw new Error('Missing texture pack member');
         entry.resolve(member);
@@ -128,9 +129,25 @@ export class TexturePackReads {
   }
 }
 
-async function hash(bytes: Uint8Array<ArrayBuffer>): Promise<string> { return [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(n => n.toString(16).padStart(2, '0')).join(''); }
+async function readBody(response: Response, expected: number, signal: AbortSignal): Promise<Uint8Array<ArrayBuffer>> {
+  if (response.status !== 200) { void response.body?.cancel().catch(() => undefined); throw new Error('Texture pack response differs'); }
+  if (signal.aborted) { void response.body?.cancel().catch(() => undefined); throw aborted(); }
+  const bytes = new Uint8Array(expected), reader = response.body?.getReader();
+  if (reader === undefined) throw new Error('Missing texture pack body');
+  let offset = 0;
+  try {
+    for (;;) {
+      const chunk = await reader.read(); if (signal.aborted) throw aborted(); if (chunk.done) break;
+      if (offset + chunk.value.length > bytes.length) throw new Error('Texture pack body exceeds demand');
+      bytes.set(chunk.value, offset); offset += chunk.value.length;
+    }
+    if (offset !== bytes.length) throw new Error('Texture pack body is truncated');
+    return bytes;
+  } catch (error) { void reader.cancel().catch(() => undefined); throw error; }
+  finally { reader.releaseLock(); }
+}
 async function cachedPart(path: string): Promise<Response | undefined> {
-  try { return typeof caches === 'undefined' ? undefined : await caches.match(path, { ignoreVary: true }); }
+  try { return typeof caches === 'undefined' ? undefined : await (await caches.open(ASSET_CACHE_NAME)).match(new URL(path, location.href).href, { ignoreVary: true }); }
   catch { return undefined; } // Storage denial preserves the ordinary direct read.
 }
 const readers = new Set<TexturePackReads>();

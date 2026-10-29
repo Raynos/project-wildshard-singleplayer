@@ -836,6 +836,12 @@ previous build code remain available. `version.json` stays on the network.
 progress API. Installation never claims a running document. Explicit adoption
 at a fresh document or title boundary retains the G898 page-phase fence.
 
+Controllerless boot parts and texture cohorts publish complete native bodies
+to the same URL cache before completion. Cached cohorts serve both complete
+waves and lone members; a stale cached length refetches only demanded files.
+Neither reads nor publication computes a digest, and quota denial keeps the
+complete online bytes usable. There is no STORE message or claim deadline.
+
 `boot/contentRead.readContent(url, maximum, ports)` reads bounded content,
 retries one interrupted or missing transport after one second, then keeps the
 load pending on the existing RETRY button. HTML responses name the missing
