@@ -47,6 +47,30 @@ test('a parked first-view census matches entry without changing visibility or in
   } finally {empty.dispose(); geometry.dispose(); material.dispose();}
 });
 
+test('D12: what the camera carries is in the first view however its own parts are hidden', () => {
+  const source = readFileSync(new URL('precompile.ts', import.meta.url), 'utf8');
+  const start = source.indexOf('function drawnFrom('), end = source.indexOf('\n/**', start);
+  const factory: unknown = runInNewContext(stripTypeScriptTypes(`(${source.slice(start, end)})`), {THREE});
+  if (typeof factory !== 'function') throw new Error('First-view selector is not callable');
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100), geometry = new THREE.BoxGeometry(), material = new THREE.MeshBasicMaterial();
+  const gloves = new THREE.Group(), glove = new THREE.Mesh(geometry, material), sword = new THREE.Mesh(geometry, material), behind = new THREE.Mesh(geometry, material);
+  gloves.visible = false; gloves.add(glove); sword.visible = false; behind.position.set(0, 0, 5);
+  camera.add(gloves, sword, behind); scene.add(camera); scene.updateMatrixWorld(true);
+  const select = (): ((object: THREE.Object3D) => boolean) => {
+    const predicate: unknown = Reflect.apply(factory, undefined, [camera]);
+    if (typeof predicate !== 'function') throw new Error('Missing first-view predicate');
+    return object => Reflect.apply(predicate, undefined, [object]) === true;
+  };
+  try {
+    expect([glove, sword, behind].map(select())).toEqual([true, true, true]);
+    expect(gloves.visible).toBe(false); expect(sword.visible).toBe(false);
+    glove.layers.set(3);
+    expect(select()(glove)).toBe(false); // the camera's layers still decide
+    camera.visible = false;
+    expect(select()(sword)).toBe(false); // a hidden camera (or anything above it) is never ignored
+  } finally {geometry.dispose(); material.dispose();}
+});
+
 test('the overlapping census constructs only scene jobs; final preparation still constructs every other phase', async () => {
   const source = readFileSync(new URL('precompile.ts', import.meta.url), 'utf8');
   const start = source.indexOf('export async function precompileLevel(');

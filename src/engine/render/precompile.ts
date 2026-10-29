@@ -1482,18 +1482,26 @@ export async function compileOffscreenPass(renderer: Renderer, pass: OffscreenPa
 
 /**
  * Whether the renderer would draw `object` from `camera` now: shown up its parents, on the camera's layers, with copies to
- * draw, and in the camera's frustum unless it is never frustum culled (three's own test).
+ * draw, and in the camera's frustum unless it is never frustum culled (three's own test). What the camera carries (the
+ * held view: the swim hands, a rig's other sword, the reins) counts however its own parts are hidden: a swim, a swap or a
+ * mount shows it at once, and left to the in-play warm-up its links sat in the Simulator spawn's first seconds (D12).
  */
 function drawnFrom(camera: THREE.Camera, entering?: THREE.Object3D): (object: THREE.Object3D) => boolean {
   camera.updateMatrixWorld();
   const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
   return (object) => {
+    let held = false;
+    for (let at = object.parent; at !== null && !held; at = at.parent) held = at === camera;
     // The entering root alone is hidden by admission. Its authored descendants
     // keep their own visibility, layers, instance counts and camera culling.
-    for (let at: THREE.Object3D | null = object; at !== null; at = at.parent) if (at !== entering && !at.visible) return false;
+    // Below the camera a held part's own visibility is ignored; the camera and its parents still count.
+    for (let at: THREE.Object3D | null = object, carried = held; at !== null; at = at.parent) {
+      if (at === camera) carried = false;
+      if (!carried && at !== entering && !at.visible) return false;
+    }
     if (!object.layers.test(camera.layers)) return false;
     if (object instanceof THREE.InstancedMesh && object.count === 0) return false;
-    if (!object.frustumCulled) return true;
+    if (held || !object.frustumCulled) return true;
     // what three's frustum test reads: a bounded geometry (anything else, a sprite too, is compiled now)
     const geometry: unknown = Reflect.get(object, 'geometry');
     return !(geometry instanceof THREE.BufferGeometry) || frustum.intersectsObject(object);
