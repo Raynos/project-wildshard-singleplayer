@@ -6,8 +6,8 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **Deadline: everything done and archived by 14:00 Cancun** (finish spike d84ac5e875). Cut-offs: look / bug rows 12:15,
 LD9 / LD10 13:30, CO8 archive 13:45, all lanes stop 14:00 (G845).
 
-**LIVE dcc2153ac6 (build dcc2153ac-mvtsyqc1, hourly; not the QA build). DA1 proven live (268 maps stripped, archive kept).** Jake's QA build cf1d4066e3 (cf1d406-mvtsy1dy): CO1 Playwright
-PASS bddbd824a8 (o4) + Simulator PASS (o3); release on CI 8621318d93 + exact six. CO1 release PULLED FORWARD: first green c066-or-newer + exact six (notes eb11d9974c).
+**LIVE dcc2153ac6 (build dcc2153ac-mvtsyqc1, hourly; not the QA build). DA1 proven live (268 maps stripped, archive kept).** Jake's QA build = 8621318d93 (runtime-equal to cf1d4066e3): CI 40919003760 GREEN, exact six
+40924043499 running, then deploy; CO1 PASS (o4 bddbd824a8, o3 Sim); QA14 desktop white clear. Floor fix d1ad891a76. CO1 release PULLED FORWARD: first green c066-or-newer + exact six (notes eb11d9974c).
 The a834 footer / hold reds are covered by x6's 55402e4b10 (in c066).
 
 **Jake 11:50:** he QAs only the build with everything, QA1-QA13 ALL DONE (QA5 cf1d4066e3); the QA build is the first green
