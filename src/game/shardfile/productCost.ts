@@ -301,12 +301,14 @@ export function productPostCost(source:Shardfile,bytes:(hash:string)=>Uint8Array
     if(cost===undefined)throw new Error('Build must publish post cost');
     return cost;
   }
+  if(!(import.meta.env?.SSR??true))throw new Error('Client product needs its build-owned post cost');
   return postStackCost(source,bytes).cost;
 }
 /** Conservative transport/source heap claim: two parsed-source copies, owned asset buffers and map/object overhead. */
 export function productResidentBytes(source: Shardfile): number {
   const emitted=outputDescriptor(source);
   if(emitted?.built===true){if(emitted.residentBytes===undefined)throw new Error('Build must publish source residency');return emitted.residentBytes;}
+  if(!(import.meta.env?.SSR??true))throw new Error('Client product needs its build-owned residency');
   const accounting = { heapBytes: 0 };
   preflightShardfile(source, accounting);
   // File/common aliases are copied into separate owned buffers by admitProduct, so count each actual Map entry.
@@ -322,6 +324,7 @@ export function productResidentBytes(source: Shardfile): number {
 export function* productResidentBytesSteps(source: Shardfile, every = 4096): Generator<void, number> {
   const emitted=outputDescriptor(source);
   if(emitted?.built===true){if(emitted.residentBytes===undefined)throw new Error('Build must publish source residency');return emitted.residentBytes;}
+  if(!(import.meta.env?.SSR??true))throw new Error('Client product needs its build-owned residency');
   const accounting = { heapBytes: 0 };
   yield* preflightShardfileSteps(source, every, accounting);
   const wire = source.files.reduce((sum, file) => sum + file.compressed, 0)

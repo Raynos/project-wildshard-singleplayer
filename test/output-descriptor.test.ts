@@ -1252,9 +1252,12 @@ test('build-owned client sections assemble exact hosts without hashing or downlo
   const index=parseOutputIndex({...f.index,sections:[...f.index.sections,{name:'custom/build-probe',schema:schemaPath,...measured(path,wire)}],schemas:[measured(schemaPath,schema)]});
   f.wires.set(path,wire);
   const reads:string[]=[],digest=vi.fn<(bytes:Uint8Array)=>Promise<string>>(()=>{throw new Error('No client digest');});
+  let active=0,maximum=0;
   const source=await resolveOutputDescriptor(index,{offline:false,firstParty:true,hash:digest,read:()=>{throw new Error('No checked-reader fallback');},
+    parseJson:async bytes=>{active++;maximum=Math.max(maximum,active);try{await Promise.resolve();const parsed:unknown=JSON.parse(new TextDecoder().decode(bytes));return parsed;}finally{active--; }},
     built:{indexHash:'compiled-index-key',read:(name,bytes)=>{reads.push(name);const body=f.wires.get(name);if(body===undefined||body.length!==bytes)throw new Error('Missing emitted bytes');return Promise.resolve(body);}}});
   expect(source).toStrictEqual(f.source);expect(digest).not.toHaveBeenCalled();expect(reads).toEqual(index.sections.map(row=>row.path));expect(reads).not.toContain(schemaPath);
+  expect(maximum).toBe(1);
   if(!isBuildValidatedOutput(source))throw new Error('Missing build authority');
   expect(outputDescriptor(source)?.sections.get('custom/build-probe')).toStrictEqual(value);expect(outputDescriptor(source)?.indexHash).toBe('compiled-index-key');
 });
@@ -1298,3 +1301,15 @@ test('built product residency is the emitted value without another source walk',
   }finally{if(previous===undefined)Reflect.deleteProperty(globalThis,'__SHARDFILE_VERDICTS__');else Object.defineProperty(globalThis,'__SHARDFILE_VERDICTS__',previous);}
 });
 
+test('the browser cannot fall back to Node admission when its native build reader is missing',async()=>{
+  const f=fixture(),native=options(f.wires);
+  vi.stubEnv('SSR',false);
+  try{
+    await expect(readProductDescriptor(native)).rejects.toThrow('build-owned reader');
+    expect(()=>admitProduct(f.index,native)).toThrow('build-owned reader');
+    expect(()=>productResidentBytes(f.source)).toThrow('build-owned residency');
+    expect(()=>productResidentBytesSteps(f.source).next()).toThrow('build-owned residency');
+    expect(()=>productPostCost(f.source,()=>undefined)).toThrow('build-owned post cost');
+    await expect(resolveOutputDescriptor(f.index,{firstParty:true,offline:false,read:()=>Promise.resolve(new Uint8Array()),hash:native.hash})).rejects.toThrow('build-owned reader');
+  }finally{vi.unstubAllEnvs();}
+});

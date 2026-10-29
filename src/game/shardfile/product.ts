@@ -219,9 +219,16 @@ async function readBoundedResponse(response: Response, maximum: number, read?: (
 function resolveDescriptor(input: unknown, options: ProductOptions, lineage = false, background = false): Promise<unknown> {
   const base = new URL('.', options.base).href, cache = options.cache, backgroundStore = cache?.putAssetBackground;
   const builtRead=options.firstParty?options.firstPartyRead:undefined;
+  if(builtRead!==undefined)return resolveOutputDescriptor(input,{
+    firstParty:true,offline:options.offline,deferAssetDeclarations:true,hash:options.hash,
+    built:{read:(path,bytes,hash)=>builtRead(new URL(path,base).href,bytes,undefined,hash),
+      indexHash:options.descriptorHash??builtIndexHash(new URL(options.descriptorPath??'shard.json',base).pathname)??''},
+    read:(path,bytes)=>builtRead(new URL(path,base).href,bytes),
+    ...(options.pause===undefined?{}:{pause:options.pause}),
+    ...(options.parseJson===undefined?{}:{parseJson:options.parseJson}),
+  });
+  if(!(import.meta.env?.SSR??true))throw new Error('Client product needs its build-owned reader');
   return resolveOutputDescriptor(input, {
-    ...(builtRead===undefined?{}:{built:{read:(path:string,bytes:number,hash?:string)=>builtRead(new URL(path,base).href,bytes,undefined,hash),
-      indexHash:options.descriptorHash??builtIndexHash(new URL(options.descriptorPath??'shard.json',base).pathname)??''}}),
     ...(options.parseJson === undefined ? {} : { parseJson: options.parseJson }),
     offline: options.offline, hash: options.hash, firstParty: options.firstParty, deferAssetDeclarations: true, ...(lineage ? { lineage } : {}),
     ...(options.cacheHintTurn === undefined ? {} : { cacheHintTurn: options.cacheHintTurn }),
@@ -325,6 +332,7 @@ export async function readProductDescriptor(options: ProductOptions, declaredUrl
     if(!isBuildValidatedOutput(source))throw new Error('First-party reader did not assemble its build output');
     return source;
   }
+  if(!(import.meta.env?.SSR??true))throw new Error('Client product needs its build-owned reader');
   // Observe a failed cache read without making a healthy network response depend on it.
   const cached = (async () => { try { return { value: await options.cache?.product(base) }; } catch (error: unknown) { return { error }; } })();
   let visited: CachedProduct | null | undefined;
@@ -366,6 +374,7 @@ export async function readProductDescriptor(options: ProductOptions, declaredUrl
 export async function readProductInput(input: unknown, options: ProductOptions): Promise<Shardfile> {
   const assembled = await resolveDescriptor(input, options, false, true);
   if (isBuildValidatedOutput(assembled)) return assembled;
+  if(!(import.meta.env?.SSR??true))throw new Error('Client product needs its build-owned reader');
   await preflightProduct(assembled, options.pause);
   const source = await parseCheckedProduct(assembled);
   carryOutputDescriptor(assembled, source);
@@ -380,6 +389,7 @@ type AdmissionPhase = 'visited' | 'sections' | 'source' | 'files' | 'costs' | 's
  * new reads and drains started work before authored-order refusal or publication. */
 export function admitProduct(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
   if(options.firstParty&&options.firstPartyRead!==undefined)return readBuiltProduct(input,options,options.firstPartyRead);
+  if(!(import.meta.env?.SSR??true))throw new Error('Client product needs its build-owned reader');
   const trace = clientPreparationBatch<AdmissionPhase>(options.descriptorPath ?? options.base, 'admission-phases',
     ['visited', 'sections', 'source', 'files', 'costs', 'store', 'finish']);
   const pending = admitProductWork(input, options, trace);

@@ -142,12 +142,20 @@ async function readBuiltOutput(index:OutputIndex,reader:OutputDescriptorReader,b
   const rows=index.sections;
   for(const row of rows)reader.declare?.(row.path,row.bytes);
   if(reader.deferAssetDeclarations!==true)for(const file of index.files)reader.declare?.(outputBlobPath(file),file.compressed);
+  let parseTail=Promise.resolve();
   const values=await Promise.allSettled(rows.map(async row=>{
     const bytes=await built.read(row.path,row.bytes,row.hash);
-    await reader.pause?.();
-    const value:unknown=reader.parseJson===undefined?JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)):await reader.parseJson(bytes);
-    await reader.pause?.();
-    return [row.name,value] as const;
+    // Reads overlap; parsing takes one cooperative turn at a time. Warm cache
+    // completions must not all resume from the same pause into a parse burst.
+    const previous=parseTail;let release=():void=>{ /* Assigned synchronously before the first await. */ };
+    parseTail=new Promise<void>(resolve=>{release=resolve;});
+    await previous;
+    try{
+      await reader.pause?.();
+      const value:unknown=reader.parseJson===undefined?JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)):await reader.parseJson(bytes);
+      await reader.pause?.();
+      return [row.name,value] as const;
+    }finally{release();}
   }));
   // Drain every started read and retain authored publication/error order.
   for(const value of values){if(value.status==='rejected')throw value.reason;sections.set(...value.value);}
@@ -174,6 +182,7 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
     if(isBuildValidatedOutput(input))return input;
     return readBuiltOutput(input as OutputIndex,reader,reader.built);
   }
+  if(!(import.meta.env?.SSR??true))throw new Error('Client product needs its build-owned reader');
   // This root was reconstructed here already. Admission still rechecks exposed
   // values; recognizing a model must not load the disk-index grammar again.
   if (reader.firstParty === true && isBuildValidatedOutput(input)) {
