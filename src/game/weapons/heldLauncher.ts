@@ -26,6 +26,7 @@ import type { ModelLibrary } from '../plugin/geometry';
 import { type HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { createClientScene } from '../plugin/scene';
 import { HeldPlayback } from '../plugin/weaponFamily';
+import { advanceLauncherSpring, type LauncherSpringState } from './launcherSpring';
 
 /**
  * The held-launcher host (H3, SHARD-PLATFORM C6 view, G454 data only): a first-person crossbow loosing physical bolts,
@@ -172,6 +173,7 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
   /** the string's draw (1 = spanned) */
   draw = 1;
   private drawVel = 0; private drawTarget = 1;
+  private readonly springState: LauncherSpringState = {draw: 1, velocity: 0};
   private readonly rows: HeldLauncherRows;
   private readonly game: RangedWorld['game']; private readonly sky: Sky; private readonly player: RangedWorld['player'];
   private readonly targets: Targets | undefined;
@@ -306,8 +308,9 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
     this.action.advance(dt, this.reloadScale, true, this.reloadPose);
     // the string spring (stiff, slightly under-damped so the release overshoots)
     const [k, c] = s.reloading ? string.reloadSpring : string.spring;
-    this.drawVel += (-(this.draw - this.drawTarget) * k - this.drawVel * c) * dt;
-    this.draw += this.drawVel * dt;
+    const spring = this.springState; spring.draw = this.draw; spring.velocity = this.drawVel;
+    advanceLauncherSpring(spring, this.drawTarget, k, c, dt);
+    this.draw = spring.draw; this.drawVel = spring.velocity;
     this.posePlayback.apply('string', this.poseFrame);
     const parts = this.partValues; parts.loaded = Number(s.loaded); parts.reloading = Number(s.reloading); parts.reloadProgress = s.reloadProgress;
     this.posePlayback.apply('parts', parts);

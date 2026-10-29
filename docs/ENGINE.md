@@ -1012,16 +1012,11 @@ changed/overlapping totals refuse. Receipts alone complete these debug
 counters. Product inventories keep their original size/hash/schema checks.
 This full-bank estimate does not supply entry DOWNLOAD's displayed total.
 
-`reserveDownloadBank(id, bytes)` returns the itemizer for that attempt's
-captured counters. It reserves a detached home file list's exact content total;
-its complete validated URL/size bank replaces the reservation atomically.
-Size mismatch, unsafe/duplicate URLs and overlapping declarations refuse before
-any file publishes. A newly opened observer cannot retarget the pending bank.
-The first-party compiled entry fetches only its own content-hashed, bounded
-art/model inventory, verifies its byte size and SHA-256, then itemizes it before
-product admission. Other homes' file lists stay out of the shell. A retired
-entry refuses before publication. This declares existing reads without adding
-model, image, audio or physics prefetches.
+`reserveDownloadBank(id, bytes)` captures an attempt's debug itemizer.
+Its complete verified URL/size bank replaces the reservation atomically;
+size mismatch, unsafe/duplicate URLs, overlaps and retired entries refuse.
+Changing observers cannot retarget it. The selected hashed inventory retains
+its size/SHA checks and adds no model, image, audio or physics prefetches.
 
 Expected progress uses file-content sizes before HTTP compression, including
 content supplied by a cache. The network line uses observed transfers or
@@ -2195,8 +2190,10 @@ abstract class Tool extends Equipment { slot: 'tool' | 'offhand'; actions: reado
 | `EquipmentService` | `app.equipment`: the loadout, `add`, `unlock`, swapping; `availableInto(target)` fills a caller-owned array with live unlocked weapons in the same kit order. `available` still returns an independent array. |
 | `EquipmentHost` | `app.equipmentHost`: the scene/player ports and `viewmodel` root for camera-space equipment |
 
-`EquipmentService` accepts an explicit `input` binding port. The client session connects it to `app.input` and
-the active weapon's enabled predicate; a simulation service can omit device bindings.
+`EquipmentService` accepts optional device input. A refused `core/faults.NumericInputError`
+skips only that weapon's update and emits one existing fault report per weapon.
+Other weapons, reloads and swapping keep ticking; unrelated defects still throw.
+The held launcher substeps its original spring at most 1/60 s; 60 Hz is bit-identical.
 `prepareOnSelect(id, prepare)` gates an inactive weapon on its first selection; the current weapon stays active until preparation succeeds. `settleSelection()` fences initial/restored selection before controls, including redirects, failures and retirement. Profiles and ownership remain eager.
 
 Mount a finished custom model in `app.equipmentHost.viewmodel` during `play`, and remove it with your scope.

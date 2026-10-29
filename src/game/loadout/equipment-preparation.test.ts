@@ -5,6 +5,8 @@ import { Weapon } from '@wildshard/engine/combat/Weapon';
 import { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import { SWORD_WOOD } from '../weapons/starterMeleeProfile';
+import {NumericInputError, onFault} from '@wildshard/engine/core/faults';
+import {bindClientChannelInputs} from '../plugin/channels';
 
 type Slot = 'sword' | 'bow' | 'spear';
 const row = (slot: Slot): EquipmentRow => ({ ...SWORD_WOOD, id: `weapon.${slot}`, legacySlot: slot });
@@ -27,6 +29,27 @@ function fixture() {
   service.add(next, { locked: false }); service.add(last, { locked: false });
   return { scope, first, next, last, service };
 }
+
+test('a refused draw skips only its weapon frame, reports once and recovers without killing equipment', () => {
+  const f = fixture(), input = {draw: 0}, reports: string[] = [], healthy = vi.fn();
+  const read = bindClientChannelInputs([{input: 'draw', owner: 'weapon', path: ['draw']}],
+    new Map([['weapon', input]]), new Set(['draw'])).get('draw');
+  if (read === undefined) throw new Error('Missing actual channel reader');
+  const badFrame = vi.spyOn(f.first, 'update').mockImplementation(() => { read(); });
+  vi.spyOn(f.next, 'update').mockImplementation(() => { healthy(); });
+  const off = onFault(fault => { reports.push(fault.system); expect(fault.error).toBeInstanceOf(NumericInputError); });
+  try {
+    input.draw = Number.NaN;
+    for (let frame = 0; frame < 4; frame++) expect(() => f.service.update(1 / 21, frame / 21)).not.toThrow();
+    expect(healthy).toHaveBeenCalledTimes(4); expect(badFrame).toHaveBeenCalledTimes(4);
+    expect(reports).toEqual([`equipment.${f.first.row.id}`]);
+    input.draw = 1; f.service.update(1 / 60, 1);
+    expect(healthy).toHaveBeenCalledTimes(5); expect(reports).toHaveLength(1);
+    const unrelated = new Error('Actual unrelated weapon defect');
+    badFrame.mockImplementation(() => { throw unrelated; });
+    expect(() => f.service.update(1 / 60, 2)).toThrow(unrelated);
+  } finally {off(); f.scope.dispose();}
+});
 
 test('ordinary selection remains synchronous without a preparation port', () => {
   const f = fixture();

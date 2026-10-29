@@ -107,6 +107,12 @@ export function systemFault(s: GameSystem<unknown>, error: unknown, frame: numbe
   return verdict;
 }
 
+/** A refused numeric observation; callers may isolate its owning frame while
+ * keeping unrelated systems running. Admission still rejects the same input. */
+export class NumericInputError extends Error {
+  constructor(input: string) { super(`Invalid numeric input ${input}`); this.name = 'NumericInputError'; }
+}
+
 /** an error already described as text (main().catch hands the modal strings): reported as-is */
 export class DescribedError {
   readonly message: string;

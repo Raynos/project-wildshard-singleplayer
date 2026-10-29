@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./core/faults": "./core/faults.ts",
     "./boot/spawnRingReveal": "./boot/spawnRingReveal.ts",
     "./test/FakeGame": "./test/FakeGame.ts",
     "./test/realGc": "./test/realGc.ts",

@@ -1,4 +1,5 @@
 import { Object3D } from 'three';
+import { NumericInputError } from '@wildshard/engine/core/faults';
 import { parseClientChannelInputs, parseClientChannels, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 import { checkBorrowedOwnerPath, resolveBorrowedValue } from './borrowed';
 
@@ -237,7 +238,7 @@ export function bindClientChannelInputs(input: unknown, owners: ReadonlyMap<stri
     checkBorrowedOwnerPath(row);
     const read = (): number => {
       const value = resolveBorrowedValue(owners, row);
-      if (typeof value !== 'number' || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new Error(`Invalid numeric input ${row.input}`);
+      if (typeof value !== 'number' || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new NumericInputError(row.input);
       return value;
     };
     read(); bound.set(row.input, read);
