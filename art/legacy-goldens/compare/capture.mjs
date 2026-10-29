@@ -28,6 +28,7 @@ if(!base)throw Error('--base=<preview url> is required');
 const head=arg('sha',execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim());
 const set=arg('cameras','');const mode=arg('mode','shardfile');if(!['legacy','shardfile'].includes(mode))throw Error(`--mode=${mode}`);
 const canonical=set?JSON.parse(readFileSync(set,'utf8')).cameras:JSON.parse(readFileSync('art/legacy-vs-shardfile/round-1-2026-10-28/cameras.json','utf8')).pairedCameras;
+const exp=arg('exp','')?readFileSync(arg('exp',''),'utf8'):'';// --exp=<file.js>: diagnostics only, run in the page before the held shot (its return value lands in the receipt)
 const only=arg('cams','')?new Set(arg('cams','').split(',').map(Number)):null;
 const slugs=arg('shards',Object.keys(canonical).join(',')).split(',');
 const FRAMES=120,SETTLE_MS=30000,LIVE=60,FREE=4,EYE=1.7;
@@ -111,6 +112,7 @@ try{for(const slug of slugs){
    // the eye is read: a sliding player now hovers where it stands, so it cannot slide off (and respawn) during the live frames
    if(drifted)await page.evaluate(()=>window.__wildshard.world.player.setHover?.(true));
    await frames(page,LIVE);const live=await settle(page,inflight);await frames(page,LIVE);
+   const expResult=exp?await page.evaluate(code=>(new Function('w','g','return (async()=>{'+code+'})()'))(window.__wildshard.world,window.__wildshard.world.game),exp):undefined;
    const observed=await page.evaluate(()=>{
     const w=window.__wildshard.world,g=w.game,e=window.__wsEye;g.hold=true;
     const player=w.player.position.toArray(),cam=g.camera;
@@ -131,7 +133,7 @@ try{for(const slug of slugs){
     await page.screenshot({path:shot,type:'png',scale:'device'});await hide.evaluate(e=>e.remove());}
    else await page.screenshot({path:shot,type:'png',scale:'css'});
    await page.evaluate(()=>{for(const o of window.__wsBoards??[])o.visible=true;window.__wsBoards=[];});
-   row.poses.push({n:c.n??i+1,name:c.name,free,drifted,idle,live,...observed,shot});
+   row.poses.push({n:c.n??i+1,name:c.name,free,drifted,idle,live,...observed,...(exp?{exp:expResult}:{}),shot});
    writeFileSync(`${root}/receipts-${slug}.json`,JSON.stringify(row,null,1));
   }
   row.status=row.errors.length===0?'complete':'errors';

@@ -52,4 +52,6 @@ rm -rf tmp/golden-compare-144/raw      # keep tmp/golden-compare-144/<run>/ for 
 ```
 
 `capture.mjs` refuses a preview whose build is not HEAD. Pass `--sha=<full sha>` if HEAD moved after the build started.
+`--exp=<file.js>` (diagnostics only) runs that file's body in the page just before the held shot, with `w` (the world) and
+`g` (the game); its return value lands in the receipt (`poses[].exp`). NR15 used it to hide or swap meshes and read live uniforms.
 `--cams=5,9` recaptures only some cameras.
