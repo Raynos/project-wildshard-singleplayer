@@ -6,6 +6,7 @@ import {instrument} from './instrument.ts';
 import {launchChromium} from './chromium.ts';
 import {contactSheet} from './recording.ts';
 import {observeRequests} from './network.ts';
+import {postControlWindow} from './post-control.ts';
 import {comparisons, printRun, profiles, record, type Capture, type ErrorRow, type Run} from './model.ts';
 import {developerSettings} from '../debug-settings.mjs';
 import {loadingCardIndex} from '../loading-benchmark/catalogue.mjs';
@@ -136,7 +137,9 @@ try {
         try {capture = await page.evaluate(() => Reflect.get(window, '__phoneLoading') as Capture);}
         catch (error) {errorAt(String(error), 'capture');}
         capture.tap = tapAt ?? capture.tap;
+        const postControlObservedAt = Date.now();
         await network.settle();
+        const postControl = postControlWindow(capture.control, postControlObservedAt, afterControl, capture.longTasks, network.rows);
         const from = capture.tap ?? 0, to = capture.control ?? capture.stoppedAt ?? Date.now();
         const errorDetails = [...capture.errorDetails ?? [], ...errors, ...network.errors.filter(error => error.at >= visitStart),
           ...(chromium?.errors ?? []).map(message => ({message, source: 'CDP auto-attach', url, at: Date.now()}))];
@@ -147,7 +150,7 @@ try {
           rows: capture.rows, measures: capture.measures.filter(row => row.start >= from && row.start <= to),
           longTasks: capture.longTasks.filter(row => row.start >= from && row.start <= to),
           frameGaps: capture.frameGaps.filter(row => row.start >= from && row.start <= to),
-          requests: network.rows.filter(row => row.start >= from && row.start <= to), errorDetails,
+          requests: network.rows.filter(row => row.start >= from && row.start <= to), postControl, errorDetails,
           errors: errorDetails.map(error => error.message)};
         const name = `${engine}-${values.flow.replace(':', '-')}-${cache}`;
         await page.screenshot({path: `${directory}/${name}.jpg`, type: 'jpeg', quality: 75, timeout: 10_000}).catch((error: unknown) => {
