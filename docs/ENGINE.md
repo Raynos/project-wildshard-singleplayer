@@ -1018,16 +1018,15 @@ size mismatch, unsafe/duplicate URLs, overlaps and retired entries refuse.
 Changing observers cannot retarget it. The selected hashed inventory retains
 its size/SHA checks and adds no model, image, audio or physics prefetches.
 
-MF4's `format/spawnManifest` is the ordered build-owned URL/hash/size list.
-`writeSpawnManifests` writes its content-named JSON from the same required,
-active entry selection as read-ahead. Product, code and public URLs count once.
-`game/boot/spawnDownload` starts it without engine, renderer or worker imports.
-`startSpawnDownload` selects the shard/tier/flow; `paintSpawnDownload` paints
-only the existing card's numbers/text. `ready` resolves only after every file
-is present in the worker cache or read at its exact size. Warm presence needs
-no body read or checksum. Uncontrolled first installs fill that same cache.
-There is no timer, forced finish or receipt-derived completion. Later streams
-are outside this immutable list. Loading adopts its snapshot and lifetime.
+MF4's `format/spawnManifest` is the build-owned URL/hash/size list.
+`writeSpawnManifests` selects active entry files; URLs count once.
+`game/boot/spawnDownload` needs no engine, renderer or worker imports.
+`startSpawnDownload` selects shard/tier/flow; `paintSpawnDownload` updates
+existing card numbers/text. `ready` awaits every exact-sized file; warm
+cache presence needs no body read or checksum. First installs fill the same
+cache. No timer or receipt finishes it. Loading.setDownloadSource(source)
+retires its receipt observer and returns that ready promise; plan completion
+cannot finish a pending manifest. Later streams remain outside the list.
 
 `Loading.setPrefetchSource(read)` reports the separate on-disk prefetch set,
 its known files/bytes, products checked and quota/failure state. These facts

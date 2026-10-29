@@ -45,6 +45,14 @@ const setData = (el: HTMLElement, key: string, value: string): void => { if (el.
 export interface LoadingAdmission {
   phase: string; detail: string; bytesRead: number; bytesTotal: number; filesDone: number; filesTotal: number;
 }
+/** The composition root lends its one manifest operation. The UI never
+ * discovers files, estimates their sizes or decides that a read is complete. */
+export interface LoadingDownloadSource {
+  readonly ready: Promise<void>;
+  readonly snapshot: () => {readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number;
+    readonly filesTotal: number; readonly filesDone: number; readonly complete: boolean; readonly error: string | null};
+  readonly subscribe: (listener: () => void) => () => void;
+}
 /** Facts repaint at 5 Hz; the clock samples at 10 Hz. Done and errors paint at once. */
 const PAINT_MS = 200;
 const CLOCK_MS = 100;
@@ -73,6 +81,9 @@ export class Loading {
   private prefetchSource: (() => LoadingPrefetchSnapshot | null) | undefined;
   private readonly downloads: DownloadAccounting;
   private readonly downloadObserver: PerformanceObserver;
+  private readonly stopDownloadAccounting: () => void;
+  private downloadSource: LoadingDownloadSource | undefined;
+  private stopDownloadSource: (() => void) | undefined;
   private readonly timeline: LoadingTimeline;
   private phase: { end: () => void; detail: (text: string) => void } | undefined;
   private phaseKey = 'modules';
@@ -130,7 +141,9 @@ export class Loading {
     this.downloads = new DownloadAccounting(location.href, shell === null ? this.t0 : 0);
     if (!this.scoped) this.downloads.trackReads();
     delete this.root.dataset['entryDownloadBytes'];
-    this.scope.onDispose(this.scoped ? observeDownloadAccounting(this.downloads) : installDownloadAccounting(this.downloads));
+    this.stopDownloadAccounting = this.scoped ? observeDownloadAccounting(this.downloads) : installDownloadAccounting(this.downloads);
+    this.scope.onDispose(this.stopDownloadAccounting);
+    this.scope.onDispose(() => {this.stopDownloadSource?.();});
     this.downloadObserver = new PerformanceObserver(list => {
       for (const entry of list.getEntries()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
       this.dirty = true;
@@ -168,6 +181,19 @@ export class Loading {
 
   /** Read application-owned disk-prefetch progress without changing this attempt's wire accounting. */
   setPrefetchSource(source: () => LoadingPrefetchSnapshot | null): void { this.prefetchSource = source; this.dirty = true; }
+
+  /** Adopt one manifest operation and retire this panel's old receipt observer. */
+  setDownloadSource(source: LoadingDownloadSource): Promise<void> {
+    if (this.downloadSource === source) return source.ready;
+    this.downloadObserver.disconnect(); this.stopDownloadAccounting(); this.stopDownloadSource?.();
+    this.downloadSource = source;
+    this.stopDownloadSource = source.subscribe(() => {
+      const fraction = this.paintDownloads(false);
+      set(this.els.dlPct, String(Math.floor(fraction * 100))); this.els.dlBar.style.width = `${fraction * 100}%`;
+      this.dirty = true;
+    });
+    return source.ready;
+  }
 
   /** Show real pre-session work. Unknown totals stay explicit instead of inventing a percentage. */
   paintAdmission(progress: LoadingAdmission): void {
@@ -296,6 +322,14 @@ export class Loading {
   }
 
   private downloadProgress(done: boolean) {
+    if (this.downloadSource !== undefined) {
+      const row = this.downloadSource.snapshot(), fraction = row.complete ? 1 : row.totalBytes === 0 ? 0 : Math.min(0.999, row.completedBytes / row.totalBytes);
+      return {fraction, networkBytes: 0, cachedBytes: row.cachedBytes, pendingBytes: row.totalBytes - row.completedBytes,
+        filesDone: row.filesDone, filesTotal: row.filesTotal, unclassifiedBytes: 0, unclassifiedFiles: 0,
+        declaredBytes: row.totalBytes, declaredDoneBytes: row.completedBytes, declaredFiles: row.filesTotal, declaredFilesDone: row.filesDone,
+        expectedBytes: row.totalBytes, reads: {bytes: row.completedBytes, cachedBytes: row.cachedBytes, unknownSourceBytes: 0,
+          pendingBytes: row.totalBytes - row.completedBytes, pendingFiles: row.filesTotal - row.filesDone, closed: row.complete}};
+    }
     for (const entry of this.downloadObserver.takeRecords()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
     if (this.finished) this.downloads.closeReads();
     const transfer = this.downloads.snapshot();
