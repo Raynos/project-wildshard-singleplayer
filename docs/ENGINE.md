@@ -817,6 +817,20 @@ with the stack and a Reload button. **Unload** is `scope.dispose()`; switching s
 
 ## 8. Boot (staged load)
 
+`ASSET_CACHE_NAME` in `@wildshard/engine/pwa/cacheNames` names the stable
+`ws-assets-v1` CacheStorage namespace. The service worker and controllerless
+spawn publisher use the same exact absolute URL keys. Content-named and
+versioned responses are trusted without a checksum on reads; this cache owns
+no page-side LRU, leases, accounting receipts or worker command queue.
+
+The worker serves the exact final build document from its compiled literal,
+without a storage or network await on navigation. Other shell files are
+precached; immutable code and content use cache-first reads. Current and
+previous build code remain available. `version.json` stays on the network.
+`BUILD` and `VERSION` reply with identity only; old byte counters are not a
+progress API. Installation never claims a running document. Explicit adoption
+at a fresh document or title boundary retains the G898 page-phase fence.
+
 `boot/contentRead.readContent(url, maximum, ports)` reads bounded content,
 retries one interrupted or missing transport after one second, then keeps the
 load pending on the existing RETRY button. HTML responses name the missing
