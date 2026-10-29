@@ -1,6 +1,6 @@
 # FOUNDATIONS: what is structurally broken, and the rewrite that fixes it
 
-**State:** `open` 2026-10-29: **wave 1 (MF1–MF7) approved and in flight (G886)**; waves 2–3 follow. Written by wildshard-v's subagent; Jake ruled the five calls ~14:25 (G884, G887–G889: all yes) and added a battery bar (G890).
+**State:** `open` 2026-10-29: **wave 1 (MF1–MF7) approved and in flight (G886)**; waves 2–3 follow. Written by wildshard-v's subagent; Jake ruled the five calls ~14:25 (G884, G887–G889: all yes) and added a battery bar (G890). Grill panel 1 (~14:40): SHARD-PLATFORM stays open until wave 1 + his QA (G892); he runs the git-history reset himself (G893); wave 1 crashes first (G894); after a kill the game reopens where you were (G895).
 
 Jake, 2026-10-29 ~14:15 Cancun: *"I need a sub-agent to look at everything in the second wave of QA and come up with a
 mega plan. You know, like zoom out, one and out, zoom out, see the forest through the trees, come up with a mega plan,
