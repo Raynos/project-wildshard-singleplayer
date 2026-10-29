@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Scope } from './scope';
 import { installScopeEnvironment, scopeEnvironment, type ScopeEnvironment } from './scopeEnvironment';
-import { boundEntryWarmup, EntryContentStallError, EntryWarmupStallError } from '../render/entryWarmupBound';
+import { boundEntryWarmup } from '../render/entryWarmupBound';
 import { waitForDrawnFrame } from '../render/precompile';
 
 /** A hand-driven rAF: `frame(ms)` advances the clock and runs every queued callback once. */
@@ -19,141 +19,75 @@ const never = (): Promise<void> => new Promise<void>(() => { /* never settles */
 const original: ScopeEnvironment = scopeEnvironment();
 afterEach(() => { installScopeEnvironment(original); });
 
-const limits = { noFrameMs: 500, totalMs: 2000 };
-const settled = async <T>(promise: Promise<T>): Promise<{ value?: T; error?: unknown }> => {
-  try { return { value: await promise }; } catch (error) { return { error }; }
-};
+function deferred(): { promise: Promise<void>; resolve: () => void; reject: (error: Error) => void } {
+  let finish = (): void => { throw new Error('Missing work'); };
+  let fail = (_error: Error): void => { throw new Error('Missing work'); };
+  const promise = new Promise<void>((resolve, reject) => { finish = resolve; fail = reject; });
+  return { promise, resolve: finish, reject: fail };
+}
 
-describe('entered-frame warm-up bound', () => {
-  it('resolves with the work while frames are drawn', async () => {
-    const frames = manualFrames(), owner = new Scope('owner');
-    let drawn = 1, finish: () => void = () => undefined;
-    const run = boundEntryWarmup(owner, () => drawn, () => 'shaders', () => new Promise<string>(resolve => { finish = () => { resolve('done'); }; }), limits);
-    for (let i = 0; i < 20; i++) { drawn++; frames.frame(16); }
-    finish();
-    expect(await run).toBe('done');
+describe('entered-frame preparation lifetime', () => {
+  it.each([0, 3])('waits for actual work with no drawn-frame progress (drawn=%s)', async drawn => {
+    const frames = manualFrames(), owner = new Scope(`owner-${String(drawn)}`), work = deferred();
+    let finished = false;
+    const run = boundEntryWarmup(owner, () => work.promise).then(() => { finished = true; return 'done'; });
+    for (let i = 0; i < 2000; i++) frames.frame(100);
+    await Promise.resolve(); expect(finished).toBe(false);
+    expect(owner.census.timers).toBe(0); expect(owner.census.rafs).toBe(0);
+    work.resolve(); expect(await run).toBe('done'); owner.dispose();
   });
 
-  it('rejects naming the stage when the loop stops drawing, and fences the abandoned work', async () => {
-    const frames = manualFrames(), owner = new Scope('owner');
-    let fence: () => boolean = () => true;
-    const run = settled(boundEntryWarmup(owner, () => 3, () => 'parked-draws', current => { fence = current; return never(); }, limits));
-    for (let i = 0; i < 40; i++) frames.frame(16);
-    const { error } = await run;
-    expect(error).toBeInstanceOf(EntryWarmupStallError);
-    expect(String(error)).toMatch(/stalled in parked-draws: no drawn frame/u);
-    expect(fence()).toBe(false);
+  it('long hidden gaps cannot finish or reject valid preparation', async () => {
+    const frames = manualFrames(), owner = new Scope('hidden'), work = deferred();
+    const run = boundEntryWarmup(owner, () => work.promise);
+    for (let i = 0; i < 3; i++) frames.frame(600_000);
+    work.resolve(); await expect(run).resolves.toBeUndefined(); owner.dispose();
   });
 
-  it('rejects a warm-up that keeps drawing but never finishes, past the total bound', async () => {
-    const frames = manualFrames(), owner = new Scope('owner');
-    let drawn = 1;
-    const run = settled(boundEntryWarmup(owner, () => drawn, () => 'link', () => never(), limits));
-    for (let i = 0; i < 200; i++) { drawn++; frames.frame(16); }
-    expect(String((await run).error)).toMatch(/stalled in link: over 2000 ms/u);
+  it('owner retirement rejects immediately, fences work and observes its later refusal', async () => {
+    manualFrames(); const owner = new Scope('owner'), work = deferred();
+    let fence = (): boolean => true;
+    const run = boundEntryWarmup(owner, current => { fence = current; return work.promise; });
+    const refusal = expect(run).rejects.toThrow('owner left');
+    owner.dispose(); expect(fence()).toBe(false); await refusal;
+    work.reject(new Error('Late original failure')); await Promise.resolve();
+    expect(owner.census.disposers).toBe(0);
   });
 
-  it('never counts a hidden page: long rAF gaps add at most a capped slice', async () => {
-    const frames = manualFrames(), owner = new Scope('owner');
-    let finish: () => void = () => undefined;
-    const run = boundEntryWarmup(owner, () => 2, () => 'shaders', () => new Promise<void>(resolve => { finish = resolve; }), limits);
-    // three rAFs 10 s apart (an app switch): 200 ms of presented time, under both limits
-    for (let i = 0; i < 3; i++) frames.frame(10000);
-    finish();
-    await expect(run).resolves.toBeUndefined();
+  it('keeps synchronous and delayed original work errors', async () => {
+    const owner = new Scope('owner'), first = new Error('bad material'), second = new Error('content failed');
+    await expect(boundEntryWarmup(owner, () => { throw first; })).rejects.toBe(first);
+    const work = deferred(), run = boundEntryWarmup(owner, () => work.promise);
+    const refusal = expect(run).rejects.toBe(second); work.reject(second); await refusal;
+    owner.dispose();
   });
 
-  it('a loop that has not drawn yet is held only by the total bound', async () => {
-    const frames = manualFrames(), owner = new Scope('owner');
-    let finish: () => void = () => undefined;
-    const run = boundEntryWarmup(owner, () => 0, () => 'shaders', () => new Promise<void>(resolve => { finish = resolve; }), limits);
-    for (let i = 0; i < 60; i++) frames.frame(16);
-    finish();
-    await expect(run).resolves.toBeUndefined();
-  });
-
-  it('passes the work error through and stops watching when the owner leaves', async () => {
-    manualFrames();
-    const owner = new Scope('owner');
-    await expect(boundEntryWarmup(owner, () => 1, () => 'shaders', () => Promise.reject(new Error('Shader warm-up owner left')), limits))
-      .rejects.toThrow('Shader warm-up owner left');
-    let fence: () => boolean = () => true;
-    const left = new Scope('left');
-    const cancelled = settled(boundEntryWarmup(left, () => 1, () => 'shaders', current => { fence = current; return never(); }, limits));
-    left.dispose();
-    expect(fence()).toBe(false);
-    expect(String((await cancelled).error)).toMatch(/owner left/u);
-  });
-
-  it('does not start work for an owner that already left', async () => {
-    manualFrames();
-    const owner = new Scope('left'); owner.dispose();
-    let started = false;
-    await expect(boundEntryWarmup(owner, () => 1, () => 'streamed-scene-roots', () => { started = true; return never(); }, limits))
-      .rejects.toThrow('Shader warm-up owner left');
+  it('does not start work for a disposed or disposing owner', async () => {
+    const owner = new Scope('left'); let started = false;
+    let disposing: Promise<unknown> = Promise.resolve();
+    owner.onDispose(() => {
+      disposing = expect(boundEntryWarmup(owner, () => { started = true; return never(); })).rejects.toThrow('owner left');
+    });
+    owner.dispose(); await disposing;
+    await expect(boundEntryWarmup(owner, () => { started = true; return never(); })).rejects.toThrow('owner left');
     expect(started).toBe(false);
   });
 
-  it('bounds a streamed draw barrier even without an entered-frame caller', async () => {
+  it('completed preparation retains the live owner fence without retaining its wait scope', async () => {
+    const owner = new Scope('owner'); let fence = (): boolean => false;
+    await boundEntryWarmup(owner, current => { fence = current; return Promise.resolve(); });
+    expect(fence()).toBe(true); expect(owner.census.disposers).toBe(0);
+    owner.dispose(); expect(fence()).toBe(false);
+  });
+
+  it('a streamed draw barrier waits for an actual draw and retires pending work with its owner', async () => {
     const frames = manualFrames(), owner = new Scope('far-view');
-    const run = settled(waitForDrawnFrame(owner, () => 22, () => true));
-    for (let i = 0; i < 320; i++) frames.frame(16);
-    const { error } = await run;
-    expect(error).toBeInstanceOf(EntryWarmupStallError);
-    expect(String(error)).toMatch(/stalled in drawn-frame: no drawn frame/u);
-    expect(owner.disposed).toBe(false);
-    owner.dispose();
-  });
-
-  it('keeps the original synchronous preparation error', async () => {
-    manualFrames();
-    const owner = new Scope('owner');
-    await expect(boundEntryWarmup(owner, () => 1, () => 'streamed-scene-roots', () => { throw new Error('bad material'); }))
-      .rejects.toThrow('bad material');
-    owner.dispose();
-  });
-
-  // D196: a destination's hooks (kit / afterKit / play, network-bound) took 24.4 s of a Fast4G Pine entry's 30 s warm-up
-  // bound, and the deadline landed in parked-draws with frames flowing
-  const content = { ...limits, contentMs: 6000 };
-  it('a slow content wait no longer spends the warm-up\'s own bound, which starts fresh once the content is in', async () => {
-    const frames = manualFrames(), owner = new Scope('owner');
-    let drawn = 1, start: () => void = () => undefined, finish: () => void = () => undefined;
-    const run = settled(boundEntryWarmup(owner, () => drawn, () => 'parked-draws', (_current, startWarm) => new Promise<void>(resolve => {
-      start = startWarm; finish = resolve; }), content));
-    for (let i = 0; i < 200; i++) { drawn++; frames.frame(16); } // 3.2 s of content: past the 2 s warm bound
-    start();
-    for (let i = 0; i < 100; i++) { drawn++; frames.frame(16); } // 1.6 s of warm-up: inside a fresh 2 s
-    finish();
-    expect((await run).error).toBeUndefined();
-  });
-
-  it('the warm-up bound still holds after the content arrives', async () => {
-    const frames = manualFrames(), owner = new Scope('owner');
-    let drawn = 1, start: () => void = () => undefined;
-    const run = settled(boundEntryWarmup(owner, () => drawn, () => 'parked-draws', (_current, startWarm) => { start = startWarm; return never(); }, content));
-    for (let i = 0; i < 200; i++) { drawn++; frames.frame(16); }
-    start();
-    for (let i = 0; i < 200; i++) { drawn++; frames.frame(16); }
-    const { error } = await run;
-    expect(error).toBeInstanceOf(EntryWarmupStallError); expect(error).not.toBeInstanceOf(EntryContentStallError);
-    expect(String(error)).toMatch(/warm-up stalled in parked-draws: over 2000 ms/u);
-  });
-
-  it('a content wait that never ends is named by its own network-time bound', async () => {
-    const frames = manualFrames(), owner = new Scope('owner');
-    let drawn = 1;
-    const run = settled(boundEntryWarmup(owner, () => drawn, () => 'before-warm', () => never(), content));
-    for (let i = 0; i < 400; i++) { drawn++; frames.frame(16); }
-    const { error } = await run;
-    expect(error).toBeInstanceOf(EntryContentStallError);
-    expect(String(error)).toMatch(/content stalled in before-warm: over 6000 ms/u);
-  });
-
-  it('the no-frame guard holds during the content wait', async () => {
-    const frames = manualFrames(), owner = new Scope('owner');
-    const run = settled(boundEntryWarmup(owner, () => 3, () => 'before-warm', () => never(), content));
-    for (let i = 0; i < 40; i++) frames.frame(16);
-    expect(String((await run).error)).toMatch(/stalled in before-warm: no drawn frame/u);
+    let completed = false;
+    const run = waitForDrawnFrame(owner, () => 22, () => true).then(() => { completed = true; return undefined; });
+    const refusal = expect(run).rejects.toThrow('owner left');
+    for (let i = 0; i < 400; i++) frames.frame(100);
+    await Promise.resolve(); expect(completed).toBe(false);
+    owner.dispose(); await refusal;
+    expect(owner.census.timers).toBe(0); expect(owner.census.rafs).toBe(0);
   });
 });

@@ -48,7 +48,7 @@ import { frameCost } from './frameCost';
 import { diagnosticNow } from './clock';
 import { buildHeld, heldDrawDeferred, noteFrameDrawn } from './framePacing';
 import { isDev } from './devMode';
-import { boundEntryWarmup, ENTRY_CONTENT_MS, ENTRY_NO_FRAME_MS, ENTRY_WARMUP_MS, EntryContentStallError, EntryWarmupStallError } from '../render/entryWarmupBound';
+import { boundEntryWarmup } from '../render/entryWarmupBound';
 import { dropOutputDepth, installMemorySaver, shadowLights } from '../render/memorySaver';
 import { dropShadowColour } from '../world/shadowVariants';
 import { duringShadowPass } from '../world/cascadeCull';
@@ -857,14 +857,14 @@ export class Game {
 
   /** Prepare newly streamed roots before exposure, using the allocated composer target.
    * Early boot retains ordinary whole-world preparation. Streamed views share the entered-frame
-   * time bound, so a stalled draw/link rejects through their admission issue path. */
+   * owner lifetime, so retirement fences every pending draw and link. */
   async warmSceneRoots(roots: readonly THREE.Object3D[], current: () => boolean, futureLighting?: THREE.Object3D): Promise<void> {
     const composer = this._composer;
     // An early boot composer lends its target only to the explicit world census.
     // Streaming/equipment retain their original whole-world first-frame step.
     if (composer === null || this.frameCount === 0) return;
     const { prepareSceneRoots, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
-    await boundEntryWarmup(this.levelScope, () => this.frameCount, () => 'streamed-scene-roots', async withinBound => {
+    await boundEntryWarmup(this.levelScope, async withinBound => {
       const live = (): boolean => withinBound() && current() && this._composer === composer;
       const pause = this.frameCount > 0 ? () => waitForDrawnFrame(this.levelScope, () => this.frameCount, live) : undefined;
       // before play (no frame drawn yet) the boot's Shaders step builds what the first frame draws and the rest is warmed
@@ -941,11 +941,10 @@ export class Game {
    * `before` can lend the page compiler a head start; it never adds crossing-only first draws. No simulation tick,
    * camera turn or caster rechunking runs here; the final zero-delta composer draw warms its real pass targets.
    * A retained view may supply its whole future root, including sibling authored lights outside the bound scene.
-   * `before` (the caller's last preparation, e.g. a region's sky build) runs first, inside the same time bound:
+   * `before` (the caller's last preparation, e.g. a region's sky build) runs first, inside the same owner lifetime:
    * it may prepare already-built roots while other content constructs, then await that content before returning.
-   * Early roots and whole-page programs share this bound. Final complete inventory still gates readiness.
-   * nothing here can wait silently forever (`boundEntryWarmup`): a warm-up stall ends the wait and the entry reveals with
-   * what has linked (`entryPreparation.stalled` names the stage, D196); content that never arrives rejects naming its stage.
+   * Early roots and whole-page programs share this owner. Final complete inventory gates readiness;
+   * elapsed time cannot reveal an incomplete entry. Real work failures and owner retirement still reject.
    * D188 (Jake's G815, shipped): `arrivalAt` (where the crossing reveals the player, render space) prepares only
    * the destination content within ARRIVAL_RADIUS of it before the reveal; the rest sits out live draws (a frame gate)
    * until `warmArrivalRest` has linked and first-drawn it after the reveal, nearest first. */
@@ -959,15 +958,8 @@ export class Game {
     const trace: EntryPreparation = { root: (futureRoot ?? this.scene).uuid, owner: owner.name,
       completed: false, phase: before === undefined ? 'post-preparation' : 'before-warm', progress: null, stages: [] };
     this._entryPreparation = trace;
-    // OP: every wait below is bounded in presented time; a stall rejects naming its stage (an admission issue), never a
-    // silent hang. `current` turns false with the bound, so the abandoned stages stop at their next check.
     const enter = (phase: string): void => { trace.phase = phase; trace.progress = null; };
-    const stage = (): string => { const last = trace.stages.at(-1); return last === undefined ? trace.phase : `${trace.phase} (after ${last.phase})`; };
-    // D196: with a `before` (the destination's hooks and their reads, network-bound) the 30 s warm-up clock starts when it
-    // resolves; the wait itself has its own named content bound, and the no-frame guard holds throughout
-    const limits = { noFrameMs: ENTRY_NO_FRAME_MS, totalMs: ENTRY_WARMUP_MS, ...(before === undefined ? {} : { contentMs: ENTRY_CONTENT_MS }) };
-    try {
-    await boundEntryWarmup(owner, () => this.frameCount, stage, async (current, startWarm) => {
+    await boundEntryWarmup(owner, async current => {
       if (before !== undefined) {
         await before(async (roots, exteriorPrograms = true) => {
           const started = diagnosticNow();
@@ -986,7 +978,6 @@ export class Game {
         });
         if (!current()) throw new Error('Shader warm-up owner left');
         enter('post-preparation');
-        startWarm();
       }
       // Boot's normal shader/firstFrame stages still own its complete inventory
       // and first draws. An early composer lends only the compiler above; doing
@@ -1000,18 +991,10 @@ export class Game {
       }
       enter('shaders-and-composer');
       await this.warmEnteredStages(owner, composer, trace, current, futureRoot, enter, arrival);
-    }, limits);
-    } catch (error: unknown) {
-      // D196 (G830, G837): a warm-up only smooths the entry's first frames, so its stall ends the wait and the entry reveals
-      // with what has linked (the rest links on first sight, as a released arrival gate's does); a slow network or device
-      // never turns it into a refused crossing. Content that never arrived (its own bound) and a departed owner still fail.
-      if (!(error instanceof EntryWarmupStallError) || error instanceof EntryContentStallError || owner.disposed || owner.disposing) throw error;
-      trace.stalled = stage();
-      console.warn('[entry] the warm-up stalled; revealing with what has linked', error.message);
-    }
+    });
   }
 
-  /** Early roots use the enclosing entry's bound; they cannot renew its deadline or publish readiness. */
+  /** Early roots share the enclosing entry's owner and cannot publish readiness. */
   private async warmEnteredRoots(owner: Scope, composer: EffectComposer, roots: readonly THREE.Object3D[],
     futureLighting: THREE.Object3D | undefined, current: () => boolean, exteriorPrograms = true): Promise<void> {
     // The installing scene lends its PMREM; program lights/fog come from the page the renderer actually draws.

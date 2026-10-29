@@ -1205,7 +1205,7 @@ including sky/post callers outside an entered-frame warm-up. Disposing its owner
 `Game.bindFrameDrawRange(owner, distance)`: an `enabled` live-draw mask.
 Visibility restores in finally; sky/custom/unknown draws and warm-up stay.
 
-`Game.warmEnteredFrame(owner, futureRoot?, before?)` shares one bound and owner.
+`Game.warmEnteredFrame(owner, futureRoot?, before?)` shares one preparation owner.
 `before(prepare, prepareFrame)` can overlap completed roots with kit/play under future lights/PMREM.
 `prepare(roots, false)` omits road variants. Final complete inventory still gates readiness.
 Root prefixes drain on refusal; they never publish readiness or move roots.
@@ -1223,10 +1223,12 @@ An admitted regional sky finishes before warm-up. Its parked scene carries the s
 compile jobs temporarily use that exact PMREM mapping and cube-UV height, then restore the road environment
 in `finally` before yielding or drawing. This changes compilation inputs only, with no new sky allocation,
 visibility change or disposal ownership. Cancellation and driver errors restore the page too.
-The warm-up is bounded in presented time (`boundEntryWarmup`, `src/engine/render/entryWarmupBound.ts`): `before`
-(a region's sky build, `beforeWarm`) runs first inside the bound, and 5 s with no drawn frame or 30 s in all rejects
-with an `EntryWarmupStallError` naming the stage. Each rAF gap counts at most 100 ms, so a hidden page never expires
-it. The grid records the rejection as the cell's admission issue and the next crossing retries; nothing waits silently.
+`boundEntryWarmup(owner, work)` binds preparation to the owner's lifetime.
+Content, links and completed draws gate readiness, with no elapsed-time reveal.
+Disposal rejects the wait immediately and fences pending work at its next check;
+the original running promise stays observed for cleanup and failure handling.
+Synchronous and asynchronous preparation failures retain their original errors.
+Completed work removes its wait scope without invalidating a still-live owner.
 
 Initial loading opts into `precompileLevel(..., { warmPost: true })`. Post links issue first,
 then the linked post materials draw individually into their declared pass targets (or the
