@@ -111,8 +111,8 @@ export function lentLook(id: string): Material {
 export function lentMappedLook(id: string, source: Texture | Material): Material { return lentLooksOf(id).bindMeshMap(id, source); }
 
 /** Set a lent look's param (checked against its declared type and range) on every live compile of it on the caller's
- *  owner's line (its scope holds the owner or the owner holds it; all of them with no owner), else on the newest; a no-op
- *  before the lend. A material keeps the compile it was read from, and a later or narrower lend of the same id must not
+ *  owner's line (its scope holds the owner or the owner holds it), else (and with no owner: G580, one product's two copies)
+ *  on the newest; a no-op before the lend. A material keeps the compile it was read from, and a later or narrower lend of the same id must not
  *  take its writes (lend audit after QF21: Pine's hearth smoke and cave crag drew the page's compile while frames under
  *  the level wrote the runtime's; Driftwood's moored rope read a lend a newer one then shadowed). */
 export function setLentParam(id: string, name: string, value: GraphLiteral): void {
@@ -121,7 +121,7 @@ export function setLentParam(id: string, name: string, value: GraphLiteral): voi
   for (let i = lends.length - 1; i >= 0; i--) {
     const lend = lends[i]; if (lend === undefined || !lend.looks.materials.has(id)) continue;
     newest ??= lend.looks;
-    if (owner === null || (lend.scope !== null && (owner.belongsTo(lend.scope) || lend.scope.belongsTo(owner)))) { lend.looks.setParam(id, name, value); wrote = true; }
+    if (owner !== null && lend.scope !== null && (owner.belongsTo(lend.scope) || lend.scope.belongsTo(owner))) { lend.looks.setParam(id, name, value); wrote = true; }
   }
   if (!wrote) newest?.setParam(id, name, value);
 }

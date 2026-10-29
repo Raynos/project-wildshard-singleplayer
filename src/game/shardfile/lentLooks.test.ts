@@ -33,7 +33,7 @@ test('preparation groups retain owner, ID order and sequential async barriers', 
   } finally { release(); a.dispose(); b.dispose(); eager.dispose(); material.dispose(); }
 });
 
-test('a param write reaches every compile on the owner line, never another world', () => {
+test('a param write reaches every compile on the owner line, never another world; unowned, the newest', () => {
   const level = new Scope('level'), play = new Scope('runtime.play', level), other = new Scope('other-world'), material = new Material();
   const writes: string[] = [];
   const lend = (scope: Scope, name: string): void => {
@@ -49,7 +49,7 @@ test('a param write reaches every compile on the owner line, never another world
     withOwner(other, () => { setLentParam('look', 'fade', 1); });
     expect(writes.splice(0)).toEqual(['other']);
     setLentParam('look', 'fade', 1);
-    expect(writes.splice(0)).toEqual(['other', 'page', 'level']);
+    expect(writes.splice(0)).toEqual(['other']);
     const stranger = new Scope('stranger');
     withOwner(stranger, () => { setLentParam('look', 'fade', 1); });
     expect(writes.splice(0)).toEqual(['other']);
