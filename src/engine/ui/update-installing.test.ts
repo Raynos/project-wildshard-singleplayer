@@ -10,7 +10,7 @@ afterEach(async () => {
   vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers();
 });
 
-test('a title tap lets the background installation finish before adopting its cached title', async () => {
+test('a title tap during a background installation requests it and reloads at once (QA1 2026-10-29)', async () => {
   vi.useFakeTimers(); vi.stubGlobal('__BUILD_ID__', 'fixture-before');
   vi.stubGlobal('fetch', () => Promise.resolve(Response.json({ build: 'fixture-after' })));
   const replace = vi.fn<(url: string) => void>(), activate = vi.fn(() => Promise.resolve(true));
@@ -23,10 +23,8 @@ test('a title tap lets the background installation finish before adopting its ca
   const pill = document.querySelector('.ws-update');
   if (!(pill instanceof HTMLButtonElement)) throw new Error('Missing update pill');
   pill.click(); await vi.advanceTimersByTimeAsync(100);
-  expect(update).toHaveBeenCalled(); expect(activate).not.toHaveBeenCalled(); expect(replace).not.toHaveBeenCalled();
-  handle.waiting = { state: 'installed' }; window.dispatchEvent(new Event('ws-sw-waiting'));
-  await vi.advanceTimersByTimeAsync(100);
-  expect(activate).toHaveBeenCalledTimes(1); expect(replace).toHaveBeenCalledTimes(1);
+  // the reloaded title adopts the worker once it is installed (Update.ts sync); the tap itself never waits for it
+  expect(update).toHaveBeenCalled(); expect(activate).not.toHaveBeenCalled(); expect(replace).toHaveBeenCalledTimes(1);
   const destination = new URL(replace.mock.calls[0]?.[0] ?? '');
   expect(destination.searchParams.has('chunk')).toBe(false); expect(destination.searchParams.has('v')).toBe(false);
   expect(destination.searchParams.get('sw')).toBe('1');

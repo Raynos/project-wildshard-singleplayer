@@ -7,6 +7,8 @@
 .ws-perf.bad b { color: #ff7a6b; }
 .ws-perf.bad .ws-perf-ms, .ws-perf-live.bad span { color: #ff7a6b; }
 .ws-perf[hidden] { display: none; }
+/* QA11 (Jake, 2026-10-29: "don't show the FPS counter on the loading screen"): in play only, never on the title or a loading screen */
+:root:has(.ws-load, #hud.intro) .ws-perf, :root:has(.ws-load, #hud.intro) .ws-perf-panel { display: none; }
 .ws-perf .ws-perf-ms { display: none; }
 .ws-perf-panel { display: none; }
 @media (max-width: 700px) {

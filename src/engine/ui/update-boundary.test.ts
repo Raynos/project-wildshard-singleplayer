@@ -17,11 +17,7 @@ test('an installed update leaves play and pause intact, then adopts once on the 
   Object.defineProperty(window, '__ws_sw', { configurable: true, value: { waiting: { state: 'installed' }, activate } });
   document.body.innerHTML = '<div id="hud"></div><div class="ws-gmenu show pause"></div>';
   await import('./Update');
-  window.dispatchEvent(new Event('ws-sw-waiting'));
-  const pill = document.querySelector('.ws-update');
-  if (!(pill instanceof HTMLButtonElement)) throw new Error('Missing update pill');
-  pill.click(); await vi.advanceTimersByTimeAsync(100);
-  expect(pill.textContent).toContain('Update on next travel / title');
+  window.dispatchEvent(new Event('ws-sw-waiting')); await vi.advanceTimersByTimeAsync(100);
   expect(activate).not.toHaveBeenCalled(); expect(replace).not.toHaveBeenCalled();
   expect(document.querySelector('[role="dialog"]')).toBeNull();
   const hud = document.getElementById('hud');

@@ -13,6 +13,7 @@ import { engineString } from '../strings';
  *
  * E176 (Jake): the in-game PAUSE menu carries it too, at the same screen corner as the title's — on the phone the pause
  * menu is the only chrome you can reach once you are in the world, so that is where a waiting deploy has to be tappable.
+ * A tap reloads wherever the pill is (title, loading screen, pause menu; 2026-10-29 P0).
  * It sits over the menu overlay (z 80 vs 70) and publishes `--ws-pill` on <html>, which is the band gmenu.css keeps free
  * above the sheet so the pill never lands on CLOSE.
  */
@@ -39,15 +40,15 @@ hudSlots.widget('band.1', el, 0, scope, document.body);
 let busy = false;
 let targetBuild: string | null = null;
 let newer = false;
-const screen = new UpdateProgress(scope, __BUILD_ID__, () => { busy = false; void reload(); });
-async function reload(): Promise<void> {
+const screen = new UpdateProgress(scope, __BUILD_ID__, () => { busy = false; void reload(true); });
+/** `tapped`: the player pressed the pill. Jake 2026-10-29 (P0, "the reload button does nothing"): a tap always reloads,
+ *  on the title, the loading screen and the pause menu. Only the automatic adoption waits for the title. */
+async function reload(tapped: boolean): Promise<void> {
   if (busy) return;
-  const sw = window.__ws_sw;
-  // A pause-menu tap requests the background update; gameplay is never
-  // replaced here. The title observer or the next travel owns adoption.
-  if (!titleBoundary() || (newer && sw?.enabled && navigator.serviceWorker?.controller && sw.waiting === null)) {
-    requestInstall(); return;
-  }
+  const sw = window.__ws_sw, atTitle = titleBoundary();
+  if (!tapped && !atTitle) return;
+  // a newer build not yet installed: fetch it in the background; the reloaded title adopts it once it waits
+  if (newer && (sw?.waiting ?? null) === null) requestInstall();
   busy = true;
   const text = el.querySelector('[data-el="text"]'), attempt = scope.child('update');
   const started = diagnosticNow(), downloads = new DownloadAccounting(location.href, started);
@@ -72,19 +73,21 @@ async function reload(): Promise<void> {
     });
     await sw.activate();
   }
+  screen.phase('reload');
+  if (!await screen.present()) return;
+  // Off the title (loading screen, pause menu) the page reloads where it is.
+  if (!atTitle) { markReload('update tapped'); location.reload(); return; }
   // This is the title, including a return from an entered world. Remove the
   // old world destination so adoption cannot send the player back into play.
   const url = new URL(location.href);
-  screen.phase('reload');
-  if (!await screen.present()) return;
   for (const key of ['v', 'chunk', 'explore', 'at', 'glreload', 'cam', 'model', 'skipintro', 'tour', 'quest', 'drop', 'x', 'z', 'yaw', 'pitch']) url.searchParams.delete(key);
   markReload('update at title boundary');
   location.replace(url.toString());
 }
 // pointerup as well as click: iOS drops the synthesized click when a tap jitters (index.html cancels touchmove for the
 // rubber-band), so the pill answers the lift itself; `busy` keeps the pair from running twice
-scope.listen(el, 'pointerup', () => { void reload(); });
-scope.listen(el, 'click', () => { void reload(); });
+scope.listen(el, 'pointerup', () => { void reload(true); });
+scope.listen(el, 'click', () => { void reload(true); });
 
 let newLabel = '';
 function titleBoundary(): boolean {
@@ -143,7 +146,7 @@ function sync(): void {
   document.documentElement.style.setProperty('--ws-pill', show ? '24px' : '0px');
   // Initial title or return-to-title: an installed update can now replace the
   // document. Loading and Explore's hidden intro HUD are not title boundaries.
-  if (!busy && titleBoundary() && window.__ws_sw?.waiting?.state === 'installed') void reload();
+  if (!busy && titleBoundary() && window.__ws_sw?.waiting?.state === 'installed') void reload(false);
 }
 sync();
 onDev(() => { paint(); sync(); });

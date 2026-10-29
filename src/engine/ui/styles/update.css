@@ -12,7 +12,10 @@
 .ws-update.newer { color: var(--ws-cyan); border-color: var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.3); }
 .ws-update.newer .ws-update-dot { background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); animation: ws-update-pulse 1.2s ease-in-out infinite; }
 @media (max-width: 700px) {
-  .ws-update { right: 16px; }
+  /* QA2 (2026-10-29): its own slot right of the fps chip, which ends by ~228 px even at "00 fps max 0000 ms"
+     (perf.css: left 101 px); a longer word ellipsises instead of running under it */
+  .ws-update { right: 16px; max-width: calc(100vw - 244px); }
+  .ws-update [data-el='text'] { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 
 /* Renderer-free loading handoff; deliberately not .ws-load, which title-first hides. */
