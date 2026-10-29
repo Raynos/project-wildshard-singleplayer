@@ -58,6 +58,14 @@
   ],
   "exclude": [
     "../node_modules",
-    "../src/sdk/dist"
+    "../src/sdk/dist",
+    "fixtures/legacy-oracles/nalati-ambience.json",
+    "fixtures/legacy-oracles/nalati-people.json",
+    "fixtures/nalati-herdChannels-original.json",
+    "fixtures/nalati-physics-original.json",
+    "fixtures/nalati-poi-paint-original.json",
+    "fixtures/nalati-weatherChannels-original.json",
+    "fixtures/phone-loading-a6701db71.json",
+    "fixtures/quest-step-legacy-saves.json"
   ]
 }

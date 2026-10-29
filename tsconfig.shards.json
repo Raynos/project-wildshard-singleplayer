@@ -12,5 +12,14 @@
   // T1: generated JSON has no compiler roots; authored JSON remains fully typed.
   "files": [],
   "include": ["src/shards", "src/shards/**/*.json", "public/assets/nalati/baked/recurve-pool.json", "src/engine/**/*.d.ts", "src/game/**/*.merge.d.ts", "scripts/map-geometry.d.mts"],
-  "exclude": ["src/shards/**/*.test.ts", "src/shards/**/*.generated.json"]
+  "exclude": [
+    "src/shards/**/*.test.ts",
+    "src/shards/**/*.generated.json",
+    "src/shards/driftwood-isle/data/lookGraphs.json",
+    "src/shards/driftwood-isle/data/physicsRows.json",
+    "src/shards/nalati-grasslands/data/lookGraphs.json",
+    "src/shards/nalati-grasslands/data/physicsRows.json",
+    "src/shards/nalati-grasslands/data/poiContacts.json",
+    "src/shards/pine-hollow/data/lookGraphs.json"
+  ]
 }
