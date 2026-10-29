@@ -3,6 +3,7 @@ import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
 import { cacheUntilDisposed } from '@wildshard/engine/app/disposalCache';
 import { Rng } from '@wildshard/engine/core/rng';
+import { emitFault } from '@wildshard/engine/core/faults';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { ItemPickup } from '@wildshard/engine/player/WeaponPickup';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
@@ -77,12 +78,18 @@ class ChargedBowSlot {
   private readonly trail:ProjectedTrail;
   private readonly pending:{t:number;target:TargetAnimal;point:THREE.Vector3;dir:THREE.Vector3;base:number}[]=[];
   private charged=false;
+  private reportedFrame=false;
   private readonly origin=new THREE.Vector3();private readonly direction=new THREE.Vector3();private readonly velocity=new THREE.Vector3();private readonly at=new THREE.Vector3();private readonly segment=new THREE.Vector3();
   constructor(scene:THREE.Scene,private readonly camera:THREE.Camera,private readonly rows:BowVariantRows,private readonly check:()=>void){
     this.check();
     this.trail=new ProjectedTrail(scene,camera,this.rows.trail);
   }
-  get applied():boolean{this.check();return this.bow!==null;}
+  /** Frame readers skip a stale owner; preparation and application still refuse it. */
+  private frameReady():boolean{
+    try{this.check();return true;}
+    catch(error){if(!this.reportedFrame){this.reportedFrame=true;emitFault({system:'held.variant',error,verdict:'retry'});}return false;}
+  }
+  get applied():boolean{return this.frameReady()&&this.bow!==null;}
   dispose():void{this.pending.length=0;this.trail.dispose();}
   apply(bow:Bow):void{
     this.check();
@@ -121,7 +128,7 @@ class ChargedBowSlot {
     }
   }
   update(dt:number):void{
-    this.check();
+    if(!this.frameReady())return;
     this.trail.advance(dt);
     for(let i=this.pending.length-1;i>=0;i--){const hit=this.pending[i];if(hit===undefined)continue;hit.t-=dt;if(hit.t>0)continue;this.pending.splice(i,1);
       if(!hit.target.alive)continue;const result=this.decide(0,hit.base,this.rows.crushKinds.includes(hit.target.kind)),damage=result['bowDamage'];if(damage===undefined)throw new Error('Missing variant contact number');hit.target.applyDamage(damage,hit.point,hit.dir);

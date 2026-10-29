@@ -9,6 +9,8 @@ import { bindEquipmentActors } from '../src/game/loadout/actors';
 import type { AnimalManager } from '../src/engine/entities/AnimalManager';
 import variant from '../src/shards/nalati-grasslands/boot/bowVariant.json' with { type:'json' };
 import { Scope } from '../src/engine/app/scope';
+import { onFault,type Fault } from '../src/engine/core/faults';
+import { ProjectedTrail } from '../src/engine/combat/view/projectedTrail';
 import type { Targets } from '../src/engine/combat/types';
 import type { EquipmentService } from '../src/engine/combat/EquipmentService';
 import type { ShardContext } from '../src/game/plugin/context';
@@ -188,6 +190,43 @@ test('a retired original scope cannot lend its kit or publish a new native build
     await expect(builder(legacyDouble<Targets>({}),false)).rejects.toThrow('owner has ended');
     for(const _step of disposal){/* Complete the real ancestor retirement. */}
   } finally {f.parent.dispose();}
+});
+
+test('a retired held variant skips frame reads and updates while another owner keeps running',async()=>{
+  const f=fixture('slots'),faults:Fault[]=[],off=onFault(fault=>{faults.push(fault);});
+  const advance=vi.spyOn(ProjectedTrail.prototype,'advance');
+  let other:ReturnType<typeof fixture>|undefined;
+  try{
+    f.owner.installPage(f.ctx);const build=f.runtime.buildEquipment;if(build===undefined)throw new Error('Missing native builder');
+    await build(legacyDouble<Targets>({}),false);const kit=f.owner.pageKit(f.ctx);if(kit===null||!('blade' in kit))throw new Error('Missing slot kit');
+    const power=kit.bowPower('bow-reward');power.update(.05);expect(advance).toHaveBeenCalledTimes(1);
+    f.parent.dispose();
+    expect(power.applied).toBe(false);power.update(.05);power.update(.05);
+    expect(advance).toHaveBeenCalledTimes(1);expect(faults).toHaveLength(1);
+    expect(faults[0]).toMatchObject({system:'held.variant',verdict:'retry',error:{message:'Held slot owner has ended'}});
+    // These are admission/equip ports, not frame reads; their original refusal remains.
+    expect(()=>kit.bow('bow')).toThrow('owner has ended');expect(()=>kit.refill()).toThrow('owner has ended');
+    other=fixture('slots');other.owner.installPage(other.ctx);const nextBuild=other.runtime.buildEquipment;if(nextBuild===undefined)throw new Error('Missing next native builder');
+    await nextBuild(legacyDouble<Targets>({}),false);const next=other.owner.pageKit(other.ctx);if(next===null||!('blade' in next))throw new Error('Missing next slot kit');
+    next.bowPower('bow-reward').update(.05);expect(advance).toHaveBeenCalledTimes(2);expect(faults).toHaveLength(1);
+  }finally{off();f.parent.dispose();other?.parent.dispose();}
+});
+
+test('a temporarily replaced held owner can resume its same variant on the next valid frame',async()=>{
+  const f=fixture('slots'),faults:Fault[]=[],off=onFault(fault=>{faults.push(fault);});
+  const advance=vi.spyOn(ProjectedTrail.prototype,'advance'),product=f.ctx.product;
+  try{
+    f.owner.installPage(f.ctx);const build=f.runtime.buildEquipment;if(build===undefined)throw new Error('Missing native builder');
+    await build(legacyDouble<Targets>({}),false);const kit=f.owner.pageKit(f.ctx);if(kit===null||!('blade' in kit))throw new Error('Missing slot kit');
+    const power=kit.bowPower('bow-reward');
+    expect(Reflect.set(f.ctx,'product',{...product})).toBe(true);
+    power.update(.05);expect(advance).not.toHaveBeenCalled();expect(faults).toHaveLength(1);
+    expect(faults[0]).toMatchObject({verdict:'retry',error:{message:'Held slot owner was replaced'}});
+    expect(()=>kit.bow('bow')).toThrow('owner was replaced');
+    expect(Reflect.set(f.ctx,'product',product)).toBe(true);
+    power.update(.05);expect(advance).toHaveBeenCalledTimes(1);expect(faults).toHaveLength(1);
+    expect(kit.bow('bow')).toBeDefined();
+  }finally{Reflect.set(f.ctx,'product',product);off();f.parent.dispose();}
 });
 
 
