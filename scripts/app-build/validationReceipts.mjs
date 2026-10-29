@@ -1,0 +1,23 @@
+import { createHash } from 'node:crypto';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+/** Check the complete first-party catalogue before publishing any browser verdict.
+ * @param {string} revision @param {string} [directory] */
+export function buildValidationReceipts(revision, directory = 'out') {
+  if (!existsSync(directory)) return [];
+  /** @type {unknown[]} */
+  const receipts = [];
+  for (const entry of readdirSync(directory,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name))) {
+    if(!entry.isDirectory()||entry.name.startsWith('.'))continue;
+    const receiptPath=join(directory,entry.name,'validation.json'),sourcePath=join(directory,entry.name,'shard.json');
+    if(!existsSync(receiptPath)||!existsSync(sourcePath))throw new Error(`Missing output validation receipt: ${entry.name}`);
+    const bytes=readFileSync(sourcePath),index=/** @type {unknown} */(JSON.parse(bytes.toString('utf8'))),receipt=/** @type {unknown} */(JSON.parse(readFileSync(receiptPath,'utf8')));
+    if(typeof index!=='object'||index===null||!('format' in index)||index.format!=='wildshard.shardfile'||!('formatVersion' in index)||index.formatVersion!==2||!('build' in index)||typeof index.build!=='object'||index.build===null||!('sourceHash' in index.build)||typeof index.build.sourceHash!=='string')throw new Error(`Invalid validated output index: ${entry.name}`);
+    if(typeof receipt!=='object'||receipt===null||!('revision' in receipt)||receipt.revision!==revision||!('indexHash' in receipt)||receipt.indexHash!==createHash('sha256').update(bytes).digest('hex')||!('sourceHash' in receipt)||receipt.sourceHash!==index.build.sourceHash)throw new Error(`Stale output validation receipt: ${entry.name}`);
+    receipts.push({ revision: receipt.revision, sourceHash: receipt.sourceHash, indexHash: receipt.indexHash, path: `/shardfiles/${entry.name}/shard.json`,
+      ...('worst' in receipt ? { worst: receipt.worst } : {}) });
+  }
+  return receipts;
+}
+

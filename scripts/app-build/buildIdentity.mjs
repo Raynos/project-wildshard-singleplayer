@@ -5,10 +5,13 @@ import { resolve } from 'node:path';
  * Vite replaces __BUILD_ID__ with this stable expression in both page and worker
  * code; standalone workers without a document have an empty identity. */
 export const BUILD_ID_EXPRESSION = '(globalThis.__WS_BUILD_ID__ ?? "")';
+export const VALIDATOR_EXPRESSION = 'globalThis.__WS_SHARDFILE_VALIDATOR__';
+export const VERDICTS_EXPRESSION = 'globalThis.__WS_SHARDFILE_VERDICTS__';
 
 /** Stamp before executable module scripts, without changing the bundle's URLs.
- * @param {string} html @param {string} build */
-export function stampBuildHtml(html, build) {
+ * @param {string} html @param {string} build
+ * @param {{validator: string, verdicts: readonly unknown[]}} [facts] */
+export function stampBuildHtml(html, build, facts) {
   if (build.length === 0 || !/^[\w.-]+$/u.test(build)) throw new Error('Invalid document build identity');
   if (html.includes('globalThis.__WS_BUILD_ID__=')) throw new Error('Duplicate document build identity');
   // Vite hoists one extracted sheet back into head. Keep the inline launch /
@@ -18,14 +21,17 @@ export function stampBuildHtml(html, build) {
   const heads = [...source.matchAll(/<head(?:\s[^>]*)?>/giu)];
   if (heads.length !== 1 || heads[0]?.index === undefined) throw new Error('Missing or ambiguous document head');
   const end = heads[0].index + heads[0][0].length;
-  return `${source.slice(0, end)}<script>globalThis.__WS_BUILD_ID__=${JSON.stringify(build)};</script>${source.slice(end)}`;
+  if (facts !== undefined && (!/^[a-f0-9]{64}$/u.test(facts.validator) || !Array.isArray(facts.verdicts))) throw new Error('Invalid document admission facts');
+  const admission = facts === undefined ? '' : `globalThis.__WS_SHARDFILE_VALIDATOR__=${JSON.stringify(facts.validator)};globalThis.__WS_SHARDFILE_VERDICTS__=${JSON.stringify(facts.verdicts).replaceAll('<', String.raw`\u003c`)};`;
+  return `${source.slice(0, end)}<script>globalThis.__WS_BUILD_ID__=${JSON.stringify(build)};${admission}</script>${source.slice(end)}`;
 }
 
 /** Plain post-bundle step, before the service worker hashes the final HTML.
  * Every document entry gets the same version.json identity, including native
  * index.html and the calibration entry. No new Vite plugin or fetched module.
- * @param {string} directory */
-export function stampBuildDocuments(directory) {
+ * @param {string} directory
+ * @param {{validator: string, verdicts: readonly unknown[]}} [facts] */
+export function stampBuildDocuments(directory, facts) {
   /** @type {unknown} */
   const version = JSON.parse(readFileSync(resolve(directory, 'version.json'), 'utf8'));
   if (typeof version !== 'object' || version === null || !('build' in version) || typeof version.build !== 'string') throw new Error('Missing document build identity');
@@ -44,6 +50,6 @@ export function stampBuildDocuments(directory) {
   }
   for (const name of documents) {
     const path = resolve(directory, name);
-    writeFileSync(path, stampBuildHtml(readFileSync(path, 'utf8'), version.build));
+    writeFileSync(path, stampBuildHtml(readFileSync(path, 'utf8'), version.build, facts));
   }
 }

@@ -45,3 +45,16 @@ test('the bundled first-paint document never waits for an extracted stylesheet',
   expect(result).toContain('href="/assets/app-123.css" media="print" onload="this.media=\'all\'"');
   expect(stampBuildHtml(html.replace('data-loading-first-paint', ''), 'new-build')).not.toContain('media="print"');
 });
+
+test('changing exact admission receipts changes the document, not its executable module identities', () => {
+  const html = '<html><head><script type="module" src="/assets/main-aaaaaaaa.js"></script></head></html>';
+  const first = stampBuildHtml(html, 'before', {validator: 'a'.repeat(64), verdicts: [{indexHash: 'b'.repeat(64)}]});
+  const second = stampBuildHtml(html, 'after', {validator: 'c'.repeat(64), verdicts: [{indexHash: 'd'.repeat(64)}]});
+  expect(first).toContain(`globalThis.__WS_SHARDFILE_VALIDATOR__="${'a'.repeat(64)}"`);
+  expect(second).toContain(`globalThis.__WS_SHARDFILE_VERDICTS__=[{"indexHash":"${'d'.repeat(64)}"}]`);
+  expect(first.slice(first.indexOf('<script type="module"'))).toBe(second.slice(second.indexOf('<script type="module"')));
+  expect(() => stampBuildHtml(html, 'valid', {validator: 'not-a-digest', verdicts: []})).toThrow('Invalid document admission facts');
+  const escaped = stampBuildHtml(html, 'valid', {validator: 'a'.repeat(64), verdicts: [{value: '</script><script>unsafe'}]});
+  expect(escaped.match(/<\/script>/gu)).toHaveLength(2);
+  expect(escaped).toContain(String.raw`\u003c/script>`);
+});

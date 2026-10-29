@@ -12,6 +12,8 @@ import { bakeGridSeams, writeGridSeams } from './app-build/gridSeams.mjs';
 import { checkNoTopLevelAwait } from './app-build/noTopLevelAwait.mjs';
 import { copyOutputProducts } from './app-build/outputProducts.mjs';
 import { stampBuildDocuments } from './app-build/buildIdentity.mjs';
+import { buildValidationReceipts } from './app-build/validationReceipts.mjs';
+import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 
 const args = process.argv.slice(2);
 /** a `--name value` or `--name=value` argument's value
@@ -87,7 +89,8 @@ if (mode !== 'native') {
 
 // HTML owns the deploy identity; hashed runtime code stays reusable across builds.
 // Native and calibration documents need it too. The worker must see these final bytes.
-stampBuildDocuments(outDir);
+const validator = shardfileValidationRevision();
+stampBuildDocuments(outDir, {validator, verdicts: buildValidationReceipts(validator)});
 
 if (mode !== 'native') {
   // the crossroads phone rig beside the bundle (was vite/crossroadsRig.ts); before the worker, which counts its files
