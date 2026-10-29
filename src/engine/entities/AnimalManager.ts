@@ -1,6 +1,5 @@
 import { clearBody as clearNativeBody } from './bodyClear';
 import { poseEvery } from './poseCadence';
-import { poseEvery } from './poseCadence';
 import { EntityIds } from './ids';
 import { app } from '../app/runtime';
 import { ParticlePool } from '../fx/ParticlePool';
@@ -629,7 +628,6 @@ export class AnimalManager {
       if (this.dormant(a)) { a.mesh.visible = false; (this.casters.get(a) ?? a.mesh).castShadow = false; continue; }   // T6: asleep outside the ring
       const d2 = a.position.distanceToSquared(viewPos);
       const near = d2 < ANIM_LOD * ANIM_LOD;
-      a.poseEvery = poseEvery(d2);
       a.poseEvery = poseEvery(d2);
       const bodyDt = a.harnessHold ? 0 : a.simulationBound ? dt : this.scheduler.bodyDt(this.tickRate(a), a);
       if (bodyDt > 0) {
