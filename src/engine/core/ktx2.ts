@@ -385,6 +385,10 @@ export function leaseInKtx2(texture: THREE.Texture): Promise<void> {
   const back = (async (): Promise<void> => {
     const fresh = await load(file.url, true), mips = fresh.mipmaps.slice(file.level);
     if (mips.length === 0 || fresh.format !== texture.format) throw new Error(`KTX2 lease of ${file.url}: the file no longer matches its texture`);
+    // QB7: a warm-up may have uploaded the leased tail. Drop that binding before the source changes, as leaseOutKtx2
+    // does: three's next init keeps the old cache key and skips a new allocation, and dispose then reads
+    // newSource[oldKey].usedTimes from nothing ('Scope level disposal failed' on Jake's legacy Pine exit)
+    dispatchRebind(texture);
     restoreCompressedMipmaps(texture);
     forgetCompressedAllocation(texture);
     ownSource(texture);
