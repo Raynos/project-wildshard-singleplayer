@@ -1,6 +1,6 @@
 import { workerScope } from '../app/workerScope.js';
 /* MF1: one URL cache, one build shell, and one previous generation of code.
- * No body reconstruction, checksums, receipts, packs, retries or work timers. */
+ * No fetched-body reconstruction, checksums, receipts, packs, retries or work timers. */
 const BUILD = '__BUILD_ID__';
 const DOCUMENT = '__DOCUMENT__';
 const ASSETS = '__ASSET_CACHE__';
@@ -37,7 +37,9 @@ function store(name) {
 async function precache(cache, urls, contentNamed = false) {
   await Promise.all(urls.map(async path => {
     const key = abs(path);
-    if (await cache.match(key, MATCH)) return;
+    const held = await cache.match(key, MATCH);
+    if (held !== undefined && !isHtml(held)) return;
+    if (held !== undefined) await cache.delete(key);
     const response = await fetch(new Request(key, { cache: contentNamed ? 'force-cache' : 'reload' }));
     if (!response.ok || isHtml(response)) throw new Error(`Precache failed: ${path} (${response.status})`);
     await cache.put(key, response);
@@ -55,7 +57,7 @@ async function importPrevious(assets, books) {
       const url = new URL(request.url);
       if (name !== 'ws-immutable' && !immutable(url)) continue;
       const response = await old.match(request, MATCH);
-      if (response === undefined) continue;
+      if (response === undefined || isHtml(response)) continue;
       await assets.put(request, response);
       if (name === 'ws-immutable') code.push(request.url);
     }

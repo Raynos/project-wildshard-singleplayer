@@ -156,6 +156,27 @@ test('an incomplete install never publishes a generation or prunes working code'
   expect((await (await f.open('ws-builds-v1')).keys())).toHaveLength(1);
 });
 
+test('install repairs an older HTML precache hit without trusting its content-named key', async () => {
+  const f = fixture(), file = '/assets/a-aaaaaaaa.js', assets = await f.open(ASSET_CACHE_NAME);
+  await assets.put(url(file), new Response('<html>missing</html>', {headers: {'content-type': 'text/html'}}));
+  const worker = f.load('A', [file]); await worker.dispatch('install'); await worker.dispatch('activate');
+  expect(await (await assets.match(url(file)))?.text()).toBe(`body:${url(file)}`);
+  expect(f.fetch.mock.calls.filter(([input]) => (typeof input === 'string' ? input : input.url) === url(file))).toHaveLength(1);
+  expect((await (await f.open('ws-builds-v1')).keys())).toHaveLength(1);
+});
+
+test('rewrite migration skips HTML masquerading as old code or immutable content', async () => {
+  const f = fixture(), code = '/assets/old-oooooooo.js', content = `/assets/models/${'a'.repeat(64)}.glb`;
+  const html = (): Response => new Response('<html>missing</html>', {headers: {'content-type': 'text/html;charset=utf-8'}});
+  await (await f.open('ws-immutable')).put(url(code), html());
+  await (await f.open('ws-static-old')).put(url(content), html());
+  const worker = f.load('A', []); await worker.dispatch('install'); await worker.dispatch('activate');
+  const assets = await f.open(ASSET_CACHE_NAME);
+  expect(await assets.match(url(code))).toBeUndefined(); expect(await assets.match(url(content))).toBeUndefined();
+  expect((await (await f.open('ws-builds-v1')).keys())).toHaveLength(1);
+  expect(await f.caches.keys()).not.toContain('ws-immutable'); expect(await f.caches.keys()).not.toContain('ws-static-old');
+});
+
 test('the one-time rewrite preserves named legacy bodies and one old code generation', async () => {
   const f = fixture(), oldCode = '/assets/old-oooooooo.js', named = `/assets/models/${'e'.repeat(64)}.glb`;
   await (await f.open('ws-immutable')).put(url(oldCode), new Response('old code'));
