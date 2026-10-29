@@ -4,7 +4,9 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { gridStripDownloadRows } from '@wildshard/game/grid/entryDownloads';
 
 /** Declare the compiler-selected initial seam page before it is read. No IO or receipt credit. */
-export function declareGridHomeDownload(mode: Parameters<typeof gridStripDownloadRows>[0], home: string): void {
+export function declareGridHomeDownload(mode: Parameters<typeof gridStripDownloadRows>[0], home: string,
+  seams: {readonly url: string; readonly bytes: number}): void {
+  declareDownloadFile(seams.url, seams.bytes);
   for (const row of gridStripDownloadRows(mode, home)) declareDownloadFile(row.url, row.bytes);
 }
 

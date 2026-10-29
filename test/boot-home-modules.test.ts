@@ -7,19 +7,21 @@ afterEach(() => {document.body.replaceChildren();for(const link of document.quer
 test('the exact seam bank stays in the denominator before code credit, without fetching or crediting its members', () => {
   const rows = [{url: '/assets/grid-strip-book-12345678.json', bytes: 10},
     {url: '/assets/grid-strip-page-12345678.json', bytes: 20}, {url: '/assets/grid-strip-mesh-12345678.bin', bytes: 70}];
+  const seams = {url: '/assets/grid-seams-abcdef12.json', bytes: 50};
   const node = document.createElement('script'); node.id = 'boot-module-files';
   node.textContent = JSON.stringify({gridEntryDownloads: {'100': {home: rows}}}); document.body.append(node);
   const accounting = new DownloadAccounting(document.baseURI), dispose = installDownloadAccounting(accounting);
   try {
     declareDownloadFile('/assets/code.js', 100);
-    declareGridHomeDownload({developer: true, devserver: false, nineDragon: false}, 'home');
-    expect(accounting.snapshot()).toMatchObject({declaredBytes: 200, declaredDoneBytes: 0, pendingBytes: 200, declaredFiles: 4});
+    declareGridHomeDownload({developer: true, devserver: false, nineDragon: false}, 'home', seams);
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: 250, declaredDoneBytes: 0, pendingBytes: 250, declaredFiles: 5});
     accounting.resource({name: new URL('/assets/code.js', document.baseURI).href, startTime: 1, transferSize: 100, encodedBodySize: 100, workerStart: 0, serverTiming: []});
-    expect(accounting.snapshot()).toMatchObject({declaredBytes: 200, declaredDoneBytes: 100});
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: 250, declaredDoneBytes: 100});
+    declareDownloadFile(seams.url, seams.bytes);
     for (const row of rows) declareDownloadFile(row.url, row.bytes);
-    expect(accounting.snapshot()).toMatchObject({declaredBytes: 200, declaredDoneBytes: 100});
-    declareGridHomeDownload({developer: false, devserver: false, nineDragon: false}, 'home');
-    expect(accounting.snapshot().declaredBytes).toBe(200);
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: 250, declaredDoneBytes: 100});
+    declareGridHomeDownload({developer: false, devserver: false, nineDragon: false}, 'home', seams);
+    expect(accounting.snapshot().declaredBytes).toBe(250);
     expect(document.querySelectorAll('link[rel="preload"],link[rel="modulepreload"]')).toHaveLength(0);
   } finally {dispose();}
 });

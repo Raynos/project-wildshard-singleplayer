@@ -31,6 +31,8 @@ import { retried } from '@wildshard/engine/boot/retry';
 import { bootRoute } from './bootRoute';
 import { lastEnd } from '@wildshard/engine/boot/lastEnd';
 
+declare const __GRID_SEAM_ASSET__: Parameters<typeof declareGridHomeDownload>[2];
+
 const entryScope = new Scope('entry');
 let selectedImages: Scope | undefined;
 let declareCodePack: (() => void) | null = null;
@@ -148,7 +150,7 @@ async function startSelected(): Promise<void> {
   const catalogue = earlyPath === 'grid' ? prepareBootImports(preparePageCatalogue()) : null;
   const homeDescriptor = homeDownloadSource(game.shard, earlyPath === 'grid');
   if (earlyPath === 'grid') {
-    declareGridHomeDownload(gridMode(DEVSERVER), gridSelection.pageGridRecovery()?.instance ?? gridSelection.gridHome().instance);
+    declareGridHomeDownload(gridMode(DEVSERVER), gridSelection.pageGridRecovery()?.instance ?? gridSelection.gridHome().instance, __GRID_SEAM_ASSET__);
   }
   const declaredHome = earlyPath !== 'legacy' && document.getElementById('ws-shardfile') === null;
   // Establish all compiler-known denominators before crediting cached code.
