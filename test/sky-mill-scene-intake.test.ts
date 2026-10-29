@@ -6,6 +6,9 @@ import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { millSceneSource } from '../src/shards/far-reach/generators/millScene';
 import { readMillSceneValues, skyWorldSceneValues, type SkyWorldSceneValues } from '../src/shards/far-reach/generators/worldScenes';
 import { originalSkySceneInputs, originalSkyScenes } from './fixtures/sky-scene-source';
+import { SKY_MEADOW_DATA_FILE, SKY_MEADOW_FILE, skyMeadowBlobs } from '../src/shards/far-reach/generators/meadowScene';
+import { bakeMeadowBlades } from '../src/shards/far-reach/generators/meadowBlades';
+import { predecessorMeadowHash } from './fixtures/sky-meadow-hash';
 
 
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
@@ -15,7 +18,16 @@ const checkWorld = (value: SkyWorldSceneValues): void => {
   expect(wire.byteLength).toBe(313_596);
   expect(hashImmutableBytes(wire)).toBe('a06b5b7bf63e69be057dc097a6a0b350fad904c506423a7a730c704657ba7795');
   expect(value.blobs).toHaveLength(25);
-  const records = value.blobs.map(blob => ({ file: blob.file, hash: hashImmutableBytes(blob.bytes) }));
+  // FR6 (04ed616aa6): the meadow's two files are the current bake's, read back as the original bake's (its double-precision
+  // lattice hash) for this pin; every other record, and the order, as captured
+  const current = skyMeadowBlobs(), prior = skyMeadowBlobs(bakeMeadowBlades(predecessorMeadowHash));
+  const asBefore = (blob: SkyWorldSceneValues['blobs'][number]): SkyWorldSceneValues['blobs'][number] => {
+    const pair = blob.file.name === SKY_MEADOW_DATA_FILE ? [current.binary, prior.binary] as const : blob.file.name === SKY_MEADOW_FILE ? [current.scene, prior.scene] as const : null;
+    if (pair === null) return blob;
+    expect(blob.file).toEqual(pair[0].file); expect(hashImmutableBytes(blob.bytes)).toBe(pair[0].file.hash);
+    return pair[1];
+  };
+  const records = value.blobs.map(asBefore).map(blob => ({ file: blob.file, hash: hashImmutableBytes(blob.bytes) }));
   expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(records)))).toBe('56e8829acb557d34f61a2e38abd89edc1718228db5f9ab5752a9aed89f27fab6');
 };
 
