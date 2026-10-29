@@ -3,12 +3,20 @@ import { actorMoveRules, parseActorMoves } from '@wildshard/format/actorMoves';
 import { validateOutputSection } from '@wildshard/format/outputIndex';
 import { formatJsonSchemas } from '@wildshard/sdk/formatJsonSchema';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
-import { ActorMoveRunner, diveSteering, orbitSteering, stalkSteering, takeoffSteering, type MoveBody, type MoveSteering } from '@wildshard/engine/ai/moves';
+import { ActorMoveRunner, diveSteering, orbitSteering, stalkSteering, takeoffSteering, type MoveBody, type MoveObservation, type MoveSteering } from '@wildshard/engine/ai/moves';
+import {onFault, type Fault} from '@wildshard/engine/core/faults';
 
 const body = () => ({ position: { x: 13, y: 18, z: 0 }, yaw: 0 });
 const target = { x: 2, y: 0, z: 5 };
 const orbit = { id: 'test.lap', kind: 'orbit', center: [0, 0], r: 13, y: 18, speed: 10, turn: 2 };
 const stalk = { id: 'test.over', kind: 'stalk', standOff: 2.5, above: 10, speed: 12, turn: 3, ready: { kind: 'over', radius: 4, height: 2 } };
+function skipped(runner: ActorMoveRunner, observation: MoveObservation, message: string): void {
+  const before = runner.snapshot(), faults: Fault[] = [], off = onFault(fault => {faults.push(fault);});
+  try {
+    expect(runner.step(observation)).toEqual({}); expect(runner.snapshot()).toEqual(before);
+    expect(faults).toHaveLength(1); expect(faults[0]).toMatchObject({system: 'ai.move', verdict: 'retry', error: {message: expect.stringContaining(message)}});
+  } finally {off();}
+}
 function advance(actor: ReturnType<typeof body>, steer: MoveSteering): void {
   const off = Math.atan2(Math.sin(steer.yaw - actor.yaw), Math.cos(steer.yaw - actor.yaw));
   actor.yaw += Math.max(-steer.turn / 60, Math.min(steer.turn / 60, off));
@@ -67,20 +75,20 @@ it('keeps completion/strike one-shot, gives up, and restores without emitting', 
   const fresh = new ActorMoveRunner(dive, actor); fresh.restore(saved);
   expect(flight.step({ body: actor, target })).toEqual(fresh.step({ body: actor, target }));
   const state = flight.snapshot(); expect(() => flight.restore({ ...state, contract: 'other' })).toThrow(); expect(flight.snapshot()).toEqual(state);
-  expect(() => flight.step({ body: actor, target: { ...target, y: Number.NaN } })).toThrow(); expect(flight.snapshot()).toEqual(state);
+  skipped(flight, {body: actor, target: {...target, y: Number.NaN}}, 'Nonfinite'); expect(flight.snapshot()).toEqual(state);
 });
 
 it('runs grounded/airborne stalks, timed climb and perch/takeoff through data requests', () => {
   const actor = body();
   const range = new ActorMoveRunner({ id: 'test.ground', kind: 'stalk', standOff: 3, altitude: 18, speed: 2.4, turn: 4, ready: { kind: 'range' }, ground: true }, actor);
-  const state = range.snapshot(); expect(() => range.step({ body: actor, target })).toThrow('range'); expect(range.snapshot()).toEqual(state);
+  const state = range.snapshot(); skipped(range, {body: actor, target}, 'range'); expect(range.snapshot()).toEqual(state);
   expect(range.step({ body: actor, target: actor.position, range: 5 })).toMatchObject({ done: true, steering: { ground: true } });
   const climb = new ActorMoveRunner({ id: 'test.climb', kind: 'climb', speed: 8, speedBonus: 3, turn: 1, altitude: 24, seconds: 0.02 }, actor);
   expect(climb.step({ body: actor })).toMatchObject({ steering: { speed: 11, altitude: 24 } }); expect(climb.step({ body: actor })).toMatchObject({ done: true });
   const perch = { ...actor.position, yaw: 1 };
   expect(new ActorMoveRunner({ id: 'test.perch', kind: 'perch', perch: 'test.spot', speed: 10, turn: 2 }, actor).step({ body: actor, perch })).toMatchObject({ done: true, steering: { yaw: 1, speed: 0 } });
   const launch = new ActorMoveRunner({ id: 'test.launch', kind: 'takeoff', perch: 'test.spot', altitude: 24, seconds: 4, speed: 1.6, turn: 0.15, bank: 0.35 }, actor);
-  expect(() => launch.step({ body: actor, target })).toThrow('perch');
+  skipped(launch, {body: actor, target}, 'perch');
   expect(launch.step({ body: actor, target, perch })).toMatchObject({ steering: { speed: 1.6 / 240 } });
 });
 
@@ -92,7 +100,7 @@ it('continues orbit/ring motion and normalized burrow/surface fields without Was
   expect(ring.step({ body: actor, target })).toMatchObject({ steering: { speed: 3, ground: true } });
   for (const kind of ['burrow', 'surface']) {
     const motion = new ActorMoveRunner({ id: 'test.depth', kind, field: 'test.burrow', rate: 3 }, actor);
-    expect(() => motion.step({ body: actor })).toThrow('field');
+    skipped(motion, {body: actor}, 'field');
     const frame = motion.step({ body: actor, field: kind === 'burrow' ? 0.99 : 0.01 });
     expect(frame).toEqual({ field: { id: 'test.burrow', value: kind === 'burrow' ? 1 : 0 }, done: true });
   }
@@ -127,5 +135,20 @@ it('field steering admits finite bounded controls and keeps the fixed-step conti
   const saved = runner.snapshot(), restored = new ActorMoveRunner(row, actor); restored.restore(saved);
   expect(restored.step({ body: actor, controls })).toEqual(runner.step({ body: actor, controls }));
   for (const invalid of [{ ...controls, speed: 5 }, { ...controls, speed: -1 }, { ...controls, turn: 3 }, { ...controls, yaw: Number.NaN }])
-    expect(() => new ActorMoveRunner(row, actor).step({ body: actor, controls: invalid })).toThrow();
+    skipped(new ActorMoveRunner(row, actor), {body: actor, controls: invalid}, 'bounds');
+});
+
+it('a bad movement frame cannot consume clocks or completion/strike edges and reports only once', () => {
+  const actor = body(), row = {id: 'test.bound', kind: 'steer', speed: 4, turn: 2, fields: {yaw: 'heading', speed: 'pace', turn: 'turn'}};
+  const runner = new ActorMoveRunner(row, actor), healthy = new ActorMoveRunner(row, actor), faults: Fault[] = [];
+  const before = runner.snapshot(), off = onFault(fault => {faults.push(fault);});
+  try {
+    for (let frame = 0; frame < 3; frame++) {
+      expect(runner.step({body: actor, controls: {yaw: 0, speed: 5, turn: 1}})).toEqual({});
+      expect(runner.snapshot()).toEqual(before);
+    }
+    expect(faults).toHaveLength(1);
+    const observation = {body: actor, controls: {yaw: .4, speed: 3, turn: 1}};
+    expect(runner.step(observation)).toEqual(healthy.step(observation)); expect(runner.snapshot()).toEqual(healthy.snapshot());
+  } finally {off();}
 });

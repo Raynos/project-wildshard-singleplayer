@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { parseActorMoves, type ActorMove } from '@wildshard/format/actorMoves';
+import { emitFault } from '../core/faults';
 
 /** Simulation observations only; neither a renderer nor a shard callback enters the motion kernel. */
 export interface MovePoint { readonly x: number; readonly y: number; readonly z: number }
@@ -83,6 +84,7 @@ export class ActorMoveRunner {
   private angle: number;
   private complete = false;
   private strikeIssued = false;
+  private reportedFrame = false;
   constructor(input: unknown, body: MoveBody) {
     const row = parseActorMoves([input])[0]; if (row === undefined) throw new Error('Missing move declaration');
     this.row = row; this.contract = JSON.stringify(row);
@@ -96,9 +98,22 @@ export class ActorMoveRunner {
     if (value.contract !== this.contract) throw new Error('Move continuation belongs to another declaration');
     this.elapsed = value.elapsed; this.angle = value.angle; this.complete = value.complete; this.strikeIssued = value.strikeIssued ?? false;
   }
-  /** Advance exactly once per 60 Hz simulation step. Completed moves emit no further requests. */
+  /** Advance exactly once per 60 Hz simulation step. Completed moves emit no further requests.
+   * A refused observation emits nothing, restores private clocks/edges and reports once. */
   step(observation: MoveObservation): MoveFrame {
     if (this.complete) return {};
+    const elapsed = this.elapsed, angle = this.angle, complete = this.complete, strikeIssued = this.strikeIssued;
+    try {return this.evaluateObservation(observation);}
+    catch (error) {
+      this.elapsed = elapsed; this.angle = angle; this.complete = complete; this.strikeIssued = strikeIssued;
+      if (!this.reportedFrame) {
+        this.reportedFrame = true;
+        emitFault({system: 'ai.move', error, verdict: 'retry'});
+      }
+      return {};
+    }
+  }
+  private evaluateObservation(observation: MoveObservation): MoveFrame {
     const { body, target, perch } = observation, row = this.row;
     point(body.position); if (!Number.isFinite(body.yaw)) throw new Error('Nonfinite move heading');
     if (target !== undefined) point(target);

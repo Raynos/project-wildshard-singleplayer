@@ -19,6 +19,6 @@ test('relocation requests one existing-body placement and never replays it after
   expect(actorMoveRules(rows, { spots: new Set(), fields: new Set(['actor.burstX']), strikes: new Set() })).toContain('move coordinates resolve in declared actor fields');
   expect(actorMoveRules(rows, { spots: new Set(), fields: new Set(['actor.burstX', 'actor.burstZ']), strikes: new Set() })).toEqual([]);
   const invalid = new ActorMoveRunner(row, body), before = invalid.snapshot();
-  expect(() => invalid.step({ body, destination: { x: Infinity, z: 0 }, target: body.position })).toThrow();
+  expect(invalid.step({body, destination: {x: Infinity, z: 0}, target: body.position})).toEqual({});
   expect(invalid.snapshot()).toEqual(before);
 });
