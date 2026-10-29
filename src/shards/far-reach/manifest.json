@@ -211,6 +211,7 @@
     "phone": {
       "godRays": true,
       "ao": false,
+      "aa": "fxaa",
       "textures": "ktx2"
     },
     "desktop": {
