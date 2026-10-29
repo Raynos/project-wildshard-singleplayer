@@ -231,6 +231,9 @@ function boot(): Promise<void> {
       pageScope.cancelTimer(timer);
       resolve();
     };
+    // A controlling worker already owns this document's fetches. Registration
+    // still discovers updates, but its network/update check cannot gate boot.
+    if (s.controller) settle();
     void register(s, settle);
   });
 }
