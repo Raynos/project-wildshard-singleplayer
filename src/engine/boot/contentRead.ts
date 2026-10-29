@@ -19,12 +19,19 @@ export interface ContentReadOptions {
   retry?: (error: ContentReadError) => Promise<void>;
   /** Timer port for deterministic transport controls. */
   delay?: (signal?: AbortSignal) => Promise<void>;
+  /** First-party immutable reads trust the server; stale lengths retry the same URL. */
+  expectedBytes?: number;
+  /** Header-admitted native response before reading; the caller owns any clone. */
+  response?: (response: Response) => void;
 }
 
 function html(bytes: Uint8Array): boolean {
   return /^\s*<(?:!doctype\s+html\b|html(?:\s|>))/iu.test(new TextDecoder().decode(bytes.subarray(0, 128)));
 }
-async function body(response: Response, url: string, maximum: number, read?: (bytes: number) => void): Promise<Uint8Array<ArrayBuffer>> {
+async function body(response: Response, url: string, maximum: number, read?: (bytes: number) => void, expected?: number,
+  received?: (response: Response) => void): Promise<Uint8Array<ArrayBuffer>> {
+  const sizeError = (): Error => expected === undefined ? new Error('Content wire size exceeds cap')
+    : new ContentReadError(url, 'byte length differs from manifest');
   if (!response.ok || /\btext\/html\b/iu.test(response.headers.get('content-type') ?? '')) {
     await response.body?.cancel().catch(() => undefined);
     throw new ContentReadError(url, response.ok ? 'missing content (HTML response)' : `HTTP ${response.status}`);
@@ -32,9 +39,13 @@ async function body(response: Response, url: string, maximum: number, read?: (by
   const length = response.headers.get('content-length');
   if (length !== null && (!/^\d+$/u.test(length) || Number(length) > maximum)) {
     await response.body?.cancel().catch(() => undefined);
-    throw new Error('Content wire size exceeds cap');
+    throw sizeError();
   }
-  if (response.body === null) return new Uint8Array();
+  received?.(response);
+  if (response.body === null) {
+    if (expected !== undefined && expected !== 0) throw sizeError();
+    return new Uint8Array();
+  }
   const reader = response.body.getReader();
   let bytes = new Uint8Array(length === null ? Math.min(maximum, 65536) : Number(length)), size = 0;
   try {
@@ -44,17 +55,22 @@ async function body(response: Response, url: string, maximum: number, read?: (by
       catch (error) { throw new ContentReadError(url, 'connection interrupted', error); }
       if (part.done) break;
       const next = size + part.value.byteLength;
-      if (next > maximum) throw new Error('Content wire size exceeds cap');
+      if (next > maximum) throw sizeError();
       if (next > bytes.length) {
         const grown = new Uint8Array(Math.min(maximum, Math.max(next, bytes.length * 2)));
         grown.set(bytes); bytes = grown;
       }
       bytes.set(part.value, size); size = next; read?.(part.value.byteLength);
     }
-  } catch (error) { await reader.cancel().catch(() => undefined); throw error; }
+  } catch (error) {
+    // A caller may own a clone. Cancelling a tee waits for both branches;
+    // do not deadlock recovery before the caller can retire its failed clone.
+    void reader.cancel().catch(() => undefined); throw error;
+  }
   finally { reader.releaseLock(); }
   const result = size === bytes.length ? bytes : bytes.slice(0, size);
   if (html(result)) throw new ContentReadError(url, 'missing content (HTML response)');
+  if (expected !== undefined && size !== expected) throw sizeError();
   return result;
 }
 
@@ -89,10 +105,11 @@ async function retryFromCard(error: ContentReadError, signal?: AbortSignal): Pro
 }
 
 /** Read a complete bounded file. Retry one lost/missing transport after one second,
- * then leave the same load pending on RETRY. Parsing, hashes and exact lengths
- * remain the caller's authority and never enter this retry loop. */
+ * then leave the same load pending on RETRY. An optional first-party manifest
+ * length shares this recovery; ordinary caps, parsing and hashes stay strict. */
 export async function readContent(url: string, maximum: number, options: ContentReadOptions): Promise<Uint8Array<ArrayBuffer>> {
   if (!Number.isSafeInteger(maximum) || maximum < 0 || maximum > 25_000_000) throw new Error('Invalid content wire cap');
+  if (options.expectedBytes !== undefined && (!Number.isSafeInteger(options.expectedBytes) || options.expectedBytes < 0 || options.expectedBytes > maximum)) throw new Error('Invalid expected content length');
   let retried = false;
   for (;;) {
     options.signal?.throwIfAborted();
@@ -100,7 +117,7 @@ export async function readContent(url: string, maximum: number, options: Content
       let response: Response;
       try { response = await options.fetch(url, { ...(retried ? { cache: 'reload' } : {}), ...(options.signal === undefined ? {} : { signal: options.signal }) }); }
       catch (error) { options.signal?.throwIfAborted(); throw new ContentReadError(url, 'connection unavailable', error); }
-      return await body(response, url, maximum, options.read);
+      return await body(response, url, maximum, options.read, options.expectedBytes, options.response);
     } catch (error) {
       options.signal?.throwIfAborted();
       if (!(error instanceof ContentReadError)) throw error;

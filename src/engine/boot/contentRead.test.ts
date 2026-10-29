@@ -82,3 +82,45 @@ test('cancelling a suspended RETRY drains its wait without restarting transport'
   controller.abort(reason); await expect(pending).rejects.toBe(reason);
   expect(calls).toBe(2); expect([...loadingWaitState().pending.values()].some(row => row.resource === url)).toBe(false);
 });
+
+test.each([new Uint8Array([9]), new Uint8Array([9, 9, 9, 9])])('stale first-party lengths reload the same URL once', async stale => {
+  const requests: { url: string; cache: RequestCache | undefined }[] = [];
+  const result = await readContent(url, 3, { expectedBytes: 3, delay: immediate, fetch: (path, init) => {
+    requests.push({ url: path, cache: init.cache });
+    return Promise.resolve(new Response(requests.length === 1 ? stale : new Uint8Array([1, 2, 3])));
+  } });
+  expect(result).toEqual(new Uint8Array([1, 2, 3]));
+  expect(requests).toEqual([{ url, cache: undefined }, { url, cache: 'reload' }]);
+});
+
+test('a repeated stale length offers the original RETRY without accepting bytes', async () => {
+  let calls = 0, retries = 0;
+  const result = await readContent(url, 2, { expectedBytes: 2, delay: immediate, fetch: () => {
+    calls++; return Promise.resolve(new Response(new Uint8Array(calls <= 2 ? [9] : [1, 2])));
+  }, retry: error => {
+    expect(error).toBeInstanceOf(ContentReadError); expect(error.message).toContain('byte length'); retries++;
+    return Promise.resolve();
+  } });
+  expect(result).toEqual(new Uint8Array([1, 2])); expect(calls).toBe(3); expect(retries).toBe(1);
+});
+
+test('response observers see admitted native responses before their bodies are read', async () => {
+  const first = new Response(null, { status: 503 }), second = new Response(new Uint8Array([1]), { headers: { 'content-type': 'application/octet-stream' } });
+  const responses: Response[] = [], unread: boolean[] = [];
+  let calls = 0;
+  const bytes = await readContent(url, 1, { expectedBytes: 1, delay: immediate,
+    fetch: () => Promise.resolve(++calls === 1 ? first : second), response: response => {
+      responses.push(response); unread.push(!response.bodyUsed);
+    },
+  });
+  expect(bytes).toEqual(new Uint8Array([1])); expect(responses).toEqual([second]);
+  expect(unread).toEqual([true]); expect(second.headers.get('content-type')).toBe('application/octet-stream');
+});
+
+test('HTML is refused before a response observer can clone its body', async () => {
+  let observed = 0;
+  await expect(readContent(url, 256, { fetch: () => Promise.resolve(new Response('<html>Missing</html>', { headers: { 'content-type': 'text/html' } })),
+    response: response => { observed++; response.clone(); }, delay: immediate, retry: error => { throw error; },
+  })).rejects.toBeInstanceOf(ContentReadError);
+  expect(observed).toBe(0);
+});
