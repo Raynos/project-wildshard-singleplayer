@@ -29,7 +29,6 @@ sp-x2 MF10, sp-x9 G895 → FC7, sp-x10 MF1 + QB21. QB19 / GAME-S sp-o3 later. G8
 - RL10: grid New game keeps its road-resume reload (1ec09517d4).
 - QB10: sp-x1 walks the 60 ids (0dd5f3060e) in MF12; wildshard-v resolves them. **wildshard-v: for Sentry-only ids with
   no inbox stack (e.g. 7R, 6Y, 6X, 6W) add one event's build + stack to the row**; titles can't justify a fix.
-- D53's 8 generator-import sites baselined (dd32fad4b0).
 - families-board retired (3e9937f146); D53 debt; Pine pond, G99 isles kept; Pine drive (D12) under G815; D206 damage list.
 - Spike section 3 taken (P1-P6, Q1-Q5, C1-C4, N1, F1, T1, L3-L6; X1 / X2 after the retro; DA1 / PF1 sent, G874).
 
