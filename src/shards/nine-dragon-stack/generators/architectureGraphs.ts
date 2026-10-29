@@ -1,6 +1,7 @@
 import type { AuthorGraph as GraphIr, AuthorGraphRef as GraphRef, AuthorGraphStages as GraphStages } from '@wildshard/sdk/bake/materialGraph';
 import { LookGraph } from './lookGraph';
 import SHARED from '../data/sharedUniforms.json' with { type: 'json' };
+import LOOKS from '../data/lookGraphs.json' with { type: 'json' };
 
 const shapes = {
   uTime: 'float', uLinePx: 'float', uDpr: 'float', uGroundPx: 'float', uFlagJoint: 'float', uPaintFlag: 'float', uDry: 'float', uLpMax: 'float', uLpAmb: 'float', uInkMid: 'float', uFogBase: 'float', uFogStart: 'float', uWeave: 'float',
@@ -201,9 +202,10 @@ function coarseFacade(): GraphIr {
   // nothing of them (flat fog slabs: LEGACY's hazy lower band of lit towers was missing at cams 17 / 18). They take the
   // base air alone (`fog: false`: no silk stage), the same the output's emission compensation assumes: a far window keeps
   // its 0.25 power through it.
-  const trans = g.op('exp', [g.neg(mul(g.u('uFogBase'), max(sub(g.distance, g.u('uFogStart')), 0)))]);
+  const air = LOOKS['nine-silk-fog'].params;
+  const trans = g.op('exp', [g.neg(mul(air.fogBase.value, max(sub(g.distance, air.fogStart.value), 0)))]);
   const shaded = g.add(g.shade(colour), g.div(emit, g.pow(max(trans, 1e-4), 0.75)));
-  const graph = g.finish({ surface: { colour: mix(g.u('uFogBaseCol'), shaded, trans), targetAlpha: g.div(g.op('cameraNear'), max(g.depth, g.op('cameraNear'))) } }, { fog: false, depthWrite: true });
+  const graph = g.finish({ surface: { colour: mix(air.fogBaseCol.value, shaded, trans), targetAlpha: g.div(g.op('cameraNear'), max(g.depth, g.op('cameraNear'))) } }, { fog: false, depthWrite: true });
   return { ...graph, doubleSided: false };
 }
 
