@@ -41,10 +41,8 @@ export function setLiveWaterLevel(name: string, level: number): void {
 export function declaredWaterBody(input: WaterDeclaration): WaterBody {
   const data = structuredClone(input);
   const level = data.kind === 'stream' ? data.points[0]?.level ?? 0 : data.level;
-  // Query scratch stays in the body, but live levels are read for every sample.
+  // Keep lookup metadata in the body; every sample still reads live levels.
   const rest = data.kind === 'stream' ? data.levels : undefined;
-  const at = (p: { level: number; under?: string | undefined }): number =>
-    p.under === undefined ? p.level : Math.max(p.level, LIVE.get(p.under) ?? rest?.[p.under] ?? p.level);
   const restAt = (x: number, z: number): number | null => {
     if (!Number.isFinite(x) || !Number.isFinite(z) || Math.abs(x) > 250 || Math.abs(z) > 250) return null;
     const edges = data.dryEntries;
@@ -66,7 +64,14 @@ export function declaredWaterBody(input: WaterDeclaration): WaterBody {
       const dx = b.x - a.x, dz = b.z - a.z, n = dx * dx + dz * dz;
       const t = n === 0 ? 0 : Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / n));
       const d = Math.hypot(x - a.x - dx * t, z - a.z - dz * t);
-      if (d < distance) { distance = d; const from = at(a); height = from + (at(b) - from) * t; }
+      if (d < distance) {
+        distance = d;
+        // Keep scalars in this query instead of returning boxed numbers from a
+        // shared endpoint closure on each segment. Evaluation order stays a, b.
+        const from = a.under === undefined ? a.level : Math.max(a.level, LIVE.get(a.under) ?? rest?.[a.under] ?? a.level);
+        const to = b.under === undefined ? b.level : Math.max(b.level, LIVE.get(b.under) ?? rest?.[b.under] ?? b.level);
+        height = from + (to - from) * t;
+      }
     }
     return distance < data.width / 2 ? height : null;
   };
