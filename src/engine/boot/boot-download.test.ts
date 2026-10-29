@@ -1,6 +1,57 @@
 import { expect, it } from 'vitest';
 import { DownloadAccounting, type DownloadTiming, installDownloadAccounting, receiveWorkerDownloads, observeDownloadAccounting, currentDownloadAccounting, declareDownloadFile, declareModuleFiles, recordCachedDownload, beginLoadingWait, reportLoadingWait, finishLoadingWait, loadingWaitState } from './download';
 
+it('counts delivered bodies rather than the unused remainder of a tier bank', () => {
+  const accounting = new DownloadAccounting('https://example.test/');
+  accounting.trackReads(); accounting.expect(101_300_000);
+  accounting.reserve('/shardfiles/home/', 101_300_000);
+  accounting.declare('/shardfiles/home/read.bin', 60_300_000);
+  accounting.read('/shardfiles/home/read.bin', 60_300_000, false, 1);
+  accounting.closeReads();
+  expect(accounting.snapshot()).toMatchObject({pendingBytes: 101_300_000, networkBytes: 0, cachedBytes: 0,
+    reads: {bytes: 60_300_000, cachedBytes: 0, unknownSourceBytes: 0, closed: true}});
+  // Late prefetch receipts and declarations cannot enlarge a finished entry.
+  accounting.read('/shardfiles/home/optional.bin', 41_000_000, true);
+  expect(accounting.snapshot().reads?.bytes).toBe(60_300_000);
+});
+
+it('counts one delivered pack envelope without inventing reads of its members or restored inputs', () => {
+  const accounting = new DownloadAccounting('https://example.test/'); accounting.trackReads();
+  accounting.container('/pack.bin', 80); accounting.declare('/member.bin', 200);
+  accounting.resource({name: 'https://example.test/pack.bin', startTime: 1, transferSize: 120,
+    encodedBodySize: 80, decodedBodySize: 80, workerStart: 0, serverTiming: []});
+  accounting.read('/pack.bin', 80, false, 2); accounting.packed('/member.bin');
+  accounting.restored('/original.glb', 500);
+  expect(accounting.snapshot()).toMatchObject({networkBytes: 120, restoredBytes: 500,
+    reads: {bytes: 80, cachedBytes: 0, unknownSourceBytes: 0}});
+  accounting.read('cache:home:validated-snapshot', 300, true);
+  expect(accounting.snapshot().reads).toMatchObject({bytes: 380, cachedBytes: 300});
+});
+
+it('deduplicates page, worker and verified-body evidence while retaining the first known supplier', () => {
+  const accounting = new DownloadAccounting('https://example.test/'); accounting.trackReads();
+  accounting.read('/code.js', 1000, undefined, 5);
+  accounting.resource({name: 'https://example.test/code.js', startTime: 1, transferSize: 400,
+    encodedBodySize: 100, decodedBodySize: 1000, workerStart: 0, serverTiming: []});
+  accounting.cached('code', 1000, '/code.js');
+  accounting.read('/warm.glb', 2000, true, 2);
+  accounting.read('/warm.glb', 2000, false, 3);
+  accounting.read('/unknown.bin', 40);
+  expect(accounting.snapshot().reads).toMatchObject({bytes: 3040, cachedBytes: 2000, unknownSourceBytes: 40});
+});
+
+it('only active demanded reads supply pending bytes; a new deploy has a fresh observation', () => {
+  for (const [url, bytes, cached] of [['/old.bin', 100, true], ['/new.bin', 200, false]] as const) {
+    const accounting = new DownloadAccounting('https://example.test/'); accounting.trackReads();
+    accounting.declare(url, bytes); accounting.declare('/unused.bin', 900);
+    const release = accounting.beginRead(url);
+    expect(accounting.snapshot().reads).toMatchObject({bytes: 0, pendingBytes: bytes, pendingFiles: 1});
+    accounting.read(url, bytes, cached); release(); accounting.closeReads();
+    expect(accounting.snapshot().reads).toEqual({bytes, cachedBytes: cached ? bytes : 0, unknownSourceBytes: 0,
+      pendingBytes: 0, pendingFiles: 0, closed: true});
+  }
+});
+
 it('the compiled entry denominator is immutable and grants no completed bytes', () => {
   const accounting = new DownloadAccounting('https://example.test/');
   accounting.expect(100); accounting.declare('/assets/first.bin', 20);

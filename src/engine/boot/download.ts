@@ -74,15 +74,43 @@ export interface DownloadSnapshot {
   /** Canonical input bytes satisfied by a successfully restored derived result;
    * these are neither network nor original-body cache reads. */
   restoredBytes?: number;
+  /** Actual bodies delivered during this entry, independent of planned banks. */
+  reads?: {bytes: number; cachedBytes: number; unknownSourceBytes: number; pendingBytes: number; pendingFiles: number; closed: boolean};
 }
-interface File { bytes: number; complete: boolean; container?: boolean; restored?: boolean }
+interface File { bytes: number; complete: boolean; container?: boolean; restored?: boolean; address: string }
+interface ReadBody {bytes: number; cached: boolean | undefined; sourceAt: number}
 export interface DownloadTiming {
   name: string; startTime: number; transferSize: number; encodedBodySize: number; decodedBodySize?: number;
   workerStart: number; serverTiming: readonly { name: string; duration: number }[];
   responseEnd?: number; source?: 'worker';
+  responseStatus?: number;
 }
 /** One loading attempt owns its declarations and receipts; no body tees or retained payloads. */
 export class DownloadAccounting {
+  private readsEnabled = false;
+  private readsClosed = false;
+  private readonly bodies = new Map<string, ReadBody>();
+  private readonly requests = new Map<string, number>();
+  /** Observe selected reads, rather than treating a whole product as demand. */
+  trackReads(): void { this.readsEnabled = true; }
+  /** The native entry barrier closes this observation window, not its IO. */
+  closeReads(): void { if (this.readsEnabled) this.readsClosed = true; }
+  beginRead(input: string): () => void {
+    if (!this.readsEnabled || this.readsClosed) return () => undefined;
+    const key = this.url(input); this.requests.set(key, (this.requests.get(key) ?? 0) + 1);
+    return () => { const count = this.requests.get(key) ?? 0; if (count <= 1) this.requests.delete(key); else this.requests.set(key, count - 1); };
+  }
+  /** Content-body evidence only; this never invents network transfer bytes. */
+  read(input: string, bytes: number, cached?: boolean, at: number = diagnosticNow()): void {
+    if (!this.readsEnabled || this.readsClosed) return;
+    if (!Number.isSafeInteger(bytes) || bytes < 0) throw new Error('Invalid delivered body size');
+    const key = this.url(input), prior = this.bodies.get(key);
+    if (prior === undefined) this.bodies.set(key, {bytes, cached, sourceAt: at});
+    else {
+      prior.bytes = Math.max(prior.bytes, bytes);
+      if (cached !== undefined && (prior.cached === undefined || at < prior.sourceAt)) { prior.cached = cached; prior.sourceAt = at; }
+    }
+  }
   private expected: number | undefined;
   /** This attempt's build-owned denominator is immutable. It grants no receipt. */
   expect(bytes: number): void {
@@ -121,7 +149,7 @@ export class DownloadAccounting {
     }
     this.groupRemainder = undefined;
     const hash = /[a-f0-9]{64}/u.exec(key)?.[0];
-    const declared = { bytes, complete: this.received.has(key) || (hash !== undefined && this.cache.has(hash)) };
+    const declared = { bytes, complete: this.received.has(key) || (hash !== undefined && this.cache.has(hash)), address: key };
     this.files.set(key, declared);
     if (hash !== undefined) {
       let addresses = this.addressed.get(hash);
@@ -173,10 +201,11 @@ export class DownloadAccounting {
     if (!Number.isSafeInteger(bytes) || bytes < 0) throw new Error('Invalid cached byte receipt');
     this.cache.set(key, Math.max(this.cache.get(key) ?? 0, bytes));
     this.activity++;
-    for (const file of this.addressed.get(key) ?? []) file.complete = true;
+    for (const file of this.addressed.get(key) ?? []) { file.complete = true; this.read(file.address, bytes, true); }
     if (url !== undefined) {
       this.declare(url, bytes);
       const file = this.files.get(this.url(url)); if (file !== undefined) file.complete = true;
+      this.read(url, bytes, true);
     }
   }
   /** iPhone downloads I5: a member read from its pack completes without a receipt of its own (the pack's receipt
@@ -200,6 +229,11 @@ export class DownloadAccounting {
     const url = this.url(entry.name);
     const body = Math.max(entry.encodedBodySize, entry.serverTiming.find(timing => timing.name === 'ws-network')?.duration ?? 0);
     if (body > 0) this.bodyHints.set(url, Math.max(this.bodyHints.get(url) ?? 0, body));
+    const cacheHit = entry.serverTiming.some(timing => timing.name === 'ws-cache')
+      || entry.workerStart === 0 && entry.transferSize === 0 && entry.encodedBodySize > 0;
+    const origin = cacheHit ? true : entry.transferSize > 0 || entry.serverTiming.some(timing => timing.name === 'ws-network') ? false : undefined;
+    const delivered = entry.decodedBodySize !== undefined && entry.decodedBodySize > 0 ? entry.decodedBodySize : this.files.get(url)?.bytes ?? body;
+    if ((entry.responseStatus === undefined || entry.responseStatus < 400) && Number.isSafeInteger(delivered) && delivered > 0) this.read(url, delivered, origin, entry.startTime);
     if (entry.serverTiming.some(timing => timing.name === 'ws-receipt')) return;
     const id = `${entry.source ?? 'page'}:${entry.name}:${entry.startTime}`; if (this.seen.has(id)) return;
     this.seen.add(id); this.completed++;
@@ -239,10 +273,14 @@ export class DownloadAccounting {
     let unclassifiedBytes = 0;
     this.unknown.forEach(receipt => { unclassifiedBytes += Math.max(receipt.bytes,
       this.bodyHints.get(receipt.url) ?? 0); });
+    let readBytes = 0, readCachedBytes = 0, unknownSourceBytes = 0, readPendingBytes = 0, readPendingFiles = 0;
+    for (const body of this.bodies.values()) { readBytes += body.bytes; if (body.cached === true) readCachedBytes += body.bytes; else if (body.cached === undefined) unknownSourceBytes += body.bytes; }
+    if (!this.readsClosed) for (const key of this.requests.keys()) if (!this.bodies.has(key)) { readPendingBytes += this.files.get(key)?.bytes ?? 0; readPendingFiles++; }
     return { networkBytes: this.network, cachedBytes, pendingBytes, filesDone: this.completed + this.cache.size,
       filesTotal: this.completed + this.cache.size + pendingFiles, unclassifiedBytes, unclassifiedFiles: this.unknown.size,
       declaredBytes, declaredDoneBytes: declaredBytes - pendingBytes, declaredFiles, declaredFilesDone: declaredFiles - pendingFiles,
-      ...(this.expected === undefined ? {} : {expectedBytes: this.expected}), ...(restoredBytes === 0 ? {} : {restoredBytes}), ...(unitemizedBytes === 0 ? {} : { unitemizedBytes }) };
+      ...(this.expected === undefined ? {} : {expectedBytes: this.expected}), ...(restoredBytes === 0 ? {} : {restoredBytes}), ...(unitemizedBytes === 0 ? {} : { unitemizedBytes }),
+      ...(!this.readsEnabled ? {} : {reads: {bytes: readBytes, cachedBytes: readCachedBytes, unknownSourceBytes, pendingBytes: readPendingBytes, pendingFiles: readPendingFiles, closed: this.readsClosed}}) };
   }
 }
 let active: DownloadAccounting | undefined;
@@ -268,7 +306,8 @@ function receiveWorkerTiming(timing: unknown, offset: number): void {
   if (offset + timing.responseEnd < 0) return;
   const receipt: DownloadTiming = { name: timing.name, startTime: offset + timing.startTime,
     responseEnd: offset + timing.responseEnd, transferSize: timing.transferSize,
-    encodedBodySize: timing.encodedBodySize, workerStart: 0, serverTiming: [], source: 'worker' };
+    encodedBodySize: timing.encodedBodySize, workerStart: 0, serverTiming: [], source: 'worker',
+    ...('decodedBodySize' in timing && typeof timing.decodedBodySize === 'number' ? {decodedBodySize: timing.decodedBodySize} : {}) };
   if (active === undefined && observers.size === 0) { if (!installed) earlyWorker.push(receipt); }
   else accountingTargets(accounting => { accounting.resource(receipt); });
 }
@@ -339,6 +378,13 @@ export function recordCachedDownload(key: string, bytes: number, url?: string): 
 export function recordPackedDownload(url: string): void { accountingTargets(accounting => { accounting.packed(url); }); }
 /** Successful derived restoration satisfies named inputs without a wire/cache credit. */
 export function recordRestoredDownload(url: string, bytes: number): void { accountingTargets(accounting => { accounting.restored(url, bytes); }); }
+/** Actual delivered bodies, with cache provenance only when the reader knows. */
+export function recordReadDownload(url: string, bytes: number, cached?: boolean): void { accountingTargets(accounting => { accounting.read(url, bytes, cached); }); }
+/** Observe an already-started demand without changing its lifetime. */
+export function beginDownloadRead(url: string): () => void {
+  const releases: (() => void)[] = []; accountingTargets(accounting => { releases.push(accounting.beginRead(url)); });
+  return () => { for (const release of releases) release(); };
+}
 /** Actual body reads reset the stall timer without mislabelling decoded bytes as network transport. */
 export function noteDownloadRead(bytes: number): void { accountingTargets(accounting => { accounting.noteRead(bytes); }); }
 
