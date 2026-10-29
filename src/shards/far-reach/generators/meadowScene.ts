@@ -8,8 +8,8 @@ import { MEADOW, meadowCard } from './rows/meadowLook';
 type SceneBuffers = ReturnType<typeof parseSceneBuffers>;
 
 /** The original blade bytes, card channels and chunk LOD transforms, frozen before product compilation. */
-export function skyMeadowScene(publish: (id: string, bytes: Uint8Array) => { file: string; byteOffset: number }): SceneBuffers {
-  const bytes = decodePortableBytes(bakeMeadowBlades()), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+export function skyMeadowScene(publish: (id: string, bytes: Uint8Array) => { file: string; byteOffset: number }, blades: Uint8Array = bakeMeadowBlades()): SceneBuffers {
+  const bytes = decodePortableBytes(blades), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const chunks = view.getUint32(0, true), buffers: SceneBuffers['buffers'] = [], attributes: SceneBuffers['attributes'] = [];
   const geometries: SceneBuffers['geometries'] = [], draws: SceneBuffers['draws'] = [];
   const cards = [meadowCard(1), meadowCard(1 + MEADOW.layers)];
@@ -46,19 +46,24 @@ export function skyMeadowScene(publish: (id: string, bytes: Uint8Array) => { fil
 }
 export const SKY_MEADOW_FILE = 'world/fields/meadow.json';
 export const SKY_MEADOW_DATA_FILE = 'world/fields/meadow.bin';
-const channels: { bytes: Uint8Array; offset: number }[] = [];
-let length = 0;
-const scene = skyMeadowScene((_id, bytes) => {
-  const offset = Math.ceil(length / 4) * 4;
-  channels.push({ bytes, offset }); length = offset + bytes.byteLength;
-  return { file: SKY_MEADOW_DATA_FILE, byteOffset: offset };
-});
-const packed = new Uint8Array(length);
-for (const channel of channels) packed.set(channel.bytes, channel.offset);
-const binary = nameBlob(SKY_MEADOW_DATA_FILE, 'bin', packed);
-export const SKY_MEADOW_BLOB = nameBlob(SKY_MEADOW_FILE, 'json', new TextEncoder().encode(JSON.stringify(scene)), {
-  gpu: scene.buffers.reduce((sum, buffer) => sum + (buffer.byteLength ?? 0), 0),
-  dependencies: [binary.file.hash],
-});
+/** The meadow's packed channel file and its scene file over `blades` (a parity oracle passes a predecessor bake). */
+export function skyMeadowBlobs(blades: Uint8Array = bakeMeadowBlades()): { readonly binary: ReturnType<typeof nameBlob>; readonly scene: ReturnType<typeof nameBlob> } {
+  const channels: { bytes: Uint8Array; offset: number }[] = [];
+  let length = 0;
+  const scene = skyMeadowScene((_id, bytes) => {
+    const offset = Math.ceil(length / 4) * 4;
+    channels.push({ bytes, offset }); length = offset + bytes.byteLength;
+    return { file: SKY_MEADOW_DATA_FILE, byteOffset: offset };
+  }, blades);
+  const packed = new Uint8Array(length);
+  for (const channel of channels) packed.set(channel.bytes, channel.offset);
+  const binary = nameBlob(SKY_MEADOW_DATA_FILE, 'bin', packed);
+  return { binary, scene: nameBlob(SKY_MEADOW_FILE, 'json', new TextEncoder().encode(JSON.stringify(scene)), {
+    gpu: scene.buffers.reduce((sum, buffer) => sum + (buffer.byteLength ?? 0), 0),
+    dependencies: [binary.file.hash],
+  }) };
+}
+const meadowBlobs = skyMeadowBlobs();
+export const SKY_MEADOW_BLOB = meadowBlobs.scene;
 /** One verified packed file keeps every channel binary without adding per-channel reads. */
-export const SKY_MEADOW_BLOBS = [binary, SKY_MEADOW_BLOB];
+export const SKY_MEADOW_BLOBS = [meadowBlobs.binary, SKY_MEADOW_BLOB];

@@ -25,6 +25,9 @@ import { GPU_FILES } from '../src/shards/far-reach/ktx2.generated';
 import { skyMapPalette } from '../src/shards/far-reach/generators/fixedLayouts';
 import { skyViewDiscovery } from '../src/shards/far-reach/generators/viewData';
 import { SKY_NAVIGATION_INPUT, skyNavigationRows } from '../src/shards/far-reach/generators/navigation';
+import { skyMeadowBlobs } from '../src/shards/far-reach/generators/meadowScene';
+import { bakeMeadowBlades } from '../src/shards/far-reach/generators/meadowBlades';
+import { predecessorMeadowHash } from './fixtures/sky-meadow-hash';
 
 test('the actual SDK-built product binds receipt-verified discovery to the admitted complete geometry', () => {
   const root = resolve('.'), folder = readBuiltShardfile(root, 'far-reach');
@@ -110,9 +113,13 @@ test('the actual SDK-built product binds receipt-verified discovery to the admit
     "triangles": 0
   }
 ];
-  for (const original of meadow) {
-    expect(index.files.find(row => row.name === original.name)).toEqual(original);
-    expect(hashImmutableBytes(readFileSync(resolve(folder, original.path)))).toBe(original.hash);
+  // FR6: the rows above are the original bake's (its double-precision lattice hash rebuilds them exactly); the product
+  // carries the current bake, the same pair from the same source
+  const prior = skyMeadowBlobs(bakeMeadowBlades(predecessorMeadowHash)), current = skyMeadowBlobs();
+  expect([prior.binary.file, prior.scene.file]).toEqual(meadow);
+  for (const owned of [current.binary.file, current.scene.file]) {
+    expect(index.files.find(row => row.name === owned.name)).toEqual(owned);
+    expect(hashImmutableBytes(readFileSync(resolve(folder, owned.path)))).toBe(owned.hash);
   }
 
   for (const piece of BAKED_PIECES) {

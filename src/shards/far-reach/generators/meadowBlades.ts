@@ -4,6 +4,7 @@ import { meadowHoles, meadowPaths } from './placements';
 import { heroStoneDiscs } from './dressing';
 import { MEADOW, MEADOW_BLADES, SWARD } from './rows/meadowLook';
 import { ISLE_RIM, playableIsleRims } from './isleRim';
+import { meadowHash } from './meadowHash';
 
 /**
  * Build-time only (SHARD-PLATFORM M3): the near meadow's blades, baked (data/meadowLook.ts; world/meadow.ts draws them).
@@ -20,12 +21,15 @@ import { ISLE_RIM, playableIsleRims } from './isleRim';
 const fract = (x: number): number => x - Math.floor(x);
 const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const mix = (a: number, b: number, t: number): number => a + (b - a) * t;
-const mh = (x: number, y: number): number => fract(Math.sin(x * 127.1 + y * 311.7) * 43758.5453);
-function mn(x: number, y: number): number {
-  const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy, ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
-  return mix(mix(mh(ix, iy), mh(ix + 1, iy), ux), mix(mh(ix, iy + 1), mh(ix + 1, iy + 1), ux), uy);
+/** The old program's value noise on lattice hash `mh` (`meadowHash`, the GPU's single precision). */
+function meadowNoise(mh: (x: number, y: number) => number): { mh: (x: number, y: number) => number; mn: (x: number, y: number) => number; mfbm: (x: number, y: number) => number } {
+  const mn = (x: number, y: number): number => {
+    const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy, ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
+    return mix(mix(mh(ix, iy), mh(ix + 1, iy), ux), mix(mh(ix, iy + 1), mh(ix + 1, iy + 1), ux), uy);
+  };
+  const mfbm = (x: number, y: number): number => mn(x, y) * 0.55 + mn(x * 2.1 + 7.3, y * 2.1 + 7.3) * 0.3 + mn(x * 4.3 - 3.1, y * 4.3 - 3.1) * 0.15;
+  return { mh, mn, mfbm };
 }
-const mfbm = (x: number, y: number): number => mn(x, y) * 0.55 + mn(x * 2.1 + 7.3, y * 2.1 + 7.3) * 0.3 + mn(x * 4.3 - 3.1, y * 4.3 - 3.1) * 0.15;
 function segDist(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
   const abx = bx - ax, aby = by - ay, t = Math.min(1, Math.max(0, ((px - ax) * abx + (py - ay) * aby) / Math.max(abx * abx + aby * aby, 1e-4)));
   return Math.hypot(px - ax - abx * t, py - ay - aby * t);
@@ -63,8 +67,10 @@ function rimAt(rim: Rim, lx: number, lz: number, ang: number, near: number): { r
 
 interface Blade { x: number; z: number; y: number; h: number; r: number; tone: number; code: number; safe: number; rimCut: boolean; phone: boolean }
 
-/** The baked blades (see the module's comment), deflated. */
-export function bakeMeadowBlades(): Uint8Array {
+/** The baked blades (see the module's comment), deflated. `hash`: the noise's lattice hash (a parity oracle passes the
+ *  original double-precision one to rebuild the predecessor bake). */
+export function bakeMeadowBlades(hash: (x: number, y: number) => number = meadowHash): Uint8Array {
+  const { mh, mn, mfbm } = meadowNoise(hash);
   const { tile, blades: perTile, phone } = MEADOW;
   const holes = [...meadowHoles().map(({ x, y, z, w }) => [x, y, z, w] as const), ...heroStoneDiscs().map(([x, z, r]) => [x, z, r, 1] as const)];
   const paths = meadowPaths().map(({ x, y, z, w }) => [x, y, z, w] as const);
