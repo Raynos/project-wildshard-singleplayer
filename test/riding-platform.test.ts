@@ -37,7 +37,7 @@ function fixture(kind: string, speeds: MountProfile['speeds'], registerMode = tr
   const scope = new Scope('riding-fixture'), app = new App(), camera = new PerspectiveCamera(), slots: DiscOpts[] = [], widgets: string[] = [];
   lendNalatiRiding(scope);
   scope.onDispose(overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 }));
-  const ctx = legacyDouble<LevelContext>({ app, scope, hud: {
+  const ctx = legacyDouble<LevelContext>({ app, scope, debugRow: (): void => undefined, hud: {
     disc: (row: DiscOpts): HTMLButtonElement => { slots.push(row); const button = document.createElement('button'); button.className = row.cls; return button; },
     widget: (band: string, _el: HTMLElement, order: number): void => { widgets.push(`${band}:${String(order)}`); },
     relabel: (): (() => void) => () => undefined, verb: (): void => undefined, pin: (): void => undefined,
@@ -129,7 +129,7 @@ test('HUD accepts a fictional second shard observation and retains the baseline 
       spur: { latched: false, streak: 0 }, horse: 'mule', mountables: [{ id: 'mule', name: 'Juniper', whistle: true, hidden: false, position: [0, 0, -8], scale: 1 }] };
     hud.update(null, state);
     expect(f.slots.map(row => row.spot)).toEqual(['r0', 'edge-l', 'lean-l', 'lean-r', 'aim']);
-    expect(f.widgets).toEqual(['band.3:2']);
+    expect(f.widgets).toEqual(['band.3:2', 'band.3:5']); // STEED, then TRUST under GRASS (QB18)
     expect(root.querySelector('.ws-ride-name')?.textContent).toBe('Juniper');
     expect(root.querySelector<HTMLElement>('.ws-ride-sbar i')?.style.width).toBe('62%');
     expect(hud.inputVerbs(true)['verb.1']).toMatchObject({ label: 'Dismount' });

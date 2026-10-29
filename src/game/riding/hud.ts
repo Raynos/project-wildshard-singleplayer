@@ -47,6 +47,9 @@ export class RideHUD {
   private readonly root: HTMLElement;
   private readonly steed: HTMLElement; private readonly sbar: HTMLElement; private readonly gait: HTMLElement; private readonly sname: HTMLElement;
   private readonly trust: HTMLElement; private readonly trustFill: SVGPathElement;
+  private readonly trustRow: HTMLElement; private readonly trustRowFill: HTMLElement;
+  /** QB18: where the phone shows TRUST (Settings ▸ Debug ▸ TRUST meter): B a status row (ships), A the old top arc, C a lower, smaller arc */
+  private trustStyle: 'row' | 'arc' | 'low' = 'row';
   private readonly ear: HTMLElement; private earCol = '';
   private readonly hold: HTMLElement; private readonly holdRound: HTMLElement; private readonly holdMark: SVGGElement;
   private readonly tags = new Map<string, { el: HTMLElement; name: HTMLElement }>();   // per horse (a rename at the rail re-labels it)
@@ -67,6 +70,7 @@ export class RideHUD {
     const tf = this.trust.querySelector<SVGPathElement>('path.f');
     if (tf === null) throw new Error('RideHUD: trust arc');
     this.trustFill = tf;
+    this.trustRow = el('ws-ride-trustrow', '<span>Trust</span><b><i></i></b>'); this.trustRowFill = this.q(this.trustRow, 'b i');
     this.ear = el('ws-ride-ear');
     this.hold = el('ws-ride-hold', `<span class="ws-ride-round">TAMING 1/5</span><svg viewBox="0 0 340 58"><defs><linearGradient id="wsRideHoldG" x1="0" x2="1"><stop offset="0" stop-color="#ff4a3a"/><stop offset="0.22" stop-color="#ff9a3a"/><stop offset="0.36" stop-color="#43d66a"/><stop offset="0.64" stop-color="#43d66a"/><stop offset="0.78" stop-color="#ff9a3a"/><stop offset="1" stop-color="#ff4a3a"/></linearGradient></defs><path d="${arcPath(170, 250, 240, Math.PI * 1.29, Math.PI * 1.71)}" fill="none" stroke="rgba(6,10,18,0.7)" stroke-width="14" stroke-linecap="round"/><path d="${arcPath(170, 250, 240, Math.PI * 1.29, Math.PI * 1.71)}" fill="none" stroke="url(#wsRideHoldG)" stroke-width="8" stroke-linecap="round"/><g class="m"><path d="M0 -14 L0 10" stroke="#8fe3ff" stroke-width="3"/><path d="M0 -20 L9 -15 L0 -10 Z" fill="#8fe3ff"/></g></svg><span class="ws-ride-cap">Hold on</span>`);
     this.holdRound = this.q(this.hold, '.ws-ride-round');
@@ -75,6 +79,13 @@ export class RideHUD {
     this.holdMark = mk;
     this.root.append(this.steed, this.trust, this.ear, this.hold);
     this.t = this.buildTouch();
+    // QB18 (G872): on the phone the top arc ran from the GRASS row into the minimap; it is a row under GRASS instead, so
+    // VISIBLE · GRASS · TRUST read as one block that crosses nothing. A desktop keeps the arc (no status column there)
+    this.ctx.hud.widget('band.3', this.trustRow, 5);
+    ctx.debugRow({ id: 'trustMeter', group: 'look', label: 'TRUST meter (phone)', ask: 'E435', reviewBy: '2026-11-12',
+      note: 'QB18: where the taming TRUST meter sits on the phone; B ships, A is the old top arc, C the arc made smaller under the chips',
+      choices: [{ value: 'row', text: 'B · status row' }, { value: 'arc', text: 'A · top arc (old)' }, { value: 'low', text: 'C · low arc' }],
+      initial: 'row', change: (value) => { this.trustStyle = value === 'arc' || value === 'low' ? value : 'row'; } });
     this.ctx.scope.onDispose(() => {
       this.steed.remove(); this.trust.remove(); this.ear.remove(); this.hold.remove();
       for (const tag of this.tags.values()) tag.el.remove();
@@ -179,9 +190,14 @@ export class RideHUD {
       if (this.sname.textContent !== name) { this.sname.textContent = name; t.sname.textContent = name; }
     }
     // ── taming ──
-    const trust = view?.trust ?? null;
-    this.trust.classList.toggle('show', trust !== null && !breaking);
-    if (trust !== null) this.trustFill.setAttribute('stroke-dasharray', `${Math.max(0.5, trust).toFixed(1)} 100`);
+    const trust = view?.trust ?? null, row = this.trustStyle === 'row' && hudSlots.touch;
+    this.trust.classList.toggle('show', trust !== null && !breaking && !row);
+    this.trust.classList.toggle('low', this.trustStyle === 'low' && hudSlots.touch);
+    this.trustRow.classList.toggle('show', trust !== null && !breaking && row);
+    if (trust !== null) {
+      this.trustFill.setAttribute('stroke-dasharray', `${Math.max(0.5, trust).toFixed(1)} 100`);
+      this.trustRowFill.style.transform = `scaleX(${(Math.max(0.5, trust) / 100).toFixed(3)})`;
+    }
     const ear = view?.ear ?? null;
     if (ear !== null && this.project(ear)) {
       const a = view?.alert ?? 0;
