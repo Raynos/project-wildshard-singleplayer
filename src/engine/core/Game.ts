@@ -530,9 +530,12 @@ export class Game {
    */
   private colourPass(composer: EffectComposer, engineChain: (kind: EngineChainKind) => BuiltChain, aa: Effect | null): { pass: EffectPass; merged: boolean } {
     // FC9: FXAA joins the colour pass, one full-frame pass fewer, where nothing in it is another convolution or moves UVs
-    // (postprocessing allows one of either per pass and runs it first, on the pass's input: the lit frame before grading)
+    // (postprocessing allows one of either per pass and runs it first, on the pass's input: the lit frame before grading),
+    // and only with no shard pass in the composer: around a shard's own passes (Nine's ink graph) the colour pass's input
+    // is not the frame the player sees, and a merged FXAA left Nine's wires stair-stepped (art/frame-cost/round-3-fc9-fxaa)
     const pass = (effects: Effect[]): { pass: EffectPass; merged: boolean } => {
-      const merged = aa !== null && effects.every(effect => (effect.getAttributes() & EffectAttribute.CONVOLUTION) === 0 && !/\bmainUv\b/u.test(effect.getFragmentShader()));
+      const C = this.composition, shardPasses = C !== null && [C.beforeScene, C.afterScene, C.beforeChain, C.afterChain].some(passes => (passes?.length ?? 0) > 0);
+      const merged = aa !== null && !shardPasses && effects.every(effect => (effect.getAttributes() & EffectAttribute.CONVOLUTION) === 0 && !/\bmainUv\b/u.test(effect.getFragmentShader()));
       return { pass: new EffectPass(this.camera, ...(merged && aa !== null ? [aa, ...effects] : effects)), merged };
     };
     const R = this.lookStrategy;
