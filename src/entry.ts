@@ -139,12 +139,12 @@ async function startSelected(): Promise<void> {
   const moduleRows: unknown = moduleText === undefined ? undefined : JSON.parse(moduleText);
   const entryModule = retried(() => import('@wildshard/game/shard/entryMode'));
   const gridEntryModule = retried(() => import('@wildshard/game/grid/pageEntry'));
-  const [entrySelection, gridSelection] = await Promise.all([entryModule, gridEntryModule]);
+  const gridMenuModule = retried(() => import('@wildshard/game/grid/menu'));
+  const [entrySelection, gridSelection, { gridMode, DEVSERVER }] = await Promise.all([entryModule, gridEntryModule, gridMenuModule]);
   const earlyPath = gridSelection.pageGridRecovery() !== null || gridSelection.pendingGridEntry(game.shard.slug)
     ? 'grid' : entrySelection.shardEntry(game.shard);
   const homeDescriptor = homeDownloadSource(game.shard, earlyPath === 'grid');
   if (earlyPath === 'grid') {
-    const { gridMode, DEVSERVER } = await retried(() => import('@wildshard/game/grid/menu'));
     declareGridHomeDownload(gridMode(DEVSERVER), gridSelection.pageGridRecovery()?.instance ?? gridSelection.gridHome().instance);
   }
   const declaredHome = earlyPath !== 'legacy' && document.getElementById('ws-shardfile') === null;
