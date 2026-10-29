@@ -1,5 +1,6 @@
 import type { AuthorGraph as GraphIr, AuthorGraphRef as GraphRef, AuthorGraphStages as GraphStages } from '@wildshard/sdk/bake/materialGraph';
 import { LookGraph } from './lookGraph';
+import SHARED from '../data/sharedUniforms.json' with { type: 'json' };
 
 const shapes = {
   uTime: 'float', uLinePx: 'float', uDpr: 'float', uGroundPx: 'float', uFlagJoint: 'float', uPaintFlag: 'float', uDry: 'float', uLpMax: 'float', uLpAmb: 'float', uInkMid: 'float', uFogBase: 'float', uFogStart: 'float', uWeave: 'float',
@@ -271,12 +272,14 @@ function windows(): GraphIr {
   return g.output(colour, emit, mul(lines, mix(0.5, 1, detail)));
 }
 
-export function architectureGraphs(): Readonly<Record<string, GraphIr>> {
-  return { 'nine-architecture': architecture(false), 'nine-architecture-cut': architecture(true), 'nine-facade': facade(false), 'nine-facade-small': facade(true), 'nine-windows': windows(), 'nine-coarse-facade': coarseFacade() };
+/** `glint: false` builds the kit graphs as before NR13's tread glints (the declaration oracle's predecessor). */
+export function architectureGraphs(options: { readonly glint?: boolean } = {}): Readonly<Record<string, GraphIr>> {
+  const glint = options.glint !== false;
+  return { 'nine-architecture': architecture(false, glint), 'nine-architecture-cut': architecture(true, glint), 'nine-facade': facade(false), 'nine-facade-small': facade(true), 'nine-windows': windows(), 'nine-coarse-facade': coarseFacade() };
 }
 
 /** The world kit retains its encoded kinds, explicit surfaces and edge masks. */
-function architecture(cut: boolean): GraphIr {
+function architecture(cut: boolean, glints: boolean): GraphIr {
   const g = new Surface(), sw = g.sw.bind(g), mul = g.mul.bind(g), add = g.add.bind(g), sub = g.sub.bind(g), div = g.div.bind(g), max = g.max.bind(g), min = g.min.bind(g), mix = g.mix.bind(g), choose = g.choose.bind(g);
   const face = g.attr('aFace', 'vec4'), pat = g.attr('aPat', 'vec4', true), misc = g.attr('aMisc', 'vec4', true), off = g.attr('aOff', 'vec2'), spill = g.attr('aSpill', 'vec3');
   const kind = g.floor(add(sw(pat, 'x'), 0.5)), flags = g.floor(add(sw(misc, 'w'), 0.5)), surf = g.floor(div(flags, 4096));
@@ -317,6 +320,28 @@ function architecture(cut: boolean): GraphIr {
   const sheenK = mul(max(mul(gloss, 0.45), wetPool), mul(fresnel, detail));
   const sheen = choose(g.gt(sheenK, 0), mul(mul(add(mul(g.raw(add(g.world, mul(reflection, sw(spec, 'y')))), 0.6), mul(g.raw(add(g.world, mul(reflection, sw(spec, 'z')))), 0.4)), sw(spec, 'x')), sheenK), [0, 0, 0]);
   emit = add(emit, add(sheen, mul(g.u('uFogBaseCol'), mul(mul(wetPool, fresnel), sw(g.u('uWetSky'), 'x')))));
+  // NR13: the wet treads' glints (LEGACY style.ts, E281): a step's tread (a narrow wet top, under 0.6 m deep) catches light
+  // along its long edges, just inside the ruled ground line: broken cells of light that twinkle, the lamps' and the sky's
+  // reflection; far off they average into one bright line. Looking up a flight a riser's top edge (a low, long wet face) is
+  // the nosing seen from below and takes the same glints. The shared `uGlint` row's constants are the graph's own param
+  // (no frame channel), and each cell keeps one phase of LEGACY's twinkle: the kit graph reads no clock
+  if (glints) {
+    const glint = g.p('treadGlint', 'vec4', SHARED.uGlint.v4), ny = sw(g.normal, 'y'), lo = min(w, h);
+    const tread = mul(g.step(0.9, ny), sub(1, g.step(0.6, lo))), riser = mul(mul(sub(1, g.step(0.3, g.abs(ny))), sub(1, g.step(0.5, h))), g.step(mul(h, 2), w));
+    const across = mul(tread, sub(1, g.step(h, w))), onRiser = mul(riser, sub(1, tread));
+    const dpxU = min(div(x, gu), div(sub(w, x), gu)), dpxV = min(div(y, gv), div(sub(h, y), gv));
+    const dE = choose(g.gt(onRiser, 0.5), div(sub(h, y), gv), choose(g.gt(across, 0.5), dpxU, dpxV));
+    const along = choose(g.gt(across, 0.5), y, x), ga = choose(g.gt(across, 0.5), gv, gu), edgeW = mul(Wg, 0.5);
+    const band = mul(g.smooth(sub(edgeW, 0.5), add(edgeW, 0.5), dE), sub(1, g.smooth(add(edgeW, 1.5), add(edgeW, 3), dE)));
+    const cellL = sw(glint, 'w'), runs = choose(g.gt(across, 0.5), sw(g.world, 'x'), sw(g.world, 'z'));
+    const hc = g.hash(g.vec(g.floor(div(along, cellL)), add(add(mul(seed, 7), g.floor(mul(sw(g.world, 'y'), 5))), g.floor(mul(runs, 3)))));
+    const twinkle = add(0.55, mul(g.op('sin', [mul(hc, 40)]), 0.45));
+    const spark = mul(mul(g.step(sub(1, sw(glint, 'y')), hc), twinkle), sub(1, g.smooth(0.2, 0.45, g.abs(sub(g.fract(div(along, cellL)), 0.5)))));
+    const glintOn = mul(mul(mul(g.step(1e-4, sw(glint, 'x')), g.step(0.3, wet)), max(tread, riser)), detail);
+    const gk = mul(mul(mix(mul(sw(glint, 'y'), 0.45), spark, g.smooth(0.7, 2.5, div(cellL, max(ga, 1e-5)))), band), glintOn);
+    const glintLight = add(add(mul(g.raw(add(g.world, mul(reflection, 1.5))), 1.5), mul(g.u('uFogBaseCol'), 0.45)), mul(min(spill, [1, 1, 1]), sw(glint, 'z')));
+    emit = add(emit, choose(g.gt(gk, 0), mul(glintLight, mul(mul(gk, sw(glint, 'x')), wet)), [0, 0, 0]));
+  }
   const cp = sw(pat, 'z'), bars = g.rule(Qx, cp, gu, mul(Wr, 0.9)), mid = mul(g.line(g.abs(sub(y, mul(h, 0.5))), gv, mul(Wr, 0.8)), g.step(0.5, sw(pat, 'y')));
   const barCoverage = max(max(bars, mid), lines); use(4, base, barCoverage);
   const inset = min(min(x, sub(w, x)), min(y, sub(h, y))), density = g.smooth(3, 7, div(0.06, fw));

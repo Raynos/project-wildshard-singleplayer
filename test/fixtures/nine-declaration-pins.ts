@@ -3,6 +3,7 @@ import { beforeHalfWorld, previousHalfDeclaration, previousHalfHashes } from './
 import { inputs } from './nine-product-inputs';
 import { layoutBlobs } from '../../src/shards/nine-dragon-stack/generators/layoutBlobs';
 import { bakedLayout } from '../../src/shards/nine-dragon-stack/generators/layoutProjection';
+import { architectureGraphs } from '../../src/shards/nine-dragon-stack/generators/architectureGraphs';
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
 import type { Shardfile } from '../../src/sdk/shardfile';
 import worldFiles from './nine-world-files.json' with { type: 'json' };
@@ -55,11 +56,23 @@ function previousWindowsCorner(product: Shardfile): Shardfile {
   return { ...product, look: { ...product.look, materials: { ...product.look.materials, 'nine-windows': cornerBefore(windows) } } };
 }
 
+/** NR13: the kit graphs (`nine-architecture`, `-cut`) carry the wet treads' glints; their predecessors are the same graphs
+ *  built without them (`architectureGraphs({ glint: false })`: the same nodes in the same order, less the glint block). */
+function previousKitGlints(product: Shardfile): Shardfile {
+  const before = architectureGraphs({ glint: false }), materials = { ...product.look.materials };
+  for (const id of ['nine-architecture', 'nine-architecture-cut']) {
+    const material = materials[id], graph = before[id];
+    if (material === undefined || graph === undefined || !('family' in material) || material.family !== 'graph' || !JSON.stringify(material).includes('"treadGlint"')) throw new Error(`Missing Nine kit glints: ${id}`);
+    materials[id] = { ...material, graph };
+  }
+  return { ...product, look: { ...product.look, materials } };
+}
+
 export function expectNineDeclaration(current: Shardfile): void {
   // The independently pinned 411-file source proof defines the only allowed
   // reference renaming; full declaration pins remain unchanged below.
   const wire = previousLayoutWire();
-  const product = JSON.parse(JSON.stringify(previousHalfDeclaration(previousCoarseFamily(previousWindowsCorner(current)))).replaceAll(wire.current, wire.previous)) as Shardfile;
+  const product = JSON.parse(JSON.stringify(previousHalfDeclaration(previousCoarseFamily(previousWindowsCorner(previousKitGlints(current))))).replaceAll(wire.current, wire.previous)) as Shardfile;
   const fine = new Set(product.tiles.filter(tile => tile.lod === 0).flatMap(tile => tile.files));
   const coarse = new Set(product.tiles.filter(tile => tile.lod === 1).flatMap(tile => tile.files).filter(file => !fine.has(file)));
   expect(coarse.size).toBe(12); expect(product.library.filter(file => coarse.has(file))).toEqual([]);
