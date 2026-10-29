@@ -202,4 +202,4 @@ Codex does the workflow engineering (non-visual). Ordered to unstick the deploy 
 | CI11 | Node harness v1 (G922): every shard enters, walks 1,800 ticks, quests, disposes | All shards < 60 s in the wave | Codex | M |
 | CI12 | Verbs as sim commands + tapes (MF15–MF18 verb lists) | Hook, crank, crossbow and quest steps pass; QB11 / QB17 replayed red | Codex (Opus verb lists) | L |
 | CI13 | Physics walk moves into the harness; the Chromium walk retires | 0 stuck in Node | Codex | M |
-| CI14 | Pin waves 2+ (G919): rank files by reds-on-intended-change over 14 days; delete from the top | No file red twice in a week for a drift-only change | Codex | M |
+| CI14 | Pin waves 2+ (G919): rank files by reds-on-intended-change over 14 days; delete from the top | No file red twice in a week for a drift-only change | Codex sp-x2 (until the workflow hand-off) | M |
