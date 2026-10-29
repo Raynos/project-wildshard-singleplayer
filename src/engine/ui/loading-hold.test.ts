@@ -40,6 +40,9 @@ it('offers the same Developer hold setting beneath the panel during loading', as
   const loading = ready(), toggle = loading.root.querySelector<HTMLButtonElement>('.ws-load-hold');
   expect(toggle?.hidden).toBe(true);
   setDev(true); expect(toggle?.hidden).toBe(false);
+  // G875: an on / off switch, its label and the pill loading.css draws as the track and knob
+  expect(toggle?.getAttribute('role')).toBe('switch'); expect(toggle?.querySelector('.ws-gmenu-swlabel')?.textContent).toBe('Hold at loading screen');
+  expect(toggle?.querySelector('.ws-gmenu-pill')).not.toBeNull();
   toggle?.click(); expect(getSetting('holdLoading')).toBe(true);
   expect(toggle?.getAttribute('aria-checked')).toBe('true');
   const finished = loading.done();
