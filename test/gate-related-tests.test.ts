@@ -30,6 +30,12 @@ it('always runs a changed test file, even one the import walk did not return', (
   }
 });
 
+it('does not claim changed MJS files outside the runner MJS include', () => {
+  for (const path of ['src/engine/boot/waits.test.mjs', 'admin/test/only.test.mjs', 'drafts/test/only.test.mjs']) {
+    expect(capRelated([], [path], durations, 0, 1)).toEqual({run: [], left: []});
+  }
+});
+
 const scenarios = ['test/scripts/far-reach-roc.test.ts', 'test/scripts/far-reach-gust.test.ts', 'test/scripts/sunscar-dunes-matriarch.test.ts'];
 
 it('maps changed and removed Wasm author sources without an import edge', () => {
