@@ -137,6 +137,25 @@ export class WorldRenderPass extends RenderPass {
   }
 
   override render(renderer: Renderer, inputBuffer: THREE.WebGLRenderTarget | null, outputBuffer: THREE.WebGLRenderTarget | null, deltaTime?: number, stencilTest?: boolean): void {
+    const clear = this.clearPass;
+    if (inputBuffer === null || this.renderToScreen || !clear.enabled || clear.overrideClearColor !== null || clear.overrideClearAlpha !== -1) { this.renderWorld(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest); return; }
+    // FC10: three clears the scene target after its shadow pass (its background step, with autoClear) instead of the
+    // clear pass clearing it before: a target cleared and then left for the shadow map is stored and loaded back by a
+    // tile GPU. autoClear returns to the composer's at that first clear of the scene target, so nested renders keep it.
+    // the renderer's own clear, put back as it was (never a bound copy, which would nest a frame at a time)
+    const autoClear = renderer.autoClear, own: unknown = Reflect.get(renderer, 'clear');
+    if (typeof own !== 'function') throw new Error('Renderer clear is not a function');
+    let restored = false;
+    const restore = (): void => { if (restored) return; restored = true; renderer.autoClear = autoClear; Reflect.set(renderer, 'clear', own); };
+    Reflect.set(renderer, 'clear', (color?: boolean, depth?: boolean, stencil?: boolean): void => {
+      if (renderer.getRenderTarget() === inputBuffer) restore();
+      Reflect.apply(own, renderer, [color, depth, stencil]);
+    });
+    clear.enabled = false; renderer.autoClear = true;
+    try { this.renderWorld(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest); } finally { clear.enabled = true; restore(); }
+  }
+
+  private renderWorld(renderer: Renderer, inputBuffer: THREE.WebGLRenderTarget | null, outputBuffer: THREE.WebGLRenderTarget | null, deltaTime?: number, stencilTest?: boolean): void {
     const stable = this.stableTarget();
     if (stable === null || inputBuffer === null || this.renderToScreen) { super.render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest); return; }
     if (this.slices) {
