@@ -34,6 +34,7 @@ import type { Scope } from '../app/scope';
 import type { ColliderDesc, DrawnAs, ModelEntry, WorldRegistry } from '../world/registry';
 import { FrameCamera } from '../world/frameCamera';
 import { geometryBoundsSteps } from '../world/geometryBounds';
+import { keepShadowWhole } from '../world/shadowChunks';
 import { withTier } from '../explore/tiers';
 import { loadingSpecimen } from './gear';
 import { specimenReady, paramsOf, seedOf, type ModelBuild, type ModelBuildVisit, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
@@ -92,6 +93,8 @@ export interface PlaceOptions {
    * family drawn merged instead of instanced looks the same). Off: a merged copy's `color` is not drawn.
    */
   readonly mergedTint?: boolean;
+  /** merged: each mesh casts whole, never split into shadow pieces (a light family: its pieces cost more draws than tris) */
+  readonly shadowWhole?: boolean;
   /** per-copy culling (instanced / batched; merged: per cell). Without it, instanced copies are culled as one set */
   readonly cull?: CullOptions;
   /** default: the running shard's registry; null: build only (a dev page) */
@@ -576,6 +579,7 @@ function* drawMergedSteps<P extends object>(def: ModelDef<P>, pls: readonly Plac
         yield* geometryBoundsSteps(geo, 'sphere');
         const mesh = meshOf(part, geo);
         mesh.name = def.id;
+        if (o.shadowWhole === true) keepShadowWhole(mesh);
         meshes.push(mesh);
         yield;
       }
