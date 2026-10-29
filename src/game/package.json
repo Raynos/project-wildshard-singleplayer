@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./session/crashResume": "./session/crashResume.ts",
     "./boot/spawnDownload": "./boot/spawnDownload.ts",
     "./weather/forest": "./weather/forest.ts",
     "./population/pageLife": "./population/pageLife.ts",

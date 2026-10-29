@@ -58,6 +58,8 @@ export interface GridRecoveryService {
   /** Call only after every continuation/ledger writer succeeds. The instance slot fences New-game generations. */
   save: (assembly: GridAssembly, home: { instance: string; slug: string }, road: RoadPoint, location: GridSavedLocation) => boolean;
   clearLoop: () => boolean;
+  /** An abrupt end may resume only an already durable, catalogue-bound checkpoint. */
+  restoreLast: (assembly: GridAssembly) => boolean;
   /** A pending reset never boots until the target namespace proves its atomic generation advance. */
   prepareReset: (assembly: GridAssembly, current: { instance: string; slug: string }, road: RoadPoint, target: LocalSaveInstance) => boolean;
   completeReset: (assembly: GridAssembly) => boolean;
@@ -96,6 +98,13 @@ export function gridRecovery(store: SaveStore, now: () => number = Date.now): Gr
       return local.write(saved) && last.write(saved);
     },
     clearLoop: () => guard.write(null),
+    restoreLast: assembly => {
+      if ([last.status?.(), session.status?.(), device.status?.(), pendingReset.status?.()].includes('future')
+        || session.peek() !== null || device.peek() !== null) return false;
+      const saved = last.peek();
+      if (saved === null || !validSaved(saved, assembly)) return false;
+      return service.write(assembly, saved, saved.road, 'reload');
+    },
     prepareReset: (assembly: GridAssembly, current: { instance: string; slug: string }, road: RoadPoint, target: LocalSaveInstance) => {
       if (!assembly.cells.some(cell => cell.instance === current.instance && [current.slug].includes(cell.slug)) || !onRoad(assembly, road.x, road.z)
         || !assembly.cells.some(cell => cell.instance === target.id && [target.shard].includes(cell.slug))) throw new Error('Reset recovery requires catalogue instances and a safe road');

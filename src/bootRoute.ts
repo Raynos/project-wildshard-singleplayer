@@ -7,7 +7,8 @@
  * A URL with only version or environment harness settings is the title too; those settings do not select a level.
  */
 export interface BootRoute { readonly rescue: boolean; readonly titleOnly: boolean }
-export function bootRoute(search: URLSearchParams, previous: { readonly line: string; readonly level: string }): BootRoute {
+export function bootRoute(search: URLSearchParams, previous: { readonly line: string; readonly level: string; readonly reload?: boolean }): BootRoute {
+  if (previous.reload === true) return { rescue: true, titleOnly: true };
   const rescue = previous.line !== '' && search.get('chunk') === previous.level;
   const route = new URLSearchParams(search);
   for (const key of ['v', 'tier', 'touch', 'mute', 'nolock', 'sw']) route.delete(key);

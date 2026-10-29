@@ -481,8 +481,12 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   // practice and Explore keep their own local return path. `?skipintro=1` (bench / screenshots) and `?tour=1` go straight to the world.
   const tour = world.tour;
   // a GPU-recovery reload (E61) skips the title: straight back into the world at the saved spot, under the pause menu
-  const resuming = session.recovery !== undefined || params.has('glreload');
-  const continuingGridEntry = plannedGridReload(session.recovery);
+  if (session.crashResume !== undefined) {
+    const pose = session.crashResume.pose;
+    player.spawn(pose.x, pose.z, pose.yaw, pose.y); player.pitch = pose.pitch;
+  }
+  const resuming = session.crashResume !== undefined || session.recovery !== undefined || params.has('glreload');
+  const continuingGridEntry = session.crashResume !== undefined || plannedGridReload(session.recovery);
   const arrival = session.arrival;
   const menuFirst = arrival === null && !params.has('skipintro') && !params.has('tour') && !resuming;
   let firstIn = true;

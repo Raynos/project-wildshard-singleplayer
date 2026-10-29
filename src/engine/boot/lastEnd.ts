@@ -28,6 +28,7 @@ declare const __BUILD_ID__: string;
 
 const UNLOAD_KEY = 'life.lastUnload';
 const ALIVE_KEY = 'life.alive';
+const ALIVE_BACKUP_KEY = 'life.alive.once';
 const END_KEY = 'life.lastEnd';
 /** a reason written this long before the next boot still explains it */
 const INTENT_MS = 10_000;
@@ -38,7 +39,7 @@ const BEAT_MS = 3000;
  *  src/game/plugin/context.ts), so the next boot knows which way in ended */
 export interface AliveInfo<M extends string = string> { slug: string; resident: string; mode: M }
 interface Stamp { t: number; build: string; slug: string; resident: string; mode: string }
-interface Unload extends Stamp { reason: string }
+interface Unload extends Stamp { reason: string; reload?: true }
 interface Alive extends Stamp { vis: string }
 export interface LastEnd {
   kind: 'intentional' | 'unexpected' | 'fresh';
@@ -60,6 +61,8 @@ export interface LastEnd {
   discarded: boolean;
   /** the navigation type of this boot (navigate / reload / back_forward) */
   nav: string;
+  /** Explicit RELOAD returns to the title; GPU/background recovery is separate. */
+  reload?: true;
 }
 /** Content supplies persistence at explicit reload boundaries, never at ordinary navigation. */
 export type ReloadReason = 'reload' | 'gpu' | 'background' | 'new-game';
@@ -84,11 +87,13 @@ export class PageLife {
   private alive = true;
   private readonly thisEnd: LastEnd;
   private beforeReload: ((reason: ReloadReason) => boolean) | undefined;
+  private readonly storage: typeof store;
 
-  constructor(scope: Scope) {
+  constructor(scope: Scope, storage: typeof store = store) {
+    this.storage = storage;
     this.thisEnd = this.classify();
     inspectPreviousBoot();
-    if (this.thisEnd.kind !== 'fresh' || this.thisEnd.discarded) writeJson(store('local'), END_KEY, this.thisEnd);
+    if (this.thisEnd.kind !== 'fresh' || this.thisEnd.discarded) writeJson(this.storage('local'), END_KEY, this.thisEnd);
     if (this.thisEnd.kind !== 'fresh') console.info(`[lastEnd] the previous page: ${this.thisEnd.reason}${this.thisEnd.resident === '' ? '' : ` · resident ${this.thisEnd.resident}`}`);
     // the beat: the page's own timer (this module loads before any shard scope exists)
     if (inPage()) {
@@ -97,7 +102,7 @@ export class PageLife {
       // back on screen after a pagehide that did not end the page (iOS can send one on an app switch): beating again
       scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'visible') this.alive = true; this.beat(); });
       // a page that ends normally takes its marker with it; a bfcache return (pageshow persisted) puts it back
-      scope.listen(window, 'pagehide', () => { this.alive = false; try { store('session')?.removeItem(ALIVE_KEY); } catch { /* nothing to clear */ } });
+      scope.listen(window, 'pagehide', () => { this.alive = false; this.clearAlive(); });
       scope.listen(window, 'pageshow', (e) => { if (e.persisted) { this.alive = true; this.beat(); } });
     }
   }
@@ -112,10 +117,11 @@ export class PageLife {
   }
 
   /** the game is about to navigate / reload on purpose: say why, first (the next boot reads it) */
-  markUnload(reason: string): void {
+  markUnload(reason: string, reload = false): void {
     markBootPlanned();
-    const u: Unload = { reason, ...this.stamp() };
-    writeJson(store('local'), UNLOAD_KEY, u);
+    this.alive = false; this.clearAlive();
+    const u: Unload = { reason, ...this.stamp(), ...(reload ? { reload: true } : {}) };
+    writeJson(this.storage('local'), UNLOAD_KEY, u);
     console.info(`[lastEnd] unloading: ${reason}`);
   }
 
@@ -133,7 +139,7 @@ export class PageLife {
     let saved: boolean;
     try { saved = this.beforeReload?.(reason) ?? true; }
     catch { saved = false; }
-    this.markUnload(message);
+    this.markUnload(message, reason === 'reload');
     return saved;
   }
 
@@ -141,18 +147,27 @@ export class PageLife {
     if (!this.alive) return;
     if (!inPage()) return;
     const a: Alive = { ...this.stamp(), vis: document.visibilityState };
-    writeJson(store('session'), ALIVE_KEY, a);
+    writeJson(this.storage('session'), ALIVE_KEY, a);
+    // A killed iOS WebContent process may lose sessionStorage too. Normal
+    // navigation clears both copies; a kill cannot run that cleanup.
+    writeJson(this.storage('local'), ALIVE_BACKUP_KEY, a);
+  }
+
+  private clearAlive(): void {
+    try { this.storage('session')?.removeItem(ALIVE_KEY); } catch { /* storage blocked */ }
+    try { this.storage('local')?.removeItem(ALIVE_BACKUP_KEY); } catch { /* storage blocked */ }
   }
 
   private classify(): LastEnd {
     const now = Date.now();
-    const local = store('local'), session = store('session');
-    const u = readJson(local, UNLOAD_KEY), a = readJson(session, ALIVE_KEY);
+    const local = this.storage('local'), session = this.storage('session');
+    const u = readJson(local, UNLOAD_KEY), a = readJson(session, ALIVE_KEY) ?? readJson(local, ALIVE_BACKUP_KEY);
+    try { local?.removeItem(ALIVE_BACKUP_KEY); } catch { /* consumed by this page's classification */ }
     try { local?.removeItem(UNLOAD_KEY); } catch { /* read once either way */ }
     const discarded = inPage() && Reflect.get(document, 'wasDiscarded') === true;
     let nav = '';
     try { const e: unknown = performance.getEntriesByType('navigation')[0]; nav = str(e, 'type'); } catch { /* old WebKit */ }
-    const base = { bootedAt: now, discarded, nav };
+    const base = { bootedAt: now, discarded, nav, ...(typeof u === 'object' && u !== null && Reflect.get(u, 'reload') === true ? { reload: true as const } : {}) };
     const ut = num(u, 't');
     if (u !== null && now - ut < INTENT_MS) return { kind: 'intentional', reason: str(u, 'reason'), at: ut, resident: str(u, 'resident'), slug: str(u, 'slug'), mode: str(u, 'mode'), build: str(u, 'build'), ...base };
     if (a !== null) {
@@ -169,12 +184,13 @@ export class PageLife {
   /** the latest non-fresh end on this device (this boot's, or an earlier one's), null if none was ever recorded */
   lastRecordedEnd(): LastEnd | null {
     if (this.thisEnd.kind !== 'fresh') return this.thisEnd;
-    const e = readJson(store('local'), END_KEY);
+    const e = readJson(this.storage('local'), END_KEY);
     if (e === null) return null;
     const kind = str(e, 'kind');
     return {
       kind: kind === 'intentional' || kind === 'unexpected' ? kind : 'fresh', reason: str(e, 'reason'), at: num(e, 'at'), resident: str(e, 'resident'), slug: str(e, 'slug'), mode: str(e, 'mode'),
       build: str(e, 'build'), bootedAt: num(e, 'bootedAt'), discarded: Reflect.get(e as object, 'discarded') === true, nav: str(e, 'nav'),
+      ...(Reflect.get(e as object, 'reload') === true ? { reload: true } : {}),
     };
   }
 

@@ -27,11 +27,13 @@ import { inspectPreviousBoot, previousBootLine, previousBootLevel } from '@wilds
 import { Scope } from '@wildshard/engine/app/scope';
 import { bootRoute } from './bootRoute';
 import { lastEnd } from '@wildshard/engine/boot/lastEnd';
+import { consumeCrashResume, type CrashResume } from '@wildshard/game/session/crashResume';
 
 declare const __GRID_SEAM_ASSET__: Parameters<typeof declareGridHomeDownload>[2];
 declare const __BOOT_TABLE_ASSETS__: Parameters<typeof declareAssetTableDownloads>[0];
 
 const entryScope = new Scope('entry');
+let crashResume: CrashResume | null = null;
 let selectedImages: Scope | undefined;
 const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(0, resolve); });
 /** The plain home URL paints only the title. No renderer, world, or Three.js is imported until a shard is chosen. */
@@ -55,13 +57,18 @@ async function enterPage(): Promise<unknown> {
   await waitFor('Startup stylesheets', waitForLoadingStyles(entryScope), 'file');
   const { consumeGridRecovery, gridRecoveryRefused } = await import('@wildshard/game/grid/pageEntry');
   const end = lastEnd();
+  const named = search.get('chunk');
+  crashResume = (named === null || [end.slug].includes(named)) && !search.has('explore') ? consumeCrashResume(end, TITLE_MANIFESTS) : null;
   const recovery = consumeGridRecovery({ unexpected: end.kind === 'unexpected', previous: end, search });
-  if (recovery !== null) {
-    search.set('chunk', recovery.slug); search.set('glreload', '1'); search.delete('at');
+  if (recovery !== null || crashResume !== null) {
+    search.set('chunk', recovery?.slug ?? crashResume?.slug ?? '');
+    if (recovery !== null) search.set('glreload', '1');
+    search.delete('at');
     const url = new URL(location.pathname, location.origin); url.search = search.toString();
     history.replaceState(history.state, '', url);
+    document.documentElement.classList.remove('title-first');
   }
-  const route = recovery !== null ? { rescue: false, titleOnly: false } : gridRecoveryRefused() ? { rescue: true, titleOnly: true } : bootRoute(search, { line: previousBootLine(), level: previousBootLevel() });
+  const route = recovery !== null || crashResume !== null ? { rescue: false, titleOnly: false } : gridRecoveryRefused() ? { rescue: true, titleOnly: true } : bootRoute(search, { line: previousBootLine(), level: previousBootLevel(), reload: end.reload === true });
   const rescueBoot = route.rescue;
   const titleOnly = route.titleOnly;
   if (rescueBoot) {
@@ -274,7 +281,7 @@ async function startSelected(): Promise<void> {
       tools: [HOVERBOARD_TOOL],
       combatCues: (audio, silent) => sharedCombatCues(sharedWeaponVoices(audio), silent),
       bagIcons: BAG_ICONS,
-    }, { mode: page.mode, memory: page.memory, ...(page.recovery === undefined ? {} : { recovery: page.recovery }), ...(page.residency === undefined ? {} : { residency: page.residency }) });
+    }, { mode: page.mode, memory: page.memory, ...(crashResume === null ? {} : { crashResume }), ...(page.recovery === undefined ? {} : { recovery: page.recovery }), ...(page.residency === undefined ? {} : { residency: page.residency }) });
   } catch (error) {
     try { return await imports.refuse(error); }
     finally {

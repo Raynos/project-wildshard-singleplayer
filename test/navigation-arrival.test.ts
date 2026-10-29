@@ -89,3 +89,8 @@ test('interrupted explicit level entry still returns to the title', () => {
   expect(bootRoute(new URLSearchParams('chunk=driftwood-isle&tier=phone'), { line: 'interrupted', level: 'driftwood-isle' }))
     .toEqual({ rescue: true, titleOnly: true });
 });
+
+test('explicit RELOAD returns to title even with a selected shard URL', () => {
+  expect(bootRoute(new URLSearchParams('chunk=driftwood-isle'), { line: '', level: '', reload: true }))
+    .toEqual({ rescue: true, titleOnly: true });
+});

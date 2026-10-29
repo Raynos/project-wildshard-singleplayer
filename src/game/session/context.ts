@@ -18,6 +18,7 @@ import type { GridRecoveryRecord } from '../grid/recovery';
 import type { PageResidency } from '../grid/pageResidency';
 import type { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import type { ShardProduct } from '../shardfile/shardProduct';
+import type { CrashResume } from './crashResume';
 
 export interface KitPorts {
   items: readonly ItemRow[];
@@ -27,6 +28,7 @@ export interface KitPorts {
   bagIcons: BagIcons;
 }
 export interface SessionState {
+  readonly crashResume?: CrashResume;
   /** G226: the page is only a platform shell; even its initial hybrid home is an evictable owned region. */
   ownedGridHome?: boolean;
   /** G216's trusted policy, including validation warnings before the ordinary HUD has been constructed. */

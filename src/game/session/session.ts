@@ -49,7 +49,7 @@ import { gridPageShell, gridPageShellLevel, selectGridPageShell, GridPageShellPl
 declare const __BUILD_ID__: string;
 
 /** Early root selection avoids consuming the grid intent a second time after descriptor hydration. */
-export interface SessionOptions { readonly mode?: PageMode; readonly residency?: PageResidency; readonly memory?: MemoryAdmission; readonly recovery?: SessionState['recovery'] }
+export interface SessionOptions { readonly mode?: PageMode; readonly residency?: PageResidency; readonly memory?: MemoryAdmission; readonly recovery?: SessionState['recovery']; readonly crashResume?: SessionState['crashResume'] }
 
 /** Game presentation and plugin discovery belong to the game adapter, after the root selects content. */
 export async function startSession(manifest: ShardManifest, kit: KitPorts, options: SessionOptions = {}): Promise<void> {
@@ -61,7 +61,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
   const levels=catalogueManifests(),byId=new Map<string,(typeof levels)[number]>(levels.map(row=>[row.slug,row]));
   setBootCatalog({ levels, playable: levels.filter(playable), find:id=>byId.get(id), artBytes: ART_URL_BYTES });
   installErrorModal();
-  const session: SessionState = { music: null, arrival: null, fatalShown: false, ...(options.memory === undefined ? {} : { memory: options.memory }), ...(options.recovery === undefined ? {} : { recovery: options.recovery }), ...(options.residency === undefined ? {} : { residency: options.residency }) };
+  const session: SessionState = { music: null, arrival: null, fatalShown: false, ...(options.crashResume === undefined ? {} : { crashResume: options.crashResume }), ...(options.memory === undefined ? {} : { memory: options.memory }), ...(options.recovery === undefined ? {} : { recovery: options.recovery }), ...(options.residency === undefined ? {} : { residency: options.residency }) };
   try {
     app.rng.seed(pageSeed(manifest.seed, window.__wildshardHarness?.seed));
     const selected = manifest.slug;

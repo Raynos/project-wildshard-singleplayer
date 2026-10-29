@@ -122,6 +122,13 @@ export function consumeGridRecovery(options: { assembly?: GridAssembly; saves?: 
   const assembly = options.assembly ?? new GridAssembly(gridMode(DEVSERVER));
   const now = options.now ?? Date.now;
   const store = options.saves ?? saves, service = gridRecovery(store, now);
+  if (options.previous?.reload === true) {
+    const discarded = service.consume(assembly);
+    if (discarded.kind !== 'refused') service.clearLoop();
+    selected = null; loop = false; refused = discarded.kind === 'refused';
+    return null;
+  }
+  if (options.previous?.kind === 'unexpected' && options.previous.mode === 'grid') service.restoreLast(assembly);
   let result = service.consume(assembly, options.unexpected);
   const end = options.previous, search = options.search;
   // Older clients consumed their grid intent and cleared chunk before product admission.

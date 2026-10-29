@@ -52,6 +52,28 @@ test('an older client stale reload resumes the actual home once without consumin
   expect(gridRecoveryLoop()).toBe(true);
 });
 
+test('a grid kill resumes its durable location after sessionStorage is replaced', () => {
+  const f = fixture(), record = f.read();
+  if (record === null) throw new Error('Missing admitted road');
+  const original = gridRecovery(f.store, () => Date.now());
+  expect(original.save(assembly, home, record.road, { kind: 'road' })).toBe(true);
+  expect(original.clearLoop()).toBe(true);
+  const next = new SaveStore({ local: f.local, session: new Storage() });
+  const resumed = consumeGridRecovery({ assembly, saves: next, now: () => Date.now(), unexpected: true,
+    previous: { ...previous, kind: 'unexpected', mode: 'grid' } });
+  expect(resumed).toMatchObject({ slug: home.slug, instance: home.instance, reason: 'reload', saved: { location: { kind: 'road' } } });
+  expect(consumeGridRecovery({ assembly, saves: next, now: () => Date.now(), unexpected: true,
+    previous: { ...previous, kind: 'unexpected', mode: 'grid' } })).toBeNull();
+  expect(gridRecoveryLoop()).toBe(true);
+});
+
+test('explicit RELOAD discards its pending grid recovery and stays at the title', () => {
+  const f = fixture();
+  expect(f.read({ ...previous, reload: true, mode: 'grid' })).toBeNull();
+  expect(f.read({ ...previous, kind: 'fresh', reason: '', mode: '' })).toBeNull();
+  expect(gridRecoveryLoop()).toBe(false);
+});
+
 test('the recorded grid mode survives a later stale admission after both original handoffs were consumed', () => {
   const f = fixture();
   consumeTitleArrival(home.slug);
