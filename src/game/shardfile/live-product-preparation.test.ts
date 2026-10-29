@@ -18,6 +18,7 @@ test.each([false, true])('boot stays main and only live decoding uses bounded pa
   } };
   const method: unknown = runInNewContext(stripTypeScriptTypes(`${source.slice(start, end).replace('export function', 'function')}\nbrowserShardfileOptions`), {
     productControlsReady: live, observesProductControl: false, document: undefined, caches: {}, navigator: { onLine: true },
+    currentSpawnDownload: () => undefined,
     prepareContentHash: (): void => undefined,
     browserLiveJsonParser: () => { calls.push('parser'); return parser; },
     TIER_CONFIG: {}, TIER: 'phone', builtIndexes: null, ktx2TranscodeSupport: () => ({}),
