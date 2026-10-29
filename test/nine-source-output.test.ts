@@ -19,6 +19,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nineSourceOutput } from '../src/shards/nine-dragon-stack/generators/sourceOutput';
 import before from './fixtures/nine-admitted-output.json' with { type: 'json' };
 import { nineRefinePredecessor } from './fixtures/nine-refine-predecessor';
+import { nineCoarsePredecessor } from './fixtures/nine-coarse-predecessor';
 import { nineOutputReceipt } from './fixtures/nine-output-receipt';
 import { parseBurstFields } from '../src/shards/nine-dragon-stack/generators/sections';
 import type { NineOutput } from '../src/shards/nine-dragon-stack/generators/productOutput';
@@ -72,7 +73,8 @@ test('cold source output retains every admitted file byte and contract', async (
   // D179 B: the fabric and the scenes section read back through the refine predecessor layer; every other byte as pinned
   const current = await prepareProjectOutput(fixture.project, fixture.cold);
   halfProof.expect(predecessor.prepared, current);
-  const prepared = nineRefinePredecessor(predecessor.prepared);
+  // NR12: the coarse graph comes out first (the newest layer), then D179 B's
+  const prepared = nineRefinePredecessor(nineCoarsePredecessor(predecessor.prepared));
   const originalAssets = new Set(before.assets.map(row => row.name));
   const worldFiles = originalWorld.filter(row => row.path.startsWith('assets/'));
   const actualKeys = new Set([...prepared.assets.keys(), ...prepared.blobs.map(row => row.file.hash)]);

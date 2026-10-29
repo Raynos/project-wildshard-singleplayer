@@ -16,6 +16,7 @@ import { HalfOutputProof } from './fixtures/half-output-proof';
 import nativeDecals from '../src/shards/nine-dragon-stack/data/nativeDecals.json' with { type: 'json' };
 import before from './fixtures/nine-admitted-output.json' with { type: 'json' };
 import { nineOutputRefinePredecessor } from './fixtures/nine-refine-predecessor';
+import { nineOutputCoarsePredecessor } from './fixtures/nine-coarse-predecessor';
 import { expectNineDeclaration } from './fixtures/nine-declaration-pins';
 import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
 import { nineOutput as emitNineOutput } from '../src/shards/nine-dragon-stack/generators/productOutput';
@@ -40,7 +41,8 @@ test('source-owned files preserve the original complete output and executable by
   expect(bytes.byteLength).toBe(4859);
   // D179 B: the fabric reads back through the refine predecessor layer (the scenes section is projected below as before)
   halfProof.expect(predecessor.prepared, await prepareProjectOutput(resolve('src/shards/nine-dragon-stack'), output));
-  const actual = nineOutputRefinePredecessor(predecessor.output);
+  // NR12's coarse graph comes out first (the newest layer), then D179 B's
+  const actual = nineOutputRefinePredecessor(nineOutputCoarsePredecessor(predecessor.output));
   const signature = (value: unknown): { bytes: number; hash: string } => {
     const source = new TextEncoder().encode(encodeCanonicalJson(value));
     return { bytes: source.byteLength, hash: hashImmutableBytes(source) };

@@ -73,6 +73,8 @@ return parseShardfile({ ...base, plumbing, budgets, navigation: navigation.navig
   entryways: portalEntries, directors: [portalStages],
   // the look.materials graphs (data/lookGraphs.json: the sky, the Well's silk sheets, the steam), lent by plugin.ts
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, ...architectureGraphs(), 'nine-streaks': streakGraph(), 'nine-halo': haloGraph(), 'nine-filament': filamentGraph(), ...burstGraphs() }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])), ...heldGraphFiles.materials } },
-  props: { ...world.props, wholeLibrary: world.shardfile.library, colliders: portalFloors } });
+  // NR12: the props family draws only the coarse L1 parents (the whole libraries draw the L0 and library pieces), so it is
+  // the coarse graph: the towers past the ring read as walls and lit rooms, not flat pbr slabs
+  props: { ...world.props, family: 'nine-coarse-facade', wholeLibrary: world.shardfile.library, colliders: portalFloors } });
 }
 

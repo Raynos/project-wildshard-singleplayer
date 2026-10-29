@@ -33,11 +33,23 @@ function previousLayoutWire(): { readonly current: string; readonly previous: st
  *  T8 (82ac81812d, e389eb998e, b1f6916531) added the 16 L1 rows and the 12 coarse files only they draw, none in the
  *  library: without them it is 735799 B. The rest is I3's regridded world (978526b2f7): every file row but 17 is a world
  *  file the independently regenerated world fixture pins (f1af1023d3), and those 17 are pinned here by hash. */
+/** NR12: the coarse L1 parents draw in the `nine-coarse-facade` graph as the props family; its predecessor had no such look
+ *  material (nor its graph file) and the plain `pbr` family. Everything else is unchanged. */
+function previousCoarseFamily(product: Shardfile): Shardfile {
+  const graph = product.look.materials['nine-coarse-facade'];
+  if (graph === undefined || product.props === null || product.props.family !== 'nine-coarse-facade') throw new Error('Missing Nine coarse family');
+  // inline before packing; a packed graph names its file row
+  const file: unknown = Reflect.get(graph, 'file');
+  const materials = Object.fromEntries(Object.entries(product.look.materials).filter(([id]) => id !== 'nine-coarse-facade'));
+  return { ...product, look: { ...product.look, materials }, props: { ...product.props, family: 'pbr' },
+    files: product.files.filter(row => row.hash !== file), library: product.library.filter(hash => hash !== file) };
+}
+
 export function expectNineDeclaration(current: Shardfile): void {
   // The independently pinned 411-file source proof defines the only allowed
   // reference renaming; full declaration pins remain unchanged below.
   const wire = previousLayoutWire();
-  const product = JSON.parse(JSON.stringify(previousHalfDeclaration(current)).replaceAll(wire.current, wire.previous)) as Shardfile;
+  const product = JSON.parse(JSON.stringify(previousHalfDeclaration(previousCoarseFamily(current))).replaceAll(wire.current, wire.previous)) as Shardfile;
   const fine = new Set(product.tiles.filter(tile => tile.lod === 0).flatMap(tile => tile.files));
   const coarse = new Set(product.tiles.filter(tile => tile.lod === 1).flatMap(tile => tile.files).filter(file => !fine.has(file)));
   expect(coarse.size).toBe(12); expect(product.library.filter(file => coarse.has(file))).toEqual([]);

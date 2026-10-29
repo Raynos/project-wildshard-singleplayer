@@ -173,6 +173,27 @@ function facade(small: boolean): GraphIr {
   return g.output(colour, emit, lines, false, { 'vertex.position': { position: add(g.op('instanceOrigin'), mul(sub(g.op('positionLocal'), g.op('instanceOrigin')), scale)) } });
 }
 
+/**
+ * NR12: the coarse L1 parents (generators/scene.ts; the props family, productDefinition.ts), a 5 % sloppy copy whose face
+ * coordinates no longer hold: their wall tone, with the facade's far lit-window grid (kind 11 above) laid out on the upright
+ * faces, so a tower past the ring reads as walls and lit rooms, not a flat slab.
+ */
+function coarseFacade(): GraphIr {
+  const g = new Surface(), sw = g.sw.bind(g), mul = g.mul.bind(g), sub = g.sub.bind(g), max = g.max.bind(g), mix = g.mix.bind(g);
+  const base = mul(g.op('vertexColour'), mul(g.u('uWashTint'), g.u('uFacadeWash')));
+  // along the face: the horizontal axis across its flat normal (screen derivatives: the copy's smoothed normals swim), so a
+  // facade at any yaw keeps upright rows of windows
+  const flatN = g.op('normalize', [g.op('cross', [g.op('dFdx', [g.world]), g.op('dFdy', [g.world])])]);
+  const across = g.op('normalize', [g.vec(g.neg(sw(flatN, 'z')), sw(flatN, 'x'))]);
+  const grid = g.div(g.vec(g.op('dot', [sw(g.world, 'xz'), across]), sw(g.world, 'y')), [2.4, 3.1]), cell = g.floor(grid), f = g.fract(grid);
+  const fw = max(g.op('fwidth', [grid]), [1e-6, 1e-6]), upright = sub(1, g.smooth(0.5, 0.8, g.abs(sw(flatN, 'y'))));
+  const win = mul(mul(g.cover(sw(f, 'x'), 0.18, 0.82, sw(fw, 'x')), g.cover(sw(f, 'y'), 0.3, 0.8, sw(fw, 'y'))), upright), lit = g.step(g.hash(cell), 0.5);
+  const detail = g.smooth(2, 6, g.div(1, max(sw(fw, 'x'), sw(fw, 'y'))));
+  const colour = mix(mul(base, 0.8), mix(base, mul(base, [0.42, 0.47, 0.58]), mul(win, sub(1, lit))), detail);
+  const emit = mul([1, 0.7, 0.38], mul(mix(mul(upright, 0.135), mul(win, lit), detail), 1.15));
+  return g.output(g.shade(colour), emit, 0);
+}
+
 /** Interior mapping stays one instanced quad per opening, including split panes. */
 function windows(): GraphIr {
   const g = new Surface(), sw = g.sw.bind(g), mul = g.mul.bind(g), add = g.add.bind(g), sub = g.sub.bind(g), div = g.div.bind(g), max = g.max.bind(g), min = g.min.bind(g), mix = g.mix.bind(g), choose = g.choose.bind(g);
@@ -250,7 +271,7 @@ function windows(): GraphIr {
 }
 
 export function architectureGraphs(): Readonly<Record<string, GraphIr>> {
-  return { 'nine-architecture': architecture(false), 'nine-architecture-cut': architecture(true), 'nine-facade': facade(false), 'nine-facade-small': facade(true), 'nine-windows': windows() };
+  return { 'nine-architecture': architecture(false), 'nine-architecture-cut': architecture(true), 'nine-facade': facade(false), 'nine-facade-small': facade(true), 'nine-windows': windows(), 'nine-coarse-facade': coarseFacade() };
 }
 
 /** The world kit retains its encoded kinds, explicit surfaces and edge masks. */
