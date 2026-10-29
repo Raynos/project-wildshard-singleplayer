@@ -278,7 +278,7 @@ interface StockInternals {
 const internals = (h: WebGLNodesHandler): StockInternals => h as WebGLNodesHandler & StockInternals;
 
 /** what the classic renderer sees of a node material's uniform groups: none (the engine binds them per draw) */
-const NO_GROUPS: readonly unknown[] = Object.freeze([]);
+const NO_GROUPS: readonly BlockGroup[] = Object.freeze([]);
 /** a uniform group as three's UniformsGroup carries it */
 function isBlockGroup(v: unknown): v is BlockGroup {
   return typeof v === 'object' && v !== null && typeof Reflect.get(v, 'name') === 'string' && Array.isArray(Reflect.get(v, 'uniforms'));
@@ -485,7 +485,13 @@ export class EngineNodesHandler extends WebGLNodesHandler {
    * The draw whose plain uniforms wait for its program to be in use (`flushPlainUniforms`): plain uniforms are program
    * state, written to the CURRENT program, and onBeforeRender / onUpdateProgram run before setProgram's useProgram.
    */
-  private pendingPlain: { readonly program: unknown; readonly linked: WebGLProgram; readonly groups: readonly BlockGroup[]; readonly pass: number } | null = null;
+  // One private slot per handler, rather than a new record per object draw.
+  // Flush clears it before binding, so a nested draw can publish its own slot.
+  private pendingPlain = false;
+  private pendingProgram: unknown;
+  private pendingLinked: WebGLProgram | null = null;
+  private pendingGroups: readonly BlockGroup[] = NO_GROUPS;
+  private pendingPass = 0;
   /** three programs whose uniform setter flushes the pending plain uniforms */
   private readonly plainHooked = new WeakSet();
   /** ms spent in the node builder (JS), summed */
@@ -1350,7 +1356,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // the node frame's render id is the camera pass the draw's updates just ran in (`textureUpdates.ts`)
     // Plain uniforms go to the current program: send them once setProgram has put this draw's program in use.
     this.hookPlainUniforms(draw.program);
-    this.pendingPlain = { program: draw.program, linked, groups: draw.groups, pass: this.frame.renderId };
+    this.pendingProgram = draw.program; this.pendingLinked = linked;
+    this.pendingGroups = draw.groups; this.pendingPass = this.frame.renderId;
+    this.pendingPlain = true;
   }
 
   /**
@@ -1375,10 +1383,12 @@ export class EngineNodesHandler extends WebGLNodesHandler {
 
   /** `program` is in use: send the pending draw's plain uniforms if they belong to it */
   private flushPlainUniforms(program: object): void {
-    const pending = this.pendingPlain, blocks = this.blocks;
-    if (pending === null || pending.program !== program || blocks === null) return;
-    this.pendingPlain = null;
-    blocks.bind(pending.linked, pending.groups, pending.pass);
+    const blocks = this.blocks, linked = this.pendingLinked;
+    if (!this.pendingPlain || this.pendingProgram !== program || blocks === null || linked === null) return;
+    const groups = this.pendingGroups, pass = this.pendingPass;
+    this.pendingPlain = false; this.pendingProgram = undefined;
+    this.pendingLinked = null; this.pendingGroups = NO_GROUPS;
+    blocks.bind(linked, groups, pass);
   }
 
   /** Warm draws borrow the paired program view without rebuilding block lists.

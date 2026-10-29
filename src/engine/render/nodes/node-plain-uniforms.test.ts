@@ -118,3 +118,48 @@ test('cached group preparation proves the physical catalogue and never queries o
     expect(gl.queries).toEqual(queries);
   } finally {first.dispose(); second.dispose();}
 });
+
+
+test('pending plain uniforms keep the matching program and survive nested draws', () => {
+  const handler = new EngineNodesHandler(), material = new Material();
+  const firstUniforms = { setValue(_gl: unknown, _name: unknown): void { return undefined; } };
+  const secondUniforms = { setValue(_gl: unknown, _name: unknown): void { return undefined; } };
+  const first = { getUniforms: () => firstUniforms }, second = { getUniforms: () => secondUniforms };
+  const firstLinked = {}, secondLinked = {};
+  const firstGroups = [{ name: 'object', uniforms: [] }], secondGroups = [{ name: 'render', uniforms: [] }];
+  const sent: unknown[][] = [];
+  const invoke = (name: string, args: readonly unknown[]): void => {
+    const method: unknown = Reflect.get(handler, name);
+    if (typeof method !== 'function') throw new Error(`Missing handler method ${name}`);
+    Reflect.apply(method, handler, args);
+  };
+  const prepare = (program: unknown, linked: object, groups: readonly unknown[], pass: number): void => {
+    const frame: unknown = Reflect.get(handler, 'frame');
+    if (typeof frame !== 'object' || frame === null) throw new Error('Missing node frame');
+    Reflect.set(frame, 'renderId', pass);
+    invoke('bindDraw', [material, { program, linked, groups }]);
+  };
+  let nest = false;
+  Reflect.set(handler, 'blocks', { bind(program: unknown, groups: unknown, pass: number): void {
+    sent.push([program, groups, pass]);
+    if (nest) {
+      nest = false;
+      prepare(second, secondLinked, secondGroups, 12);
+      secondUniforms.setValue(null, 'modelMatrix');
+    }
+  } });
+  try {
+    prepare(first, firstLinked, firstGroups, 7);
+    invoke('flushPlainUniforms', [second]);
+    expect(sent).toEqual([]);
+    firstUniforms.setValue(null, 'otherUniform'); expect(sent).toEqual([]);
+    firstUniforms.setValue(null, 'modelMatrix');
+    firstUniforms.setValue(null, 'modelMatrix');
+    expect(sent).toEqual([[firstLinked, firstGroups, 7]]);
+    nest = true;
+    prepare(first, firstLinked, firstGroups, 11);
+    firstUniforms.setValue(null, 'modelMatrix');
+    secondUniforms.setValue(null, 'modelMatrix');
+    expect(sent).toEqual([[firstLinked, firstGroups, 7], [firstLinked, firstGroups, 11], [secondLinked, secondGroups, 12]]);
+  } finally { material.dispose(); }
+});

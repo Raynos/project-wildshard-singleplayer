@@ -41,9 +41,19 @@ export function setLiveWaterLevel(name: string, level: number): void {
 export function declaredWaterBody(input: WaterDeclaration): WaterBody {
   const data = structuredClone(input);
   const level = data.kind === 'stream' ? data.points[0]?.level ?? 0 : data.level;
+  // Query scratch stays in the body, but live levels are read for every sample.
+  const rest = data.kind === 'stream' ? data.levels : undefined;
+  const at = (p: { level: number; under?: string | undefined }): number =>
+    p.under === undefined ? p.level : Math.max(p.level, LIVE.get(p.under) ?? rest?.[p.under] ?? p.level);
   const restAt = (x: number, z: number): number | null => {
-    if (![x, z].every(Number.isFinite) || Math.abs(x) > 250 || Math.abs(z) > 250) return null;
-    if (data.dryEntries?.some((edge) => dryEntryContains(edge, x, z))) return null;
+    if (!Number.isFinite(x) || !Number.isFinite(z) || Math.abs(x) > 250 || Math.abs(z) > 250) return null;
+    const edges = data.dryEntries;
+    if (edges !== undefined) for (let i = 0; i < edges.length; i++) {
+      if (!(i in edges)) continue;
+      const edge = edges[i];
+      if (edge === undefined) throw new Error('Invalid dry entryway');
+      if (dryEntryContains(edge, x, z)) return null;
+    }
     if (data.kind === 'sea') return Math.max(Math.abs(x), Math.abs(z)) <= waterExtent.uWaterHalf.value - SHORE_REVETMENT_INNER_FACE ? data.level : null;
     if (data.kind === 'pool') {
       const shape = data.shape;
@@ -51,8 +61,6 @@ export function declaredWaterBody(input: WaterDeclaration): WaterBody {
       return insidePolygon(shape.points, x, z) ? data.level : null;
     }
     let distance = Infinity, height = level;
-    const rest = data.levels, at = (p: { level: number; under?: string | undefined }): number =>
-      p.under === undefined ? p.level : Math.max(p.level, LIVE.get(p.under) ?? rest?.[p.under] ?? p.level);
     for (let i = 1; i < data.points.length; i++) {
       const a = data.points[i - 1], b = data.points[i]; if (a === undefined || b === undefined) continue;
       const dx = b.x - a.x, dz = b.z - a.z, n = dx * dx + dz * dz;
@@ -62,6 +70,6 @@ export function declaredWaterBody(input: WaterDeclaration): WaterBody {
     }
     return distance < data.width / 2 ? height : null;
   };
-  const surfaceAt = (x: number, z: number): number => ![x, z].every(Number.isFinite) ? level : (restAt(x, z) ?? level) + (data.kind === 'sea' && data.waves ? waveHeight(x, z) : 0);
+  const surfaceAt = (x: number, z: number): number => !Number.isFinite(x) || !Number.isFinite(z) ? level : (restAt(x, z) ?? level) + (data.kind === 'sea' && data.waves ? waveHeight(x, z) : 0);
   return { id: data.id, level, restAt, surfaceAt, inside: (x, z, y) => Number.isFinite(y) && restAt(x, z) !== null && y < surfaceAt(x, z) };
 }
