@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { Material } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
-import { lendLooks, prepareLentLooks, type LentLooks } from './lentLooks';
+import { lendLooks, prepareLentLooks, setLentParam, type LentLooks } from './lentLooks';
 
 test('preparation groups retain owner, ID order and sequential async barriers', async () => {
   const a = new Scope('looks-a'), b = new Scope('looks-b'), eager = new Scope('looks-eager'), material = new Material();
@@ -31,4 +31,28 @@ test('preparation groups retain owner, ID order and sequential async barriers', 
     await prepareLentLooks(['shared', 'a', 'b', 'eager']);
     expect(calls).toHaveLength(4);
   } finally { release(); a.dispose(); b.dispose(); eager.dispose(); material.dispose(); }
+});
+
+test('a param write reaches every compile on the owner line, never another world', () => {
+  const level = new Scope('level'), play = new Scope('runtime.play', level), other = new Scope('other-world'), material = new Material();
+  const writes: string[] = [];
+  const lend = (scope: Scope, name: string): void => {
+    lendLooks(scope, { materials: new Map([['look', material]]),
+      setParam: () => { writes.push(name); }, setTexture: () => undefined, bindMeshMap: () => material });
+  };
+  lend(level, 'level'); lend(play, 'page'); lend(other, 'other');
+  try {
+    withOwner(level, () => { setLentParam('look', 'fade', 1); });
+    expect(writes.splice(0)).toEqual(['page', 'level']);
+    withOwner(play, () => { setLentParam('look', 'fade', 1); });
+    expect(writes.splice(0)).toEqual(['page', 'level']);
+    withOwner(other, () => { setLentParam('look', 'fade', 1); });
+    expect(writes.splice(0)).toEqual(['other']);
+    setLentParam('look', 'fade', 1);
+    expect(writes.splice(0)).toEqual(['other', 'page', 'level']);
+    const stranger = new Scope('stranger');
+    withOwner(stranger, () => { setLentParam('look', 'fade', 1); });
+    expect(writes.splice(0)).toEqual(['other']);
+    stranger.dispose();
+  } finally { level.dispose(); other.dispose(); material.dispose(); }
 });

@@ -110,8 +110,21 @@ export function lentLook(id: string): Material {
 /** A lent look worn over `source`'s own maps, one per look and source; throws when none is lent. */
 export function lentMappedLook(id: string, source: Texture | Material): Material { return lentLooksOf(id).bindMeshMap(id, source); }
 
-/** Set a lent look's param (checked against its declared type and range); a no-op before the lend. */
-export function setLentParam(id: string, name: string, value: GraphLiteral): void { holder(id)?.setParam(id, name, value); }
+/** Set a lent look's param (checked against its declared type and range) on every live compile of it on the caller's
+ *  owner's line (its scope holds the owner or the owner holds it; all of them with no owner), else on the newest; a no-op
+ *  before the lend. A material keeps the compile it was read from, and a later or narrower lend of the same id must not
+ *  take its writes (lend audit after QF21: Pine's hearth smoke and cave crag drew the page's compile while frames under
+ *  the level wrote the runtime's; Driftwood's moored rope read a lend a newer one then shadowed). */
+export function setLentParam(id: string, name: string, value: GraphLiteral): void {
+  const owner = enteredOwner();
+  let newest: LentLooks | null = null, wrote = false;
+  for (let i = lends.length - 1; i >= 0; i--) {
+    const lend = lends[i]; if (lend === undefined || !lend.looks.materials.has(id)) continue;
+    newest ??= lend.looks;
+    if (owner === null || (lend.scope !== null && (owner.belongsTo(lend.scope) || lend.scope.belongsTo(owner)))) { lend.looks.setParam(id, name, value); wrote = true; }
+  }
+  if (!wrote) newest?.setParam(id, name, value);
+}
 
 /** Lend a look's `role: 'lent'` texture param a texture the runtime made (no program change); throws when none is lent. */
 export function setLentTexture(id: string, name: string, texture: Texture): void { lentLooksOf(id).setTexture(id, name, texture); }
