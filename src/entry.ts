@@ -53,7 +53,7 @@ inspectPreviousBoot();
 // renderer-free title until the player chooses a shard again.
 async function enterPage(): Promise<unknown> {
   await waitFor('Startup stylesheets', waitForLoadingStyles(entryScope), 'file');
-  const { consumeGridRecovery, gridRecoveryRefused } = await import('@wildshard/game/grid/pageEntry');
+  const { consumeGridRecovery, gridRecoveryRefused, pageGridRecovery, pendingGridEntry } = await import('@wildshard/game/grid/pageEntry');
   const end = lastEnd();
   const named = search.get('chunk');
   crashResume = (named === null || [end.slug].includes(named)) && !search.has('explore') ? consumeCrashResume(end, TITLE_MANIFESTS) : null;
@@ -79,9 +79,23 @@ async function enterPage(): Promise<unknown> {
 
   /** resolves once the title or the selected shard's entry has been evaluated */
   return (gridRecoveryRefused() || (titleOnly && document.getElementById('ws-shardfile') === null)) ? showPageTitle() : (async () => {
-    await import('./assetTables').then(module => module.prepareAssetTables());
-    const { initializeTier } = await import('@wildshard/engine/core/tier');
-    await initializeTier();
+    const tables = prepareBootImports(import('./assetTables').then(module => module.prepareAssetTables()));
+    try {
+      const [tier, menu, spawn] = await Promise.all([import('@wildshard/engine/core/tier'),
+        import('@wildshard/game/grid/menu'), import('@wildshard/game/boot/spawnDownload')]);
+      await tier.initializeTier();
+      const slug = search.get('chunk');
+      if (typeof slug === 'string') {
+        const mode = menu.gridMode(menu.DEVSERVER), flow = pageGridRecovery() !== null || pendingGridEntry(slug) ? 'grid' : 'client';
+        const job = spawn.startSpawnDownload(slug, flow, tier.TIER, `${Number(mode.developer)}${Number(mode.devserver)}${Number(mode.nineDragon)}`);
+        const card = document.querySelector<HTMLElement>('.ws-load');
+        if (job !== null && card !== null) {
+          const stop = spawn.paintSpawnDownload(job, card);
+          void job.ready.then(stop, stop);
+        }
+      }
+    } catch (error) { return tables.refuse(error); }
+    await tables.ready();
     await import('three'); 
     await task();
     return import('./main');
