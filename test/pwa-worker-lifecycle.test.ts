@@ -202,3 +202,39 @@ test('BUILD/VERSION are identity-only and SKIP_WAITING preserves the adoption pr
   await worker.dispatch('message', { data: { type: 'WARM_CODE' } }); expect(f.fetch).not.toHaveBeenCalled();
   expect(await f.caches.keys()).toEqual([]);
 });
+
+test('an HTML missing-file answer is returned online but never stored as content', async () => {
+  const f = fixture(() => Promise.resolve(new Response('<!doctype html><html>missing</html>', { headers: { 'content-type': 'text/html;charset=utf-8' } })));
+  const worker = f.load('A', []), request = new Request(url(`/assets/${'a'.repeat(64)}.bin`));
+  expect(await (await worker.dispatch('fetch', { request }))?.text()).toContain('<!doctype html>');
+  expect(await (await f.open(ASSET_CACHE_NAME)).match(request)).toBeUndefined();
+  await worker.dispatch('fetch', { request }); expect(f.fetch).toHaveBeenCalledTimes(2);
+});
+
+test('a poisoned cached HTML body is discarded before reading the actual file', async () => {
+  const f = fixture(), worker = f.load('A', []), request = new Request(url('/assets/data-aaaaaaaa.json'));
+  const assets = await f.open(ASSET_CACHE_NAME);
+  await assets.put(request, new Response('<html>old missing page</html>', { headers: { 'content-type': 'text/html' } }));
+  expect(await (await worker.dispatch('fetch', { request }))?.text()).toBe(`body:${request.url}`);
+  expect(await (await assets.match(request))?.text()).toBe(`body:${request.url}`);
+  expect(f.fetch).toHaveBeenCalledOnce();
+});
+
+test('explicit retry bypasses current and legacy content copies without changing its key', async () => {
+  const f = fixture(), worker = f.load('A', []), path = `/shardfiles/fixture/blobs/bin/${'a'.repeat(64)}.bin`;
+  const request = new Request(url(path), { cache: 'reload' });
+  const assets = await f.open(ASSET_CACHE_NAME);
+  await assets.put(request, new Response('old current'));
+  await (await f.open('ws-content-v0')).put(url(`/__ws_content__/v0/${'a'.repeat(64)}`), new Response('old legacy'));
+  expect(await (await worker.dispatch('fetch', { request }))?.text()).toBe(`body:${request.url}`);
+  expect(f.fetch).toHaveBeenCalledOnce(); expect(f.fetch.mock.calls[0]?.[0]).toBe(request);
+  expect(await (await assets.match(request))?.text()).toBe(`body:${request.url}`);
+});
+
+test('install never publishes HTML in place of its required code', async () => {
+  const f = fixture(() => Promise.resolve(new Response('<html>missing</html>', { headers: { 'content-type': 'text/html' } })));
+  const worker = f.load('A', ['/assets/a-aaaaaaaa.js'], []);
+  await expect(worker.dispatch('install')).rejects.toThrow('Precache failed');
+  expect((await (await f.open('ws-builds-v1')).keys())).toHaveLength(0);
+  expect((await (await f.open(ASSET_CACHE_NAME)).keys())).toHaveLength(0);
+});

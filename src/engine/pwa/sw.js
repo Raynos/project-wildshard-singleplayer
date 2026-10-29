@@ -17,6 +17,7 @@ const CONTENT = /-[a-f0-9]{8,64}\.[a-z0-9]+$|\/[a-f0-9]{64}\.[a-z0-9]+$/;
 const HASH = /\/([a-f0-9]{64})\.[a-z0-9]+$/;
 const immutable = url => NAMED.has(url.pathname) || CONTENT.test(url.pathname)
   || /^[a-f0-9]{8,64}$/.test(url.searchParams.get('v') ?? '');
+const isHtml = response => /\btext\/html\b/i.test(response.headers.get('content-type') ?? '');
 
 // Keep the current worker's hot handles. WebKit can take a second to reopen
 // a cache during navigation; a rejected open must remain retryable.
@@ -38,7 +39,7 @@ async function precache(cache, urls, contentNamed = false) {
     const key = abs(path);
     if (await cache.match(key, MATCH)) return;
     const response = await fetch(new Request(key, { cache: contentNamed ? 'force-cache' : 'reload' }));
-    if (!response.ok) throw new Error(`Precache failed: ${path} (${response.status})`);
+    if (!response.ok || isHtml(response)) throw new Error(`Precache failed: ${path} (${response.status})`);
     await cache.put(key, response);
   }));
 }
@@ -99,19 +100,23 @@ workerScope.listen(self, 'activate', event => {
 
 async function cached(request, name) {
   let cache;
+  // A visible retry must reach the origin, including past the legacy URL cache.
+  const reload = request.cache === 'reload' || request.cache === 'no-store';
   try {
     cache = await store(name);
-    const response = await cache.match(request, MATCH);
-    if (response !== undefined) return response;
-    if (name !== ASSETS) {
+    const response = reload ? undefined : await cache.match(request, MATCH);
+    if (response !== undefined && !isHtml(response)) return response;
+    if (response !== undefined) await cache.delete(request);
+    if (!reload && name !== ASSETS) {
       const shared = await (await store(ASSETS)).match(request, MATCH);
-      if (shared !== undefined) return shared;
+      if (shared !== undefined && !isHtml(shared)) return shared;
+      if (shared !== undefined) await (await store(ASSETS)).delete(request);
     }
     // Wave 2 removes the old page cache. Until then retain its already named bodies.
     const hash = HASH.exec(new URL(request.url).pathname)?.[1];
-    if (hash !== undefined && (await caches.keys()).includes('ws-content-v0')) {
+    if (!reload && hash !== undefined && (await caches.keys()).includes('ws-content-v0')) {
       const old = await (await caches.open('ws-content-v0')).match(abs(`/__ws_content__/v0/${hash}`), MATCH);
-      if (old !== undefined) {
+      if (old !== undefined && !isHtml(old)) {
         await cache.put(request, old.clone()).catch(() => undefined);
         return old;
       }
@@ -119,7 +124,7 @@ async function cached(request, name) {
   } catch { stores.delete(name); stores.delete(ASSETS); /* Storage denial keeps online fetch working. */ }
   const response = await fetch(request);
   // Native no-body statuses pass through untouched. A range never replaces a full body.
-  if (cache !== undefined && response.status === 200) await cache.put(request, response.clone()).catch(() => undefined);
+  if (cache !== undefined && response.status === 200 && !isHtml(response)) await cache.put(request, response.clone()).catch(() => undefined);
   return response;
 }
 

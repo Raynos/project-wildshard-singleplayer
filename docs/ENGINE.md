@@ -817,6 +817,13 @@ with the stack and a Reload button. **Unload** is `scope.dispose()`; switching s
 
 ## 8. Boot (staged load)
 
+`boot/contentRead.readContent(url, maximum, ports)` reads bounded content,
+retries one interrupted or missing transport after one second, then keeps the
+load pending on the existing RETRY button. HTML responses name the missing
+path instead of reaching a content parser. Cancellation drains the wait; size,
+parser and admission refusals remain with their caller. Retry uses the same
+URL with native cache reload, never a query switch.
+
 Developer's **Data preparation** (G865) reloads A (main) / B
 (one owned data-only worker). `boot/dataPreparation` exposes that
 choice and `DataPreparationWorker`: `parse` uses fatal UTF-8 and native
