@@ -438,8 +438,33 @@ function architecture(cut: boolean, nr13: boolean): GraphIr {
   const barCoverage = max(max(bars, mid), lines); use(4, base, barCoverage);
   const inset = min(min(x, sub(w, x)), min(y, sub(h, y))), density = g.smooth(3, 7, div(0.06, fw));
   const panelLines = mul(max(g.line(g.abs(sub(inset, 0.06)), fw, mul(Wr, 0.8)), g.line(g.abs(sub(inset, 0.12)), fw, mul(Wr, 0.55))), density);
-  const panelLayer = choose(g.gt(surf, 4.5), 7, choose(g.gt(accent, 0.5), 6, 3));
-  use(5, mul(base, mix(1, 0.9, mul(g.step(0.12, inset), density))), panelLines);
+  let panelLayer: Ref = choose(g.gt(surf, 4.5), 7, choose(g.gt(accent, 0.5), 6, 3)), panel: { at: Ref; scale: Ref; strength: Ref } | null = null;
+  if (nr13) {
+    // NR16: LEGACY's kind 5 (style.ts), a carved stone or timber panel: the double inset frame over a shade deeper field and
+    // two ruyi clouds a bay, carved; a balustrade-sized stone panel takes the carved frieze paint instead (uPaintStone.y,
+    // the frieze then replaces the frame and clouds), any other stone panel the wall paint, a board (accent) lacquer and a
+    // timber one (surf 5) planks. Its predecessor painted every panel with the panel layer at full strength: rubble
+    const isBoard = max(accent, mul(g.step(4.5, surf), g.step(surf, 5.5))), ratio = div(w, max(h, 1e-3));
+    const friezeFace = mul(mul(g.step(0.3, h), g.step(h, 1.2)), mul(g.step(1.8, ratio), g.step(ratio, 8)));
+    const keep = sub(1, mul(mul(mul(pk, friezeFace), sub(1, isBoard)), sw(g.u('uPaintStone'), 'y')));
+    const fh = max(sub(min(w, h), 0.24), 0.05), cw = mul(fh, 1.5), fp = g.vec(div(sub(x, 0.12), cw), div(sub(y, 0.12), fh));
+    const mc = g.vec(g.fract(sw(fp, 'x')), sw(fp, 'y')), inField = g.step(0.12, inset), dm = g.smooth(8, 16, div(fh, fw)), size = g.vec(cw, fh);
+    const d1 = mul(sub(mc, [0.3, 0.46]), size), d2 = mul(sub(mc, [0.7, 0.54]), size), r1 = mul(fh, 0.26), r2 = mul(fh, 0.24);
+    const l1 = g.op('length', [d1]), l2 = g.op('length', [d2]);
+    const s1 = min(add(g.abs(sub(l1, r1)), mul(g.step(sw(d1, 'y'), mul(fh, -0.02)), 9)), g.abs(sub(l1, mul(r1, 0.5))));
+    const s2 = min(add(g.abs(sub(l2, r2)), mul(g.step(mul(fh, 0.02), sw(d2, 'y')), 9)), g.abs(sub(l2, mul(r2, 0.5))));
+    const join = add(g.abs(sub(mul(sub(sw(mc, 'y'), 0.5), fh), mul(mul(sub(sw(mc, 'x'), 0.5), cw), 0.25))), mul(g.step(0.2, g.abs(sub(sw(mc, 'x'), 0.5))), 9));
+    const carve = min(min(s1, s2), join), relief = mul(mul(inField, dm), keep);
+    const ink = max(mul(panelLines, keep), mul(mul(g.line(carve, fw, mul(Wr, 0.55)), relief), 0.9));
+    const field = mul(base, mix(1, 0.9, mul(mul(g.step(0.12, inset), density), keep)));
+    use(5, mul(field, sub(1, mul(mul(sub(1, g.smooth(0, mul(fh, 0.1), carve)), relief), 0.07))), ink);
+    const timber = g.gt(surf, 4.5), board = g.gt(isBoard, 0.5), frieze = g.gt(friezeFace, 0.5);
+    panelLayer = choose(board, choose(timber, 7, 6), choose(frieze, 3, 2));
+    panel = { at: choose(g.op('and', [frieze, g.op('not', [board])]), sw(face, 'xy'), q),
+      scale: choose(board, choose(timber, [1.5, 1.5], [1.3, 1.3]), choose(frieze, sz, [1.7, 1.7])),
+      strength: choose(board, mul(mul(pk, sw(g.u('uPaintK'), 'w')), choose(timber, 1, 0.6)),
+        mul(mul(pk, sw(g.u('uPaintK'), 'z')), choose(frieze, sw(g.u('uPaintStone'), 'y'), sw(g.u('uPaintStone'), 'x')))) };
+  } else use(5, mul(base, mix(1, 0.9, mul(g.step(0.12, inset), density))), panelLines);
   const rq = mul(g.vec(add(Qx, Qy), sub(Qx, Qy)), 0.7071), gr = max(footprint(sw(rq, 'x')), footprint(sw(rq, 'y'))), meshCoverage = max(max(g.rule(sw(rq, 'x'), cp, gr, mul(Wr, 0.8)), g.rule(sw(rq, 'y'), cp, gr, mul(Wr, 0.8))), lines);
   use(6, base, meshCoverage);
   const leaf = div(g.projected(g.world), 0.24), leafCell = g.floor(leaf), leafLocal = g.fract(leaf), leafFw = max(g.op('fwidth', [sw(leaf, 'x')]), g.op('fwidth', [sw(leaf, 'y')]));
@@ -449,20 +474,20 @@ function architecture(cut: boolean, nr13: boolean): GraphIr {
   use(8, mix(base, [0.86, 0.84, 0.78], mul(g.cover(g.fract(div(Qx, cp)), 0, 0.5, div(gu, cp)), sw(pat, 'y'))), 0);
   const surfaceLayer = choose(g.eq(surf, 4), 6, choose(g.eq(surf, 5), 7, choose(g.op('or', [g.eq(surf, 3), g.eq(surf, 6)]), 4, 2)));
   const own = (k: number, value: Ref, other: Ref): string => choose(g.eq(kind, k), value, other);
-  const paintAt = own(3, p, q), paintLayer = own(1, 4, own(2, 5, own(3, 0, own(5, panelLayer, surfaceLayer))));
+  const paintAt = own(3, p, panel === null ? q : own(5, panel.at, q)), paintLayer = own(1, 4, own(2, 5, own(3, 0, own(5, panelLayer, surfaceLayer))));
   // NR13: an explicit surface paints as LEGACY's (style.ts): a wall (surf 2, or bare stone) layer 2 at 1.7 m and
   // pk·uPaintK.z·uPaintStone.x, rough stone (3, 6) layer 4 at 6 m and ·uPaintStone.z, faces (4, 5) layers 6 / 7 at 1.3 / 1.5 m
   // and pk·uPaintK.w; a face with no surface takes no paint (its predecessor painted it at full pk: blotched walls)
   const wallScale = (): string => nr13 ? choose(g.eq(surfaceLayer, 4), 6, choose(g.eq(surfaceLayer, 6), 1.3, choose(g.eq(surfaceLayer, 7), 1.5, 1.7))) : choose(g.eq(surfaceLayer, 4), 6, 1.7);
   const scaleNow = nr13 ? wallScale() : null;
-  const paintScale = own(1, [6, 6], own(2, pitch, own(3, [2.4, 2.4], own(5, [1.5, 1.5], scaleNow === null ? g.vec(wallScale(), wallScale()) : g.vec(scaleNow, scaleNow)))));
+  const paintScale = own(1, [6, 6], own(2, pitch, own(3, [2.4, 2.4], own(5, panel?.scale ?? [1.5, 1.5], scaleNow === null ? g.vec(wallScale(), wallScale()) : g.vec(scaleNow, scaleNow)))));
   const surfaceStrength = ((): Ref => {
     if (!nr13) return pk;
     const bare = choose(g.op('and', [g.lt(surf, 0.5), g.eq(kind, 9)]), 2, surf), stoneK = mul(pk, sw(g.u('uPaintK'), 'z'));
     return choose(g.eq(bare, 2), mul(stoneK, sw(g.u('uPaintStone'), 'x')), choose(g.op('or', [g.eq(bare, 3), g.eq(bare, 6)]), mul(stoneK, sw(g.u('uPaintStone'), 'z')),
       choose(g.op('or', [g.eq(bare, 4), g.eq(bare, 5)]), mul(pk, sw(g.u('uPaintK'), 'w')), 0)));
   })();
-  const paintStrength = own(1, mul(mul(pk, sw(g.u('uPaintK'), 'z')), sw(g.u('uPaintStone'), 'z')), own(2, mul(pk, sw(g.u('uPaintK'), 'w')), own(3, mul(mul(pk, sw(g.u('uPaintK'), 'y')), g.u('uPaintFlag')), own(5, mul(pk, sw(g.u('uPaintK'), 'w')), surfaceStrength))));
+  const paintStrength = own(1, mul(mul(pk, sw(g.u('uPaintK'), 'z')), sw(g.u('uPaintStone'), 'z')), own(2, mul(pk, sw(g.u('uPaintK'), 'w')), own(3, mul(mul(pk, sw(g.u('uPaintK'), 'y')), g.u('uPaintFlag')), own(5, panel?.strength ?? mul(pk, sw(g.u('uPaintK'), 'w')), surfaceStrength))));
   // NR16: the facade cell and the wall / rough-stone surfaces paint as LEGACY's paintWall (layers 2 and 4)
   const wallPaint = nr13 ? { on: choose(g.op('or', [g.eq(paintLayer, 2), g.eq(paintLayer, 4)]), 1, 0), seed } : undefined;
   const painted = choose(g.gt(paintStrength, 0), g.paint(paintAt, paintLayer, paintScale, paintStrength, own(2, 3, own(3, 2.5, 2)), wallPaint), [1, 1, 1]);
