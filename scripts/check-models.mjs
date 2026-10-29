@@ -190,27 +190,6 @@ const SHARD_MODELS = /^src\/shards\/([^/]+)\/models\//;
 // G463 model-folder moves retain the exact former model contract. Every
 // relocation is a literal source entry; no runtime directory gains an exemption.
 const MODEL_RELOCATIONS = new Map([
-  ['driftwood-isle', 'runtime/models/boat.ts', 'boat.ts'],
-  ['driftwood-isle', 'runtime/models/captainHat.ts', 'captainHat.ts'],
-  ['driftwood-isle', 'runtime/models/cargo.ts', 'cargo.ts'],
-  ['driftwood-isle', 'runtime/models/creatures.ts', 'creatures.ts'],
-  ['driftwood-isle', 'runtime/models/entryDeck.ts', 'entryDeck.ts'],
-  ['driftwood-isle', 'runtime/models/hibiscusBush.ts', 'hibiscusBush.ts'],
-  ['driftwood-isle', 'runtime/models/palm.ts', 'palm.ts'],
-  ['driftwood-isle', 'runtime/models/people.ts', 'people.ts'],
-  ['driftwood-isle', 'runtime/models/pier.ts', 'pier.ts'],
-  ['driftwood-isle', 'runtime/models/reef.ts', 'reef.ts'],
-  ['driftwood-isle', 'runtime/models/ropeBridge.ts', 'ropeBridge.ts'],
-  ['driftwood-isle', 'runtime/models/trader.ts', 'trader.ts'],
-  ['driftwood-isle', 'runtime/models/trailside.ts', 'trailside.ts'],
-  ['driftwood-isle', 'runtime/models/zipline.ts', 'zipline.ts'],
-  ['pine-hollow', 'runtime/models/caveArch.ts', 'caveArch.ts'],
-  ['pine-hollow', 'runtime/models/fallenLog.ts', 'fallenLog.ts'],
-  ['pine-hollow', 'runtime/models/fern.ts', 'fern.ts'],
-  ['pine-hollow', 'runtime/models/forestTree.ts', 'forestTree.ts'],
-  ['pine-hollow', 'runtime/models/mossyBoulder.ts', 'mossyBoulder.ts'],
-  ['pine-hollow', 'runtime/models/treeStump.ts', 'treeStump.ts'],
-  ['pine-hollow', 'runtime/models/waystone.ts', 'waystone.ts'],
   ['driftwood-isle', 'generators/trailsideModels.ts', 'trailside.ts'],
   ['nalati-grasslands', 'generators/gear.ts', 'gear.ts'],
 ].map(([slug, source, name]) => [`src/shards/${slug}/${source}`, `src/shards/${slug}/models/${name}`]));

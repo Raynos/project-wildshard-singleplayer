@@ -21,15 +21,6 @@ describe('model contract after client relocation', () => {
       .toEqual([expect.stringContaining('1 × mergeGeometries')]);
   });
 
-  it.each([['driftwood-isle', 'boat'], ['pine-hollow', 'fallenLog']])('checks the relocated %s model', (slug, name) => {
-    const file = `src/shards/${slug}/runtime/models/${name}.ts`;
-    expect(checkModels({ [file]: `defineModel({ id: '${slug}/specimen' });` }).violations).toEqual([]);
-    expect(checkModels({ [file]: "defineModel({ id: 'other/specimen' });" }).violations)
-      .toEqual([expect.stringContaining(`must start with '${slug}/'`)]);
-    expect(checkModels({ [file]: 'export const empty = true;' }).violations)
-      .toEqual([expect.stringContaining('defines no model')]);
-  });
-
   it('keeps non-model runtime modules and other shard paths restricted', () => {
     const files = {
       'src/shards/pine-hollow/runtime/world/specimen.ts': "defineModel({ id: 'pine-hollow/specimen' });",
@@ -45,9 +36,9 @@ describe('model contract after client relocation', () => {
     ]);
   });
 
-  it('keeps cross-shard model imports restricted at the relocated paths', () => {
-    const file = 'src/shards/driftwood-isle/runtime/models/boat.ts';
-    expect(checkModels({ [file]: "import { model } from '../../../pine-hollow/runtime/models/fallenLog'; defineModel({ id: 'driftwood-isle/specimen' });" }).violations)
+  it('keeps cross-shard model imports restricted at canonical paths', () => {
+    const file = 'src/shards/driftwood-isle/models/catalogue.ts';
+    expect(checkModels({ [file]: "import { model } from '../../pine-hollow/models/specimen'; defineModel({ id: 'driftwood-isle/specimen' });" }).violations)
       .toEqual([expect.stringContaining("imports another shard's models")]);
   });
 
@@ -56,6 +47,8 @@ describe('model contract after client relocation', () => {
     expect(checkModels({ [file]: "defineGeometryModel({ id: 'driftwood-isle/cove' });" }).violations).toEqual([]);
     expect(checkModels({ [file]: "defineGeometryModel({ id: 'other/cove' });" }).violations)
       .toEqual([expect.stringContaining("must start with 'driftwood-isle/'")]);
+    expect(checkModels({ [file]: 'export const empty = true;' }).violations)
+      .toEqual([expect.stringContaining('defines no model')]);
     expect(checkModels({ 'src/shards/far-reach/models/gear.ts': 'modelCatalogue(rows, owners);' }).violations).toEqual([]);
   });
 
