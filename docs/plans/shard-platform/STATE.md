@@ -8,10 +8,10 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 019fa6d0c7. **G908: Pine + Nine untouched** (no prep) until Jake's word after his final QA, likely 10-30.
 
 **LIVE 125bda0483 (build 125bda048-mvu1h3gt, a normal proven release, ~16:20)**; the repaired QA build waits on CI.
-**REPLAN (G886): [FOUNDATIONS](../FOUNDATIONS.md) waves 1-2, crashes first (G894).** Done: MF2, MF3, MF6, MF7 memory, MF5
-(WebKit; Sim pending), FC1-6, FC8, G895, G896, G901, QB18; MF1 / MF4 / MF10 landed, proofs open. Now: sp-o3 MF5 Sim → FC12,
-sp-o4 QB19 CI fix → QS1 → FC14 → FC13, sp-o5 QB20 → FC9, sp-x1 MF9 → FC11, sp-x2 QS2, sp-x6 MF4, sp-x9 MF8, sp-x10 MF1.
-G892: open until wave 1 + Jake's QA (10-30). sp-x8 released for good.
+**REPLAN (G886): [FOUNDATIONS](../FOUNDATIONS.md); overnight G914-G917.** Done: MF2, MF3, MF5, MF6, MF7 memory, FC1-6, FC8,
+QS2, G895, G896, G901, QB18; MF1 / MF4 / MF10 landed, proofs open. Opus (G915, 3 lanes held G916): sp-o3 FC12, sp-o4 QB19 → QS1 →
+FC14 → FC13, sp-o5 FC9 → FC10 → FC15. Codex: sp-x1 MF9, sp-x2 FC11 → MF12, sp-x6 MF4 → CX1, sp-x9 MF8 → CX3, sp-x10 MF10 →
+CX2. **sp-x8 stays released: 5 Codex lanes building is the cap (G611).** 07:00 release for Jake (G917). G892: open to 10-30 QA.
 
 **Done today:** QA1-14, CO1-5, QB2/7/8/10/14/15/18, RL2-5/9/10.
 
