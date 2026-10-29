@@ -61,7 +61,7 @@ export function runCommitJobs(root, jobs, deadline, env, signal, onResult) {
   })));
 }
 
-/** Cheap fixture inventories have explicit inputs; CF1 owns the related walk.
+/** Cheap fixture inventories have explicit inputs.
  * @param {readonly string[]} changed @returns {string[]} */
 export function commitGuards(changed) {
   const touches = (/** @type {RegExp} */ pattern) => changed.some(file => pattern.test(file));

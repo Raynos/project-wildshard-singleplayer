@@ -7,7 +7,7 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Git fixtures must not inherit the caller's temporary index.
 import { env, execPath } from 'node:process';
 import { expect, test } from 'vitest';
-import { commitCheckFailed, commitGuards, runCommitJobs } from '../scripts/precommit-jobs.mjs';
+import { commitCheckFailed, commitGuards, runCommitJobs, type CommitResult } from '../scripts/precommit-jobs.mjs';
 import { fastCommitLintConfig } from '../scripts/precommit-checks.mjs';
 import { precommitInputs } from '../scripts/precommit-inputs.mjs';
 
@@ -164,4 +164,13 @@ test('generated glob ignores never start staged fast or typed work',async()=>{
   expect(output).toContain('src/owner.ts');expect(output).not.toContain('src/owner.generated.ts');
   expect(output).toContain('--type-aware');expect(output).not.toContain('--type-check');
  }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+test('a failed spawn is observed once and keeps its original nonzero result', async () => {
+  const observed: CommitResult[] = [];
+  const results = await runCommitJobs(resolve('.'), [{ name: 'missing worker', command: [resolve('tmp/no-such-sw11-worker')] }],
+    performance.now() + 1000, undefined, undefined, result => { observed.push(result); });
+  expect(results[0]).toMatchObject({ code: 1, timedOut: false });
+  expect(observed).toHaveLength(1);
+  expect(observed[0]).toEqual(results[0]);
 });

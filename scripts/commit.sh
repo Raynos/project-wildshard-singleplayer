@@ -274,20 +274,6 @@ try:
         (view / "commondir").write_text(common + "\n")
         check_env = {**candidate_env, "GIT_DIR": str(view), "GIT_COMMON_DIR": common,
                      "GIT_WORK_TREE": os.getcwd(), "GIT_EDITOR": ":", "WS_COMMIT_READ_SET": str(read_set)}
-        handoff_file = scratch / "handoffs.jsonl"
-        check_env["WS_COMMIT_HANDOFF_FILE"] = str(handoff_file)
-        # Execute installed CF1 policy from the committed parent, never another
-        # lane's unfinished entry-module edits. Ordinary candidate source still
-        # flows through the normal staged-byte adapter used by those checkers.
-        checker_path = "scripts/commit-checker-snapshot.py"
-        checker_installed = b""  # G768/G769: no checker snapshots or proof prerequisites.
-        controller_namespace = {}
-        if checker_installed:
-            controller = scratch / "checker-controller.py"
-            controller.write_bytes(git("show", parent + ":" + checker_path))
-            controller_namespace = runpy.run_path(str(controller))
-            check_env = controller_namespace["snapshot_checkers"](
-                os.getcwd(), parent, scratch / "checkers", check_env)
         checking = subprocess.Popen(["git", "hook", "run", "--ignore-missing", "pre-commit"], env=check_env, start_new_session=True)
         try:
             code = checking.wait(timeout=5)
@@ -299,23 +285,8 @@ try:
             checking.wait()
             print("commit.sh: five-second hook cap; CI owns unfinished checks", flush=True)
             code = 0
-        if False and handoff_file.exists():
-            parser = controller_namespace.get("gate_handoff_message")
-            if parser is None:
-                refuse("gate handoff controller is not installed")
-            message, handoffs = parser(handoff_file, os.getcwd(), tree, message)
-            if os.path.isfile(validator):
-                error = runpy.run_path(validator)["validate"](message, human=os.getenv("SKIP_ATTRIB") == "1")
-                if error:
-                    refuse(error)
         if code:
             raise SystemExit(code)
-        if checker_installed and read_set.exists():
-            # Only extend an actual hook read set. Creating one for an unknown
-            # hook would defeat its conservative whole-parent freshness check.
-            with read_set.open("a") as output:
-                output.write(json.dumps(dict(root=os.getcwd(), paths=[checker_path,
-                    "scripts/precommit-inputs.mjs", "scripts/precommit-related.mjs"])) + "\n")
         # Keep all remaining hooks (message policy, signing and post-commit)
         # on Git's normal path. Only pre-commit consumes the already-run proof.
         dispatch = scratch / "hooks"
@@ -345,51 +316,10 @@ try:
                 latest = git("rev-parse", "HEAD").decode().strip()
                 if latest != parent:
                     inputs = set(paths)
-                    inventory = False
-                    budget = False
-                    imports = {}
-                    if False and read_set.exists():
-                        for line in read_set.read_text().splitlines():
-                            row = json.loads(line)
-                            if row["root"] == os.getcwd():
-                                inputs.update(row["paths"])
-                                inventory = inventory or row.get("inventory", False)
-                                budget = budget or row.get("budget", False)
-                                imports.update(row.get("imports", {}))
-                    elif False and (hooks / "pre-commit").is_file():
-                        # Unknown hooks have no narrower declared read set.
-                        inputs.update(os.fsdecode(name) for name in git("ls-tree", "-rz", "--name-only", parent).split(b"\0") if name)
                     moved = {os.fsdecode(name) for name in git("diff", "--name-only", "--no-renames", "-z", parent, latest).split(b"\0") if name}
                     overlap = sorted(moved & inputs)
-                    if inventory:
-                        membership = {os.fsdecode(name) for name in git("diff", "--name-only", "--no-renames", "--diff-filter=AD", "-z", parent, latest).split(b"\0") if name}
-                        overlap = sorted(set(overlap) | {name for name in membership if name.startswith(("src/", "test/", "scripts/"))})
                     if overlap:
                         refuse("checked inputs changed: " + ", ".join(overlap[:8]) + "; rerun against fresh inputs")
-                    syntax = {name: dict(before=imports[name], source=git("show", latest + ":" + name).decode())
-                              for name in sorted(moved & imports.keys())}
-                    if syntax:
-                        program = """import {readFileSync} from 'node:fs';
-import ts from '@typescript/typescript6';
-const rows=JSON.parse(readFileSync(0,'utf8'));
-process.stdout.write(JSON.stringify(Object.entries(rows).filter(([,row])=>JSON.stringify(row.before)!==
-JSON.stringify(ts.preProcessFile(row.source,true,true).importedFiles.map(file=>file.fileName))).map(([name])=>name)));"""
-                        changed_imports = json.loads(subprocess.check_output(["node", "--input-type=module", "-e", program],
-                            input=json.dumps(syntax).encode(), env=base_env))
-                        if changed_imports:
-                            refuse("checked import graph changed: " + ", ".join(changed_imports[:8]) + "; rerun against fresh inputs")
-                    if budget:
-                        # Push-size guards read pending binary history as well
-                        # as this delta. Freshness must include a peer's newly
-                        # counted bytes when this commit also contributes bytes.
-                        program = """import {readFileSync} from 'node:fs';
-import {isRuntime,isText} from './scripts/repo-size.mjs';
-const row=JSON.parse(readFileSync(0,'utf8')),counted=name=>!isRuntime(name)&&!isText(name);
-process.stdout.write(JSON.stringify(row.paths.some(counted)?row.moved.filter(counted):[]));"""
-                        counted = json.loads(subprocess.check_output(["node", "--input-type=module", "-e", program],
-                            input=json.dumps(dict(paths=paths, moved=sorted(moved))).encode(), env=base_env))
-                        if counted:
-                            refuse("storage inputs changed: " + ", ".join(counted[:8]) + "; rerun against fresh inputs")
                     delta = git("diff", "--binary", "--no-renames", parent, tree)
                     git("read-tree", "--reset", latest, env=candidate_env)
                     git("apply", "--cached", "--binary", "-", input=delta, env=candidate_env)
