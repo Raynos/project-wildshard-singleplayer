@@ -1482,3 +1482,21 @@ test('phone neighbour schedule resolves every section and schema from one verifi
   expect([...stored.keys()].sort()).toEqual([...members.keys()].sort());
   for (const [hash, body] of stored) expect(hashImmutableBytes(body)).toBe(hash);
 });
+
+test.each([false,true])('title schedule retains late files for later demand (critical %s)', async critical => {
+  const f=fixture(); f.source.late=[{hash:f.ref}];
+  if(critical)f.source.critical=[f.ref];
+  const sourceHash=hashImmutableBytes(bytes(f.source));
+  const index=parseOutputIndex({...f.index,build:{...f.index.build,sourceHash},admission:{...f.index.admission,late:f.source.late,critical:f.source.critical}});
+  const wire=bytes(index); f.wires.set('shard.json',wire);
+  trust({...f.receipt,sourceHash,indexHash:hashImmutableBytes(wire)});
+  const fetch=vi.fn(f.options.fetch); vi.stubGlobal('fetch',fetch);
+  const {preparePrefetchIndex}=await import('../src/game/grid/prefetchIndexCore');
+  const schedule=await preparePrefetchIndex({url:new URL('shard.json',f.options.base).href,indexHashes:[hashImmutableBytes(wire)],phone:true},
+    {get:()=>Promise.resolve(null),put:()=>Promise.resolve(true)});
+  expect(schedule?.files.some(file=>file.hash===f.ref)).toBe(true);
+  expect(fetch.mock.calls.some(([url])=>url.endsWith(`/${f.ref}.bin`))).toBe(false);
+  // Late admission hints never shrink the full prefetch set. The declaration
+  // still admits Explorer/offline demand with its exact body/hash.
+  expect(index.files.map(file=>file.hash)).toContain(f.ref);
+});
