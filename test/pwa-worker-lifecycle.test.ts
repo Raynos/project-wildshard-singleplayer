@@ -2,6 +2,8 @@
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture executes source, never a copied cache implementation.
 import { runInNewContext } from 'node:vm';
+// oxlint-disable-next-line import/no-nodejs-modules -- Check the shipped route patterns with the native URLPattern implementation.
+import { URLPattern, type URLPatternInit } from 'node:url';
 import { expect, test, vi } from 'vitest';
 import { ASSET_CACHE_NAME } from '../src/engine/pwa/cacheNames';
 
@@ -10,9 +12,13 @@ const url = (path: string): string => new URL(path, origin).href;
 const shared = '/assets/shared-ssssssss.js';
 const shell = ['/manifest.webmanifest'];
 const document = '<!doctype html><html><body>worker shell π</body></html>';
+interface NativeRoute {
+  condition: {urlPattern: URLPatternInit; requestMethod: string; requestMode?: string; requestDestination?: string};
+  source: string | {cacheName: string};
+}
 interface WorkerEvent {
   request?: Request;
-  addRoutes?: (rules: unknown) => Promise<void>;
+  addRoutes?: (rules: NativeRoute[]) => Promise<void>;
   data?: { type: string };
   ports?: { postMessage: (value: unknown) => void }[];
   source?: { postMessage: (value: unknown) => void };
@@ -42,7 +48,7 @@ function fixture(read?: (request: Request) => Promise<Response>, nativeRoutes = 
   const load = (build: string, files: string[], shellFiles = shell) => {
     const listeners = new Map<string, ((event: WorkerEvent) => void)[]>();
     const claim = vi.fn(() => Promise.resolve()), skipWaiting = vi.fn(() => Promise.resolve());
-    const routes = vi.fn<(rules: unknown) => Promise<void>>(() => Promise.resolve());
+    const routes = vi.fn<(rules: NativeRoute[]) => Promise<void>>(() => Promise.resolve());
     const self = { location: new URL(origin), registration: { scope: `${origin}/` }, clients: { claim }, skipWaiting,
       addEventListener: (kind: string, listener: (event: WorkerEvent) => void) => { listeners.set(kind, [...listeners.get(kind) ?? [], listener]); } };
     const owner = readFileSync('src/engine/app/workerScope.js', 'utf8').replaceAll(/^export /gmu, '');
@@ -86,6 +92,26 @@ test('native title routes use exact same-origin bare GETs and the existing cache
     {condition: {urlPattern: pattern('/fonts/*'), requestDestination: 'font', requestMethod: 'GET'}, source: {cacheName: 'ws-shell-v3-A'}},
   ]);
   expect(worker.claim).not.toHaveBeenCalled(); expect(worker.skipWaiting).not.toHaveBeenCalled();
+});
+
+test('native URL patterns leave queries, foreign origins and ordinary retry fetches with the handler', async () => {
+  const worker = fixture(undefined, true).load('A', [shared]); await worker.dispatch('install');
+  const routes = worker.routes.mock.calls[0]?.[0];
+  if (routes === undefined) throw new Error('Missing installed native routes');
+  for (const route of routes) {
+    const pattern = new URLPattern(route.condition.urlPattern);
+    const path = route.condition.urlPattern.pathname?.replace('*', 'file-01234567.js');
+    if (path === undefined) throw new Error('Missing native route path');
+    expect(pattern.test(url(path))).toBe(true);
+    expect(pattern.test(url(`${path}?sw=0`))).toBe(false);
+    expect(pattern.test(url(`${path}?v=01234567`))).toBe(false);
+    expect(pattern.test(new URL(path, 'https://foreign.test').href)).toBe(false);
+    expect(pattern.test(new URL(path, 'http://worker.test').href)).toBe(false);
+    expect(pattern.test(new URL(path, 'https://worker.test:444').href)).toBe(false);
+    // A content retry is a fetch with no destination and no navigate mode;
+    // only native navigation routes omit the destination restriction.
+    expect(route.condition.requestDestination !== undefined || route.condition.requestMode === 'navigate').toBe(true);
+  }
 });
 
 test('refused native routes cannot publish an installed generation', async () => {
