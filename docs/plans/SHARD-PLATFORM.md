@@ -48,7 +48,7 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | [c1-c5-c6-zero](../../project/archive/2026-10-27-c1-c5-c6-zero.md) (+ C2, G613) | G591, G593, G601, G613 | C1, C2, C5 closed and locked; **C6 8 lines left** (with the balbal cut) |
 | [nalati-zero](../../project/archive/2026-10-27-nalati-zero.md) | G613, G621 | **open**: rows R1–R15 (C6, C4, C9); est. Sat 10-24 ~12:00 |
 | [mega-build](../../project/archive/2026-10-28-mega-build.md) + [finish-line](../../project/archive/2026-10-28-finish-line.md) | G768–G799 | **active** 10-27: how lanes stop waiting, and the path to every mini plan at 100 %; all questions answered |
-| [grid-ready](../../project/archive/2026-10-28-grid-ready.md) | G557–G561, G598 | **9 of 10**; Nalati's row stays open until it crosses under 5 s warm / 8 s cold (G784, G782) |
+| [grid-ready](../../project/archive/2026-10-28-grid-ready.md) | G557–G561, G598 | **10 of 10** (Nalati closed unreachable, G828) |
 | [grid-crossing](../../project/archive/2026-10-28-grid-crossing.md) | G579–G581, G782 | **open**: T1, T5, T6 done; T2–T4 to every crossing under 5 s warm and 8 s cold (G782) |
 | [loading-speed](../../project/archive/2026-10-28-loading-speed.md) (folds in [loading](../../project/archive/2026-10-28-loading.md), G618) | G543, G554, G618, G619, G622 | **done (G831)**: phone QA complete; H4 3.374–3.740 s vs1.5 s and A1 770.1 ms vs600 ms accepted misses (G822/G831); deeper fixes belong to the next mega plan |
 | [shared-waits](../../project/archive/2026-10-28-shared-waits.md) | G666 | **done** (G809): [first green main push 40582611712](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40582611712) at `0012c73e11b2a4940c87af5075eec52c69492251`; applicable CI rows marked in their plans |
