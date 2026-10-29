@@ -42,6 +42,13 @@ export function gridHome(mode?: MenuMode): GridCell {
 }
 
 let navigating: Scope | null = null;
+/** The composition root resumes this exact home's geometry after its code
+ * barrier. Metadata already crossed the title handoff; ordinary grid readers
+ * retain their complete verified geometry/construction readiness barrier. */
+export function startGridEntryContent(home: string): void {
+  startGridStripDownload(gridMode(DEVSERVER), home, 'mesh');
+}
+
 /** Paint the loading shell before the title's durable handoff and fresh-page navigation. */
 export function enterGrid(): void {
   if (navigating !== null && !navigating.disposed) return;
@@ -50,7 +57,7 @@ export function enterGrid(): void {
   if (target === undefined) throw new Error(`The grid's home cell names no shard: ${home.slug}`);
   startEntryDownload(target.slug);
   titlePrefetchChoice(saves).remember(target.slug);
-  startGridStripDownload(gridMode(DEVSERVER), home.instance);
+  startGridStripDownload(gridMode(DEVSERVER), home.instance, 'metadata');
   navigating = beginNavigationShell(target.name, pageScope, () => {
     // A deliberate new player attempt starts a new guard window; automatic reloads cannot clear it.
     if (!gridRecovery(saves).clearLoop()) throw new Error('Grid recovery guard could not be cleared');

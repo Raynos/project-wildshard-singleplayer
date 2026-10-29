@@ -74,6 +74,7 @@ test('grid tap selects only its original mode/home page, never outer or another 
     writeFileSync(resolve(folder,'grid-strip-entry-modes.json'),JSON.stringify({'100':source,'000':other}));
     const rows=gridEntryDownloads(root);
     expect(rows['100']).toEqual({example:[directory,header,body]});expect(rows['000']).toEqual({});
+    const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
     vi.stubGlobal('document',{getElementById:()=>({textContent:JSON.stringify({gridEntryDownloads:rows})})});
     const read=vi.spyOn(globalThis,'fetch').mockImplementation(()=>Promise.resolve(new Response(new Uint8Array([1,2,3]))));
     try {
@@ -87,8 +88,35 @@ test('grid tap selects only its original mode/home page, never outer or another 
       vi.stubGlobal('document',{getElementById:()=>({textContent:JSON.stringify({gridEntryDownloads:{'100':{example:[directory,header,{url:'/outside.bin',bytes:1}]}}})})});
       expect(gridStripDownloadRows({developer:true,devserver:false,nineDragon:false},'example')).toEqual([]);
       startGridStripDownload({developer:true,devserver:false,nineDragon:false},'example');expect(read).toHaveBeenCalledTimes(3);
-    }finally{vi.unstubAllGlobals();read.mockRestore();}
+    }finally{
+      if (previousDocument === undefined) Reflect.deleteProperty(globalThis, 'document');
+      else Object.defineProperty(globalThis, 'document', previousDocument);
+      read.mockRestore();
+    }
     writeFileSync(resolve(folder,'grid-strip-pages',directory.url.split('/').at(-1)??''),'{}');
     expect(()=>gridEntryDownloads(root)).toThrow('Grid entry directory differs');
   }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+test('grid metadata can cross navigation while geometry waits for code and stays document-owned', () => {
+  const directory = {url: '/assets/grid-strip-book-aaaaaaaa.json', bytes: 3};
+  const header = {url: '/assets/grid-strip-page-bbbbbbbb.json', bytes: 3};
+  const body = {url: '/assets/grid-strip-mesh-cccccccc.bin', bytes: 3};
+  const mode = {developer: true, devserver: false, nineDragon: false};
+  const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  vi.stubGlobal('document', {getElementById: () => ({textContent: JSON.stringify({gridEntryDownloads: {'100': {example: [directory, header, body]}}})})});
+  const read = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(new Response(new Uint8Array([1, 2, 3]))));
+  try {
+    startGridStripDownload(mode, 'example', 'metadata');
+    expect(read.mock.calls.map(([url]) => url)).toEqual([directory.url, header.url]);
+    expect(read.mock.calls.every(([, options]) => options?.keepalive === true && options.priority === 'low')).toBe(true);
+    // The composition root calls this phase only after its code barrier.
+    startGridStripDownload(mode, 'example', 'mesh');
+    expect(read.mock.calls.map(([url]) => url)).toEqual([directory.url, header.url, body.url]);
+    expect(read.mock.calls[2]?.[1]).toMatchObject({keepalive: false, priority: 'low'});
+  } finally {
+    if (previousDocument === undefined) Reflect.deleteProperty(globalThis, 'document');
+    else Object.defineProperty(globalThis, 'document', previousDocument);
+    read.mockRestore();
+  }
 });

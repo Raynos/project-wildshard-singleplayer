@@ -159,7 +159,7 @@ test('one selected code pack publishes exact original URLs and supports offline 
       { type: 'CODE_PACK_PROGRESS', url: row[0], loaded: row[1], total: row[1] },
       { type: 'CODE_PACK_DONE', status: 'stored' }]);
     expect(f.fetch.mock.calls.map(([url]) => url)).toEqual([new URL(row[0], base).href]);
-    expect(f.fetch.mock.calls[0]?.[1]?.priority).toBe('high');
+    expect(f.fetch.mock.calls[0]?.[1]?.priority).toBeUndefined();
     const cache = await f.open('ws-immutable');
     expect(await (await cache.match(new URL(lazy, base).href))?.text()).toBe('export const selected = 42;');
     expect(await cache.match(new URL(later, base).href)).toBeUndefined();

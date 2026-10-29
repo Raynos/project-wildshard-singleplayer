@@ -151,7 +151,9 @@ async function startSelected(): Promise<void> {
   const catalogue = earlyPath === 'grid' ? prepareBootImports(preparePageCatalogue()) : null;
   const homeDescriptor = homeDownloadSource(game.shard, earlyPath === 'grid');
   if (earlyPath === 'grid') {
-    declareGridHomeDownload(gridMode(DEVSERVER), gridSelection.pageGridRecovery()?.instance ?? gridSelection.gridHome().instance, __GRID_SEAM_ASSET__);
+    const home = gridSelection.pageGridRecovery()?.instance ?? gridSelection.gridHome().instance;
+    declareGridHomeDownload(gridMode(DEVSERVER), home, __GRID_SEAM_ASSET__);
+    gridSelection.startGridEntryContent(home);
   }
   declareAssetTableDownloads(__BOOT_TABLE_ASSETS__, earlyPath === 'grid' || TIER !== 'phone' ? undefined : game.shard.slug);
   const declaredHome = earlyPath !== 'legacy' && document.getElementById('ws-shardfile') === null;

@@ -547,7 +547,7 @@ async function prepareWorkerCodePack(row, progress) {
     let complete = true;
     for (const path of paths) if (!await cache.match(abs(path), MATCH_OPTS)) { complete = false; break; }
     if (complete) return 'hit';
-    const response = await fetchAttempt(abs(url), { priority: 'high' });
+    const response = await fetchAttempt(abs(url));
     if (!response.ok) throw new Error('Failed code pack transport');
     const hash = /\/([a-f0-9]{64})\.pack$/.exec(url)?.[1];
     if (hash === undefined) throw new Error('Invalid code pack address');
@@ -745,8 +745,8 @@ class WorkerFetchStallError extends Error {
 function wholeCode(req) {
   return req.destination === 'script' || req.destination === 'style' || /\.(?:m?js|css)$/.test(new URL(req.url).pathname);
 }
-/** @param {Request|string} input @param {{stallMs?:number, deadlineMs?:number, onFinish?:()=>void, priority?:'high'|'low'|'auto'}} [options] @returns {Promise<Response>} */
-async function fetchAttempt(input, { stallMs = FETCH_ATTEMPT_MS, deadlineMs, onFinish, priority } = {}) {
+/** @param {Request|string} input @param {{stallMs?:number, deadlineMs?:number, onFinish?:()=>void}} [options] @returns {Promise<Response>} */
+async function fetchAttempt(input, { stallMs = FETCH_ATTEMPT_MS, deadlineMs, onFinish } = {}) {
   const req = typeof input === 'string' ? new Request(input) : input;
   const owner = new WorkerScope(), controller = new AbortController();
   let watch = new WorkerScope(), reset = () => undefined;
@@ -777,7 +777,7 @@ async function fetchAttempt(input, { stallMs = FETCH_ATTEMPT_MS, deadlineMs, onF
     reset();
   });
   try {
-    const res = await Promise.race([fetch(input, { signal: controller.signal, ...(priority === undefined ? {} : { priority }) }), deadline]);
+    const res = await Promise.race([fetch(input, { signal: controller.signal }), deadline]);
     if (res.body === null) return res;
     reset(); reader = res.body.getReader();
     if (!wholeCode(req)) {

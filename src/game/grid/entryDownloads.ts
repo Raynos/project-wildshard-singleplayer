@@ -25,11 +25,13 @@ export function gridStripDownloadRows(mode: GridMode, home: string): readonly Gr
   } catch { return []; }
 }
 
-/** Let the existing HTTP/worker URL cache finish the exact selected seam
- * page across fresh-document travel. Runtime still checks every original
- * byte, full hash, placement and collider declaration before consuming it. */
-export function startGridStripDownload(mode: GridMode, home: string): void {
+/** Metadata can cross title navigation; the composition root starts geometry
+ * only after code preparation. Runtime still checks every original byte,
+ * full hash, placement and collider declaration before consuming it. */
+export function startGridStripDownload(mode: GridMode, home: string, phase: 'all' | 'metadata' | 'mesh' = 'all'): void {
     for (const {url, bytes} of gridStripDownloadRows(mode, home)) {
+      const mesh = url.endsWith('.bin');
+      if (phase === 'metadata' && mesh || phase === 'mesh' && !mesh) continue;
       const consume = async (response: Response): Promise<void> => {
         if (response.body === null) return;
         const reader = response.body.getReader(); let total = 0;
@@ -38,6 +40,6 @@ export function startGridStripDownload(mode: GridMode, home: string): void {
           total += part.value.length; if (total > bytes) { await reader.cancel(); break; }
         } } finally { reader.releaseLock(); }
       };
-      void fetch(url, {keepalive: true, priority: 'low'}).then(consume).catch(() => undefined);
+      void fetch(url, {keepalive: phase !== 'mesh', priority: 'low'}).then(consume).catch(() => undefined);
     }
 }
