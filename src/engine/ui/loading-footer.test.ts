@@ -25,7 +25,7 @@ it('closes actual entry reads at ready without completing unused product-bank de
     declareDownloadFile('/unused.glb', 41_000_000);
     recordCachedDownload('warm', 51_600_000, '/warm.bin'); recordReadDownload('/fresh.bin', 400_000, false);
     loading.waiting('Prepared entry content');
-    now = 400; vi.advanceTimersByTime(32);
+    now = 400; vi.advanceTimersByTime(100);
     expect(loading.root.dataset['download']).toBe('99');
     expect(loading.root.querySelector('[data-el="dlFact"]')?.textContent).toBe('Spawn view · 52.0 MB · 51.6 MB from cache');
     const done = loading.done();
@@ -59,7 +59,7 @@ it('exposes completed quick rows to passive capture without changing their exclu
     const timeline = currentLoadingTimeline(); if (timeline === undefined) throw new Error('Missing timeline');
     const quick = timeline.begin('quick'); now = 150; quick.end();
     loading.paintAdmission({phase: 'descriptor', detail: 'Capture completed rows', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0});
-    vi.advanceTimersByTime(32);
+    vi.advanceTimersByTime(100);
     const snapshot: unknown = Reflect.get(loading.root, Symbol.for('engine.loading.snapshot'));
     expect(snapshot).toMatchObject({path: 'capture', rows: [expect.anything(), {key: 'quick', startedAt: 100, endedAt: 150, ms: 50}]});
     expect(loading.root.querySelector('[data-key="quick"]')).toBeNull();
@@ -99,7 +99,7 @@ it('names the actual nested work in the header while retaining exclusive parent 
     loading.endAdmission();
     const outer = timeline.begin('finish'), inner = timeline.begin('home');
     loading.paintAdmission({phase: 'modules', detail: 'Home preparation', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0});
-    now = 700; vi.advanceTimersByTime(32);
+    now = 700; vi.advanceTimersByTime(100);
     expect(loading.root.dataset['step']).toBe('home');
     expect(loading.root.querySelector('[data-el="suFact"]')?.textContent).toContain('home');
     expect(timeline.snapshot()).toMatchObject({current: 'home', display: 'finish'});
@@ -120,11 +120,11 @@ it('keeps boundary credit when the next paced paint still carries the previous v
     const world = timeline.begin('world');
     const view: ProgressView = {download: 0, setup: 0, done: false, error: null, step: 'assembly', label: 'World', detail: '',
       bytes: null, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0, worldBytesReady: false, doneCount: 0, rows: [], gaps: []};
-    loading.paint(view); vi.advanceTimersByTime(32);
+    loading.paint(view); vi.advanceTimersByTime(100);
     expect(loading.root.querySelector('[data-el="suPct"]')?.textContent).toBe('33');
     now = 2100; world.end(); const finish = timeline.begin('finish');
     expect(loading.root.querySelector('[data-el="suPct"]')?.textContent).toBe('66');
-    vi.advanceTimersByTime(32);
+    vi.advanceTimersByTime(100);
     expect(loading.root.querySelector('[data-el="suPct"]')?.textContent).toBe('66');
     finish.end();
   } finally { loading.scope.dispose(); }
@@ -140,7 +140,7 @@ it('adopts the original shell setup fact without replacing it with a later perce
     if (timeline === undefined) throw new Error('Missing timeline');
     expect(timeline.snapshot().rows[0]).toMatchObject({startedAt: 50, setupAtStart: 7});
     shell.dataset['initialSetup'] = '99'; loading.waiting('Preparing application services');
-    now = 400; vi.advanceTimersByTime(32);
+    now = 400; vi.advanceTimersByTime(100);
     expect(currentLoadingTimeline()?.snapshot().rows.find(row => row.key === 'modules')?.setupAtStart).toBe(7);
     expect(loading.root.querySelector('[data-key="modules"]')).toBeNull();
   } finally { loading.scope.dispose(); }
@@ -153,7 +153,7 @@ it('hands the visible footer to admission before publishing its first callback',
     loading.setPath({id: 'shardfile', steps: [{key: 'modules', label: 'Application modules', weight: 1},
       {key: 'admission', label: 'Product admission', weight: 1}, {key: 'world', label: 'World', weight: 1}]});
     loading.waiting('Preparing application services');
-    now = 400; vi.advanceTimersByTime(32);
+    now = 400; vi.advanceTimersByTime(100);
     expect(foot()).toContain('Application modules');
     loading.paintAdmission({phase: 'descriptor', detail: 'Fetching shard descriptor · /shardfiles/descriptor/entry.json',
       filesDone: 0, filesTotal: 1, bytesRead: 0, bytesTotal: 0});
@@ -166,7 +166,7 @@ it('hands the visible footer to admission before publishing its first callback',
       filesDone: 0, filesTotal: 1, bytesRead: 10, bytesTotal: 100});
     // Same-phase byte progress keeps the ordinary paced repaint.
     expect(foot()).toBe(handedOff);
-    now = 700; vi.advanceTimersByTime(32);
+    now = 700; vi.advanceTimersByTime(100);
     expect(foot()).toContain('Reading shard descriptor · /shardfiles/descriptor/entry.json');
   } finally { loading.scope.dispose(); }
 });
@@ -179,13 +179,13 @@ it('retains a completed short step start even when it finished before the first 
     const timeline = currentLoadingTimeline();
     if (timeline === undefined) throw new Error('Missing timeline');
     loading.waiting('Preparing application services');
-    now = 110; vi.advanceTimersByTime(32);
+    now = 110; vi.advanceTimersByTime(100);
     now = 120; loading.paintAdmission({phase: 'product', detail: 'Reading entry.json',
       filesDone: 0, filesTotal: 0, bytesRead: 0, bytesTotal: 0});
     const setupAtStart = Number(loading.root.querySelector('[data-el="suPct"]')?.textContent);
     expect(Number.isFinite(setupAtStart)).toBe(true);
     loading.endAdmission();
-    now = 500; const world = timeline.begin('world'); vi.advanceTimersByTime(32);
+    now = 500; const world = timeline.begin('world'); vi.advanceTimersByTime(100);
     // Presentation collapses quick steps, while the complete timing record is retained.
     expect(timeline.snapshot().rows.find(row => row.key === 'admission')).toMatchObject({
       startedAt: 120, setupAtStart, ms: 0, state: 'ok',
@@ -222,8 +222,8 @@ it('offers Retry after eight seconds without bytes, including changing diagnosti
   const reload = vi.spyOn(location, 'reload').mockImplementation(() => undefined);
   try {
     loading.setPath({ id: 'cell', steps: [{ key: 'read', label: 'Read world', weight: 1 }] });
-    loading.scopedStep('read', 'Reading terrain'); vi.advanceTimersByTime(32);
-    now = 8100; loading.scopedStep('read', 'Still reading terrain'); vi.advanceTimersByTime(32);
+    loading.scopedStep('read', 'Reading terrain'); vi.advanceTimersByTime(100);
+    now = 8100; loading.scopedStep('read', 'Still reading terrain'); vi.advanceTimersByTime(100);
     const retry = loading.root.querySelector<HTMLButtonElement>('[data-el="retry"]');
     expect(loading.root.dataset['stalled']).toBe('true'); expect(retry?.hidden).toBe(false);
     expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('Waiting for Read world');
@@ -238,16 +238,16 @@ it('does not invent a one-step total before the actual path is declared', () => 
   const loading = new Loading({ id: 'pending', name: 'Pending' });
   try {
     loading.waiting('Preparing application services');
-    now = 400; vi.advanceTimersByTime(32);
+    now = 400; vi.advanceTimersByTime(100);
     const fact = (): string => loading.root.querySelector('[data-el="suFact"]')?.textContent ?? '';
     expect(fact()).toContain('Application modules');
     expect(fact()).not.toMatch(/step \d+ \/ \d+/u);
     loading.setPath({ id: 'shardfile', steps: [{ key: 'modules', label: 'Modules', weight: 1 },
       { key: 'admission', label: 'Product admission', weight: 1 }, { key: 'world', label: 'World', weight: 1 }] });
-    now = 700; vi.advanceTimersByTime(32);
+    now = 700; vi.advanceTimersByTime(100);
     expect(fact()).toContain('step 1 / 3');
     loading.paintAdmission({ phase: 'product', detail: 'Reading files', bytesRead: 0, bytesTotal: 10, filesDone: 0, filesTotal: 1 });
-    now = 1000; vi.advanceTimersByTime(32);
+    now = 1000; vi.advanceTimersByTime(100);
     expect(fact()).toContain('step 2 / 3');
   } finally { loading.scope.dispose(); }
 });
@@ -287,7 +287,7 @@ it('keeps another step\'s music out of the actual visible world footer', async (
     music.end();
     const world = timeline.begin('world');
     const own = waitFor('Dunes terrain', work, 'file');
-    now = 400; vi.advanceTimersByTime(32);
+    now = 400; vi.advanceTimersByTime(100);
     expect(loading.root.dataset['waiting']).toBe('Dunes terrain');
     expect(loading.root.querySelector('[data-el="foot"]')?.textContent).not.toContain('Pine music');
     world.end(); finish(); await Promise.all([foreign, own]);
@@ -305,18 +305,18 @@ it('keeps the current saved-file detail instead of an outer zero-file admission 
     loading.paintAdmission({phase: 'cache', detail: 'Checking saved 0123456789ab', bytesRead: 10,
       bytesTotal: 10, filesDone: 1, filesTotal: 1});
     waits.push(waitFor('Admit product', pending, 'admission'));
-    now = 400; vi.advanceTimersByTime(32);
+    now = 400; vi.advanceTimersByTime(100);
     const foot = (): string => loading.root.querySelector('[data-el="foot"]')?.textContent ?? '';
     expect(foot()).toContain('Now working on: Product admission · Checking saved 0123456789ab');
     expect(foot()).not.toContain('Admit product');
     expect(loading.root.dataset['filesInFlight']).toBe('0');
     waits.push(waitFor('Hash 0123456789ab', pending, 'worker'));
-    now = 700; vi.advanceTimersByTime(32);
+    now = 700; vi.advanceTimersByTime(100);
     expect(foot()).toContain('Now waiting for: Hash 0123456789ab');
     expect(foot()).not.toContain('0 files in flight');
     expect(loading.root.dataset['filesInFlight']).toBe('0');
     waits.push(waitFor('Read /product/blob.bin', pending, 'file'));
-    now = 1000; vi.advanceTimersByTime(32);
+    now = 1000; vi.advanceTimersByTime(100);
     expect(foot()).toContain('Now waiting for: Read /product/blob.bin');
     expect(foot()).toContain('1 files in flight');
   } finally { finish(); await Promise.all(waits); loading.scope.dispose(); }
@@ -330,16 +330,16 @@ it('names uncounted admission work without inventing an empty file batch', () =>
       {key: 'admission', label: 'Product admission', weight: 1}]});
     loading.paintAdmission({phase: 'cache-read', detail: 'Checking visited product', bytesRead: 0,
       bytesTotal: 0, filesDone: 0, filesTotal: 0});
-    now = 400; vi.advanceTimersByTime(32);
+    now = 400; vi.advanceTimersByTime(100);
     expect(foot()).toBe('Now working on: Product admission · Checking visited product');
     expect(loading.root.dataset['filesInFlight']).toBe('0');
     loading.paintAdmission({phase: 'assets', detail: 'Reading indexed files', bytesRead: 0,
       bytesTotal: 100, filesDone: 0, filesTotal: 2});
-    now = 700; vi.advanceTimersByTime(32);
+    now = 700; vi.advanceTimersByTime(100);
     expect(foot()).toContain('Reading indexed files · 0 / 2 files · 0.00 MB read');
     loading.paintAdmission({phase: 'assets', detail: 'Reading bytes before file index', bytesRead: 10,
       bytesTotal: 0, filesDone: 0, filesTotal: 0});
-    now = 1000; vi.advanceTimersByTime(32);
+    now = 1000; vi.advanceTimersByTime(100);
     expect(foot()).toContain('Reading bytes before file index · 0.00 MB read');
     expect(foot()).not.toContain('0 / 0 files');
   } finally { loading.scope.dispose(); }
@@ -352,21 +352,21 @@ it('keeps quiet work visibly current without inventing completed work', () => {
     loading.paintAdmission({phase: 'cache-read', detail: 'Checking visited product',
       bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0});
     declareDownloadFile('/assets/pending.bin', 100);
-    now = 400; vi.advanceTimersByTime(32);
+    now = 400; vi.advanceTimersByTime(100);
     const counters = {network: loading.root.dataset['networkBytes'], cached: loading.root.dataset['cachedBytes'],
       pending: loading.root.dataset['pendingBytes'], setup: loading.root.dataset['setup']};
-    now = 1000; vi.advanceTimersByTime(32);
+    now = 1000; vi.advanceTimersByTime(100);
     expect(foot()).toContain('No reported progress for 0.9 s');
     expect(foot()).toContain('Checking visited product');
     expect(loading.root.dataset['stalled']).toBe('false');
-    now = 1400; vi.advanceTimersByTime(32);
+    now = 1400; vi.advanceTimersByTime(100);
     expect(foot()).toContain('No reported progress for 1.3 s');
     expect({network: loading.root.dataset['networkBytes'], cached: loading.root.dataset['cachedBytes'],
       pending: loading.root.dataset['pendingBytes'], setup: loading.root.dataset['setup']}).toEqual(counters);
-    now = 10_500; vi.advanceTimersByTime(32);
+    now = 10_500; vi.advanceTimersByTime(100);
     expect(loading.root.dataset['stalled']).toBe('true');
     recordCachedDownload('pending-cache', 100);
-    now = 10_900; vi.advanceTimersByTime(32);
+    now = 10_900; vi.advanceTimersByTime(100);
     expect(foot()).not.toContain('No reported progress');
     expect(loading.root.dataset['stalled']).toBe('false');
   } finally { loading.scope.dispose(); }
@@ -382,18 +382,18 @@ it('does not count one parsed descriptor as half the complete admission stage', 
     now = 200;
     loading.paintAdmission({phase: 'descriptor', detail: 'Parsing shard descriptor', bytesRead: 50,
       bytesTotal: 50, filesDone: 1, filesTotal: 1});
-    vi.advanceTimersByTime(32);
+    vi.advanceTimersByTime(100);
     expect(loading.root.dataset['setup']).toBe('4');
     expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('1 / 1 files');
     now = 400;
     loading.paintAdmission({phase: 'assets', detail: 'Reading product assets', bytesRead: 0,
       bytesTotal: 1000, filesDone: 0, filesTotal: 122});
-    vi.advanceTimersByTime(32);
+    vi.advanceTimersByTime(100);
     expect(loading.root.dataset['setup']).toBe('13');
     now = 600;
     loading.paintAdmission({phase: 'assets', detail: 'Checking verified product', bytesRead: 1000,
       bytesTotal: 1000, filesDone: 122, filesTotal: 122});
-    vi.advanceTimersByTime(32);
+    vi.advanceTimersByTime(100);
     expect(loading.root.dataset['setup']).toBe('20');
     expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('122 / 122 files');
   } finally { loading.scope.dispose(); }
@@ -413,7 +413,7 @@ it('shows the actual declared ratio when a late dependency is discovered, withou
     expect(loading.root.dataset['download']).toBe('25');
     expect(loading.root.dataset['pendingBytes']).toBe('30');
     expect(loading.root.dataset['declaredBytes']).toBe('40');
-    now = 400; vi.advanceTimersByTime(32);
+    now = 400; vi.advanceTimersByTime(100);
     expect(loading.root.querySelector<HTMLElement>('[data-el="bar"]')?.style.width).toBe('12.5%');
     recordCachedDownload('later', 30, '/assets/later.bin');
     loading.paint(view);
@@ -430,7 +430,7 @@ it('paints download bars and facts from the same fresh cache snapshot', () => {
     loading.paint(view);
     expect(loading.root.dataset['download']).toBe('0');
     recordCachedDownload('cache-between-paints', 40, '/assets/cache-between-paints.bin');
-    now = 400; vi.advanceTimersByTime(32);
+    now = 400; vi.advanceTimersByTime(100);
     expect(loading.root.dataset['download']).toBe('100');
     expect(loading.root.dataset['pendingBytes']).toBe('0');
     expect(loading.root.querySelector('[data-el="dlPct"]')?.textContent).toBe('100');
@@ -444,7 +444,7 @@ it('paints completion rows and footer together without waiting for another frame
   try {
     loading.setPath({ id: 'cell', steps: [{ key: 'audio', label: 'Audio', weight: 1 }] });
     loading.scopedStep('audio', 'Prepared audio clips 0 / 0');
-    now = 200; vi.advanceTimersByTime(32);
+    now = 200; vi.advanceTimersByTime(100);
     expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('Prepared audio clips');
     loading.endAdmission(); now = 201;
     const completed: ProgressView = { download: 1, setup: 1, done: true, error: null, step: 'audio', label: 'Audio', detail: '',
@@ -462,7 +462,7 @@ it('ends a scoped cell step immediately when fading without a boot-plan view', a
   try {
     loading.setPath({ id: 'cell', steps: [{ key: 'enter', label: 'Enter', weight: 1 }] });
     loading.scopedStep('enter', 'Activating destination');
-    now = 200; vi.advanceTimersByTime(32);
+    now = 200; vi.advanceTimersByTime(100);
     expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('Activating destination');
     now = 201;
     const finished = loading.done();
@@ -478,23 +478,23 @@ it('ends a scoped cell step immediately when fading without a boot-plan view', a
   } finally { loading.scope.dispose(); }
 });
 
-it('repaints the facts of a step at most every 200 ms while its clock moves every frame, and a new step at once', () => {
+it('repaints the facts of a step at most every 200 ms while its clock samples at 10 Hz, and a new step at once', () => {
   const loading = new Loading({ id: 'test', name: 'Test' }, { scoped: true });
   const foot = (): string => loading.root.querySelector('[data-el="foot"]')?.textContent ?? '';
   const clock = (): string => loading.root.querySelector('[data-el="clock"]')?.textContent ?? '';
   try {
     loading.setPath({ id: 'cell', steps: [{ key: 'audio', label: 'Audio', weight: 1 }, { key: 'enter', label: 'Enter', weight: 1 }] });
     loading.scopedStep('audio', 'Clips 1 / 3');
-    now = 200; vi.advanceTimersByTime(32);
+    now = 200; vi.advanceTimersByTime(100);
     expect(foot()).toContain('Clips 1 / 3');
     const before = clock();
     loading.scopedStep('audio', 'Clips 2 / 3');
-    now = 300; vi.advanceTimersByTime(32);
+    now = 300; vi.advanceTimersByTime(100);
     expect(foot()).toContain('Clips 1 / 3'); expect(clock()).not.toBe(before);
-    now = 420; vi.advanceTimersByTime(32);
+    now = 420; vi.advanceTimersByTime(100);
     expect(foot()).toContain('Clips 2 / 3');
     loading.scopedStep('enter', 'Activating');
-    now = 430; vi.advanceTimersByTime(32);
+    now = 430; vi.advanceTimersByTime(100);
     expect(foot()).toContain('Activating');
   } finally { loading.scope.dispose(); }
 });

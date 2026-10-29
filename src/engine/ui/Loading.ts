@@ -45,8 +45,9 @@ const setData = (el: HTMLElement, key: string, value: string): void => { if (el.
 export interface LoadingAdmission {
   phase: string; detail: string; bytesRead: number; bytesTotal: number; filesDone: number; filesTotal: number;
 }
-/** The loading panel's repaint cadence while a step runs (20 Hz: the clock's tenths still tick); done and errors paint at once. */
+/** Facts repaint at 5 Hz; the clock samples at 10 Hz. Done and errors paint at once. */
 const PAINT_MS = 200;
+const CLOCK_MS = 100;
 let currentLoading: { id: string; loading: Loading } | null = null;
 /** the loading screen: the download and set-up bars, the boot steps' rows, the tier and the diagnostics */
 export class Loading {
@@ -56,7 +57,7 @@ export class Loading {
   private rowsEl: HTMLElement;
   private t0 = performance.now();
   private clockT0 = this.t0;
-  private raf = 0;
+  private readonly clockScope = this.scope.child('clock');
   private view: ProgressView | null = null;
   private dirty = false;
   private lastFrameAt = performance.now();
@@ -161,8 +162,8 @@ export class Loading {
       const hold = holdLoadingSwitch(this.scope); hold.classList.add('ws-load-hold');
       this.root.querySelector('.ws-load-body')?.append(hold);
     }
-    const tick = (): void => { this.tickClock(); this.raf = this.scope.raf(tick); };
-    tick();
+    this.tickClock();
+    this.clockScope.interval(CLOCK_MS, () => { this.tickClock(); });
   }
 
   /** Read application-owned disk-prefetch progress without changing this attempt's wire accounting. */
@@ -402,7 +403,7 @@ export class Loading {
   private tickClock(): void {
     const now = performance.now();
     // A gap here includes synchronous JS, style/layout, GC and a suspended tab. It is not CPU percentage.
-    const pauseMs = now - this.lastFrameAt - 17;
+    const pauseMs = now - this.lastFrameAt - CLOCK_MS;
     if (document.visibilityState === 'visible' && pauseMs > this.longestPauseMs) {
       this.longestPauseMs = pauseMs;
       this.longestPauseAt = this.lastFrameStep;
@@ -411,7 +412,7 @@ export class Loading {
     if (this.view) this.lastFrameStep = `${this.view.label}${this.view.detail ? `: ${this.view.detail}` : ''}`;
     else if (this.admission) this.lastFrameStep = this.admission.detail;
     if (now - this.lastDiagnosticAt > 250) { this.paintDiagnostics(); this.lastDiagnosticAt = now; }
-    // the clock is one text node, written only when its tenth of a second changes: it moves every frame
+    // The clock is one text node, sampled at its displayed precision without another animation-frame chain.
     const s = (now - this.clockT0) / 1000;
     set(this.els.clock, engineString('s_c0951c6055b1', [String(Math.floor(s / 60)).padStart(2, '0'), (s % 60).toFixed(1).padStart(4, '0')]));
     // SF67 / G622: within a step the bars, rows and facts repaint at most PAINT_MS apart, not every frame: each repaint
@@ -477,6 +478,7 @@ export class Loading {
    */
   done(): Promise<void> {
     if (this.completion !== undefined) return this.completion;
+    this.tickClock(); this.clockScope.dispose();
     this.finished = true; finishLoadingWait(this.waitId); this.phase?.end(); this.phase = undefined;
     const measured = Object.fromEntries(this.timeline.snapshot().rows.filter(row => row.state !== 'todo').map(row => [row.key, row.ms]));
     savePathTimings(this.timingKey, measured, this.baseline);
@@ -490,7 +492,7 @@ export class Loading {
 
   private waitForPlay(): Promise<void> {
     // Freeze the elapsed clock and completed rows, not the game's draw loop.
-    this.tickClock(); this.scope.cancelRaf(this.raf);
+    this.tickClock(); this.clockScope.dispose();
     this.root.dataset['ready'] = 'true';
     this.root.dataset['hold'] = 'true';
     const play = document.createElement('button');
@@ -535,7 +537,7 @@ export class Loading {
       // final DOM update and the fade, even when done runs inside a frame.
       this.scope.raf(() => { this.scope.raf(() => {
         this.root.classList.add('hide');
-        this.scope.timeout(250, () => { complete = true; this.scope.cancelRaf(this.raf); this.scope.dispose(); resolve(); });
+        this.scope.timeout(250, () => { complete = true; this.scope.dispose(); resolve(); });
       }); });
     });
   }
