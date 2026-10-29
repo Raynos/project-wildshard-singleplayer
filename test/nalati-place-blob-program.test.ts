@@ -27,6 +27,7 @@ import { originalSpeciesOutput } from './fixtures/nalati-original-species';
 import speciesPins from './fixtures/nalati-species-files.json' with { type: 'json' };
 import headerPin from './fixtures/nalati-species-product-header.json' with { type: 'json' };
 import { predecessorRenderHeader } from './fixtures/nalati-render-header';
+import { predecessorEnvGraphs } from './fixtures/nalati-graph-env';
 import original from './fixtures/nalati-place-blob.json' with { type: 'json' };
 import { packedSpecimensI3, placeOffsetsI3, qualifyPlacesI3, sceneI3 } from './fixtures/nalati-places-i3';
 import cragOriginal from './fixtures/nalati-crag-blob.json' with { type: 'json' };
@@ -255,7 +256,8 @@ test('the actual cold output hook preserves every predecessor file cost and bina
     }
     const render = coldOutputFixture.nativeRender;
     if (render === undefined) throw new Error('Missing observed native render metadata');
-    const headerBytes = new TextEncoder().encode(JSON.stringify(predecessorRenderHeader(coldOutputFixture.header, render)));
+    // 9a6083a939: the three ported painterly graphs took the sky's diffuse; the oracle reads them as they were
+    const headerBytes = new TextEncoder().encode(JSON.stringify(predecessorRenderHeader(predecessorEnvGraphs(coldOutputFixture.header), render)));
     expect(headerBytes.length).toBe(headerPin.bytes);
     expect(hashImmutableBytes(headerBytes)).toBe(headerPin.sha256);
     expect(constructions.get('species')).toBe(1);
