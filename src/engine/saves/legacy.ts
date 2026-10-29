@@ -4,7 +4,7 @@ import type { SaveStorage } from './store';
 export const LEGACY_GAME_KEYS = ['ws.settings.v1', 'ws.gfx.v1', 'ws.hints.v1', 'ws.review.v1', 'ws.review.queue.v1', 'ws.progress.v1', 'ws.inventory.v1', 'ws.flags.v1', 'ws.boss.v1', 'ws.elites.v1', 'ws.purse.v1', 'ws.owned.v1', 'ws.bounty.v1', 'ws.compendium.v1', 'ws.skins.v1', 'ws.nalati.skins.v1', 'ws.nalati.tulpar', 'ws.nalati.horseNames', 'ws.ph.loadout.v1', 'ws.lodge.v1', 'ws.debug'] as const;
 export const LEGACY_DEVICE: Readonly<Record<string, string>> = {
   'ws.dev': 'devMode', 'ws.debug.open': 'debug.open', 'ws.perf.probe': 'perf.probe', 'ws.perf.rec.v1': 'perf.rec', 'ws.perf.lap.v1': 'perf.lap',
-  'ws.lastUnload': 'life.lastUnload', 'ws.lastEnd': 'life.lastEnd', wsLifeTrace: 'life.trace', wsLifeTraceAt: 'life.traceAt',
+  'ws.lastUnload': 'life.lastUnload', 'ws.lastEnd': 'life.lastEnd',
   'ws.nineBoot': 'boot.trace', wsNineReports: 'boot.reports', wsErrQueue: 'err.queue', 'ws.titleArrival.once': 'titleArrival.once',
 };
 export const LEGACY_SESSION: Readonly<Record<string, string>> = {

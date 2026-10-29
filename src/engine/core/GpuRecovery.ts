@@ -35,7 +35,6 @@ import type { Game } from './Game';
 import type { Scope } from '../app/scope';
 import { gpuOnlyContent, rebakeGpuContent } from './gpuOnly';
 import { emitFault } from './faults';
-import { layout, trace, traceReturn, traceWorldReady } from './lifeTrace';
 import { recordGpuRecovery } from '../boot/bootTrace';
 import { markReload } from '../boot/lastEnd';
 
@@ -83,7 +82,6 @@ export function installGpuRecovery(host: RecoveryHost): void {
 
   let phase: Phase = 'ok';
   let hidden = document.visibilityState === 'hidden';
-  let hiddenAt = hidden ? Date.now() : 0; // wall clock: performance.now() does not run while iOS suspends the page
   let epoch = 0; // a newer loss abandons an in-flight restore / reveal
   let visibleMs = 0; // visible time spent in the current lost / restoring phase
   let timer: ReturnType<Scope['timeout']> = 0;
@@ -109,7 +107,6 @@ export function installGpuRecovery(host: RecoveryHost): void {
     game.hold = true;
     document.dispatchEvent(new Event('ws:background'));
     console.warn(`[gl] reloading: ${why}`);
-    trace('reload', `${why}${away ? ' (away)' : ''}`);
     const now = Date.now();
     let recent: number[] = [];
     try { recent = (JSON.parse(savedStorage.getItem(RELOAD_KEY) ?? '[]') as number[]).filter((t) => now - t < RELOAD_WINDOW_MS); } catch { /* no session storage: allow the reload */ }
@@ -161,7 +158,6 @@ export function installGpuRecovery(host: RecoveryHost): void {
     game.hold = true;
     document.dispatchEvent(new Event('ws:background'));
     console.warn(`[gl] ${why}: holding the frame loop`);
-    trace('lost', `${why} · canvases ${canvasesWiped() ? 'wiped' : 'intact'}`);
     // the GPU process died (every canvas wiped): nothing to restore in place — do not wait for the restore event
     if (canvasesWiped()) { reload('the GPU process restarted: every canvas was wiped'); return; }
     watch(LOST_MAX_S, 'the context stayed lost');
@@ -174,7 +170,6 @@ export function installGpuRecovery(host: RecoveryHost): void {
     if (bakes.length > 0) { reload(`runtime bakes cannot be restored (${bakes.join(', ')})`); return; }
     const mine = ++epoch;
     phase = 'restoring';
-    trace('restore', 'in place');
     watch(RESTORE_MAX_S, 'the restore took too long');
     const t0 = performance.now();
     try {
@@ -193,7 +188,6 @@ export function installGpuRecovery(host: RecoveryHost): void {
     phase = 'ok';
     game.hold = false;
     console.warn(`[gl] restored in place in ${Math.round(performance.now() - t0)} ms`);
-    trace('restored', `${Math.round(performance.now() - t0)} ms`);
     // the scene must actually draw again: no frame on a live, open gate within a few visible seconds → reload
     game.lastFrame.calls = -1;
     let waited = 0;
@@ -216,19 +210,15 @@ export function installGpuRecovery(host: RecoveryHost): void {
   const hide = (): void => {
     if (hidden) return; // visibilitychange and pagehide both land here
     hidden = true;
-    hiddenAt = Date.now();
     epoch++;
-    trace('hide', `${phase} · ${layout()}`);
     document.dispatchEvent(new Event('ws:background')); // the HUD pauses into the menu (a no-op on the title / already paused)
   };
   const show = (): void => {
     if (!hidden) return;
     hidden = false;
-    const away = Date.now() - hiddenAt;
     repaint(scope);
-    if (phase !== 'ok') { traceReturn(away, `phase ${phase}`); return; } // lost / restoring / reloading: that path ends it
-    if (gl.isContextLost()) { traceReturn(away, 'lost while hidden'); lose('context lost while hidden (no event)'); return; }
-    traceReturn(away, 'in place');
+    if (phase !== 'ok') return; // lost / restoring / reloading: that path ends it
+    if (gl.isContextLost()) { lose('context lost while hidden (no event)'); return; }
     game.kickLoop(); // the frame loop, if the browser dropped its animation frame across the switch
   };
   scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') hide(); else show(); });
@@ -236,7 +226,6 @@ export function installGpuRecovery(host: RecoveryHost): void {
   scope.listen(window, 'pageshow', (e) => { if (e.persisted) show(); });
   scope.onDispose(() => { epoch++; stopTimer(); });
 
-  traceWorldReady();
 }
 
 /**

@@ -28,7 +28,6 @@ import { DescribedError, describeError, emitFault, loopState, onFault, type Faul
 import { isDev } from '../core/devMode';
 import { ErrorReporter, lastReportId, safeUrl, sendReport as send, type ReportOutcome } from '../core/errorReport';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
-import { installLifeTrace } from '../core/lifeTrace';
 import { currentPose } from './ReloadPrompt';
 import { activeLevel } from '../level/selection';
 import { TIER } from '../core/tier';
@@ -281,8 +280,6 @@ export function installErrorModal(): void {
   w.__wsErrorModal = true;
   reporter = new ErrorReporter({ send, context, session: session(), local: local(), now: () => performance.now() });
   onFault(handle);
-  // the app-switch trace (E135): a long return / a boot after one reports as system `lifecycle` — no chip, no modal
-  installLifeTrace((message, trace) => { void report('lifecycle', new DescribedError(message, trace), {}); });
   scope.listen(window, 'error', (e) => {
     const err: unknown = e.error;
     // An opaque cross-origin error ("Script error.", no file, no error object) is never ours: every game script is

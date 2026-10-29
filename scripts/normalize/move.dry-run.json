@@ -473,7 +473,6 @@
     "src/core/harnessTap.ts",
     "src/core/KeepAlive.ts",
     "src/core/ktx2.ts",
-    "src/core/lifeTrace.ts",
     "src/core/noise.ts",
     "src/core/perfLap.ts",
     "src/core/practiceRoom.ts",
@@ -545,7 +544,6 @@
     "src/engine/core/harnessTap.ts",
     "src/engine/core/KeepAlive.ts",
     "src/engine/core/ktx2.ts",
-    "src/engine/core/lifeTrace.ts",
     "src/engine/core/noise.ts",
     "src/engine/core/perfLap.ts",
     "src/engine/core/practiceRoom.ts",
@@ -3277,10 +3275,6 @@
     {
       "from": "src/core/ktx2.ts",
       "to": "src/engine/core/ktx2.ts"
-    },
-    {
-      "from": "src/core/lifeTrace.ts",
-      "to": "src/engine/core/lifeTrace.ts"
     },
     {
       "from": "src/core/noise.ts",
