@@ -21,6 +21,7 @@ it('a fixed compiled entry total does not grow as declarations arrive, or reach 
   expect(loadingDownloadFraction(first, false)).toBe(0.375);
   expect(loadingDownloadFraction(next, false)).toBe(0.5);
   expect(loadingDownloadText(first)).toContain('of 4.00 MB content');
+  expect(loadingDownloadText({...first, declaredBytes: 0, declaredDoneBytes: 0})).toContain('0.00 MB of 4.00 MB content');
   expect(loadingDownloadText(next)).toContain('of 4.00 MB content');
   expect(loadingDownloadFraction({...next, declaredDoneBytes: 4_000_000}, true)).toBeLessThan(1);
   expect(loadingDownloadFraction({...next, declaredDoneBytes: 4_000_000, pendingBytes: 0}, true)).toBe(1);
