@@ -221,3 +221,355 @@ passes98854 original lines and all six AS ceilings. Keep the earlier
 three-file Vitest setup refusal separate; no tests executed in it.
 The owned Node captures have exited; no browser, preview, geometry
 rendering, Simulator, build or generation run was started for LD4.
+
+
+## Prepared deletion chain (G871 / G873; audit 2026-10-29)
+
+**Preparation only; no deletion in this commit.** Source inventory and searches below are pinned to
+`f8ccbaa6c3af46b885da26fc8b66673ce72f7040` (HEAD when this audit began), not loose peer files.
+G873 now puts this chain **after Jake's phone QA of the ~12:15 release**, as the last implementation batch before
+archive. The coordinator names the go; sp-ci-deploy first publishes `legacy-final` on the last legacy-containing
+commit. G840 means one continuous batch, with no early per-shard deletion or per-pair release. The three pair commits
+below supersede the older six-commit wording. Owners/order follow
+[the finish spike §2](finish-everything-2026-10-29-mini-spike.md#2-output-1-the-4-hour-schedule):
+LD5 sp-o3; three LD6+LD7 pairs sp-x9; LD8 sp-x2; LD9 sp-x10; LD10 sp-x6. Preparation continues on other assigned work
+until the release condition is satisfied; it is not permission to delete now.
+
+At this revision the six sealed trees have **1,143 tracked files**, exactly matching `lint/legacy-shards.json`.
+“Sky” in the old pair label means **`far-reach-legacy` (125)**, not a nonexistent `sky-reach-legacy` folder;
+“Signal” means **`sunscar-dunes-legacy` (180)**. Driftwood/Pine have 192/239, Nalati/Nine 249/158.
+The directory operands below mean the complete `git ls-tree -r --name-only <audit-SHA> <directory>` result, including
+assets, declaration companions and manifests; do not delete similarly named modern/public files.
+
+The audit used `git grep -n/-l` at that SHA for `legacy-shards`, `LEGACY_SHARDS`, `legacyShardButtons`,
+`ws-menu-shardfile`, `standaloneHybridEntry`, `prepareStandaloneHybrid`, `prepareTrustedRuntime`, `retainHomeRuntime`
+and `stagesOwner`, then resolved package-export aliases and checked literal tool loads. A secondary import/export
+parse covered 7,860 tracked code files with zero parser errors. A graph edge is not the only consumer:
+`scripts/blender/lib/export-scene.mjs:62` string-loads `src/engine/world/blenderArea.ts`, so that module **stays**.
+Historical line-basis JSON and save/oracle fixtures also stay unless the specific action below names them.
+Repeat the same searches on the actual parent of each implementation commit; a new retained caller is not discarded
+just to match this snapshot.
+
+**Checks used below.** Each implementation commit runs the existing strict solution
+`pnpm exec tsc -b tsconfig.layers.json`, typed lint on its remaining changed TS/JS files, the staged-file ratchet,
+`git diff --check`, and its named focused tests (`pnpm exec vitest run <files>`). Deleted-module tests keep useful
+native/byte/save/physics assertions by targeting the defining modern owner or a small test-only oracle; only assertions
+about a deliberately retired entry/module disappear. No tolerance, data pin, quarantine, budget or guard is relaxed.
+Registered source outputs (`src/shards.generated.ts`, `src/game/shard/slugs.generated.{ts,json}` and their source tables)
+regenerate through the existing producer/commit wrapper, never a hand-written manifest list. Public assets shared with
+the modern products and the committed goldens stay. Boot legs below name the **existing** exact-SHA smoke cases,
+not new local gate steps: `boot-public`, `boot-developer`, `boot-grid`, `hover-chromium`, `hover-webkit`, `explorer`.
+Use one full-inventory containing build; `phone-route` remains report-only. Final release consumes the completed chain,
+not an intermediate pair. No smoke, browser, product build or deletion was executed for this docs preparation.
+
+1. **LD5 — remove the entry UI/mode (sp-o3), after the tag.**
+
+   **Files/modules/exports:** `src/game/titleDeck.ts`, `src/game/mainMenu.css`, `src/game/strings.ts`,
+   `src/game/shard/{legacyButtons,entryMode,legacy}.ts`, `src/game/shard/manifest.ts`,
+   `src/game/travel/entry.ts`, `src/game/session/{loadout,play}.ts`, `src/game/summary.ts`,
+   `src/game/grid/pageEntry.ts`, `src/game/shardfile/{clientSource,productGround}.ts`, `src/entry.ts`,
+   `src/game/package.json`. Remove `legacyShardButtons`, dual `.ws-menu-shardfile` UI, choice/save-mode plumbing,
+   `chooseShardEntry`/`ShardEntryChoices`, legacy lookup and LEGACY loading/species branches. Keep primary filtering
+   (`manifest.legacy !== true`) until pair 3; frozen manifests and the helpers they still type-import must compile
+   between commits. Delete `entries.legacy` from the primary/UI contract, without rewriting sealed frozen manifests.
+   `standaloneHybridEntry`/hybrid ownership are LD9, not a second LD5 rewrite. No new look/layout choice.
+
+   **Drivers/scripts:** adapt the actual alternate-button consumers to the existing single ENTER WORLD in
+   `scripts/loading-benchmark/{accuracy,accuracy-safari,capture,safari-data}.mjs` and `safari-data.d.mts`,
+   `scripts/parity/{boot-smoke,hover-touch}.mjs`, `scripts/phone-loading/{main,instrument}.ts`,
+   `scripts/shard-phone-memory.{mjs,d.mts}`, `scripts/{sim-grid-entry,tile-plan-reading,bake-grid-seams}.mjs`.
+   `art/legacy-goldens/compare/capture.mjs` is the preserved reference driver: retire its live LEGACY invocation at LD8,
+   never rewrite the captured images as though they were taken after deletion.
+
+   **Tests/policy/checks:** migrate `test/shard-select-entries.test.ts`,
+   `src/game/travel/travel-entry.test.ts`, `test/shard-phone-memory-entry.test.ts` and
+   `test/vite-boot-modules.test.ts`; retain public/Developer single-button, locked-card, travel and actual-entry checks.
+   Remove only the matching `debugRows` allowance if present at execution; recompute the current
+   `wildshard/no-build-time-import` row for `src/game/titleDeck.ts` (4 at audit), shrink only on a real removal.
+   Pass common checks plus `boot-public`, `boot-developer`, `boot-grid`, and both hover legs (the clickers changed).
+
+2. **LD6+LD7 pair 1 — Far Reach (“Sky”) + Sunscar (“Signal”) (sp-x9).**
+
+   **Delete:** all 305 tracked files under `src/shards/{far-reach,sunscar-dunes}-legacy/` and the two complete matching
+   `lint/legacy-shards.json.shards` entries in the same commit. Remove these last-importer modules:
+   `src/game/shardfile/socketLift.ts`, `src/game/systems/items/lash.ts`,
+   `src/engine/world/terrainTileData.ts`, `src/sdk/{socketLift,flyers,grazers}.ts`,
+   `src/sdk/runtime/audio/silentScore.ts`. Prune each defining `exports` key from its engine/game/SDK `package.json`;
+   also prune the matching SDK `publishConfig.exports` key. No legacy helper/script retirement here.
+
+   **Exact shrinking policy:** `lint/ratchet.json` → `wildshard/sdk-no-facade` →
+   `src/sdk/runtime/audio/silentScore.ts: 1`; `lint/generated-import-debt.json.files` →
+   `src/shards/far-reach-legacy/{boot/files,manifest}.ts: 1` each;
+   `lint/generated-source-debt.json.files[]` → the 8 Far Reach and 81 Sunscar paths under these deleted prefixes.
+   No `runtime-performance.json`, `host-reviews.json` or `check-models.mjs` deletion site exists for this pair at audit.
+   Regenerate discovery/slugs after both complete inventory removals; keep the remaining four sealed rows unchanged.
+
+   **Tests/checks:** remove only retired declaration cases in
+   `src/engine/isolated-engine-world-uniform-declarations.test.ts` (`world/terrainTileData`) and
+   `src/sdk/isolated-sdk-binding-declarations.test.ts` (deleted SDK keys); adapt the source-only frozen reference in
+   `test/sunscar-world-program.test.ts` to its retained native/oracle evidence.
+   Run `test/{sky-signal-fixed-layouts,sky-signal-quest-product,sunscar-source-entry,sunscar-world-program,
+   platform-data-counts,legacy-seal,shard-select-entries}.test.ts` plus those declaration cases and common checks.
+   Smoke impact: `boot-public`, `boot-developer`, `boot-grid` (Signal road), `explorer`.
+
+3. **LD6+LD7 pair 2 — Driftwood + Pine (sp-x9).**
+
+   **Delete:** all 431 tracked files under `src/shards/{driftwood-isle,pine-hollow}-legacy/`, atomically removing their
+   two sealed rows. Shared leaves: `src/engine/ai/bossDefinition.ts`, `src/engine/models/{glb,hull}.ts`,
+   `src/engine/world/{BakedCards,faunaLayout,waterSurface}.ts`, `src/game/systems/npc/faceHeads.ts`,
+   `src/game/models/creatures.ts`, `src/game/shardfile/quests.ts`, `src/sdk/brains.ts`,
+   `src/sdk/runtime/effects.ts`, `src/sdk/runtime/weapons/Weapon.ts`. Remove defining package export/publish keys.
+   **Keep `src/engine/world/blenderArea.ts` and its export/tests**: it has a real Blender tool reader.
+
+   **Exact shrinking policy:** `wildshard/sdk-no-facade` rows `src/sdk/runtime/effects.ts: 3` and
+   `src/sdk/runtime/weapons/Weapon.ts: 1`; `lint/host-reviews.json.entries` only
+   `src/engine/world/waterSurface.ts#*`. In `lint/runtime-performance.json.sites`, remove all keys whose file prefix is
+   `src/shards/driftwood-isle-legacy/runtime/finale.ts` (2 sites), and Pine's `runtime/{kingLifetime,questClock,
+   questDirector,antlerKing}.ts` (10 sites). Remove matching `scripts/check-models.mjs` keys: Driftwood
+   `world/{rockKit,Boat,Seabed,Trailside,Wreck,Cove,GroundCover,Gulls,islandInstances}.ts`,
+   `weapons/swordView.ts`, `creatures/Enemies.ts`; Pine `world/{treeFactory,trophyWall,crags,landmarks,streams}.ts`,
+   `weapons/{longbowView,hunterHands}.ts`, `runtime/weapons/LeverRifle.ts`,
+   `runtime/weapons/crossbow/Crossbow.ts`. All paths in this sentence are relative to the appropriate frozen tree.
+   Remove generated-import rows for Driftwood `boot/{lateReads,sources}.ts`, `manifest.ts` (1 each), Pine
+   `boot/files.ts: 1`, `boot/gpuTable.ts: 2`; generated-source list entries under the two prefixes (6/4).
+   Remove base64-debt rows Driftwood `runtime/{baked,headless}.ts`, Pine `runtime/baked.ts` (1 each), and binary-JSON
+   rows Driftwood `runtime/{navmesh,physics}.baked.json`, Pine `runtime/physics.baked.json`.
+
+   **Tests/checks:** retarget `src/engine/anim/rig-parser-preparation.test.ts` to the defining rig owner and
+   `test/bake-collider-kernels.test.ts` to the existing native codec/reference. Prune only deleted declaration entries.
+   `test/{frozen-legacy-format,model-contract-paths}.test.ts` drop these two live-folder cases; saved historical oracle
+   JSON is retained. Replace the frozen-config import in `test/legacy-runtime-state.test.ts` with the original five-field
+   fixture; retain the modern twenty-field and mismatch/save-identity assertions. Retire frozen-only
+   `test/pine-legacy-journal-entry.test.ts`; retain/run `test/{pine-journal,pine-journal-late,pine-journal-view-demand,
+   pine-night-emits}.test.ts`. `test/legacy-settings.test.ts` loses obsolete frozen trim construction, while its ordered
+   clock-effect oracle stays covered by the existing Pine night fixtures/tests. Run these plus
+   `test/{driftwood-ground-bounds,legacy-seal,shard-select-entries}.test.ts` and common checks.
+   Smoke impact: `boot-public`, `boot-developer`, `boot-grid`, both hover legs, `explorer`.
+
+4. **LD6+LD7 pair 3 — Nalati + Nine (sp-x9), then hand the exact SHA to LD8.**
+
+   **Delete:** all 407 tracked files under `src/shards/{nalati-grasslands,nine-dragon-stack}-legacy/` and their last two
+   sealed rows. Shared leaves: `src/engine/ai/EliteBrain.ts`, `src/engine/player/nalatiArms.ts`,
+   `src/game/systems/npc/{figureMotion,figureRig}.ts`, `src/game/shardfile/portalLink.ts`,
+   `src/sdk/groupBrains.ts`, `src/sdk/weapons/firearmProfile.ts`, and
+   `src/sdk/runtime/weapons/{Firearm,Melee,Sword,Thrown,starterBow,starterMeleeProfile,starterMoves}.ts`.
+   Remove all matching defining export/publish keys. Keep the empty **sealed** inventory and the seal helper until LD8.
+
+   **Exact shrinking policy:** `wildshard/sdk-no-facade` rows (all under `src/sdk/runtime/weapons/`):
+   `Firearm.ts: 1`, `Melee.ts: 2`, `Sword.ts: 5`, `starterBow.ts: 4`, `starterMeleeProfile.ts: 2`, `starterMoves.ts: 10`.
+   Remove 15 `runtime-performance.json.sites` with Nalati file prefixes `runtime/{state,index,enteredAdventure}.ts`
+   and `runtime/audio/{SteppeScore,files}.ts`, plus Nine's 2 sites under `runtime/audio/files.ts`.
+   `check-models.mjs`: remove Nalati `runtime/weapons/{Spear,Rifle}.ts`, `world/glbPaint.ts`,
+   `world/dressing/{statics,index,layer,life}.ts`, `weapons/{recurve,meleeGeo}.ts`, `species/sheep.ts`,
+   `world/{WeatherFX,paint,Balbals,Bowl}.ts`, `playground/HorsePlayground.ts`, `cragRock.ts`, `campPeople.ts`,
+   `combat/{stormTitan,stormTitanLook}.ts`, plus the separate `src/engine/player/nalatiArms.ts` key;
+   Nine `vm/{swordSupport,geo}.ts`, `playground/GrapplePlayground.ts`, `world/{install,portals}.ts`,
+   `world/facade/batch.ts`, `world/hero/kitx.ts`. Remove generated-import rows for both `boot/files.ts`/`manifest.ts`
+   (1 each), generated-source entries (Nalati 4 / Nine 1), Nalati base64 `runtime/baked.ts: 1` and binary-JSON
+   `runtime/physics.baked.json`. Do not delete the live `painterly.ts` host-review entry merely because its historical
+   evidence mentions Nalati legacy; current client material/uniform readers still use that module.
+
+   **Tests/checks:** move retained `test/fixtures/species-oracle/pineElites.ts` and
+   `test/fixtures/weapon-oracle/{leverAction,leverBridge,nalatiRifleProfile,pineFirearmProfile}.ts` off deleted APIs,
+   preserving their original native/weapon laws. Retarget `test/sampled-ambience.test.ts`; remove only retired cases
+   from `src/engine/isolated-engine-world-uniform-declarations.test.ts` and
+   `src/game/isolated-game-registry-declarations.test.ts`. Run
+   `test/{frozen-legacy-format,model-contract-paths,nalati-data-runtime,nalati-creature-views,legacy-seal,
+   runtime-performance-rekey,sampled-ambience,shard-select-entries}.test.ts`, the existing elite/weapon oracle tests,
+   and common checks. All six frozen prefixes must be absent from the tracked tree, with no stale path allowance.
+   Smoke impact: `boot-developer`, `boot-grid`, both hover legs, `explorer`; Opus owns the six-shard camera-1 spot check.
+
+5. **LD8 — retire the empty legacy registry/tooling (sp-x2), after pair 3.**
+
+   **Delete/exports:** `lint/legacy-shards.json`, `scripts/legacy-shards.{mjs,d.mts}`,
+   `src/shards.generated.ts`'s `LEGACY_SHARDS`/`LEGACY_CONTENT_IDENTITIES` exports and their consumers in
+   `src/{shardList,shardSelection}.ts`; remove frozen identity plumbing in `src/game/shard/list.ts` only after preserving
+   ordinary save identity. Retire `legacySourcePath`, `legacyNpcImport` and `wildshard/legacy-npc-imports` in
+   `lint/wildshard-plugin.js`/`.d.ts`, its `.oxlintrc.json` rule entry, and only frozen-inventory exemptions in
+   `lint/{host-files,ratchet}.mjs`. Remove the terminal legacy-seal invocation from `.githooks/commit-msg`, preserving
+   message conventions, signing, storage, strict lint and every other live check.
+
+   **Scripts touched (drop frozen branches/imports, not entire useful tools):**
+   `scripts/{bake-loader,boot-dist-plan,build-shardfiles,check-custom-section-growth,check-graph,check-models,
+   check-platform-ratchets,check-shards,committed-fast-checks,frame-floor-inventory,game-plugins,
+   gen-budget-derivations,gen-programs,gen-shard-words,gen-shards,generated-files,json-declarations,map-hash,
+   precommit-checks,shard-coupling,shard-platform,shard-runtime-closure,sim-in-runtime,source-generators,
+   title-catalogue}.mjs`, `scripts/push-source.py` and matching declarations where their signatures change.
+   Remove the obsolete LEGACY mode from `scripts/legacy-explorer-lists.ts` / `legacy-explorer-lists.json`, and retire the
+   live A/B command in `art/legacy-goldens/compare/capture.mjs`; preserve goldens, boards and historical reports.
+
+   **Important retained policy:** `lint/legacy-line-basis.json` and the numerical parts of
+   `scripts/decision-legacy-lines.{mjs,d.mts}` still supply modern AS budgets and ruler denominators. Keep
+   `shardLineBaselines`/`decisionLegacyLines` and their exact 98,854-line total/AS ceilings
+   (DW1716/Pine2130/Nalati2837/Far677/Sunscar412/Nine2111). Delete only `legacyGeneratedPaths`, its inventory import and
+   frozen exclusions path. Historical names are not a runtime loader. Keep current primary C1–C9 zero locks,
+   no-shard-runtime/layout rules and modern shared-runtime/AS cost checks.
+
+   **Tests/checks:** retire `test/legacy-seal.test.ts`; migrate frozen-inventory setup/assertions in
+   `test/{committed-fast-checks,custom-section-growth,decision-project-policy,decision-project,frame-floor-inventory,
+   host-callbacks,platform-build-tools,platform-data-counts,platform-milestones,product-report-failure,
+   ruler-legacy-basis,runtime-performance-rekey,gen-source,generated-isolated-declarations,shard-select-entries}.test.ts`
+   and `test/fixtures/precommit-vocabulary.py`. Keep meaningful baseline/save/security cases, no skipped replacements.
+   Run these plus common checks; source/tool/config grep for `legacy-shards`, `LEGACY_SHARDS`, `legacySourcePath`,
+   `legacy-npc-imports` must be empty (docs/archive/golden provenance excluded). Existing six required smoke legs pass
+   on the containing chain SHA. No `.github` gate or report-only phone policy change is needed.
+
+6. **LD9 — one client-plan boot (sp-x10), after LD8, by 13:30.**
+
+   **Files/modules/exports:** `scripts/authored-manifest.mjs`, `src/format/minimap.ts`,
+   `src/game/shard/{manifest,declaredEntry,plugin,runtimeVariant,scopedRuntime}.ts`,
+   `src/game/plugin/context.ts`, `src/game/shardfile/{hybrid,hybridPresentation,client,clientSource,
+   runtimeProduct}.ts`, `src/game/grid/{liveSession,regionalRuntime}.ts`, `src/game/package.json` and the ordinary manifest producer
+   outputs. Replace emitted `load` thunks with the finite client-plan platform declaration; remove
+   `declaredClientPlanEntry`, `standaloneHybridEntry`, empty `ShardPlugin` constructor shells,
+   `TrustedRuntimeEntry`/`prepareTrustedRuntime`, `prepareStandaloneHybrid`, the legacy composite
+   `prepareHybridShard` branch and its scoped proxy adapter. Preserve the actual regional admission/activation,
+   retained resident scope, grid-home handoff, cancellation, charged ownership and world/kit/play order; do not delete
+   all of `hybrid.ts` just because its current name is transitional. No new loader registry, Vite plugin or virtual module.
+
+   **Preserve data semantics:** current declared entry policy is DW `false/declared`, Pine `true/runtime`,
+   Nalati `true/declared`, Nine `true/declared` for `retainHomeRuntime/stagesOwner`; Far/Sunscar have no such entry.
+   Keep needed ownership distinctions as validated data, not shard-name branches or one new default for all worlds.
+   Retire `LegacyRuntimeSchema` and the `entry` arm of `RuntimeSchema`/`RuntimeDeclaration` in `src/format/runtime.ts`,
+   `src/format/{outputIndex,outputFields,shardSchema}.ts`; keep the modern client-plan binds/spawns/cost schema.
+   Remove copied TS-runtime emission/execution in `src/sdk/{outputRuntime,outputProduct,project,cli,formatJsonSchema}.ts`
+   only where it serves that arm; retain ordinary named payloads, schemas, constants, data codecs and AS execution.
+   Prune defining format/game/SDK package exports when a whole module actually disappears.
+
+   **Tests/checks:** adapt `test/{authored-manifest,authored-transition,client-runtime-declaration,entry-styles,
+   copied-runtime-build,output-runtime,platform-output-reader,frozen-legacy-format,hybrid-entry-preparation,
+   hybrid-inventory,hybrid-product-rows,hybrid-render-preparation,client-plan-platform,client-mover-owners,
+   held-entered,held-primary-entry,mounted-entry,driftwood-entry-lifetime,nalati-entry-construction}.test.ts`;
+   retain modern assembly, entry retirement, save/quest, inventory, population and lighting-readiness oracles.
+   Migrate runtime-entry acceptance cases to explicit refusal while keeping current client-plan admission positive.
+   Common checks, all six smoke legs, and `node scripts/physics-baseline.mjs --no-build --mode=walk` → 0 stuck
+   implement spike L4 (no six additional hand walks). A miss at 13:30 becomes the spike's dated damage row, not a waiver.
+
+7. **LD10 — regraph, remove second-wave exports/members and stale manual sections (sp-x6), after LD9, by 13:30.**
+
+   **Concrete remaining runtime facades:** `src/sdk/runtime/audio/{combatCues,weaponVoices}.ts` are still loaded by
+   `src/entry.ts:193`, so they cannot be deleted in LD7. Replace both loans with the same defining public
+   `@wildshard/game/plugin/audio` exports (`sharedCombatCues`, `sharedWeaponVoices`), preserving function identity,
+   cue/sample order and boot-bank correspondence. Then delete the two wrappers, their SDK export/publish keys and
+   `wildshard/sdk-no-facade` rows 1/3. Do not zero that whole ratchet: retained author/tool rows at audit are
+   `src/sdk/kit/bakedGeometry.ts:7`, `src/sdk/phasedBoss.ts:9`, `src/sdk/species/clips.ts:11`,
+   `src/sdk/speciesBrains.ts:3`, `src/sdk/weapons/bowProfile.ts:4`, `src/sdk/weapons/meleeProfile.ts:2`.
+   Any additional removed wrapper must first lose its actual production/tool caller; decrease only its own allowance.
+
+   **Second-wave review files:** the exact current export sites below have frozen/LD7 readers and no other resolved
+   production import at the audit pin; they are the member/export review set, not permission to remove used bodies.
+   Drop an export only after its last reader is gone; keep private code called inside the same module. Preserve raw
+   data/tool string consumers and move genuinely test-only reference implementations to test fixtures with all original
+   assertions. Fresh post-LD9 reachability decides which whole modules are now orphaned. In `ShardContext`, review
+   `rows.places` and inherited/member-level calls; `bag.tab/fragment`, `rows.item/lootTable/skin/feat/shop/compendium`,
+   `manifest`, `product` and the actual `cube` data have current modern callers and are not blanket deletion targets.
+   String-keyed row dispatch, reflection and typed host ports count as callers. Keep workers, service worker entry,
+   `*.merge.d.ts`, `src/sdk/bin`, CLI/dev/bake tools and the string-loaded Blender exporter as roots.
+
+   Review set (visibility/body checks above apply to every name):
+
+   | Defining module | Export names to recheck after LD9 |
+   |---|---|
+   | `src/engine/ai/challengeGrazer.ts` | `ChallengeGrazerSpec` |
+   | `src/engine/ai/hunt.ts` | `HuntMemory` |
+   | `src/engine/ai/inspect.ts` | `pinBrain` |
+   | `src/engine/ai/patrolDiver.ts` | `PatrolDiverSpec` |
+   | `src/engine/ai/species.ts` | `SpeciesVariant`, `deriveSpecies` |
+   | `src/engine/app/cachedAssets.ts` | `cacheUntilDisposed` |
+   | `src/engine/audio/AmbienceBeds.ts` | `BedDef`, `ZoneWeights`, `AmbienceBeds` |
+   | `src/engine/audio/ambience.ts` | `ZoneVoice` |
+   | `src/engine/audio/audioProfiles.ts` | `requireAudioZone` |
+   | `src/engine/audio/gen.ts` | `synthKit` |
+   | `src/engine/combat/Equipment.ts` | `RangedFeelProfile` |
+   | `src/engine/combat/ammo.ts` | `ProjectileModification` |
+   | `src/engine/combat/effects/types.ts` | `SourceMulDef`, `sourceMultiplier` |
+   | `src/engine/combat/view/brass.ts` | `brassFloor` |
+   | `src/engine/combat/view/firearmFx.ts` | `HitLine` |
+   | `src/engine/combat/view/ranged.ts` | `CrossbowWorld`, `CrossbowOptions`, `dataTexture`, `box`, `cyl`, `remapUV`, `edgeWear`, `stripExtra` |
+   | `src/engine/combat/view/rangedFeel.ts` | `installRangedFeel` |
+   | `src/engine/core/assets.ts` | `PBRSet`, `loadGLTF` |
+   | `src/engine/core/ktx2.ts` | `readTexturePixels` |
+   | `src/engine/entities/AnimalManager.ts` | `AnimalSound`, `Herd` |
+   | `src/engine/entities/species/loft.ts` | `Station`, `setShapeFn` |
+   | `src/engine/entities/species/rigs.ts` | `smooth01`, `bump` |
+   | `src/engine/models/creature.ts` | `CREATURE_CLIPS` |
+   | `src/engine/models/cull.ts` | `CullView` |
+   | `src/engine/models/model.ts` | `ModelPlacementVisit`, `withModelPlacementVisitor`, `ModelRendererHost`, `ModelLod`, `ModelInfo`, `GeometryModelPart`, `GeometryModelRow`, `GeometryModelSource`, `SceneModelPort` |
+   | `src/engine/models/place.ts` | `Draw`, `InstancedCuller`, `HandedBatch`, `copiesNear`, `copiesAt`, `weld`, `finishWeld` |
+   | `src/engine/models/slots.ts` | `SlotRecorder` |
+   | `src/engine/models/weld.ts` | `twoSidedPositions`, `flatPositions` |
+   | `src/engine/physics/bodies.ts` | `overlapBox` |
+   | `src/engine/physics/terrain.ts` | `terrainGrid`, `EDGE_WALL_INSET`, `TerrainCut` |
+   | `src/engine/player/WeaponPickup.ts` | `PickupTier`, `TIER_COLOUR`, `ItemPickupOptions` |
+   | `src/engine/quest/view.ts` | `ChipSource` |
+   | `src/engine/render/look.ts` | `LookComposeContext` |
+   | `src/engine/render/shaderPatches.ts` | `ownUniforms` |
+   | `src/engine/ui/Minimap.ts` | `MapPoi`, `MapOverlay` |
+   | `src/engine/world/Grass.ts` | `TrampleField`, `GrassTrampleField` |
+   | `src/engine/world/HorizonMatte.ts` | `HORIZON_RADIUS` |
+   | `src/engine/world/TreeFactory.ts` | `TreeVariant`, `FadeBand`, `patchFade`, `patchWind` |
+   | `src/engine/world/dayCycle.ts` | `DayPhase`, `ScheduleSeg`, `DayKeys` |
+   | `src/engine/world/geometryBake.ts` | `withGeometryBake` |
+   | `src/engine/world/geometryKit.ts` | `sagLine`, `pole`, `blob`, `mergeVerticesByPos`, `lathe`, `revolve`, `revolveUV` |
+   | `src/engine/world/interact/types.ts` | `PoiId`, `PickupDef` |
+   | `src/engine/world/lowpolyKit.ts` | `Part`, `PLANT`, `fern`, `broadClump`, `hibiscus`, `hibiscusBush`, `lilyPad`, `lotus`, `grassTuft`, `vineStrand`, `BakedLight`, `bakeLight`, `lowPolyMaterial` |
+   | `src/engine/world/steppeWind.ts` | `WIND_GLSL` |
+   | `src/engine/world/voxelAO.ts` | `withVoxelAOBake` |
+   | `src/engine/world/water/body.ts` | `swellBody` |
+   | `src/engine/world/water/view.ts` | `surfaceReflect` |
+   | `src/engine/world/waves.ts` | `WAVES_GLSL`, `WAVES_NORMAL_GLSL` |
+   | `src/engine/world/wind.ts` | `swayDepthMaterial` |
+   | `src/game/Boss.ts` | `BossDef`, `BossPersistence` |
+   | `src/game/Elite.ts` | `EliteDef`, `ElitePersistence`, `GroundTellWedgeStyle` |
+   | `src/game/Progress.ts` | `ProgressSink` |
+   | `src/game/bag/bag.ts` | `CosmeticSlot` |
+   | `src/game/bake/entryways.ts` | `proveSocketLift` |
+   | `src/game/compendium/types.ts` | `CompendiumSkin` |
+   | `src/game/inventoryLaw.ts` | `InventoryState` |
+   | `src/game/loot/tables.ts` | `LootContext`, `LootTableRow` |
+   | `src/game/plugin/context.ts` | `ShardCube` |
+   | `src/game/plugin/mover.ts` | `moverQueries` |
+   | `src/game/saves.ts` | `shardSave` |
+   | `src/game/shard/manifest.ts` | `Vec2`, `RGB`, `ChunkTerrain`, `OceanDef`, `ChunkHorizon` |
+   | `src/game/shard/retainedHooks.ts` | `installEnteredRuntimeUpdate` |
+   | `src/game/shardfile/bakedKinds.ts` | `BakedKindRow`, `BakedColliderRow`, `loadBakedKinds`, `bakedColliders`, `bakedKindsGroup` |
+   | `src/game/shardfile/bossRow.ts` | `installBossRow` |
+   | `src/game/shardfile/homeKeeper.ts` | `KeptBossRow` |
+   | `src/game/shardfile/movers.ts` | `MoverData` |
+   | `src/game/systems/looks/grassField.ts` | `TALL_GRASS`, `GrassFieldLayout`, `configureGrassField`, `trailGrass`, `grassToneAt`, `flowerPatchAt`, `grassBloomAt`, `flowerSpeciesAt`, `groundColorAt` |
+   | `src/game/systems/looks/particles.ts` | `makeMistTexture` |
+   | `src/game/systems/looks/rainCurtain.ts` | `rainCurtain` |
+   | `src/game/systems/looks/trample.ts` | `RECOVER`, `MAX_MOVERS`, `TrampleState`, `installTrampleTrail`, `GrassTrample` |
+   | `src/game/systems/npc/npcRig.ts` | `NpcRigProfile`, `NpcRow`, `NpcRig`, `rigLegs`, `legRigOf` |
+   | `src/game/systems/species/boar.ts` | `BOAR_TUNING` |
+   | `src/game/systems/species/view/bear.ts` | `BEAR_PALETTE` |
+   | `src/game/systems/viewmodel/armRig.ts` | `JointAngles` |
+   | `src/game/weapons/starterBowProfile.ts` | `BOW` |
+   | `src/game/weapons/starterMoves.ts` | `key` |
+   | `src/sdk/crowds.ts` | `FlockData` |
+   | `src/sdk/headlessRuntime.ts` | `HeadlessRuntimePreparation`, `HeadlessRuntimeInstallation`, `HeadlessRuntimePlan`, `PrepareHeadlessRuntime` |
+   | `src/sdk/weapons/bowProfile.ts` | `BowProfile`, `BowView`, `GripPose` |
+   | `src/sdk/weapons/thrownProfile.ts` | `ThrownProfile` |
+
+   **Manual/scripts/tests/policy:** update only obsolete legacy/plugin authoring sections of `docs/ENGINE.md` and
+   `docs/SHARDS.md`, defining `src/{engine,game,sdk}/package.json` keys, `scripts/{check-models,shard-components}.mjs`
+   entries for actually removed symbols/modules, and their precise lint rows. Generated API/index files remain the
+   normal docs producer's outputs. Keep `src/game/quest/legacyRecords.ts`,
+   `test/fixtures/quest-step-legacy-saves.{json,d.json.ts}`, `test/fake/legacy{Actor,Hurt,Source}.ts` and static
+   `test/fixtures/legacy-oracles/**` when modern migration/native comparisons still consume them: “legacy” in a
+   historical fixture name is not a runtime loading path.
+
+   Run common checks and the affected current test families, including
+   `test/{boot-home-modules,vite-boot-modules,runtime-equipment,client-plan-platform,held-primary-entry,
+   runtime-product-loader}.test.ts`, typed declaration/namespace controls for each deleted export, and the retained
+   native species/weapon/save oracles. The fresh graph must leave no unclassified orphan/test-only production module:
+   remove it, move its reference implementation to tests, or name its real tool/worker/data-string root.
+   Run all six existing smoke legs on the completed chain SHA; preserve exact native entry, actual drawn frames,
+   cache/hash/refusal and gameplay assertions. A remaining graphical change belongs to Opus (G848), not a Codex rewrite.
+   Apply the finish spike's 13:30 disposition if this row misses its current deadline; G873's later QA release order is
+   controlled by the coordinator, not inferred from this preparation document.
+
+The only change made by this preparation is this ordered list. It neither creates the tag, deletes source/policy/tests,
+nor claims any of the implementation checks or boot smoke has run. The implementation owners refresh this pinned
+inventory against their actual commit parents, keep exact decreases with their deletions, and report the final pair-3
+SHA directly to LD8 so the chain has one unambiguous boundary.
