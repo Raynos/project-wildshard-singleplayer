@@ -3,7 +3,7 @@
   "updated": "2026-10-29T19:22:40Z",
   "entries": [
     "Fixed getting stuck when leaving a world for the main menu",
-    "Reload now returns directly to the title without an update screen",
+    "Reload no longer shows an update progress screen",
     "New game from a standalone world returns to the title",
     "Fixed flashing white blocks around Driftwood's grid",
     "Fixed the blurred top edge in the iPhone home-screen app"
