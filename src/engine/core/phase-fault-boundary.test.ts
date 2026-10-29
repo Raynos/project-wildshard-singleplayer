@@ -1,6 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { Game } from './Game';
 import { TickScheduler } from '../app/scheduler';
+import { Scope } from '../app/scope';
 import type { AppState, SystemSpec } from '../app/systems';
 import { Events } from '../events/events';
 import { FAULT_STREAK, loopState, onFault, setLoopState, type Fault, type GameSystem } from './faults';
@@ -85,4 +86,19 @@ test('core predicate failures keep the original fatal streak policy', () => {
     expect(run).not.toHaveBeenCalled(); expect(f.host.dead).toBe(true); expect(f.app.state).toBe('error');
     expect(f.reports).toEqual([{ system: 'test.core', error, verdict: 'uncaught' }, { system: 'test.core', error, verdict: 'fatal' }]);
   } finally { f.stop(); }
+});
+
+
+test('a refused predicate still flushes healthy queued events at the phase boundary', () => {
+  const error = new Error('refused bookkeeping'), owner = new Scope('phase-events');
+  const f = fixture([{ id: 'test.refused', phase: 'update', when: () => { throw error; }, run: () => undefined },
+    { id: 'test.emit', phase: 'update', run: () => { f.app.events.emit('level.loaded', { id: 'fixture' }); } }]);
+  const received: string[] = [];
+  f.app.events.on('level.loaded', event => { received.push(event.id); }, owner);
+  try {
+    f.frame(); f.frame();
+    expect(received).toEqual(['fixture', 'fixture']);
+    expect(f.reports).toEqual([{ system: 'test.refused', error, verdict: 'uncaught' }]);
+    expect(f.host.dead).toBe(false);
+  } finally { f.stop(); owner.dispose(); }
 });
