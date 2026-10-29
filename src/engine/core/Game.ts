@@ -383,6 +383,23 @@ export class Game {
    * one-time work (a system's lazy first step, first-sight texture uploads) is paid under the title art, not on the tap.
    */
   primeFrame: () => void = () => undefined;
+  /**
+   * FC2 (frame cost: nothing drawn behind the loader): ONE whole frame (the systems' step and the draw) now, in this task,
+   * even with the gate shut. The loader pays the first world frame and its ready frame with it under the opaque card,
+   * instead of free-running world frames behind it.
+   */
+  hiddenFrame: () => void = () => undefined;
+  /** FC2: one draw of the world into the composer's input buffer (the real formats, nothing presented): what a live frame
+   *  would build, upload and link, without a frame on screen. False when there is no composer target yet. */
+  offscreenDraw(): boolean {
+    const target: unknown = Reflect.get(this.composer, 'inputBuffer');
+    if (!(target instanceof THREE.WebGLRenderTarget)) return false;
+    const prev = this.renderer.getRenderTarget();
+    this.renderer.setRenderTarget(target);
+    try { this.renderer.render(this.rootScene, this.camera); }
+    finally { this.renderer.setRenderTarget(prev); }
+    return true;
+  }
   private captures: { maxW: number; resolve: (c: HTMLCanvasElement) => void }[] = [];
   /** A copy of the next rendered frame, at most `maxW` px wide (the review inbox's screenshot, src/engine/ui/Feedback.ts). The drawing
    *  buffer is not preserved, so the copy is taken in the same task as composer.render(); it resolves on the next frame drawn. */
@@ -1347,6 +1364,7 @@ export class Game {
     };
     this.kickLoop = () => { if (!this.dead && diagnosticNow() - lastRun > 1000) this.engineScope.raf(loop); };
     this.primeFrame = () => { if (!this.dead) forceFrame = true; };
+    this.hiddenFrame = () => { if (this.dead) return; forceFrame = true; loop(); };
     setLoopState('running');
     loop();
   }

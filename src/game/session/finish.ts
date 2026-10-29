@@ -42,7 +42,9 @@ const WORLD_LINK_MS = 6000;
 async function linkWorldUnderLoader(game: Awaited<ReturnType<typeof playStage>>['game']): Promise<void> {
   const scope = game.levelScope;
   try {
-    await boundEntryWarmup(scope, () => game.frameCount, () => 'world-program-links', async current => {
+    // FC2: no frame is presented under the loader; the bound's progress is its own tick, its total limit still holds
+    let ticks = 0;
+    await boundEntryWarmup(scope, () => ++ticks, () => 'world-program-links', async current => {
       await precompileLevel(game, undefined, { sliceMs: 6, current, owner: scope, nearest: true, ...liveWarmPacing() });
     }, { noFrameMs: ENTRY_NO_FRAME_MS, totalMs: WORLD_LINK_MS });
   } catch (error) {
@@ -169,31 +171,24 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // half, an empty minimap and the title ghost under the HUD for ~0.3 s): the loop starts first, and the loader leaves once
   // two frames have drawn and the minimap's baked map has decoded, waiting at most 1.5 s for both
   app.setState(hud.entered ? 'play' : 'title');
-  // MF5 / NP-4: the first world frame (game.start draws it synchronously) is a named step, never a gap after Audio
-  await loadingStage('worldFrame', () => { game.start(); });
-  const drawnFrom = game.frameCount;
-  const drawn = new Promise<void>((resolve) => { const check = (): void => { if (game.frameCount >= drawnFrom + 2) resolve(); else game.levelScope.raf(check); }; check(); });
-  await loadingStage('readyFrame', () => Promise.race([Promise.all([drawn, ctx.minimap.prepare()]), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })]));
+  // MF5 / NP-4: the first world frame is a named step, never a gap after Audio. FC2: nothing free-runs behind the loader;
+  // the loop starts parked behind its gate and the first world frame is ONE hidden frame under the opaque card
+  await loadingStage('worldFrame', () => { game.start(); game.hiddenFrame(); });
+  // FC2 (L15): the ready frame is one more hidden frame (the minimap's baked map decodes beside it, at most 1.5 s)
+  await loadingStage('readyFrame', () => { game.hiddenFrame(); return Promise.race([ctx.minimap.prepare(), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })]); });
   // P0: the phone's spawn programs settle while loading still covers the reveal.
   // Undrawn world programs remain in the sliced after-control warm-up below.
   // A boot that lands on the title reveals nothing yet: it draws no frame before ENTER (CI's 0.3 fps runner spent ~70 s
   // of Nine's 150 s title budget on these 20+ frames), and the title's own warm-up below links the world meanwhile.
   const entersAtReveal = hud.entered || arrival?.mode === 'enter' || arrival?.mode === 'arena' || ctx.continuingGridEntry;
   if (TIER === 'phone' && entersAtReveal) {
-    // The title gate otherwise prevents any real frame before enter(). Keep
-    // input/reveal closed, but draw the admitted spawn under the opaque loader.
-    const previousGate = game.frameGate;
-    const spawnGate = (): boolean => ctx.gridLive?.gameplayReady() ?? true;
-    game.frameGate = spawnGate;
-    try {
-      await loadingStage('spawnPrograms', () => settleEntryPrograms(game));
-      // QA8: on WebKit every compile runs in the GPU process, and a frame queues behind it: the ~17 world programs the
-      // spawn view does not draw (Driftwood's off-screen graph materials, the loot coin) linked one a frame in play cost
-      // an iPhone ~8 s at 7-11 fps (366 ms frames) right after PLAY. They link here, under the loader, paced the same way
-      // and capped; what the cap leaves still links in play (warmRest).
-      if (queuedLinks()) await loadingStage('worldPrograms', () => linkWorldUnderLoader(game));
-    }
-    finally { if (game.frameGate === spawnGate) game.frameGate = previousGate; }
+    // FC2: no world frames under the loader; the spawn view warms with counted offscreen draws (settlePrograms.ts)
+    await loadingStage('spawnPrograms', () => settleEntryPrograms(game));
+    // QA8: on WebKit every compile runs in the GPU process, and a frame queues behind it: the ~17 world programs the
+    // spawn view does not draw (Driftwood's off-screen graph materials, the loot coin) linked one a frame in play cost
+    // an iPhone ~8 s at 7-11 fps (366 ms frames) right after PLAY. They link here, under the loader, paced the same way
+    // and capped; what the cap leaves still links in play (warmRest).
+    if (queuedLinks()) await loadingStage('worldPrograms', () => linkWorldUnderLoader(game));
   }
   const readyFrameGate = game.frameGate, loadingFrameGate = (): boolean => false;
   if (loading.holdRequested) game.frameGate = loadingFrameGate;
