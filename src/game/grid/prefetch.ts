@@ -22,10 +22,7 @@ import type { OutputDownloadIndex } from '@wildshard/format/outputDownload';
 import { findTitleManifest, titleManifests } from '../shard/titleList';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { OfflineDownloadEnd } from '@wildshard/engine/ui/offlineDownload';
-import type { ProductCache, ProductOptions } from '../shardfile/product';
-import { browserContentStore, contentHash } from '../shardfile/contentStore';
-import { hashOwnedBytes, prepareContentHash } from '@wildshard/engine/boot/contentHash';
-import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
+import { hasCachedAsset, cacheAsset } from '../shardfile/assetCache';
 import { builtIndexHash, builtIndexHashes } from '@wildshard/format/builtIndexes';
 import { readPrefetchIndex } from './prefetchIndex';
 import type { GridAssembly } from './assembly';
@@ -57,10 +54,10 @@ export interface GridPrefetchStatus {
   readonly inFlightBytes: number; readonly peakInFlightBytes: number; readonly limitInFlightBytes: number;
 }
 interface Row { readonly path: string; readonly hash: string; readonly bytes: number }
-type PrefetchCache = Required<Pick<ProductCache, 'holds' | 'keepAsset'>> & {
-  /** The whole file in the content cache's worker (read, verified, kept): whether it was stored, null where no worker can. */
-  readonly fetchKeep?: (url: string, hash: string, bytes: number) => Promise<boolean | null>;
-};
+interface PrefetchCache {
+  holds: (hash: string, bytes: number) => Promise<boolean>;
+  keepAsset: (hash: string, bytes: Uint8Array) => Promise<boolean>;
+}
 
 /** The verified disk cache owns persistence. A title read borrows its
  * abort signal so the tap can release bandwidth before travel/adoption. */
@@ -159,18 +156,15 @@ class GridPrefetch {
     const url = new URL(descriptor, location.href), base = new URL('.', url).href;
     const indexHash = import.meta.env.DEV ? null : builtIndexHash(url.pathname);
     if (indexHash !== null) url.searchParams.set('v', indexHash.slice(0, 8));
-    prepareContentHash();
     if (typeof caches === 'undefined') { this.stop('no content cache'); return; }
-    const content = browserContentStore(caches), indexes = import.meta.env.DEV ? null : builtIndexHashes();
-    const holds: PrefetchCache['holds'] = (hash, size) => content.holds(hash, size);
-    const keepAsset: PrefetchCache['keepAsset'] = (hash, body) => content.put(hash, body, true);
-    // Ordinary prefetch stays worker-owned (G639). Title reads must be
-    // abortable at the tap; their bounded page bytes use the same verifier.
-    const fetchKeep = !this.title && content instanceof ContentCacheWorker ? async (file: string, hash: string, size: number): Promise<boolean | null> =>
-      (await content.fetchVerified(file, hash, size, { reply: 'stored', keep: true }))?.stored ?? null : undefined;
-    const index = await readPrefetchIndex({url:url.href,indexHashes:indexes===null?null:[...indexes],phone:this.tier==='phone'},content);
+    const indexes = import.meta.env.DEV ? null : builtIndexHashes();
+    const index = await readPrefetchIndex({url:url.href,indexHashes:indexes===null?null:[...indexes],phone:this.tier==='phone'});
     if(index===null){this.stop('a newer deployment');return;}
     const listed: Row[] = [...index.sections, ...index.schemas, ...index.files.map(file => ({ path: file.path, hash: file.hash, bytes: file.compressed }))];
+    const urls = new Map(listed.map(row => [row.hash, new URL(row.path, base).href]));
+    const address = (hash: string): string => { const path = urls.get(hash); if (path === undefined) throw new Error('Undeclared prefetch file'); return path; };
+    const holds: PrefetchCache['holds'] = hash => hasCachedAsset(caches, address(hash));
+    const keepAsset: PrefetchCache['keepAsset'] = (hash, body) => cacheAsset(caches, address(hash), body);
     // a commons blob or a shared section is listed by several products: count and store it once
     const rows = listed.filter(row => { if (this.hashes.has(row.hash)) return false; this.hashes.add(row.hash); return true; });
     this.status.knownFiles += rows.length; this.status.knownBytes += rows.reduce((sum, row) => sum + row.bytes, 0);
@@ -185,18 +179,18 @@ class GridPrefetch {
     }
     for (const pack of index.packs ?? []) {
       const members = byPack.get(pack.hash);
-      if (members !== undefined && this.status.reason === null) await this.pack(pack, members, base, { holds, keepAsset }, quota, contentHash);
+      if (members !== undefined && this.status.reason === null) await this.pack(pack, members, base, { holds, keepAsset }, quota);
     }
     rows.splice(0, rows.length, ...loose);
     let next = 0;
     const lane = async (): Promise<void> => {
-      for (let row = rows[next++]; row !== undefined && this.status.reason === null; row = rows[next++]) await this.file(row, base, { holds, keepAsset, ...(fetchKeep === undefined ? {} : { fetchKeep }) }, quota, contentHash, hashOwnedBytes);
+      for (let row = rows[next++]; row !== undefined && this.status.reason === null; row = rows[next++]) await this.file(row, base, { holds, keepAsset }, quota);
     };
     await Promise.all(Array.from({ length: CONCURRENCY }, lane));
   }
   /** I5: a pack's members not yet on disk, from one verified read of the pack, each kept under its own hash. */
   private async pack(pack: NonNullable<OutputDownloadIndex['packs']>[number], members: readonly Row[], base: string,
-    cache: Pick<PrefetchCache, 'holds' | 'keepAsset'>, quota: PrefetchQuota, hash: (bytes: Uint8Array) => Promise<string>): Promise<void> {
+    cache: PrefetchCache, quota: PrefetchQuota): Promise<void> {
     const missing: Row[] = [];
     for (const row of members) {
       if (await cache.holds(row.hash, row.bytes)) { this.status.presentFiles++; this.status.presentBytes += row.bytes; }
@@ -210,7 +204,7 @@ class GridPrefetch {
       release = await this.memory.reserve(pack.bytes);
       if (this.status.reason !== null) return;
       const bytes = await readGridPrefetch(new URL(pack.path, base).href, pack.bytes, fetch, this.title ? this.transfer.signal : undefined);
-      if (bytes.length !== pack.bytes || await hash(bytes) !== pack.hash) throw new Error('Prefetched pack differs from its index');
+      if (bytes.length !== pack.bytes) throw new Error('Prefetched pack differs from its index');
       if (this.status.reason !== null) return;
       const at = new Map(pack.entries.map(entry => [entry.hash, entry] as const));
       for (const row of missing) {
@@ -222,10 +216,8 @@ class GridPrefetch {
       }
     } finally { release?.(); reservation.finish(stored); }
   }
-  /** Each file's digest runs in the page's hash worker (the bytes go there and back); the page digests only when no
-   *  worker can. Hashing every prefetched file on the page was 617 ms of Pine's grid entry at 4x CPU (G639). */
-  private async file(row: Row, base: string, cache: PrefetchCache, quota: PrefetchQuota, hash: (bytes: Uint8Array) => Promise<string>,
-    hashOwned: ProductOptions['hashOwned']): Promise<void> {
+  /** Build-owned files use their canonical URL and exact length, never a digest. */
+  private async file(row: Row, base: string, cache: PrefetchCache, quota: PrefetchQuota): Promise<void> {
     if (await cache.holds(row.hash, row.bytes)) { this.status.presentFiles++; this.status.presentBytes += row.bytes; return; }
     const reservation = await quota.reserve(row.bytes);
     if (reservation === null) { this.stop('storage quota', 'quota'); return; }
@@ -234,16 +226,8 @@ class GridPrefetch {
       release = await this.memory.reserve(row.bytes);
       if (this.status.reason !== null) return;
       const url = new URL(row.path, base).href;
-      const kept = await cache.fetchKeep?.(url, row.hash, row.bytes) ?? null;
-      if (kept !== null) { if (kept) stored = row.bytes; else this.stop('content cache full', 'quota'); return; }
       bytes = await readGridPrefetch(url, row.bytes, fetch, this.title ? this.transfer.signal : undefined);
-      let actual: string | undefined;
       if (bytes.length !== row.bytes) throw new Error('Prefetched file differs from its index');
-      if (hashOwned !== undefined) {
-        try { ({ hash: actual, bytes } = await hashOwned(bytes)); }
-        catch { if (bytes.byteLength !== row.bytes) bytes = await readGridPrefetch(url, row.bytes, fetch, this.title ? this.transfer.signal : undefined); } // a failed transfer: read it again
-      }
-      if (bytes.length !== row.bytes || (actual ?? await hash(bytes)) !== row.hash) throw new Error('Prefetched file differs from its index');
       if (this.status.reason !== null) return;
       if (await cache.keepAsset(row.hash, bytes)) stored = bytes.length; else this.stop('content cache full', 'quota');
     } finally {
@@ -312,8 +296,7 @@ export async function remainingDownloadBytes(owner?: Scope): Promise<number | nu
   live();
   if (typeof caches === 'undefined') return null;
   const tier = (await import('@wildshard/engine/core/tier')).TIER;
-  prepareContentHash();
-  const content = browserContentStore(caches), indexes = import.meta.env.DEV ? null : builtIndexHashes(), seen = new Set<string>();
+  const indexes = import.meta.env.DEV ? null : builtIndexHashes(), seen = new Set<string>();
   let bytes = 0;
   for (const slug of everyProduct()) {
     live();
@@ -321,14 +304,14 @@ export async function remainingDownloadBytes(owner?: Scope): Promise<number | nu
     if (descriptor === undefined) continue;
     const url = new URL(descriptor, location.href), indexHash = import.meta.env.DEV ? null : builtIndexHash(url.pathname);
     if (indexHash !== null) url.searchParams.set('v', indexHash.slice(0, 8));
-    const index = await readPrefetchIndex({ url: url.href, indexHashes: indexes === null ? null : [...indexes], phone: tier === 'phone' }, content, owner);
+    const index = await readPrefetchIndex({ url: url.href, indexHashes: indexes === null ? null : [...indexes], phone: tier === 'phone' }, owner);
     live();
     if (index === null) return null;
-    for (const row of [...index.sections, ...index.schemas, ...index.files.map(file => ({ hash: file.hash, bytes: file.compressed }))]) {
+    for (const row of [...index.sections, ...index.schemas, ...index.files.map(file => ({ path: file.path, hash: file.hash, bytes: file.compressed }))]) {
       if (seen.has(row.hash)) continue;
       seen.add(row.hash);
       live();
-      const held = await content.holds(row.hash, row.bytes); live();
+      const held = await hasCachedAsset(caches, new URL(row.path, new URL('.', url)).href); live();
       if (!held) bytes += row.bytes;
     }
   }

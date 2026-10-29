@@ -1,72 +1,49 @@
 # Immutable content on disk
 
-`@wildshard/engine/boot/contentCache` owns one `ws-content-v0` Cache Storage
-cache. Its keys contain only the SHA-256 address, under an origin-local
-namespace. Two shard sources or instances requesting the same address share
-the same bytes. Every read rechecks the hash and returns an owned byte array;
-there is no second in-memory byte store.
+MF8 replaces the page cache with the service worker's exact-URL store,
+`ws-assets-v1` (`ASSET_CACHE_NAME`). There is no page `ContentCache`, hash
+worker, cache worker, protocol, request queue, LRU index or periodic flush.
+The service worker retains its shell/build generations independently.
 
-The default limit is 256 MiB and 2,048 entries. The quota estimate can lower
-that limit to one quarter of the origin quota, while reserving 32 MiB for
-other origin storage. Least recently used, unpinned bytes leave first. A real
-`QuotaExceededError` triggers eviction and a retry; insufficient capacity
-returns `false`, allowing an admitted online load to continue. An offline
-miss fails without trying the network. The estimate is advisory, as
-[WebKit's storage policy](https://webkit.org/blog/14403/updates-to-storage-policy/)
-requires handling actual write failures.
+## First-party reads
 
-`pin(hashes)` returns an idempotent release function. Overlapping owners
-protect active critical bytes until all leases release. A durable LRU index
-tracks wire size and access order. Reads, writes and eviction update its
-in-memory metadata; the existing scoped two-second window coalesces index
-writes. Immutable blob writes finish before acknowledgement and carry
-recovery headers, so reopening recovers writes whose index has not flushed.
-Explicit flush, worker close and pagehide force pending metadata and remove
-the timer/listener. Entries also recover if a quota failure prevented an
-index write. Browser-evicted or corrupted bytes
-become cache misses. Concurrent reads of a missing address share one download.
+The browser supplies `ProductOptions.firstPartyRead`; publication already
+validated those files. Ordinary fetch reaches the controlling service
+worker. A hit is used as is: the only content check is the manifest byte
+length, never a digest (G881/G887). Root indexes without a declared length
+keep the existing source-byte cap; no size is invented.
 
-The product loader owns the visited manifest and publishes it only when its
-offline asset set is complete. It owns leases and releases decoded tile
-transport bytes. The cache retains wire bytes on disk; CPU/GPU residency is
-the session's separate budget. Service-worker activation keeps both this
-cache and `ws-shardfile-products-v0` across builds. Clear downloads still
-deletes them explicitly.
+A stale length retries the same URL with `cache: reload`. An interrupted
+transport retries once and then stays on the existing loading-card RETRY.
+The source cap, HTML refusal, abort signal and native response metadata
+remain intact. Before the first controller, only the successful complete
+response clone is published under its exact URL in `ws-assets-v1`. Disk
+refusal keeps complete online bytes usable.
 
-The injected ports supply storage, origin, SHA-256, quota estimates and an
-optional clock/limits. Tests cover repeat visits, offline reload, concurrent
-downloads, leased LRU eviction, quota retries, corruption, browser eviction
-and service-worker activation.
+Product demand shares pending reads only for their live wave; it does not
+keep settled transport backing. Decoded geometry and texture residency
+still belong to their existing session scopes and allocators. Prefetch
+packs publish members at canonical URLs in the same store, with their MIME
+and byte lengths. Runtime-authored road archives also use that store;
+encoding still derives their immutable names, and decoding keeps structural,
+identity and byte-plan checks. Cache reads do not rehash them.
 
-## Exclusive input ownership
+## Read-only migration
 
-`put(hash, bytes, keep)` snapshots borrowed bytes before its first await.
-Callers may mutate or reuse their input immediately.
+Existing `ws-content-v0` and visited-product stores remain inert so an
+upgrade does not erase offline visits. They have no active page writer.
+After native transport fails, the browser may read the exact old hash key;
+it never enumerates body keys or rebuilds an index. A visited root is used
+only when its recorded index hash equals the exact current build's root
+hash. A different old root is never renamed as current content.
 
-`putTransferred(hash, bytes, keep)` consumes a complete, bounded
-ArrayBuffer-backed view by native transfer. Every caller alias detaches
-before SHA verification, so persistence needs no second input snapshot.
-Partial or shared backing refuses without consumption; corrupt content
-refuses after consumption. The original wire cap, SHA, quota, keep-write,
-eviction and durability rules still apply. The result `{ stored, bytes }`
-returns verified owned bytes after persistence settles, including when
-quota refusal returns `stored: false`. Mutating those returned bytes cannot
-change the durable response. The fetch worker uses this only for its private,
-exact-length body; ordinary posted puts keep the defensive snapshot.
+The successful length-checked response is published once at its canonical
+URL in `ws-assets-v1`. Native hits perform no old-cache lookup or hash work.
+The old stores remain read only until their migration coverage is complete.
 
-## Paced browser storage
+## Author and external inputs
 
-The actual page CacheStorage uses one explicit ContentCacheWorker shared
-by all product wrappers. It runs the existing capped, SHA-verified cache
-in a dedicated worker; injected storage ports keep their original path.
-Reads transfer fresh owned bytes. Puts snapshot caller bytes without
-detaching them. A verified presence query checks SHA and exact length in
-the worker, avoiding a discarded main-thread copy during durable checks.
-
-The bridge allows 64 pending requests, a 15-second request deadline,
-30-second idle close and two-minute lifetime followed by a bounded flush.
-Pagehide also flushes before closing. Control and data use one queue, so
-leases precede subsequent writes. Error, messageerror, silent exit or
-startup failure terminates the worker before pending operations replay
-through one shared original cache, with every live lease installed first.
-Verified data refusals remain errors. No admission or reveal skips a file.
+Node author and external readers omit the native first-party capability
+and retain their strict checks. Explicit author fixture caches remain
+injected ports. The browser's strict external adapter stores its metadata
+and bodies in `ws-assets-v1` too, without an independent page owner.

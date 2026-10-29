@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { contentHash } from '../src/game/shardfile/contentStore';
+import { contentHash } from '../src/game/shardfile/contentHash';
 import { GridCellEvents } from '../src/game/grid/cellEvents';
 import { titleCatalogueSource } from '../scripts/title-catalogue.mjs';
 import { titlePrefetchOrder } from '../src/game/grid/titleOrder';

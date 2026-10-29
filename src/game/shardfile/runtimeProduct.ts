@@ -4,13 +4,12 @@ import { lateFiles } from './controlFiles';
 import { productCacheCompletion } from './productCacheCompletion';
 import { lendLooks } from './lentLooks';
 import { recoverStaleClient } from '@wildshard/engine/boot/stuck';
-import { builtIndexHash, builtIndexHashes } from '@wildshard/format/builtIndexes';
+import { builtIndexHashes } from '@wildshard/format/builtIndexes';
 import type { Material } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ClientAssets } from './clientAssets';
 import { buildYield, pacedResolve, workSlice, type WorkSlice } from '@wildshard/engine/core/workSlice';
-import { nextDrawnFrame } from '@wildshard/engine/core/framePacing';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import { currentOwner } from '@wildshard/engine/app/ownership';
@@ -26,12 +25,9 @@ import { runtimeBoundWorldFiles } from '../plugin/headless';
 import { clientMaterials } from './clientMaterials';
 import { graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
 import type { ShardContext } from '../plugin/context';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
-import { cachedTransport } from './cachedTransport';
+import { readAsset } from './readAsset';
+import { legacyAsset } from './legacyAsset';
 
-import { hashOwnedBytes, prepareContentHash } from '@wildshard/engine/boot/contentHash';
-import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
-import { browserContentStore } from './contentStore';
 import { productResourceRole } from './resourceRole';
 import { entryTransport } from './entryTransport';
 import { currentSpawnDownload } from '../boot/spawnDownload';
@@ -85,7 +81,6 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     pageScope.listen(window, 'pagehide', () => { entryTransport()?.stop(); }, {once: true});
     pageScope.onDispose(() => { entryTransport()?.stop(); });
   }
-  prepareContentHash();
   // A is the sole boot path. The independently qualified D12 live parser
   // remains after control, with bounded pages and the original paced receipt.
   const pause = pauseDescriptor();
@@ -97,28 +92,28 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     return result;
   };
   const quality = Object.fromEntries(Object.entries(TIER_CONFIG).filter((entry): entry is [string, number | boolean] => entry[0].includes('.') && (typeof entry[1] === 'number' || typeof entry[1] === 'boolean')));
-  const indexed = firstParty && builtIndexes !== null && typeof caches !== 'undefined' ? builtIndexes : undefined;
-  // G639: a phone-4x Nine drive spent ~2 s of its page thread fetching, streaming, hashing and copying the product's
-  // blobs into the content cache; the cache's worker does all of it and hands the page the verified body.
-  const content = typeof caches === 'undefined' ? undefined : browserContentStore(caches);
-  const transport = spawn === undefined && content instanceof ContentCacheWorker ? async (url: string, hash: string, bytes: number) => {
-    // A speculative wire is not verified content. Return it through the
-    // ordinary fetch reader, retaining its complete hash/size admission.
-    if (entryTransport()?.has(url)) return null;
-    const path = new URL(url, base);
-    const sent = await waitFor(`Verify ${productResourceRole(path.href)}`, content.fetchVerified(path.href, hash, bytes, { reply: 'bytes', urlCache: indexed !== undefined }), 'worker');
-
-    return sent === null || sent.fetched === null ? null : { bytes: sent.fetched, cached: sent.cached, stored: sent.stored };
-  } : undefined;
-  return { ...(parseJson === undefined ? {} : { parseJson }), base, firstParty, ...(spawn === undefined ? {} : {directFiles: true}), tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: verifiedHash, hashOwned: hashOwnedBytes,
+  const firstPartyRead: NonNullable<ProductOptions['firstPartyRead']> = async (url, bytes, read, hash, priority) => {
+    const address = new URL(resolve(url), base).href;
+    const storage = typeof caches === 'undefined' ? undefined : caches;
+    const result = await waitFor(`Read ${productResourceRole(address)}`, readAsset(address, bytes, {
+      ...(read === undefined ? {} : { read }),
+      fetch: async (path, init) => {
+        // A retry must reach the origin instead of replaying the speculative copy.
+        if (init.cache !== 'reload' && init.cache !== 'no-store' && spawn === undefined) {
+          const early = await entryTransport()?.take(path, init.signal ?? undefined);
+          if (early !== null && early !== undefined) return early;
+        }
+        return fetch(path, { ...init, ...(priority === undefined ? {} : { priority }) });
+      },
+      ...(storage === undefined || hash === undefined ? {} : { legacy: { read: () => legacyAsset(storage, address, hash), store: storage } }),
+    }, navigator.serviceWorker?.controller === null || navigator.serviceWorker?.controller === undefined ? storage : undefined), 'file', address);
+    entryTransport()?.expand(); return result;
+  };
+  return { ...(parseJson === undefined ? {} : { parseJson }), base, firstParty, ...(spawn === undefined ? {} : {directFiles: true}), tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: verifiedHash,
+    ...(firstParty ? { firstPartyRead } : {}),
     backgroundFetch: (url, signal) => fetch(resolve(url), { priority: 'low', ...(signal === undefined ? {} : { signal }) }),
     fetch: (url, signal) => waitFor(`Read ${productResourceRole(url, base)}`, (async () => {
       if (spawn !== undefined) return fetch(resolve(url), signal === undefined ? {} : {signal});
-      if (indexed !== undefined && new URL(url, base).pathname.endsWith('/shard.json')) {
-        const hash = builtIndexHash(new URL(url, base).pathname);
-        const held = hash === null || !indexed.has(hash) ? null : await cachedTransport(caches, url, limits.sourceBytes, { hash }, signal);
-        if (held !== null) {  return new Response(new Uint8Array(held.bytes)); }
-      }
       signal?.throwIfAborted();
       const early = await entryTransport()?.take(url, signal);
       if (early !== null && early !== undefined) return early;
@@ -131,21 +126,9 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
       else pageScope.listen(document, 'ws:control-ready', () => { void refresh(); }, { once: true });
     },
     ...(firstParty ? { fetchRange: (url: string, start: number, end: number, priority?: 'low') => waitFor(`Fetch pack range ${start}-${end}`, fetch(url, { headers: { Range: `bytes=${start}-${end}` }, ...(priority === undefined ? {} : { priority }) }), 'file') } : {}),
-    ...(indexed === undefined ? {} : { cachedResponse: async (url: string, hash: string, maximum: number) =>
-      (await cachedTransport(caches, url, maximum, { hash, bytes: maximum }))?.bytes ?? null,
-    verifiedResponse: async (url: string, hash: string, maximum: number, signal?: AbortSignal) =>
-      (await cachedTransport(caches, url, maximum, { hash, bytes: maximum }, signal))?.bytes ?? null }),
-    ...(transport === undefined ? {} : { transport }),
-    cacheHintTurn: signal => {
-      const owner = pageScope.child('foreground-url-cache-turn');
-      const cancel = (): void => { owner.dispose(); };
-      owner.listen(signal, 'abort', cancel, { once: true });
-      if (signal.aborted) owner.dispose();
-      return nextDrawnFrame(owner).finally(() => { owner.dispose(); });
-    },
     pause, cacheBatch: true,
     ...(firstParty && builtIndexes !== null ? { built: { indexes: builtIndexes, stale: staleRecovery } } : {}),
-    ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches, { pause, ...(parseJson === undefined ? {} : { parseJson }) }) }),
+    ...(firstParty || typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches, { pause, ...(parseJson === undefined ? {} : { parseJson }) }) }),
   };
 }
 

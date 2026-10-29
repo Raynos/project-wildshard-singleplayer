@@ -48,6 +48,12 @@ export class ClientAssets {
   private async readReleased(ref: string, cap: number, priority?: 'low'): Promise<Uint8Array> {
     const hash = ref.replace(/^commons:/u, ''), base = new URL('.', this.options.base).href;
 
+    // Build-owned callers read the canonical URL through the service worker.
+    // Its cache is authoritative; the read capability compares length only.
+    if (this.options.firstPartyRead !== undefined) {
+      return this.observe(ref, await this.options.firstPartyRead(outputBlobUrl(this.source, ref, base), cap, undefined, hash, priority));
+    }
+
     // a trusted content-cache read already checked its SHA-256 (ContentCache.get): no page re-hash (~150 ms of a
     // phone-tier home region); every other read is checked here, off the page where a worker can
     const url = outputDescriptor(this.source) === undefined ? undefined : outputBlobUrl(this.source, ref, base);

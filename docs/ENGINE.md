@@ -3948,14 +3948,12 @@ exact lengths and every member hash pass before original module URLs publish.
 Original ESM imports/evaluation and per-module retry/offline paths remain intact;
 unsupported workers or storage failures use those paths. Native entries opt out.
 
-`@wildshard/engine/boot/contentCache` defines `ContentCache` with storage,
-SHA-256 and quota ports. Hash-verified shared addresses persist across
-activation; offline misses never fetch. Durable LRU, leases and byte/entry
-caps bound storage. Coalesced metadata flushes on pagehide/worker close.
-`put()` snapshots caller bytes. `putTransferred()` consumes a complete,
-bounded ArrayBuffer by native transfer and returns verified bytes after
-persistence or quota refusal. See [CONTENT-CACHE.md](CONTENT-CACHE.md) for
-metadata timing, durability, recovery, quota and ownership contracts.
+`@wildshard/engine/pwa/cacheNames.ASSET_CACHE_NAME` names the service
+worker's single immutable URL store (`ws-assets-v1`). First-party product
+reads use native fetch and the manifest byte length, without a page cache,
+worker RPC, LRU index, leases or digest. A stale length retries that URL
+through the existing loading-card RETRY. Controllerless first-install
+responses publish into the same store. See [CONTENT-CACHE.md](CONTENT-CACHE.md).
 
 ### Seamless grid crossing (SF20a)
 
@@ -6135,32 +6133,16 @@ Ledger facts; a spawned row's storm is the platform's (`bossStorm`).
 the existing strict state JSON or flag-backed save representation;
 `bossRow.parseBossRecord` admits the shared saved-field contract.
 
-### Content cache worker
+### Product byte ownership
 
-`@wildshard/engine/boot/contentCacheWorker` defines `ContentCacheWorker`,
-an explicit bounded worker owner over the original `ContentCache`.
-`get`, `put`, `pin`, `flush` and `stats` retain the cache contracts;
-`has(hash, bytes)` verifies durable SHA and length without returning an
-unneeded byte array. At most 64 commands are posted; validated excess
-requests wait FIFO for a slot instead of forcing main-thread fallback.
-Each request deadline starts when posted. One scoped wakeup watches the
-earliest deadline in the existing pending map; completed replies leave
-that map without churning native timers. `close()` drains, flushes and
-terminates within its existing shutdown deadline, including queued work.
-Failed workers terminate before posted and queued requests replay in order
-through one shared checked fallback; live leases are installed before any
-replayed write. Checked refusals reject one request without retiring the
-worker. Importing the module starts no worker.
-`pin` retains its defining schema's detached hash snapshot until posting,
-checking the separate request ID without parsing the hashes again. The
-worker still admits every incoming command and operation-specific reply.
-
-`ContentCache` recovers durable access order once, then maintains byte and
-entry totals with its LRU order. Reads still verify immutable hashes;
-corruption, browser eviction and pinned-write refusals update accounting.
-Storage budgets and quota estimates retain their existing limits. Durable
-blob writes finish before acknowledgement, while dirty index metadata
-shares the existing two-second flush window and flushes on pagehide/close.
+The browser supplies `ProductOptions.firstPartyRead` as a native read
+capability. Node author and external callers omit it and retain strict
+validation. Product demand retains no settled transport memo; decoded
+geometry and textures keep their original scope/residency owners.
+Prefetch packs publish members at their canonical URLs in `ws-assets-v1`.
+Old hash-key bodies and visited roots have a read-only migration after
+native transport fails; a root must name the exact current index hash.
+There are no old-cache writes or index scans on a native cache hit.
 
 ### Live JSON preparation
 

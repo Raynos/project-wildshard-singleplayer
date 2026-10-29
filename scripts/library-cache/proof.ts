@@ -37,7 +37,7 @@ async function prove(): Promise<unknown> {
   const warm = previous !== null;
   const result = { warm, workerIO: { ...workerIO }, libraryBytesFetched, libraryFetches, expected, libraryFiles: hashes.size, durationMs: performance.now() - start,
     assetsPresent: [...hashes].every(hash => admitted.assets.has(hash)), pass: warm ? libraryBytesFetched === 0 && libraryFetches === 0 : libraryBytesFetched === expected && libraryFetches === hashes.size };
-  if (!result.assetsPresent || !result.pass || workerIO.started !== 1 || workerIO.replies === 0 || workerIO.errors !== 0) throw new Error(JSON.stringify(result));
+  if (!result.assetsPresent || !result.pass || workerIO.started !== 0 || workerIO.replies !== 0 || workerIO.errors !== 0) throw new Error(JSON.stringify(result));
   if (!warm) sessionStorage.setItem('library-cache-first', JSON.stringify(result));
   return { ...result, previous };
 }

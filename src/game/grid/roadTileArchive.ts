@@ -2,9 +2,9 @@
  * existing hash-verifying content store; it installs no cache or worker. */
 import * as v from 'valibot';
 import { BufferAttribute, BufferGeometry, Sphere, Vector3, type TypedArray } from 'three';
-import type { ContentCache } from '@wildshard/engine/boot/contentCache';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { contentHash } from '../shardfile/contentStore';
+import { contentHash } from '../shardfile/contentHash';
+import { cachedAsset, cacheAsset } from '../shardfile/assetCache';
 import type { RoadTileGeometry } from './roadTileGeometry';
 
 const MAX_BYTES = 25_000_000, MAX_HEADER = 65_536;
@@ -28,7 +28,19 @@ const headerSchema: v.GenericSchema<unknown, Header> = v.strictObject({ version:
     size: v.pipe(natural, v.minValue(1), v.maxValue(16)), normalized: v.boolean() })), v.minLength(1), v.maxLength(32)),
 });
 /** Disk-backed immutable bytes are outside the resident tile budget; decoded arrays are admitted by the caller. */
-export type RoadTileStore = Pick<ContentCache, 'get' | 'put' | 'pin'>;
+export interface RoadTileStore {
+  get: (hash: string, bytes: number) => Promise<Uint8Array | null>;
+  put: (hash: string, bytes: Uint8Array) => Promise<boolean>;
+  pin?: (hashes: Iterable<string>) => () => void;
+}
+/** Runtime-authored road bytes share the worker's store; no page LRU exists. */
+export function roadTileCache(storage: Pick<CacheStorage, 'open'>, origin: string): RoadTileStore {
+  const url = (hash: string): string => {
+    if (!/^[a-f0-9]{64}$/u.test(hash)) throw new Error('Invalid road tile hash');
+    return new URL(`/assets/grid-road/${hash}.bin`, origin).href;
+  };
+  return { get: (hash, bytes) => cachedAsset(storage, url(hash), bytes), put: (hash, bytes) => cacheAsset(storage, url(hash), bytes) };
+}
 export interface RoadTileReference {
   readonly hash: string; readonly wireBytes: number;
   readonly x: number; readonly z: number;
@@ -160,7 +172,7 @@ export async function persistRoadTile(scope: Scope, store: RoadTileStore, tile: 
   if (identity === undefined) throw new Error('Missing road tile identity');
   const reference = { x: identity.x, z: identity.z, jsBytes: tile.bytes.jsBytes, gpuBytes: tile.bytes.gpuBytes };
   const bytes = encodeRoadTile(tile), hash = await contentHash(bytes); live(scope);
-  const release = store.pin([hash]), cancel = scope.capture('disposers', release);
+  const release = store.pin?.([hash]) ?? (() => undefined), cancel = scope.capture('disposers', release);
   try {
     live(scope);
     if (!await store.put(hash, bytes)) throw new Error('Road tile archive storage refused');
@@ -171,9 +183,13 @@ export async function persistRoadTile(scope: Scope, store: RoadTileStore, tile: 
 /** Existing cache reads are verified; the explicit reference also fences identity,
  * length and decoded admission bytes before its geometry can be published. */
 export async function loadRoadTile(scope: Scope, store: RoadTileStore, reference: RoadTileReference): Promise<RoadTileGeometry> {
-  live(scope); const bytes = await store.get(reference.hash); live(scope);
-  if (bytes === null || bytes.length !== reference.wireBytes || await contentHash(bytes) !== reference.hash) throw new Error('Road tile archive unavailable');
-  live(scope); const tile = decodeRoadTile(bytes), identity = tile.identity ?? tile.plan.bins[0]?.tile;
+  live(scope); const bytes = await store.get(reference.hash, reference.wireBytes); live(scope);
+  if (bytes === null || bytes.length !== reference.wireBytes) throw new Error('Road tile archive unavailable');
+  live(scope);
+  let tile: RoadTileGeometry;
+  try { tile = decodeRoadTile(bytes); }
+  catch (error) { throw new Error('Road tile archive unavailable', { cause: error }); }
+  const identity = tile.identity ?? tile.plan.bins[0]?.tile;
   if (identity?.x !== reference.x || identity.z !== reference.z || tile.bytes.jsBytes !== reference.jsBytes || tile.bytes.gpuBytes !== reference.gpuBytes) {
     tile.geometry.dispose(); throw new Error('Road tile reference mismatch');
   }

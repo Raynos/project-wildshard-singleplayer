@@ -1,6 +1,6 @@
-/** Private worker reader: `maximum` is the exact size from its checked cache command.
+/** Bounded cached-body reader: `maximum` comes from the file declaration.
  * Copy each streamed chunk immediately, rather than retaining a second whole body
- * until concatenation. The caller still checks exact length and SHA before use. */
+ * until concatenation. The caller compares the final declared length. */
 export async function readContentResponse(response: Response, maximum: number): Promise<Uint8Array<ArrayBuffer>> {
   if (!response.ok) throw new Error(`Read failed: ${response.url}`);
   if (response.body === null) return new Uint8Array();

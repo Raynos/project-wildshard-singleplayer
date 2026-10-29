@@ -14,10 +14,9 @@ import { isOutputIndex } from '@wildshard/format/outputAddress';
 import { builtIndexHash } from '@wildshard/format/builtIndexes';
 
 import { acceptValidatedCost } from '@wildshard/format/deviceMemoryCost';
-import { PRODUCT_CACHE_NAME } from '@wildshard/engine/pwa/cacheNames';
+import { ASSET_CACHE_NAME } from '@wildshard/engine/pwa/cacheNames';
 import { saves } from '@wildshard/engine/saves/runtime';
-import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
-import { browserContentStore, contentHash } from './contentStore';
+import { contentHash } from './contentHash';
 import { packReads } from './packReads';
 import { productResourceRole } from './resourceRole';
 import { preflightProduct } from './productPreflight';
@@ -65,7 +64,7 @@ export interface ProductOptions {
   /** Native first-party build capability. Publication validates the content;
    * this reader fetches its canonical URL and compares the declared length.
    * Node author and external readers omit it and retain checked admission. */
-  firstPartyRead?: (url:string,expectedBytes:number|undefined,read?:(bytes:number)=>void,hash?:string)=>Promise<Uint8Array>;
+  firstPartyRead?: (url:string,expectedBytes:number|undefined,read?:(bytes:number)=>void,hash?:string,priority?:'low')=>Promise<Uint8Array>;
   /** The spawn manifest names individual files, never transport envelopes. */
   directFiles?: boolean;
   /** Optional live parser; boot and receipts stay on the page. Hashes/validators retain admission. */
@@ -688,12 +687,20 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
   trace?.mark('finish');
   return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? { releaseTransport: transportRelease(source, assets, options), releasePreparedTransport: transportRelease(source, assets, options, true), ...completeCache === undefined ? {} : { completeCache } } : {}), ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
 }
-/** Browser Cache Storage retains exact hash bytes separately from the last completely admitted visited product. */
-export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partial<Pick<CacheStorage, 'delete'>>,
+/** Strict external adapters share the service worker's URL store. First-party
+ * browser reads use native fetch, without a page index, leases or worker. */
+export function browserProductCache(storage: Pick<CacheStorage, 'open'>,
   preparation: Pick<ProductOptions, 'pause' | 'parseJson'> = {}): ProductCache {
-  const open = () => storage.open(PRODUCT_CACHE_NAME);
+  const open = () => storage.open(ASSET_CACHE_NAME);
   const productUrl = (base: string) => new URL('__visited_shardfile__', base).href;
-  const ownedContent = browserContentStore(storage);
+  const assetUrl = (base: string, hash: string): string => {
+    if (!HASH.test(hash)) throw new Error('Invalid content hash');
+    return new URL(`/__ws_external_content__/${hash}`, base).href;
+  };
+  const put = async (base: string, hash: string, bytes: Uint8Array): Promise<boolean> => {
+    try { await (await open()).put(assetUrl(base, hash), new Response(Uint8Array.from(bytes))); return true; }
+    catch { return false; }
+  };
   return {
     product: async (base) => {
       const response = await (await open()).match(productUrl(base)); if (response === undefined) return null;
@@ -706,12 +713,11 @@ export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partia
       const validation = typeof rawValidation === 'object' && rawValidation !== null && 'sourceHash' in rawValidation && typeof rawValidation.sourceHash === 'string' ? readValidationReceipt(rawValidation, rawValidation.sourceHash) : null;
       return { source: value.source, firstParty: value.firstParty, ...(validation === null ? {} : { validation }) };
     },
-    asset: async (_base, hash) => { const bytes = await ownedContent.get(hash);  return bytes; },
-    verifiedAsset: async hash => { const bytes = await ownedContent.get(hash);  return bytes; },
-    ...(ownedContent instanceof ContentCacheWorker ? { verifiedPresent: (hash: string, bytes: number) => ownedContent.has(hash, bytes) } : {}),
-    putAsset: (_base, hash, bytes) => ownedContent.put(hash, bytes), pin: (hashes) => ownedContent.pin(hashes),
-    putAssetBackground: (_base, hash, bytes) => ownedContent instanceof ContentCacheWorker ? ownedContent.put(hash, bytes, false, true) : ownedContent.put(hash, bytes),
-    holds: (hash, bytes) => ownedContent.holds(hash, bytes), keepAsset: (hash, bytes) => ownedContent.put(hash, bytes, true),
+    asset: async (base, hash) => {
+      const response = await (await open()).match(assetUrl(base, hash));
+      return response === undefined ? null : boundedResponse(response, MAX_FILE_BYTES);
+    },
+    putAsset: put, putAssetBackground: put,
     putProduct: async (base, product) => { await (await open()).put(productUrl(base), Response.json(product)); },
   };
 }

@@ -4,6 +4,8 @@ import { memoryAttribution } from '@wildshard/engine/core/memoryAttribution';
 import { parseShardfile } from '@wildshard/format/shardSchema';
 import { SHARDFILE_VERSION } from '@wildshard/format/version';
 import { ClientAssets } from './clientAssets';
+import { parseOutputIndex } from '@wildshard/format/outputIndex';
+import { isBuildValidatedOutput, resolveOutputDescriptor } from './outputDescriptor';
 import { realGc } from '@wildshard/engine/test/realGc';
 
 const observed: ArrayBufferLike[] = [];
@@ -32,6 +34,28 @@ function fixture() {
   const rows = () => memoryAttribution.snapshot().allocations.filter(row => row.owner === 'product:transport-memory');
   return { source, bytes, ref, options, fetch, rows };
 }
+
+test('native first-party demand uses the canonical URL and no page cache or hash', async () => {
+  const f = fixture(), requests: { url: string; bytes: number | undefined; hash: string | undefined; priority: 'low' | undefined }[] = [];
+  const index = parseOutputIndex({ format: 'wildshard.shardfile', formatVersion: 2, sdk: '0.2', version: f.source.version,
+    identity: f.source.identity, requires: f.source.requires, build: { sourceHash: '0'.repeat(64), validator: 'test' },
+    admission: { budgets: f.source.budgets, serverBudget: f.source.serverBudget, authorCaps: f.source.authorCaps, critical: [], library: [] },
+    sections: [], schemas: [], runtime: null, files: [{ hash: f.ref, kind: 'bin', path: `blobs/bin/${f.ref}.bin`, compressed: 3,
+      decoded: 3, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false }],
+  });
+  const read = (): Promise<Uint8Array> => Promise.reject(new Error('No section in this emitted index'));
+  const source = await resolveOutputDescriptor(index, { offline: false, firstParty: true, read, hash: f.options.hash,
+    built: { indexHash: 'b'.repeat(64), read } });
+  if (!isBuildValidatedOutput(source)) throw new Error('Missing build-owned output fixture');
+  const assets = new ClientAssets(source, new Map(), { ...f.options, firstPartyRead: (url, bytes, _read, hash, priority) => {
+    requests.push({ url, bytes, hash, priority }); return Promise.resolve(f.bytes);
+  } });
+  expect(await assets.read(f.ref, 'low')).toBe(f.bytes);
+  expect(requests).toEqual([{ url: new URL(`blobs/bin/${f.ref}.bin`, f.options.base).href, bytes: f.bytes.length, hash: f.ref, priority: 'low' }]);
+  expect(f.options.hash).not.toHaveBeenCalled(); expect(f.fetch).not.toHaveBeenCalled();
+  expect(assets.retained.size).toBe(0);
+  await assets.read(f.ref); expect(requests).toHaveLength(2);
+});
 
 test('Developer transport labels share original backing identity and survive map release while another owner holds it', async () => {
   setDev(true);

@@ -3,7 +3,6 @@ import {emptyShardfile} from '../src/sdk/author';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {parseOutputIndex} from '../src/format/outputIndex';
 import {installTitleManifests, titleManifests, type TitleManifest} from '../src/game/shard/titleList';
-import {browserContentStore} from '../src/game/shardfile/contentStore';
 import {startGridPrefetch, gridPrefetchStatus} from '../src/game/grid/prefetch';
 
 afterEach(() => {vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.unstubAllEnvs();});
@@ -19,7 +18,7 @@ test('completed prefetch releases dedupe hashes after their last live reader', a
       compressed: 1, decoded: 1, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false})),
   });
   vi.stubEnv('DEV', false);
-  vi.stubGlobal('__SHARDFILE_VERDICTS__', [{ indexHash: hashImmutableBytes(new TextEncoder().encode(JSON.stringify(index))) }]);
+  vi.stubGlobal('__SHARDFILE_VERDICTS__', ['alpha', 'beta'].map(path => ({ path: `/${path}/index.json`, indexHash: hashImmutableBytes(new TextEncoder().encode(JSON.stringify(index))) })));
   const title = (slug: '_template' | 'blender-template', path: string): TitleManifest => ({slug, name: slug, biome: 'test', status: 'hidden',
     card: {thumb: '', portrait: '', landscape: ''}, entries: {legacy: false, shardfile: true}, shardfile: `http://localhost/${path}/index.json`});
   let previous: readonly TitleManifest[] = [];
@@ -48,7 +47,7 @@ test('completed prefetch releases dedupe hashes after their last live reader', a
   vi.stubGlobal('Worker', undefined);
   const fetcher: typeof fetch = async input => {
     const url = urlOf(input); reads.push(url);
-    if (url.endsWith('/index.json')) return Response.json(index);
+    if (new URL(url).pathname.endsWith('/index.json')) return Response.json(index);
     if (url.endsWith(`/${hashes[1]}.bin`)) await pending;
     return new Response(url.endsWith(`/${hashes[0]}.bin`) ? first : second);
   };
@@ -63,8 +62,8 @@ test('completed prefetch releases dedupe hashes after their last live reader', a
     release();
     await vi.waitFor(() => {expect(gridPrefetchStatus()?.phase).toBe('done');});
     expect(reads).toEqual([
-      'http://localhost/alpha/index.json', `http://localhost/alpha/blobs/bin/${hashes[0]}.bin`,
-      `http://localhost/alpha/blobs/bin/${hashes[1]}.bin`, 'http://localhost/beta/index.json',
+      `http://localhost/alpha/index.json?v=${hashImmutableBytes(new TextEncoder().encode(JSON.stringify(index))).slice(0,8)}`, `http://localhost/alpha/blobs/bin/${hashes[0]}.bin`,
+      `http://localhost/alpha/blobs/bin/${hashes[1]}.bin`, `http://localhost/beta/index.json?v=${hashImmutableBytes(new TextEncoder().encode(JSON.stringify(index))).slice(0,8)}`,
     ]);
     // The second product's successful hash lookup identifies the actual live
     // cross-product dedupe Set, without replacing any module or private API.
@@ -74,7 +73,7 @@ test('completed prefetch releases dedupe hashes after their last live reader', a
     if (!(history instanceof Set)) throw new Error('Missing live dedupe history');
     expect(clear.mock.contexts).toContain(history);
     expect(history.size).toBe(0);
-    expect(writes.filter(url => hashes.some(hash => url.endsWith(`/${hash}`)))).toHaveLength(2);
+    expect(writes.filter(url => hashes.some(hash => url.endsWith(`/${hash}.bin`)))).toHaveLength(2);
     const done = gridPrefetchStatus();
     expect(done).toMatchObject({products: 2, productsRead: 2, knownFiles: 2, knownBytes: 2, storedFiles: 2, storedBytes: 2, inFlightBytes: 0});
     expect(window.__ws_gridPrefetch?.()).toEqual(done);
@@ -83,7 +82,6 @@ test('completed prefetch releases dedupe hashes after their last live reader', a
     expect(reads).toHaveLength(4);
   } finally {
     release?.();
-    await browserContentStore(storage).flush();
     installTitleManifests(previous);
   }
 });

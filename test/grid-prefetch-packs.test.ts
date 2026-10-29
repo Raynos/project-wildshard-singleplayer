@@ -24,7 +24,7 @@ test.each(['play', 'title', 'title-stop', 'grid-title', 'title-adopt'] as const)
     packs: [{path: packPath, hash: packHash, bytes: 3, entries: [{hash: hashes[0] ?? '', offset: 0, bytes: 2}, {hash: hashes[1] ?? '', offset: 2, bytes: 1}]}],
   });
   vi.stubEnv('DEV', false);
-  vi.stubGlobal('__SHARDFILE_VERDICTS__', [{indexHash: hashImmutableBytes(new TextEncoder().encode(JSON.stringify(index)))}]);
+  vi.stubGlobal('__SHARDFILE_VERDICTS__', [{path: '/alpha/index.json', indexHash: hashImmutableBytes(new TextEncoder().encode(JSON.stringify(index)))}]);
   const title: TitleManifest = {slug: '_template', name: '_template', biome: 'test', status: 'hidden',
     card: {thumb: '', portrait: '', landscape: ''}, entries: {legacy: false, shardfile: true}, shardfile: 'http://localhost/alpha/index.json'};
   let previous: readonly TitleManifest[] = [];
@@ -60,7 +60,7 @@ test.each(['play', 'title', 'title-stop', 'grid-title', 'title-adopt'] as const)
       if (signal === undefined || signal === null) { reject(new Error('Missing title abort signal')); return; }
       signal.addEventListener('abort', () => {aborted = true; reject(new DOMException('Title left', 'AbortError'));}, {once: true});
     });
-    return Promise.resolve(url.endsWith('/index.json') ? Response.json(index) : url.endsWith('.pack') ? new Response(packBytes)
+    return Promise.resolve(new URL(url).pathname.endsWith('/index.json') ? Response.json(index) : url.endsWith('.pack') ? new Response(packBytes)
       : url.endsWith(address.url) ? new Response(spawn) : url.endsWith(`${hashes[0] ?? ''}.bin`) ? new Response(first)
       : url.endsWith(`${hashes[1] ?? ''}.bin`) ? new Response(second) : new Response(null, {status: 404}));
   });
@@ -94,7 +94,7 @@ test.each(['play', 'title', 'title-stop', 'grid-title', 'title-adopt'] as const)
       return;
     }
     await vi.waitFor(() => {expect((titleRun?.snapshot() ?? gridPrefetchStatus())?.phase).toBe('done');});
-    expect(reads).toEqual(mode === 'play' ? ['http://localhost/alpha/index.json', `http://localhost/alpha/${packPath}`]
+    expect(reads).toEqual(mode === 'play' ? [`http://localhost/alpha/index.json?v=${hashImmutableBytes(new TextEncoder().encode(JSON.stringify(index))).slice(0,8)}`, `http://localhost/alpha/${packPath}`]
       : [`http://localhost${address.url}`, ...hashes.map(hash => `http://localhost/alpha/blobs/bin/${hash}.bin`)]);
     expect(titleRun?.snapshot() ?? gridPrefetchStatus()).toMatchObject({knownFiles: 2, knownBytes: 3, storedFiles: 2, storedBytes: 3});
     titleRun?.stop();
