@@ -715,10 +715,13 @@ workerScope.listen(self, 'fetch', (event) => {
  * must not hold the replacement document's first paint.
  */
 async function documentResponse(event, req) {
-  const cache = await caches.open(SHELL);
   const key = abs('/index.html');
-  const hit = await cache.match(key, MATCH_OPTS);
-  if (hit) {
+  const stored = await cacheStage(req, async () => {
+    const cache = await caches.open(SHELL);
+    return { cache, hit: await cache.match(key, MATCH_OPTS) };
+  }, row => { void row.hit?.body?.cancel().catch(() => undefined); });
+  const cache = stored?.cache, hit = stored?.hit;
+  if (hit && cache) {
     if (offline()) return transportReceipt(hit, true); // no revalidate that can only fail
     const refresh = () => backgroundWork(async signal => {
       const response = await fetchAttempt(new Request(req, { signal, priority: 'low' }));
@@ -729,7 +732,7 @@ async function documentResponse(event, req) {
     return transportReceipt(hit, true);
   }
   const res = await fetchAttempt(req, { stallMs: 3000, deadlineMs: 3000 });
-  putDocument(cache, key, res.clone()).catch(() => undefined);
+  if (cache) putDocument(cache, key, res.clone()).catch(() => undefined);
   return transportReceipt(res);
 }
 
@@ -738,6 +741,35 @@ async function documentResponse(event, req) {
 // renews the stall clock, so a large healthy download keeps its original bytes.
 // A fresh request can then bypass a stuck HTTP-cache transaction.
 const FETCH_ATTEMPT_MS = 10000;
+// Cache Storage has no cancellation API. A suspended storage transaction must
+// not hold online document/code delivery after its network deadline has ended.
+// Healthy reads and publications still finish first; offline reads keep their
+// original cache authority. Two stages add at most one second to online boot.
+const CACHE_STAGE_MS = 500;
+/** @template T
+ * @param {Request} req @param {()=>Promise<T>} work
+ * @param {(value:T)=>void} [discard] @returns {Promise<T|undefined>} */
+async function cacheStage(req, work, discard) {
+  if (offline()) return work();
+  const owner = new WorkerScope();
+  let finished = false;
+  const pending = Promise.resolve().then(work).then(value => {
+    if (finished) discard?.(value);
+    return value;
+  }, () => undefined);
+  /** @type {Promise<undefined>} */
+  const deadline = new Promise((resolve, reject) => {
+    owner.timeout(CACHE_STAGE_MS, () => { resolve(undefined); });
+    const abort = () => {
+      const reason = req.signal.reason;
+      reject(reason instanceof Error ? reason : new Error('Cache read aborted', { cause: reason }));
+    };
+    owner.listen(req.signal, 'abort', abort);
+    if (req.signal.aborted) abort();
+  });
+  try { return await Promise.race([pending, deadline]); }
+  finally { finished = true; owner.dispose(); }
+}
 class WorkerFetchStallError extends Error {
   constructor(url) { super(`Service worker fetch stalled: ${url}`); this.name = 'WorkerFetchStallError'; }
 }
@@ -866,26 +898,32 @@ async function shardBlob(req, hash) {
 }
 
 async function cacheFirst(req, name) {
-  const cache = await caches.open(name);
-  const hit = await cache.match(req, MATCH_OPTS);
-  if (hit) return transportReceipt(hit, true);
-  // Older boot tables added ?v even to SHA-256 basenames. The same exact
-  // content can now use its plain URL, including immediately after an offline
-  // update. Match only its own hash prefix; never ignore arbitrary queries.
-  const url = new URL(req.url);
-  if (name === STATIC && (CONTENT_NAMED_RE.test(url.pathname) || url.searchParams.has('v'))) {
-    const previous = await caches.match(req, MATCH_OPTS);
-    if (previous) return transportReceipt(previous, true);
-  }
-  const namedHash = /\/([0-9a-f]{64})\.[a-z0-9]+$/.exec(url.pathname)?.[1];
-  if (name === STATIC && url.pathname.startsWith('/assets/') && url.search === '' && namedHash !== undefined) {
-    const held = await caches.match(`${abs(url.pathname)}?v=${namedHash.slice(0, 8)}`, MATCH_OPTS);
-    if (held) {
-      await cache.put(req, held.clone()).catch(() => undefined);
-      return transportReceipt(held, true);
+  const lookup = async () => {
+    const cache = await caches.open(name);
+    const hit = await cache.match(req, MATCH_OPTS);
+    if (hit) return { cache, hit };
+    // Older boot tables added ?v even to SHA-256 basenames. The same exact
+    // content can now use its plain URL, including immediately after an offline
+    // update. Match only its own hash prefix; never ignore arbitrary queries.
+    const url = new URL(req.url);
+    if (name === STATIC && (CONTENT_NAMED_RE.test(url.pathname) || url.searchParams.has('v'))) {
+      const previous = await caches.match(req, MATCH_OPTS);
+      if (previous) return { cache, hit: previous };
     }
-  }
-  return wholeCode(req) ? fetchWhole(req, cache) : networkFirst(req, name);
+    const namedHash = /\/([0-9a-f]{64})\.[a-z0-9]+$/.exec(url.pathname)?.[1];
+    if (name === STATIC && url.pathname.startsWith('/assets/') && url.search === '' && namedHash !== undefined) {
+      const held = await caches.match(`${abs(url.pathname)}?v=${namedHash.slice(0, 8)}`, MATCH_OPTS);
+      if (held) {
+        await cache.put(req, held.clone()).catch(() => undefined);
+        return { cache, hit: held };
+      }
+    }
+    return { cache, hit: undefined };
+  };
+  const stored = wholeCode(req) ? await cacheStage(req, lookup,
+    row => { void row.hit?.body?.cancel().catch(() => undefined); }) : await lookup();
+  if (stored?.hit) return transportReceipt(stored.hit, true);
+  return wholeCode(req) ? fetchWhole(req, stored?.cache) : networkFirst(req, name);
 }
 
 /**
@@ -909,8 +947,9 @@ async function fetchWhole(req, cache) {
       // A first-use chunk can be requested offline as soon as its import
       // completes. Finish this publication attempt before returning its bytes;
       // a detached write raced that next request and could outlive the worker.
-      // Quota/storage failure still serves the complete online response.
-      await cache.put(req, whole.clone()).catch(() => undefined);
+      // Quota/storage failure or a suspended publication still serves the
+      // complete online response after the finite cache stage.
+      if (cache) await cacheStage(req, () => cache.put(req, whole.clone()));
       return transportReceipt(whole);
     } catch (e) {
       if (last || req.signal.aborted || offline()) throw e;

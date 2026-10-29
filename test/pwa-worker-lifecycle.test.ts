@@ -74,7 +74,7 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, 
     for (const listener of listeners.get(kind) ?? []) listener({ ...payload, source: { postMessage: (value: unknown) => { replies.push(value); } }, waitUntil: work => { pending.push(work); }, respondWith: work => { pending.push(work.then(response => { responses.push(response); return response; })); } });
     await Promise.all(pending);
   };
-  return { fetch, open, dispatch, navigator, installErrors, replies, responses, parsed };
+  return { fetch, open, caches, dispatch, navigator, installErrors, replies, responses, parsed };
 }
 afterEach(() => { vi.useRealTimers(); });
 
@@ -231,8 +231,8 @@ test('Developer-only code stays cold until first use and then works offline', as
 
 // Node Request cannot set destination in its init; real module fetch events
 // expose script. Model that browser-owned fact on this fixture request only.
-function scriptRequest(path: string): Request {
-  const request = new Request(new URL(path, base));
+function scriptRequest(path: string, signal?: AbortSignal): Request {
+  const request = new Request(new URL(path, base), signal===undefined?{}:{signal});
   Object.defineProperty(request, 'destination', { value: 'script' });
   return request;
 }
@@ -274,6 +274,80 @@ test('a failed code cache write still returns one complete online response', asy
     expect(f.fetch).toHaveBeenCalledTimes(1);
     expect(write).toHaveBeenCalledTimes(1);
   } finally { write.mockRestore(); }
+});
+
+test('a suspended code publication cannot hold complete online module bytes', async () => {
+  vi.useFakeTimers();
+  const f=fixture(),cache=await f.open('ws-immutable'),put=cache.put.bind(cache);
+  let release:()=>void=()=>undefined;
+  const held=new Promise<void>(resolve=>{release=resolve;});
+  const write=vi.spyOn(cache,'put').mockImplementation(async(request,response)=>{await held;await put(request,response);});
+  try {
+    const work=f.dispatch('fetch',{request:scriptRequest(later)});
+    await vi.advanceTimersByTimeAsync(499);expect(f.responses).toHaveLength(0);
+    await vi.advanceTimersByTimeAsync(1);await work;
+    expect(await f.responses[0]?.text()).toBe('exact bytes');expect(f.fetch).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+  } finally {release();write.mockRestore();await vi.advanceTimersByTimeAsync(0);}
+  expect(await(await cache.match(new URL(later,base).href))?.text()).toBe('exact bytes');
+});
+
+test.each(['code','document'] as const)('a suspended %s cache lookup yields to the original network path',async kind=>{
+  vi.useFakeTimers();
+  const f=fixture(),cache=await f.open(kind==='code'?'ws-immutable':'ws-shell-unit-build');
+  let release:()=>void=()=>undefined;
+  const held=new Promise<void>(resolve=>{release=resolve;});
+  const match=vi.spyOn(cache,'match').mockImplementation(async()=>{await held;return undefined;});
+  const request=kind==='code'?scriptRequest(later):new Request(base);
+  try {
+    const work=f.dispatch('fetch',{request});
+    await vi.advanceTimersByTimeAsync(499);expect(f.fetch).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);await work;
+    expect(await f.responses[0]?.text()).toBe('exact bytes');expect(f.fetch).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(0);expect(vi.getTimerCount()).toBe(0);
+  }finally{release();match.mockRestore();}
+});
+
+test.each(['code','document'] as const)('a suspended %s cache open does not gate online response delivery',async kind=>{
+  vi.useFakeTimers();
+  const f=fixture(),cache=await f.open('held');
+  let release:()=>void=()=>undefined;
+  const held=new Promise<void>(resolve=>{release=resolve;});
+  const open=vi.spyOn(f.caches,'open').mockImplementation(async()=>{await held;return cache;});
+  try {
+    const work=f.dispatch('fetch',{request:kind==='code'?scriptRequest(later):new Request(base)});
+    await vi.advanceTimersByTimeAsync(500);await work;
+    expect(await f.responses[0]?.text()).toBe('exact bytes');expect(f.fetch).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(0);expect(vi.getTimerCount()).toBe(0);
+  }finally{release();open.mockRestore();}
+});
+
+test('offline code retains its exact cache authority beyond the online cache grace',async()=>{
+  vi.useFakeTimers();
+  const f=fixture(),cache=await f.open('ws-immutable');f.navigator.onLine=false;
+  let release:()=>void=()=>undefined;
+  const held=new Promise<void>(resolve=>{release=resolve;});
+  const match=vi.spyOn(cache,'match').mockImplementation(async()=>{await held;return new Response('exact offline bytes');});
+  let settled=false;
+  try {
+    const work=f.dispatch('fetch',{request:scriptRequest(later)}).then(()=>{settled=true;return undefined;});
+    await vi.advanceTimersByTimeAsync(1000);expect(settled).toBe(false);expect(f.fetch).not.toHaveBeenCalled();
+    release();await work;expect(await f.responses[0]?.text()).toBe('exact offline bytes');expect(f.fetch).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  }finally{release();match.mockRestore();}
+});
+
+test('cancelling an online code cache lookup preserves its reason and drains the grace timer',async()=>{
+  vi.useFakeTimers();
+  const f=fixture(),cache=await f.open('ws-immutable'),abort=new AbortController(),reason=new Error('left module');
+  let release:()=>void=()=>undefined;
+  const held=new Promise<void>(resolve=>{release=resolve;});
+  const match=vi.spyOn(cache,'match').mockImplementation(async()=>{await held;return undefined;});
+  try {
+    const work=expect(f.dispatch('fetch',{request:scriptRequest(later,abort.signal)})).rejects.toBe(reason);
+    await vi.advanceTimersByTimeAsync(0);abort.abort(reason);await work;
+    expect(f.fetch).not.toHaveBeenCalled();expect(vi.getTimerCount()).toBe(0);
+  }finally{release();match.mockRestore();}
 });
 
 test('installation remains strict for its complete entry graph and never reads lazy shard chunks', async () => {
