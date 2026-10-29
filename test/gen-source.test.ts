@@ -20,6 +20,10 @@ test('a staged path selects only the gen:source rows it feeds', () => {
   expect(ids('src/game/weapons/starterBow.json')).toEqual(['starter-weapons']);
   expect(ids('src/shards/pine-hollow/manifest.json')).toEqual(['shard-slugs', 'shard-list', 'manifest-closure', 'manifest-art']);
   expect(ids('public/assets/music/calm/music.json')).toEqual(['boot-audio']);
+  expect(ids('public/assets/title/main-crossroads-square.jpg')).toEqual(['title-asset-urls']);
+  expect(ids('scripts/title-assets.mjs')).toEqual(['title-asset-urls']);
+  expect(ids('scripts/title-assets.generated.json')).toEqual(['title-asset-urls']);
+  expect(ids('index.html')).toEqual(['title-asset-urls', 'native-page']);
   expect(ids('src/engine/core/Game.ts')).toEqual(['manifest-closure', 'manifest-art']);
   expect(ids('src/game/bag/starter.generated.ts')).toEqual(['starter-bag', 'manifest-closure', 'manifest-art']);
   expect(ids('src/shards/pine-hollow/generators/sections.ts')).toEqual(['pine-hollow-section-schemas', 'manifest-closure', 'manifest-art']);
@@ -30,9 +34,9 @@ test('every registry output is listed once and committed rows own tracked inputs
   const outputs = SOURCE_GENERATORS.flatMap(row => row.outputs);
   expect(SOURCE_GENERATORS.every(row => row.committed)).toBe(true);
   expect(new Set(outputs).size).toBe(outputs.length);
-  // d8071c7737 adds native.html to the previous nineteen outputs.
+  // QB21 adds the exact title URL table and its static document to the twenty prior outputs.
   expect([...outputs].sort()).toEqual([
-    'native.html', 'src/engine/boot/ktx2.generated.ts', 'src/game/bag/starter.generated.ts',
+    'index.html', 'native.html', 'scripts/title-assets.generated.json', 'src/engine/boot/ktx2.generated.ts', 'src/game/bag/starter.generated.ts',
     'src/game/boot/audio.generated.ts', 'src/game/boot/bytes.generated.ts', 'src/game/boot/packs.generated.ts',
     'src/game/boot/versions.generated.ts', 'src/game/shard/art.generated.ts', 'src/game/shard/manifest-closure.generated.json',
     'src/game/shard/portShares.generated.ts', 'src/game/shard/slugs.generated.json', 'src/game/shard/slugs.generated.ts',

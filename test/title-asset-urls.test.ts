@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exact byte proof for the build's image copies.
 import {createHash} from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- The test owns only its temporary output folder.
-import {mkdirSync,mkdtempSync,readFileSync,rmSync} from 'node:fs';
+import {mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve local build fixture paths.
 import {join,resolve} from 'node:path';
 import {expect,test} from 'vitest';
@@ -31,4 +31,24 @@ test('every title URL names its exact original bytes and shell/runtime use the s
     expect(result.core).toContain(urls['/assets/title/main-crossroads-square.jpg']);
     expect(result.core).toContain(urls['/assets/title/main-crossroads-landscape.jpg']);
   }finally{rmSync(out,{recursive:true,force:true});}
+});
+
+
+test('title source generation refuses stale names, missing markers and stale publication tables',()=>{
+  mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/title-source-'));
+  try{
+    mkdirSync(join(root,'public/assets/title'),{recursive:true});mkdirSync(join(root,'scripts'));
+    const image=join(root,'public/assets/title/hero.jpg'),document=join(root,'index.html');
+    writeFileSync(image,'first');writeFileSync(document,'// BEGIN TITLE URLS\n// END TITLE URLS');
+    const first=titleAssetTables(root),url=titleAssetURLs(root)['/assets/title/hero.jpg'];
+    writeFileSync(join(root,'scripts/title-assets.generated.json'),first['scripts/title-assets.generated.json']);
+    writeFileSync(document,first['index.html']);
+    expect(titleAssetTables(root)).toEqual(first);
+    writeFileSync(image,'other');
+    expect(titleAssetURLs(root)['/assets/title/hero.jpg']).not.toBe(url);
+    expect(()=>writeTitleAssets(root,join(root,'out'))).toThrow('Stale title asset URLs');
+    writeFileSync(document,'no table');expect(()=>titleAssetTables(root)).toThrow('Missing title URL table markers');
+    writeFileSync(join(root,'public/assets/title/launch-000000000000.png'),'pixels');
+    expect(()=>titleAssetURLs(root)).toThrow('Title asset name differs from bytes');
+  }finally{rmSync(root,{recursive:true,force:true});}
 });
