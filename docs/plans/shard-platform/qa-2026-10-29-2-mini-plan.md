@@ -41,3 +41,70 @@ From `/api/errors` (`pnpm inbox:pull`) and Sentry (`lastSeen:-6h`), 08:00–14:0
 | QB12 | **P0, and on the QA build too: tabbing back to Nine Dragon lands on the main menu** (14:09 screenshot, `8621318d9`): *"I just fucking tab back to my game, to my Nine Dragon game on iOS. And it's fucking gone … It just popped me out the main menu. Like, why the flying fuck would it pop me out the main menu?"* No "ended unexpectedly" line either (QB6). The same report came from Sky Reach at 13:56 (`b8e5c642`) and Signal Dunes at 14:02 (`9638ed11`) on this build. Earlier: **the page dies while hidden, six times in 50 min** (Jake's phone, live `a8a440cfa`, Driftwood): `[lifecycle] boot after the last page ended on "hide" (nav navigate)` at 09:55, 10:05, 10:10, 10:24, 10:40, 10:44 (ids `f2247d63`, `ee17d193`, `8fb84193`, `55bc95d6`, `6988f942`, `5a94b50f`); each new boot took 30–38 s to *world ready*. A page whose last beat was "hide" and that comes back as a fresh boot was killed in the background (iOS memory or a reload on resume), so every app switch cost him a full load. | Find whether these are background kills (memory held while hidden: the renderer, caches, the grid) or our own reload on resume; drop what can be dropped on `visibilitychange: hidden` so a 1-minute app switch on the iOS 27 Simulator resumes in place, not as a new boot. Done when a Simulator app switch out and back (sim-lane, 60 s away) resumes with no new boot, and the report is gone from the next QA build. | folded into MF7 (sp-o5) | M |
 | QB13 | **A deploy strands an open page** (and on the QA build at 13:57, `2b80b769`: `[boot-entry] Error: Stylesheet failed`, a boot that could not load its CSS) (11:34, desktop Mac, build `db1b1cabf`, `ce6137b5`): `[boot-entry] TypeError: Failed to fetch dynamically imported module: …/assets/pageEntry-Bo9T7h5d.js`. A page from an older build asked for a code chunk that the new deploy had removed, and boot failed. Same shape as Jake's 13:40 hang (QB3). | Old chunks stay fetchable after a deploy (keep the previous build's hashed assets served, or the service worker answers them from ws-immutable), and a failed dynamic import reloads once onto the new build instead of failing. Folds into reload-simplify RL8. Done when a page opened on build A boots and plays after build B deploys (two local revisions, serve-build). | folded into MF2 (sp-x2) | S |
 | QB14 | **done `3b23085bb6`:** collection game ports now retain accessor-backed scene/camera/renderer instead of losing them through object spread. The exact release stack ends at `LightPool` reading the missing scene, not the events registry; the original `.add` failure reproduces and the real-pool regression plus keepsake control pass (2/2). **`engine.events` throws on startup** (12:06, desktop Mac, `f8ccbaa6c`, Driftwood, `9fa84a08`): `TypeError: Cannot read properties of undefined (reading 'add')` in `new e` / `e.for` of the startup chunk. Sentry [WILDSHARD-GAME-71](https://wildshard.sentry.io/issues/WILDSHARD-GAME-71): 8 events, 2 users, first seen 4 days ago, last 13:00. | Decode the stack with the release's source maps (DA1), fix the undefined set / map the events registry reads, test it, `Fixes WILDSHARD-GAME-71` in the commit. | Codex sp-x1 · done 3b23085bb6 | S |
+
+## QB10: every unresolved Sentry issue (14 days, pulled 15:30 by wildshard-v)
+
+For sp-x1's triage (lanes have no Sentry credential): fix or verdict each, list `id → verdict → SHA` in the commit; wildshard-v resolves them in Sentry from that list. Links: `https://wildshard.sentry.io/issues/WILDSHARD-GAME-<id>`.
+
+| Sentry | Title |
+|---|---|
+| 81 | QB8 capture: a forced uncaught error in play (harness, G906) |
+| 7Z | Scope level disposal failed: r.usedTimes (QB7) |
+| 80 | Invalid numeric input draw (QB11) |
+| 71 | Cannot read properties of undefined (reading 'add') (QB14) |
+| 7Y | Shardfile pack hash or size mismatch |
+| S | THREE.WebGLAttributes: buffer attribute resized |
+| 7X | Entered-frame warm-up stalled in spawn-program-links > 30 s (QA3) |
+| 7W | Shardfile download > 3 s with no visited offline copy |
+| 7V | Probe control requires the harness pins (harness, G906) |
+| 7T | Duplicate system id: world.impacts |
+| 7S | network error |
+| 7R | d.backgroundGate is not a function (80 events) |
+| 7P | Missing specimen cost bytes: log-cabin-hollow-phone-false.json |
+| 7Q | Shardfile requires the normal play stage |
+| 7N | RangeError: Invalid ring camera |
+| 7M | Invalid return observation frame |
+| 7K | Invalid numeric input camera.x |
+| 57 | material graph: param trampleWin must be finite |
+| 7J | Refinement requires declared fine geometry: native-refine |
+| 7G | Duplicate system id: game.grid.frame |
+| 7H | Duplicate system id: game.shardfile.tiles |
+| 7F | Standalone tile work and cleanup failed |
+| 7E | Missing frozen scene material |
+| 7D | ReferenceError: arg is not defined |
+| 7C | Cannot read properties of undefined (reading 'usedTimes') (QB7) |
+| 7B | Unexpected token '<', "<!doctype" is not valid JSON |
+| 4S | Compressed texture boar-albedo lost its allocation after mip retirement (24 events) |
+| 7A | Binary source was not prepared: models/cover-phone.bin |
+| 78 | Missing frozen scene resource |
+| 74 | Failed to fetch |
+| 79 | Missing admitted raw return module loan |
+| 6K | Held slot owner has ended |
+| 77 | Scope tile:render:28 disposal failed: Resident instances exceed the target |
+| 76 | Admission progress arrived after world setup started |
+| 75 | Painted attributes require named binary files |
+| 73 | Unavailable or oversized shardfile asset |
+| 72 | The source image could not be decoded |
+| 70 | Scene placement is built whole |
+| 6Z | Regional durability was not admitted |
+| 6Y | Cannot read properties of undefined (reading 'transfer') |
+| 6X | undefined is not an object (evaluating 'xn.get') |
+| 6W | undefined is not an object (evaluating 'e[`~run`]') |
+| 6V | Invalid entity |
+| 6T | Invalid boot module bank |
+| 6S | driftwood-isle: Invalid boot module bank |
+| 6R | Raw director module is stale or mixed |
+| 6Q | Cell skin borrows bones outside its cell (75 events) |
+| 1J | The home look is the frame itself; only a neighbour region contributes |
+| 6P | Scene placement nds-inst-plant@well is already placed |
+| 6N | World scene stage needs its original scene handles |
+| 6M | place: pine-hollow/fire-lookout builds a whole object (asked for 'instanced') |
+| 6J | World GPU root placed nothing: boat |
+| 6H | Retired or replaced elite output owner |
+| 6G | Quest tulpar is not bound in this entry |
+| 6F | Cannot read properties of undefined (reading 'boundingSphere') |
+| 5W | This app is older than the shard it is loading. Reload to update. |
+| 5X | Material has no compiled graph textures |
+| 6E | Scene placement needs a published part and one box per copy |
+| 6D | World entry active piece needs its entered scope |
+| 6C | Frozen specimens need owned geometry |
