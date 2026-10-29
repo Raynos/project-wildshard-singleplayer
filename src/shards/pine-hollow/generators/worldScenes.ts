@@ -27,7 +27,9 @@ const matrices = Array.from({ length: count }, (_, i) => new Matrix4().makeTrans
 const SPRAY = 'scenes/streams-spray.bin', sprayPacket = (offset: number) => ({ file: SPRAY, storage: 'f32' as const, byteOffset: count * offset * 4, count });
 const recipe = { scene: { version: 1, root: 'root', nodes: [
   { kind: 'group', id: 'root', children: ['water', 'spray'] },
-  { kind: 'mesh', id: 'water', geometry: 'water', material: 'water', missing: 'empty', name: WATER_SURFACES.creek.name, receiveShadow: true, renderOrder: WATER_SURFACES.creek.renderOrder },
+  // D200: never culled, so tile streaming keeps it whole (d64a1ade37): the waterfall down the central cliff is a landmark
+  // seen from across the valley, and partitioned by tile it drew nothing past the render ring (the bare cliff, a dark pool)
+  { kind: 'mesh', id: 'water', geometry: 'water', material: 'water', missing: 'empty', name: WATER_SURFACES.creek.name, receiveShadow: true, renderOrder: WATER_SURFACES.creek.renderOrder, frustumCulled: false },
   { kind: 'mesh', id: 'spray', geometry: 'quad', material: 'spray', missing: 'empty', name: 'waterfall-spray', renderOrder: 7, frustumCulled: false, instances: count },
 ], materials: [{ kind: 'port', id: 'water', source: 'water' }, { kind: 'port', id: 'spray', source: 'spray' }] }, imports: [] };
 // the beaver pool's still surface and dam trickle (G4): their geometry for the pool view (world/beaverPool.ts draws them
