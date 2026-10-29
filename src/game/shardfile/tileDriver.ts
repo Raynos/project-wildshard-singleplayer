@@ -21,6 +21,7 @@ import { TILE_SIZE, TILES_PER_SIDE, tileOf, tileOrder, type CellTile, type TileE
 import { noteEnteredTiles } from './enteredTileReadout';
 import { residentTileEntry } from './tileEntry';
 import { pageScope } from '@wildshard/engine/app/resources';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { SPAWN_VIEW_M, spawnViewBusy } from './controlRefinement';
 
 /** MF5: the live drivers, and whether the loader is settling them (no world frames under the card since FC2). */
@@ -40,7 +41,7 @@ export async function settleTileDrivers(frame?: () => void, capMs = 20000): Prom
   loaderMode = true;
   try {
     frame?.();
-    const until = performance.now() + capMs;
+    const until = diagnosticNow() + capMs;
     for (const driver of Array.from(liveDrivers)) await driver.settle(until);
   } finally { loaderMode = false; }
 }
@@ -73,11 +74,11 @@ export class TileDriver {
    *  control). A shorter wait reads an attach in its own budget pause (a frame wait, capped) as that. */
   async settle(until: number): Promise<void> {
     let idleSince: number | null = null;
-    while (this.last !== null && !this.scope.disposed && !this.scope.disposing && performance.now() < until) {
+    while (this.last !== null && !this.scope.disposed && !this.scope.disposing && diagnosticNow() < until) {
       this.step(this.last.x, this.last.z);
       const plan = this.plan, pending = plan !== null && plan.nearest.render.some(key => this.inView(key) && (this.attached.render.get(key) === undefined || !this.complete(key)));
       if (!this.busy && !pending) return;
-      if (this.busy && !spawnViewBusy()) { idleSince ??= performance.now(); if (performance.now() - idleSince > SETTLE_IDLE_MS) return; }
+      if (this.busy && !spawnViewBusy()) { idleSince ??= diagnosticNow(); if (diagnosticNow() - idleSince > SETTLE_IDLE_MS) return; }
       else idleSince = null;
       await task();
     }
