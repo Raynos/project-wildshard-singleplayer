@@ -17,6 +17,8 @@ import { clientSceneHandles } from '../src/game/shardfile/clientSceneHandles';
 import { expect, test, vi } from 'vitest';
 import * as workSlices from '../src/engine/core/workSlice';
 import * as framePacing from '../src/engine/core/framePacing';
+import * as completionClock from '../src/engine/core/clock';
+import { constructionCheckpoint } from '../src/game/shardfile/constructionCheckpoint';
 import fixture from './fixtures/client-plan.json' with { type: 'json' };
 import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
@@ -481,26 +483,44 @@ test('compiled bound rows dispatch after host construction and before gameplay c
 });
 
 
-test('compiled chapter view follows all six host preparation yields and adds its standard yield', async () => {
+test.each([{ spent: false, retire: false }, { spent: true, retire: false }, { spent: true, retire: true }])(
+  'compiled chapter view keeps six host preparations before its completion ($spent, $retire)', async ({ spent, retire }) => {
   const f = context(), order: string[] = [];
+  let at = 0;
+  const clock = vi.spyOn(completionClock, 'diagnosticNow').mockImplementation(() => at);
+  const presenting = vi.spyOn(framePacing, 'presenting').mockReturnValue(true);
+  const held = vi.spyOn(framePacing, 'buildHeld').mockReturnValue(true);
+  const budget = vi.spyOn(framePacing, 'frameBudgetSpent').mockReturnValue(false);
   f.sections.set('client/plan', { version: 1, features: [{ kind: 'quest.chapter-view', chapterView: 'quests/content.json', story: 'quests/chapters.json', arena: 'chapter.arena', fight: 'chapter.fight' }] });
   for (const file of ['quests/content.json', 'quests/chapters.json']) f.files.set(file, { hash: 'a'.repeat(64), url: `/fixture/${file}` });
-  const yieldStep = vi.spyOn(workSlices, 'buildYield').mockImplementation(() => { order.push('yield'); return Promise.resolve(); });
+  const yieldStep = vi.spyOn(workSlices, 'buildYield').mockImplementation(owner => {
+    order.push('yield');
+    if (retire) { if (owner === undefined) throw new Error('Missing chapter completion owner'); owner.dispose(); }
+    return Promise.resolve();
+  });
   const install = vi.spyOn(questPreparation, 'installEntryChapterView').mockImplementation(() => { order.push('chapter'); return Promise.resolve(); });
   const runtime: ShardRuntime = { world: null, step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
   const resident: HybridResident = { instance: 'chapter', slug: f.source.identity.slug, declaration: null, product: f.ctx.product,
     firstParty: true, scope: f.ctx.scope, runtime, context: (scope, localRuntime) => ({
       context: { ...f.ctx, scope, game: { ...f.ctx.game, runtime: localRuntime } }, openKit: () => undefined, closeKit: () => undefined,
-      afterKit: async () => { for (let n = 1; n <= 6; n++) { await Promise.resolve(); order.push(`part${n}`); } },
+      afterKit: async () => { for (let n = 1; n <= 6; n++) { await Promise.resolve(); at += spent ? 10 : 1; order.push(`part${n}`); } },
     }) };
   const session = new HybridRuntimeSession(new Map([['chapter', resident]]), f.ctx.scope);
   try {
-    await session.enter({ instance: 'chapter', slug: resident.slug });
-    expect(order).toEqual(['part1', 'part2', 'part3', 'part4', 'part5', 'part6', 'chapter', 'yield']);
+    // Reset the shared completion clock through its real live/loading boundary.
+    expect(constructionCheckpoint(f.ctx.scope)).toBeUndefined();
+    presenting.mockReturnValue(false);
+    expect(constructionCheckpoint(f.ctx.scope)).toBeUndefined();
+    const entering = session.enter({ instance: 'chapter', slug: resident.slug });
+    await (retire ? expect(entering).rejects.toThrow('scope has closed') : entering);
+    expect(order).toEqual(['part1', 'part2', 'part3', 'part4', 'part5', 'part6', 'chapter', ...spent ? ['yield'] : []]);
     expect(install).toHaveBeenCalledOnce();
     expect(clientPhases.CLIENT_FEATURES['quest.chapter-view']).toMatchObject({ phase: 'play', rank: 110, lifetime: 'entered', sections: [] });
-    expect(yieldStep).toHaveBeenCalledOnce();
-  } finally { yieldStep.mockRestore(); install.mockRestore(); f.ctx.scope.dispose(); }
+    expect(yieldStep).toHaveBeenCalledTimes(spent ? 1 : 0);
+  } finally {
+    presenting.mockReturnValue(true); expect(constructionCheckpoint(f.ctx.scope)).toBeUndefined();
+    yieldStep.mockRestore(); install.mockRestore(); clock.mockRestore(); presenting.mockRestore(); held.mockRestore(); budget.mockRestore(); f.ctx.scope.dispose();
+  }
 });
 
 test.each(['quests/content.json', 'quests/chapters.json'])('chapter view requires admitted file %s before any phase', file => {
