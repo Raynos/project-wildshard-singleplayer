@@ -20,7 +20,7 @@ import { dropGridIntent, enterGrid, gridRecoveryLoop } from './grid/pageEntry';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { saves } from '@wildshard/engine/saves/runtime';
 import { titlePrefetchOrder } from './grid/titleOrder';
-import { titleManifests } from './shard/titleList';
+import { findTitleManifest, titleManifests } from './shard/titleList';
 import { titlePrefetchChoice, titlePrefetchTargets } from './grid/titlePrefetchChoice';
 
 import { GAME_STRINGS } from './strings';
@@ -201,7 +201,8 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
 /**
  * The cold title's Infinite Wildshard wiring (SF21a), one call for the composition root (src/entry.ts):
  *   - a stale one-shot intent is consumed here, so nothing but a new tap boots the grid (R3-C5);
- *   - when the previous page was the grid and it ended unexpectedly (iOS's memory kill), the title only adds one line.
+ *   - when the previous page (the grid, or any standalone world by name, QB6) ended unexpectedly (iOS's memory kill),
+ *     the title only adds one line.
  */
 export interface GridTitle { readonly onGrid: () => void; readonly note: string; readonly screen?: MainMenuScreen }
 /** Return the installed title action and note for the grid entry. */
@@ -209,6 +210,9 @@ export function installGridTitle(): GridTitle {
   dropGridIntent();
   const end = lastEnd();
   const loop = gridRecoveryLoop();
-  return { onGrid: enterGrid, note: loop || (end.kind === 'unexpected' && end.mode === 'grid') ? GAME_STRINGS.grid.ended : '',
+  // QB6: a standalone world's unexpected end gets the same one line, by the world's name
+  const world = end.kind === 'unexpected' && end.mode !== 'grid' ? end.slug : '';
+  const name = world.length === 0 ? '' : findTitleManifest(world)?.name ?? world;
+  return { onGrid: enterGrid, note: loop || (end.kind === 'unexpected' && end.mode === 'grid') ? GAME_STRINGS.grid.ended : name !== '' ? GAME_STRINGS.grid.shardEnded(name) : '',
     ...(loop ? { screen: 'select' } : {}) };
 }

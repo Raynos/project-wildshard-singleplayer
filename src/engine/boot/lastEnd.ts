@@ -48,6 +48,8 @@ export interface LastEnd {
   at: number;
   /** what was resident then ('' unknown) */
   resident: string;
+  /** the world that page had selected (AliveInfo.slug; '' unknown) */
+  slug: string;
   /** the page mode the game reported then (AliveInfo.mode; '' unknown) */
   mode: string;
   /** the build that page ran */
@@ -152,13 +154,13 @@ export class PageLife {
     try { const e: unknown = performance.getEntriesByType('navigation')[0]; nav = str(e, 'type'); } catch { /* old WebKit */ }
     const base = { bootedAt: now, discarded, nav };
     const ut = num(u, 't');
-    if (u !== null && now - ut < INTENT_MS) return { kind: 'intentional', reason: str(u, 'reason'), at: ut, resident: str(u, 'resident'), mode: str(u, 'mode'), build: str(u, 'build'), ...base };
+    if (u !== null && now - ut < INTENT_MS) return { kind: 'intentional', reason: str(u, 'reason'), at: ut, resident: str(u, 'resident'), slug: str(u, 'slug'), mode: str(u, 'mode'), build: str(u, 'build'), ...base };
     if (a !== null) {
       const where = str(a, 'vis') === 'hidden' ? 'in the background' : 'on screen';
-      return { kind: 'unexpected', reason: `page ended unexpectedly ${where} (browser or system cause unknown)`, at: num(a, 't'), resident: str(a, 'resident'), mode: str(a, 'mode'), build: str(a, 'build'), ...base };
+      return { kind: 'unexpected', reason: `page ended unexpectedly ${where} (browser or system cause unknown)`, at: num(a, 't'), resident: str(a, 'resident'), slug: str(a, 'slug'), mode: str(a, 'mode'), build: str(a, 'build'), ...base };
     }
-    if (u !== null) return { kind: 'intentional', reason: `${str(u, 'reason')} (${Math.round((now - ut) / 1000)} s before this load)`, at: ut, resident: str(u, 'resident'), mode: str(u, 'mode'), build: str(u, 'build'), ...base };
-    return { kind: 'fresh', reason: 'fresh launch', at: 0, resident: '', mode: '', build: '', ...base };
+    if (u !== null) return { kind: 'intentional', reason: `${str(u, 'reason')} (${Math.round((now - ut) / 1000)} s before this load)`, at: ut, resident: str(u, 'resident'), slug: str(u, 'slug'), mode: str(u, 'mode'), build: str(u, 'build'), ...base };
+    return { kind: 'fresh', reason: 'fresh launch', at: 0, resident: '', slug: '', mode: '', build: '', ...base };
   }
 
   /** how the previous page in this tab ended (this boot's reading) */
@@ -171,7 +173,7 @@ export class PageLife {
     if (e === null) return null;
     const kind = str(e, 'kind');
     return {
-      kind: kind === 'intentional' || kind === 'unexpected' ? kind : 'fresh', reason: str(e, 'reason'), at: num(e, 'at'), resident: str(e, 'resident'), mode: str(e, 'mode'),
+      kind: kind === 'intentional' || kind === 'unexpected' ? kind : 'fresh', reason: str(e, 'reason'), at: num(e, 'at'), resident: str(e, 'resident'), slug: str(e, 'slug'), mode: str(e, 'mode'),
       build: str(e, 'build'), bootedAt: num(e, 'bootedAt'), discarded: Reflect.get(e as object, 'discarded') === true, nav: str(e, 'nav'),
     };
   }
