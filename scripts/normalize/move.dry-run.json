@@ -208,7 +208,6 @@
     "src/boot/steps.ts",
     "src/boot/stuck.ts",
     "src/boot/sw.ts",
-    "src/boot/timing.ts",
     "src/boot/titleArrival.ts",
     "src/boot/versions.generated.ts",
     "src/chunks/ChunkDef.ts",
@@ -528,7 +527,6 @@
     "src/engine/boot/steps.ts",
     "src/engine/boot/stuck.ts",
     "src/engine/boot/sw.ts",
-    "src/engine/boot/timing.ts",
     "src/engine/boot/titleArrival.ts",
     "src/engine/boot/versions.generated.ts",
     "src/engine/core/assets.ts",
@@ -2215,10 +2213,6 @@
     {
       "from": "src/boot/sw.ts",
       "to": "src/engine/boot/sw.ts"
-    },
-    {
-      "from": "src/boot/timing.ts",
-      "to": "src/engine/boot/timing.ts"
     },
     {
       "from": "src/boot/titleArrival.ts",
