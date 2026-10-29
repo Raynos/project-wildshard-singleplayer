@@ -1637,8 +1637,10 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const kinded = (kind: string, list: CompileJob[]): CompileJob[] => { for (const job of list) job.kind = kind; return list; };
     const from = options.nearest === true ? game.camera.getWorldPosition(new THREE.Vector3()) : undefined, drawnOnly = options.drawnOnly === true || options.arrival !== undefined;
     // The page's road/held roots can still change while its home constructs.
-    // Only the completed destination subtree lends materials to the head start.
-    const roots = options.sceneOnly === true && options.futureLighting !== undefined ? [options.futureLighting] : [scene];
+    // Only the completed destination subtree lends materials to the head start,
+    // with what the camera carries (PL6: the loadout builds it before the home;
+    // its arms and swords were ~0.2 s of the boot shader step at phone 10x).
+    const roots = options.sceneOnly === true && options.futureLighting !== undefined ? [options.futureLighting, game.camera] : [scene];
     const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 }
       : live || drawnOnly
         ? await pacedSceneJobs(scene, rt, per, roots, excludedRoots, options.current ?? (() => true), pageScope, options.arrival ?? (drawnOnly ? drawnFrom(game.camera, options.futureLighting, options.turns) : undefined), from)
