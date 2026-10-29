@@ -8,9 +8,8 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
 - **Commit early and often** with small commits. The scheduled push loop carries committed changes through the
   local gate below (G568); CI runs the full gate on the pushed revision.
 - **The gpu-gate parity jobs run nightly and at milestones, not on every push** (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`); the node checks still run per push.
-- **Coverage runs nightly and at milestones, not on every push** (Jake, G287, 2026-10-09): push CI runs the 8 vitest
-  shards without `--coverage`; `.github/workflows/coverage.yml` instruments them, merges and runs the coverage ratchet
-  at 09:23 UTC and on `gh workflow run coverage` (DEPLOY.md).
+- **Coverage is reserved for nightly and milestone runs, not every push** (Jake, G287, 2026-10-09).
+  The normal push proof does not collect coverage (DEPLOY.md).
   Historical (E357 Z4): **The per-push CI gate** stays green: the `macos-15` parity jobs for every shard and the template, and
   the node checks (layers, ratchets, contracts, the asset audit, `gen-shards --check`). Keep the nightly
   `gpu-perf` run on Jake's Mac enabled.
@@ -195,7 +194,7 @@ rewrite still needs Jake's approval.
 - **WHAT'S NEW is at most 24 h stale** (E482): pre-push runs `scripts/whats-new-fresh.mjs <sha>` on every push to
   main and refuses when `src/game/whatsNew.json`'s `updated` is missing, unparseable, over 1 h ahead or over 24 h old;
   rewrite its 3–5 lines with what changed in the playable build, set `date` / `updated` to now, commit and push again.
-- **Full-gate reference (G359/G363; local execution superseded by G568 above).** The former `scripts/local-gate.py`
+- **Full-gate reference (G359/G363; local execution superseded by G568 above).** The retired local full gate
   builds the exact pushed commit in the build mirror's `gate` slot (Vercel's tree) and runs, in order:
   `pnpm gen`; `check-graph --source-only`; the changed roots' types in the scripts / api / admin /
   drafts projects (the root project's full `tsc --noEmit` runs inside the build); oxlint on the

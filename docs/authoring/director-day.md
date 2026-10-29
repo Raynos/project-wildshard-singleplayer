@@ -34,6 +34,4 @@ continuation (time, pause, scale, cycle and held pin) and stage cursor on restor
 restore emits no stage action. Flag-only directors keep their existing snapshot
 shape. A missing page clock, malformed range or malformed continuation refuses.
 
-The retained `dayDirectorExample` in `scripts/docs/authoring/directors.ts` is
-executed by `test/director-day.test.ts`, alongside actual native restore and
-borrowed page-clock checks.
+The retained `dayDirectorExample` lives in `scripts/docs/authoring/directors.ts`.

@@ -45,7 +45,7 @@ runtime root; kind `input` is for an exact build or test input elsewhere (it sti
 `test/fixtures/` may pin media). A refusal prints the pin line to paste, with `"purpose": "<why>"` to fill in:
 
 ```json
-{ "path": "public/assets/pine-hollow/terrain.ktx2", "oid": "<git rev-parse :path>", "bytes": 1234567,
+{ "path": "public/assets/<slug>/<file>.ktx2", "oid": "<git rev-parse :path>", "bytes": 1234567,
   "kind": "runtime", "purpose": "Pine Hollow terrain atlas, shipped" }
 ```
 

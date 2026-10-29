@@ -3,9 +3,8 @@
 Use `generateScriptModule(state, handler)` from `@wildshard/sdk/directorAbi`,
 then compile its `source` with `compileBehaviourModule` from
 `@wildshard/sdk/buildBehaviour`. The retained
-[`numericScriptExample`](../../scripts/docs/authoring/director-script.ts) is
-compiled and executed against the actual native ScriptLane in
-`test/sdk-script-abi.test.ts`, including checkpoint restore. The existing
+[`numericScriptExample`](../../scripts/docs/authoring/director-script.ts) declares
+the numeric module. The existing
 `generateDirectorAbi` remains the typed observation accessor for director AS
 escape handlers; its output and established directors stay unchanged.
 

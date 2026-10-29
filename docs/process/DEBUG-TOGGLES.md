@@ -23,8 +23,8 @@ Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo
     1. `src/engine/ui/Settings.ts`: a key in `OPTION_VALUES` (the first value is the default) and `OPTION_SPECS` → `DEBUG_ONLY`.
     2. `src/engine/ui/debugOptions.ts`: one `opt(key, group, label, choices, { reload?, when?, note, ask: 'E<n>', reviewBy: 'YYYY-MM-DD' })`
        row in `DEBUG_ROWS`, under the group whose domain it is. `when` shows it only where it applies; `reload: true` if
-       the thing is built once. `src/engine/ui/DebugMenu.ts` renders it — no Menu.ts edit. `test/debug-options.test.ts`
-       fails an option with no row.
+       the thing is built once. `src/engine/ui/DebugMenu.ts` renders it — no Menu.ts edit.
+       Every option needs its registry row.
     3. The game reads it with `setting(key)` (at load for a reload row) and `onSettingChange(key, fn)` (live).
     4. A test / capture script sets it before the load: `debugSettings(page, { key: 'value' })` (`scripts/debug-settings.mjs`).
   - Both routes: every comparison row raises the Debug-row count capped in `lint/ratchet.json` (`debugRows.max`, the ask in
@@ -56,6 +56,5 @@ Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo
 - **The params the game may read are a fixed allowlist**, `lint/url-params.json`. `harness` is what the test, capture
   and bench scripts pass to drive the game headless (tier, touch, chunk, spawn, skipintro, mute, …). Adding to it needs
   Jake's explicit OK. `legacy` (the old switches, E162) is empty: never add to it.
-- **The lint enforces it.** `wildshard/no-url-switch` (`lint/wildshard-plugin.js`, on for `src/` except the `src/dev/`
-  harness pages) refuses `.get` / `.has` / `.getAll` of any param not on the list, a param name it cannot read as a
+- **The lint enforces it.** `wildshard/no-url-switch` (`lint/wildshard-plugin.js`, on for `src/`) refuses `.get` / `.has` / `.getAll` of any param not on the list, a param name it cannot read as a
   string, and raw `location.search` parsing. Don't disable it; move the variant to the menu.

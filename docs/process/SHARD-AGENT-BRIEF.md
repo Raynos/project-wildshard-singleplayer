@@ -34,11 +34,11 @@ hands and weapon, and the quest's staging, held to the other four shards' standa
   Local models (Hunyuan3D-2, TRELLIS.2) for 3D models, under the model lock.
 - **Your lane:** `src/shards/<slug>/`, `public/assets/<slug>/`, `test/shards/<slug>/`, `art/<slug>/`,
   `docs/design/<slug>/`, `progress/<slug>/`, your plan, and your own ceiling rows in `budgets/`. The engine
-  (`src/engine/`), game (`src/game/`), kit (`src/kit/`) and `scripts/` are the lead's: send it an
+  (`src/engine/`), game (`src/game/`), SDK (`src/sdk/`) and `scripts/` are the lead's: send it an
   **ENGINE REQUEST** and keep building something else meanwhile:
-  `herdr agent prompt wildshard-9 "[from <your name>] ENGINE REQUEST: <what, why, the file and the repro>"` (no `--wait`).
+  `scripts/herdr-prompt.sh <active-owner> "[from <your name>] ENGINE REQUEST: <what, why, the file and the repro>"` (no wait).
   The lead builds it and replies with the SHA. You never wait idle on it.
-- **Git:** shared main checkout with other agents. Pathspec commits only (`git commit -m … -- <paths>`), `git add` only
+- **Git:** shared main checkout with other agents. Commit only with `scripts/commit.sh "message" -- <paths>`; stage only
   for new files, small commits; push with `scripts/push-main.sh` when green (never `git push`; commits don't push themselves). Never stash, checkout, restore
   or reset files you didn't write.
 - **Browsers:** every Playwright run through `scripts/browser-lane.sh`; serve builds with `scripts/serve-build.sh`

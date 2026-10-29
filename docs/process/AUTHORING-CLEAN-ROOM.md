@@ -1,21 +1,18 @@
 # Authoring clean-room report (G320)
 
-The nightly `Authoring clean-room report` workflow runs on Linux at 08:47 UTC,
-or through `workflow_dispatch`. Its artifact records the exact Git SHA and
-every registered generator's result. It is report-only while authoring ports
-are incomplete; an infrastructure error still fails the workflow.
+This is the historical G320 report for the retired generation-job pipeline.
+The former nightly report recorded the exact Git SHA and each registered
+generator result; an infrastructure error failed the report.
 
-Run `node scripts/generation-clean-room.mjs --out=<report.json>` locally. The
-runner creates an owned Git archive of HEAD. It deletes every `runtime/` and
-`*-legacy/` directory under `src/`, including SDK runtime facades, and every
-declared generated output before running any producer. The shared generation
-backend receives a new, isolated cache directory. Source checkout files and
-existing caches are unchanged. Only outputs with verified matching hashes are
-made available to subsequent producers in the same archive.
+Current commands and producer ownership are documented in
+[GENERATION.md](GENERATION.md). The retired clean-room runner is no longer
+a local command; do not export a copy of the shared repository to run it.
+
+## Historical report contract
 
 G320 authoring inputs belong to the shard's `generators/`, `data/`, `quests/`,
 `blender/`, `assets/` or `behaviour/`, or the SDK and commons. Package and lock
-metadata may key the job. `authoring-inputs.mjs` walks literal imports through
+metadata may key the job. `scripts/authoring-inputs.mjs` walks literal imports through
 defining package exports, including type imports and SDK implementation
 dependencies. It reports runtime, engine/game, other shard, unresolved,
 computed and glob imports. It reads code without importing or executing it.

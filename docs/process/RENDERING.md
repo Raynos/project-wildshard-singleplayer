@@ -35,7 +35,7 @@ loading responsiveness, and a Chromium emulation result is not Safari evidence.
 warm too). Any world-build output that is a pure function of committed files is baked by a Node baker that runs the
 page's own functions, listed in `scripts/bake-check.mjs` so a source or asset change without a rebake fails the gate;
 the page keeps the code path only as the fallback when the bake is missing or does not fit (first: Driftwood's cove
-cover splat, `scripts/bake-island-cover.mjs`; then the voxel AO of every painted model Nalati builds (Driftwood next, once
+cover splat, `src/shards/driftwood-isle/generators/islandCover.ts`; then the voxel AO of every painted model Nalati builds (Driftwood next, once
 its page build hashes the same), `scripts/bake-voxel-ao.mjs`: one table per shard keyed by a hash of each geometry's inputs, added with
 `addVoxelAOBake` for the world build, so a changed model simply marches its AO until the rebake). Bakes are per tier
 when the output depends on the tier. A bake file a shard reads lives in a folder its manifest's `assetGlobs` owns, read
