@@ -43,6 +43,20 @@ export class InputService {
   private readonly enabledContexts = new Map<Context, boolean>();
   private refreshStamp: { input: number; context: number; bindings: number } | undefined;
   private layoutCache: { context: number; layout: TouchStack } | undefined;
+  /** MF14: the touch specs the cached layout was read from, four per stacked context (relabel, verbs, mode, lockable) */
+  private readonly layoutSpecs: unknown[] = [];
+  /** MF14: the HUD's slots are pulled from state every frame (the input system's repaint): a context that swaps its touch
+   *  spec in place (Nine's grapple LOCKED -> ZIP, QB17) is read on the next pull, with no signal from its owner */
+  private sameSpecs(): boolean {
+    let n = 0;
+    for (const { def } of this.stack) {
+      const touch = def.touch;
+      if (this.layoutSpecs[n] !== touch?.relabel || this.layoutSpecs[n + 1] !== touch?.verbs
+        || this.layoutSpecs[n + 2] !== touch?.mode || this.layoutSpecs[n + 3] !== touch?.lockable) return false;
+      n += 4;
+    }
+    return n === this.layoutSpecs.length;
+  }
   private pollContexts(): number {
     for (let index = 0; index < this.stack.length; index++) {
       const entry = this.stack[index]; if (entry === undefined) continue;
@@ -315,7 +329,7 @@ export class InputService {
   }
   touchLayout(): TouchStack {
     const context = this.pollContexts();
-    if (this.layoutCache?.context === context) return this.layoutCache.layout;
+    if (this.layoutCache?.context === context && this.sameSpecs()) return this.layoutCache.layout;
     const labels: TouchStack['labels'] = {}, verbs: TouchStack['verbs'] = {}, actions = new Set<Action>();
     for (const { def } of this.stack) if (def.enabled?.() !== false) {
       if (def.blocks === 'below') { actions.clear(); for (const spot of Object.keys(labels) as DiscSpot[]) delete labels[spot]; delete verbs['verb.1']; delete verbs['verb.2']; }
@@ -331,16 +345,17 @@ export class InputService {
       actions: Object.freeze([...actions].filter((action) => this.allowed(action))), contexts: Object.freeze(this.contexts) });
     // Predicate callbacks may reenter and change the context stack. Such a
     // layout is returned as before, but never cached for the changed stack.
-    if (context === this.contextRevision) this.layoutCache = { context, layout };
+    if (context === this.contextRevision) {
+      this.layoutCache = { context, layout };
+      this.layoutSpecs.length = 0;
+      for (const { def } of this.stack) this.layoutSpecs.push(def.touch?.relabel, def.touch?.verbs, def.touch?.mode, def.touch?.lockable);
+    }
     return layout;
   }
   touchSink(paint: (labels: Partial<Record<DiscSpot, TouchRelabel>>) => void, scope: Scope): void {
     this.paint = paint; this.repaint(); scope.onDispose(() => { if (this.paint === paint) { paint({}); this.paint = undefined; } });
   }
   repaint(): void { const layout = this.touchLayout(); this.paint?.(layout.labels); this.stackPaint?.(layout); }
-  /** A pushed context's `touch` spec changed in place (a shard verb relabelling its discs, QB17's grapple LOCKED → ZIP):
-   *  the cached layout is keyed by context changes only, so drop it and paint the new labels now. */
-  touchChanged(): void { this.contextRevision++; this.repaint(); }
 }
 export interface TouchStack {
   labels: Partial<Record<DiscSpot, TouchRelabel>>;
