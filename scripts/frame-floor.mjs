@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// SF0: live drawn-frame baseline, never a deterministic/capture-clock or CPU-throttled run.
+// SF0: live drawn-frame baseline. Explicit Chromium CPU profiles never earn official floor credit.
 // node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value]
 // --shards=grid: INFINITE WILDSHARD, entered the way a player does (the title's grid entry tapped, Developer on; no URL
 // switch), measured at the home cell's spawn and the heaviest of its parity cameras plus three highway-deck views.
@@ -22,7 +22,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { frameFloorSettingsCode } from './frame-floor-settings.mjs';
 import { startFloorNative } from './frame-floor-native.mjs';
-import { validateFrameFloorArgs, parseSafariWindow } from './frame-floor-args.mjs';
+import { validateFrameFloorArgs, parseSafariWindow, frameFloorChromiumCpuRate } from './frame-floor-args.mjs';
 import { frameFloorShards } from './frame-floor-inventory.mjs';
 import { handoffFloorGridNavigation, FLOOR_GRID_TAP } from './frame-floor-navigation.mjs';
 import { selectFloorGridPlans, gridFloorPoses, gridFloorPlans, floorGridPortalPlan, readFloorGridEntryways, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
@@ -159,7 +159,7 @@ if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'mil
 if (publicGrid && (gridScenario === 'milestone' || gridScenario === 'reentry')) throw new Error('Milestone and re-entry floors require Developer mode');
 if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--standing-poses=name,...] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--textures=ktx2|img] [--ktx2-probe=skip] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|reentry|outer-road|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket] [--rising-islet=north|east|south|west]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--safari-steady=<grid-interior-pose>] [--safari-drive=<grid-route>] [--safari-prefix=<grid-route>] [--safari-window=<route:start:end seconds>] [--gl-time] [--frame-timeline] [--wasm-constructors=<scratch dir>] [--wasm-memory-probe] [--task-clock] [--gpu-bisect] [--scratch-dir=<owned workspace>] [--serve-shard=<slug>] [--serve-base=<served preview url of --rev>]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--standing-poses=name,...] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--textures=ktx2|img] [--ktx2-probe=skip] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|reentry|outer-road|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket] [--rising-islet=north|east|south|west]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--chromium-phone --chromium-cpu=4] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--safari-steady=<grid-interior-pose>] [--safari-drive=<grid-route>] [--safari-prefix=<grid-route>] [--safari-window=<route:start:end seconds>] [--gl-time] [--frame-timeline] [--wasm-constructors=<scratch dir>] [--wasm-memory-probe] [--task-clock] [--gpu-bisect] [--scratch-dir=<owned workspace>] [--serve-shard=<slug>] [--serve-base=<served preview url of --rev>]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
@@ -175,6 +175,7 @@ const picks = Object.fromEntries(settingArgs.map((arg) => {
 // G717 diagnostic: the phone tier on the Chromium surface (iPhone 17 Pro portrait, render scale 2), graded at the
 // Simulator's 30 fps floor; a profile proxy for a Simulator miss, never a floor reading
 const chromiumPhone = args.includes('--chromium-phone');
+const chromiumCpuRate = frameFloorChromiumCpuRate(args);
 const settings = { ...picks, tier: surface === 'sim' || chromiumPhone ? 'phone' : 'desktop', fps: 'auto' };
 const deviceSaveArgs = args.filter((arg) => arg.startsWith('--device-save='));
 const deviceSaves = Object.fromEntries(deviceSaveArgs.map((arg) => {
@@ -423,7 +424,9 @@ function assertStandingPosition(pose, result) {
 
 /** Profile the exact standing window on either surface, with no timing credit for diagnostics. */
 async function standingSample(driver, pose) {
+  if (taskClock) await driver.evaluate('(window.__frameFloorTaskTake?.(), true)');
   const started = driver.profile ? await driver.profile.start() : null;
+  const traceAnchor = driver.trace ? await driver.trace.start(pose.name) : null;
   const stopScript = driver.scriptProfile && safariWindow === null && safariSteadyPose === '' && safariDrive === '' && safariPrefix === '' ? await driver.scriptProfile.start() : undefined;
   let result, raw, script;
   const buildsFrom = chromiumPhone ? await driver.evaluate('performance.now()') : 0;
@@ -431,10 +434,12 @@ async function standingSample(driver, pose) {
   finally {
     if (stopScript !== undefined) script = await stopScript();
     if (driver.profile && started !== null) raw = await driver.profile.stop();
+    if (driver.trace && traceAnchor !== null) await driver.trace.stop(traceAnchor, result?.longFrames?.at ?? [], []);
   }
+  if (taskClock) result.taskClock = await driver.evaluate('window.__frameFloorTaskTake?.() ?? null');
   assertStandingPosition(pose, result);
   // G717 diagnostic (--chromium-phone): the node builds inside this standing window
-  if (chromiumPhone) result.standingBuilds = await driver.evaluate(`(window.__wildshard.world.game.nodeBuilds?.log ?? []).filter(row => row.at >= ${buildsFrom}).map(row => ({ at: Math.round(row.at), ms: Math.round(row.ms), object: row.object, how: row.how }))`);
+  if (chromiumPhone) result.standingBuilds = await driver.evaluate(`(window.__wildshard.world.game.nodeBuilds?.log ?? []).filter(row => row.at >= ${buildsFrom} && row.at <= ${result.sampleRange.endMs}).map(row => ({ at: row.at, ms: row.ms, material: row.material, object: row.object, how: row.how }))`);
   if (raw !== undefined) { await saveProfileMaps(raw); writeFileSync(join(cpuProfileDir, `${pose.name}-${Date.now()}.cpuprofile`), JSON.stringify(raw)); }
   const cpuProfile = raw === undefined ? undefined : summarizeTravelProfile(raw, started, await driver.evaluate('window.__frameFloorLongTasks ?? []'), pose.name);
   const scriptProfile = script === undefined ? undefined : await saveSafariProfile(pose.name, script, result.sampleRange);
@@ -948,12 +953,21 @@ async function worker() {
       browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
       context = await browser.newContext({ ...(chromiumPhone ? { viewport: { width: 402, height: 874 }, deviceScaleFactor: 3 } : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 }), serviceWorkers: 'block' });
       await context.addInitScript({ content: `${fixture(settings.tier)};window.__wildshardHarness=${HARNESS_PINS};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${LONGTASK_SCRIPT}${GL_TIME_SCRIPT}${TASK_CLOCK}${travelGl}` });
-      let errors = [], profiler = null;
+      let errors = [], profiler = null, throttle = null;
       driver = {
-        load: async (shard) => { errors = []; page = await context.newPage(); page.on('pageerror', (e) => errors.push(e.message.slice(0, 240))); page.on('console', (message) => { if (message.type() === 'error' && message.text().includes('[faults]')) errors.push(message.text().slice(0, 1000)); }); await page.goto(`${base}${query(shard)}`, { waitUntil: 'domcontentloaded' }); },
+        load: async (shard) => {
+          errors = []; page = await context.newPage();
+          if (chromiumCpuRate !== 1) {
+            throttle = await context.newCDPSession(page);
+            await throttle.send('Emulation.setCPUThrottlingRate', {rate: chromiumCpuRate});
+          }
+          page.on('pageerror', (e) => errors.push(e.message.slice(0, 240)));
+          page.on('console', (message) => { if (message.type() === 'error' && message.text().includes('[faults]')) errors.push(message.text().slice(0, 1000)); });
+          await page.goto(`${base}${query(shard)}`, { waitUntil: 'domcontentloaded' });
+        },
         tapGrid: () => page.evaluate(FLOOR_GRID_TAP),
         evaluate: evaluator((expr) => page.evaluate(expr), observe), errors: () => Promise.resolve(errors), progress: () => lastRoute, followed: () => page.waitForURL((u) => !u.search.includes('mute=1') || u.search.includes('chunk='), { timeout: 60000 }).catch(() => undefined),
-        unload: async () => { await page?.close(); },
+        unload: async () => { try {await throttle?.detach();} finally {throttle = null; await page?.close();} },
         profile: cpuProfileDir === '' ? null : {
           start: async () => { profiler = await page.context().newCDPSession(page); await profiler.send('Performance.enable'); await profiler.send('Profiler.enable'); await profiler.send('Profiler.setSamplingInterval', { interval: 250 }); await profiler.send('Profiler.start'); return page.evaluate('performance.now()'); },
           stop: async () => {
@@ -1123,6 +1137,7 @@ async function main() {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
       const workerArgs = [SCRIPT, '--worker', ...(devserverBuild ? ['--devserver'] : []), `--surface=${s}`, `--developer=${developer}`, `--standing-poses=${standingPoses.join(',')}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(roadApproach ? ['--road-approach'] : []), ...(entrySocket ? ['--entry-socket'] : []), ...(risingIslet === '' ? [] : [`--rising-islet=${risingIslet}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(texturesPin === '' ? [] : [`--textures=${texturesPin}`]), ...(ktx2ProbePin === '' ? [] : [`--ktx2-probe=${ktx2ProbePin}`]), ...(glTime ? ['--gl-time'] : []), ...(gpuBisectOn ? ['--gpu-bisect'] : []), ...(frameTimeline ? ['--frame-timeline'] : []), ...(taskClock ? ['--task-clock'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(safariProfileDir === '' ? [] : [`--safari-profile=${safariProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       if (chromiumPhone) workerArgs.push('--chromium-phone');
+      if (chromiumCpuRate !== 1) workerArgs.push(`--chromium-cpu=${chromiumCpuRate}`);
       if (entrySettle) workerArgs.push('--entry-settle');
       if (jscGcDirectory !== '') workerArgs.push(`--jsc-gc-log=${jscGcDirectory}`);
       if (jscRamSize > 0) workerArgs.push(`--jsc-ram-size=${jscRamSize}`);
@@ -1157,9 +1172,10 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
+      ...(chromiumCpuRate === 1 ? {} : {chromiumCpuRate, diagnostic: 'cpu-throttled-chromium', floorTimingCredit: false}),
       frames, settleMs, standingPoses, shards, surface, developer, quiet: quietSample, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, gpuBisect: gpuBisectOn, safariProfile: safariProfileDir !== '', ...(safariSteadyPose === '' ? {} : {safariSteady: {pose: safariSteadyPose, seconds: 20}}), ...(safariDrive === '' ? {} : {safariDrive: {route: safariDrive, ...(safariSteadyPose === '' ? {earlyPlaySeconds: 20} : {separateSteady: true})}}), ...(safariPrefix === '' ? {} : {safariPrefix: {route: safariPrefix, seconds: 20}}), ...(safariWindow === null ? {} : {safariWindow}), webkitTimeline: webkitTimelineDir !== '', ...(webkitSteadyPose === '' ? {} : {webkitSteady: {poses: webkitSteadyPoses, seconds: 20}}), pauseAblation, bufferAblation, nativeJscGcLog: jscGcDirectory !== '', ...(jscRamSize === 0 ? {} : {diagnosticJscRamSizeBytes: jscRamSize}), wasmConstructors: wasmConstructorsDir !== '', nativePressure: nativePressureDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
-      measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
+      measurement: `${chromiumCpuRate === 1 ? '' : `Diagnostic page CPU ${chromiumCpuRate}x; no official floor timing credit. `}Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass or capture clock.${chromiumCpuRate === 1 ? ' No CPU throttling.' : ''}`,
       limitations: [standingPoses.length === 0 ? 'Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.' : 'Stationary spawn and explicitly pinned authored standing cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim.'], results });
     const directory = resolvePath(ROOT, flag('output-dir', 'progress/frame-floor')); mkdirSync(directory, { recursive: true });
     const output = join(directory, `${sha.slice(0, 9)}-${runId}.json`);
