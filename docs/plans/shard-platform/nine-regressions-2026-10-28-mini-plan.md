@@ -114,6 +114,12 @@ facing-back, stall and sky. Capture muted through `scripts/browser-lane.sh` as a
   drizzle reads stronger only because the street behind it is darker and has no haze (background luma 91 LEGACY,
   69 SHARDFILE), so more faint tails show: that is B's haze (NR3), not the rain. Board
   [17-nr6](../../../art/nine-dragon-stack/round-32-shardfile-regressions/17-nr6-board.jpg).
+- **NR8 closing sheet re-shot at `4ce9fc2257`** (after the pallor fix, NR12's coarse towers and NR11's measure),
+  [21-nr8](../../../art/nine-dragon-stack/round-32-shardfile-regressions/21-nr8-sheet.jpg): the same 9 views, golden (A-D;
+  LEGACY live for the 5 without one) | SHARDFILE Chromium | SHARDFILE WebKit, 0 page errors. C back now has LEGACY's
+  grey walls. Still off, all recorded: the balustrade's tone (D204), the look-down tassel (NR7's view-gravity limit),
+  the near facade windows (NR3, sp-o5). The B-back gold sign draws dim in this Chromium capture again and bright on
+  WebKit; live series at that pose never dim it (luma steady), so it is the capture flow, not the shard.
 
 ## Order
 
