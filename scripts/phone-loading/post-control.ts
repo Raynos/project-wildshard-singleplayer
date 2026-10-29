@@ -3,12 +3,12 @@ import type {Mark, RequestRow} from './model.ts';
 /** Separate from tap-to-control accounting: an actually observed background window. */
 export interface PostControl {
   start: number; end: number; requestedMs: number; observedMs: number; complete: boolean;
-  longTaskMs: number; longTasks: Mark[]; requests: RequestRow[];
+  longTaskMs: number | null; longTasks: Mark[]; requests: RequestRow[];
 }
 
 /** Clip work at both window edges. A failed or interrupted visit never becomes a complete zero-work reading. */
 export function postControlWindow(control: number | null, observedAt: number, requestedMs: number,
-  tasks: readonly Mark[], requests: readonly RequestRow[]): PostControl | null {
+  tasks: readonly Mark[], requests: readonly RequestRow[], longTasksSupported: boolean): PostControl | null {
   if (control === null) return null;
   if (![control, observedAt, requestedMs].every(Number.isFinite) || requestedMs < 0) throw new Error('Invalid post-control window');
   const end = Math.max(control, Math.min(observedAt, control + requestedMs));
@@ -17,6 +17,6 @@ export function postControlWindow(control: number | null, observedAt: number, re
   for (const task of tasks) if (overlap(task) > 0) longTasks.push({...task});
   for (const row of requests) if (row.start >= control && row.start < end) selected.push({...row});
   return {start: control, end, requestedMs, observedMs: end - control, complete: observedAt >= control + requestedMs,
-    longTaskMs: longTasks.reduce((sum, task) => sum + overlap(task), 0), longTasks,
+    longTaskMs: longTasksSupported ? longTasks.reduce((sum, task) => sum + overlap(task), 0) : null, longTasks,
     requests: selected};
 }

@@ -137,9 +137,12 @@ try {
         try {capture = await page.evaluate(() => Reflect.get(window, '__phoneLoading') as Capture);}
         catch (error) {errorAt(String(error), 'capture');}
         capture.tap = tapAt ?? capture.tap;
+        let longTasksSupported = false;
+        try {longTasksSupported = await page.evaluate(() => PerformanceObserver.supportedEntryTypes.includes('longtask'));}
+        catch (error) {errorAt(String(error), 'long-task capability');}
         const postControlObservedAt = Date.now();
         await network.settle();
-        const postControl = postControlWindow(capture.control, postControlObservedAt, afterControl, capture.longTasks, network.rows);
+        const postControl = postControlWindow(capture.control, postControlObservedAt, afterControl, capture.longTasks, network.rows, longTasksSupported);
         const from = capture.tap ?? 0, to = capture.control ?? capture.stoppedAt ?? Date.now();
         const errorDetails = [...capture.errorDetails ?? [], ...errors, ...network.errors.filter(error => error.at >= visitStart),
           ...(chromium?.errors ?? []).map(message => ({message, source: 'CDP auto-attach', url, at: Date.now()}))];
