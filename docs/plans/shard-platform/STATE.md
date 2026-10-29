@@ -10,7 +10,9 @@ LD9 / LD10 13:30, CO8 archive 13:45, all lanes stop 14:00 (G845).
 
 **Lanes (spike section 2):** o5 PL17 spawn-link cap · o3 LD5 (on the tag + go) · o4 QF10, then the CO1 check · x1 PL18, PL19 ·
 x2 PL15, LD8 · x6 QF17.B2 mark, QF1, LD10 · x9 LD6 + LD7 (3 pairs) · x10 D185 note, PL2 / PL5 marks, lint-speed archive, LD9 ·
-ci: legacy-final tag on go, release, push chain. G871 rerun: wildshard-v's subagent; its verdict starts LD5-LD10.
+ci: tag, release, push. **G873: LD5-LD10 wait for Jake's word after his phone QA of the ~12:15 release; the archive waits for them.**
+**P0s (Jake's phone QA, 10:10):** reload pill does nothing off the title (o4); spawn links froze the page 68 s on iPhone (o5, must
+yield; Sim check); G875 hold toggle (o3). G874: PL18 real sizes (x1); DA1 source maps (x9); PF1 idle JS (x2).
 
 **Done today:** Nine (NR1-NR16) and Far Reach (FR1-FR6) archived 44c51cc4ac; G548 build-speed archived; CO2-CO4 e0505b3b4e;
 PL6 6060134624; D196, D200, D203, D204, D207; D199 / D201 not reproduced. Goldens 133 / 144. Sim floor 14 / 15 (D12).
@@ -18,7 +20,7 @@ PL6 6060134624; D196, D200, D203, D204, D207; D199 / D201 not reproduced. Golden
 **Autonomous decisions (for Jake's review):**
 - D183 = B (tiles win; Sky return rebuilds), the standing default (286b86a887).
 - D185 = keep both texture paths (grid already ships astc6, standalone UASTC; x10 proof); no deletion.
-- PL15 = A main thread; worker path + Debug row deleted (x2). PL16 row kept default off (G867 try-out).
+- PL15 = A main thread; worker path + Debug row deleted, keeping the after-control parsePaced host D12 needs (x2). PL16 row kept default off (G867 try-out).
 - D53 CLIs kept as debt. Pine pond: keep SHARDFILE. G99 isles kept. Pine interior drive (D12): accepted under G815.
 - D206 (Nalati ridge forest pines) stays on the damage list: a format change, not today.
 - Spike section 3 recommendations taken: P1 3 s cap; P2 unknown sizes; P3 / P4 accept PL2 / PL5; P5 / P6; Q1-Q5; C1-C4;
