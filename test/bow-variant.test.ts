@@ -9,6 +9,8 @@ import {bindEquipmentActors,equipmentActorOwner} from '../src/game/loadout/actor
 import {AnimalManager} from '../src/engine/entities/AnimalManager';
 import {Animal} from '../src/engine/entities/AnimalView';
 import {Scope} from '../src/engine/app/scope';
+import {onFault,type Fault} from '../src/engine/core/faults';
+import {ProjectedTrail} from '../src/engine/combat/view/projectedTrail';
 import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
@@ -83,6 +85,7 @@ test('the slot variant keeps composition, upgrade idempotence and delayed second
 
 test('independent slot owners and an orchard variant do not share actors or thresholds',async()=>{
   setup();const a=new Scope('orchard-kit'),b=new Scope('other-kit'),one=owner(a),two=owner(b),first=actor('beetle'),second=actor('log');
+  const faults:Fault[]=[],off=onFault(fault=>{faults.push(fault);}),advance=vi.spyOn(ProjectedTrail.prototype,'advance');
   const hurt=vi.spyOn(second,'applyDamage');
   const ray=vi.spyOn(one.animals,'raycast').mockReturnValueOnce({animal:first,point:new THREE.Vector3(),distance:1,headshot:false,damage:5}).mockReturnValueOnce({animal:second,point:new THREE.Vector3(),distance:1,headshot:false,damage:5}).mockReturnValue(null);
   try{
@@ -92,8 +95,12 @@ test('independent slot owners and an orchard variant do not share actors or thre
     const f=await kit(a,one.targets,data),power=f.built.bowPower('reward');f.built.upgradeBow('reward',f.equipment);const weapon=f.built.bow('bow');
     weapon.onLoose?.(.6);expect(ray).toHaveBeenCalledTimes(2);power.update(1);expect(hurt).toHaveBeenCalledWith(40,expect.any(THREE.Vector3),expect.any(THREE.Vector3));
     a.dispose();expect(()=>equipmentActorOwner(one.targets).animals).toThrow('no native actor owner');expect(equipmentActorOwner(two.targets).animals).toBe(two.animals);
-    expect(f.scene.children).toHaveLength(0);expect(()=>power.update(1)).toThrow('owner has ended');expect(()=>weapon.onLoose?.(1)).toThrow('owner has ended');
-  }finally{a.dispose();b.dispose();vi.restoreAllMocks();}
+    const advanced=advance.mock.calls.length,contacts=hurt.mock.calls.length,rays=ray.mock.calls.length;
+    expect(f.scene.children).toHaveLength(0);expect(()=>{power.update(1);power.update(1);}).not.toThrow();expect(power.applied).toBe(false);
+    expect(advance).toHaveBeenCalledTimes(advanced);expect(hurt).toHaveBeenCalledTimes(contacts);expect(ray).toHaveBeenCalledTimes(rays);
+    expect(faults).toHaveLength(1);expect(faults[0]).toMatchObject({system:'held.variant',verdict:'retry',error:expect.objectContaining({message:expect.stringContaining('owner has ended')})});
+    expect(()=>weapon.onLoose?.(1)).toThrow('owner has ended');expect(equipmentActorOwner(two.targets).animals).toBe(two.animals);
+  }finally{off();a.dispose();b.dispose();vi.restoreAllMocks();}
 });
 
 test('power admission refuses foreign identities, executable data and excess prediction before effects',()=>{
@@ -106,10 +113,14 @@ test('power admission refuses foreign identities, executable data and excess pre
 
 test('an upgrade cannot mutate equipment before preparation or during ancestor retirement',async()=>{
   setup();const parent=new Scope('bow-parent'),scope=parent.child('bow-entry'),{targets}=owner(scope);
+  const faults:Fault[]=[],off=onFault(fault=>{faults.push(fault);}),advance=vi.spyOn(ProjectedTrail.prototype,'advance');
   try{
     const f=await kit(scope,targets),initial=f.built.bow('bow');expect(()=>f.built.upgradeBow('reward',f.equipment)).toThrow('not prepared');expect(f.built.bow('bow')).toBe(initial);
-    const power=f.built.bowPower('reward'),disposal=parent.disposeSteps();disposal.next();expect(scope.disposing).toBe(true);
-    expect(()=>f.built.upgradeBow('reward',f.equipment)).toThrow('owner has ended');expect(()=>power.update(1)).toThrow('owner has ended');
+    const initialRow=initial.row,power=f.built.bowPower('reward'),disposal=parent.disposeSteps();disposal.next();expect(scope.disposing).toBe(true);
+    expect(()=>f.built.upgradeBow('reward',f.equipment)).toThrow('owner has ended');expect(()=>{power.update(1);power.update(1);}).not.toThrow();
+    expect(advance).not.toHaveBeenCalled();expect(power.applied).toBe(false);expect(initial.row).toBe(initialRow);
+    expect(()=>f.built.bow('bow')).toThrow('owner has ended');
+    expect(faults).toHaveLength(1);expect(faults[0]).toMatchObject({system:'held.variant',verdict:'retry',error:expect.objectContaining({message:expect.stringContaining('owner has ended')})});
     for(const _step of disposal){/* Finish the actual ancestor retirement. */}
-  }finally{parent.dispose();vi.restoreAllMocks();}
+  }finally{off();parent.dispose();vi.restoreAllMocks();}
 });
