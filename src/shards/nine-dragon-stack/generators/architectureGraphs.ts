@@ -53,13 +53,18 @@ class Surface extends LookGraph {
     return this.mix(this.clamp(this.div(w, spacing)), this.line(distance, fw, w), this.smooth(3, 6, spacing));
   }
   projected(p: Ref): string { const n = this.abs(this.normal); return this.choose(this.gt(this.sw(n, 'y'), 0.6), this.sw(p, 'xz'), this.choose(this.gt(this.sw(n, 'x'), this.sw(n, 'z')), this.sw(p, 'zy'), this.sw(p, 'xy'))); }
-  paint(q: Ref, layer: Ref, scale: Ref, strength: Ref, ratio: Ref = 2): string {
-    const tex = this.sw(this.tex('uPaint', this.div(q, scale), layer), 'xyz');
-    const detail = this.sw(this.tex('uPaint', this.add(this.div(q, this.mul(scale, 0.383)), [0.37, 0.61]), 2), 'xyz');
+  /** `wall` (0 / 1, with the face's `seed`): LEGACY's paintWall, the layer shifted per face and its strength swung by a slow
+   *  noise (patches of heavier grime, 0.55-1.45) */
+  paint(q: Ref, layer: Ref, scale: Ref, strength: Ref, ratio: Ref = 2, wall?: { readonly on: Ref; readonly seed: Ref }): string {
+    const o = wall === undefined ? null : this.mul(this.vec(this.mul(this.hash(this.vec(wall.seed, 1.7)), 17), 0), wall.on);
+    const tex = this.sw(this.tex('uPaint', o === null ? this.div(q, scale) : this.add(this.div(q, scale), o), layer), 'xyz');
+    const fine = this.add(this.div(q, this.mul(scale, 0.383)), [0.37, 0.61]);
+    const detail = this.sw(this.tex('uPaint', o === null ? fine : this.add(fine, this.mul(this.sw(o, 'x'), 1.37)), 2), 'xyz');
+    const k = wall === undefined || o === null ? strength : this.mul(strength, this.mix(1, this.add(0.55, this.mul(this.noise(this.add(this.mul(q, 0.07), o)), 0.9)), wall.on));
     const m = this.mul(this.mul(tex, ratio), this.mix([1, 1, 1], this.mul(detail, 2), this.mul(this.sw(this.u('uPaintK2'), 'x'), 0.55)));
     const d = this.clamp(this.sub(1, this.op('dot', [m, [0.3333, 0.3333, 0.3333]]))), ink = this.u('uPaintInk');
     const tinted = this.mul(m, this.mix([1, 1, 1], this.div(ink, this.max(this.op('dot', [ink, [0.3333, 0.3333, 0.3333]]), 1e-3)), this.mul(d, this.sw(this.u('uPaintK2'), 'y'))));
-    return this.mix([1, 1, 1], tinted, this.clamp(strength));
+    return this.mix([1, 1, 1], tinted, this.clamp(k));
   }
   sampleVolume(wp: Ref): string {
     const sample = (suffix: 'A' | 'B'): string => {
@@ -272,11 +277,87 @@ function windows(): GraphIr {
   return g.output(colour, emit, mul(lines, mix(0.5, 1, detail)));
 }
 
-/** `nr13: false` builds the kit graphs as before NR13 (no tread glints, every face painted at full strength): the
- *  declaration oracle's predecessor. */
+/** `nr13: false` builds the kit graphs as before NR13 and NR16 (no tread glints, every face painted at full strength, a
+ *  bare window grid for kind 1): the declaration oracle's predecessor. */
 export function architectureGraphs(options: { readonly nr13?: boolean } = {}): Readonly<Record<string, GraphIr>> {
   const nr13 = options.nr13 !== false;
   return { 'nine-architecture': architecture(false, nr13), 'nine-architecture-cut': architecture(true, nr13), 'nine-facade': facade(false), 'nine-facade-small': facade(true), 'nine-windows': windows(), 'nine-coarse-facade': coarseFacade() };
+}
+
+/** NR16: kind 1, one cell of LEGACY's facade (style.ts): a storey per row and a window module per column, each rolling
+ *  its own window (narrow or wide, a mullion, a transom, a curtain, lit by its floor's odds) with ruled frames and a sill
+ *  lip; from 12 px a cell carries a painter's clutter (a cage, boards, laundry, an AC unit, a banner) and some a pipe; far
+ *  off a cell averages to its wash and glass. `wall` scales the painted base, `glass` adds unpainted, `keep` scales the
+ *  emit (boards and AC units cover the light). */
+function facadeCell(g: Surface, q: Ref, gu: Ref, gv: Ref, wpx: Ref, rowP: Ref, colP: Ref, seed: Ref): { wall: Ref; glass: Ref; emit: Ref; keep: Ref; ink: Ref } {
+  const sw = g.sw.bind(g), mul = g.mul.bind(g), add = g.add.bind(g), sub = g.sub.bind(g), div = g.div.bind(g), max = g.max.bind(g), min = g.min.bind(g), mix = g.mix.bind(g), abs = g.abs.bind(g), cover = g.cover.bind(g);
+  const px = (d: Ref, w: Ref): string => g.line(d, 1, w), ruledPx = (d: Ref, w: Ref, spacing: Ref): string => mix(g.clamp(div(w, spacing)), px(d, w), g.smooth(3, 6, spacing));
+  const when = (on: Ref, k: Ref): string => mix(1, k, on), above = (x: Ref, a: number): string => sub(1, g.step(x, a));
+  const grid = div(q, g.vec(colP, rowP)), cell = g.floor(grid), f = g.fract(grid), fx = sw(f, 'x'), fy = sw(f, 'y'), Qx = sw(q, 'x'), Qy = sw(q, 'y');
+  const colPx = div(colP, gu), rowPx = div(rowP, gv), cellPx = min(colPx, rowPx), blk = g.smooth(3, 7, cellPx);
+  const h1 = g.hash(add(cell, mul(seed, 13.1))), h2 = g.hash(add(add(mul(sw(cell, 'yx'), 1.7), mul(seed, 5.3)), 11)), h3 = g.hash(add(add(mul(cell, 0.73), seed), 3));
+  const litP = add(0.2, mul(g.hash(g.vec(mul(sw(cell, 'y'), 0.37), mul(seed, 2.1))), 0.3)), isLit = g.step(h1, litP);
+  const sv = g.hash(g.vec(seed, 7)), wide = g.step(0.72, h2), wax = mix(add(0.16, mul(sv, 0.1)), 0.07, wide), wbx = mix(sub(0.84, mul(sv, 0.1)), 0.93, wide);
+  const win = mul(cover(fx, wax, wbx, div(gu, colP)), cover(fy, 0.26, 0.8, div(gv, rowP)));
+  const wallK = sub(1, mul(mul(g.smooth(0.72, 0.97, fy), 0.45), blk));
+  const glass = mul(mul(mix(g.u('uWinDark'), mul(g.u('uWinDark'), 1.35), mul(g.smooth(0.26, 0.8, sub(1, fy)), 0.6)), mix(0.85, 1.1, h3)), g.u('uWashTint'));
+  const warm = mul(mix(g.u('uWinWarm'), g.u('uWinCool'), g.step(0.85, h2)), add(0.55, mul(h3, 0.5)));
+  const curtain = mul(mul(g.step(0.5, h3), isLit), cover(fx, wax, mix(wax, wbx, add(0.35, mul(h2, 0.3))), div(gu, colP))), cw = mul(curtain, win);
+  const area = mul(sub(wbx, wax), 0.54), a85 = mul(area, 0.85);
+  // col = mix(avg, cell, blk): avg = base 0.89 beside the glass's share; cell = the wall, the glass, a curtain over it
+  let wall: Ref = add(mul(sub(1, blk), mul(0.89, sub(1, a85))), mul(blk, mul(mul(wallK, sub(1, win)), sub(1, cw))));
+  let glassC: Ref = add(mul(sub(1, blk), mul(glass, a85)), mul(blk, add(mul(glass, mul(win, sub(1, cw))), mul([0.702, 0.594, 0.45], cw))));
+  const emit = mul(mix(mul(g.u('uWinWarm'), mul(mul(litP, area), 0.55)), mul(warm, mul(mul(isLit, win), sub(1, mul(curtain, 0.6)))), blk), 0.8);
+  // the sill lip, the window's frame, mullion, transom and sill; below ~6 px each averages to its share
+  const inXh = mul(g.step(wax, fx), g.step(fx, wbx)), inYh = mul(g.step(0.26, fy), g.step(fy, 0.8));
+  const dfx = mul(min(abs(sub(fx, wax)), abs(sub(fx, wbx))), colPx), dfy = mul(min(abs(sub(fy, 0.26)), abs(sub(fy, 0.8))), rowPx);
+  const mullOn = g.step(0.3, h2), tranOn = g.step(0.45, h3);
+  const covU = max(mul(px(dfx, mul(wpx, 0.85)), inYh), mul(mul(px(mul(abs(sub(fx, 0.5)), colPx), mul(wpx, 0.6)), inYh), mullOn));
+  const covV = max(max(mul(px(dfy, mul(wpx, 0.85)), inXh), mul(mul(px(mul(abs(sub(fy, 0.638)), rowPx), mul(wpx, 0.55)), inXh), tranOn)),
+    mul(mul(px(mul(abs(sub(fy, 0.21)), rowPx), mul(wpx, 0.8)), g.step(sub(wax, 0.05), fx)), g.step(fx, add(wbx, 0.05))));
+  const avgU = mul(g.clamp(div(mul(wpx, add(1.7, mul(mullOn, 0.6))), colPx)), 0.54), avgV = mul(g.clamp(div(mul(wpx, add(2.5, mul(tranOn, 0.55))), rowPx)), sub(wbx, wax));
+  const lu = mix(avgU, covU, g.smooth(3, 6, mul(mul(colPx, min(wax, sub(0.5, wax))), 2))), lv = mix(avgV, covV, g.smooth(3, 6, mul(rowPx, 0.24)));
+  let ink: Ref = max(g.rule(Qy, rowP, gv, mul(wpx, 1.35)), mul(max(lu, lv), blk));
+  // the clutter, in the cell's metres (m), each on its own roll of t4 / t5
+  const det = g.smooth(11, 24, cellPx), t4 = g.hash(add(add(mul(cell, 1.31), mul(seed, 3.7)), 19)), t5 = g.hash(add(add(mul(cell, 2.17), mul(seed, 1.9)), 7));
+  const mx = mul(fx, colP), my = mul(fy, rowP), Ax = mul(wax, colP), Bx = mul(wbx, colP), Ay = mul(rowP, 0.26), By = mul(rowP, 0.8);
+  let cWall: Ref = wall, cGlass: Ref = glassC, clut: Ref = 0, keep: Ref = 1;
+  // a security cage over the window
+  const cage = mul(above(t4, 0.7), g.step(t4, 0.82)), cax = sub(Ax, 0.06), cbx = add(Bx, 0.06), cay = sub(Ay, 0.05), cby = add(By, 0.1);
+  const inC = mul(mul(cover(mx, cax, cbx, gu), cover(my, cay, cby, gv)), cage);
+  const rails = px(div(min(min(abs(sub(my, cay)), abs(sub(my, cby))), abs(sub(my, mix(cay, cby, 0.55)))), gv), mul(wpx, 0.8));
+  clut = max(clut, mul(max(g.rule(Qx, 0.13, gu, mul(wpx, 0.6)), max(px(div(min(abs(sub(mx, cax)), abs(sub(mx, cbx))), gu), mul(wpx, 0.9)), rails)), inC));
+  cWall = mul(cWall, when(inC, 0.82)); cGlass = mul(cGlass, when(inC, 0.82));
+  // boarded up
+  const inW = mul(mul(cover(mx, Ax, Bx, gu), cover(my, Ay, By, gv)), mul(above(t4, 0.82), g.step(t4, 0.9)));
+  cWall = mix(cWall, 1.04, inW); cGlass = mul(cGlass, sub(1, inW)); clut = max(clut, mul(g.rule(Qy, 0.1, gv, mul(wpx, 0.5)), inW)); keep = mul(keep, sub(1, inW));
+  // laundry on a pole, up to three pieces
+  const laundry = above(t4, 0.9), py = sub(By, 0.05), pole = mul(px(div(abs(sub(my, py)), gv), mul(wpx, 0.7)), cover(mx, sub(Ax, 0.2), add(Bx, 0.2), gu));
+  const k = g.floor(div(sub(mx, Ax), 0.42)), cx0 = add(add(Ax, mul(k, 0.42)), 0.04), cx1 = add(cx0, 0.3), hk = g.hash(g.vec(k, add(add(mul(sw(cell, 'x'), 3.1), sw(cell, 'y')), seed)));
+  const cy0 = sub(sub(py, 0.45), mul(hk, 0.35)), hung = mul(mul(mul(g.step(0, k), g.step(k, 2)), g.step(0.25, hk)), laundry);
+  const inCl = mul(mul(cover(mx, cx0, cx1, gu), cover(my, cy0, py, gv)), hung);
+  const cloth = g.choose(g.lt(hk, 0.45), [0.62, 0.2, 0.14], g.choose(g.lt(hk, 0.62), [0.22, 0.34, 0.55], g.choose(g.lt(hk, 0.8), [0.86, 0.84, 0.78], [0.55, 0.43, 0.25])));
+  cWall = mul(cWall, sub(1, inCl)); cGlass = mix(cGlass, mul(cloth, 0.85), inCl);
+  const clo = mul(max(mul(px(div(min(abs(sub(mx, cx0)), abs(sub(mx, cx1))), gu), mul(wpx, 0.6)), cover(my, cy0, py, gv)), mul(px(div(abs(sub(my, cy0)), gv), mul(wpx, 0.6)), cover(mx, cx0, cx1, gu))), hung);
+  clut = max(clut, max(mul(pole, laundry), clo));
+  // an AC unit at the sill
+  const ax0 = mul(colP, 0.5), ax1 = add(ax0, 0.72), inA = mul(mul(cover(mx, ax0, ax1, gu), cover(my, 0.12, 0.62, gv)), sub(1, g.step(0.3, t5)));
+  cWall = mix(cWall, 1.16, inA); cGlass = mul(cGlass, sub(1, inA)); keep = mul(keep, sub(1, inA));
+  const acEdge = max(mul(px(div(min(abs(sub(mx, ax0)), abs(sub(mx, ax1))), gu), mul(wpx, 0.8)), cover(my, 0.12, 0.62, gv)), mul(px(div(min(abs(sub(my, 0.12)), abs(sub(my, 0.62))), gv), mul(wpx, 0.8)), cover(mx, ax0, ax1, gu)));
+  const grille = mul(mul(g.rule(sub(my, 0.12), 0.09, gv, mul(wpx, 0.45)), cover(mx, add(ax0, 0.08), add(ax0, 0.4), gu)), cover(my, 0.18, 0.56, gv));
+  clut = max(clut, mul(max(acEdge, grille), sub(1, g.step(0.3, t5))));
+  // a cloth banner under the next floor's slab
+  const by0 = mul(rowP, 0.84), by1 = mul(rowP, 0.97), banner = above(t5, 0.955), inB = mul(mul(cover(mx, 0.1, sub(colP, 0.1), gu), cover(my, by0, by1, gv)), banner);
+  cWall = mul(cWall, sub(1, inB)); cGlass = mix(cGlass, g.choose(g.lt(t4, 0.5), [0.42, 0.1, 0.08], [0.1, 0.18, 0.32]), inB);
+  clut = max(clut, mul(max(mul(px(div(min(abs(sub(my, by0)), abs(sub(my, by1))), gv), mul(wpx, 0.8)), cover(mx, 0.1, sub(colP, 0.1), gu)),
+    mul(px(div(min(abs(sub(mx, 0.1)), abs(sub(mx, sub(colP, 0.1)))), gu), mul(wpx, 0.8)), cover(my, by0, by1, gv))), banner));
+  wall = mix(wall, cWall, det); glassC = mix(glassC, cGlass, det); ink = max(ink, mul(clut, det));
+  // a downpipe in some columns, and a faint bay seam
+  const pipeOn = g.step(0.8, g.hash(g.vec(sw(cell, 'x'), mul(seed, 5.7)))), pipeAt = mul(mul(pipeOn, cover(mx, 0.1, 0.24, gu)), blk);
+  wall = mix(wall, 1.08, pipeAt); glassC = mul(glassC, sub(1, pipeAt));
+  ink = max(ink, mul(mul(ruledPx(div(min(mx, sub(colP, mx)), gu), mul(wpx, 0.45), colPx), 0.6), g.step(0.5, g.fract(mul(seed, 7.3)))));
+  ink = max(ink, mul(mul(pipeOn, max(px(div(abs(sub(mx, 0.1)), gu), mul(wpx, 0.6)), px(div(abs(sub(mx, 0.24)), gu), mul(wpx, 0.6)))), g.smooth(4, 9, div(0.14, gu))));
+  return { wall, glass: glassC, emit, keep: g.choose(g.gt(det, 0), keep, 1), ink };
 }
 
 /** The world kit retains its encoded kinds, explicit surfaces and edge masks. */
@@ -299,10 +380,20 @@ function architecture(cut: boolean, nr13: boolean): GraphIr {
   let colour: Ref = base, emit: Ref = mul(base, sw(misc, 'x'));
   const use = (k: number, col: Ref, ink: Ref): void => { const on = g.eq(kind, k); colour = choose(on, col, colour); lines = choose(on, max(lines, ink), lines); };
   const grid = div(q, g.vec(sw(pat, 'z'), sw(pat, 'y'))), cell = g.floor(grid), local = g.fract(grid), gridFw = max(g.op('fwidth', [grid]), [1e-6, 1e-6]), seed = sw(pat, 'w');
-  const win = mul(g.cover(sw(local, 'x'), 0.17, 0.83, sw(gridFw, 'x')), g.cover(sw(local, 'y'), 0.24, 0.82, sw(gridFw, 'y'))), isLit = g.step(g.hash(add(cell, mul(seed, 7))), 0.5), cool = g.step(0.92, g.hash(add(cell, seed)));
-  const light = mix(g.u('uWinWarm'), g.u('uWinCool'), cool), windowC = mix(mul(base, g.u('uWinDark')), mul(light, 0.6), isLit);
-  use(1, mul(base, sub(1, win)), mul(max(g.rule(Qy, sw(pat, 'y'), gv, mul(Wr, 0.8)), g.rule(Qx, sw(pat, 'z'), gu, mul(Wr, 0.45))), 0.65));
-  emit = add(emit, mul(light, mul(mul(win, isLit), choose(g.eq(kind, 1), 1.15, 0))));
+  // kind 1's unpainted share, built after the paint (the predecessor's node order)
+  let glassAdd: () => Ref;
+  if (nr13) {
+    const cell1 = facadeCell(g, q, gu, gv, Wr, sw(pat, 'y'), sw(pat, 'z'), seed);
+    use(1, mul(base, cell1.wall), cell1.ink);
+    emit = choose(g.eq(kind, 1), mul(add(emit, cell1.emit), cell1.keep), emit);
+    glassAdd = () => cell1.glass;
+  } else {
+    const win = mul(g.cover(sw(local, 'x'), 0.17, 0.83, sw(gridFw, 'x')), g.cover(sw(local, 'y'), 0.24, 0.82, sw(gridFw, 'y'))), isLit = g.step(g.hash(add(cell, mul(seed, 7))), 0.5), cool = g.step(0.92, g.hash(add(cell, seed)));
+    const light = mix(g.u('uWinWarm'), g.u('uWinCool'), cool), windowC = mix(mul(base, g.u('uWinDark')), mul(light, 0.6), isLit);
+    use(1, mul(base, sub(1, win)), mul(max(g.rule(Qy, sw(pat, 'y'), gv, mul(Wr, 0.8)), g.rule(Qx, sw(pat, 'z'), gu, mul(Wr, 0.45))), 0.65));
+    emit = add(emit, mul(light, mul(mul(win, isLit), choose(g.eq(kind, 1), 1.15, 0))));
+    glassAdd = () => mul(windowC, win);
+  }
   const pitch = g.u('uTilePitch'), tiles = mul(base, add(0.93, mul(g.hash(g.floor(div(q, pitch))), 0.14)));
   use(2, tiles, max(g.rule(Qy, sw(pitch, 'y'), gv, mul(Wr, 0.8)), mul(g.rule(Qx, sw(pitch, 'x'), gu, mul(Wr, 0.55)), 0.8)));
   const p = sw(g.world, 'xz'), course = g.floor(div(sw(p, 'y'), 0.62)), length = add(0.64, mul(g.h11(add(mul(course, 9.1), 2)), 0.28)), offset = mul(g.h11(mul(course, 3.7)), 1.1);
@@ -372,8 +463,10 @@ function architecture(cut: boolean, nr13: boolean): GraphIr {
       choose(g.op('or', [g.eq(bare, 4), g.eq(bare, 5)]), mul(pk, sw(g.u('uPaintK'), 'w')), 0)));
   })();
   const paintStrength = own(1, mul(mul(pk, sw(g.u('uPaintK'), 'z')), sw(g.u('uPaintStone'), 'z')), own(2, mul(pk, sw(g.u('uPaintK'), 'w')), own(3, mul(mul(pk, sw(g.u('uPaintK'), 'y')), g.u('uPaintFlag')), own(5, mul(pk, sw(g.u('uPaintK'), 'w')), surfaceStrength))));
-  const painted = choose(g.gt(paintStrength, 0), g.paint(paintAt, paintLayer, paintScale, paintStrength, own(2, 3, own(3, 2.5, 2))), [1, 1, 1]);
-  colour = add(mul(colour, painted), choose(g.eq(kind, 1), mul(windowC, win), [0, 0, 0]));
+  // NR16: the facade cell and the wall / rough-stone surfaces paint as LEGACY's paintWall (layers 2 and 4)
+  const wallPaint = nr13 ? { on: choose(g.op('or', [g.eq(paintLayer, 2), g.eq(paintLayer, 4)]), 1, 0), seed } : undefined;
+  const painted = choose(g.gt(paintStrength, 0), g.paint(paintAt, paintLayer, paintScale, paintStrength, own(2, 3, own(3, 2.5, 2)), wallPaint), [1, 1, 1]);
+  colour = add(mul(colour, painted), choose(g.eq(kind, 1), glassAdd(), [0, 0, 0]));
   const shaded = g.shade(colour), wetShade = mul(shaded, mul(sub(1, mul(wet, mix(0.6, 0.9, g.step(0.6, sw(g.normal, 'y'))))), mix([1, 1, 1], [0.88, 0.95, 1.1], wet)));
   colour = choose(g.eq(kind, 3), shaded, wetShade);
   colour = add(colour, mul(mul(colour, min(spill, [0.7, 0.7, 0.7])), mul(1.3, mix(1, 0.4, accent))));

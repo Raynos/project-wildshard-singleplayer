@@ -82,7 +82,7 @@ test('source-owned files preserve the original complete output and executable by
     namedFiles: named.map(row => row === layout ? oldLayout : row),
     assets: projectedAssets, platform: { ...actual.platform, sections: actual.platform.sections.map(row => row === scenes ? oldScenes : row),
       files: physical(actual.platform.files).map(row => row[0] === 'sections/world/scenes.json' ? [row[0], row[1], OLD_SCENES] : row) } }))
-    .toEqual({ bytes: 159100, hash: '66845969cb84febf2dd28c537bea81bc4f19fb4a89b70fc26c652d3f8c6b6862' });
+    .toEqual({ bytes: 159100, hash: 'f1435bf9c34d57ff2893033863bfe1c3d35acd11a113e49920c29c22b32f6bf0' });
   // Supply distinct proof and decal rows directly, without a file-reader fallback.
   const burst = { name: 'fixture', shape: 'flake' as const, count: 1, life: .5 };
   const suppliedInputs = { courseProgram: inputs.courseProgram, casts: inputs.casts, signs: inputs.signs, ownedWorld: inputs.ownedWorld, scenes: inputs.scenes, held: inputs.held, construction: { seed: product.identity.seed, looks: Object.keys(product.look.materials) },
