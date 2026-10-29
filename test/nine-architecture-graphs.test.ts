@@ -95,10 +95,18 @@ function undominatedReads(shader: string): string[] {
   return [...bad];
 }
 
-test('every kit graph value is assigned on every path that reads it', () => {
+test('every Nine graph value is assigned on every path that reads it, in its own stage', () => {
   // NR16 (D204's sibling): the kit's ink is a chain of branched selects, `lines = select(kind == k, max(lines', ink),
-  // lines')`; each lines' was assigned inside its costly arm, so every other kind read it unassigned and the kit drew no ink
-  for (const [id, graph] of Object.entries(graphs)) expect(undominatedReads(build(graph, true).fragment), id).toEqual([]);
+  // lines')`; each lines' was assigned inside its costly arm, so every other kind read it unassigned and the kit drew no ink.
+  // A shared operand builds before the branch, but never across a varying (the lantern's instance transform is the vertex's)
+  const looks = Object.entries(fog).filter(([id]) => id !== 'nine-silk-fog' && id !== 'nine-portal-sparks').map(([id, graph]): [string, GraphIr] => {
+    const checked = validateGraph(graph, { trustedBudget: true }); if (!checked.ok) throw new Error(`${id}: ${checked.errors.join('; ')}`); return [id, checked.graph];
+  });
+  for (const [id, graph] of [...Object.entries(graphs), ...looks]) {
+    const fragment = build(graph, true).fragment;
+    expect(undominatedReads(fragment), id).toEqual([]);
+    expect(fragment.slice(fragment.indexOf('void main()')), id).not.toContain('instanceMatrix');
+  }
 });
 
 test('each existing material fits both caps and compiles its real instance channels', () => {

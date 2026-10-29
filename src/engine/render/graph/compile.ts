@@ -974,7 +974,8 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
         const r = stack.pop();
         if (typeof r !== 'string' || out.has(r)) continue;
         const node = scope.nodes[r]; if (node === undefined) continue;
-        out.add(r); stack.push(...(node.in ?? []));
+        // a varying's inputs are the other stage's (an instance transform's in the vertex shader): never hoisted here
+        out.add(r); if (node.op !== 'varying') stack.push(...(node.in ?? []));
       }
       return out;
     };
