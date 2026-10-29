@@ -38,6 +38,10 @@ export function readPackWhole(owner: object, pack: Pack,
   return bytes;
 }
 
+/** MF7: let `owner`'s verified whole packs go once its boot has built what they fed; a later demand wave reads and
+ *  verifies the pack again (from the content cache when it is there), as every released member does. */
+export function releasePackWholes(owner: object): void { wholePacks.delete(owner); }
+
 /** iPhone downloads I5: a phase's packed members (I5.1's `index.packs`) served from one verified read of each pack. */
 export interface PackReads {
   /** whether `hash` is a member of one of this phase's packs */

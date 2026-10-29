@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { packReads } from './packReads';
+import { packReads, readPackWhole, releasePackWholes } from './packReads';
 
 const a = 'a'.repeat(64), b = 'b'.repeat(64), hash = 'f'.repeat(64);
 const pack = { hash, bytes: 4, path: 'blobs/pack/example.pack', entries: [
@@ -61,4 +61,14 @@ test('separate parses of an immutable index coalesce in-flight whole reads witho
   left[0] = 99;
   expect(right).toEqual(Uint8Array.of(3, 4)); expect(await other.read(a)).toEqual(Uint8Array.of(1, 2));
   expect(read).toHaveBeenCalledOnce(); expect(digest).toHaveBeenCalledOnce();
+});
+
+test('a released owner reads its pack again rather than holding it for its lifetime', async () => {
+  const owner = {}, read = vi.fn(() => Promise.resolve(Uint8Array.of(1, 2, 3, 4))), digest = () => Promise.resolve(hash);
+  await readPackWhole(owner, pack, read, digest, {});
+  await readPackWhole(owner, pack, read, digest, {});
+  expect(read).toHaveBeenCalledTimes(1);
+  releasePackWholes(owner);
+  await readPackWhole(owner, pack, read, digest, {});
+  expect(read).toHaveBeenCalledTimes(2);
 });

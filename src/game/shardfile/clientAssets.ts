@@ -4,7 +4,7 @@ import { memoryAttribution } from '@wildshard/engine/core/memoryAttribution';
 import { declareDownloadFile, declareDownloadPack, recordCachedDownload, recordPackedDownload, recordReadDownload } from '@wildshard/engine/boot/download';
 import { boundedResponse, type ProductOptions } from './product';
 import { outputBlobUrl, outputDescriptor } from './outputDescriptor';
-import { readPackWhole } from './packReads';
+import { readPackWhole, releasePackWholes } from './packReads';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Release admitted transport copies after decoding; revisiting a tile rechecks immutable bytes from cache or the product. */
@@ -147,9 +147,13 @@ export class ClientAssets {
   /** Forget only decoded or runtime-owned transport copies; future reads still check immutable cache/network bytes. */
   releaseTransport(refs: Iterable<string>): void { for (const ref of refs) this.wire.delete(ref); }
   /** js-heap H6: once the boot has played, release decoded member transport: a probe saw no read of a retained root in 20 s of
-   *  play on the Template or Driftwood. Verified whole packs remain shared for this product lifetime (QF17.B1);
-   *  later reads still verify each detached member, without another range or whole-pack download. */
-  releaseAll(): void { this.wire.clear(); }
+   *  play on the Template or Driftwood. MF7: the verified whole packs go too (41.8 MB held on Pine Hollow's phone
+   *  play); a later read verifies its member from the content cache or one more whole-pack read. */
+  releaseAll(): void {
+    this.wire.clear();
+    const packs = outputDescriptor(this.source)?.index.packs;
+    if (packs !== undefined) releasePackWholes(packs);
+  }
   /** Keep only authoritative and library roots while render tiles stream through temporary admitted maps. */
   releaseTiles(): void {
     const keep = this.closure(this.roots());
