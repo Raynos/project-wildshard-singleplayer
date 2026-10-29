@@ -202,7 +202,8 @@ function windows(): GraphIr {
   const Wv = g.op('length', [ax]), Hv = g.op('length', [ay]), ux = div(ax, Wv), uy = div(ay, Hv), uz = g.op('normalize', [az]);
   const toEye = sub(g.op('cameraPosition'), g.op('objectOrigin'));
   const camera = g.flat(g.vec(g.op('dot', [toEye, ux]), g.op('dot', [toEye, uy]), g.op('dot', [toEye, uz]))), W = g.flat(Wv), H = g.flat(Hv);
-  const pos = g.op('positionLocal'), P0 = g.v(g.vec(mul(sw(pos, 'x'), Wv), mul(sw(pos, 'y'), Hv), 0)), win = g.attr('aWin', 'vec4', true), wall = g.attr('aWall', 'vec3', true);
+  // the quad's own corner (-0.5..0.5): positionLocal is the instanced position once three's instancing has run (NR3)
+  const pos = g.op('positionGeometry'), P0 = g.v(g.vec(mul(sw(pos, 'x'), Wv), mul(sw(pos, 'y'), Hv), 0)), win = g.attr('aWin', 'vec4', true), wall = g.attr('aWall', 'vec3', true);
   const seed = sw(win, 'x'), lit = sw(win, 'y'), curtain = sw(win, 'z'), style = g.floor(add(sw(win, 'w'), 0.5));
   const door = g.bit(style, 16), lattice = g.bit(style, 32), split = mul(sub(1, door), sub(1, lattice));
   const n = choose(g.gt(split, 0.5), g.clamp(g.floor(div(W, 0.62)), 1, 4), 1), pier = choose(g.gt(n, 1), 0.17, 0), pw = div(sub(W, mul(pier, sub(n, 1))), n);

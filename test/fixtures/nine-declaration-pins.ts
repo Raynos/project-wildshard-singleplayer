@@ -45,11 +45,21 @@ function previousCoarseFamily(product: Shardfile): Shardfile {
     files: product.files.filter(row => row.hash !== file), library: product.library.filter(hash => hash !== file) };
 }
 
+/** a JSON value with the windows' corner read back to `positionLocal` (the same shape: one op name differs) */
+function cornerBefore<T>(value: T): T { return JSON.parse(JSON.stringify(value).replace('"op":"positionGeometry"', '"op":"positionLocal"')); }
+
+/** NR3: the `nine-windows` graph reads the quad's own corner (`positionGeometry`); its predecessor read `positionLocal`. */
+function previousWindowsCorner(product: Shardfile): Shardfile {
+  const windows = product.look.materials['nine-windows'];
+  if (windows === undefined || !JSON.stringify(windows).includes('"op":"positionGeometry"')) throw new Error('Missing Nine windows corner');
+  return { ...product, look: { ...product.look, materials: { ...product.look.materials, 'nine-windows': cornerBefore(windows) } } };
+}
+
 export function expectNineDeclaration(current: Shardfile): void {
   // The independently pinned 411-file source proof defines the only allowed
   // reference renaming; full declaration pins remain unchanged below.
   const wire = previousLayoutWire();
-  const product = JSON.parse(JSON.stringify(previousHalfDeclaration(previousCoarseFamily(current))).replaceAll(wire.current, wire.previous)) as Shardfile;
+  const product = JSON.parse(JSON.stringify(previousHalfDeclaration(previousCoarseFamily(previousWindowsCorner(current)))).replaceAll(wire.current, wire.previous)) as Shardfile;
   const fine = new Set(product.tiles.filter(tile => tile.lod === 0).flatMap(tile => tile.files));
   const coarse = new Set(product.tiles.filter(tile => tile.lod === 1).flatMap(tile => tile.files).filter(file => !fine.has(file)));
   expect(coarse.size).toBe(12); expect(product.library.filter(file => coarse.has(file))).toEqual([]);
