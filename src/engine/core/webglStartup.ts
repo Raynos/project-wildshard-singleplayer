@@ -1,5 +1,6 @@
 /** Wait for WebKit's graphics context to be usable before Three reads its capabilities. */
-import { Scope } from '../app/scope';
+import type { Scope } from '../app/scope';
+import { pageScope } from '../app/resources';
 
 export const GAME_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
   // E257: on the physical iPhone, even an empty 16px canvas immediately loses a
@@ -14,16 +15,19 @@ export interface ContextStartupState { attempt: number; elapsedMs: number; conte
 export async function readyWebGLContext(
   canvas: HTMLCanvasElement,
   waiting: (state: ContextStartupState) => void = () => undefined,
+  owner: Scope = pageScope,
 ): Promise<WebGL2RenderingContext> {
+  if (owner.disposed || owner.disposing) throw new Error('Graphics startup owner left');
   // This must precede getContext(): loss can happen during context creation itself.
   // Without preventDefault the browser is not permitted to restore that context.
   const allowRestore = (event: Event): void => { event.preventDefault(); };
-  const scope = new Scope('webgl-startup');
+  const scope = owner.child('webgl-startup');
   scope.listen(canvas, 'webglcontextlost', allowRestore);
   const start = performance.now();
   let attempt = 0;
   try {
     for (;;) {
+      if (scope.disposed || scope.disposing) throw new Error('Graphics startup owner left');
       const gl = canvas.getContext('webgl2', GAME_CONTEXT_ATTRIBUTES);
       const contextLost = gl?.isContextLost() ?? false;
       // A non-null getContext result is insufficient: lost contexts return null for precision.
@@ -35,9 +39,12 @@ export async function readyWebGLContext(
       if (gl !== null && precisionReady && !gl.isContextLost()) return gl;
       const state = { attempt: ++attempt, elapsedMs: Math.round(performance.now() - start), contextLost, precisionReady, contextCreated: gl !== null };
       waiting(state);
-      if (state.elapsedMs >= 10_000) throw new Error(`Graphics context did not recover during startup (${contextLost ? 'context lost' : gl === null ? 'context unavailable' : 'shader capabilities unavailable'})`);
       // Yield for GPU-process restart / webglcontextrestored instead of reloading the document.
-      await new Promise<void>((resolve) => { scope.timeout(250, resolve); });
+      // This interval paces capability queries; it never grants or refuses readiness.
+      await new Promise<void>((resolve, reject) => {
+        const forget = scope.capture('disposers', () => { reject(new Error('Graphics startup owner left')); });
+        scope.timeout(250, () => { forget(); resolve(); });
+      });
     }
   } finally { scope.dispose(); }
 }
