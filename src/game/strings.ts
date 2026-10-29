@@ -20,6 +20,8 @@ export const GAME_STRINGS = {
     infinite: 'INFINITE WILDSHARD',
     settings: 'SETTINGS',
     back: 'BACK',
+    prefetch: (done: number, total: number, phase: string): string => total === 0 ? phase === 'running' ? 'Preparing next world…' : 'Next world · Paused'
+      : `Next world · ${(done / 1_000_000).toFixed(1)} / ${(total / 1_000_000).toFixed(1)} MB${phase === 'done' ? ' · Ready' : phase === 'running' ? '' : ' · Paused'}`,
     /** E483 (E140 again): the compact Developer switch beside SETTINGS, the same switch as Settings ▸ Developer */
     developer: 'DEV',
     developerLabel: 'Developer mode',

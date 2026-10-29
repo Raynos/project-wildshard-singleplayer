@@ -15,8 +15,13 @@
 import { lastEnd } from '@wildshard/engine/boot/lastEnd';
 import { setDev } from '@wildshard/engine/core/devMode';
 import { buildTitleDeck, titleCards, type TitleDeck, type TitleDeckOptions } from './titleDeck';
-import { gridEntryShown, menuMode } from './grid/menu';
+import { gridEntryShown, menuMode, gridMode } from './grid/menu';
 import { dropGridIntent, enterGrid, gridRecoveryLoop } from './grid/pageEntry';
+import { pageScope } from '@wildshard/engine/app/resources';
+import { saves } from '@wildshard/engine/saves/runtime';
+import { titlePrefetchOrder } from './grid/titleOrder';
+import { titleManifests } from './shard/titleList';
+import { titlePrefetchChoice, titlePrefetchTargets } from './grid/titlePrefetchChoice';
 
 import { GAME_STRINGS } from './strings';
 import { WHATS_NEW, type WhatsNew } from './whatsNew';
@@ -74,6 +79,7 @@ function required<T extends HTMLElement>(root: ParentNode, selector: string, typ
 
 /** Build the shared title menu from its supplied deck and callbacks. */
 export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
+  const owner = pageScope.child('title-prefetch');
   const mode = opts.mode ?? menuMode;
   const { notice, onGrid, screen: first, cards = titleCards(), whatsNew = WHATS_NEW, whatsNewStore, ...deckOpts } = opts;
   // leaving the title for a world resets it: pause ▸ EXIT TO MAIN opens on the main menu again
@@ -145,7 +151,35 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
   deck.onTap(selectCard, () => { show('select'); deck.start(); });
   const gridCard = main.querySelector('.ws-main-grid');
   if (gridCard instanceof HTMLButtonElement) deck.onTap(gridCard, () => { if (gridEntryShown(mode())) onGrid(); });
-  // I2: a title is not control of the selected world. Actual grid play starts its nearest-first prefetch after control.
+  // PL13: only the home/last product, after the title paints. This is verified
+  // disk prefetch, never world construction or a hidden offline-size scan.
+  let started = false;
+  const startPrefetch = (): void => {
+    if (started || opts.active !== null) return;
+    started = true;
+    owner.raf(() => {
+      const targets = titlePrefetchTargets(titlePrefetchOrder(gridMode(mode().devserver, mode()))[0], titlePrefetchChoice(saves).read(), titleManifests(), mode().developer);
+      const load = async (): Promise<void> => {
+        const {startTitlePrefetch} = await import('./grid/prefetch');
+        if (owner.disposed) return;
+        const run = startTitlePrefetch(targets);
+        if (run === null) return;
+        owner.onDispose(run.stop);
+        const lines = [main, deck.root].map(parent => {
+          const line = document.createElement('div'); line.className = parent === main ? 'ws-main-notice' : 'ws-menu-recovery';
+          line.setAttribute('role', 'status');
+          (parent.querySelector('.ws-main-head, .ws-menu-head') ?? parent).append(line);
+          return line;
+        });
+        const update = (): void => {
+          const state = run.snapshot(), text = s.prefetch(state.presentBytes + state.storedBytes, state.knownBytes, state.phase);
+          for (const line of lines) line.textContent = text;
+        };
+        update(); owner.interval(250, update);
+      };
+      void load().catch(() => undefined); // Optional read-ahead never refuses a title tap.
+    });
+  };
   deck.onTap(required(main, '.ws-main-settings', HTMLButtonElement), () => { opts.onSettings(); });
   // E483 (Jake: "a better dev toggle … without having to go to the settings page"; E140's ask): the same live switch as
   // Settings ▸ Developer. Both title paths rebuild on the change (StartTitle / HUD `onDev`) on this screen, so the menu, the
@@ -163,8 +197,8 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
     select: (i, smooth) => { deck.select(i, smooth); },
     // the HUD's confirm / any key: the main menu's first card opens the deck, the deck enters its card
     activate: () => { if (screen === 'main') { show('select'); deck.start(); } else deck.activate(); },
-    start: () => { deck.start(); if (screen === 'main') selectCard.focus({ preventScroll: true }); },
-    dispose: () => { deck.dispose(); },
+    start: () => { deck.start(); startPrefetch(); if (screen === 'main') selectCard.focus({ preventScroll: true }); },
+    dispose: () => { owner.dispose(); deck.dispose(); },
   };
 }
 

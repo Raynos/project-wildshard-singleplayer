@@ -3,12 +3,13 @@ import {emptyShardfile} from '../src/sdk/author';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {parseOutputIndex} from '../src/format/outputIndex';
 import {installTitleManifests, titleManifests, type TitleManifest} from '../src/game/shard/titleList';
-import {startGridPrefetch, gridPrefetchStatus} from '../src/game/grid/prefetch';
+import {startGridPrefetch, startTitlePrefetch, gridPrefetchStatus} from '../src/game/grid/prefetch';
 
-afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+const initialStorage = globalThis.localStorage;
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); vi.stubGlobal('localStorage', initialStorage); });
 
 // iPhone downloads I5: the grid prefetch stores a pack's members from one read of the pack, never their own paths.
-test('packed members are stored from one read of their pack', async () => {
+test.each(['play', 'title'] as const)('%s packed members are stored from one verified read, including metered title prefetch', async mode => {
   const first = new Uint8Array([1, 2]), second = new Uint8Array([3]);
   const hashes = [hashImmutableBytes(first), hashImmutableBytes(second)];
   const packBytes = new Uint8Array([...first, ...second]), packHash = hashImmutableBytes(packBytes), packPath = `blobs/pack/${packHash}.pack`;
@@ -40,7 +41,7 @@ test('packed members are stored from one read of their pack', async () => {
   };
   vi.stubGlobal('window', new EventTarget());
   vi.stubGlobal('location', {href: 'http://localhost/', origin: 'http://localhost'});
-  vi.stubGlobal('navigator', {onLine: true, storage: {persist: () => Promise.resolve(true), estimate: () => Promise.resolve({usage: 0, quota: 1024 ** 3})}});
+  vi.stubGlobal('navigator', {onLine: true, connection: {saveData: mode === 'title'}, storage: {persist: () => Promise.resolve(true), estimate: () => Promise.resolve({usage: 0, quota: 1024 ** 3})}});
   vi.stubGlobal('caches', {open: () => Promise.resolve(cache), delete: () => Promise.resolve(true)});
   vi.stubGlobal('Worker', undefined);
   vi.stubGlobal('fetch', (input: RequestInfo | URL): Promise<Response> => {
@@ -48,7 +49,8 @@ test('packed members are stored from one read of their pack', async () => {
     return Promise.resolve(url.endsWith('/index.json') ? Response.json(index) : url.endsWith('.pack') ? new Response(packBytes) : new Response(null, {status: 404}));
   });
   try {
-    startGridPrefetch(['_template']);
+    if (mode === 'title') expect(startTitlePrefetch(['_template'])).not.toBeNull();
+    else startGridPrefetch(['_template']);
     await vi.waitFor(() => {expect(gridPrefetchStatus()?.phase).toBe('done');});
     expect(reads).toEqual(['http://localhost/alpha/index.json', `http://localhost/alpha/${packPath}`]);
     expect(gridPrefetchStatus()).toMatchObject({knownFiles: 2, knownBytes: 3, storedFiles: 2, storedBytes: 3});

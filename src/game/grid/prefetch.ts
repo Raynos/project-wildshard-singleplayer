@@ -102,6 +102,9 @@ class GridPrefetch {
   private tier: Tier = 'desktop';
   /** G727 / I9: Settings' "Download everything" asked for it: every product, past Save-Data and the phone ring */
   explicit = false;
+  /** PL13: the title's home/last products are requested on any network.
+   * This does not widen the phone ring or the device's admitted file tier. */
+  title = false;
   private status: Omit<{ -readonly [K in keyof GridPrefetchStatus]: GridPrefetchStatus[K] }, 'inFlightBytes' | 'peakInFlightBytes' | 'limitInFlightBytes'> = { phase: 'running', reason: null,
     products: 0, productsRead: 0, knownFiles: 0, knownBytes: 0, presentFiles: 0, presentBytes: 0, storedFiles: 0, storedBytes: 0 };
   /** Queue these slugs ahead of the rest (already read ones are skipped); start the run if it is not running. */
@@ -118,7 +121,7 @@ class GridPrefetch {
   }
   async run(): Promise<void> {
     try {
-      if (!this.explicit && saveData()) { this.stop('save-data'); return; }
+      if (!this.explicit && !this.title && saveData()) { this.stop('save-data'); return; }
       // the tier loads here, off the title's static graph (the render tiers stay cold until a world needs them)
       this.tier = (await import('@wildshard/engine/core/tier')).TIER;
       // I10 / D133: the page's one persistence request (the save store's, once a page, its answer kept for the Debug storage
@@ -129,7 +132,10 @@ class GridPrefetch {
         if (!navigator.onLine) { this.stop('offline'); return; }
         if (this.tier === 'phone' && !this.explicit && !this.ring.has(next)) continue;
         try { await this.product(next, quota); }
-        catch (error: unknown) { console.warn(`[grid prefetch] ${next} skipped`, error); } // one product's failure skips only it
+        catch (error: unknown) {
+          if (this.title) this.stop(error instanceof Error ? error.message : String(error), 'error');
+          console.warn(`[grid prefetch] ${next} skipped`, error);
+        } // an ordinary grid run still skips only the failed product
         this.status.productsRead++;
       }
       if (this.status.reason === null) this.status.phase = 'done';
@@ -242,11 +248,22 @@ export function startGridPrefetch(slugs: readonly string[], ring: readonly strin
   const running = current;
   if (running !== null) { if (explicit) running.explicit = true; running.prioritize(slugs, ring); return; }
   const run = new GridPrefetch(); current = run; run.explicit = explicit; run.prioritize(slugs, ring);
+  launchPrefetch(run);
+}
+function launchPrefetch(run: GridPrefetch): void {
   window.__ws_gridPrefetch = gridPrefetchStatus; // captures and the bench read the counts
   void (async (): Promise<void> => {
     try { await run.run(); }
     catch (error: unknown) { run.stop(error instanceof Error ? error.message : String(error), 'error'); console.warn('[grid prefetch] stopped', error); }
   })();
+}
+/** One bounded verified downloader, shared with normal grid/offline progress.
+ * A live world/download owns its existing run; a title never replaces it. */
+export function startTitlePrefetch(slugs: readonly string[]): {snapshot: () => GridPrefetchStatus; stop: () => void} | null {
+  if (slugs.length === 0 || typeof caches === 'undefined' || !('storage' in navigator) || current?.snapshot().phase === 'running') return null;
+  const run = new GridPrefetch(); current = run; run.title = true; run.prioritize(slugs, slugs);
+  launchPrefetch(run);
+  return {snapshot: () => run.snapshot(), stop: () => {run.stop('left title');}};
 }
 /** The run's counts (null before any start): for the loading screen's download line and captures. */
 export function gridPrefetchStatus(): GridPrefetchStatus | null { return current?.snapshot() ?? null; }
