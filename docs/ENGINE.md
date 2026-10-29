@@ -815,6 +815,19 @@ with the stack and a Reload button. **Unload** is `scope.dispose()`; switching s
 
 ## 8. Boot (staged load)
 
+Developer's **Data preparation** comparison (G865) reloads between A, the
+original main-thread path, and B, one explicitly owned data-only worker.
+`boot/dataPreparation` exposes the choice and `DataPreparationWorker`.
+Its `parse` performs fatal UTF-8 decoding and JSON parsing; `receipt` uses
+exact format canonical receipt encoding. Browser product readers supply
+these two optional ports only for B; hashes, schema checks, source receipts,
+readiness and retirement still belong to their original readers. A worker
+never receives rendering objects, storage or a live caller buffer. Its
+owner's disposal or a 30-second job deadline rejects all pending work; an
+idle worker terminates after 30 seconds. Public mode ignores saved B picks.
+The ruler's page CPU throttle does not throttle workers; retain that caveat
+when comparing the saved `debug.dataPreparation` choices.
+
 Loading has its own task budget, independently of steady-state fps. Report observed
 sub-progress within builders and explicit waits from the first HTML panel; whole-step
 percentages cannot explain a long Props stall. Keep individual main-thread tasks below

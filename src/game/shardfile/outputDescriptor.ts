@@ -18,6 +18,8 @@ export interface OutputDescriptorChecks {
 export interface OutputDescriptorReader {
   /** Node author bundles supply their defining checked port; authored JSON cannot provide it. */
   checks?: OutputDescriptorChecks;
+  /** Optional data-only worker; hashes and all admission checks remain here. */
+  dataWorker?: { parse: (bytes: Uint8Array) => Promise<unknown>; receipt: (value: unknown) => Promise<Uint8Array> };
   /** Admission will declare its device-selected asset bank after section verification. */
   deferAssetDeclarations?: boolean;
   /** Expected sizes come from the parsed product index, before any section reads. */
@@ -99,8 +101,9 @@ function buildValidatedSource(value: unknown, sourceHash: string, indexHash: str
   return typeof value === 'object' && value !== null && builtValidationReceipt(sourceHash, indexHash) !== null;
 }
 
-function receiptBytes(value: unknown, pause: OutputDescriptorReader['pause']): Uint8Array | Promise<Uint8Array> {
-  return pause === undefined ? validationSourceBytes(value) : validationSourceBytesPaced(value, pause, diagnosticNow);
+function receiptBytes(value: unknown, reader: OutputDescriptorReader): Uint8Array | Promise<Uint8Array> {
+  if (reader.dataWorker !== undefined) return reader.dataWorker.receipt(value);
+  return reader.pause === undefined ? validationSourceBytes(value) : validationSourceBytesPaced(value, reader.pause, diagnosticNow);
 }
 function indexReceipt(value: unknown, digest?: string): ValidationReceipt | null {
   if (typeof value !== 'object' || value === null) return null;
@@ -119,7 +122,7 @@ async function ownedBuildIndex(input: unknown, reader: OutputDescriptorReader): 
   // Clone before the first caller pause/hash callback. Neither can mutate the
   // private snapshot while its canonical bytes are encoded and verified.
   const owned: unknown = structuredClone(input);
-  const digest = await reader.hash(await receiptBytes(owned, reader.pause));
+  const digest = await reader.hash(await receiptBytes(owned, reader));
   if (!buildValidatedIndex(owned, digest)) return null;
   const receipt = indexReceipt(owned, digest);
   return receipt === null ? null : { index: owned, receipt, digest };
@@ -194,7 +197,7 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
       if (bytes.length !== section.bytes || await reader.hash(bytes) !== section.hash) throw new Error('Cached shardfile section hash or size mismatch');
       reader.cacheHit?.(section.path, section.hash, bytes.length);
     }
-    const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    const value: unknown = reader.dataWorker === undefined ? JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) : await reader.dataWorker.parse(bytes);
     return [section.name, value];
   };
   // Each section is independently bounded; launch the complete inventory in
@@ -211,7 +214,7 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   }
   const index = current;
   const candidate = pinned?.receipt ?? (reader.firstParty === true ? builtValidationReceipt(index.build.sourceHash) : null);
-  const indexHash = pinned?.digest ?? (candidate === null ? undefined : await reader.hash(await receiptBytes(input, reader.pause)));
+  const indexHash = pinned?.digest ?? (candidate === null ? undefined : await reader.hash(await receiptBytes(input, reader)));
   const receipt = pinned?.receipt ?? (indexHash === undefined ? null : builtValidationReceipt(index.build.sourceHash, indexHash));
   // G728: the exact build receipt proves custom schemas too; every section/schema
   // byte above still passes its declared size and hash. Unproved Node inputs
@@ -219,12 +222,12 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   if (receipt === null) await (await descriptorChecks(reader)).custom(index, sections, schemas, reader.pause);
   // Unproved products keep the original serialized schema phase before paced
   // hashing; only a possible CI receipt needs that digest to decide the fast path.
-  const digest = indexHash ?? await reader.hash(await receiptBytes(input, reader.pause));
+  const digest = indexHash ?? await reader.hash(await receiptBytes(input, reader));
   let source: Shardfile;
   if (receipt === null) source = (await descriptorChecks(reader)).assemble(index, sections);
   else {
     const fields = assembleOutputTransport(index, sections);
-    const actual = await reader.hash(await receiptBytes(fields, reader.pause));
+    const actual = await reader.hash(await receiptBytes(fields, reader));
     if (actual !== index.build.sourceHash || !buildValidatedSource(fields, actual, digest)) throw new Error('Built shardfile source receipt mismatch');
     source = fields;
     buildValidated.add(source);

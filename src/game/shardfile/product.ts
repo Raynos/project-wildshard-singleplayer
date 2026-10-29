@@ -63,6 +63,8 @@ export interface ProductProgress {
 }
 /** Loading is explicit about connectivity and first-party provenance, never inferred from an author field. */
 export interface ProductOptions {
+  /** Trusted optional data-only worker. Original bytes, hashes and validators own admission. */
+  dataWorker?: { parse: (bytes: Uint8Array) => Promise<unknown>; receipt: (value: unknown) => Promise<Uint8Array> };
   /** Trusted renderer tier; only typed host alternatives affect transport selection and resident estimates. */
   tier?: 'phone' | 'desktop';
   /** Trusted namespaced quality overrides, captured before profile admission. */
@@ -116,7 +118,7 @@ export class StaleClientError extends Error {
 export async function readIndexBytes(bytes: Uint8Array, options: ProductOptions): Promise<unknown> {
   const built = options.firstParty ? options.built : undefined;
   if (built !== undefined) await checkBuiltIndex(await options.hash(bytes), options);
-  return JSON.parse(descriptorDecoder.decode(bytes));
+  return options.dataWorker === undefined ? JSON.parse(descriptorDecoder.decode(bytes)) : options.dataWorker.parse(bytes);
 }
 /** A first-party index whose bytes' `hash` this build does not list takes stale-client recovery (a no-op otherwise). */
 export async function checkBuiltIndex(hash: string, options: ProductOptions): Promise<void> {
@@ -212,6 +214,7 @@ async function readBoundedResponse(response: Response, maximum: number, read?: (
 function resolveDescriptor(input: unknown, options: ProductOptions, lineage = false, background = false): Promise<unknown> {
   const base = new URL('.', options.base).href, cache = options.cache, backgroundStore = cache?.putAssetBackground;
   return resolveOutputDescriptor(input, {
+    ...(options.dataWorker === undefined ? {} : { dataWorker: options.dataWorker }),
     offline: options.offline, hash: options.hash, firstParty: options.firstParty, deferAssetDeclarations: true, ...(lineage ? { lineage } : {}),
     ...(options.cacheHintTurn === undefined ? {} : { cacheHintTurn: options.cacheHintTurn }),
     ...(options.pause === undefined ? {} : { pause: options.pause }),

@@ -1,3 +1,4 @@
+import { preparationWork } from '../src/engine/boot/preparationWork';
 // oxlint-disable-next-line import/no-nodejs-modules -- Device-cost source fixture uses one tracked bounded KTX2 file.
 import { readFileSync } from 'node:fs';
 import { parseKtx2, ktx2DeviceCosts, ktx2DeviceGpu } from '../src/format/ktx2Cost';
@@ -1234,4 +1235,24 @@ test('offline build-addressed products retain complete-index and visited-origin 
     await expect(readProductDescriptor({...opts,offline:true,fetch:fetcher})).rejects.toThrow('not been visited offline');
     expect(fetcher).not.toHaveBeenCalled();
   }finally{release();}
+});
+
+
+test('optional worker operations preserve the complete descriptor and original hash refusal', async () => {
+  const f = packedSectionFixture();
+  const parse = vi.fn((bytes: Uint8Array): Promise<unknown> => Promise.resolve(preparationWork('parse', structuredClone(bytes))));
+  const receipt = vi.fn((value: unknown): Promise<Uint8Array> => {
+    const bytes = preparationWork('receipt', structuredClone(value));
+    if (!(bytes instanceof Uint8Array)) throw new Error('Invalid receipt result');
+    return Promise.resolve(bytes);
+  });
+  const source = await readProductDescriptor({ ...options(f.wires), dataWorker: { parse, receipt } });
+  expect(source).toEqual(f.source); expect(parse).toHaveBeenCalledTimes(f.index.sections.length + 1);
+  expect(receipt).toHaveBeenCalled();
+  const bad = fixture(), section = bad.index.sections[0];
+  if (section === undefined) throw new Error('No section');
+  bad.wires.set(section.path, new Uint8Array(section.bytes).fill(32));
+  parse.mockClear();
+  await expect(readProductDescriptor({ ...options(bad.wires), dataWorker: { parse, receipt } })).rejects.toThrow('section hash or size mismatch');
+  expect(parse.mock.calls.some(([bytes]) => bytes.length === section.bytes && bytes.every(byte => byte === 32))).toBe(false);
 });

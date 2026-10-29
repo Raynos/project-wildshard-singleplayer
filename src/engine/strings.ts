@@ -1,5 +1,9 @@
 /** English engine UI strings. Content-owned overrides are installed by the composition root. */
 export const ENGINE_STRINGS = {
+  "s_data_preparation": "Data preparation",
+  "s_data_main": "A · Main thread",
+  "s_data_workers": "B · Workers",
+  "s_data_preparation_note": "G865: parse and receipt encoding off the page; reloads.",
   "s_update_heading": "Updating",
   "s_update_next_boundary": "Update on next travel / title",
   "s_update_next_boundary_dev": "⟦0⟧ · Update on next travel / title",

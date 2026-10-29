@@ -1,3 +1,4 @@
+import { browserDataPreparation, dataPreparation } from '@wildshard/engine/boot/dataPreparation';
 import { tierProductFilesPaced } from './productCost';
 import { lateFiles } from './controlFiles';
 import { productCacheCompletion } from './productCacheCompletion';
@@ -80,6 +81,7 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     pageScope.listen(document, 'ws:control-ready', () => { productControlsReady = true; });
   }
   prepareContentHash();
+  const preparation = dataPreparation() === 'workers' ? browserDataPreparation() : undefined;
   const quality = Object.fromEntries(Object.entries(TIER_CONFIG).filter((entry): entry is [string, number | boolean] => entry[0].includes('.') && (typeof entry[1] === 'number' || typeof entry[1] === 'boolean')));
   const indexed = firstParty && builtIndexes !== null && typeof caches !== 'undefined' ? builtIndexes : undefined;
   // G639: a phone-4x Nine drive spent ~2 s of its page thread fetching, streaming, hashing and copying the product's
@@ -90,7 +92,7 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     const sent = await waitFor(`Verify ${productResourceRole(path.href)}`, content.fetchVerified(path.href, hash, bytes, { reply: 'bytes', urlCache: indexed !== undefined }), 'worker');
     return sent === null || sent.fetched === null ? null : { bytes: sent.fetched, cached: sent.cached, stored: sent.stored };
   } : undefined;
-  return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, hashOwned: hashOwnedBytes,
+  return { ...(preparation === undefined ? {} : { dataWorker: { parse: (bytes: Uint8Array) => preparation.parse(bytes), receipt: (value: unknown) => preparation.receipt(value) } }), base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, hashOwned: hashOwnedBytes,
     backgroundFetch: (url, signal) => fetch(url, { priority: 'low', ...(signal === undefined ? {} : { signal }) }),
     fetch: (url, signal) => waitFor(`Read ${productResourceRole(url, base)}`, (async () => {
       if (indexed !== undefined && new URL(url, base).pathname.endsWith('/shard.json')) {
