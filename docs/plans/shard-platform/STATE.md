@@ -26,7 +26,6 @@ sp-x2 MF10, sp-x9 G895 → FC7, sp-x10 MF1 + QB21. QB19 / GAME-S sp-o3 later. G8
   launch after this deploy still shows the old UPDATING cover once (old worker), never again.
 - New QA build asked of sp-ci-deploy: Jake was reporting already-fixed bugs (QB7 14:19).
 - QB18 = B: Nalati TRUST as a status row under GRASS (A crossed the minimap, C the toast; fc707ba74d, o4).
-- RL10: grid New game keeps its road-resume reload (1ec09517d4).
 - QB10: sp-x1 walks the 60 ids (0dd5f3060e) in MF12; wildshard-v resolves them. **wildshard-v: for Sentry-only ids with
   no inbox stack (e.g. 7R, 6Y, 6X, 6W) add one event's build + stack to the row**; titles can't justify a fix.
 - families-board retired (3e9937f146); D53 debt; Pine pond, G99 isles kept; Pine drive (D12) under G815; D206 damage list.
