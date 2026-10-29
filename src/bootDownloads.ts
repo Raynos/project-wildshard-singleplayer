@@ -1,6 +1,12 @@
 import { declareDownloadFile, reserveDownloadGroup, reserveDownloadBank, preloadModuleGroups, declareModuleGroups } from '@wildshard/engine/boot/download';
 import { prepareCodePack } from '@wildshard/engine/boot/codePack';
 import type { Scope } from '@wildshard/engine/app/scope';
+import { gridStripDownloadRows } from '@wildshard/game/grid/entryDownloads';
+
+/** Declare the compiler-selected initial seam page before it is read. No IO or receipt credit. */
+export function declareGridHomeDownload(mode: Parameters<typeof gridStripDownloadRows>[0], home: string): void {
+  for (const row of gridStripDownloadRows(mode, home)) declareDownloadFile(row.url, row.bytes);
+}
 
 /** Match the actual grid product reader; a hybrid's standalone path may have no descriptor. */
 export function homeDownloadSource(manifest: {readonly shardfile?: string; readonly gridShardfile?: string}, grid: boolean): string | undefined {

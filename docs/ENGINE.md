@@ -4020,6 +4020,11 @@ metadata timing, durability, recovery, quota and ownership contracts.
 
 ### Seamless grid crossing (SF20a)
 
+`@wildshard/game/grid/menu` owns `gridMode(devserverCell, mode?)` and
+`DEVSERVER`. The app uses those same switches to declare the selected
+compiler seam download facts before reading them; declaration starts no IO
+and grants no receipt credit.
+
 Grid placement rows may set `edgeLook: { height }` (0.5–7 m) to lower only the
 cyan readiness curtain. Missing rows retain the 7 m curtain. `GridAssembly` copies
 and freezes this appearance separately from identity; `GridSession` passes it only

@@ -1,9 +1,28 @@
 // @vitest-environment happy-dom
 import {afterEach,expect,test} from 'vitest';
-import {prepareHomeModules,declareHomeModules,reserveHomeDownload,homeDownloadSource} from '../src/bootDownloads';
+import {prepareHomeModules,declareHomeModules,reserveHomeDownload,homeDownloadSource,declareGridHomeDownload} from '../src/bootDownloads';
 import {DownloadAccounting,installDownloadAccounting,declareDownloadFile,declareModuleFiles,preloadModuleGroups} from '../src/engine/boot/download';
 
 afterEach(() => {document.body.replaceChildren();for(const link of document.querySelectorAll('link[rel="modulepreload"]'))link.remove();});
+test('the exact seam bank stays in the denominator before code credit, without fetching or crediting its members', () => {
+  const rows = [{url: '/assets/grid-strip-book-12345678.json', bytes: 10},
+    {url: '/assets/grid-strip-page-12345678.json', bytes: 20}, {url: '/assets/grid-strip-mesh-12345678.bin', bytes: 70}];
+  const node = document.createElement('script'); node.id = 'boot-module-files';
+  node.textContent = JSON.stringify({gridEntryDownloads: {'100': {home: rows}}}); document.body.append(node);
+  const accounting = new DownloadAccounting(document.baseURI), dispose = installDownloadAccounting(accounting);
+  try {
+    declareDownloadFile('/assets/code.js', 100);
+    declareGridHomeDownload({developer: true, devserver: false, nineDragon: false}, 'home');
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: 200, declaredDoneBytes: 0, pendingBytes: 200, declaredFiles: 4});
+    accounting.resource({name: new URL('/assets/code.js', document.baseURI).href, startTime: 1, transferSize: 100, encodedBodySize: 100, workerStart: 0, serverTiming: []});
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: 200, declaredDoneBytes: 100});
+    for (const row of rows) declareDownloadFile(row.url, row.bytes);
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: 200, declaredDoneBytes: 100});
+    declareGridHomeDownload({developer: false, devserver: false, nineDragon: false}, 'home');
+    expect(accounting.snapshot().declaredBytes).toBe(200);
+    expect(document.querySelectorAll('link[rel="preload"],link[rel="modulepreload"]')).toHaveLength(0);
+  } finally {dispose();}
+});
 test('a hybrid grid declares its actual product before later immutable files, without changing standalone entry', () => {
   const manifest = {gridShardfile: '/shardfiles/example/shard.json'};
   const accounting = new DownloadAccounting(document.baseURI), dispose = installDownloadAccounting(accounting);

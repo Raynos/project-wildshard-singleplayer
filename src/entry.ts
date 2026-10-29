@@ -7,7 +7,7 @@ import { startPageServices } from './pageServices';
 import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import { preloadModuleFiles, declareModuleFiles } from '@wildshard/engine/boot/download';
-import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules, declareHomeModules, prepareBootImports, prepareEntryCode, homeDownloadSource } from './bootDownloads';
+import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules, declareHomeModules, prepareBootImports, prepareEntryCode, homeDownloadSource, declareGridHomeDownload } from './bootDownloads';
 /**
  * The page's module entry. Everything the game imports statically is evaluated in ONE task when a module graph
  * runs: three.js plus the ~150 game modules at once was a 115–157 ms long task at 4× CPU before the first boot step
@@ -143,6 +143,10 @@ async function startSelected(): Promise<void> {
   const earlyPath = gridSelection.pageGridRecovery() !== null || gridSelection.pendingGridEntry(game.shard.slug)
     ? 'grid' : entrySelection.shardEntry(game.shard);
   const homeDescriptor = homeDownloadSource(game.shard, earlyPath === 'grid');
+  if (earlyPath === 'grid') {
+    const { gridMode, DEVSERVER } = await retried(() => import('@wildshard/game/grid/menu'));
+    declareGridHomeDownload(gridMode(DEVSERVER), gridSelection.pageGridRecovery()?.instance ?? gridSelection.gridHome().instance);
+  }
   const declaredHome = earlyPath !== 'legacy' && document.getElementById('ws-shardfile') === null;
   // Establish all compiler-known denominators before crediting cached code.
   // These declarations start no transport; existing preload/read barriers stay.
