@@ -9,6 +9,7 @@ import { BAKED_BYTES as codecBakedBytes, appendGeometry as codecAppendGeometry, 
 import { workSlice } from '@wildshard/engine/core/workSlice';
 import { presenting } from '@wildshard/engine/core/framePacing';
 import { constructionCheckpoint } from '../shardfile/constructionCheckpoint';
+import { PreparationReads } from '../shardfile/preparationReads';
 import { defineSceneModels, type BakedModelMetadata } from '@wildshard/engine/models/model';
 import { identitySpaceGeometry } from '@wildshard/engine/models/ownedGeometry';
 import * as wholeV from 'valibot';
@@ -1716,8 +1717,6 @@ export function installPivotNpc(ctx: PivotNpcLevel, row: NpcRow, ports: PivotNpc
   return npc;
 }
 
-/** Whole-geometry files read ahead of the one being assembled (bytes held at once stay bounded by this many files). */
-const WHOLE_READ_AHEAD = 4;
 const WHOLE_TIMING_PHASES = ['read-wait', 'decode', 'assemble', 'yield', 'release', 'finalize'] as const;
 /** A run list expands to at most this many ordinals (a 2 MB GLB JSON chunk cannot otherwise bound it). */
 const WHOLE_ORDINALS_MAX = 1 << 24;
@@ -2008,7 +2007,7 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
     assertLive();
     let wait = pause;
     if (wait === undefined) {
-      if (presenting()) {
+      if (presenting() || typeof document !== 'undefined') {
         // Transport, parsing and drawn frames can outlive this local slice's
         // clock. A completion uses the current shared budget, not that wait.
         const checkpoint = constructionCheckpoint(scope);
@@ -2026,21 +2025,14 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
     };
     return suspend();
   };
-  // read ahead: up to WHOLE_READ_AHEAD files' bytes in flight while the current one parses and assembles (the home's
-  // fixed draws read their tiles one after another: ~0.57 s at 4x CPU, much of it waiting on each read)
-  const reads = new Map<number, Promise<Uint8Array>>();
-  const readAt = (index: number): Promise<Uint8Array> | undefined => {
-    const hash = hashes[index]; if (hash === undefined) return undefined;
-    let read = reads.get(index);
-    if (read === undefined) { read = product.assets.read(hash); void read.catch(() => undefined); reads.set(index, read); }
-    return read;
-  };
+  // Transport refills on completion, independently of ordered parsing and
+  // assembly. A slow decoder no longer holds back later phase files.
+  const reads = new PreparationReads(hashes, hash => product.assets.read(hash), () => !scope.disposed && !scope.disposing);
   try {
     for (const [index, hash] of hashes.entries()) {
-      // started, not awaited here: each read already carries a catch, and its error surfaces where this loop awaits it
-      for (let ahead = index; ahead < index + WHOLE_READ_AHEAD; ahead++) void readAt(ahead);
-      const pending = readAt(index); if (pending === undefined) throw new Error('Whole geometry read missing');
-      const bytes = timing === undefined ? await pending : await timing.run('read-wait', () => pending); reads.delete(index);
+      assertLive();
+      const pending = reads.take(index);
+      const bytes = timing === undefined ? await pending : await timing.run('read-wait', () => pending);
       const gltf = timing === undefined ? await (await prepareRigLoader()).createRigLoader().parseBytesAsync(bytes, '')
         : await timing.run('decode', async () => (await prepareRigLoader()).createRigLoader().parseBytesAsync(bytes, ''));
       const cleanup: (() => void)[] = [];
@@ -2079,7 +2071,7 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
     }
     product.assets.releaseTiles(); return result;
   } catch (error) { assembler.dispose(); throw error; }
-  finally { timing?.finish(); }
+  finally { await reads.close(); timing?.finish(); }
 }
 
 /** Authored skinned assets and their ordered look declarations. */

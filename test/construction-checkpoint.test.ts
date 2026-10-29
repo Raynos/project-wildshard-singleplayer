@@ -1,14 +1,20 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
+import * as clock from '../src/engine/core/clock';
 import * as pacing from '../src/engine/core/framePacing';
 import * as work from '../src/engine/core/workSlice';
 import { constructionCheckpoint } from '../src/game/shardfile/constructionCheckpoint';
 
+const originalDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
 beforeEach(() => {
   vi.spyOn(pacing, 'buildHeld').mockReturnValue(false);
   vi.spyOn(pacing, 'frameDue').mockReturnValue(false);
 });
-afterEach(() => { vi.restoreAllMocks(); });
+afterEach(() => {
+  vi.restoreAllMocks();
+  if (originalDocument === undefined) Reflect.deleteProperty(globalThis, 'document');
+  else Object.defineProperty(globalThis, 'document', originalDocument);
+});
 
 test('cheap live completions stay synchronous and check the shared budget at every row', async () => {
   const owner = new Scope('checkpoint'), turn = vi.spyOn(work, 'buildYield').mockResolvedValue();
@@ -31,7 +37,7 @@ test('cheap live completions stay synchronous and check the shared budget at eve
   } finally { owner.dispose(); }
 });
 
-test('loading and Node keep the original turn even with an unspent CPU clock', async () => {
+test('Node keeps the original turn even with an unspent CPU clock', async () => {
   const owner = new Scope('checkpoint-loading');
   vi.spyOn(pacing, 'presenting').mockReturnValue(false);
   const spent = vi.spyOn(pacing, 'frameBudgetSpent').mockReturnValue(false);
@@ -96,4 +102,67 @@ test('held completion uses the shared held budget instead of ordinary frame due'
     expect(due).not.toHaveBeenCalled();
     expect(turn).not.toHaveBeenCalled();
   } finally { owner.dispose(); }
+});
+
+
+function loading() {
+  const owner = new Scope('loading-browser');
+  let now = 0;
+  Object.defineProperty(globalThis, 'document', {configurable: true, writable: true, value: {}});
+  vi.spyOn(clock, 'diagnosticNow').mockImplementation(() => now);
+  const live = vi.spyOn(pacing, 'presenting').mockReturnValue(true);
+  const spent = vi.spyOn(pacing, 'frameBudgetSpent').mockReturnValue(false);
+  const turn = vi.spyOn(work, 'buildYield').mockResolvedValue();
+  // Start a new loading interval through the real live-to-loading boundary.
+  expect(constructionCheckpoint(owner)).toBeUndefined(); live.mockReturnValue(false);
+  return { owner, live, spent, turn, at: (value: number) => { now = value; } };
+}
+
+test('loading completions batch within 50ms and yield twenty times per work second', async () => {
+  const f = loading();
+  try {
+    for (let ms = 0; ms <= 1000; ms++) {
+      f.at(ms); const pause = constructionCheckpoint(f.owner);
+      if (pause !== undefined) await pause;
+      expect(f.turn).toHaveBeenCalledTimes(Math.floor(ms / 50));
+    }
+    expect(f.spent).toHaveBeenCalledOnce(); // Only the initial live control consults frame budget.
+    expect(f.turn.mock.calls.every(([owner]) => owner === f.owner)).toBe(true);
+  } finally { f.owner.dispose(); }
+});
+
+test('parallel loading owners share one slice instead of accumulating independent 50ms stretches', async () => {
+  const f = loading(), other = new Scope('other-loading-owner');
+  try {
+    expect(constructionCheckpoint(f.owner)).toBeUndefined();
+    f.at(30); expect(constructionCheckpoint(other)).toBeUndefined();
+    f.at(50); await constructionCheckpoint(other);
+    expect(f.turn).toHaveBeenCalledExactlyOnceWith(other);
+    f.at(70); expect(constructionCheckpoint(f.owner)).toBeUndefined();
+    f.at(100); await constructionCheckpoint(f.owner);
+    expect(f.turn).toHaveBeenCalledTimes(2);
+  } finally { f.owner.dispose(); other.dispose(); }
+});
+
+test('returning to live rendering immediately restores its original shared frame fence', async () => {
+  const f = loading();
+  try {
+    expect(constructionCheckpoint(f.owner)).toBeUndefined();
+    f.at(1); f.live.mockReturnValue(true); f.spent.mockReturnValue(true);
+    await constructionCheckpoint(f.owner);
+    expect(f.turn).toHaveBeenCalledExactlyOnceWith(f.owner);
+    expect(f.spent).toHaveBeenLastCalledWith(work.WORK_SLICE_MS);
+  } finally { f.owner.dispose(); }
+});
+
+test('loading retirement during a batched turn preserves the original continuation refusal', async () => {
+  const f = loading(); let resume = (): void => undefined;
+  try {
+    expect(constructionCheckpoint(f.owner)).toBeUndefined();
+    f.at(50); f.turn.mockReturnValue(new Promise<void>(resolve => { resume = resolve; }));
+    const pending = constructionCheckpoint(f.owner);
+    f.owner.dispose(); resume();
+    await expect(pending).rejects.toThrow('scope has closed');
+    expect(() => constructionCheckpoint(f.owner)).toThrow('scope has closed');
+  } finally { f.owner.dispose(); }
 });

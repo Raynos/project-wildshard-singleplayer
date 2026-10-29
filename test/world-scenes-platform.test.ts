@@ -11,6 +11,7 @@ import { WorldRegistry } from '../src/engine/world/registry';
 import { LivingBuildings } from '../src/game/shardfile/livingBuildings';
 import { emptyBuildingLifeRows } from '../src/format/buildings';
 import { installWorldScenes } from '../src/game/shardfile/worldScenes';
+import { constructionCheckpoint } from '../src/game/shardfile/constructionCheckpoint';
 import { parseWorldScenes } from '../src/format/worldScenes';
 import type { ShardContext } from '../src/game/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
@@ -920,12 +921,17 @@ test.each(['late','resident','played','placed','alternate-placement','immediate'
 
 
 test.each([false, true])('a completed owned read uses its current budget (live=%s)', async live => {
-  const context = fixture(), read = context.product.file.bind(context.product), nativeSlice = work.workSlice;
+  const context = fixture(), read = context.product.file.bind(context.product), nativeSlice = work.workSlice, nativeYield = work.buildYield;
   const yielded: (Scope | undefined)[] = []; let at = 0;
   vi.spyOn(performance, 'now').mockImplementation(() => at);
-  vi.spyOn(pacing, 'presenting').mockReturnValue(live);
+  const presenting = vi.spyOn(pacing, 'presenting').mockReturnValue(true);
   vi.spyOn(pacing, 'buildHeld').mockReturnValue(true);
   vi.spyOn(pacing, 'frameBudgetSpent').mockReturnValue(false);
+  // Loading now shares its completion checkpoint; Node's local slice and
+  // the browser checkpoint must still report the same one real pause.
+  vi.spyOn(work, 'buildYield').mockImplementation((owner, budget) => {
+    yielded.push(owner); return nativeYield(owner, budget);
+  });
   vi.spyOn(work, 'workSlice').mockImplementation((budget, owner) => {
     const slice = nativeSlice(budget, owner);
     return { ...slice, yield: () => { yielded.push(owner); return slice.yield(); } };
@@ -936,6 +942,11 @@ test.each([false, true])('a completed owned read uses its current budget (live=%
     return bytes;
   });
   try {
+    // Start the shared loading slice at its real phase boundary. A network
+    // completion alone no longer creates a fresh private loading clock.
+    expect(constructionCheckpoint(context.scope)).toBeUndefined();
+    presenting.mockReturnValue(live);
+    expect(constructionCheckpoint(context.scope)).toBeUndefined();
     const handles = await installWorldScenes(context, section());
     const stone = handles.object('markers.east.stone');
     expect(stone).toBeInstanceOf(Mesh);

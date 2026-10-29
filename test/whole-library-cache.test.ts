@@ -215,3 +215,42 @@ test.each([false, true])('only Explorer whole libraries borrow fine tile GLBs (c
     await expect(readWholeLibrary(f.owner, f.product, { ...f.row, load: 'explorer' }, ids, undefined, assets)).rejects.toThrow('Missing whole library file');
   } finally { f.close(); }
 });
+
+test('cold whole transport refills six shared slots before the first ordered decode is ready', async () => {
+  const pieces = Array.from({ length: 8 }, (_, i) => fixture(10000, new Matrix4(), `phase-${String(i)}`));
+  const owner = new Scope('whole-phase-source'), source = emptyShardfile({ slug: 'whole-phase', name: 'Phase', author: 'Fixture', revision: 1, seed: 1 });
+  for (const piece of pieces) { source.files.push(...piece.product.shardfile.files); source.library.push(piece.hash); }
+  const started: string[] = [], deliver = new Map<string, () => void>();
+  provideRuntimeProduct({ source, assets: new Map(), cached: false }, owner, {
+    base: 'https://test.example/shardfiles/whole-phase/', offline: false, firstParty: true,
+    fetch: () => Promise.reject(new Error('Use verified source')), hash: wire => Promise.resolve(hashImmutableBytes(wire)),
+    cache: { product: () => Promise.resolve(null), asset: () => Promise.reject(new Error('Use verified source')),
+      putProduct: () => Promise.resolve(), putAsset: () => Promise.resolve(true), verifiedAsset: hash => {
+        const piece = pieces.find(row => row.hash === hash);
+        if (piece === undefined) return Promise.reject(new Error('Unexpected source file'));
+        started.push(hash); return new Promise(resolve => { deliver.set(hash, () => { resolve(Uint8Array.from(piece.bytes)); }); });
+      } },
+  });
+  let completed = false;
+  const pending = geometryModule.readWholeGeometry(owner, source, source.library).then(result => { completed = true; return result; });
+  const finish = (index: number): void => {
+    const piece = pieces[index]; if (piece === undefined) throw new Error('Missing whole phase piece');
+    const resolve = deliver.get(piece.hash); if (resolve === undefined) throw new Error('Read never started'); resolve();
+  };
+  try {
+    await vi.waitFor(() => { expect(started).toEqual(pieces.slice(0, 6).map(row => row.hash)); });
+    finish(5); await vi.waitFor(() => { expect(started).toHaveLength(7); });
+    finish(6); await vi.waitFor(() => { expect(started).toHaveLength(8); });
+    expect(completed).toBe(false); // Decode still waits for phase-0, not the fastest response.
+    for (let i = 0; i < pieces.length; i++) finish(i);
+    const views = await pending;
+    expect([...views.keys()]).toEqual(pieces.map((_row, i) => `phase-${String(i)}`));
+    for (const view of views.values()) {
+      expect(words(view.geometry)).toEqual({ position: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), normal: new Float32Array([0, 0, 2, 0, 0, 2, 0, 0, 2]) });
+      expect(view.matrix.equals(new Matrix4())).toBe(true);
+    }
+  } finally {
+    for (const resolve of deliver.values()) resolve();
+    owner.dispose(); await pending.catch(() => undefined); for (const piece of pieces) piece.close();
+  }
+});

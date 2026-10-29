@@ -389,7 +389,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
               const whole = new RefiningWholeLibrary(owner, product, row, refinementQueue(), coarse.ensure); refining.set(row.id, whole);
               libraries.set(row.id, { geometry: id => whole.geometry(id) }); return;
             }
-            const whole = await readWholeLibrary(owner, product, row, used, () => buildYield(owner), ctx.app.assets);
+            const whole = await readWholeLibrary(owner, product, row, used, () => constructionCheckpoint(owner) ?? Promise.resolve(), ctx.app.assets);
             finish.push(whole.done); libraries.set(row.id, { geometry: whole.geometry });
           } else if (row.kind === 'owned') {
             const models = new Map<string, WorldSceneGeometry>();
@@ -409,7 +409,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
               requireSceneOwner(owner);
               // A completed read/decode can span drawn frames. Its old local
               // clock does not measure this adoption's remaining live budget.
-              if (presenting()) {
+              if (presenting() || typeof document !== 'undefined') {
                 const pause = constructionCheckpoint(owner); if (pause !== undefined) await pause;
               } else if (modelSlice.due()) await modelSlice.yield();
             }

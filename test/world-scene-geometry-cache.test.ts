@@ -10,6 +10,7 @@ import { MemoryAdmission } from '../src/format/memoryAdmission';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { cachedWorldSceneGeometry, readWorldSceneGeometries, readWorldSceneGeometry } from '../src/game/shardfile/worldSceneGeometry';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
+import { PreparationReads } from '../src/game/shardfile/preparationReads';
 
 const originalTier = TIER;
 afterEach(() => { initializeTier(originalTier); vi.restoreAllMocks(); });
@@ -41,7 +42,7 @@ const row = { file: 'fixed.glb' };
 
 function orderedIntake() {
   const f = fixture(), owner = new Scope('ordered-model-window');
-  const rows = Array.from({ length: 6 }, (_, index) => ({ file: `model-${String(index)}.glb` }));
+  const rows = Array.from({ length: 10 }, (_, index) => ({ file: `model-${String(index)}.glb` }));
   const pending = new Map<string, { resolve: () => void; reject: (error: Error) => void }>(), started: string[] = [];
   const product = { ...f.product, file: (name: string): Promise<Uint8Array> => {
     started.push(name);
@@ -52,19 +53,19 @@ function orderedIntake() {
   return { ...f, owner, rows, pending, started, intake, release };
 }
 
-test('the four-model window refills before publication pauses and drains untaken leases on close', async () => {
+test('six transport reads refill independently of four decoded leases and close drains both', async () => {
   const f = orderedIntake(), next = f.intake.next();
   try {
-    expect(f.started).toEqual(f.rows.slice(0, 4).map(source => source.file));
+    expect(f.started).toEqual(f.rows.slice(0, 6).map(source => source.file));
     f.pending.get('model-0.glb')?.resolve();
     const first = await next;
     if (first.done) throw new Error('Missing first prepared model');
-    expect(f.started).toEqual(f.rows.slice(0, 5).map(source => source.file));
+    expect(f.started).toEqual(f.rows.slice(0, 7).map(source => source.file));
     let closed = false;
     const closing = (async () => { await f.intake.return(); closed = true; })();
     await Promise.resolve(); expect(closed).toBe(false);
     f.release(); await closing;
-    expect(f.started).toHaveLength(5);
+    expect(f.started).toHaveLength(7);
     expect(f.assets.retained().map(entry => entry.refs).sort((a, b) => a - b)).toEqual([0, 0, 0, 0, 1]);
     const copy = first.value.copy();
     expect([...copy.getAttribute('position').array]).toEqual([0, 0, 0, 1, 0, 0, 0, 1, 0]);
@@ -92,17 +93,17 @@ test('an ordered model failure drains later reads and preserves the cursor failu
     f.pending.get('model-3.glb')?.reject(new Error('later failure'));
     f.release();
     expect(String(await outcome)).toContain('cursor failure');
-    expect(f.started).toHaveLength(5);
+    expect(f.started).toHaveLength(6);
     expect(f.assets.retained().every(entry => entry.refs === 0)).toBe(true);
   } finally { f.release(); await f.intake.return(); f.owner.dispose(); f.close(); }
 });
 
-test('a retired model window drains its four reads without starting a suffix', async () => {
+test('a retired model window drains its six reads without starting a suffix', async () => {
   const f = orderedIntake(), next = f.intake.next();
   const refused = expect(next).rejects.toThrow('disposed or retiring');
   try {
     f.owner.dispose(); f.release(); await refused;
-    expect(f.started).toHaveLength(4);
+    expect(f.started).toHaveLength(6);
     expect(f.assets.retained()).toEqual([]);
   } finally { f.release(); await f.intake.return(); f.owner.dispose(); f.close(); }
 });
@@ -343,4 +344,57 @@ test('resident revisit keys remain separate from ordinary templates and policy i
     const warm = await readWorldSceneGeometry(resident, f.product, row, f.assets, { revisit: true });
     warm.done(); expect(f.product.file).toHaveBeenCalledTimes(2);
   } finally { held.done(); ordinary.dispose(); resident.dispose(); f.close(); }
+});
+
+
+test('pressure may evict a warm suffix before its decode cursor without stranding its verified reread', async () => {
+  const f = fixture(), owner = new Scope('evicted-warm-suffix');
+  const rows = Array.from({length: 6}, (_, index) => ({file: `pressure-${String(index)}.glb`}));
+  for (const source of rows) (await readWorldSceneGeometry(owner, f.product, source, f.assets)).done();
+  const suffix = f.assets.retained()[5];
+  if (suffix === undefined) throw new Error('Missing warm suffix');
+  const intake = readWorldSceneGeometries(owner, f.product, rows, f.assets), leases = [];
+  try {
+    const first = await intake.next();
+    if (first.done) throw new Error('Missing first model'); leases.push(first.value);
+    expect(f.product.file).toHaveBeenCalledTimes(6);
+    expect(f.assets.evictCached(suffix.key)).toBe(true);
+    for (;;) {
+      const next = await intake.next(); if (next.done) break; leases.push(next.value);
+    }
+    expect(leases).toHaveLength(6); expect(f.product.file).toHaveBeenCalledTimes(7);
+    for (const lease of leases) {
+      const copy = lease.copy();
+      try { expect(copy.getAttribute('position').array).toEqual(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0])); }
+      finally { copy.dispose(); }
+    }
+  } finally { await intake.return(); for (const lease of leases) lease.done(); owner.dispose(); f.close(); }
+});
+
+
+test('closing an evicted warm suffix cancels its queued reread without waiting for another phase', async () => {
+  const f = fixture(), owner = new Scope('queued-warm-suffix');
+  const rows = Array.from({length: 6}, (_, index) => ({file: `queued-${String(index)}.glb`}));
+  for (const source of rows) (await readWorldSceneGeometry(owner, f.product, source, f.assets)).done();
+  const suffix = f.assets.retained()[5]; if (suffix === undefined) throw new Error('Missing warm suffix');
+  const intake = readWorldSceneGeometries(owner, f.product, rows, f.assets), leases = [];
+  const release: (() => void)[] = [];
+  let blocker: PreparationReads<number> | undefined;
+  try {
+    const first = await intake.next(); if (first.done) throw new Error('Missing first model'); leases.push(first.value);
+    expect(f.assets.evictCached(suffix.key)).toBe(true);
+    blocker = new PreparationReads([0, 1, 2, 3, 4, 5], () => new Promise(resolve => { release.push(() => { resolve(new Uint8Array()); }); }), () => true);
+    expect(release).toHaveLength(6);
+    const second = await intake.next(); if (second.done) throw new Error('Missing second model'); leases.push(second.value);
+    let closed = false;
+    const closing = intake.return().then(() => { closed = true; return undefined; });
+    await vi.waitFor(() => { expect(closed).toBe(true); });
+    await closing; // All six other-phase reads remain held throughout this close.
+    expect(f.product.file).toHaveBeenCalledTimes(6);
+    expect(release).toHaveLength(6);
+    for (const lease of leases) { const copy = lease.copy(); expect(copy.getAttribute('position').count).toBe(3); copy.dispose(); }
+  } finally {
+    const closing = blocker?.close(); for (const finish of release) finish(); await closing;
+    await intake.return(); for (const lease of leases) lease.done(); owner.dispose(); f.close();
+  }
 });

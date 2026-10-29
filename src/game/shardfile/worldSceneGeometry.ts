@@ -6,6 +6,7 @@ import { forgetWhenDisposed } from '@wildshard/engine/app/cachedAssets';
 import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { ShardProduct } from './shardProduct';
+import { PreparationReads } from './preparationReads';
 
 type Assets = Pick<App['assets'], 'register' | 'acquireResource' | 'evictCached'>;
 interface GeometryReuse { readonly revisit?: boolean }
@@ -109,12 +110,30 @@ export async function readWorldSceneGeometry(owner: Scope, product: Pick<ShardPr
 export async function* readWorldSceneGeometries(owner: Scope, product: Pick<ShardProduct, 'url' | 'file'>,
   rows: readonly Source[], assets: Assets, reuse: GeometryReuse = {}): AsyncGenerator<WorldSceneGeometry, void> {
   const pending = new Map<number, Promise<WorldSceneGeometry>>();
+  // Warm templates need no transport. One file window spans cold model rows,
+  // including their segments, without increasing concurrent decoded leases.
+  const files = [...new Set(rows.flatMap(row => cachedWorldSceneGeometry(product, row, assets, reuse) ? [] : [row.file].concat(row.segments ?? [])))];
+  const indices = new Map(files.map((file, index) => [file, index]));
+  const reads = new PreparationReads(files, file => product.file(file), () => !owner.disposed && !owner.disposing);
+  const taken = new Map<string, Promise<Uint8Array>>(), refills = new Set<PreparationReads<string>>();
+  const source = { url: product.url, file: (file: string): Promise<Uint8Array> => {
+    const prior = taken.get(file); if (prior !== undefined) return prior;
+    const index = indices.get(file);
+    // An idle template can be pressure-evicted before its later decode cursor
+    // borrows it. Rehydrate through the same bounded verified transport queue.
+    const read = index === undefined ? (async () => {
+      const refill = new PreparationReads([file], name => product.file(name), () => !owner.disposed && !owner.disposing);
+      refills.add(refill);
+      try { return await refill.take(0); } finally { await refill.close(); refills.delete(refill); }
+    })() : reads.take(index);
+    taken.set(file, read); return read;
+  } };
   let next = 0;
   const fill = (): void => {
     requireLive(owner);
     while (pending.size < 4 && next < rows.length) {
       const row = rows[next]; if (row === undefined) throw new Error('Missing world geometry preparation row');
-      const ready = readWorldSceneGeometry(owner, product, row, assets, reuse);
+      const ready = readWorldSceneGeometry(owner, source, row, assets, reuse);
       void ready.catch(() => undefined); pending.set(next++, ready);
     }
   };
@@ -127,8 +146,10 @@ export async function* readWorldSceneGeometries(owner: Scope, product: Pick<Shar
       yield geometry;
     }
   } finally {
+    const closing = Promise.all([reads.close(), ...[...refills].map(refill => refill.close())]);
     const settled = await Promise.allSettled(pending.values());
     for (const result of settled) if (result.status === 'fulfilled') result.value.done();
     pending.clear();
+    await closing; taken.clear();
   }
 }
