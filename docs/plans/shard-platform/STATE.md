@@ -10,10 +10,10 @@ looks, FR6 meadow, preset env parity, 29 Oct What's New; CI 40827254162 + exact 
 **Jake's QA 10-28 PASSED:** NM, loading / M2, tiles / T10, DW cut B (G827 / G831-G833).
 **Marks:** Nine done NR1-3, 5-7, 12-14 (+ 21 roof c6df3155cd); NR4 / NR7 view-F done; open NR8, NR16 (tea-house; graph byte cap 64 -> 96 KB approved). Far Reach FR1-4 done;
 FR5 PICK pending, FR6 done. Goldens 133 / 144 (Nine 21 / 24; NR16 done 38e6343f6e). QF6 / 11 / 19-22 / 24-26 done; D203 / D204 done; QF20 shadow flaky; QF23 / pines -> damage list. 
-**Opus:** o3 PL6 renderer (3.05 -> 2.39 s); o4 D196 parked-draws fatal check; o5 per-shard memory check. D200 pop-in done
+**Opus:** o3 PL6 pixel diff (PL6 at 1.93 / 1.90 s, 4d24318258), B-back tiles; o4 D196 done 9e976fb9db; o5 memory D207 (no cut). D200 pop-in done
 (DW 996def3605, Pine waterfall 92faa4f4f3). D199 / D201 not reproduced on HEAD (779b506fbe).
-**D12 official Sim 13 / 15** (3f8551c4fe): spawn PASS via x1's 8483b2541e; Pine interior drive (p95 42) and Nalati interior travel
-(p95 36) fail on in-play GPU-process link time G815 accepts. Damage: D12, D199, D201, D202, T7.
+**D12 official Sim 14 / 15 on both paths** (ced8848e01; KTX2 = iPhone path): only Pine interior drive fails (p95 38, max 75),
+its long frames in Pine's cell-entry hooks = in-play WebKit link time that G815 accepts. Pine memory fine on KTX2 (D207). Damage: D12, D199, D201, D202, T7.
 **Codex:** PL4 / 11 / 12 / 14 done; PL1 / 3 / 6 / 7 / 13 partial (named remaining costs); LS1-5, LS9 done, LS7 partial; x10 LS6 / LS8,
 x1 ring-parse slicing (D12), x6 D12 measuring, x9 Home construction data cost, x2 PL7 module attribution. Damage list truth-passed.
 **Still open for wildshard-v / Jake:** PICK FR6 rest: FR6 done (04ed616aa6, fp32 hash); ~1/3 of the meadow gap left is the sward atlas's
