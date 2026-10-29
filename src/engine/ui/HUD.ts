@@ -26,7 +26,8 @@ import { ROW, hudSlots } from './hudSlots';
  *     — `bolts: undefined` = the weapon has no ammo (the sword): the BOLTS panel, its meter and the touch-bar strip are hidden
  *   hud.showHitMarker(headshot, killed)  hud.killFeed('Boar · headshot')  hud.toast('Bolt recovered')
  *   hud.damageFlash()  hud.setBoundaryWarning(visible)  hud.menu = gameMenu  hud.setPaused(bool)  hud.onResume = () => …  // the menu's close
- *   hud.onExitToMenu = () => …   // pause → "Exit to main menu": the HUD re-shows the intro itself (no reload); stop/mute the world here
+ *   hud.onExitToMain = () => …   // dispose the page session and return to the main title
+ *   hud.onExitToMenu = () => …   // local intro / practice-to-Explore: stop/mute the retained world here
  *   hud.setAimInfo(crossbow.aimInfo)   // "BOAR · 15 M" under the crosshair
  *   hud.setAnimals([{ x, z }, …])      // world positions of live animals: the compass pins a paw at the nearest one within 120 m
  *
@@ -125,6 +126,8 @@ export class HUD {
   root: HTMLElement;
   onResume?: () => void;
   onExitToMenu?: () => void;
+  /** Leave the page session for its clean main title; practice-to-Explore keeps its existing owner. */
+  onExitToMain?: () => void;
   private opts: HUDOptions;
   private _entered = false;
   get entered(): boolean { return this._entered; }
@@ -651,14 +654,14 @@ export class HUD {
     if (this.entered) this.onArena?.();
   }
 
-  /** Pause → "Exit to main menu": back to the chunk selection without a reload. The world stays loaded;
-   *  `onExitToMenu` is where main.ts stops the loop / mutes audio. The next ENTER WORLD fires `onEnter` again. */
+  /** Pause → main menu hands the session back to its host. A host without that port keeps its local intro. */
   exitToMenu(): void {
     if (!this.entered || this.intro) return;
     this._menu?.close(true);
     this.entered = false;
     if (document.pointerLockElement) document.exitPointerLock();
-    this.onExitToMenu?.(); // main.ts hushes the world's sounds; the title theme plays
+    if (this.onExitToMain !== undefined) { this.onExitToMain(); return; }
+    this.onExitToMenu?.(); // local-intro hosts hush their world
     if (this.onEnter) this.showIntro(this.onEnter);
   }
 

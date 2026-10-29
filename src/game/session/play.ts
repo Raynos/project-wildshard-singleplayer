@@ -1,5 +1,6 @@
 
 import type { GridSession as DeclarationGridSession } from '../grid/session';
+import { exitSessionToTitle } from './exitToTitle';
 import { initialHomeMetadataRequired } from '../grid/homeMetadata';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
 import type { Physics } from '@wildshard/engine/physics/Physics';
@@ -476,8 +477,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   game.onUpdate((dt) => { firstHints.update(dt); }, 'first hints');
 
   // ── menu ↔ world: the world is fully loaded, then sits frozen and silent under the menu (hero art
-  // covers the canvas) until ENTER WORLD; "Exit to main menu" freezes it again — no reload, no
-  // loading screen. `?skipintro=1` (bench / screenshots) and `?tour=1` go straight to the world.
+  // covers the canvas) until ENTER WORLD. Main-menu exit releases this entire page session;
+  // practice and Explore keep their own local return path. `?skipintro=1` (bench / screenshots) and `?tour=1` go straight to the world.
   const tour = world.tour;
   // a GPU-recovery reload (E61) skips the title: straight back into the world at the saved spot, under the pause menu
   const resuming = session.recovery !== undefined || params.has('glreload');
@@ -509,6 +510,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   };
   hud.onArena = () => { void enterArena(); };
   hud.onResume = enter;
+  hud.onExitToMain = () => { void exitSessionToTitle(game); };
   hud.onExitToMenu = () => {
     getArena()?.exit(); playground?.exit(); playground = null; minimap.setPracticeArena(null); menu.setPractice(false); setAimTargets(aimList); fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show');
   };
