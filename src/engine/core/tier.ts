@@ -99,17 +99,12 @@ export const frameProbe = { uncapped: false };
 /**
  * The frame cap in fps, 0 = none (the display's own rate). Only the capture harness overrides auto.
  *
- * E193 (Jake, 2026-09-26: "Lock all shards to 30 fps on mobile"; "a mobile phone game should never attempt 60 fps but
- * stick to a steady 30"): every shard on a mobile device renders at a locked 30. E189 found why: the iPhone 17 Pro's GPU
- * throttles ~2× within a minute or two of sustained load, so a 60 that holds at first sinks to an uneven 20–30 (Apple,
- * WWDC18 612: lock 30 if 60 cannot hold for ten minutes). No menu pick lifts it on mobile; only the probe's uncapped rows
- * and the test harness's `?fps=60` (scripts measuring the uncapped cost) do. On desktop the display's rate applies unless the capture harness explicitly caps it at 30.
- *
- * E290 (Jake, 2026-09-29): the practice arena is the exception, the simplest zone to feel 60 on the device. While it is
- * open (`practiceFps.on`, TrainingArena.enter / exit) mobile is capped at 60, not 30 (a 120 Hz display does not run at
- * 120). iOS Low Power Mode still holds rAF at 30 there.
+ * G876 (Jake, 2026-10-29) supersedes E193's mobile 30 fps cap: every mobile shard now caps at 60, including the practice
+ * arena (a 120 Hz display does not run at 120). iOS Low Power Mode holds rAF at 30 itself. The separate held-build
+ * floor remains 30 fps. The probe's uncapped rows and the capture harness's `?fps=60` still measure the uncapped cost.
+ * Desktop uses the display's rate unless the capture harness explicitly caps it at 30. Stored menu picks do not apply.
  */
-/** the practice arena is open: the one place mobile targets 60 (E290, below) */
+/** The practice arena is open; G876 now gives every mobile shard the same 60 fps cap. */
 export const practiceFps = { on: false };
 // Capture protocol only: retired stored Frame cap picks never affect play.
 let fpsSearch: string | undefined, harnessFps: string | null = null;
@@ -118,6 +113,6 @@ export function frameCapFps(): number {
   if (frameProbe.uncapped) return 0;
   const search = typeof location === 'undefined' ? '' : location.search;
   if (search !== fpsSearch) { fpsSearch = search; harnessFps = new URLSearchParams(search).get('fps'); }
-  if (MOBILE_DEVICE) return harnessFps === '60' ? 0 : practiceFps.on ? 60 : 30;
+  if (MOBILE_DEVICE) return harnessFps === '60' ? 0 : 60;
   return harnessFps === '30' ? 30 : 0;
 }

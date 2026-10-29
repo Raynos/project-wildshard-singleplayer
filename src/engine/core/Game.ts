@@ -64,7 +64,7 @@ const FRAME_CAP_SLACK_MS = 4;
  * frame drawn late (op-hitch48: a task held the main thread past its vsync) is drawn in its own slot: the anchor stays at
  * `lastDrawn + 1/cap`, so the next frame is due on the old cadence instead of a whole vsync later too: one late frame,
  * never a late frame and a slow one. The anchor stays within 1/cap - slack - one 60 Hz vsync (- 0.5 ms) of `t`, 12 ms
- * at the phone's 30 fps cap and nothing at 60, so the next frame can never land on the very next 60 Hz vsync (no
+ * at a 30 fps capture cap and nothing at 60, so the next frame can never land on the very next 60 Hz vsync (no
  * 30 <-> 60 judder), and a long stall simply resyncs.
  */
 export function frameCapAnchor(lastDrawn: number, t: number, cap: number): number | null {
@@ -1248,12 +1248,11 @@ export class Game {
     // One chain only: every animation-frame callback of a frame gets the same timestamp, so a second chain (kickLoop
     // restarting a loop that was merely paused) finds its frame taken and ends there.
     let lastNow = -1, lastRun = diagnosticNow();
-    // The frame cap (tier.ts frameCapFps; E193: every shard at a locked 30 on mobile). The animation frame
-    // still comes every vsync; a frame is drawn only once 1/cap has passed since the last one drawn, less a slack under
-    // one vsync of the fastest display (4 ms < 8.3 ms at 120 Hz) to absorb timestamp jitter. So it draws every 2nd vsync
-    // at 60 Hz, every 4th at 120 Hz, every one at 30 (iOS Low Power), and never two vsyncs running: no 30 ↔ 60 judder.
-    // A skipped vsync does nothing at all — not even the clock — so the drawn frame's dt is the whole 33 ms, the fixed
-    // steps catch up (2 × 1/60), and input read in that frame has everything since the last one.
+    // The frame cap (tier.ts frameCapFps; G876: 60 on mobile). The animation frame still comes every vsync; draw only
+    // once 1/cap has passed since the last draw, less a slack under one vsync of the fastest display (4 ms < 8.3 ms
+    // at 120 Hz) to absorb timestamp jitter. Mobile draws every vsync at 60 Hz, every second at 120 Hz, and every
+    // available callback at 30 Hz (iOS Low Power). A skipped vsync does nothing, including the clock: dt and fixed
+    // steps account for the whole interval, and input includes everything since the previous draw.
     let lastDrawn = -Infinity;
     const loop = (now?: number) => {
       if (now !== undefined) { if (now === lastNow) return; lastNow = now; }
