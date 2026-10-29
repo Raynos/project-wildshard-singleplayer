@@ -99,12 +99,13 @@ export const frameProbe = { uncapped: false };
 /**
  * The frame cap in fps, 0 = none (the display's own rate). Only the capture harness overrides auto.
  *
- * G876 (Jake, 2026-10-29) supersedes E193's mobile 30 fps cap: every mobile shard now caps at 60, including the practice
- * arena (a 120 Hz display does not run at 120). iOS Low Power Mode holds rAF at 30 itself. The separate held-build
- * floor remains 30 fps. The probe's uncapped rows and the capture harness's `?fps=60` still measure the uncapped cost.
+ * G896 (Jake, 2026-10-29, battery audit: 60 fps doubled the work and a hot phone throttled to 17 fps; "30 always on the
+ * phone") supersedes G876's 60: every mobile shard caps at 30 in every state, including the practice arena (E193's cap,
+ * back). The held-build floor is 30 fps too. The probe's uncapped rows and the capture harness's `?fps=60` still measure
+ * the uncapped cost.
  * Desktop uses the display's rate unless the capture harness explicitly caps it at 30. Stored menu picks do not apply.
  */
-/** The practice arena is open; G876 now gives every mobile shard the same 60 fps cap. */
+/** The practice arena is open; G896 gives every mobile shard the same 30 fps cap. */
 export const practiceFps = { on: false };
 // Capture protocol only: retired stored Frame cap picks never affect play.
 let fpsSearch: string | undefined, harnessFps: string | null = null;
@@ -113,6 +114,6 @@ export function frameCapFps(): number {
   if (frameProbe.uncapped) return 0;
   const search = typeof location === 'undefined' ? '' : location.search;
   if (search !== fpsSearch) { fpsSearch = search; harnessFps = new URLSearchParams(search).get('fps'); }
-  if (MOBILE_DEVICE) return harnessFps === '60' ? 0 : 60;
+  if (MOBILE_DEVICE) return harnessFps === '60' ? 0 : 30;
   return harnessFps === '30' ? 30 : 0;
 }
