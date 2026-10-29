@@ -272,14 +272,15 @@ function windows(): GraphIr {
   return g.output(colour, emit, mul(lines, mix(0.5, 1, detail)));
 }
 
-/** `glint: false` builds the kit graphs as before NR13's tread glints (the declaration oracle's predecessor). */
-export function architectureGraphs(options: { readonly glint?: boolean } = {}): Readonly<Record<string, GraphIr>> {
-  const glint = options.glint !== false;
-  return { 'nine-architecture': architecture(false, glint), 'nine-architecture-cut': architecture(true, glint), 'nine-facade': facade(false), 'nine-facade-small': facade(true), 'nine-windows': windows(), 'nine-coarse-facade': coarseFacade() };
+/** `nr13: false` builds the kit graphs as before NR13 (no tread glints, every face painted at full strength): the
+ *  declaration oracle's predecessor. */
+export function architectureGraphs(options: { readonly nr13?: boolean } = {}): Readonly<Record<string, GraphIr>> {
+  const nr13 = options.nr13 !== false;
+  return { 'nine-architecture': architecture(false, nr13), 'nine-architecture-cut': architecture(true, nr13), 'nine-facade': facade(false), 'nine-facade-small': facade(true), 'nine-windows': windows(), 'nine-coarse-facade': coarseFacade() };
 }
 
 /** The world kit retains its encoded kinds, explicit surfaces and edge masks. */
-function architecture(cut: boolean, glints: boolean): GraphIr {
+function architecture(cut: boolean, nr13: boolean): GraphIr {
   const g = new Surface(), sw = g.sw.bind(g), mul = g.mul.bind(g), add = g.add.bind(g), sub = g.sub.bind(g), div = g.div.bind(g), max = g.max.bind(g), min = g.min.bind(g), mix = g.mix.bind(g), choose = g.choose.bind(g);
   const face = g.attr('aFace', 'vec4'), pat = g.attr('aPat', 'vec4', true), misc = g.attr('aMisc', 'vec4', true), off = g.attr('aOff', 'vec2'), spill = g.attr('aSpill', 'vec3');
   const kind = g.floor(add(sw(pat, 'x'), 0.5)), flags = g.floor(add(sw(misc, 'w'), 0.5)), surf = g.floor(div(flags, 4096));
@@ -325,7 +326,7 @@ function architecture(cut: boolean, glints: boolean): GraphIr {
   // reflection; far off they average into one bright line. Looking up a flight a riser's top edge (a low, long wet face) is
   // the nosing seen from below and takes the same glints. The shared `uGlint` row's constants are the graph's own param
   // (no frame channel), and each cell keeps one phase of LEGACY's twinkle: the kit graph reads no clock
-  if (glints) {
+  if (nr13) {
     const glint = g.p('treadGlint', 'vec4', SHARED.uGlint.v4), ny = sw(g.normal, 'y'), lo = min(w, h);
     const tread = mul(g.step(0.9, ny), sub(1, g.step(0.6, lo))), riser = mul(mul(sub(1, g.step(0.3, g.abs(ny))), sub(1, g.step(0.5, h))), g.step(mul(h, 2), w));
     const across = mul(tread, sub(1, g.step(h, w))), onRiser = mul(riser, sub(1, tread));
@@ -358,8 +359,19 @@ function architecture(cut: boolean, glints: boolean): GraphIr {
   const surfaceLayer = choose(g.eq(surf, 4), 6, choose(g.eq(surf, 5), 7, choose(g.op('or', [g.eq(surf, 3), g.eq(surf, 6)]), 4, 2)));
   const own = (k: number, value: Ref, other: Ref): string => choose(g.eq(kind, k), value, other);
   const paintAt = own(3, p, q), paintLayer = own(1, 4, own(2, 5, own(3, 0, own(5, panelLayer, surfaceLayer))));
-  const paintScale = own(1, [6, 6], own(2, pitch, own(3, [2.4, 2.4], own(5, [1.5, 1.5], g.vec(choose(g.eq(surfaceLayer, 4), 6, 1.7), choose(g.eq(surfaceLayer, 4), 6, 1.7))))));
-  const paintStrength = own(1, mul(mul(pk, sw(g.u('uPaintK'), 'z')), sw(g.u('uPaintStone'), 'z')), own(2, mul(pk, sw(g.u('uPaintK'), 'w')), own(3, mul(mul(pk, sw(g.u('uPaintK'), 'y')), g.u('uPaintFlag')), own(5, mul(pk, sw(g.u('uPaintK'), 'w')), pk))));
+  // NR13: an explicit surface paints as LEGACY's (style.ts): a wall (surf 2, or bare stone) layer 2 at 1.7 m and
+  // pk·uPaintK.z·uPaintStone.x, rough stone (3, 6) layer 4 at 6 m and ·uPaintStone.z, faces (4, 5) layers 6 / 7 at 1.3 / 1.5 m
+  // and pk·uPaintK.w; a face with no surface takes no paint (its predecessor painted it at full pk: blotched walls)
+  const wallScale = (): string => nr13 ? choose(g.eq(surfaceLayer, 4), 6, choose(g.eq(surfaceLayer, 6), 1.3, choose(g.eq(surfaceLayer, 7), 1.5, 1.7))) : choose(g.eq(surfaceLayer, 4), 6, 1.7);
+  const scaleNow = nr13 ? wallScale() : null;
+  const paintScale = own(1, [6, 6], own(2, pitch, own(3, [2.4, 2.4], own(5, [1.5, 1.5], scaleNow === null ? g.vec(wallScale(), wallScale()) : g.vec(scaleNow, scaleNow)))));
+  const surfaceStrength = ((): Ref => {
+    if (!nr13) return pk;
+    const bare = choose(g.op('and', [g.lt(surf, 0.5), g.eq(kind, 9)]), 2, surf), stoneK = mul(pk, sw(g.u('uPaintK'), 'z'));
+    return choose(g.eq(bare, 2), mul(stoneK, sw(g.u('uPaintStone'), 'x')), choose(g.op('or', [g.eq(bare, 3), g.eq(bare, 6)]), mul(stoneK, sw(g.u('uPaintStone'), 'z')),
+      choose(g.op('or', [g.eq(bare, 4), g.eq(bare, 5)]), mul(pk, sw(g.u('uPaintK'), 'w')), 0)));
+  })();
+  const paintStrength = own(1, mul(mul(pk, sw(g.u('uPaintK'), 'z')), sw(g.u('uPaintStone'), 'z')), own(2, mul(pk, sw(g.u('uPaintK'), 'w')), own(3, mul(mul(pk, sw(g.u('uPaintK'), 'y')), g.u('uPaintFlag')), own(5, mul(pk, sw(g.u('uPaintK'), 'w')), surfaceStrength))));
   const painted = choose(g.gt(paintStrength, 0), g.paint(paintAt, paintLayer, paintScale, paintStrength, own(2, 3, own(3, 2.5, 2))), [1, 1, 1]);
   colour = add(mul(colour, painted), choose(g.eq(kind, 1), mul(windowC, win), [0, 0, 0]));
   const shaded = g.shade(colour), wetShade = mul(shaded, mul(sub(1, mul(wet, mix(0.6, 0.9, g.step(0.6, sw(g.normal, 'y'))))), mix([1, 1, 1], [0.88, 0.95, 1.1], wet)));

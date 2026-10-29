@@ -56,10 +56,10 @@ function previousWindowsCorner(product: Shardfile): Shardfile {
   return { ...product, look: { ...product.look, materials: { ...product.look.materials, 'nine-windows': cornerBefore(windows) } } };
 }
 
-/** NR13: the kit graphs (`nine-architecture`, `-cut`) carry the wet treads' glints; their predecessors are the same graphs
- *  built without them (`architectureGraphs({ glint: false })`: the same nodes in the same order, less the glint block). */
+/** NR13: the kit graphs (`nine-architecture`, `-cut`) carry the wet treads' glints and LEGACY's surface paint strengths;
+ *  their predecessors are the same graphs built as before (`architectureGraphs({ nr13: false })`). */
 function previousKitGlints(product: Shardfile): Shardfile {
-  const before = architectureGraphs({ glint: false }), materials = { ...product.look.materials };
+  const before = architectureGraphs({ nr13: false }), materials = { ...product.look.materials };
   for (const id of ['nine-architecture', 'nine-architecture-cut']) {
     const material = materials[id], graph = before[id];
     if (material === undefined || graph === undefined || !('family' in material) || material.family !== 'graph' || !JSON.stringify(material).includes('"treadGlint"')) throw new Error(`Missing Nine kit glints: ${id}`);
