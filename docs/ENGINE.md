@@ -262,7 +262,7 @@ The composition root (`src/*.ts`, outside the layers) and the tests import by re
 | **Layers** | `src/engine/` → `src/game/` → `src/sdk/` → `src/commons/` → `src/shards/<slug>/`. Imports point down the arrow only. A shard never imports another shard |
 | **Public modules only** | A shard imports the modules `@wildshard/engine`, `@wildshard/game` and `@wildshard/sdk` list in their `exports`, by the module that defines each name (`@wildshard/engine/physics/query`), nothing else. Inside your own folder, use `./` |
 | **Composition root** | `src/entry.ts` and `src/main.ts` sit outside the layers. You never edit them for a shard |
-| **Node-safe manifest** | `manifest.ts` imports only data and types: node-safe engine modules (`@wildshard/engine/world/terrainField`, `@wildshard/engine/core/config`, `@wildshard/engine/core/noise` …), `@wildshard/game` types and its own data files; `lint/manifest-closure-budget.json` caps the files it pulls. Code arrives through lazy thunks (`load`, `render`, `cues`, `roster`, `preload`). `test/manifests-node-safe.test.ts` imports every manifest in bare node |
+| **Node-safe manifest** | `manifest.ts` imports only data and types: node-safe engine modules (`@wildshard/engine/world/terrainField`, `@wildshard/engine/core/config`, `@wildshard/engine/core/noise` …), `@wildshard/game` types and its own data files; `lint/manifest-closure-budget.json` caps the files it pulls. Code arrives through lazy thunks (`load`, `render`, `cues`, `roster`, `preload`) |
 | **Extractable engine** | `src/engine/**` holds no Wildshard word: no slug, no "shard", no Bag, coin, loot, compendium or feat. The engine says `level` |
 | **Behaviour vs tuning** | Behaviour is a class that extends an engine or game class. Tuning is a typed data row |
 | **Names** | Events, asks, tags, cues, actions and effect ids are dot-case strings: `'damage.dealt'`, `'creature.greyBlob'`, `'cue.sword.hit'`, `'effect.poison'`. Prefix your own with your shard's short name (`template.*`) |
@@ -338,8 +338,7 @@ const random = ctx.app.rng.stream('cosmetic');   // prop scatter: may stay unsee
 
 
 Build-only `Rng`/`RngState` (`@wildshard/sdk/random`) preserve engine
-Mulberry32 draws, forks and continuations; `test/sdk-author-random.test.ts`
-fences parity. Live gameplay uses `app.rng`. `core/rng.RngPort` is the
+Mulberry32 draws, forks and continuations. Live gameplay uses `app.rng`. `core/rng.RngPort` is the
 structural draw/fork/snapshot/restore contract for geometry builders and
 bake recorders; implementations own their storage.
 
@@ -725,7 +724,7 @@ export const TEMPLATE: ShardManifest = {
   uses: ['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice', 'coins', 'loot', 'compendium', 'feats', 'bag.pack'],
   loadout: { weapons: ['weapon.sword-iron', 'weapon.template-whip'], tools: ['tool.template-lantern', 'tool.hoverboard'], start: [/* … */], held: 'weapon.template-whip' },
   load: () => import('./plugin'),
-  // … the rest is in src/shards/_template/manifest.ts
+  // … the rest is in src/shards/_template/manifest.json
 };
 export default TEMPLATE;
 ```
@@ -805,8 +804,8 @@ if (rt) rt.buildEquipment = (targets, nolock, viewmodel) => {
 };
 ```
 
-**Discovery.** `scripts/gen-shards.mjs` reads `src/shards/*/manifest.ts` and writes `src/game/shard/shards.generated.ts`
-(git-ignored; `pnpm gen` writes it before test, typecheck and lint). There is no hand-kept list.
+**Discovery.** `scripts/gen-shards.mjs` reads authored manifests and writes `src/shards.generated.ts`
+through `pnpm gen:source`. Product-backed discovery is refreshed by `pnpm gen`. There is no hand-kept list.
 
 **Load order.** The engine boots → `manifest.load()` fetches the plugin chunk → `level.data` → `plugin.world` →
 `plugin.kit` and the loadout → `plugin.play` → `finish` → `app.setState('play')`.
@@ -1921,7 +1920,7 @@ export const BUDGETS: LevelSpec['budgets'] = { phone: tier(30), desktop: tier(60
 The template's ramp with stair treads:
 
 ```ts
-ctx.piece({ id: 'template.ramp', name: STRINGS.ramp, category: 'buildings', file: 'src/shards/_template/world/build.ts', object: ramp,
+ctx.piece({ id: 'template.ramp', name: STRINGS.ramp, category: 'buildings', file: 'src/shards/_template/generators/output.ts', object: ramp,
   colliders: [{ kind: 'box', x: 12, y: from[1] + 0.9, z: -11, hx: 1.5, hy: 0.12, hz: Math.sqrt(40) / 2, rot, surface: 'wood' },
     { kind: 'treads', from: { x: 8, y: from[1], z: -8 }, to: { x: 8, y: from[1] + 2, z: -14 }, width: 3, count: 10, surface: 'wood' }], surface: 'wood' });
 ```
@@ -2588,7 +2587,7 @@ once with that cause. A shard may call it for an authored pit instead of supplyi
 | `StrikeRunner`, `StrikeSpec`, `StrikeContext`, `StrikeActor`, `StrikePhase`, `UtilityScore` | strikes as data: `pick(specs, ctx)`, `start(spec, actor, target)`, `update(dt, ctx)` |
 | `canReach`, `ReachActor` | occlusion only: a WORLD ray from target feet + 1.2 m to the creature aim point; no navmesh test |
 | `Hfsm`, `StateDef`, `StateChange` | the hierarchical state machine under the brains |
-| `GroupBrain`, `GroupMember` | herds (Pine Hollow's night spawns moved into its folder: src/shards/pine-hollow/quest/nightBrain.ts, E405) |
+| `GroupBrain`, `GroupMember` | herds |
 | `WeightedTable`, `WeightedRow`, `TableDrop`, `TableSpec` | spawn and loot tables (`mode: 'weighted' \| 'each'`) |
 | `inspectBrain`, `pinBrain`, `BrainInspection`, `installAiDebug`, `AiDebugHost`, `AiDebugView` | the AI debug overlay |
 
@@ -3388,16 +3387,14 @@ initialization and any later identity addition require exact coordinator approva
 
 | Check | When | What it checks |
 |---|---|---|
-| `scripts/precommit-guards.mjs` (`.githooks/pre-commit`) | every `git commit` | the commit's own files: oxlint, the custom rules against the ratchet, the shard layout when `src/shards/**` is touched, `gen-shards --check` when a manifest is touched |
+| `scripts/precommit-inputs.mjs` (`.githooks/pre-commit`) | every `git commit` | the commit's own files: oxlint, the custom rules against the ratchet, the shard layout when `src/shards/**` is touched, `gen-shards --check` when a manifest is touched |
 | `tsc -b tsconfig.layers.json` (AG4, TypeScript T2) | `pnpm typecheck`, `pnpm build`, CI Typecheck | Source is checked once across format → engine → game → sdk → commons → shards and the app composition root (`tsconfig.app.json`), emitting declarations to gitignored `.tsc-layers/`. Each workspace solution also builds its colocated `*.test.ts` project against production declarations, with Node types isolated from the browser source project (T3). Root regression/scenario tests consume the same declarations, including ambient/typed-JSON contracts; all six tool/site checks remain. Upward imports still fail with TS6307, including app imports of test fixtures. The shard list remains the composition root's `src/shards.generated.ts`; the game receives only slug data. |
 | `scripts/gen-api.mjs` (AG21) | `pnpm test` | the public surface, generated: every `@wildshard/engine` / `@wildshard/game` / `@wildshard/sdk` / `@wildshard/commons` export and `ShardContext` member with its kind and first doc line in `lint/api-surface.json`, rendered to `docs/api/` at build time (`pnpm gen`; gitignored, SF74 W13). `--check` fails when more lack a doc line than `lint/api-undocumented.json` allows (647, may only fall) |
 | `scripts/check-graph.mjs` (AG7) | pre-commit (`--source-only --paths`), `pnpm test` (CI, push gate) | staged increases warn for exact coordinator approval in central regeneration; committed counts are checked from clean input. Shard reach and two-way pairs stay fatal; only the generated registry imports shard manifests, and a plugin loads only by `import()` from its own manifest |
-| `scripts/gen-shards.mjs --check` (AG10) | push gate, `pnpm test` (`test/gen-shards.test.ts`) | the manifest contract: `load` is `() => import('./plugin')` and nothing imports `./plugin` statically; the manifest's static closure stays within `lint/manifest-closure-budget.json` (may only fall; `default` for a new shard); every `ShardManifest` field is read by the engine, the game or the tooling |
+| `scripts/gen-shards.mjs --check` (AG10) | source-table check and push gate | the manifest contract: `load` is `() => import('./plugin')` and nothing imports `./plugin` statically; the manifest's static closure stays within `lint/manifest-closure-budget.json` (may only fall; `default` for a new shard); every `ShardManifest` field is read by the engine, the game or the tooling |
 | `scripts/check-shards.mjs` (AG9) | pre-commit, `pnpm test` via `check-paths` | the folder layout in `lint/shard-layout.json`: required files, canonical folders, slug = folder name, `manifest.slug` = folder |
 | `scripts/gen-shards.mjs --check` | gate | the generated registry and the shard word list are current |
 | `scripts/check-paths.mjs` | `pnpm test` | no stale tool paths or empty globs |
-| `test/manifests-node-safe.test.ts`, the shard contract tests | `pnpm test` | manifests import in bare node; a shard boots in the fake `Game` |
-| `test/engine-docs.test.ts` | `pnpm test` | this file lists every export; SHARDS.md names the layout; every shard has a README |
 | the gate (`.github/workflows/gpu-gate.yml`) | every push | one `macos-15` job per shard, from the registry: boot, walk, combat, the leak test, budgets |
 
 ## 25. Author SDK
@@ -3710,7 +3707,7 @@ drain, the threshold, the seal), the bodies (spawn, retire, bind the species bra
 the hit resolvers (`cut`, `hazard` by strike name), the rng and the feed. It returns the engine's `BossScript`, the body's
 `brain` (think / act / damageMul the species forwards), the bodies and `snapshot()`. Nalati's Golden King is the first
 (`combat/goldenKingRow.ts`, views `combat/goldenKingViews.ts`), replayed tick for tick against the shipped fight
-(`test/fixtures/species-oracle/goldenKing.ts`) by `test/shards/nalati-grasslands/golden-king-phased.test.ts`.
+(`test/fixtures/species-oracle/goldenKing.ts`).
 
 The same installer accepts a `RoamingBossRow` (`kind: 'roaming'`) for a pursuing boss: named mode policies,
 phase HP/reset checkpoints, authored strike clips, expanding rings, falling/burning hazards, lane chains and roaming
@@ -4227,7 +4224,7 @@ expanded the same way by `scripts/gen-starter-weapons.mjs`; the starter profile 
 needs two real shard users of the pack itself; these shards read the game tables, not the pack).
 
 `@wildshard/game/plugin/context` defines `ShardContext` and `shardContext`;
-`@wildshard/game/plugin/context` defines the staged `ShardPlugin` base class. Its `standaloneHybridEntry(Native, admit, shardfile, name)` defines the shared standalone lifecycle used by Nine and Sky: choose one composite in the world stage, await admission, then forward kit/play to that same owner. Shards retain their own admitted source, bindings, native constructor and entry choice; optional constructor ports keep existing test/host injection. Calling the factory or importing it installs no service.
+`@wildshard/game/plugin/context` defines the staged `ShardPlugin` base class. Its `standaloneHybridEntry(Native, admit, shardfile, name)` defines the shared standalone lifecycle used by Nine and Sky: choose one composite in the world stage, await admission, then forward kit/play to that same owner. Shards retain their own admitted source, bindings, native constructor and entry choice; optional constructor ports keep existing test-host injection. Calling the factory or importing it installs no service.
 Internal game consumers import these defining modules relatively. The frozen
 `./shard/context` and `./shard/plugin` export keys point to those distinct modules,
 preserving the exact constructor identity without collapsing distinct frozen imports. They retire with the old consumers; no duplicate class or service
@@ -4470,20 +4467,8 @@ shader code (G306).
     `param()` with no `bind`: the trusted runtime moves it with
     `CompiledGraph.setParam` each frame.
 
-  `test/sdk-graph-vocabulary.test.ts` proves these on real Nine programs:
-  - the portal disc, node for node against its hand transcription of `FS_DISC`;
-  - the disc, the jian heat halo (`aSide` through a varying) and the
-    `bayer4` dither discard, evaluated on the CPU against line-by-line
-    transcriptions of the shipped GLSL;
-  - the GLSL that three's node back-end emits for each.
-
   Nine is not switched over: a graph look compiles only while the
   `graphMaterials` row is on (E435).
-
-Ink & Cel Valley and Pastel Plain author their looks this way
-(`generators/materials.ts`): `test/sdk-materials-parity.test.ts` holds the
-ground presets identical and the TSL rocks equal, node for node, to the shipped
-`data/rock.graph.json` graphs.
 
 `@wildshard/format/lights` defines light rows: `PointLightRowSchema`,
 `SpotLightRowSchema`, `LightRowsSchema` (at most `LIGHT_ROWS_MAX` = 64, unique
@@ -4607,7 +4592,7 @@ DS1.1: the pure row contracts a shard's `data/` declares for looks and maps are 
 
 DS1.1: item/loadout declarations, target binding references and quest/dialogue graphs are defined in `@wildshard/format`. Game keeps item construction and collider activation unchanged. The frozen legacy quest type path infers its type from the single defining format schema.
 
-DS1.1: numeric world rows, inert sketches, mover/entry declarations, native-ground references, HUD rows and client presentation bindings live in `@wildshard/format`. Engine runtime bounds remain independent; `test/format-wire-limits.test.ts` requires exact wire/runtime agreement. Native solver, terrain/GLB byte validation, draw and input ownership remain game/engine functions. Frozen legacy mover handles retain the original game path.
+DS1.1: numeric world rows, inert sketches, mover/entry declarations, native-ground references, HUD rows and client presentation bindings live in `@wildshard/format`. Engine runtime bounds remain independent. Native solver, terrain/GLB byte validation, draw and input ownership remain game/engine functions. Frozen legacy mover handles retain the original game path.
 
 DS1.1: local checkpoint, lift rider, runtime measurements/declarations, skin rows and script-species/elite/weapon-hook declarations live in `@wildshard/format`. Native runtime admission, allocations, script hosts and playback remain in game. The wire calibration and weapon phase table are checked against the native owners; the skin clip narrowing is identity-only and grants no bridge to an unfamiliar author transform. Material and post graph contracts remain in game pending DS1.4.
 
@@ -4705,8 +4690,6 @@ Current product/material-slot admission requires KTX2 textures; external WebP mo
 textures still need an explicit contract before these figures can enter product admission.
 The source marks Float32 skin weights normalized; clearing that no-op flag yields
 admitted geometry without changing a weight byte or relaxing the admission tolerance.
-`test/rig-normalization.test.ts` compares every decoded position, normal, UV, skin and
-index channel against the original retained figures, including deterministic output.
 `scripts/proof-rig-normalization.mjs` compares native TrainingDummyAssets/DummyStudio
 pixels on the two real ordinary-arena users and emits labelled portrait O-check stills.
 
@@ -5130,7 +5113,7 @@ G320 pure contract boundary: `@wildshard/format` is the bottom layer and imports
 
 G320: `@wildshard/format/materialFamilies` owns the verbatim pure family parameter schemas and their parsers, defaults, texture references and preset refusal checks. Renderers read those contracts directly. The old engine renderer-schema simulation exception is retired; format closures remain free of Three.js and DOM.
 
-G320: `@wildshard/format/contentBounds` defines the immutable cell dimensions, entry widths and content caps. Engine `core/config` retains its public bindings to those same values and the same `CONTENT_CAPS` object, so existing runtime imports remain compatible. Authoring and validation import format directly; `test/format-content-bounds.test.ts` checks identity for all nine bounds.
+G320: `@wildshard/format/contentBounds` defines the immutable cell dimensions, entry widths and content caps. Engine `core/config` retains its public bindings to those same values and the same `CONTENT_CAPS` object, so existing runtime imports remain compatible. Authoring and validation import format directly.
 
 G320: the pure AAC index, WMC1 collision and terrain-tile byte readers are defined in `@wildshard/format/{aacIndex,meshCollisionBytes,terrainTileBytes}`. Engine installation stays separate. Frozen runtime terrain imports keep `engine/world/terrainTileData`, whose public functions are the same format function objects, with no duplicate codec or legacy source edit.
 
@@ -5397,8 +5380,6 @@ its bilinear law, normal epsilon and height datum. The existing render
 tiles and 257-sample collider are unchanged; the query file adds no draws
 or colliders. Without this section, triangular queries remain unchanged.
 Required native ground applies its manifest datum once to the raw samples.
-The executed admission and exact-query example is
-`test/native-terrain-authoring.test.ts`.
 
 `readWholeGeometry` returns a `release()` handle on each source draw. After
 copying or adopting it into an existing render owner, the caller forgets
@@ -5528,7 +5509,7 @@ Optional map bytes, decode and retained pixels all use non-evicting claims.
 Reference, hash, offline and supplied-map release guards stay unchanged.
 
 Settled tiles keep source, decoded views and one verified reader, not Maps.
-Late scripts/panels borrow inputs; materials keep charged JSON/commons.
+Late scripts and panels borrow inputs; materials keep charged JSON/commons.
 `LiveGridPorts.admit(cell, required)` uses optional metadata for prefetch,
 normal admission for entry. Deferrals await cost changes; real failures
 stay closed. `metadata` lends source/JSON without binary refill.
@@ -7940,13 +7921,6 @@ contact, action and reload clocks remain with their existing owners.
 
 ### Bodyless ambient policy
 
-`src/shards/pine-hollow/runtime/life/bodylessForager.ts` owns Pine's
-renderer-free grazing, alert and escape policy over caller-owned state,
-RNG, scheduled deltas and ground queries. It borrows motion channels;
-visibility, reseating and population lifetime stay with the caller. It is
-Pine client content. A future Nalati adoption must meet the five-test host
-bar with real users rather than importing this shard's code.
-
 ### Native creature recipe intake
 
 `game/shardfile/homeKeeper.createNativeCreatureRoster(host, rows)` is the
@@ -8711,7 +8685,7 @@ allocates nothing and owns no acceptance predicate, clock, figure or save.
 
 Driftwood's Trader and Castaway lend their original range/talking/tidy
 predicates and their placed facing. The G441 W3 user is Nalati
-`src/shards/nalati-grasslands/models/npc/figureMotion.ts#stepNpcFigure`:
+`src/game/systems/npc/figureMotion.ts#stepNpcFigure`:
 its talking/near/idle target and 5 / 2.5 response use the uncapped policy
 without wrapping the accumulated output yaw. Orbit, head and arm pose
 remain native owners.
