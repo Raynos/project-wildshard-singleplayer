@@ -26,7 +26,6 @@ import { waitForLoadingStyles } from '@wildshard/engine/boot/shell';
 import { inspectPreviousBoot, previousBootLine, previousBootLevel } from '@wildshard/engine/boot/bootTrace';
 import { Scope } from '@wildshard/engine/app/scope';
 import { bootRoute } from './bootRoute';
-import { startSpawnDownload } from '@wildshard/game/boot/spawnDownload';
 import { lastEnd } from '@wildshard/engine/boot/lastEnd';
 import { consumeCrashResume, type CrashResume } from '@wildshard/game/session/crashResume';
 
@@ -152,6 +151,8 @@ async function startSelected(): Promise<void> {
     ? 'grid' : entrySelection.shardEntry(game.shard);
   // MF4: one spawn manifest per shard / tier / flow (grid: per menu mode) is the whole download; the bar reads only it and
   // admission waits for it (a tap on the title started the same job, so its files may already be in the worker cache)
+  // a world entry's own import: the spawn manifest's reader stays out of the title's chunk (check-chunks)
+  const { startSpawnDownload } = await import('@wildshard/game/boot/spawnDownload');
   const spawnMode = gridMode(DEVSERVER), spawnJob = startSpawnDownload(game.shard.slug, earlyPath === 'grid' ? 'grid' : 'client', TIER,
     `${Number(spawnMode.developer)}${Number(spawnMode.devserver)}${Number(spawnMode.nineDragon)}`);
   if (spawnJob !== null) void loading.setDownloadSource(spawnJob);
