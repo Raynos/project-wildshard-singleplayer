@@ -85,6 +85,7 @@ test('optional fonts and icons wait for control warming, then retain offline cov
   const paths = (): string[] => f.fetch.mock.calls.map(([input]) => new URL(typeof input === 'string' ? input : input.url).pathname);
   await f.dispatch('install');
   expect(paths()).toEqual(['/index.html', '/manifest.webmanifest', entry, dependency, css]);
+  expect(f.fetch.mock.calls.every(([, init]) => init?.priority === undefined)).toBe(true);
   // A font actually used before control still reads on demand and joins the
   // same static cache. Later warming must not read it a second time.
   await f.dispatch('fetch', { request: new Request(new URL(fonts[0], base)) });
@@ -158,6 +159,7 @@ test('one selected code pack publishes exact original URLs and supports offline 
       { type: 'CODE_PACK_PROGRESS', url: row[0], loaded: row[1], total: row[1] },
       { type: 'CODE_PACK_DONE', status: 'stored' }]);
     expect(f.fetch.mock.calls.map(([url]) => url)).toEqual([new URL(row[0], base).href]);
+    expect(f.fetch.mock.calls[0]?.[1]?.priority).toBe('high');
     const cache = await f.open('ws-immutable');
     expect(await (await cache.match(new URL(lazy, base).href))?.text()).toBe('export const selected = 42;');
     expect(await cache.match(new URL(later, base).href)).toBeUndefined();
