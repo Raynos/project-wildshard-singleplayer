@@ -8,8 +8,10 @@
  *
  * The bound counts presented time only: each rAF gap adds at most `GAP_CAP_MS`, so a hidden page (no rAF) or an app
  * switch never expires it, and the wait resumes when the page draws again. Past either limit the warm-up rejects with
- * an `EntryWarmupStallError` naming the stage it waited in; the grid records that as the cell's admission issue and
- * the next crossing retries it. `current()` turns false at the same moment, so the abandoned work stops at its next check.
+ * an `EntryWarmupStallError` naming the stage it waited in. `Game.warmEnteredFrame` and the spawn settle reveal on it
+ * (D196, G830 / G837: a warm-up stall is never a load error); an `EntryContentStallError` (content that never arrived)
+ * is the cell's admission issue, and the next crossing retries it. `current()` turns false at the same moment, so the
+ * abandoned work stops at its next check.
  */
 import type { Scope } from '../app/scope';
 

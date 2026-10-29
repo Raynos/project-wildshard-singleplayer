@@ -8,7 +8,7 @@ import { runInNewContext } from 'node:vm';
 import { DataTexture, Group, Scene, Vector3, type Object3D } from 'three';
 import { Scope } from '../app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
-import { boundEntryWarmup, ENTRY_CONTENT_MS, ENTRY_NO_FRAME_MS, ENTRY_WARMUP_MS } from '../render/entryWarmupBound';
+import { boundEntryWarmup, ENTRY_CONTENT_MS, ENTRY_NO_FRAME_MS, ENTRY_WARMUP_MS, EntryContentStallError, EntryWarmupStallError } from '../render/entryWarmupBound';
 
 const original = scopeEnvironment();
 afterEach(() => { installScopeEnvironment(original); });
@@ -55,8 +55,10 @@ function fixture(early: () => Promise<void> = () => Promise.resolve(), final: ()
   const source = readFileSync(new URL('Game.ts', import.meta.url), 'utf8');
   const start = source.indexOf('  async warmEnteredFrame('), end = source.indexOf('\n  private async ', start);
   if (start === -1 || end < start) throw new Error('Entered-frame method missing');
+  const warnings: string[] = [];
   const method: unknown = runInNewContext(stripTypeScriptTypes(`class Harness { ${source.slice(start, end)} }\nHarness.prototype.warmEnteredFrame`),
-    { boundEntryWarmup, ENTRY_CONTENT_MS, ENTRY_NO_FRAME_MS, ENTRY_WARMUP_MS, diagnosticNow: () => 0 });
+    { boundEntryWarmup, ENTRY_CONTENT_MS, ENTRY_NO_FRAME_MS, ENTRY_WARMUP_MS, EntryContentStallError, EntryWarmupStallError, diagnosticNow: () => 0,
+      console: { warn: (...args: unknown[]) => { warnings.push(args.map(String).join(' ')); } } });
   if (typeof method !== 'function') throw new Error('Entered-frame method is not callable');
   const owner = new Scope('overlap'), root = new Group(), scene = new Scene();
   const calls: string[] = [], preparationEnvironments: unknown[] = [];
@@ -76,7 +78,7 @@ function fixture(early: () => Promise<void> = () => Promise.resolve(), final: ()
       fence = current; calls.push('page-programs'); await early();
     },
   };
-  return { owner, root, game, calls, preparationEnvironments, current: () => fence(),
+  return { owner, root, game, calls, preparationEnvironments, warnings, current: () => fence(),
     run: (before?: (prepare: Prepare, prepareFrame: (environment?: DataTexture | null) => Promise<void>) => Promise<void> | void): Promise<unknown> => Promise.resolve(Reflect.apply(method, game, [owner, root, before])),
     frame: (): void => { game.frameCount++; now += 100; const due = [...frames.values()]; frames.clear(); for (const draw of due) draw(now); },
   };
@@ -130,7 +132,7 @@ test('initial boot can overlap compilation without adding crossing first draws',
 });
 
 // D196: the content wait (the destination's network-bound hooks) no longer spends the warm-up's 30 s; the final warm-up
-// gets its own 30 s once the content is in
+// gets its own 30 s once the content is in, and past it the entry reveals with what has linked (never a refused crossing)
 test.each(['roots', 'page'])('%s preparation waits for content, then the final warm-up has its own total deadline', async mode => {
   const prepared = deferred(), content = deferred(), final = deferred(), enteredFinal = deferred();
   const f = fixture(() => prepared.promise, () => { enteredFinal.resolve(); return final.promise; });
@@ -145,9 +147,22 @@ test.each(['roots', 'page'])('%s preparation waits for content, then the final w
     for (let i = 0; i < 185; i++) f.frame();
     expect(await Promise.race([observed, new Promise(resolve => { setTimeout(() => { resolve('pending'); }, 0); })])).toBe('pending');
     for (let i = 0; i < 120; i++) f.frame();
-    expect(String(await observed)).toMatch(/warm-up stalled in shaders-and-composer.*over 30000 ms/u);
+    expect(await observed).toBeNull();
+    expect(String(Reflect.get(Reflect.get(f.game, '_entryPreparation'), 'stalled'))).toMatch(/^shaders-and-composer \(after early-/u);
+    expect(f.warnings.join('\n')).toMatch(/warm-up stalled in shaders-and-composer.*over 30000 ms/u);
     expect(f.current()).toBe(false);
   } finally { prepared.resolve(); content.resolve(); final.resolve(); f.owner.dispose(); await observed; }
+});
+
+test('content that never arrives still fails the entry after its own bound', async () => {
+  const content = deferred(), f = fixture();
+  const observed = settled(f.run(async () => { await content.promise; }));
+  try {
+    for (let i = 0; i < ENTRY_CONTENT_MS / 100 + 20; i++) f.frame();
+    const error = await observed;
+    expect(error).toBeInstanceOf(EntryContentStallError);
+    expect(f.calls).not.toContain('final');
+  } finally { content.resolve(); f.owner.dispose(); await observed; }
 });
 
 test('retirement during the content rendezvous fences the abandoned final warm-up', async () => {

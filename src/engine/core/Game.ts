@@ -46,7 +46,7 @@ import { frameCost } from './frameCost';
 import { diagnosticNow } from './clock';
 import { buildHeld, heldDrawDeferred, noteFrameDrawn } from './framePacing';
 import { isDev } from './devMode';
-import { boundEntryWarmup, ENTRY_CONTENT_MS, ENTRY_NO_FRAME_MS, ENTRY_WARMUP_MS } from '../render/entryWarmupBound';
+import { boundEntryWarmup, ENTRY_CONTENT_MS, ENTRY_NO_FRAME_MS, ENTRY_WARMUP_MS, EntryContentStallError, EntryWarmupStallError } from '../render/entryWarmupBound';
 import { dropOutputDepth, installMemorySaver, shadowLights } from '../render/memorySaver';
 import { dropShadowColour } from '../world/shadowVariants';
 import { duringShadowPass } from '../world/cascadeCull';
@@ -153,6 +153,8 @@ export interface EntryPreparation {
   root: string; owner: string; completed: boolean; phase: string;
   progress: { done: number; total: number; detail: string } | null;
   stages: { phase: string; elapsedMs: number; units: number; endAt: number }[];
+  /** D196: the stage a warm-up stall ended the wait in (the entry revealed with what had linked), else absent */
+  stalled?: string;
 }
 
 export class Game {
@@ -897,7 +899,8 @@ export class Game {
    * `before` (the caller's last preparation, e.g. a region's sky build) runs first, inside the same time bound:
    * it may prepare already-built roots while other content constructs, then await that content before returning.
    * Early roots and whole-page programs share this bound. Final complete inventory still gates readiness.
-   * nothing here can wait silently forever (`boundEntryWarmup`); a stall rejects naming its stage.
+   * nothing here can wait silently forever (`boundEntryWarmup`): a warm-up stall ends the wait and the entry reveals with
+   * what has linked (`entryPreparation.stalled` names the stage, D196); content that never arrives rejects naming its stage.
    * D188 (Jake's G815, shipped): `arrivalAt` (where the crossing reveals the player, render space) prepares only
    * the destination content within ARRIVAL_RADIUS of it before the reveal; the rest sits out live draws (a frame gate)
    * until `warmArrivalRest` has linked and first-drawn it after the reveal, nearest first. */
@@ -918,6 +921,7 @@ export class Game {
     // D196: with a `before` (the destination's hooks and their reads, network-bound) the 30 s warm-up clock starts when it
     // resolves; the wait itself has its own named content bound, and the no-frame guard holds throughout
     const limits = { noFrameMs: ENTRY_NO_FRAME_MS, totalMs: ENTRY_WARMUP_MS, ...(before === undefined ? {} : { contentMs: ENTRY_CONTENT_MS }) };
+    try {
     await boundEntryWarmup(owner, () => this.frameCount, stage, async (current, startWarm) => {
       if (before !== undefined) {
         await before(async (roots, exteriorPrograms = true) => {
@@ -952,6 +956,14 @@ export class Game {
       enter('shaders-and-composer');
       await this.warmEnteredStages(owner, composer, trace, current, futureRoot, enter, arrival);
     }, limits);
+    } catch (error: unknown) {
+      // D196 (G830, G837): a warm-up only smooths the entry's first frames, so its stall ends the wait and the entry reveals
+      // with what has linked (the rest links on first sight, as a released arrival gate's does); a slow network or device
+      // never turns it into a refused crossing. Content that never arrived (its own bound) and a departed owner still fail.
+      if (!(error instanceof EntryWarmupStallError) || error instanceof EntryContentStallError || owner.disposed || owner.disposing) throw error;
+      trace.stalled = stage();
+      console.warn('[entry] the warm-up stalled; revealing with what has linked', error.message);
+    }
   }
 
   /** Early roots use the enclosing entry's bound; they cannot renew its deadline or publish readiness. */
