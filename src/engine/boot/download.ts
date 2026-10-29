@@ -69,6 +69,8 @@ export interface DownloadSnapshot {
   declaredBytes: number; declaredDoneBytes: number; declaredFiles: number; declaredFilesDone: number;
   /** Compiler-known bytes whose individual file declarations have not arrived yet. */
   unitemizedBytes?: number;
+  /** Fixed compiled entry content total, independent of late file discovery. */
+  expectedBytes?: number;
 }
 interface File { bytes: number; complete: boolean }
 export interface DownloadTiming {
@@ -78,6 +80,12 @@ export interface DownloadTiming {
 }
 /** One loading attempt owns its declarations and receipts; no body tees or retained payloads. */
 export class DownloadAccounting {
+  private expected: number | undefined;
+  /** This attempt's build-owned denominator is immutable. It grants no receipt. */
+  expect(bytes: number): void {
+    if (!Number.isSafeInteger(bytes) || bytes <= 0 || this.expected !== undefined && this.expected !== bytes) throw new Error('Invalid fixed download total');
+    this.expected = bytes;
+  }
   private readonly files = new Map<string, File>();
   private readonly groups = new Map<string, number>();
   /** Receipts change completion, never the directory's declared remainder. */
@@ -217,7 +225,8 @@ export class DownloadAccounting {
       this.bodyHints.get(receipt.url) ?? 0); });
     return { networkBytes: this.network, cachedBytes, pendingBytes, filesDone: this.completed + this.cache.size,
       filesTotal: this.completed + this.cache.size + pendingFiles, unclassifiedBytes, unclassifiedFiles: this.unknown.size,
-      declaredBytes, declaredDoneBytes: declaredBytes - pendingBytes, declaredFiles: this.files.size, declaredFilesDone: this.files.size - pendingFiles, ...(unitemizedBytes === 0 ? {} : { unitemizedBytes }) };
+      declaredBytes, declaredDoneBytes: declaredBytes - pendingBytes, declaredFiles: this.files.size, declaredFilesDone: this.files.size - pendingFiles,
+      ...(this.expected === undefined ? {} : {expectedBytes: this.expected}), ...(unitemizedBytes === 0 ? {} : { unitemizedBytes }) };
   }
 }
 let active: DownloadAccounting | undefined;

@@ -17,7 +17,8 @@ export interface EntryDownloadRow {
 const transportKey = 'wildshard.entry-transport';
 
 /** Start the descriptor GET at the title tap, before the fresh document. */
-export function startEntryDownload(slug: string): void {
+export function startEntryDownload(slug: string, flow: 'client' | 'grid' = 'client'): void {
+  installEntryDownloadTotal(slug, flow);
   const raw = document.getElementById('boot-module-files')?.textContent;
   if (!raw) return;
   try {
@@ -38,6 +39,28 @@ export function startEntryDownload(slug: string): void {
       void fetch(url, {keepalive: true, priority: 'high'}).then(consume).catch(() => undefined);
     }
   } catch { /* Read-ahead never blocks a player navigation. */ }
+}
+
+/** Read-only presentation facts, never entry authority. The fresh document
+ * peeks at the existing one-shot grid intent without consuming it. */
+export function installEntryDownloadTotal(picked?: string, flow: 'client' | 'grid' = 'client'): void {
+  const selected = picked ?? new URL(location.href).searchParams.get('chunk');
+  if (selected === null || !/^[a-z0-9_-]+$/u.test(selected)) return;
+  const raw = document.getElementById('boot-module-files')?.textContent;
+  if (!raw) return;
+  const get = (value: unknown, key: string): unknown => typeof value === 'object' && value !== null ? Reflect.get(value, key) : undefined;
+  const bank: unknown = JSON.parse(raw), totals = get(bank, 'entryTotals');
+  if (totals === undefined) return;
+  const developer = Object.hasOwn(document.documentElement.dataset, 'dev');
+  const rows = flow === 'grid' ? get(get(totals, 'grid'), developer ? '100' : '000') : get(totals, 'client');
+  const pair = get(rows, selected), tier = /iPhone|iPad|Android|Mobile/u.test(navigator.userAgent) ? 0 : 1;
+  const bytes: unknown = Array.isArray(pair) ? pair[tier] : undefined;
+  if (typeof bytes !== 'number' || !Number.isSafeInteger(bytes) || bytes <= 0) return;
+  document.documentElement.dataset['entryDownloadBytes'] = String(bytes);
+  document.documentElement.dataset['entryDownloadSlug'] = selected;
+  document.documentElement.dataset['entryDownloadFlow'] = flow;
+  const root = document.querySelector<HTMLElement>('.ws-load');
+  if (root !== null) { root.dataset['entryDownloadBytes'] = String(bytes); root.dataset['entryDownloadSlug'] = selected; root.dataset['entryDownloadFlow'] = flow; }
 }
 
 /** A transport loan is consumed once, on the destination document only. */

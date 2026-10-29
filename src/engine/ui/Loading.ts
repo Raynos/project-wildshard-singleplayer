@@ -126,6 +126,10 @@ export class Loading {
     this.scope.onDispose(() => { finishLoadingWait(this.waitId); });
     if (!this.scoped) this.scope.onDispose(installLoadingTimeline(this.timeline));
     this.downloads = new DownloadAccounting(location.href, shell === null ? this.t0 : 0);
+    if (!this.scoped) {
+      const total = Number(this.root.dataset['entryDownloadBytes'] ?? document.documentElement.dataset['entryDownloadBytes']);
+      if (Number.isSafeInteger(total) && total > 0) this.downloads.expect(total);
+    }
     this.scope.onDispose(this.scoped ? observeDownloadAccounting(this.downloads) : installDownloadAccounting(this.downloads));
     this.downloadObserver = new PerformanceObserver(list => {
       for (const entry of list.getEntries()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
@@ -324,6 +328,7 @@ export class Loading {
     setData(this.root, 'unclassifiedFiles', String(transfer.unclassifiedFiles));
     setData(this.root, 'unclassifiedBytes', String(transfer.unclassifiedBytes));
     setData(this.root, 'declaredBytes', String(transfer.declaredBytes));
+    if (transfer.expectedBytes !== undefined) setData(this.root, 'entryDownloadBytes', String(transfer.expectedBytes));
   }
 
   private paintDownloads(done: boolean): number {

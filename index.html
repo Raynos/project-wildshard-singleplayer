@@ -163,6 +163,7 @@
         const start = () => {
         const root = document.querySelector('.ws-load[data-navigation], .ws-load[data-shell]');
         if (!root) return;
+        if (!root.dataset.entryDownloadBytes && document.documentElement.dataset.entryDownloadBytes) root.dataset.entryDownloadBytes = document.documentElement.dataset.entryDownloadBytes;
         const navigation = root.hasAttribute('data-navigation');
         if (running.has(root) && !navigation) return;
         const token = {}; running.set(root, token);
@@ -183,7 +184,7 @@
         if (/^(?:100|\d{1,2})$/.test(initialSetup ?? '')) root.dataset.initialSetup = initialSetup;
         root.dataset.step = navigation ? 'navigation.document' : 'admission.modules';
         const field = (key, text) => { const el = root.querySelector('[data-el="' + key + '"]'); if (el && el.textContent !== text) el.textContent = text; };
-        const slug = new URLSearchParams(location.search).get('chunk') || 'driftwood-isle';
+        const slug = (navigation ? root.dataset.entryDownloadSlug : '') || new URLSearchParams(location.search).get('chunk') || 'driftwood-isle';
         let name = (navigation ? root.querySelector('[data-el="slug"]')?.textContent : '') || slug.replace(/[_-]+/g, ' ').trim() || 'Selected shard';
         let tier = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'phone' : 'desktop';
         try {
@@ -201,6 +202,15 @@
           }
           const picked = JSON.parse(localStorage.getItem('wildshard.save.v2.global') || '{}').keys?.settings?.data?.tier;
           if (picked === 'phone' || picked === 'desktop') tier = picked;
+          {
+            const device = JSON.parse(localStorage.getItem('wildshard.save.v2.device') || '{}').keys || {};
+            const saved = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys || {};
+            const grid = navigation ? root.dataset.entryDownloadFlow === 'grid' : [saved.gridIntent?.data, device['gridIntent.once']?.data].some(intent => intent?.slug === slug && typeof intent.at === 'number' && performance.timeOrigin - intent.at >= 0 && performance.timeOrigin - intent.at <= 60000);
+            const bank = JSON.parse(document.getElementById('boot-module-files')?.textContent || '{}');
+            const rows = grid ? bank.entryTotals?.grid?.[device.devMode?.data === true ? '100' : '000'] : bank.entryTotals?.client;
+            const total = rows?.[slug]?.[tier === 'phone' ? 0 : 1];
+            if (Number.isSafeInteger(total) && total > 0) root.dataset.entryDownloadBytes = String(total);
+          }
         } catch { /* denied storage: device tier and destination slug remain available */ }
         root.dataset.clockStartedAt = String(clockStarted);
         field('slug', name);
@@ -222,7 +232,14 @@
         const resources = () => {
           root.dataset.moduleBytes = String(bytes);
           const wait = selectedWait();
-          if (wait.totalBytes !== null) field('dlFact', (wait.loadedBytes / 1048576).toFixed(2) + ' / ' + (wait.totalBytes / 1048576).toFixed(2) + ' MB · ' + wait.label);
+          const total = Number(root.dataset.entryDownloadBytes);
+          if (Number.isSafeInteger(total) && total > 0) {
+            // Partial transport is visible in its named wait. Only the runtime's
+            // actual file receipts credit the fixed whole-entry content track.
+            field('dlFact', '0.00 MB of ' + (total / 1000000).toFixed(1) + ' MB content' + (wait.totalBytes !== null ? ' · ' + (wait.loadedBytes / 1000000).toFixed(2) + ' / ' + (wait.totalBytes / 1000000).toFixed(2) + ' MB ' + wait.label : ' · ' + wait.label));
+            field('dlPct', '0');
+          }
+          else if (wait.totalBytes !== null) field('dlFact', (wait.loadedBytes / 1048576).toFixed(2) + ' / ' + (wait.totalBytes / 1048576).toFixed(2) + ' MB · ' + wait.label);
           else field('dlFact', bytes > 0 ? (bytes / 1048576).toFixed(2) + ' MB modules read · total pending' : 'Waiting for ' + wait.label);
         };
         const retry = root.querySelector('[data-el="retry"]');

@@ -6,13 +6,24 @@ const traffic = { networkBytes: 1_300_000, cachedBytes: 2_000_000, pendingBytes:
 const prefetch: LoadingPrefetchSnapshot = { phase: 'running', reason: null, products: 25, productsRead: 3,
   knownFiles: 10, knownBytes: 20_000_000, presentFiles: 2, presentBytes: 4_000_000, storedFiles: 3, storedBytes: 6_000_000 };
 
-it('the home track counts only the load\'s declared files and is full when the load is done', () => {
+it('the home track completes only after its actual declared bytes arrive', () => {
   expect(loadingDownloadFraction(traffic, false)).toBe(0.75);
   // undeclared page traffic and unsized transfers never move it
   expect(loadingDownloadFraction({ ...traffic, networkBytes: 90_000_000, unclassifiedFiles: 40, unclassifiedBytes: 50_000_000 }, false)).toBe(0.75);
-  expect(loadingDownloadFraction({ ...traffic, declaredDoneBytes: 2_000_000 }, false)).toBe(1);
+  expect(loadingDownloadFraction({ ...traffic, declaredDoneBytes: 2_000_000, pendingBytes: 0 }, false)).toBe(1);
   expect(loadingDownloadFraction({ ...traffic, declaredBytes: 0, declaredDoneBytes: 0 }, false)).toBe(0);
-  expect(loadingDownloadFraction(traffic, true)).toBe(1);
+  expect(loadingDownloadFraction(traffic, true)).toBe(0.75);
+});
+
+it('a fixed compiled entry total does not grow as declarations arrive, or reach 100 with pending content', () => {
+  const first = {...traffic, expectedBytes: 4_000_000};
+  const next = {...first, declaredBytes: 3_000_000, declaredDoneBytes: 2_000_000};
+  expect(loadingDownloadFraction(first, false)).toBe(0.375);
+  expect(loadingDownloadFraction(next, false)).toBe(0.5);
+  expect(loadingDownloadText(first)).toContain('of 4.00 MB content');
+  expect(loadingDownloadText(next)).toContain('of 4.00 MB content');
+  expect(loadingDownloadFraction({...next, declaredDoneBytes: 4_000_000}, true)).toBeLessThan(1);
+  expect(loadingDownloadFraction({...next, declaredDoneBytes: 4_000_000, pendingBytes: 0}, true)).toBe(1);
 });
 
 it('leads with the declared progress, then wire and offline cache', () => {

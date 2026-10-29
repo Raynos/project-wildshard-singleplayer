@@ -1035,21 +1035,16 @@ identity. Scoped `Loading` panels use this port, label their byte line as page
 activity during that load (including background downloads), and report their
 own running step instead of unrelated page-global `bootWaits()`.
 
-`Loading.setPrefetchSource(read)` accepts an application-owned read-only
-snapshot (phase/reason, products checked, known bytes/files, already present
-and newly stored bytes/files). It is polled with the loading repaint. The
-panel reports the on-disk sum against the set discovered so far; quota stops
-remain visible. These counts never credit network transfers or alter the
-wire denominator. Wire traffic, verified cache reads and pending file
-sizes retain separate labels. The Download track also waits for discovered
-prefetch files and product checks before claiming 100 percent; this does not
-delay gameplay handover.
+`Loading.setPrefetchSource(read)` reports the separate on-disk prefetch set,
+its known files/bytes, products checked and quota/failure state. These facts
+never credit the home download track or delay gameplay.
 
-All-zero worker timings remain `unclassifiedFiles`, never zero-byte
-cache hits. `unclassifiedBytes` is the known body/index size for those
-receipts (including hints arriving later), not an estimate of wire bytes.
-The panel names missing wire measurements, withholds download 100 percent,
-and the accuracy checker refuses acceptance while any remain.
+`DownloadAccounting.expect(bytes)` sets one immutable build-owned entry total;
+`DownloadSnapshot.expectedBytes` carries it separately from later file
+declarations and receipts. The tap shell, first document and Loading share
+that flow/home/tier total. Setup completion grants no download completion.
+Network and cache receipts keep their existing units. Unknown worker sizes
+remain unclassified, not zero-byte cache hits or invented wire receipts.
 
 `waitFor(label, promise, kind?, resource?)` observes already-started work
 and removes it on either outcome. `bootWaits()` reads the same first-HTML

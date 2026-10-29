@@ -8,6 +8,7 @@ import {bootProductTotals} from './bootProducts';
 import type {EntryDownloadRow} from '../../src/game/shardfile/entryTransport';
 import ts from '@typescript/typescript6';
 import {gridEntryDownloads} from './gridEntryDownloads';
+import {entryTotals} from './entryTotals';
 
 /** Read-ahead addresses only: the browser still runs original per-file
  * admission. Packs keep their original phase boundaries and complete hashes. */
@@ -66,9 +67,13 @@ export function writeEntryBootstrap(outDir: string, root: string): void {
   const bank: unknown = JSON.parse(match[2]);
   if (typeof bank !== 'object' || bank === null || Array.isArray(bank)) throw new Error('Invalid entry module bank');
   const facts = writeEntryDownloads(outDir, root);
+  const grid = gridEntryDownloads(root);
+  // Existing isolated transport-writer fixtures supply only their own tiny
+  // common bank. The real module producer always supplies products/code.
+  const totals = 'products' in bank ? entryTotals(bank, grid, root) : undefined;
   const bootstrap = ts.transpileModule(readFileSync(new URL('../../src/game/shardfile/entryTransport.ts', import.meta.url), 'utf8').replaceAll(/^export /gmu, ''), {
     compilerOptions: {target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext},
   }).outputText;
-  const json = JSON.stringify({...bank, ...facts, gridEntryDownloads: gridEntryDownloads(root)}).replaceAll('<', String.raw`\u003c`);
-  writeFileSync(file, html.replace(expression, () => `<script type="application/json" id="boot-module-files">${json}</script><script>(()=>{${bootstrap}\ninstallEntryTransport();})();</script>`));
+  const json = JSON.stringify({...bank, ...facts, gridEntryDownloads: grid, entryTotals: totals}).replaceAll('<', String.raw`\u003c`);
+  writeFileSync(file, html.replace(expression, () => `<script type="application/json" id="boot-module-files">${json}</script><script>(()=>{${bootstrap}\ninstallEntryDownloadTotal();installEntryTransport();})();</script>`));
 }

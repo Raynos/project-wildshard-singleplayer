@@ -1,6 +1,16 @@
 import { expect, it } from 'vitest';
 import { DownloadAccounting, type DownloadTiming, installDownloadAccounting, receiveWorkerDownloads, observeDownloadAccounting, currentDownloadAccounting, declareDownloadFile, declareModuleFiles, recordCachedDownload, beginLoadingWait, reportLoadingWait, finishLoadingWait, loadingWaitState } from './download';
 
+it('the compiled entry denominator is immutable and grants no completed bytes', () => {
+  const accounting = new DownloadAccounting('https://example.test/');
+  accounting.expect(100); accounting.declare('/assets/first.bin', 20);
+  expect(accounting.snapshot()).toMatchObject({expectedBytes: 100, declaredBytes: 20, declaredDoneBytes: 0});
+  accounting.expect(100); accounting.declare('/assets/second.bin', 30);
+  expect(accounting.snapshot()).toMatchObject({expectedBytes: 100, declaredBytes: 50, declaredDoneBytes: 0});
+  expect(() => accounting.expect(101)).toThrow('fixed download total');
+  expect(() => accounting.expect(-1)).toThrow('fixed download total');
+});
+
 const base = 'https://game.test/';
 const timing = (name: string, extra: Partial<DownloadTiming> = {}): DownloadTiming => ({
   name: new URL(name, base).href, startTime: 1, transferSize: 1300, encodedBodySize: 1000,

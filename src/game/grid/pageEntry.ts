@@ -55,7 +55,7 @@ export function enterGrid(): void {
   const home = gridHome();
   const target = findTitleManifest(home.slug);
   if (target === undefined) throw new Error(`The grid's home cell names no shard: ${home.slug}`);
-  startEntryDownload(target.slug);
+  startEntryDownload(target.slug, 'grid');
   titlePrefetchChoice(saves).remember(target.slug);
   startGridStripDownload(gridMode(DEVSERVER), home.instance, 'metadata');
   navigating = beginNavigationShell(target.name, pageScope, () => {

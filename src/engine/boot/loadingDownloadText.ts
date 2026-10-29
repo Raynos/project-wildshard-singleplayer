@@ -13,9 +13,12 @@ export interface LoadingPrefetchSnapshot {
 
 /** The home load's own track: the bytes of the files it declared (product indexes give exact sizes) that have arrived, from
  * the wire or the cache; done when the load is. Grid prefetch and other page traffic never move it (they have their own row). */
-export function loadingDownloadFraction(transfer: DownloadSnapshot, done: boolean): number {
-  if (done) return 1;
-  return transfer.declaredBytes === 0 ? 0 : Math.min(1, transfer.declaredDoneBytes / transfer.declaredBytes);
+export function loadingDownloadFraction(transfer: DownloadSnapshot, _done: boolean): number {
+  const total = transfer.expectedBytes ?? transfer.declaredBytes;
+  if (total === 0) return 0;
+  const fraction = Math.min(1, transfer.declaredDoneBytes / total);
+  // Setup completion is not a byte receipt. Pending content cannot say 100%.
+  return transfer.pendingBytes > 0 || transfer.declaredDoneBytes < total ? Math.min(0.999, fraction) : fraction;
 }
 
 /** Declared progress first (the fact line truncates), then the wire and the offline cache. WebKit sizes no service-worker
@@ -27,7 +30,7 @@ export function loadingDownloadText(transfer: DownloadSnapshot): string {
     ? `${formatMB(transfer.networkBytes + transfer.unclassifiedBytes)} network (${transfer.unclassifiedFiles} files by encoded body size)` : `${formatMB(transfer.networkBytes)} network`;
   const pending = transfer.unitemizedBytes === undefined ? '' : ` · ${formatMB(transfer.unitemizedBytes)} awaiting file index`;
   if (transfer.declaredBytes === 0) return `Reading download inventory · ${network} · ${formatMB(transfer.cachedBytes)} offline cache`;
-  return `${formatMB(transfer.declaredDoneBytes)} of ${formatMB(transfer.declaredBytes)} content · ${transfer.declaredFilesDone} / ${transfer.declaredFiles} files${pending} · ${network} · ${formatMB(transfer.cachedBytes)} offline cache`;
+  return `${formatMB(transfer.declaredDoneBytes)} of ${formatMB(transfer.expectedBytes ?? transfer.declaredBytes)} content · ${transfer.declaredFilesDone} / ${transfer.declaredFiles} files${pending} · ${network} · ${formatMB(transfer.cachedBytes)} offline cache`;
 }
 
 /** The grid prefetch's own row: disk bytes against the set discovered so far (a finished run with every product read is 1). */
