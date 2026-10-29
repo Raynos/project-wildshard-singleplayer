@@ -150,11 +150,11 @@ export class TickScheduler {
   /** A system without an actor is located at the player; creature systems schedule their own subjects. */
   systemDt(system: SystemSpec, dt: number): number {
     if (!system.tick || system.tick === 'always') return dt;
+    const hz = this.rates.get(system.tick)?.bands[0]?.brainHz;
+    if (hz === undefined) throw new Error(`Unknown tick rate: ${system.tick}`);
     const subject = this.subject(system.tick, system), state = subject.brain;
     state.elapsed += dt;
     state.credit += dt;
-    const hz = this.rates.get(system.tick)?.bands[0]?.brainHz;
-    if (hz === undefined) throw new Error(`Unknown tick rate: ${system.tick}`);
     if (hz === 'paused' || state.credit + 1e-9 < 1 / hz) return 0;
     state.credit = hz === Infinity ? 0 : Math.max(0, state.credit - Math.floor((state.credit + 1e-9) * hz) / hz);
     const elapsed = state.elapsed; state.elapsed = 0; return elapsed;

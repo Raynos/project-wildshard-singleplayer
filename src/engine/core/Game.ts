@@ -745,15 +745,20 @@ export class Game {
     if (this.app.state === 'paused') return;
     const on = frameCost.on; // the dev fps panel's timing rows (src/engine/core/frameCost.ts): one boolean read while it is closed
     for (const spec of this.app.systemsByPhase()[phase]) {
-      if (spec.when && !spec.when(this.app)) continue;
       let s = this.faultSystems.get(spec);
       if (!s) { s = makeSystem(spec.run, spec.id, spec.core ?? false, spec.id); this.faultSystems.set(spec, s); }
       if (!s.on) continue;
-      const scheduledDt = this.app.scheduler.systemDt(spec, dt);
-      if (scheduledDt === 0 && spec.tick && spec.tick !== 'always') continue;
-      const t0 = on ? diagnosticNow() : 0;
-      try { spec.run(scheduledDt, t); } catch (e) { this.fault(s, e); }
-      if (on) frameCost.system(s.label, diagnosticNow() - t0);
+      let t0: number | undefined;
+      try {
+        // Predicates and schedule lookups belong to the same system as its run.
+        // A bookkeeping refusal must not escape and skip the rest of the phase.
+        if (spec.when && !spec.when(this.app)) continue;
+        const scheduledDt = this.app.scheduler.systemDt(spec, dt);
+        if (scheduledDt === 0 && spec.tick && spec.tick !== 'always') continue;
+        if (on) t0 = diagnosticNow();
+        spec.run(scheduledDt, t);
+      } catch (e) { this.fault(s, e); }
+      if (t0 !== undefined) frameCost.system(s.label, diagnosticNow() - t0);
     }
     this.flushEvents(phase);
   }
