@@ -114,3 +114,19 @@ test('stable layouts and bindings are reused until enabled answers or keys chang
     expect(input.held('sprint')).toBe(true);
   } finally { scope.dispose(); }
 });
+
+test('a context relabelled in place repaints its discs after touchChanged (QB17)', () => {
+  const scope = new Scope('input-relabel'), input = new InputService(() => 1);
+  const context = { id: 'grapple', actions: ['lock', 'jump'] as Action[], touch: { relabel: { lock: { label: 'Grapple' } } as Record<string, { label: string }> } };
+  input.register(context, scope); input.push('grapple', scope);
+  const painted: string[] = [];
+  input.touchStackSink((layout) => { painted.push(layout.labels.jump?.label ?? '-'); }, scope);
+  expect(input.touchLayout().labels.lock?.label).toBe('Grapple');
+  context.touch.relabel = { lock: { label: 'Locked' }, jump: { label: 'Zip' } };
+  input.repaint();
+  expect(input.touchLayout().labels.jump).toBeUndefined(); // the cached layout: why the ZIP disc never came
+  input.touchChanged();
+  expect(input.touchLayout().labels.lock?.label).toBe('Locked'); expect(input.touchLayout().labels.jump?.label).toBe('Zip');
+  expect(painted.at(-1)).toBe('Zip');
+  scope.dispose();
+});

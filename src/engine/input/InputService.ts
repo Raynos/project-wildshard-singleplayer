@@ -338,6 +338,9 @@ export class InputService {
     this.paint = paint; this.repaint(); scope.onDispose(() => { if (this.paint === paint) { paint({}); this.paint = undefined; } });
   }
   repaint(): void { const layout = this.touchLayout(); this.paint?.(layout.labels); this.stackPaint?.(layout); }
+  /** A pushed context's `touch` spec changed in place (a shard verb relabelling its discs, QB17's grapple LOCKED → ZIP):
+   *  the cached layout is keyed by context changes only, so drop it and paint the new labels now. */
+  touchChanged(): void { this.contextRevision++; this.repaint(); }
 }
 export interface TouchStack {
   labels: Partial<Record<DiscSpot, TouchRelabel>>;

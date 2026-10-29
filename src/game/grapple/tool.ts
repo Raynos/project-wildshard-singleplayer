@@ -236,7 +236,8 @@ function installGrappleAim(ctx: EquipmentHost, shard: ShardContext, scope: Scope
     mode.context(active);
     const jump = lock === H.locked ? H.zip : lock === H.armed ? H.fire : null;
     context.touch.relabel = { ...(lock === null ? {} : { lock }), ...(jump === null ? {} : { jump }) };
-    input.repaint();
+    // QB17: the relabel changed in place; a plain repaint returned the cached layout (no ZIP until an app switch)
+    input.touchChanged();
     if (lock === H.rest) restLabel = shard.hud.relabel('lock', lock.label, '', lock);
 
   };
