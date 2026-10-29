@@ -8,20 +8,21 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 Driftwood, Pine, Nine wait for Jake shard by shard; LD5 / LD8-LD10 with the last.
 
 **LIVE 8621318d93 (build 8621318d9-mvtvd1tf): Jake's QA build.** He QAs it now.
-**[qa-2026-10-29-2](qa-2026-10-29-2-mini-plan.md) (G879):** open QB5 / QB11 / DA-1-3 / NP-5 sp-x6; QB6 / QB12 / QB16 (NP-1-4) /
-DA-7 sp-o5; QB7 proof / QB8 / QB17 / QB15 / QB18 sp-o4; QB10 / QB14 sp-x1; QB13 / RL8 sp-x2; RL4 / RL5 / RL1 / RL6 / DA-5 / DA-6 /
-GAME-S / QB19 sp-o3; RL7 / DA-4 sp-x10. Spikes: download-audit, nine-popin (G884).
+**REPLAN (Jake ~14:25, G886): [FOUNDATIONS](../FOUNDATIONS.md) wave 1** at lane boundaries: MF1 sp-x10, MF2 sp-x2, MF3 + MF5
+sp-o3, MF4 sp-x6, MF6 sp-x9 + sp-o4 (modal), MF7 sp-o5 (+ G890 battery). G887 trust our build, G888 exits navigate, G889.
+Superseded QB/RL/DA/NP rows marked folded. Still open: QB10 / QB14 sp-x1; QB15 / QB17 / QB18 sp-o4; GAME-S, QB19 sp-o3.
 
 **Done today:** Nine + Far Reach archived (44c51cc4ac), G548 build speed, CO1-CO5, PL6, QA1-QA14, D196-D207.
 
 **Autonomous decisions (for Jake's review):**
 - Earlier: D183 B, D185 both paths, PL15 A, PL16 off, QA7 / QA8 / QA6 / QA3 calls (see git log of this file).
 - QB11 (crossbow NaN draw) on Codex sp-x6: the Pine spring blows up below ~30 fps; substep fix only if 60 fps stays bit-identical (else Opus).
-- RL7-RL9 (warm refetch, chunk hashes, persist) on Codex: SW caching changes no pixels (G848 keeps the SW on Codex).
+- SW / manifest rows (RL7-9, MF1 / MF2 / MF4) on Codex: no pixels (G848 keeps the SW on Codex).
 - **For wildshard-v (QB1, RL3 48492f221e):** Sim warm launch image 0.6 s → title 1.2 s, nothing else. iOS snapshots the
   launch image at install; Jake's icon predates it (10-24), so tell him once: delete + re-add the icon. The first cold
   launch after this deploy still shows the old UPDATING cover once (old worker), never again.
 - New QA build for Jake asked of sp-ci-deploy: he was reporting bugs already fixed on main (QB7 14:19).
+- hud.perf duplicate world.impacts (Sentry) on Codex sp-x1: a read-only peek in the perf count, no FX change (else Opus).
 - RL10: grid New game keeps its road-resume reload (it resumes by design); standalone New game goes to the title (1ec09517d4, o4).
 - QB10: lanes have no Sentry credential, so sp-x1 triages from the row + /api/errors and lists issue → verdict → SHA in
   its commit; **wildshard-v resolves them in Sentry** from that list. **wildshard-v: please add all 40 issue ids + titles
