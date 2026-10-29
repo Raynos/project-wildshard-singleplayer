@@ -6,7 +6,8 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **Deadline: everything done and archived by 14:00 Cancun** (finish spike d84ac5e875). Cut-offs: look / bug rows 12:15,
 LD9 / LD10 13:30, CO8 archive 13:45, all lanes stop 14:00 (G845).
 
-**LIVE f8ccbaa6c3 (build f8ccbaa6c-mvtq1f87, hourly).** CO1 release ~12:15 with the QA fixes and notes 48dd0e845d (sp-ci-deploy).
+**LIVE f8ccbaa6c3 (build f8ccbaa6c-mvtq1f87, hourly).** CO1 release PULLED FORWARD: first green c066-or-newer + exact six (notes eb11d9974c).
+The a834 footer / hold reds are covered by x6's 55402e4b10 (in c066).
 
 **P0s / G873-G877:** Jake's QA lives in qa-2026-10-29 (QA1-QA13, all archive blockers, G877). Legacy last, on his word (G873).
 
@@ -18,6 +19,7 @@ LD9 / LD10 13:30, CO8 archive 13:45, all lanes stop 14:00 (G845).
 - PL15 = A main thread; worker path + Debug row deleted, keeping the after-control parsePaced host D12 needs (x2). PL16 row kept default off (G867 try-out).
 - QA7 = keep grass on the island, no clump: LEGACY's clump was blades over the void (69db68c0ff, o4).
 - QA8 WebKit world links move under the loader (933 ms warm, cap 6 s): frames beat load time (0865113756, o3).
+- QA8 / QA3 judged on WebKit + Simulator and Chromium 4x, not the 10x throttle (frames ~95 ms there by itself).
 - D53 debt; Pine pond kept; G99 isles kept; Pine drive (D12) under G815; D206 stays on the damage list (format change).
 - Spike section 3 recommendations taken: P1 3 s cap; P2 real sizes (G874); P3 / P4 accept PL2 / PL5; P5 / P6; Q1-Q5; C1-C4;
   N1 accept the Nine residuals; F1; T1 accept lint-speed partials; L3-L6; X1 / X2 after the retro; DA1 / PF1 sent (G874).
