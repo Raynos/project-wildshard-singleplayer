@@ -14,15 +14,14 @@ FC14 → FC13, sp-o5 FC9 → FC10 → FC15. Codex: sp-x1 CX1 (MF9 done), sp-x2 F
 CX2. **For wildshard-v (17:24):** the CI reds are QB19's Nalati pins, fixed in 24691db4bf; a94d52f935 carries it, and it deploys the moment it is green. sp-x8 stays released: 5 building Codex lanes is the cap (G611), and CX1-3 are queued (G914 = lanes with no row left). 07:00 release for Jake (G917). G892: open to 10-30 QA.
 
 **Autonomous decisions (for Jake's review):**
+- FC10: phone bloom off by default, old look kept as Debug row 'Phone bloom' (G910; glyph / firefly glow board, o5).
 - G917's 07:00 release fires from a one-off, self-unloading launchd job (sp-ci-deploy); not a standing automation (G585).
 - MF3 met: launch image → title 0.7 s warm on the Sim, ~0.5 s of it iOS starting the web app before our page
   navigates (page share 0.16 s, 6e4e5e6817); not reducible in the page.
-- Earlier calls (D183, D185, PL15, PL16, QA3-QA8): see this file's git log.
+- Earlier calls (D183-PL16, QA3-8): see this file's git log.
 - Codex took QB11 (spring substep, 60 fps identical) and hud.perf (read-only count).
-- SW / manifest rows (RL7-9, MF1 / MF2 / MF4) on Codex: no pixels (G848).
-- **For wildshard-v (QB1, RL3 48492f221e):** Sim warm launch image 0.6 s → title 1.2 s, nothing else. iOS snapshots the
-  launch image at install; Jake's icon predates it (10-24), so tell him once: delete + re-add the icon. The first cold
-  launch after this deploy still shows the old UPDATING cover once (old worker), never again.
+- SW / manifest rows on Codex: no pixels (G848).
+- **For wildshard-v (QB1):** Jake's home-screen icon predates the launch image; one delete + re-add of the icon fixes the black.
 - QB18 = B: Nalati TRUST as a status row under GRASS (A crossed the minimap, C the toast; fc707ba74d, o4).
 - QB10: sp-x1 walks the 60 ids (0dd5f3060e) in MF12; wildshard-v resolves them. **Sentry S fixed by b3b1723a9a.** **wildshard-v: for Sentry-only ids with
   no inbox stack (e.g. 7R, 6Y, 6X, 6W) add one event's build + stack to the row**; titles can't justify a fix.
