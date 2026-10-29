@@ -133,6 +133,20 @@ function shown(real: { visible: boolean }, own: { readonly visible: boolean }): 
   return { save: () => { held = real.visible; }, blend: (w) => { if (w >= 0.5 && !own.visible) real.visible = false; }, undo: () => { real.visible = held; } };
 }
 
+/**
+ * FR5: a rays-only sun (its look's `sky.sun` has the disc off and `rays` on, E398) from half weight on: the page's disc is
+ * kept as the god rays' source only, as standalone `SkyBackdropView` keeps it: visible, out of the page scene (never drawn
+ * in the frame; the rays pass draws it in its own light scene), at `dir` while it holds (null: the blended light's sun).
+ */
+function raysSource(real: Mesh, dir: Vector3 | null, held: { dir: Vector3 | null; on: boolean }): Slot {
+  let parent: Object3D | null = null, visible = true;
+  return {
+    save: () => { parent = real.parent; visible = real.visible; },
+    blend: (w) => { if (w < 0.5) return; real.visible = true; real.removeFromParent(); held.dir = dir; held.on = true; },
+    undo: () => { if (parent !== null && real.parent !== parent) parent.add(real); real.visible = visible; held.dir = null; held.on = false; },
+  };
+}
+
 const basicColour = (mesh: Mesh): Color | null => (mesh.material instanceof MeshBasicMaterial ? mesh.material.color : null);
 
 /** a mesh's materials (none for any other node) */
@@ -242,8 +256,10 @@ export class BackdropLayer {
   private readonly dressOrigin = { value: new Vector3() };
   private readonly dressFade = { value: 0 };
   private readonly dressShift = new Matrix4();
+  /** FR5: while a rays-only sun holds the page's disc (`raysSource`), where the rays come from (null: the light's sun) */
+  private readonly rays: { dir: Vector3 | null; on: boolean } = { dir: null, on: false };
 
-  constructor(host: BackdropLayerHost, options: { readonly air?: () => Fog | null; readonly onDispose: () => void; readonly owner?: Scope; readonly assets?: Pick<AssetService, 'isAcquired'>; readonly base?: boolean; readonly origin?: () => Vector3; readonly environment?: LayerEnvironmentOnly }) {
+  constructor(host: BackdropLayerHost, options: { readonly air?: () => Fog | null; readonly onDispose: () => void; readonly owner?: Scope; readonly assets?: Pick<AssetService, 'isAcquired'>; readonly base?: boolean; readonly origin?: () => Vector3; readonly environment?: LayerEnvironmentOnly; readonly rays?: Vector3 | true }) {
     this.host = host;
     const zero = new Vector3();
     this.origin = options.origin ?? ((): Vector3 => zero);
@@ -296,6 +312,7 @@ export class BackdropLayer {
       vector(real.disc.scale, disc.scale),
       ...(basicColour(real.disc) === null ? [] : [colour(() => basicColour(real.disc) ?? discMaterial.color, discMaterial.color)]),
       shown(real.disc, disc),
+      ...(options.rays === undefined ? [] : [raysSource(real.disc, options.rays === true ? null : options.rays.clone(), this.rays)]),
       ...(real.halo === null || halo === null ? [] : ((h: Sprite, o: Sprite): Slot[] => [colour(() => h.material.color, o.material.color), vector(h.scale, o.scale),
         scalar(() => h.material.opacity, (v) => { h.material.opacity = v; }, () => o.material.opacity), shown(h, o)])(real.halo, halo)),
       direction(real.cloud.uSunDir.value, cloud.uSunDir.value), colour(() => real.cloud.uSunColor.value, cloud.uSunColor.value), colour(() => real.cloud.uCloudLit.value, cloud.uCloudLit.value),
@@ -463,6 +480,10 @@ export class BackdropLayer {
     for (const slot of this.slots) slot.blend(w);
     return () => { for (let i = this.slots.length - 1; i >= 0; i--) this.slots[i]?.undo(); };
   }
+
+  /** FR5: the god rays' direction while this layer's rays-only sun holds the page's disc; undefined when it does not, null
+   *  for the light's own (blended) sun */
+  raysDir(): Vector3 | null | undefined { return this.rays.on ? this.rays.dir : undefined; }
 
   /** after an in-place WebGL restore: the backdrop's own way of rebuilding its textures and environment */
   rebuild(): void { this.backdrop?.rebuild(); }

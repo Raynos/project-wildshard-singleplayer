@@ -18,7 +18,7 @@ import { patchPointLightSkip } from './pointLightSkip';
 import { registerCascades } from './cascadeLights';
 import { patchCSMShaderChunk } from './csmLightBlock';
 import {WeakShaderMap} from './weakShaderMap';
-import type { DayCycleClock } from './dayCycle';
+import { compassDir, type DayCycleClock } from './dayCycle';
 import { ShadowMaps } from './shadowVariants';
 import type { LookStrategy, SkyBackdrop, SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets, SkyDressing } from '../render/look';
 import { PATCH_ORDER, hasProgramKey, patchShader, takeForeignHook } from '../render/shaderPatches';
@@ -66,7 +66,11 @@ export class SkyRig {
   private readonly visual: SkyBackdropView;
   get sunDisc(): THREE.Mesh { return this.visual.sunDisc; }
   /** where the sun disc (and so the god rays) sits: the light's sun, or a painted sun's direction (E398) */
-  get raysDir(): THREE.Vector3 { return this.visual.raysDir ?? this.sunDir; }
+  get raysDir(): THREE.Vector3 {
+    // FR5: a grid region's rays-only sun holds the disc inside its cell (`BackdropLayer.raysDir`)
+    for (const layer of this.layers) { const dir = layer.raysDir(); if (dir !== undefined) return dir ?? this.sunDir; }
+    return this.visual.raysDir ?? this.sunDir;
+  }
   get planet(): THREE.Group { return this.visual.planet; }
   get planetDir(): THREE.Vector3 { return this.visual.planetDir; }
   /** the fill light (ChunkSky.hemiSky / hemiGround / hemiIntensity) — a runtime handle for the day/night clocks */
@@ -207,7 +211,7 @@ export class SkyRig {
    */
   /** The attached, live backdrop layers (a grid's resident cells' skies), for a warm-up of their domes (`Game.warmSkyLayers`). */
   attachedLayers(): BackdropLayer[] { return [...this.layers].filter((layer) => { const state = layer.state(); return state.attached && !state.disposed; }); }
-  layerBackdrop(options: { readonly air?: () => THREE.Fog | null; readonly owner?: Scope; readonly base?: boolean; readonly origin?: () => THREE.Vector3; readonly environment?: LayerEnvironmentOnly } = {}): BackdropLayer | null {
+  layerBackdrop(options: { readonly air?: () => THREE.Fog | null; readonly owner?: Scope; readonly base?: boolean; readonly origin?: () => THREE.Vector3; readonly environment?: LayerEnvironmentOnly; readonly rays?: THREE.Vector3 | true } = {}): BackdropLayer | null {
     const targets = this.targets;
     if (targets === null) return null;
     const layer = new BackdropLayer({ targets, scene: this.scene }, { ...options, assets: app.assets, onDispose: () => { this.layers.delete(layer); } });
@@ -227,12 +231,15 @@ export class SkyRig {
    * off hides the page's inside its cell. `origin`: where its level's own frame stands on the page (a grid region's root),
    * at which the layer draws the backdrop's world-anchored sky pieces (`SkyBackdrop.dressing`).
    */
-  async layeredBackdrop(factory: SkyBackdropFactory, options: { readonly level: LevelSpec; readonly scope?: Scope; readonly air?: () => THREE.Fog | null; readonly planet?: boolean; readonly clouds?: boolean; readonly sun?: { readonly disc?: boolean; readonly halo?: boolean } | undefined; readonly origin?: () => THREE.Vector3 }): Promise<{ layer: BackdropLayer; backdrop: SkyBackdrop } | null> {
-    const layer = this.layerBackdrop({ ...(options.air === undefined ? {} : { air: options.air }), ...(options.scope === undefined ? {} : { owner: options.scope }), ...(options.origin === undefined ? {} : { origin: options.origin }) });
+  async layeredBackdrop(factory: SkyBackdropFactory, options: { readonly level: LevelSpec; readonly scope?: Scope; readonly air?: () => THREE.Fog | null; readonly planet?: boolean; readonly clouds?: boolean; readonly sun?: SkyDressing['sun']; readonly origin?: () => THREE.Vector3 }): Promise<{ layer: BackdropLayer; backdrop: SkyBackdrop } | null> {
+    // FR5: a disc that is off can stay on as the god rays' source only (E398), as standalone `SkyBackdropView` keeps it
+    const rays = options.sun?.disc === false ? options.sun.rays : undefined, raysOnly = rays !== undefined && rays !== false;
+    const layer = this.layerBackdrop({ ...(options.air === undefined ? {} : { air: options.air }), ...(options.scope === undefined ? {} : { owner: options.scope }), ...(options.origin === undefined ? {} : { origin: options.origin }),
+      ...(!raysOnly ? {} : { rays: typeof rays === 'object' ? compassDir(rays.azimuth, rays.elevation) : true }) });
     if (layer === null) return null;
     try {
       seedLayerTargets(layer, options.level);
-      if (options.sun?.disc === false) layer.targets.disc.visible = false;
+      if (options.sun?.disc === false && !raysOnly) layer.targets.disc.visible = false;
       if (options.sun?.halo === false && layer.targets.halo !== null) layer.targets.halo.visible = false;
       // op-hitch47: the engine cloud layer's fbm arrives as the common bake while the backdrop builds, not marched in its frame
       const cloudField = options.clouds !== false ? this.visual.loadCloudField() : Promise.resolve();
