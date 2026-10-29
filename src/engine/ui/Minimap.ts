@@ -122,6 +122,11 @@ export interface MinimapPalette {
 
 
 const VIEW_RADIUS = 110;          // metres from the player to the rim
+/** BA-6: the minimap repaints at most this often, and only when what it shows changed */
+const PAINT_HZ = 30;
+/** FNV-1a over 32-bit ints: the minimap's view digest (BA-6), no allocation */
+const FNV_SEED = 2166136261;
+const fold = (h: number, v: number): number => Math.imul(h ^ (v | 0), 16777619);
 export const LAYER_PPM = 2;       // terrain layer px per metre (1000 × 1000 for the 500 m chunk)
 const HEIGHT_STEP = 2;            // metres between height samples for the ground shading
 const COVER_PPM = 0.5;            // fog coverage px per metre (1 px per 2 m)
@@ -373,6 +378,15 @@ export class Minimap {
       this.coverCtx.drawImage(this.stamp, (CHUNK_HALF - pos.x) * COVER_PPM - r, (CHUNK_HALF - pos.z) * COVER_PPM - r);
     }
 
+    // BA-6 (MF7, battery): repaint only when what the map shows changed, at most PAINT_HZ; a hostile's pulsing ring animates
+    const marks = this.marks, t = performance.now();
+    const hash = this.signature(pos, deg, animals, marks, baseAlpha);
+    const pulsing = this.hotInView;
+    const same = hash === this.paintedHash && ground === this.paintedGround && overlay === this.paintedOverlay;
+    if (same && !pulsing) return;
+    if (t - this.paintedAt < 1000 / PAINT_HZ) return;
+    this.paintedHash = hash; this.paintedGround = ground; this.paintedOverlay = overlay; this.paintedAt = t;
+
     const D = this.size, c = D / 2, k = D / (2 * VIEW_RADIUS); // device px per metre
     const ctx = this.ctx;
     ctx.save();
@@ -432,7 +446,6 @@ export class Minimap {
     }
 
     // 3b. marks (the sea chart's sea glass): a small diamond in the piece's colour, dark-outlined
-    const marks = this.marks;
     if (marks.length > 0) {
       const mr = 3.2 * this.dpr;
       ctx.lineWidth = 1.2 * this.dpr; ctx.strokeStyle = DOT_OUTLINE;
@@ -458,6 +471,29 @@ export class Minimap {
     // rim vignette
     if (this.vignette) { ctx.fillStyle = this.vignette; ctx.fillRect(0, 0, D, D); }
     ctx.restore();
+  }
+
+  // BA-6: what the last paint showed (a numeric digest of the view, plus the layers by identity)
+  private paintedHash = Number.NaN; private paintedAt = -Infinity;
+  private paintedGround: HTMLCanvasElement | ImageBitmap | null = null; private paintedOverlay: MapExtras | null = null;
+  private hotInView = false;
+  /** A digest of everything the paint reads that can move: the player (1/8 m, 0.5 deg), the size and fade, each animal and
+   *  mark in view. Sets `hotInView` when a hostile's ring pulses (that animates, so it repaints at PAINT_HZ). */
+  private signature(pos: { x: number; z: number }, deg: number, animals: readonly MinimapAnimal[], marks: readonly MapMark[], alpha: number): number {
+    let h = fold(fold(fold(fold(fold(FNV_SEED, Math.round(pos.x * 8)), Math.round(pos.z * 8)), Math.round(deg * 2)), this.size), Math.round(alpha * 100));
+    let pulse = false;
+    for (const a of animals) {
+      if (a.alive === false || (a.hp !== undefined && a.hp <= 0) || a.mem?.['hidden'] === 1) continue;
+      const dx = a.position.x - pos.x, dz = a.position.z - pos.z;
+      if (dx * dx + dz * dz > VIEW_RADIUS * VIEW_RADIUS) continue;
+      h = fold(fold(fold(h, Math.round(dx * 4)), Math.round(dz * 4)), a.rarity === 'legendary' ? 2 : a.rarity === 'rare' ? 1 : 0);
+      const aggressive = a.aggressive ?? (hasSpecies(a.kind) && speciesDef(a.kind).aggressive === true);
+      if (aggressive && (a.state !== undefined ? (a.state === 'charge' || a.state === 'stalk' || a.state === 'alert') : (a.hp !== undefined && a.maxHp !== undefined && a.hp < a.maxHp))) pulse = true;
+    }
+    h = fold(h, marks.length);
+    for (const m of marks) h = fold(fold(fold(h, Math.round(m.x * 4)), Math.round(m.z * 4)), m.color.length);
+    this.hotInView = pulse;
+    return h;
   }
 
   /** an overlay's rectangles and images, under the level's own terrain (screen x = c − (x − pos.x) · k, y = c − (z − pos.z) · k) */
