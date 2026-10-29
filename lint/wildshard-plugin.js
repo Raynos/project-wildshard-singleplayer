@@ -1113,8 +1113,6 @@ const legacyNpcImports = rule('Historical NPC exports serve only registered froz
   const filename = pathOf(context);
   if (!filename.startsWith('src/') || legacySourcePath(filename) !== null) return {};
   const check = (node, source) => {
-    // Preserve the historical implementation's one internal type dependency literally.
-    if (filename === 'src/game/systems/npc/figureMotion.ts' && source === './figureRig' && node.type === 'ImportDeclaration' && node.importKind === 'type') return;
     if (legacyNpcImport(context.filename, source)) report(context, node, `Historical NPC imports are for exact SF73 registered legacy files only; primary shards use their local implementation: ${source}`);
   };
   return { ...importsVisitor(node => { check(node, importPrefix(node.source)); }), TSImportType(node) { check(node, importPrefix(node.source)); } };
