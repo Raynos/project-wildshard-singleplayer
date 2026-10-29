@@ -71,12 +71,10 @@ test('the world recipe bundles as one author chunk without filesystem or compile
   for (const chunk of chunks) expect(() => assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports])).not.toThrow();
 });
 
-test('the five legacy-only public GLBs stay byte-exact until LD', () => {
-  const legacy = readFileSync('src/shards/sunscar-dunes-legacy/boot/files.ts', 'utf8');
+test('the five retained public GLBs stay byte-exact', () => {
   let total = 0;
   for (const name of ['rocks', 'dressing', 'tower', 'caravan', 'well']) {
     const url = `/assets/sunscar-dunes/baked/${name}.glb`;
-    expect(legacy).toContain(url);
     const bytes = new Uint8Array(readFileSync(`public${url}`)); total += bytes.length;
     expect({ bytes: bytes.length, hash: hashImmutableBytes(bytes) })
       .toEqual(Object.entries(original).find(([key]) => key === `${name}.glb`)?.[1]);
