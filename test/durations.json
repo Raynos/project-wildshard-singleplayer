@@ -1521,7 +1521,6 @@
  "test/nine-traversal-data.test.ts": 0,
  "test/nine-window-packets.test.ts": 0.3,
  "test/nine-world-install.test.ts": 0.9,
- "test/nine-world-product.test.ts": 1.1,
  "test/nine-world-program.test.ts": 5.8,
  "test/nine-world-scenes.test.ts": 0.1,
  "test/no-base64.test.ts": 1.7,

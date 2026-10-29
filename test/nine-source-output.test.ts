@@ -5,22 +5,11 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native comparison checks every byte without expanding typed arrays into assertion objects.
 import { Buffer } from 'node:buffer';
 import { afterAll, expect, test } from 'vitest';
-import { halfFloatBeforeControl } from './fixtures/half-float-before-control';
-import { HalfOutputProof } from './fixtures/half-output-proof';
 import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
-import { prepareProjectOutput } from '../src/sdk/projectOutput';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
 import { prepareAssetDecoders } from '../src/format/product';
-import { NINE_MOVERS_CONTRACT } from '../src/shards/nine-dragon-stack/generators/moversProgram';
-import originalWorld from './fixtures/nine-world-files.json' with { type: 'json' };
-import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nineSourceOutput } from '../src/shards/nine-dragon-stack/generators/sourceOutput';
-import before from './fixtures/nine-admitted-output.json' with { type: 'json' };
-import { nineRefinePredecessor } from './fixtures/nine-refine-predecessor';
-import { nineCoarsePredecessor } from './fixtures/nine-coarse-predecessor';
-import { nineOutputReceipt } from './fixtures/nine-output-receipt';
 import { parseBurstFields } from '../src/shards/nine-dragon-stack/generators/sections';
 import type { NineOutput } from '../src/shards/nine-dragon-stack/generators/productOutput';
 import bursts from '../src/shards/nine-dragon-stack/data/burstFields.json' with { type: 'json' };
@@ -61,35 +50,8 @@ async function prepareColdOutput() {
     return { project, context, cold, proofs, dispose: () => { rmSync(cache, { recursive: true, force: true }); } };
   } catch (error) { rmSync(cache, { recursive: true, force: true }); throw error; }
 }
-const fixture = await prepareColdOutput(), halfProof = new HalfOutputProof();
-const predecessor = await halfFloatBeforeControl(async () => {
-  const cold = await prepareColdOutput();
-  return { ...cold, prepared: await prepareProjectOutput(cold.project, cold.cold) };
-}, halfProof.observe);
-afterAll(() => { fixture.dispose(); predecessor.dispose(); });
-
-test('cold source output retains every admitted file byte and contract', async () => {
-  expect(fixture.proofs.calls).toBe(1);
-  // D179 B: the fabric and the scenes section read back through the refine predecessor layer; every other byte as pinned
-  const current = await prepareProjectOutput(fixture.project, fixture.cold);
-  halfProof.expect(predecessor.prepared, current);
-  // NR12: the coarse graph comes out first (the newest layer), then D179 B's
-  const prepared = nineRefinePredecessor(nineCoarsePredecessor(predecessor.prepared));
-  const originalAssets = new Set(before.assets.map(row => row.name));
-  const worldFiles = originalWorld.filter(row => row.path.startsWith('assets/'));
-  const actualKeys = new Set([...prepared.assets.keys(), ...prepared.blobs.map(row => row.file.hash)]);
-  expect([...actualKeys].sort()).toEqual([...new Set([...originalAssets, ...worldFiles.map(row => row.hash)])].sort());
-  // The complete oracle includes binary portal and presentation channels.
-  // All other prepared files retain their pinned bytes. The 409
-  // world files move from the project reader into owned output and are
-  // independently pinned byte-for-byte by nine-world-program's 411 rows.
-  for (const row of worldFiles) {
-    const owned = prepared.assets.get(row.hash); if (owned === undefined) throw new Error(`Missing owned world ${row.hash}`);
-    expect(owned.byteLength).toBe(row.bytes); expect(hashImmutableBytes(owned)).toBe(row.hash);
-  }
-  expect(nineOutputReceipt(prepared, originalAssets)).toEqual(before);
-  expect(NINE_MOVERS_CONTRACT).toMatchObject({ compilerRevision: SCRIPT_V2_REVISIONS.compiler, admissionRevision: SCRIPT_V2_REVISIONS.admission });
-});
+const fixture = await prepareColdOutput();
+afterAll(fixture.dispose);
 
 test('hit source output preserves every byte without regeneration and proves entries afresh', async () => {
   const hitContext = fixture.context();

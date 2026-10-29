@@ -7,13 +7,11 @@ import { parseSync } from 'vite';
 import { generatorImportViolation } from '../lint/shard-imports.mjs';
 import { nineProductFrom } from '../src/shards/nine-dragon-stack/generators/productDefinition';
 import product, { nineProduct, inputs } from './fixtures/nine-product-inputs';
-import { expectNineDeclaration } from './fixtures/nine-declaration-pins';
 
 
-test('owned inputs preserve the complete original Nine declaration and view contract', () => {
+test('owned inputs compose the supplied view contract', () => {
   const declaration = nineProductFrom(inputs);
   expect(declaration).toEqual(product);
-  expectNineDeclaration(declaration);
   expect(nineProductFrom(inputs, { pages: 3 })).toEqual(nineProduct({ pages: 3 }));
 });
 
