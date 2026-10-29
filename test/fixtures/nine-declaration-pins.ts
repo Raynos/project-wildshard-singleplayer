@@ -78,9 +78,9 @@ export function expectNineDeclaration(current: Shardfile): void {
   expect(coarse.size).toBe(12); expect(product.library.filter(file => coarse.has(file))).toEqual([]);
   expect(product.tiles.filter(tile => tile.lod !== 0 && tile.lod !== 1)).toEqual([]);
   expect(signature({ ...product, tiles: product.tiles.filter(tile => tile.lod === 0), files: product.files.filter(file => !coarse.has(file.hash)) }))
-    .toEqual({ bytes: 735799, hash: '94903d85d60a7469ce118b23f7ae9d28d7a0b0e76d2094c6a209eba11a5985f2' });
+    .toEqual({ bytes: 735799, hash: '2f6528020c26bdf3c628aa9088550baa4689456b09e689d5b90621c54e456ffd' });
   const world = new Set(worldFiles.map(row => row.hash));
   expect(signature(product.files.filter(file => !world.has(file.hash)).map(file => file.hash).sort()))
-    .toEqual({ bytes: 1141, hash: '1ab081469b9ba1a809ea889eadf95e01f6dc9c617e66a71e5c70c6605aa52e6d' });
-  expect(signature(product)).toEqual({ bytes: 741684, hash: '62ed0264485e75570c798d7b6cc85c137ffa092c8161a5838a6e8081e1f3731c' });
+    .toEqual({ bytes: 1141, hash: '67a5183e4aa385f2c15a32302856e41dd421917f145ba7ac50ad096e7c7c9b8b' });
+  expect(signature(product)).toEqual({ bytes: 741684, hash: 'bb6b8ed8c0dde17b00ea3e6815d7292a51ebe09017284bfe092e465b8d21a23a' });
 }

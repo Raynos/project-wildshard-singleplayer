@@ -7,6 +7,7 @@ import { LookGraph } from './lookGraph';
 import rows from '../data/viewmodelUniforms.json' with { type: 'json' };
 import decals from '../data/decals.json' with { type: 'json' };
 import motion from '../data/clothMotion.json' with { type: 'json' };
+import { viewGravitySwing } from './clothSwing';
 
 const C = decals.classes;
 type Ref = GraphRef;
@@ -115,7 +116,8 @@ function flutter(source: GraphIr): GraphIr {
   Object.assign(g.nodes, source.nodes); Object.assign(g.params, source.params); Object.assign(g.arrays, source.arrays);
   const field = g.a('aCloth', 'vec4'), time = g.p('uTime', 'float', 0), phase = g.sw(field, 'y');
   const wave = (speed: number): string => g.op('sin', [g.add(g.mul(time, speed), phase)]);
-  const offset = g.mul(g.vec(wave(motion.speed), 0, g.mul(wave(motion.secondSpeed), g.sw(field, 'z'))), g.sw(field, 'x'));
+  const flutterOffset = g.mul(g.vec(wave(motion.speed), 0, g.mul(wave(motion.secondSpeed), g.sw(field, 'z'))), g.sw(field, 'x'));
+  const offset = viewGravitySwing(g, flutterOffset);
   let stages = source.stages;
   if (stages['vertex.clip'] === undefined) stages = { ...stages, 'vertex.position': { position: g.add(g.op('positionGeometry'), offset) } };
   else {

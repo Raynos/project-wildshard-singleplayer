@@ -56,8 +56,11 @@ export function buildViewmodelParts(): { knot: BufferGeometry; tassel: BufferGeo
     sheet.step(1 / 60, pivot('talisman'), q, gravity, 0, caps);
   }
   const knot = kx.build().applyQuaternion(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), tassel.capDir)).translate(tassel.cap.x, tassel.cap.y, tassel.cap.z);
-  for (const [geometry, top, length] of [[tassel.geo, pivot('tassel').addScaledVector(down, cloth.TASSEL.cordLen + cloth.TASSEL.cap), cloth.TASSEL.len], [sheet.geo, pivot('talisman').addScaledVector(down, cloth.TALISMAN.cordLen), cloth.TALISMAN.h], [sheet.cordGeo, pivot('talisman'), cloth.TALISMAN.cordLen]] as const) {
-    const pos = geometry.getAttribute('position'), field = new Float32Array(pos.count * 4), p = new Vector3();
+  // NR7 view F: what each vertex swings about with the view's down (the cloth graph's `aClothPivot`): the tassel's strands
+  // about the knot, the fu about its cord's end; the cords themselves (and the tassel's cord above the knot) name their own
+  // place, so they stay put and nothing parts from the knot or the guard
+  for (const [geometry, top, length, hang] of [[tassel.geo, pivot('tassel').addScaledVector(down, cloth.TASSEL.cordLen + cloth.TASSEL.cap), cloth.TASSEL.len, tassel.cap], [sheet.geo, pivot('talisman').addScaledVector(down, cloth.TALISMAN.cordLen), cloth.TALISMAN.h, pivot('talisman').addScaledVector(down, cloth.TALISMAN.cordLen)], [sheet.cordGeo, pivot('talisman'), cloth.TALISMAN.cordLen, null]] as const) {
+    const pos = geometry.getAttribute('position'), field = new Float32Array(pos.count * 4), pivots = new Float32Array(pos.count * 3), p = new Vector3();
     for (let i = 0; i < pos.count; i++) {
       p.fromBufferAttribute(pos, i);
       let clearance = motion.amplitude;
@@ -70,8 +73,11 @@ export function buildViewmodelParts(): { knot: BufferGeometry; tassel: BufferGeo
       field[i * 4] = weight * weight * clearance;
       field[i * 4 + 1] = p.x * motion.phaseX + p.y * motion.phaseY;
       field[i * 4 + 2] = motion.depth;
+      const at = hang === null || p.clone().sub(top).dot(down) < 0 ? p : hang;
+      pivots.set([at.x, at.y, at.z], i * 3);
     }
     geometry.setAttribute('aCloth', new BufferAttribute(field, 4));
+    geometry.setAttribute('aClothPivot', new BufferAttribute(pivots, 3));
     geometry.computeBoundingSphere();
   }
   knot.setAttribute('aHullN', knot.getAttribute('normal').clone());
