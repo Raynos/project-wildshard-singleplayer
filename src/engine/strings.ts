@@ -9,6 +9,7 @@ export const ENGINE_STRINGS = {
   "s_update_heading": "Updating",
   "s_update_next_boundary": "New version · reload",
   "s_update_next_boundary_dev": "new ⟦0⟧ · reload",
+  "s_update_confirm": "Confirm reload",
   "s_update_found": "New build found",
   "s_update_requested": "Refresh requested",
   "s_update_download": "Downloading boot pack",

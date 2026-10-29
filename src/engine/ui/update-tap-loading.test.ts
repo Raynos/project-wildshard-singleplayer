@@ -9,7 +9,7 @@ afterEach(async () => {
   vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers();
 });
 
-test('a tap on the loading screen reloads even before a newer build has installed', async () => {
+test('a confirmed tap on the loading screen reloads even before a newer build has installed (G877)', async () => {
   vi.useFakeTimers(); vi.stubGlobal('__BUILD_ID__', 'fixture-before');
   vi.stubGlobal('fetch', () => Promise.resolve(Response.json({ build: 'fixture-after' })));
   const replace = vi.fn<(url: string) => void>(), reload = vi.fn(), activate = vi.fn(() => Promise.resolve(true));
@@ -21,6 +21,8 @@ test('a tap on the loading screen reloads even before a newer build has installe
   const pill = document.querySelector('.ws-update');
   if (!(pill instanceof HTMLButtonElement)) throw new Error('Missing update pill');
   expect(pill.classList.contains('visible')).toBe(true);
+  pill.click(); await vi.advanceTimersByTimeAsync(600);
+  expect(pill.textContent).toContain('Confirm reload'); expect(reload).not.toHaveBeenCalled();
   pill.click(); await vi.advanceTimersByTimeAsync(100);
   expect(activate).not.toHaveBeenCalled(); expect(reload).toHaveBeenCalledTimes(1); expect(replace).not.toHaveBeenCalled();
 });

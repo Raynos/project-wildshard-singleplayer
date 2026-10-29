@@ -9,7 +9,7 @@ afterEach(async () => {
   vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers();
 });
 
-test('a tap on the pause menu pill adopts the waiting worker and reloads in place (P0 2026-10-29)', async () => {
+test('a confirmed second tap on the pause menu pill adopts the waiting worker and reloads in place (G877)', async () => {
   vi.useFakeTimers(); vi.stubGlobal('__BUILD_ID__', 'fixture-before');
   vi.stubGlobal('fetch', () => Promise.resolve(Response.json({ build: 'fixture-before' })));
   const replace = vi.fn<(url: string) => void>(), reload = vi.fn(), activate = vi.fn(() => Promise.resolve(true));
@@ -20,6 +20,13 @@ test('a tap on the pause menu pill adopts the waiting worker and reloads in plac
   window.dispatchEvent(new Event('ws-sw-waiting'));
   const pill = document.querySelector('.ws-update');
   if (!(pill instanceof HTMLButtonElement)) throw new Error('Missing update pill');
-  pill.click(); pill.dispatchEvent(new Event('pointerup')); await vi.advanceTimersByTimeAsync(100);
+  // G877: off the title the first tap (pointerup + its click) only arms the confirm, which lapses after 4 s
+  pill.dispatchEvent(new Event('pointerup')); pill.click(); await vi.advanceTimersByTimeAsync(100);
+  expect(pill.textContent).toContain('Confirm reload'); expect(reload).not.toHaveBeenCalled();
+  await vi.advanceTimersByTimeAsync(4000);
+  expect(pill.textContent).not.toContain('Confirm reload'); expect(reload).not.toHaveBeenCalled();
+  pill.dispatchEvent(new Event('pointerup')); pill.click(); await vi.advanceTimersByTimeAsync(600);
+  expect(reload).not.toHaveBeenCalled();
+  pill.dispatchEvent(new Event('pointerup')); pill.click(); await vi.advanceTimersByTimeAsync(100);
   expect(activate).toHaveBeenCalledTimes(1); expect(reload).toHaveBeenCalledTimes(1); expect(replace).not.toHaveBeenCalled();
 });

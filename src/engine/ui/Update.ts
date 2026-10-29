@@ -13,7 +13,7 @@ import { engineString } from '../strings';
  *
  * E176 (Jake): the in-game PAUSE menu carries it too, at the same screen corner as the title's — on the phone the pause
  * menu is the only chrome you can reach once you are in the world, so that is where a waiting deploy has to be tappable.
- * A tap reloads wherever the pill is (title, loading screen, pause menu; 2026-10-29 P0).
+ * A tap reloads wherever the pill is (title; elsewhere after a confirming second tap, G877; 2026-10-29 P0).
  * It sits over the menu overlay (z 80 vs 70) and publishes `--ws-pill` on <html>, which is the band gmenu.css keeps free
  * above the sheet so the pill never lands on CLOSE.
  */
@@ -41,8 +41,8 @@ let busy = false;
 let targetBuild: string | null = null;
 let newer = false;
 const screen = new UpdateProgress(scope, __BUILD_ID__, () => { busy = false; void reload(true); });
-/** `tapped`: the player pressed the pill. Jake 2026-10-29 (P0, "the reload button does nothing"): a tap always reloads,
- *  on the title, the loading screen and the pause menu. Only the automatic adoption waits for the title. */
+/** `tapped`: the player pressed the pill (the title's tap, or the confirmed second tap elsewhere, `tap` below). Jake
+ *  2026-10-29 (P0, "the reload button does nothing"): a tap always reloads. Only the automatic adoption waits for the title. */
 async function reload(tapped: boolean): Promise<void> {
   if (busy) return;
   const sw = window.__ws_sw, atTitle = titleBoundary();
@@ -86,8 +86,30 @@ async function reload(tapped: boolean): Promise<void> {
 }
 // pointerup as well as click: iOS drops the synthesized click when a tap jitters (index.html cancels touchmove for the
 // rubber-band), so the pill answers the lift itself; `busy` keeps the pair from running twice
-scope.listen(el, 'pointerup', () => { void reload(true); });
-scope.listen(el, 'click', () => { void reload(true); });
+scope.listen(el, 'pointerup', tap);
+scope.listen(el, 'click', tap);
+
+// G877 (Jake 2026-10-29): on the title one tap reloads; anywhere else (loading screen, pause, play) the first tap arms
+// "Confirm reload", a second tap reloads, and the pill reverts after CONFIRM_MS without one
+const CONFIRM_MS = 4000, SAME_TAP_MS = 400;
+let armedAt = -1, disarm: (() => void) | null = null;
+function tap(): void {
+  if (busy) return;
+  if (titleBoundary()) { void reload(true); return; }
+  const now = diagnosticNow();
+  if (armedAt < 0) {
+    armedAt = now; el.classList.add('confirm');
+    const text = el.querySelector('[data-el="text"]');
+    if (text !== null) text.textContent = engineString('s_update_confirm');
+    const timer = scope.child('update.confirm');
+    timer.timeout(CONFIRM_MS, () => { armedAt = -1; el.classList.remove('confirm'); paint(); });
+    disarm = () => { timer.dispose(); };
+    return;
+  }
+  if (now - armedAt < SAME_TAP_MS) return; // the click that follows the same tap's pointerup
+  armedAt = -1; disarm?.(); disarm = null; el.classList.remove('confirm');
+  void reload(true);
+}
 
 let newLabel = '';
 function titleBoundary(): boolean {
@@ -99,12 +121,12 @@ function requestInstall(): void {
   if (text !== null) text.textContent = engineString('s_update_next_boundary');
 }
 /** the pill's words: a player reads "New version", a developer the build ids */
-const paint = (): void => {
+function paint(): void {
   const text = el.querySelector('[data-el="text"]');
-  if (!text || busy) return;
+  if (!text || busy || armedAt >= 0) return;
   text.textContent = !newer ? engineString('s_9e4fe13a912d', [sha]) : isDev()
     ? engineString('s_update_next_boundary_dev', [newLabel]) : engineString('s_update_next_boundary');
-};
+}
 const lightUp = (label: string): void => {
   newer = true;
   newLabel = label;
