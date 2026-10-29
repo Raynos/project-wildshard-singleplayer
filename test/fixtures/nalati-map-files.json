@@ -1,8 +1,8 @@
 [
   {
     "path": "src/shards/nalati-grasslands/data/mapAssembly.generated.json",
-    "bytes": 9109181,
-    "hash": "26df76fb2769dc636b55a8f463924ad2b3fabb511ba2308e7b98a24ae46d6022"
+    "bytes": 9096457,
+    "hash": "6d8c404d95eccd814d37a2079ce9b8cc8b6b7ca7552a3e791962256c0d4dd2b3"
   },
   {
     "path": "src/shards/nalati-grasslands/data/mapAssembly.generated.bin",
@@ -11,7 +11,7 @@
   },
   {
     "path": "public/assets/nalati-grasslands/map/top.webp",
-    "bytes": 724014,
-    "hash": "7723ca9f1b7415875270ca247bf5ab2279af649f87b3d3428fb2fd779bc29d8c"
+    "bytes": 724530,
+    "hash": "80afaa55b292b48c93694dbc7ac95557ecb96714b2c159cd467ff3fa0caff2d6"
   }
 ]

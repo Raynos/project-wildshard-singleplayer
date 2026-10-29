@@ -10,6 +10,10 @@ import {GRASS_FILES,originalGrassProfile} from './fixtures/nalatiGrass';
 import reference from './fixtures/nalati-grass-blocks.json' with {type:'json'};
 import {grassChannelBytes} from '../src/shards/nalati-grasslands/generators/grassRows';
 import nativeReference from './fixtures/nalati-grass-native-blocks.json' with {type:'json'};
+// oxlint-disable-next-line import/no-nodejs-modules -- The committed terrain lattice feeds the predecessor grass.
+import {readFileSync} from 'node:fs';
+import {nalatiGrassBake} from '../src/shards/nalati-grasslands/generators/grassBake.mjs';
+import {sampledDressingPlacements} from './fixtures/nalati-sampled-dressing';
 
 const input:unknown=nalatiGrassJson();
 const rows=v.parse(GrassPresentationSchema,input);
@@ -46,3 +50,13 @@ test('raw grass profiles preserve full height and field layouts and reject missi
   for(const tier of [profile.input.phone,profile.input.desktop])for(const block of Object.values(tier.scenes))expect(()=>profile.scene(block)).not.toThrow();
   texture.dispose();
 });
+
+// QF24 (2c1ad0bbcc): the dressing follows LEGACY's continuous spruce mask. Over the predecessor's sampled-lattice placements
+// the same bake still makes the old mask block byte for byte, and every other block equals the product's: the
+// forest law is the mask's only change (35434 -> 35499 B).
+test('the sampled-forest predecessor keeps the old grass mask and every other block',async()=>{
+  const before=nalatiGrassBake(new Uint8Array(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin')),await sampledDressingPlacements());
+  const mask=before.files.get('look/grass/mask.bin');if(mask===undefined)throw new Error('Missing predecessor grass mask');
+  expect({bytes:mask.length,hash:hash(mask)}).toEqual({bytes:35434,hash:'73d990f4ee4b6c5cd31d766daa0a321545403ab343b34b31058c36bd620a42f5'});
+  for(const [name,bytes]of nalatiGrass.files)if(name!=='look/grass/mask.bin')expect(before.files.get(name),name).toEqual(bytes);
+},120000);

@@ -8,7 +8,7 @@ import { nalatiGrass } from './fixtures/nalati-grass-bake';
 import grassPins from './fixtures/nalati-grass-pins.json' with { type: 'json' };
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
-test('native Node authors preserve every original sampled placement with no generated-row reads or page selection', () => {
+test('native Node authors preserve every original continuous-forest placement with no generated-row reads or page selection', () => {
   const source = `
     import assert from 'node:assert/strict';
     import fs from 'node:fs';
@@ -31,7 +31,10 @@ test('native Node authors preserve every original sampled placement with no gene
       const again=await nativeNalatiDressingPlacements(file=>fs.readFileSync(file));assert.equal(selectedLevel(),null);
       for(const [name,bytes]of files){assert.equal(Buffer.compare(bytes,again.get(name)),0,name);assert.notEqual(bytes.buffer,again.get(name).buffer);}
       const {prepareNalatiDressing}=await import('./scripts/bake/nalatiDressing.mjs');
-      const before=await prepareNalatiDressing(undefined,originalGeographyFiles());
+      const {inSpruceClearing,loneSpruceMask,edgeBermAt}=await import('./src/shards/nalati-grasslands/generators/terrainRecipe.ts');
+      const {edgeSpruceMask}=await import('./src/shards/nalati-grasslands/generators/edgeRecipe.ts');
+      // QF24 (2c1ad0bbcc): LEGACY's continuous spruce mask, not the 256 lattice
+      const before=await prepareNalatiDressing((x,z)=>inSpruceClearing(x,z)?0:Math.max(loneSpruceMask(x,z),edgeSpruceMask(x,z,edgeBermAt(x,z))),originalGeographyFiles());
       for(const [group,rows]of Object.entries({...before.plan,clutter:before.clutter})){
         const name='dressing-'+group+'.json',expected=Buffer.from(JSON.stringify(rows)+'\\n'),actual=files.get(name);
         assert.ok(actual,name);assert.equal(actual.length,expected.length,name);assert.equal(Buffer.compare(actual,expected),0,name);

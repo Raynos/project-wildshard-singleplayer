@@ -107,7 +107,11 @@ test('the independent runtime scatter predecessor keeps every source-owned outpu
     const files=await nativeNalatiDressingPlacements(file=>readFileSync(file));
     const {prepareNalatiDressing}=await import('./scripts/bake/nalatiDressing.mjs');
     const {originalGeographyFiles}=await import('./test/fixtures/nalati-geography-original.ts');
-    const before=await prepareNalatiDressing(undefined,originalGeographyFiles()), rows=Object.entries({...before.plan,clutter:before.clutter});
+    const {inSpruceClearing,loneSpruceMask,edgeBermAt}=await import('./src/shards/nalati-grasslands/generators/terrainRecipe.ts');
+    const {edgeSpruceMask}=await import('./src/shards/nalati-grasslands/generators/edgeRecipe.ts');
+    // QF24 (2c1ad0bbcc): the placements follow LEGACY's continuous spruce mask, not the 256 lattice
+    const continuous=(x,z)=>inSpruceClearing(x,z)?0:Math.max(loneSpruceMask(x,z),edgeSpruceMask(x,z,edgeBermAt(x,z)));
+    const before=await prepareNalatiDressing(continuous,originalGeographyFiles()), rows=Object.entries({...before.plan,clutter:before.clutter});
     assert.equal(rows.length,18);assert.equal(files.size,18);
     for(const [name,value]of rows){
       const expected=Buffer.from(JSON.stringify(value)+'\\n'),actual=files.get('dressing-'+name+'.json');
