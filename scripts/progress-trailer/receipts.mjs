@@ -8,8 +8,8 @@
 //   then: scripts/browser-lane.sh --max 10 node scripts/steam-trailer/titles.mjs <frames> <out>/cards.json \
 //           --titles-html=scripts/progress-trailer/titles.html            (or `<shots> --preview <out>/cards.json`)
 //
-// Definitions (§2.3), all from main's history in this checkout (a shallow clone cannot compute them, so this is not a
-// vitest test; `node --test scripts/progress-trailer/receipts.test.mjs` asserts them):
+// Definitions (§2.3), all from main's history in this checkout; a shallow clone cannot compute them.
+// The retired standalone historical-count fixture is not a maintained verification path:
 //   - a commit's moment is its committer time; the calendar is UTC−5 (the repo's own offset), fixed, no DST;
 //   - dayOf(sha) = calendar days from the origin commit 402198440 (16 Sep, day 1) to the commit, plus 1;
 //   - a count is `git rev-list --count <sha>` of the SHA on screen;
