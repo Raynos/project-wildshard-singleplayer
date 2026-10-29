@@ -18,18 +18,20 @@ function wire(input: unknown): number {
   return input;
 }
 
-/** Check collection, JSON source and distinct declared wire bounds without reading any immutable asset. */
-export function preflightShardfile(input: unknown): void {
+/** Check collection, JSON source and distinct declared wire bounds without reading any immutable asset.
+ * Optional accounting receives the same tree's conservative heap size only after every check succeeds. */
+export function preflightShardfile(input: unknown, accounting?: { heapBytes: number }): void {
   const { files, requires, commons } = collections(input);
   // The bounds fence first validates the complete plain-JSON tree. Reuse that
   // refusal instead of repeating its descriptor/prototype walk beforehand.
   try { assertCellBounds(input); } catch (error) { throw boundsRefusal(error); }
 
-  let bytes = 0;
+  let bytes = 0, heap = 0;
   const add = (count: number): void => { bytes += count; if (bytes > limits.sourceBytes) throw new Error('Shardfile source exceeds admission cap'); };
   const lengths = new Map<string, number>();
   const string = (value: string, maximum: number): void => {
     if (value.length > maximum) throw new Error('Shardfile string exceeds admission cap');
+    if (accounting !== undefined) heap += 24 + value.length * 2;
     let length = lengths.get(value);
     if (length === undefined) { length = utf8Length(JSON.stringify(value)); lengths.set(value, length); }
     add(length);
@@ -40,20 +42,24 @@ export function preflightShardfile(input: unknown): void {
   const visit = (value: unknown): void => {
     if (typeof value === 'string') { string(value, limits.textCharacters); return; }
     if (Array.isArray(value)) {
+      if (accounting !== undefined) heap += 40 + value.length * 8;
       add(2 + Math.max(0, value.length - 1)); for (const item of value) visit(item); return;
     }
     if (typeof value === 'object' && value !== null) {
       const entries = Object.entries(value); add(2 + Math.max(0, entries.length - 1));
+      if (accounting !== undefined) heap += 64 + entries.length * 16;
       for (const [key, item] of entries) {
         string(key, limits.idCharacters); add(1);
         if (typeof item === 'string' && identifierKeys.has(key)) string(item, limits.idCharacters); else visit(item);
       }
       return;
     }
+    if (accounting !== undefined) heap += 8;
     add(JSON.stringify(value).length);
   };
   visit(input);
   declaredWires(files, requires, commons);
+  if (accounting !== undefined) accounting.heapBytes = heap;
 }
 
 const encoder = new TextEncoder();
@@ -103,10 +109,10 @@ function declaredWires(files: unknown, requires: unknown, commons: unknown): voi
  * refusals. The size walk is the same pre-order on the same builtins (JSON.stringify per value, Object.entries per object;
  * dc806989b0 showed hand-rolled helpers slower in cold page code). The value must not change between steps.
  */
-export function* preflightShardfileSteps(input: unknown, every = 4096): Generator<void, void> {
+export function* preflightShardfileSteps(input: unknown, every = 4096, accounting?: { heapBytes: number }): Generator<void, void> {
   const { files, requires, commons } = collections(input);
   try { yield* assertCellBoundsSteps(input, 'shardfile', every); } catch (error) { throw boundsRefusal(error); }
-  let bytes = 0, since = 0;
+  let bytes = 0, heap = 0, since = 0;
   const add = (count: number): void => { bytes += count; if (bytes > limits.sourceBytes) throw new Error('Shardfile source exceeds admission cap'); };
   // Repeated field names, ids and hashes have the same escaped UTF-8 length.
   // Memoize only that length within this walk; count every occurrence and
@@ -114,6 +120,7 @@ export function* preflightShardfileSteps(input: unknown, every = 4096): Generato
   const lengths = new Map<string, number>();
   const string = (value: string, maximum: number): void => {
     if (value.length > maximum) throw new Error('Shardfile string exceeds admission cap');
+    if (accounting !== undefined) heap += 24 + value.length * 2;
     let length = lengths.get(value);
     if (length === undefined) { length = utf8Length(JSON.stringify(value)); lengths.set(value, length); }
     add(length);
@@ -129,16 +136,20 @@ export function* preflightShardfileSteps(input: unknown, every = 4096): Generato
     }
     if (typeof value === 'string') { string(value, limits.textCharacters); continue; }
     if (Array.isArray(value)) {
+      if (accounting !== undefined) heap += 40 + value.length * 8;
       add(2 + Math.max(0, value.length - 1));
       for (let i = value.length - 1; i >= 0; i--) { values.push(value[i]); keys.push(null); }
       continue;
     }
     if (typeof value === 'object' && value !== null) {
       const entries = Object.entries(value); add(2 + Math.max(0, entries.length - 1));
+      if (accounting !== undefined) heap += 64 + entries.length * 16;
       for (let i = entries.length - 1; i >= 0; i--) { const entry = entries[i]; if (entry !== undefined) { values.push(entry[1]); keys.push(entry[0]); } }
       continue;
     }
+    if (accounting !== undefined) heap += 8;
     add(JSON.stringify(value).length);
   }
   declaredWires(files, requires, commons);
+  if (accounting !== undefined) accounting.heapBytes = heap;
 }

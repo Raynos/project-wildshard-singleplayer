@@ -291,68 +291,27 @@ export function jsonResidentBytes(input: unknown): number {
   if (bytes === undefined) throw new Error('Product residency needs bounded plain JSON');
   return bytes;
 }
-/** Heap accounting after this caller has validated the same synchronous value. */
-function jsonHeapBytes(input: unknown): number {
-  let heap = 0;
-  const pending: unknown[] = [input];
-  // O14: a primitive is counted where it is met, never queued: the products' row arrays are mostly numbers
-  const count = (item: unknown): void => {
-    if (typeof item === 'string') heap += 24 + item.length * 2;
-    else if (typeof item === 'object' && item !== null) pending.push(item);
-    else heap += 8;
-  };
-  while (pending.length > 0) {
-    const value = pending.pop();
-    if (Array.isArray(value)) { const items: readonly unknown[] = value; heap += 40 + items.length * 8; for (const item of items) count(item); }
-    else if (typeof value === 'object' && value !== null) {
-      // The caller validated this synchronous plain-data tree. Keep the key
-      // snapshot without allocating an extra pair array for every property.
-      const fields = value as Readonly<Record<string, unknown>>, keys = Object.keys(value); heap += 64 + keys.length * 16;
-      for (const key of keys) { heap += 24 + key.length * 2; count(fields[key]); }
-    } else count(value);
-  }
-  return heap;
-}
 /** Conservative transport/source heap claim: two parsed-source copies, owned asset buffers and map/object overhead. */
 export function productResidentBytes(source: Shardfile): number {
-  preflightShardfile(source);
+  const accounting = { heapBytes: 0 };
+  preflightShardfile(source, accounting);
   // File/common aliases are copied into separate owned buffers by admitProduct, so count each actual Map entry.
   const wire = source.files.reduce((sum, file) => sum + file.compressed, 0)
     + source.requires.commons.reduce((sum, hash) => sum + (source.requires.commonsWire[hash] ?? 0), 0);
-  // Preflight already checked every JSON node. Count that same source without
-  // repeating its descriptor/prototype validation a second time.
-  return wire + jsonHeapBytes(source) * 2 + (source.files.length + source.requires.commons.length) * 128 + 1024;
+  // The source-size walk already counted this exact tree. Reuse that
+  // accounting without another residency-only traversal.
+  return wire + accounting.heapBytes * 2 + (source.files.length + source.requires.commons.length) * 128 + 1024;
 }
 
 /** `productResidentBytes` in steps of `every` visited values, the same checks, refusals and bytes (T10: one admission walked a
  *  whole source in one drawn frame of a drive, 23-34 ms at phone 4x). The source must not change between steps. */
 export function* productResidentBytesSteps(source: Shardfile, every = 4096): Generator<void, number> {
-  yield* preflightShardfileSteps(source, every);
+  const accounting = { heapBytes: 0 };
+  yield* preflightShardfileSteps(source, every, accounting);
   const wire = source.files.reduce((sum, file) => sum + file.compressed, 0)
     + source.requires.commons.reduce((sum, hash) => sum + (source.requires.commonsWire[hash] ?? 0), 0);
-  return wire + (yield* jsonHeapBytesSteps(source, every)) * 2 + (source.files.length + source.requires.commons.length) * 128 + 1024;
+  return wire + accounting.heapBytes * 2 + (source.files.length + source.requires.commons.length) * 128 + 1024;
 }
-/** `jsonHeapBytes` yielding every `every` containers */
-function* jsonHeapBytesSteps(input: unknown, every: number): Generator<void, number> {
-  let heap = 0, since = 0;
-  const pending: unknown[] = [input];
-  const count = (item: unknown): void => {
-    if (typeof item === 'string') heap += 24 + item.length * 2;
-    else if (typeof item === 'object' && item !== null) pending.push(item);
-    else heap += 8;
-  };
-  while (pending.length > 0) {
-    if (++since >= every) { since = 0; yield; }
-    const value = pending.pop();
-    if (Array.isArray(value)) { const items: readonly unknown[] = value; heap += 40 + items.length * 8; for (const item of items) count(item); }
-    else if (typeof value === 'object' && value !== null) {
-      const fields = value as Readonly<Record<string, unknown>>, keys = Object.keys(value); heap += 64 + keys.length * 16;
-      for (const key of keys) { heap += 24 + key.length * 2; count(fields[key]); }
-    } else count(value);
-  }
-  return heap;
-}
-
 /** Files read only through the asynchronous runtime product API. Inventory membership is not a use:
  * retain every host-declared reference and its dependency closure for synchronous neighbour/simulation readers. */
 export function runtimeOnlyProductFiles(source: Shardfile): readonly string[] {

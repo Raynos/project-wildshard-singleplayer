@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { isJsonData, isJsonDataSteps } from '../src/format/json';
+import { isJsonData, isJsonDataSteps, jsonDataHeapBytes } from '../src/format/json';
 import { assertCellBounds, assertCellBoundsSteps } from '../src/format/cellBounds';
 import { preflightShardfile, preflightShardfileSteps } from '../src/format/preflight';
 import { productResidentBytes, productResidentBytesSteps } from '../src/game/shardfile/productCost';
@@ -108,5 +108,32 @@ test('stepped residency bytes equal productResidentBytes', () => {
   Reflect.set(source, 'rows', Array.from({ length: 3000 }, (_, i) => ({ id: `row-${i}`, x: i * 0.5, tags: ['a', 'é'] })));
   const stepped = drain(productResidentBytesSteps(source, 500));
   expect(stepped.value).toBe(productResidentBytes(source));
+  const heap = jsonDataHeapBytes(source);
+  if (heap === undefined) throw new Error('Invalid accounting fixture');
+  expect(stepped.value).toBe(heap * 2 + 1024);
   expect(stepped.pauses).toBeGreaterThan(5);
+});
+
+test('preflight accounts every source occurrence without a second heap walk', () => {
+  const shared = { leaf: 'é🐟' };
+  const source = { first: shared, second: shared, list: [null, true, false, 1.5, '"\\\n'],
+    plain: Object.assign(Object.create(null) as object, { nested: [shared, [], {}] }) };
+  const expected = jsonDataHeapBytes(source), sync = { heapBytes: -1 }, stepped = { heapBytes: -1 };
+  preflightShardfile(source, sync);
+  expect(drain(preflightShardfileSteps(source, 2, stepped)).pauses).toBeGreaterThan(0);
+  expect(sync.heapBytes).toBe(expected); expect(stepped.heapBytes).toBe(expected);
+  const repeated = { first: { leaf: 1 }, second: { leaf: 1 } }, accounting = { heapBytes: 0 };
+  preflightShardfile(repeated, accounting); expect(accounting.heapBytes).toBe(406);
+});
+
+test('refused or unfinished preflight cannot publish residency accounting', () => {
+  const source = emptyShardfile({ slug: 'steps', name: 'Steps', author: 'T', revision: 1, seed: 1 });
+  const accounting = { heapBytes: -1 }, steps = preflightShardfileSteps(source, 1, accounting);
+  expect(steps.next().done).toBe(false); expect(accounting.heapBytes).toBe(-1); steps.return();
+  for (const invalid of [{ bad: -0 }, { zone: { x0: 2, x1: 1, z0: 0, z1: 1 } },
+    { files: [{ hash: 'a'.repeat(64), compressed: 1 }, { hash: 'a'.repeat(64), compressed: 2 }] }]) {
+    expect(() => preflightShardfile(invalid, accounting)).toThrow();
+    expect(() => drain(preflightShardfileSteps(invalid, 1, accounting))).toThrow();
+    expect(accounting.heapBytes).toBe(-1);
+  }
 });
