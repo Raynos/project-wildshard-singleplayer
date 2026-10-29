@@ -35,7 +35,7 @@ import { SkyRig as Sky } from '../world/skyRig';
 import type { BackdropLayer } from '../world/backdropLayer';
 import { GradeEffect } from './Grade';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
-import { TIER, TIER_CONFIG, frameCapFps, type Tier } from './tier';
+import { TIER, TIER_CONFIG, frameCapFps, gfxPrefs, type Tier } from './tier';
 import { worldTime } from './time';
 import { installViewport, viewportHeight } from './viewport';
 import { FIXED_STEP } from './fixedStep';
@@ -629,7 +629,10 @@ export class Game {
     // out the god rays (the warm iPhone's grass frame was 48 ms with the post chain and 17 without)
     // G749 (Jake's pick of the G713 lighter render targets): anti-aliasing is one FXAA pass on the graded frame wherever the
     // tier or level has it on (SMAA's edge and weight targets are gone, E189's phone option for every tier)
-    const fxaa = (knobs.aa ?? (TIER_CONFIG.smaa === 'off' ? 'off' : 'fxaa')) === 'off' ? null : new FXAAEffect();
+    // FC9 / QB20: the phone frame runs no FXAA pass by default (a full 2x-frame read and write, ~47 % of Driftwood's post
+    // GPU time); Settings ▸ Graphics ▸ Anti-aliasing On keeps the old look, and an explicit player choice beats a level's
+    const aa = gfxPrefs.aa === 'on' ? 'fxaa' : gfxPrefs.aa === 'off' ? 'off' : knobs.aa ?? (TIER === 'phone' || TIER_CONFIG.smaa === 'off' ? 'off' : 'fxaa');
+    const fxaa = aa === 'off' ? null : new FXAAEffect();
     const raysOn = knobs.godRays ?? true;
     const chain = (clean: boolean): BuiltChain => {
       const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
