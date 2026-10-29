@@ -4,3 +4,4 @@
 **Link:** https://claude.ai/artifact/KYjGx2ZtrhoekqWeQEMzoF
 **Ask:** [E508](../tasks/asks/E508.md)
 **Repo copy:** [docs/audits/native-client-engines.md](../audits/native-client-engines.md)
+**Plan:** [NATIVE-CLIENT](../plans/NATIVE-CLIENT.md) (draft, parked)

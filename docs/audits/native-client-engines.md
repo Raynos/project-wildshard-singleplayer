@@ -6,6 +6,8 @@ using either Unity, Godot, or Unreal Engine? … rank each one … The goal is t
 to the MMO, have the native client be able to connect to the MMO and to play all together … published to Steam …
 better performance than the web client."*
 
+Plan: [NATIVE-CLIENT](../plans/NATIVE-CLIENT.md) (draft, parked, E509).
+
 This is research only. Three read-only agents worked on it: a codebase inventory, an engine comparison and a look at
 precedents. The codebase numbers come from local `main` at `ac82a40b30` and a Pine Hollow build dated 10-23. The web
 sources date from 2025–2026. A guess is marked as a guess.
