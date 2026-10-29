@@ -187,9 +187,11 @@ function dotTag(card: DeckEntry, mode: MenuMode): 'soon' | 'developer' | '' {
 }
 
 /** SF65 (G237): a shard card that can be entered offers LEGACY and SHARDFILE instead of one ENTER WORLD only with the
- *  Developer-tools row Legacy shard buttons on (G531: off by default; the row and these buttons go with the legacy copies, N5) */
+ *  Developer-tools row Legacy shard buttons on (G531: off by default; the row and these buttons go with the legacy copies, N5),
+ *  and only while the shard still has its legacy copy */
 function dualEntry(card: DeckEntry, mode: MenuMode, legacy: boolean = legacyButtons()): card is DeckEntry & { readonly shard: TitleCard; readonly entries: ShardEntries } {
-  return legacy && mode.developer && card.shard !== null && card.entries !== undefined && canEnter(card, mode);
+  // a card whose legacy copy is retired (LD6 / LD7) has no LEGACY to offer: it keeps the ordinary ENTER WORLD
+  return legacy && mode.developer && card.shard !== null && card.entries !== undefined && hasEntry(card.entries, 'legacy') && canEnter(card, mode);
 }
 
 function hintFor(card: DeckEntry, active: boolean, mode: MenuMode = menuMode()): string {

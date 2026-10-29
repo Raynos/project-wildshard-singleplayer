@@ -55,14 +55,15 @@ test('row off (the default): every card shows only ENTER WORLD and enters its sh
   }
 });
 
-test('row on in Developer: LEGACY and SHARDFILE come back, and LEGACY enters the legacy copy', async () => {
+test('row on in Developer: LEGACY and SHARDFILE come back where a legacy copy is left, and LEGACY enters it', async () => {
   setDev(true);
   const d = deck();
   row().set('on');
   CARDS.forEach((c, i) => {
     d.select(i);
-    expect(shown(d.root)).toEqual([GAME_STRINGS.entry.legacy, GAME_STRINGS.entry.shardfile]);
-    expect(d.root.querySelector<HTMLButtonElement>('.ws-menu-play')?.disabled).toBe(!(c.entries?.legacy ?? false));
+    // a card whose legacy copy is retired (LD6 / LD7) keeps the one ENTER WORLD
+    expect(shown(d.root)).toEqual(c.entries?.legacy === true ? [GAME_STRINGS.entry.legacy, GAME_STRINGS.entry.shardfile] : ['Enter world']);
+    expect(d.root.querySelector<HTMLButtonElement>('.ws-menu-play')?.disabled).toBe(false);
   });
   d.select(0); play(d.root);
   expect(d.entered).toEqual([]);

@@ -6,7 +6,7 @@ import { jsonSlot } from '../src/engine/saves/slots';
 import { buildTitleDeck, type TitleCard } from '../src/game/titleDeck';
 
 afterEach(() => { jsonSlot(compiledFloorSave.key, compiledFloorSave.scope).reset(); setDev(false); document.body.replaceChildren(); });
-test('the compiled floor fixture exposes and enters the real SHARDFILE button for a template without legacy', async () => {
+test('the compiled floor fixture enters a template without legacy through its one ENTER WORLD', async () => {
   setDev(true);
   const selected: [string, string][] = [];
   const card: TitleCard = { slug: '_template', name: 'Template', label: 'Template',
@@ -27,9 +27,12 @@ test('the compiled floor fixture exposes and enters the real SHARDFILE button fo
       document.body.append(configured.root);
       const compiled = configured.root.querySelector<HTMLButtonElement>('.ws-menu-shardfile');
       if (compiled === null) throw new Error('Missing configured compiled button');
-      expect(compiled.hidden).toBe(false); expect(compiled.disabled).toBe(false);
-      expect(configured.root.querySelector<HTMLButtonElement>('.ws-menu-play')?.disabled).toBe(true);
-      compiled.click();
+      // no legacy copy: the card keeps the one ENTER WORLD, which enters the shardfile
+      expect(compiled.hidden).toBe(true);
+      const play = configured.root.querySelector<HTMLButtonElement>('.ws-menu-play');
+      if (play === null) throw new Error('Missing ENTER WORLD');
+      expect(play.disabled).toBe(false);
+      play.click();
       expect(selected).toEqual([]);
       expect(document.querySelector('[data-navigation] [data-el="slug"]')?.textContent).toBe('Template');
       await new Promise<void>(resolve => { requestAnimationFrame(() => { requestAnimationFrame(() => { resolve(); }); }); });
