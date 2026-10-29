@@ -4,14 +4,13 @@
 (G845).** Only legacy-deletion (LD4b goldens done; tag legacy-final; LD5-LD10 all at once on Jake's word, G840 / G843 / G851).
 Archived today: 12 mini plans (loading ... tile-streaming 9be158bc79).
 
-**LIVE bf07819a93 (build bf07819a9-mvt78a70, ~02:30 Cancun 10-29):** title-cycle fix edb49f5a82, lantern 4e009207dd, Nine NR3-NR15
-looks, FR6 meadow, preset env parity, 29 Oct What's New; CI 40827254162 + exact six 40828917866. Sim phone-route leg still report-only.
+**LIVE 2933144167 (build 293314416-mvtbkj3b, ~04:25 Cancun 10-29):** adds D196 crossing reveal, PL6 shaders, NR16 tiles, D200
+pop-in, Pine fixes to bf07; CI 40840450723 + exact six 40842575103. Sim phone-route leg still report-only (xcrun timeout).
 
 **Jake's QA 10-28 PASSED:** NM, loading / M2, tiles / T10, DW cut B (G827 / G831-G833).
 **Marks:** Nine done NR1-3, 5-7, 12-14 (+ 21 roof c6df3155cd); NR4 / NR7 view-F done; open NR8, NR16 (tea-house; graph byte cap 64 -> 96 KB approved). Far Reach FR1-4 done;
 FR5 PICK pending, FR6 done. Goldens 133 / 144 (Nine 21 / 24; NR16 done 38e6343f6e). QF6 / 11 / 19-22 / 24-26 done; D203 / D204 done; QF20 shadow flaky; QF23 / pines -> damage list. 
-**All lanes on standby (04:15):** PL6 done 6060134624 (1.93 s, pixel diff 0); NR16 tiles 2f92beda2c; D196 9e976fb9db; D207. Next
-release 2933144167 (CI + exact six green) deploying. Left for Jake: LD5-LD10 word, the archive, picks FR5 / FR6 / D205, Pine drive. D200 pop-in done
+**All lanes on standby (04:15):** PL6 done 6060134624 (1.93 s, pixel diff 0); NR16 tiles 2f92beda2c; D196 9e976fb9db; D207. Live 2933144167. Left for Jake: LD5-LD10 word, the archive, picks FR5 / FR6 / D205, Pine drive. D200 pop-in done
 (DW 996def3605, Pine waterfall 92faa4f4f3). D199 / D201 not reproduced on HEAD (779b506fbe).
 **D12 official Sim 14 / 15 on both paths** (ced8848e01; KTX2 = iPhone path): only Pine interior drive fails (p95 38, max 75),
 its long frames in Pine's cell-entry hooks = in-play WebKit link time that G815 accepts. Pine memory fine on KTX2 (D207). Damage: D12, D199, D201, D202, T7.
