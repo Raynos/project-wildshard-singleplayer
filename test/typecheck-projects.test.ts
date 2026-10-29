@@ -165,10 +165,10 @@ test('tests consume emitted declarations; source and test errors each still refu
     put('test/lint.ts', 'import { value } from "../src/value";\n\nexport const result = value + 1;\n');
     const coldLint = lint();
     expect(coldLint.status, String(coldLint.stdout) + String(coldLint.stderr)).toBe(0);
-    put('test/lint.ts', 'export const result = JSON.parse("1");\n');
+    put('test/lint.ts', 'export function result(): number { return JSON.parse("1"); }\n');
     const unsafeLint = lint();
     expect(unsafeLint.status).not.toBe(0);
-    expect(String(unsafeLint.stdout) + String(unsafeLint.stderr)).toContain('no-unsafe-assignment');
+    expect(String(unsafeLint.stdout) + String(unsafeLint.stderr)).toContain('no-unsafe-return');
     put('test/lint.ts', 'export const result = 1;\n');
     const missing = run('--noEmit');
     expect(missing.status).not.toBe(0);
@@ -337,9 +337,9 @@ test('workspace Node tests consume declarations without giving production Node g
     const badTest = run('-b', 'src/engine/tsconfig.json', '--force', '--verbose');
     expect(badTest.status, String(badTest.stdout) + String(badTest.stderr)).not.toBe(0);
     expect(String(badTest.stdout) + String(badTest.stderr)).toContain('TS2322');
-    put('src/engine/value.test.ts', 'export const result = JSON.parse("1");\n');
+    put('src/engine/value.test.ts', 'export function result(): number { return JSON.parse("1"); }\n');
     const unsafe = lint();
     expect(unsafe.status).not.toBe(0);
-    expect(String(unsafe.stdout) + String(unsafe.stderr)).toContain('no-unsafe-assignment');
+    expect(String(unsafe.stdout) + String(unsafe.stderr)).toContain('no-unsafe-return');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

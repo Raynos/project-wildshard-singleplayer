@@ -79,6 +79,7 @@
     "eslint/no-void": "off", // `void promise` is how fire-and-forget is marked (no-floating-promises asks for it); `void x` marks a deliberately unused param
     "typescript/parameter-properties": "off", // `constructor(private readonly x)` is the class idiom here
     "typescript/non-nullable-type-assertion-style": "off", // would demand `x!`, which no-non-null-assertion bans
+    "typescript/no-unsafe-assignment": "off", // LS5: zero existing sites; unsafe call/argument/member/return still reject every use
     "typescript/no-unsafe-type-assertion": "off", // three.js hands back base types (Material, Object3D, BufferAttribute); downcasting with `as` at the call site is the idiom, and instanceof guards in hot loops would change behaviour
     "typescript/promise-function-async": "off", // wrapping promise-returning functions in `async` changes when sync throws surface
     "promise/avoid-new": "off", // wrapping callback APIs (loaders, rAF, timers) needs `new Promise`
