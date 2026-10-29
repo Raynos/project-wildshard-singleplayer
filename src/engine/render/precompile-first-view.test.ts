@@ -106,3 +106,28 @@ test('the overlapping census constructs only scene jobs; final preparation still
   expect(built).toEqual(['scene', 'family', 'offscreen', 'shadow', 'background', 'post', 'shadow', 'exterior', 'readback']);
   expect(submitted[1]).toEqual(['scene-other', 'family', 'offscreen', 'shadow', 'background', 'post', 'previous-shadow', 'exterior', 'readback']);
 });
+
+test('PL6: what the first frame\'s warm turns show is in the boot\'s first view', () => {
+  const source = readFileSync(new URL('precompile.ts', import.meta.url), 'utf8');
+  const start = source.indexOf('function drawnFrom('), end = source.indexOf('\n/**', start);
+  const factory: unknown = runInNewContext(stripTypeScriptTypes(`(${source.slice(start, end)})`), {THREE});
+  if (typeof factory !== 'function') throw new Error('First-view selector is not callable');
+  const scene = new THREE.Scene(), rig = new THREE.Group(), camera = new THREE.PerspectiveCamera(60, 0.5, 0.1, 100);
+  const geometry = new THREE.BoxGeometry(), material = new THREE.MeshBasicMaterial();
+  const at = (x: number, y: number, z: number): THREE.Mesh => { const mesh = new THREE.Mesh(geometry, material); mesh.position.set(x, y, z); scene.add(mesh); return mesh; };
+  rig.position.set(10, 0, 0); rig.add(camera); scene.add(rig);
+  const ahead = at(10, 0, -5), behind = at(10, 0, 5), beside = at(15, 0, 0), overhead = at(10, 60, 0), past = at(10, 0, 150);
+  scene.updateMatrixWorld(true);
+  const select = (turns?: number[]): ((object: THREE.Object3D) => boolean) => {
+    const predicate: unknown = Reflect.apply(factory, undefined, turns === undefined ? [camera] : [camera, undefined, turns]);
+    if (typeof predicate !== 'function') throw new Error('Missing first-view predicate');
+    return object => Reflect.apply(predicate, undefined, [object]) === true;
+  };
+  const objects = [ahead, behind, beside, overhead, past];
+  try {
+    expect(objects.map(select())).toEqual([true, false, false, false, false]);
+    // Game.warmTurn's quarter-turns: a square 100° level view each way, from the parented camera's eye, to its far plane
+    expect(objects.map(select([Math.PI / 2, Math.PI, 3 * Math.PI / 2]))).toEqual([true, true, true, false, false]);
+    expect(camera.quaternion.equals(new THREE.Quaternion())).toBe(true); expect(camera.fov).toBe(60);
+  } finally {geometry.dispose(); material.dispose();}
+});

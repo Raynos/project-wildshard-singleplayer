@@ -1486,9 +1486,19 @@ export async function compileOffscreenPass(renderer: Renderer, pass: OffscreenPa
  * held view: the swim hands, a rig's other sword, the reins) counts however its own parts are hidden: a swim, a swap or a
  * mount shows it at once, and left to the in-play warm-up its links sat in the Simulator spawn's first seconds (D12).
  */
-function drawnFrom(camera: THREE.Camera, entering?: THREE.Object3D): (object: THREE.Object3D) => boolean {
+function drawnFrom(camera: THREE.Camera, entering?: THREE.Object3D, turns: readonly number[] = []): (object: THREE.Object3D) => boolean {
   camera.updateMatrixWorld();
-  const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+  const frusta = [new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse))];
+  // PL6: the first frame's warm turns (Game.warmTurn: a square 100° view turned by each yaw, level, from the same eye)
+  // draw what is behind and beside the spawn too; left out here, their programs built and linked inside the first frame
+  if (camera instanceof THREE.PerspectiveCamera) for (const turn of turns) {
+    const view = new THREE.PerspectiveCamera(100, 1, camera.near, camera.far), yaw = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ').y;
+    view.position.copy(camera.position); view.scale.copy(camera.scale); view.quaternion.setFromEuler(new THREE.Euler(0, yaw + turn, 0, 'YXZ'));
+    view.updateMatrix(); view.matrixWorld.copy(view.matrix);
+    if (camera.parent !== null) view.matrixWorld.premultiply(camera.parent.matrixWorld);
+    view.matrixWorldInverse.copy(view.matrixWorld).invert();
+    frusta.push(new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(view.projectionMatrix, view.matrixWorldInverse)));
+  }
   return (object) => {
     let held = false;
     for (let at = object.parent; at !== null && !held; at = at.parent) held = at === camera;
@@ -1504,7 +1514,7 @@ function drawnFrom(camera: THREE.Camera, entering?: THREE.Object3D): (object: TH
     if (held || !object.frustumCulled) return true;
     // what three's frustum test reads: a bounded geometry (anything else, a sprite too, is compiled now)
     const geometry: unknown = Reflect.get(object, 'geometry');
-    return !(geometry instanceof THREE.BufferGeometry) || frustum.intersectsObject(object);
+    return !(geometry instanceof THREE.BufferGeometry) || frusta.some(frustum => frustum.intersectsObject(object));
   };
 }
 
@@ -1573,6 +1583,8 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     /** D188 (G815): scene programs only for what `arrivalSet` keeps; like `drawnOnly`, material families and the
      *  exterior variants wait for the caller's after-reveal warm-up. Shadow, offscreen, post and background stay whole. */
     arrival?: (object: THREE.Object3D) => boolean;
+    /** PL6: with `drawnOnly`, the yaws the first frame's warm turns draw (`Game.warmTurnYaws`): what they show counts as drawn. */
+    turns?: readonly number[];
     /** Scene and exterior programs ordered by the camera's distance to what draws them, nearest first (the after-control
      *  warm-up: what the player reaches soonest links soonest). */ nearest?: boolean } = {}): Promise<number> {
 
@@ -1629,7 +1641,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const roots = options.sceneOnly === true && options.futureLighting !== undefined ? [options.futureLighting] : [scene];
     const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 }
       : live || drawnOnly
-        ? await pacedSceneJobs(scene, rt, per, roots, excludedRoots, options.current ?? (() => true), pageScope, options.arrival ?? (drawnOnly ? drawnFrom(game.camera, options.futureLighting) : undefined), from)
+        ? await pacedSceneJobs(scene, rt, per, roots, excludedRoots, options.current ?? (() => true), pageScope, options.arrival ?? (drawnOnly ? drawnFrom(game.camera, options.futureLighting, options.turns) : undefined), from)
         : sceneJobs(scene, rt, per, roots, excludedRoots);
     // Diagnostic split: the entered root's own materials, else the rest of the page compiled under its lights.
     const entered = new Set<THREE.Material>();

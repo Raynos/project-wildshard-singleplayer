@@ -1157,9 +1157,10 @@ export class Game {
     await frame();
     checkpoint('world:next-frame');
     // E153: the world once facing each way, so a turn finds every pipeline built (warmTurn)
-    for (let k = 1; k <= warmTurns; k++) {
+    const yaws = this.warmTurnYaws();
+    for (let k = 1; k <= yaws.length; k++) {
       onProgress?.(k, warmTurns + 2, `world, turned ${String(k * 360 / WARM_TURNS)}°`);
-      this.warmTurn(k, target);
+      this.warmTurn(yaws[k - 1] ?? 0, target);
       await frame();
     }
     onProgress?.(warmTurns + 1, warmTurns + 2, 'post chain');
@@ -1172,22 +1173,28 @@ export class Game {
     checkpoint('post:next-frame');
   }
 
+  /** The yaws (radians, from where the player looks) the first frame's warm turns draw: the boot's shader warm-up links
+   *  what they show before the frame (`precompileLevel`'s `turns`). */
+  warmTurnYaws(): number[] {
+    return Array.from({ length: this.renderKnobs().warmTurns ?? WARM_TURNS }, (_, i) => (i + 1) * Math.PI * 2 / WARM_TURNS);
+  }
+
   /**
-   * E153: one draw of the world turned `k` quarter-turns from where the player looks, through a 100° square view, with the
-   * shadows placed for that view. The precompile links every program, but the GPU builds a program's pipeline for each
+   * E153: one draw of the world turned by `turn` (radians) from where the player looks, through a 100° square view, with
+   * the shadows placed for that view. The precompile links every program, but the GPU builds a program's pipeline for each
    * target, blend state and vertex layout only at its first draw (Metal: ANGLE's render-pipeline states, WebKit / iOS
    * build them on the draw). The boot's one frame drew only what faces the spawn, so turning around built the rest in
    * play — the waterfall behind the pier, a caster's depth variant in a cascade: 25–35 ms hitches on the M5 with a cold
    * shader cache, several times that on a phone. Four quarter-turns at 100° cover the circle.
    */
-  private warmTurn(k: number, target: THREE.WebGLRenderTarget | null): void {
+  private warmTurn(turn: number, target: THREE.WebGLRenderTarget | null): void {
     const cam = this.camera, sky = this._sky, r = this.renderer;
     const q = cam.quaternion.clone(), fov = cam.fov, aspect = cam.aspect;
     const yaw = new THREE.Euler().setFromQuaternion(q, 'YXZ').y;
     const prev = r.getRenderTarget();
     try {
       cam.fov = 100; cam.aspect = 1; cam.updateProjectionMatrix(); sky?.csm.updateFrustums();
-      cam.quaternion.setFromEuler(new THREE.Euler(0, yaw + k * Math.PI * 2 / WARM_TURNS, 0, 'YXZ'));
+      cam.quaternion.setFromEuler(new THREE.Euler(0, yaw + turn, 0, 'YXZ'));
       cam.updateMatrixWorld(true);
       sky?.warmShadows();
       r.setRenderTarget(target);
