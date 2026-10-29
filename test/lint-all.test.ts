@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
 import { env, execPath } from 'node:process';
 import { expect, test } from 'vitest';
 
-test('one typed process covers the full selection and each partition, and propagates failure', () => {
+test('one typed process covers the complete selection and propagates failure', () => {
   mkdirSync('tmp', { recursive: true });
   const fixture = mkdtempSync(resolve('tmp', 'lint-all-'));
   const binary = resolve(fixture, 'node_modules/oxlint/bin'), calls = resolve(fixture, 'calls.txt');
@@ -61,30 +61,15 @@ if (args.join(' ') === '--debug files') {
     expect(run(true).status).toBe(7);
     expect(readFileSync(calls, 'utf8').match(/--batch--/gu)).toHaveLength(1);
     expect(readFileSync(calls, 'utf8')).toContain('source 1024.ts');
-    const compare = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
-    const sortedFiles = [...files].sort(compare);
-    for (const total of [4, 5]) {
-      const partitioned: string[] = [];
-      for (let part = 1; part <= total; part++) {
-        writeFileSync(calls, '');
-        const result = run(false, [`--shard=${part}/${total}`]);
-        expect(result.status, result.stderr.toString()).toBe(0);
-        const actual = readFileSync(calls, 'utf8').split('\n').filter(line => line.length > 0 && line !== '--batch--');
-        expect(readFileSync(calls,'utf8').match(/--batch--/gu)).toHaveLength(1);
-        expect(actual).toEqual(sortedFiles.filter((_, index) => index % total === part - 1));
-        partitioned.push(...actual);
-      }
-      expect(new Set(partitioned).size).toBe(files.length);
-      expect([...partitioned].sort(compare)).toEqual(sortedFiles);
-    }
     writeFileSync(calls,'');
-    expect(run(false,['--shard=1/1']).status).toBe(0);
+    expect(run(false,['--threads=4']).status).toBe(0);
     expect(readFileSync(calls,'utf8').match(/--batch--/gu)).toHaveLength(1);
+    expect(readFileSync(calls,'utf8').split('\n').filter(line=>line.length>0 && line!=='--batch--')).toEqual(files);
     expect(run(false, [], { workers: '1', gc: '100', memory: '3GiB' }).status).toBe(0);
-    for (const invalid of ['--shard=0/4', '--shard=5/4', '--shard=1/0', '--shard=bad']) {
+    for (const invalid of ['--shard=1/1','--shard=1/5','--shard=0/4','--shard=bad','--threads=0','--threads=9','--type-aware','source.ts']) {
       expect(run(false, [invalid]).status).toBe(2);
     }
-    expect([1, 2, 3, 4, 5].map(part => run(true, [`--shard=${part}/5`]).status ?? -1).sort((a, b) => a - b)).toEqual([0, 0, 0, 0, 7]);
+
     writeFileSync(selection, 'missing-lint-source.ts');
     expect(run(false).status).toBe(1);
     rmSync(cli);
@@ -92,15 +77,40 @@ if (args.join(' ') === '--debug files') {
   } finally { rmSync(fixture, { recursive: true, force: true }); }
 });
 
-test('CI runs all five typed partitions beside one types and fast job', () => {
-  const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
-  const job = workflow.split('\n  typecheck-lint:')[1]?.split('\n  derived-docs:')[0] ?? '';
-  expect(job).toContain('shard: [types, fast, 1, 2, 3, 4, 5]');
-  expect(job).toContain("if: matrix.shard != 'types' && matrix.shard != 'fast'");
-  expect(job).toMatch(/\/usr\/bin\/time -v pnpm run lint:typed --shard=\$\{\{ matrix.shard \}\}\/5/u);
-  expect(job).toContain('run: python3 scripts/ci-fail-fast.py -- pnpm run lint:fast');
-  expect(job).toContain('fail-fast: false');
-  expect(job).not.toContain('fail-fast: true');
-  expect(job.match(/pnpm exec tsc -b tsconfig\.layers\.json --builders 1\n/gu)).toHaveLength(1);
+test('CI runs one complete type and typed-lint job with verified inputs', () => {
+  const workflow=readFileSync('.github/workflows/deploy.yml','utf8');
+  const job=workflow.split('\n  typecheck-lint:')[1]?.split('\n  derived-docs:')[0]??'';
+  expect(job).not.toContain('strategy:');expect(job).not.toContain('matrix.');
+  expect(job).not.toContain('lint:fast');expect(job).not.toContain('--shard=');
   expect(job).toContain('python3 scripts/ci-products.py unpack-generated');
+  expect(job).toContain('python3 scripts/ci-fail-fast.py -- /usr/bin/time -v bash scripts/typecheck-lint.sh');
+  const body=readFileSync('scripts/typecheck-lint.sh','utf8');
+  expect(body.match(/pnpm exec tsc -b tsconfig\.layers\.json --builders 1/gu)).toHaveLength(1);
+  expect(body.match(/pnpm run lint:typed --threads=4/gu)).toHaveLength(1);
+  expect(body).toContain('wait "$typecheck_pid"');expect(body).toContain('wait "$typed_lint_pid"');
+});
+
+test('the combined CI command overlaps both checks and drains each failure',()=>{
+ mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/combined-type-lint-'));
+ try{
+  mkdirSync(resolve(root,'bin'));writeFileSync(resolve(root,'package.json'),'{}');
+  writeFileSync(resolve(root,'bin/pnpm'),`#!/usr/bin/env node
+const fs=require('node:fs'),args=process.argv.slice(2),kind=args[0]==='exec'?'types':'lint',other=kind==='types'?'lint':'types';
+fs.appendFileSync('trace.txt',kind+':start:'+args.join(' ')+'\\n');fs.writeFileSync(kind+'.started','');
+let complete=false;const watcher=fs.watch('.',finish);
+function finish(){if(!complete&&fs.existsSync(other+'.started')){complete=true;watcher.close();fs.appendFileSync('trace.txt',kind+':finish\\n');process.exit(Number(process.env[kind==='types'?'TYPE_STATUS':'LINT_STATUS']));}}
+finish();setTimeout(()=>{watcher.close();process.exit(70);},2000).unref();
+`,{mode:0o755});
+  for(const [index,statuses]of [[0,0],[7,0],[0,9],[7,9]].entries()){
+   const [types,lint]=statuses;if(types===undefined || lint===undefined)throw new Error('Missing status');
+   const cwd=resolve(root,`case-${index}`);mkdirSync(cwd);
+   const run=spawnSync('bash',[resolve('scripts/typecheck-lint.sh')],{cwd,encoding:'utf8',env:{...env,PATH:`${resolve(root,'bin')}:${env['PATH']??''}`,TYPE_STATUS:String(types),LINT_STATUS:String(lint)}});
+   expect(run.status,run.stdout+run.stderr).toBe(types || lint);
+   const trace=readFileSync(resolve(cwd,'trace.txt'),'utf8').trim().split('\n');
+   expect(trace.slice(0,2).every(line=>line.includes(':start:'))).toBe(true);
+   expect(trace).toContain('types:start:exec tsc -b tsconfig.layers.json --builders 1 --force');
+   expect(trace).toContain('lint:start:run lint:typed --threads=4');
+   expect(trace.filter(line=>line.endsWith(':finish')).sort()).toEqual(['lint:finish','types:finish']);
+  }
+ }finally{rmSync(root,{recursive:true,force:true});}
 });

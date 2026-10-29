@@ -155,13 +155,19 @@ class FailFastTests(unittest.TestCase):
                         wrapper.kill();wrapper.communicate(timeout=3)
                     foreign.terminate();foreign.wait(timeout=3)
 
-    def test_typecheck_matrix_keeps_independent_shards_and_original_commands(self):
+    def test_combined_typecheck_keeps_complete_commands_and_drains_both(self):
         source=Path('.github/workflows/deploy.yml').read_text()
         types=source.split('\n  typecheck-lint:\n',1)[1].split('\n  derived-docs:\n',1)[0]
-        self.assertIn('fail-fast: false',types)
-        self.assertNotIn('fail-fast: true',types)
-        self.assertIn('pnpm exec tsc -b tsconfig.layers.json',types)
-        self.assertIn('pnpm run lint:typed --shard=${{ matrix.shard }}/5',types)
+        self.assertNotIn('strategy:',types)
+        self.assertNotIn('matrix.',types)
+        self.assertNotIn('lint:fast',types)
+        self.assertIn('python3 scripts/ci-products.py unpack-generated',types)
+        self.assertIn('python3 scripts/ci-fail-fast.py -- /usr/bin/time -v bash scripts/typecheck-lint.sh',types)
+        command=Path('scripts/typecheck-lint.sh').read_text()
+        self.assertIn('pnpm exec tsc -b tsconfig.layers.json --builders 1',command)
+        self.assertIn('pnpm run lint:typed --threads=4',command)
+        self.assertIn('wait "$typecheck_pid"',command)
+        self.assertIn('wait "$typed_lint_pid"',command)
 
     def test_behaviour_matrix_keeps_independent_jobs_and_per_shard_bail(self):
         source=Path('.github/workflows/deploy.yml').read_text()

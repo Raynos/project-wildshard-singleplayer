@@ -207,9 +207,9 @@ test('CI and local checks build source before tests and retain every tool/site p
   const local: unknown = Reflect.get(scripts, 'typecheck');
   if (typeof local !== 'string') throw new Error('Missing typecheck command');
   const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
-  const start = workflow.indexOf('      - name: Typecheck\n', workflow.indexOf('typecheck-lint:'));
-  expect(start).toBeGreaterThan(0);
-  const ci = workflow.slice(start, workflow.indexOf('      - name: Fast lint\n', start));
+  const job=workflow.split('\n  typecheck-lint:')[1]?.split('\n  derived-docs:')[0]??'';
+  expect(job).toContain('bash scripts/typecheck-lint.sh');
+  const ci=readFileSync('scripts/typecheck-lint.sh','utf8');
   for (const command of [local, ci]) {
     const layers = command.indexOf('tsc -b tsconfig.layers.json');
     expect(layers).toBeGreaterThanOrEqual(0);

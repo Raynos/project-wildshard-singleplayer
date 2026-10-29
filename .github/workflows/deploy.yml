@@ -295,12 +295,7 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Run types and fast lint once; bound each typed runner to one fifth.
-    strategy:
-      # SW9: retain every shard's own failure instead of cancelling peers.
-      fail-fast: false
-      matrix:
-        shard: [types, fast, 1, 2, 3, 4, 5]
+    # One complete solution and one complete typed program; each keeps its own verdict.
     steps:
       - uses: actions/checkout@v4
         with:
@@ -327,26 +322,16 @@ jobs:
         run: |
           zstd -d --rm generated-inputs.tar.zst
           python3 scripts/ci-products.py unpack-generated
-      - name: Typecheck
-        # Build source once; tests consume its declarations. Keep all tool/site checks.
-        if: matrix.shard == 'types'
-        # Same complete checks as pnpm typecheck; inputs came from this run's
-        # verified generation job, so do not regenerate them in every shard.
-        run: |
-          python3 scripts/ci-fail-fast.py -- pnpm exec tsc -b tsconfig.layers.json --builders 1
-      - name: Fast lint
-        if: matrix.shard == 'fast'
-        run: python3 scripts/ci-fail-fast.py -- pnpm run lint:fast
-      - name: Typed lint
-        if: matrix.shard != 'types' && matrix.shard != 'fast'
-        # Same complete rules on disjoint partitions; record actual Linux peak RSS.
-        run: python3 scripts/ci-fail-fast.py -- /usr/bin/time -v pnpm run lint:typed --shard=${{ matrix.shard }}/5
+      - name: Typecheck and typed lint
+        # Generated inputs above are verified for this exact run. Both checks
+        # finish, even when one fails; typed lint includes every fast rule.
+        run: python3 scripts/ci-fail-fast.py -- /usr/bin/time -v bash scripts/typecheck-lint.sh
 
       - name: Publish exact failure paths
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-failures-lint-${{ matrix.shard }}
+          name: ci-failures-lint
           path: tmp/ci-failures/*.json
           if-no-files-found: ignore
           retention-days: 2

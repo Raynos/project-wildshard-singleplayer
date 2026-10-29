@@ -10,12 +10,12 @@ const root = resolve(import.meta.dirname, '..');
 // The package and complete file selection remain the repository's pinned ones.
 const oxlint = resolve(root, 'node_modules/oxlint/bin/oxlint');
 const args = process.argv.slice(2);
-const shard = args.length === 1 ? /^--shard=([1-9]\d*)\/([1-9]\d*)$/u.exec(args[0]) : null;
-const part = shard === null ? 1 : Number(shard[1]), parts = shard === null ? 1 : Number(shard[2]);
-if ((args.length > 0 && shard === null) || !Number.isSafeInteger(part) || !Number.isSafeInteger(parts) || part > parts) {
-  console.error('lint-all: expected --shard=PART/TOTAL with 1 <= PART <= TOTAL');
+const match = args.length === 1 ? /^--threads=([1-8])$/u.exec(args[0]) : null;
+if (args.length > 0 && match === null) {
+  console.error('lint-all: expected no arguments or --threads=1..8');
   process.exit(2);
 }
+const threads = Math.min(match === null ? 8 : Number(match[1]), availableParallelism());
 const listed = spawnSync(process.execPath, [oxlint, '--debug', 'files'], { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
 if (listed.error !== undefined || listed.status !== 0) {
   console.error(listed.error?.message ?? listed.stderr);
@@ -26,15 +26,7 @@ if (files.length === 0 || files.some(file => !file || !existsSync(resolve(root, 
   console.error('lint-all: could not enumerate the complete oxlint file selection');
   process.exit(1);
 }
-const selected = (parts === 1 ? files : files.toSorted()).filter((_, index) => index % parts === part - 1);
-if (selected.length === 0) {
-  console.error('lint-all: shard selected no files');
-  process.exit(1);
-}
-console.info(`lint-all: typed shard ${part}/${parts}, ${selected.length} files`);
-// Avoid multiplying checker/GC workers across every logical core on the Mac.
-// Smaller CI machines retain their available width; selection/rules are exact.
-const threads = Math.min(8, availableParallelism());
+console.info(`lint-all: complete typed check, ${files.length} files, ${threads} threads`);
 // --threads controls Oxlint's native pool; its Go helper has a separate runtime.
 // Preserve an explicit caller setting, including a smaller existing allowance.
 const lintEnv = {
@@ -51,6 +43,6 @@ const lintEnv = {
     GOMEMLIMIT: process.env.GOMEMLIMIT ?? '5GiB',
   } : {}),
 };
-const result = spawnSync(process.execPath, [oxlint, '--type-aware', '--threads', String(threads), ...selected], { cwd: root, stdio: 'inherit', env: lintEnv });
+const result = spawnSync(process.execPath, [oxlint, '--type-aware', '--threads', String(threads), ...files], { cwd: root, stdio: 'inherit', env: lintEnv });
 if (result.error !== undefined) console.error(result.error.message);
 process.exitCode = result.status ?? 1;
