@@ -315,7 +315,7 @@ current slice (no mid-task re-briefs, G492); none starts new work after this is 
 4. **Memory is measured on the Simulator; the estimate stops being the reported number.** Recommended: yes.
 5. **Standalone moves are page navigations** (extends QA12 / G877). Recommended: yes.
 
-**Battery bar (G890, Jake 14:24, [iOS Battery screen](../../art/qa-2026-10-29/battery-1423.jpg): Web 20 %, Safari 13 % today, 57 % used by 14:23 vs a 24 % average):** 20 min of phone-tier play at 60 fps costs a measured, capped share of battery and the phone stays cool enough to keep playing; no work at full rate when nothing changes; the title, loading card and pause menu draw at a low rate. Measured on the Simulator (energy / CPU / GPU time per frame) and confirmed on Jake's phone. Owned by MF7 in wave 1.
+**Battery bar (G890, Jake 14:24, [iOS Battery screen](../../art/qa-2026-10-29/battery-1423.jpg): Web 20 %, Safari 13 % today, 57 % used by 14:23 vs a 24 % average):** 20 min of phone-tier play at 60 fps costs a measured, capped share of battery and the phone stays cool enough to keep playing; no work at full rate when nothing changes; the title, loading card and pause menu draw at a low rate. Measured on the Simulator (energy / CPU / GPU time per frame) and confirmed on Jake's phone. Owned by MF7 in wave 1. **MF7b, frame cost (G909):** [frame-cost-mini-plan.md](shard-platform/frame-cost-mini-plan.md) (6e0374d7dd), FC1–FC15: the game draws only when seen (FC1–FC6 first, with MF7), then every frame cheaper (FC7–FC15).
 
 ## Risks and what not to do
 
