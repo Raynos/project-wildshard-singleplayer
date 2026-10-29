@@ -7,8 +7,9 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 LD9 / LD10 13:30, CO8 archive 13:45, all lanes stop 14:00 (G845).
 
 **LIVE 8621318d93 (build 8621318d9-mvtvd1tf, 13:23): Jake's QA build** (cf1d4066e3 + every QA fix; CO1 done). Jake QAs it now.
-**QA round 2: [qa-2026-10-29-2](qa-2026-10-29-2-mini-plan.md) (G879), 13:50:** QB1/QB3/QB4 boot path sp-o3 (sp-x1 diagnoses
-the module hang), QB2 sp-o4. LD5-LD10 hold for his 'delete legacy now' (G873).
+**QA round 2: [qa-2026-10-29-2](qa-2026-10-29-2-mini-plan.md) (G879):** QB2 done 125bda0483. QB1/QB3/QB4 boot sp-o3 (sp-x1
+module hang; reload-simplify plan coming); QB5 sp-x6; QB6 Pine crash sp-o5 + title line sp-o4; QB7 sp-x9 diagnoses, sp-o4
+lands; QB8 sp-o4. LD5-LD10 hold for his 'delete legacy now' (G873).
 
 **Jake 11:50:** he QAs only the build with everything, QA1-QA13 ALL DONE (QA5 cf1d4066e3); the QA build is the first green
 SHA with cf1d + exact six (sp-ci-deploy). QA fixes
@@ -31,7 +32,5 @@ and phone loading archived f3518bd4cc. After his QA: LD5-LD10, then CO7 / CO8.
 - D53 debt; Pine pond kept; G99 isles kept; Pine drive (D12) under G815; D206 stays on the damage list (format change).
 - Spike section 3 recommendations taken: P1 3 s cap; P2 real sizes (G874); P3 / P4 accept PL2 / PL5; P5 / P6; Q1-Q5; C1-C4;
   N1 accept the Nine residuals; F1; T1 accept lint-speed partials; L3-L6; X1 / X2 after the retro; DA1 / PF1 sent (G874).
-
-**Snapshot 10:30:** committed in d85f1cd047 (lanes, plan counts, expected archive ~14:30).
 
 **Rules:** G704, G807, G828, G844, G846, G848, G853, G858. No reverts (G674), no new Debug rows (G669), never herdr wildshard-v.
