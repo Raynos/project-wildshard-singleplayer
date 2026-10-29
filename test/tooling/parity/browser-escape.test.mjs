@@ -3,9 +3,14 @@ import {test, expect} from 'vitest';
 import {execFileSync, spawnSync} from 'node:child_process';
 
 // oxlint-disable-next-line import/no-nodejs-modules -- Own the bounded startup-refusal executable under repository scratch.
-import {mkdtempSync, writeFileSync, rmSync, existsSync} from 'node:fs';
+import {mkdtempSync, writeFileSync, rmSync, existsSync, mkdirSync, realpathSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the isolated native startup fixture.
 import {resolve} from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the actual native Unix socket path limit, without mocking Chrome.
+import {createServer} from 'node:net';
+// oxlint-disable-next-line import/no-nodejs-modules -- Await the native listening and close events without wall-clock assumptions.
+import {once} from 'node:events';
+import {nativeSocketTemporary} from '../../fixtures/native-socket-temp.mjs';
 
 test('Escape sends only its own trusted down and up', () => {
   const args = ['--experimental-transform-types', 'test/fixtures/native-browser-escape.ts'];
@@ -36,5 +41,37 @@ test('native startup refusal retains its signal and bounded stderr, never claims
     const path = JSON.parse(profile);
     if (typeof path !== 'string' || !path.startsWith(resolve('tmp/escape-control-'))) throw new Error('Foreign failed profile');
     expect(existsSync(path)).toBe(false);
+    const socketTemp = /socketTemp=("[^"\n]+")/.exec(child.stderr)?.[1];
+    if (socketTemp === undefined) throw new Error('Missing owned socket alias diagnostic');
+    /** @type {unknown} */
+    const alias = JSON.parse(socketTemp);
+    if (typeof alias !== 'string' || !alias.startsWith('/tmp/wsesc-') || !alias.endsWith('/t')) throw new Error('Foreign socket alias');
+    expect(existsSync(resolve(alias, '..'))).toBe(false);
   } finally {rmSync(root, {recursive: true, force: true});}
+});
+
+
+test('long native Unix socket paths refuse while the short alias binds to profile-owned data', async () => {
+  const root = mkdtempSync(resolve('tmp/native-socket-control-'));
+  let temporary;
+  /** @param {string} path */
+  const bind = async path => {
+    const server = createServer();
+    try {server.listen(path); await once(server, 'listening');}
+    finally {if (server.listening) {const closed = once(server, 'close'); server.close(); await closed;}}
+  };
+  try {
+    const inherited = resolve(root, 'long-inherited-tmpdir-'.repeat(5), 'com.google.Chrome.ABCDEF');
+    mkdirSync(inherited, {recursive: true});
+    await expect(bind(resolve(inherited, 'SingletonSocket'))).rejects.toThrow(/EINVAL|ENAMETOOLONG/u);
+    temporary = await nativeSocketTemporary(root);
+    const alias = resolve(temporary.path, 'com.google.Chrome.ABCDEF');
+    mkdirSync(alias);
+    expect(realpathSync(alias)).toBe(resolve(root, 'native-tmp/com.google.Chrome.ABCDEF'));
+    const socket = resolve(alias, 'SingletonSocket');
+    expect(Buffer.byteLength(socket)).toBeLessThan(80);
+    await bind(socket);
+    await temporary.dispose();
+    expect(existsSync(resolve(temporary.path, '..'))).toBe(false);
+  } finally {await temporary?.dispose(); rmSync(root, {recursive: true, force: true});}
 });

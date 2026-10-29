@@ -10,6 +10,7 @@ import {mkdtemp, rm} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {chromium} from 'playwright';
 import {pressEscape} from '../../scripts/parity/browser-escape.mjs';
+import {nativeSocketTemporary} from './native-socket-temp.mjs';
 
 // CI declares its supported system Chrome. Use it before an optional cached
 // Playwright binary; explicit caller selection still wins, with no retry.
@@ -18,10 +19,13 @@ const candidates = [process.env['CHROME_PATH'], process.env['CHROME_BIN'],
 const executable = candidates.find((file): file is string => file !== undefined && existsSync(file));
 if (executable === undefined) throw new Error('No installed Chromium for the original trusted-input control');
 const directory = await mkdtemp(resolve('tmp/escape-control-'));
+const socketTemp = await nativeSocketTemporary(directory).catch(async (error: unknown) => {
+  await rm(directory, {recursive: true, force: true}); throw error;
+});
 const child = spawn(executable, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${directory}`,
   '--no-first-run', '--no-default-browser-check', '--disable-extensions', '--mute-audio',
   ...(process.platform === 'darwin' ? ['--use-angle=metal', '--ignore-gpu-blocklist'] : ['--no-sandbox']), 'data:text/html,bootstrap'],
-{stdio: ['ignore', 'ignore', 'pipe']});
+{stdio: ['ignore', 'ignore', 'pipe'], env: {...process.env, TMPDIR: socketTemp.path}});
 let socket: WebSocket | undefined;
 let closing: Promise<void> | undefined;
 const close = (): Promise<void> => (closing ??= (async () => {
@@ -31,7 +35,7 @@ const close = (): Promise<void> => (closing ??= (async () => {
       const timer = setTimeout(() => {child.kill('SIGKILL'); refuse(new Error('Owned Escape browser did not exit'));}, 5000);
       child.once('exit', () => {clearTimeout(timer); done();}); child.kill();
     });
-    await rm(directory, {recursive: true, force: true});
+    try {await socketTemp.dispose();} finally {await rm(directory, {recursive: true, force: true});}
   }
 })());
 const terminate = (): void => {void close().catch(error => {console.error(error);}).finally(() => {process.exitCode = 143;});};
@@ -40,7 +44,7 @@ try {
   const endpoint = await new Promise<string>((done, refuse) => {
     let output = '';
     const failed = (reason: string, code: number | null, signal: string | null): Error => new Error(
-      `Native Escape startup ${reason}; executable=${JSON.stringify(executable)}; profile=${JSON.stringify(directory)}; code=${code}; signal=${signal}\nNative stderr (last 16384 characters):\n${output}`);
+      `Native Escape startup ${reason}; executable=${JSON.stringify(executable)}; profile=${JSON.stringify(directory)}; socketTemp=${JSON.stringify(socketTemp.path)}; code=${code}; signal=${signal}\nNative stderr (last 16384 characters):\n${output}`);
     const timer = setTimeout(() => {refuse(failed('endpoint deadline', child.exitCode, child.signalCode));}, 10_000);
     child.once('error', error => {clearTimeout(timer); refuse(failed(error.message, child.exitCode, child.signalCode));});
     // close follows stderr delivery; exit alone can lose the final native cause.
