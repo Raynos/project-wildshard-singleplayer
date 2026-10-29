@@ -1,4 +1,3 @@
-import { pageScope } from '../app/resources';
 import { Scope } from '../app/scope';
 import { hudSlots } from '../ui/hudSlots';
 import { engineString } from '../strings';
@@ -10,10 +9,11 @@ import { saveStorage } from '../saves/slots';
  * so. Dependency-light on purpose: it rides in the index chunk that index.html loads, beside src/entry.ts.
  *
  *   guardBoot(entered)   entry.ts's `import(main)` promise:
- *     rejects      → report it (queued offline, sent by the next boot), then recover() by itself once; a second failure
- *                    inside the reload budget (src/engine/core/reloadGuard.ts, shared with the error modal) shows the card
- *                    with a RELOAD button instead: it never loops.
- *     STALL_MS without settling → the card ("Still starting"), RELOAD on a tap; it goes away if main starts after all.
+ *     rejects      → report it (queued offline, sent by the next boot), then recover() by itself once, with no card; a
+ *                    second failure inside the reload budget (src/engine/core/reloadGuard.ts, shared with the error modal),
+ *                    or after index.html's own 12 s self-reload (RL3: one retry a page, not two), shows the card with a
+ *                    RELOAD button instead: it never loops.
+ *   RL4: a slow boot gets no "Still starting" card; index.html's self-reload covers a boot that never settles.
  *
  *   recover()   records the deliberate retry and reloads immediately. Shell delivery and bounded network fallback
  *               belong to the worker; the page does not probe, adopt or run cache maintenance before navigating.
@@ -26,8 +26,11 @@ const recoveryScope = new Scope('boot.recovery');
 
 declare const __BUILD_ID__: string; // vite.config.ts define
 
-/** a boot whose main module has not arrived by then gets the card (it stays out of the way and leaves if main starts) */
-const STALL_MS = 10_000;
+/** RL3 / RL4: the once-a-session boot retry (session save `boot.selfReload`), shared with index.html's 12 s self-reload */
+const SELF_RELOAD_KEY = 'boot.selfReload';
+function retriedThisSession(): boolean {
+  try { return store('session').getItem(SELF_RELOAD_KEY) !== null; } catch { return true; }
+}
 
 let card: HTMLElement | null = null;
 /** what went wrong, for the card's small print */
@@ -53,6 +56,7 @@ function report(error: unknown): void {
  * UI recovery never waits for a probe, activation or cache maintenance. */
 export function recover(): Promise<void> {
   countReload();
+  try { store('session').setItem(SELF_RELOAD_KEY, String(Date.now())); } catch { /* the reload budget still counts it */ }
   markReload(`stuck boot recovery (${detail.slice(0, 80)})`);
   location.reload();
   return Promise.resolve();
@@ -116,9 +120,8 @@ function show(tag: string, line: string, small: string, button: boolean): void {
 function failed(error: unknown): void {
   detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
   report(error);
-  if (recentReloads().length === 0) {
-    // the common case (a build the host no longer serves): one automatic recovery, no tap needed
-    show('Updating', 'Fetching the new build…', detail, false);
+  if (recentReloads().length === 0 && !retriedThisSession()) {
+    // the common case (a build the host no longer serves): one automatic recovery, no tap and no card (RL4)
     void recover();
     return;
   }
@@ -126,18 +129,9 @@ function failed(error: unknown): void {
   show('Couldn’t start', looped ? 'It failed again after a reload. Try once more in a minute.' : 'The game failed to start. A reload usually fixes it.', detail, true);
 }
 
-/** Watch entry.ts's main-module promise: a rejection or a stall gets a way out instead of a frozen loader. */
+/** Watch entry.ts's main-module promise: a rejection gets a way out instead of a frozen loader. */
 export function guardBoot(entered: Promise<unknown>): void {
-  let settled = false;
-  const stall = pageScope.timeout(STALL_MS, () => {
-    detail = `no main module after ${STALL_MS / 1000} s`;
-    if (!settled) show('Still starting', 'The game is taking unusually long to start.', detail, true);
-  });
   void (async () => {
-    try { await entered; } catch (e) { settled = true; pageScope.cancelTimer(stall); failed(e); return; }
-    settled = true;
-    pageScope.cancelTimer(stall);
-    card?.remove(); // main started after all: the stall card goes
-    card = null;
+    try { await entered; } catch (e) { failed(e); }
   })();
 }

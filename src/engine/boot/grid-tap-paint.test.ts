@@ -6,6 +6,7 @@ import { Scope } from '../app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
 import { loadShellTemplate, beginNavigationShell, waitForLoadingStyles } from './shell';
 import { guardBoot } from './stuck';
+import { saveStorage } from '../saves/slots';
 import { bootWaits } from './waits';
 
 const native = scopeEnvironment();
@@ -82,20 +83,24 @@ test('a retired owner refuses before creating a loader or scheduling work', () =
   expect(document.querySelector('.ws-load')).toBeNull(); expect(queued.size).toBe(0); expect(navigate).not.toHaveBeenCalled();
 });
 
-test('a ten-second boot wait exposes a direct reload without a network or worker probe', async () => {
+test('RL4: a slow boot shows no card; a rejected boot reloads once with no card, then shows the card after a retry', async () => {
   vi.useFakeTimers();
   const reload = vi.fn<() => void>(), fetch = vi.fn();
   vi.stubGlobal('location', { href: 'https://boot.test/', pathname: '/', search: '', reload });
   vi.stubGlobal('fetch', fetch);
+  sessionStorage.removeItem('wildshard.save.v2.session');
   let finish = (): void => undefined;
   const pending = new Promise<void>(resolve => { finish = resolve; });
   try {
     guardBoot(pending);
-    await vi.advanceTimersByTimeAsync(9999); expect(document.querySelector('#wsstuck')).toBeNull();
-    await vi.advanceTimersByTimeAsync(1); expect(document.querySelector('#wsstuck')?.textContent).toContain('Still starting');
-    document.querySelector<HTMLButtonElement>('#wsstuck button')?.click();
-    expect(reload).toHaveBeenCalledTimes(1); expect(fetch).not.toHaveBeenCalled();
-  } finally { finish(); await Promise.resolve(); vi.unstubAllGlobals(); vi.useRealTimers(); }
+    await vi.advanceTimersByTimeAsync(60_000); expect(document.querySelector('#wsstuck')).toBeNull(); expect(reload).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled(); // no network or worker probe while a boot is merely slow
+    guardBoot(Promise.reject(new Error('main chunk 404'))); await vi.advanceTimersByTimeAsync(0);
+    expect(reload).toHaveBeenCalledTimes(1); expect(document.querySelector('#wsstuck')).toBeNull(); // the error report is the only fetch
+    expect(saveStorage('session').getItem('boot.selfReload')).toBeTypeOf('string'); // index.html's 12 s retry is spent too
+    guardBoot(Promise.reject(new Error('main chunk 404'))); await vi.advanceTimersByTimeAsync(0);
+    expect(reload).toHaveBeenCalledTimes(1); expect(document.querySelector('#wsstuck')?.textContent).toContain('Couldn’t start');
+  } finally { finish(); await Promise.resolve(); sessionStorage.removeItem('wildshard.save.v2.session'); document.querySelector('#wsstuck')?.remove(); vi.unstubAllGlobals(); vi.useRealTimers(); }
 });
 
 function pendingStyle(name: string): HTMLLinkElement {

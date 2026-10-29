@@ -157,7 +157,11 @@
       // the loading card 12 s after this document started reloads once a session; a second failure is the error card.
       setTimeout(() => {
         if (!document.querySelector('[data-title-shell]') || !document.querySelector('.ws-load[data-shell]')) return;
-        try { if (sessionStorage.getItem('wildshard.boot.selfReload') !== null) return; sessionStorage.setItem('wildshard.boot.selfReload', String(Date.now())); } catch { return; }
+        try { // the session save key boot.selfReload (src/engine/saves/slots.ts), shared with stuck.ts's one retry
+          const doc = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{"keys":{}}');
+          if (doc.keys?.['boot.selfReload']) return;
+          (doc.keys ??= {})['boot.selfReload'] = { v: 1, data: String(Date.now()) }; sessionStorage.setItem('wildshard.save.v2.session', JSON.stringify(doc));
+        } catch { return; }
         location.reload();
       }, 12000);
     </script>
