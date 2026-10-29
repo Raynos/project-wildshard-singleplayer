@@ -1,5 +1,7 @@
 import { expect,test } from 'vitest';
 import { ProjectedState,type NumericProjection } from './returnProgram';
+import { onFault,type Fault } from '@wildshard/engine/core/faults';
+import { Rng } from '@wildshard/engine/core/rng';
 
 const rows={initial:{value:0,step:0,tell:-0},retain:{value:'value'},signals:{step:'advance',tell:'draw',other:'other'},retainEvents:{step:{mask:'step'},tell:{mask:'tell'}}};
 const declared={script:{signals:{a:'advance',b:'draw',c:'other'},channels:{a:'value',b:'mask'}}};
@@ -57,4 +59,35 @@ test('event output banks validate before acceptance without requiring another ev
   output={value:-0,mask:-0};const result=state.event('member');
   expect(Object.is(state.value('value'),-0)).toBe(true);expect(Object.is(result['mask'],-0)).toBe(true);
   expect(accepted).toBe(3);state.reset();expect(state.value('value')).toBe(0);
+});
+
+test('nonfinite or negative frame time skips without poisoning the pending sample',()=>{
+  const faults:Fault[]=[],off=onFault(fault=>{faults.push(fault);});
+  let calls=0,observed=0;
+  const state=new ProjectedState(rows,{project:(_signal,frame)=>{calls++;observed=frame['dt']??0;return {value:2,mask:4};}});
+  try{
+    expect(state.step(.04,{})).toEqual({dt:0,values:{}});
+    for(const dt of [Number.NaN,Infinity,-Infinity,-1])expect(state.step(dt,{})).toEqual({dt:0,values:{}});
+    expect(state.state).toStrictEqual(rows.initial);expect(calls).toBe(0);expect(faults).toHaveLength(1);
+    expect(faults[0]).toMatchObject({system:'projection.step',verdict:'retry',error:{message:'Invalid projection frame delta'}});
+    expect(state.step(.06,{})).toEqual({dt:.1,values:{value:2,mask:4}});
+    expect(calls).toBe(1);expect(observed).toBe(.1);expect(state.state).toStrictEqual({value:2,step:4,tell:-0});
+  }finally{off();}
+});
+
+test('a rejected frame restores borrowed RNG and state while another owner and later frames run',()=>{
+  const faults:Fault[]=[],off=onFault(fault=>{faults.push(fault);}),random=new Rng(517),before=random.snapshot();
+  let bad=true,calls=0;
+  const state=new ProjectedState(rows,{project:(_signal,_frame,stream)=>{calls++;stream?.next();return bad?{value:2}:{value:2,mask:4};}});
+  const healthy=new ProjectedState(rows,{project:()=>({value:8,mask:9})});
+  try{
+    state.step(.04,{},random);expect(state.step(.06,{},random)).toEqual({dt:0,values:{}});
+    expect(state.state).toStrictEqual(rows.initial);expect(random.snapshot()).toStrictEqual(before);
+    expect(state.step(0,{},random)).toEqual({dt:0,values:{}});expect(calls).toBe(2);expect(faults).toHaveLength(1);
+    expect(faults[0]).toMatchObject({verdict:'retry',error:{message:'Missing required projection output'}});
+    expect(healthy.step(.1,{})).toEqual({dt:.1,values:{value:8,mask:9}});
+    bad=false;expect(state.step(0,{},random)).toEqual({dt:.1,values:{value:2,mask:4}});
+    const expected=new Rng(517);expected.next();expect(random.snapshot()).toStrictEqual(expected.snapshot());
+    expect(state.state).toStrictEqual({value:2,step:4,tell:-0});expect(faults).toHaveLength(1);
+  }finally{off();}
 });

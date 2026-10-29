@@ -1,4 +1,5 @@
-import { beforeAll,expect,test } from 'vitest';
+import { beforeAll,expect,test,vi } from 'vitest';
+import { onFault,type Fault } from '../src/engine/core/faults';
 import { compileReturnProjectionV2 } from '../src/sdk/returnProjectionV2';
 import { readDecisionSources } from '../src/sdk/buildDecisionScripts';
 import { ReturnProjectionV2 } from '../src/game/population/returnProjectionV2';
@@ -145,12 +146,21 @@ test('projection output capacity is explicit, bounded and layout checked',()=>{
 
 test('sampling time and borrowed RNG survive a refused complete clock bank',()=>{
   const random=new Rng(517),before=random.snapshot();
-  const state=new ProjectedState({initial:{value:0},signals:{step:'run'},outputs:['missing']},new ReturnProjectionV2(hostile));
-  expect(state.step(.04,{mode:6},random).dt).toBe(0);
-  expect(()=>state.step(.06,{mode:6},random)).toThrow('Missing required projection output');
-  expect(random.snapshot()).toStrictEqual(before);expect(state.state).toStrictEqual({value:0});
-  // A zero-delta retry must still reach the preserved 100-ms sample.
-  expect(()=>state.step(0,{mode:6},random)).toThrow('Missing required projection output');
+  const program=new ReturnProjectionV2(hostile),prepare=vi.spyOn(program,'prepare');
+  const faults:Fault[]=[],off=onFault(fault=>{faults.push(fault);});
+  const state=new ProjectedState({initial:{value:0},signals:{step:'run'},outputs:['missing']},program);
+  try{
+    expect(state.step(.04,{mode:6},random).dt).toBe(0);
+    expect(state.step(.06,{mode:6},random)).toStrictEqual({dt:0,values:{}});
+    expect(prepare).toHaveBeenCalledTimes(1);
+    expect(random.snapshot()).toStrictEqual(before);expect(state.state).toStrictEqual({value:0});
+    // A zero-delta retry still reaches the preserved 100-ms sample; only this frame is skipped.
+    expect(state.step(0,{mode:6},random)).toStrictEqual({dt:0,values:{}});expect(prepare).toHaveBeenCalledTimes(2);
+    expect(faults).toHaveLength(1);expect(faults[0]).toMatchObject({verdict:'retry',error:{message:'Missing required projection output'}});
+    // Direct calls remain strict and preserve the original complete-bank refusal.
+    expect(()=>state.event('step',{mode:6,dt:.1},random)).toThrow('Missing required projection output');
+    expect(random.snapshot()).toStrictEqual(before);expect(state.state).toStrictEqual({value:0});
+  }finally{off();prepare.mockRestore();}
 });
 
 

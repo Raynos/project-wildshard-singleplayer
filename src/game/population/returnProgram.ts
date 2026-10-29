@@ -5,6 +5,7 @@ import { scriptV1Layout, SCRIPT_V1_EVENTS, SCRIPT_V1_COMMANDS } from '@wildshard
 import { decisionScriptContract, parseDecisionScripts, SCRIPT_V1_REFERENCE_KINDS, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
 import type {V2ActionBinding} from '@wildshard/format/scriptActionsV2';
 import type { Rng } from '@wildshard/engine/core/rng';
+import { emitFault } from '@wildshard/engine/core/faults';
 import type { GroupStepV2 } from '@wildshard/engine/script/groupStepV2';
 import type { PreparedScriptMemory } from '@wildshard/engine/script/moduleV2';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -344,6 +345,7 @@ interface ProjectedStateRows<S extends Record<string,number>> {
 export class ProjectedState<S extends Record<string,number> = Record<string,number>> {
   readonly state:S;
   private elapsed=0;
+  private reportedStep=false;
   private readonly retain:Readonly<Record<string,string>>;
   /** Call with the declared program before module allocation when admitting a
    * resource owner. Construction repeats the structural checks for direct use. */
@@ -396,9 +398,17 @@ export class ProjectedState<S extends Record<string,number> = Record<string,numb
   project(frame:Readonly<Record<string,number>>,random?:Rng,candidates:readonly Readonly<Record<string,number>>[]=[]):Readonly<Record<string,number>> {
     if(this.row.signal===undefined)throw new Error('Missing projection signal');return this.event(this.row.signal,frame,random,candidates);
   }
-  /** At most one decision each 100 ms; long frames produce no catch-up burst. */
+  private skipStep(error:unknown):{dt:number;values:Readonly<Record<string,number>>} {
+    if(!this.reportedStep){this.reportedStep=true;emitFault({system:'projection.step',error,verdict:'retry'});}
+    return {dt:0,values:{}};
+  }
+  /** At most one decision each 100 ms; rejected samples retain their clock,
+   * state and random continuation, skip this entity and retry on a later frame. */
   step(dt:number,frame:Readonly<Record<string,number>>,random?:Rng):{dt:number;values:Readonly<Record<string,number>>} {
+    if(!Number.isFinite(dt)||dt<0||!Number.isFinite(this.elapsed+dt))return this.skipStep(new RangeError('Invalid projection frame delta'));
     this.elapsed+=dt;if(this.elapsed+1e-9<.1)return {dt:0,values:{}};
-    const step=this.elapsed,values=this.event('step',{...frame,dt:step},random);this.elapsed=0;return {dt:step,values};
+    const step=this.elapsed,before=random?.snapshot();
+    try {const values=this.event('step',{...frame,dt:step},random);this.elapsed=0;return {dt:step,values};}
+    catch(error){if(before!==undefined)random?.restore(before);return this.skipStep(error);}
   }
 }

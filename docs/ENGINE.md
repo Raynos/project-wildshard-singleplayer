@@ -10344,6 +10344,10 @@ gates and six-attempt land placement are Driftwood's behaviour/returns.as.
 numeric guest channels and event aliases. Its state/reset operations do not
 invoke rules; `restart` resets then requests the guest's reset event, and
 `step` requests at most one decision per 100 ms without catch-up bursts.
+A rejected timed sample skips that entity, retains its pending sampling clock,
+state and borrowed RNG, and reports once through the internal retry path.
+Invalid frame deltas earn no sampling time. Direct `event` / `project` calls
+and construction admission remain strict.
 Optional `outputsEvents` rows require each event's complete finite channel
 bank before accepting borrowed RNG or retained state; other events keep their
 own requirements. Admission checks event aliases and channels before allocating
