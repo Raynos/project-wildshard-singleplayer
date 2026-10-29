@@ -419,16 +419,6 @@
       }
     },
     {
-      "module": "src/engine/models/glbNodes.ts",
-      "shard": "nalati-grasslands",
-      "plan": {
-        "path": "docs/plans/shard-platform/open-x-queue.md",
-        "row": "W3 Nalati GLB node intake (G441)"
-      },
-      "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3"
-    },
-    {
       "module": "src/game/looks/overcast.ts",
       "shard": "nalati-grasslands",
       "plan": {
@@ -1627,23 +1617,6 @@
     },
     {
       "module": "src/game/shardfile/sceneHandles.ts",
-      "shard": "nalati-grasslands",
-      "plan": {
-        "path": "docs/plans/shard-platform/rows.md",
-        "row": "SF48"
-      },
-      "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3",
-      "approvedFeature": {
-        "name": "living-buildings",
-        "decision": {
-          "path": "docs/plans/shard-platform/decisions.md",
-          "row": "G474"
-        }
-      }
-    },
-    {
-      "module": "src/game/shardfile/buildingAssembly.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/shard-platform/rows.md",

@@ -4,19 +4,10 @@
     "far-reach": [],
     "sunscar-dunes": [],
     "pine-hollow": [
-      { "path": "src/shards/pine-hollow/world/poolSurface.ts", "reason": "Per-frame wet-bed projection retains the original pool transition and geometry.", "decision": "G520" },
       { "path": "src/game/quest/chapterDirector.ts", "name": "installChapterLead", "reason": "The remaining lead presentation reads the existing AS channels and presents its view.", "decision": "G570" }
     ],
-    "driftwood-isle": [
-      { "path": "src/shards/driftwood-isle/runtime/models/people.ts", "reason": "The castaway's KitFigure, fitted camp and borrowed smoke are private scene presentation.", "decision": "G565" },
-      { "path": "src/shards/driftwood-isle/runtime/models/trader.ts", "reason": "The entered trader's rig, specimen and pose ownership retain their actual view lifetime.", "decision": "G565" }
-    ],
-    "nalati-grasslands": [
-      { "path": "src/shards/nalati-grasslands/look/index.ts", "reason": "The painterly panorama, key and grass projection follow their declared world and weather owners.", "decision": "G478" },
-      { "path": "src/shards/nalati-grasslands/look/render.ts", "reason": "The private painterly render strategy retains its fog, terrain and grade projection.", "decision": "G478" }
-    ],
-    "nine-dragon-stack": [
-      { "path": "src/shards/nine-dragon-stack/runtime/viewmodel/graphArms.ts", "reason": "The admitted native held rig draws weapon poses, materials, textures and trails.", "decision": "G570" }
-    ]
+    "driftwood-isle": [],
+    "nalati-grasslands": [],
+    "nine-dragon-stack": []
   }
 }
