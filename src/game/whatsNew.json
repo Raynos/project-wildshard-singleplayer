@@ -1,11 +1,11 @@
 {
   "date": "29 OCT 2026",
-  "updated": "2026-10-29T16:14:12Z",
+  "updated": "2026-10-29T19:22:40Z",
   "entries": [
-    "Fixed the blurred top edge in the iPhone home-screen app",
-    "Reload works from loading and pause after a confirmation tap",
-    "Shard Select starts a fresh world after leaving Infinite Wildshard",
+    "Fixed getting stuck when leaving a world for the main menu",
+    "Reload now returns directly to the title without an update screen",
+    "New game from a standalone world returns to the title",
     "Fixed flashing white blocks around Driftwood's grid",
-    "Far Reach's sun rays now follow the painted sun"
+    "Fixed the blurred top edge in the iPhone home-screen app"
   ]
 }
