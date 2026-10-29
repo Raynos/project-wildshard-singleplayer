@@ -3,6 +3,7 @@
 Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E423 (2026-10-03).
 
 - **GM1:** a running push run always finishes and lists every red; never cancel push CI or boot smoke by hand.
+- **DA1:** hidden source maps remain in local/CI builds and boot-smoke artifacts for module checks, profiles and stack decoding. A release retains its exact `dist` maps, `version.json` and chunk report in the `production-source-maps-<SHA>` Actions artifact for 30 days, then omits maps only from `.vercel/output/static` before upload. Original build maps survive symlinked Vercel output. Sentry release tagging stays unchanged; there is no existing source-map upload pipeline.
 - `.github/workflows/deploy.yml` runs the gates on every push and pull request. Production
   deploys at :17 each hour or from `gh workflow run deploy`; the job skips if `/version.json` reports the **selected proven commit**. `gh workflow run deploy -f force=true`
   redeploys the same commit. The job builds Vercel output in GitHub Actions and uploads it

@@ -251,12 +251,30 @@ jobs:
           test -f .vercel/output/functions/api/inbox.func/.vc-config.json
           test -f .vercel/output/functions/api/errors.func/.vc-config.json
 
+      # Hidden maps remain in dist for build checks, local profiles and stack
+      # decoding. Keep the release's copies off the public CDN.
+      - name: Retain production source maps privately
+        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-source-maps-${{ steps.pin.outputs.sha }}
+          path: |
+            dist/version.json
+            dist/.vite/chunk-modules.json
+            dist/**/*.map
+            dist/**/*.map.gz
+            dist/**/*.map.br
+          retention-days: 30
+          include-hidden-files: true
+          if-no-files-found: error
+
       - name: Deploy prebuilt output
         if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
         env:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
           DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
         run: |
+          node scripts/deploy-source-maps.mjs .vercel/output/static
           url=$(vercel deploy --prebuilt --prod --yes --scope raynos-projects --token "$VERCEL_BUILD_TOKEN")
           echo "deployed $url for $DEPLOY_SHA (the pin)"
           echo "### Deployed \`$DEPLOY_SHA\` (the deploy pin) to $url" >> "$GITHUB_STEP_SUMMARY"
