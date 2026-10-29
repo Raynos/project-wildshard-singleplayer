@@ -83,6 +83,7 @@ export function instrument(flow: string): void {
   const seen = new Map<string, Row>();
   let lastPanelAt = 0;
   let navigationPublished = false;
+  const completedPanels = new WeakSet<Element>();
   const sample = (): void => {
     if (document.documentElement?.dataset['wsState'] === 'error') {
       data.fatal = document.querySelector('.ws-load-error')?.textContent ?? 'Application entered error state';
@@ -142,9 +143,11 @@ export function instrument(flow: string): void {
       }
       const at = epoch();
       const navigation = root instanceof HTMLElement && Object.hasOwn(root.dataset, 'navigation');
-      if ((at - lastPanelAt >= 100 || navigation && !navigationPublished) && data.control === null) {
+      const download = Number.parseFloat(root.querySelector('[data-el="dlPct"]')?.textContent ?? '');
+      if (download < 100) completedPanels.delete(root);
+      const firstCompletion = download === 100 && !completedPanels.has(root);
+      if ((at - lastPanelAt >= 100 || navigation && !navigationPublished || firstCompletion) && data.control === null) {
         const text = (field: string): string => root.querySelector(`[data-el="${field}"]`)?.textContent ?? '';
-        const download = Number.parseFloat(text('dlPct'));
         const bytes = (fieldName: string): number | null => {
           const raw = root instanceof HTMLElement ? root.dataset[fieldName] : undefined;
           if (raw === undefined || raw === '') return null;
@@ -157,6 +160,7 @@ export function instrument(flow: string): void {
               readCachedBytes: bytes('readCachedBytes'), readUnknownSourceBytes: bytes('readUnknownSourceBytes'), readsClosed: root.dataset['readsClosed'] === 'true'}),
             ...(!(root instanceof HTMLElement) || root.dataset['restoredBytes'] === undefined ? {} : {restoredBytes: bytes('restoredBytes')})}};
         data.panels?.push(panel);
+        if (download === 100) completedPanels.add(root);
         if (navigation) {
           navigationPublished = true;
           const publish: unknown = Reflect.get(window, '__phoneLoadingPanel');
