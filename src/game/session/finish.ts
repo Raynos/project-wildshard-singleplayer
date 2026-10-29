@@ -24,6 +24,7 @@ import { gridPrefetchOrder, startGridPrefetch } from '../grid/prefetch';
 import { admittedRuntimeProduct, completeManifestCache, releaseManifestTransport } from '../shardfile/runtimeProduct';
 import { enterSkyClock } from './clockSettings';
 import { settleEntryPrograms } from './settlePrograms';
+import { prepareSpawnView } from '../shardfile/controlRefinement';
 import { observeTitlePreparation, prepareTitleFrame } from './titlePreparation';
 
 /** how often the in-play warm-up asks whether an arrival's Explorer has closed, and how long it waits for one to open */
@@ -103,6 +104,9 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // Compile programs in batches with a visible count, then draw the first frames as a step —
   // instead of the first render() compiling ~100 programs in one stall (minutes on iOS).
   const programs = () => `${game.renderer.info.programs?.length ?? 0} programs`;
+  // MF5 / NP-1: the spawn view refines under the loader (its L0 tiles, late welds and dressing reads, before control),
+  // so the shaders below link the fine pieces and the reveal shows them; only what lies outside it refines in play
+  await loadingStage('spawnDetail', () => prepareSpawnView());
   try {
     await step('shaders', async (p) => {
       if (warmGrid && ctx.gridLive !== null) {
@@ -165,7 +169,8 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // half, an empty minimap and the title ghost under the HUD for ~0.3 s): the loop starts first, and the loader leaves once
   // two frames have drawn and the minimap's baked map has decoded, waiting at most 1.5 s for both
   app.setState(hud.entered ? 'play' : 'title');
-  game.start();
+  // MF5 / NP-4: the first world frame (game.start draws it synchronously) is a named step, never a gap after Audio
+  await loadingStage('worldFrame', () => { game.start(); });
   const drawnFrom = game.frameCount;
   const drawn = new Promise<void>((resolve) => { const check = (): void => { if (game.frameCount >= drawnFrom + 2) resolve(); else game.levelScope.raf(check); }; check(); });
   await loadingStage('readyFrame', () => Promise.race([Promise.all([drawn, ctx.minimap.prepare()]), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })]));

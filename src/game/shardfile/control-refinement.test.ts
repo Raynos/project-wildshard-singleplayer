@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import { reachControl } from '@wildshard/engine/boot/prefetch';
-import { ControlRefinement } from './controlRefinement';
+import { ControlRefinement, prepareSpawnView } from './controlRefinement';
 
 const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); vi.restoreAllMocks(); });
@@ -59,4 +59,15 @@ test('settled tile identities can return without retaining a permanent job histo
   reachControl(f.level); f.paint(); f.paint(); expect(await first).toBe(true);
   expect(await f.queue.add('tile', { x: 1, z: 0 }, run)).toBe(true);
   expect(run).toHaveBeenCalledTimes(2);
+});
+
+test('MF5: the loader fence runs only spawn-view jobs before control, and the rest after it, nearest first', async () => {
+  const f = fixture();
+  const run = (id: string, x: number) => f.queue.add(id, { x, z: 0 }, () => { f.seen.push(id); return Promise.resolve(); });
+  const far = run('far', 500), near = run('near', 10), edge = run('edge', 150);
+  await Promise.resolve(); expect(f.seen).toEqual([]); // no fence, no control: nothing runs
+  await prepareSpawnView(160);
+  expect(f.seen).toEqual(['near', 'edge']); expect(await near).toBe(true); expect(await edge).toBe(true);
+  reachControl(f.level); f.paint(); f.paint();
+  expect(await far).toBe(true); expect(f.seen).toEqual(['near', 'edge', 'far']);
 });

@@ -32,7 +32,9 @@ export function loadingPath(id: LoadingPathId, own?: Readonly<Record<string, { l
     ...(id === 'grid' ? [step('home', 'Home region', ['crossing']),
       ...[admission, world, loadout].map(row => repeatedStep(row, 2)),
       step('homePrograms', 'Home region shader preparation'), step('road', 'Road system')] : []),
-    leaf('shaders'), leaf('firstFrame'), step('readyFrame', 'First drawn frames and minimap'),
+    // MF5: the spawn view's refinement and the first world frame are named steps (no bar share: Nine-only / short)
+    { ...step('spawnDetail', 'Spawn detail'), weight: 0.01 }, leaf('shaders'), leaf('firstFrame'), { ...step('worldFrame', 'First world frame'), weight: 0.01 },
+    step('readyFrame', 'First drawn frames and minimap'),
     // QA8: WebKit only (finish.ts linkWorldUnderLoader); it carries no bar share, so other engines' bars are unchanged
     step('spawnPrograms', 'Spawn program links'), { ...step('worldPrograms', 'World program links'), weight: 0.01 }, leaf('audio')],
     ignored: native ? [] : BOOT_STEPS.filter(key => !selected.has(key)) };
