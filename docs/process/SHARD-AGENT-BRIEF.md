@@ -38,11 +38,11 @@ hands and weapon, and the quest's staging, held to the other four shards' standa
   **ENGINE REQUEST** and keep building something else meanwhile:
   `scripts/herdr-prompt.sh <active-owner> "[from <your name>] ENGINE REQUEST: <what, why, the file and the repro>"` (no wait).
   The lead builds it and replies with the SHA. You never wait idle on it.
-- **Git:** shared main checkout with other agents. Commit only with `scripts/commit.sh "message" -- <paths>`; stage only
-  for new files, small commits; push with `scripts/push-main.sh` when green (never `git push`; commits don't push themselves). Never stash, checkout, restore
-  or reset files you didn't write.
+- **Git:** shared main checkout with other agents. Commit only with `scripts/commit.sh "message" -- <paths>`.
+  The wrapper stages its exact files; keep commits small. `scripts/push-main.sh` requests a scheduled push tick.
+  Never stash, checkout, restore or reset files you did not write.
 - **Browsers:** every Playwright run through `scripts/browser-lane.sh`; serve builds with `scripts/serve-build.sh`
-  (from a scratchpad export of HEAD), never a vite dev server; close what you open. Muted.
+  (from the shared checkout, pinned with `--head` or `--rev <landed-sha>`), never a vite dev server; close what you open. Muted.
 - **No URL switches**: every variant is a `ctx.debugRow` in your shard (AGENTS.md).
 - **No invented numbers** (E388, Jake: "we're fighting against magic numbers"). A cap, pass bar or threshold must come
   from a measurement, a device limit, an engine constant or a Jake decision. ΔE00 is information, not a pass bar. Your

@@ -1920,7 +1920,7 @@ export const BUDGETS: LevelSpec['budgets'] = { phone: tier(30), desktop: tier(60
 The template's ramp with stair treads:
 
 ```ts
-ctx.piece({ id: 'template.ramp', name: STRINGS.ramp, category: 'buildings', file: 'src/shards/_template/generators/output.ts', object: ramp,
+ctx.piece({ id: 'template.ramp', name: STRINGS.ramp, category: 'buildings', file: 'src/shards/_template/generators/props.ts', object: ramp,
   colliders: [{ kind: 'box', x: 12, y: from[1] + 0.9, z: -11, hx: 1.5, hy: 0.12, hz: Math.sqrt(40) / 2, rot, surface: 'wood' },
     { kind: 'treads', from: { x: 8, y: from[1], z: -8 }, to: { x: 8, y: from[1] + 2, z: -14 }, width: 3, count: 10, surface: 'wood' }], surface: 'wood' });
 ```
@@ -3395,7 +3395,6 @@ initialization and any later identity addition require exact coordinator approva
 | `scripts/check-shards.mjs` (AG9) | pre-commit, `pnpm test` via `check-paths` | the folder layout in `lint/shard-layout.json`: required files, canonical folders, slug = folder name, `manifest.slug` = folder |
 | `scripts/gen-shards.mjs --check` | gate | the generated registry and the shard word list are current |
 | `scripts/check-paths.mjs` | `pnpm test` | no stale tool paths or empty globs |
-| the gate (`.github/workflows/gpu-gate.yml`) | every push | one `macos-15` job per shard, from the registry: boot, walk, combat, the leak test, budgets |
 
 ## 25. Author SDK
 
