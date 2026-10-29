@@ -17,6 +17,8 @@ const queues = new Set<ControlRefinement>();
 /** Run every queue's spawn-view jobs now and resolve once none is left (a failure rejects, as the job's own promise does). */
 export async function prepareSpawnView(radius: number = SPAWN_VIEW_M): Promise<void> {
   spawnView = { radius };
+  // what the fence saw, for the loading rulers (a viewer far from its jobs runs nothing)
+  performance.mark('wildshard.spawn-view', { detail: [...queues].map(queue => queue.describe()) });
   try {
     for (const queue of queues) queue.wake();
     for (;;) {
@@ -58,6 +60,12 @@ export class ControlRefinement {
     const order = this.sequence++; this.known.add(id);
     const result = new Promise<boolean>((resolve, reject) => { this.waiting.set(id, { id, at: { ...at }, order, run, resolve, reject }); });
     this.kick(); return result;
+  }
+  /** The viewer, the queue's size and its nearest waiting job's distance (prepareSpawnView's mark). */
+  describe(): { readonly at: Point; readonly waiting: number; readonly nearest: number | null; readonly active: boolean } {
+    const from = this.position(); let nearest: number | null = null;
+    for (const job of this.waiting.values()) { const d = Math.hypot(job.at.x - from.x, job.at.z - from.z); if (nearest === null || d < nearest) nearest = d; }
+    return { at: { x: Math.round(from.x), z: Math.round(from.z) }, waiting: this.waiting.size, nearest: nearest === null ? null : Math.round(nearest), active: this.active };
   }
   /** The spawn-view fence opened: run what is in view (prepareSpawnView). */
   wake(): void { this.kick(); }
