@@ -43,7 +43,7 @@ test.each([{key: undefined, total: 500}, {key: 'example', total: 250}, {key: 'un
   } finally {dispose();}
 });
 
-test('a hybrid grid declares its actual product before later immutable files, without changing standalone entry', () => {
+test('a hybrid grid declares its index and demanded files without changing standalone entry', () => {
   const manifest = {gridShardfile: '/shardfiles/example/shard.json'};
   const accounting = new DownloadAccounting(document.baseURI), dispose = installDownloadAccounting(accounting);
   try {
@@ -51,9 +51,9 @@ test('a hybrid grid declares its actual product before later immutable files, wi
     const selected = homeDownloadSource(manifest, true);
     expect(selected).toBe(manifest.gridShardfile);
     reserveHomeDownload({'/shardfiles/example/': [10, 200, 130, 170]}, selected, document.baseURI, 'phone');
-    expect(accounting.snapshot()).toMatchObject({declaredBytes: 130, declaredDoneBytes: 0});
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: 10, declaredDoneBytes: 0});
     declareDownloadFile('/shardfiles/example/blobs/bin/member.bin', 100);
-    expect(accounting.snapshot()).toMatchObject({declaredBytes: 130, declaredDoneBytes: 0});
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: 110, declaredDoneBytes: 0});
     expect(homeDownloadSource({...manifest, shardfile: '/primary.json'}, true)).toBe('/primary.json');
   } finally {dispose();}
 });
@@ -65,27 +65,27 @@ test('the early code union fixes the denominator without starting any preload or
   try {
     reserveHomeDownload({'/shardfiles/example/': [10, 200]}, '/shardfiles/example/shard.json', document.baseURI);
     declareHomeModules('/shardfiles/example/shard.json', document.baseURI);
-    expect(accounting.snapshot()).toMatchObject({declaredBytes: 350, declaredDoneBytes: 0});
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: 160, declaredDoneBytes: 0});
     expect(document.querySelectorAll('link[rel="modulepreload"]')).toHaveLength(0);
     accounting.resource({name: new URL('/assets/shared.js', document.baseURI).href, startTime: 1, transferSize: 100, encodedBodySize: 100, workerStart: 0, serverTiming: []});
     prepareHomeModules('/shardfiles/example/shard.json', document.baseURI);
-    expect(accounting.snapshot()).toMatchObject({declaredBytes: 350, declaredDoneBytes: 100});
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: 160, declaredDoneBytes: 100});
     expect(document.querySelectorAll('link[rel="modulepreload"]')).toHaveLength(2);
   } finally {dispose();}
 });
-test('a caller without a trusted tier reserves the full bank without selecting a device',()=>{
+test('a caller without a trusted tier declares only the index, without selecting a device',()=>{
   const accounting=new DownloadAccounting(document.baseURI),dispose=installDownloadAccounting(accounting);
   try {
     reserveHomeDownload({'/shardfiles/example/':[10,200,130,170]},'/shardfiles/example/shard.json',document.baseURI);
-    expect(accounting.snapshot().declaredBytes).toBe(200);
+    expect(accounting.snapshot().declaredBytes).toBe(10);
   } finally {dispose();}
 });
-test.each(['phone','desktop'] as const)('the %s home reserves its selected product total before reading sections', tier => {
+test.each(['phone','desktop'] as const)('the %s home keeps possible tier bodies out of entry declarations', tier => {
   const accounting=new DownloadAccounting(document.baseURI),dispose=installDownloadAccounting(accounting);
   try {
     reserveHomeDownload({'/shardfiles/example/':[10,200,130,170]},'/shardfiles/example/shard.json',document.baseURI,tier);
-    expect(accounting.snapshot().declaredBytes).toBe(tier==='phone'?130:170);
-    expect(accounting.snapshot().unitemizedBytes).toBe(tier==='phone'?120:160);
+    expect(accounting.snapshot().declaredBytes).toBe(10);
+    expect(accounting.snapshot().unitemizedBytes).toBeUndefined();
   } finally {dispose();}
 });
 test.each([{row:[10,200,9,170]},{row:[10,200,130,201]},{row:[10,200,130,Number.NaN]},{row:[10,200,130]}])('invalid tier totals refuse before reserving %j',({row})=>{
@@ -103,13 +103,13 @@ test('the selected code and product total stay fixed as common and late feature 
   try {
     reserveHomeDownload({'/shardfiles/example/':[10,200]},'/shardfiles/example/shard.json',document.baseURI);
     prepareHomeModules('/shardfiles/example/shard.json',document.baseURI);
-    const before=accounting.snapshot();expect(before).toMatchObject({declaredBytes:350,pendingBytes:350});
+    const before=accounting.snapshot();expect(before).toMatchObject({declaredBytes:160,pendingBytes:160});
     accounting.resource({name:new URL('/assets/common.js',document.baseURI).href,startTime:1,transferSize:100,encodedBodySize:100,workerStart:0,serverTiming:[]});
     declareModuleFiles([['/assets/common.js',100]]);preloadModuleGroups(['world.scenes']);
-    expect(accounting.snapshot()).toMatchObject({declaredBytes:350,declaredDoneBytes:100,pendingBytes:250});
+    expect(accounting.snapshot()).toMatchObject({declaredBytes:160,declaredDoneBytes:100,pendingBytes:60});
     expect(document.querySelectorAll('link[rel="modulepreload"]')).toHaveLength(2);
     expect(document.querySelector('link[href$="unused.js"]')).toBeNull();
     expect(() => prepareHomeModules('https://foreign.invalid/shardfiles/example/shard.json',document.baseURI)).not.toThrow();
-    expect(accounting.snapshot().declaredBytes).toBe(350);
+    expect(accounting.snapshot().declaredBytes).toBe(160);
   } finally {dispose();}
 });

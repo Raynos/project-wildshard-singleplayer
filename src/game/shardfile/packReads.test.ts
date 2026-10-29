@@ -19,7 +19,7 @@ test('complete phases verify once and return exact detached members', async () =
   const phase = packReads([pack], new Set([a, b]), read, digest);
   const [first, second] = await Promise.all([phase.read(a), phase.read(b)]);
   expect(first).toEqual(Uint8Array.of(1, 2)); expect(second).toEqual(Uint8Array.of(3, 4));
-  expect(read).toHaveBeenCalledExactlyOnceWith(pack.path, 4);
+  expect(read).toHaveBeenCalledExactlyOnceWith(pack.path, 4, pack.entries);
   expect(digest).toHaveBeenCalledExactlyOnceWith(wire);
   first[0] = 9; expect(wire).toEqual(Uint8Array.of(1, 2, 3, 4));
 });
@@ -38,7 +38,7 @@ test('an intersecting partial pack cannot hide a later complete envelope', async
   const phase = packReads([pack, complete], new Set([a]), read,
     bytes => Promise.resolve(bytes.length === 2 ? complete.hash : pack.hash));
   expect(await phase.read(a)).toEqual(Uint8Array.of(1, 2));
-  expect(read).toHaveBeenCalledExactlyOnceWith(complete.path, 2);
+  expect(read).toHaveBeenCalledExactlyOnceWith(complete.path, 2, complete.entries);
 });
 
 
