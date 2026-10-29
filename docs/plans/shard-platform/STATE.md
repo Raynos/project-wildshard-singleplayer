@@ -4,14 +4,14 @@
 (G845).** Only legacy-deletion (LD4b goldens done; tag legacy-final; LD5-LD10 all at once on Jake's word, G840 / G843 / G851).
 Archived today: 12 mini plans (loading ... tile-streaming 9be158bc79).
 
-**LIVE beb02d8043 (build beb02d804-mvsuz7t1, ~20:25 Cancun)**: the QA-fix release (G841), with CI 40792808914 all 36 and the
-exact six 40796021105 green; What's New included. Next hourly: the NM motion fix and newer landings, once their CI and the exact six
-are green (PL9 test reds with x6). The report-only Sim phone-route xcrun timeout is retained; no Sim pass is claimed.
+**LIVE beb02d8043 (build beb02d804-mvsuz7t1, ~20:25 Cancun).** Next release c05f6ac3b8 (CI 40801902717 all 36 green: NM motion,
+spawn-stall fix, lend contract 0823ccccba, PL test fixes, What's New); exact smoke 40804172656 running, deploy on green (sp-ci-deploy).
+~21:10: the BURN-DAMAGE-LIST working copy was truncated (sp-o3) and restored to HEAD; its unlanded delta is unrecoverable, lanes told.
 
 **Jake's QA 10-28 PASSED:** NM, loading / M2, tiles / T10, DW cut B (G827 / G831-G833).
 **Marks:** Nine done NR1-3, 5-7, 12 (NR3 windows 4c4fadb4d2; NR12 walls + coarse look 2b304160d0); open NR4, NR8, NR10, NR13-14. Far Reach FR1-4
-done (FR3 53a7884102); FR5 grid sun rays, FR6 open. QF6 / 11 / 21 / 22 done; QF23 tone -> D203, NR11 stone -> D204; QF20 (flaky?), 24-26 open. NM motion restored (ba74e16032). Pine LUT + far trees done.
-**Opus:** o3 QF20 / QF24 / FR5 / FR6; o4 NR13 / NR14 / QF25 / QF26; o5 NR10, then a positionLocal-under-instancing audit. Damage: T6 D202, T7, D199, D201, D12 (+ Chromium 4x spawn 66.7 ms).
+done (FR3 53a7884102); FR5 grid sun rays, FR6 open. QF6 / 11 / 20 (tone D205) / 21 / 22 done; D203 / D204 / D205 tone: presets match exactly (harness a9c4ed2b82), inputs differ. NM motion restored (ba74e16032). Pine LUT + far trees done.
+**Opus:** o3 FR6, D205 / D204 inputs; o4 NR14 / QF25 (NR13 done 12ca808f2d); o5 QF26. PL11 / PL12 done. Damage: T6 D202, T7, D199, D201, D12 (+ Chromium 4x spawn 66.7 ms).
 **Codex (G861 / G862 / G867):** tool `pnpm phone-loading` done (b863be1b48, ac34371119; live phone 51.2 / 24.7 s). x9 N1, then PL1 /
 PL3 / PL13, x10 PL2 / PL5 / PL14, x6 PL9 / 11 / 8 / 12 / 16, x2 PL7 / PL4 / PL15, x1 QF19 (P1 desktop Settings), PL6 / PL10.
 Then G860 / lint-speed. Done: N2 76003eacee, N3, N4, DL2.
