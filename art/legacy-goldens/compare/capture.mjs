@@ -88,7 +88,8 @@ try{for(const slug of slugs){
     const w=window.__wildshard.world,g=w.game;g.hold=true;
     const player=w.player.position.toArray(),settled=g.camera.position.toArray();
     const eye=c.eye??[settled[0],settled[1]+(c.lift??0),settled[2]];g.camera.position.set(...eye);
-    g.camera.rotation.set(c.pitch*Math.PI/180,-c.yaw*Math.PI/180,0,'YXZ');g.camera.fov=c.fov;g.camera.updateProjectionMatrix();g.camera.updateMatrixWorld();g.shardFrame();g.composer.render(0);
+    g.camera.rotation.set(c.pitch*Math.PI/180,-c.yaw*Math.PI/180,0,'YXZ');g.camera.fov=c.fov;g.camera.updateProjectionMatrix();g.camera.updateMatrixWorld();// QF20: two frames at the held camera; one left SHARDFILE's shadow-layer casters (the body shadow) out
+    g.shardFrame();g.composer.render(0);g.shardFrame();g.composer.render(0);
     return{eye:g.camera.position.toArray(),rotation:g.camera.rotation.toArray(),fov:g.camera.fov,frame:g.frameCount,player,settledEye:settled};
    },c);
    const shot=set?`${dir}/${String(c.n).padStart(2,'0')}-${c.name}-${mode}.png`:`${dir}/${i+1}-${c.name}-shardfile.png`;
