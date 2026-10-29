@@ -19,6 +19,9 @@ export interface LevelAudioProfile {
   priorityFiles?: () => readonly string[];
   files: () => { music: string[]; sfx: string[] };
   bootFiles: (style: MusicStyle) => readonly string[];
+  /** Title-only recordings. A direct play entry may schedule them after
+   * control; recordings shared by a played slot must remain outside this set. */
+  titleFiles?: (style: MusicStyle) => readonly string[];
   /** The part of `bootFiles` the first seconds of play need: the boot slots' stems and the spawn bed. On the phone the
    *  loading bar reads only these; every other boot file downloads and decodes after control (iphone-downloads I7).
    *  Left out, every boot file is read before control. */
@@ -85,6 +88,10 @@ export async function createCatalogueAudio(data: AudioData, extras?: AudioCatalo
       return [...files.music, ...files.sfx].filter(url => dirs.some(dir => url.startsWith(dir)));
     } } : {}),
     bootFiles: style => [...styleFiles(style, music.bootSlots), ...selectedSfx()],
+    titleFiles: style => {
+      const played = new Set(styleFiles(style, music.bootSlots.filter(slot => slot !== 'title'), false));
+      return styleFiles(style, ['title'], false).filter(url => !played.has(url));
+    },
     controlFiles: style => [...styleFiles(style, music.bootSlots, false, music.controlTension !== 'late'), ...sfxBedFiles(getSfxSet(), samples.bed, levels),
       ...(policy.overlaySamples && getSfxSet() !== 'synth' ? sfxBedFiles(samples.set, samples.bed, levels) : [])],
     ...(music.controlTension === 'late' ? { controlDecode: async (style: MusicStyle, read: AudioRead, decode: AudioDecode, onFile?: () => void): Promise<LevelAudioBank> => {
@@ -124,6 +131,7 @@ async function createScoreSetAudio(data:AudioData):Promise<LevelAudioProfile> {
     bootFiles:style=>[...titleFiles(style),...(policy.baseSamples?sfxFiles(getSfxSet(),samples.bed):[]),
       ...(policy.cueOverlay?(useCues()?cueFiles(samples.set):[]):bootScore(style)),
       ...(policy.cueOverlay?bootScore(style):cueFiles(samples.set))],
+    titleFiles,
     controlFiles:style=>[...(policy.inventory==='base'?styleFiles(style,['title'],false):titleFiles(style)),
       ...scoreFiles(set,scoreSlots(style),false),...(policy.baseSamples?sfxBedFiles(getSfxSet(),samples.bed):[])],
     decode:async(genre,read,decode,onFile)=>{

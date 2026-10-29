@@ -169,6 +169,29 @@ test('late decoding keeps the original bank and reuses control bytes beside one 
   }finally{initializeTier(prior);}
 });
 
+test('direct phone play holds title-only audio and later decodes the same bytes',async()=>{
+  const prior=TIER;initializeTier('phone');
+  try {
+    const fetch=vi.spyOn(globalThis,'fetch').mockImplementation(input=>Promise.resolve(new Response(input===music?new Uint8Array([7,8,9]):new Uint8Array([1,2,3]))));
+    const decode=vi.fn<LevelAudioProfile['decode']>(async(_style,read)=>{
+      expect([...new Uint8Array(await read(music))]).toEqual([7,8,9]);
+      expect([...new Uint8Array(await read(sfx))]).toEqual([1,2,3]);
+      return bank;
+    });
+    const selected={...profile,titleFiles:()=>[music],controlDecode:()=>Promise.resolve(bank),decode};
+    const normal=bootFiles(level,'img',selected),files=bootFiles(level,'img',selected,true,true);
+    expect(normal.music).toEqual([music]);expect(files.music).toEqual([]);expect(files.sfx).toEqual([sfx]);
+    const preload=startDeferredAudioPreload(files,level,selected);
+    await preload.wait({set:()=>undefined,detail:()=>undefined});await preload.decode();
+    expect(fetch.mock.calls.map(([input])=>input)).toEqual([sfx]);
+    expect((await startLateAudio(files))?.profile).toBe(bank);
+    expect(decode).toHaveBeenCalledTimes(1);
+    expect(fetch.mock.calls.map(([input])=>input)).toEqual([sfx,music]);
+    initializeTier('desktop');
+    expect(bootFiles(level,'img',selected,true,true).music).toEqual([music]);
+  } finally {initializeTier(prior);}
+});
+
 test('the declared audio-download row owns its original parallel reads before the later audio wait',async()=>{
   const timeline=new LoadingTimeline({id:'fixture',steps:[
     {key:'data',label:STEP_INFO.menu.label,weight:1},{key:'audioFiles',label:STEP_INFO.audio.label,weight:1},

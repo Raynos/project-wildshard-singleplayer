@@ -73,6 +73,8 @@ export function installEntryTransport(): void {
     take: async (url: string, signal?: AbortSignal): Promise<Response | null> => {
       const name = new URL(url, location.href).href, job = jobs.get(name);
       if (job === undefined) return null;
+      // Actual admission demand must never wait behind its own read-ahead fence.
+      expand();
       jobs.delete(name);
       signal?.throwIfAborted();
       const response = await job;
@@ -156,10 +158,11 @@ export function installEntryTransport(): void {
         if (stopped) return;
         const job = pending[next++]; if (job === undefined) return;
         job.finish(await read(job.row));
+        await codeReady;
       }
     };
-    // The first data request overlaps code immediately; five additional
-    // streams wait for the mandatory code bank, rather than starving it.
+    // One header pack overlaps startup. Bulk waits for original descriptor
+    // verification (including its hash worker), or actual admission demand.
     await Promise.all(Array.from({length: 6}, async (_, slot) => { if (slot > 0) await codeReady; await worker(); }));
     for (const job of pending) job.finish(null);
   };

@@ -17,7 +17,7 @@ import { generatePlatform } from '../src/engine/sim/strips.ts';
 import { platformGeometrySource } from '../src/game/grid/compiledStrips.ts';
 import { encodeGridStripPage, GridStripTransportLimitError, writeGridStripPages } from './app-build/gridStripPages.ts';
 import { phoneWireReport } from './phone-wire.mjs';
-import { existsSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 
 const root = process.cwd(), outputRoot = resolve(process.argv[2] ?? root), base = 'https://build.invalid/';
 /** @param {string} path */
@@ -29,14 +29,15 @@ const fetchFile = async path => {
   try { return new Response(new Uint8Array(await readFile(file))); }
   catch (error) { if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT') return new Response(null, { status: 404 }); throw error; }
 };
-const plans = new Map(), seen = new Set(), products = new Map(), sources = new Map();
+const plans = new Map(), seen = new Map(), products = new Map(), sources = new Map(), entryModes = new Map();
 /** @type {import('./app-build/gridStripPages.ts').CompiledGridCandidate[]} */
 const compiled = [];
 for (const developer of [false, true]) for (const devserver of [false, true]) for (const nineDragon of [false, true]) {
   const assembly = new GridAssembly({ developer, devserver, nineDragon });
   const key = JSON.stringify(assembly.cells);
-  if (seen.has(key)) continue;
-  seen.add(key);
+  const mode = `${Number(developer)}${Number(devserver)}${Number(nineDragon)}`;
+  const previous = seen.get(key);
+  if (previous !== undefined) { entryModes.set(mode, previous); continue; }
   const empty = assembly.emptyNeighbour.edge;
   const edges = await loadGridEdgeProfiles(assembly.cells, async cell => {
     try {
@@ -69,6 +70,7 @@ for (const developer of [false, true]) for (const devserver of [false, true]) fo
   try { strips = generatePlatform(cells, input.empty, plans); }
   catch (error) { console.error(`[grid bake] road-level fallback: ${String(error)}`); cells = input.flat; strips = generatePlatform(cells, input.empty, plans); }
   const source = await platformGeometrySource(cells, input.empty), reach = 1.5 * assembly.pitch + 1;
+  seen.set(key, source); entryModes.set(mode, source);
   for (const home of assembly.cells) {
     /** @param {import('../src/engine/sim/strips.ts').GeneratedStrip} strip */
     const within = strip => Math.abs(strip.mesh.origin.x - home.origin.x) <= reach && Math.abs(strip.mesh.origin.z - home.origin.z) <= reach;
@@ -91,5 +93,8 @@ const names = [...new Set(compiled.map(row => row.slug))].filter(slug => existsS
 const wire = await phoneWireReport(root, names);
 if (wire.errors.length > 0) throw new Error(wire.errors.join('\n'));
 const pages = writeGridStripPages(outputRoot, createHash('sha256').update(output).digest('hex'), compiled, wire.rows);
+// Addressing only: all original strip bytes, hashes and I12 selection stay in
+// writeGridStripPages. The title can request its exact existing initial page.
+writeFileSync(resolve(outputRoot, 'out/.app/grid-strip-entry-modes.json'), JSON.stringify(Object.fromEntries(entryModes)));
 for (const row of pages.rows) console.error(`[grid strip wire] ${row.home} source=${row.source.slice(0, 8)} added=${row.added} product=${String(row.product)} ceiling=${String(row.ceiling)} ${row.included ? 'compiled' : 'native'}${row.outer ? '+outer' : ''}`);
 process.stdout.write(output);

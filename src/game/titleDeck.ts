@@ -2,6 +2,7 @@ import { pageScope } from '@wildshard/engine/app/resources';
 import { isDev } from '@wildshard/engine/core/devMode';
 import { listenDom, listenTap } from '@wildshard/engine/input/dom';
 import { beginNavigationShell } from '@wildshard/engine/boot/shell';
+import { startEntryDownload } from './shardfile/entryTransport';
 /**
  * The title screen's shard deck — ONE implementation for both ways in (E318, Jake: "lol wtf why do we have two title
  * screens, one only please"): the cold launch (src/engine/ui/StartTitle.ts, renderer-free, before any shard loads) and pause ▸
@@ -320,6 +321,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     if (c.entries !== undefined && !hasEntry(c.entries, entry)) return;
     const shard = c.shard;
     entering = true;
+    if (entry === 'shardfile') startEntryDownload(c.slug);
     const attempt = beginNavigationShell(c.name, scope, () => {
       chooseShardEntry(c.slug, entry);
       opts.onEnter(shard, entry);

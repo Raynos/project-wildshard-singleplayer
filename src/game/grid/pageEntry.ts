@@ -16,6 +16,7 @@ import { findTitleManifest } from '../shard/titleList';
 import { chooseShardEntry } from '../shard/entryMode';
 import { travel, travelSlot } from '../travel/travel';
 import { startEntryDownload } from '../shardfile/entryTransport';
+import { startGridStripDownload } from './entryDownloads';
 
 // P0 (Jake's phone, tap -> loader): the page entry routes on these before anything else, so this module stays off
 // three.js and the game graph (src/entry.ts imports it first; plugin/ui's 3.2 MB closure evaluated in that task).
@@ -47,6 +48,7 @@ export function enterGrid(): void {
   const target = findTitleManifest(home.slug);
   if (target === undefined) throw new Error(`The grid's home cell names no shard: ${home.slug}`);
   startEntryDownload(target.slug);
+  startGridStripDownload(gridMode(DEVSERVER), home.instance);
   navigating = beginNavigationShell(target.name, pageScope, () => {
     // A deliberate new player attempt starts a new guard window; automatic reloads cannot clear it.
     if (!gridRecovery(saves).clearLoop()) throw new Error('Grid recovery guard could not be cleared');

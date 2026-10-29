@@ -37,6 +37,16 @@ test('warm member metadata suppresses read-ahead, not demand authority', async (
   expect(await entryTransport()?.take('/shardfiles/example/pack.pack')).toBeNull();
 });
 
+test('one completed header pack stays parked until verified admission expands it', async () => {
+  const rows = Array.from({length: 4}, (_, i) => ({path: `/shardfiles/example/${i}.bin`, bytes: 3, members: [hash]}));
+  const read = setup(rows); installEntryTransport();
+  await vi.waitFor(() => expect(read).toHaveBeenCalledTimes(2));
+  await new Promise<void>(resolve => {setImmediate(resolve);});
+  expect(read).toHaveBeenCalledTimes(2);
+  entryTransport()?.expand();
+  await vi.waitFor(() => expect(read).toHaveBeenCalledTimes(5));
+});
+
 test.each([
   {rows: [{path: '/shardfiles/foreign/body.bin', bytes: 3, members: [hash]}]},
   {rows: [{path: '/shardfiles/example/../body.bin', bytes: 3, members: [hash]}]},

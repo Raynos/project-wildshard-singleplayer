@@ -84,20 +84,21 @@ const heldAudio = new WeakMap<ChunkFiles, readonly string[]>();
 const lateLoads = new WeakMap<ChunkFiles, () => Promise<AudioBanks> | undefined>();
 
 /** Grid entry omits unused menu cards; explicit precache art remains required. */
-export function bootFiles(def: BootLevel, tex: TexMode = texMode(), profile?: LevelAudioProfile, menuArt = true): ChunkFiles {
+export function bootFiles(def: BootLevel, tex: TexMode = texMode(), profile?: LevelAudioProfile, menuArt = true, lateTitleMusic = false): ChunkFiles {
   const art = artFor(def, profile === undefined, menuArt);
   addBytes(art.bytes);
   const inventory = profile?.files() ?? bootAudioFiles(def.boot) ?? audioFiles();
   const boot = profile?.bootFiles(getMusicStyle());
   // I7: on the phone the bar reads only the first seconds' audio; the rest of the boot set follows control.
   const control = TIER === 'phone' ? profile?.controlFiles?.(getMusicStyle()) : undefined;
-  const selected = boot === undefined ? undefined : new Set(control === undefined ? boot : boot.filter(url => control.includes(url)));
+  const title = TIER === 'phone' && lateTitleMusic ? new Set(profile?.titleFiles?.(getMusicStyle())) : new Set<string>();
+  const selected = boot === undefined ? undefined : new Set(boot.filter(url => (control === undefined || control.includes(url)) && !title.has(url)));
   // Omitting a profile retains the complete inventory used by background shard prefetch.
   const audio = selected === undefined ? inventory : {
     music: inventory.music.filter(url => selected.has(url)), sfx: inventory.sfx.filter(url => selected.has(url)),
   };
   const files = { ...chunkFiles(def, tex), art: art.urls, ...audio };
-  if (control !== undefined && boot !== undefined && selected !== undefined) {
+  if ((control !== undefined || title.size > 0) && boot !== undefined && selected !== undefined) {
     const shipped = new Set([...inventory.music, ...inventory.sfx]);
     heldAudio.set(files, boot.filter(url => shipped.has(url) && !selected.has(url)));
   }

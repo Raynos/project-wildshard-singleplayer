@@ -82,7 +82,7 @@ if (mode !== 'native') {
   try { writeChunkReport(outDir, process.cwd()); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exit(1); }
   step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
-    "(await import('./scripts/app-build/bootModules.ts')).writeBootModules(process.argv[1], process.cwd());", outDir]);
+    "(await import('./scripts/app-build/bootModules.ts')).writeBootModules(process.argv[1], process.cwd()); (await import('./scripts/app-build/entryDownloads.ts')).writeEntryBootstrap(process.argv[1], process.cwd());", outDir]);
 }
 
 // HTML owns the deploy identity; hashed runtime code stays reusable across builds.

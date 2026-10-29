@@ -51,7 +51,8 @@ async function buildData(ctx: SessionContext) : Promise<{ loading: Loading; audi
   await stage('ktx2', () => prepareShardAssets(manifest, registerGpuFiles));
   loading.waiting('Preparing audio catalogue');
   const audioProfile = await stage('audio.preload', () => manifest.audio?.preload?.());
-  const files = bootFiles(manifest, undefined, audioProfile ?? NO_AUDIO, currentPageMode() !== 'grid'); // Grid never opens the menu card bank.
+  const directPlay = manifest.legacy !== true && (currentPageMode() === 'grid' || session.arrival?.mode === 'enter' || session.arrival?.mode === 'arena');
+  const files = bootFiles(manifest, undefined, audioProfile ?? NO_AUDIO, currentPageMode() !== 'grid', directPlay); // Grid never opens the menu card bank.
   useShardSteps(manifest.slug, manifest.boot?.steps, manifest.boot?.bytes); // the shard's own loading nouns + weights (src/engine/boot/steps.ts)
   const bootSteps: Record<string, number> = {}; // each step's wall ms (the host's timings: what a build / rebuild spends where)
   const plan = createBootPlan((view) => { loading.paint(view); resumeProgress(view.setup); for (const r of view.rows) if (r.state === 'ok') bootSteps[r.key] = Math.round(r.ms); }, { totals: declareTotals(files) });

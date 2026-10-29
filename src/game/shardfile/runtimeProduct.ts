@@ -33,6 +33,7 @@ import { hashOwnedBytes, prepareContentHash } from '@wildshard/engine/boot/conte
 import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { browserContentStore } from './contentStore';
 import { productResourceRole } from './resourceRole';
+import { entryTransport } from './entryTransport';
 
 /**
  * The trusted runtime's product reader (SHARD-PLATFORM M3 tiles-swap, G227, E435): the same `ClientAssets` in both modes,
@@ -78,28 +79,40 @@ let productControlsReady = false, observesProductControl = false;
 export function browserShardfileOptions(base: string, firstParty = false): ProductOptions {
   if (typeof document !== 'undefined' && !observesProductControl) {
     observesProductControl = true;
-    pageScope.listen(document, 'ws:control-ready', () => { productControlsReady = true; });
+    pageScope.listen(document, 'ws:control-ready', () => { productControlsReady = true; entryTransport()?.stop(); });
+    pageScope.listen(window, 'pagehide', () => { entryTransport()?.stop(); }, {once: true});
+    pageScope.onDispose(() => { entryTransport()?.stop(); });
   }
   prepareContentHash();
   const preparation = dataPreparation() === 'workers' ? browserDataPreparation() : undefined;
+  const verifiedHash = async (bytes: Uint8Array): Promise<string> => {
+    const result = await browserContentHash(bytes);
+    entryTransport()?.expand();
+    return result;
+  };
   const quality = Object.fromEntries(Object.entries(TIER_CONFIG).filter((entry): entry is [string, number | boolean] => entry[0].includes('.') && (typeof entry[1] === 'number' || typeof entry[1] === 'boolean')));
   const indexed = firstParty && builtIndexes !== null && typeof caches !== 'undefined' ? builtIndexes : undefined;
   // G639: a phone-4x Nine drive spent ~2 s of its page thread fetching, streaming, hashing and copying the product's
   // blobs into the content cache; the cache's worker does all of it and hands the page the verified body.
   const content = typeof caches === 'undefined' ? undefined : browserContentStore(caches);
   const transport = content instanceof ContentCacheWorker ? async (url: string, hash: string, bytes: number) => {
+    // A speculative wire is not verified content. Return it through the
+    // ordinary fetch reader, retaining its complete hash/size admission.
+    if (entryTransport()?.has(url)) return null;
     const path = new URL(url, base);
     const sent = await waitFor(`Verify ${productResourceRole(path.href)}`, content.fetchVerified(path.href, hash, bytes, { reply: 'bytes', urlCache: indexed !== undefined }), 'worker');
     return sent === null || sent.fetched === null ? null : { bytes: sent.fetched, cached: sent.cached, stored: sent.stored };
   } : undefined;
-  return { ...(preparation === undefined ? {} : { dataWorker: { parse: (bytes: Uint8Array) => preparation.parse(bytes), receipt: (value: unknown) => preparation.receipt(value) } }), base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, hashOwned: hashOwnedBytes,
+  return { ...(preparation === undefined ? {} : { dataWorker: { parse: (bytes: Uint8Array) => preparation.parse(bytes), receipt: (value: unknown) => preparation.receipt(value) } }), base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: verifiedHash, hashOwned: hashOwnedBytes,
     backgroundFetch: (url, signal) => fetch(url, { priority: 'low', ...(signal === undefined ? {} : { signal }) }),
     fetch: (url, signal) => waitFor(`Read ${productResourceRole(url, base)}`, (async () => {
       if (indexed !== undefined && new URL(url, base).pathname.endsWith('/shard.json')) {
-        const held = await cachedTransport(caches, url, limits.sourceBytes, browserContentHash, hash => indexed.has(hash), undefined, signal);
+        const held = await cachedTransport(caches, url, limits.sourceBytes, verifiedHash, digest => indexed.has(digest), undefined, signal);
         if (held !== null) { recordCachedDownload(held.hash, held.bytes.length, url); return new Response(new Uint8Array(held.bytes)); }
       }
       signal?.throwIfAborted();
+      const early = await entryTransport()?.take(url, signal);
+      if (early !== null && early !== undefined) return early;
       return fetch(url, signal === undefined ? {} : { signal });
     })(), 'file'),
     revalidateAfterControl: run => {

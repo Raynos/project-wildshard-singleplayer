@@ -20,6 +20,7 @@ export function gridStripPageKey(home: string, phase: GridStripPhase): string { 
 /** Only eligible homes fetch the optional directory; other pages add no data requests. */
 export interface CompiledGridSelector { readonly directory: CompiledGridAddress; readonly homes: readonly string[] }
 export interface CompiledGridPage { readonly source: string; readonly home: string; readonly header: CompiledGridAddress; readonly body: CompiledGridAddress }
+export interface CompiledGridDirectory { readonly version: 1; readonly pages: readonly CompiledGridPage[] }
 export interface CompiledGridHeader {
   readonly version: 1; readonly source: string; readonly home: string; readonly rows: PackedGeometryRows;
   readonly surfaces: readonly string[];
@@ -38,6 +39,8 @@ const point = v.strictObject({ x: finite, z: finite });
 const address = (extension: 'json' | 'bin') => v.strictObject({ url: v.pipe(v.string(), v.regex(new RegExp(`^/assets/grid-strip-${extension === 'json' ? '(?:book|page)' : 'mesh'}-[a-f0-9]{8}\\.${extension}$`, 'u'))),
   bytes: v.pipe(natural, v.minValue(1)), sha256: hash });
 const directorySchema = v.strictObject({ version: v.literal(1), pages: v.pipe(v.array(v.strictObject({ source: hash, home: text, header: address('json'), body: address('bin') })), v.maxLength(512)) });
+/** The build and runtime share the original bounded directory admission. */
+export function parseCompiledGridDirectory(input: unknown): CompiledGridDirectory { return v.parse(directorySchema, input); }
 /** Stable binary feature codes; numeric records retain their exact Float64 words. */
 export const GRID_STRIP_FEATURE_KINDS: readonly SeamFeatureKind[] = ['deck', 'neutral-buffer', 'gradient', 'overlap', 'retaining-wall', 'cliff', 'talus', 'parapet', 'dike', 'culvert', 'guard-rail', 'road-wall', 'turn-in', 'revetment'];
 const headerSchema = v.strictObject({ version: v.literal(1), source: hash, home: text, rows: PackedGeometryRowsSchema,
@@ -268,7 +271,7 @@ export async function readCompiledGridStrips(selector: CompiledGridSelector | un
     const [directory, source] = await Promise.all([
       readGridAssetBytes(selector.directory, url => read(url, abort.signal), 'strips'), platformGeometrySource(input.cells, input.empty)]);
     liveGridOwner(owner.scope);
-    const book = v.parse(directorySchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(directory)));
+    const book = parseCompiledGridDirectory(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(directory)));
     if (new Set(book.pages.map(page => `${page.source}/${page.home}`)).size !== book.pages.length) throw new Error('Duplicate grid strip page');
     const page = book.pages.find(row => row.source === source && row.home === key); if (page === undefined) return null;
     const decoded = await readDeclaredGridPage(page, home, owner, read, pause); liveGridOwner(owner.scope);

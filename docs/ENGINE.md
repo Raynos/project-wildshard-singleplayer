@@ -2031,7 +2031,7 @@ is installed; disposal releases the native loop owners.
 | `AmbienceZones`, `ZoneVoice`, `ZoneWeights` | ambience beds by zone |
 | `SampledAmbience` (`audio/AmbienceBeds`) | client sampled loops and seeded distant calls from `audio.zones.sampleMix` |
 | `VoicePool`, `VoiceTable`, `SampleVoice`, `SamplePolicy` | the positional voice engine |
-| `LevelAudioProfile` | a level's audio profile (the audio runtime loads lazily: `await import('@wildshard/engine/audio/Stems')` …, by the module a level uses) |
+| `LevelAudioProfile` | a level's audio profile (the audio runtime loads lazily: `await import('@wildshard/engine/audio/Stems')` …, by the module a level uses). Optional `titleFiles(style)` identifies only recordings unused by played slots; direct phone play can defer those exact bytes through the existing after-control audio queue. |
 | `installScore`, `Score`, `Arrangement`, `Segment`, `NoteEv`, `ChordEv`, `MixEv`, `LayerId`, `MixKey`, `Mode`, `ChordName` | the synth score Music plays: the composition root installs the game's (src/game/audio/theme.ts, E405: the engine holds no theme) |
 | `Synth`, `impact`, `synthKit` | synth fallbacks, the impact generator, and the synthesis primitives (`noise`, `voice`, `strike`, `bubbles`, …) content voices build on (a shard's creature voices) |
 | `panFromYaw`, `loopAt`, `audioRandom`, `ownAudioSource` | helpers |
