@@ -14,7 +14,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <!-- iPhone 16/17 Pro: iOS paints this before a standalone document exists.
          Rendered from this same shell by scripts/generate-title-launch.mjs. -->
-    <link rel="apple-touch-startup-image" href="/assets/title/launch-1206x2622-4aac2b539e76.png" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/assets/title/launch-1206x2622-142a9fb7a9e9.png" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <script>
       // Plain launch: the shard selector is the first screen, with no world or loading panel underneath it.
@@ -50,9 +50,8 @@
       .ws-load[data-shell] .ws-load-track-row { display: flex; justify-content: space-between; gap: 12px; }
       .ws-load[data-shell] .ws-load-track-row[hidden] { display: none; }
       .ws-load[data-shell] .ws-load-foot { display: flex; gap: 12px; align-items: center; padding: 16px; }
-      .ws-load-retry, .ws-launch-wait button { min-height: 44px; padding: 8px 16px; border: 1px solid #8fe3ff; background: #091624; color: #8fe3ff; font: inherit; cursor: pointer; }
-      .ws-load-retry[hidden], .ws-launch-wait[hidden] { display: none; }
-      .ws-launch-wait { position: absolute; bottom: 110px; left: 16px; right: 16px; display: flex; align-items: center; gap: 12px; padding: 12px; background: #091624ed; border: 1px solid #8fe3ff66; font: 12px/1.5 ui-monospace, monospace; }
+      .ws-load-retry { min-height: 44px; padding: 8px 16px; border: 1px solid #8fe3ff; background: #091624; color: #8fe3ff; font: inherit; cursor: pointer; }
+      .ws-load-retry[hidden] { display: none; }
       html.title-first #game, html.title-first .ws-load { display: none; }
       /* QA10: iOS 26+ draws its soft scroll-edge blur under the status bar of a home-screen app unless WebKit finds a
          fixed, coloured container at the top-centre of the viewport (4 px down). In play that point was the Developer fps
@@ -64,12 +63,7 @@
       html.title-first .ws-launch { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; background: #0b1622; color: #eaf8ff; font-family: Rajdhani, system-ui, sans-serif; }
       .ws-launch-hero { position: absolute; inset: 0; background: url('/assets/title/main-crossroads-landscape.jpg') center / cover no-repeat; }
       .ws-launch-brand { position: relative; margin: calc(24px + env(safe-area-inset-top, 0px)) 24px 0; font-size: 44px; font-weight: 700; line-height: 1; letter-spacing: .16em; text-shadow: 0 0 18px #8fe3ff73; }
-      /* QB3 (Jake: "what the fuck is this boat?"): an indeterminate thin bar in the loading card's style (.ws-load-bar) */
-      .ws-launch-progress { position: relative; height: 3px; margin: auto 24px calc(44px + env(safe-area-inset-bottom, 0px)); background: #8fe3ff1f; overflow: hidden; }
-      .ws-launch-progress i { position: absolute; top: 0; bottom: 0; left: 0; width: 32%; background: linear-gradient(90deg, #8fe3ff99, #8fe3ff); box-shadow: 0 0 12px #8fe3ff99; animation: ws-launch-run 1.4s ease-in-out infinite; }
-      @keyframes ws-launch-run { from { transform: translateX(-100%); } to { transform: translateX(320%); } }
       @media (orientation: portrait) { .ws-launch-hero { top: 50%; bottom: auto; width: 100%; aspect-ratio: 1; transform: translateY(-50%); background-image: url('/assets/title/main-crossroads-square.jpg'); } }
-      @media (prefers-reduced-motion: reduce) { .ws-launch-progress i { animation: none; left: 34%; } }
       @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-cyrillic-ext.woff2) format('woff2');unicode-range:U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F}
       @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-cyrillic.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
       @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-greek.woff2) format('woff2');unicode-range:U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF}
@@ -126,8 +120,6 @@
     <div class="ws-launch" data-title-shell>
       <div class="ws-launch-hero" aria-hidden="true"></div>
       <div class="ws-launch-brand">WILDSHARD</div>
-      <div class="ws-launch-wait" role="status" hidden><span></span><button type="button">Retry</button></div>
-      <div class="ws-launch-progress" role="progressbar" aria-label="Loading title"><i></i></div>
     </div><!-- /title-shell -->
     <canvas id="game"></canvas>
     <div id="hud"></div>
@@ -158,140 +150,15 @@
 </div>
 </div>
 <div class="ws-load-foot"><span data-el="foot"></span><button type="button" class="ws-load-retry" data-el="retry" hidden>Retry</button></div></div>
+    <!-- data-loading-first-paint: buildIdentity.mjs keeps Vite's hoisted sheet non-blocking for this shell -->
     <script data-loading-first-paint>
-      // This clock and the existing fields work before any application module has downloaded.
-      // Loading adopts the same DOM and time origin; title arrival is read here, never consumed.
-      (() => {
-        const running = new WeakMap();
-        const key = Symbol.for('engine.loading.waits.v1');
-        const waits = document[key] || (document[key] = { version: 1, sequence: 0, pending: new Map() });
-        const start = () => {
-        const root = document.querySelector('.ws-load[data-navigation], .ws-load[data-shell]');
-        if (!root) return;
-        if (!root.dataset.entryDownloadBytes && document.documentElement.dataset.entryDownloadBytes) root.dataset.entryDownloadBytes = document.documentElement.dataset.entryDownloadBytes;
-        const navigation = root.hasAttribute('data-navigation');
-        if (running.has(root) && !navigation) return;
-        const token = {}; running.set(root, token);
-        const initialSetup = root.querySelector('[data-el="suPct"]')?.textContent;
-        const started = performance.now();
-        let clockStarted = started;
-        const previous = waits.pending.get(Number(root.dataset.loadingWaitId));
-        if (previous?.inline) waits.pending.delete(previous.id);
-        const fallback = { id: ++waits.sequence, label: '', kind: 'work', step: null, owner: null,
-          startedAt: started, progressAt: started, loadedBytes: 0, totalBytes: null, deadlineMs: 8000,
-          retry: () => location.reload(), progress: '', inline: true };
-        waits.pending.set(fallback.id, fallback); root.dataset.loadingWaitId = String(fallback.id);
-        const selectedWait = () => {
-          const pending = [...waits.pending.values()].filter(wait => !wait.inline && wait.owner === null && (!navigation || wait.startedAt >= started));
-          return pending.find(wait => wait.kind === 'file') || pending.find(wait => wait.kind !== 'admission') || fallback;
-        };
-        root.dataset.startedAt = String(started);
-        if (/^(?:100|\d{1,2})$/.test(initialSetup ?? '')) root.dataset.initialSetup = initialSetup;
-        root.dataset.step = navigation ? 'navigation.document' : 'admission.modules';
-        const field = (key, text) => { const el = root.querySelector('[data-el="' + key + '"]'); if (el && el.textContent !== text) el.textContent = text; };
-        const slug = (navigation ? root.dataset.entryDownloadSlug : '') || new URLSearchParams(location.search).get('chunk') || 'driftwood-isle';
-        let name = (navigation ? root.querySelector('[data-el="slug"]')?.textContent : '') || slug.replace(/[_-]+/g, ' ').trim() || 'Selected shard';
-        let tier = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'phone' : 'desktop';
-        try {
-          const session = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys?.titleArrival?.data;
-          const backup = JSON.parse(localStorage.getItem('wildshard.save.v2.device') || '{}').keys?.['titleArrival.once']?.data;
-          for (const raw of [session, backup]) {
-            if (navigation) break;
-            const arrival = typeof raw === 'string' ? JSON.parse(raw) : raw;
-            if (!arrival || typeof arrival !== 'object') continue;
-            if (arrival.slug === slug && typeof arrival.name === 'string' && arrival.name.length <= 256 && Date.now() - arrival.at >= 0 && Date.now() - arrival.at <= 60000) {
-              name = arrival.name;
-              if (typeof arrival.at === 'number' && Number.isFinite(arrival.at)) clockStarted = Math.min(started, arrival.at - performance.timeOrigin);
-              break;
-            }
-          }
-          const picked = JSON.parse(localStorage.getItem('wildshard.save.v2.global') || '{}').keys?.settings?.data?.tier;
-          if (picked === 'phone' || picked === 'desktop') tier = picked;
-          {
-            const device = JSON.parse(localStorage.getItem('wildshard.save.v2.device') || '{}').keys || {};
-            const saved = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys || {};
-            const grid = navigation ? root.dataset.entryDownloadFlow === 'grid' : [saved.gridIntent?.data, device['gridIntent.once']?.data].some(intent => intent?.slug === slug && typeof intent.at === 'number' && performance.timeOrigin - intent.at >= 0 && performance.timeOrigin - intent.at <= 60000);
-            const bank = JSON.parse(document.getElementById('boot-module-files')?.textContent || '{}');
-            const rows = grid ? bank.entryTotals?.grid?.[device.devMode?.data === true ? '100' : '000'] : bank.entryTotals?.client;
-            const total = rows?.[slug]?.[tier === 'phone' ? 0 : 1];
-            if (Number.isSafeInteger(total) && total > 0) root.dataset.entryDownloadBytes = String(total);
-          }
-        } catch { /* denied storage: device tier and destination slug remain available */ }
-        root.dataset.clockStartedAt = String(clockStarted);
-        field('slug', name);
-        field('tier', tier + ' · selecting quality');
-        const waitLabel = navigation ? 'Opening ' + name : 'Application modules';
-        fallback.label = waitLabel;
-        field('line', navigation ? waitLabel : 'Loading application modules');
-        field('suFact', navigation ? waitLabel : 'Loading application modules');
-        // H7 (js-heap): each module entry counted once as it arrives, not every entry rescanned every frame
-        let bytes = 0;
-        const add = (entries) => {
-          const previous = bytes;
-          for (const item of entries) if ((!navigation || item.startTime >= started) && (item.initiatorType === 'script' || item.initiatorType === 'link')) bytes += item.encodedBodySize || item.transferSize || 0;
-          if (bytes > previous) { fallback.progressAt = performance.now(); fallback.loadedBytes = bytes; }
-        };
-        let observer = null;
-        try { observer = new PerformanceObserver((list) => add(list.getEntries())); observer.observe({ type: 'resource', buffered: true }); }
-        catch { add(performance.getEntriesByType('resource')); }
-        const resources = () => {
-          root.dataset.moduleBytes = String(bytes);
-          const wait = selectedWait();
-          const total = Number(root.dataset.entryDownloadBytes);
-          if (Number.isSafeInteger(total) && total > 0) {
-            // Partial transport is visible in its named wait. Only the runtime's
-            // actual file receipts credit the fixed whole-entry content track.
-            field('dlFact', '0.00 MB of ' + (total / 1000000).toFixed(1) + ' MB content' + (wait.totalBytes !== null ? ' · ' + (wait.loadedBytes / 1000000).toFixed(2) + ' / ' + (wait.totalBytes / 1000000).toFixed(2) + ' MB ' + wait.label : ' · ' + wait.label));
-            field('dlPct', '0');
-          }
-          else if (wait.totalBytes !== null) field('dlFact', (wait.loadedBytes / 1048576).toFixed(2) + ' / ' + (wait.totalBytes / 1048576).toFixed(2) + ' MB · ' + wait.label);
-          else field('dlFact', bytes > 0 ? (bytes / 1048576).toFixed(2) + ' MB modules read · total pending' : 'Waiting for ' + wait.label);
-        };
-        const retry = root.querySelector('[data-el="retry"]');
-        const titleWait = document.querySelector('.ws-launch-wait');
-        const reload = () => { if (running.get(root) === token) selectedWait().retry?.(); };
-        // QB3 (Jake's boot hung on "Waiting for Application modules" until he tapped Retry, then the title came at once):
-        // a stall reloads the page by itself, once a minute; only a reloaded page that stalls again shows the wait / Retry
-        const selfKey = 'wildshard.boot.selfReload';
-        let selfReload = 'unknown';
-        if (retry) retry.onclick = reload;
-        const titleRetry = titleWait?.querySelector('button'); if (titleRetry) titleRetry.onclick = reload;
-        // the loop ends when Loading adopts the panel, or when the page turns out to be the title (a URL with harness
-        // parameters is not title-first while this script runs, so the loop otherwise ran on under the menu forever)
-        const tick = () => {
-          if (running.get(root) !== token) { observer?.disconnect(); if (fallback.inline) waits.pending.delete(fallback.id); return; }
-          const title = document.documentElement.classList.contains('title-first') && !root.hasAttribute('data-navigation');
-          if (!root.isConnected || (!root.hasAttribute('data-shell') && !root.hasAttribute('data-navigation')) || (title && !document.querySelector('[data-title-shell]'))) { observer?.disconnect(); running.delete(root); if (fallback.inline) waits.pending.delete(fallback.id); if (titleWait) titleWait.hidden = true; return; }
-          const seconds = (performance.now() - clockStarted) / 1000;
-          field('clock', String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + (seconds % 60).toFixed(1).padStart(4, '0'));
-          resources();
-          const wait = selectedWait();
-          const quiet = Math.max(0, performance.now() - Math.max(wait.progressAt, fallback.progressAt)), stalled = quiet >= wait.deadlineMs;
-          const currentWait = wait.label;
-          field('line', currentWait); field('suFact', currentWait);
-          const waiting = 'Waiting for ' + currentWait + ' · ' + (quiet / 1000).toFixed(1) + ' s';
-          root.dataset.stalled = String(stalled);
-          if (stalled && selfReload === 'unknown') {
-            let at = Date.now();
-            try { at = Number(sessionStorage.getItem(selfKey)) || 0; } catch { /* storage denied: Retry only */ }
-            if (Date.now() - at < 60000) selfReload = 'spent';
-            else {
-              selfReload = 'pending';
-              try { sessionStorage.setItem(selfKey, String(Date.now())); } catch { /* the reload still runs */ }
-              (selectedWait().retry ?? (() => location.reload()))();
-            }
-          }
-          const shown = stalled && selfReload === 'spent';
-          if (retry) retry.hidden = !shown;
-          if (shown) field('foot', waiting);
-          if (titleWait) { titleWait.hidden = !title || !shown; const label = titleWait.querySelector('span'); if (label) label.textContent = waiting; }
-          requestAnimationFrame(tick);
-        };
-        tick();
-        };
-        document.addEventListener('ws:loading-navigation', start);
-        start();
-      })();
+      // RL3 (Jake: "reload should just reload the page"): one self-reload. A boot that has shown neither the title nor
+      // the loading card 12 s after this document started reloads once a session; a second failure is the error card.
+      setTimeout(() => {
+        if (!document.querySelector('[data-title-shell]') || !document.querySelector('.ws-load[data-shell]')) return;
+        try { if (sessionStorage.getItem('wildshard.boot.selfReload') !== null) return; sessionStorage.setItem('wildshard.boot.selfReload', String(Date.now())); } catch { return; }
+        location.reload();
+      }, 12000);
     </script>
     <!-- app-switch resume screen (E61, src/engine/ui/Resume.ts; test/resume.test.ts keeps the two identical): a GPU-recovery reload
          (?glreload, src/engine/core/GpuRecovery.ts) shows this tiny screen from the first paint, over the last frame's still, and

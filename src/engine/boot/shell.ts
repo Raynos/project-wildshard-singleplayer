@@ -76,9 +76,6 @@ export function beginNavigationShell(name: string, owner: Scope, navigate: () =>
   if (nameField !== null) nameField.textContent = name;
   root.classList.remove('hide'); root.dataset['navigation'] = '';
   html.classList.remove('title-first');
-  // The first-document clock retired when the real title mounted. Restart it
-  // synchronously on this same panel before scheduling the durable handoff.
-  document.dispatchEvent(new Event('ws:loading-navigation'));
   if (card !== undefined && card !== null) { card.disabled = true; card.setAttribute('aria-busy', 'true'); }
   attempt.onDispose(() => {
     if (existing === null) slots.discard(root);

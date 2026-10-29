@@ -5,7 +5,6 @@ import { Window } from 'happy-dom';
 import { afterEach, expect, test, vi } from 'vitest';
 import { showStartTitle } from '../ui/StartTitle';
 import type { TitleDeckView } from '../ui/HUD';
-import { loadingWaitState, type LoadingWaitEntry } from './download';
 
 const html = readFileSync('index.html', 'utf8');
 const windows: Window[] = [];
@@ -37,32 +36,17 @@ function firstDocument(search: string, frames?: Frames, developer = false, hando
   return window;
 }
 
-test('a fresh document clock retains the real handoff elapsed time without moving its wait deadline', () => {
-  const frames: Frames = {now: 0, callbacks: []}, window = firstDocument('?chunk=driftwood-isle', frames, false, 1700);
-  const root = window.document.querySelector('.ws-load');
-  if (!(root instanceof window.HTMLElement)) throw new Error('Missing inline loading panel');
-  expect(root.querySelector('[data-el="clock"]')?.textContent).toBe('00:01.7');
-  expect(Number(root.dataset['startedAt'])).toBe(0);
-  expect(Number(root.dataset['clockStartedAt'])).toBeCloseTo(-1700, 0);
-  const waits = loadingWaitState(window.document);
-  expect([...waits.pending.values()][0]).toMatchObject({startedAt: 0, progressAt: 0, deadlineMs: 8000});
-  frames.now = 250; for (const render of frames.callbacks.splice(0)) render(frames.now);
-  expect(root.querySelector('[data-el="clock"]')?.textContent).toBe('00:01.9');
-});
-
-test('plain launch paints the approved hero and an indeterminate thin bar without application modules', () => {
+test('plain launch paints only the approved hero and WILDSHARD, the launch image\'s own art, without application modules', () => {
   const window = firstDocument(''), panel = window.document.querySelector('[data-title-shell]');
   if (panel === null) throw new Error('Missing inline title');
   expect(window.document.documentElement.classList.contains('title-first')).toBe(true);
   expect(window.getComputedStyle(panel).display).toBe('flex');
   expect(window.getComputedStyle(panel).position).toBe('fixed');
-  // QB3: no boat; a thin bar in the loading card's style
-  const hero = panel.querySelector('.ws-launch-hero'), bar = panel.querySelector('.ws-launch-progress i');
-  if (hero === null || bar === null) throw new Error('Missing title art/progress');
-  expect(panel.querySelector('svg')).toBeNull();
+  // RL3: no boat, no bar, no wait box, no Retry
+  const hero = panel.querySelector('.ws-launch-hero');
+  if (hero === null) throw new Error('Missing title art');
+  expect([...panel.children].map(child => child.className)).toEqual(['ws-launch-hero', 'ws-launch-brand']);
   expect(window.getComputedStyle(hero).backgroundImage).toContain('main-crossroads-square.jpg');
-  expect(window.getComputedStyle(bar).animation).toContain('ws-launch-run');
-  expect(panel.querySelector('[role="progressbar"]')?.hasAttribute('aria-valuenow')).toBe(false);
   expect(window.document.querySelector('link[as="image"]')?.getAttribute('href')).toBe('/assets/title/main-crossroads-square.jpg');
   expect(window.document.querySelector('#hud')?.childElementCount).toBe(0);
 });
@@ -76,9 +60,6 @@ test('a selected shard keeps its existing loader and does not preload the title 
   expect(window.document.querySelector('.ws-load[data-shell]')).not.toBeNull();
   const root = window.document.querySelector('.ws-load[data-shell]');
   if (!(root instanceof window.HTMLElement)) throw new Error('Missing loading shell');
-  expect(root.dataset['initialSetup']).toBe(root.querySelector('[data-el="suPct"]')?.textContent);
-  expect(root.dataset['initialSetup']).toBe('0');
-  expect(Number.isFinite(Number(root.dataset['startedAt']))).toBe(true);
   expect(window.getComputedStyle(root).position).toBe('fixed');
   expect(window.getComputedStyle(root).display).toBe('flex');
   expect([...html.matchAll(/<link rel="stylesheet"[^>]*>/gu)].every(([link]) => link.includes('media="print"') && link.includes('onload='))).toBe(true);
@@ -105,63 +86,22 @@ test('public first paint and admitted loading keep every detailed progress field
   expect(window.getComputedStyle(simple).display).toBe('none');
 });
 
-test('a title handoff restarts the inline clock without application modules', async () => {
-  const window = firstDocument('', undefined, true), root = window.document.querySelector('.ws-load[data-shell]');
-  if (!(root instanceof window.HTMLElement)) throw new Error('Missing inline shell');
-  const name = root.querySelector('[data-el="slug"]'); if (name === null) throw new Error('Missing destination');
-  const state = loadingWaitState(window.document);
-  const old: LoadingWaitEntry = { id: ++state.sequence, label: 'Old title background read', kind: 'file', step: null, owner: null,
-    startedAt: -1, progressAt: -1, loadedBytes: 0, totalBytes: null, deadlineMs: 8000, retry: null, progress: '', inline: false };
-  state.pending.set(old.id, old);
-  name.textContent = 'A different island'; root.dataset['navigation'] = '';
-  window.document.documentElement.classList.remove('title-first');
-  window.document.dispatchEvent(new window.Event('ws:loading-navigation'));
-  expect(root.dataset['step']).toBe('navigation.document');
-  expect(name.textContent).toBe('A different island');
-  expect(root.querySelector('[data-el="line"]')?.textContent).toBe('Opening A different island');
-  const clock = root.querySelector('[data-el="clock"]');
-  if (!(clock instanceof window.HTMLElement)) throw new Error('Missing clock');
-  expect(window.getComputedStyle(clock).display).not.toBe('none');
-  await new Promise(resolve => { setTimeout(resolve, 180); });
-  expect(root.querySelector('[data-el="clock"]')?.textContent).not.toBe('00:00.0');
-});
-
-test('the inline eight-second retry uses real byte progress, including per-pack progress before modules', () => {
-  const frames: Frames = { now: 0, callbacks: [] }, window = firstDocument('', frames);
-  const root = window.document.querySelector('.ws-load[data-shell]'), wait = window.document.querySelector('.ws-launch-wait');
-  if (!(root instanceof window.HTMLElement) || !(wait instanceof window.HTMLElement)) throw new Error('Missing inline loading UI');
-  const frame = (at: number): void => { frames.now = at; for (const run of frames.callbacks.splice(0)) run(at); };
-  // a page reloaded by its own stall a moment ago shows the wait instead of reloading again (QB3)
-  window.sessionStorage.setItem('wildshard.boot.selfReload', String(Date.now()));
-  frame(7999); expect(wait.hidden).toBe(true);
-  frame(8000); expect(wait.hidden).toBe(false); expect(wait.textContent).toContain('Waiting for Application modules · 8.0 s');
-  const state = loadingWaitState(window.document);
-  const pack: LoadingWaitEntry = { id: ++state.sequence, label: 'Application code /application.pack', kind: 'file', step: null, owner: null,
-    startedAt: 8500, progressAt: 8500, loadedBytes: 1048576, totalBytes: 2097152, deadlineMs: 8000,
-    retry: null, progress: '', inline: false };
-  state.pending.set(pack.id, pack); frame(8500); expect(wait.hidden).toBe(true);
-  expect(root.querySelector('[data-el="dlFact"]')?.textContent).toBe('1.00 / 2.00 MB · Application code /application.pack');
-  expect(root.dataset['moduleBytes']).toBe('0'); // Visibility never credits a verified receipt.
-  frame(16499); expect(wait.hidden).toBe(true);
-  frame(16500); expect(wait.hidden).toBe(false); // Duplicate messages never renew the deadline.
-  pack.loadedBytes = 2097152; pack.progressAt = 16600; frame(16600); expect(wait.hidden).toBe(true);
-  pack.loadedBytes = 0; pack.totalBytes = 2097152; pack.label = 'Application code /next.pack'; pack.progressAt = 17000; frame(17000);
-  pack.loadedBytes = 1048576; pack.progressAt = 24000; frame(24000); expect(wait.hidden).toBe(true);
-  pack.label = 'Stylesheet /held.css'; frame(32000);
-  expect(wait.textContent).toContain('Waiting for Stylesheet /held.css · 8.0 s');
-});
-
-test('QB3: a first stall reloads the page by itself and shows no wait; Retry only after a reloaded page stalls again', () => {
-  const frames: Frames = { now: 0, callbacks: [] }, window = firstDocument('', frames);
-  const wait = window.document.querySelector('.ws-launch-wait');
-  if (!(wait instanceof window.HTMLElement)) throw new Error('Missing inline title wait');
-  const reloads = vi.fn<() => void>();
-  for (const entry of loadingWaitState(window.document).pending.values()) entry.retry = reloads;
-  const frame = (at: number): void => { frames.now = at; for (const run of frames.callbacks.splice(0)) run(at); };
-  frame(8000);
-  expect(reloads).toHaveBeenCalledTimes(1); expect(wait.hidden).toBe(true);
-  expect(Number(window.sessionStorage.getItem('wildshard.boot.selfReload'))).toBeGreaterThan(0);
-  frame(9000); frame(20000); expect(reloads).toHaveBeenCalledTimes(1);
+test('RL3: a boot with neither the title nor the loading card at 12 s reloads once a session, never twice', () => {
+  const later: (() => void)[] = [];
+  const window = new Window({ url: 'https://launch.test/', settings: { enableJavaScriptEvaluation: true, disableJavaScriptFileLoading: true,
+    disableCSSFileLoading: true, enableImageFileLoading: false, handleDisabledFileLoadingAsSuccess: true } });
+  windows.push(window);
+  const timers = vi.spyOn(window, 'setTimeout').mockImplementation(((run: () => void, ms?: number) => { if (ms === 12000) later.push(run); return 0; }) as typeof window.setTimeout);
+  const reload = vi.spyOn(window.location, 'reload').mockImplementation(() => undefined);
+  window.document.write(html);
+  expect(later).toHaveLength(1);
+  later[0]?.(); expect(reload).toHaveBeenCalledTimes(1);
+  later[0]?.(); expect(reload).toHaveBeenCalledTimes(1); // once a session
+  window.sessionStorage.clear(); window.document.querySelector('[data-title-shell]')?.remove();
+  later[0]?.(); expect(reload).toHaveBeenCalledTimes(1); // the title arrived: nothing to do
+  timers.mockRestore();
+  const inline = /<script data-loading-first-paint>([\s\S]*?)<\/script>/u.exec(html)?.[1] ?? '';
+  expect(inline.trim().split('\n').length).toBeLessThanOrEqual(15);
 });
 
 test('the first-paint panel survives failed title start and retires only after the real deck is mounted', () => {

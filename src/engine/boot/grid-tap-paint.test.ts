@@ -30,10 +30,8 @@ test('the loader stylesheet is available before any application module executes'
 test('a tap displays the real shell, paints a 30 Hz frame, then hands off exactly once', () => {
   document.body.insertAdjacentHTML('beforeend', `<div class="ws-load hide" data-shell>${loadShellTemplate()}</div>`);
   const navigate = vi.fn<() => void>(), button = card();
-  const clock = vi.fn<() => void>(); owner.listen(document, 'ws:loading-navigation', clock);
   owner.listen(button, 'click', () => { beginNavigationShell('The Home Island', owner, navigate, button); });
   button.click(); button.click();
-  expect(clock).toHaveBeenCalledTimes(1);
   const shell = document.querySelector('.ws-load'); if (shell === null) throw new Error('Tap removed its shell');
   expect(document.querySelectorAll('.ws-load')).toHaveLength(1); expect(getComputedStyle(shell).display).toBe('flex');
   expect(shell.querySelector('[data-el="slug"]')?.textContent).toBe('The Home Island');

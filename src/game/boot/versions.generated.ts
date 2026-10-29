@@ -1272,7 +1272,7 @@ export const ASSET_VERSIONS: Readonly<Record<string, string>> = {
   "/assets/tex/wood_trunk_wall/nor_gl_1k.jpg": 'fc6aab0a',
   "/assets/tex/wood_trunk_wall/nor_gl_1k.phone.webp": 'a70475f6',
   "/assets/title/driftwood-isle-portrait.jpg": 'e9d5c9ae',
-  "/assets/title/launch-1206x2622-4aac2b539e76.png": '4aac2b53',
+  "/assets/title/launch-1206x2622-142a9fb7a9e9.png": '142a9fb7',
   "/assets/title/main-crossroads-landscape.jpg": '8770a258',
   "/assets/title/main-crossroads-square.jpg": '80129d72',
   "/assets/title/nalati-grasslands-portrait.jpg": '5ac0c2e4',

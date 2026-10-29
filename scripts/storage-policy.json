@@ -9,9 +9,9 @@
   "migrationBase": "51a68db06eeaceda20a1c571e509724f535a7086",
   "pins": [
     {
-      "path": "public/assets/title/launch-1206x2622-4aac2b539e76.png",
-      "oid": "2bbacd0418c08eef4ae8d65ff00b06bb03646dcb",
-      "bytes": 1626413,
+      "path": "public/assets/title/launch-1206x2622-142a9fb7a9e9.png",
+      "oid": "1f9b4d7f4b633c0d13ff1a253e11e65e0c960a3c",
+      "bytes": 1624680,
       "kind": "runtime",
       "purpose": "G744 approved 5x5 native pre-document launch hero with unchanged phone status-area inset, rendered from index.html by scripts/generate-title-launch.mjs"
     },

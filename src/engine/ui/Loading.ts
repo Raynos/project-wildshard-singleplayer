@@ -109,7 +109,8 @@ export class Loading {
       this.root.innerHTML = loadShellTemplate();
       mountUi(this.root, this.scope, document.body);
     }
-    const startedAt = Number(this.root.dataset['startedAt']);
+    // RL3: index.html's card has no inline clock any more; an adopted first-document card started with the document
+    const startedAt = Number(this.root.dataset['startedAt'] ?? (shell !== null ? 0 : Number.NaN));
     if (Number.isFinite(startedAt) && startedAt >= 0 && startedAt <= this.t0) this.t0 = startedAt;
     this.clockT0 = this.t0;
     const clockStartedAt = Number(this.root.dataset['clockStartedAt']);
