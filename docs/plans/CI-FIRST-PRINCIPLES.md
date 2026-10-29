@@ -1,6 +1,6 @@
 # CI-FIRST-PRINCIPLES: what GitHub Actions does per push, why it is slow, and what it should do
 
-**State:** draft 2026-10-29, written by wildshard-v's subagent for Jake to rule on; nothing here is approved (G585).
+**State:** `open` 2026-10-29, ruled by Jake ~17:45 (G918–G923); **the rows are being revised to match his rulings** (every test still runs, less wall clock; pins deleted outright; ship the tested build as soon as green; Simulator stays on GitHub Actions; the Node harness is the main integration test; test-quarantine deleted). Where this text disagrees with G918–G923, the G-rows win.
 
 Jake, 2026-10-29 ~16:50 Cancun: *"How many actions are there per commit on main? Are there 16 fanout actions and
 another 8 fanout actions for like all kinds of really slow-ass tests? How fucking long do they take? This is like a
