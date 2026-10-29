@@ -46,9 +46,28 @@ function nativeVectorValue(state: Vector3State, uniform: Vector3Uniform, gl: Web
   }
   state.native.call(uniform, gl, value);
 }
-function uploadVector3(state: Vector3State, uniform: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value,
-  x: number, y: number | undefined, z: number | undefined): void {
+// Read numeric components where they are consumed, rather than forwarding
+// three boxed doubles through a generic call for every changed uniform.
+function xyzVectorValue(state: Vector3State, uniform: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
+  const x = value.x, y = value.y, z = value.z;
   const cache = uniform.cache;
+  if (typeof y !== 'number' || typeof z !== 'number' || (cache.length > 0 && cache.length !== 3)) {
+    nativeVectorValue(state, uniform, gl, value); return;
+  }
+  if (cache[0] === x && cache[1] === y && cache[2] === z) return;
+  const buffer = state.buffer;
+  // A changing getter can return undefined on its second read. Match the
+  // typed store's NaN conversion; null, if supplied natively, still means 0.
+  // oxlint-disable-next-line typescript/prefer-nullish-coalescing -- null must retain native typed-store coercion
+  buffer[0] = x === undefined ? Number.NaN : x; buffer[1] = y; buffer[2] = z;
+  gl.uniform3fv(uniform.addr, buffer);
+  const numbers = state.numbers;
+  // oxlint-disable-next-line typescript/prefer-nullish-coalescing -- null must retain native typed-store coercion
+  numbers[0] = x === undefined ? Number.NaN : x; numbers[1] = y; numbers[2] = z; uniform.cache = numbers;
+}
+function colorVectorValue(state: Vector3State, uniform: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
+  if (value.r === undefined) { nativeVectorValue(state, uniform, gl, value); return; }
+  const x = value.r, y = value.g, z = value.b, cache = uniform.cache;
   if (typeof y !== 'number' || typeof z !== 'number' || (cache.length > 0 && cache.length !== 3)) {
     nativeVectorValue(state, uniform, gl, value); return;
   }
@@ -58,10 +77,6 @@ function uploadVector3(state: Vector3State, uniform: Vector3Uniform, gl: WebGLRe
   gl.uniform3fv(uniform.addr, buffer);
   const numbers = state.numbers;
   numbers[0] = x; numbers[1] = y; numbers[2] = z; uniform.cache = numbers;
-}
-function colorVectorValue(state: Vector3State, uniform: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
-  if (value.r !== undefined) uploadVector3(state, uniform, gl, value, value.r, value.g, value.b);
-  else nativeVectorValue(state, uniform, gl, value);
 }
 /** WebGL converts each scalar argument to float32. Keep that exact payload in
  * one per-uniform buffer instead of boxing three changing native arguments.
@@ -77,11 +92,11 @@ function bufferVector3(node: object, legacy: number[]): void {
   // Each native binding calls its current value-kind setter directly. Kind
   // changes replace only this binding's setter; neither path allocates a frame.
   function setXYZ(this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
-    if (value.x !== undefined) uploadVector3(state, this, gl, value, value.x, value.y, value.z);
+    if (value.x !== undefined) xyzVectorValue(state, this, gl, value);
     else { this.setValue = setRGB; colorVectorValue(state, this, gl, value); }
   }
   function setRGB(this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
-    if (value.x !== undefined) { this.setValue = setXYZ; uploadVector3(state, this, gl, value, value.x, value.y, value.z); }
+    if (value.x !== undefined) { this.setValue = setXYZ; xyzVectorValue(state, this, gl, value); }
     else colorVectorValue(state, this, gl, value);
   }
   Reflect.set(node, 'setValue', setRGB);

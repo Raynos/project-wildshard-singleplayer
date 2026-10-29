@@ -107,3 +107,16 @@ test('binding-local dispatch retains original getter order and captured setters 
     expect(newLog).toEqual(oldLog); expect(after.uploads).toEqual(before.uploads);
   }
 });
+
+test('changing component getters retain native undefined and null typed-store coercion', () => {
+  const before = fixture(true, false, installBefore), after = fixture(true);
+  function value(second: unknown): object {
+    let reads = 0;
+    return { get x(): unknown { return reads++ % 2 === 0 ? 0.25 : second; }, y: 0.5, z: 0.75 };
+  }
+  for (const second of [undefined, null, -0, Number.NaN, Number.POSITIVE_INFINITY]) {
+    before.set(value(second)); after.set(value(second));
+    before.set(value(second)); after.set(value(second));
+    expect(after.uploads).toEqual(before.uploads);
+  }
+});
