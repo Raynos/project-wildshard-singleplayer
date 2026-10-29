@@ -27,15 +27,22 @@ import { SPAWN_VIEW_M, spawnViewBusy } from './controlRefinement';
 const liveDrivers = new Set<TileDriver>();
 let loaderMode = false;
 const task = (): Promise<void> => new Promise(resolve => { pageScope.timeout(0, resolve); });
+/** MF5: a settling driver that is busy with no spawn-view job running for this long waits on one outside the fence. */
+const SETTLE_IDLE_MS = 1000;
 /**
  * MF5 (reveal = spawn view complete): while the loader's spawn-view fence is open (prepareSpawnView), drive every live
- * driver on tasks instead of frames, nearest first, until its render ring is attached or it waits only on content that
- * refines after control. A refining content's attach awaits its fence job, so this is what queues and runs the spawn
- * ring's fine tiles under the card. `turns` bounds a driver that never settles.
+ * driver on tasks instead of frames, nearest first, until the fence's part of its render ring is attached or it waits
+ * only on content that refines after control. A refining content's attach awaits its fence job, so this is what queues
+ * and runs the spawn ring's fine tiles under the card. `frame` (the loader's hidden frame) runs in loader mode already:
+ * an attach its step starts takes no frame pause either. `capMs` bounds a driver that never settles.
  */
-export async function settleTileDrivers(turns = 2000): Promise<void> {
+export async function settleTileDrivers(frame?: () => void, capMs = 20000): Promise<void> {
   loaderMode = true;
-  try { for (const driver of Array.from(liveDrivers)) await driver.settle(turns); } finally { loaderMode = false; }
+  try {
+    frame?.();
+    const until = performance.now() + capMs;
+    for (const driver of Array.from(liveDrivers)) await driver.settle(until);
+  } finally { loaderMode = false; }
 }
 
 type Layer = 'render' | 'colliders';
@@ -61,16 +68,17 @@ export class TileDriver {
     liveDrivers.add(this); scope.onDispose(() => { liveDrivers.delete(this); });
   }
   private last: { readonly x: number; readonly z: number } | null = null;
-  /** MF5 (settleTileDrivers): step on tasks until nothing in the render ring is left to start, or the one attach in
-   *  flight waits on content outside the open spawn-view fence (it runs after control). */
-  async settle(turns: number): Promise<void> {
-    let idle = 0;
-    for (let turn = 0; turn < turns && this.last !== null && !this.scope.disposed && !this.scope.disposing; turn++) {
+  /** MF5 (settleTileDrivers): step on tasks until nothing of the render ring inside the fence is left to start, or the
+   *  one attach in flight has waited SETTLE_IDLE_MS with no spawn-view job running (one outside the fence: it runs after
+   *  control). A shorter wait reads an attach in its own budget pause (a frame wait, capped) as that. */
+  async settle(until: number): Promise<void> {
+    let idleSince: number | null = null;
+    while (this.last !== null && !this.scope.disposed && !this.scope.disposing && performance.now() < until) {
       this.step(this.last.x, this.last.z);
       const plan = this.plan, pending = plan !== null && plan.nearest.render.some(key => this.inView(key) && (this.attached.render.get(key) === undefined || !this.complete(key)));
       if (!this.busy && !pending) return;
-      idle = this.busy && !spawnViewBusy() ? idle + 1 : 0;
-      if (idle > 2) return;
+      if (this.busy && !spawnViewBusy()) { idleSince ??= performance.now(); if (performance.now() - idleSince > SETTLE_IDLE_MS) return; }
+      else idleSince = null;
       await task();
     }
   }
