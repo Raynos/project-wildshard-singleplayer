@@ -3,13 +3,16 @@ import type { Rng } from '@wildshard/sdk/random';
 import type { PalmParams } from './foliageModels';
 import type { IslandKnobs } from './tiers';
 
-const C = {
+/** the palm's colours (its far stand-in, islandCoarse.ts, wears the same) */
+export const PALM_PALETTE: Readonly<Record<'trunk' | 'ring' | 'frond' | 'frondLight' | 'frondDark' | 'nut' | 'nutGreen', THREE.Color>> = {
   trunk: new THREE.Color('#8a6a48'), ring: new THREE.Color('#6d5238'),
   frond: new THREE.Color('#4f9a3a'), frondLight: new THREE.Color('#72b94c'), frondDark: new THREE.Color('#3b7d2c'),
   nut: new THREE.Color('#6b5a2e'), nutGreen: new THREE.Color('#7f9a3a'),
 };
+const C = PALM_PALETTE;
 
-function axisAt(p: PalmParams, t: number): THREE.Vector3 {
+/** the trunk's centre line at `t` (0 foot, 1 crown), own space */
+export function palmAxisAt(p: PalmParams, t: number): THREE.Vector3 {
   const off = p.lean * p.h * (t * t - 0.12 * Math.sin(t * Math.PI));
   return new THREE.Vector3(Math.cos(p.leanDir) * off, p.h * t, Math.sin(p.leanDir) * off);
 }
@@ -29,7 +32,7 @@ export function palmGeometry(p: PalmParams, rng: Rng, knobs: IslandKnobs): THREE
   const segs = 11, sides = 6;
   const rings: THREE.Vector3[][] = [];
   for (let s = 0; s <= segs; s++) {
-    const t = s / segs, r = 0.3 * (1 - t * 0.45) * (s % 2 ? 0.94 : 1.16) * (s === 0 ? 1.25 : 1), centre = axisAt(p, t);
+    const t = s / segs, r = 0.3 * (1 - t * 0.45) * (s % 2 ? 0.94 : 1.16) * (s === 0 ? 1.25 : 1), centre = palmAxisAt(p, t);
     const ring: THREE.Vector3[] = [];
     for (let k = 0; k < sides; k++) { const a = (k / sides) * Math.PI * 2 + p.rot; ring.push(new THREE.Vector3(centre.x + Math.cos(a) * r, centre.y, centre.z + Math.sin(a) * r)); }
     rings.push(ring);
@@ -46,7 +49,7 @@ export function palmGeometry(p: PalmParams, rng: Rng, knobs: IslandKnobs): THREE
     for (let i = 0; i < 6; i++) col.push(c.r, c.g, c.b);
     sway.push(w0, phase, w0, phase, w1, phase, w0, phase, w1, phase, w1, phase);
   }
-  const top = axisAt(p, 1);
+  const top = palmAxisAt(p, 1);
   // ── crown: fronds radiating out and drooping, zig-zag leaflet edges ──
   // two layers (E43: twice the fronds): the long drooping skirt, then a shorter crown of younger fronds on top
   const n = p.fronds, n2 = Math.round(n * 0.9);

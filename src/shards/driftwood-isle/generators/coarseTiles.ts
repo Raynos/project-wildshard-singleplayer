@@ -7,13 +7,17 @@ import { assetCost } from '@wildshard/sdk/assets';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { driftwoodFixedSource } from './fixedSource';
 import { pierCoarse } from './pierCoarse';
+import { islandCoarse } from './islandCoarse';
+import { islandFoliagePlacements } from './islandDressing';
+import { shoreBoulderFacts } from './shoreBoulders';
 
 /** The voxel AO the fixed world's sources read (generators/fixedSource.ts), the coarse tiles' one input file. */
 export const DRIFTWOOD_AO = '/assets/models/driftwood-blender/voxel-ao.bin';
 
 /** Tile streaming T8 (G786) / G748: Driftwood's coarse L1 tiles, its fixed world's whole shapes simplified in their own
  *  vertex colours (`coarseCopy`, 10 %, 2 m error, sloppy past the target: the fixed sources are unwelded) and baked as the props bake's coarse source. The occupied parents only
- *  (rows with files); runtime piers add their own authored silhouettes at the same world poses. The fixed producer
+ *  (rows with files); runtime piers add their own authored silhouettes at the same world poses, and the island's palms and
+ *  shore boulders theirs (D200: their merged meshes draw only the render ring's tiles). The fixed producer
  *  merges these parents, replacing vacant metadata; the output hook supplies the same bytes at build time. */
 export function driftwoodCoarseTiles(aoBytes: Uint8Array): Pick<BakedProps, 'tiles' | 'files' | 'assets'> & { readonly models: BakedProps['props']['tiles'] } {
   const fixed = driftwoodFixedSource(aoBytes), material = new MeshStandardMaterial({ vertexColors: true });
@@ -29,7 +33,10 @@ export function driftwoodCoarseTiles(aoBytes: Uint8Array): Pick<BakedProps, 'til
     mesh.matrix.copy(new Matrix4().makeRotationY(at.rot).setPosition(at.x, at.deckY, at.z));
     piers.add(mesh);
   }
-  const coarseWorld = new Group().add(coarse.group, piers);
+  // D200: the phone tier's palms (Jake's device), the shore boulders every tier places
+  const foliage = islandFoliagePlacements().tiers.phone;
+  const islandGeometry = islandCoarse(foliage.palms.placements, shoreBoulderFacts().placements);
+  const coarseWorld = new Group().add(coarse.group, piers, new Mesh(islandGeometry, material));
   // the props bake always builds a far proxy (unused here, the far view has its own): one small triangle stands in for it
   const marker = new BufferGeometry().setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 0, 1], 3))
     .setAttribute('normal', new Float32BufferAttribute([0, 1, 0, 0, 1, 0, 0, 1, 0], 3)).setAttribute('color', new Float32BufferAttribute([1, 1, 1, 1, 1, 1, 1, 1, 1], 3));
@@ -58,7 +65,7 @@ export function driftwoodCoarseTiles(aoBytes: Uint8Array): Pick<BakedProps, 'til
       return Object.assign(tile, cost, { files: files.map(file => file.hash) });
     }), files: [...remapped.values()], assets,
       models: baked.props.tiles.filter(model => model.lod === 1 && keep.has(model.file)).map(model => Object.assign(model, { file: remap(model.file).hash })) };
-  } finally { coarse.dispose(); for (const geometry of pierGeometries) geometry.dispose(); material.dispose(); marker.dispose(); for (const geometry of fixed.geometries.values()) geometry.dispose(); }
+  } finally { coarse.dispose(); islandGeometry.dispose(); for (const geometry of pierGeometries) geometry.dispose(); material.dispose(); marker.dispose(); for (const geometry of fixed.geometries.values()) geometry.dispose(); }
 }
 
 /** The coarse tiles' bytes for the product, through the build's owned-byte cache (never a generated file under src). */

@@ -1430,69 +1430,89 @@
     "sha256": "db53f78711dd7b8b87ca34b0c8943d00da071e0b1415eedd4cd4148922b2c985"
   },
   {
-    "name": "owned/coarse/b49f4035a93d0c096c79eca1185f804d07f4239ce2dfe357960c4cf7503edb09.glb",
-    "bytes": 37848,
-    "sha256": "b49f4035a93d0c096c79eca1185f804d07f4239ce2dfe357960c4cf7503edb09"
+    "name": "owned/coarse/e0ce39edce377ad7269643ab2a0a52a03a9bf8aca5a53eddfffe1e775c381302.glb",
+    "bytes": 3504,
+    "sha256": "e0ce39edce377ad7269643ab2a0a52a03a9bf8aca5a53eddfffe1e775c381302"
   },
   {
-    "name": "owned/coarse/739444ee61e25f5bc9084cc06c7339679007bce0fd1a3fd4913ca507f50c7412.glb",
-    "bytes": 13768,
-    "sha256": "739444ee61e25f5bc9084cc06c7339679007bce0fd1a3fd4913ca507f50c7412"
+    "name": "owned/coarse/6618b2ae47150b83893c0c74d1821f1f1c1565fc389efbc094f1481300c1959f.glb",
+    "bytes": 44240,
+    "sha256": "6618b2ae47150b83893c0c74d1821f1f1c1565fc389efbc094f1481300c1959f"
   },
   {
-    "name": "owned/coarse/26d2e659003e2309899e7823e47ce646eb68174525f152cef4bef47181de204f.glb",
-    "bytes": 8908,
-    "sha256": "26d2e659003e2309899e7823e47ce646eb68174525f152cef4bef47181de204f"
+    "name": "owned/coarse/cb0b4ea344cc658135be772ccfb58fa47d21c7d6ffc7e17373a04630020ec6a6.glb",
+    "bytes": 18092,
+    "sha256": "cb0b4ea344cc658135be772ccfb58fa47d21c7d6ffc7e17373a04630020ec6a6"
   },
   {
-    "name": "owned/coarse/bd4e064b1e3eb765e8119dca9f3129435a7e4c61ee58920e045e60b762cd819a.glb",
-    "bytes": 109756,
-    "sha256": "bd4e064b1e3eb765e8119dca9f3129435a7e4c61ee58920e045e60b762cd819a"
+    "name": "owned/coarse/6412de3be80af94d03d6af020ec195e1f288514d36a40f55310f7545e238b1b9.glb",
+    "bytes": 4668,
+    "sha256": "6412de3be80af94d03d6af020ec195e1f288514d36a40f55310f7545e238b1b9"
   },
   {
-    "name": "owned/coarse/fa04763f912cde5d6d7cf8552e1af6defa3424f5f7f7ea76579f8f52dde3737e.glb",
-    "bytes": 75312,
-    "sha256": "fa04763f912cde5d6d7cf8552e1af6defa3424f5f7f7ea76579f8f52dde3737e"
+    "name": "owned/coarse/b873a534558e9db32e49de24f4c473b23ef5a12fcf69eb9bb737d1ab8a948f5f.glb",
+    "bytes": 22956,
+    "sha256": "b873a534558e9db32e49de24f4c473b23ef5a12fcf69eb9bb737d1ab8a948f5f"
   },
   {
-    "name": "owned/coarse/af6db6c6d62952a07a697c1ab3265e982e417b77b1948544734487d4a740283e.glb",
-    "bytes": 108700,
-    "sha256": "af6db6c6d62952a07a697c1ab3265e982e417b77b1948544734487d4a740283e"
+    "name": "owned/coarse/ad1645ba65d6b3634d1bbd1c33ce984a4c2735cc61eda3ac5cc50d2315f1dd14.glb",
+    "bytes": 124312,
+    "sha256": "ad1645ba65d6b3634d1bbd1c33ce984a4c2735cc61eda3ac5cc50d2315f1dd14"
   },
   {
-    "name": "owned/coarse/81f628a81726ee830f491c1656890eb9db80ecb64d9f88049e76e608a2d6e304.glb",
-    "bytes": 8920,
-    "sha256": "81f628a81726ee830f491c1656890eb9db80ecb64d9f88049e76e608a2d6e304"
+    "name": "owned/coarse/84c7f3b6051ecbb31137aed0b83208381f7d0b56b020dfd9ff17756131928fca.glb",
+    "bytes": 95204,
+    "sha256": "84c7f3b6051ecbb31137aed0b83208381f7d0b56b020dfd9ff17756131928fca"
   },
   {
-    "name": "owned/coarse/99fe8f1ab2a0c08f0029bf79017f7da4d79d042b3330d9dcf9fc268ad0a03e90.glb",
-    "bytes": 159708,
-    "sha256": "99fe8f1ab2a0c08f0029bf79017f7da4d79d042b3330d9dcf9fc268ad0a03e90"
+    "name": "owned/coarse/4766178a995fd05190b6af3cbf5ad82da53bd1d8b3abc0ad4553d553f817c508.glb",
+    "bytes": 115624,
+    "sha256": "4766178a995fd05190b6af3cbf5ad82da53bd1d8b3abc0ad4553d553f817c508"
   },
   {
-    "name": "owned/coarse/0ad1dd30f1d348cb4f565a3c492798741028fb34fd811874ffe028b6cc0c30b8.glb",
-    "bytes": 117128,
-    "sha256": "0ad1dd30f1d348cb4f565a3c492798741028fb34fd811874ffe028b6cc0c30b8"
+    "name": "owned/coarse/ec7bb00289c8ba788b0c03bde1b01acd9c10e6c43898349d97a9307ceb48edfa.glb",
+    "bytes": 39236,
+    "sha256": "ec7bb00289c8ba788b0c03bde1b01acd9c10e6c43898349d97a9307ceb48edfa"
   },
   {
-    "name": "owned/coarse/a75bdaae541dcaf8f79eda23e4e600990776e093b6c9ab18c9bd41ca34b822b8.glb",
-    "bytes": 168228,
-    "sha256": "a75bdaae541dcaf8f79eda23e4e600990776e093b6c9ab18c9bd41ca34b822b8"
+    "name": "owned/coarse/6a4fd6c2dd414bf86cdf1e5a41358aea2623f254d99e7691c48fa0410c8f8b55.glb",
+    "bytes": 195928,
+    "sha256": "6a4fd6c2dd414bf86cdf1e5a41358aea2623f254d99e7691c48fa0410c8f8b55"
   },
   {
-    "name": "owned/coarse/46766475286bf5a5f35119a620afe913a0f2b871a6ccda313eef338496b22631.glb",
-    "bytes": 8164,
-    "sha256": "46766475286bf5a5f35119a620afe913a0f2b871a6ccda313eef338496b22631"
+    "name": "owned/coarse/f56d87aaa045b2339a8421323cf0a519e36a28832a776c2d626289f977e24985.glb",
+    "bytes": 139672,
+    "sha256": "f56d87aaa045b2339a8421323cf0a519e36a28832a776c2d626289f977e24985"
   },
   {
-    "name": "owned/coarse/e81b02178bbbdea678fe6b0bee66f7ee76086b4a1c5a276e40aeb926f6af43ae.glb",
-    "bytes": 8084,
-    "sha256": "e81b02178bbbdea678fe6b0bee66f7ee76086b4a1c5a276e40aeb926f6af43ae"
+    "name": "owned/coarse/52c032782b5405785221c2ea1efa681cda7eba559c8ebed9e737cbadc36b4c79.glb",
+    "bytes": 175140,
+    "sha256": "52c032782b5405785221c2ea1efa681cda7eba559c8ebed9e737cbadc36b4c79"
+  },
+  {
+    "name": "owned/coarse/a3fc3747b050e0c8e4f2319d865f9034b07aeb476bda47669ced22966bef9661.glb",
+    "bytes": 6072,
+    "sha256": "a3fc3747b050e0c8e4f2319d865f9034b07aeb476bda47669ced22966bef9661"
+  },
+  {
+    "name": "owned/coarse/0445ecea9e4567fedd89917e481b23b45df55d03943604d6af3aad91887418de.glb",
+    "bytes": 33364,
+    "sha256": "0445ecea9e4567fedd89917e481b23b45df55d03943604d6af3aad91887418de"
+  },
+  {
+    "name": "owned/coarse/2617eb411f7422aba1679d842d57f155719bcdf0576867884648e84d8b4c3fe4.glb",
+    "bytes": 19440,
+    "sha256": "2617eb411f7422aba1679d842d57f155719bcdf0576867884648e84d8b4c3fe4"
+  },
+  {
+    "name": "owned/coarse/b56be2e6acf494f57efae0a087c8cfa9f7b2bcf32a9ef4094dc220b8d0e8d6f4.glb",
+    "bytes": 6824,
+    "sha256": "b56be2e6acf494f57efae0a087c8cfa9f7b2bcf32a9ef4094dc220b8d0e8d6f4"
   },
   {
     "name": "data/fixedTiles.generated.json",
-    "bytes": 56984,
-    "sha256": "c07f65e79e349e0c2b1d5cc6b4e951690749f3e649db95e99a85f65b3354bd2f"
+    "bytes": 58609,
+    "sha256": "b60c4ca94bfabb3e7b6852706f47eb01bbaf3437d95bc3f2fdda2a1695bf7372"
   },
   {
     "name": "data/fixedBlobs.generated.json",
