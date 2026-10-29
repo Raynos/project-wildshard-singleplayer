@@ -28,8 +28,9 @@ export function instrument(flow: string): void {
           const start = typeof row['startedAt'] === 'number' ? performance.timeOrigin + row['startedAt'] : null;
           const end = typeof row['endedAt'] === 'number' ? performance.timeOrigin + row['endedAt'] : null;
           const state = row['state'] === 'todo' || row['state'] === 'on' || row['state'] === 'ok' ? row['state'] : undefined;
-          seen.set(row['key'], {key: row['key'], label: String(row['label']), start, end, duration: row['ms'], state,
-            startBasis: start === null ? undefined : 'native', endBasis: end === null ? undefined : 'native',
+          seen.set(row['key'], {key: row['key'], label: String(row['label']), start, end, duration: row['ms'],
+            ...(state === undefined ? {} : {state}),
+            ...(start === null ? {} : {startBasis: 'native' as const}), ...(end === null ? {} : {endBasis: 'native' as const}),
             wallMs: start !== null && end !== null ? end - start : null});
         }
       } else {
@@ -48,7 +49,7 @@ export function instrument(flow: string): void {
           const end = knownEnd ? performance.timeOrigin + Number(rawEnd)
             : complete ? prior?.duration === duration ? prior.end ?? at : at : null;
           seen.set(id, {key: id, label, detail: element.children[1]?.textContent ?? '', start, end,
-            startBasis: knownStart ? 'native' : 'observed', endBasis: end === null ? undefined : knownEnd ? 'native' : 'observed',
+            startBasis: knownStart ? 'native' : 'observed', ...(end === null ? {} : {endBasis: knownEnd ? 'native' as const : 'observed' as const}),
             state: complete ? 'ok' : 'on', duration: Number.isFinite(duration) ? duration : 0, wallMs: end === null ? null : end - start});
         }
       }
