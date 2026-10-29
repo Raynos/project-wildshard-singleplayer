@@ -18,7 +18,6 @@
       "src/engine/boot/bootTrace.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/boot/gpuTrace.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/boot/plan.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
-      "src/engine/boot/timing.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/calibrate/js.ts": "E357 S1.6 synthetic calibration elapsed-cost measurement only; no gameplay state.",
       "src/engine/calibrate/run.ts": "E357 S1.6 synthetic calibration elapsed-cost measurement only; no gameplay state.",
       "src/engine/core/errorReport.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",

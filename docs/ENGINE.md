@@ -1101,6 +1101,8 @@ reset a stall. Loader diagnostics omit reload history and identify observed
 frame-update gaps as including JS, GC, layout and suspension; they do not claim
 CPU utilisation. Home-region counts come from the actual regional world.
 
+`Loading.setPath(path)` displays its completed-work timeline, independent of
+saved timing history or elapsed estimates.
 `Loading.done()` finishes setup and fades. Developer's saved
 `holdLoading` pick freezes completed clock/rows until PLAY: `holdRequested`
 gates gameplay; `playRequested` identifies PLAY. Public/scoped cell loads
@@ -1114,8 +1116,9 @@ The navigation shell restarts that inline clock. Eight seconds without new
 bytes exposes a labelled Retry; changing diagnostics cannot renew it. The boot
 card appears at10s, and Retry reloads immediately. Code-pack progress is
 display-only until existing verified download receipts arrive.
-The application supplies its committed timing table with Simulator receipts; paths
-without measurements use the declared step weights as a fallback.
+The boot plan's optional duration estimates are internal progress data; the
+loading card replaces them with its completed-work timeline. Ordinary loading
+does not read or write per-device duration history.
 
 ### Pre-entry safe
 

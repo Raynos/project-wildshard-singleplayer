@@ -12,8 +12,8 @@ import { engineString } from '../strings';
  *   setup    = Σ expected(step) × fraction(step) / Σ expected(step)  over BOOT_STEPS (steps.ts)
  *   download = Σ min(read(src), total(src)) / Σ total(src)           over BYTE_SOURCES (steps.ts)
  *
- * `expected(step)` is the wall ms the step took last time on this device and tier (timing.ts;
- * the table's weights on a first run). A step's fraction is 1 when its `work()` resolved
+ * `expected(step)` uses the declared weights unless a caller supplies estimates.
+ * The loading card uses its own completed-work timeline instead. A step's fraction is 1 when its `work()` resolved
  * (finishing IS reporting); while running it is the larger of its reported sub-progress
  * `done / (total + 1)` and its elapsed / expected — both strictly below 1, so a running step can
  * report every unit, or overrun its expectation, and still not read complete (no "100 % but not
@@ -26,7 +26,6 @@ import { engineString } from '../strings';
  * remains — a step dropped from `main.ts` is a compile error.
  */
 import { BOOT_STEPS, BYTE_SOURCES, STEP_INFO, byteLabel, closedBy, type BootStep, type ByteKey } from './steps';
-import { expectedDurations, saveTimings, type Timings } from './timing';
 import { frameBudgetSpent, paceYield, presenting } from '../core/framePacing';
 import { WORK_SLICE_MS } from '../core/workSlice';
 import { loadingStage } from './waits';
@@ -82,10 +81,10 @@ export interface PlanOptions {
   /** Declared byte totals and file counts per source (known before the first byte). */
   totals: Readonly<Record<ByteKey, { bytes: number; files: number }>>;
   now?: () => number;
-  /** Expected ms per step (default: the previous run's, from localStorage — timing.ts). */
+  /** Optional internal estimates; defaults to declared weights, never saved timing history. */
   expected?: Readonly<Record<BootStep, number>>;
-  /** Called at done() with this run's per-step ms (default: blends them into localStorage). */
-  record?: (measured: Timings) => void;
+  /** Optional explicit measurement consumer; ordinary loading records no timing history. */
+  record?: (measured: Partial<Record<BootStep, number>>) => void;
   /** Per-frame republish while a step runs (default: requestAnimationFrame; tests pass their own or none). */
   schedule?: ((fn: () => void) => void) | null;
   /**
@@ -167,9 +166,9 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
   let shownDownload = 0;
   let shownSetup = 0;
   let view!: ProgressView;
-  const expected = options.expected ?? expectedDurations();
+  const expected = options.expected ?? Object.fromEntries(BOOT_STEPS.map(key=>[key,Math.max(1,STEP_INFO[key].weight*300)])) as Record<BootStep,number>;
   const scope = resourceScope();
-  const record = options.record ?? saveTimings;
+  const record = options.record;
   const schedule = options.schedule === undefined ? (typeof requestAnimationFrame === 'function' ? (fn: () => void) => { scope.raf(fn); } : null) : options.schedule;
   let ticking = false;
   const yieldTask = options.yieldTask === undefined ? (typeof window !== 'undefined' && typeof MessageChannel === 'function' ? macrotask : null) : options.yieldTask;
@@ -274,9 +273,11 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
       closeGap(now());
       finished = true;
       publish();
-      const measured: Timings = {};
-      for (const k of BOOT_STEPS) measured[k] = steps[k].ms;
-      record(measured);
+      if(record!==undefined){
+        const measured: Partial<Record<BootStep,number>> = {};
+        for (const k of BOOT_STEPS) measured[k] = steps[k].ms;
+        record(measured);
+      }
       // Arithmetic, not policy: Σw·1/Σw and ΣT/ΣT. The throw is the assertion that this file's math was not edited into a lie.
       if (view.download !== 1 || view.setup !== 1) throw new Error('boot plan: done() not at 1/1');
     },
