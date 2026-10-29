@@ -86,6 +86,11 @@ const windMath: WindFieldMath<Node<'float'>> = {
 export interface CompileGraphOptions extends GraphValidationOptions {
   /** Existing family owner supplies toon bands and its cloud/caustic clock. */
   readonly toon?: ToonLook;
+  /**
+   * the toon family's preset (`toonGraph`, a lit standard graph): its ambient replaces the environment's diffuse, as the
+   * family drops it (families/toon.ts); the environment's reflected radiance stays for metals
+   */
+  readonly replaceEnvironmentDiffuse?: boolean;
   /** resolves a texture param's file reference (an admitted texture); required when the graph samples one */
   readonly textures?: (ref: string, role?: 'colour' | 'data') => THREE.Texture;
   /** a post graph's scene colour: the engine's render target texture, sampled upright (`targetTexture`) */
@@ -1460,7 +1465,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     const targetAlpha = out(s.targetAlpha);
     const displayColour = ir.effectState?.output === 'colour';
     const plain = vertexNormal === null && fogScale === undefined && targetAlpha === null && !displayColour;
-    const m = ir.model === 'unlit' ? plain ? new GraphBasicMaterial() : new GraphUnlitNormalMaterial() : ir.model === 'toon' ? new GraphLitMaterial(withScale(toonHooks())) : lit !== undefined ? new GraphLitMaterial(withScale(litHooks(lit))) : sunScale !== undefined ? new GraphLitMaterial(withScale(PHYSICAL_HOOKS)) : plain ? new GraphStandardMaterial() : new GraphNormalMaterial();
+    const m = ir.model === 'unlit' ? plain ? new GraphBasicMaterial() : new GraphUnlitNormalMaterial() : ir.model === 'toon' ? new GraphLitMaterial(withScale(toonHooks())) : lit !== undefined ? new GraphLitMaterial(withScale(opts.replaceEnvironmentDiffuse === true ? { ...litHooks(lit), replaceEnvironmentDiffuse: true } : litHooks(lit))) : sunScale !== undefined ? new GraphLitMaterial(withScale(PHYSICAL_HOOKS)) : plain ? new GraphStandardMaterial() : new GraphNormalMaterial();
     if (targetAlpha !== null && (m instanceof GraphNormalMaterial || m instanceof GraphUnlitNormalMaterial)) m.graphTargetAlpha = asFloat(targetAlpha);
     if (displayColour && m instanceof GraphUnlitNormalMaterial) m.graphTargetAlpha = float(-1);
     if (vertexNormal !== null && (m instanceof GraphNormalMaterial || m instanceof GraphUnlitNormalMaterial)) m.vertexNormal = new ConvertNode<'vec3'>(vertexNormal.n, 'vec3');

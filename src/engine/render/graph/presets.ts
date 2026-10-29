@@ -742,8 +742,9 @@ export function painterlyGraph(params: PainterlyMaterialParams, look: PainterlyL
       rimAmtP: { op: 'param', param: 'rimAmt' }, rimK: N('mul', 'rk1', 'rimAmtP'), rimP: { op: 'param', param: 'rim' },
       albHalf: N('mix', 'alb', [1, 1, 1], 0.5), rc0: N('mul', 'rimP', 'albHalf'), rimC: N('mul', 'rc0', 'rimK'),
       sun0: N('add', 'dif', 'wetSpec'), sun: N('add', 'sun0', 'rimC'),
-      // ambient: the irradiance on the wet paint, a wet sheen, the painted floor under dark albedo
-      irrA: N('irradiance'), a0: N('mul', 'irrA', 'albWpi'),
+      // ambient: the irradiance on the wet paint, a wet sheen, the painted floor under dark albedo. The irradiance takes
+      // the environment's diffuse as the family's Lambert base does (three adds the sky's PMREM irradiance to it)
+      irrL: N('irradiance'), irrE: N('environmentIrradiance'), irrA: N('add', 'irrL', 'irrE'), a0: N('mul', 'irrA', 'albWpi'),
       fr5: N('pow', 'ndv1', 5), a1a: N('mul', 'irrA', 'fr5'), a1b: N('mul', 'a1a', 'wetK'), a1: N('mul', 'a1b', 0.07),
       floorP: { op: 'param', param: 'floor' }, floorAmtP: { op: 'param', param: 'floorAmt' },
       fl0: N('sub', [0.22, 0.22, 0.22], 'alb'), fl1: N('max', 'fl0', 0), fl2: N('mul', 'fl1', INV_PI), fl3: N('mul', 'shadeP', 'floorP'), fl4: N('mul', 'fl3', 'floorAmtP'), a2: N('mul', 'fl4', 'fl2'),

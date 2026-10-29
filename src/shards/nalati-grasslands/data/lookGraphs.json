@@ -32629,8 +32629,18 @@
      "rimC"
     ]
    },
-   "irrA": {
+   "irrL": {
     "op": "irradiance"
+   },
+   "irrE": {
+    "op": "environmentIrradiance"
+   },
+   "irrA": {
+    "op": "add",
+    "in": [
+     "irrL",
+     "irrE"
+    ]
    },
    "a0": {
     "op": "mul",
@@ -36159,8 +36169,18 @@
      "rimC"
     ]
    },
-   "irrA": {
+   "irrL": {
     "op": "irradiance"
+   },
+   "irrE": {
+    "op": "environmentIrradiance"
+   },
+   "irrA": {
+    "op": "add",
+    "in": [
+     "irrL",
+     "irrE"
+    ]
    },
    "a0": {
     "op": "mul",
@@ -39534,8 +39554,18 @@
      "rimC"
     ]
    },
-   "irrA": {
+   "irrL": {
     "op": "irradiance"
+   },
+   "irrE": {
+    "op": "environmentIrradiance"
+   },
+   "irrA": {
+    "op": "add",
+    "in": [
+     "irrL",
+     "irrE"
+    ]
    },
    "a0": {
     "op": "mul",
