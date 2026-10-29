@@ -50,6 +50,10 @@ const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Eule
 
 export class Impacts {
   private static byGame = new WeakMap<Game, Impacts>();
+  /** Diagnostic reads never install an impact system or allocate its pool. */
+  static count(game: Game): number {
+    return Impacts.byGame.get(game)?.mesh.count ?? 0;
+  }
   static for(game: Game): Impacts {
     let fx = Impacts.byGame.get(game);
     if (fx === undefined) { const made = new Impacts(game.scene); fx = made; Impacts.byGame.set(game, made); game.onUpdate(() => { made.update(worldTime.realDt); }, 'world.impacts'); }

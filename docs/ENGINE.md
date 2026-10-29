@@ -2271,7 +2271,7 @@ build a `DamageRequest` → occlusion (`lineOfSight`, unless `throughWalls`) →
 | `AggressionDirector`, `AggressionService` | attack tokens: `manifest.fight.attackers` (2 on Driftwood, unlimited elsewhere) |
 | `resolveHitStop`, `HitStopProfile` | hit-stop |
 | `Targets`, `TargetAnimal`, `TargetHit`, `authoredTargets`, `RayTargets`, `lockOn`, `meleeLock`, `targetRadius`, `AimTarget`, `bladeBlocked`, `bladeContact`, `Clang` | what a weapon can hit, aim assist and lock-on, blade occlusion |
-| `CameraFX`, `Impacts`, `BladeGlow`, `dodgeFx`, `dodgeEnv`, `fxMaterial`, `annulus`, `FX`, `FxMaterial`, `FxMode`, `LightPool`, `SiteLights`, `LightSite`, `SiteLightAnchor`, `SiteLightKind`, `SiteFlicker`, `SiteRoom`, `SiteWave`, `SiteLightsLook`, `ParticlePool`, `ParticlePoolSpec`, `ParticleAttr`, `pointScale` | feel and FX (`SiteLights`: shared point lights that visit the nearest lit site's anchors and flicker by intensity) |
+| `CameraFX`, `Impacts`, `BladeGlow`, `dodgeFx`, `dodgeEnv`, `fxMaterial`, `annulus`, `FX`, `FxMaterial`, `FxMode`, `LightPool`, `SiteLights`, `LightSite`, `SiteLightAnchor`, `SiteLightKind`, `SiteFlicker`, `SiteRoom`, `SiteWave`, `SiteLightsLook`, `ParticlePool`, `ParticlePoolSpec`, `ParticleAttr`, `pointScale` | feel and FX (`Impacts.count(game)` reads an existing pool count without installing one; `SiteLights`: shared point lights that visit the nearest lit site's anchors and flicker by intensity) |
 
 **Site light state ports.** `engine/fx/SiteLights` borrows a
 `SiteLightState` (`{ lit: boolean }`) through `LightSite.state` or the

@@ -409,7 +409,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
       else if (a.state === 'flee') flee++;
     }
     const ph = app.physics;
-    return { animals: alive, near, motors, chase, flee, elite: boot.runtime.hooks.eliteEngaged?.() === true ? 1 : 0, bodies: ph?.world.bodies.len() ?? 0, colliders: ph?.world.colliders.len() ?? 0, 'fx chips': Impacts.for(game).mesh.count };
+    return { animals: alive, near, motors, chase, flee, elite: boot.runtime.hooks.eliteEngaged?.() === true ? 1 : 0, bodies: ph?.world.bodies.len() ?? 0, colliders: ph?.world.colliders.len() ?? 0, 'fx chips': Impacts.count(game) };
   });
   player.onStep = (sprinting) => {
     const p = player.position;
