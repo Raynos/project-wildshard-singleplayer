@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["ui/BossBar","ui/Combat","ui/DeathFade","ui/EliteBar","ui/HUD","ui/HurtArc","ui/Loading","ui/LockOn","ui/Map","ui/Menu","ui/Minimap","ui/Perf","ui/Resume","ui/SpeedLines","ui/ToastStack","ui/WeaponStrip","ui/WindupWarn","ui/perfHud"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["ui/BossBar","ui/Combat","ui/DeathFade","ui/EliteBar","ui/HUD","ui/HurtArc","ui/Loading","ui/LockOn","ui/Map","ui/Menu","ui/Minimap","ui/Perf","ui/SpeedLines","ui/ToastStack","ui/WeaponStrip","ui/WindupWarn","ui/perfHud"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/engine/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);

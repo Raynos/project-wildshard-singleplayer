@@ -25,7 +25,6 @@ import { isDev } from '@wildshard/engine/core/devMode';
 import { beginLoading, type Loading } from '@wildshard/engine/ui/Loading';
 import { gridPrefetchStatus } from '../grid/prefetch';
 import { currentPageMode } from '../grid/pageMode';
-import { resumeProgress, resumeScreen } from '@wildshard/engine/ui/Resume';
 import { NO_AUDIO, type LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
 
 async function buildData(ctx: SessionContext) : Promise<{ loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; bootSteps: Record<string, number>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
@@ -43,10 +42,6 @@ async function buildData(ctx: SessionContext) : Promise<{ loading: Loading; audi
   app.setState('loading');
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/engine/boot/plan.ts).
   // Declared bytes come from the chunk's file list; every /assets fetch is counted on its way in.
-  // the RESUMING screen's brand (E99): the shard's name + title art, while its URL is still the served file (the menu
-  // preload swaps it for an in-memory blob: that one would not survive a recovery reload)
-  const brand = (): void => { resumeScreen().brand(manifest.name, manifest.card.portrait); };
-  brand();
   loading.waiting('Preparing texture formats');
   await stage('ktx2', () => prepareShardAssets(manifest, registerGpuFiles));
   loading.waiting('Preparing audio catalogue');
@@ -55,7 +50,7 @@ async function buildData(ctx: SessionContext) : Promise<{ loading: Loading; audi
   const files = bootFiles(manifest, undefined, audioProfile ?? NO_AUDIO, currentPageMode() !== 'grid', directPlay); // Grid never opens the menu card bank.
   useShardSteps(manifest.slug, manifest.boot?.steps, manifest.boot?.bytes); // the shard's own loading nouns + weights (src/engine/boot/steps.ts)
   const bootSteps: Record<string, number> = {}; // each step's wall ms (the host's timings: what a build / rebuild spends where)
-  const plan = createBootPlan((view) => { loading.paint(view); resumeProgress(view.setup); for (const r of view.rows) if (r.state === 'ok') bootSteps[r.key] = Math.round(r.ms); }, { totals: declareTotals(files) });
+  const plan = createBootPlan((view) => { loading.paint(view); for (const r of view.rows) if (r.state === 'ok') bootSteps[r.key] = Math.round(r.ms); }, { totals: declareTotals(files) });
   installByteCounter(plan, files);
   // a boot that throws shows WHY: the loading panel's foot line + the uncaught-exception modal (src/engine/ui/ErrorModal.ts)
   (currentOwner() ?? app.engineScope).listen(window, 'unhandledrejection', (e) => plan.fail(`BOOT FAILED · ${String((e.reason as { message?: string } | null | undefined)?.message ?? e.reason)}`.slice(0, 300)));

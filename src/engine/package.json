@@ -327,7 +327,6 @@
     "./ui/Minimap": "./ui/Minimap.ts",
     "./ui/Perf": "./ui/Perf.ts",
     "./ui/ReloadPrompt": "./ui/ReloadPrompt.ts",
-    "./ui/Resume": "./ui/Resume.ts",
     "./ui/RotateGate": "./ui/RotateGate.ts",
     "./ui/Settings": "./ui/Settings.ts",
     "./ui/SpeedLines": "./ui/SpeedLines.ts",

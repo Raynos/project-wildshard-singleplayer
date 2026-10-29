@@ -49,7 +49,6 @@ const FILES = [
   { file: join(ROOT, 'src/engine/ui/styles/rotate.css'), prefix: 'ws-rotate-', strict: true }, // the portrait-only gate on landscape phones (index.html, src/engine/ui/RotateGate.ts)
   { file: join(ROOT, 'src/engine/ui/styles/quest.css'), prefix: 'ws-quest-', strict: true }, // the adventure layer: objective line, NPC dialogue, reward caption (src/game/quest/*)
   { file: join(ROOT, 'src/game/complete/complete.css'), prefix: 'ws-complete-', strict: true }, // the "<shard> complete" card (src/game/complete/ShardComplete.ts, E132)
-  { file: join(ROOT, 'src/engine/ui/styles/resume.css'), prefix: 'ws-resume-', strict: true }, // the app-switch resume screen (src/engine/ui/Resume.ts, index.html; E54 / E61)
   { file: join(ROOT, 'src/game/compendium/compendium.css'), prefix: 'ws-cmp-', strict: true }, // the Compendium: the book + its skins, the trophy wall's tip, the journal disc (src/ui/compendium/*)
   { file: join(ROOT, 'src/shards/pine-hollow/quest/pinehollow.css'), prefix: 'ws-ph-', strict: true }, // Pine Hollow's hamlet screens + the collectibles counter (src/shards/pine-hollow/quest/ui.ts)
   { file: join(ROOT, 'src/engine/ui/styles/debug.css'), prefix: 'ws-dbg-', strict: true }, // pause ▸ Settings ▸ Debug's groups (src/engine/ui/DebugMenu.ts, the registry src/engine/ui/debugOptions.ts; E162)

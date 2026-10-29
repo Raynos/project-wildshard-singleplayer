@@ -71,7 +71,6 @@ async function enterPage(): Promise<unknown> {
   if (titleOnly) {
     // Environment harness flags do not select a level; retire the first-paint loader too.
     document.documentElement.classList.add('title-first');
-    document.querySelector<HTMLElement>('.ws-resume')?.classList.remove('show');
   }
 
   /** resolves once the title or the selected shard's entry has been evaluated */
@@ -123,7 +122,6 @@ export async function start(): Promise<void> {
     clearGridRecovery();
     history.replaceState(history.state, '', new URL('/', location.origin));
     document.documentElement.classList.add('title-first');
-    document.querySelector<HTMLElement>('.ws-resume')?.classList.remove('show');
     await showPageTitle();
   }
 }

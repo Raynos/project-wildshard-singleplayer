@@ -154,7 +154,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // an app switch that takes the GPU (iOS): hold the loop, restore in place or reload where the player stood (E54)
   if (resuming && !ctx.continuingGridEntry) hud.setPaused(true); // Graphics recovery needs RESUME; a planned update retains the original tap.
   const recoveryInstalledAt = performance.now();
-  installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null), resumed: resuming,
+  installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null),
     ...(ctx.gridLive === null ? {} : { beforeReload: (reason: 'gpu' | 'background') => ctx.gridLive?.prepareRecovery(reason) === true }),
     fragileBoot: () => TIER === 'phone' && performance.now() - recoveryInstalledAt < 20_000,
   });
