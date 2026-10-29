@@ -13,6 +13,9 @@ import { predecessorMeadowHash } from './fixtures/sky-meadow-hash';
 
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
 const original = (): Promise<Uint8Array> => millSceneSource(url => readFileSync(`public${url}`));
+// both meadow bakes once for the file (each is a full blade bake: four rebuilds a test ran past CI's 30 s); read only
+let meadows: { current: ReturnType<typeof skyMeadowBlobs>; prior: ReturnType<typeof skyMeadowBlobs> } | undefined;
+const meadowPair = (): NonNullable<typeof meadows> => (meadows ??= { current: skyMeadowBlobs(), prior: skyMeadowBlobs(bakeMeadowBlades(predecessorMeadowHash)) });
 const checkWorld = (value: SkyWorldSceneValues): void => {
   const wire = new TextEncoder().encode(encodeCanonicalJson(value.scenes));
   expect(wire.byteLength).toBe(313_596);
@@ -20,7 +23,7 @@ const checkWorld = (value: SkyWorldSceneValues): void => {
   expect(value.blobs).toHaveLength(25);
   // FR6 (04ed616aa6): the meadow's two files are the current bake's, read back as the original bake's (its double-precision
   // lattice hash) for this pin; every other record, and the order, as captured
-  const current = skyMeadowBlobs(), prior = skyMeadowBlobs(bakeMeadowBlades(predecessorMeadowHash));
+  const { current, prior } = meadowPair();
   const asBefore = (blob: SkyWorldSceneValues['blobs'][number]): SkyWorldSceneValues['blobs'][number] => {
     const pair = blob.file.name === SKY_MEADOW_DATA_FILE ? [current.binary, prior.binary] as const : blob.file.name === SKY_MEADOW_FILE ? [current.scene, prior.scene] as const : null;
     if (pair === null) return blob;
