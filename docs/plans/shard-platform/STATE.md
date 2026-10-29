@@ -11,7 +11,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **REPLAN (G886): [FOUNDATIONS](../FOUNDATIONS.md); overnight G914-G917.** Done: MF2, MF3, MF5, MF6, MF7 memory, FC1-6, FC8,
 QS2, G895, G896, G901, QB18; MF1 / MF4 / MF10 landed, proofs open. Opus (G915, 3 lanes held G916): sp-o3 FC12, sp-o4 QB19 → QS1 →
 FC14 → FC13, sp-o5 FC9 → FC10 → FC15. Codex: sp-x1 CX1 (MF9 done), sp-x2 FC11 → MF12, sp-x6 MF4 → CX1, sp-x9 MF8 → CX3, sp-x10 MF10 →
-CX2. **For wildshard-v (17:24):** the CI reds are QB19's Nalati pins, fixed in 24691db4bf; a94d52f935 carries it, and it deploys the moment it is green. sp-x8 stays released: 5 building Codex lanes is the cap (G611), and CX1-3 are queued (G914 = lanes with no row left). 07:00 release for Jake (G917). G892: open to 10-30 QA.
+CX2. **For wildshard-v (18:37):** G919 sent: sp-ci-deploy deletes today's red pin tests (Nine, Nalati, Sunscar) and ships the first green SHA; all lanes told no new pins. sp-o5 is not idle (FC15 Simulator readings running). sp-x8 stays released (5-Codex cap, G611); CX1 is on sp-x1 + sp-x9. 07:00 release for Jake (G917). G892: open to 10-30 QA.
 
 **Autonomous decisions (for Jake's review):**
 - FC10 closes with Nine at 7 real render-target switches (folding its display + FXAA risks its opacity events; o5).
