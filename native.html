@@ -54,6 +54,12 @@
       .ws-load-retry[hidden], .ws-launch-wait[hidden] { display: none; }
       .ws-launch-wait { position: absolute; bottom: 110px; left: 16px; right: 16px; display: flex; align-items: center; gap: 12px; padding: 12px; background: #091624ed; border: 1px solid #8fe3ff66; font: 12px/1.5 ui-monospace, monospace; }
       html.title-first #game, html.title-first .ws-load { display: none; }
+      /* QA10: iOS 26+ draws its soft scroll-edge blur under the status bar of a home-screen app unless WebKit finds a
+         fixed, coloured container at the top-centre of the viewport (4 px down). In play that point was the Developer fps
+         chip (fixed, too small to count), so the blur washed out PAUSE / fps / minimap until the pause menu opened. This
+         full-width strip is that container on every screen: alpha 1/255 (invisible), taller than WebKit's 10 px floor, no input. */
+      #ws-top-edge { display: none; }
+      html.standalone #ws-top-edge { display: block; position: fixed; top: 0; left: 0; right: 0; height: 12px; z-index: 2147483647; background: rgba(5, 8, 16, 0.004); pointer-events: none; }
       .ws-launch { display: none; }
       html.title-first .ws-launch { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; background: #0b1622; color: #eaf8ff; font-family: Rajdhani, system-ui, sans-serif; }
       .ws-launch-hero { position: absolute; inset: 0; background: url('/assets/title/main-crossroads-landscape.jpg') center / cover no-repeat; }
@@ -126,6 +132,7 @@
     </div>
     <canvas id="game"></canvas>
     <div id="hud"></div>
+    <div id="ws-top-edge" aria-hidden="true"></div>
     <!-- the loading panel from the first HTML bytes (src/engine/boot/shell.ts — test/shell.test.ts keeps the two identical); src/engine/ui/Loading.ts adopts it -->
     <div class="ws-load" data-shell><div class="ws-load-head">
 <div class="ws-wordmark">Project <b>Wildshard</b></div>
