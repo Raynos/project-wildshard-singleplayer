@@ -1,10 +1,10 @@
 {
   "date": "29 OCT 2026",
-  "updated": "2026-10-29T05:25:03Z",
+  "updated": "2026-10-29T15:47:39Z",
   "entries": [
-    "Nine Dragon Stack has richer windows, walls and wet stair edges",
-    "Nine Dragon Stack's sword cloth follows your viewing angle",
-    "Nalati's trees and ground cover use the intended forest layout",
-    "Pine Hollow's mossy roofs keep their intended colour"
+    "Reload works from loading and pause after a confirmation tap",
+    "Shard Select starts a fresh world after leaving Infinite Wildshard",
+    "Fixed flashing white blocks around Driftwood's grid",
+    "Far Reach's sun rays now follow the painted sun"
   ]
 }
