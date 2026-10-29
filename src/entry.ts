@@ -37,7 +37,6 @@ declare const __BOOT_TABLE_ASSETS__: Parameters<typeof declareAssetTableDownload
 const entryScope = new Scope('entry');
 let selectedImages: Scope | undefined;
 let declareCodePack: (() => void) | null = null;
-let memoryPreparation: { readonly ready: () => Promise<void> } | null = null;
 const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(0, resolve); });
 /** The plain home URL paints only the title. No renderer, world, or Three.js is imported until a shard is chosen. */
 startPageServices();
@@ -78,8 +77,6 @@ async function enterPage(): Promise<unknown> {
   /** resolves once the title or the selected shard's entry has been evaluated */
   return (gridRecoveryRefused() || (titleOnly && document.getElementById('ws-shardfile') === null)) ? showPageTitle() : (async () => {
     declareCodePack = await prepareEntryCode(search, entryScope);
-    // Keep every native reservation/yield, but overlap it with table/module setup.
-    memoryPreparation = prepareBootImports(retried(() => import('./entryMemory')).then(module => module.prepareEntryMemoryBank(entryScope)));
     await retried(() => import('./assetTables')).then(module => module.prepareAssetTables());
     const { initializeTier } = await retried(() => import('@wildshard/engine/core/tier'));
     await initializeTier();
@@ -202,8 +199,20 @@ async function startSelected(): Promise<void> {
   const imports = prepareBootImports(Promise.all([speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule,
     starterModule, hoverboardModule, voicesModule, combatModule, boarModule, familiesModule, sourceModule, runtimeModule,
     gridEntryModule, pathsModule, entryModule, calibrationModule, prefetchModule]));
-  const { prepareEntryMemoryBank } = await retried(() => import('./entryMemory'));
-  await (memoryPreparation?.ready() ?? prepareEntryMemoryBank(entryScope));
+  // Cover the full-ALL route's five observed misses; never recycle growables.
+  const [{ prepareScriptMemoryBank }, { yieldTask }, { diagnosticNow }] = await Promise.all([
+    retried(() => import('@wildshard/engine/script/moduleV2')), retried(() => import('@wildshard/engine/core/workSlice')),
+    retried(() => import('@wildshard/engine/core/clock')),
+  ]);
+  const memoryStartedAt = diagnosticNow();
+  let memoryTurns = 0, memoryWaitMs = 0;
+  await prepareScriptMemoryBank([35, 0, 1, 0], async () => {
+    // Each native reserve gets its own task, even when the CPU budget is free.
+    memoryTurns++; const at = diagnosticNow(); await yieldTask(entryScope); memoryWaitMs += diagnosticNow() - at;
+    if (entryScope.disposed || entryScope.disposing) throw new Error('Entry memory preparation ended');
+  }, [{ initial: 1, maximum: 2, count: 5 }, { initial: 1, maximum: 64, count: 4 }]);
+  performance.measure('wildshard.prepare:boot.script-memory-bank', { start: memoryStartedAt, end: diagnosticNow(),
+    detail: { memoryTurns, memoryWaitMs } });
   const [{ sharedWeaponVoices, declaredWeaponVoices }, { BOAR_LOOK }, { declaredKitItemFamilies },
     { configuredShardfile, installShardfileProduct, installManifestShardfile, preparePageResidency }, { browserShardfileOptions },
     { pageGridRecovery }, { loadingPath }, { shardEntry }, { default: calibration }, { gridPrefetchStatus }] = await Promise.all([
