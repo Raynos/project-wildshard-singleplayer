@@ -40,6 +40,10 @@ it('leads with the declared progress, then wire and offline cache', () => {
   expect(loadingDownloadText(traffic)).toBe('1.50 MB of 2.00 MB content · 3 / 4 files · 1.30 MB network · 2.00 MB offline cache');
 });
 
+it('labels derived input satisfaction separately from actual wire and cache reads', () => {
+  expect(loadingDownloadText({...traffic, restoredBytes: 750_000})).toContain('0.75 MB inputs restored · 1.30 MB network · 2.00 MB offline cache');
+});
+
 it('counts Safari\'s unsized service-worker transfers by body size, never as a missing total', () => {
   const text = loadingDownloadText({ ...traffic, networkBytes: 0, unclassifiedFiles: 1133, unclassifiedBytes: 232_600_000 });
   expect(text).toContain('232.6 MB network (1133 files by encoded body size)');

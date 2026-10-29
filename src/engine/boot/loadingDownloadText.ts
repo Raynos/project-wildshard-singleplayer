@@ -32,8 +32,9 @@ export function loadingDownloadText(transfer: DownloadSnapshot): string {
     : transfer.unclassifiedFiles > 0
     ? `${formatMB(transfer.networkBytes + transfer.unclassifiedBytes)} network (${transfer.unclassifiedFiles} files by encoded body size)` : `${formatMB(transfer.networkBytes)} network`;
   const pending = transfer.unitemizedBytes === undefined ? '' : ` · ${formatMB(transfer.unitemizedBytes)} awaiting file index`;
+  const restored = transfer.restoredBytes === undefined ? '' : ` · ${formatMB(transfer.restoredBytes)} inputs restored`;
   if ((transfer.expectedBytes ?? transfer.declaredBytes) === 0) return `Reading download inventory · ${network} · ${formatMB(transfer.cachedBytes)} offline cache`;
-  return `${formatMB(transfer.declaredDoneBytes)} of ${formatMB(transfer.expectedBytes ?? transfer.declaredBytes)} content · ${transfer.declaredFilesDone} / ${transfer.declaredFiles} files${pending} · ${network} · ${formatMB(transfer.cachedBytes)} offline cache`;
+  return `${formatMB(transfer.declaredDoneBytes)} of ${formatMB(transfer.expectedBytes ?? transfer.declaredBytes)} content · ${transfer.declaredFilesDone} / ${transfer.declaredFiles} files${pending}${restored} · ${network} · ${formatMB(transfer.cachedBytes)} offline cache`;
 }
 
 /** The grid prefetch's own row: disk bytes against the set discovered so far (a finished run with every product read is 1). */

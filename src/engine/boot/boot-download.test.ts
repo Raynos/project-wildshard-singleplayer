@@ -23,6 +23,15 @@ it('a code container retains wire receipts without duplicating its module conten
   expect(accounting.snapshot()).toMatchObject({networkBytes: 120, declaredBytes: 200, pendingBytes: 0, declaredDoneBytes: 200});
 });
 
+it('a restored input satisfies exact content once without claiming a body read or any transport', () => {
+  const accounting = new DownloadAccounting('https://example.test/');
+  accounting.reserve('/shardfiles/example/', 100);
+  accounting.restored('/shardfiles/example/shape.bin', 100);
+  accounting.restored('/shardfiles/example/shape.bin', 100);
+  expect(accounting.snapshot()).toMatchObject({declaredBytes: 100, declaredDoneBytes: 100,
+    restoredBytes: 100, pendingBytes: 0, declaredFiles: 1, networkBytes: 0, cachedBytes: 0, filesDone: 0});
+});
+
 const base = 'https://game.test/';
 const timing = (name: string, extra: Partial<DownloadTiming> = {}): DownloadTiming => ({
   name: new URL(name, base).href, startTime: 1, transferSize: 1300, encodedBodySize: 1000,

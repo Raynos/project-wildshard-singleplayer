@@ -2,8 +2,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { saves } from '@wildshard/engine/saves/runtime';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { CachedProduct, ProductOptions } from './product';
-import { outputBlobUrl, outputDescriptor } from './outputDescriptor';
-import { recordCachedDownload } from '@wildshard/engine/boot/download';
+import { outputDescriptor } from './outputDescriptor';
 
 /** Construct outside admission's decoding context: late warming must not retain its temporary transport/result maps.
  * A partial online admission never publishes a fully visited offline index until every selected byte is verified. */
@@ -23,18 +22,10 @@ export function productCacheCompletion(source: Shardfile, options: ProductOption
       // into competing foreground fetches. Verified cache hits still apply.
       delete lower.verifiedResponse; delete lower.transport; delete lower.fetchRange;
       const reader = new ClientAssets(source, new Map(), lower), base = new URL('.', options.base).href;
-      const paths = new Map([...selected.map(file => [file.hash, outputBlobUrl(source, file.hash, base)] as const),
-        ...[...descriptor.index.sections, ...descriptor.index.schemas].map(file => [file.hash, new URL(file.path, base).href] as const)]);
       const present = async (hash: string, size: number): Promise<boolean> => {
-        const verified = cache.verifiedPresent === undefined ? await (async () => {
-          const bytes = await cache.asset(base, hash);
-          return bytes !== null && bytes.length === size && await options.hash(bytes) === hash;
-        })() : await cache.verifiedPresent(hash, size);
-        alive();
-        // Both ports read and hash the actual body. A holds/index hint is never
-        // sufficient; publish only the verification already needed offline.
-        if (verified) recordCachedDownload(hash, size, paths.get(hash));
-        return verified;
+        if (cache.verifiedPresent !== undefined) return cache.verifiedPresent(hash, size);
+        const bytes = await cache.asset(base, hash);
+        return bytes !== null && bytes.length === size && await options.hash(bytes) === hash;
       };
       const sections = [...descriptor.index.sections, ...descriptor.index.schemas];
       const release = cache.pin?.([...selected.map(file => file.hash), ...source.requires.commons, ...sections.map(section => section.hash)]);

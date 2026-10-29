@@ -71,8 +71,11 @@ export interface DownloadSnapshot {
   unitemizedBytes?: number;
   /** Fixed compiled entry content total, independent of late file discovery. */
   expectedBytes?: number;
+  /** Canonical input bytes satisfied by a successfully restored derived result;
+   * these are neither network nor original-body cache reads. */
+  restoredBytes?: number;
 }
-interface File { bytes: number; complete: boolean; container?: boolean }
+interface File { bytes: number; complete: boolean; container?: boolean; restored?: boolean }
 export interface DownloadTiming {
   name: string; startTime: number; transferSize: number; encodedBodySize: number; decodedBodySize?: number;
   workerStart: number; serverTiming: readonly { name: string; duration: number }[];
@@ -182,6 +185,13 @@ export class DownloadAccounting {
     const file = this.files.get(this.url(input)); if (file !== undefined) file.complete = true;
     this.activity++;
   }
+  /** A validated derived result replaces this exact canonical input. */
+  restored(input: string, bytes: number): void {
+    this.declare(input, bytes);
+    const file = this.files.get(this.url(input));
+    if (file !== undefined && !file.complete) { file.complete = true; file.restored = true; }
+    this.activity++;
+  }
   /** Resource Timing covers modules, images, fonts and undeclared fetches, including early buffered entries. */
   resource(entry: DownloadTiming): void {
     if ((entry.responseEnd ?? entry.startTime) < this.since || !/^https?:/u.test(entry.name)) return;
@@ -220,8 +230,8 @@ export class DownloadAccounting {
     return remainder;
   }
   snapshot(): DownloadSnapshot {
-    let pendingBytes = 0, pendingFiles = 0, cachedBytes = this.browserCache, declaredBytes = 0, declaredFiles = 0;
-    this.files.forEach(file => { if (file.container === true) return; declaredFiles++; declaredBytes += file.bytes; if (!file.complete) { pendingBytes += file.bytes; pendingFiles++; } });
+    let pendingBytes = 0, pendingFiles = 0, cachedBytes = this.browserCache, declaredBytes = 0, declaredFiles = 0, restoredBytes = 0;
+    this.files.forEach(file => { if (file.container === true) return; declaredFiles++; declaredBytes += file.bytes; if (file.restored === true) restoredBytes += file.bytes; if (!file.complete) { pendingBytes += file.bytes; pendingFiles++; } });
     let unitemizedBytes = this.reservedRemainder();
     this.banks.forEach(bytes => { unitemizedBytes += bytes; });
     declaredBytes += unitemizedBytes; pendingBytes += unitemizedBytes;
@@ -232,7 +242,7 @@ export class DownloadAccounting {
     return { networkBytes: this.network, cachedBytes, pendingBytes, filesDone: this.completed + this.cache.size,
       filesTotal: this.completed + this.cache.size + pendingFiles, unclassifiedBytes, unclassifiedFiles: this.unknown.size,
       declaredBytes, declaredDoneBytes: declaredBytes - pendingBytes, declaredFiles, declaredFilesDone: declaredFiles - pendingFiles,
-      ...(this.expected === undefined ? {} : {expectedBytes: this.expected}), ...(unitemizedBytes === 0 ? {} : { unitemizedBytes }) };
+      ...(this.expected === undefined ? {} : {expectedBytes: this.expected}), ...(restoredBytes === 0 ? {} : {restoredBytes}), ...(unitemizedBytes === 0 ? {} : { unitemizedBytes }) };
   }
 }
 let active: DownloadAccounting | undefined;
@@ -327,6 +337,8 @@ export function declareModuleFiles(input: unknown): void {
 export function recordCachedDownload(key: string, bytes: number, url?: string): void { accountingTargets(accounting => { accounting.cached(key, bytes, url); }); }
 /** I5: a declared file served from its pack is complete; the pack's own receipt counts the bytes. */
 export function recordPackedDownload(url: string): void { accountingTargets(accounting => { accounting.packed(url); }); }
+/** Successful derived restoration satisfies named inputs without a wire/cache credit. */
+export function recordRestoredDownload(url: string, bytes: number): void { accountingTargets(accounting => { accounting.restored(url, bytes); }); }
 /** Actual body reads reset the stall timer without mislabelling decoded bytes as network transport. */
 export function noteDownloadRead(bytes: number): void { accountingTargets(accounting => { accounting.noteRead(bytes); }); }
 

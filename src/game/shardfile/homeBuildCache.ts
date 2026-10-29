@@ -2,6 +2,8 @@ import * as v from 'valibot';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { TIER } from '@wildshard/engine/core/tier';
 import { timeClientPreparation } from './preparationTiming';
+import { outputDescriptor } from './outputDescriptor';
+import { recordRestoredDownload } from '@wildshard/engine/boot/download';
 import { HomeGeometrySnapshotSchema, homeGeometryBytes, restoreHomeGeometry, snapshotHomeGeometry,
   type HomeGeometryView, type HomeGeometrySnapshot } from './homeGeometrySnapshot';
 
@@ -9,6 +11,7 @@ declare const __BUILD_ID__: string;
 /** One home's completed static geometry: at most 64 MiB of payload and 256 entries, shared across all builds. */
 export const HOME_BUILD_CACHE_BYTES: number = 64 * 1024 * 1024;
 const homes = new WeakMap<Shardfile, string>();
+const restoredSources = new WeakMap<object, {readonly source: Shardfile; readonly key: string}>();
 const size = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(HOME_BUILD_CACHE_BYTES));
 const metadata = v.strictObject({ identity: v.string(), bytes: size, entries: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(256)) });
 const record = v.strictObject({ identity: v.string(), bytes: size, snapshot: HomeGeometrySnapshotSchema });
@@ -18,6 +21,18 @@ let database: Promise<IDBDatabase | null> | undefined;
 export function bindHomeBuildCache(source: Shardfile): void {
   if (typeof __BUILD_ID__ !== 'string' || typeof indexedDB === 'undefined') return;
   homes.set(source, JSON.stringify([__BUILD_ID__, source.identity.slug, source.identity.revision, TIER]));
+}
+
+/** Only an actual successful restoration, under this source and exact recipe
+ * key, can satisfy the canonical inputs it replaced. Key censuses grant none. */
+export function recordHomeBuildInputs(source: Shardfile, key: string, views: ReadonlyMap<string, HomeGeometryView>, refs: readonly string[]): void {
+  const proof = restoredSources.get(views), descriptor = outputDescriptor(source);
+  if (proof?.source !== source || proof.key !== key || descriptor === undefined || typeof document === 'undefined') return;
+  const indexed = new Map(descriptor.index.files.flatMap(file => [file.hash, file.path, ...file.name === undefined ? [] : [file.name]].map(ref => [ref, file] as const)));
+  const rows = [...new Set(refs)].map(ref => indexed.get(ref));
+  if (rows.some(row => row === undefined)) return;
+  const base = new URL(`/shardfiles/${source.identity.slug}/`, document.baseURI);
+  for (const row of rows) if (row !== undefined) recordRestoredDownload(new URL(row.path, base).href, row.compressed);
 }
 
 function open(): Promise<IDBDatabase | null> {
@@ -81,7 +96,9 @@ export async function readHomeBuildGeometry(source: Shardfile, key: string): Pro
     const meta = v.safeParse(metadata, head.value), row = v.safeParse(record, value.value);
     if (!meta.success || !row.success || meta.output.identity !== identity || row.output.identity !== identity
       || meta.output.bytes > HOME_BUILD_CACHE_BYTES || row.output.bytes !== homeGeometryBytes(row.output.snapshot)) return null;
-    return await timeClientPreparation(source.identity.slug, key.startsWith('whole:') ? 'home.cache.whole' : 'home.cache.owned', () => restoreHomeGeometry(row.output.snapshot));
+    const restored = await timeClientPreparation(source.identity.slug, key.startsWith('whole:') ? 'home.cache.whole' : 'home.cache.owned', () => restoreHomeGeometry(row.output.snapshot));
+    restoredSources.set(restored, {source, key});
+    return restored;
   } catch { return null; }
 }
 

@@ -324,6 +324,7 @@ export class Loading {
     setData(this.root, 'download', String(Math.floor(transfer.fraction * 100)));
     setData(this.root, 'networkBytes', String(transfer.networkBytes));
     setData(this.root, 'cachedBytes', String(transfer.cachedBytes));
+    setData(this.root, 'restoredBytes', String(transfer.restoredBytes ?? 0));
     setData(this.root, 'pendingBytes', String(transfer.pendingBytes));
     setData(this.root, 'unclassifiedFiles', String(transfer.unclassifiedFiles));
     setData(this.root, 'unclassifiedBytes', String(transfer.unclassifiedBytes));

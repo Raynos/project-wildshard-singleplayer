@@ -967,7 +967,7 @@ synthetic page response so the actual worker fetch owns network/cache bytes
 once. Cache hits carry `ws-cache` sizes for Safari. No accounting reads or tees
 response bodies. Expected files remain pending
 until a network or cache receipt arrives; completion credits from legacy steps
-are not downloaded bytes. `declareDownloadContainer(url, bytes)` records a code envelope without counting its module bodies twice.
+are not downloaded bytes. Code containers count wire, not duplicate content. `recordRestoredDownload(url, bytes)` settles derived inputs without wire/cache credit.
 
 `PrefetchBytes(limit)` in `@wildshard/engine/boot/prefetchQuota` admits
 declared body bytes in FIFO order until its idempotent release runs. The grid
