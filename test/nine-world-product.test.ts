@@ -34,5 +34,6 @@ test('the owned world preserves the complete pinned layout, metadata and asset b
   expect(shardfile.library).toHaveLength(397); expect(shardfile.library.some(hash => coarse.has(hash))).toBe(false);
   const fine = { ...predecessor, shardfile: { ...shardfile, tiles: shardfile.tiles.filter(tile => tile.lod === 0), files: shardfile.files.filter(file => !coarse.has(file.hash)) },
     props: props === undefined ? undefined : { ...props, tiles: props.tiles.filter(tile => tile.lod === 0) }, report: report?.filter(row => row.lod === 0) };
-  expect(signature(encode(fine, '\n'))).toEqual({ bytes: 151900, hash: '4f859d0d7b08ca4d1f2c9ea4fc79706ae0d8e051ae8f5f0c97e95baf663de1f3' });
+  // FC12 521a3ff672 merges five alpha kits into cut; only its 54 tile files move.
+  expect(signature(encode(fine, '\n'))).toEqual({ bytes: 151900, hash: '5c2302adea5ea581797d1452db7e5544eeecb7bad92b4d93a60701fe7e7cabd7' });
 });

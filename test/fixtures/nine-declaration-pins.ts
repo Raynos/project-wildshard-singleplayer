@@ -69,6 +69,8 @@ function previousKitGlints(product: Shardfile): Shardfile {
 }
 
 export function expectNineDeclaration(current: Shardfile): void {
+  // FC12: dc2f5644ad merges wet receivers; 521a3ff672 merges alpha kits.
+  // Independently rebuilt dc2^/dc2/521 outputs qualify these complete pins.
   // The independently pinned 411-file source proof defines the only allowed
   // reference renaming; full declaration pins remain unchanged below.
   const wire = previousLayoutWire();
@@ -78,9 +80,9 @@ export function expectNineDeclaration(current: Shardfile): void {
   expect(coarse.size).toBe(12); expect(product.library.filter(file => coarse.has(file))).toEqual([]);
   expect(product.tiles.filter(tile => tile.lod !== 0 && tile.lod !== 1)).toEqual([]);
   expect(signature({ ...product, tiles: product.tiles.filter(tile => tile.lod === 0), files: product.files.filter(file => !coarse.has(file.hash)) }))
-    .toEqual({ bytes: 735799, hash: '2f6528020c26bdf3c628aa9088550baa4689456b09e689d5b90621c54e456ffd' });
+    .toEqual({ bytes: 735799, hash: '4011712a41ac6e0e8844a70e62364e3f62421c6421b48fb105dbe5c9890d726b' });
   const world = new Set(worldFiles.map(row => row.hash));
   expect(signature(product.files.filter(file => !world.has(file.hash)).map(file => file.hash).sort()))
     .toEqual({ bytes: 1141, hash: '67a5183e4aa385f2c15a32302856e41dd421917f145ba7ac50ad096e7c7c9b8b' });
-  expect(signature(product)).toEqual({ bytes: 741684, hash: 'bb6b8ed8c0dde17b00ea3e6815d7292a51ebe09017284bfe092e465b8d21a23a' });
+  expect(signature(product)).toEqual({ bytes: 741684, hash: 'e9671ce6c1eecc5e091d46e903b6819d3398f76603eafa88a57de8aeb51e3d9f' });
 }
