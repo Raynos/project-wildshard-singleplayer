@@ -59,7 +59,7 @@ async function settle(page,inflight){
 
 try{for(const slug of slugs){
  const dir=`${root}/${slug}`;mkdirSync(dir,{recursive:true});
- const row={slug,head,device:'iPhone 16 Pro',tier:'phone',dpr:2,seed:357,errors:[],poses:[]};
+ const row={slug,head,device:'iPhone 16 Pro',tier:'phone',dpr:2,seed:357,errors:[],warnings:{},poses:[]};
  const context=await browser.newContext({...devices['iPhone 16 Pro']});let page;
  try{
   await developerSettings(context,{tier:'phone',volume:0,time:'midday',weather:'clear'});
@@ -69,6 +69,8 @@ try{for(const slug of slugs){
   await context.addInitScript(hideDeveloperOverlays);
   await context.addInitScript(()=>{window.__wildshardHarness={seed:357,capture:null};});
   page=await context.newPage();page.setDefaultTimeout(30000);page.on('pageerror',e=>row.errors.push(e.message));
+  // console warnings, each text once with its count (NR4: AttributeNode missing-channel warnings)
+  page.on('console',m=>{if(m.type()!=='warning')return;const t=m.text().slice(0,300);row.warnings[t]=(row.warnings[t]??0)+1;});
   const inflight=new Map();page.on('request',r=>inflight.set(r,Date.now()));page.on('requestfinished',r=>inflight.delete(r));page.on('requestfailed',r=>inflight.delete(r));
   const version=await(await page.request.get(new URL('/version.json',base).href)).json();
   if(!version.build.startsWith(head.slice(0,7)))throw Error(`Preview ${version.build} is not ${head.slice(0,10)}`);row.build=version.build;
@@ -139,6 +141,6 @@ try{for(const slug of slugs){
   row.status=row.errors.length===0?'complete':'errors';
  }catch(error){row.status='failed';row.failure=String(error);if(page)await page.screenshot({path:`${dir}/failure.jpg`,type:'jpeg',quality:80,scale:'css'}).catch(()=>{});}
  finally{rows.push(row);writeFileSync(`${root}/receipts.json`,JSON.stringify(rows,null,2));await context.close();
-  console.log(JSON.stringify({slug,status:row.status,poses:row.poses.length,idle:row.poses.map(p=>p.idle.settled),failure:row.failure,errors:row.errors.slice(0,3)}));}
+  console.log(JSON.stringify({slug,status:row.status,poses:row.poses.length,idle:row.poses.map(p=>p.idle.settled),failure:row.failure,errors:row.errors.slice(0,3),warnings:Object.values(row.warnings).reduce((n,c)=>n+c,0)}));}
  if(row.status==='failed')process.exitCode=1;
 }}finally{try{await browser.close();}finally{await owner.close();}}
