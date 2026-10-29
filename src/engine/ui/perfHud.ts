@@ -223,7 +223,7 @@ export class PerfHud {
     L.push(`update    ${num(s.update[0])} ${num(s.update[1])}   game logic`);
     L.push(`render    ${num(s.render[0])} ${num(s.render[1])}   CPU draw submit`);
     L.push(`gpu~      ${num(s.gpu[0])} ${num(s.gpu[1])}   wait: GPU/compositor`);
-    L.push(`idle      ${num(s.idle)}          under the 30 cap`);
+    L.push(`idle      ${num(s.idle)}          ${frameCapFps() > 0 ? `under the ${frameCapFps()} cap` : 'uncapped'}`);
     L.push('UPDATE mean ms a frame');
     L.push(`physics ${f1(b.physics)} · animals ${f1(b.animals)} · elites ${f1(b.elites)}`);
     L.push(`player ${f1(b.player)} · hud ${f1(b.hud)} · audio ${f1(b.audio)}`);
