@@ -47,8 +47,11 @@ it('publishes real pier parents in place of vacant L1 metadata without duplicate
   const parents = shard.tiles.filter(tile => tile.lod === 1), models = shard.props.tiles.filter(tile => tile.lod === 1);
   expect(parents).toHaveLength(16);
   expect(new Set(parents.map(tile => `${tile.x}/${tile.z}`)).size).toBe(16);
-  expect(models).toHaveLength(12);
-  expect(parents.filter(tile => tile.files.length > 0)).toHaveLength(12);
+  // the twelve fixed-world and pier parents, plus the four corners only the island's palm and boulder silhouettes
+  // occupy (D200: vacant before them)
+  const occupied = ['0/1', '0/2', '1/0', '1/1', '1/2', '1/3', '2/0', '2/1', '2/2', '2/3', '3/1', '3/2', '0/0', '0/3', '3/0', '3/3'].sort();
+  expect(models.map(model => `${model.x}/${model.z}`).sort()).toEqual(occupied);
+  expect(parents.filter(tile => tile.files.length > 0).map(tile => `${tile.x}/${tile.z}`).sort()).toEqual(occupied);
   for (const model of models) {
     const parent = parents.find(tile => tile.x === model.x && tile.z === model.z);
     expect(parent?.files).toContain(model.file);
