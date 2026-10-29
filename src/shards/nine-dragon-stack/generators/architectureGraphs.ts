@@ -186,7 +186,7 @@ function facade(small: boolean): GraphIr {
  * faces, so a tower past the ring reads as walls and lit rooms, not a flat slab.
  */
 /** QA6: how much thicker than the silk fog's base air the far coarse towers' own haze is (calibrated on cams 17 / 18). */
-const COARSE_AIR = 6.5;
+const COARSE_AIR = 3;
 function coarseFacade(): GraphIr {
   const g = new Surface(), sw = g.sw.bind(g), mul = g.mul.bind(g), sub = g.sub.bind(g), max = g.max.bind(g), mix = g.mix.bind(g);
   const base = mul(g.op('vertexColour'), mul(g.u('uWashTint'), g.u('uFacadeWash')));
@@ -206,7 +206,7 @@ function coarseFacade(): GraphIr {
   // its 0.25 power through it.
   // COARSE_AIR thickens it toward the deep air's haze: LEGACY's band reads pale, a little brighter than the fog (cams 17 / 18)
   const air = LOOKS['nine-silk-fog'].params;
-  const trans = g.op('exp', [g.neg(mul(air.fogBase.value * COARSE_AIR, max(sub(g.distance, air.fogStart.value), 0)))]);
+  const trans = g.op('exp', [g.neg(mul(air.fogBase.value * COARSE_AIR, max(sub(g.depth, air.fogStart.value), 0)))]);
   const shaded = g.add(g.shade(colour), g.div(emit, g.pow(max(trans, 1e-4), 0.75)));
   const graph = g.finish({ surface: { colour: mix(air.fogBaseCol.value, shaded, trans), targetAlpha: g.div(g.op('cameraNear'), max(g.depth, g.op('cameraNear'))) } }, { fog: false, depthWrite: true });
   return { ...graph, doubleSided: false };
