@@ -1,4 +1,4 @@
-import type { BufferGeometry } from 'three';
+import { Matrix4, type BufferGeometry } from 'three';
 import type { App } from '@wildshard/engine/app/app';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
@@ -7,8 +7,10 @@ import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { ShardProduct } from './shardProduct';
 import { PreparationReads } from './preparationReads';
+import { homeBuildGeometryKeys, readHomeBuildGeometry, saveHomeBuildGeometry } from './homeBuildCache';
 
 type Assets = Pick<App['assets'], 'register' | 'acquireResource' | 'evictCached'>;
+type GeometryProduct = Pick<ShardProduct, 'url' | 'file'> & Partial<Pick<ShardProduct, 'shardfile'>>;
 interface GeometryReuse { readonly revisit?: boolean }
 interface Source {
   readonly file: string;
@@ -58,7 +60,7 @@ export function cachedWorldSceneGeometry(product: Pick<ShardProduct, 'url'>, row
 
 /** Resident construction may keep fixed templates idle under the existing charged,
  * pressure-evictable revisit budget. Default readers retain resident-only reuse. */
-export async function readWorldSceneGeometry(owner: Scope, product: Pick<ShardProduct, 'url' | 'file'>, row: Source, assets: Assets, reuse: GeometryReuse = {}): Promise<WorldSceneGeometry> {
+export async function readWorldSceneGeometry(owner: Scope, product: GeometryProduct, row: Source, assets: Assets, reuse: GeometryReuse = {}): Promise<WorldSceneGeometry> {
   requireLive(owner);
   // Capture policy before transport: mutable caller options cannot re-key a
   // pending decode or change whether its backing receives independent charges.
@@ -67,22 +69,31 @@ export async function readWorldSceneGeometry(owner: Scope, product: Pick<ShardPr
   if (memo === undefined) { memo = new Map(); templates.set(assets, memo); }
   const ready = memo.get(key);
   if (ready !== undefined) return lease(owner, assets, ready);
-  const intake = createOwnedGeometry(url, row.attributes);
-  // All segments are independently verified product files. Start them with the
-  // primary instead of waiting one extra transport turn for that first file.
-  // Drain started reads before a refusal can release the caller's input lease.
-  const loaded = await Promise.allSettled([row.file, ...row.segments ?? []].map(async file => {
-    const bytes = await product.file(file); return bytes;
-  }));
-  const words: Uint8Array[] = [];
-  for (const result of loaded) {
-    if (result.status === 'rejected') throw result.reason;
-    words.push(result.value);
+  const saved = product.shardfile === undefined ? null : await readHomeBuildGeometry(product.shardfile, `owned:${key}`);
+  const restored = saved?.size === 1 ? saved.get('model')?.geometry : undefined;
+  if (restored === undefined && saved !== null) for (const view of saved.values()) view.geometry.dispose();
+  if (owner.disposed || owner.disposing) restored?.dispose();
+  requireLive(owner);
+  let geometry: BufferGeometry;
+  if (restored !== undefined) geometry = restored;
+  else {
+    const intake = createOwnedGeometry(url, row.attributes);
+    // All segments are independently verified product files. Start them with the
+    // primary instead of waiting one extra transport turn for that first file.
+    // Drain started reads before a refusal can release the caller's input lease.
+    const loaded = await Promise.allSettled([row.file, ...row.segments ?? []].map(async file => {
+      const bytes = await product.file(file); return bytes;
+    }));
+    const words: Uint8Array[] = [];
+    for (const result of loaded) {
+      if (result.status === 'rejected') throw result.reason;
+      words.push(result.value);
+    }
+    requireLive(owner); // A redirected owner must not start a now-useless decode.
+    const first = words[0]; if (first === undefined) throw new Error('Missing world scene geometry bytes');
+    await intake.load(first, row.segments === undefined ? undefined : words.slice(1));
+    geometry = intake.take();
   }
-  requireLive(owner); // A redirected owner must not start a now-useless decode.
-  const first = words[0]; if (first === undefined) throw new Error('Missing world scene geometry bytes');
-  await intake.load(first, row.segments === undefined ? undefined : words.slice(1));
-  const geometry = intake.take();
   let asset: string | undefined;
   let temporary = true;
   try {
@@ -96,6 +107,7 @@ export async function readWorldSceneGeometry(owner: Scope, product: Pick<ShardPr
     const held = lease(owner, assets, geometry);
     memo.set(key, geometry);
     forgetWhenDisposed(geometry, memo, key, geometry); // its listener holds no product or owner of this reader
+    if (restored === undefined && product.shardfile !== undefined) void saveHomeBuildGeometry(product.shardfile, `owned:${key}`, new Map([['model', { geometry, matrix: new Matrix4() }]]));
     return held;
   } catch (error) {
     if (asset !== undefined) assets.evictCached(asset); else if (temporary) geometry.dispose();
@@ -107,16 +119,18 @@ export async function readWorldSceneGeometry(owner: Scope, product: Pick<ShardPr
  * before yielding a completed lease so transport/decode can use a caller's
  * publication pause. Closing drains all started work and releases untaken
  * leases; yielded leases retain their original independent owner. */
-export async function* readWorldSceneGeometries(owner: Scope, product: Pick<ShardProduct, 'url' | 'file'>,
+export async function* readWorldSceneGeometries(owner: Scope, product: GeometryProduct,
   rows: readonly Source[], assets: Assets, reuse: GeometryReuse = {}): AsyncGenerator<WorldSceneGeometry, void> {
   const pending = new Map<number, Promise<WorldSceneGeometry>>();
   // Warm templates need no transport. One file window spans cold model rows,
   // including their segments, without increasing concurrent decoded leases.
-  const files = [...new Set(rows.flatMap(row => cachedWorldSceneGeometry(product, row, assets, reuse) ? [] : [row.file].concat(row.segments ?? [])))];
+  const keys = homeBuildGeometryKeys(product.shardfile), homeKeys = keys === undefined ? undefined : await keys;
+  const files = [...new Set(rows.flatMap(row => cachedWorldSceneGeometry(product, row, assets, reuse)
+    || homeKeys?.has(`owned:${templateKey(product, row, reuse.revisit === true)}`) === true ? [] : [row.file].concat(row.segments ?? [])))];
   const indices = new Map(files.map((file, index) => [file, index]));
   const reads = new PreparationReads(files, file => product.file(file), () => !owner.disposed && !owner.disposing);
   const taken = new Map<string, Promise<Uint8Array>>(), refills = new Set<PreparationReads<string>>();
-  const source = { url: product.url, file: (file: string): Promise<Uint8Array> => {
+  const source = { ...(product.shardfile === undefined ? {} : { shardfile: product.shardfile }), url: product.url, file: (file: string): Promise<Uint8Array> => {
     const prior = taken.get(file); if (prior !== undefined) return prior;
     const index = indices.get(file);
     // An idle template can be pressure-evicted before its later decode cursor

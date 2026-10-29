@@ -10,6 +10,8 @@ import { workSlice } from '@wildshard/engine/core/workSlice';
 import { presenting } from '@wildshard/engine/core/framePacing';
 import { constructionCheckpoint } from '../shardfile/constructionCheckpoint';
 import { PreparationReads } from '../shardfile/preparationReads';
+import { TIER } from '@wildshard/engine/core/tier';
+import { readHomeBuildGeometry, saveHomeBuildGeometry } from '../shardfile/homeBuildCache';
 import { defineSceneModels, type BakedModelMetadata } from '@wildshard/engine/models/model';
 import { identitySpaceGeometry } from '@wildshard/engine/models/ownedGeometry';
 import * as wholeV from 'valibot';
@@ -2000,6 +2002,19 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
   const props = typeof source === 'string' ? product.source.props : source.props;
   const hashes = refs ?? [...props?.tiles.filter(row => row.lod === 0).flatMap(row => [row.file].concat(row.additionalFiles ?? [])) ?? [],
     ...typeof source === 'string' ? props?.wholeLibrary ?? [] : []];
+  const homeKey = `whole:${JSON.stringify([hashes, TIER])}`;
+  const restored = await readHomeBuildGeometry(product.source, homeKey);
+  if (restored !== null) {
+    try {
+      if (scope.disposed || scope.disposing) throw new Error('Whole geometry unloaded while restoring');
+      await product.releaseTransport(hashes);
+      if (scope.disposed || scope.disposing) throw new Error('Whole geometry unloaded while restoring');
+      const result = new Map<string, WholeGeometryView>();
+      for (const [id, view] of restored) result.set(id, { ...view, release: scope.capture('geometries', () => view.geometry.dispose()) });
+      product.assets.releaseTiles(); return result;
+    } catch (error) { for (const view of restored.values()) view.geometry.dispose(); throw error; }
+    finally { timing?.finish(); }
+  }
   const assembler = new WholeGeometryAssembler();
   const slice = workSlice(undefined, scope);
   const assertLive = (): void => { if (scope.disposed) throw new Error('Whole geometry unloaded while reading'); };
@@ -2065,6 +2080,7 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
       finished = timing === undefined ? steps.next() : timing.sync('finalize', () => steps.next());
     }
     const result = finished.value;
+    void saveHomeBuildGeometry(product.source, homeKey, result);
     for (const [id, view] of result) {
       const release = scope.capture('geometries', () => view.geometry.dispose());
       result.set(id, { ...view, release });
