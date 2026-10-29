@@ -108,3 +108,70 @@ For sp-x1's triage (lanes have no Sentry credential): fix or verdict each, list 
 | 6E | Scene placement needs a published part and one box per copy |
 | 6D | World entry active piece needs its entered scope |
 | 6C | Frozen specimens need owned geometry |
+
+## Sentry issues as rows (QS, triaged 16:15 by wildshard-v's subagent)
+
+Jake, 15:35: *"go through all the Sentry issues and turn them into items in the QA plan. Prioritize the ones in the last 24 hours."*
+
+**Summary.** **152** unresolved WILDSHARD-GAME issues were seen in the last 14 days (the QB10 list above holds the 60 newest), and 7 of them in the last 24 h. How we tell who sent each one: the release name. Production builds are named with a 9-character SHA (live is `d1ad891a7-mvtxhohh`; the QA build was `8621318d9`). The build mirror's `--rev` previews use 7 characters (`VERCEL_GIT_COMMIT_SHA` is cut to 7), and working-tree builds use 10. Only the live domain should report (G906), so:
+- **Real players (production builds), 8 issues:** 7Z, 80, 71, 7T (Jake's phone and desktop, all fixed now), 7S (open: QS2), and 61, 5Q, 53 (stale: not seen in 8 or more days).
+- **Noise, 144 issues:** previews, local builds and harness runs. `31d48ce97a` (14:25) stops all of these from reporting, and 81, the last one, came in before that gate (`d6a0b42e8a`). They are resolved as one batch (QS3). The checks in source that throw them stay MF12's / MF6's work.
+- **Already fixed by a named commit, 13 issues:** listed under "Verify + resolve" below. 4 of them are real-player issues.
+
+**Top 3 causes:**
+1. **The runtime throws to keep its own books** (frozen scenes, placements, specimens, claims, loans, schemas): about 80 issues, all from previews. These are MF12 / MF9.
+2. **Non-finite numbers reaching the frame path:** crossbow `draw` (80, fixed), `camera.x`, a dozen `material graph: param … must be finite`, and audio params. These are MF6.
+3. **Exit and teardown double releases:** `usedTimes` (7Z / 7C, fixed) and duplicate system ids (7T / 7G / 7H / 40, fixed).
+
+**From the last 24 h, what still needs a build:** S (QS1). 7Y and 7W are already covered by MF9. The other four are fixed or noise. Our own inbox for the same 24 h holds nothing new: every report is already QB7 / QB11 / QB12 / QB13 / QB14.
+
+| Row | What (Sentry ids, events, users, last seen, release, shard) | Fix / done when | Lane | Size |
+|---|---|---|---|---|
+| QS1 | **A Nalati render throws THREE "buffer attribute resized"** (24 h): [S](https://wildshard.sentry.io/issues/WILDSHARD-GAME-S) has 38 events and 3 users since 10-04; the last 3 came on 10-28 18:45 on `3337f28` (a preview of main), Nalati Grasslands, `system: render`. The stack runs `Zg.render` → the recursive scene walk → `WebGLAttributes.update`: some geometry swaps an attribute's `.array` for one of a different length (or grows it in place) after its first upload. Three refuses that, and that object's draw fails. No commit names it. sp-x1's verdict was "Opus sp-o3, retain". | Find the attribute: in Developer, name the geometry whose attribute length changes between uploads. Make the code that resizes it build a new `BufferAttribute` (or a new geometry) and dispose of the old one, rather than swapping `.array`. A test pins that resize. Done when 10 min of Nalati on WebKit (iPhone 16 Pro), covering the herd, the grass, trampling and an app switch, gives no report; and the Sentry issues are resolved with the fixing SHA | Opus | S |
+| QS2 | **A dropped connection during a shard load is fatal** (1 d): [7S](https://wildshard.sentry.io/issues/WILDSHARD-GAME-7S) `network error`, 1 event, **production `a3f28a795`**, Jake's phone, Driftwood, 10-28 10:02, `system: shard-load`, `boot_stage: finish`, level fatal, no stack. The browser's own fetch failure reached the player as a fatal load error. The same family shows up on previews: [74](https://wildshard.sentry.io/issues/WILDSHARD-GAME-74) `Failed to fetch` (8 events, 4 users, 10-27); [72](https://wildshard.sentry.io/issues/WILDSHARD-GAME-72) `source image could not be decoded`; and an HTML page parsed as JSON (`Unexpected token '<', "<!doctype"`) in [7B](https://wildshard.sentry.io/issues/WILDSHARD-GAME-7B), [4W](https://wildshard.sentry.io/issues/WILDSHARD-GAME-4W), [3Q](https://wildshard.sentry.io/issues/WILDSHARD-GAME-3Q), [47](https://wildshard.sentry.io/issues/WILDSHARD-GAME-47), [44](https://wildshard.sentry.io/issues/WILDSHARD-GAME-44), [46](https://wildshard.sentry.io/issues/WILDSHARD-GAME-46): a missing file answered with the index page. | One content reader for shard loads. A failed fetch retries once after ~1 s. A `text/html` answer for a JSON / binary / image path counts as a missing file and names the path. If it still fails, the loading card shows its RETRY in place, with no fatal modal. A test covers a dropped fetch and an HTML answer. Done when a WebKit Driftwood load with the network cut for 2 s mid-download finishes after reconnecting, or offers RETRY, with no fatal report; and the Sentry issues are resolved with the fixing SHA | Codex | S |
+| QS3 | **Harness, preview and local runs filled production Sentry** (G906): the 144 noise issues in the table below marked "noise". Release names with 7 characters are mirror previews and 10 characters are working-tree builds; on top of those come the harness ones on any build: [81](https://wildshard.sentry.io/issues/WILDSHARD-GAME-81) "QB8 capture", [7V](https://wildshard.sentry.io/issues/WILDSHARD-GAME-7V) / [10](https://wildshard.sentry.io/issues/WILDSHARD-GAME-10) "Probe control requires the harness pins", and [69](https://wildshard.sentry.io/issues/WILDSHARD-GAME-69) `system: harness.walk` on production `616ea317b`. `31d48ce97a` limits sending to the production origins outside webdriver / harness sessions. | wildshard-v resolves every "noise" id below in one batch with `31d48ce97a`. Done when a day of lane previews and harness runs adds no new issue (the 14-day list then holds only live-domain releases); a recurrence on a 9-character release reopens as a real row. The checks that still throw stay with MF12 (to the bake, or skip and report) and MF6 (non-finite inputs), and are not rebuilt here. Done when the batch is resolved; and the Sentry issues are resolved with the fixing SHA (`31d48ce97a`) | wildshard-v (Sentry); throws in MF12 Codex | S |
+
+**Verify + resolve (fixed by a named commit, all in `origin/main`; the ones dated 10-29 ship with the next deploy after live `d1ad891a7`):**
+- [7Z](https://wildshard.sentry.io/issues/WILDSHARD-GAME-7Z) and [7C](https://wildshard.sentry.io/issues/WILDSHARD-GAME-7C), `usedTimes`: fixed by `b18fbaeca9` + `995a424756` (QB7).
+- [80](https://wildshard.sentry.io/issues/WILDSHARD-GAME-80), `Invalid numeric input draw`: fixed by `e4f5842cde` (Fixes WILDSHARD-GAME-80), with `0392aa9bda` and `7c3fc574ed` (QB11 / MF6).
+- [71](https://wildshard.sentry.io/issues/WILDSHARD-GAME-71), `reading 'add'`: fixed by `3b23085bb6` (QB14).
+- [7T](https://wildshard.sentry.io/issues/WILDSHARD-GAME-7T), duplicate `world.impacts` from the open perf HUD on production `9364930c3`, Driftwood (a second user, in Solidaridad): fixed by `4718a3fabd`. [40](https://wildshard.sentry.io/issues/WILDSHARD-GAME-40), the same id on 10-16, also goes with `4718a3fabd`.
+- [7X](https://wildshard.sentry.io/issues/WILDSHARD-GAME-7X), spawn-program-links over 30 s: fixed by `a896209120` + `3337f2894e`. Its last event, on `e42a318`, came before both.
+- [7G](https://wildshard.sentry.io/issues/WILDSHARD-GAME-7G) `game.grid.frame` and [7H](https://wildshard.sentry.io/issues/WILDSHARD-GAME-7H) `game.shardfile.tiles`, duplicate ids: fixed by `dacd6816cd`. Their releases `332d68c` / `fc4f006` lack it.
+- [7P](https://wildshard.sentry.io/issues/WILDSHARD-GAME-7P), `Missing specimen cost bytes`: fixed by `aa9176c4fc`. Its releases `0b0ff9f` / `d334d2a` lack it.
+- [4S](https://wildshard.sentry.io/issues/WILDSHARD-GAME-4S), boar-albedo lost its allocation: fixed by `7ebe3b9fac`. Its last release, `db62fed`, lacks it.
+- [7V](https://wildshard.sentry.io/issues/WILDSHARD-GAME-7V), [10](https://wildshard.sentry.io/issues/WILDSHARD-GAME-10), [81](https://wildshard.sentry.io/issues/WILDSHARD-GAME-81) and [69](https://wildshard.sentry.io/issues/WILDSHARD-GAME-69), harness: fixed by `31d48ce97a` (QS3).
+- Stale production: [61](https://wildshard.sentry.io/issues/WILDSHARD-GAME-61) and [5Q](https://wildshard.sentry.io/issues/WILDSHARD-GAME-5Q) are a section kind the app did not know, on `2c91b8460` and `247f7b3c2` (10-20 / 10-21). [53](https://wildshard.sentry.io/issues/WILDSHARD-GAME-53) is "four midpoint entryways are required", on `a399c36f3` (10-19). Resolve all three as gone: there has been no event in 8 or more days across dozens of deploys, and MF2 keeps old pages off new data. A recurrence reopens them.
+
+**Every unresolved issue (14 d, 152):** "live" means it was seen on a production release; "gone" means the throwing text is no longer in `src/`.
+
+| Sentry id | → row (QS / QB / MF / FC) | still live? |
+|---|---|---|
+| S | QS1 | yes: preview of main, 10-28; no fix |
+| 7S | QS2 | yes: production `a3f28a795`, 10-28 |
+| 74, 72, 7B, 4W, 3Q, 47, 44, 46 | QS2 (same family; noise for QS3) | previews only; 72 gone |
+| 7Y | MF9 (client rehash of first-party packs deleted; RL7) | preview `9a6083a`, 10-28; the check in `packReads.ts` is still in source |
+| 7W | MF9 (the 3 s fallback is deleted) | preview `65a83b5`, which contains `5997758ee2`; still in source |
+| 7Z, 7C | QB7 / MF11 | fixed `b18fbaeca9`: verify + resolve |
+| 80 | QB11 / MF6 / MF17 | fixed `e4f5842cde`: verify + resolve |
+| 71 | QB14 | fixed `3b23085bb6`: verify + resolve |
+| 7T, 40 | MF12 (diagnostic installs) | fixed `4718a3fabd`: verify + resolve |
+| 7X | QA3 / MF5 | fixed `a896209120` + `3337f2894e`: verify + resolve |
+| 7G, 7H | MF12 | fixed `dacd6816cd`: verify + resolve |
+| 7P | MF12 / MF9 | fixed `aa9176c4fc`: verify + resolve |
+| 4S | MF11 | fixed `7ebe3b9fac`: verify + resolve |
+| 81, 7V, 10, 69 | QS3 (harness, G906) | fixed `31d48ce97a`: verify + resolve |
+| 61, 5Q, 53 | MF2 (stale app on newer data) | production but stale (10-19 to 10-21): resolve |
+| 5Z | MF12 (duplicate system id, `client.baked.tiles`) | noise, 10-21; still in source: QS3 |
+| 7K, 59, 57, 3P, 3N, 3K, 3M, 3X, 3G, 3F, 3R, 3V, 3T, 7N | MF6 (non-finite inputs skip the frame: `7c3fc574ed`; root causes stay in MF12) | noise; checks still in source: QS3 |
+| 58 | MF6 | noise; gone |
+| 4F, 4D, 5A, 5X, 68, 5B | MF12 (material graph contract to the bake) | noise; still in source: QS3 |
+| 7J, 7E, 78, 70, 6N, 6M, 6E, 6C, 6B, 65, 5H, 5G, 4V, 4R, 4X, 4K, 7A, 75, 73, 7F, 77, 6D, 49 | MF12 / MF9 (scene, placement, specimen, product and memory-envelope checks to the bake) | noise; still in source: QS3 |
+| 6P, 6J, 5F | MF12 | noise; gone |
+| 6K, 79, 7M, 76, 6Z, 6R, 6H, 6G, 67, 66, 63, 4Y, 4H, 48, 41, 5P, 5N, 3Y, 3S, 1M, 52, 5M, 5K, 1J, 6Q, 3W, 7Q, 2R, 4A, 56, 4B, 5T, 5S, 55, 54, 6A, 6V, 5R | MF12 (runtime bookkeeping: claims, loans, bindings, cycles) | noise; still in source: QS3 |
+| 45, 5E, 4C, 64, 4G, 5Y | MF12 | noise; gone |
+| 60, 5V, 5J, 50, 51, 4Z, 4P, 4N, 4M, 4E, 42, 62, 6W | MF12 (schema checks at the bake) | noise; schema checks still in source: QS3 |
+| 4T, 4Q, 5C, 5D, 6Y, 6F | MF11 (no leases, upload once) | noise; still in source: QS3 |
+| 6T, 6S, 2T, 2S, 43, 4J, 6X, 5W | MF2 / QB13 (stale chunk or boot bank after a deploy) | noise; still in source: QS3 |
+| 7R, 3Z | FC1 (`frameGate` folds in); 7R's `backgroundGate` was never in git (an unlanded build) | noise, 10-28 / 10-16: QS3 |
+| 7D | MF12 (`ReferenceError: arg` in generated code) | noise, 10-27: QS3 |
