@@ -1,8 +1,9 @@
-import { test } from 'node:test';
+import { test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Keep the original Node strict assertion semantics in this Node-only tool regression.
 import assert from 'node:assert/strict';
-import { summarizePineAllocations } from './pine-events.mjs';
+import { summarizePineAllocations } from '../../../scripts/soak/pine-events.mjs';
 
-void test('Pine allocation summary distinguishes a live peak from repeated storage calls and excludes later recovery allocations', () => {
+test('Pine allocation summary distinguishes a live peak from repeated storage calls and excludes later recovery allocations', () => {
   const allocation = (at, id, bytes) => ({ document: 'first', op: 'allocation', kind: 'texture', at, id, bytes });
   const events = [allocation(1, 'a', 64), { document: 'first', op: 'label', at: 1, id: 'a', owner: 'pine', asset: 'rock' },
     allocation(2, 'a', 128), allocation(3, 'b', 256), allocation(4, 'a', null), { document: 'first', op: 'end', at: 5 },
@@ -19,7 +20,7 @@ void test('Pine allocation summary distinguishes a live peak from repeated stora
   assert.equal(result.nativeNearEvent[0].gpuBytes, 100); assert.equal(result.nativeNearEvent[0].identities.gpu[7].startAbstime, 123);
 });
 
-void test('successful settled entries retain their earlier sliding burst and exclude the cold boot', () => {
+test('successful settled entries retain their earlier sliding burst and exclude the cold boot', () => {
   const row = (at, id, bytes) => ({ at, id, bytes, document: 'game', op: 'allocation', kind: 'buffer', operation: 'bufferData', stage: 'travel' });
   const events = [row(1, 'boot', 10000), row(2, 'boot', 5000), row(10.8, 'first', 100), row(11.1, 'second', 200), row(11.9, 'third', 50), row(12, 'second', null)];
   const uploads = [row(1, 'boot', 10000), row(10.8, 'first', 100), { ...row(11.1, 'second', 200), callSite: 'composer render' }, row(11.2, 'second', 200)];

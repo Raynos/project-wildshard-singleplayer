@@ -1,8 +1,9 @@
-import { test } from 'node:test';
+import { test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Keep the original Node strict assertion semantics in this Node-only tool regression.
 import assert from 'node:assert/strict';
-import { classifyPineEntry } from './pine-rate.mjs';
+import { classifyPineEntry } from '../../../scripts/soak/pine-rate.mjs';
 
-void test('Pine rate counts actual connected-game entry losses and separates boot, teardown and unknown navigation', () => {
+test('Pine rate counts actual connected-game entry losses and separates boot, teardown and unknown navigation', () => {
   const loss = { kind: 'contextlost', gameCanvas: true, target: { connected: true }, at: 10 };
   const good = { driveStarted: 'now', diagnosticEntry: { instance: 'pine-hollow', settledSeconds: 20, at: 20 }, routes: [{ failures: [] }] };
   assert.equal(classifyPineEntry(good).entryCompleted, true);

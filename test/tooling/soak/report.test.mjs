@@ -1,12 +1,18 @@
-import { test } from 'node:test';
+import { test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Keep the original Node strict assertion semantics in this Node-only tool regression.
 import assert from 'node:assert/strict';
+// oxlint-disable-next-line import/no-nodejs-modules -- This Node-only tool regression owns and removes its filesystem fixtures.
 import process from 'node:process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the actual maintained command in a private fixture process.
 import { execFileSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- This Node-only tool regression owns and removes its filesystem fixtures.
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- This Node-only tool regression owns and removes its filesystem fixtures.
 import { tmpdir } from 'node:os';
+// oxlint-disable-next-line import/no-nodejs-modules -- This Node-only tool regression owns and removes its filesystem fixtures.
 import { join } from 'node:path';
 
-for (const format of ['modern', 'historical']) void test(`reports ${format} continuous receipts without fabricating missing readings or legs`, () => {
+for (const format of ['modern', 'historical']) test(`reports ${format} continuous receipts without fabricating missing readings or legs`, () => {
   const scratch = mkdtempSync(join(tmpdir(), 'sf57-report-'));
   const names = format === 'modern' ? ['shipped-cells', 'shipped-road'] : ['shipped'];
   try {
@@ -31,7 +37,7 @@ for (const format of ['modern', 'historical']) void test(`reports ${format} cont
   } finally { rmSync(scratch, { recursive: true, force: true }); }
 });
 
-void test('regrading uses complete loading mutations and preserves their raw artifact, but refuses a missing mutation', () => {
+test('regrading uses complete loading mutations and preserves their raw artifact, but refuses a missing mutation', () => {
   const scratch = mkdtempSync(join(tmpdir(), 'sf57-loading-journal-')), origin = Date.parse('2026-10-04T00:00:00Z') / 1000;
   try {
     writeFileSync(join(scratch, 'dev-cells.json'), JSON.stringify({ sha: 'fixture', leg: 'cells', seconds: 0, circuits: 0,
@@ -54,7 +60,7 @@ void test('regrading uses complete loading mutations and preserves their raw art
   } finally { rmSync(scratch, { recursive: true, force: true }); }
 });
 
-void test('regrading preserves the fixed game PID and leaves prewarmed WebContent and GPU outside the ruler', () => {
+test('regrading preserves the fixed game PID and leaves prewarmed WebContent and GPU outside the ruler', () => {
   const scratch = mkdtempSync(join(tmpdir(), 'sf57-fixed-pid-'));
   try {
     writeFileSync(join(scratch, 'dev-cells.json'), JSON.stringify({ sha: 'fixture', gamePid: 7, leg: 'cells', seconds: 1, circuits: 0,

@@ -1,15 +1,19 @@
-import { test } from 'node:test';
+import { test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Keep the original Node strict assertion semantics in this Node-only tool regression.
 import assert from 'node:assert/strict';
+// oxlint-disable-next-line import/no-nodejs-modules -- Execute the unchanged browser instrumentation in an isolated native VM context.
 import { runInNewContext } from 'node:vm';
+// oxlint-disable-next-line import/no-nodejs-modules -- This Node-only tool regression owns and removes its filesystem fixtures.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the actual maintained command in a private fixture process.
 import { spawnSync } from 'node:child_process';
-import { ownedSoakPlans, soakRoadTour, soakCellPeaks, soakPortalPlan, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll, soakGridEntry, soakWitnessFailures, soakReentryDiagnostic, reentrySoakPlans } from './owned.mjs';
-import { soakCatalogue, SOAK_CAPS } from './route.ts';
-import { circuitPlans } from './boundary.mjs';
+import { ownedSoakPlans, soakRoadTour, soakCellPeaks, soakPortalPlan, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll, soakGridEntry, soakWitnessFailures, soakReentryDiagnostic, reentrySoakPlans } from '../../../scripts/soak/owned.mjs';
+import { soakCatalogue, SOAK_CAPS } from '../../../scripts/soak/route.ts';
+import { circuitPlans } from '../../../scripts/soak/boundary.mjs';
 
 const catalogue = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')).grid;
 
-void test('T9 soak plans follow the served pitch and retain the historical fallback', () => {
+test('T9 soak plans follow the served pitch and retain the historical fallback', () => {
   const cells = soakCatalogue(catalogue, 'shipped'), state = { cells, home: 'driftwood-isle' };
   const historical = ownedSoakPlans(state, 'road');
   assert.deepEqual(ownedSoakPlans({ ...state, pitch: 555 }, 'road'), historical);
@@ -20,7 +24,7 @@ void test('T9 soak plans follow the served pitch and retain the historical fallb
   assert.throws(() => ownedSoakPlans({ ...state, pitch: Number.NaN }), /Invalid grid pitch/u);
 });
 
-void test('public soak reuses the floor intent without enabling Developer or the public menu gate', () => {
+test('public soak reuses the floor intent without enabling Developer or the public menu gate', () => {
   const entry = soakGridEntry('shipped');
   const values = new Map([['wildshard.save.v2.device', JSON.stringify({ keys: { devMode: { v: 1, data: false } } })]]);
   const storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
@@ -36,7 +40,7 @@ void test('public soak reuses the floor intent without enabling Developer or the
   assert.throws(() => soakGridEntry('invalid'), /Unknown soak layout/u);
 });
 
-void test('SF57 context lifecycle metadata never invents bytes and invalid lifecycle records refuse replay', () => {
+test('SF57 context lifecycle metadata never invents bytes and invalid lifecycle records refuse replay', () => {
   const events = [{ at: 0, op: 'begin' }, { at: 1, op: 'context', context: 'context:1', state: 'observed' },
     { at: 2, op: 'allocation', id: 'texture:1', kind: 'texture', bytes: 64, labelled: true },
     { at: 3, op: 'context', context: 'context:1', state: 'lost' },
@@ -51,7 +55,7 @@ void test('SF57 context lifecycle metadata never invents bytes and invalid lifec
   }
 });
 
-void test('SF57 first-crossing diagnostics cannot run as a full or qualifying soak', () => {
+test('SF57 first-crossing diagnostics cannot run as a full or qualifying soak', () => {
   for (const flags of [[], ['--qualifying'], ['--dry-run', '--qualifying']]) {
     const child = spawnSync(process.execPath, ['scripts/soak/soak.mjs', '--worker', '--diagnostic-first-crossing', ...flags],
       { encoding: 'utf8', env: { ...process.env, SIM_UDID: 'not-a-real-device' } });
@@ -59,7 +63,7 @@ void test('SF57 first-crossing diagnostics cannot run as a full or qualifying so
   }
 });
 
-void test('SF57 reconciles same-millisecond census cuts by exact sequence, never by a guessed ordering', () => {
+test('SF57 reconciles same-millisecond census cuts by exact sequence, never by a guessed ordering', () => {
   const events = [{ at: 0, op: 'begin' }, { at: 1, op: 'cycle', cycle: 0 },
     { at: 2, op: 'allocation', id: 'texture:1', kind: 'texture', bytes: 4096, labelled: true },
     { at: 2, op: 'allocation', id: 'texture:2', kind: 'texture', bytes: 5460, labelled: true },
@@ -78,7 +82,7 @@ void test('SF57 reconciles same-millisecond census cuts by exact sequence, never
   assert.equal(loadingGlSamples(events, [2.5], [{ ...snapshot, totalBytes: 1 }]).size, 0, 'An exact cut still requires byte equality');
 });
 
-void test('SF57 loading mutation replay covers blocked timers, resizes, labels and document retirement without interpolation', () => {
+test('SF57 loading mutation replay covers blocked timers, resizes, labels and document retirement without interpolation', () => {
   const events = [
     { at: 0, op: 'begin' }, { at: 1, op: 'allocation', id: 'buffer:1', kind: 'buffer', bytes: 64, labelled: false },
     { at: 1, op: 'label', id: 'buffer:1', owner: 'engine', asset: 'fixture' },
@@ -101,7 +105,7 @@ void test('SF57 loading mutation replay covers blocked timers, resizes, labels a
   assert.equal(joinSoakSamples([{ ...native[0], phase: 'drive' }], [], null, events)[0].gl, undefined, 'Playing without an explicit cycle marker stays uncovered');
 });
 
-void test('SF57 fills a blocked drive timer only from complete mutations and explicit cycles, never allocator or settled guesses', () => {
+test('SF57 fills a blocked drive timer only from complete mutations and explicit cycles, never allocator or settled guesses', () => {
   const events = [{ at: 0, op: 'begin' },
     { at: 1, op: 'allocation', id: 'buffer:1', kind: 'buffer', bytes: 64, labelled: true },
     { at: 2, op: 'cycle', cycle: 0 }, { at: 6, op: 'cycle', cycle: 1 },
@@ -136,7 +140,7 @@ void test('SF57 fills a blocked drive timer only from complete mutations and exp
   assert.deepEqual([race.length > 0, joinSoakSamples(native, [], null, race)[2].gl.unlabelledBytes], [true, 0]);
 });
 
-void test('SF57 prepared-cell rehearsal records open coverage and refuses qualifying subset runs', () => {
+test('SF57 prepared-cell rehearsal records open coverage and refuses qualifying subset runs', () => {
   const cells = soakCatalogue(catalogue, 'dev');
   const route = ownedSoakPlans({ cells, home: 'driftwood-isle' }, 'cells', soakRouteScope('prepared'));
   assert.deepEqual(route.plans.map(plan => plan.to), ['pine-hollow', 'nalati-grasslands', 'template-2', 'driftwood-isle']);
@@ -147,7 +151,7 @@ void test('SF57 prepared-cell rehearsal records open coverage and refuses qualif
   assert.equal(soakRouteScope('catalogue', true), 'catalogue');
 });
 
-void test('SF57 borrowed previews survive cleanup; owned previews all stop even after one refusal', async () => {
+test('SF57 borrowed previews survive cleanup; owned previews all stop even after one refusal', async () => {
   const bases = [{ base: 'http://127.0.0.1:4401/' }, { base: 'http://127.0.0.1:4402/' }];
   const stopped = [];
   const stop = base => { stopped.push(base); return Promise.reject(new Error('already closed')); };
@@ -157,7 +161,7 @@ void test('SF57 borrowed previews survive cleanup; owned previews all stop even 
   assert.deepEqual(stopped, bases.map(row => row.base));
 });
 
-for (const layout of ['dev', 'shipped']) void test(`SF57 ${layout} enters every production instance and returns to one exact home baseline`, () => {
+for (const layout of ['dev', 'shipped']) test(`SF57 ${layout} enters every production instance and returns to one exact home baseline`, () => {
   const cells = soakCatalogue(catalogue, layout), route = ownedSoakPlans({ cells, home: 'driftwood-isle' });
   assert.deepEqual(route.plans.slice(0, 2).map(p => p.to), ['pine-hollow', 'nalati-grasslands']);
   if (layout === 'shipped') {
@@ -184,7 +188,7 @@ for (const layout of ['dev', 'shipped']) void test(`SF57 ${layout} enters every 
   assert.equal(new Set(route.coveragePlans.map(p => p.crossroads).filter(Boolean)).size, 36);
 });
 
-void test('SF57 dry run retains the ordinary deadline and all leases/samplers cover setup and teardown', () => {
+test('SF57 dry run retains the ordinary deadline and all leases/samplers cover setup and teardown', () => {
   assert.deepEqual(soakRunPolicy(true), { seconds: 300, samplerSeconds: 2200, leaseMinutes: 40, dryRun: true });
   assert.equal(soakRunPolicy(false).seconds, 1800); assert.equal(soakRunPolicy(false, { receipt: 'docs/test.md', sourceRevision: 'a'.repeat(40), approvedBy: 'Jake' }).seconds, 3600);
   for (const dry of [true, false]) {
@@ -192,7 +196,7 @@ void test('SF57 dry run retains the ordinary deadline and all leases/samplers co
   }
 });
 
-void test('SF57 joins only contemporaneous GL and preserves raw allocator and separate GPU bytes', () => {
+test('SF57 joins only contemporaneous GL and preserves raw allocator and separate GPU bytes', () => {
   const native = [0, 1, 4].map(seconds => ({ type: 'sample', t: new Date(seconds * 1000).toISOString(), footprint: 500, gpu: 100 }));
   const rows = joinSoakSamples(native, [{ at: .2, totalBytes: 200, accountedBytes: 123 }, { at: 1.2, totalBytes: 250, accountedBytes: 456 }]);
   assert.equal(rows[0].gl.accountedBytes, 123); assert.equal(rows[1].gl.totalBytes, 250);
@@ -201,7 +205,7 @@ void test('SF57 joins only contemporaneous GL and preserves raw allocator and se
 });
 
 
-void test('SF57 Safari awaits async route results while sampling, and refuses navigation rather than reconnecting', async () => {
+test('SF57 Safari awaits async route results while sampling, and refuses navigation rather than reconnecting', async () => {
   const window = { __sf57DocumentId: 'original' }, context = { window, Promise };
   let observations = 0;
   const raw = expression => Promise.resolve(runInNewContext(expression, context));
@@ -214,7 +218,7 @@ void test('SF57 Safari awaits async route results while sampling, and refuses na
 });
 
 
-void test('SF57 per-lap peaks sum WC+GL only and mark unfinished laps', () => {
+test('SF57 per-lap peaks sum WC+GL only and mark unfinished laps', () => {
   const perLap = soakLapMemory([{ phase: 'drive', footprint: 800, interval: 900, gpu: 9999,
     gl: { cycle: 0, totalBytes: 200, accountedBytes: 300, wasm: [{ bytes: 50 }] } },
     { phase: 'drive', footprint: 700, gpu: 10000, gl: { cycle: 1, totalBytes: 100, accountedBytes: 250 } }], 1);
@@ -224,7 +228,7 @@ void test('SF57 per-lap peaks sum WC+GL only and mark unfinished laps', () => {
 });
 
 
-void test('SF57 binds playing WC to the admitted game PID, not the prewarm, and fails missing game readings', () => {
+test('SF57 binds playing WC to the admitted game PID, not the prewarm, and fails missing game readings', () => {
   const native = [{ type: 'sample', phase: 'loading', t: new Date(0).toISOString(), footprint: 545,
     pids: { 7: [500, 510], 9: [45, 45] } }, { type: 'sample', phase: 'drive', t: new Date(1000).toISOString(), footprint: 550,
     pids: { 7: [505, 515], 9: [45, 45] } }];
@@ -236,7 +240,7 @@ void test('SF57 binds playing WC to the admitted game PID, not the prewarm, and 
   assert.throws(() => soakGamePid([]), /Missing native game/u);
 });
 
-void test('SF57 permits only the exact premeasurement WebKit target transition', async () => {
+test('SF57 permits only the exact premeasurement WebKit target transition', async () => {
   const transition = () => Promise.reject(new Error("'Runtime' domain was not found"));
   assert.equal(await soakBootPoll(transition, true), false);
   await assert.rejects(soakBootPoll(transition, false), /Runtime/u);
@@ -244,7 +248,7 @@ void test('SF57 permits only the exact premeasurement WebKit target transition',
   assert.equal(await soakBootPoll(() => Promise.resolve('ready'), true), 'ready');
 });
 
-void test('SF57 historical borrowed-home plans retain their original strict claim witness', () => {
+test('SF57 historical borrowed-home plans retain their original strict claim witness', () => {
   const cells = soakCatalogue(catalogue, 'shipped'), home = 'driftwood-isle';
   const route = ownedSoakPlans({ cells, home }, 'cells', 'catalogue', 'borrowed');
   assert.throws(() => ownedSoakPlans({ cells, home }, 'cells', 'catalogue', JSON.parse('"x"')), /Unknown soak home mode/u);
@@ -271,7 +275,7 @@ void test('SF57 historical borrowed-home plans retain their original strict clai
   assert.ok(soakWitnessFailures(witness(state(null, [], 5, commits.slice(0, 1)))).includes('Destination interior gameplay is not ready'));
 });
 
-void test('SF57 historical borrowed-home road plans retain their one departure leg', () => {
+test('SF57 historical borrowed-home road plans retain their one departure leg', () => {
   const cells = soakCatalogue(catalogue, 'shipped'), home = 'driftwood-isle';
   const route = ownedSoakPlans({ cells, home }, 'road', 'catalogue', 'borrowed');
   const owned = ownedSoakPlans({ cells, home }, 'road');
@@ -287,7 +291,7 @@ void test('SF57 historical borrowed-home road plans retain their one departure l
   assert.deepEqual(circuitPlans(route, 1, null).map(p => p.name), route.plans.map(p => p.name));
 });
 
-void test('reentry diagnostics retain real roads and report every unvisited cell without qualifying', () => {
+test('reentry diagnostics retain real roads and report every unvisited cell without qualifying', () => {
   const cells = soakCatalogue(catalogue, 'dev'), state = { cells, home: 'driftwood-isle' };
   const mode = { dryRun: true, qualifying: false, layout: 'dev', leg: 'cells', routeScope: 'catalogue', contentCut: null, firstCrossing: false, circuits: undefined };
   assert.equal(soakReentryDiagnostic(undefined, mode), null);
@@ -308,7 +312,7 @@ void test('reentry diagnostics retain real roads and report every unvisited cell
   assert.equal(state.cells.length, cells.length);
 });
 
-void test('O12 the road tour drives every 5 x 5 crossroads, the outer loop whole, on roads only', () => {
+test('O12 the road tour drives every 5 x 5 crossroads, the outer loop whole, on roads only', () => {
   const tour = soakRoadTour(555), edge = 2.5 * 555, key = point => `${point.x},${point.z}`;
   assert.equal(new Set(tour.map(key)).size, 36);
   for (let i = 1; i < tour.length; i++) assert.ok(tour[i].x === tour[i - 1].x || tour[i].z === tour[i - 1].z, 'axis-aligned roads');
@@ -316,7 +320,7 @@ void test('O12 the road tour drives every 5 x 5 crossroads, the outer loop whole
   assert.equal(ring.length, 21); assert.deepEqual(ring.at(0), ring.at(-1), 'once round the outer road, back to where it joined');
 });
 
-void test('O12 per-place peaks fold every leg leaving or entering a place, with its worst frame', () => {
+test('O12 per-place peaks fold every leg leaving or entering a place, with its worst frame', () => {
   const sample = (elapsed, bytes) => ({ phase: 'drive', elapsed, footprint: bytes, gl: { totalBytes: 100 } });
   const cells = soakCellPeaks([
     { plan: { from: 'a', to: null }, wall: { start: 0, end: 10 }, worstFrameMs: 40 },
@@ -327,7 +331,7 @@ void test('O12 per-place peaks fold every leg leaving or entering a place, with 
   assert.equal(cells.b.worstFrameMs, 250); assert.equal(cells.road.legs, 2); assert.equal(cells.b.overCapBytes, 0);
 });
 
-void test('O12 a leg into or out of a portal cell follows its declared portal', () => {
+test('O12 a leg into or out of a portal cell follows its declared portal', () => {
   const cells = [{ instance: 'a', slug: 'flat', cell: [0, 0] }, { instance: 'p', slug: 'stack', cell: [0, 1] }];
   const node = (id, at) => ({ id, at });
   const row = { edge: 'south', kind: 'portalLink', portal: { road: node('road', [0, 0, -260]), destination: node('square', [0, 140, 0]),
@@ -346,7 +350,7 @@ void test('O12 a leg into or out of a portal cell follows its declared portal', 
   assert.equal(out.portal.reverse, true);
 });
 
-void test('O12 the soak grades memory against the one memory switch, not a number of its own', () => {
+test('O12 the soak grades memory against the one memory switch, not a number of its own', () => {
   const gates = JSON.parse(readFileSync('src/format/memoryGates.json', 'utf8'));
   assert.deepEqual(SOAK_CAPS, { playingBytes: gates.explorerMB * 1_000_000, loadingBytes: gates.loadingMB * 1_000_000 });
   assert.equal(readFileSync('scripts/soak/route.ts', 'utf8').includes('1_000_000_000'), false);

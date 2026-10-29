@@ -1,8 +1,9 @@
-import { test } from 'node:test';
+import { test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Keep the original Node strict assertion semantics in this Node-only tool regression.
 import assert from 'node:assert/strict';
-import { installResources } from './resources.mjs';
+import { installResources } from '../../../scripts/parity/resources.mjs';
 
-void test('independent listener identities survive duplicate registration and disappear on removal or once delivery', () => {
+test('independent listener identities survive duplicate registration and disappear on removal or once delivery', () => {
   const original = { window: globalThis.window, document: globalThis.document, canvas: globalThis.HTMLCanvasElement,
     // oxlint-disable-next-line typescript/unbound-method -- Restore the exact native prototype methods after this isolated census test.
     add: EventTarget.prototype.addEventListener, remove: EventTarget.prototype.removeEventListener };

@@ -20,6 +20,6 @@ export default defineConfig({
     // Vite's browser query injection must not rewrite the hash CLI's hashbang.
     server: { deps: { external: [/\/scripts\/(?:built-product|bake-input-hashes)\.mjs$/u] } },
     sequence: { sequencer: DurationSequencer },
-    include: ['src/**/*.test.ts', 'test/**/*.test.ts', 'admin/test/**/*.test.ts', 'drafts/test/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'test/**/*.test.ts', 'test/**/*.test.mjs', 'admin/test/**/*.test.ts', 'drafts/test/**/*.test.ts'],
     setupFiles: ['test/setup.ts'], restoreMocks: true },
 });

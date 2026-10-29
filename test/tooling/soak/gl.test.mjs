@@ -1,9 +1,10 @@
-import { test } from 'node:test';
+import { test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Keep the original Node strict assertion semantics in this Node-only tool regression.
 import assert from 'node:assert/strict';
-import { installSoakGl, installSoakWasm, installLoadingGlJournal, installSoakDiagnostics } from './gl.mjs';
-import { loadingGlSamples } from './owned.mjs';
+import { installSoakGl, installSoakWasm, installLoadingGlJournal, installSoakDiagnostics } from '../../../scripts/soak/gl.mjs';
+import { loadingGlSamples } from '../../../scripts/soak/owned.mjs';
 
-void test('SF57 preserves bounded console, actual loss target and admitting-cell evidence through navigation without changing handling', () => {
+test('SF57 preserves bounded console, actual loss target and admitting-cell evidence through navigation without changing handling', () => {
   const oldWindow = globalThis.window, oldStorage = globalThis.sessionStorage, storage = new Map(), listeners = new Map();
   const calls = [], canvas = { tagName: 'CANVAS', id: 'game', isConnected: true };
   try {
@@ -33,7 +34,7 @@ void test('SF57 preserves bounded console, actual loss target and admitting-cell
   } finally { globalThis.window = oldWindow; globalThis.sessionStorage = oldStorage; }
 });
 
-void test('SF57 journal suppresses repeated assertions but preserves exact resize, relabel, deletion and new lifetime state', () => {
+test('SF57 journal suppresses repeated assertions but preserves exact resize, relabel, deletion and new lifetime state', () => {
   const oldWindow = globalThis.window, oldStorage = globalThis.sessionStorage;
   try {
     globalThis.sessionStorage = { getItem: () => null, removeItem: () => undefined };
@@ -58,7 +59,7 @@ void test('SF57 journal suppresses repeated assertions but preserves exact resiz
   } finally { globalThis.window = oldWindow; globalThis.sessionStorage = oldStorage; }
 });
 
-void test('SF57 journal survives boot navigation and records explicit playing cycles until teardown', () => {
+test('SF57 journal survives boot navigation and records explicit playing cycles until teardown', () => {
   const oldWindow = globalThis.window, oldStorage = globalThis.sessionStorage, storage = new Map();
   let hide;
   try {
@@ -81,7 +82,7 @@ void test('SF57 journal survives boot navigation and records explicit playing cy
   } finally { globalThis.window = oldWindow; globalThis.sessionStorage = oldStorage; }
 });
 
-void test('SF57 optional upload trace counts same-sized calls, bounds blocked queues and records navigation truncation', () => {
+test('SF57 optional upload trace counts same-sized calls, bounds blocked queues and records navigation truncation', () => {
   const oldWindow = globalThis.window, oldStorage = globalThis.sessionStorage, storage = new Map();
   let hide;
   try {
@@ -101,7 +102,7 @@ void test('SF57 optional upload trace counts same-sized calls, bounds blocked qu
   } finally { globalThis.window = oldWindow; globalThis.sessionStorage = oldStorage; }
 });
 
-void test('SF57 preserves labelled GL allocations, reconciliation and allocator telemetry each second', () => {
+test('SF57 preserves labelled GL allocations, reconciliation and allocator telemetry each second', () => {
   const oldWindow = globalThis.window, oldInterval = globalThis.setInterval;
   let tick, lost;
   const contexts = [{ totalBytes: 100, texBytes: 60, rbBytes: 30, bufBytes: 10, unlabelled: 0, reconciled: true,
@@ -125,7 +126,7 @@ void test('SF57 preserves labelled GL allocations, reconciliation and allocator 
 });
 
 
-void test('SF57 WASM telemetry is weak, deduplicated and never added to GL allocations', async () => {
+test('SF57 WASM telemetry is weak, deduplicated and never added to GL allocations', async () => {
   const oldWindow = globalThis.window;
   class Memory { buffer = new ArrayBuffer(64); }
   const memory = new Memory(), instance = { exports: { memory } };
@@ -139,7 +140,7 @@ void test('SF57 WASM telemetry is weak, deduplicated and never added to GL alloc
   } finally { globalThis.window = oldWindow; }
 });
 
-void test('optional travel storage call sites are sampled once per operation per second with a hard scalar cap', () => {
+test('optional travel storage call sites are sampled once per operation per second with a hard scalar cap', () => {
   const oldWindow = globalThis.window, oldStorage = globalThis.sessionStorage;
   try {
     globalThis.sessionStorage = { getItem: () => null, removeItem: () => undefined };

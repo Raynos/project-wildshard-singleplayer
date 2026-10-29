@@ -25,7 +25,7 @@ it('runs the files named after a changed source first, then the cheapest, and le
 });
 
 it('always runs a changed test file, even one the import walk did not return', () => {
-  for (const path of ['test/new.test.ts','src/engine/boot/waits.test.ts','src/game/quest/core.test.ts','src/format/rows.test.ts']) {
+  for (const path of ['test/new.test.ts','test/tooling/soak/gl.test.mjs','src/engine/boot/waits.test.ts','src/game/quest/core.test.ts','src/format/rows.test.ts']) {
     expect(capRelated([], [path, 'src/a.ts'], durations, 0, 1)).toEqual({ run: [path], left: [] });
   }
 });

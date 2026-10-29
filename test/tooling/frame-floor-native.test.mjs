@@ -1,9 +1,11 @@
-import { test } from 'node:test';
+import { test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Keep the original Node strict assertion semantics in this Node-only tool regression.
 import assert from 'node:assert/strict';
-import { gradeFloorNative, floorNativeExpression } from './frame-floor-native.mjs';
+import { gradeFloorNative, floorNativeExpression } from '../../scripts/frame-floor-native.mjs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Execute the unchanged browser instrumentation in an isolated native VM context.
 import { runInNewContext } from 'node:vm';
 
-await test('native memory witnesses copy the actual runtime residents without inventing two worlds', () => {
+test('native memory witnesses copy the actual runtime residents without inventing two worlds', () => {
   const residents=['road','cell'],pending=[];
   const live={current:'cell',residents,pending,gameplayReady:true};
   const context={window:{__wildshard:{memory:()=>({totals:{gpu:12},unattributed:{gpu:0},allocations:[]}),
@@ -26,7 +28,7 @@ const gpu = [
   { at: 300, phase: 'playing', memory: { totals: { gpu: 50 }, unattributed: { gpu: 0 }, allocations: [] } },
 ];
 
-await test('charges loading overlap, playing kernel interval highs and conservative GPU peak', () => {
+test('charges loading overlap, playing kernel interval highs and conservative GPU peak', () => {
   const row = gradeFloorNative(native, gpu);
   assert.equal(row.gamePid, 7);
   assert.equal(row.loadingPeakBytes, 1000);
@@ -35,7 +37,7 @@ await test('charges loading overlap, playing kernel interval highs and conservat
   assert.equal(row.gpuPeakAllocations[0].asset, 'target');
 });
 
-await test('refuses missing native/GPU/playing phases and lost game process', () => {
+test('refuses missing native/GPU/playing phases and lost game process', () => {
   assert.throws(() => gradeFloorNative([], gpu), /Missing native/u);
   assert.throws(() => gradeFloorNative(native, []), /Missing native/u);
   assert.throws(() => gradeFloorNative(native, gpu.slice(0, 1)), /No playing/u);
@@ -44,7 +46,7 @@ await test('refuses missing native/GPU/playing phases and lost game process', ()
   assert.throws(() => gradeFloorNative(lost, gpu), /disappeared/u);
 });
 
-await test('keeps preparation and Inspector gaps under the playing cap after readiness', () => {
+test('keeps preparation and Inspector gaps under the playing cap after readiness', () => {
   const samples = structuredClone(native);
   samples.push({ type: 'sample', phase: 'measure', t: new Date(5000).toISOString(), interval: 2500,
     pids: { 7: [2000, 2200], 8: [10, 20] } });
