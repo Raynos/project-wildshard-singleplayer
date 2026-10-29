@@ -6,7 +6,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **Deadline: everything done and archived by 14:00 Cancun** (finish spike d84ac5e875). Cut-offs: look / bug rows 12:15,
 LD9 / LD10 13:30, CO8 archive 13:45, all lanes stop 14:00 (G845).
 
-**LIVE a8a440cfa5 (build a8a440cfa-mvtfufto).** Next release ~12:15 (sp-ci-deploy).
+**LIVE f8ccbaa6c3 (build f8ccbaa6c-mvtq1f87, hourly).** CO1 release ~12:15 with the QA fixes and notes 48dd0e845d (sp-ci-deploy).
 
 **P0s / G873-G877:** Jake's QA lives in qa-2026-10-29 (QA1-QA13, all archive blockers, G877). Legacy last, on his word (G873).
 
