@@ -30,7 +30,7 @@ test('Nine presentation keeps every original channel word and draw reference', (
   // The full immutable admission also refuses aliased bytes or duplicate hashes.
   expect(() => emitNamedBlobs([...binary, ...descriptors])).not.toThrow();
   expect(before.reduce((sum, row) => sum + row.characters, 0)).toBe(477948);
-  expect(before.reduce((sum, row) => sum + row.scene.buffers.reduce((bytes, buffer) => bytes + buffer.byteLength, 0), 0)).toBe(358428);
+  expect(before.reduce((sum, row) => sum + row.scene.buffers.reduce((bytes, buffer) => bytes + buffer.byteLength, 0), 0)).toBe(922796); // FC12: one receiver draw, its plane on every card instance
 });
 
 test('presentation sharing distinguishes word bits and instancing and consumes sources once', () => {

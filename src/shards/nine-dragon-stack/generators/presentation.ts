@@ -2,7 +2,7 @@ import type { NineSourceWorld } from './worldProgram';
 import { BufferAttribute, Color, InstancedBufferAttribute, InstancedBufferGeometry, Matrix4, type Mesh, Quaternion, Vector3, Vector4 } from 'three';
 import { worldSceneBuffers as parseSceneBuffers } from '@wildshard/sdk/worldScenes';
 import { volumeSources } from './lightVolumes';
-import { buildStreaks, stairStreaks } from './receiverCards';
+import { floorReceiver, receiverCards, stairReceivers } from './receiverCards';
 import { buildHalos } from './haloCards';
 import { stairPlanData } from './stairPlan';
 import plan from '../data/layoutPlan.json' with { type: 'json' };
@@ -60,11 +60,11 @@ export function presentationRows(tier: 'phone' | 'desktop', caps: boolean, layou
     square.push({ at: point.clone(), color: row.light.clone().lerp(white, 0.3).multiplyScalar(row.win.y), w: u.length(), h: c.length(), power: 0.07, spill: 0 });
   }
   const stair = stairPlanData(), onStair = emitters.filter(e => e.at.x > STAIR.x0 - 4 && e.at.x < stair.FAR_X && e.at.z > stair.FACE_N - 6 && e.at.z < stair.FACE_S + 6 && e.at.y > Y0 + 0.3 && e.at.y < stair.TOP_Y + 40);
-  const floor = buildStreaks(Y0, square, new Vector4(WELL.x0 + 5, WELL.z0 + 5, WELL.x1, WELL.z1 - 5)); floor.name = 'streaks';
-  const stairs = stairStreaks(onStair, { flights: stair.FLIGHTS, landings: stair.LANDINGS, rise: stair.RISE, run: stair.RUN, z0: STAIR.z0, z1: STAIR.z1 });
-  for (const mesh of stairs) mesh.name = 'streaks-stair';
+  const streaks = receiverCards([floorReceiver(Y0, square, new Vector4(WELL.x0 + 5, WELL.z0 + 5, WELL.x1, WELL.z1 - 5)),
+    ...stairReceivers(onStair, { flights: stair.FLIGHTS, landings: stair.LANDINGS, rise: stair.RISE, run: stair.RUN, z0: STAIR.z0, z1: STAIR.z1 })]);
+  streaks.name = 'streaks';
   const halo = buildHalos({ lanterns: source.lanterns, shops: source.ctxEmitters, signs: source.signs });
-  return { streaks: cardScene([floor, ...stairs], 'wet-receivers', publish), halos: cardScene([halo], 'halos', publish) };
+  return { streaks: cardScene([streaks], 'wet-receivers', publish), halos: cardScene([halo], 'halos', publish) };
 }
 
 export function presentationData(layout: NineSourceWorld['layout'], world: NineWorldDeclarations, publish: (bytes: Uint8Array) => string, atlas: NineNativeAtlas): { open: ReturnType<typeof presentationRows>; capped: ReturnType<typeof presentationRows> } {

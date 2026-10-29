@@ -11,7 +11,7 @@ import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
 import { streakGraph } from '../src/shards/nine-dragon-stack/generators/streakGraph';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
-import { buildStreaks, stairStreaks } from '../src/shards/nine-dragon-stack/generators/receiverCards';
+import { floorReceiver, receiverCards, stairReceivers } from '../src/shards/nine-dragon-stack/generators/receiverCards';
 import { cardScene } from '../src/shards/nine-dragon-stack/generators/presentation';
 import { createSceneBuffers } from '../src/game/shardfile/sceneBuffers';
 import { Scope } from '../src/engine/app/scope';
@@ -39,14 +39,19 @@ test('wet receivers compile within both caps and retain their plane channels', (
   lendLooks({ onDispose: run => { cleanups.push(run); } }, { materials: new Map([['nine-streaks', compiled.material]]), setParam: (_id, name, value) => { compiled.setParam(name, value); }, setTexture: (_id, name, texture) => { compiled.setTexture(name, texture); },
     bindMeshMap: () => compiled.material });
   const emitter = { at: new THREE.Vector3(1, 130, 2), color: new THREE.Color(1, 0.5, 0.2), w: 1, h: 2, power: 2, spill: 1 };
-  const hole = new THREE.Vector4(-5, -5, 5, 5), square = buildStreaks(124, [emitter], hole);
-  const stairs = stairStreaks([emitter], { flights: [{ x0: 2, x1: 8, y0: 124 }], landings: [{ x0: 8, x1: 10, y: 128 }], rise: 0.2, run: 0.3, z0: -2, z1: 2 });
+  const hole = new THREE.Vector4(-5, -5, 5, 5);
+  const stairs = stairReceivers([emitter], { flights: [{ x0: 2, x1: 8, y0: 124 }], landings: [{ x0: 8, x1: 10, y: 128 }], rise: 0.2, run: 0.3, z0: -2, z1: 2 });
+  // FC12: the floor and every stair receiver draw as one mesh, a card instance per receiver and emitter
+  const square = receiverCards([floorReceiver(124, [emitter], hole), ...stairs]);
   Object.assign(compiled.material, { blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor });
   square.material = compiled.material;
   expect(stairs).toHaveLength(2);
+  expect(square.geometry).toBeInstanceOf(THREE.InstancedBufferGeometry);
+  if (!(square.geometry instanceof THREE.InstancedBufferGeometry)) throw new Error('Missing receiver instances');
+  expect(square.geometry.instanceCount).toBe(3);
   expect(square.geometry.getAttribute('aHole').getX(0)).toBe(-5);
-  expect(stairs[0]?.geometry.getAttribute('aPlaneN').getX(0)).toBeLessThan(0);
-  expect(stairs[0]?.geometry.getAttribute('aLift').getX(0)).toBeCloseTo(0.084);
+  expect(square.geometry.getAttribute('aPlaneN').getX(1)).toBeLessThan(0);
+  expect(square.geometry.getAttribute('aLift').getX(1)).toBeCloseTo(0.084);
   expect(compiled.material.blendSrcAlpha).toBe(THREE.ZeroFactor);
   expect(compiled.material.blendDstAlpha).toBe(THREE.OneFactor);
   const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
@@ -69,7 +74,7 @@ test('wet receivers compile within both caps and retain their plane channels', (
     expect(parameters.fragmentShader).toContain('discard');
     expect(parameters.fragmentShader).not.toContain('sRGBTransferOETF');
   } finally {
-    handler.renderEnd(); for (const mesh of [square, ...stairs]) mesh.geometry.dispose(); compiled.material.dispose();
+    handler.renderEnd(); square.geometry.dispose(); compiled.material.dispose();
     for (const cleanup of cleanups) cleanup();
   }
 });
