@@ -6,6 +6,8 @@ import { beginLoadingWait, finishLoadingWait, loadingWaitState, reportLoadingWai
 import { currentLoadingTimeline } from '../boot/timeline';
 import { waitFor } from '../boot/waits';
 import { loadShellTemplate } from '../boot/shell';
+import { readContent } from '../boot/contentRead';
+import { saveStorage } from '../saves/slots';
 
 let now = 100;
 beforeEach(() => {
@@ -527,4 +529,26 @@ it('adopts the first-document wait list without resetting a pending deadline or 
     expect(pending?.loadedBytes).toBe(1024); expect(loadingWaitState().pending.get(id)).toBe(pending);
   } finally { finishLoadingWait(id); loading.scope.dispose(); }
   expect(state.pending.has(inline)).toBe(false);
+});
+
+it('retries missing content in the same loading card without a fatal or planned reload', async () => {
+  const loading = new Loading({id: 'content-retry', name: 'Content retry'}), root = loading.root;
+  const controller = new AbortController(), url = 'https://example.test/shardfiles/island/scene.json';
+  let calls = 0;
+  const before = saveStorage('device').getItem('life.lastUnload');
+  const pending = readContent(url, 3, {signal: controller.signal, fetch: () => {
+    calls++; return Promise.resolve(calls <= 2 ? new Response(null, {status: 503}) : new Response(new Uint8Array([1, 2, 3])));
+  }});
+  try {
+    loading.waiting('Reading scene');
+    await vi.advanceTimersByTimeAsync(1100); now = 1200; await vi.advanceTimersByTimeAsync(200);
+    const retry = root.querySelector<HTMLButtonElement>('[data-el="retry"]');
+    expect(retry?.hidden).toBe(false); expect(root.querySelector('[data-el="foot"]')?.textContent).toContain('/shardfiles/island/scene.json');
+    expect(calls).toBe(2);
+    retry?.click(); await expect(pending).resolves.toEqual(new Uint8Array([1, 2, 3]));
+    expect(loading.root).toBe(root); expect(root.isConnected).toBe(true);
+    expect(document.querySelector('.ws-error-modal')).toBeNull();
+    expect(saveStorage('device').getItem('life.lastUnload')).toBe(before);
+    now = 1500; await vi.advanceTimersByTimeAsync(200); expect(retry?.hidden).toBe(true);
+  } finally {controller.abort(); loading.scope.dispose();}
 });

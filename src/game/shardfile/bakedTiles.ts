@@ -35,6 +35,7 @@ import { wearBakedTiles } from '../looks/vertexWear';
 import { colliderTileKeys, type TileContent } from './tileContent';
 import { tiledMesh } from './tiledMesh';
 import { bakedPlacementPoses } from './bakedPlacementPoses';
+import { readContent } from '@wildshard/engine/boot/contentRead';
 
 /** What a row is drawn into: the product its files resolve against, the live world, and the scope its pieces leave with
  *  (absent: the ambient owner, as a resident world's build). */
@@ -50,11 +51,9 @@ interface BakedUnclaimed { readonly piece: Omit<Parameters<WorldRegistry['add']>
 const owned = <T>(owner: BakedTilesOwner, fn: () => T): T => owner.scope === undefined ? fn() : withOwner(owner.scope, fn);
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
 
-async function bytesOf(product: ShardProduct, source: BakedSource): Promise<Uint8Array> {
+function bytesOf(product: ShardProduct, source: BakedSource): Promise<Uint8Array> {
   if ('file' in source) return product.file(source.file);
-  const response = await fetch(source.url, { cache: 'force-cache' });
-  if (!response.ok) throw new Error(`Required baked file load failed (${String(response.status)})`);
-  return new Uint8Array(await response.arrayBuffer());
+  return readContent(source.url, 25_000_000, {fetch: (url, init) => fetch(url, {cache: 'force-cache', ...init})});
 }
 // the page's bounded parser: one decode slot, a product file's wire copy taken only once its slot opens
 async function sceneOf(product: ShardProduct, source: BakedSource): Promise<THREE.Group> {

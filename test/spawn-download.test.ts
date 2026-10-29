@@ -77,3 +77,45 @@ test('an uncontrolled first install fills the same cache before the next warm pr
   const warm = downloadSpawnManifest(address, ports, base); await warm.ready;
   expect(reads).toBe(3); expect(warm.snapshot()).toMatchObject({complete: true, cachedBytes: 7, completedBytes: 7});
 });
+
+test('a dropped spawn body retries once without duplicate progress or publishing its partial clone', async () => {
+  const snapshots: SpawnDownloadSnapshot[] = [], stored = new Map<string, {bytes: Uint8Array; type: string | null}>();
+  const requests: {url: string; cache: RequestCache | undefined}[] = [];
+  let attempts = 0;
+  const download = downloadSpawnManifest(address, {cached: () => Promise.resolve(undefined),
+    fetch: (url, _signal, init) => {
+      requests.push({url, cache: init?.cache});
+      if (url.endsWith('.json')) return Promise.resolve(new Response(text, {headers: {'content-type': 'application/json'}}));
+      if (url.endsWith('.js')) return Promise.resolve(new Response(new Uint8Array([7, 8, 9]), {headers: {'content-type': 'application/javascript'}}));
+      if (++attempts === 1) {
+        let pulls = 0;
+        return Promise.resolve(new Response(new ReadableStream<Uint8Array>({pull(controller) {
+          if (++pulls === 1) controller.enqueue(new Uint8Array([1, 2]));
+          else controller.error(new TypeError('Synthetic connection dropped'));
+        }}, {highWaterMark: 0})));
+      }
+      return Promise.resolve(new Response(new Uint8Array([1, 2, 3, 4]), {headers: {'content-type': 'application/octet-stream'}}));
+    }, store: async (url, response) => {stored.set(url, {bytes: new Uint8Array(await response.arrayBuffer()), type: response.headers.get('content-type')});},
+  }, base);
+  download.subscribe(row => {snapshots.push(row);}); await download.ready;
+  expect(attempts).toBe(2);
+  expect(requests.filter(row => row.url.endsWith('.bin')).map(row => row.cache)).toEqual([undefined, 'reload']);
+  expect(snapshots.every((row, index) => row.totalBytes === 7 && row.completedBytes <= 7 && row.completedBytes >= (snapshots[index - 1]?.completedBytes ?? 0))).toBe(true);
+  expect(download.snapshot()).toMatchObject({complete: true, completedBytes: 7, filesDone: 2});
+  expect(stored.get(new URL(files[0]?.url ?? '', base).href)?.bytes).toEqual(new Uint8Array([1, 2, 3, 4]));
+  expect(stored.get(new URL(files[1]?.url ?? '', base).href)?.type).toBe('application/javascript');
+  expect(stored.size).toBe(3);
+});
+
+test('a cached HTML content response is a miss without reading or crediting its body', async () => {
+  const html = new Response('<html>missing</html>', {headers: {'content-type': 'text/html'}});
+  if (html.body === null) throw new Error('Missing HTML fixture body');
+  const read = vi.spyOn(html.body, 'getReader');
+  const download = downloadSpawnManifest(address, {
+    cached: url => Promise.resolve(url.endsWith('.json') ? new Response(text) : html),
+    fetch: url => Promise.resolve(new Response(new Uint8Array(url.endsWith('.js') ? 3 : 4))),
+  }, base);
+  await download.ready;
+  expect(read).not.toHaveBeenCalled();
+  expect(download.snapshot()).toMatchObject({complete: true, cachedBytes: 0, completedBytes: 7});
+});

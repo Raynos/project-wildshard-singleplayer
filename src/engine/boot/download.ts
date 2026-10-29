@@ -7,6 +7,8 @@ export interface LoadingWaitEntry {
   id: number; label: string; kind: LoadingWaitKind; step: string | null; owner: symbol | null;
   startedAt: number; progressAt: number; loadedBytes: number; totalBytes: number | null;
   deadlineMs: number; retry: (() => void) | null; progress: string; inline: boolean;
+  /** False for an in-place transport retry; older document reload actions omit it. */
+  retryNavigation?: boolean;
   /** Exact transport identity for diagnostics; never the human work caption. */
   resource?: string;
 }
@@ -28,7 +30,7 @@ export function loadingWaitState(target: object = typeof document === 'undefined
   const state: LoadingWaitState = { version: 1, sequence: 0, pending: new Map() };
   Reflect.set(target, loadingWaitKey, state); return state;
 }
-export type LoadingWaitOptions = Partial<Pick<LoadingWaitEntry, 'kind' | 'step' | 'owner' | 'startedAt' | 'progressAt' | 'loadedBytes' | 'totalBytes' | 'deadlineMs' | 'retry' | 'inline' | 'resource'>>;
+export type LoadingWaitOptions = Partial<Pick<LoadingWaitEntry, 'kind' | 'step' | 'owner' | 'startedAt' | 'progressAt' | 'loadedBytes' | 'totalBytes' | 'deadlineMs' | 'retry' | 'inline' | 'resource' | 'retryNavigation'>>;
 /** Register already-started work without changing its lifetime or concurrency. */
 export function beginLoadingWait(label: string, options: LoadingWaitOptions = {}): number {
   const state = loadingWaitState(), id = ++state.sequence, now = diagnosticNow();
@@ -36,7 +38,8 @@ export function beginLoadingWait(label: string, options: LoadingWaitOptions = {}
     startedAt: options.startedAt ?? now, progressAt: options.progressAt ?? now, loadedBytes: options.loadedBytes ?? 0,
     totalBytes: options.totalBytes ?? null, deadlineMs: options.deadlineMs ?? 8000, retry: options.retry === undefined
       ? typeof location === 'undefined' ? null : () => { location.reload(); } : options.retry,
-    progress: '', inline: options.inline ?? false, ...(options.resource === undefined ? {} : {resource: options.resource}) });
+    progress: '', inline: options.inline ?? false, ...(options.resource === undefined ? {} : {resource: options.resource}),
+    ...(options.retryNavigation === undefined ? {} : {retryNavigation: options.retryNavigation}) });
   return id;
 }
 /** Only real byte growth or a semantic progress-key change renews the deadline. */

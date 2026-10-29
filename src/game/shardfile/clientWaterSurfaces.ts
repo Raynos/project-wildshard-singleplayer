@@ -10,14 +10,13 @@ import type { ShardProduct } from './shardProduct';
 import { hasLentLook,lendLooks,lentLooksOf } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
 import { toonLookState } from '../looks/toonLook';
+import { readContent } from '@wildshard/engine/boot/contentRead';
 
 type WaterRow = Extract<ClientFeatureRow,{kind:'world.water'}>['rows'][number];
 /** A declared draw's file: a product file, or an immutable public asset fetched once into the page cache. */
-async function bytesOf(product:ShardProduct,source:BakedSource):Promise<Uint8Array>{
+function bytesOf(product:ShardProduct,source:BakedSource):Promise<Uint8Array>{
   if('file' in source)return product.file(source.file);
-  const response=await fetch(source.url,{cache:'force-cache'});
-  if(!response.ok)throw new Error(`Water file load failed (${String(response.status)})`);
-  return new Uint8Array(await response.arrayBuffer());
+  return readContent(source.url,25_000_000,{fetch:(url,init)=>fetch(url,{cache:'force-cache',...init})});
 }
 interface WaterInputs { readonly key:string; readonly bytes:Uint8Array; readonly floorBytes:Uint8Array|null }
 const inputKey=(water:WaterRow):string=>JSON.stringify('geometry' in water?['geometry',water.geometry]:['draw',water.draw.grid[buildTier()],water.draw.floor??null]);

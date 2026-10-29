@@ -18,6 +18,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { prepareRigLoader } from '@wildshard/engine/anim/rig';
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
 import { publicBytes } from '@wildshard/engine/boot/tables';
+import { readContent } from '@wildshard/engine/boot/contentRead';
 import { farProxyMaterial } from '../grid/farView';
 import { bakedNearFiles } from '../grid/nearPlaceholderView';
 import type { ShardContext } from '../plugin/context';
@@ -53,9 +54,8 @@ export function farStandIn(ctx: ShardContext): TileContent | null {
   if (files === null) return null;
   return { id: `${slug}.far-stand-in`, tiles: () => new Set<number>(), attach: () => Promise.resolve(),
     coarse: async (scope: Scope, rendered: (tile: number) => boolean) => {
-      const response = await fetch(versionedUrl(files.row));
-      if (!response.ok) throw new Error(`near.json ${slug}: ${String(response.status)}`);
-      const { look } = v.parse(NearLook, await response.json());
+      const bytes = await readContent(versionedUrl(files.row), 25_000_000, {fetch: (address, init) => fetch(address, init)});
+      const { look } = v.parse(NearLook, JSON.parse(new TextDecoder().decode(bytes)));
       const gltf = await (await prepareRigLoader()).createRigLoader().loadAsync(versionedUrl(files.mesh));
       if (scope.disposed) return;
       let source: BufferGeometry | undefined;

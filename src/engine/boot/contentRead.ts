@@ -99,7 +99,7 @@ async function retryFromCard(error: ContentReadError, signal?: AbortSignal): Pro
       if (signal !== undefined) scope.listen(signal, 'abort', () => { reject(abortReason(signal)); }, { once: true });
       id = beginLoadingWait(error.message, { kind: 'file', resource: error.url,
         owner: timeline?.waitOwner ?? null, step: timeline?.snapshot().current ?? null,
-        deadlineMs: 0, retry: resolve });
+        deadlineMs: 0, retry: resolve, retryNavigation: false });
     });
   } finally { if (id !== undefined) finishLoadingWait(id); scope.dispose(); }
 }

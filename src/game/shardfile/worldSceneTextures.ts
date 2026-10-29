@@ -4,6 +4,7 @@ import { BASIS_PATH, detectKtx2Support } from '@wildshard/engine/core/ktx2';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { loadTextureRow } from '@wildshard/engine/core/assets';
 import { phoneUrl } from '@wildshard/engine/boot/bytes';
+import { readContent } from '@wildshard/engine/boot/contentRead';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import { workSlice } from '@wildshard/engine/core/workSlice';
 import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
@@ -92,9 +93,10 @@ async function loadProduct(row: Extract<WorldSceneLentTexture, { kind: 'product'
 }
 
 async function blob(url: string): Promise<Blob> {
-  const res = await fetch(phoneUrl(url));
-  if (!res.ok) throw new Error(`Lent layer ${url} failed to load (${res.status})`);
-  return res.blob();
+  let type = '';
+  const bytes = await readContent(phoneUrl(url), 25_000_000, {fetch: (address, init) => fetch(address, init),
+    response: response => {type = response.headers.get('content-type') ?? '';}});
+  return new Blob([bytes], {type});
 }
 
 /** an image's texels at `size`², rows flipped so its top is v = 1 */

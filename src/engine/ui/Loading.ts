@@ -85,6 +85,7 @@ export class Loading {
   private phaseKey = 'modules';
   private readonly waitId: number;
   private retryWait: (() => void) | null = null;
+  private retryNavigation = true;
   private configured = false;
   private finished = false;
   private completion: Promise<void> | undefined;
@@ -135,7 +136,7 @@ export class Loading {
     this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), pfRow: el('pfRow'), pfFact: el('pfFact'), pfPct: el('pfPct'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics'), retry: el('retry') };
     this.els.retry.onclick = null; // Adopt the inline retry without keeping its document-only handler.
     set(this.els.retry, engineString('s_loading_retry'));
-    listenTap(this.scope, this.els.retry, () => { markReload('loading wait retry'); if (this.retryWait === null) location.reload(); else this.retryWait(); });
+    listenTap(this.scope, this.els.retry, () => { if (this.retryNavigation) markReload('loading wait retry'); if (this.retryWait === null) location.reload(); else this.retryWait(); });
     this.els.slug.textContent = chunk.name;
     this.els.tier.textContent = engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), nav.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), navigator.serviceWorker?.controller ? engineString('s_5c75b0e90774') : '']);
     const key = 'loadAttempt';
@@ -438,6 +439,7 @@ export class Loading {
     const quietMs = Math.max(0, now - Math.max(selected?.progressAt ?? now, fallback?.progressAt ?? 0));
     const stalled = !this.finished && quietMs >= (selected?.deadlineMs ?? 8000);
     this.retryWait = selected?.retry ?? null;
+    this.retryNavigation = selected?.retryNavigation !== false;
     this.els.retry.hidden = !stalled;
     setData(this.root, 'stalled', String(stalled));
     setData(this.root, 'waiting', wait?.label ?? '');

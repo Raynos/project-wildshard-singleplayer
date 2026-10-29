@@ -22,6 +22,7 @@ import { pageScope } from '../app/resources';
 import { presenting } from '../core/framePacing';
 import { workSlice } from '../core/workSlice';
 import { demandTextureResponse } from './texturePack';
+import { readContent } from './contentRead';
 
 export type ChunkFiles = Readonly<Record<ByteKey, readonly string[]>>;
 type Bytes = Record<string, number>;
@@ -210,9 +211,10 @@ function installCounter(): void {
  */
 export async function fetchImage(file: string, maxSize: typeof Infinity = Infinity, flip = true, exact = false): Promise<ImageBitmap | HTMLImageElement> {
   const url = tierUrl(file);
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`${res.status} ${url}`);
-  const blob = await res.blob();
+  let type = '';
+  const bytes = await readContent(url, 25_000_000, {fetch: (address, init) => fetch(address, init),
+    response: response => {type = response.headers.get('content-type') ?? '';}});
+  const blob = new Blob([bytes], {type});
   if (typeof createImageBitmap === 'function') {
     try {
       const opts: ImageBitmapOptions = { imageOrientation: flip ? 'flipY' : 'none', premultiplyAlpha: 'none', colorSpaceConversion: 'none' };

@@ -1,13 +1,13 @@
 import {readSpawnManifest, readSpawnManifestAddress, type SpawnManifestAddress} from '@wildshard/format/spawnManifest';
 
-/** This leaf imports no engine, renderer or worker. The title can start it on
+/** This leaf statically imports no engine, renderer or worker. The title can start it on
  * the tap; Loading later adopts the same progress rather than recounting IO. */
 export interface SpawnDownloadSnapshot {
   readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number;
   readonly filesTotal: number; readonly filesDone: number; readonly complete: boolean; readonly error: string | null;
 }
 export interface SpawnDownloadPorts {
-  readonly fetch: (url: string, signal: AbortSignal) => Promise<Response>;
+  readonly fetch: (url: string, signal: AbortSignal, init?: RequestInit) => Promise<Response>;
   readonly cached: (url: string) => Promise<Response | undefined>;
   /** Native bulk metadata only: returned URLs must have complete 200 bodies. */
   readonly present?: (urls: readonly string[]) => Promise<ReadonlySet<string>>;
@@ -18,6 +18,28 @@ export interface SpawnDownload {
   readonly ready: Promise<void>; readonly snapshot: () => SpawnDownloadSnapshot;
   readonly subscribe: (listener: (snapshot: SpawnDownloadSnapshot) => void) => () => void;
   readonly resolve: (url: string) => string; readonly cancel: () => void;
+}
+async function readSpawnFile(url: string, maximum: number, ports: SpawnDownloadPorts, signal: AbortSignal,
+  read?: (bytes: number) => void, held?: Response): Promise<{bytes: Uint8Array; copy: Response | undefined}> {
+  // Keep title composition lazy; share the real loading-card retry only once
+  // the selected entry starts reading its declared content.
+  const {readContent} = await import('@wildshard/engine/boot/contentRead');
+  let cached = held, copy: Response | undefined;
+  try {
+    const bytes = await readContent(url, maximum, {signal, ...(read === undefined ? {} : {read}),
+      fetch: (address, init) => {
+        if (cached !== undefined) {const response = cached; cached = undefined; return Promise.resolve(response);}
+        return ports.fetch(address, signal, init);
+      }, response: response => {
+        void copy?.body?.cancel().catch(() => undefined);
+        copy = ports.store === undefined || response === held ? undefined : response.clone();
+      }});
+    return {bytes, copy};
+  } catch (error) {
+    void copy?.body?.cancel().catch(() => undefined);
+    if (error instanceof Error && error.message === 'Content wire size exceeds cap') throw new Error(`Spawn file size differs: ${new URL(url).pathname}`, {cause: error});
+    throw error;
+  }
 }
 /** Exactly one list, one denominator and one completion per file. A complete
  * worker-cache response credits immediately without reading/checksumming it. */
@@ -30,10 +52,9 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
   const ready = (async () => {
     try {
       const manifestURL = new URL(address.url, base).href, held = await ports.cached(manifestURL);
-      const response = held ?? await ports.fetch(manifestURL, controller.signal), copy = held === undefined && ports.store !== undefined ? response.clone() : undefined;
-      if (!response.ok) throw new Error(`Spawn manifest unavailable (${response.status})`);
-      const text = await response.text();
-      if (new TextEncoder().encode(text).length !== address.bytes) throw new Error('Spawn manifest size differs');
+      const {bytes, copy} = await readSpawnFile(manifestURL, address.bytes, ports, controller.signal, undefined, held);
+      if (bytes.length !== address.bytes) {void copy?.body?.cancel().catch(() => undefined); throw new Error('Spawn manifest size differs');}
+      const text = new TextDecoder().decode(bytes);
       const manifest = readSpawnManifest(JSON.parse(text));
       if (manifest.totalBytes !== address.totalBytes || manifest.files.length !== address.files) throw new Error('Spawn address differs from manifest');
       if (copy !== undefined) await ports.store?.(manifestURL, copy);
@@ -48,7 +69,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       const missing: typeof files = [];
       for (let index = 0; index < files.length; index++) {
         const file = files[index]; if (file === undefined) throw new Error('Missing spawn file');
-        if (present?.has(file.url) === true || cached[index]?.status === 200) { completedBytes += file.bytes; cachedBytes += file.bytes; filesDone++; }
+        if (present?.has(file.url) === true || cached[index]?.status === 200 && !/\btext\/html\b/iu.test(cached[index]?.headers.get('content-type') ?? '')) { completedBytes += file.bytes; cachedBytes += file.bytes; filesDone++; }
         else missing.push(file);
       }
       if (missing.length === 0) { complete = true; publish(); return; }
@@ -56,20 +77,14 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       await Promise.all(Array.from({length: Math.min(8, missing.length)}, async () => {
         for (let index = cursor++; index < missing.length; index = cursor++) {
           const file = missing[index]; if (file === undefined) throw new Error('Missing spawn demand');
-          const body = await ports.fetch(file.url, controller.signal);
-          if (!body.ok || body.body === null) throw new Error(`Spawn file unavailable (${body.status}): ${new URL(file.url).pathname}`);
-          const cachedCopy = ports.store === undefined ? undefined : body.clone();
-          const reader = body.body.getReader(); let received = 0;
-          try {
-            for (;;) {
-              const part = await reader.read(); if (part.done) break;
-              received += part.value.length;
-              if (received > file.bytes) throw new Error(`Spawn file size differs: ${new URL(file.url).pathname}`);
-              completedBytes += part.value.length; publish();
-            }
-          } catch (failure) { void cachedCopy?.body?.cancel().catch(() => undefined); await reader.cancel().catch(() => undefined); throw failure; }
-          finally { reader.releaseLock(); }
-          if (received !== file.bytes) { void cachedCopy?.body?.cancel().catch(() => undefined); throw new Error(`Spawn file size differs: ${new URL(file.url).pathname}`); }
+          let received = 0, credited = 0;
+          const {bytes: body, copy: cachedCopy} = await readSpawnFile(file.url, file.bytes, {
+            ...ports, fetch: (url, signal, init) => {received = 0; return ports.fetch(url, signal, init);},
+          }, controller.signal, size => {
+            received += size;
+            if (received > credited) {completedBytes += received - credited; credited = received; publish();}
+          });
+          if (body.length !== file.bytes) { void cachedCopy?.body?.cancel().catch(() => undefined); throw new Error(`Spawn file size differs: ${new URL(file.url).pathname}`); }
           if (cachedCopy !== undefined) await ports.store?.(file.url, cachedCopy);
           filesDone++; publish();
         }
@@ -112,11 +127,11 @@ function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'd
   const store = typeof caches === 'undefined' ? null : typeof cacheName === 'string' ? caches.open(cacheName) : null;
   const controller = navigator.serviceWorker?.controller;
   const download = downloadSpawnManifest(address, {
-    fetch: (url, signal) => fetch(url, {signal}),
+    fetch: (url, signal, init) => fetch(url, {...init, signal}),
     cached: async url => typeof caches === 'undefined' ? undefined : store === null ? caches.match(url, {ignoreVary: true}) : (await store).match(url, {ignoreVary: true}),
     ...(store === null ? {} : {present: async (urls: readonly string[]) => {
       const wanted = new Set(urls), found = new Set<string>();
-      for (const response of await (await store).matchAll()) if (response.status === 200 && wanted.has(response.url)) found.add(response.url);
+      for (const response of await (await store).matchAll()) if (response.status === 200 && !/\btext\/html\b/iu.test(response.headers.get('content-type') ?? '') && wanted.has(response.url)) found.add(response.url);
       return found;
     }}),
     ...(store === null || controller !== undefined && controller !== null ? {} : {store: async (url: string, response: Response) => {await (await store).put(url, response);}}),
