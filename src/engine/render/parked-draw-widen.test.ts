@@ -5,11 +5,12 @@ import { warmParkedDraws, type ParkedDrawRenderer, type ParkedDrawWiden } from '
 const isMesh = (object: Object3D): object is Mesh => object instanceof Mesh;
 afterEach(() => { vi.restoreAllMocks(); });
 
-/** A hidden root of `count` meshes, each with its own material, so a one-material budget plans one slice per mesh. */
-function fixture(count: number) {
-  const scene = new Scene(), camera = new PerspectiveCamera(), root = new Group(), geometry = new BoxGeometry();
+/** A hidden root of `count` meshes, each with its own material, so a one-material budget plans one slice per mesh; with
+ *  `copies`, one material and a geometry each (copies a widened draw may merge: they build no new program). */
+function fixture(count: number, copies = false) {
+  const scene = new Scene(), camera = new PerspectiveCamera(), root = new Group(), geometry = new BoxGeometry(), shared = new MeshBasicMaterial();
   root.visible = false; scene.add(camera, root);
-  const meshes = Array.from({ length: count }, () => { const mesh = new Mesh(geometry, new MeshBasicMaterial()); root.add(mesh); return mesh; });
+  const meshes = Array.from({ length: count }, () => { const mesh = new Mesh(copies ? new BoxGeometry() : geometry, copies ? shared : new MeshBasicMaterial()); root.add(mesh); return mesh; });
   const target = new WebGLRenderTarget(8, 8), draws: number[] = [];
   let current: Target | null = null, scissorTest = false;
   const renderer: ParkedDrawRenderer = {
@@ -20,7 +21,7 @@ function fixture(count: number) {
     getScissor: (value: Vector4) => value.set(0, 0, 8, 8), setScissor: () => undefined,
     getScissorTest: () => scissorTest, setScissorTest: (value: boolean) => { scissorTest = value; },
   };
-  return { scene, camera, root, meshes, target, renderer, draws, dispose: (): void => { target.dispose(); geometry.dispose(); for (const mesh of meshes) mesh.material.dispose(); } };
+  return { scene, camera, root, meshes, target, renderer, draws, dispose: (): void => { target.dispose(); geometry.dispose(); shared.dispose(); for (const mesh of meshes) { mesh.material.dispose(); mesh.geometry.dispose(); } } };
 }
 /** Each pause is one completed frame, `frames[i]` ms after the previous one (the last repeats). */
 function frames(intervals: readonly number[]): () => Promise<void> {
@@ -41,7 +42,7 @@ test('without a widen every planned slice keeps its own completed frame', async 
 });
 
 test('on-cadence frames widen the draw (1, 1, 2, 4, 8 slices), each frame one submission', async () => {
-  const f = fixture(30);
+  const f = fixture(30, true);
   try {
     const pause = frames([20]);
     const drawn = await warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.root, () => true, pause,
@@ -54,7 +55,7 @@ test('on-cadence frames widen the draw (1, 1, 2, 4, 8 slices), each frame one su
 });
 
 test('a late frame halves the width, and the byte cap still bounds a merged draw', async () => {
-  const f = fixture(20);
+  const f = fixture(20, true);
   try {
     const pause = frames([20, 20, 20, 60, 20]);
     await warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.root, () => true, pause, { budget: { drawables: 1, newMaterials: 1 }, widen });
@@ -62,7 +63,7 @@ test('a late frame halves the width, and the byte cap still bounds a merged draw
     expect(f.draws.slice(0, 5)).toEqual([1, 1, 2, 4, 2]);
     expect(f.draws.reduce((sum, n) => sum + n, 0)).toBe(20);
   } finally { f.dispose(); }
-  const g = fixture(10);
+  const g = fixture(10, true);
   try {
     // a box's buffers are a few KiB each: a cap of one box's bytes keeps every draw at one slice
     const pause = frames([20]);
@@ -70,4 +71,13 @@ test('a late frame halves the width, and the byte cap still bounds a merged draw
       { budget: { drawables: 1, newMaterials: 1 }, widen: { ...widen, bytes: 1 } });
     expect(g.draws).toEqual(Array.from({ length: 10 }, () => 1));
   } finally { g.dispose(); }
+});
+
+test('D12: a slice that builds a new program never joins a widened draw', async () => {
+  const f = fixture(12);
+  try {
+    // every mesh has its own material: on-cadence frames would widen, but each slice brings a new program
+    await warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.root, () => true, frames([20]), { budget: { drawables: 1, newMaterials: 1 }, widen });
+    expect(f.draws).toEqual(Array.from({ length: 12 }, () => 1));
+  } finally { f.dispose(); }
 });

@@ -206,6 +206,10 @@ export function parkedDrawSlices<T extends THREE.Object3D>(drawables: readonly T
   return slices;
 }
 
+/** whether a planned slice draws a material no earlier draw of this warm has: a new program, so new native pipelines */
+const bringsNewMaterial = (slice: readonly THREE.Object3D[], seen: ReadonlySet<THREE.Material>): boolean =>
+  slice.some(object => drawableMaterials(object).some(material => !seen.has(material)));
+
 /** A planned slice's vertex/index/instance buffer bytes (each buffer once), for a widened draw's byte cap. */
 function sliceBytes(slice: readonly THREE.Object3D[]): number {
   const buffers = new Set<ArrayBufferView>();
@@ -374,8 +378,11 @@ export const HELD_WEBKIT_PARKED_BUDGET: ParkedDrawBudget = { ...LIVE_PARKED_BUDG
 /** G580 T5: while the traveller waits at the wall (engine/core/framePacing buildHeld), a slice may draw four times as
  *  many drawables: each slice costs a drawn frame, and the held view's longer frames cost no movement. Its new buffers
  *  stay under 6 MiB (G743): a cold Driftwood crossing's held slices of 12.8 and 15.6 MB filled Chromium's transfer
- *  buffer, and one 0.6-0.85 MB `bufferData` waited 125-145 ms for the GPU process (200 / 250 ms afterPlay frames). */
-export const HELD_PARKED_BUDGET: ParkedDrawBudget = { drawables: 32, newMaterials: 8, bufferBytes: 6 * 1024 * 1024 };
+ *  buffer, and one 0.6-0.85 MB `bufferData` waited 125-145 ms for the GPU process (200 / 250 ms afterPlay frames).
+ *  D12: its new pipelines keep the live fences (two new materials, two first-use layouts): eight a slice, widened up to
+ *  eight slices a frame, put ~1 s of the GPU process's pipeline builds into four frames of 100-617 ms on a desktop Pine
+ *  crossing (the frames are held, but the floor holds them to 60 / 30 fps all the same). */
+export const HELD_PARKED_BUDGET: ParkedDrawBudget = { drawables: 32, newMaterials: 2, newBindings: 2, bufferBytes: 6 * 1024 * 1024 };
 
 /**
  * G782: the pipelines earlier parked warms on a renderer already built, by geometry. A warm draw of a plain mesh builds
@@ -678,19 +685,22 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
     // One slice per completed frame: a slice's native first draws (pipelines, buffer uploads) are bounded per frame, and
     // a CPU clock cannot see them (two slices a frame under 6 ms of JavaScript stalled Pine's GPU process past 30 s).
     // A drawable an earlier warm already drew exactly (G782) is left out; a slice left empty costs no frame.
-    const widen = options.widen;
+    const widen = options.widen, seen = new Set<THREE.Material>();
     let width = 1, frameAt = Number.NaN;
     for (let next = 0; next < slices.length;) {
       if (!current()) throw new Error('Parked draw owner left');
       // the planned slices this frame draws: one, or (widened) up to `merge` whose new buffers fit `widen.bytes`
       const first = slices[next++] ?? [];
       let whole: readonly Drawable[] = first;
+      for (const object of first) for (const material of drawableMaterials(object)) seen.add(material);
       if (widen !== undefined && width > 1) {
         const merged = [...first];
         let bytes = sliceBytes(first), taken = 1;
         for (let more = slices[next]; more !== undefined && taken < width; more = slices[next]) {
           const size = sliceBytes(more);
-          if (bytes + size > widen.bytes) break;
+          // D12: a merged slice adds buffers and copies only: one that builds a new program waits for its own frame (the
+          // GPU process's pipeline builds show only as a later, long frame, after the width has already doubled)
+          if (bytes + size > widen.bytes || bringsNewMaterial(more, seen)) break;
           merged.push(...more); bytes += size; next++; taken++;
         }
         whole = merged;
