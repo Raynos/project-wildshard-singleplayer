@@ -18,6 +18,8 @@ test('fresh and persistent placement rows retain all eighteen complete native pr
     import {selectedLevel} from '@wildshard/engine/level/selection';
     import {nalatiDressingPlacementProgram} from './src/shards/nalati-grasslands/generators/dressingPlacementProgram.ts';
     import {prepareNalatiDressing} from './scripts/bake/nalatiDressing.mjs';
+    import {inSpruceClearing,loneSpruceMask,edgeBermAt} from './src/shards/nalati-grasslands/generators/terrainRecipe.ts';
+    import {edgeSpruceMask} from './src/shards/nalati-grasslands/generators/edgeRecipe.ts';
     import {originalGeographyFiles} from './test/fixtures/nalati-geography-original.ts';
     import {nalatiDressingPlacementBlobs,nalatiDressingBlob} from './src/shards/nalati-grasslands/generators/dressingSchemas.ts';
     import {packDressingTable} from './src/shards/nalati-grasslands/generators/dressingTable.ts';
@@ -48,7 +50,7 @@ test('fresh and persistent placement rows retain all eighteen complete native pr
       const hit=await nalatiDressingPlacementProgram(context('a'));assert.equal(selectedLevel(),null);assert.equal(constructions,1);
       for(const [name,bytes]of hit)assert.notEqual(bytes.buffer,cold.get(name).buffer);
       const rebuilt=await nalatiDressingPlacementProgram(context('b'));assert.equal(selectedLevel(),null);assert.equal(constructions,2);
-      const predecessor=await prepareNalatiDressing(undefined,originalGeographyFiles());
+      const predecessor=await prepareNalatiDressing((x,z)=>inSpruceClearing(x,z)?0:Math.max(loneSpruceMask(x,z),edgeSpruceMask(x,z,edgeBermAt(x,z))),originalGeographyFiles());
       originals=Object.entries({...predecessor.plan,clutter:predecessor.clutter}).map(([group,rows])=>{
         const bytes=new TextEncoder().encode(JSON.stringify(rows)+'\\n');
         return{file:'dressing-'+group+'.json',bytes,hash:hashImmutableBytes(bytes)};
