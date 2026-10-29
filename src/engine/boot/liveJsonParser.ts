@@ -82,7 +82,6 @@ export class LiveJsonParser {
       const result = new Promise<unknown>((resolve, reject) => {
         const request = thread.child(kind);
         this.pending.set(id, { kind, scope: request, resolve, reject });
-        request.timeout(30_000, () => { this.stop(new Error(`Live JSON deadline: ${kind}`)); });
         try {
           // Copy only the verified input; caller/cache backing stays attached.
           const copy = Uint8Array.from(value);

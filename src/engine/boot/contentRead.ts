@@ -17,8 +17,6 @@ export interface ContentReadOptions {
   read?: (bytes: number) => void;
   /** Host retry acknowledgement. The browser default uses the existing loading-card button. */
   retry?: (error: ContentReadError) => Promise<void>;
-  /** Timer port for deterministic transport controls. */
-  delay?: (signal?: AbortSignal) => Promise<void>;
   /** First-party immutable reads trust the server; stale lengths retry the same URL. */
   expectedBytes?: number;
   /** Header-admitted native response before reading; the caller owns any clone. */
@@ -74,17 +72,6 @@ async function body(response: Response, url: string, maximum: number, read?: (by
   return result;
 }
 
-async function retryDelay(signal?: AbortSignal): Promise<void> {
-  const scope = new Scope('content-read-retry');
-  try {
-    await new Promise<void>((resolve, reject) => {
-      const abort = (): void => { reject(abortReason(signal)); };
-      if (signal?.aborted === true) { abort(); return; }
-      if (signal !== undefined) scope.listen(signal, 'abort', abort, { once: true });
-      scope.timeout(1000, resolve);
-    });
-  } finally { scope.dispose(); }
-}
 function abortReason(signal?: AbortSignal): Error {
   const reason: unknown = signal?.reason;
   return reason instanceof Error ? reason : new DOMException('Content read cancelled', 'AbortError');
@@ -114,7 +101,7 @@ async function retryFromCard(error: ContentReadError, signal?: AbortSignal): Pro
   }
 }
 
-/** Read a complete bounded file. Retry one lost/missing transport after one second,
+/** Read a complete bounded file. Retry one confirmed lost/missing transport immediately,
  * then leave the same load pending on RETRY. An optional first-party manifest
  * length shares this recovery; ordinary caps, parsing and hashes stay strict. */
 export async function readContent(url: string, maximum: number, options: ContentReadOptions): Promise<Uint8Array<ArrayBuffer>> {
@@ -131,7 +118,7 @@ export async function readContent(url: string, maximum: number, options: Content
     } catch (error) {
       options.signal?.throwIfAborted();
       if (!(error instanceof ContentReadError)) throw error;
-      if (!retried) { retried = true; await (options.delay ?? retryDelay)(options.signal); }
+      if (!retried) { retried = true; }
       else { await (options.retry === undefined ? retryFromCard(error, options.signal) : options.retry(error)); retried = false; }
     }
   }

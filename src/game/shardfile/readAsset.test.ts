@@ -26,7 +26,7 @@ test('controllerless cold publishes one complete response to the existing URL st
 
 test.each([new Uint8Array([9]), new Uint8Array([9, 9, 9])])('a stale response refetches once and only the correct complete body is published', async stale => {
   const calls: RequestInit[] = [], stored: number[][] = [];
-  const bytes = await readAsset(url, 2, { delay: () => Promise.resolve(), fetch: (_url, init) => {
+  const bytes = await readAsset(url, 2, { fetch: (_url, init) => {
     calls.push(init); return Promise.resolve(new Response(calls.length === 1 ? stale : new Uint8Array([1, 2])));
   } }, { open: () => Promise.resolve({ put: async (_key: RequestInfo | URL, response: Response) => {
     stored.push([...new Uint8Array(await response.arrayBuffer())]);

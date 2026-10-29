@@ -4,17 +4,15 @@ import { ContentReadError, readContent } from './contentRead';
 import { loadingWaitState } from './download';
 
 const url = 'https://example.test/shardfiles/island/shape.bin';
-const immediate = (): Promise<void> => Promise.resolve();
 
 test('a dropped connection retries once with cache reload and returns exact bytes', async () => {
   const calls: RequestInit[] = [];
-  let delays = 0;
   const bytes = await readContent(url, 3, { fetch: (_url, init) => {
     calls.push(init);
     return calls.length === 1 ? Promise.reject(new TypeError('Synthetic connection lost')) : Promise.resolve(new Response(new Uint8Array([1, 2, 3])));
-  }, delay: () => { delays++; return Promise.resolve(); } });
+  } });
   expect(bytes).toEqual(new Uint8Array([1, 2, 3]));
-  expect(calls.map(call => call.cache)).toEqual([undefined, 'reload']); expect(delays).toBe(1);
+  expect(calls.map(call => call.cache)).toEqual([undefined, 'reload']);
 });
 
 test('an interrupted body is discarded before retrying the complete file', async () => {
@@ -26,7 +24,7 @@ test('an interrupted body is discarded before retrying the complete file', async
       if (++pulls === 1) controller.enqueue(new Uint8Array([9]));
       else controller.error(new TypeError('Synthetic body disconnected'));
     } }, { highWaterMark: 0 })) : new Response(new Uint8Array([1, 2, 3])));
-  }, delay: immediate, read: size => { progress.push(size); } });
+  }, read: size => { progress.push(size); } });
   expect(bytes).toEqual(new Uint8Array([1, 2, 3])); expect(calls).toBe(2);
   expect(progress).toEqual([1, 3]);
 });
@@ -35,7 +33,7 @@ test.each(['text/html;charset=utf-8', 'application/octet-stream'])('HTML missing
   let calls = 0;
   const failure = await readContent(url, 256, { fetch: () => {
     calls++; return Promise.resolve(new Response('\uFEFF <!doctype html><html>Missing</html>', { headers: { 'content-type': type } }));
-  }, delay: immediate, retry: error => { throw error; } }).catch((error: unknown) => error);
+  }, retry: error => { throw error; } }).catch((error: unknown) => error);
   expect(failure).toBeInstanceOf(ContentReadError);
   expect(failure).toHaveProperty('message', expect.stringContaining('/shardfiles/island/shape.bin'));
   expect(failure).toHaveProperty('message', expect.stringContaining('HTML')); expect(calls).toBe(2);
@@ -49,7 +47,7 @@ test('exhausted transport stays pending on the existing RETRY and resumes in pla
     calls++;
     if (calls === 2) retryOffered();
     return Promise.resolve(calls <= 2 ? new Response(null, { status: 503 }) : new Response(new Uint8Array([1, 2, 3])));
-  }, delay: immediate });
+  } });
   await offered;
   await vi.waitFor(() => { expect([...loadingWaitState().pending.values()].some(row => row.resource === url)).toBe(true); });
   const wait = [...loadingWaitState().pending.values()].find(row => row.resource === url);
@@ -65,7 +63,7 @@ test('cancellation and oversized content keep their original refusal without ret
   const fetch = (): Promise<Response> => { calls++; return Promise.resolve(new Response(new Uint8Array([1, 2]))); };
   await expect(readContent(url, 2, { fetch, signal: controller.signal })).rejects.toBe(reason);
   expect(calls).toBe(0);
-  await expect(readContent(url, 1, { fetch, delay: immediate })).rejects.toThrow('wire size exceeds cap');
+  await expect(readContent(url, 1, { fetch })).rejects.toThrow('wire size exceeds cap');
   expect(calls).toBe(1);
 });
 
@@ -76,7 +74,7 @@ test('cancelling a suspended RETRY drains its wait without restarting transport'
   let calls = 0;
   const pending = readContent(url, 2, { fetch: () => {
     calls++; if (calls === 2) offered(); return Promise.reject(new TypeError('Connection absent'));
-  }, delay: immediate, signal: controller.signal });
+  }, signal: controller.signal });
   await ready;
   await vi.waitFor(() => { expect([...loadingWaitState().pending.values()].some(row => row.resource === url)).toBe(true); });
   controller.abort(reason); await expect(pending).rejects.toBe(reason);
@@ -86,7 +84,7 @@ test('cancelling a suspended RETRY drains its wait without restarting transport'
 test('one loading-card RETRY resumes all failed content reads, excluding retired owners', async () => {
   const retired = new AbortController(), reason = new Error('Sibling read retired'), counts = new Map<string, number>();
   const read = (file: string, signal?: AbortSignal) => readContent(file, 1, {
-    ...(signal === undefined ? {} : {signal}), delay: immediate, fetch: address => {
+    ...(signal === undefined ? {} : {signal}), fetch: address => {
       const calls = (counts.get(address) ?? 0) + 1; counts.set(address, calls);
       return Promise.resolve(calls <= 2 ? new Response(null, {status: 503}) : new Response(new Uint8Array([1])));
     },
@@ -107,7 +105,7 @@ test('one loading-card RETRY resumes all failed content reads, excluding retired
 
 test.each([new Uint8Array([9]), new Uint8Array([9, 9, 9, 9])])('stale first-party lengths reload the same URL once', async stale => {
   const requests: { url: string; cache: RequestCache | undefined }[] = [];
-  const result = await readContent(url, 3, { expectedBytes: 3, delay: immediate, fetch: (path, init) => {
+  const result = await readContent(url, 3, { expectedBytes: 3, fetch: (path, init) => {
     requests.push({ url: path, cache: init.cache });
     return Promise.resolve(new Response(requests.length === 1 ? stale : new Uint8Array([1, 2, 3])));
   } });
@@ -117,7 +115,7 @@ test.each([new Uint8Array([9]), new Uint8Array([9, 9, 9, 9])])('stale first-part
 
 test('a repeated stale length offers the original RETRY without accepting bytes', async () => {
   let calls = 0, retries = 0;
-  const result = await readContent(url, 2, { expectedBytes: 2, delay: immediate, fetch: () => {
+  const result = await readContent(url, 2, { expectedBytes: 2, fetch: () => {
     calls++; return Promise.resolve(new Response(new Uint8Array(calls <= 2 ? [9] : [1, 2])));
   }, retry: error => {
     expect(error).toBeInstanceOf(ContentReadError); expect(error.message).toContain('byte length'); retries++;
@@ -130,7 +128,7 @@ test('response observers see admitted native responses before their bodies are r
   const first = new Response(null, { status: 503 }), second = new Response(new Uint8Array([1]), { headers: { 'content-type': 'application/octet-stream' } });
   const responses: Response[] = [], unread: boolean[] = [];
   let calls = 0;
-  const bytes = await readContent(url, 1, { expectedBytes: 1, delay: immediate,
+  const bytes = await readContent(url, 1, { expectedBytes: 1,
     fetch: () => Promise.resolve(++calls === 1 ? first : second), response: response => {
       responses.push(response); unread.push(!response.bodyUsed);
     },
@@ -142,7 +140,24 @@ test('response observers see admitted native responses before their bodies are r
 test('HTML is refused before a response observer can clone its body', async () => {
   let observed = 0;
   await expect(readContent(url, 256, { fetch: () => Promise.resolve(new Response('<html>Missing</html>', { headers: { 'content-type': 'text/html' } })),
-    response: response => { observed++; response.clone(); }, delay: immediate, retry: error => { throw error; },
+    response: response => { observed++; response.clone(); }, retry: error => { throw error; },
   })).rejects.toBeInstanceOf(ContentReadError);
   expect(observed).toBe(0);
+});
+
+test('time alone never retries pending transport and confirmed failure adds no timer', async () => {
+  vi.useFakeTimers();
+  let fail = (_error: Error): void => { throw new Error('Transport not started'); };
+  const pendingTransport = new Promise<Response>((_resolve, reject) => { fail = reject; });
+  const fetch = vi.fn((_url: string, _init: RequestInit) => fetch.mock.calls.length === 1
+    ? pendingTransport : Promise.resolve(new Response(new Uint8Array([1]))));
+  try {
+    const result = readContent(url, 1, { fetch });
+    await vi.advanceTimersByTimeAsync(180_000); expect(fetch).toHaveBeenCalledTimes(1);
+    const timers = vi.getTimerCount();
+    fail(new TypeError('Confirmed transport failure'));
+    expect(await result).toEqual(new Uint8Array([1]));
+    expect(fetch).toHaveBeenCalledTimes(2); expect(vi.getTimerCount()).toBe(timers);
+    expect(fetch.mock.calls[1]?.[1].cache).toBe('reload');
+  } finally { vi.useRealTimers(); }
 });

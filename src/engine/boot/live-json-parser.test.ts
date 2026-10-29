@@ -64,11 +64,28 @@ test('operation mismatch drains every job and the owned thread', async () => {
   expect(worker.terminated).toBe(true); expect(owner.census.listeners).toBe(0); expect(owner.census.timers).toBe(0);
 });
 
-test('a stalled live parser keeps its deadline and drains all started jobs', async () => {
+test('elapsed time cannot refuse pending parsing; real worker failure drains every job', async () => {
+  vi.useFakeTimers(); const { client, worker, owner } = fixture();
+  const left = client.parsePaced(new Uint8Array([49]), pause);
+  const right = client.parsePaced(new Uint8Array([50]), pause);
+  let settled = false;
+  const both = Promise.all([left, right]).finally(() => { settled = true; });
+  const refused = expect(both).rejects.toThrow('worker failed');
+  await vi.advanceTimersByTimeAsync(180_000);
+  expect(settled).toBe(false); expect(worker.terminated).toBe(false);
+  expect(owner.census.timers).toBe(0);
+  worker.dispatchEvent(new Event('error', { cancelable: true }));
+  await refused; expect(worker.terminated).toBe(true);
+  expect(owner.census.listeners).toBe(0); expect(owner.census.timers).toBe(0);
+});
+
+test('a slow valid reply still publishes exact data without restarting the worker', async () => {
   vi.useFakeTimers(); const { client, worker } = fixture();
-  const left = expect(client.parsePaced(new Uint8Array([49]), pause)).rejects.toThrow('deadline: parse-pages');
-  const right = expect(client.parsePaced(new Uint8Array([50]), pause)).rejects.toThrow('deadline: parse-pages');
-  await vi.advanceTimersByTimeAsync(30_000); await Promise.all([left, right]); expect(worker.terminated).toBe(true);
+  const bytes = new TextEncoder().encode('{"kept":[1,2,3]}');
+  const pending = client.parsePaced(bytes, pause);
+  await vi.advanceTimersByTimeAsync(180_000);
+  worker.complete(); expect(await pending).toEqual({ kept: [1, 2, 3] });
+  expect(worker.sent).toHaveLength(1);
 });
 
 test('owner disposal refuses pending and future parses without publication', async () => {
