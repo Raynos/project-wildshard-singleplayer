@@ -268,7 +268,7 @@ Opus for anything the player sees (G848), Codex for non-visual engineering. Each
 
 | Row | What | Rewrite / delete / done when | Lane | Size |
 |---|---|---|---|---|
-| MF1 | New service worker | **Rewrite** `sw.js` ≈ 150 lines: precache shell + hashed code; cache-first content-named; network `version.json`; previous build's code kept one generation; no counting, packs, hashing or GC deadline. Done: RL1's three Simulator recordings ≤ 2 s warm, WebKit warm network ≤ 0.1 MB, no `respondWith` error. | Codex sp-x10 · **open**: core `0602c7b762`, QB21 `4911ffdbdf`, navigation `a040bdf610`; own WebKit native control 4/4, no `respondWith` error, warm load wire DW 8.90 / Pine 38.06 MB vs 0.1 MB (MF4/MF8 coverage open); Sim cold/warm 1.33 s on a040, RELOAD ~0.160 s on containing 0d20 (sp-o3); network coverage remains open | M |
+| MF1 | New service worker | **Rewrite** `sw.js` ≈ 150 lines: precache shell + hashed code; cache-first content-named; network `version.json`; previous build's code kept one generation; no counting, packs, hashing or GC deadline. Done: RL1's three Simulator recordings ≤ 2 s warm, WebKit warm network ≤ 0.1 MB, no `respondWith` error. | Codex sp-x10 · landed 0602c7b762 + bb0cb12552; Sim cold / warm 1.33 s, RELOAD ~160 ms; warm wire 8.9 / 38 MB waits on MF4 + MF8 | M |
 | MF2 | Deploys never strand a page | **done** — `66ced96696` carries exactly the previous hashed graph; `ab07687619` / `48e059dc8b` recover stale JS/CSS once; G898 phase fence `6ed5be168f`. Two `--rev` proofs: old `48e059dc8b` page enters Driftwood after `e102a483ee` deploys, Chromium/WebKit 183,760 / 309,768 B observed wire. On `6ed5be168f` → `2c6c91d155`, all four iPhone cases (JS/CSS × Chromium/WebKit) keep the worker waiting during play, then adopt/reload once at the fresh title and enter D; `boot.selfReload=1`, no loop. Eleven focused controls pass. | Codex sp-x2 · done 66ced96696 + ab07687619 | S |
 | MF3 | Title from one static chunk | **Rewrite** the title path in `entry.ts`: no engine / three / worker imports before the title; delete `retried()` around imports; delete `stuck.ts` card, `Resume.ts`, hide still, away-reload. Done: live title ≤ 0.5 s after the launch image warm on the Simulator; launch image → title, no other screen. | Opus sp-o3 · done 6e4e5e6817 (page 0.16 s; ~0.5 s is iOS web-app start) | M |
 | MF4 | One spawn manifest | **Rewrite** `entryTotals.ts` as the manifest writer (spawn files, hash URL, size); the loader fetches it and the bar reads only it; delete receipts and calibration. Done: six shards, cold and warm, end at exactly 100 %; warm bar full ≤ 0.1 s. | Codex sp-x6 · landed 360d33fa03; six-shard bar proof pending | M |
@@ -332,3 +332,13 @@ current slice (no mid-task re-briefs, G492); none starts new work after this is 
   the before-control ratchet rises with a citation (NP-1).
 - **Out of scope:** G828's one-world / crossing architecture (Jake's alone), OPEN-PLOTS, BURN-DAMAGE-LIST, BAKED-WORLDS,
   NATIVE-CLIENT, the repo-size work. The legacy deletion stays on Jake's word per shard (G873).
+
+## Codex overnight list (G914, Jake 2026-10-29 ~16:40)
+
+Pulled in this order by any Codex lane with no plan row left. No pixels (G848); numbers in the commit.
+
+| Row | What | Done when | Lane | Size |
+|---|---|---|---|---|
+| CX1 | **Delete the instrumentation** no bar or modal reads: the ~2,300 lines of boot accounting / timing and the ~2,300 of trace / recovery plumbing this plan counted (receipts, calibration, duplicate byte and memory ledgers, trace rings nothing displays). | Each deleted module listed with its last reader in the commit; types, lint, `vitest related` green; the loading card and the error modal still show everything they show today. | Codex | M |
+| CX2 | **Timer audit:** every deadline that reveals, retries or reloads (8 s, 10 s, 12 s, 3 s, 1.5 s, 6 s, 10 min…) becomes a condition or is deleted; only the once-per-session self-reload stays. | One table in the commit: timer, file:line, what it decided, now a condition / deleted; no new timer added. | Codex | M |
+| CX3 | **Prune tests of deleted machinery** (G416): tests pinning the boat, receipts, leases, the resume screen, legacy shards already deleted, the page content cache. | Deleted tests listed with the code they pinned; suite time before / after in the commit. | Codex | S |
