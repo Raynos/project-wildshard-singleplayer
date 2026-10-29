@@ -1,7 +1,7 @@
 /** A failed deployment-owned module or sheet, not an arbitrary application exception. */
 export function staleChunkFailure(error: unknown, base: string): boolean {
   if (!(error instanceof Error)) return false;
-  const module = /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module/iu.test(error.message);
+  const module = /Failed to fetch dynamically imported module|Importing a module script failed|error loading (?:a )?dynamically imported module/iu.test(error.message);
   const stylesheet = /^(?:Stylesheet failed:|Unable to preload CSS for )/u.test(error.message);
   if (!module && !stylesheet) return false;
   const address = /(?:https?:\/\/[^\s"']+|\/assets\/[^\s"']+)/u.exec(error.message)?.[0];
