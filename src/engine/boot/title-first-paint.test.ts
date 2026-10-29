@@ -91,7 +91,8 @@ test('RL3: a boot with neither the title nor the loading card at 12 s reloads on
   const window = new Window({ url: 'https://launch.test/', settings: { enableJavaScriptEvaluation: true, disableJavaScriptFileLoading: true,
     disableCSSFileLoading: true, enableImageFileLoading: false, handleDisabledFileLoadingAsSuccess: true } });
   windows.push(window);
-  const timers = vi.spyOn(window, 'setTimeout').mockImplementation(((run: () => void, ms?: number) => { if (ms === 12000) later.push(run); return 0; }) as typeof window.setTimeout);
+  const handle = setTimeout(() => undefined, 0); clearTimeout(handle); // a real, spent timer handle for the captured call
+  const timers = vi.spyOn(window, 'setTimeout').mockImplementation((run: Parameters<typeof window.setTimeout>[0], ms?: number) => { if (ms === 12000) later.push(() => { Reflect.apply(run, undefined, []); }); return handle; });
   const reload = vi.spyOn(window.location, 'reload').mockImplementation(() => undefined);
   window.document.write(html);
   expect(later).toHaveLength(1);
