@@ -163,15 +163,16 @@ export class FullMap {
     const b = this.bounds(this.extrasSource?.() ?? null);
     this.cx = (b.x0 + b.x1) / 2; this.cz = (b.z0 + b.z1) / 2; this._zoom = 1;
     this.fit();
-    // E440: the map draws itself every frame while open. The menu that shows it pauses the app (Menu.open), and a paused
-    // app runs no update phase (Game.runPhase, E357 F8), so a draw driven from the play loop never came and the frame stayed black
+    // E440: the map drives its own draw while open. The menu that shows it pauses the app (Menu.open), and a paused
+    // app runs no update phase (Game.runPhase, E357 F8), so a draw driven from the play loop never came and the frame stayed black.
+    // FC4 (G909): each frame only checks; the painter repaints when what it shows changed
     const scope = this.openScope;
-    const frame = (): void => { this.draw(); scope.raf(frame); };
+    const frame = (): void => { if (this.painter?.draw() === true) this.syncPulses(); scope.raf(frame); };
     scope.raf(frame);
     this.onToggle?.(true);
     this.onZoom?.(1);
   }
-  hide(): void { if (!this.open) return; this.layer?.dispose(); this.layer = null; this.openScope?.dispose(); this.openScope = null; this.root.style.display = 'none'; this.pointers.clear(); this.onToggle?.(false); }
+  hide(): void { if (!this.open) return; this.layer?.dispose(); this.layer = null; this.openScope?.dispose(); this.openScope = null; this.root.style.display = 'none'; this.pointers.clear(); for (const ring of this.rings.splice(0)) ring.remove(); this.onToggle?.(false); }
 
   private dpr = 1;
   /** size the canvas to its frame (call after the frame resizes) */
@@ -181,6 +182,7 @@ export class FullMap {
     this.canvas.width = Math.round(w * this.dpr);
     this.canvas.height = Math.round(h * this.dpr);
     this.dash = [3 * this.dpr, 2.5 * this.dpr];
+    this.painter?.invalidate();
   }
   /** the world square the map spans (metres): the chunk, grown to hold every extra */
   private bounds(extras: MapExtras | null): { x0: number; x1: number; z0: number; z1: number; span: number } {
@@ -238,7 +240,24 @@ export class FullMap {
       tally: () => this.tally, ppm: () => this.ppm(), now: () => performance.now(),
     });
   }
-  private draw(): void { this.painter?.draw(); }
+
+  // FC4: the quest pins' pulse, as rings the compositor animates over the canvas, so the pulse never repaints the map
+  private readonly rings: HTMLElement[] = [];
+  private syncPulses(): void {
+    const pulses = this.painter?.pulses ?? [], d = this.dpr;
+    while (this.rings.length > pulses.length) this.rings.pop()?.remove();
+    for (const [i, p] of pulses.entries()) {
+      let ring = this.rings[i];
+      if (ring === undefined) {
+        ring = document.createElement('div');
+        Object.assign(ring.style, { position: 'absolute', boxSizing: 'border-box', borderRadius: '50%', border: '2px solid rgb(143, 227, 255)', pointerEvents: 'none' } as CSSStyleDeclaration);
+        ring.animate([{ transform: 'scale(1)', opacity: 0.7 }, { transform: `scale(${2.8 / 1.2})`, opacity: 0 }], { duration: 1600, iterations: Infinity }); // the canvas ring's r x 1.2 -> x 2.8
+        this.root.append(ring); this.rings.push(ring);
+      }
+      const r = (p.r * 1.2) / d + 1; // the canvas stroke sat on the radius; the border sits inside the box
+      Object.assign(ring.style, { left: `${p.x / d - r}px`, top: `${p.y / d - r}px`, width: `${2 * r}px`, height: `${2 * r}px` });
+    }
+  }
 
 }
 

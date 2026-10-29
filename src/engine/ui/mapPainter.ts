@@ -9,6 +9,10 @@ type Pin = MapPoi & { color?: string };
 const FOG_BRIGHTNESS = 0.3, TILE_PX = 256, TILE_CACHE = 64, TILE_BUDGET_MS = 6;
 const CYAN = '#8fe3ff', MERGE_M = 30;
 const NO_DASH: number[] = [];
+const FNV_SEED = 2166136261;
+const fold = (h: number, v: number): number => Math.imul(h ^ (v | 0), 16777619);
+/** a headless DOM (tests) has no FontFaceSet */
+const fontsLoaded = (): boolean => 'fonts' in document && document.fonts.status === 'loaded';
 
 /** State and caller-owned sources remain in FullMap. The painter reads them
  * directly without re-registering or snapshotting callbacks. */
@@ -34,6 +38,13 @@ export interface MapPaintView {
 }
 
 export class MapPainter {
+  /** the quest pins' pulse rings of the last paint (device px): FullMap animates them over the canvas (FC4), so the pulse
+   *  never repaints the map */
+  readonly pulses: { x: number; y: number; r: number }[] = [];
+  private paintedHash = Number.NaN;
+  private tilesPending = false;
+  private readonly ids = new WeakMap<object, number>();
+  private nextId = 1;
   private readonly fog = document.createElement('canvas');
   private readonly fc: CanvasRenderingContext2D;
   private readonly view: MapPaintView;
@@ -43,8 +54,49 @@ export class MapPainter {
     if (context === null) throw new Error('FullMap: no 2d context');
     this.fc = context;
   }
-  draw(): void {
-    if (!this.view.open()) return;
+  /** FC4 (G909): paints only when something the map shows changed (the view, you, the layers, the pins, the marks, the
+   *  extras, a zoom tile still to cut); returns whether it painted */
+  draw(): boolean {
+    if (!this.view.open()) return false;
+    const list = this.pinList(), hash = this.signature(list);
+    if (hash === this.paintedHash && !this.tilesPending) return false;
+    this.paintedHash = hash; this.tilesPending = false; this.pulses.length = 0;
+    this.paint(list);
+    return true;
+  }
+  /** the next draw paints whatever the digest says (a resized canvas comes back cleared) */
+  invalidate(): void { this.paintedHash = Number.NaN; }
+  private pinList(): Pin[] {
+    const own = this.view.pois(), list: Pin[] = own === null ? this.view.fallbackPois() : [...own];
+    if (this.view.poiSources.size > 0) list.push(...[...this.view.poiSources].flatMap((source) => source()));
+    return list;
+  }
+  private id(o: object | null): number {
+    if (o === null) return 0;
+    let v = this.ids.get(o);
+    if (v === undefined) { v = this.nextId++; this.ids.set(o, v); }
+    return v;
+  }
+  private text(seed: number, t: string): number { let h = seed; for (const c of t) h = fold(h, c.codePointAt(0) ?? 0); return fold(h, t.length); }
+  /** a digest of everything the paint reads that can change, positions in half device pixels */
+  private signature(list: readonly Pin[]): number {
+    const v = this.view, k = v.ppm() * 2, pose = v.pose, mm = v.minimap, extras = v.extras();
+    let h = fold(fold(fold(FNV_SEED, Math.round(v.cx() * k)), Math.round(v.cz() * k)), Math.round(v._zoom() * 4096));
+    h = fold(fold(fold(h, v.canvas.width), v.canvas.height), Math.round(v.dpr() * 100));
+    h = fold(fold(fold(h, Math.round(pose.x * k)), Math.round(pose.z * k)), Math.round(pose.yaw * 1000));
+    h = fold(fold(fold(fold(h, this.id(mm.room)), this.id(mm.layers.terrain)), this.id(mm.layers.cover)), mm.layerGen);
+    h = fold(fold(h, mm.bakedGround ? 1 : 0), mm.marks.length);
+    for (const m of mm.marks) h = this.text(fold(fold(h, Math.round(m.x * k)), Math.round(m.z * k)), m.color);
+    h = fold(h, this.id(extras));
+    if (extras !== null) {
+      h = fold(fold(fold(h, extras.rects.length), extras.labels.length), Math.round((extras.baseAlpha ?? 1) * 100));
+      for (const m of extras.images) h = fold(fold(h, this.id(m.image)), Math.round(m.alpha * 100));
+    }
+    h = fold(fold(fold(h, v.zones().length), v.tally() ? 1 : 0), fontsLoaded() ? 1 : 0); // a late web font repaints the labels
+    for (const p of list) h = this.text(this.text(this.text(fold(fold(h, Math.round(p.x * k)), Math.round(p.z * k)), p.kind), p.label), p.short ?? '');
+    return h;
+  }
+  private paint(list: Pin[]): void {
     const pos = this.view.pose, yaw = this.view.pose.yaw;
     const room = this.view.minimap.room;
     if (room !== null) {   // a practice room: its own layout, fitted to the frame (the zoom chips scale it), no shard, no pins
@@ -131,9 +183,6 @@ export class MapPainter {
     // points of interest (their labels laid out clear of each other, the markers and your arrow)
     const fs = Math.max(11 * this.view.dpr(), side * 0.022 / this.view._zoom());
     const px = sx(pos.x), py = sz(pos.z), r = Math.max(7 * this.view.dpr(), fs * 0.6);
-    const ownPois = this.view.pois();
-    const list: Pin[] = ownPois === null ? this.view.fallbackPois() : [...ownPois];
-    if (this.view.poiSources.size > 0) list.push(...[...this.view.poiSources].flatMap((source) => source()));
     const tally = this.view.tally() ? this.layTally(list, ox, oy + side) : null;
     if (tally !== null) held.push(tally);
     // the minimap's marks (Driftwood's sea chart: every unfound sea glass piece, E314) — under the pins, no labels, not
@@ -187,7 +236,8 @@ export class MapPainter {
         const key = `${l}:${i}:${j}`;
         let tile = this.tiles.get(key);
         if (tile) { this.tiles.delete(key); this.tiles.set(key, tile); } // most recently used last
-        else if (l === level && this.view.now() - t0 < TILE_BUDGET_MS) {
+        else if (l === level && this.view.now() - t0 >= TILE_BUDGET_MS) this.tilesPending = true; // cut on the next frame
+        else if (l === level) {
           tile = document.createElement('canvas');
           this.view.minimap.paintTile(tile, i * tm, j * tm, tm, TILE_PX);
           this.tiles.set(key, tile);
@@ -261,11 +311,9 @@ export class MapPainter {
       ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)'; ctx.lineWidth = 2 * d;
       ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     }
-    const pulse = (this.view.now() % 1600) / 1600;
     for (const m of pins) {
       if (m.p.kind !== 'quest') continue;
-      ctx.strokeStyle = `rgba(143, 227, 255, ${0.7 * (1 - pulse)})`; ctx.lineWidth = 2 * d;
-      ctx.beginPath(); ctx.arc(m.x, m.y, m.r * (1.2 + pulse * 1.6), 0, Math.PI * 2); ctx.stroke();
+      this.pulses.push({ x: m.x, y: m.y, r: m.r });
       ctx.fillStyle = CYAN; ctx.strokeStyle = 'rgba(6, 10, 18, 0.9)'; ctx.lineWidth = 2 * d;
       diamond(ctx, m.x, m.y, m.r); ctx.fill(); ctx.stroke();
     }

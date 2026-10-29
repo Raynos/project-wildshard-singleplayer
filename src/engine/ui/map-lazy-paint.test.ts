@@ -25,7 +25,7 @@ function fixture() {
   });
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(function canvasContext(this: HTMLCanvasElement) { return Object.assign(ctx, {canvas:this}); });
   const image = document.createElement('canvas');
-  const minimap = legacyDouble<Minimap>({room:null,bakedGround:true,marks:[],layers:{terrain:image,cover:image}});
+  const minimap = legacyDouble<Minimap>({room:null,bakedGround:true,marks:[],layerGen:0,layers:{terrain:image,cover:image}});
   const scope = new Scope('lazy-map'), map = withOwner(scope, () => new FullMap(minimap));
   map.mount(document.body);
   return {map,scope,frames,fillText,drawImage};
