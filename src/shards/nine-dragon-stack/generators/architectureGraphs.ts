@@ -199,10 +199,11 @@ function coarseFacade(): GraphIr {
   const emit = mul([1, 0.7, 0.38], mul(mix(mul(upright, 0.135), mul(win, lit), detail), 1.15));
   // QA6: past the ring the coarse towers stand 240-380 m off, below the portal decks, where the silk fog's deep air leaves
   // nothing of them (flat fog slabs: LEGACY's hazy lower band of lit towers was missing at cams 17 / 18). They take the
-  // base air alone, the same the output's emission compensation assumes: a far window keeps its 0.25 power through it.
+  // base air alone (`fog: false`: no silk stage), the same the output's emission compensation assumes: a far window keeps
+  // its 0.25 power through it.
   const trans = g.op('exp', [g.neg(mul(g.u('uFogBase'), max(sub(g.distance, g.u('uFogStart')), 0)))]);
   const shaded = g.add(g.shade(colour), g.div(emit, g.pow(max(trans, 1e-4), 0.75)));
-  const graph = g.finish({ surface: { colour: mix(g.u('uFogBaseCol'), shaded, trans), targetAlpha: g.div(g.op('cameraNear'), max(g.depth, g.op('cameraNear'))) } }, { depthWrite: true });
+  const graph = g.finish({ surface: { colour: mix(g.u('uFogBaseCol'), shaded, trans), targetAlpha: g.div(g.op('cameraNear'), max(g.depth, g.op('cameraNear'))) } }, { fog: false, depthWrite: true });
   return { ...graph, doubleSided: false };
 }
 
