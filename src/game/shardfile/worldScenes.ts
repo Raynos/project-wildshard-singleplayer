@@ -353,7 +353,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     materialReads.set(id, pending); return pending;
   }
   const refining = new Map<string, RefiningWholeLibrary>();
-  const coarse = section.libraries.some(row => row.kind === 'whole' && row.load === 'refine') ? wholeRefinementCover(ctx, owner, refinementQueue(), refinementOrigin) : undefined;
+  const coarse = section.libraries.some(row => row.kind === 'whole' && row.load === 'refine') ? wholeRefinementCover(ctx, owner, refinementOrigin) : undefined;
   if (coarse !== undefined) handles.addTiled(coarse.content);
   const bufferedContents: TileContent[] = [];
   if (section.cosmeticDraws !== undefined) {

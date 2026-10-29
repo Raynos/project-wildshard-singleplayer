@@ -113,7 +113,7 @@ export async function installClientWorldAssembly(ctx: ShardContext, row: Extract
     // Runtime-bound props bypass the data renderer. Prefer their actual T8
     // parents to a second near-view proxy; both use the same fine-ring mask.
     const standIn = source.props?.tiles.some(tile => tile.lod === 1)
-      ? wholeRefinementCover(ctx, owner, undefined, source.spawn).content : farStandIn(ctx);
+      ? wholeRefinementCover(ctx, owner, source.spawn).content : farStandIn(ctx);
     if (standIn !== null) scenes.addTiled(standIn);
   }
   noteTileBytes(owner, source.tiles); await residentTiles(owner, scenes.tiled(), source.spawn, source.entryways); live();
