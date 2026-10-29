@@ -10,13 +10,12 @@ times out on xcrun (report-only; no Sim pass claimed).
 ~21:10: the BURN-DAMAGE-LIST working copy was truncated (sp-o3) and restored to HEAD; its unlanded delta is unrecoverable, lanes told.
 
 **Jake's QA 10-28 PASSED:** NM, loading / M2, tiles / T10, DW cut B (G827 / G831-G833).
-**Marks:** Nine done NR1-3, 5-7, 12-14 (+ 21 roof c6df3155cd); NR4 done 19bf7a730f; open NR8, NR7 view-F; D204 + NR15 walls fixed cda560abb1. Far Reach FR1-4 done;
-FR5 PICK pending, FR6 done. QF6 / 11 / 19-22 / 24-26 done; D203 / D204 done; QF20 shadow flaky; QF23 / pines -> damage list.  Compare harness fixed; 4 goldens re-shot.
-**Opus:** o3 NR7 view-F, QF20 flake; o4 144 rerun, NR8, ba395 param red; o5 Nalati oracle reds, then D12 frame floor
-(DW spawn 962k tris, 423k shadow). Damage: D12, D199, D201, D202, T7.
-**Codex (G861 / G862 / G867):** done PL4, PL11, PL12, PL14, QF19, DL2, DL3, DO1, N1-N4, phone tool; PL7 partial. x9 PL1 / PL3 / PL13 (partial), x10 PL2 / PL5 marks, LS6 / LS8 / LS9 (LS1-5 done), x6 LS7,
-x2 PL7 (-2.8 s register wait), DL4, x1 PL6 / PL10, DL1.
-**Lanes:** 3 Opus (now 13 % weekly; G853 steps at 60 / 80 %), 5 Codex + sp-ci-deploy.
+**Marks:** Nine done NR1-3, 5-7, 12-14 (+ 21 roof c6df3155cd); NR4 / NR7 view-F done; open NR8, NR16 (tea-house; graph byte cap 64 -> 96 KB approved). Far Reach FR1-4 done;
+FR5 PICK pending, FR6 done. Goldens 132 / 144 (964b257bc8; Nine 20 / 24). QF6 / 11 / 19-22 / 24-26 done; D203 / D204 done; QF20 shadow flaky; QF23 / pines -> damage list. 
+**Opus:** o3 D12 Pine / Nalati drive spikes; o4 NR8, NR16; o5 D12 DW spawn (shadow cut 8e76ea7fb4, no Sim gain; main-thread
+ring streaming, tracing). Sim floor 12 / 15. Damage: D12, D199, D201, D202, T7.
+**Codex:** PL4 / 11 / 12 / 14 done; PL1 / 3 / 6 / 7 / 13 partial (named remaining costs); LS1-5, LS9 done, LS7 partial; x10 LS6 / LS8,
+x1 ring-parse slicing (D12), x6 D12 measuring, x9 Home construction data cost, x2 PL7 module attribution. Damage list truth-passed.
 **Compare harness fixed (sp-o5 2856d1669f):** live game camera, player posed; rerun on 2077a1d673 = 115 / 144 (Nine 10 / 24);
 frames tmp/golden-compare-144/2026-10-28-2077a1d673 for wildshard-v's page. 4 bad LEGACY goldens (Sunscar 21 / 22, Pine 11 / 20) re-shot before LD.
 **Still open for wildshard-v / Jake:** PICK FR6 rest: FR6 done (04ed616aa6, fp32 hash); ~1/3 of the meadow gap left is the sward atlas's
