@@ -13,6 +13,33 @@ import { boundEntryWarmup, ENTRY_CONTENT_MS, ENTRY_NO_FRAME_MS, ENTRY_WARMUP_MS 
 const original = scopeEnvironment();
 afterEach(() => { installScopeEnvironment(original); });
 
+test('an early composer leaves boot view staging and streamed variants to the final inventory', async () => {
+  const source = readFileSync(new URL('Game.ts', import.meta.url), 'utf8');
+  const owner = new Scope('early-composer'), root = new Group(), staged = new Group();
+  const calls: string[] = [], composer = { inputBuffer: {} };
+  const game = { _composer: composer, frameCount: 0, levelScope: owner, rootScene: new Scene(), camera: {},
+    viewmodel: { stage: (actual: Scope): Group => { expect(actual).toBe(owner); calls.push('stage'); return staged; } } };
+  const method = (name: string, end: string, ports: object): ((...args: unknown[]) => unknown) => {
+    const start = source.indexOf(`  ${name}(`), stop = source.indexOf(end, start);
+    if (start === -1 || stop < start) throw new Error('Boot preparation method missing');
+    const value: unknown = runInNewContext(stripTypeScriptTypes(`class Harness { ${source.slice(start, stop).replace("await import('../render/precompile')", 'ports')} }\nHarness.prototype.${name.replace('async ', '')}`), ports);
+    if (typeof value !== 'function') throw new Error('Boot preparation method is not callable');
+    return (...args) => { const result: unknown = Reflect.apply(value, game, args); return result; };
+  };
+  const stage = method('stageViewmodels', '\n  /** Prepare newly streamed', {});
+  const warm = method('async warmSceneRoots', '\n  private postPreparation', {
+    ports: { prepareSceneRoots: (): Promise<void> => { calls.push('streamed'); return Promise.resolve(); }, waitForDrawnFrame: (): Promise<void> => Promise.resolve(), LIVE_UPLOAD_BUDGET: {} },
+    boundEntryWarmup: async (_scope: unknown, _frame: unknown, _label: unknown, run: (current: () => boolean) => Promise<void>): Promise<void> => { await run(() => true); },
+  });
+  try {
+    expect(stage(owner)).toBeNull(); await warm([root], () => true);
+    expect(calls).toEqual([]);
+    game.frameCount = 1;
+    expect(stage(owner)).toBe(staged); await warm([root], () => true);
+    expect(calls).toEqual(['stage', 'streamed']);
+  } finally { owner.dispose(); }
+});
+
 function deferred(): { promise: Promise<void>; resolve: () => void } {
   let finish: () => void = () => undefined;
   const promise = new Promise<void>(resolve => { finish = resolve; });

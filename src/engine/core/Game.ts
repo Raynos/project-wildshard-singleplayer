@@ -803,7 +803,7 @@ export class Game {
    * mid-afterKit drew on the live camera between construction tasks, uploading their textures inside a travel frame,
    * the likely source of the Pine road's 200 ms draw-time upload of two 1024² bitmaps; staged, the warm-up uploads them.) */
   stageViewmodels(owner: Scope): THREE.Group | null {
-    if (this._composer === null) return null;
+    if (this._composer === null || this.frameCount === 0) return null;
     return this.viewmodel.stage(owner);
   }
 
@@ -812,7 +812,9 @@ export class Game {
    * time bound, so a stalled draw/link rejects through their admission issue path. */
   async warmSceneRoots(roots: readonly THREE.Object3D[], current: () => boolean, futureLighting?: THREE.Object3D): Promise<void> {
     const composer = this._composer;
-    if (composer === null) return;
+    // An early boot composer lends its target only to the explicit world census.
+    // Streaming/equipment retain their original whole-world first-frame step.
+    if (composer === null || this.frameCount === 0) return;
     const { prepareSceneRoots, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
     await boundEntryWarmup(this.levelScope, () => this.frameCount, () => 'streamed-scene-roots', async withinBound => {
       const live = (): boolean => withinBound() && current() && this._composer === composer;
