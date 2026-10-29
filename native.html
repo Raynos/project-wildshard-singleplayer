@@ -167,6 +167,7 @@
         const token = {}; running.set(root, token);
         const initialSetup = root.querySelector('[data-el="suPct"]')?.textContent;
         const started = performance.now();
+        let clockStarted = started;
         const previous = waits.pending.get(Number(root.dataset.loadingWaitId));
         if (previous?.inline) waits.pending.delete(previous.id);
         const fallback = { id: ++waits.sequence, label: '', kind: 'work', step: null, owner: null,
@@ -191,11 +192,16 @@
             if (navigation) break;
             const arrival = typeof raw === 'string' ? JSON.parse(raw) : raw;
             if (!arrival || typeof arrival !== 'object') continue;
-            if (arrival.slug === slug && typeof arrival.name === 'string' && arrival.name.length <= 256 && Date.now() - arrival.at >= 0 && Date.now() - arrival.at <= 60000) { name = arrival.name; break; }
+            if (arrival.slug === slug && typeof arrival.name === 'string' && arrival.name.length <= 256 && Date.now() - arrival.at >= 0 && Date.now() - arrival.at <= 60000) {
+              name = arrival.name;
+              if (typeof arrival.at === 'number' && Number.isFinite(arrival.at)) clockStarted = Math.min(started, arrival.at - performance.timeOrigin);
+              break;
+            }
           }
           const picked = JSON.parse(localStorage.getItem('wildshard.save.v2.global') || '{}').keys?.settings?.data?.tier;
           if (picked === 'phone' || picked === 'desktop') tier = picked;
         } catch { /* denied storage: device tier and destination slug remain available */ }
+        root.dataset.clockStartedAt = String(clockStarted);
         field('slug', name);
         field('tier', tier + ' · selecting quality');
         const waitLabel = navigation ? 'Opening ' + name : 'Application modules';
@@ -229,7 +235,7 @@
           if (running.get(root) !== token) { observer?.disconnect(); if (fallback.inline) waits.pending.delete(fallback.id); return; }
           const title = document.documentElement.classList.contains('title-first') && !root.hasAttribute('data-navigation');
           if (!root.isConnected || (!root.hasAttribute('data-shell') && !root.hasAttribute('data-navigation')) || (title && !document.querySelector('[data-title-shell]'))) { observer?.disconnect(); running.delete(root); if (fallback.inline) waits.pending.delete(fallback.id); if (titleWait) titleWait.hidden = true; return; }
-          const seconds = (performance.now() - started) / 1000;
+          const seconds = (performance.now() - clockStarted) / 1000;
           field('clock', String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + (seconds % 60).toFixed(1).padStart(4, '0'));
           resources();
           const wait = selectedWait();

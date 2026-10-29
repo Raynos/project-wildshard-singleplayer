@@ -2,7 +2,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the actual first document before application bundles.
 import { readFileSync } from 'node:fs';
 import { Window } from 'happy-dom';
-import { afterEach, expect, test } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import { showStartTitle } from '../ui/StartTitle';
 import type { TitleDeckView } from '../ui/HUD';
 import { loadingWaitState, type LoadingWaitEntry } from './download';
@@ -11,27 +11,44 @@ const html = readFileSync('index.html', 'utf8');
 const windows: Window[] = [];
 interface Frames { now: number; callbacks: FrameRequestCallback[] }
 afterEach(async () => {
+  vi.restoreAllMocks();
   for (const window of windows.splice(0)) await window.happyDOM.close();
   document.body.innerHTML = '';
 });
-function firstDocument(search: string, frames?: Frames, developer = false): Window {
+function firstDocument(search: string, frames?: Frames, developer = false, handoffMs = 0): Window {
   const window = new Window({ url: `https://launch.test/${search}`, width: 402, height: 874, settings: {
     enableJavaScriptEvaluation: true, disableJavaScriptFileLoading: true, disableCSSFileLoading: true,
     enableImageFileLoading: false, handleDisabledFileLoadingAsSuccess: true,
   } });
   if (frames !== undefined) {
-    Object.defineProperty(window.performance, 'now', { value: () => frames.now });
+    vi.spyOn(window.performance, 'now').mockImplementation(() => frames.now);
     const nativeFrame = window.requestAnimationFrame.bind(window);
     // oxlint-disable-next-line promise/prefer-await-to-callbacks -- RAF returns happy-dom's native handle; this fixture owns callback delivery.
     window.requestAnimationFrame = callback => { frames.callbacks.push(callback); return nativeFrame(() => undefined); };
   }
   windows.push(window);
+  if (handoffMs > 0) window.sessionStorage.setItem('wildshard.save.v2.session', JSON.stringify({keys: {titleArrival: {data: JSON.stringify({
+    slug: 'driftwood-isle', name: 'Home', mode: 'enter', at: window.performance.timeOrigin + (frames?.now ?? 0) - handoffMs,
+  })}}}));
   window.document.write(html);
   // Happy DOM does not retain the head's lexical homeParams across script tags;
   // the real storage-to-Developer gate is covered by the two-engine phone run.
   if (developer) window.document.documentElement.dataset['dev'] = '';
   return window;
 }
+
+test('a fresh document clock retains the real handoff elapsed time without moving its wait deadline', () => {
+  const frames: Frames = {now: 0, callbacks: []}, window = firstDocument('?chunk=driftwood-isle', frames, false, 1700);
+  const root = window.document.querySelector('.ws-load');
+  if (!(root instanceof window.HTMLElement)) throw new Error('Missing inline loading panel');
+  expect(root.querySelector('[data-el="clock"]')?.textContent).toBe('00:01.7');
+  expect(Number(root.dataset['startedAt'])).toBe(0);
+  expect(Number(root.dataset['clockStartedAt'])).toBeCloseTo(-1700, 0);
+  const waits = loadingWaitState(window.document);
+  expect([...waits.pending.values()][0]).toMatchObject({startedAt: 0, progressAt: 0, deadlineMs: 8000});
+  frames.now = 250; for (const render of frames.callbacks.splice(0)) render(frames.now);
+  expect(root.querySelector('[data-el="clock"]')?.textContent).toBe('00:01.9');
+});
 
 test('plain launch paints the approved hero and an indeterminate boat without application modules', () => {
   const window = firstDocument(''), panel = window.document.querySelector('[data-title-shell]');

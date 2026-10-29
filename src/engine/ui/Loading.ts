@@ -55,6 +55,7 @@ export class Loading {
   private els: Record<ElKey, HTMLElement>;
   private rowsEl: HTMLElement;
   private t0 = performance.now();
+  private clockT0 = this.t0;
   private raf = 0;
   private view: ProgressView | null = null;
   private dirty = false;
@@ -110,6 +111,9 @@ export class Loading {
     }
     const startedAt = Number(this.root.dataset['startedAt']);
     if (Number.isFinite(startedAt) && startedAt >= 0 && startedAt <= this.t0) this.t0 = startedAt;
+    this.clockT0 = this.t0;
+    const clockStartedAt = Number(this.root.dataset['clockStartedAt']);
+    if (Number.isFinite(clockStartedAt) && clockStartedAt <= this.t0 && clockStartedAt >= this.t0 - 60000) this.clockT0 = clockStartedAt;
     this.timeline = new LoadingTimeline({ id: 'pending', steps: [{ key: 'modules', label: engineString('s_loading_modules'), weight: 1 }] }, this.t0,
       undefined, {readSetup: () => {
         const shown = this.els.suPct.textContent;
@@ -395,7 +399,7 @@ export class Loading {
     else if (this.admission) this.lastFrameStep = this.admission.detail;
     if (now - this.lastDiagnosticAt > 250) { this.paintDiagnostics(); this.lastDiagnosticAt = now; }
     // the clock is one text node, written only when its tenth of a second changes: it moves every frame
-    const s = (now - this.t0) / 1000;
+    const s = (now - this.clockT0) / 1000;
     set(this.els.clock, engineString('s_c0951c6055b1', [String(Math.floor(s / 60)).padStart(2, '0'), (s % 60).toFixed(1).padStart(4, '0')]));
     // SF67 / G622: within a step the bars, rows and facts repaint at most PAINT_MS apart, not every frame: each repaint
     // snapshots the timeline, the waits and every declared file, then styles, lays out and paints the panel (~180 ms of a

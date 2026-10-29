@@ -19,6 +19,19 @@ beforeEach(() => {
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
 
+it.each([[-1600, '00:01.7'], [-90000, '00:00.1'], [101, '00:00.1']])('adopts bounded handoff clock %s without shifting stage timing', (clock, expected) => {
+  document.body.innerHTML = `<div class="ws-load" data-shell data-started-at="0" data-clock-started-at="${clock}">${loadShellTemplate()}</div>`;
+  const root = document.querySelector<HTMLElement>('.ws-load');
+  if (root === null) throw new Error('Missing handoff shell');
+  root.dataset['loadingWaitId'] = String(beginLoadingWait('Application modules', {inline: true, startedAt: 0, progressAt: 0}));
+  const loading = new Loading({id: 'handoff-clock', name: 'Home'});
+  try {
+    expect(loading.root.querySelector('[data-el="clock"]')?.textContent).toBe(expected);
+    expect(loading.root.dataset['startedAt']).toBe('0');
+    expect([...loadingWaitState().pending.values()].find(wait => wait.owner === currentLoadingTimeline()?.waitOwner)?.startedAt).toBe(0);
+  } finally {loading.scope.dispose();}
+});
+
 it('exposes completed quick rows to passive capture without changing their exclusive clocks', () => {
   const loading = new Loading({id: 'capture', name: 'Capture'});
   try {
