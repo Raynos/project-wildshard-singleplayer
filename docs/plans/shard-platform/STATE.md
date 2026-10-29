@@ -6,8 +6,9 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **Deadline: everything done and archived by 14:00 Cancun** (finish spike d84ac5e875). Cut-offs: look / bug rows 12:15,
 LD9 / LD10 13:30, CO8 archive 13:45, all lanes stop 14:00 (G845).
 
-**LIVE 8621318d93 (build 8621318d9-mvtvd1tf, 13:23): Jake's QA build** (cf1d4066e3 + every QA fix; CO1 done). Jake QAs it now;
-new reports become QA rows fixed at once. LD5-LD10 hold for his 'delete legacy now' (G873).
+**LIVE 8621318d93 (build 8621318d9-mvtvd1tf, 13:23): Jake's QA build** (cf1d4066e3 + every QA fix; CO1 done). Jake QAs it now.
+**QA round 2: [qa-2026-10-29-2](qa-2026-10-29-2-mini-plan.md) (G879), 13:50:** QB1/QB3/QB4 boot path sp-o3 (sp-x1 diagnoses
+the module hang), QB2 sp-o4. LD5-LD10 hold for his 'delete legacy now' (G873).
 
 **Jake 11:50:** he QAs only the build with everything, QA1-QA13 ALL DONE (QA5 cf1d4066e3); the QA build is the first green
 SHA with cf1d + exact six (sp-ci-deploy). QA fixes
