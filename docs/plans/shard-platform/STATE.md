@@ -15,11 +15,13 @@ done (FR3 53a7884102); FR5 grid sun rays, FR6 open. QF6 / 11 / 21 / 22 done; QF2
 **Codex (G861 / G862 / G867):** tool `pnpm phone-loading` done (b863be1b48, ac34371119; live phone 51.2 / 24.7 s). x9 N1, then PL1 /
 PL3 / PL13, x10 PL2 / PL5 / PL14, x6 PL9 / 11 / 8 / 12 / 16, x2 PL7 / PL4 / PL15, x1 QF19 (P1 desktop Settings), PL6 / PL10.
 Then G860 / lint-speed. Done: N2 76003eacee, N3, N4, DL2.
-**Rules (10-28):** G848 no visual work on Codex. G844 / G858 golden-or-before vs after boards. G846 loading detail for all. G828 no crossing cuts, no one-world plan drafts.
+**Rules (10-28):** G828, G844, G846, G848, G858.
 **Lanes:** 3 Opus (now 13 % weekly; G853 steps at 60 / 80 %), 5 Codex + sp-ci-deploy.
-**Still open for wildshard-v / Jake:** the golden rerun (1649573b0d) is 109 vs 110, not 120: NR13 / NR14 / QF25 / QF26 / D204 are
-newly noticed, not regressions (sp-o4 bisect: pre-codec ded7bfb272 and the e4887d98fb frames already show them). the 144-cam compare keeps the player at the probe, so cams 11 / 12 / 17 / 21 / 22 (eye
-150-235 m away) judge ring content outside the player's 5x5 ring; pose the player at each camera (sp-o5, 0934d16e9d). Pine pond gap (490716bbbc) is no bug: the orange is a passing elite, the 'snow' is LEGACY's
+**Compare harness fixed (sp-o5 2856d1669f):** live game camera, player posed; rerun on 2077a1d673 = 115 / 144 (Nine 10 / 24);
+frames tmp/golden-compare-144/2026-10-28-2077a1d673 for wildshard-v's page. 4 bad LEGACY goldens (Sunscar 21 / 22, Pine 11 / 20) re-shot before LD.
+**Still open for wildshard-v / Jake:** PICK FR5 (board f5d698f2a3, art/far-reach/round-43-shardfile-regressions/fr5-rays-origin-board.jpg):
+A = one line (sunDisc.updateMatrix(); patch tmp/sp-o3-fr5/fr5-a.patch) so Far Reach's rays come from the painted sun, not the world origin;
+standalone keel 119,105,93 -> 67,47,29 = the grid's. Rec A: the golden's keel wash is the origin bug, not art; no cost. Pine pond gap (490716bbbc) is no bug: the orange is a passing elite, the 'snow' is LEGACY's
 sky-white shore water over the same canoe (sp-o4, tmp/sp-o4-t10/pond-weapon/evidence.jpg); rec keep SHARDFILE, else a water-look row. Older: herd clock, material variants, D53 CLIs, picks D183 / D185, Far Reach G99 isles.
 
 **Rules:** G704, G807, G853. No reverts (G674), no new Debug rows (G669), never herdr wildshard-v.
