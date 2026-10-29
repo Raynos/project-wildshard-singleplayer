@@ -27,7 +27,7 @@ import { gridPrefetchStatus } from '../grid/prefetch';
 import { currentPageMode } from '../grid/pageMode';
 import { NO_AUDIO, type LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
 
-async function buildData(ctx: SessionContext) : Promise<{ loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; bootSteps: Record<string, number>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
+async function buildData(ctx: SessionContext) : Promise<{ loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
   const { manifest, stage, boot, session } = ctx;
 
   // level.data consumes the per-tab intent before any expensive build can fail.
@@ -50,8 +50,7 @@ async function buildData(ctx: SessionContext) : Promise<{ loading: Loading; audi
   const directPlay = manifest.legacy !== true && (currentPageMode() === 'grid' || session.arrival?.mode === 'enter' || session.arrival?.mode === 'arena');
   const files = bootFiles(manifest, undefined, audioProfile ?? NO_AUDIO, currentPageMode() !== 'grid', directPlay); // Grid never opens the menu card bank.
   useShardSteps(manifest.boot?.steps, manifest.boot?.bytes); // the shard's own loading nouns + weights (src/engine/boot/steps.ts)
-  const bootSteps: Record<string, number> = {}; // each step's wall ms (the host's timings: what a build / rebuild spends where)
-  const plan = createBootPlan((view) => { loading.paint(view); for (const r of view.rows) if (r.state === 'ok') bootSteps[r.key] = Math.round(r.ms); }, { totals: declareTotals(files) });
+  const plan = createBootPlan((view) => { loading.paint(view); }, { totals: declareTotals(files) });
   installByteCounter(plan, files);
   // a boot that throws shows WHY: the loading panel's foot line + the uncaught-exception modal (src/engine/ui/ErrorModal.ts)
   (currentOwner() ?? app.engineScope).listen(window, 'unhandledrejection', (e) => plan.fail(`BOOT FAILED · ${String((e.reason as { message?: string } | null | undefined)?.message ?? e.reason)}`.slice(0, 300)));
@@ -90,7 +89,7 @@ async function buildData(ctx: SessionContext) : Promise<{ loading: Loading; audi
   const deferredAudio = deferExtras ? startDeferredAudioPreload(files, manifest, audioProfile) : null;
   void startViewmodelTextures(manifest.boot?.viewmodelSets ?? false); // the crossbow's + rifle's textures, drawn in a worker while the world builds
   const fieldModels = manifest.fieldModels?.() ?? null;
-  return { ...ctx, loading, audioProfile, files, bootSteps, plan, step, menuLoad, audioLoad, deferredAudio, fieldModels };
+  return { ...ctx, loading, audioProfile, files, plan, step, menuLoad, audioLoad, deferredAudio, fieldModels };
 }
 
 export const dataStage: typeof buildData = buildData;

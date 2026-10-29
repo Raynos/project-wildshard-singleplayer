@@ -1122,9 +1122,10 @@ The navigation shell restarts that inline clock. Eight seconds without new
 bytes exposes a labelled Retry; changing diagnostics cannot renew it. The boot
 card appears at10s, and Retry reloads immediately. Code-pack progress is
 display-only until existing verified download receipts arrive.
-The boot plan's optional duration estimates are internal progress data; the
-loading card replaces them with its completed-work timeline. Ordinary loading
-does not read or write per-device duration history.
+The boot plan publishes actual progress events without a polling frame chain.
+Its `view` samples current step and gap durations on demand. The loading card
+owns its 10 Hz clock and completed-work timeline; no duration estimates or
+per-device timing history are collected.
 
 ### Pre-entry safe
 

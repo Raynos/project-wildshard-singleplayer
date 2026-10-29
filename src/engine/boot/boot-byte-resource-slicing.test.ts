@@ -43,7 +43,7 @@ function entry(name: string, encoded = 10, transfer = 0): PerformanceResourceTim
   return legacyDouble<PerformanceResourceTiming>({ name: new URL(name, location.href).href, encodedBodySize: encoded, transferSize: transfer });
 }
 function counter(): { plan: Plan<BootStep>; views: ProgressView[] } {
-  const views: ProgressView[] = [], plan = createBootPlan(view => { now += cost;views.push(view); }, { totals: declareTotals(files), schedule: null, record: () => undefined });
+  const views: ProgressView[] = [], plan = createBootPlan(view => { now += cost;views.push(view); }, { totals: declareTotals(files) });
   installByteCounter(plan, files);return { plan, views };
 }
 async function finish(): Promise<number> {

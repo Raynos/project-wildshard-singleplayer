@@ -106,7 +106,7 @@ export interface GameplayState {
 export interface Fingerprint {
   schema: 1; lane: string; sha: string; build: string; shard: string; tier: string;
   viewport: { w: number; h: number; dpr: number; touch: boolean };
-  renderer: string; browser: string; errors: string[]; steps: string[];
+  renderer: string; browser: string; errors: string[];
   systems: ReturnType<World['game']['systemLabels']>;
   appStates: AppState[];
   registry: { id: string; category: string; surface: string; floor: boolean; solidFloor: boolean; follows: boolean;
@@ -121,10 +121,10 @@ export interface Fingerprint {
   hud: { cls: string; spot: string; shown: boolean }[];
   saves: Saves;
   facade?: { multiDraw: boolean; batches: number; instances: number };
-  playMs: number; stepMs: Record<string, number>; heapMB: number;
+  playMs: number; heapMB: number;
 }
 export interface ProbeDeps {
-  bootSteps: Record<string, number>; health: () => number; quest: () => unknown;
+  health: () => number; quest: () => unknown;
   /** The retained level world used for leak counts when active frame worlds can be replaced and freed. */
   leakPhysics?: World['physics'];
 }
@@ -275,7 +275,7 @@ export function compiledProgramHash<Shader>(programs: readonly { vertexShader: S
   return sha.digest();
 }
 
-function fingerprint(world: ProbeWorld, deps: ProbeDeps, saves: Saves): Fingerprint {
+function fingerprint(world: ProbeWorld, saves: Saves): Fingerprint {
   const { game, registry, physics, music, audio } = world, pins = harnessPins();
   const totals = { mesh: 0, instanced: 0, instances: 0, skinned: 0, points: 0, lines: 0, sprites: 0, lights: 0, batched: 0 };
   const named: Fingerprint['scene']['named'] = [];
@@ -317,13 +317,13 @@ function fingerprint(world: ProbeWorld, deps: ProbeDeps, saves: Saves): Fingerpr
     schema: 1, lane: pins?.lane ?? '', sha: pins?.sha ?? build.split('-')[0] ?? '', build, shard: world.game.level.id, tier: TIER,
     viewport: { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio, touch: navigator.maxTouchPoints > 0 },
     renderer: typeof renderer === 'string' ? renderer : '', browser: pins?.browser ?? navigator.userAgent, errors: [...(pins?.errors ?? [])],
-    steps: Object.keys(deps.bootSteps), systems: game.systemLabels(), appStates: [...game.app.stateHistory], registry: pieces, registryModels: { models: registry.models().length, sets: registry.sets.length },
+    systems: game.systemLabels(), appStates: [...game.app.stateHistory], registry: pieces, registryModels: { models: registry.models().length, sets: registry.sets.length },
     physics: counts, scene: { totals, named },
     render: { programs: programs.length, programKeys: compiledProgramHash(programs, (shader) => gl.getShaderSource(shader)), memory: { ...game.renderer.info.memory } },
     gpuBytes: pins?.gpuBytes?.() ?? { textures: 0, renderbuffers: 0, buffers: 0, total: 0 },
     audio: { requests: [...new Set(pins?.audioRequests)].map((url) => url.replace(/\?v=[^&]*$/, '')).sort(), state: { style: music.genre, set: audio.samples.set, mood: music.state.mode } },
     hud, saves: { read: [...new Set(saves.read)].sort(), written: [...new Set(saves.written)].sort() },
-    playMs: performance.now(), stepMs: { ...deps.bootSteps }, heapMB: pins?.heapMB?.() ?? 0,
+    playMs: performance.now(), heapMB: pins?.heapMB?.() ?? 0,
   };
   if (audio.bedIds !== undefined) record.audio.beds = audio.bedIds;
   if (music.scoreId !== undefined) record.audio.score = music.scoreId;
@@ -422,7 +422,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
   if (authored !== null && typeof authored === 'object') Object.assign(handles, authored);
   // Harness parity captures the actual boot. Ordinary boots pay no scene/HUD/shader walk
   // unless a diagnostic consumer explicitly asks for the snapshot.
-  let boot = pins ? fingerprint(world, deps, saves) : undefined;
+  let boot = pins ? fingerprint(world, saves) : undefined;
   const probe: EngineProbe<W> = {
     app: Object.freeze({
       get state() { return app.state; },
@@ -441,7 +441,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
     debugSettings: () => levelDebugRows().filter(row => row.choices().length > 0).map(row => ({ id: row.id, value: row.get() })),
     version: 1, world, requireWorld: () => world, memory: () => memoryAttribution.snapshot(), scriptMemory: fixedMemoryCensus, textures: textureReport, get shard() { return { ...handles, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
     colliderTag: (handle) => world.physics.world.colliders.contains(handle) ? tagOf(world.physics.world.getCollider(handle)) : undefined,
-    get boot() { boot ??= fingerprint(world, deps, saves); return boot; }, fingerprint: () => fingerprint(world, deps, saves), pose, nav,
+    get boot() { boot ??= fingerprint(world, saves); return boot; }, fingerprint: () => fingerprint(world, saves), pose, nav,
     budgets: (poses = []) => poseBudgets(world.game.level.id, TIER, world.game.level.budgets, poses),
     leak: async () => {
       requireHarness();

@@ -16,7 +16,6 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { installProbe } from '@wildshard/engine/debug/probe';
 import { lockOn as lockState } from '@wildshard/engine/player/AimTargets';
 import { liveWarmPacing, precompileLevel, queuedLinks } from '@wildshard/engine/render/precompile';
-import { boundEntryWarmup, ENTRY_NO_FRAME_MS, EntryWarmupStallError } from '@wildshard/engine/render/entryWarmupBound';
 import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
 import { lastEnd, registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
@@ -30,6 +29,7 @@ import { observeTitlePreparation, prepareTitleFrame } from './titlePreparation';
 import { installCrashCheckpoint } from './crashResume';
 import { GAME_STRINGS } from '../strings';
 import { currentSpawnDownload } from '../boot/spawnDownload';
+import { waitEntryWork } from './entryReadiness';
 
 /** how often the in-play warm-up asks whether an arrival's Explorer has closed, and how long it waits for one to open */
 const EXPLORER_POLL_MS = 1000, EXPLORER_OPEN_MS = 30_000;
@@ -37,27 +37,15 @@ const EXPLORER_POLL_MS = 1000, EXPLORER_OPEN_MS = 30_000;
  *  it moved nothing (warm step 2.10 -> 2.17 s, f040ca2936): one material's job overruns any such slice there, and the step
  *  is its node builds' CPU, not its painted frames. */
 const BOOT_SHADER_SLICE_MS = 48;
-/** QA8: presented time the world's undrawn programs may take to link under the loader on WebKit (ms); the rest link in play. */
-const WORLD_LINK_MS = 6000;
-
 /** QA8: link the world's programs the spawn view did not draw before the reveal, nearest first, at the in-play pace (a few
- *  programs a frame, each link polled), so play starts with nothing left to compile in its frames. A stall or the cap is
- *  never a load error (G830, G837): the in-play warm-up links whatever is left. */
+ *  programs a frame, each link polled). Only completion or owner retirement ends this loading step. */
 async function linkWorldUnderLoader(game: Awaited<ReturnType<typeof playStage>>['game']): Promise<void> {
   const scope = game.levelScope;
-  try {
-    // FC2: no frame is presented under the loader; the bound's progress is its own tick, its total limit still holds
-    let ticks = 0;
-    await boundEntryWarmup(scope, () => ++ticks, () => 'world-program-links', async current => {
-      await precompileLevel(game, undefined, { sliceMs: 6, current, owner: scope, nearest: true, ...liveWarmPacing() });
-    }, { noFrameMs: ENTRY_NO_FRAME_MS, totalMs: WORLD_LINK_MS });
-  } catch (error) {
-    if (!(error instanceof EntryWarmupStallError) || scope.disposed) throw error;
-  }
+  await waitEntryWork(scope, current => precompileLevel(game, undefined, { sliceMs: 6, current, owner: scope, nearest: true, ...liveWarmPacing() }));
 }
 
 export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
-  const { manifest, boot, slug, loading, audioProfile, files, bootSteps, plan, step, audioLoad, deferredAudio, world, game, sky, player, chunk, fragileBoot, failGpuBoot, onBootContextLost, edgeDressing, boundary, water, interactables, props, disableBootGpuGuard, level, animals, getArena, crossbow, weapons, lockSys, hud, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground, leakPhysics } = ctx;
+  const { manifest, boot, slug, loading, audioProfile, files, plan, step, audioLoad, deferredAudio, world, game, sky, player, chunk, fragileBoot, failGpuBoot, onBootContextLost, edgeDressing, boundary, water, interactables, props, disableBootGpuGuard, level, animals, getArena, crossbow, weapons, lockSys, hud, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground, leakPhysics } = ctx;
   const warmGrid = ctx.gridLive?.bootProgramCell !== null && ctx.gridLive?.bootProgramCell !== undefined && ctx.session.ownedGridHome === true;
 
   // The staged loader invokes the trusted play hook after buildPlay. Only a fully installed runtime can leave:
@@ -173,17 +161,17 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   // L15: the loader fades over the live world, not over the boot's last warm-up render (round 53: a washed-out lower
   // half, an empty minimap and the title ghost under the HUD for ~0.3 s): the loop starts first, and the loader leaves once
-  // two frames have drawn and the minimap's baked map has decoded, waiting at most 1.5 s for both
+  // two frames have drawn and the minimap's baked map has decoded
   app.setState(hud.entered ? 'play' : 'title');
   // MF5 / NP-4: the first world frame is a named step, never a gap after Audio. FC2: nothing free-runs behind the loader;
   // the loop starts parked behind its gate and the first world frame is ONE hidden frame under the opaque card
   await loadingStage('worldFrame', () => { game.start(); game.hiddenFrame(); });
-  // FC2 (L15): the ready frame is one more hidden frame (the minimap's baked map decodes beside it, at most 1.5 s)
+  // FC2 (L15): the ready frame is one more hidden frame; the minimap's baked map decodes beside it
   // MF5 + FC2: what the hidden frames registered in the spawn view (the ring's L0 tiles the first draw asks for) refines
   // under the card too, before the reveal; the minimap's baked map decodes beside it
   await loadingStage('readyFrame', async () => {
     // the hidden frame runs inside the open fence, so the tile driver attaches the spawn ring's fine tiles and they refine now
-    await Promise.all([prepareSpawnView(undefined, () => settleTileDrivers(() => { game.hiddenFrame(); })), Promise.race([ctx.minimap.prepare(), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })])]);
+    await Promise.all([prepareSpawnView(undefined, () => settleTileDrivers(() => { game.hiddenFrame(); })), waitEntryWork(game.levelScope, () => ctx.minimap.prepare())]);
   });
   // P0: the phone's spawn programs settle while loading still covers the reveal.
   // Undrawn world programs remain in the sliced after-control warm-up below.
@@ -285,7 +273,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   ctx.session.residency?.bindComposer(game, game.engineScope, TIER);
   game.captureLevelResources();
   game.levelScope.onDispose(() => { windupWarn?.dispose(); weapons.setEnabled(false); boot.runtime.hooks.dispose?.(); audio.unloadLevel(); });
-  installProbe(handle, { bootSteps, leakPhysics, health: () => playerHealth.attributes.health, quest: () => ({ adventure: boot.runtime.hooks.adventureFlags?.() ?? [], quest: boot.runtime.hooks.questFlags?.() ?? [] }) });
+  installProbe(handle, { leakPhysics, health: () => playerHealth.attributes.health, quest: () => ({ adventure: boot.runtime.hooks.adventureFlags?.() ?? [], quest: boot.runtime.hooks.questFlags?.() ?? [] }) });
   ctx.startExplore?.();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/native/boot.ts, via src/native.ts) waits for this
   const completeOfflineCopy = async (): Promise<void> => {
