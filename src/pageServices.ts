@@ -1,8 +1,8 @@
-import { ENGINE_CONTENT_STRINGS } from './game/engineStrings';
-import { installEngineStrings } from './engine/strings';
-import { installScore } from './engine/audio/score/score';
-import { WILDSHARD_SCORE } from './game/audio/theme';
-import { startTelemetry } from './engine/telemetry/runtime';
+import { ENGINE_CONTENT_STRINGS } from '@wildshard/game/engineStrings';
+import { installEngineStrings } from '@wildshard/engine/strings';
+import { installScore } from '@wildshard/engine/audio/score/score';
+import { WILDSHARD_SCORE } from '@wildshard/game/audio/theme';
+import { startTelemetry } from '@wildshard/engine/telemetry/runtime';
 import { installAudioUnlock } from '@wildshard/engine/audio/unlock';
 import { Scope } from '@wildshard/engine/app/scope';
 

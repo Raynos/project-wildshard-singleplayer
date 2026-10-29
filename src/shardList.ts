@@ -1,7 +1,7 @@
 // The shard list, installed into the game's registry (E362 AG4): the composition root imports every manifest
 // (src/shards.generated.ts), so the game layer never does. entry.ts loads this before the game or the title deck.
-import { installShards } from './game/shard/list';
-import { game } from './game/shard/registry';
+import { installShards } from '@wildshard/game/shard/list';
+import { game } from '@wildshard/game/shard/registry';
 import { SHARDS, LEGACY_SHARDS, LEGACY_CONTENT_IDENTITIES } from './shards.generated';
 
 installShards([...SHARDS, ...LEGACY_SHARDS], LEGACY_CONTENT_IDENTITIES);

@@ -251,13 +251,6 @@
     "src/shards/nalati-grasslands/generators/bake-nalati-bodies.d.mts": 1,
     "src/shards/nalati-grasslands/generators/horseBody.ts": 1
   },
-  "wildshard/public-index": {
-    "src/entry.ts": 21,
-    "src/identity.ts": 2,
-    "src/native.ts": 1,
-    "src/pageServices.ts": 5,
-    "src/shardList.ts": 2
-  },
   "wildshard/sdk-no-facade": {
     "src/sdk/kit/bakedGeometry.ts": 7,
     "src/sdk/phasedBoss.ts": 9,
