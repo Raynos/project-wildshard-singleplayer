@@ -180,8 +180,8 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // MF5 + FC2: what the hidden frames registered in the spawn view (the ring's L0 tiles the first draw asks for) refines
   // under the card too, before the reveal; the minimap's baked map decodes beside it
   await loadingStage('readyFrame', async () => {
-    game.hiddenFrame();
-    await Promise.all([prepareSpawnView(), Promise.race([ctx.minimap.prepare(), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })])]);
+    // the hidden frame runs inside the open fence, so the tile driver attaches the spawn ring's fine tiles and they refine now
+    await Promise.all([prepareSpawnView(undefined, () => { game.hiddenFrame(); }), Promise.race([ctx.minimap.prepare(), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })])]);
   });
   // P0: the phone's spawn programs settle while loading still covers the reveal.
   // Undrawn world programs remain in the sliced after-control warm-up below.

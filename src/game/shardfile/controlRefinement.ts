@@ -1,5 +1,6 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { whenControl } from '@wildshard/engine/boot/prefetch';
+import { pageScope } from '@wildshard/engine/app/resources';
 
 interface Point { readonly x: number; readonly z: number }
 interface Job {
@@ -15,8 +16,14 @@ export const SPAWN_VIEW_M = 160;
 let spawnView: { readonly radius: number } | null = null;
 const queues = new Set<ControlRefinement>();
 /** Run every queue's spawn-view jobs now and resolve once none is left (a failure rejects, as the job's own promise does). */
-export async function prepareSpawnView(radius: number = SPAWN_VIEW_M): Promise<void> {
+export async function prepareSpawnView(radius: number = SPAWN_VIEW_M, settle?: () => void): Promise<void> {
   spawnView = { radius };
+  if (settle !== undefined) {
+    // the content a frame asks for while the fence is open (the tile driver attaches only ready content) queues its jobs
+    // a few tasks after it: let them arrive before the queues are read
+    settle();
+    for (let turn = 0; turn < 3; turn++) await new Promise<void>(resolve => { pageScope.timeout(0, resolve); });
+  }
   // what the fence saw, for the loading rulers (a viewer far from its jobs runs nothing)
   performance.mark('wildshard.spawn-view', { detail: [...queues].map(queue => queue.describe()) });
   try {
@@ -51,8 +58,9 @@ export class ControlRefinement {
     if (level === undefined) this.active = true;
     else whenControl(level, owner, () => { owner.raf(() => { owner.raf(() => { this.active = true; this.kick(); }); }); });
   }
-  /** Whether the first controlled paint has completed. */
-  get ready(): boolean { return this.active && !this.owner.disposed && !this.owner.disposing; }
+  /** Whether the first controlled paint has completed, or the loader's spawn-view fence is open (MF5): either way the
+   *  tile driver may attach this queue's content, and its jobs queue (only in-view ones run before control). */
+  get ready(): boolean { return (this.active || spawnView !== null) && !this.owner.disposed && !this.owner.disposing; }
   add(id: string, at: Point, run: () => Promise<void>): Promise<boolean> {
     if (this.owner.disposed || this.owner.disposing) return Promise.resolve(false);
     if (this.failure !== undefined) return Promise.reject(this.failure);
