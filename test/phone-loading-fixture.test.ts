@@ -6,16 +6,16 @@ test('optional fixtures leave the original ruler settings alone', () => {
   expect(parseSaveFixture(undefined)).toBeUndefined();
 });
 
-test('worker A/B choices use the original durable save fixture path', () => {
+test('scalar choices use the original durable save fixture path', () => {
   const previous = localStorage.getItem('wildshard.save.v2.device');
   const previousGlobal = localStorage.getItem('wildshard.save.v2.global');
   try {
-    for (const data of ['main', 'workers']) {
-      const fixture = parseSaveFixture(JSON.stringify({scope: 'device', key: 'debug.dataPreparation', data}));
-      if (fixture === undefined) throw new Error('Missing data preparation fixture');
+    for (const data of [true, false]) {
+      const fixture = parseSaveFixture(JSON.stringify({scope: 'device', key: 'fixture.option', data}));
+      if (fixture === undefined) throw new Error('Missing scalar save fixture');
       writeSaveFixture(fixture);
       const stored: unknown = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? 'null');
-      expect(stored).toMatchObject({keys: {'debug.dataPreparation': {v: 1, data}}});
+      expect(stored).toMatchObject({keys: {'fixture.option': {v: 1, data}}});
     }
   } finally {
     if (previous === null) localStorage.removeItem('wildshard.save.v2.device'); else localStorage.setItem('wildshard.save.v2.device', previous);
@@ -25,8 +25,8 @@ test('worker A/B choices use the original durable save fixture path', () => {
 
 test('invalid scope, shape, key and merge requests refuse before opening a browser', () => {
   for (const value of [null, [], {}, {scope: 'device', key: '__proto__', data: true},
-    {scope: 'device', key: 'debug.dataPreparation'}, {scope: 'other', key: 'pick', data: true},
-    {scope: 'device', key: 'pick', data: true, merge: 'yes'}, {scope: 'device', key: 'pick', data: 'workers', merge: true},
+    {scope: 'device', key: 'fixture.option'}, {scope: 'other', key: 'pick', data: true},
+    {scope: 'device', key: 'pick', data: true, merge: 'yes'}, {scope: 'device', key: 'pick', data: 'scalar', merge: true},
     {scope: 'device', key: 'pick', data: true, once: ''}, {scope: 'device', key: 'pick', data: true, extra: true}]) {
     expect(() => parseSaveFixture(JSON.stringify(value))).toThrow();
   }

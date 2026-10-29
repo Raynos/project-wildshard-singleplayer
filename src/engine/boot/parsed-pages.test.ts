@@ -1,11 +1,10 @@
 import {expect, test} from 'vitest';
-import {decodeParsedPages, encodeParsedPages} from './parsedPages';
-import {preparationWork} from './preparationWork';
+import {decodeParsedPages, encodeParsedPages, parseJsonPages} from './parsedPages';
 
 test('paged native parsing retains every scalar, property, array and numerical bit', async () => {
   const json = String.raw`{"__proto__":{"safe":true},"constructor":7,"rows":[{},[],null,false,-0,1e400,-1e400,0.004753960503472321],"10":1,"2":2,"unicode":"森林 🐟\ud800"}`;
   const bytes = new TextEncoder().encode(json), before = bytes.slice();
-  const transfer = preparationWork('parse-pages', bytes);
+  const transfer = parseJsonPages(bytes);
   if (!(transfer instanceof Uint8Array)) throw new Error('Paged parser missing binary transfer');
   let pauses = 0;
   const actual = await decodeParsedPages(transfer, () => {pauses++; return Promise.resolve();});

@@ -63,8 +63,8 @@ export interface ProductProgress {
 }
 /** Loading is explicit about connectivity and first-party provenance, never inferred from an author field. */
 export interface ProductOptions {
-  /** Trusted optional data-only worker. Original bytes, hashes and validators own admission. */
-  dataWorker?: { parse: (bytes: Uint8Array) => Promise<unknown>; receipt: (value: unknown) => Promise<Uint8Array> };
+  /** Optional live parser; boot and receipts stay on the page. Hashes/validators retain admission. */
+  parseJson?: (bytes: Uint8Array) => Promise<unknown>;
   /** Trusted renderer tier; only typed host alternatives affect transport selection and resident estimates. */
   tier?: 'phone' | 'desktop';
   /** Trusted namespaced quality overrides, captured before profile admission. */
@@ -119,7 +119,7 @@ export async function readIndexBytes(bytes: Uint8Array, options: ProductOptions)
   const built = options.firstParty ? options.built : undefined;
   if (built !== undefined) await checkBuiltIndex(await options.hash(bytes), options);
   await options.pause?.();
-  return options.dataWorker === undefined ? JSON.parse(descriptorDecoder.decode(bytes)) : options.dataWorker.parse(bytes);
+  return options.parseJson === undefined ? JSON.parse(descriptorDecoder.decode(bytes)) : options.parseJson(bytes);
 }
 /** A first-party index whose bytes' `hash` this build does not list takes stale-client recovery (a no-op otherwise). */
 export async function checkBuiltIndex(hash: string, options: ProductOptions): Promise<void> {
@@ -215,7 +215,7 @@ async function readBoundedResponse(response: Response, maximum: number, read?: (
 function resolveDescriptor(input: unknown, options: ProductOptions, lineage = false, background = false): Promise<unknown> {
   const base = new URL('.', options.base).href, cache = options.cache, backgroundStore = cache?.putAssetBackground;
   return resolveOutputDescriptor(input, {
-    ...(options.dataWorker === undefined ? {} : { dataWorker: options.dataWorker }),
+    ...(options.parseJson === undefined ? {} : { parseJson: options.parseJson }),
     offline: options.offline, hash: options.hash, firstParty: options.firstParty, deferAssetDeclarations: true, ...(lineage ? { lineage } : {}),
     ...(options.cacheHintTurn === undefined ? {} : { cacheHintTurn: options.cacheHintTurn }),
     ...(options.pause === undefined ? {} : { pause: options.pause }),
@@ -631,7 +631,7 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
 }
 /** Browser Cache Storage retains exact hash bytes separately from the last completely admitted visited product. */
 export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partial<Pick<CacheStorage, 'delete'>>,
-  preparation: Pick<ProductOptions, 'pause' | 'dataWorker'> = {}): ProductCache {
+  preparation: Pick<ProductOptions, 'pause' | 'parseJson'> = {}): ProductCache {
   const open = () => storage.open(PRODUCT_CACHE_NAME);
   const productUrl = (base: string) => new URL('__visited_shardfile__', base).href;
   const ownedContent = browserContentStore(storage);
@@ -640,7 +640,7 @@ export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partia
       const response = await (await open()).match(productUrl(base)); if (response === undefined) return null;
       const bytes = await boundedResponse(response, limits.sourceBytes);
       await preparation.pause?.();
-      const value: unknown = preparation.dataWorker === undefined ? JSON.parse(descriptorDecoder.decode(bytes)) : await preparation.dataWorker.parse(bytes);
+      const value: unknown = preparation.parseJson === undefined ? JSON.parse(descriptorDecoder.decode(bytes)) : await preparation.parseJson(bytes);
       await preflightProduct(value, preparation.pause);
       if (typeof value !== 'object' || value === null || !('source' in value) || !('firstParty' in value) || typeof value.firstParty !== 'boolean') throw new Error('Invalid visited shardfile cache');
       const rawValidation = 'validation' in value ? value.validation : undefined;

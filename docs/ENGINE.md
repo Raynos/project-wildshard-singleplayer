@@ -6220,6 +6220,12 @@ Storage budgets and quota estimates retain their existing limits. Durable
 blob writes finish before acknowledgement, while dirty index metadata
 shares the existing two-second flush window and flushes on pagehide/close.
 
+### Live JSON preparation
+
+`@wildshard/engine/boot/liveJsonParser` owns post-control-only, paced
+JSON parsing. `parsePaced(bytes, pause)` keeps byte/lifetime guards.
+Boot JSON and receipts stay on the page.
+
 ### Paired visual channels and prompts
 
 `plugin/ui.bindClientChannels(programs, ports)` binds named private scene

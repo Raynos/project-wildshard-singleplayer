@@ -1,6 +1,4 @@
-import { validationSourceBytesPaced } from '@wildshard/format/validationReceipt';
-import { diagnosticNow } from '@wildshard/engine/core/clock';
-import { browserDataPreparation, dataPreparation } from '@wildshard/engine/boot/dataPreparation';
+import { browserLiveJsonParser } from '@wildshard/engine/boot/liveJsonParser';
 import { tierProductFilesPaced } from './productCost';
 import { lateFiles } from './controlFiles';
 import { productCacheCompletion } from './productCacheCompletion';
@@ -86,16 +84,11 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     pageScope.onDispose(() => { entryTransport()?.stop(); });
   }
   prepareContentHash();
-  // Boot keeps its explicit variant. Live JSON parsing stays in the worker,
-  // but its tree returns in bounded pages, avoiding a whole-tree clone. The
-  // existing paced receipt encoder likewise avoids cloning a tree to the worker.
-  const explicitWorker = dataPreparation() === 'workers';
-  const preparation = explicitWorker || productControlsReady ? browserDataPreparation() : undefined;
+  // A is the sole boot path. The independently qualified D12 live parser
+  // remains after control, with bounded pages and the original paced receipt.
   const pause = pauseDescriptor();
-  const dataWorker = preparation === undefined ? undefined : {
-    parse: (bytes: Uint8Array) => explicitWorker ? preparation.parse(bytes) : preparation.parsePaced(bytes, pause),
-    receipt: (value: unknown) => explicitWorker ? preparation.receipt(value) : validationSourceBytesPaced(value, pause, diagnosticNow),
-  };
+  const parseJson = !productControlsReady ? undefined
+    : (bytes: Uint8Array) => browserLiveJsonParser().parsePaced(bytes, pause);
   const verifiedHash = async (bytes: Uint8Array): Promise<string> => {
     const result = await browserContentHash(bytes);
     entryTransport()?.expand();
@@ -114,7 +107,7 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     const sent = await waitFor(`Verify ${productResourceRole(path.href)}`, content.fetchVerified(path.href, hash, bytes, { reply: 'bytes', urlCache: indexed !== undefined }), 'worker');
     return sent === null || sent.fetched === null ? null : { bytes: sent.fetched, cached: sent.cached, stored: sent.stored };
   } : undefined;
-  return { ...(dataWorker === undefined ? {} : { dataWorker }), base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: verifiedHash, hashOwned: hashOwnedBytes,
+  return { ...(parseJson === undefined ? {} : { parseJson }), base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: verifiedHash, hashOwned: hashOwnedBytes,
     backgroundFetch: (url, signal) => fetch(url, { priority: 'low', ...(signal === undefined ? {} : { signal }) }),
     fetch: (url, signal) => waitFor(`Read ${productResourceRole(url, base)}`, (async () => {
       if (indexed !== undefined && new URL(url, base).pathname.endsWith('/shard.json')) {
@@ -147,7 +140,7 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     },
     pause, cacheBatch: true,
     ...(firstParty && builtIndexes !== null ? { built: { indexes: builtIndexes, stale: staleRecovery } } : {}),
-    ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches, { pause, ...(dataWorker === undefined ? {} : { dataWorker }) }) }),
+    ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches, { pause, ...(parseJson === undefined ? {} : { parseJson }) }) }),
   };
 }
 

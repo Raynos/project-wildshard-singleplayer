@@ -18,8 +18,8 @@ export interface OutputDescriptorChecks {
 export interface OutputDescriptorReader {
   /** Node author bundles supply their defining checked port; authored JSON cannot provide it. */
   checks?: OutputDescriptorChecks;
-  /** Optional data-only worker; hashes and all admission checks remain here. */
-  dataWorker?: { parse: (bytes: Uint8Array) => Promise<unknown>; receipt: (value: unknown) => Promise<Uint8Array> };
+  /** Optional live parser; hashes, receipts and all admission checks remain here. */
+  parseJson?: (bytes: Uint8Array) => Promise<unknown>;
   /** Admission will declare its device-selected asset bank after section verification. */
   deferAssetDeclarations?: boolean;
   /** Expected sizes come from the parsed product index, before any section reads. */
@@ -102,7 +102,6 @@ function buildValidatedSource(value: unknown, sourceHash: string, indexHash: str
 }
 
 function receiptBytes(value: unknown, reader: OutputDescriptorReader): Uint8Array | Promise<Uint8Array> {
-  if (reader.dataWorker !== undefined) return reader.dataWorker.receipt(value);
   return reader.pause === undefined ? validationSourceBytes(value) : validationSourceBytesPaced(value, reader.pause, diagnosticNow);
 }
 function indexReceipt(value: unknown, digest?: string): ValidationReceipt | null {
@@ -201,7 +200,7 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
       reader.cacheHit?.(section.path, section.hash, bytes.length);
     }
     if (reader.firstParty === true) await reader.pause?.();
-    const value: unknown = reader.dataWorker === undefined ? JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) : await reader.dataWorker.parse(bytes);
+    const value: unknown = reader.parseJson === undefined ? JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) : await reader.parseJson(bytes);
     if (reader.firstParty === true) await reader.pause?.();
     return [section.name, value];
   };

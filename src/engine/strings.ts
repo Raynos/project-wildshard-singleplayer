@@ -2,10 +2,6 @@
 export const ENGINE_STRINGS = {
   "s_spawn_ring_reveal": "Reveal at 3x3 spawn ring",
   "s_spawn_ring_reveal_note": "Developer experiment; reloads. Off waits for full coverage. On reveals after the required spawn ring and streams the remaining coverage.",
-  "s_data_preparation": "Data preparation",
-  "s_data_main": "A · Main thread",
-  "s_data_workers": "B · Workers",
-  "s_data_preparation_note": "G865: parse and receipt encoding off the page; reloads.",
   "s_update_heading": "Updating",
   "s_update_next_boundary": "New version · reload",
   "s_update_next_boundary_dev": "new ⟦0⟧ · reload",

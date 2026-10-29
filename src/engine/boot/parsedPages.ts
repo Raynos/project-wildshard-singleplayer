@@ -1,5 +1,11 @@
 /** Private worker transfer format: bounded JSON token pages, never a cloned
  * descriptor tree. Admission still runs on the completely reconstructed tree. */
+/** Native fatal UTF-8/JSON semantics, then bounded live-parser transfer pages. */
+export function parseJsonPages(bytes: Uint8Array): Uint8Array {
+  const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  return encodeParsedPages(value);
+}
+
 type Token = readonly ['o' | 'a', number] | readonly ['s', string, boolean]
   | readonly ['n', string] | readonly ['v', boolean | null];
 
