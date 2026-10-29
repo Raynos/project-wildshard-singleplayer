@@ -28,6 +28,7 @@ import { settingsReloadUrl } from './Settings';
 import type { DebugRowSpec } from '../level/context';
 import { isDev, onDev } from '../core/devMode';
 import { setTileResidency, tileResidency, TILE_RESIDENCY, setRoadResidency, roadResidency, ROAD_RESIDENCY } from './tileResidency';
+import { SHADOW_CADENCES, setShadowCadence, shadowCadence } from '../world/shadowCadence';
 
 const scope = uiScope('debugOptions', app.engineScope);
 
@@ -158,6 +159,12 @@ const tileResidencyRow: DebugRow = { purpose: 'developer', id: 'tileResidency', 
   get: () => tileResidency(), set: value => { const pick = TILE_RESIDENCY.find(choice => choice === value); if (pick !== undefined && isDev()) setTileResidency(pick); },
   on: () => undefined, reload: true, when: always, note: engineString('s_tile_residency_note'), ask: 'E435', reviewBy: '2026-12-30' };
 
+/** BA-3 (MF7 battery, G899): the phone rig's cascade cadence, E189's against the staggered one; the winner ships and this goes. */
+const shadowCadenceRow: DebugRow = { purpose: 'developer', id: 'shadowCadence', group: 'perf', label: engineString('s_shadow_cadence'),
+  choices: () => [{ v: 'alternate', text: engineString('s_shadow_cadence_alternate') }, { v: 'staggered', text: engineString('s_shadow_cadence_staggered') }],
+  get: () => shadowCadence(), set: value => { const pick = SHADOW_CADENCES.find(choice => choice === value); if (pick !== undefined && isDev()) setShadowCadence(pick); },
+  on: () => undefined, reload: false, when: always, note: engineString('s_shadow_cadence_note'), ask: 'E435', reviewBy: '2026-11-05' };
+
 /** S3's temporary resident/streamed road comparison; default stays resident. */
 const roadResidencyRow: DebugRow = { purpose: 'developer', id: 'roadResidency', group: 'perf', label: engineString('s_road_residency'),
   choices: () => [{ v: 'resident', text: engineString('s_road_resident') }, { v: 'tiles', text: engineString('s_road_tiles') }],
@@ -181,6 +188,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Performance ──
   tileResidencyRow,
+  shadowCadenceRow,
   roadResidencyRow,
 
   // ── Loading & memory ──

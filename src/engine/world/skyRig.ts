@@ -1,4 +1,5 @@
 import { PLANET_DIST, SkyBackdropView, cloudLayer, paintedSkyEnvironment } from './skyBackdrop';
+import { cascadeRedraws, shadowCadence } from './shadowCadence';
 import { ownSceneResource } from '../app/sceneOwnership';
 import { BackdropLayer, applyLayers, layerKeyedSky, seedLayerTargets, type LayeredSkyBackdrop, type LayerEnvironmentOnly } from './backdropLayer';
 import { app } from '../app/runtime';
@@ -415,6 +416,7 @@ export class SkyRig {
    * drawn with (WebGLShadowMap skips a light with autoUpdate off before it updates `shadow.matrix`), so the far shadows sit
    * exactly where they were, one frame old; only a moving caster out there (a palm swaying) steps at 15 Hz. The near and
    * middle cascades (the deck, the pier, the flag, everything within 22 m) are redrawn every frame, as before.
+   * BA-3 (MF7 battery): Settings ▸ Debug ▸ Shadow cadence tries the middle every 2nd and the far every 4th (shadowCadence.ts).
    */
   private farEveryOther = false;
   private farTick = 0;
@@ -430,8 +432,7 @@ export class SkyRig {
    * bias and the fade's ghosts (Game.warmTurn: the boot draws the world once facing each way).
    */
   warmShadows(): void {
-    const far = this.csm.lights[this.csm.lights.length - 1];
-    if (this.farEveryOther && far) far.shadow.autoUpdate = true; // the boot's warm-up draws every cascade
+    if (this.farEveryOther) for (const light of this.csm.lights) light.shadow.autoUpdate = true; // the boot's warm-up draws every cascade
     this.csm.update();
     if (this.texelBias) this.fitNormalBias();
     this.shadowFade?.warm();
@@ -458,9 +459,9 @@ export class SkyRig {
     if (this.texelBias) this.fitNormalBias();
     this.shadowFade?.update(dt); // after the CSM and its bias: each ghost copies its cascade's square
     if (this.farEveryOther) {
-      const far = this.csm.lights[this.csm.lights.length - 1];
-      this.farTick = (this.farTick + 1) % 2;
-      if (far) far.shadow.autoUpdate = this.farTick === 0;
+      this.farTick = (this.farTick + 1) % 4;
+      const redraw = cascadeRedraws(shadowCadence(), this.farTick, this.csm.lights.length);
+      this.csm.lights.forEach((light, i) => { light.shadow.autoUpdate = redraw[i] ?? true; });
     }
     this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
     if (B?.updateAt === 'late') B.update(dt, this.camera); // a clock that steps its own shadow light: after the cascades
