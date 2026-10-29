@@ -1,5 +1,6 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
+import { emitFault } from '@wildshard/engine/core/faults';
 import { crossingLoadingRows } from '../boot/loadingPaths';
 import { loadingUnits } from '@wildshard/engine/boot/waits';
 /**
@@ -230,6 +231,7 @@ export class LiveGridSession {
   /** The periodic autosave in flight: one stage a frame, superseded by any direct checkpoint (rt3-freeze). */
   private autosave: Generator<undefined, boolean> | null = null;
   private autosaveCaptured = false;
+  private reportedAutosave = false;
   /** G101: the last road point, where a fall that began from the road recovers */
   private readonly road: RoadRecovery;
   private readonly respawnCells = new Map<string, RoadRecoveryCell>();
@@ -359,7 +361,7 @@ export class LiveGridSession {
       this.road.observe(feet, traveller.yaw, grounded, recoveryCell, shardGround);
       // rt3-freeze: the 5 s autosave captures here, at the fixed boundary, and encodes / writes a stage a frame below;
       // done in one go it froze a template cell 1.0–1.6 s every ~6.2 s on the phone.
-      if (++saveTicks >= 300) { saveTicks = 0; this.autosave?.return(false); this.autosave = this.checkpointSteps(); this.stepAutosave(); this.autosaveCaptured = true; }
+      if (++saveTicks >= 300) { saveTicks = 0; this.captureAutosave(); }
     });
     page.onInput(() => { traveller.camera.position.sub(this.applied); this.applied.set(0, 0, 0); });
     scope.onDispose(() => { this.autosave?.return(false); this.autosave = null; });
@@ -439,12 +441,24 @@ export class LiveGridSession {
     this.autosave?.return(false); this.autosave = null; // a direct save supersedes a staged one still in flight
     return finishSimSteps(this.checkpointSteps());
   }
-  /** Advance the periodic autosave by one stage; it finishes (or is superseded) within a few frames. */
+  /** Periodic failures are local bookkeeping; direct checkpoints retain their failure policy. */
+  private autosaveFault(error: unknown): void {
+    if (this.reportedAutosave) return;
+    this.reportedAutosave = true; emitFault({system: 'grid.autosave', error, verdict: 'retry'});
+  }
+  /** The fixed boundary supersedes only the old staged job. A failed cancellation
+   * cannot prevent a fresh capture or claim persistence for the failed one. */
+  private captureAutosave(): void {
+    const previous = this.autosave; this.autosave = null;
+    try {previous?.return(false);} catch (error) {this.autosaveFault(error);}
+    this.autosave = this.checkpointSteps(); this.stepAutosave(); this.autosaveCaptured = true;
+  }
+  /** Advance one stage without allowing a failed save to abort the shared frame. */
   private stepAutosave(): void {
     const autosave = this.autosave;
     if (autosave === null) return;
     try { if (autosave.next().done === true && this.autosave === autosave) this.autosave = null; }
-    catch (error) { if (this.autosave === autosave) this.autosave = null; throw error; }
+    catch (error) { if (this.autosave === autosave) this.autosave = null; this.autosaveFault(error); }
   }
   /** {@link checkpoint} in stages: the first `next()` captures the region; each later one may run a frame later. */
   private *checkpointSteps(): Generator<undefined, boolean> {
