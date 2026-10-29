@@ -84,7 +84,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp scripts/deploy-pin.mjs scripts/deploy-version.mjs "$RUNNER_TEMP/"
+          cp scripts/deploy-pin.mjs scripts/deploy-version.mjs scripts/deploy-source-maps.mjs "$RUNNER_TEMP/"
           node "$RUNNER_TEMP/deploy-pin.mjs" read
 
       - name: Check out the pin
@@ -274,7 +274,7 @@ jobs:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
           DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
         run: |
-          node scripts/deploy-source-maps.mjs .vercel/output/static
+          node "$RUNNER_TEMP/deploy-source-maps.mjs" .vercel/output/static
           url=$(vercel deploy --prebuilt --prod --yes --scope raynos-projects --token "$VERCEL_BUILD_TOKEN")
           echo "deployed $url for $DEPLOY_SHA (the pin)"
           echo "### Deployed \`$DEPLOY_SHA\` (the deploy pin) to $url" >> "$GITHUB_STEP_SUMMARY"

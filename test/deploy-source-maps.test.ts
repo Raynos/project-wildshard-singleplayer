@@ -60,9 +60,11 @@ test('the helper refuses an ordinary build directory before deleting diagnostic 
   expect(inventory(dist)).toEqual(before);
 });
 
-test('the workflow CLI filters its artifact and reports the actual removed bytes', () => {
-  const {dist,artifact}=fixture(); cpSync(dist,artifact,{recursive:true});
-  const child=spawnSync(process.execPath,[resolve('scripts/deploy-source-maps.mjs'),artifact],{encoding:'utf8'});
+test('the workflow CLI remains standalone after checking out a historical release pin', () => {
+  const {root,dist,artifact}=fixture(); cpSync(dist,artifact,{recursive:true});
+  const helper=join(root,'current-tools/deploy-source-maps.mjs');mkdirSync(dirname(helper),{recursive:true});
+  cpSync(resolve('scripts/deploy-source-maps.mjs'),helper);
+  const child=spawnSync(process.execPath,[helper,artifact],{encoding:'utf8',cwd:root});
   expect(child.status,child.stderr).toBe(0);
   const result: unknown=JSON.parse(child.stdout);
   expect(result).toMatchObject({files:2});expect(existsSync(join(artifact,'assets/main.js.map'))).toBe(false);
@@ -71,8 +73,10 @@ test('the workflow CLI filters its artifact and reports the actual removed bytes
 
 test('deployment archives build maps before stripping only the public artifact', () => {
   const archive=deploy.indexOf('name: Retain production source maps privately');
-  const strip=deploy.indexOf('node scripts/deploy-source-maps.mjs .vercel/output/static');
+  const strip=deploy.indexOf('node "$RUNNER_TEMP/deploy-source-maps.mjs" .vercel/output/static');
   const upload=deploy.indexOf('url=$(vercel deploy --prebuilt');
   expect(archive).toBeGreaterThan(0); expect(strip).toBeGreaterThan(archive);expect(upload).toBeGreaterThan(strip);
   expect(deploy.slice(archive,strip)).toContain('dist/**/*.map');
+  const beforePin=deploy.split('      - name: Read the deploy pin')[1]?.split('      - name: Check out the pin')[0];
+  expect(beforePin).toContain('scripts/deploy-source-maps.mjs "$RUNNER_TEMP/"');
 });

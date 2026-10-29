@@ -1,6 +1,6 @@
 # Wildshard deployment asset trim
 
-**State:** `in progress` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). Unowned. Done: T1 (API test functions out of the deploy). T3 moved to GAME-NORMALIZATION X3. Open: T2 (public source maps), T4 (HDRIs + videos), T5 (big packs off the deploy, after a cost comparison), each with its offline-reload gate; T6 (the hourly cron fires every 4–6 h and *Verify production* reds a good deploy).
+**State:** `in progress` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). Unowned. Done: T1 (API test functions out of the deploy). T3 moved to GAME-NORMALIZATION X3. Open: T2 (DA1 source built; first release smoke pending), T4 (HDRIs + videos), T5 (big packs off the deploy, after a cost comparison), each with its offline-reload gate; T6 (the hourly cron fires every 4–6 h and *Verify production* reds a good deploy).
 
 The clean-export prebuilt output contains 1,375 static files / 524.5 MiB.
 Largest classes: GPU assets 202.7 MiB, original textures 82.7 MiB,
@@ -11,7 +11,7 @@ The Vercel build also creates four API functions. Two are test files under
 | Priority | Candidate | Gate before removal | Expected effect |
 | --- | --- | --- | --- |
 | T1 — done | Move `api/*.test.ts` out of Vercel's function discovery path | 619 tests pass; clean prebuilt output has two real functions; production `/api/inbox` and `/api/errors` each return 401 without credentials | Removed two unnecessary functions from every deployment |
-| T2 | Audit production `.js.map` files | Confirm Sentry debugging does not depend on publicly served maps; retain a private upload if needed | Up to 19.2 MiB less static output |
+| T2 — in flight (2026-10-29, sp-x9; G874 / DA1) | Source `97ec95cb7e` keeps local/CI maps and archives exact release maps privately, stripping only the public Vercel artifact. On shared build `66aea74-mvtp36yh`, 268 maps / 52,195,001 bytes (49.777 MiB) are omitted; all 9,313 remaining runtime hashes and the entire original build are exact. | Seven focused controls, types and typed lint pass; sp-ci-deploy confirms consumers and ownership. The first containing production release / exact boot smoke remains pending; no release pass is claimed. | 49.777 MiB less public static output on the measured build |
 | T3 | Map original `assets/tex/` textures against GPU KTX2 variants and runtime fallbacks | Automated reference search plus real desktop and phone boot/offline checks for all three shards | Remove only verified duplicate originals from the 82.7 MiB class |
 | T4 | Inventory 26 HDRIs and two videos against live scenes and trailer links | Keep every selected sky/time-of-day and user-facing video | Compress or omit unused members of the 48.5 MiB combined class |
 | T5 | Keep large immutable packs outside frequent deployment output only after a measured cost comparison | Compare Vercel deployment storage against Blob/CDN storage and transfer, then verify offline precache and update behavior | Reduce per-deployment bytes if the external path is cheaper |
