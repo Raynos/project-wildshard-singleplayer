@@ -265,7 +265,7 @@ not an intermediate pair. No smoke, browser, product build or deletion was execu
 ### Revalidation after the QA / loading / deploy landings
 
 At `3e9937f146aee9aae9611a32c4caa3cf5b7e7bf5`, all **1,143 sealed files / 26,564,714 bytes** still match their registered SHA-256.
-Compared with `ac8db2e95d`, there are **zero new resolved frozen imports**; 94 frozen import edges become
+Compared with `ac8db2e95d`, there are **zero new resolved frozen imports**; 2,703 frozen import edges become
 2,702 only because Opus retired the stale families board in `3e9937f146`. Its Nalati legacy grade import is gone;
 neither pair 3 nor LD8 must recreate that visual tool. The **33 retirement modules** remain **7 / 12 / 14** across
 the pairs below; the Blender exporter exception and the two root-owned SDK audio loans remain real callers.
