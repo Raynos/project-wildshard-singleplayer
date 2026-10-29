@@ -72,6 +72,29 @@ test('install precaches its complete shell and hashed files before publishing a 
   expect(f.fetch).toHaveBeenCalledTimes(4);
 });
 
+test('a worker reuses its installed cache handles across navigation and content reads', async () => {
+  const f = fixture(), open = vi.spyOn(f.caches, 'open');
+  const file = '/assets/file-0123456789abcdef.bin', worker = f.load('A', [file]);
+  await worker.dispatch('install'); await worker.dispatch('activate');
+  const before = open.mock.calls.length;
+  for (let visit = 0; visit < 3; visit++) {
+    await worker.dispatch('fetch', {request: new Request(url('/'))});
+    await worker.dispatch('fetch', {request: new Request(url(file))});
+  }
+  expect(open.mock.calls).toHaveLength(before);
+  expect(open.mock.calls.filter(([name]) => name === ASSET_CACHE_NAME)).toHaveLength(1);
+  expect(open.mock.calls.filter(([name]) => name === 'ws-shell-v3-A')).toHaveLength(1);
+});
+
+test('a rejected native cache open never poisons the next ordinary read', async () => {
+  const f = fixture(), open = vi.spyOn(f.caches, 'open').mockRejectedValueOnce(new DOMException('denied', 'SecurityError'));
+  const request = new Request(url('/assets/file-0123456789abcdef.bin')), worker = f.load('A', []);
+  for (let visit = 0; visit < 3; visit++) {
+    expect(await (await worker.dispatch('fetch', {request}))?.text()).toBe(`body:${request.url}`);
+  }
+  expect(open).toHaveBeenCalledTimes(2); expect(f.fetch).toHaveBeenCalledTimes(2);
+});
+
 test('named shell artwork is installed into the same asset cache its fetch route reads', async () => {
   const image = '/assets/title/hero-0123456789abcdef.jpg', f = fixture();
   const worker = f.load('A', [], ['/index.html', image]);

@@ -17,6 +17,21 @@ const HASH = /\/([a-f0-9]{64})\.[a-z0-9]+$/;
 const immutable = url => NAMED.has(url.pathname) || CONTENT.test(url.pathname)
   || /^[a-f0-9]{8,64}$/.test(url.searchParams.get('v') ?? '');
 
+// Keep the current worker's hot handles. WebKit can take a second to reopen
+// a cache during navigation; a rejected open must remain retryable.
+const stores = new Map();
+function store(name) {
+  const existing = stores.get(name);
+  if (existing !== undefined) return existing;
+  const pending = (async () => {
+    await Promise.resolve(); // Publish this promise before a synchronous storage refusal.
+    try { return await caches.open(name); }
+    catch (error) { if (stores.get(name) === pending) stores.delete(name); throw error; }
+  })();
+  stores.set(name, pending);
+  return pending;
+}
+
 async function precache(cache, urls, contentNamed = false) {
   await Promise.all(urls.map(async path => {
     const key = abs(path);
@@ -48,7 +63,7 @@ async function importPrevious(assets, books) {
 
 workerScope.listen(self, 'install', event => {
   event.waitUntil((async () => {
-    const [assets, shell, books] = await Promise.all([caches.open(ASSETS), caches.open(SHELL), caches.open(BOOKS)]);
+    const [assets, shell, books] = await Promise.all([store(ASSETS), store(SHELL), caches.open(BOOKS)]);
     await importPrevious(assets, books);
     const namedShell = SHELL_FILES.filter(path => immutable(new URL(abs(path))));
     await Promise.all([precache(shell, SHELL_FILES.filter(path => !namedShell.includes(path))),
@@ -67,7 +82,7 @@ workerScope.listen(self, 'activate', event => {
       const record = await books.match(previous);
       if (record !== undefined) for (const file of (await record.json()).files) kept.add(file);
     }
-    const assets = await caches.open(ASSETS);
+    const assets = await store(ASSETS);
     for (const key of keys) {
       if (key.url === current || key.url === previous) continue;
       const record = await books.match(key);
@@ -84,11 +99,11 @@ workerScope.listen(self, 'activate', event => {
 async function cached(request, name) {
   let cache;
   try {
-    cache = await caches.open(name);
+    cache = await store(name);
     const response = await cache.match(request, MATCH);
     if (response !== undefined) return response;
     if (name !== ASSETS) {
-      const shared = await (await caches.open(ASSETS)).match(request, MATCH);
+      const shared = await (await store(ASSETS)).match(request, MATCH);
       if (shared !== undefined) return shared;
     }
     // Wave 2 removes the old page cache. Until then retain its already named bodies.
@@ -100,7 +115,7 @@ async function cached(request, name) {
         return old;
       }
     }
-  } catch { /* Storage denial keeps ordinary online fetch working. */ }
+  } catch { stores.delete(name); stores.delete(ASSETS); /* Storage denial keeps online fetch working. */ }
   const response = await fetch(request);
   // Native no-body statuses pass through untouched. A range never replaces a full body.
   if (cache !== undefined && response.status === 200) await cache.put(request, response.clone()).catch(() => undefined);
