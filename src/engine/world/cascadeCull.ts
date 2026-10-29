@@ -20,6 +20,46 @@ import type { CSM } from 'three/examples/jsm/csm/CSM.js';
 
 const _p = new THREE.Vector3();
 const _c = new THREE.Vector3();
+const _m = new THREE.Matrix4();
+const _s = new THREE.Sphere();
+
+/**
+ * D12: an instanced caster is one draw whose sphere spans every copy (the cove's palms, cliffs and coconuts reach across
+ * the island), so it passed every cascade although most cascades hold none of its copies: at Driftwood's spawn 43 of
+ * the near cascade's 60 shadow draws, and as many of each sun-fade ghost's. It is tested by its copies instead, as
+ * spheres round each CELL × CELL square of them (its own space; rebuilt when its matrices, count or geometry change).
+ * A cascade that holds any copy still draws them all, so every shadow texel any fragment reads is the same depth.
+ */
+const CELL = 24;
+interface CopyCells { readonly version: number; readonly count: number; readonly geometry: THREE.BufferGeometry; readonly spheres: Float32Array }
+const copyCells = new WeakMap<THREE.InstancedMesh, CopyCells>();
+/** three's own flag (an `instanceof` narrows to InstancedMesh<any>) */
+const instanced = (object: THREE.Object3D): object is THREE.InstancedMesh => Reflect.get(object, 'isInstancedMesh') === true;
+function cellsOf(mesh: THREE.InstancedMesh): Float32Array {
+  const known = copyCells.get(mesh), version = mesh.instanceMatrix.version;
+  if (known !== undefined && known.version === version && known.count === mesh.count && known.geometry === mesh.geometry) return known.spheres;
+  if (mesh.geometry.boundingSphere === null) mesh.geometry.computeBoundingSphere();
+  const bounds = mesh.geometry.boundingSphere ?? _s.makeEmpty();
+  const boxes = new Map<number, number[]>();
+  for (let i = 0; i < mesh.count; i++) {
+    mesh.getMatrixAt(i, _m);
+    _p.copy(bounds.center).applyMatrix4(_m);
+    const r = bounds.radius * _m.getMaxScaleOnAxis(), key = (Math.floor(_p.x / CELL) + 32768) * 65536 + Math.floor(_p.z / CELL) + 32768;
+    const box = boxes.get(key);
+    if (box === undefined) { boxes.set(key, [_p.x - r, _p.y - r, _p.z - r, _p.x + r, _p.y + r, _p.z + r]); continue; }
+    box[0] = Math.min(box[0] ?? 0, _p.x - r); box[1] = Math.min(box[1] ?? 0, _p.y - r); box[2] = Math.min(box[2] ?? 0, _p.z - r);
+    box[3] = Math.max(box[3] ?? 0, _p.x + r); box[4] = Math.max(box[4] ?? 0, _p.y + r); box[5] = Math.max(box[5] ?? 0, _p.z + r);
+  }
+  const spheres = new Float32Array(boxes.size * 4);
+  let at = 0;
+  for (const [x0 = 0, y0 = 0, z0 = 0, x1 = 0, y1 = 0, z1 = 0] of boxes.values()) {
+    spheres[at++] = (x0 + x1) / 2; spheres[at++] = (y0 + y1) / 2; spheres[at++] = (z0 + z1) / 2;
+    // a hair over the half diagonal: Float32 centres never shave a copy's edge off
+    spheres[at++] = Math.hypot(x1 - x0, y1 - y0, z1 - z0) / 2 * 1.0001 + 1e-3;
+  }
+  copyCells.set(mesh, { version, count: mesh.count, geometry: mesh.geometry, spheres });
+  return spheres;
+}
 
 class CascadeFrustum extends THREE.Frustum {
   /** the footprint in the shadow camera's view xy: a convex polygon, counter-clockwise, [x0, y0, x1, y1, …] */
@@ -44,6 +84,19 @@ class CascadeFrustum extends THREE.Frustum {
     pts.length = corners.length;
     for (let i = 0; i < corners.length; i++) { const v = corners[i], pt = pts[i]; if (v === undefined || pt === undefined) continue; _p.copy(v).applyMatrix4(this.view); pt[0] = _p.x; pt[1] = _p.y; }
     hull(pts, this.lower, this.upper, this.poly);
+  }
+
+  /** an instanced caster passes when one of its copy cells does (see CELL above); anything else as three tests it */
+  override intersectsObject(object: THREE.Object3D): boolean {
+    if (!super.intersectsObject(object)) return false;
+    if (this.off || !instanced(object)) return true;
+    const cells = cellsOf(object), scale = object.matrixWorld.getMaxScaleOnAxis();
+    for (let i = 0; i + 3 < cells.length; i += 4) {
+      _s.center.set(cells[i] ?? 0, cells[i + 1] ?? 0, cells[i + 2] ?? 0).applyMatrix4(object.matrixWorld);
+      _s.radius = (cells[i + 3] ?? 0) * scale;
+      if (this.intersectsSphere(_s)) return true;
+    }
+    return false;
   }
 
   override intersectsSphere(sphere: THREE.Sphere): boolean {
