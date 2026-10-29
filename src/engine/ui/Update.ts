@@ -19,8 +19,6 @@ import { engineString } from '../strings';
  */
 import { isDev, onDev } from '../core/devMode';
 import { markReload } from '../boot/lastEnd';
-import { DownloadAccounting, observeDownloadAccounting } from '../boot/download';
-import { UpdateProgress } from './UpdateProgress';
 
 
 // The update pill exists before content is selected; keep App and Three out of the entry graph.
@@ -38,51 +36,18 @@ el.innerHTML = engineString('s_85c05389552b');
 hudSlots.widget('band.1', el, 0, scope, document.body);
 
 let busy = false;
-let targetBuild: string | null = null;
 let newer = false;
-const screen = new UpdateProgress(scope, __BUILD_ID__, () => { busy = false; void reload(true); });
-/** `tapped`: the player pressed the pill (the title's tap, or the confirmed second tap elsewhere, `tap` below). Jake
- *  2026-10-29 (P0, "the reload button does nothing"): a tap always reloads. Only the automatic adoption waits for the title. */
-async function reload(tapped: boolean): Promise<void> {
+/** RL2 (RELOAD = reload): the pill's tap (the title's, or the confirmed second tap elsewhere, `tap` below) reloads at
+ *  once. A waiting worker gets SKIP_WAITING without a wait (it takes over as this page leaves); the title loads a fresh
+ *  `/`, anywhere else the page reloads where it is. No cover, no progress text, no automatic reload. */
+function reload(): void {
   if (busy) return;
-  const sw = window.__ws_sw, atTitle = titleBoundary();
-  if (!tapped && !atTitle) return;
-  // a newer build not yet installed: fetch it in the background; the reloaded title adopts it once it waits
-  if (newer && (sw?.waiting ?? null) === null) requestInstall();
   busy = true;
-  const text = el.querySelector('[data-el="text"]'), attempt = scope.child('update');
-  const started = diagnosticNow(), downloads = new DownloadAccounting(location.href, started);
-  attempt.onDispose(observeDownloadAccounting(downloads));
-  const progress = (): void => {
-    if (text) text.textContent = engineString('s_41273a4673fc', [downloads.snapshot().filesDone, ((diagnosticNow() - started) / 1000).toFixed(1)]);
-  };
-  progress();
-  attempt.interval(250, progress);
-  // Navigation may itself wait for a response: keep receipts and elapsed time
-  // live until the document leaves, then release this attempt's observers.
-  attempt.listen(window, 'pagehide', () => { attempt.dispose(); }, { once: true });
-  // A newer service worker waiting: adopt it (SKIP_WAITING → controllerchange → reload, src/engine/boot/sw.ts).
-  const waiting = sw?.waiting;
-  screen.boundary(targetBuild, waiting !== undefined && waiting !== null && waiting.state !== 'redundant');
-  if (!await screen.present()) return;
-  if (sw && waiting && waiting.state !== 'redundant') {
-    screen.phase('install');
-    if (!await screen.present()) return;
-    if (navigator.serviceWorker !== undefined) attempt.listen(navigator.serviceWorker, 'controllerchange', () => {
-      if (navigator.serviceWorker.controller === waiting) screen.phase('reload');
-    });
-    await sw.activate();
-  }
-  screen.phase('reload');
-  if (!await screen.present()) return;
-  // Off the title (loading screen, pause menu) the page reloads where it is.
-  if (!atTitle) { markReload('update tapped'); location.reload(); return; }
-  // This is the title, including a return from an entered world. Remove the
-  // old world destination so adoption cannot send the player back into play.
-  const url = new URL(location.href);
-  for (const key of ['v', 'chunk', 'explore', 'at', 'glreload', 'cam', 'model', 'skipintro', 'tour', 'quest', 'drop', 'x', 'z', 'yaw', 'pitch']) url.searchParams.delete(key);
-  markReload('update at title boundary');
-  location.replace(url.toString());
+  const waiting = window.__ws_sw?.waiting;
+  // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter (that is Window.postMessage)
+  if (waiting && waiting.state !== 'redundant') waiting.postMessage({ type: 'SKIP_WAITING' });
+  if (titleBoundary()) { markReload('update at title'); location.replace('/'); }
+  else { markReload('update tapped'); location.reload(); }
 }
 // pointerup as well as click: iOS drops the synthesized click when a tap jitters (index.html cancels touchmove for the
 // rubber-band), so the pill answers the lift itself; `busy` keeps the pair from running twice
@@ -95,7 +60,7 @@ const CONFIRM_MS = 4000, SAME_TAP_MS = 400;
 let armedAt = -1, disarm: (() => void) | null = null;
 function tap(): void {
   if (busy) return;
-  if (titleBoundary()) { void reload(true); return; }
+  if (titleBoundary()) { reload(); return; }
   const now = diagnosticNow();
   if (armedAt < 0) {
     armedAt = now; el.classList.add('confirm');
@@ -108,7 +73,7 @@ function tap(): void {
   }
   if (now - armedAt < SAME_TAP_MS) return; // the click that follows the same tap's pointerup
   armedAt = -1; disarm?.(); disarm = null; el.classList.remove('confirm');
-  void reload(true);
+  reload();
 }
 
 let newLabel = '';
@@ -145,7 +110,7 @@ async function check(): Promise<void> {
     if (!r.ok) return;
     const j: unknown = await r.json();
     if (typeof j === 'object' && j !== null && 'build' in j && typeof j.build === 'string' && j.build !== '' && j.build !== __BUILD_ID__) {
-      targetBuild = j.build; requestInstall(); lightUp(shortBuild(j.build));
+      requestInstall(); lightUp(shortBuild(j.build));
     }
   } catch { /* offline — keep the plain reload pill */ }
 }
@@ -166,9 +131,6 @@ function sync(): void {
   el.classList.toggle('visible', show); // menu-only: never over the game view, even when a newer build exists
   // the band the menu overlay keeps free above its sheet (gmenu.css) — only while the pill is actually up
   document.documentElement.style.setProperty('--ws-pill', show ? '24px' : '0px');
-  // Initial title or return-to-title: an installed update can now replace the
-  // document. Loading and Explore's hidden intro HUD are not title boundaries.
-  if (!busy && titleBoundary() && window.__ws_sw?.waiting?.state === 'installed') void reload(false);
 }
 sync();
 onDev(() => { paint(); sync(); });
