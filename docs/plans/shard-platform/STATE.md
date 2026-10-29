@@ -10,7 +10,8 @@ LD9 / LD10 13:30, CO8 archive 13:45, all lanes stop 14:00 (G845).
 half PASS e4d2b9323e (o4), Simulator half running (o3), exact six running. CO1 release PULLED FORWARD: first green c066-or-newer + exact six (notes eb11d9974c).
 The a834 footer / hold reds are covered by x6's 55402e4b10 (in c066).
 
-**Jake 11:50:** he QAs only the build with everything, so the CO1 release waits for QA5 (x6, last build row) + green CI. QA fixes
+**Jake 11:50:** he QAs only the build with everything, QA1-QA13 ALL DONE (QA5 cf1d4066e3); the QA build is the first green
+SHA with cf1d + exact six (sp-ci-deploy). QA fixes
 and phone loading archived f3518bd4cc. After his QA: LD5-LD10, then CO7 / CO8.
 **P0s / G873-G877:** Jake's QA lives in qa-2026-10-29 (QA1-QA13, all archive blockers, G877). Legacy last, on his word (G873).
 
