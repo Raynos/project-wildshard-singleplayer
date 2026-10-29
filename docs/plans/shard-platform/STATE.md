@@ -8,11 +8,12 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 019fa6d0c7. **G908: Pine + Nine untouched** (no prep) until Jake's word after his final QA, likely 10-30.
 
 **LIVE 8621318d93 (build 8621318d9-mvtvd1tf): Jake's QA build.** He QAs it now.
-**REPLAN (G886): [FOUNDATIONS](../FOUNDATIONS.md) wave 1, crashes first (G894):** MF7 sp-o5 (memory) + MF7b [frame-cost](frame-cost-mini-plan.md)
-FC1/5/6 sp-x1, FC2/FC8 sp-o3, FC3/FC4 sp-o4 (G909: draw only when seen); MF6 sp-x1; MF10 / G888 sp-x2; G895 + FC7 sp-x9; MF1 + QB21 sp-x10, MF2 sp-x2, MF3 done,
-MF4 sp-x6, MF5 sp-o3. Open: QB15 / QB18 sp-o4, GAME-S / QB19 sp-o3, QB20 sp-o5. G892: open until wave 1 + Jake's QA (likely 10-30).
+**REPLAN (G886): [FOUNDATIONS](../FOUNDATIONS.md) wave 1, crashes first (G894).** Landed: MF2, MF3, MF6, FC2, FC8, G896,
+G901; MF1 / MF4 code in, proofs pending. **For wildshard-v (15:24):** sp-o5 is not idle: it owns MF7 (tests + Sim hold
+running), then QB20. sp-x8 is released for good; FC1 / FC5 / FC6 are sp-x1's. Next: sp-o3 MF5, sp-o4 FC3 / FC4 / QB18,
+sp-x2 MF10, sp-x9 G895 → FC7, sp-x10 MF1 + QB21. QB19 / GAME-S sp-o3 later. G892: open until wave 1 + Jake's QA (10-30).
 
-**Done today:** QA1-QA14, CO1-CO5, QB2/7/8/10/14, RL2-5/9/10, MF3, MF6.
+**Done today:** QA1-QA14, CO1-CO5, QB2/7/8/10/14/15, RL2-5/9/10.
 
 **Autonomous decisions (for Jake's review):**
 - MF3 met: launch image → title 0.7 s warm on the Sim, ~0.5 s of it iOS starting the web app before our page
@@ -25,7 +26,7 @@ MF4 sp-x6, MF5 sp-o3. Open: QB15 / QB18 sp-o4, GAME-S / QB19 sp-o3, QB20 sp-o5. 
   launch after this deploy still shows the old UPDATING cover once (old worker), never again.
 - New QA build for Jake asked of sp-ci-deploy: he was reporting bugs already fixed on main (QB7 14:19).
 - hud.perf world.impacts on Codex sp-x1: read-only count, FX untouched (4718a3fabd).
-- RL10: grid New game keeps its road-resume reload; standalone New game → title (1ec09517d4).
+- RL10: grid New game keeps its road-resume reload (1ec09517d4).
 - QB10: lanes have no Sentry credential, so sp-x1 triages from the row + /api/errors and lists issue → verdict → SHA in
   its commit; **wildshard-v resolves them in Sentry** from that list. **wildshard-v: please add all 40 issue ids + titles
   to the QB10 row** (only 7 are listed; sp-x1 can't read Sentry).
