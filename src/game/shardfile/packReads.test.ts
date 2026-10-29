@@ -63,17 +63,19 @@ test('separate parses of an immutable index coalesce in-flight whole reads witho
   expect(read).toHaveBeenCalledOnce(); expect(digest).toHaveBeenCalledOnce();
 });
 
-test('a released owner reads its pack again rather than holding it for its lifetime', async () => {
-  const owner = {}, read = vi.fn(() => Promise.resolve(Uint8Array.of(1, 2, 3, 4))), digest = () => Promise.resolve(hash);
-  await readPackWhole(owner, pack, read, digest, {});
-  await readPackWhole(owner, pack, read, digest, {});
-  expect(read).toHaveBeenCalledTimes(1);
-  releasePackWholes(owner);
-  await readPackWhole(owner, pack, read, digest, {});
+test('a released pack leaves every owner table and is read again rather than held for the page', async () => {
+  const released = { ...pack, hash: 'e'.repeat(64) }, owner = {}, other = {};
+  const read = vi.fn(() => Promise.resolve(Uint8Array.of(1, 2, 3, 4))), digest = () => Promise.resolve(released.hash);
+  await readPackWhole(owner, released, read, digest, {});
+  await readPackWhole(owner, released, read, digest, {});
+  await readPackWhole(other, released, read, digest, {});
   expect(read).toHaveBeenCalledTimes(2);
+  releasePackWholes([released]);
+  await readPackWhole(other, released, read, digest, {});
+  expect(read).toHaveBeenCalledTimes(3);
   // after release a read in flight is still shared, but nothing settled is kept: the next wave reads again
-  const [first, second] = await Promise.all([readPackWhole(owner, pack, read, digest, {}), readPackWhole(owner, pack, read, digest, {})]);
-  expect(first).toBe(second); expect(read).toHaveBeenCalledTimes(3);
-  await readPackWhole(owner, pack, read, digest, {});
-  expect(read).toHaveBeenCalledTimes(4);
+  const [first, second] = await Promise.all([readPackWhole(owner, released, read, digest, {}), readPackWhole(owner, released, read, digest, {})]);
+  expect(first).toBe(second); expect(read).toHaveBeenCalledTimes(4);
+  await readPackWhole(owner, released, read, digest, {});
+  expect(read).toHaveBeenCalledTimes(5);
 });
