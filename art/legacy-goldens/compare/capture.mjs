@@ -35,7 +35,7 @@ const FRAMES=120,SETTLE_MS=30000,LIVE=60,FREE=4,EYE=1.7;
 mkdirSync(root,{recursive:true});
 
 // --engine=webkit: Playwright's WebKit (muted by the game's volume 0; its Escape is a plain key press)
-const engine=arg('engine','chromium');if(!['chromium','webkit'].includes(engine))throw Error(`--engine=${engine}`);
+const engine=arg('engine','chromium'),throttle=Number(arg('cpu-throttle','1'));if(!(throttle>=1))throw Error('--cpu-throttle=<n >= 1>');if(!['chromium','webkit'].includes(engine))throw Error(`--engine=${engine}`);
 const owner=engine==='webkit'?null:await chromium.launchServer({headless:true,args:['--mute-audio','--use-angle=metal','--ignore-gpu-blocklist','--remote-debugging-port=0']});
 const directory=owner?.process().spawnargs.find(x=>x.startsWith('--user-data-dir=')).slice('--user-data-dir='.length);
 const [port,path]=owner?(await readFile(`${directory}/DevToolsActivePort`,'utf8')).trim().split('\n'):[];
@@ -70,7 +70,9 @@ try{for(const slug of slugs){
   await saveFixture(context,{scope:'device',key:'debug.global.holdLoading',data:'off'});
   await context.addInitScript(hideDeveloperOverlays);
   await context.addInitScript(()=>{window.__wildshardHarness={seed:357,capture:null};});
-  page=await context.newPage();page.setDefaultTimeout(30000);page.on('pageerror',e=>row.errors.push(e.message));
+  page=await context.newPage();page.setDefaultTimeout(30000);
+  // --cpu-throttle=<n> (Chromium): CDP's CPU throttle, a phone-CPU proxy for frame-cost diagnostics (the shot is unchanged)
+  if(throttle>1){if(!owner)throw Error('--cpu-throttle needs Chromium');await(await context.newCDPSession(page)).send('Emulation.setCPUThrottlingRate',{rate:throttle});}page.on('pageerror',e=>row.errors.push(e.message));
   // console warnings, each text once with its count (NR4: AttributeNode missing-channel warnings)
   page.on('console',m=>{if(m.type()!=='warning')return;const t=m.text().slice(0,300);row.warnings[t]=(row.warnings[t]??0)+1;});
   const inflight=new Map();page.on('request',r=>inflight.set(r,Date.now()));page.on('requestfinished',r=>inflight.delete(r));page.on('requestfailed',r=>inflight.delete(r));
