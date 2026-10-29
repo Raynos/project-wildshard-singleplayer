@@ -24,8 +24,9 @@ sp-x2 MF10, sp-x9 G895 → FC7, sp-x10 MF1 + QB21. QB19 / GAME-S sp-o3 later. G8
 - **For wildshard-v (QB1, RL3 48492f221e):** Sim warm launch image 0.6 s → title 1.2 s, nothing else. iOS snapshots the
   launch image at install; Jake's icon predates it (10-24), so tell him once: delete + re-add the icon. The first cold
   launch after this deploy still shows the old UPDATING cover once (old worker), never again.
-- New QA build for Jake asked of sp-ci-deploy: he was reporting bugs already fixed on main (QB7 14:19).
+- New QA build asked of sp-ci-deploy: Jake was reporting already-fixed bugs (QB7 14:19).
 - hud.perf world.impacts on Codex sp-x1: read-only count, FX untouched (4718a3fabd).
+- QB18 = B: Nalati TRUST as a status row under GRASS (A crossed the minimap, C the toast; fc707ba74d, o4).
 - RL10: grid New game keeps its road-resume reload (1ec09517d4).
 - G906: GAME-81 came from the QB8 board's older pin c33bf50cfc, before gate 31d48ce97a; no bypass found (x1).
 - QB10: sp-x1 walks the 60 ids (0dd5f3060e) in MF12, id → verdict → SHA; wildshard-v resolves them in Sentry.
