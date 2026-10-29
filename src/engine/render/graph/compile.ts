@@ -799,6 +799,18 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
   if (!checked.ok) throw new Error(`material graph refused:\n  ${checked.errors.join('\n  ')}`);
   const ir: GraphIr = checked.graph;
   const selects = { light: 0, branch: 0 };
+  // D204: three's normalWorldGeometry, normalView and positionViewDirection are `toVar`s, assigned where they are first
+  // built. A graph whose first read of one sits in a select's branch left the assignment in that branch, and every read
+  // outside it saw an unassigned (zero) variable: Nine's kit lit nothing but its leaves (the stone shaded as unlit, darker
+  // and bluer). Each output the material builds reads them first, at the top of main (`rooted`).
+  const rootVars = new Set<Node>();
+  const rootRead = (): Node | null => {
+    let sum: Node | null = null;
+    for (const v of rootVars) { const zero: Node = new MathNode('dot', v, vec3(0, 0, 0)); sum = sum === null ? zero : new OperatorNode('+', sum, zero); }
+    return sum;
+  };
+  const rooted = (node: Node): Node => { const zero = rootRead(); return zero === null ? node : new OperatorNode('+', zero, node); };
+  const rootedBool = (node: Node): Node => { const zero = rootRead(); return zero === null ? node : new OperatorNode('&&', new OperatorNode('<', zero, float(1)), node); };
   const meshMapUsed = graphUsesMeshMap(ir);
   const attributeDefaults: Record<string, number[]> = {};
   const collectDefaults = (nodes: Readonly<Record<string, GraphNode>>): void => {
@@ -1024,7 +1036,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
         return n.op === 'fogScale' ? { t: 'float', n: fogIn.scale } : { t: 'vec3', n: n.op === 'fogInput' ? fogIn.colour : fogIn.engine };
       }
       case 'normalLocal': return { t: 'vec3', n: normalLocal };
-      case 'normalWorld': return { t: 'vec3', n: normalWorldGeometry };
+      case 'normalWorld': rootVars.add(normalWorldGeometry); return { t: 'vec3', n: normalWorldGeometry };
       case 'cameraPosition': return { t: 'vec3', n: fogIn?.camera ?? frameCameraPosition() };
       case 'cameraNear': return { t: 'float', n: cameraNear };
       case 'time': return { t: 'float', n: time };
@@ -1100,8 +1112,8 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
         if (n.interpolation === 'flat') carried.setInterpolation('flat');
         return { t: v.t, n: carried };
       }
-      case 'normalView': return { t: 'vec3', n: normalView };
-      case 'viewDirection': return { t: 'vec3', n: positionViewDirection };
+      case 'normalView': rootVars.add(normalView); return { t: 'vec3', n: normalView };
+      case 'viewDirection': rootVars.add(positionViewDirection); return { t: 'vec3', n: positionViewDirection };
       case 'albedo': return { t: 'vec3', n: diffuseContribution };
       case 'sunDirection': if (sunIn !== null) return { t: 'vec3', n: sunIn.direction }; break;
       case 'sunColour': if (sunIn !== null) return { t: 'vec3', n: sunIn.colour }; break;
@@ -1326,7 +1338,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     if (alpha !== null && m instanceof GraphUnlitNormalMaterial) m.graphTargetAlpha = asFloat(alpha);
     const colour = out(st.post?.colour);
     if (colour !== null) {
-      const own = new ConvertNode<'vec3'>(widen(colour, 'vec3'), 'vec3');
+      const own = new ConvertNode<'vec3'>(rooted(widen(colour, 'vec3')), 'vec3');
       // with the scene bound, the pass fades over it by its weight (the engine's blend: one more tap of the colour input)
       m.colorNode = opts.scene === undefined ? own : new ConvertNode<'vec3'>(new MathNode('mix', new SplitNode(tap('scene', opts.scene, uv()), 'xyz'), own, weight), 'vec3');
     }
@@ -1474,22 +1486,22 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     if (displayColour && m instanceof GraphUnlitNormalMaterial) m.graphTargetAlpha = float(-1);
     if (vertexNormal !== null && (m instanceof GraphNormalMaterial || m instanceof GraphUnlitNormalMaterial)) m.vertexNormal = new ConvertNode<'vec3'>(vertexNormal.n, 'vec3');
     const colour = out(s.colour);
-    if (colour !== null) m.colorNode = new ConvertNode<'vec3'>(widen(colour, 'vec3'), 'vec3');
+    if (colour !== null) m.colorNode = new ConvertNode<'vec3'>(rooted(widen(colour, 'vec3')), 'vec3');
     const alpha = out(s.alpha);
-    if (alpha !== null) { m.opacityNode = asFloat(alpha); m.transparent = s.alphaCutoff === undefined; }
+    if (alpha !== null) { m.opacityNode = new ConvertNode<'float'>(rooted(asFloat(alpha)), 'float'); m.transparent = s.alphaCutoff === undefined; }
     if (s.alphaCutoff !== undefined) m.alphaTest = s.alphaCutoff;
     const discard = out(s.discard);
-    if (discard !== null) m.maskNode = not(asBool(discard)); // three discards where the mask is false
+    if (discard !== null) m.maskNode = rootedBool(not(asBool(discard))); // three discards where the mask is false
     const shading = out(s.normal);
     // the authored world-space shading normal, in the view space three lights in
-    if (shading !== null) m.normalNode = new MathNode('normalize', new SplitNode(new OperatorNode('*', cameraViewMatrix, new JoinNode([new ConvertNode<'vec3'>(shading.n, 'vec3'), float(0)])), 'xyz'));
+    if (shading !== null) m.normalNode = new MathNode('normalize', new SplitNode(new OperatorNode('*', cameraViewMatrix, new JoinNode([new ConvertNode<'vec3'>(rooted(shading.n), 'vec3'), float(0)])), 'xyz'));
     const occlusion = out(s.occlusion);
-    if (occlusion !== null) m.aoNode = mappedFactor(asFloat(occlusion), 'aoMap');
+    if (occlusion !== null) m.aoNode = mappedFactor(new ConvertNode<'float'>(rooted(asFloat(occlusion)), 'float'), 'aoMap');
     if (m instanceof MeshStandardNodeMaterial) {
       const emissive = out(s.emissive), roughness = out(s.roughness), metalness = out(s.metalness);
-      if (emissive !== null) m.emissiveNode = widen(emissive, 'vec3');
-      if (roughness !== null) m.roughnessNode = mappedFactor(asFloat(roughness), 'roughnessMap');
-      if (metalness !== null) m.metalnessNode = asFloat(metalness);
+      if (emissive !== null) m.emissiveNode = rooted(widen(emissive, 'vec3'));
+      if (roughness !== null) m.roughnessNode = mappedFactor(new ConvertNode<'float'>(rooted(asFloat(roughness)), 'float'), 'roughnessMap');
+      if (metalness !== null) m.metalnessNode = new ConvertNode<'float'>(rooted(asFloat(metalness)), 'float');
     }
     const position = out(st['vertex.position']?.position);
     if (position !== null) m.positionNode = new ConvertNode<'vec3'>(widen(position, 'vec3'), 'vec3');
@@ -1535,7 +1547,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     const o = st.outline;
     if (o === undefined) return null;
     const m = new GraphBasicMaterial();
-    m.colorNode = new ConvertNode<'vec3'>(widen(ref(o.colour, root), 'vec3'), 'vec3');
+    m.colorNode = new ConvertNode<'vec3'>(rooted(widen(ref(o.colour, root), 'vec3')), 'vec3');
     m.positionNode = positionLocal.add(new ConvertNode<'vec3'>(widen(ref(o.offset, root), 'vec3'), 'vec3').div(codecGrid().step));
     m.side = THREE.BackSide;
     m.fog = true;
