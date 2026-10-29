@@ -30,6 +30,12 @@ export class UiLayers {
   private readonly bindings = new WeakSet<Scope>();
   /** called when the first still hold starts, so the owner can draw the one frame the world is held on */
   onStill: (() => void) | undefined;
+  /** A retired world cannot remain reachable through the page's capture port. */
+  bindStill(scope: Scope, capture: () => void): void {
+    if(scope.disposed||scope.disposing)return;
+    this.onStill=capture;
+    scope.onDispose(()=>{if(this.onStill===capture)this.onStill=undefined;});
+  }
   private changed: (() => void) | undefined;
   private owner: (() => Scope | null) | undefined;
   connect(changed: () => void, owner?: () => Scope | null): void { this.changed = changed; this.owner = owner; }

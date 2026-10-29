@@ -381,11 +381,8 @@ export class Game {
   hold = false;
   /** Re-evaluate presentation after input or ownership changes; a covered world remains parked. Set by start(). */
   kickLoop: () => void = () => undefined;
-  /**
-   * E183: draw ONE whole frame (the systems' step and the draw) at the next animation frame even though the gate is shut —
-   * what a return from the background already does. main.ts asks for it once while the title idles, so the first frame's
-   * one-time work (a system's lazy first step, first-sight texture uploads) is paid under the title art, not on the tap.
-   */
+  /** Request a fresh frame on the next playable turn; covered/hidden worlds stay parked.
+   * Explicit, counted loader/title warm-up uses hiddenFrame instead. */
   primeFrame: () => void = () => undefined;
   /**
    * FC2 (frame cost: nothing drawn behind the loader): ONE whole frame (the systems' step and the draw) now, in this task,
@@ -1372,7 +1369,7 @@ export class Game {
     for(const state of ['play','explore','practice','playground','capture'] as const)this.app.onEnter(state,this.kickLoop,this.engineScope);
     this.primeFrame=()=>{if(!this.dead)driver.primeFrame();};
     this.hiddenFrame=()=>{if(!this.dead)driver.hiddenFrame();};
-    this.app.ui.onStill=()=>{driver.stillFrame();};
+    this.app.ui.bindStill(this.engineScope,()=>{driver.stillFrame();});
     setLoopState('running');
     driver.wake();
   }
