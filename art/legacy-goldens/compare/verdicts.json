@@ -1,5 +1,5 @@
 {
- "judged": "2026-10-29-4e009207dd",
+ "judged": "2026-10-29-744c3ab7e2",
  "accepted": {
   "driftwood-isle": "denser, higher clouds and warmer planks (G855); the phone geometry cut (G833).",
   "pine-hollow": "no colour LUT (G854, landed 3a2af030ec).",
@@ -75,9 +75,8 @@
    "verdict": "great"
   },
   "driftwood-isle/23-hands-down": {
-   "verdict": "needs",
-   "row": "QF20",
-   "note": "Still no body shadow on the pier planks on HEAD with the two-held-frame capture, and the post shadows at the far end are gone too."
+   "verdict": "great",
+   "note": "The body shadow and the post shadows are on the planks again; they read warm brown where LEGACY is blue-violet: tone gap D205 (G868). The warmer planks are the kept G855 look."
   },
   "driftwood-isle/24-hands-up": {
    "verdict": "great"
@@ -113,14 +112,14 @@
   },
   "pine-hollow/09-waterfall": {
    "verdict": "great",
-   "note": "Ferns on the near bank are back (QF21, c26cf48209). Minor: the plunge pool behind the reeds is dark water, not white foam."
+   "note": "Ferns on the near bank are back (QF21, c26cf48209) and the plunge pool reads white again."
   },
   "pine-hollow/10-beaver-dam": {
    "verdict": "great"
   },
   "pine-hollow/11-bear-den": {
    "verdict": "great",
-   "note": "The bear walks up to the player at the den in both of this run's visits (game state; the golden caught none); the scene behind it matches."
+   "note": "Matches; no bear at the den this run (game state)."
   },
   "pine-hollow/12-mill-hamlet": {
    "verdict": "great"
@@ -149,7 +148,7 @@
   },
   "pine-hollow/20-grid+170+170": {
    "verdict": "great",
-   "note": "Golden re-shot: the grid corner with the cabin and the path, not spawn. Matches."
+   "note": "Golden re-shot: the grid corner with the cabin and the path. Matches; the dark shape at the lower right is the hover board (the harness re-posed a drifted player hovering)."
   },
   "pine-hollow/21-aerial-south": {
    "verdict": "great",
@@ -190,9 +189,8 @@
    "verdict": "great"
   },
   "nalati-grasslands/08-kokpar-field": {
-   "verdict": "needs",
-   "row": "QF24",
-   "note": "The crag facets are gone (QF23); the fortress ridge still carries fewer pines. The riders and the goal marker are game state."
+   "verdict": "great",
+   "note": "Crag fins match (D203 done, 9a6083a939); the fortress ridge carries slightly fewer pines: tone gap D206 (G868). The riders and the goal marker are game state."
   },
   "nalati-grasslands/09-great-kurgan": {
    "verdict": "great"
@@ -210,9 +208,8 @@
    "verdict": "great"
   },
   "nalati-grasslands/14-grid+0-170": {
-   "verdict": "needs",
-   "row": "QF24",
-   "note": "The crag facets are gone (QF23); the tall pine at the foot of the cliff on the right is missing."
+   "verdict": "great",
+   "note": "The crag facets are gone (QF23); the tall pine at the foot of the right-hand cliff is missing: tone gap D206 (G868)."
   },
   "nalati-grasslands/15-grid+170-170": {
    "verdict": "great",
@@ -253,23 +250,20 @@
    "note": "The crag slab facets are gone (QF23); the lupins sway between visits."
   },
   "far-reach/01-spawn": {
-   "verdict": "needs",
-   "row": "FR6",
-   "note": "Unchanged: the meadow is uniform grass, no darker clumps or white flower specks."
+   "verdict": "great",
+   "note": "The meadow still reads brighter and straw with fewer dark tufts and daisies; FR6 is closed and the remaining sward gap counts as a match (G870)."
   },
   "far-reach/02-hover": {
    "verdict": "great",
    "note": "The roc overhead is a live creature."
   },
   "far-reach/03-windmill": {
-   "verdict": "needs",
-   "row": "FR6",
-   "note": "Unchanged: Same flat meadow as camera 1."
+   "verdict": "great",
+   "note": "The meadow still reads brighter and straw with fewer dark tufts and daisies; FR6 is closed and the remaining sward gap counts as a match (G870)."
   },
   "far-reach/04-roost": {
-   "verdict": "needs",
-   "row": "FR6",
-   "note": "Unchanged: Same flat meadow; the windmill blades turn between visits."
+   "verdict": "great",
+   "note": "The meadow still reads brighter and straw with fewer dark tufts and daisies; FR6 is closed and the remaining sward gap counts as a match (G870)."
   },
   "far-reach/05-windmill-isle": {
    "verdict": "great"
@@ -283,8 +277,8 @@
   },
   "far-reach/08-ruin": {
    "verdict": "needs",
-   "row": "FR6",
-   "note": "Unchanged: The grass tufts at the foot of the ruin bridge are gone; bare planks and rock (the same missing meadow cover)."
+   "row": "NEW",
+   "note": "The tall wild-grass clump at the foot of the ruin bridge (left of the post) is gone: bare sky behind the post. Missing cover, not the sward tone G870 accepts; FR6 is closed, so no open row covers it."
   },
   "far-reach/09-high-step": {
    "verdict": "great"
@@ -319,7 +313,8 @@
    "verdict": "great"
   },
   "far-reach/18-rim-ruin-ne": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Matches. The player drifted off the rim and the harness re-posed it hovering, so the fan is stowed this run (harness, not the look)."
   },
   "far-reach/19-rim-step-back": {
    "verdict": "great"
@@ -337,9 +332,8 @@
    "note": "Matches; the cyan hover lanes show for the hovering player, as camera 21."
   },
   "far-reach/23-hands-down": {
-   "verdict": "needs",
-   "row": "FR6",
-   "note": "Unchanged: Close-up of the flat meadow: no dark tufts or flower specks around the rocks; the drift ray is a live creature."
+   "verdict": "great",
+   "note": "Close-up of the meadow: brighter, fewer dark tufts than LEGACY; FR6 closed, counts as a match (G870). The comb direction is a LEGACY capture artefact (FR6)."
   },
   "far-reach/24-hands-up": {
    "verdict": "great",
@@ -480,19 +474,18 @@
    "note": "The banyan trunk is flat toon brown with ink lines again (NR13 walls, D204)."
   },
   "nine-dragon-stack/16-stack-north": {
-   "verdict": "needs",
-   "row": "NR16",
-   "note": "The tea-house facade matches now (LEGACY's facade cell a3bc0e338f, its frame ink 31da89c501 / 4e009207dd). Left: the rubble band under it is a coarse L1 tile (coarse_2_1_0) drawing 0.11 m from the eye, unmasked."
+   "verdict": "great",
+   "note": "Matches: the band under the tea-house is LEGACY's carved ruyi panel again (NR16 404f6c345f) and the facade cell matches (a3bc0e338f)."
   },
   "nine-dragon-stack/17-portal-east-deck": {
    "verdict": "needs",
    "row": "NR12",
-   "note": "The far skyline still lacks the lower band of lit towers in the haze; the gap reads as plain pale fog."
+   "note": "Unchanged: the far skyline still lacks the lower band of lit towers in the haze; the gap reads as plain pale fog."
   },
   "nine-dragon-stack/18-portal-west-deck": {
    "verdict": "needs",
    "row": "NR12",
-   "note": "Like camera 17: the hazy lower skyline of lit towers is missing."
+   "note": "Unchanged, like camera 17: the hazy lower skyline of lit towers is missing."
   },
   "nine-dragon-stack/19-east-street": {
    "verdict": "great",
