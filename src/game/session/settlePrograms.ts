@@ -7,8 +7,9 @@ import { diagnosticNow } from '@wildshard/engine/core/clock';
 /** Actual drawn frames with no new node builds before spawn is ready. */
 const QUIET_FRAMES = 20;
 /** Presented time the spawn view may take to link before the reveal goes ahead (ms): WebKit settles in ~1 s, Chromium
- *  phone 4x in ~3 s and 6x in ~9 s; 10x needs over 30 s, and paid all of the old 30 s entry bound before failing. */
-const SPAWN_LINK_MS = 12000;
+ *  phone 4x in ~3 s and 6x in ~9 s; 10x needs over 30 s. PL17: a slower device reveals after 3 s and the in-play
+ *  warm-up links the rest (G815), where the old 12 s cost the phone preset ~13 s on every entry, cold and warm. */
+const SPAWN_LINK_MS = 3000;
 
 /** Compile only the spawn view and observe its real rendered programs, under the entry bound. Linking before the reveal
  * only smooths the first seconds of play: a device too slow to finish inside the bound (a CPU-throttled phone, where
