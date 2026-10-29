@@ -2,7 +2,7 @@ import {afterEach,beforeEach,expect,test,vi} from 'vitest';
 import {Scope} from '../app/scope';
 import {PresentationState} from '../app/view/presentation';
 import {AudioActivity} from './activity';
-import {audioInterval,audioTimeout} from './activityTimers';
+import {audioInterval,audioTimeout,audioIdle} from './activityTimers';
 
 class Context extends EventTarget {
   state:AudioContextState='suspended';currentTime=0;resumes=0;suspends=0;
@@ -56,4 +56,12 @@ test('replacing a context isolates a late resume completion and removes old list
   const f=fixture();let finish:()=>void=()=>undefined;
   vi.spyOn(f.context,'resume').mockImplementationOnce(()=>new Promise<void>(resolve=>{finish=()=>{f.context.set('running');resolve();};}));
   f.policy.resume();const next=new Context();f.policy.attach(next);f.view.setVisible(false);finish();await settle();expect(next.resumes).toBe(0);expect(next.state).toBe('suspended');
+});
+
+
+test('idle PCM warm-up cancels on suspend and ignores a late delivery after show',()=>{
+  const f=fixture();f.context.set('running');let serial=0;
+  const pending=new Map<number,()=>void>(),warm=vi.fn<()=>void>();
+  audioIdle(f.scope,f.context,{request:run=>{const id=++serial;pending.set(id,run);return id;},cancel:id=>{pending.delete(id);}},warm);
+  const raced=pending.get(1);expect(pending.size).toBe(1);f.context.set('suspended');expect(pending.size).toBe(0);f.context.set('running');raced?.();expect(warm).not.toHaveBeenCalled();pending.get(2)?.();expect(warm).toHaveBeenCalledOnce();expect(f.scope.census.listeners).toBe(1);
 });

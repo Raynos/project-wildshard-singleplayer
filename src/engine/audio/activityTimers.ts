@@ -23,3 +23,15 @@ export function audioTimeout(scope:Scope,context:Clock,ms:number,action:()=>void
   };
   owner.listen(context,'statechange',update);update();
 }
+
+/** PCM warm-up keeps a pending idle job only while its native clock is running. */
+export function audioIdle(scope:Scope,context:Clock,ports:{readonly request:(action:()=>void)=>number;readonly cancel:(id:number)=>void},action:()=>void):void{
+  const owner=scope.child('audio.idle');let id:number|undefined,epoch=0;
+  const cancel=():void=>{epoch++;if(id!==undefined){ports.cancel(id);id=undefined;}};
+  const update=():void=>{
+    cancel();if(owner.disposed||owner.disposing||context.state!=='running')return;
+    const token=epoch;
+    id=ports.request(()=>{if(token!==epoch||owner.disposed||owner.disposing||context.state!=='running')return;id=undefined;owner.dispose();action();});
+  };
+  owner.onDispose(cancel);owner.listen(context,'statechange',update);update();
+}

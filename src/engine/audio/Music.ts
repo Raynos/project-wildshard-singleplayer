@@ -1,5 +1,5 @@
 import { resourceScope } from '../app/resources';
-import {audioInterval,audioTimeout} from './activityTimers';
+import {audioInterval,audioTimeout,audioIdle} from './activityTimers';
 import { observeAudioMemory } from '../core/memoryResources';
 import { withOwner } from '../app/ownership';
 import { ownAudioSource } from './ownership';
@@ -669,11 +669,11 @@ export class Music {
       if (!this.scope.disposed && !this.scope.disposing) this.engine.warm(arr);
     };
     const w: { requestIdleCallback?: (run: () => void) => number; cancelIdleCallback?: (id: number) => void } = window;
-    if (w.requestIdleCallback) {
-      let forget = (): void => { /* Filled after native scheduling. */ };
-      const id = w.requestIdleCallback(() => { forget(); warm(); });
-      forget = this.scope.capture('disposers', () => { w.cancelIdleCallback?.(id); });
-    } else this.scope.timeout(300, warm);
+    const request=w.requestIdleCallback;
+    if (request !== undefined) audioIdle(this.scope,this.ctx,{
+      request:run=>request.call(window,run),cancel:id=>{w.cancelIdleCallback?.(id);},
+    },warm);
+    else audioTimeout(this.scope,this.ctx,300,warm);
     if (name === 'theme') this.sync();
   }
   private stemsReady(): boolean {
