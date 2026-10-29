@@ -71,6 +71,9 @@ test('the production HTTP carry preserves old JS/CSS and refuses a truncated bod
     expect(await carryPreviousDeploy(root, options)).toMatchObject({current: 0, carried: 2});
     expect(requests).toEqual(['deploy-chunks.json', ...bodies.keys()]);
     for (const [path, body] of bodies) expect(readFileSync(join(root, path), 'utf8')).toBe(body);
+    requests.length = 0;
+    expect(await carryPreviousDeploy(root, options)).toMatchObject({current: 2, carried: 0, bytes: 0});
+    expect(requests).toEqual(['deploy-chunks.json']);
     truncate = true;
     const failed = join(root, 'failed'); mkdirSync(failed); writeFileSync(join(failed, 'version.json'), '{"build":"failed"}');
     await expect(carryPreviousDeploy(failed, options)).rejects.toThrow('Previous deploy chunk length differs');
