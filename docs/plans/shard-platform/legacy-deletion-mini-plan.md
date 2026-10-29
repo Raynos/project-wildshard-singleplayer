@@ -49,8 +49,8 @@ Rows LD1–LD4 delete nothing and need no QA; LD5–LD8 wait for Jake's word (G6
 | **LD4 — done audit with explicit gaps (`cfa1930bb0`, `8da86fa78c`)** (G795) | Explorer parity in Node, built now, no browser lane (G795; was once per shard at a milestone in a browser): the LEGACY and SHARDFILE model / set / world / arena lists compared; deletes nothing | S | each diff empty, or every gap is a row in that shard's zero plan |
 | **LD4b — done (2026-10-28, sp-x9)** (G843; before LD5) | Capture LEGACY goldens for every shard before anything is deleted: the board cameras plus a few more, phone portrait, labelled, into `art/legacy-goldens/`. Reference only, not a release check | S | every shard has a labelled LEGACY golden sheet committed under `art/legacy-goldens/` (24 goldens, G851); then tag `legacy-final` on the last commit that still has legacy, before LD5 starts (G851)  Six inspected sheets /36 real LEGACY captures: [goldens index](../../../art/legacy-goldens/round-1-2026-10-28/README.md), source `dfe3573258`, actual six LEGACY entries, errors0, four CO6 cameras plus two standing turns each; every JPEG≤500000B. Reference only, no look change or deletion approval. |
 | **LD5** | Remove the LEGACY button: Debug row, dual buttons, legacy entry mode and loading path, `shard/legacy.ts`, `entries.legacy` | S | SHARD SELECT shows one ENTER WORLD everywhere |
-| **LD6** | Delete the folders (G840, Jake 10-28: ALL AT ONCE on his word, LD5-LD10 one chain, not per shard; the order below is only the commit order inside that chain), one commit per shard: Sky + Signal (already unreachable), then Driftwood + Pine, then Nalati + Nine; each drops its list entry, regenerates `slugs.generated.json`, prunes lint entries | M | gates green per commit |
-| **LD7** | Delete legacy-only engine/game code with each LD6 commit (~16 modules, exports, frozen exceptions) | M | nothing left whose only importer was legacy |
+| **LD6** | Delete the folders (G840, Jake 10-28: ALL AT ONCE on his word, LD5-LD10 one chain, not per shard; the order below is only the commit order inside that chain), three pair commits: Sky + Signal (already unreachable), then Driftwood + Pine, then Nalati + Nine; each drops its list entry, regenerates `slugs.generated.json`, prunes lint entries | M | gates green per commit |
+| **LD7** | Delete legacy-only engine/game code with each LD6 commit (33 modules: 7 / 12 / 14, exports, frozen exceptions) | M | nothing left whose only importer was legacy |
 | **LD8** | Retire the legacy tooling: `legacy-shards.json`/`.mjs`, lint/script exemptions, `LEGACY_SHARDS`, synthetic legacy tests | S | `git grep legacy-shards` finds nothing |
 | **LD9** (was custom-code-freeze A1, G838; after LD8) | Collapse the internal plugin plumbing to one client-plan boot: generated `load` thunk → a platform constant, `declaredClientPlanEntry` + empty `ShardPlugin` + `standaloneHybridEntry` + `prepareStandaloneHybrid` → one path; `retainHomeRuntime` / `stagesOwner` policy flags settled per shard as data or removed; `game/shard/plugin.ts`, `scopedRuntime.ts`, the hybrid-only parts of `hybrid.ts` (539). ~700 lines; Codex | L | no `ShardPlugin` subclass outside the game; boot smoke + one Chromium walk per shard |
 | **LD10** (was custom-code-freeze A2, G838; after LD9) | Regraph and sweep the second wave: modules whose only importers were LD7 or LD9 deletions, `sdk/runtime/**` and the `sdk-no-facade` ratchet, `ShardContext` methods with no caller (export- and member-level), stale ENGINE.md sections. ~500 lines (measured then); Codex | M | the graph lists no orphan or test-only module except the kept tools |
@@ -226,7 +226,7 @@ rendering, Simulator, build or generation run was started for LD4.
 ## Prepared deletion chain (G871 / G873; audit 2026-10-29)
 
 **Preparation only; no deletion in this commit.** Source inventory and searches below are pinned to
-`f8ccbaa6c3af46b885da26fc8b66673ce72f7040` (HEAD when this audit began), not loose peer files.
+`3e9937f146aee9aae9611a32c4caa3cf5b7e7bf5` (HEAD for this refresh; original preparation `ac8db2e95d`), not loose peer files.
 G873 now puts this chain **after Jake's phone QA of the ~12:15 release**, as the last implementation batch before
 archive. The coordinator names the go; sp-ci-deploy first publishes `legacy-final` on the last legacy-containing
 commit. G840 means one continuous batch, with no early per-shard deletion or per-pair release. The three pair commits
@@ -244,7 +244,7 @@ assets, declaration companions and manifests; do not delete similarly named mode
 The audit used `git grep -n/-l` at that SHA for `legacy-shards`, `LEGACY_SHARDS`, `legacyShardButtons`,
 `ws-menu-shardfile`, `standaloneHybridEntry`, `prepareStandaloneHybrid`, `prepareTrustedRuntime`, `retainHomeRuntime`
 and `stagesOwner`, then resolved package-export aliases and checked literal tool loads. A secondary import/export
-parse covered 7,860 tracked code files with zero parser errors. A graph edge is not the only consumer:
+parse covered 7,871 tracked code files with zero parser errors. A graph edge is not the only consumer:
 `scripts/blender/lib/export-scene.mjs:62` string-loads `src/engine/world/blenderArea.ts`, so that module **stays**.
 Historical line-basis JSON and save/oracle fixtures also stay unless the specific action below names them.
 Repeat the same searches on the actual parent of each implementation commit; a new retained caller is not discarded
@@ -261,6 +261,42 @@ the modern products and the committed goldens stay. Boot legs below name the **e
 not new local gate steps: `boot-public`, `boot-developer`, `boot-grid`, `hover-chromium`, `hover-webkit`, `explorer`.
 Use one full-inventory containing build; `phone-route` remains report-only. Final release consumes the completed chain,
 not an intermediate pair. No smoke, browser, product build or deletion was executed for this docs preparation.
+
+### Revalidation after the QA / loading / deploy landings
+
+At `3e9937f146aee9aae9611a32c4caa3cf5b7e7bf5`, all **1,143 sealed files / 26,564,714 bytes** still match their registered SHA-256.
+Compared with `ac8db2e95d`, there are **zero new resolved frozen imports**; 94 frozen import edges become
+2,702 only because Opus retired the stale families board in `3e9937f146`. Its Nalati legacy grade import is gone;
+neither pair 3 nor LD8 must recreate that visual tool. The **33 retirement modules** remain **7 / 12 / 14** across
+the pairs below; the Blender exporter exception and the two root-owned SDK audio loans remain real callers.
+New `legacyDouble` test loans are modern test helpers, not frozen content dependencies.
+
+Exact per-pair file, export, policy and focused-test lists are refreshed in
+`tmp/sp-x9-legacy-refresh/plan.txt`, with machine-readable `pairs.json` and `pair1/2/3-files.txt` / `pair1/2/3-tests.txt`.
+The existing policy decreases below are unchanged. These are execution lists, not applied source patches or a claim
+that the implementation checks pass before deletion. G873's go and tag still precede LD5; G877's QA rows remain
+archive blockers, regardless of the finish-spike's older cut-off wording.
+
+**Registered outputs:** each pair also regenerates `src/game/shard/art.generated.ts` and
+`src/game/shard/manifest-closure.generated.json`, alongside discovery/slugs. The art module currently imports frozen
+thumbnails/Explore images, so leaving it stale would retain deleted paths. Use the registered producer/wrapper only.
+Keep public assets, committed goldens and the immutable `docs/plans/shard-platform/legacy-explorer-lists.json` report.
+
+**Cross-lane prerequisites agreed with sp-x2:** pair 2 consumes its one-file
+`tmp/sp-x2-ld8/pair2-fixture.patch` (refreshable by its `pair2-fixture.py`) to detach the frozen Pine config import in
+`test/legacy-runtime-state.test.ts`. The complete suite stays x2-owned: keep every 20-to-5 strict migration,
+save-publication, instance refusal and reentry assertion; its global identity-bridge retarget remains LD8.
+`git apply --check` passes on this snapshot; no application, typecheck or test pass is claimed for the unapplied patch.
+Pair 2/3 own only their frozen capture/import arms in `scripts/legacy-explorer-lists.ts`; LD8 keeps residual tool/helper
+cleanup and modern constructors. Its generic historical LEGACY collector is not a supported live read after a folder
+leaves; no fresh comparison is claimed. The frozen journal-only test retires with Pine, never the strict state suite.
+
+**Retained regressions:** preserve `src/engine/ui/{update-tap-loading,update-tap-pause,update-boundary,update-installing}.test.ts`,
+`src/engine/boot/live-json-parser.test.ts`, `src/game/shardfile/live-product-preparation.test.ts` and
+`test/deploy-source-maps.test.ts`. Common pair checks include the existing QA12
+`test/session-title-exit.test.ts` / `src/engine/ui/hud-main-menu.test.ts`: menu exit must still retire the entire grid
+before a fresh standalone entry. None of QA1/QA5/QA12/QA13's loading, teardown, renderer or worker code is a legacy
+deletion target. Existing boot-smoke legs remain the release proof; this refresh adds no gate or cap.
 
 1. **LD5 — remove the entry UI/mode (sp-o3), after the tag.**
 
@@ -305,9 +341,11 @@ not an intermediate pair. No smoke, browser, product build or deletion was execu
    Regenerate discovery/slugs after both complete inventory removals; keep the remaining four sealed rows unchanged.
 
    **Tests/checks:** remove only retired declaration cases in
-   `src/engine/isolated-engine-world-uniform-declarations.test.ts` (`world/terrainTileData`) and
-   `src/sdk/isolated-sdk-binding-declarations.test.ts` (deleted SDK keys); adapt the source-only frozen reference in
-   `test/sunscar-world-program.test.ts` to its retained native/oracle evidence.
+   `src/engine/isolated-engine-world-uniform-declarations.test.ts` (`world/terrainTileData`),
+   `src/game/isolated-game-save-slot-declarations.test.ts` (`shardfile/socketLift`) and
+   `src/sdk/isolated-sdk-binding-declarations.test.ts` (`socketLift`). In `test/sunscar-world-program.test.ts`,
+   retire only the frozen `boot/files.ts` source read/contains checks; keep its five public-GLB exact-byte pins and
+   native world assertions. Modern format socket-lift/grazer/flyer schemas and their fixture oracles stay.
    Run `test/{sky-signal-fixed-layouts,sky-signal-quest-product,sunscar-source-entry,sunscar-world-program,
    platform-data-counts,legacy-seal,shard-select-entries}.test.ts` plus those declaration cases and common checks.
    Smoke impact: `boot-public`, `boot-developer`, `boot-grid` (Signal road), `explorer`.
@@ -338,12 +376,16 @@ not an intermediate pair. No smoke, browser, product build or deletion was execu
    **Tests/checks:** retarget `src/engine/anim/rig-parser-preparation.test.ts` to the defining rig owner and
    `test/bake-collider-kernels.test.ts` to the existing native codec/reference. Prune only deleted declaration entries.
    `test/{frozen-legacy-format,model-contract-paths}.test.ts` drop these two live-folder cases; saved historical oracle
-   JSON is retained. Replace the frozen-config import in `test/legacy-runtime-state.test.ts` with the original five-field
-   fixture; retain the modern twenty-field and mismatch/save-identity assertions. Retire frozen-only
+   JSON is retained. Consume x2's agreed fixture-only prerequisite for `test/legacy-runtime-state.test.ts` before
+   the Pine config disappears; the complete suite and every modern twenty-field, strict migration, mismatch and
+   save-identity assertion stay. Leave x2's later global bridge retarget for LD8. Retire frozen-only
    `test/pine-legacy-journal-entry.test.ts`; retain/run `test/{pine-journal,pine-journal-late,pine-journal-view-demand,
    pine-night-emits}.test.ts`. `test/legacy-settings.test.ts` loses obsolete frozen trim construction, while its ordered
    clock-effect oracle stays covered by the existing Pine night fixtures/tests. Run these plus
    `test/{driftwood-ground-bounds,legacy-seal,shard-select-entries}.test.ts` and common checks.
+   Remove only the now-dead `src/sdk/runtime/effects.ts` / `C6` row in `scripts/shard-components.mjs`; preserve its
+   other component ownership and LD8 helper work. Run `test/shard-component-{crumbs,spans,waves}.test.ts`.
+   Strip only this pair's frozen collector arm/import in `scripts/legacy-explorer-lists.ts` (agreed x2 transfer).
    Smoke impact: `boot-public`, `boot-developer`, `boot-grid`, both hover legs, `explorer`.
 
 4. **LD6+LD7 pair 3 — Nalati + Nine (sp-x9), then hand the exact SHA to LD8.**
@@ -354,6 +396,8 @@ not an intermediate pair. No smoke, browser, product build or deletion was execu
    `src/sdk/groupBrains.ts`, `src/sdk/weapons/firearmProfile.ts`, and
    `src/sdk/runtime/weapons/{Firearm,Melee,Sword,Thrown,starterBow,starterMeleeProfile,starterMoves}.ts`.
    Remove all matching defining export/publish keys. Keep the empty **sealed** inventory and the seal helper until LD8.
+   Strip only the Nalati/Nine frozen collector arms/imports in `scripts/legacy-explorer-lists.ts`; preserve its modern
+   constructors and LD8 residual ownership. The old families-board reader has already retired in `3e9937f146`.
 
    **Exact shrinking policy:** `wildshard/sdk-no-facade` rows (all under `src/sdk/runtime/weapons/`):
    `Firearm.ts: 1`, `Melee.ts: 2`, `Sword.ts: 5`, `starterBow.ts: 4`, `starterMeleeProfile.ts: 2`, `starterMoves.ts: 10`.
@@ -395,7 +439,8 @@ not an intermediate pair. No smoke, browser, product build or deletion was execu
    gen-budget-derivations,gen-programs,gen-shard-words,gen-shards,generated-files,json-declarations,map-hash,
    precommit-checks,shard-coupling,shard-platform,shard-runtime-closure,sim-in-runtime,source-generators,
    title-catalogue}.mjs`, `scripts/push-source.py` and matching declarations where their signatures change.
-   Remove the obsolete LEGACY mode from `scripts/legacy-explorer-lists.ts` / `legacy-explorer-lists.json`, and retire the
+   Finish residual LEGACY collector/tool cleanup after pair 2/3 detach their frozen imports; keep
+   `docs/plans/shard-platform/legacy-explorer-lists.json` unchanged as LD4/CO8 evidence, and retire the
    live A/B command in `art/legacy-goldens/compare/capture.mjs`; preserve goldens, boards and historical reports.
 
    **Important retained policy:** `lint/legacy-line-basis.json` and the numerical parts of
