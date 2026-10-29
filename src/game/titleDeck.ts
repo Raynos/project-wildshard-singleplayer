@@ -4,8 +4,6 @@ import { isDev } from '@wildshard/engine/core/devMode';
 import { listenDom, listenTap } from '@wildshard/engine/input/dom';
 import { beginNavigationShell } from '@wildshard/engine/boot/shell';
 import { startEntryDownload } from './shardfile/entryTransport';
-import { startSpawnDownload } from './boot/spawnDownload';
-import { TIER } from '@wildshard/engine/core/tier';
 import { saves } from '@wildshard/engine/saves/runtime';
 import { titlePrefetchChoice } from './grid/titlePrefetchChoice';
 /**
@@ -328,8 +326,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     if (c.entries !== undefined && !hasEntry(c.entries, entry)) return;
     const shard = c.shard;
     entering = true;
-    // MF4: the tap starts the spawn download the next page adopts (completed files land in the worker cache)
-    if (entry === 'shardfile') { startEntryDownload(c.slug); startSpawnDownload(c.slug, 'client', TIER); titlePrefetchChoice(saves).remember(c.slug); }
+    if (entry === 'shardfile') { startEntryDownload(c.slug); titlePrefetchChoice(saves).remember(c.slug); }
     const attempt = beginNavigationShell(c.name, scope, () => {
       chooseShardEntry(c.slug, entry);
       opts.onEnter(shard, entry);
