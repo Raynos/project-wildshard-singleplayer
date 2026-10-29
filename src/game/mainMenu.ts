@@ -155,7 +155,7 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
   const gridCard = main.querySelector('.ws-main-grid');
   if (gridCard instanceof HTMLButtonElement) deck.onTap(gridCard, () => { if (gridEntryShown(mode())) { leaveTitle(); onGrid(); } });
   // PL13: only the home/last product, after the title paints. This is verified
-  // disk prefetch, never world construction or a hidden offline-size scan.
+  // disk prefetch, never world construction or a hidden offline-size scan. It shows nothing (QB2).
   let started = false;
   const startPrefetch = (): void => {
     if (started || opts.active !== null) return;
@@ -170,17 +170,8 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
         stopReadAhead = run.stop;
         owner.onDispose(run.stop);
         owner.listen(window, 'beforeunload', leaveTitle);
-        const lines = [main, deck.root].map(parent => {
-          const line = document.createElement('div'); line.className = parent === main ? 'ws-main-notice' : 'ws-menu-recovery';
-          line.setAttribute('role', 'status');
-          (parent.querySelector('.ws-main-head, .ws-menu-head') ?? parent).append(line);
-          return line;
-        });
-        const update = (): void => {
-          const state = run.snapshot(), text = s.prefetch(state.presentBytes + state.storedBytes, state.knownBytes, state.phase);
-          for (const line of lines) line.textContent = text;
-        };
-        update(); owner.interval(250, update);
+        // QB2 (Jake 13:41, "what the hell's preparing world?"): the read-ahead runs silently; no status line on the title
+        // or in SHARD SELECT
       };
       void load().catch(() => undefined); // Optional read-ahead never refuses a title tap.
     });
