@@ -810,6 +810,8 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     return sum;
   };
   const rooted = (node: Node): Node => { const zero = rootRead(); return zero === null ? node : new OperatorNode('+', zero, node); };
+  /** a scalar output, rooted; unchanged (its own node) when the graph reads no root var */
+  const rootedFloat = (node: Node<'float'>): Node<'float'> => { const r = rooted(node); return r === node ? node : new ConvertNode<'float'>(r, 'float'); };
   const rootedBool = (node: Node): Node => { const zero = rootRead(); return zero === null ? node : new OperatorNode('&&', new OperatorNode('<', zero, float(1)), node); };
   const meshMapUsed = graphUsesMeshMap(ir);
   const attributeDefaults: Record<string, number[]> = {};
@@ -1488,7 +1490,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     const colour = out(s.colour);
     if (colour !== null) m.colorNode = new ConvertNode<'vec3'>(rooted(widen(colour, 'vec3')), 'vec3');
     const alpha = out(s.alpha);
-    if (alpha !== null) { m.opacityNode = new ConvertNode<'float'>(rooted(asFloat(alpha)), 'float'); m.transparent = s.alphaCutoff === undefined; }
+    if (alpha !== null) { m.opacityNode = rootedFloat(asFloat(alpha)); m.transparent = s.alphaCutoff === undefined; }
     if (s.alphaCutoff !== undefined) m.alphaTest = s.alphaCutoff;
     const discard = out(s.discard);
     if (discard !== null) m.maskNode = rootedBool(not(asBool(discard))); // three discards where the mask is false
@@ -1496,12 +1498,12 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     // the authored world-space shading normal, in the view space three lights in
     if (shading !== null) m.normalNode = new MathNode('normalize', new SplitNode(new OperatorNode('*', cameraViewMatrix, new JoinNode([new ConvertNode<'vec3'>(rooted(shading.n), 'vec3'), float(0)])), 'xyz'));
     const occlusion = out(s.occlusion);
-    if (occlusion !== null) m.aoNode = mappedFactor(new ConvertNode<'float'>(rooted(asFloat(occlusion)), 'float'), 'aoMap');
+    if (occlusion !== null) m.aoNode = mappedFactor(rootedFloat(asFloat(occlusion)), 'aoMap');
     if (m instanceof MeshStandardNodeMaterial) {
       const emissive = out(s.emissive), roughness = out(s.roughness), metalness = out(s.metalness);
       if (emissive !== null) m.emissiveNode = rooted(widen(emissive, 'vec3'));
-      if (roughness !== null) m.roughnessNode = mappedFactor(new ConvertNode<'float'>(rooted(asFloat(roughness)), 'float'), 'roughnessMap');
-      if (metalness !== null) m.metalnessNode = new ConvertNode<'float'>(rooted(asFloat(metalness)), 'float');
+      if (roughness !== null) m.roughnessNode = mappedFactor(rootedFloat(asFloat(roughness)), 'roughnessMap');
+      if (metalness !== null) m.metalnessNode = rootedFloat(asFloat(metalness));
     }
     const position = out(st['vertex.position']?.position);
     if (position !== null) m.positionNode = new ConvertNode<'vec3'>(widen(position, 'vec3'), 'vec3');
