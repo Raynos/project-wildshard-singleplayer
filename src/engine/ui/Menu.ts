@@ -93,6 +93,7 @@ export class GameMenu {
   private resumeState: AppState = 'play';
   onOpen?: (tab: MenuTab) => void;
   onClose?: () => void;
+  /** The host owns exit: fresh-page hosts navigate; local/practice hosts close their menu. */
   onExit?: () => void;
   onFeedbackTab?: (panel: HTMLElement) => void;
   /** may a key open the menu now — the HUD says: in the world, no composer up (`hud.menu = …` sets it); closed until then */
@@ -159,7 +160,10 @@ export class GameMenu {
     this.title = title; this.subtitle = subtitle; this.closeBtn = closeBtn; this.exitBtn = exitBtn;
     this.subtitle.textContent = levelName;
     listenTap(this.scope, closeBtn, () => { this.close(); });
-    listenTap(this.scope, exitBtn, () => { this.close(true); this.onExit?.(); }); // silent: the HUD brings the title back itself
+    listenTap(this.scope, exitBtn, () => {
+      if (this.onExit !== undefined) this.onExit();
+      else this.close(true);
+    }); // A page exit must not dispose menu scopes before its host can navigate.
     this.scope.listen(this.root, 'pointerdown', (e) => { if (e.target === this.root) this.close(); });
     containMenuInput(this.root, this.scope);
     const toggle = (tab: MenuTab): void => {

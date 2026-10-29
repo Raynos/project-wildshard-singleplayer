@@ -52,3 +52,19 @@ test('retiring removes the synchronously mounted settings pane',()=>{
   expect(menu.root.isConnected).toBe(false);
   expect(pane?.isConnected).toBe(false);
 });
+
+
+test('the actual exit button reaches its host even when old menu cleanup would throw',()=>{
+  const {menu}=fixture();app.setState('play');menu.open('settings');
+  const leave=vi.fn<()=>void>();menu.onExit=leave;
+  const close=vi.spyOn(menu,'close').mockImplementation(()=>{throw new Error('Old menu teardown refused');});
+  const button=menu.root.querySelector<HTMLElement>('.ws-gmenu-exit');if(button===null)throw new Error('Missing exit button');
+  button.click();expect(leave).toHaveBeenCalledOnce();expect(close).not.toHaveBeenCalled();
+});
+
+test('a menu without an exit host keeps its original silent local close',()=>{
+  const {menu}=fixture();app.setState('play');menu.open('settings');
+  const close=vi.spyOn(menu,'close');
+  const button=menu.root.querySelector<HTMLElement>('.ws-gmenu-exit');if(button===null)throw new Error('Missing exit button');
+  button.click();expect(close).toHaveBeenCalledExactlyOnceWith(true);expect(menu.isOpen).toBe(false);expect(app.state).toBe('play');
+});
