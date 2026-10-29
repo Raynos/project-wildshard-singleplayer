@@ -9,17 +9,17 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **LIVE 125bda0483 (build 125bda048-mvu1h3gt, a normal proven release, ~16:20)**; the repaired QA build waits on CI.
 **REPLAN (G886): [FOUNDATIONS](../FOUNDATIONS.md) wave 1, crashes first (G894).** Landed: MF2, MF3, MF6, MF7 memory, FC2-5,
-FC8, G896, G901, QB18; MF1 / MF4 code in, proofs pending. **For wildshard-v (15:24):** sp-o5 is not idle: it owns MF7 (tests + Sim hold
-running), then QB20. sp-x8 is released for good; FC1 / FC5 / FC6 are sp-x1's. Next: sp-o3 MF5, sp-o4 FC3 / FC4 / QB18,
+FC8, G896, G901, QB18; MF1 / MF4 code in, proofs pending. **For wildshard-v (16:24):** FOUNDATIONS lane cells carry every landing (MF2 / MF3 / MF6 done, MF7 memory
+done, MF1 / MF4 / MF5 landed with proofs open). sp-x8 is released for good; FC1 / FC5 / FC6 done (sp-x1). Deploy tonight asked. Next: sp-o3 MF5, sp-o4 FC3 / FC4 / QB18,
 sp-x2 MF10, sp-x9 G895 → FC7, sp-x10 MF1 + QB21. QB19 / GAME-S sp-o3 later. G892: open until wave 1 + Jake's QA (10-30).
 
-**Done today:** QA1-QA14, CO1-CO5, QB2/7/8/10/14/15, RL2-5/9/10.
+**Done today:** QA1-14, CO1-5, QB2/7/8/10/14/15/18, RL2-5/9/10.
 
 **Autonomous decisions (for Jake's review):**
 - MF3 met: launch image → title 0.7 s warm on the Sim, ~0.5 s of it iOS starting the web app before our page
   navigates (page share 0.16 s, 6e4e5e6817); not reducible in the page.
 - Earlier calls (D183, D185, PL15, PL16, QA3-QA8): see this file's git log.
-- Codex took QB11 (spring substep, 60 fps bit-identical) and hud.perf (read-only count): no pixels. GAME-81 was pre-gate.
+- Codex took QB11 (spring substep, 60 fps bit-identical) and hud.perf (read-only count): no pixels.
 - SW / manifest rows (RL7-9, MF1 / MF2 / MF4) on Codex: no pixels (G848).
 - **For wildshard-v (QB1, RL3 48492f221e):** Sim warm launch image 0.6 s → title 1.2 s, nothing else. iOS snapshots the
   launch image at install; Jake's icon predates it (10-24), so tell him once: delete + re-add the icon. The first cold
