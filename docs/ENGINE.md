@@ -3409,6 +3409,17 @@ initialization and any later identity addition require exact coordinator approva
 | `scripts/gen-shards.mjs --check` | gate | the generated registry and the shard word list are current |
 | `scripts/check-paths.mjs` | `pnpm test` | no stale tool paths or empty globs |
 
+**Composition-root modules (LT1).** Root entries use defining workspace exports,
+with `wildshard/public-index` hard on `src/` and no debt allowance. Engine
+`ui/StartTitle`, `native/boot` and `telemetry/runtime` expose the existing
+entry installers. Game `mainMenu`, `identity`, `engineStrings`, `audio/theme`,
+`icons`, `bag/starter.generated`, `boot/loadingPaths`, `shard/entryMode`,
+`session/session`, `systems/species/install`, `models/interact`,
+`systems/tools/hoverboard` and `shardfile/product` expose their existing
+bindings. Importing a defining module grants no new installation or lifetime;
+composition still calls the installers explicitly. Source JSDoc and
+`pnpm docs` list each binding. There is no barrel or duplicate implementation.
+
 ## 25. Author SDK
 
 The SDK is the author workspace above game: defining modules, no barrels or shard imports.
