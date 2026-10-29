@@ -3,31 +3,8 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 // oxlint-disable-next-line import/no-nodejs-modules -- Paths for the owned static HTTP fixture.
 import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { workerInstallFiles, workerScripts, workerWarmFiles, publicWorkerProduct } from '../scripts/app-build/serviceWorker';
+import { serviceWorkerCore, workerScripts } from '../scripts/app-build/serviceWorker';
 import { previewServer } from './fixtures/preview-server';
-
-test('visible experimental cards never seed executable public warming', () => {
-  expect(publicWorkerProduct('public', { status: 'live' })).toBe(true);
-  expect(publicWorkerProduct('early', { status: 'earlyAccess' })).toBe(true);
-  expect(publicWorkerProduct('visible-locked', { status: 'experimental' })).toBe(false);
-  expect(publicWorkerProduct('hidden', { status: 'hidden' })).toBe(false);
-  expect(publicWorkerProduct('_internal', { status: 'live' })).toBe(false);
-  expect(publicWorkerProduct('reference', { status: 'live', legacy: true })).toBe(false);
-  expect(publicWorkerProduct('grid-only', { status: 'live', shardSelect: false })).toBe(false);
-  expect(() => publicWorkerProduct('bad', { status: 'unknown' })).toThrow('Invalid worker public-entry metadata');
-});
-
-test('public warming uses declared closures, leaving Developer-only code on use', () => {
-  const bank = { common: [['/assets/common-aaaaaaaa.js', 1]], client: [['/assets/client-bbbbbbbb.js', 2]], grid: [],
-    selection: { public: [['/assets/world-cccccccc.js', 3]], hidden: [['/assets/dev-dddddddd.js', 4]],
-      legacy: [['/assets/legacy-eeeeeeee.js', 5]] },
-    optional: { files: [['/assets/host-ffffffff.js', 6], ['/assets/explore-gggggggg.js', 7]],
-      groups: { 'home:/shardfiles/public/': [0], 'home:/shardfiles/hidden/': [1] } } };
-  const files = workerWarmFiles(bank, ['public'], ['/assets/title-hhhhhhhh.js']);
-  expect(files).toEqual(['/assets/client-bbbbbbbb.js', '/assets/common-aaaaaaaa.js', '/assets/host-ffffffff.js', '/assets/title-hhhhhhhh.js', '/assets/world-cccccccc.js']);
-  expect(() => workerWarmFiles(bank, ['missing'], [])).toThrow();
-  expect(() => workerWarmFiles({ ...bank, optional: { ...bank.optional, groups: { 'home:/shardfiles/public/': [99] } } }, ['public'], [])).toThrow('Invalid worker warm module index');
-});
 
 test('worker bootstrap names exact core bytes and changes for same-length edits', () => {
   const first = workerScripts('self.version = "first";'), next = workerScripts('self.version = "other";');
@@ -39,20 +16,17 @@ test('worker bootstrap names exact core bytes and changes for same-length edits'
   expect(workerScripts('self.version = "first";')).toEqual(first);
 });
 
-test('install follows only the public document, leaving tool entries and lazy code on use', () => {
-  const bundle = {
-    'assets/entry.js': { type: 'chunk', isEntry: true, facadeModuleId: '/fixture/index.html', imports: ['assets/shared.js'] },
-    'assets/shared.js': { type: 'chunk', imports: ['assets/leaf.js'] },
-    'assets/leaf.js': { type: 'chunk', imports: ['assets/shared.js'] },
-    'assets/lazy.js': { type: 'chunk', imports: ['assets/shared.js'] },
-    'assets/tool.js': { type: 'chunk', isEntry: true, facadeModuleId: '/fixture/tools/index.html', imports: ['assets/shared.js', 'assets/tool-only.js'] },
-    'assets/tool-only.js': { type: 'chunk' },
-    'assets/style.css': { type: 'asset' },
-    'assets/card.jpg': { type: 'asset' },
-  };
-  expect(workerInstallFiles(bundle, '/fixture/index.html')).toEqual(['/assets/entry.js', '/assets/leaf.js', '/assets/shared.js', '/assets/style.css']);
-  expect(() => workerInstallFiles(bundle, '/fixture/absent.html')).toThrow('Missing or ambiguous worker document entry');
-  expect(() => workerInstallFiles({ ...bundle, 'assets/entry.js': { type: 'chunk', isEntry: true, facadeModuleId: '/fixture/index.html', imports: ['missing.js'] } }, '/fixture/index.html')).toThrow('Missing worker install dependency');
+test('the plain emitter stamps the real worker without a boot bank or code-pack input', () => {
+  const document = { type: 'asset' as const, source: new TextEncoder().encode('<html><head></head></html>') };
+  const bundle = { 'index.html': document, 'assets/app-aaaaaaaa.js': { type: 'chunk' as const, code: 'export const value=1;' } };
+  const first = serviceWorkerCore(bundle, process.cwd(), 'fixture');
+  const next = serviceWorkerCore({ ...bundle, 'assets/app-aaaaaaaa.js': { type: 'chunk', code: 'export const value=2;' } }, process.cwd(), 'fixture');
+  expect(first.hashed).toEqual(['/assets/app-aaaaaaaa.js']);
+  expect(first.assets).toBe('ws-assets-v1'); expect(first.build).toMatch(/^fixture-[a-f0-9]{10}$/u);
+  expect(first.core).not.toContain('import { workerScope'); expect(first.core).not.toContain('__BUILD_ID__');
+  expect(first.core).not.toContain('__SHELL_FILES__'); expect(first.core).not.toContain('__FILES__');
+  expect(first.core).not.toContain('PREPARE_CODE_PACK'); expect(first.core).not.toContain('server-timing');
+  expect(next.build).not.toBe(first.build); expect(workerScripts(next.core).fileName).not.toBe(workerScripts(first.core).fileName);
 });
 
 test('worker updates revalidate unchanged bytes and fetch a changed script in full', async () => {

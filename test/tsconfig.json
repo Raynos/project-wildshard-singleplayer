@@ -73,7 +73,6 @@
   "files": [
     "../scripts/app-build/bootProducts.ts",
     "../scripts/app-build/bootProductTiers.ts",
-    "../scripts/app-build/codePacks.ts",
     "../scripts/app-build/bootExtras.ts",
     "../scripts/app-build/gridEntryDownloads.ts",
     "../scripts/app-build/assetHashes.ts",

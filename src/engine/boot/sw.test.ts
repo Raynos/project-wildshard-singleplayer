@@ -34,7 +34,7 @@ test('adoption skips stale workers, fences its controller and retires expired na
   const registration=Object.assign(new EventTarget(),{waiting:null,installing,update:()=>Promise.resolve()});
   const container=Object.assign(new EventTarget(),{controller:original,register:()=>Promise.resolve(registration)});
   Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:container});
-  const {wsSw,swAdopt}=await import('./sw');await wsSw.ready;
+  const {wsSw,swAdopt,refreshWorkerForChunkRecovery}=await import('./sw');await wsSw.ready;
   const initial=vi.getTimerCount(),originalMessages=[...original.messages];
   await swAdopt();expect(vi.getTimerCount()).toBe(initial);
   for(const state of ['installing','activated','redundant'] as const){
@@ -69,6 +69,20 @@ test('adoption skips stale workers, fences its controller and retires expired na
   expect(replace).toHaveBeenCalledTimes(1);expect(reload).not.toHaveBeenCalled();
   const unavailable=new WorkerHandle();unavailable.refuse=true;wsSw.waiting=unavailable;
   await swAdopt('/unavailable');expect(vi.getTimerCount()).toBe(initial);
+  const nextDocument=new WorkerHandle();wsSw.waiting=nextDocument;
+  const nextAdoption=swAdopt('/title','next document');
+  nextDocument.state='activated';nextDocument.dispatchEvent(new Event('statechange'));
+  expect(await nextAdoption).toBe(true);expect(replace).toHaveBeenLastCalledWith('/title');
+  expect(container.controller).not.toBe(nextDocument);
+  container.controller.build='old-build-stamp';
+  const recovered=new WorkerHandle();recovered.build='new-build-stamp';
+  Object.assign(container,{getRegistration:()=>Promise.resolve(Object.assign(new EventTarget(),{
+    waiting:recovered,installing:null,update:()=>Promise.resolve(),
+  }))});
+  const recovery=refreshWorkerForChunkRecovery('new-build');
+  await vi.waitFor(()=>{expect(recovered.messages).toContainEqual({type:'SKIP_WAITING'});});
+  recovered.state='activated';recovered.dispatchEvent(new Event('statechange'));
+  expect(await recovery).toBe(true);expect(container.controller).not.toBe(recovered);
   installing.state='installed';installing.dispatchEvent(new Event('statechange'));
   await vi.waitFor(()=>{expect(vi.getTimerCount()).toBe(initial);});
   expect(installing.messages).toEqual([{type:'BUILD'}]);
@@ -76,9 +90,9 @@ test('adoption skips stale workers, fences its controller and retires expired na
   expect(installing.messages).toEqual([{type:'BUILD'}]);
   expect(expired.messages).not.toContainEqual({type:'WARM_CODE'});
   document.dispatchEvent(new Event('ws:control-ready'));
-  expect(expired.messages).toContainEqual({type:'WARM_CODE'});
-  expect(expired.messages).toContainEqual({type:'GC'});
+  expect(expired.messages).not.toContainEqual({type:'WARM_CODE'});
+  expect(expired.messages).not.toContainEqual({type:'GC'});
   expect(installing.messages).toEqual([{type:'BUILD'}]);
   window.dispatchEvent(new Event('pagehide'));
-  expect(installing.messages).toEqual([{type:'BUILD'},{type:'SKIP_WAITING'}]);
+  expect(installing.messages).toEqual([{type:'BUILD'}]);
 });

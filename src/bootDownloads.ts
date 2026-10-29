@@ -1,7 +1,5 @@
 import type {AssetTableAddress} from './assetTables';
 import { declareDownloadFile, readDownloadFiles, preloadModuleGroups, declareModuleGroups } from '@wildshard/engine/boot/download';
-import { prepareCodePack } from '@wildshard/engine/boot/codePack';
-import type { Scope } from '@wildshard/engine/app/scope';
 import { gridStripDownloadRows } from '@wildshard/game/grid/entryDownloads';
 
 /** Declare the compiler-selected initial seam page before it is read. No IO or receipt credit. */
@@ -23,23 +21,6 @@ export function declareAssetTableDownloads(tables: {readonly common: AssetTableA
 /** Match the actual grid product reader; a hybrid's standalone path may have no descriptor. */
 export function homeDownloadSource(manifest: {readonly shardfile?: string; readonly gridShardfile?: string}, grid: boolean): string | undefined {
   return manifest.shardfile ?? (grid ? manifest.gridShardfile : undefined);
-}
-
-/** Only a selected compiled home borrows its own boot transport. The plain
- * title and external/legacy entries keep their original import path. */
-export async function prepareEntryCode(search: URLSearchParams, owner: Scope): Promise<(() => void) | null> {
-  const selected = search.get('chunk') ?? '', text = document.getElementById('boot-module-files')?.textContent;
-  if (!/^[a-zA-Z0-9_-]+$/u.test(selected)) return null;
-  if (text === undefined || document.getElementById('ws-shardfile') !== null) return null;
-  const bank: unknown = JSON.parse(text);
-  if (typeof bank !== 'object' || bank === null || !('code' in bank)) return null;
-  const code: unknown = bank.code;
-  if (typeof code !== 'object' || code === null || !('entries' in code)) throw new Error('Invalid entry code bank');
-  const entries: unknown = code.entries;
-  if (typeof entries !== 'object' || entries === null || !Object.hasOwn(entries, selected)) return null;
-  if (window.__ws_sw?.enabled === false) return null;
-  await window.__ws_sw?.ready;
-  return prepareCodePack(Reflect.get(entries, selected), owner);
 }
 
 /** Start code reads together, but report failures only at the original boot

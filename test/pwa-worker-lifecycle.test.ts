@@ -1,981 +1,158 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Execute the shipped worker source against deterministic browser boundaries.
-import { readFileSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- The isolated context executes the original worker rather than a copied implementation.
+// oxlint-disable-next-line import/no-nodejs-modules -- Execute the actual shipped worker in an isolated browser boundary.
+import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The fixture executes source, never a copied cache implementation.
 import { runInNewContext } from 'node:vm';
-import { afterEach, expect, test, vi } from 'vitest';
-import { workerIndexedStamps } from '../scripts/app-build/serviceWorker';
-import { contentNamed } from '../scripts/app-build/assetHashes';
-import { writeCodePacks } from '../scripts/app-build/codePacks';
-import { CONTENT_CACHE_NAME, CONTENT_CACHE_ROOT } from '../src/engine/boot/contentCache';
-// oxlint-disable-next-line import/no-nodejs-modules -- The transport fixture owns only its exact temporary output tree.
-import { resolve as resolvePath } from 'node:path';
+import { expect, test, vi } from 'vitest';
+import { ASSET_CACHE_NAME } from '../src/engine/pwa/cacheNames';
 
-const base = 'https://worker.test/';
-const entry = '/assets/entry-aaaaaaaa.js', dependency = '/assets/shared-bbbbbbbb.js', css = '/assets/style-cccccccc.css';
-const lazy = '/assets/lazy-dddddddd.js', later = '/assets/later-eeeeeeee.js';
+const origin = 'https://worker.test';
+const url = (path: string): string => new URL(path, origin).href;
+const shared = '/assets/shared-ssssssss.js';
+const shell = ['/index.html', '/manifest.webmanifest'];
 interface WorkerEvent {
-  readonly source?: { postMessage: (value: unknown) => void };
-  readonly data?: { type: string; readonly [key: string]: unknown };
-  readonly request?: Request;
-  readonly ports?: readonly { readonly postMessage: (value: unknown) => void }[];
+  request?: Request;
+  data?: { type: string };
+  ports?: { postMessage: (value: unknown) => void }[];
+  source?: { postMessage: (value: unknown) => void };
   waitUntil: (work: Promise<unknown>) => void;
   respondWith: (work: Promise<Response>) => void;
 }
 class StoredCache {
-  readonly bodies = new Map<string, Response>();
+  readonly entries = new Map<string, Response>();
   private key(input: Request | string): string { return typeof input === 'string' ? input : input.url; }
-  match(input: Request | string): Promise<Response | undefined> { return Promise.resolve(this.bodies.get(this.key(input))?.clone()); }
+  match(input: Request | string): Promise<Response | undefined> { return Promise.resolve(this.entries.get(this.key(input))?.clone()); }
   async put(input: Request | string, response: Response): Promise<void> {
-    this.bodies.set(this.key(input), new Response(await response.arrayBuffer(), { status: response.status, headers: response.headers }));
+    this.entries.set(this.key(input), new Response(await response.arrayBuffer(), { status: response.status, headers: response.headers }));
   }
-  keys(): Promise<Request[]> { return Promise.resolve([...this.bodies.keys()].map(url => new Request(url))); }
-  delete(input: Request | string): Promise<boolean> { return Promise.resolve(this.bodies.delete(this.key(input))); }
+  keys(): Promise<Request[]> { return Promise.resolve([...this.entries.keys()].map(key => new Request(key))); }
+  delete(input: Request | string): Promise<boolean> { return Promise.resolve(this.entries.delete(this.key(input))); }
 }
-function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, warm: readonly string[] = [entry, dependency, css, lazy, later], packs?: unknown,
-  bundle: readonly string[] = [entry, dependency, css, lazy, later], fonts: readonly string[] = [], staticHashes: Readonly<Record<string, string>> = {}, books = new Map<string, StoredCache>()) {
-  const listeners = new Map<string, ((event: WorkerEvent) => void)[]>();
-  const installErrors: unknown[] = [];
-  const replies: unknown[] = [];
-  const responses: Response[] = [];
+function fixture(read?: (request: Request) => Promise<Response>) {
+  const books = new Map<string, StoredCache>();
   const open = (name: string): Promise<StoredCache> => {
-    let cache = books.get(name); if (cache === undefined) { cache = new StoredCache(); books.set(name, cache); } return Promise.resolve(cache);
+    let cache = books.get(name);
+    if (cache === undefined) { cache = new StoredCache(); books.set(name, cache); }
+    return Promise.resolve(cache);
   };
-  const fetch = vi.fn((input: string | Request, init?: RequestInit): Promise<Response> => {
-    const url = typeof input === 'string' ? input : input.url;
-    if (read !== undefined) return read(url, init);
-    return Promise.resolve(new Response(url.endsWith('/index.html') ? `<script src="${entry}"></script>` : 'exact bytes'));
-  });
-  const navigator = { onLine: true };
-  const self = {
-    navigator, location: new URL(base), registration: { scope: base },
-    clients: { matchAll: () => Promise.resolve([{ postMessage: (value: unknown) => { installErrors.push(value); } }]), claim: () => Promise.resolve() },
-    addEventListener: (kind: string, listener: (event: WorkerEvent) => void) => { listeners.set(kind, [...listeners.get(kind) ?? [], listener]); },
+  const caches = { open, keys: () => Promise.resolve([...books.keys()]), delete: (name: string) => Promise.resolve(books.delete(name)) };
+  const fetch = vi.fn((input: Request | string) => read?.(typeof input === 'string' ? new Request(input) : input)
+    ?? Promise.resolve(new Response(`body:${typeof input === 'string' ? input : input.url}`)));
+  const load = (build: string, files: string[]) => {
+    const listeners = new Map<string, ((event: WorkerEvent) => void)[]>();
+    const claim = vi.fn(() => Promise.resolve()), skipWaiting = vi.fn(() => Promise.resolve());
+    const self = { location: new URL(origin), registration: { scope: `${origin}/` }, clients: { claim }, skipWaiting,
+      addEventListener: (kind: string, listener: (event: WorkerEvent) => void) => { listeners.set(kind, [...listeners.get(kind) ?? [], listener]); } };
+    const owner = readFileSync('src/engine/app/workerScope.js', 'utf8').replaceAll(/^export /gmu, '');
+    const source = readFileSync('src/engine/pwa/sw.js', 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '').replaceAll('__BUILD_ID__', build)
+      .replaceAll('__ASSET_CACHE__', ASSET_CACHE_NAME).replace("'__FILES__'", JSON.stringify(JSON.stringify(files)))
+      .replace("'__SHELL_FILES__'", JSON.stringify(JSON.stringify(shell)));
+    // Deliberately no clock, crypto, scheduler or accounting ports.
+    runInNewContext(`${owner}\n${source}`, { self, caches, fetch, URL, Request, Response, Set, JSON, encodeURIComponent });
+    const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'request' | 'data' | 'ports' | 'source'> = {}): Promise<Response | undefined> => {
+      const work: Promise<unknown>[] = []; let response: Response | undefined;
+      for (const listener of listeners.get(kind) ?? []) listener({ ...payload,
+        waitUntil: promise => { work.push(promise); }, respondWith: promise => { work.push(promise.then(value => { response = value; return value; })); } });
+      await Promise.all(work); return response;
+    };
+    return { dispatch, claim, skipWaiting };
   };
-  const caches = { open, keys: () => Promise.resolve([...books.keys()]), delete: (name: string) => Promise.resolve(books.delete(name)),
-    match: async (url: string): Promise<Response | undefined> => {
-      for (const book of books.values()) { const held = await book.match(url); if (held !== undefined) return held; } return undefined;
-    } };
-  const owner = readFileSync('src/engine/app/workerScope.js', 'utf8').replaceAll(/^export /gmu, '');
-  const packSource = readFileSync('src/engine/pwa/codePack.js', 'utf8').replaceAll(/^export /gmu, '');
-  const stamps = workerIndexedStamps(bundle, warm, packs ?? { files: [], entries: {} });
-  const worker = readFileSync('src/engine/pwa/sw.js', 'utf8').replace("import { workerScope, WorkerScope } from '../app/workerScope.js';\n", '').replace("import { codePackEntries, readCodePackTransport } from './codePack.js';\n", '')
-    .replaceAll('__BUILD_ID__', 'unit-build').replaceAll('__ASSET_ID__', 'unit-assets')
-    .replace("'__STATIC_HASHES__'", JSON.stringify(JSON.stringify(staticHashes)))
-    .replaceAll('__CONTENT_CACHE__', CONTENT_CACHE_NAME).replaceAll('__CONTENT_ROOT__', CONTENT_CACHE_ROOT)
-    .replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle)))
-    .replace("'__WARM__'", JSON.stringify(JSON.stringify(stamps.warm)))
-    .replace("'__INSTALL__'", JSON.stringify(JSON.stringify([entry, dependency, css])))
-    .replace("'__CODE_PACKS__'", JSON.stringify(JSON.stringify(stamps.packs)))
-    .replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts)));
-  const parsed: string[] = [];
-  const json = { parse: (text: string): unknown => { parsed.push(text); return JSON.parse(text); }, stringify: JSON.stringify };
-  runInNewContext(`${owner}\n${packSource}\n${worker}`, { JSON: json, self, caches, fetch, URL, Request, Response, Headers, Blob, ReadableStream, DecompressionStream, TextDecoder, AbortController, Error, setTimeout, clearTimeout, Date, console, crypto });
-  const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'data' | 'request' | 'ports'> = {}): Promise<void> => {
-    const pending: Promise<unknown>[] = [];
-    for (const listener of listeners.get(kind) ?? []) listener({ ...payload, source: { postMessage: (value: unknown) => { replies.push(value); } }, waitUntil: work => { pending.push(work); }, respondWith: work => { pending.push(work.then(response => { responses.push(response); return response; })); } });
-    await Promise.all(pending);
-  };
-  return { fetch, open, caches, dispatch, navigator, installErrors, replies, responses, parsed, books };
-}
-afterEach(() => { vi.useRealTimers(); });
-
-test('optional fonts and icons wait for control warming, then retain offline coverage', async () => {
-  const fonts = ['/fonts/needed.woff2', '/fonts/later.woff2'] as const;
-  const optional = [...fonts, '/asset-index.json', '/apple-touch-icon.png', '/favicon.png', '/icon-192.png', '/icon-512.png'];
-  const f = fixture(undefined, [], undefined, undefined, fonts);
-  const paths = (): string[] => f.fetch.mock.calls.map(([input]) => new URL(typeof input === 'string' ? input : input.url).pathname);
-  await f.dispatch('install');
-  expect(paths()).toEqual(['/index.html', '/manifest.webmanifest', entry, dependency, css]);
-  expect(f.fetch.mock.calls.every(([, init]) => init?.priority === undefined)).toBe(true);
-  // A font actually used before control still reads on demand and joins the
-  // same static cache. Later warming must not read it a second time.
-  await f.dispatch('fetch', { request: new Request(new URL(fonts[0], base)) });
-  expect(paths().filter(path => path === fonts[0])).toHaveLength(1);
-  await f.dispatch('message', { data: { type: 'WARM_CODE' } });
-  for (const path of optional) expect(paths().filter(value => value === path)).toHaveLength(1);
-  const count = f.fetch.mock.calls.length;
-  await f.dispatch('message', { data: { type: 'WARM_ALL_CODE' } });
-  expect(paths().slice(count)).toEqual([lazy, later]);
-  for (const path of optional) expect(paths().filter(value => value === path)).toHaveLength(1);
-  f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
-  for (const path of optional) await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
-  expect(f.fetch).toHaveBeenCalledTimes(count + 2);
-  expect(f.installErrors).toEqual([]);
-});
-
-test('unavailable optional assets retain tolerant warming and cannot hide strict install failures', async () => {
-  const font = '/fonts/unavailable.woff2';
-  const f = fixture(url => Promise.resolve(new Response(url.endsWith('/index.html') ? `<script src="${entry}"></script>` : 'exact bytes',
-    { status: url.endsWith(font) || url.endsWith('.png') || url.endsWith('/asset-index.json') ? 503 : 200 })), [], undefined, undefined, [font]);
-  await f.dispatch('install');
-  await f.dispatch('message', { data: { type: 'WARM_CODE' } });
-  expect(f.installErrors).toEqual([]);
-  expect(await (await f.open('ws-static-v2')).match(new URL(font, base).href)).toBeUndefined();
-  const refused = fixture(url => Promise.resolve(new Response(url.endsWith('/index.html') ? `<script src="${entry}"></script>` : 'exact bytes',
-    { status: url.endsWith(css) ? 503 : 200 })), [], undefined, undefined, [font]);
-  await expect(refused.dispatch('install')).rejects.toThrow('precache:');
-  expect(refused.installErrors).toHaveLength(1);
-});
-
-test('emitted grid data stays cold at install and survives activation for offline first use', async () => {
-  const assets = ['/assets/grid-strip-book-12345678.json', '/assets/grid-strip-page-23456789.json', '/assets/grid-strip-mesh-34567890.bin'];
-  const bodies = new Map(assets.map((url, index) => [new URL(url, base).href, Uint8Array.of(0, index, 255, 128)]));
-  const f = fixture(url => Promise.resolve(url.endsWith('/asset-manifest.json') ? Response.json({})
-    : new Response(bodies.get(url)?.buffer ?? (url.endsWith('/index.html') ? `<script src="${entry}"></script>` : 'exact bytes'))),
-  undefined, undefined, [entry, dependency, css, lazy, later, ...assets]);
-  await f.dispatch('install');
-  expect(f.fetch.mock.calls.some(([url]) => bodies.has(typeof url === 'string' ? url : url.url))).toBe(false);
-  const cache = await f.open('ws-immutable');
-  for (const [url, bytes] of bodies) {
-    await f.dispatch('fetch', { request: new Request(url) });
-    await vi.waitFor(async () => {
-      expect(new Uint8Array(await (await cache.match(url))?.arrayBuffer() ?? [])).toEqual(bytes);
-    });
-  }
-  await f.dispatch('activate');
-  await f.dispatch('message', { data: { type: 'GC' } });
-  f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline')); f.fetch.mockClear();
-  for (const [url, bytes] of bodies) {
-    await f.dispatch('fetch', { request: new Request(url) });
-    expect(new Uint8Array(await (await cache.match(url))?.arrayBuffer() ?? [])).toEqual(bytes);
-  }
-  expect(f.fetch).not.toHaveBeenCalled();
-});
-
-test('one selected code pack publishes exact original URLs and supports offline first use', async () => {
-  mkdirSync('tmp/code-pack-worker', { recursive: true });
-  const root = mkdtempSync(resolvePath('tmp/code-pack-worker/selected-'));
-  try {
-    mkdirSync(resolvePath(root, 'assets'));
-    writeFileSync(resolvePath(root, lazy.slice(1)), 'export const selected = 42;');
-    writeFileSync(resolvePath(root, later.slice(1)), 'export const unselected = 99;');
-    const packs = writeCodePacks(root, { selected: [[lazy, 27]], other: [[later, 29]] });
-    const row = packs.entries['selected']; if (row === undefined) throw new Error('Missing selected pack');
-    const wire = Uint8Array.from(readFileSync(resolvePath(root, row[0].slice(1))));
-    const f = fixture(url => Promise.resolve(new Response(url.endsWith('.pack') ? wire : 'ordinary module')), undefined, packs);
-    const messages: unknown[] = [];
-    await f.dispatch('message', { data: { type: 'PREPARE_CODE_PACK', url: row[0], bytes: row[1], decoded: row[2] },
-      ports: [{ postMessage: value => { messages.push(value); } }] });
-    expect(messages).toEqual([{ type: 'CODE_PACK_STARTED' },
-      { type: 'CODE_PACK_PROGRESS', url: row[0], loaded: row[1], total: row[1] },
-      { type: 'CODE_PACK_DONE', status: 'stored' }]);
-    expect(f.fetch.mock.calls.map(([url]) => url)).toEqual([new URL(row[0], base).href]);
-    expect(f.fetch.mock.calls[0]?.[1]?.priority).toBeUndefined();
-    const cache = await f.open('ws-immutable');
-    expect(await (await cache.match(new URL(lazy, base).href))?.text()).toBe('export const selected = 42;');
-    expect(await cache.match(new URL(later, base).href)).toBeUndefined();
-    f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
-    await f.dispatch('fetch', { request: scriptRequest(lazy) });
-    await f.dispatch('message', { data: { type: 'PREPARE_CODE_PACK', url: row[0], bytes: row[1], decoded: row[2] },
-      ports: [{ postMessage: value => { messages.push(value); } }] });
-    expect(messages.at(-1)).toEqual({ type: 'CODE_PACK_DONE', status: 'hit' });
-    expect(f.fetch).toHaveBeenCalledTimes(1);
-  } finally { rmSync(root, { recursive: true, force: true }); }
-});
-
-test('corrupt code packs publish no module and retain the original individual fetch path', async () => {
-  mkdirSync('tmp/code-pack-worker', { recursive: true });
-  const root = mkdtempSync(resolvePath('tmp/code-pack-worker/corrupt-'));
-  try {
-    mkdirSync(resolvePath(root, 'assets')); writeFileSync(resolvePath(root, lazy.slice(1)), 'export const selected = 42;');
-    const packs = writeCodePacks(root, { selected: [[lazy, 27]] });
-    const row = packs.entries['selected']; if (row === undefined) throw new Error('Missing selected pack');
-    const wire = Uint8Array.from(readFileSync(resolvePath(root, row[0].slice(1)))); wire[0] = 0;
-    const f = fixture(url => Promise.resolve(new Response(url.endsWith('.pack') ? wire : 'ordinary module')), undefined, packs), messages: unknown[] = [];
-    await f.dispatch('message', { data: { type: 'PREPARE_CODE_PACK', url: row[0], bytes: row[1], decoded: row[2] },
-      ports: [{ postMessage: value => { messages.push(value); } }] });
-    expect(messages.at(-1)).toEqual({ type: 'CODE_PACK_DONE', status: 'failed' });
-    const cache = await f.open('ws-immutable');
-    expect(await cache.match(new URL(lazy, base).href)).toBeUndefined();
-    await f.dispatch('fetch', { request: scriptRequest(lazy) });
-    expect(await (await cache.match(new URL(lazy, base).href))?.text()).toBe('ordinary module');
-    expect(f.fetch).toHaveBeenCalledTimes(2);
-  } finally { rmSync(root, { recursive: true, force: true }); }
-});
-
-test('the shell pack replaces installer module reads while every INSTALL requirement stays strict', async () => {
-  mkdirSync('tmp/code-pack-worker', { recursive: true });
-  const root = mkdtempSync(resolvePath('tmp/code-pack-worker/install-'));
-  try {
-    mkdirSync(resolvePath(root, 'assets'));
-    const first = 'export const entry = 1;', second = 'export const shared = 2;';
-    writeFileSync(resolvePath(root, entry.slice(1)), first); writeFileSync(resolvePath(root, dependency.slice(1)), second);
-    const packs = writeCodePacks(root, { $shell: [[entry, first.length], [dependency, second.length]] }), row = packs.entries['$shell'];
-    if (row === undefined) throw new Error('Missing shell packet');
-    const wire = new Uint8Array(readFileSync(resolvePath(root, row[0].slice(1))));
-    const read = (url: string): Promise<Response> => Promise.resolve(new Response(url.endsWith('.pack') ? wire
-      : url.endsWith('/index.html') ? `<script src="${entry}"></script>` : 'original bytes'));
-    const f = fixture(read, undefined, packs);
-    await f.dispatch('install');
-    expect(f.fetch.mock.calls.filter(([url]) => new URL(typeof url === 'string' ? url : url.url).pathname.endsWith('.pack'))).toHaveLength(1);
-    expect(f.fetch.mock.calls.some(([url]) => [entry, dependency].includes(new URL(typeof url === 'string' ? url : url.url).pathname))).toBe(false);
-    const cache = await f.open('ws-immutable');
-    expect(await (await cache.match(new URL(entry, base).href))?.text()).toBe(first);
-    expect(await (await cache.match(new URL(dependency, base).href))?.text()).toBe(second);
-    const refused = fixture(url => url.endsWith(css) ? Promise.resolve(new Response('missing', { status: 404 })) : read(url), undefined, packs);
-    await expect(refused.dispatch('install')).rejects.toThrow('precache');
-    expect(refused.installErrors).toContainEqual(expect.objectContaining({ type: 'WS_SW_INSTALL_ERROR' }));
-  } finally { rmSync(root, { recursive: true, force: true }); }
-});
-
-test('Developer-only code stays cold until first use and then works offline', async () => {
-  const f = fixture(undefined, [entry, dependency, css, lazy]);
-  await f.dispatch('install');
-  await f.dispatch('message', { data: { type: 'WARM_CODE' } });
-  expect(f.fetch.mock.calls.some(([url]) => new URL(typeof url === 'string' ? url : url.url).pathname === later)).toBe(false);
-  await f.dispatch('fetch', { request: new Request(new URL(later, base)) });
-  const requests = f.fetch.mock.calls.length;
-  f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
-  await f.dispatch('fetch', { request: new Request(new URL(later, base)) });
-  expect(f.fetch.mock.calls).toHaveLength(requests);
-});
-
-// Node Request cannot set destination in its init; real module fetch events
-// expose script. Model that browser-owned fact on this fixture request only.
-function scriptRequest(path: string, signal?: AbortSignal): Request {
-  const request = new Request(new URL(path, base), signal===undefined?{}:{signal});
-  Object.defineProperty(request, 'destination', { value: 'script' });
-  return request;
+  return { caches, open, books, fetch, load };
 }
 
-test('first-use code finishes its cache publication before completing the response', async () => {
-  const f = fixture(undefined, [entry, dependency, css, lazy]);
-  await f.dispatch('install');
-  const cache = await f.open('ws-immutable'), put = cache.put.bind(cache);
-  let release: () => void = () => undefined, started: () => void = () => undefined;
-  const blocked = new Promise<void>(resolve => { release = resolve; });
-  const writing = new Promise<void>(resolve => { started = resolve; });
-  const write = vi.spyOn(cache, 'put').mockImplementation(async (request, response) => {
-    started(); await blocked; await put(request, response);
-  });
-  let settled = false;
-  const pending = (async () => {
-    try { await f.dispatch('fetch', { request: scriptRequest(later) }); }
-    finally { settled = true; }
-  })();
-  try {
-    await writing;
-    // Drain the response's task while the publication is explicitly blocked.
-    await new Promise<void>(resolve => { setTimeout(resolve, 0); });
-    expect(settled).toBe(false);
-    expect(await cache.match(new URL(later, base).href)).toBeUndefined();
-  } finally { release(); await pending; write.mockRestore(); }
-  expect(await (await cache.match(new URL(later, base).href))?.text()).toBe('exact bytes');
-  const requests = f.fetch.mock.calls.length;
-  f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
-  await f.dispatch('fetch', { request: scriptRequest(later) });
-  expect(f.fetch.mock.calls).toHaveLength(requests);
+test('install precaches its complete shell and hashed files before publishing a generation', async () => {
+  const f = fixture(), worker = f.load('A', ['/assets/a-aaaaaaaa.js', shared]);
+  await worker.dispatch('install'); await worker.dispatch('activate');
+  expect(f.fetch).toHaveBeenCalledTimes(4); expect(worker.claim).not.toHaveBeenCalled();
+  const assets = await f.open(ASSET_CACHE_NAME), current = await f.open('ws-shell-v3-A');
+  expect(await (await assets.match(url(shared)))?.text()).toBe(`body:${url(shared)}`);
+  expect(await (await current.match(url('/index.html')))?.text()).toBe(`body:${url('/index.html')}`);
+  f.fetch.mockRejectedValue(new Error('offline'));
+  expect(await (await worker.dispatch('fetch', { request: new Request(url(shared)) }))?.text()).toBe(`body:${url(shared)}`);
+  expect(await (await worker.dispatch('fetch', { request: new Request(url('/')) }))?.text()).toBe(`body:${url('/index.html')}`);
+  expect(f.fetch).toHaveBeenCalledTimes(4);
 });
 
-test('a failed code cache write still returns one complete online response', async () => {
-  const f = fixture(), cache = await f.open('ws-immutable');
-  const write = vi.spyOn(cache, 'put').mockRejectedValue(new DOMException('Cache full', 'QuotaExceededError'));
-  try {
-    await f.dispatch('fetch', { request: scriptRequest(later) });
-    expect(f.fetch).toHaveBeenCalledTimes(1);
-    expect(write).toHaveBeenCalledTimes(1);
-  } finally { write.mockRestore(); }
+test('same-build content and versioned metadata read from the one asset cache without network', async () => {
+  const f = fixture(), worker = f.load('A', []);
+  for (const path of [`/shardfiles/fixture/blobs/glb/${'a'.repeat(64)}.glb`, '/assets/entry-fixture-0123456789abcdef.json', '/shardfiles/fixture/shard.json?v=abcdef12']) {
+    const before = f.fetch.mock.calls.length, request = new Request(url(path));
+    const first = await worker.dispatch('fetch', { request });
+    const second = await worker.dispatch('fetch', { request });
+    expect(await first?.text()).toBe(`body:${request.url}`); expect(await second?.text()).toBe(`body:${request.url}`);
+    expect(f.fetch.mock.calls.length).toBe(before + 1);
+    expect(await (await f.open(ASSET_CACHE_NAME)).match(request)).toBeDefined();
+    expect(second?.headers.has('server-timing')).toBe(false);
+  }
 });
 
-test('a suspended code publication cannot hold complete online module bytes', async () => {
-  vi.useFakeTimers();
-  const f=fixture(),cache=await f.open('ws-immutable'),put=cache.put.bind(cache);
-  let release:()=>void=()=>undefined;
-  const held=new Promise<void>(resolve=>{release=resolve;});
-  const write=vi.spyOn(cache,'put').mockImplementation(async(request,response)=>{await held;await put(request,response);});
-  try {
-    const work=f.dispatch('fetch',{request:scriptRequest(later)});
-    await vi.advanceTimersByTimeAsync(499);expect(f.responses).toHaveLength(0);
-    await vi.advanceTimersByTimeAsync(1);await work;
-    expect(await f.responses[0]?.text()).toBe('exact bytes');expect(f.fetch).toHaveBeenCalledTimes(1);
-    expect(vi.getTimerCount()).toBe(0);
-  } finally {release();write.mockRestore();await vi.advanceTimersByTimeAsync(0);}
-  expect(await(await cache.match(new URL(later,base).href))?.text()).toBe('exact bytes');
+test('retention keeps current plus previous code, shared chunks and immutable content', async () => {
+  const f = fixture(), a = '/assets/a-aaaaaaaa.js', b = '/assets/b-bbbbbbbb.js', c = '/assets/c-cccccccc.js';
+  const content = `/assets/models/${'d'.repeat(64)}.glb`;
+  const first = f.load('A', [a, shared]); await first.dispatch('install'); await first.dispatch('activate');
+  await first.dispatch('fetch', { request: new Request(url(content)) });
+  const second = f.load('B', [b, shared]); await second.dispatch('install'); await second.dispatch('activate');
+  const assets = await f.open(ASSET_CACHE_NAME); expect(await assets.match(url(a))).toBeDefined();
+  const third = f.load('C', [c, shared]); await third.dispatch('install'); await third.dispatch('activate');
+  expect(await assets.match(url(a))).toBeUndefined(); expect(await assets.match(url(b))).toBeDefined();
+  expect(await assets.match(url(c))).toBeDefined(); expect(await assets.match(url(shared))).toBeDefined();
+  expect(await assets.match(url(content))).toBeDefined();
+  expect((await (await f.open('ws-builds-v1')).keys())).toHaveLength(2);
+  expect(await f.caches.keys()).not.toContain('ws-shell-v3-A');
+  expect(await f.caches.keys()).not.toContain('ws-shell-v3-B');
 });
 
-test.each(['code','document'] as const)('a suspended %s cache lookup yields to the original network path',async kind=>{
-  vi.useFakeTimers();
-  const f=fixture(),cache=await f.open(kind==='code'?'ws-immutable':'ws-shell-unit-build');
-  let release:()=>void=()=>undefined;
-  const held=new Promise<void>(resolve=>{release=resolve;});
-  const match=vi.spyOn(cache,'match').mockImplementation(async()=>{await held;return undefined;});
-  const request=kind==='code'?scriptRequest(later):new Request(base);
-  try {
-    const work=f.dispatch('fetch',{request});
-    await vi.advanceTimersByTimeAsync(499);expect(f.fetch).not.toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(1);await work;
-    expect(await f.responses[0]?.text()).toBe('exact bytes');expect(f.fetch).toHaveBeenCalledTimes(1);
-    await vi.advanceTimersByTimeAsync(0);expect(vi.getTimerCount()).toBe(0);
-  }finally{release();match.mockRestore();}
+test('an incomplete install never publishes a generation or prunes working code', async () => {
+  let fail = false;
+  const f = fixture(request => Promise.resolve(new Response('code', { status: fail && request.url.endsWith('/assets/b-bbbbbbbb.js') ? 503 : 200 })));
+  const a = f.load('A', ['/assets/a-aaaaaaaa.js']); await a.dispatch('install'); await a.dispatch('activate'); fail = true;
+  const b = f.load('B', ['/assets/b-bbbbbbbb.js']); await expect(b.dispatch('install')).rejects.toThrow('Precache failed');
+  expect(await (await f.open(ASSET_CACHE_NAME)).match(url('/assets/a-aaaaaaaa.js'))).toBeDefined();
+  expect((await (await f.open('ws-builds-v1')).keys())).toHaveLength(1);
 });
 
-test.each(['code','document'] as const)('a suspended %s cache open does not gate online response delivery',async kind=>{
-  vi.useFakeTimers();
-  const f=fixture(),cache=await f.open('held');
-  let release:()=>void=()=>undefined;
-  const held=new Promise<void>(resolve=>{release=resolve;});
-  const open=vi.spyOn(f.caches,'open').mockImplementation(async()=>{await held;return cache;});
-  try {
-    const work=f.dispatch('fetch',{request:kind==='code'?scriptRequest(later):new Request(base)});
-    await vi.advanceTimersByTimeAsync(500);await work;
-    expect(await f.responses[0]?.text()).toBe('exact bytes');expect(f.fetch).toHaveBeenCalledTimes(1);
-    await vi.advanceTimersByTimeAsync(0);expect(vi.getTimerCount()).toBe(0);
-  }finally{release();open.mockRestore();}
+test('the one-time rewrite preserves named legacy bodies and one old code generation', async () => {
+  const f = fixture(), oldCode = '/assets/old-oooooooo.js', named = `/assets/models/${'e'.repeat(64)}.glb`;
+  await (await f.open('ws-immutable')).put(url(oldCode), new Response('old code'));
+  await (await f.open('ws-static-old')).put(url(named), new Response('named model'));
+  await (await f.open('ws-static-old')).put(url('/assets/baked/mutable.bin'), new Response('mutable old'));
+  const a = f.load('A', ['/assets/a-aaaaaaaa.js']); await a.dispatch('install'); await a.dispatch('activate');
+  const assets = await f.open(ASSET_CACHE_NAME);
+  expect(await (await assets.match(url(oldCode)))?.text()).toBe('old code');
+  expect(await (await assets.match(url(named)))?.text()).toBe('named model');
+  expect(await assets.match(url('/assets/baked/mutable.bin'))).toBeUndefined();
+  expect(await f.caches.keys()).not.toContain('ws-static-old'); expect(await f.caches.keys()).not.toContain('ws-immutable');
+  const b = f.load('B', ['/assets/b-bbbbbbbb.js']); await b.dispatch('install'); await b.dispatch('activate');
+  expect(await assets.match(url(oldCode))).toBeUndefined(); expect(await assets.match(url(named))).toBeDefined();
 });
 
-test('offline code retains its exact cache authority beyond the online cache grace',async()=>{
-  vi.useFakeTimers();
-  const f=fixture(),cache=await f.open('ws-immutable');f.navigator.onLine=false;
-  let release:()=>void=()=>undefined;
-  const held=new Promise<void>(resolve=>{release=resolve;});
-  const match=vi.spyOn(cache,'match').mockImplementation(async()=>{await held;return new Response('exact offline bytes');});
-  let settled=false;
-  try {
-    const work=f.dispatch('fetch',{request:scriptRequest(later)}).then(()=>{settled=true;return undefined;});
-    await vi.advanceTimersByTimeAsync(1000);expect(settled).toBe(false);expect(f.fetch).not.toHaveBeenCalled();
-    release();await work;expect(await f.responses[0]?.text()).toBe('exact offline bytes');expect(f.fetch).not.toHaveBeenCalled();
-    expect(vi.getTimerCount()).toBe(0);
-  }finally{release();match.mockRestore();}
+test.each([200, 204, 205, 304])('a native bodyless %i passes through without reconstruction', async status => {
+  const original = new Response(null, { status }), f = fixture(() => Promise.resolve(original)), worker = f.load('A', []);
+  expect(await worker.dispatch('fetch', { request: new Request(url(`/assets/${'f'.repeat(64)}.bin`)) })).toBe(original);
 });
 
-test('cancelling an online code cache lookup preserves its reason and drains the grace timer',async()=>{
-  vi.useFakeTimers();
-  const f=fixture(),cache=await f.open('ws-immutable'),abort=new AbortController(),reason=new Error('left module');
-  let release:()=>void=()=>undefined;
-  const held=new Promise<void>(resolve=>{release=resolve;});
-  const match=vi.spyOn(cache,'match').mockImplementation(async()=>{await held;return undefined;});
-  try {
-    const work=expect(f.dispatch('fetch',{request:scriptRequest(later,abort.signal)})).rejects.toBe(reason);
-    await vi.advanceTimersByTimeAsync(0);abort.abort(reason);await work;
-    expect(f.fetch).not.toHaveBeenCalled();expect(vi.getTimerCount()).toBe(0);
-  }finally{release();match.mockRestore();}
+test('version, API, cross-origin, non-GET and explicit opt-out bypass the worker', async () => {
+  const f = fixture(), worker = f.load('A', []);
+  for (const request of [new Request(url('/version.json')), new Request(url('/api/state')), new Request('https://other.test/a.js'),
+    new Request(url('/assets/a-aaaaaaaa.js?sw=0')), new Request(url('/api/write'), { method: 'POST' })]) {
+    expect(await worker.dispatch('fetch', { request })).toBeUndefined();
+  }
+  expect(f.fetch).not.toHaveBeenCalled(); expect(await f.caches.keys()).toEqual([]);
 });
 
-test('installation remains strict for its complete entry graph and never reads lazy shard chunks', async () => {
-  const f = fixture(), cache = await f.open('ws-immutable');
-  await cache.put(new URL(dependency, base).href, new Response('unchanged'));
-  await f.dispatch('install');
-  const paths = f.fetch.mock.calls.map(([url]) => new URL(typeof url === 'string' ? url : url.url).pathname);
-  expect(paths).toContain(entry); expect(paths).toContain(css);
-  expect(paths).not.toContain(dependency); expect(paths).not.toContain(lazy); expect(paths).not.toContain(later);
-  const refused = fixture(url => Promise.resolve(new Response(url.endsWith(dependency) ? 'missing' : url.endsWith('/index.html') ? `<script src="${entry}"></script>` : 'exact', { status: url.endsWith(dependency) ? 404 : 200 })));
-  await expect(refused.dispatch('install')).rejects.toThrow('precache:');
-  expect(refused.installErrors).toHaveLength(1);
-  expect(JSON.stringify(refused.installErrors[0])).toContain('WS_SW_INSTALL_ERROR');
-  expect(JSON.stringify(refused.installErrors[0])).toContain('precache:');
-  expect(JSON.stringify(refused.installErrors[0])).toContain('unit-build');
+test('quota denial serves online bytes; partial bodies never replace a full cache entry', async () => {
+  const f = fixture(), assets = await f.open(ASSET_CACHE_NAME), worker = f.load('A', []);
+  vi.spyOn(assets, 'put').mockRejectedValue(new DOMException('full', 'QuotaExceededError'));
+  const request = new Request(url(`/assets/${'a'.repeat(64)}.bin`));
+  expect(await (await worker.dispatch('fetch', { request }))?.text()).toBe(`body:${request.url}`);
+  const partial = fixture(() => Promise.resolve(new Response('part', { status: 206 }))), ranged = partial.load('A', []);
+  await ranged.dispatch('fetch', { request }); expect(await (await partial.open(ASSET_CACHE_NAME)).match(request)).toBeUndefined();
 });
 
-test('boot JSON metadata cannot be mistaken for foreign JavaScript during installation', async () => {
-  const metadata = '/assets/boot-far-reach-a7d25c3a.json';
-  const f = fixture(url => Promise.resolve(new Response(url.endsWith('/index.html')
-    ? `<script type="application/json">{"extras":["${metadata}"]}</script><script src="${entry}"></script>` : 'exact bytes')));
-  await f.dispatch('install');
-  expect(f.installErrors).toEqual([]);
-  const foreign = '/assets/foreign-ffffffff.js';
-  const refused = fixture(url => Promise.resolve(new Response(url.endsWith('/index.html')
-    ? `<script type="application/json">{"extras":["${metadata}"]}</script><script src="${foreign}?v=1"></script>` : 'exact bytes')));
-  await expect(refused.dispatch('install')).rejects.toThrow(`install: /index.html is another build's (${foreign})`);
-  expect(refused.fetch).toHaveBeenCalledTimes(1);
-});
-
-test('the existing BUILD reply distinguishes waiting from completed activation', async () => {
-  const f = fixture();
-  await f.dispatch('message', { data: { type: 'BUILD' } });
-  await f.dispatch('activate');
-  await f.dispatch('message', { data: { type: 'BUILD' } });
-  expect(f.replies).toEqual([
-    { type: 'BUILD', build: 'unit-build', activationStage: 'waiting' },
-    { type: 'BUILD', build: 'unit-build', activationStage: 'complete' },
-  ]);
-});
-
-test('activation carries unchanged packs without downloading and fetches only a new content URL', async () => {
-  const kept = '/assets/packs/home-aaaaaaaa.pack', changed = '/assets/packs/home-bbbbbbbb.pack';
-  const obsolete = '/assets/packs/old-cccccccc.pack';
-  const f = fixture(url => Promise.resolve(url.endsWith('/asset-manifest.json')
-    ? Response.json({ [kept]: 'aaaaaaaa', [changed]: 'bbbbbbbb' }) : new Response('new pack bytes')), undefined, undefined, undefined, undefined, { [kept]: 'aaaaaaaa', [changed]: 'bbbbbbbb' });
-  const old = await f.open('ws-static-previous');
-  await old.put(new URL(kept, base).href, new Response('unchanged pack bytes'));
-  await old.put(new URL(obsolete, base).href, new Response('retired pack bytes'));
-  await f.dispatch('activate');
-  await f.dispatch('message', { data: { type: 'GC' } });
-  const current = await f.open('ws-static-v2');
-  expect(await (await current.match(new URL(kept, base).href))?.text()).toBe('unchanged pack bytes');
-  expect(await current.match(new URL(obsolete, base).href)).toBeUndefined();
-  f.fetch.mockClear();
-  await f.dispatch('fetch', { request: new Request(new URL(kept, base)) });
-  expect(f.fetch).not.toHaveBeenCalled();
-  await f.dispatch('fetch', { request: new Request(new URL(changed, base)) });
-  expect(f.fetch).toHaveBeenCalledTimes(1);
-  const requested = f.fetch.mock.calls[0]?.[0];
-  expect(typeof requested === 'string' ? requested : requested?.url).toBe(new URL(changed, base).href);
-  await vi.waitFor(async () => {
-    expect(await (await current.match(new URL(changed, base).href))?.text()).toBe('new pack bytes');
-  });
-});
-
-test('content-keyed images survive migration without checksums, downloads or stale carry', async () => {
-  const path = '/assets/title/hero.jpg', bytes = new TextEncoder().encode('unchanged hero');
-  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
-  const hash = Array.from(digest.subarray(0, 4), byte => byte.toString(16).padStart(2, '0')).join('');
-  const stale = '/assets/title/changed.jpg', removed = '/assets/title/removed.jpg';
-  const f = fixture(url => Promise.resolve(url.endsWith('/asset-manifest.json')
-    ? Response.json({ [path]: hash, [stale]: 'ffffffff' }) : new Response('new bytes')), undefined, undefined, undefined, undefined, { [path]: hash, [stale]: 'ffffffff' });
-  const old = await f.open('ws-static-previous');
-  await old.put(new URL(`${path}?v=${hash}`, base).href, new Response(bytes));
-  const checksum = vi.spyOn(crypto.subtle, 'digest');
-  await old.put(new URL(`${stale}?v=11111111`, base).href, new Response('old image'));
-  await old.put(new URL(removed, base).href, new Response('removed image'));
-  await f.dispatch('activate');
-  await f.dispatch('message', { data: { type: 'GC' } });
-  const current = await f.open('ws-static-v2');
-  expect(await current.match(new URL(path, base).href)).toBeUndefined();
-  expect(checksum).not.toHaveBeenCalled();checksum.mockRestore();
-  expect(await (await current.match(new URL(`${path}?v=${hash}`, base).href))?.text()).toBe('unchanged hero');
-  expect(await current.match(new URL(stale, base).href)).toBeUndefined();
-  expect(await current.match(new URL(removed, base).href)).toBeUndefined();
-  f.fetch.mockClear();
-  await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
-  await f.dispatch('fetch', { request: new Request(new URL(`${path}?v=${hash}`, base)) });
-  expect(f.fetch).not.toHaveBeenCalled();
-});
-
-test('full content names survive static-cache migration without repeating baked downloads', async () => {
-  const kept = `/assets/baked/fixture/${'1'.repeat(64)}.bin`, changed = `/assets/baked/fixture/${'2'.repeat(64)}.bin`;
-  const removed = `/assets/baked/fixture/${'3'.repeat(64)}.bin`;
-  expect(contentNamed(kept)).toBe(true);
-  expect(contentNamed(`/assets/baked/fixture/${'1'.repeat(63)}.bin`)).toBe(false);
-  expect(contentNamed(`/assets/baked/fixture/${'1'.repeat(65)}.bin`)).toBe(false);
-  expect(contentNamed(`${kept}/mutable`)).toBe(false);
-  const f = fixture(url => Promise.resolve(url.endsWith('/asset-manifest.json')
-    ? Response.json({ [kept]: '11111111', [changed]: '22222222' }) : new Response('changed bytes')), undefined, undefined, undefined, undefined, { [kept]: '11111111', [changed]: '22222222' });
-  const old = await f.open('ws-static-previous');
-  await old.put(new URL(kept, base).href, new Response('unchanged bytes'));
-  await old.put(new URL(`${kept}?v=11111111`, base).href, new Response('unchanged bytes'));
-  await old.put(new URL(removed, base).href, new Response('removed bytes'));
-  await f.dispatch('activate');
-  await f.dispatch('message', { data: { type: 'GC' } });
-  const current = await f.open('ws-static-v2');
-  expect(await (await current.match(new URL(kept, base).href))?.text()).toBe('unchanged bytes');
-  expect(await current.match(new URL(removed, base).href)).toBeUndefined();
-  f.fetch.mockClear();
-  await f.dispatch('fetch', { request: new Request(new URL(kept, base)) });
-  expect(f.fetch).not.toHaveBeenCalled();
-  await f.dispatch('fetch', { request: new Request(new URL(changed, base)) });
-  expect(f.fetch).toHaveBeenCalledTimes(1);
-  await vi.waitFor(async () => { expect(await (await current.match(new URL(changed, base).href))?.text()).toBe('changed bytes'); });
-  await f.dispatch('fetch', { request: new Request(new URL(changed, base)) });
-  expect(f.fetch).toHaveBeenCalledTimes(1);
-  f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
-  await f.dispatch('fetch', { request: new Request(new URL(kept, base)) });
-  expect(f.fetch).toHaveBeenCalledTimes(1);
-});
-
-test('a full content name reuses only its matching legacy versioned alias offline', async () => {
-  const kept = `/assets/baked/fixture/${'1'.repeat(64)}.bin`, absent = `/assets/baked/fixture/${'2'.repeat(64)}.bin`;
-  const f = fixture(), cache = await f.open('ws-static-v2');
-  await cache.put(new URL(`${kept}?v=11111111`, base).href, new Response('verified previous alias'));
-  await cache.put(new URL(`${absent}?v=ffffffff`, base).href, new Response('wrong version'));
-  f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
-  await f.dispatch('fetch', { request: new Request(new URL(kept, base)) });
-  expect(f.fetch).not.toHaveBeenCalled();
-  expect(await (await cache.match(new URL(kept, base).href))?.text()).toBe('verified previous alias');
-  await expect(f.dispatch('fetch', { request: new Request(new URL(absent, base)) })).rejects.toThrow('offline');
-  expect(await cache.match(new URL(absent, base).href)).toBeUndefined();
-});
-
-test('mutable unversioned bakes keep fresh network reads and their offline fallback', async () => {
-  const path = '/assets/baked/fixture/current.bin';
-  expect(contentNamed(path)).toBe(false);
-  const f = fixture(() => Promise.resolve(new Response('fresh bytes'))), cache = await f.open('ws-static-v2');
-  await cache.put(new URL(path, base).href, new Response('previous bytes'));
-  await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
-  await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
-  expect(f.fetch).toHaveBeenCalledTimes(2);
-  await vi.waitFor(async () => { expect(await (await cache.match(new URL(path, base).href))?.text()).toBe('fresh bytes'); });
-  f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
-  await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
-  expect(f.fetch).toHaveBeenCalledTimes(2);
-});
-
-test('background code is serial, yields its body to foreground reads, then supports offline access', async () => {
-  vi.useFakeTimers(); vi.setSystemTime(1000);
-  const signals: AbortSignal[] = []; let attempts = 0;
-  const f = fixture((url, init) => {
-    if (url.endsWith(lazy) && ++attempts === 1) {
-      const signal = init?.signal; if (signal) signals.push(signal);
-      return Promise.resolve(new Response(new ReadableStream<Uint8Array>({
-        start(controller) { signal?.addEventListener('abort', () => { controller.error(new Error('preempted')); }, { once: true }); },
-      })));
-    }
-    return Promise.resolve(new Response(url.endsWith('/index.html') ? `<script src="${entry}"></script>` : 'exact bytes'));
-  });
-  await f.dispatch('install');
-  const warming = f.dispatch('message', { data: { type: 'WARM_CODE' } });
-  await vi.waitFor(() => { expect(attempts).toBe(1); });
-  expect(f.fetch.mock.calls.filter(([url]) => url === new URL(later, base).href)).toHaveLength(0);
-  expect(f.fetch.mock.calls.find(([url]) => url === new URL(lazy, base).href)?.[1]?.priority).toBe('low');
-  await f.dispatch('fetch', { request: new Request(new URL('/assets/live-ffffffff.js', base)) });
-  expect(signals[0]?.aborted).toBe(true);
-  await vi.advanceTimersByTimeAsync(499); expect(attempts).toBe(1);
-  await vi.advanceTimersByTimeAsync(101); await warming;
-  expect(attempts).toBe(2);
-  f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
-  const before = f.fetch.mock.calls.length;
-  await f.dispatch('fetch', { request: new Request(new URL(lazy, base)) });
-  await f.dispatch('fetch', { request: new Request(new URL(later, base)) });
-  expect(f.fetch.mock.calls).toHaveLength(before);
-});
-
-
-test.each([entry, css, '/shardfiles/driftwood-isle/shard.json', '/assets/map/paint.json'])(
-  'a stalled %s request aborts and retries the network without publishing partial bytes', async path => {
-    vi.useFakeTimers();
-    let reads = 0;
-    const body = path === '/index.html' ? `<script src="${entry}"></script>` : 'exact fallback bytes';
-    const f = fixture(() => ++reads === 1 ? new Promise<Response>(() => { /* No headers ever arrive. */ }) : Promise.resolve(new Response(body)));
-    const work = f.dispatch('fetch', { request: new Request(new URL(path, base)) });
-    await vi.advanceTimersByTimeAsync(10700);
-    await work;
-    expect(f.fetch).toHaveBeenCalledTimes(2);
-    expect(f.fetch.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
-    const retried = f.fetch.mock.calls[1]?.[0];
-    expect(retried instanceof Request && retried.cache).toBe('reload');
-    expect(await f.responses[0]?.text()).toBe(body);
-    expect(vi.getTimerCount()).toBe(0);
-  });
-
-test('stylesheet body stalls are bounded after successful headers and retry exact whole bytes', async () => {
-  vi.useFakeTimers(); let reads = 0;
-  const f = fixture(() => Promise.resolve(++reads === 1 ? new Response(new ReadableStream({
-    start(controller) { controller.enqueue(new TextEncoder().encode('partial CSS')); },
-  })) : new Response('complete CSS')));
-  const work = f.dispatch('fetch', { request: new Request(new URL(css, base)) });
-  await vi.advanceTimersByTimeAsync(10700); await work;
-  expect(await f.responses[0]?.text()).toBe('complete CSS');
-  expect(f.fetch.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
-  expect(await (await f.open('ws-immutable')).match(new URL(css, base).href).then(response => response?.text())).toBe('complete CSS');
-  expect(vi.getTimerCount()).toBe(0);
-});
-
-test('an explicit navigation reload serves its exact shell before a stalled revalidation', async () => {
-  vi.useFakeTimers();
-  const f = fixture(url => url.endsWith('/asset-manifest.json') ? Promise.resolve(Response.json({})) : new Promise<Response>(() => { /* Radio remains pending. */ }));
-  const previous = `<script src="${entry}"></script>previous shell`;
-  await (await f.open('ws-shell-unit-build')).put(new URL('/index.html', base).href, new Response(previous));
-  const work = f.dispatch('fetch', { request: new Request(new URL('/?v=reload', base)) });
-  await vi.advanceTimersByTimeAsync(0);
-  expect(await f.responses.at(-1)?.text()).toBe(previous);
-  await work; expect(f.fetch).not.toHaveBeenCalled();
-  const ready = f.dispatch('message', { data: { type: 'GC' } });
-  await vi.advanceTimersByTimeAsync(0);
-  expect(f.fetch.mock.calls.filter(([url]) => new URL(typeof url === 'string' ? url : url.url).pathname === '/')).toHaveLength(1);
-  await vi.advanceTimersByTimeAsync(10000); await ready;
-  expect(f.responses.at(-1)?.headers.get('server-timing')).toContain('ws-cache');
-  f.navigator.onLine = false; f.fetch.mockClear();
-  await f.dispatch('fetch', { request: new Request(new URL('/?v=offline', base)) });
-  expect(f.fetch).not.toHaveBeenCalled();
-  expect(await f.responses.at(-1)?.text()).toBe(previous);
-});
-
-test('all stalled script attempts terminate and publish no partial module', async () => {
-  vi.useFakeTimers();
-  const f = fixture(() => new Promise<Response>(() => { /* Even abort cannot settle this host. */ }));
-  const work = expect(f.dispatch('fetch', { request: scriptRequest(lazy) })).rejects.toThrow('Service worker fetch stalled');
-  await vi.advanceTimersByTimeAsync(32700); await work;
-  expect(f.fetch).toHaveBeenCalledTimes(3);
-  expect(await (await f.open('ws-immutable')).match(new URL(lazy, base).href)).toBeUndefined();
-  expect(vi.getTimerCount()).toBe(0);
-});
-
-
-test('a healthy slow body keeps progressing beyond the per-stall limit without a retry', async () => {
-  vi.useFakeTimers();
-  let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
-  const f = fixture(() => Promise.resolve(new Response(new ReadableStream<Uint8Array>({ start(controller) { stream = controller; } }))));
-  const work = f.dispatch('fetch', { request: new Request(new URL(css, base)) });
-  await vi.advanceTimersByTimeAsync(9000);
-  if (stream === undefined) throw new Error('Missing body source');
-  stream.enqueue(new TextEncoder().encode('first'));
-  await vi.advanceTimersByTimeAsync(9000); stream.enqueue(new TextEncoder().encode('second'));
-  await vi.advanceTimersByTimeAsync(9000); stream.close(); await work;
-  expect(await f.responses[0]?.text()).toBe('firstsecond');
-  expect(f.fetch).toHaveBeenCalledTimes(1);
-  expect(f.fetch.mock.calls[0]?.[1]?.signal?.aborted).toBe(false);
-  expect(vi.getTimerCount()).toBe(0);
-});
-
-
-test('activation claims without downloading a manifest or traversing any cache', async () => {
-  const f = fixture(() => new Promise<Response>(() => { /* A dead radio cannot block claim. */ }));
-  await f.dispatch('activate');
-  expect(f.fetch).not.toHaveBeenCalled();
-  expect(f.replies).toEqual([]);
-});
-
-test('a cold uncached navigation has one3s total deadline even while its HTML trickles', async () => {
-  vi.useFakeTimers(); let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
-  const f = fixture(() => Promise.resolve(new Response(new ReadableStream<Uint8Array>({ start(c) { stream = c; } }))));
-  const body = async (): Promise<void> => {
-    await f.dispatch('fetch', { request: new Request(new URL('/index.html', base)) });
-    await f.responses[0]?.text();
-  };
-  const work = expect(body()).rejects.toThrow('Service worker fetch stalled');
-  await vi.advanceTimersByTimeAsync(2500);
-  if (stream === undefined) throw new Error('Missing response stream');
-  stream.enqueue(new TextEncoder().encode('<html>'));
-  await vi.advanceTimersByTimeAsync(500); await work;
-  expect(f.fetch).toHaveBeenCalledTimes(1);
-  expect(f.fetch.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
-  expect(vi.getTimerCount()).toBe(0);
-});
-
-test('post-control GC needs no network manifest and carries exact offline content keys', async () => {
-  vi.useFakeTimers();
-  const path='/assets/needed.bin?v=aaaaaaaa';
-  const f = fixture(() => new Promise<Response>(() => { /* Network cannot arrive. */ }), undefined, undefined, undefined, undefined, { '/assets/needed.bin':'aaaaaaaa' });
-  await (await f.open('ws-static-old')).put(new URL(path, base).href, new Response('old body'));
-  await f.dispatch('activate');
-  const work = f.dispatch('message', { data: { type: 'GC' } });
-  await vi.advanceTimersByTimeAsync(10000); await work;
-  expect(f.replies).toContainEqual({ type: 'GC', status: 'complete' });
-  expect(f.fetch).not.toHaveBeenCalled();
-  expect(await (await f.open('ws-static-v2')).match(new URL(path, base).href).then(r=>r?.text())).toBe('old body');
-});
-
-test('versioned and content-addressed old static bodies remain usable before GC', async () => {
-  const path = `/assets/baked/fixture/${'1'.repeat(64)}.bin`;
-  const f = fixture();
-  await (await f.open('ws-static-old')).put(new URL(path,base).href,new Response('exact visited body'));
-  f.navigator.onLine=false;
-  await f.dispatch('activate');
-  await f.dispatch('fetch',{request:new Request(new URL(path,base))});
-  expect(await f.responses[0]?.text()).toBe('exact visited body');
-  expect(f.fetch).not.toHaveBeenCalled();
-});
-
-
-test('GC stops at30s and late cache traversal cannot delete or publish after expiry', async () => {
-  vi.useFakeTimers();
-  const f = fixture(() => Promise.resolve(new Response(null, { status: 204 })));
-  const old = await f.open('ws-static-old'), key = new URL('/assets/needed.bin',base).href;
-  await old.put(key,new Response('retained'));
-  let finish: ((rows: Request[]) => void) | undefined;
-  old.keys = () => new Promise<Request[]>(resolve => { finish = resolve; });
-  await f.dispatch('activate');
-  const work = f.dispatch('message',{data:{type:'GC'}});
-  await vi.waitFor(() => { expect(finish).toBeTypeOf('function'); });
-  await vi.advanceTimersByTimeAsync(30000); await work;
-  expect(f.replies).toContainEqual({type:'GC',status:'timed-out'});
-  if(finish===undefined)throw new Error('GC never reached old cache');
-  finish([new Request(key)]); await vi.advanceTimersByTimeAsync(0);
-  expect(await (await f.open('ws-static-old')).match(key).then(r=>r?.text())).toBe('retained');
-  expect(await (await f.open('ws-static-v2')).match(key)).toBeUndefined();
-  expect(vi.getTimerCount()).toBe(0);
-});
-
-test('GLB data reaches the page before completion and a stalled suffix cannot enter the cache', async () => {
-  vi.useFakeTimers();
-  let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
-  const f = fixture(() => Promise.resolve(new Response(new ReadableStream<Uint8Array>({
-    start(c) { stream = c; c.enqueue(Uint8Array.of(1,2,3)); },
-  }))));
-  const path = '/assets/tex/object-aaaaaaaa.glb';
-  await f.dispatch('fetch', {request:new Request(new URL(path,base))});
-  const reader = f.responses[0]?.body?.getReader();
-  if(reader===undefined||stream===undefined)throw new Error('Missing live data body');
-  expect(await reader.read()).toEqual({done:false,value:Uint8Array.of(1,2,3)});
-  const suffix=expect(reader.read()).rejects.toThrow('Service worker fetch stalled');
-  await vi.advanceTimersByTimeAsync(10000);await suffix;reader.releaseLock();
-  expect(f.fetch).toHaveBeenCalledTimes(1);
-  expect(await(await f.open('ws-static-v2')).match(new URL(path,base).href)).toBeUndefined();
-  expect(vi.getTimerCount()).toBe(0);
-});
-
-test('shard blobs reuse only the verified content cache and leave persistence to its owner', async () => {
-  const hash = 'a'.repeat(64), path = `/shardfiles/sample/blobs/glb/${hash}.glb`, url = new URL(path, base).href;
-  const f = fixture(() => Promise.resolve(new Response(Uint8Array.of(1,2,3))));
-  const content = await f.open(CONTENT_CACHE_NAME), legacy = await f.open('ws-static-v2');
-  const key = new URL(hash, new URL(CONTENT_CACHE_ROOT, base)).href;
-  const contentWrites = vi.spyOn(content, 'put'), legacyWrites = vi.spyOn(legacy, 'put');
-  await f.dispatch('fetch', {request:new Request(url)});
-  const bytes = await f.responses[0]?.arrayBuffer(); expect(new Uint8Array(bytes ?? [])).toEqual(Uint8Array.of(1,2,3));
-  expect(contentWrites).not.toHaveBeenCalled(); expect(legacyWrites).not.toHaveBeenCalled();
-  // The authenticated owner publishes once. The next request is offline and
-  // must use that exact canonical key without another network or static copy.
-  await content.put(key, new Response(bytes)); f.navigator.onLine = false;
-  await f.dispatch('fetch', {request:new Request(url)});
-  expect(await f.responses[1]?.arrayBuffer()).toEqual(bytes);
-  expect(f.responses[1]?.headers.get('server-timing')).toContain('ws-cache');
-  expect(f.fetch).toHaveBeenCalledTimes(1); expect(contentWrites).toHaveBeenCalledTimes(1); expect(legacyWrites).not.toHaveBeenCalled();
-  await f.dispatch('message',{data:{type:'STORE',url,blob:new Blob([Uint8Array.of(1,2,3)])}});
-  await f.dispatch('message',{data:{type:'PREFETCH',url}});
-  expect(f.replies).toContainEqual({type:'STORED',status:'failed',bytes:0});
-  expect(f.replies).toContainEqual({type:'PREFETCHED',status:'hit',bytes:0});
-  expect(contentWrites).toHaveBeenCalledTimes(1); expect(legacyWrites).not.toHaveBeenCalled();
-});
-
-test('shard Range reads preserve their response rather than replaying a full cached body', async () => {
-  const hash='b'.repeat(64), url=new URL(`/shardfiles/sample/blobs/bin/${hash}.bin`,base).href;
-  const f=fixture(()=>Promise.resolve(new Response(Uint8Array.of(7,8),{status:206,headers:{'content-range':'bytes 2-3/6'}})));
-  await(await f.open(CONTENT_CACHE_NAME)).put(new URL(hash,new URL(CONTENT_CACHE_ROOT,base)).href,new Response(Uint8Array.of(0,1,7,8,4,5)));
-  await f.dispatch('fetch',{request:new Request(url,{headers:{range:'bytes=2-3'}})});
-  expect(f.responses[0]?.status).toBe(206); expect(f.responses[0]?.headers.get('content-range')).toBe('bytes 2-3/6');
-  expect(new Uint8Array(await f.responses[0]?.arrayBuffer()??[])).toEqual(Uint8Array.of(7,8));
-  expect(f.fetch).toHaveBeenCalledTimes(1);
-});
-
-test('shard download slots cover whole bodies, cancel queued work, and drop to two after control', async () => {
-  const sources: ReadableStreamDefaultController<Uint8Array>[]=[];
-  const f=fixture(url=>Promise.resolve(url.includes('/blobs/')?new Response(new ReadableStream<Uint8Array>({start(c){sources.push(c);c.enqueue(Uint8Array.of(3));}})):Response.json({})));
-  const request=(i:number,signal?:AbortSignal):Request=>new Request(new URL(`/shardfiles/sample/blobs/bin/${i.toString(16).padStart(64,'0')}.bin`,base),signal===undefined?{}:{signal});
-  await Promise.all(Array.from({length:6},(_,i)=>f.dispatch('fetch',{request:request(i)})));
-  expect(sources).toHaveLength(6);
-  const abort=new AbortController(); const cancelled=expect(f.dispatch('fetch',{request:request(6,abort.signal)})).rejects.toThrow('cancel queue');
-  abort.abort(new Error('cancel queue')); await cancelled;
-  const queued=f.dispatch('fetch',{request:request(7)});
-  await Promise.resolve(); expect(sources).toHaveLength(6);
-  await f.responses[0]?.body?.cancel(); await queued; expect(sources).toHaveLength(7);
-  await f.dispatch('message',{data:{type:'GC'}});
-  const late=f.dispatch('fetch',{request:request(8)});
-  // Six already-started downloads finish naturally. A post-control request
-  // stays queued until fewer than two bodies are still live.
-  await Promise.all(f.responses.slice(1,6).map(async r=>{await r.body?.cancel();})); await late;
-  expect(sources).toHaveLength(8);
-  const last=f.dispatch('fetch',{request:request(9)});
-  await Promise.resolve(); expect(sources).toHaveLength(8);
-  await f.responses[6]?.body?.cancel(); await last; expect(sources).toHaveLength(9);
-  await Promise.all(f.responses.slice(7).map(async r=>{await r.body?.cancel();}));
-  expect(f.fetch.mock.calls.filter(([input])=>(typeof input==='string'?input:input.url).includes('/blobs/'))).toHaveLength(9);
-});
-
-test.each(['/assets/retry-data.json',`/shardfiles/sample/blobs/bin/${'c'.repeat(64)}.bin`])(
-  'dropped and transient %s downloads recover with bounded jittered backoff',async path=>{
-    vi.useFakeTimers();const starts:number[]=[];
-    const f=fixture(()=>{starts.push(Date.now());return starts.length===1?Promise.reject(new Error('dropped connection')):Promise.resolve(new Response(starts.length===2?'busy':'complete verified body',{status:starts.length===2?503:200}));});
-    const work=f.dispatch('fetch',{request:new Request(new URL(path,base))});
-    await vi.advanceTimersByTimeAsync(349);expect(starts).toHaveLength(1);
-    await vi.advanceTimersByTimeAsync(3000);await work;
-    expect(starts).toHaveLength(3);
-    expect((starts[1]??0)-(starts[0]??0)).toBeGreaterThanOrEqual(350);
-    expect((starts[1]??0)-(starts[0]??0)).toBeLessThanOrEqual(700);
-    expect((starts[2]??0)-(starts[1]??0)).toBeGreaterThanOrEqual(1000);
-    expect((starts[2]??0)-(starts[1]??0)).toBeLessThanOrEqual(2000);
-    expect(await f.responses[0]?.text()).toBe('complete verified body');
-    for(const call of f.fetch.mock.calls.slice(1))expect(call[0] instanceof Request&&call[0].cache).toBe('reload');
-    await vi.advanceTimersByTimeAsync(0); // Drain the native Response stream's final completion turn too.
-    expect(vi.getTimerCount()).toBe(0);
-  });
-
-test('turning away during retry backoff cancels the timer and preserves the abort reason',async()=>{
-  vi.useFakeTimers();const abort=new AbortController(),reason=new Error('left entry');
-  const f=fixture(()=>Promise.reject(new Error('dropped connection')));
-  const work=expect(f.dispatch('fetch',{request:new Request(new URL('/assets/retry-data.json',base),{signal:abort.signal})})).rejects.toBe(reason);
-  await vi.advanceTimersByTimeAsync(0);expect(f.fetch).toHaveBeenCalledTimes(1);
-  abort.abort(reason);await work;await vi.advanceTimersByTimeAsync(3000);
-  expect(f.fetch).toHaveBeenCalledTimes(1);expect(vi.getTimerCount()).toBe(0);
-});
-
-test('a permanent data refusal is not retried or published as offline content',async()=>{
-  const f=fixture(()=>Promise.resolve(new Response('not found',{status:404}))),url=new URL('/assets/missing-data.json',base).href;
-  await f.dispatch('fetch',{request:new Request(url)});
-  expect(f.responses[0]?.status).toBe(404);expect(await f.responses[0]?.text()).toBe('not found');
-  expect(f.fetch).toHaveBeenCalledTimes(1);expect(await(await f.open('ws-static-v2')).match(url)).toBeUndefined();
-});
-
-test.each(['/assets/failed-data.json',`/shardfiles/sample/blobs/bin/${'d'.repeat(64)}.bin`])(
-  'three failed %s attempts preserve the final error and drain their owners',async path=>{
-    vi.useFakeTimers();const errors=[new Error('first drop'),new Error('second drop'),new Error('final drop')];let attempts=0;
-    const f=fixture(()=>{const error=errors[attempts++];if(error===undefined)throw new Error('Unexpected fourth attempt');return Promise.reject(error);});
-    const work=expect(f.dispatch('fetch',{request:new Request(new URL(path,base))})).rejects.toBe(errors[2]);
-    await vi.advanceTimersByTimeAsync(2700);await work;
-    expect(attempts).toBe(3);expect(f.responses).toHaveLength(0);expect(vi.getTimerCount()).toBe(0);
-    expect((await(await f.open('ws-static-v2')).keys())).toHaveLength(0);
-    expect((await(await f.open(CONTENT_CACHE_NAME)).keys())).toHaveLength(0);
-  });
-
-
-test('large worker stamps stay unparsed at startup and BUILD; indexed URLs restore only on demand', async () => {
-  const f = fixture();
-  expect(f.parsed).toEqual([JSON.stringify([entry, dependency, css]), JSON.stringify([])]);
-  await f.dispatch('message', { data: { type: 'BUILD' } });
-  expect(f.parsed).toHaveLength(2);
-  await f.dispatch('message', { data: { type: 'WARM_CODE' } });
-  expect(f.parsed).toContain(JSON.stringify([0, 1, 2, 3, 4]));
-  expect(f.parsed).toContain(JSON.stringify([entry, dependency, css, lazy, later]));
-  expect(f.parsed).not.toContain(JSON.stringify({ files: [], entries: {} }));
-  for (const path of [entry, dependency, css, lazy, later])
-    expect(await (await f.open('ws-immutable')).match(new URL(path, base).href)).toBeDefined();
-});
-
-test.each(['headers', 'body'] as const)('navigation aborts PREFETCH %s, rejects late prefetch and preserves exact later demand', async phase => {
-  const path = '/assets/other-shard-12345678.bin', signals: AbortSignal[] = [];
-  const f = fixture((url, init) => {
-    if (url.endsWith(path) && signals.length === 0) {
-      const signal = init?.signal; if (signal === undefined || signal === null) throw new Error('Prefetch needs its abort owner'); signals.push(signal);
-      if (phase === 'headers') return new Promise((_resolve, reject) => { signal.addEventListener('abort', () => { reject(signal.reason instanceof Error ? signal.reason : new Error('Background read cancelled')); }, { once: true }); });
-      return Promise.resolve(new Response(new ReadableStream<Uint8Array>({
-        start(controller) { controller.enqueue(Uint8Array.of(1, 2)); signal.addEventListener('abort', () => { controller.error(signal.reason); }, { once: true }); },
-      })));
-    }
-    return Promise.resolve(new Response(url.endsWith('/index.html') ? `<script src="${entry}"></script>` : 'complete demand'));
-  });
-  await f.dispatch('install');
-  const pending = f.dispatch('message', { data: { type: 'PREFETCH', url: path } });
-  await vi.waitFor(() => { expect(signals).toHaveLength(1); });
-  await f.dispatch('fetch', { request: new Request(new URL('/?v=priority', base)) });
-  await pending;
-  expect(signals[0]?.aborted).toBe(true);
-  expect(f.replies.at(-1)).toEqual({ type: 'PREFETCHED', status: 'failed', bytes: 0 });
-  expect(await (await f.open('ws-immutable')).match(new URL(path, base).href)).toBeUndefined();
-  const requests = f.fetch.mock.calls.length;
-  await f.dispatch('message', { data: { type: 'PREFETCH', url: '/assets/not-started-23456789.bin' } });
-  expect(f.fetch).toHaveBeenCalledTimes(requests);
-  await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
-  expect(await f.responses.at(-1)?.text()).toBe('complete demand');
-  await f.dispatch('message', { data: { type: 'GC' } });
-});
-
-test('navigation aborts the preceding document refresh and defers its replacement until control', async () => {
-  const signals: AbortSignal[] = [];
-  const f = fixture((url, init) => {
-    if (new URL(url).searchParams.has('visit')) {
-      const signal = init?.signal; if (signal === undefined || signal === null) throw new Error('Refresh needs its abort owner'); signals.push(signal);
-      if (signals.length === 1) return new Promise((_resolve, reject) => { signal.addEventListener('abort', () => { reject(signal.reason instanceof Error ? signal.reason : new Error('Background read cancelled')); }, { once: true }); });
-    }
-    return Promise.resolve(url.endsWith('/asset-manifest.json') ? Response.json({}) : new Response(`<script src="${entry}"></script>`));
-  });
-  await f.dispatch('install');
-  await f.dispatch('fetch', { request: new Request(new URL('/?visit=one', base)) });
-  expect(signals).toHaveLength(0);
-  const ready = f.dispatch('message', { data: { type: 'GC' } });
-  await vi.waitFor(() => { expect(signals).toHaveLength(1); });
-  await f.dispatch('fetch', { request: new Request(new URL('/?visit=two', base)) });
-  await ready;
-  expect(signals[0]?.aborted).toBe(true); expect(signals).toHaveLength(1);
-  await f.dispatch('message', { data: { type: 'GC' } });
-  expect(signals).toHaveLength(2);
-});
-
-test('indexed worker stamps preserve exact member ordinals and refuse undeclared paths', () => {
-  const urls = [entry, dependency, css, lazy], entries = { selected: ['/code.pack', 7, 9, [1, 0]] };
-  const stamped = workerIndexedStamps(urls, [lazy, css], { files: [dependency, entry], entries });
-  expect(stamped).toEqual({ warm: [3, 2], packs: { files: [1, 0], entries } });
-  expect(stamped.packs.entries).toBe(entries);
-  expect(stamped.warm.map(index => urls[index])).toEqual([lazy, css]);
-  expect(stamped.packs.files.map(index => urls[index])).toEqual([dependency, entry]);
-  expect(() => workerIndexedStamps(urls, ['/missing'], { files: [], entries: {} })).toThrow('absent');
-  expect(() => workerIndexedStamps(urls, [], { files: ['/missing'], entries: {} })).toThrow('absent');
-});
-
-test('versioned shard indexes hit exact cache keys without network or cross-version aliasing',async()=>{
-  const path='/shardfiles/example/shard.json',versioned=new URL(`${path}?v=aaaaaaaa`,base).href;
-  const f=fixture(()=>Promise.resolve(new Response('new index'))),cache=await f.open('ws-static-v2');
-  await cache.put(new URL(path,base).href,new Response('unversioned stale'));
-  await cache.put(versioned,new Response('exact version'));
-  await f.dispatch('fetch',{request:new Request(versioned)});
-  expect(await f.responses[0]?.text()).toBe('exact version');expect(f.fetch).not.toHaveBeenCalled();
-  expect(f.responses[0]?.headers.get('server-timing')).toContain('ws-cache');
-  await f.dispatch('fetch',{request:new Request(new URL(`${path}?v=bbbbbbbb`,base))});
-  expect(await f.responses[1]?.text()).toBe('new index');expect(f.fetch).toHaveBeenCalledTimes(1);
-  f.navigator.onLine=false;await f.dispatch('fetch',{request:new Request(versioned)});
-  expect(await f.responses[2]?.text()).toBe('exact version');expect(f.fetch).toHaveBeenCalledTimes(1);
-});
-
-test('concurrent warm requests settle on navigation without restarting during the new boot', async () => {
-  vi.useFakeTimers(); vi.setSystemTime(1000);
-  const f = fixture(); await f.dispatch('install');
-  await f.dispatch('fetch', { request: new Request(new URL('/assets/foreground-ffffffff.js', base)) });
-  const first = f.dispatch('message', { data: { type: 'WARM_CODE' } });
-  const second = f.dispatch('message', { data: { type: 'WARM_CODE' } });
-  const settled = Promise.allSettled([first, second]);
-  await vi.advanceTimersByTimeAsync(0);
-  await f.dispatch('fetch', { request: new Request(new URL('/', base)) });
-  const reads = f.fetch.mock.calls.length;
-  await vi.advanceTimersByTimeAsync(1000);
-  expect((await settled).map(result => result.status)).toEqual(['fulfilled', 'fulfilled']);
-  expect(f.fetch).toHaveBeenCalledTimes(reads);
-});
-
-test('background cancellation does not swallow an unrelated cache refusal', async () => {
-  const f = fixture(), failure = new Error('Background cache unavailable');
-  const cache = await f.open('ws-immutable');
-  const match = vi.spyOn(cache, 'match').mockRejectedValueOnce(failure);
-  try { await expect(f.dispatch('message', { data: { type: 'WARM_CODE' } })).rejects.toBe(failure); }
-  finally { match.mockRestore(); }
-});
-
-test('a deploy keeps unchanged static keys and fetches only the changed content', async () => {
-  const same = '/assets/title/same.jpg', changed = '/assets/title/changed.jpg';
-  const before = fixture(url => Promise.resolve(new Response(url.endsWith(same) ? 'same body' : 'old body')),
-    undefined, undefined, undefined, undefined, { [same]: 'aaaaaaaa', [changed]: 'bbbbbbbb' });
-  for (const path of [same, changed]) await before.dispatch('fetch', { request: new Request(new URL(path, base)) });
-  const cache = await before.open('ws-static-v2');
-  await vi.waitFor(async () => { expect(await cache.match(new URL(`${changed}?v=bbbbbbbb`, base).href)).toBeDefined(); });
-  const after = fixture(() => Promise.resolve(new Response('new body')), undefined, undefined, undefined, undefined,
-    { [same]: 'aaaaaaaa', [changed]: 'cccccccc' }, before.books);
-  await after.dispatch('fetch', { request: new Request(new URL(same, base)) });
-  expect(await after.responses[0]?.text()).toBe('same body'); expect(after.fetch).not.toHaveBeenCalled();
-  await after.dispatch('fetch', { request: new Request(new URL(changed, base)) });
-  expect(await after.responses[1]?.text()).toBe('new body'); expect(after.fetch).toHaveBeenCalledTimes(1);
-  const checksum = vi.spyOn(crypto.subtle, 'digest');
-  try {
-    await after.dispatch('message', { data: { type: 'GC' } });
-    expect(checksum).not.toHaveBeenCalled();
-    expect(await cache.match(new URL(`${changed}?v=bbbbbbbb`, base).href)).toBeUndefined();
-    expect(await (await cache.match(new URL(`${same}?v=aaaaaaaa`, base).href))?.text()).toBe('same body');
-  } finally { checksum.mockRestore(); }
-});
-
-test('only the exact legacy content-set identity can hand over an unversioned body without hashing', async () => {
-  const path = '/assets/title/known.jpg', unknown = '/assets/title/unknown.jpg';
-  const f = fixture(undefined, undefined, undefined, undefined, undefined, { [path]: 'aaaaaaaa', [unknown]: 'bbbbbbbb' });
-  await (await f.open('ws-static-unit-assets')).put(new URL(path, base).href, new Response('known body'));
-  await (await f.open('ws-static-foreign')).put(new URL(unknown, base).href, new Response('unproven body'));
-  const checksum = vi.spyOn(crypto.subtle, 'digest');
-  try {
-    await f.dispatch('message', { data: { type: 'GC' } });
-    expect(checksum).not.toHaveBeenCalled();
-    const current = await f.open('ws-static-v2');
-    expect(await (await current.match(new URL(`${path}?v=aaaaaaaa`, base).href))?.text()).toBe('known body');
-    expect(await current.match(new URL(`${unknown}?v=bbbbbbbb`, base).href)).toBeUndefined();
-    expect(f.fetch).not.toHaveBeenCalled();
-  } finally { checksum.mockRestore(); }
-});
-
-
-test('entry transport content names use the cache on the second same-build read', async () => {
-  const path = '/assets/entry-fixture-0123456789abcdef.json';
-  expect(contentNamed(path)).toBe(true);
-  expect(contentNamed('/assets/entry-fixture-0123456789abcde.json')).toBe(false);
-  const f = fixture(() => Promise.resolve(new Response('entry bytes')));
-  await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
-  await vi.waitFor(async () => { expect(await (await f.caches.match(new URL(path, base).href))?.text()).toBe('entry bytes'); });
-  await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
-  expect(f.fetch).toHaveBeenCalledTimes(1);
-  expect(f.responses.at(-1)?.headers.get('server-timing')).toContain('ws-cache');
-});
-
-
-test('build-named plain bakes reuse their content version without changing mutable fallback', async () => {
-  const path = '/assets/baked/fixture/owned.bin';
-  const f = fixture(() => Promise.resolve(new Response('owned bytes')), [], undefined, [], [], { [path]: 'abcdef12' });
-  const url = new URL(path, base).href;
-  await f.dispatch('fetch', { request: new Request(url) });
-  await vi.waitFor(async () => { expect(await (await f.caches.match(`${url}?v=abcdef12`))?.text()).toBe('owned bytes'); });
-  await f.dispatch('fetch', { request: new Request(url) });
-  expect(f.fetch).toHaveBeenCalledTimes(1);
-  expect(f.responses.at(-1)?.headers.get('server-timing')).toContain('ws-cache');
-});
-
-
-test.each([200, 204, 205, 304])('a bodyless %i response passes through without stream/receipt reconstruction', async status => {
-  const response = new Response(null, { status });
-  const f = fixture(() => Promise.resolve(response));
-  await f.dispatch('fetch', { request: new Request(new URL('/bodyless', base)) });
-  expect(f.responses).toHaveLength(1);
-  expect(f.responses[0]).toBe(response);
-  expect(f.responses[0]?.body).toBeNull();
-  expect(f.responses[0]?.status).toBe(status);
+test('BUILD/VERSION are identity-only and SKIP_WAITING preserves the adoption protocol', async () => {
+  const f = fixture(), worker = f.load('A', []), replies: unknown[] = [];
+  for (const type of ['BUILD', 'VERSION']) await worker.dispatch('message', { data: { type }, ports: [{ postMessage: value => { replies.push(value); } }] });
+  expect(replies).toEqual([{ type: 'BUILD', build: 'A' }, { type: 'VERSION', build: 'A' }]);
+  await worker.dispatch('message', { data: { type: 'SKIP_WAITING' } }); expect(worker.skipWaiting).toHaveBeenCalledOnce();
+  await worker.dispatch('message', { data: { type: 'WARM_CODE' } }); expect(f.fetch).not.toHaveBeenCalled();
+  expect(await f.caches.keys()).toEqual([]);
 });

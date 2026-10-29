@@ -1,5 +1,4 @@
 import { pageScope } from '../app/resources';
-import { receiveWorkerDownloads } from './download';
 /**
  * Service-worker boot (project/archive/2026-09-22-load-perf.md §1b / §P3). Ported from trials-gauntlet-demo's `swBoot`,
  * with the update story changed for this game — see CONTRACT below.
@@ -38,7 +37,6 @@ import { receiveWorkerDownloads } from './download';
 
 import { markReload } from './lastEnd'; // E179: the page's "why did it reload" record — imported first, so its beat is the page's
 
-declare const __BUILD_ID__: string;
 
 /** The longest boot waits for the worker to take control, or for a hand-over to a new build. */
 const CAP_MS = 2500;
@@ -48,10 +46,10 @@ const BOUNDARY_MS = 1000;
 export interface SwVersion {
   type: 'VERSION';
   build: string;
-  assets: string;
-  entries: number;
-  bytes: number;
-  caches: Record<string, { entries: number; bytes: number }>;
+  assets?: string;
+  entries?: number;
+  bytes?: number;
+  caches?: Record<string, { entries: number; bytes: number }>;
   error?: string;
 }
 
@@ -70,46 +68,6 @@ export interface WsSw {
 // the page's service-worker handle is declared in ./swGlobal.d.ts (an ambient file every layer's project sees)
 
 const sw = typeof navigator === 'undefined' ? null : navigator.serviceWorker;
-function replayDownloads(): void {
-  // The worker may have completed install requests while this document was
-  // navigating. Its existing timing buffer preserves those early receipts.
-  sw?.controller?.postMessage({ type: 'DOWNLOAD_RECEIPTS' });
-}
-if (sw !== null) {
-  pageScope.listen(sw, 'message', event => { receiveWorkerDownloads(event.data, performance.timeOrigin); });
-  pageScope.listen(sw, 'controllerchange', replayDownloads);
-  replayDownloads();
-}
-
-let pageReady = false, controlsReady = false, sameBuild: ServiceWorker | null = null;
-let gcController: ServiceWorker | null = null;
-function activateSameBuild(): void {
-  const candidate = sameBuild; sameBuild = null;
-  if (candidate?.state === 'installed') {
-    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter.
-    candidate.postMessage({ type: 'SKIP_WAITING' });
-  }
-}
-function warmCode(): void {
-  if (!swAllowed()) return;
-  const controller = sw?.controller;
-  if (controlsReady && controller && controller !== gcController) {
-    gcController = controller;
-    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter.
-    controller.postMessage({ type: 'GC' });
-  }
-  if (pageReady && controlsReady) {
-    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter.
-    controller?.postMessage({ type: 'WARM_CODE' });
-  }
-}
-if (sw !== null) {
-  pageScope.listen(window, 'pagehide', activateSameBuild);
-  pageScope.listen(document, 'ws:ready', () => { pageReady = true; warmCode(); });
-  pageScope.listen(document, 'ws:control-ready', () => { controlsReady = true; warmCode(); });
-  pageScope.listen(sw, 'controllerchange', warmCode);
-}
-
 // declared ahead of the functions that read it (they only run after registration; `boot()` is hoisted)
 const api: WsSw = { ready: boot(), enabled: swAllowed(), waiting: null, activate: () => activateWaiting(BOUNDARY_MS), adopt, version };
 
@@ -121,20 +79,13 @@ function swAllowed(): boolean {
 }
 
 /**
- * Announce a completed background install. Same-build replacements wait for
- * pagehide/travel too; even a usable title/control signal is not a claim.
+ * Announce an installed worker without adopting it. Pagehide may only be an
+ * app switch; G898 permits adoption at a fresh document or title visit only.
  */
 function announce(w: ServiceWorker): void {
   void (async () => {
-    const build = await buildOf(w);
+    await buildOf(w);
     if (w.state === 'redundant') return;
-    if (build?.startsWith(`${__BUILD_ID__}-`) === true) {
-      // Keep even a same-build replacement waiting until the document leaves.
-      // A usable title/control signal is still the middle of this session.
-      sameBuild = w;
-      warmCode();
-      return;
-    }
     api.waiting = w;
     window.dispatchEvent(new CustomEvent('ws-sw-waiting', { detail: { waiting: w } }));
   })();
@@ -176,9 +127,9 @@ async function adopt(to?: string, why = 'new build adopted'): Promise<boolean> {
   return true;
 }
 
-/** Only a completed install participates. A late claim cannot navigate an expired caller. */
+/** A completed activation serves the next document without claiming this one. */
 function activateWaiting(limit: number): Promise<boolean> {
-  const w = api.waiting ?? sameBuild;
+  const w = api.waiting;
   // An announcement can outlive its worker (another tab already adopted it,
   // or a later install replaced it). None of those states needs a hand-over.
   if (!sw || !w || pageScope.disposed || pageScope.disposing || sw.controller === w
@@ -191,11 +142,13 @@ function activateWaiting(limit: number): Promise<boolean> {
     attempt.listen(sw, 'controllerchange', () => {
       if (sw.controller !== w) return;
       if (api.waiting === w) api.waiting = null;
-      if (sameBuild === w) sameBuild = null;
       finish(true);
     });
     attempt.listen(w, 'statechange', () => {
-      if (w.state === 'redundant') { finish(false); }
+      if (w.state === 'activated') {
+        if (api.waiting === w) api.waiting = null;
+        finish(true);
+      } else if (w.state === 'redundant') { finish(false); }
     });
     try {
       // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter (that is Window.postMessage)
@@ -232,10 +185,11 @@ export function refreshWorkerForChunkRecovery(build: string, allowed: () => bool
       if (worker === null || owner.disposed || tracked.has(worker)) return;
       tracked.add(worker);
       const claim = async (): Promise<void> => {
-        if (worker.state !== 'installed' || owner.disposed) return;
+        if ((worker.state !== 'installed' && worker.state !== 'activated') || owner.disposed) return;
         const identity = await buildOf(worker);
         if (owner.disposed || identity?.startsWith(`${build}-`) !== true) return;
         if (!allowed()) { finish(false); return; }
+        if (worker.state === 'activated') { finish(true); return; }
         owner.listen(container, 'controllerchange', () => { if (container.controller === worker) finish(true); });
         // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker messages have no targetOrigin.
         worker.postMessage({ type: 'SKIP_WAITING' });
@@ -289,9 +243,8 @@ async function register(s: ServiceWorkerContainer, settle: () => void): Promise<
   pageScope.listen(document, 'visibilitychange', () => {
     if (!document.hidden) void reg.update().catch(() => undefined);
   });
-  // First visit (or an evicted worker): wait for `clients.claim()`, so the boot's own bytes are cached.
-  if (!s.controller) pageScope.listen(s, 'controllerchange', settle, { once: true });
-  else settle();
+  // Installation never claims a running document. MF4 caches first-visit bodies.
+  settle();
 }
 
 if (typeof window !== 'undefined') window.__ws_sw = api;
