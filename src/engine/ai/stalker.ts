@@ -4,6 +4,7 @@ import type { AnimalSim } from '../entities/AnimalSim';
 import { HuntingStalkerCore, type HuntConfig, type HuntPorts } from './huntPattern';
 import type { AggressionDirector } from './director';
 import type { Rng } from '../core/rng';
+import { emitFault } from '../core/faults';
 import type { SimValue } from '../sim';
 import { isJsonData } from '@wildshard/format/json';
 import type { Scope } from '../app/scope';
@@ -233,6 +234,7 @@ function admitProfile<A extends AnimalSim>(profile: StalkerProfile<A>): StalkerP
 export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
   private readonly profile: StalkerProfile<A>;
   private readonly contract: string;
+  private reportedSkirmishStep = false;
   private st: v.InferOutput<typeof HowlerSaved>['st'] | v.InferOutput<typeof PouncerSaved>['st'] = 'den';
   private stT = 0; private cd = 0; private howlT = 0; private howlHit = -1; private bit = false; private hitDone = 0;
   private readonly back = new Vector3();
@@ -653,7 +655,13 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
   private pouncerRestore(input: unknown): void { const s = v.parse(PouncerSaved, input); this.st = s.st; this.stT = s.stT; this.cd = s.cd; this.hitDone = s.hitDone; this.from.fromArray(s.from); this.to.fromArray(s.to); if (s.goal === null) this.goal = null; else { Object.assign(this.goalPoint, s.goal); this.goal = this.goalPoint; } }
   private skirmishThink(a: A, c: SkirmisherPorts<A>): void {
     // dt 0 is an interrupt's wake in the frame it already decided (the manager's 'decide now', whatever the clock)
-    if (!Number.isFinite(c.dt) || c.dt < 0 || c.dt > 1) throw new Error('Invalid skirmisher step');
+    if (!Number.isFinite(c.dt) || c.dt < 0 || c.dt > 1) {
+      if (!this.reportedSkirmishStep) {
+        this.reportedSkirmishStep = true;
+        emitFault({system: 'ai.skirmisher', error: new Error('Invalid skirmisher step'), verdict: 'retry'});
+      }
+      return;
+    }
     const m = a.mem as SkirmisherMemory, rng = c.rng;
     if (!m.init) { m.init = 1; m.hx = a.position.x; m.hz = a.position.z; m.st = ST_IDLE; m.tm = rng.range(1, 3); m.sd = rng.next() < 0.5 ? -1 : 1; m.cd = 0; m.hitT = 0; m.shy = 0; m.scat = 0; }
     const dx = c.player.x - a.position.x, dz = c.player.z - a.position.z, d = Math.hypot(dx, dz);

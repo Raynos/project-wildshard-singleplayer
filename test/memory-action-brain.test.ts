@@ -11,6 +11,7 @@ import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
 import perchRows from '../src/shards/driftwood-isle/data/mixedPopulation.json' with { type: 'json' };
 import { stepCreatureLift } from '@wildshard/game/plugin/animation';
 import { Rng } from '../src/engine/core/rng';
+import { onFault, type Fault } from '../src/engine/core/faults';
 import { DRIFTWOOD_STRIKES } from './fixtures/species/driftwood';
 
 
@@ -103,11 +104,22 @@ test('latched misses stay spent and the strike reads current hp and combo at the
   brain.act(ports); expect(effects).toEqual(['hurt', 'sailor_slash']);
 });
 
-test('invalid cadence and dynamic thresholds refuse without claiming an action field', () => {
-  const a = actor(), effects = new Map([['hit', () => undefined]]);
+test('invalid cadence refuses at binding, while a bad dynamic threshold skips only its action and reports once', () => {
+  const a = actor(), seen: string[] = [], faults: Fault[] = [], off = onFault(fault => {faults.push(fault);});
+  const effects = new Map([['hit', () => {seen.push('hit');}], ['later', () => {seen.push('later');}]]);
   a.mem['st'] = 1; a.startAttack(1); a.step(.6);
-  const brain = createMemoryActionBrain(a, rows, { decide: () => undefined, effects, threshold: () => Number.NaN });
-  expect(() => brain.act(undefined)).toThrow('threshold'); expect(a.mem['hit']).toBeUndefined();
-  const malformed = { ...rows }; Reflect.set(malformed, 'cadence', 'bad');
-  expect(() => createMemoryActionBrain(a, malformed, { decide: () => undefined, effects })).toThrow('states');
+  let broken = true;
+  const brain = createMemoryActionBrain(a, {...rows, actions: [...rows.actions,
+    {state: 1, phase: .25, effect: 'later', once: {key: 'later', value: 1, test: 'falsy'}}]},
+  {decide: () => undefined, effects, threshold: (_body, _context, phase) => broken && phase === .5 ? Number.NaN : phase});
+  try {
+    expect(() => brain.act(undefined)).not.toThrow();
+    expect(a.mem['hit']).toBeUndefined(); expect(a.mem['later']).toBe(1); expect(seen).toEqual(['later']);
+    brain.act(undefined);
+    expect(faults).toHaveLength(1); expect(faults[0]).toMatchObject({system: 'ai.memory-action', verdict: 'retry'});
+    broken = false; brain.act(undefined);
+    expect(a.mem['hit']).toBe(1); expect(seen).toEqual(['later', 'hit']);
+    const malformed = {...rows}; Reflect.set(malformed, 'cadence', 'bad');
+    expect(() => createMemoryActionBrain(a, malformed, {decide: () => undefined, effects})).toThrow('states');
+  } finally {off();}
 });

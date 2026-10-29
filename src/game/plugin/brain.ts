@@ -1,4 +1,5 @@
 import { sha256 } from './moduleHash';
+import { emitFault } from '@wildshard/engine/core/faults';
 import { BorrowedDecisionSchema, type BorrowedDecision } from '@wildshard/format/decisionScripts';
 import type { CombatTag } from '@wildshard/engine/combat/pipeline';
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
@@ -76,6 +77,7 @@ export function createMemoryActionBrain<A extends AnimalSim, C>(actor: A, rows: 
   });
   class BoundMemoryBrain extends CreatureBrain<string, A, C> {
     private pending = false;
+    private badThresholds: Set<(typeof actions)[number]> | undefined;
     override think(context: C): void {
       ports.decide(actor, context);
       this.pending = decisionStep;
@@ -90,7 +92,14 @@ export function createMemoryActionBrain<A extends AnimalSim, C>(actor: A, rows: 
       for (const action of actions) {
         if (actor.mem[stateKey] !== action.state) continue;
         const threshold = ports.threshold?.(actor, context, action.phase) ?? action.phase;
-        if (!Number.isFinite(threshold) || threshold < 0 || threshold > 1) throw new Error('Invalid memory-action threshold');
+        if (!Number.isFinite(threshold) || threshold < 0 || threshold > 1) {
+          const reported = this.badThresholds ??= new Set();
+          if (!reported.has(action)) {
+            reported.add(action);
+            emitFault({system: 'ai.memory-action', error: new Error(`Invalid memory-action threshold: ${action.effect}`), verdict: 'retry'});
+          }
+          continue;
+        }
         if (!(phase >= threshold)) continue;
         if (action.when !== undefined && Boolean(actor.mem[action.when.key]) !== (action.when.test === 'truthy')) continue;
         const once = actor.mem[action.once.key];
