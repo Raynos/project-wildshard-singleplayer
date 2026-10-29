@@ -91,7 +91,7 @@ async function retryFromCard(error: ContentReadError, signal?: AbortSignal): Pro
       resume = resolve; pending.add(resolve);
       id = beginLoadingWait(error.message, { kind: 'file', resource: error.url,
         owner: timeline?.waitOwner ?? null, step: timeline?.snapshot().current ?? null,
-        deadlineMs: 0, retry: () => {for (const retry of pending) retry();}, retryNavigation: false });
+        retry: () => {for (const retry of pending) retry();}, retryNavigation: false });
     });
   } finally {
     if (id !== undefined) finishLoadingWait(id);

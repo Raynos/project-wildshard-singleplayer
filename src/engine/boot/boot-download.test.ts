@@ -50,7 +50,7 @@ it('shared wait metadata renews only for byte growth or real semantic progress',
     expect(row.progressAt).toBe(200);
     reportLoadingWait(id, { progress: 'source' }, 1200); expect(row.progressAt).toBe(200);
     reportLoadingWait(id, { progress: 'decode' }, 1400); expect(row.progressAt).toBe(1400);
-    expect(row).toMatchObject({ totalBytes: 4096, deadlineMs: 8000, retry: null });
+    expect(row).toMatchObject({ totalBytes: 4096, retry: null });
   } finally { finishLoadingWait(id); }
   expect(state.pending.has(id)).toBe(false);
 });

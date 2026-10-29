@@ -138,7 +138,7 @@ export class Loading {
     this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), pfRow: el('pfRow'), pfFact: el('pfFact'), pfPct: el('pfPct'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics'), retry: el('retry') };
     this.els.retry.onclick = null; // Adopt the inline retry without keeping its document-only handler.
     set(this.els.retry, engineString('s_loading_retry'));
-    listenTap(this.scope, this.els.retry, () => { if (this.retryNavigation) markReload('loading wait retry'); if (this.retryWait === null) location.reload(); else this.retryWait(); });
+    listenTap(this.scope, this.els.retry, () => { if (this.retryWait === null) return; if (this.retryNavigation) markReload('loading wait retry'); this.retryWait(); });
     this.els.slug.textContent = chunk.name;
     this.els.tier.textContent = engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), nav.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), navigator.serviceWorker?.controller ? engineString('s_5c75b0e90774') : '']);
     const key = 'loadAttempt';
@@ -434,7 +434,7 @@ export class Loading {
     const files = pending.filter(wait => wait.kind === 'file');
     // The outer admission promise has no file identity. Let the current
     // reported phase explains its paced CPU/cache work between real waits.
-    const wait = files[0] ?? pending.find(row => row.id !== this.waitId && row.kind !== 'admission');
+    const wait = pending.find(row => row.retry !== null) ?? files[0] ?? pending.find(row => row.id !== this.waitId && row.kind !== 'admission');
     const transfer = this.downloadProgress();
     const current = timeline.rows.find(row => row.key === timeline.current);
     const signature = `${timeline.display}:${timeline.current}:${transfer.completedBytes}:${transfer.cachedBytes}:${transfer.filesDone}:${wait?.id ?? 0}`;
@@ -444,7 +444,7 @@ export class Loading {
     const fallback = loadingWaitState().pending.get(this.waitId), selected = wait ?? fallback;
     const now = performance.now();
     const quietMs = Math.max(0, now - Math.max(selected?.progressAt ?? now, fallback?.progressAt ?? 0));
-    const stalled = !this.finished && quietMs >= (selected?.deadlineMs ?? 8000);
+    const stalled = !this.finished && selected?.retry !== null && selected?.retry !== undefined;
     this.retryWait = selected?.retry ?? null;
     this.retryNavigation = selected?.retryNavigation !== false;
     this.els.retry.hidden = !stalled;
@@ -453,8 +453,8 @@ export class Loading {
     setData(this.root, 'filesInFlight', String(files.length));
     const detail = wait === undefined ? `Now working on: ${label}` : `Now waiting for: ${label} · ${(wait.ageMs / 1000).toFixed(1)} s${files.length > 0 ? ` · ${files.length} files in flight` : ''}${pending.length > 1 ? ` · ${pending.length} waits` : ''}`;
     // A quiet phase still reports its actual age, without advancing a byte,
-    // file or setup credit. Keep the eight-second retry classification separate
-    // from this visible acknowledgement that the current work is still pending.
+    // file or setup credit. Only an explicit failed-read retry capability offers
+    // an action; a long pending operation remains pending.
     set(this.els.foot, stalled ? `Waiting for ${label} · ${(quietMs / 1000).toFixed(1)} s` : !this.finished && quietMs >= 500
       ? `No reported progress for ${(quietMs / 1000).toFixed(1)} s · ${detail}` : detail);
   }

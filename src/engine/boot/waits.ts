@@ -15,7 +15,7 @@ export class WaitRegistry {
   async waitFor<T>(label: string, promise: Promise<T>, kind: WaitKind = 'work', step: string | null = null, owner: symbol | null = null, resource?: string): Promise<T> {
     const state = this.state(), id = ++state.sequence, now = this.now();
     state.pending.set(id, { id, label, kind, step, owner, startedAt: now, progressAt: now, loadedBytes: 0, totalBytes: null,
-      deadlineMs: 8000, retry: typeof location === 'undefined' ? null : () => { location.reload(); }, progress: '', inline: false,
+      retry: null, progress: '', inline: false,
       ...(resource === undefined ? {} : {resource}) });
     try { return await promise; }
     finally { state.pending.delete(id); }

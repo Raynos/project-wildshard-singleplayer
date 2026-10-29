@@ -51,7 +51,7 @@ test('exhausted transport stays pending on the existing RETRY and resumes in pla
   await offered;
   await vi.waitFor(() => { expect([...loadingWaitState().pending.values()].some(row => row.resource === url)).toBe(true); });
   const wait = [...loadingWaitState().pending.values()].find(row => row.resource === url);
-  expect(wait?.deadlineMs).toBe(0); expect(wait?.label).toContain('HTTP 503');
+  expect(wait?.retry).toBeTypeOf('function'); expect(wait?.label).toContain('HTTP 503');
   if (wait?.retry === null || wait?.retry === undefined) throw new Error('Missing existing loading-card RETRY');
   wait.retry(); expect(await pending).toEqual(new Uint8Array([1, 2, 3]));
   expect(calls).toBe(3); expect(loadingWaitState().pending.has(wait.id)).toBe(false);

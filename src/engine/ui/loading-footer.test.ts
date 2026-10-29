@@ -244,7 +244,7 @@ it('groups only completed sub-500ms steps and keeps the exact 500ms boundary vis
   } finally { loading.scope.dispose(); }
 });
 
-it('offers Retry after eight seconds without bytes, including changing diagnostic text', () => {
+it('keeps slow pending work pending without offering a reload', () => {
   const loading = new Loading({ id: 'wait', name: 'Wait' }, { scoped: true });
   const reload = vi.spyOn(location, 'reload').mockImplementation(() => undefined);
   try {
@@ -253,13 +253,35 @@ it('offers Retry after eight seconds without bytes, including changing diagnosti
     loading.scopedStep('read', 'Reading terrain'); vi.advanceTimersByTime(100);
     now = 8100; loading.scopedStep('read', 'Still reading terrain'); vi.advanceTimersByTime(100);
     const retry = loading.root.querySelector<HTMLButtonElement>('[data-el="retry"]');
-    expect(loading.root.dataset['stalled']).toBe('true'); expect(retry?.hidden).toBe(false);
-    expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('Waiting for Read world');
+    expect(loading.root.dataset['stalled']).toBe('false'); expect(retry?.hidden).toBe(true);
+    expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('Now working on: Read world');
     files.write(32, 32); now = 8400; vi.advanceTimersByTime(240);
     expect(retry?.hidden).toBe(true);
-    now = 16400; vi.advanceTimersByTime(240); expect(retry?.hidden).toBe(false);
-    retry?.click(); expect(reload).toHaveBeenCalledTimes(1);
+    now = 16400; vi.advanceTimersByTime(240); expect(retry?.hidden).toBe(true);
+    retry?.click(); expect(reload).not.toHaveBeenCalled();
   } finally { reload.mockRestore(); loading.scope.dispose(); }
+});
+
+it('offers an explicit failed-read retry immediately ahead of older pending work', () => {
+  const loading = new Loading({id: 'failed-read', name: 'Failed read'}), retryRead = vi.fn<() => void>();
+  const reload = vi.spyOn(location, 'reload').mockImplementation(() => undefined);
+  const ids: number[] = [];
+  try {
+    const timeline = currentLoadingTimeline();
+    if (timeline === undefined) throw new Error('Missing current loading owner');
+    const options = {kind: 'file', owner: timeline.waitOwner, step: timeline.snapshot().current} as const;
+    ids.push(beginLoadingWait('Still downloading terrain', options));
+    const failed = beginLoadingWait('HTTP 503: model', {...options, retry: retryRead, retryNavigation: false});
+    ids.push(failed);
+    now = 300; vi.advanceTimersByTime(100);
+    const button = loading.root.querySelector<HTMLButtonElement>('[data-el="retry"]');
+    expect(button?.hidden).toBe(false);
+    expect(loading.root.dataset['waiting']).toBe('HTTP 503: model');
+    button?.click(); expect(retryRead).toHaveBeenCalledOnce(); expect(reload).not.toHaveBeenCalled();
+    finishLoadingWait(failed); now = 600; vi.advanceTimersByTime(250);
+    expect(button?.hidden).toBe(true);
+    expect(loading.root.dataset['waiting']).toBe('Still downloading terrain');
+  } finally { for (const id of ids) finishLoadingWait(id); reload.mockRestore(); loading.scope.dispose(); }
 });
 
 it('does not invent a one-step total before the actual path is declared', () => {
@@ -392,7 +414,7 @@ it('keeps quiet work visibly current without inventing completed work', () => {
     expect({network: loading.root.dataset['networkBytes'], cached: loading.root.dataset['cachedBytes'],
       pending: loading.root.dataset['pendingBytes'], setup: loading.root.dataset['setup']}).toEqual(counters);
     now = 10_500; vi.advanceTimersByTime(100);
-    expect(loading.root.dataset['stalled']).toBe('true');
+    expect(loading.root.dataset['stalled']).toBe('false');
     files.write(100, 100, true);
     now = 10_900; vi.advanceTimersByTime(100);
     expect(foot()).not.toContain('No reported progress');
@@ -525,7 +547,7 @@ it('repaints the facts of a step at most every 200 ms while its clock samples at
   } finally { loading.scope.dispose(); }
 });
 
-it('adopts the first-document wait list without resetting a pending deadline or its retry', () => {
+it('adopts the first-document wait list without resetting its age or explicit retry', () => {
   const root = document.createElement('div'); root.className = 'ws-load'; root.dataset['shell'] = '';
   root.dataset['startedAt'] = '100'; root.innerHTML = loadShellTemplate(); document.body.append(root);
   const inline = beginLoadingWait('Application modules', { inline: true }); root.dataset['loadingWaitId'] = String(inline);
@@ -542,8 +564,10 @@ it('adopts the first-document wait list without resetting a pending deadline or 
     expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('Waiting for Held source bytes · 8.0 s');
     loading.root.querySelector<HTMLButtonElement>('[data-el="retry"]')?.click(); expect(retry).toHaveBeenCalledTimes(1);
     reportLoadingWait(id, { loadedBytes: 1024 }); now = 8350; vi.advanceTimersByTime(200);
-    expect(loading.root.querySelector<HTMLElement>('[data-el="retry"]')?.hidden).toBe(true);
+    expect(loading.root.querySelector<HTMLElement>('[data-el="retry"]')?.hidden).toBe(false);
     expect(pending?.loadedBytes).toBe(1024); expect(loadingWaitState().pending.get(id)).toBe(pending);
+    finishLoadingWait(id); now = 8700; vi.advanceTimersByTime(200);
+    expect(loading.root.querySelector<HTMLElement>('[data-el="retry"]')?.hidden).toBe(true);
   } finally { finishLoadingWait(id); loading.scope.dispose(); }
   expect(state.pending.has(inline)).toBe(false);
 });

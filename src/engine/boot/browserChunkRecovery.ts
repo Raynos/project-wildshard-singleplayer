@@ -21,7 +21,7 @@ let recover: ((error: unknown) => Promise<boolean>) | undefined;
 async function latestVersion(): Promise<string | null> {
   const owner = pageScope.child('chunk-version'), controller = new AbortController();
   const url = new URL('/version.json', location.href);
-  const wait = beginLoadingWait('Checking updated application', { kind: 'file', resource: url.href, deadlineMs: 3000 });
+  const wait = beginLoadingWait('Checking updated application', { kind: 'file', resource: url.href });
   owner.onDispose(() => { controller.abort(); }); owner.timeout(3000, () => { controller.abort(); });
   try {
     const response = await fetch(url, {cache: 'no-store', signal: controller.signal});
@@ -38,7 +38,7 @@ export function recoverChunkFailure(error: unknown): Promise<boolean> {
   recover ??= createChunkRecovery({allowed: recoveryAllowed, base: location.href, runningBuild: __BUILD_ID__, version: latestVersion,
     claimed: bootSelfReloadClaimed, claim: claimBootSelfReload,
     prepare: async build => {
-      const wait = beginLoadingWait('Activating updated application', {kind: 'worker', resource: '/sw.js', deadlineMs: 15000});
+      const wait = beginLoadingWait('Activating updated application', {kind: 'worker', resource: '/sw.js'});
       try { return await (await import('./sw')).refreshWorkerForChunkRecovery(build, recoveryAllowed); }
       finally { finishLoadingWait(wait); }
     },
