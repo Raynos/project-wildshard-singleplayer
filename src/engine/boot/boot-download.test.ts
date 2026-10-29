@@ -186,6 +186,8 @@ it('keeps repeated reserve snapshots exact across declarations, banks and receip
   expect(snapshot()).toMatchObject({ declaredBytes: 100, pendingBytes: 100, unitemizedBytes: 70 });
   accounting.packed('/assets/home/a.bin');
   expect(snapshot()).toMatchObject({ declaredDoneBytes: 30, pendingBytes: 70, networkBytes: 0 });
+  accounting.declare('/assets/home/a.bin', 30); accounting.declare('/assets/home/a.bin', 10);
+  expect(snapshot()).toMatchObject({ declaredDoneBytes: 30, pendingBytes: 70, unitemizedBytes: 70 });
   accounting.reserveBank('late', 20);
   expect(snapshot()).toMatchObject({ declaredBytes: 120, pendingBytes: 90, unitemizedBytes: 90 });
   accounting.itemizeBank('late', [['/assets/home/b.bin', 20]]);

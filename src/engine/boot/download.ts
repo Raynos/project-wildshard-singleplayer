@@ -104,8 +104,11 @@ export class DownloadAccounting {
   declare(input: string, bytes: number): void {
     if (!Number.isSafeInteger(bytes) || bytes < 0) throw new Error('Invalid download declaration');
     const key = this.url(input), file = this.files.get(key);
+    if (file !== undefined) {
+      if (bytes > file.bytes) { file.bytes = bytes; this.groupRemainder = undefined; }
+      return;
+    }
     this.groupRemainder = undefined;
-    if (file !== undefined) { file.bytes = Math.max(file.bytes, bytes); return; }
     const hash = /[a-f0-9]{64}/u.exec(key)?.[0];
     const declared = { bytes, complete: this.received.has(key) || (hash !== undefined && this.cache.has(hash)) };
     this.files.set(key, declared);
