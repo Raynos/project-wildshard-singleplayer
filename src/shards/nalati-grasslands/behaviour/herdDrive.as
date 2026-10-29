@@ -80,7 +80,7 @@ function stallion(i:i32):void{
  let f:i32=512;
  switch(state){
  case 0:case 1:{
-  const dx=px-s(S.cx),dz=pz-s(S.cz),raw=hypot(dx,dz),d=raw!=0?raw:1,out=Math.min(20,Math.max(10,d*.5));
+  const dx=px-s(S.cx),dz=pz-s(S.cz),raw=hypot(dx,dz),d=raw!=0?raw:1,out=Math.min(10,Math.max(6,d*.3)); // QB19: he watches you from the herd's cover (was 10-20 m out), never past the grass edge
   const tx=s(S.cx)+dx/d*out,tz=s(S.cz)+dz/d*out,gd=hypot(tx-x,tz-z);
   w(i,P.headUp,1);w(i,P.lookKind,1);w(i,P.lookWeight,1);
   if(gd>3){w(i,P.kind,4);w(i,P.state,1);w(i,P.targetX,tx);w(i,P.targetZ,tz);w(i,P.pathEvery,1.5);w(i,P.speed,gd>15?c(C.trot):c(C.walk));w(i,P.turn,1.8);}

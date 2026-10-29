@@ -708,9 +708,9 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     a.lookTarget.copy(player); a.lookWeight = 0;
     switch (this.stallionState) {
       case 'watch': case 'warn': {
-        // the guard point: between the herd and you, 10–20 m out from the herd centre
+        // the guard point: between the herd and you, 6–10 m out from the herd centre, inside its cover (QB19)
         const tx0 = player.x - this.cx, tz0 = player.z - this.cz, td0 = Math.hypot(tx0, tz0) || 1;
-        const out = MathUtils.clamp(td0 * 0.5, 10, 20);
+        const out = MathUtils.clamp(td0 * 0.3, 6, 10);
         const gx = this.cx + (tx0 / td0) * out, gz = this.cz + (tz0 / td0) * out;
         const gd = Math.hypot(gx - a.position.x, gz - a.position.z);
         m['headUp'] = 1; a.lookWeight = 1;

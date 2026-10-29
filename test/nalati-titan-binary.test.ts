@@ -36,7 +36,7 @@ test('Titan keeps every original witness and metadata byte while selected bytes 
   }
   const metadata={attack:{...programs.attack,bytes:inline.attack.bytes},rules:{...programs.rules,bytes:inline.rules.bytes},wind:inline.wind,fire:inline.fire};
   expect(programs.compiled.witnessBytes).toBe(titanWitnessBytes.length+pastureWitnessBytes.length);
-  expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(metadata)))).toBe('d3b7a245ed44ef2a39ee0d4f396492b09d7ed2d29fdf6770f30103a781b2ebcc');
+  expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(metadata)))).toBe('34fb796bd0198fd62dbc4287c30559b79ebd345244000b811ef722bf6078fe05');
 });
 
 test('the standard named-file reader ships that exact admitted module',async()=>{
