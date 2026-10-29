@@ -220,7 +220,7 @@ or is deleted;** no tooling commit breaks every commit unnoticed. 8. No wait ove
 
 | Row | What | Expected win | Size | Done when |
 |---|---|---|---|---|
-| X1 | One deletion commit for the Delete list above, plus the AGENTS.md lines that promise a nightly gpu-gate and `test-facade-instancing` | fewer false promises; ~40 files | S | list gone; AGENTS.md true |
+| X1 | **G860 TP1 done (2026-10-28, sp-x6; this commit):** 16 dormant script/declaration files retired, no maintained caller; docs keeps API/host writers. Six separation regressions, scripts types, typed lint and actual docs generation pass. Live gpu/deploy/facade checks and AGENTS.md preserved. Remaining broader D8 scope stays open. One deletion commit for the Delete list above, plus the AGENTS.md lines that promise a nightly gpu-gate and `test-facade-instancing` | fewer false promises; ~40 files | S | list gone; AGENTS.md true |
 | X2 | Each Revive-or-delete script is run once in a check slot: green and catching → a ladder rung (vitest or the gate); red or redundant → deleted | every check runs somewhere or is gone | M | no script in the Nowhere row |
 
 ### V — Live-red catchers (new; boot-smoke legs, no new schedule)

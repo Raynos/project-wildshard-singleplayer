@@ -1,5 +1,5 @@
 {
-  "about": "SHARD-PLATFORM SP3: content row fields that hold a function or a class (scripts/check-row-data.mjs). May only shrink: turn a field into data or a named id, then remove its line.",
+  "about": "SHARD-PLATFORM SP3: content row fields that hold a function or a class. May only shrink: turn a field into data or a named id, then remove its line.",
   "fields": [
     "BossDefinition.reward.trophy",
     "BowProfile.arrow",

@@ -23,7 +23,7 @@ function run(root, command, args) {
 /**
  * Compute every committed generated output, while leaving policy inputs and manual documentation alone. SF74 W13 (G281):
  * the API surface, docs/api/ and the export index are build outputs (`pnpm gen`, scripts/gen-api.mjs), not here; only
- * the shrink-only baselines (layer-edges, ratchet debt) and scripts/README.md stay committed.
+ * the shrink-only baselines (layer-edges and ratchet debt) stay committed.
  */
 export function generatedFiles(root) {
   const files = [];
@@ -45,10 +45,6 @@ export function generatedFiles(root) {
     'lint/layer-edges.json': json({ about: 'Generated cross-layer import counts; permitted downward counts are report-only.', edges: sorted(edges) }),
     'lint/ratchet.json': json(sorted(ratchet)),
   };
-  // This pre-existing structural generated index also becomes stale whenever a source helper is added.
-  if (existsSync(resolve(root, 'scripts/normalize/liveness.mjs'))) {
-    outputs['scripts/README.md'] = run(root, process.execPath, ['scripts/normalize/liveness.mjs', '--readme', '--stdout']);
-  }
   return { outputs, measurement: { edges, ratchet } };
 }
 /**

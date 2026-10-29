@@ -35,14 +35,12 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp', prefix='gen-docs-test-') as fol
     put('scripts/docs.mjs', docs_source)
     for file, function in [('gen-api','writeApiDocs'),('gen-host-catalogue','writeHostCatalogue')]:
         module(file, 'export function '+function+'(root){if(root!==new URL("../",import.meta.url).pathname.replace(/\\/$/,""))throw Error("wrong docs root");'+record(function)+'}')
-    for file in ['webgpu-inventory','normalize/liveness']:
-        module(file, record(file))
     env = {key:value for key,value in os.environ.items() if key not in {'WS_QUIET','WS_QUIET_ACTIVE','WS_PRECOMMIT_BOOT_CACHE'}}
     def run(script, *args):
         (root/'calls.txt').write_text('')
         result = subprocess.run(['node',script,*args], cwd=root, env=env, text=True, capture_output=True)
         return result, (root/'calls.txt').read_text().splitlines()
-    docs_steps = ['writeApiDocs','writeHostCatalogue','webgpu-inventory','normalize/liveness']
+    docs_steps = ['writeApiDocs','writeHostCatalogue']
     for mode in [[],['--parallel'],['--proof'],['--build-inputs'],['--inputs-only']]:
         result,calls = run('scripts/gen.mjs',*mode)
         assert result.returncode == 0,result.stderr
