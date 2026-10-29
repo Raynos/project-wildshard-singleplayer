@@ -19,17 +19,16 @@ sp-x2 MF10, sp-x9 G895 → FC7, sp-x10 MF1 + QB21. QB19 / GAME-S sp-o3 later. G8
 - MF3 met: launch image → title 0.7 s warm on the Sim, ~0.5 s of it iOS starting the web app before our page
   navigates (page share 0.16 s, 6e4e5e6817); not reducible in the page.
 - Earlier calls (D183, D185, PL15, PL16, QA3-QA8): see this file's git log.
-- QB11 crossbow spring substep on Codex sp-x6: 60 fps bit-identical, so no look change.
+- Codex took QB11 (spring substep, 60 fps bit-identical) and hud.perf (read-only count): no pixels. GAME-81 was pre-gate.
 - SW / manifest rows (RL7-9, MF1 / MF2 / MF4) on Codex: no pixels (G848).
 - **For wildshard-v (QB1, RL3 48492f221e):** Sim warm launch image 0.6 s → title 1.2 s, nothing else. iOS snapshots the
   launch image at install; Jake's icon predates it (10-24), so tell him once: delete + re-add the icon. The first cold
   launch after this deploy still shows the old UPDATING cover once (old worker), never again.
 - New QA build asked of sp-ci-deploy: Jake was reporting already-fixed bugs (QB7 14:19).
-- hud.perf world.impacts on Codex sp-x1: read-only count, FX untouched (4718a3fabd).
 - QB18 = B: Nalati TRUST as a status row under GRASS (A crossed the minimap, C the toast; fc707ba74d, o4).
 - RL10: grid New game keeps its road-resume reload (1ec09517d4).
-- G906: GAME-81 came from the QB8 board's older pin c33bf50cfc, before gate 31d48ce97a; no bypass found (x1).
-- QB10: sp-x1 walks the 60 ids (0dd5f3060e) in MF12, id → verdict → SHA; wildshard-v resolves them in Sentry.
+- QB10: sp-x1 walks the 60 ids (0dd5f3060e) in MF12; wildshard-v resolves them. **wildshard-v: for Sentry-only ids with
+  no inbox stack (e.g. 7R, 6Y, 6X, 6W) add one event's build + stack to the row**; titles can't justify a fix.
 - D53's 8 generator-import sites baselined (dd32fad4b0).
 - families-board retired (3e9937f146); D53 debt; Pine pond, G99 isles kept; Pine drive (D12) under G815; D206 damage list.
 - Spike section 3 taken (P1-P6, Q1-Q5, C1-C4, N1, F1, T1, L3-L6; X1 / X2 after the retro; DA1 / PF1 sent, G874).
