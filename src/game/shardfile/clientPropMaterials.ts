@@ -45,6 +45,12 @@ export function familyDefaultEntry(family: string): Readonly<Record<string, unkn
   return { family, vertexColours: true, ...(family === 'pbr' ? { metalness: 0 } : {}) };
 }
 
+/** MF5: a compiled graph look named by its owner (`graph:material:<id>`), so a program build names the content it linked for */
+export function ownedGraph(material: Material, owner: string): Material {
+  if (material.name === 'graph:material') material.name = `graph:material:${owner}`;
+  return material;
+}
+
 /**
  * Resolve every named prop material once. `catalogue` is the compiled `look.materials` (and family defaults), `compile`
  * compiles one more entry on the same looks / graph compiler / admitted textures (scope-owned), and `texture` resolves an
@@ -78,7 +84,7 @@ export function propSurfaces(materials: PropMaterials, ports: {
       // the slot files fill the graph's own texture params of the same names (admitted: validatePropMaterials)
       const graph = materialGraphIr(entry, ports.file), params = { ...graph.params };
       for (const [slot, value] of slots) { const param = params[slot]; if (param?.type !== 'texture' && slot === 'colour' && graphUsesMeshMap(graph)) continue; if (param?.type !== 'texture') throw new Error(`props material "${name}": graph ${row.id} has no texture param ${slot}`); params[slot] = { ...param, value: value.file }; }
-      material = ports.compile({ family: 'graph', graph: { ...graph, params } });
+      material = ownedGraph(ports.compile({ family: 'graph', graph: { ...graph, params } }), `${row.id}:${name}`);
     } else material = base(row.id);
     resolved.set(name, { material, maps });
   }

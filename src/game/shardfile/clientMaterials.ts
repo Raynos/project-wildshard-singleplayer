@@ -29,7 +29,7 @@ import { parseSkinFile, skinLookParameters } from '@wildshard/format/skinAssets'
 import { SKIN_LOOK_RECIPE } from '@wildshard/format/skins';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import { propMaterialTextureRefs, propMaterialsOf } from '@wildshard/format/propMaterials';
-import { propSurfaces } from './clientPropMaterials';
+import { ownedGraph, propSurfaces } from './clientPropMaterials';
 import { splatSurface, withSplatSurface } from './clientSplatTerrain';
 import { TIER } from '@wildshard/engine/core/tier';
 import { splatTerrainOf, splatTextureRefs } from '@wildshard/format/splatTerrain';
@@ -217,7 +217,7 @@ export async function clientMaterials(shard: Shardfile, input: ReadonlyMap<strin
     const rows = shard.look.curves?.[id];
     if (isGraphEntry(entry)) {
       materials.defer(id, () => {
-        const material = compile(entry), held = early.get(id); early.delete(id);
+        const material = ownedGraph(compile(entry), id), held = early.get(id); early.delete(id);
         for (const [name, value] of held ?? []) graphs.setParam(material, name, value);
         return material;
       });
@@ -249,7 +249,7 @@ export async function clientMaterials(shard: Shardfile, input: ReadonlyMap<strin
     if (scope.disposed) throw new Error('Material scope unloaded');
     const entry = shard.look.materials[id];
     if (entry === undefined || !isGraphEntry(entry)) throw new Error(`No graph catalogue material ${id} to copy`);
-    const material = compile(entry);
+    const material = ownedGraph(compile(entry), id);
     return { material, setParam: (name, value) => { graphs.setParam(material, name, value); } };
   };
   const standardSurface = (id: string, material: Material): material is MeshStandardMaterial => {
