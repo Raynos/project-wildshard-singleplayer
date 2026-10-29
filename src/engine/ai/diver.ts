@@ -5,6 +5,7 @@ import type { SimValue } from '../sim';
 import { inspectBrain } from './inspect';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from './strikes';
 import { readStrikeState } from './strikeState';
+import { emitFault } from '../core/faults';
 
 /** Circle, overhead stalk, telegraphed chest dive and rising rest tuning, in metres, seconds and m/s. */
 export interface OrbitDiverSpec {
@@ -145,6 +146,12 @@ export class DiverBrain<A extends AnimalSim> {
   private readonly boundActor: A | null;
   private get actor(): A { if (this.boundActor === null) throw new Error('Missing diver actor authority'); return this.boundActor; }
   private readonly profile: DiverProfile<A>;
+  private reportedFrames: Set<string> | undefined;
+  private rejectFrame(message: string): false {
+    const reported = this.reportedFrames ??= new Set();
+    if (!reported.has(message)) {reported.add(message); emitFault({system: 'ai.diver', error: new Error(message), verdict: 'retry'});}
+    return false;
+  }
   private readonly contract: string;
   private readonly strikes = new StrikeRunner();
   private readonly chest = new Vector3();
@@ -223,15 +230,16 @@ export class DiverBrain<A extends AnimalSim> {
     } };
   }
   // Zero is an interrupt's second wake in the same frame, not an invalid simulation step.
-  private step(c: DiverObservation<A>): void {
-    if (c.pattern !== this.profile.pattern) throw new Error('Incompatible diver observation');
+  private step(c: DiverObservation<A>): boolean {
+    if (c.pattern !== this.profile.pattern) return this.rejectFrame('Incompatible diver observation');
     if (c.pattern !== 'wind' && (!Number.isFinite(c.dt) || c.dt < 0 || c.dt > 1)) {
-      throw new Error(`Invalid ${c.pattern === 'burst' ? 'burst flyer' : `${c.pattern} diver`} step`);
+      return this.rejectFrame(`Invalid ${c.pattern === 'burst' ? 'burst flyer' : `${c.pattern} diver`} step`);
     }
+    return true;
   }
   /** Observe using the preset's original distance, calm reset, token and held-field laws. */
   think(c: DiverObservation<A>): void {
-    this.step(c); const p = this.profile;
+    if (!this.step(c)) return; const p = this.profile;
     if (p.pattern === 'orbit' && c.pattern === 'orbit') this.thinkOrbit(c, p);
     else if (p.pattern === 'patrol' && c.pattern === 'patrol') this.thinkPatrol(c, p);
     else if (p.pattern === 'burst' && c.pattern === 'burst') this.thinkBurst(c, p);
@@ -239,11 +247,11 @@ export class DiverBrain<A extends AnimalSim> {
   }
   /** Advance one body tick; the host retains flight, reach, damage and impulse authority. */
   act(c: DiverObservation<A>): void {
-    this.step(c); const p = this.profile;
+    if (!this.step(c)) return; const p = this.profile;
     if (p.pattern === 'orbit' && c.pattern === 'orbit') this.actOrbit(c, p);
     else if (p.pattern === 'patrol' && c.pattern === 'patrol') this.actPatrol(c, p);
     else if (p.pattern === 'burst' && c.pattern === 'burst') this.actBurst(c, p);
-    else if (p.pattern === 'wind') throw new Error('Wind motion uses the explicit encounter frame');
+    else if (p.pattern === 'wind') this.rejectFrame('Wind motion uses the explicit encounter frame');
   }
   private thinkOrbit(c: OrbitDiverPorts<A>, profile: Extract<DiverProfile, { pattern: 'orbit' }>): void {
     const a = this.actor; if (!a.alive) return;

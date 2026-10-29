@@ -1,6 +1,7 @@
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { Rng } from '../core/rng';
 import type { SimValue } from '../sim';
+import { emitFault } from '../core/faults';
 
 /** A hidden interior guardian's perception, holding ring, retreat and strike timing. */
 export interface GuardianSpec {
@@ -77,6 +78,11 @@ export class GuardianPolicy<A extends AnimalSim> {
   private readonly actor: A;
   private readonly profile: GuardianProfile;
   private readonly contract: string;
+  private reportedFrames: Set<string> | undefined;
+  private rejectFrame(message: string): void {
+    const reported = this.reportedFrames ??= new Set();
+    if (!reported.has(message)) {reported.add(message); emitFault({system: 'ai.guardian', error: new Error(message), verdict: 'retry'});}
+  }
   constructor(actor: A, profile: GuardianProfile) {
     this.actor = actor; this.profile = admitProfile(profile);
     this.contract = JSON.stringify({ version: 1, spec: this.profile.spec });
@@ -89,10 +95,10 @@ export class GuardianPolicy<A extends AnimalSim> {
   }
   /** Run the selected pattern with its original floor, token, perch and vertical-completion observations. */
   think(c: GuardianObservation<A>): void {
-    if (c.pattern !== this.profile.pattern) throw new Error('Incompatible guardian observation');
+    if (c.pattern !== this.profile.pattern) {this.rejectFrame('Incompatible guardian observation'); return;}
     // Zero is an interrupt's second wake in the same frame.
     if (!Number.isFinite(c.dt) || c.dt < 0 || c.dt > 1) {
-      throw new Error(`Invalid ${c.pattern === 'perch' ? 'perch hunter' : 'guardian'} step`);
+      this.rejectFrame(`Invalid ${c.pattern === 'perch' ? 'perch hunter' : 'guardian'} step`); return;
     }
     const p = this.profile;
     if (p.pattern === 'interior' && c.pattern === 'interior') this.thinkInterior(c, p.spec);
