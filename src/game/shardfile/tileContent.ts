@@ -373,11 +373,12 @@ export interface ClientTileRegistration {
 /** Borrow the existing scheduler; retain admitted neighbour views for restoration after an entered owner retires. */
 export function clientTileRegistration(instances: Map<string, ClientRingInstance>,
   streamer: Pick<TileStreamer<unknown>, 'require' | 'resident' | 'setFullRing' | 'retireRefinement'>, radius: () => number,
-  retainFar: (instance: string) => boolean = () => false): ClientTileRegistration {
+  retainFar: (instance: string) => boolean = () => false, initialSpawn: string | null = null): ClientTileRegistration {
   const entered = new Map<string, () => void>(), fallback = new Map(instances), covered = new Set<string>();
   const approaches = new Map<string, number>();
   const approachReleases = new Set<() => void>();
   let disposed = false;
+  let spawnEntry = initialSpawn;
   // H3/G794 changes order only: finish the arrival tile before the rest of
   // its clipped ring, using the same terrain/prop bytes and collision owners.
   const pinSpawn = async (instance: string, start: { readonly x: number; readonly z: number },
@@ -470,6 +471,8 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
         const order = tileOrder(start, entry.source.entryways);
         const critical = order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * TILES_PER_SIDE + tile.i);
         const spawn = await pinSpawn(instance, start, requirements, ownerLeft, 'Entered tile owner left', critical);
+        const earlySpawn = spawnEntry === instance;
+        if (earlySpawn) spawnEntry = null;
         // Broad render demand must not compete ahead of the spawn ring and
         // mandatory entryways during initial preparation. In play it is exact.
         streamer.setFullRing(instance, ringRadius(entry.source, radius));
@@ -481,7 +484,7 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
           await coarse.ready;
           if (!ownerLeft() && !closed) covered.add(instance);
         };
-        if (retainFar(instance)) void (async () => {
+        if (retainFar(instance) || earlySpawn) void (async () => {
           try { await complete(); }
           catch (error: unknown) {
             if (!ownerLeft() && !closed) console.warn('[tiles] distant coverage retains its far proxy', error);

@@ -4020,10 +4020,10 @@ metadata timing, durability, recovery, quota and ownership contracts.
 
 ### Seamless grid crossing (SF20a)
 
-`@wildshard/game/grid/menu` owns `gridMode(devserverCell, mode?)` and
-`DEVSERVER`. The app uses those same switches to declare the selected
-compiler seam download facts before reading them; declaration starts no IO
-and grants no receipt credit.
+`gridMode`/`DEVSERVER` (`@wildshard/game/grid/menu`) select seam declarations
+without IO or credit. `@wildshard/engine/boot/spawnRingReveal` is default-off,
+Developer/reload only: the first Home may enter at its required spawn ring;
+remaining coverage streams. Later entries keep full readiness.
 
 Grid placement rows may set `edgeLook: { height }` (0.5–7 m) to lower only the
 cyan readiness curtain. Missing rows retain the 7 m curtain. `GridAssembly` copies

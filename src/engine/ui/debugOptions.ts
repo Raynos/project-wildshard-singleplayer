@@ -1,4 +1,5 @@
 import { DATA_PREPARATION, dataPreparation, setDataPreparation } from '../boot/dataPreparation';
+import {spawnRingReveal, setSpawnRingReveal} from '../boot/spawnRingReveal';
 import { authoredRows } from './authoredDebugRows';
 import { uiScope } from './ownership';
 import { engineString } from '../strings';
@@ -164,6 +165,12 @@ const roadResidencyRow: DebugRow = { purpose: 'developer', id: 'roadResidency', 
   get: () => roadResidency(), set: value => { const pick = ROAD_RESIDENCY.find(choice => choice === value); if (pick !== undefined && isDev()) setRoadResidency(pick); },
   on: () => undefined, reload: true, when: always, note: engineString('s_road_residency_note'), ask: 'E435', reviewBy: '2026-10-28' };
 
+/** G867: one default-off initial spawn-readiness experiment. */
+const spawnRingRevealRow: DebugRow = {purpose: 'developer', id: 'spawnRingReveal', group: 'loading', label: engineString('s_spawn_ring_reveal'),
+  choices: () => [{v: 'off', text: engineString('s_ca7981b46ecf')}, {v: 'on', text: engineString('s_130011756125')}],
+  get: () => spawnRingReveal() ? 'on' : 'off', set: value => {if (value === 'off' || value === 'on') setSpawnRingReveal(value === 'on');},
+  on: () => undefined, reload: true, when: always, note: engineString('s_spawn_ring_reveal_note'), ask: 'E435', reviewBy: '2026-10-30'};
+
 /** G865: one default-off data-only worker comparison, rebuilt on reload. */
 const dataPreparationRow: DebugRow = { purpose: 'developer', id: 'dataPreparation', group: 'loading', label: engineString('s_data_preparation'),
   choices: () => [{ v: 'main', text: engineString('s_data_main') }, { v: 'workers', text: engineString('s_data_workers') }],
@@ -186,6 +193,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Loading & memory ──
   clearDownloadsRow,
   dataPreparationRow,
+  spawnRingRevealRow,
 
   // ── Developer tools ──
 

@@ -14,7 +14,7 @@ import { tileOf, tileOrder } from '../src/game/shardfile/tileOrder';
 function isGroup(object: Object3D): object is Group { return object instanceof Group; }
 
 const camera = { x: -31.25, z: -31.25, vx: 0, vz: 0 };
-function fixture(coarse = true, fail = false) {
+function fixture(coarse = true, fail = false, spawnOnly = false, holdDistant = false) {
   const scope = new Scope('page'), resident = scope.child('resident'), allocator = new ResidencyAllocator(), decoder = new TileDecoder();
   const source = emptyShardfile({ slug: 'registered-fixture', name: 'Registered', author: 'Test', seed: 1, revision: 1 });
   const wire = new Map<string, Uint8Array>(), rows: NonNullable<Shardfile['props']>['tiles'] = [];
@@ -27,6 +27,7 @@ function fixture(coarse = true, fail = false) {
   }
   source.props = { version: 1, family: 'fixture', tiles: rows, wholeLibrary: [], models: [], panels: [], far: null, colliders: [], textures: [] };
   let pins = 0, radius = 1;
+  const distant: (() => void)[] = [];
   const active = new Map<Group, { key: string; root: Group; excluded: ReadonlySet<number> }>();
   const make = (name: string): ClientRingInstance & { root: Group } => {
     const root = new Group(); root.name = name;
@@ -43,14 +44,16 @@ function fixture(coarse = true, fail = false) {
         if (fail && key === '0/3/3' && name === 'entered') throw new Error('Fixture preparation refused');
         const tile: { key: string; root: Group; excluded: ReadonlySet<number> } = { key, root, excluded: new Set() };
         active.set(group, tile); owner.onDispose(() => { active.delete(group); });
-        return Promise.resolve({ mask: excluded => { tile.excluded = new Set(excluded); }, shadow: () => undefined });
+        const prepared = {mask: (excluded: ReadonlySet<number>): void => { tile.excluded = new Set(excluded); }, shadow: (): void => undefined};
+        if (holdDistant && name !== 'neighbour' && key === '1/0/0') return new Promise<typeof prepared>(resolve => {distant.push(() => {resolve(prepared);});});
+        return Promise.resolve(prepared);
       },
     } };
   };
   const neighbour = make('neighbour'), entered = make('entered'), instances = new Map([['home', neighbour]]);
   const ports = clientRingPorts(instances, { scope, decoder });
   const streamer = new TileStreamer([{ instance: 'home', origin: { x: 0, z: 0 } }], { reserve: claim => allocator.reserve(claim), now: () => 0 }, clientRingCatalogue(instances), ports);
-  const registration = clientTileRegistration(instances, streamer, () => radius);
+  const registration = clientTileRegistration(instances, streamer, () => radius, () => false, spawnOnly ? 'home' : null);
   scope.onDispose(() => { registration.dispose(); streamer.dispose(); decoder.dispose(); });
   const drive = async (view = camera, check?: () => void): Promise<void> => {
     for (let frame = 0; frame < 150; frame++) { streamer.step(view); await Promise.resolve(); check?.(); }
@@ -64,8 +67,61 @@ function fixture(coarse = true, fail = false) {
     return draws;
   });
   return { scope, resident, allocator, streamer, registration, neighbour, entered, instances, make, drive, coverage,
-    radius: (value: number) => { radius = value; }, pins: () => pins };
+    radius: (value: number) => { radius = value; }, pins: () => pins,
+    releaseDistant: () => {for (const release of distant.splice(0)) release();}, distant: () => distant.length };
 }
+
+test.each([false, true])('initial spawn readiness %s preserves required tiles, completes the rest, then releases every claim', async spawnOnly => {
+  const f = fixture(true, false, spawnOnly, true);
+  const coverageReady = f.registration.coverageReady;
+  if (coverageReady === undefined) throw new Error('Missing native coverage readiness');
+  try {
+    await f.drive();
+    let ready = false;
+    const pending = f.registration.enter('home', f.entered, f.resident, camera).then(world => {ready = true; return world;});
+    await f.drive();
+    // Native cancellation can replace a queued prepare; every outstanding
+    // distant prepare is held, regardless of how many callbacks were issued.
+    expect(f.distant()).toBeGreaterThan(0);
+    expect(ready).toBe(spawnOnly);
+    expect(coverageReady('home')).toBe(false);
+    if (spawnOnly) expect((await pending).fine.size).toBe(9);
+    f.releaseDistant(); await f.drive(); await pending;
+    expect(coverageReady('home')).toBe(true);
+    expect(f.coverage(f.entered.root)).toEqual(Array.from({length: 64}, () => 1));
+  } finally {f.scope.dispose();}
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});
+
+test('initial spawn readiness is consumed once; a later return waits for full coverage', async () => {
+  const f = fixture(true, false, true, true);
+  try {
+    const initial = f.registration.enter('home', f.entered, f.resident, camera);
+    await f.drive(); await initial;
+    f.releaseDistant(); await f.drive();
+    f.resident.dispose(); await f.drive();
+    const returning = f.make('returning'), owner = f.scope.child('returning');
+    let ready = false;
+    const pending = f.registration.enter('home', returning, owner, camera).then(world => {ready = true; return world;});
+    await f.drive();
+    expect(f.distant()).toBeGreaterThan(0); expect(ready).toBe(false);
+    f.releaseDistant(); await f.drive(); await pending;
+    expect(f.coverage(returning.root)).toEqual(Array.from({length: 64}, () => 1));
+    owner.dispose();
+  } finally {f.scope.dispose();}
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});
+
+test('early spawn readiness keeps the original mandatory-tile refusal and cleanup', async () => {
+  const f = fixture(true, true, true);
+  try {
+    const refused = expect(f.registration.enter('home', f.entered, f.resident, camera)).rejects.toThrow('Fixture preparation refused');
+    await f.drive(); await refused;
+    expect(f.registration.owns('home')).toBe(false);
+    expect(f.instances.get('home')).toBe(f.neighbour);
+  } finally {f.scope.dispose();}
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});
 
 test('entered tiles use the existing streamer, keep coarse coverage and restore the newest neighbour root', async () => {
   const f = fixture();

@@ -88,6 +88,7 @@ import { readGridEdges } from './edgeSources';
 import { findShard } from '../shard/registry';
 import { TileDecoder } from './tileDecoder';
 import { clientTileRegistration, type ClientTileRegistration, clientRingCatalogue, clientRingPorts, type ClientRingInstance, type PreparedRingTile } from '../shardfile/tileContent';
+import {spawnRingReveal} from '@wildshard/engine/boot/spawnRingReveal';
 import type { ClientAssets } from '../shardfile/clientAssets';
 import { clientMaterials } from '../shardfile/clientMaterials';
 import { clientTileViews, type ClientTileViews } from '../shardfile/clientViews';
@@ -806,7 +807,7 @@ export class GridSession {
     });
     this.rings = new TileStreamer(this.neighbours, this.allocator, catalogue,
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports), { farRadius: FAR_RING.reach, uploadsPerFrame: 1, uploadBytesPerFrame: 4_000_000 });
-    this.clientTiles = clientTileRegistration(tiles.instances, this.rings, tileRing, id => this.farMeshes.has(id));
+    this.clientTiles = clientTileRegistration(tiles.instances, this.rings, tileRing, id => this.farMeshes.has(id), spawnRingReveal() ? this.home.instance : null);
     const neighbourAdmission = host.renderer === undefined ? undefined : this.tileAdmission(host.renderer, roots);
     this.admitNeighbour = neighbourAdmission?.complete;
     this.admitNeighbourRender = neighbourAdmission?.render;
