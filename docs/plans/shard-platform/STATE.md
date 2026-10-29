@@ -16,10 +16,11 @@ CX2. **sp-x8 stays released: 5 Codex lanes building is the cap (G611).** 07:00 r
 **Done today:** QA1-14, CO1-5, QB2/7/8/10/14/15/18, RL2-5/9/10.
 
 **Autonomous decisions (for Jake's review):**
+- G917's 07:00 release fires from a one-off, self-unloading launchd job (sp-ci-deploy); not a standing automation (G585).
 - MF3 met: launch image → title 0.7 s warm on the Sim, ~0.5 s of it iOS starting the web app before our page
   navigates (page share 0.16 s, 6e4e5e6817); not reducible in the page.
 - Earlier calls (D183, D185, PL15, PL16, QA3-QA8): see this file's git log.
-- Codex took QB11 (spring substep, 60 fps bit-identical) and hud.perf (read-only count): no pixels.
+- Codex took QB11 (spring substep, 60 fps identical) and hud.perf (read-only count).
 - SW / manifest rows (RL7-9, MF1 / MF2 / MF4) on Codex: no pixels (G848).
 - **For wildshard-v (QB1, RL3 48492f221e):** Sim warm launch image 0.6 s → title 1.2 s, nothing else. iOS snapshots the
   launch image at install; Jake's icon predates it (10-24), so tell him once: delete + re-add the icon. The first cold
