@@ -7,11 +7,13 @@ export function coveFamilyOf(proto: string): CoveFamily | undefined {
   return Object.hasOwn(families, stem) ? stem as CoveFamily : undefined;
 }
 /** Complete authored model recipes; the entered page only binds native sources. */
-export const COVE_MODELS: { key: string; look: string; model: { id: string; name: string; file: string; category: string; pipeline: string | string[]; defaults: { proto: string; }; variants: { id: string; label: string; params: { proto: string; }; }[]; parts: Record<string, { geometry: string; material: string; clone: boolean; castShadow: boolean; receiveShadow: boolean; }[]>; specimenMaterial: string; lods: { from: number; parts: Record<string, { geometry: string; material: string; clone: boolean; castShadow: boolean; receiveShadow: boolean; }[]>; }[]; }; }[] = Object.entries(families).map(([key, f]) => {
+export const COVE_MODELS: { key: string; look: string; merge?: true; model: { id: string; name: string; file: string; category: string; pipeline: string | string[]; defaults: { proto: string; }; variants: { id: string; label: string; params: { proto: string; }; }[]; parts: Record<string, { geometry: string; material: string; clone: boolean; castShadow: boolean; receiveShadow: boolean; }[]>; specimenMaterial: string; lods: { from: number; parts: Record<string, { geometry: string; material: string; clone: boolean; castShadow: boolean; receiveShadow: boolean; }[]>; }[]; }; }[] = Object.entries(families).map(([key, f]) => {
   const parts = (far: boolean) => Object.fromEntries(f.protos.map(proto => [proto, [{ geometry: `${proto}${far ? '_lo' : ''}`, material: f.look, clone: true, castShadow: f.look === 'cast', receiveShadow: true }]]));
-  return { key, look: f.look, model: {
+  // FC12: a family with no LODs marked `merge` draws as one mesh per material (format/bakedTiles)
+  const row = { key, look: f.look, model: {
     id: `driftwood-isle/cove-${key}`, name: f.name, file: 'src/shards/driftwood-isle/generators/coveModels.ts', category: 'nature', pipeline: f.pipeline,
     defaults: { proto: f.protos[0] ?? '' }, variants: f.protos.map((proto, i) => ({ id: proto, label: `${f.name} ${i + 1}`, params: { proto } })),
     parts: parts(false), specimenMaterial: 'cast', lods: 'far' in f && f.far ? [{ from: ISLAND_LOOK.lod, parts: parts(true) }] : [],
   } };
+  return 'merge' in f && f.merge ? Object.assign(row, { merge: true as const }) : row;
 });

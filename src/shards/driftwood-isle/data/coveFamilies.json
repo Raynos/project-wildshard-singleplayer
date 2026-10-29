@@ -39,7 +39,8 @@
       "cliff5"
     ],
     "pipeline": "blender",
-    "look": "cast"
+    "look": "cast",
+    "merge": true
   },
   "drift": {
     "name": "Driftwood",
@@ -53,7 +54,8 @@
       "trellis",
       "blender"
     ],
-    "look": "cast"
+    "look": "cast",
+    "merge": true
   },
   "coconuts": {
     "name": "Coconut cluster",
@@ -64,7 +66,8 @@
       "trellis",
       "blender"
     ],
-    "look": "cast"
+    "look": "cast",
+    "merge": true
   },
   "shell": {
     "name": "Shell",

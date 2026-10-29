@@ -87,6 +87,11 @@ export interface PlaceOptions {
   readonly draw: Draw;
   /** merged: split the copies into square cells of this many metres, one mesh per cell and material (culled per cell) */
   readonly cell?: number;
+  /**
+   * merged: each copy's `color` multiplies its vertex colours, as an instanced copy's tint multiplies its diffuse (FC12: a
+   * family drawn merged instead of instanced looks the same). Off: a merged copy's `color` is not drawn.
+   */
+  readonly mergedTint?: boolean;
   /** per-copy culling (instanced / batched; merged: per cell). Without it, instanced copies are culled as one set */
   readonly cull?: CullOptions;
   /** default: the running shard's registry; null: build only (a dev page) */
@@ -503,6 +508,17 @@ function runSteps<T>(steps: Generator<void, T>): T {
   for (;;) { const r = steps.next(); if (r.done === true) return r.value; }
 }
 
+/** `mergedTint`: a merged copy's tint times its vertex colours (rgb; a geometry with none is left untinted) */
+const copyTint = new THREE.Color();
+function tintCopy(g: THREE.BufferGeometry, given: THREE.ColorRepresentation | undefined): void {
+  const colours = g.getAttribute('color');
+  if (given === undefined || colours === undefined || colours.itemSize < 3) return;
+  const color = copyTint.set(given);
+  if (color.r === 1 && color.g === 1 && color.b === 1) return;
+  for (let i = 0; i < colours.count; i++) colours.setXYZ(i, colours.getX(i) * color.r, colours.getY(i) * color.g, colours.getZ(i) * color.b);
+  colours.needsUpdate = true;
+}
+
 /** The merged draw, pausing (`yield`) after every copy built and every merged mesh (SF67: `placeSliced`). */
 function* drawMergedSteps<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>): Generator<void, Drawn> {
   const rng = new Rng(seedOf(def));
@@ -520,7 +536,7 @@ function* drawMergedSteps<P extends object>(def: ModelDef<P>, pls: readonly Plac
     const pose = poses[i], p = params[i];
     if (pose === undefined || p === undefined) continue;
     const parts = partsOf(buildModel(def, o, p, rng, [pl]), def.id, 'merged');
-    const posed = parts.map((part) => { const g = own(part.geometry); poseGeometry(g, pl); return g; });
+    const posed = parts.map((part) => { const g = own(part.geometry); poseGeometry(g, pl); if (o.mergedTint === true) tintCopy(g, pl.color); return g; });
     collideCopy(def, p, pose, posed, posed, colliders, o.ctx);
     writeBox(boxes, i, geometryBox(posed, _box));
     const key = cellOf(pl);

@@ -60,8 +60,9 @@ export const BakedTilesSchema: v.GenericSchema<BakedTilesRowInput, BakedTilesRow
     names: v.pipe(v.array(name), v.maxLength(256)),
     /** a part's material slot: its look and how its families' copies are culled */
     looks: v.pipe(v.record(id, v.strictObject({ look: id, cull: tiers(cull) })), v.maxEntries(8)),
-    /** one model per family, its copies culled as its slot's */
-    families: v.pipe(v.array(v.strictObject({ key: id, look: id, model })), v.maxLength(16)),
+    /** one model per family, its copies culled as its slot's; `merge`: drawn as one mesh per material instead, each copy's
+     *  tint in its vertex colours (FC12: a family with no LODs and no cull of its own, fewer draws, the same pixels) */
+    families: v.pipe(v.array(v.strictObject({ key: id, look: id, model, merge: v.exactOptional(v.literal(true)) })), v.maxLength(16)),
     /** what the collider boxes are made of, and the name of the piece holding boxes no copy claims */
     surface: v.picklist(['wood', 'stone', 'metal']), unclaimed: name,
   })),
@@ -206,6 +207,7 @@ interface BakedTilesRowInputFields {
         families: ({
             key: string;
             look: string;
+            merge?: true;
             model: {
                 id: string;
                 name: string;
@@ -318,6 +320,7 @@ interface BakedTilesRowFields {
         families: ({
             key: string;
             look: string;
+            merge?: true;
             model: {
                 id: string;
                 name: string;

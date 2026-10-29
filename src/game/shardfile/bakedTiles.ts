@@ -141,7 +141,9 @@ async function placeFamilies(owner: BakedTilesOwner, row: BakedTilesRow, instanc
     const placements = bakedPlacementPoses(f, family.indices, instances.names, row.drop);
     const slot = instances.looks[declared.look]; if (slot === undefined) throw new Error('Missing baked family look');
     const cull: CullOptions = slot.cull[TIER];
-    await owned(owner, () => placeSliced(model, placements, { ctx, draw: 'instanced', registry: owner.registry, parent: group, cull,
+    // FC12: a merged family is one mesh per material (its tints baked into its vertex colours); the rest instanced
+    await owned(owner, () => placeSliced(model, placements, { ctx, registry: owner.registry, parent: group, cull,
+      ...(declared.merge === true ? { draw: 'merged' as const, mergedTint: true } : { draw: 'instanced' as const }),
       piece: { id: `${row.id}-${family.key}`, ...(family.colliders.length > 0 ? { colliders: family.colliders.map(c => boxDesc(c, instances.surface)) } : {}) } }, slice.due));
   }
   const piece = { name: instances.unclaimed, category: 'nature' as const, file: 'src/game/shardfile/bakedTiles.ts', surface: instances.surface, solidFloor: false };
