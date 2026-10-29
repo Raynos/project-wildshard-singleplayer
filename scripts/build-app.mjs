@@ -12,6 +12,7 @@ import { bakeGridSeams, writeGridSeams } from './app-build/gridSeams.mjs';
 import { checkNoTopLevelAwait } from './app-build/noTopLevelAwait.mjs';
 import { copyOutputProducts } from './app-build/outputProducts.mjs';
 import { stampBuildDocuments } from './app-build/buildIdentity.mjs';
+import { carryPreviousDeploy } from './app-build/previousDeploy.mjs';
 import { buildValidationReceipts } from './app-build/validationReceipts.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 
@@ -108,3 +109,15 @@ writeFileSync(resolve(outDir, 'build-flags.json'), JSON.stringify({ devserver: m
 
 // the data products beside the app (was vite/outputProducts.ts)
 copyOutputProducts(process.cwd(), outDir);
+
+// Carry only one previous deploy's immutable graph. The worker precache above
+// deliberately names this graph only; old pages demand their old files as needed.
+if (mode !== 'native') {
+  const previousDirectory = process.env.WS_PREVIOUS_DEPLOY_DIR;
+  const previousOrigin = process.env.WS_PREVIOUS_DEPLOY_ORIGIN
+    ?? (process.env.VERCEL_ENV === 'production' ? 'https://wildshard-singleplayer.vercel.app' : undefined);
+  console.log('Previous deploy chunks:', await carryPreviousDeploy(outDir, {
+    ...(previousDirectory === undefined ? {} : {previousDirectory}),
+    ...(previousOrigin === undefined ? {} : {previousOrigin}),
+  }));
+}
