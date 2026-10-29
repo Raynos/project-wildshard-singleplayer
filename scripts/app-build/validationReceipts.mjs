@@ -15,7 +15,8 @@ export function buildValidationReceipts(revision, directory = 'out') {
     const bytes=readFileSync(sourcePath),index=/** @type {unknown} */(JSON.parse(bytes.toString('utf8'))),receipt=/** @type {unknown} */(JSON.parse(readFileSync(receiptPath,'utf8')));
     if(typeof index!=='object'||index===null||!('format' in index)||index.format!=='wildshard.shardfile'||!('formatVersion' in index)||index.formatVersion!==2||!('build' in index)||typeof index.build!=='object'||index.build===null||!('sourceHash' in index.build)||typeof index.build.sourceHash!=='string')throw new Error(`Invalid validated output index: ${entry.name}`);
     if(typeof receipt!=='object'||receipt===null||!('revision' in receipt)||receipt.revision!==revision||!('indexHash' in receipt)||receipt.indexHash!==createHash('sha256').update(bytes).digest('hex')||!('sourceHash' in receipt)||receipt.sourceHash!==index.build.sourceHash)throw new Error(`Stale output validation receipt: ${entry.name}`);
-    receipts.push({ revision: receipt.revision, sourceHash: receipt.sourceHash, indexHash: receipt.indexHash, path: `/shardfiles/${entry.name}/shard.json`,
+    if(!('residentBytes' in receipt)||typeof receipt.residentBytes!=='number'||!Number.isSafeInteger(receipt.residentBytes)||receipt.residentBytes<=0)throw new Error(`Missing build-owned source residency: ${entry.name}`);
+    receipts.push({ revision: receipt.revision, sourceHash: receipt.sourceHash, indexHash: receipt.indexHash, residentBytes:receipt.residentBytes,path: `/shardfiles/${entry.name}/shard.json`,
       ...('worst' in receipt ? { worst: receipt.worst } : {}) });
   }
   return receipts;

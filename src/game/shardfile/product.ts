@@ -65,7 +65,7 @@ export interface ProductOptions {
   /** Native first-party build capability. Publication validates the content;
    * this reader fetches its canonical URL and compares the declared length.
    * Node author and external readers omit it and retain checked admission. */
-  firstPartyRead?: (url:string,expectedBytes:number|undefined,read?:(bytes:number)=>void)=>Promise<Uint8Array>;
+  firstPartyRead?: (url:string,expectedBytes:number|undefined,read?:(bytes:number)=>void,hash?:string)=>Promise<Uint8Array>;
   /** The spawn manifest names individual files, never transport envelopes. */
   directFiles?: boolean;
   /** Optional live parser; boot and receipts stay on the page. Hashes/validators retain admission. */
@@ -121,7 +121,7 @@ export class StaleClientError extends Error {
 }
 /** Parse fetched index bytes; a first-party index outside the bundle's own catalogue reloads once before any parsing. */
 export async function readIndexBytes(bytes: Uint8Array, options: ProductOptions): Promise<unknown> {
-  const built = options.firstParty ? options.built : undefined;
+  const built = options.firstParty&&options.firstPartyRead===undefined ? options.built : undefined;
   if (built !== undefined) await checkBuiltIndex(await options.hash(bytes), options);
   await options.pause?.();
   return options.parseJson === undefined ? JSON.parse(descriptorDecoder.decode(bytes)) : options.parseJson(bytes);
@@ -160,7 +160,7 @@ function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, op
     const released: string[] = [];
     // Online grid readers already verify cache misses fetched from the immutable product URL.
     // Do not pin the whole grid in the bounded disk cache; offline owners still require durable bytes.
-    const canFetch = reread === 'cache-or-fetch' && !options.offline;
+    const canFetch = options.firstParty&&options.firstPartyRead!==undefined || reread === 'cache-or-fetch' && !options.offline;
     if (cache === undefined && !canFetch) return released;
     const releasing = prepared ? files : await (bound ??= releasable());
     for (const ref of requested) {
@@ -221,7 +221,7 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
   const base = new URL('.', options.base).href, cache = options.cache, backgroundStore = cache?.putAssetBackground;
   const builtRead=options.firstParty?options.firstPartyRead:undefined;
   return resolveOutputDescriptor(input, {
-    ...(builtRead===undefined?{}:{built:{read:(path:string,bytes:number)=>builtRead(new URL(path,base).href,bytes),
+    ...(builtRead===undefined?{}:{built:{read:(path:string,bytes:number,hash?:string)=>builtRead(new URL(path,base).href,bytes,undefined,hash),
       indexHash:options.descriptorHash??builtIndexHash(new URL(options.descriptorPath??'shard.json',base).pathname)??''}}),
     ...(options.parseJson === undefined ? {} : { parseJson: options.parseJson }),
     offline: options.offline, hash: options.hash, firstParty: options.firstParty, deferAssetDeclarations: true, ...(lineage ? { lineage } : {}),
@@ -318,6 +318,14 @@ export async function readProductDescriptor(options: ProductOptions, declaredUrl
   const indexHash = options.firstParty && url.pathname.endsWith('/shard.json') ? builtIndexHash(url.pathname) : null;
   if (indexHash !== null && options.descriptorHash !== undefined && options.descriptorHash !== indexHash) throw new Error('Shardfile descriptor hash mismatch');
   if (indexHash !== null) url.searchParams.set('v', indexHash.slice(0, 8));
+  if(options.firstParty&&options.firstPartyRead!==undefined){
+    const bytes=await options.firstPartyRead(url.href,undefined,undefined,options.descriptorHash??indexHash??undefined);
+    await options.pause?.();
+    const input:unknown=options.parseJson===undefined?JSON.parse(descriptorDecoder.decode(bytes)):await options.parseJson(bytes);
+    const source=await resolveDescriptor(input,options);
+    if(!isBuildValidatedOutput(source))throw new Error('First-party reader did not assemble its build output');
+    return source;
+  }
   // Observe a failed cache read without making a healthy network response depend on it.
   const cached = (async () => { try { return { value: await options.cache?.product(base) }; } catch (error: unknown) { return { error }; } })();
   let visited: CachedProduct | null | undefined;
@@ -372,10 +380,43 @@ type AdmissionPhase = 'visited' | 'sections' | 'source' | 'files' | 'costs' | 's
  * Refill at most sixteen immutable read slots after verification. A refusal stops
  * new reads and drains started work before authored-order refusal or publication. */
 export function admitProduct(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
+  if(options.firstParty&&options.firstPartyRead!==undefined)return readBuiltProduct(input,options,options.firstPartyRead);
   const trace = clientPreparationBatch<AdmissionPhase>(options.descriptorPath ?? options.base, 'admission-phases',
     ['visited', 'sections', 'source', 'files', 'costs', 'store', 'finish']);
   const pending = admitProductWork(input, options, trace);
   return waitFor('Admit product', trace === undefined ? pending : pending.finally(() => { trace.finish(); }), 'admission');
+}
+
+/** G887: ordinary first-party loading reads the build's selected files, not a second admission. */
+async function readBuiltProduct(input:unknown,options:ProductOptions,read:NonNullable<ProductOptions['firstPartyRead']>):Promise<AdmittedProduct>{
+  const source=await resolveDescriptor(input,options);
+  if(!isBuildValidatedOutput(source))throw new Error('First-party reader did not assemble its build output');
+  await options.reserve?.(source);
+  const selected=options.tier===undefined?source.files:await tierProductFilesPaced(source,options.tier,options.pause);
+  const initial=options.tier==='phone'?controlFiles(await playLibrarySourcePaced(source,options.pause),selected):selected;
+  const base=new URL('.',options.base).href,assets=new Map<string,Uint8Array>();
+  const refs=[...initial.map(file=>({ref:file.hash,bytes:file.compressed})),...source.requires.commons.map(hash=>({ref:`commons:${hash}`,bytes:source.requires.commonsWire[hash]??0}))];
+  const unique=new Map(refs.map(row=>[row.ref.replace(/^commons:/u,''),row]));
+  const addresses=[...unique.values()],results:({ok:true;bytes:Uint8Array}|{ok:false;error:unknown}|undefined)[]=Array.from({length:addresses.length});
+  const total=addresses.reduce((sum,row)=>sum+row.bytes,0);let next=0,failed=false,done=0,bytesRead=0;
+  const load=async():Promise<void>=>{
+    while(next<addresses.length&&!failed){
+      const at=next++,row=addresses[at];if(row===undefined)throw new Error('Missing built file');
+      const resource=outputBlobUrl(source,row.ref,base);
+      try{
+        const bytes=await read(resource,row.bytes,size=>{bytesRead+=size;options.progress?.({phase:'assets',detail:'Reading build files',resource,bytesRead,bytesTotal:total,filesDone:done,filesTotal:addresses.length});},row.ref.replace(/^commons:/u,''));
+        results[at]={ok:true,bytes};done++;
+      }catch(error){failed=true;results[at]={ok:false,error};}
+    }
+  };
+  await Promise.all(Array.from({length:Math.min(16,addresses.length)},load));
+  const wires=new Map<string,Uint8Array>();
+  for(const [at,row] of addresses.entries()){
+    const result=results[at];if(result===undefined)throw new Error('Missing built file result');if(!result.ok)throw result.error;
+    wires.set(row.ref.replace(/^commons:/u,''),result.bytes);
+  }
+  for(const row of refs){const bytes=wires.get(row.ref.replace(/^commons:/u,''));if(bytes===undefined)throw new Error('Missing built file bytes');assets.set(row.ref,bytes);}
+  return {source,assets,cached:false,releaseTransport:transportRelease(source,assets,options),releasePreparedTransport:transportRelease(source,assets,options,true)};
 }
 /** Drain a bounded window before refusal or publication; cache operations keep their authored error order. */
 async function cacheRows<T>(rows: readonly T[], batch: boolean, work: (row: T) => Promise<void>): Promise<void> {

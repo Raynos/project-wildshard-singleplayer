@@ -2,6 +2,7 @@ import { ktx2DeviceCosts } from '@wildshard/format/ktx2Cost';
 import { controlFileHashes, playLibrarySteps } from '@wildshard/format/admissionControl';
 import { entryFileSteps } from '@wildshard/format/tierSelection';
 import { HEADLESS_CONTEXT_SECTIONS } from './headlessSections';
+import {publishedSourceResidency} from '@wildshard/format/sourceResidency';
 /** Author-only format-2 emission and on-disk inventory validation. */
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI owns its explicit product output directory.
 import { existsSync, lstatSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -222,10 +223,10 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   rmSync(resolve(destination,'blobs/pack'),{recursive:true,force:true});
   for (const [path,bytes] of emitted) put(destination,path,bytes);
   put(destination,'shard.json',jsonBytes(index));
-  validateOutputProduct(destination);
+  const published=validateOutputProduct(destination);
   const cost = preflightDeclaredCosts(source,offlineMemoryAdmission('warn')).worst;
   const discovery = options.discovery === undefined ? undefined : parseDiscoveryValues(options.discovery);
-  put(destination,'validation.json',jsonBytes({revision:index.build.validator,sourceHash:hashImmutableBytes(validationSourceBytes(source)),indexHash:hashImmutableBytes(jsonBytes(index)),worst:cost,gridReady:structuralGridEvidence(source),
+  put(destination,'validation.json',jsonBytes({revision:index.build.validator,sourceHash:hashImmutableBytes(validationSourceBytes(source)),indexHash:hashImmutableBytes(jsonBytes(index)),worst:cost,residentBytes:publishedSourceResidency(published.shard),gridReady:structuralGridEvidence(source),
     ...(discovery === undefined ? {} : { discovery: { hash: hashImmutableBytes(jsonBytes(discovery)), values: discovery } }) }));
   return index;
 }

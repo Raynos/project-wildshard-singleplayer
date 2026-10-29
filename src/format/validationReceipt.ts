@@ -5,6 +5,17 @@ declare const __SHARDFILE_VERDICTS__: unknown;
 /** Build-owned verdict. It is never read from authored shardfile data or a network sidecar. */
 export interface ValidationReceipt {
   revision: string; sourceHash: string; indexHash?: string; worst: ReturnType<typeof worstContentCost>;
+  residentBytes?:number;
+}
+/** Lookup of a build-stamped number, not a client cost/preflight calculation. */
+export function builtProductResidency(sourceHash:string):number|undefined{
+  const rows:unknown=typeof __SHARDFILE_VERDICTS__==='object'?__SHARDFILE_VERDICTS__:null;
+  if(!Array.isArray(rows))return undefined;
+  for(const item of rows){
+    const row:unknown=item;
+    if(typeof row==='object'&&row!==null&&'sourceHash' in row&&row.sourceHash===sourceHash&&'residentBytes' in row&&typeof row.residentBytes==='number')return row.residentBytes;
+  }
+  return undefined;
 }
 /** An array index key (canonical uint32 below 2^32 - 1): a plain object enumerates these first, in numeric order. */
 const indexKey = (key: string): boolean => /^(?:0|[1-9]\d{0,9})$/u.test(key) && Number(key) < 4294967295;
@@ -97,13 +108,15 @@ export function validationRevision(): string | null { return typeof __SHARDFILE_
 export function readValidationReceipt(input: unknown, sourceHash: string): ValidationReceipt | null {
   if (typeof input !== 'object' || input === null || !('revision' in input) || typeof input.revision !== 'string' || input.revision !== validationRevision() || !('sourceHash' in input) || input.sourceHash !== sourceHash || !('worst' in input)) return null;
   const indexHash: unknown = 'indexHash' in input ? input.indexHash : undefined;
+  const residentBytes:unknown='residentBytes' in input?input.residentBytes:undefined;
+  if(residentBytes!==undefined&&(typeof residentBytes!=='number'||!Number.isSafeInteger(residentBytes)||residentBytes<=0))return null;
   if (indexHash !== undefined && (typeof indexHash !== 'string' || !/^[a-f0-9]{64}$/u.test(indexHash))) return null;
   const cost = input.worst;
   if (typeof cost !== 'object' || cost === null || !('playing' in cost) || !('loading' in cost) || !('accounted' in cost) || !('location' in cost)) return null;
   if (![cost.playing, cost.loading, cost.accounted].every(value => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0) || !Array.isArray(cost.location) || cost.location.length !== 2 || !cost.location.every(value => typeof value === 'number' && Number.isSafeInteger(value))) return null;
   // Explicit numeric narrowing preserves the defining cost type without accepting arbitrary metadata.
   if (typeof cost.playing !== 'number' || typeof cost.loading !== 'number' || typeof cost.accounted !== 'number' || typeof cost.location[0] !== 'number' || typeof cost.location[1] !== 'number') return null;
-  return { revision: input.revision, sourceHash, ...(typeof indexHash === 'string' ? { indexHash } : {}), worst: { playing: cost.playing, loading: cost.loading, accounted: cost.accounted, location: [cost.location[0], cost.location[1]] } };
+  return { revision: input.revision, sourceHash, ...(typeof indexHash === 'string' ? { indexHash } : {}),...(typeof residentBytes==='number'?{residentBytes}:{}), worst: { playing: cost.playing, loading: cost.loading, accounted: cost.accounted, location: [cost.location[0], cost.location[1]] } };
 }
 /** Only the client build's own validated first-party catalogue can skip a first asset-header validation. */
 export function builtValidationReceipt(sourceHash: string, indexHash?: string): ValidationReceipt | null {

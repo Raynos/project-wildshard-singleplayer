@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./sourceResidency": "./sourceResidency.ts",
     "./spawnManifest": "./spawnManifest.ts",
     "./colourLut": "./colourLut.ts",
     "./entryReads": "./entryReads.ts",

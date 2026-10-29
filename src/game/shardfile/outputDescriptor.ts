@@ -3,7 +3,7 @@ import { packReads } from './packReads';
 import type { OutputIndex } from '@wildshard/format/outputIndex';
 import { assembleOutputTransport } from '@wildshard/format/outputFields';
 import { isJsonDataWithFileSchemas } from '@wildshard/format/json';
-import { builtValidationReceipt, validationSourceBytes, validationSourceBytesPaced, type ValidationReceipt } from '@wildshard/format/validationReceipt';
+import { builtValidationReceipt, builtProductResidency, validationSourceBytes, validationSourceBytesPaced, type ValidationReceipt } from '@wildshard/format/validationReceipt';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { parseOutputLineageIndex } from '@wildshard/format/stateLineage';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -18,7 +18,7 @@ export interface OutputDescriptorChecks {
 export interface OutputDescriptorReader {
   /** Build-owned browser transport; the producer already checked these files.
    * Authored JSON cannot supply this capability. Node/external readers omit it. */
-  built?: {readonly read:(path:string,bytes:number)=>Promise<Uint8Array>;readonly indexHash:string};
+  built?: {readonly read:(path:string,bytes:number,hash?:string)=>Promise<Uint8Array>;readonly indexHash:string};
   /** Node author bundles supply their defining checked port; authored JSON cannot provide it. */
   checks?: OutputDescriptorChecks;
   /** Optional live parser; hashes, receipts and all admission checks remain here. */
@@ -58,6 +58,8 @@ export interface OutputDescriptorReader {
 }
 
 export interface OutputDescriptor {
+  readonly built?:true;
+  readonly residentBytes?:number;
   readonly index: OutputIndex;
   readonly sections: ReadonlyMap<string, unknown>;
   readonly cached: boolean;
@@ -141,15 +143,18 @@ async function readBuiltOutput(index:OutputIndex,reader:OutputDescriptorReader,b
   for(const row of rows)reader.declare?.(row.path,row.bytes);
   if(reader.deferAssetDeclarations!==true)for(const file of index.files)reader.declare?.(outputBlobPath(file),file.compressed);
   const values=await Promise.allSettled(rows.map(async row=>{
-    const bytes=await built.read(row.path,row.bytes);
+    const bytes=await built.read(row.path,row.bytes,row.hash);
+    await reader.pause?.();
     const value:unknown=reader.parseJson===undefined?JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)):await reader.parseJson(bytes);
+    await reader.pause?.();
     return [row.name,value] as const;
   }));
   // Drain every started read and retain authored publication/error order.
   for(const value of values){if(value.status==='rejected')throw value.reason;sections.set(...value.value);}
   const source=assembleOutputTransport(index,sections);
   if(!isBuiltClientSource(source,reader))throw new Error('Built output needs its first-party reader');
-  buildValidated.add(source);descriptors.set(source.files,{index,sections,cached:false,indexHash:built.indexHash});
+  const residentBytes=builtProductResidency(index.build.sourceHash);
+  buildValidated.add(source);descriptors.set(source.files,{index,sections,cached:false,indexHash:built.indexHash,built:true,...(residentBytes===undefined?{}:{residentBytes})});
   return source;
 }
 

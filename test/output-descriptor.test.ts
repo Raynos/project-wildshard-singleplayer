@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Device-cost source fixture uses one tracked bounded KTX2 file.
 import { readFileSync } from 'node:fs';
 import { parseKtx2, ktx2DeviceCosts, ktx2DeviceGpu } from '../src/format/ktx2Cost';
-import { runtimeOnlyProductFiles, deviceLibraryCostPaced } from '../src/game/shardfile/productCost';
+import { runtimeOnlyProductFiles, deviceLibraryCostPaced, productResidentBytes, productResidentBytesSteps } from '../src/game/shardfile/productCost';
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson as canonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
@@ -1265,4 +1265,33 @@ test('a supplied build reader cannot bypass external descriptor validation',asyn
   const built=vi.fn<(path:string,bytes:number)=>Promise<Uint8Array>>(()=>{throw new Error('External input has no build authority');});
   await expect(resolveOutputDescriptor(f.index,{offline:false,firstParty:false,hash:bytes=>Promise.resolve(hash(bytes)),built:{read:built,indexHash:'not-authority'},read:path=>Promise.resolve(path===first.path?corrupt:f.wires.get(path)??new Uint8Array())})).rejects.toThrow('section hash or size mismatch');
   expect(built).not.toHaveBeenCalled();
+});
+
+test('native first-party loading has no visited fallback, digest or client admission phases',async()=>{
+  const f=fixture(true),ordinary=options(f.wires),store=cacheStore(),phases:string[]=[],requests:string[]=[];
+  const digest=vi.fn<(bytes:Uint8Array)=>Promise<string>>(()=>{throw new Error('No first-party digest');});
+  const visited=vi.spyOn(store.cache,'product').mockRejectedValue(new Error('No visited fallback'));
+  const native:ProductOptions={...ordinary,cache:store.cache,hash:digest,progress:row=>{phases.push(row.phase);},
+    firstPartyRead:(url,expected,read)=>{
+      const path=new URL(url).pathname.slice(new URL(base).pathname.length),bytes=f.wires.get(path);requests.push(path);
+      if(bytes===undefined||(expected!==undefined&&expected!==bytes.length))throw new Error('Missing build file');
+      read?.(bytes.length);return Promise.resolve(bytes);
+    }};
+  const source=await readProductDescriptor(native),loaded=await admitProduct(source,native);
+  expect(loaded.source).toStrictEqual(f.source);expect([...loaded.assets.values()]).toStrictEqual([new Uint8Array([1,2,3])]);
+  expect(digest).not.toHaveBeenCalled();expect(visited).not.toHaveBeenCalled();expect(phases.every(phase=>phase==='assets')).toBe(true);
+  expect(requests.filter(path=>path==='shard.json')).toHaveLength(1);expect(store.product()).toBeNull();
+});
+
+test('built product residency is the emitted value without another source walk',async()=>{
+  const f=fixture(),expected=productResidentBytes(f.source);
+  const previous=Object.getOwnPropertyDescriptor(globalThis,'__SHARDFILE_VERDICTS__');
+  Object.defineProperty(globalThis,'__SHARDFILE_VERDICTS__',{configurable:true,value:[{sourceHash:f.index.build.sourceHash,residentBytes:expected}]});
+  try{
+    const source=await resolveOutputDescriptor(f.index,{firstParty:true,offline:false,hash:()=>{throw new Error('No client hash');},read:()=>{throw new Error('No checked fallback');},
+      built:{indexHash:'compiled',read:path=>{const bytes=f.wires.get(path);if(bytes===undefined)throw new Error('Missing section');return Promise.resolve(bytes);}}});
+    if(!isBuildValidatedOutput(source))throw new Error('Missing built source');
+    expect(productResidentBytes(source)).toBe(expected);
+    const steps=productResidentBytesSteps(source,1);expect(steps.next()).toEqual({done:true,value:expected});
+  }finally{if(previous===undefined)Reflect.deleteProperty(globalThis,'__SHARDFILE_VERDICTS__');else Object.defineProperty(globalThis,'__SHARDFILE_VERDICTS__',previous);}
 });
