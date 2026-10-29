@@ -4,6 +4,12 @@ import { stillImageObjectUrl } from './stillImage';
 import type { Presentation } from '@wildshard/format/presentation';
 
 const imageOwners = new WeakMap<Scope, Map<string, Scope>>();
+/** MF7: the batch's cleanup closes over its own three values only. Registered inside `ownedPresentationImages` it shared
+ *  that call's closure context, which holds `assets`: every admitted byte of the product (32 MB on Pine Hollow) lived as
+ *  long as the batch, after the boot had released its copy. */
+function forgetOnDispose(batches: Map<string, Scope>, identity: string, scope: Scope): void {
+  scope.onDispose(() => { if (batches.get(identity) === scope) batches.delete(identity); });
+}
 
 /** Replace this owner's per-identity image batch only after every admitted image resolves.
  * Shared card/map hashes use one detached Blob; failed construction preserves the prior batch. */
@@ -22,7 +28,7 @@ export function ownedPresentationImages(source: Pick<Shardfile, 'identity' | 'pr
     const card = authored === undefined ? undefined : { thumb: resolve(authored.thumb), portrait: resolve(authored.portrait), landscape: resolve(authored.landscape) };
     const map = source.map === undefined ? undefined : resolve(source.map.image);
     const identity = source.identity.slug, previous = batches.get(identity);
-    scope.onDispose(() => { if (batches.get(identity) === scope) batches.delete(identity); });
+    forgetOnDispose(batches, identity, scope);
     batches.set(identity, scope); imageOwners.set(owner, batches);
     previous?.dispose();
     return { ...(card === undefined ? {} : { card }), ...(map === undefined ? {} : { map }) };
