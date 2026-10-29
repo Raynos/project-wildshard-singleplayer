@@ -55,6 +55,7 @@ import { duringShadowPass } from '../world/cascadeCull';
 import { recordGpuCheckpoint, traceBootPasses } from '../boot/gpuTrace';
 import { exploreEntryPending, recordExploreFrame, recordBootCheckpoint, bootTraceActive } from '../boot/bootTrace';
 import { cullPlaced } from '../models/place';
+import { phoneBloom } from '../render/phoneBloom';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
@@ -643,6 +644,8 @@ export class Game {
     const aa = gfxPrefs.aa === 'on' ? 'fxaa' : gfxPrefs.aa === 'off' ? 'off' : knobs.aa ?? (TIER === 'phone' || TIER_CONFIG.smaa === 'off' ? 'off' : 'fxaa');
     const fxaa = aa === 'off' ? null : new FXAAEffect();
     const raysOn = knobs.godRays ?? true;
+    // FC10 (G910): no bloom in the phone frame unless Debug ▸ Look ▸ Phone bloom keeps the old look (render/phoneBloom.ts)
+    const bloomOn = TIER !== 'phone' || phoneBloom();
     const chain = (clean: boolean): BuiltChain => {
       const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
         blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
@@ -671,7 +674,7 @@ export class Game {
         // LUT, the chain as before
         const lut = this.sky.lut ? new LUT3DEffect(this.sky.lut, { inputColorSpace: THREE.SRGBColorSpace, tetrahedralInterpolation: true }) : null;
         // one EffectPass for the whole chain: one program and one full-screen pass fewer per frame
-        const order: Effect[] = [vol, ...(raysOn ? [godRays] : []), bloom, chroma, vignette, tone, grade, contrast, split, ...(lut ? [lut] : []), grain];
+        const order: Effect[] = [vol, ...(raysOn ? [godRays] : []), ...(bloomOn ? [bloom] : []), chroma, vignette, tone, grade, contrast, split, ...(lut ? [lut] : []), grain];
         return { clean, order, fx: { ao: aoPass, vol, godRays, bloom, chroma, vignette, tone, saturation: grade, contrast, grade: split, lut, grain } };
       }
       // the clean look (DRIFTWOOD-REMASTER L5): no volumetric haze, grain or fringe washing the toon bands to low
@@ -681,7 +684,7 @@ export class Game {
       // the learned LUT (X1, src/engine/world/lut.ts) is the last grade step: the palette fitted to the mockups. Always on — the
       // user locked it in (E85); only Debug ▸ Look ▸ Learned LUT Off (the fit's own captures) builds without it
       const lut = this.sky.lut ? new LUT3DEffect(this.sky.lut, { inputColorSpace: THREE.SRGBColorSpace, tetrahedralInterpolation: true }) : null;
-      const order: Effect[] = [...(raysOn ? [godRays] : []), bloom, vignette, tone, grade, contrast, split, ...(lut ? [lut] : [])];
+      const order: Effect[] = [...(raysOn ? [godRays] : []), ...(bloomOn ? [bloom] : []), vignette, tone, grade, contrast, split, ...(lut ? [lut] : [])];
       return { clean, order, fx: { ao: aoPass, vol, godRays, bloom, chroma: null, vignette, tone, saturation: grade, contrast, grade: split, lut, grain: null } };
     };
     // the level look picks the chain (a compose may ask the clean L5 chain, E88, the user's Look Lab pick); every other

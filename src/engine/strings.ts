@@ -1,6 +1,8 @@
 /** English engine UI strings. Content-owned overrides are installed by the composition root. */
 export const ENGINE_STRINGS = {
   "s_spawn_ring_reveal": "Reveal at 3x3 spawn ring",
+  "s_phone_bloom": "Phone bloom",
+  "s_phone_bloom_note": "FC10 (G910): the phone frame's bloom; reloads. Off (default) skips its mip chain, 4 to 8 render-target switches a frame; On is the old look.",
   "s_spawn_ring_reveal_note": "Developer experiment; reloads. Off waits for full coverage. On reveals after the required spawn ring and streams the remaining coverage.",
   "s_update_next_boundary": "New version · reload",
   "s_update_next_boundary_dev": "new ⟦0⟧ · reload",
