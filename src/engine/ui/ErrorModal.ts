@@ -10,16 +10,13 @@ import { app } from '../app/runtime';
  *   installErrorModal();              // once, before anything else runs (main.ts)
  *   showError('what', 'detail…');     // explicit: a fatal error (main().catch — the boot failed)
  *
- * Every error is reported to the server (src/engine/core/errorReport.ts → api/errors.ts → `pnpm inbox:pull`). What the player
- * sees depends on how bad it is:
- *
- *   - **non-fatal** — a frame-loop system switched off (src/engine/core/faults.ts), or an uncaught error / rejection once the
- *     world is running: no modal, no interruption. A small quiet chip in the sky under the top HUD ("A glitch was reported ✓"), once a
- *     session, that fades by itself or goes on a tap. The game keeps running.
- *   - **fatal** — the boot failed, or a core system (the render, the physics step, the player's step) keeps throwing and
- *     the loop stopped: the modal, in the game's glass. RELOAD HERE (back where the player stood: `?at=` + `?glreload`,
- *     the GPU-recovery reload, src/engine/core/GpuRecovery.ts), TITLE SCREEN, and KEEP PLAYING when the loop is still alive;
- *     a collapsed DETAILS with the message and stack for testers; "Report sent ✓" once the server has it.
+ * Every error is reported to the server (src/engine/core/errorReport.ts → api/errors.ts → `pnpm inbox:pull`), and (G880,
+ * QB8: "we need a full screen error modal, whatever they are") every reported error opens the modal, in the game's glass:
+ * the boot failed, a core system stopped the loop, a frame-loop system switched off (src/engine/core/faults.ts), or an
+ * uncaught error / rejection. One line says what failed (the system and the error's first line). RELOAD HERE (back where
+ * the player stood: `?at=` + `?glreload`, the GPU-recovery reload, src/engine/core/GpuRecovery.ts), TITLE SCREEN, and
+ * KEEP PLAYING while the loop is still alive; a collapsed DETAILS with the system, message, stack and the report's
+ * `/api/errors` id for testers; "Report sent ✓" once the server has it.
  *
  * It can never loop: nothing reloads by itself; a second fatal error just ticks the counter; and after RELOADS_MAX
  * reloads from here inside RELOAD_WINDOW_MS (a crash right after RELOAD HERE, maybe tied to the spot) RELOAD HERE
@@ -27,7 +24,7 @@ import { app } from '../app/runtime';
  * entry point is wrapped so the modal itself never throws.
  */
 import { DescribedError, describeError, emitFault, loopState, onFault, type Fault } from '../core/faults';
-import { ErrorReporter, safeUrl, sendReport as send, type ReportOutcome } from '../core/errorReport';
+import { ErrorReporter, lastReportId, safeUrl, sendReport as send, type ReportOutcome } from '../core/errorReport';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { installLifeTrace } from '../core/lifeTrace';
 import { currentPose } from './ReloadPrompt';
@@ -46,13 +43,10 @@ let fatalLayer: UiHandle | null = null;
 
 declare const __BUILD_ID__: string; // vite.config.ts define
 
-const CHIP_MS = 7000;
-
 let root: HTMLElement | null = null;
 const closeFatal = (): void => { fatalLayer?.dispose(); fatalLayer = null; root?.remove(); root = null; };
 let count = 0;
 let firstText = '';
-let chipShown = false;
 let reporter: ErrorReporter | null = null;
 // lib.dom says these always exist; they don't (clipboard needs a secure context, older Safari has no hardwareConcurrency)
 const nav: { clipboard?: Clipboard | undefined; hardwareConcurrency?: number | undefined } = navigator;
@@ -73,6 +67,7 @@ const STYLE = `
   #wserr .tag { margin: 0 0 10px; font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase; color: #8fe3ff; }
   #wserr .tag::before { content: ''; display: inline-block; width: 6px; height: 6px; margin: 0 10px 1px 0; background: #ffb86b; box-shadow: 0 0 8px #ffb86b; vertical-align: middle; }
   #wserr h1 { margin: 0 0 8px; font: 700 22px/1.15 Rajdhani, "JetBrains Mono", sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; }
+  #wserr .what { margin: 0 0 10px; font-size: 13px; line-height: 1.45; color: #ffb86b; overflow-wrap: anywhere; }
   #wserr .line { margin: 0 0 16px; font-size: 12.5px; line-height: 1.55; color: rgba(230, 242, 248, 0.82); }
   #wserr .rule { height: 1px; margin: 0 0 14px; background: rgba(143, 227, 255, 0.18); }
   #wserr .col { display: flex; flex-direction: column; gap: 8px; }
@@ -92,10 +87,6 @@ const STYLE = `
   #wserr .meta { margin-bottom: 8px; color: rgba(230, 242, 248, 0.45); font-size: 10px; white-space: pre-wrap; word-break: break-word; -webkit-user-select: text; user-select: text; }
   #wserr .n { color: #ffb86b; font-size: 10px; letter-spacing: 0.12em; }
   #wserr button.copy { width: auto; padding: 9px 12px; font-size: 10px; }
-  #wserr-chip { position: fixed; left: 50%; top: calc(22vh + env(safe-area-inset-top, 0px)); z-index: calc(var(--ws-layer-error, 2147482500) + -100); transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 6px 11px; background: rgba(13, 27, 38, 0.72); border: 1px solid rgba(143, 227, 255, 0.35); color: rgba(230, 242, 248, 0.85); font: 10px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: 0.2em; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: opacity 0.4s ease; -webkit-user-select: none; user-select: none; }
-  #wserr-chip::before { content: ''; width: 5px; height: 5px; background: #ffb86b; box-shadow: 0 0 6px #ffb86b; }
-  #wserr-chip.out { opacity: 0; pointer-events: none; }
-  #wserr-chip b { color: #7ef0b0; font-weight: 400; }
 `;
 
 function ensureStyle(): void {
@@ -170,10 +161,12 @@ function setSent(o: ReportOutcome): void {
   if (!s) return;
   s.textContent = o === 'sent' || o === 'dup' ? engineString('s_de6e9efdb28e') : o === 'queued' ? engineString('s_ce2f127a2459') : engineString('s_0dad33e4803c');
   s.classList.toggle('ok', o === 'sent' || o === 'dup');
+  const id = lastReportId(), m = root.querySelector<HTMLElement>('.meta');
+  if (id !== '' && m !== null && !(m.textContent ?? '').includes(id)) m.textContent = engineString('s_err_report_id', [id, m.textContent ?? '']);
 }
 
 /** The fatal modal (first error wins the headline; later ones tick the counter). */
-function showFatal(message: string, stack: string, sent: Promise<ReportOutcome> | null): void {
+function showFatal(message: string, stack: string, sent: Promise<ReportOutcome> | null, system = 'boot'): void {
   try {
     count++;
     if (!root) {
@@ -189,33 +182,18 @@ function showFatal(message: string, stack: string, sent: Promise<ReportOutcome> 
           ? engineString('s_94fef1ec7b83')
           : loopState() === 'boot' ? engineString('s_d80080606a96') : engineString('s_da009164dfc2');
       q(root, '.keep').hidden = !alive;
+      // what failed, in one line: the system and the error's first line
+      const first = (message.split('\n')[0] ?? '').trim();
+      q(root, '.what').textContent = engineString('s_err_what', [system, first.length > 140 ? `${first.slice(0, 139)}…` : first]);
       q(root, '.msg').textContent = message;
       q(root, '.stack').textContent = stack || engineString('s_79b59ea37a9c');
-      q(root, '.meta').textContent = meta();
+      q(root, '.meta').textContent = engineString('s_err_system', [system, meta()]);
       if (document.pointerLockElement) document.exitPointerLock();
       document.dispatchEvent(new Event('ws:background')); // the world pauses under it (a no-op on the title / the boot)
       if (sent) void sent.then(setSent); else setSent('dropped');
     }
     q(root, '.n').textContent = count > 1 ? engineString('s_ffd7f4e8c95a', [count - 1, firstText.slice(0, 40)]) : '';
   } catch { /* the modal must never throw */ }
-}
-
-/** the quiet chip for a non-fatal error: once a session, fades by itself, a tap dismisses it */
-function showChip(sent: Promise<ReportOutcome>): void {
-  if (chipShown || root) return;
-  chipShown = true;
-  try {
-    ensureStyle();
-    const chip = document.createElement('div');
-    chip.id = 'wserr-chip';
-    chip.setAttribute('role', 'status');
-    chip.textContent = engineString('s_f589420f0639');
-    const out = (): void => { chip.classList.add('out'); scope.timeout(500, () => { chip.remove(); }); };
-    scope.listen(chip, 'click', out);
-    mount(chip);
-    scope.timeout(CHIP_MS, out);
-    void (async () => { const o = await sent; if (o === 'sent' || o === 'dup') { const b = document.createElement('b'); b.textContent = engineString('s_456509849d2d'); chip.append(b); } })();
-  } catch { /* never throw from here */ }
 }
 
 function report(system: string, error: unknown, flags: { fatal?: boolean; disabled?: boolean }): Promise<ReportOutcome> {
@@ -234,12 +212,12 @@ function report(system: string, error: unknown, flags: { fatal?: boolean; disabl
   try { return reporter?.report(system, error, flags) ?? Promise.resolve('dropped'); } catch { return Promise.resolve('dropped'); }
 }
 
-/** a fault from the frame loop or the window: report it; fatal → the modal, non-fatal (once running) → the chip */
+/** a fault from the frame loop or the window: report it and open the modal (G880: every reported error) */
 function handle(f: Fault): void {
   const fatal = f.verdict === 'fatal' || (f.verdict === 'uncaught' && loopState() === 'boot');
   const sent = report(f.system, f.error, { fatal, disabled: f.verdict === 'off' });
-  if (fatal) { const d = describeError(f.error); showFatal(d.message, d.stack, sent); return; }
-  if (f.verdict === 'off' || (f.verdict === 'uncaught' && loopState() === 'running')) showChip(sent);
+  if (!fatal && f.verdict !== 'off' && f.verdict !== 'uncaught') return; // a retry the loop absorbs is reported, not shown
+  const d = describeError(f.error); showFatal(d.message, d.stack, sent, f.system);
 }
 
 /** Show the fatal modal explicitly (main().catch: the boot failed) and report it. */

@@ -205,9 +205,15 @@ export class ErrorReporter {
 const ERRORS_URL = import.meta.env.MODE === 'native' ? 'https://wildshard-singleplayer.vercel.app/api/errors' : '/api/errors';
 
 /** The real transport (src/engine/ui/ErrorModal.ts, src/engine/boot/stuck.ts): one POST to api/errors.ts. */
+let sentId = '';
+/** QB8: the id `/api/errors` gave the latest report it stored ('' before one), shown in the error modal's details */
+export function lastReportId(): string { return sentId; }
 export async function sendReport(p: ErrorPayload): Promise<SendResult> {
   const res = await fetch(ERRORS_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(p), keepalive: true });
-  if (res.ok) return 'ok';
+  if (res.ok) {
+    try { const body: unknown = await res.json(); const id: unknown = typeof body === 'object' && body !== null ? Reflect.get(body, 'id') : undefined; if (typeof id === 'string') sentId = id; } catch { /* stored without a readable id */ }
+    return 'ok';
+  }
   return res.status === 429 || res.status >= 500 ? 'retry' : 'reject';
 }
 
