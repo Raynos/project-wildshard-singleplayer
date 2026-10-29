@@ -8,8 +8,8 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 next (sp-x9). **G908: Pine + Nine untouched** (no prep) until Jake's word after his final QA, likely 10-30.
 
 **LIVE 8621318d93 (build 8621318d9-mvtvd1tf): Jake's QA build.** He QAs it now.
-**REPLAN (G886): [FOUNDATIONS](../FOUNDATIONS.md) wave 1, crashes first (G894):** MF7 sp-o5 (memory) + sp-o3 (battery
-BA-1/2/3/7/8) + sp-o4 BA-6 + sp-x1 BA-4/5; MF6 sp-x1; MF10 / G888 then G895 sp-x2; MF1 + QB21 sp-x10, MF2 sp-x2, MF3 done,
+**REPLAN (G886): [FOUNDATIONS](../FOUNDATIONS.md) wave 1, crashes first (G894):** MF7 sp-o5 (memory) + MF7b [frame-cost](frame-cost-mini-plan.md)
+FC1/5/6 sp-x1, FC2/FC8 sp-o3, FC3/FC4 sp-o4 (G909: draw only when seen); MF6 sp-x1; MF10 / G888 then G895 sp-x2; MF1 + QB21 sp-x10, MF2 sp-x2, MF3 done,
 MF4 sp-x6, MF5 sp-o3. Open: QB15 / QB18 sp-o4, GAME-S / QB19 sp-o3, QB20 sp-o5. G892: open until wave 1 + Jake's QA (likely 10-30).
 
 **Done today:** QA1-QA14, CO1-CO5, QB2/7/8/10/14, RL2-5/9/10, MF3, MF6.
@@ -19,7 +19,7 @@ MF4 sp-x6, MF5 sp-o3. Open: QB15 / QB18 sp-o4, GAME-S / QB19 sp-o3, QB20 sp-o5. 
   navigates (page share 0.16 s, 6e4e5e6817); not reducible in the page.
 - Earlier calls (D183, D185, PL15, PL16, QA3-QA8): see this file's git log.
 - QB11 crossbow spring substep on Codex sp-x6: 60 fps bit-identical, so no look change.
-- SW / manifest rows (RL7-9, MF1 / MF2 / MF4) on Codex: no pixels (G848 keeps the SW on Codex).
+- SW / manifest rows (RL7-9, MF1 / MF2 / MF4) on Codex: no pixels (G848).
 - **For wildshard-v (QB1, RL3 48492f221e):** Sim warm launch image 0.6 s → title 1.2 s, nothing else. iOS snapshots the
   launch image at install; Jake's icon predates it (10-24), so tell him once: delete + re-add the icon. The first cold
   launch after this deploy still shows the old UPDATING cover once (old worker), never again.
@@ -29,7 +29,7 @@ MF4 sp-x6, MF5 sp-o3. Open: QB15 / QB18 sp-o4, GAME-S / QB19 sp-o3, QB20 sp-o5. 
 - QB10: lanes have no Sentry credential, so sp-x1 triages from the row + /api/errors and lists issue → verdict → SHA in
   its commit; **wildshard-v resolves them in Sentry** from that list. **wildshard-v: please add all 40 issue ids + titles
   to the QB10 row** (only 7 are listed; sp-x1 can't read Sentry).
-- 8 D53 generator-imports sites baselined with approvals (dd32fad4b0), not rewritten.
+- D53's 8 generator-imports sites baselined with approvals (dd32fad4b0).
 - families-board retired (3e9937f146); D53 debt; Pine pond, G99 isles kept; Pine drive (D12) under G815; D206 damage list.
 - Spike section 3 taken (P1-P6, Q1-Q5, C1-C4, N1, F1, T1, L3-L6; X1 / X2 after the retro; DA1 / PF1 sent, G874).
 
