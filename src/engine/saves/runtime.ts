@@ -25,5 +25,7 @@ export function homeScreenPersistence(standalone: () => boolean = standaloneDisp
     requested = true; void store.persist();
   };
 }
-/** the page's: the entry calls it at boot */
-export const persistHomeScreen: (store?: Pick<SaveStore, "persist">) => void = homeScreenPersistence();
+/** The entry calls this before either the title or a direct chunk boot. Ask in
+ * tabs as well as installed apps; the save store owns the one native request
+ * and records its actual grant/denial for storage diagnostics. */
+export const persistHomeScreen: (store?: Pick<SaveStore, "persist">) => void = homeScreenPersistence(() => true);
