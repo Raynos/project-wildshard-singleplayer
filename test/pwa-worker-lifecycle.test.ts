@@ -215,6 +215,48 @@ test('quota denial serves online bytes; partial bodies never replace a full cach
   await ranged.dispatch('fetch', { request }); expect(await (await partial.open(ASSET_CACHE_NAME)).match(request)).toBeUndefined();
 });
 
+test('an inert legacy hash body serves offline and migrates once to its exact immutable URL', async () => {
+  const f = fixture(), hash = '0'.repeat(64), bytes = Uint8Array.of(0, 1, 127, 128, 254, 255);
+  const legacy = await f.open('ws-content-v0'), oldKey = url(`/__ws_content__/v0/${hash}`);
+  await legacy.put(oldKey, new Response(bytes)); const oldWrites = vi.spyOn(legacy, 'put');
+  const worker = f.load('A', []); await worker.dispatch('install'); await worker.dispatch('activate');
+  const publications = vi.spyOn(await f.open(ASSET_CACHE_NAME), 'put');
+  const request = new Request(url(`/shardfiles/fixture/blobs/bin/${hash}.bin`));
+  f.fetch.mockClear(); f.fetch.mockRejectedValue(new Error('offline'));
+  for (let read = 0; read < 2; read++) {
+    const response = await worker.dispatch('fetch', {request});
+    if (response === undefined) throw new Error('Missing cached immutable response');
+    expect(new Uint8Array(await response.arrayBuffer())).toEqual(bytes);
+  }
+  const migrated = await (await f.open(ASSET_CACHE_NAME)).match(request);
+  if (migrated === undefined) throw new Error('Missing exact URL migration');
+  expect(new Uint8Array(await migrated.arrayBuffer())).toEqual(bytes);
+  expect(publications).toHaveBeenCalledTimes(1);
+  expect(oldWrites).not.toHaveBeenCalled(); expect(f.fetch).not.toHaveBeenCalled();
+  expect(await legacy.match(oldKey)).toBeDefined();
+});
+
+test('quota denial cannot destroy inert cached-visit bodies or either old product namespace', async () => {
+  const f = fixture(), hash = '1'.repeat(64), bytes = Uint8Array.of(7, 8, 9);
+  const legacy = await f.open('ws-content-v0'), oldKey = url(`/__ws_content__/v0/${hash}`);
+  await legacy.put(oldKey, new Response(bytes));
+  for (const name of ['ws-shardfile-products-v0', 'ws-shardfile-products-v2']) {
+    await (await f.open(name)).put(url('/shardfiles/fixture/__visited_shardfile__'), Response.json({source: {identity: {slug: 'fixture'}}, firstParty: true}));
+  }
+  const worker = f.load('A', []); await worker.dispatch('install'); await worker.dispatch('activate');
+  const assets = await f.open(ASSET_CACHE_NAME); vi.spyOn(assets, 'put').mockRejectedValueOnce(new DOMException('full', 'QuotaExceededError'));
+  f.fetch.mockClear(); f.fetch.mockRejectedValue(new Error('offline'));
+  const request = new Request(url(`/shardfiles/fixture/blobs/bin/${hash}.bin`));
+  const response = await worker.dispatch('fetch', {request});
+  if (response === undefined) throw new Error('Missing legacy body after quota refusal');
+  expect(new Uint8Array(await response.arrayBuffer())).toEqual(bytes);
+  expect(await assets.match(request)).toBeUndefined(); expect(await legacy.match(oldKey)).toBeDefined();
+  for (const name of ['ws-shardfile-products-v0', 'ws-shardfile-products-v2']) {
+    expect(await (await f.open(name)).match(url('/shardfiles/fixture/__visited_shardfile__'))).toBeDefined();
+  }
+  expect(f.fetch).not.toHaveBeenCalled();
+});
+
 test('BUILD/VERSION are identity-only and SKIP_WAITING preserves the adoption protocol', async () => {
   const f = fixture(), worker = f.load('A', []), replies: unknown[] = [];
   for (const type of ['BUILD', 'VERSION']) await worker.dispatch('message', { data: { type }, ports: [{ postMessage: value => { replies.push(value); } }] });
