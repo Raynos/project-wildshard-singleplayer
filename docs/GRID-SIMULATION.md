@@ -80,7 +80,5 @@ Verification: `src/engine/sim/seamGeometry.test.ts` checks native edge continuit
 aprons, the unchanged road/buffer and cliff caps, and ten-metre corner returns.
 `test/grid-seam-plans.test.ts` checks exact mesh/duplicate/feature bytes through
 serialized build plans; `test/grid-five-by-five.test.ts` checks all 96 placements.
-The strict native `test/fixtures/grid/run.mjs` checks placement-independent
-real-template state, 600 frozen neighbour ticks, and door/creature restoration.
 Real 15/30 m/s crossings in both directions, walk snags and portrait road captures
 are separate browser proofs; the Node checks do not claim those results.

@@ -10,7 +10,7 @@ pnpm build         # full build → dist/ (queued: one app build machine-wide)
 ## Tests
 ```
 pnpm exec vitest                   # watch mode
-pnpm exec vitest run test/chunks   # one file
+node scripts/vitest-tmp.ts run test/template-source-layout.test.ts   # one file
 ```
 Tests live in `test/` (outside `src/`, so no `import.meta.glob` can pull one into the bundle). `pnpm test` runs the
 whole suite, queued (one full suite machine-wide); CI's layout is in [process/DEPLOY.md](process/DEPLOY.md).

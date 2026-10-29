@@ -152,7 +152,7 @@ does not establish the clip. Render adapters consume the same exclusion data.
 | `budgets` | Library resident ≤25 MB and wire ≤8 MB; sim resident ≤25 MB and critical wire ≤2 MB; decode/refinement slack ≤80 MB. |
 | `look` | Fixed platform family names; grade exposure/saturation/contrast and optional LUT reference; engine clock with an optional `day`; optional normalised day override; ordered day keys carrying sky gradient, fog, sun and ambient values (below). |
 | `sim` | 60 Hz fixed step; positive script tick divisor dividing 60; command and snapshot schema version 0; script references. |
-| `clientScripts` | Optional/default-empty presentation lane: cadence dividing 60, named creature/panel/prop/particle targets, selected public/owner numeric fields, bounded pose and emitters. |
+| `clientScripts` | Optional/default-empty presentation lane: cadence dividing 60, named creature/panel/prop/particle targets, selected public or owner numeric fields, bounded pose and emitters. |
 | `clientChannels` | Optional trusted-runtime presentation programs: bounded straight-line numeric expressions over copied clock/state observations, publishing only private visual transforms/scalars. Requires `runtime.binds: ["clientChannels"]`. |
 | `rows` | Optional/default-empty numeric strikes, weather output tables, day schedules, species/variants, registered look recipes, compendium and loot presentation data. |
 | `terrain`, `water` | Optional/null bounded baked terrain binding, with optional draw rows `shadow: {cast, receive}` (absent: both on; `cast` still needs the client's shadow disc) `follow` (1–62.5 m the viewer moves before the tile residency re-centres; absent: 5 m) and `order` (an integer −100–100, the tiles' draw order among opaque surfaces, so a same-depth tie with a far horizon ring resolves one way; absent: 0); optional/default-empty declared pools, sea and streams. |
@@ -421,9 +421,6 @@ addresses fail when actual bytes are admitted. Commons costs remain explicit.
 The product report lists the near download closure and includes it in the unique
 total, while it does not make near content a playable-entry prerequisite.
 
-`test/near-placeholder-admission.test.ts` constructs sixteen actual coloured L1
-payloads, hashes and admits them through the ordinary product reader, and proves
-that simulation, critical, terrain-collider and mesh-collision rows stay empty.
 Runtime activation follows in the budgeted adapter: one Debug comparison,
 A far proxy / B near placeholder, default A. The real cell runtime replaces it
 when entered; this contract never installs a simulation or renderer on import.
@@ -463,8 +460,7 @@ clocks have complete ordered schedules. Species rows carry collision dimensions 
 each variant's health and modifiers. View and animation recipes are registered IDs
 with numeric/text parameters, resolved by the loader's injected catalogue. Compendium
 stamps/stats are constants and loot presentation selects the purse/cue mechanisms.
-`@wildshard/sdk/rows` exposes the schemas and numeric sim catalogue helpers. The fixture
-`rows.json` matches `src/shards/_template/data/rows.ts`; SF16 activates these declarations.
+`@wildshard/sdk/rows` exposes the schemas and numeric sim catalogue helpers.
 The legacy row-function ratchet stays until its old types lose their closure fields.
 
 `sim.bindings` optionally binds a declared script module to a positive entity ID,
@@ -530,9 +526,7 @@ orbit.output('yaw', orbit.unary('neg', angle));
 const rows = [orbit.build()];
 ```
 
-`test/client-channels.test.ts` executes this example at continuous time
-1000.1234567 and requires bit-identical `8 + Math.cos(time * 0.045) * 22` and
-`-(time * 0.045)`. Neither clock quantization nor yaw wrapping is applied.
+The continuous-time example applies neither clock quantization nor yaw wrapping.
 
 Optional `locals` retain at most eight **private visual** scalars per program
 (1,024 across the shard). A slot starts with a literal or one copied observation
@@ -555,9 +549,7 @@ ramp.retain(progress, next);
 ramp.output('value', next);
 ```
 
-`test/client-channels.test.ts` executes this ramp with unequal frame intervals,
-checks simultaneous recurrence and boot-only copied seeds, and proves failed
-frames do not advance it. Its outputs still cannot write shared/player state.
+Ramp outputs still cannot write shared/player state.
 
 Optional `bindings` connect published transforms to named **private scene
 objects**. They cannot bind `value`/`turn` to state, player or shared fields;
@@ -945,7 +937,7 @@ array and `privacy: "host"` on every shared field. Empty shared state is valid.
 The normal state schema still checks unique stable IDs and names, typed defaults,
 finite numeric bounds and capacity. String values (including serialized JSON) are
 bounded at 4096 characters; JSON is opaque text, never an author callback. Ordinary
-unbound state keeps its existing public/player ownership rules.
+unbound state keeps its existing public or player ownership rules.
 
 `runtime.binds: ["terrain"]` binds the ordinary compiled `terrain` section: its
 render tiles and critical collider remain admitted product assets. The data client
@@ -1264,8 +1256,7 @@ contacts and actor/move contacts retain their distinct native filing; `look-hold
 retains the existing stunned-body observation law. Unknown native protocols
 (skirmisher, guardian and perch) refuse rather than synthesizing missing authority.
 `bindSpeciesBody` lets an existing trusted encounter policy reuse that same body
-binding without replacing its encounter owner or saved policy. Exact traces,
-refusal and restore are exercised in `test/species-body-admission.test.ts`.
+binding without replacing its encounter owner or saved policy.
 
 A boss with stances, adds and arena tricks is an `arena` or `roaming` boss profile
 (`bossFight(profile, ports)`, `@wildshard/game/plugin/bossPhase`, trusted runtime only): its modes (damage rule, hp lock, motion, timed beats), phases (checkpoint hp, roar, what
@@ -1634,8 +1625,8 @@ Nine Dragon's current native headless worker even if its recorded witness says
 `compatible: true`; passing continuations do not imply a data-owned simulation.
 
 
-**Committed generated outputs (G318).** `scripts/generate.mjs` reports exact
-output bytes and measured cold producer seconds. Other than committed Blender
+**Committed generated outputs (G318).** Record exact output bytes and measured
+cold producer seconds with the source change. Other than committed Blender
 GLBs (G293) and sealed legacy baselines, an output qualifies for commitment only
 when regeneration exceeds 30 s **and** the output is smaller than 2,000,000
 bytes. Unknown timing, warm cache hits, lease waits and Darwin-only provenance
@@ -1645,11 +1636,9 @@ deleting unproven outputs. Build-time generation uses the content-hash cache.
 
 ## Checked authoring guide (SF86)
 
-Run `pnpm gen`, then read [the SDK authoring guide](api/SDK.md#authoring-guide-from-a-graph-to-admitted-rows)
+Run `pnpm docs`, then read [the SDK authoring guide](api/SDK.md#authoring-guide-from-a-graph-to-admitted-rows)
 with its [complete format API](api/FORMAT.md) and [field/ABI reference](api/SHARDFILE.md).
-The guide's retained TypeScript examples are typechecked and executed in
-`test/authoring-docs.test.ts`; generated pages are never edited by hand.
-`test/shardfile-reference.test.ts` separately checks every schema field and ABI call.
+Generated pages are never edited by hand.
 Every public SDK and format binding must have a nonempty source doc line and an
 exact module/name entry in the generated reference. There is no undocumented allowance.
 
@@ -1761,7 +1750,7 @@ DS1.1: terrain tile addressing, bounded water declarations and the immutable acc
 
 DS1.1: item/loadout declarations, target binding references and quest/dialogue graphs are defined in `@wildshard/format`. Game keeps item construction and collider activation unchanged. The frozen legacy quest type path infers its type from the single defining format schema.
 
-DS1.1: numeric world rows, inert sketches, mover/entry declarations, native-ground references, HUD rows and client presentation bindings live in `@wildshard/format`. Engine runtime bounds remain independent; `test/format-wire-limits.test.ts` requires exact wire/runtime agreement. Native solver, terrain/GLB byte validation, draw and input ownership remain game/engine functions. Frozen legacy mover handles retain the original game path.
+DS1.1: numeric world rows, inert sketches, mover/entry declarations, native-ground references, HUD rows and client presentation bindings live in `@wildshard/format`. Engine runtime bounds remain independent. Native solver, terrain/GLB byte validation, draw and input ownership remain game/engine functions. Frozen legacy mover handles retain the original game path.
 
 DS1.1: local checkpoint, lift rider, runtime measurements/declarations, skin rows and script-species/elite/weapon-hook declarations live in `@wildshard/format`. Native runtime admission, allocations, script hosts and playback remain in game. The wire calibration and weapon phase table are checked against the native owners; the skin clip narrowing is identity-only and grants no bridge to an unfamiliar author transform. Material and post graph contracts remain in game pending DS1.4.
 
@@ -2064,8 +2053,7 @@ same bounded law and save its attachment/exit/rearm continuation alongside real
 capsule state. Scope disposal removes the traversal. No ladder rows install no
 owner or continuation, preserving existing witness bytes. The one-shot's old
 inclined treads remain an ordinary walk proof; they do not retroactively become
-vertical-ladder evidence. See `test/ladder-mode.test.ts` for real Rapier ascent,
-descent, blocked ceiling, mid-climb native/worker restore and no-row equality.
+vertical-ladder evidence.
 
 ### Charged static equipment assets
 
@@ -2083,8 +2071,8 @@ Build the catalogue, select `starter-spear/model` and `starter-spear/contacts`, 
 references in `commonsRequirements` and `library`. Assign the checked loadout to `items`. The normal
 data-only client equips the model and its fixed-step thrust/heavy-thrust contacts; no runtime import is
 required. The retained generator emits the complete untextured GLB and recipe, with byte-derived costs.
-See the executing [spear author example](../scripts/docs/authoring/spear.ts) and its two-product single-download
-proof in `test/author-spear.test.ts`. Author generators may use the SDK and pure format contracts;
+See the [spear author example](../scripts/docs/authoring/spear.ts).
+Author generators may use the SDK and pure format contracts;
 game and engine runtime imports remain refused. This starter has no javelin throwing or animated arms.
 
 ## Authored scene interaction proof (OS-F7)
@@ -2099,7 +2087,7 @@ G320 pure contract boundary: `@wildshard/format` is the bottom layer and imports
 
 G320: `@wildshard/format/materialFamilies` owns the verbatim pure family parameter schemas and their parsers, defaults, texture references and preset refusal checks. Renderers read those contracts directly. The old engine renderer-schema simulation exception is retired; format closures remain free of Three.js and DOM.
 
-G320: `@wildshard/format/contentBounds` defines the immutable cell dimensions, entry widths and content caps. Engine `core/config` retains its public bindings to those same values and the same `CONTENT_CAPS` object, so existing runtime imports remain compatible. Authoring and validation import format directly; `test/format-content-bounds.test.ts` checks identity for all nine bounds.
+G320: `@wildshard/format/contentBounds` defines the immutable cell dimensions, entry widths and content caps. Engine `core/config` retains its public bindings to those same values and the same `CONTENT_CAPS` object, so existing runtime imports remain compatible. Authoring and validation import format directly.
 
 G320: the pure AAC index, WMC1 collision and terrain-tile byte readers are defined in `@wildshard/format/{aacIndex,meshCollisionBytes,terrainTileBytes}`. Engine installation stays separate. Frozen runtime terrain imports keep `engine/world/terrainTileData`, whose public functions are the same format function objects, with no duplicate codec or legacy source edit.
 

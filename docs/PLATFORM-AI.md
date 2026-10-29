@@ -18,8 +18,7 @@ The brain adapter saves target, mode, tick, strike cooldown and wander waypoint.
 The sim snapshot also captures the RNG, actor, motor, strike and physics state.
 
 The template's ordinary grey-blob spawn is declared in
-`src/shards/_template/data/creatures.ts`. It remains on the legacy runtime until
-SF16 switches the whole template onto the shardfile loader.
+`src/shards/_template/data/creatures.json`.
 
 
 `@wildshard/game/shardfile/encounters` validates ordered phase tables for the

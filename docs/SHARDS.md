@@ -154,7 +154,7 @@ follows at SF20a/SF46.
 Quest authors use `@wildshard/sdk/quests` to compile declared flags, quest steps,
 world markers, region/death triggers and finite dialogue trees. The platform binds them
 to the existing `QuestState`, preserving journal/chip/marker text and counters. Custom
-conditions read atomically published public/owner script fields by stable id; scene hooks
+conditions read atomically published public or owner script fields by stable id; scene hooks
 queue declared events for the next script tick with the session's actor binding. Profile
 outcomes pass through the ledger fact port, while coins remain local. Dialogue cursors
 and quest state restore at the same simulation checkpoint.
@@ -202,9 +202,8 @@ Jake's Debug/pick process; no URL switches. Use the existing portrait controls.
 ## 1. Copy the template
 
 ```bash
-pnpm gen                                           # restore pinned template outputs before copying
+pnpm gen                                           # prepare generation inputs before copying
 cp -R src/shards/_template src/shards/<slug>
-cp -R test/shards/_template test/shards/<slug>        # the headless contract test; point its relative imports at src/shards/<slug>/
 ```
 
 Then, in the copy:
