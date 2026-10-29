@@ -9,7 +9,9 @@ export const profiles: Record<string, Profile> = {
 export interface Row {key: string; label: string; start: number | null; end: number | null; duration: number; wallMs: number | null;
   state?: 'todo' | 'on' | 'ok'; startBasis?: 'native' | 'observed'; endBasis?: 'native' | 'observed'; detail?: string}
 export interface ErrorRow {message: string; source: string; url: string; at: number}
-export interface RequestRow {url: string; start: number; end: number | null; source: 'worker' | 'service-worker' | 'network'; bytes: number; headerBytes?: number; status: number; failure: string | null}
+export interface RequestRow {url: string; start: number; end: number | null; source: 'worker' | 'service-worker' | 'network'; bytes: number | null; headerBytes?: number; status: number; failure: string | null;
+  accounting?: 'pending' | 'complete' | 'incomplete'; accountingError?: string}
+export interface RequestAccounting {complete: boolean; pending: number; incomplete: number; deadlineMs: number}
 export interface Mark {name: string; start: number; duration: number; detail: unknown}
 export interface PanelRow {at: number; clock: string; download: number | null; header: string; wait: string; step: string; activeLabel: string | null}
 export interface ControlWitness {
@@ -33,7 +35,7 @@ export function controlQualification(capture: Capture, documentToken: string | n
   if (!first.valid || !last.valid) return last.blockers.join('; ') || 'Entered control is no longer uncovered';
   return null;
 }
-export interface Run extends Capture {schema: 1; build: string; engine: string; flow: string; cache: string; preset: string; at: string; url: string; profile: Profile; applied: {pageCPU: boolean; pageNetwork: boolean; workerNetwork: boolean; notes: string[]}; requests: RequestRow[]; totalMs: number | null; postControl?: PostControl | null; video?: string; contactSheet?: string}
+export interface Run extends Capture {schema: 1; build: string; engine: string; flow: string; cache: string; preset: string; at: string; url: string; profile: Profile; applied: {pageCPU: boolean; pageNetwork: boolean; workerNetwork: boolean; notes: string[]}; requests: RequestRow[]; requestAccounting?: RequestAccounting; totalMs: number | null; postControl?: PostControl | null; video?: string; contactSheet?: string}
 export function record(value: unknown): Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value) ? Object.fromEntries(Object.entries(value)) : {};
 }
@@ -57,12 +59,14 @@ export function comparisons(current: Run, previous: unknown): string[] {
 export function printRun(run: Run): void {
   const summary = (source: RequestRow['source']) => {
     const rows = run.requests.filter(row => row.source === source);
-    return `${rows.length} / ${(rows.reduce((sum, row) => sum + row.bytes, 0) / 1e6).toFixed(3)} MB`;
+    const unknown = rows.filter(row => row.bytes === null).length;
+    return `${rows.length} / ${(rows.reduce((sum, row) => sum + (row.bytes ?? 0), 0) / 1e6).toFixed(3)} MB known${unknown === 0 ? '' : ` + ${unknown} unknown`}`;
   };
   console.log(`\n${run.engine} ${run.flow} ${run.cache} ${run.build} [${run.preset}]`);
   console.table([{seconds: run.totalMs === null ? 'INCOMPLETE' : (run.totalMs / 1000).toFixed(3),
     world: run.controlWitness?.gridHome?.slug ?? run.controlWitness?.shard ?? run.lastWitness?.shard ?? 'unqualified',
     'page network': summary('network'), 'worker network': summary('worker'), 'page via SW': summary('service-worker'),
+    accounting: run.requestAccounting?.complete === false ? `INCOMPLETE (${run.requestAccounting.incomplete} rows, ${run.requestAccounting.pending} timed out)` : 'settled',
     longTasks: run.longTasks.length, frameGaps: run.frameGaps.length, errors: run.errors.length}]);
   const secondsAt = (at: number | null): string => at === null ? 'pending' : ((at - (run.tap ?? 0)) / 1000).toFixed(3);
   console.table(run.rows.filter(row => row.state !== 'todo').map(row => ({step: row.label, 'start +s': secondsAt(row.start), 'end +s': secondsAt(row.end),

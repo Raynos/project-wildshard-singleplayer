@@ -164,7 +164,8 @@ try {
         try {longTasksSupported = await page.evaluate(() => PerformanceObserver.supportedEntryTypes.includes('longtask'));}
         catch (error) {errorAt(String(error), 'long-task capability');}
         const postControlObservedAt = Date.now();
-        await network.settle();
+        const requestAccounting = await network.settle(visitStart);
+        if (!requestAccounting.complete) errorAt(`Incomplete request accounting: ${requestAccounting.incomplete} rows; ${requestAccounting.pending} native metadata waits exceeded ${requestAccounting.deadlineMs}ms`, 'request accounting');
         const postControl = postControlWindow(capture.control, postControlObservedAt, afterControl, capture.longTasks, network.rows, longTasksSupported);
         const from = capture.tap ?? 0, to = capture.control ?? capture.stoppedAt ?? Date.now();
         const errorDetails = [...capture.errorDetails ?? [], ...errors, ...network.errors.filter(error => error.at >= visitStart),
@@ -176,9 +177,11 @@ try {
           rows: capture.rows, measures: capture.measures.filter(row => row.start >= from && row.start <= to),
           longTasks: capture.longTasks.filter(row => row.start >= from && row.start <= to),
           frameGaps: capture.frameGaps.filter(row => row.start >= from && row.start <= to),
-          requests: network.rows.filter(row => row.start >= from && row.start <= to), postControl, errorDetails,
+          requests: network.rows.filter(row => row.start >= from && row.start <= to), requestAccounting, postControl, errorDetails,
           errors: errorDetails.map(error => error.message)};
         const name = `${engine}-${values.flow.replace(':', '-')}-${cache}`;
+        // Publish the measured/partial data before artifact APIs can fail.
+        await writeFile(`${directory}/${name}.json`, JSON.stringify(run, null, 2));
         await page.screenshot({path: `${directory}/${name}.jpg`, type: 'jpeg', quality: 75, timeout: 10_000}).catch((error: unknown) => {
           const message = String(error); run.errors.push(message); run.errorDetails?.push({message, source: 'screenshot', url: page.url(), at: Date.now()});
         });
