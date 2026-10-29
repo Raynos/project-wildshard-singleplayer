@@ -2,6 +2,7 @@ import type { Object3D } from 'three';
 import { withOwner, withOwnerCall } from './ownership';
 import { scopeEnvironment, type ScopeEnvironment } from './scopeEnvironment';
 import { scopedProperty } from './scopedProperty';
+import { diagnosticNow } from '../core/clock';
 
 // Keep the frame timestamp out of a newly captured owner closure on every RAF.
 function runFrame(fn: FrameRequestCallback | undefined, time: number): void {
@@ -37,7 +38,7 @@ export interface NativeCensus {
   listeners: { window: number; document: number; canvas: number; other: number };
   timers: { timeouts: number; intervals: number; raf: number };
 }
-interface Registration { scope: Scope; target?: EventTarget; timer?: ReturnType<typeof setTimeout>; kind: 'listeners' | 'timeouts' | 'intervals' | 'raf' }
+interface Registration { scope: Scope; target?: EventTarget; timer?: ReturnType<typeof setTimeout>; activity?: TimerActivity; kind: 'listeners' | 'timeouts' | 'intervals' | 'raf' }
 interface FrameRecord {
   id: number | undefined; fn: FrameRequestCallback | undefined; native: ScopeEnvironment | undefined;
   readonly owner: Scope; readonly cleanup: Cleanup; readonly registration: Registration;
@@ -66,6 +67,58 @@ function dispatchFrame(ref: WeakRef<FrameRecord>, time: number): void {
 // Declaration consumers can have Node timer overloads; zero remains the closed-scope sentinel there too.
 type ScopedTimer<T> = T | 0;
 const registrations = new Set<Registration>();
+let timersActive = true;
+
+/** A browser host parks owned timers while hidden. Deadlines retain wall time;
+ * intervals resume without a catch-up burst, and public cancellation ids stay stable. */
+export function setScopeTimersActive(active: boolean): void {
+  if (timersActive === active) return;
+  timersActive = active;
+  for (const registration of registrations) {
+    if (active) registration.activity?.resume(); else registration.activity?.pause();
+  }
+}
+
+class TimerActivity {
+  readonly id: ReturnType<typeof setTimeout>;
+  private native: ReturnType<typeof setTimeout>;
+  private enabled = true;
+  private done = false;
+  private epoch = 0;
+  private action: (() => void) | undefined;
+  private readonly deadline: number;
+  private readonly ms: number;
+  private readonly repeating: boolean;
+  constructor(ms: number, action: () => void, repeating: boolean) {
+    this.ms=ms;this.repeating=repeating;
+    this.action = action; this.deadline = diagnosticNow() + Math.max(0, ms);
+    this.native = this.schedule(ms); this.id = this.native;
+    if (!timersActive) this.pause();
+  }
+  get running(): boolean { return this.enabled && !this.done; }
+  get nativeTimer(): ReturnType<typeof setTimeout> | undefined { return this.running ? this.native : undefined; }
+  private schedule(delay: number): ReturnType<typeof setTimeout> {
+    const epoch = this.epoch;
+    const run = (): void => {
+      if (epoch !== this.epoch || !this.running) return;
+      const action = this.action;
+      if (!this.repeating) { this.done = true; this.enabled = false; this.action = undefined; }
+      action?.();
+    };
+    return this.repeating ? setInterval(run, delay) : setTimeout(run, delay);
+  }
+  pause(): void {
+    if (!this.running) return;
+    this.enabled = false; this.epoch++;
+    if (this.repeating) clearInterval(this.native); else clearTimeout(this.native);
+  }
+  resume(): void {
+    if (this.done || this.enabled) return;
+    this.enabled = true;
+    this.native = this.schedule(this.repeating ? this.ms : Math.max(0, this.deadline - diagnosticNow()));
+  }
+  cancel(): void { this.pause(); this.done = true; this.action = undefined; }
+}
 const nodeOwners = new WeakMap<Element, Scope>();
 export function nodeOwner(node: Element): Scope | null { return nodeOwners.get(node) ?? null; }
 /** Explicit registrations, compared with the independent harness's native counters. */
@@ -73,14 +126,21 @@ export function scopeRegistrations(include: (scope: Scope) => boolean): NativeCe
   const result: NativeCensus = { listeners: { window: 0, document: 0, canvas: 0, other: 0 }, timers: { timeouts: 0, intervals: 0, raf: 0 } };
   for (const r of registrations) {
     if (!include(r.scope)) continue;
+    if (r.activity !== undefined && !r.activity.running) continue;
     if (r.kind !== 'listeners') result.timers[r.kind]++;
     else if (r.target !== undefined) result.listeners[scopeEnvironment().targetKind(r.target)]++;
   }
+  const native=scopeEnvironment();
+  if(native.sharedFrames&&result.timers.raf>0)result.timers.raf=native.framePending?.()===false?0:1;
   return result;
 }
 export function registrationTimerIds(): { timeouts: number[]; intervals: number[] } {
   const ids = { timeouts: [] as number[], intervals: [] as number[] };
-  for (const r of registrations) if (r.timer !== undefined && (r.kind === 'timeouts' || r.kind === 'intervals')) ids[r.kind].push(r.timer);
+  for (const r of registrations) {
+    if (r.activity !== undefined && !r.activity.running) continue;
+    const timer = r.activity?.nativeTimer ?? r.timer;
+    if (timer !== undefined && (r.kind === 'timeouts' || r.kind === 'intervals')) ids[r.kind].push(timer);
+  }
   return ids;
 }
 /** Resources whose `dispose` event is being sent only to drop their GPU bindings (`rebindGeometry`), not to retire them. */
@@ -324,17 +384,19 @@ export class Scope {
   timeout(ms: number, fn: () => void): ScopedTimer<ReturnType<typeof setTimeout>> {
     if (this.closed) return 0;
     let forget = () => { /* Filled before the timer can fire. */ };
-    const id = setTimeout(() => { forget(); this.timerCancels?.delete(id); if (!this.closed) withOwner(this, fn); }, ms);
-    const cancel = (): void => { clearTimeout(id); this.timerCancels?.delete(id); forget(); };
-    forget = this.registration({ kind: 'timeouts', timer: id }, 'timers', cancel); (this.timerCancels ??= new Map()).set(id, cancel);
+    const activity = new TimerActivity(ms, () => { forget(); this.timerCancels?.delete(activity.id); if (!this.closed) withOwner(this, fn); }, false);
+    const id = activity.id;
+    const cancel = (): void => { activity.cancel(); this.timerCancels?.delete(id); forget(); };
+    forget = this.registration({ kind: 'timeouts', timer: id, activity }, 'timers', cancel); (this.timerCancels ??= new Map()).set(id, cancel);
     return id;
   }
   interval(ms: number, fn: () => void): ScopedTimer<ReturnType<typeof setInterval>> {
     if (this.closed) return 0;
-    const id = setInterval(() => { if (!this.closed) withOwner(this, fn); }, ms);
+    const activity = new TimerActivity(ms, () => { if (!this.closed) withOwner(this, fn); }, true);
+    const id = activity.id;
     let forget = () => { /* Assigned after registration. */ };
-    const cancel = (): void => { clearInterval(id); this.timerCancels?.delete(id); forget(); };
-    forget = this.registration({ kind: 'intervals', timer: id }, 'timers', cancel); (this.timerCancels ??= new Map()).set(id, cancel);
+    const cancel = (): void => { activity.cancel(); this.timerCancels?.delete(id); forget(); };
+    forget = this.registration({ kind: 'intervals', timer: id, activity }, 'timers', cancel); (this.timerCancels ??= new Map()).set(id, cancel);
     return id;
   }
   private rafCancels: Map<number, () => void> | undefined;

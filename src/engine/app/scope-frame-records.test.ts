@@ -13,7 +13,7 @@ import { installScopeEnvironment, scopeEnvironment } from './scopeEnvironment';
 function environment() {
   const native = scopeEnvironment(), queued = new Map<number, FrameRequestCallback>(), cancelled: number[] = [];
   let next = 0;
-  const manual = { ...native, frame: (fn: FrameRequestCallback): number => { const id = next++; queued.set(id, fn); return id; },
+  const manual = { ...native, sharedFrames: false, frame: (fn: FrameRequestCallback): number => { const id = next++; queued.set(id, fn); return id; },
     cancelFrame: (id: number): void => { cancelled.push(id); queued.delete(id); } };
   installScopeEnvironment(manual);
   const fire = (id: number, at: number): void => {

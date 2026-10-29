@@ -1,5 +1,20 @@
 import type { Mesh, InstancedMesh, Object3D } from 'three';
 import { installScopeEnvironment } from '../scopeEnvironment';
+import { SharedFrameScheduler } from './frameScheduler';
+import { emitFault } from '../../core/faults';
+
+let frames: SharedFrameScheduler | undefined;
+let framesActive = true;
+function sharedFrames(): SharedFrameScheduler {
+  if(frames===undefined){
+    frames=new SharedFrameScheduler({frame:render=>requestAnimationFrame(render),cancel:id=>cancelAnimationFrame(id),
+      failed:error=>{emitFault({system:'frame.callback',error,verdict:'uncaught'});}});
+    frames.setActive(framesActive);
+  }
+  return frames;
+}
+/** The page host parks pending frame requests without losing their owners. */
+export function setBrowserFramesActive(active: boolean): void { framesActive=active;frames?.setActive(active); }
 
 /** Install browser scheduling before entry; the rendered host supplies its native mesh classes after download. */
 export function installBrowserScopeEnvironment(classes?: { Mesh: typeof Mesh; InstancedMesh: typeof InstancedMesh }): void {
@@ -16,6 +31,7 @@ export function installBrowserScopeEnvironment(classes?: { Mesh: typeof Mesh; In
     targetKind: (target) => typeof window !== 'undefined' && target === window ? 'window'
       : typeof document !== 'undefined' && target === document ? 'document'
         : typeof HTMLCanvasElement !== 'undefined' && target instanceof HTMLCanvasElement ? 'canvas' : 'other',
-    frame: (render) => requestAnimationFrame(render), cancelFrame: (id) => cancelAnimationFrame(id),
+    frame: render => sharedFrames().frame(render), cancelFrame: id => {frames?.cancel(id);},
+    sharedFrames: true, framePending: () => frames?.pending ?? false,
   });
 }

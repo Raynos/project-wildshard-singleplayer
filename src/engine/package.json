@@ -406,6 +406,7 @@
     "./ui/declared": "./ui/declared.ts",
     "./ui/panel": "./ui/panel.ts",
     "./app/view/scopeEnvironment": "./app/view/scopeEnvironment.ts",
+    "./app/view/pageActivity": "./app/view/pageActivity.ts",
     "./sim": "./sim.ts",
     "./sim/bands": "./sim/bands.ts",
     "./sim/snapshot": "./sim/snapshot.ts",
