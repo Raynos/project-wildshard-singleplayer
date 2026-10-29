@@ -1,5 +1,5 @@
 {
- "judged": "2026-10-28-e4887d98fb",
+ "judged": "2026-10-28-ac82a40b30",
  "accepted": {
   "driftwood-isle": "denser, higher clouds and warmer planks (G855); the phone geometry cut (G833).",
   "pine-hollow": "no colour LUT (G854, landed 3a2af030ec).",
@@ -76,8 +76,8 @@
   },
   "driftwood-isle/23-hands-down": {
    "verdict": "needs",
-   "row": "NEW",
-   "note": "The player body shadow on the pier planks is gone; LEGACY casts the dark silhouette under the hands."
+   "row": "QF20",
+   "note": "Still no body shadow on the pier planks with the two-held-frame capture (a53c762f39), and the post shadows at the far end are gone too. QF20 called it a capture artefact; this run says it is not."
   },
   "driftwood-isle/24-hands-up": {
    "verdict": "great"
@@ -101,18 +101,21 @@
    "verdict": "great"
   },
   "pine-hollow/06-west-cabin": {
-   "verdict": "great"
+   "verdict": "needs",
+   "row": "NEW",
+   "note": "The green moss patches on the cabin roof are gone; the shingles are bare."
   },
   "pine-hollow/07-ridge-cabin": {
-   "verdict": "great"
+   "verdict": "needs",
+   "row": "NEW",
+   "note": "The same bare roof as camera 6: the moss patches are gone."
   },
   "pine-hollow/08-fire-lookout": {
    "verdict": "great"
   },
   "pine-hollow/09-waterfall": {
-   "verdict": "needs",
-   "row": "NEW",
-   "note": "The ferns on the near bank below the waterfall are gone; the slope is bare grass."
+   "verdict": "great",
+   "note": "Ferns on the near bank are back (QF21, c26cf48209). Minor: the plunge pool behind the reeds is dark water, not white foam."
   },
   "pine-hollow/10-beaver-dam": {
    "verdict": "great"
@@ -124,16 +127,14 @@
    "verdict": "great"
   },
   "pine-hollow/13-grid-170-170": {
-   "verdict": "great",
-   "note": "Minor: the lake glints a little brighter between the trees."
+   "verdict": "great"
   },
   "pine-hollow/14-grid+0-170": {
    "verdict": "great"
   },
   "pine-hollow/15-grid+170-170": {
-   "verdict": "needs",
-   "row": "NEW",
-   "note": "The fern in the forest foreground is gone (the same missing ferns as camera 9)."
+   "verdict": "great",
+   "note": "The forest-floor fern is back (QF21)."
   },
   "pine-hollow/16-grid-170+0": {
    "verdict": "great"
@@ -151,18 +152,15 @@
    "verdict": "great"
   },
   "pine-hollow/21-aerial-south": {
-   "verdict": "needs",
-   "row": "NEW",
-   "note": "From the air the far forest is thinner: the trees toward the cliffs stop short and the floor reads bare."
+   "verdict": "great",
+   "note": "The far forest is back to the cliffs (QF22). Minor: the plunge pool reads dark from the air."
   },
   "pine-hollow/22-aerial-west": {
-   "verdict": "needs",
-   "row": "NEW",
-   "note": "From the air the forest past ~150 m is gone: bare brown ground where LEGACY has dense pines to the lake."
+   "verdict": "great",
+   "note": "Dense pines to the lake again (QF22)."
   },
   "pine-hollow/23-hands-down": {
-   "verdict": "great",
-   "note": "Minor: a brighter lake glint at the end of the road."
+   "verdict": "great"
   },
   "pine-hollow/24-hands-up": {
    "verdict": "great"
@@ -171,27 +169,31 @@
    "verdict": "great"
   },
   "nalati-grasslands/02-bridge": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Minor: a few flat black pebbles on the path by the bridge (see camera 6)."
   },
   "nalati-grasslands/03-plains": {
    "verdict": "great"
   },
   "nalati-grasslands/04-spawn-opposite": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Minor: a row of black pebbles along the path (see camera 6)."
   },
   "nalati-grasslands/05-sheep-pasture": {
    "verdict": "great"
   },
   "nalati-grasslands/06-kunes-river": {
-   "verdict": "great"
+   "verdict": "needs",
+   "row": "NEW",
+   "note": "The river bank is strewn with flat black pebble discs that LEGACY draws as grey stones; the same discs show on the paths at cameras 2, 4, 14, 16, 17, 19 and 23."
   },
   "nalati-grasslands/07-eagle-rock": {
    "verdict": "great"
   },
   "nalati-grasslands/08-kokpar-field": {
    "verdict": "needs",
-   "row": "NEW",
-   "note": "Fewer pines on the fortress ridge behind the field, and the crag faces carry dark slab facets. The riders and the orange goal marker are game state."
+   "row": "QF23 / QF24",
+   "note": "Unchanged: fewer pines on the fortress ridge and dark slab facets on the crag faces. The riders and the orange goal marker are game state."
   },
   "nalati-grasslands/09-great-kurgan": {
    "verdict": "great"
@@ -209,44 +211,56 @@
    "verdict": "great"
   },
   "nalati-grasslands/14-grid+0-170": {
-   "verdict": "great"
+   "verdict": "needs",
+   "row": "QF23",
+   "note": "Near-black slab facets on the cliff on the right; black pebbles on the path."
   },
   "nalati-grasslands/15-grid+170-170": {
-   "verdict": "great"
+   "verdict": "needs",
+   "row": "QF23",
+   "note": "The ice crag carries grey slab facets where LEGACY is pale ice."
   },
   "nalati-grasslands/16-grid-170+0": {
-   "verdict": "great"
+   "verdict": "needs",
+   "row": "QF23",
+   "note": "Black slab facets on the cliff on the right; black pebbles on the path."
   },
   "nalati-grasslands/17-grid+170+0": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Minor: black pebbles on the path."
   },
   "nalati-grasslands/18-grid-170+170": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Minor: one pine fewer on the hill."
   },
   "nalati-grasslands/19-grid+0+170": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Minor: a couple of black pebbles on the gravel bank."
   },
   "nalati-grasslands/20-grid+170+170": {
    "verdict": "great"
   },
   "nalati-grasslands/21-aerial-south": {
-   "verdict": "great"
+   "verdict": "needs",
+   "row": "QF23",
+   "note": "From the air the right-hand crags carry black slab facets."
   },
   "nalati-grasslands/22-aerial-east": {
    "verdict": "great"
   },
   "nalati-grasslands/23-hands-down": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Minor: black pebbles at the end of the path."
   },
   "nalati-grasslands/24-hands-up": {
    "verdict": "needs",
-   "row": "NEW",
-   "note": "The far crags carry dark rectangular slab facets that LEGACY does not draw."
+   "row": "QF23",
+   "note": "The far crags carry dark slab facets, and the tall lupins in the foreground are gone."
   },
   "far-reach/01-spawn": {
    "verdict": "needs",
-   "row": "FR3",
-   "note": "The meadow is uniform grass: LEGACY's darker clumps and white flower specks are gone."
+   "row": "FR6",
+   "note": "Unchanged after FR3: the meadow is uniform grass, no darker clumps or white flower specks."
   },
   "far-reach/02-hover": {
    "verdict": "great",
@@ -254,13 +268,13 @@
   },
   "far-reach/03-windmill": {
    "verdict": "needs",
-   "row": "FR3",
+   "row": "FR6",
    "note": "Same flat meadow as camera 1."
   },
   "far-reach/04-roost": {
    "verdict": "needs",
-   "row": "FR3",
-   "note": "Same flat meadow: the near grass is uniform; the windmill blades turn between visits."
+   "row": "FR6",
+   "note": "Same flat meadow; the windmill blades turn between visits."
   },
   "far-reach/05-windmill-isle": {
    "verdict": "great"
@@ -273,13 +287,16 @@
    "note": "The goat on the left in LEGACY is a live creature."
   },
   "far-reach/08-ruin": {
-   "verdict": "great"
+   "verdict": "needs",
+   "row": "FR6",
+   "note": "The grass tufts at the foot of the ruin bridge are gone; bare planks and rock (the same missing meadow cover)."
   },
   "far-reach/09-high-step": {
    "verdict": "great"
   },
   "far-reach/10-storm-crown": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "The bird is a live creature. Minor: the white flower specks in the foreground are gone (FR6)."
   },
   "far-reach/11-grove": {
    "verdict": "great"
@@ -322,8 +339,8 @@
   },
   "far-reach/23-hands-down": {
    "verdict": "needs",
-   "row": "FR3",
-   "note": "Close-up of the flat meadow: no dark tufts or flower specks around the rocks."
+   "row": "FR6",
+   "note": "Close-up of the flat meadow: no dark tufts or flower specks around the rocks; the drift ray is a live creature."
   },
   "far-reach/24-hands-up": {
    "verdict": "great",
@@ -390,10 +407,12 @@
    "verdict": "great"
   },
   "sunscar-dunes/21-aerial-south": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Minor: two white slivers in the dune hollows and a paler band at the horizon."
   },
   "sunscar-dunes/22-aerial-west": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Minor: a white sliver in a hollow and a paler band at the horizon."
   },
   "sunscar-dunes/23-hands-down": {
    "verdict": "great"
@@ -403,16 +422,18 @@
   },
   "nine-dragon-stack/01-A": {
    "verdict": "needs",
-   "row": "NR2 / NR8",
-   "note": "The carved stone balustrade on the left is a flat dark-navy mass. Hands (NR1), floor and reflections match."
+   "row": "NR11",
+   "note": "The carved stone balustrade on the left is still a flat dark-navy mass. Hands, floor and reflections match."
   },
   "nine-dragon-stack/02-B": {
    "verdict": "needs",
-   "row": "NR2 / NR8",
-   "note": "The rim balustrade is flat navy and the far facades read darker."
+   "row": "NR11 / NR3",
+   "note": "The rim balustrade is flat navy; the facades draw now but their windows are dim brown."
   },
   "nine-dragon-stack/03-C": {
-   "verdict": "great"
+   "verdict": "needs",
+   "row": "NEW",
+   "note": "The white step-edge highlights up the stair are gone, so the steps read dark navy; the right-hand wall is mottled pink-grey stone, not flat cream."
   },
   "nine-dragon-stack/04-D": {
    "verdict": "great",
@@ -423,83 +444,97 @@
    "note": "Crowd and rain move between visits."
   },
   "nine-dragon-stack/06-night-market": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "The wall behind the stall draws again."
   },
   "nine-dragon-stack/07-stair-mid": {
-   "verdict": "great"
+   "verdict": "needs",
+   "row": "NEW",
+   "note": "Same as camera 3: no step-edge highlights, the stair is dark navy, the right-hand wall mottled."
   },
   "nine-dragon-stack/08-stair-down": {
    "verdict": "needs",
    "row": "NR3",
-   "note": "Down the stair-street the far facades are darker and bluer, with fewer lit windows."
+   "note": "The facade wall is back with lit windows (NR12 fixed); what is left is tint: the towers and the canyon read bluer, with fewer warm windows far down."
   },
   "nine-dragon-stack/09-well-rim": {
    "verdict": "needs",
-   "row": "NR2 / NR8",
-   "note": "The rim balustrade is flat navy; the facades across the well are darker."
+   "row": "NR11 / NR3",
+   "note": "The rim balustrade is flat navy; the facades across the well draw again, but their windows are brown, not lit."
   },
   "nine-dragon-stack/10-well-north": {
    "verdict": "needs",
    "row": "NR3",
-   "note": "The canyon facades are washed pale with white blocks where LEGACY has lit windows."
+   "note": "The pale wash is gone, but the canyon windows are brown and green squares where LEGACY has warm lit windows."
   },
   "nine-dragon-stack/11-portal-north-deck": {
    "verdict": "needs",
-   "row": "NEW",
-   "note": "North road deck: the dark end wall is gone and a lit portal frame stands in its place (confirm the standalone portal dressing is intended)."
+   "row": "NR12",
+   "note": "Unchanged: the dark end wall is gone and a lit portal frame stands in its place."
   },
   "nine-dragon-stack/12-portal-south-deck": {
    "verdict": "needs",
-   "row": "NEW",
-   "note": "South road deck: the same missing end wall and lit portal frame as camera 11."
+   "row": "NR12",
+   "note": "Unchanged: the same missing end wall and lit portal frame as camera 11."
   },
   "nine-dragon-stack/13-square-west": {
    "verdict": "needs",
-   "row": "NR2 / NR8",
-   "note": "The square-edge balustrade is flat navy; the facades are paler."
+   "row": "NR11 / NR3",
+   "note": "The square-edge balustrade is flat navy; the facades draw now (no more white blocks) but read dark with dim brown windows."
   },
   "nine-dragon-stack/14-square-south": {
-   "verdict": "great"
+   "verdict": "needs",
+   "row": "NR3",
+   "note": "The facades draw now, but their windows are dim brown, not the warm lit grid of LEGACY."
   },
   "nine-dragon-stack/15-market-east": {
-   "verdict": "great"
+   "verdict": "needs",
+   "row": "NEW / NR3",
+   "note": "The banyan trunk is mottled dark bark where LEGACY draws flat toon brown with ink lines; the facades behind are dimmer."
   },
   "nine-dragon-stack/16-stack-north": {
    "verdict": "needs",
-   "row": "NR3",
-   "note": "A white unlit block sits in the tea-house facade where LEGACY has a lit window."
+   "row": "NR3 / NEW",
+   "note": "A white unlit block still sits in the tea-house facade; the banyan trunk is mottled bark, as at camera 15."
   },
   "nine-dragon-stack/17-portal-east-deck": {
    "verdict": "needs",
-   "row": "NR3",
-   "note": "The far skyline from the east road deck differs: a nearer tower block and a green patch, fewer window dots."
+   "row": "NR12",
+   "note": "The far skyline from the east road deck still differs: a nearer lit tower block, fewer window dots."
   },
   "nine-dragon-stack/18-portal-west-deck": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Minor: the mid-distance tower block is more solid than LEGACY's faint one."
   },
   "nine-dragon-stack/19-east-street": {
-   "verdict": "great"
+   "verdict": "needs",
+   "row": "NEW",
+   "note": "Same stair as camera 3: no step-edge highlights; the side walls are mottled stone."
   },
   "nine-dragon-stack/20-well-floor": {
-   "verdict": "great"
+   "verdict": "needs",
+   "row": "NR3",
+   "note": "The facades are bluer and the lit interiors and windows of LEGACY are dark squares."
   },
   "nine-dragon-stack/21-aerial-south": {
    "verdict": "needs",
-   "row": "NR3",
-   "note": "From the air the towers near the camera are gone: only floating window cards in the fog where LEGACY draws the tower and roof."
+   "row": "NR10 / NR12",
+   "note": "The towers near the camera draw as geometry now, but the teal roof eaves and the wooden balcony are missing and the walls read blue."
   },
   "nine-dragon-stack/22-aerial-west": {
    "verdict": "needs",
-   "row": "NR3",
-   "note": "From the air the towers are pale ghosts with no lit windows."
+   "row": "NR10 / NR12",
+   "note": "The towers draw with lit windows now, but the teal pagoda roofs and the water tower on top are missing and the walls are slate blue."
   },
   "nine-dragon-stack/23-hands-down": {
    "verdict": "needs",
-   "row": "NR7 / NR2",
-   "note": "The red fu tassel at the sword hand is missing and the balustrade on the left is flat navy."
+   "row": "NR11",
+   "note": "The balustrade on the left is still flat navy. The tassel hangs straight where LEGACY catches it flicked up at the guard (pose, not missing)."
   },
   "nine-dragon-stack/24-hands-up": {
-   "verdict": "great"
+   "verdict": "needs",
+   "row": "NEW",
+   "note": "Same stair as camera 3: no step-edge highlights; the right-hand wall is mottled pink-grey stone."
   }
  }
 }
