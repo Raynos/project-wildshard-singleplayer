@@ -32,6 +32,19 @@ it('a restored input satisfies exact content once without claiming a body read o
     restoredBytes: 100, pendingBytes: 0, declaredFiles: 1, networkBytes: 0, cachedBytes: 0, filesDone: 0});
 });
 
+it('does not relabel a transported input as restored or count its content twice', () => {
+  for (const fromCache of [false, true]) {
+    const accounting = new DownloadAccounting('https://example.test/');
+    if (fromCache) accounting.cached('actual-body', 100, '/shape.bin');
+    else accounting.resource({name: 'https://example.test/shape.bin', startTime: 1,
+      transferSize: 120, encodedBodySize: 100, workerStart: 0, serverTiming: []});
+    accounting.restored('/shape.bin', 100);
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: 100, declaredDoneBytes: 100, pendingBytes: 0,
+      networkBytes: fromCache ? 0 : 120, cachedBytes: fromCache ? 100 : 0});
+    expect(accounting.snapshot().restoredBytes).toBeUndefined();
+  }
+});
+
 const base = 'https://game.test/';
 const timing = (name: string, extra: Partial<DownloadTiming> = {}): DownloadTiming => ({
   name: new URL(name, base).href, startTime: 1, transferSize: 1300, encodedBodySize: 1000,
