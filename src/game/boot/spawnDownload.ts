@@ -3,6 +3,8 @@ import {readSpawnManifest, readSpawnManifestAddress, type SpawnManifestAddress} 
 /** This leaf statically imports no engine, renderer or worker. The title can start it on
  * the tap; Loading later adopts the same progress rather than recounting IO. */
 export interface SpawnDownloadSnapshot {
+  /** False while native cache presence is unresolved; zero is not yet an observed transfer fact. */
+  readonly progressKnown?: boolean;
   readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number;
   readonly filesTotal: number; readonly filesDone: number; readonly complete: boolean; readonly error: string | null;
 }
@@ -45,8 +47,8 @@ async function readSpawnFile(url: string, maximum: number, ports: SpawnDownloadP
  * worker-cache response credits immediately without reading/checksumming it. */
 export function downloadSpawnManifest(address: SpawnManifestAddress, ports: SpawnDownloadPorts, base: string): SpawnDownload {
   const controller = new AbortController(), listeners = new Set<(snapshot: SpawnDownloadSnapshot) => void>(), aliases = new Map<string, string>();
-  let completedBytes = 0, cachedBytes = 0, filesDone = 0, complete = false, error: string | null = null;
-  const snapshot = (): SpawnDownloadSnapshot => ({totalBytes: address.totalBytes, completedBytes, cachedBytes,
+  let completedBytes = 0, cachedBytes = 0, filesDone = 0, complete = false, progressKnown = false, error: string | null = null;
+  const snapshot = (): SpawnDownloadSnapshot => ({progressKnown, totalBytes: address.totalBytes, completedBytes, cachedBytes,
     filesTotal: address.files, filesDone, complete, error});
   const publish = (): void => { if (!controller.signal.aborted) for (const listener of listeners) listener(snapshot()); };
   const ready = (async () => {
@@ -72,6 +74,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
         if (present?.has(file.url) === true || cached[index]?.status === 200 && !/\btext\/html\b/iu.test(cached[index]?.headers.get('content-type') ?? '')) { completedBytes += file.bytes; cachedBytes += file.bytes; filesDone++; }
         else missing.push(file);
       }
+      progressKnown = true;
       if (missing.length === 0) { complete = true; publish(); return; }
       publish(); let cursor = 0;
       await Promise.all(Array.from({length: Math.min(8, missing.length)}, async () => {
@@ -160,7 +163,7 @@ const mb = (bytes: number): string => `${(bytes / 1_000_000).toFixed(bytes >= 10
  * composition root unsubscribes when Loading adopts this same download. */
 export function paintSpawnDownload(download: SpawnDownload, root: HTMLElement): () => void {
   return download.subscribe(row => {
-    const percent = row.complete ? 100 : row.totalBytes === 0 ? null : Math.min(99, Math.floor(row.completedBytes / row.totalBytes * 100));
+    const percent = row.complete ? 100 : row.progressKnown === false || row.totalBytes === 0 ? null : Math.min(99, Math.floor(row.completedBytes / row.totalBytes * 100));
     root.dataset['download'] = percent === null ? '' : String(percent); root.dataset['entryDownloadBytes'] = String(row.totalBytes);
     root.dataset['declaredBytes'] = String(row.totalBytes); root.dataset['pendingBytes'] = String(row.totalBytes - row.completedBytes);
     root.dataset['cachedBytes'] = String(row.cachedBytes);

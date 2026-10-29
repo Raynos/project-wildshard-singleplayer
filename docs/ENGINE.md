@@ -989,6 +989,10 @@ returns that ready promise; plan completion
 cannot finish a pending manifest. Later streams remain outside the list.
 `SpawnDownloadPorts.present(urls)` may supply a native 200-response URL census;
 unmapped responses retain individual presence checks. No cache body is read.
+While that native census is pending, `progressKnown: false` keeps the
+percentage unknown, with its manifest total already fixed. The first known
+progress is the observed cache subset or complete list, never a temporary
+zero inferred before the cache replies. No cross-document receipt is used.
 Manifest entries start no automatic whole-product copy or ring prefetch in play;
 late title read-ahead cannot replace the foreground operation.
 The world-only root starts this job after actual tier/route selection, before

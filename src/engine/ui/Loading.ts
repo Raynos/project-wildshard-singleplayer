@@ -323,7 +323,7 @@ export class Loading {
 
   /** Publish each cheap progress tuple together, even between throttled paints. */
   private paintDownloadCounters(row: LoadingDownloadSnapshot & {readonly fraction: number}): void {
-    setData(this.root, 'download', String(Math.floor(row.fraction * 100)));
+    setData(this.root, 'download', row.progressKnown === false ? '' : String(Math.floor(row.fraction * 100)));
     setData(this.root, 'cachedBytes', String(row.cachedBytes));
     setData(this.root, 'pendingBytes', String(row.totalBytes - row.completedBytes));
     setData(this.root, 'declaredBytes', String(row.totalBytes));
@@ -342,7 +342,7 @@ export class Loading {
 
   private paintDownloads(): number {
     const transfer = this.downloadProgress();
-    this.downloadKnown = transfer.complete || transfer.totalBytes > 0 || transfer.filesTotal > 0;
+    this.downloadKnown = transfer.complete || transfer.progressKnown !== false && (transfer.totalBytes > 0 || transfer.filesTotal > 0);
     this.paintedDownload = transfer.fraction;
     this.paintDownloadCounters(transfer);
     const prefetch = this.prefetchSource?.() ?? null;

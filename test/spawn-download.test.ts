@@ -16,7 +16,7 @@ test('cold progress is exactly the one list, with a fixed denominator and no unr
   }}, base);
   download.subscribe(row => {snapshots.push(row);}); await download.ready;
   expect(reads).toEqual([address.url, ...files.map(row => row.url)]);
-  expect(download.snapshot()).toEqual({totalBytes: 7, completedBytes: 7, cachedBytes: 0, filesTotal: 2, filesDone: 2, complete: true, error: null});
+  expect(download.snapshot()).toEqual({progressKnown: true, totalBytes: 7, completedBytes: 7, cachedBytes: 0, filesTotal: 2, filesDone: 2, complete: true, error: null});
   expect(snapshots.every(row => row.totalBytes === 7 && row.completedBytes <= 7)).toBe(true);
   expect(snapshots.map(row => row.completedBytes)).toEqual(snapshots.map(row => row.completedBytes).sort((a, b) => a - b));
 });
@@ -43,6 +43,24 @@ test('one native metadata census completes a warm list without per-file cache ca
   expect(present).toHaveBeenCalledExactlyOnceWith(files.map(row => new URL(row.url, base).href));
   expect(cached).toHaveBeenCalledTimes(1); expect(fetch).not.toHaveBeenCalled();
   expect(download.snapshot()).toMatchObject({complete: true, cachedBytes: 7, filesDone: 2});
+});
+
+test('a pending cache census keeps its fixed total but publishes no invented zero percentage', async () => {
+  let release: (urls: ReadonlySet<string>) => void = () => undefined;
+  const present = new Promise<ReadonlySet<string>>(resolve => {release = resolve;});
+  const snapshots: SpawnDownloadSnapshot[] = [];
+  const download = downloadSpawnManifest(address, {
+    cached: url => Promise.resolve(url.endsWith('.json') ? new Response(text) : undefined),
+    present: () => present,
+    fetch: () => Promise.reject(new Error('Warm bodies must not be fetched')),
+  }, base);
+  download.subscribe(row => {snapshots.push(row);});
+  expect(download.snapshot()).toMatchObject({totalBytes: 7, progressKnown: false, complete: false});
+  release(new Set(files.map(file => new URL(file.url, base).href)));
+  await download.ready;
+  expect(snapshots.filter(row => row.progressKnown)).toEqual([
+    {progressKnown: true, totalBytes: 7, completedBytes: 7, cachedBytes: 7, filesTotal: 2, filesDone: 2, complete: true, error: null},
+  ]);
 });
 
 test.each([2, 5])('a short/oversized body (%s) never completes or exceeds the manifest total', async count => {

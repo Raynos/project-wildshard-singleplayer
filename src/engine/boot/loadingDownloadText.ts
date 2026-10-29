@@ -12,6 +12,8 @@ export interface LoadingPrefetchSnapshot {
 
 /** The manifest operation is the sole source of download progress. */
 export interface LoadingDownloadSnapshot {
+  /** Native cache presence has not resolved yet; keep its percentage unknown. */
+  readonly progressKnown?: boolean;
   readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number;
   readonly filesTotal: number; readonly filesDone: number; readonly complete: boolean; readonly error: string | null;
 }

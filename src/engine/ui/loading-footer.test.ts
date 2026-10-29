@@ -53,6 +53,23 @@ it('closes the manifest at its own ready barrier without counting later work', a
   } finally { loading.scope.dispose(); }
 });
 
+it('keeps a new document percentage unknown until its native cache census resolves', () => {
+  const loading = new Loading({id: 'cache-census', name: 'Cache census'});
+  let notify = (): void => undefined;
+  let row = {progressKnown: false, totalBytes: 7, completedBytes: 0, cachedBytes: 0, filesTotal: 2, filesDone: 0, complete: false, error: null};
+  try {
+    void loading.setDownloadSource({ready: Promise.resolve(), snapshot: () => row,
+      subscribe: listener => {notify = listener; listener(); return () => undefined;}});
+    expect(loading.root.dataset['entryDownloadBytes']).toBe('7');
+    expect(loading.root.dataset['download']).toBe('');
+    expect(loading.root.querySelector('[data-el="dlPct"]')?.textContent).toBe('—');
+    row = {...row, progressKnown: true, completedBytes: 7, cachedBytes: 7, filesDone: 2, complete: true};
+    notify();
+    expect(loading.root.dataset['download']).toBe('100');
+    expect(loading.root.querySelector('[data-el="dlPct"]')?.textContent).toBe('100');
+  } finally {loading.scope.dispose();}
+});
+
 it.each([[-1600, '00:01.7'], [-90000, '00:00.1'], [101, '00:00.1']])('adopts bounded handoff clock %s without shifting stage timing', (clock, expected) => {
   document.body.innerHTML = `<div class="ws-load" data-shell data-started-at="0" data-clock-started-at="${clock}">${loadShellTemplate()}</div>`;
   const root = document.querySelector<HTMLElement>('.ws-load');
