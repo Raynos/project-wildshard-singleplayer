@@ -254,7 +254,7 @@ export const DEFAULT_GRAPH_BUDGET: GraphBudget = { nodes: 160, samplers: 4, inst
 export const MAX_GRAPH_BUDGET: GraphBudget = Object.freeze({ nodes: 4096, samplers: 16, instructions: 8192 });
 
 /** Raw graph JSON bounds, enforced before typing or compiler work; trusted presets supply their own node budget. */
-export const GRAPH_ADMISSION_LIMITS: Readonly<{ bytes: 64000; depth: 64; }> = Object.freeze({ bytes: 64_000, depth: 64 });
+export const GRAPH_ADMISSION_LIMITS: Readonly<{ bytes: 96000; depth: 64; }> = Object.freeze({ bytes: 96_000, depth: 64 });
 /** whether JSON writes `value` as itself in quotes: printable ASCII with no quote or backslash (a loop, not a regex: Node's
  *  type stripping rewrote the regex's escaped bracket and broke it) */
 function plainJsonString(value: string): boolean {

@@ -14,7 +14,7 @@ import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
-import { validateGraph, type GraphIr } from '../src/format/materialGraph';
+import { GRAPH_ADMISSION_LIMITS, validateGraph, type GraphIr } from '../src/format/materialGraph';
 import { viewmodelGraphs } from '../src/shards/nine-dragon-stack/generators/viewmodelGraphs';
 import { architectureGraphs } from '../src/shards/nine-dragon-stack/generators/architectureGraphs';
 import fog from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
@@ -77,7 +77,7 @@ test('each existing material fits both caps and compiles its real instance chann
   for (const [id, graph] of Object.entries(graphs)) {
     expect(validateGraph(graph, { trustedBudget: true }).ok, id).toBe(true);
     expect(Object.keys(graph.nodes).length, id).toBeLessThanOrEqual(4096);
-    expect(new TextEncoder().encode(JSON.stringify(graph)).length, id).toBeLessThanOrEqual(64000);
+    expect(new TextEncoder().encode(JSON.stringify(graph)).length, id).toBeLessThanOrEqual(GRAPH_ADMISSION_LIMITS.bytes);
     const shaders = build(graph, true);
     expect(shaders.vertex, id).toContain('instanceMatrix');
     expect(shaders.vertex, id).toContain('instanceColor');

@@ -81,7 +81,7 @@ export class LookGraph {
       budget: { nodes: 4096, samplers: 8, instructions: 8192 }, nodes, arrays: this.arrays, params: Object.fromEntries(Object.entries(this.params).filter(([id]) => names.has(id))), stages: compactStages };
     const checked = checkAuthorGraph(graph);
     if (!checked.ok) throw new Error([...new Set(checked.errors)].slice(0, 12).join('\n'));
-    if (new TextEncoder().encode(JSON.stringify(checked.graph)).length > 64000) throw new Error('Nine graph exceeds 64,000 bytes');
+    if (new TextEncoder().encode(JSON.stringify(checked.graph)).length > 96000) throw new Error('Nine graph exceeds 96,000 bytes');
     return { ...checked.graph, budget: { nodes: Math.max(1, checked.cost.nodes), samplers: Math.max(1, checked.cost.samplers), instructions: Math.max(1, checked.cost.instructions) } };
   }
 }

@@ -5,7 +5,7 @@ import {
   ToonLookSchema, PainterlyLookSchema, EmissiveLookSchema, type EmissiveLookParams, type FamilyMaterialParams, type PainterlyLookParams, type ToonLookParams,
 } from '@wildshard/format/materialFamilies';
 
-import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
+import { GRAPH_ADMISSION_LIMITS, validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import { isJsonData } from '@wildshard/format/json';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
@@ -24,7 +24,7 @@ const graphFile = v.strictObject({ family: v.literal('graph'), file: v.pipe(v.st
 const graphPreset = v.strictObject({ family: v.literal('graph'), preset: FamilyMaterialSchema, version: v.literal(GRAPH_PRESET_VERSION) });
 
 /** a graph file's byte cap: the inline slot's raw JSON bound (`GRAPH_ADMISSION_LIMITS.bytes`) */
-const GRAPH_FILE_BYTES = 64_000;
+const GRAPH_FILE_BYTES = GRAPH_ADMISSION_LIMITS.bytes;
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
 /** Authored material IDs select bounded platform presets or validated material graph data, never shader source. */
 export const MaterialsSchema: v.GenericSchema<MaterialsRowsInput, MaterialsRows> = v.pipe(v.record(id, v.union([FamilyMaterialSchema, graphMaterial, graphFile, graphPreset])), v.check((rows) => Object.keys(rows).length <= 256, 'bounded material catalogue'));
