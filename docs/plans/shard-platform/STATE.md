@@ -7,7 +7,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **Legacy (G882 / G883 / G885 / G891):** legacy-final 91a9eef081; Sky + Signal 3be88b3081, Nalati b592b94008, Driftwood
 019fa6d0c7. **G908: Pine + Nine untouched** (no prep) until Jake's word after his final QA, likely 10-30.
 
-**LIVE 8621318d93 (build 8621318d9-mvtvd1tf): Jake's QA build.** He QAs it now.
+**LIVE 125bda0483 (build 125bda048-mvu1h3gt, a normal proven release, ~16:20)**; the repaired QA build waits on CI.
 **REPLAN (G886): [FOUNDATIONS](../FOUNDATIONS.md) wave 1, crashes first (G894).** Landed: MF2, MF3, MF6, FC2, FC8, G896,
 G901; MF1 / MF4 code in, proofs pending. **For wildshard-v (15:24):** sp-o5 is not idle: it owns MF7 (tests + Sim hold
 running), then QB20. sp-x8 is released for good; FC1 / FC5 / FC6 are sp-x1's. Next: sp-o3 MF5, sp-o4 FC3 / FC4 / QB18,
