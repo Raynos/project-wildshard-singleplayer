@@ -97,6 +97,9 @@ export async function prepareLentLooks(ids: readonly string[]): Promise<void> {
   for (const [lend, owned] of held) await lend.prepare?.(owned);
 }
 
+/** Whether `looks` is still lent (its scope has not ended): a holder kept across visits must not write a retired lend. */
+export function isLent(looks: LentLooks): boolean { return lends.some(lend => lend.looks === looks); }
+
 /** Whether a compiled look `id` is lent (a module that may build outside its world draws nothing without it). */
 export function hasLentLook(id: string): boolean { return holder(id) !== null; }
 

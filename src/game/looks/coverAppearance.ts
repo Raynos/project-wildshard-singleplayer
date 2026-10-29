@@ -3,7 +3,7 @@ import { ResourceMemo } from '@wildshard/engine/app/cachedAssets';
 import { loadTexture } from '@wildshard/engine/core/assets';
 import { parseCoverAppearance, type CoverAppearanceRow } from '@wildshard/format/coverAppearance';
 import type { ShardProduct } from '../shardfile/shardProduct';
-import { lentLook, lentLooksOf, lentMappedLook, setLentParam, type LentLooks } from '../shardfile/lentLooks';
+import { isLent, lentLook, lentLooksOf, lentMappedLook, setLentParam, type LentLooks } from '../shardfile/lentLooks';
 
 export type CoverMaterial = Material & { map: Texture | null; roughness: number };
 
@@ -46,8 +46,9 @@ class CoverAppearanceBook {
     if (row.texture !== undefined && texture === undefined) throw new Error(`Cover texture is not prepared: ${row.texture}`);
     const material = texture === undefined ? lentLook(row.graph) : lentMappedLook(row.graph, texture);
     if (texture !== undefined && (!mapped(material) || material.map !== texture)) throw new Error(`Cover look is not mapped: ${row.graph}`);
-    // QF21: params go to the compile these materials came from; a frame's owner can resolve the id to another lend
-    if (!this.lends.has(row.graph)) this.lends.set(row.graph, lentLooksOf(row.graph));
+    // QF21: params go to the compile these materials came from; a frame's owner can resolve the id to another lend. The
+    // book outlives a visit (one per product), so a material built again after re-entry takes the new visit's lend
+    this.lends.set(row.graph, lentLooksOf(row.graph));
     if (row.name !== undefined) material.name = row.name;
     Object.assign(material, row.properties);
     return material;
@@ -64,7 +65,11 @@ class CoverAppearanceBook {
     return geometry;
   }
   set(name: string, value: number | readonly number[]): void {
-    for (const id of this.graphs) { const lend = this.lends.get(id); if (lend === undefined) setLentParam(id, name, value); else lend.setParam(id, name, value); }
+    for (const id of this.graphs) {
+      const lend = this.lends.get(id);
+      // a lend retired with its visit (Pine's warm re-entry wrote the left visit's: "Material scope unloaded") falls back
+      if (lend === undefined || !isLent(lend)) { this.lends.delete(id); setLentParam(id, name, value); } else lend.setParam(id, name, value);
+    }
   }
   /** The view is already in world space for streams; fixed fields supply their frame. */
   update(viewer: Vector3, frame?: Matrix4, sun?: Color): void {
