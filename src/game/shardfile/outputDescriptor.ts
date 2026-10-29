@@ -122,6 +122,9 @@ async function ownedBuildIndex(input: unknown, reader: OutputDescriptorReader): 
   // Clone before the first caller pause/hash callback. Neither can mutate the
   // private snapshot while its canonical bytes are encoded and verified.
   const owned: unknown = structuredClone(input);
+  // The accessor/plain-data fence and owned copy above remain atomic. End
+  // their slice before encoding/hashing; callbacks can only mutate input.
+  await reader.pause?.();
   const digest = await reader.hash(await receiptBytes(owned, reader));
   if (!buildValidatedIndex(owned, digest)) return null;
   const receipt = indexReceipt(owned, digest);
@@ -197,7 +200,9 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
       if (bytes.length !== section.bytes || await reader.hash(bytes) !== section.hash) throw new Error('Cached shardfile section hash or size mismatch');
       reader.cacheHit?.(section.path, section.hash, bytes.length);
     }
+    if (reader.firstParty === true) await reader.pause?.();
     const value: unknown = reader.dataWorker === undefined ? JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) : await reader.dataWorker.parse(bytes);
+    if (reader.firstParty === true) await reader.pause?.();
     return [section.name, value];
   };
   // Each section is independently bounded; launch the complete inventory in

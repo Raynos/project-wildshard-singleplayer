@@ -124,5 +124,5 @@ export class DataPreparationWorker {
   }
 }
 let browserWorker: DataPreparationWorker | undefined;
-/** Called explicitly only by the Developer worker variant. No worker on import. */
+/** Called explicitly by the boot worker variant or live admission. No worker on import. */
 export function browserDataPreparation(): DataPreparationWorker { return (browserWorker ??= new DataPreparationWorker(pageScope)); }

@@ -20,7 +20,7 @@ import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { browserContentStore, contentHash } from './contentStore';
 import { packReads } from './packReads';
 import { productResourceRole } from './resourceRole';
-import { preflightShardfile } from '@wildshard/format/preflight';
+import { preflightProduct } from './productPreflight';
 
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
@@ -118,6 +118,7 @@ export class StaleClientError extends Error {
 export async function readIndexBytes(bytes: Uint8Array, options: ProductOptions): Promise<unknown> {
   const built = options.firstParty ? options.built : undefined;
   if (built !== undefined) await checkBuiltIndex(await options.hash(bytes), options);
+  await options.pause?.();
   return options.dataWorker === undefined ? JSON.parse(descriptorDecoder.decode(bytes)) : options.dataWorker.parse(bytes);
 }
 /** A first-party index whose bytes' `hash` this build does not list takes stale-client recovery (a no-op otherwise). */
@@ -322,7 +323,7 @@ export async function readProductDescriptor(options: ProductOptions, declaredUrl
       if ('error' in held) throw held.error;
       const previous = held.value;
       if (previous === null || previous === undefined || options.firstParty && !previous.firstParty) throw new Error('Shardfile download exceeded 3 seconds and has no visited offline copy');
-      preflightShardfile(previous);
+      await preflightProduct(previous, options.pause);
       if (!isOutputIndex(previous.source)) throw new Error('Cached shardfile requires a format-2 rebuild');
       // The visited JSON is canonicalized by the same writer as publication;
       // neither its saved receipt nor its firstParty flag replaces hash checks.
@@ -343,7 +344,7 @@ export async function readProductDescriptor(options: ProductOptions, declaredUrl
 export async function readProductInput(input: unknown, options: ProductOptions): Promise<Shardfile> {
   const assembled = await resolveDescriptor(input, options, false, true);
   if (isBuildValidatedOutput(assembled)) return assembled;
-  preflightShardfile(assembled);
+  await preflightProduct(assembled, options.pause);
   const source = await parseCheckedProduct(assembled);
   carryOutputDescriptor(assembled, source);
   return source;
@@ -391,7 +392,7 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
   const descriptorPath = options.descriptorPath ?? new URL(base).pathname;
   options.progress?.({ phase: 'cache-read', detail: `Checking visited product · ${descriptorPath}`, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0 });
   const visited = await waitFor(`Read visited product cache · ${descriptorPath}`, Promise.resolve(options.cache?.product(base)), 'file');
-  if (visited !== null && visited !== undefined) preflightShardfile(visited);
+  if (visited !== null && visited !== undefined) await preflightProduct(visited, options.pause);
   const cached = options.offline ? visited : null;
   if (cached !== null && cached !== undefined && !isOutputIndex(cached.source)) throw new Error('Cached shardfile requires a format-2 rebuild');
   const descriptorInput = cached?.source ?? input;
@@ -399,7 +400,7 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
   const raw = await resolveDescriptor(descriptorInput, options);
   trace?.mark('sections');
   await options.pause?.();
-  if (!isBuildValidatedOutput(raw)) preflightShardfile(raw);
+  if (!isBuildValidatedOutput(raw)) await preflightProduct(raw, options.pause);
   if (version(raw) !== SHARDFILE_VERSION) throw new Error('Shardfile needs the current format');
   const source = options.firstParty && isBuildValidatedOutput(raw) ? raw : await parseCheckedProduct(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
   carryOutputDescriptor(raw, source);
@@ -629,15 +630,18 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
   return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? { releaseTransport: transportRelease(source, assets, options), releasePreparedTransport: transportRelease(source, assets, options, true), ...completeCache === undefined ? {} : { completeCache } } : {}), ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
 }
 /** Browser Cache Storage retains exact hash bytes separately from the last completely admitted visited product. */
-export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partial<Pick<CacheStorage, 'delete'>>): ProductCache {
+export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partial<Pick<CacheStorage, 'delete'>>,
+  preparation: Pick<ProductOptions, 'pause' | 'dataWorker'> = {}): ProductCache {
   const open = () => storage.open(PRODUCT_CACHE_NAME);
   const productUrl = (base: string) => new URL('__visited_shardfile__', base).href;
   const ownedContent = browserContentStore(storage);
   return {
     product: async (base) => {
       const response = await (await open()).match(productUrl(base)); if (response === undefined) return null;
-      const value: unknown = JSON.parse(descriptorDecoder.decode(await boundedResponse(response, limits.sourceBytes)));
-      preflightShardfile(value);
+      const bytes = await boundedResponse(response, limits.sourceBytes);
+      await preparation.pause?.();
+      const value: unknown = preparation.dataWorker === undefined ? JSON.parse(descriptorDecoder.decode(bytes)) : await preparation.dataWorker.parse(bytes);
+      await preflightProduct(value, preparation.pause);
       if (typeof value !== 'object' || value === null || !('source' in value) || !('firstParty' in value) || typeof value.firstParty !== 'boolean') throw new Error('Invalid visited shardfile cache');
       const rawValidation = 'validation' in value ? value.validation : undefined;
       const validation = typeof rawValidation === 'object' && rawValidation !== null && 'sourceHash' in rawValidation && typeof rawValidation.sourceHash === 'string' ? readValidationReceipt(rawValidation, rawValidation.sourceHash) : null;

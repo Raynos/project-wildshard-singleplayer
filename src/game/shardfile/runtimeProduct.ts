@@ -84,7 +84,13 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     pageScope.onDispose(() => { entryTransport()?.stop(); });
   }
   prepareContentHash();
-  const preparation = dataPreparation() === 'workers' ? browserDataPreparation() : undefined;
+  // Boot keeps its explicit variant. In play, parsing/receipt encoding must
+  // not join a frame's render or other cells' admission on the page thread.
+  const preparation = dataPreparation() === 'workers' || productControlsReady ? browserDataPreparation() : undefined;
+  const pause = pauseDescriptor();
+  const dataWorker = preparation === undefined ? undefined : {
+    parse: (bytes: Uint8Array) => preparation.parse(bytes), receipt: (value: unknown) => preparation.receipt(value),
+  };
   const verifiedHash = async (bytes: Uint8Array): Promise<string> => {
     const result = await browserContentHash(bytes);
     entryTransport()?.expand();
@@ -103,7 +109,7 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     const sent = await waitFor(`Verify ${productResourceRole(path.href)}`, content.fetchVerified(path.href, hash, bytes, { reply: 'bytes', urlCache: indexed !== undefined }), 'worker');
     return sent === null || sent.fetched === null ? null : { bytes: sent.fetched, cached: sent.cached, stored: sent.stored };
   } : undefined;
-  return { ...(preparation === undefined ? {} : { dataWorker: { parse: (bytes: Uint8Array) => preparation.parse(bytes), receipt: (value: unknown) => preparation.receipt(value) } }), base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: verifiedHash, hashOwned: hashOwnedBytes,
+  return { ...(dataWorker === undefined ? {} : { dataWorker }), base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: verifiedHash, hashOwned: hashOwnedBytes,
     backgroundFetch: (url, signal) => fetch(url, { priority: 'low', ...(signal === undefined ? {} : { signal }) }),
     fetch: (url, signal) => waitFor(`Read ${productResourceRole(url, base)}`, (async () => {
       if (indexed !== undefined && new URL(url, base).pathname.endsWith('/shard.json')) {
@@ -134,9 +140,9 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
       if (signal.aborted) owner.dispose();
       return nextDrawnFrame(owner).finally(() => { owner.dispose(); });
     },
-    pause: pauseDescriptor(), cacheBatch: true,
+    pause, cacheBatch: true,
     ...(firstParty && builtIndexes !== null ? { built: { indexes: builtIndexes, stale: staleRecovery } } : {}),
-    ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),
+    ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches, { pause, ...(dataWorker === undefined ? {} : { dataWorker }) }) }),
   };
 }
 
@@ -150,7 +156,7 @@ function pauseDescriptor(): () => Promise<void> {
       try {
         await (document.visibilityState !== 'visible' ? buildYield(pageScope)
           : new Promise<void>(resolve => { pageScope.raf(() => { pageScope.timeout(0, resolve); }); }));
-        slice = workSlice(undefined, pageScope);
+        slice = workSlice(productControlsReady ? 4 : undefined, pageScope);
       } finally { pending = undefined; }
     })();
     return pending;
