@@ -151,6 +151,7 @@ const STATIC_RE = /^\/assets\/(tex|models|hdri|baked|packs|nalati|gpu|title)\/|^
 const NETWORK_FIRST_RE = /^\/(asset-index\.json|sw\.js|manifest\.webmanifest)$/;
 
 const IMAGE_RE = /\.(jpe?g|png|webp|avif|gif|svg)$/;
+const BODYLESS_STATUSES = new Set([101, 103, 204, 205, 304]);
 
 /** the device says it has no network: answer from the cache instead of a fetch that can only fail */
 const offline = () => !self.navigator.onLine;
@@ -809,7 +810,7 @@ async function fetchAttempt(input, { stallMs = FETCH_ATTEMPT_MS, deadlineMs, onF
   });
   try {
     const res = await Promise.race([fetch(input, { signal: controller.signal }), deadline]);
-    if (res.body === null) return res;
+    if (res.body === null || BODYLESS_STATUSES.has(res.status)) return res;
     reset(); reader = res.body.getReader();
     if (!wholeCode(req)) {
       const stream = new ReadableStream({
@@ -860,6 +861,7 @@ const retryableResponse = response => response.status === 408 || response.status
 
 /** Report provenance through Resource Timing, without reading or copying the response body. */
 function transportReceipt(response, cached = false) {
+  if (response.body === null || BODYLESS_STATUSES.has(response.status)) return response;
   const headers = new Headers(response.headers);
   const previous = headers.get('server-timing');
   const bytes = Number(headers.get('content-length')) || 0;

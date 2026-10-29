@@ -968,3 +968,14 @@ test('build-named plain bakes reuse their content version without changing mutab
   expect(f.fetch).toHaveBeenCalledTimes(1);
   expect(f.responses.at(-1)?.headers.get('server-timing')).toContain('ws-cache');
 });
+
+
+test.each([200, 204, 205, 304])('a bodyless %i response passes through without stream/receipt reconstruction', async status => {
+  const response = new Response(null, { status });
+  const f = fixture(() => Promise.resolve(response));
+  await f.dispatch('fetch', { request: new Request(new URL('/bodyless', base)) });
+  expect(f.responses).toHaveLength(1);
+  expect(f.responses[0]).toBe(response);
+  expect(f.responses[0]?.body).toBeNull();
+  expect(f.responses[0]?.status).toBe(status);
+});
