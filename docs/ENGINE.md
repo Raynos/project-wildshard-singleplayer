@@ -994,6 +994,10 @@ exact same manifest URL, size, count and total. The title may paint that native
 fact synchronously at the tap; unknown/different lists get no completion.
 Its scoped `installEntryDownloadTap` callback retires on title leave, does no
 IO and cannot block navigation. No completion receipt is persisted.
+The last-title scheduling preference stores only shard and client/grid flow;
+version-one names migrate as client flow. It selects that exact spawn list
+and current grid mode. Tier preference is re-read for the fresh entry at tap,
+so a pending Settings change cannot paint another tier's completed list.
 
 `Loading.setPrefetchSource(read)` reports the separate on-disk prefetch set,
 its known files/bytes, products checked and quota/failure state. These facts

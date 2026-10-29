@@ -33,7 +33,7 @@ import {TIER, MOBILE_DEVICE, type Tier} from '@wildshard/engine/core/tier';
 import { prefetchRing } from './titleOrder';
 import {prefetchSpawnDownload, adoptCompletedSpawnDownload, paintSpawnDownload} from '../boot/spawnDownload';
 import {installEntryDownloadTap} from '../shardfile/entryTransport';
-import {setting} from '@wildshard/engine/ui/Settings';
+import {setting, savedSetting, settingFromUrl} from '@wildshard/engine/ui/Settings';
 import {gridMode, DEVSERVER} from './menu';
 
 /** Files in flight at once: the page's own reads keep most of the pipe. */
@@ -273,15 +273,17 @@ function launchPrefetch(run: GridPrefetch): void {
 }
 /** G897: only the last selected shard's spawn files, not whole products or
  * neighbouring worlds. Foreground adoption retains the same cache operation. */
-export function startTitlePrefetch(slugs: readonly string[]): {snapshot: () => GridPrefetchStatus; stop: () => void} | null {
+export function startTitlePrefetch(slugs: readonly string[], flow: 'client' | 'grid' = 'client', gridKey = '000'): {snapshot: () => GridPrefetchStatus; stop: () => void} | null {
   const target = slugs.at(-1); if (target === undefined || typeof caches === 'undefined') return null;
-  const preferred = setting('tier'), tier = preferred === 'auto' ? TIER : preferred;
-  const held = prefetchSpawnDownload(target, tier); if (held === null) return null;
-  const stopTap = installEntryDownloadTap((slug, flow) => {
+  const futureTier = (): 'auto' | Tier => settingFromUrl('tier') ? setting('tier') : savedSetting('tier');
+  const preferred = futureTier(), tier = preferred === 'auto' ? TIER : preferred;
+  const held = prefetchSpawnDownload(target, tier, flow, gridKey); if (held === null) return null;
+  const stopTap = installEntryDownloadTap((slug, selectedFlow) => {
+    const picked = futureTier(), selectedTier = picked === 'auto' ? TIER : picked;
     // Auto desktop still needs its actual GPU pick. Never paint a guessed tier.
-    if (preferred === 'auto' && !MOBILE_DEVICE) return false;
+    if (picked === 'auto' && !MOBILE_DEVICE) return false;
     const card = document.querySelector<HTMLElement>('.ws-load'); if (card === null) return false;
-    const mode = gridMode(DEVSERVER), selected = adoptCompletedSpawnDownload(slug, flow, tier,
+    const mode = gridMode(DEVSERVER), selected = adoptCompletedSpawnDownload(slug, selectedFlow, selectedTier,
       `${Number(mode.developer)}${Number(mode.devserver)}${Number(mode.nineDragon)}`);
     if (selected === null) return false;
     paintSpawnDownload(selected, card)(); return true;

@@ -5,7 +5,8 @@ import type {TitleManifest} from '../shard/titleList';
 /** A scheduling preference only; it cannot select a world or admit a file. */
 export interface TitlePrefetchChoice {
   readonly read: () => string | null;
-  readonly remember: (slug: string) => void;
+  readonly flow: () => 'client' | 'grid';
+  readonly remember: (slug: string, flow?: 'client' | 'grid') => void;
 }
 const choices = new WeakMap<Pick<SaveStore, 'define'>, TitlePrefetchChoice>();
 /** Define lazily at the composition root; importing this module installs no
@@ -13,9 +14,12 @@ const choices = new WeakMap<Pick<SaveStore, 'define'>, TitlePrefetchChoice>();
 export function titlePrefetchChoice(store: Pick<SaveStore, 'define'>): TitlePrefetchChoice {
   const previous = choices.get(store);
   if (previous !== undefined) return previous;
-  const schema = v.nullable(v.pipe(v.string(), v.maxLength(120), v.regex(/^[a-z0-9_-]+$/u)));
-  const slot = store.define({key: 'titlePrefetch', scope: 'device', version: 1, schema, initial: (): string | null => null});
-  const choice = {read: () => slot.read(), remember: (slug: string): void => {slot.write(slug);}};
+  const slug = v.pipe(v.string(), v.maxLength(120), v.regex(/^[a-z0-9_-]+$/u));
+  const schema = v.nullable(v.strictObject({slug, flow: v.picklist(['client', 'grid'])}));
+  const slot = store.define({key: 'titlePrefetch', scope: 'device', version: 2, schema, initial: () => null,
+    migrate: {1: (old: unknown) => typeof old === 'string' ? {slug: old, flow: 'client'} : null}});
+  const choice: TitlePrefetchChoice = {read: () => slot.read()?.slug ?? null, flow: () => slot.read()?.flow ?? 'client',
+    remember: (selected, flow = 'client'): void => {slot.write({slug: selected, flow});}};
   choices.set(store, choice);
   return choice;
 }

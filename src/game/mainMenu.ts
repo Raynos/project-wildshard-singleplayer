@@ -154,7 +154,7 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
   };
   deck.onTap(selectCard, () => { show('select'); deck.start(); });
   const gridCard = main.querySelector('.ws-main-grid');
-  if (gridCard instanceof HTMLButtonElement) deck.onTap(gridCard, () => { if (gridEntryShown(mode())) { leaveTitle(); onGrid(); } });
+  if (gridCard instanceof HTMLButtonElement) deck.onTap(gridCard, () => { if (gridEntryShown(mode())) { onGrid(); leaveTitle(); } });
   // PL13: only the home/last product, after the title paints. This is verified
   // disk prefetch, never world construction or a hidden offline-size scan. It shows nothing (QB2).
   let started = false;
@@ -162,11 +162,13 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
     if (started || opts.active !== null) return;
     started = true;
     owner.raf(() => {
-      const targets = titlePrefetchTargets(titlePrefetchOrder(gridMode(mode().devserver, mode()))[0], titlePrefetchChoice(saves).read(), titleManifests(), mode().developer);
+      const choice = titlePrefetchChoice(saves), selectedMode = gridMode(mode().devserver, mode());
+      const targets = titlePrefetchTargets(titlePrefetchOrder(selectedMode)[0], choice.read(), titleManifests(), mode().developer);
+      const flow = targets.at(-1) === choice.read() ? choice.flow() : 'client';
       const load = async (): Promise<void> => {
         const {startTitlePrefetch} = await import('./grid/prefetch');
         if (owner.disposed || leavingTitle) return;
-        const run = startTitlePrefetch(targets);
+        const run = startTitlePrefetch(targets, flow, `${Number(selectedMode.developer)}${Number(selectedMode.devserver)}${Number(selectedMode.nineDragon)}`);
         if (run === null) return;
         stopReadAhead = run.stop;
         owner.onDispose(run.stop);

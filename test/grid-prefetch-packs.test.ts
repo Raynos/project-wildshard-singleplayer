@@ -11,7 +11,7 @@ const initialStorage = globalThis.localStorage;
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); vi.stubGlobal('localStorage', initialStorage); });
 
 // iPhone downloads I5: the grid prefetch stores a pack's members from one read of the pack, never their own paths.
-test.each(['play', 'title', 'title-stop', 'title-adopt'] as const)('%s uses its exact transport and preserves title cancellation ownership', async mode => {
+test.each(['play', 'title', 'title-stop', 'grid-title', 'title-adopt'] as const)('%s uses its exact transport and preserves title cancellation ownership', async mode => {
   const first = new Uint8Array([1, 2]), second = new Uint8Array([3]);
   const hashes = [hashImmutableBytes(first), hashImmutableBytes(second)];
   const packBytes = new Uint8Array([...first, ...second]), packHash = hashImmutableBytes(packBytes), packPath = `blobs/pack/${packHash}.pack`;
@@ -31,11 +31,12 @@ test.each(['play', 'title', 'title-stop', 'title-adopt'] as const)('%s uses its 
   try {previous = titleManifests();} catch { /* This isolated test need not install runnable worlds. */ }
   installTitleManifests([title]);
   const reads: string[] = [], disk = new Map<string, Response>();
-  const spawn = JSON.stringify({version: 1, shard: '_template', tier: 'phone', flow: 'client', totalBytes: 3,
+  const spawn = JSON.stringify({version: 1, shard: '_template', tier: 'phone', flow: mode === 'grid-title' ? 'grid' : 'client', totalBytes: 3,
     files: [first, second].map((bytes, i) => ({url: `/alpha/blobs/bin/${hashes[i] ?? ''}.bin`, hash: hashes[i], bytes: bytes.length}))});
   const address = {url: `/assets/spawn/template-${mode}-1234567890abcdef.json`, bytes: spawn.length, totalBytes: 3, files: 2};
   vi.stubGlobal('document', {baseURI: 'http://localhost/', getElementById: () => ({textContent: JSON.stringify({spawnManifests: {
-    cacheName: 'ws-assets-v1', client: {_template: {phone: address, desktop: address}}}})})});
+    cacheName: 'ws-assets-v1', client: {_template: {phone: address, desktop: address}},
+    grid: {'100': {_template: {phone: address, desktop: address}}}}})})});
   const urlOf = (input: RequestInfo | URL): string => input instanceof Request ? input.url : String(input);
   const cache: Cache = {
     add: () => Promise.reject(new Error('Unexpected unverified cache add')),
@@ -64,7 +65,7 @@ test.each(['play', 'title', 'title-stop', 'title-adopt'] as const)('%s uses its 
       : url.endsWith(`${hashes[1] ?? ''}.bin`) ? new Response(second) : new Response(null, {status: 404}));
   });
   try {
-    const titleRun = mode === 'play' ? null : startTitlePrefetch(['never-read', '_template']);
+    const titleRun = mode === 'play' ? null : startTitlePrefetch(['never-read', '_template'], mode === 'grid-title' ? 'grid' : 'client', '100');
     if (mode === 'play') startGridPrefetch(['_template']);
     else expect(titleRun).not.toBeNull();
     if (mode === 'title-adopt') {

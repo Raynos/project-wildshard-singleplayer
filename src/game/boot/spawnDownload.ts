@@ -111,9 +111,9 @@ export function startSpawnDownload(slug: string, flow: 'client' | 'grid', tier: 
 }
 /** Title read-ahead borrows this same manifest operation. Leaving the title
  * cancels only an unadopted prefetch, never a tap's foreground download. */
-export function prefetchSpawnDownload(slug: string, tier: 'phone' | 'desktop'): {download: SpawnDownload; stop: () => void} | null {
+export function prefetchSpawnDownload(slug: string, tier: 'phone' | 'desktop', flow: 'client' | 'grid' = 'client', mode = '000'): {download: SpawnDownload; stop: () => void} | null {
   if (current?.foreground === true) return null;
-  const download = spawnDownload(slug, 'client', tier, '000', false);
+  const download = spawnDownload(slug, flow, tier, mode, false);
   return download === null ? null : {download, stop: () => {
     if (current?.download === download && !current.foreground) {download.cancel(); current = undefined;}
   }};
@@ -160,8 +160,8 @@ const mb = (bytes: number): string => `${(bytes / 1_000_000).toFixed(bytes >= 10
  * composition root unsubscribes when Loading adopts this same download. */
 export function paintSpawnDownload(download: SpawnDownload, root: HTMLElement): () => void {
   return download.subscribe(row => {
-    const percent = row.complete ? 100 : row.totalBytes === 0 ? 0 : Math.min(99, Math.floor(row.completedBytes / row.totalBytes * 100));
-    root.dataset['download'] = String(percent); root.dataset['entryDownloadBytes'] = String(row.totalBytes);
+    const percent = row.complete ? 100 : row.totalBytes === 0 ? null : Math.min(99, Math.floor(row.completedBytes / row.totalBytes * 100));
+    root.dataset['download'] = percent === null ? '' : String(percent); root.dataset['entryDownloadBytes'] = String(row.totalBytes);
     root.dataset['declaredBytes'] = String(row.totalBytes); root.dataset['pendingBytes'] = String(row.totalBytes - row.completedBytes);
     root.dataset['cachedBytes'] = String(row.cachedBytes);
     root.dataset['readBytes'] = String(row.completedBytes); root.dataset['readCachedBytes'] = String(row.cachedBytes);
@@ -169,7 +169,7 @@ export function paintSpawnDownload(download: SpawnDownload, root: HTMLElement): 
     root.dataset['spawnFilesDone'] = String(row.filesDone); root.dataset['spawnFilesTotal'] = String(row.filesTotal);
     const fact = root.querySelector('[data-el="dlFact"]'), pct = root.querySelector('[data-el="dlPct"]'), bar = root.querySelector<HTMLElement>('[data-el="dlBar"]');
     if (fact !== null) fact.textContent = `Spawn view · ${mb(row.completedBytes)}${row.complete ? '' : ` of ${mb(row.totalBytes)}`} · ${mb(row.cachedBytes)} from cache`;
-    if (pct !== null) pct.textContent = String(percent);
-    if (bar !== null) bar.style.width = `${percent}%`;
+    if (pct !== null) pct.textContent = percent === null ? '—' : String(percent);
+    if (bar !== null) bar.style.width = `${percent ?? 0}%`;
   });
 }
