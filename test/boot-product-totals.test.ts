@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { bootProductTotals, productDownloadTotal, homeClientModuleGroups } from '../scripts/app-build/bootProducts';
 import {bootTierProductTotals} from '../scripts/app-build/bootProductTiers';
+import {readOutputDownloadIndex} from '../src/format/outputDownload';
 import { outputSectionPayloads } from '../src/format/outputFields';
 // oxlint-disable-next-line import/no-nodejs-modules -- Record exact section hashes in the real output fixture.
 import { createHash } from 'node:crypto';
@@ -21,6 +22,14 @@ const index = { format: 'wildshard.shardfile', formatVersion: 2, sdk: '0.2', ver
 
 const tierCases = [null,{kind:'client-plan'}].flatMap(runtime =>
   [false,true].flatMap(cover => [false,true].map(sharedImage => ({runtime,cover,sharedImage}))));
+
+test('the download metadata intake retains the native tier and variant selectors', () => {
+  const files = [{...index.files[0], tier: 'phone', variantOf: 'ground'}, {...index.files[0],
+    hash: '1'.repeat(64), path: `blobs/bin/${'1'.repeat(64)}.bin`, tier: 'desktop', variantOf: 'ground'}];
+  expect(readOutputDownloadIndex({...index, files}).files).toEqual(files.map(file => ({path: file.path,
+    hash: file.hash, compressed: file.compressed, tier: file.tier, variantOf: file.variantOf})));
+  expect(() => readOutputDownloadIndex({...index, files: [{...files[0], tier: 'tablet'}]})).toThrow();
+});
 test.each(tierCases)('compiler entry totals retain selected/shared files (runtime $runtime, cover $cover, shared image $sharedImage)',({runtime,cover,sharedImage})=>{
   mkdirSync('tmp/vite-boot-products',{recursive:true});
   const root=mkdtempSync(resolve('tmp/vite-boot-products/tier-'));
@@ -30,6 +39,9 @@ test.each(tierCases)('compiler entry totals retain selected/shared files (runtim
     const phone=digest('phone'),desktop=digest('desktop'),image=digest('image');
     row.files.push(...[phone,desktop].map((assetHash,i)=>({hash:assetHash,kind:'binary' as const,compressed:i+1,decoded:i+1,gpu:0,triangles:0,draws:0,dependencies:[],critical:false})));
     row.library.push(phone,desktop);row.budgets.library={compressed:3,resident:3};
+    const tierOnly=digest('desktop-only'),smallVariant=digest('small-variant'),largeVariant=digest('large-variant');
+    row.files.push(...[tierOnly,smallVariant,largeVariant].map((assetHash,i)=>({hash:assetHash,kind:'binary' as const,compressed:i+3,decoded:i+3,gpu:0,triangles:0,draws:0,dependencies:[],critical:false})));
+    row.library.push(tierOnly,smallVariant,largeVariant);row.budgets.library.compressed+=12;row.budgets.library.resident+=12;
     row.files.push({hash:image,kind:'image',compressed:13,decoded:56,gpu:4,triangles:0,draws:0,dependencies:[],critical:false});
     row.library.push(image);row.budgets.library.compressed+=13;row.budgets.library.resident+=60;
     const product=resolve(root,'out/tier-total');mkdirSync(product,{recursive:true});
@@ -51,7 +63,9 @@ test.each(tierCases)('compiler entry totals retain selected/shared files (runtim
     for(let i=0;i<row.files.length;i++) {
       const file=row.files[i];if(file===undefined)throw new Error('Missing tier fixture file');
       files.push(file.kind==='image'?{...file,path:`blobs/image/${file.hash}.png`}
-        :{...file,kind:'bin',name:i===0?'phone.bin':'desktop.bin',path:`blobs/bin/${file.hash}.bin`});
+        :{...file,kind:'bin',name:i===0?'phone.bin':i===1?'desktop.bin':`extra-${i}.bin`,path:`blobs/bin/${file.hash}.bin`,
+          ...(file.hash===tierOnly?{tier:'desktop'}:{}),
+          ...(file.hash===smallVariant||file.hash===largeVariant?{variantOf:'same-payload'}:{})});
     }
     const data={...index,runtime,identity:row.identity,requires:row.requires,
       admission:{budgets:row.budgets,serverBudget:row.serverBudget,authorCaps:row.authorCaps,critical:row.critical,library:row.library},
@@ -59,7 +73,7 @@ test.each(tierCases)('compiler entry totals retain selected/shared files (runtim
     const text=JSON.stringify(data);writeFileSync(resolve(product,'shard.json'),text);
     const full=productDownloadTotal(data,Buffer.byteLength(text));
     const omittedImage=sharedImage?0:13;
-    expect(bootTierProductTotals(root)).toEqual({'/shardfiles/tier-total/':[full[0],full[1],full[1]-2-omittedImage,full[1]-1-omittedImage]});
+    expect(bootTierProductTotals(root)).toEqual({'/shardfiles/tier-total/':[full[0],full[1],full[1]-2-omittedImage-3-4,full[1]-1-omittedImage-4]});
     writeFileSync(resolve(product,`sections/${selectedSection}.json`),'{}');
     expect(()=>bootTierProductTotals(root)).toThrow('Boot tier section differs');
   } finally {rmSync(root,{recursive:true,force:true});}
