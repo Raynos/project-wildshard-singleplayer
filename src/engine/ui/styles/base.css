@@ -32,7 +32,10 @@ html, body { margin: 0; padding: 0; overflow: clip; height: 100%; background: #0
    a status bar short and left a black strip over the home indicator, E46); fixed, so body's overflow clip can't cut them */
 #game { position: fixed; left: 0; top: 0; display: block; width: 100vw; height: var(--ws-vh, 100vh); touch-action: none; }
 #hud button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-#hud { position: fixed; inset: 0 0 auto; height: var(--ws-vh, 100%); pointer-events: none; font-family: var(--ws-mono); color: var(--ws-text); user-select: none; overflow: hidden; }
+/* overflow: clip, not hidden: hidden made #hud a scroll container, and the speed-streak layers' negative insets (gridHud.css
+   .ws-grid-speed inset -12%, game.css .ws-game-speed) gave it ~82 px to scroll; Chromium's scroll-into-view before a tap slid
+   the whole HUD up under the finger (the release smoke's HOVER tap, 2026-10-29). clip clips the same and can never scroll. */
+#hud { position: fixed; inset: 0 0 auto; height: var(--ws-vh, 100%); pointer-events: none; font-family: var(--ws-mono); color: var(--ws-text); user-select: none; overflow: clip; }
 #hud * { box-sizing: border-box; }
 
 .ws-glass {
