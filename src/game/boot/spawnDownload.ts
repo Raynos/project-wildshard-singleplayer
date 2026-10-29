@@ -9,6 +9,8 @@ export interface SpawnDownloadSnapshot {
 export interface SpawnDownloadPorts {
   readonly fetch: (url: string, signal: AbortSignal) => Promise<Response>;
   readonly cached: (url: string) => Promise<Response | undefined>;
+  /** Native bulk metadata only: returned URLs must have complete 200 bodies. */
+  readonly present?: (urls: readonly string[]) => Promise<ReadonlySet<string>>;
   /** First install has no controller. Publish into the same worker cache. */
   readonly store?: (url: string, response: Response) => Promise<void>;
 }
@@ -38,13 +40,15 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       const files = manifest.files.map(file => {
         const url = new URL(file.url, base); aliases.set(url.pathname, url.href); return {bytes: file.bytes, hash: file.hash, url: url.href};
       });
-      // One concurrent native presence census, not serial cache-body reads.
-      const cached = await Promise.all(files.map(file => ports.cached(file.url)));
+      const present = await ports.present?.(files.map(file => file.url));
+      // Bulk native metadata avoids hundreds of cache IPC calls. Unmapped
+      // responses (older synthetic URLs/redirects) retain the exact hit check.
+      const cached = await Promise.all(files.map(file => present?.has(file.url) === true ? Promise.resolve(undefined) : ports.cached(file.url)));
       controller.signal.throwIfAborted();
       const missing: typeof files = [];
       for (let index = 0; index < files.length; index++) {
         const file = files[index]; if (file === undefined) throw new Error('Missing spawn file');
-        if (cached[index]?.status === 200) { completedBytes += file.bytes; cachedBytes += file.bytes; filesDone++; }
+        if (present?.has(file.url) === true || cached[index]?.status === 200) { completedBytes += file.bytes; cachedBytes += file.bytes; filesDone++; }
         else missing.push(file);
       }
       if (missing.length === 0) { complete = true; publish(); return; }
@@ -110,6 +114,11 @@ function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'd
   const download = downloadSpawnManifest(address, {
     fetch: (url, signal) => fetch(url, {signal}),
     cached: async url => typeof caches === 'undefined' ? undefined : store === null ? caches.match(url, {ignoreVary: true}) : (await store).match(url, {ignoreVary: true}),
+    ...(store === null ? {} : {present: async (urls: readonly string[]) => {
+      const wanted = new Set(urls), found = new Set<string>();
+      for (const response of await (await store).matchAll()) if (response.status === 200 && wanted.has(response.url)) found.add(response.url);
+      return found;
+    }}),
     ...(store === null || controller !== undefined && controller !== null ? {} : {store: async (url: string, response: Response) => {await (await store).put(url, response);}}),
   }, document.baseURI);
   current?.download.cancel(); current = {url: address.url, download, foreground}; return download;

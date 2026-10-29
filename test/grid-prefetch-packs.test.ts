@@ -39,7 +39,7 @@ test.each(['play', 'title', 'title-stop', 'title-adopt'] as const)('%s uses its 
   const cache: Cache = {
     add: () => Promise.reject(new Error('Unexpected unverified cache add')),
     addAll: () => Promise.reject(new Error('Unexpected unverified cache addAll')),
-    matchAll: () => Promise.reject(new Error('Unexpected bulk cache read')),
+    matchAll: () => Promise.resolve([...disk.values()].map(response => response.clone())),
     match: (input: RequestInfo | URL) => Promise.resolve(disk.get(urlOf(input))?.clone()),
     put: (input: RequestInfo | URL, response: Response): Promise<void> => {disk.set(urlOf(input), response.clone()); return Promise.resolve();},
     delete: (input: RequestInfo | URL) => Promise.resolve(disk.delete(urlOf(input))),

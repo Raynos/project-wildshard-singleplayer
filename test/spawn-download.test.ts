@@ -33,6 +33,18 @@ test('a warm list completes from native presence without fetching or reading any
   expect(download.snapshot()).toMatchObject({complete: true, completedBytes: 7, cachedBytes: 7, filesDone: 2});
 });
 
+test('one native metadata census completes a warm list without per-file cache calls', async () => {
+  const cached = vi.fn((url: string) => {
+    if (!url.endsWith('.json')) throw new Error('Unexpected individual file census');
+    return Promise.resolve(new Response(text));
+  });
+  const present = vi.fn((urls: readonly string[]) => Promise.resolve(new Set(urls))), fetch = vi.fn(() => Promise.reject(new Error('Unexpected warm network')));
+  const download = downloadSpawnManifest(address, {cached, present, fetch}, base); await download.ready;
+  expect(present).toHaveBeenCalledExactlyOnceWith(files.map(row => new URL(row.url, base).href));
+  expect(cached).toHaveBeenCalledTimes(1); expect(fetch).not.toHaveBeenCalled();
+  expect(download.snapshot()).toMatchObject({complete: true, cachedBytes: 7, filesDone: 2});
+});
+
 test.each([2, 5])('a short/oversized body (%s) never completes or exceeds the manifest total', async count => {
   const download = downloadSpawnManifest({...address, files: 1, totalBytes: 4, bytes: JSON.stringify({...manifest, files: [files[0]], totalBytes: 4}).length}, {
     cached: () => Promise.resolve(undefined), fetch: url => Promise.resolve(new Response(url.endsWith('.json') ? JSON.stringify({...manifest, files: [files[0]], totalBytes: 4}) : new Uint8Array(count))),

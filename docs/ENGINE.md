@@ -958,17 +958,14 @@ cache presence needs no body read or checksum. First installs fill the same
 cache. No timer or receipt finishes it. Loading.setDownloadSource(source)
 returns that ready promise; plan completion
 cannot finish a pending manifest. Later streams remain outside the list.
+`SpawnDownloadPorts.present(urls)` may supply a native 200-response URL census;
+unmapped responses retain individual presence checks. No cache body is read.
+Manifest entries start no automatic whole-product copy or ring prefetch in play;
+late title read-ahead cannot replace the foreground operation.
 
 `Loading.setPrefetchSource(read)` reports the separate on-disk prefetch set,
 its known files/bytes, products checked and quota/failure state. These facts
 never credit the home download track or delay gameplay.
-
-`DownloadAccounting.expect(bytes)` sets one immutable build-owned entry total;
-`DownloadSnapshot.expectedBytes` carries it separately from later file
-declarations and receipts. The tap shell, first document and Loading share
-that flow/home/tier total. Setup completion grants no download completion.
-Network and cache receipts keep their existing units. Unknown worker sizes
-remain unclassified, not zero-byte cache hits or invented wire receipts.
 
 `waitFor(label, promise, kind?, resource?)` observes already-started work
 and removes it on either outcome. `bootWaits()` reads the same first-HTML
