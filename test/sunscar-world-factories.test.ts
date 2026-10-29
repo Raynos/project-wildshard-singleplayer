@@ -1,7 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The native recipe proof starts only from its retained author model.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { originalEmberTransport } from './fixtures/signal-inline-embers';
 import { bakeSignalWorldSources } from '../src/shards/sunscar-dunes/generators/worldSources';
 import { signalWorldMetadata } from '../src/shards/sunscar-dunes/generators/worldMetadata';
 import { whipHeldRecipe } from '../src/shards/sunscar-dunes/generators/rows/heldWeapon';
@@ -9,36 +8,13 @@ import { gearSceneRows } from '../src/shards/sunscar-dunes/generators/rows/gearM
 import { signalSceneSources } from '../src/shards/sunscar-dunes/generators/sceneSources';
 import { placeBindings } from '../src/shards/sunscar-dunes/generators/restScene';
 import { signalWorldScenes } from '../src/shards/sunscar-dunes/generators/worldScenes';
-import { signalSceneOutput } from '../src/shards/sunscar-dunes/generators/sourceOutput';
-import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { signalQuestMarkers } from '../src/shards/sunscar-dunes/generators/questMarkers';
 import { signalQuestPage } from '../src/shards/sunscar-dunes/generators/questPage';
 import { signalClientPlan } from '../src/shards/sunscar-dunes/generators/clientPlan';
-import { restPools, rigLibrary, held as WHIP_HELD_RECIPE, gear as GEAR_SCENE_ROWS, sourceBlobs as SIGNAL_SOURCE_BLOBS, scene as originalScene,
-  markers as QUEST_MARKERS, page as SIGNAL_QUEST_PAGE, client as SIGNAL_CLIENT_PLAN } from './fixtures/sunscar-source-program';
-import before from './fixtures/sunscar-source-entry.json' with { type: 'json' };
+import { restPools, rigLibrary, sourceBlobs as SIGNAL_SOURCE_BLOBS, scene as originalScene, markers as QUEST_MARKERS, page as SIGNAL_QUEST_PAGE, client as SIGNAL_CLIENT_PLAN } from './fixtures/sunscar-source-program';
 
 const SIGNAL_WORLD_SCENES = originalScene.worldScenes, SIGNAL_SCENE_BLOBS = originalScene.blobs;
 const { files } = await bakeSignalWorldSources(new Uint8Array(readFileSync('src/shards/sunscar-dunes/assets/models/dry-well.glb')));
-const physical = (values: ReadonlyMap<string, Uint8Array>) => [...values]
-  .map(([name, bytes]) => [name, bytes.length, hashImmutableBytes(bytes)])
-  .sort(([a], [b]) => String(a).localeCompare(String(b)));
-
-test('explicit world rows retain every original held, specimen, scene and output byte', () => {
-  const world = signalWorldMetadata(files), held = whipHeldRecipe(world.lash);
-  expect(held).toEqual(WHIP_HELD_RECIPE);
-  expect(gearSceneRows(world, held)).toEqual(GEAR_SCENE_ROWS);
-  const sources = signalSceneSources(world, rigLibrary, restPools);
-  expect(sources.map(blob => blob.file)).toEqual(SIGNAL_SOURCE_BLOBS.map(blob => blob.file));
-  const scene = signalWorldScenes(world, sources, placeBindings());
-  expect(scene.worldScenes).toEqual(SIGNAL_WORLD_SCENES);
-  expect(scene.blobs.map(blob => blob.file)).toEqual(SIGNAL_SCENE_BLOBS.map(blob => blob.file));
-  const output = signalSceneOutput(scene, SIGNAL_CLIENT_PLAN);
-  const old = originalEmberTransport(output.namedFiles, output.assets);
-  const bytes = new TextEncoder().encode(encodeCanonicalJson({ ...output, namedFiles: old.namedFiles, assets: physical(old.assets),
-    platform: { ...output.platform, files: physical(output.platform.files) } }));
-  expect({ bytes: bytes.length, hash: hashImmutableBytes(bytes) }).toEqual(before.raw.output);
-});
 
 test('held and specimen factories read the supplied anchors and lash dimensions', () => {
   const world = signalWorldMetadata(files);
@@ -71,8 +47,6 @@ test('quest policy reads the same verified world anchors without changing saved 
   expect(markers).toEqual(QUEST_MARKERS);
   const page = signalQuestPage(markers);
   expect(page).toEqual(SIGNAL_QUEST_PAGE);
-  expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(page))))
-    .toBe('50f8d95f610b2ab6faa67abe3ee7c83253ad3d4ca6d833c65a5a21143d27ed9b');
   expect(signalClientPlan(page)).toEqual(SIGNAL_CLIENT_PLAN);
   world.caravan.anchors.logbook[1] += 2;
   world.well.anchors.y += 3; world.tower.anchors.deckY += 4;

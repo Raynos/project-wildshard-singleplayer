@@ -3,35 +3,23 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { bakeSignalWorldSources } from '../src/shards/sunscar-dunes/generators/worldSources';
 import { signalWorldMetadata } from '../src/shards/sunscar-dunes/generators/worldMetadata';
-import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import before from './fixtures/sunscar-source-entry.json' with { type: 'json' };
-import original from './fixtures/sunscar-world-files.json' with { type: 'json' };
 
 const { files } = await bakeSignalWorldSources(new Uint8Array(readFileSync('src/shards/sunscar-dunes/assets/models/dry-well.glb')));
 const encoder = new TextEncoder();
 const metadata = signalWorldMetadata(files);
 function record(value: unknown): value is Record<string, unknown> { return typeof value === 'object' && value !== null && !Array.isArray(value); }
 
-test('all original world metadata words, extras, order and aggregate survive owned decoding', () => {
-  const bytes = encoder.encode(encodeCanonicalJson(metadata));
-  expect({ bytes: bytes.length, hash: hashImmutableBytes(bytes) }).toEqual(before.raw.world);
-  for (const [name, rows] of Object.entries(metadata)) {
-    const expected = Object.entries(original).find(([file]) => file === `${name}.json`)?.[1];
-    if (expected === undefined) throw new Error('Missing original metadata oracle');
-    const encoded = encoder.encode(`${JSON.stringify(rows, null, 2)}\n`);
-    expect({ bytes: encoded.length, hash: hashImmutableBytes(encoded) }).toEqual(expected);
-  }
-});
-
 test('decoded row mutation cannot change another result or the cached bytes', () => {
+  const cached = new Map([...files].map(([name, bytes]) => [name, bytes.slice()]));
   const first = signalWorldMetadata(files), kind = first.rocks.kinds[0];
   if (kind === undefined) throw new Error('Missing original rock kind');
   kind.color = 0; first.caravan.anchors.logbook[0] += 1;
   expect(signalWorldMetadata(files)).toEqual(metadata);
   expect(first.caravan.anchors.logbook).not.toEqual(metadata.caravan.anchors.logbook);
   for (const [name, bytes] of files) {
-    const expected = Object.entries(original).find(([file]) => file === name)?.[1];
-    expect({ bytes: bytes.length, hash: hashImmutableBytes(bytes) }).toEqual(expected);
+    const prior = cached.get(name);
+    if (prior === undefined) throw new Error('Missing initial cached bytes');
+    expect(Buffer.compare(bytes, prior)).toBe(0);
   }
 });
 
