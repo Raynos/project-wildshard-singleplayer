@@ -379,7 +379,7 @@ export class Minimap {
     }
 
     // BA-6 (MF7, battery): repaint only when what the map shows changed, at most PAINT_HZ; a hostile's pulsing ring animates
-    const marks = this.marks, t = performance.now();
+    const marks = this.marks, t = app.clock.real * 1000; // the engine clock (ms), not a raw timer
     const hash = this.signature(pos, deg, animals, marks, baseAlpha);
     const pulsing = this.hotInView;
     const same = hash === this.paintedHash && ground === this.paintedGround && overlay === this.paintedOverlay;
