@@ -4,18 +4,18 @@
 below for Jake's review with wildshard-v (an overturn becomes a new row). No idle lane while a counted row is open.
 
 **Order:** QA rows (all archive blockers, G877/G879), then LD5-LD10 on his word (G873), then CO7 / CO8, then all stop (G845).
-**Legacy (G882 / G883 / G885):** legacy-final on 91a9eef081; Sky + Signal retired 3be88b3081; Nalati next (sp-x9).
-Driftwood, Pine, Nine wait for Jake shard by shard; LD5 / LD8-LD10 with the last.
+**Legacy (G882 / G883 / G885 / G891):** legacy-final 91a9eef081; Sky + Signal 3be88b3081, Nalati b592b94008, Driftwood next
+(sp-x9). Pine + Nine keep LEGACY until Jake's QA after wave 1; LD5 / LD8-LD10 with the last.
 
 **LIVE 8621318d93 (build 8621318d9-mvtvd1tf): Jake's QA build.** He QAs it now.
 **REPLAN (Jake ~14:25, G886): [FOUNDATIONS](../FOUNDATIONS.md) wave 1** at lane boundaries: MF1 sp-x10, MF2 sp-x2, MF3 + MF5
 sp-o3, MF4 sp-x6, MF6 sp-x9 + sp-o4 (modal), MF7 sp-o5 (+ G890 battery). G887 trust our build, G888 exits navigate, G889.
 Superseded QB/RL/DA/NP rows marked folded. Still open: QB10 / QB14 sp-x1; QB15 / QB17 / QB18 sp-o4; GAME-S, QB19 sp-o3.
 
-**Done today:** Nine + Far Reach archived (44c51cc4ac), G548 build speed, CO1-CO5, PL6, QA1-QA14, D196-D207.
+**Done today:** Nine + Far Reach archived, G548, CO1-CO5, PL6, QA1-QA14, D196-D207; QB2/7/8/10/14, RL2-5/9/10.
 
 **Autonomous decisions (for Jake's review):**
-- Earlier: D183 B, D185 both paths, PL15 A, PL16 off, QA7 / QA8 / QA6 / QA3 calls (see git log of this file).
+- Earlier calls (D183, D185, PL15, PL16, QA3-QA8): see this file's git log.
 - QB11 (crossbow NaN draw) on Codex sp-x6: the Pine spring blows up below ~30 fps; substep fix only if 60 fps stays bit-identical (else Opus).
 - SW / manifest rows (RL7-9, MF1 / MF2 / MF4) on Codex: no pixels (G848 keeps the SW on Codex).
 - **For wildshard-v (QB1, RL3 48492f221e):** Sim warm launch image 0.6 s → title 1.2 s, nothing else. iOS snapshots the
