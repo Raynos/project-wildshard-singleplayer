@@ -42,8 +42,8 @@ export function gridHome(mode?: MenuMode): GridCell {
 }
 
 let navigating: Scope | null = null;
-/** The composition root resumes this exact home's geometry after its code
- * barrier. Metadata already crossed the title handoff; ordinary grid readers
+/** The composition root resumes this exact home's geometry after code and
+ * descriptor admission. Metadata already crossed the title handoff; grid readers
  * retain their complete verified geometry/construction readiness barrier. */
 export function startGridEntryContent(home: string): void {
   startGridStripDownload(gridMode(DEVSERVER), home, 'mesh');

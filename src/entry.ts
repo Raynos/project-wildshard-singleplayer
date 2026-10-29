@@ -153,7 +153,6 @@ async function startSelected(): Promise<void> {
   if (earlyPath === 'grid') {
     const home = gridSelection.pageGridRecovery()?.instance ?? gridSelection.gridHome().instance;
     declareGridHomeDownload(gridMode(DEVSERVER), home, __GRID_SEAM_ASSET__);
-    gridSelection.startGridEntryContent(home);
   }
   declareAssetTableDownloads(__BOOT_TABLE_ASSETS__, earlyPath === 'grid' || TIER !== 'phone' ? undefined : game.shard.slug);
   const declaredHome = earlyPath !== 'legacy' && document.getElementById('ws-shardfile') === null;
@@ -251,6 +250,9 @@ async function startSelected(): Promise<void> {
     const manifest = source === null
       ? await installManifestShardfile(game.shard, { ...browserShardfileOptions(document.baseURI, true), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings, imports.ready)
       : await installShardfileProduct(source, { ...browserShardfileOptions(document.baseURI), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings, imports.ready);
+    // Keep the seam out of code and descriptor admission; world construction
+    // can overlap this read and retains its original full-geometry barrier.
+    if (page.mode === 'grid') gridSelection.startGridEntryContent(page.instance ?? pageGridRecovery()?.instance ?? gridSelection.gridHome().instance);
     const previousImages = selectedImages;
     selectedImages = imageOwner;
     previousImages?.dispose();
