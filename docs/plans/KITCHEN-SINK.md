@@ -9,7 +9,7 @@ I think I might ask the builder to implement it, but not right now … we're goi
 do short platform next."* Also: *"That's a really cool kitchen sink template"*; *"template 2 being the blender template
 and template 3 being the kitchen sink template is a good way of going about it."*
 
-Mini plan page: [Template 3 Showcase](https://claude.ai/artifact/PSu7FrfxSYEA5gdZfpeWbe). Mockups:
+Mini plan page: [Template 3 Showcase](https://claude.ai/artifact/B4Pgormf3vDHBvf1QKoH49). Mockups:
 `art/blender-template/round-5-content/` (13 frames, look C). Decisions: G522–G525 in
 [shard-platform/decisions.md](shard-platform/decisions.md).
 
