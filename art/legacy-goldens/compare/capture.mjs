@@ -9,6 +9,11 @@
 // without an eye takes the player's settled eye plus its lift; receipts-<slug>.json records it, and the LEGACY run's
 // eyes are written back into the set (compare.py eyes) so SHARDFILE renders the same camera.
 // --mode=legacy enters through the LEGACY button (Debug > Legacy shard buttons) and expects `<slug>-legacy`.
+// The eye is the game's own camera (NR10 / NR12, sp-o5): a late hook sets it on every frame, so what the game culls and
+// streams in its update (instanced dressing, the tile ring, coarse masks) follows the eye. A free camera (its eye more than
+// FREE m from the probe's) poses the player under the eye, hovering, so the ring and colliders stand round the camera as
+// they would round a player there (its board, on the camera and under it, is hidden for the shot); an eye-height camera
+// keeps its probe. LIVE frames run at the eye before the shot.
 import {chromium,devices} from 'playwright';
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {readFile} from 'node:fs/promises';
@@ -25,7 +30,7 @@ const set=arg('cameras','');const mode=arg('mode','shardfile');if(!['legacy','sh
 const canonical=set?JSON.parse(readFileSync(set,'utf8')).cameras:JSON.parse(readFileSync('art/legacy-vs-shardfile/round-1-2026-10-28/cameras.json','utf8')).pairedCameras;
 const only=arg('cams','')?new Set(arg('cams','').split(',').map(Number)):null;
 const slugs=arg('shards',Object.keys(canonical).join(',')).split(',');
-const FRAMES=120,SETTLE_MS=30000;
+const FRAMES=120,SETTLE_MS=30000,LIVE=60,FREE=4,EYE=1.7;
 mkdirSync(root,{recursive:true});
 
 const owner=await chromium.launchServer({headless:true,args:['--mute-audio','--use-angle=metal','--ignore-gpu-blocklist','--remote-debugging-port=0']});
@@ -82,16 +87,33 @@ try{for(const slug of slugs){
    const c=canonical[slug][i];if(only&&!only.has(c.n??i+1))continue;
    const probe=c.probe??{x:c.feet?.[0]??c.eye[0],z:c.feet?.[2]??c.eye[2],yaw:-c.yaw*Math.PI/180,pitch:c.pitch*Math.PI/180,...c.feet?{y:c.feet[1]}:{}};
    if(c.spawnFallback)delete probe.y;
-   await page.evaluate(p=>{window.__wildshard.world.game.hold=false;return window.__wildshard.pose(p);},probe);
+   // a free camera: the player hovers under the eye (its x / z, an eye height below), so ring and culling are the eye's
+   const free=c.eye!==undefined&&Math.hypot(c.eye[0]-probe.x,c.eye[2]-probe.z,probe.y===undefined?0:c.eye[1]-EYE-probe.y)>FREE;
+   const at=free?{...probe,x:c.eye[0],y:c.eye[1]-EYE,z:c.eye[2]}:probe;
+   await page.evaluate(([p,free])=>{const w=window.__wildshard.world;w.game.hold=false;window.__wsEye=null;w.player.setHover?.(false);
+    // what hangs off the camera before any hover (the held weapon, the hands): the shot keeps only these visible. Taken
+    // once per entry: a board stepped off a moment ago still shows while it fades
+    window.__wsCamOff??=new Set(w.game.camera.children.filter(o=>o.visible));
+    return window.__wildshard.pose(p).then(()=>{if(free)w.player.setHover?.(true);});},[at,free]);
    await frames(page,FRAMES);const idle=await settle(page,inflight);await frames(page,30);
-   const observed=await page.evaluate(c=>{
-    const w=window.__wildshard.world,g=w.game;g.hold=true;
-    const player=w.player.position.toArray(),settled=g.camera.position.toArray();
-    const eye=c.eye??[settled[0],settled[1]+(c.lift??0),settled[2]];g.camera.position.set(...eye);
-    g.camera.rotation.set(c.pitch*Math.PI/180,-c.yaw*Math.PI/180,0,'YXZ');g.camera.fov=c.fov;g.camera.updateProjectionMatrix();g.camera.updateMatrixWorld();// QF20: two frames at the held camera; one left SHARDFILE's shadow-layer casters (the body shadow) out
+   // the eye becomes the game camera: set in the late phase of every frame, so the next update culls and streams for it
+   await page.evaluate(c=>{const w=window.__wildshard.world,g=w.game,cam=g.camera,settled=cam.position.toArray();
+    window.__wsEye={eye:c.eye??[settled[0],settled[1]+(c.lift??0),settled[2]],pitch:c.pitch*Math.PI/180,yaw:-c.yaw*Math.PI/180,fov:c.fov,settled};
+    if(window.__wsEyeHook!==g){window.__wsEyeHook=g;g.onLate(()=>{const e=window.__wsEye;if(e===null||e===undefined)return;
+     cam.position.set(...e.eye);cam.rotation.set(e.pitch,e.yaw,0,'YXZ');cam.fov=e.fov;cam.updateProjectionMatrix();cam.updateMatrixWorld();},'golden.eye');}},c);
+   await frames(page,LIVE);const live=await settle(page,inflight);await frames(page,LIVE);
+   const observed=await page.evaluate(()=>{
+    const w=window.__wildshard.world,g=w.game,e=window.__wsEye;g.hold=true;
+    const player=w.player.position.toArray(),cam=g.camera;
+    // a free camera's hovering player is not in the golden: what the board brought onto the camera (its first-person
+    // deck) and the board model stay out of the shot, and are shown again after it
+    const off=window.__wsCamOff??new Set();window.__wsBoards=[];
+    for(const o of cam.children)if(o.visible&&!off.has(o)){o.visible=false;window.__wsBoards.push(o);}
+    g.scene.traverse(o=>{if(o.name==='hoverboard'&&o.visible){o.visible=false;window.__wsBoards.push(o);}});
+    cam.position.set(...e.eye);cam.rotation.set(e.pitch,e.yaw,0,'YXZ');cam.fov=e.fov;cam.updateProjectionMatrix();cam.updateMatrixWorld();// QF20: two frames at the held camera; one left SHARDFILE's shadow-layer casters (the body shadow) out
     g.shardFrame();g.composer.render(0);g.shardFrame();g.composer.render(0);
-    return{eye:g.camera.position.toArray(),rotation:g.camera.rotation.toArray(),fov:g.camera.fov,frame:g.frameCount,player,settledEye:settled};
-   },c);
+    return{eye:cam.position.toArray(),rotation:cam.rotation.toArray(),fov:cam.fov,frame:g.frameCount,player,settledEye:e.settled};
+   });
    const shot=set?`${dir}/${String(c.n).padStart(2,'0')}-${c.name}-${mode}.png`:`${dir}/${i+1}-${c.name}-shardfile.png`;
    // the 24-camera set hides the HUD (every element but the canvases; a canvas read-back misses Nine's layered composite)
    // and the minimap: a canvas smaller than half the viewport stays hidden
@@ -99,7 +121,8 @@ try{for(const slug of slugs){
     const hide=await page.addStyleTag({content:'body *{visibility:hidden!important}canvas[data-ws-shot="1"]{visibility:visible!important}'});
     await page.screenshot({path:shot,type:'png',scale:'device'});await hide.evaluate(e=>e.remove());}
    else await page.screenshot({path:shot,type:'png',scale:'css'});
-   row.poses.push({n:c.n??i+1,name:c.name,idle,...observed,shot});
+   await page.evaluate(()=>{for(const o of window.__wsBoards??[])o.visible=true;window.__wsBoards=[];});
+   row.poses.push({n:c.n??i+1,name:c.name,free,idle,live,...observed,shot});
    writeFileSync(`${root}/receipts-${slug}.json`,JSON.stringify(row,null,1));
   }
   row.status=row.errors.length===0?'complete':'errors';

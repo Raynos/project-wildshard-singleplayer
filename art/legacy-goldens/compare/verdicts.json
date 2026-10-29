@@ -1,5 +1,5 @@
 {
- "judged": "2026-10-28-ac82a40b30",
+ "judged": "2026-10-28-2077a1d673",
  "accepted": {
   "driftwood-isle": "denser, higher clouds and warmer planks (G855); the phone geometry cut (G833).",
   "pine-hollow": "no colour LUT (G854, landed 3a2af030ec).",
@@ -121,7 +121,8 @@
    "verdict": "great"
   },
   "pine-hollow/11-bear-den": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Matches. The golden shows spawn, not the bear den: LEGACY's pose at the probe failed and its eye (written back to the set) is spawn's."
   },
   "pine-hollow/12-mill-hamlet": {
    "verdict": "great"
@@ -149,7 +150,8 @@
    "verdict": "great"
   },
   "pine-hollow/20-grid+170+170": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Matches. As camera 11, the golden's eye is spawn's."
   },
   "pine-hollow/21-aerial-south": {
    "verdict": "great",
@@ -296,24 +298,26 @@
   },
   "far-reach/10-storm-crown": {
    "verdict": "great",
-   "note": "The bird is a live creature. Minor: the white flower specks in the foreground are gone (FR6)."
+   "note": "Matches; the Roc's wing fills the lens this run (a live creature, game state)."
   },
   "far-reach/11-grove": {
    "verdict": "great"
   },
   "far-reach/12-hover-bridge": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Matches; the Roc passes overhead this run (a live creature, game state)."
   },
   "far-reach/13-rim-south": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Matches; the Roc passes overhead this run (a live creature, game state)."
   },
   "far-reach/14-rim-grove-west": {
    "verdict": "great",
-   "note": "The bird filling the frame is a live creature."
+   "note": "Matches; the Roc's wing fills the upper frame this run (a live creature, game state)."
   },
   "far-reach/15-rim-roost-east": {
    "verdict": "great",
-   "note": "The drift ray on the left is a live creature."
+   "note": "Matches; a drift ray crosses the sky this run (a live creature, game state)."
   },
   "far-reach/16-rim-crown-north": {
    "verdict": "great"
@@ -332,10 +336,12 @@
    "note": "The goat in the foreground is a live creature."
   },
   "far-reach/21-aerial-south": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Matches. The cyan lanes are Far Reach's hover lanes, shown because the harness hovers the player under a free camera."
   },
   "far-reach/22-aerial-crown": {
-   "verdict": "great"
+   "verdict": "great",
+   "note": "Matches; the cyan hover lanes show for the hovering player, as camera 21."
   },
   "far-reach/23-hands-down": {
    "verdict": "needs",
@@ -408,11 +414,11 @@
   },
   "sunscar-dunes/21-aerial-south": {
    "verdict": "great",
-   "note": "Minor: two white slivers in the dune hollows and a paler band at the horizon."
+   "note": "GOLDEN SEMANTICS: the sky is the lifted eye's (orange dusk band) where the golden held the ground camera's night sky; LEGACY captured with this harness draws the same sky as SHARDFILE (checked). Dunes, towers and shadows match."
   },
   "sunscar-dunes/22-aerial-west": {
    "verdict": "great",
-   "note": "Minor: a white sliver in a hollow and a paler band at the horizon."
+   "note": "GOLDEN SEMANTICS: the sky is the lifted eye's (orange dusk band) where the golden held the ground camera's night sky; LEGACY captured with this harness draws the same sky as SHARDFILE (checked). Dunes, towers and shadows match."
   },
   "sunscar-dunes/23-hands-down": {
    "verdict": "great"
@@ -427,8 +433,8 @@
   },
   "nine-dragon-stack/02-B": {
    "verdict": "needs",
-   "row": "NR11 / NR3",
-   "note": "The rim balustrade is flat navy; the facades draw now but their windows are dim brown."
+   "note": "The facades' windows are lit now (NR3 fixed); the rim balustrade is still flat navy.",
+   "row": "NR11"
   },
   "nine-dragon-stack/03-C": {
    "verdict": "needs",
@@ -453,39 +459,34 @@
    "note": "Same as camera 3: no step-edge highlights, the stair is dark navy, the right-hand wall mottled."
   },
   "nine-dragon-stack/08-stair-down": {
-   "verdict": "needs",
-   "row": "NR3",
-   "note": "The facade wall is back with lit windows (NR12 fixed); what is left is tint: the towers and the canyon read bluer, with fewer warm windows far down."
+   "verdict": "great",
+   "note": "The facade walls and their warm lit windows match (NR12 shells, NR3 windows 4c4fadb4d2); the canyon reads a touch bluer."
   },
   "nine-dragon-stack/09-well-rim": {
    "verdict": "needs",
-   "row": "NR11 / NR3",
-   "note": "The rim balustrade is flat navy; the facades across the well draw again, but their windows are brown, not lit."
+   "note": "The facades across the well are lit now (NR3 fixed); the rim balustrade is still flat navy.",
+   "row": "NR11"
   },
   "nine-dragon-stack/10-well-north": {
-   "verdict": "needs",
-   "row": "NR3",
-   "note": "The pale wash is gone, but the canyon windows are brown and green squares where LEGACY has warm lit windows."
+   "verdict": "great",
+   "note": "The canyon windows are warm and lit as in LEGACY (NR3 4c4fadb4d2)."
   },
   "nine-dragon-stack/11-portal-north-deck": {
-   "verdict": "needs",
-   "row": "NR12",
-   "note": "Unchanged: the dark end wall is gone and a lit portal frame stands in its place."
+   "verdict": "great",
+   "note": "HARNESS (was a fail): the road deck's stone end wall draws (it lives in the cell's edge tiles, past the probe's 5 x 5 ring); the lit portal frame stands in front of it as in LEGACY."
   },
   "nine-dragon-stack/12-portal-south-deck": {
-   "verdict": "needs",
-   "row": "NR12",
-   "note": "Unchanged: the same missing end wall and lit portal frame as camera 11."
+   "verdict": "great",
+   "note": "HARNESS (was a fail): the same end wall as camera 11 draws."
   },
   "nine-dragon-stack/13-square-west": {
    "verdict": "needs",
-   "row": "NR11 / NR3",
-   "note": "The square-edge balustrade is flat navy; the facades draw now (no more white blocks) but read dark with dim brown windows."
+   "note": "The facades draw lit now (NR3 fixed); the square-edge balustrade is still flat navy.",
+   "row": "NR11"
   },
   "nine-dragon-stack/14-square-south": {
-   "verdict": "needs",
-   "row": "NR3",
-   "note": "The facades draw now, but their windows are dim brown, not the warm lit grid of LEGACY."
+   "verdict": "great",
+   "note": "The facades' lit window grid matches (NR3 4c4fadb4d2)."
   },
   "nine-dragon-stack/15-market-east": {
    "verdict": "needs",
@@ -499,32 +500,31 @@
   },
   "nine-dragon-stack/17-portal-east-deck": {
    "verdict": "needs",
-   "row": "NR12",
-   "note": "The far skyline from the east road deck still differs: a nearer lit tower block, fewer window dots."
+   "note": "The far skyline from the east road deck still differs: a nearer lit tower block, fewer window dots (the player now stands on the deck).",
+   "row": "NR12"
   },
   "nine-dragon-stack/18-portal-west-deck": {
-   "verdict": "great",
-   "note": "Minor: the mid-distance tower block is more solid than LEGACY's faint one."
+   "verdict": "needs",
+   "note": "Like camera 17: the far skyline from the west deck is paler, with fewer towers.",
+   "row": "NR12"
   },
   "nine-dragon-stack/19-east-street": {
-   "verdict": "needs",
-   "row": "NEW",
-   "note": "Same stair as camera 3: no step-edge highlights; the side walls are mottled stone."
+   "verdict": "great",
+   "note": "The street, crowd and lanterns match (free camera, player at the eye)."
   },
   "nine-dragon-stack/20-well-floor": {
    "verdict": "needs",
-   "row": "NR3",
-   "note": "The facades are bluer and the lit interiors and windows of LEGACY are dark squares."
+   "note": "The facades' lit interiors are back (NR3 4c4fadb4d2); a few mid-tower panes stay dark and the walls read a little bluer.",
+   "row": "NR3"
   },
   "nine-dragon-stack/21-aerial-south": {
    "verdict": "needs",
-   "row": "NR10 / NR12",
-   "note": "The towers near the camera draw as geometry now, but the teal roof eaves and the wooden balcony are missing and the walls read blue."
+   "note": "HARNESS (was a fail): the teal pavilion and its wooden deck draw now. Left: the pavilion roof shades a deep dark teal where LEGACY's is bright (look, not geometry).",
+   "row": "NR10"
   },
   "nine-dragon-stack/22-aerial-west": {
-   "verdict": "needs",
-   "row": "NR10 / NR12",
-   "note": "The towers draw with lit windows now, but the teal pagoda roofs and the water tower on top are missing and the walls are slate blue."
+   "verdict": "great",
+   "note": "HARNESS (was a fail): the teal pagoda roofs, the blue pyramid roof and the water tanks draw (the rooftop dressing culls on the game camera, which was the probe's). The near-left tower is a little bluer; walls and lit windows otherwise match."
   },
   "nine-dragon-stack/23-hands-down": {
    "verdict": "needs",

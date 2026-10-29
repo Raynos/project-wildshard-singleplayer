@@ -16,6 +16,14 @@ become `art/shardfile-goldens/` (G859). The first pass had 4 cameras per shard, 
   iPhone 16 Pro portrait. Entry is through SHARD SELECT: LEGACY through the Debug row's LEGACY button, SHARDFILE
   through its own button. There are 120 drawn frames plus a streaming-idle wait per camera. One browser context covers
   a whole shard per mode. The HUD and the minimap are hidden for the shot (only the game canvas shows), 804 × 1362.
+  - **The eye is the game camera** (NR10 / NR12, 10-28): a late hook sets the camera to the eye on every frame, and 60 live
+    frames plus a streaming-idle wait run at the eye before the held shot, so what the game culls and streams in its update
+    (instanced dressing, the tile ring, coarse masks) is the eye's. A **free camera** (its eye more than 4 m from the probe's)
+    poses the player under the eye, hovering, so the ring and colliders stand round the camera; the board (what hover
+    hangs on the camera, and the board model) is hidden for the shot. Stepping off is no fix: a player that drops far
+    respawns at spawn and takes the ring with it. Runs before this held the eye only for the shot: the player stayed at the probe, so ring content past the probe's
+    5 × 5 (Nine's road-deck end walls, cams 11 / 12) and the eye's own culling (Nine's rooftop dressing, 21 / 22) were the
+    probe's, not the eye's. The LEGACY goldens are unchanged (LEGACY drew everything whole).
 - `compare.py`:
   - `eyes` and `goldens` are the one-time LEGACY export: `../<shard>/24/<nn>-<camera>.jpg`, 540 px wide, quality 70 down to 42 to stay near 42 KB (6.7 MB for 144).
   - `frames` writes a run's SHARDFILE JPEGs to `tmp/golden-compare-144/<run>/`, which is never committed, and prints
