@@ -83,6 +83,9 @@ try{for(const slug of slugs){
   if(await page.evaluate(()=>window.__wildshard.world.hud.paused))await pressEscape(endpoint,page.url());
   row.entry=await page.evaluate(()=>({url:location.href,id:window.__wildshard.world.game.level.id}));
   const want=mode==='legacy'?`${slug}-legacy`:slug;if(row.entry.id!==want)throw Error(`Not ${mode}: ${row.entry.id}`);row.mode=mode;
+  // the golden camera is a spectator: its player takes no damage (Pine's bear-den elite killed it, and the death fade put it
+  // back at spawn with the ring and the grass field)
+  await page.evaluate(()=>{const hp=window.__wildshard.world.game.app.player;if(hp)hp.attributes.incomingCap=0;});
   for(let i=0;i<canonical[slug].length;i++){
    const c=canonical[slug][i];if(only&&!only.has(c.n??i+1))continue;
    const probe=c.probe??{x:c.feet?.[0]??c.eye[0],z:c.feet?.[2]??c.eye[2],yaw:-c.yaw*Math.PI/180,pitch:c.pitch*Math.PI/180,...c.feet?{y:c.feet[1]}:{}};
@@ -96,11 +99,17 @@ try{for(const slug of slugs){
     window.__wsCamOff??=new Set(w.game.camera.children.filter(o=>o.visible));
     return window.__wildshard.pose(p).then(()=>{if(free)w.player.setHover?.(true);});},[at,free]);
    await frames(page,FRAMES);const idle=await settle(page,inflight);await frames(page,30);
+   // a player on a slope slides off its pose while streaming settles (Pine's bear den slid into the lake and respawned at
+   // spawn, so its eye became spawn's): an eye-height camera puts it back before its eye is read
+   const drifted=!free&&await page.evaluate(p=>{const q=window.__wildshard.world.player.position;return Math.hypot(q.x-p.x,q.z-p.z)>2;},at);
+   if(drifted){await page.evaluate(p=>window.__wildshard.pose(p),at);await frames(page,30);}
    // the eye becomes the game camera: set in the late phase of every frame, so the next update culls and streams for it
    await page.evaluate(c=>{const w=window.__wildshard.world,g=w.game,cam=g.camera,settled=cam.position.toArray();
     window.__wsEye={eye:c.eye??[settled[0],settled[1]+(c.lift??0),settled[2]],pitch:c.pitch*Math.PI/180,yaw:-c.yaw*Math.PI/180,fov:c.fov,settled};
     if(window.__wsEyeHook!==g){window.__wsEyeHook=g;g.onLate(()=>{const e=window.__wsEye;if(e===null||e===undefined)return;
      cam.position.set(...e.eye);cam.rotation.set(e.pitch,e.yaw,0,'YXZ');cam.fov=e.fov;cam.updateProjectionMatrix();cam.updateMatrixWorld();},'golden.eye');}},c);
+   // the eye is read: a sliding player now hovers where it stands, so it cannot slide off (and respawn) during the live frames
+   if(drifted)await page.evaluate(()=>window.__wildshard.world.player.setHover?.(true));
    await frames(page,LIVE);const live=await settle(page,inflight);await frames(page,LIVE);
    const observed=await page.evaluate(()=>{
     const w=window.__wildshard.world,g=w.game,e=window.__wsEye;g.hold=true;
@@ -122,7 +131,7 @@ try{for(const slug of slugs){
     await page.screenshot({path:shot,type:'png',scale:'device'});await hide.evaluate(e=>e.remove());}
    else await page.screenshot({path:shot,type:'png',scale:'css'});
    await page.evaluate(()=>{for(const o of window.__wsBoards??[])o.visible=true;window.__wsBoards=[];});
-   row.poses.push({n:c.n??i+1,name:c.name,free,idle,live,...observed,shot});
+   row.poses.push({n:c.n??i+1,name:c.name,free,drifted,idle,live,...observed,shot});
    writeFileSync(`${root}/receipts-${slug}.json`,JSON.stringify(row,null,1));
   }
   row.status=row.errors.length===0?'complete':'errors';

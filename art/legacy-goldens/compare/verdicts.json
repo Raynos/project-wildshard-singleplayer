@@ -122,7 +122,7 @@
   },
   "pine-hollow/11-bear-den": {
    "verdict": "great",
-   "note": "Matches. The golden shows spawn, not the bear den: LEGACY's pose at the probe failed and its eye (written back to the set) is spawn's."
+   "note": "Golden re-shot (2856d1669f harness + no-damage spectator): the bear den itself, not spawn. Matches."
   },
   "pine-hollow/12-mill-hamlet": {
    "verdict": "great"
@@ -151,7 +151,7 @@
   },
   "pine-hollow/20-grid+170+170": {
    "verdict": "great",
-   "note": "Matches. As camera 11, the golden's eye is spawn's."
+   "note": "Golden re-shot: the grid corner with the cabin and the path, not spawn. Matches."
   },
   "pine-hollow/21-aerial-south": {
    "verdict": "great",
@@ -414,11 +414,11 @@
   },
   "sunscar-dunes/21-aerial-south": {
    "verdict": "great",
-   "note": "GOLDEN SEMANTICS: the sky is the lifted eye's (orange dusk band) where the golden held the ground camera's night sky; LEGACY captured with this harness draws the same sky as SHARDFILE (checked). Dunes, towers and shadows match."
+   "note": "Golden re-shot with the eye live at aerial height (the old one held the ground camera's night sky). Matches."
   },
   "sunscar-dunes/22-aerial-west": {
    "verdict": "great",
-   "note": "GOLDEN SEMANTICS: the sky is the lifted eye's (orange dusk band) where the golden held the ground camera's night sky; LEGACY captured with this harness draws the same sky as SHARDFILE (checked). Dunes, towers and shadows match."
+   "note": "Golden re-shot as camera 21. Matches."
   },
   "sunscar-dunes/23-hands-down": {
    "verdict": "great"

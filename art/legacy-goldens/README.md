@@ -48,3 +48,14 @@ HUD-masked luma SSIM, LEGACY against SHARDFILE, cameras 1–4, with the rating b
 | sunscar-dunes | 0.98 / 0.98 / 0.98 / 1.00 | 10 |
 
 Clouds, rain, crowds and creatures move between the two visits, so SSIM is a guide, not a parity claim.
+
+## Re-shot 2026-10-28 (four of the 144, G859 set)
+
+With the fixed compare harness (`compare/capture.mjs`: the eye is the live game camera, a free camera's player hovers under
+it, a drifting player is put back, and the spectator takes no damage), on `2856d1669f`:
+
+- `pine-hollow/24/11-bear-den.jpg`, `20-grid+170+170.jpg`: the first shots showed spawn. At the probe LEGACY's player slid
+  downhill and the bear den's elite killed it; the death fade put it back at spawn, and that eye was written into
+  `cameras24.json`. Now the bear den and the grid corner, with their eyes written back (`compare.py eyes`).
+- `sunscar-dunes/24/21-aerial-south.jpg`, `22-aerial-west.jpg`: the first shots held the ground camera's night sky for an
+  aerial eye; the sky follows the camera in its update, so a player up there sees a dusk band. LEGACY now draws it too.
