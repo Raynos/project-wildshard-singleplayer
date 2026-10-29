@@ -13,8 +13,8 @@ should be running in pre-push if they were fast."*
 [TypeScript speed](../../project/archive/2026-10-27-typescript-speed.md) + [quick wins](../../project/archive/2026-10-26-typescript-quick-wins.md) and
 [oxlint speed](../../project/archive/2026-10-27-oxlint.md) (done 10-27; R4 folded into generators GR12, G796); [no binaries in JSON](../../project/archive/2026-10-27-no-binaries-in-json.md)
 (done 10-27, G649; B5 folded into GR6–GR8, G796); [generators spike / redesign](../../project/archive/2026-10-27-generators-spike.md) (done, G815–G817; archived); [`pnpm gen` speed](../../project/archive/2026-10-27-gen-speed.md)
-(done 10-27; G1 / G6 / G8 folded into GR12, G796); [lint and typecheck speed](tooling-perf/lint-speed-mini-plan.md)
-(open 10-28, LS1–LS9: plugin caches, one `tsc -b`, one CI lint job); [fail fast](../../project/archive/2026-10-27-fail-fast.md) and G627/G628/G636
+(done 10-27; G1 / G6 / G8 folded into GR12, G796); [lint and typecheck speed](../../project/archive/2026-10-29-lint-speed.md)
+(done 10-29, G872: measured partials accepted; plugin caches, one `tsc -b`, one CI lint job); [fail fast](../../project/archive/2026-10-27-fail-fast.md) and G627/G628/G636
 (building under SHARD-PLATFORM).
 
 ## What we know (2026-10-23)
