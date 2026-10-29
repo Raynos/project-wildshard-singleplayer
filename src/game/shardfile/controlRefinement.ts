@@ -11,8 +11,9 @@ interface Job {
 /** MF5 / NP-1 (Jake 10-29: pop-in is worse than a longer load): the loader's spawn-view fence. While it is open, each
  * queue runs, before control, the jobs within `radius` m of its viewer (the spawn ring's L0 tiles, late welds, dressing
  * reads), nearest first; the loader awaits them before its shaders link, so the reveal shows the refined spawn view.
- * Jobs outside it still wait for control. 160 m: Nine's 62.5 m tiles two out plus half a tile (its ring (3,1)-(5,4)). */
-export const SPAWN_VIEW_M = 160;
+ * Jobs outside it still wait for control. 221 m: the whole 5 x 5 render ring, its corner tile centres (two 62.5 m tiles
+ * out on both axes, 177 m) seen from anywhere in the centre tile (+44 m); at 160 m Nine read four ring tiles in play. */
+export const SPAWN_VIEW_M = 221;
 let spawnView: { readonly radius: number } | null = null;
 const queues = new Set<ControlRefinement>();
 /** A spawn-view job waits or runs in some queue (the tile driver's settle stops when none does). */
