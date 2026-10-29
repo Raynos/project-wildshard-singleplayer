@@ -3,6 +3,7 @@ import { repeatedStep } from '@wildshard/engine/boot/timeline';
 import type { Loading } from '@wildshard/engine/ui/Loading';
 import type { GridCrossingTiming } from '../grid/crossing';
 
+/** The platform loading-path names. */
 export type LoadingPathId = 'legacy' | 'shardfile' | 'grid' | 'crossing' | 'cell';
 type Path = Parameters<Loading['setPath']>[0];
 const step = (key: string, label: string, aliases: readonly string[] = []): Path['steps'][number] => ({ key, label, aliases, weight: 1 });

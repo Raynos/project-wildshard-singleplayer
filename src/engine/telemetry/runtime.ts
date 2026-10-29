@@ -18,6 +18,7 @@ const send = (body: object): void => {
   const endpoint = import.meta.env.MODE === 'native' ? 'https://wildshard-singleplayer.vercel.app/api/telemetry' : '/api/telemetry';
   void fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), keepalive: true }).catch(() => undefined);
 };
+/** Start the page telemetry session and its native event observers once. */
 export function startTelemetry(): void {
   if (health !== null || typeof window === 'undefined' || typeof document === 'undefined') return;
   const build = typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : '';
@@ -54,4 +55,5 @@ function subscribe(app: App): void {
   app.events.on('quest.step', ({ level: questLevel, quest, step }) => { analytics?.record('quest.step', { level: questLevel, quest, step: step ?? 'completed' }); }, scope);
   app.events.on('boss.attempt', (event) => { analytics?.record('boss.attempt', { level, ...event }); }, scope);
 }
+/** Bind telemetry counters to the current application. */
 export function bindTelemetry(app: App): void { if (bound === app) return; bound = app; if (health) subscribe(app); }

@@ -298,7 +298,20 @@
     "./population/actorProjectionV2": "./population/actorProjectionV2.ts",
     "./shardfile/clientTargets": "./shardfile/clientTargets.ts",
     "./models/binarySource": "./models/binarySource.ts",
-    "./plugin/clientChannelView": "./plugin/clientChannelView.ts"
+    "./plugin/clientChannelView": "./plugin/clientChannelView.ts",
+    "./mainMenu": "./mainMenu.ts",
+    "./shard/entryMode": "./shard/entryMode.ts",
+    "./systems/species/install": "./systems/species/install.ts",
+    "./icons": "./icons.ts",
+    "./models/interact": "./models/interact.ts",
+    "./bag/starter.generated": "./bag/starter.generated.ts",
+    "./systems/tools/hoverboard": "./systems/tools/hoverboard.ts",
+    "./boot/loadingPaths": "./boot/loadingPaths.ts",
+    "./shardfile/product": "./shardfile/product.ts",
+    "./session/session": "./session/session.ts",
+    "./engineStrings": "./engineStrings.ts",
+    "./audio/theme": "./audio/theme.ts",
+    "./identity": "./identity.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

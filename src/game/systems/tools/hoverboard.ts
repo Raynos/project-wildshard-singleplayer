@@ -6,6 +6,7 @@ import { isMesh } from '@wildshard/engine/combat/view/ranged';
 import type { Player } from '@wildshard/engine/player/Player';
 import { buildHoverboard } from '@wildshard/engine/render/hoverboardGeometry';
 
+/** The entered hoverboard controller and its owned resources. */
 export class Hoverboard extends Tool {
   readonly id = 'tool.hoverboard' as const;
   readonly slot = 'tool' as const;
@@ -90,4 +91,5 @@ export class Hoverboard extends Tool {
   }
 }
 
+/** The shared hoverboard tool registration. */
 export const HOVERBOARD_TOOL = { id: 'tool.hoverboard', create: (camera: THREE.PerspectiveCamera, player: Player): Hoverboard => new Hoverboard(camera, 14, player) };

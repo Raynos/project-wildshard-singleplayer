@@ -22,6 +22,7 @@ type ChordName = 'Dmaj7#11' | 'E7' | 'Bm9' | 'A' | 'Dm9' | 'Gm' | 'Am' | 'Bb';
 const D4 = 62, E4 = 64, Gs4 = 68, A4 = 69, B4 = 71;
 /** D Lydian: D E F# G# A B C# — the raised 4th is the wonder note */
 export const LYDIAN: number[] = [0, 2, 4, 6, 7, 9, 11];
+/** Base MIDI note for the shared score. */
 export const ROOT = 62; // D4
 
 /** the motif: `D A G# A | E D · · | D A B A | G# E D ·` — 16 beats, two of question, two of answer */
@@ -47,6 +48,7 @@ export const CHORDS: Record<ChordName, number[]> = {
 export const DORIAN_OF: Record<ChordName, ChordName> = {
   'Dmaj7#11': 'Dm9', 'E7': 'Gm', 'Bm9': 'Am', 'A': 'Bb', 'Dm9': 'Dm9', 'Gm': 'Gm', 'Am': 'Am', 'Bb': 'Bb',
 };
+/** Bass root note for each shared chord. */
 export const CHORD_ROOT: Record<ChordName, number> = { 'Dmaj7#11': 38, 'E7': 40, 'Bm9': 35, 'Am': 33, 'A': 33, 'Dm9': 38, 'Gm': 31, 'Bb': 34 };
 
 /** pitch class G# → G is the only note the Dorian version changes (MUSIC.md: the melody stays, the harmony darkens) */
@@ -142,6 +144,7 @@ const RING: Segment = {
   notes: { bell: [{ t: 0, d: 4, n: 74, v: 0.8 }, { t: 0, d: 4, n: 81, v: 0.5 }], bass: [{ t: 0, d: 3, n: 38, v: 0.9 }], pulse: [{ t: 0, d: 0.3, n: 36, v: 1 }] },
   mix: [...mix([['pulse.soft', 0, 0.2], ['pulse.kick', 0, 0.2], ['pulse.four', 0, 0.2]], 0.2), ...mix([['bass', 0, 2], ['pad', 0, 3.5], ['drone', 0, 3.5], ['pluck', 0, 1], ['marimba', 0, 1]], 1)],
 };
+/** The looping shared theme arrangement. */
 export const THEME: Arrangement = { name: 'theme', segments: [A, B, C, D, RING], loopTo: 1, tailFrom: 4, driven: false };
 
 // ─────────────────────────────────────────── TRAILER 30 (scripts/trailer/edl-30.txt) ───────────────────────────────────────────
@@ -185,6 +188,7 @@ const T30: Segment[] = [
     mix: [...mix([['pulse.soft', 0, 0.3], ['pulse.four', 0, 0.3], ['pulse.kick', 0, 0.3], ['pluck', 0, 0.5]], 0.3),
       ...mix([['bass', 0, 1.6], ['drone', 0, 2.6], ['pad', 0, 2.6], ['marimba', 0, 2], ['bell', 0, 2.8]], 0.5)] },
 ];
+/** The thirty-second trailer arrangement. */
 export const TRAILER30: Arrangement = { name: 'trailer30', segments: T30, driven: true };
 
 // ─────────────────────────────────────────── TRAILER 15 (scripts/trailer/edl-15.txt) ───────────────────────────────────────────
@@ -203,9 +207,12 @@ const T15: Segment[] = [
     mix: [...mix([['pulse.soft', 0, 0.3], ['pulse.four', 0, 0.3], ['pulse.kick', 0, 0.3], ['pluck', 0, 0.5]], 0.3),
       ...mix([['bass', 0, 1.2], ['drone', 0, 1.9], ['pad', 0, 1.9], ['marimba', 0, 1.5], ['bell', 0, 2.0]], 0.5)] },
 ];
+/** The fifteen-second trailer arrangement. */
 export const TRAILER15: Arrangement = { name: 'trailer15', segments: T15, driven: true };
 
+/** The finite shared arrangement catalogue. */
 export const ARRANGEMENTS: { readonly theme: Arrangement; readonly trailer30: Arrangement; readonly trailer15: Arrangement; } = { theme: THEME, trailer30: TRAILER30, trailer15: TRAILER15 } as const;
+/** A key in the shared arrangement catalogue. */
 export type ArrangementName = keyof typeof ARRANGEMENTS;
 
 /** the pickup sting: the first four motif notes on the bell, eighths */

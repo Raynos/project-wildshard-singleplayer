@@ -227,6 +227,7 @@ const GRAPPLE = `
   <path d="M26 30 C24 18 30 8 42 4 C37 12 35 20 34 30 Z M34 34 C42 26 52 22 62 24 C54 28 47 33 40 40 Z M34 44 C44 44 52 50 56 60 C49 54 42 52 32 48 Z"/>
   <path d="M20 46 C14 40 8 38 2 40" ${S} stroke-width="2"/>`;
 
+/** Install the shared game icon catalogue. */
 export function installKitIcons(): void {
   registerIcons({
     deer: svg(DEER), elk: svg(ELK), boar: svg(BOAR), bear: svg(BEAR), meat: svg(MEAT), hide: svg(HIDE), tusk: svg(TUSK), antlers: svg(ANTLERS), bolt: svg(BOLT), claw: svg(CLAW), shell: svg(SHELL), coconut: svg(COCONUT), coin: svg(COIN), seaglass: svg(SEAGLASS), rope: svg(ROPE), whetstone: svg(WHETSTONE), chart: svg(CHART), bearclaw: svg(BEARCLAW), boartusk: svg(BOARTUSK), crossbow: svg(CROSSBOW), sword: svg(SWORD), rifle: svg(RIFLE), lever: svg(LEVER), longbow: svg(LONGBOW), hat: svg(HAT), cape: svg(CAPE), charm: svg(CHARM), necklace: svg(NECKLACE), glyph: svg(GLYPH), purse: svg(PURSE), talon: svg(TALON), leopard: svg(LEOPARD), wolf: svg(WOLF), eagle: svg(EAGLE), rider: svg(RIDER), horse: svg(HORSE), grapple: svg(GRAPPLE),

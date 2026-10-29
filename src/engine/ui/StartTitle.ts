@@ -10,6 +10,7 @@ import type { TitleDeckView } from './HUD';
 /** builds the deck: every card opens its level in a fresh page; `notice` says why the last boot came back here */
 export type StartTitleDeck = (opts: { settings: () => void; notice?: string }) => TitleDeckView;
 
+/** Present the supplied title deck while the entry prepares. */
 export function showStartTitle(buildDeck: StartTitleDeck): void {
   const scope = pageScope.child('ui.StartTitle'), slots = new HudSlots();
   const hud = document.getElementById('hud');
