@@ -11,8 +11,11 @@ import {resolve} from 'node:path';
 import {chromium} from 'playwright';
 import {pressEscape} from '../../scripts/parity/browser-escape.mjs';
 
-const executable = [process.env['CHROME_PATH'], chromium.executablePath(), '/usr/bin/google-chrome', '/usr/bin/chromium']
-  .find((file): file is string => file !== undefined && existsSync(file));
+// CI declares its supported system Chrome. Use it before an optional cached
+// Playwright binary; explicit caller selection still wins, with no retry.
+const candidates = [process.env['CHROME_PATH'], process.env['CHROME_BIN'],
+  ...(process.platform === 'linux' ? ['/usr/bin/google-chrome', '/usr/bin/chromium'] : []), chromium.executablePath()];
+const executable = candidates.find((file): file is string => file !== undefined && existsSync(file));
 if (executable === undefined) throw new Error('No installed Chromium for the original trusted-input control');
 const directory = await mkdtemp(resolve('tmp/escape-control-'));
 const child = spawn(executable, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${directory}`,
@@ -36,12 +39,16 @@ process.once('SIGTERM', terminate);
 try {
   const endpoint = await new Promise<string>((done, refuse) => {
     let output = '';
-    const timer = setTimeout(() => {refuse(new Error('Native Escape browser endpoint deadline'));}, 10_000);
-    child.once('error', error => {clearTimeout(timer); refuse(error);});
-    child.once('exit', code => {clearTimeout(timer); refuse(new Error(`Native Escape browser exited ${code}`));});
+    const failed = (reason: string, code: number | null, signal: string | null): Error => new Error(
+      `Native Escape startup ${reason}; executable=${JSON.stringify(executable)}; profile=${JSON.stringify(directory)}; code=${code}; signal=${signal}\nNative stderr (last 16384 characters):\n${output}`);
+    const timer = setTimeout(() => {refuse(failed('endpoint deadline', child.exitCode, child.signalCode));}, 10_000);
+    child.once('error', error => {clearTimeout(timer); refuse(failed(error.message, child.exitCode, child.signalCode));});
+    // close follows stderr delivery; exit alone can lose the final native cause.
+    child.once('close', (code, signal) => {clearTimeout(timer); refuse(failed('closed before endpoint', code, signal));});
     child.stderr.on('data', (chunk: Buffer) => {
-      output += chunk.toString();
-        const address = /DevTools listening on (ws:\/\/[^\s]+)/u.exec(output)?.[1];
+      const incoming = output + chunk.toString();
+      output = incoming.slice(-16_384);
+      const address = /DevTools listening on (ws:\/\/[^\s]+)/u.exec(incoming)?.[1];
       if (address !== undefined) {clearTimeout(timer); done(address);}
     });
   });
