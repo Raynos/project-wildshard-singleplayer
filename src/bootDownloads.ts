@@ -1,3 +1,4 @@
+import type {AssetTableAddress} from './assetTables';
 import { declareDownloadFile, reserveDownloadGroup, reserveDownloadBank, preloadModuleGroups, declareModuleGroups } from '@wildshard/engine/boot/download';
 import { prepareCodePack } from '@wildshard/engine/boot/codePack';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -8,6 +9,15 @@ export function declareGridHomeDownload(mode: Parameters<typeof gridStripDownloa
   seams: {readonly url: string; readonly bytes: number}): void {
   declareDownloadFile(seams.url, seams.bytes);
   for (const row of gridStripDownloadRows(mode, home)) declareDownloadFile(row.url, row.bytes);
+}
+
+/** Declare the same mandatory common/selected pack tables as the native reader.
+ * Compiler facts establish the denominator only; reads and hash admission stay at their original barriers. */
+export function declareAssetTableDownloads(tables: {readonly common: AssetTableAddress; readonly all: AssetTableAddress;
+  readonly packs: Readonly<Record<string, AssetTableAddress>>}, key?: string): void {
+  declareDownloadFile(tables.common.url, tables.common.bytes);
+  const selected = key === undefined ? tables.all : tables.packs[key];
+  if (selected !== undefined) declareDownloadFile(selected.url, selected.bytes);
 }
 
 /** Match the actual grid product reader; a hybrid's standalone path may have no descriptor. */

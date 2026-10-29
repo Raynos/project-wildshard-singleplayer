@@ -1,8 +1,9 @@
 import { installAssetTables, publicBytes, assetVersions, musicManifests, sfxManifests, bootPacks, type AssetTables, type PackDef, type PackFile, type PackPart } from '@wildshard/engine/boot/tables';
 import { declareDownloadFile } from '@wildshard/engine/boot/download';
 
-interface Address { readonly url: string; readonly bytes: number; readonly sha256: string }
-declare const __BOOT_TABLE_ASSETS__: { readonly common: Address; readonly all: Address; readonly packs: Readonly<Record<string, Address>> };
+/** Exact compiler address consumed by the existing size/hash-verified table reader. */
+export interface AssetTableAddress { readonly url: string; readonly bytes: number; readonly sha256: string }
+declare const __BOOT_TABLE_ASSETS__: { readonly common: AssetTableAddress; readonly all: AssetTableAddress; readonly packs: Readonly<Record<string, AssetTableAddress>> };
 const record = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const size = (value: unknown): value is number => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 const files = (value: unknown): value is readonly PackFile[] => Array.isArray(value) && value.every((row: unknown) => Array.isArray(row) && row.length === 4
@@ -18,7 +19,7 @@ function tables(value: unknown): value is AssetTables {
 }
 /** Selection owns this read, before any gameplay module can read synchronous tables.
  * Exact build bytes cross the boundary atomically; partial/corrupt input never installs. */
-export async function readAssetTables(address: Address, read: (url: string) => Promise<Response>): Promise<AssetTables> {
+export async function readAssetTables(address: AssetTableAddress, read: (url: string) => Promise<Response>): Promise<AssetTables> {
   if (!/^\/assets\/boot-tables-[a-f0-9]{8}\.json$/u.test(address.url) || !/^[a-f0-9]{64}$/u.test(address.sha256)
     || !address.url.includes(address.sha256.slice(0, 8)) || !size(address.bytes) || address.bytes < 2 || address.bytes > 16 * 1024 * 1024) throw new Error('Invalid asset table address');
   const response = await read(address.url);
@@ -55,7 +56,7 @@ export function prepareAssetTables(): Promise<void> {
 }
 
 const packReads = new Map<string, Promise<void>>();
-async function loadPacks(address: Address): Promise<void> {
+async function loadPacks(address: AssetTableAddress): Promise<void> {
   try {
     declareDownloadFile(address.url, address.bytes);
     const incoming = await readAssetTables(address, url => fetch(url));

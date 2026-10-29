@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import {afterEach,expect,test} from 'vitest';
-import {prepareHomeModules,declareHomeModules,reserveHomeDownload,homeDownloadSource,declareGridHomeDownload} from '../src/bootDownloads';
+import {prepareHomeModules,declareHomeModules,reserveHomeDownload,homeDownloadSource,declareGridHomeDownload,declareAssetTableDownloads} from '../src/bootDownloads';
 import {DownloadAccounting,installDownloadAccounting,declareDownloadFile,declareModuleFiles,preloadModuleGroups} from '../src/engine/boot/download';
 
 afterEach(() => {document.body.replaceChildren();for(const link of document.querySelectorAll('link[rel="modulepreload"]'))link.remove();});
@@ -25,6 +25,24 @@ test('the exact seam bank stays in the denominator before code credit, without f
     expect(document.querySelectorAll('link[rel="preload"],link[rel="modulepreload"]')).toHaveLength(0);
   } finally {dispose();}
 });
+test.each([{key: undefined, total: 500}, {key: 'example', total: 250}, {key: 'unpacked', total: 200}])('compiler table selection $key fixes its exact denominator before code credit', ({key, total}) => {
+  const common = {url: '/assets/boot-tables-aaaaaaaa.json', bytes: 100, sha256: 'a'.repeat(64)},
+    all = {url: '/assets/boot-tables-bbbbbbbb.json', bytes: 300, sha256: 'b'.repeat(64)},
+    own = {url: '/assets/boot-tables-cccccccc.json', bytes: 50, sha256: 'c'.repeat(64)};
+  const accounting = new DownloadAccounting(document.baseURI), dispose = installDownloadAccounting(accounting);
+  try {
+    declareDownloadFile('/assets/code.js', 100);
+    declareAssetTableDownloads({common, all, packs: {example: own}}, key);
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: total, declaredDoneBytes: 0, pendingBytes: total});
+    accounting.resource({name: new URL('/assets/code.js', document.baseURI).href, startTime: 1, transferSize: 100, encodedBodySize: 100, workerStart: 0, serverTiming: []});
+    declareDownloadFile(common.url, common.bytes);
+    if (key === undefined) declareDownloadFile(all.url, all.bytes);
+    else if (key === 'example') declareDownloadFile(own.url, own.bytes);
+    expect(accounting.snapshot()).toMatchObject({declaredBytes: total, declaredDoneBytes: 100, pendingBytes: total - 100});
+    expect(document.querySelectorAll('link[rel="preload"],link[rel="modulepreload"]')).toHaveLength(0);
+  } finally {dispose();}
+});
+
 test('a hybrid grid declares its actual product before later immutable files, without changing standalone entry', () => {
   const manifest = {gridShardfile: '/shardfiles/example/shard.json'};
   const accounting = new DownloadAccounting(document.baseURI), dispose = installDownloadAccounting(accounting);
