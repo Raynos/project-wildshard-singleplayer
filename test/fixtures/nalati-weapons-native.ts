@@ -4,14 +4,19 @@ import {BowDraw} from '../../src/engine/combat/bowDraw';
 import {bowBlocked,bowAimOn,bowMount,bowLooseSpreadDegrees,bowLaunchSpeed,bowMuzzle,type BowMountState} from '../../src/engine/combat/bowLaw';
 import {ProjectileLaw} from '../../src/engine/combat/projectileLaw';
 import {shotSpread} from '../../src/engine/combat/shotSpread';
-import {SweptMeleeCore} from '../../src/engine/combat/sweptMeleeCore';
+import {SweptMeleeCore,sweptLunge,sweptMoveDamage} from '../../src/engine/combat/sweptMeleeCore';
+import {SweptBasePose} from '../../src/engine/combat/sweptBasePose';
+import {BladeSweep,bladeInReach,sweptBladeDirs,type BladeKey} from '../../src/engine/combat/sweptBlade';
+import {pickLunge,targetRadius} from '../../src/engine/combat/lungeTarget';
+import {bladeBlocked} from '../../src/engine/player/MeleeSweep';
 import {worldHit,floorBelow} from '../../src/engine/physics/query';
 import {Wind} from '../../src/engine/world/steppeWind';
 import {WindStateSchema,WeatherWorldSchema} from '../../src/format/weatherProgram';
 import {MeleeWeaponProfileSchema,ThrownWeaponProfileSchema,HeldBowFileSchema} from '../../src/format/weaponProfiles';
-import {BladeRowsSchema,PolearmRowsSchema} from '../../src/format/heldMelee';
+import {BladeRowsSchema,PolearmRowsSchema,type BladeRows} from '../../src/format/heldMelee';
 import {parseHeldSlots} from '../../src/format/heldArms';
 import {heldBowBase} from '../../src/game/weapons/heldBowBase';
+import {SWORD_WOOD} from '../../src/game/weapons/starterMeleeProfile';
 import {HeldDecision} from '../../src/game/weapons/heldDecision';
 import {MountedPassLaw} from '../../src/game/weapons/mountedPass';
 import {PolearmDecision} from '../../src/game/weapons/polearmDecision';
@@ -31,16 +36,18 @@ const finite=v.pipe(v.number(),v.finite()),count=v.pipe(finite,v.integer(),v.min
 const SwingSaved=v.strictObject({move:v.nullable(count),swingT:finite,comboIdx:count,lastSwingEnd:finite,cooldown:finite,
   charging:v.boolean(),chargeT:finite,releaseQueued:v.boolean(),chargePending:v.boolean(),heldPrev:v.boolean(),time:finite});
 const DrawSaved=v.strictObject({drawT:finite,holdT:finite,renockT:finite,tiredT:finite,wasHeld:v.boolean(),needLift:v.boolean(),reachedFull:v.boolean()});
+const poseVector=v.tuple([finite,finite,finite,finite,finite,finite,finite]);
+const BladeSaved=v.strictObject({pose:v.strictObject({from:poseVector,base:poseVector,chargeBlend:finite,sprintBlend:finite}),
+  grip:vector,tip:vector,have:v.boolean(),struck:v.array(v.string()),contacts:count});
 const Saved=v.strictObject({version:v.literal(1),slot:v.string(),queued:v.boolean(),aim:finite,pitch:finite,ammo:count,
   draw:DrawSaved,bolts:count,shots:count,letdowns:count,fullDraws:count,aimOn:v.boolean(),aimBlend:finite,
   moves:v.pipe(v.array(v.string()),v.maxLength(64)),passes:count,passDamage:finite,swing:v.unknown(),pass:v.unknown(),cadence:finite,
-  thrusts:count,throws:count,recovered:count,polearm:v.unknown(),
+  thrusts:count,throws:count,recovered:count,polearm:v.unknown(),blade:BladeSaved,
   flying:v.array(v.strictObject({active:v.boolean(),age:finite,glanced:v.boolean(),pos:vector,vel:vector,origin:vector,scale:finite})),stopped:v.unknown(),
   javelins:v.array(v.strictObject({state:v.picklist([0,1,2]),age:finite,pos:vector,vel:vector,q:v.tuple([finite,finite,finite,finite])}))});
 
-/** Actual held inputs and admitted rows, sharing the page's decision and
- * projectile laws. This decision/projectile proof does not certify target
- * hits. No target is created. */
+/** Actual held inputs and admitted rows, sharing the page's decisions,
+ * base pose, contact sweeps and projectile laws. No target is created. */
 export type NalatiWeaponRay=(host:SimHost,from:Vector3,direction:Vector3,distance:number,
   hit:ReturnType<typeof nativeRangedHit>)=>ReturnType<typeof nativeRangedHit>;
 export function withNalatiWeapons(prepare:PrepareHeadlessRuntime,contacts?:NalatiWeaponRay):PrepareHeadlessRuntime {return async preparation=>{
@@ -55,6 +62,11 @@ export function withNalatiWeapons(prepare:PrepareHeadlessRuntime,contacts?:Nalat
   const melee=v.parse(MeleeWeaponProfileSchema,bladeItem.profile),thrown=v.parse(ThrownWeaponProfileSchema,spearItem.profile);
   if(melee.mounted===undefined)throw new Error('Sabre requires its admitted mounted policy');
   const mountedRows=melee.mounted;
+  const bladeKey=(row:BladeRows['moves']['rest']):BladeKey=>({t:row.t,pos:new Vector3(...row.pos),q:new Quaternion(...row.q)});
+  const bladeMove=(row:BladeRows['moves']['heavy'])=>({...row,keys:[bladeKey(row.keys[0]),bladeKey(row.keys[1]),bladeKey(row.keys[2])] as const});
+  const bladeMoves={rest:bladeKey(blade.moves.rest),charge:bladeKey(blade.moves.charge),sprint:bladeKey(blade.moves.sprint),
+    combo:blade.moves.combo.map(bladeMove),heavy:bladeMove(blade.moves.heavy),
+    passes:{left:bladeMove(blade.moves.passes.left),right:bladeMove(blade.moves.passes.right)}};
   const assembly=await product.json<{constants:{nativeWeather:unknown}}>('sim/headless-assembly.json');
   const weather=v.parse(WeatherWorldSchema,assembly.constants.nativeWeather);
   const length=v.parse(v.object({length:v.pipe(finite,v.minValue(0))}),JSON.parse(bow.rows.bake.arrow)).length;
@@ -73,6 +85,8 @@ export function withNalatiWeapons(prepare:PrepareHeadlessRuntime,contacts?:Nalat
     const body=(id:string):AnimalSim=>{const actor=host.entities.get(id);if(actor===undefined)throw new Error(`Missing native weapon target ${id}`);return actor;};
     const key=(actor:TargetAnimal):string=>{for(const [id,row] of host.entities)if(row===actor)return id;throw new Error('Foreign native weapon target');};
     const targets=():AnimalSim[]=>[...host.entities.values()].filter(actor=>actor.alive);
+    const basePose=new SweptBasePose(),sweep=new BladeSweep(melee.sweep);basePose.rest(bladeMoves.rest);let bladeContacts=0;
+    const grip=new Vector3(),tip=new Vector3(),basePos=new Vector3(),baseQ=new Quaternion(),left=new Vector3(),strikeDirection=new Vector3(),push=new Vector3(),up=new Vector3(0,1,0);
     const eye=new Vector3(),forward=new Vector3(),scratch=new Vector3(),velocity=new Vector3(),rotation=new Quaternion(),euler=new Euler(0,0,0,'YXZ');
     const random=():number=>host.rng.stream('gameplay').next();
     const ray=(from:Vector3,dir:Vector3,distance:number)=>{
@@ -96,11 +110,16 @@ export function withNalatiWeapons(prepare:PrepareHeadlessRuntime,contacts?:Nalat
       strike:(hit,damage,dir)=>{const killed=hit.animal.applyDamage(damage,hit.point,dir);if(!killed)hit.animal.stagger(scratch.set(dir.x,0,dir.z).normalize(),thrown.stagger);},
       impact:()=>undefined,water:(x,z)=>host.waterSurfaceAt(x,z),floor,random,damageScale:()=>1,
       surface:material=>material==='flesh'?'flesh':material==='wood'||material==='planks'?'wood':'ground'});
-    const extra=[blade.moves.passes.left,blade.moves.passes.right];
-    const clock=new SweptMeleeCore(blade.moves,melee,{queue:()=>{queued=true;},consume:()=>{const before=queued;queued=false;return before;}},{
-      start:move=>{moves.push(move.name);if(moves.length>64)moves.shift();},charge:()=>undefined,
-    });
+    const extra=[bladeMoves.passes.left,bladeMoves.passes.right];
     const pose=():void=>{const p=host.player.position;eye.set(p.x,p.y+1.68,p.z);rotation.setFromEuler(euler.set(pitch,host.player.yaw,0));forward.set(0,0,-1).applyQuaternion(rotation);};
+    const clock=new SweptMeleeCore(bladeMoves,melee,{queue:()=>{queued=true;},consume:()=>{const before=queued;queued=false;return before;}},{
+      start:(move,lunge)=>{moves.push(move.name);if(moves.length>64)moves.shift();sweep.reset();basePose.startSwing();
+        const heavy=move===bladeMoves.heavy;
+        const target=lunge?pickLunge(targets(),host.player.position,host.player.yaw,heavy?melee.lunge.heavyRange:melee.lunge.range,melee.lunge.cone):null;
+        if(target!==null){const feet=host.player.position,dash=sweptLunge(melee.lunge,heavy,target.position.x-feet.x,target.position.z-feet.z,targetRadius(target));
+          if(dash!==null)host.dashTo(target.position.x,target.position.z,dash.stopAt,dash.time);}
+      },charge:()=>undefined,
+    });
     host.onStep('nalati.weapons',dt=>{
       const commands=context.commands(),player=commands.find(command=>command.kind==='player');
       const enabled=host.player.health.alive&&taming.phase!=='breaking';
@@ -137,14 +156,34 @@ export function withNalatiWeapons(prepare:PrepareHeadlessRuntime,contacts?:Nalat
       if(slot===bladeSlot.id&&enabled){
         if(pressed){if(mounted===null)clock.tryFire();else pass.attack();}
         const strike=pass.decide(dt,{player:host.player,mount:mounted,charging:clock.chargingHeavy,baseDamage:melee.damage,rows:mountedRows,targets:targets()});
-        if(strike!==null){passDamage=strike.damage;if(clock.strike(strike.side<0?blade.moves.passes.left:blade.moves.passes.right,false))passes++;}
-        clock.step(dt,host.clock.now,melee.swingScale,player?.heavy!==undefined);
+        if(strike!==null){passDamage=strike.damage;if(clock.strike(strike.side<0?bladeMoves.passes.left:bladeMoves.passes.right,false))passes++;}
+        if(clock.move===null)passDamage=melee.damage;
+        const {move,active}=clock.step(dt,host.clock.now,melee.swingScale,player?.heavy!==undefined);
+        basePose.blend(dt,SWORD_WOOD.chargeBlend,clock.chargingHeavy,mount.rider.sprinting,move!==null);
+        basePose.pose(bladeMoves,move,clock.swingTime,clock.charge,host.clock.now,basePos,baseQ);
+        if(move!==null){
+          sweptBladeDirs(basePose.basePos,basePose.baseQ,blade.rig.tipX,blade.rig.tipY,grip,tip);pose();
+          if(!active||!sweep.have||!bladeInReach(eye,melee.reach,targets(),targetRadius))sweep.hold(grip,tip);
+          else sweep.sweep(grip,tip,eye,rotation,move.reach??melee.reach,{raycast:ray,
+            blocked:(origin,point)=>bladeBlocked(host.physics,origin,point,host.player.motor.collider),
+            strike:hit=>{left.copy(forward).applyAxisAngle(up,Math.PI/2);
+              strikeDirection.copy(forward).multiplyScalar(.7).addScaledVector(left,.7*move.sweep).normalize();
+              if(Math.abs(move.sweep)<.6)strikeDirection.y-=.35*(1-Math.abs(move.sweep));strikeDirection.normalize();
+              const result=host.combat.hit({source:'env',sourceTags:['actor.player',bladeItem.id,'dmg.melee','cover.checked'],
+                target:body(key(hit.animal)).combatActor(),amount:Math.round(sweptMoveDamage(passDamage,move,move===bladeMoves.heavy,1)),
+                point:hit.point,dir:strikeDirection,from:eye,weaponId:bladeItem.id,moveId:`move.${move.name}`});
+              if(result===null)return;bladeContacts++;
+              push.set(forward.x,0,forward.z).normalize().multiplyScalar(.8).addScaledVector(left,.5*move.sweep);
+              if(!result.killed)hit.animal.stagger?.(push,move.stagger);
+              if(move===bladeMoves.passes.left||move===bladeMoves.passes.right)pass.hit();
+            }});
+        }
       }else clock.stop();
       if(pressed&&slot===spearSlot.id&&enabled)polearm.attackPending=true;
       polearm.stow(slot===spearSlot.id,enabled);
       const out=polearm.decide(dt,host.clock.now,{player:host.player.position,heading:mounted?.yaw??host.player.yaw,held:slot===spearSlot.id,
         enabled,ads:slot===spearSlot.id&&aim>0,ammo,capacity:thrown.carried,mount:mounted,targets:targets(),
-        radius:actor=>Math.max(actor.dims.bodyRadius,actor.dims.bodyHalfLen)*actor.scale,javelins,random,policy:spear.profile,projectile:thrown});
+        radius:targetRadius,javelins,random,policy:spear.profile,projectile:thrown});
       if(out!==null){if(out.launch&&ammo>0&&flight.free()){ammo--;pose();if(flight.launch(eye,rotation,forward,mounted))throws++;}
         if(out.strike){thrusts++;pose();spearContacts.thrust(eye,rotation,forward,spear.profile);}
         if(out.target!==undefined){pose();spearContacts.lance(eye,out.target,out.damage,host.clock.now,host.player.position);}
@@ -152,11 +191,17 @@ export function withNalatiWeapons(prepare:PrepareHeadlessRuntime,contacts?:Nalat
       flight.fly(dt);
     },{
       snapshot:()=>JSON.stringify({version:1,slot,queued,aim,pitch,ammo,draw:draw.save(),bolts,shots,letdowns,fullDraws,aimOn,aimBlend,moves:[...moves],passes,passDamage,
+        blade:{pose:basePose.snapshot(),grip:sweep.grip.toArray(),tip:sweep.tip.toArray(),have:sweep.have,
+          struck:sweep.struck.slice(0,sweep.struckN).map(actor=>{if(actor===null)throw new Error('Missing struck blade target');return key(actor);}),contacts:bladeContacts},
         swing:clock.snapshot(extra),pass:pass.snapshot(),cadence:decision.snapshot(),thrusts,throws,recovered,polearm:polearm.snapshot(actor=>actor.entityId),
         flying:arrows.pool.slots.map(row=>({active:row.active,age:row.age,glanced:row.glanced,pos:row.pos.toArray(),vel:row.vel.toArray(),origin:row.origin.toArray(),scale:row.scale})),
         stopped:arrows.stopped.snapshot(key),javelins:javelins.map(row=>({state:row.state,age:row.age,pos:row.pos.toArray(),vel:row.vel.toArray(),q:row.q.toArray()}))}),
       restore:input=>{const saved=v.parse(Saved,typeof input==='string'?JSON.parse(input):input);if(!available.has(saved.slot)||saved.flying.length!==arrows.pool.slots.length||saved.javelins.length!==javelins.length
-          ||saved.ammo>thrown.carried||saved.bolts>bow.base.quiver)throw new Error('Invalid native weapon continuation');
+          ||saved.ammo>thrown.carried||saved.bolts>bow.base.quiver||saved.blade.struck.length>melee.sweep.maxHits
+          ||new Set(saved.blade.struck).size!==saved.blade.struck.length)throw new Error('Invalid native weapon continuation');
+        const struck=saved.blade.struck.map(body);
+        basePose.restore(saved.blade.pose);sweep.reset();sweep.grip.fromArray(saved.blade.grip);sweep.tip.fromArray(saved.blade.tip);sweep.have=saved.blade.have;
+        struck.forEach((actor,index)=>{sweep.struck[index]=actor;});sweep.struckN=struck.length;bladeContacts=saved.blade.contacts;
         clock.restore(v.parse(SwingSaved,saved.swing),extra);pass.restore(saved.pass);decision.restore(saved.cadence);polearm.restore(saved.polearm,body);draw.load(saved.draw);
         arrows.stopped.restore(saved.stopped,body);
         saved.flying.forEach((row,index)=>{const target=arrows.pool.slots[index];if(target===undefined)throw new Error('Missing native arrow slot');
