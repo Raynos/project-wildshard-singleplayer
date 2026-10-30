@@ -90,6 +90,7 @@ export class UploadOwnership {
   /** Stable lifetime authority is independent of the per-render residency pulse.
    * Tokens retain neither the resource's owner nor its last consuming scope. */
   private readonly settledIn = new WeakMap<Resource, { consumer: symbol | null; owner: symbol | null; acquired: boolean; drawing: boolean }>();
+  private readonly settledOwners = new WeakMap<Resource, WeakMap<Scope, { owner: symbol | null; acquired: boolean }>>();
   constructor(level: Scope, assets: AssetService) { this.level = level; this.assets = assets; }
   /** A snapshot of the live uploads (owned, and the unowned ones not yet collected). */
   resources(): ReadonlySet<object> {
@@ -142,6 +143,16 @@ export class UploadOwnership {
       this.assets.observeResidency(resource, acquired ? consumer ?? previousOwner : previousOwner ?? this.drawOwner);
       return;
     }
+    if (drawing && consumer !== null) {
+      const known = this.settledOwners.get(resource)?.get(consumer);
+      if (known !== undefined && known.acquired === acquired && known.owner === this.ownerId(previousOwner)
+        && (previousOwner === null || !previousOwner.disposed)) {
+        // Alternating consumers keep their already-installed lifetime leases.
+        // Residency still sees every original render/owner transition.
+        this.assets.observeResidency(resource, acquired ? consumer : previousOwner ?? this.drawOwner);
+        return;
+      }
+    }
     if (acquired && consumer !== null) this.retainAsset(resource, consumer);
     // Uniform samplers and lazily allocated targets need not be reachable from the material's public properties.
     // Their actual draw still identifies the subtree owner, even if an asynchronous build uploaded them earlier.
@@ -172,6 +183,13 @@ export class UploadOwnership {
       const authority = this.ownerId(owner);
       if (settled === undefined) this.settledIn.set(resource, { consumer: consumerKey, owner: authority, acquired, drawing });
       else { settled.consumer = consumerKey; settled.owner = authority; settled.acquired = acquired; settled.drawing = drawing; }
+      if (drawing && consumer !== null) {
+        let consumers = this.settledOwners.get(resource);
+        if (consumers === undefined) { consumers = new WeakMap(); this.settledOwners.set(resource, consumers); }
+        const known = consumers.get(consumer);
+        if (known === undefined) consumers.set(consumer, { owner: authority, acquired });
+        else { known.owner = authority; known.acquired = acquired; }
+      }
     }
   }
   /** A sampler binding is a real cache consumer, including page meshes outside delegated cell roots. */
@@ -224,6 +242,7 @@ export class UploadOwnership {
       this.releasing.add(resource); queueMicrotask(() => { this.releasing.delete(resource); });
       this.observedIn.delete(resource); // a re-upload later in the same render is observed again
       this.settledIn.delete(resource);
+      this.settledOwners.delete(resource);
       invalidatePropertyObservation();
       this.retire(resource);
       eventMethod(resource, 'removeEventListener', released); forget();
