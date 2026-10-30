@@ -20,7 +20,7 @@ QB17 zip video tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 - CI13: headless SimHost motor constants differ from the client's; play unchanged.
 - FC12 closes at identical captures (Pine 184, Driftwood ~194 draws).
 - QB17 (b): zip rises to the ring per Jake's ask; flat kept as Debug 'Hook zip'.
-- FC10 closed (Nine 7 real switches, Nalati 4 passes; phone bloom off, Debug 'Phone bloom'); FC13 at its Debug row; MF11 on lease deletion + footprint.
+- FC10 closed (Nine 7 real switches, Nalati 4 passes; phone bloom off, Debug 'Phone bloom'), FC13 at its Debug row.
 - **For wildshard-v (QB1):** Jake's home-screen icon predates the launch image; one delete + re-add of the icon fixes the black.
 - QB10 / MF12: Sentry verdicts in e74ca75809; S fixed b3b1723a9a, 7S fixed cc75f528ea + 93cf905edc. **wildshard-v: Sentry-only ids need a build + stack.**
 
