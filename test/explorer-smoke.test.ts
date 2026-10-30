@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { explorerCards, explorerCases, explorerFailures, explorerState, sweepExplorer, openExplorerSession, verifyExplorerDocument, explorerDiagnostics } from '../scripts/parity/explorer-smoke.mjs';
+import { explorerCards, explorerCapture, explorerCases, explorerFailures, explorerState, sweepExplorer, openExplorerSession, verifyExplorerDocument, explorerDiagnostics } from '../scripts/parity/explorer-smoke.mjs';
 import type { Browser, BrowserContext, CDPSession, Page } from 'playwright';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual required workflow leg, without dispatching it.
@@ -55,8 +55,9 @@ test.each(['progress', 'stalled', 'fatal', 'black'] as const)('Explorer no-progr
     now = 360000;
     return Promise.resolve({ document:currentDocument,fatal: [], empty: false, ready: mode !== 'stalled',
       readyIds: mode === 'stalled' ? ['first'] : ['first', 'middle', 'last'] });
-  }).mockResolvedValueOnce([first, { ...first, id: 'middle' }, last])
-    .mockResolvedValueOnce({document:currentDocument,fatal:[],empty:false,ready:true,readyIds:['first','middle','last']})
+  }).mockResolvedValueOnce({cards:[first, { ...first, id: 'middle' }, last],
+    before:{document:currentDocument,fatal:[],empty:false,ready:true,readyIds:['first','middle','last']},
+    after:{document:currentDocument,fatal:[],empty:false,ready:true,readyIds:['first','middle','last']}})
     .mockResolvedValue(diagnostics);
   const { browser, close } = fixtureBrowser(evaluate);
   try {
@@ -154,9 +155,9 @@ test('a model-ready invalidation between presence and pixels waits for the repla
   const state = { document:currentDocument,fatal: [], empty: false, ready: true, readyIds: ['shared/training-dummy'] };
   const missing = { id: 'shared/training-dummy', ready: false, pixels: 0, darkShare: 1 };
   const drawn = { ...missing, ready: true, pixels: 100, darkShare: .2 };
-  evaluate.mockResolvedValueOnce(state).mockResolvedValueOnce([missing])
-    .mockResolvedValueOnce(state).mockResolvedValueOnce([drawn])
-    .mockResolvedValueOnce(state).mockResolvedValueOnce(diagnostics);
+  evaluate.mockResolvedValueOnce(state).mockResolvedValueOnce({before:{...state,ready:false},cards:[missing],after:{...state,ready:false}})
+    .mockResolvedValueOnce(state).mockResolvedValueOnce({before:state,cards:[drawn],after:state})
+    .mockResolvedValueOnce(diagnostics);
   const page: Page = legacyDouble<Page>({ evaluate, on: () => page,
     goto: vi.fn<Page['goto']>().mockResolvedValue(null),
     close: vi.fn<Page['close']>().mockResolvedValue(),
@@ -175,7 +176,7 @@ test('a model-ready invalidation between presence and pixels waits for the repla
     await sweepExplorer(browser, 'https://test.example/', 'fixture', out);
     const receipt: unknown = JSON.parse(readFileSync(`${out}/fixture.json`, 'utf8'));
     expect(receipt).toMatchObject({ cards: [drawn], failures: [] });
-    expect(evaluate).toHaveBeenCalledTimes(6);
+    expect(evaluate.mock.calls.filter(([fn])=>fn===explorerCapture)).toHaveLength(2);
     expect(close).toHaveBeenCalledOnce();
   } finally { rmSync(out, { recursive: true, force: true }); }
 });
@@ -201,7 +202,9 @@ function sessionFixture(stale=false){
     return Promise.resolve(null);
   });
   const evaluate=vi.fn<Page['evaluate']>().mockImplementation(fn=>{
-    if(fn===explorerState)return Promise.resolve({document:identity,fatal:[],empty:false,ready:true,readyIds:[`${identity.slug}/actual`]});
+    const state={document:identity,fatal:[],empty:false,ready:true,readyIds:[`${identity.slug}/actual`]};
+    if(fn===explorerState)return Promise.resolve(state);
+    if(fn===explorerCapture)return Promise.resolve({before:state,cards:[{id:`${identity.slug}/actual`,ready:true,pixels:100,darkShare:.2}],after:state});
     if(fn===explorerDiagnostics)return Promise.resolve({...diagnostics,document:identity});
     return Promise.resolve([{id:`${identity.slug}/actual`,ready:true,pixels:100,darkShare:.2}]);
   });
@@ -287,4 +290,36 @@ test('a late HTTP error from an earlier catalogue remains fatal to the reused se
     Reflect.apply(response,undefined,[{status:()=>500,url:()=> 'https://test.example/failed.bin'}]);
     await expect(session.sweep('second',out)).rejects.toThrow('HTTP 500');
   }finally{await session.close();rmSync(out,{recursive:true,force:true});}
+});
+
+
+test('pixel capture keeps roster witnesses in the same task before a queued invalidation',async()=>{
+  document.body.innerHTML='<div class="ws-x show" data-mode="model"><div class="ws-x-grid"><button class="ws-x-model" data-id="shared/model"><canvas width="4" height="1"></canvas></button></div></div>';
+  const canvas=document.querySelector('canvas');if(canvas===null)throw new Error('Missing canvas');
+  const context=legacyDouble<CanvasRenderingContext2D>({getImageData:()=>{
+    queueMicrotask(()=>canvas.remove());
+    return {data:Uint8ClampedArray.from([64,64,64,255]),width:1,height:1,colorSpace:'srgb'};
+  }});
+  const getter=vi.spyOn(canvas,'getContext').mockReturnValue(context);
+  try{
+    const captured=explorerCapture();
+    expect(captured.before.ready).toBe(true);expect(captured.after.ready).toBe(true);
+    expect(captured.after.readyIds).toEqual(captured.cards.map(card=>card.id));
+    expect(explorerFailures(captured.cards)).toEqual([]);
+    await Promise.resolve();expect(explorerState().ready).toBe(false);
+  }finally{getter.mockRestore();document.body.replaceChildren();}
+});
+
+test('a changed final roster still refuses and retains its exact witness',async()=>{
+  mkdirSync('tmp/sp-x9-explorer',{recursive:true});const out=mkdtempSync('tmp/sp-x9-explorer/changed-capture-');
+  const state={document:currentDocument,fatal:[],empty:false,ready:true,readyIds:['old']};
+  const card={id:'old',ready:true,pixels:100,darkShare:.2};
+  const evaluate=vi.fn<Page['evaluate']>().mockResolvedValueOnce(state)
+    .mockResolvedValueOnce({before:state,cards:[card],after:{...state,readyIds:['replacement']}}).mockResolvedValue(diagnostics);
+  const {browser}=fixtureBrowser(evaluate);
+  try{
+    await expect(sweepExplorer(browser,'https://test.example/','fixture',out)).rejects.toThrow('catalogue changed during pixel validation');
+    const receipt:unknown=JSON.parse(readFileSync(`${out}/fixture.json`,'utf8'));
+    expect(receipt).toMatchObject({captureBefore:{readyIds:['old']},captureAfter:{readyIds:['replacement']}});
+  }finally{rmSync(out,{recursive:true,force:true});}
 });

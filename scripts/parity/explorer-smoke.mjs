@@ -60,6 +60,42 @@ export function explorerState() {
     ready:cards!==undefined && cards.length>0 && readyIds.length===cards.length,readyIds};
 }
 
+/** Read pixels and both roster witnesses in one browser task. Model-ready
+ * events cannot invalidate a thumbnail between these synchronous reads. */
+export function explorerCapture(){
+  function state(){
+  const fatal=[...document.querySelectorAll('#wserr,.ws-load-error,.ws-game-dev-alert,[data-boot-fatal]')].map(node=>node.textContent);
+  const root=document.querySelector('.ws-x.show[data-mode="model"]');
+  const cards=root?.querySelectorAll('.ws-x-grid .ws-x-model');
+  const readyIds=cards===undefined?[]:[...cards].filter(card=>card.querySelector('canvas')!==null).map(card=>{
+    if(!(card instanceof HTMLElement))throw new Error('Invalid model card');
+    return card.dataset.id??'';
+  });
+  const probe = /** @type {import('../../src/engine/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
+  const identity = {url:location.href,timeOrigin:performance.timeOrigin,slug:probe?.shard.slug??null};
+  return {fatal,document:identity,empty:root?.querySelector('.ws-x-empty-models.show')!==null && root!==null,
+    ready:cards!==undefined && cards.length>0 && readyIds.length===cards.length,readyIds};
+  }
+  function readCards(){
+  return [...document.querySelectorAll('.ws-x-grid .ws-x-model')].map(card => {
+    if(!(card instanceof HTMLElement))throw new Error('Invalid model card');
+    const id=card.dataset.id??'', canvas=card.querySelector('canvas');
+    if (!(canvas instanceof HTMLCanvasElement)) return {id,ready:false,pixels:0,darkShare:1};
+    const context=canvas.getContext('2d');
+    if (context===null || canvas.width===0 || canvas.height===0) return {id,ready:false,pixels:0,darkShare:1};
+    const data=context.getImageData(0,0,canvas.width,canvas.height).data;
+    let dark=0,pixels=0;
+    for(let at=0;at<data.length;at+=16){
+      pixels++;
+      if(Math.max(data[at]??0,data[at+1]??0,data[at+2]??0)<16)dark++;
+    }
+    return {id,ready:true,pixels,darkShare:pixels===0?1:dark/pixels};
+  });
+  }
+  const before=state(),cards=readCards(),after=state();
+  return {before,cards,after};
+}
+
 /** A stopped renderer must not bypass the existing no-progress hang guard.
  * @template T
  * @param {Promise<T>} work @param {number} remainingMs
@@ -150,6 +186,7 @@ async function sweepPage(page,faults,base,slug,out,lifetime,reset){
     for(const [key,value]of Object.entries({chunk:slug,explore:'model',tier:'phone',touch:'1',mute:'1',nolock:'1',sw:'0'}))url.searchParams.set(key,value);
     await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:30000});
     let empty=false,drawn=false;
+    /** @type {ReturnType<typeof explorerCapture>|undefined} */ let captured;
     while(Date.now()-progressAt<hangMs){
       if(faults.length>0)throw new Error(faults.join('\n'));
       const state=await withinProgressBudget(page.evaluate(explorerState),hangMs-(Date.now()-progressAt)),observedMs=Date.now()-started;
@@ -159,13 +196,18 @@ async function sweepPage(page,faults,base,slug,out,lifetime,reset){
       for(const id of state.readyIds)if(!firstReady.has(id)){firstReady.set(id,observedMs);progressAt=Date.now();}
       if(state.fatal.length>0)throw new Error(`Explorer fatal: ${state.fatal.join('; ')}`);
       if(state.empty||state.ready)verifyExplorerDocument(state.document,base,slug,lifetime.previous);
-      if(state.empty){empty=true;break;}
-      if(state.ready){
-        // A model-ready event can invalidate a thumbnail between these page
-        // tasks. Keep waiting for its replacement inside the same hang guard.
-        const snapshot=await withinProgressBudget(page.evaluate(explorerCards),hangMs-(Date.now()-progressAt));
-        cards=snapshot;
-        if(snapshot.length>0 && snapshot.every(card=>card.ready && card.pixels>0)){cards=snapshot;drawn=true;break;}
+      if(state.empty||state.ready){
+        const snapshot=await withinProgressBudget(page.evaluate(explorerCapture),hangMs-(Date.now()-progressAt));
+        if(snapshot.before.fatal.length>0)throw new Error(`Explorer fatal: ${snapshot.before.fatal.join('; ')}`);
+        verifyExplorerDocument(snapshot.before.document,base,slug,lifetime.previous);
+        verifyExplorerDocument(snapshot.after.document,base,slug,lifetime.previous);
+        if(snapshot.before.document.timeOrigin!==state.document.timeOrigin || snapshot.after.document.timeOrigin!==snapshot.before.document.timeOrigin)
+          throw new Error('Explorer document changed during pixel validation');
+        if(snapshot.before.empty){empty=true;cards=snapshot.cards;captured=snapshot;break;}
+        // A readiness notification before this atomic task still waits for
+        // its real replacement within the original no-progress budget.
+        cards=snapshot.cards;
+        if(snapshot.before.ready && cards.length>0 && cards.every(card=>card.ready && card.pixels>0)){captured=snapshot;drawn=true;break;}
       }
       await new Promise(_resolve=>{setTimeout(_resolve,250);});
     }
@@ -174,16 +216,17 @@ async function sweepPage(page,faults,base,slug,out,lifetime,reset){
     if(!empty && cards.length===0)failures.push('Explorer catalogue disappeared');
     if(faults.length>0)failures.push(...faults);
     if(failures.length>0)throw new Error(`${slug}: ${failures.join('; ')}`);
-    const final=await withinProgressBudget(page.evaluate(explorerState),hangMs-(Date.now()-progressAt));
+    if(captured===undefined)throw new Error('Missing final Explorer capture');
+    const final=captured.after;
     verifyExplorerDocument(final.document,base,slug,lifetime.previous);
     if(final.fatal.length>0)failures.push(...final.fatal);
-    if(empty?!final.empty:!final.ready || JSON.stringify(final.readyIds)!==JSON.stringify(cards.map(card=>card.id)))failures.push('Explorer catalogue changed during pixel validation');
+    if(empty?!final.empty:!final.ready || JSON.stringify(final.readyIds)!==JSON.stringify(cards.map(card=>card.id)) || JSON.stringify(captured.before.readyIds)!==JSON.stringify(cards.map(card=>card.id)))failures.push('Explorer catalogue changed during pixel validation');
     if(faults.length>0)failures.push(...faults);
     const diagnostics=await withinProgressBudget(page.evaluate(explorerDiagnostics),hangMs-(Date.now()-progressAt));
     verifyExplorerDocument(diagnostics.document,base,slug,lifetime.previous);
     if(diagnostics.document.timeOrigin!==final.document.timeOrigin)failures.push('Explorer document changed during final capture');
     if(faults.length>0)failures.push(...faults);
-    const result={slug,elapsedMs:Date.now()-started,hangMs,empty,cards,failures,document:final.document,diagnostics,firstReadyMs:Object.fromEntries(firstReady)};
+    const result={slug,elapsedMs:Date.now()-started,hangMs,empty,cards,failures,document:final.document,captureBefore:captured.before,captureAfter:final,diagnostics,firstReadyMs:Object.fromEntries(firstReady)};
     writeFileSync(join(out,`${slug}.json`),`${JSON.stringify(result,null,2)}\n`);
     if(failures.length>0)throw new Error(`${slug}: ${failures.join('; ')}`);
     lifetime.previous=final.document.timeOrigin;
