@@ -46,21 +46,38 @@ export const ChapterDirectorSchema: v.GenericSchema<ChapterDirectorRowsInput, Ch
 });
 /** Closed chapter publications: no reflected paths, methods or shard callbacks. */
 
-/** Read-only observations shared by page and renderer-free chapter entries. */
-export function chapterObservations(rows: ChapterDirectorRows['observations'], frame: {
-  readonly flags: readonly string[]; readonly day: { readonly night: number } | null;
+interface ChapterObservationFrame {
+  readonly day: { readonly night: number } | null;
   readonly player: { readonly x: number; readonly z: number };
   readonly reward: { readonly x: number; readonly z: number } | null;
+}
+function chapterObservation(row: ChapterDirectorRows['observations'][string], frame: ChapterObservationFrame,
+  flags: { readonly has: (flag: string) => boolean }): number {
+  if (typeof row === 'number') return row;
+  if ('flag' in row) return Number(flags.has(row.flag));
+  const value = row.read === 'day-present' ? Number(frame.day !== null) : row.read === 'night' ? frame.day?.night ?? 0
+    : row.read === 'player-x' ? frame.player.x : row.read === 'player-z' ? frame.player.z
+    : row.read === 'reward-x' ? frame.reward?.x : frame.reward?.z;
+  if (value === undefined) throw new Error('Chapter reward observation lacks its pose');
+  return value;
+}
+/** Read-only observations shared by page and renderer-free chapter entries. */
+export function chapterObservations(rows: ChapterDirectorRows['observations'], frame: ChapterObservationFrame & {
+  readonly flags: readonly string[];
 }): Record<string, number> {
-  return Object.fromEntries(Object.entries(rows).map(([key, row]) => {
-    if (typeof row === 'number') return [key, row];
-    if ('flag' in row) return [key, Number(frame.flags.includes(row.flag))];
-    const value = row.read === 'day-present' ? Number(frame.day !== null) : row.read === 'night' ? frame.day?.night ?? 0
-      : row.read === 'player-x' ? frame.player.x : row.read === 'player-z' ? frame.player.z
-      : row.read === 'reward-x' ? frame.reward?.x : frame.reward?.z;
-    if (value === undefined) throw new Error('Chapter reward observation lacks its pose');
-    return [key, value];
-  }));
+  const flags = { has: (flag: string) => frame.flags.includes(flag) };
+  return Object.fromEntries(Object.entries(rows).map(([key, row]) => [key, chapterObservation(row, frame, flags)]));
+}
+/** Compile admitted rows once. The borrowed result is consumed synchronously
+ * before the next read; flags and poses remain live, including silent restore. */
+export function chapterObservationReader(rows: ChapterDirectorRows['observations'], frame: ChapterObservationFrame & {
+  readonly flags: { readonly has: (flag: string) => boolean };
+}): () => Readonly<Record<string, number>> {
+  const entries = Object.entries(rows), output: Record<string, number> = Object.fromEntries(entries.map(([key]) => [key, 0]));
+  return () => {
+    for (const [key, row] of entries) output[key] = chapterObservation(row, frame, frame.flags);
+    return output;
+  };
 }
 /** Admission is pure and precedes any subscription, clock or presentation. */
 export function parseChapterDirector(input: unknown): ChapterDirectorRows {

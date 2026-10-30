@@ -1,6 +1,6 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
-import { chapterObservations, type ChapterDirectorRows } from '@wildshard/format/chapterDirector';
+import { chapterObservationReader, type ChapterDirectorRows } from '@wildshard/format/chapterDirector';
 import { DirectorScriptStageLane, type readDirectorProduct } from '../plugin/director';
 import { questPhaseSpan, questPhaseAt } from './storyLaw';
 
@@ -19,7 +19,7 @@ export class ChapterClock {
     private readonly publish: (effect: Exclude<ChapterEffect, { kind: 'phase' | 'flag' }>) => void, restoring = false) {
     const script = director.create();
     this.lane = new DirectorScriptStageLane(director.stages, script, { scope,
-      observe: () => chapterObservations(rows.observations, { ...frame, flags: flags.all }),
+      observe: chapterObservationReader(rows.observations, { ...frame, flags }),
       emits: { source: rows.source, value: 'literal', actions: new Map(Object.keys(rows.actions)
         .filter(key => script.data.events.some(event => event.direction === 'output' && event.key === key)).map(key => [key, () => { this.run(key); }])) },
     }, restoring, rows.initialDt);

@@ -11359,10 +11359,9 @@ before constructing its clock, then releases the lease in `finally`.
 Preparation waits for a drawn frame while presenting and an owned task otherwise;
 leaving during preparation refuses construction. Both ordinary and retained
 entries use this path without reserving memory around the outer quest install.
-`format/chapterDirector.chapterObservations(rows, frame)` reads their
-closed observation selectors from current flags, clock and positions without
-a renderer or callback ports. Both actual page chapters and Pine's native
-chapter use it. Native chapter publications now use the same closed director
+`format/chapterDirector.chapterObservations` reads live flags and poses.
+`chapterObservationReader` reuses admitted selectors and a synchronous
+result; `has` includes silent flag restore. Page/native clocks stay unchanged. Native chapter publications now use the same closed director
 contract and existing stage lane, admitting flag/phase effects before entry.
 The producer retains the original native effect projection, including quiet
 presentation events and original phase durations. No reflected publication
