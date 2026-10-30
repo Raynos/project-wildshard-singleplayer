@@ -97,8 +97,10 @@ export async function installRoamingCombat(context: ShardContext, input: unknown
     session.legs(); let n = 0;
     for (const actor of animals.animals) {
       if (n >= tells.length) break;
+      // the flags first: only a charging animal is measured (FC16: the distance of every animal, ~170 at Pine, each frame)
+      if (!actor.alive || actor.hidden || !actor.aggressive || actor.state !== 'charge') continue;
       const d = Math.hypot(game.camera.position.x - actor.position.x, game.camera.position.z - actor.position.z);
-      if (!actor.alive || actor.hidden || !actor.aggressive || actor.state !== 'charge' || d > rows.tells.range || d < rows.tells.near) continue;
+      if (d > rows.tells.range || d < rows.tells.near) continue;
       const tell = tells[n++]; if (tell === undefined) break;
       const length = d + rows.tells.ahead; tell.setTime(time);
       tell.lane(actor.position.x, actor.position.z, actor.position.x + Math.sin(actor.yaw) * length, actor.position.z + Math.cos(actor.yaw) * length,
