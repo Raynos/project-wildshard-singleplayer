@@ -16,6 +16,7 @@ import type { Progress } from '../Progress';
 import { progressSave } from '../saves';
 import { createAchievementCounters } from '../achievements';
 import { bindRuntimeLedger, bindRuntimeJsonRecord, bindRuntimeQuest, type RuntimeFacts } from '../plugin/headless';
+import { chapterFlow } from './chapterFlow';
 import type { ShardContext } from '../plugin/context';
 import { QuestViews, installDeclaredNpcTalks, type QuestNpcTalkPorts, type QuestTalkFigure, type NpcTalkInstallation, presentQuest, type QuestPresentation, type QuestPresentationHost, type QuestPresentationOptions } from '../plugin/ui';
 
@@ -70,10 +71,8 @@ export function presentChapterStory(line: QuestLine, input: ChapterStoryPresenta
     if (at === undefined) throw new Error('Chapter marker lacks an admitted frame placement');
     return { id: m.id, label: m.label, short: m.short ?? m.label, x: at.x, z: at.z };
   });
-  const chip = new QuestChip({ markers: ports.markers ?? markers, chip: ports.chip ?? (() => {
-    const q = line.active;
-    return q === null ? { label: '', count: '' } : { label: q.def.intro?.chip ?? q.def.title, count: q.isStarted ? `${Math.min(q.def.steps.length, q.index + 1)}/${q.def.steps.length}` : '' };
-  }) });
+  const flow = chapterFlow(line, rows);
+  const chip = new QuestChip({ markers: ports.markers ?? markers, chip: ports.chip ?? flow.chip });
   const views = ports.ctx === undefined ? undefined : new QuestViews(ports.ctx);
   views?.retainRoot(chip.line.root, () => { chip.line.hide(false); });
   const dialogueView = rows.talks.length === 0 ? undefined : views?.view('dialogue', entered => new DialogueBox(entered)) ?? (() => {
@@ -87,12 +86,10 @@ export function presentChapterStory(line: QuestLine, input: ChapterStoryPresenta
       speaker, radius: row.radius, label: row.label, onOpen: ports.open });
     ports.prompts.push(talk.prompt); return { id: row.id, talk };
   });
-  const text = (template: string, q: QuestState): string => template.replaceAll('{chapter}', String(line.number(q)))
-    .replaceAll('{title}', q.def.title).replaceAll('{objective}', q.objective()).replaceAll('{reward}', rows.rewards[q.def.id]?.title ?? '');
   const messages = new Map(line.chapters.map(q => [q, rows.messages === undefined ? undefined : questMessageHandlers(q, rows.messages, ports)]));
   line.onStep = (q, step, previous) => {
     const notice = messages.get(q); if (notice !== undefined) { notice.step(step, previous); return; }
-    if (step === null) return; ports.toast(text(previous === null ? rows.started : rows.objective, q)); ports.sting();
+    const toast = flow.stepToast(q, step, previous); if (toast === null) return; ports.toast(toast); ports.sting();
   };
   scope.onDispose(() => { chip.line.scope.dispose(); chip.line.root.remove(); });
   const captions = new Map<string, RewardCaption>();
@@ -100,7 +97,7 @@ export function presentChapterStory(line: QuestLine, input: ChapterStoryPresenta
     const notice = messages.get(q); if (notice !== undefined) { notice.complete(); return; }
     ports.sting(); let caption = captions.get(q.def.id);
     if (caption === undefined) {
-      caption = new RewardCaption(text(rows.rewardKicker, q), q.def.title, rows.rewards[q.def.id] === undefined ? '' : text(rows.rewardSubtitle, q));
+      const texts = flow.reward(q); caption = new RewardCaption(texts.kicker, texts.title, texts.subtitle);
       captions.set(q.def.id, caption); const created = caption;
       scope.onDispose(() => { created.root.remove(); }); views?.retainRoot(created.root, () => { created.show(false); });
     }
@@ -108,18 +105,10 @@ export function presentChapterStory(line: QuestLine, input: ChapterStoryPresenta
     const hide = (): void => { shown.show(false); chip.line.hide(false); };
     if (views === undefined) scope.timeout(rows.rewardMs, hide); else views.timeout(rows.rewardMs, hide);
   };
-  ports.fullMap?.setQuest?.(() => {
-    const q = line.active;
-    if (q !== null) return { title: q.isStarted ? text(rows.chapterTitle, q) : rows.introTitle, objective: q.objective(), hint: q.hint() };
-    const last = line.chapters.at(-1);
-    return last === undefined ? null : { title: text(rows.chapterTitle, last), objective: text(rows.completedObjective, last), hint: rows.completedHint };
-  });
+  ports.fullMap?.setQuest?.(flow.mapQuest);
   const places = placesWithDiscovery(ports.places, flags, ports.toast, markers);
   if (ports.places.length > 0) ports.fullMap?.setPois?.(places.mapPois, { declutter: true });
-  const feats = (): void => {
-    for (const row of rows.flagEvents) if (flags.has(row.flag)) ports.feat?.(row.event, 1);
-    for (const q of line.chapters) { const reward = rows.rewards[q.def.id]; if (reward !== undefined && q.isComplete) ports.feat?.(reward.event, 1); }
-  };
+  const feats = (): void => { for (const [event, count] of flow.feats(flags)) ports.feat?.(event, count); };
   // Installed explicitly after world polling by the adventure, preserving its original event order.
   return { chip, places, markers, dialogue, talk: id => { talks.find(row => row.id === id)?.talk.talk(); },
     update: (dt, player) => { dialogueView?.().update(dt); for (const row of talks) row.talk.update(player); },
