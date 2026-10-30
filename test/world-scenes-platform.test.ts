@@ -1009,3 +1009,30 @@ test('retiring during an owned-model completion prevents scene publication', asy
     expect(context.app.registry.pieces).toHaveLength(0);
   } finally { context.scope.dispose(); vi.restoreAllMocks(); }
 });
+
+// Slab rows store content hashes, whereas other scene imports store logical blob names.
+// Both authorities must be checked before a world allocates geometry.
+test.each(['declared-glb', 'undeclared', 'wrong-kind'] as const)('world scenes require declared slab imports: %s', async kind => {
+  const context = fixture(), hash = 'a'.repeat(64), rows = section();
+  context.product.shardfile.files.push({ hash, kind: kind === 'wrong-kind' ? 'binary' : 'glb', compressed: 12, decoded: 12,
+    gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
+  if (kind === 'undeclared') context.product.shardfile.files.pop();
+  rows.libraries.push({ id: 'fine', kind: 'whole', load: 'refine', models: [{ id: 'fabric', part: 'fabric', files: [hash] }] },
+    { id: 'slabs', kind: 'slabs', of: 'fine', keys: [{ id: 'k0', node: 'fabric', material: 'paint', castShadow: false, receiveShadow: false,
+      renderOrder: 0, layers: 1, frustumCulled: true, visible: true, sources: ['fabric'] }],
+    tiles: [{ tile: 0, files: [{ file: hash, chunks: [{ key: 'k0', bytes: 12, geometricError: 0, box: [0, 0, 0, 1, 1, 1], sphere: [0, 0, 0, 2] }] }] }] });
+  context.product.shardfile.props = { version: 1, family: 'fixture', tiles: [], panels: [], models: [], far: null, colliders: [], textures: [] };
+  const read = vi.spyOn(context.product, 'file');
+  try {
+    expect(context.product.hasFile(hash)).toBe(false); // A content hash is never a logical file name.
+    if (kind === 'declared-glb') {
+      const handles = await installWorldScenes(context, rows);
+      expect(handles.object('markers.east.stone')).toBeInstanceOf(Mesh);
+      expect(read.mock.calls.every(([name]) => context.product.hasFile(name))).toBe(true);
+    } else {
+      await expect(installWorldScenes(context, rows)).rejects.toThrow(`Missing world scene slab: ${hash}`);
+      expect(read.mock.calls.every(([name]) => ['scenes/open.json', 'scenes/cell.json'].includes(name))).toBe(true);
+    }
+    expect(read.mock.calls.some(([name]) => name === hash)).toBe(false);
+  } finally { context.scope.dispose(); vi.restoreAllMocks(); }
+});
