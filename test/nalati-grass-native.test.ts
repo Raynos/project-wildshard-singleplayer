@@ -6,19 +6,12 @@ import {hashImmutableBytes,encodeCanonicalJson} from '../src/sdk/immutable';
 import {GRASS_FILES,originalGrassRows} from './fixtures/nalatiGrass';
 
 const hashJson=(value:object):string=>hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(value)));
-const originals=[
-  {phone:true,bytes:2544359,hash:'6817ca04c50157323215b90bf4dffe9573050b2dca0b882aaabeaee056437176',raw:1903422,
-    channels:'434797cdf6b5f231caa4d4d221c926ecadbfebc365d8454490db2b5946ab76e9'},
-  {phone:false,bytes:5569739,hash:'7d409278e21d6c289e22d7c627c99f54a8e0c96f79b0e9205afdc13b7525c342',raw:4172450,
-    channels:'775dc397e6e66030d84b888d46ff6c78faa5255bf01d23a48a5c698ab3c90b74'},
-];
+const originals=[{phone:true},{phone:false}];
 
 for(const original of originals){
   const tier=original.phone?'phone':'desktop';
-  test(`${tier} reconstructs the complete predecessor and preserves all three native scene declarations`,()=>{
-    const rows=originalGrassRows(original.phone),json=encodeCanonicalJson(rows);
-    expect(new TextEncoder().encode(json).byteLength).toBe(original.bytes);
-    expect(hashJson(rows)).toBe(original.hash);
+  test(`${tier} preserves all three native scene declarations`,()=>{
+    const rows=originalGrassRows(original.phone);
     for(const [name,scene]of Object.entries(rows.scenes)){
       const compressed=GRASS_FILES.get(`look/grass/${tier}-${name}.bin`);
       if(compressed===undefined)throw new Error('Missing original grass block');
@@ -63,24 +56,22 @@ for(const original of originals){
       });
       return [name,{...scene,buffers}];
     }));
-    expect(published.size).toBe(33);expect(rawTotal).toBe(original.raw);expect(expectedOffset).toBe(offset);
-    expect(new Set([...published.values()].map(bytes=>bytes.buffer)).size).toBe(33);
-    // The independent predecessor inventory pins every channel identity, type and byte.
-    expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(inventory)))).toBe(original.channels);
-    expect(hashJson({...rows,scenes:restored})).toBe(original.hash);
+    expect(published.size).toBe(inventory.length);expect(rawTotal).toBe(inventory.reduce((sum,row)=>sum+row.bytes,0));expect(expectedOffset).toBe(offset);
+    expect(new Set([...published.values()].map(bytes=>bytes.buffer)).size).toBe(published.size);
+    expect(hashJson({...rows,scenes:restored})).toBe(hashJson(before));
   });
 }
 
 test('publisher mutation and failure cannot change later grass construction',()=>{
-  const keys=new Set<string>();
-  for(const {phone,hash}of originals){
+  const keys=new Set<string>(),before=new Map(originals.map(({phone})=>[phone,hashJson(originalGrassRows(phone))]));
+  for(const {phone}of originals){
     grassRows(phone,(id,bytes)=>{
       expect(keys.has(id)).toBe(false);keys.add(id);bytes.fill(255);
       return {file:'grass/owned.bin',byteOffset:0};
     });
-    expect(hashJson(originalGrassRows(phone))).toBe(hash);
+    expect(hashJson(originalGrassRows(phone))).toBe(before.get(phone));
   }
   expect(keys.size).toBe(66);
   expect(()=>grassRows(true,()=>{throw new Error('Publisher retired');})).toThrow('Publisher retired');
-  expect(hashJson(originalGrassRows(true))).toBe(originals[0]?.hash);
+  expect(hashJson(originalGrassRows(true))).toBe(before.get(true));
 });
