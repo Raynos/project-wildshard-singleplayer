@@ -213,6 +213,34 @@ export function ciRunGreen(sha, runId, query = ghApi) {
  * @param {string} runId @param {(args:string[])=>string} [query]
  * @returns {{sha:string,run:string}} */
 export function recoverySource(runId, query = ghApi) {
+  const {sha,run} = recoveryEvidence(runId, query, false);
+  return {sha,run};
+}
+
+/** G917 is an explicit deadline decision, never an automatic green verdict.
+ * All jobs must finish; prepare, SIX and latest same-run boot remain green.
+ * @param {string} runId @param {(args:string[])=>string} [query] @param {number} [now] */
+export function deadlineRecoverySource(runId, query = ghApi, now = Date.now()) {
+  if (!Number.isFinite(now) || now < Date.parse('2026-10-30T10:30:00Z'))
+    throw new Error('G917 deadline recovery is unavailable before 2026-10-30T10:30:00Z');
+  const selected = recoveryEvidence(runId, query, true);
+  const green = JSON.parse(query([`${workflowRunsPath('deploy.yml', query)}?branch=main&event=push&status=success&per_page=1&page=1`,
+    '--jq','{workflow_runs:[.workflow_runs[]|{id,head_sha,event,head_branch,status,conclusion,path,head_repository:{full_name:.head_repository.full_name}}]}']));
+  if (!Array.isArray(green.workflow_runs) || green.workflow_runs.length > 1)
+    throw new Error('Invalid latest green main inventory');
+  const latest = green.workflow_runs[0];
+  if (latest !== undefined) {
+    if (!/^[1-9][0-9]*$/u.test(String(latest.id)) || !/^[a-f0-9]{40}$/u.test(latest.head_sha)
+      || latest.event !== 'push' || latest.head_branch !== 'main' || latest.status !== 'completed'
+      || latest.conclusion !== 'success' || latest.path !== '.github/workflows/deploy.yml'
+      || latest.head_repository?.full_name !== REPO) throw new Error('Invalid latest green main proof');
+    if (BigInt(latest.id) >= BigInt(runId)) throw new Error('Use the newer fully green main release instead of G917');
+  }
+  return selected;
+}
+
+/** @param {string} runId @param {(args:string[])=>string} query @param {boolean} deadline */
+function recoveryEvidence(runId, query, deadline) {
   if (!/^[1-9][0-9]*$/u.test(runId)) throw new Error('Recovery requires a numeric source run');
   const run = JSON.parse(query([`repos/${REPO}/actions/runs/${runId}`]));
   const workflowId = workflowRunsPath('deploy.yml', query).split('/').at(-2);
@@ -241,20 +269,29 @@ export function recoverySource(runId, query = ghApi) {
   const rows = query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--jq',
     '.jobs[] | [.name, .status, .conclusion] | @tsv']).trim().split('\n').filter(Boolean);
   const optional = new Set(['build-and-deploy',phone === undefined ? 'journeys (phone-route)' : 'phone-route']);
+  const essential = new Set(['prepare','boot-verdict',
+    ...['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'].map(name=>`journeys (${name})`)]);
+  /** @type {{name:string,status:string,conclusion:string}[]} */
+  const jobs = [];
   for (const row of rows) {
     const [name='',status,conclusion] = row.split('\t');
+    if (row.split('\t').length !== 3 || status !== 'completed' || conclusion === undefined)
+      throw new Error(`Recovery job has no completed verdict: ${name}`);
     if (optional.delete(name)) {
-      if (status !== 'completed' || !['success','failure'].includes(conclusion ?? ''))
+      const terminal = deadline ? ['success','failure','timed_out',...(name === 'build-and-deploy' ? ['skipped'] : [])] : ['success','failure'];
+      if (!terminal.includes(conclusion))
         throw new Error(`Recovery terminal job did not finish: ${name}`);
-    } else if (!required.delete(name) || status !== 'completed' || conclusion !== 'success')
+    } else if (!required.delete(name) || (deadline && !essential.has(name)
+      ? !['success','failure','timed_out'].includes(conclusion) : conclusion !== 'success'))
       throw new Error(`Recovery source gate did not succeed: ${name}`);
+    jobs.push({name,status,conclusion});
   }
   if (required.size > 0 || optional.size > 0) throw new Error('Recovery job inventory differs');
   const boot = query([`repos/${REPO}/commits/${sha}/status`, '--paginate', '--jq',
     '.statuses[] | select(.context == "boot-smoke") | [.state, .target_url] | @tsv']).trim().split('\n')[0];
   if (boot !== `success\thttps://github.com/${REPO}/actions/runs/${runId}`)
     throw new Error('Recovery requires the latest successful same-run boot status');
-  return {sha,run:runId};
+  return {sha,run:runId,jobs,failures:jobs.filter(job=>['failure','timed_out'].includes(job.conclusion))};
 }
 
 /** Bind the current push's successful wave before its own ship job completes.
@@ -391,13 +428,22 @@ async function main() {
     console.log(`Production floor ${floor}; target ${a1}; forward-only verified`);
     return 0;
   }
-  if (cmd === 'read-recovery') {
+  if (cmd === 'read-recovery' || cmd === 'read-deadline-recovery') {
     if (process.env.GITHUB_EVENT_NAME !== 'workflow_dispatch' || process.env.GITHUB_REF !== 'refs/heads/main'
       || process.env.GITHUB_REPOSITORY !== REPO) throw new Error('Recovery requires an explicit main dispatch');
-    const selected = recoverySource(a1 ?? '');
+    const deadline = cmd === 'read-deadline-recovery';
+    const selected = deadline ? deadlineRecoverySource(a1 ?? '') : recoverySource(a1 ?? '');
+    if (deadline) {
+      const proof = process.env.DEADLINE_RECOVERY_PROOF;
+      if (!proof) throw new Error('G917 recovery requires a retained evidence path');
+      writeFileSync(proof, `${JSON.stringify({authority:'G917',deadline:'2026-10-30T10:30:00Z',verifiedAt:new Date().toISOString(),
+        requestRun:process.env.GITHUB_RUN_ID,actor:process.env.GITHUB_ACTOR??null,...selected},null,2)}\n`);
+    }
     if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT,
-      `sha=${selected.sha}\nmode=recovery\ngate=required\nsource_run=${selected.run}\nrecovery=true\nskip=false\n`);
-    console.log(`Explicit source recovery ${selected.run}: ${selected.sha}; all original source gates and SIX verified`);
+      `sha=${selected.sha}\nmode=recovery\ngate=required\nsource_run=${selected.run}\nrecovery=${!deadline}\nskip=false\n`);
+    console.log(deadline
+      ? `G917 explicit deadline recovery ${selected.run}: ${selected.sha}; prepare/SIX/latest boot verified; actual CI verdicts retained, not CI green`
+      : `Explicit source recovery ${selected.run}: ${selected.sha}; all original source gates and SIX verified`);
     return 0;
   }
   if (cmd === 'read-wave') {

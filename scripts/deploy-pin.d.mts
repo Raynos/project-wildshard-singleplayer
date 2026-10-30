@@ -16,6 +16,12 @@ export function ciGreen(sha: string, query?: (args: string[]) => string): boolea
 export function ciSourceRun(sha: string, query?: (args: string[]) => string): string;
 /** Explicit completed main source proof; failed shipping never waives a source gate. */
 export function recoverySource(runId: string, query?: (args: string[]) => string): {sha:string;run:string};
+/** G917 manual deadline exception, retaining every actual completed verdict. */
+export function deadlineRecoverySource(runId:string,query?:(args:string[])=>string,now?:number):{
+  sha:string;run:string;
+  jobs:{name:string;status:string;conclusion:string}[];
+  failures:{name:string;status:string;conclusion:string}[];
+};
 /** Explicit exact-run proof, including a stuck aggregate only when all 16 required jobs succeeded. */
 export function ciRunGreen(sha: string, runId: string, query?: (args: string[]) => string): boolean;
 

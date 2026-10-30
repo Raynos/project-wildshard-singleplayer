@@ -31,6 +31,11 @@ on:
         type: string
         required: false
         default: ''
+      deadline_recovery_source_run:
+        description: G917 manual SIX-green recovery after Oct 30 10:30Z
+        type: string
+        required: false
+        default: ''
       force:
         description: Redeploy even if this commit is already live
         type: boolean
@@ -89,15 +94,32 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CI_WAVE_NEEDS: ${{ toJSON(needs) }}
           RECOVERY_SOURCE_RUN: ${{ inputs.recovery_source_run }}
+          DEADLINE_RECOVERY_SOURCE_RUN: ${{ inputs.deadline_recovery_source_run }}
+          DEADLINE_RECOVERY_PROOF: ${{ runner.temp }}/deadline-recovery-source.json
         run: |
           cp scripts/deploy-pin.mjs scripts/deploy-version.mjs scripts/deploy-source-maps.mjs scripts/prebuilt-output.py "$RUNNER_TEMP/"
-          if [ -n "$RECOVERY_SOURCE_RUN" ]; then
+          if [ -n "$RECOVERY_SOURCE_RUN" ] && [ -n "$DEADLINE_RECOVERY_SOURCE_RUN" ]; then
+            echo '::error::Select exactly one explicit recovery authority'
+            exit 1
+          fi
+          if [ -n "$DEADLINE_RECOVERY_SOURCE_RUN" ]; then
+            node "$RUNNER_TEMP/deploy-pin.mjs" read-deadline-recovery "$DEADLINE_RECOVERY_SOURCE_RUN"
+          elif [ -n "$RECOVERY_SOURCE_RUN" ]; then
             node "$RUNNER_TEMP/deploy-pin.mjs" read-recovery "$RECOVERY_SOURCE_RUN"
           elif [ "$GITHUB_EVENT_NAME" = push ]; then
             node "$RUNNER_TEMP/deploy-pin.mjs" read-wave
           else
             node "$RUNNER_TEMP/deploy-pin.mjs" read
           fi
+
+      - name: Retain explicit deadline source verdicts
+        if: always() && inputs.deadline_recovery_source_run != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: deadline-recovery-source
+          path: ${{ runner.temp }}/deadline-recovery-source.json
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Check out the pin
         if: github.event_name == 'workflow_dispatch'

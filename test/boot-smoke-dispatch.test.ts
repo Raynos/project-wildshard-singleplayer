@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { expect, test } from 'vitest';
 import { watchPhoneEntry } from '../scripts/parity/phone-route-page.mjs';
 import { phoneBootstrap } from '../scripts/parity/phone-route-browser.mjs';
-import { recoverySource, waveSource } from '../scripts/deploy-pin.mjs';
+import { deadlineRecoverySource, recoverySource, waveSource } from '../scripts/deploy-pin.mjs';
 import deploy from '../.github/workflows/deploy.yml?raw';
 
 const sha = 'a'.repeat(40);
@@ -68,11 +68,13 @@ function recoveryFixture(native=false,splitPhone=false) {
   rows.push(['build-and-deploy','completed','failure'],[splitPhone?'phone-route':'journeys (phone-route)','completed','failure']);
   const ancestry={base_commit:{sha},status:'ahead'};
   const fixture={run,rows,ancestry,source:`${splitPhone?'\n  phone-route:\n    continue-on-error: true\n':`continue-on-error: \${{ matrix.part == 'phone-route' }}`}${native?'\n  native-escape:\n':''}`,
+    green:[] as typeof run[],
     boot:`success\thttps://github.com/${repo}/actions/runs/${runId}`,
     query:(args:string[]):string=>{
       const path=args[0]??'';
       if(path.endsWith('/actions/runs/123'))return JSON.stringify(fixture.run);
       if(path.includes('/actions/workflows?'))return '.github/workflows/deploy.yml\t456';
+      if(path.includes('/actions/workflows/456/runs?'))return JSON.stringify({workflow_runs:fixture.green});
       if(path.includes('/compare/'))return JSON.stringify(fixture.ancestry);
       if(path.includes('/contents/'))return fixture.source;
       if(path.includes('/jobs?'))return fixture.rows.map(row=>row.join('\t')).join('\n');
@@ -121,12 +123,57 @@ test('recovery refuses partial, duplicated, foreign, divergent and stale proofs'
 });
 
 test('recovery CLI refuses non-manual or non-main contexts before reading proofs',()=>{
-  for(const change of [{GITHUB_EVENT_NAME:'push'},{GITHUB_REF:'refs/heads/other'},{GITHUB_REPOSITORY:'foreign/repo'}]) {
-    const result=spawnSync(process.execPath,['scripts/deploy-pin.mjs','read-recovery','123'],{encoding:'utf8',timeout:5000,
+  for(const command of ['read-recovery','read-deadline-recovery']) for(const change of [{GITHUB_EVENT_NAME:'push'},{GITHUB_REF:'refs/heads/other'},{GITHUB_REPOSITORY:'foreign/repo'}]) {
+    const result=spawnSync(process.execPath,['scripts/deploy-pin.mjs',command,'123'],{encoding:'utf8',timeout:5000,
       env:{...process.env,GITHUB_EVENT_NAME:'workflow_dispatch',GITHUB_REF:'refs/heads/main',GITHUB_REPOSITORY:'Raynos/project-wildshard-singleplayer',...change}});
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain('Recovery requires an explicit main dispatch');
   }
+});
+
+const deadline = Date.parse('2026-10-30T10:30:00Z');
+test('G917 cannot run early and retains actual reds without manufacturing CI green',()=>{
+  const f=recoveryFixture(true,true);
+  const behaviour=f.rows.find(row=>row[0]==='behaviour (4)'),ship=f.rows.find(row=>row[0]==='build-and-deploy');
+  if(behaviour===undefined||ship===undefined)throw new Error('Missing deadline proof fixture');
+  behaviour[2]='failure';ship[2]='skipped';
+  expect(()=>deadlineRecoverySource('123',()=>{throw new Error('Must not query early');},deadline-1)).toThrow('unavailable before');
+  const selected=deadlineRecoverySource('123',f.query,deadline);
+  expect(selected.sha).toBe(sha);expect(selected.run).toBe('123');
+  expect(selected.jobs).toHaveLength(f.rows.length);
+  expect(selected.failures).toContainEqual({name:'behaviour (4)',status:'completed',conclusion:'failure'});
+  expect(selected.jobs).toContainEqual({name:'build-and-deploy',status:'completed',conclusion:'skipped'});
+  expect(()=>recoverySource('123',f.query)).toThrow();
+});
+
+test('G917 keeps prepare, every SIX leg, latest boot and exhaustive terminal inventory mandatory',()=>{
+  const essential=['prepare','boot-verdict',...['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'].map(name=>`journeys (${name})`)];
+  for(const name of essential)for(const verdict of ['failure','skipped','cancelled','timed_out']){
+    const f=recoveryFixture(true,true),row=f.rows.find(candidate=>candidate[0]===name);
+    if(row===undefined)throw new Error('Missing essential deadline gate');
+    row[2]=verdict;expect(()=>deadlineRecoverySource('123',f.query,deadline)).toThrow();
+  }
+  for(const mutate of [(f:ReturnType<typeof recoveryFixture>)=>{f.rows.pop();},
+    (f:ReturnType<typeof recoveryFixture>)=>{f.rows.push(['prepare','completed','success']);},
+    (f:ReturnType<typeof recoveryFixture>)=>{f.rows.push(['foreign','completed','success']);},
+    (f:ReturnType<typeof recoveryFixture>)=>{f.rows[1]=['typecheck-lint','in_progress','failure'];},
+    (f:ReturnType<typeof recoveryFixture>)=>{f.boot='failure\turl';},
+    (f:ReturnType<typeof recoveryFixture>)=>{f.run.event='workflow_dispatch';},
+    (f:ReturnType<typeof recoveryFixture>)=>{f.ancestry.status='diverged';}]){
+    const f=recoveryFixture(true,true);mutate(f);expect(()=>deadlineRecoverySource('123',f.query,deadline)).toThrow();
+  }
+  const newer=recoveryFixture(true,true);
+  newer.green.push({...newer.run,id:124,conclusion:'success'});
+  expect(()=>deadlineRecoverySource('123',newer.query,deadline)).toThrow('newer fully green');
+});
+
+test('deadline recovery remains explicit and uses the exact tested prebuilt release path',()=>{
+  expect(deploy).toContain('deadline_recovery_source_run:');
+  expect(deploy).toContain('read-deadline-recovery "$DEADLINE_RECOVERY_SOURCE_RUN"');
+  expect(deploy).toContain('Select exactly one explicit recovery authority');
+  expect(deploy).toContain('name: deadline-recovery-source');
+  expect(deploy).toContain('prebuilt-output.py" restore --sha "$DEPLOY_SHA" --run "$SOURCE_RUN"');
+  expect(deploy).toContain('read-wave');
 });
 
 test('recovery projects ancestry before the bounded GitHub stdout boundary',()=>{
