@@ -37,6 +37,7 @@ export function selectTestCohort(paths: readonly string[], products: Readonly<Re
 }
 
 export class DurationSequencer extends BaseSequencer {
+  private plannedRanks: ReadonlyMap<string, number> | undefined;
   private cohort(files: TestSpecification[]): TestSpecification[] {
     const {WS_TEST_COHORT:cohort}=process.env;
     if(cohort===undefined)return files;
@@ -75,9 +76,27 @@ export class DurationSequencer extends BaseSequencer {
     const tools = await prepareTestBuildTools(files.map(spec => relative(root, spec.moduleId).replaceAll('\\', '/')),
       JSON.parse(readFileSync(resolve(root, 'test/build-tools.json'), 'utf8')));
     if (tools.length > 0) console.info(`Test build prerequisites: ${tools.join(', ')} ready in ${Math.round(performance.now() - started)} ms (before test workers)`);
-    return super.sort(files);
+    const sorted = await super.sort(files), ranks = this.plannedRanks;
+    if (ranks === undefined) return sorted;
+    const rank = (spec: TestSpecification): number => {
+      const value = ranks.get(relative(root, spec.moduleId).replaceAll('\\', '/'));
+      if (value === undefined) throw new Error('Sorted test is absent from the checked shard plan');
+      return value;
+    };
+    // Preserve Vitest's project/group boundaries, but dispatch each group's
+    // checked LPT order. The cold default sorts by file size, leaving tiny
+    // native wrapper files until the final worker tail despite their weight.
+    const groups: TestSpecification[][] = [];
+    for (const spec of sorted) {
+      rank(spec);
+      const group = groups.at(-1);
+      if (group?.[0]?.project === spec.project) group.push(spec);
+      else groups.push([spec]);
+    }
+    return groups.flatMap(group => group.sort((left, right) => rank(left) - rank(right)));
   }
   override shard(candidates: TestSpecification[]): Promise<TestSpecification[]> {
+    this.plannedRanks = undefined;
     const files=this.cohort(candidates);
     const { root, shard } = this.ctx.config;
     const { WS_VITEST_PLAN: planFile, GITHUB_SHA: sha, GITHUB_RUN_ID: run } = process.env;
@@ -86,7 +105,9 @@ export class DurationSequencer extends BaseSequencer {
       const paths = files.map(key);
       const plan = readShardPlan(JSON.parse(readFileSync(resolve(root, planFile), 'utf8')), paths, shard.count,
         sha === undefined ? undefined : { sha, ...(run === undefined ? {} : { run }) });
-      const mine = new Set(plan.shards[shard.index - 1]?.files);
+      const order = plan.shards[shard.index - 1]?.files ?? [];
+      const mine = new Set(order);
+      this.plannedRanks = new Map(order.map((file, index) => [file, index]));
       return Promise.resolve(files.filter(spec => mine.has(key(spec))));
     }
     const durations = shard === undefined ? null : readDurations(root);
