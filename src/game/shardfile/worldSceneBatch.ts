@@ -1,7 +1,8 @@
-import { Matrix4, type BufferGeometry, type Camera, type Material } from 'three';
+import { BatchedMesh, Matrix4, type BufferGeometry, type Camera, type Material } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { BatchedCull } from '@wildshard/engine/models/cull';
 import { InstancedBatch } from '@wildshard/engine/models/instancedBatch';
+import { graphBatches } from '@wildshard/engine/render/graphBatches';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { withOwner } from '@wildshard/engine/app/ownership';
@@ -9,41 +10,45 @@ import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
 import type { WorldSceneBatchRow } from '@wildshard/format/worldSceneBatch';
 
 /**
- * Client-only fixed LOD instances of one material, drawn instanced (an InstancedBatch: one InstancedMesh per geometry
- * slot), each copy choosing its authored near / far geometry by distance. Never a BatchedMesh (E271 / E272: no multi-draw
- * anywhere; a graph look on a multi-draw batch did not even compile on the grid). Named placements that name the batch
- * draw instanced on their own. Finishing registers it (the registry draws it), as a BatchedMesh once arrived through them.
+ * Client-only fixed LOD instances of one material, each copy choosing its authored near / far geometry by distance. PF2
+ * (G936): one BatchedMesh where the renderer multi-draws (a graph look too: the grid's cell clip keeps its #extension
+ * first), as legacy drew Pine's crags; Debug ▸ Graph batches ▸ Instanced, no multi-draw, or slots whose layouts differ
+ * draw an InstancedBatch (one InstancedMesh per geometry slot, E271 / E272's path). Named placements that name the
+ * batch draw on their own. Finishing registers it (the registry draws it).
  * Copies marked `merge` become one static geometry at their near level, drawn as one copy (G639: Pine's 18 crag skin
  * tiles were 18 draws in each of the main and shadow passes).
  */
 const IDENTITY = new Matrix4();
+/** a BatchedMesh holds geometries of one attribute set and one index presence */
+const oneLayout = (geometries: readonly BufferGeometry[]): boolean =>
+  new Set(geometries.map(g => `${String(g.index !== null)}:${Object.keys(g.attributes).sort().join(',')}`)).size <= 1;
 
 export class WorldSceneBatch {
-  private value: InstancedBatch | undefined;
+  private value: InstancedBatch | BatchedMesh | undefined;
   private fixed: BatchedCull[] | undefined;
   constructor(private readonly row: WorldSceneBatchRow, private readonly material: Material,
-    private readonly geometry: readonly BufferGeometry[], private readonly owner: Scope, private readonly registry: Pick<WorldRegistry, 'add'>) {}
+    private readonly geometry: readonly BufferGeometry[], private readonly owner: Scope, private readonly registry: Pick<WorldRegistry, 'add'>,
+    private readonly multiDraw = false) {}
 
-  /** Allocate lazily: unused profile rows retain no instance buffers. */
-  object(): InstancedBatch {
-    if (this.owner.disposed) throw new Error('World scene batch owner is disposed');
-    if (this.value !== undefined) return this.value;
-    const row = this.row, batch = withOwner(this.owner, () => new InstancedBatch(this.material, { name: row.name, castShadow: row.castShadow, receiveShadow: row.receiveShadow }));
-    this.value = batch;
-    // its meshes are sized and owned (`ownSceneResource`) when it finishes; the owner frees them once
-    this.owner.onDispose(() => { batch.removeFromParent(); });
-    return batch;
-  }
+  /** The batch object (built with its fixed copies on first use; refused once its owner is gone). */
+  object(): InstancedBatch | BatchedMesh { return this.finish(); }
 
   /** Idempotent: its fixed copies, hidden until the first view chooses each one's level. */
-  finish(): InstancedBatch {
-    const batch = this.object();
-    if (this.fixed !== undefined) return batch;
-    const ids = this.geometry.map(geometry => batch.addGeometry(geometry)), uses = new Map<number, number>();
+  finish(): InstancedBatch | BatchedMesh {
+    if (this.owner.disposed) throw new Error('World scene batch owner is disposed');
+    if (this.value !== undefined) return this.value;
     const merged = this.row.fixed.filter(row => row.merge === true), culled = this.row.fixed.filter(row => row.merge !== true);
-    for (const row of culled) for (const slot of new Set([row.lod0, row.lod1])) uses.set(slot, (uses.get(slot) ?? 0) + 1);
-    for (const [slot, count] of uses) { const id = ids[slot]; if (id !== undefined) batch.reserve(id, count); }
-    if (merged.length > 0) batch.addInstance(batch.addGeometry(this.merged(merged)));
+    const skin = merged.length > 0 ? this.merged(merged) : null, all = skin === null ? [...this.geometry] : [...this.geometry, skin];
+    const batch = this.multiDraw && graphBatches() && oneLayout(all) ? this.batchedMesh(all, culled.length + (skin === null ? 0 : 1)) : this.instancedBatch();
+    this.value = batch;
+    this.owner.onDispose(() => { batch.removeFromParent(); });
+    const ids = this.geometry.map(geometry => batch.addGeometry(geometry));
+    if (batch instanceof InstancedBatch) {
+      const uses = new Map<number, number>();
+      for (const row of culled) for (const slot of new Set([row.lod0, row.lod1])) uses.set(slot, (uses.get(slot) ?? 0) + 1);
+      for (const [slot, count] of uses) { const id = ids[slot]; if (id !== undefined) batch.reserve(id, count); }
+    }
+    if (skin !== null) batch.addInstance(batch.addGeometry(skin));
     this.fixed = culled.map(row => {
       const near = ids[row.lod0], far = ids[row.lod1];
       if (near === undefined || far === undefined) throw new Error('Missing fixed scene batch geometry');
@@ -52,9 +57,25 @@ export class WorldSceneBatch {
       return new BatchedCull([{ mesh: batch, instance, geometry: Int32Array.of(near, far), until2: null }],
         Uint32Array.of(0, 1), Float64Array.from(row.sphere), [0, row.near], { ...this.row.cull, far: row.far });
     });
-    for (const mesh of batch.children) ownSceneResource(mesh, this.owner);
+    if (batch instanceof BatchedMesh) ownSceneResource(batch, this.owner);
+    else for (const mesh of batch.children) ownSceneResource(mesh, this.owner);
     withOwner(this.owner, () => { this.registry.add({ id: this.row.id, name: this.row.name, category: 'nature', file: 'src/game/shardfile/worldSceneBatch.ts', object: batch }); });
     return batch;
+  }
+
+  private instancedBatch(): InstancedBatch {
+    const row = this.row;
+    return withOwner(this.owner, () => new InstancedBatch(this.material, { name: row.name, castShadow: row.castShadow, receiveShadow: row.receiveShadow }));
+  }
+
+  /** One multi-draw batch sized to what it holds (the merged skin came after the rows' declared capacity) */
+  private batchedMesh(all: readonly BufferGeometry[], instances: number): BatchedMesh {
+    const row = this.row;
+    const vertices = all.reduce((n, g) => n + g.getAttribute('position').count, 0), indices = all.reduce((n, g) => n + (g.index?.count ?? 0), 0);
+    const mesh = withOwner(this.owner, () => new BatchedMesh(Math.max(1, instances), vertices, indices, this.material));
+    mesh.name = row.name; mesh.sortObjects = row.sortObjects; mesh.perObjectFrustumCulled = row.perObjectFrustumCulled;
+    mesh.castShadow = row.castShadow; mesh.receiveShadow = row.receiveShadow;
+    return mesh;
   }
 
   /** The merge copies' near geometries in the batch's frame, one geometry the batch's owner frees. */

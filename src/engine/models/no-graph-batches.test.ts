@@ -118,7 +118,7 @@ test('the draw census excludes only canonical test-domain sources', () => {
   }
 });
 
-test('every BatchedMesh in the live source is one of the three guarded engine draws', () => {
+test('every BatchedMesh in the live source is one of the four guarded draws', () => {
   const found: string[] = [];
   const walk = (dir: string): void => {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -130,8 +130,9 @@ test('every BatchedMesh in the live source is one of the three guarded engine dr
     }
   };
   walk('src');
-  // each names a graph look (graphLook) before it builds a batch (the Instanced row's fallback); a new BatchedMesh needs the same here
-  const guarded = ['src/engine/models/place.ts', 'src/engine/world/forest/Forest.ts', 'src/engine/world/interact/Interactables.ts'];
+  // each consults the graph-batch rule (graphLook / graphBatches, the Instanced row's fallback) before it builds a batch;
+  // a new BatchedMesh needs the same here
+  const guarded = ['src/engine/models/place.ts', 'src/engine/world/forest/Forest.ts', 'src/engine/world/interact/Interactables.ts', 'src/game/shardfile/worldSceneBatch.ts'];
   expect(found.sort((p, q) => p.localeCompare(q))).toEqual([...guarded].sort((p, q) => p.localeCompare(q)));
-  for (const path of guarded) expect(readFileSync(path, 'utf8')).toMatch(/graphLook\(/u);
+  for (const path of guarded) expect(readFileSync(path, 'utf8')).toMatch(/graphLook\(|graphBatches\(/u);
 });

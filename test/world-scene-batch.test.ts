@@ -27,7 +27,7 @@ const batchRows = () => v.parse(WorldSceneBatchSchema, { id: 'harbour', material
 const drawn = (root: Object3D) => { const meshes: (InstancedMesh | BatchedMesh)[] = []; root.traverse(o => { if (o instanceof InstancedMesh || o instanceof BatchedMesh) meshes.push(o); }); return meshes; };
 const counts = (root: Object3D) => drawn(root).map(mesh => mesh instanceof InstancedMesh ? mesh.count : -1);
 
-test('fixed instances draw instanced, one InstancedMesh per geometry slot, never a BatchedMesh (E271 / E272)', () => {
+test('without multi-draw fixed instances draw instanced, one InstancedMesh per geometry slot (E271 / E272)', () => {
   const owner = new Scope('harbour'), material = new MeshBasicMaterial(), geometry = triangle();
   const batch = new WorldSceneBatch(batchRows(), material, [geometry, geometry], owner, new WorldRegistry()), group = batch.finish();
   expect(batch.finish()).toBe(group); expect(batch.object()).toBe(group);
@@ -35,6 +35,20 @@ test('fixed instances draw instanced, one InstancedMesh per geometry slot, never
   expect(meshes).toHaveLength(2); expect(meshes.every(mesh => mesh instanceof InstancedMesh)).toBe(true);
   expect(counts(group)).toEqual([0, 0]); // nothing drawn before the first view chooses
   owner.dispose(); material.dispose(); geometry.dispose();
+});
+
+test('PF2: where the renderer multi-draws the fixed copies are one BatchedMesh; Graph batches > Instanced keeps the instanced path', async () => {
+  const { setDev } = await import('../src/engine/core/devMode'), { setGraphBatches } = await import('../src/engine/render/graphBatches');
+  const owner = new Scope('harbour batched'), material = new MeshBasicMaterial(), geometry = triangle();
+  try {
+    const batched = new WorldSceneBatch(batchRows(), material, [geometry, geometry], owner, new WorldRegistry(), true).finish();
+    expect(batched).toBeInstanceOf(BatchedMesh); expect(drawn(batched)).toHaveLength(1);
+    setDev(true); setGraphBatches(false);
+    try {
+      const instanced = new WorldSceneBatch(batchRows(), material, [geometry, geometry], owner, new WorldRegistry(), true).finish();
+      expect(instanced).not.toBeInstanceOf(BatchedMesh); expect(drawn(instanced).every(mesh => mesh instanceof InstancedMesh)).toBe(true);
+    } finally { setGraphBatches(true); setDev(false); }
+  } finally { owner.dispose(); material.dispose(); geometry.dispose(); }
 });
 
 test('fixed instances keep authored range and LOD boundaries, moving between their geometry meshes', () => {

@@ -49,6 +49,12 @@ import { loadingUnits } from '@wildshard/engine/boot/waits';
 import { timeClientPreparation } from './preparationTiming';
 import { tiledMesh } from './tiledMesh';
 import { constructionCheckpoint } from './constructionCheckpoint';
+/** whether a renderer multi-draws (a world-scene batch draws one BatchedMesh then); none (a test host): no */
+const multiDrawOf = (renderer: unknown): boolean => {
+  const extensions: unknown = typeof renderer === 'object' && renderer !== null ? Reflect.get(renderer, 'extensions') : null;
+  const has: unknown = typeof extensions === 'object' && extensions !== null ? Reflect.get(extensions, 'has') : null;
+  return typeof has === 'function' && Reflect.apply(has, extensions, ['WEBGL_multi_draw']) === true;
+};
 
 function instances3(value: unknown): value is InstancedMesh { return value instanceof InstancedMesh; }
 function mesh3(value: unknown): value is Mesh { return value instanceof Mesh; }
@@ -587,7 +593,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
         if (geometry === undefined || geometry === null) throw new Error('Missing admitted scene batch geometry');
         owner.onDispose(() => { geometry.dispose(); }); return geometry;
       });
-      const batch = new WorldSceneBatch(row, material, preparedGeometry, owner, registry());
+      const batch = new WorldSceneBatch(row, material, preparedGeometry, owner, registry(), multiDrawOf(game?.renderer));
       handles.publish(row.id, batch);
       if (sky !== undefined && game !== undefined) withOwner(owner, () => { game.onUpdate(() => { batch.update(sky.viewCamera); }); });
       const pause = constructionCheckpoint(owner); if (pause !== undefined) await pause;
