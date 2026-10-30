@@ -9,7 +9,7 @@ import type { SimHost } from '../../../src/engine/sim';
 import { snapshotSimHost, serializeSimSnapshot } from '../../../src/engine/sim/snapshot';
 import type { Rapier } from '../../../src/engine/physics/rapier';
 import { createNativeProofResident } from '../../fixtures/headless-native';
-import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
+import {nalatiTamingPilot} from './tamingPilot';
 import source from '../../fixtures/nalati-product-source';
 import { prepareHeadlessRuntime } from '../../fixtures/nalati-headless';
 import { createNativeBakeReader } from '../../../src/game/population/nativeBake';
@@ -27,22 +27,6 @@ const nalatiBake=()=>createNativeBakeReader(physics,{label:'Nalati',resolution:2
 
 function law(host: SimHost) {
   const value = nativeTamingOf(host); if (value === undefined) throw new Error('Missing native taming owner'); return value;
-}
-
-/** The pilot observes only the living horse position, live prompt and balance gauge. No trust/position grants or forceBreak. */
-export function nalatiTamingPilot(host: SimHost, stallionId: string, previousBalance: number): { balance: number; commands: HeadlessCommand[] } {
-  const taming = law(host), original = host.entities.get(stallionId);
-  if (original === undefined) throw new Error('Missing original living stallion');
-  let x = 0, z = 0;
-  if (taming.phase !== 'breaking') {
-    const dx = original.position.x - host.player.position.x, dz = original.position.z - host.player.position.z, length = Math.hypot(dx, dz);
-    if (length > 2.2) { x = dx / length; z = dz / length; }
-  }
-  const balance = taming.view.balance, lean = Math.max(-1, Math.min(1, balance * 12 + (balance - previousBalance) * 60 * 3));
-  return { balance, commands: [{ kind: 'player', moveX: x, moveZ: z, yaw: 0, commandVersion: 1, crouch: true,
-    steer: { keyX: x, keyY: -z, stickX: 0, stickY: 0 } },
-  { kind: 'script', actorId: 'nalati.taming.offer', value: 1 }, { kind: 'script', actorId: 'nalati.taming.lean', value: lean },
-  ...(taming.interactable.radius > 0 ? [{ kind: 'script' as const, actorId: 'nalati.taming.mount', value: 1 }] : [])] };
 }
 
 /** One actual native journey from a documented fixture spawn beside the authored stallion, plus one mid-round checkpoint.
