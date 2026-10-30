@@ -167,148 +167,64 @@ two levels cover the 0–80 m street views and the 140–230 m deck and aerial v
 | NT5 | **The camera picks the level by screen error.** The refinement mask (`wholeRefinementCover` `rendered(tile)`, today ring membership) chooses per L0 tile between its slabs and its L1 quadrant by the projected `geometricError` at the camera eye: 3-D distance to the chunk box, the phone's 2x pixels, 1 px with 20 % hysteresis, MF13's fade on a switch. It ships behind one Developer Debug row, **Nine far level: off / screen error**, default off until the bars hold, then the row and the off path go (E451). | In-city cams 1–16, 19, 20 and 23–27 are pixel-identical to off. At cams 17 / 18 / 21 / 22, triangles drawn ≤ 60 % of off and work p50 below off at Chromium 4x and WebKit. No crack or pop in a 10 s aerial pan capture. No frame > 50 ms on a deck ↔ city jump. | Opus | M |
 | NT6 | **A copy belongs to every tile its bounds touch.** Ranged placements and the per-copy resident filter (`worldScenePlacement.ts:179-184`, `tileContent.ts` `bucketByTile`) test each copy's bounds, not its origin. A tower or bridge whose origin is outside the ring but whose body is inside draws once. **Overlap:** moot for Nine once NT1 lands; matters for every ring shard. It goes with EP9's cluster culling. | A focused test: a 3-tile bridge whose origin is outside the ring draws while any tile it touches is resident. Pine and Driftwood census: no copy whose bounds touch the ring is missing. Draws unchanged ± 2. | Opus | S |
 | NT7 | **The tiling check in the bake** (rules below). `build-shardfiles` prints one table per shard: tile census, caps per chunk and per cell, height, spanning parts, L1 / L0, zero errors and the sightline audit, plus a verdict line. It is report-only, like the memory gates. It fails only a regression on a pinned shard: Nine losing `ring: 'cell'`, or a chunk over the per-chunk cap after NF10. | On HEAD it prints this plan's tables A, B and D within 5 s for all shards. It flags Nine "hold the cell" (24 of 27 cams cut) and no other shard. A focused test pins the thresholds. | **done (2026-10-30, sp-x8)**: normal full 24-product build/reuse prints A/B/D and checks the unchanged all-product tile ratchet; all 24 report readers admitted at the measured boundary, report time 0.196 s total. Separate Nine-only ring/coordinate regression baseline plus 4 MB declared-chunk cap; source section/index bytes verified. Current Nine: 90.23 % top-five GPU share, 5 over-cap L0 tiles, 288.9 m tallest, L1/L0 17.36 %, 46 occupied zero-error rows reported for inspection (lossless zero legal), 9 spanning parts/max 34 tiles. Current tracked 24 declared cameras: 22 cut any in-view triangles, 3 exceed 20 %; with spawn/4 entries, 27/29 cut. Historical 24/27 is not forced. Only Nine gets the dense/vertical hold-cell recommendation; other sightline/thin/height warnings remain visible. 26 original/new build/guard controls, root/helper strict types and typed lint pass. No live-memory/pixel claim. Later Pine source-freshness refusal retained after the successful point-in-time 24-product read; no unchanged rebuild. | S |
-| NT8 | **Stream by the camera, not the player.** `TileDriver` and `ControlRefinement` rank the wanted tiles by in-view first, then 3-D distance from the camera eye. The spawn-view fence (`SPAWN_VIEW_M` 221 m in x / z) becomes the spawn camera's frustum plus a 3-D radius. Moot for Nine (whole cell before the reveal); for any tall shard that streams. | A focused test: a high eye over a tile edge ranks the tiles it sees before those behind it. Pine / Driftwood reveal time not worse; no extra after-control attach in the spawn view. | **open; landed, partial** (sp-x9): `26138a5e13` + `4efb4ea3fd`; camera ranking and high-eye tests pass; player-first collider order retained. Phone qualification below fails the Pine reveal bar; attachment bar remains unproven. | S |
+| NT8 | **Stream by the camera, not the player.** `TileDriver` and `ControlRefinement` rank the wanted tiles by in-view first, then 3-D distance from the camera eye. The spawn-view fence (`SPAWN_VIEW_M` 221 m in x / z) becomes the spawn camera's frustum plus a 3-D radius. Moot for Nine (whole cell before the reveal); for any tall shard that streams. | A focused test: a high eye over a tile edge ranks the tiles it sees before those behind it. Pine / Driftwood reveal time not worse; no extra after-control attach in the spawn view. | **done** (2026-10-30, sp-x9): camera ranking `26138a5e13`, collider preservation `4efb4ea3fd`, first-fence reference `3d14d956e7`, visible-first fix `9634ee80f0`, early session code `badd39f875`. Final Pine / Driftwood cold and warm reveal all below parent; zero added spawn-frustum triangles. Tests and measurements below. | S |
 
-**NT8 phone qualification (2026-10-30).** Parent `79bca1916c`
-(`79bca19-mvvcexon`) versus candidate `4efb4ea3fd`
-(`4efb4ea-mvvd2l9a`), one pinned preview at a time. Chromium phone preset:
-10x page CPU, 10 Mbps down / 2 Mbps up, 100 ms latency; CDP cannot throttle
-worker CPU. Each cold / warm pair shares its browser context. Native control
-witnesses qualify in all eight legs; these are single pairs, not steady-state
-performance estimates. Intervening rendering commits prevent attributing
-whole-reveal differences solely to NT8.
+**NT8 final proof (2026-10-30).** One pinned preview at a time, Chromium
+phone preset (10x page CPU, 10 Mbps down / 2 Mbps up, 100 ms latency;
+worker CPU throttling is unsupported by CDP). Same-context cold / warm pairs.
+Parent `79bca19-mvvcexon` (`79bca1916c`) versus final ordinary production
+`badd39f-mvvgke9w` (`badd39f875`), without reference overrides or CPU profiling:
 
-| Tap to native control (s) | Parent cold / warm | Candidate cold / warm | Delta cold / warm |
+| Tap to native control (s) | Parent cold / warm | Final cold / warm | Delta cold / warm |
 | --- | --- | --- | --- |
-| Pine Hollow | 130.295 / 88.068 | 134.938 / 91.669 | +4.643 / +3.601 |
-| Driftwood Isle | 51.634 / 36.520 | 51.177 / 35.625 | -0.456 / -0.895 |
+| Pine Hollow | 130.295 / 88.068 | 129.066 / 86.847 | -1.229 / -1.221 |
+| Driftwood Isle | 51.634 / 36.520 | 49.192 / 34.869 | -2.442 / -1.650 |
 
-Pine's Spawn detail stage rose 32.034 / 14.869 to 34.579 / 17.853 s.
-The first spawn-detail fence runs before `game.stepFrame()` poses the camera;
-the new camera reader can therefore use the initial origin view. This is a
-source-ordering lead, not a measured causal attribution or a completed fix.
+All four native control witnesses qualify and request accounting is complete.
+Existing local `/api/telemetry` 405s remain; the full CLI exits 1 for those
+errors, so this is native-control / attachment qualification, not an all-green
+CLI claim. Single pairs and intervening rendering commits preclude an isolated
+or steady-state gain claim. A reverse parent Pine pair was 131.136 / 88.943 s.
 
-Read-only scene observers ran for 10 s from native control, without overflow.
-Pine candidate cold / warm recorded 17 / 13 geometry or draw-range changes:
-12 cabin meshes were outside the spawn frustum; the cold ground union rebuilt
-after two off-frustum raw tiles, and the later knife mesh was hidden. Parent
-had 5 / 1 changes. Driftwood parent had none; candidate had 9 / 9 draw-range
-changes on existing boulder, seabed, palm, hibiscus and ground-cover meshes.
-Their aggregate boxes intersect the spawn frustum, but the observer does not
-locate the newly included triangles, so **no-extra-in-view-attachment is not
-qualified**. Retain the events rather than treating union bounds as proof of
-a new visible tile.
+The initial camera was unposed at the first spawn fence: that one call now
+retains the player reference; the existing shader step still poses the camera,
+and final readiness / controlled streaming use its actual eye. The old MF13
+horizontal cone deferred visible tiles before NT8 could rank them; the
+high-eye test with both view ports reproduced off-view 35 while visible 30
+blocked, then passes visible-first after the fix. Camera-less callers keep the
+old rule; player membership, collider priority, retirement and failures stay.
 
-All legs retain local `/api/telemetry` 405 errors, so the complete CLI verdict
-is not green. Candidate Pine cold / warm and Driftwood cold each additionally
-retain one navigated-away response-body accounting failure; Driftwood warm
-accounting is complete. No request guard was weakened. Raw phone JSON lives
-under `tmp/phone-loading/2026-10-30T19-{11,17,25,31}-*`; attachment observations
-and logs are in `tmp/sp-x9-nt8/`. All browsers and both owned previews closed.
-Source checks: 61 focused streaming/refinement cases, 61 original platform
-cases and 19 collider-priority cases pass; root types, scoped lint and ratchet
-passed at their source boundaries. NT8 stays open for the first-camera fence,
-Pine reveal bar and precise post-control attachment attribution.
+Post-control observers run 10 s from native control. They copy mutable index
+bytes, compare prior / successor triangle multisets, and clip additions against
+all six captured spawn-frustum planes. Pine cold / warm: 10,722 / 6,116 added
+visible-world triangles, **zero in the spawn frustum**; 107 / 146 frames.
+Driftwood: 6,361 / 6,361 added, **zero in the spawn frustum**; 139 / 139 frames.
+All four intervals complete without overflow or unsupported geometry. Hidden
+source tiles / knife are separate. Two scratch controls detect a true visible
+addition and reject the false attribution caused by in-place index compaction.
+Earlier live-index counts are withdrawn; failed / interrupted probes are kept
+in scratch and excluded. Off-view additions after control are remaining work,
+not evidence that visible work lost priority.
 
-**NT8 first-camera correction.** Locally committed `3d14d956e7` keeps the
-player reference for the initial `prepareSpawnView` call only. The existing
-shader step still poses the camera at the same point; final readiness and
-controlled streaming use the real camera. A focused test with the player far
-from the origin camera verifies that the first fence never samples the camera,
-then the next fence uses its posed view. All 35 focused refinement, camera,
-collider and finish-order cases pass (313 ms); game types and scoped lint pass.
+The warm wall-time investigation retained its initial misses. Corrected Pine
+was 129.872 / 90.219 s, then 129.962 / 90.486 s; reverse parent warm 88.943 s.
+A source-mapped warm sample attributed only 14.36 ms inclusive to camera reads
+(whole page plus 10 s after control). Same-build attribution A/B, both validating
+the real camera, measured camera 128.378 / 86.895 versus player-reference
+130.400 / 89.509 s; references installed before the fence. These harness
+counterfactuals are attribution, not release qualification. The shipping fix
+starts the already-required session module alongside early code preparation
+and awaits it at its original post-kit barrier. Actual-root tests independently
+hold memory / admission and verify kit-before-session, admission failure wins,
+and session failure appears only at the original barrier. Title imports,
+service / tick / refusal order and the foreign audio-import hunk stay intact.
+31 streaming / refinement and 16 root / boot-module controls pass; root types,
+scoped lint and normal committed push guards pass.
 
-One Pine cold / warm pair on pinned `3d14d95-mvvdsy9c` measured
-**129.872 / 90.219 s**, versus parent **130.295 / 88.068 s**:
-**-0.423 / +2.151 s**. Spawn detail returned to **31.978 / 15.020 s**,
-versus parent **32.034 / 14.869 s**. The initial-camera defect is fixed,
-but **the overall warm reveal bar remains unmet**. Other warm stage increases
-include Region world +0.694 s, gameplay / saved state +0.377 s and world
-program links +0.497 s; no causal explanation is inferred from one pair.
-Both native control witnesses qualify. Cold retains one telemetry response-body
-accounting loss and its 405; warm accounting is complete and retains two 405s.
-The full CLI exits 1 with those retained errors.
-
-Both 10-second observers complete without overflow (122 / 123 frames,
-15 changes each): one hidden off-frustum ground tile and its aggregate rebuild,
-12 off-frustum cabin draw-range changes, and one hidden knife mesh. Aggregate
-triangle locations remain unmeasured, so this does not close the attachment
-bar. Raw pair: `tmp/phone-loading/2026-10-30T19-45-27-989Z-3d14d95-mvvdsy9c/`;
-observations: `tmp/sp-x9-nt8/posed-pine-attachments-{0,1}.json`.
-Browser and preview closed. No extra pair or deadline change. Source and
-results stay local during the coordinator's push hold.
-
-**NT8 visible-first correction `9634ee80f0` (pushed).** The old horizontal
-camera-cone rule deferred seen tiles for 3 s before NT8's 3-D ranking could
-consider them. Supplying both camera ports in the high-eye behavior test
-reproduced an off-view attach with the visible tile blocked. Full camera
-ranking now takes precedence; camera-less callers retain the old rule,
-and collider priority/membership are unchanged. All 31 streaming/refinement
-controls, game types and scoped lint pass.
-
-Second corrected Pine pair, `9634ee8-mvvec1k4`: **129.962 / 90.486 s**
-cold / warm, versus the earlier corrected pair **129.872 / 90.219 s**.
-Warm remains above the earlier parent's 88.068 s. This repeats the difference
-but does not isolate NT8 from intervening rendering changes or host drift.
-Spawn detail is 31.916 / 15.169 s; both native controls qualify. Telemetry
-405s and one navigated-away response accounting gap per leg remain visible.
-
-**Withdrawn triangle attribution:** the first refined observer compared triangle multisets from prior geometry/draw
-ranges to their successors and clips additions against all six spawn-frustum
-planes. Ground unions compare against the prior union members, including
-replaced mesh identities. In each leg, **10,722 added triangles from visible
-world meshes, zero intersecting the spawn frustum**; hidden source tiles and
-knife are recorded separately. Each full 10 s observation completes without
-overflow or unsupported geometry (99 / 107 sampled frames). This closes the
-Pine geometric attachment ambiguity only provisionally; that claim is withdrawn
-because the observer retained a live mutable index buffer (correction below).
-Raw pair: `tmp/phone-loading/2026-10-30T20-00-40-070Z-9634ee8-mvvec1k4/`;
-exact additions: `tmp/sp-x9-nt8/visible2-pine-attachments-{0,1}.json`.
-An earlier wrong-port launch hit `db9f363-mvve9bzo`, was interrupted before
-control and is explicitly excluded (`visible-pine.log`). NT8 remains open
-for warm timing attribution and Driftwood's precise attachment check.
-
-**Observer correction:** `tiledMesh` compacts its index buffer in place. Keeping
-the prior geometry reference did not preserve its prior triangle order. The
-reported Pine zero / Driftwood 122 in-frustum triangle counts are both invalid
-and are not qualification evidence. The corrected observer copies index bytes;
-two scratch behavior controls prove an inserted off-view tile does not falsely
-count an old visible triangle moved in the compacted index, while an actual
-new visible triangle is detected. Original raw observations remain retained;
-cause-directed attachment reads on the same source follow. The independent
-dual-camera ordering regression test and source fix remain valid.
-
-**Corrected attachment qualification (copied index bytes).** On unchanged
-`9634ee8-mvveu99q`, Driftwood cold / warm each adds 6,361 world triangles,
-**zero inside the captured spawn frustum**. Full 10 s intervals: 123 / 131
-frames, 14 changes each, no overflow or unsupported geometry. Pine cold / warm
-each adds 10,722 visible-world triangles, **zero inside that frustum**;
-105 / 103 frames, 17 changes each, no overflow or unsupported geometry.
-Hidden source tiles / knife remain separately recorded. Position access is
-checked for retained finite CPU data. These replace the withdrawn live-index
-counts. Scratch controls reproduce index compaction and a real visible addition.
-Raw: `tmp/sp-x9-nt8/indexcopy-{driftwood,pine}-attachments-{0,1}.json`.
-The warm Pine CPU sampler is attribution only, not an uninstrumented timing leg.
-
-Reverse-order parent `79bca19-mvvem0ac` measured **131.136 / 88.943 s**,
-native control qualified and request accounting complete (telemetry 405s stay).
-The unprofiled candidate's **129.962 / 90.486 s** is -1.174 / +1.543 s
-against that reference, so the warm gap cannot be dismissed as noise. The
-source-mapped warm page CPU sample, including 10 s after control, attributes
-14.36 ms inclusive / 4.94 ms self to `streamingView`, 209.86 / 48.66 ms
-to `tileDriver`, and 139.22 / 9.16 ms to `controlRefinement`. This does not
-attribute the remaining multi-source wall-time gap to NT8. Raw profile/rank:
-`tmp/sp-x9-nt8/indexcopy-pine-warm.cpuprofile` and `warm-profile-rank.json`.
-
-A same-source camera/player fallback counterfactual is pending; its first
-launch failed the class-readiness prerequisite and is excluded, and the next
-was stopped for the higher-priority G925 commit-snapshot CI repair. A tiny
-preflight now verifies the lazy pure camera declaration initializer before
-patching that measurement-only port. Neither launch qualifies the timing bar.
-All browsers and the owned preview were closed at the P0 boundary. NT8's
-geometric attachment bar is now qualified; warm timing attribution remains open.
-
-NT7 preserves the existing all-product `checkTileBake` ratchet exactly (G872 ruling). Its new report is advisory; its separate Nine baseline refuses a lost `ring: 'cell'`, worsened exact L0 coordinate debt, or a declared slab chunk above 4 MB. Uncut long-triangle heights remain explicit advisory exceptions for NT3, never disguised as zero or trimmed geometry. Products without declared slab metadata print **not declared** for max chunk, rather than claiming zero. Published NF10 slab rows are read only after the defining section schema admits them. Recommendations distinguish dense vertical concentration (> 80 % in five tiles and > 125 m tall) from small, spread-out or open-sky sightline warnings; every measured warning is printed. The current declared-camera catalogue hash is `359156f0cfabb3c4915ec46217daaa85a2aaeaf57d74db48e3db303c927029f4`.
+Final raw phone pairs: `tmp/phone-loading/2026-10-30T21-07-16-815Z-badd39f-mvvgke9w/`
+and `2026-10-30T21-12-29-329Z-badd39f-mvvgke9w/`; exact attachment observations
+and all retained failed probes: `tmp/sp-x9-nt8/`. All own browsers closed;
+own preview borrower released, shared server retained by sp-x8 for PF8.
 
 **Order.**
 1. NT1 now: it is a one-line class of bug with the largest visible effect, and it makes NF1 true.
