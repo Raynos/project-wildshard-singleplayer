@@ -15,14 +15,14 @@ Sim readings since 18:47). sp-x8 stays released (5-Codex cap). For Jake: MF13 'R
 QB17 zip video tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 
 **Autonomous decisions (for Jake's review):**
+- Finding (CI13): headless SimHost moves with radius .35 / step .3 / climb 45° / snap .2, the client Player .38 / .35 / 40° / .3; the Node walk uses the client's, nothing changed in play.
 - FC12 closes at identical captures (Pine 184, Driftwood ~194 draws); no default-off look trades, they cut nothing by default.
 - QB17 (b): LEGACY's zip is flat too (31 hooks, identical floors); new default rises to the ring per Jake's ask, flat kept as Debug 'Hook zip' (o3).
 - FC10 closes with Nine at 7 real render-target switches (folding its display + FXAA risks its opacity events; o5).
 - MF11 closes on the lease deletion + footprint; ownership loans fold into Family 4.
 - FC13 done at G912's default-off Debug row (shadow hold, Driftwood 190 → 165 draws); held post only if Jake turns it on.
 - FC10: phone bloom off by default; old look = Debug 'Phone bloom' (G910).
-- G917's 07:00 release is a one-off, self-unloading launchd job, not a standing automation (G585).
-- MF3 met: launch → title 0.7 s warm, ~0.5 s of it iOS starting the web app (page 0.16 s, 6e4e5e6817).
+- MF3: launch → title 0.7 s warm, ~0.5 s of it iOS (page 0.16 s).
 - Earlier calls: see this file's git log.
 - **For wildshard-v (QB1):** Jake's home-screen icon predates the launch image; one delete + re-add of the icon fixes the black.
 - QB18 = B, TRUST under GRASS (fc707ba74d).
