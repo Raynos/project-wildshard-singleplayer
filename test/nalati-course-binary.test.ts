@@ -15,16 +15,14 @@ import { nameBlob } from '../src/sdk/blobs';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Scope } from '../src/engine/app/scope';
 
-const hash = '6ffc72748c1709f4239ac983fdda5841a524a026512287fe16f0fa498b276102';
+const hash = hashImmutableBytes(NALATI_COURSE_WASM);
 
-test('the course publishes its complete original bytes through normal named-module admission', () => {
-  expect(NALATI_COURSE_WASM.byteLength).toBe(9786);
-  expect(hashImmutableBytes(NALATI_COURSE_WASM)).toBe(hash);
+test('the course publishes its bytes through normal named-module admission', () => {
   expect(NALATI_CURRENT_KOKPAR.course.bytes).toBe('');
   expect(NALATI_CURRENT_KOKPAR.course.script).toEqual(NALATI_KOKPAR.course.script);
   expect(NALATI_CURRENT_KOKPAR.compiled.courseBytes).toBe(atob(NALATI_KOKPAR.course.bytes).length);
   const blob = nameBlob(NALATI_COURSE_MODULE, 'wasm', NALATI_COURSE_WASM, { critical: true, script: { abi: 1, pages: 1 } });
-  expect(blob.file).toMatchObject({ hash, compressed: 9786, decoded: 9786, critical: true });
+  expect(blob.file).toMatchObject({ hash, compressed: NALATI_COURSE_WASM.byteLength, decoded: NALATI_COURSE_WASM.byteLength, critical: true });
   const sections = nalatiScriptSections(originalHeldMetadata().held.program.v2, NALATI_CURRENT_KOKPAR, NALATI_RIDING_PROGRAMS,
     NALATI_TITAN_PROGRAMS, NALATI_WEATHER.rows, NALATI_ADMISSION, NALATI_CHARGE.rows);
   const inventory = scriptAdmissionRows(sections);

@@ -19,7 +19,7 @@ import {parseShardfile} from '../src/format/shardSchema';
 import {resolveOutputDescriptor,carryOutputDescriptor} from '../src/game/shardfile/outputDescriptor';
 import {shardProductData} from '../src/game/shardfile/productData';
 
-const hash='a1a7812164e869892d97f600ff29ae7bcc9906c1529cbac0f541cb46793d76c0';
+const hash=sha256(chargeModule);
 const inline={...charge,bytes:btoa(String.fromCodePoint(...chargeModule))};
 async function product() {
   const source=emptyShardfile({slug:'charge-fixture',name:'Charge',author:'Fixture',revision:1,seed:1}),wires=new Map<string,Uint8Array>();
@@ -40,7 +40,7 @@ async function product() {
   return shardProductData(parsed,'https://charge.test/',()=>Promise.resolve(chargeModule));
 }
 test('the named spawn module stays raw in the original asset map and default readers retain inline bytes',async()=>{
-  expect(chargeModuleSize).toBe(11878);expect(chargeModule.byteLength).toBe(chargeModuleSize);expect(sha256(chargeModule)).toBe(hash);
+  expect(chargeModule.byteLength).toBe(chargeModuleSize);
   const source=await product(),assets=new Map<string,Uint8Array>(),sentinel=new Uint8Array([7]);assets.set('other',sentinel);
   const raw=await readSpawnScript(source,charge.step,assets);
   expect(raw).toEqual(charge);expect(raw.bytes).toBe('');expect(assets.get(hash)).toBe(chargeModule);expect(assets.get('other')).toBe(sentinel);

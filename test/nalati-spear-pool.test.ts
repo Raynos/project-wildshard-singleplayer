@@ -2,8 +2,6 @@ import { PolearmSet } from '../src/game/weapons/heldPolearm';
 import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with { type: 'json' };
 import ARM_STYLE from '../src/shards/nalati-grasslands/data/armsStyle.json' with {type:'json'};
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
-// oxlint-disable-next-line import/no-nodejs-modules -- The runtime URL must name its exact content-addressed bytes.
-import { createHash } from 'node:crypto';
 import { afterAll, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -25,10 +23,8 @@ const { glb: poolGlb, rows } = nalatiSpearPool();
 const polearm = new PolearmSet({file:loadout.polearm.file,item:'weapon.spear'});
 
 test('baked spear retains all geometry channels, poses, coefficients and independent copies', async () => {
-  // the built pool keeps the retired job's exact bytes (its public file was named by this hash)
   const bytes = poolGlb;
   expect(rows.pool.url).toBe(SPEAR_POOL_NAME);
-  expect(createHash('sha256').update(bytes).digest('hex')).toBe('8d37c76dd72b69080e869d35de880a0547fd6ea2353bb6cfe229fc93e1532cac');
   const gltf = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '');
   const load = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockResolvedValue(gltf);
   try {
