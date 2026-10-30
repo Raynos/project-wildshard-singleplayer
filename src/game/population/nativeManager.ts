@@ -1,3 +1,5 @@
+import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
+import type { DirectedLaw } from './directedLaw';
 import type { NativeGroupCollection } from '../shardfile/groupRuntime';
 import * as v from 'valibot';
 import { ActorProjectionV2,type ActorProjectionOwner } from './actorProjectionV2';
@@ -114,6 +116,8 @@ export class NativePopulationDriver {
   private readonly route = { elite: 0, wolf: 0, dog: 0, held: 0 };
   private readonly missing = new Error('Missing native population context');
   private dodgeCd = 0;
+  /** CI12: kinds that decide through their own directed law (Nalati's ghost riders), as the page's self-thinking species */
+  private readonly directed = new Map<string, NativeDirected>();
   private readonly policy = { state: 'owned' as const, decide: (dt: number, actor: HuntBody): void => { this.decide(actor, dt); }, sample: (actor: HuntBody): void => { actor.sampleTerrain(); } };
   private readonly cadence;
   constructor(private readonly host: SimHost, private readonly manager: NativeManager, private readonly hunt: StalkerBrain<HuntBody>, private readonly rng: Rng,
@@ -157,6 +161,19 @@ export class NativePopulationDriver {
   admit(actor: HuntBody): void {
     if (this.host.entities.get(actor.entityId) !== actor || this.contexts.has(actor)) throw new Error('Invalid native driver actor');
     this.contexts.set(actor, this.makeContext(actor));
+    const directed = this.directed.get(actor.kind); if (directed !== undefined) this.scaleHits(actor, directed);
+  }
+  /** Bind `kind` to its directed law: its bodies decide through it (only the default dispatch is skipped; the cadence,
+   *  the body step and its contacts stay) and its hits scale by it, times `eliteDamage` for an elite recipe (1 without, as
+   *  the page's eliteDamageMul for an actor with no elite damage bound). */
+  bindSpecies(kind: string, law: NativeDirected['law'], eliteDamage?: NativeDirected['eliteDamage']): void {
+    if (this.directed.has(kind)) throw new Error('Duplicate native directed species');
+    const directed: NativeDirected = { law, ...(eliteDamage === undefined ? {} : { eliteDamage }) }; this.directed.set(kind, directed);
+    for (const actor of this.bodies) if (actor.kind === kind && this.contexts.has(actor)) this.scaleHits(actor, directed);
+  }
+  private scaleHits(actor: HuntBody, directed: NativeDirected): void {
+    if (!directed.law.scalesDamage) return;
+    actor.combatActor().damageMul = request => directed.law.damageScale(actor.mem, request.point) * (directed.law.elite ? directed.eliteDamage?.(actor, request) ?? 1 : 1);
   }
   private context(actor: HuntBody, dt: number) {
     const context = this.contexts.get(actor); if (context === undefined) throw this.missing;
@@ -177,8 +194,17 @@ export class NativePopulationDriver {
   private decide(actor: HuntBody, dt: number): void {
     const elite = this.elites.brains.get(actor);
     if (!actor.alive) { actor.lookWeight = 0; return; }
-    if (this.rows.eliteKinds.includes(actor.kind) && elite === undefined) throw this.missing;
+    // a directed kind (ghost riders) decides through its own law: it needs no elite brain
+    const directed = this.directed.get(actor.kind);
+    if (directed === undefined && this.rows.eliteKinds.includes(actor.kind) && elite === undefined) throw this.missing;
     if (actor.stunned) { actor.setMotion(actor.yaw, 0, 1); actor.setStrafe(0); actor.lookTarget.copy(this.host.player.position); actor.lookWeight = 1; return; }
+    if (directed !== undefined) {
+      // the page's self-thinking path (AnimalManager.thinkFrame): its context, its herd, the ground under it, its own law
+      const context = this.context(actor, dt), herd = actor.herd >= 0 ? this.hunt.herds[actor.herd] : undefined;
+      actor.sampleTerrain(); directed.law.decide(actor, context);
+      if (herd !== undefined) this.hunt.updateHerd(herd);
+      return;
+    }
     Object.assign(this.route, { elite: Number(elite !== undefined), wolf: Number(actor.kind === this.rows.packKind), dog: Number(actor.kind === this.rows.dogKind), held: Number(actor.mem['ridden'] === 1 || actor.mem['owned'] === 1) });
     const route = this.author.project(this.rows.dispatch, this.route)['state'];
     if (route === 0) return;
@@ -204,6 +230,11 @@ export class NativePopulationDriver {
   restore(value: number): void { if (!Number.isFinite(value) || value < 0) throw this.missing; this.dodgeCd = value; }
 }
 
+/** a directed kind's law (DirectedLaw) and the elite damage it multiplies in */
+interface NativeDirected {
+  readonly law: Pick<DirectedLaw, 'decide' | 'damageScale' | 'elite' | 'scalesDamage'>;
+  readonly eliteDamage?: (actor: HuntBody, request: DamageRequest) => number;
+}
 interface WildlifeFrameState { init: boolean; x: number; z: number; v: number; at?: number }
 export interface NativeWildlifeRows {
   speed: string; alert: string; range: string; packRadius: number; scareSeconds: number; scareRadius: number; foragerRunSpeed: number;

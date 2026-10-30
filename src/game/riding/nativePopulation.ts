@@ -123,6 +123,8 @@ export interface NativePopulation {
   readonly available: () => number;
   readonly bondedHorseIds: () => readonly string[]; readonly retireElite: (actor: AnimalSim) => void;
   readonly spawnElitePack: (x: number, z: number, variants: readonly string[]) => PackBrain<AnimalSim>; readonly retirePack: (pack: PackBrain<AnimalSim>) => void;
+  /** CI12: a kind's bodies decide and scale hits through its directed law (NativePopulationDriver.bindSpecies) */
+  readonly bindSpecies: NativePopulationDriver['bindSpecies'];
 }
 const POP_BODY_MAX = 64, POP_GROUP_MAX = 8, POP_FLOCK_MAX = 4;
 const nativePopulations = new WeakMap<SimHost, NativePopulation>();
@@ -356,7 +358,8 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
       if (!scaleVariants.get(kind)?.some(row => row.id === variant)) throw new Error('Missing native creature scale');
     },
     available: (): number => Math.max(0, POP_BODY_MAX - host.entities.size),
-    bondedHorseIds: (): readonly string[] => bonded.map(row => row.body.id), scare: wildScare };
+    bondedHorseIds: (): readonly string[] => bonded.map(row => row.body.id), scare: wildScare,
+    bindSpecies: (kind: string, law: Parameters<NativePopulationDriver['bindSpecies']>[1], eliteDamage?: Parameters<NativePopulationDriver['bindSpecies']>[2]): void => { driver.bindSpecies(kind, law, eliteDamage); } };
   nativePopulations.set(host, out);
   return out;
 }
