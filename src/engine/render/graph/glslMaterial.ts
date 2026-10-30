@@ -21,7 +21,8 @@ import type { EmitGraphGlslOptions, GraphGlsl } from './glsl';
 import { drawNeutral } from '../drawNeutral';
 
 /** the uniforms a variant keeps its own (a creature's tint, a borrowed map); every other one is shared with its source */
-const OWN_UNIFORMS: ReadonlySet<string> = new Set(['wsMaterialColour', 'wsMaterialEmissive', 'wsMaterialEmissiveIntensity', 'wsMeshMap', 'wsBumpMap']);
+const OWN_UNIFORMS: ReadonlySet<string> = new Set(['wsMaterialColour', 'wsMaterialEmissive', 'wsMaterialEmissiveIntensity', 'wsMeshMap', 'wsBumpMap',
+  'wsMaterialRoughness', 'wsAlphaCutoff']);
 
 /** A lowered graph's `ShaderMaterial`: its clones share the graph's uniforms; its colour, emissive and mesh maps are ports. */
 export class GraphShaderMaterial extends THREE.ShaderMaterial {
@@ -32,6 +33,18 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
   get emissive(): THREE.Color { return this.colourUniform('wsMaterialEmissive', 0).value; }
   get emissiveIntensity(): number { const u = this.uniforms['wsMaterialEmissiveIntensity']; return typeof u?.value === 'number' ? u.value : 1; }
   set emissiveIntensity(value: number) { this.own('wsMaterialEmissiveIntensity', value); }
+  /** the material's own roughness (`roughness`), read where the graph writes none, as a node material's */
+  get roughness(): number { const u = this.uniforms['wsMaterialRoughness']; return typeof u?.value === 'number' ? u.value : 1; }
+  set roughness(value: number) { this.own('wsMaterialRoughness', value); }
+  /** a graph with a cutoff discards below the material's own `alphaTest` (three refreshes no alphaTest for a shader
+   *  material): a row's value replaces the graph's, as on a node material */
+  override get alphaTest(): number { return super.alphaTest; }
+  override set alphaTest(value: number) {
+    super.alphaTest = value;
+    // three's copy sets it before the uniforms arrive (they come with the source's value)
+    const cutoff = this.uniforms['wsAlphaCutoff'];
+    if (cutoff !== undefined) cutoff.value = value;
+  }
   /** a borrowed colour map (`meshMap`): sampled where the graph reads it, else its fallback */
   get map(): THREE.Texture | null { return this.texture('wsMeshMap'); }
   set map(texture: THREE.Texture | null) { this.lend('wsMeshMap', 'WS_MESH_MAP', texture); }
@@ -113,6 +126,7 @@ function shaderMaterial(glsl: GraphGlsl, opts: GraphShaderOptions): GraphShaderM
   // three reads FLAT_SHADED from the material's own flag, which ShaderMaterial does not declare: the define carries it
   if (ir.model !== 'unlit' && (ir.flatShading ?? ir.model === 'toon')) m.defines = { ...m.defines, FLAT_SHADED: '' };
   if (ir.stages.surface?.alpha !== undefined) m.transparent = ir.stages.surface.alphaCutoff === undefined;
+  if (ir.stages.surface?.alphaCutoff !== undefined) m.alphaTest = ir.stages.surface.alphaCutoff;
   if (effect?.blend !== undefined) {
     m.transparent = true;
     m.blending = effect.blend === 'additive' ? THREE.AdditiveBlending : effect.blend === 'premultiplied' ? THREE.CustomBlending : THREE.NormalBlending;

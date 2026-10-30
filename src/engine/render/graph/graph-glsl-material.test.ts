@@ -49,3 +49,19 @@ test('a displaced caster draws its shadow depth from its own vertex stage', () =
   expect(compiled.depth?.fragmentShader).toContain('1.0 - gl_FragCoord.z');
   expect(compileClassicGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } }).depth).toBe(null);
 });
+
+test('a row sets a variant its own alphaTest and roughness, as on a node material', () => {
+  const graph = { version: 1, kind: 'material', model: 'standard', nodes: { u: { op: 'uv' }, a: { op: 'swizzle', in: ['u'], mask: 'x' } },
+    stages: { surface: { colour: [1, 1, 1], alpha: 'a', alphaCutoff: 0.5 } } };
+  const compiled = compileClassicGraph(graph), source = compiled.material, copy = source.clone();
+  expect(source.alphaTest).toBe(0.5); expect(source.roughness).toBe(1);
+  expect(source.fragmentShader).toContain('diffuseColor.a < wsAlphaCutoff');
+  expect(source.fragmentShader).toContain('roughnessFactor = wsMaterialRoughness');
+  Object.assign(copy, { alphaTest: 0.35, roughness: 0.8 });
+  expect(copy.uniforms['wsAlphaCutoff']?.value).toBe(0.35); expect(copy.uniforms['wsMaterialRoughness']?.value).toBe(0.8);
+  expect(source.uniforms['wsAlphaCutoff']?.value).toBe(0.5); expect(source.uniforms['wsMaterialRoughness']?.value).toBe(1);
+  expect(copy.clone().alphaTest).toBe(0.35);
+  // a graph's own roughness output wins, as a node material's roughnessNode does
+  const rough = compileClassicGraph({ ...graph, stages: { surface: { colour: [1, 1, 1], roughness: 0.3 } } }).material;
+  expect(rough.fragmentShader).not.toContain('wsMaterialRoughness');
+});
