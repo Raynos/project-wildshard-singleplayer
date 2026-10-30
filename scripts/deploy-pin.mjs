@@ -218,7 +218,7 @@ export function waveSource(input) {
     throw new Error('Wave source is not the exact main push checkout');
   if (typeof input.needs !== 'object' || input.needs === null || Array.isArray(input.needs))
     throw new Error('Missing exact-run wave verdicts');
-  const required = ['prepare','typecheck-lint','derived-docs','behaviour','journeys','boot-verdict'];
+  const required = ['prepare','typecheck-lint','derived-docs','behaviour','native-escape','journeys','boot-verdict'];
   /** @type {Map<string, unknown>} */
   const rows = new Map(Object.entries(input.needs));
   if (rows.size !== required.length) throw new Error('Wave verdict inventory differs');

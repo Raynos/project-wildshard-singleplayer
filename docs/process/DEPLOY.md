@@ -11,7 +11,9 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
   `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
   CLI account lookup; `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` name the project. No credentials belong in Git.
-- **Push / PR CI runs the whole vitest suite once**, in twelve duration-balanced `behaviour` shards (**without coverage**, Jake G287/G691); `typecheck-lint` runs typecheck and lint;
+- **Push / PR CI runs the whole vitest suite once**: twelve duration-balanced `behaviour` shards plus the blocking,
+  single-worker `native-escape` job (**without coverage**, Jake G287/G691). The native trusted-input file keeps its
+  original deadlines on its own Ubuntu runner, without sibling test or product-build I/O; `typecheck-lint` runs typecheck and lint;
   `prepare` runs the node checks and the
   vite build + chunk check in parallel (`scripts/ci-checks.mjs`), then the CSS check and the native build. **Coverage is reserved for nightly and
   milestone runs** (Jake G287); it is not a normal push-release prerequisite. **A push that only touches
@@ -31,15 +33,17 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   those prepared inputs and builds only when native inputs changed. The job packages the tested Vercel output and
   smoke projections; neither release nor wave jobs regenerate or rebuild. Types/lint/docs and the behavior
   matrix consume the same `test-products` snapshot after prepare succeeds. Every reader verifies the full SHA,
-  run ID, archive checksum and inventory before accepting bytes. `scripts/vitest-ci.config.ts` discovers every
-  test once across isolated and explicitly reviewed pure projects, packed together by `DurationSequencer` using
-  `test/durations.json` (unknown files receive the measured median weight). The pure format suites use fork
+  run ID, archive checksum and inventory before accepting bytes. `scripts/vitest-ci.config.ts` discovers the parallel
+  files across isolated and explicitly reviewed pure projects; `scripts/vitest-native-escape.config.ts` selects
+  only the native Escape file. Their disjoint union equals ordinary full-suite discovery. `DurationSequencer` packs
+  the parallel inventory using the exact-run plan and measured timings (`test/durations.json` supplies fallback weights).
+  The pure format suites use fork
   workers with `isolate: false` and no global setup; every other suite retains isolation and ordinary setup.
   `scripts/test-products.json` still supplies strict preflight dependencies, not an exclusion or second wave.
   Every matrix job sets `WS_TEST_PRODUCTS_SHA` only after verified artifact restoration. Missing or mismatched
   artifacts fail instead of rebuilding. File timing JSON is retained per shard to refresh measured weights.
-  The matrix keeps `fail-fast: false` and each shard's original first-failure bail. The ship job requires prepare,
-  every behavior shard, types/lint/docs, all six browser journeys and their exact-SHA verdict to pass. Local/full/nightly configuration stays
+  The matrix keeps `fail-fast: false`; `bail: 0` runs every selected case. The ship job requires prepare,
+  every behavior shard, native Escape, types/lint/docs, all six browser journeys and their exact-SHA verdict to pass. Local/full/nightly configuration stays
   unchanged. G923 removed quarantine workflows, registry and exclusions; Native Escape, headless and every other
   real behavior case remain blocking. Each job finishes its own verdict independently of peer failures.
 - **G745 phone route rollout:** the exact push build also publishes a separate

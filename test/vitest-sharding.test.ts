@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import { selectTestCohort,PURE_TESTS } from '../scripts/vitest-shard';
+import { CI_SERIAL_TESTS } from '../scripts/vitest-ci-files';
 import { packShards,readDurations } from '../scripts/test-shard-plan';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual workflow covers every discovered test partition.
@@ -50,7 +51,7 @@ test('cohorts separate real product consumers before duration or fallback shardi
  expect(()=>selectTestCohort(files,registry,'typo')).toThrow('Unknown test cohort');
 });
 
-test('one CI matrix discovers every existing file exactly once across both isolation modes',()=>{
+test('parallel and dedicated native CI discover every existing file exactly once',()=>{
  const workflow=readFileSync('.github/workflows/deploy.yml','utf8');
  const job=workflow.split('\n  behaviour:\n')[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0];
  if(job===undefined)throw new Error('Missing behavior wave');
@@ -73,21 +74,30 @@ test('one CI matrix discovers every existing file exactly once across both isola
   expect(result.status,result.stderr).toBe(0);
   return v.parse(v.array(v.object({file:v.string(),projectName:v.exactOptional(v.string())})),JSON.parse(result.stdout));
  };
- const normal=list(),ci=list('scripts/vitest-ci.config.ts');
+ const normal=list(),ci=list('scripts/vitest-ci.config.ts'),native=list('scripts/vitest-native-escape.config.ts');
  const paths=normal.map(row=>relative('.',row.file));
  const actual=ci.map(row=>relative('.',row.file));
+ const serial=native.map(row=>relative('.',row.file));
  expect(actual.length).toBeGreaterThan(0);
- expect([...actual].sort()).toEqual([...paths].sort());
- expect(new Set(actual).size).toBe(actual.length);
+ expect(serial).toEqual([...CI_SERIAL_TESTS]);
+ expect([...actual,...serial].sort()).toEqual([...paths].sort());
+ expect(new Set([...actual,...serial]).size).toBe(paths.length);
  expect(ci.filter(row=>row.projectName==='pure').map(row=>relative('.',row.file)).sort()).toEqual([...PURE_TESTS].sort());
- const parts=packShards(paths,readDurations('.')??new Map(),12);
+ const parts=packShards(actual,readDurations('.')??new Map(),12);
  const selected=(matrix??[]).flatMap(index=>parts[index-1]??[]);
- expect(selected.sort()).toEqual([...paths].sort());
- expect(new Set(selected).size).toBe(paths.length);
+ expect(selected.sort()).toEqual([...actual].sort());
+ expect(new Set(selected).size).toBe(actual.length);
  const registry=v.parse(v.record(v.string(),v.array(v.string())),JSON.parse(readFileSync('scripts/test-products.json','utf8')));
  for(const [file,products] of Object.entries(registry))if(products.length>0)expect(paths).toContain(file);
  const ship=workflow.split('\n  build-and-deploy:\n')[1]?.split('\n  typecheck-lint:\n')[0];
- expect(ship).toContain('prepare, typecheck-lint, derived-docs, behaviour, journeys, boot-verdict]');
+ expect(ship).toContain('prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys, boot-verdict]');
+ const nativeJob=workflow.split('\n  native-escape:\n')[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0];
+ expect(nativeJob).toBeDefined();
+ expect(nativeJob).toContain('runs-on: ubuntu-latest');
+ expect(nativeJob).toContain('--config scripts/vitest-native-escape.config.ts');
+ expect(nativeJob).not.toContain('--shard=');
+ expect(nativeJob).toContain("WS_VITEST_MAX_WORKERS: '1'");
+ expect(ship).toContain("needs.native-escape.result == 'success'");
 });
 
 test('shared workers admit only reviewed format suites without host or import-state mutation',()=>{

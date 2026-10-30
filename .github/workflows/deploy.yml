@@ -55,8 +55,8 @@ env:
 
 jobs:
   build-and-deploy:
-    needs: [prepare, typecheck-lint, derived-docs, behaviour, journeys, boot-verdict]
-    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && needs.prepare.result == 'success' && needs.typecheck-lint.result == 'success' && needs.derived-docs.result == 'success' && needs.behaviour.result == 'success' && needs.journeys.result == 'success' && needs.boot-verdict.result == 'success')) }}
+    needs: [prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys, boot-verdict]
+    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && needs.prepare.result == 'success' && needs.typecheck-lint.result == 'success' && needs.derived-docs.result == 'success' && needs.behaviour.result == 'success' && needs.native-escape.result == 'success' && needs.journeys.result == 'success' && needs.boot-verdict.result == 'success')) }}
     concurrency:
       group: production-release
       cancel-in-progress: false
@@ -475,6 +475,48 @@ jobs:
           if-no-files-found: ignore
           retention-days: 2
 
+
+  # The native trusted-input control keeps its original deadlines on its own
+  # runner. No sibling Vitest worker or product build competes for startup I/O.
+  native-escape:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      WS_VITEST_MAX_WORKERS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: {version: 10}
+      - uses: actions/setup-node@v4
+        with: {node-version: 24, cache: pnpm}
+      - run: pnpm install --frozen-lockfile
+      - name: Run the original native Escape controls alone
+        run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --config scripts/vitest-native-escape.config.ts --maxWorkers=1 --bail=0 --reporter=default --reporter=json --outputFile=tmp/ci-native-escape/results.json
+      - name: Publish exact failure paths
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-failures-native-escape
+          path: tmp/ci-failures/*.json
+          retention-days: 2
+          if-no-files-found: ignore
+      - name: Publish native control results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-escape-results
+          path: tmp/ci-native-escape/results.json
+          retention-days: 7
+          if-no-files-found: warn
 
   behaviour:
     needs: prepare

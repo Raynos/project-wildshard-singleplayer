@@ -7,7 +7,7 @@ import { waveSource } from '../scripts/deploy-pin.mjs';
 import deploy from '../.github/workflows/deploy.yml?raw';
 
 const sha = 'a'.repeat(40);
-const jobs = ['prepare','typecheck-lint','derived-docs','behaviour','journeys','boot-verdict'];
+const jobs = ['prepare','typecheck-lint','derived-docs','behaviour','native-escape','journeys','boot-verdict'];
 const needs = Object.fromEntries(jobs.map(name => [name,{result:'success'}]));
 const current = {mode:'newest-ci-green',event:'push',ref:'refs/heads/main',repository:'Raynos/project-wildshard-singleplayer',
   sha,run:'123',head:sha,needs};
@@ -33,7 +33,8 @@ test('one push wave keeps all six browser guards and serialized exact-artifact s
   const ship=deploy.split('\n  build-and-deploy:\n')[1]?.split('\n  typecheck-lint:\n')[0];
   const journeys=deploy.split('\n  journeys:\n')[1]?.split('\n  boot-verdict:\n')[0];
   if(ship===undefined||journeys===undefined)throw new Error('Missing push-wave proof or ship');
-  expect(ship).toContain('needs: [prepare, typecheck-lint, derived-docs, behaviour, journeys, boot-verdict]');
+  expect(ship).toContain('needs: [prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys, boot-verdict]');
+  expect(ship).toContain("needs.native-escape.result == 'success'");
   expect(ship).toContain('CI_WAVE_NEEDS:');expect(ship).toContain('read-wave');
   expect(ship).toContain('group: production-release');expect(ship).toContain('check-live-floor');
   expect(ship).toContain('vercel deploy --prebuilt');expect(ship).not.toContain('vercel build');

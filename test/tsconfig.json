@@ -102,6 +102,7 @@
     "../scripts/test-build-tools.ts",
     "../scripts/bake/viewmodelBytes.ts",
     "../scripts/vitest-shard.ts",
+    "../scripts/vitest-ci-files.ts",
     "../scripts/test-shard-plan.ts",
     "../scripts/vitest-plan.ts",
     "../scripts/vitest-timings.ts",

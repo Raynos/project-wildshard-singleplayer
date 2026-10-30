@@ -113,7 +113,7 @@ class FailFastTests(unittest.TestCase):
 
     def test_every_ci_job_finishes_its_own_verdict_without_peer_io(self):
         main=API['main'];run=API['run']
-        jobs=('behaviour','prepare','typecheck-lint',
+        jobs=('behaviour','native-escape','prepare','typecheck-lint',
               'build-and-deploy','derived-docs','journeys','boot-verdict')
         payload=json.dumps({'total_count':1,'jobs':[dict(name='foreign red',
             conclusion='failure',completed_at='2026-01-01',html_url='https://example.invalid/peer')]})
