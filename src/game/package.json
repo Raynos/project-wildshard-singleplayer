@@ -189,6 +189,7 @@
     "./shardfile/crowdRuntime": "./shardfile/crowdRuntime.ts",
     "./shardfile/socketLiftProof": "./plugin/simulation.ts",
     "./weapons/starterGlyphs": "./weapons/starterGlyphs.ts",
+    "./weapons/mountedPass": "./weapons/mountedPass.ts",
     "./weapons/starterMoves": "./weapons/starterMoves.ts",
     "./weapons/starterMeleeProfile": "./weapons/starterMeleeProfile.ts",
     "./weapons/starterBowProfile": "./weapons/starterBowProfile.ts",

@@ -15,6 +15,7 @@ import type { Targets } from '@wildshard/engine/combat/types';
 import type { Key, Move, SwordRig, SwordWorld } from '@wildshard/engine/combat/view/melee';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { HeldDecision } from './heldDecision';
+import { MountedPassLaw } from './mountedPass';
 
 export interface MountedSwordMount { speed: number; yaw: number }
 
@@ -38,19 +39,17 @@ export class MountedSword<P extends MountedSwordProfile = MountedSwordProfile> e
   
   mount: MountedSwordMount | null = null;
   
-  passChain = 0;
-  
-  private chainT = 0;
-  private mountCd = 0;
+  get passChain(): number { return this.pass.passChain; }
+  set passChain(value: number) { this.pass.passChain = value; }
   private readonly swordProfile: P;
-  private readonly law:HeldDecision;
-  private pendingAttack=false;private pendingHits=0;private elapsed=0;
+  /** the pass law (mountedPass.ts: the Node simulation decides the same passes) */
+  private readonly pass:MountedPassLaw;
   private readonly passes: MountedSwordPasses;
   private readonly power: ArcWeaponPower | null;
 
   constructor(world: SwordWorld, targets: Targets | undefined, opts: MountedSwordOptions<P>) {
     super(world, targets, { row: opts.profile, profile: opts.profile, allowUnlocked: opts.allowUnlocked ?? false, rig: opts.rig });
-    this.swordProfile = opts.profile;this.law=new HeldDecision(opts.program,world.game.levelScope);
+    this.swordProfile = opts.profile;this.pass=new MountedPassLaw(new HeldDecision(opts.program,world.game.levelScope));
     this.passes = opts.passes;
     this.power = opts.power ?? null;
     this.power?.apply(this);
@@ -61,29 +60,21 @@ export class MountedSword<P extends MountedSwordProfile = MountedSwordProfile> e
   }
   protected override onMoveHit(move: Move): void {
     if (move !== this.passes.left && move !== this.passes.right) return;
-    this.pendingHits++;
+    this.pass.hit();
 
   }
   
   carryPassState(previous: MountedSword<P>): void {
-    this.mount = previous.mount; this.passChain = previous.passChain;
-    this.chainT = previous.chainT; this.mountCd = previous.mountCd; this.heavyMult = previous.heavyMult;
+    this.mount = previous.mount; this.pass.carry(previous.pass); this.heavyMult = previous.heavyMult;
   }
 
   get mounted(): boolean { return this.mount !== null; }
   
 
-  override tryFire():void{if(this.mount===null){super.tryFire();return;}this.pendingAttack=true;}
+  override tryFire():void{if(this.mount===null){super.tryFire();return;}this.pass.attack();}
   private decide(dt:number):void{
-   this.elapsed+=dt;if(this.elapsed<.1-1e-9)return;
-   const m=this.mount,p=this.player.position,yaw=m?.yaw??this.player.yaw,fx=-Math.sin(yaw),fz=-Math.cos(yaw),rx=Math.cos(yaw),rz=-Math.sin(yaw),rows=this.swordProfile.mounted;
-   const candidates:Record<string,number>[]=[];
-   for(const target of [...app.aimTargets].filter(body=>body.alive&&body.hidden!==true).sort((a,b)=>a.position.distanceToSquared(p)-b.position.distanceToSquared(p))){if(candidates.length>=8)break;const dx=target.position.x-p.x,dz=target.position.z-p.z;
-    candidates.push({live:Number(target.alive&&target.hidden!==true),distance:Math.hypot(dx,dz),forward:dx*fx+dz*fz,side:dx*rx+dz*rz>=0?1:-1});}
-   const v=this.law.update(this.elapsed,{mode:1,cooldown:this.mountCd,chain:this.chainT,links:this.passChain,hits:this.pendingHits,chainWindow:rows.chainWindow,attack:Number(this.pendingAttack),charging:Number(this.chargingHeavy),mounted:Number(m!==null),sense:rows.sense,behind:rows.behind,look:Math.atan2(Math.sin(this.player.yaw-yaw),Math.cos(this.player.yaw-yaw)),baseDamage:this.swordProfile.damage,speed:m?.speed??0,speedDivisor:rows.speedDivisor,chainMax:rows.chainMax,chainStep:rows.chainStep,passCooldown:rows.cooldown},candidates);
-   this.elapsed=0;if(v===null)return;this.pendingAttack=false;this.pendingHits=0;
-   this.mountCd=v['cooldown']??0;this.chainT=v['chain']??0;this.passChain=v['links']??0;
-   if(v['side']!==0&&v['side']!==undefined){this.damage=v['damage']??this.swordProfile.damage;this.strikeMove(v['side']<0?this.passes.left:this.passes.right,false);}
+   const strike=this.pass.decide(dt,{player:this.player,mount:this.mount,charging:this.chargingHeavy,baseDamage:this.swordProfile.damage,rows:this.swordProfile.mounted,targets:app.aimTargets});
+   if(strike!==null){this.damage=strike.damage;this.strikeMove(strike.side<0?this.passes.left:this.passes.right,false);}
   }
 
   override update(dt: number, t: number): void {
