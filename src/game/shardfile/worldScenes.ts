@@ -20,7 +20,6 @@ import { admitWorldSceneSurface, prepareWorldSceneSurfaces, worldSceneSurfaceMat
 import { worldSceneSourceMaterial } from './worldSceneMaterials';
 import { WorldScenePlacement } from './worldScenePlacement';
 import { readWholeLibrary } from './wholeLibrary';
-import { RefiningWholeLibrary } from './refiningWholeLibrary';
 import { SlabLibrary } from './slabLibrary';
 import { wholeRefinementCover } from './wholeRefinementCover';
 import { lendWorldSceneTextures } from './worldSceneTextures';
@@ -369,7 +368,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     })();
     materialReads.set(id, pending); return pending;
   }
-  const refining = new Map<string, RefiningWholeLibrary | SlabLibrary>();
+  const refining = new Map<string, SlabLibrary>();
   const coarse = section.libraries.some(row => row.kind === 'whole' && row.load === 'refine') ? wholeRefinementCover(ctx, owner, refinementOrigin) : undefined;
   if (coarse !== undefined) handles.addTiled(coarse.content);
   const bufferedContents: TileContent[] = [];
@@ -404,10 +403,11 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
             if (row.load === 'explorer' || used.size === 0) { libraryProgress(libraryIndex + 1, `${row.id} · deferred`); return; }
             if (row.load === 'refine') {
               if (coarse === undefined) throw new Error('Fine refinement requires coarse coverage');
-              // NF11: baked slabs replace the run-time join of the library they cover
+              // Fine geometry is baked. Missing slabs refuse instead of
+              // reconstructing a union during play.
               const slabs = section.libraries.find(entry => entry.kind === 'slabs' && entry.of === row.id);
-              const whole = slabs?.kind === 'slabs' ? new SlabLibrary(owner, product, row, slabs, refinementQueue(), coarse.ensure)
-                : new RefiningWholeLibrary(owner, product, row, refinementQueue(), coarse.ensure);
+              if (slabs?.kind !== 'slabs') throw new Error(`Fine refinement requires baked slabs: ${row.id}`);
+              const whole = new SlabLibrary(owner, product, row, slabs, refinementQueue(), coarse.ensure);
               refining.set(row.id, whole);
               libraries.set(row.id, { geometry: id => whole.geometry(id) }); return;
             }
@@ -564,8 +564,8 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
         const library = refining.get(node.geometry.library);
         if (library !== undefined) {
           if (node.kind !== 'mesh') throw new Error('Fine refinement needs a plain frozen mesh');
-          const model = node.geometry.model, transform = library.sourceTransform(shape);
-          refine.set(key, (mesh, scope) => library.bind(model, mesh, scope, transform));
+          const model = node.geometry.model;
+          refine.set(key, (mesh, scope) => library.bind(model, mesh, scope));
         }
         await copies.check();
       }

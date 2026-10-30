@@ -5324,6 +5324,9 @@ draws/materials using `assembleWholeGeometryViews` below.
 byte path. Application extras are charged and cannot overwrite reserved
 storage keys.
 
+Refine libraries require slabs; exact joins are bake-only in
+`sdk/bake/wholePieceJoin`.
+
 ### Runtime whole-geometry assembly
 
 Props tile rows optionally carry `additionalFiles` beside their first

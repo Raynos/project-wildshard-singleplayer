@@ -1,6 +1,6 @@
 import { BufferAttribute, BufferGeometry, Float16BufferAttribute, InterleavedBufferAttribute, Matrix3, Matrix4, Vector3, type TypedArrayConstructor } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { WholeGeometryPiece } from '../plugin/geometry';
+import type { WholeGeometryPiece } from '@wildshard/game/plugin/geometry';
 
 function raw(attribute: BufferAttribute | InterleavedBufferAttribute, vertex: number, lane: number): number | undefined {
   return attribute instanceof InterleavedBufferAttribute ? attribute.data.array[vertex * attribute.data.stride + attribute.offset + lane] : attribute.array[vertex * attribute.itemSize + lane];
@@ -131,4 +131,17 @@ export function* joinWholePieceSteps(pieces: readonly WholeGeometryPiece[], pose
     }
     return yield* merge(copies);
   } finally { for (const copy of copies) copy.dispose(); }
+}
+
+/** Synchronous bake oracle over the exact source-piece cursor. Runtime
+ * readers consume the baked chunks and never reconstruct this union. */
+export function joinWholePieces(pieces: readonly WholeGeometryPiece[], pose?: readonly number[], forceIdentityTransform = false): BufferGeometry {
+  const steps = joinWholePieceSteps(pieces, pose, forceIdentityTransform);
+  for (;;) {
+    const next = steps.next();
+    if (next.done) {
+      if (next.value === undefined) throw new Error('Whole piece join did not complete');
+      return next.value;
+    }
+  }
 }

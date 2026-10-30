@@ -4,7 +4,7 @@ import { nativeWholeGeometry } from '@wildshard/engine/models/nativeGeometry';
 import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { WorldSceneSlabsSchema } from '@wildshard/format/worldSceneSlabs';
-import { joinWholePieceSteps } from '@wildshard/game/shardfile/wholePieceJoin';
+import { joinWholePieceSteps } from './wholePieceJoin';
 import { wholeGeometryPieces } from '@wildshard/game/shardfile/wholeGeometryPieces';
 import { bakeProps } from './props';
 import { readSourceModel } from './skinned';

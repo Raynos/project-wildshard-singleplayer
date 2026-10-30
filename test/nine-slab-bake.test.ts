@@ -11,7 +11,7 @@ import { WorldScenesSchema } from '../src/format/worldScenes';
 import { parseWorldSceneWeld } from '../src/format/worldSceneWeld';
 import { nativeWholeGeometry } from '../src/engine/models/nativeGeometry';
 import { wholeGeometryPieces } from '../src/game/shardfile/wholeGeometryPieces';
-import { joinWholePieces } from '../src/game/shardfile/refiningWholeLibrary';
+import { joinWholePieces } from '../src/sdk/bake/wholePieceJoin';
 import { slabGeometryBytes } from '../src/sdk/bake/slabChunks';
 
 // Current source results are the oracle. No historical byte count, hash, geometry total or output is pinned.

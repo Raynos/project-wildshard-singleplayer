@@ -175,7 +175,8 @@
     "./bake/nativeTerrainField": "./bake/nativeTerrainField.ts",
     "./bake/nativeInteractionFacts": "./bake/nativeInteractionFacts.ts",
     "./bake/geometryError": "./bake/geometryError.ts",
-    "./bake/slabs": "./bake/slabs.ts"
+    "./bake/slabs": "./bake/slabs.ts",
+    "./bake/wholePieceJoin": "./bake/wholePieceJoin.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -799,6 +800,10 @@
       "./bake/slabs": {
         "types": "./dist/types/sdk/bake/slabs.d.ts",
         "default": "./dist/bake/slabs.js"
+      },
+      "./bake/wholePieceJoin": {
+        "types": "./dist/types/sdk/bake/wholePieceJoin.d.ts",
+        "default": "./dist/bake/wholePieceJoin.js"
       }
     }
   }

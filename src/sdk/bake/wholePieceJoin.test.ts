@@ -1,10 +1,9 @@
 import { afterEach, expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, Float16BufferAttribute, Matrix4, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { assembleWholeGeometryViews, type WholeGeometryPiece } from '../plugin/geometry';
-import { wholeGeometryPieces } from './wholeGeometryPieces';
-import { joinWholePieces } from './refiningWholeLibrary';
-import { joinWholePieceSteps } from './wholePieceJoin';
+import { assembleWholeGeometryViews, type WholeGeometryPiece } from '@wildshard/game/plugin/geometry';
+import { wholeGeometryPieces } from '@wildshard/game/shardfile/wholeGeometryPieces';
+import { joinWholePieces, joinWholePieceSteps } from './wholePieceJoin';
 
 const geometries: BufferGeometry[] = [], materials: MeshBasicMaterial[] = [];
 afterEach(() => { for (const geometry of geometries.splice(0)) geometry.dispose(); for (const material of materials.splice(0)) material.dispose(); });

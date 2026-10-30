@@ -4,7 +4,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { NativeAttributesSchema } from '@wildshard/engine/models/nativeGeometry';
 import { wholeGeometryPieces } from '@wildshard/game/shardfile/wholeGeometryPieces';
 import type { WholeGeometryPiece } from '@wildshard/game/plugin/geometry';
-import { joinWholePieceSteps } from '@wildshard/game/shardfile/wholePieceJoin';
+import { joinWholePieceSteps } from './wholePieceJoin';
 import { WorldSceneSlabsSchema, type WorldSceneSlabChunk, type WorldSceneSlabFile, type WorldSceneSlabKey, type WorldSceneSlabLibrary } from '@wildshard/format/worldSceneSlabs';
 import { parseWorldSceneWeld, type WorldSceneWeld, type WorldSceneWeldNode } from '@wildshard/format/worldSceneWeld';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';

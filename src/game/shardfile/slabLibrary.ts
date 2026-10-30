@@ -83,8 +83,13 @@ export class SlabLibrary {
       for (const source of key.sources) { if (this.keys.has(source)) throw new Error('Slab source belongs to two keys'); this.keys.set(source, key); }
     }
     for (const model of whole.models) if (!this.keys.has(model.id)) throw new Error(`Slab library omits refine model ${model.id}`);
-    for (const entry of row.tiles) this.entries.set(entry.tile, entry);
     const bounds = new Map(product.shardfile.tiles.filter(tile => tile.lod === 0).map(tile => [tile.z * 8 + tile.x, tile.drawBounds ?? tile.bounds] as const));
+    const declared = new Set(product.shardfile.files.filter(file => file.kind === 'glb').map(file => file.hash));
+    for (const entry of row.tiles) {
+      if (!bounds.has(entry.tile)) throw new Error(`Slabs require a declared fine tile: ${String(entry.tile)}`);
+      for (const file of entry.files) if (!declared.has(file.file)) throw new Error(`Slabs require a declared GLB: ${file.file}`);
+      this.entries.set(entry.tile, entry);
+    }
     this.builds = new SharedTileBuilds(owner, async (tile, scope) => {
       const entry = this.entries.get(tile); if (entry === undefined) throw new Error('Missing slab tile');
       const chunks: BufferGeometry[] = [];
@@ -109,9 +114,7 @@ export class SlabLibrary {
   }
   /** an anchor's frozen stand-in until its key's first chunk: no channels (the anchor stays hidden) */
   geometry(id: string): BufferGeometry | null { return this.whole.models.some(model => model.id === id) ? new BufferGeometry() : null; }
-  /** a slab is already in its anchor's frame: no source transform */
-  sourceTransform(): boolean { return false; }
-  bind(id: string, mesh: Mesh, lifetime: Scope, _sourceTransform = false): TileContent {
+  bind(id: string, mesh: Mesh, lifetime: Scope): TileContent {
     const key = this.keys.get(id); if (key === undefined) throw new Error('Missing slab model');
     // a merged anchor's triangles draw under its key's own anchor
     if (key.sources[0] !== id) { mesh.visible = false; return { id: `slab:${this.row.id}:${id}:${mesh.uuid}`, tiles: () => EMPTY, ready: () => this.queue.ready, attach: () => Promise.resolve() }; }
