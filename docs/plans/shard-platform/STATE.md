@@ -3,7 +3,6 @@
 **G872 (Jake, 10-29): AUTONOMOUS BUILDER. NEVER WAIT FOR JAKE.** Picks take the recommended answer, land, and are logged
 below for Jake's review with wildshard-v (an overturn becomes a new row). No idle lane while a counted row is open.
 
-**Order:** QA / FOUNDATIONS rows, then LD5-LD10 on his word (G873), then CO7 / CO8, then all stop (G845).
 **Legacy (G882 / G883 / G885 / G891):** legacy-final 91a9eef081; Sky + Signal 3be88b3081, Nalati b592b94008, Driftwood
 019fa6d0c7. **G908: Pine + Nine untouched** (no prep) until Jake's word after his final QA, likely 10-30.
 
@@ -11,7 +10,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **[FOUNDATIONS](../FOUNDATIONS.md):** done MF1-MF10 (MF7 memory), MF13 (Debug), MF14-MF17, MF19, CX1-CX3; FC1-FC14 done or closed.
 Open: MF11 footprint, MF12 Sentry, MF18 (o3 Driftwood, o4 Nalati / Sky), MF20, FC15 (o5). **[CI](../CI-FIRST-PRINCIPLES.md):**
 CI1-CI4 done (CI2 / CI3 await first deploy), CI5 x9, CI6 / CI7 / CI9 x2, CI8 x9, CI10 x10, CI11-CI13 x1, CI14 x6.
-**For wildshard-v (19:25):** both 40977059379 reds are fixed (b8fe18ace2, da679) and ride 9561743057. sp-o5 is not idle (FC15
+**G924 (19:30):** order FOUNDATIONS / frame-cost / QA → CX → CI last. Opus lanes are all on priority 1 (MF18, FC15, MF11). The listed QA unlock rows and CX1-CX3 are done, so no Codex row outranks CI; Codex lanes keep their CI rows and take any new FOUNDATIONS / QA row first. **(19:25):** both 40977059379 reds are fixed (b8fe18ace2, da679) and ride 9561743057. sp-o5 is not idle (FC15
 Sim readings since 18:47). sp-x8 stays released (5-Codex cap). For Jake: MF13 'Refine dither' needs his phone check;
 QB17 zip video tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 
