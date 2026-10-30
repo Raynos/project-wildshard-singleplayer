@@ -286,10 +286,11 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     ...matrix.map(index=>`behaviour (${index})`),
     ...['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'].map(name=>`journeys (${name})`),
     ...nativeJobs]);
+  /** @type {null|{name:string,status:string,conclusion:string|null,created_at:string|null,started_at:string|null,completed_at:string|null}[]} */
   const details = ready ? JSON.parse(query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--slurp', '--jq',
     '[.[].jobs[] | {name,status,conclusion,created_at,started_at,completed_at}]'])) : null;
   if (ready && !Array.isArray(details)) throw new Error('Ready source job inventory is unreadable');
-  const rows = ready ? details.map(job => [job.name, job.status, job.conclusion ?? ''].join('\t'))
+  const rows = details !== null ? details.map(job => [job.name, job.status, job.conclusion ?? ''].join('\t'))
     : query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--jq',
       '.jobs[] | [.name, .status, .conclusion] | @tsv']).trim().split('\n').filter(Boolean);
   const optional = new Set(['build-and-deploy',phone === undefined ? 'journeys (phone-route)' : 'phone-route']);
@@ -345,13 +346,14 @@ export function readySource(runId, liveBuild, query = ghApi, now = Date.now()) {
   const queuedAt = Date.parse(ship?.created_at ?? '');
   const queued = ship?.status === 'queued' && ship.conclusion === null
     && Number.isFinite(queuedAt) && now - queuedAt >= 30 * 60 * 1000;
-  const terminal = ship?.status === 'completed' && ['failure','cancelled'].includes(ship.conclusion);
+  const terminal = ship?.status === 'completed' && ship.conclusion !== null && ['failure','cancelled'].includes(ship.conclusion);
   if (!queued && !terminal) throw new Error('Ready source requires failed/cancelled shipping or at least 30 minutes queued');
   if (productionFloor(liveBuild, selected.sha, query) === selected.sha)
     throw new Error('Ready source is already live');
   const live = query([`repos/${REPO}/commits/${selected.sha}/status`, '--jq',
     '[.statuses[] | select(.context == "production-live")][0].state // ""']).trim();
   if (live === 'success') throw new Error('Ready source already has a verified production release');
+  /** @type {{workflow_runs:{id:number,status:string}[]}} */
   const runs = JSON.parse(query([`${workflowRunsPath('deploy.yml', query)}?branch=main&event=push&per_page=100&page=1`,
     '--jq', '{workflow_runs:[.workflow_runs[]|{id,status}]}']));
   if (!Array.isArray(runs.workflow_runs) || runs.workflow_runs.length > 100
