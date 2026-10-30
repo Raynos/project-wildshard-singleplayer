@@ -71,9 +71,10 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
   let initialized = false;
   // each expression's operand slots, read once (-1: none), so the evaluator never asks a node which fields it has
   const { a: operandA, b: operandB, codes, dynamic } = operandsOf(nodes, nodes !== program.nodes);
-  const frame: Partial<Record<ClientChannelProperty, number>> = {};
-  for (const channel of program.channels) Object.defineProperty(frame, channel.property, { enumerable: true, get: () => published[channel.value] });
+  const frame: Partial<Record<ClientChannelProperty, number>> = {}, index = new Map<ClientChannelProperty, number>();
+  for (const channel of program.channels) { Object.defineProperty(frame, channel.property, { enumerable: true, get: () => published[channel.value] }); index.set(channel.property, channel.value); }
   Object.freeze(frame);
+  const own: OwnFrame = { frame, published, index };
   const tube = program.geometry;
   const geometry: ClientTubeFrame | undefined = tube === undefined ? undefined : Object.freeze({
     get fromX() { return published[tube.from[0]] ?? Number.NaN; }, get fromY() { return published[tube.from[1]] ?? Number.NaN; }, get fromZ() { return published[tube.from[2]] ?? Number.NaN; },
@@ -184,7 +185,7 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
     }
     published.set(scratch); locals.set(next); initialized = true;
   };
-  return Object.freeze({ bindNumeric: createClientNumericPorts, reads: Object.freeze([...program.reads]), frame, evaluate, stateless: slots.length === 0, ...(geometry === undefined ? {} : { geometry }), ...(connectors === undefined ? {} : { connectors }) });
+  return Object.freeze({ bindNumeric: (rows: readonly ClientNumericPortRow[], targets: ReadonlyMap<string, unknown>) => createClientNumericPorts(rows, targets, own), reads: Object.freeze([...program.reads]), frame, evaluate, stateless: slots.length === 0, ...(geometry === undefined ? {} : { geometry }), ...(connectors === undefined ? {} : { connectors }) });
 }
 
 
@@ -197,7 +198,9 @@ export interface ClientNumericPortRow {
  * authoritative actor classes and readonly fields refuse. Capture restores only declared borrowed values;
  * this binder owns no clock, scene object, listener or simulation state. */
 export interface ClientNumericPorts { apply: (frame: ClientChannelFrame) => void; capture: () => () => void }
-function createClientNumericPorts(rows: readonly ClientNumericPortRow[], targets: ReadonlyMap<string, unknown>): ClientNumericPorts {
+/** a lane's own frame as its published values: a port applying that frame reads the value, not the frame's getter */
+interface OwnFrame { readonly frame: ClientChannelFrame; readonly published: Float64Array; readonly index: ReadonlyMap<ClientChannelProperty, number> }
+function createClientNumericPorts(rows: readonly ClientNumericPortRow[], targets: ReadonlyMap<string, unknown>, own?: OwnFrame): ClientNumericPorts {
   if (rows.length > 32) throw new Error('Numeric visual port roster exceeds its bound');
   const ports = rows.flatMap(row => {
     const root = targets.get(row.target); if (root === null) return [];
@@ -217,11 +220,11 @@ function createClientNumericPorts(rows: readonly ClientNumericPortRow[], targets
     if (typeof parent !== 'object' || parent === null || key === undefined || (!scene && !Object.hasOwn(parent, key))) throw new Error('Missing numeric visual field');
     const value: unknown = Reflect.get(parent, key);
     if (typeof value !== 'number' && !(row.nullable === true && value === null)) throw new Error('Visual field is not numeric');
-    return [{ row, target: parent, key }];
+    return [{ row, target: parent, key, slot: own?.index.get(row.property) ?? -1 }];
   });
   return {
-    apply: frame => { for (const { row, target, key } of ports) {
-      const value = frame[row.property];
+    apply: frame => { const mine = own !== undefined && frame === own.frame; for (const { row, target, key, slot } of ports) {
+      const value = mine && slot >= 0 ? own.published[slot] : frame[row.property];
       if (value === undefined || !Number.isFinite(value) || Math.abs(value) > 1e12 || !Reflect.set(target, key, value)) throw new Error('Numeric visual write refused');
     } },
     capture: () => { const saved = ports.filter(port => port.row.restore === true).map(port => {
@@ -232,7 +235,11 @@ function createClientNumericPorts(rows: readonly ClientNumericPortRow[], targets
 
 /** Borrow admitted scalar fields from supplied owners, never publishing their objects to the channel evaluator. */
 export function bindClientChannelInputs(input: unknown, owners: ReadonlyMap<string, unknown>, reads: ReadonlySet<string>): ReadonlyMap<string, () => number> {
-  const rows = parseClientChannelInputs(input), bound = new Map<string, () => number>();
+  return new Map([...bindClientChannelInputRows(input, owners, reads)].map(([id, row]) => [id, row.read]));
+}
+/** `bindClientChannelInputs` with each read's owner path as a key: reads of one field by many lanes share one value */
+export function bindClientChannelInputRows(input: unknown, owners: ReadonlyMap<string, unknown>, reads: ReadonlySet<string>): ReadonlyMap<string, { readonly key: string; readonly read: () => number }> {
+  const rows = parseClientChannelInputs(input), bound = new Map<string, { readonly key: string; readonly read: () => number }>();
   for (const row of rows) {
     if (!reads.has(row.input)) throw new Error(`Unused numeric input ${row.input}`);
     // the row's path is checked once here; every later read resolves it
@@ -242,7 +249,7 @@ export function bindClientChannelInputs(input: unknown, owners: ReadonlyMap<stri
       if (typeof value !== 'number' || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new NumericInputError(row.input);
       return value;
     };
-    read(); bound.set(row.input, read);
+    read(); bound.set(row.input, { key: JSON.stringify([row.owner, row.path]), read });
   }
   return bound;
 }

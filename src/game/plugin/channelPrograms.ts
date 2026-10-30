@@ -3,7 +3,7 @@ import type { Euler } from 'three';
 import { NumericPoseSchema, type NumericPoseInputSchema, parseClientChannels, type ClientChannelProgram } from '@wildshard/format/clientChannels';
 import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
 import { lookAngles, squashBody } from '@wildshard/engine/entities/species/rigs';
-import {admittedClientChannels,bindClientChannelInputs} from './channels';
+import {admittedClientChannels,bindClientChannelInputRows} from './channels';
 import { parsePackedCreatureLooks } from '@wildshard/format/speciesLooks';
 import { emitFault, NumericInputError } from '@wildshard/engine/core/faults';
 
@@ -38,12 +38,16 @@ export function installChannelPrograms(input:unknown,group:string,owners:Readonl
 function buildChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<string,unknown>,copiedNames?:readonly string[]):ReturnType<typeof installChannelPrograms>{
  const selected=admittedChannelTable(input).filter(row=>row.numeric?.group===group);
  if(selected.length===0)throw new Error(`Missing numeric channel group: ${group}`);
+ // FC CPU cut: lanes of a group reading one owner field share one read a call (Nine's frame group: 544 reads of 138 fields),
+ // taken lazily at its first use so reads (and a refusal) happen in the same order as one read per lane
+ const shared:(()=>number)[]=[],sharedAt=new Map<string,number>(),sharedValues:number[]=[],sharedCall:number[]=[];let call=0;
  const lanes=selected.map(row=>{
   const binding=row.numeric;if(binding===undefined)throw new Error('Missing numeric channel metadata');
-  const lane=admittedClientChannels(row),inputs=bindClientChannelInputs(binding.inputs,owners,new Set(lane.reads));
+  const lane=admittedClientChannels(row),inputs=bindClientChannelInputRows(binding.inputs,owners,new Set(lane.reads));
   const ports=lane.bindNumeric(binding.outputs,owners),restoreOnly=lane.bindNumeric(binding.restoreOnly.map(({property,target,path,nullable})=>({property,target,path,restore:true,nullable:nullable??false})),owners),values:number[]=Array.from({length:lane.reads.length},()=>0);
-  // each read's bound input (undefined: it comes from the observation), looked up once
-  const readers=lane.reads.map(id=>inputs.get(id));
+  // each read's shared bound input (-1: it comes from the observation), looked up once
+  const readers=lane.reads.map(id=>{const bound=inputs.get(id);if(bound===undefined)return -1;
+   let at=sharedAt.get(bound.key);if(at===undefined){at=shared.length;shared.push(bound.read);sharedAt.set(bound.key,at);sharedValues.push(0);sharedCall.push(-1);}return at;});
   const indices=copiedNames===undefined?undefined:lane.reads.map(name=>copiedNames.indexOf(name));
   if(indices?.some(index=>index<0)||copiedNames!==undefined&&inputs.size>0)throw new Error('Invalid copied pose reads');
   return {lane,inputs,readers,ports,restoreOnly,values,indices,observation:{time:0,delta:0,values}};
@@ -53,7 +57,7 @@ function buildChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<stri
  return Object.freeze({ids,
   evaluate:(observation:ChannelProgramObservation):void=>{
    try {
-   const external=observation.values,isVector=vector(external);
+   const external=observation.values,isVector=vector(external);call++;
    // Snapshot every borrowed read before any field is published, including cross-program dependencies.
    if(copiedNames!==undefined){
     if(!isVector||external.length!==copiedNames.length)throw new Error('Invalid copied pose vector');
@@ -63,7 +67,10 @@ function buildChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<stri
     if(isVector&&(inputs.size>0||external.length!==values.length))throw new Error('Numeric channel vector differs from its declared reads');
     const reads=lane.reads;
     for(let index=0;index<reads.length;index++){
-     const id=reads[index]??'',read=readers[index],value=read===undefined?isVector?external[index]:Object.hasOwn(external,id)?external[id]:undefined:read();
+     const id=reads[index]??'',read=readers[index]??-1;let value:number|undefined;
+     if(read<0)value=isVector?external[index]:Object.hasOwn(external,id)?external[id]:undefined;
+     else if(sharedCall[read]===call)value=sharedValues[read];
+     else{value=shared[read]?.();if(value!==undefined){sharedValues[read]=value;sharedCall[read]=call;}}
      if(value===undefined||!Number.isFinite(value)||Math.abs(value)>1e12)throw new NumericInputError(id,`Missing or invalid channel observation: ${id}`);
      values[index]=value;
     }
