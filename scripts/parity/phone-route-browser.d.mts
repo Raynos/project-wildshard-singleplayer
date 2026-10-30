@@ -7,3 +7,5 @@ export function phonePageTarget(list:unknown,url:string):{url:string;webSocketDe
 export function openPhoneBrowser(engine:string,base:string,out:string):Promise<PhonePage>;
 /** Capture the real native WebKit viewport within the original ten-second cap. */
 export function captureNativePhonePage(inspector:Pick<Inspector,'send'>,path:string):Promise<Buffer>;
+/** Follow the provisional target without retiring its owned bootstrap. */
+export function followNativePhoneDocument(inspector:Pick<Inspector,'send'>,url:string,previous:PhoneDocument,deadline:number):Promise<void>;

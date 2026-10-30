@@ -6,7 +6,7 @@ import { runInNewContext } from 'node:vm';
 import { phoneEngine } from '../scripts/parity/phone-route-runner.mjs';
 import { capturePhoneFailure, waitPhoneCondition, enterPhoneGrid, phoneRouteFailures, phoneRoutePlans, type PhoneReceipt, type PhoneObservation, type PhoneDocument } from '../scripts/parity/phone-route.mjs';
 import { phoneTouchButton, phoneWallTarget } from '../scripts/parity/phone-route-page.mjs';
-import { phoneBootstrap, phoneDocumentMatches, phonePageTarget } from '../scripts/parity/phone-route-browser.mjs';
+import { phoneBootstrap, phoneDocumentMatches, phonePageTarget, followNativePhoneDocument } from '../scripts/parity/phone-route-browser.mjs';
 
 test('phone bootstrap persists numeric mute after a caller replaces settings',()=>{
   const stored=new Map<string,string>();
@@ -24,6 +24,24 @@ test('GRID reconnect accepts only the owned fresh entry document at the exact fi
     {...current,url:'http://localhost/version.json'},{...current,boot:'http://elsewhere/?chunk=coast'},
     {...current,boot:'http://localhost/'},{...current,document:''},null])
     expect(phoneDocumentMatches(rejected,'http://localhost/',priorDocument)).toBe(false);
+});
+
+test('native GRID follows provisional targets on its existing bootstrap connection',async()=>{
+  const current={url:'http://localhost/',visit:'owned-visit',document:'new-grid',boot:'http://localhost/?chunk=coast'};
+  const replies:unknown[]=[priorDocument,{...current,document:'old-title'},{...current,visit:'foreign'},current];
+  let closed=false,reads=0;
+  const inspector={close:()=>{closed=true;},send:(method:string)=>{
+    expect(method).toBe('Runtime.evaluate');expect(closed).toBe(false);reads++;
+    return Promise.resolve({result:{value:replies.shift()}});
+  }};
+  await followNativePhoneDocument(inspector,current.url,priorDocument,Date.now()+5000);
+  expect(reads).toBe(4);expect(closed).toBe(false);
+});
+
+test('native GRID does not accept a stale document after its original navigation deadline',async()=>{
+  const inspector={send:()=>Promise.resolve({result:{value:priorDocument}})};
+  await expect(followNativePhoneDocument(inspector,'http://localhost/',priorDocument,Date.now()-1))
+    .rejects.toThrow('did not reach its owned document');
 });
 
 test('GRID follows the real title click before establishing readiness in the new document',async()=>{

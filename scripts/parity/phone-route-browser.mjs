@@ -49,6 +49,22 @@ export function phoneDocumentMatches(snapshot, url, previous) {
 
 const documentExpression = '({url:location.href,visit:window.__phoneRouteVisit,document:window.__phoneRouteDocument,boot:window.__phoneRouteBootURL})';
 
+/** Keep the target-aware connection that owns this visit's bootstrap across
+ * the provisional navigation. Closing it before commit loses that owner.
+ * @param {Pick<Inspector,'send'>} inspector @param {string} url
+ * @param {import('./phone-route.mjs').PhoneDocument} previous @param {number} deadline */
+export async function followNativePhoneDocument(inspector,url,previous,deadline) {
+  let last;
+  while(Date.now()<deadline){
+    try{
+      last=value(await inspector.send('Runtime.evaluate',{expression:documentExpression,returnByValue:true}));
+      if(phoneDocumentMatches(last,url,previous))return;
+    }catch(error){last=String(error);}
+    await sleep(100);
+  }
+  throw new Error(`Native phone navigation did not reach its owned document: ${JSON.stringify(last)?.slice(0,2048)}`);
+}
+
 /** Capture the actual composited WebKit viewport, with the original 10s cap.
  * No substitute image or retry is permitted if the native page cannot answer.
  * @param {Pick<Inspector,'send'>} inspector @param {string} path */
@@ -185,7 +201,10 @@ export async function openPhoneBrowser(engine, base, _out) {
       await raw(`(${phoneTouchButton.toString()})(${JSON.stringify(selector)})`);
     },
     evaluate,
-    async followNavigation(url, previous, deadline) { await connect(url,previous,Math.min(deadline,Date.now()+90000)); },
+    async followNavigation(url, previous, deadline) {
+      if(inspector===null)throw new Error('Safari inspector unavailable');
+      await followNativePhoneDocument(inspector,url,previous,Math.min(deadline,Date.now()+90000));
+    },
     screenshot(path) {
       if(inspector===null)throw new Error('Safari inspector unavailable');
       return captureNativePhonePage(inspector,path);
