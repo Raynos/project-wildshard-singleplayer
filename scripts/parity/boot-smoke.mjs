@@ -216,12 +216,19 @@ export function verifyBootTemplateRoad(result) {
 /** Failure-only: compare the small travel readout with the observer's actual owner. */
 export function bootRoadCompletionState() {
   const api = window.__wildshard, game = api?.world?.game, grid = api?.shard?.grid;
-  const compact = typeof grid?.travelState === 'function' ? grid.travelState() : null;
-  const live = compact?.live?.live, scope = game?.levelScope;
+  /** @param {unknown} value @param {string} key @returns {unknown} */
+  const field = (value, key) => typeof value === 'object' && value !== null ? Reflect.get(value, key) : undefined;
+  const travel = field(grid, 'travelState');
+  /** @type {unknown} */
+  const compact = typeof travel === 'function' ? Reflect.apply(travel, grid, []) : null;
+  const session = field(compact, 'live'), live = field(session, 'live'), crossing = field(session, 'crossing');
+  const pending = field(live, 'pending'), scope = game?.levelScope;
+  /** @type {unknown} */
+  const stop = Reflect.get(window, '__frameFloorGridStop');
   const ids = typeof game?.levelSystemIds === 'function' ? game.levelSystemIds() : null;
-  return {at: performance.now(), timeOrigin: performance.timeOrigin, stop: window.__frameFloorGridStop ?? null,
-    compact: compact === null ? null : {inside: compact.inside, current: live?.current, ready: live?.gameplayReady,
-      pending: live?.pending?.slice(0, 10), phase: compact.live?.crossing?.phase},
+  return {at: performance.now(), timeOrigin: performance.timeOrigin, stop: stop ?? null,
+    compact: compact === null ? null : {inside: field(compact, 'inside'), current: field(live, 'current'), ready: field(live, 'gameplayReady'),
+      pendingCount: Array.isArray(pending) ? pending.length : null, phase: field(crossing, 'phase')},
     observer: ids === null ? null : {present: ids.includes('harness.walk'), systems: ids.length},
     owner: scope === undefined ? null : {name: scope.name, disposed: scope.disposed, disposing: scope.disposing},
     game: game === undefined ? null : {frame: game.frameCount, state: game.app.state}};
