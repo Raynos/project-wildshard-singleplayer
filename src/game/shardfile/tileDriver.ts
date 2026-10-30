@@ -123,7 +123,8 @@ export class TileDriver {
   }
 
   /** Once a frame with the player's cell-local position: retire the tiles outside the rings, then start the nearest wanted
-   *  tile not yet attached (colliders first), one at a time. Existing tiles retire one tile beyond each attach ring. */
+   *  tile not yet attached (colliders first), one at a time. Render owners retire one tile beyond the attach ring;
+   *  collider owners retain the exact 3 x 3 physical ring (D2 B). */
   step(x: number, z: number): void {
     if (this.scope.disposed || this.scope.disposing) return;
     this.last = { x, z };
@@ -158,9 +159,9 @@ export class TileDriver {
     if (known !== null && known.i === centre.i && known.j === centre.j && known.radius === radius) return known;
     const colliderRadius = Math.min(radius, 1);
     const wanted = { render: ring(centre, radius), colliders: ring(centre, colliderRadius) };
-    // NF6: only existing owners use the extra tile. Attachment still uses wanted.
+    // NF6: only existing visual owners use the extra tile. D2 B keeps collider ownership exact.
     const retained = { render: ring(centre, Math.min(radius + 1, TILES_PER_SIDE - 1)),
-      colliders: ring(centre, colliderRadius + 1) };
+      colliders: wanted.colliders };
     const distance = (key: number): number => Math.max(Math.abs((key % 8) - centre.i), Math.abs(Math.floor(key / 8) - centre.j));
     const ordered = (keys: ReadonlySet<number>): number[] => [...keys].sort((a, b) => distance(a) - distance(b) || a - b);
     const plan = { i: centre.i, j: centre.j, radius, wanted, retained, nearest: { render: ordered(wanted.render), colliders: ordered(wanted.colliders) } };

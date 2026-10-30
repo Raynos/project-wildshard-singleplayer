@@ -25,11 +25,11 @@ test('the rank-0 tiles attach before controls, then the 5 x 5 fills nearest firs
     const rank0 = tileKeys(order.tiles.filter(tile => order.rank(tile) === 0));
     await driver.require(rank0);
     expect([...driver.resident('render')].sort((a, b) => a - b)).toEqual([...rank0].sort((a, b) => a - b));
-    // Fill only the attach rings; required entry owners survive within retirement slack.
+    // Only visual entry owners survive within retirement slack; physical owners stay in their exact ring.
     await settle(driver, 0, -194, 80);
     const centre = tileOf(0, -194);
     for (const [layer, attachRadius] of [['render', 2], ['colliders', 1]] as const) {
-      const wanted = ring(centre, attachRadius), keep = ring(centre, attachRadius + 1);
+      const wanted = ring(centre, attachRadius), keep = layer === 'render' ? ring(centre, attachRadius + 1) : wanted;
       expect(driver.resident(layer)).toEqual(new Set([...wanted, ...rank0.filter(key => keep.has(key))]));
     }
     // Three tiles north: fine row 0 survives at r + 1; its nearer collider ring has already left.
@@ -287,7 +287,7 @@ test('a coarse entry keeps colliders while fine visuals wait, then refines on th
 });
 
 
-test('adjacent ring crossings reuse render and collider owners until beyond one tile of retirement slack', async () => {
+test('adjacent ring crossings reuse visual owners while keeping exact collider ownership', async () => {
   const owner = new Scope('retire-slack'), made = content();
   let covered = (_key: number): boolean => false;
   const coarse: TileContent = { id: 'coarse', tiles: () => new Set(), attach: () => Promise.resolve(),
@@ -299,8 +299,12 @@ test('adjacent ring crossings reuse render and collider owners until beyond one 
     if (render === undefined || collider === undefined) throw new Error('Missing original trailing tile');
     for (let crossing = 0; crossing < 8; crossing++) {
       await settle(driver, crossing % 2 === 0 ? 31.25 : -31.25, -31.25, 100);
-      expect(made.attached.get('r26')).toBe(render);expect(made.attached.get('c26')).toBe(collider);
-      expect(render.disposed).toBe(false);expect(collider.disposed).toBe(false);
+      expect(made.attached.get('r26')).toBe(render);expect(render.disposed).toBe(false);
+      expect(collider.disposed).toBe(true);
+      const colliders = driver.resident('colliders');
+      expect(colliders).toEqual(ring(tileOf(crossing % 2 === 0 ? 31.25 : -31.25, -31.25), 1));
+      if (crossing % 2 === 0) expect(made.attached.has('c26')).toBe(false);
+      else { expect(made.attached.get('c26')).toBeDefined();expect(made.attached.get('c26')).not.toBe(collider); }
       expect(covered(26)).toBe(true); // The retained fine tile still owns the coarse cover.
     }
     await settle(driver, 93.75, -31.25, 100);
