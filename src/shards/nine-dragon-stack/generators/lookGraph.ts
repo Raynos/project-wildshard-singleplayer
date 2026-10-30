@@ -88,7 +88,8 @@ export class LookGraph {
     const parameters = (rows: Readonly<Record<string, GraphNode>>): void => { for (const entry of Object.values(rows)) { names.add(entry.param); if (entry.body !== undefined) parameters(entry.body.nodes); } };
     parameters(nodes);
     const graph: GraphIr = { version: 1, kind, ...(kind === 'post' ? {} : { model: 'unlit', doubleSided: true, effectState: state ?? { fog: false, blend: 'additive', depthWrite: false } }),
-      budget: { nodes: 4096, samplers: 8, instructions: 8192 }, nodes, arrays: this.arrays, params: Object.fromEntries(Object.entries(this.params).filter(([id]) => names.has(id))), stages: compactStages };
+      // a material shares its fragment units with the engine's own (shadow cascades, environment); a post pass is alone
+      budget: { nodes: 4096, samplers: kind === 'post' ? 16 : 8, instructions: 8192 }, nodes, arrays: this.arrays, params: Object.fromEntries(Object.entries(this.params).filter(([id]) => names.has(id))), stages: compactStages };
     const checked = checkAuthorGraph(graph);
     if (!checked.ok) throw new Error([...new Set(checked.errors)].slice(0, 12).join('\n'));
     if (new TextEncoder().encode(JSON.stringify(checked.graph)).length > 96000) throw new Error('Nine graph exceeds 96,000 bytes');

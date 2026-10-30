@@ -45,9 +45,13 @@ function screen() {
     peak: (c: GraphRef): string => max(sw(c, 'x'), max(sw(c, 'y'), sw(c, 'z'))) };
 }
 
-/** The ruled ink silhouette over the silk fog: rgb its fogged line colour, a its coverage (0 where no line). */
-function silhouette(): GraphIr {
-  const { g, sw, add, sub, mul, div, max, min, mix, smooth, clamp, choose, gt, lt, uv, texel } = screen();
+type Ctx = ReturnType<typeof screen>;
+/** a colour and its coverage, handed from one step of the frame to the next */
+interface Layer { readonly colour: GraphRef; readonly alpha: GraphRef }
+
+/** The ruled ink silhouette over the silk fog: its fogged line colour and its coverage (0 where no line). */
+function silhouette(s: Ctx): Layer {
+  const { g, sw, add, sub, mul, div, max, min, mix, smooth, clamp, choose, gt, lt, uv, texel } = s;
   // the depth's folds toward the eye at radius r px (its inverse depth's most negative second difference of four)
   const fold = (wc: GraphRef, r: GraphRef): string => {
     const taps = [[1, 0], [0, 1], [0.7071, 0.7071], [0.7071, -0.7071]].map(([x, y]) => {
@@ -67,12 +71,12 @@ function silhouette(): GraphIr {
   const fogged = silkFog(g, wp, g.v3('uCam'), ink), lineC = choose(near, ink, fogged.colour), transmission = choose(near, 1, fogged.transmission);
   const lineOn = g.and(g.and(gt(wc, 1e-5), gt(g.scalar('uLines', 1), 0.5)), gt(e, 0.002));
   const edge = choose(lineOn, mul(e, g.pow(max(transmission, 1e-4), sub(g.scalar('uLineFog', 1), 1))), 0);
-  return g.finishScreen(choose(lineOn, lineC, [0, 0, 0]), edge);
+  return { colour: choose(lineOn, lineC, [0, 0, 0]), alpha: edge };
 }
 
 /** The rest of the Jiehua frame over the scene colour and the silhouette's line, before its grade. */
-function composite(): GraphIr {
-  const { g, sw, add, sub, mul, div, max, min, mix, smooth, clamp, choose, gt, lt, uv, texel, time, frag, lum, peak } = screen();
+function composite(s: Ctx, line: Layer): Layer {
+  const { g, sw, add, sub, mul, div, max, min, mix, smooth, clamp, choose, gt, lt, uv, texel, time, frag, lum, peak } = s;
   const rain = g.v4('uRain');
   const rainLayer = (fc: GraphRef, scale: number, speed: GraphRef, density: number, seed: number): string => {
     const angle = sw(rain, 'y'), cos = g.op('cos', [angle]), sin = g.op('sin', [angle]);
@@ -91,8 +95,8 @@ function composite(): GraphIr {
   const nb = g.sum(...[[1, 0], [-1, 0], [0, 1], [0, -1]].map(o => sw(g.tex('tSrc', add(uv, mul(texel, o))), 'xyz')));
   c = max(add(c, mul(sub(c, mul(nb, 0.25)), g.scalar('uSharp'))), [0, 0, 0]);
   // the ruled ink silhouette (silhouette(): its line colour and coverage)
-  const line = g.tex('tLine', uv), edge = sw(line, 'w'), wc = g.inv(uv), z = div(1, max(wc, 1e-6));
-  c = mix(c, sw(line, 'xyz'), edge);
+  const edge = line.alpha, wc = g.inv(uv), z = div(1, max(wc, 1e-6));
+  c = mix(c, line.colour, edge);
   // the 晕染 bleed: the pyramid's tight and wide light soaked through the silk, its stain glazing the paper
   const bleed = g.v4('uBleed'), bleed2 = g.v4('uBleed2'), hasBleed = gt(g.scalar('uHasBleed'), 0.5);
   const warp = mul(sub(g.vec(g.noise(mul(uv, [9, 18])), g.noise(add(mul(uv, [9, 18]), 5.3))), 0.5), sw(bleed2, 'y'));
@@ -128,38 +132,38 @@ function composite(): GraphIr {
   const q = sub(uv, 0.5);
   c = mul(c, sub(1, mul(g.dot(q, q), sw(look, 'x'))));
   c = choose(gt(g.scalar('uLines', 1), 1.5), mix([1, 1, 1], [0, 0, 0], edge), c);
-  return g.finishScreen(c, sw(input, 'w'));
+  return { colour: c, alpha: sw(input, 'w') };
 }
 
-/** The frame's last colour step: the learned LUT in sRGB, the grain, back to linear (its own draw: the sampler budget). */
-function grade(): GraphIr {
-  const { g, sw, add, sub, mul, div, mix, clamp, choose, gt, uv, time, frag } = screen();
-  const look = g.v3('uGrade'), input = g.tex('tFrame', uv), lutAmt = g.scalar('uLutAmt');
+/** The frame's last colour step: the learned LUT in sRGB, the grain, back to linear. */
+function grade(s: Ctx, frame: Layer): GraphIr {
+  const { g, sw, add, sub, mul, div, mix, clamp, choose, gt, time, frag } = s;
+  const look = g.v3('uGrade'), lutAmt = g.scalar('uLutAmt');
   const toSRGB = (x: GraphRef): string => { const k = clamp(x); return mix(mul(k, 12.92), sub(mul(1.055, g.pow(k, 1 / 2.4)), 0.055), g.op('step', [0.0031308, k])); };
   const fromSRGB = (x: GraphRef): string => { const k = clamp(x); return mix(div(k, 12.92), g.pow(div(add(k, 0.055), 1.055), 2.4), g.op('step', [0.04045, k])); };
-  const srgb = toSRGB(sw(input, 'xyz'));
+  const srgb = toSRGB(frame.colour);
   const lutTransform = colourLutSampleTransform();
   const lut = sw(g.tex('uLut', add(mul(clamp(srgb), lutTransform.scale), lutTransform.offset), true), 'xyz');
   let o: GraphRef = choose(gt(lutAmt, 0), mix(srgb, lut, lutAmt), srgb);
   o = add(o, div(mul(sub(g.hash(add(frag, mul(g.fract(mul(time, 7.13)), 91))), 0.5), sw(look, 'y')), 255));
-  return g.finishScreen(fromSRGB(o), sw(input, 'w'));
+  return g.finishScreen(fromSRGB(o), frame.alpha);
 }
 
-/** The composite on the scaled post host: the silhouette, the frame over the scene colour, depth and that line, then its
- *  grade, each a full-size draw (one graph would pass the 64 KB admission cap and the 8-sampler budget), every live uniform
- *  linked; two full-size targets. */
+/** The composite on the scaled post host: the silhouette into its line target (alone: its silk fog march is ~4,000 of a
+ *  graph's 4,096 nodes), then the frame over the scene colour, depth and that line with its grade in one full-size draw
+ *  (NF16: the graded frame stays in the program, not in a third draw and target), every live uniform linked. */
 export function compositeRow(): ScaledPostRow {
   // every param but the host's own: the draws' textures and texel, the depth and the camera's near / far
-  const own = new Set(['tSrc', 'tDepth', 'tLine', 'tFrame', 'uTexel', 'uNF']);
-  const line = silhouette(), frame = composite(), graded = grade(), linked = (graph: GraphIr): string[] => Object.keys(graph.params ?? {}).filter(name => !own.has(name));
+  const own = new Set(['tSrc', 'tDepth', 'tLine', 'uTexel', 'uNF']);
+  const line = screen(), lineGraph = line.g.finishScreen(...Object.values(silhouette(line)) as [GraphRef, GraphRef]);
+  const s = screen(), drawn = s.g.tex('tLine', s.uv);
+  const frame = grade(s, composite(s, { colour: s.sw(drawn, 'xyz'), alpha: s.sw(drawn, 'w') }));
+  const linked = (graph: GraphIr): string[] => Object.keys(graph.params ?? {}).filter(name => !own.has(name));
   return { name: 'NdJiehuaGraph', programs: {
-    silhouette: { graph: line, links: linked(line), depth: 'tDepth', camera: { uNF: 'nearFar', invProj: 'projectionInverse', world: 'world' } },
-    jiehua: { graph: frame, links: linked(frame), depth: 'tDepth', camera: { uNF: 'nearFar' } },
-    grade: { graph: graded, links: linked(graded) } },
+    silhouette: { graph: lineGraph, links: linked(lineGraph), depth: 'tDepth', camera: { uNF: 'nearFar', invProj: 'projectionInverse', world: 'world' } },
+    jiehua: { graph: frame, links: linked(frame), depth: 'tDepth', camera: { uNF: 'nearFar' } } },
   targets: { line: { name: 'NdJiehua.line', of: 'input', scale: 1, filter: 'nearest' }, frame: { name: 'NdJiehua.frame', of: 'input', scale: 1, filter: 'nearest' } },
   draws: [{ program: 'silhouette', to: 'line', texel: { uniform: 'uTexel', of: 'input' } },
-    { program: 'jiehua', to: 'frame', textures: { tSrc: 'input', tLine: 'line' }, texel: { uniform: 'uTexel', of: 'input' } },
-    // the line target is free once the frame read it: the graded frame reuses it
-    { program: 'grade', to: 'line', textures: { tFrame: 'frame' }, texel: { uniform: 'uTexel', of: 'input' } }],
-  settings: {}, outputs: { composite: 'line' } };
+    { program: 'jiehua', to: 'frame', textures: { tSrc: 'input', tLine: 'line' }, texel: { uniform: 'uTexel', of: 'input' } }],
+  settings: {}, outputs: { composite: 'frame' } };
 }
