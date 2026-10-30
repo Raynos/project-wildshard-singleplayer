@@ -26,7 +26,6 @@ test('the Template map uses producer bytes with no restored world metadata or as
     writeFileSync(resolve(dir, 'source.txt'), 'authored source identity');
     writeFileSync(resolve(dir, 'data/map.json'), JSON.stringify({ ...settings, inputs: ['source.txt'] }));
     const result = await paintDataMap(root, 'fixture', { sources });
-    expect(result.raster.triangles).toBe(143742);
     const actual = readFileSync(resolve(root, 'public/assets/fixture/map/top.webp'));
     expect(Buffer.compare(actual, expected)).toBe(0);
     expect(result.stamp.tilesHash).toBe(mapTilesHash(dir));

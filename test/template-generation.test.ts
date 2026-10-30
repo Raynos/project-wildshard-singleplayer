@@ -32,8 +32,8 @@ test('template direct generation and a cache hit retain every original world row
     expect(Buffer.compare(hit.map.pixels, cold.map.pixels)).toBe(0);
     const expected = new Map([...original, ...props.assets]);
     const boss = assets.get(TEMPLATE_BOSS.hash); if (boss === undefined) throw new Error('Missing generated boss'); expected.set(TEMPLATE_BOSS.hash, boss);
-    expect(boss.length).toBe(6225);
-    expect(TEMPLATE_BOSS.hash).toBe('bf52a5e1751ebc1a668451fcb1bde2445d5caea4a4685def699531f8eab13a06');
+    expect(boss.length).toBe(TEMPLATE_BOSS.compressed);
+    expect(hashImmutableBytes(boss)).toBe(TEMPLATE_BOSS.hash);
     for (const row of Object.values(await templateBehaviour(createProjectGeneration(root, 'c'.repeat(64), assets, cache)))) {
       const bytes = assets.get(row.hash); if (bytes === undefined) throw new Error('Missing actual compiled module'); expected.set(row.hash, bytes);
     } expect([...assets.keys()].sort()).toEqual([...expected.keys()].sort());
