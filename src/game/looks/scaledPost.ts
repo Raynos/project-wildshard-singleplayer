@@ -1,7 +1,6 @@
 import { Color, HalfFloatType, LinearFilter, NearestFilter, type PerspectiveCamera, Texture, UnsignedByteType, Vector2, Vector3, Vector4, WebGLRenderTarget, type Material, type TextureDataType } from 'three';
 import { Pass } from 'postprocessing';
 import { loadPostGraphCompiler, type PostGraph, type PostGraphCompiler } from '@wildshard/engine/render/graphBackend';
-import { graphBackendChoice } from '@wildshard/engine/ui/graphBackend';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { validateGraph } from '@wildshard/format/materialGraph';
 import type { PostPackTerm, ScaledPostRow } from '@wildshard/format/scaledPost';
@@ -11,9 +10,9 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { compileOffscreenPass } from '@wildshard/engine/render/precompile';
 
 const compilers = new WeakMap<Renderer, PostGraphCompiler>();
-/** Prepare the client backend during async world loading, before synchronous composer construction: the Graph back-end
- *  row's (TSL node materials, or classic GLSL programs with no node handler) */
-export async function prepareScaledPost(renderer: Renderer): Promise<void> { compilers.set(renderer, await loadPostGraphCompiler(renderer, graphBackendChoice())); }
+/** Prepare the client backend during async world loading, before synchronous composer construction: classic GLSL
+ *  programs with no node handler (PF10's default) */
+export async function prepareScaledPost(renderer: Renderer): Promise<void> { compilers.set(renderer, await loadPostGraphCompiler(renderer)); }
 type CompiledPost = PostGraph;
 /** programs compiled ahead (`precompileScaledPost`), by their graph row, each copy taken once */
 const ahead = new WeakMap<Renderer, Map<object, CompiledPost[]>>();

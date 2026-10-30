@@ -121,15 +121,11 @@ export interface PostGraphCompiler {
   readonly backend: 'tsl' | 'glsl';
   readonly compileGraph: (input: unknown, opts: GraphValidationOptions) => PostGraph;
 }
-/** The post compiler of the chosen back-end (pause ▸ Settings ▸ Debug ▸ Graph back-end); the classic one loads no node runtime. */
-export async function loadPostGraphCompiler(renderer: Renderer, backend: 'tsl' | 'glsl'): Promise<PostGraphCompiler> {
-  if (backend === 'tsl') {
-    const compiler = await loadGraphCompiler(renderer);
-    return { backend, compileGraph: (input, opts) => compiler.compileGraph(input, opts) };
-  }
+/** The post compiler: the classic GLSL one (the default since PF10, G941; it loads no node runtime). */
+export async function loadPostGraphCompiler(renderer: Renderer): Promise<PostGraphCompiler> {
   const [{ compileClassicGraph }, { installGraphShaderHost }] = await Promise.all([import('./graph/glslMaterial'), import('./graph/glslProgram')]);
   installGraphShaderHost(renderer);
-  return { backend, compileGraph: (input, opts) => compileClassicGraph(input, opts) };
+  return { backend: 'glsl', compileGraph: (input, opts) => compileClassicGraph(input, opts) };
 }
 /** a renderer's classic depth resolver, made once (registration dedupes by identity); the caster is unknown at compile time,
  *  so its grid decode reads a plain object's (step 1): uniforms only, the program is the same */
@@ -141,11 +137,10 @@ function classicDepthResolver(depthOf: (source: unknown, stock: MeshDepthMateria
   return resolve;
 }
 /**
- * The look-material compiler of the chosen back-end (pause ▸ Settings ▸ Debug ▸ Graph back-end): the classic one loads
- * no node runtime and installs no node handler; the shipped one is `loadGraphCompiler`'s.
+ * The look-material compiler: the classic GLSL one (the default since PF10, G941), which loads no node runtime and
+ * installs no node handler. The TSL compiler stays `loadGraphCompiler`'s until NF18.
  */
-export async function loadLookGraphCompiler(renderer: Renderer, backend: 'tsl' | 'glsl'): Promise<LookGraphCompiler> {
-  if (backend === 'tsl') return tslLookCompiler(await loadGraphCompiler(renderer));
+export async function loadLookGraphCompiler(renderer: Renderer): Promise<LookGraphCompiler> {
   const [{ compileClassicGraph, attachClassicOutline, classicShadowDepth }, { installGraphShaderHost }] = await Promise.all([import('./graph/glslMaterial'), import('./graph/glslProgram')]);
   installGraphShaderHost(renderer);
   installClassicShadowDepth(classicShadowDepth);
@@ -153,7 +148,7 @@ export async function loadLookGraphCompiler(renderer: Renderer, backend: 'tsl' |
   registerShadowDepthResolver(renderer, classicDepthResolver(classicShadowDepth));
   const fogs = fogTokens<NonNullable<ReturnType<typeof compileClassicGraph>['fog']>>('glsl');
   return {
-    backend,
+    backend: 'glsl',
     compileGraph: (input, { fog, ...opts }) => {
       const compiled = compileClassicGraph(input, { ...opts, ...(fog === undefined ? {} : { fog: (id: string) => fogs.unwrap(fog(id)) }) });
       return { material: compiled.material, outline: compiled.outline, fog: fogs.wrap(compiled.fog), bindings: compiled.bindings, setParam: compiled.setParam, setTexture: compiled.setTexture };
