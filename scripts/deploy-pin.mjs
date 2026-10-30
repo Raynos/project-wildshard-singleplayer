@@ -173,6 +173,19 @@ export function ciGreen(sha, query = ghApi) {
   return runs.includes(sha);
 }
 
+/** Exact successful producer identity for the prebuilt release artifact.
+ * @param {string} sha @param {(args:string[])=>string} [query] @returns {string} */
+export function ciSourceRun(sha, query = ghApi) {
+  if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error('Prebuilt producer requires an exact SHA');
+  const data = JSON.parse(query([`${workflowRunsPath('deploy.yml', query)}?branch=main&event=push&status=success&head_sha=${sha}&per_page=1&page=1`]));
+  const run = data.workflow_runs?.[0];
+  if (run?.head_sha !== sha || run.event !== 'push' || run.head_branch !== 'main'
+    || run.status !== 'completed' || run.conclusion !== 'success'
+    || run.path !== '.github/workflows/deploy.yml' || run.head_repository?.full_name !== REPO
+    || !/^\d+$/.test(String(run.id))) throw new Error('No exact successful prebuilt producer');
+  return String(run.id);
+}
+
 /** Explicit operator-selected CI proof for the legacy 16-job pipeline. GitHub can leave its aggregate
  * running after every required job has completed. No missing, skipped or extra job supplies this proof.
  * @param {string} sha @param {string} runId @param {(args:string[])=>string} [query] @returns {boolean} */
@@ -347,7 +360,8 @@ async function main() {
     console.log(sha);
     if (explicitCi) console.error(`CI aggregate exception: exact run ${pin.ciRun}, every required job verified successful`);
     console.error(`Release selection: mode=${pin.mode}, exact push CI=${ciPassed}`);
-    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `sha=${sha}\nmode=${pin.mode}\ngate=${pin.gate}\nci_green=${ciPassed}\n`);
+    const sourceRun = ciPassed ? ciSourceRun(sha) : '';
+    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `sha=${sha}\nmode=${pin.mode}\ngate=${pin.gate}\nci_green=${ciPassed}\nsource_run=${sourceRun}\n`);
     return 0;
   }
   if (cmd === 'release-ready') {

@@ -84,7 +84,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp scripts/deploy-pin.mjs scripts/deploy-version.mjs scripts/deploy-source-maps.mjs "$RUNNER_TEMP/"
+          cp scripts/deploy-pin.mjs scripts/deploy-version.mjs scripts/deploy-source-maps.mjs scripts/prebuilt-output.py "$RUNNER_TEMP/"
           node "$RUNNER_TEMP/deploy-pin.mjs" read
 
       - name: Check out the pin
@@ -110,7 +110,7 @@ jobs:
           test -n "$VERCEL_ORG_ID" && test -n "$VERCEL_PROJECT_ID" || { echo '::error::Vercel project IDs are missing'; exit 1; }
 
       - uses: pnpm/action-setup@v4
-        if: steps.live.outputs.skip != 'true'
+        if: env.DEPLOY != 'true'
         with:
           version: 10
 
@@ -118,30 +118,11 @@ jobs:
         if: steps.live.outputs.skip != 'true'
         with:
           node-version: 24
-          cache: pnpm
+          cache: ${{ env.DEPLOY != 'true' && 'pnpm' || '' }}
 
       - name: Install
-        if: steps.live.outputs.skip != 'true'
+        if: env.DEPLOY != 'true'
         run: pnpm install --frozen-lockfile
-
-      # SF74 W0 / W15: a release pin whose exact SHA passed push CI (typecheck-lint, this job's test:layers, build and
-      # headless behaviour) reuses that proof: no typecheck, lint, test or extra vite
-      # build here (24.5 min → ~4 min on 2026-10-09). `vercel build` below still runs `pnpm build` (gen, tsc, shardfiles,
-      # vite build) and the chunk check reads its dist. Unproven historical pins still run everything.
-      - name: Typecheck
-        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'
-        run: pnpm run typecheck
-
-      - name: Lint
-        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'
-        run: pnpm run lint
-
-      - name: Test
-        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'
-        run: |
-          pnpm test
-          python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs
-          node scripts/check-devserver.mjs dist
 
       # SF74 W16: push / PR CI runs test:checks' commands and the vite build + chunk check at once (serial ~205 s on the
       # runner); typecheck and lint run in their own job beside this one, and vitest in its shards.
@@ -158,7 +139,7 @@ jobs:
         run: python3 scripts/ci-fail-fast.py -- node scripts/build-without-browser.mjs -- node scripts/ci-checks.mjs --prepared 'python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs && node scripts/check-devserver.mjs dist'
 
       - name: CSS check
-        if: steps.live.outputs.skip != 'true'
+        if: env.DEPLOY != 'true'
         run: python3 scripts/ci-fail-fast.py -- node scripts/check-css.mjs
 
       # A CI-green release pin skips the steps that used to run `pnpm gen` first, and the generated sources are out of
@@ -177,16 +158,11 @@ jobs:
             echo "needed=$(node scripts/native-build-inputs.mjs < "$RUNNER_TEMP/native-paths")" >> "$GITHUB_OUTPUT"
           fi
       - name: Native web build
-        if: steps.live.outputs.skip != 'true' && (env.DEPLOY == 'true' || steps.native-inputs.outputs.needed == 'true')
+        if: env.DEPLOY != 'true' && steps.native-inputs.outputs.needed == 'true'
         run: |
-          if [ "$DEPLOY" = 'true' ]; then
-            pnpm gen --inputs-only
-            python3 scripts/ci-fail-fast.py -- pnpm run build:native
-          else
-            python3 scripts/ci-fail-fast.py -- python3 scripts/ci-products.py unpack
-            WS_TEST_PRODUCTS_SHA="$GITHUB_SHA" VERCEL_GIT_COMMIT_SHA="$GITHUB_SHA" \
-              python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs --mode native
-          fi
+          python3 scripts/ci-fail-fast.py -- python3 scripts/ci-products.py unpack
+          WS_TEST_PRODUCTS_SHA="$GITHUB_SHA" VERCEL_GIT_COMMIT_SHA="$GITHUB_SHA" \
+            python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs --mode native
 
       - name: Pack the exact web build for boot smoke
         if: github.event_name == 'push'
@@ -235,21 +211,39 @@ jobs:
           retention-days: 3
           if-no-files-found: error
 
-      - name: Build Vercel output in GitHub Actions
-        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+      - name: Package the tested build for Vercel
+        if: github.event_name == 'push'
         env:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
         run: |
+          test -n "$VERCEL_BUILD_TOKEN" && test -n "$VERCEL_PROJECT_ID" && test -n "$VERCEL_ORG_ID"
           npm install --global vercel@59.11.2
           mkdir -p .vercel
           printf '{"projectId":"%s","orgId":"%s"}' "$VERCEL_PROJECT_ID" "$VERCEL_ORG_ID" > .vercel/project.json
           vercel pull --yes --environment production --scope raynos-projects --token "$VERCEL_BUILD_TOKEN"
-          vercel build --prod --scope raynos-projects --token "$VERCEL_BUILD_TOKEN"
-          node scripts/check-devserver.mjs dist # the dist `pnpm build` just made (the Test step's build is skipped on a CI-green pin)
-          test -f .vercel/output/config.json
-          test -f .vercel/output/static/version.json
-          test -f .vercel/output/functions/api/inbox.func/.vc-config.json
-          test -f .vercel/output/functions/api/errors.func/.vc-config.json
+          node scripts/build-vercel-output.mjs
+          python3 scripts/prebuilt-output.py pack --sha "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push'
+        with:
+          name: vercel-prebuilt
+          path: prebuilt-output/
+          compression-level: 0
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Restore the exact successful push artifact
+        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        env:
+          SOURCE_RUN: ${{ steps.pin.outputs.source_run }}
+          DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
+        run: |
+          test -n "$SOURCE_RUN"
+          gh run download "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --name vercel-prebuilt --dir prebuilt-output
+          python3 "$RUNNER_TEMP/prebuilt-output.py" restore --sha "$DEPLOY_SHA" --run "$SOURCE_RUN"
+          npm install --global vercel@59.11.2
+          mkdir -p .vercel
+          printf '{"projectId":"%s","orgId":"%s"}' "$VERCEL_PROJECT_ID" "$VERCEL_ORG_ID" > .vercel/project.json
 
       # Hidden maps remain in dist for build checks, local profiles and stack
       # decoding. Keep the release's copies off the public CDN.

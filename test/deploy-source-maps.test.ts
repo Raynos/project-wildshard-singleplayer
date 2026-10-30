@@ -78,5 +78,5 @@ test('deployment archives build maps before stripping only the public artifact',
   expect(archive).toBeGreaterThan(0); expect(strip).toBeGreaterThan(archive);expect(upload).toBeGreaterThan(strip);
   expect(deploy.slice(archive,strip)).toContain('dist/**/*.map');
   const beforePin=deploy.split('      - name: Read the deploy pin')[1]?.split('      - name: Check out the pin')[0];
-  expect(beforePin).toContain('scripts/deploy-source-maps.mjs "$RUNNER_TEMP/"');
+  expect(beforePin).toContain('scripts/deploy-source-maps.mjs scripts/prebuilt-output.py "$RUNNER_TEMP/"');
 });

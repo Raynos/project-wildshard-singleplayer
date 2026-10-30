@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute the exact workflow classifier with NUL-delimited Git paths.
 import { execFileSync } from 'node:child_process';
-// oxlint-disable-next-line import/no-nodejs-modules -- Verify release builds retain the extra native check.
+// oxlint-disable-next-line import/no-nodejs-modules -- Verify push preparation owns native checks before release reuses the artifact.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { nativeBuildNeeded } from '../scripts/native-build-inputs.mjs';
@@ -24,17 +24,14 @@ test('ordinary game/data/test edits use their existing web checks, including del
   expect(execFileSync('node', ['scripts/native-build-inputs.mjs'], { input: `${paths.join('\0')}\0src/engine/native/boot.ts\0`, encoding: 'utf8' })).toBe('true\n');
 });
 
-test('releases always build native, and push/PR detection compares the complete event range', () => {
+test('push/PR native checks cover the full event range and releases reuse their artifact', () => {
   const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
   expect(workflow).toMatch(/NATIVE_BASE: \$\{\{ github\.event\.before \|\| github\.event\.pull_request\.base\.sha \}\}/u);
   expect(workflow).toContain('git diff --name-only -z "$NATIVE_BASE" HEAD');
-  expect(workflow).toContain("(env.DEPLOY == 'true' || steps.native-inputs.outputs.needed == 'true')");
+  expect(workflow).toContain("if: env.DEPLOY != 'true' && steps.native-inputs.outputs.needed == 'true'");
   const native = workflow.split('      - name: Native web build\n')[1]?.split('      - name: Pack the exact web build for boot smoke\n')[0];
   if (native === undefined) throw new Error('Missing native build step');
-  const [release, prepared] = native.split('          else\n');
-  if (release === undefined || prepared === undefined) throw new Error('Missing native build modes');
-  expect(release).toContain("if [ \"$DEPLOY\" = 'true' ]; then\n            pnpm gen --inputs-only");
-  expect(release).toContain('python3 scripts/ci-fail-fast.py -- pnpm run build:native');
+  const prepared = native;
   const verify = prepared.indexOf('python3 scripts/ci-fail-fast.py -- python3 scripts/ci-products.py unpack');
   const binding = prepared.indexOf('WS_TEST_PRODUCTS_SHA="$GITHUB_SHA" VERCEL_GIT_COMMIT_SHA="$GITHUB_SHA"');
   const build = prepared.indexOf('python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs --mode native');

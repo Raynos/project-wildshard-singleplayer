@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import deployWorkflow from '../.github/workflows/deploy.yml?raw';
-import { ciGreen, ciRunGreen, newestCiGreen, newestCiGreenAfterBoot, PendingBootSmokeError, productionFloor, releaseReady, releaseSlot, workflowRunsPath } from '../scripts/deploy-pin.mjs';
+import { ciSourceRun, ciGreen, ciRunGreen, newestCiGreen, newestCiGreenAfterBoot, PendingBootSmokeError, productionFloor, releaseReady, releaseSlot, workflowRunsPath } from '../scripts/deploy-pin.mjs';
 
 const newer = 'a'.repeat(40), proven = 'b'.repeat(40), oldest = 'c'.repeat(40);
 const completed = '2026-10-21T14:00:00Z', now = Date.parse('2026-10-21T14:01:00Z');
@@ -193,4 +193,17 @@ test('explicit job success cannot substitute a neighbour, fork, PR or different 
   }
   expect(() => ciRunGreen('short', '789', explicitQuery(explicitRun, completeJobs))).toThrow('exact SHA');
   expect(() => ciRunGreen(proven, 'not-a-run', explicitQuery(explicitRun, completeJobs))).toThrow('numeric run');
+});
+
+
+test('prebuilt release binds only a successful exact main push producer', () => {
+  const row = {id:12345,head_sha:proven,event:'push',head_branch:'main',status:'completed',conclusion:'success',
+    path:'.github/workflows/deploy.yml',head_repository:{full_name:'Raynos/project-wildshard-singleplayer'}};
+  const producerQuery = (value: object) => (args: string[]): string => args[0]?.includes('/actions/workflows?')
+    ? workflows : JSON.stringify({workflow_runs:[value]});
+  expect(ciSourceRun(proven, producerQuery(row))).toBe('12345');
+  for (const bad of [{...row,head_sha:newer},{...row,event:'workflow_dispatch'}, {...row,status:'in_progress'},
+    {...row,conclusion:'failure'},{...row,head_repository:{full_name:'foreign/repository'}}]) {
+    expect(() => ciSourceRun(proven, producerQuery(bad))).toThrow('No exact successful prebuilt producer');
+  }
 });
