@@ -1,6 +1,6 @@
 # Nine Dragon tiling: a vertical megacity on the 62.5 m tile lattice
 
-**State:** `draft` 2026-10-30 ~14:10 Cancun, waiting for Jake's grill. Written by wildshard-v's subagent from its own
+**State:** `open` (grilled ~14:05: G948 tiles are a bake / detail unit for Nine, G949 the far copy, G950 the check reports and blocks only a Nine regression); was `draft` 2026-10-30 ~14:10 Cancun, waiting for Jake's grill. Written by wildshard-v's subagent from its own
 tiling audit; wildshard-new hands the rows to lanes after the grill. Ask E516. Jake: *"Nine Dragon is an example of a
 really complicated, massive world where the tiling system might be failing. So do a special mini plan that's called
 like Nine Dragon Tiling Audit. Like, how do you make something this vertical, this massive, and this detailed
