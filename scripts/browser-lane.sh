@@ -6,7 +6,7 @@
 # script the "at most 3 browsers" rule was advice only; on 2026-09-29 there were 6–7 open and 25 load on 18 cores.
 #
 #   scripts/browser-lane.sh [--max <min>] <cmd …>   run <cmd> holding one lane slot; waits for a free one; the slot is
-#                                                   released when <cmd> exits (crash included — it's a lockf lock).
+#                                                   released when <cmd> exits (crash included — a kernel lock).
 #                                                   --max: <cmd> is killed after this many minutes (default 60)
 #   scripts/browser-lane.sh status                  slots held, open browsers, which are outside the lane
 #   scripts/browser-lane.sh wait                    block until the lane has room (before `agent-browser open`)
@@ -207,7 +207,7 @@ case "${1:-}" in
   wait) wait_room; exit $?;;
   ''|-h|--help) sed -n '2,30p' "$SELF"; exit 0;;
   _slot)
-    # the slot's shell, run under lockf holding slot N: re-check the cap (a browser may have opened outside the lane
+    # the slot's shell, run under the kernel lease for N: re-check the cap (a browser may have opened outside the lane
     # since), then run <cmd> as a child — not exec: this command line is how in_lane() finds the browsers under it —
     # with a hard timeout. Exit 75 without the marker = the cap was full after all; the caller tries again.
     slot="$2"; marker="$3"; max="$4"; shift 4
@@ -234,6 +234,17 @@ if [ "${1:-}" = "--max" ]; then MAX_MIN="${2:?--max needs minutes}"; shift 2; fi
 [ "${1:-}" = "--" ] && shift
 [ $# -gt 0 ] || { echo "usage: browser-lane.sh [--max <min>] <cmd …>" >&2; exit 64; }
 
+# Keep the native BSD path on the shared Mac. Linux CI uses the same
+# nonblocking kernel lease through Python's POSIX flock; no lock binary install.
+if command -v lockf >/dev/null 2>&1; then
+  slot_lock() { lockf -s -t 0 "$@"; }
+elif command -v python3 >/dev/null 2>&1; then
+  slot_lock() { python3 "$(dirname "$SELF")/browser-slot-lock.py" "$@"; }
+else
+  echo 'browser-lane: no supported slot lock (BSD lockf or Python POSIX flock)' >&2
+  exit 69
+fi
+
 # SF74 W19: the push gate (priority flag + an actual push-gate lease ancestor, not a copied env var) has a reserved slot
 slots="$(seq 0 $((LANES - 1)))"
 if [ "${BROWSER_LANE_PRIORITY:-0}" = 1 ] && node --input-type=module -e \
@@ -247,9 +258,12 @@ while :; do
   reap >/dev/null
   for i in $slots; do
     marker="$DIR/got.$$.$i"; rm -f "$marker"
-    lockf -s -t 0 "$DIR/slot-$i.lock" bash "$SELF" _slot "$i" "$marker" "$MAX_MIN" "$@"
+    slot_lock "$DIR/slot-$i.lock" bash "$SELF" _slot "$i" "$marker" "$MAX_MIN" "$@"
     rc=$?
     if [ -e "$marker" ]; then rm -f "$marker"; exit $rc; fi
+    # Only contention/cap rejection can wait. A broken lock primitive is a
+    # delivery failure, not four occupied slots for another five minutes.
+    [ "$rc" -eq 75 ] || { echo "browser-lane: slot lock failed (exit $rc)" >&2; exit "$rc"; }
   done
   [ $said -eq 0 ] && { echo "browser-lane: all $LANES slots in use, waiting … (scripts/browser-lane.sh status)" >&2; said=1; }
   # the serialized push gate polls every second (BROWSER_LANE_PRIORITY=1): with ten lanes re-taking freed slots on a 10 s poll,

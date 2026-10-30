@@ -7,6 +7,8 @@ import sys
 import tempfile
 import time
 import unittest
+import select
+import signal
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -45,6 +47,82 @@ class BrowserAdmissionTests(unittest.TestCase):
                      f"if sys.argv[1:] == ['-Ao', 'pid=,ppid=,command=']: print({rows!r})\n"
                      "elif 'ppid=' in sys.argv: print('1')\n"
                      "elif 'etime=' in sys.argv: print('00:01')\n")
+
+    def portable_environment(self):
+        self.command('ps', 'pass\n')
+        # Model a host without BSD lockf, while using real kernel flock locks.
+        shell = self.root / 'bash-env'
+        shell.write_text('''command() {
+  if [ "$#" -eq 2 ] && [ "$1" = -v ] && [ "$2" = lockf ]; then return 1; fi
+  builtin command "$@"
+}
+''')
+        return {**self.env, 'BASH_ENV': str(shell), 'BROWSER_LANES': '4'}
+
+    def owned_process(self, args, env):
+        child = subprocess.Popen(args, env=env, stdin=subprocess.PIPE,
+                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                 text=True, start_new_session=True)
+        def cleanup():
+            if child.poll() is None:
+                os.killpg(child.pid, signal.SIGKILL)
+            child.communicate(timeout=3)
+        self.addCleanup(cleanup)
+        return child
+
+    def entered(self, child):
+        self.assertTrue(select.select([child.stdout], [], [], 3)[0], 'owned child did not enter')
+        self.assertEqual(child.stdout.readline().strip(), 'entered')
+
+    def test_portable_slots_admit_four_exclude_a_fifth_and_release_for_reuse(self):
+        env = self.portable_environment()
+        command = [sys.executable, '-u', '-c', "import sys;print('entered',flush=True);sys.stdin.read(1);sys.exit(7)"]
+        children = []
+        for _ in range(4):
+            child = self.owned_process(['/bin/bash', str(ROOT/'scripts/browser-lane.sh'), '--max', '1', *command], env)
+            children.append(child)
+            self.entered(child)
+        refused = subprocess.run(['/bin/bash', str(ROOT/'scripts/browser-lane.sh'),
+                                  'touch', str(self.root/'fifth-entered')],
+                                 env=env, capture_output=True, text=True, timeout=4, check=False)
+        self.assertEqual(refused.returncode, 75, refused.stderr)
+        self.assertFalse((self.root/'fifth-entered').exists())
+        children[0].communicate(input='x', timeout=3)
+        self.assertEqual(children[0].returncode, 7)
+        replacement = self.owned_process(['/bin/bash', str(ROOT/'scripts/browser-lane.sh'), '--max', '1', *command], env)
+        self.entered(replacement)
+        for child in [*children[1:], replacement]:
+            child.communicate(input='x', timeout=3)
+            self.assertEqual(child.returncode, 7)
+
+    def test_portable_kernel_lease_is_nonblocking_and_follows_child_exit(self):
+        lock = self.root/'native-slot.lock'
+        helper = [sys.executable, str(ROOT/'scripts/browser-slot-lock.py'), str(lock)]
+        with lock.open('a+') as owned:
+            fcntl.flock(owned, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            refused = subprocess.run([*helper, 'touch', str(self.root/'locked-child')],
+                                     capture_output=True, text=True, timeout=2, check=False)
+            self.assertEqual(refused.returncode, 75, refused.stderr)
+            self.assertFalse((self.root/'locked-child').exists())
+        child = self.owned_process([*helper, sys.executable, '-u', '-c',
+                                    "import sys;print('entered',flush=True);sys.stdin.read(1)"], self.env)
+        self.entered(child)
+        child.send_signal(signal.SIGTERM)
+        child.communicate(timeout=3)
+        self.assertEqual(child.returncode, 128 + signal.SIGTERM)
+        after = subprocess.run([*helper, sys.executable, '-c', 'raise SystemExit(9)'],
+                               capture_output=True, text=True, timeout=2, check=False)
+        self.assertEqual(after.returncode, 9, after.stderr)
+
+    def test_broken_portable_lock_fails_without_waiting_or_starting_a_child(self):
+        env = self.portable_environment()
+        (self.root/'.browser-lane'/'slot-0.lock').mkdir(parents=True)
+        result = subprocess.run(['/bin/bash', str(ROOT/'scripts/browser-lane.sh'),
+                                 'touch', str(self.root/'broken-child')],
+                                env=env, capture_output=True, text=True, timeout=3, check=False)
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assertIn('slot lock failed', result.stderr)
+        self.assertFalse((self.root/'broken-child').exists())
 
     def test_crashpad_framework_paths_are_not_browser_roots(self):
         bundle = '/Users/fixture/Library/Caches/ms-playwright/chromium-1243/chrome-mac-arm64/Google Chrome for Testing.app/Contents/'
