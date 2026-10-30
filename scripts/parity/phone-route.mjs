@@ -45,11 +45,15 @@ export function phoneRoutePlans(state) {
 export function phoneRouteFailures(receipt) {
   const failures = [];
   const [prefix = ''] = receipt.version.build.split('-');
-  if (receipt.protocol !== 'jake-phone-route/1' || !/^[a-f0-9]{40}$/u.test(receipt.sha) || !/^[a-f0-9]{7,40}$/u.test(prefix) || !receipt.sha.startsWith(prefix)) failures.push('Exact build SHA differs');
+  if (receipt.protocol !== (receipt.route === 'entry' ? 'jake-phone-route/2' : 'jake-phone-route/1') || !/^[a-f0-9]{40}$/u.test(receipt.sha) || !/^[a-f0-9]{7,40}$/u.test(prefix) || !receipt.sha.startsWith(prefix)) failures.push('Exact build SHA differs');
   if (receipt.paint.heroMs === null || !Number.isFinite(receipt.paint.heroMs) || receipt.paint.heroMs < 0 || receipt.paint.heroMs > 500) failures.push('Title hero first paint exceeds 500 ms or is unavailable');
-  if (receipt.steps.join('|') !== 'title|SHARD SELECT|grid|Driftwood|road|Night Market|road return|Driftwood return') failures.push('Incomplete phone route');
+  const expectedSteps = `title|SHARD SELECT|grid|Driftwood|road|Night Market${receipt.route === 'entry' ? '' : '|road return|Driftwood return'}`;
+  if (receipt.steps.join('|') !== expectedSteps) failures.push('Incomplete phone route');
   const entry = receipt.entry;
-  if (entry === null || entry.cell?.slug !== 'open-plot-night-market' || entry.current !== entry.cell?.instance || entry.inside !== entry.cell?.instance || entry.ready !== true || entry.cell.drawn.far || !Number.isSafeInteger(entry.cell.drawn.l0) || !Number.isSafeInteger(entry.cell.drawn.l1) || entry.cell.drawn.l0 + entry.cell.drawn.l1 <= 0) failures.push('Night Market near tiles absent on first geometric entry');
+  // The far view masks only refined regions; it legitimately remains visible
+  // over the rest of the cell. Entered fine tiles, not whole-proxy absence,
+  // distinguish a real near entry from a proxy-only view (farView.mask).
+  if (entry === null || entry.cell?.slug !== 'open-plot-night-market' || entry.current !== entry.cell?.instance || entry.inside !== entry.cell?.instance || entry.ready !== true || entry.cell.shows !== 'playing' || !Number.isSafeInteger(entry.cell.drawn.l0) || entry.cell.drawn.l0 <= 0 || !Number.isSafeInteger(entry.cell.drawn.l1) || entry.cell.drawn.l1 < 0) failures.push('Night Market near tiles absent on first geometric entry');
   const wall = receipt.wall;
   const along = (/** @type {{x:number,z:number}} */ point) => wall===null ? 0 : (point.x-wall.from.x)*wall.direction.x+(point.z-wall.from.z)*wall.direction.z;
   if (wall === null || !Number.isFinite(wall.wallDistance) || wall.wallDistance < 1 || wall.wallDistance > 25 || !Number.isFinite(wall.collider) || wall.material==='edge' || wall.material==='' || wall.surface.width<2 || wall.surface.height<1.2 || !Object.values(wall.surface.normal).every(Number.isFinite) || Math.abs(wall.surface.normal.y)>.2 || Math.hypot(wall.direction.x,wall.direction.z)!==1 || !Number.isFinite(wall.elapsedMs) || wall.elapsedMs<3950 || wall.finalFrame - wall.startedFrame < 10 || !wall.hover || wall.samples.length < 10 || wall.samples.some(row => !row.hover || !Number.isFinite(along(row)) || along(row) >= wall.wallDistance - .1)) failures.push('Board did not remain blocked outside the real wall');
@@ -65,13 +69,17 @@ export function phoneRouteFailures(receipt) {
 }
 
 /** @param {import('./phone-route.mjs').PhonePage} page @param {string} expression @param {string} label @param {number} deadline */
-async function until(page, expression, label, deadline) {
-  while (Date.now() < deadline) {
-    if (await page.evaluate(expression)) return;
-    if (page.faults.length > 0) throw new Error(page.faults.join('\n'));
-    await new Promise(resolve => { setTimeout(resolve, 100); });
-  }
-  throw new Error(`Phone route deadline: ${label}`);
+export async function waitPhoneCondition(page, expression, label, deadline) {
+  // One in-page condition subscription instead of repeated Inspector round trips.
+  await page.evaluate(`(async()=>{
+    const deadline=performance.now()+${Math.max(0,deadline-Date.now())};
+    while(!(${expression})) {
+      if(performance.now()>=deadline)throw new Error(${JSON.stringify(`Phone route deadline: ${label}`)});
+      await new Promise(resolve=>requestAnimationFrame(resolve));
+    }
+    return true;
+  })()`);
+  if (page.faults.length > 0) throw new Error(page.faults.join('\n'));
 }
 
 /** @param {import('./phone-route.mjs').PhonePage} page @param {string} out @param {string} label */
@@ -111,12 +119,12 @@ async function fpsWindow(page, label) {
   })()`));
 }
 
-/** @param {import('./phone-route.mjs').PhonePage} page @param {string} base @param {string} sha @param {string} out */
-export async function phoneRoute(page, base, sha, out) {
+/** @param {import('./phone-route.mjs').PhonePage} page @param {string} base @param {string} sha @param {string} out @param {'full'|'entry'} [route] */
+export async function phoneRoute(page, base, sha, out, route = 'full') {
   const versionResponse = await fetch(new URL('/version.json', base));
   const version = /** @type {{build:string}} */ (await versionResponse.json());
   /** @type {import('./phone-route.mjs').PhoneReceipt} */
-  const receipt = { protocol: 'jake-phone-route/1', rollout: process.env.PHONE_ROUTE_MODE ?? 'local-driver', sha, version, engine: page.engine, steps: [], paint: { heroMs: null, fcpMs: null, heroURL: null }, entry: null, wall: null, fps: [], observations: [], frames: [], faults: page.faults, routes: [], failures: [] };
+  const receipt = { protocol: route === 'entry' ? 'jake-phone-route/2' : 'jake-phone-route/1', route, rollout: process.env.PHONE_ROUTE_MODE ?? 'local-driver', sha, version, engine: page.engine, steps: [], paint: { heroMs: null, fcpMs: null, heroURL: null }, entry: null, wall: null, fps: [], observations: [], frames: [], faults: page.faults, routes: [], failures: [] };
   const observe = async () => {
     const state = /** @type {import('./phone-route.mjs').PhoneObservation|null} */ (await page.evaluate(`(${phoneRouteObservation.toString()})()`));
     if (state === null) throw new Error('Phone route lost the game');
@@ -130,25 +138,25 @@ export async function phoneRoute(page, base, sha, out) {
   try {
     const url = new URL(base);
     for (const [key, value] of Object.entries({ tier: 'phone', touch: '1', mute: '1', nolock: '1', sw: '0' })) url.searchParams.set(key, value);
-    const titleDeadline=Date.now()+150000;
+    const titleDeadline=Date.now()+60000;
     await page.cold(url.href, `(${installPhoneTitlePaint.toString()})()`);
-    await until(page, `document.querySelector('.ws-main-select')!==null && (()=>{const load=document.querySelector('.ws-load');return load===null||getComputedStyle(load).display==='none'||getComputedStyle(load).visibility==='hidden'||getComputedStyle(load).opacity==='0';})()`, 'title', titleDeadline);
+    await waitPhoneCondition(page, `document.querySelector('.ws-main-select')!==null && (()=>{const load=document.querySelector('.ws-load');return load===null||getComputedStyle(load).display==='none'||getComputedStyle(load).visibility==='hidden'||getComputedStyle(load).opacity==='0';})()`, 'title', titleDeadline);
     // The shell can hydrate before the image-load/rAF witness publishes.
     // Await that FIRST recorded paint under the same deadline; never resample it.
-    await until(page,'window.__phoneRoutePaint?.heroMs!==null && window.__phoneRoutePaint?.heroMs!==undefined','first title paint witness',titleDeadline);
+    await waitPhoneCondition(page,'window.__phoneRoutePaint?.heroMs!==null && window.__phoneRoutePaint?.heroMs!==undefined','first title paint witness',titleDeadline);
     receipt.paint = /** @type {typeof receipt.paint} */ (await page.evaluate('window.__phoneRoutePaint'));
     receipt.steps.push('title'); await shot('title');
     await page.click('.ws-main-select');
-    await until(page, `document.querySelector('.ws-menu:not(.hide)')!==null`, 'SHARD SELECT', Date.now() + 150000);
+    await waitPhoneCondition(page, `document.querySelector('.ws-menu:not(.hide)')!==null`, 'SHARD SELECT', Date.now() + 10000);
     receipt.steps.push('SHARD SELECT'); await shot('SHARD SELECT'); await page.click('.ws-menu-back');
-    const gridDeadline = Date.now()+150000, gridURL = new URL(base); gridURL.search=''; gridURL.hash='';
+    const gridDeadline = Date.now()+60000, gridURL = new URL(base); gridURL.search=''; gridURL.hash='';
     await enterPhoneGrid(page,gridURL.href,gridDeadline);
-    await until(page, `(()=>{const p=window.__wildshard;if(!p?.world)return false;const g=p.shard.grid?.state?.();const reveal=document.querySelector('.ws-grid-reveal');if(reveal)reveal.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));return g?.live?.live?.gameplayReady===true&&g.inside===g.home&&p.requireWorld().game.frameGate();})()`, 'grid Driftwood entry', gridDeadline);
+    await waitPhoneCondition(page, `(()=>{const p=window.__wildshard;if(!p?.world)return false;const g=p.shard.grid?.state?.();const reveal=document.querySelector('.ws-grid-reveal');if(reveal)reveal.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));return g?.live?.live?.gameplayReady===true&&g.inside===g.home&&p.requireWorld().game.frameGate();})()`, 'grid Driftwood entry', gridDeadline);
     receipt.steps.push('grid', 'Driftwood'); await observe(); await shot('Driftwood'); receipt.fps.push(await fpsWindow(page, 'Driftwood'));
     const initial = await observe(), { market, plans } = phoneRoutePlans(initial);
     const identity = /** @type {import('../frame-floor-grid.mjs').FloorGridDocumentIdentity} */ (await page.evaluate(`(${gridFloorDocumentIdentity.toString()})()`));
     await page.evaluate(`(${watchPhoneEntry.toString()})(${JSON.stringify(market)})`);
-    for (const [index, plan] of plans.entries()) {
+    for (const [index, plan] of (route === 'entry' ? plans.slice(0,2) : plans).entries()) {
       // No plan has a start/pose: every crossing and the return uses held input.
       const witness = await runFloorGridRoute(page, plan, identity);
       receipt.routes.push(witness);
@@ -165,9 +173,9 @@ export async function phoneRoute(page, base, sha, out) {
         receipt.routes.push(approach);
         const approachFailures=gridFloorWitnessFailures(approach);if(approachFailures.length>0)throw new Error(approachFailures.join('; '));
         await page.click('.ws-touch-hover');
-        await until(page, 'window.__wildshard.requireWorld().player.hover===true', 'actual touch HOVER', Date.now()+5000);
+        await waitPhoneCondition(page, 'window.__wildshard.requireWorld().player.hover===true', 'actual touch HOVER', Date.now()+5000);
         receipt.wall = /** @type {import('./phone-route.mjs').PhoneWall} */ (await page.evaluate(`(${phoneBoardWall.toString()})(4000,${JSON.stringify(wallTarget)})`));
-        await shot('board-wall');
+        await observe(); await shot('board-wall');
       }
     }
     receipt.failures = phoneRouteFailures(receipt);
@@ -185,10 +193,12 @@ async function main() {
   const out = resolvePath(option('out') ?? 'boot-smoke-results/phone-route'); mkdirSync(out, { recursive: true });
   const sha = option('sha') ?? process.env.TESTED_SHA;
   if (sha === undefined || !/^[a-f0-9]{40}$/u.test(sha)) throw new Error('Phone route requires exact --sha');
+  const route = option('route') ?? 'full';
+  if (route !== 'full' && route !== 'entry') throw new Error('Unknown phone route');
   const external = option('url'), preview = external === undefined ? await serve(resolvePath('.'), '', true) : null;
   const base = external ?? preview?.url;
   if (base === undefined) throw new Error('Missing phone route preview');
   const page = await openPhoneBrowser(option('engine') ?? 'webkit', base, out);
-  try { await phoneRoute(page, base, sha, out); } finally { try { await page.close(); } finally { preview?.close(); } }
+  try { await phoneRoute(page, base, sha, out, route); } finally { try { await page.close(); } finally { preview?.close(); } }
 }
 if (process.argv[1] && pathToFileURL(resolvePath(process.argv[1])).href === import.meta.url) await main();

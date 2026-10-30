@@ -4,7 +4,7 @@ import { Window } from 'happy-dom';
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute the real generated bootstrap against isolated storage.
 import { runInNewContext } from 'node:vm';
 import { phoneEngine } from '../scripts/parity/phone-route-runner.mjs';
-import { capturePhoneFailure, enterPhoneGrid, phoneRouteFailures, phoneRoutePlans, type PhoneReceipt, type PhoneObservation, type PhoneDocument } from '../scripts/parity/phone-route.mjs';
+import { capturePhoneFailure, waitPhoneCondition, enterPhoneGrid, phoneRouteFailures, phoneRoutePlans, type PhoneReceipt, type PhoneObservation, type PhoneDocument } from '../scripts/parity/phone-route.mjs';
 import { phoneTouchButton, phoneWallTarget } from '../scripts/parity/phone-route-page.mjs';
 import { phoneBootstrap, phoneDocumentMatches, phonePageTarget } from '../scripts/parity/phone-route-browser.mjs';
 
@@ -112,7 +112,7 @@ function receipt(): PhoneReceipt {
   return {protocol:'jake-phone-route/1',sha:'a'.repeat(40),version:{build:'aaaaaaa-fixture'},engine:'webkit-iphone',
     steps:['title','SHARD SELECT','grid','Driftwood','road','Night Market','road return','Driftwood return'],
     paint:{heroMs:420,fcpMs:300,heroURL:'/assets/title/main-crossroads-square.jpg'},
-    entry:{at:1000,frame:100,inside:'market',current:'market',ready:true,cell:market,grain:0},
+    entry:{at:1000,frame:100,inside:'market',current:'market',ready:true,cell:{...market,shows:'playing'},grain:0},
     wall:{from:{x:-93.75,y:.45,z:-218.75},wallDistance:11,direction:{x:1,z:0},collider:1,material:'stone',surface:{width:2,height:1.2,normal:{x:-1,y:0,z:0}},elapsedMs:4000,startedFrame:0,finalFrame:120,
       final:{x:-83.15,y:.45,z:-218.75},hover:true,previous:{yaw:0,hover:false},
       samples:Array.from({length:120},(_,i)=>({ms:(i+1)*1000/30,x:i<80?-93.75+10.6*i/80:-83.15,z:-218.75,hover:true,frame:i+1}))},
@@ -143,7 +143,7 @@ test('complete receipt passes, while a near proxy, zero tiles or late readiness 
   expect(phoneRouteFailures(receipt())).toEqual([]);
   for(const mode of ['proxy','empty','unready','missing'] as const){
     const r=receipt();if(r.entry?.cell===undefined)throw new Error('Missing fixture entry');
-    if(mode==='proxy')r.entry.cell={...r.entry.cell,drawn:{...r.entry.cell.drawn,far:true}};
+    if(mode==='proxy')r.entry.cell={...r.entry.cell,drawn:{...r.entry.cell.drawn,far:true,l0:0}};
     if(mode==='empty')r.entry.cell={...r.entry.cell,drawn:{...r.entry.cell.drawn,l0:0,l1:0}};
     if(mode==='unready')r.entry.ready=false;
     if(mode==='missing')r.entry=null;
@@ -193,3 +193,39 @@ test('wall-clock freezes, missing pill, slow hero, missing return, grain, black 
   }
 });
 
+
+test('short native entry route retains tile, wall, draw and exact-document gates',()=>{
+  const r=receipt();r.protocol='jake-phone-route/2';r.route='entry';r.steps=r.steps.slice(0,6);
+  expect(phoneRouteFailures(r)).toEqual([]);
+  r.steps.pop();expect(phoneRouteFailures(r)).toContain('Incomplete phone route');
+  r.steps.push('Night Market');
+  if(r.entry?.cell===undefined)throw new Error('Missing entry');
+  r.entry.cell={...r.entry.cell,drawn:{...r.entry.cell.drawn,far:true,l0:0}};
+  expect(phoneRouteFailures(r)).toContain('Night Market near tiles absent on first geometric entry');
+  r.route='full';expect(phoneRouteFailures(r)).toContain('Incomplete phone route');
+});
+
+
+test('native condition waits subscribe once and finish only when the actual predicate changes',async()=>{
+  let clock=0,calls=0;const frames:((time:number)=>void)[]=[];
+  const state={ready:false};
+  const page={faults:[],evaluate:(expression:string)=>{
+    calls++;return Promise.resolve(runInNewContext(expression,{state,performance:{now:()=>clock},requestAnimationFrame:(run:(time:number)=>void)=>{frames.push(run);}}));
+  }};
+  const done=waitPhoneCondition(page,'state.ready','ready',Date.now()+1000);
+  expect(calls).toBe(1);expect(frames).toHaveLength(1);
+  clock=50;frames.shift()?.(clock);await Promise.resolve();expect(frames).toHaveLength(1);
+  state.ready=true;frames.shift()?.(clock);await done;expect(calls).toBe(1);
+  await expect(waitPhoneCondition(page,'false','missing',Date.now()-1)).rejects.toThrow('deadline: missing');
+});
+
+
+test('partial far masks coexist with entered fine tiles, but coarse-only residency is not entry',()=>{
+  const r=receipt();if(r.entry?.cell===undefined)throw new Error('Missing entry');
+  r.entry.cell={...r.entry.cell,drawn:{far:true,near:false,l0:9,l1:14}};
+  expect(phoneRouteFailures(r)).toEqual([]);
+  r.entry.cell={...r.entry.cell,drawn:{...r.entry.cell.drawn,l0:0}};
+  expect(phoneRouteFailures(r)).toContain('Night Market near tiles absent on first geometric entry');
+  r.entry.cell={...r.entry.cell,shows:'far proxy',drawn:{...r.entry.cell.drawn,l0:9}};
+  expect(phoneRouteFailures(r)).toContain('Night Market near tiles absent on first geometric entry');
+});

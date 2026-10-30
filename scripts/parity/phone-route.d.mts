@@ -24,11 +24,14 @@ export interface PhoneDocument {readonly url:string;readonly visit:string;readon
 export function enterPhoneGrid(page:Pick<PhonePage,'evaluate'|'click'|'followNavigation'>,url:string,deadline:number):Promise<void>;
 export function capturePhoneFailure(page:Pick<PhonePage,'screenshot'>,path:string):Promise<void>;
 export interface PhoneReceipt {
-  protocol:string; rollout?:string; sha:string; version:{build:string}; engine:PhonePage['engine']; steps:string[];
+  protocol:string; route?:'full'|'entry'; rollout?:string; sha:string; version:{build:string}; engine:PhonePage['engine']; steps:string[];
   paint:{heroMs:number|null;fcpMs:number|null;heroURL:string|null}; entry:PhoneEntry|null; wall:PhoneWall|null;
   fps:PhoneFps[]; observations:PhoneObservation[]; frames:{label:string;width:number;height:number;darkShare:number}[];
   faults:string[]; routes:FloorGridWitness[]; failures:string[]; stop?:unknown;
 }
 export function phoneRoutePlans(state:PhoneObservation):{market:string;plans:FloorGridPlan[]};
 export function phoneRouteFailures(receipt:PhoneReceipt):string[];
-export function phoneRoute(page:PhonePage,base:string,sha:string,out:string):Promise<PhoneReceipt>;
+export function phoneRoute(page:PhonePage,base:string,sha:string,out:string,route?:'full'|'entry'):Promise<PhoneReceipt>;
+
+/** Await the native page condition within one Inspector evaluation. */
+export function waitPhoneCondition(page:Pick<PhonePage,'evaluate'|'faults'>,expression:string,label:string,deadline:number):Promise<void>;

@@ -88,9 +88,13 @@ export async function openPhoneBrowser(engine, base, _out) {
     deadline = Date.now() + 90000) {
     inspector?.close(); inspector = null;
     while (Date.now() < deadline) {
-      for (let port = 9232; port <= 9240; port++) {
-        let list;
-        try { list = /** @type {unknown} */ (await (await fetch(`http://127.0.0.1:${port}/json`, { signal: AbortSignal.timeout(500) })).json()); } catch { continue; }
+      // All endpoints describe the same single device; an absent port must not
+      // add its entire timeout ahead of the live Inspector port.
+      const lists = await Promise.all(Array.from({length:9},async (_,index) => {
+        try { return /** @type {unknown} */ (await (await fetch(`http://127.0.0.1:${9232+index}/json`, {signal:AbortSignal.timeout(500)})).json()); }
+        catch { return null; }
+      }));
+      for (const list of lists) {
         if (!Array.isArray(list)) continue;
         /** @type {readonly unknown[]} */ const rows = list;
         for (const row of rows) {
