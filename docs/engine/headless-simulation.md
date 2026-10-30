@@ -36,3 +36,27 @@ An owned host's `resetPlayerPose(feet, yaw)` requires a living owned motor,
 validates every coordinate before mutation, and never advances physics.
 Native owned players carry their grounded feet with a moving body's pose
 before their own move, matching the existing page's ride law.
+
+The maintained fixed-route ruler runs without Chromium:
+
+```sh
+node scripts/physics-baseline.mjs --no-build --mode=walk
+node scripts/physics-baseline.mjs --no-build --mode=walk --shard=driftwood-isle --leg=bridge --repeat=2
+```
+
+It uses the normal checked products and the ordered per-shard `walkLeg`
+tests. Without `--no-build`, it refreshes their declared products through
+the normal shared build lane. `--route` selects another route catalogue
+with the same validated leg shape. Empty selections, incomplete test
+collection, a physical snag, bounds escape or an unfinished leg refuse;
+a successful child-process exit alone cannot print zero stuck.
+Only this physics ruler requests `holdActors`: actor colliders stay in
+place while their updates pause, matching the original browser ruler.
+Main integration journeys and verb tapes continue to run live actors.
+
+Reports under `tmp/physics/` contain actual test outcomes and durations;
+`--compare` accepts two such reports. Native results do not claim browser
+frame traces, video, UI variants or a remote preview's product identity.
+Pose and grid modes remain browser proofs. The optional `--trails`
+browser diagnostic also retains its registered-floor trimming, source
+path overrides and video support.

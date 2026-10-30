@@ -1,42 +1,39 @@
 #!/usr/bin/env node
 // physics-baseline.mjs — the PHYSICS.md ruler: P0 records it before a line of Rapier, every later phase re-runs it.
 //
-// Builds the production bundle (or reuses dist/), serves it with `vite preview` on its own port and opens it in
-// headless Chromium on the host GPU (Metal via ANGLE), phone tier (390×844, ?tier=phone). Two modes:
+// Fixed walk routes run in the checked-product Node harness. Pose, grid and the optional --trails diagnostic use
+// the production browser bundle, headless Chromium on the host GPU (Metal via ANGLE), phone tier (390×844).
 //
 //   poses — the seven PLAY-PERF poses at 4× CPU: per frame, the JS ms of every game updater together, of
 //           `player.update` and `animals.update` alone, of the composer render, the rAF interval, and the
 //           composer frame's draw calls / triangles. Reported as p50 / p95 over --frames frames.
-//   walk  — the fixed route per shard (scripts/physics-route.json): each leg teleports to its start, then an
-//           in-page autopilot faces the next waypoint and holds W (Space at `jump` waypoints) until it is within
-//           0.8 m, recording every frame's feet position, vertical speed and ground / platform / swim / slide flags.
-//           A leg that makes < 0.3 m of progress in 2 s is logged as stuck at that waypoint and skipped on.
+//   walk  — the fixed route per shard (scripts/physics-route.json), ordered in one native resident per shard.
+//           Actual player motion advances within 0.8 m; < 0.3 m progress in 2 s refuses the leg, without teleporting.
 //           ESCAPE legs (`inside: { x0, x1, z0, z1, floor }`) try to get out of a built fragment: their waypoints lie past a
 //           wall or a balustrade, a `jump: 2` waypoint jumps and double-jumps at it from `jumpAt` m off (default 1.6), and
 //           `start.hover` rides the board. They are never teleported: a waypoint the walls stop is dropped after 1.2 s
 //           with no progress (not a stuck). `out` = the frames spent outside `inside` (0 = the edge held).
-//           `--video` records a webm of each shard's walk.
+//           `--trails` retains the ad hoc browser trail diagnostic and its optional --video capture.
 //
 // Writes progress/physics/<label>-<build>.json (everything) and prints a markdown table. `--compare a.json b.json`
 // prints before / after for two result files.
 //
 //   node scripts/physics-baseline.mjs                         # build, poses + walk, label p0
-//   node scripts/physics-baseline.mjs --no-build --mode=walk --video
+//   node scripts/physics-baseline.mjs --no-build --mode=walk
 //   node scripts/physics-baseline.mjs --label=p2 --mode=walk
-//   node scripts/physics-baseline.mjs --no-build --mode=walk --tier=desktop # same portrait walk, desktop assets
+//   node scripts/physics-baseline.mjs --no-build --mode=walk --trails --video
 //   node scripts/physics-baseline.mjs --no-build --mode=walk --route=progress/shard-platform/sf46/entries-route.json  # a row's own legs
 //   node scripts/physics-baseline.mjs --compare progress/physics/p0-x.json progress/physics/p2-y.json
-//   node scripts/physics-baseline.mjs --mode=walk --shard=nalati-grasslands --url=http://127.0.0.1:5188   # a served build, no build
+//   node scripts/physics-baseline.mjs --mode=walk --trails --shard=nalati-grasslands --url=http://127.0.0.1:5188
 //   scripts/browser-lane.sh node scripts/physics-baseline.mjs --mode=grid --url=http://127.0.0.1:5188
 import { spawn, execSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync, existsSync, renameSync, readdirSync, rmSync } from 'node:fs';
 import { resolve as resolvePath, join } from 'node:path';
 import { debugSettings, saveFixture } from './debug-settings.mjs';
 import { walkPhysicsLeg } from './physics-walk.mjs';
+import { runNativePhysicsWalk } from './physics-native.mjs';
 import { driveGridSeam, gridSeamRoute, gridDriveFailures } from './physics-grid.mjs';
 import { enterPhysicsGrid, physicsEntryInventory, physicsEntryPierReady, physicsEntryFailures, waitForPhysicsBoot } from './physics-grid-entry.mjs';
-
-const { chromium, devices } = await import('playwright');
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
@@ -75,6 +72,17 @@ const PH_POSES = [
 if (has('compare')) {
   const [a, b] = argv.filter((x) => x.endsWith('.json')).map((p) => JSON.parse(readFileSync(p, 'utf8')));
   if (!a || !b) { console.error('--compare a.json b.json'); process.exit(2); }
+  if(Array.isArray(a.testResults)||Array.isArray(b.testResults)){
+    if(!Array.isArray(a.testResults)||!Array.isArray(b.testResults))throw new Error('Compare two Node route reports, or two browser reports');
+    const before=a.testResults.flatMap(file=>file.assertionResults),after=b.testResults.flatMap(file=>file.assertionResults);
+    console.log(`Node physics: ${a.numPassedTests} passed / ${a.numFailedTests} failed → ${b.numPassedTests} passed / ${b.numFailedTests} failed`);
+    console.log('| native route | before status / ms | after status / ms |\n|---|---|---|');
+    for(const leg of before){
+      const next=after.find(row=>row.fullName===leg.fullName);
+      console.log(`| ${leg.fullName} | ${leg.status} / ${leg.duration??'n/a'} | ${next===undefined?'not collected':`${next.status} / ${next.duration??'n/a'}`} |`);
+    }
+    process.exit(0);
+  }
   console.log(`before ${a.label} ${a.build} → after ${b.label} ${b.build}\n`);
   console.log('| pose | update p50 ms | player p50 | animals p50 | render p50 | calls | tris M |\n|---|---|---|---|---|---|---|');
   for (const pa of a.poses ?? []) {
@@ -131,6 +139,12 @@ const EXPECTED_SYSTEMS = argv.filter((arg) => arg.startsWith('--expect-system=')
   if (!match) throw new Error('Expected system must name shard:system=on|off');
   return { shard: match[1], id: match[2], present: match[3] === 'on' };
 });
+const nativeWalk=MODE.includes('walk')&&!TRAILS?runNativePhysicsWalk(ROOT,argv):undefined;
+if(nativeWalk!==undefined){
+  if(nativeWalk.status!==0)process.exit(nativeWalk.status);
+  if(MODE.length===1)process.exit(0);
+}
+const { chromium, devices } = await import('playwright');
 async function seedVariantFixtures(target) {
   if (Object.keys(SETTINGS).length > 0) await debugSettings(target, SETTINGS);
   for (const [key, data] of Object.entries(DEVICE_SAVES)) await saveFixture(target, { scope: 'device', key, data });
@@ -169,7 +183,7 @@ console.error(`> physics-baseline ${LABEL} build=${build} modes=${MODE.join(',')
 
 while (existsSync(resolvePath(ROOT, '.git/quiet'))) await new Promise(resolve => { setTimeout(resolve, 1000); });
 const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
-const result = { label: LABEL, build, tier: TIER, date: new Date().toISOString(), cpu: CPU, walkCpu: WALK_CPU, frames: FRAMES, poses: [], walk: [], grid: [], gridFailures: [], physics: {}, activation: {}, deviceSaves: DEVICE_SAVES, expectedSystems: EXPECTED_SYSTEMS };
+const result = { label: LABEL, build, tier: TIER, date: new Date().toISOString(), cpu: CPU, walkCpu: WALK_CPU, frames: FRAMES, poses: [], walk: [], grid: [], gridFailures: [], physics: {}, activation: {}, deviceSaves: DEVICE_SAVES, expectedSystems: EXPECTED_SYSTEMS, nativeWalk };
 
 async function openGame(shard, q, { cpu, video }) {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'], ...(video ? { recordVideo: { dir: join(OUT_DIR, '.video-tmp'), size: { width: 390, height: 844 } } } : {}) });
@@ -280,7 +294,7 @@ if (MODE.includes('poses')) {
 }
 
 // ── walk ──
-if (MODE.includes('walk')) {
+if (MODE.includes('walk')&&TRAILS) {
   // --route=<file>: another route file in the same shape (a row's own legs, e.g. SF46's entries), default the shared one
   const route = JSON.parse(readFileSync(resolvePath(ROOT, flag('route', 'scripts/physics-route.json')), 'utf8'));
   for (const [shard, legs] of Object.entries(route)) {
@@ -384,7 +398,7 @@ const file = join(OUT_DIR, `${LABEL}-${build}.json`);
 if (existsSync(file)) {
   const prev = JSON.parse(readFileSync(file, 'utf8'));
   if (result.poses.length === 0) result.poses = prev.poses ?? [];
-  if (result.walk.length === 0) result.walk = prev.walk ?? [];
+  if (result.walk.length === 0 && nativeWalk === undefined) result.walk = prev.walk ?? [];
 }
 writeFileSync(file, `${JSON.stringify(result)}\n`);
 

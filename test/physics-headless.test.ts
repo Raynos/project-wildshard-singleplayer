@@ -15,7 +15,7 @@ afterAll(async()=>{
 for(const {slug,leg} of physicsRoutes.filter(row=>row.slug==='driftwood-isle'))it(`${leg.name}: completes native physics route without a snag`,async()=>{
   if(session===undefined)throw new Error('Missing native Driftwood physics world');
   const {sim}=session;
-  const plan=v.parse(HeadlessJourneyPlanSchema,{ticks:Math.ceil(leg.timeout*60),start:leg.start,once:true,
+  const plan=v.parse(HeadlessJourneyPlanSchema,{ticks:Math.ceil(leg.timeout*60),start:leg.start,once:true,holdActors:true,
     points:[{x:leg.start.x,z:leg.start.z},...leg.waypoints],...(leg.inside===undefined?{}:{inside:leg.inside})});
   const report=await sim.walkLeg(plan),diagnostic=JSON.stringify({slug,leg:leg.name,...report});
   expect(report.stuck,diagnostic).toEqual([]);
