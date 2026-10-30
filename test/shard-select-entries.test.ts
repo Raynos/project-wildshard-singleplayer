@@ -187,6 +187,9 @@ test('the click iOS sends after the title SHARD SELECT tap enters no world and m
   await paintFrames();
   expect(entered).not.toHaveBeenCalled();
   expect(built.index).toBe(before);
+  // a new click elsewhere in the same half second is the player's own gesture: the dot selects its card
+  dot.dispatchEvent(new MouseEvent('click', { detail: 1, bubbles: true, clientX: 200, clientY: 300 }));
+  expect(built.index).toBe(2);
   // a keyboard press (no pointer detail) right after still enters, once
   playButton.click();
   await paintFrames();
