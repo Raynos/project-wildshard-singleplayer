@@ -14,16 +14,16 @@ import {installNalatiReadings} from './fixtures/nalati-verbs';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with {type:'json'};
 import chapters from '../src/shards/nalati-grasslands/data/chapterStory.json' with {type:'json'};
 import {peopleRows} from '../src/shards/nalati-grasslands/generators/peopleRows.mjs';
-import type {HeadlessCommand} from '../src/sdk/tickProtocol';
+import type {HeadlessCommand,HeadlessEffect} from '../src/sdk/tickProtocol';
 
 test('the elder only grants his authored introduction when the real reading completes in reach',async()=>{
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const source=emptyShardfile({slug:'reading-proof',name:'Reading proof',author:'Test',revision:1,seed:1});
   const host=createSimHost(trustedLevel(source,{at:{x:0,y:0,z:0},yaw:0,speed:4.3},{size:500,height:0}),{rapier});
-  let commands:HeadlessCommand[]=[];
+  let commands:HeadlessCommand[]=[];const effects:HeadlessEffect[]=[];
   const fixture=v.parse(v.object({figures:FigureGroupSchema,npcs:v.record(v.string(),NpcDialogueRowSchema)}),{figures:peopleRows,npcs:content.npcs});
   try{
-    installNalatiReadings(host,{commands:()=>commands},parseQuestData(content.quests).quests,fixture,parseChapterStoryPresentation(chapters));
+    installNalatiReadings(host,{commands:()=>commands,emit:effect=>{effects.push(effect);}},parseQuestData(content.quests),fixture,parseChapterStoryPresentation(chapters));
     commands=[{kind:'script',actorId:'nalati.talk',value:0}];host.step();
     expect(host.flags.has('talked:elder')).toBe(false);expect(host.adapters.get('nalati.talk')?.snapshot()).toBeNull();
     host.resetPlayerPose({x:86.6,y:0,z:219.5},0);host.step();
@@ -41,5 +41,6 @@ test('the elder only grants his authored introduction when the real reading comp
     expect(host.flags.has('talked:elder')).toBe(true);
     expect(host.quests.find(row=>row.def.id==='tulpar')?.isStarted).toBe(true);
     expect(host.flags.has('tamed:horse')).toBe(false);expect(host.flags.has('won:kokpar')).toBe(false);
+    expect(effects).toEqual([]);
   }finally{host.dispose();}
 });

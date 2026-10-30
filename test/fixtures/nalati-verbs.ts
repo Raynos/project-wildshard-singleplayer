@@ -1,7 +1,8 @@
 import * as v from 'valibot';
 import type {SimHost} from '../../src/engine/sim';
 import type {HeadlessRuntimeInstallation,PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
-import {QuestLine,type QuestDef} from '../../src/engine/quest/core';
+import type {QuestData} from '../../src/format/quests';
+import {DeclaredQuests} from '../../src/game/quest/declared';
 import {NpcReading} from '../../src/engine/quest/dialogueClock';
 import {pickPrompt} from '../../src/engine/world/interact/prompts';
 import {ChapterViewSchema,type ChapterViewRows} from '../../src/format/questPageComposition';
@@ -19,15 +20,14 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
   const story=parseChapterStoryPresentation(await preparation.product.json('quests/chapters.json'));
   const figures=content.figures;
   if(figures===undefined)throw new Error('Nalati verb readings require admitted figures');
-  return {...base,install:(host,context)=>{base.install(host,context);installNalatiReadings(host,context,preparation.shard.quests.quests,content,story);}};
+  return {...base,install:(host,context)=>{base.install(host,context);installNalatiReadings(host,context,preparation.shard.quests,content,story);}};
 };
 
 /** Bind the original reading/quest owners without scene or UI construction. */
-export function installNalatiReadings(host:SimHost,context:Pick<HeadlessRuntimeInstallation,'commands'>,quests:QuestDef[],content:Pick<ChapterViewRows,'figures'|'npcs'>,story:ReturnType<typeof parseChapterStoryPresentation>):void {
+export function installNalatiReadings(host:SimHost,context:Pick<HeadlessRuntimeInstallation,'commands'|'emit'>,quests:QuestData,content:Pick<ChapterViewRows,'figures'|'npcs'>,story:ReturnType<typeof parseChapterStoryPresentation>):void {
     const figures=content.figures;if(figures===undefined)throw new Error('Nalati readings lack figures');
     if(host.quests.length>0)throw new Error('Nalati verb chapter already has an owner');
-    const line=new QuestLine(quests,host.flags,host.events,host.scope);
-    host.quests.push(...line.chapters);
+    new DeclaredQuests(host,quests,{fact:(name,actorId)=>context.emit({kind:'fact',name,actorId}),coins:(amount,actorId)=>context.emit({kind:'coins',amount,actorId})});
     const admittedFigures=Object.values(figures.figures).map(figure=>({moving:figure.moving,row:v.parse(FigureRowSchema,figure.row)}));
     const speakers=story.talks.flatMap((talk,index)=>{
       const figure=admittedFigures.find(row=>row.row.id===(talk.figure??talk.id));
