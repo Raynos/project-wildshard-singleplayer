@@ -3,6 +3,7 @@ import { Scope } from '../src/engine/app/scope';
 import { lendNalatiHeld } from './fixtures/nalati-return-modules';
 import { StealthDetection } from '../src/game/stealth/controller';
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
+import {onFault,type Fault} from '../src/engine/core/faults';
 
 const { stealth: rows } = originalHeldMetadata();
 
@@ -34,4 +35,21 @@ it('lets an unrelated marsh fixture tune crouch cover and hysteresis entirely th
 it('admits the full bounded threat snapshot',()=>{
  const law=new StealthDetection(rows.program,scope),threats=Array.from({length:8},(_,i)=>({x:i+2,z:0,awareness:i===7?1:0,alert:.35,hunting:0}));
  law.step(.1,{...observation,sense:200},threats);expect(law.state['state']).toBe(4);expect(law.state['x']).toBe(9);
+});
+
+it.each(['delta','threats','observation'])('a refused %s frame keeps pending cadence and recovers without publishing state',kind=>{
+ const law=new StealthDetection(rows.program,scope),control=new StealthDetection(rows.program,scope),faults:Fault[]=[];
+ const off=onFault(fault=>{faults.push(fault);});
+ try{
+  expect(law.step(.05,observation,[])).toBe(false);expect(control.step(.05,observation,[])).toBe(false);
+  const state=law.state,threats=kind==='threats'?Array.from({length:9},()=>({x:0,z:0,awareness:0,alert:0,hunting:0})):[];
+  const bad=kind==='observation'?{...observation,grass:Number.NaN}:observation,dt=kind==='delta'?Number.NaN:.05;
+  for(let i=0;i<2;i++)expect(law.step(dt,bad,threats)).toBe(false);
+  expect(law.state).toBe(state);expect(faults).toHaveLength(1);expect(faults[0]).toMatchObject({system:'stealth.detection',verdict:'retry'});
+  if(kind==='delta')expect(faults[0]?.error).toMatchObject({message:'Invalid stealth step delta'});
+  if(kind==='threats')expect(faults[0]?.error).toMatchObject({message:'Stealth threat observation bound'});
+  expect(law.step(.05,observation,[])).toBe(true);expect(control.step(.05,observation,[])).toBe(true);
+  expect(law.state).toEqual(control.state);
+  expect(()=>law.program.project('step',{...observation,grass:Number.NaN})).toThrow();
+ }finally{off();}
 });

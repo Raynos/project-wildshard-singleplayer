@@ -8,6 +8,7 @@ import { hudSlots } from '@wildshard/engine/ui/hudSlots';
 import { declarePanel, type PanelView } from '@wildshard/engine/ui/panel';
 import { mountUi } from '@wildshard/engine/ui/ownership';
 import { ReturnProgram } from '../population/returnProgram';
+import { emitFault } from '@wildshard/engine/core/faults';
 import type { PageWildlife } from '../population/wildlife';
 import type { PageRidingView } from '../riding/client';
 import type { HeldSlotKit } from '../loadout/claims';
@@ -52,11 +53,20 @@ export class StealthDetection {
  readonly program:ReturnProgram;
  state:Readonly<Record<string,number>>={on:0,off:0,inLong:0,can:0,latched:0,cover:0,threat:0,x:0,z:0,state:0};
  private elapsed=0;
+ private reportedFrame=false;
  constructor(input:unknown,owner?:Scope){this.program=ReturnProgram.page(input,owner);}
  step(dt:number,observations:Readonly<Record<string,number>>,threats:readonly StealthThreat[]):boolean{
-  this.elapsed+=dt;if(this.elapsed<.1-1e-9)return false;
-  if(threats.length>8)throw new Error('Stealth threat observation bound');
-  this.state=this.program.project('step',{...this.state,...observations,dt:this.elapsed,count:threats.length},undefined,threats.map(row=>({...row})));this.elapsed=0;return true;
+  try{
+   if(!Number.isFinite(dt)||dt<0)throw new Error('Invalid stealth step delta');
+   const elapsed=this.elapsed+dt;
+   if(elapsed<.1-1e-9){this.elapsed=elapsed;return false;}
+   if(threats.length>8)throw new Error('Stealth threat observation bound');
+   const state=this.program.project('step',{...this.state,...observations,dt:elapsed,count:threats.length},undefined,threats.map(row=>({...row})));
+   this.state=state;this.elapsed=0;return true;
+  }catch(error){
+   if(!this.reportedFrame){this.reportedFrame=true;emitFault({system:'stealth.detection',error,verdict:'retry'});}
+   return false;
+  }
  }
 }
 /** Client-only crouch/detection presentation. The guest owns eligibility, concealment and alert-state decisions. */
