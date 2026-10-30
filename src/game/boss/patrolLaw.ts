@@ -1,6 +1,6 @@
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { EncounterPatrolRows, EncounterScheduleRows } from '@wildshard/format/encounterRows';
-import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
+import { ProjectedState, type ProjectedSnapshot, type ReturnProgram } from '../population/returnProgram';
 
 /**
  * A night patrol's numbers (TimedEncounters riders; Nalati's Qara Batyr), with no scene: the cycle (respawn, phase,
@@ -19,6 +19,12 @@ export interface PatrolRider<A, V> { readonly a: A; readonly law: ProjectedState
 /** A step's per-rider outcome (the member projection's channels and `shoot`), keyed by rider. */
 export type PatrolEffects<A, V> = ReadonlyMap<PatrolRider<A, V>, Readonly<Record<string, number>>>;
 export interface PatrolPlayer { readonly position: { readonly x: number; readonly y: number; readonly z: number } }
+/** CI12: a patrol's whole continuation as data: the cycle, the motion clock, each line's group, and each rider's law, line
+ *  (its index in `groups`, -1: alone), place in it and steering, by its body's entity id */
+export interface PatrolSnapshot {
+  readonly cycle: ProjectedSnapshot; readonly motion: ProjectedSnapshot; readonly groups: readonly ProjectedSnapshot[];
+  readonly riders: readonly { readonly id: string; readonly law: ProjectedSnapshot; readonly group: number; readonly slot: number; readonly steering: Readonly<Record<string, number>> }[];
+}
 
 export class PatrolLaw<A extends PatrolLawActor, V> {
   readonly riders: PatrolRider<A, V>[] = [];
@@ -95,6 +101,27 @@ export class PatrolLaw<A extends PatrolLawActor, V> {
     if (step.dt > 0) this.motion.project({ dt: step.dt, px: p.x, pz: p.z });
     if (step.values['spawn'] === 1) this.spawnLine();
     return effects;
+  }
+  /** The patrol's continuation as data (a native checkpoint). */
+  snapshot(): PatrolSnapshot {
+    return { cycle: this.cycle.snapshot(), motion: this.motion.snapshot(), groups: this.groups.map(group => group.snapshot()),
+      riders: this.riders.map(r => ({ id: r.a.entityId, law: r.law.snapshot(), group: r.group === null ? -1 : this.groups.indexOf(r.group), slot: r.slot, steering: { ...r.steering } })) };
+  }
+  /** Continue from `saved` over the riders' bodies (`resolve`: a body by its entity id, already spawned on the attached
+   *  roster); each rider's view is presented again. Replaces the current lines and riders without retiring their bodies. */
+  restore(saved: PatrolSnapshot, resolve: (id: string) => A): void {
+    const rows = this.patrol;
+    this.cycle.restore(saved.cycle); this.motion.restore(saved.motion);
+    this.groups.length = 0;
+    for (const group of saved.groups) { const law = new ProjectedState({ initial: { ...group.state }, parameters: rows.parameters, signal: rows.signals.group }, this.program); law.restore(group); this.groups.push(law); }
+    this.riders.length = 0;
+    for (const row of saved.riders) {
+      const a = resolve(row.id), group = row.group < 0 ? null : this.groups[row.group] ?? null;
+      if (row.group >= 0 && group === null) throw new Error('Invalid patrol snapshot line');
+      const law = new ProjectedState({ initial: { ...row.law.state }, signals: { member: rows.signals.member, fire: rows.signals.fire, retry: rows.signals.retry, dissolve: rows.signals.dissolve } }, this.program);
+      law.restore(row.law);
+      this.riders.push({ a, law, group, slot: row.slot, steering: { ...row.steering }, view: this.ports.present(a, law.state['quiet'] === 1) });
+    }
   }
   /** Retire the rider at `index` (its body back to the roster); the caller drops its view state. */
   retire(index: number): void {

@@ -31,7 +31,14 @@ export class EliteReadiness {
       this.eligible = row.mode === 'herd' || decisions.project(row.ready, { kills, engaged: 0, line: 0 })['accept'] === 1;
     }
   }
+  /** CI12: the readiness clock as data (a native checkpoint) */
+  snapshot(): EliteReadinessSnapshot { return { readyTime: this.readyTime, initialized: this.initialized, eligible: this.eligible }; }
+  restore(saved: EliteReadinessSnapshot): void {
+    if (!Number.isFinite(saved.readyTime) || saved.readyTime < 0) throw new Error('Invalid elite readiness snapshot');
+    this.readyTime = saved.readyTime; this.initialized = saved.initialized; this.eligible = saved.eligible;
+  }
 }
+export interface EliteReadinessSnapshot { readonly readyTime: number; readonly initialized: boolean; readonly eligible: boolean }
 
 /** The damage a hit on the elite takes, scaled by its fight's mode and the player's distance. */
 export function eliteDamageScale(row: Row, decisions: EliteProjection, mode: number, distance: number): number {

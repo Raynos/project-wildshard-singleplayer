@@ -342,6 +342,8 @@ interface ProjectedStateRows<S extends Record<string,number>> {
   /** Complete required bank for one event, checked before RNG or state accepts. */
   readonly outputsEvents?:Readonly<Record<string,readonly string[]>>;
 }
+/** A projected state's continuation as data: every retained slot and the step clock (CI12 native checkpoints). */
+export interface ProjectedSnapshot { readonly state: Readonly<Record<string,number>>; readonly elapsed: number }
 export class ProjectedState<S extends Record<string,number> = Record<string,number>> {
   readonly state:S;
   private elapsed=0;
@@ -377,6 +379,13 @@ export class ProjectedState<S extends Record<string,number> = Record<string,numb
     ProjectedState.preflight(row);this.state={...row.initial};this.retain=row.retain??Object.fromEntries(Object.keys(row.initial).map(key=>[key,key]));
   }
   value(key:string):number {const value=this.state[key];if(value===undefined)throw new Error('Unknown projection state slot');return value;}
+  /** CI12: the whole continuation as data (its state and its step clock), for a native checkpoint */
+  snapshot():ProjectedSnapshot {return {state:{...this.state},elapsed:this.elapsed};}
+  /** Continue from `saved` (a snapshot of a state of this row): the same state and step clock. */
+  restore(saved:ProjectedSnapshot):void {
+    if(!Number.isFinite(saved.elapsed)||saved.elapsed<0||Object.keys(saved.state).length!==Object.keys(this.row.initial).length)throw new Error('Invalid projection snapshot');
+    this.set(saved.state);this.elapsed=saved.elapsed;
+  }
   set(values:Readonly<Record<string,number>>):void {
     if(Object.entries(values).some(([key,value])=>!Object.hasOwn(this.row.initial,key)||!Number.isFinite(value)))throw new Error('Invalid projection state');
     Object.assign(this.state,values);
