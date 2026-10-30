@@ -351,8 +351,14 @@ function stableBufferNames(builder: unknown, parameters: THREE.WebGLProgramParam
   }
 }
 
-/** the program's active uniforms that the build declares (three's `generateUniformsList`, WebGLUniforms.seqWithValue) */
-function uniformsListOf(program: unknown, uniforms: Record<string, unknown>): unknown[] {
+const NO_MEMBERS: ReadonlySet<string> = new Set();
+/**
+ * the program's active uniforms that the build declares (three's `generateUniformsList`, WebGLUniforms.seqWithValue),
+ * less its plain block members (`plain`): `NodePlainUniforms.bind` sends those after three's material upload on every
+ * draw, so three comparing and sending them too on each material switch was a second upload of the same values
+ * (QC1: Nine's 462 gl.uniform calls a frame against legacy's 245)
+ */
+function uniformsListOf(program: unknown, uniforms: Record<string, unknown>, plain: ReadonlySet<string>): unknown[] {
   const getUniforms: unknown = typeof program === 'object' && program !== null ? Reflect.get(program, 'getUniforms') : null;
   if (typeof getUniforms !== 'function') return [];
   const active: unknown = Reflect.apply(getUniforms, program, []);
@@ -361,7 +367,7 @@ function uniformsListOf(program: unknown, uniforms: Record<string, unknown>): un
   const list: unknown[] = [];
   for (const u of seq) {
     const id: unknown = typeof u === 'object' && u !== null ? Reflect.get(u, 'id') : undefined;
-    if (typeof id === 'string' && id in uniforms) list.push(u);
+    if (typeof id === 'string' && id in uniforms && !plain.has(id)) list.push(u);
   }
   return list;
 }
@@ -1155,7 +1161,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     }
     releaseMaterialReferences(previous.updateNodes, material);
     known.set(program, { uniformsGroups: build.uniformsGroups, uniforms: build.uniforms,
-      uniformsList: uniformsListOf(program, build.uniforms), updateNodes: build.updateNodes });
+      uniformsList: uniformsListOf(program, build.uniforms, this.plainMembers(build.uniformsGroups)), updateNodes: build.updateNodes });
     bindings?.set(program, build.binding);
     this.drawEntries.delete(material);
     Reflect.deleteProperty(material, '_latestBuilder');
@@ -1234,8 +1240,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const inputsNow = binding.inputs;
     if (inputsNow === null) return false;
     let uniformsList: unknown[] | undefined;
+    const plain = this.plainMembers(previous.uniformsGroups);
     known.set(program, { uniformsGroups: previous.uniformsGroups, uniforms,
-      get uniformsList(): unknown[] { uniformsList ??= uniformsListOf(program, uniforms); return uniformsList; }, updateNodes });
+      get uniformsList(): unknown[] { uniformsList ??= uniformsListOf(program, uniforms, plain); return uniformsList; }, updateNodes });
     this.sceneBindings.get(material)?.set(program, { ...binding, inputs: { ...inputsNow, environment: new WeakRef(after) } });
     this.drawEntries.delete(material);
     this.environmentRebinds++;
@@ -1273,11 +1280,11 @@ export class EngineNodesHandler extends WebGLNodesHandler {
           // Pair every identity now, but resolve uniforms only when that variant
           // is selected. Querying a different still-linking program here blocks
           // the current road draw before precompile's readiness fence can run.
-          const uniforms = build.uniforms;
+          const uniforms = build.uniforms, plain = this.plainMembers(build.uniformsGroups);
           let uniformsList: unknown[] | undefined;
           known.set(built, { uniformsGroups: build.uniformsGroups, uniforms,
             get uniformsList(): unknown[] {
-              uniformsList ??= uniformsListOf(built, uniforms);
+              uniformsList ??= uniformsListOf(built, uniforms, plain);
               return uniformsList;
             }, updateNodes: build.updateNodes });
         }
@@ -1339,6 +1346,11 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const draw = { program, entry, groups: entry.uniformsGroups.filter(isBlockGroup),
       linked: typeof WebGLProgram !== 'undefined' && linked instanceof WebGLProgram ? linked : null };
     this.drawEntries.set(material, draw); return draw;
+  }
+
+  /** the plain block members of a build's groups (`uniformsListOf` leaves them to the engine's per-draw upload) */
+  private plainMembers(groups: readonly unknown[]): ReadonlySet<string> {
+    return this.blocks?.members(groups.filter(isBlockGroup)) ?? NO_MEMBERS;
   }
 
   private bindBlocks(material: THREE.Material, program: unknown): void {

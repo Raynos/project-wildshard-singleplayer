@@ -147,6 +147,13 @@ export class NodePlainUniforms {
     for (const group of groups) this.bound(known, group);
   }
 
+  /** The member names `groups` declare as plain uniforms: these uniforms reach their program only through `bind`. */
+  members(groups: readonly BlockGroup[]): ReadonlySet<string> {
+    const out = new Set<string>();
+    for (const group of groups) for (const name of this.names.get(group) ?? []) out.add(name);
+    return out;
+  }
+
   /** Whether this exact physical program already has its uniform catalogue.
    * Reading this proof never queries GL or uploads a value. */
   hasProgram(program: WebGLProgram): boolean { return this.programs.has(program); }

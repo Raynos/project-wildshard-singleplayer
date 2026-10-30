@@ -49,6 +49,15 @@ test('rewrites every std140 block as plain uniforms and names each group member 
   expect(() => plainUniformShader({ vertexShader: VERTEX, fragmentShader: FRAGMENT }, [{ name: 'object', uniforms: [{ value: 0 }] }])).toThrow(/3 members for 1/u);
 });
 
+test('names the members a build declares plain: the classic uniform list leaves them to bind (QC1)', () => {
+  const plain = new NodePlainUniforms(new Gl([]));
+  const object = { name: 'object', uniforms: [{ value: new Vector3() }, { value: new Matrix3() }, { value: 0 }] };
+  const render = { name: 'render', uniforms: [{ value: 0.1 }] }, undeclared = { name: 'other', uniforms: [{ value: 1 }] };
+  plain.declare({ vertexShader: VERTEX, fragmentShader: FRAGMENT }, [object, render]);
+  expect([...plain.members([object, render, undeclared])]).toEqual(['nodeUniform0', 'nodeUniform4', 'nodeUniform5', 'cameraNear']);
+  expect(plain.members([undeclared]).size).toBe(0);
+});
+
 test('uploads each member only when its image differs from what the program holds', () => {
   const gl = new Gl([{ name: 'nodeUniform0', type: VEC3, size: 1 }, { name: 'nodeUniform4', type: MAT3, size: 1 }, { name: 'nodeUniform5', type: UINT, size: 1 },
     { name: 'cameraNear', type: FLOAT, size: 1 }, { name: 'engineNodeBufferData0[0]', type: VEC4, size: 2 }]);
