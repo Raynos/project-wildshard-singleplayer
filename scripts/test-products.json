@@ -1,4 +1,5 @@
 {
+  "test/signal-verb-tape.test.ts": ["sunscar-dunes"],
   "test/pine-door-continuation.test.ts": ["pine-hollow"],
   "test/pine-door-verbs.test.ts": ["pine-hollow"],
   "test/pine-ammunition-verbs.test.ts": ["pine-hollow"],
