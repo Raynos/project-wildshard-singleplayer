@@ -28,6 +28,7 @@ import { defineModel, sharedModelContext, type ModelDef } from '@wildshard/engin
 import { place as placeModel } from '@wildshard/engine/models/place';
 import type { ShardContext } from '../plugin/context';
 import { FigureRows } from '../systems/npc/figureRows';
+import { stepFigureOrbit } from './figureOrbit';
 import { ownQuestTree } from './chapter';
 
 interface Place { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }
@@ -233,14 +234,8 @@ function figureGroup(w: { scope: Scope; sky: SkyRig; registry: WorldRegistry; ch
     return { write, update: (dt: number, t: number, player: THREE.Vector3): void => {
       p.phase += dt;
       const dx = player.x - feet.x, dz = player.z - feet.z, distance = Math.hypot(dx, dz), toYou = Math.atan2(dx, dz);
-      if (orbit !== undefined) {
-        if (distance >= orbit.stopDistance && !p.talking) {
-          p.ring += dt * orbit.speed;
-          const x = orbit.x + Math.cos(p.ring) * orbit.radius, z = orbit.z + Math.sin(p.ring) * orbit.radius;
-          feet.set(x, floorAt(x, z) + Math.abs(Math.sin(p.phase * orbit.frequency)) * orbit.lift, z);
-          p.idleYaw = Math.atan2(-Math.sin(p.ring), Math.cos(p.ring)); anchor.position.copy(feet); anchor.updateMatrixWorld(true);
-        } else feet.y += (floorAt(feet.x, feet.z) - feet.y) * (1 - Math.exp(-10 * dt));
-      }
+      // the walk round the ring is figureOrbit.ts (the Node simulation steps the same numbers); the moving piece follows
+      if (orbit !== undefined && stepFigureOrbit(orbit, p, feet, dt, distance, floorAt)) { anchor.position.copy(feet); anchor.updateMatrixWorld(true); }
       motion.evaluate({ time: t, delta: dt, values: { distance, toYou, talk: Number(p.talking), playerY: player.y,
         decayFace: 1 - Math.exp(-(p.talking ? 5 : 2.5) * dt), decay4: 1 - Math.exp(-4 * dt), decay6: 1 - Math.exp(-6 * dt) } });
       write();
