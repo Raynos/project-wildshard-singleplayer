@@ -213,7 +213,8 @@ export function verifyBootTemplateRoad(result) {
   if (failures.length > 0) throw new Error(`Template checkpoint roundtrip: ${failures.join('; ')}`);
 }
 
-/** Failure-only: compare the small travel readout with the observer's actual owner. */
+/** Failure-only: compare the small travel readout with the observer's actual owner.
+ * @returns {unknown} */
 export function bootRoadCompletionState() {
   const api = window.__wildshard, game = api?.world?.game, grid = api?.shard?.grid;
   /** @param {unknown} value @param {string} key @returns {unknown} */
@@ -226,11 +227,17 @@ export function bootRoadCompletionState() {
   /** @type {unknown} */
   const stop = Reflect.get(window, '__frameFloorGridStop');
   const ids = typeof game?.levelSystemIds === 'function' ? game.levelSystemIds() : null;
-  return {at: performance.now(), timeOrigin: performance.timeOrigin, stop: stop ?? null,
+  const at = performance.now(), lastDrawn = game?.frameRafTime ?? null, ui = game?.app.ui;
+  return {at, timeOrigin: performance.timeOrigin, stop: stop ?? null,
     compact: compact === null ? null : {inside: field(compact, 'inside'), current: field(live, 'current'), ready: field(live, 'gameplayReady'),
       pendingCount: Array.isArray(pending) ? pending.length : null, phase: field(crossing, 'phase')},
     observer: ids === null ? null : {present: ids.includes('harness.walk'), systems: ids.length},
     owner: scope === undefined ? null : {name: scope.name, disposed: scope.disposed, disposing: scope.disposing},
+    view: {coverage: ui?.presentation, still: ui?.still, blocking: ui?.blocking, top: ui?.top,
+      visibility: typeof document === 'undefined' ? null : document.visibilityState,
+      hidden: typeof document === 'undefined' ? null : document.hidden},
+    raf: {ownedRequests: game?.engineScope?.census.rafs ?? null, lastDrawnAt: lastDrawn,
+      sinceLastDrawnMs: lastDrawn === null ? null : at - lastDrawn},
     game: game === undefined ? null : {frame: game.frameCount, state: game.app.state}};
 }
 

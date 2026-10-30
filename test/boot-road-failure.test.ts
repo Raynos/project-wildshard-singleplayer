@@ -40,9 +40,11 @@ test('failure readout samples the real observer and narrow travel state without 
     live:{live:{current:'sunscar-dunes',gameplayReady:true,pending:[]},crossing:{phase:'settled'}}}));
   const systems=vi.fn(() => ['healthy.update']);
   vi.stubGlobal('window',{__frameFloorGridStop:{leg:'boot-signal-road-entry',phase:'travel'},__wildshard:{
-    world:{game:{levelScope:{name:'original-owner',disposed:true,disposing:false},levelSystemIds:systems,frameCount:722,app:{state:'play'}}},
+    world:{game:{levelScope:{name:'original-owner',disposed:true,disposing:false},levelSystemIds:systems,frameCount:722,
+      engineScope:{census:{rafs:0}},frameRafTime:12,app:{state:'play',ui:{presentation:'covered',still:false,blocking:false,top:'hud'}}}},
     shard:{grid:{state:full,travelState:narrow}}}});
   expect(bootRoadCompletionState()).toMatchObject({observer:{present:false,systems:1},owner:{disposed:true},
-    compact:{inside:'sunscar-dunes',current:'sunscar-dunes',ready:true,phase:'settled'},game:{frame:722,state:'play'}});
+    compact:{inside:'sunscar-dunes',current:'sunscar-dunes',ready:true,phase:'settled'},game:{frame:722,state:'play'},
+    view:{coverage:'covered',still:false,top:'hud'},raf:{ownedRequests:0,lastDrawnAt:12}});
   expect(full).not.toHaveBeenCalled();expect(narrow).toHaveBeenCalledOnce();expect(systems).toHaveBeenCalledOnce();
 });
