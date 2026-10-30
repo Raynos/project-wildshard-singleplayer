@@ -6,7 +6,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **Legacy (G882 / G883 / G885 / G891):** legacy-final 91a9eef081; Sky + Signal 3be88b3081, Nalati b592b94008, Driftwood
 019fa6d0c7. **G908: Pine + Nine untouched** (no prep) until Jake's word after his final QA, likely 10-30.
 
-**LIVE 8832a4d-mvv4kw6d (10:27 Cancun; fully green CI 41079261879, auto-shipped). Jake's 07:00 QA build was fe0ca11.** Story margins: Pine memo c510d3e794 + d91517c445, DW pose CSE 420440d2e9, Nalati pipelined replay 04615724cd.
+**LIVE 8832a4d-mvv4kw6d (10:27 Cancun; fully green CI 41079261879, auto-shipped). Jake's 07:00 QA build was fe0ca11.** 
 **Open:** MF7 battery (phone), QB20 thermal (phone), CI2 / 3 / 5 / 6 / 7 / 9 / 10
 remote acceptance, CI12 Nalati (x6, x8, kernels o3 / o4), CI14 pin waves. **QA recheck on HEAD (o5, 95196a14db + QB12 app switch b6b19d5095): every QB row passes, no regressions, QB16 too.** For Jake: MF13 'Refine dither' phone check (ready: Sim Nine dither-on longest loader frame 110 ms, was 2.25 s; 9165621261); QB17 zip video
 tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
@@ -17,7 +17,8 @@ tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 - G953-G956: x8 deletes 5 more rows + debug-flags lint fix (4cb6f34ccc).
 - EP8 Nine crowd dye merge (o5, c95ce392e0, board 3eea4b0b67): B = A (only poses differ), so B ships (G941); crowd 24-26 -> 14 draws.
 - PF4 -> EP7; PF8 parked; PF3 cache skipped (one cascade, ~0.15 ms). PF1 + PF2: Pine spawn 165 -> 109 draws.
-- NF2 closed at 77 (load-time family warms); EP3 / NF22 not built (plain sort worse; needs NF13's per-draw key).
+- NF2 closed at 77; EP3 / NF22 not built (needs NF13's per-draw key).
+- Channel compiler dropped: the only exact 2.7x win needs new Function, which lint forbids (no-new-func); the interpreter stays, no guard exception.
 - NT7 (x8): the existing all-product checkTileBake ratchet stays; NT7 adds advisory tables + a Nine-only blocking baseline. wildshard-v: did G950 mean to replace the old cap?
 - PF1 batched default 8a59427b63 (board art/pine-hollow/pf1-graph-batches/, G952 note: recommend B); Pine spawn 165 -> 121 draws.
 
