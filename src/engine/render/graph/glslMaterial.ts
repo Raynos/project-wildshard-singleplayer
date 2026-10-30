@@ -256,7 +256,13 @@ export function compileClassicGraph(input: unknown, opts: ClassicGraphOptions = 
     material.shadowDepth = depth; material.userData['graphShadowDepth'] = true; depthOwners.add(material);
   }
   const uniformsOf = (name: string): THREE.IUniform | undefined => fogOwn?.get(name) ?? shared.get(name);
-  const param = (name: string): string | undefined => glsl.uniforms.find(u => (u.from === 'param' || u.from === 'texture' || u.from === 'array') && u.param === name)?.name;
+  // the runtime feeds write params every frame (NF15 P4: a scan per write cost 0.18 ms a frame): by name, once
+  const paramNames = new Map(glsl.uniforms.flatMap(u => (u.from === 'param' || u.from === 'texture' || u.from === 'array' ? [[u.param, u.name] as const] : [])));
+  const param = (name: string): string | undefined => paramNames.get(name);
+  const inRange = (name: string, n: number, min: number | undefined, max: number | undefined): void => {
+    if (!Number.isFinite(n)) throw new Error(`material graph: param ${name} must be finite`);
+    if ((min !== undefined && n < min) || (max !== undefined && n > max)) throw new Error(`material graph: param ${name} outside declared range`);
+  };
   return {
     material, glsl, cost: glsl.cost, bindings: glsl.bindings, selects: glsl.program?.selects ?? { light: 0, branch: 0 }, outline, depth,
     fog: fogOwn === null ? null : { glsl, uniforms: fogOwn },
@@ -265,17 +271,14 @@ export function compileClassicGraph(input: unknown, opts: ClassicGraphOptions = 
       if (p === undefined || p.type === 'texture') throw new Error(`material graph: no param ${name}`);
       const length = p.type === 'vec2' ? 2 : p.type === 'vec4' ? 4 : 3;
       if (p.type === 'float' ? typeof value !== 'number' : typeof value === 'number' || value.length !== length) throw new Error(`material graph: param ${name} type mismatch`);
-      for (const n of typeof value === 'number' ? [value] : value) {
-        if (!Number.isFinite(n)) throw new Error(`material graph: param ${name} must be finite`);
-        if ((p.min !== undefined && n < p.min) || (p.max !== undefined && n > p.max)) throw new Error(`material graph: param ${name} outside declared range`);
-      }
+      if (typeof value === 'number') inRange(name, value, p.min, p.max); else for (const n of value) inRange(name, n, p.min, p.max);
       const uniform = uniformsOf(param(name) ?? '');
       // a param no stage reads has no uniform: nothing draws it
       if (uniform === undefined) return;
-      const target: unknown = uniform.value, a = typeof value === 'number' ? [value] : value;
-      if (target instanceof THREE.Color) target.setRGB(a[0] ?? 0, a[1] ?? 0, a[2] ?? 0, THREE.SRGBColorSpace);
-      else if (target instanceof THREE.Vector2 || target instanceof THREE.Vector3 || target instanceof THREE.Vector4) target.fromArray(a);
-      else uniform.value = a[0] ?? 0;
+      const target: unknown = uniform.value;
+      if (typeof value === 'number') uniform.value = value;
+      else if (target instanceof THREE.Color) target.setRGB(value[0] ?? 0, value[1] ?? 0, value[2] ?? 0, THREE.SRGBColorSpace);
+      else if (target instanceof THREE.Vector2 || target instanceof THREE.Vector3 || target instanceof THREE.Vector4) target.fromArray(value);
     },
     setTexture(name, texture) {
       if (ir.params?.[name]?.role !== 'lent') throw new Error(`material graph: no sampled lent texture ${name}`);
