@@ -5,3 +5,8 @@ export function walkingSpeed(crouching: boolean, sprinting: boolean, wadeFractio
 }
 /** The wade's share of the on-foot speed (walkingSpeed's depth term): a host with its own base speed scales it by this. */
 export function wadeScale(wadeFraction: number): number { return 1 - 0.55 * wadeFraction; }
+
+/** The page's horizontal velocity approach, including its original operation order. */
+export function walkVelocity(current: number, target: number, acceleration: number, dt: number): number {
+  return current + (target - current) * Math.min(1, acceleration * dt);
+}

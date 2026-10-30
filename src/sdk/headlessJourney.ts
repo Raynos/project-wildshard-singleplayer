@@ -4,6 +4,7 @@ import type { HeadlessCommand } from './tickProtocol';
 import type { SimHost } from '@wildshard/engine/sim';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
+import { walkingSpeed } from '@wildshard/engine/player/walk';
 
 export interface WalkPoint { readonly x:number;readonly z:number;readonly jump?:boolean|number;readonly jumpAt?:number }
 export interface WalkStall { readonly tick:number;readonly waypoint:number;readonly x:number;readonly y:number;readonly z:number }
@@ -99,6 +100,9 @@ export function runHeadlessJourney(host:SimHost,step:(commands:readonly Headless
     const p=host.player.position;if(![p.x,p.y,p.z].every(Number.isFinite))throw new Error('Journey produced invalid feet');
   };
   const preparationTicks=plan.start===undefined?0:36;
+  const walking={speed:walkingSpeed(false,false,0,1,1),crouching:false,clientMotion:{x:0,z:0}};
+  const releaseWalk=host.usePlayerDriver({walking,input:()=>false,step:()=>undefined});
+  try {
   if(plan.start!==undefined){
     const start=plan.start,p=host.player.position,ground=host.groundHeightAt(start.x,start.z);
     const floor=start.y??Math.max(ground,floorBelow(host.physics,start.x,start.z,ground+2.5,2.6,host.player.motor.collider)??ground);
@@ -124,4 +128,5 @@ export function runHeadlessJourney(host:SimHost,step:(commands:readonly Headless
   const p=host.player.position;
   return {ticks,preparationTicks,settledTicks,complete:cursor.complete,out,distance,visited:cursor.visited,traversals:cursor.traversals,stuck:cursor.stuck,
     final:{tick:host.state.tick,position:[p.x,p.y,p.z],grounded:host.player.motor.snapshot().result.grounded},maxTickMicros};
+  } finally { releaseWalk(); }
 }

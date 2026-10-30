@@ -3188,6 +3188,11 @@ frozen, disposed and duplicate bindings refuse; the returned remover releases th
 The installer registers its mutable clocks/native handles through a `SimStateAdapter` and reinstalls
 both before restore; `physicsRestored` reconnects its handles after the native world is replaced.
 An absent driver adds no continuation fields and preserves the original snapshot bytes.
+The optional `walking.clientMotion` velocity pair opts into the page's shared horizontal
+acceleration and gravity law; its supplied speed receives the same wading factor. The
+driver owns this mutable pair and its continuation. Physics route proofs bind it only
+for the bounded walk and release it before publishing a checkpoint or propagating a
+refusal. Without it, the ordinary simulation motion keeps its existing law.
 `observePlayerMotion(receive)` supplies one owned host's combat velocity input before gameplay callbacks.
 The native walk samples commanded, shove or dash velocity before the motor, excluding transient impulses;
 ground and hover state are post-move. Board motion uses its velocity. A delegated driver's optional

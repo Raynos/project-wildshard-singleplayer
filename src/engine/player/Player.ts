@@ -1,6 +1,6 @@
 import { hoverSpeed } from './hoverSpeed';
 import { isDev } from '../core/devMode';
-import { walkingSpeed } from './walk';
+import { walkingSpeed, walkVelocity } from './walk';
 import { deepWater, entryKeep, NO_SPRINT_DEPTH, pondBob, stepSwim, swimEntry, swimStroke, wadeFraction, type SwimPorts } from './swim';
 import { combatSpeedFactor } from './combatMotion';
 import { boardShoved, HOVER_HARD_LANDING, stepBoard, type BoardStepOut } from './board';
@@ -595,8 +595,8 @@ export class Player {
         // the spot; the last step brakes, so a lunge stops where it aimed
         stepDash(this.dashState, dt, this.position.x, this.position.z, (x, z) => this.deepAt(x, z), this.velocity);
       } else {
-        this.velocity.x += (wx - this.velocity.x) * Math.min(1, accel * dt);
-        this.velocity.z += (wz - this.velocity.z) * Math.min(1, accel * dt);
+        this.velocity.x = walkVelocity(this.velocity.x, wx, accel, dt);
+        this.velocity.z = walkVelocity(this.velocity.z, wz, accel, dt);
       }
 
       // the jump (player/jump.ts): on the ground or in the coyote window, else the double jump; wading saps the push-off

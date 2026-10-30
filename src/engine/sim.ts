@@ -22,7 +22,7 @@ import { boardShoved, HOVER_HARD_LANDING, stepBoard, type BoardPorts, type Board
 import { hoverSpeed } from './player/hoverSpeed';
 import { COYOTE_MS, JUMP_SPEED, jump as jumpLaw, jumpClock, jumpSpeed, type JumpState } from './player/jump';
 import { deepWater, entryKeep, pondBob, stepSwim, swimEntry, swimStroke, wadeFraction, type SwimPorts, type SwimState } from './player/swim';
-import { wadeScale } from './player/walk';
+import { wadeScale, walkVelocity } from './player/walk';
 import { modeCollides, PlayerModes, type ModePlayer } from './player/modes';
 import { DODGE_DIST, DODGE_TIME, dashBlocked, dashToward, dodgeHeading, startDash, startDodge, stepDash, stepDodge, type DashState, type DodgeState } from './player/dash';
 import { floorBelow } from './physics/query';
@@ -78,7 +78,12 @@ export interface SimCommand extends LocalMovementCommand {
   dive?: boolean; surface?: boolean;
 }
 /** Resident on-foot tuning supplied by an owned driver; the ordinary native motor, fall and jump remain authoritative. */
-export interface SimWalkingControl { readonly speed: number; readonly crouching: boolean }
+export interface SimWalkingControl {
+  readonly speed: number; readonly crouching: boolean;
+  /** Opt into the page's acceleration and gravity law. The driver owns this
+   * velocity continuation and must reset or restore it with its own lifetime. */
+  readonly clientMotion?: { x: number; z: number };
+}
 /** Combat's motion input, not corrected displacement. Delegated movement owns these same scalar observations. */
 export interface SimPlayerMotionSample {
   readonly velocityX: number; readonly velocityZ: number;
@@ -776,6 +781,7 @@ export class SimHost {
     if (observeMotion !== undefined) { observeMotion.sample.velocityX = 0; observeMotion.sample.velocityZ = 0; }
     const walking = delegated ? undefined : driver?.walking;
     if (walking !== undefined && (!Number.isFinite(walking.speed) || walking.speed < 0 || typeof walking.crouching !== 'boolean')) throw new RangeError('Invalid walking control');
+    if (walking?.clientMotion !== undefined && ![walking.clientMotion.x, walking.clientMotion.z].every(Number.isFinite)) throw new RangeError('Invalid client walking velocity');
     // the HOVER press lands in the ordinary input phase; an active alternative driver owns its own motion switches
     if (!delegated && command?.hover === true) this.setBoard(!this.playerBoard.on);
     if (this.boardHandles.length > 0) this.syncBoardColliders();
@@ -806,8 +812,16 @@ export class SimHost {
         if (command === undefined) this.wanted.set(0, 0, 0);
         else {
           this.player.yaw = command.yaw;
-          const speed = walking?.speed ?? (water === undefined ? this.level.player.speed : this.level.player.speed * wadeScale(wadeT));
+          const speed = walking === undefined ? (water === undefined ? this.level.player.speed : this.level.player.speed * wadeScale(wadeT))
+            : walking.speed * (walking.clientMotion === undefined ? 1 : wadeScale(wadeT));
           this.wanted.set(command.moveX, 0, command.moveZ).clampLength(0, 1).multiplyScalar(speed * FIXED_STEP);
+        }
+        const clientMotion = walking?.clientMotion;
+        if (clientMotion !== undefined) {
+          const acceleration = fall.grounded ? 14 : 3;
+          clientMotion.x = walkVelocity(clientMotion.x, this.wanted.x / FIXED_STEP, acceleration, FIXED_STEP);
+          clientMotion.z = walkVelocity(clientMotion.z, this.wanted.z / FIXED_STEP, acceleration, FIXED_STEP);
+          this.wanted.x = clientMotion.x * FIXED_STEP; this.wanted.z = clientMotion.z * FIXED_STEP;
         }
         if (knocked.t > 0) {
           // knocked back: the shove overrides the walk and fades out; the motor stops it at a wall
@@ -832,7 +846,7 @@ export class SimHost {
           const vy = jumpLaw(this.playerJump, fall.grounded, fall.vy, COYOTE_MS, walking?.crouching === true, water === undefined ? JUMP_SPEED : jumpSpeed(wadeT));
           if (vy !== null) { fall.vy = vy; fall.grounded = false; this.events.emit('player.jump', true); }
         }
-        const standing = fall.grounded && fall.vy === 0 && (this.wanted.x !== 0 || this.wanted.z !== 0);
+        const standing = clientMotion === undefined && fall.grounded && fall.vy === 0 && (this.wanted.x !== 0 || this.wanted.z !== 0);
         if (!standing) fall.vy = fallStep(fall.vy, FIXED_STEP);
         this.wanted.y += fall.vy * FIXED_STEP;
         // The page carries its grounded feet with a moving deck after the
