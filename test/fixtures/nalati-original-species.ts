@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Native compilation stays outside DOM workers and their globals.
-import { execFileSync } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Observe native oracle preparation without blocking independent compilation.
+import { promisify } from 'node:util';
 // oxlint-disable-next-line import/no-nodejs-modules -- Every immutable test cache loan is checked against complete original pins.
 import { existsSync, readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep the frozen oracle beneath repository tmp.
@@ -27,6 +29,19 @@ export function originalSpeciesFiles(directory = `tmp/nalati-original-species/${
     files.set(name, bytes);
   }
   return files;
+}
+
+/** Start the independent source-built oracle while the caller constructs its
+ * cold candidate. Every hit still reads and checks the complete five files;
+ * failed preparation never falls back to another child or unchecked bytes. */
+export async function prepareOriginalSpeciesFiles(directory = `tmp/nalati-original-species/${original.sha256}`): Promise<ReadonlyMap<string, Uint8Array<ArrayBuffer>>> {
+  const root = resolve(directory);
+  if (!existsSync(root)) {
+    await promisify(execFile)(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs',
+      'test/fixtures/prepare-nalati-original-species.ts', root]);
+    if (!existsSync(root)) throw new Error('Original species preparation did not publish');
+  }
+  return originalSpeciesFiles(root);
 }
 
 let prepared: ReadonlyMap<string, Uint8Array<ArrayBuffer>> | undefined;

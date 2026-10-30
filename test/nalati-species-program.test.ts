@@ -21,7 +21,7 @@ test('cold, persistent and rebuilt species preserve all five original files and 
     import {createProjectGeneration} from './src/sdk/projectGeneration.ts';
     import {hashImmutableBytes} from './src/sdk/immutable.ts';
     import {nalatiSpeciesProgram} from './src/shards/nalati-grasslands/generators/speciesProgram.ts';
-    import {originalSpeciesFile} from './test/fixtures/nalati-original-species.ts';
+    import {originalSpeciesFile,prepareOriginalSpeciesFiles} from './test/fixtures/nalati-original-species.ts';
     const pins=JSON.parse(readFileSync('test/fixtures/nalati-species-files.json','utf8'));
     const names=['species.json','bodies.bin','boot.json','held-weapons.wasm','held-witness.bin'];
     const cache=mkdtempSync(resolve('tmp/nalati-species-program-'));
@@ -43,8 +43,12 @@ test('cold, persistent and rebuilt species preserve all five original files and 
         assert.equal(Buffer.compare(bytes,originalSpeciesFile(names[i])),0,pin.path);
       }
     };
+    // Observe rejection immediately while independent cold compilation runs.
+    const oracle=prepareOriginalSpeciesFiles().then(files=>({files}),error=>({error}));
     try{
-      const cold=await build(context('a'));check(cold);assert.equal(constructions,1);assert.equal(admissions,1);
+      const cold=await build(context('a'));
+      const original=await oracle;if('error' in original)throw original.error;
+      check(cold);assert.equal(constructions,1);assert.equal(admissions,1);
       const before=new Map([...cold].map(([name,bytes])=>[name,bytes.slice()]));
       for(const bytes of cold.values())bytes.fill(0);
       const warm=await build(context('a'));check(warm);assert.equal(constructions,1);assert.equal(admissions,1);
@@ -68,7 +72,9 @@ test('cold, persistent and rebuilt species preserve all five original files and 
           return make(bytes);
         }}),/Missing original species input/);
       }
-    }finally{rmSync(cache,{recursive:true,force:true});}
+      // An existing malformed oracle is a refusal, never another compile.
+      await assert.rejects(prepareOriginalSpeciesFiles(cache),/ENOENT/);
+    }finally{await oracle;rmSync(cache,{recursive:true,force:true});}
   `;
   execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source]);
 });
