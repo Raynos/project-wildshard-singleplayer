@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { BufferGeometry, DataTexture, DoubleSide, Group, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshStandardMaterial, PerspectiveCamera, Scene, SkinnedMesh } from 'three';
+import { BatchedMesh, BufferGeometry, DataTexture, DoubleSide, Group, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshStandardMaterial, PerspectiveCamera, Scene, SkinnedMesh } from 'three';
 import { Scope } from '../app/scope';
 import { AssetService } from '../app/assets';
 import { ownSceneTree, sceneResourceOwner } from '../app/sceneOwnership';
@@ -108,6 +108,11 @@ test('instanced casters get a depth material per kind and depth facts; plain and
   const twin = new InstancedMesh(geometry, new MeshStandardMaterial({ map: filler }), 3); shadowDraw(twin);
   expect(twin.customDepthMaterial).toBe(instanced.customDepthMaterial);
   expect(assets.has('renderer:shadow-kind:instanced|map+side0')).toBe(true);
+  // PF3: a batch takes a kind of its own (three's batching parameters), never the instanced one
+  const batch = new BatchedMesh(1, 3, 3, pbr); shadowDraw(batch);
+  expect(batch.customDepthMaterial).toBeInstanceOf(MeshDepthMaterial);
+  expect(batch.customDepthMaterial).not.toBe(instanced.customDepthMaterial);
+  expect(assets.has('renderer:shadow-kind:batched|map+side0')).toBe(true);
   page.dispose(); filler.dispose();
 });
 

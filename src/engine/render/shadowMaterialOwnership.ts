@@ -1,4 +1,4 @@
-import { InstancedMesh, Material, MeshDepthMaterial, MeshDistanceMaterial, SkinnedMesh, type Object3D } from 'three';
+import { BatchedMesh, InstancedMesh, Material, MeshDepthMaterial, MeshDistanceMaterial, SkinnedMesh, type Object3D } from 'three';
 import type { Renderer } from './renderer';
 import type { AssetService } from '../app/assets';
 import type { Scope } from '../app/scope';
@@ -11,7 +11,7 @@ type ShadowRenderer = Pick<Renderer, 'renderBufferDirect'> & { shadowMap: Pick<R
 /**
  * js-heap H1: three's shadow pass draws every caster without a depth material of its own with ONE stock
  * MeshDepthMaterial. Plain, instanced and skinned casters ask it for different programs (its instancing and skinning
- * parameters), so it re-evaluated its program (getParameters, ~100 fields, and the key string) at every change of kind:
+ * parameters, and a batch's batching), so it re-evaluated its program (getParameters, ~100 fields, and the key string) at every change of kind:
  * three times a frame on the idle Template, the page's biggest idle allocation. A classic caster that is instanced or
  * skinned now draws its shadow with a depth material shared by its kind (its first shadow draw assigns it as the
  * caster's `customDepthMaterial`), so each depth material always sees one kind. Program keys do not name the material,
@@ -25,8 +25,11 @@ type ShadowRenderer = Pick<Renderer, 'renderBufferDirect'> & { shadowMap: Pick<R
  */
 function depthKind(object: Object3D): string | null {
   // a plain caster has no kind: answered before any fact string is built (this runs for it on every shadow draw)
+  // PF3: a batched caster too (three's batching parameters): Pine's phone shadow pass alternated batches and plain meshes on
+  // the stock material, re-evaluating its program ~7 times a frame (0.38 ms of a 2.4 ms pass at Chromium 4x)
   const base = object instanceof InstancedMesh ? `instanced${object.instanceColor === null ? '' : '+colour'}${object.morphTexture === null ? '' : '+morph'}`
-    : object instanceof SkinnedMesh ? 'skinned' : null;
+    : object instanceof SkinnedMesh ? 'skinned'
+    : object instanceof BatchedMesh ? `batched${Reflect.get(object, '_colorsTexture') === null ? '' : '+colour'}` : null;
   if (base === null) return null;
   const own: unknown = Reflect.get(object, 'material');
   const materials: readonly unknown[] = Array.isArray(own) ? own : [own];
