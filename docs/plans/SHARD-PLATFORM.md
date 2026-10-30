@@ -72,7 +72,7 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | [qa 10-30 (1)](shard-platform/qa-2026-10-30-mini-plan.md) (Jake's phone QA before the legacy deletion) | G932 | **open** 10-30: QC1 Nine late textures + 7–19 fps, QC2 SHARD SELECT loads Driftwood; blocks the archive |
 | [nine-fix](shard-platform/nine-fix-mini-plan.md) (Nine Dragon fixed properly, E512) | E512, G934–G942 | **open** 10-30, grilled: NF1–NF9 relief (whole cell, coarse programs, movers, painted facades, re-cull, far dressing, neon), NF10–NF12 tile slabs, NF13–NF18 graphs compile to GLSL and TSL leaves the runtime |
 | [pine-fps](shard-platform/pine-fps-mini-plan.md) (Pine Hollow fps way better, E514) | E514, G936 / G937 | **open** 10-30, grilled: PF1 batched trees back, PF3 cached shadows, PF5 / PF6 system ticks, PF8 hidden rigs, PF10 Pine's share of nine-fix GLSL; bar ≤ 12 / ≤ 16 ms at Chromium 4x |
-| [engine performance draft](ENGINE-PERFORMANCE-DRAFT.md) (can the shardfile engine batch like Unreal? E515) | G934, G935, G940 | **draft** 10-30: verdict keep the format and fix the runtime (G934); EP1–EP3 + EP9 start now, EP4 = nine-fix NF13–NF18, EP6–EP8 batch stage after GLSL (G940) |
+| [engine-performance](shard-platform/engine-performance-mini-plan.md) (can the shardfile engine batch like Unreal? E515) | G934, G935, G943 | **open** 10-30: keep the format, fix the runtime (G934); every row now, the batch stage (EP6–EP8) in parallel with GLSL (EP4 = nine-fix NF13–NF18) (G943) |
 | [reload-simplify](../../project/archive/2026-10-30-reload-simplify.md) (RELOAD just reloads; one boot screen; nothing downloaded twice) | G879 | **archived** 10-30 (all rows done) 10-29: RL1–RL9 (Jake 13:45: *"reload should just reload the page … delete 90% of it"*); carries QB1/QB3/QB4/QB9; G881 no checksums on cache reads; blocks the archive |
 | [FOUNDATIONS](../../project/archive/2026-10-30-foundations.md) (the zoom-out: six broken families, rewrites, the bars) | G886–G890 | **archived** 10-30 (all rows done) 10-29: MF1–MF7 before Jake's next phone QA, superseding most QB / RL / DA / NP rows; waves 2–3 (MF8–MF20) after |
 | [frame-cost](../../project/archive/2026-10-30-frame-cost.md) (draw only when seen; every frame cheaper) | G909 | **archived** 10-30 (all rows done) 10-29: FC1–FC15 (FC1–FC6 first in wave 1 with MF7); blocks the archive |
@@ -542,7 +542,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G942+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G943+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.

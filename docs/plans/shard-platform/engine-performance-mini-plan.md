@@ -1,6 +1,6 @@
-# Engine performance: can the shardfile engine batch like Unreal?
+# Engine performance: batch like Unreal, a stable 30 on the phone
 
-**State:** `draft` 2026-10-30, written by wildshard-v's research subagent; grilled 13:00–13:15 (G934 keep the format and fix the runtime, G935 GLSL Nine first, G936 forest / crags batch again, G937 the bar below legacy, G940 the batch stage after GLSL). EP1–EP3 and EP9 may start now. Ask E515. Jake's words:
+**State:** `open` 2026-10-30 ~13:35 Cancun (G943). Written by wildshard-v's research subagent; grilled 13:00–13:15 (G934 keep the format and fix the runtime, G935 GLSL Nine first, G936 forest / crags batch again, G937 the bar below legacy). **G943 (Jake, 13:35): every row starts now, the batch stage in parallel with the GLSL back-end; supersedes G940.** Jake: *"Let's do the shader switches and the Unreal style batching. Let's just fucking do it. Let's just do it properly. Let's just get the performance up. There's no point in having this if we can't have a stable 30 FPS on the phone."* Ask E515. Jake's words:
 *"Once all the mini plans are done, put them all in an artifact each and show them to me. And then we do the grilling,
 the brainstorming, the questions. I really want to push hard on this. I don't want these regressions. It sounds like
 the shard files are harder to optimize, harder to use the bulk drawing and the smart stuff. A lot of the things are
@@ -12,8 +12,8 @@ that sub-agent can convince me that it is. Maybe we can just fix it. Bonus point
 in that draft plan finds any low-hanging fruit that would impact Pinewood and Nine Dragon and overlap with the Pinewood
 and Nine Dragon mini plans, we can slam those into the mini plans, just the low-hanging fruit component."*
 
-Related plans: [nine-fix](shard-platform/nine-fix-mini-plan.md) (NF rows), pine-fps (`shard-platform/pine-fps-mini-plan.md`,
-being written), [three r187, dropped G938](../../project/archive/2026-10-30-three-r187.md), [qa 10-30](shard-platform/qa-2026-10-30-mini-plan.md)
+Related plans: [nine-fix](nine-fix-mini-plan.md) (NF rows), pine-fps (`shard-platform/pine-fps-mini-plan.md`,
+being written), [three r187, dropped G938](../../../project/archive/2026-10-30-three-r187.md), [qa 10-30](qa-2026-10-30-mini-plan.md)
 QC1 / QC4. This draft does not repeat their rows. It names them where they are the fix.
 
 ## 1. The verdict
@@ -96,8 +96,8 @@ Pine shardfile 80 µs (Pine's lit PBR programs cost more per draw in both modes)
    (`node_modules/three/src/renderers/webgl/WebGLRenderLists.js` `painterSortStable`), so one program can be switched
    to several times a frame: Pine SHARDFILE switches programs 98 times for 66 programs.
 5. **"Hundreds of hosts, thousands of sections" never reach the frame.** Measured: 387 custom and named sections
-   (472 identities, 33.6 MB) over six shards, 63 section kinds, and 250 modules named as hosts ([custom sections](host-audit/custom-sections-mini-plan.md),
-   [HOST-AUDIT](HOST-AUDIT.md)). At frame time Nine shardfile's 157 draws come from 45 owners, against legacy's 68.
+   (472 identities, 33.6 MB) over six shards, 63 section kinds, and 250 modules named as hosts ([custom sections](../host-audit/custom-sections-mini-plan.md),
+   [HOST-AUDIT](../HOST-AUDIT.md)). At frame time Nine shardfile's 157 draws come from 45 owners, against legacy's 68.
    The sections are decode-and-build work at load time. That is a real cost, but a loading-screen cost, not a frame cost.
 
 **Structural or incidental?** Incidental to the format, structural to the runtime. Nothing in the data model forces a
@@ -110,7 +110,7 @@ Each one can be changed without touching a shard.
 WebGL2 on iOS Safari has instancing, MRT, integer and float textures, `sampler2DArray`, UBOs, `gl_VertexID` /
 `gl_InstanceID`, occlusion queries and `WEBGL_multi_draw`. It has no compute, no indirect draws, no bindless and no
 64-bit atomics. On iOS, ANGLE-Metal re-encodes uniform blocks on every draw (the 10-20 finding behind `ea0ab7baa9`).
-Facade multi-draw is banned everywhere (E271 / E272, [the incident](../audits/nine-dragon-mobile-multidraw.md)).
+Facade multi-draw is banned everywhere (E271 / E272, [the incident](../../audits/nine-dragon-mobile-multidraw.md)).
 
 | Technique (Unreal name) | WebGL2 + iOS | Our state | What it would need |
 |---|---|---|---|
