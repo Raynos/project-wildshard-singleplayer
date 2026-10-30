@@ -5,6 +5,7 @@ import { presenting } from '../core/framePacing';
 import type { Renderer } from './renderer';
 import { retainCompressedMipmaps, assertCompressedMipmapsUnchanged, compressedTextureKey } from './compressedMipmaps';
 import { installCompressedTextureRetirement } from './compressedTextureRetirement';
+import { sharedUploadPaint } from './sharedUploadPaint';
 
 /** The actual renderer operations needed to isolate a compressed texture upload. */
 type UploadTarget = Pick<Renderer, 'initTexture' | 'getContext' | 'properties' | 'renderBufferDirect'>;
@@ -22,10 +23,10 @@ const states = new WeakMap<UploadTarget, UploadState>();
 const frame = (): Promise<void> => new Promise(resolve => {
   pageScope.raf(() => { pageScope.timeout(0, resolve); });
 });
-// CI9: back-to-back uploads shared no paint: each waited for one after its own upload and another before the next, two
-// frames per texture (Pine's ~150 boot textures: ~300 frames, ~5 s on a 60 Hz desktop and the Explorer's first canvas).
-// One paint between two uploads keeps them in different frames; a later upload, or one after other tasks ran, still
-// waits for its own paint before.
+// CI9 (Debug ▸ Loading ▸ Shared upload paint, default off): back-to-back uploads share no paint: each waits for one after
+// its own upload and another before the next, two frames per texture (Pine's ~150 boot textures: ~300 frames, ~5 s on a
+// 60 Hz desktop and the Explorer's first canvas). With the row on, one paint between two uploads keeps them in different
+// frames; a later upload, or one after other tasks ran, still waits for its own paint before.
 const paintedThisTask = (queue: UploadState): void => {
   const task = {}; queue.painted = task;
   pageScope.timeout(0, () => { if (queue.painted === task) queue.painted = null; });
@@ -75,7 +76,8 @@ export function uploadCompressedTexture(renderer: UploadTarget, texture: THREE.T
   catch (error) { return Promise.reject(error instanceof Error ? error : new Error(String(error))); }
   const promise = queue.tail.then(async () => {
     check();
-    if (queue.painted !== null) queue.painted = null; else await frame();
+    const shared = queue.painted !== null; queue.painted = null;
+    if (!shared) await frame();
     check();
     // Another caller or a draw may have uploaded this version while it waited in the queue.
     if (resident()) return undefined;
@@ -102,7 +104,7 @@ export function uploadCompressedTexture(renderer: UploadTarget, texture: THREE.T
     const error = checked ? gl.getError() : gl.NO_ERROR;
     if (error !== gl.NO_ERROR) throw fail(error, 'after');
     queue.failed.delete(texture);
-    await frame(); paintedThisTask(queue); check();
+    await frame(); if (sharedUploadPaint()) paintedThisTask(queue); check();
     return undefined;
   });
   queue.pending.set(texture, { version, signature, promise });
