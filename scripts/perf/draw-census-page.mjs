@@ -1,0 +1,100 @@
+/** Browser-serialized census. Baseline reads native completed-frame counters;
+ * attribution wraps submissions only in a separate diagnostic window.
+ * @param {{frames: number, attribution: boolean}} options */
+export function drawFrames({ frames, attribution }) {
+  const api = window.__wildshard, world = api?.world, game = world?.game;
+  if (!game || !world.hud.entered || world.hud.paused || !game.frameGate()) throw new Error('Census requires uncovered, entered controls');
+  const renderer = game.renderer, gl = renderer.getContext();
+  const restores = [], results = [];
+  let bucket, current = null, shadow = 0, pass = 'outside-composer', started = false, last = game.frameCount;
+  let program = gl.getParameter(gl.CURRENT_PROGRAM), nextProgram = 0;
+  const programs = new Map();
+  const programId = () => {
+    if (program === null) return null;
+    if (!programs.has(program)) programs.set(program, ++nextProgram);
+    return programs.get(program);
+  };
+  const fresh = () => ({ draws: [], useProgram: 0, uniforms: 0, glCalls: 0 });
+  const replace = (object, name, wrap) => {
+    const original = Reflect.get(object, name), descriptor = Object.getOwnPropertyDescriptor(object, name);
+    if (typeof original !== 'function') throw new Error(`Missing census port ${name}`);
+    if (!Reflect.set(object, name, wrap(original))) throw new Error(`Cannot instrument census port ${name}`);
+    restores.push(() => { if (descriptor) Object.defineProperty(object, name, descriptor); else Reflect.deleteProperty(object, name); });
+  };
+  const submission = (count, method) => {
+    if (!bucket) return;
+    bucket.glCalls++;
+    if (!Number.isSafeInteger(count) || count < 0) throw new Error('Invalid native draw count');
+    const target = renderer.getRenderTarget();
+    bucket.draws.push({ ...current, owner: current?.owner ?? '(unattributed)', method, count: 1, subDraws: count, program: programId(),
+      pass: shadow > 0 ? 'shadow' : target === null ? 'screen' : 'render-target', composerPass: pass });
+  };
+  if (attribution) {
+    try {
+      replace(renderer, 'renderBufferDirect', original => function censusCall(...args) {
+        const previous = current, geometry = args[2], material = args[3], object = args[4], chain = [];
+        for (let node = object; node; node = node.parent) chain.push(node.name === '' ? node.type : node.name);
+        current = { owner: chain.reverse().join('>'), object: object.type, material: material.type,
+          materialId: material.uuid, geometryId: geometry.uuid, instances: object.isInstancedMesh ? object.count : 1,
+          nodeMaterial: material.isNodeMaterial === true, skinned: object.isSkinnedMesh === true };
+        try { return Reflect.apply(original, this, args); } finally { current = previous; }
+      });
+      replace(renderer.shadowMap, 'render', original => function censusCall(...args) {
+        shadow++; try { return Reflect.apply(original, this, args); } finally { shadow--; }
+      });
+      for (const [index, item] of game.composer.passes.entries()) replace(item, 'render', original => function censusCall(...args) {
+        const previous = pass; pass = `${index}:${typeof item.name === 'string' && item.name !== '' ? item.name : item.constructor.name}`;
+        try { return Reflect.apply(original, this, args); } finally { pass = previous; }
+      });
+      replace(gl, 'useProgram', original => function censusCall(...args) {
+        program = args[0]; if (bucket) bucket.useProgram++;
+        return Reflect.apply(original, this, args);
+      });
+      // WebGL2 inherits scalar uniform methods from WebGLRenderingContext.
+      const names = new Set();
+      for (let prototype = gl; prototype; prototype = Object.getPrototypeOf(prototype)) for (const name of Object.getOwnPropertyNames(prototype)) names.add(name);
+      for (const name of names) if (/^uniform(?:Matrix)?[1234]/u.test(name)) replace(gl, name, original => function censusCall(...args) {
+        if (bucket) bucket.uniforms++; return Reflect.apply(original, this, args);
+      });
+      for (const name of ['drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced', 'drawRangeElements']) replace(gl, name, original => function censusCall(...args) {
+        const value = Reflect.apply(original, this, args); submission(1, name); return value;
+      });
+      const extension = gl.getExtension('WEBGL_multi_draw');
+      if (extension) for (const [name, offset] of [['multiDrawElementsWEBGL', 6], ['multiDrawArraysWEBGL', 5], ['multiDrawElementsInstancedWEBGL', 8], ['multiDrawArraysInstancedWEBGL', 7]]) {
+        replace(extension, name, original => function censusCall(...args) {
+          const value = Reflect.apply(original, this, args); submission(args[offset], name); return value;
+        });
+      }
+    } catch (error) { for (const restore of restores.reverse()) restore(); throw error; }
+  }
+  return new Promise((resolve, reject) => {
+    let stop, finished = false;
+    // oxlint-disable-next-line prefer-const -- finish closes over this timer before installation
+    let deadline;
+    const finish = error => {
+      if (finished) return; finished = true; stop?.(); clearTimeout(deadline);
+      for (const restore of restores.reverse()) restore();
+      if (error) reject(error instanceof Error ? error : new Error(String(error))); else resolve(results);
+    };
+    deadline = setTimeout(() => finish(new Error('Census frame window exceeded 30 seconds')), 30000);
+    try {
+      stop = game.watchFrames(() => {
+        try {
+          if (window.__wildshard !== api || api.world !== world || !world.hud.entered || world.hud.paused || !game.frameGate() || document.hidden) throw new Error('Census world or presentation changed');
+          // watchFrames is in the NEXT update: native rings/lastFrame describe
+          // the completed draw, while the current renderer.info was reset.
+          if (started) {
+            if (game.frameCount !== last + 1) throw new Error('Census missed a completed frame');
+            const index = (game.frameI + game.frameMs.length - 1) % game.frameMs.length;
+            const row = { frame: game.frameCount, calls: game.lastFrame.calls, triangles: game.lastFrame.triangles,
+              workMs: game.workMs[index], renderMs: game.renderMs[index], ...bucket };
+            if (attribution && row.draws.reduce((sum, draw) => sum + draw.count, 0) !== row.calls) throw new Error('Native draw submissions disagree with whole-frame calls');
+            results.push(row);
+          }
+          if (results.length >= frames) { finish(); return; }
+          started = true; last = game.frameCount; bucket = attribution ? fresh() : undefined;
+        } catch (error) { finish(error); }
+      });
+    } catch (error) { finish(error); }
+  });
+}
