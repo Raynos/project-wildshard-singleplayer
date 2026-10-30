@@ -10,5 +10,8 @@ export async function installAssetFixture(): Promise<void> {
 
 /** The same app catalogue used by selected-manifest tests; no world is prepared. */
 export async function installCatalogueFixture(): Promise<void> {
-  await import('../../src/shardList');
+  const [{ installShards }, catalogue] = await Promise.all([
+    import('../../src/game/shard/list'), import('../../src/shards.generated'),
+  ]);
+  installShards([...catalogue.SHARDS, ...catalogue.LEGACY_SHARDS], catalogue.LEGACY_CONTENT_IDENTITIES);
 }

@@ -453,7 +453,7 @@
  "src/game/plugin/creature-site-selection.test.ts": 0,
  "src/game/plugin/entered-place-sets.test.ts": 0,
  "src/game/plugin/forest-page-retirement.test.ts": 0.1,
- "src/game/plugin/grid-module-preparation.test.ts": 0,
+ "test/grid-module-preparation.test.ts": 0,
  "src/game/plugin/held-playback-hidden.test.ts": 0,
  "src/game/plugin/model-rest-channels.test.ts": 0,
  "src/game/plugin/module-hash-loaned.test.ts": 0,
