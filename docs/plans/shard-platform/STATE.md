@@ -14,11 +14,12 @@ CI1-CI4 done (CI2 / CI3 await first deploy), CI5 x9, CI6 / CI7 / CI9 x2, CI8 x9,
 QB17 zip video tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 
 **Autonomous decisions (for Jake's review):**
+- Player bug found by CI12: after dying in her storm phase, Signal's Matriarch flew off the map on retry (script restarted at step 0 only); fixed ddb75a9d0a (o3, board art/signal-matriarch-retry/).
 - CPU bar (Sim WebContent ≤ 15 %, now ~22 %): engine walk and per-draw cuts are near their exact limit; viewmodel merge = 1 draw, shadow casters = 0 exact. **For wildshard-v / Jake:** Pine's last ~7 % needs fewer draws (look trade); sp-o5 builds a default-off Debug 'Draw budget: current / lean' + board for his phone pick.
 - P0 found by CI: the grid could stop drawing after a crossing (a cached frame gate held async readiness, ca0c7c8b60); fixed 4779bbdd6f (x1).
-- Finding (CI13): headless SimHost motor constants differ from the client Player's (radius / step / climb / snap); play unchanged.
+- CI13: headless SimHost motor constants differ from the client's; play unchanged.
 - FC12 closes at identical captures (Pine 184, Driftwood ~194 draws).
-- QB17 (b): LEGACY's zip is flat too (31 hooks, identical floors); new default rises to the ring per Jake's ask, flat kept as Debug 'Hook zip' (o3).
+- QB17 (b): zip rises to the ring per Jake's ask; flat kept as Debug 'Hook zip'.
 - FC10 closed (Nine 7 real switches, Nalati 4 passes; phone bloom off, Debug 'Phone bloom'); FC13 at its Debug row; MF11 on lease deletion + footprint.
 - **For wildshard-v (QB1):** Jake's home-screen icon predates the launch image; one delete + re-add of the icon fixes the black.
 - QB10 / MF12: Sentry verdicts in e74ca75809; S fixed b3b1723a9a, 7S fixed cc75f528ea + 93cf905edc. **wildshard-v: Sentry-only ids need a build + stack.**
