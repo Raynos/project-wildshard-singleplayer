@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { parseQuestStepRows, type QuestStepRows } from '@wildshard/format/questSteps';
+import { emitFault } from '@wildshard/engine/core/faults';
 
 /** Completions are data from the existing dialogue, actor, item or traversal owner. */
 export interface QuestStepSignal {
@@ -24,6 +25,8 @@ interface Frame { flags: Set<string>; inventory: Record<string, number> | undefi
 export class QuestStepRunner {
   readonly rows: QuestStepRows;
   private readonly waits = new Map<string, number>();
+  private readonly pendingWaits = new Map<string, number>();
+  private reportedFrame = false;
   constructor(input: unknown) {
     this.rows = parseQuestStepRows(input);
     for (const row of this.rows.steps) if (row.kind === 'wait') this.waits.set(row.id, 0);
@@ -71,6 +74,18 @@ export class QuestStepRunner {
   }
   /** The existing clock supplies dt. False gates pause waits; no owner callback is called during evaluation. */
   update(dt: number, source: QuestStepFrame): readonly QuestStepEffect[] {
+    this.pendingWaits.clear();
+    try {
+      const output = this.updateFrame(dt, source);
+      for (const [id, elapsed] of this.pendingWaits) this.waits.set(id, elapsed);
+      return output;
+    } catch (error) {
+      if (!this.reportedFrame) { this.reportedFrame = true; emitFault({system: 'quest.steps', error, verdict: 'retry'}); }
+      return [];
+    } finally { this.pendingWaits.clear(); }
+  }
+  /** Pure commands and staged clock writes publish together, only after all facts pass. */
+  private updateFrame(dt: number, source: QuestStepFrame): readonly QuestStepEffect[] {
     if (!Number.isFinite(dt) || dt < 0) throw new RangeError('Invalid quest step delta');
     const frame = this.frame(source), output: QuestStepEffect[] = [];
     for (const row of this.rows.steps) {
@@ -82,7 +97,7 @@ export class QuestStepRunner {
       } else if (row.kind === 'wait') {
         const elapsed = (this.waits.get(row.id) ?? 0) + dt;
         if (elapsed >= row.seconds) this.run(row, frame, output);
-        this.waits.set(row.id, elapsed);
+        this.pendingWaits.set(row.id, elapsed);
       }
     }
     return output;

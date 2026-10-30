@@ -49,7 +49,7 @@ test('a made-up shard evaluates all step kinds, Script ABI commands and silent w
   expect(order).toEqual(['reward', 'Ready']); signal('interact', 'gate');
   expect(['arrived', 'met', 'safe', 'paid', 'led', 'followed', 'rested', 'done'].every(flag => flags.has(flag))).toBe(true);
   const before = runner.snapshot(); expect(() => runner.restore({ rest: -1 })).toThrow(); expect(runner.snapshot()).toEqual(before);
-  expect(() => runner.update(Number.NaN, frame())).toThrow();
+  expect(runner.update(Number.NaN, frame())).toEqual([]); expect(runner.snapshot()).toEqual(before);
 });
 
 test('Pine payment commands keep their order and live guard facts supersede old death flags', () => {
