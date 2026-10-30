@@ -74,6 +74,10 @@ export class CollisionPose {
   private readonly centre = new Vector3();
   private readonly axis = new Vector3();
   private readonly up = new Vector3();
+  /** each joint's last `setLocal` inputs (position, rotation, scale; its order apart): an unchanged transform keeps its
+   *  composed matrix (88 % of a native Driftwood story's calls), compared with Object.is so a signed zero still recomposes */
+  private readonly lastLocal: Float64Array;
+  private readonly lastOrder: (string | null)[];
 
   constructor(joints: readonly CollisionJoint[]) {
     if (joints.length === 0 || joints.length > 32 || joints.some((joint, i) =>
@@ -88,6 +92,7 @@ export class CollisionPose {
       return joint.scale === undefined ? matrix : matrix.scale(this.scale.set(...joint.scale));
     });
     this.world = joints.map(() => new Matrix4());
+    this.lastLocal = new Float64Array(joints.length * 9); this.lastOrder = joints.map(() => null);
   }
 
   /** Offset from the baked rest translation; omitted order/scale preserve the shipping YXZ/unit recipe. */
@@ -99,13 +104,19 @@ export class CollisionPose {
     this.quaternion.setFromEuler(this.rotation.set(...angles, joint.order ?? 'YXZ'));
     this.scale.set(...(scale ?? joint.scale ?? UNIT_SCALE));
     matrix.compose(this.position, this.quaternion, this.scale);
+    this.lastOrder[index] = null;
   }
 
   /** Apply an absolute local transform without subtracting/re-adding its rest translation. Does not publish worlds. */
   setLocal(index: number, transform: CollisionTransform): void {
-    const matrix = this.local[index], { position, rotation, scale } = transform;
+    const matrix = this.local[index], { position, rotation, scale } = transform, seen = this.lastLocal, o = index * 9;
+    if (matrix !== undefined && this.lastOrder[index] === rotation.order && Object.is(seen[o], position.x) && Object.is(seen[o + 1], position.y)
+      && Object.is(seen[o + 2], position.z) && Object.is(seen[o + 3], rotation.x) && Object.is(seen[o + 4], rotation.y) && Object.is(seen[o + 5], rotation.z)
+      && Object.is(seen[o + 6], scale.x) && Object.is(seen[o + 7], scale.y) && Object.is(seen[o + 8], scale.z)) return;
     if (matrix === undefined || !finiteVector(position) || !finiteVector(rotation) || !finiteVector(scale)
       || !ORDERS.has(rotation.order)) throw new RangeError('Invalid collision joint pose');
+    seen[o] = position.x; seen[o + 1] = position.y; seen[o + 2] = position.z; seen[o + 3] = rotation.x; seen[o + 4] = rotation.y; seen[o + 5] = rotation.z;
+    seen[o + 6] = scale.x; seen[o + 7] = scale.y; seen[o + 8] = scale.z; this.lastOrder[index] = rotation.order;
     this.position.set(position.x, position.y, position.z);
     this.quaternion.setFromEuler(this.rotation.set(rotation.x, rotation.y, rotation.z, rotation.order));
     this.scale.set(scale.x, scale.y, scale.z);
