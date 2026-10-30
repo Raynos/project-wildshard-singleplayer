@@ -1,5 +1,5 @@
 import type { NineHeldProfile } from './heldProfile';
-import { heldRigGraphs } from './heldRigGraphs';
+import { heldChannels, heldRigGraphs } from './heldRigGraphs';
 import { Color } from 'three';
 import { heldEffects } from './heldEffects';
 import type { AuthorGraph as GraphIr, AuthorGraphRef as GraphRef, AuthorGraphParam as GraphParam } from '@wildshard/sdk/bake/materialGraph';
@@ -91,7 +91,8 @@ export function viewmodelGraphs(profile: NineHeldProfile): Readonly<Record<strin
   colour = mix(colour, mul(colour, [.55, .6, .85]), mul(g.u('uSutra'), .35));
   colour = mul(colour, add(1, mul(sub(sw(g.tex('uSilk', div(g.op('fragCoord'), 220)), 'x'), .5), .1)));
   colour = choose(is(C.glow), colour, mix(colour, ink, g.clamp(max(lines, mul(crease, .85)))));
-  const body = g.finishVm(mul(add(colour, mul(base, sw(mat, 'y'))), g.u('uExposure')));
+  // its GLB channels as parameters (heldChannels): the base body and every held body mesh are one graph shape (EP7)
+  const body = heldChannels(g.finishVm(mul(add(colour, mul(base, sw(mat, 'y'))), g.u('uExposure'))));
 
   const k = new Vm(), ks = k.sw.bind(k), km = k.mul.bind(k), ka = k.add.bind(k), kc = k.a('aMat', 'vec4'), ci = k.op('floor', [ka(ks(kc, 'x'), .5)]);
   const built = [C.brass, C.brassDark, C.steel, C.lacquer, C.bevel, C.gold, C.carbon].map(id => k.eq(ci, id)).reduce((a, b) => k.op('or', [a, b]));

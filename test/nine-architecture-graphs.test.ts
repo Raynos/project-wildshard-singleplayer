@@ -202,10 +202,10 @@ test('a second shard fixture drives resized post targets and skips gated outputs
 });
 
 
-test('every held body (and every hull) mesh is one graph shape, its channels chosen by parameters', () => {
+test('the base body, every held body mesh (and every hull) is one graph shape, its channels chosen by parameters', () => {
   // EP7: heldRigGraphs rewrote a missing COLOR_0 / _AFACE into constants, so each channel set compiled its own program
   const shapes = new Map<string, Set<string>>();
-  for (const [id, graph] of Object.entries(viewmodelGraphs(heldProfile)).filter(([key]) => key.startsWith('nine-vm-rig-'))) {
+  for (const [id, graph] of Object.entries(viewmodelGraphs(heldProfile)).filter(([key]) => key.startsWith('nine-vm-rig-') || key === 'nine-vm-body')) {
     const params = graph.params ?? {}, kind = params['uHullK'] === undefined ? 'body' : 'hull';
     const shape = JSON.stringify({ ...graph, params: Object.fromEntries(Object.entries(params).map(([name, row]) => [name, row.type])) });
     shapes.set(kind, (shapes.get(kind) ?? new Set()).add(shape));
