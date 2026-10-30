@@ -3,6 +3,7 @@ import contextlib
 import io
 import json
 import os
+import re
 from pathlib import Path
 import runpy
 import subprocess
@@ -181,11 +182,14 @@ class FailFastTests(unittest.TestCase):
 
     def test_behaviour_matrix_keeps_independent_jobs_and_runs_every_case(self):
         source=Path('.github/workflows/deploy.yml').read_text()
-        for job, count in [('behaviour',12)]:
-            behaviour=source.split(f'\n  {job}:\n',1)[1].split('\n  dispatch-boot-smoke:\n',1)[0].split('\n  behaviour-products:\n',1)[0]
-            self.assertIn('fail-fast: false',behaviour)
-            self.assertNotIn('fail-fast: true',behaviour)
-            self.assertIn('python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --config scripts/vitest-ci.config.ts --shard=${{ matrix.shard }}/'+str(count)+' --bail=0',behaviour)
+        behaviour=source.split('\n  behaviour:\n',1)[1].split('\n  phone-route:\n',1)[0]
+        matrix=re.search(r'^\s+shard: \[([\d, ]+)\]',behaviour,re.MULTILINE)
+        self.assertIsNotNone(matrix)
+        indexes=[int(value.strip()) for value in matrix.group(1).split(',')]
+        self.assertEqual(indexes,list(range(1,len(indexes)+1)))
+        self.assertIn('fail-fast: false',behaviour)
+        self.assertNotIn('fail-fast: true',behaviour)
+        self.assertIn('python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --config scripts/vitest-ci.config.ts --shard=${{ matrix.shard }}/'+str(len(indexes))+' --bail=0',behaviour)
 
     def test_failure_record_contains_paths_not_log_text(self):
         function=API['diagnose']
