@@ -815,11 +815,16 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
   if (o.batch === undefined && !graphBatches() && built.some((variant) => variant.some((parts) => parts.some((part) => graphLook(part.material))))) {
     return runSteps(drawInstancedSteps(def, pls, poses, params, o, built));
   }
-  // one batch per material: every (variant, level) part with that material is one of its geometries
-  const byMat = new Map<THREE.Material, { part: ModelPart; geos: { v: number; l: number; g: THREE.BufferGeometry; until: number | undefined }[] }>();
+  // one batch per material: every (variant, level) part with that material is one of its geometries. A graph look's batch
+  // also keeps its parts' draw flags apart (PF1: a tree's far level shares the near level's bark and needles but casts no
+  // shadow on the phone; one batch per material cast every far tree's shadow, as instancing per part never did); a
+  // classic look's batches are as they were
+  const byMat = new Map<THREE.Material | string, { part: ModelPart; geos: { v: number; l: number; g: THREE.BufferGeometry; until: number | undefined }[] }>();
+  const batchKey = (part: ModelPart): THREE.Material | string => !graphLook(part.material) ? part.material
+    : `${part.material.uuid}|${String(part.castShadow ?? false)}|${String(part.receiveShadow ?? false)}|${String(part.tint !== false)}|${part.customDepthMaterial?.uuid ?? ''}`;
   built.forEach((lvls, v) => { lvls.forEach((parts, l) => { for (const part of parts) {
-    const e = byMat.get(part.material), x = { v, l, g: part.geometry, until: part.until };
-    if (e) e.geos.push(x); else byMat.set(part.material, { part, geos: [x] });
+    const key = batchKey(part), e = byMat.get(key), x = { v, l, g: part.geometry, until: part.until };
+    if (e) e.geos.push(x); else byMat.set(key, { part, geos: [x] });
   } }); });
   const count = (g: THREE.BufferGeometry): number => g.getAttribute('position').count;
   const shared = o.batch;

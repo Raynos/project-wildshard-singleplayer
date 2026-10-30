@@ -37,6 +37,25 @@ test('a batched model draw keeps a graph look instanced by default; the Batched 
   } finally { setGraphBatches(false); setDev(false); }
 });
 
+test('PF1: a graph look\'s levels that share a material but not their shadow flag batch apart; a classic one as before', () => {
+  const ctx = modelContext(null);
+  Object.assign(ctx, { renderer: { extensions: { has: (name: string) => name === 'WEBGL_multi_draw' } } });
+  const casts = (material: MeshStandardMaterial): boolean[] => {
+    const model = defineModel({ id: 'shared/graph-batch-levels', name: 'Graph batch levels', category: 'props', pipeline: 'code', file: 'src/engine/models/no-graph-batches.test.ts', defaults: {},
+      build: () => [{ geometry: new BoxGeometry(1, 1, 1), material, castShadow: true }],
+      lods: [{ from: 10, build: () => [{ geometry: new BoxGeometry(1, 1, 1), material, castShadow: false }] }] });
+    const placements = Array.from({ length: 4 }, (_, i) => ({ x: i * 3, y: 0, z: 0, matrix: new Matrix4().makeTranslation(i * 3, 0, 0) }));
+    const out: boolean[] = [];
+    place(model, placements, { ctx, draw: 'batched', registry: null }).object.traverse(o => { if (o instanceof BatchedMesh) out.push(o.castShadow); });
+    return out;
+  };
+  setDev(true); setGraphBatches(true);
+  try {
+    expect(casts(nodeMaterial())).toEqual([true, false]);
+    expect(casts(new MeshStandardMaterial())).toEqual([true]);
+  } finally { setGraphBatches(false); setDev(false); }
+});
+
 test('an instanced batch packs only visible copies per geometry, keeps their matrices and tints, and moves them between shapes', () => {
   const batch = new InstancedBatch(nodeMaterial(), { name: 'fixture', castShadow: true });
   const a = batch.addGeometry(new BoxGeometry()), b = batch.addGeometry(new BoxGeometry(2, 2, 2));
