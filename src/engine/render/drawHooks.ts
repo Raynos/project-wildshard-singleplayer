@@ -115,7 +115,7 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
   pipeline.properties = hooks;
   const get = renderer.properties.get.bind(renderer.properties);
   const counter = renderCounter(renderer);
-  interface Observation { kind: ResourceKind; frame: number; owner: symbol | null; revision: number; labels: number | undefined; value: unknown }
+  interface Observation { kind: ResourceKind; frame: number; metadata: boolean; owner: symbol | null; revision: number; labels: number | undefined; value: unknown }
   let observed = new WeakMap<object, Observation>();
   const remove = renderer.properties.remove?.bind(renderer.properties), dispose = renderer.properties.dispose?.bind(renderer.properties);
   if (remove !== undefined) renderer.properties.remove = resource => {
@@ -125,7 +125,11 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
   if (dispose !== undefined) renderer.properties.dispose = () => { observed = new WeakMap(); dispose(); };
   renderer.properties.get = (resource: unknown) => {
     if (typeof resource !== 'object' || resource === null) return get(resource);
-    const prior = observed.get(resource), drawing = pipeline.draw;
+    const prior = observed.get(resource);
+    // Native metadata has no upload, owner or label observer. Its mutable row
+    // keeps one identity until the native remove/dispose paths above reset it.
+    if (prior?.metadata === true) return prior.value;
+    const drawing = pipeline.draw;
     const active = drawing !== undefined && drawing.depth > 0;
     const kind = prior?.kind ?? resourceKind(resource);
     // Compressed allocations keep their original once-per-submission checks.
@@ -149,8 +153,10 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
     const native: unknown = get(resource);
     if (compressed !== undefined && compressed !== null) hooks.compressed?.after(compressed, native);
     const value = hooks.labels === undefined || !labelable ? native : hooks.labels(resource, native);
-    if (prior === undefined) observed.set(resource, { kind, frame: active ? frame : -1, owner, revision, labels, value });
-    else { prior.frame = active ? frame : -1; prior.owner = owner; prior.revision = revision; prior.labels = labels; prior.value = value; }
+    const metadata = !kind.owned && remove !== undefined && dispose !== undefined
+      && native !== null && typeof native === 'object';
+    if (prior === undefined) observed.set(resource, { kind, frame: active ? frame : -1, metadata, owner, revision, labels, value });
+    else { prior.frame = active ? frame : -1; prior.metadata = metadata; prior.owner = owner; prior.revision = revision; prior.labels = labels; prior.value = value; }
     return value;
   };
   return hooks;

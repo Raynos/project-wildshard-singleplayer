@@ -117,6 +117,37 @@ test('native material rows never consult texture label policy', () => {
   renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
 });
 
+test('native metadata stays live across consumers and is renewed by native removal or disposal', () => {
+  const f = fixture(), metadata = new Texture().source; let rows = new WeakMap<object, { version: number }>();
+  const get = vi.fn((resource: unknown) => {
+    if (typeof resource !== 'object' || resource === null) throw new Error('Expected native resource');
+    let row = rows.get(resource);
+    if (row === undefined) { row = { version: 1 }; rows.set(resource, row); }
+    return row;
+  });
+  const renderer = { ...f.renderer, properties: { get,
+    remove: (resource: unknown) => { if (typeof resource === 'object' && resource !== null) rows.delete(resource); }, dispose: () => { rows = new WeakMap(); } },
+  render: (_scene: Scene, _camera: Camera) => { renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group); } };
+  installFrameCounter(renderer); const draws = drawHooks(renderer), hooks = propertyHooks(renderer);
+  hooks.ownership = () => { throw new Error('Metadata has no upload owner'); };
+  hooks.labels = () => { throw new Error('Metadata has no texture label'); };
+  const first = renderer.properties.get(metadata); first.version = 42;
+  f.stock.mockImplementation(() => { expect(renderer.properties.get(metadata)).toBe(first); });
+  renderer.render(f.scene, f.camera); draws.ownerToken = Symbol('next consumer'); invalidatePropertyObservation();
+  renderer.render(f.scene, f.camera); expect(renderer.properties.get(metadata).version).toBe(42);
+  expect(get).toHaveBeenCalledOnce();
+  renderer.properties.remove(metadata); const second = renderer.properties.get(metadata);
+  expect(second).not.toBe(first); expect(second.version).toBe(1);
+  renderer.properties.dispose(); expect(renderer.properties.get(metadata)).not.toBe(second);
+});
+
+test('metadata without native invalidation methods keeps consulting the native producer', () => {
+  const source = new Texture().source; let row = { version: 1 };
+  const renderer = { properties: { get: (_resource: unknown) => row } };
+  propertyHooks(renderer); expect(renderer.properties.get(source)).toBe(row);
+  row = { version: 2 }; expect(renderer.properties.get(source)).toBe(row);
+});
+
 test('new render, consuming owner, label policy and upload registrations invalidate reuse', () => {
   const f = fixture(), resource = new Texture(), native = {}, proxies = [{}, {}];
   const renderer = { ...f.renderer, properties: { get: (_value: unknown) => native },
