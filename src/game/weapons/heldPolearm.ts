@@ -8,12 +8,12 @@ import { withOwner } from '@wildshard/engine/app/ownership';
 import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import { Melee } from '@wildshard/engine/combat/Melee';
 import type { MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
-import type { Targets, TargetAnimal } from '@wildshard/engine/combat/types';
+import type { Targets, TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
 import { impactSurfaceOf, worldHit, viewmodelMaterial } from '@wildshard/engine/combat/view/ranged';
-import { quiverState, type WeaponState, type AimInfo, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
+import { quiverState, type WeaponState, type AimInfo } from '@wildshard/engine/combat/Weapon';
 import type { Game } from '@wildshard/engine/core/Game';
 import { weaponActionGate } from '@wildshard/engine/input/weaponActions';
-import { floorBelow, sticksIn } from '@wildshard/engine/physics/query';
+import { floorBelow } from '@wildshard/engine/physics/query';
 import { targetRadius, type AimTarget } from '@wildshard/engine/player/AimTargets';
 import type { Player } from '@wildshard/engine/player/Player';
 import { viewmodel } from '@wildshard/engine/render/viewmodelFeel';
@@ -23,12 +23,14 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import * as THREE from 'three';
 import * as schema from 'valibot';
 import { ThrownWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import { PolearmContact } from './polearmContact';
 import { createModelLibrary } from '@wildshard/game/plugin/geometry';
 import { ItemCatalogue } from '@wildshard/game/loadout/itemCatalogue';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { PolearmDecision } from './polearmDecision';
+import { JavelinFlight } from './javelinFlight';
 
 type JavelinProfile = schema.InferOutput<typeof ThrownWeaponProfileSchema>;
 
@@ -73,7 +75,7 @@ const _commandOrigin = new THREE.Vector3(), _commandRotation = new THREE.Quatern
 
 interface Jav { state: 0 | 1 | 2; pos: THREE.Vector3; vel: THREE.Vector3; q: THREE.Quaternion; age: number }  // 0 none · 1 flying · 2 stuck
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3();
-const _head = new THREE.Vector3(), _nrm = new THREE.Vector3(), _arcPrev = new THREE.Vector3(), _stickDir = new THREE.Vector3();
+const _head = new THREE.Vector3(), _arcPrev = new THREE.Vector3();
 
 function floorUnder(x: number, y: number, z: number): number {
   const ph = app.physics;
@@ -137,6 +139,8 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
   private readonly view: HeldPolearmView;
   /** the thrust / lance / javelin decisions (renderer-free, CI12) */
   private readonly law:PolearmDecision<AimTarget>;
+  /** the javelins' throw, flight and landing (renderer-free, CI12) */
+  private readonly flight:JavelinFlight<TargetHit>;
   private geometry:ReadonlyMap<string,THREE.BufferGeometry>;
   private readonly readGeometry: (() => Promise<ReadonlyMap<string,THREE.BufferGeometry>>) | undefined;
   private readonly presentation:PolearmPresentation;
@@ -149,11 +153,27 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
     for (let i = 0; i < this.projectile.pool; i++) this.javs.push({ state: 0, pos: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion(), age: 0 });
     this.arcPos = new Float32Array(this.projectile.arcPoints * 3);
     this.view = opts.view;this.law=new PolearmDecision<AimTarget>(opts.program,w.game.levelScope);this.presentation=opts.presentation;
+    this.contactLaw=new PolearmContact<AimTarget>({raycast:targets===undefined?null:(origin,dir,max)=>targets.raycast(origin,dir,max),
+      contact:(animal,amount,point,dir,from,moveId)=>this.contact(animal,amount,point,dir,from,moveId),same:(animal,target)=>this.same(animal,target),
+      struck:(hit,killed)=>{this.onHit?.(hit.animal.kind,false,killed);this.onImpact?.('flesh',hit.point);}},this.law);
     this.viewOwner=opts.owner??w.game.levelScope;
     this.readGeometry=typeof opts.geometry==='function'?opts.geometry:undefined;
     this.geometry=typeof opts.geometry==='function'?new Map():opts.geometry;
     this.row = { ...this.row, ui: { ...this.row.ui, inputContext: opts.profile.id } };
     this.game = w.game; this.sky = w.sky; this.player = w.player;
+    this.flight = new JavelinFlight<TargetHit>(this.javs, this.projectile, {
+      worldHit: (from, to, radius) => worldHit(from, to, radius),
+      raycast: targets === undefined ? null : (origin, dir, max) => targets.raycast(origin, dir, max),
+      strike: (hit, dmg, dir) => {
+        const killed = hit.animal.applyDamage(dmg, hit.point, dir);
+        if (!killed) hit.animal.stagger?.(_v2.set(dir.x, 0, dir.z).normalize(), this.projectile.stagger);
+        this.onHit?.(hit.animal.kind, hit.headshot, killed);
+        this.onImpact?.('flesh', hit.point);
+      },
+      impact: (surface, at) => { this.onImpact?.(surface, at); },
+      water: (x, z) => this.player.waterSurfaceAt(x, z),
+      floor: floorUnder, random: gameplayRandom, surface: impactSurfaceOf, damageScale: () => this.damageScale,
+    });
     this.setAimSource(() => this.player.sampleAimCommand());
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
@@ -174,6 +194,8 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
   private readonly lookState = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
   private readonly lookDelta = new THREE.Vector2();
   private readonly aimBlock: ReturnType<typeof aimRay>;
+  /** the thrust's and the lance's contact (renderer-free, CI12) */
+  private readonly contactLaw: PolearmContact<AimTarget>;
   override install(ctx: EquipContext): void {
     super.install(ctx); this.bindInput(ctx);
     this.viewOwner=ctx.scope;
@@ -264,95 +286,15 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
   }
 
   private launch(): void {
-    const j = this.javs.find((x) => x.state === 0);
-    if (j === undefined || this.javelins <= 0) return;
+    if (!this.flight.free() || this.javelins <= 0) return;
     this.javelins--;
     this.aimPose(_commandOrigin, _commandRotation);
     this.aimRay(_commandOrigin, _fwd);
-
-    _v1.set(0.22, 0.05, -0.3).applyQuaternion(_commandRotation).add(_commandOrigin);
-    _v2.set(1, 0, 0).applyQuaternion(_commandRotation);
-    _dir.copy(_fwd).applyAxisAngle(_v2, 0.035).normalize();
-    j.state = 1; j.age = 0; j.pos.copy(_v1); j.vel.copy(_dir).multiplyScalar(this.projectile.speed);
-    const m = this.mount;
-    if (m !== null) { j.vel.x -= Math.sin(m.yaw) * m.speed; j.vel.z -= Math.cos(m.yaw) * m.speed; } 
-    j.q.setFromUnitVectors(Y, _dir);
+    this.flight.launch(_commandOrigin, _commandRotation, _fwd, this.mount);
     this.chargeEvent('throw', 1); this.onFire?.(); this.onThrow?.();
   }
-  private stick(j: Jav, at: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface): void {
-
-    j.state = 2; j.age = 0; j.vel.set(0, 0, 0);
-
-    j.q.setFromUnitVectors(Y, _stickDir.copy(dir).normalize());
-    j.pos.copy(at).addScaledVector(_stickDir, -0.58);
-    this.onImpact?.(surface, at);
-  }
-  
-  private lie(j: Jav, at: THREE.Vector3, n: THREE.Vector3, surface: ImpactSurface): void {
-    const along = _v2.copy(_dir).addScaledVector(n, -_dir.dot(n));
-    if (along.lengthSq() < 1e-6) along.set(1, 0, 0);
-    along.normalize();
-    j.state = 2; j.age = 0; j.vel.set(0, 0, 0);
-    j.q.setFromUnitVectors(Y, along);
-    j.pos.copy(at).addScaledVector(n, 0.04).addScaledVector(along, -0.58);
-    this.onImpact?.(surface, at);
-  }
-  private drop(j: Jav, at: THREE.Vector3): void {
-
-    const a = gameplayRandom() * Math.PI * 2;
-    _v1.set(at.x + Math.cos(a) * 0.6, 0, at.z + Math.sin(a) * 0.6);
-    _v1.y = floorUnder(_v1.x, at.y + 1, _v1.z);   // the turf, a deck, a rock under it
-    _dir.set(Math.cos(a + 1.3) * 0.7, -0.55, Math.sin(a + 1.3) * 0.7).normalize();
-    j.state = 2; j.age = 0; j.vel.set(0, 0, 0);
-    j.q.setFromUnitVectors(Y, _dir);
-    j.pos.copy(_v1).addScaledVector(_dir, -0.45);
-  }
   private flyJavelins(dt: number): void {
-    for (const j of this.javs) {
-      if (j.state === 1) {
-        j.age += dt;
-        let rem = dt;
-        while (rem > 0) { // every way out of the flight breaks the loop
-          const h = Math.min(rem, 1 / 120); rem -= h;
-          _v1.copy(j.pos);
-          j.vel.y -= this.projectile.gravity * h; j.pos.addScaledVector(j.vel, h);
-          const seg = _v2.subVectors(j.pos, _v1), len = seg.length();
-          if (len < 1e-6) continue;
-          _dir.copy(seg).multiplyScalar(1 / len);
-
-          _v3.copy(_v1).addScaledVector(_dir, this.projectile.headOffset);
-          _head.copy(_v3).addScaledVector(_dir, len);
-          const wall = worldHit(_v3, _head, this.projectile.radius);
-          if (this.targets) {
-            const hit = this.targets.raycast(_v3, _dir, wall ? wall.distance : len);
-            if (hit?.animal.alive === true) {
-              const dmg = Math.round(this.projectile.damage * (hit.headshot ? this.projectile.headMultiplier : 1) * this.damageScale);
-              const killed = hit.animal.applyDamage(dmg, hit.point, _dir);
-              if (!killed) hit.animal.stagger?.(_v2.set(_dir.x, 0, _dir.z).normalize(), this.projectile.stagger);
-              this.onHit?.(hit.animal.kind, hit.headshot, killed);
-              this.onImpact?.('flesh', hit.point);
-              this.drop(j, hit.point);
-              break;
-            }
-          }
-          if (wall) {
-            _v3.set(wall.point.x, wall.point.y, wall.point.z);
-            if (wall.material === 'ground') {
-              const ws = this.player.waterSurfaceAt(_v3.x, _v3.z);
-              if (ws !== null && ws > _v3.y) { j.state = 0; this.onImpact?.('ground', _v3); break; }
-            }
-            if (sticksIn(wall.material)) { this.stick(j, _v3.addScaledVector(_dir, this.projectile.radius), _dir, impactSurfaceOf(wall.material)); break; }
-
-            _nrm.set(wall.normal.x, wall.normal.y, wall.normal.z);
-            if (_nrm.dot(_dir) > 0) _nrm.negate();
-            this.lie(j, _v3, _nrm, impactSurfaceOf(wall.material));
-            break;
-          }
-          if (j.age > 8 || j.pos.y < -200) { j.state = 0; break; }
-          j.q.setFromUnitVectors(Y, _dir);
-        }
-      }
-    }
+    this.flight.fly(dt);
 
     if(this.worldDraw===null)return;
     let n = 0;
@@ -390,12 +332,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
 
   private lanceContact(a:AimTarget,dmg:number,t:number):void{
    this.aimPose(_commandOrigin,_commandRotation);
-   _v1.set(a.position.x,a.position.y+(a.dims?.bodyY??.6)*(a.scale??1),a.position.z);
-   _dir.subVectors(_v1,_commandOrigin);const len=_dir.length();_dir.multiplyScalar(1/Math.max(len,.0001));
-   const hit=this.targets?.raycast(_commandOrigin,_dir,len+1)??null;if(hit===null||!this.same(hit.animal,a))return;
-   const result=this.contact(hit.animal,dmg,hit.point,_dir,_commandOrigin,'move.lance');if(!result)return;
-   this.law.struck(a,t);if(!result.killed)hit.animal.stagger?.(_v2.set(a.position.x-this.player.position.x,0,a.position.z-this.player.position.z).normalize(),1);
-   this.jolt=1.4;this.onHit?.(hit.animal.kind,false,result.killed);this.onImpact?.('flesh',hit.point);
+   if(this.contactLaw.lance(_commandOrigin,a,dmg,t,this.player.position)!==null)this.jolt=1.4;
   }
   private same(a: TargetAnimal, b: AimTarget): boolean { return a.position === b.position; }
 
@@ -403,22 +340,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
     if (this.targets === undefined) return;
     this.aimPose(_commandOrigin, _commandRotation);
     this.aimRay(_commandOrigin, _fwd);
-    _e.set(0, 0, 0, 'YXZ');
-    for (const pitch of this.profile.thrust.fan.pitches) for (const yaw of this.profile.thrust.fan.yaws) {
-      _e.y = yaw; _e.x = pitch;
-      _q.setFromEuler(_e); _q.premultiply(_commandRotation);
-      _dir.set(0, 0, -1).applyQuaternion(_q);
-      const hit = this.targets.raycast(_commandOrigin, _dir, this.profile.reach);
-      if (!hit || !hit.animal.alive) continue;
-      const result = this.contact(hit.animal, this.profile.thrust.damage, hit.point, _fwd, _commandOrigin, 'move.thrust');
-      if (!result) continue;
-      const killed = result.killed;
-      if (!killed) hit.animal.stagger?.(_v2.set(_fwd.x, 0, _fwd.z).normalize(), this.profile.thrust.stagger);
-      this.law.hitDone = true; this.jolt = 1;
-      this.onHit?.(hit.animal.kind, false, killed);
-      this.onImpact?.('flesh', hit.point);
-      return;
-    }
+    if (this.contactLaw.thrust(_commandOrigin, _commandRotation, _fwd, this.profile) !== null) this.jolt = 1;
   }
 
   update(dt: number, t: number): void {
