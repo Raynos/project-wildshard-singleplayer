@@ -1,4 +1,4 @@
-import {lendNalatiRiding,ridingWitnessBytes} from './nalati-return-modules';
+import {lendNalatiRiding,ridingWitnessBytes} from './nalati-riding-loan';
 import {TamingBinding as LegacyTamingBinding} from './tamingLegacyBinding';
 import { Vector3 } from 'three';
 import { TamingSession as TamingBinding } from '../../src/game/riding/taming';

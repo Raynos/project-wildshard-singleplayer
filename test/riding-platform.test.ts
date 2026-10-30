@@ -1,4 +1,4 @@
-import {lendNalatiRiding} from './fixtures/nalati-return-modules';
+import {lendNalatiRiding} from './fixtures/nalati-riding-loan';
 import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
 import { installTamingEntry } from '../src/game/shardfile/clientEntryBinds';
 import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
@@ -32,9 +32,11 @@ import { NALATI_RIDING_PROGRAMS as fixturePrograms } from './fixtures/nalati-rid
 import { Mount } from '@wildshard/game/riding/mount';
 import { RideHUD } from '@wildshard/game/riding/hud';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { installWorldFixture } from './fixtures/worldSetup';
+import { installAssetFixture, installCatalogueFixture } from './fixtures/bootSetup';
 
-await installWorldFixture();
+await installAssetFixture();
+await installCatalogueFixture();
+await import('../src/shardList');
 
 function fixture(kind: string, speeds: MountProfile['speeds'], registerMode = true): { player: Player; animals: AnimalManager; mount: Mount; actor: Animal; scope: Scope; ctx: LevelContext; camera: PerspectiveCamera; slots: DiscOpts[]; widgets: string[] } {
   const scope = new Scope('riding-fixture'), app = new App(), camera = new PerspectiveCamera(), slots: DiscOpts[] = [], widgets: string[] = [];
