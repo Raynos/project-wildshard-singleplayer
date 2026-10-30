@@ -328,11 +328,12 @@ export class WorldScenePlacement {
     // NT6: a copy the fine draw holds by its footprint is drawn in full while any of its tiles is
     const tiles = this.spans() ? this.copyTiles() : row.poses.map(pose => [tileKey(tileOf(pose.x, pose.z))]), id = `${row.piece?.id ?? definition.id}.coarse`;
     const drawn = (i: number): boolean => { for (const tile of tiles[i] ?? []) if (rendered(tile)) return true; return false; };
-    // a model that builds a whole object draws `single` (one object per copy): its few copies hide by tile each frame
-    const single = row.draw === 'single';
+    // a model that builds a whole object draws `single` (one object per copy): its few copies hide by tile each frame.
+    // PF10: a row its fine tiles batch (Pine's crags) batches its stand-in too, one draw for all its parts, not one per part
+    const single = row.draw === 'single', draw = single ? 'single' : row.draw === 'batched' ? 'batched' : 'instanced';
     const prepared = await poseCopies(row.poses, scope), slice = slicer();
     const placed = await withOwner(scope, () => placeSliced(model, prepared, { ctx: sharedModelContext(world.sky, world.game), registry: world.registry,
-      draw: single ? 'single' : 'instanced', piece: { id, collide: false },
+      draw, piece: { id, collide: false },
       ...(single ? {} : { cull: { ...this.cullOptions(world.forest), cells: { size: TILE_SIZE, pad: COARSE_REACH }, test: (i: number) => !drawn(i) } }) },
       () => { requireLive(scope); const pause = slice.due(); return pause === null ? null : pause.then(() => requireLive(scope)); }));
     requireLive(scope);
