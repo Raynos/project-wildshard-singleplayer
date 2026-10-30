@@ -201,5 +201,5 @@ Codex does the workflow engineering (non-visual). Ordered to unstick the deploy 
 | CI10 | Simulator leg fast on GitHub macOS (G921): early boot, cached proxy, condition waits, shorter route | ≤ 6 min, 0 timeouts for a day | Codex sp-x10 · harness fa45b87ed5 (360.65 → 203.98 s); workflow + cached proxy sp-x2 | M |
 | CI11 | Node harness v1 (G922): every shard enters, walks 1,800 ticks, quests, disposes | All shards < 60 s in the wave | Codex sp-x1 · done e04252c31e (18 / 18 shards in 18.2 s) | M |
 | CI12 | Verbs as sim commands + tapes (MF15–MF18 verb lists) | Hook, crank, crossbow and quest steps pass; QB11 / QB17 replayed red | Codex sp-x10 (verb JSONs in docs/plans/foundations/verbs/) | L |
-| CI13 | Physics walk moves into the harness; the Chromium walk retires | 0 stuck in Node | Codex sp-x1 (6 / 8 Driftwood legs; client motor constants for the proof) | M |
-| CI14 | Pin waves 2+ (G919): rank files by reds-on-intended-change over 14 days; delete from the top | No file red twice in a week for a drift-only change | Codex sp-x6 (sp-x2 deleted 1a25, da679) | M |
+| CI13 | Physics walk moves into the harness; the Chromium walk retires | 0 stuck in Node | Codex sp-x1 (Driftwood) + sp-x6 (other shards) | M |
+| CI14 | Pin waves 2+ (G919): rank files by reds-on-intended-change over 14 days; delete from the top | No file red twice in a week for a drift-only change | Codex sp-x6 · ranked batch done 89b0f5dc04 (remaining cases are real laws) | M |
