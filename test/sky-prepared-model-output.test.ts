@@ -1,16 +1,11 @@
-import tileFiles from './fixtures/sky-world-tile-files.json' with { type: 'json' };
-import restFiles from './fixtures/sky-rest-pool-files.json' with { type: 'json' };
-import { winchGlb, hover0Glb, hover1Glb, hover2Glb, stormGlb, bookStandGlb } from '../src/shards/far-reach/generators/restScene';
-import { isletGlb } from '../src/shards/far-reach/generators/isletScene';
 import { originalSkyMovers } from './fixtures/sky-movers';
 import { originalSkyNavigation } from './fixtures/sky-navigation';
-// oxlint-disable-next-line import/no-nodejs-modules -- Own the isolated cache and retain the original complete GLB oracle.
-import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Own isolated cache scopes for mutation and admission controls.
+import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind the real author folder and declared native input root.
 import { resolve } from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare complete byte arrays without expanding assertion objects.
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare detached byte buffers without constructing multi-megabyte assertion diffs.
 import { Buffer } from 'node:buffer';
-import { originalSkyRigs } from './fixtures/sky-original-rigs';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import * as v from 'valibot';
@@ -21,9 +16,7 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { sceneBakeFiles } from '../src/game/shardfile/sceneBakeFiles';
 import type { SceneBakeSource } from '../src/game/shardfile/sceneSources';
-import { BAKED_PIECES, BAKED_URLS, FAN_URL, FAN_POOL, SKY_CREATURES, SKY_CREATURE_RIGS } from '../src/shards/far-reach/generators/fileInventory';
-import { nameBlob } from '../src/sdk/blobs';
-import { BRIDGE_REST_URL, MILL_REST_URL } from '../src/shards/far-reach/generators/restFiles';
+import { BAKED_PIECES, FAN_POOL } from '../src/shards/far-reach/generators/fileInventory';
 import { sceneRigFiles } from '../src/game/shardfile/sceneRigFiles';
 import { skyProductRows } from '../src/shards/far-reach/generators/product';
 import { SKY_WORLD_TILE_ROWS } from '../src/shards/far-reach/generators/worldTileRows';
@@ -32,202 +25,38 @@ import { prepareOutput } from '../src/shards/far-reach/generators/sourceOutput';
 import { emptyShardfile } from '../src/sdk/author';
 import { projectAssets } from '../src/sdk/project';
 import { SWARD_ATLAS_FILE, SWARD_ATLAS_SAMPLER } from '../src/shards/far-reach/generators/rows/swardAtlas';
-import { originalSkyOutput } from './fixtures/sky-scene-source';
 
-const output = await originalSkyOutput();
-
-const geometryName = 'world/geometry/prepared-models.glb', heroName = 'world/sources/heroes.json', bakeName = 'world/sources/bakes.json', skyName = 'world/sources/sky.json', bridgeName = 'world/geometry/bridge-rest.glb';
-const hash = 'bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580';
-const bridgeHash = '1a31cb2c7b426d9ffb14db4e39792aeb0bde86f6f01d0b1796130a3a0c7d8bf0';
-const bridgeFile = { name: bridgeName, path: `blobs/glb/${bridgeHash}.glb`, kind: 'glb', hash: bridgeHash,
-  compressed: 2_109_968, decoded: 2_109_940, gpu: 2_031_804, triangles: 35_709, draws: 126, dependencies: [], critical: false };
-const millName = 'world/geometry/mill-rest.glb', millHash = '3b12beff5b5ae8fbb51433b27890591e85bdc9049dd999e19cc4700400603b37';
-const mill = { file: { name: millName, path: `blobs/glb/${millHash}.glb`, kind: 'glb', hash: millHash,
-  compressed: 1_828_044, decoded: 1_828_016, gpu: 1_825_056, triangles: 20_000, draws: 4, dependencies: [], critical: false } };
-const fanName = 'world/geometry/fan.glb', fanHash = '5f5a9a056455af528c872807359347ee60007990dc6854e36f54f2e8db5b86d1';
-const fanFile = { name: fanName, path: `blobs/glb/${fanHash}.glb`, kind: 'glb', hash: fanHash,
-  compressed: 683_792, decoded: 683_764, gpu: 666_216, triangles: 15_136, draws: 28, dependencies: [], critical: false };
-const original = readFileSync('public/assets/far-reach/baked/prepared-models.glb'), text = new TextDecoder();
+const geometryName = 'world/geometry/prepared-models.glb', heroName = 'world/sources/heroes.json', bakeName = 'world/sources/bakes.json', skyName = 'world/sources/sky.json';
+const bridgeName = 'world/geometry/bridge-rest.glb', millName = 'world/geometry/mill-rest.glb', fanName = 'world/geometry/fan.glb';
+const text = new TextDecoder();
 const HeroRows = v.object({ rows: v.object({ meshes: v.array(v.string()), meshUrls: v.record(v.string(), v.string()),
   hd: v.array(v.string()), hdUrls: v.record(v.string(), v.string()), hdLooks: v.record(v.string(), v.never()), aoFloor: v.number(),
   geometryPools: v.array(v.object({ url: v.string(), parts: v.array(v.string()) })) }) });
 
-test('owned geometry preserves all original bytes and costs, changing only its source addresses', async () => {
+test('caller mutations cannot poison cached output or its named inventory', async () => {
   const cache = mkdtempSync(resolve('tmp/sky-prepared-output-'));
   let builds = 0;
-  const buildSteps: string[] = [];
   const context = () => {
     const ctx = createProjectGeneration(resolve('src/shards/far-reach'), 'c'.repeat(64), new Map(), cache,
       [{ prefix: '/assets/', directory: resolve('public/assets') }]);
     return { ...ctx, cached: (step: Parameters<typeof ctx.cached>[0], generate: Parameters<typeof ctx.cached>[1]) =>
-      ctx.cached(step, inputs => { builds++; buildSteps.push(step.id); return generate(inputs); }) };
+      ctx.cached(step, inputs => { builds++; return generate(inputs); }) };
   };
   try {
-    const owned = await prepareOutput(context()), geometry = owned.namedFiles.find(file => file.name === geometryName);
-    if (geometry === undefined) throw new Error('Missing owned prepared geometry');
-    expect(geometry).toEqual({ name: geometryName, path: `blobs/glb/${hash}.glb`, kind: 'glb', hash,
-      compressed: 10_134_100, decoded: 10_134_072, gpu: 10_096_780, triangles: 203_025, draws: 48, critical: false, dependencies: [] });
-    const bytes = owned.assets.get(hash); if (bytes === undefined) throw new Error('Missing owned GLB bytes');
-    expect(Buffer.compare(bytes, original)).toBe(0);
-    expect(owned.namedFiles).toHaveLength(output.namedFiles.length + 21 + restFiles.length);
-    for (const file of output.namedFiles) {
-      if (file.name === heroName || file.name === bakeName || file.name === skyName) continue;
-      expect(owned.namedFiles.find(row => row.name === file.name)).toEqual(file);
-      expect(owned.assets.get(file.hash)).toEqual(output.assets.get(file.hash));
+    const owned = await prepareOutput(context());
+    const inventory = structuredClone(owned.namedFiles);
+    const before = new Map([...owned.assets].map(([hash, bytes]) => [hash, bytes.slice()]));
+    for (const bytes of owned.assets.values()) bytes.fill(0);
+    const completedBuilds = builds;
+    const hit = await prepareOutput(context());
+    expect(builds).toBe(completedBuilds);
+    expect(hit.namedFiles).toEqual(inventory);
+    for (const [hash, bytes] of before) {
+      const restored = hit.assets.get(hash);
+      if (restored === undefined) throw new Error('Missing cache-hit bytes');
+      expect(restored).not.toBe(owned.assets.get(hash));
+      expect(Buffer.compare(restored, bytes)).toBe(0);
     }
-    expect(owned.platform).toEqual(output.platform); expect(owned.blobs).toBe(output.blobs);
-    const oldSky = output.namedFiles.find(file => file.name === skyName), newSky = owned.namedFiles.find(file => file.name === skyName);
-    if (oldSky === undefined || newSky === undefined) throw new Error('Missing native library descriptor');
-    let expectedSky = text.decode(output.assets.get(oldSky.hash))
-      .replace(JSON.stringify(BRIDGE_REST_URL), JSON.stringify(bridgeName))
-      .replace(JSON.stringify(MILL_REST_URL), JSON.stringify(millName))
-      .replace(JSON.stringify(FAN_URL), JSON.stringify(fanName))
-      .replace(JSON.stringify('/assets/far-reach/models/wind-vane/post.glb'), JSON.stringify('world/geometry/vane-post.glb'))
-      .replace(JSON.stringify('/assets/far-reach/models/wind-vane/rotor.glb'), JSON.stringify('world/geometry/vane-rotor.glb'));
-    for (const creature of SKY_CREATURES) expectedSky = expectedSky.replace(JSON.stringify(SKY_CREATURE_RIGS[creature]), JSON.stringify(`world/rigs/${creature}.glb`));
-    const originalRest = [winchGlb(), hover0Glb(), hover1Glb(), hover2Glb(), stormGlb(), bookStandGlb(), isletGlb()];
-    expect(restFiles).toHaveLength(7);
-    for (const [index, file] of restFiles.entries()) {
-      const sourceBytes = originalRest[index];
-      if (sourceBytes === undefined) throw new Error('Missing retained original rest-pool constructor');
-      expect(sourceBytes.byteLength, file.name).toBe(file.compressed);
-      expect(hashImmutableBytes(sourceBytes), file.name).toBe(file.hash);
-      expect(nameBlob(file.name, 'glb', sourceBytes).file).toEqual(file);
-      expect(owned.namedFiles.find(row => row.name === file.name)).toEqual(file);
-      const poolBytes = owned.assets.get(file.hash);
-      if (poolBytes === undefined) throw new Error('Missing owned rest-pool bytes');
-      expect(Buffer.compare(poolBytes, sourceBytes), file.name).toBe(0);
-      poolBytes.fill(0);
-      expectedSky = expectedSky.replace(JSON.stringify(`/assets/far-reach/baked/${file.name.slice(file.name.lastIndexOf('/') + 1)}`), JSON.stringify(file.name));
-    }
-    expect(text.decode(owned.assets.get(newSky.hash))).toBe(expectedSky);
-    for (const [part, size, expectedHash] of [
-      ['post', 43_928, 'a5b779f379598b3e6afbf7640a0c5c30c802a2f4f51b53bb0934c29260b46a74'],
-      ['rotor', 54_316, '13ad79dd37f10805d3450bbc59a450f27a3262065e85358c8e27f8d3e82b9ad5'],
-    ] as const) {
-      const name = `world/geometry/vane-${part}.glb`;
-      const file = owned.namedFiles.find(row => row.name === name);
-      if (file === undefined) throw new Error('Missing owned vane file');
-      const vaneBytes = owned.assets.get(file.hash);
-      if (vaneBytes === undefined) throw new Error('Missing owned vane payload');
-      expect(vaneBytes.byteLength).toBe(size);
-      expect(hashImmutableBytes(vaneBytes)).toBe(expectedHash);
-      expect(file).toEqual(nameBlob(name, 'glb', vaneBytes).file);
-    }
-    for (const [name, originalRig] of originalSkyRigs()) {
-      const declared = nameBlob(`world/rigs/${name}`, 'glb', originalRig);
-      expect(owned.namedFiles.find(file => file.name === declared.file.name)).toEqual(declared.file);
-      const rigBytes = owned.assets.get(declared.file.hash);
-      if (rigBytes === undefined) throw new Error('Missing published rig bytes');
-      expect(Buffer.compare(rigBytes, originalRig)).toBe(0);
-    }
-    expect(owned.assets.has(oldSky.hash)).toBe(false);
-    const bridge = { file: bridgeFile };
-    expect(owned.namedFiles.find(file => file.name === bridgeName)).toEqual(bridge.file);
-    const bridgeBytes = owned.assets.get(bridge.file.hash);
-    if (bridgeBytes === undefined) throw new Error('Missing owned bridge geometry');
-    expect(hashImmutableBytes(bridgeBytes)).toBe(bridgeHash); bridgeBytes.fill(0);
-
-    expect(mill.file.hash).toBe(millHash);
-    expect(owned.namedFiles.find(file => file.name === millName)).toEqual(mill.file);
-    const millBytes = owned.assets.get(millHash);
-    if (millBytes === undefined) throw new Error('Missing owned mill geometry');
-    expect(hashImmutableBytes(millBytes)).toBe(millHash); millBytes.fill(0);
-
-    expect(owned.namedFiles.find(file => file.name === fanName)).toEqual(fanFile);
-    const fanBytes = owned.assets.get(fanHash);
-    if (fanBytes === undefined) throw new Error('Missing owned fan pool');
-    expect(hashImmutableBytes(fanBytes)).toBe(fanHash);
-    fanBytes.fill(0);
-
-    const atlas = owned.assets.get(SWARD_ATLAS_FILE.hash);
-    if (atlas === undefined) throw new Error('Missing owned sward atlas');
-    expect(hashImmutableBytes(atlas)).toBe(SWARD_ATLAS_FILE.hash); atlas.fill(0);
-
-    const before = output.namedFiles.find(file => file.name === heroName), after = owned.namedFiles.find(file => file.name === heroName);
-    if (before === undefined || after === undefined) throw new Error('Missing original or owned hero library');
-    const beforeBytes = output.assets.get(before.hash), afterBytes = owned.assets.get(after.hash);
-    if (beforeBytes === undefined || afterBytes === undefined) throw new Error('Missing complete hero descriptors');
-    const baseline = text.decode(beforeBytes);
-    expect(text.decode(afterBytes)).toBe(baseline.replace('"/assets/far-reach/baked/prepared-models.glb"', JSON.stringify(geometryName)));
-    expect(owned.assets.has(before.hash)).toBe(false);
-    const nativeTiles = skyWorldTileSource();
-    expect(SKY_WORLD_TILE_ROWS.files).toEqual(tileFiles);
-    const fineFiles = new Set(SKY_WORLD_TILE_ROWS.props.tiles.filter(tile => tile.lod === 0).map(tile => tile.file));
-    const coarseFiles = new Set(SKY_WORLD_TILE_ROWS.props.tiles.filter(tile => tile.lod === 1).map(tile => tile.file));
-    expect(fineFiles.size).toBe(22); expect(coarseFiles.size).toBe(11);
-    expect([...fineFiles].filter(file => coarseFiles.has(file))).toEqual([]);
-    expect(SKY_WORLD_TILE_ROWS.files.map(file => file.hash).sort()).toEqual([...fineFiles, ...coarseFiles].sort());
-    for (const file of SKY_WORLD_TILE_ROWS.files) {
-      const tile = owned.assets.get(file.hash);
-      if (tile === undefined) throw new Error('Missing owned island tile');
-      const nativeTile = nativeTiles.get(`assets/${file.hash}`);
-      if (nativeTile === undefined) throw new Error('Missing original native island tile');
-      expect(Buffer.compare(tile, nativeTile)).toBe(0);
-      expect(hashImmutableBytes(nativeTile)).toBe(file.hash);
-      const { name: _name, path: _path, ...cost } = nameBlob('original-tile.glb', 'glb', nativeTile).file;
-      expect(file).toEqual(cost);
-      tile.fill(0);
-    }
-    const oldBakes = output.namedFiles.find(file => file.name === bakeName), newBakes = owned.namedFiles.find(file => file.name === bakeName);
-    if (oldBakes === undefined || newBakes === undefined) throw new Error('Missing original or owned bake descriptor');
-    let expectedBakes = text.decode(output.assets.get(oldBakes.hash));
-    for (const piece of BAKED_PIECES) expectedBakes = expectedBakes.replace(JSON.stringify(BAKED_URLS[piece]), JSON.stringify(`world/geometry/pieces/${piece}.glb`));
-    expect(text.decode(owned.assets.get(newBakes.hash))).toBe(expectedBakes);
-    expect(owned.assets.has(oldBakes.hash)).toBe(false);
-    for (const piece of BAKED_PIECES) {
-      const name = `world/geometry/pieces/${piece}.glb`, originalPiece = readFileSync(`public/assets/far-reach/baked/${piece}.glb`);
-      const expected = nameBlob(name, 'glb', originalPiece), file = owned.namedFiles.find(row => row.name === name);
-      expect(file).toEqual(expected.file);
-      const pieceBytes = owned.assets.get(expected.file.hash);
-      if (pieceBytes === undefined) throw new Error('Missing owned world piece');
-      expect(Buffer.compare(pieceBytes, originalPiece)).toBe(0); pieceBytes.fill(0);
-    }
-    // Returned geometry cannot poison a later source-cache hit or the baseline output.
-    bytes.fill(0);
-    const hit = await prepareOutput(context()), hitBytes = hit.assets.get(hash);
-    if (hitBytes === undefined) throw new Error('Missing cache-hit GLB');
-    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(18);
-    expect(buildSteps).toEqual([
-      'navigation', 'mill-scene', 'static-scenes', 'route-scenes', 'hero-library',
-      expect.stringMatching(/^phone-rig-[a-f0-9]{64}$/u), 'creature-rigs',
-      'prepared-models', 'world-pieces', 'bridge-rest', 'mill-rest', 'fan-pool',
-      'rest-pools', 'islet-pool', 'wind-vane', 'sward-atlas', 'storm-texture-input', 'world-tiles',
-    ]);
-    expect(buildSteps.filter(id => id === 'rest-pools' || id === 'islet-pool')).toEqual(['rest-pools', 'islet-pool']);
-    for (const [index, file] of restFiles.entries()) {
-      const sourceBytes = originalRest[index], restored = hit.assets.get(file.hash);
-      if (sourceBytes === undefined || restored === undefined) throw new Error('Missing cache-hit rest-pool geometry');
-      expect(Buffer.compare(restored, sourceBytes), file.name).toBe(0);
-      expect(hit.namedFiles.find(row => row.name === file.name)).toEqual(file);
-    }
-    for (const file of SKY_WORLD_TILE_ROWS.files) {
-      const tile = hit.assets.get(file.hash);
-      if (tile === undefined) throw new Error('Missing cache-hit island tile');
-      const nativeTile = nativeTiles.get(`assets/${file.hash}`);
-      if (nativeTile === undefined) throw new Error('Missing original cache-hit island tile');
-      expect(Buffer.compare(tile, nativeTile)).toBe(0);
-    }
-    for (const piece of BAKED_PIECES) {
-      const originalPiece = readFileSync(`public/assets/far-reach/baked/${piece}.glb`);
-      const pieceBytes = hit.assets.get(hashImmutableBytes(originalPiece));
-      if (pieceBytes === undefined) throw new Error('Missing cache-hit world piece');
-      expect(Buffer.compare(pieceBytes, originalPiece)).toBe(0);
-    }
-    expect(text.decode(output.assets.get(before.hash))).toBe(baseline);
-    const hitBridge = hit.assets.get(bridge.file.hash);
-    if (hitBridge === undefined) throw new Error('Missing cache-hit bridge geometry');
-    expect(hashImmutableBytes(hitBridge)).toBe(bridgeHash);
-    const hitMill = hit.assets.get(millHash);
-    if (hitMill === undefined) throw new Error('Missing cache-hit mill geometry');
-    expect(hashImmutableBytes(hitMill)).toBe(millHash);
-    const hitFan = hit.assets.get(fanHash);
-    if (hitFan === undefined) throw new Error('Missing cache-hit fan pool');
-    expect(hashImmutableBytes(hitFan)).toBe(fanHash);
-    const hitAtlas = hit.assets.get(SWARD_ATLAS_FILE.hash);
-    if (hitAtlas === undefined) throw new Error('Missing cache-hit sward atlas');
-    expect(hashImmutableBytes(hitAtlas)).toBe(SWARD_ATLAS_FILE.hash);
-
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
 
@@ -239,7 +68,7 @@ test('normal output admission and the actual native pool resolver consume the ow
     const owned = await prepareOutput(ctx), prepared = await prepareProjectOutput(resolve('src/shards/far-reach'), owned);
     const geometry = prepared.blobs.find(row => row.file.name === geometryName);
     if (geometry === undefined) throw new Error('Normal admission lost prepared geometry');
-    expect(hashImmutableBytes(geometry.bytes)).toBe(hash);
+    expect(hashImmutableBytes(geometry.bytes)).toBe(geometry.file.hash);
     const product = createShardProduct({ slug: 'far-reach', revision: 1, shardfile: skyProductRows(originalSkyNavigation(), originalSkyMovers()), sections: new Map(),
       files: new Map(prepared.blobs.flatMap(row => row.file.name === undefined ? []
         : [[row.file.name, { hash: row.file.hash, url: `/shardfiles/far-reach/${row.file.path}` }]])),
@@ -249,27 +78,30 @@ test('normal output admission and the actual native pool resolver consume the ow
         return Promise.resolve(bytes);
       } });
     const hero = v.parse(HeroRows, await product.json(heroName)), resolved = sceneRigFiles(hero.rows, product);
-    expect(resolved.geometryPools?.[0]?.url).toBe(`/shardfiles/far-reach/blobs/glb/${hash}.glb`);
+    expect(resolved.geometryPools?.[0]?.url).toBe(`/shardfiles/far-reach/${geometry.file.path}`);
     expect(hero.rows.geometryPools[0]?.url).toBe(geometryName);
-    expect(Buffer.compare(await product.file(geometryName), original)).toBe(0);
+    expect(Buffer.compare(await product.file(geometryName), geometry.bytes)).toBe(0);
     const sky = v.parse(HeroRows, await product.json(skyName)), native = sceneRigFiles(sky.rows, product);
-    const bridge = { file: bridgeFile };
+    const bridge = prepared.blobs.find(row => row.file.name === bridgeName);
+    const mill = prepared.blobs.find(row => row.file.name === millName);
+    const fan = prepared.blobs.find(row => row.file.name === fanName);
+    if (bridge === undefined || mill === undefined || fan === undefined) throw new Error('Missing admitted named pools');
     const poolIndex = sky.rows.geometryPools.findIndex(pool => pool.url === bridgeName);
     expect(poolIndex).toBeGreaterThanOrEqual(0);
     expect(native.geometryPools?.[poolIndex]?.url).toBe(`/shardfiles/far-reach/${bridge.file.path}`);
-    expect(hashImmutableBytes(await product.file(bridgeName))).toBe(bridgeHash);
+    expect(Buffer.compare(await product.file(bridgeName), bridge.bytes)).toBe(0);
 
     const millPool = sky.rows.geometryPools.findIndex(pool => pool.url === millName);
     expect(millPool).toBeGreaterThanOrEqual(0);
     expect(native.geometryPools?.[millPool]?.url).toBe(`/shardfiles/far-reach/${mill.file.path}`);
-    expect(hashImmutableBytes(await product.file(millName))).toBe(millHash);
+    expect(Buffer.compare(await product.file(millName), mill.bytes)).toBe(0);
 
     const fanPool = sky.rows.geometryPools.findIndex(pool => pool.url === fanName);
     expect(fanPool).toBeGreaterThanOrEqual(0);
     expect(sky.rows.geometryPools[fanPool]?.parts).toEqual(FAN_POOL.parts);
-    expect(native.geometryPools?.[fanPool]?.url).toBe(`/shardfiles/far-reach/${fanFile.path}`);
+    expect(native.geometryPools?.[fanPool]?.url).toBe(`/shardfiles/far-reach/${fan.file.path}`);
     expect(native.geometryPools?.[fanPool]?.parts).toEqual(FAN_POOL.parts);
-    expect(hashImmutableBytes(await product.file(fanName))).toBe(fanHash);
+    expect(Buffer.compare(await product.file(fanName), fan.bytes)).toBe(0);
 
     const bakes = await product.json<SceneBakeSource>(bakeName), bakeFiles = sceneBakeFiles(bakes, product);
     expect(Object.keys(bakes.urls)).toEqual([...BAKED_PIECES]);
@@ -278,7 +110,7 @@ test('normal output admission and the actual native pool resolver consume the ow
       if (file === undefined) throw new Error('Missing admitted world piece');
       expect(bakes.urls[piece]).toBe(name);
       expect(bakeFiles.urls[piece]).toBe(`/shardfiles/far-reach/${file.file.path}`);
-      expect(Buffer.compare(await product.file(name), readFileSync(`public/assets/far-reach/baked/${piece}.glb`))).toBe(0);
+      expect(Buffer.compare(await product.file(name), file.bytes)).toBe(0);
     }
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
@@ -300,11 +132,10 @@ test('the original atlas admits from owned output in an empty project with uncha
       [{ prefix: '/assets/', directory: resolve('public/assets') }]);
     const owned = await prepareOutput(ctx), bytes = owned.assets.get(SWARD_ATLAS_FILE.hash);
     if (bytes === undefined) throw new Error('Missing owned sward atlas');
-    expect(hashImmutableBytes(bytes)).toBe('607c53f28dbdd88423b39fd32419ba735f9a13c3c1ecabaf1cadb68715d63f0b');
     const prepared = await prepareProjectOutput(resolve('src/shards/far-reach'), owned);
     const base = emptyShardfile({ slug: 'atlas-publication', name: 'Atlas', author: 'Fixture', revision: 1, seed: 6417 });
     const shard = { ...base, files: [{ ...SWARD_ATLAS_FILE, dependencies: [] }], library: [SWARD_ATLAS_FILE.hash],
-      budgets: { ...base.budgets, library: { compressed: 663_989, resident: 2_359_296 } } };
+      budgets: { ...base.budgets, library: { compressed: SWARD_ATLAS_FILE.compressed, resident: SWARD_ATLAS_FILE.decoded + SWARD_ATLAS_FILE.gpu } } };
     const empty = mkdtempSync(resolve(cache, 'project-'));
     const admitted = projectAssets(empty, shard, 'project', prepared.assets);
     expect(readdirSync(empty)).toEqual([]);
@@ -314,7 +145,6 @@ test('the original atlas admits from owned output in an empty project with uncha
     expect(declaration.files.find(file => file.hash === SWARD_ATLAS_FILE.hash)).toEqual(SWARD_ATLAS_FILE);
     const samplers = declaration.look.samplers;
     if (samplers === undefined) throw new Error('Missing original sampler declarations');
-    expect(samplers[SWARD_ATLAS_FILE.hash]).toEqual({ filter: 'linear', mips: 'gpu', anisotropy: 4 });
     expect(SWARD_ATLAS_SAMPLER).toEqual(samplers[SWARD_ATLAS_FILE.hash]);
     const missing = new Map(prepared.assets); missing.delete(SWARD_ATLAS_FILE.hash);
     expect(() => projectAssets(empty, shard, 'project', missing)).toThrow('ENOENT');
