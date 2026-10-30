@@ -237,6 +237,16 @@ print('101 100 /runtime/Applications/MobileSafari.app/MobileSafari')
             raise subprocess.TimeoutExpired(command, options['timeout'], output=rows.encode())
         self.assertIsNone(READY['owned_safari_process'](UDID, 2, read_snapshot=snapshot))
 
+    def test_launch_observation_stops_before_repeating_expensive_queries(self):
+        due = READY['process_observation_due']
+        self.assertFalse(due(119, {'checks': 75, 'totalMs': 37225.254}))
+        self.assertFalse(due(119, {'checks': 1, 'totalMs': 1000}))
+        self.assertFalse(due(119, {'checks': 4, 'totalMs': 0}))
+        self.assertFalse(due(0, {'checks': 0, 'totalMs': 0}))
+        self.assertTrue(due(1, {'checks': 0, 'totalMs': 0}))
+        # A fast negative query is not repeated on the next poll.
+        self.assertFalse(due(2, {'checks': 1, 'totalMs': 0}))
+
     def test_foreign_simulator_safari_cannot_unlock_our_launch(self):
         self.command('ps', '''print('100 1 /runtime/launchd_sim ''' + UDID + '''')
 print('200 1 /runtime/launchd_sim foreign-device')

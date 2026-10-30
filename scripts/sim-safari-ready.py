@@ -32,6 +32,15 @@ def native_text(stream):
     return os.pread(stream.fileno(), os.fstat(stream.fileno()).st_size, 0).decode(errors='replace')
 
 
+def process_observation_due(elapsed, evidence):
+    # Observation must not consume the native startup it measures. A slow OS
+    # spawn may overrun one timeout; stop further queries once its cost is known.
+    schedule = (1, 30, 60, 90)
+    if evidence['checks'] >= len(schedule) or evidence['totalMs'] >= 1000:
+        return False
+    return elapsed >= schedule[evidence['checks']]
+
+
 def owned_safari_process(udid, remaining, evidence=None, read_snapshot=subprocess.run):
     """Observe only a Safari descending from this device's launchd_sim.
 
@@ -214,7 +223,6 @@ def wait_for_safari(udid):
     with native_transcript() as output, native_transcript() as errors:
         with subprocess.Popen(['xcrun', 'simctl', 'launch', udid, 'com.apple.mobilesafari'],
                               stdout=output, stderr=errors, text=True) as launch:
-            next_process_check = started + 1
             try:
                 while launch.poll() is None:
                     remaining = deadline - time.monotonic()
@@ -229,9 +237,8 @@ def wait_for_safari(udid):
                             print(f'sim-lane: Safari timed-out launch {label}: {detail[-2048:] or "<empty>"}', file=sys.stderr)
                         report_process_evidence()
                         return 124
-                    if time.monotonic() >= next_process_check:
+                    if process_observation_due(time.monotonic() - started, evidence):
                         pid = owned_safari_process(udid, remaining, evidence)
-                        next_process_check = time.monotonic() + 1
                         if pid is not None:
                             report_process_evidence()
                             print(f'sim-lane: owned Safari process {pid} in {time.monotonic() - started:.3f}s before launch client replied; '

@@ -692,7 +692,8 @@ jobs:
   phone-route:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     continue-on-error: true
-    runs-on: macos-15
+    # Standard 14 GB Intel image; retain Xcode/iOS 26.2 and the native profile.
+    runs-on: macos-15-intel
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -724,6 +725,8 @@ jobs:
           xcodebuild -version
           xcrun --find simctl
           test "$(xcrun --sdk iphonesimulator --show-sdk-version)" = 26.2
+          uname -m
+          sysctl hw.memsize hw.ncpu vm.swapusage
           printf 'DEVELOPER_DIR=%s\n' "$DEVELOPER_DIR" >> "$GITHUB_ENV"
       # Cold native startup is isolated from installs and artifact extraction.
       # The Linux prepare job runs concurrently; Safari keeps its 120 s bound.
@@ -735,6 +738,10 @@ jobs:
           receipt="$RUNNER_TEMP/phone-preparation/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
           echo "PHONE_SIMULATOR_PREPARATION=$receipt" >> "$GITHUB_ENV"
           PHONE_SIMULATOR_PREPARATION="$receipt" node scripts/parity/phone-route-runner.mjs --prepare-simulator 2>&1 | tee "$RUNNER_TEMP/phone-preparation/native.log"
+      - name: Require the native phone engine
+        env:
+          PHONE_NATIVE_ENGINE: ${{ steps.phone.outputs.engine }}
+        run: test "$PHONE_NATIVE_ENGINE" = simulator
       - uses: pnpm/action-setup@v4
         with: {version: 10}
       # Restore the existing pnpm store only after Safari is ready.
@@ -834,6 +841,8 @@ jobs:
           mkdir -p boot-smoke-results
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq '{created_at, run_started_at}' > boot-smoke-results/workflow-timing.json
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --jq '.jobs[] | select(.name == "phone-route") | {created_at, started_at, completed_at, runner_name, steps}' > boot-smoke-results/job-timing.json
+          sysctl vm.swapusage
+          vm_stat
       - uses: actions/upload-artifact@v4
         if: always()
         with:

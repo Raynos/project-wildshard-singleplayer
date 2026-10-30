@@ -18,6 +18,21 @@ function fixture() {
   return {path,publish,close:()=>{rmSync(directory,{recursive:true,force:true});}};
 }
 
+test('the report-only phone job cannot replace a native Simulator with browser WebKit',()=>{
+  const workflow=readFileSync('.github/workflows/deploy.yml','utf8');
+  const job=workflow.split('\n  phone-route:\n')[1]?.split('\n  journeys:\n')[0];
+  const guard=job?.split('      - name: Require the native phone engine\n')[1]?.split('\n      - ')[0];
+  const command=guard?.split('        run: ')[1]?.trim();
+  if(guard===undefined||command===undefined)throw new Error('Missing native engine admission');
+  expect(guard).toContain(`PHONE_NATIVE_ENGINE: \${{ steps.phone.outputs.engine }}`);
+  for(const engine of ['simulator','webkit','']){
+    const result=spawnSync('/bin/sh',['-ec',command],{encoding:'utf8',env:{...process.env,PHONE_NATIVE_ENGINE:engine}});
+    expect(result.status===0).toBe(engine==='simulator');
+  }
+  expect(job).toContain('continue-on-error: true');
+  expect(job).toContain('--route=entry');
+});
+
 test('route waits for native preparation completion, not merely a started boot',async()=>{
   const f=fixture();try {
     f.publish('pending',null);const done=waitPhonePreparation(f.path);
