@@ -66,7 +66,7 @@ export class UploadOwnership {
   private readonly acquisitions = new WeakMap<Resource, WeakSet<Scope>>();
   /** Resources whose dispose is being dispatched now: three's own dispose handler looks them up after ours ran
    *  (deallocateTexture / deallocateMaterial call properties.get), which is not an upload. Cleared after the task. */
-  private readonly releasing = new WeakSet<Resource>();
+  private readonly releasing = new WeakSet();
   private readonly finalizer = new FinalizationRegistry<{ ref: WeakRef<Resource>; forget: () => void }>((held) => {
     if (this.orphans.delete(held.ref)) this.collected++;
     held.forget();
@@ -273,7 +273,7 @@ export class UploadOwnership {
   attach(renderer: ObservedRenderer): void {
     propertyHooks(renderer).ownership = (object) => {
       // a lookup outside any draw while the resource's dispose is dispatched is three's own teardown, not an upload
-      if (this.drawOwner !== null || !(isResource(object) && this.releasing.has(object))) this.observe(object);
+      if (this.drawOwner !== null || typeof object !== 'object' || object === null || !this.releasing.has(object)) this.observe(object);
     };
     const counted = renders(renderer) ? renderer : null;
     // Reuse one slot per nested draw, clearing the Scope as soon as it returns.

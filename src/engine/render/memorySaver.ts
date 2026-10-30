@@ -219,15 +219,19 @@ export function installMemorySaver(renderer: Renderer): void {
     if (head > 256 && head * 2 > queue.length) { queue.splice(0, head); head = 0; }
   };
   drawHooks(renderer).memory = (_camera, _scene, geometry, _material, object) => {
-    const frame = renderCount(renderer); // SF59: the engine's render count, not three's (node draws bump three's)
-    if (frame !== lastFrame) { lastFrame = frame; settle(frame); }
+    // No pending release means no per-draw renderer-clock lookup. A newly
+    // observed geometry still records the exact original render boundary.
+    if (head < queue.length) {
+      const frame = renderCount(renderer);
+      if (frame !== lastFrame) { lastFrame = frame; settle(frame); }
+    }
     // A rig's geometry stays whole: the far and shadow herds copy every attribute of it when a batch grows, and reading
     // a released array back from the GPU (restore) stalled a desktop Pine drive 1.4 s in one frame (gl.isBuffer
     // waiting on the GPU, then getBufferSubData)
     if (seenGeometry.has(geometry) || object instanceof THREE.BatchedMesh || object instanceof THREE.SkinnedMesh) return;
     seenGeometry.add(geometry);
     // The scene/cache owns live geometry; this delayed optimization only borrows it.
-    queue.push({ geometry: new WeakRef(geometry), at: frame, versions: versions(geometry), label: object.name || geometry.name || object.type });
+    queue.push({ geometry: new WeakRef(geometry), at: renderCount(renderer), versions: versions(geometry), label: object.name || geometry.name || object.type });
   };
 }
 
