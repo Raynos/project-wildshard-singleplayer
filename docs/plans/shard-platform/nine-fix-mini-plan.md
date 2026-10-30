@@ -1,6 +1,6 @@
 # Nine Dragon, fixed properly: frame cost, hitches and every missing dressing
 
-**State:** `draft` 2026-10-30 ~12:40 Cancun, waiting for Jake's grill. Written by wildshard-v from three research
+**State:** `open` 2026-10-30 ~13:15 Cancun, grilled (G934–G942: fix the runtime, GLSL Nine first, slabs after wave 1, the bar below legacy, the builder decides look trades, Jake's phone check once at the end). Written by wildshard-v from three research
 reports by its subagents; wildshard-new hands the rows to lanes and marks them after the grill. Ask E512. Jake, 12:15:
 *"can you come up with a mini plan, like a brand new mini plan, to address all the 9 dragon issues we found, like in
 detail, no matter what it takes, fixing everything properly, in the engine, in the shard file, all that stuff in 9

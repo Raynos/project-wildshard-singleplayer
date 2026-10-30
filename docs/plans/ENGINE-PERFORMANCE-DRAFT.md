@@ -1,6 +1,6 @@
 # Engine performance: can the shardfile engine batch like Unreal?
 
-**State:** `draft` 2026-10-30, written by wildshard-v's research subagent for Jake's grill. Ask E515. Jake's words:
+**State:** `draft` 2026-10-30, written by wildshard-v's research subagent; grilled 13:00–13:15 (G934 keep the format and fix the runtime, G935 GLSL Nine first, G936 forest / crags batch again, G937 the bar below legacy, G940 the batch stage after GLSL). EP1–EP3 and EP9 may start now. Ask E515. Jake's words:
 *"Once all the mini plans are done, put them all in an artifact each and show them to me. And then we do the grilling,
 the brainstorming, the questions. I really want to push hard on this. I don't want these regressions. It sounds like
 the shard files are harder to optimize, harder to use the bulk drawing and the smart stuff. A lot of the things are
