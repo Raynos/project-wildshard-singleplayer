@@ -8,6 +8,7 @@ import type { HeldClaims } from '../loadout/claims';
 import { clientWildlife } from '../population/wildlife';
 import type { CrowdDraw } from '../ambient/crowdDraw';
 import { wildEnv } from '../population/pageGroups';
+import { companionToName } from './companions';
 import { MountedReins } from './reins';
 import { PagePastureRaid } from './pagePasture';
 import { app } from '@wildshard/engine/app/runtime';
@@ -166,13 +167,9 @@ export class RidingActions {
   private nameUpdate(open: boolean): void {
     this.naming = null; this.nameIt.radius = 0;
     const mount = this.mount; if (mount.mounted || open) return;
-    const p = this.player.position; let best = Infinity, nearest: Readonly<Record<string, number>> | null = null;
-    for (const entry of mount.mountables) {
-      const a = entry.a, row = this.rules.project('name', { alive: Number(a.alive), x: a.position.x, z: a.position.z, cx: this.rows.rail.x, cz: this.rows.rail.z, px: p.x, pz: p.z, yaw: a.yaw, scale: a.scale });
-      const distance = row['distance'] ?? 1e12;
-      if (distance < best && distance < 1e12) { best = distance; this.naming = a; nearest = row; }
-    }
-    const actor = this.naming; if (actor === null || nearest === null) return;
+    const pick = companionToName(mount.mountables, (signal, observations) => this.rules.project(signal, observations), this.rows.rail, this.player.position);
+    if (pick === null) return;
+    const actor = pick.actor, nearest = pick.row; this.naming = actor;
     const x = nearest['x'] ?? actor.position.x, z = nearest['z'] ?? actor.position.z;
     this.nameIt.position.set(x, terrainHeight(x, z) + 1.5, z); this.nameIt.radius = nearest['radius'] ?? 0;
     this.nameIt.label = `${this.rows.labels.name} ${mount.nameOf(actor.entityId) ?? actor.label}`;

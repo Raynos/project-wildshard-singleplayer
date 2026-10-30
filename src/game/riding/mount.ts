@@ -16,6 +16,7 @@ import { inChunk, waterLevel } from '@wildshard/engine/world/Heightfield';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { Bow } from '@wildshard/game/weapons/Bow';
+import { MountCompanions, type Companion } from './companions';
 
 const enteredMounts = new WeakMap<Scope, Mount>();
 /** Borrow the native entered mount without constructing a riding controller. */
@@ -24,11 +25,10 @@ export function enteredMount(scope: Scope): Mount | undefined { return scope.dis
 export function pageRidingMounted(ctx: Pick<LevelContext, 'scope'>): boolean { return enteredMount(ctx.scope)?.mounted === true; }
 
 export type MountEvent = { kind: 'mount'; horse: string | null } | { kind: 'thrown' } | { kind: 'panic'; horse: string; seconds: number } | { kind: 'bolt'; horse: string; name: string };
-interface Mountable { a: Animal; name: string; it: Interactable; restT: number; bolting: boolean; comeT: number; /** its key in the saved names (horseNames.ts) */ key: string }
+type Mountable = Companion<Animal, Interactable>;
 const EYE = 2.3;                      // rider eye over the ground at horse scale 1 (withers 1.45 + a seated rider)
 const LOOK_LIMIT = THREE.MathUtils.degToRad(140), BREAK_LOOK = THREE.MathUtils.degToRad(35);
 const MOUNT_T = 0.55;                 // s: the swing up / down
-const BOLT_AT = 0.2, REST_TIME = 180, WHISTLE_RANGE = 150;
 const RECENTRE = { delaySlow: 1.2, delayFast: 0.8, rate: 1.1, perMs: 0.14, pitch: 0 };
 const BOB = { walk: 0.016, trot: 0.032, canter: 0.045, gallop: 0.038, sway: 0.014, rock: 0.022 };
 const ROLL_PER_RATE = 0.05;          // rad of roll per rad/s of turn (scaled by speed up to 8 m/s)
@@ -50,7 +50,9 @@ export class Mount extends MountedBody {
   touchGallop = false;
   breakRoll = 0; breakShake = 0;
   readonly interactables: Interactable[] = [];
-  readonly mountables: Mountable[] = [];
+  /** the rider's horses as numbers and names (companions.ts: the same law the Node simulation runs) */
+  private readonly companions: MountCompanions<Animal, Interactable>;
+  get mountables(): readonly Mountable[] { return this.companions.list; }
   private readonly player: Player;
   private swingT = 0; private swingDir = 0;
   private readonly swingFrom = new THREE.Vector3();
@@ -75,6 +77,7 @@ export class Mount extends MountedBody {
   sampleCommand(): RideCommandSample { return this.consumedCommand; }
   constructor(private readonly ctx: LevelContext, player: Player, private readonly animals: AnimalManager, private readonly opts: MountProfile) {
     super(opts.speeds);
+    this.companions = new MountCompanions(opts);
     const previous = enteredMounts.get(ctx.scope); enteredMounts.set(ctx.scope, this);
     ctx.scope.onDispose(() => { if (enteredMounts.get(ctx.scope) === this) { if (previous === undefined) enteredMounts.delete(ctx.scope); else enteredMounts.set(ctx.scope, previous); } });
     this.player = player; this.input = ctx.app.input;
@@ -107,36 +110,20 @@ export class Mount extends MountedBody {
   private roadsOverride: readonly (readonly RoadXZ[])[] | null = null;
   private actor(ref: MountActorRef): Animal { const id = typeof ref === 'string' ? ref : ref.entityId; const actor = this.animals.animals.find(value => value.entityId === id); if (actor === undefined) throw new Error('Unknown mount actor'); return actor; }
   addMountable(id: MountActorRef, fallback: string, savedKey?: string): void {
-    const a = this.actor(id), key = savedKey ?? `${fallback}|${a.kind}:${a.variant}`;
-    if (this.mountables.some((m) => m.a === a)) return;
-    const name = this.opts.names[key] ?? fallback;
-    if (name !== fallback) a.label = name;
-    a.mem['owned'] = 1;
-    const it: Interactable = { position: a.position, radius: 3.3, label: `Mount ${name}`, onInteract: () => { if (this.horse === a) this.dismount(); else if (this.horse === null) this.mount(a.entityId); } };
-    const m: Mountable = { a, name, it, restT: 0, bolting: false, comeT: 0, key };
-    this.mountables.push(m);
-    this.interactables.push(it);
+    const a = this.actor(id);
+    const m = this.companions.add(a, fallback, savedKey, (name) => ({ position: a.position, radius: 3.3, label: `Mount ${name}`,
+      onInteract: () => { if (this.horse === a) this.dismount(); else if (this.horse === null) this.mount(a.entityId); } }));
+    if (m !== null) this.interactables.push(m.it);
   }
   removeMountable(id: MountActorRef): void {
-    const a = this.actor(id);
-    const i = this.mountables.findIndex((m) => m.a === a);
-    if (i === -1) return;
-    const m = this.mountables[i];
-    this.mountables.splice(i, 1);
-    if (m !== undefined) { const j = this.interactables.indexOf(m.it); if (j !== -1) this.interactables.splice(j, 1); }
+    const m = this.companions.remove(this.actor(id));
+    if (m !== null) { const j = this.interactables.indexOf(m.it); if (j !== -1) this.interactables.splice(j, 1); }
   }
-  rename(id: MountActorRef, name: string): void {
-    const a = this.actor(id);
-    const m = this.mountables.find((x) => x.a === a);
-    if (m === undefined || name.length === 0) return;
-    m.name = name; a.label = name;
-    this.opts.names[m.key] = name;
-  }
-  nameOf(id: MountActorRef): string | null { return this.mountables.find((x) => x.a.entityId === (typeof id === 'string' ? id : id.entityId))?.name ?? null; }
+  rename(id: MountActorRef, name: string): void { this.companions.rename(this.actor(id), name); }
+  nameOf(id: MountActorRef): string | null { return this.companions.nameOf(typeof id === 'string' ? id : id.entityId); }
   canRide(id: MountActorRef): boolean {
     const a = this.actor(id);
-    const m = this.mountables.find((x) => x.a === a);
-    return a.alive && (m === undefined || (m.restT <= 0 && !m.bolting));
+    return a.alive && this.companions.free(a);
   }
   mount(id: MountActorRef, breaking = false): boolean {
     const a = this.actor(id);
@@ -209,16 +196,7 @@ export class Mount extends MountedBody {
   }
   whistle(): Animal | null {
     if (this.horse !== null) return null;
-    const p = this.player.position;
-    let best: Mountable | null = null, bd = WHISTLE_RANGE;
-    for (const m of this.mountables) {
-      if (!this.canRide(m.a.entityId) || (m.a.mem['whistle'] ?? 0) === 0) continue;   // only a bonded horse answers (mem.whistle = 1)
-      const d = m.a.position.distanceTo(p);
-      if (d < bd) { bd = d; best = m; }
-    }
-    if (best === null) return null;
-    best.comeT = 30;
-    return best.a;
+    return this.companions.whistle(this.player.position, (a) => this.canRide(a.entityId));
   }
   panic(x: number, z: number, secs: number): boolean {
     const a = this.horse;
@@ -310,38 +288,8 @@ export class Mount extends MountedBody {
   }
   private land(): void { this.landBody(this.bodyWorld); }
   update(dt: number): void {
-    const p = this.player.position;
-    for (const m of this.mountables) {
-      const a = m.a;
-      if (!a.alive) continue;
-      if (!m.bolting && m.restT <= 0 && a.hp < a.maxHp * BOLT_AT) {
-        m.bolting = true; m.comeT = 0;
-        if (this.horse === a) { this.dismount(true); this.hurt(); }
-        a.mem['rear'] = 1;
-        this.events.push({ kind: 'bolt', horse: a.entityId, name: m.name });
-      }
-      if (m.bolting) {
-        a.mem['rear'] = Math.max(0, (a.mem['rear'] ?? 0) - dt * 1.2);
-        const r = this.opts.restAt;
-        const tx = r?.x ?? a.position.x, tz = r?.z ?? a.position.z;
-        const d = Math.hypot(tx - a.position.x, tz - a.position.z);
-        if (d > 3 && r !== undefined) { a.state = 'flee'; a.setMotion(Math.atan2(tx - a.position.x, tz - a.position.z), d > 20 ? this.opts.speeds.gallop * 0.9 : this.opts.speeds.trot, 2); }
-        else { m.bolting = false; m.restT = REST_TIME; a.setMotion(a.yaw, 0, 1); a.state = 'graze'; }
-      } else if (m.restT > 0) {
-        m.restT -= dt;
-        a.state = 'graze';
-        if (m.restT <= 0) a.hp = a.maxHp;
-      } else if (this.horse !== a && m.comeT > 0) {
-        m.comeT -= dt;
-        const d = Math.hypot(p.x - a.position.x, p.z - a.position.z);
-        if (d > 3.2) { a.state = d > 12 ? 'flee' : 'wander'; a.setMotion(Math.atan2(p.x - a.position.x, p.z - a.position.z), d > 25 ? this.opts.speeds.gallop * 0.85 : d > 8 ? this.opts.speeds.canter * 0.7 : this.opts.speeds.walk, 2.5); }
-        else { m.comeT = 0; a.setMotion(Math.atan2(p.x - a.position.x, p.z - a.position.z), 0, 2); a.state = 'idle'; a.mem['toss'] = 1; }
-      } else if (this.horse !== a) {
-        if (a.speed < 0.1) a.state = Math.sin(this.ctx.app.clock.now * 0.2 + a.seed * 9) > 0.1 ? 'graze' : 'idle';
-        a.lookTarget.copy(p); a.lookWeight = a.position.distanceTo(p) < 6 && a.state !== 'graze' ? 0.6 : 0;
-      }
-      m.it.label = this.horse === a ? 'Dismount' : m.restT > 0 || m.bolting ? `${m.name} is resting` : `Mount ${m.name}`;
-      m.it.radius = this.horse === a ? 3.6 : m.restT > 0 || m.bolting ? 0 : 3.3;
-    }
+    this.companions.update(dt, this.player.position, { ridden: () => this.horse, now: () => this.ctx.app.clock.now,
+      throwRider: () => { this.dismount(true); this.hurt(); },
+      bolted: (m) => { this.events.push({ kind: 'bolt', horse: m.a.entityId, name: m.name }); } });
   }
 }
