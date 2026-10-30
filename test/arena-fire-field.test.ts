@@ -6,7 +6,7 @@ import { BoxGeometry, BufferGeometry, Color, Group, InstancedMesh, Matrix4, Mesh
 import { parsePrivateScene } from '../src/format/clientChannels';
 import { ArenaSceneView } from '../src/game/boss/encounterView';
 import { Scope } from '../src/engine/app/scope';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { ArenaFireView, ArenaWhirlsView } from '../src/game/boss/arenaFire';
 import { arenaFireView, arenaWhirlsView } from './fake/arenaViews';
 import { fireViewRows } from '../src/shards/nalati-grasslands/generators/titanFireView';
@@ -27,7 +27,7 @@ let restore = (): void => undefined;
 afterEach(() => { restore(); });
 
 function burning() {
-  restore = overrideTerrain({ heightAt: () => 1, normalAt: () => [0, 1, 0] });
+  restore = bindFlatTerrain({ heightAt: () => 1, normalAt: () => [0, 1, 0] });
   const scope = new Scope('reed-marsh'), scene = new Scene();
   lendLooks(scope, { materials: new Map(['reed-flame', 'reed-smoke'].map(id => [id, new MeshBasicMaterial()])),
     setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => { throw new Error('Unused'); } });
@@ -79,7 +79,7 @@ const devils = {view:titanWhirlView(2), gate:titanWhirlGate(2), laws: [devil(-8)
   debris: { count: 3, climb: 0.5, turn: 1, step: 2, radius: [0.5, 2], height: 6, axis: [0, 1, 0], roll: 1, scale: [0.5, 0.25, 2] } };
 
 test('a second shard\'s dust devils ease in only while armed and live, spin their funnels and climb their debris', () => {
-  restore = overrideTerrain({ heightAt: () => 3, normalAt: () => [0, 1, 0] });
+  restore = bindFlatTerrain({ heightAt: () => 3, normalAt: () => [0, 1, 0] });
   const funnels = [new Group(), new Group()], debris = new InstancedMesh(new BoxGeometry(), new MeshBasicMaterial(), 6), scope = new Scope('quarry');
   lendNalatiPasture(scope);
   const rows = parse(ArenaWhirlsSchema, devils), view = new ArenaWhirlsView(rows, ReturnProgram.page(program.wind,scope), funnels, debris,ReturnProgram.page(program.attack),scope);
@@ -116,7 +116,7 @@ const quarry = parse(ArenaSceneSchema,{ scene: curtain, geometry: { ring: box(),
   wall: { parts: ['curtain'], spin: [2], at: [5, 6], sink: 1, ease: 10 }, tells: { rockfall: { kind: 'ring', colour: [2, 1, 0.5], count: 2 } } });
 
 test('a second shard\'s arena dresses in its own materials and raises its curtain only while sealed', () => {
-  restore = overrideTerrain({ heightAt: () => 4, normalAt: () => [0, 1, 0] });
+  restore = bindFlatTerrain({ heightAt: () => 4, normalAt: () => [0, 1, 0] });
   const scene = new Scene(), view = new ArenaSceneView(scene, quarry), wall = view.mesh('curtain');
   expect(view.instances('rocks').material).toBeInstanceOf(MeshLambertMaterial); expect(view.instances('burnt').material).toHaveProperty('opacity', 0.5);
   expect(wall.position.toArray()).toEqual([5, 3, 6]);

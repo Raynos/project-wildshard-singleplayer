@@ -5,7 +5,11 @@ import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
 import { Flags } from '../src/engine/world/interact/flags';
 import { QuestState } from '../src/engine/quest/core';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
+import { registerSpecies } from '@wildshard/engine/entities/species/registry';
+import { speciesWithLook } from '@wildshard/engine/entities/species/look';
+import { BOAR } from '../src/game/systems/species/boar';
+import { BOAR_LOOK } from '../src/game/systems/species/view/boar';
 import { nameBlob } from '../src/sdk/blobs';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { manager } from '@wildshard/engine/test/manager';
@@ -41,7 +45,8 @@ test('salt-marsh chapter binds cue effects and the baseline boss bar through dat
   publishBoundQuest(scope, quest);
   const player = { position: new Vector3(), velocity: new Vector3(), yaw: 0, pitch: 0, carried: false };
   const systems = new Map<string, Parameters<ShardContext['system']>[0]>();
-  const restoreTerrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
+  const restoreTerrain = bindFlatTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
+  registerSpecies(speciesWithLook(BOAR, BOAR_LOOK));
   const animals = manager().manager, context = { scope, product, app } as ShardContext;
   Object.defineProperties(context, {
     game: { value: { runtime: { world: { player, sky: { dayNight: null } }, play: {

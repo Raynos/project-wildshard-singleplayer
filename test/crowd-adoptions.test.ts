@@ -1,13 +1,13 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { ForagerPopulation } from '../src/engine/ai/ambientForager';
 import { CrowdRoster, CrowdWeaponTarget, ForagerTargets } from '../src/game/shardfile/crowdRuntime';
 import { PAGE_LIFE } from '../src/shards/pine-hollow/generators/pageLife';
 import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-headless-assembly';
 
 test('shipped Pine hares enter the same crowd weapon projection as Nalati sheep', () => {
-  const reset = overrideTerrain({ heightAt: () => 0, waterLevel: () => -100,
+  const reset = bindFlatTerrain({ heightAt: () => 0, waterLevel: () => -100,
     normalAt: () => [0, 1, 0], cabinMask: () => 0, pondMask: () => 0, streamAt: () => null });
   try {
     const row = PAGE_LIFE.foragers[0];

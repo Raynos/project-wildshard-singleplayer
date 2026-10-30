@@ -1,17 +1,28 @@
 // @vitest-environment happy-dom
-import { afterEach, expect, test, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, expect, test, vi } from 'vitest';
 import { Scope } from '../app/scope';
 import { withOwner } from '../app/ownership';
 import { legacyDouble } from '../test/FakeGame';
 import { app } from '../app/runtime';
 import { GameMenu } from './Menu';
 import type { FullMap } from './Map';
+import { bindFlatTerrain } from '../test/terrain';
+import { installAssetTables } from '../boot/tables';
+
+const tableSlot = Symbol.for('engine.asset-tables');
+const previousTables = Object.getOwnPropertyDescriptor(globalThis, tableSlot);
+beforeAll(() => { installAssetTables({ bytes: {}, versions: {}, music: {}, sfx: {}, packs: {} }); });
+afterAll(() => {
+  if (previousTables === undefined) Reflect.deleteProperty(globalThis, tableSlot);
+  else Object.defineProperty(globalThis, tableSlot, previousTables);
+});
 
 const owners: Scope[]=[];
 afterEach(()=>{for(const owner of owners.splice(0))owner.dispose();vi.restoreAllMocks();});
 
 function fixture(){
   const owner=new Scope('lazy-settings');owners.push(owner);
+  owner.onDispose(bindFlatTerrain());
   const map=legacyDouble<FullMap>({mount:()=>undefined,setZoom:()=>undefined,fit:()=>undefined,
     show:()=>undefined,hide:()=>undefined,hasRoom:false,zoom:1,quest:null});
   const menu=withOwner(owner,()=>new GameMenu({fullMap:map,settings:()=>({weapons:new Set(),melee:false,tracers:false,huntersEye:false})}));
