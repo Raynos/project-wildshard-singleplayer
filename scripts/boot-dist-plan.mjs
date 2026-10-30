@@ -42,7 +42,7 @@ const plan = {
   'boot-grid': all, 'hover-chromium': all, 'hover-webkit': all,
   explorer: explorerCases(rows),
   // Its real road crossings can trigger declared neighbour prediction. Preserve
-  // the same complete grid set in a separately checksummed phone artifact.
+  // the same complete grid set; the manifest binds its exact shared archive.
   'phone-route': all,
   shared: [...shared].sort((left, right) => left.localeCompare(right)),
 };

@@ -511,7 +511,7 @@ jobs:
           if-no-files-found: error
 
       - uses: actions/upload-artifact@v4
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        if: (github.event_name == 'push' || github.event_name == 'pull_request') && hashFiles('boot-dist-parts/phone-route/boot-dist-proof.json') != ''
         with:
           name: boot-dist-phone-route
           path: boot-dist-parts/phone-route/
@@ -876,12 +876,13 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ github.run_id }}
       - name: Verify the exact push manifest
+        id: phone-manifest
         env:
           TESTED_SHA: ${{ github.sha }}
           SOURCE_RUN: ${{ github.run_id }}
         run: |
           node --input-type=module <<'NODE'
-          import { readFileSync } from 'node:fs';
+          import { appendFileSync, readFileSync } from 'node:fs';
           const proof = JSON.parse(readFileSync('boot-dist-manifest.json', 'utf8'));
           const core = ['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'];
           // An older successful push can dispatch while this dry-run lands.
@@ -895,10 +896,15 @@ jobs:
             || parts.some(part => !/^[a-f0-9]{64}$/u.test(proof.legs[part].archiveHash)
               || !Number.isSafeInteger(proof.legs[part].archiveBytes) || proof.legs[part].archiveBytes <= 0))
             throw new Error('Push manifest does not match tested SHA/run and all seven artifact legs');
+          const artifact = proof.legs['phone-route']?.artifact;
+          if (!['worlds', 'phone-route'].includes(artifact)) throw new Error('Unreviewed phone artifact');
+          const output = process.env.GITHUB_OUTPUT;
+          if (!output) throw new Error('Missing phone artifact output');
+          appendFileSync(output, `artifact=${artifact}\n`);
           NODE
       - uses: actions/download-artifact@v4
         with:
-          name: boot-dist-phone-route
+          name: boot-dist-${{ steps.phone-manifest.outputs.artifact }}
           github-token: ${{ github.token }}
           run-id: ${{ github.run_id }}
           path: boot-dist-parts

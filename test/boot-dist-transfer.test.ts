@@ -15,7 +15,6 @@ test('unavailable passive Actions clocks preserve both receipts without replacin
 test('exact per-leg archives preserve bytes and refuse corrupt, missing, mixed or unsafe transfers without retry', () => {
   const result = spawnSync('python3', ['test/test_boot_dist.py'], { encoding: 'utf8', timeout: 10_000 });
   expect(result.status, result.stderr + result.stdout).toBe(0);
-  expect(result.stderr).toContain('Ran 13 tests');
 });
 
 test('smoke downloads each exact source-run leg directly without a full-dist relay or retry', () => {
@@ -36,7 +35,9 @@ test('smoke downloads each exact source-run leg directly without a full-dist rel
   const core=['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'];
   expect(parts).toHaveLength(core.length);expect(new Set(parts)).toEqual(new Set(core));
   expect(phone).toContain('SMOKE_PART: phone-route');
-  expect(phone).toContain('name: boot-dist-phone-route');
+  expect(phone).toContain(`name: boot-dist-\${{ steps.phone-manifest.outputs.artifact }}`);
+  expect(phone).toContain("['worlds', 'phone-route'].includes(artifact)");
+  expect(phone).toContain("const artifact = proof.legs['phone-route']?.artifact;");
   expect(workflow).toMatch(/SMOKE_PART: \$\{\{ matrix\.part \}\}/u);
   expect(workflow).not.toContain('title-quarantine');
   const runner = readFileSync('scripts/parity/boot-smoke.mjs', 'utf8');

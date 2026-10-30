@@ -153,9 +153,16 @@ def pack(dist, output, plan, sha, run):
         raise ValueError('Dist version differs from source SHA')
     output.mkdir(parents=True, exist_ok=True)
     inventory = {'sha': sha, 'run': run, 'version': version, 'legs': {}}
+    world_parts = ['boot-grid', 'hover-chromium', 'hover-webkit', 'explorer']
+    # These legs select exactly the same served tree today. Share its real
+    # archive and explicit part proof; never guess an alias in the consumer.
+    shared_phone = set(plan['phone-route']) == set(plan['boot-grid'])
+    if shared_phone:
+        world_parts.append('phone-route')
     groups = [('boot-public', ['boot-public']), ('boot-developer', ['boot-developer']),
-              ('worlds', ['boot-grid', 'hover-chromium', 'hover-webkit', 'explorer']),
-              ('phone-route', ['phone-route'])]
+              ('worlds', world_parts)]
+    if not shared_phone:
+        groups.append(('phone-route', ['phone-route']))
     for artifact, parts in groups:
         part = parts[0]
         if any(set(plan[p]) != set(plan[part]) for p in parts):

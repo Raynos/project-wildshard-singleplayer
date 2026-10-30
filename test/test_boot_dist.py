@@ -53,7 +53,7 @@ class Transfer(unittest.TestCase):
 
     def restore(self, part='boot-public', sha=None, run='123'):
         target = self.root / 'restored'
-        boot.restore(self.output / (part if part in ('boot-public', 'boot-developer', 'phone-route') else 'worlds'), target, self.manifest, sha or self.sha, run, part)
+        boot.restore(self.output / self.manifest['legs'][part]['artifact'], target, self.manifest, sha or self.sha, run, part)
         return target
 
     def test_every_selected_byte_and_shared_shell_survive(self):
@@ -81,18 +81,33 @@ class Transfer(unittest.TestCase):
 
     def test_grid_and_explorer_keep_all_worlds(self):
         for part in ('boot-grid', 'hover-chromium', 'hover-webkit', 'explorer', 'phone-route'):
-            proof = json.loads((self.output / ('phone-route' if part == 'phone-route' else 'worlds') / 'boot-dist-proof.json').read_text())
+            proof = json.loads((self.output / self.manifest['legs'][part]['artifact'] / 'boot-dist-proof.json').read_text())
             self.assertTrue({'shardfiles/first/shard.json', 'shardfiles/second/shard.json'}.issubset({r['path'] for r in proof['files']}))
 
-    def test_phone_has_its_own_exact_archive_and_cannot_restore_worlds_as_phone(self):
+    def test_phone_shares_only_the_identical_declared_world_tree(self):
         target = self.restore('phone-route')
         self.assertTrue((target / 'shardfiles/first/shard.json').exists())
         self.assertTrue((target / 'shardfiles/second/shard.json').exists())
-        self.assertEqual(self.manifest['legs']['phone-route']['artifact'], 'phone-route')
-        proof = json.loads((self.output / 'phone-route/boot-dist-proof.json').read_text())
-        self.assertEqual(proof['parts'], ['phone-route'])
+        self.assertEqual(self.manifest['legs']['phone-route']['artifact'], 'worlds')
+        self.assertEqual(self.manifest['legs']['phone-route'], self.manifest['legs']['boot-grid'])
+        self.assertFalse((self.output / 'phone-route').exists())
+        proof = json.loads((self.output / 'worlds/boot-dist-proof.json').read_text())
+        self.assertIn('phone-route', proof['parts'])
         with self.assertRaisesRegex(ValueError, 'SHA/run/leg'):
-            boot.restore(self.output / 'worlds', self.root / 'wrong', self.manifest, self.sha, '123', 'phone-route')
+            boot.restore(self.output / 'boot-public', self.root / 'wrong', self.manifest, self.sha, '123', 'phone-route')
+
+    def test_a_different_phone_plan_keeps_its_complete_separate_artifact(self):
+        output = self.root / 'different-artifacts'
+        plan = {**self.plan, 'phone-route': ['first']}
+        boot.pack(self.dist, output, plan, self.sha, '123')
+        manifest = json.loads((output / 'boot-dist-manifest.json').read_text())
+        self.assertEqual(manifest['legs']['phone-route']['artifact'], 'phone-route')
+        target = self.root / 'different-phone'
+        boot.restore(output / 'phone-route', target, manifest, self.sha, '123', 'phone-route')
+        self.assertTrue((target / 'shardfiles/first/shard.json').exists())
+        self.assertFalse((target / 'shardfiles/second/shard.json').exists())
+        with self.assertRaisesRegex(ValueError, 'SHA/run/leg'):
+            boot.restore(output / 'worlds', self.root / 'wrong-phone', manifest, self.sha, '123', 'phone-route')
 
     def test_truncated_transfer_refuses_without_retry_or_write(self):
         archive = self.output / 'boot-public/boot-dist.tar.zst'
