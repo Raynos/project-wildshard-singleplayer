@@ -106,6 +106,8 @@ export interface OpenArenaFightSnapshot {
   readonly hazardDt: number; readonly boundary: { readonly mask: number; readonly effect: Readonly<Record<string, number>> | null };
   readonly riders: readonly { readonly site: number; readonly law: ProjectedSnapshot }[];
   readonly body: { readonly visible: boolean; readonly alpha: number; readonly flash: number; readonly dome: boolean };
+  /** the heart target as last published to a ray (`combatTarget`: arrows stuck in it follow and recover from it) */
+  readonly heart: { readonly position: readonly [number, number, number]; readonly alive: boolean };
   /** the view module's cells after its last frame (null: no view bound) */
   readonly view: Readonly<Record<typeof POSE_CELLS[number], number>> | null;
 }
@@ -272,6 +274,7 @@ export class OpenArenaFight implements BossScript {
       hazardDt: this.hazardDt, boundary: { mask: this.boundary.mask, effect: this.boundaryEffect === null ? null : { ...this.boundaryEffect } },
       riders: this.stormRiders.map(r => ({ site: lanes.indexOf(r.lane), law: r.law.snapshot() })),
       body: { visible: b.visible, alpha: b.alpha.value, flash: b.flash.value, dome: b.part(this.data.view.dome).visible },
+      heart: { position: [this.heartTarget.position.x, this.heartTarget.position.y, this.heartTarget.position.z], alive: this.heartTarget.alive },
       view: cells === null ? null : { bend: cells.bend.value, raise: cells.raise.value, castL: cells.castL.value, struck: cells.struck.value, alpha: cells.alpha.value } };
   }
   /** Continue a fresh fight (no riders yet; its view bound first when the snapshot has one) from `saved`: the next update
@@ -280,7 +283,7 @@ export class OpenArenaFight implements BossScript {
     if (this.stormRiders.length > 0 || (saved.view === null) !== (this.view === null)) throw new Error('Arena restore needs a fresh fight with its view bound alike');
     const keys = Object.keys(this.pose);
     if (Object.keys(saved.pose).length !== keys.length || keys.some(key => !Number.isFinite(saved.pose[key]))
-      || [...saved.spear, saved.hazardDt, saved.boundary.mask, ...saved.burnt].some(value => !Number.isFinite(value))) throw new Error('Invalid arena fight snapshot');
+      || [...saved.spear, ...saved.heart.position, saved.hazardDt, saved.boundary.mask, ...saved.burnt].some(value => !Number.isFinite(value))) throw new Error('Invalid arena fight snapshot');
     this.life.restore(saved.life); this.clocks.restore(saved.clocks); this.support.restore(saved.support);
     this.field.restore(saved.field); this.whirls.restore(saved.whirls);
     Object.assign(this.pose, saved.pose); this.spearAt.set(saved.spear[0], saved.spear[1], saved.spear[2]);
@@ -291,6 +294,7 @@ export class OpenArenaFight implements BossScript {
       if (held === null || lane === undefined) throw new Error('Missing restored support rider');
       const law = this.riderLaw(row.site, held); law.restore(row.law); this.stormRiders.push({ rider: held, a: held.body, lane, law });
     }
+    this.heartTarget.position.set(saved.heart.position[0], saved.heart.position[1], saved.heart.position[2]); this.heartTarget.alive = saved.heart.alive;
     const b = this.body; b.setVisible(saved.body.visible); b.alpha.value = saved.body.alpha; b.flash.value = saved.body.flash; b.part(this.data.view.dome).visible = saved.body.dome;
     const cells = this.view?.cells;
     if (cells !== undefined && saved.view !== null) for (const key of POSE_CELLS) cells[key].value = saved.view[key];

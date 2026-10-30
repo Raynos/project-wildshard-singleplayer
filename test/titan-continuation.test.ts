@@ -71,6 +71,8 @@ function step(run: { fight: OpenArenaFight; player: Vector3 }, i: number): void 
   if (i === 45) a.enterPhase(1);
   if (i === 90) a.enterPhase(2);
   a.update(1 / 30, i / 30, true);
+  // a ray at the heart every few frames publishes the heart target (where arrows stuck in it follow)
+  if (i % 7 === 3) { const eye = player.clone().setY(2), focus = a.body.focusWorld(new Vector3()); a.target(eye, focus.sub(eye).normalize(), 400, null); }
 }
 
 test('the native pose view runs the page slot\'s equations, and a restored fight continues exactly', () => {
@@ -96,6 +98,8 @@ test('the native pose view runs the page slot\'s equations, and a restored fight
     expect(last.clocks).not.toEqual(first.clocks); expect(last.field.modes.some(mode => mode !== first.field.modes[0])).toBe(true);
     expect(native.some(row => row.view !== null && JSON.stringify(row.view) !== JSON.stringify(first.view))).toBe(true);
     expect(native.some(row => row.whirls.drawn.some(d => d.shown === 1))).toBe(true);
+    expect(new Set(native.map(row => row.heart.position.join(','))).size).toBeGreaterThan(2);
+    expect(mid.fight.heart.position).not.toEqual([0, 0, 0]);
     // a fresh fight and a fresh view lane, restored at AT (the host's ai stream with it), run the same suffix
     random.restore(mid.random);
     const scope = new Scope('titan-restored'), run = fight(scope, 'native');
