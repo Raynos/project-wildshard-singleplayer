@@ -3,7 +3,7 @@ import { emitNamedBlobs } from '../src/sdk/blobs';
 import { parseAdventureContent, type AdventureContent } from '../src/format/questStory';
 import { createQuestPlacements } from '../src/engine/world/interact/types';
 import { Flags } from '../src/engine/world/interact/flags';
-import { placesWithDiscovery } from '../src/engine/quest/view';
+import { placesWithDiscovery } from '../src/engine/quest/discovery';
 import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/generators/discovery';
 import frames from '../src/shards/driftwood-isle/data/questFrames.json' with { type: 'json' };
 

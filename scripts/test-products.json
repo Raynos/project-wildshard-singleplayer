@@ -9,6 +9,7 @@
   "test/pine-ammunition-verbs.test.ts": ["pine-hollow"],
   "test/nine-verb-tape.test.ts": ["nine-dragon-stack"],
   "test/nine-walk-verbs.test.ts": ["nine-dragon-stack"],
+  "test/sky-quest-verbs.test.ts": ["far-reach"],
   "test/headless-quest-verbs.test.ts": ["driftwood-isle", "far-reach", "nalati-grasslands"],
   "test/ink-native-proof.test.ts": ["ink-cel-valley"],
   "test/driftwood-trail-layout.test.ts": ["driftwood-isle"],

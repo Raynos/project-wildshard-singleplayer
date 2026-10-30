@@ -2850,6 +2850,8 @@ const quest = new QuestState({ id: 'template.quest', title: STRINGS.quest, compl
 quest.onComplete = () => { burst.spawn(player, 5, onCoin, () => { ctx.game.runtime?.play?.hud.toast(STRINGS.reward); }); };
 ```
 
+Renderer-free discovery (`placesWithDiscovery`, `PlacePoint`, `Places`) lives in `@wildshard/engine/quest/discovery`.
+
 **One-call quest presentation (E383).** `installQuestPresentation(ctx, quest, options?)` from `@wildshard/game` accepts
 a `QuestState`, `QuestDef`, or `PresentedQuestDef` whose steps have `title`, `target: { position: Vector3,
 label, short?, npc? }` and the normal `done` flags. It reuses Wendell's `QuestChip`, `DialogueBox`, `NpcTalk`,

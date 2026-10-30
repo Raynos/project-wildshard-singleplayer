@@ -34,7 +34,8 @@ const rapier = await witness.skyRapier(), plan = await witness.skyPlan(rapier);
 const session = { tape: [], tick: [], effects: [] };
 const host = createSimHost(plan.level, { ...plan.ports, rapier });
 plan.install(host, { restoring: false, commands: () => session.tape, emit: (/** @type {unknown} */ effect) => { session.tick.push(effect); } });
-const tape = new witness.SkyTape();
+const {SkyTape}=await import(at('test/proof/far-reach/tape.ts'));
+const tape = new SkyTape();
 
 /** The encounter row's continuation (state / phase / attempts), or null when the tree keeps it elsewhere. */
 function encounter() {

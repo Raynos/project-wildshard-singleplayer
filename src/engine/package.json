@@ -265,6 +265,7 @@
     "./practice/playground/hud": "./practice/playground/hud.ts",
     "./practice/playground/load": "./practice/playground/load.ts",
     "./quest/core": "./quest/core.ts",
+    "./quest/discovery": "./quest/discovery.ts",
     "./quest/dialogueClock": "./quest/dialogueClock.ts",
     "./quest/view": "./quest/view.ts",
     "./quest/view/ui": "./quest/view/ui.ts",

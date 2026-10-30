@@ -6,7 +6,8 @@ import type { AchievementCounterData } from '@wildshard/format/achievementCounte
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { DialogueBox, RewardCaption } from '@wildshard/engine/quest/view/ui';
-import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoint, type Places } from '@wildshard/engine/quest/view';
+import { QuestChip, NpcTalk, type LiveMarker } from '@wildshard/engine/quest/view';
+import {placesWithDiscovery,type PlacePoint,type Places} from '@wildshard/engine/quest/discovery';
 import type { MapPoi, MapQuest } from '@wildshard/engine/ui/Map';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { Shardfile } from '@wildshard/format/shardSchema';

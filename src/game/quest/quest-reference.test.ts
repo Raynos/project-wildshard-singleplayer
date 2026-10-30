@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import { Flags } from '@wildshard/engine/world/interact/flags';
-import { placesWithDiscovery } from '@wildshard/engine/quest/view';
+import { placesWithDiscovery } from '@wildshard/engine/quest/discovery';
+import {practiceRoom} from '@wildshard/engine/core/practiceRoom';
 import { LastPlace } from '../LastPlace';
 import type { QuestPageComposition } from './pageComposition';
 import { QuestPageReference } from './pageReference';
@@ -51,4 +52,18 @@ test('ancestor retirement hides the old quest while a new entered reference rema
   expect(scope.disposing).toBe(true);
   expect(next.places()).toEqual([]);
   for (const _step of retiring) { /* Finish the actual ancestor's retirement. */ }
+});
+
+
+test('renderer-free discovery keeps the shared practice guard, exact sphere and one toast',()=>{
+  const before=practiceRoom.open,flags=new Flags('discovery-guard',false),toasts:string[]=[];
+  const places=placesWithDiscovery([{id:'harbour',label:'Harbour',x:4,y:12,z:8,r:6}],flags,text=>{toasts.push(text);},()=>[]);
+  try{
+    practiceRoom.open=true;places.update(4,8,12);
+    expect(flags.has('seen:harbour')).toBe(false);expect(toasts).toEqual([]);
+    practiceRoom.open=false;places.update(4,8,18);
+    expect(flags.has('seen:harbour')).toBe(false);
+    places.update(4,8,12);places.update(4,8,12);
+    expect(flags.has('seen:harbour')).toBe(true);expect(toasts).toEqual(['Discovered · Harbour']);
+  }finally{practiceRoom.open=before;}
 });
