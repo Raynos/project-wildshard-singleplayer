@@ -119,7 +119,10 @@ function shaderMaterial(glsl: GraphGlsl, opts: GraphShaderOptions): GraphShaderM
   const shaders = graphShaders(glsl, opts), ir = glsl.ir, effect = ir.effectState, outline = opts.outline === true;
   const m = new GraphShaderMaterial({ vertexShader: shaders.vertexShader, fragmentShader: shaders.fragmentShader, uniforms: shaders.uniforms, lights: shaders.lights, fog: shaders.fog });
   m.name = outline ? 'graph:outline' : `graph:${ir.kind}`;
-  m.defaultAttributeValues = { ...m.defaultAttributeValues, ...Object.fromEntries(glsl.attributes.flatMap(a => (a.default === null ? [] : [[a.name, [...a.default]]]))) };
+  // a mesh without a declared attribute reads its default, else zeros as TSL's attribute() does (WebGL's own default
+  // vertex attribute is 0, 0, 0, 1: a vec4 read its w as 1 and took the other branch of a graph that tests it)
+  const width = (type: string): number => (type === 'float' ? 1 : type === 'vec2' ? 2 : type === 'vec3' ? 3 : 4);
+  m.defaultAttributeValues = { ...m.defaultAttributeValues, ...Object.fromEntries(glsl.attributes.map(a => [a.name, a.default === null ? Array.from({ length: width(a.type) }, () => 0) : [...a.default]])) };
   if (ir.kind === 'post') { m.depthTest = false; m.depthWrite = false; return m; }
   if (outline) { m.side = THREE.BackSide; return m; }
   m.side = ir.doubleSided === true ? THREE.DoubleSide : THREE.FrontSide;

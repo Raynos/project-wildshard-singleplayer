@@ -65,3 +65,10 @@ test('a row sets a variant its own alphaTest and roughness, as on a node materia
   const rough = compileClassicGraph({ ...graph, stages: { surface: { colour: [1, 1, 1], roughness: 0.3 } } }).material;
   expect(rough.fragmentShader).not.toContain('wsMaterialRoughness');
 });
+
+test('a declared attribute a mesh lacks reads its default, else zeros (never a leftover generic value)', () => {
+  const m = compileClassicGraph({ version: 1, kind: 'material', model: 'unlit', nodes: { a: { op: 'attribute', name: 'aLump', type: 'vec4' }, b: { op: 'attribute', name: 'aTone', type: 'vec2', default: [0.5, 1] },
+    c: { op: 'swizzle', in: ['a'], mask: 'xyz' }, d: { op: 'swizzle', in: ['b'], mask: 'x' }, e: { op: 'mul', in: ['c', 'd'] }, v: { op: 'varying', in: ['e'] } }, stages: { surface: { colour: 'v' } } }).material;
+  expect(Reflect.get(m.defaultAttributeValues, 'aLump')).toEqual([0, 0, 0, 0]);
+  expect(Reflect.get(m.defaultAttributeValues, 'aTone')).toEqual([0.5, 1]);
+});
