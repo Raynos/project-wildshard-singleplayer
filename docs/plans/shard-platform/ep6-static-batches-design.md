@@ -35,8 +35,10 @@ draw still becomes a slab (it gains chunking and per-chunk bounds).
 ## 3. Chunking
 
 - Budget: vertex + index bytes ≤ 4 MB per chunk (the run time uploads one chunk a frame).
-- Split order: by sub-tile quadrant (31.25 m), then by height band of ≤ 62.5 m (sp-x1's NT3; Nine's tiles span ~500 m of
-  height, so this also makes each chunk's box tight), then by source order until under budget.
+- Start with one chunk per tile and compatible key. **Only if it exceeds 4 MB**, split by sub-tile quadrant
+  (31.25 m), then by 62.5 m centroid height band, then source order to fit. Small neighbouring bands may merge
+  while they fit. Sp-o3 accepts this draw/culling trade: the current Nine draft has 96 chunks instead of 404 and
+  56 box-visible at derived P4; NT3's original height/culling bars remain open, not silently relaxed.
 - A triangle goes to the chunk holding its centroid and is never split; one longer than a band stays whole, and its
   chunk's box grows to hold it (bands steer the split, they do not bound triangles). Shared vertices are duplicated
   across chunks bit-exactly.
@@ -44,6 +46,8 @@ draw still becomes a slab (it gains chunking and per-chunk bounds).
   (piece matrix, then the model matrix, the same rounding); the run time keeps the anchor's local transform.
 - Each chunk records its AABB and bounding sphere in that frame (the run time uses them as-is, frozen), and its
   `geometricError` (NT2).
+- `until` / `castFrom` remain measured from the original anchor reference. Chunk bounds serve frustum culling
+  and upload only; a chunk centre never substitutes for the original distance-band reference.
 
 ## 4. Format
 
