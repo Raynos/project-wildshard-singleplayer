@@ -5,6 +5,7 @@ import { telemetryOnlyWrite } from './saves.mjs';
 import { GL_INIT } from './glbytes.mjs';
 import { installResources } from './resources.mjs';
 import { installAudioWork } from './audio-settle.mjs';
+import { bindFrameBudget } from './frame-budget.mjs';
 
 /** All observations are installed before boot, using scorecard's RNG and GPU byte hooks.
  * @param {import('playwright').BrowserContext} context
@@ -13,6 +14,7 @@ export async function installInit(context, meta) {
   await context.addInitScript(installLegacyProbeAdapter);
   await context.addInitScript(GL_INIT);
   await context.addInitScript(`window.__parityTelemetryOnly = (${telemetryOnlyWrite.toString()});`);
+  await context.addInitScript(`window.__bindParityFrameBudget = (${bindFrameBudget.toString()});`);
   await context.addInitScript(({lane,sha,browser,capture}) => {
     let seed = 0x2545f491;
     Math.random = () => { seed = (seed + 0x6d2b79f5) >>> 0; let t = seed; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -35,17 +37,16 @@ export async function installInit(context, meta) {
     }};
     Reflect.set(w.__wildshardHarness,'resources',()=>w.__parityResources());
     const rawRAF=window.requestAnimationFrame.bind(window); w.__parity={cpu:0,on:false,rawRAF,free:false,remaining:0,advance:()=>Promise.reject(new Error('frame control not installed'))};
-    document.addEventListener('ws:ready',()=>{
-      const g=w.__wildshard.requireWorld().game,control=w.__parity,original=g.frameGate.bind(g);
-      g.frameGate=()=>{if(!original() || (!control.free && control.remaining===0))return false;if(!control.free)control.remaining--;return true;};
-      control.advance=async(frames)=>{
-        if(!Number.isInteger(frames)||frames<0||control.remaining>0)throw new Error('invalid concurrent frame advance');
-        const drawn=()=>Number(Reflect.get(g,'frameNo'));const end=drawn()+frames;control.remaining=frames;
-        await new Promise((resolve)=>{const check=()=>{if(drawn()>=end)resolve(undefined);else rawRAF(check);};rawRAF(check);});
-      };
-      for(const animal of w.__wildshard.requireWorld().animals.animals)animal.harnessHold=true;
-      g.levelScope.onDispose(()=>{control.advance=()=>Promise.reject(new Error('Parity level retired'));});
-    },{once:true});
+    const ready=()=>{
+      const world=w.__wildshard?.world;
+      if(world===undefined)return; // The title also publishes ready, without a game world.
+      document.removeEventListener('ws:ready',ready);
+      const g=world.game,control=w.__parity;
+      const dispose=w.__bindParityFrameBudget(g,control,rawRAF,window.cancelAnimationFrame.bind(window));
+      for(const animal of world.animals.animals)animal.harnessHold=true;
+      g.levelScope.onDispose(dispose);
+    };
+    document.addEventListener('ws:ready',ready);
     // oxlint-disable-next-line promise/prefer-await-to-callbacks -- requestAnimationFrame is a browser callback API; this wrapper measures synchronous frame work.
     window.requestAnimationFrame=(cb)=>rawRAF((time)=>{ const start=performance.now(); try {cb(time);} finally {if(w.__parity.on) w.__parity.cpu+=performance.now()-start;} });
     // Observe request initiation, not PerformanceObserver delivery: the latter may arrive after the boot barrier.

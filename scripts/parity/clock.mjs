@@ -66,7 +66,9 @@ export function installFrameDriver(opts) {
     if (frames === 0) return;
     waiting = frames; await new Promise((resolve) => { finish = () => resolve(undefined); wake(); });
   };
-  document.addEventListener('ws:ready', () => {
+  const onReady = () => {
+    if (window.__wildshard?.world === undefined) return;
+    document.removeEventListener('ws:ready', onReady);
     ready = true;
     virtualNow = realNow();
     for (const timer of timers.values()) { clearTimeout(timer.native); clearInterval(timer.native); timer.native = 0; }
@@ -74,13 +76,14 @@ export function installFrameDriver(opts) {
     control.advance = async (frames) => {
       if (!Number.isInteger(frames) || frames < 0 || control.remaining > 0 || control.free) throw new Error('invalid concurrent frame advance');
       if (frames === 0) return;
-      const game = window.__wildshard.requireWorld().game, end = Number(Reflect.get(game, 'frameNo')) + frames;
+      const game = window.__wildshard.requireWorld().game, end = game.frameCount + frames;
       control.remaining = frames;
       await new Promise((resolve) => {
-        const check = () => { if (Number(Reflect.get(game, 'frameNo')) >= end) { observers.delete(check); resolve(undefined); } };
+        const check = () => { if (game.frameCount >= end) { observers.delete(check); resolve(undefined); } };
         observers.add(check); wake();
       });
     };
     wake();
-  }, { once: true });
+  };
+  document.addEventListener('ws:ready', onReady);
 }
