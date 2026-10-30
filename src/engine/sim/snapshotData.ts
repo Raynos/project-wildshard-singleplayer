@@ -262,17 +262,39 @@ function stringify(value: unknown): string {
 export function finishSteps<T>(steps: Generator<undefined, T>): T {
   for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
 }
+function prepareSnapshot(input: SimSnapshot | SimSnapshotBytes, apiVersion: number): { raw: Uint8Array; saved: SimSnapshot } {
+  if ((!Array.isArray(input.physics) && !(input.physics instanceof Uint8Array)) || input.physics.length > maxPhysicsBytes) throw new RangeError('Snapshot physics exceeds 32 MB');
+  const raw = input.physics instanceof Uint8Array ? input.physics.slice() : physicsArray(input.physics), metadata = { ...input, physics: [0] };
+  jsonTree(metadata, new Set(), 0, true);
+  return { raw, saved: identities(v.parse(snapshot, metadata), apiVersion) };
+}
+// packedPhysics selects compressed chunks only when sum(chunk.length + 3) + 64
+// is smaller than base64(raw). Its remaining ASCII header is bounded by these
+// maximum integer widths. This bound needs no assumptions about compressibility.
+const physicsHeaderChars = Math.max(
+  stringify({ encoding: 'base64', data: '', checksum: 0xffffffff }).length,
+  stringify({ encoding: 'deflate-lz-base64-v1', length: maxPhysicsBytes, packedLength: MAX_REFERENCE_BYTES, chunks: [], checksum: 0xffffffff }).length,
+);
+/** Apply the writer's complete input checks and an exact accept/refuse wire-size
+ * fence without encoding an unconsumed continuation. If the proven upper bound
+ * cannot establish a fit, run the original encoder and check its actual length. */
+export function checkSnapshotDataWire(input: SimSnapshot | SimSnapshotBytes, apiVersion: number, maximumChars: number): void {
+  if (!Number.isSafeInteger(maximumChars) || maximumChars < 0) throw new RangeError('Invalid snapshot character bound');
+  const { raw, saved } = prepareSnapshot(input, apiVersion);
+  if (raw.length === 0) throw new RangeError('Snapshot physics exceeds byte bounds');
+  const metadataChars = stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics: 0 } }).length - 1;
+  if (metadataChars + Math.ceil(raw.length / 3) * 4 + physicsHeaderChars <= maximumChars) return;
+  const physics = finishSteps(packedPhysics(raw));
+  if (stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics } }).length > maximumChars) throw new RangeError('Snapshot wire exceeds character bound');
+}
 /** Internal packed wire writer, in stages a caller may spread over frames (rt3-freeze: one regional autosave was a
  *  1–2.7 s main-thread task). Each `yield` is a safe pause: the input is read in the first stage only, so later stages
  *  touch nothing the live simulation can change. */
 export function* serializeSnapshotDataSteps(input: SimSnapshot | SimSnapshotBytes, apiVersion: number, physicsBasis?: Uint8Array): Generator<undefined, string> {
-  if ((!Array.isArray(input.physics) && !(input.physics instanceof Uint8Array)) || input.physics.length > maxPhysicsBytes) throw new RangeError('Snapshot physics exceeds 32 MB');
   // The byte array is checked in one flat pass; every other field keeps the strict JSON-tree and schema validation.
   // Freeze the caller's typed input as bytes, just as physicsArray freezes legacy arrays. No boxed number[] is
   // created; cancellation and interleaved jobs own only their transient byte buffers, with no retained workspace.
-  const raw = input.physics instanceof Uint8Array ? input.physics.slice() : physicsArray(input.physics), metadata = { ...input, physics: [0] };
-  jsonTree(metadata, new Set(), 0, true);
-  const saved = identities(v.parse(snapshot, metadata), apiVersion);
+  const { raw, saved } = prepareSnapshot(input, apiVersion);
   yield;
   const physics = yield* packedPhysics(raw, physicsBasis);
   yield;

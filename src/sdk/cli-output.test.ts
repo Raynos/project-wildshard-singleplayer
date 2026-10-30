@@ -41,10 +41,11 @@ test('built admission measures CPU again and refuses fresh over-budget observati
     // Craft a bad fresh measurement at the trusted worker boundary; all actual
     // physics/tick execution still runs. The disk receipt still claims zero CPU.
     const measured = vi.spyOn(HeadlessSimulation, 'create').mockImplementation(async (...args) => {
-      const sim = await start(...args), step = sim.step.bind(sim);
-      vi.spyOn(sim, 'step').mockImplementation(async sources => {
-        const commit = await step(sources); ticks++;
-        return { ...commit, scriptMicros: 5000 };
+      const sim = await start(...args), observe = sim.observe.bind(sim);
+      vi.spyOn(sim, 'observe').mockImplementation(async () => {
+        const report = await observe(); ticks += report.samples.length;
+        for (const row of report.samples) row.scriptMicros = 5000;
+        return report;
       });
       return sim;
     });

@@ -7,7 +7,7 @@ import { AuthorProofPlanSchema } from './tickProtocol';
 import { buildProject, newProject, readProjectAssets, validateProject } from './project';
 import { ShardfileSchema, type Shardfile } from './shardfile';
 import { devProject } from './dev';
-import { HeadlessSimulation, proveAuthorSimulation, measureSimulation, validateSimulation } from './headless';
+import { proveAuthorSimulation, measureSimulation, validateSimulation } from './headless';
 import { performanceReport, performanceReportLines, type PerformanceObservations } from './reportCard';
 import { projectPerformancePolicy } from './performancePolicy';
 import { readBoundedFile } from './sourceReader';
@@ -33,7 +33,7 @@ function printReport(shard: Shardfile, observed: PerformanceObservations, policy
 async function admitBuild(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', sections: ReadonlyMap<string, unknown>): Promise<void> {
   // Native hybrids need their trusted recipes for a meaningful proof; never invent a fake native measurement.
   if (shard.runtime !== null) { printReport(shard, unmeasured, policy); return; }
-  printReport(shard, await measureSimulation(shard, assets, (source, bytes) => HeadlessSimulation.create(source, bytes, undefined, { deadline: 'advisory', sections })), policy);
+  printReport(shard, await measureSimulation(shard, assets, undefined, sections), policy);
 }
 /** Run the author CLI; returns only after validation/build completes. */
 export async function runCli(args: readonly string[], options: { readonly decisionLegacyLines?: number; readonly runtimeCheck?: RuntimeCopyOptions['check']; readonly manifest?: ProjectManifestSource } = {}): Promise<void> {

@@ -1,3 +1,4 @@
+import { OBSERVATION_WARMUP_TICKS as WARMUP_TICKS, OBSERVATION_WINDOW_TICKS as WINDOW_TICKS, OBSERVATION_WINDOWS as WINDOWS, type HeadlessObservationReport } from './headlessObservation';
 import type {HeadlessTapePlan,HeadlessTapeReport,HeadlessTapeSegment} from './headlessTape';
 import type { HeadlessJourneyPlan, HeadlessJourneyReport } from './headlessJourney';
 import { outputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
@@ -55,6 +56,8 @@ export class HeadlessSimulation {
   get lastTickMicros(): number { return this.runner.lastTickMicros; }
   /** Admit the aggregate command count across all sources, then atomically return state and effects from one bounded tick. */
   step(sources: readonly HeadlessCommandSource[] = []): Promise<HeadlessTickCommit> { return this.runner.step(sources); }
+  /** Fixed terminal data-only offline CPU/fuel observation with full initial/final saves. */
+  observe(): Promise<HeadlessObservationReport> { return this.runner.observe(); }
   /** Terminal fixed-tick verb tape; observations do not grant a continuation. */
   verbTape(plan:HeadlessTapePlan):Promise<HeadlessTapeReport>{return this.runner.verbTape(plan);}
   /** Terminal native replay with bounded next-segment prefetch and one unchanged 30s request clock. */
@@ -76,9 +79,8 @@ export interface SimulationObservations {
   fuel: { p95: number; max: number; limit: number; samples: number };
   scripts: { p95Micros: number; maxMicros: number; samples: number };
 }
-const WARMUP_TICKS = 60, WINDOW_TICKS = 60, WINDOWS = 3;
 function p95(values: readonly number[]): number { return values[Math.floor((values.length - 1) * 0.95)] ?? 0; }
-async function observe(sim: Pick<HeadlessSimulation, 'step' | 'lastTickMicros'>): Promise<SimulationObservations> {
+async function observeSteps(sim: Pick<HeadlessSimulation, 'step' | 'lastTickMicros'>): Promise<SimulationObservations> {
   const measured: number[] = [], fuel: number[] = [], scripts: number[] = [], windowP95: number[] = [];
   // Cold JIT belongs to startup. Fuel remains deterministic and every warm-up tick is still budgeted.
   for (let tick = 0; tick < WARMUP_TICKS; tick++) fuel.push((await sim.step()).fuelUsed ?? 0);
@@ -90,6 +92,9 @@ async function observe(sim: Pick<HeadlessSimulation, 'step' | 'lastTickMicros'>)
     }
     costs.sort((a, b) => a - b); windowP95.push(p95(costs));
   }
+  return summarizeObservations(measured, fuel, scripts, windowP95);
+}
+function summarizeObservations(measured: number[], fuel: number[], scripts: number[], windowP95: number[]): SimulationObservations {
   measured.sort((a, b) => a - b); fuel.sort((a, b) => a - b); scripts.sort((a, b) => a - b);
   const middle = measured.length / 2;
   // The least interrupted window estimates hot execution; genuine persistent CPU overages fail all three.
@@ -99,14 +104,24 @@ async function observe(sim: Pick<HeadlessSimulation, 'step' | 'lastTickMicros'>)
     scripts: { p95Micros: Math.min(...windowP95), maxMicros: scripts.at(-1) ?? 0, samples: scripts.length } };
 }
 /** Build warms up, then samples three fixed windows; it never runs the expensive entry walk reserved for validate. */
-export async function measureSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, start: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>) => Promise<Pick<HeadlessSimulation, 'step' | 'lastTickMicros' | 'dispose'>> = (source, bytes) => HeadlessSimulation.create(source, bytes, undefined, { deadline: 'advisory' })): Promise<SimulationObservations> {
-  const sim = await start(shard, assets);
-  try { return await observe(sim); } finally { await sim.dispose(); }
+export async function measureSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, start?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>) => Promise<Pick<HeadlessSimulation, 'step' | 'lastTickMicros' | 'dispose'>>, sections?: ReadonlyMap<string, unknown>): Promise<SimulationObservations> {
+  const supplied = headlessSections(sections ?? outputDescriptor(shard)?.sections);
+  if (start !== undefined || supplied.has('sim/runtime-plan')) {
+    const sim = await (start === undefined ? HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory', sections: supplied }) : start(shard, assets));
+    try { return await observeSteps(sim); } finally { await sim.dispose(); }
+  }
+  const sim = await HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory', sections: supplied });
+  try {
+    const report = await sim.observe(), measured = report.samples.slice(WARMUP_TICKS);
+    const scripts = measured.map(row => row.scriptMicros), windowP95: number[] = [];
+    for (let window = 0; window < WINDOWS; window++) windowP95.push(p95(scripts.slice(window * WINDOW_TICKS, (window + 1) * WINDOW_TICKS).sort((a, b) => a - b)));
+    return summarizeObservations(measured.map(row => row.tickMicros), report.samples.map(row => row.fuelUsed), scripts, windowP95);
+  } finally { await sim.dispose(); }
 }
 /** Offline admission proves bounded execution and entries; wall timing is advisory. The independent request watchdog still bounds a broken worker. */
 export async function validateSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Promise<{ ticks: number; lanes: number; steps: number; liftRides?: number; liftCalls?: number; portalTransfers?: number } & SimulationObservations> {
   const sim = await HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory' });
-  try { const observed = await observe(sim); return { ...await sim.finish(), ...observed }; }
+  try { const observed = await observeSteps(sim); return { ...await sim.finish(), ...observed }; }
   finally { await sim.dispose(); }
 }
 

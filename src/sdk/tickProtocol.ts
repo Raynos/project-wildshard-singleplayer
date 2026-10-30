@@ -53,10 +53,16 @@ export type HeadlessEffect = v.InferOutput<typeof TickEffectSchema>;
 /** One canonical bounded native tape codec, composed with actual tick/effect authority. */
 export const HeadlessTapePlanSchema:v.GenericSchema<HeadlessTapePlan>=headlessTapePlanSchema(TickCommandSchema);
 export const HeadlessTapeReportSchema:v.GenericSchema<HeadlessTapeReport>=headlessTapeReportSchema(TickEffectSchema);
+/** Character bound of an encoded tick checkpoint, including its metadata. */
+export const MAX_TICK_SNAPSHOT_CHARS = 32_000_000;
+const tickCommit = v.strictObject({ tick: natural, snapshot: v.pipe(v.string(), v.maxLength(MAX_TICK_SNAPSHOT_CHARS)), effects: v.pipe(v.array(TickEffectSchema), v.maxLength(1024)), fuelUsed: v.exactOptional(natural), scriptMicros: v.exactOptional(v.pipe(finite, v.minValue(0))), decisions: v.exactOptional(DecisionPublicationSchema) });
 /** Validated tick result carrying its continuation, effects and optional script cost observations. */
-export const TickCommitSchema: v.GenericSchema<BoundedTickCommitInput, BoundedTickCommit> = v.strictObject({ tick: natural, snapshot: v.pipe(v.string(), v.maxLength(32_000_000)), effects: v.pipe(v.array(TickEffectSchema), v.maxLength(1024)), fuelUsed: v.exactOptional(natural), scriptMicros: v.exactOptional(v.pipe(finite, v.minValue(0))), decisions: v.exactOptional(DecisionPublicationSchema) });
+export const TickCommitSchema: v.GenericSchema<BoundedTickCommitInput, BoundedTickCommit> = tickCommit;
 /** Complete same-engine continuation and effects from one atomically committed worker tick. */
 export type HeadlessTickCommit = v.InferOutput<typeof TickCommitSchema>;
+/** Identical tick/effect/fuel/decision guards when no intermediate save escapes. */
+export const TickObservationSchema: v.GenericSchema<Omit<HeadlessTickCommit, 'snapshot'>> = v.omit(tickCommit, ['snapshot']);
+export type HeadlessTickObservation = v.InferOutput<typeof TickObservationSchema>;
 /** A finite author tape: no host modules, synthetic facts or configurable physics ports. */
 export const AuthorProofPlanSchema: v.GenericSchema<BoundedAuthorProofPlanInput, BoundedAuthorProofPlan> = v.pipe(v.strictObject({ version: v.literal(1),
   tape: v.pipe(v.array(v.pipe(v.array(TickCommandSchema), v.maxLength(1024))), v.minLength(1), v.maxLength(4096)),
@@ -79,6 +85,7 @@ export type AuthorProofReport = v.InferOutput<typeof AuthorProofReportSchema>;
 export const WorkerRequestSchema: v.GenericSchema<BoundedWorkerRequestInput, BoundedWorkerRequest> = v.variant('kind', [
   v.strictObject({ kind: v.literal('step'), commands: v.pipe(v.array(TickCommandSchema), v.maxLength(1024)) }),
   v.strictObject({ kind: v.literal('finish') }),
+  v.strictObject({ kind: v.literal('observe') }),
   v.strictObject({ kind: v.literal('journey'), plan: HeadlessJourneyPlanSchema }),
   v.strictObject({ kind: v.literal('walk'), plan: HeadlessJourneyPlanSchema }),
   v.strictObject({kind:v.literal('verbTape'),plan:HeadlessTapePlanSchema}),
@@ -206,4 +213,4 @@ type BoundedWorkerRequestInput = BoundedWorkerRequest;
 type BoundedWorkerRequest = {kind:'walk';plan:HeadlessJourneyPlan} | {kind:'journey';plan:HeadlessJourneyPlan}
   | {kind:'step';commands:BoundedTickCommand[]}
   | {kind:'verbTape';plan:HeadlessTapePlan}
-  | {kind:'finish'} | {kind:'authorProof';plan:BoundedAuthorProofPlan};
+  | {kind:'finish'} | {kind:'observe'} | {kind:'authorProof';plan:BoundedAuthorProofPlan};

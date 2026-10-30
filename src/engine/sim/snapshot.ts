@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { serializeSnapshotData, serializeSnapshotDataSteps, decodeSnapshotData, decodeSnapshotDataBytes, finishSteps } from './snapshotData';
+import { serializeSnapshotData, serializeSnapshotDataSteps, decodeSnapshotData, decodeSnapshotDataBytes, finishSteps, checkSnapshotDataWire } from './snapshotData';
 import { byteArray } from './snapshotPhysics';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimHostPorts, type SimLevel, type SimSlots, type SimValue } from '../sim';
 import { SHOVE_TIME } from '../player/shove';
@@ -86,6 +86,11 @@ export type SimSnapshotBytes = Omit<SimSnapshot, 'physics'> & { physics: Uint8Ar
 /** Serialize exact physics (≤32 MB) in bounded lossless blocks; optional immutable fresh-world bytes serve as a checked basis. */
 export function serializeSimSnapshot(saved: SimSnapshot | SimSnapshotBytes, physicsBasis?: Uint8Array): string {
   return serializeSnapshotData(saved, SIM_API_VERSION, physicsBasis);
+}
+/** The same metadata/native-byte and wire-length refusal as a complete unbased
+ * continuation, for terminal observations that do not publish intermediate saves. */
+export function checkSimSnapshotWire(saved: SimSnapshot | SimSnapshotBytes, maximumChars: number): void {
+  checkSnapshotDataWire(saved, SIM_API_VERSION, maximumChars);
 }
 /** The same wire in stages: each `yield` is a pause a caller may spread across frames (a periodic autosave), and
  *  {@link finishSimSteps} runs it whole. The snapshot is read only before the first pause. */

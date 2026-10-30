@@ -8,12 +8,12 @@ import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { proveAuthoredGrid, createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '@wildshard/game/plugin/simulation';
-import { snapshotSimHostBytes, serializeSimSnapshot, decodeSimSnapshot, restoreSimHost } from '@wildshard/engine/sim/snapshot';
+import { snapshotSimHostBytes, serializeSimSnapshot, decodeSimSnapshot, restoreSimHost, checkSimSnapshotWire } from '@wildshard/engine/sim/snapshot';
 
 import type { SimCommand } from '@wildshard/engine/sim';
 import { parseShardfile } from '../shardfile';
 import { runTickWorker } from '../tickWorkerLoop';
-import { simPlayerCommand, type HeadlessEffect, type HeadlessCommand } from '../tickProtocol';
+import { simPlayerCommand, MAX_TICK_SNAPSHOT_CHARS, type HeadlessEffect, type HeadlessCommand } from '../tickProtocol';
 import { headlessSections } from '../headlessSections';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
@@ -80,6 +80,15 @@ await runTickWorker(async raw => {
   const tape=createTrustedHeadlessTape(sim.host,step,()=>effects);
   return {
     step,
+    observe: () => {
+      const script = sim.lane?.host.checkpoint();
+      if (script?.modules.some(module => module.failures > 0 || module.disabled)) throw new Error('Headless script call failed');
+      if (sim.decisions?.host.metrics().some(row => row.refusals > 0 || row.disabled)) throw new Error('Headless decision call failed');
+      checkSimSnapshotWire(snapshotSimHostBytes(sim.host), MAX_TICK_SNAPSHOT_CHARS);
+      const fuelUsed = script?.tick === sim.host.state.tick ? script.used.fuel : 0;
+      return { tick: sim.host.state.tick, effects, fuelUsed: fuelUsed + decisionFuel, scriptMicros,
+        ...(sim.decisions === undefined ? {} : { decisions: sim.decisions.publication() }) };
+    },
     verbTape:tape,
     journey: plan=>runHeadlessJourney(sim.host,step,plan),
     commit: () => {

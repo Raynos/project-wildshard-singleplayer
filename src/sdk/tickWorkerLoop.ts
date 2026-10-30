@@ -1,13 +1,16 @@
 import type {HeadlessTapePlan,HeadlessTapeReport} from './headlessTape';
+import { HeadlessObservationReportSchema, OBSERVATION_TICKS, type HeadlessTickSample } from './headlessObservation';
 import { HeadlessJourneyReportSchema, type HeadlessJourneyPlan, type HeadlessJourneyReport } from './headlessJourney';
 // oxlint-disable-next-line import/no-nodejs-modules -- The isolated simulation communicates through the Node worker boundary.
 import { parentPort, workerData } from 'node:worker_threads';
 // oxlint-disable-next-line import/no-nodejs-modules -- Parent and worker use the same monotonic clock for a preemptible wall deadline.
 import { hrtime } from 'node:process';
 import * as v from 'valibot';
-import { WorkerRequestSchema, TickCommitSchema, HeadlessTapeReportSchema, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommand, type HeadlessTickCommit } from './tickProtocol';
+import { WorkerRequestSchema, TickCommitSchema, TickObservationSchema, HeadlessTapeReportSchema, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommand, type HeadlessTickCommit, type HeadlessTickObservation } from './tickProtocol';
 
 export interface TickWorkerAdapter {
+  /** Checks all snapshot/tick fields without publishing an intermediate save. */
+  observe?: () => HeadlessTickObservation;
   verbTape?:(plan:HeadlessTapePlan)=>HeadlessTapeReport;
   journey?: (plan:HeadlessJourneyPlan)=>HeadlessJourneyReport;
   step: (commands: readonly HeadlessCommand[]) => void;
@@ -31,6 +34,23 @@ export async function runTickWorker(create: (payload: unknown) => Promise<TickWo
   const handle = async (raw: unknown): Promise<void> => {
     try {
       const request = v.parse(WorkerRequestSchema, raw);
+      if (request.kind === 'observe') {
+        if (envelope.enforceTickDeadline) throw new Error('Observation requires trusted offline timing');
+        if (adapter.observe === undefined) throw new Error('Missing offline observation capability');
+        const samples: HeadlessTickSample[] = [];
+        let commit: HeadlessTickCommit | undefined;
+        for (let index = 0; index < OBSERVATION_TICKS; index++) {
+          const started = hrtime.bigint(); Atomics.store(clock, 1, started); Atomics.store(clock, 0, 1n);
+          adapter.step([]);
+          const elapsed = hrtime.bigint() - started; Atomics.store(clock, 2, elapsed); Atomics.store(clock, 0, 2n);
+          if (index === OBSERVATION_TICKS - 1) commit = v.parse(TickCommitSchema, adapter.commit());
+          const metadata = commit === undefined ? adapter.observe() : Object.fromEntries(Object.entries(commit).filter(([key]) => key !== 'snapshot'));
+          const checked = v.parse(TickObservationSchema, metadata);
+          samples.push({ tick: checked.tick, tickMicros: Number(elapsed) / 1000, scriptMicros: checked.scriptMicros ?? 0, fuelUsed: checked.fuelUsed ?? 0 });
+        }
+        if (commit === undefined) throw new Error('Missing final observation checkpoint');
+        port.postMessage({ observation: v.parse(HeadlessObservationReportSchema, { samples, commit }) }); return;
+      }
       if(request.kind==='verbTape'){
         if(envelope.enforceTickDeadline)throw new Error('Verb tape requires trusted offline timing');
         for(const segment of request.plan.segments)for(const commands of segment.frames??[segment.commands])

@@ -83,6 +83,7 @@
     "./phasedBoss": "./phasedBoss.ts",
     "./admission": "./admission.ts",
     "./headless": "./headless.ts",
+    "./headlessObservation": "./headlessObservation.ts",
     "./headlessJourney": "./headlessJourney.ts",
     "./headlessTape": "./headlessTape.ts",
     "./headlessRuntime": "./headlessRuntime.ts",
@@ -431,6 +432,10 @@
       "./headless": {
         "types": "./dist/types/sdk/headless.d.ts",
         "default": "./dist/headless.js"
+      },
+      "./headlessObservation": {
+        "types": "./dist/types/sdk/headlessObservation.d.ts",
+        "default": "./dist/headlessObservation.js"
       },
       "./headlessJourney": {
         "types": "./dist/types/sdk/headlessJourney.d.ts",
