@@ -165,7 +165,15 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   app.setState(hud.entered ? 'play' : 'title');
   // MF5 / NP-4: the first world frame is a named step, never a gap after Audio. FC2: nothing free-runs behind the loader;
   // the loop starts parked behind its gate and the first world frame is ONE hidden frame under the opaque card
-  await loadingStage('worldFrame', () => { game.start(); game.hiddenFrame(); });
+  // Until the first systems step the camera stands at the origin (Nine: 127 m below the spawn's eye, at 72° not the held
+  // 93°) and placed copies hold none until their first cull, so the shaders step missed what the first frame draws: 14
+  // programs linked inside the hidden frame (2.25 s on the Simulator with Refine dither on). The step runs first without
+  // its draw, and what it shows links sliced under the card before the frame draws it
+  await loadingStage('worldFrame', async () => {
+    game.start(); game.stepFrame();
+    await precompileLevel(game, undefined, { sliceMs: BOOT_SHADER_SLICE_MS, drawnOnly: true, turns: game.warmTurnYaws() });
+    game.hiddenFrame();
+  });
   // FC2 (L15): the ready frame is one more hidden frame; the minimap's baked map decodes beside it
   // MF5 + FC2: what the hidden frames registered in the spawn view (the ring's L0 tiles the first draw asks for) refines
   // under the card too, before the reveal; the minimap's baked map decodes beside it

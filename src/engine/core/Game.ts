@@ -391,6 +391,13 @@ export class Game {
    * instead of free-running world frames behind it.
    */
   hiddenFrame: () => void = () => undefined;
+  /**
+   * The first frame's view without its draw: ONE systems step and the view's preparation (the player's eye and FOV on the
+   * camera, the shard's per-frame look, placed copies culled for the view) now, even with the gate shut. Until the first
+   * step the camera stands at the origin, so a boot warm-up taken after this links what the next hidden frame draws.
+   */
+  stepFrame: () => void = () => undefined;
+  private stepOnly = false;
   /** FC2: one draw of the world into the composer's input buffer (the real formats, nothing presented): what a live frame
    *  would build, upload and link, without a frame on screen. False when there is no composer target yet. */
   offscreenDraw(): boolean {
@@ -1333,6 +1340,7 @@ export class Game {
         try { this.lookStrategy?.frame?.(realDt, t); }
         finally { if (this.app.cpu.enabled && this.lookStrategy?.frame !== undefined) this.app.cpu.record(this.app.cpu.ticket(this.levelScope), diagnosticNow() - lookStart); }
         cullPlaced(this.camera); // placed models' per-copy culling and LODs for this view (src/engine/models/place.ts; nothing when none cull)
+        if (this.stepOnly) { this.app.cpu.end(); if (on) frameCost.end(realDt * 1000, renderAt - lastRun, 0, 0); return; } // stepFrame: no draw
         // D178 (G813): a held crossing view pauses the post chain: the AO pass sits this draw out, and the bloom, rays and
         // volumetric effects composite their last frame (skipWhileTransparent); the scene and colour passes, and so every
         // material's and the colour pass's program keys, are unchanged
@@ -1372,6 +1380,7 @@ export class Game {
     for(const state of ['play','explore','practice','playground','capture'] as const)this.app.onEnter(state,this.kickLoop,this.engineScope);
     this.primeFrame=()=>{if(!this.dead)driver.primeFrame();};
     this.hiddenFrame=()=>{if(!this.dead)driver.hiddenFrame();};
+    this.stepFrame=()=>{if(this.dead)return;this.stepOnly=true;try{driver.hiddenFrame();}finally{this.stepOnly=false;}};
     this.app.ui.bindStill(this.engineScope,()=>{driver.stillFrame();});
     setLoopState('running');
     driver.wake();

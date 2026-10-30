@@ -217,8 +217,9 @@ export function programObjectKey(o: BatchedLike, positionOnly = false): string {
   const morph = g?.morphAttributes ? Object.keys(g.morphAttributes).map((k) => `${k}${g.morphAttributes[k as 'position']?.length ?? 0}`).join('') : '';
   // The facade shares one material between its shell and a colored BatchedMesh.
   // Both batching bits are shader defines; omitting them skips the batch until its first draw.
+  // An RGBA colour channel is three's vertexAlphas bit: Nine's coarse facades share one material between RGB and RGBA pieces.
   return `${o.isBatchedMesh ? 'B' : ''}${o.isBatchedMesh && o._colorsTexture ? 'K' : ''}${o.isInstancedMesh ? 'I' : ''}${o.instanceColor ? 'C' : ''}${o.isSkinnedMesh ? `S${String(o.skeleton?.bones.length ?? 0)}` : ''}${o.isPoints ? 'P' : ''}${o.isLine ? 'L' : ''}${o.isSprite ? 'Q' : ''}${o.receiveShadow ? 'R' : ''}` +
-    `|${positionOnly ? '' : `${a['uv1'] ? 1 : 0}${a['uv2'] ? 1 : 0}${a['uv3'] ? 1 : 0}${a['tangent'] ? 1 : 0}${a['color'] ? 1 : 0}${a['normal'] ? 1 : 0}`}|${morph}`;
+    `|${positionOnly ? '' : `${a['uv1'] ? 1 : 0}${a['uv2'] ? 1 : 0}${a['uv3'] ? 1 : 0}${a['tangent'] ? 1 : 0}${a['color'] ? a['color'].itemSize === 4 ? 2 : 1 : 0}${a['normal'] ? 1 : 0}`}|${morph}`;
 }
 
 function materialProperties(renderer: Renderer, material: THREE.Material): object | undefined {
