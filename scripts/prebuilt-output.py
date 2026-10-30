@@ -60,8 +60,12 @@ def required(files, sha, root):
         if name not in names:
             raise ValueError('Incomplete prebuilt output: ' + name)
     version = json.loads((root / '.vercel/output/static/version.json').read_text())
-    if not isinstance(version.get('build'), str) or not version['build'].startswith(sha[:9] + '-'):
-        raise ValueError('Prebuilt version differs from source')
+    # versionFiles.ts emits seven characters from VERCEL_GIT_COMMIT_SHA;
+    # its git --short fallback uses the repository's configured abbreviation.
+    # The authenticated producer and this proof still bind the full 40-char SHA.
+    stamp = re.fullmatch(r'([0-9a-f]{7,40})-[0-9a-z]+', version.get('build', ''))
+    if stamp is None or not sha.startswith(stamp[1]):
+        raise ValueError('Prebuilt version differs from source: ' + str(version.get('build')))
     if (root / 'dist/version.json').read_bytes() != (root / '.vercel/output/static/version.json').read_bytes():
         raise ValueError('Diagnostic version differs from prebuilt version')
 

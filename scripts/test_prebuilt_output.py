@@ -50,6 +50,20 @@ class PrebuiltTests(unittest.TestCase):
         self.assertEqual({p.relative_to(self.target).as_posix(): p.read_text()
                           for p in self.target.rglob('*') if p.is_file()}, self.files)
 
+    def test_emitted_seven_character_env_stamp_and_git_abbreviation_both_bind_the_full_source(self):
+        for width in (7, 9):
+            version = json.dumps({'build': SHA[:width] + '-fixture'})
+            for name in ('dist/version.json', '.vercel/output/static/version.json'):
+                (self.source / name).write_text(version)
+            packet = self.root / ('stamp-' + str(width))
+            target = self.root / ('restored-' + str(width))
+            target.mkdir()
+            prebuilt.pack(self.source, packet, SHA, '123')
+            prebuilt.restore(target, packet, SHA, '123')
+            self.assertEqual((target / 'dist/version.json').read_text(), version)
+            with self.assertRaisesRegex(ValueError, 'source SHA/run'):
+                prebuilt.restore(self.root / 'foreign', packet, SHA[:7] + 'b' * 33, '123')
+
     def test_wrong_source_or_producer_refuses_before_writes(self):
         for sha, run in [('b' * 40, '123'), (SHA, '124')]:
             with self.assertRaisesRegex(ValueError, 'source SHA/run'):
