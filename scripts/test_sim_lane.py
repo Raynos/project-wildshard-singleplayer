@@ -58,7 +58,8 @@ elif args[1]=='launch':
     time.sleep(float(os.environ.get('SIM_LAUNCH_DELAY','0')))
     code=int(os.environ.get('SIM_LAUNCH_RC','0'))
     if code==0:
-        (root/'safari-launched').touch();print('com.apple.mobilesafari: 123')
+        (root/'safari-launched').touch();print('com.apple.mobilesafari: 123',flush=True)
+        if os.environ.get('SIM_LAUNCH_RECEIPT_STALL'): time.sleep(30)
     sys.exit(code)
 elif args[1]=='openurl':
     if os.environ.get('SIM_REQUIRES_LAUNCH') and not (root/'safari-launched').exists():
@@ -198,14 +199,8 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         os.kill(int((self.root / 'output-holder').read_text()), 0)
 
     def test_live_owned_safari_can_render_before_its_launch_client_replies(self):
-        self.command('ps', '''import os,pathlib
-root=pathlib.Path(os.environ['SIM_FIXTURE'])
-if (root/'safari-launched').exists():
-    print('100 1 /runtime/launchd_sim ''' + UDID + '''')
-    print('101 100 /runtime/Applications/MobileSafari.app/MobileSafari')
-''')
         started = time.monotonic()
-        result = self.lane(SIM_LAUNCH_IPC_STALL='1', SIM_REQUIRES_LAUNCH='1', SIM_SAFARI_READY_TIMEOUT='2')
+        result = self.lane(SIM_LAUNCH_RECEIPT_STALL='1', SIM_REQUIRES_LAUNCH='1', SIM_SAFARI_READY_TIMEOUT='2')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertLess(time.monotonic() - started, 5)
         self.assertTrue((self.root/'child-ran').exists())
@@ -214,43 +209,28 @@ if (root/'safari-launched').exists():
         self.assertEqual(sum(row[1] == 'launch' for row in self.calls()), 1)
         self.assertEqual(sum(row[1] == 'openurl' for row in self.calls()), 1)
 
-    def test_live_process_without_frames_cannot_substitute_for_readiness(self):
-        self.command('ps', '''print('100 1 /runtime/launchd_sim ''' + UDID + '''')
-print('101 100 /runtime/Applications/MobileSafari.app/MobileSafari')
-''')
-        result = self.lane(SIM_LAUNCH_IPC_STALL='1', SIM_REQUIRES_LAUNCH='1',
+    def test_owned_pid_receipt_without_frames_cannot_substitute_for_readiness(self):
+        result = self.lane(SIM_LAUNCH_RECEIPT_STALL='1', SIM_REQUIRES_LAUNCH='1',
                            SIM_OPEN_NO_FRAME='1', SIM_SAFARI_READY_TIMEOUT='2')
         self.assertEqual(result.returncode, 124, result.stderr)
         self.assert_not_handed_over()
 
-    def test_complete_owned_process_rows_survive_a_stalled_snapshot_tail(self):
-        rows = f'100 1 /runtime/launchd_sim {UDID}\n101 100 /runtime/Applications/MobileSafari.app/MobileSafari\n'
-        def snapshot(command, **options):
-            self.assertEqual(command[0], 'ps')
-            self.assertLessEqual(options['timeout'], .25)
-            raise subprocess.TimeoutExpired(command, options['timeout'], output=rows.encode())
-        evidence = {'checks': 0, 'timeouts': 0, 'totalMs': 0.0, 'maxMs': 0.0}
-        pid = READY['owned_safari_process'](UDID, 2, evidence, snapshot)
-        self.assertEqual(pid, 101)
-        self.assertEqual(evidence['timeouts'], 1)
-        self.assertEqual(evidence['ownedRoots'], 1)
-        self.assertEqual(evidence['completeRows'], 2)
+    def test_complete_owned_receipt_survives_an_incomplete_output_tail(self):
+        self.assertEqual(READY['owned_launch_pid']('com.apple.mobilesafari: 101\npending reply'), 101)
+        self.assertIsNone(READY['owned_launch_pid']('foreign.application: 101\n'))
+        self.assertIsNone(READY['owned_launch_pid']('com.apple.mobilesafari: 0\n'))
+        self.assertIsNone(READY['owned_launch_pid']('com.apple.mobilesafari: -1\n'))
 
-    def test_truncated_process_row_cannot_unlock_a_launch(self):
-        rows = f'100 1 /runtime/launchd_sim {UDID}\n101 100 /runtime/Applications/MobileSafari.app/MobileSafari'
-        def snapshot(command, **options):
-            raise subprocess.TimeoutExpired(command, options['timeout'], output=rows.encode())
-        self.assertIsNone(READY['owned_safari_process'](UDID, 2, read_snapshot=snapshot))
+    def test_truncated_launch_receipt_cannot_unlock_a_launch(self):
+        self.assertIsNone(READY['owned_launch_pid']('com.apple.mobilesafari: 101'))
+        self.assertIsNone(READY['owned_launch_pid']('com.apple.mobilesafari: invalid\n'))
 
-    def test_launch_observation_stops_before_repeating_expensive_queries(self):
-        due = READY['process_observation_due']
-        self.assertFalse(due(119, {'checks': 75, 'totalMs': 37225.254}))
-        self.assertFalse(due(119, {'checks': 1, 'totalMs': 1000}))
-        self.assertFalse(due(119, {'checks': 4, 'totalMs': 0}))
-        self.assertFalse(due(0, {'checks': 0, 'totalMs': 0}))
-        self.assertTrue(due(1, {'checks': 0, 'totalMs': 0}))
-        # A fast negative query is not repeated on the next poll.
-        self.assertFalse(due(2, {'checks': 1, 'totalMs': 0}))
+    def test_launch_observation_never_spawns_an_expensive_process_inventory(self):
+        self.command('ps', "import os,pathlib,time;pathlib.Path(os.environ['SIM_FIXTURE'],'ps-started').touch();time.sleep(30)")
+        result = self.lane(SIM_LAUNCH_RECEIPT_STALL='1', SIM_SAFARI_READY_TIMEOUT='2')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse((self.root/'ps-started').exists())
+        self.assertTrue((self.root/'safari-rendered').exists())
 
     def test_foreign_simulator_safari_cannot_unlock_our_launch(self):
         self.command('ps', '''print('100 1 /runtime/launchd_sim ''' + UDID + '''')

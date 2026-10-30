@@ -31,68 +31,20 @@ def native_text(stream):
     return os.pread(stream.fileno(), os.fstat(stream.fileno()).st_size, 0).decode(errors='replace')
 
 
-def process_observation_due(elapsed, evidence):
-    # Observation must not consume the native startup it measures. A slow OS
-    # spawn may overrun one timeout; stop further queries once its cost is known.
-    schedule = (1, 30, 60, 90)
-    if evidence['checks'] >= len(schedule) or evidence['totalMs'] >= 1000:
-        return False
-    return elapsed >= schedule[evidence['checks']]
+def owned_launch_pid(text):
+    """A complete PID receipt from our exact UDID-bound launch command.
 
-
-def owned_safari_process(udid, remaining, evidence=None, read_snapshot=subprocess.run):
-    """Observe only a Safari descending from this device's launchd_sim.
-
-    A pid is permission to ask for the owned URL, never readiness proof.
-    Do not launch another client or print unrelated process arguments.
+    This permits asking for the owned probe URL, never granting readiness.
+    Read only that command's output; no process inventory is spawned.
     """
-    started = time.monotonic()
-    status = 'complete'
-    try:
-        result = read_snapshot(['ps', '-axo', 'pid=,ppid=,command='],
-                                capture_output=True, text=True, errors='replace',
-                                timeout=max(.001, min(.25, remaining)), check=False)
-        raw = result.stdout if result.returncode == 0 else ''
-        if result.returncode != 0:
-            status = f'exit:{result.returncode}'
-    except subprocess.TimeoutExpired as error:
-        status = 'timeout'
-        raw = error.stdout or b''
-        if isinstance(raw, bytes):
-            raw = raw.decode(errors='replace')
-    except OSError:
-        status, raw = 'unavailable', ''
-    if evidence is not None:
-        elapsed = (time.monotonic() - started) * 1000
-        evidence['checks'] += 1
-        evidence['timeouts'] += status == 'timeout'
-        evidence['totalMs'] = round(evidence['totalMs'] + elapsed, 3)
-        evidence['maxMs'] = round(max(evidence['maxMs'], elapsed), 3)
-        evidence['lastStatus'] = status
-    processes = {}
-    # A timed-out ps can already have delivered a complete owned parent chain.
-    # Incomplete final rows never grant permission; the frame proof still does.
-    for line in raw.splitlines(keepends=True):
+    for line in text.splitlines(keepends=True):
         if not line.endswith('\n'):
             continue
-        parts = line.split(None, 2)
-        if len(parts) == 3 and parts[0].isdigit() and parts[1].isdigit():
-            processes[int(parts[0])] = (int(parts[1]), parts[2])
-    roots = {pid for pid, (_, command) in processes.items()
-             if 'launchd_sim' in command and udid in command}
-    if evidence is not None:
-        evidence['completeRows'] = len(processes)
-        evidence['ownedRoots'] = len(roots)
-        evidence['safariCandidates'] = sum('/MobileSafari.app/MobileSafari' in row[1] for row in processes.values())
-    for pid, (_, command) in processes.items():
-        if '/MobileSafari.app/MobileSafari' not in command:
-            continue
-        parent, seen = pid, set()
-        while parent in processes and parent not in seen:
-            if parent in roots:
-                return pid
-            seen.add(parent)
-            parent = processes[parent][0]
+        app, separator, value = line.rstrip('\r\n').partition(':')
+        value = value.strip()
+        if (separator and app == 'com.apple.mobilesafari'
+                and value.isascii() and value.isdigit() and int(value) > 0):
+            return int(value)
     return None
 
 
@@ -231,9 +183,10 @@ def wait_for_safari(udid):
     # device-owned process exists; only the subsequent frame callback can
     # publish a lease. Every phase shares the original readiness deadline.
     started = time.monotonic()
-    evidence = {'checks': 0, 'timeouts': 0, 'totalMs': 0.0, 'maxMs': 0.0}
-    def report_process_evidence():
-        print(f'sim-lane: Safari launch process evidence {json.dumps(evidence)}', file=sys.stderr)
+    evidence = {'source': 'owned-launch-output', 'checks': 0, 'totalMs': 0.0, 'maxMs': 0.0}
+    next_receipt_check = started
+    def report_receipt_evidence():
+        print(f'sim-lane: Safari launch receipt evidence {json.dumps(evidence)}', file=sys.stderr)
     with native_transcript() as output, native_transcript() as errors:
         with subprocess.Popen(['xcrun', 'simctl', 'launch', udid, 'com.apple.mobilesafari'],
                               stdout=output, stderr=errors, text=True) as launch:
@@ -249,13 +202,21 @@ def wait_for_safari(udid):
                         for label, stream in (('stdout', output), ('stderr', errors)):
                             detail = native_text(stream).strip()
                             print(f'sim-lane: Safari timed-out launch {label}: {detail[-2048:] or "<empty>"}', file=sys.stderr)
-                        report_process_evidence()
+                        report_receipt_evidence()
                         return 124
-                    if process_observation_due(time.monotonic() - started, evidence):
-                        pid = owned_safari_process(udid, remaining, evidence)
+                    if time.monotonic() >= next_receipt_check:
+                        sample = time.monotonic()
+                        # Read at most one small page of our already-open output.
+                        # A ps spawn exceeded its nominal timeout by72s in ff31.
+                        pid = owned_launch_pid(os.pread(output.fileno(), 4096, 0).decode(errors='replace'))
+                        cost = (time.monotonic() - sample) * 1000
+                        evidence['checks'] += 1
+                        evidence['totalMs'] = round(evidence['totalMs'] + cost, 3)
+                        evidence['maxMs'] = round(max(evidence['maxMs'], cost), 3)
+                        next_receipt_check = time.monotonic() + .25
                         if pid is not None:
-                            report_process_evidence()
-                            print(f'sim-lane: owned Safari process {pid} in {time.monotonic() - started:.3f}s before launch client replied; '
+                            report_receipt_evidence()
+                            print(f'sim-lane: owned Safari launch receipt {pid} in {time.monotonic() - started:.3f}s before launch client replied; '
                                   'requiring owned frame proof', file=sys.stderr)
                             with readiness_page(deadline, started) as (url, ready):
                                 return open_ready_page(udid, url, ready, deadline, timeout, started)
@@ -267,7 +228,7 @@ def wait_for_safari(udid):
                     launch.kill()
                     launch.wait()
             launch_output, launch_error = native_text(output), native_text(errors)
-    report_process_evidence()
+    report_receipt_evidence()
     elapsed = time.monotonic() - started
     if launch.returncode != 0:
         print(f'sim-lane: Safari app launch failed in {elapsed:.3f}s: {launch_error.strip()}', file=sys.stderr)
