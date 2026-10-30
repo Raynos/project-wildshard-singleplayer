@@ -43,7 +43,7 @@ No decision or damage-list row approves any of the cuts above, so every one is r
 | NF6 | **Retire slack**: attach at radius r, retire at r + 1, so walking along a ring edge never thrashes (matters for every ring shard once NF1 makes Nine's whole cell resident). | A focused test on `TileDriver`; Pine / Driftwood probe: no retire-attach pair within 5 s. | Codex | S |
 | NF7 | **Far dressing whole**: facade placements, lanterns and portal rings draw every copy within legacy's LOD distances (small pieces `far: 85`), not just resident tiles; colliders stay on the collider ring. With NF1 this is NF1's proof. | At cams 1 / 5 / 14 / 27, copies in view within 5 % of legacy (eave, box, windows, rail, lantern / cage LODs, lantern dots, 5 portal rings); draws ≤ 150 (G913). | Opus | S |
 | NF8 | **Neon and signs complete**: find and restore the ~7 % legacy draws that SHARDFILE does not (603 tris of neon, 128 of signs) in the sign bake. | Cam 1: neon 8,938 tris, signs 1,862, as legacy. | Opus | S |
-| NF9 | **Declarations whole**: Nine's six place Sets as `world.sets` rows and fp-arms as a `held` row; drop the native roster hook. | `scripts/legacy-explorer-lists.ts` reads Models 1 / 1, Sets 6 / 6; Explorer unchanged. | Codex | S |
+| NF9 | **Declarations whole**: Nine's six place Sets as `world.sets` rows and fp-arms as a `held` row; drop the native roster hook. | `scripts/legacy-explorer-lists.ts` reads Models 1 / 1, Sets 6 / 6; Explorer unchanged. **done**: `0215806142`; normal Nine refresh 45.78 s + independent strict reader pass; unchanged collector Models 1/1 and Sets 6/6, exact IDs; 9 declaration/equivalence/retained controls pass, types/lint green. | sp-x8 | S |
 
 ## Wave 2: the permanent fix (no run-time join; graphs cost what legacy costs)
 
