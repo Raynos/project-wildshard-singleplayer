@@ -14,12 +14,11 @@ CI1-CI4 done (CI2 / CI3 await first deploy), CI5 x9, CI6 / CI7 / CI9 x2, CI8 x9,
 QB17 zip video tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 
 **Autonomous decisions (for Jake's review):**
+- 2b62556596 is fully green; CI2 prebuilt packaging lacks @vercel/blob. If not fixed by ~00:30, ship 2b62 via the pre-CI2 deploy workflow once.
 - Player bug found by CI12: after dying in her storm phase, Signal's Matriarch flew off the map on retry (script restarted at step 0 only); fixed ddb75a9d0a (o3, board art/signal-matriarch-retry/).
 - **For wildshard-v / Jake (pick):** Debug 'Draw budget' (da65599389, board 6123924204): Lean = 166 → 149 draws, Chromium 4x Pine 18.9 → 16.3 ms, but Sim WebContent stays ~22 %; it thins distant trees / nearer shadows. Recommend Current. The 15 % WebContent bar isn't reachable by exact or draw cuts; Jake decides the bar.
 - P0 found by CI: the grid could stop drawing after a crossing (a cached frame gate held async readiness, ca0c7c8b60); fixed 4779bbdd6f (x1).
-- CI13: headless SimHost motor constants differ from the client's; play unchanged.
 - FC12 closes at identical captures (Pine 184, Driftwood ~194 draws).
-- QB17 (b): zip rises to the ring per Jake's ask; flat kept as Debug 'Hook zip'.
 - FC10 closed (Nine 7 real switches, Nalati 4 passes; phone bloom off, Debug 'Phone bloom'), FC13 at its Debug row.
 - **For wildshard-v (QB1):** Jake's home-screen icon predates the launch image; one delete + re-add of the icon fixes the black.
 - QB10 / MF12: Sentry verdicts in e74ca75809; S fixed b3b1723a9a, 7S fixed cc75f528ea + 93cf905edc. **wildshard-v: Sentry-only ids need a build + stack.**
