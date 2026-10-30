@@ -114,6 +114,14 @@ function admitRawModule(bytes:Uint8Array,hash:string,row:ReturnModuleRow):void {
   if(sha256(bytes)!==hash)throw new Error('Raw return module hash mismatch');
   admitScriptContract(bytes,row.abi===2?{abi:2,lane:row.lane,pages:row.pages,ioBytes:row.ioBytes,compilerRevision:row.compilerRevision,admissionRevision:row.admissionRevision}:{abi:1,pages:row.pages});lentBytes.set(bytes,declared);
 }
+/** A plain record's own field names, or null when a field could change unseen by them (an inherited field, an accessor). */
+function plainFields(record: Readonly<Record<string, number>>): string[] | null {
+  const proto: unknown = Object.getPrototypeOf(record);
+  if (proto !== Object.prototype && proto !== null) return null;
+  const keys = Object.getOwnPropertyNames(record);
+  for (const key of keys) { const field = Object.getOwnPropertyDescriptor(record, key); if (field === undefined || !Object.hasOwn(field, 'value')) return null; }
+  return keys;
+}
 export class ReturnProgram {
   /** The same frozen admitted rows, for a native binding over this owner. */
   readonly declaration:ReturnType<typeof readProgram>;
@@ -127,6 +135,11 @@ export class ReturnProgram {
   private candidates: readonly Readonly<Record<string, number>>[] = [];
   private random: Rng | undefined;
   private active = false;
+  /** Each signal's last successful request and its channels, when the guest reads only its fields (and radial
+   *  arithmetic): a rewound pure guest answers the same inputs with the same channels, so a repeat runs no guest
+   *  (Pine's shelter clock repeated 244,249 of 244,250 steps). Never with a random stream, candidates or terrain. */
+  private readonly pure: boolean = false;
+  private readonly last = new Map<number, { readonly keys: readonly string[]; readonly values: readonly number[]; readonly channels: readonly (readonly [string, number])[] }>();
   readonly prepareWorld?: (signal:string,observations:Readonly<Record<string,number>>,bindings:ReadonlyMap<number,V2ActionBinding>,candidates?:readonly Readonly<Record<string,number>>[],random?:Rng)=>PreparedProjectionV2;
   readonly prepare?: NonNullable<NumericProjection['prepare']>;
   /** The same immutable admitted descriptor used by this selected instance. */
@@ -139,6 +152,7 @@ export class ReturnProgram {
     const bytes = admitReturn(row, owner, witness);
     this.script = script;this.signalNames=row.v2?.signals??Object.values(script.signals).sort(); this.layout = scriptV1Layout(0, Object.keys(script.params).length);
     this.parameterNames=Object.keys(script.params).sort();this.channelNames=Object.values(script.channels).sort();
+    this.pure = script.reads.every(name => name === 'field' || name === 'radial');
     const fields = Object.values(script.fields).sort();
     if (row.v2 !== undefined) {
       const projection = new ReturnProjectionV2(row.v2,owner,raw,prepared);
@@ -275,6 +289,16 @@ export class ReturnProgram {
       || candidates.length > 8 || candidates.some(candidate => Object.values(candidate).some(value => !Number.isFinite(value)))) throw new Error('Invalid return request');
     const { module, layout } = this;
     if (module === null) throw new Error('Missing return transport');
+    const keys = this.pure && random === undefined && candidates.length === 0 ? plainFields(observations) : null;
+    if (keys !== null) {
+      const last = this.last.get(signalId);
+      if (last !== undefined && last.keys.length === keys.length && keys.every((key, i) => key === last.keys[i] && Object.is(observations[key], last.values[i]))) {
+        const result: Record<string, number> = {};
+        for (const [name, value] of last.channels) result[name] = value;
+        this.validateOwner();
+        return result;
+      }
+    }
     const before = random?.snapshot(),base = module.io;
     module.rewind(); module.begin(400000); this.observations = observations; this.candidates = candidates; this.random = random; this.active = true;
     try {
@@ -294,6 +318,7 @@ export class ReturnProgram {
         result[name] = value;
       }
       this.validateOwner();
+      if (keys !== null) this.last.set(signalId, { keys, values: keys.map(key => observations[key] ?? Number.NaN), channels: Object.entries(result) });
       return result;
     } catch (error) { if (before !== undefined) random?.restore(before); throw error; }
     finally { this.active = false; this.observations = {}; this.candidates = []; this.random = undefined; module.rewind(); }
