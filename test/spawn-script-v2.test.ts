@@ -60,6 +60,31 @@ test('production PAGE SpawnScript executes compiled v2 on the SAME adopted nativ
     expect(() => runner.observe({ grass: 7 })).toThrow('Duplicate');
   } finally { f.host.dispose(); }
 });
+test('frame observation refusals keep the prior complete input and read ignored getters once', async () => {
+  const f = await fixture();
+  try {
+    const runner = SpawnScript.page(f.animals, f.rows.v2, f.host.physics, f.owners);
+    runner.adopt('main', f.body.entityId);
+    runner.frame({ x: 90, y: 2, z: 100 }, 0, { engaged: 1 });
+    const before = runner.snapshot(), reads: string[] = [];
+    expect(() => runner.frame({ x: 1, y: 2, z: 3 }, 0, {
+      get engaged() { reads.push('engaged'); return 2; },
+      get ignored() { reads.push('ignored'); return Number.NaN; },
+      get unset() { reads.push('unset'); return Number.NaN; },
+    })).toThrow('Invalid script observation');
+    expect(reads).toEqual(['engaged', 'ignored', 'unset']);
+    expect(runner.snapshot()).toBe(before);
+    expect(() => runner.frame(f.body.position, 0, { engaged: 2, grass: 7 })).toThrow('Duplicate');
+    expect(runner.snapshot()).toBe(before);
+    expect(() => runner.observe({ engaged: 2, unknown: 1 })).toThrow('Invalid script observation');
+    expect(runner.snapshot()).toBe(before);
+    for (let tick = 0; tick < 7; tick++) runner.advanceFrame(1 / 60);
+    expect(runner.channel(1)).toBe(8);
+    runner.frame(f.body.position, 0, { engaged: 2, ignored: Number.NaN });
+    for (let tick = 0; tick < 6; tick++) runner.advanceFrame(1 / 60);
+    expect(runner.channel(1)).toBe(9);
+  } finally { f.host.dispose(); }
+});
 test('old SpawnScript saves migrate pending inputs at their old tick and v2 re-saves are byte-exact', async () => {
   const f = await fixture();try {
     const old = SpawnScript.page(f.animals,f.rows.v1,f.host.physics);for (let i = 0; i < 5; i++) old.advance(1/60,{ x: 0,y: 0,z: 0 },0,1,[]);

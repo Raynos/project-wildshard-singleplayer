@@ -54,6 +54,7 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
     if (scope !== null) game.app.encounters.elite(script.def.id, Object.assign(script, { force: (move: string) => { controller.force(move); } }), scope);
     elites.add(script);
   }
+  const active = new Set<string>();
   return {
     elites,
     isElite: body => controllers.some(controller => controller.animal === body),
@@ -85,7 +86,7 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
             } else { point.copy(body.position); point.y += fx.height; direction.set(player.position.x - point.x, 0, player.position.z - point.z); Impacts.for(game).burst('dirt', point, direction, fx.count); }
           }
         }
-        const active = new Set<string>();
+        active.clear();
         for (const strike of program.strikePresentation()) {
           if (strike.tell === undefined) continue;
           const key = `${controller.def.id}:${strike.actor}:${strike.tell}`, body = program.body(strike.actor); if (body === null) continue;

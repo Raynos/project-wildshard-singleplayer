@@ -13,10 +13,18 @@ type Fight = EliteFeatureRows['fights'][number];
 export class EliteDecisions implements EliteCoreScript<AnimalSim> {
   readonly def: { id: string; name: string; epithet: string; lair: { x: number; z: number; r: number; }; awareR: number; engageR: number; leashR: number; rule: "always" | "dusk" | "night" | "storm"; respawnMin: number; once?: boolean; signature: string; phase2: string; drop: { skin: (string) | null; skinName: string; weapon: string; blurb: string; trophyName?: string; }; };
   readonly spawnStream: Rng;
+  private readonly frameRows;
+  private readonly tickRows;
+  private readonly frameValues: Record<string, number>;
+  private readonly tickValues: Record<string, number>;
   private phase2 = false;
   constructor(readonly row: Fight, readonly program: SpawnScript, feature: EliteFeatureRows, seed: number) {
     this.def = row.def;
     this.spawnStream = eliteStream(feature, seed, 'spawn', row.def.id);
+    this.frameRows = row.observations.filter(observation => ['dusk', 'night', 'god'].includes(observation.source));
+    this.tickRows = row.observations.filter(observation => ['engaged', 'leashing', 'phase2', 'clock'].includes(observation.source));
+    this.frameValues = Object.seal(Object.fromEntries(this.frameRows.map(observation => [observation.field, 0])));
+    this.tickValues = Object.seal(Object.fromEntries(this.tickRows.map(observation => [observation.field, 0])));
   }
   get isPhase2(): boolean { return this.phase2; }
   get animal(): AnimalSim | null { return this.program.body(this.row.main); }
@@ -30,13 +38,13 @@ export class EliteDecisions implements EliteCoreScript<AnimalSim> {
   trophy(): void { this.program.interrupt(); }
   force(move: string): void { this.program.signal(this.row.main, this.row.forces[move] ?? this.row.defaultForce); }
   frame(point: Readonly<{ x: number; y: number; z: number }>, dusk: number, night: number, god: boolean, yaw: number): void {
-    this.program.frame(point, night, Object.fromEntries(this.row.observations.filter(row => ['dusk', 'night', 'god'].includes(row.source))
-      .map(row => [row.field, row.source === 'dusk' ? dusk : row.source === 'night' ? night : Number(god)])), yaw);
+    for (const row of this.frameRows) this.frameValues[row.field] = row.source === 'dusk' ? dusk : row.source === 'night' ? night : Number(god);
+    this.program.frame(point, night, this.frameValues, yaw);
   }
   tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
-    const values = { engaged: Number(engaged), leashing: Number(leashing), phase2: Number(this.phase2), clock: t };
-    this.program.observe(Object.fromEntries(this.row.observations.filter(row => row.source in values).map(row => [row.field,
-      row.source === 'engaged' ? values.engaged : row.source === 'leashing' ? values.leashing : row.source === 'phase2' ? values.phase2 : values.clock])));
+    for (const row of this.tickRows) this.tickValues[row.field] = row.source === 'engaged' ? Number(engaged)
+      : row.source === 'leashing' ? Number(leashing) : row.source === 'phase2' ? Number(this.phase2) : t;
+    this.program.observe(this.tickValues);
     this.program.advanceFrame(dt);
   }
   prepareRestore(state: { readonly program: string; readonly spawn: RngState; readonly phase2: boolean }): () => void {

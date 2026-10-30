@@ -7,6 +7,8 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 
 const natural = v.pipe(v.number(), v.safeInteger(), v.minValue(1));
 const Saved = v.array(v.strictObject({ actor: natural, id: natural, runner: v.unknown(), windup: v.exactOptional(v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(60))) }));
+const NO_STRIKE: ScriptStrikeFrame = Object.freeze({ hit: null, cues: Object.freeze([]), done: false });
+const NO_PRESENTATION: readonly never[] = Object.freeze([]);
 interface Active { readonly id: number; readonly runner: StrikeRunner; readonly windup?: number }
 export interface ScriptStrikeHit { readonly damage: number; readonly tags: StrikeSpec['tags']; readonly stun: number; readonly trauma: number; readonly throughWalls: boolean }
 export interface ScriptStrikeFrame { readonly hit: ScriptStrikeHit | null; readonly cues: readonly string[]; readonly done: boolean }
@@ -27,7 +29,7 @@ export class ScriptStrikes {
   time(actor: number): number { return this.active.get(actor)?.runner.time ?? 0; }
   /** `reach` is the contact frame's line of sight, asked only when a strike lands (FC: no raycast for an idle actor) */
   advance(actor: number, dt: number, body: AnimalSim, target: BrainPoint, reach: () => boolean): ScriptStrikeFrame {
-    const current = this.active.get(actor); if (current === undefined) return { hit: null, cues: [], done: false };
+    const current = this.active.get(actor); if (current === undefined) return NO_STRIKE;
     const row = this.row(current.id), before = current.runner.state, cues: string[] = [];
     let hit: ScriptStrikeHit | null = null;
     current.runner.update(dt, { actor: body, target, canReach: reach,
@@ -55,6 +57,7 @@ export class ScriptStrikes {
   }
   /** Read-only presentation of the actual contact owner, including its locked lane. */
   presentation(): readonly { actor: number; id: number; phase: StrikePhase; time: number; windup: number; tell: 'lane' | 'ring' | undefined; radius: number; width: number; x0: number; z0: number; x1: number; z1: number }[] {
+    if (this.active.size === 0) return NO_PRESENTATION;
     return [...this.active].map(([actor, active]) => {
       const runner = active.runner, spec = this.spec(active.id);
       return { actor, id: active.id, phase: runner.state, time: runner.time, windup: active.windup ?? spec.windup, tell: this.row(active.id).tell, radius: spec.shape.kind === 'point' ? spec.shape.radius : 0,

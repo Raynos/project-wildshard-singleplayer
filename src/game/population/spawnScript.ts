@@ -62,6 +62,7 @@ interface SpawnBodyOwner {
 type Effect = { readonly kind: 'cue' | 'retire'; readonly id: number; readonly actor: number; readonly at: Point }
   | { readonly kind: 'hit'; readonly actor: number; readonly hit: ScriptStrikeHit }
   | { readonly kind: 'page-bank'; readonly bank: PreparedSpawnPageBank };
+const NO_EFFECTS: readonly Effect[] = Object.freeze([]);
 interface Motion { readonly id: number; readonly target: number; readonly runner: ActorMoveRunner }
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.integer(), v.minValue(0));
@@ -93,6 +94,9 @@ export class SpawnScript {
   private readonly combat: ScriptStrikes;
   private readonly bindings = new Map<number, number>();
   private readonly observations = new Map<string, number>();
+  private readonly observedFields: ReadonlySet<string>;
+  private readonly columnFields: ReadonlySet<string>;
+  private readonly frameFlags: string[] = [];
   private point: Point = { x: 0, y: 0, z: 0 };
   private night = 0;
   private playerYaw = 0;
@@ -108,6 +112,8 @@ export class SpawnScript {
   get failure(): string | null { return this.disabledReason; }
   private constructor(input: unknown, private readonly bodies: SpawnBodyOwner, private readonly v2Owners?: SpawnV2Owners,private readonly effectOwners?: SpawnEffectOwners,queryLoans?: SpawnQueryLoansV2,private readonly nativeHost?: SimHost,rawModule?: Uint8Array) {
     const rows = parseSpawnScript(input); this.rows = rows;
+    this.observedFields = new Set(rows.fields.filter(row => row.source === 'observed').map(row => row.id));
+    this.columnFields = new Set(rows.v2?.columns.map(row => row.name));
     this.controlState = v.parse(v.picklist(ANIMAL_STATES), rows.controlState);
     const registries = spawnScriptRegistries(rows); this.combat = new ScriptStrikes(rows.strikes ?? []);
     // an admitted raw module arrives by one loan: the entered v2 owners' or a native population's (CI12), never both
@@ -588,17 +594,28 @@ export class SpawnScript {
   observe(input: Readonly<Record<string, number>>): void {
     const entries = Object.entries(input);
     for (const [id, n] of entries) {
-      if (this.rows.v2?.columns.some(row => row.name === id)) throw new Error('Duplicate v2 observation publication');
-      if (!Number.isFinite(n) || !this.rows.fields.some(row => row.id === id && row.source === 'observed')) throw new Error('Invalid script observation');
+      if (this.columnFields.has(id)) throw new Error('Duplicate v2 observation publication');
+      if (!Number.isFinite(n) || !this.observedFields.has(id)) throw new Error('Invalid script observation');
     }
     for (const [id,n] of entries) this.observations.set(id,n);
   }
   frame(point: Point, night: number, observations: Readonly<Record<string, number>>, yaw = 0): void {
     if (this.v2 !== undefined && ![point.x,point.y,point.z,night,yaw].every(Number.isFinite)) throw new Error('Invalid v2 actor frame');
-    this.observe(Object.fromEntries(Object.entries({ ...observations, night }).filter(([id]) => this.rows.fields.some(row => row.id === id && row.source === 'observed'))));
+    // Snapshot every supplied value before validating or publishing, just as
+    // the former spread/filter/observe chain did (including ignored getters).
+    const entries = Object.entries({ ...observations, night });
+    for (const [id, n] of entries) if (this.observedFields.has(id)) {
+      if (this.columnFields.has(id)) throw new Error('Duplicate v2 observation publication');
+      if (!Number.isFinite(n)) throw new Error('Invalid script observation');
+    }
+    for (const [id, n] of entries) if (this.observedFields.has(id)) this.observations.set(id, n);
     this.point = point;this.night = night;this.playerYaw = yaw;
   }
-  advanceFrame(dt: number): void { this.advance(dt, this.point, this.night, this.rows.maximum, this.rows.flags.filter(flag => this.flags.has(flag))); }
+  advanceFrame(dt: number): void {
+    this.frameFlags.length = 0;
+    for (const flag of this.rows.flags) if (this.flags.has(flag)) this.frameFlags.push(flag);
+    this.advance(dt, this.point, this.night, this.rows.maximum, this.frameFlags);
+  }
   /** Preflight the same native authority without a body write or guest call. */
   prepareRestore(input: SimValue): () => void {
     this.restoreSnapshot(input,true);
@@ -630,7 +647,7 @@ export class SpawnScript {
   force(): void { this.forced = Math.min(8, this.maximum || this.rows.maximum); }
   channel(id: number): number { return this.channels.get(id) ?? 0; }
   hasFlag(name: string): boolean { return this.flags.has(name); }
-  drainEffects(): readonly Effect[] { const effects = this.effects; this.effects = []; return effects; }
+  drainEffects(): readonly Effect[] { if (this.effects.length === 0) return NO_EFFECTS; const effects = this.effects; this.effects = []; return effects; }
   snapshot(): string { return JSON.stringify({ version: 2, contract: this.contract, decision: this.host.snapshot(),
     actors: [...this.handles].map(([handle, body]) => [handle, body.entityId]),
     ...(this.rows.strikes === undefined ? {} : { strikes: this.combat.snapshot() }),
