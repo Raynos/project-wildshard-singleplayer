@@ -50,7 +50,6 @@
     "./script/inputInboxV2": "./script/inputInboxV2.ts",
     "./render/programRetention": "./render/programRetention.ts",
     "./render/drawnEnvironment": "./render/drawnEnvironment.ts",
-    "./render/graphBatches": "./render/graphBatches.ts",
     "./models/placementBatch": "./models/placementBatch.ts",
     "./models/modelPose": "./models/modelPose.ts",
     "./models/ownedGeometry": "./models/ownedGeometry.ts",

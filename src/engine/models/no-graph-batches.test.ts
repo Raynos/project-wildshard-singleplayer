@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 // E271 / E272, then PF1 (G936): a graph look batches like a classic one on the guarded batched draws (the grid's cell clip
-// now keeps a batch's GL_ANGLE_multi_draw directive first, game/grid/cell-clip-defines.test.ts); Debug ▸ Graph batches ▸
-// Instanced is the old per-geometry fallback. Facades never batch (scripts/test-facade-instancing.mjs).
+// keeps a batch's GL_ANGLE_multi_draw directive first (game/grid/cell-clip-defines.test.ts).
+// Facade declarations remain instanced (scripts/test-facade-instancing.mjs).
 // oxlint-disable-next-line import/no-nodejs-modules -- Scans the live source for BatchedMesh constructions.
 import { readdirSync, readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Joins the scanned source paths.
@@ -11,30 +11,24 @@ import { BatchedMesh, BoxGeometry, Color, InstancedMesh, Matrix4, MeshStandardMa
 import { defineModel, modelContext } from './model';
 import { place } from './place';
 import { graphLook, InstancedBatch } from './instancedBatch';
-import { setDev } from '../core/devMode';
-import { setGraphBatches } from '../render/graphBatches';
 
 const nodeMaterial = (): MeshStandardMaterial => { const m = new MeshStandardMaterial(); Object.defineProperty(m, 'isNodeMaterial', { value: true }); return m; };
 const kinds = (root: Object3D): string[] => { const out: string[] = []; root.traverse(o => { if (o instanceof BatchedMesh) out.push('batched'); else if (o instanceof InstancedMesh) out.push('instanced'); }); return out; };
 
-test('a batched model draw batches a graph look as a classic one by default; the Instanced row draws it instanced', () => {
+test('graph looks batch by default while explicit instanced declarations remain instanced', () => {
   const ctx = modelContext(null);
   Object.assign(ctx, { renderer: { extensions: { has: (name: string) => name === 'WEBGL_multi_draw' } } });
-  const drawn = (material: MeshStandardMaterial): string[] => {
+  const drawn = (material: MeshStandardMaterial, draw: 'batched' | 'instanced' = 'batched'): string[] => {
     const model = defineModel({ id: 'shared/graph-batch-fixture', name: 'Graph batch fixture', category: 'props', pipeline: 'code', file: 'src/engine/models/no-graph-batches.test.ts', defaults: {},
       build: () => [{ geometry: new BoxGeometry(1, 1, 1), material }] });
     const placements = Array.from({ length: 6 }, (_, i) => ({ x: i * 3, y: 0, z: 0, matrix: new Matrix4().makeTranslation(i * 3, 0, 0) }));
-    return kinds(place(model, placements, { ctx, draw: 'batched', registry: null }).object);
+    return kinds(place(model, placements, { ctx, draw, registry: null }).object);
   };
   expect(graphLook(nodeMaterial())).toBe(true); expect(graphLook(new MeshStandardMaterial())).toBe(false);
   expect(drawn(nodeMaterial())).toEqual(['batched']);
   expect(drawn(new MeshStandardMaterial())).toEqual(['batched']);
-  setDev(true); setGraphBatches(false);
-  try {
-    const graph = drawn(nodeMaterial());
-    expect(graph).not.toContain('batched'); expect(graph).toContain('instanced');
-    expect(drawn(new MeshStandardMaterial())).toEqual(['batched']);
-  } finally { setGraphBatches(true); setDev(false); }
+  expect(drawn(nodeMaterial(), 'instanced')).toEqual(['instanced']);
+
 });
 
 test('PF1: a graph look\'s levels that share a material but not their shadow flag batch apart; a classic one as before', () => {
@@ -130,9 +124,7 @@ test('every BatchedMesh in the live source is one of the four guarded draws', ()
     }
   };
   walk('src');
-  // each consults the graph-batch rule (graphLook / graphBatches, the Instanced row's fallback) before it builds a batch;
-  // a new BatchedMesh needs the same here
+  // Keep the closed native constructor inventory; row-specific fallbacks are retired under G953.
   const guarded = ['src/engine/models/place.ts', 'src/engine/world/forest/Forest.ts', 'src/engine/world/interact/Interactables.ts', 'src/game/shardfile/worldSceneBatch.ts'];
   expect(found.sort((p, q) => p.localeCompare(q))).toEqual([...guarded].sort((p, q) => p.localeCompare(q)));
-  for (const path of guarded) expect(readFileSync(path, 'utf8')).toMatch(/graphLook\(|graphBatches\(/u);
 });

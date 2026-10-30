@@ -1,5 +1,4 @@
 import { Matrix4, type Material, Color, type Group, InstancedMesh, Mesh, type Object3D, Vector3 } from 'three';
-import { graphBatches } from '@wildshard/engine/render/graphBatches';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { modelPoseMatrix } from '@wildshard/engine/models/modelPose';
 import { withOwner } from '@wildshard/engine/app/ownership';
@@ -245,8 +244,8 @@ export class WorldScenePlacement {
     const placed = await withOwner(owner, () => placeSliced(row.colliders === undefined ? definition : { ...definition, colliders: () => [] },
       prepared,
       // PF2 (G936): a 'batched' row batches as place's batched draw decides (a graph look too, the grid's cell clip keeps its
-      // #extension first); Debug ▸ Graph batches ▸ Instanced draws it instanced as E271 / E272 did. Facades never batch.
-      { ctx: sharedModelContext(world.sky, world.game), registry: ranged === 'colliders' ? null : world.registry, draw: row.draw === 'batched' && !graphBatches() ? 'instanced' : row.draw,
+      // #extension first). Explicit instanced rows, including facades, retain that routing.
+      { ctx: sharedModelContext(world.sky, world.game), registry: ranged === 'colliders' ? null : world.registry, draw: row.draw,
         ...(boxes === undefined || borrowed === undefined ? {} : { drawnInto: { object: borrowed, boxes: Float32Array.from(boxes) } }),
         ...(row.cull === undefined ? {} : { cull }), ...(row.sortObjects === undefined ? {} : { sortObjects: row.sortObjects }),
         ...(row.piece === undefined && preplaced === undefined && tile === undefined && ranged !== 'whole' ? {} : { piece: { ...(pieceId === undefined ? {} : { id: pieceId }), ...(row.piece?.name === undefined ? {} : { name: row.piece.name }),

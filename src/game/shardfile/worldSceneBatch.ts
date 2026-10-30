@@ -2,7 +2,6 @@ import { BatchedMesh, Matrix4, type BufferGeometry, type Camera, type Material }
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { BatchedCull } from '@wildshard/engine/models/cull';
 import { InstancedBatch } from '@wildshard/engine/models/instancedBatch';
-import { graphBatches } from '@wildshard/engine/render/graphBatches';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { withOwner } from '@wildshard/engine/app/ownership';
@@ -12,7 +11,7 @@ import type { WorldSceneBatchRow } from '@wildshard/format/worldSceneBatch';
 /**
  * Client-only fixed LOD instances of one material, each copy choosing its authored near / far geometry by distance. PF2
  * (G936): one BatchedMesh where the renderer multi-draws (a graph look too: the grid's cell clip keeps its #extension
- * first), as legacy drew Pine's crags; Debug ▸ Graph batches ▸ Instanced, no multi-draw, or slots whose layouts differ
+ * first), as legacy drew Pine's crags. No multi-draw support or slots whose layouts differ
  * draw an InstancedBatch (one InstancedMesh per geometry slot, E271 / E272's path). Named placements that name the
  * batch draw on their own. Finishing registers it (the registry draws it).
  * Copies marked `merge` become one static geometry at their near level, drawn as one copy (G639: Pine's 18 crag skin
@@ -39,7 +38,7 @@ export class WorldSceneBatch {
     if (this.value !== undefined) return this.value;
     const merged = this.row.fixed.filter(row => row.merge === true), culled = this.row.fixed.filter(row => row.merge !== true);
     const skin = merged.length > 0 ? this.merged(merged) : null, all = skin === null ? [...this.geometry] : [...this.geometry, skin];
-    const batch = this.multiDraw && graphBatches() && oneLayout(all) ? this.batchedMesh(all, culled.length + (skin === null ? 0 : 1)) : this.instancedBatch();
+    const batch = this.multiDraw && oneLayout(all) ? this.batchedMesh(all, culled.length + (skin === null ? 0 : 1)) : this.instancedBatch();
     this.value = batch;
     this.owner.onDispose(() => { batch.removeFromParent(); });
     const ids = this.geometry.map(geometry => batch.addGeometry(geometry));

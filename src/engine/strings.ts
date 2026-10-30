@@ -1,9 +1,5 @@
 /** English engine UI strings. Content-owned overrides are installed by the composition root. */
 export const ENGINE_STRINGS = {
-  "s_graph_batches": "Graph batches",
-  "s_graph_batches_batched": "Batched",
-  "s_graph_batches_instanced": "Instanced",
-  "s_graph_batches_note": "PF1 (G936): graph looks on batched draws (forest trees, batched props) as one multi-draw batch per material, as legacy did (default); reloads. Instanced is the per-geometry path, kept until the pick. Facades never batch.",
   "s_pose_rate": "Animal pose rate",
   "s_pose_rate_stepped": "Stepped by distance",
   "s_pose_rate_every": "Every frame (old)",

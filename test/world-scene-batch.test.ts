@@ -37,17 +37,11 @@ test('without multi-draw fixed instances draw instanced, one InstancedMesh per g
   owner.dispose(); material.dispose(); geometry.dispose();
 });
 
-test('PF2: where the renderer multi-draws the fixed copies are one BatchedMesh; Graph batches > Instanced keeps the instanced path', async () => {
-  const { setDev } = await import('../src/engine/core/devMode'), { setGraphBatches } = await import('../src/engine/render/graphBatches');
+test('PF2: supported multi-draw batches fixed copies; unsupported renderers keep the instanced path', () => {
   const owner = new Scope('harbour batched'), material = new MeshBasicMaterial(), geometry = triangle();
   try {
     const batched = new WorldSceneBatch(batchRows(), material, [geometry, geometry], owner, new WorldRegistry(), true).finish();
     expect(batched).toBeInstanceOf(BatchedMesh); expect(drawn(batched)).toHaveLength(1);
-    setDev(true); setGraphBatches(false);
-    try {
-      const instanced = new WorldSceneBatch(batchRows(), material, [geometry, geometry], owner, new WorldRegistry(), true).finish();
-      expect(instanced).not.toBeInstanceOf(BatchedMesh); expect(drawn(instanced).every(mesh => mesh instanceof InstancedMesh)).toBe(true);
-    } finally { setGraphBatches(true); setDev(false); }
   } finally { owner.dispose(); material.dispose(); geometry.dispose(); }
 });
 

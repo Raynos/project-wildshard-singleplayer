@@ -1,4 +1,3 @@
-import { graphBatches, setGraphBatches } from '../render/graphBatches';
 import { authoredRows } from './authoredDebugRows';
 import { engineString } from '../strings';
 /**
@@ -161,13 +160,6 @@ const roadResidencyRow: DebugRow = { purpose: 'developer', id: 'roadResidency', 
   get: () => roadResidency(), set: value => { const pick = ROAD_RESIDENCY.find(choice => choice === value); if (pick !== undefined && isDev()) setRoadResidency(pick); },
   on: () => undefined, reload: true, when: always, note: engineString('s_road_residency_note'), ask: 'E435', reviewBy: '2026-10-28' };
 
-/** PF1 (G936): graph looks on batched draws, A batched (default) / B instanced (the E271 / E272 path, a fallback until
- *  the phone QA); a reload. */
-const graphBatchesRow: DebugRow = { purpose: 'developer', id: 'graphBatches', group: 'perf', label: engineString('s_graph_batches'),
-  choices: () => [{ v: 'batched', text: engineString('s_graph_batches_batched') }, { v: 'instanced', text: engineString('s_graph_batches_instanced') }],
-  get: () => graphBatches() ? 'batched' : 'instanced', set: value => { if (value === 'batched' || value === 'instanced') setGraphBatches(value === 'batched'); },
-  on: () => undefined, reload: true, when: always, note: engineString('s_graph_batches_note'), ask: 'E435', reviewBy: '2026-11-13' };
-
 /** FC11: the stepped animal pose (B, shipped) beside the old every-frame pose (A); the old goes when Jake has seen it. */
 const poseRateRow: DebugRow = { purpose: 'developer', id: 'animalPoseRate', group: 'creatures', label: engineString('s_pose_rate'),
   choices: () => [{ v: 'stepped', text: engineString('s_pose_rate_stepped') }, { v: 'every', text: engineString('s_pose_rate_every') }],
@@ -187,7 +179,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Performance ──
   tileResidencyRow,
   roadResidencyRow,
-  graphBatchesRow,
 
   // ── Loading & memory ──
   clearDownloadsRow,
