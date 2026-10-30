@@ -13,6 +13,7 @@ import {eyeReaches} from '../../src/game/quest/interactionRows';
 import {stepFigureOrbit} from '../../src/game/quest/figureOrbit';
 import {prepareHeadlessRuntime as prepareNalati} from './nalati-headless';
 import {installNalatiMountInputs} from './nalati-mount-inputs';
+import {installNalatiChapterObservation} from './nalati-chapter-observation';
 
 const finite=v.pipe(v.number(),v.finite());
 const FigureSave=v.array(v.strictObject({id:v.string(),x:finite,y:finite,z:finite,phase:finite,ring:finite,idleYaw:finite}));
@@ -24,7 +25,7 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
   const story=parseChapterStoryPresentation(await preparation.product.json('quests/chapters.json'));
   const figures=content.figures;
   if(figures===undefined)throw new Error('Nalati verb readings require admitted figures');
-  return {...base,install:(host,context)=>{base.install(host,context);installNalatiMountInputs(host,context);installNalatiReadings(host,context,preparation.shard.quests,content,story);}};
+  return {...base,install:(host,context)=>{base.install(host,context);installNalatiMountInputs(host,context);installNalatiReadings(host,context,preparation.shard.quests,content,story);installNalatiChapterObservation(host,story);}};
 };
 
 /** Bind the original reading/quest owners without scene or UI construction. */
