@@ -24,7 +24,7 @@ import {checkedReplayPipeline} from './checkedReplayPipeline';
 import {QaraHandoffSchema,checkQaraLedger,qaraWireHash,qaraObservationHash,qaraCommandHash,type QaraHandoff,type QaraPart} from './qaraHandoff';
 
 const [stage,inputPath,outputPath,inputHash]=process.argv.slice(2);
-assert.ok(stage==='night'||stage==='patrol'||stage==='victory');assert.ok(inputPath);assert.ok(outputPath);
+assert.ok(stage==='night'||stage==='patrol'||stage==='bow'||stage==='victory');assert.ok(inputPath);assert.ok(outputPath);
 let inherited:QaraHandoff|undefined;
 if(stage!=='night'){
   assert.ok(inputHash);assert.ok(statSync(inputPath).size<=32_000_000);
@@ -39,7 +39,8 @@ const descriptor=outputDescriptor(shard);assert.ok(descriptor);
 const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
 const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
 if(inherited!==undefined)assert.equal(canonicalSimDigest(decodeSimSnapshot(inherited.snapshot)),inherited.digest);
-const sourceHash=qaraWireHash(JSON.stringify(shard));if(inherited!==undefined)assert.equal(inherited.source,sourceHash);
+assert.ok(descriptor.indexHash,'the handoff requires its independently verified product index');
+const sourceHash=descriptor.indexHash;if(inherited!==undefined)assert.equal(inherited.source,sourceHash);
 const resident=await createNativeProofResident({shard,assets,rapier,product},prepareHeadlessRuntime,inherited?.snapshot);
 let session:Awaited<ReturnType<typeof beginProductSession>>|undefined;
 let replay:Awaited<ReturnType<Awaited<ReturnType<typeof beginProductSession>>['ready']>>|undefined;
@@ -68,6 +69,8 @@ try{
     trace('handoff-snapshot',host.state.tick);checkQaraLedger(history,nightTick,ticks);const snapshot=snapshotSimHost(host);
     const handoff:QaraHandoff={version:1,source:sourceHash,snapshot:serializeSimSnapshot(snapshot),digest:canonicalSimDigest(snapshot),nightTick,ticks,parts:history,motion:[...motion]};
     trace('handoff-codec',host.state.tick);const wire=JSON.stringify(v.parse(QaraHandoffSchema,handoff));assert.ok(Buffer.byteLength(wire)<=32_000_000);
+    assert.equal(qaraCommandHash(v.parse(QaraHandoffSchema,JSON.parse(wire)).parts),qaraCommandHash(history),
+      'handoff retains every original command value, including signed zero');
     trace('handoff-write',host.state.tick);writeFileSync(outputPath,wire,{flag:'wx',mode:0o600});
     console.info(JSON.stringify({story:`qara-${stage}`,hash:qaraWireHash(wire),tick:host.state.tick,ticks,parts:history.length,ms:performance.now()-started,phases}));
   };
@@ -162,6 +165,10 @@ try{
   assert.ok(patrol.law.killsTonight>=5,'five actual rider deaths must open the gate');
   for(let tick=0;tick<12;tick++)await step(idle);
   assert.equal(patrol.readiness.eligible,true);const captain=qara.captain();assert.ok(captain?.alive,'the original lair must spawn its own eligible captain');
+  mark('earned-unlock',host.state.tick);await complete();save();
+  }else if(stage==='bow'){
+  assert.equal(patrol.readiness.eligible,true);assert.ok(patrol.law.killsTonight>=5);
+  const captain=qara.captain();assert.ok(captain?.alive,'the preceding five actual kills earned a living captain');
   await approach(true);
   for(let shot=0;shot<bow.base.quiver&&captain.alive;shot++){
     if(weaponState().bolts===0)break;

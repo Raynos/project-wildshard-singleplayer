@@ -1,5 +1,5 @@
 import {expect,test} from 'vitest';
-import {checkQaraLedger,type QaraPart} from './fixtures/headless/qaraHandoff';
+import {checkQaraLedger,qaraCommandHash,qaraObservationHash,type QaraPart} from './fixtures/headless/qaraHandoff';
 
 function parts(count:number,ticks=1,commands=0,ownerBytes=0):QaraPart[]{
   return Array.from({length:count},(_,index)=>({plan:{version:1,observe:['nalati.patrol','nalati.qara','nalati.weapons'],
@@ -29,4 +29,23 @@ test('the combined handoff cannot omit, reorder or relabel an interval',()=>{
   const missing=parts(2);entry(entry(missing,1).plan.segments,0).frames?.pop();
   expect(()=>checkQaraLedger(missing,900,2)).toThrow('ordered');
   expect(()=>checkQaraLedger(parts(2),900,1)).toThrow('captured ticks');
+});
+
+test('an additional earned boundary retains every original observation, ordered effect and peak',()=>{
+  const original=entry(entry(parts(1,512),0).expected.observations,0);
+  const effect={kind:'hint' as const,text:'earned'};
+  original.effects=[effect];original.peakY=8;
+  const prefix={...original,id:'unlock',tick:1000,peakY:8,effects:[effect]},suffix={...original,id:'continued',peakY:2,effects:[]};
+  expect(qaraObservationHash([prefix,suffix],900)).toBe(qaraObservationHash([original],900));
+  expect(qaraObservationHash([prefix,{...suffix,position:[1,0,0]}],900)).not.toBe(qaraObservationHash([original],900));
+});
+
+test('input equivalence distinguishes negative zero at an earned boundary',()=>{
+  const original=parts(1,1,1),changed=structuredClone(original),command=entry(entry(entry(changed,0).plan.segments,0).frames??[],0)[0];
+  if(command?.kind!=='script')throw new Error('Missing actual input');
+  command.value=-0;
+  const positive=structuredClone(changed),same=entry(entry(entry(positive,0).plan.segments,0).frames??[],0)[0];
+  if(same?.kind!=='script')throw new Error('Missing positive input');
+  same.value=0;
+  expect(qaraCommandHash(changed)).not.toBe(qaraCommandHash(positive));
 });

@@ -10,10 +10,10 @@ import {afterAll,describe,expect,test} from 'vitest';
 import {qaraWireHash} from './fixtures/headless/qaraHandoff';
 
 mkdirSync(resolve('tmp'),{recursive:true});
-const directory=mkdtempSync(resolve('tmp/nalati-qara-')),night=resolve(directory,'night.json'),patrol=resolve(directory,'patrol.json');
-let nightHash:string|undefined,patrolHash:string|undefined;
+const directory=mkdtempSync(resolve('tmp/nalati-qara-')),night=resolve(directory,'night.json'),unlock=resolve(directory,'unlock.json'),patrol=resolve(directory,'patrol.json');
+let nightHash:string|undefined,unlockHash:string|undefined,patrolHash:string|undefined;
 afterAll(()=>{rmSync(directory,{recursive:true,force:true});});
-function run(stage:'night'|'patrol'|'victory',input:string,output:string,hash?:string):string{
+function run(stage:'night'|'patrol'|'bow'|'victory',input:string,output:string,hash?:string):string{
   const started=performance.now();
   const child=spawnSync(process.execPath,['--experimental-transform-types','--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
     resolve('test/fixtures/headless/nalati-qara-run.ts'),stage,input,output,...(hash===undefined?[]:[hash])],{encoding:'utf8',timeout:175_000});
@@ -28,10 +28,16 @@ describe('the complete earned Qara fight',{concurrent:false,shuffle:false},()=>{
     const report=run('night',night,night);nightHash=qaraWireHash(readFileSync(night,'utf8'));
     expect(report).toContain(`"hash":"${nightHash}"`);
   },180_000);
-  test('five real night kills unlock Qara and the real bow exhausts its quiver',()=>{
+  test('five real night kills earn the checked captain unlock',()=>{
     expect(nightHash).toBeDefined();if(nightHash===undefined)throw new Error('Missing earned night');
     expect(qaraWireHash(readFileSync(night,'utf8'))).toBe(nightHash);
-    const report=run('patrol',night,patrol,nightHash);patrolHash=qaraWireHash(readFileSync(patrol,'utf8'));
+    const report=run('patrol',night,unlock,nightHash);unlockHash=qaraWireHash(readFileSync(unlock,'utf8'));
+    expect(report).toContain(`"hash":"${unlockHash}"`);
+  },180_000);
+  test('the checked captain unlock continues the original bow inputs until the quiver is empty',()=>{
+    expect(unlockHash).toBeDefined();if(unlockHash===undefined)throw new Error('Missing checked unlock');
+    expect(qaraWireHash(readFileSync(unlock,'utf8'))).toBe(unlockHash);
+    const report=run('bow',unlock,patrol,unlockHash);patrolHash=qaraWireHash(readFileSync(patrol,'utf8'));
     expect(report).toContain(`"hash":"${patrolHash}"`);
   },180_000);
   test('the exact earned continuation swaps to sabre and replays the complete victory',()=>{
