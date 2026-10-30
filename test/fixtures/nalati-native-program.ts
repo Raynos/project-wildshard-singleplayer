@@ -11,7 +11,7 @@ const inputs = ['src/engine', 'src/format', 'src/game', 'src/sdk', 'src/commons'
   'test/fixtures/native-program.ts', 'test/fixtures/nalati-native-program.ts'];
 
 /** One source/host-keyed construction per helper, shared across isolated suites. */
-export function nalatiNativeProgram(name: 'kokpar' | 'titan' | 'riding' | 'charge' | 'geography'): Promise<string> {
+export function nalatiNativeProgram(name: 'kokpar' | 'titan' | 'riding' | 'charge' | 'geography' | 'view'): Promise<string> {
   return nativeProgramFixture({ id: `nalati-${name}`, script: `test/fixtures/nalati-${name}-compile.mjs`, inputs });
 }
 

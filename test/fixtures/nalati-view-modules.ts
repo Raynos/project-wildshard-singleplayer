@@ -1,15 +1,14 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- The compiler runs in plain Node, outside the test's happy-dom.
-import { execFileSync } from 'node:child_process';
 import * as v from 'valibot';
+import { nalatiNativeProgram } from './nalati-native-program';
 import type { NamedBlob } from '@wildshard/sdk/blobs';
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 import { NALATI_VIEW_MODULES, nalatiViewModules } from '../../src/shards/nalati-grasslands/generators/viewPrograms';
 
 /** GR6: Nalati's five view modules compiled from their authored sources (the retired jobs' generated wasm no longer
- *  exists): once, in a plain Node child (`nalati-view-compile.mjs`; happy-dom cannot feed the compiler's streaming), then
- *  published by the product's own `nalatiViewModules`, its cache step handing back those bytes. */
-const compiled = v.parse(v.record(v.string(), v.string()), JSON.parse(execFileSync(process.execPath,
-  ['--import', './scripts/bake-loader.mjs', 'test/fixtures/nalati-view-compile.mjs'], { encoding: 'utf8', maxBuffer: 1 << 26 })));
+ *  exists): once per source/host-keyed native construction (`nalati-view-compile.mjs`; happy-dom cannot feed the
+ *  compiler's streaming), then published by the product's own `nalatiViewModules`. Every hit still verifies the
+ *  complete compiler inputs and output hashes before admitting these same bytes. */
+const compiled = v.parse(v.record(v.string(), v.string()), JSON.parse(await nalatiNativeProgram('view')));
 const bytesOf = (id: string): Uint8Array => {
   const text = compiled[id];
   if (text === undefined) throw new Error(`Missing compiled Nalati view ${id}`);
