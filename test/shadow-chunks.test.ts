@@ -42,3 +42,19 @@ test('shadow chunking makes the recorded pieces, and a second walk adds none', a
   const again = await chunkShadowCastersSliced(scene, () => null);
   expect(again).toEqual({ meshes: 0, pieces: 0, tris: 0 });
 });
+
+test('PF3: a caster wider than the cascade splits whatever its triangle count; a small low-poly one stays whole', async () => {
+  const scene = new THREE.Scene();
+  // a 256-triangle ring 355 m round the origin (Pine's boundary) and a 256-triangle 20 m disc
+  const ring = new THREE.Mesh(new THREE.RingGeometry(340, 355, 128, 1).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial());
+  ring.castShadow = true;
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(20, 256).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial());
+  disc.castShadow = true;
+  scene.add(ring, disc);
+  const report = await chunkShadowCastersSliced(scene, () => null);
+  expect(report.meshes).toBe(1);
+  expect(ring.castShadow).toBe(false);
+  let split = 0; ring.traverse(o => { if (o.name.includes('-shadow-pieces-')) split++; });
+  expect(split).toBe(report.pieces);
+  expect(disc.castShadow).toBe(true);
+});

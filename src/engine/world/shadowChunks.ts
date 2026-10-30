@@ -22,6 +22,10 @@ import { geometryBoundsSteps } from './geometryBounds';
 
 const MIN_RADIUS = 40; // m: smaller meshes are culled well enough whole
 const MIN_TRIS = 2000;
+/** m: a caster this wide splits whatever its triangle count (PF3: Pine's 256-triangle boundary ring, 355 m round the origin,
+ *  passed every cascade's test whole and drew each redraw, ~0.25 ms of a Chromium-4x phone shadow pass, though its shadow
+ *  reaches the cascade only at the world's edge). Twice the phone cascade's reach. */
+const WIDE_RADIUS = 120;
 const MAX_CELLS = 64; // per mesh: the cell grows with the mesh (every piece is a scene object the shadow pass tests)
 
 interface ChunkUserData { shadowChunked?: boolean }
@@ -51,7 +55,8 @@ function* chunkWork(scene: THREE.Scene, report: ShadowChunkReport): Generator<vo
     if (mesh.geometry.boundingSphere === null) yield* geometryBoundsSteps(mesh.geometry, 'sphere');
     const radius = mesh.geometry.boundingSphere?.radius ?? 0;
     mesh.updateWorldMatrix(true, false);
-    if (!(radius * mesh.matrixWorld.getMaxScaleOnAxis() >= MIN_RADIUS)) continue;
+    const reach = radius * mesh.matrixWorld.getMaxScaleOnAxis();
+    if (!(reach >= MIN_RADIUS) || (triangles(mesh.geometry) < MIN_TRIS && !(reach >= WIDE_RADIUS))) continue;
     const n = yield* split(mesh);
     if (n > 0) { report.meshes++; report.pieces += n; report.tris += triangles(mesh.geometry); }
     yield;
@@ -92,8 +97,7 @@ function eligible(o: THREE.Object3D): o is THREE.Mesh {
   if (!(pos instanceof THREE.BufferAttribute) || pos.usage !== THREE.StaticDrawUsage) return false; // interleaved or rewritten per frame: whole
   if (Object.keys(g.morphAttributes).length > 0 || g.groups.length > 1) return false;
   if (g.drawRange.start !== 0 || Number.isFinite(g.drawRange.count)) return false;
-  if (triangles(g) < MIN_TRIS) return false;
-  return true;
+  return triangles(g) >= 2; // MIN_TRIS, or WIDE_RADIUS for a wide one: tested with the radius (chunkWork)
 }
 
 /** the mesh's triangles into squares of its local xz; returns the pieces made (0: it stays whole). Yields every
