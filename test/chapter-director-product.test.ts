@@ -1,5 +1,8 @@
 // @vitest-environment happy-dom
-import { beforeAll, expect, test, vi } from 'vitest';
+import { PINE_BAG_ITEMS } from '../src/shards/pine-hollow/generators/questInventory';
+import { DRIFTWOOD_ITEMS } from '../src/shards/driftwood-isle/generators/questInventory';
+import { registerItemRow } from '../src/game/bag/itemCatalog';
+import { afterAll, beforeAll, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { App } from '../src/engine/app/app';
@@ -23,6 +26,9 @@ import { CHAPTER_DIRECTOR as pineRows } from '../src/shards/pine-hollow/generato
 import { CHAPTER_DIRECTOR as driftRows } from '../src/shards/driftwood-isle/generators/chapterDirector';
 
 import { PINE_LIFE_ORIGINAL as pineLife } from './fixtures/pine-life';
+
+const releaseItems = [...PINE_BAG_ITEMS, ...DRIFTWOOD_ITEMS].map(registerItemRow);
+afterAll(() => { for (const release of releaseItems.reverse()) release(); });
 
 const products = new Map<string, ShardProduct>();
 

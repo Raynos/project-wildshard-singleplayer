@@ -17,7 +17,7 @@ import {installViewProgram,preflightViewLends,lendViewValues,lendViewDraw,lendVi
 import {presentEntryOwner,publishEntryOwner} from '../src/game/shardfile/entryOwners';
 import {titanWhirlGate} from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import {whirlsViewRows} from '../src/shards/nalati-grasslands/generators/titanWhirlsView';
-import {overrideTerrain} from '@wildshard/engine/test/terrain';
+import {bindFlatTerrain} from '@wildshard/engine/test/terrain';
 import {titanPrograms as programmes} from './fixtures/titanInlineWitness';
 import { nalatiViewBytes } from './fixtures/nalati-view-modules';
 
@@ -43,7 +43,7 @@ function quarry(owner:Scope):{view:ArenaWhirlsView;rows:ArenaWhirlsRows;funnels:
 
 test.each(['install first','lend first'])('row-only quarry resources drive actual inline view dispatch (%s)',order=>{
   const native=new Scope('quarry.native'),q=quarry(native),ctx=context(native,'first'),systems=vi.spyOn(ctx,'system');
-  const restore=overrideTerrain({heightAt:()=>3,normalAt:()=>[0,1,0]});
+  const restore=bindFlatTerrain({heightAt:()=>3,normalAt:()=>[0,1,0]});
   const feature={kind:'view.program' as const,id:'quarry.whirls',module:'views/quarry.wasm',rows:whirlsViewRows(q.rows)};
   const bytes=nalatiViewBytes('titan-whirls-view');
   try{
@@ -101,7 +101,7 @@ test('native retirement during the original ground slot refuses the later view d
   const bytes=nalatiViewBytes('titan-whirls-view');
   q.view.bindView(ctx.scope);installViewProgram(ctx,feature,bytes);q.view.arm(2);q.debris.count=0;
   native.onDispose(()=>undefined);const leaving=native.disposeSteps();
-  const restore=overrideTerrain({heightAt:()=>{leaving.next();return 3;},normalAt:()=>[0,1,0]});
+  const restore=bindFlatTerrain({heightAt:()=>{leaving.next();return 3;},normalAt:()=>[0,1,0]});
   try{
     expect(()=>q.view.update(.1,0,true,0,{wx:0,wz:0,px:0,pz:30})).toThrow('native owner has ended');
     expect(ctx.scope.disposed).toBe(false);expect(q.debris.count).toBe(0);

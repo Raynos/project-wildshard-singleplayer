@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { LivingBuildings } from '../src/game/shardfile/livingBuildings';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { swordEvents } from '@wildshard/game/weapons/Sword';
@@ -15,7 +16,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { installRuntimeAudioEntry,installRuntimeGameplayAudio,type RuntimeGameplayAudioEnvironment } from '../src/game/plugin/audio';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
-import { expect,it,vi } from 'vitest';
+import { afterEach,beforeEach,expect,it,vi } from 'vitest';
 import { Group,PerspectiveCamera,Vector3 } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
 import { Audio } from '@wildshard/engine/audio/Audio';
@@ -29,6 +30,10 @@ import pineSource from '../src/shards/pine-hollow/data/audioSource.json' with {t
 import islandSource from '../src/shards/driftwood-isle/data/audioSource.json' with {type:'json'};
 
 // Retain the original environment only as the legacy parity oracle.
+let releaseTerrain = (): void => undefined;
+beforeEach(() => { releaseTerrain = bindFlatTerrain(); });
+afterEach(() => { releaseTerrain(); });
+
 const originalEnvironment={"objects":{"wreck":{"owner":"world","path":["wreck"]},"cove":{"owner":"cove","path":[]}},"near":{"palms":{"owner":"world","path":["palmSpecs"]}},"floors":{"decks":[{"owner":"world","path":["pier"]},{"owner":"world","path":["jetties"]},{"owner":"world","path":["boat"]},{"owner":"world","path":["hut"]},{"owner":"world","path":["lookout"]},{"owner":"world","path":["bridge"]},{"owner":"world","path":["wreck"]}],"stone":[{"owner":"world","path":["shrine"]}]},"dusk":{"owner":"world","path":["shrine"]},"emitter":{"id":"hum","profile":"shrine","point":{"owner":"world","path":["shrine","group","position"]},"height":2.5},"publish":{"id":"driftwood.audio","values":{"shrineHum":{"owner":"emitters","path":["hum"]},"islandSfx":{"owner":"bank","path":[]},"surfaces":{"owner":"surfaces","path":[]},"ambience":{"owner":"ambience","path":[]}}}};
 const pine=parseAudioData(pineSource.audio),island=parseAudioData({...islandSource.audio,gameplay:{...islandSource.audio.gameplay,environment:originalEnvironment}});
 it('hears native door data only during its entered audio scope',()=>{

@@ -1,3 +1,5 @@
+import { installKitSpecies } from '../systems/species/install';
+import { installWorldRegistry } from '@wildshard/engine/world/registry';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
@@ -7,13 +9,16 @@ import { pinBrain } from '@wildshard/engine/ai/pinning';
 import { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { followRing } from './tileDriver';
 import { manager } from '@wildshard/engine/test/manager';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
+
+installWorldRegistry();
+installKitSpecies();
 
 const cleanup: (() => void)[] = [];
 afterEach(() => { vi.restoreAllMocks(); for (const stop of cleanup.splice(0).reverse()) stop(); });
 
 function fixture() {
-  cleanup.push(overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 }));
+  cleanup.push(bindFlatTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 }));
   const scope = new Scope('creature-residency-contract'); cleanup.push(() => { scope.dispose(); });
   scope.expose(app, 'levelScope', scope); scope.expose(app, 'physics', null);
   const f = scope.run(() => manager()); cleanup.push(() => { f.game.playerScope.dispose(); });

@@ -19,7 +19,7 @@ import type {ModelDef} from '../src/engine/models/model';
 import type {BossBar} from '../src/engine/ui/BossBar';
 import {manager} from '@wildshard/engine/test/manager';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
-import {overrideTerrain} from '@wildshard/engine/test/terrain';
+import {bindFlatTerrain} from '@wildshard/engine/test/terrain';
 import {mockCanvas} from '@wildshard/engine/test/weaponParity';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with {type:'json'};
 import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFight';
@@ -31,7 +31,7 @@ const geometry = titanGeometryRows();
 function run(original:boolean):{trace:unknown[];input:unknown[];ownerScope:boolean;onePrompt:boolean}{
   mockCanvas();
   const construction=new Scope('open-arena.construction'),entered=construction.child('entered'),trace:unknown[]=[],input:unknown[]=[];
-  const restore=overrideTerrain({heightAt:()=>0,normalAt:()=>[0,1,0],waterLevel:()=>-100});
+  const restore=bindFlatTerrain({heightAt:()=>0,normalAt:()=>[0,1,0],waterLevel:()=>-100});
   lendNalatiPasture(construction);
   const f=manager(),game=Object.assign(f.game.asGame(),{app,levelScope:construction,sky:f.sky});
   const materials=new Map(['nalati-titan-cloud','nalati-titan-flame','nalati-titan-smoke'].map(id=>[id,new MeshBasicMaterial()]));

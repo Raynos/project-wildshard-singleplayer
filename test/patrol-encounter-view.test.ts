@@ -8,7 +8,7 @@ import type { Game } from '../src/engine/core/Game';
 import type { Player } from '../src/engine/player/Player';
 import type { Forest } from '../src/engine/world/forest/Forest';
 import type { SkyRig } from '../src/engine/world/skyRig';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { CueDirector } from '../src/game/audio/cueDirector';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { PatrolEncounterView } from '../src/game/boss/encounterView';
@@ -44,7 +44,7 @@ let restore = (): void => undefined;
 afterEach(() => { restore(); vi.restoreAllMocks(); });
 
 function orchard(input:EncounterPatrolRows=patrol) {
-  restore = overrideTerrain({ heightAt: () => 2 });
+  restore = bindFlatTerrain({ heightAt: () => 2 });
   const scope = new Scope('orchard-watch'), scene = new Scene(), game = {} as Game;
   // the watch's looks lend one copy per rider material (each with its own fade)
   lendLooks(scope, { materials: new Map(['orchard-scout', 'orchard-warden', 'orchard-hush'].map(id => [id, new MeshBasicMaterial()])), setParam: () => undefined,

@@ -27,7 +27,7 @@ import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { fakeWorld } from '@wildshard/engine/test/world';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { mockCanvas, geometrySum } from '@wildshard/engine/test/weaponParity';
 import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import { titanGeometryRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
@@ -119,7 +119,7 @@ test('missing original context, point or published storm refuses before either n
 });
 
 test('the real original constructor, storm, air, point, AS state and random continuation stay exact', async () => {
-  const restore = overrideTerrain({ heightAt: () => 0 }), random = app.rng.stream('ai'), before = random.snapshot(), baseline = fixture();
+  const restore = bindFlatTerrain({ heightAt: () => 0 }), random = app.rng.stream('ai'), before = random.snapshot(), baseline = fixture();
   try {
     const data = await readArenaScriptData(baseline.product, row.files), storm = baseline.rig.storm;
     if (storm === null) throw new Error('Missing actual weather reactions');
@@ -149,7 +149,7 @@ test('the real original constructor, storm, air, point, AS state and random cont
 });
 
 test('a null original anchor retains the existing arena anchor fallback', async () => {
-  const restore = overrideTerrain({ heightAt: () => 0 }), f = fixture({ point: null });
+  const restore = bindFlatTerrain({ heightAt: () => 0 }), f = fixture({ point: null });
   try {
     await WorldAssembly.admit({ stages: [row] }, f.ports).next(row.id);
     const owner = entryOwner(f.scope, 'arena-room', row.id), anchor = owner.data.arena.anchor;
@@ -196,7 +196,7 @@ test('concrete original owners and the same point coordinates are rechecked afte
 
 
 test('the arena constructs before weather publication and consumes the same late storm and air', async () => {
-  const restore = overrideTerrain({ heightAt: () => 0 }), f = fixture({ missing: 'weather' });
+  const restore = bindFlatTerrain({ heightAt: () => 0 }), f = fixture({ missing: 'weather' });
   try {
     await WorldAssembly.admit({ stages: [row] }, f.ports).next(row.id);
     const owner = entryOwner(f.scope, 'arena-room', row.id);
@@ -212,7 +212,7 @@ test('the arena constructs before weather publication and consumes the same late
 
 test('late arena weather refuses changed storm or air and independently retired native scope', async () => {
   for (const changed of ['storm', 'air', 'native'] as const) {
-    const restore = overrideTerrain({ heightAt: () => 0 }), native = new Scope('independent native'), f = fixture({ missing: 'weather', native });
+    const restore = bindFlatTerrain({ heightAt: () => 0 }), native = new Scope('independent native'), f = fixture({ missing: 'weather', native });
     try {
       await WorldAssembly.admit({ stages: [row] }, f.ports).next(row.id);
       const owner = entryOwner(f.scope, 'arena-room', row.id);

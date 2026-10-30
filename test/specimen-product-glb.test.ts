@@ -5,7 +5,7 @@ import {SpecimenAssetSchema} from '../src/format/specimenCatalogue';
 import {parseExplorerCatalogue} from '../src/format/explorerCatalogue';
 import {Scope} from '../src/engine/app/scope';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
-import {overrideTerrain} from '@wildshard/engine/test/terrain';
+import {bindFlatTerrain} from '@wildshard/engine/test/terrain';
 import {TIER,initializeTier} from '../src/engine/core/tier';
 import {Rng} from '../src/engine/core/rng';
 import {modelContext} from '../src/engine/models/model';
@@ -109,7 +109,7 @@ test('Explorer and live dressing geometry, material and encounter adapters use v
     sections:new Map([['explore/catalogue',parseExplorerCatalogue({version:1,entries:[{kind:'specimen',id:'product-crate',books:{phone:book,desktop:book},model:'crate'}]})]]),
     files:new Map(declared.files.flatMap(row=>row.name===undefined?[]:[[row.name,{hash:row.hash,url:row.hash}]])),
     read:hash=>{const bytes=declared.assets.get(hash);if(bytes===undefined)throw new Error('Missing product GLB');return Promise.resolve(bytes);},check:true});
-  const fetch=vi.spyOn(globalThis,'fetch').mockRejectedValue(new Error('No URL fallback')),sky=skyFixture(),registry=new WorldRegistry(),scope=new Scope('product-glb-adapters'),root=new THREE.Group(),restore=overrideTerrain({heightAt:()=>0});
+  const fetch=vi.spyOn(globalThis,'fetch').mockRejectedValue(new Error('No URL fallback')),sky=skyFixture(),registry=new WorldRegistry(),scope=new Scope('product-glb-adapters'),root=new THREE.Group(),restore=bindFlatTerrain({heightAt:()=>0});
   try{
     const roster=await explorerRoster(product),card=roster[0];if(card===undefined)throw new Error('Missing Explorer card');
     card.list(modelContext(sky),()=>[],registry);const listed=registry.get('model:product-crate')?.model;if(listed===undefined)throw new Error('Missing Explorer model');

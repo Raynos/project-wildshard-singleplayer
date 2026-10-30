@@ -1,3 +1,5 @@
+import { installKitSpecies } from '../src/game/systems/species/install';
+import { installWorldRegistry } from '../src/engine/world/registry';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
@@ -6,10 +8,13 @@ import { RoamingCombatSchema } from '../src/format/roamingCombat';
 import { BossSocketRig } from '../src/game/boss/socketRig';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { manager } from '@wildshard/engine/test/manager';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { pineKingCollision } from '../src/shards/pine-hollow/generators/kingCollision';
 import { roamingCombat, roamingCombatBlob } from '../src/shards/pine-hollow/generators/roamingCombat';
 import { PINE_KING_KIT } from './fixtures/pine-program';
+
+installWorldRegistry();
+installKitSpecies();
 
 // GR8: the program bakes the King kit the roaming rows read
 const ROAMING_COMBAT = roamingCombat(PINE_KING_KIT.rows), ROAMING_COMBAT_BLOB = roamingCombatBlob(PINE_KING_KIT.rows);
@@ -31,7 +36,7 @@ function orchardRig() {
 }
 
 test('orchard sockets stay on the actual body and retire without disposing borrowed sources', () => {
-  const restoreTerrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
+  const restoreTerrain = bindFlatTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
   const f = manager(), actor = f.manager.spawn('boar', 2, 4, 0), torso = new THREE.Group(); torso.name = 'orchard.torso'; actor.mesh.add(torso);
   const source = new THREE.BoxGeometry(), material = new THREE.MeshStandardMaterial(), resources = new SceneHandles(f.sky);
   resources.publish('fruit', source); resources.publish('glow', material);
@@ -55,7 +60,7 @@ test('real roaming rows admit as named JSON and refuse callbacks or unknown sock
   expect(ROAMING_COMBAT_BLOB.file.name).toBe('combat/roaming.json'); expect(ROAMING_COMBAT_BLOB.file.jsonSchema).toBeDefined();
   expect(v.parse(RoamingCombatSchema, JSON.parse(new TextDecoder().decode(ROAMING_COMBAT_BLOB.bytes)))).toEqual(ROAMING_COMBAT);
   expect(() => v.parse(RoamingCombatSchema, { ...ROAMING_COMBAT, reward: { ...ROAMING_COMBAT.reward, grant: () => undefined } })).toThrow('JSON');
-  const restoreTerrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
+  const restoreTerrain = bindFlatTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
   const f = manager(), actor = f.manager.spawn('boar', 0, 0, 0), resources = new SceneHandles(f.sky);
   try { expect(() => new BossSocketRig(actor, orchardRig(), resources)).toThrow('socket'); }
   finally { f.manager.retire(actor); restoreTerrain(); }

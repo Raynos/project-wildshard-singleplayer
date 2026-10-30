@@ -7,13 +7,13 @@ import {Scope} from '../src/engine/app/scope';
 import {ArenaWhirlsView} from '../src/game/boss/arenaFire';
 import {ArenaWhirlsView as OriginalWhirls} from './fake/originalArenaFire';
 import {ProjectedState,ReturnProgram} from '../src/game/population/returnProgram';
-import {overrideTerrain} from '@wildshard/engine/test/terrain';
+import {bindFlatTerrain} from '@wildshard/engine/test/terrain';
 import {TITAN_WHIRLS,titanWhirlGate,titanWhirlView} from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import {titanPrograms as programmes} from './fixtures/titanInlineWitness';
 
 function trace(original:boolean,ease:number,count:number):unknown[]{
   const scope=new Scope('titan.whirl-gate'),calls:unknown[]=[],snapshots:unknown[]=[];
-  const restore=overrideTerrain({heightAt:(x,z)=>{calls.push(['ground',x,z]);return x*.03-z*.01;},normalAt:()=>[0,1,0]});
+  const restore=bindFlatTerrain({heightAt:(x,z)=>{calls.push(['ground',x,z]);return x*.03-z*.01;},normalAt:()=>[0,1,0]});
   const rows=parse(ArenaWhirlsSchema,{...TITAN_WHIRLS,ease,view:titanWhirlView(count),gate:titanWhirlGate(count),laws:TITAN_WHIRLS.laws.slice(0,count)});
   const funnels=rows.laws.map(()=>new Group()),geometry=new BoxGeometry(),material=new MeshBasicMaterial(),debris=new InstancedMesh(geometry,material,count*rows.debris.count);
   lendNalatiPasture(scope);
@@ -93,7 +93,7 @@ function reentrant(original:boolean,where:'law'|'ground',operation:'reset'|'arm'
   const wind=ReturnProgram.page(programmes.wind,scope),project=wind.project.bind(wind);
   let view:OriginalWhirls|ArenaWhirlsView|null=null,armed=false;
   const interrupt=(slot:string):void=>{if(armed&&slot===where){armed=false;calls.push([operation]);if(operation==='reset')view?.reset();else view?.arm(2);}};
-  const restore=overrideTerrain({heightAt:(x,z)=>{calls.push(['ground',x,z]);interrupt('ground');return x*.03-z*.01;},normalAt:()=>[0,1,0]});
+  const restore=bindFlatTerrain({heightAt:(x,z)=>{calls.push(['ground',x,z]);interrupt('ground');return x*.03-z*.01;},normalAt:()=>[0,1,0]});
   vi.spyOn(wind,'project').mockImplementation((signal,frame,random,candidates)=>{calls.push(['law',signal,{...frame}]);interrupt('law');return project(signal,frame,random,candidates);});
   try{
     view=original?new OriginalWhirls(rows,wind,funnels,debris):new ArenaWhirlsView(rows,wind,funnels,debris,ReturnProgram.page(programmes.attack,scope),scope);

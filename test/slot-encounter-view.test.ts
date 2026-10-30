@@ -6,7 +6,7 @@ import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import type { Game } from '../src/engine/core/Game';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { CueDirector } from '../src/game/audio/cueDirector';
 import { SlotEncounterView } from '../src/game/boss/encounterView';
 import { ReturnProgram } from '../src/game/population/returnProgram';
@@ -38,7 +38,7 @@ afterEach(() => { restore(); vi.restoreAllMocks(); });
 /** each pooled wedge's own look copy: the params it was given */
 const copies: Map<string, unknown>[] = [];
 function orchard(): { view: SlotEncounterView<Body>; heard: { id: string; at: number[] }[]; bodies: Body[]; retired:Body[]; scene: Scene; weak: { on: boolean } } {
-  restore = overrideTerrain({ heightAt: () => 3 });
+  restore = bindFlatTerrain({ heightAt: () => 3 });
   const scope = new Scope('orchard'), scene = new Scene(), game = {} as Game;
   copies.length = 0;
   lendLooks(scope, { materials: new Map([['orchard-tell', new MeshBasicMaterial()]]), setParam: () => undefined, setTexture: () => undefined,

@@ -1,3 +1,4 @@
+import { installWorldFixture } from './fixtures/worldSetup';
 // @vitest-environment happy-dom
 import { expect,test } from 'vitest';
 import { Vector3 } from 'three';
@@ -6,8 +7,10 @@ import { Rng } from '../src/engine/core/rng';
 import { arenaRoomSpeciesControl } from '../src/game/boss/arenaRoom';
 import speciesRows from '../src/shards/nalati-grasslands/data/speciesLooks.json';
 import { GOLDENKING_SPECIES as original } from './fixtures/species-oracle/goldenKingControl';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { manager } from '@wildshard/engine/test/manager';
+
+await installWorldFixture();
 
 const GOLDEN_KING='golden-king';
 const control=speciesRows.find(row=>row.metadata.kind===GOLDEN_KING)?.control;
@@ -21,7 +24,7 @@ function context(heightAt:ThinkCtx['heightAt']):ThinkCtx{
     pathYaw:(actor,x,z)=>Math.atan2(x-actor.position.x,z-actor.position.z),confine:()=>undefined,reach:()=>true,claim:()=>true,mayAttack:()=>true};
 }
 test.each([{}, {pose:4,rise:-0,cape:0,crown:0,floorY:-0}])('unbound King initialization matches the original controls (%j)',initial=>{
-  const restore=overrideTerrain({heightAt:()=>0,normalAt:()=>[0,1,0],waterLevel:()=>-100}),world=manager();
+  const restore=bindFlatTerrain({heightAt:()=>0,normalAt:()=>[0,1,0],waterLevel:()=>-100}),world=manager();
   try{
     const a=world.manager.spawn(GOLDEN_KING,7,11,0,'king'),b=world.manager.spawn(GOLDEN_KING,7,11,0,'king');
     a.mem={...initial};b.mem={...initial};let reads=0;
@@ -41,7 +44,7 @@ test('arena species initialization uses ordered alternate rows and refuses ambig
   expect(()=>arenaRoomSpeciesControl({kind:'arena-room',initialize:{flag:'ready',defaults:[{field:'x',source:'value',value:2},{field:'x',source:'height'}]}})).toThrow('Invalid arena species initialization');
   expect(()=>arenaRoomSpeciesControl({kind:'arena-room',initialize:{flag:'ready',defaults:[{field:'x',source:'value',value:Infinity}]}})).toThrow();
   const binding=arenaRoomSpeciesControl({kind:'arena-room',initialize:{flag:'ready',defaults:[{field:'height',source:'height'},{field:'weight',source:'value',value:3}]}});
-  const restore=overrideTerrain({heightAt:()=>0,normalAt:()=>[0,1,0],waterLevel:()=>-100}),world=manager();
+  const restore=bindFlatTerrain({heightAt:()=>0,normalAt:()=>[0,1,0],waterLevel:()=>-100}),world=manager();
   try{
     const actor=world.manager.spawn(GOLDEN_KING,7,11,0,'king');actor.mem={weight:-0};
     binding.think?.(actor,context(()=>{expect(actor.mem['ready']).toBe(1);return 17;}));

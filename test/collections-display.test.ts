@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { installWorldRegistry } from '../src/engine/world/registry';
 import { zlibSync } from 'fflate';
 import { GeometryPack } from '../src/engine/models/geometryPack';
 import { packedRows } from '../src/format/geometryPack';
@@ -30,6 +31,8 @@ import * as v from 'valibot';
 
 const material = new MeshStandardMaterial();
 const geometry = (vertices = 15): BufferGeometry => new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array(vertices * 3), 3));
+
+installWorldRegistry();
 
 test('cosmetic part-array builders preserve independent native mesh copies and shadow flags', () => {
   const model = defineModel({ id: 'fixture/moon-cap', name: 'Moon cap', category: 'gear', pipeline: 'code', file: 'test/collections-display.test.ts', defaults: {},

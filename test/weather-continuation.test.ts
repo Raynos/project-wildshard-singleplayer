@@ -1,5 +1,5 @@
 import {weatherWitness as weatherScript} from './fixtures/weatherInlineWitness';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { expect, test } from 'vitest';
 import type { SystemSpec } from '../src/engine/app/systems';
 import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
@@ -54,7 +54,7 @@ test('old v1 cadence/wind saves resume exactly and malformed restore is atomic',
   }
 });
 test('Nalati runs its reactions at ten Hz on one phase owner and snapshots them whole',()=>{
-  const restore=overrideTerrain({heightAt:()=>0});
+  const restore=bindFlatTerrain({heightAt:()=>0});
   try {
     const scope=new Scope('weather-test'),current=steppeStorm(7,[],[[1,2,3]],scope);
     Object.assign(current.inputs,{px:1,py:0,pz:2,calmSpeed:5,calmDir:0,calmGust:.6,crouched:0,mounted:0,held:0});
@@ -68,7 +68,7 @@ test('Nalati runs its reactions at ten Hz on one phase owner and snapshots them 
   } finally {restore();}
 });
 test('Nalati strikes the highest probed point and lands it 1.2 s later',()=>{
-  const restore=overrideTerrain({heightAt:()=>0});
+  const restore=bindFlatTerrain({heightAt:()=>0});
   try {
     const scope=new Scope('weather-test'),points=Array.from({length:63*63},(_,i):[number,number,number]=>[(i%63)*8-248,Math.floor(i/63)*8-248,50]);
     const current=steppeStorm(19,points,[],scope);

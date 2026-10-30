@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { BoxGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Vector3 } from 'three';
 import { defineModel, modelContext } from '../src/engine/models/model';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { WorldRegistry } from '../src/engine/world/registry';
 import type { SkyRig } from '../src/engine/world/skyRig';
 import { EncounterSites } from '../src/game/boss/encounterView';
@@ -19,7 +19,7 @@ const orchard = { name: 'orchard-guard', label: 'Guard', file: 'test/encounter-s
 let restore = (): void => undefined;
 afterEach(() => { restore(); vi.restoreAllMocks(); });
 
-function sites(): EncounterSites { restore = overrideTerrain({ heightAt: () => 3 }); return new EncounterSites(orchard); }
+function sites(): EncounterSites { restore = bindFlatTerrain({ heightAt: () => 3 }); return new EncounterSites(orchard); }
 
 test('a second shard\'s sites stand on the ground in their variant cycle, each a collider that sinks with its scale', () => {
   const view = sites();
@@ -47,6 +47,6 @@ test('placed instanced per variant; a waking site hides its copy and stops colli
 });
 
 test('sites refuse a variant cycle naming a variant they do not draw', () => {
-  restore = overrideTerrain({ heightAt: () => 0 });
+  restore = bindFlatTerrain({ heightAt: () => 0 });
   expect(() => new EncounterSites({ ...orchard, variantCycle: [2] })).toThrow('variant');
 });

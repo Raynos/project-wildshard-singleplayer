@@ -1,3 +1,4 @@
+import { installWorldFixture } from './fixtures/worldSetup';
 import { installArenaRoomEntry } from '../src/game/shardfile/clientEntryBinds';
 import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import { installClientCosmeticFinishes, clientCosmeticFinishes } from '../src/game/shardfile/clientCosmeticFinishes';
@@ -25,7 +26,7 @@ import { PatrolViewSchema } from '../src/format/encounterRows';
 import { BoxGeometry, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
 import { BossBrain, type BossScript, type BossDefinition } from '../src/engine/ai/BossBrain';
 import { silentBossPresentation } from '../src/engine/ai/phases';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { Scope } from '../src/engine/app/scope';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { parseArenaScriptData } from '@wildshard/format/arenaScriptRows';
@@ -62,6 +63,8 @@ const geometry = titanGeometryRows();
 const night=withWeatherWitness(nightInput);
 
 /** R6: a fight driven without its entered bind adopts the real view module at its frame slot (tells, pose ease, aim) */
+await installWorldFixture();
+
 function adoptTitanView(fight: ArenaScriptFight, scope: Scope): void {
   // the module's bytes, as the product compiles them (happy-dom's Response cannot feed a runtime compile)
   const rows = nalatiTitanView(), module = nalatiViewBytes('titan-view');
@@ -90,7 +93,7 @@ function encounter(def: Omit<BossDefinition, 'reward'>, script: BossScript, posi
 }
 
 test('Golden King runs all phases, clears the real adds and reaches its single reward end state headlessly', () => {
-  const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
+  const restore = bindFlatTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
   const scope = new Scope('golden-king-headless');
   lendNalatiPasture(scope);
   scope.expose(app, 'levelScope', scope);
@@ -122,7 +125,7 @@ test('Golden King runs all phases, clears the real adds and reaches its single r
 
 test.each([false,true])('arena script runs mounted phases, exposes its heart and wins (orchard fixture %s)', orchard => {
   mockCanvas();
-  const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 }), scope = new Scope('titan-headless');
+  const restore = bindFlatTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 }), scope = new Scope('titan-headless');
   const f = manager(), figure = new BoxGeometry(.2,.5,.3), materials = new Map(['nalati-titan-cloud','nalati-titan-flame','nalati-titan-smoke','nalati-spray-debris','nalati-spray-mist','nalati-tell','nalati-ghost','nalati-ghost-captain','nalati-ghost-storm'].map(id => [id, new MeshBasicMaterial()]));
   Object.assign(f.player,{ velocity: new Vector3(),setBodyEnabled: () => undefined });
   lendLooks(scope, { materials, setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => { throw new Error('No mapped materials in this fight'); },
