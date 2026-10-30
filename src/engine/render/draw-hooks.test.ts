@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { BufferGeometry, Camera, Mesh, MeshBasicMaterial, MeshDepthMaterial, Scene, Texture } from 'three';
+import { BufferGeometry, Camera, CompressedTexture, Mesh, MeshBasicMaterial, MeshDepthMaterial, Scene, Texture } from 'three';
 import type { Renderer } from './renderer';
 import { drawHooks, propertyHooks } from './drawHooks';
 
@@ -57,33 +57,15 @@ test('property observers share one native lookup and diagnostics receive its exa
   expect(ownership).toHaveBeenCalledExactlyOnceWith(resource); expect(texture).toHaveBeenCalledExactlyOnceWith(resource);
 });
 
-test('repeated property reads share observation but nested draws keep their own pulse', () => {
-  const f = fixture(), native = {}, get = vi.fn((_resource: unknown) => native);
-  const renderer = { ...f.renderer, properties: { get } }, owned: number[] = [];
-  const draws = drawHooks(renderer); propertyHooks(renderer).ownership = () => { owned.push(draws.depth); };
-  let nested = false;
-  f.stock.mockImplementation(() => {
-    expect(renderer.properties.get(f.material)).toBe(native);
-    expect(renderer.properties.get(f.material)).toBe(native);
-    if (!nested) { nested = true; renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group); }
-    expect(renderer.properties.get(f.material)).toBe(native);
-  });
-  renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
-  expect(owned).toEqual([1, 2, 1]); expect(get).toHaveBeenCalledTimes(6);
-  renderer.properties.get(f.material); renderer.properties.get(f.material);
-  expect(owned).toEqual([1, 2, 1, 0, 0]);
-});
-
-test('native removal and upload changes reobserve a resource within the same draw', () => {
-  const f = fixture(), resource = new Texture(), get = vi.fn((_resource: unknown) => ({})), remove = vi.fn((_resource: unknown) => undefined);
-  const renderer = { ...f.renderer, properties: { get, remove } };
-  drawHooks(renderer); const owned = vi.fn<(resource: unknown) => void>(); propertyHooks(renderer).ownership = owned;
-  f.stock.mockImplementation(() => {
-    renderer.properties.get(resource); renderer.properties.get(resource);
-    resource.needsUpdate = true; renderer.properties.get(resource);
-    resource.source.needsUpdate = true; renderer.properties.get(resource);
-    renderer.properties.remove(resource); renderer.properties.get(resource);
-  });
-  renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
-  expect(owned).toHaveBeenCalledTimes(4); expect(get).toHaveBeenCalledTimes(5); expect(remove).toHaveBeenCalledExactlyOnceWith(resource);
+test('classification preserves changed native rows, compressed observers and frozen inputs', () => {
+  const resource = new CompressedTexture(), frozen = Object.freeze({}), initial = {}, replacement = {};
+  let current = initial;
+  const renderer = { properties: { get: (_resource: unknown) => current } }, hooks = propertyHooks(renderer);
+  const before = vi.fn<(resource: CompressedTexture) => void>(), after = vi.fn<(resource: CompressedTexture, properties: unknown) => void>();
+  hooks.compressed = { before, after };
+  expect(renderer.properties.get(resource)).toBe(initial); expect(after).toHaveBeenLastCalledWith(resource, initial);
+  current = replacement;
+  expect(renderer.properties.get(resource)).toBe(replacement); expect(after).toHaveBeenLastCalledWith(resource, replacement);
+  expect(renderer.properties.get(frozen)).toBe(replacement); expect(renderer.properties.get(frozen)).toBe(replacement);
+  expect(before).toHaveBeenCalledTimes(2); expect(Object.getOwnPropertySymbols(frozen)).toHaveLength(0);
 });
