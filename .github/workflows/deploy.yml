@@ -17,6 +17,7 @@ on:
       - 'progress/**'
       - 'art/**'
       - 'sources/**'
+      - 'project/**'
   pull_request:
     branches: [main]
     paths-ignore:
@@ -24,6 +25,7 @@ on:
       - 'progress/**'
       - 'art/**'
       - 'sources/**'
+      - 'project/**'
   workflow_dispatch:
     inputs:
       recovery_source_run:
