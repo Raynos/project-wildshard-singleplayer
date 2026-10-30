@@ -34,3 +34,20 @@ test('malformed route and committed feet refuse before issuing movement',()=>{
   expect(()=>cursor.command([Number.NaN,0,0],0)).toThrow('walk feet');
   expect(cursor.visited).toBe(0);expect(cursor.stuck).toEqual([]);
 });
+
+
+test('one-way route ends at its final waypoint without inventing a reverse walk',()=>{
+  const cursor=new PhysicsRouteCursor([{x:0,z:0},{x:5,z:0}],{once:true});
+  cursor.command([0,0,0],0);cursor.command([5,0,0],1);
+  expect(cursor.complete).toBe(true);expect(cursor.visited).toBe(2);
+  expect(cursor.command([5,0,0],2)).toMatchObject({moveX:0,moveZ:0});
+});
+
+test('only declared escape legs advance a held edge and still report any bounds escape separately',()=>{
+  const edge=new PhysicsRouteCursor([{x:5,z:0},{x:10,z:0}],{once:true,edge:true});
+  for(let tick=0;tick<150;tick++)edge.command([0,0,0],tick);
+  expect(edge.complete).toBe(true);expect(edge.stuck).toEqual([]);
+  const ordinary=new PhysicsRouteCursor([{x:5,z:0},{x:10,z:0}],{once:true});
+  for(let tick=0;tick<150;tick++)ordinary.command([0,0,0],tick);
+  expect(ordinary.complete).toBe(false);expect(ordinary.visited).toBe(0);expect(ordinary.stuck).toHaveLength(1);
+});

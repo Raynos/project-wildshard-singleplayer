@@ -651,6 +651,16 @@ export class SimHost {
     const c = floorBelow(this.physics, p.x, p.z, p.y + 0.5, 80, this.player.motor.collider);
     return c !== undefined && c > g ? c : g;
   }
+  /** Reposition this owned native traveller without stepping the world. Like the
+   * page's spawn, release the old ride, velocity, dash and swimming state. */
+  resetPlayerPose(feet:{x:number;y:number;z:number},yaw:number):void {
+    if(this.disposed||this.embedded||!this.ownsPlayer||!this.hasPlayerMotor)throw new Error('Player pose belongs to an owned active host');
+    if(![feet.x,feet.y,feet.z,yaw].every(Number.isFinite))throw new RangeError('Invalid native player pose');
+    this.setBoard(false);if(this.playerSwim.on)this.leaveSwim();
+    this.player.position.set(feet.x,feet.y,feet.z);this.player.yaw=yaw;
+    this.player.motor.resetAt(this.player.position);this.playerImpulse.set(0,0,0);this.playerDash.t=0;
+    this.playerFall.vy=0;this.playerFall.grounded=false;this.playerSwim.stood=false;
+  }
   /** The registry's view of this host's player: the mode driver slot and the motor state. */
   private modePlayer(): ModePlayer<SimPlayerDriver> {
     const read = (): SimPlayerDriver | null => this.modeDriver, write = (driver: SimPlayerDriver | null): void => { this.modeDriver = driver; };
@@ -825,6 +835,10 @@ export class SimHost {
         const standing = fall.grounded && fall.vy === 0 && (this.wanted.x !== 0 || this.wanted.z !== 0);
         if (!standing) fall.vy = fallStep(fall.vy, FIXED_STEP);
         this.wanted.y += fall.vy * FIXED_STEP;
+        // The page carries its grounded feet with a moving deck after the
+        // world step, before the commanded move, without downward sliding.
+        const riding = fall.grounded && this.player.motor.carry(this.player.position);
+        if (riding && this.wanted.y <= 0) this.wanted.y = 0;
         const moved = this.player.motor.move(this.player.position, this.wanted);
         dashBlocked(dash, moved.horizontalFreedom, this.dashVelocity); // a dash that runs into a wall ends there
         // SF34 with water: the client Player's hand-over to the swim, and the water's cushion on a landing

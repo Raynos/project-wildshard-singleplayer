@@ -76,6 +76,7 @@ export const WorkerRequestSchema: v.GenericSchema<BoundedWorkerRequestInput, Bou
   v.strictObject({ kind: v.literal('step'), commands: v.pipe(v.array(TickCommandSchema), v.maxLength(1024)) }),
   v.strictObject({ kind: v.literal('finish') }),
   v.strictObject({ kind: v.literal('journey'), plan: HeadlessJourneyPlanSchema }),
+  v.strictObject({ kind: v.literal('walk'), plan: HeadlessJourneyPlanSchema }),
   v.strictObject({ kind: v.literal('authorProof'), plan: AuthorProofPlanSchema }),
 ]);
 /** Validate and copy ordered source batches against one aggregate per-tick command allowance. */
@@ -197,6 +198,6 @@ interface BoundedAuthorProofReportFields {
 }
 type BoundedAuthorProofReport = { [Key in keyof BoundedAuthorProofReportFields]: BoundedAuthorProofReportFields[Key] };
 type BoundedWorkerRequestInput = BoundedWorkerRequest;
-type BoundedWorkerRequest = {kind:'journey';plan:HeadlessJourneyPlan}
+type BoundedWorkerRequest = {kind:'walk';plan:HeadlessJourneyPlan} | {kind:'journey';plan:HeadlessJourneyPlan}
   | {kind:'step';commands:BoundedTickCommand[]}
   | {kind:'finish'} | {kind:'authorProof';plan:BoundedAuthorProofPlan};

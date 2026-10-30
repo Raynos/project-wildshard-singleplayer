@@ -1,26 +1,33 @@
+import { CharacterMotor, PLAYER_BODY, PLAYER_CAPSULE } from '@wildshard/engine/physics/CharacterMotor';
 import * as v from 'valibot';
 import type { HeadlessCommand } from './tickProtocol';
 import type { SimHost } from '@wildshard/engine/sim';
+import { floorBelow } from '@wildshard/engine/physics/query';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 
 export interface WalkPoint { readonly x:number;readonly z:number;readonly jump?:boolean|number;readonly jumpAt?:number }
 export interface WalkStall { readonly tick:number;readonly waypoint:number;readonly x:number;readonly y:number;readonly z:number }
-export interface HeadlessJourneyPlan { ticks:number;points:WalkPoint[] }
+export interface WalkStart { x:number;z:number;y?:number;yaw:number;hover?:boolean }
+export interface WalkBounds { x0:number;x1:number;z0:number;z1:number;floor:number }
+export interface HeadlessJourneyPlan { ticks:number;points:WalkPoint[];start?:WalkStart;once?:boolean;inside?:WalkBounds }
 export interface HeadlessJourneyReport {
-  ticks:number;settledTicks:number;distance:number;visited:number;traversals:number;stuck:WalkStall[];
+  ticks:number;preparationTicks:number;settledTicks:number;complete:boolean;out:number;distance:number;visited:number;traversals:number;stuck:WalkStall[];
   final:{tick:number;position:[number,number,number];grounded:boolean};maxTickMicros:number;
 }
 const finite=v.pipe(v.number(),v.finite());
 const natural=v.pipe(finite,v.integer(),v.minValue(0));
 /** Finite offline route data only; no callbacks, module URLs, snapshots or facts. */
 export const HeadlessJourneyPlanSchema:v.GenericSchema<HeadlessJourneyPlan> = v.strictObject({
-  ticks:v.pipe(natural,v.minValue(1),v.maxValue(1800)),
+  ticks:v.pipe(natural,v.minValue(1),v.maxValue(14_400)),
+  start:v.exactOptional(v.strictObject({x:finite,z:finite,y:v.exactOptional(finite),yaw:finite,hover:v.exactOptional(v.boolean())})),
+  once:v.exactOptional(v.boolean()),
+  inside:v.exactOptional(v.pipe(v.strictObject({x0:finite,x1:finite,z0:finite,z1:finite,floor:finite}),v.check(box=>box.x0<box.x1&&box.z0<box.z1,'Ordered walk bounds'))),
   points:v.pipe(v.array(v.strictObject({x:finite,z:finite,jump:v.exactOptional(v.union([v.boolean(),v.pipe(natural,v.maxValue(2))])),
     jumpAt:v.exactOptional(v.pipe(finite,v.minValue(0)))})),v.minLength(2),v.maxLength(256)),
 });
 /** Compact observations of actual native ticks, never a replacement continuation. */
 export const HeadlessJourneyReportSchema:v.GenericSchema<HeadlessJourneyReport> = v.strictObject({
-  ticks:natural,settledTicks:natural,distance:v.pipe(finite,v.minValue(0)),visited:natural,traversals:natural,
+  ticks:natural,preparationTicks:natural,settledTicks:natural,complete:v.boolean(),out:natural,distance:v.pipe(finite,v.minValue(0)),visited:natural,traversals:natural,
   stuck:v.pipe(v.array(v.strictObject({tick:natural,waypoint:natural,x:finite,y:finite,z:finite})),v.maxLength(512)),
   final:v.strictObject({tick:natural,position:v.tuple([finite,finite,finite]),grounded:v.boolean()}),maxTickMicros:v.pipe(finite,v.minValue(0)),
 });
@@ -40,26 +47,33 @@ export class PhysicsRouteCursor {
   readonly stuck:WalkStall[]=[];
   visited=0;
   traversals=0;
-  constructor(private readonly points:readonly WalkPoint[]) {
+  complete=false;
+  constructor(private readonly points:readonly WalkPoint[],private readonly options:{once?:boolean;edge?:boolean}={}) {
     if(points.length<2||points.some(point=>![point.x,point.z].every(Number.isFinite)))throw new Error('Walk needs two finite route points');
   }
   command(position:readonly number[],tick:number):PlayerCommand {
     const [x,y,z]=position;
     if(x===undefined||y===undefined||z===undefined||![x,y,z].every(Number.isFinite))throw new Error('Invalid committed walk feet');
+    if(this.complete)return {kind:'player',moveX:0,moveZ:0,yaw:0};
     let point=this.points[this.at];if(point===undefined)throw new Error('Missing walk waypoint');
     for(let skipped=0;skipped<this.points.length&&Math.hypot(point.x-x,point.z-z)<.8;skipped++){
       this.visited++;this.at+=this.direction;this.jumps=0;this.windowTick=tick;this.windowDistance=Infinity;
+      if(this.at>=this.points.length&&this.options.once===true){this.complete=true;return {kind:'player',moveX:0,moveZ:0,yaw:0};}
       if(this.at>=this.points.length){this.direction=-1;this.at=this.points.length-2;this.traversals++;}
       else if(this.at<0){this.direction=1;this.at=1;this.traversals++;}
       point=this.points[this.at];if(point===undefined)throw new Error('Missing next walk waypoint');
     }
     const dx=point.x-x,dz=point.z-z,distance=Math.hypot(dx,dz),key=`${this.direction}:${this.at}`;
-    if(this.windowDistance===Infinity){this.windowDistance=distance;this.windowTick=tick;}
-    if(tick-this.windowTick>=120){
-      if(this.windowDistance-distance<.3&&!this.reported.has(key)){
-        this.reported.add(key);this.stuck.push({tick,waypoint:this.at,x,y,z});
-      }
-      this.windowTick=tick;this.windowDistance=distance;
+    if(distance<this.windowDistance-.3){this.windowDistance=distance;this.windowTick=tick;}
+    if(this.options.edge===true&&tick-this.windowTick>72){
+      // An escape leg proves that a wall holds; only that declared mode may
+      // advance a blocked target. Ordinary routes retain the failed waypoint.
+      this.at++;this.jumps=0;this.windowDistance=Infinity;this.windowTick=tick;
+      if(this.at>=this.points.length)this.complete=true;
+      return {kind:'player',moveX:0,moveZ:0,yaw:0};
+    }
+    if(tick-this.windowTick>=120&&!this.reported.has(key)){
+      this.reported.add(key);this.stuck.push({tick,waypoint:this.at,x,y,z});
     }
     const count=point.jump===true?1:typeof point.jump==='number'?point.jump:0;
     let jump=false;
@@ -74,20 +88,35 @@ export class PhysicsRouteCursor {
  * its script/decision/finite-state refusals. The parent request watchdog still
  * preempts a blocked worker. This proof does not encode a resumable checkpoint. */
 export function runHeadlessJourney(host:SimHost,step:(commands:readonly HeadlessCommand[])=>void,input:HeadlessJourneyPlan):HeadlessJourneyReport {
-  const plan=v.parse(HeadlessJourneyPlanSchema,input),cursor=new PhysicsRouteCursor(plan.points),initial=host.state.tick;
-  let distance=0,maxTickMicros=0;
+  const plan=v.parse(HeadlessJourneyPlanSchema,input),cursor=new PhysicsRouteCursor(plan.points,{once:plan.once===true,edge:plan.inside!==undefined}),initial=host.state.tick;
+  let distance=0,maxTickMicros=0,out=0,ticks=0;
   const tick=(commands:readonly HeadlessCommand[]):void=>{
     const prior=host.state.tick,started=diagnosticNow();step(commands);maxTickMicros=Math.max(maxTickMicros,(diagnosticNow()-started)*1000);
     if(host.state.tick!==prior+1)throw new Error('Journey did not commit exactly one tick');
     const p=host.player.position;if(![p.x,p.y,p.z].every(Number.isFinite))throw new Error('Journey produced invalid feet');
   };
+  const preparationTicks=plan.start===undefined?0:36;
+  if(plan.start!==undefined){
+    const start=plan.start,p=host.player.position,ground=host.groundHeightAt(start.x,start.z);
+    const floor=start.y??Math.max(ground,floorBelow(host.physics,start.x,start.z,ground+2.5,2.6,host.player.motor.collider)??ground);
+    host.resetPlayerPose({x:start.x,y:floor,z:start.z},start.yaw);
+    host.releasePlayerMotor().dispose();
+    const motor=new CharacterMotor(host.physics,{...PLAYER_CAPSULE,...PLAYER_BODY,owner:host.player.id});
+    host.attachPlayerMotor(motor);motor.resetAt(p);
+    if(start.hover===true)host.setBoard(true);
+    for(let at=0;at<preparationTicks;at++)tick([]);
+  }
   for(let at=0;at<plan.ticks;at++){
     const p=host.player.position,x=p.x,z=p.z,command=cursor.command([p.x,p.y,p.z],at);
-    tick([command]);distance+=Math.hypot(p.x-x,p.z-z);
+    if(plan.once===true&&cursor.complete)break;
+    tick([command]);ticks++;distance+=Math.hypot(p.x-x,p.z-z);
+    const box=plan.inside;
+    if(box!==undefined&&(p.x<box.x0||p.x>box.x1||p.z<box.z0||p.z>box.z1||p.y<box.floor))out++;
+    if(plan.once===true&&cursor.stuck.length>0)break;
   }
   const settledTicks=60;for(let at=0;at<settledTicks;at++)tick([]);
-  if(host.state.tick!==initial+plan.ticks+settledTicks)throw new Error('Journey tick count differs');
+  if(host.state.tick!==initial+preparationTicks+ticks+settledTicks)throw new Error('Journey tick count differs');
   const p=host.player.position;
-  return {ticks:plan.ticks,settledTicks,distance,visited:cursor.visited,traversals:cursor.traversals,stuck:cursor.stuck,
+  return {ticks,preparationTicks,settledTicks,complete:cursor.complete,out,distance,visited:cursor.visited,traversals:cursor.traversals,stuck:cursor.stuck,
     final:{tick:host.state.tick,position:[p.x,p.y,p.z],grounded:host.player.motor.snapshot().result.grounded},maxTickMicros};
 }

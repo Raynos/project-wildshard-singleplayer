@@ -29,11 +29,13 @@ export async function runTickWorker(create: (payload: unknown) => Promise<TickWo
   const handle = async (raw: unknown): Promise<void> => {
     try {
       const request = v.parse(WorkerRequestSchema, raw);
-      if(request.kind==='journey'){
+      if(request.kind==='journey'||request.kind==='walk'){
         if(envelope.enforceTickDeadline)throw new Error('Journey requires trusted offline timing');
         if(envelope.commandsPerTick<1)throw new Error('Journey needs one player command per tick');
         if(adapter.journey===undefined)throw new Error('Missing native journey capability');
-        port.postMessage({journey:v.parse(HeadlessJourneyReportSchema,adapter.journey(request.plan))});return;
+        const report=v.parse(HeadlessJourneyReportSchema,adapter.journey(request.plan));
+        if(request.kind==='walk')port.postMessage({walk:{report,commit:v.parse(TickCommitSchema,adapter.commit())}});
+        else port.postMessage({journey:report});return;
       }
       if (request.kind === 'authorProof') {
         if (adapter.authorProof === undefined) throw new Error('Author proof requires the data-only native owner');

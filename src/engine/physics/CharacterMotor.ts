@@ -48,6 +48,12 @@ export interface MotorOptions {
  */
 export const PLAYER_BODY: { readonly group: "PLAYER"; readonly blockedBy: readonly ["WORLD", "CREATURE", "ITEM"]; readonly weight: 80; } = { group: 'PLAYER', blockedBy: ['WORLD', 'CREATURE', 'ITEM'], weight: 80 } as const satisfies Pick<MotorOptions, 'group' | 'blockedBy' | 'weight'>;
 
+/** The page player's unchanged capsule/controller settings, also used by the
+ * native physics-route proof rather than its smaller generic sim capsule. */
+export const PLAYER_CAPSULE:Readonly<Pick<MotorOptions,'radius'|'height'|'step'|'maxClimbDeg'|'snap'>> = {
+  radius:0.38,height:1.8,step:0.35,maxClimbDeg:40,snap:0.3,
+};
+
 /** dynamic bodies a character rides like a kinematic one (feet pinned to it) and loads with its weight */
 const RIDEABLE = new WeakSet<RigidBody>();
 export function rideable(body: RigidBody): void { RIDEABLE.add(body); }

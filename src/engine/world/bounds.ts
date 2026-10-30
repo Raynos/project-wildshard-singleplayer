@@ -21,7 +21,7 @@ export interface BoundsHost {
 }
 
 /** An authored play area keeps the last grounded registry floor as its soft respawn. */
-export function installBounds(app: App, scope: Scope, bounds: Bounds | undefined, host: BoundsHost): void {
+export function installBounds(app: Pick<App, 'addSystem'>, scope: Scope, bounds: Bounds | undefined, host: BoundsHost): void {
   if (bounds === undefined) return;
   const safe = { x: 0, y: 0, z: 0, set: false };
   let since = 0, frame = host.frame?.();

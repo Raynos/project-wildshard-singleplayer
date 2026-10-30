@@ -56,6 +56,8 @@ export class HeadlessSimulation {
   step(sources: readonly HeadlessCommandSource[] = []): Promise<HeadlessTickCommit> { return this.runner.step(sources); }
   /** Terminal native route proof without per-tick continuation encoding. Trusted offline sessions only. */
   journey(plan:HeadlessJourneyPlan):Promise<HeadlessJourneyReport>{return this.runner.journey(plan);}
+  /** Complete one offline physics leg, retaining its full checkpoint and resident for ordered later legs. */
+  walkLeg(plan:HeadlessJourneyPlan):Promise<HeadlessJourneyReport>{return this.runner.walkLeg(plan);}
   /** Final validation walks every entry under a separate request deadline. Further ticks refuse; resume from the last committed checkpoint in a fresh worker. */
   finish(): Promise<{ ticks: number; lanes: number; steps: number; liftRides?: number; liftCalls?: number; portalTransfers?: number }> { return this.runner.finish(); }
   /** Terminal author proof; the worker hosts the real grid and ledger from this finite command tape. */

@@ -16,7 +16,7 @@ import { setUnderwater, updateUnderwater } from '../world/Atmosphere';
 import { getNumber } from '../ui/Settings';
 import { lockOn, targetRadius } from './AimTargets';
 import { addLockOffset } from './LockOnTarget';
-import { CharacterMotor, PLAYER_BODY } from '../physics/CharacterMotor';
+import { CharacterMotor, PLAYER_BODY, PLAYER_CAPSULE } from '../physics/CharacterMotor';
 import { floorBelow } from '../physics/query';
 import { addImpulse, decayImpulse } from './impulse';
 import { fallStep, groundedVelocity, hardLanding, landingCushion } from './fall';
@@ -33,10 +33,6 @@ export interface PlayerFrameQueries {
 }
 
 const EYE = 1.68;
-const RADIUS = 0.38;
-const BODY_HEIGHT = 1.8;               // the capsule, feet to crown
-const STEP_UP = 0.35;                  // m climbed without a jump (PHYSICS.md: stricter than the old 0.5)
-const MAX_CLIMB_DEG = 40;              // steeper ground is a wall to walk into (the old SLOPE_WALK let 44° through)
 
 // ── hoverboard (toggle: H / the HOVER touch button) ──
           // m/s cruise
@@ -227,7 +223,7 @@ export class Player {
     this.physics = physics;
     this.canvas = canvas;
     this.waterLine = views.waterLine ?? new WaterLine();
-    this.currentMotor = new CharacterMotor(physics, { radius: RADIUS, height: BODY_HEIGHT, step: STEP_UP, maxClimbDeg: MAX_CLIMB_DEG, snap: 0.3, ...PLAYER_BODY, owner: this });
+    this.currentMotor = new CharacterMotor(physics, { ...PLAYER_CAPSULE, ...PLAYER_BODY, owner: this });
   }
 
   /** Bind an already committed local frame without respawning, advancing physics or clearing travel state. */

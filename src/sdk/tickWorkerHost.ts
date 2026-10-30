@@ -10,7 +10,7 @@ import { tickCommands, TickCommitSchema, AuthorProofPlanSchema, AuthorProofRepor
 const proofSchema: v.StrictObjectSchema<{ readonly ticks: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly lanes: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly steps: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly liftRides: v.ExactOptionalSchema<v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>, v.MaxValueAction<number, 8, undefined>]>, undefined>; readonly liftCalls: v.ExactOptionalSchema<v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>, v.MaxValueAction<number, 8, undefined>]>, undefined>; readonly portalTransfers: v.ExactOptionalSchema<v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>, v.MaxValueAction<number, 8, undefined>]>, undefined>; }, undefined> = v.strictObject({ ticks: v.pipe(v.number(), v.integer(), v.minValue(0)), lanes: v.pipe(v.number(), v.integer(), v.minValue(0)), steps: v.pipe(v.number(), v.integer(), v.minValue(0)),
   liftRides: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(8))), liftCalls: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(8))),
   portalTransfers: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(8))) });
-const replySchema = v.variant('kind', [v.strictObject({ kind: v.literal('commit'), value: TickCommitSchema }), v.strictObject({ kind: v.literal('journey'), value: HeadlessJourneyReportSchema }), v.strictObject({ kind: v.literal('proof'), value: proofSchema }), v.strictObject({ kind: v.literal('authorProof'), value: AuthorProofReportSchema })]);
+const replySchema = v.variant('kind', [v.strictObject({ kind: v.literal('commit'), value: TickCommitSchema }), v.strictObject({ kind: v.literal('journey'), value: HeadlessJourneyReportSchema }), v.strictObject({ kind: v.literal('walk'), value: v.strictObject({report:HeadlessJourneyReportSchema,commit:TickCommitSchema}) }), v.strictObject({ kind: v.literal('proof'), value: proofSchema }), v.strictObject({ kind: v.literal('authorProof'), value: AuthorProofReportSchema })]);
 type Reply = v.InferOutput<typeof replySchema>;
 /** A deadline failure quarantines the worker while retaining the last fully committed continuation. */
 export class HeadlessDeadlineError extends Error {
@@ -40,10 +40,11 @@ export class TickWorkerHost {
     this.worker = new Worker(url, { workerData: { payload, ...budget, clock: this.clock.buffer, enforceTickDeadline: deadline === 'runtime' }, execArgv });
     this.worker.on('message', (raw: unknown) => {
       try {
-        const message = v.parse(v.union([v.strictObject({ commit: TickCommitSchema }), v.strictObject({ proof: proofSchema }), v.strictObject({ journey: HeadlessJourneyReportSchema }), v.strictObject({ authorProof: AuthorProofReportSchema }), v.strictObject({ error: v.string() })]), raw);
+        const message = v.parse(v.union([v.strictObject({ commit: TickCommitSchema }), v.strictObject({ proof: proofSchema }), v.strictObject({ journey: HeadlessJourneyReportSchema }), v.strictObject({walk:v.strictObject({report:HeadlessJourneyReportSchema,commit:TickCommitSchema})}), v.strictObject({ authorProof: AuthorProofReportSchema }), v.strictObject({ error: v.string() })]), raw);
         if ('error' in message) { this.fail(message.error.includes('tick deadline') ? new HeadlessDeadlineError(this.last, Number(Atomics.load(this.clock, 2)) / 1000) : new Error(message.error)); return; }
-        const reply: Reply = 'commit' in message ? { kind: 'commit', value: message.commit } : 'proof' in message ? { kind: 'proof', value: message.proof } : 'journey' in message ? { kind: 'journey', value: message.journey } : { kind: 'authorProof', value: message.authorProof };
+        const reply: Reply = 'commit' in message ? { kind: 'commit', value: message.commit } : 'proof' in message ? { kind: 'proof', value: message.proof } : 'journey' in message ? { kind: 'journey', value: message.journey } : 'walk' in message ? {kind:'walk',value:message.walk} : { kind: 'authorProof', value: message.authorProof };
         if (reply.kind === 'commit') this.last = structuredClone(reply.value);
+        else if(reply.kind==='walk')this.last=structuredClone(reply.value.commit);
         const pending = this.pending; this.pending = undefined; pending?.resolve(reply);
       } catch (error) { this.fail(error instanceof Error ? error : new Error(String(error))); }
     });
@@ -89,6 +90,18 @@ export class TickWorkerHost {
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node Worker messages have no browser target origin.
     this.worker.postMessage({kind:'journey',plan});
     const reply=await result;if(reply.kind!=='journey')throw new Error('Missing headless journey report');return reply.value;
+  }
+  /** One bounded native physics leg, with a full checked continuation for the next leg. */
+  async walkLeg(input:HeadlessJourneyPlan):Promise<HeadlessJourneyReport> {
+    const plan=v.parse(HeadlessJourneyPlanSchema,input);
+    if(this.deadline!=='advisory')throw new Error('Walk requires trusted offline timing');
+    if(this.budget.commandsPerTick<1)throw new Error('Walk needs one player command per tick');
+    if(this.finished)throw new Error('Headless validation already finished');
+    await this.initialized();if(this.closed||this.pending!==undefined)throw new Error('Headless worker unavailable or busy');
+    const result=this.wait();
+    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node Worker messages have no browser target origin.
+    this.worker.postMessage({kind:'walk',plan});
+    const reply=await result;if(reply.kind!=='walk')throw new Error('Missing native walk checkpoint');return reply.value.report;
   }
   async finish(): Promise<v.InferOutput<typeof proofSchema>> {
     if (this.finished) throw new Error('Headless validation already finished');

@@ -1,3 +1,5 @@
+import { installNativeWalkBounds } from './headless/nativeBounds';
+import { installWalkRopeBodies } from './headless/ropeBodies';
 import { runHeadlessJourney } from '../../src/sdk/headlessJourney';
 import type { HeadlessRuntimeInput, HeadlessRuntimeInstallation, HeadlessRuntimePreparation, HeadlessRuntimePlan, PrepareHeadlessRuntime, TrustedHeadlessResident } from '../../src/sdk/headlessRuntime';
 import { fillNativeCombatFrame, validateHeadlessCommandOwners } from '../../src/sdk/headlessRuntime';
@@ -84,12 +86,13 @@ export async function createNativeProofResident(preparation: HeadlessRuntimeInpu
 /** Worker-side composition only: owns one trusted resident (its real SimHost, native continuation and scoped installers). */
 export async function createNativeProofAdapter(preparation: HeadlessRuntimeInput, prepare: PrepareHeadlessRuntime, snapshot?: string): Promise<TickWorkerAdapter> {
   const resident = await createNativeProofResident(preparation, prepare, snapshot), { host } = resident;
+  let retireWalkBodies=()=>{},walkPrepared=false;
   return {
     step: input => { resident.step(input); },
-    journey: plan => runHeadlessJourney(host,input=>resident.step(input),plan),
+    journey: plan => { if(plan.start!==undefined&&!walkPrepared){retireWalkBodies=installWalkRopeBodies(host,preparation.product);installNativeWalkBounds(host);walkPrepared=true;}return runHeadlessJourney(host,input=>resident.step(input),plan); },
     commit: () => ({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(host)), effects: [...resident.effects] }),
     finish: () => ({ ticks: host.state.tick, lanes: 0, steps: 0 }),
-    dispose: () => { resident.dispose(); },
+    dispose: () => { retireWalkBodies();resident.dispose(); },
   };
 }
 

@@ -8,6 +8,8 @@ import { installHostPortalRide } from '../../src/game/shardfile/portalRideBindin
 import { installNativeItems } from '../../src/game/plugin/nativeItems';
 import type assembly from '../../src/shards/nine-dragon-stack/data/headlessAssembly.json';
 import { prepareReturns } from './headless-plan';
+import manifest from '../../src/shards/nine-dragon-stack/manifest.json';
+import {registerNativeWalkBounds} from './headless/nativeBounds';
 
 /** Direct typed native calls retain the Nine gameplay witness without a declaration interpreter. */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async preparation => {
@@ -27,6 +29,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async preparation 
     yaw: shard.spawn.yaw, speed: 5 }, { size: 500, height: 0 });
   return { level, ports: { ground: false, heightAt: () => 0 }, proveEntries: () => payload.entryProof,
     install: (host, context) => {
+      registerNativeWalkBounds(host,manifest.bounds);
       lendReturns(host);
       if (!context.restoring) addBakedPieces(host.physics, payload.pieces);
       const guard = context.restoring ? [] : host.physics.world.colliders.getAll().filter(collider => tagOf(collider)?.owner === 'nds-grapple-guard').map(collider => collider.handle);
