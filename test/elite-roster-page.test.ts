@@ -1,4 +1,4 @@
-import {admissionPage} from './fixtures/nalati-return-modules';
+import {admissionPage} from './fixtures/nalati-admission-loan';
 import { expect, test } from 'vitest';
 import { Group, Scene, PerspectiveCamera, Vector3, SkinnedMesh, MeshLambertMaterial } from 'three';
 import { Scope } from '../src/engine/app/scope';

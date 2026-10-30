@@ -1,4 +1,4 @@
-import {admissionPage} from './fixtures/nalati-return-modules';
+import {admissionPage} from './fixtures/nalati-admission-loan';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 
 import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';

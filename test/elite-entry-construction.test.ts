@@ -1,4 +1,4 @@
-import {admissionPage} from './fixtures/nalati-return-modules';
+import {admissionPage} from './fixtures/nalati-admission-loan';
 import { Window } from 'happy-dom';
 import { installClientEliteEntry } from '../src/game/shardfile/clientEliteEntry';
 import { publishEntryOwner } from '../src/game/shardfile/entryOwners';

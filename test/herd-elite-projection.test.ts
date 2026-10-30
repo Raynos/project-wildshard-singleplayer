@@ -1,4 +1,4 @@
-import {admissionPage} from './fixtures/nalati-return-modules';
+import {admissionPage} from './fixtures/nalati-admission-loan';
 import {expect,test} from 'vitest';
 import {Scope} from '../src/engine/app/scope';
 import {NativeEliteProjection,type NativeEliteFrame} from '../src/engine/ai/eliteRoster';
