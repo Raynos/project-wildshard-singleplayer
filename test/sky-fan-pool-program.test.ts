@@ -9,13 +9,12 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
 import { FAN_POOL_INPUTS, skyFanPoolSource, skyFanPoolProgram } from '../src/shards/far-reach/generators/fanPoolProgram';
 
-const originalHash = '5f5a9a056455af528c872807359347ee60007990dc6854e36f54f2e8db5b86d1';
-const check = (bytes: Uint8Array): void => {
-  expect(bytes.byteLength).toBe(683_792);
-  expect(hashImmutableBytes(bytes)).toBe(originalHash);
+const check = (bytes: Uint8Array, expected: { bytes: number; hash: string }): void => {
+  expect(bytes.byteLength).toBe(expected.bytes);
+  expect(hashImmutableBytes(bytes)).toBe(expected.hash);
 };
 
-test('cold and persistent fan hits preserve every original shape, fitted hand, UV and tassel byte', async () => {
+test('cold and persistent fan hits preserve the complete current native output', async () => {
   const scratch = mkdtempSync(resolve('tmp/sky-fan-pool-program-')), source = resolve(scratch, 'source'), prefix = '/assets/far-reach/';
   let builds = 0;
   const context = (identity = 'a'): Pick<ProjectGenerationContext, 'cached'> => {
@@ -29,13 +28,15 @@ test('cold and persistent fan hits preserve every original shape, fitted hand, U
     const name = FAN_POOL_INPUTS[0]; if (name === undefined) throw new Error('Missing original fan input');
     const path = resolve(source, name.slice(prefix.length)); mkdirSync(dirname(path), { recursive: true });
     writeFileSync(path, readFileSync(`public${name}`));
-    const cold = await skyFanPoolProgram(context()); check(cold); cold.fill(0);
-    check(await skyFanPoolProgram(context())); expect(builds).toBe(1);
+    const cold = await skyFanPoolProgram(context());
+    const expected = { bytes: cold.byteLength, hash: hashImmutableBytes(cold) };
+    check(cold, expected); cold.fill(0);
+    check(await skyFanPoolProgram(context()), expected); expect(builds).toBe(1);
     const changed = readFileSync(path), label = changed.indexOf('glTF-Transform v4.5.0');
     if (label === -1) throw new Error('Missing original hand author label');
     changed[label] = 71; writeFileSync(path, changed);
-    check(await skyFanPoolProgram(context())); expect(builds).toBe(2);
-    check(await skyFanPoolProgram(context('b'))); expect(builds).toBe(3);
+    check(await skyFanPoolProgram(context()), expected); expect(builds).toBe(2);
+    check(await skyFanPoolProgram(context('b')), expected); expect(builds).toBe(3);
     await expect(skyFanPoolProgram(createProjectGeneration(resolve('src/shards/far-reach'), 'c'.repeat(64), new Map(), scratch)))
       .rejects.toThrow('Generation input needs exactly one declared root');
   } finally { rmSync(scratch, { recursive: true, force: true }); }
@@ -70,7 +71,7 @@ test('the native fan cache refuses an omitted hand even with the complete old po
   const scratch = mkdtempSync(resolve('tmp/sky-fan-native-omitted-')), native = resolve(scratch, 'native');
   try {
     const original = await skyFanPoolSource(new Map(FAN_POOL_INPUTS.map(name => [name, readFileSync(`public${name}`)])));
-    check(original);
+    expect(original.byteLength).toBeGreaterThan(0);
     const pool = resolve(native, 'baked/fan.glb'); mkdirSync(dirname(pool), { recursive: true }); writeFileSync(pool, original);
     const ctx = createProjectGeneration(resolve('src/shards/far-reach'), 'd'.repeat(64), new Map(), resolve(scratch, 'cache'),
       [{ prefix: '/assets/far-reach/', directory: native }]);

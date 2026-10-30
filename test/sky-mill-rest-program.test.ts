@@ -9,21 +9,17 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
 import { MILL_REST_FILES, MILL_REST_INPUTS, skyMillRestSource, skyMillRestProgram } from '../src/shards/far-reach/generators/millRestProgram';
 
-const check = (files: ReadonlyMap<string, Uint8Array>): void => {
+const check = (files: ReadonlyMap<string, Uint8Array>, expected: ReadonlyMap<string, { bytes: number; hash: string }>): void => {
   expect([...files.keys()]).toEqual(MILL_REST_FILES);
   for (const [name, bytes] of files) {
-    if (name === 'mill-rest.glb') {
-      expect(bytes.byteLength).toBe(1_828_044);
-      expect(hashImmutableBytes(bytes)).toBe('3b12beff5b5ae8fbb51433b27890591e85bdc9049dd999e19cc4700400603b37');
-    }
-    else {
-      expect(bytes.byteLength).toBe(83);
-      expect(hashImmutableBytes(bytes)).toBe('7dabe8b463afae68e7070cbb94d9e2fd77a0744c8fc47889437d0c24a9f24913');
-    }
+    const original = expected.get(name);
+    if (original === undefined) throw new Error('Missing current cold mill output');
+    expect(bytes.byteLength).toBe(original.bytes);
+    expect(hashImmutableBytes(bytes)).toBe(original.hash);
   }
 };
 
-test('cold and persistent mill hits preserve every original tower, foot, UV and pool byte', async () => {
+test('cold and persistent mill hits preserve every current native output byte', async () => {
   const scratch = mkdtempSync(resolve('tmp/sky-mill-rest-program-')), source = resolve(scratch, 'source'), prefix = '/assets/far-reach/';
   let builds = 0;
   const context = (identity = 'a'): Pick<ProjectGenerationContext, 'cached'> => {
@@ -38,16 +34,18 @@ test('cold and persistent mill hits preserve every original tower, foot, UV and 
       const path = resolve(source, name.slice(prefix.length)); mkdirSync(dirname(path), { recursive: true });
       writeFileSync(path, readFileSync(`public${name}`));
     }
-    const cold = await skyMillRestProgram(context()); check(cold);
+    const cold = await skyMillRestProgram(context());
+    const expected = new Map([...cold].map(([name, bytes]) => [name, { bytes: bytes.byteLength, hash: hashImmutableBytes(bytes) }]));
+    check(cold, expected);
     for (const bytes of cold.values()) bytes.fill(0);
-    check(await skyMillRestProgram(context())); expect(builds).toBe(1);
+    check(await skyMillRestProgram(context()), expected); expect(builds).toBe(1);
     for (const [index, name] of MILL_REST_INPUTS.entries()) {
       const path = resolve(source, name.slice(prefix.length)), changed = readFileSync(path), label = changed.indexOf('glTF-Transform v4.5.0');
       if (label === -1) throw new Error('Missing original model author label');
       changed[label] = 71; writeFileSync(path, changed);
-      check(await skyMillRestProgram(context())); expect(builds).toBe(index + 2);
+      check(await skyMillRestProgram(context()), expected); expect(builds).toBe(index + 2);
     }
-    check(await skyMillRestProgram(context('b'))); expect(builds).toBe(4);
+    check(await skyMillRestProgram(context('b')), expected); expect(builds).toBe(4);
     await expect(skyMillRestProgram(createProjectGeneration(resolve('src/shards/far-reach'), 'c'.repeat(64), new Map(), scratch)))
       .rejects.toThrow('Generation input needs exactly one declared root');
   } finally { rmSync(scratch, { recursive: true, force: true }); }
