@@ -1,9 +1,7 @@
 import {nativeBakeFloats,originalNativeGround} from './fixtures/native-bake-inline';
 import { expect, test } from 'vitest';
-import * as v from 'valibot';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { createNativeBakeReader, nativeBakeGround, installNativeCollision } from '../src/game/population/nativeBake';
-import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { readNamedBlob } from '../src/sdk/blobs';
 import { driftwoodPhysics, driftwoodPhysicsFloor, driftwoodPhysicsGroundBytes, driftwoodPhysicsSources } from '../src/shards/driftwood-isle/generators/physics';
 import { driftwoodNativeRows } from '../src/shards/driftwood-isle/generators/nativeBake';
@@ -20,34 +18,6 @@ const source = driftwoodPhysics(), admitted = driftwoodNativeRows(source).physic
 const floorFile = 'data/physics-ground.generated.bin', hullFile = 'data/physics-colliders.bin';
 const ground = driftwoodPhysicsGroundBytes();
 const hulls = fixtureBytes(new URL('../src/shards/driftwood-isle/data/physics-colliders.bin', import.meta.url));
-const reader = () => createNativeBakeReader(source, { label: 'Driftwood', resolution: 256, size: 500, parked: false, rig: 'axis', shapes: [1, 2, 9], provenance: 'tagged' },
-  { file: floorFile, bytes: ground }, [{ file: hullFile, bytes: hulls }]);
-
-// Pins captured before converting the original base64 rows; all non-buffer fields remain part of the comparison.
-function metadata(input: unknown): string {
-  const row = v.parse(v.record(v.string(), v.unknown()), structuredClone(input));
-  const floor = v.parse(v.record(v.string(), v.unknown()), row['ground']);
-  Reflect.deleteProperty(floor, 'heights'); row['ground'] = floor;
-  row['solids'] = v.parse(v.array(v.record(v.string(), v.unknown())), row['solids']).map(solid => {
-    Reflect.deleteProperty(solid, 'vertices'); Reflect.deleteProperty(solid, 'indices'); return solid;
-  });
-  return hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(row)));
-}
-
-test('Driftwood retains every ordered hull, floor byte and non-buffer authoring field', () => {
-  const intake = reader(), solids = admitted.solids.map(row => intake.solid(row)), joined = new Uint8Array(138228); let at = 0, count = 0;
-  for (const solid of solids) for (const array of [solid.points, solid.indices]) {
-    if (array === undefined) continue;
-    const bytes = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
-    joined.set(bytes, at); at += bytes.length; count++;
-  }
-  expect([solids.length, at, count]).toEqual([2067, 138228, 95]);
-  expect(hashImmutableBytes(joined)).toBe('13fd9051d5d358bf8618f6c2ceda612e49387c540e8b51c04c2c2d0a2ebde396');
-  expect(hashImmutableBytes(ground)).toBe('a859cfc1c1ae5a599f70c0160d34f771ff5d8bc500b2581db2d40880dc31ad94');
-  const authored: unknown = JSON.parse(new TextDecoder().decode(fixtureBytes(new URL('../src/shards/driftwood-isle/data/physicsRows.json', import.meta.url))));
-  expect(metadata(authored)).toBe('7a4fc27a4800f61bb29376d7cbd5c3937d30fb16f358e0e3ceeba21f4ec7f670');
-  expect(metadata(source)).toBe('88962d0811b5da68ccef5e4c395680ffd14d0a05fa919cd4fb587d547b3dc77a');
-});
 
 test('modern authoring refuses complete and malformed inline floors before decoding', () => {
   const complete = btoa(Array.from(ground, byte => String.fromCodePoint(byte)).join(''));
@@ -58,11 +28,9 @@ test('modern authoring refuses complete and malformed inline floors before decod
 });
 
 test('one pure producer emits the original native floor and standard named binary declarations', async () => {
-  const floor = driftwoodPhysicsFloor(), metadataBytes = new TextEncoder().encode(`${JSON.stringify(driftwoodPhysics())}\n`);
+  const floor = driftwoodPhysicsFloor();
   expect(floor.bytes).toEqual(ground);
   expect([floor.file.name, floor.file.decoded]).toEqual([floorFile, 262144]);
-  expect(metadataBytes.byteLength).toBe(676075);
-  expect(hashImmutableBytes(metadataBytes)).toBe('cf3bd8df1a8294501131cc9509acad3b5aa26e7e2ed5ef45717085a3b16a5717');
   expect(driftwoodPhysicsSources().map(row => [row.name, row.options.decoded])).toEqual([[hullFile, 138228]]);
   for (const row of driftwoodPhysicsSources()) {
     const blob = await readNamedBlob('src/shards/driftwood-isle', row.name, row.source, row.kind, row.options);

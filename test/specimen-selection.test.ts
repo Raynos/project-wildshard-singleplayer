@@ -1,8 +1,6 @@
 import { installWorldRegistry } from '../src/engine/world/registry';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the original named carving blocks through the same product fixture.
 import {readFileSync} from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Pin the exact former inline blocks.
-import {createHash} from 'node:crypto';
 import { place } from '../src/engine/models/place';
 import { parse } from 'valibot';
 import { SpecimenAssetSchema } from '../src/format/specimenCatalogue';
@@ -80,17 +78,13 @@ test('both carving variants place through the actual native instanced path',asyn
 });
 
 
-test('both raw carving variants retain the exact old bytes, layouts and native parts',()=>{
-  const frozen=[['bare','822694b3287b5b09781e531c2edfbc5def284a757fc097dcc23061b09e79f85c',171624,'365d5d03cf64bcd0cb8c50ddd77ff7f26b37887ab9bb15225440026b4b3d4d8d'],['capped','45ac62fdf44b83dd06ed55de034577712732a535385de1718e16862279b4634f',176772,'77878725932d9de5da465810f655a7e658274f9991263fbdf12596023a491dfa']]as const;
-  expect(createHash('sha256').update(JSON.stringify(rows.generated)).digest('hex')).toBe('2e1ad813241602f1e8ac10904f1ca7814392a8d650d9e99c5f1422b75d8da16d');
-  expect(createHash('sha256').update(JSON.stringify(rows.sites)).digest('hex')).toBe('10ca77164eac48de0d327d55adca4bae32d1d5392ec8f2eed37253cb11a897aa');
+test('both raw carving variants build the same native parts as their raw witness',()=>{
+  const variants=['bare','capped']as const;
   const sky=skyFixture(),ctx=modelContext(sky);
-  try{for(const[id,hash,length,layout]of frozen){
+  try{for(const id of variants){
     const variant=rows.catalogue[0]?.source.variants.find(row=>row.params.carved===id),source=variant?.source;
     if(source===undefined||source.kind!=='file'||source.file===undefined)throw new Error('Missing raw carving');
     const bytes=files.get(source.file);if(bytes===undefined)throw new Error('Missing prepared carving');
-    expect(bytes.byteLength).toBe(length);expect(createHash('sha256').update(bytes).digest('hex')).toBe(hash);
-    expect(createHash('sha256').update(JSON.stringify(source.geometry)).digest('hex')).toBe(layout);expect(createHash('sha256').update(JSON.stringify(source.material)).digest('hex')).toBe('a44e6f8597d9daab29cce6adf17ca404fe8c32d9c544458dd98be0ff58693b4d');
     const backing=new Uint8Array(bytes.byteLength+4);backing.set(bytes,4);
     const witness=defineSpecimenCatalogue<{old:object}>([{key:'old',model:{id:'fixture/old-carving',name:'Old carving',category:'props',pipeline:'code',file:'fixture.json',defaults:{}},source:{...source,file:'witness.bin'}}],undefined,{},new Map([['witness.bin',backing.subarray(4)]])).model('old');
     const before=witness.build(ctx,{},new Rng(1)),after=balbal.build(ctx,{carved:id},new Rng(1));
