@@ -298,6 +298,17 @@ const NORMAL_MAP = `#ifdef USE_NORMALMAP_TANGENTSPACE
   normal = normalize( tbn * mapN );
 #endif`;
 
+/** A lit program's sky light (`skyLightDirection` / `skyLightColour`) is three's first directional light, as the node path
+ *  reads its first shadow caster (three sorts its casters first), the direction turned back to world space; every other
+ *  program keeps the neutral host uniform. */
+function skyLightFromLights(text: string): string {
+  return text.replace(/^uniform vec3 wsSkyLight(Direction|Colour);$/gm, (_, which: string) => `#if NUM_DIR_LIGHTS > 0
+#define wsSkyLight${which} ${which === 'Direction' ? 'normalize( ( vec4( directionalLights[ 0 ].direction, 0.0 ) * viewMatrix ).xyz )' : 'directionalLights[ 0 ].color'}
+#else
+#define wsSkyLight${which} vec3( 0.0 )
+#endif`);
+}
+
 /** a lit graph's fragment stage: three's physical model, its light equations the graph's where it has a lighting stage */
 function litFragment(glsl: GraphGlsl, program: GraphGlslProgram, uniforms: string, fogged: boolean, fog: GraphGlsl | undefined, replaceEnvironmentDiffuse: boolean): string {
   const o = program.outputs, ir = glsl.ir, s = ir.stages.surface, l = program.lighting;
@@ -625,7 +636,7 @@ export function graphShaders(glsl: GraphGlsl, opts: GraphShaderOptions = {}): Gr
   if (fogged || program.fragment.body.includes('wsFogColour()') || program.vertex.body.includes('wsFogColour()')) Object.assign(uniforms, THREE.UniformsUtils.clone(THREE.UniformsLib.fog), { ...uniforms });
   return {
     vertexShader: vertexShader(glsl, program, text, lit, declaredFog !== undefined, outline),
-    fragmentShader: lit ? litFragment(glsl, program, fragmentText, fogged, declaredFog, glsl.ir.model === 'toon')
+    fragmentShader: lit ? litFragment(glsl, program, skyLightFromLights(fragmentText), fogged, declaredFog, glsl.ir.model === 'toon')
       : unlitFragment(glsl, program, fragmentText, fogged, declaredFog, depth),
     uniforms, lights: lit, fog: fogged || program.fragment.body.includes('wsFogColour()') || program.vertex.body.includes('wsFogColour()'),
   };
