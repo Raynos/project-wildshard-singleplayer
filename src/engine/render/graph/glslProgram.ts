@@ -302,7 +302,7 @@ const NORMAL_MAP = `#ifdef USE_NORMALMAP_TANGENTSPACE
  *  reads its first shadow caster (three sorts its casters first), the direction turned back to world space; every other
  *  program keeps the neutral host uniform. */
 function skyLightFromLights(text: string): string {
-  return text.replace(/^uniform vec3 wsSkyLight(Direction|Colour);$/gm, (_, which: string) => `#if NUM_DIR_LIGHTS > 0
+  return text.replaceAll(/^uniform vec3 wsSkyLight(Direction|Colour);$/gm, (_, which: string) => `#if NUM_DIR_LIGHTS > 0
 #define wsSkyLight${which} ${which === 'Direction' ? 'normalize( ( vec4( directionalLights[ 0 ].direction, 0.0 ) * viewMatrix ).xyz )' : 'directionalLights[ 0 ].color'}
 #else
 #define wsSkyLight${which} vec3( 0.0 )
@@ -456,7 +456,8 @@ ${fogged ? fogEpilogue(program, fog) : ''}
 }`;
 }
 
-/** a post graph's pass: a fullscreen triangle over the scene, the graph's colour faded over it by `wsWeight` */
+/** a post graph's pass: a fullscreen triangle writing the graph's colour, as the TSL compile does with no scene bound (a
+ *  scaled post lends its inputs as textures; a graph that reads the scene samples `wsScene` itself) */
 function postShaders(program: GraphGlslProgram, uniforms: string): { vertexShader: string; fragmentShader: string } {
   const colour = program.outputs.colour ?? 'vec3( 0.0 )';
   const varyingUv = program.vertex.body.includes('wsVUv') ? '' : 'varying vec2 wsVUv;';
@@ -480,7 +481,7 @@ ${FRAGMENT_CAMERA}
 ${program.fragment.head}
 void main() {
 ${program.fragment.body}
-  gl_FragColor = vec4( mix( texture( wsScene, wsVUv ).rgb, ${colour}, wsWeight ), ${program.outputs.alpha ?? '1.0'} );
+  gl_FragColor = vec4( ${colour}, ${program.outputs.alpha ?? '1.0'} );
 }`,
   };
 }
@@ -612,13 +613,7 @@ export function graphShaders(glsl: GraphGlsl, opts: GraphShaderOptions = {}): Gr
   }
   const libraries = graphGlslLibraries([...glsl.libraries, ...(fog?.glsl.libraries ?? [])]);
   const text = [...own.filter(u => u.name !== 'wsCodecStep').map(decl), libraries].join('\n'), ir = glsl.ir;
-  if (ir.kind === 'post') {
-    // a pass fades over the scene by its stack's owner weight (the engine's blend): one more tap of the colour input
-    const extra = [...(seen.has('wsScene') ? [] : [{ name: 'wsScene', type: 'sampler2D', from: 'host', host: 'scene' } as const]),
-      ...(seen.has('wsWeight') ? [] : [{ name: 'wsWeight', type: 'float', from: 'host', host: 'weight' } as const])];
-    for (const u of extra) uniforms[u.name] = uniformValue(glsl, u, opts);
-    return { ...postShaders(program, [text, ...extra.map(decl)].join('\n')), uniforms, lights: false, fog: false };
-  }
+  if (ir.kind === 'post') return { ...postShaders(program, text), uniforms, lights: false, fog: false };
   const outline = opts.outline === true, depth = opts.depth === true, lit = !outline && !depth && ir.model !== 'unlit';
   const fogged = !depth && (outline || ir.effectState?.fog !== false);
   // the material's own ports a node material reads from its properties: `alphaTest` (the graph's cutoff until a row sets

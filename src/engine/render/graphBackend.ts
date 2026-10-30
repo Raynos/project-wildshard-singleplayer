@@ -108,6 +108,28 @@ export function tslLookCompiler(compiler: Pick<GraphCompiler, 'compileGraph' | '
     },
   };
 }
+/** a compiled post graph, on either back-end: a scaled post pass lends its inputs as textures and moves its params */
+export interface PostGraph {
+  readonly material: Material;
+  readonly setParam: (name: string, value: GraphLiteral) => void;
+  readonly setTexture: (name: string, texture: Texture) => void;
+  readonly setArrayParam: (name: string, value: readonly GraphLiteral[]) => void;
+}
+/** A post graph compiler: the shipped TSL one or the classic GLSL one (nine-fix NF16's seam). */
+export interface PostGraphCompiler {
+  readonly backend: 'tsl' | 'glsl';
+  readonly compileGraph: (input: unknown, opts: GraphValidationOptions) => PostGraph;
+}
+/** The post compiler of the chosen back-end (pause ▸ Settings ▸ Debug ▸ Graph back-end); the classic one loads no node runtime. */
+export async function loadPostGraphCompiler(renderer: Renderer, backend: 'tsl' | 'glsl'): Promise<PostGraphCompiler> {
+  if (backend === 'tsl') {
+    const compiler = await loadGraphCompiler(renderer);
+    return { backend, compileGraph: (input, opts) => compiler.compileGraph(input, opts) };
+  }
+  const [{ compileClassicGraph }, { installGraphShaderHost }] = await Promise.all([import('./graph/glslMaterial'), import('./graph/glslProgram')]);
+  installGraphShaderHost(renderer);
+  return { backend, compileGraph: (input, opts) => compileClassicGraph(input, opts) };
+}
 /**
  * The look-material compiler of the chosen back-end (pause ▸ Settings ▸ Debug ▸ Graph back-end): the classic one loads
  * no node runtime and installs no node handler; the shipped one is `loadGraphCompiler`'s.

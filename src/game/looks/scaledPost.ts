@@ -1,6 +1,7 @@
 import { Color, HalfFloatType, LinearFilter, NearestFilter, type PerspectiveCamera, Texture, UnsignedByteType, Vector2, Vector3, Vector4, WebGLRenderTarget, type Material, type TextureDataType } from 'three';
 import { Pass } from 'postprocessing';
-import { loadGraphCompiler, type GraphCompiler } from '@wildshard/engine/render/graphBackend';
+import { loadPostGraphCompiler, type PostGraph, type PostGraphCompiler } from '@wildshard/engine/render/graphBackend';
+import { graphBackendChoice } from '@wildshard/engine/ui/graphBackend';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { validateGraph } from '@wildshard/format/materialGraph';
 import type { PostPackTerm, ScaledPostRow } from '@wildshard/format/scaledPost';
@@ -9,13 +10,14 @@ import { buildYield } from '@wildshard/engine/core/workSlice';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { compileOffscreenPass } from '@wildshard/engine/render/precompile';
 
-const compilers = new WeakMap<Renderer, GraphCompiler>();
-/** Prepare the client backend during async world loading, before synchronous composer construction. */
-export async function prepareScaledPost(renderer: Renderer): Promise<void> { compilers.set(renderer, await loadGraphCompiler(renderer)); }
-type CompiledPost = ReturnType<GraphCompiler['compileGraph']>;
+const compilers = new WeakMap<Renderer, PostGraphCompiler>();
+/** Prepare the client backend during async world loading, before synchronous composer construction: the Graph back-end
+ *  row's (TSL node materials, or classic GLSL programs with no node handler) */
+export async function prepareScaledPost(renderer: Renderer): Promise<void> { compilers.set(renderer, await loadPostGraphCompiler(renderer, graphBackendChoice())); }
+type CompiledPost = PostGraph;
 /** programs compiled ahead (`precompileScaledPost`), by their graph row, each copy taken once */
 const ahead = new WeakMap<Renderer, Map<object, CompiledPost[]>>();
-function compilePost(compiler: GraphCompiler, pass: string, name: string, p: ScaledPostRow['programs'][string]): CompiledPost {
+function compilePost(compiler: PostGraphCompiler, pass: string, name: string, p: ScaledPostRow['programs'][string]): CompiledPost {
   const checked = validateGraph(p.graph, { trustedBudget: true });
   if (!checked.ok || p.graph.kind !== 'post') throw new Error(`Invalid scaled post graph ${name}`);
   const graph = compiler.compileGraph(p.graph, { trustedBudget: true });
@@ -60,7 +62,7 @@ export async function precompileScaledPost(renderer: Renderer, rows: readonly Sc
 }
 /** Generic client-only post executor: all differences between shards are graphs and rows. */
 export class ScaledPostPass extends Pass {
-  private readonly graphs = new Map<string, ReturnType<GraphCompiler['compileGraph']>>();
+  private readonly graphs = new Map<string, CompiledPost>();
   private readonly rts = new Map<string, WebGLRenderTarget>();
   private readonly overrides = new Map<string, string>();
   private readonly outs = new Map<string, Texture | null>();
