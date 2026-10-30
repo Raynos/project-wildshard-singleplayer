@@ -32,3 +32,8 @@ export function bootCaseBrowser<T>(pool: {browser:(slot:number)=>Promise<T>;rele
 
 /** Discover actual built-title rows through its normal document. */
 export function discoverCatalogue(browser: Browser, base: string): Promise<{slug:string;status:string;legacy:boolean;shardSelect:boolean}[]>;
+
+/** Failure-only small travel telemetry and observer ownership, without a full residency census. */
+export function bootRoadCompletionState(): unknown;
+/** Preserve the original error as cause and bound a failed-page diagnostic to 1000 ms. */
+export function bootRoadFailure(read:()=>Promise<unknown>, primary:unknown):Promise<Error>;

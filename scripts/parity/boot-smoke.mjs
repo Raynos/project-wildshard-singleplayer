@@ -213,6 +213,34 @@ export function verifyBootTemplateRoad(result) {
   if (failures.length > 0) throw new Error(`Template checkpoint roundtrip: ${failures.join('; ')}`);
 }
 
+/** Failure-only: compare the small travel readout with the observer's actual owner. */
+export function bootRoadCompletionState() {
+  const api = window.__wildshard, game = api?.world?.game, grid = api?.shard?.grid;
+  const compact = typeof grid?.travelState === 'function' ? grid.travelState() : null;
+  const live = compact?.live?.live, scope = game?.levelScope;
+  const ids = typeof game?.levelSystemIds === 'function' ? game.levelSystemIds() : null;
+  return {at: performance.now(), timeOrigin: performance.timeOrigin, stop: window.__frameFloorGridStop ?? null,
+    compact: compact === null ? null : {inside: compact.inside, current: live?.current, ready: live?.gameplayReady,
+      pending: live?.pending?.slice(0, 10), phase: compact.live?.crossing?.phase},
+    observer: ids === null ? null : {present: ids.includes('harness.walk'), systems: ids.length},
+    owner: scope === undefined ? null : {name: scope.name, disposed: scope.disposed, disposing: scope.disposing},
+    game: game === undefined ? null : {frame: game.frameCount, state: game.app.state}};
+}
+
+/** Preserve the original refusal even when the failed page cannot answer diagnostics.
+ * @param {()=>Promise<unknown>} read @param {unknown} primary @returns {Promise<Error>} */
+export async function bootRoadFailure(read, primary) {
+  const cause = primary instanceof Error ? primary : new Error(String(primary));
+  let timer, evidence;
+  try {
+    evidence = JSON.stringify(await Promise.race([Promise.resolve().then(read), new Promise((_resolve, reject) => {
+      timer = setTimeout(() => { reject(new Error('Road completion diagnostic did not answer in 1000 ms')); }, 1000);
+    })]));
+  } catch (error) { evidence = JSON.stringify({readRefused: error instanceof Error ? error.message : String(error)}); }
+  finally { clearTimeout(timer); }
+  return new Error(`${cause.message}; roadCompletion=${evidence}`, {cause});
+}
+
 /** The Template roundtrip and mandatory Signal entry share the original road leg's 90-second budget.
  * @param {import('playwright').Page} page @param {string[]} faults
  * @param {import('../frame-floor-grid.mjs').FloorGridPlan} plan @param {import('../frame-floor-grid.mjs').FloorGridDocumentIdentity} documentOrigin
@@ -224,7 +252,8 @@ async function bootRoadRoute(page, faults, plan, documentOrigin, deadline, label
     catch (error) { return { error }; }
     finally { finished = true; }
   })();
-  await until(page, faults, () => Promise.resolve(finished), label, deadline);
+  try { await until(page, faults, () => Promise.resolve(finished), label, deadline); }
+  catch (error) { throw await bootRoadFailure(() => page.evaluate(bootRoadCompletionState), error); }
   const result = await route;
   if ('error' in result) throw result.error instanceof Error ? result.error : new Error(String(result.error));
   return result.witness;
