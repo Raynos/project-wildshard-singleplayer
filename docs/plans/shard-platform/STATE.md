@@ -5,27 +5,28 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 4b49fb0-mvvh0x0m** (16:51 Cancun). **Release candidate 4fe6619330** (run 41138893609): Nine phone entry PASS
-(137 draws, no 'Missing world scene blob'), typecheck green; ships when all 36 required jobs are green (sp-ci-deploy).
-It carries NF10 slabs + fix 1883256c5a, the cell re-chunk cde6aaf36f, PF3 shadow cadence, EP7 -> 44, diner fix.
-**wildshard-v: f7 before/after table for Jake at qa-2026-10-30-mini-plan.md:22.** Also for Jake: MF13 'Refine dither'
-phone check (Sim Nine longest loader frame 110 ms, was 2.25 s; 9165621261); QB17 zip video
-tmp/sp-o3-mf15/qb17-zip-before-after.mp4. **Open:** MF7 battery, QB20 thermal (phone), CI7 / CI9 / CI12 / CI14.
+**LIVE f95804a-mvvldtx2** (18:59 Cancun, TSL; + PF6). **GLSL release 8afe35056d** (180df449c9 GLSL default): Nine + Pine +
+Driftwood phone entry PASS; ships on its own 36 green. Live carries NF10 slabs, re-chunk, PF3, EP7 -> 44, diner fix.
+**wildshard-v: f7 table for Jake at qa-2026-10-30-mini-plan.md:22.** For Jake: MF13 dither phone check (Sim longest
+loader frame 110 ms, was 2.25 s); QB17 tmp/sp-o3-mf15/qb17-zip-before-after.mp4. **Open:** MF7, QB20 (phone), CI7/9/12/14.
 
-**18:05 (G960, Opus 5):** o1 PF10 Pine GLSL done (~1 ms off) -> Pine render per-draw cost; o2 PF10 water / sky /
-cabins / wildlife; o3 GLSL cascade sun (Driftwood dark in sun); o4 NF15 Nine GLSL; o5 PF6 weather / equipment.
-Codex: x1 Pine exact CPU cuts; x2 EP2; x6 CI7; x8 NF12 (first cut negative) + PF9 land; x9 deterministic sort.
-Pine Q4 at 4x: 18.7 ms (update 6.2, render 12.4) vs 12 / 16 bar.
+**19:00 Claude 85 % -> G960 3 Opus:** o1 PF12 Pine readings; o2 depth-only caster merge; o5 program counts (Pine 114
+-> 100, Nine 75 -> 70). o3 + o4 stood down at their boundaries. Codex: x1 + x9 Pine exact CPU; x2 B18 test fix + EP2;
+x6 CI7 (sort fix); x8 NF12 stage 2 (wire <= 41.23 MB); runtime-join cut 857dc8b781 exact.
+**Nine NF15 (GLSL vs LEGACY):** Chromium 4x P1-P5 at or under legacy + 0.5 (P5 9.0 / 10.4 busy machine), WebKit 1x
+within +0.4, Simulator 30 fps held. **Pine Q4 GLSL:** draws 121.8 vs legacy 130.3, work 18.4 vs 20.0 (bar 12 / 16).
+**wildshard-v 18:24:** (1) o4 was on readings. (2) PF3 kept: matched A/B halves the shadow pass (GLSL 1.51-2.23 ->
+0.78-1.23 ms), -0.4 ms work; the board's 1 s readings came from two concurrent browsers. (3) EP3 / EP5 / EP9 marked.
 
 **Autonomous decisions (for Jake's review):**
-- GLSL becomes the global default (public too) once Nine + Driftwood pass Pine's parity (44-55 dB); o1 flips + deletes the row.
-- EP12 parked till after QA: L1 look fix ready, no fps (128 -> 130 draws); neighbours see L1 only from >= 250 m.
-- EP7 Nine accepted at 44 programs (bar 43; the last needs shared hydration + mover churn).
-- PF4 closes at the leather-grip merge: a cross-material crossbow breaks weapon skins; Pine's draw bar is met.
-- PF6 closes ~0.3 ms equipment / ~0.09 weather (bars 0.2 / 0.05): rain draws per frame; a holstered weapon freezes (clip).
-- PF9 lands: its P3 1 px is a pre-existing depth tie (fire-lookout coarse, async material ids), not PF9.
-- EP9 kept (G941, board 6c23d7d7a6): Nine P2 restores a culled copy (as legacy); P1 4 px cull edge; Pine exact.
-- Cell re-chunk ships (G941, board 4152abcd85): Nine P1-P5 143-157 -> 109-116 draws.
-- NF16 done at composite 3 -> 2; EP8 crowd dye B ships; PF1 + PF2 Pine 165 -> 109 draws.
+- GLSL is the global default (public too): Pine 44-55 dB, Driftwood 45.7, Nine 41-75; banyan canopy ruled B = GLSL
+  (keeps haze TSL dropped, closer to legacy; board 9557e1dc93). TSL deletion stays NF18 (after QA).
+- Toon gloss gate stays off (shipped look: sun glint on every toon surface); restoring it makes rough toon matte.
+- EP12 parked till after QA: L1 look fix ready, no fps; neighbours see L1 only from >= 250 m.
+- EP7 Nine at 44 programs (bar 43). EP3 / NF22 / PF15 closed: program sort worth ~1-4 switches, bars met.
+- PF4 closes at the leather-grip merge (skins). PF6 ~0.3 equipment / ~0.09 weather; holstered weapon freezes (clip).
+- Cabin merge and Rapier step skip not built (look trade; stale hitboxes).
+- Known capture flake: Nine P2 canopy-cards (591,715) 1 LSB, GPU-side; ruled exact (f3feb414de).
+- EP9 kept (board 6c23d7d7a6); cell re-chunk ships (board 4152abcd85); NF16 3 -> 2; PF1 + PF2 165 -> 109 draws.
 
 **Rules:** G844, G848, G941, G952, G958, G960; no reverts (G674), no new Debug rows, never herdr wildshard-v.
