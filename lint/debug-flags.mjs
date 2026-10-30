@@ -20,9 +20,16 @@ function walk(node, visit) {
 // their original whole-program resolution, including declarations after calls.
 function debugSyntax(program) {
   const names = new Set(['parsePlumbing']), directors = new Set(['directorVariant']), variants = new Set(['runtimeVariantEnabled']), actions = new Set(['registerGlobalDebugAction']);
-  const definitions = new Map(), calls = [], authored = [];
+  const definitions = new Map(), calls = [], authored = [], additions = [];
+  const registries = new Set(), namespaces = new Set();
   const aliases = new Map([['parsePlumbing', names], ['directorVariant', directors], ['runtimeVariantEnabled', variants], ['registerGlobalDebugAction', actions]]);
   walk(program, node => {
+    if (node.type === 'ImportDeclaration' && /(?:^|\/)authoredDebugRows(?:\.[cm]?[jt]s)?$/u.test(node.source?.value ?? '')) {
+      for (const specifier of node.specifiers) {
+        if (specifier.type === 'ImportSpecifier' && (specifier.imported?.name ?? specifier.imported?.value) === 'authoredRows') registries.add(specifier.local.name);
+        if (specifier.type === 'ImportNamespaceSpecifier') namespaces.add(specifier.local.name);
+      }
+    }
     if (node.type === 'ImportSpecifier') aliases.get(node.imported?.name)?.add(node.local.name);
     if (node.type === 'VariableDeclarator') {
       definitions.set(node.id?.name, node.init);
@@ -31,8 +38,23 @@ function debugSyntax(program) {
     if (node.type === 'CallExpression') {
       if (node.callee?.type === 'Identifier') calls.push(node);
       if (node.callee?.type === 'MemberExpression' && node.callee.property?.name === 'debugRow' && node.callee.object?.name !== 'adapters') authored.push(node);
+      if (node.callee?.type === 'MemberExpression' && (node.callee.property?.name ?? node.callee.property?.value) === 'add') additions.push(node);
     }
   });
+  // Resolve imports after the walk, just like named row definitions. An
+  // unrelated Set.add is not a Debug declaration, even if its shape matches.
+  const isRegistry = (input, seen = new Set()) => {
+    const registry = unwrap(input);
+    if (registry?.type === 'Identifier') {
+      if (registries.has(registry.name)) return true;
+      if (seen.has(registry.name)) return false;
+      seen.add(registry.name);
+      return isRegistry(definitions.get(registry.name), seen);
+    }
+    return registry?.type === 'MemberExpression' && (registry.property?.name ?? registry.property?.value) === 'authoredRows'
+      && registry.object?.type === 'Identifier' && namespaces.has(registry.object.name);
+  };
+  for (const node of additions) if (isRegistry(node.callee.object)) authored.push(node);
   return {names, directors, variants, actions, definitions, calls, authored};
 }
 function declaredFromSyntax({names, directors, variants, actions, calls}) {
@@ -120,6 +142,7 @@ function inventoryDebugFlags(root, cacheDir, sourceOnly = false) {
           for (const value of array.elements) fileRows.push(row(value));
         }
         if (node.type === 'CallExpression' && node.callee?.type === 'MemberExpression' && node.callee.property?.name === 'debugRow' && node.callee.object?.name !== 'adapters') fileRows.push(row(node.arguments[0]));
+        if (node.type === 'CallExpression' && node.callee?.type === 'MemberExpression' && (node.callee.property?.name ?? node.callee.property?.value) === 'add') fileRows.push(row(node.arguments[0]));
       }
       // Preserve undefined fields exactly; unsupported values stay uncached.
       if (receipt !== null && supported(fileRows)) {
