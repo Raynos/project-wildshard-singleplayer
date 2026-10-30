@@ -1,4 +1,4 @@
-import { type BufferGeometry, MeshStandardMaterial, Vector3 } from 'three';
+import { type BufferGeometry, Float32BufferAttribute, MeshStandardMaterial, Vector3 } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import type { Cast, PreparedGeometry } from '../data/casts';
 import castRows from '../data/casts.json' with { type: 'json' };
@@ -33,6 +33,28 @@ export function readFixedSlots(input: unknown): FixedSlots {
   return recordedSignGroups(input, ['early', 'late'], ['rows', 'slots']);
 }
 
+/**
+ * EP8 (B5): the umbrella dye as data on the walker cast itself, so a dyed figure draws as an instance of its base walker
+ * (its instance colour the dye) instead of its own colourway geometry and draws. `aDye` holds `tintAbove`'s factor
+ * (0.7 + 0.45 x luminance / the umbrella's brightest) on the umbrella's vertices and -1 elsewhere; the kit graph paints a
+ * dyed instance's umbrella the dye x that factor and leaves every other vertex its own colour. Geometry without the
+ * channel reads 0 and keeps the kit's colour exactly.
+ */
+export function withDyeChannel(geometry: BufferGeometry, above = 1.8): BufferGeometry {
+  const pos = geometry.getAttribute('position'), col = geometry.getAttribute('color');
+  let lmax = 1e-4;
+  for (let i = 0; i < col.count; i++) if (pos.getY(i) > above) lmax = Math.max(lmax, 0.2126 * col.getX(i) + 0.7152 * col.getY(i) + 0.0722 * col.getZ(i));
+  const dye = new Float32Array(col.count);
+  for (let i = 0; i < col.count; i++) dye[i] = pos.getY(i) > above ? 0.7 + 0.45 * ((0.2126 * col.getX(i) + 0.7152 * col.getY(i) + 0.0722 * col.getZ(i)) / lmax) : -1;
+  geometry.setAttribute('aDye', new Float32BufferAttribute(dye, 1));
+  return geometry;
+}
+
+/** The walkers' dyed umbrellas (E281): each colourway the base walker it dyes and the dye (sRGB hex). */
+export const WALKER_DYES: Readonly<Record<'oxblood' | 'blue' | 'paper', { readonly base: 'dark' | 'light'; readonly color: number }>> = {
+  oxblood: { base: 'dark', color: 0x9a2e1c }, blue: { base: 'dark', color: 0x34507e }, paper: { base: 'light', color: 0xb07a34 },
+};
+
 /** The old prop writer, with its original intake, transform and float32 rounding order. */
 export async function castGeometry(name: Cast, read: (url: string) => Uint8Array): Promise<BufferGeometry> {
   if (name === 'guard') {
@@ -41,8 +63,9 @@ export async function castGeometry(name: Cast, read: (url: string) => Uint8Array
       matrix: guardMatrix(await propGlbBox(bytes), 0.115, -0.004, 0.006, 0) });
   }
   if (name === 'lion') return loadPropGlb(read('/assets/nine-dragon/lab/organic/lion.glb'), { kind: 9, line: 0, ao: 0.85, ramp: STONE, hues: {} });
-  const [, ramp] = name.split('-');
-  return loadPropGlb(read(CAST_FILES[name]), { kind: 0, line: 0, ao: 0.6, ramp: ramp === 'dark' ? DARK : LIGHT, hues: HUES });
+  const [figure, ramp] = name.split('-');
+  const geometry = await loadPropGlb(read(CAST_FILES[name]), { kind: 0, line: 0, ao: 0.6, ramp: ramp === 'dark' ? DARK : LIGHT, hues: HUES });
+  return figure === 'walker' ? withDyeChannel(geometry) : geometry;
 }
 
 /** Each pack is independently loaded at the former conversion call, including the optional guard. */

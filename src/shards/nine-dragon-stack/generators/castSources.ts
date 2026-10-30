@@ -19,8 +19,12 @@ const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.strin
 export const CAST_SOURCES: { id: string; kind: string; files: { file: string; parts: string[]; channels: { name: string; source: string; width: number; }[]; }[]; }[] = Array.from({ length: Math.ceil(names.length / 16) }, (_, index) => ({
   id: `casts-${index}`, kind: 'pool',
   files: names.slice(index * 16, (index + 1) * 16).map(name => ({ file: `geometry/casts/${name}.glb`, parts: [name],
-    channels: name.startsWith('dragon-hook-') ? [] : castRows.CAST_CHANNELS })),
+    channels: castChannels(name) })),
 }));
+/** A cast file's declared rest channels: none on the dragon hook's levels, the umbrella dye (EP8) on the walkers only. */
+export function castChannels(name: string): { name: string; source: string; width: number }[] {
+  return name.startsWith('dragon-hook-') ? [] : castRows.CAST_CHANNELS.filter(row => row.name !== 'aDye' || name.startsWith('walker-'));
+}
 const libraries = new Map(names.map((name, index) => [name, `casts-${Math.floor(index / 16)}`]));
 /** the cast pool library a cast's file is in */
 export function castLibrary(name: string): string { const library = libraries.get(name); if (library === undefined) throw new Error(`Nine has no cast ${name}`); return library; }

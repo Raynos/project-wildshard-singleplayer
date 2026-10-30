@@ -32,6 +32,11 @@
       "name": "aSpill",
       "source": "_spill",
       "width": 3
+    },
+    {
+      "name": "aDye",
+      "source": "_dye",
+      "width": 1
     }
   ],
   "FIXED_KITS": [

@@ -23,7 +23,8 @@ import { NINE_SHARED } from './sharedRows';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
-import { Matrix4, MeshBasicMaterial, PlaneGeometry, Quaternion, SphereGeometry, Vector3 } from 'three';
+import { Color, Matrix4, MeshBasicMaterial, PlaneGeometry, Quaternion, SphereGeometry, Vector3 } from 'three';
+import { WALKER_DYES } from './casts';
 import { bakedLayoutProjection } from './layoutProjection';
 import explorer from '../data/explorerModels.json' with { type: 'json' };
 import type { NineWorldDeclarations } from './worldRows';
@@ -262,6 +263,15 @@ const frame = (offset: number): number[] => Array.from({ length: 16 }, (_, k) =>
 // plain JSON numbers: a signed zero (three's matrix maths) is written as 0
 const posed = (words: readonly number[], color?: readonly number[]) => { const matrix = words.map(value => value + 0);
   return { x: matrix[12] ?? 0, y: matrix[13] ?? 0, z: matrix[14] ?? 0, matrix, ...(color === undefined ? {} : { color: [color[0] ?? 0, color[1] ?? 0, color[2] ?? 0].map(value => value + 0) }) }; };
+/** EP8 (B5): a dyed walker draws as an instance of its base walker with the dye as its instance colour (the kit graph's
+ *  `aDye`), so the crowd's five walker colourways share two walkers' draws; every other walker carries white (its own
+ *  colours). Sitters keep their colourways. */
+const crowdPose = (group: 'walkers' | 'sitters', row: { readonly matrix: number; readonly variant: string }) => {
+  const pose = posed(frame(row.matrix));
+  if (group === 'sitters') return { ...pose, variant: row.variant };
+  const dye = Object.entries(WALKER_DYES).find(([pick]) => pick === row.variant)?.[1], color = dye === undefined ? null : new Color(dye.color);
+  return { ...pose, variant: dye?.base ?? row.variant, color: color === null ? [1, 1, 1] : [color.r, color.g, color.b] };
+};
 /** the wall kit's catalogue model per piece (a copy key is `<piece>@<region>`) */
 const WALL_KIT: Readonly<Record<string, string>> = { plant: 'galleryPlant' };
 const catalogueName = new Map(parseWorldSceneModels(explorer.catalogue).models.map(row => [row.key, row.name]));
@@ -336,7 +346,7 @@ const LAYOUT_PLACEMENTS = [
   { id: 'nds-fei-zhua-hooks', model: 'feiZhuaHook', name: 'glb:dragon-hook', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-fei-zhua-hooks' }, poses: hungHooks() },
   ...([['walkers', 'umbrellaWalker'], ['sitters', 'mahjongSitter']] as const).map(([group, model]) => ({ id: `nds-crowd-${group}`, model, draw: 'instanced' as const,
     cull: { bounds: 'sphere' as const, from: 'origin' as const, far: lodRows.LOD_FAR }, piece: { id: `nds-crowd-${group}` },
-    poses: worldRows.rows.crowd[group].map(row => ({ ...posed(frame(row.matrix)), variant: row.variant })) })),
+    poses: worldRows.rows.crowd[group].map(row => crowdPose(group, row)) })),
   ...DRAWN_PLACEMENTS.map(({ kit: _kit, ...row }) => row),
   // the facade's baked pieces, drawn into its merged shell (FABRIC): one placement each
   ...worldRows.rows.facade.baked.map(row => {

@@ -15,6 +15,7 @@ import type { PreparedGeometry } from '../../src/shards/nine-dragon-stack/data/c
 import castRows from '../../src/shards/nine-dragon-stack/data/casts.json' with { type: 'json' };
 import { layoutBlobs } from '../../src/shards/nine-dragon-stack/generators/layoutBlobs';
 import { bakeLods } from '../../src/shards/nine-dragon-stack/generators/lods';
+import { castChannels } from '../../src/shards/nine-dragon-stack/generators/castSources';
 import { bakeCasts, bakeFixedKits, castGeometry } from '../../src/shards/nine-dragon-stack/generators/casts';
 import { layoutProjection, restoreLayoutZeros } from '../../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { LayoutRowsSchema, GeometryBootSchema } from '../../src/shards/nine-dragon-stack/generators/sections';
@@ -34,7 +35,6 @@ const middleLevels=[...CASTS.raw.keys()].flatMap(path=>{
 });
 const deckFloors = deckFloorRows();
 
-const { CAST_CHANNELS } = castRows;
 const names = v.parse(v.array(v.picklist(['walker-dark', 'walker-light', 'sitter-dark', 'sitter-light', 'lion', 'guard', 'entries-open', 'entries-capped', 'facade-signs'])), [...castRows.CASTS, ...castRows.FIXED_KITS]);
 
 
@@ -88,7 +88,7 @@ test.each(names)('%s preserves half-float decoding and borrowed geometry identit
   const bytes = packs.get(name);
   if (bytes === undefined) throw new Error(`Missing cast ${name}`);
   const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
-    geometryPools: [{ url: name, parts: [name], channels: CAST_CHANNELS }],
+    geometryPools: [{ url: name, parts: [name], channels: castChannels(name) }],
   }, 'test Nine casts', {}, async () => (await readSourceModel(bytes)).gltf);
   await library.preload();
   const geometry = library.geometry(name, { borrow: true });
@@ -96,7 +96,7 @@ test.each(names)('%s preserves half-float decoding and borrowed geometry identit
   const originalBytes = originalPacks.get(name);
   if (originalBytes === undefined) throw new Error(`Missing cast predecessor ${name}`);
   const originalLibrary = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
-    geometryPools: [{ url: name, parts: [name], channels: CAST_CHANNELS }],
+    geometryPools: [{ url: name, parts: [name], channels: castChannels(name) }],
   }, 'test Nine cast before-control', {}, async () => (await readSourceModel(originalBytes)).gltf);
   await originalLibrary.preload();
   const original = originalLibrary.geometry(name, { borrow: true });
@@ -141,7 +141,7 @@ beforeAll(async () => {
   for (const name of ['lion', 'walker-dark', 'walker-light', 'sitter-dark', 'sitter-light'] as const) lodBases.set(name, await castGeometry(name, read));
   for (const name of ['walker-oxblood', 'walker-paper', 'walker-blue']) {
     const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
-      geometryPools: [{ url: name, parts: [name], channels: CAST_CHANNELS }],
+      geometryPools: [{ url: name, parts: [name], channels: castChannels(name) }],
     }, 'test Nine baked dye', {}, async () => (await readSourceModel(rawCast(name))).gltf);
     await library.preload();
     const geometry = library.geometry(name, { borrow: true });
@@ -177,7 +177,7 @@ beforeAll(async () => {
     const bytes = oldLods.get(name);
     if (bytes === undefined) throw new Error(`Missing original colourway ${name}`);
     const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
-      geometryPools: [{ url: name, parts: [name], channels: CAST_CHANNELS }],
+      geometryPools: [{ url: name, parts: [name], channels: castChannels(name) }],
     }, 'test original colourway', {}, async () => (await readSourceModel(bytes)).gltf);
     await library.preload();
     const geometry = library.geometry(name, { borrow: true });
@@ -189,7 +189,7 @@ beforeAll(async () => {
     const base = lodBases.get(name);
     if (base === undefined) throw new Error(`Missing native LOD base ${key}`);
     const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
-      geometryPools: [{ url: path, parts: [path], channels: name === 'dragon-hook' ? [] : CAST_CHANNELS }],
+      geometryPools: [{ url: path, parts: [path], channels: name === 'dragon-hook' ? [] : castChannels(name) }],
     }, 'test Nine LOD casts', {}, async () => (await readSourceModel(rawCast(path))).gltf);
     await library.preload();
     const prepared = library.geometry(path, { borrow: true });

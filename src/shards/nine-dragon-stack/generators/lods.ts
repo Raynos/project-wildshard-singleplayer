@@ -1,6 +1,6 @@
 import { type BufferGeometry, Color, Float32BufferAttribute } from 'three';
 import { hookGeometry } from './hookGeometry';
-import { castGeometry, packGeometry } from './casts';
+import { castGeometry, packGeometry, WALKER_DYES } from './casts';
 import { lodReady, simplifiedCopy, clusterLod, PX_PER_M } from './meshLod';
 import lodRows from '../data/lod.json' with { type: 'json' };
 import hookRows from '../data/hookSpecimen.json' with { type: 'json' };
@@ -48,8 +48,7 @@ export async function bakeLods(read: (url: string) => Uint8Array): Promise<Map<s
   for (const name of ['walker-dark', 'walker-light', 'sitter-dark', 'sitter-light'] as const) {
     const base = await castGeometry(name, read);
     const variants: [string, BufferGeometry][] = [[name, base]];
-    if (name === 'walker-dark') for (const [pick, color] of [['oxblood', 0x9a2e1c], ['blue', 0x34507e]] as const) variants.push([`walker-${pick}`, tintAbove(base, color)]);
-    if (name === 'walker-light') variants.push(['walker-paper', tintAbove(base, 0xb07a34)]);
+    for (const [pick, dye] of Object.entries(WALKER_DYES)) if (name === `walker-${dye.base}`) variants.push([`walker-${pick}`, tintAbove(base, dye.color)]);
     for (const [key, geometry] of variants) {
       if (key !== name) rows.set(key, packGeometry(key, geometry));
       for (const d of MID_FROM) mid(key, geometry, d, d * PX_PER_M * MID_PX);
