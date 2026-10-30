@@ -19,6 +19,9 @@ export const TickCommandSchema: v.GenericSchema<BoundedTickCommandInput, Bounded
     commandVersion: v.exactOptional(v.literal(1)), steer: v.exactOptional(v.strictObject({ keyX: v.pipe(finite, v.minValue(-1), v.maxValue(1)), keyY: v.pipe(finite, v.minValue(-1), v.maxValue(1)),
       stickX: v.pipe(finite, v.minValue(-1), v.maxValue(1)), stickY: v.pipe(finite, v.minValue(-1), v.maxValue(1)) })), sprint: v.exactOptional(v.boolean()), crouch: v.exactOptional(v.boolean()) }),
     v.check(command => command.commandVersion === 1 || (command.steer === undefined && command.sprint === undefined && command.crouch === undefined), 'Raw movement requires commandVersion 1')),
+  v.strictObject({ kind:v.literal('launcher'), slot:v.pipe(natural,v.maxValue(31)),
+    ads:v.pipe(finite,v.minValue(0),v.maxValue(1)), pitch:v.pipe(finite,v.minValue(-Math.PI/2),v.maxValue(Math.PI/2)),
+    fire:v.exactOptional(v.literal(true)), reload:v.exactOptional(v.literal(true)) }),
   v.strictObject({ kind: v.literal('interact'), id: text }),
   v.strictObject({ kind: v.literal('script'), actorId: text, value: finite }),
   v.strictObject({ kind: v.literal('event'), type: natural, target: natural, value: finite }),
@@ -110,6 +113,8 @@ type BoundedTickCommand = {
     };
     sprint?: boolean;
     crouch?: boolean;
+ } | {
+    kind: "launcher"; slot:number; ads:number; pitch:number; fire?:true; reload?:true;
 } | {
     kind: "interact";
     id: string;
@@ -160,44 +165,7 @@ type BoundedTickCommit = { [Key in keyof BoundedTickCommitFields]: BoundedTickCo
 type BoundedAuthorProofPlanInput = BoundedAuthorProofPlan;
 interface BoundedAuthorProofPlanFields {
     version: 1;
-    tape: ({
-        kind: "player";
-        moveX: number;
-        moveZ: number;
-        yaw: number;
-        attack?: {
-            targetId: string;
-        } | undefined;
-        hover?: true | undefined;
-        jump?: true | undefined;
-        dodge?: true | undefined;
-        heavy?: {
-            targetId?: string | undefined;
-        } | undefined;
-        dive?: boolean;
-        surface?: boolean;
-        commandVersion?: 1;
-        steer?: {
-            keyX: number;
-            keyY: number;
-            stickX: number;
-            stickY: number;
-        };
-        sprint?: boolean;
-        crouch?: boolean;
-    } | {
-        kind: "interact";
-        id: string;
-    } | {
-        kind: "script";
-        actorId: string;
-        value: number;
-    } | {
-        kind: "event";
-        type: number;
-        target: number;
-        value: number;
-    })[][];
+    tape: BoundedTickCommand[][];
     checkpointTick: number;
     requiredFacts: string[];
 }
@@ -229,91 +197,6 @@ interface BoundedAuthorProofReportFields {
 }
 type BoundedAuthorProofReport = { [Key in keyof BoundedAuthorProofReportFields]: BoundedAuthorProofReportFields[Key] };
 type BoundedWorkerRequestInput = BoundedWorkerRequest;
-type BoundedWorkerRequest = { kind: 'journey'; plan: HeadlessJourneyPlan } | {
-    kind: "step";
-    commands: ({
-        kind: "player";
-        moveX: number;
-        moveZ: number;
-        yaw: number;
-        attack?: {
-            targetId: string;
-        } | undefined;
-        hover?: true | undefined;
-        jump?: true | undefined;
-        dodge?: true | undefined;
-        heavy?: {
-            targetId?: string | undefined;
-        } | undefined;
-        dive?: boolean;
-        surface?: boolean;
-        commandVersion?: 1;
-        steer?: {
-            keyX: number;
-            keyY: number;
-            stickX: number;
-            stickY: number;
-        };
-        sprint?: boolean;
-        crouch?: boolean;
-    } | {
-        kind: "interact";
-        id: string;
-    } | {
-        kind: "script";
-        actorId: string;
-        value: number;
-    } | {
-        kind: "event";
-        type: number;
-        target: number;
-        value: number;
-    })[];
-} | {
-    kind: "finish";
-} | {
-    kind: "authorProof";
-    plan: {
-        version: 1;
-        tape: ({
-            kind: "player";
-            moveX: number;
-            moveZ: number;
-            yaw: number;
-            attack?: {
-                targetId: string;
-            } | undefined;
-            hover?: true | undefined;
-            jump?: true | undefined;
-            dodge?: true | undefined;
-            heavy?: {
-                targetId?: string | undefined;
-            } | undefined;
-            dive?: boolean;
-            surface?: boolean;
-            commandVersion?: 1;
-            steer?: {
-                keyX: number;
-                keyY: number;
-                stickX: number;
-                stickY: number;
-            };
-            sprint?: boolean;
-            crouch?: boolean;
-        } | {
-            kind: "interact";
-            id: string;
-        } | {
-            kind: "script";
-            actorId: string;
-            value: number;
-        } | {
-            kind: "event";
-            type: number;
-            target: number;
-            value: number;
-        })[][];
-        checkpointTick: number;
-        requiredFacts: string[];
-    };
-};
+type BoundedWorkerRequest = {kind:'journey';plan:HeadlessJourneyPlan}
+  | {kind:'step';commands:BoundedTickCommand[]}
+  | {kind:'finish'} | {kind:'authorProof';plan:BoundedAuthorProofPlan};

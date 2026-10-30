@@ -16,9 +16,12 @@ import { BowWeaponProfileSchema, parseNativeFirearmProfile } from '@wildshard/fo
 import { NativeRangedRowSchema } from '@wildshard/format/nativeItems';
 import { createNativeTargetQueries, installNativeMelee, type NativeTargetPose, type NativeSweptMeleeInput, type NativeSweptMeleeOwner, type NativeTargetHit } from './simulation';
 
+/** A bounded native launcher input. Its slot must resolve to an installed bolt
+ * owner; aim is held for this input, fire/reload are presses, never state writes. */
+export interface NativeLauncherInput {readonly slot:number;readonly ads:number;readonly pitch:number;readonly fire?:true;readonly reload?:true}
 /** Mutable tick data owned by the native input boundary. It contains no clocks or executable shard hooks. */
 export interface NativeCombatFrame {
-  attacks: string[]; heavy: { readonly targetId?: string | undefined } | null;
+  launchers: NativeLauncherInput[]; attacks: string[]; heavy: { readonly targetId?: string | undefined } | null;
   melee: { attack: string | null; heavy: boolean; heavyTarget: string | null };
   scripts: Map<string, number>; moveX: number; moveZ: number; yaw: number;
   live: Set<number>; aim: number; adsBlend: number; aimed: number; speedFactor: number | null;
@@ -27,7 +30,7 @@ export interface NativeCombatFrame {
 }
 /** A fresh released input frame; a resident fills its same arrays at lend(), never retains a previous tick. */
 export function createNativeCombatFrame(): NativeCombatFrame {
-  return { attacks: [], heavy: null, melee: { attack: null, heavy: false, heavyTarget: null }, scripts: new Map(),
+  return { launchers: [], attacks: [], heavy: null, melee: { attack: null, heavy: false, heavyTarget: null }, scripts: new Map(),
     moveX: 0, moveZ: 0, yaw: 0, live: new Set(), aim: 0.5, adsBlend: 0, aimed: 0,
     speedFactor: 0, extraSpread: 0, mountSpread: 0, ammo: '', rain: 0, wind: null };
 }
@@ -118,11 +121,17 @@ function boltItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: u
     contact: (bolt, previous) => contacts.step(bolt, previous, p.radius, 0),
   });
   const bolts = pool.slots;
-  const fire = (target: AnimalSim): void => {
+  const fire = (target: AnimalSim | null, aimInput?:NativeLauncherInput): void => {
     action.shot();
-    nativeRangedAim(host, target, eye, fwd, frame.aim, row.eye);
+    if(target!==null)nativeRangedAim(host, target, eye, fwd, frame.aim, row.eye);
+    else {
+      if(aimInput===undefined)throw new Error('Free launch requires admitted aim');
+      eye.copy(player.position);eye.y+=row.eye;
+      const horizontal=Math.cos(aimInput.pitch);
+      fwd.set(-Math.sin(player.yaw)*horizontal,Math.sin(aimInput.pitch),-Math.cos(player.yaw)*horizontal);
+    }
     // the page's hip spread: a random axis across the line, a random fraction of 0.75°
-    const spread = (p.spreadAds + (1 - smoothstep(0, 1, frame.adsBlend)) * (p.spreadHip - p.spreadAds)) * (Math.PI / 180);
+    const spread = (p.spreadAds + (1 - smoothstep(0, 1, aimInput?.ads ?? frame.adsBlend)) * (p.spreadHip - p.spreadAds)) * (Math.PI / 180);
     dir.copy(fwd);
     shotSpread(dir, spread, random, cone, side);
     const b = pool.take(); b.ammo = frame.ammo;
@@ -135,6 +144,11 @@ function boltItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: u
       if (id === undefined) break;
       const target = host.entities.get(id);
       if (target !== undefined && action.trigger()) fire(target);
+    }
+    if(frame.live.has(row.slot))for(const control of frame.launchers){
+      if(control.slot!==row.slot)continue;
+      if(control.reload===true)action.reload();
+      if(control.fire===true&&action.trigger())fire(null,control);
     }
     action.advance(dt);
     pool.step(dt);

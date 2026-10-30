@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 import { runHeadlessJourney } from './headlessJourney';
 import { registerNativeQuestInputs } from '@wildshard/game/quest/nativeInputs';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
@@ -5,13 +6,13 @@ import { prepareAssetDecoders } from '@wildshard/format/product';
 import { parseNativeRuntimePlan } from '@wildshard/format/nativeRuntimePlan';
 import { MoverScriptDriver, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import { installCableModes } from '@wildshard/engine/player/modes';
-import { createNativeCombatFrame, type NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
+import { createNativeCombatFrame, readNativeRangedItem, type NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
 import { prepareRuntimePlan, ledgerPorts, pickCommands, type NativeSweptMeleeInput } from '@wildshard/game/plugin/simulation';
 import { createSimHost, type SimHost, type SimHostPorts, type SimLevel } from '@wildshard/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import type { Shardfile } from './shardfile';
-import { simPlayerCommand, type HeadlessCommand, type HeadlessEffect } from './tickProtocol';
+import { simPlayerCommand, TickCommandSchema, type HeadlessCommand, type HeadlessEffect } from './tickProtocol';
 import type { TickWorkerAdapter } from './tickWorkerLoop';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { prepareProductRuntimePlan } from '@wildshard/game/shardfile/nativePlan';
@@ -174,7 +175,7 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
     if (effects.length > 0) throw new Error('Trusted runtime emitted gameplay effects during installation');
   } catch (error) { installing?.dispose(); throw error; }
   const lend = (input: readonly HeadlessCommand[]): void => {
-    if (input.some(command => command.kind === 'interact')) throw new Error('Authored interaction commands require the data-only owner');
+    validateHeadlessCommandOwners(host,input);
     fillNativeCombatFrame(combat, input); commands = input; effects = []; };
   return {
     host, lend,
@@ -205,15 +206,27 @@ export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeI
   };
 }
 
+/** Validate command authority before any tick input or effect buffer changes.
+ * An arbitrary slot cannot install a weapon, bypass its loadout or mutate ammo. */
+export function validateHeadlessCommandOwners(host:SimHost,commands:readonly HeadlessCommand[]):void {
+  if(commands.some(command=>command.kind==='interact'))throw new Error('Authored interaction commands require the data-only owner');
+  for(const command of commands)if(command.kind==='launcher'){
+    v.assert(TickCommandSchema,command);
+    if(readNativeRangedItem(host,command.slot).kind!=='bolt')throw new Error('Launcher input requires an installed bolt owner');
+  }
+}
+
 /** Fill the borrowed combat frame before the tick. All attacks retain tape order; held ranged input uses the first
  * hold, melee and movement use the last player command (including release), script values use the last matching row. */
 export function fillNativeCombatFrame(frame: NativeCombatFrame, commands: readonly HeadlessCommand[]): void {
   if (commands.length > 1024) throw new RangeError('Tick commands exceed the protocol allowance');
-  frame.attacks.length = 0; frame.heavy = null; frame.scripts.clear();
+  frame.launchers.length=0; frame.attacks.length = 0; frame.heavy = null; frame.scripts.clear();
   frame.moveX = 0; frame.moveZ = 0; frame.yaw = 0;
   frame.melee.attack = null; frame.melee.heavy = false; frame.melee.heavyTarget = null;
   for (const command of commands) {
     if (command.kind === 'script') frame.scripts.set(command.actorId, command.value);
+    if(command.kind==='launcher')frame.launchers.push({slot:command.slot,ads:command.ads,pitch:command.pitch,
+      ...(command.fire===undefined?{}:{fire:command.fire}),...(command.reload===undefined?{}:{reload:command.reload})});
     if (command.kind !== 'player') continue;
     if (command.attack !== undefined) frame.attacks.push(command.attack.targetId);
     if (frame.heavy === null && command.heavy !== undefined) frame.heavy = command.heavy;

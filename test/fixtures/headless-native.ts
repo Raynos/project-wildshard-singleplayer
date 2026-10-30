@@ -1,6 +1,6 @@
 import { runHeadlessJourney } from '../../src/sdk/headlessJourney';
 import type { HeadlessRuntimeInput, HeadlessRuntimeInstallation, HeadlessRuntimePreparation, HeadlessRuntimePlan, PrepareHeadlessRuntime, TrustedHeadlessResident } from '../../src/sdk/headlessRuntime';
-import { fillNativeCombatFrame } from '../../src/sdk/headlessRuntime';
+import { fillNativeCombatFrame, validateHeadlessCommandOwners } from '../../src/sdk/headlessRuntime';
 import { prepareAssetDecoders } from '../../src/format/product';
 import { loadHeadlessProduct } from '../../src/sdk/headlessProduct';
 import { hasDeclaredClientPage } from '../../src/format/runtimeBinds';
@@ -62,7 +62,7 @@ export async function createNativeProofResident(preparation: HeadlessRuntimeInpu
     if (effects.length > 0) throw new Error('Trusted runtime emitted gameplay effects during installation');
   } catch (error) { installing?.dispose(); throw error; }
   const lend = (input: readonly HeadlessCommand[]): void => {
-    if (input.some(command => command.kind === 'interact')) throw new Error('Authored interaction commands require the data-only owner');
+    validateHeadlessCommandOwners(host,input);
     fillNativeCombatFrame(combat, input); commands = input; effects = []; };
   return {
     host, lend,
