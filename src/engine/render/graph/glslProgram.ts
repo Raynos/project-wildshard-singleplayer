@@ -20,11 +20,12 @@
 import * as THREE from 'three';
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
-import { emitGraphGlsl, glslFloat, type EmitGraphGlslOptions, type GraphGlsl, type GraphGlslProgram, type GraphGlslUniform } from './glsl';
+import { emitGraphGlsl, glslFloat, graphGlslLibraries, type EmitGraphGlslOptions, type GraphGlsl, type GraphGlslProgram, type GraphGlslUniform } from './glsl';
 import { toonGraph } from './presets';
 import type { ToonLook } from '../families/toon';
 import { windUniforms } from '../../world/wind';
 import { fogUniforms } from '../../world/Atmosphere';
+import { worldTime } from '../../core/time';
 
 /** the toon preset's params, read from the family's own uniforms (`ToonLook.uniforms`) */
 const TOON_PARAMS: NonNullable<EmitGraphGlslOptions['toon']>['params'] = {
@@ -60,12 +61,18 @@ export interface GraphShaders {
   /** the program applies the engine's fog chunk (`fog: true`) */
   readonly fog: boolean;
 }
+/** a compiled fog graph a material selects: its lowering and the uniform objects its own `setParam` moves */
+export interface ClassicFog { readonly glsl: GraphGlsl; readonly uniforms: ReadonlyMap<string, THREE.IUniform> }
 /** what wrapping a graph needs beyond its lowering */
 export interface GraphShaderOptions {
   /** the outline's hull program instead of the main draw */
   readonly outline?: boolean;
-  /** a declared fog graph (`effectState.fog: '<id>'`) lowered by `emitGraphGlsl`: its `wsGraphFog` replaces the engine fog */
-  readonly fog?: GraphGlsl;
+  /** a declared fog graph (`effectState.fog: '<id>'`): its `wsGraphFog` replaces the engine fog, reading its compile's uniforms */
+  readonly fog?: ClassicFog;
+  /** the graph's own uniform objects, kept between its draw and its outline (filled on first use) */
+  readonly shared?: Map<string, THREE.IUniform>;
+  /** the shadow depth of a displaced caster: the graph's vertex stage and surface mask, writing depth only */
+  readonly depth?: boolean;
   /** the toon family's uniforms (a toon graph reads them) */
   readonly toonLook?: ToonLook;
   /** resolve an admitted texture param's file (a lent param starts on a 1×1 stand-in) */
@@ -107,6 +114,29 @@ vec4 wsVertexColour() {
 #else
 #define wsSkinDirection( d ) ( d )
 #endif`;
+/** the drawing camera's near plane from its projection (three's perspective or orthographic matrix), and the scene fog's
+ *  colour (three's own fog uniform; black unfogged): both stages, no uniform of their own */
+const CAMERA_HELPERS = `float wsCameraNear() {
+  return isOrthographic ? ( projectionMatrix[ 3 ][ 2 ] + 1.0 ) / projectionMatrix[ 2 ][ 2 ] : projectionMatrix[ 3 ][ 2 ] / ( projectionMatrix[ 2 ][ 2 ] - 1.0 );
+}
+vec3 wsFogColour() {
+#ifdef USE_FOG
+  return fogColor;
+#else
+  return vec3( 0.0 );
+#endif
+}`;
+/** three's \`color_vertex\` without the instance and batch tints: a graph that tints by the instance colour itself
+ *  (\`instanceColour\`) must not be multiplied by it twice (NR15). \`vColor\` is still written wherever the fragment prefix
+ *  expects it (three's fragment stage defines USE_COLOR for an instance tint too) */
+const OWN_INSTANCE_COLOUR = `#if defined( USE_COLOR ) || defined( USE_COLOR_ALPHA ) || defined( USE_INSTANCING_COLOR ) || defined( USE_BATCHING_COLOR )
+  vColor = vec4( 1.0 );
+#endif
+#ifdef USE_COLOR_ALPHA
+  vColor *= color;
+#elif defined( USE_COLOR )
+  vColor.rgb *= color;
+#endif`;
 /** the camera the graph reads: a layered backdrop's frame (G321) defines its own before this */
 const FRAME = `#ifndef wsFrameCamera
 #define wsFrameCamera cameraPosition
@@ -114,6 +144,23 @@ const FRAME = `#ifndef wsFrameCamera
 #ifndef wsFrameView
 #define wsFrameView viewMatrix
 #endif`;
+
+/** what the lighting functions read beside their arguments: the light model sets the globals before it lights */
+const LIGHT_GLOBALS = `vec3 wsNormalView;
+vec3 wsViewDirection;
+vec3 wsAlbedo;
+float wsRoughness;
+vec3 wsEnvironmentIrradianceAt( vec3 direction ) {
+#if defined( USE_ENVMAP ) && defined( ENVMAP_TYPE_CUBE_UV )
+  return PI * textureCubeUV( envMap, envMapRotation * direction, 1.0 ).rgb * envMapIntensity;
+#else
+  return vec3( 0.0 );
+#endif
+}`;
+/** the fragment stage's own declarations of what the camera helpers read (three's fragment prefix has no projection) */
+const FRAGMENT_CAMERA = `uniform highp mat4 projectionMatrix;\n${CAMERA_HELPERS}`;
+/** the vertex colour step: three's own, or without the instance tint for a graph that applies it itself */
+const colourVertex = (program: GraphGlslProgram): string => (program.vertex.body.includes('wsInstanceColour()') ? OWN_INSTANCE_COLOUR : '#include <color_vertex>');
 
 /** the vertex stage: three's deformations, the graph's own, then the projection without the instance transform again */
 function vertexShader(glsl: GraphGlsl, program: GraphGlslProgram, uniforms: string, lit: boolean, fogged: boolean, outline: boolean): string {
@@ -127,7 +174,7 @@ function vertexShader(glsl: GraphGlsl, program: GraphGlslProgram, uniforms: stri
 #include <fog_pars_vertex>
 #include <morphtarget_pars_vertex>
 #include <skinning_pars_vertex>
-${lit ? '#include <shadowmap_pars_vertex>\nvarying vec3 vViewPosition;\n#ifndef FLAT_SHADED\nvarying vec3 vNormal;\n#endif' : ''}
+${lit ? '#include <normal_pars_vertex>\n#include <shadowmap_pars_vertex>\nvarying vec3 vViewPosition;' : ''}
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>
 uniform float wsCodecStep;
@@ -135,11 +182,17 @@ ${uniforms}
 ${attributes}
 ${VERTEX_HELPERS}
 ${FRAME}
+#ifdef USE_FOG
+uniform vec3 fogColor;
+#endif
+${CAMERA_HELPERS}
+#include <color_pars_vertex>
 ${fogged ? 'varying vec3 wsVFogWorld;' : ''}
 ${program.vertex.head}
 void main() {
 #include <morphinstance_vertex>
 #include <batching_vertex>
+${colourVertex(program)}
 #include <beginnormal_vertex>
 #include <morphnormal_vertex>
 #include <skinbase_vertex>
@@ -160,22 +213,22 @@ void main() {
 ${program.vertex.body}
   ${position}
 ${o.normal !== null && !outline ? `  wsNormalLocal = wsInstanceTransform( vec4( ${o.normal}, 0.0 ) ).xyz;` : ''}
-  vec4 wsWorldPosition = modelMatrix * vec4( transformed, 1.0 );
-  vec4 mvPosition = viewMatrix * wsWorldPosition;
-  gl_Position = ${o.clip ?? 'projectionMatrix * mvPosition'};
+  objectNormal = wsNormalLocal;
+  // transformed and objectNormal carry the instance (or batch) transform already, as an instanced node mesh's
+  // positionLocal does: the stock chunks below (and the engine's classic patches anchored on them: the coarse tile mask
+  // before project_vertex, a layer frame's view defines) project them without applying it again
+#undef USE_INSTANCING
+#undef USE_BATCHING
+${lit ? '#include <defaultnormal_vertex>\n#include <normal_vertex>' : ''}
+#include <project_vertex>
+${o.clip !== null ? `  gl_Position = ${o.clip};` : ''}
 ${o.pointSize !== null ? `  gl_PointSize = clamp( ${o.pointSize}, 1.0, 2048.0 );` : ''}
 #include <logdepthbuf_vertex>
 #include <clipping_planes_vertex>
-${lit ? `  vec3 transformedNormal = normalMatrix * wsNormalLocal;
-#ifdef FLIP_SIDED
-  transformedNormal = - transformedNormal;
-#endif
-#ifndef FLAT_SHADED
-  vNormal = normalize( transformedNormal );
-#endif
-  vViewPosition = - mvPosition.xyz;
-  vec4 worldPosition = wsWorldPosition;
-#include <shadowmap_vertex>` : ''}
+${lit ? '  vViewPosition = - mvPosition.xyz;' : ''}
+#include <worldpos_vertex>
+  vec4 wsWorldPosition = modelMatrix * vec4( transformed, 1.0 );
+${lit ? '#include <shadowmap_vertex>' : ''}
 #include <fog_vertex>
 ${fogged ? '  wsVFogWorld = wsWorldPosition.xyz;' : ''}
 ${program.vertex.end}
@@ -194,11 +247,15 @@ function fogEpilogue(program: GraphGlslProgram, fog: GraphGlsl | undefined): str
   gl_FragColor.rgb = mix( wsBeforeFog, gl_FragColor.rgb, ${scale} );`;
 }
 
-/** an unlit graph's fragment stage */
-function unlitFragment(glsl: GraphGlsl, program: GraphGlslProgram, uniforms: string, fogged: boolean, fog: GraphGlsl | undefined): string {
+/** an unlit graph's fragment stage (or, `depth`, a displaced caster's shadow depth: three's BasicDepthPacking) */
+function unlitFragment(glsl: GraphGlsl, program: GraphGlslProgram, uniforms: string, fogged: boolean, fog: GraphGlsl | undefined, depth = false): string {
   const o = program.outputs, ir = glsl.ir, s = ir.stages.surface;
   const cutoff = s?.alphaCutoff === undefined ? '' : `  if ( diffuseColor.a < ${glslFloat(s.alphaCutoff)} ) discard;`;
   const alpha = o.targetAlpha ?? (ir.effectState?.output === 'colour' ? '1.0' : 'diffuseColor.a');
+  const output = depth ? '  gl_FragColor = vec4( vec3( 1.0 - gl_FragCoord.z ), 1.0 );' : `  gl_FragColor = vec4( diffuseColor.rgb, ${alpha} );
+${ir.effectState?.output === 'colour' ? '#include <colorspace_fragment>' : ''}
+${fogged ? fogEpilogue(program, fog) : ''}
+#include <premultiplied_alpha_fragment>`;
   return `#define WS_GRAPH
 #include <common>
 #include <packing>
@@ -207,8 +264,11 @@ function unlitFragment(glsl: GraphGlsl, program: GraphGlslProgram, uniforms: str
 #include <clipping_planes_pars_fragment>
 ${uniforms}
 ${FRAME}
+${FRAGMENT_CAMERA}
+#include <color_pars_fragment>
 ${fogged ? 'varying vec3 wsVFogWorld;' : ''}
 ${fog?.fog ?? ''}
+${program.lighting === null ? '' : LIGHT_GLOBALS}
 ${program.fragment.head}
 void main() {
 #include <clipping_planes_fragment>
@@ -216,11 +276,9 @@ void main() {
 ${program.fragment.body}
 ${o.discard !== null ? `  if ( ${o.discard} ) discard;` : ''}
   vec4 diffuseColor = vec4( ${o.colour ?? 'wsMaterialColour'}, ${o.alpha ?? '1.0'} );
+#include <color_fragment>
 ${cutoff}
-  gl_FragColor = vec4( diffuseColor.rgb, ${alpha} );
-${ir.effectState?.output === 'colour' ? '#include <colorspace_fragment>' : ''}
-${fogged ? fogEpilogue(program, fog) : ''}
-#include <premultiplied_alpha_fragment>
+${output}
 }`;
 }
 
@@ -311,19 +369,11 @@ varying vec3 vViewPosition;
 #include <clipping_planes_pars_fragment>
 ${uniforms}
 ${FRAME}
+${FRAGMENT_CAMERA}
+#include <color_pars_fragment>
 ${fogged ? 'varying vec3 wsVFogWorld;' : ''}
 ${fog?.fog ?? ''}
-vec3 wsNormalView;
-vec3 wsViewDirection;
-vec3 wsAlbedo;
-float wsRoughness;
-vec3 wsEnvironmentIrradianceAt( vec3 direction ) {
-#if defined( USE_ENVMAP ) && defined( ENVMAP_TYPE_CUBE_UV )
-  return PI * textureCubeUV( envMap, envMapRotation * direction, 1.0 ).rgb * envMapIntensity;
-#else
-  return vec3( 0.0 );
-#endif
-}
+${LIGHT_GLOBALS}
 ${program.fragment.head}
 ${direct}
 ${ambient}
@@ -334,6 +384,7 @@ void main() {
 ${program.fragment.body}
 ${o.discard !== null ? `  if ( ${o.discard} ) discard;` : ''}
   vec4 diffuseColor = vec4( ${o.colour ?? 'wsMaterialColour'}, ${o.alpha ?? '1.0'} );
+#include <color_fragment>
 ${cutoff}
   ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
   vec3 totalEmissiveRadiance = ${o.emissive ?? 'vec3( 0.0 )'};
@@ -373,6 +424,7 @@ function postShaders(program: GraphGlslProgram, uniforms: string): { vertexShade
     vertexShader: `#define WS_GRAPH
 ${uniforms}
 ${varyingUv}
+${CAMERA_HELPERS}
 ${program.vertex.head}
 void main() {
 ${program.vertex.body}
@@ -384,6 +436,7 @@ ${varyingUv === '' ? '' : '  wsVUv = uv;'}
 #include <packing>
 ${uniforms}
 ${varyingUv}
+${FRAGMENT_CAMERA}
 ${program.fragment.head}
 void main() {
 ${program.fragment.body}
@@ -391,6 +444,24 @@ ${program.fragment.body}
 }`,
   };
 }
+
+/** the renderer the host inputs read (the bound target's size): set once by the back-end's loader, never by an import */
+let hostRenderer: THREE.WebGLRenderer | null = null;
+/** Give the classic graph programs their renderer (the screen size `fragCoord` flips by). */
+export function installGraphShaderHost(renderer: THREE.WebGLRenderer): void { hostRenderer = renderer; }
+const screenSize = new THREE.Vector2(1, 1);
+/** the engine inputs every graph program shares by reference, read by three as it uploads (no per-draw hook): the game's
+ *  frame time (`worldTime.t`, the node path's clock; 0 before the game loop runs) and the bound target's size (else the
+ *  drawing buffer's), as TSL's */
+const HOST_TIME: THREE.IUniform<number> = { get value(): number { return worldTime.t ?? 0; }, set value(_: number) { /* the game's clock owns it */ } };
+const HOST_SCREEN: THREE.IUniform<THREE.Vector2> = {
+  get value(): THREE.Vector2 {
+    const target = hostRenderer?.getRenderTarget() ?? null;
+    if (target !== null) return screenSize.set(target.width, target.height);
+    return hostRenderer === null ? screenSize : hostRenderer.getDrawingBufferSize(screenSize);
+  },
+  set value(_: THREE.Vector2) { /* the renderer owns it */ },
+};
 
 /** a uniform's starting value: a param's own (a colour held linear, as the families hold theirs), an engine clock or light
  *  shared by reference, a texture its resolver admits, else a neutral value the host moves */
@@ -424,33 +495,50 @@ function uniformValue(glsl: GraphGlsl, u: GraphGlslUniform, opts: GraphShaderOpt
         case 'windGust': return windUniforms.uGust;
         case 'atmosphereSunDirection': return fogUniforms.fogSunDir;
         case 'atmosphereSunColour': return fogUniforms.fogSunColor;
-        case 'codecStep': case 'weight': return { value: 1 };
-        case 'cameraNear': case 'depthNear': return { value: 0.1 };
+        case 'time': return HOST_TIME;
+        case 'screenSize': return HOST_SCREEN;
+        case 'codecStep': case 'weight': case 'materialEmissiveIntensity': return { value: 1 };
+        case 'depthNear': return { value: 0.1 };
         case 'depthFar': return { value: 1000 };
-        case 'time': return { value: 0 };
         case 'materialColour': return { value: new THREE.Color(1, 1, 1) };
-        case 'screenSize': return { value: new THREE.Vector2(1, 1) };
+        case 'materialEmissive': return { value: new THREE.Color(0, 0, 0) };
         case 'scene': case 'depth': case 'normal': case 'meshMap': case 'bumpMap': return { value: null };
-        case 'codecOrigin': case 'fogColour': case 'fogZenithColour': case 'materialEmissive': case 'skyLightColour': case 'skyLightDirection': return { value: new THREE.Vector3() };
+        case 'codecOrigin': case 'fogZenithColour': case 'skyLightColour': case 'skyLightDirection': return { value: new THREE.Vector3() };
         default: throw new Error('material graph: an unknown host uniform');
       }
     default: throw new Error('material graph: an unknown uniform source');
   }
 }
 
+/** the uniform objects a lowered graph reads, made once (a fog graph's, lent to every program that selects it) */
+export function graphUniformValues(glsl: GraphGlsl, opts: GraphShaderOptions = {}): Map<string, THREE.IUniform> {
+  return new Map(glsl.uniforms.map(u => [u.name, uniformValue(glsl, u, opts)]));
+}
+
 /** Wrap a lowered graph in a classic program: the main draw (a material or a post pass), or its outline hull. */
 export function graphShaders(glsl: GraphGlsl, opts: GraphShaderOptions = {}): GraphShaders {
   const program = opts.outline === true ? glsl.outline : glsl.program;
   if (program === null) throw new Error(opts.outline === true ? 'material graph: no outline stage' : 'material graph: a fog graph has no program of its own');
-  const all = [...glsl.uniforms, ...(opts.fog?.uniforms ?? [])];
-  const seen = new Set<string>(), own = all.filter(u => (seen.has(u.name) ? false : (seen.add(u.name), true)));
+  const fog = opts.fog;
+  const seen = new Set<string>(), own: GraphGlslUniform[] = [], from = new Map<string, 'graph' | 'fog'>();
+  for (const [source, list] of [['graph', glsl.uniforms], ['fog', fog?.glsl.uniforms ?? []]] as const) {
+    for (const u of list) if (!seen.has(u.name)) { seen.add(u.name); own.push(u); from.set(u.name, source); }
+  }
   // the codec step and material colour every mesh program reads, declared once whether or not the graph names them
-  const declared = own.filter(u => u.name !== 'wsCodecStep').map(decl);
-  if (!seen.has('wsMaterialColour')) { own.push({ name: 'wsMaterialColour', type: 'vec3', from: 'host', host: 'materialColour' }); declared.push('uniform vec3 wsMaterialColour;'); }
-  if (!seen.has('wsCodecStep')) own.push({ name: 'wsCodecStep', type: 'float', from: 'host', host: 'codecStep' });
-  const uniforms: Record<string, THREE.IUniform> = {};
-  for (const u of own) uniforms[u.name] = uniformValue(opts.fog !== undefined && opts.fog.uniforms.includes(u) ? opts.fog : glsl, u, opts);
-  const text = declared.join('\n'), ir = glsl.ir;
+  for (const u of [{ name: 'wsMaterialColour', type: 'vec3', from: 'host', host: 'materialColour' }, { name: 'wsCodecStep', type: 'float', from: 'host', host: 'codecStep' }] as const) {
+    if (!seen.has(u.name)) { seen.add(u.name); own.push(u); from.set(u.name, 'graph'); }
+  }
+  const uniforms: Record<string, THREE.IUniform> = {}, shared = opts.shared;
+  for (const u of own) {
+    // a declared fog's uniforms are its compile's own objects (its setParam moves every selecting program); the graph's
+    // are shared between its draw and its outline
+    const lent = from.get(u.name) === 'fog' ? fog?.uniforms.get(u.name) : shared?.get(u.name);
+    const value = lent ?? uniformValue(from.get(u.name) === 'fog' && fog !== undefined ? fog.glsl : glsl, u, opts);
+    if (lent === undefined && from.get(u.name) === 'graph') shared?.set(u.name, value);
+    uniforms[u.name] = value;
+  }
+  const libraries = graphGlslLibraries([...glsl.libraries, ...(fog?.glsl.libraries ?? [])]);
+  const text = [...own.filter(u => u.name !== 'wsCodecStep').map(decl), libraries].join('\n'), ir = glsl.ir;
   if (ir.kind === 'post') {
     // a pass fades over the scene by its stack's owner weight (the engine's blend): one more tap of the colour input
     const extra = [...(seen.has('wsScene') ? [] : [{ name: 'wsScene', type: 'sampler2D', from: 'host', host: 'scene' } as const]),
@@ -458,39 +546,16 @@ export function graphShaders(glsl: GraphGlsl, opts: GraphShaderOptions = {}): Gr
     for (const u of extra) uniforms[u.name] = uniformValue(glsl, u, opts);
     return { ...postShaders(program, [text, ...extra.map(decl)].join('\n')), uniforms, lights: false, fog: false };
   }
-  const outline = opts.outline === true, lit = !outline && ir.model !== 'unlit';
-  const fogged = outline || ir.effectState?.fog !== false;
-  const declaredFog = fogged && opts.fog !== undefined;
+  const outline = opts.outline === true, depth = opts.depth === true, lit = !outline && !depth && ir.model !== 'unlit';
+  const fogged = !depth && (outline || ir.effectState?.fog !== false);
+  const declaredFog = fogged && fog !== undefined ? fog.glsl : undefined;
   if (lit) Object.assign(uniforms, THREE.UniformsUtils.merge([THREE.UniformsLib.lights, THREE.UniformsLib.envmap]), { ...uniforms });
-  if (fogged) Object.assign(uniforms, THREE.UniformsUtils.clone(THREE.UniformsLib.fog), { ...uniforms });
+  // three refreshes fogColor only for a fogged material: one that reads it unfogged keeps the uniforms (fog_fragment stays out)
+  if (fogged || program.fragment.body.includes('wsFogColour()') || program.vertex.body.includes('wsFogColour()')) Object.assign(uniforms, THREE.UniformsUtils.clone(THREE.UniformsLib.fog), { ...uniforms });
   return {
-    vertexShader: vertexShader(glsl, program, text, lit, declaredFog, outline),
-    fragmentShader: lit ? litFragment(glsl, program, text, fogged, declaredFog ? opts.fog : undefined, glsl.ir.model === 'toon')
-      : unlitFragment(glsl, program, text, fogged, declaredFog ? opts.fog : undefined),
-    uniforms, lights: lit, fog: fogged,
+    vertexShader: vertexShader(glsl, program, text, lit, declaredFog !== undefined, outline),
+    fragmentShader: lit ? litFragment(glsl, program, text, fogged, declaredFog, glsl.ir.model === 'toon')
+      : unlitFragment(glsl, program, text, fogged, declaredFog, depth),
+    uniforms, lights: lit, fog: fogged || program.fragment.body.includes('wsFogColour()') || program.vertex.body.includes('wsFogColour()'),
   };
-}
-
-/** A graph as a classic `ShaderMaterial` with the graph's render state (sides, blend, depth, flat shading, points). */
-export function graphShaderMaterial(glsl: GraphGlsl, opts: GraphShaderOptions = {}): THREE.ShaderMaterial {
-  const shaders = graphShaders(glsl, opts), ir = glsl.ir, effect = ir.effectState, outline = opts.outline === true;
-  const m = new THREE.ShaderMaterial({ vertexShader: shaders.vertexShader, fragmentShader: shaders.fragmentShader, uniforms: shaders.uniforms, lights: shaders.lights, fog: shaders.fog });
-  m.name = outline ? 'graph:outline' : `graph:${ir.kind}`;
-  m.defaultAttributeValues = { ...m.defaultAttributeValues, ...Object.fromEntries(glsl.attributes.flatMap(a => (a.default === null ? [] : [[a.name, [...a.default]]]))) };
-  if (ir.kind === 'post') { m.depthTest = false; m.depthWrite = false; return m; }
-  if (outline) { m.side = THREE.BackSide; return m; }
-  m.side = ir.doubleSided === true ? THREE.DoubleSide : THREE.FrontSide;
-  // three reads FLAT_SHADED from the material's own flag, which ShaderMaterial does not declare: the define carries it
-  if (ir.model !== 'unlit' && (ir.flatShading ?? ir.model === 'toon')) m.defines = { ...m.defines, FLAT_SHADED: '' };
-  if (ir.stages.surface?.alpha !== undefined) m.transparent = ir.stages.surface.alphaCutoff === undefined;
-  if (effect?.blend !== undefined) {
-    m.transparent = true;
-    m.blending = effect.blend === 'additive' ? THREE.AdditiveBlending : effect.blend === 'premultiplied' ? THREE.CustomBlending : THREE.NormalBlending;
-    if (effect.blend === 'premultiplied') { m.blendSrc = THREE.OneFactor; m.blendDst = THREE.OneMinusSrcAlphaFactor; m.blendSrcAlpha = THREE.OneFactor; m.blendDstAlpha = THREE.OneMinusSrcAlphaFactor; }
-  }
-  if (effect?.depthWrite !== undefined) m.depthWrite = effect.depthWrite;
-  if (effect?.singlePass === true || (m.transparent && m.side === THREE.DoubleSide && m.blending === THREE.AdditiveBlending && !m.depthWrite)) m.forceSinglePass = true;
-  if (effect?.depthBias !== undefined) { m.polygonOffset = true; m.polygonOffsetFactor = effect.depthBias.factor; m.polygonOffsetUnits = effect.depthBias.units; }
-  if (ir.stages.lighting?.grade !== undefined || (ir.model === 'unlit' && effect?.output !== 'colour')) m.toneMapped = false;
-  return m;
 }

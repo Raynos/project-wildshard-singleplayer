@@ -20,8 +20,8 @@
  *   functions as globals, so the light-free part of the sun term is shared between cascades, as in `compile.ts`.
  * - **A fog graph** lowers to `vec3 wsGraphFog(fogInput, engineFogged, positionWorld, cameraPosition, fogScale)`.
  * - **Host inputs** are fixed names the program provides (`glslProgram.ts`): the vertex prologue's `wsPositionLocal`,
- *   `wsNormalLocal`, `wsInstanceTransform()`, `wsInstanceColour()`, `wsVertexColour()`, `wsSkinDirection()`, the frame
- *   camera `wsFrameCamera` / `wsFrameView`, the lighting globals `wsNormalView`, `wsViewDirection`, `wsAlbedo`,
+ *   `wsNormalLocal`, `wsInstanceTransform()`, `wsInstanceColour()`, `wsVertexColour()`, `wsSkinDirection()`, `wsCameraNear()`,
+ *   `wsFogColour()`, the frame camera `wsFrameCamera` / `wsFrameView`, the lighting globals `wsNormalView`, `wsViewDirection`, `wsAlbedo`,
  *   `wsRoughness`, and the vertex epilogue's `transformed`, `wsWorldPosition`, `mvPosition`. Every uniform it reads is
  *   listed in `uniforms` with what feeds it.
  *
@@ -48,8 +48,8 @@ export type GraphGlslUniform =
   | { readonly name: string; readonly type: 'float' | 'vec2' | 'vec3' | 'vec4'; readonly from: 'toon'; readonly toon: string };
 /** the uniforms a host program feeds (the engine's own clocks, lights and targets) */
 export type GraphGlslHostUniform =
-  | 'time' | 'windTime' | 'windGust' | 'cameraNear' | 'fogColour' | 'fogZenithColour' | 'atmosphereSunDirection' | 'atmosphereSunColour'
-  | 'skyLightDirection' | 'skyLightColour' | 'materialColour' | 'materialEmissive' | 'screenSize' | 'codecStep' | 'codecOrigin'
+  | 'time' | 'windTime' | 'windGust' | 'fogZenithColour' | 'atmosphereSunDirection' | 'atmosphereSunColour'
+  | 'skyLightDirection' | 'skyLightColour' | 'materialColour' | 'materialEmissive' | 'materialEmissiveIntensity' | 'screenSize' | 'codecStep' | 'codecOrigin'
   | 'scene' | 'depth' | 'normal' | 'depthNear' | 'depthFar' | 'weight' | 'meshMap' | 'bumpMap';
 
 /** one stage's code: declarations at file scope, and statements inside `main` (the vertex stage's `end` runs after the transform) */
@@ -80,8 +80,10 @@ export interface GraphGlsl {
   readonly program: GraphGlslProgram | null;
   /** the outline stage's second draw */
   readonly outline: GraphGlslProgram | null;
-  /** a fog graph's function (file scope: uniforms, helpers and `vec3 wsGraphFog(...)`) */
+  /** a fog graph's function (file scope: `vec3 wsGraphFog(...)`; its libraries are in `libraries`) */
   readonly fog: string | null;
+  /** the shared GLSL libraries the code calls (MaterialX noise, three's hash), for the program to define once a stage */
+  readonly libraries: readonly string[];
   readonly uniforms: readonly GraphGlslUniform[];
   /** the declared geometry attributes (`aSeed`), with the value a mesh without one reads */
   readonly attributes: readonly { readonly name: string; readonly type: Exclude<GraphValueType, 'bool'>; readonly default: readonly number[] | null }[];
@@ -209,7 +211,9 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
   const uniform = (u: GraphGlslUniform): string => { if (!uniforms.has(u.name)) uniforms.set(u.name, u); return u.name; };
   const host = (h: GraphGlslHostUniform, type: Extract<GraphGlslUniform, { from: 'host' }>['type']): string => uniform({ name: `ws${h[0]?.toUpperCase() ?? ''}${h.slice(1)}`, type, from: 'host', host: h });
   const paramUniforms = new Map<string, string>(), paramIndex = new Map(Object.keys(ir.params ?? {}).map((name, i) => [name, i]));
-  const paramName = (prefix: string, name: string): string => `${prefix}${plain(name) === '' ? String(paramIndex.get(name) ?? 0) : `_${name}`}`;
+  // a fog graph's own uniforms are namespaced (`wsFogP_…`): every material selecting it declares them beside its own
+  const space = ir.kind === 'fog' ? 'Fog' : '';
+  const paramName = (prefix: string, name: string): string => `ws${space}${prefix.slice(2)}${plain(name) === '' ? String(paramIndex.get(name) ?? 0) : `_${name}`}`;
   for (const [name, p] of Object.entries(ir.params ?? {})) if (p.type !== 'texture') paramUniforms.set(name, paramName('wsP', name));
   const bindings = Object.entries(ir.params ?? {}).flatMap(([param, p]) => (p.bind === undefined ? [] : [{ param, bind: p.bind }]));
   const attributes = new Map<string, { name: string; type: Exclude<GraphValueType, 'bool'>; default: readonly number[] | null }>();
@@ -507,10 +511,10 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
           return { t: 'vec3', e: name };
         }
         case 'cameraPosition': return { t: 'vec3', e: ctx === 'fog' ? 'wsFogCamera' : 'wsFrameCamera' };
-        case 'cameraNear': return { t: 'float', e: host('cameraNear', 'float') };
+        case 'cameraNear': return { t: 'float', e: 'wsCameraNear()' };
         case 'time': return { t: 'float', e: host('time', 'float') };
         case 'fogZenithColour': return { t: 'vec3', e: host('fogZenithColour', 'vec3') };
-        case 'fogColour': return { t: 'vec3', e: host('fogColour', 'vec3') };
+        case 'fogColour': return { t: 'vec3', e: 'wsFogColour()' };
         case 'atmosphereSunDirection': return { t: 'vec3', e: host('atmosphereSunDirection', 'vec3') };
         case 'atmosphereSunColour': return { t: 'vec3', e: host('atmosphereSunColour', 'vec3') };
         case 'skyLightDirection': return { t: 'vec3', e: host('skyLightDirection', 'vec3') };
@@ -522,7 +526,7 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
         case 'vertexColour': return vertexOnly ? { t: 'vec3', e: 'wsVertexColour().rgb' } : { t: 'vec3', e: `${fromVertex('Colour', 'vec4', () => 'wsVertexColour()', 'start').e}.rgb` };
         case 'vertexColourAlpha': return vertexOnly ? { t: 'float', e: 'wsVertexColour().a' } : { t: 'float', e: `${fromVertex('Colour', 'vec4', () => 'wsVertexColour()', 'start').e}.a` };
         case 'materialColour': return { t: 'vec3', e: host('materialColour', 'vec3') };
-        case 'materialEmissive': return { t: 'vec3', e: host('materialEmissive', 'vec3') };
+        case 'materialEmissive': return { t: 'vec3', e: `(${host('materialEmissive', 'vec3')} * ${host('materialEmissiveIntensity', 'float')})` };
         case 'screenUV': return fragmentUv();
         case 'pointCoord': return { t: 'vec2', e: 'vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y)' };
         case 'fragCoord': return out('vec2', `vec2(gl_FragCoord.x, ${host('screenSize', 'vec2')}.y - gl_FragCoord.y)`);
@@ -823,9 +827,8 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
       }
     }
 
-    const libraryCode = [...(libraries.has('hash') ? [HASH_GLSL] : []), ...(libraries.has('noise') ? [NOISE_GLSL] : [])];
-    const vertexHead = [...varyings, ...libraryCode].join('\n');
-    const fragmentHead = [...varyings, ...libraryCode, ...globals, ...functions].join('\n');
+    const vertexHead = varyings.join('\n');
+    const fragmentHead = [...varyings, ...globals, ...functions].join('\n');
     const program: GraphGlslProgram = {
       vertex: { head: vertexHead, body: [...vertexStart, ...vertexRoot.lines].join('\n'), end: vertexEnd.join('\n') },
       fragment: { head: fragmentHead, body: fragmentRoot.lines.join('\n'), end: '' },
@@ -837,9 +840,14 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
   const main = ir.kind === 'fog' ? null : emitProgram('main');
   const outline = ir.kind === 'material' && ir.stages.outline !== undefined ? emitProgram('outline').program : null;
   const fog = ir.kind === 'fog' ? emitProgram('fog').fogFunction : null;
-  const fogHead = fog === null ? null : [...(libraries.has('hash') ? [HASH_GLSL] : []), ...(libraries.has('noise') ? [NOISE_GLSL] : []), fog].join('\n');
   return {
-    ir, cost, bindings, program: main?.program ?? null, outline, fog: fogHead,
+    ir, cost, bindings, program: main?.program ?? null, outline, fog, libraries: (['hash', 'noise'] as const).filter(name => libraries.has(name)),
     uniforms: [...uniforms.values()], attributes: [...attributes.values()],
   };
+}
+
+/** the code of the libraries lowered graphs call (`GraphGlsl.libraries`), each once, in a fixed order */
+export function graphGlslLibraries(names: Iterable<string>): string {
+  const wanted = new Set(names);
+  return [...(wanted.has('hash') ? [HASH_GLSL] : []), ...(wanted.has('noise') ? [NOISE_GLSL] : [])].join('\n');
 }
