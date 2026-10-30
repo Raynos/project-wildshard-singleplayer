@@ -1,8 +1,18 @@
-const switches = new Set(['help', 'worker', 'draw-budget', 'quiet', 'devserver', 'chromium-phone', 'entry-settle', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket', 'wasm-memory-probe', 'pause-ablation', 'buffer-ablation']);
+const switches = new Set(['help', 'worker', 'draw-budget', 'draw-budget-report-only', 'quiet', 'devserver', 'chromium-phone', 'entry-settle', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket', 'wasm-memory-probe', 'pause-ablation', 'buffer-ablation']);
 const values = new Set(['base', 'chromium-cpu', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
   'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile', 'safari-steady', 'safari-drive', 'safari-prefix', 'safari-window',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir',
   'textures', 'ktx2-probe', 'serve-shard', 'serve-base', 'standing-poses', 'native-memory', 'webkit-timeline', 'webkit-steady', 'native-pressure', 'wasm-constructors', 'jsc-gc-log', 'jsc-ram-size']);
+
+/** Explicit EP10 policy; reporting retains every miss without changing the floor verdict.
+ * @param {readonly string[]} args
+ * @returns {'enforce'|'report-only'} */
+export function frameFloorDrawBudgetMode(args) {
+  if (args.includes('--draw-budget') && args.includes('--draw-budget-report-only')) throw new Error('Choose one draw budget mode');
+  return args.includes('--draw-budget-report-only') ? 'report-only' : 'enforce';
+}
+/** @param {readonly string[]} args */
+const drawBudgetSelected = args => args.includes('--draw-budget') || args.includes('--draw-budget-report-only');
 
 /** Diagnostic throttle or the explicit EP10 4x protocol; never an official Simulator floor.
  * @param {readonly string[]} args */
@@ -14,7 +24,7 @@ export function frameFloorChromiumCpuRate(args) {
   if (selections.length !== 1 || !Number.isSafeInteger(rate) || rate < 1 || rate > 20
     || !args.includes('--surface=desktop') || !args.includes('--chromium-phone')
     || args.some(arg => arg.startsWith('--regrade='))
-    || !(args.some(arg => /^(?:--cpu-profile|--gpu-trace)=.+/u.test(arg)) || args.includes('--draw-budget') && rate === 4))
+    || !(args.some(arg => /^(?:--cpu-profile|--gpu-trace)=.+/u.test(arg)) || drawBudgetSelected(args) && rate === 4))
     throw new Error('--chromium-cpu requires a diagnostic phone Chromium profile and one integer rate from 1 to 20');
   return rate;
 }
@@ -23,10 +33,11 @@ export function frameFloorChromiumCpuRate(args) {
  * @param {readonly string[]} args
  */
 export function validateFrameFloorArgs(args) {
+  frameFloorDrawBudgetMode(args);
   const cpuRate = frameFloorChromiumCpuRate(args);
-  if (args.includes('--draw-budget') && (cpuRate !== 4 || !args.includes('--chromium-phone') || !args.includes('--surface=desktop')))
+  if (drawBudgetSelected(args) && (cpuRate !== 4 || !args.includes('--chromium-phone') || !args.includes('--surface=desktop')))
     throw new Error('Draw budget requires phone Chromium at exactly 4x CPU');
-  if (args.includes('--draw-budget') && args.some(arg => ['--gl-time', '--gpu-bisect', '--task-clock', '--gl-observer=on'].includes(arg)
+  if (drawBudgetSelected(args) && args.some(arg => ['--gl-time', '--gpu-bisect', '--task-clock', '--gl-observer=on'].includes(arg)
     || /^(?:--cpu-profile|--gpu-trace)=/u.test(arg))) throw new Error('Draw budget requires a window without profiling or GL wrappers');
   for (const arg of args) {
     const equals = arg.indexOf('='), name = arg.slice(2, equals === -1 ? undefined : equals);

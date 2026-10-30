@@ -4,3 +4,6 @@ export function validateFrameFloorArgs(args: readonly string[]): void;
 export function frameFloorChromiumCpuRate(args: readonly string[]): number;
 /** Parse a route:start:end selection in whole seconds, bounded to twenty seconds. */
 export function parseSafariWindow(value: string): { route: string; fromMs: number; toMs: number } | null;
+
+/** Report-only mode is explicit; ordinary floor enforcement is unchanged. */
+export function frameFloorDrawBudgetMode(args: readonly string[]): 'enforce' | 'report-only';

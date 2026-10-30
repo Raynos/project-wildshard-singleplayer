@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { assessDrawBudget, renderCpuUsPerDraw, type DrawSample } from '../src/engine/core/drawBudget';
 import { drawBudgetCounter } from '../src/engine/ui/drawBudgetCounter';
-import { validateFrameFloorArgs } from '../scripts/frame-floor-args.mjs';
+import { validateFrameFloorArgs, frameFloorDrawBudgetMode } from '../scripts/frame-floor-args.mjs';
 
 const phone4 = { tier: 'phone', cpuRate: 4 };
 test('inclusive per-frame draw and 4x CPU limits pass exactly at the budget', () => {
@@ -59,14 +59,14 @@ test('wrapper-free draw-budget protocol requires exactly 4x phone Chromium and p
 interface Graded { pass: boolean; results: { rows: { pass: boolean; rows: { pass: boolean; drawBudget: { cpuApplied: boolean } }[] }[] }[] }
 type Grade = (record: unknown) => Graded;
 const isGrade = (value: unknown): value is Grade => typeof value === 'function';
-function grade(samples: DrawSample[], surface = 'desktop', cpuRate = 4): Graded {
+function grade(samples: DrawSample[], surface = 'desktop', cpuRate = 4, mode: 'enforce' | 'report-only' = 'enforce', maxMs = 34): Graded {
   const source = readFileSync('scripts/frame-floor.mjs', 'utf8');
   const start = source.indexOf('function assess('), end = source.indexOf('\nfunction printVerdict(', start);
   const loaded: unknown = runInNewContext(`${source.slice(start, end)};grade`, { chromiumPhone: false, chromiumCpuRate: 1, assessDrawBudget });
   if (!isGrade(loaded)) throw new Error('Missing real frame-floor grader');
-  return loaded({ underTenMinutes: true, chromiumCpuRate: cpuRate, settings: { tier: 'phone' }, results: [{ surface,
+  return loaded({ underTenMinutes: true, chromiumCpuRate: cpuRate, drawBudgetMode: mode, settings: { tier: 'phone' }, results: [{ surface,
     rows: [{ complete: true, errors: [], metadata: { settings: { tier: 'phone' } }, rows: [{ frames: samples.length, skipped: 0, contextLost: false,
-      maxMs: 34, medianFps: 30, p95Ms: 34, workP95Ms: 5, drawSamples: samples,
+      maxMs, medianFps: 30, p95Ms: 34, workP95Ms: 5, drawSamples: samples,
       cpu: { enabled: true, frames: samples.length, owners: [{ p95Ms: 1 }] } }] }] }] });
 }
 test('real frame-floor rows and aggregate verdict fail above budget even when cadence passes', () => {
@@ -74,4 +74,25 @@ test('real frame-floor rows and aggregate verdict fail above budget even when ca
   expect(grade([{ draws: 151, renderMs: 1 }]).pass).toBe(false);
   expect(grade([{ draws: 150, renderMs: 4.501 }]).pass).toBe(false);
   expect(grade([{ draws: 150, renderMs: 10 }], 'sim').results[0]?.rows[0]?.rows[0]?.drawBudget.cpuApplied).toBe(false);
+});
+
+
+test('report-only budget retains misses while all original floor gates remain blocking', () => {
+  const over = [{ draws: 151, renderMs: 5 }];
+  expect(grade(over).pass).toBe(false);
+  const reported = grade(over, 'desktop', 4, 'report-only');
+  expect(reported.pass).toBe(true);
+  expect(reported.results[0]?.rows[0]?.rows[0]?.drawBudget).toMatchObject({ pass: false, drawsPass: false, cpuPass: false, samples: 1 });
+  expect(grade(over, 'desktop', 4, 'report-only', 201).pass).toBe(false);
+  expect(grade(over, 'desktop', 4, 'enforce').pass).toBe(false);
+});
+
+test('report-only protocol is explicit, wrapper-free 4x and cannot silently replace enforcement', () => {
+  const args = ['--surface=desktop', '--chromium-phone', '--chromium-cpu=4', '--draw-budget-report-only'];
+  expect(frameFloorDrawBudgetMode(args)).toBe('report-only');
+  expect(frameFloorDrawBudgetMode([])).toBe('enforce');
+  expect(() => validateFrameFloorArgs(args)).not.toThrow();
+  for (const bad of [[...args, '--draw-budget'], [...args, '--quiet'], [...args, '--gl-time'], [...args, '--gl-observer=on'],
+    args.map(value => value === '--chromium-cpu=4' ? '--chromium-cpu=1' : value), args.filter(value => value !== '--chromium-phone')])
+    expect(() => validateFrameFloorArgs(bad)).toThrow();
 });

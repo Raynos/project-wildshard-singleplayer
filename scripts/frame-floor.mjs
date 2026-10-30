@@ -9,6 +9,10 @@
 // Owns a clean, pinned HEAD preview, browser/simulator lanes and their cleanup. Exit 2 = floor misses;
 // exit 3 = incomplete measurement. --regrade=<baseline> reapplies current floor policy without rerendering.
 // --surface=sim --quiet: the official worker holds bounded quiet only while reading, after the build.
+// EP10 CI reporting: --surface=desktop --chromium-phone --chromium-cpu=4 --draw-budget-report-only
+// --shards=nine-dragon-stack,pine-hollow,driftwood-isle --serve-base=<same-SHA prepare server> --rev=<SHA>
+// keeps existing floor verdicts; budget misses/coverage remain in paired raw rows plus sibling
+// *-draw-budget.json / .md and GITHUB_STEP_SUMMARY. No new blocking CI gate or official floor credit.
 // --webkit-timeline=<existing scratch directory>: raw per-drive Inspector records; diagnostic only, no GL timers.
 // Long-frame gate (Jake: 60-120 fps desktop / 30-60 fps Simulator "at all moments"): every row FAILS
 // when a frame exceeds 100 ms desktop / 200 ms Simulator. Whole drives include every build still running
@@ -22,7 +26,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { fixtureStorageCode, saveFixtureCode } from './debug-settings.mjs';
 import { frameFloorSettingsCode } from './frame-floor-settings.mjs';
 import { startFloorNative } from './frame-floor-native.mjs';
-import { validateFrameFloorArgs, parseSafariWindow, frameFloorChromiumCpuRate } from './frame-floor-args.mjs';
+import { validateFrameFloorArgs, parseSafariWindow, frameFloorChromiumCpuRate, frameFloorDrawBudgetMode } from './frame-floor-args.mjs';
 import { frameFloorShards } from './frame-floor-inventory.mjs';
 import { handoffFloorGridNavigation, FLOOR_GRID_TAP } from './frame-floor-navigation.mjs';
 import { selectFloorGridPlans, gridFloorPoses, gridFloorPlans, floorGridPortalPlan, readFloorGridEntryways, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
@@ -33,6 +37,7 @@ import { startScriptProfile, startPrefixScriptProfile, startDriveWindowScriptPro
 import { TimelineRecordingError, timelineLongFrames } from './frame-floor-webkit-timeline.mjs';
 import { createWebKitTimelineSession } from './frame-floor-timeline-session.ts';
 import { assessDrawBudget } from '../src/engine/core/drawBudget.ts';
+import { frameFloorDrawReport, frameFloorDrawMarkdown, writeFrameFloorDrawReport } from './frame-floor-draw-report.mjs';
 import { BUFFER_PRESSURE_SCRIPT } from './frame-floor-buffer-pressure.mjs';
 import { ABLATION_NORMAL, ablationPhases, refreshAblationInspector } from './frame-floor-pause-ablation.mjs';
 import { startJscGcLog, jscGcProcessIds } from './frame-floor-jsc-gc.mjs';
@@ -47,6 +52,7 @@ const SCRIPT = import.meta.filename;
 const ALL = frameFloorShards(ROOT);
 const args = process.argv.slice(2);
 validateFrameFloorArgs(args);
+const drawBudgetMode = frameFloorDrawBudgetMode(args);
 const flag = (name, fallback) => args.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const shards = flag('shards', ALL.join(',')).split(',');
 const surface = flag('surface', 'both');
@@ -84,7 +90,7 @@ const gridCellPose = gridCellPoseArg === '' ? null : (() => {
   return { name: `grid-${gridCell}-pose`, x: v[0], y: v[1], z: v[2], yaw: v[3] * Math.PI / 180, pitch: (v[4] ?? 0) * Math.PI / 180 };
 })();
 // The opt-in standing observer is sampled; full per-draw label diagnostics never belong to a floor.
-const glObserver = flag('gl-observer', args.includes('--draw-budget') || gridScenario === 'baseline' ? 'off' : 'on');
+const glObserver = flag('gl-observer', args.includes('--draw-budget') || args.includes('--draw-budget-report-only') || gridScenario === 'baseline' ? 'off' : 'on');
 if (!['off', 'on'].includes(glObserver)) throw new Error('GL observer must be off or on');
 const travelGl = glObserver === 'on' ? GL_INIT : '';
 // op-hitch23: opt-in desktop CPU attribution of each grid travel leg (CDP sampling profiler + Long Task entries); the raw
@@ -160,7 +166,7 @@ if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'mil
 if (publicGrid && (gridScenario === 'milestone' || gridScenario === 'reentry')) throw new Error('Milestone and re-entry floors require Developer mode');
 if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--standing-poses=name,...] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--textures=ktx2|img] [--ktx2-probe=skip] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|reentry|outer-road|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket] [--rising-islet=north|east|south|west]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--chromium-phone --chromium-cpu=4 --draw-budget] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--safari-steady=<grid-interior-pose>] [--safari-drive=<grid-route>] [--safari-prefix=<grid-route>] [--safari-window=<route:start:end seconds>] [--gl-time] [--frame-timeline] [--wasm-constructors=<scratch dir>] [--wasm-memory-probe] [--task-clock] [--gpu-bisect] [--scratch-dir=<owned workspace>] [--serve-shard=<slug>] [--serve-base=<served preview url of --rev>]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--standing-poses=name,...] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--textures=ktx2|img] [--ktx2-probe=skip] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|reentry|outer-road|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket] [--rising-islet=north|east|south|west]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--chromium-phone --chromium-cpu=4 --draw-budget|--draw-budget-report-only] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--safari-steady=<grid-interior-pose>] [--safari-drive=<grid-route>] [--safari-prefix=<grid-route>] [--safari-window=<route:start:end seconds>] [--gl-time] [--frame-timeline] [--wasm-constructors=<scratch dir>] [--wasm-memory-probe] [--task-clock] [--gpu-bisect] [--scratch-dir=<owned workspace>] [--serve-shard=<slug>] [--serve-base=<served preview url of --rev>]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
@@ -177,7 +183,8 @@ const picks = Object.fromEntries(settingArgs.map((arg) => {
 // Simulator's 30 fps floor; a profile proxy for a Simulator miss, never a floor reading
 const chromiumPhone = args.includes('--chromium-phone');
 const chromiumCpuRate = frameFloorChromiumCpuRate(args);
-const drawBudgetOn = args.includes('--draw-budget');
+const chromiumAngle = process.platform === 'darwin' ? 'metal' : 'swiftshader';
+const drawBudgetOn = ['--draw-budget', '--draw-budget-report-only'].some(arg => args.includes(arg));
 const settings = { ...picks, tier: surface === 'sim' || chromiumPhone ? 'phone' : 'desktop', fps: 'auto' };
 const deviceSaveArgs = args.filter((arg) => arg.startsWith('--device-save='));
 const deviceSaves = Object.fromEntries(deviceSaveArgs.map((arg) => {
@@ -207,7 +214,7 @@ const errorText = (e) => e instanceof Error ? e.message : String(e);
 
 // Jake's SF0 clarification (2026-10-04): allow vsync quantization, retain the original strict verdict.
 function assess(result, measuredOn, drawContext) {
-  const context = drawContext ?? { tier: chromiumPhone || measuredOn === 'sim' ? 'phone' : 'desktop', cpuRate: chromiumCpuRate };
+  const context = drawContext ?? { tier: chromiumPhone || measuredOn === 'sim' ? 'phone' : 'desktop', cpuRate: chromiumCpuRate, drawBudgetMode };
   const surfaceName = measuredOn === 'desktop' && context.tier === 'phone' ? 'chromium-phone' : measuredOn;
   const floorFps = surfaceName === 'desktop' ? 60 : 30;
   // The milestone gates every observed frame, including spawn, short travel and interiors.
@@ -220,16 +227,17 @@ function assess(result, measuredOn, drawContext) {
   const cpuPass = result.cpu?.enabled === true && result.cpu.frames === result.frames && result.cpu.owners.length > 0 && result.cpu.owners.every(owner => Number.isFinite(owner.p95Ms) && owner.p95Ms <= cpuLimitMs);
   const valid = result.skipped === 0 && result.contextLost === false;
   const drawBudget = assessDrawBudget(result.drawSamples, result.frames, context);
-  const pass = drawBudget.pass && valid && cpuPass && maxFramePass && medianFpsRounded >= floorFps && result.p95Ms <= limitMs;
+  const drawPass = context.drawBudgetMode === 'report-only' || drawBudget.pass;
+  const pass = drawPass && valid && cpuPass && maxFramePass && medianFpsRounded >= floorFps && result.p95Ms <= limitMs;
   const strictP95Pass = result.p95Ms <= strictMs;
-  const strictPass = drawBudget.pass && valid && maxFramePass && medianFpsRounded >= floorFps && strictP95Pass;
-  const miss = pass ? null : drawBudget.miss ?? (!valid ? 'invalid measurement' : !cpuPass ? 'content CPU share / missing ownership measurement' : !maxFramePass ? `long frame: max ${result.maxMs} ms > ${maxFrameLimitMs} ms` : result.p95Ms > limitMs || result.medianFps < floorFps * 0.95 || result.workP95Ms > 1000 / floorFps ? 'frame cost / scheduling' : 'timing quantization');
+  const strictPass = drawPass && valid && maxFramePass && medianFpsRounded >= floorFps && strictP95Pass;
+  const miss = pass ? null : (context.drawBudgetMode === 'report-only' ? null : drawBudget.miss) ?? (!valid ? 'invalid measurement' : !cpuPass ? 'content CPU share / missing ownership measurement' : !maxFramePass ? `long frame: max ${result.maxMs} ms > ${maxFrameLimitMs} ms` : result.p95Ms > limitMs || result.medianFps < floorFps * 0.95 || result.workP95Ms > 1000 / floorFps ? 'frame cost / scheduling' : 'timing quantization');
   return { drawBudget, floorFps, medianFpsRounded, strictMs, limitMs, cpuLimitMs, cpuPass, maxFrameLimitMs, maxFramePass, pass, strictP95Pass, strictPass, miss };
 }
 function grade(record) {
-  record.criteria = { medianFps: 'Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained', p95Ms: '<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period', strictP95Ms: '<= 16.7 desktop / <= 33.3 Simulator', drawBudget: 'Phone: every observed frame <=150 draws including shadow/post/held; paired render CPU <=30 us/draw only at measured Chromium 4x; no extrapolation', cpu: 'Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded', maxFrameMs: 'Every observed row: max <= 100 ms desktop / <= 200 ms Simulator' };
+  record.criteria = { medianFps: 'Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained', p95Ms: '<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period', strictP95Ms: '<= 16.7 desktop / <= 33.3 Simulator', drawBudget: `${record.drawBudgetMode === 'report-only' ? 'Report-only' : 'Enforced'}. Phone: every observed frame <=150 draws including shadow/post/held; paired render CPU <=30 us/draw only at measured Chromium 4x; no extrapolation`, cpu: 'Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded', maxFrameMs: 'Every observed row: max <= 100 ms desktop / <= 200 ms Simulator' };
   for (const result of record.results) for (const shard of result.rows) {
-    for (const row of shard.rows ?? []) Object.assign(row, assess(row, result.surface, { tier: shard.metadata?.settings?.tier ?? record.settings?.tier ?? (result.surface === 'sim' ? 'phone' : 'desktop'), cpuRate: result.surface === 'desktop' ? record.chromiumCpuRate ?? 1 : 1 }));
+    for (const row of shard.rows ?? []) Object.assign(row, assess(row, result.surface, { tier: shard.metadata?.settings?.tier ?? record.settings?.tier ?? (result.surface === 'sim' ? 'phone' : 'desktop'), cpuRate: result.surface === 'desktop' ? record.chromiumCpuRate ?? 1 : 1, drawBudgetMode: record.drawBudgetMode ?? 'enforce' }));
     if (shard.complete) shard.pass = !shard.runtimeFailure && (shard.rows ?? []).every((row) => row.pass) && shard.errors.length === 0;
   }
   record.complete = record.results.every((result) => result.rows.every((shard) => shard.complete));
@@ -960,7 +968,7 @@ async function worker() {
     let driver;
     if (surface === 'desktop') {
       const { chromium } = await import('playwright');
-      browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+      browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', `--use-angle=${chromiumAngle}`, '--ignore-gpu-blocklist'] });
       context = await browser.newContext({ ...(chromiumPhone ? { viewport: { width: 402, height: 874 }, deviceScaleFactor: 3 } : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 }), serviceWorkers: 'block' });
       await context.addInitScript({ content: `${fixture(settings.tier)};window.__wildshardHarness=${HARNESS_PINS};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${LONGTASK_SCRIPT}${GL_TIME_SCRIPT}${TASK_CLOCK}${travelGl}` });
       let errors = [], profiler = null, throttle = null;
@@ -1137,7 +1145,7 @@ async function main() {
     if (!JSON.stringify(version).includes(sha.slice(0, 7))) throw new Error(`Preview build id does not match ${sha}: ${JSON.stringify(version)}`);
     // Safari cannot inject a pre-navigation script with its inspector protocol. Add pins to a COPY of the clean
     // entry HTML in the served dist only. Compiled JS/assets and all gameplay remain byte-identical to the export.
-    if (!wasmMemoryProbe) {
+    if (!wasmMemoryProbe && surface !== 'desktop') {
       const registry = readFileSync(join(process.env.HOME, '.dev-servers', new URL(base).port), 'utf8').trim().split(' ');
       const dist = join(registry[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8');
       const helper = join(dist, 'frame-floor-safari.html');
@@ -1147,7 +1155,7 @@ async function main() {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
       const workerArgs = [SCRIPT, '--worker', ...(devserverBuild ? ['--devserver'] : []), `--surface=${s}`, `--developer=${developer}`, `--standing-poses=${standingPoses.join(',')}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(roadApproach ? ['--road-approach'] : []), ...(entrySocket ? ['--entry-socket'] : []), ...(risingIslet === '' ? [] : [`--rising-islet=${risingIslet}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(texturesPin === '' ? [] : [`--textures=${texturesPin}`]), ...(ktx2ProbePin === '' ? [] : [`--ktx2-probe=${ktx2ProbePin}`]), ...(glTime ? ['--gl-time'] : []), ...(gpuBisectOn ? ['--gpu-bisect'] : []), ...(frameTimeline ? ['--frame-timeline'] : []), ...(taskClock ? ['--task-clock'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(safariProfileDir === '' ? [] : [`--safari-profile=${safariProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       if (chromiumPhone) workerArgs.push('--chromium-phone');
-      if (drawBudgetOn) workerArgs.push('--draw-budget');
+      if (drawBudgetOn) workerArgs.push(drawBudgetMode === 'report-only' ? '--draw-budget-report-only' : '--draw-budget');
       if (chromiumCpuRate !== 1) workerArgs.push(`--chromium-cpu=${chromiumCpuRate}`);
       if (entrySettle) workerArgs.push('--entry-settle');
       if (jscGcDirectory !== '') workerArgs.push(`--jsc-gc-log=${jscGcDirectory}`);
@@ -1183,7 +1191,7 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      drawBudgetOn, ...(chromiumCpuRate === 1 ? {} : {chromiumCpuRate, diagnostic: 'cpu-throttled-chromium', floorTimingCredit: false}),
+      drawBudgetOn, drawBudgetMode, chromiumAngle, ...(chromiumCpuRate === 1 ? {} : {chromiumCpuRate, diagnostic: 'cpu-throttled-chromium', floorTimingCredit: false}),
       frames, settleMs, standingPoses, shards, surface, developer, quiet: quietSample, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, gpuBisect: gpuBisectOn, safariProfile: safariProfileDir !== '', ...(safariSteadyPose === '' ? {} : {safariSteady: {pose: safariSteadyPose, seconds: 20}}), ...(safariDrive === '' ? {} : {safariDrive: {route: safariDrive, ...(safariSteadyPose === '' ? {earlyPlaySeconds: 20} : {separateSteady: true})}}), ...(safariPrefix === '' ? {} : {safariPrefix: {route: safariPrefix, seconds: 20}}), ...(safariWindow === null ? {} : {safariWindow}), webkitTimeline: webkitTimelineDir !== '', ...(webkitSteadyPose === '' ? {} : {webkitSteady: {poses: webkitSteadyPoses, seconds: 20}}), pauseAblation, bufferAblation, nativeJscGcLog: jscGcDirectory !== '', ...(jscRamSize === 0 ? {} : {diagnosticJscRamSizeBytes: jscRamSize}), wasmConstructors: wasmConstructorsDir !== '', nativePressure: nativePressureDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: `${chromiumCpuRate === 1 ? '' : `Diagnostic page CPU ${chromiumCpuRate}x; no official floor timing credit. `}Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass or capture clock.${chromiumCpuRate === 1 ? ' No CPU throttling.' : ''}`,
@@ -1192,6 +1200,10 @@ async function main() {
     const output = join(directory, `${sha.slice(0, 9)}-${runId}.json`);
     writeFileSync(output, `${JSON.stringify(record, null, 2)}\n`);
     printVerdict(record);
+    if (drawBudgetOn) {
+      writeFrameFloorDrawReport(record, output, process.env.GITHUB_STEP_SUMMARY);
+      console.log(frameFloorDrawMarkdown(frameFloorDrawReport(record)));
+    }
     console.log(`Baseline ${output}: ${elapsedSeconds.toFixed(1)} seconds, complete=${record.complete}, pass=${record.pass}`);
     process.exitCode = record.complete ? record.pass ? 0 : 2 : 3;
   } finally {
