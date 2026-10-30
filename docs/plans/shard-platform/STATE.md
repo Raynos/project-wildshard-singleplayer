@@ -6,7 +6,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **Legacy (G882 / G883 / G885 / G891):** legacy-final 91a9eef081; Sky + Signal 3be88b3081, Nalati b592b94008, Driftwood
 019fa6d0c7. **G908: Pine + Nine untouched** (no prep) until Jake's word after his final QA, likely 10-30.
 
-**LIVE 125bda048-mvu1h3gt**; 2b62556596 fully green (ship blocked by CI2 packaging, fixed f3dcc64710); 00:30 fallback ships 2b62.
+**LIVE 125bda048-mvu1h3gt → 2b62556596 shipping** (00:30 fallback, release run 41008762560, recovery source run 40998533769); CI2 packaging fixed f3dcc64710.
 **Open:** MF7 battery (phone), MF12 / QS3 Sentry (wildshard-v), MF20 CPU bar (Jake's pick), FC9 (o5), QB20 thermal (phone), CI2 / 3 / 5 / 6 / 7 / 9 / 10
 remote acceptance, CI12 Nalati (x6, x8, kernels o3 / o4), CI14 pin waves. For Jake: MF13 'Refine dither' phone check; QB17 zip video
 tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
