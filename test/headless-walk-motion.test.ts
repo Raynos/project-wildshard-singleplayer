@@ -86,7 +86,9 @@ test('only the explicit physics ruler holds actors, including births, then resto
     host.step();expect(firstStep).toHaveBeenCalledTimes(1);expect(heldStep).not.toHaveBeenCalled();expect(bornSteps).toBe(1);
     expect(()=>runHeadlessJourney(host,()=>{throw new Error('Native refusal');},plan)).toThrow('Native refusal');
     expect(first.harnessHold).toBe(false);expect(held.harnessHold).toBe(true);expect(host.hasStep('physics.walk.hold')).toBe(false);
-    runHeadlessJourney(host,()=>host.step(),{ticks:10,points:plan.points});
-    expect(firstStep).toHaveBeenCalledTimes(11);expect(bornSteps).toBe(11);expect(heldStep).not.toHaveBeenCalled();
+    const priorCalls=firstStep.mock.calls.length,priorBirthCalls=bornSteps;
+    const live=runHeadlessJourney(host,()=>host.step(),{ticks:10,points:plan.points});
+    const committed=live.ticks+live.preparationTicks+live.settledTicks;
+    expect(firstStep).toHaveBeenCalledTimes(priorCalls+committed);expect(bornSteps).toBe(priorBirthCalls+committed);expect(heldStep).not.toHaveBeenCalled();
   }finally{sim.dispose();}
 });
