@@ -26,6 +26,12 @@ const OWN_UNIFORMS: ReadonlySet<string> = new Set(['wsMaterialColour', 'wsMateri
   'wsMaterialRoughness', 'wsAlphaCutoff', 'wsCodecStep', 'wsCodecOrigin', 'normalMap', 'normalMapTransform', 'normalScale', 'roughnessMap',
   'roughnessMapTransform', 'aoMap', 'aoMapTransform', 'aoMapIntensity']);
 
+/** a variant's copy of an own uniform's value: a colour, vector or matrix its own, a texture (or a number) as it is */
+function ownValue(value: unknown): unknown {
+  return value instanceof THREE.Color || value instanceof THREE.Vector2 || value instanceof THREE.Vector3 || value instanceof THREE.Vector4
+    || value instanceof THREE.Matrix3 ? value.clone() : value;
+}
+
 /** the compiled materials that own their graph's shadow depth (their clones share it) */
 const depthOwners = new WeakSet<THREE.Material>();
 
@@ -100,15 +106,16 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
   }
 
   override copy(source: THREE.ShaderMaterial): this {
-    super.copy(source);
+    // three's copy deep-clones every uniform value, a texture too, and a texture's clone bumps the version of the source it
+    // shares (Texture.copy sets needsUpdate): a compressed texture whose mips retired then reads as changed and its next
+    // draw throws. Three is handed no uniforms to clone; the graph's are shared, a variant's own values copied, its
+    // textures the same textures
+    const uniforms = source.uniforms;
+    source.uniforms = {};
+    try { super.copy(source); } finally { source.uniforms = uniforms; }
     this.codec = source instanceof GraphShaderMaterial && source.codec !== null ? new ClassicCodec() : null;
     this.shadowDepth = source instanceof GraphShaderMaterial ? source.shadowDepth : null;
-    // three's copy clones every uniform value (a texture too): the graph's are shared again, a variant's own map stays the
-    // same texture, its colours its own copies
-    for (const [name, uniform] of Object.entries(source.uniforms)) {
-      if (!OWN_UNIFORMS.has(name)) this.uniforms[name] = uniform;
-      else if (uniform.value instanceof THREE.Texture) this.uniforms[name] = { value: uniform.value };
-    }
+    for (const [name, uniform] of Object.entries(uniforms)) this.uniforms[name] = OWN_UNIFORMS.has(name) ? { value: ownValue(uniform.value) } : uniform;
     return this;
   }
 

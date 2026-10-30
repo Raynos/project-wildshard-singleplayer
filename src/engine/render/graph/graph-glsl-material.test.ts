@@ -142,3 +142,14 @@ test('each variant of a displaced caster casts with its own copy of the graph de
   const plain = compileClassicGraph({ version: 1, kind: 'material', model: 'standard', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } }).material;
   expect(classicShadowDepth(plain, stock, mesh)).toBe(null); expect(classicShadowDepth(stock, stock, mesh)).toBe(null);
 });
+
+test('a clone never clones a texture: a shared source keeps its version (a compressed texture\'s retired mips stay valid)', () => {
+  const compiled = compileClassicGraph({ version: 1, kind: 'material', model: 'standard', params: { ramp: { type: 'texture', value: 'ramp', role: 'lent' } },
+    nodes: { u: { op: 'uv' }, r: { op: 'texture', param: 'ramp', in: ['u'] }, s: { op: 'swizzle', in: ['r'], mask: 'xyz' } }, stages: { surface: { colour: 's' } } });
+  const ramp = new THREE.DataTexture(new Uint8Array(4), 1, 1), map = new THREE.DataTexture(new Uint8Array(4), 1, 1), normal = new THREE.Texture();
+  compiled.setTexture('ramp', ramp); compiled.material.map = map; compiled.material.normalMap = normal;
+  const versions = [ramp, map, normal].map(t => t.source.version), copy = compiled.material.clone();
+  expect([ramp, map, normal].map(t => t.source.version)).toEqual(versions);
+  expect(copy.uniforms['wsT_ramp']?.value).toBe(ramp); expect(copy.map).toBe(map); expect(copy.normalMap).toBe(normal);
+  copy.normalScale.set(3, 3); expect(compiled.material.normalScale.x).toBe(1);
+});
