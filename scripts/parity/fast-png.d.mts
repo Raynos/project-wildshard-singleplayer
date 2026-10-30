@@ -1,6 +1,9 @@
 import type { Page } from 'playwright';
 import type { Buffer } from 'node:buffer';
 
+/** Decode the native screenshot protocol's PNG payload. */
+export function decodeProtocolPng(data:string):Buffer;
+
 export interface CaptureOptions {
   format:'png'; clip:{x:number;y:number;width:number;height:number;scale:number};
   fromSurface:true; captureBeyondViewport:false; optimizeForSpeed:true;

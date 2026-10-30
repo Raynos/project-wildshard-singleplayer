@@ -1,5 +1,6 @@
-import { spawn, spawnSync, execFileSync, execFile } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { spawn, spawnSync, execFileSync } from 'node:child_process';
+import { writeFileSync } from 'node:fs';
+import sharp from 'sharp';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { devices, webkit } from 'playwright';
 import { soakInspector } from '../soak/inspector.mjs';
@@ -7,6 +8,7 @@ import { bootLifecycleDiagnostic } from './boot-smoke.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { phoneTouchButton } from './phone-route-page.mjs';
 import { randomUUID } from 'node:crypto';
+import { decodeProtocolPng } from './fast-png.mjs';
 
 /** @typedef {import('../soak/inspector.mjs').Inspector} Inspector */
 /** @param {unknown} result */
@@ -46,6 +48,35 @@ export function phoneDocumentMatches(snapshot, url, previous) {
 }
 
 const documentExpression = '({url:location.href,visit:window.__phoneRouteVisit,document:window.__phoneRouteDocument,boot:window.__phoneRouteBootURL})';
+
+/** Capture the actual composited WebKit viewport, with the original 10s cap.
+ * No substitute image or retry is permitted if the native page cannot answer.
+ * @param {Pick<Inspector,'send'>} inspector @param {string} path */
+export async function captureNativePhonePage(inspector,path) {
+  /** @type {ReturnType<typeof setTimeout>|undefined} */ let timer;
+  let expired=false;
+  /** @type {Promise<never>} */
+  const limit=new Promise((_resolve,reject)=>{
+    timer=setTimeout(()=>{expired=true;reject(new Error('Native phone snapshot exceeded its original 10s deadline'));},10_000);
+  });
+  const capture=async()=>{
+    const viewport=value(await inspector.send('Runtime.evaluate',{expression:'({width:innerWidth,height:innerHeight})',returnByValue:true}));
+    if(typeof viewport!=='object'||viewport===null||!('width' in viewport)||!('height' in viewport)
+      ||typeof viewport.width!=='number'||typeof viewport.height!=='number'||![viewport.width,viewport.height].every(Number.isFinite)
+      ||viewport.width<=0||viewport.height<=0||viewport.width*viewport.height>16_000_000)throw new Error('Invalid native phone viewport');
+    const result=await inspector.send('Page.snapshotRect',{x:0,y:0,width:viewport.width,height:viewport.height,coordinateSystem:'Viewport'});
+    const prefix='data:image/png;base64,';
+    if(typeof result!=='object'||result===null||!('dataURL' in result)||typeof result.dataURL!=='string'
+      ||!result.dataURL.startsWith(prefix)||result.dataURL.length>24_000_000)throw new Error('Invalid native phone snapshot');
+    const png=decodeProtocolPng(result.dataURL.slice(prefix.length));
+    const bytes=path.endsWith('.jpg')?await sharp(png).jpeg({quality:80}).toBuffer():png;
+    await sharp(bytes).metadata();
+    if(expired)throw new Error('Native phone snapshot arrived after its deadline');
+    writeFileSync(path,bytes);return bytes;
+  };
+  try{return await Promise.race([capture(),limit]);}
+  finally{clearTimeout(timer);}
+}
 
 /** @param {string} engine @param {string} base @param {string} _out @returns {Promise<import('./phone-route.mjs').PhonePage>} */
 export async function openPhoneBrowser(engine, base, _out) {
@@ -155,12 +186,9 @@ export async function openPhoneBrowser(engine, base, _out) {
     },
     evaluate,
     async followNavigation(url, previous, deadline) { await connect(url,previous,Math.min(deadline,Date.now()+90000)); },
-    async screenshot(path) {
-      await new Promise((resolve,reject) => {
-        execFile('xcrun',['simctl','io',udid,'screenshot',`--type=${path.endsWith('.jpg')?'jpeg':'png'}`,path],{encoding:'utf8',timeout:10000},
-          error => { if (error === null) resolve(undefined); else reject(error instanceof Error ? error : new Error('Native screenshot failed',{cause:error})); });
-      });
-      return readFileSync(path);
+    screenshot(path) {
+      if(inspector===null)throw new Error('Safari inspector unavailable');
+      return captureNativePhonePage(inspector,path);
     },
     close() {
       inspector?.close(); proxy.kill('SIGTERM');

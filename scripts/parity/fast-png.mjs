@@ -1,5 +1,11 @@
 import { Buffer } from 'node:buffer';
 
+/** Decode the PNG transport shared by the Chromium and WebKit protocols.
+ * @param {string} data */
+export function decodeProtocolPng(data) {
+  return Buffer.from(data, 'base64');
+}
+
 /** @type {import('./fast-png.mjs').OpenCaptureSession} */
 const openProtocolSession = async page => {
   const session = await page.context().newCDPSession(page);
@@ -51,7 +57,7 @@ export async function captureViewportPng(page, label, deadline, openSession = op
     const { data } = await stage('native-capture', () => session.capture({
       format: 'png', clip, fromSurface: true, captureBeyondViewport: false, optimizeForSpeed: true,
     }));
-    const bytes = await stage('transport-decode', () => Promise.resolve(Buffer.from(data, 'base64')));
+    const bytes = await stage('transport-decode', () => Promise.resolve(decodeProtocolPng(data)));
     return bytes;
   } finally {
     const started = performance.now(); let state = 'complete';
