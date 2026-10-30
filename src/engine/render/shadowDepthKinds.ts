@@ -3,8 +3,8 @@ import { pageScope } from '../app/resources';
 
 /**
  * PF3: three's shadow map draws every caster without its own depth material through ONE shared `MeshDepthMaterial`
- * (and one cached clone per alpha-tested source material). Its program follows the caster's kind (batched, instanced,
- * instance-coloured, skinned, morphed: `setProgram`'s needsProgramChange), so a shadow pass that alternates kinds
+ * (and one cached clone per alpha-tested source material). Its program follows the caster's kind (batched with or
+ * without copy colours, instanced, instance-coloured, skinned, morphed: `setProgram`'s needsProgramChange), so a shadow pass that alternates kinds
  * re-resolved the program on almost every draw: getParameters and the program key, ~100–300 µs a draw at phone 4x
  * (Pine's spawn: the forest batches' 5 depth draws 0.92 ms a frame, its 3 plain casters 0.22 ms).
  *
@@ -18,17 +18,20 @@ const kinds = new WeakMap<THREE.MeshDepthMaterial, (THREE.MeshDepthMaterial | un
 /** a caster's kind: the object facts the program follows (bit flags) */
 function kindOf(object: THREE.Object3D): number {
   let kind = 0;
-  if (object instanceof THREE.BatchedMesh) kind |= 1;
+  // a batch with copy colours is its own program (setProgram's batchingColor: Pine's tinted needle batch beside its bark)
+  if (object instanceof THREE.BatchedMesh) { kind |= 1; if (Reflect.get(object, '_colorsTexture') !== null) kind |= 32; }
   if (object instanceof THREE.InstancedMesh) { kind |= 2; if (object.instanceColor !== null) kind |= 4; if (object.morphTexture !== null) kind |= 8; }
   if (object instanceof THREE.SkinnedMesh) kind |= 16;
+  if (object instanceof THREE.Mesh && object.geometry instanceof THREE.BufferGeometry && object.geometry.morphAttributes.position !== undefined) kind |= 64;
   return kind;
 }
 
 /** the stock depth material `stock` (as three set it for this draw) as `object`'s kind's own copy */
 export function depthForKind(stock: THREE.MeshDepthMaterial, object: THREE.Object3D): THREE.MeshDepthMaterial {
-  const kind = kindOf(object);
-  // the plain kind keeps the stock itself: it is what three already draws for most casters
-  if (kind === 0) return stock;
+  // the side three set for this caster is in the program too (doubleSided / flipSided)
+  const kind = kindOf(object) | (stock.side << 7);
+  // the plain kind on the stock's usual side (FrontSide casters cast BackSide) keeps the stock itself
+  if (kind === THREE.BackSide << 7) return stock;
   let row = kinds.get(stock);
   if (row === undefined) {
     const made: (THREE.MeshDepthMaterial | undefined)[] = []; row = made; kinds.set(stock, made);

@@ -1,15 +1,20 @@
 import { expect, test } from 'vitest';
-import { BatchedMesh, BoxGeometry, DoubleSide, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMaterial, Texture } from 'three';
+import { BackSide, BatchedMesh, BoxGeometry, Color, DoubleSide, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMaterial, Texture } from 'three';
 import { depthForKind } from './shadowDepthKinds';
 
 test('PF3: each caster kind draws its own copy of the stock depth material, as three set the stock for this draw', () => {
-  const stock = new MeshDepthMaterial(), geometry = new BoxGeometry(), material = new MeshBasicMaterial();
+  const stock = new MeshDepthMaterial({ side: BackSide }), geometry = new BoxGeometry(), material = new MeshBasicMaterial();
   const plain = new Mesh(geometry, material), instanced = new InstancedMesh(geometry, material, 2), batched = new BatchedMesh(2, 64, 64, material);
-  // the plain kind keeps the stock
+  // a plain FrontSide caster (three casts it BackSide) keeps the stock; a DoubleSide one is its own program
   expect(depthForKind(stock, plain)).toBe(stock);
+  stock.side = DoubleSide; const doubled = depthForKind(stock, plain); stock.side = BackSide;
+  expect(doubled).not.toBe(stock); expect(doubled.side).toBe(DoubleSide);
   const forInstanced = depthForKind(stock, instanced), forBatched = depthForKind(stock, batched);
   expect(forInstanced).not.toBe(stock); expect(forBatched).not.toBe(stock); expect(forBatched).not.toBe(forInstanced);
   expect(depthForKind(stock, instanced)).toBe(forInstanced); // one copy a kind, kept
+  const tinted = new BatchedMesh(2, 64, 64, material); tinted.addInstance(tinted.addGeometry(geometry)); tinted.setColorAt(0, new Color(1, 0, 0));
+  expect(depthForKind(stock, tinted)).not.toBe(forBatched); // a batch with copy colours is its own program
+  tinted.dispose();
   // three's per-draw fields follow the stock
   const map = new Texture();
   stock.side = DoubleSide; stock.map = map; stock.alphaTest = 0.45; stock.visible = false;
