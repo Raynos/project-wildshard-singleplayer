@@ -24,6 +24,9 @@ function shellFiles(html: string, root: string, sources: ReadonlyMap<string, str
   for (const match of html.matchAll(/(?:\b(?:src|href)=["']|url\(["']?)(\/[^\s"'<>)]*)/gu)) {
     if (match[1] !== undefined) add(match[1]);
   }
+  // Native title-image cache routes fall back to network on a miss. Install
+  // every named deck portrait too, so that fallback cannot repeat each visit.
+  for (const url of sources.keys()) add(url);
   const fonts = join(publicRoot, 'fonts');
   if (existsSync(fonts)) for (const file of readdirSync(fonts)) if (file.endsWith('.woff2')) add(`/fonts/${file}`);
   return [...files].sort();

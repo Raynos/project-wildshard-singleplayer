@@ -835,6 +835,17 @@ previous build code remain available. `version.json` stays on the network.
 `BUILD` and `VERSION` reply with identity only; old byte counters are not a
 progress API. Installation never claims a running document. Explicit adoption
 at a fresh document or title boundary retains the G898 page-phase fence.
+First-install readiness waits for actual activation, registration failure or
+page retirement. The fresh title awaits it before travelling, so the next
+world document is controlled without claiming the title. Running-world exits
+remain immediate. Worker replies and explicit activation use actual lifecycle
+outcomes, never elapsed-time cutoffs. Every named title/deck image is installed
+in the URL cache before native title-image routing can select it.
+
+Clear downloads waits for background stop, native unregister/cache deletion
+and the HTTP clear response before its requested reload. Only cache emptiness
+finishes deletion; a refused deletion reports failure. Stale-code recovery
+cannot start on an ending document, and retires its version request on exit.
 
 Controllerless boot parts and texture cohorts publish complete native bodies
 to the same URL cache before completion. Cached cohorts serve both complete
@@ -843,7 +854,7 @@ Neither reads nor publication computes a digest, and quota denial keeps the
 complete online bytes usable. There is no STORE message or claim deadline.
 
 `boot/contentRead.readContent(url, maximum, ports)` reads bounded content,
-retries one interrupted or missing transport after one second, then keeps the
+retries one confirmed interrupted or missing transport immediately, then keeps the
 load pending on the existing RETRY button. HTML responses name the missing
 path instead of reaching a content parser. Cancellation drains the wait; size,
 parser and admission refusals remain with their caller. Retry uses the same

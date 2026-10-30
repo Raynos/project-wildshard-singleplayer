@@ -2,9 +2,7 @@ import {spawnRingReveal, setSpawnRingReveal} from '../boot/spawnRingReveal';
 import { phoneBloom, setPhoneBloom } from '../render/phoneBloom';
 import { TIER } from '../core/tier';
 import { authoredRows } from './authoredDebugRows';
-import { uiScope } from './ownership';
 import { engineString } from '../strings';
-import { app } from '../app/runtime';
 /**
  * The DEBUG menu's registry (E162, Jake 2026-09-25: "we are going to have an ungodly amount of toggles and we need to
  * organize them"). Every variant, taste toggle and developer aid the game has is declared here ONCE — its group, label,
@@ -32,8 +30,6 @@ import { isDev, onDev } from '../core/devMode';
 import { setTileResidency, tileResidency, TILE_RESIDENCY, setRoadResidency, roadResidency, ROAD_RESIDENCY } from './tileResidency';
 import { IDLE_FRAMES, idleFrames, setIdleFrames } from '../world/shadowCadence';
 import { POSE_RATES, poseRate, setPoseRate } from '../entities/poseCadence';
-
-const scope = uiScope('debugOptions', app.engineScope);
 
 /** what "applies" reads: the shard you are in and the weapons you hold (re-read every time the menu opens) */
 export interface DebugCtx { chunk: LevelSpec; weapons: ReadonlySet<string> }
@@ -146,7 +142,7 @@ const clearDownloadsRow = action('clearDownloads', 'tools', engineString('s_59cb
   const freed = freedBytes(r);
   say(freed === null ? 'Cleared · reloading' : `Freed ${mbText(freed)} · reloading`,
     `${mbText(freed)} of downloads · ${r.caches} caches and ${r.workers} worker${r.workers === 1 ? '' : 's'} removed${r.httpCache ? ', HTTP cache cleared' : ''}. Reloading as a first visit.`);
-  scope.timeout(1500, () => { markReload('debug: clear downloads'); location.replace(settingsReloadUrl(location.href, TITLE_SKIPPERS)); });
+  markReload('debug: clear downloads'); location.replace(settingsReloadUrl(location.href, TITLE_SKIPPERS));
 }, { purpose: 'developer', ask: 'E172', reviewBy: '2026-12-30', note: engineString('s_510ecf1f03f4') }, {
   confirm: async () => { const used = await storageUsed(); return used === null ? 'Tap again to clear' : `Tap again to clear ~${mbText(used)}`; },
   status: () => {

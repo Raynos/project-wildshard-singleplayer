@@ -16,13 +16,17 @@ function claimBootSelfReload(): boolean {
   } catch { return false; }
 }
 let worldRunning = false;
-const recoveryAllowed = (): boolean => !worldRunning;
+let documentLeaving = false;
+const recoveryAllowed = (): boolean => !worldRunning && !documentLeaving;
 let recover: ((error: unknown) => Promise<boolean>) | undefined;
 async function latestVersion(): Promise<string | null> {
+  if (!recoveryAllowed()) return null;
   const owner = pageScope.child('chunk-version'), controller = new AbortController();
   const url = new URL('/version.json', location.href);
   const wait = beginLoadingWait('Checking updated application', { kind: 'file', resource: url.href });
-  owner.onDispose(() => { controller.abort(); }); owner.timeout(3000, () => { controller.abort(); });
+  owner.onDispose(() => { controller.abort(); });
+  owner.listen(window, 'beforeunload', () => { controller.abort(); });
+  owner.listen(window, 'pagehide', () => { controller.abort(); });
   try {
     const response = await fetch(url, {cache: 'no-store', signal: controller.signal});
     if (!response.ok || response.url !== '' && new URL(response.url).origin !== url.origin) return null;
@@ -53,6 +57,9 @@ let installed = false;
 export function installChunkRecovery(): void {
   if (installed || typeof window === 'undefined') return;
   installed = true;
+  pageScope.listen(window, 'beforeunload', () => { documentLeaving = true; });
+  pageScope.listen(window, 'pagehide', () => { documentLeaving = true; });
+  pageScope.listen(window, 'pageshow', () => { documentLeaving = false; });
   pageScope.listen(document, 'ws:ready', () => {
     if (!document.documentElement.classList.contains('title-first')) worldRunning = true;
   });

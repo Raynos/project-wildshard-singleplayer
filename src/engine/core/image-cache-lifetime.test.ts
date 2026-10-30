@@ -5,6 +5,7 @@ import { decodedImageCount, loadImage } from './assets';
 const globals = ['WeakRef', 'Worker', 'ImageBitmap', 'createImageBitmap'].map(key => ({ key, descriptor: Object.getOwnPropertyDescriptor(globalThis, key) }));
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.useRealTimers();
   for (const { key, descriptor } of globals) {
     if (descriptor === undefined) Reflect.deleteProperty(globalThis, key);
     else Object.defineProperty(globalThis, key, descriptor);
@@ -57,6 +58,7 @@ class DecoderWorker extends EventTarget {
 }
 
 test('transfers bitmap ownership, preserves options and releases pending requests on worker failure', async () => {
+  vi.useFakeTimers();
   DecoderWorker.instances.length = 0;
   vi.stubGlobal('Worker', DecoderWorker); vi.stubGlobal('ImageBitmap', DecodedBitmap);
   const fallbackImage = new DecodedBitmap(), fallback = vi.fn((_blob: Blob, _options: ImageBitmapOptions) => Promise.resolve(fallbackImage));
@@ -66,6 +68,8 @@ test('transfers bitmap ownership, preserves options and releases pending request
   const first = decodeImageBitmap(blob, options), second = decodeImageBitmap(blob, options);
   const worker = DecoderWorker.instances[0]; if (worker === undefined) throw new Error('Decoder did not start');
   expect(worker.messages).toEqual([{ id: 1, blob, options }, { id: 2, blob, options }]);
+  await vi.advanceTimersByTimeAsync(180_000);
+  expect(fallback).not.toHaveBeenCalled(); expect(worker.terminate).not.toHaveBeenCalled();
   const a = new DecodedBitmap(), b = new DecodedBitmap(), stale = new DecodedBitmap();
   worker.reply(2, b); worker.reply(1, a); worker.reply(999, stale);
   expect(await first).toBe(a); expect(await second).toBe(b);

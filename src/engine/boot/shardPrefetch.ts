@@ -52,8 +52,6 @@ const savedStorage = saveStorage('device');
 const CONCURRENCY = 2;
 /** after playable: the title's first frames, the menu's first taps and the shader warm-up go first */
 const START_DELAY_MS = 4000;
-/** one file's longest wait for the worker's answer (a slow link and an 18 MB pack); past it, the worker is presumed gone */
-const REPLY_TIMEOUT_MS = 180_000;
 
 /** Every URL `def`'s boot requests on this tier, in the order the boot asks for them, as the network sees them. */
 export function shardBootRequests(def: BootLevel, tex: TexMode = texMode()): string[] {
@@ -167,19 +165,26 @@ declare global { interface Window { __ws_prefetch?: PrefetchHandle } }
 interface Reply { status: 'hit' | 'stored' | 'failed'; bytes: number }
 
 /** One file through the controlling worker; null when nothing answers (an older worker without PREFETCH, or none). */
-function viaWorker(url: string): Promise<Reply | null> {
+function viaWorker(url: string, signal: AbortSignal): Promise<Reply | null> {
   const ctl = navigator.serviceWorker.controller;
-  if (!ctl) return Promise.resolve(null);
+  if (!ctl || signal.aborted || ctl.state === 'redundant') return Promise.resolve(null);
   return new Promise<Reply | null>((resolve) => {
-    const ch = new MessageChannel();
-    const timer = pageScope.timeout(REPLY_TIMEOUT_MS, () => { resolve(null); });
-    ch.port1.onmessage = (e: MessageEvent<{ type?: unknown; status?: unknown; bytes?: unknown }>) => {
-      pageScope.cancelTimer(timer);
-      const { status, bytes } = e.data;
-      resolve(e.data.type === 'PREFETCHED' && (status === 'hit' || status === 'stored' || status === 'failed')
+    const owner = pageScope.child('prefetch-reply'), ch = new MessageChannel();
+    const finish = (reply: Reply | null): void => { resolve(reply); owner.dispose(); };
+    owner.onDispose(() => { ch.port1.close(); ch.port2.close(); resolve(null); });
+    owner.listen(signal, 'abort', () => { finish(null); }, {once: true});
+    owner.listen(ctl, 'statechange', () => { if (ctl.state === 'redundant') finish(null); });
+    owner.listen(ctl, 'error', () => { finish(null); });
+    ch.port1.onmessageerror = () => { finish(null); };
+    ch.port1.onmessage = (e: MessageEvent<unknown>) => {
+      const data = e.data;
+      if (typeof data !== 'object' || data === null) { finish(null); return; }
+      const status: unknown = Reflect.get(data, 'status'), bytes: unknown = Reflect.get(data, 'bytes');
+      finish(Reflect.get(data, 'type') === 'PREFETCHED' && (status === 'hit' || status === 'stored' || status === 'failed')
         ? { status, bytes: typeof bytes === 'number' ? bytes : 0 } : null);
     };
-    ctl.postMessage({ type: 'PREFETCH', url }, [ch.port2]);
+    try { ctl.postMessage({ type: 'PREFETCH', url }, [ch.port2]); }
+    catch { finish(null); }
   });
 }
 
@@ -212,10 +217,14 @@ export function startShardPrefetch(active: BootLevel): PrefetchHandle {
     return state;
   };
   const stopped = { on: false }; // E172: handle.stop() — Debug ▸ Clear downloads
+  const controller = new AbortController();
+  let finishStop = (): void => { /* Assigned before starting the background task. */ };
+  const ended = new Promise<void>(resolve => { finishStop = resolve; });
   const halted = (): boolean => stopped.on;
   const run = async (): Promise<PrefetchState> => {
     if (veto !== null) return finish('skipped', veto);
-    await sleep(START_DELAY_MS);
+    await Promise.race([sleep(START_DELAY_MS), ended]);
+    if (halted()) return finish('skipped', 'stopped (Clear downloads)');
     // A phone keeps only one shard in play. Cache this shard (including its KTX2 set for the next launch),
     // but do not download the other worlds while the iOS WebContent process is under memory pressure.
     const order = TIER === 'phone' ? [active] : [active, ...bootCatalog().playable.filter((c) => c !== active)];
@@ -249,9 +258,9 @@ export function startShardPrefetch(active: BootLevel): PrefetchHandle {
     if (halted()) return finish('skipped', 'stopped (Clear downloads)');
     const lane = async (): Promise<void> => {
       for (let job = jobs.shift(); job !== undefined && !worker.gone && !halted(); job = jobs.shift()) {
-        await visible();
-        await idle();
-        const r = await viaWorker(job.url);
+        await Promise.race([visible(), ended]);
+        await Promise.race([idle(), ended]);
+        const r = await viaWorker(job.url, controller.signal);
         const t = job.set === 'boot' ? state.shards[job.slug] : state.ktx2[job.slug];
         if (r === null) { worker.gone = true; return; }
         if (t) { t[r.status]++; t.bytes += r.bytes; }
@@ -268,7 +277,7 @@ export function startShardPrefetch(active: BootLevel): PrefetchHandle {
     return worker.gone ? finish('failed', 'the service worker did not answer') : finish('done');
   };
   const done = run().catch((e: unknown) => finish('failed', e instanceof Error ? e.message : String(e)));
-  const handle: PrefetchHandle = { state, done, stop: async () => { stopped.on = true; await done; } };
+  const handle: PrefetchHandle = { state, done, stop: async () => { stopped.on = true; controller.abort(); finishStop(); await done; } };
   window.__ws_prefetch = handle;
   return handle;
 }

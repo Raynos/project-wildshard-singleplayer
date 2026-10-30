@@ -30,6 +30,12 @@ test('every title URL names its exact original bytes and shell/runtime use the s
     const result=serviceWorkerCore({'index.html':{type:'asset',source:new TextEncoder().encode(html)}},root,'title');
     expect(result.core).toContain(urls['/assets/title/main-crossroads-square.jpg']);
     expect(result.core).toContain(urls['/assets/title/main-crossroads-landscape.jpg']);
+    const literal=/^const SHELL_FILES = JSON.parse\((.+)\);$/mu.exec(result.core)?.[1];
+    if(literal===undefined)throw new Error('Missing installed shell inventory');
+    const encoded:unknown=JSON.parse(literal);
+    if(typeof encoded!=='string')throw new Error('Shell inventory must be serialized data');
+    const installed:unknown=JSON.parse(encoded);
+    expect(installed).toEqual(expect.arrayContaining(Object.values(urls)));
   }finally{rmSync(out,{recursive:true,force:true});}
 });
 

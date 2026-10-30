@@ -1,4 +1,3 @@
-import { pageScope } from '../app/resources';
 import { saveStorage,jsonSlot } from '../saves/slots';
 /**
  * Debug ▸ Clear downloads (E172, the user: "I need a button to nuke the cache so i can test it"; their pick 1: downloads
@@ -48,13 +47,9 @@ const REPORT_KEY = 'clearDownloads.report';
 /** the file whose response carries `Clear-Site-Data: "cache"` (vercel.json); `?sw=0` so no worker answers it */
 const CLEAR_HTTP_URL = '/clear-cache.json?sw=0';
 
-const wait = (ms: number): Promise<void> => new Promise((resolve) => { pageScope.timeout(ms, resolve); });
-/** `p`, or undefined after `ms` */
-const within = <T>(p: Promise<T>, ms: number): Promise<T | undefined> => Promise.race([p, wait(ms).then(() => undefined)]);
-
 export async function storageUsed(): Promise<number | null> {
   try {
-    const e = await within(navigator.storage.estimate(), 3000);
+    const e = await navigator.storage.estimate();
     return typeof e?.usage === 'number' ? e.usage : null;
   } catch { return null; }
 }
@@ -62,9 +57,9 @@ export async function storageUsed(): Promise<number | null> {
 export async function clearDownloads(): Promise<ClearReport> {
   const before = await storageUsed();
   // 1. the background download: no new file, and the ones in flight answered (or given up on) before the caches go
-  await within(window.__ws_prefetch?.stop() ?? Promise.resolve(), 3000);
+  await window.__ws_prefetch?.stop();
   // what is about to be freed: the worker's own count of its caches (before it is unregistered)
-  const held = await within(window.__ws_sw?.version() ?? Promise.resolve(null), 5000);
+  const held = await window.__ws_sw?.version();
   const cached = typeof held?.bytes === 'number' ? held.bytes : null;
   // 2. the worker, before its caches: the reload must not be handled by it
   let workers = 0;
@@ -78,11 +73,12 @@ export async function clearDownloads(): Promise<ClearReport> {
   // 3. every cache; a put that was already under way can re-create one, so look again until none is left
   let deleted = 0;
   if (typeof caches !== 'undefined') {
-    for (let pass = 0; pass < 4; pass++) {
+    for (;;) {
       const keys = await caches.keys();
-      if (keys.length === 0 && pass > 0) break;
-      for (const k of keys) if (await caches.delete(k)) deleted++;
-      await wait(250);
+      if (keys.length === 0) break;
+      let removed = false;
+      for (const k of keys) if (await caches.delete(k)) { deleted++; removed = true; }
+      if (!removed) throw new Error('Download cache deletion refused');
     }
   }
   // 4. the KTX2 "set complete" markers: Auto must not boot KTX2 against files that are gone
@@ -95,7 +91,7 @@ export async function clearDownloads(): Promise<ClearReport> {
   } catch { /* storage off: no markers were written either */ }
   // 5. the HTTP cache (Clear-Site-Data: "cache"): offline this fails, and the reload is cold for Cache Storage only
   let httpCache = false;
-  try { httpCache = (await within(fetch(CLEAR_HTTP_URL, { cache: 'no-store' }), 5000))?.ok === true; } catch { /* offline */ }
+  try { httpCache = (await fetch(CLEAR_HTTP_URL, { cache: 'no-store' })).ok; } catch { /* offline */ }
   const report: ClearReport = { before, after: await storageUsed(), cached, caches: deleted, workers, markers, httpCache, at: Date.now() };
   try { saveStorage('session').setItem(REPORT_KEY, JSON.stringify(report)); } catch { /* the next page just will not say it */ }
   return report;

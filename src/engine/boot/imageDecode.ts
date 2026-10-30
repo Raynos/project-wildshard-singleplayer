@@ -67,7 +67,6 @@ export async function decodeImageBitmap(blob: Blob, options: ImageBitmapOptions)
     return await new Promise<ImageBitmap>((resolve, reject) => {
       const id = ++sequence, request = owner.child('decode');
       pending.set(id, { scope: request, resolve, reject });
-      request.timeout(30_000, () => { stop(new Error('Image decode deadline'), true); });
       try { decoder.postMessage({ id, blob, options }, { transfer: [] }); }
       catch (error) { stop(error instanceof Error ? error : new Error(String(error)), true); }
     });
