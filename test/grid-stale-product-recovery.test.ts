@@ -1,3 +1,4 @@
+import { installCatalogueFixture } from './fixtures/bootSetup';
 import { afterEach, expect, test, vi } from 'vitest';
 import { SaveStore } from '../src/engine/saves/store';
 import { installSaveEnvironment, saveEnvironment } from '../src/engine/saves/environment';
@@ -8,6 +9,8 @@ import { gridRecovery, initialGridReload, plannedGridReload } from '../src/game/
 import { pageGridIntents } from '../src/game/grid/intent';
 import { bootPageMode, clearGridRecovery, consumeGridRecovery, gridRecoveryLoop } from '../src/game/grid/pageEntry';
 import { travelService, travelSlot } from '../src/game/travel/travel';
+
+await installCatalogueFixture();
 
 class Storage {
   private readonly data = new Map<string, string>();

@@ -1,10 +1,16 @@
-import { expect, test, vi } from 'vitest';
+import { beforeAll, expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
+import { installAssetTables } from '@wildshard/engine/boot/tables';
 import type { ShardContext } from './context';
 import type { ForestPage } from '../shardfile/forestPage';
 import type { CaveInterior } from '../shardfile/caveInterior';
 import { publishEntryOwner } from '../shardfile/entryOwners';
 import { FOREST_PAGE_PORTS, enterClientForestPage, installClientForestPage, installClientForestWeather, installClientPageLife, type ForestPagePorts } from '../shardfile/clientForestPage';
+
+beforeAll(() => {
+  // This owner-only fixture supplies water ports and declares no common bake files.
+  installAssetTables({ bytes: {}, versions: {}, music: {}, sfx: {}, packs: {} });
+});
 
 // sp-x8 QX on G571's forest page features: every installer stops when its owner retires (it left during an awaited read,
 // or an ancestor is retiring in slices), and borrows its owners only after a read.
