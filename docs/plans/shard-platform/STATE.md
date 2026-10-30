@@ -8,7 +8,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **LIVE 2b62556-mvuk0s65 (00:52 Cancun; source 2b62556596, fully green CI 40998533769).** Next green SHA ships automatically; G917's 07:00 refresh stays.
 **Open:** MF7 battery (phone), MF12 / QS3 Sentry (wildshard-v), MF20 CPU bar (Jake's pick), FC9 (o5), QB20 thermal (phone), CI2 / 3 / 5 / 6 / 7 / 9 / 10
-remote acceptance, CI12 Nalati (x6, x8, kernels o3 / o4), CI14 pin waves. For Jake: MF13 'Refine dither' phone check; QB17 zip video
+remote acceptance, CI12 Nalati (x6, x8, kernels o3 / o4), CI14 pin waves. **QA recheck on HEAD (o5, 95196a14db, art/foundations/qa-recheck/): every QB row passes, no regressions; QB16 recheck clean (o3, ae65ab8bdf).** For Jake: MF13 'Refine dither' phone check; QB17 zip video
 tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 
 **00:35 (wildshard-v):** sweep cron e7a1a5d2 still runs every 5 min (G927; watchdog EXEMPT trimmed 09fdb1516c). Opus now hold whole rows: o3 QB16 recheck, o4 QB20 + MF7 battery (20 min Sim), o5 full Jake-QA recheck; QB16 / QB17 / RL7 marked **done**. **23:50:** my 5-min lane sweep cron (e7a1a5d2) has run all night. The 23:21-23:46 idle was my call: I judged their rows done and had no Opus row to give, and the plans marked done only in the lane cell, so wildshard-v counted 29 open rows. Fixed: 41 finished rows now carry **done**, and all 5 idle lanes have rows with 'take the next open row without waiting'. scripts/lane-watchdog.mjs (G418) hasn't run since its pane went (≥6 days); the cron replaces it.
