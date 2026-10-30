@@ -100,13 +100,18 @@ vec3 wsInstanceColour() {
   return vec3( 1.0 );
 #endif
 }
+// the graph reads the geometry's colour whether or not the material multiplies by it (\`vertexColors\`, three's
+// USE_COLOR), as TSL's vertexColor() does: white (three's default attribute value) where the geometry has none
+#if !defined( USE_COLOR ) && !defined( USE_COLOR_ALPHA )
+attribute vec4 color;
+#endif
 vec4 wsVertexColour() {
 #if defined( USE_COLOR_ALPHA )
   return color;
 #elif defined( USE_COLOR )
   return vec4( color, 1.0 );
 #else
-  return vec4( 1.0 );
+  return color;
 #endif
 }
 #ifdef USE_SKINNING
@@ -251,8 +256,9 @@ function fogEpilogue(program: GraphGlslProgram, fog: GraphGlsl | undefined): str
 function unlitFragment(glsl: GraphGlsl, program: GraphGlslProgram, uniforms: string, fogged: boolean, fog: GraphGlsl | undefined, depth = false): string {
   const o = program.outputs, ir = glsl.ir, s = ir.stages.surface;
   const cutoff = s?.alphaCutoff === undefined ? '' : `  if ( diffuseColor.a < ${glslFloat(s.alphaCutoff)} ) discard;`;
-  const alpha = o.targetAlpha ?? (ir.effectState?.output === 'colour' ? '1.0' : 'diffuseColor.a');
-  const output = depth ? '  gl_FragColor = vec4( vec3( 1.0 - gl_FragCoord.z ), 1.0 );' : `  gl_FragColor = vec4( diffuseColor.rgb, ${alpha} );
+  // a node material's output is clamped at 0 (three's \`max( output, 0 )\`); a written target alpha is not
+  const alpha = o.targetAlpha ?? (ir.effectState?.output === 'colour' ? '1.0' : 'max( diffuseColor.a, 0.0 )');
+  const output = depth ? '  gl_FragColor = vec4( vec3( 1.0 - gl_FragCoord.z ), 1.0 );' : `  gl_FragColor = vec4( max( diffuseColor.rgb, 0.0 ), ${alpha} );
 ${ir.effectState?.output === 'colour' ? '#include <colorspace_fragment>' : ''}
 ${fogged ? fogEpilogue(program, fog) : ''}
 #include <premultiplied_alpha_fragment>`;
@@ -407,6 +413,8 @@ ${occlusion}
   vec3 outgoingLight = totalDiffuse + totalSpecular + totalEmissiveRadiance;
 ${l?.grade === true ? '  outgoingLight = wsGraphGrade( outgoingLight );' : ''}
 #include <opaque_fragment>
+  // a node material's output is clamped at 0 (three's \`max( output, 0 )\`), before the output transform
+  gl_FragColor = max( gl_FragColor, 0.0 );
 ${o.targetAlpha !== null ? `  gl_FragColor.a = ${o.targetAlpha};` : ''}
 ${l?.grade === true ? '' : '#include <tonemapping_fragment>'}
 #include <colorspace_fragment>
