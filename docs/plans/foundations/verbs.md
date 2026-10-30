@@ -14,6 +14,6 @@ Simulator" is this, not a finger.
 |---|---|---|---|
 | Signal Dunes | [verbs/sunscar-dunes.json](verbs/sunscar-dunes.json) | SHARDFILE only | MF16: logbook, well, crank (heavy crack), oil jar, 3/3 |
 | Pine Hollow | [verbs/pine-hollow.json](verbs/pine-hollow.json) | LEGACY + SHARDFILE | MF17: crossbow 5 min (Chromium + WebKit, 0 faults), fire, Talk to Hale, the same in both modes |
-| Driftwood Isle | [verbs/driftwood-isle.json](verbs/driftwood-isle.json) | LEGACY (91a9eef081) + SHARDFILE | MF18: written (28 verbs); play: sp-o3 |
+| Driftwood Isle | [verbs/driftwood-isle.json](verbs/driftwood-isle.json) | LEGACY (91a9eef081) + SHARDFILE | MF18: 9 of 28 played, both modes the same (quest start, chest, zipline, wreck locks, discoveries); combat, shards, tide plates, altar next |
 | Nalati Grasslands | [verbs/nalati-grasslands.json](verbs/nalati-grasslands.json) | LEGACY (91a9eef081) + SHARDFILE | MF18: written by sp-o3 (26 verbs); play: sp-o4 |
 | Sky Reach | [verbs/far-reach.json](verbs/far-reach.json) | LEGACY (91a9eef081) + SHARDFILE | MF18: written by sp-o3 (24 verbs); play: sp-o4 |
