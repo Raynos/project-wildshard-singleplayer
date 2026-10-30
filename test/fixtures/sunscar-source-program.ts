@@ -25,12 +25,13 @@ import { signalClientPlan } from '../../src/shards/sunscar-dunes/generators/clie
 import { generate } from '../../src/shards/sunscar-dunes/generators/generate';
 import { signalProductRows as product } from '../../src/shards/sunscar-dunes/generators/product';
 import { fireBookFile } from '../../src/shards/sunscar-dunes/generators/fireBookPixels';
+import { runSnapshot } from './runSnapshot';
 
-mkdirSync('tmp', { recursive: true });
-const cache = mkdtempSync(resolve('tmp', 'sunscar-program-fixture-')), assets = new Map<string, Uint8Array>();
 const root = resolve('src/shards/sunscar-dunes');
-/** Run the actual source program; no generated metadata stands in for its result. */
-const built = await (async () => {
+/** Run the actual source program; no generated metadata stands in for its result (CI7: once per CI run). */
+const { assets, strider, ...built } = await runSnapshot('sunscar-source-program', async () => {
+  mkdirSync('tmp', { recursive: true });
+  const cache = mkdtempSync(resolve('tmp', 'sunscar-program-fixture-')), assets = new Map<string, Uint8Array>();
   try {
     const ctx = createProjectGeneration(root, 'a'.repeat(64), assets, cache, [{ prefix: '/assets/', directory: resolve('public/assets') }]);
     const generated = await generate(ctx), rigs = await signalRigs(ctx);
@@ -39,11 +40,13 @@ const built = await (async () => {
       const url = REST_URLS[index]; if (url === undefined) throw new Error('Missing original rest pool address');
       return { url, parts: pool.parts };
     });
-    return { generated, restPools, navigation: await signalNavigation(ctx), rigLibrary: signalRigLibrary(DUNE_RIG_URLS, rigs.library.bodies.standIns.strider), world: signalWorldMetadata(await signalWorldFiles(ctx)), sand: await signalSand(ctx) };
+    return { generated, restPools, navigation: await signalNavigation(ctx), strider: rigs.library.bodies.standIns.strider, world: signalWorldMetadata(await signalWorldFiles(ctx)), sand: await signalSand(ctx), assets };
   }
   finally { rmSync(cache, { recursive: true, force: true }); }
-})();
-export const { generated, world, sand, rigLibrary, navigation, restPools } = built;
+});
+export const { generated, world, sand, navigation, restPools } = built;
+/** Built live from the baked stand-in so its looks stay the rig rows' own shared table. */
+export const rigLibrary = signalRigLibrary(DUNE_RIG_URLS, strider);
 /** Original public-name projection from the actual bake, for unchanged full-byte oracles. */
 export const held = whipHeldRecipe(world.lash), gear = gearSceneRows(world, held);
 export const markers = signalQuestMarkers(world), page = signalQuestPage(markers), client = signalClientPlan(page);

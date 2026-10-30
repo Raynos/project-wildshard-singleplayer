@@ -8,6 +8,7 @@ import { nineProductFrom } from '../../src/shards/nine-dragon-stack/generators/p
 import { courseProgramInputs } from '../../src/commons/courseProgram';
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
 import { ninePracticeRows, ninePracticeBytes } from './nine-practice-product';
+import { runSnapshot } from './runSnapshot';
 
 // DOM suites consume the independently pinned course as a checked cache hit. Real cold
 // compilation remains covered by the Node producer/source-output suites.
@@ -26,7 +27,8 @@ async function sourceInputs(): Promise<Awaited<ReturnType<typeof readNineProduct
   finally { rmSync(cache, { recursive: true, force: true }); }
 }
 
-export const inputs = await sourceInputs();
+// CI7: one source read per CI run (the prepare snapshot), else per importing file.
+export const inputs = await runSnapshot('nine-product-inputs', sourceInputs);
 export const casts = inputs.casts;
 export const ownedWorld = inputs.ownedWorld;
 export const world = ownedWorld.metadata;

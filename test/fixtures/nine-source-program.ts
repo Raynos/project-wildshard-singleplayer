@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { createProjectGeneration } from '../../src/sdk/projectGeneration';
 import { prepareAssetDecoders } from '../../src/format/product';
 import { generate, type NineGeneratedProject } from '../../src/shards/nine-dragon-stack/generators/generate';
+import { runSnapshot } from './runSnapshot';
 
 /** Run the real program, never a static metadata imitation of its result. */
 export async function nineSourceProgram(): Promise<NineGeneratedProject> {
@@ -16,7 +17,9 @@ export async function nineSourceProgram(): Promise<NineGeneratedProject> {
   } finally { rmSync(cache, { recursive: true, force: true }); }
 }
 
-export const generated = await nineSourceProgram();
+// CI7: one program run per CI run (the prepare snapshot), else per importing file; the decoders stay this realm's own.
+await prepareAssetDecoders();
+export const generated = await runSnapshot('nine-source-program', nineSourceProgram);
 export const output = generated.output;
 
 export const source = generated.shard;

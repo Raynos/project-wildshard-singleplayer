@@ -12,22 +12,29 @@ import { pineBirds } from '../../src/shards/pine-hollow/generators/birdInputs';
 import { pineNpcSkins } from '../../src/shards/pine-hollow/generators/npcSkinInputs';
 import { wildlifeDraw } from '../../src/shards/pine-hollow/generators/wildlifeDraw';
 import { pineGeneration } from './pine-generation';
+import { runSnapshot } from './runSnapshot';
 
 // GR8: Pine's producers run in its program (generate(ctx), prepareOutput(ctx)), so tests read what the program
-// admits, not the static rows the retired scheduler jobs used to fill. One run per test worker, over the shared cache.
-const assets = new Map<string, Uint8Array>();
-const context = { ...pineGeneration('pine-program-fixture-v1', resolve(homedir(), '.cache/wildshard/gen'), assets), ...nativeCompilers };
+// admits, not the static rows the retired scheduler jobs used to fill. One run per CI run (CI7 snapshot), else per file.
+const program = await runSnapshot('pine-program', async () => {
+  const assets = new Map<string, Uint8Array>();
+  const context = { ...pineGeneration('pine-program-fixture-v1', resolve(homedir(), '.cache/wildshard/gen'), assets), ...nativeCompilers };
+  const shard = (await generate(context)).shard, handed = new Map(assets);
+  return { shard, assets: handed, journal: await pineJournal(context), kingKit: await pineKingKit(context),
+    wildlifeDraw: wildlifeDraw((await pineBirds(context)).ranges), npcSkins: (await pineNpcSkins(context)).rows,
+    prepared: await prepareOutput(context) };
+});
 /** Pine's declaration as its source program admits it. */
-export const PINE: Shardfile = (await generate(context)).shard;
+export const PINE: Shardfile = program.shard;
 /** The bytes Pine's program handed its product with `ctx.asset` (the splat ground's tiles and layers), by hash. */
-export const PINE_ASSETS: ReadonlyMap<string, Uint8Array> = new Map(assets);
+export const PINE_ASSETS: ReadonlyMap<string, Uint8Array> = program.assets;
 /** Pine's journal (its admitted row, files and named images), as the program computes it. */
-export const PINE_JOURNAL: Awaited<ReturnType<typeof pineJournal>> = await pineJournal(context);
+export const PINE_JOURNAL: Awaited<ReturnType<typeof pineJournal>> = program.journal;
 /** The Antler King's baked kit (its named pool and rows), as the program bakes it. */
-export const PINE_KING_KIT: Awaited<ReturnType<typeof pineKingKit>> = await pineKingKit(context);
+export const PINE_KING_KIT: Awaited<ReturnType<typeof pineKingKit>> = program.kingKit;
 /** The wildlife draw rows over the program's bird bake (its rest ranges). */
-export const PINE_WILDLIFE_DRAW: ReturnType<typeof wildlifeDraw> = wildlifeDraw((await pineBirds(context)).ranges);
+export const PINE_WILDLIFE_DRAW: ReturnType<typeof wildlifeDraw> = program.wildlifeDraw;
 /** The people's baked skins by kind and tier (product names, source GLBs and their metadata), as the program bakes them. */
-export const PINE_NPC_SKINS: Awaited<ReturnType<typeof pineNpcSkins>>['rows'] = (await pineNpcSkins(context)).rows;
+export const PINE_NPC_SKINS: Awaited<ReturnType<typeof pineNpcSkins>>['rows'] = program.npcSkins;
 /** Pine's prepared output (sections, named files and their bytes). */
-export const PINE_PREPARED_OUTPUT: Awaited<ReturnType<typeof prepareOutput>> = await prepareOutput(context);
+export const PINE_PREPARED_OUTPUT: Awaited<ReturnType<typeof prepareOutput>> = program.prepared;
