@@ -2,6 +2,10 @@
 export const ENGINE_STRINGS = {
   "s_spawn_ring_reveal": "Reveal at 3x3 spawn ring",
   "s_phone_bloom": "Phone bloom",
+  "s_draw_budget": "Draw budget",
+  "s_draw_budget_current": "Current",
+  "s_draw_budget_lean": "Lean",
+  "s_draw_budget_note": "FC (G924): the phone's draw budget; reloads. Current (default) is today's look. Lean uses the world's own grid-cell distances when it is played on its own too: nearer tree detail and shadows, nearer animal detail, fewer draws a frame.",
   "s_idle_frames": "Idle frames",
   "s_pose_rate": "Animal pose rate",
   "s_pose_rate_stepped": "Stepped by distance",

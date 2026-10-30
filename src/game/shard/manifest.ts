@@ -1,3 +1,4 @@
+import { leanDrawBudget } from '@wildshard/engine/render/drawBudget';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { inflateScalarBlocks,readScalarChannel,readScalarLattice,ScalarLatticeBindings } from '@wildshard/engine/world/scalarChannel';
 import { readFileInputs } from '../shardfile/fileInputs';
@@ -844,9 +845,11 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
     const {grid, phone, desktop} = data.tiers ?? {};
     if (grid === undefined) return data.tiers;
     if (phone === undefined || desktop === undefined) throw new Error('Manifest grid tier rows require both tier rows');
-    // read when the level applies its row: the page mode is decided at boot, after discovery
-    return { get phone() { return currentPageMode() === 'grid' ? {...phone, ...grid.phone} : phone; },
-      get desktop() { return currentPageMode() === 'grid' ? {...desktop, ...grid.desktop} : desktop; } };
+    // read when the level applies its row: the page mode is decided at boot, after discovery. Debug ▸ Draw budget ▸ Lean
+    // (FC, G924) lays the grid rows over a standalone world's too
+    const lean = (): boolean => currentPageMode() === 'grid' || leanDrawBudget();
+    return { get phone() { return lean() ? {...phone, ...grid.phone} : phone; },
+      get desktop() { return lean() ? {...desktop, ...grid.desktop} : desktop; } };
   })();
   if (bootData !== undefined && bootBindings === undefined) throw new Error('Manifest boot inventory has no native binding');
   const { attackers, ...fightRows } = authoredFight ?? {};

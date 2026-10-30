@@ -1,5 +1,6 @@
 import {spawnRingReveal, setSpawnRingReveal} from '../boot/spawnRingReveal';
 import { phoneBloom, setPhoneBloom } from '../render/phoneBloom';
+import { leanDrawBudget, setLeanDrawBudget } from '../render/drawBudget';
 import { TIER } from '../core/tier';
 import { authoredRows } from './authoredDebugRows';
 import { engineString } from '../strings';
@@ -170,6 +171,12 @@ const phoneBloomRow: DebugRow = { id: 'phoneBloom', group: 'look', label: engine
   get: () => phoneBloom() ? 'on' : 'off', set: value => { if (value === 'on' || value === 'off') setPhoneBloom(value === 'on'); },
   on: () => undefined, reload: true, when: () => TIER === 'phone', note: engineString('s_phone_bloom_note'), ask: 'E435', reviewBy: '2026-12-30' };
 
+/** FC (G924): the phone's draw budget, A current (default) / B lean (the level's grid-cell rows); a reload, Jake's pick. */
+const drawBudgetRow: DebugRow = { id: 'drawBudget', group: 'look', label: engineString('s_draw_budget'),
+  choices: () => [{ v: 'current', text: engineString('s_draw_budget_current') }, { v: 'lean', text: engineString('s_draw_budget_lean') }],
+  get: () => leanDrawBudget() ? 'lean' : 'current', set: value => { if (value === 'current' || value === 'lean') setLeanDrawBudget(value === 'lean'); },
+  on: () => undefined, reload: true, when: () => TIER === 'phone', note: engineString('s_draw_budget_note'), ask: 'E435', reviewBy: '2026-12-30' };
+
 /** FC13 (G912): idle-frame reuse, default off until a phone reading backs it; the winner ships and this goes. */
 const idleFramesRow: DebugRow = { purpose: 'developer', id: 'idleFrames', group: 'perf', label: engineString('s_idle_frames'),
   choices: () => [{ v: 'off', text: engineString('s_ca7981b46ecf') }, { v: 'hold', text: engineString('s_idle_frames_hold') }],
@@ -191,6 +198,7 @@ const spawnRingRevealRow: DebugRow = {purpose: 'developer', id: 'spawnRingReveal
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
   phoneBloomRow,
+  drawBudgetRow,
 
 
 
