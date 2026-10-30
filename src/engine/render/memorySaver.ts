@@ -23,6 +23,7 @@ import { markGpuOnly } from '../core/gpuOnly';
 import { arrayReleased, markArrayReleased, markArrayRestored } from './releasedArrays';
 import type { Renderer } from './renderer';
 import { drawHooks, propertyHooks } from './drawHooks';
+import { onceTextureUploaded } from './textureUploadEvents';
 import { renderCount } from './frameCounter';
 
 const LABEL = 'engine/memorySaver';
@@ -93,13 +94,7 @@ function watchTexture(t: THREE.Texture): void {
   const uploadedKey = released.get(t.source);
   if (uploadedKey !== undefined) { guardReleased(t, uploadedKey); return; }
   if (!releasable(t)) return;
-  // oxlint-disable-next-line wildshard/no-hook-chain -- three.js's Texture.onUpdate is a third-party one-slot hook; the release runs once, then hands it back
-  const prev = t.onUpdate;
-  t.onUpdate = (tex: THREE.Texture): void => {
-    prev?.(tex);
-    t.onUpdate = prev;
-    release(tex);
-  };
+  onceTextureUploaded(t, release);
 }
 
 // ── geometry ──

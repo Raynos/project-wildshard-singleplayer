@@ -1,12 +1,11 @@
+import { textureUploadRenderer as uploadRenderer } from '../test/textureUploadRenderer';
 import { afterEach, expect, test, vi } from 'vitest';
 import { RepeatWrapping, SRGBColorSpace, type Texture } from 'three';
 import * as bytes from '../boot/bytes';
 import * as gpuFiles from '../boot/gpuFiles';
 import * as ktx2 from './ktx2';
 import { loadTexture, loadImage } from './assets';
-import { legacyDouble } from '../test/FakeGame';
 import { realGc } from '../test/realGc';
-import type { Renderer } from '../render/renderer';
 import { installMemorySaver } from '../render/memorySaver';
 
 class DecodedImage implements ImageBitmap {
@@ -34,13 +33,6 @@ function images() {
   return vi.spyOn(bytes, 'fetchImage').mockImplementation(() => Promise.resolve(new DecodedImage()));
 }
 
-function uploadRenderer(): Renderer {
-  return legacyDouble<Renderer>({
-    getContext: () => legacyDouble<WebGL2RenderingContext>({}),
-    properties: { has: () => false, get: object => object, remove: () => undefined, update: () => undefined, dispose: () => undefined },
-    render: () => undefined, renderBufferDirect: () => undefined,
-  });
-}
 
 test('a texture retired before upload releases its shared source and decoded backing', async () => {
   await realGc('src/engine/core/shared-source-lifetime.test.ts', 'a texture retired before upload releases', async collect => {
@@ -74,11 +66,11 @@ test('live colour-space sources share a decode and close it only after both uplo
       read.mockClear();await collect(new WeakRef({}));
       expect(colour.image).toBe(image);expect(image.bytes[0]).toBe(73);expect(image.closes).toBe(0);
       expect(colour.wrapS).toBe(RepeatWrapping);expect(colour.colorSpace).toBe(SRGBColorSpace);
-      renderer.properties.get(colour);colour.onUpdate?.(colour);
+      renderer.initTexture(colour);
       expect(image.closes).toBe(0);expect(linear.image).toBe(image);
-      renderer.properties.get(linear);linear.onUpdate?.(linear);
+      renderer.initTexture(linear);
       expect(image.closes).toBe(1);expect(colour.source.data).toEqual({width: 16, height: 16});
-      renderer.properties.get(same);same.onUpdate?.(same);expect(image.closes).toBe(1);
+      renderer.initTexture(same);expect(image.closes).toBe(1);
     } finally { colour.dispose();same.dispose();linear.dispose(); }
   }));
 
@@ -96,7 +88,7 @@ test('a collected unuploaded colour source does not pin the remaining bitmap use
         return source;
       })();
       await collect(retired);expect(image.closes).toBe(0);
-      renderer.properties.get(linear);linear.onUpdate?.(linear);
+      renderer.initTexture(linear);
       expect(image.closes).toBe(1);
       const replacement = await loadTexture(url, true);
       try { expect(read).toHaveBeenCalledOnce();expect(replacement.image).not.toBe(image); }
@@ -123,7 +115,7 @@ test.each([false, true])('concurrent decode preserves upload ownership with cach
   const upload = (texture: Texture): void => {
     const image: unknown = texture.image;
     if (!(image instanceof DecodedImage)) throw new Error('Missing concurrent image');
-    seen.push(image.closes);renderer.properties.get(texture);texture.onUpdate?.(texture);
+    seen.push(image.closes);renderer.initTexture(texture);
   };
   const textures = await Promise.all([loadTexture(url, true, 1, undefined, upload), loadTexture(url, false, 1, undefined, upload)]);
   try { expect(seen).toEqual([0, 0]); }
