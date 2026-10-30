@@ -84,6 +84,7 @@
     "../scripts/app-build/writtenBundle.ts",
     "../vite.config.ts",
     "../scripts/app-build/gridStripPages.ts",
+    "../scripts/app-build/encodedBytes.ts",
     "../scripts/app-build/entryDownloads.ts",
     "../scripts/app-build/entryTotals.ts",
     "../scripts/app-build/entryReadSet.ts",

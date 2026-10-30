@@ -5,7 +5,7 @@ import { basename, join } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { BufferAttribute, BufferGeometry } from 'three';
 import { GeometryPackWriter } from '../../src/sdk/kit/geometryPack';
-import { encodePortableBytes } from '../../src/sdk/bake/portableBytes';
+import { gridLookBytes } from './encodedBytes';
 import type { GeneratedStrip } from '../../src/engine/sim/strips';
 import { GRID_STRIP_FEATURE_KINDS, decodeCompiledGridLook, gridStripPageKey, parseCompiledGridHeader, type CompiledGridAddress, type CompiledGridHeader, type CompiledGridPage, type CompiledGridSelector, type GridStripPhase } from '../../src/game/grid/compiledStrips';
 import { seamLookGeometrySteps, type SeamGeometryChannels } from '../../src/game/grid/seamLook';
@@ -48,7 +48,7 @@ function encodeLookChannels(look: SeamGeometryChannels): Uint8Array {
   bytes.set(new Uint8Array(look.normals.buffer, look.normals.byteOffset, look.normals.byteLength));
   bytes.set(new Uint8Array(look.uvs.buffer, look.uvs.byteOffset, look.uvs.byteLength), look.normals.byteLength);
   if (look.colours !== undefined) bytes.set(new Uint8Array(look.colours.buffer, look.colours.byteOffset, look.colours.byteLength), look.normals.byteLength + look.uvs.byteLength);
-  return encodePortableBytes(bytes);
+  return gridLookBytes.encode(bytes);
 }
 
 /** Store the original indexed words, never deduplicate vertices or quantize them. */
