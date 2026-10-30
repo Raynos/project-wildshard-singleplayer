@@ -173,6 +173,15 @@ test('a classic graph reading the instance colour gives a colourless instanced m
     expect(b.instanceColor).toBe(null);
     c.onBeforeRender(renderer, scene, camera, geometry, d);
     expect(d.instanceColor?.count).toBe(2);
+    // matrices arriving later (a larger instanceMatrix) get white colours at their size, never a short buffer read as black
+    d.instanceMatrix = new THREE.InstancedBufferAttribute(new Float32Array(5 * 16), 16); d.count = 5;
+    c.onBeforeRender(renderer, scene, camera, geometry, d);
+    expect(d.instanceColor?.count).toBe(5); expect([...(d.instanceColor?.array ?? [])].every(v => v === 1)).toBe(true);
+    // colours the owner set are its own: never replaced
+    const own = new THREE.InstancedBufferAttribute(new Float32Array(3 * 3).fill(0.5), 3); a.instanceColor = own;
+    a.instanceMatrix = new THREE.InstancedBufferAttribute(new Float32Array(6 * 16), 16);
+    reads.onBeforeRender(renderer, scene, camera, geometry, a);
+    expect(a.instanceColor).toBe(own);
   } finally { geometry.dispose(); reads.dispose(); plain.dispose(); c.dispose(); }
 });
 

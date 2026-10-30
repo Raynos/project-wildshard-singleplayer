@@ -34,6 +34,9 @@ function ownValue(value: unknown): unknown {
     || value instanceof THREE.Matrix3 ? value.clone() : value;
 }
 
+/** the white instance colours `GraphShaderMaterial.onBeforeRender` made (remade when their mesh outgrows them) */
+const whiteColours = new WeakSet<THREE.BufferAttribute>();
+
 /** whether a graph (or a loop body in it) reads the instance colour */
 function readsInstanceColour(nodes: Readonly<Record<string, GraphNode>>): boolean {
   return Object.values(nodes).some(node => node.op === 'instanceColour' || (node.body !== undefined && readsInstanceColour(node.body.nodes)));
@@ -115,9 +118,15 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
     // a material built before its sky registered its cascades takes them at its first draw (precompile runs this hook)
     this.gateCascades();
     this.codec?.draw(this, object);
-    // three picks the program after this hook: the colours are in place for this very draw
-    if (this.instanceColour && object instanceof THREE.InstancedMesh && object.instanceColor === null) {
-      object.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(object.instanceMatrix.count * 3).fill(1), 3);
+    // three picks the program after this hook: the colours are in place for this very draw. A part whose matrices arrive
+    // later (worldScenes' target rows swap in a larger instanceMatrix) outgrows white colours made at its first draw: they
+    // are remade at its size (read past their end, the extra copies drew black: Nine's mahjong diners)
+    if (this.instanceColour && object instanceof THREE.InstancedMesh) {
+      const colours = object.instanceColor, count = object.instanceMatrix.count;
+      if (colours === null || (whiteColours.has(colours) && colours.count < count)) {
+        const white = new THREE.InstancedBufferAttribute(new Float32Array(count * 3).fill(1), 3);
+        whiteColours.add(white); object.instanceColor = white;
+      }
     }
     // the environment uniforms are shared with clones: every lit draw writes its own scene's before it uploads
     if (this.lights) syncGraphEnvironment(this, scene);
