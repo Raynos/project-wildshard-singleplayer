@@ -2,6 +2,7 @@ import { MathUtils, Vector3 } from 'three';
 import * as v from 'valibot';
 import { Rng } from '../core/rng';
 import { TickScheduler, type TickPoint } from '../app/scheduler';
+import { emitFault } from '../core/faults';
 
 /** Ordered threat observation; identity, damage and prey recipes remain with the host. */
 export interface FlockThreat { readonly alive: boolean; readonly position: TickPoint }
@@ -72,6 +73,7 @@ export class FlockBrain {
   private bleatT = 2;
   private rng: Rng;
   private initialized = false;
+  private reportedFrame: Set<string> | undefined;
   private readonly ports: FlockPorts;
   private readonly spec: FlockSpec;
   private readonly contract: string;
@@ -133,8 +135,9 @@ export class FlockBrain {
 
   /** One scheduled frame; returns whether native pose inputs advanced, discarding time while paused. */
   update(dt: number, t: number, player: Vector3, playerSpeed: number, wolves: readonly FlockThreat[]): boolean {
-    if (!this.initialized) throw new Error('Flock is not initialized');
-    if (!Number.isFinite(t) || !Number.isFinite(playerSpeed) || playerSpeed < 0) throw new Error('Invalid flock observations');
+    if (!this.initialized) return this.skipFrame('Flock is not initialized');
+    if (!Number.isFinite(t) || !Number.isFinite(playerSpeed) || playerSpeed < 0) return this.skipFrame('Invalid flock observations');
+    if (!Number.isFinite(dt) || dt < 0) return this.skipFrame('Scheduler dt must be finite and nonnegative');
     this.scheduler.beginFrame(dt, player);
     this.tickActor.position.set(this.cx, this.ports.heightAt(this.cx, this.cz), this.cz);
     const brainDt = this.scheduler.takeBrainDt('ai', this.tickActor);
@@ -166,6 +169,13 @@ export class FlockBrain {
       this.graze[i] = (this.graze[i] ?? 0) + (gTarget - (this.graze[i] ?? 0)) * Math.min(1, bodyDt * 2.5);
     }
     return true;
+  }
+
+  /** Reject a frame before cadence, policy state or random draws can change. */
+  private skipFrame(message: string): false {
+    const reported = this.reportedFrame ??= new Set<string>();
+    if (!reported.has(message)) { reported.add(message); emitFault({system: 'ai.flock', error: new Error(message), verdict: 'retry'}); }
+    return false;
   }
 
   private think(dt: number, player: Vector3, playerSpeed: number, wolves: readonly FlockThreat[]): void {
