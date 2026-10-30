@@ -1,11 +1,6 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise real flock leases in an isolated owned fixture.
-import { execFileSync, spawnSync } from 'node:child_process';
-
-test('shared preview ports, pinned builds and caller releases retain their leases', () => {
-  const result = spawnSync('python3', ['scripts/test_serve_ports.py'], { encoding: 'utf8', timeout: 45000 });
-  expect(result.status, result.stderr).toBe(0);
-}, 50000);
+import { execFileSync } from 'node:child_process';
 
 test('queue and scheduler deadlines name holders without launching or taking their locks', () => {
   const result = execFileSync('python3', ['-c', `
@@ -63,11 +58,6 @@ print(json.dumps(True))
 `], { encoding: 'utf8', timeout: 5000 });
   expect(JSON.parse(result)).toBe(true);
 });
-
-test('two checks waiting on a mirror leave build capacity for its preview', () => {
-  const result = spawnSync('python3', ['scripts/test_lease_order.py'], { encoding: 'utf8', timeout: 25000 });
-  expect(result.status, result.stderr).toBe(0);
-}, 30000);
 
 test('three build slots queue FIFO, inherit leases and keep reporting', () => {
   const result = execFileSync('python3', ['-c', `

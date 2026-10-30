@@ -1,5 +1,6 @@
 """Bash 3 preview reservation and post-build port conflict regressions."""
 import contextlib
+import fcntl
 import importlib.util
 import io
 import os
@@ -89,6 +90,8 @@ class PreviewTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.groups = set()
         self.launches = []
+        self.port_locks = []
+        self.addCleanup(self.release_ports)
         self.addCleanup(self.stop_previews)
         (self.root / 'scripts').mkdir()
         (self.root / 'public').mkdir()
@@ -190,17 +193,28 @@ else:
             except ProcessLookupError:
                 pass
 
+    def release_ports(self):
+        for lock in self.port_locks:
+            lock.close()
+
     def port(self):
-        # Reserve adjacent candidates away from the machine's game previews.
+        # Hold the probe-to-bind range across concurrently scheduled fixtures.
+        # The real listeners still bind/check conflicts; no listener is mocked.
+        leases = ROOT / 'tmp/serve-test-port-leases'
+        leases.mkdir(parents=True, exist_ok=True)
         for port in range(19000, 29000, 5):
             sockets = []
+            lock = (leases / str(port)).open('a+')
             try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 for candidate in range(port, port + 3):
                     connection = socket.socket()
                     sockets.append(connection)
                     connection.bind(('127.0.0.1', candidate))
+                self.port_locks.append(lock)
                 return port
             except OSError:
+                lock.close()
                 continue
             finally:
                 for connection in sockets:
@@ -622,4 +636,7 @@ class SharedReleaseTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) == 3 and sys.argv[1] == '--partition':
+        from test_partition import run_partition
+        run_partition(sys.modules[__name__], sys.argv[2])
     unittest.main()

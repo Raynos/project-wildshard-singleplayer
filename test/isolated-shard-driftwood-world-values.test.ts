@@ -38,8 +38,19 @@ export const omitted=islandClippedIndex(new Uint16Array(0),undefined);
  const host=ts.createCompilerHost(options),read=host.readFile.bind(host),exists=host.fileExists.bind(host);
  host.fileExists=file=>file===consumer||exists(file);
  host.readFile=file=>file===consumer?source:read(file);
+ // Only the virtual consumer changes between the positive and negative pass.
+ // Retain dependency ASTs within this one fixture, never across test files.
+ const parse=host.getSourceFile.bind(host),parsed=new Map<string,ts.SourceFile>();
+ host.getSourceFile=(file,language,onError,fresh)=>{
+  if(file===consumer||fresh===true)return parse(file,language,onError,fresh);
+  const cached=parsed.get(file);if(cached!==undefined)return cached;
+  const value=parse(file,language,onError,fresh);if(value!==undefined)parsed.set(file,value);
+  return value;
+ };
+ let previous:ts.Program|undefined;
  const diagnostics=():readonly ts.Diagnostic[]=>{
-  const program=ts.createProgram([consumer],options,host),file=program.getSourceFile(consumer);
+  const program=ts.createProgram([consumer],options,host,previous),file=program.getSourceFile(consumer);
+  previous=program;
   if(file===undefined)throw new Error('Missing virtual Driftwood default consumer');
   return program.getSemanticDiagnostics(file);
  };
