@@ -21,6 +21,7 @@ import { readImagePixels, writeImagePixels } from './bake/image';
 import { normalizeWorldGlb } from './bake/world';
 import { createBasisEncoder } from './bake/basisEncoder';
 import { encodeGainKeyMemo } from './bake/keyedSkyMemo';
+import { encodePortableBytesMemo } from './bake/portableBytesMemo';
 import { projectInputFiles } from './projectInputFiles';
 import type { Shardfile } from './shardfile';
 import type { ProjectOutput } from './projectOutput';
@@ -69,6 +70,9 @@ export interface ProjectGenerationContext {
   /** The keyed sky's gain-key gzip (`bake/keyedSky.ts`) with its exact memo in the gen cache (CI6), so an author bundle
    *  reaches no file access; older adapters may omit it. */
   encodeGainKey?: (data: Uint16Array) => Uint8Array;
+  /** The portable deflate (`bake/portableBytes.ts` encodePortableBytes) with its exact memo in the gen cache (CI6), for a
+   *  large baked payload whose input rarely changes; older adapters may omit it. */
+  encodePortableBytes?: (input: Uint8Array, level?: number) => Uint8Array<ArrayBuffer>;
   /** Trusted original UASTC build recipe; older adapters may omit this capability. */
   basisEncoder?: typeof createBasisEncoder;
   /** Fresh bounded names below project-relative directories or declared URL roots; older adapters may omit it. */
@@ -108,7 +112,7 @@ export function createProjectGeneration(project: string, programHash: string, as
   });
   return {
     compileScript, compileScriptV2, compileDecisionScripts: compileDeclaredDecisionScripts, compileDecisionRows: compileDecisionScripts, compileReturnProjection: compileReturnProjectionV2, proveStaticPortalEntries, readImagePixels, writeImagePixels, normalizeWorldGlb,
-    basisEncoder: createBasisEncoder, encodeGainKey: encodeGainKeyMemo,
+    basisEncoder: createBasisEncoder, encodeGainKey: encodeGainKeyMemo, encodePortableBytes: encodePortableBytesMemo,
     inputFiles: prefixes => projectInputFiles(roots, prefixes, root),
     asset(bytes) {
       if (!(bytes instanceof Uint8Array) || bytes.byteLength > 256_000_000) throw new Error('Invalid generation asset bytes');

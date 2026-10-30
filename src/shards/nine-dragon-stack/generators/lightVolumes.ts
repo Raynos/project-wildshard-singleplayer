@@ -110,6 +110,7 @@ export function volumeSources(tier: 'phone' | 'desktop', caps: boolean, layout: 
 interface VolumeRow { readonly file: string; readonly size: readonly [number, number, number]; readonly min: readonly number[]; readonly inv: readonly number[]; readonly maximum: number }
 interface VolumeData { blobs: NamedBlob[]; rows: Record<string, VolumeRow> }
 const cached = new WeakMap<NineSourceWorld['layout'], { readonly atlas: string; readonly data: VolumeData }>();
+const encoders = new WeakMap<NineSourceWorld['layout'], (input: Uint8Array, level: number) => Uint8Array>();
 function volumeData(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas): VolumeData {
   // Hash the complete consumed native rows, including in-place edits. Retain one
   // result per layout, so older native inputs do not accumulate cached volumes.
@@ -128,7 +129,7 @@ function volumeData(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas): 
       const data = tex.image.data;
       if (!(data instanceof Uint8Array)) throw new Error('Nine volume bake has no byte payload');
       const file = `${key}-${index}`;
-      const volume = nameBlob(`${file}.bin`, 'bin', encodePortableBytes(data, 9), { decoded: data.length, gpu: data.length });
+      const volume = nameBlob(`${file}.bin`, 'bin', (encoders.get(layout) ?? encodePortableBytes)(data, 9), { decoded: data.length, gpu: data.length });
       const existing = blobs.find(blob => blob.file.hash === volume.file.hash);
       if (existing === undefined) blobs.push(volume);
       const name = existing?.file.name ?? volume.file.name;
@@ -138,6 +139,11 @@ function volumeData(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas): 
     });
   }
   const result = { blobs, rows }; cached.set(layout, {atlas: identity, data: result}); return result;
+}
+/** CI6: `layout`'s volumes deflate with `encode` (the build's memoed portable deflate: the same bytes) when they bake, at
+ *  their original first read, so every blob is named in the original order. */
+export function useLightVolumeEncoder(layout: NineSourceWorld['layout'], encode: ((input: Uint8Array, level: number) => Uint8Array) | undefined): void {
+  if (encode !== undefined) encoders.set(layout, encode);
 }
 export function lightVolumeBlobs(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas): NamedBlob[] { return volumeData(layout, atlas).blobs; }
 export function lightVolumeRows(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas): Readonly<Record<string, VolumeRow>> { return volumeData(layout, atlas).rows; }
