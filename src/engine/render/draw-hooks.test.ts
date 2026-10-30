@@ -103,6 +103,20 @@ test('native rows stay live until removal and disposal, including within one dra
   renderer.render(f.scene, f.camera);
 });
 
+test('native material rows never consult texture label policy', () => {
+  const f = fixture(), native = { version: 1 };
+  const renderer = { ...f.renderer, properties: { get: (_resource: unknown) => native } };
+  drawHooks(renderer); const hooks = propertyHooks(renderer);
+  hooks.labels = () => { throw new Error('Nontexture label traversal'); };
+  hooks.labelsVersion = () => { throw new Error('Nontexture label policy'); };
+  f.stock.mockImplementation(() => {
+    expect(renderer.properties.get(f.material)).toBe(native);
+    native.version = 2;
+    expect(renderer.properties.get(f.material).version).toBe(2);
+  });
+  renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+});
+
 test('new render, consuming owner, label policy and upload registrations invalidate reuse', () => {
   const f = fixture(), resource = new Texture(), native = {}, proxies = [{}, {}];
   const renderer = { ...f.renderer, properties: { get: (_value: unknown) => native },

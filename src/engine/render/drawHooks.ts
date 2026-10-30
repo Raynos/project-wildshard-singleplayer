@@ -133,7 +133,10 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
     // this render/consumer, until native removal or observer policy changes.
     const frame = counter !== undefined && kind.compressed === null ? counter.n : pipeline.epoch;
     const owner = drawing?.ownerToken ?? null;
-    const labels = hooks.labels === undefined ? 0 : hooks.labelsVersion?.();
+    // Material/geometry/Source records always stay native. A texture-label
+    // policy change cannot replace their rows or require another census read.
+    const labelable = kind.texture !== null || kind.target;
+    const labels = hooks.labels === undefined || !labelable ? 0 : hooks.labelsVersion?.();
     if (active && prior !== undefined && prior.frame === frame && prior.owner === owner
       && prior.revision === observationRevision && labels !== undefined && prior.labels === labels) return prior.value;
     const texture = kind.texture, compressed = kind.compressed;
@@ -145,7 +148,7 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
     const revision = observationRevision;
     const native: unknown = get(resource);
     if (compressed !== undefined && compressed !== null) hooks.compressed?.after(compressed, native);
-    const value = hooks.labels === undefined || (kind.texture === null && !kind.target) ? native : hooks.labels(resource, native);
+    const value = hooks.labels === undefined || !labelable ? native : hooks.labels(resource, native);
     if (prior === undefined) observed.set(resource, { kind, frame: active ? frame : -1, owner, revision, labels, value });
     else { prior.frame = active ? frame : -1; prior.owner = owner; prior.revision = revision; prior.labels = labels; prior.value = value; }
     return value;
