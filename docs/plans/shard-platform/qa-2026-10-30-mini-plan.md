@@ -1,0 +1,18 @@
+# QA 10-30 (1): Jake's phone QA before the legacy deletion, as one buildable list
+
+**State:** `open` 2026-10-30 ~11:38 Cancun. Written by wildshard-v for wildshard-new, which hands the rows to lanes and
+marks them. Jake, 11:38: *"Let's start a qa 1 todays date mini plan"* (ask E511; G932). The lists before it,
+[qa 10-29](qa-2026-10-29-mini-plan.md) and [qa 10-29 (2)](qa-2026-10-29-2-mini-plan.md), are all done. Same rules
+(G877, G879): **every row here blocks the SHARD-PLATFORM archive**, none goes to the damage list, and the legacy deletion
+(LD5–LD10) still waits for Jake's word after this QA (G873, G908). The builder is autonomous (G872): it never waits for
+Jake; it decides on the recommended fix and logs the call in STATE.md. Visual fixes are Opus-only (G848).
+
+His QA: iPhone 17 Pro portrait Safari home-screen PWA, Developer on, from ~11:20 on live `7c64790-mvv5fpng`, then
+`ff31df0`. No crash all session so far (QB6's white-screen kills did not recur).
+
+## Rows
+
+| Row | What Jake saw | Fix / done when | Lane | Size |
+|---|---|---|---|---|
+| QC1 | **Nine Dragon: textures load late and the frame rate is 7–19 fps** (E510; 11:32 recording `~/.claude/uploads/81cffee4-70d4-4229-8860-2e3743d9c0b8/3fcf22cb-603235bb-bed4-4ee0-91d2-cd74a7f884d5.mov`, 62 s, SHARDFILE, live `7c64790`). *"It's not pop in. It's like the textures not loading fast enough or something. Pop in is what happens when I move related to draw distance. This is some kind of loading issue."* What the clip shows: the HUD counter reads 7–19 fps the whole minute with max frames of 98–460 ms (3 s: 7 fps / 265 ms; 22 s: 19 / 245; 50 s: 13 / 460); around the arch tunnel (20–26 s) walls and buildings draw flat and untextured, cream and grey boxes, until the textures arrive ([frame](../../../art/qa-2026-10-30/qc1-nine-flat-walls.jpg)). The loader read "Spawn view 81.2 MB". The Simulator held 30 fps on Nine at the pre-QA recheck. | wildshard-v's subagent records SHARDFILE vs legacy on one route (board to `art/nine-dragon/e510-popin-fps/`) and names what streams late and whether its uploads cause the hitches; the fix lands on that finding. Done when: no untextured surface is visible after PLAY on the route spawn → first two bridges → stairs → arch tunnel, and the matched still poses hold the 30 fps cap on WebKit (iPhone 16 Pro) with max frame ≤ 50 ms, no worse than legacy. MF13's "Refine dither" is not this fix. | Opus (after the subagent's finding) | M |
+| QC2 | **SHARD SELECT on the title loads Driftwood** (11:37 [screenshot](../../../art/qa-2026-10-30/qc2-shard-select-driftwood.jpg), live `ff31df0`). *"When I press shard select it loads driftwood."* After the tap the loading card reads LOADING CHUNK · DRIFTWOOD ISLE, DOWNLOAD spawn view 50.6 MB 100 %, SETUP step 7 / 30 Sky · lighting, "Attempt 2", Hold at loading screen on. | SHARD SELECT opens the world picker; no world loads until he picks a card and taps ENTER WORLD. If the picker needs a world behind it, it shows no Driftwood loading card, and the tap reaches the picker in ≤ 1 s warm. Done when: on WebKit (iPhone 16 Pro), cold and warm, title → SHARD SELECT shows the picker, and then picking each of the six shards loads that shard, never Driftwood; one test pins it. | Opus (developer UI, G848) | S |
