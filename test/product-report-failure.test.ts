@@ -27,6 +27,7 @@ function fixture(): string {
   };
   put('lint/ratchet.json', { allow: {}, budgets: {} });
   put('lint/tile-bake-debt.json', { version: 1, products: {} });
+  cpSync(resolve('lint/nine-tiling-baseline.json'), resolve(root, 'lint/nine-tiling-baseline.json'));
   put('src/format/memoryGates.json', { explorerMB: 1200, loadingMB: 1800 });
   put('lint/legacy-shards.json', { version: 1, sealed: true, shards: Object.fromEntries(MILESTONE_SHARDS.map(primary => [`${primary}-legacy`, {
     primary, source: 'a'.repeat(40), files: { 'manifest.ts': 'b'.repeat(64), 'plugin.ts': 'b'.repeat(64) },
@@ -36,6 +37,7 @@ function fixture(): string {
   }])) });
   for (const slug of MILESTONE_SHARDS) {
     const source = emptyShardfile({ slug, name: slug, author: 'Test', revision: 1, seed: 1 });
+    if (slug === 'nine-dragon-stack') source.ring = 'cell';
     for (const lod of [0, 1] as const) for (let x = 0; x < (lod === 0 ? 8 : 4); x++) for (let z = 0; z < (lod === 0 ? 8 : 4); z++) {
       const size = lod === 0 ? 62.5 : 125;
       source.tiles.push({ lod, x, z, bounds: { min: [-250 + x * size, 0, -250 + z * size], max: [-250 + (x + 1) * size, 0, -250 + (z + 1) * size] },
