@@ -7,8 +7,8 @@ import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
 import {builtProduct} from '../builtProduct';
 import {createNativeProofWorker,type NativeProofKind} from '../headless-worker';
 
-export type ProductSessionVariant = Extract<NativeProofKind, 'driftwood' | 'nine-flat' | 'nalati-companions' | 'nalati-weapons' | 'nalati-world' | 'nalati-verbs' | 'nalati-kokpar' | 'pine-verbs' | 'sky-verbs'>;
-const variantHosts: Readonly<Record<string, string>> = { 'driftwood': 'driftwood-isle', 'sky-verbs': 'far-reach', 'pine-verbs': 'pine-hollow', 'nine-flat': 'nine-dragon-stack', 'nalati-companions': 'nalati-grasslands', 'nalati-weapons': 'nalati-grasslands', 'nalati-world': 'nalati-grasslands', 'nalati-verbs': 'nalati-grasslands', 'nalati-kokpar': 'nalati-grasslands' };
+export type ProductSessionVariant = Extract<NativeProofKind, 'driftwood' | 'nine-flat' | 'nalati-companions' | 'nalati-weapons' | 'nalati-predators' | 'nalati-world' | 'nalati-verbs' | 'nalati-kokpar' | 'pine-verbs' | 'sky-verbs'>;
+const variantHosts: Readonly<Record<string, string>> = { 'driftwood': 'driftwood-isle', 'sky-verbs': 'far-reach', 'pine-verbs': 'pine-hollow', 'nine-flat': 'nine-dragon-stack', 'nalati-companions': 'nalati-grasslands', 'nalati-weapons': 'nalati-grasslands', 'nalati-predators': 'nalati-grasslands', 'nalati-world': 'nalati-grasslands', 'nalati-verbs': 'nalati-grasslands', 'nalati-kokpar': 'nalati-grasslands' };
 
 type ProductSimulation=Pick<HeadlessSimulation,'verbTape'|'streamVerbTape'|'journey'|'walkLeg'|'step'|'dispose'|'quarantined'>;
 
