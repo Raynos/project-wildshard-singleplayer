@@ -129,12 +129,13 @@ export class TickWorkerHost {
     if(this.deadline!=='advisory')throw new Error('Verb tape requires trusted offline timing');
     if(this.finished)throw new Error('Headless validation already finished');
     await this.initialized();if(this.closed||this.pending!==undefined||this.streamStarted!==0n)throw new Error('Headless worker unavailable or busy');
+    const iterator=source[Symbol.asyncIterator]();
     this.finished=true;this.streamStarted=hrtime.bigint();
     const failed=new Promise<never>((_resolve,reject)=>{this.streamReject=reject;});
-    const iterator=source[Symbol.asyncIterator](),observations:HeadlessTapeReport['observations']=[],ids=new Set<string>(),encoder=new TextEncoder();
+    const observations:HeadlessTapeReport['observations']=[],ids=new Set<string>(),encoder=new TextEncoder();
     let ticks=0,commands=0,bytes=0,committed=0;
     try{
-      let current=await Promise.race([iterator.next(),failed]);
+      let current=await Promise.race([(async()=>iterator.next())(),failed]);
       while(!current.done){
         const plan=v.parse(HeadlessTapePlanSchema,{version:1,observe:[...observe],segments:[current.value]}),segment=plan.segments[0];
         if(segment===undefined)throw new Error('Missing streamed tape segment');

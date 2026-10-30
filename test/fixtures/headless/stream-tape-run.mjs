@@ -13,6 +13,8 @@ const input={kind:'player',moveX:.2,moveZ:0,yaw:0};
 async function* parts(rows){for(const row of rows)yield row;}
 const stream=await open(),ordinary=await open();
 try{
+ await assert.rejects(stream.streamVerbTape([],{[Symbol.asyncIterator](){throw new Error('iterator creation failed');}}),/iterator creation failed/);
+ assert.equal(stream.quarantined,false);
  const initial=stream.checkpoint,frames=Array.from({length:72},(_,tick)=>tick<48?[{...input,moveZ:tick<24?0:-.3,yaw:tick/100}]:[]);
  for(const commands of frames)await ordinary.step([{source:'control',commands}]);
  const report=await stream.streamVerbTape([],parts([0,24,48].map((from,index)=>({id:String(index),ticks:24,commands:[],frames:frames.slice(from,from+24)}))));
@@ -35,6 +37,10 @@ const failed=await open();try{
  async function* broken(){yield {id:'first',ticks:1,commands:[]};throw new Error('capture owner failed');}
  await assert.rejects(failed.streamVerbTape([],broken()),/capture owner failed/);assert.equal(failed.quarantined,true);
 }finally{await failed.dispose();}
+const synchronous=await open();try{
+ const inputSource={[Symbol.asyncIterator](){return {next(){throw new Error('synchronous producer failed');}};}};
+ await assert.rejects(synchronous.streamVerbTape([],inputSource),/synchronous producer failed/);assert.equal(synchronous.quarantined,true);
+}finally{await synchronous.dispose();}
 const closed=await open();try{
  let entered;const producing=new Promise(resolve=>{entered=resolve;});
  const stalled={async *[Symbol.asyncIterator](){entered();await new Promise(()=>{});yield {id:'unreachable',ticks:1,commands:[]};}};
