@@ -11,13 +11,21 @@ import { patchShader, PATCH_ORDER } from '../render/shaderPatches';
 import { familyVariant } from '../render/families/registry';
 import { applyNodeCoarseMask } from '../render/nodeCoarseMask';
 import { CHUNK_HALF } from '../core/config';
-import type { Scope } from '../app/scope';
+import { Scope } from '../app/scope';
 import { drawNeutral, isDrawNeutral } from '../render/drawNeutral';
 
 /** a coarse tile is 125 m (four per cell side), so a quadrant is 62.5 m */
 const COARSE_SIZE = 125;
 
 function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
+
+/** NF2: a node material's masked variant, shared by every coarse tile that draws the same surface, so the graph compiles
+ *  one masked program instead of one per tile. Each tile's draw hook writes its own origin and mask into these uniforms
+ *  just before the draw; the node handler binds a draw's plain uniforms per draw. Classic variants stay one per tile:
+ *  three uploads a non-ShaderMaterial's uniforms only when the material switches. */
+interface SharedMask { readonly material: Material; readonly origin: Uniform<Vector2>; readonly mask: Uniform<Vector4>; readonly scope: Scope; users: number }
+const sharedMasks = new WeakMap<Material, SharedMask>();
+const isNodeMaterial = (material: Material): boolean => Reflect.get(material, 'isNodeMaterial') === true;
 
 /**
  * The world x / z of coarse tile `x`, `z`'s cell-local −x −z corner under its root's world matrix (written to `out`). The
@@ -41,13 +49,29 @@ export function coarseTileMask(root: Object3D, x: number, z: number, scope: Scop
   // without children; round 38)
   const origin = new Uniform(coarseMaskOrigin(root.matrixWorld, x, z, new Vector2())), mask = new Uniform(new Vector4(0, 0, 0, 0));
   const half = (COARSE_SIZE / 2).toFixed(2);
-  const own = new Map<Material, Material>();
-  const variant = (shared: Material): Material => {
-    const known = own.get(shared); if (known !== undefined) return known;
-    const material = familyVariant(shared, scope);
-    own.set(shared, material);
+  const own = new Map<Material, Material>(), shared = new Map<Material, SharedMask>();
+  const variant = (base: Material): Material => {
+    const known = own.get(base) ?? shared.get(base)?.material; if (known !== undefined) return known;
+    if (isNodeMaterial(base)) {
+      let entry = sharedMasks.get(base);
+      if (entry === undefined) {
+        const owner = new Scope('engine.coarse-tile-mask.shared'), material = familyVariant(base, owner);
+        entry = { material, origin: new Uniform(new Vector2()), mask: new Uniform(new Vector4(0, 0, 0, 0)), scope: owner, users: 0 };
+        if (!applyNodeCoarseMask(material, entry.origin, entry.mask, COARSE_SIZE / 2)) throw new Error('coarse tile mask: a node material without the node mask');
+        owner.onDispose(() => { material.dispose(); });
+        sharedMasks.set(base, entry);
+      }
+      const held = entry; held.users++; shared.set(base, held);
+      scope.onDispose(() => { if (--held.users === 0) { sharedMasks.delete(base); held.scope.dispose(); } });
+      return held.material;
+    }
+    const material = familyVariant(base, scope);
+    own.set(base, material);
     scope.onDispose(() => { material.dispose(); });
     return material;
+  };
+  const sharedDraw = (): void => {
+    for (const entry of shared.values()) { coarseMaskOrigin(root.matrixWorld, x, z, entry.origin.value); entry.mask.value.copy(mask.value); }
   };
   root.traverse((object) => {
     if (!isMesh(object)) return;
@@ -56,7 +80,7 @@ export function coarseTileMask(root: Object3D, x: number, z: number, scope: Scop
     if (typeof draw !== 'function') throw new Error('coarse tile mask: a mesh without its draw hook');
     object.material = Array.isArray(before) ? before.map(variant) : variant(before);
     const onBeforeRender = function onBeforeRender(this: Object3D, ...args: Parameters<Object3D['onBeforeRender']>): void {
-      coarseMaskOrigin(root.matrixWorld, x, z, origin.value); Reflect.apply(draw, this, args);
+      coarseMaskOrigin(root.matrixWorld, x, z, origin.value); sharedDraw(); Reflect.apply(draw, this, args);
     };
     // the mask only sets its origin uniform: draw-neutral when the hook it wraps is (or is the default)
     object.onBeforeRender = draw === Mesh.prototype.onBeforeRender || isDrawNeutral(draw) ? drawNeutral(onBeforeRender) : onBeforeRender;
