@@ -23,9 +23,15 @@ export interface PhonePage {
 export interface PhoneDocument {readonly url:string;readonly visit:string;readonly document:string;readonly boot:string}
 export function enterPhoneGrid(page:Pick<PhonePage,'evaluate'|'click'|'followNavigation'>,url:string,deadline:number):Promise<void>;
 export function capturePhoneFailure(page:Pick<PhonePage,'screenshot'>,path:string):Promise<void>;
+/** Passive timestamps from the existing Image probe and two-frame witness.
+ * Probe load is not CSS decode or a compositor presentation timestamp. */
+export interface PhoneTitlePhases {
+  visibleMs:number|null; probeStartedMs:number|null; probeLoadedMs:number|null; firstFrameMs:number|null;
+  resources:{kind:string;start:number;responseStart:number;responseEnd:number;transferBytes:number;encodedBytes:number;decodedBytes:number}[];
+}
 export interface PhoneReceipt {
   protocol:string; route?:'full'|'entry'; rollout?:string; sha:string; version:{build:string}; engine:PhonePage['engine']; steps:string[];
-  paint:{heroMs:number|null;fcpMs:number|null;heroURL:string|null}; entry:PhoneEntry|null; wall:PhoneWall|null;
+  paint:{heroMs:number|null;fcpMs:number|null;heroURL:string|null;phases?:PhoneTitlePhases}; entry:PhoneEntry|null; wall:PhoneWall|null;
   fps:PhoneFps[]; observations:PhoneObservation[]; frames:{label:string;width:number;height:number;darkShare:number}[];
   faults:string[]; routes:FloorGridWitness[]; failures:string[]; stop?:unknown;
 }

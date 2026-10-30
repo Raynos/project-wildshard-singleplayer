@@ -175,8 +175,10 @@ export async function phoneBoardWall(milliseconds, target) {
 export function installPhoneTitlePaint() {
   // Keep late entry reads: WebKit defaults to only the first 250 resources.
   performance.setResourceTimingBufferSize(10_000);
-  /** @type {{heroMs:number|null, fcpMs:number|null, heroURL:string|null}} */
-  const evidence = { heroMs: null, fcpMs: null, heroURL: null };
+  /** @type {import('./phone-route.mjs').PhoneTitlePhases} */
+  const phases = { visibleMs: null, probeStartedMs: null, probeLoadedMs: null, firstFrameMs: null, resources: [] };
+  /** @type {import('./phone-route.mjs').PhoneReceipt['paint']} */
+  const evidence = { heroMs: null, fcpMs: null, heroURL: null, phases };
   Reflect.set(window, '__phoneRoutePaint', evidence);
   /** @type {string[]} */ const faults = [];
   Reflect.set(window, '__phoneRouteFaults', faults);
@@ -189,12 +191,27 @@ export function installPhoneTitlePaint() {
     if (hero === undefined) { requestAnimationFrame(sample); return; }
     const match = /url\(["']?([^"')]+)["']?\)/u.exec(getComputedStyle(hero).backgroundImage);
     if (match?.[1] === undefined) { requestAnimationFrame(sample); return; }
+    phases.visibleMs = performance.now();
     const image = new Image(); evidence.heroURL = new URL(match[1], location.href).href;
-    image.onload = () => { requestAnimationFrame(() => { requestAnimationFrame(() => {
-      evidence.heroMs = performance.now();
-      evidence.fcpMs = performance.getEntriesByType('paint').find(row => row.name === 'first-contentful-paint')?.startTime ?? null;
-    }); }); };
+    image.onload = () => {
+      // Retain the original probe and two rAFs. These clocks explain its delay;
+      // they do not claim a CSS decode or native compositor timestamp.
+      phases.probeLoadedMs = performance.now();
+      requestAnimationFrame(() => {
+        phases.firstFrameMs = performance.now();
+        requestAnimationFrame(() => {
+          evidence.heroMs = performance.now();
+          evidence.fcpMs = performance.getEntriesByType('paint').find(row => row.name === 'first-contentful-paint')?.startTime ?? null;
+          phases.resources = performance.getEntriesByType('resource').filter(row => row.name === evidence.heroURL).map(entry => {
+            const resource = /** @type {PerformanceResourceTiming} */ (entry);
+            return { kind: resource.initiatorType, start: resource.startTime, responseStart: resource.responseStart, responseEnd: resource.responseEnd,
+              transferBytes: resource.transferSize, encodedBytes: resource.encodedBodySize, decodedBytes: resource.decodedBodySize };
+          });
+        });
+      });
+    };
     image.onerror = () => { evidence.heroMs = -1; };
+    phases.probeStartedMs = performance.now();
     image.src = evidence.heroURL;
   };
   requestAnimationFrame(sample);

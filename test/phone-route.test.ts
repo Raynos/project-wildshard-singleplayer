@@ -5,8 +5,56 @@ import { Window } from 'happy-dom';
 import { runInNewContext, createContext, runInContext } from 'node:vm';
 import { phoneEngine } from '../scripts/parity/phone-route-runner.mjs';
 import { capturePhoneFailure, waitPhoneCondition, enterPhoneGrid, phoneRouteFailures, phoneRoutePlans, type PhoneReceipt, type PhoneObservation, type PhoneDocument } from '../scripts/parity/phone-route.mjs';
-import { phoneTouchButton, phoneWallTarget, phoneLoadingObservation, phoneGridEntryCondition } from '../scripts/parity/phone-route-page.mjs';
+import { phoneTouchButton, phoneWallTarget, phoneLoadingObservation, phoneGridEntryCondition, installPhoneTitlePaint } from '../scripts/parity/phone-route-page.mjs';
 import { phoneBootstrap, phoneDocumentMatches, phonePageTarget, followNativePhoneDocument } from '../scripts/parity/phone-route-browser.mjs';
+
+// Exercise the serialized page observer without a browser or extra downloads.
+test.each(['load', 'error'] as const)('title phase evidence preserves the original %s witness', mode => {
+  let clock = 0, visible = false, images = 0;
+  const frames: (()=>void)[] = [];
+  const probes: Probe[] = [];
+  class Probe {
+    onload: (()=>void) | undefined;
+    onerror: (()=>void) | undefined;
+    src = '';
+    constructor() { images++; probes.push(this); }
+  }
+  const url = 'http://fixture.test/hero.jpg';
+  const resource = { name: url, initiatorType: 'link', startTime: 10, responseStart: 20, responseEnd: 30,
+    transferSize: 0, encodedBodySize: 0, decodedBodySize: 0 };
+  const paint = { name: 'first-contentful-paint', startTime: 5 };
+  const context = createContext({window:{addEventListener:()=>undefined},
+    document:{querySelectorAll:()=>visible?[{getClientRects:()=>[{}]}]:[]},
+    MutationObserver:class {observe() {return undefined;}},
+    requestAnimationFrame:(next:()=>void)=>{frames.push(next);},
+    getComputedStyle:()=>({backgroundImage:'url("/hero.jpg")'}),
+    Image:Probe,URL,location:{href:'http://fixture.test/'},
+    performance:{now:()=>clock,setResourceTimingBufferSize:()=>undefined,
+      getEntriesByType:(kind:string)=>kind==='paint'?[paint]:[resource,{...resource,name:'http://fixture.test/other.jpg'}]}});
+  const read = ()=>runInContext('window.__phoneRoutePaint',context) as PhoneReceipt['paint'];
+  const frame = (at:number)=>{clock=at;const next=frames.shift();if(next===undefined)throw new Error('Missing original frame callback');next();};
+  runInContext(`(${installPhoneTitlePaint.toString()})()`,context);
+  frame(10);expect(images).toBe(0);expect(read().heroMs).toBeNull();
+  visible=true;frame(40);
+  const probe = probes[0];
+  expect(images).toBe(1);expect(probe?.src).toBe(url);
+  expect(read().phases?.visibleMs).toBe(40);expect(read().phases?.probeStartedMs).toBe(40);
+  clock=70;
+  if(probe===undefined)throw new Error('Missing original Image probe');
+  if(mode==='error') {
+    probe.onerror?.();expect(read().heroMs).toBe(-1);expect(frames).toHaveLength(0);
+    expect(read().phases?.probeLoadedMs).toBeNull();return;
+  }
+  probe.onload?.();expect(read().heroMs).toBeNull();
+  frame(80);expect(read().heroMs).toBeNull();frame(90);
+  expect(read().heroMs).toBe(90);expect(read().fcpMs).toBe(paint.startTime);
+  expect(read().phases?.probeLoadedMs).toBe(70);expect(read().phases?.firstFrameMs).toBe(80);
+  expect(read().phases?.resources).toHaveLength(1);
+  expect(read().phases?.resources[0]?.responseEnd).toBe(resource.responseEnd);
+  expect(read().phases?.resources[0]?.transferBytes).toBe(0);
+  expect(read().phases?.resources[0]).not.toBe(resource);
+  expect(images).toBe(1);expect(frames).toHaveLength(0);
+});
 
 test('GRID waiting keeps fresh readiness but reads the full census once per owner',()=>{
   let full=0,travel=0,ready=false,inside:string|null='home',drawn=true;
