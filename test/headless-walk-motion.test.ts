@@ -41,7 +41,7 @@ test('a failed route releases its temporary page motion before a later driver bi
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const sim=createShardfileSim(emptyShardfile({slug:'walk-release',name:'Walk release',author:'Test',revision:1,seed:1}),new Map(),{rapier});
   try{
-    expect(()=>runHeadlessJourney(sim.host,()=>{throw new Error('Native step refused');},{ticks:1,points:[{x:0,z:0},{x:10,z:0}]})).toThrow('Native step refused');
+    expect(()=>runHeadlessJourney(sim.host,()=>{throw new Error('Native step refused');},{ticks:1,start:{x:0,z:0,yaw:0},points:[{x:0,z:0},{x:10,z:0}]})).toThrow('Native step refused');
     const release=sim.host.useWalkingControl({speed:4.3,crouching:false});
     release();
   }finally{sim.dispose();}
