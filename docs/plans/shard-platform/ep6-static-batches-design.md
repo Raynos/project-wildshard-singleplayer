@@ -53,11 +53,15 @@ A new library kind beside `whole` in `format/worldScenes.ts` (strict, bounded li
 { id, kind: 'slabs', of: <whole library id>,
   keys: [{ id, node: <weld node id whose anchor owns it>, material, castShadow, receiveShadow, castFrom?, until?,
            renderOrder, layers, frustumCulled, visible, sources: [<refine model ids>] }],  // ≤ 64
-  tiles: [{ tile: z * 8 + x, file: <asset hash>,
-            chunks: [{ key: <keys[].id>, bytes, box: [6], sphere: [4], geometricError }] }] }   // ≤ 64 tiles, ≤ 64 chunks
+  tiles: [{ tile: z * 8 + x,
+            files: [{ file: <asset hash>,
+                      chunks: [{ key: <keys[].id>, bytes, box: [6], sphere: [4], geometricError }] }] }] }
+  // ≤ 64 tiles, ≤ 16 files a tile, ≤ 64 chunks a tile
 ```
 
-- One GLB per tile (`file`), one glTF node per chunk, written in `chunks` order. Channels are **exactly** today's whole
+- A tile's chunks are split over as many GLBs as the GLB cost guard needs (`glbCost` MAX_BYTES 25 MB of GPU and of
+  decoded + bin; Nine's tile (3,3) holds ~30 MB of geometry), one glTF node per chunk, written in each file's `chunks`
+  order. A tile appears once; its files are its own. Channels are **exactly** today's whole
   pieces' (same attributes, same quantization, same `nativeAttributes` / `quantizedChannels` / `compactIndex` /
   `meshoptReady` choices), so materials and programs do not change and nothing re-links.
 - Node extras: `{ slab: { key, tile, chunk } }` only. The partition ordinals (`extras.wholePartition`) leave the
