@@ -51,6 +51,15 @@ test('plain launch paints only the approved hero and WILDSHARD, the launch image
   expect(window.document.querySelector('#hud')?.childElementCount).toBe(0);
 });
 
+test('environment flags alone (the phone harness, ?v=) launch the same title and hero preload', () => {
+  for (const search of ['?v=build', '?tier=phone&touch=1&mute=1&nolock=1&sw=0']) {
+    const window = firstDocument(search);
+    expect(window.document.documentElement.classList.contains('title-first')).toBe(true);
+    expect(window.document.querySelector('link[as="image"]')?.getAttribute('href')).toMatch(/^\/assets\/title\/main-crossroads-square-[a-f0-9]{16}\.jpg$/u);
+  }
+  expect(firstDocument('?tier=phone&chunk=driftwood-isle').document.documentElement.classList.contains('title-first')).toBe(false);
+});
+
 test('a selected shard keeps its existing loader and does not preload the title hero', () => {
   const window = firstDocument('?chunk=driftwood-isle'), panel = window.document.querySelector('[data-title-shell]');
   if (panel === null) throw new Error('Missing title shell');

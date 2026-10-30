@@ -23,7 +23,9 @@
       const titleAssetURLs = {"/assets/title/driftwood-isle-portrait.jpg":"/assets/title/driftwood-isle-portrait-e9d5c9aedd5c5920.jpg","/assets/title/launch-1206x2622-142a9fb7a9e9.png":"/assets/title/launch-1206x2622-142a9fb7a9e9.png","/assets/title/main-crossroads-landscape.jpg":"/assets/title/main-crossroads-landscape-8770a258efe9a746.jpg","/assets/title/main-crossroads-square.jpg":"/assets/title/main-crossroads-square-80129d7216146c86.jpg","/assets/title/nalati-grasslands-portrait.jpg":"/assets/title/nalati-grasslands-portrait-5ac0c2e430a5a22b.jpg","/assets/title/nine-dragon-stack-portrait.jpg":"/assets/title/nine-dragon-stack-portrait-d92d65e333c1ccba.jpg","/assets/title/pine-hollow-portrait.jpg":"/assets/title/pine-hollow-portrait-30a60f74489265a0.jpg"};
       // END TITLE URLS
       const homeParams = new URLSearchParams(location.search);
-      if (homeParams.size === 0 || (homeParams.size === 1 && homeParams.has('v'))) document.documentElement.classList.add('title-first');
+      // The environment flags select no level (src/bootRoute.ts keeps the same list): a launch with only them is the title.
+      for (const key of ['v', 'tier', 'touch', 'mute', 'nolock', 'sw']) homeParams.delete(key);
+      if (homeParams.size === 0) document.documentElement.classList.add('title-first');
       if (document.documentElement.classList.contains('title-first')) {
         const hero = document.createElement('link');
         hero.rel = 'preload'; hero.as = 'image'; hero.fetchPriority = 'high';
