@@ -6,7 +6,8 @@ import { OutputIndexSchema, type OutputFile } from '@wildshard/format/outputInde
 import { ShardNaturalSchema } from '@wildshard/format/shardSections';
 import { parseShardfile, type Shardfile } from './shardfile';
 import { readNamedBlob, emitNamedBlobs, nameBlob, type NamedBlob } from './blobs';
-import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
+import { encodeCanonicalJson } from './immutable';
+import { copyAssetBytes, hashAssetBytes } from './assetHandle';
 import { defineMirror, type RuntimeMirror } from './runtimeMirrors';
 import type { EmittedSections } from './sections';
 import { outputDecisionScripts, outputScriptAdmissionRows, type OutputProductOptions } from './outputProduct';
@@ -52,13 +53,13 @@ export interface PreparedProjectOutput {
 function ownedAssets(input: ReadonlyMap<string, Uint8Array>): Map<string, Uint8Array> {
   const assets = new Map<string, Uint8Array>();
   for (const [hash, value] of input) {
-    if (hashImmutableBytes(value) !== hash) throw new Error('Authored output asset hash differs from its bytes');
-    assets.set(hash, Uint8Array.from(value));
+    if (hashAssetBytes(value) !== hash) throw new Error('Authored output asset hash differs from its bytes');
+    assets.set(hash, copyAssetBytes(value));
   }
   return assets;
 }
 function ownedSections(input: EmittedSections): EmittedSections {
-  return { sections: input.sections.map(row => ({ ...row })), files: new Map([...input.files].map(([path, value]) => [path, Uint8Array.from(value)])) };
+  return { sections: input.sections.map(row => ({ ...row })), files: new Map([...input.files].map(([path, value]) => [path, copyAssetBytes(value)])) };
 }
 
 /** Product hull bodies, maps and coat fallbacks have asynchronous readers, not synchronous admitted-map inputs.
@@ -67,7 +68,7 @@ function riggedHullLate(platform: EmittedSections | undefined, files: readonly O
   const section = platform?.sections.find(row => row.name === 'look/rigged-hulls');
   if (section === undefined) return [];
   const wire = platform?.files.get(section.path);
-  if (wire === undefined || wire.length !== section.bytes || hashImmutableBytes(wire) !== section.hash)
+  if (wire === undefined || wire.length !== section.bytes || hashAssetBytes(wire) !== section.hash)
     throw new Error('Rigged hull coat section differs from its declared bytes');
   const book = parseRiggedHullBook(JSON.parse(new TextDecoder().decode(wire)));
   if (!book.productFiles) return [];
@@ -161,7 +162,7 @@ export function mergeProjectBlobs(input: Shardfile, inputAssets: ReadonlyMap<str
     if (claimed !== undefined && claimed !== file.hash) throw new Error('Blob logical name has conflicting content');
     const existing = files.get(file.hash), common = source.requires.commons.includes(file.hash);
     const previous = assets.get(file.hash) ?? (common ? assets.get(`commons:${file.hash}`) : undefined);
-    if (previous !== undefined && (hashImmutableBytes(previous) !== file.hash || previous.length !== blob.bytes.length || previous.some((value, index) => value !== blob.bytes[index]))) throw new Error('Blob conflicts with admitted asset bytes');
+    if (previous !== undefined && (hashAssetBytes(previous) !== file.hash || previous.length !== blob.bytes.length || previous.some((value, index) => value !== blob.bytes[index]))) throw new Error('Blob conflicts with admitted asset bytes');
     let overlay: OutputFile;
     if (existing !== undefined) {
       if (existing.kind !== (file.kind === 'bin' || file.kind === 'tile' ? 'binary' : file.kind) || existing.compressed !== blob.bytes.length) throw new Error('Blob kind or size differs from admitted declaration');
@@ -188,7 +189,7 @@ export function mergeProjectBlobs(input: Shardfile, inputAssets: ReadonlyMap<str
       if (encodeCanonicalJson(oldMetadata) !== encodeCanonicalJson(newMetadata)) throw new Error('Named blob metadata conflicts with admission');
     } else named.set(file.hash, overlay);
     names.set(name, file.hash);
-    if (existing !== undefined || !common) assets.set(file.hash, Uint8Array.from(blob.bytes));
+    if (existing !== undefined || !common) assets.set(file.hash, copyAssetBytes(blob.bytes));
   }
   if (late.length > 0) {
     const scheduled = v.parse(AdmissionLateSchema, [...source.late ?? [], ...late]);

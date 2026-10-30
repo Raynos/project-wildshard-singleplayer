@@ -25,6 +25,7 @@ import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissio
 import { admitProduct, readmitted } from './productOutput';
 import { performanceTargetIssues } from './reportCard';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
+import { assetHandles, hashAssetBytes, immutableAsset, verifyAssetBytes, type ImmutableAsset } from './assetHandle';
 import { readBoundedFile } from './sourceReader';
 import { validateRuntimeImports } from './runtimeImports';
 import { validateDefinedSection, validateDefinedJson, type EmittedSections } from './sections';
@@ -85,7 +86,7 @@ export function outputPlatformPayloads(platform: EmittedSections | undefined, na
     if (!names.includes(entry.name)) continue;
     if (payloads.has(entry.name)) throw new Error(`Duplicate ${entry.name} section`);
     const bytes = platform?.files.get(entry.path);
-    if (bytes === undefined || bytes.length !== entry.bytes || hashImmutableBytes(bytes) !== entry.hash) throw new Error(`${entry.name} section hash or size mismatch`);
+    if (bytes === undefined || bytes.length !== entry.bytes || hashAssetBytes(bytes) !== entry.hash) throw new Error(`${entry.name} section hash or size mismatch`);
     payloads.set(entry.name, readJson(bytes));
   }
   return payloads;
@@ -110,7 +111,7 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   const targetEntry = options.platform?.sections.find(row => row.name === 'world/targets');
   if (targetEntry !== undefined) {
     const bytes = options.platform?.files.get(targetEntry.path);
-    if (bytes === undefined || bytes.length !== targetEntry.bytes || hashImmutableBytes(bytes) !== targetEntry.hash) throw new Error('World target section hash or size mismatch');
+    if (bytes === undefined || bytes.length !== targetEntry.bytes || hashAssetBytes(bytes) !== targetEntry.hash) throw new Error('World target section hash or size mismatch');
     checkWorldTargets(source, readJson(bytes));
   }
   for(const issue of performanceTargetIssues(source,'warn'))console.warn(`Output budget report-only (G453): ${issue.metric}: ${issue.actual} exceeds ${issue.limit}`);
@@ -122,13 +123,13 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
     const mapping = OUTPUT_SECTIONS.find(row => row.name === name); if (mapping === undefined) throw new Error('Missing platform section mapping');
     parseOutputSection(name,value);
     const bytes = jsonBytes(value), path = `sections/${name}.json`;emitted.set(path,bytes);
-    sections.push({name,path,schema:`wildshard:${name}@1`,hash:hashImmutableBytes(bytes),bytes:bytes.length});
+    sections.push({name,path,schema:`wildshard:${name}@1`,hash:hashAssetBytes(bytes),bytes:bytes.length});
   }
   for (const {name,path,schema,hash,bytes} of [...options.custom?.sections ?? [],...options.platform?.sections ?? []]) sections.push({name,path,schema,hash,bytes});
   for (const [path,bytes] of [...options.custom?.files ?? [],...options.platform?.files ?? []]) {
     if (emitted.has(path)) throw new Error('Custom output crosses platform output');
     emitted.set(path,bytes);
-    if (path.startsWith('schemas/')) schemas.push({path,hash:hashImmutableBytes(bytes),bytes:bytes.length});
+    if (path.startsWith('schemas/')) schemas.push({path,hash:hashAssetBytes(bytes),bytes:bytes.length});
   }
   const declarations = new Map(source.files.map(file => [file.hash,file]));
   const names=new Map<string,OutputFile>();
@@ -203,7 +204,7 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
     if(pending.length===0)return;
     const bytes=new Uint8Array(pendingBytes),entries:{hash:string;offset:number;bytes:number}[]=[];let offset=0;
     for(const member of pending){const part=emitted.get(member.path);if(part===undefined||part.length!==member.bytes)throw new Error('Pack member bytes missing');bytes.set(part,offset);entries.push({hash:member.hash,offset,bytes:member.bytes});offset+=member.bytes;}
-    const hash=hashImmutableBytes(bytes),path=`blobs/pack/${hash}.pack`;emitted.set(path,bytes);packs.push({path,hash,bytes:bytes.length,entries});pending=[];pendingBytes=0;
+    const hash=hashAssetBytes(bytes),path=`blobs/pack/${hash}.pack`;emitted.set(path,bytes);packs.push({path,hash,bytes:bytes.length,entries});pending=[];pendingBytes=0;
   };
   for(const members of groups){
     for(const member of members){
@@ -225,7 +226,7 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   rmSync(resolve(destination,'blobs/pack'),{recursive:true,force:true});
   for (const [path,bytes] of emitted) put(destination,path,bytes);
   put(destination,'shard.json',jsonBytes(index));
-  const published=validateOutputProduct(destination);
+  const published=validateOutputProduct(destination,assetHandles(emitted.values()));
   const cost = preflightDeclaredCosts(source,offlineMemoryAdmission('warn')).worst;
   const discovery = options.discovery === undefined ? undefined : parseDiscoveryValues(options.discovery);
   put(destination,'validation.json',jsonBytes({revision:index.build.validator,sourceHash:hashImmutableBytes(validationSourceBytes(source)),indexHash:hashImmutableBytes(jsonBytes(index)),worst:cost,residentBytes:publishedSourceResidency(published.shard),postCost:postStackCost(published.shard,hash=>published.assets.get(hash)).cost,gridReady:structuralGridEvidence(source),
@@ -234,15 +235,17 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
 }
 /** Validate format, exact file inventory, bytes/kinds and platform/custom schemas.
  * Existing full product admission still enforces cross-references and budgets. */
-export function validateOutputProduct(destination: string): {index:OutputIndex; shard:Shardfile; assets:ReadonlyMap<string,Uint8Array>} {
+export function validateOutputProduct(destination: string, prior?: ReadonlyMap<string, ImmutableAsset>): {index:OutputIndex; shard:Shardfile; assets:ReadonlyMap<string,Uint8Array>} {
   const index = parseOutputIndex(readJson(readBoundedFile(resolve(destination,'shard.json'),limits.sourceBytes)));
+  const verified = new Map(prior);
   const listed = new Set(['shard.json','validation.json']), payloads = new Map<string,unknown>(), schemaBytes = new Map<string,Uint8Array>(), assets = new Map<string,Uint8Array>();
   const read = (entry:{path:string;hash:string;bytes:number}):Uint8Array => {
     let target=destination;
     for(const part of entry.path.split('/')){target=resolve(target,part);if(lstatSync(target).isSymbolicLink())throw new Error('Output symlinks refuse');}
     if(!lstatSync(target).isFile())throw new Error('Output inventory needs regular files');
     listed.add(entry.path);const bytes=readBoundedFile(resolve(destination,entry.path),entry.bytes);
-    if(bytes.length!==entry.bytes||hashImmutableBytes(bytes)!==entry.hash)throw new Error(`Output hash or size mismatch: ${entry.path}`);return bytes;
+    if(bytes.length!==entry.bytes||!verifyAssetBytes(bytes,entry.hash,verified.get(entry.hash)))throw new Error(`Output hash or size mismatch: ${entry.path}`);
+    verified.set(entry.hash,immutableAsset(bytes));return bytes;
   };
   for(const entry of index.schemas){const bytes=read(entry);readJson(bytes);schemaBytes.set(entry.path,bytes);}
   for(const entry of index.sections){const bytes=read(entry),value=readJson(bytes);if(entry.name.startsWith('custom/')){const schema=schemaBytes.get(entry.schema);if(schema===undefined)throw new Error('Missing custom schema');validateDefinedSection(schema,value);}else validateOutputSection(entry.name,value);payloads.set(entry.name,value);}
@@ -251,7 +254,7 @@ export function validateOutputProduct(destination: string): {index:OutputIndex; 
   for (const [hash,cost] of Object.entries(index.ktx2Costs ?? {})) {
     const bytes=assets.get(hash);if(bytes===undefined || encodeCanonicalJson(cost)!==encodeCanonicalJson(ktx2DeviceCosts(bytes)))throw new Error('KTX2 device costs differ from verified bytes');
   }
-  for(const pack of index.packs??[]){const bytes=read(pack);for(const entry of pack.entries)if(hashImmutableBytes(bytes.subarray(entry.offset,entry.offset+entry.bytes))!==entry.hash)throw new Error(`Pack member differs: ${pack.path}`);}
+  for(const pack of index.packs??[]){const bytes=read(pack);for(const entry of pack.entries)if(!verifyAssetBytes(bytes.subarray(entry.offset,entry.offset+entry.bytes),entry.hash,verified.get(entry.hash)))throw new Error(`Pack member differs: ${pack.path}`);}
   for(const entry of index.runtime?.files??[])validateRuntimeImports(destination,entry.path,new TextDecoder('utf-8',{fatal:true}).decode(read(entry)));
   const walk=(folder:string):void=>{for(const name of readdirSync(resolve(destination,folder))){const path=folder===''?name:`${folder}/${name}`,stat=lstatSync(resolve(destination,path));if(stat.isDirectory())walk(path);else if(!stat.isFile()||!listed.has(path))throw new Error(`Unlisted output file: ${path}`);}};
   walk('');

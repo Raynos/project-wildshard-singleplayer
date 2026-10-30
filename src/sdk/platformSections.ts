@@ -1,7 +1,8 @@
 import { isJsonData } from '@wildshard/format/json';
 import { PLATFORM_DATA_SECTIONS, parsePlatformDataSection, type PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 import { parseWorldPhysics, type WorldPhysics } from '@wildshard/format/worldPhysics';
-import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
+import { encodeCanonicalJson } from './immutable';
+import { ownAssetBytes } from './assetOwner';
 import type { DefinedSectionEntry, EmittedSections } from './sections';
 import { parseClientPlan, type ClientPlan } from '@wildshard/format/clientPlan';
 
@@ -27,9 +28,9 @@ export function emitPlatformSections(values: ReadonlyMap<PlatformDataSectionName
   for (const [name, input] of values) {
     if (!Object.hasOwn(PLATFORM_DATA_SECTIONS, name)) throw new Error('Unknown platform data section');
     const value = parsePlatformDataSection(name, input), path = `sections/${name}.json`;
-    const bytes = new TextEncoder().encode(encodeCanonicalJson(value));
+    const owned = ownAssetBytes(new TextEncoder().encode(encodeCanonicalJson(value))), bytes = owned.bytes;
     files.set(path, bytes);
-    sections.push({ name, path, schema: `wildshard:${name}@1`, hash: hashImmutableBytes(bytes), bytes: bytes.length });
+    sections.push({ name, path, schema: `wildshard:${name}@1`, hash: owned.hash, bytes: bytes.length });
   }
   sections.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
   return { sections, files: new Map([...files].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) };

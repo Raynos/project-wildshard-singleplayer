@@ -2,7 +2,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { PropsSchema, type ShardProps } from '@wildshard/format/props';
 import * as v from 'valibot';
 import { assetCost } from '../assets';
-import { hashImmutableBytes } from '../immutable';
+import { ownAssetBytes } from '../assetOwner';
 import type { NativeLatticeTile } from './nativeLattice';
 import { checkStaticMaterialDependencies, staticMaterialNames } from './staticMaterials';
 import { checkTileMaterialNames, splatTextureRefs } from '@wildshard/format/splatTerrain';
@@ -35,8 +35,8 @@ export class WorldBakeRows {
   private readonly models = new Map<string, ShardProps['tiles'][number]>();
 
   /** Store an admitted payload with byte-derived cost; repeat bytes deduplicate, conflicting metadata refuses. */
-  asset(bytes: Uint8Array, kind: FileRow['kind'], dependencies: readonly string[] = [], critical = false): FileRow {
-    const hash = hashImmutableBytes(bytes), refs = [...new Set(dependencies)].sort(order);
+  asset(input: Uint8Array, kind: FileRow['kind'], dependencies: readonly string[] = [], critical = false): FileRow {
+    const owned = ownAssetBytes(input), bytes = owned.bytes, hash = owned.hash, refs = [...new Set(dependencies)].sort(order);
     if (refs.length !== dependencies.length || refs.some(ref => !this.files.has(ref) || ref === hash)) throw new Error('World asset needs unique previously packed dependencies');
     const known = this.files.get(hash);
     if (known !== undefined) {
@@ -45,7 +45,7 @@ export class WorldBakeRows {
       return copyFile(known);
     }
     const row: FileRow = { hash, kind, compressed: bytes.length, ...assetCost(kind, bytes), dependencies: refs, critical };
-    this.files.set(hash, row); this.assets.set(hash, Uint8Array.from(bytes));
+    this.files.set(hash, row); this.assets.set(hash, bytes);
     return copyFile(row);
   }
 
@@ -96,7 +96,7 @@ export class WorldBakeRows {
         && splatTextureRefs(named.splat).some(ref => !file.dependencies.includes(ref))) throw new Error('Splat terrain GLB must directly declare every layer dependency');
     }
     return { files, tiles, props: admittedProps, critical: files.filter(row => row.critical).map(row => row.hash), assets: new Map(files.map(row => {
-      const bytes = this.assets.get(row.hash); if (bytes === undefined) throw new Error('Missing world bytes'); return [row.hash, Uint8Array.from(bytes)];
+      const bytes = this.assets.get(row.hash); if (bytes === undefined) throw new Error('Missing world bytes'); return [row.hash, ownAssetBytes(bytes).bytes];
     })) };
   }
 }

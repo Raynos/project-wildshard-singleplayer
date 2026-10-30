@@ -2,7 +2,8 @@ import * as v from 'valibot';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
 import Ajv from 'ajv';
 import { isJsonData } from '@wildshard/format/json';
-import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
+import { encodeCanonicalJson } from './immutable';
+import { ownAssetBytes } from './assetOwner';
 import { validateDefinedSchema, validateNamedJson } from './schemaValidation';
 
 /** Build-only custom content. Neither the Valibot parser nor author code enters the emitted product. */
@@ -82,11 +83,11 @@ export function emitDefinedSections(definitions: readonly DefinedSection[]): Emi
     names.add(definition.name);
     const schema = `schemas/${definition.name}.schema.json`, path = `sections/${definition.name}.json`;
     if (!isJsonData(definition.jsonSchema)) throw new Error('Custom section schema must be plain JSON');
-    const schemaBytes = new TextEncoder().encode(encodeCanonicalJson(definition.jsonSchema));
+    const schemaBytes = ownAssetBytes(new TextEncoder().encode(encodeCanonicalJson(definition.jsonSchema))).bytes;
     validateDefinedSection(schemaBytes, definition.value);
-    const bytes = new TextEncoder().encode(encodeCanonicalJson(definition.value));
+    const owned = ownAssetBytes(new TextEncoder().encode(encodeCanonicalJson(definition.value))), bytes = owned.bytes;
     files.set(schema, schemaBytes); files.set(path, bytes);
-    sections.push({ name: definition.name, path, schema, hash: hashImmutableBytes(bytes), bytes: bytes.length });
+    sections.push({ name: definition.name, path, schema, hash: owned.hash, bytes: bytes.length });
   }
   sections.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
   return { sections, files: new Map([...files].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) };

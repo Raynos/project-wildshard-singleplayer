@@ -18,6 +18,8 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 
 import { readBoundedFile } from './sourceReader';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
+import { withAssetOwner } from './assetOwner';
+import { hashAssetBytes } from './assetHandle';
 
 import { projectPerformancePolicy } from './performancePolicy';
 import { checkProjectRuntime } from './runtimePerformance';
@@ -177,11 +179,11 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
 
 /** Compile authored geometry and read its remaining immutable inputs without writing hashes into the author folder. */
 export async function readProjectAssets(project: string, map?: ProjectMap, manifestSource?: ProjectManifestSource, options: { decisionLegacyLines?: number; output?: string; mapSourceHash?: string } = {}): Promise<{ shard: Shardfile; assets: Map<string, Uint8Array>; output: Omit<OutputProductOptions, 'runtime'>; mirrors: readonly RuntimeMirror[] }> {
-  const loaded = await projectModule(project, options.decisionLegacyLines, options.output, options.mapSourceHash, manifestSource?.imageRoots), pinned = new Map(pinnedCommons(loaded.commons, loaded.shard, project));
+  const loaded = await withAssetOwner(() => projectModule(project, options.decisionLegacyLines, options.output, options.mapSourceHash, manifestSource?.imageRoots)), pinned = new Map(pinnedCommons(loaded.commons, loaded.shard, project));
   for (const [hash, bytes] of loaded.baked) pinned.set(hash, bytes);
   for (const [hash, bytes] of loaded.output.assets) {
     const previous = pinned.get(hash);
-    if (previous !== undefined && contentHash(previous) !== contentHash(bytes)) throw new Error('Output asset conflicts with baked input');
+    if (previous !== undefined && hashAssetBytes(previous) !== hashAssetBytes(bytes)) throw new Error('Output asset conflicts with baked input');
     pinned.set(hash, bytes);
   }
   const level = manifestSource === undefined || manifestSource.file === undefined && loaded.shard.manifest === undefined ? undefined : await readManifestSource(manifestSource, loaded.shard.manifest, loaded.map?.map.bytes);
@@ -211,7 +213,7 @@ function pinnedCommons(input: unknown, source: Shardfile, project: string): Read
   const assets = new Map<string, Uint8Array>();
   for (const hash of source.requires.commons) {
     const bytes: unknown = input.assets.get(hash);
-    if (!(bytes instanceof Uint8Array) || bytes.length !== source.requires.commonsWire[hash] || contentHash(bytes) !== hash) throw new Error('Pinned commons export misses or changes a required asset');
+    if (!(bytes instanceof Uint8Array) || bytes.length !== source.requires.commonsWire[hash] || hashAssetBytes(bytes) !== hash) throw new Error('Pinned commons export misses or changes a required asset');
     assets.set(hash, bytes);
   }
   return assets;

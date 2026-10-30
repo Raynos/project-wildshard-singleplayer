@@ -2,7 +2,8 @@ import { assetCost, prepareAssetDecoders } from '@wildshard/format/product';
 import { parseImageAsset } from '@wildshard/format/stillImage';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { outputBlobPath } from '@wildshard/format/outputAddress';
-import { hashImmutableBytes, encodeCanonicalJson } from './immutable';
+import { encodeCanonicalJson } from './immutable';
+import { ownAssetBytes } from './assetOwner';
 import type { BlobOptions, NamedBlob, NamedBlobKind } from './blobs';
 
 // Author-only facade; browser admission prepares this codec at its async boundary.
@@ -38,7 +39,7 @@ export function nameBlobBytes(name: string, kind: NamedBlobKind, input: Uint8Arr
   assertName(name);
   if (!kinds.has(kind)) throw new Error('Unsupported named blob kind');
   if (input.length === 0 || input.length > MAX_BYTES) throw new Error('Blob exceeds its wire byte cap');
-  const bytes = Uint8Array.from(input), suffix = extension(kind, bytes);
+  const owned = ownAssetBytes(input), bytes = owned.bytes, suffix = extension(kind, bytes);
   if ((kind === 'bin' || kind === 'json') && isTextGltf(bytes)) throw new Error('Text glTF must compile to GLB, never a JSON or binary blob');
   if (kind !== 'wasm' && options.script !== undefined) throw new Error('Script contract requires a Wasm blob');
   if (options.jsonSchema !== undefined) {
@@ -53,11 +54,11 @@ export function nameBlobBytes(name: string, kind: NamedBlobKind, input: Uint8Arr
   if (dependencies.some(hash => !reference.test(hash)) || new Set(dependencies).size !== dependencies.length || (options.critical !== undefined && typeof options.critical !== 'boolean')) throw new Error('Invalid blob dependencies or admission policy');
   if (options.tier !== undefined && (options.critical === true || (options.tier !== 'phone' && options.tier !== 'desktop'))) throw new Error('A tiered named blob is a non-critical phone or desktop file');
   if (options.variantOf !== undefined && (options.critical === true || options.variantOf.length === 0 || options.variantOf.length > 240)) throw new Error('A variant is a non-critical file of a named payload');
-  const hash = hashImmutableBytes(bytes);
+  const verified = ownAssetBytes(bytes), hash = verified.hash;
   const file = { name, path: `blobs/${kind}/${hash}.${suffix}`, kind, hash, compressed: bytes.length, ...costs, critical: options.critical ?? false, dependencies,
     ...(options.tier === undefined ? {} : { tier: options.tier }),
     ...(options.variantOf === undefined ? {} : { variantOf: options.variantOf }),
     ...(options.jsonSchema === undefined ? {} : { jsonSchema: structuredClone(Object.fromEntries(Object.entries(options.jsonSchema))) }) };
   outputBlobPath(file);
-  return { file, bytes, ...(options.script === undefined ? {} : { script: { ...options.script } }) };
+  return { file, bytes: verified.bytes, ...(options.script === undefined ? {} : { script: { ...options.script } }) };
 }

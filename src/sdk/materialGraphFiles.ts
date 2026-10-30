@@ -1,5 +1,6 @@
 import { assetCost } from '@wildshard/format/product';
-import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
+import { encodeCanonicalJson } from './immutable';
+import { hashAssetBytes } from './assetHandle';
 
 /**
  * D74: every inline material graph of an authored declaration becomes a content-addressed JSON file of its library
@@ -20,7 +21,7 @@ export function lowerMaterialGraphs(declaration: unknown): { readonly declaratio
   let lowered = false, compressed = 0, resident = 0;
   for (const [id, entry] of Object.entries(materials)) {
     if (!isRecord(entry) || entry['family'] !== 'graph' || !('graph' in entry)) continue;
-    const graph = entry['graph'], bytes = new TextEncoder().encode(encodeCanonicalJson(graph)), hash = hashImmutableBytes(bytes);
+    const graph = entry['graph'], bytes = new TextEncoder().encode(encodeCanonicalJson(graph)), hash = hashAssetBytes(bytes);
     materials[id] = { family: 'graph', file: hash }; lowered = true;
     if (known.has(hash)) continue;
     known.add(hash); assets.set(hash, bytes);

@@ -235,13 +235,14 @@ import { Bow } from '@wildshard/game/weapons/Bow';
 | `@wildshard/sdk` | `src/sdk/package.json` `exports` | The authoring SDK; existing trusted runtime facades are transitional and being deleted under G307 |
 | `@wildshard/commons` | `src/commons/package.json` `exports` | Build-time packs that emit hash-named content; no commons code runs in the game |
 
-`@wildshard/commons/bake/portableMath` supplies the established portable
-transcendental functions for cold authoring. `withPortableMath(fn)` installs
-those functions only for a synchronous call and restores them even on failure;
-`installPortableMath()` returns an explicit restore function for native proof
-processes. Importing the module changes no Math binding. Neither API is a
-runtime rendering path. Bit-exact producers use the portable result as their
-canonical output and retain their immutable output hashes.
+`@wildshard/commons/bake/portableMath` supplies author-only portable
+transcendentals. `withPortableMath(fn)` is synchronous and restores on failure;
+`installPortableMath()` returns an explicit restore for native proofs.
+Imports change no Math bindings or rendering. Bit-exact producers use
+portable output and retain its immutable hash.
+
+`@wildshard/sdk/assetHandle` owns author-only snapshots. Hash reuse compares
+every current byte; mutation rehashes. All format/IO/cost checks remain.
 
 [docs/api/ENGINE.md](api/ENGINE.md), [GAME.md](api/GAME.md), [SDK.md](api/SDK.md) and [COMMONS.md](api/COMMONS.md) (generated) list every export
 with the module to import it from; where this file says a name is "on `@wildshard/engine`", that list gives its

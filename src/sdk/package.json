@@ -132,6 +132,7 @@
     "./sceneAudio": "./sceneAudio.ts",
     "./directorAbi": "./directorAbi.ts",
     "./sceneAnimation": "./sceneAnimation.ts",
+    "./assetHandle": "./assetHandle.ts",
     "./immutable": "./immutable.ts",
     "./sourceReader": "./sourceReader.ts",
     "./runtimeMirrors": "./runtimeMirrors.ts",
@@ -636,6 +637,10 @@
       "./sceneAnimation": {
         "types": "./dist/types/sdk/sceneAnimation.d.ts",
         "default": "./dist/sceneAnimation.js"
+      },
+      "./assetHandle": {
+        "types": "./dist/types/sdk/assetHandle.d.ts",
+        "default": "./dist/assetHandle.js"
       },
       "./immutable": {
         "types": "./dist/types/sdk/immutable.d.ts",

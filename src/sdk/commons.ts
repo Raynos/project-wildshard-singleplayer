@@ -1,6 +1,8 @@
 import * as v from 'valibot';
 import { assetCost, type AssetCost } from './assets';
-import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
+import { encodeCanonicalJson } from './immutable';
+import { ownAssetBytes } from './assetOwner';
+import { hashAssetBytes } from './assetHandle';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admission';
 import type { CommonsCosts } from './commonsCosts';
 
@@ -39,11 +41,11 @@ export function buildCommons(packs: readonly CommonsPack[]): BuiltCommons {
       const key = `${pack.id}/${row.id}`; v.parse(id, key);
       if (ids.has(key)) throw new Error('Duplicate commons entry'); ids.add(key);
       if (input.bytes.byteLength > limits.wireBytes) throw new Error('Commons wire exceeds admission cap');
-      const hash = hashImmutableBytes(input.bytes), previous = hashes.get(hash);
+      const owned = ownAssetBytes(input.bytes), hash = owned.hash, previous = hashes.get(hash);
       if (previous !== undefined && previous !== row.kind) throw new Error('Commons hash has conflicting kinds');
       if (!assets.has(hash)) {
         wire += input.bytes.byteLength; if (wire > limits.wireBytes) throw new Error('Commons total wire exceeds admission cap');
-        assets.set(hash, Uint8Array.from(input.bytes)); hashes.set(hash, row.kind);
+        assets.set(hash, owned.bytes); hashes.set(hash, row.kind);
       }
       const bytes = assets.get(hash); if (bytes === undefined) throw new Error('Missing owned commons bytes');
       entries.push({ id: key, pack: pack.id, packVersion: pack.version, hash, kind: row.kind, wire: bytes.byteLength, cost: assetCost(row.kind, bytes), credit: row.credit, licence: row.licence });
@@ -63,7 +65,7 @@ export function commonsRequirements(built: BuiltCommons, entryIds: readonly stri
     if (selected.has(entry.hash)) continue;
     if (selected.size >= limits.commons) throw new Error('Commons hashes exceed admission cap');
     const bytes = built.assets.get(entry.hash);
-    if (bytes === undefined || hashImmutableBytes(bytes) !== entry.hash) throw new Error('Pinned commons bytes differ from catalogue hash');
+    if (bytes === undefined || hashAssetBytes(bytes) !== entry.hash) throw new Error('Pinned commons bytes differ from catalogue hash');
     selected.set(entry.hash, { wire: bytes.length, cost: assetCost(entry.kind, bytes) });
   }
   const commons = [...selected.keys()].sort();

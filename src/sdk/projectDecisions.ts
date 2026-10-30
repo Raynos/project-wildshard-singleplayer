@@ -10,7 +10,7 @@ import { compileDecisionScripts, readDecisionSources, type DecisionBuildOptions 
 import { outputDecisionScripts } from './outputProduct';
 import { emitPlatformSections } from './platformSections';
 import { parseWorldTargets } from '@wildshard/format/worldTargets';
-import { hashImmutableBytes } from './immutable';
+import { hashAssetBytes } from './assetHandle';
 import type { EmittedSections } from './sections';
 import type { NamedBlob } from './blobs';
 
@@ -30,20 +30,20 @@ export async function prepareProjectDecisions(project: string, source: Shardfile
   const moves = moveBytes === undefined ? [] : parseActorMoves(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(moveBytes)));
   const targetEntry = platform?.sections.find(row => row.name === 'world/targets'), targetBytes = targetEntry === undefined ? undefined : platform?.files.get(targetEntry.path);
   if (targetEntry !== undefined && targetBytes === undefined) throw new Error('Missing declared world target section bytes');
-  if (targetEntry !== undefined && targetBytes !== undefined && (targetBytes.length !== targetEntry.bytes || hashImmutableBytes(targetBytes) !== targetEntry.hash)) throw new Error('World target section hash or size mismatch');
+  if (targetEntry !== undefined && targetBytes !== undefined && (targetBytes.length !== targetEntry.bytes || hashAssetBytes(targetBytes) !== targetEntry.hash)) throw new Error('World target section hash or size mismatch');
   const worldTargets = targetBytes === undefined ? undefined : parseWorldTargets(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(targetBytes)));
   const strikeEntry = platform?.sections.find(row => row.name === 'actors/strikes'), strikeBytes = strikeEntry === undefined ? undefined : platform?.files.get(strikeEntry.path);
   if (strikeEntry !== undefined && strikeBytes === undefined) throw new Error('Missing declared native strike section bytes');
-  if (strikeEntry !== undefined && strikeBytes !== undefined && (strikeBytes.length !== strikeEntry.bytes || hashImmutableBytes(strikeBytes) !== strikeEntry.hash)) throw new Error('Native strike section hash or size mismatch');
+  if (strikeEntry !== undefined && strikeBytes !== undefined && (strikeBytes.length !== strikeEntry.bytes || hashAssetBytes(strikeBytes) !== strikeEntry.hash)) throw new Error('Native strike section hash or size mismatch');
   const strikes = strikeBytes === undefined ? [] : readCreatureStrikes(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(strikeBytes)));
   const nativeEntry = platform?.sections.find(row => row.name === 'sim/runtime-plan');
   const nativeBytes = nativeEntry === undefined ? undefined : platform?.files.get(nativeEntry.path);
-  if (nativeEntry !== undefined && (nativeBytes === undefined || nativeBytes.length !== nativeEntry.bytes || hashImmutableBytes(nativeBytes) !== nativeEntry.hash)) throw new Error('Native plan section hash or size mismatch');
+  if (nativeEntry !== undefined && (nativeBytes === undefined || nativeBytes.length !== nativeEntry.bytes || hashAssetBytes(nativeBytes) !== nativeEntry.hash)) throw new Error('Native plan section hash or size mismatch');
   const nativeActors = source.runtime === null && nativeBytes !== undefined
     ? nativeRuntimeActorIds(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(nativeBytes))) : [];
   // G566: the shard's declared bodies (sim/bodies) resolve the scripts' Body / Collider aliases, as the runtime host does
   const bodyEntry = platform?.sections.find(row => row.name === 'sim/bodies'), bodyBytes = bodyEntry === undefined ? undefined : platform?.files.get(bodyEntry.path);
-  if (bodyEntry !== undefined && (bodyBytes === undefined || bodyBytes.length !== bodyEntry.bytes || hashImmutableBytes(bodyBytes) !== bodyEntry.hash)) throw new Error('Declared body section hash or size mismatch');
+  if (bodyEntry !== undefined && (bodyBytes === undefined || bodyBytes.length !== bodyEntry.bytes || hashAssetBytes(bodyBytes) !== bodyEntry.hash)) throw new Error('Declared body section hash or size mismatch');
   const bodies = bodyBytes === undefined ? {} : declaredBodyRegistries(v.parse(DeclaredBodyOpsSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bodyBytes))));
   const built = await compileDecisionScripts(rows, { ...buildDecisionRegistries(source, moves, worldTargets, strikes, rows, nativeActors), ...bodies }, authored, options);
   const emitted = emitPlatformSections(new Map([['sim/scripts', built.rows]])), sections = [...(platform?.sections ?? []).filter(row => row.name !== 'sim/scripts'), ...emitted.sections];

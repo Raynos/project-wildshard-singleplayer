@@ -10,6 +10,7 @@ import { channel } from 'node:diagnostics_channel';
 import process from 'node:process';
 import * as v from 'valibot';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
+import { copyAssetBytes, hashAssetBytes } from './assetHandle';
 import { readBoundedFile } from './sourceReader';
 import { projectCompilerIdentity } from './projectCompilerIdentity';
 import { compileScript } from './bake/compileScript';
@@ -101,7 +102,7 @@ function detached(files: ReadonlyMap<string, Uint8Array>): Map<string, Uint8Arra
   return new Map([...files].map(([file, bytes]) => {
     name(file);
     if (!(bytes instanceof Uint8Array) || bytes.byteLength > 256_000_000) throw new Error('Invalid generation bytes');
-    return [file, new Uint8Array(bytes)];
+    return [file, copyAssetBytes(bytes)];
   }));
 }
 /** The complete bundled program is a conservative import-closure key. Source edits invalidate every step in that program.
@@ -120,7 +121,7 @@ export function createProjectGeneration(project: string, programHash: string, as
     inputFiles: prefixes => projectInputFiles(roots, prefixes, root),
     asset(bytes) {
       if (!(bytes instanceof Uint8Array) || bytes.byteLength > 256_000_000) throw new Error('Invalid generation asset bytes');
-      const copy = new Uint8Array(bytes), key = hashImmutableBytes(copy); assets.set(key, copy); return key;
+      const copy = copyAssetBytes(bytes), key = hashAssetBytes(copy); assets.set(key, copy); return key;
     },
     async cached(step, generate) {
       if (!/^[a-z0-9][a-z0-9-]{0,79}$/u.test(step.id)) throw new Error('Invalid generation step id');
@@ -156,7 +157,7 @@ export function createProjectGeneration(project: string, programHash: string, as
               name(row.name);
               if (files.has(row.name)) throw new Error('Duplicate generation cache file');
               const bytes = readBoundedFile(resolve(directory, row.hash), row.bytes);
-              if (bytes.byteLength !== row.bytes || hashImmutableBytes(bytes) !== row.hash) throw new Error('Generation cache byte mismatch');
+              if (bytes.byteLength !== row.bytes || hashAssetBytes(bytes) !== row.hash) throw new Error('Generation cache byte mismatch');
               files.set(row.name, bytes);
             }
             return files;
@@ -168,8 +169,8 @@ export function createProjectGeneration(project: string, programHash: string, as
           mkdirSync(parent, { recursive: true });
           const temporary = mkdtempSync(resolve(parent, '.writing-'));
           try {
-            const rows = [...files].map(([file, bytes]) => ({ name: file, hash: hashImmutableBytes(bytes), bytes: bytes.byteLength }));
-            for (const bytes of files.values()) writeFileSync(resolve(temporary, hashImmutableBytes(bytes)), bytes);
+            const rows = [...files].map(([file, bytes]) => ({ name: file, hash: hashAssetBytes(bytes), bytes: bytes.byteLength }));
+            for (const bytes of files.values()) writeFileSync(resolve(temporary, hashAssetBytes(bytes)), bytes);
             writeFileSync(resolve(temporary, 'index.json'), encodeCanonicalJson({ key, files: rows }));
             try { renameSync(temporary, directory); }
             catch (error) { if (!(error instanceof Error && 'code' in error && (error.code === 'EEXIST' || error.code === 'ENOTEMPTY'))) throw error; }

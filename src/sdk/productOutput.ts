@@ -8,6 +8,7 @@ import { offlineMemoryAdmission, prepareAssetDecoders } from '@wildshard/format/
 import { validationRevision, validationSourceBytes } from '@wildshard/format/validationReceipt';
 import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
+import { hashAssetBytes } from './assetHandle';
 import { performanceTargetIssues } from './reportCard';
 import { packProjectMap } from './projectMap';
 import { readBoundedFile } from './sourceReader';
@@ -33,7 +34,7 @@ export function admitProduct(input: unknown, assets: ReadonlyMap<string, Uint8Ar
   const source = parseShardfile(input);
   preflightDeclaredCosts(source, offlineMemoryAdmission(policy));
   assertProductTargets(source, policy);
-  const product = validateShardfileAssets(source, assets, hashImmutableBytes, offlineMemoryAdmission(policy), undefined, scripts);
+  const product = validateShardfileAssets(source, assets, hashAssetBytes, offlineMemoryAdmission(policy), undefined, scripts);
   admitted.set(product, { assets, policy, scripts: JSON.stringify(scripts), snapshot: JSON.stringify(product) });
   return product;
 }

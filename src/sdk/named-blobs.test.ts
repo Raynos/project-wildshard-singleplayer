@@ -96,3 +96,14 @@ test('named JSON bakes keep exact bytes and reject malformed data and disguised 
   expect(() => nameBlob('bad.json', 'json', new Uint8Array([255]))).toThrow();
   expect(() => nameBlob('model.json', 'json', jsonBytes(gltf()))).toThrow('compile to GLB');
 });
+
+
+test('a byte validator cannot leave the final named hash bound to earlier bytes', () => {
+  const bytes = new TextEncoder().encode('[1]');
+  const blob = nameBlobBytes('changed.json', 'json', bytes, { jsonSchema: { $schema: 'http://json-schema.org/draft-07/schema#', type: 'array' } }, (_schema, value) => {
+    value[1] = 50;
+  });
+  expect(new TextDecoder().decode(blob.bytes)).toBe('[2]');
+  expect(blob.file.hash).toBe(hashImmutableBytes(blob.bytes));
+  expect(bytes).toEqual(new TextEncoder().encode('[1]'));
+});

@@ -1,6 +1,6 @@
 import type { AdmissionLate } from '@wildshard/format/admissionLate';
 import { parseManifestMetadata, type ManifestMetadata } from '@wildshard/format/minimap';
-import { hashImmutableBytes } from './immutable';
+import { hashAssetBytes } from './assetHandle';
 import { nameBlob, type NamedBlob } from './blobs';
 import { STILL_IMAGE_LIMITS } from '@wildshard/format/stillImage';
 
@@ -78,7 +78,7 @@ export function packManifestImages(folder: string, input: unknown, images: Reado
     if(row.url.startsWith('data:image/')){urls.set(row.url,row.url);continue;}
     if(urls.has(row.url))continue;
     const bytes=images.get(row.url);if(bytes===undefined)throw new Error(`Manifest image bytes are missing: ${row.url}`);
-    const hash=hashImmutableBytes(bytes);let blob=packed.get(hash);
+    const hash=hashAssetBytes(bytes);let blob=packed.get(hash);
     if(blob===undefined){blob=nameBlob(`ui/images/${row.name}`,'image',bytes);packed.set(hash,blob);}
     urls.set(row.url,`/shardfiles/${folder}/${blob.file.path}`);
   }
@@ -98,7 +98,7 @@ export function packManifestImages(folder: string, input: unknown, images: Reado
   for (const row of manifestImages(metadata)) {
     if (row.url.startsWith('data:image/')) continue;
     const bytes = images.get(row.url); if (bytes === undefined) throw new Error('Manifest image bytes are missing');
-    const hash = hashImmutableBytes(bytes);
+    const hash = hashAssetBytes(bytes);
     (row.name.startsWith('explore-') || row.name.startsWith('compare-') ? deferred : early).add(hash);
   }
   const late = [...deferred].filter(hash => !early.has(hash)).map(hash => ({hash}));

@@ -15,6 +15,7 @@ import { inspectDecisionSource, checkDecisionHandlers } from './decisionSource';
 import { nameBlob, type NamedBlob } from './blobs';
 import { readBoundedFile } from './sourceReader';
 import { hashImmutableBytes } from './immutable';
+import { hashAssetBytes } from './assetHandle';
 import { WS_CORE } from './as/ws';
 
 /** Root adapters supply the sealed legacy count; standalone authors declare their explicit ceiling. */
@@ -37,7 +38,7 @@ export async function compileDecisionScripts(input: unknown, registries: Decisio
     const binding=generateDecisionBindings(row,registries,options),sources={...binding.sources,...captured.entry(row,binding.path)};
     const bytes = await compileScript(binding.glue, { abi: 1, maximumPages: row.pages, sources });
     admitScriptContract(bytes, { abi: 1, pages: row.pages });
-    const hash = hashImmutableBytes(bytes), module = `blobs/wasm/${hash}.wasm`;
+    const hash = hashAssetBytes(bytes), module = `blobs/wasm/${hash}.wasm`;
     const text = authored.get(row.source);
     if (text === undefined) throw new Error(`Missing decision source: ${row.source}`);
     compiled.push({ ...row, module, sourceHash: hashImmutableBytes(new TextEncoder().encode(text)) });
