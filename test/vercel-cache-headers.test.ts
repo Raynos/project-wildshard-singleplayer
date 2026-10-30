@@ -42,6 +42,28 @@ test('product blobs are immutable; sections and Rapier revalidate', async () => 
   }
 }, 20_000);
 
+test('encoded responses follow file changes and concurrent readers receive complete bodies', async () => {
+  mkdirSync(resolve('tmp'), { recursive: true });
+  const root = mkdtempSync(resolve('tmp/preview-replacement-'));
+  mkdirSync(join(root, 'dist'));
+  const file = join(root, 'dist', 'mutable.bin');
+  const oldBody = Buffer.alloc(4096, 17), currentBody = Buffer.alloc(8192, 23);
+  writeFileSync(file, oldBody);
+  const server = await previewServer(root);
+  try {
+    const url = new URL('mutable.bin', server.base);
+    const readers = await Promise.all(Array.from({ length: 6 }, () => wire(url, { 'accept-encoding': 'br' })));
+    for (const reader of readers) expect(brotliDecompressSync(reader.bytes)).toEqual(oldBody);
+    writeFileSync(file, currentBody);
+    const current = await wire(url, { 'accept-encoding': 'br' });
+    expect(brotliDecompressSync(current.bytes)).toEqual(currentBody);
+    expect(current.headers['content-length']).toBeUndefined();
+    expect(current.headers.etag).not.toBe(readers[0]?.headers.etag);
+  } finally {
+    server.close(); rmSync(root, { recursive: true, force: true });
+  }
+}, 20_000);
+
 test('binary preview transport keeps exact quality-3 bytes, headers, ranges and HEAD semantics', async () => {
   mkdirSync(resolve('tmp'), { recursive: true });
   const root = mkdtempSync(resolve('tmp/preview-binary-'));

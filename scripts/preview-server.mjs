@@ -12,6 +12,7 @@ import { createServer } from 'node:http';
 import { extname, join, resolve, sep } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { brotliCompressSync, constants as zlib, createBrotliCompress, createGzip } from 'node:zlib';
+import { createEncodedFileCache } from './preview-encoded-cache.mjs';
 
 const args = process.argv.slice(2);
 /** a `--name value` or `--name=value` argument's value */
@@ -43,6 +44,7 @@ const LOCAL_ORIGIN = /^https?:\/\/(?:(?:[^:]+\.)?localhost|127\.0\.0\.1|\[::1\])
 // Vercel's CDN brotli-compresses application/wasm (~836 KB for Rapier's 3.29 MB); answer the way production does
 const RAPIER = join(outDir, 'assets/physics/rapier.wasm');
 const rapierBr = existsSync(RAPIER) ? brotliCompressSync(readFileSync(RAPIER), { params: { [zlib.BROTLI_PARAM_QUALITY]: 11 } }) : null;
+const encodedFiles = createEncodedFileCache();
 
 /** An explicitly refused encoding must not be selected through the wildcard. */
 function encodingQuality(header, encoding) {
@@ -68,6 +70,15 @@ function varyEncoding(res) {
 async function streamEncoded(file, encoder, res) {
   try { await pipeline(createReadStream(file), encoder, res); }
   catch (error) { res.destroy(error instanceof Error ? error : new Error(String(error))); }
+}
+
+async function sendEncoded(encoded, res) {
+  try {
+    const bytes = await encoded;
+    if (res.destroyed) return;
+    // Preserve the existing chunked transfer and HEAD/header behavior.
+    res.write(bytes); res.end();
+  } catch (error) { res.destroy(error instanceof Error ? error : new Error(String(error))); }
 }
 
 /** a file in the build for a URL path, never outside it (`.html` rewrites as the preview server did) */
@@ -127,6 +138,12 @@ const server = createServer((req, res) => {
       res.end(req.method === 'HEAD' ? undefined : rapierBr);
     } else if (req.method === 'HEAD') res.end();
     else {
+      const identity = [stat.dev, stat.ino, stat.size, stat.mtimeMs, stat.ctimeMs].join(':');
+      const encoded = encodedFiles.get(file, identity, stat.size, encoding);
+      if (encoded !== undefined) {
+        void sendEncoded(encoded, res);
+        return;
+      }
       const encoder = encoding === 'br' ? createBrotliCompress({ params: {
         [zlib.BROTLI_PARAM_QUALITY]: 3, [zlib.BROTLI_PARAM_SIZE_HINT]: stat.size,
       } }) : createGzip();
