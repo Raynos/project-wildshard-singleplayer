@@ -7,17 +7,29 @@ import { ReturnProgram } from '../src/game/population/returnProgram';
 
 const options = { seed: [0, 0] as const, initFuel: 400000, output: [] };
 test('boot reserves the entire observed 33-instance fixed demand without depending on any retirement', async () => {
-  const memory = vi.spyOn(WebAssembly, 'Memory'), turn = vi.fn(() => Promise.resolve());
+  const incoming = fixedMemoryCensus(), memory = vi.spyOn(WebAssembly, 'Memory'), turn = vi.fn(() => Promise.resolve());
   const held: FixedMemory[] = [];
   try {
     await prewarmFixedMemories([32, 0, 1, 0], turn);
-    expect(memory).toHaveBeenCalledTimes(33); expect(turn).toHaveBeenCalledTimes(33);
+    const allocations = memory.mock.calls.length;
+    expect(allocations).toBeLessThanOrEqual(33); expect(turn).toHaveBeenCalledTimes(allocations);
     const before = fixedMemoryCensus();
     for (let n = 0; n < 25; n++) held.push(new FixedMemory(1, true));
     held.push(new FixedMemory(3, true));
-    const legacy = Array.from({ length: 7 }, () => freshScriptMemory(1, 1));
-    expect(memory).toHaveBeenCalledTimes(33);
-    expect(fixedMemoryCensus()).toMatchObject({ hits: before.hits + 33, misses: before.misses, available: 0, bytes: 0 });
+    expect(memory).toHaveBeenCalledTimes(allocations);
+    const beforeLegacy = fixedMemoryCensus();
+    expect(beforeLegacy).toMatchObject({ hits: before.hits + 26, misses: before.misses });
+    const legacy = Array.from({ length: 7 }, () => freshScriptMemory(1, 1)), after = fixedMemoryCensus();
+    // A shared worker may contain recycled V2 stock. Legacy consumers must
+    // allocate fresh storage rather than consume any of those returned rows.
+    const fresh = after.misses - beforeLegacy.misses;
+    expect(memory).toHaveBeenCalledTimes(allocations + fresh);
+    expect(after.recycledHits).toBe(beforeLegacy.recycledHits);
+    expect(after.virginHits - beforeLegacy.virginHits + fresh).toBe(7);
+    if (incoming.retained === 0) {
+      expect(allocations).toBe(33); expect(fresh).toBe(0);
+      expect(after).toMatchObject({ hits: before.hits + 33, misses: before.misses, available: 0, bytes: 0 });
+    }
     expect(new Set([...held.map(row => row.value), ...legacy]).size).toBe(33);
     for (const row of held) expect(new Uint8Array(row.value.buffer).every(x => x === 0)).toBe(true);
   } finally { memory.mockRestore(); for (const row of held) row.retire(); }
@@ -154,8 +166,11 @@ test('the idle bank is bounded and invalid warmup does not allocate', async () =
 });
 
 test('legacy consumers never reuse returned V2 storage and growables cannot consume fixed stock', () => {
-  const before = fixedMemoryCensus(), legacy = freshScriptMemory(1, 1);
-  expect(fixedMemoryCensus()).toMatchObject({ hits: before.hits, misses: before.misses + 1 });
+  const before = fixedMemoryCensus(), legacy = freshScriptMemory(1, 1), after = fixedMemoryCensus();
+  // A prior boot may leave virgin stock; recycled V2 storage is never eligible.
+  expect(after.recycledHits).toBe(before.recycledHits);
+  expect(after.hits - before.hits + after.misses - before.misses).toBe(1);
+  expect(after.hits - before.hits).toBe(after.virginHits - before.virginHits);
   const current = fixedMemoryCensus(), growable = freshScriptMemory(1, 2);
   expect(fixedMemoryCensus()).toEqual({ ...current, misses: current.misses + 1 });
   expect(growable).not.toBe(legacy); expect(growable.grow(1)).toBe(1);

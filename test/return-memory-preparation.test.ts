@@ -3,6 +3,7 @@ import { NALATI_RIDING_PROGRAMS } from './fixtures/nalati-riding';
 import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
+import { FixedMemory } from '../src/engine/script/fixedMemory';
 import { ScriptModuleV2, prepareScriptMemory, scriptMemoryCensus } from '../src/engine/script/moduleV2';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
@@ -20,9 +21,9 @@ test('the seven real return consumers reserve seven isolated memories and initia
     [admission, level], [held, entered], [riding, entered]] as const;
   const NativeMemory = WebAssembly.Memory, NativeInstance = WebAssembly.Instance;
   const allocated: WebAssembly.Memory[] = [], imported: WebAssembly.ImportValue[] = [];
-  const memory = vi.spyOn(WebAssembly, 'Memory').mockImplementation(class extends NativeMemory {
-    constructor(descriptor: WebAssembly.MemoryDescriptor) { super(descriptor); allocated.push(this); }
-  });
+  const memory = vi.spyOn(WebAssembly, 'Memory'), storage = vi.spyOn(FixedMemory.prototype, 'value', 'get');
+  // The existing bank may return native identities created before this spy.
+  Object.defineProperty(memory, Symbol.hasInstance, { configurable: true, value: (value: unknown) => value instanceof NativeMemory });
   const instance = vi.spyOn(WebAssembly, 'Instance').mockImplementation(class extends NativeInstance {
     constructor(module: WebAssembly.Module, imports?: WebAssembly.Imports) {
       super(module, imports); const value = imports?.['env']?.['memory']; if (value === undefined) throw new Error('Missing original imported memory'); imported.push(value);
@@ -30,6 +31,8 @@ test('the seven real return consumers reserve seven isolated memories and initia
   });
   try {
     for (const [row, scope] of consumers) expect(ReturnProgram.prepareMemory(row, scope)).toBe(true);
+    for (const result of storage.mock.results) if (result.type === 'return') allocated.push(result.value);
+    expect(memory.mock.calls.length).toBeLessThanOrEqual(7);
     expect(allocated).toHaveLength(7); expect(new Set(allocated).size).toBe(7); expect(imported).toHaveLength(0);
     for (const value of allocated) expect(new Uint8Array(value.buffer).every(byte => byte === 0)).toBe(true);
     for (const [row, scope] of consumers) expect(ReturnProgram.prepareMemory(structuredClone(row), scope)).toBe(false);
@@ -64,7 +67,7 @@ test('the seven real return consumers reserve seven isolated memories and initia
     const observations = {phase:0,mode:3,dt:2,t:0,cd:0,x:0,z:0,px:1,pz:1,chain:0,aim:1,lock:.2,stuck:.5};
     expect(prepared.project('spear', observations, a)).toEqual(original.project('spear', observations, b));
     expect(a.snapshot()).toEqual(b.snapshot());
-  } finally { memory.mockRestore(); instance.mockRestore(); entered.dispose(); level.dispose(); }
+  } finally { memory.mockRestore(); instance.mockRestore(); storage.mockRestore(); entered.dispose(); level.dispose(); }
 });
 
 test('preparation keeps full raw loan, descriptor, witness and retirement refusals before allocation', () => {
