@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import {lendNalatiKokpar} from './fixtures/nalati-return-modules';
+import {lendNalatiKokpar} from './fixtures/nalati-kokpar-loan';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { App } from '../src/engine/app/app';
@@ -16,9 +16,7 @@ import { parseChapterStoryPresentation } from '../src/format/questStory';
 import { parseQuestData } from '../src/format/quests';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 import policy from '../src/shards/nalati-grasslands/data/chapterStory.json' with { type: 'json' };
-import nalati from './fixtures/nalati-product-source';
-import { DRIFTWOOD as drift } from './fixtures/driftwood-program';
-import { PINE as pine } from './fixtures/pine-program';
+import { preparedProductEnvelope } from './fixtures/prepared-product-envelope';
 import { MANIFEST } from '../src/shards/_template/discovery.generated';
 import { PAGE_STORY } from '../src/shards/driftwood-isle/generators/pageStory';
 import { PAGE_STORY as PINE_STORY } from '../src/shards/pine-hollow/generators/pageStory';
@@ -32,6 +30,13 @@ import { publishBoundQuest } from '../src/game/quest/boundState';
 import { PINE_LIFE_ORIGINAL as pineProgram } from './fixtures/pine-life';
 import pinePage from '../src/shards/pine-hollow/data/forestStory.json' with { type: 'json' };
 import { NALATI_KOKPAR as kokpar } from './fixtures/nalati-kokpar';
+
+const [nalatiEnvelope, driftEnvelope, pineEnvelope] = await Promise.all([
+  preparedProductEnvelope('nalati-grasslands', () => false),
+  preparedProductEnvelope('driftwood-isle', () => false),
+  preparedProductEnvelope('pine-hollow', () => false),
+]);
+const nalati = nalatiEnvelope.shard, drift = driftEnvelope.shard, pine = pineEnvelope.shard;
 
 const persistenceRows = nalatiPersistenceRows();
 

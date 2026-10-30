@@ -276,7 +276,7 @@
   "test/legacy-seal.test.ts": [],
   "test/sampled-ambience.test.ts": [],
   "test/quest-story.test.ts": ["driftwood-isle", "pine-hollow"],
-  "test/chapter-story.test.ts": [],
+  "test/chapter-story.test.ts": ["nalati-grasslands", "driftwood-isle", "pine-hollow"],
   "test/nalati-adventure-errors.test.ts": [],
   "test/nalati-quest-content-product.test.ts": [
     "nalati-grasslands"
