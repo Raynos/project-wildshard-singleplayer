@@ -56,6 +56,32 @@ test('PF1: a graph look\'s levels that share a material but not their shadow fla
   } finally { setGraphBatches(false); setDev(false); }
 });
 
+test('PF1: a batched level drawn at a scale (another variant\'s shape) holds its geometry scaled, as instancing draws it', () => {
+  const ctx = modelContext(null);
+  Object.assign(ctx, { renderer: { extensions: { has: (name: string) => name === 'WEBGL_multi_draw' } } });
+  const shape = new BoxGeometry(1, 2, 1), material = new MeshStandardMaterial();
+  const model = defineModel({ id: 'shared/batched-level-scale', name: 'Batched level scale', category: 'props', pipeline: 'code', file: 'src/engine/models/no-graph-batches.test.ts', defaults: { s: 1 },
+    variants: [{ id: 'a', label: 'A', params: { s: 1 } }, { id: 'b', label: 'B', params: { s: 2 } }],
+    build: () => [{ geometry: shape, material }],
+    lods: [{ from: 10, build: (_ctx, p) => [{ geometry: shape, material, scale: p.s }] }] });
+  const placements = [{ x: 0, y: 0, z: 0, variant: 'a', matrix: new Matrix4() }, { x: 5, y: 0, z: 0, variant: 'b', matrix: new Matrix4().makeTranslation(5, 0, 0) }];
+  let heights: number[] = [];
+  place(model, placements, { ctx, draw: 'batched', registry: null }).object.traverse(o => {
+    if (!(o instanceof BatchedMesh)) return;
+    const position = o.geometry.getAttribute('position');
+    heights = [0, 1, 2, 3].map(id => {
+      const range = o.getGeometryRangeAt(id);
+      if (range === null) throw new Error('Missing batched geometry');
+      let lo = Infinity, hi = -Infinity;
+      for (let i = range.vertexStart; i < range.vertexStart + range.vertexCount; i++) { lo = Math.min(lo, position.getY(i)); hi = Math.max(hi, position.getY(i)); }
+      return hi - lo;
+    });
+  });
+  // (variant, level) in order: a near, a far (scale 1), b near, b far (scale 2)
+  expect(heights).toEqual([2, 2, 2, 4]);
+  expect(shape.getAttribute('position').getY(0)).toBe(1); // the shared source geometry is untouched
+});
+
 test('an instanced batch packs only visible copies per geometry, keeps their matrices and tints, and moves them between shapes', () => {
   const batch = new InstancedBatch(nodeMaterial(), { name: 'fixture', castShadow: true });
   const a = batch.addGeometry(new BoxGeometry()), b = batch.addGeometry(new BoxGeometry(2, 2, 2));

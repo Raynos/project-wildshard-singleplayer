@@ -822,8 +822,20 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
   const byMat = new Map<THREE.Material | string, { part: ModelPart; geos: { v: number; l: number; g: THREE.BufferGeometry; until: number | undefined }[] }>();
   const batchKey = (part: ModelPart): THREE.Material | string => !graphLook(part.material) ? part.material
     : `${part.material.uuid}|${String(part.castShadow ?? false)}|${String(part.receiveShadow ?? false)}|${String(part.tint !== false)}|${part.customDepthMaterial?.uuid ?? ''}`;
+  // a part's `scale` (a level drawn at another variant's shape, model.ts) is per-copy instancing's; a batch takes the
+  // geometry already scaled about the copy's origin (PF1: the forest's far trees drew at their species' first height)
+  const scaledParts = new Map<THREE.BufferGeometry, Map<number, THREE.BufferGeometry>>();
+  const geometryOf = (part: ModelPart): THREE.BufferGeometry => {
+    const s = part.scale ?? 1;
+    if (s === 1) return part.geometry;
+    let bySize = scaledParts.get(part.geometry);
+    if (bySize === undefined) { bySize = new Map(); scaledParts.set(part.geometry, bySize); }
+    let g = bySize.get(s);
+    if (g === undefined) { g = part.geometry.clone().scale(s, s, s); bySize.set(s, g); }
+    return g;
+  };
   built.forEach((lvls, v) => { lvls.forEach((parts, l) => { for (const part of parts) {
-    const key = batchKey(part), e = byMat.get(key), x = { v, l, g: part.geometry, until: part.until };
+    const key = batchKey(part), e = byMat.get(key), x = { v, l, g: geometryOf(part), until: part.until };
     if (e) e.geos.push(x); else byMat.set(key, { part, geos: [x] });
   } }); });
   const count = (g: THREE.BufferGeometry): number => g.getAttribute('position').count;
@@ -849,6 +861,8 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
     const perVariant = keys.map((_, v) => ({ geometry: ids.slice(v * levels, v * levels + levels), until2: geos.some((x) => x.v === v && x.until !== undefined) ? until2.slice(v * levels, v * levels + levels) : null }));
     return { bm, perVariant, tint: part.tint !== false };
   });
+  // each batch copied what it was given: the scaled copies go
+  for (const bySize of scaledParts.values()) for (const g of bySize.values()) g.dispose();
   const colliders: ColliderDesc[] = [];
   const boxes = new Float32Array(n * 6);
   const slots: BatchedSlot[] = [];
