@@ -19,7 +19,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node
 import { join, resolve as resolvePath } from 'node:path';
 import { createServer } from 'node:http';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { saveFixtureCode } from './debug-settings.mjs';
+import { fixtureStorageCode, saveFixtureCode } from './debug-settings.mjs';
 import { frameFloorSettingsCode } from './frame-floor-settings.mjs';
 import { startFloorNative } from './frame-floor-native.mjs';
 import { validateFrameFloorArgs, parseSafariWindow, frameFloorChromiumCpuRate } from './frame-floor-args.mjs';
@@ -189,7 +189,11 @@ const expectedSystems = systemArgs.map((arg) => {
   if (!match || !shards.includes(match[1])) throw new Error('Expected system must name a measured shard:system=on|off');
   return { shard: match[1], id: match[2], present: match[3] === 'on' };
 });
+// Every row is a cold launch: the driver ends the previous row's page without a pagehide, and since G895 (b86ad9da1e) a
+// stale alive beat resumes that shard instead of opening the title, so the grid row's title never showed INFINITE WILDSHARD
+const coldLaunchCode = `try{${fixtureStorageCode('session')}.removeItem('life.alive');${fixtureStorageCode('device')}.removeItem('life.alive.once');}catch{}`;
 const fixture = (tier) => [
+  coldLaunchCode,
   frameFloorSettingsCode({ ...settings, tier }),
   saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
   saveFixtureCode({ scope: 'device', key: 'devMode', data: developer === 'on' }),
