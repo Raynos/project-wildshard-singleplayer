@@ -53,11 +53,11 @@ test('one push wave keeps all six browser guards and serialized exact-artifact s
   expect(deploy).not.toContain('dispatch-boot-smoke:');expect(deploy).not.toContain('gh workflow run boot-smoke');
   expect(journeys).toContain('needs: prepare');expect(journeys).toContain('fail-fast: false');
   expect(journeys).toContain('max-parallel: 5');
-  expect(journeys).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route]');
+  expect(journeys).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer]');
   expect(journeys).not.toContain('run watch');expect(journeys).not.toContain('vercel build');
 });
 
-function recoveryFixture(native=false) {
+function recoveryFixture(native=false,splitPhone=false) {
   const repo='Raynos/project-wildshard-singleplayer',runId='123';
   const run={id:123,workflow_id:456,event:'push',head_branch:'main',head_sha:sha,status:'completed',conclusion:'failure',
     path:'.github/workflows/deploy.yml',head_repository:{full_name:repo}};
@@ -65,9 +65,9 @@ function recoveryFixture(native=false) {
     ...Array.from({length:12},(_,i)=>`behaviour (${i+1})`),
     ...['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'].map(name=>`journeys (${name})`),
     ...(native?['native-escape']:[])].map(name=>[name,'completed','success']);
-  rows.push(['build-and-deploy','completed','failure'],['journeys (phone-route)','completed','failure']);
+  rows.push(['build-and-deploy','completed','failure'],[splitPhone?'phone-route':'journeys (phone-route)','completed','failure']);
   const ancestry={base_commit:{sha},status:'ahead'};
-  const fixture={run,rows,ancestry,source:`continue-on-error: \${{ matrix.part == 'phone-route' }}${native?'\n  native-escape:\n':''}`,
+  const fixture={run,rows,ancestry,source:`${splitPhone?'\n  phone-route:\n    continue-on-error: true\n':`continue-on-error: \${{ matrix.part == 'phone-route' }}`}${native?'\n  native-escape:\n':''}`,
     boot:`success\thttps://github.com/${repo}/actions/runs/${runId}`,
     query:(args:string[]):string=>{
       const path=args[0]??'';
@@ -83,12 +83,12 @@ function recoveryFixture(native=false) {
 }
 
 test('explicit recovery accepts original complete source proofs on both sides of native-job separation',()=>{
-  for(const native of [false,true]) {
-    const f=recoveryFixture(native);
+  for(const native of [false,true]) for(const splitPhone of [false,true]) {
+    const f=recoveryFixture(native,splitPhone);
     expect(recoverySource('123',f.query)).toEqual({sha,run:'123'});
-    for(const name of f.rows.map(row=>row[0]).filter(gateName=>gateName!=='build-and-deploy'&&gateName!=='journeys (phone-route)'))
+    for(const name of f.rows.map(row=>row[0]).filter(gateName=>!['build-and-deploy','journeys (phone-route)','phone-route'].includes(gateName??'')))
       for(const state of ['failure','skipped','cancelled','in_progress']) {
-        const broken=recoveryFixture(native),row=broken.rows.find(candidate=>candidate[0]===name);
+        const broken=recoveryFixture(native,splitPhone),row=broken.rows.find(candidate=>candidate[0]===name);
         if(row===undefined)throw new Error('Missing source gate');
         row[2]=state;
         expect(()=>recoverySource('123',broken.query)).toThrow('source gate');

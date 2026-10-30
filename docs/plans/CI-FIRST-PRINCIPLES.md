@@ -176,11 +176,12 @@ WebGL / Worker / `fetch` at import time, and timers decide things. three.js itse
 - Wait on conditions, never sleeps or 150 s timeouts. No retries.
 
 **Simulator leg (GitHub macOS, G921):**
-- Boot the Simulator after dependency installation drains, in parallel with the artifact download.
-  The da70 run spent 234.741 s preparing while package installation took
-  228.6 s; Safari launch consumed 107.275 s of its unchanged 120 s
-  readiness bound. Installation/startup overlap is removed; a containing
-  cloud run must qualify the scheduling change, not a local retry.
+- Start the dedicated report-only phone job alongside Linux prepare. Boot and
+  warm Safari in the foreground before dependency installation or artifact IO
+  on its Mac. Keep the original 120 s Safari readiness and 20 min job bounds.
+- Wait on only this run's successful prepare job before exact SHA/run archive
+  intake; never wait on the aggregate containing the phone job. Failed native
+  startup or producer refusal never causes a retry or silent WebKit fallback.
 - Cache `ios-webkit-debug-proxy` instead of `brew install` every run.
 - Use one pre-created device.
 - Run a shorter route that waits on conditions.
@@ -202,7 +203,7 @@ Codex does the workflow engineering (non-visual). Ordered to unstick the deploy 
 | CI7 | One test wave: every Vitest file once across a duration-sharded matrix and blocking native Escape runner; `isolate: false` for pure files | Vitest wave ≤ 5 min, no shard > 1.2× the mean | Codex sp-x9 planner 985fbe3ac1 + sp-x2 34d7ac95e5/051ba4c3df; unchanged native controls/deadlines on one dedicated worker, full inventory union checked. Containing Linux run 41000966804 at da6af: original 6/6 pass, suite 24.323 s, trusted pair 9.496 s, job 72 s. Historical D-state cause unlocalized. Modelled 313 s vs 300 s bar; overall remote timing/balance acceptance open | M |
 | CI8 | Slowest files ≤ 10 s each (§2 list), or deleted if they are pins | **done** (see lane) — None over 10 s | Codex sp-x9 · done 82814dfd66 + c2b1f2acd9 (all 47 slow files ≤ 8.9 s) | M |
 | CI9 | Browser journeys (§8) in the push wave on the prepare artifact; the ship job deploys after them; the boot-smoke dispatch chain goes | Push → live ≤ 15 min; the 4 real breaks replayed red | Codex sp-x2 · wired fa13b9fce6; remote timing open | M |
-| CI10 | Simulator leg fast on GitHub macOS (G921): early boot, cached proxy, condition waits, shorter route | ≤ 6 min, 0 timeouts for a day | Codex sp-x2 · fa13b9fce6 wiring; x10 handoff 3bf77aa07d startup, 7d4cc1e1cc navigation, d0bb19464f capture. Same-pin native long leg 140.987 → 105.710 s with the existing bounded 30 m/s road allowance; all six stages, first-entry tiles and 4 s wall contact pass, no faults. Containing GitHub timing and timeout-day acceptance open | M |
+| CI10 | Simulator leg fast on GitHub macOS (G921): early boot, cached proxy, condition waits, shorter route | ≤ 6 min, 0 timeouts for a day | Codex sp-x2 · fa13b9fce6 wiring; x10 handoff 3bf77aa07d startup, 7d4cc1e1cc navigation, d0bb19464f capture. Same-pin native long leg 140.987 → 105.710 s with the existing bounded 30 m/s road allowance; all six stages, first-entry tiles and 4 s wall contact pass, no faults. Early independent job warms Safari without install/transfer contention and condition-waits for its exact producer. Original readiness/job bounds retained; containing GitHub timing and timeout-day acceptance open | M |
 | CI11 | Node harness v1 (G922): every shard enters, walks 1,800 ticks, quests, disposes | **done** (see lane) — All shards < 60 s in the wave | Codex sp-x1 · done e04252c31e (18 cases / 8 shards in 18.2 s) | M |
 | CI12 | Verbs as sim commands + tapes (MF15–MF18 verb lists) | Hook, crank, crossbow and quest steps pass; QB11 / QB17 replayed red | Codex · Pine + Nine done (sp-x9 51280a4d5a, c2fb86a782); Driftwood full quest ec64ddf75e + Nalati (sp-x6); Signal full quest + storm retry done (sp-x1, 14,180 ticks); Sky (sp-x8) | L |
 | CI13 | Physics walk moves into the harness; the Chromium walk retires | **done** (see lane) — 0 stuck in Node | Codex sp-x1 + sp-x6 · done: Node fixed 75 / 75, 0 snags, 42.4 s (a4b85eadc5, 7858ced937, b8905d9134) | M |

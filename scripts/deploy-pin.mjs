@@ -229,7 +229,9 @@ export function recoverySource(runId, query = ghApi) {
     '-H','Accept: application/vnd.github.raw+json']);
   // The complete behavior wave owned the native file before its dedicated job.
   const native = source.includes('\n  native-escape:\n');
-  if (!source.includes(`continue-on-error: \${{ matrix.part == 'phone-route' }}`))
+  const phone = /\n {2}phone-route:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
+  if (phone === undefined ? !source.includes(`continue-on-error: \${{ matrix.part == 'phone-route' }}`)
+    : !/(?:^|\n) {4}continue-on-error: true(?:\n|$)/u.test(phone))
     throw new Error('Recovery source lacks the reviewed report-only phone policy');
   const required = new Set(['prepare','typecheck-lint','derived-docs','boot-verdict',
     ...Array.from({length:12},(_,i)=>`behaviour (${i+1})`),
@@ -237,7 +239,7 @@ export function recoverySource(runId, query = ghApi) {
     ...(native?['native-escape']:[])]);
   const rows = query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--jq',
     '.jobs[] | [.name, .status, .conclusion] | @tsv']).trim().split('\n').filter(Boolean);
-  const optional = new Set(['build-and-deploy','journeys (phone-route)']);
+  const optional = new Set(['build-and-deploy',phone === undefined ? 'journeys (phone-route)' : 'phone-route']);
   for (const row of rows) {
     const [name='',status,conclusion] = row.split('\t');
     if (optional.delete(name)) {

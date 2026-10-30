@@ -2,6 +2,54 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, renameSync, watch, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
+/** Wait only for this run's artifact producer, never the aggregate that includes
+ * this phone job. Waiting spends the existing twenty-minute job budget.
+ * @param {string} repository @param {string} run
+ * @param {{read?:(path:string)=>Promise<unknown>,now?:()=>number,wait?:(ms:number)=>Promise<void>}} [ports] */
+export async function waitPhoneProducer(repository, run, ports = {}) {
+  if (!/^[\w.-]+\/[\w.-]+$/u.test(repository) || !/^[1-9][0-9]*$/u.test(run) || !Number.isSafeInteger(Number(run)))
+    throw new Error('Invalid phone producer identity');
+  const read = ports.read ?? (path => {
+    const result = spawnSync('gh', ['api', path, '--jq', '[.jobs[] | {name,status,conclusion,started_at,run_id}]'], {timeout:12000,encoding:'utf8'});
+    if (result.error) throw result.error;
+    if (result.status !== 0) throw new Error(`Phone producer query failed: ${result.stderr}`);
+    return Promise.resolve(/** @type {unknown} */ (JSON.parse(result.stdout)));
+  });
+  const now = ports.now ?? Date.now;
+  const wait = ports.wait ?? (ms => new Promise(resolve => {setTimeout(resolve,ms);}));
+  for (;;) {
+    const rows = await read(`repos/${repository}/actions/runs/${run}/jobs?per_page=100&filter=latest`);
+    if (!Array.isArray(rows)) throw new Error('Invalid phone producer job inventory');
+    /** @type {unknown[]} */
+    const values = rows;
+    const jobs = values.map(row => {
+      if (typeof row !== 'object' || row === null || !('name' in row) || !('status' in row)
+        || !('conclusion' in row) || !('started_at' in row) || !('run_id' in row))
+        throw new Error('Invalid phone producer job row');
+      return row;
+    });
+    const self = jobs.filter(row => row.name === 'phone-route');
+    const producers = jobs.filter(row => row.name === 'prepare');
+    const own = self[0];
+    if (self.length !== 1 || own === undefined || own.run_id !== Number(run) || own.status !== 'in_progress'
+      || typeof own.started_at !== 'string' || producers.length > 1)
+      throw new Error('Phone producer wait is not the current job');
+    const started = Date.parse(own.started_at), remaining = started + 20*60*1000 - now();
+    if (!Number.isFinite(started) || remaining <= 0 || remaining > 20*60*1000)
+      throw new Error('Phone producer wait exhausted its original job deadline');
+    const producer = producers[0];
+    if (producer !== undefined) {
+      if (producer.run_id !== Number(run) || typeof producer.status !== 'string' || !['queued','in_progress','completed'].includes(producer.status))
+        throw new Error('Invalid phone artifact producer');
+      if (producer.status === 'completed') {
+        if (producer.conclusion !== 'success') throw new Error(`Phone artifact producer failed: ${String(producer.conclusion)}`);
+        return;
+      }
+    }
+    await wait(Math.min(5000,remaining));
+  }
+}
+
 /** @typedef {{engine:'simulator'|'webkit',status:'pending'|'ready'|'failed',wallMs:number,code:number|null,udid:string|null}} PhonePreparation */
 
 /** Early boot owns the ordinary named-device lease. Failure is published too:

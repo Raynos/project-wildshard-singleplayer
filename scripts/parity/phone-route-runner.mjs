@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { preparePhoneSimulator, waitPhonePreparation } from './phone-route-preparation.mjs';
+import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { preparePhoneSimulator, waitPhonePreparation, waitPhoneProducer } from './phone-route-preparation.mjs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -24,6 +24,10 @@ function inventoriedPhoneEngine(out) {
 }
 
 async function main() {
+  if (process.argv.includes('--wait-for-prepare')) {
+    await waitPhoneProducer(process.env.GITHUB_REPOSITORY ?? '', process.env.GITHUB_RUN_ID ?? '');
+    return;
+  }
   const preparation = process.env.PHONE_SIMULATOR_PREPARATION;
   const preparing = process.argv.includes('--prepare-simulator');
   const prepared = !preparing && preparation !== undefined && !process.argv.includes('--select-engine')
@@ -32,7 +36,9 @@ async function main() {
   const engine = prepared?.engine ?? inventoriedPhoneEngine(out);
   if (preparing) {
     if (preparation === undefined) throw new Error('Simulator preparation requires PHONE_SIMULATOR_PREPARATION');
-    preparePhoneSimulator(preparation, engine); return;
+    preparePhoneSimulator(preparation, engine);
+    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `engine=${engine}\n`);
+    return;
   }
   if (process.argv.includes('--select-engine')) { console.log(`engine=${engine}`); return; }
   const started = performance.now();

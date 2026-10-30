@@ -652,20 +652,10 @@ jobs:
           if-no-files-found: warn
 
 
-  journeys:
-    needs: prepare
+  # Report-only native startup overlaps Linux generation, never its own installs.
+  phone-route:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
-    # Every browser drives the verified exact-SHA push-CI artifact; no cold
-    # generation/build is repeated inside the smoke workflow.
-    strategy:
-      fail-fast: false
-      max-parallel: 5
-      matrix:
-        part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route]
-    # G745: exactly the phone route reports without gating for its first ordinary run.
-    # G758: the two Nine title PNG assertions report for 24 hours (owner sp-x1).
-    # D13: the repaired full grid preparation and route case blocks in boot-grid.
-    continue-on-error: ${{ matrix.part == 'phone-route' }}
+    continue-on-error: true
     runs-on: macos-15
     timeout-minutes: 20
     steps:
@@ -688,15 +678,9 @@ jobs:
       - name: Bind the tested commit
         id: tested
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
       - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
+        with: {node-version: 24}
       - name: Select the phone Simulator toolchain
-        if: matrix.part == 'phone-route'
         env:
           DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
         run: |
@@ -705,18 +689,28 @@ jobs:
           xcrun --find simctl
           test "$(xcrun --sdk iphonesimulator --show-sdk-version)" = 26.2
           printf 'DEVELOPER_DIR=%s\n' "$DEVELOPER_DIR" >> "$GITHUB_ENV"
-      - name: Select the native iPhone runner or record WebKit fallback
-        if: matrix.part == 'phone-route'
+      # Cold native startup is isolated from installs and artifact extraction.
+      # The Linux prepare job runs concurrently; Safari keeps its 120 s bound.
+      - name: Prepare isolated Safari while the build runs
         id: phone
-        run: node scripts/parity/phone-route-runner.mjs --select-engine >> "$GITHUB_OUTPUT"
+        run: |
+          mkdir -p "$RUNNER_TEMP/phone-preparation"
+          receipt="$RUNNER_TEMP/phone-preparation/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
+          echo "PHONE_SIMULATOR_PREPARATION=$receipt" >> "$GITHUB_ENV"
+          PHONE_SIMULATOR_PREPARATION="$receipt" node scripts/parity/phone-route-runner.mjs --prepare-simulator 2>&1 | tee "$RUNNER_TEMP/phone-preparation/native.log"
+      - uses: pnpm/action-setup@v4
+        with: {version: 10}
+      # Restore the existing pnpm store only after Safari is ready.
+      - uses: actions/setup-node@v4
+        with: {node-version: 24, cache: pnpm}
       - name: Cache Simulator Inspector transport bottles
-        if: matrix.part == 'phone-route' && steps.phone.outputs.engine == 'simulator'
+        if: steps.phone.outputs.engine == 'simulator'
         uses: actions/cache@v4
         with:
           path: ~/Library/Caches/Homebrew
           key: phone-inspector-${{ runner.os }}-${{ runner.arch }}-xcode26.2-v1
       - name: Install and verify Simulator Inspector transport
-        if: matrix.part == 'phone-route' && steps.phone.outputs.engine == 'simulator'
+        if: steps.phone.outputs.engine == 'simulator'
         env:
           HOMEBREW_NO_AUTO_UPDATE: '1'
           HOMEBREW_NO_INSTALL_CLEANUP: '1'
@@ -725,18 +719,14 @@ jobs:
           ios_webkit_debug_proxy --version
       - run: pnpm install --frozen-lockfile
       - uses: actions/cache@v4
+        if: steps.phone.outputs.engine == 'webkit'
         with:
           path: ~/Library/Caches/ms-playwright
           key: boot-touch-browsers-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-      - run: pnpm exec playwright install chromium webkit
-      # First launch must not compete with dependency extraction on the same disk.
-      - name: Start Simulator preparation while inputs transfer
-        if: matrix.part == 'phone-route'
-        run: |
-          mkdir -p "$RUNNER_TEMP/phone-preparation"
-          receipt="$RUNNER_TEMP/phone-preparation/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
-          echo "PHONE_SIMULATOR_PREPARATION=$receipt" >> "$GITHUB_ENV"
-          PHONE_SIMULATOR_PREPARATION="$receipt" node scripts/parity/phone-route-runner.mjs --prepare-simulator > "$RUNNER_TEMP/phone-preparation/native.log" 2>&1 &
+      - run: pnpm exec playwright install webkit
+        if: steps.phone.outputs.engine == 'webkit'
+      - name: Await this run's successful prepare job
+        run: node scripts/parity/phone-route-runner.mjs --wait-for-prepare
       - name: Start exact-leg transfer clock
         run: date +%s > boot-dist-download-started
       - uses: actions/download-artifact@v4
@@ -767,7 +757,132 @@ jobs:
           NODE
       - uses: actions/download-artifact@v4
         with:
-          name: boot-dist-${{ (matrix.part == 'boot-public' || matrix.part == 'boot-developer' || matrix.part == 'phone-route') && matrix.part || 'worlds' }}
+          name: boot-dist-phone-route
+          github-token: ${{ github.token }}
+          run-id: ${{ github.run_id }}
+          path: boot-dist-parts
+      - name: Unpack and verify the tested dist
+        env:
+          TESTED_SHA: ${{ github.sha }}
+          SOURCE_RUN: ${{ github.run_id }}
+          SMOKE_PART: phone-route
+        run: |
+          test "$(git rev-parse HEAD)" = "$TESTED_SHA"
+          python3 scripts/boot-dist.py restore --sha "$TESTED_SHA" --run "$SOURCE_RUN" --part "$SMOKE_PART"
+          mkdir -p boot-smoke-results
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const proof = JSON.parse(readFileSync('boot-dist-parts/boot-dist-proof.json', 'utf8'));
+          const seconds = Date.now()/1000 - Number(readFileSync('boot-dist-download-started', 'utf8'));
+          const receipt = { part: process.env.SMOKE_PART, sha: process.env.TESTED_SHA, run: process.env.SOURCE_RUN,
+            archiveBytes: proof.archiveBytes, transferAndVerifySeconds: seconds };
+          console.log(`boot-dist transfer ${JSON.stringify(receipt)}`);
+          writeFileSync('boot-smoke-results/dist-transfer.json', JSON.stringify(receipt));
+          NODE
+          mkdir -p public/assets/physics
+          cp dist/assets/physics/rapier.wasm public/assets/physics/rapier.wasm
+      - name: Jake's cold phone route (first ordinary run reports only)
+        env:
+          TESTED_SHA: ${{ github.sha }}
+          PHONE_ROUTE_MODE: report-only
+        run: node scripts/parity/phone-route-runner.mjs --route=entry
+      - name: Release the prepared native device
+        if: always() && steps.phone.outputs.engine == 'simulator'
+        run: scripts/sim-lane.sh release wildshard-iphone
+      - name: Record smoke queue and run timings
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p boot-smoke-results
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq '{created_at, run_started_at}' > boot-smoke-results/workflow-timing.json
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --jq '.jobs[] | select(.name == "phone-route") | {created_at, started_at, completed_at, runner_name, steps}' > boot-smoke-results/job-timing.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: boot-smoke-phone-route
+          path: |
+            boot-smoke-results/
+            ${{ runner.temp }}/phone-preparation/
+          retention-days: 7
+          if-no-files-found: warn
+
+  journeys:
+    needs: prepare
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    # Every browser drives the verified exact-SHA push-CI artifact; no cold
+    # generation/build is repeated inside the smoke workflow.
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer]
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: 1
+          GIT_CONFIG_KEY_0: http.version
+          GIT_CONFIG_VALUE_0: HTTP/1.1
+        with:
+          ref: ${{ github.sha }}
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+            !/docs/
+            !/public/
+          sparse-checkout-cone-mode: false
+      - name: Bind the tested commit
+        id: tested
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/ms-playwright
+          key: boot-touch-browsers-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm exec playwright install chromium webkit
+      - name: Start exact-leg transfer clock
+        run: date +%s > boot-dist-download-started
+      - uses: actions/download-artifact@v4
+        with:
+          name: boot-dist-manifest
+          github-token: ${{ github.token }}
+          run-id: ${{ github.run_id }}
+      - name: Verify the exact push manifest
+        env:
+          TESTED_SHA: ${{ github.sha }}
+          SOURCE_RUN: ${{ github.run_id }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const proof = JSON.parse(readFileSync('boot-dist-manifest.json', 'utf8'));
+          const core = ['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'];
+          // An older successful push can dispatch while this dry-run lands.
+          // Its original six exact artifacts remain usable; its phone leg
+          // reports missing support and cannot count as the G745 trial.
+          const parts = Object.hasOwn(proof.legs, 'phone-route') ? [...core, 'phone-route'] : core;
+          const prefix = proof.version.build.split('-')[0];
+          if (proof.sha !== process.env.TESTED_SHA || proof.run !== process.env.SOURCE_RUN
+            || !/^[a-f0-9]{7,40}$/u.test(prefix) || !proof.sha.startsWith(prefix)
+            || Object.keys(proof.legs).sort().join() !== [...parts].sort().join()
+            || parts.some(part => !/^[a-f0-9]{64}$/u.test(proof.legs[part].archiveHash)
+              || !Number.isSafeInteger(proof.legs[part].archiveBytes) || proof.legs[part].archiveBytes <= 0))
+            throw new Error('Push manifest does not match tested SHA/run and all seven artifact legs');
+          NODE
+      - uses: actions/download-artifact@v4
+        with:
+          name: boot-dist-${{ (matrix.part == 'boot-public' || matrix.part == 'boot-developer') && matrix.part || 'worlds' }}
           github-token: ${{ github.token }}
           run-id: ${{ github.run_id }}
           path: boot-dist-parts
@@ -791,12 +906,6 @@ jobs:
           NODE
           mkdir -p public/assets/physics
           cp dist/assets/physics/rapier.wasm public/assets/physics/rapier.wasm
-      - name: Jake's cold phone route (first ordinary run reports only)
-        if: matrix.part == 'phone-route'
-        env:
-          TESTED_SHA: ${{ github.sha }}
-          PHONE_ROUTE_MODE: report-only
-        run: node scripts/parity/phone-route-runner.mjs --route=entry
       - name: Every public shard reaches real page-ready
         if: matrix.part == 'boot-public'
         run: node scripts/parity/boot-smoke.mjs --case-group=public
