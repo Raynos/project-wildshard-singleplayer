@@ -165,9 +165,12 @@ function frameViewMatrix(): Node<'mat4'> {
   })();
 }
 
-/** World origin follows the renderer's live instance matrix, including cull compaction. */
+/** World origin follows the renderer's live instance matrix, including cull compaction. A batch's copy reads its own
+ *  matrix (PF1: as the batch's origin every batched tree shaded as one object at the batch origin, its mid-distance
+ *  canopy lighter than legacy's); that read goes through gl_DrawID, so it is made in the vertex stage. */
 function objectOriginNode(): Node<'vec3'> {
   return Fn((builder: NodeBuilder): Node<'vec3'> => {
+    if (builder.object instanceof THREE.BatchedMesh) return varying(modelWorldMatrix.mul(instanceTransformNode(vec4(0, 0, 0, 1))).xyz);
     if (!(builder.object instanceof THREE.InstancedMesh)) return modelPosition;
     return modelWorldMatrix.mul(instanceTransformNode(vec4(0, 0, 0, 1))).xyz;
   }, 'vec3')();
