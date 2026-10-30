@@ -1,7 +1,7 @@
 import Ajv from 'ajv';
 import { expect, it, vi } from 'vitest';
 import { encodeCanonicalJson } from './immutable';
-import { validateDefinedSchema } from './schemaValidation';
+import { validateDefinedSchema, type SchemaValidator } from './schemaValidation';
 
 // CI6: a schema compiles once per exact text; every later call still validates the value and refuses with the same text.
 const schema = { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', required: ['n'], properties: { n: { type: 'number', maximum: 3 } } };
@@ -30,9 +30,10 @@ it('a second copy of the same validator (the other bundle) reuses the compile; a
   const compiles = vi.spyOn(Ajv.prototype, 'compile');
   try {
     // two classes with the same source (as each bundle's copy of the same pinned Ajv), and one with its own
-    const copy = (): typeof Ajv => class extends Ajv {};
+    const copy = (): SchemaValidator => class extends Ajv {};
     const First = copy(), Second = copy();
-    class Other extends Ajv { override compile(input: Parameters<Ajv['compile']>[0]): ReturnType<Ajv['compile']> { return super.compile(input); } }
+    type Instance = InstanceType<typeof Ajv>;
+    class Other extends Ajv { override compile(input: Parameters<Instance['compile']>[0]): ReturnType<Instance['compile']> { return super.compile(input); } }
     expect(validateDefinedSchema(text, { n: 4 }, First)).toEqual({ n: 4 });
     expect(() => validateDefinedSchema(text, { n: 6 }, Second)).toThrow('should be <= 5');
     expect(compiles).toHaveBeenCalledTimes(1);

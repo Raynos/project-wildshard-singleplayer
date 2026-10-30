@@ -5,7 +5,7 @@ import { encodeCanonicalJson } from './immutable';
 const DRAFT = 'http://json-schema.org/draft-07/schema#';
 
 /** Validate named JSON with the caller's schema compiler under the existing byte bounds. */
-export function validateNamedJson(schemaBytes: Uint8Array, bytes: Uint8Array, Validator: typeof Ajv): unknown {
+export function validateNamedJson(schemaBytes: Uint8Array, bytes: Uint8Array, Validator: SchemaValidator): unknown {
   return validateDefinedSchema(schemaBytes, parseNamedJson(bytes), Validator);
 }
 
@@ -17,6 +17,8 @@ export function validateNamedJson(schemaBytes: Uint8Array, bytes: Uint8Array, Va
  *  schema the config had just compiled (Driftwood: 31 schemas, ~0.3 s). A validator is known by its class's source,
  *  so only the same Ajv shares an entry. */
 type AjvInstance = InstanceType<typeof Ajv>;
+/** What validation constructs: an Ajv (or a subclass of one). */
+export type SchemaValidator = new (options?: ConstructorParameters<typeof Ajv>[0]) => AjvInstance;
 interface Compiled { readonly validator: AjvInstance; readonly validate: ReturnType<AjvInstance['compile']> }
 type CompiledTable = Map<string, Map<string, Compiled>>;
 const SHARED = Symbol.for('wildshard.sdk.compiledSchemas/1');
@@ -27,17 +29,17 @@ const compiled = ((): CompiledTable => {
   const table: CompiledTable = new Map();
   Reflect.set(globalThis, SHARED, table); return table;
 })();
-const validators = new WeakMap<typeof Ajv, string>();
+const validators = new WeakMap<SchemaValidator, string>();
 const COMPILED_LIMIT = 256;
 /** The validator's identity across bundles: its class's source. */
-function validatorKey(Validator: typeof Ajv): string {
+function validatorKey(Validator: SchemaValidator): string {
   let key = validators.get(Validator);
   if (key === undefined) { key = String(Validator); validators.set(Validator, key); }
   return key;
 }
 
 /** Shared canonical draft-07 validation policy; the dependency is supplied only by schema consumers. */
-export function validateDefinedSchema(schemaBytes: Uint8Array, value: unknown, Validator: typeof Ajv): unknown {
+export function validateDefinedSchema(schemaBytes: Uint8Array, value: unknown, Validator: SchemaValidator): unknown {
   if (schemaBytes.length > 1_000_000) throw new Error('Custom section schema exceeds its byte limit');
   const text = new TextDecoder('utf-8', { fatal: true }).decode(schemaBytes);
   const kind = validatorKey(Validator), own = compiled.get(kind), known = own?.get(text);
