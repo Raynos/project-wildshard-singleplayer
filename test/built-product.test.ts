@@ -16,6 +16,11 @@ import { pruneShardfileCache } from '../scripts/shardfile-cache.mjs';
 
 const owned: string[] = [];
 afterEach(() => { for (const root of owned.splice(0)) rmSync(root, { recursive: true, force: true }); });
+/** Nested fixture roots own their inventories; the parent wave's artifact
+ * addresses belong only to the parent checkout and must not cross that boundary. */
+function fixtureEnvironment(): NodeJS.ProcessEnv {
+  return { ...process.env, WS_VITEST_PLAN: undefined, WS_VITEST_TIMINGS: undefined };
+}
 function write(root: string, file: string, body: string): void {
   const path = resolve(root, file); mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, body);
 }
@@ -133,7 +138,7 @@ test('real Vitest refuses missing products before loading worker setup or suite 
   write(f.root, 'test/setup.mjs', "import fs from 'node:fs';fs.writeFileSync('worker-started','yes');");
   write(f.root, 'vitest.config.mts', `import {DurationSequencer} from ${JSON.stringify(resolve('scripts/vitest-shard.ts'))};export default {root:${JSON.stringify(f.root)},test:{include:['test/product.test.ts'],setupFiles:['test/setup.mjs'],sequence:{sequencer:DurationSequencer}}};`);
   expect(() => execFileSync(process.execPath, [resolve('node_modules/vitest/vitest.mjs'), 'run', '--config', resolve(f.root, 'vitest.config.mts')], {
-    cwd: f.root, env: { ...process.env, WS_TEST_COHORT:undefined, WILDSHARD_SHARDFILE_CACHE: f.cacheRoot, WS_TEST_PRODUCTS_SHA: '', VERCEL_GIT_COMMIT_SHA: '' }, stdio: 'pipe', timeout: 10_000, maxBuffer: 1_048_576,
+    cwd: f.root, env: { ...fixtureEnvironment(), WS_TEST_COHORT:undefined, WILDSHARD_SHARDFILE_CACHE: f.cacheRoot, WS_TEST_PRODUCTS_SHA: '', VERCEL_GIT_COMMIT_SHA: '' }, stdio: 'pipe', timeout: 10_000, maxBuffer: 1_048_576,
   })).toThrow('Missing current products author');
   expect(existsSync(resolve(f.root, 'worker-started'))).toBe(false);
 });
@@ -149,7 +154,7 @@ test.each(['local-related', 'ci-related', 'focused', 'all-blocked', 'local-commi
   write(f.root,'vitest.config.mts',`import {DurationSequencer} from ${JSON.stringify(resolve('scripts/vitest-shard.ts'))};export default {root:${JSON.stringify(f.root)},test:{include:['test/*.test.ts'],setupFiles:['test/setup.mjs'],sequence:{sequencer:DurationSequencer}}};`);
   const args=mode==='focused'||mode.endsWith('-commit')?['run','test/pure.test.ts','test/product.test.ts']:['related','--run','source.ts'];
   const result=spawnSync(process.execPath,[resolve('node_modules/vitest/vitest.mjs'),...args,'--config',resolve(f.root,'vitest.config.mts')],{
-    cwd:f.root,env:{...process.env,WS_TEST_COHORT:undefined,CI:mode.startsWith('ci-')?'1':'',GITHUB_ACTIONS:'',WS_COMMIT_RELATED_TOKEN:mode.endsWith('-commit')?'fixture':undefined,WILDSHARD_SHARDFILE_CACHE:f.cacheRoot,WS_TEST_PRODUCTS_SHA:'',VERCEL_GIT_COMMIT_SHA:'',NO_COLOR:'1'},
+    cwd:f.root,env:{...fixtureEnvironment(),WS_TEST_COHORT:undefined,CI:mode.startsWith('ci-')?'1':'',GITHUB_ACTIONS:'',WS_COMMIT_RELATED_TOKEN:mode.endsWith('-commit')?'fixture':undefined,WILDSHARD_SHARDFILE_CACHE:f.cacheRoot,WS_TEST_PRODUCTS_SHA:'',VERCEL_GIT_COMMIT_SHA:'',NO_COLOR:'1'},
     encoding:'utf8',stdio:'pipe',timeout:15_000,maxBuffer:1_048_576,
   });
   expect(result.error).toBeUndefined();
@@ -178,7 +183,7 @@ test.each([
     `import {test} from 'vitest';import {writeFileSync} from 'node:fs';test('${name}',()=>writeFileSync('${name}-ran','yes'));`);
   write(f.root,'vitest.config.mts',`import {DurationSequencer} from ${JSON.stringify(resolve('scripts/vitest-shard.ts'))};export default {root:${JSON.stringify(f.root)},test:{include:['test/*.test.ts'],sequence:{sequencer:DurationSequencer}}};`);
   const result=spawnSync(process.execPath,[resolve('node_modules/vitest/vitest.mjs'),'run','--shard=1/1','--config',resolve(f.root,'vitest.config.mts')],{
-    cwd:f.root,env:{...process.env,CI:'1',WS_TEST_COHORT:cohort,WILDSHARD_SHARDFILE_CACHE:f.cacheRoot,WS_TEST_PRODUCTS_SHA:'',VERCEL_GIT_COMMIT_SHA:'',NO_COLOR:'1'},
+    cwd:f.root,env:{...fixtureEnvironment(),CI:'1',WS_TEST_COHORT:cohort,WILDSHARD_SHARDFILE_CACHE:f.cacheRoot,WS_TEST_PRODUCTS_SHA:'',VERCEL_GIT_COMMIT_SHA:'',NO_COLOR:'1'},
     encoding:'utf8',timeout:15_000,maxBuffer:1_048_576,
   });
   expect(result.error).toBeUndefined();

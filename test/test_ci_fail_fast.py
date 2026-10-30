@@ -179,13 +179,13 @@ class FailFastTests(unittest.TestCase):
         self.assertIn('wait "$typecheck_pid"',command)
         self.assertIn('wait "$typed_lint_pid"',command)
 
-    def test_behaviour_matrix_keeps_independent_jobs_and_per_shard_bail(self):
+    def test_behaviour_matrix_keeps_independent_jobs_and_runs_every_case(self):
         source=Path('.github/workflows/deploy.yml').read_text()
         for job, count in [('behaviour',12)]:
             behaviour=source.split(f'\n  {job}:\n',1)[1].split('\n  dispatch-boot-smoke:\n',1)[0].split('\n  behaviour-products:\n',1)[0]
             self.assertIn('fail-fast: false',behaviour)
             self.assertNotIn('fail-fast: true',behaviour)
-            self.assertIn('python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --config scripts/vitest-ci.config.ts --shard=${{ matrix.shard }}/'+str(count)+' --bail=1',behaviour)
+            self.assertIn('python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --config scripts/vitest-ci.config.ts --shard=${{ matrix.shard }}/'+str(count)+' --bail=0',behaviour)
 
     def test_failure_record_contains_paths_not_log_text(self):
         function=API['diagnose']
