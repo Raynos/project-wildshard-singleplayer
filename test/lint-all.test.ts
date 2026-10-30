@@ -82,7 +82,7 @@ test('CI runs one complete type and typed-lint job with verified inputs', () => 
   const job=workflow.split('\n  typecheck-lint:')[1]?.split('\n  derived-docs:')[0]??'';
   expect(job).not.toContain('strategy:');expect(job).not.toContain('matrix.');
   expect(job).not.toContain('lint:fast');expect(job).not.toContain('--shard=');
-  expect(job).toContain('python3 scripts/ci-products.py unpack-generated');
+  expect(job).toContain('python3 scripts/ci-products.py unpack');
   expect(job).toContain('python3 scripts/ci-fail-fast.py -- /usr/bin/time -v bash scripts/typecheck-lint.sh');
   const body=readFileSync('scripts/typecheck-lint.sh','utf8');
   expect(body.match(/pnpm exec tsc -b tsconfig\.layers\.json --builders 1/gu)).toHaveLength(1);

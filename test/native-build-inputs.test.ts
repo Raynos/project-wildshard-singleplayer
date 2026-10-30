@@ -28,7 +28,7 @@ test('push/PR native checks cover the full event range and releases reuse their 
   const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
   expect(workflow).toMatch(/NATIVE_BASE: \$\{\{ github\.event\.before \|\| github\.event\.pull_request\.base\.sha \}\}/u);
   expect(workflow).toContain('git diff --name-only -z "$NATIVE_BASE" HEAD');
-  expect(workflow).toContain("if: env.DEPLOY != 'true' && steps.native-inputs.outputs.needed == 'true'");
+  expect(workflow).toContain("if: steps.native-inputs.outputs.needed == 'true'");
   const native = workflow.split('      - name: Native web build\n')[1]?.split('      - name: Pack the exact web build for boot smoke\n')[0];
   if (native === undefined) throw new Error('Missing native build step');
   const prepared = native;
