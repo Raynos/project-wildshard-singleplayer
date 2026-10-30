@@ -153,7 +153,9 @@ export class TileDriver {
       let next: number | undefined;
       for (const key of plan.nearest[layer]) {
         const tile = this.attached[layer].get(key);
-        if (!this.inView(key, layer === 'render' ? streamView : null) || (layer === 'render' && this.deferred(key, cone, now))
+        // NT8's full camera ranking supersedes the horizontal-only defer rule:
+        // filtering visible tiles here would let off-view work win the scan.
+        if (!this.inView(key, layer === 'render' ? streamView : null) || (layer === 'render' && streamView === null && this.deferred(key, cone, now))
           || !(tile === undefined || tile.done.size < this.contents.length && this.contents.some(content => !tile.done.has(content) && (layer === 'colliders' || content.ready?.() !== false)))
           || this.failed.has(`${layer}:${String(key)}`)) continue;
         if (next === undefined) next = key;

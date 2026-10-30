@@ -33,6 +33,9 @@ test('a high eye ranks visible render tiles first without moving the player or c
     attachColliders: key => { colliders.push(key); return Promise.resolve(); } };
   const driver = new TileDriver(scope, [source, collision], () => 2, () => Promise.resolve(), bounds), view = new StreamingCamera(new Group(), () => camera);
   driver.setStreamingView(() => view.read());
+  // The old horizontal deferral must not hide a visible candidate from the
+  // NT8 ranking pass and let an off-view tile attach first.
+  driver.setView(() => ({ x: 1, z: 0, half: Math.PI / 4 }));
   try {
     await settle(driver, 0, 0, 150);
     expect(seen).toEqual([front, behind]);
