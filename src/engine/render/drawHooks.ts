@@ -1,7 +1,9 @@
-import { BatchedMesh, BufferGeometry, CompressedTexture, InstancedMesh, Material, RenderTarget, Texture } from 'three';
+import { BatchedMesh, BufferGeometry, CompressedTexture, InstancedMesh, Material, MeshDepthMaterial, MeshDistanceMaterial, RenderTarget, Texture } from 'three';
 import type { Renderer } from './renderer';
 
 type Draw = Renderer['renderBufferDirect'];
+type ShadowDraw = (draw: Draw, camera: Parameters<Draw>[0], scene: Parameters<Draw>[1], geometry: Parameters<Draw>[2],
+  material: MeshDepthMaterial | MeshDistanceMaterial, object: Parameters<Draw>[4], group: Parameters<Draw>[5]) => void;
 type DrawTarget = Pick<Renderer, 'renderBufferDirect'>;
 interface PropertyTarget { readonly properties: Pick<Renderer['properties'], 'get'> }
 
@@ -9,7 +11,7 @@ interface PropertyTarget { readonly properties: Pick<Renderer['properties'], 'ge
  * observer; admission precedes ownership, and only a successful submission can
  * retire CPU data. Registration never adds another renderer wrapper. */
 interface DrawHooks {
-  outer?: (draw: Draw, ...args: Parameters<Draw>) => void;
+  shadow?: ShadowDraw;
   depth: number;
   generation: number;
   retire?: ((complete: boolean) => void) | undefined;
@@ -29,7 +31,19 @@ export function drawHooks(renderer: DrawTarget): DrawHooks {
   const hooks: DrawHooks = { depth: 0, generation: 0 };
   draws.set(renderer, hooks);
   const draw = renderer.renderBufferDirect.bind(renderer);
-  const submit: Draw = (camera, scene, geometry, material, object, group) => {
+  let continuation = false;
+  const continueShadow: Draw = (camera, scene, geometry, material, object, group) => {
+    continuation = true; submit(camera, scene, geometry, material, object, group);
+  };
+  function submit(camera: Parameters<Draw>[0], scene: Parameters<Draw>[1], geometry: Parameters<Draw>[2],
+    material: Parameters<Draw>[3], object: Parameters<Draw>[4], group: Parameters<Draw>[5]): void {
+    // Consume this continuation before entering native draw code: any nested
+    // cast still takes its own shadow substitution and restores its own state.
+    const continued = continuation; continuation = false;
+    const shadow = continued || hooks.shadow === undefined ? null : resourceKind(material).shadow;
+    if (shadow !== null && hooks.shadow !== undefined) {
+      hooks.shadow(continueShadow, camera, scene, geometry, shadow, object, group); return;
+    }
     if (hooks.depth === 0) hooks.generation++;
     hooks.depth++;
     let complete = false;
@@ -50,11 +64,8 @@ export function drawHooks(renderer: DrawTarget): DrawHooks {
       }
     }
     hooks.memory?.(camera, scene, geometry, material, object, group);
-  };
-  renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
-    if (hooks.outer === undefined) submit(camera, scene, geometry, material, object, group);
-    else hooks.outer(submit, camera, scene, geometry, material, object, group);
-  };
+  }
+  renderer.renderBufferDirect = submit;
   return hooks;
 }
 
@@ -66,7 +77,7 @@ interface PropertyHooks {
   labels?: (resource: unknown, properties: unknown) => unknown;
 }
 const properties = new WeakMap<PropertyTarget, PropertyHooks>();
-interface ResourceKind { texture: Texture | null; compressed: CompressedTexture | null; target: boolean; owned: boolean }
+interface ResourceKind { texture: Texture | null; compressed: CompressedTexture | null; target: boolean; owned: boolean; shadow: MeshDepthMaterial | MeshDistanceMaterial | null }
 const KIND = Symbol('renderer resource kind');
 const frozenKinds = new WeakMap<object, ResourceKind>();
 function resourceKind(resource: object): ResourceKind {
@@ -75,6 +86,7 @@ function resourceKind(resource: object): ResourceKind {
   if (known !== undefined) return known;
   const texture = resource instanceof Texture ? resource : null, target = resource instanceof RenderTarget;
   const kind: ResourceKind = { texture, compressed: resource instanceof CompressedTexture ? resource : null, target,
+    shadow: resource instanceof MeshDepthMaterial || resource instanceof MeshDistanceMaterial ? resource : null,
     owned: texture !== null || target || resource instanceof BufferGeometry || resource instanceof Material || resource instanceof InstancedMesh || resource instanceof BatchedMesh };
   // This immutable, non-enumerable record holds only its own resource. It has
   // no renderer, callback or Scope edge, so it cannot extend their lifetimes.

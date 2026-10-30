@@ -3,8 +3,8 @@ import { BufferGeometry, Camera, CompressedTexture, Mesh, MeshBasicMaterial, Mes
 import type { Renderer } from './renderer';
 import { drawHooks, propertyHooks } from './drawHooks';
 
-function fixture() {
-  const geometry = new BufferGeometry(), material = new MeshBasicMaterial(), object = new Mesh(geometry, material);
+function fixture(material: MeshBasicMaterial | MeshDepthMaterial = new MeshBasicMaterial()) {
+  const geometry = new BufferGeometry(), object = new Mesh(geometry, material);
   const camera = new Camera(), scene = new Scene(), group = { start: 0, count: 3, materialIndex: 0 };
   const stock = vi.fn<Renderer['renderBufferDirect']>();
   const renderer = { renderBufferDirect: stock };
@@ -13,10 +13,10 @@ function fixture() {
 }
 
 test('late registration keeps one renderer hook and shadow state encloses every observer', () => {
-  const f = fixture(), hooks = drawHooks(f.renderer), installed = f.renderer.renderBufferDirect;
+  const f = fixture(new MeshDepthMaterial()), hooks = drawHooks(f.renderer), installed = f.renderer.renderBufferDirect;
   const depth = new MeshDepthMaterial(), events: string[] = [];
   let shadow = false;
-  hooks.outer = (draw, camera, scene, geometry, _material, object, group) => {
+  hooks.shadow = (draw, camera, scene, geometry, _material, object, group) => {
     shadow = true;
     try { draw(camera, scene, geometry, depth, object, group); } finally { shadow = false; }
   };
@@ -40,6 +40,22 @@ test('failed submission restores ownership, refuses retirement and never queues 
   f.draw(); expect(leave).toHaveBeenCalledTimes(2); expect(retire).toHaveBeenLastCalledWith(true); expect(memory).toHaveBeenCalledOnce();
 });
 
+test('ordinary draws bypass shadow dispatch and nested casts retain their own substitution', () => {
+  const ordinary = fixture(), ordinaryHooks = drawHooks(ordinary.renderer), ignored = vi.fn<NonNullable<typeof ordinaryHooks.shadow>>();
+  ordinaryHooks.shadow = ignored; ordinary.draw(); expect(ignored).not.toHaveBeenCalled();
+  const f = fixture(new MeshDepthMaterial()), hooks = drawHooks(f.renderer), replacement = new MeshDepthMaterial();
+  let calls = 0, nested = false, active = 0;
+  hooks.shadow = (draw, camera, scene, geometry, _material, object, group) => {
+    calls++; active++;
+    try { draw(camera, scene, geometry, replacement, object, group); } finally { active--; }
+  };
+  f.stock.mockImplementation((_camera, _scene, _geometry, material) => {
+    expect(material).toBe(replacement); expect(active).toBeGreaterThan(0);
+    if (!nested) { nested = true; f.draw(); }
+  });
+  f.draw(); expect(calls).toBe(2); expect(active).toBe(0); expect(hooks.depth).toBe(0);
+});
+
 test('an ownership failure unwinds its entered state and admission refusal never enters it', () => {
   const f = fixture(), hooks = drawHooks(f.renderer), leave = vi.fn<() => void>();
   hooks.ownership = { begin: () => { throw new Error('owner failed'); }, end: leave };
@@ -58,7 +74,7 @@ test('property observers share one native lookup and diagnostics receive its exa
 });
 
 test('classification preserves changed native rows, compressed observers and frozen inputs', () => {
-  const resource = new CompressedTexture(), frozen = Object.freeze({}), initial = {}, replacement = {};
+  const resource = new CompressedTexture([], 1, 1), frozen = Object.freeze({}), initial = {}, replacement = {};
   let current = initial;
   const renderer = { properties: { get: (_resource: unknown) => current } }, hooks = propertyHooks(renderer);
   const before = vi.fn<(resource: CompressedTexture) => void>(), after = vi.fn<(resource: CompressedTexture, properties: unknown) => void>();

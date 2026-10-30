@@ -772,11 +772,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // Shader-only hosts have no buffer draw to wrap. Real renderers install it in their constructor.
     const stock: unknown = Reflect.get(renderer, 'renderBufferDirect');
     if (previous !== renderer && typeof stock === 'function') {
-      drawHooks(renderer).outer = (draw, camera, scene, geometry, material, object, group): void => {
-        // Ordinary draws need no shadow continuation closure.
-        if (!(material instanceof THREE.MeshDepthMaterial || material instanceof THREE.MeshDistanceMaterial)) {
-          draw(camera, scene, geometry, material, object, group); return;
-        }
+      drawHooks(renderer).shadow = (draw, camera, scene, geometry, material, object, group): void => {
         // A shadow cast: the stock depth material, or a vertex-moving graph's own depth variant (no closure per cast)
         const depth = this.shadowCasterDepth(material, object, group);
         if (depth === null) {
