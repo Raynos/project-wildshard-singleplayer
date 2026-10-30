@@ -6,4 +6,5 @@ export const CI_SERIAL_TESTS = [
   'test/pine-quest-verbs.test.ts',
   'test/driftwood-story-verbs.test.ts',
   'test/nalati-discovery-verbs.test.ts',
+  'test/nalati-titan-verbs.test.ts',
 ] as const;
