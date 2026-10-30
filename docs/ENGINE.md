@@ -5274,47 +5274,46 @@ canonical product read ahead of the hybrid boot (the descriptor shared with
 that boot, the file cached for its admission), so the navigation downloads
 once.
 
-### Typed whole-shape GLBs (SHARD-PLATFORM M3)
+### Typed whole-shape GLBs
 
-`PropWhole` in `@wildshard/sdk/bake/props` accepts `customAttributes`
-(application semantic → source channel) and opt-in `nativeAttributes: true`.
-`staticGlb` in `@wildshard/sdk/bake/glb` accepts the same storage option.
-Ordinary glTF semantics stay portable float32. Original integer and
-half-float channels also travel as typed `_WS_RAW_*` application accessors;
-node extras `nativeAttributes` record their source names, storage, item
-sizes and normalization. Half floats use uint16 bits because glTF has no
-float16 component type. A trusted client reconstructs those channels before
-using its own material. Extras `matrix64` and `instances64` retain source
-transform doubles alongside portable glTF transforms. These bytes count in
-normal product admission; omitting the options preserves existing outputs.
+`PropWhole` (`sdk/bake/props`) maps application semantics to source channels
+with `customAttributes`. `nativeAttributes`, also accepted by `staticGlb`, retains typed
+`_WS_RAW_*` beside portable float32 semantics. Extras name each channel
+and its storage/width/normalization; float16 uses uint16 bits. Clients
+restore channels before material use.
+`matrix64`/`instances64` preserve transform doubles. All bytes count in
+admission; omitted options retain original output.
 
-`@wildshard/sdk/bake/forest.treeSetRows` admits authored tree pools,
-material slots and ordered variants through the defining tree-set grammar.
-`NativeForestSpecies` names the placement law's ordered planting traits.
+`@wildshard/sdk/bake/forest.treeSetRows` admits tree pools, material slots
+and ordered variants; `NativeForestSpecies` names planting traits.
+
+### Tile geometric error
+
+`measuredCoarseGeometry` returns original geometry plus meshopt's achieved
+metre estimate (not Hausdorff). `coarseCopy.errorMetres`,
+`PropWhole.geometricError` and `PropsBakeSource.coarseErrorMetres` propagate
+it through scale. `sdk/bake/geometryError` adds float32 loss or transformed
+quantization-cell radius; lossless data keeps zero. Payloads stay exact.
 
 ### Provisional prop-tile budgets
 
-`bakeProps` warns when a tile exceeds the provisional resident, compressed,
-triangle or draw caps and includes the exceeded values in that tile's
-`report[].warnings`. It still computes exact costs and emits admitted GLBs.
-Product admission retains the hard playing/loading memory limits. Far and
-library checks remain unchanged. `BakedPiece` options `nativeAttributes`
-and `compactIndex` forward the corresponding static GLB options; omitted
-options preserve existing kind bytes.
+`bakeProps.report[].warnings` lists exceeded provisional resident,
+compressed, triangle and draw caps; costs and admitted GLBs stay exact.
+Playing/loading hard limits and far/library checks remain.
+`BakedPiece.nativeAttributes`/`compactIndex` forward static GLB options;
+omission preserves existing bytes.
 
 ### Exact whole-geometry partitions
 
-`WholeShape(..., { partition: true })` and `PropWhole.partition` assign each
-triangle to its transformed centroid's 62.5 m tile. Nothing clips, rounds
-or decimates source attributes. Each GLB node's `wholePartition` extras
-retain its source id, vertex ordinals, triangle ordinals, source vertex and
-index counts and original index width. A trusted client can reconstruct the
-original draw from its tile subsets, retaining its material and draw count.
-`partitionWholeGeometry` is defined in `@wildshard/sdk/bake/props`.
-Runtime reconstruction uses `assembleWholeGeometryViews` below.
-An unreferenced authored vertex travels in the first occupied tile.
-Omitting partition keeps the original whole-shape byte path. Application
-GLB extras are charged bytes and cannot overwrite reserved storage keys.
+`WholeShape`'s `partition: true` and `PropWhole.partition` assign triangles
+to transformed-centroid 62.5 m tiles without clipping, rounding or
+decimation. `wholePartition` extras retain source id, vertex/triangle
+ordinals, original vertex/index counts and index width; unreferenced
+vertices enter the first occupied tile. Clients reconstruct original
+draws/materials using `assembleWholeGeometryViews` below.
+`partitionWholeGeometry` lives in `sdk/bake/props`; omission keeps the old
+byte path. Application extras are charged and cannot overwrite reserved
+storage keys.
 
 ### Runtime whole-geometry assembly
 

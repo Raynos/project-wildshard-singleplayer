@@ -5,7 +5,7 @@ import { bakeOwned, BakedPiece, WholeShape, type BakedScene } from '@wildshard/s
 import { compactWholeChannels, gridPositions, objectSpaceLooks, partitionWholeGeometry, wholeGrid, wholePartitionRuns, type PropWhole } from '@wildshard/sdk/bake/props';
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import { NINE_MATERIAL_LOOKS, NINE_WHOLE_DRESSING } from './wholeDressing';
-import { coarseGeometry } from '@wildshard/sdk/bake/coarseCopy';
+import { measuredCoarseGeometry } from '@wildshard/sdk/bake/coarseCopy';
 import { nineLayoutSource } from './layout';
 import { bootSpecimen, specimenRecipes } from './specimens';
 import { mistSheetsGeometry, steamPuffsGeometry } from './mistGeometry';
@@ -47,7 +47,7 @@ function widenHalves(piece: BufferGeometry): void {
 }
 
 /** A parent's pieces merged by channel set (names, widths and storage alike), one geometry per set. */
-function coarseSets(pieces: readonly BufferGeometry[]): BufferGeometry[] {
+function coarseSets(pieces: readonly BufferGeometry[], errors: WeakMap<BufferGeometry, number>): BufferGeometry[] {
   const bySet = new Map<string, BufferGeometry[]>();
   for (const piece of pieces) {
     widenHalves(piece);
@@ -69,6 +69,7 @@ function coarseSets(pieces: readonly BufferGeometry[]): BufferGeometry[] {
     const indices: number[] = []; let base = 0;
     for (const [p, piece] of list.entries()) { for (const corner of piece.getIndex()?.array ?? []) indices.push(corner + base); base += counts[p] ?? 0; piece.dispose(); }
     merged.setIndex(indices);
+    errors.set(merged, Math.max(0, ...list.map(piece => errors.get(piece) ?? 0)));
     return merged;
   });
 }
@@ -93,7 +94,7 @@ function usedVertices(geometry: BufferGeometry): BufferGeometry {
 
 /** Simplify a parent's sets until together they fit its share of the cell's budget (`triangles`, `bytes`): each pass shrinks the largest set that still shrinks by the
  *  share it must lose. Replaced geometries are disposed. */
-function fitCoarse(input: readonly BufferGeometry[], parent: string, triangles: number, bytes: number): BufferGeometry[] {
+function fitCoarse(input: readonly BufferGeometry[], parent: string, triangles: number, bytes: number, errors: WeakMap<BufferGeometry, number>): BufferGeometry[] {
   const sets = [...input], stuck = new Set<number>();
   const sum = (cost: (geometry: BufferGeometry) => number): number => sets.reduce((total, geometry) => total + cost(geometry), 0);
   for (let pass = 0; pass < 32 && (sum(triangleCount) > triangles || sum(geometryBytes) > bytes); pass++) {
@@ -103,7 +104,8 @@ function fitCoarse(input: readonly BufferGeometry[], parent: string, triangles: 
     if (largest === undefined) break;
     const keep = Math.min((triangles - (sum(triangleCount) - triangleCount(largest))) / triangleCount(largest),
       (bytes - (sum(geometryBytes) - geometryBytes(largest))) / geometryBytes(largest));
-    const simplified = coarseGeometry(largest, Math.min(0.9, Math.max(0.05, 0.9 * keep)), 6, { sloppy: true }), next = usedVertices(simplified);
+    const result = measuredCoarseGeometry(largest, Math.min(0.9, Math.max(0.05, 0.9 * keep)), 6, { sloppy: true }), simplified = result.geometry, next = usedVertices(simplified);
+    errors.set(next, (errors.get(largest) ?? 0) + result.errorMetres);
     simplified.dispose();
     if (triangleCount(next) >= triangleCount(largest)) { next.dispose(); stuck.add(at); continue; }
     largest.dispose(); sets[at] = next;
@@ -132,13 +134,14 @@ function buildNineScene(atlas: NineSpillAtlas): { baked: BakedScene; layout: Ret
   // G748 / tile streaming T8: the city's coarse L1 copy keeps every Nine channel (its night look). Each L1 parent's pieces
   // merge into one draw per channel set, simplified until the parent fits the L1 tile caps (CONTENT_CAPS.l1)
   const coarseWhite = new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 1, metalness: 0 }), coarseWhole: PropWhole[] = [];
-  const parents = new Map<number, BufferGeometry[]>();
+  const parents = new Map<number, BufferGeometry[]>(), errors = new WeakMap<BufferGeometry, number>();
   for (const [i, geometry] of layout.geometries.entries()) {
     if (local.has(i)) continue;
     const mesh = new Mesh(geometry, material); mesh.name = `layout_${i}`;
     scene.add(new WholeShape(mesh.name, mesh, { customAttributes: nineChannels(geometry), nativeAttributes: true, partition: 'runs', compact: true }));
-    const coarse = coarseGeometry(geometry, COARSE_START, 3, { sloppy: true });
-    for (const piece of coarseParents(coarse)) { const key = piece.z * 4 + piece.x, list = parents.get(key) ?? []; list.push(piece.geometry); parents.set(key, list); }
+    const result = measuredCoarseGeometry(geometry, COARSE_START, 3, { sloppy: true }), coarse = result.geometry;
+    errors.set(coarse, result.errorMetres);
+    for (const piece of coarseParents(coarse, errors)) { const key = piece.z * 4 + piece.x, list = parents.get(key) ?? []; list.push(piece.geometry); parents.set(key, list); }
     coarse.dispose();
   }
   // each parent's share of the cell budget follows its share of the city's simplified triangles
@@ -146,10 +149,10 @@ function buildNineScene(atlas: NineSpillAtlas): { baked: BakedScene; layout: Ret
   const total = [...mass.values()].reduce((sum, n) => sum + n, 0);
   for (const [key, pieces] of parents) {
     const x = key % 4, z = Math.floor(key / 4), transform = new Matrix4().makeTranslation(-250 + (x + 0.5) * 125, 0, -250 + (z + 0.5) * 125);
-    const sets = coarseSets(pieces), share = total === 0 ? 0 : (mass.get(key) ?? 0) / total;
+    const sets = coarseSets(pieces, errors), share = total === 0 ? 0 : (mass.get(key) ?? 0) / total;
     if (sets.length > COARSE_DRAWS) throw new Error(`Nine coarse parent ${x}/${z} needs ${sets.length} channel sets`);
-    for (const [s, fitted] of fitCoarse(sets, `${x}/${z}`, Math.max(COARSE_FLOOR.triangles, Math.floor(CELL_COARSE_TRIANGLES * share)), Math.max(COARSE_FLOOR.bytes, Math.floor(CELL_COARSE_BYTES * share))).entries()) {
-      coarseWhole.push({ id: `coarse_${x}_${z}_${s}`, mesh: new Mesh(fitted, coarseWhite), transform, customAttributes: nineChannels(fitted), nativeAttributes: true, compact: true });
+    for (const [s, fitted] of fitCoarse(sets, `${x}/${z}`, Math.max(COARSE_FLOOR.triangles, Math.floor(CELL_COARSE_TRIANGLES * share)), Math.max(COARSE_FLOOR.bytes, Math.floor(CELL_COARSE_BYTES * share)), errors).entries()) {
+      coarseWhole.push({ id: `coarse_${x}_${z}_${s}`, mesh: new Mesh(fitted, coarseWhite), transform, geometricError: errors.get(fitted) ?? 0, customAttributes: nineChannels(fitted), nativeAttributes: true, compact: true });
     }
   }
   const keys: { boot: string[]; explorer: string[] } = { boot: [], explorer: [] };
@@ -205,7 +208,7 @@ export function nineScene(atlas: NineSpillAtlas): ReturnType<typeof buildNineSce
 
 /** A cell-space geometry's triangles split by centroid into its 125 m L1 parents, each piece's positions relative to its
  *  parent's centre (its transform), so the props bake files it in that parent's L1 tile; every channel is kept. */
-function coarseParents(geometry: BufferGeometry): { x: number; z: number; geometry: BufferGeometry; transform: Matrix4 }[] {
+function coarseParents(geometry: BufferGeometry, errors: WeakMap<BufferGeometry, number>): { x: number; z: number; geometry: BufferGeometry; transform: Matrix4 }[] {
   const position = geometry.getAttribute('position'), index = geometry.getIndex();
   if (!(position instanceof BufferAttribute)) throw new Error('Nine coarse copy needs plain positions');
   const corners = index === null ? Array.from({ length: position.count }, (_, i) => i) : Array.from(index.array), buckets = new Map<number, number[]>();
@@ -219,15 +222,21 @@ function coarseParents(geometry: BufferGeometry): { x: number; z: number; geomet
     const x = key % 4, z = Math.floor(key / 4), cx = -250 + (x + 0.5) * 125, cz = -250 + (z + 0.5) * 125, remap = new Map<number, number>(), order: number[] = [];
     const indices = list.map(vertex => { let at = remap.get(vertex); if (at === undefined) { at = order.length; remap.set(vertex, at); order.push(vertex); } return at; });
     const piece = new BufferGeometry();
+    let storageError = 0;
     for (const [name, attribute] of Object.entries(geometry.attributes)) {
       if (!(attribute instanceof BufferAttribute)) throw new Error(`Nine coarse channel ${name} is not plain`);
       // the channel's own storage (Nine keeps raw Float16 channels): a same-type copy, refilled in the piece's vertex order
       const width = attribute.itemSize, values = attribute.array.slice(0, order.length * width);
       order.forEach((vertex, i) => { for (let k = 0; k < width; k++) values[i * width + k] = attribute.array[vertex * width + k] ?? 0; });
-      if (name === 'position') for (let i = 0; i < order.length; i++) { values[i * 3] = (values[i * 3] ?? 0) - cx; values[i * 3 + 2] = (values[i * 3 + 2] ?? 0) - cz; }
+      if (name === 'position') for (let i = 0; i < order.length; i++) {
+        const xLocal = (values[i * 3] ?? 0) - cx, zLocal = (values[i * 3 + 2] ?? 0) - cz;
+        values[i * 3] = xLocal; values[i * 3 + 2] = zLocal;
+        storageError = Math.max(storageError, Math.hypot(xLocal - (values[i * 3] ?? 0), zLocal - (values[i * 3 + 2] ?? 0)));
+      }
       piece.setAttribute(name, new BufferAttribute(values, width, attribute.normalized));
     }
     piece.setIndex(indices);
+    errors.set(piece, (errors.get(geometry) ?? 0) + storageError);
     return { x, z, geometry: piece, transform: new Matrix4().makeTranslation(cx, 0, cz) };
   });
 }

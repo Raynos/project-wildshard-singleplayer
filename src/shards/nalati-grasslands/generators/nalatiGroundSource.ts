@@ -1,5 +1,6 @@
 import { BufferAttribute, BufferGeometry, Float32BufferAttribute, MeshStandardMaterial, Vector3 } from 'three';
 import { sliceNativeLattice, type NativeLatticeAttribute, type NativeLatticeSource, type NativeLatticeTile } from '@wildshard/sdk/bake/nativeLattice';
+import { floatPositionError } from '@wildshard/sdk/bake/geometryError';
 import { staticGlb, type GlbPrimitive } from '@wildshard/sdk/bake/glb';
 import { parseGlb, type AssetCost } from '@wildshard/sdk/assets';
 import { simplifyNativeLatticeTile, type NativeLatticeLod } from '@wildshard/sdk/bake/worldLod';
@@ -118,7 +119,7 @@ export async function bakeNalatiGroundQuads(source: NativeLatticeSource, policy:
         geometry.setIndex(new BufferAttribute(indices, 1));
         bytes = staticGlb([{ geometry, material, castShadow: false, customAttributes: CUSTOM }], `nalati.ground.l1.${String(x)}.${String(z)}`);
       } finally { geometry.dispose(); }
-      return { x, z, bytes, geometricError: Math.max(...members.map(member => member.errorMetres)) };
+      return { x, z, bytes, geometricError: Math.max(...members.map(member => member.errorMetres + floatPositionError(member.tile.positions))) };
     }));
   } finally { material.dispose(); }
 }
@@ -143,7 +144,7 @@ function bakePreparedGround(source: NativeLatticeSource, staticTiles: readonly N
         geometry.setIndex(new BufferAttribute(tile.indices, 1));
         bytes = staticGlb([{ geometry, material, castShadow: false, customAttributes: CUSTOM }, ...additions], `nalati.ground.l${tile.lod}.${tile.x}.${tile.z}`);
       } finally { geometry.dispose(); }
-      return { tile: { ...tile, bounds }, bytes, cost: parseGlb(bytes), geometricError: errorMetres };
+      return { tile: { ...tile, bounds }, bytes, cost: parseGlb(bytes), geometricError: errorMetres + floatPositionError(tile.positions) };
     }));
   } finally { material.dispose(); }
 }

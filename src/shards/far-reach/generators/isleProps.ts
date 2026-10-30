@@ -26,7 +26,7 @@ export function skyIsleProps(): BakedProps {
   // pass past the target (locked borders stall near 1,800 triangles): 809 triangles, 130 KB for the 11 L1 squares
   // (was 6,166 / 902 KB), so the phone wire fits its 33.8 MB cap.
   const coarse = coarseCopy(whole, 0.015, 2, { sloppy: true });
-  const baked = bakeProps({ static: new Group(), whole, family: 'toon', coarse: coarse.group, materialName: 'isle-coarse' });
+  const baked = bakeProps({ static: new Group(), whole, family: 'toon', coarse: coarse.group, coarseErrorMetres: coarse.errorMetres, materialName: 'isle-coarse' });
   for (const { mesh } of whole) { mesh.geometry.dispose(); mesh.material.dispose(); }
   coarse.dispose();
   return baked;

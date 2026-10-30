@@ -173,7 +173,8 @@
     "./decisionScripts": "./decisionScripts.ts",
     "./bake/facetedGeometry": "./bake/facetedGeometry.ts",
     "./bake/nativeTerrainField": "./bake/nativeTerrainField.ts",
-    "./bake/nativeInteractionFacts": "./bake/nativeInteractionFacts.ts"
+    "./bake/nativeInteractionFacts": "./bake/nativeInteractionFacts.ts",
+    "./bake/geometryError": "./bake/geometryError.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -789,6 +790,10 @@
       "./bake/nativeInteractionFacts": {
         "types": "./dist/types/sdk/bake/nativeInteractionFacts.d.ts",
         "default": "./dist/bake/nativeInteractionFacts.js"
+      },
+      "./bake/geometryError": {
+        "types": "./dist/types/sdk/bake/geometryError.d.ts",
+        "default": "./dist/bake/geometryError.js"
       }
     }
   }

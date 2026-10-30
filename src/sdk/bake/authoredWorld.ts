@@ -16,6 +16,7 @@ import { bakeWorldCollision } from './worldCollision';
 import { WorldBakeRows } from './worldRows';
 import { coarseNearView } from './placeholders';
 import { completeL0Tiles } from './tileGrid';
+import { gridPositionError } from './geometryError';
 
 /** In-memory authored-world result; the project loader reads source bytes and the build writes only the product. */
 export interface AuthoredWorldProduct { shard: Shardfile; assets: Map<string, Uint8Array> }
@@ -89,31 +90,36 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array, graph
     for (const texture of bindings.textures.values()) pack.asset(texture, 'ktx2');
     // RM8.2: detail rows draw only at L0; the coarse rows stand in for them at L1, as they are
     const detail = new Set(world.detail), coarse = await Promise.all(world.static.filter(row => !detail.has(row)).map(row => simplifyWorldPrimitive(row, 0.5, 0.25)));
-    const emit = (rows: readonly WorldPrimitive[], bounds?: readonly [number, number, number, number], transform?: readonly number[], castShadow = true): { bytes: Uint8Array; dependencies: string[]; box: Box3 } => {
+    const sourceErrors = new Map(coarse.map(row => [row.primitive, row.errorMetres]));
+    const emit = (rows: readonly WorldPrimitive[], bounds?: readonly [number, number, number, number], transform?: readonly number[], castShadow = true): { bytes: Uint8Array; dependencies: string[]; box: Box3; storageError: number; sourceError: number } => {
       const groups = new Map<string, BufferGeometry[]>(), box = new Box3(), transient: BufferGeometry[] = [];
+      let storageError = 0, sourceError = 0;
       try {
       for (const row of rows) {
         const name = world.materials[row.material]?.name; if (name === undefined) throw new Error('World GLB missing material slot');
-        const part = worldGeometry(row, bounds, transform); transient.push(part);
+        const part = worldGeometry(row, bounds, transform, metres => { storageError = Math.max(storageError, metres); }); transient.push(part);
         if (part.getAttribute('position').count === 0) continue;
+        sourceError = Math.max(sourceError, sourceErrors.get(row) ?? 0);
         part.computeBoundingBox(); if (part.boundingBox !== null) box.union(part.boundingBox);
         const list = groups.get(name) ?? []; list.push(part); groups.set(name, list);
       }
       const primitives: GlbPrimitive[] = [];
       // RM8.1: a tile's positions are Int16 on the shared grid, dequantized by its node, and the tile is meshopt-packed
       const grid = bounds === undefined || box.isEmpty() ? undefined : tileGrid(box);
+      const floatError = storageError;
       for (const [name, parts] of groups) {
         const merged = mergeWorldGeometry(parts); transient.push(merged);
         // RM8.1a: welded, 16-bit indexed, Int8 normals and Uint16 colours (KHR_mesh_quantization) on the wire
         // RM8.1e: a model-space graph (the open plots' turning hologram) gets a grid pinned at its model origin: on the tile's
         // grid its positions were grid units about the tile centre, and its turn about the origin swung 512x (cyan sheets)
         const own = grid === undefined ? undefined : catalogue.modelSpace(name) ? modelGrid(modelBox(merged)) : grid;
+        if (own !== undefined) storageError = Math.max(storageError, floatError + gridPositionError(merged, own));
         const primitive = catalogue.primitive(name, merged, { castShadow }), compact = compactTileGeometry(primitive.geometry, own); transient.push(compact);
         primitives.push({ ...primitive, geometry: compact, quantizedChannels: true, compactIndex: true,
           ...(own === undefined ? {} : { meshoptReady: true, transform: tileGridTransform(own) }) });
       }
       const glb = primitives.length === 0 ? new Uint8Array() : staticGlb(primitives);
-      return { bytes: grid === undefined || glb.length === 0 ? glb : compressGlb(glb), dependencies: catalogue.dependencies([...groups.keys()]), box };
+      return { bytes: grid === undefined || glb.length === 0 ? glb : compressGlb(glb), dependencies: catalogue.dependencies([...groups.keys()]), box, storageError, sourceError };
       } finally { transient.forEach(part => part.dispose()); }
     };
     for (const lod of [0, 1] as const) {
@@ -122,7 +128,7 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array, graph
         const cell = [-250 + x * size, -250 + (x + 1) * size, -250 + z * size, -250 + (z + 1) * size] as const, output = emit(rows, cell, undefined, lod === 0);
         if (output.bytes.length === 0) continue;
         // a tile spans its whole cell; its content sets only its height (an `undrawn` ground leaves cells partly empty)
-        pack.tile({ lod, x, z, bytes: output.bytes, dependencies: output.dependencies, bounds: { min: [cell[0], output.box.min.y, cell[2]], max: [cell[1], output.box.max.y, cell[3]] }, geometricError: lod === 0 ? 0 : Math.max(0, ...coarse.map(row => row.errorMetres)) });
+        pack.tile({ lod, x, z, bytes: output.bytes, dependencies: output.dependencies, bounds: { min: [cell[0], output.box.min.y, cell[2]], max: [cell[1], output.box.max.y, cell[3]] }, geometricError: output.storageError + output.sourceError });
       }
     }
     const panels = world.panels.map(panel => {

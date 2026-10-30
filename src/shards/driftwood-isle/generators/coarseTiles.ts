@@ -42,7 +42,7 @@ export function driftwoodCoarseTiles(aoBytes: Uint8Array): Pick<BakedProps, 'til
     .setAttribute('normal', new Float32BufferAttribute([0, 1, 0, 0, 1, 0, 0, 1, 0], 3)).setAttribute('color', new Float32BufferAttribute([1, 1, 1, 1, 1, 1, 1, 1, 1], 3));
   const far = new Group().add(new Mesh(marker, new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 })));
   try {
-    const baked = bakeProps({ static: new Group(), coarse: coarseWorld, far, family: 'pbr' });
+    const baked = bakeProps({ static: new Group(), coarse: coarseWorld, coarseErrorMetres: coarse.errorMetres, far, family: 'pbr' });
     const tiles = baked.tiles.filter(tile => tile.lod === 1 && tile.files.length > 0), keep = new Set(tiles.flatMap(tile => tile.files));
     const remapped = new Map<string, BakedProps['files'][number]>(), assets = new Map<string, Uint8Array>();
     for (const file of baked.files.filter(row => keep.has(row.hash))) {

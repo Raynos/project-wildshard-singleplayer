@@ -1,3 +1,4 @@
+import { floatPositionError } from './geometryError';
 /**
  * Tile streaming (G652) on G227 splat terrain: a shard's native ground (its committed WSTR256 bake, as the live chunk draws
  * it with `terrainChunkGeometry`) cut into 64 L0 + 16 L1 render tiles for a `props.splat` row. Each tile is one GLB primitive
@@ -93,7 +94,7 @@ export async function bakeSplatGround(source: NativeLatticeSource, options: Spla
           bytes = staticGlb([{ geometry, material, castShadow: false, customAttributes: CUSTOM }], `${options.material}.l${String(tile.lod)}.${String(tile.x)}.${String(tile.z)}`);
         }
       } finally { geometry.dispose(); }
-      return { tile, bytes, cost: parseGlb(bytes), geometricError: errorMetres };
+      return { tile, bytes, cost: parseGlb(bytes), geometricError: errorMetres + floatPositionError(tile.positions) };
     });
   } finally { material.dispose(); coarse?.dispose(); }
 }

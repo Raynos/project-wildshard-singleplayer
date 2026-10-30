@@ -1,6 +1,7 @@
 import { MeshoptEncoder } from 'meshoptimizer/encoder';
 import { BufferAttribute, BufferGeometry, Float32BufferAttribute, Matrix4, Quaternion, Vector3, type Box3 } from 'three';
 import type { WorldPrimitive } from './world';
+import { floatPositionError } from './geometryError';
 
 await MeshoptEncoder.ready;
 
@@ -48,7 +49,7 @@ function outsideFirstCuts(positions: Float64Array, a: number, b: number, c: numb
 
 /** Clip every authored vertex channel to one tile, preserving vertical faces and both bridge layers.
  * This is offline render geometry clipping; the independent WMC1 baker remains the collision authority. */
-export function worldGeometry(source: WorldPrimitive, bounds?: readonly [number, number, number, number], transform?: readonly number[]): BufferGeometry {
+export function worldGeometry(source: WorldPrimitive, bounds?: readonly [number, number, number, number], transform?: readonly number[], storageError?: (metres: number) => void): BufferGeometry {
   const rows = channels(source), output = rows.map(() => [] as number[]), matrix = transform === undefined ? null : new Matrix4().fromArray(transform);
   const vertex = (index: number): Vertex => {
     const values: Vertex = [];
@@ -75,6 +76,19 @@ export function worldGeometry(source: WorldPrimitive, bounds?: readonly [number,
   rows.forEach((row, at) => { geometry.setAttribute(row.key, new Float32BufferAttribute(output[at] ?? [], row.width)); });
   if (!geometry.hasAttribute('normal')) geometry.computeVertexNormals();
   if (matrix !== null) geometry.applyMatrix4(matrix);
+  if (storageError !== undefined) {
+    const positions = output[0] ?? [];
+    if (matrix === null) storageError(floatPositionError(positions));
+    else {
+      const stored = geometry.getAttribute('position'), point = new Vector3();
+      let error = 0;
+      for (let storedVertex = 0; storedVertex < stored.count; storedVertex++) {
+        point.fromArray(positions, storedVertex * 3).applyMatrix4(matrix);
+        error = Math.max(error, Math.hypot(point.x - stored.getX(storedVertex), point.y - stored.getY(storedVertex), point.z - stored.getZ(storedVertex)));
+      }
+      storageError(error);
+    }
+  }
   return geometry;
 }
 

@@ -8,6 +8,7 @@ import { hashImmutableBytes as contentHash } from '../immutable';
 import { staticGlb, type GlbPrimitive } from './glb';
 import { compressGlb } from './glbCompression';
 import { tileGrid, tileGridTransform, type TileGrid } from './worldGeometry';
+import { positionErrorScale, floatPositionError, gridPositionError } from './geometryError';
 
 /** A reusable scatter shape and its world-local positive TRS matrices; generators run only at build time. */
 export interface PropScatter { model: Object3D; transforms: readonly Matrix4[] }
@@ -15,6 +16,8 @@ export interface PropScatter { model: Object3D; transforms: readonly Matrix4[] }
 export interface PropsBakeSource {
   static: Object3D; scatter?: readonly PropScatter[];
   panels?: readonly { id: string; model: Object3D; visible?: boolean }[]; colliders?: ShardProps['colliders']; models?: readonly { id: string; model: Object3D }[];
+  /** Achieved source simplification error in world metres, before tile storage rounding. */
+  coarseErrorMetres?: number;
   coarse?: Object3D; far?: Object3D; family?: string; colourTexture?: Uint8Array;
   /** GLB material name for merged surfaces; bind it through props.materials. Omitted keeps native unnamed bytes. */
   materialName?: string;
@@ -39,6 +42,8 @@ export interface PropsBakeSource {
  */
 export interface PropWhole {
   id: string; mesh: Mesh; transform: Matrix4;
+  /** Accumulated achieved source simplification error, in the geometry's local metres. */
+  geometricError?: number;
   /** Preserve an explicit receive-shadow flag; omitted keeps the tile reader's existing true default. */
   receiveShadow?: boolean;
   /** GLB surface name for this unchanged whole shape; overrides PropsBakeSource.materialName. */
@@ -69,6 +74,7 @@ interface PreparedWhole {
   owner: { x: number; z: number } | null; extras: GlbPrimitive['extras'];
   /** I3: the normals / colours are normalized Int8 / Uint8 on the wire (`compactWholeChannels`) */
   quantized: boolean;
+  geometricError: number;
   /** I3: the shape opted into `compact` (its native channels are written once, `nativeOnce`) */
   compact: boolean;
   /** I3: a partition's positions are unnormalized Int16 on its whole shape's one grid (node = transform x grid) */
@@ -227,7 +233,7 @@ function vertices(root: Object3D, transform = new Matrix4(), rough = true): Vert
     }
   }); return result;
 }
-function geometry(triangles: readonly Vertex[][], bounds?: readonly [number, number, number, number]): BufferGeometry {
+function geometry(triangles: readonly Vertex[][], bounds?: readonly [number, number, number, number], storageError?: (metres: number) => void): BufferGeometry {
   const positions: number[] = [], normals: number[] = [], colours: number[] = [], uvs: number[] = [];
   for (const triangle of triangles) {
     let polygon = [...triangle];
@@ -245,6 +251,7 @@ function geometry(triangles: readonly Vertex[][], bounds?: readonly [number, num
       for (const vertex of [a, b, c]) { positions.push(...vertex.p); normals.push(...vertex.n); colours.push(...vertex.c); uvs.push(vertex.u, vertex.v); }
     }
   }
+  storageError?.(floatPositionError(positions));
   return new BufferGeometry().setAttribute('position', new Float32BufferAttribute(positions, 3)).setAttribute('normal', new Float32BufferAttribute(normals, 3)).setAttribute('color', new Float32BufferAttribute(colours, 3)).setAttribute('uv', new Float32BufferAttribute(uvs, 2));
 }
 const mergedMaterial = (name?: string): MeshStandardMaterial => {
@@ -253,6 +260,7 @@ const mergedMaterial = (name?: string): MeshStandardMaterial => {
 };
 /** Merge props into the canonical 8×8 / 4×4 grid, instance L0 scatter, and refuse every over-budget output. */
 export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['tiles'][number][] = []): BakedProps {
+  if (!Number.isFinite(source.coarseErrorMetres ?? 0) || (source.coarseErrorMetres ?? 0) < 0) throw new Error('Invalid coarse source error');
   const tileWarnings = new Map<string, readonly string[]>();
   const files: Shardfile['files'] = [], assets = new Map<string, Uint8Array>(), library: string[] = [], tiles = terrain.map((t) => ({ ...t, files: [...t.files], bounds: { min: [...t.bounds.min] as [number, number, number], max: [...t.bounds.max] as [number, number, number] } }));
   const section: ShardProps = { version: 1, family: source.family ?? 'pbr', tiles: [], panels: [], models: [], far: null, textures: [], colliders: source.colliders ?? [] };
@@ -276,6 +284,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
   if (!Number.isFinite(overhang) || overhang > 1 || (source.whole ?? []).some(entry => !Number.isFinite(entry.overhang ?? 0) || (entry.overhang ?? 0) < 0)) throw new Error('Invalid whole overhang');
   if (overhang > 0) section.overhang = overhang;
   const prepareWhole = (entries: readonly PropWhole[]): PreparedWhole[] => entries.flatMap((entry): PreparedWhole[] => {
+    if (!Number.isFinite(entry.geometricError ?? 0) || (entry.geometricError ?? 0) < 0) throw new Error('Invalid whole source error');
     const { mesh } = entry, at = new Vector3().setFromMatrixPosition(entry.transform), m = mesh.material;
     if (!(at.x >= -250 && at.x < 250 && at.z >= -250 && at.z < 250)) throw new Error(`Whole prop ${entry.id} origin outside the cell`);
     if (!(m instanceof MeshStandardMaterial) || m.transparent || m.metalness !== 0 || m.map !== null || m.color.getHex() !== 0xffffff) throw new Error(`Whole prop ${entry.id} needs one opaque untextured nonmetal white surface`);
@@ -305,6 +314,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     const material = new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: m.roughness });
     material.name = entry.materialName ?? source.materialName ?? '';
     const base = { id: entry.id, at, castShadow: mesh.castShadow, geometry: g, material, transform: entry.transform, customAttributes,
+      geometricError: (entry.geometricError ?? 0) * positionErrorScale(entry.transform),
       nativeAttributes: entry.partition !== undefined ? true as const : entry.nativeAttributes, quantized, compact: entry.compact === true };
     const shadowExtras = entry.receiveShadow === undefined ? {} : { receiveShadow: entry.receiveShadow };
     if (entry.partition === undefined) return [{ ...base, owner: null, extras: entry.receiveShadow === undefined ? undefined : shadowExtras }];
@@ -313,8 +323,9 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     // I3: one grid for the whole shape in its own space, so a vertex two partitions share lands on the same grid point
     const grid = quantized ? wholeGrid(g) : undefined;
     for (const part of partitionWholeGeometry(g, entry.transform, entry.overhang ?? 0)) {
+      const storageError = grid === undefined ? 0 : gridPositionError(part.geometry, grid, entry.transform);
       if (grid !== undefined) gridPositions(part.geometry, grid);
-      const prepared: PreparedWhole = { ...base, id: `${entry.id}_p${part.x}_${part.z}_n${preparedParts.length}`, geometry: part.geometry, ...(grid === undefined ? {} : { grid }),
+      const prepared: PreparedWhole = { ...base, geometricError: base.geometricError + storageError, id: `${entry.id}_p${part.x}_${part.z}_n${preparedParts.length}`, geometry: part.geometry, ...(grid === undefined ? {} : { grid }),
       owner: { x: part.x, z: part.z }, extras: { ...shadowExtras, wholePartition: { id: entry.id, vertices: ordinals(part.vertices), triangles: ordinals(part.triangles),
         vertexCount: g.getAttribute('position').count, indexCount: g.getIndex()?.count ?? 0,
         index: g.getIndex() === null ? 'none' : g.getIndex()?.array instanceof Uint16Array ? 'u16' : 'u32',
@@ -338,20 +349,27 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
   }
   // Hidden panels remain controllable library objects; an unconditional proxy must never make them visible.
   const scattered = (source.scatter ?? []).flatMap((s) => s.transforms.flatMap((m) => vertices(s.model, m))), panelTriangles = (source.panels ?? []).filter((p) => p.visible !== false).flatMap((p) => vertices(p.model)), coarse = source.coarse === undefined ? [...base, ...scattered, ...panelTriangles] : vertices(source.coarse);
-  const panelFiles = (source.panels ?? []).map((entry) => { const g = geometry(vertices(entry.model)), file = save([{ geometry: g, material: mergedMaterial(source.materialName) }], entry.id); g.computeBoundingBox(); library.push(file.hash); section.panels.push({ id: entry.id, file: file.hash, visible: entry.visible ?? true }); return { file, bounds: g.boundingBox }; });
+  const panelFiles = (source.panels ?? []).map((entry) => { let storageError = 0; const g = geometry(vertices(entry.model), undefined, metres => { storageError = metres; }), file = save([{ geometry: g, material: mergedMaterial(source.materialName) }], entry.id); g.computeBoundingBox(); library.push(file.hash); section.panels.push({ id: entry.id, file: file.hash, visible: entry.visible ?? true }); return { file, bounds: g.boundingBox, storageError }; });
   for (const lod of [0, 1] as const) {
     const size = lod === 0 ? 62.5 : 125, count = 500 / size;
     for (let z = 0; z < count; z++) for (let x = 0; x < count; x++) {
-      const x0 = -250 + x * size, z0 = -250 + z * size, bounds: [number, number, number, number] = [x0, x0 + size, z0, z0 + size], primitives: GlbPrimitive[] = [], g = geometry(lod === 0 ? [...base, ...spill] : coarse, bounds);
+      let tileError = lod === 0 ? 0 : source.coarseErrorMetres ?? 0;
+      const noteError = (metres: number): void => { tileError = Math.max(tileError, (lod === 0 ? 0 : source.coarseErrorMetres ?? 0) + metres); };
+      const x0 = -250 + x * size, z0 = -250 + z * size, bounds: [number, number, number, number] = [x0, x0 + size, z0, z0 + size], primitives: GlbPrimitive[] = [], g = geometry(lod === 0 ? [...base, ...spill] : coarse, bounds, noteError);
       if (g.getAttribute('position').count > 0) primitives.push({ geometry: g, material: mergedMaterial(source.materialName), castShadow: lod === 0 });
       if (lod === 0) for (const batch of source.scatter ?? []) {
         const transforms = (eligible.get(batch) ?? []).filter((m) => { const p = new Vector3().setFromMatrixPosition(m); return p.x >= x0 && p.x < x0 + size && p.z >= z0 && p.z < z0 + size; });
         if (transforms.length === 0) continue;
         // Scatter keeps a model in one owning tile; its conservative bounds may extend into its neighbours.
-        const local = geometry(vertices(batch.model)); primitives.push({ geometry: local, material: mergedMaterial(source.materialName), instances: transforms });
+        let storageError = 0;
+        const local = geometry(vertices(batch.model), undefined, metres => { storageError = metres; });
+        tileError = Math.max(tileError, storageError * Math.max(...transforms.map(matrix => positionErrorScale(matrix))));
+        primitives.push({ geometry: local, material: mergedMaterial(source.materialName), instances: transforms });
       }
       for (const w of lod === 0 ? whole : coarseWhole) if (w.owner === null ? w.at.x >= x0 && w.at.x < x0 + size && w.at.z >= z0 && w.at.z < z0 + size : w.owner.x === x && w.owner.z === z) primitives.push({ geometry: w.geometry, material: w.material, castShadow: w.castShadow, name: w.id, transform: w.grid === undefined ? w.transform : w.transform.clone().multiply(tileGridTransform(w.grid)),
         ...(w.grid === undefined ? {} : { pose: w.transform, meshoptReady: true as const }), compactIndex: true, ...(w.customAttributes === undefined ? {} : { customAttributes: w.customAttributes }), ...(w.nativeAttributes === undefined ? {} : { nativeAttributes: w.nativeAttributes }), ...(w.quantized ? { quantizedChannels: true } : {}), ...(w.compact ? { nativeOnce: true as const } : {}), ...(w.extras === undefined ? {} : { extras: w.extras }) });
+      for (const w of lod === 0 ? whole : coarseWhole) if (w.owner === null ? w.at.x >= x0 && w.at.x < x0 + size && w.at.z >= z0 && w.at.z < z0 + size : w.owner.x === x && w.owner.z === z)
+        tileError = Math.max(tileError, w.geometricError);
       const hasPanel = lod === 0 && panelFiles.some((p) => p.bounds !== null && p.bounds.max.x >= x0 && p.bounds.min.x <= x0 + size && p.bounds.max.z >= z0 && p.bounds.min.z <= z0 + size);
       if (primitives.length === 0 && !hasPanel) continue;
       const batches: GlbPrimitive[][] = [];
@@ -371,6 +389,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
       const cost = tileFiles.reduce((sum, part) => ({ decoded: sum.decoded + part.decoded, gpu: sum.gpu + part.gpu, triangles: sum.triangles + part.triangles, draws: sum.draws + part.draws }), { decoded: 0, gpu: 0, triangles: 0, draws: 0 });
       if (texture !== null) { cost.gpu += texture.gpu; cost.decoded += texture.decoded; }
       const prior = tiles.find((t) => t.lod === lod && t.x === x && t.z === z), row: Shardfile['tiles'][number] = prior ?? { lod, x, z, bounds: { min: [x0, 0, z0], max: [x0 + size, 0, z0 + size] }, geometricError: 0, files: [], compressed: 0, decoded: 0, gpu: 0, triangles: 0, draws: 0 };
+      row.geometricError = Math.max(row.geometricError, tileError);
       if (overhang > 0) row.drawBounds = { min: [...row.bounds.min], max: [...row.bounds.max] };
       row.files.push(...tileFiles.map(part => part.hash)); row.compressed += tileFiles.reduce((sum, part) => sum + part.compressed, 0) + (texture?.compressed ?? 0); row.decoded += cost.decoded; row.gpu += cost.gpu; row.triangles += cost.triangles; row.draws += cost.draws;
       for (const primitive of primitives) { primitive.geometry.computeBoundingBox(); const box = primitive.geometry.boundingBox; if (box === null) continue;
@@ -381,7 +400,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
             row.drawBounds.max[axis] = Math.max(row.drawBounds.max[axis], world.max[coordinate]);
           } }
       }
-      if (lod === 0) for (const panel of panelFiles) { const box = panel.bounds; if (box === null || box.max.x < x0 || box.min.x > x0 + size || box.max.z < z0 || box.min.z > z0 + size) continue; row.files.push(panel.file.hash); row.triangles += panel.file.triangles; row.draws += panel.file.draws; row.bounds.min[1] = Math.min(row.bounds.min[1], box.min.y); row.bounds.max[1] = Math.max(row.bounds.max[1], box.max.y); }
+      if (lod === 0) for (const panel of panelFiles) { const box = panel.bounds; if (box === null || box.max.x < x0 || box.min.x > x0 + size || box.max.z < z0 || box.min.z > z0 + size) continue; row.geometricError = Math.max(row.geometricError, panel.storageError); row.files.push(panel.file.hash); row.triangles += panel.file.triangles; row.draws += panel.file.draws; row.bounds.min[1] = Math.min(row.bounds.min[1], box.min.y); row.bounds.max[1] = Math.max(row.bounds.max[1], box.max.y); }
       const cap = lod === 0 ? CONTENT_CAPS.l0 : CONTENT_CAPS.l1;
       const warnings = [
         ...(row.decoded + row.gpu > cap.resident ? [`resident ${row.decoded + row.gpu} > ${cap.resident}`] : []),
