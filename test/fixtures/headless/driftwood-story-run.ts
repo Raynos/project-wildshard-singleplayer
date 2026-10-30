@@ -16,6 +16,8 @@ import {playDriftwood} from '../../proof/driftwood-isle/tape';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import type {HeadlessTapeSegment} from '../../../src/sdk/headlessTape';
 
+const journey=process.argv[2]??'sealed-ring';
+if(journey!=='sealed-ring'&&journey!=='zipline')throw new Error('Unknown native Driftwood story');
 const directory=builtProduct('driftwood-isle'),product=await loadHeadlessProduct(directory),source=product.shardfile;
 const descriptor=outputDescriptor(source);assert.ok(descriptor);
 const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,
@@ -30,8 +32,8 @@ try{
   await playDriftwood(resident.host,commands=>{
     if(frames.length>=60_000)throw new Error('Story exceeds the admitted tape allowance');
     frames.push(structuredClone(commands));resident.step(commands);
-  },id=>{marks.push({id,tick:frames.length,flags:[...resident.host.flags.all]});return Promise.resolve();});
-  assert.ok(resident.host.flags.has('quest:driftwood-done'));
+  },id=>{marks.push({id,tick:frames.length,flags:[...resident.host.flags.all]});return Promise.resolve();},journey);
+  assert.ok(resident.host.flags.has(journey==='sealed-ring'?'quest:driftwood-done':'used:zipline'));
 }finally{releaseRopes();resident.dispose();}
 
 const replay=await createNativeProofWorker(source,assets,'driftwood',undefined,productHeadlessSections(product),directory);
@@ -49,9 +51,18 @@ try{
     const actual=report.observations.find(row=>row.id===mark.id);assert.ok(actual);
     assert.deepEqual(actual.flags,mark.flags,'fresh current-command replay must retain actual earned transitions');
   }
-  const complete=report.observations.find(row=>row.id==='complete');assert.ok(complete);
-  for(const flag of ['talked:castaway','has:flint','lit:beacon','shard:lookout','dead:sailor','key:hold',
-    'lever:hold-pump','winch:up','shard:wreck','open:sluice','shard:cave','used:altar','dead:captain','quest:driftwood-done'])assert.ok(complete.flags.includes(flag),flag);
+  if(journey==='sealed-ring'){
+    const complete=report.observations.find(row=>row.id==='complete');assert.ok(complete);
+    for(const flag of ['talked:castaway','has:flint','lit:beacon','shard:lookout','dead:sailor','key:hold',
+      'lever:hold-pump','winch:up','shard:wreck','open:sluice','shard:cave','used:altar','dead:captain','quest:driftwood-done'])assert.ok(complete.flags.includes(flag),flag);
+  }else{
+    for(const id of ['lookout','zipline-launch','zipline-mid']){
+      const before=report.observations.find(row=>row.id===id);assert.ok(before);
+      assert.equal(before.flags.includes('used:zipline'),false,'only real cable landing earns the feat');
+    }
+    const landed=report.observations.find(row=>row.id==='zipline-landed');assert.ok(landed);
+    assert.ok(landed.flags.includes('used:zipline'));assert.equal(landed.flags.includes('quest:driftwood-done'),false);
+  }
   assert.equal(replay.quarantined,false);
-  console.info(JSON.stringify({story:'sealed-ring',ticks:report.ticks,marks:report.observations.map(row=>({id:row.id,tick:row.tick}))}));
+  console.info(JSON.stringify({story:journey,ticks:report.ticks,marks:report.observations.map(row=>({id:row.id,tick:row.tick}))}));
 }finally{await replay.dispose();}
