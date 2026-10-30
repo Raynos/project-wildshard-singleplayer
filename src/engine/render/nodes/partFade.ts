@@ -9,7 +9,7 @@
  *   mesh.userData['fadeTable'] = table;        // the owner moves table[part] from 0 to 1
  */
 import type * as THREE from 'three';
-import { ConvertNode, type Node } from 'three/webgpu';
+import { ConvertNode, NodeMaterial, type Node } from 'three/webgpu';
 import { Discard, attribute, dot, float, fract, int, screenCoordinate, uniformArray, vec2 } from 'three/tsl';
 import { patchShader, PATCH_ORDER } from '../shaderPatches';
 
@@ -27,12 +27,15 @@ const table = uniformArray(values, 'float').onObjectUpdate(({ object }) => {
 /** Whether `material` dithers its parts in (the node handler's epilogue asks). */
 export function partFaded(material: THREE.Material): boolean { return material.userData['partFade'] === true; }
 
-/** Mark `material` to dither its objects' parts in: a key of its own, so no unmarked material shares its programs. */
-export function markPartFade(material: THREE.Material): void {
-  if (partFaded(material)) return;
+/** Mark `material` to dither its objects' parts in: a key of its own, so no unmarked material shares its programs. Only a
+ *  node material runs the epilogue: false (and no mark) for any other. */
+export function markPartFade(material: THREE.Material): boolean {
+  if (partFaded(material)) return true;
+  if (!(material instanceof NodeMaterial)) return false;
   material.userData['partFade'] = true;
   patchShader(material, 'part-fade', PATCH_ORDER.decorate, () => undefined, { key: (before) => `${before}|part-fade`, pureKey: true });
   material.needsUpdate = true;
+  return true;
 }
 
 /** The epilogue stage: a fragment above its part's fade is discarded (interleaved gradient noise, stable per pixel). */

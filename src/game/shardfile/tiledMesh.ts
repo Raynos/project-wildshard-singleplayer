@@ -19,6 +19,8 @@
 import { BufferAttribute, DynamicDrawUsage, InstancedBufferAttribute, InstancedMesh, type Matrix4, type Mesh, Object3D, SkinnedMesh } from 'three';
 import { compactResident, tileKey, tileRanges, type TileContent } from './tileContent';
 import { TILES_PER_SIDE, tileOf } from './tileOrder';
+import { markPartFade } from '@wildshard/engine/render/nodes/partFade';
+import { refineDither } from './refineDither';
 
 const attributeReaders: readonly unknown[] = ['getX', 'getY', 'getZ'].map((key): unknown => Reflect.get(BufferAttribute.prototype, key));
 function originalReader(attribute: BufferAttribute, key: string, expected: unknown): boolean {
@@ -84,6 +86,20 @@ export function tiledMesh(id: string, mesh: Mesh, toCell: Matrix4, options: { re
   const ranges = centroids === undefined ? { order, start, count } : tileRanges(centroids, 2, 0, 1), tiles = new Set<number>();
   ranges.count.forEach((n, key) => { if (n > 0) tiles.add(key); });
   if (tiles.size < (options.single === true ? 1 : 2)) return null;
+  // MF13 (Settings ▸ Debug ▸ Refine dither): each vertex's fade part is the tile of the first triangle that draws it, so a
+  // tile attached in play dithers its triangles in (engine render/nodes/partFade.ts); a node material only
+  const fades = refineDither() && markPartFade(mesh.material);
+  if (fades) {
+    const keyOf = new Float32Array(position.count), set = new Uint8Array(position.count);
+    ranges.count.forEach((n, key) => {
+      const first = ranges.start[key] ?? 0;
+      for (let i = 0; i < n; i++) {
+        const t = ranges.order[first + i] ?? 0;
+        for (let c = 0; c < 3; c++) { const v = index.getX(t * 3 + c); if (set[v] === 0) { set[v] = 1; keyOf[v] = key; } }
+      }
+    });
+    geometry.setAttribute('aFadeKey', new BufferAttribute(keyOf, 1));
+  }
   // the source order stays on the CPU (the index is small next to the vertices); the drawn index is rewritten in place
   const source = index.array.slice(), resident = new Set<number>();
   if (geometry.index === null) geometry.setIndex(index);
@@ -94,7 +110,7 @@ export function tiledMesh(id: string, mesh: Mesh, toCell: Matrix4, options: { re
     geometry.setDrawRange(0, drawnCount * 3); index.needsUpdate = true;
   };
   draw();
-  return { id, tiles: () => tiles, attach: (tile, scope) => {
+  return { id, tiles: () => tiles, ...(fades ? { fadeTable: (table: Float32Array) => { mesh.userData['fadeTable'] = table; } } : {}), attach: (tile, scope) => {
     if (!tiles.has(tile) || scope.disposed) return Promise.resolve();
     resident.add(tile); draw();
     scope.onDispose(() => { resident.delete(tile); draw(); });
