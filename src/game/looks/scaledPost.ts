@@ -10,6 +10,25 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { compileOffscreenPass } from '@wildshard/engine/render/precompile';
 
 const compilers = new WeakMap<Renderer, PostGraphCompiler>();
+/** a scaled post program's per-frame feeds, read once from its row (`ScaledPostPass.frame`) */
+interface PostFeed {
+  readonly name: string;
+  /** the linked uniforms the graph declares as params */
+  readonly links: readonly string[];
+  readonly camera: readonly (readonly [string, string])[];
+  /** a packed param's terms, its declared value and the array the frame fills */
+  readonly pack: readonly { readonly key: string; readonly terms: readonly PostPackTerm[]; readonly initial: unknown; readonly value: number[] }[];
+}
+function postFeeds(row: ScaledPostRow): readonly PostFeed[] {
+  return Object.entries(row.programs).map(([name, p]) => ({
+    name,
+    links: (p.links ?? []).filter(key => key in (p.graph.params ?? {})),
+    camera: Object.entries(p.camera ?? {}),
+    pack: Object.entries(p.pack ?? {}).map(([key, terms]) => ({ key, terms, initial: p.graph.params?.[key]?.value, value: terms.map(() => 0) })),
+  }));
+}
+const SCRATCH2 = [0, 0], SCRATCH3 = [0, 0, 0], SCRATCH4 = [0, 0, 0, 0];
+const MATRIX_ROWS = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
 /** Prepare the client backend during async world loading, before synchronous composer construction: classic GLSL
  *  programs with no node handler (PF10's default) */
 export async function prepareScaledPost(renderer: Renderer): Promise<void> { compilers.set(renderer, await loadPostGraphCompiler(renderer)); }
@@ -67,6 +86,7 @@ export class ScaledPostPass extends Pass {
   private readonly outs = new Map<string, Texture | null>();
   private type: TextureDataType = HalfFloatType;
   private w = 0;
+  private plan: readonly PostFeed[] | null = null;
   private h = 0;
   settings: Record<string, number>;
   debugGain = 1;
@@ -134,27 +154,31 @@ export class ScaledPostPass extends Pass {
   }
   private frame(): void {
     const camera = this.ctx.camera;
-    for (const [name, p] of Object.entries(this.row.programs)) {
-      const graph = this.graphs.get(name); if (graph === undefined) continue;
-      for (const key of p.links ?? []) {
+    // NF15: the feeds come from the static row, read once; each frame fills the same scratch arrays (every back-end copies
+    // a written value), so a frame allocates nothing
+    this.plan ??= postFeeds(this.row);
+    for (const feed of this.plan) {
+      const graph = this.graphs.get(feed.name); if (graph === undefined) continue;
+      for (const key of feed.links) {
         const value: unknown = this.ctx.links?.[key]?.value;
-        if (!(key in (p.graph.params ?? {}))) continue;
         if (isTexture(value)) graph.setTexture(key, value);
         else if (typeof value === 'number') graph.setParam(key, value);
-        else if (value instanceof Vector2 || value instanceof Vector3 || value instanceof Vector4 || value instanceof Color) graph.setParam(key, value.toArray());
+        else if (value instanceof Vector2) graph.setParam(key, value.toArray(SCRATCH2));
+        else if (value instanceof Vector3 || value instanceof Color) graph.setParam(key, value.toArray(SCRATCH3));
+        else if (value instanceof Vector4) graph.setParam(key, value.toArray(SCRATCH4));
         else throw new Error(`Missing post uniform ${key}`);
       }
-      for (const [key, term] of Object.entries(p.camera ?? {})) {
+      for (const [key, term] of feed.camera) {
         if (term === 'near' || term === 'far') graph.setParam(key, camera[term]);
-        else if (term === 'nearFar') graph.setParam(key, [camera.near, camera.far]);
+        else if (term === 'nearFar') { SCRATCH2[0] = camera.near; SCRATCH2[1] = camera.far; graph.setParam(key, SCRATCH2); }
         else {
           const matrix = term === 'projection' ? camera.projectionMatrix : term === 'projectionInverse' ? camera.projectionMatrixInverse : term === 'view' ? camera.matrixWorldInverse : camera.matrixWorld;
-          graph.setArrayParam(key, [0, 1, 2, 3].map(i => matrix.elements.slice(i * 4, i * 4 + 4)));
+          for (const [r, cells] of MATRIX_ROWS.entries()) for (let c = 0; c < 4; c++) cells[c] = matrix.elements[r * 4 + c] ?? 0;
+          graph.setArrayParam(key, MATRIX_ROWS);
         }
       }
-      for (const [key, terms] of Object.entries(p.pack ?? {})) {
-        const initial = p.graph.params?.[key]?.value;
-        const value = terms.map((term, i) => this.term(term) ?? (Array.isArray(initial) ? Number(initial[i]) : typeof initial === 'number' ? initial : 0));
+      for (const { key, terms, initial, value } of feed.pack) {
+        for (let i = 0; i < terms.length; i++) value[i] = this.term(terms[i] ?? null) ?? (Array.isArray(initial) ? Number(initial[i]) : typeof initial === 'number' ? initial : 0);
         graph.setParam(key, value.length === 1 ? value[0] ?? 0 : value);
       }
     }
