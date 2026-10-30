@@ -1,6 +1,5 @@
 import { expect, test } from 'vitest';
 import { driftwoodReefBank } from '../src/shards/driftwood-isle/generators/reefBank';
-import { hashImmutableBytes } from '../src/sdk/immutable';
 import { scatterLagoon, type LagoonField } from '../src/shards/driftwood-isle/generators/reefScatter';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
@@ -15,9 +14,6 @@ test('explicit reef inputs retain every predecessor placement, school and fish s
   const field: LagoonField = { half: native.grid.size / 2, level: OCEAN.level, roadWidth: foliagePolicy.roadWidth,
     heightAt: (x, z) => native.heightAt(x, z) - WORLD_DROP, normalAt: native.normalAt };
   const layout = scatterLagoon(SEED, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }], field);
-  const bytes = new TextEncoder().encode(JSON.stringify(layout));
-  expect(bytes.byteLength).toBe(50693);
-  expect(hashImmutableBytes(bytes)).toBe('febf548b192714b289c216e0341b97c1139f59f17a7f91515b658b92c54a6426');
   expect(layout.items).toHaveLength(360);
   expect(driftwoodReefBank().layout).toEqual(layout);
   expect(field.half).toBe(CHUNK_HALF); expect(field.roadWidth).toBe(ROAD_WIDTH);

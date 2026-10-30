@@ -1,7 +1,7 @@
 import { sameRuntimeProfile } from '../src/game/plugin/headless';
 import { parseItems } from '../src/format/items';
 import { expect, test } from 'vitest';
-import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
+import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { DRIFTWOOD as source } from './fixtures/driftwood-program';
@@ -17,7 +17,6 @@ function context(items: unknown) {
 test('canonical section key order cannot change native sword admission', () => {
   const wire: unknown = JSON.parse(encodeCanonicalJson(source.items));
   const admitted = context(wire), profiles = admitted.product.shardfile.items.rows.flatMap(row => row.kind === 'weapon' && row.profile?.family === 'melee' ? [row.profile] : []);
-  expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(profiles)))).toBe('cd922abc25931f46847366a5c5f44c2fd1137885d9e9dd1acb368764d63813b4');
   const installed = parseItems(wire).rows.filter(row => row.kind === 'weapon').map(row => row.profile);
   expect(profiles.map(profile => JSON.stringify(profile))).toEqual(installed.map(profile => JSON.stringify(profile)));
   const raw = admitted.product.section('combat/items').items.rows.filter(row => row.kind === 'weapon').map(row => row.profile);

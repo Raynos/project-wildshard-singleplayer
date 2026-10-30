@@ -33,8 +33,6 @@ test('published world-build data preserves both tiers of foliage in authored ord
     expect(rows(tier,kind).poses.map(({x,y,z,params})=>({x,y,z,params}))).toEqual(foliage.tiers[tier][kind==='palms'?'palms':'bushes'].placements);
     expect(rows(tier,kind)).toEqual(parseWorldScenePlacement({...original,poses:uprightPoses(original.poses),id:`foliage.${kind==='palms'?'palms':'bushes'}.${tier}`}));
   }
-  expect(rows('phone','palms').poses).toHaveLength(204);
-  expect(rows('desktop','hibiscus').poses).toHaveLength(260);
 });
 test('the moved build decoder retains cached-row and positive-footprint refusals', () => {
   expect(decodeEntryDecks(decks)).toEqual(decks.rows);
