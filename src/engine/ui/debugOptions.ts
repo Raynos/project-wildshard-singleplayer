@@ -24,6 +24,7 @@ import { markReload } from '../boot/lastEnd';
 import { settingsReloadUrl } from './Settings';
 import type { DebugRowSpec } from '../level/context';
 import { isDev, onDev } from '../core/devMode';
+import { GRAPH_BACKENDS, graphBackendChoice, setGraphBackend } from './graphBackend';
 
 /** what "applies" reads: the shard you are in and the weapons you hold (re-read every time the menu opens) */
 export interface DebugCtx { chunk: LevelSpec; weapons: ReadonlySet<string> }
@@ -146,6 +147,12 @@ const clearDownloadsRow = action('clearDownloads', 'tools', engineString('s_59cb
 });
 
 
+/** NF14 (nine-fix, G935): graph materials as the shipped TSL node materials or as classic GLSL programs; a reload. */
+const graphBackendRow: DebugRow = { purpose: 'developer', id: 'graphBackend', group: 'perf', label: engineString('s_graph_backend'),
+  choices: () => [{ v: 'tsl', text: engineString('s_graph_backend_tsl') }, { v: 'glsl', text: engineString('s_graph_backend_glsl') }],
+  get: () => graphBackendChoice(), set: value => { const pick = GRAPH_BACKENDS.find(choice => choice === value); if (pick !== undefined && isDev()) setGraphBackend(pick); },
+  on: () => undefined, reload: true, when: always, note: engineString('s_graph_backend_note'), ask: 'E512', reviewBy: '2026-11-30' };
+
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
 
@@ -156,6 +163,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Creatures & NPCs ──
 
   // ── Performance ──
+  graphBackendRow,
 
   // ── Loading & memory ──
   clearDownloadsRow,
