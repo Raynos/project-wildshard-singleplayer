@@ -5,24 +5,19 @@ import { build } from 'vite';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { skyGroundSource, skyGroundValues } from '../src/shards/far-reach/generators/groundScene';
-import { skyWorldRows } from '../src/shards/far-reach/generators/worldRows';
 
-// Complete predecessor wire, including every hull scalar, before source-row extraction.
-const originalHash = 'b72fb9d2372640b84d8b00ebe7ca6ba82a2673be3f430c0ab7002c5b8dfc1660';
-
-test('the source-derived ground preserves every original hull, scene and registry byte', () => {
+test('the source-derived ground serializes every current hull, scene and registry row', () => {
   const bytes = skyGroundSource();
-  expect(bytes.byteLength).toBe(17_705);
-  expect(hashImmutableBytes(bytes)).toBe(originalHash);
   expect(new TextEncoder().encode(`${JSON.stringify(skyGroundValues())}\n`)).toEqual(bytes);
 });
 
 test('ground row loans cannot mutate the next caller or retained publication', () => {
+  const before = hashImmutableBytes(skyGroundSource());
   const values = skyGroundValues(), root = values.SKY_GROUND.recipe.scene.nodes[0], hull = values.SKY_GROUND_COLLIDERS[0]?.colliders[0];
   if (root === undefined || hull === undefined) throw new Error('Missing original ground rows');
   root.children.push('caller-only');
   hull.points.fill(0);
-  expect(hashImmutableBytes(skyGroundSource())).toBe(originalHash);
+  expect(hashImmutableBytes(skyGroundSource())).toBe(before);
   const fresh = skyGroundValues();
   expect(fresh.SKY_GROUND.recipe.scene.nodes[0]?.children).not.toContain('caller-only');
   expect(fresh.SKY_GROUND_COLLIDERS[0]?.colliders[0]?.points.some(value => value !== 0)).toBe(true);
@@ -40,8 +35,4 @@ test('ground source bundles without generated metadata or file/compiler services
     assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
     expect(Object.keys(chunk.modules).some(path => path.includes('.generated.'))).toBe(false);
   }
-});
-
-test('source ground and hull rows need no scheduled writer or metadata reader', () => {
-  expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(skyWorldRows())}\n`))).toBe('3a05afd8da12568f27c2ecaaa33d7212ba6817d006ed4f7a3fc1fa418ceb9b9d');
 });

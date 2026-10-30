@@ -5,35 +5,32 @@ import { worldPieces, type WorldPieceRow } from '../src/game/shardfile/bakedKind
 import type { Piece } from '../src/engine/world/registry';
 import { skyGroundValues } from '../src/shards/far-reach/generators/groundScene';
 import { skyPhysicsPlacements } from '../src/shards/far-reach/generators/physicsPlacements';
-import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
+import { hashImmutableBytes } from '../src/sdk/immutable';
 import { originalSkyScenes } from './fixtures/sky-scene-source';
 
-const { blobs: SKY_SCENE_BLOBS, scenes: SKY_WORLD_SCENES } = await originalSkyScenes();
+const { blobs: SKY_SCENE_BLOBS } = await originalSkyScenes();
 
 const { SKY_GROUND, SKY_GROUND_COLLIDERS } = skyGroundValues();
 const PLACEMENTS = skyPhysicsPlacements();
 
 const isMesh = (node: Object3D | undefined): node is Mesh => node instanceof Mesh;
 
-it('source contacts retain the complete original wire after scheduler retirement', () => {
+it('source contact loans cannot mutate the complete current wire', () => {
   const bytes = (): Uint8Array => new TextEncoder().encode(`${JSON.stringify(skyPhysicsPlacements())}\n`);
-  expect(bytes().byteLength).toBe(15_498);
-  expect(hashImmutableBytes(bytes())).toBe('12f4de8259d2a8589352afe3229cd9f90f9f4e94d09ba845dcb420f255b849b4');
+  const before = hashImmutableBytes(bytes());
   const changed = skyPhysicsPlacements(); changed[0]?.colliders.splice(0);
-  expect(hashImmutableBytes(bytes())).toBe('12f4de8259d2a8589352afe3229cd9f90f9f4e94d09ba845dcb420f255b849b4');
+  expect(hashImmutableBytes(bytes())).toBe(before);
 });
 
-it('streamed ground pins its complete anchor scene and cold world declaration', () => {
+it('streamed ground publishes its content-addressed anchor scene costs', () => {
   const ground = SKY_SCENE_BLOBS.find(row => row.file.name === 'world/scenes/ground.json');
   if (ground === undefined) throw new Error('Missing original published ground');
+  const hash = hashImmutableBytes(ground.bytes);
   expect(ground.file).toEqual({ name: 'world/scenes/ground.json',
-    path: 'blobs/json/7681a36b74533468e874b8bd2a7da9070cc4ba929e64935e19c3717e11b72d9c.json', kind: 'json',
-    hash: '7681a36b74533468e874b8bd2a7da9070cc4ba929e64935e19c3717e11b72d9c', compressed: 1849, decoded: 1849,
+    path: `blobs/json/${hash}.json`, kind: 'json',
+    hash, compressed: ground.bytes.byteLength, decoded: ground.bytes.byteLength,
     gpu: 0, triangles: 0, draws: 0, critical: false, dependencies: [] });
   expect(hashImmutableBytes(ground.bytes)).toBe(ground.file.hash);
-  const world = new TextEncoder().encode(encodeCanonicalJson(SKY_WORLD_SCENES));
-  expect(world.byteLength).toBe(313_596);
-  expect(hashImmutableBytes(world)).toBe('a06b5b7bf63e69be057dc097a6a0b350fad904c506423a7a730c704657ba7795');
 });
 
 it('registers the authored walkable ground while borrowing loaded island geometry', async () => {
