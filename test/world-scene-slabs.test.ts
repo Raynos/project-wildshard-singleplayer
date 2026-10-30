@@ -64,11 +64,11 @@ test('a key draws its tiles\' chunks under its anchor, one instanced mesh each, 
     const version = f.material.version;
     await f.content.attach(0, first);
     expect(f.read).toHaveBeenCalledTimes(1); expect(f.cover).toHaveBeenCalledOnce();
-    expect(f.anchor.children).toHaveLength(2); expect(f.anchor.visible).toBe(true); expect(f.material.version).toBe(version + 1);
+    expect(f.anchor.children).toHaveLength(2); expect(f.anchor.visible).toBe(true); expect(f.material.version).toBe(version);
     // EP7: the anchor holds its chunks but draws nothing itself (no empty call on a plain program)
     expect(f.anchor.layers.mask).toBe(0);
-    // the anchor compiles against its chunks' channels and draws none
-    expect(f.anchor.geometry.getAttribute('position').count).toBe(0); expect(f.anchor.geometry.getAttribute('normal').count).toBe(0);
+    // it keeps its channel-less stand-in, so the precompile links no plain program for it either
+    expect(Object.keys(f.anchor.geometry.attributes)).toEqual([]); expect(f.anchor.geometry.index).toBeNull();
     const [a, b] = f.anchor.children, ga = geometryOf(a), gb = geometryOf(b);
     if (a === undefined) throw new Error('Expected chunk meshes');
     expect(Array.from(ga.getAttribute('position').array)).toEqual(Array.from(f.shapes[0]?.getAttribute('position').array ?? []));
@@ -80,7 +80,7 @@ test('a key draws its tiles\' chunks under its anchor, one instanced mesh each, 
     expect(a.count).toBe(1); expect(Array.from(a.instanceMatrix.array)).toEqual(new Matrix4().toArray());
     expect(Array.from(a.instanceColor?.array ?? [])).toEqual([1, 1, 1]);
     await f.content.attach(1, second);
-    expect(f.anchor.children).toHaveLength(3); expect(f.material.version).toBe(version + 1);
+    expect(f.anchor.children).toHaveLength(3); expect(f.material.version).toBe(version);
     first.dispose(); expect(f.anchor.children).toHaveLength(1);
     second.dispose(); expect(f.anchor.children).toHaveLength(0);
     // a later attach reads the retired tile again

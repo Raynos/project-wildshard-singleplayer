@@ -1,4 +1,4 @@
-import { Box3, BufferAttribute, BufferGeometry, Float16BufferAttribute, InstancedBufferAttribute, InstancedMesh, Mesh, Sphere, Vector3, type Material, type Object3D } from 'three';
+import { Box3, BufferGeometry, InstancedBufferAttribute, InstancedMesh, Mesh, Sphere, Vector3, type Material, type Object3D } from 'three';
 import * as v from 'valibot';
 import { prepareRigLoader } from '@wildshard/engine/anim/rig';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -62,30 +62,12 @@ async function readSlabChunks(owner: Scope, product: ShardProduct, tile: number,
   finally { for (const geometry of staging) geometry.dispose(); for (const material of materials) material.dispose(); admitted.assets.releaseTiles(); }
 }
 
-/** a geometry with `source`'s channels (their storage, size and normalization) and no vertices: a program compiles
- *  against the channels a chunk draws with, and the draw is empty */
-function layoutOf(source: BufferGeometry): BufferGeometry {
-  const layout = new BufferGeometry();
-  for (const [name, attribute] of Object.entries(source.attributes)) {
-    const array: unknown = attribute instanceof BufferAttribute ? attribute.array : attribute.data.array;
-    const empty = array instanceof Float32Array ? new Float32Array(0) : array instanceof Uint16Array ? new Uint16Array(0) : array instanceof Int16Array ? new Int16Array(0)
-      : array instanceof Uint8Array ? new Uint8Array(0) : array instanceof Int8Array ? new Int8Array(0) : array instanceof Uint32Array ? new Uint32Array(0)
-        : array instanceof Int32Array ? new Int32Array(0) : null;
-    if (empty === null) throw new Error('Slab channel storage is unknown');
-    layout.setAttribute(name, attribute instanceof Float16BufferAttribute && empty instanceof Uint16Array
-      ? new Float16BufferAttribute(empty, attribute.itemSize, attribute.normalized) : new BufferAttribute(empty, attribute.itemSize, attribute.normalized));
-  }
-  const index = source.getIndex();
-  if (index !== null) layout.setIndex(new BufferAttribute(index.array instanceof Uint32Array ? new Uint32Array(0) : new Uint16Array(0), 1));
-  return layout;
-}
-
 /**
  * NF11: a refine library's fine geometry as its baked slabs (`kind: 'slabs'`, NF10), in place of the run-time join. Each
  * draw key draws under its original anchor (`key.node`, the key's first source): attaching a tile adds that key's chunks
  * as plain meshes, one a frame, children of the anchor in its own frame, so its band (`until`) and its parent's
  * visibility hold them as they held the anchor; retiring removes them. No join, clone or CPU transform. The anchor itself
- * takes an empty geometry with its chunks' channels at the first chunk and draws nothing; an anchor merged into another
+ * keeps its channel-less stand-in and draws nothing; an anchor merged into another
  * key draws nothing at all.
  */
 export class SlabLibrary {
@@ -134,21 +116,15 @@ export class SlabLibrary {
     // a merged anchor's triangles draw under its key's own anchor
     if (key.sources[0] !== id) { mesh.visible = false; return { id: `slab:${this.row.id}:${id}:${mesh.uuid}`, tiles: () => EMPTY, ready: () => this.queue.ready, attach: () => Promise.resolve() }; }
     const tiles = new Set(this.row.tiles.filter(entry => chunksOf(entry).some(chunk => chunk.key === key.id)).map(entry => entry.tile));
-    const sphere = mesh.geometry.boundingSphere?.clone(), box = mesh.geometry.boundingBox?.clone();
-    // NR4: a channel-less anchor stays out of the draw (and precompile) until it takes its chunks' channels
+    // NR4: a channel-less anchor stays out of the draw until its key's first chunk
     let hidden = false, laid = false;
     if (mesh.visible) { mesh.visible = false; hidden = true; }
-    const lay = (chunk: BufferGeometry): void => {
+    const lay = (): void => {
       laid = true;
-      const layout = layoutOf(chunk);
-      if (sphere !== undefined) layout.boundingSphere = sphere;
-      if (box !== undefined) layout.boundingBox = box;
-      // the stand-in stays the weld assembly's to free
-      ownSceneResource(layout, lifetime); mesh.geometry = layout;
-      for (const material of [mesh.material].flat()) material.needsUpdate = true;
       if (hidden) { mesh.visible = true; hidden = false; }
       // EP7: it stays visible for its chunks (and its band), but never draws itself: its triangle-less draw issued an
-      // empty call a frame on a plain-mesh program its instanced chunks no longer use
+      // empty call a frame on a plain-mesh program its instanced chunks no longer use. It keeps its channel-less
+      // stand-in, so the precompile skips it too (NR4) instead of linking that plain program and its depth variant
       mesh.layers.disableAll();
     };
     return { id: `slab:${this.row.id}:${id}:${mesh.uuid}`, tiles: () => tiles, ready: () => this.queue.ready,
@@ -163,7 +139,7 @@ export class SlabLibrary {
           if (chunk.key !== key.id) continue;
           if (lifetime.disposed || lifetime.disposing || scope.disposed || scope.disposing) return;
           const geometry = geometries[index]; if (geometry === undefined) throw new Error('Missing slab chunk');
-          if (!laid) lay(geometry);
+          if (!laid) lay();
           // EP7: one identity instance with white colours, so a chunk draws through the same program as the instanced
           // copies of its material (the sets, sitters and walkers on nine-architecture) instead of a plain-mesh one;
           // the colours exist before its first frame (three binds only attributes it uploaded before the draw hooks)
