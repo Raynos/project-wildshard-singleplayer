@@ -76,7 +76,13 @@ class BrowserAdmissionTests(unittest.TestCase):
 
     def test_portable_slots_admit_four_exclude_a_fifth_and_release_for_reuse(self):
         env = self.portable_environment()
-        command = [sys.executable, '-u', '-c', "import sys;print('entered',flush=True);sys.stdin.read(1);sys.exit(7)"]
+        command = [sys.executable, '-u', '-c', '''import os,sys
+assert 'BROWSER_SLOT_LOCK_FD' not in os.environ
+try: os.fstat(8)
+except OSError: pass
+else: raise RuntimeError('Browser inherited a slot lease')
+print('entered',flush=True);sys.stdin.read(1);sys.exit(7)
+''']
         children = []
         for _ in range(4):
             child = self.owned_process(['/bin/bash', str(ROOT/'scripts/browser-lane.sh'), '--max', '1', *command], env)
@@ -123,6 +129,26 @@ class BrowserAdmissionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1, result.stderr)
         self.assertIn('slot lock failed', result.stderr)
         self.assertFalse((self.root/'broken-child').exists())
+
+    def test_supervisor_death_does_not_release_a_live_commands_kernel_lease(self):
+        lock, pid = self.root/'surviving-slot.lock', self.root/'command.pid'
+        helper = [sys.executable, str(ROOT/'scripts/browser-slot-lock.py'), str(lock)]
+        command = ('import os,pathlib,sys;'
+                   f'pathlib.Path({str(pid)!r}).write_text(str(os.getpid()));'
+                   "print('entered',flush=True);sys.stdin.read(1)")
+        child = self.owned_process([*helper, sys.executable, '-u', '-c', command], self.env)
+        self.entered(child)
+        child.kill()
+        child.wait(timeout=2)
+        os.kill(int(pid.read_text()), 0)
+        refused = subprocess.run([*helper, 'touch', str(self.root/'early-release')],
+                                 capture_output=True, text=True, timeout=2, check=False)
+        self.assertEqual(refused.returncode, 75, refused.stderr)
+        self.assertFalse((self.root/'early-release').exists())
+        child.communicate(input='x', timeout=3)
+        after = subprocess.run([*helper, sys.executable, '-c', 'raise SystemExit(9)'],
+                               capture_output=True, text=True, timeout=2, check=False)
+        self.assertEqual(after.returncode, 9, after.stderr)
 
     def test_crashpad_framework_paths_are_not_browser_roots(self):
         bundle = '/Users/fixture/Library/Caches/ms-playwright/chromium-1243/chrome-mac-arm64/Google Chrome for Testing.app/Contents/'

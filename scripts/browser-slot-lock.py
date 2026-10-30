@@ -1,9 +1,10 @@
 """Nonblocking POSIX slot lease for hosts without BSD lockf.
 
-The lock stays in this supervisor, never in a browser or timer descendant.
+The supervisor and slot shell share the lease. Browsers and timers close it.
 The existing browser-lane child owns admission, timeout and tree cleanup.
 """
 import fcntl
+import os
 import signal
 import subprocess
 import sys
@@ -15,7 +16,19 @@ def run(path, command):
             fcntl.flock(lease, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             return 75
-        child = subprocess.Popen(command, close_fds=True)
+        # A killed supervisor must not release a still-live slot shell's lock.
+        # Reserve one descriptor for that shell; it closes it in both browser
+        # and timer children. Mac's BSD path does not use this transport.
+        shared = 8
+        duplicate = lease.fileno() != shared
+        if duplicate:
+            os.dup2(lease.fileno(), shared)
+        try:
+            child = subprocess.Popen(command, close_fds=True, pass_fds=(shared,),
+                env={**os.environ, 'BROWSER_SLOT_LOCK_FD': str(shared)})
+        finally:
+            if duplicate:
+                os.close(shared)
         def forward(signum, _frame):
             try:
                 child.send_signal(signum)

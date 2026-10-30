@@ -215,9 +215,14 @@ case "${1:-}" in
     : > "$marker"
     # P1: preserve caller stdin for a lane-held browser server (bash otherwise gives an async child /dev/null).
     exec 9<&0
-    "$@" <&9 & child=$!
+    if [ "${BROWSER_SLOT_LOCK_FD:-}" = 8 ]; then
+      ( exec 8>&-; unset BROWSER_SLOT_LOCK_FD; exec "$@" <&9 ) & child=$!
+    else
+      "$@" <&9 & child=$!
+    fi
     exec 9<&-
-    ( sleep $((max * 60))
+    ( if [ "${BROWSER_SLOT_LOCK_FD:-}" = 8 ]; then exec 8>&-; unset BROWSER_SLOT_LOCK_FD; fi
+      sleep $((max * 60))
       if kill -0 "$child" 2>/dev/null; then
         echo "browser-lane: killed after ${max} min (--max)" >&2; log "slot $slot: killed $* after ${max} min"
         kill_tree "$child"
