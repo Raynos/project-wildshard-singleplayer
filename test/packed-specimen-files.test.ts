@@ -100,7 +100,7 @@ test.each([false,true])('late dressing catalogue follows controlled paint; retir
   vi.spyOn(scope,'raf').mockImplementation(run=>{frames.push(run);return frames.length;});
   const file=vi.fn<(_name:string)=>Promise<Uint8Array>>().mockResolvedValue(forge.wire),sky=skyFixture();
   type Runtime=NonNullable<ShardContext['game']['runtime']>;type World=NonNullable<Runtime['world']>;
-  const world=legacyDouble<World>({sky,game:legacyDouble<World['game']>({levelScope:level}),player:legacyDouble<World['player']>({position:new THREE.Vector3()})});
+  const world=legacyDouble<World>({sky,game:legacyDouble<World['game']>({levelScope:level,camera:new THREE.PerspectiveCamera()}),player:legacyDouble<World['player']>({position:new THREE.Vector3()})});
   const product=legacyDouble<ShardContext['product']>({slug:'late-dressing',shardfile:emptyShardfile({slug:'late-dressing',name:'Late',author:'Fixture',seed:1,revision:1}),file,hasFile:()=>true});
   const ctx=legacyDouble<ShardContext>({scope,root:new THREE.Group(),system:vi.fn<ShardContext['system']>(),product,
     app:legacyDouble<ShardContext['app']>({registry:new WorldRegistry()}),game:legacyDouble<ShardContext['game']>({runtime:legacyDouble<Runtime>({world})})});
