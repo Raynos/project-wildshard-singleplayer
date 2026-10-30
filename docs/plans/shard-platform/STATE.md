@@ -14,6 +14,7 @@ CI1-CI4 done (CI2 / CI3 await first deploy), CI5 x9, CI6 / CI7 / CI9 x2, CI8 x9,
 QB17 zip video tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 
 **Autonomous decisions (for Jake's review):**
+- CPU bar (Sim WebContent ≤ 15 %, now ~22 %): engine walk and per-draw cuts are near their exact limit; the rest is draw count (viewmodel merge, provably-invisible shadow casters), shipped only at identical captures.
 - P0 found by CI: the grid could stop drawing after a crossing (a cached frame gate held async readiness, ca0c7c8b60); fixed 4779bbdd6f (x1).
 - Finding (CI13): headless SimHost moves with radius .35 / step .3 / climb 45° / snap .2, the client Player .38 / .35 / 40° / .3; the Node walk uses the client's, nothing changed in play.
 - FC12 closes at identical captures (Pine 184, Driftwood ~194 draws); no default-off look trades, they cut nothing by default.
@@ -23,7 +24,6 @@ QB17 zip video tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 - FC13 done at G912's default-off Debug row (Driftwood 190 → 165 draws).
 - FC10: phone bloom off by default; old look = Debug 'Phone bloom' (G910).
 - **For wildshard-v (QB1):** Jake's home-screen icon predates the launch image; one delete + re-add of the icon fixes the black.
-- QB18 = B, TRUST under GRASS (fc707ba74d).
 - QB10 / MF12: Sentry verdicts in e74ca75809; S fixed b3b1723a9a, 7S fixed cc75f528ea + 93cf905edc. **wildshard-v: Sentry-only ids need a build + stack.**
 
 **Rules:** G704, G807, G828, G844, G846, G848, G853, G858. No reverts (G674), no new Debug rows (G669), never herdr wildshard-v.
