@@ -39,10 +39,12 @@ test('admitted zstd lanes use an owned transfer and restore every word without p
   const clock = vi.spyOn(performance, 'now').mockReturnValue(0);
   const fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Unexpected private URL'));
   const requests: RequestRow[] = [], held: (() => void)[] = [];
+  let notifyPosted = (): void => undefined;
+  const posted = new Promise<void>(resolve => { notifyPosted = resolve; });
   let truncate = false, failWorker = false, terminated = 0, hold = true;
   class DecodeWorker extends EventTarget {
     postMessage(input: RequestRow, options: StructuredSerializeOptions): void {
-      const request = structuredClone(input, options); requests.push(request);
+      const request = structuredClone(input, options); requests.push(request); notifyPosted();
       const complete = (): void => {
         if (failWorker) { this.dispatchEvent(new Event('error', { cancelable: true })); return; }
         const levels = request.levels.map(level => Uint8Array.from(zstdDecompressSync(level.data)));
@@ -62,6 +64,9 @@ test('admitted zstd lanes use an owned transfer and restore every word without p
     const decoded = decodeLaneBytes(packed);
     let delivered = false;
     const observed = decoded.then(bytes => { delivered = true; return bytes; });
+    // Native module loading is not driven by fake time. Start the held-result
+    // clock only after the lazy decoder has actually transferred its request.
+    await Promise.race([posted, observed.then(() => { throw new Error('Held decode completed before its reply'); })]);
     await vi.advanceTimersByTimeAsync(180_000);
     expect(delivered).toBe(false); expect(terminated).toBe(0); expect(vi.getTimerCount()).toBe(0);
     hold = false;
