@@ -82,13 +82,18 @@ test('a queued native task cannot advance during an ancestor sliced retirement',
   } finally { for (const _step of retirement) { /* Complete the same retirement. */ } }
 });
 
-test('an undelivered message retains the presented-time bound and closes its ports', async () => {
+test('an undelivered message stays pending until retirement closes its ports', async () => {
   vi.useFakeTimers(); const frame = frames(), turns = messages(), scope = new Scope('native-lost-message'); let drawn = 1;
   try {
-    const pending = waitForDrawnFrame(scope, () => drawn, () => true);
-    const refused = expect(pending).rejects.toThrow('over 30000 ms');
+    let settled = false;
+    const pending = waitForDrawnFrame(scope, () => drawn, () => true).finally(() => { settled = true; });
+    const refused = expect(pending).rejects.toThrow('owner left');
     drawn++; frame(); expect(turns.queued).toHaveLength(1);
     for (let i = 0; i < 1900; i++) { drawn++; frame(); }
+    await microtasks(); expect(settled).toBe(false);
+    expect(turns.closed.every(closed => closed())).toBe(false);
+    scope.dispose();
     await refused; expect(turns.closed.every(closed => closed())).toBe(true);
+    turns.queued[0]?.(); expect(scope.census.timers).toBe(0); expect(scope.census.listeners).toBe(0);
   } finally { scope.dispose(); }
 });
