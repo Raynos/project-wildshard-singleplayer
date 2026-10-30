@@ -196,13 +196,24 @@ wait_room() {  # $1 = a UDID that may already be booted (it doesn't need a new s
   done
 }
 
+native_stage() {
+  local label="$1" started=$SECONDS rc
+  shift
+  printf 'sim-lane: %s started\n' "$label" >&2
+  startup "$@"; rc=$?
+  printf 'sim-lane: %s finished in %ss (exit %s)\n' "$label" "$((SECONDS - started))" "$rc" >&2
+  return "$rc"
+}
+
 boot() {
   local started=0 rc
   if ! is_booted "$1"; then
-    startup xcrun simctl boot "$1" >/dev/null || return "$?"
+    native_stage 'device boot' xcrun simctl boot "$1" >/dev/null || return "$?"
     started=1
   fi
-  startup xcrun simctl bootstatus "$1" -b >/dev/null
+  # Preserve migration/system-app progress in the native failure artifact.
+  # Lease stdout still contains only the exact device identifier.
+  native_stage 'device bootstatus' xcrun simctl bootstatus "$1" -b -d >&2
   rc=$?
   if [ "$rc" -eq 0 ]; then
     python3 "$(dirname "$SELF")/sim-safari-ready.py" "$1"

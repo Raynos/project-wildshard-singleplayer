@@ -59,7 +59,12 @@ elif args[1]=='openurl':
     import urllib.parse,urllib.request
     with urllib.request.urlopen(args[-1],timeout=2) as response:
         callback=response.headers['X-Safari-Ready'];body=response.read()
-    if not os.environ.get('SIM_OPEN_NO_FRAME'):
+    if os.environ.get('SIM_OPEN_ASYNC_FRAME'):
+        import subprocess
+        code='import pathlib,sys,time,urllib.request;time.sleep(.1);pathlib.Path(sys.argv[1]).touch();urllib.request.urlopen(sys.argv[2],timeout=2).read()'
+        subprocess.Popen([sys.executable,'-c',code,str(root/'safari-rendered'),urllib.parse.urljoin(args[-1],callback)],
+            stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    elif not os.environ.get('SIM_OPEN_NO_FRAME'):
         assert b'requestAnimationFrame' in body
         (root/'safari-rendered').touch()
         with urllib.request.urlopen(urllib.parse.urljoin(args[-1],callback),timeout=2) as response:
@@ -152,6 +157,14 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('client stopped after frame proof', result.stderr)
         self.assertEqual((self.root / 'child-ran').read_text(), '1')
+
+    def test_frame_proof_after_url_acceptance_is_not_reported_as_a_timeout(self):
+        result = self.lane(SIM_OPEN_ASYNC_FRAME='1')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('owned two-frame callback confirmed', result.stderr)
+        self.assertNotIn('never reached frame callbacks', result.stderr)
+        self.assertNotIn('readiness timed out', result.stderr)
+        self.assertTrue((self.root / 'child-ran').exists())
 
     def test_probe_requires_two_frames_and_only_its_own_timely_callback(self):
         with READY['readiness_page'](time.monotonic() + 5) as (url, ready):

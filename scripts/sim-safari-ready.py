@@ -12,13 +12,15 @@ import time
 
 
 @contextmanager
-def readiness_page(deadline):
+def readiness_page(deadline, started=None):
     # Port 9 is a Fetch bad port, not a usable Safari warm-up document.
     # An unpredictable local page proves two real frames, without app assets,
     # external networking, an error page or a LaunchServices exit-code guess.
     token = secrets.token_hex(12)
     page, callback = f'/safari/{token}', f'/ready/{token}'
     ready = threading.Event()
+    requested = threading.Event()
+    started = time.monotonic() if started is None else started
     document = ('<!doctype html><meta name="viewport" content="width=device-width">'
                 '<script>requestAnimationFrame(()=>requestAnimationFrame(()=>'
                 f'fetch("{callback}",{{cache:"no-store"}})));</script>').encode()
@@ -32,6 +34,9 @@ def readiness_page(deadline):
             if self.path not in (page, callback):
                 self.send_error(404)
                 return
+            if self.path == page and not requested.is_set():
+                requested.set()
+                print(f'sim-lane: Safari readiness document requested in {time.monotonic() - started:.3f}s', file=sys.stderr)
             body = document if self.path == page else b'ready'
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
@@ -45,6 +50,7 @@ def readiness_page(deadline):
             self.wfile.flush()
             if self.path == callback and time.monotonic() <= deadline:
                 ready.set()
+                print(f'sim-lane: Safari owned frame callback received in {time.monotonic() - started:.3f}s', file=sys.stderr)
 
         def log_message(self, _format, *_args):
             pass
@@ -94,8 +100,11 @@ def open_ready_page(udid, url, ready, deadline, timeout, started):
                 if code == 0 and not ready.is_set():
                     # Accepted URL alone is insufficient; spend only the
                     # existing readiness budget waiting for actual frames.
-                    ready.wait(max(0, deadline - time.monotonic()))
-                    code, detail = 124, 'accepted URL but readiness page never reached frame callbacks'
+                    print(f'sim-lane: Safari URL accepted in {time.monotonic() - started:.3f}s; awaiting owned frame callback', file=sys.stderr)
+                    if ready.wait(max(0, deadline - time.monotonic())):
+                        detail = 'owned two-frame callback confirmed'
+                    else:
+                        code, detail = 124, 'accepted URL but readiness page never reached frame callbacks'
         if not ready.is_set():
             ready.wait(min(1, max(0, deadline - time.monotonic())))
 
@@ -125,7 +134,7 @@ def wait_for_safari(udid):
         print(f'sim-lane: Safari app launch failed in {elapsed:.3f}s: {launch.stderr.strip()}', file=sys.stderr)
         return launch.returncode if launch.returncode > 0 else 128 - launch.returncode
     print(f'sim-lane: Safari app launched in {elapsed:.3f}s: {launch.stdout.strip()}', file=sys.stderr)
-    with readiness_page(deadline) as (url, ready):
+    with readiness_page(deadline, started) as (url, ready):
         return open_ready_page(udid, url, ready, deadline, timeout, started)
 
 

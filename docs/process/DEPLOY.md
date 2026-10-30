@@ -67,7 +67,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   after two animation-frame callbacks within the same 120-second budget.
   A successful URL command alone cannot grant readiness. An already proven
   document can retire its stuck owned `openurl` client; Safari stays running.
-  A missing, foreign or late signal still refuses the lease.
+  A missing, foreign or late signal still refuses the lease. Boot/bootstatus
+  progress and separate URL-acceptance, document-request and owned-frame clocks
+  remain in the native artifact; successful frame proof is never labelled as
+  a URL timeout.
   Before transfer, a condition wait requires this exact run's prepare job to
   succeed, within the phone job's original twenty-minute budget. It never
   waits on its own aggregate or retries a failed producer. SHA/run/archive
