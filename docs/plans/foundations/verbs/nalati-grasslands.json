@@ -1,0 +1,431 @@
+{
+ "shard": "nalati-grasslands",
+ "modes": [
+  "legacy",
+  "shardfile"
+ ],
+ "source": "LEGACY at 91a9eef081 (legacy-final tag, src/shards/nalati-grasslands-legacy/); SHARDFILE data checked against HEAD: no verb missing, no string changed",
+ "verbs": [
+  {
+   "id": "walk",
+   "verb": "Walk, jump, sprint, crouch in tall grass",
+   "input": {
+    "action": "crouch"
+   },
+   "at": {
+    "x": 0,
+    "z": 232
+   },
+   "expect": {
+    "hint": "Tall grass · C crouch",
+    "stealth": [
+     "Visible",
+     "Hidden",
+     "Noticed",
+     "Detected"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "discover",
+   "verb": "Discover places (17)",
+   "input": {
+    "action": "move"
+   },
+   "at": {
+    "x": 88,
+    "z": 212
+   },
+   "expect": {
+    "toasts": [
+     "Discovered · NOMAD CAMP"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "ch1-chip",
+   "verb": "Ch1 TULPAR shown before it starts",
+   "input": {
+    "action": "none"
+   },
+   "at": {
+    "x": 86.6,
+    "z": 220.9
+   },
+   "expect": {
+    "chip": "Visit the nomad camp by the Kunes",
+    "hint": "Baqyt Ata sits by the big yurt"
+   },
+   "played": null
+  },
+  {
+   "id": "elder",
+   "verb": "Talk to Baqyt Ata (starts Ch1)",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 86.6,
+    "z": 220.9
+   },
+   "expect": {
+    "prompt": "Talk to Baqyt Ata",
+    "toasts": [
+     "New quest · Tulpar"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "camp-npcs",
+   "verb": "Talk to Dauren, Erlan, Ayan, Gulnar Apa",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 105.2,
+    "z": 219
+   },
+   "expect": {
+    "prompts": [
+     "Talk to Dauren",
+     "Talk to Erlan",
+     "Talk to Ayan",
+     "Talk to Gulnar Apa"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "camp-horse",
+   "verb": "Ride a camp horse (mount, gallop, dismount)",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 71,
+    "z": 215
+   },
+   "expect": {
+    "prompt": "Mount Camp horse",
+    "prompts": [
+     "Dismount"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "name-horse",
+   "verb": "Name your horse",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 71,
+    "z": 215
+   },
+   "expect": {
+    "prompt": "Name <horse>",
+    "toasts": [
+     "Your horse is <name>"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "bow",
+   "verb": "Bow: hold FIRE to draw, release at full; AIM zooms",
+   "input": {
+    "action": "attack",
+    "holdMs": 900
+   },
+   "at": null,
+   "expect": {},
+   "played": null
+  },
+  {
+   "id": "sabre",
+   "verb": "Sabre: 3-hit combo; HOLD = HEAVY; mounted side pass",
+   "input": {
+    "action": "attack"
+   },
+   "at": null,
+   "expect": {
+    "chip": "2 HIT"
+   },
+   "played": null
+  },
+  {
+   "id": "spear",
+   "verb": "Spear: thrust; AIM + release throws a javelin (3 carried)",
+   "input": {
+    "action": "attack"
+   },
+   "at": null,
+   "expect": {
+    "pips": "JAVELINS"
+   },
+   "played": null
+  },
+  {
+   "id": "swap",
+   "verb": "Swap weapon; rifle on loan in the practice room",
+   "input": {
+    "action": "swap.next"
+   },
+   "at": null,
+   "expect": {},
+   "played": null
+  },
+  {
+   "id": "river",
+   "verb": "Swim / wade the Kunes; hoverboard",
+   "input": {
+    "action": "move"
+   },
+   "at": {
+    "x": 0,
+    "z": 172
+   },
+   "expect": {},
+   "played": null
+  },
+  {
+   "id": "wolves",
+   "verb": "Fight wolves; defend the flock",
+   "input": {
+    "action": "attack"
+   },
+   "at": {
+    "x": -120,
+    "z": 212
+   },
+   "expect": {
+    "toasts": [
+     "A wolf howls — the pack has your scent",
+     "Wolves are raiding the flock — the shepherd rides out"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "tame",
+   "verb": "Tame a stallion (Ch1 step 1)",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 65,
+    "z": 36
+   },
+   "expect": {
+    "prompt": "Mount the stallion",
+    "toasts": [
+     "TULPAR is yours · he waits at the camp's hitching rail · whistle (X / HORSE) to call him"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "call-horse",
+   "verb": "Call your horse",
+   "input": {
+    "action": "horse"
+   },
+   "at": null,
+   "expect": {
+    "prompt": "Call horse"
+   },
+   "played": null
+  },
+  {
+   "id": "kokpar",
+   "verb": "Win a round of kokpar (Ch1 step 2)",
+   "input": {
+    "action": "gallop"
+   },
+   "at": {
+    "x": -61,
+    "z": 36
+   },
+   "expect": {
+    "toasts": [
+     "You have the goat! Into a tai-qazan — keep galloping, the riders are on you",
+     "TAI-QAZAN! The riders roar and fling their hats — the round is yours"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "ch1-home",
+   "verb": "Ride home (Ch1 step 3)",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 86.6,
+    "z": 220.9
+   },
+   "expect": {
+    "objective": "Ride home to Baqyt Ata",
+    "toasts": [
+     "Chapter 1 · complete"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "ch2-start",
+   "verb": "Start Ch2 The Golden King",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 86.6,
+    "z": 220.9
+   },
+   "expect": {
+    "prompt": "Ask Baqyt Ata about the kurgans",
+    "toasts": [
+     "New quest · The Golden King"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "balbals",
+   "verb": "Topple 3 balbals at dusk",
+   "input": {
+    "action": "attack"
+   },
+   "at": {
+    "x": -106,
+    "z": 83
+   },
+   "expect": {
+    "objective": "Topple the balbal warriors at dusk · 1 / 3"
+   },
+   "played": null
+  },
+  {
+   "id": "kurgan",
+   "verb": "Enter the great kurgan",
+   "input": {
+    "action": "move"
+   },
+   "at": {
+    "x": -170.5,
+    "z": 75
+   },
+   "expect": {
+    "objective": "Find the way into the great kurgan"
+   },
+   "played": null
+  },
+  {
+   "id": "golden-king",
+   "verb": "Golden King boss",
+   "input": {
+    "action": "attack"
+   },
+   "at": {
+    "x": -170.5,
+    "z": 75
+   },
+   "expect": {
+    "toasts": [
+     "SUNBURST — jump it"
+    ],
+    "prompt": "TAKE THE GOLDEN BOW"
+   },
+   "played": null
+  },
+  {
+   "id": "ch2-home",
+   "verb": "Bring a gold plaque home",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 86.6,
+    "z": 220.9
+   },
+   "expect": {
+    "toasts": [
+     "Chapter 2 · complete"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "elites",
+   "verb": "Start Ch3; fell any 3 of 5 named elites",
+   "input": {
+    "action": "attack"
+   },
+   "at": {
+    "x": -172,
+    "z": 118
+   },
+   "expect": {
+    "check": "Qara Batyr waits for 5 ghost riders felled that night in LEGACY; SHARDFILE row says night only"
+   },
+   "played": null
+  },
+  {
+   "id": "cairn",
+   "verb": "Tie the strip at the wind cairn (mounted, storm)",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": -30,
+    "z": -45
+   },
+   "expect": {
+    "prompt": "Tie a cloth strip",
+    "toasts": [
+     "The strip snaps in the wind — JEL ATA wakes"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "jel-ata",
+   "verb": "Jel Ata (Storm Titan) boss",
+   "input": {
+    "action": "attack"
+   },
+   "at": {
+    "x": -30,
+    "z": -45
+   },
+   "expect": {
+    "toasts": [
+     "THE GRASS FIRE — ride upwind onto the black"
+    ],
+    "prompt": "TAKE NAIZAGAI"
+   },
+   "played": null
+  },
+  {
+   "id": "ch3-home",
+   "verb": "Ride home (Ch3 end)",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 86.6,
+    "z": 220.9
+   },
+   "expect": {
+    "toasts": [
+     "Chapter 3 · complete"
+    ]
+   },
+   "played": null
+  }
+ ]
+}

@@ -1,0 +1,386 @@
+{
+ "shard": "far-reach",
+ "modes": [
+  "legacy",
+  "shardfile"
+ ],
+ "source": "LEGACY at 91a9eef081 (legacy-final tag, src/shards/far-reach-legacy/); SHARDFILE data checked against HEAD: no verb missing, no string changed",
+ "verbs": [
+  {
+   "id": "arrive",
+   "verb": "Arrive, walk, look, jump",
+   "input": {
+    "action": "move"
+   },
+   "at": {
+    "x": 0,
+    "z": -5.5
+   },
+   "expect": {
+    "toasts": [
+     "New quest · The crown bridge"
+    ],
+    "chip": "TALK TO THE KEEPER",
+    "hint": "He stands by the rope bridge at Sunrest"
+   },
+   "played": null
+  },
+  {
+   "id": "keeper",
+   "verb": "Talk to the bridge-keeper (step 1)",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": -2.4,
+    "z": -13.6
+   },
+   "expect": {
+    "prompt": "Talk to the keeper",
+    "talk": "Ho there, walker! Mind the edge: it is a long way down to the clouds."
+   },
+   "played": null
+  },
+  {
+   "id": "bridge",
+   "verb": "Cross a rope bridge, find a place",
+   "input": {
+    "action": "move"
+   },
+   "at": {
+    "x": 0,
+    "z": -64
+   },
+   "expect": {
+    "toasts": [
+     "Discovered · Windmill isle"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "swing",
+   "verb": "SWING the war fan",
+   "input": {
+    "action": "attack"
+   },
+   "at": null,
+   "expect": {
+    "damage": 16,
+    "arc": "3.4 m"
+   },
+   "played": null
+  },
+  {
+   "id": "heavy",
+   "verb": "Heavy slash (0.6 s charge)",
+   "input": {
+    "action": "attack",
+    "holdMs": 900
+   },
+   "at": null,
+   "expect": {
+    "damage": 30
+   },
+   "played": null
+  },
+  {
+   "id": "gust",
+   "verb": "GUST (hidden on the board)",
+   "input": {
+    "action": "gust"
+   },
+   "at": null,
+   "expect": {
+    "cone": "9 m",
+    "push": "15 m/s",
+    "cooldown": "1.6 s"
+   },
+   "played": null
+  },
+  {
+   "id": "lock",
+   "verb": "Lock on to a target",
+   "input": {
+    "action": "lock"
+   },
+   "at": null,
+   "expect": {},
+   "played": null
+  },
+  {
+   "id": "drift-ray",
+   "verb": "Fight the free drift ray",
+   "input": {
+    "action": "attack"
+   },
+   "at": {
+    "x": 14,
+    "z": -62
+   },
+   "expect": {
+    "note": "Gust it out of the sky."
+   },
+   "played": null
+  },
+  {
+   "id": "goats",
+   "verb": "Fight sky goats",
+   "input": {
+    "action": "attack"
+   },
+   "at": {
+    "x": 0,
+    "z": -64
+   },
+   "expect": {
+    "note": "A gust near the rim sends it into the clouds."
+   },
+   "played": null
+  },
+  {
+   "id": "hover",
+   "verb": "Ride the hoverboard",
+   "input": {
+    "action": "hover"
+   },
+   "at": null,
+   "expect": {
+    "bridges": "glowing bridges solid only while riding"
+   },
+   "played": null
+  },
+  {
+   "id": "hover-bridge",
+   "verb": "Ride the hover bridge to the Roost",
+   "input": {
+    "action": "hover"
+   },
+   "at": {
+    "x": 60,
+    "z": -12
+   },
+   "expect": {
+    "chip": "CLEAR THE ROOST",
+    "hint": "Ride HOVER over the glowing bridge east of Sunrest"
+   },
+   "played": null
+  },
+  {
+   "id": "roost",
+   "verb": "Clear the roost (step 2)",
+   "input": {
+    "action": "attack"
+   },
+   "at": {
+    "x": 60,
+    "z": -12
+   },
+   "expect": {
+    "objective": "Clear the roost of drift rays"
+   },
+   "played": null
+  },
+  {
+   "id": "vane-ruin",
+   "verb": "Turn the ruin vane (step 3)",
+   "input": {
+    "action": "gust"
+   },
+   "at": {
+    "x": 62,
+    "z": -76
+   },
+   "expect": {
+    "toasts": [
+     "A vane turns"
+    ],
+    "chip": "TURN THE VANES",
+    "hint": "GUST each vane: the keeper's isle, the windmill isle, the vane ruin",
+    "check": "the hint names the windmill isle; the vanes stand on Pine grove, Keeper's isle, Vane ruin (both trees)"
+   },
+   "played": null
+  },
+  {
+   "id": "vane-grove",
+   "verb": "Turn the grove vane",
+   "input": {
+    "action": "gust"
+   },
+   "at": {
+    "x": -50,
+    "z": 0
+   },
+   "expect": {
+    "toasts": [
+     "A vane turns"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "vane-keeper",
+   "verb": "Turn the keeper's-isle vane; fight gale wisps",
+   "input": {
+    "action": "gust"
+   },
+   "at": {
+    "x": -54,
+    "z": -56
+   },
+   "expect": {
+    "toasts": [
+     "A vane turns"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "notes",
+   "verb": "Read the keeper's notes (optional; also completes step 1)",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": -61,
+    "z": -62
+   },
+   "expect": {
+    "prompt": "Read the keeper's notes",
+    "toasts": [
+     "The crown bridge only answers the winch when the vanes turn and the roost is quiet."
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "updraft",
+   "verb": "Ride the updraft",
+   "input": {
+    "action": "hover"
+   },
+   "at": {
+    "x": -64,
+    "z": -126
+   },
+   "expect": {
+    "hint": "Ride the updraft from the windmill isle up to the high step"
+   },
+   "played": null
+  },
+  {
+   "id": "winch",
+   "verb": "Turn the winch (step 4)",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": -60.8,
+    "z": -136.4
+   },
+   "expect": {
+    "locked": "The winch will not turn while the roost is loud and the vanes are still",
+    "prompt": "Turn the winch",
+    "toasts": [
+     "The crown bridge is up"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "reward",
+   "verb": "Quest reward",
+   "input": {
+    "action": "none"
+   },
+   "at": null,
+   "expect": {
+    "toasts": [
+     "QUEST COMPLETE",
+     "Quest reward: 10 coins"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "keeper-again",
+   "verb": "Talk to the keeper again",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": -2.4,
+    "z": -13.6
+   },
+   "expect": {
+    "talk": "You did it! Listen to the crown thunder. Whatever nests up there will not thank you."
+   },
+   "played": null
+  },
+  {
+   "id": "roc",
+   "verb": "Boss: Storm Roc",
+   "input": {
+    "action": "attack"
+   },
+   "at": {
+    "x": 0,
+    "z": -190
+   },
+   "expect": {
+    "title": "Storm Roc · Lord of the storm crown",
+    "phases": [
+     "It stoops from the storm",
+     "Walls of gale",
+     "Grounded on the dais"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "roc-win",
+   "verb": "Win, or die and retry",
+   "input": {
+    "action": "none"
+   },
+   "at": {
+    "x": 0,
+    "z": -196
+   },
+   "expect": {
+    "toasts": [
+     "The storm breaks: 25 coins"
+    ],
+    "retry": "Face the Storm Roc again"
+   },
+   "played": null
+  },
+  {
+   "id": "fall",
+   "verb": "Fall into the clouds",
+   "input": {
+    "action": "move"
+   },
+   "at": null,
+   "expect": {
+    "respawn": "the last place discovered (below y 6)"
+   },
+   "played": null
+  },
+  {
+   "id": "islet",
+   "verb": "Ride or call a Rising Islet",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 0,
+    "z": 228
+   },
+   "expect": {
+    "prompt": "Ride the islet"
+   },
+   "played": null
+  }
+ ]
+}

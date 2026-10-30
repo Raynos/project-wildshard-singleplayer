@@ -1,0 +1,532 @@
+{
+ "shard": "driftwood-isle",
+ "modes": [
+  "legacy",
+  "shardfile"
+ ],
+ "source": "LEGACY at 91a9eef081 (legacy-final tag, src/shards/driftwood-isle-legacy/); SHARDFILE data checked against HEAD: no verb missing, no string changed",
+ "verbs": [
+  {
+   "id": "walk",
+   "verb": "Walk / sprint off the pier",
+   "input": {
+    "action": "move"
+   },
+   "at": {
+    "x": 0,
+    "z": -194
+   },
+   "expect": {
+    "objective": "Find out who lit the fire on the plateau",
+    "chip": "Who lit the fire?",
+    "hint": "Follow the sand path up from the pier"
+   },
+   "played": null
+  },
+  {
+   "id": "jump",
+   "verb": "Jump",
+   "input": {
+    "action": "jump"
+   },
+   "at": {
+    "x": 0,
+    "z": -170
+   },
+   "expect": {
+    "hint": "JUMP (after 12 m walked, no enemy within 15 m)"
+   },
+   "played": null
+  },
+  {
+   "id": "swim",
+   "verb": "Swim in the lagoon",
+   "input": {
+    "action": "move"
+   },
+   "at": {
+    "x": -6,
+    "z": -190
+   },
+   "expect": {
+    "mode": "swim (1.5-2.5 m deep)"
+   },
+   "played": null
+  },
+  {
+   "id": "hover",
+   "verb": "Hoverboard",
+   "input": {
+    "action": "hover"
+   },
+   "at": null,
+   "expect": {
+    "mode": "hover"
+   },
+   "played": null
+  },
+  {
+   "id": "discover",
+   "verb": "Discover a named place",
+   "input": {
+    "action": "move"
+   },
+   "at": null,
+   "expect": {
+    "toasts": [
+     "Discovered · WENDELL'S HUT"
+    ],
+    "places": [
+     "Pier",
+     "Wendell's Hut",
+     "Vista Point",
+     "Rope Bridge",
+     "Zipline",
+     "Lookout",
+     "Wreck Cove",
+     "Sea Cave",
+     "Ring Shrine"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "crab",
+   "verb": "Fight the practice crab (tap ATTACK, hold = HEAVY, DODGE, LOCK)",
+   "input": {
+    "action": "attack"
+   },
+   "at": {
+    "x": -7,
+    "z": -143
+   },
+   "expect": {
+    "hints": [
+     "ATTACK",
+     "DODGE",
+     "LOCK"
+    ],
+    "death": "Snapped up by"
+   },
+   "played": null
+  },
+  {
+   "id": "seaglass",
+   "verb": "Pick up sea glass (walk over)",
+   "input": {
+    "action": "move"
+   },
+   "at": {
+    "x": -20,
+    "z": -146
+   },
+   "expect": {
+    "toasts": [
+     "Sea glass · 1 / 15"
+    ],
+    "at15": "Every piece of sea glass on the island · 15 / 15"
+   },
+   "played": null
+  },
+  {
+   "id": "bench",
+   "verb": "Sit on the vista bench",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": -46,
+    "z": -100
+   },
+   "expect": {
+    "prompt": "Sit and take in the view",
+    "toasts": [
+     "You sit a while. The sea goes on and on."
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "wendell",
+   "verb": "Talk to Wendell (starts The Sealed Ring)",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": -19.6,
+    "z": -72.2
+   },
+   "expect": {
+    "prompt": "Talk to Wendell",
+    "talk": "A visitor! A real, walking, talking, not-a-crab visitor!",
+    "toasts": [
+     "New quest · The Sealed Ring"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "chest",
+   "verb": "Open the sea chest",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": -21.1,
+    "z": -61.85
+   },
+   "expect": {
+    "locked": "The castaway's sea chest — ask him first",
+    "prompt": "Open the chest",
+    "toasts": [
+     "Found flint & steel",
+     "Salt-crusted doubloon ×2"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "maren",
+   "verb": "Trade with Maren",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": -19,
+    "z": -71
+   },
+   "expect": {
+    "prompt": "Trade with Maren",
+    "toasts": [
+     "Bought · <good> — <what it does>"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "bridge",
+   "verb": "Cross the rope bridge",
+   "input": {
+    "action": "move"
+   },
+   "at": {
+    "x": 16,
+    "z": 14
+   },
+   "expect": {
+    "toasts": [
+     "Discovered · ROPE BRIDGE"
+    ],
+    "camera": "sways"
+   },
+   "played": null
+  },
+  {
+   "id": "beacon",
+   "verb": "Light the beacon",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 95.9,
+    "z": 94.4
+   },
+   "expect": {
+    "locked": "A beacon of dry driftwood — you need something to light it",
+    "prompt": "Light the beacon",
+    "toasts": [
+     "The beacon roars up — every ship for miles can see it"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "shard-lookout",
+   "verb": "Take the lookout shard",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 93.6,
+    "z": 95.9
+   },
+   "expect": {
+    "prompt": "Take the glyph shard",
+    "toasts": [
+     "Glyph shard — the Lookout"
+    ],
+    "objective": "Recover the glyph shards · 1 / 3"
+   },
+   "played": null
+  },
+  {
+   "id": "zipline",
+   "verb": "Ride the zipline",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 116.8,
+    "z": 56.6
+   },
+   "expect": {
+    "prompt": "Ride the zipline",
+    "feat": "Zip It",
+    "lands": {
+     "x": 132,
+     "z": 12
+    },
+    "check": "LEGACY hides the held sword while riding"
+   },
+   "played": null
+  },
+  {
+   "id": "sailor",
+   "verb": "Beat the drowned sailor (ATTACK / HEAVY / DODGE)",
+   "input": {
+    "action": "attack"
+   },
+   "at": {
+    "x": 153,
+    "z": 2
+   },
+   "expect": {
+    "toasts": [
+     "The drowned sailor collapses — his hold key clatters to the planks"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "iron-sword",
+   "verb": "Take the iron sword",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 153.2,
+    "z": 3.4
+   },
+   "expect": {
+    "locked": "The drowned sailor guards the rack — beat him first",
+    "prompt": "Take iron sword",
+    "toasts": [
+     "Iron sword acquired · 1/2 to switch, Q to swap"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "swap",
+   "verb": "Swap swords on the ring",
+   "input": {
+    "action": "swap.next"
+   },
+   "at": null,
+   "expect": {
+    "weapon": "iron sword, then sword"
+   },
+   "played": null
+  },
+  {
+   "id": "hold-key",
+   "verb": "Take the hold key",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 153.5,
+    "z": -0.2
+   },
+   "expect": {
+    "prompt": "Take the hold key",
+    "toasts": [
+     "The drowned sailor's hold key"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "pump",
+   "verb": "Work the bilge pump",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 155.6,
+    "z": -0.6
+   },
+   "expect": {
+    "locked": "The bilge pump is padlocked — the drowned sailor has the key",
+    "prompt": "Work the bilge pump",
+    "toasts": [
+     "The pump coughs; the bilge water drains"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "winch",
+   "verb": "Work the cargo winch",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 153.0,
+    "z": -2.1
+   },
+   "expect": {
+    "locked": "The winch is jammed — the hold is still flooded",
+    "prompt": "Work the cargo winch",
+    "toasts": [
+     "The winch hauls a strongbox out of the bilge"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "strongbox",
+   "verb": "Open the strongbox",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 154.9,
+    "z": -2.1
+   },
+   "expect": {
+    "prompt": "Open the strongbox",
+    "toasts": [
+     "Found the glyph shard — the Wreck",
+     "Salt-crusted doubloon ×3"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "tide-plates",
+   "verb": "Push the barrel; hold both tide plates",
+   "input": {
+    "action": "move"
+   },
+   "at": {
+    "x": 147.5,
+    "z": 3.5
+   },
+   "expect": {
+    "plates": [
+     {
+      "x": 139.1,
+      "z": 9.9
+     },
+     {
+      "x": 144.9,
+      "z": 9.9
+     }
+    ],
+    "toasts": [
+     "The tide gate lifts — the cave drains"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "shard-cave",
+   "verb": "Take the cave shard",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 142,
+    "z": 22.4
+   },
+   "expect": {
+    "locked": "Behind the tide gate",
+    "prompt": "Take the glyph shard",
+    "toasts": [
+     "Glyph shard — the Sea Cave"
+    ],
+    "objective": "Set the shards in the Ring Shrine"
+   },
+   "played": null
+  },
+  {
+   "id": "reef",
+   "verb": "Dive for the reef treasure (optional)",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": 232,
+    "z": 48
+   },
+   "expect": {
+    "prompt": "Open the treasure chest",
+    "toasts": [
+     "Sunken treasure!",
+     "Salt-crusted doubloon ×8",
+     "Found a pearl necklace"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "trophies",
+   "verb": "Hunt boar / bear; take trophies (optional)",
+   "input": {
+    "action": "attack"
+   },
+   "at": {
+    "x": 66,
+    "z": -132
+   },
+   "expect": {
+    "toasts": [
+     "Bear claw · your heavy attack hits 20 % harder — it hangs in Wendell's hut",
+     "Boar tusk · no hit lands while you dodge"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "altar",
+   "verb": "Set the shards in the altar",
+   "input": {
+    "action": "use"
+   },
+   "at": {
+    "x": -99.0,
+    "z": 109.3
+   },
+   "expect": {
+    "locked": "Three empty sockets — the glyph shards are out on the island",
+    "prompt": "Set the glyph shards",
+    "toasts": [
+     "The shards lock into place — the ring wakes",
+     "The pool boils — the Drowned Captain rises!"
+    ]
+   },
+   "played": null
+  },
+  {
+   "id": "captain",
+   "verb": "Beat the Drowned Captain, then stand in the ring",
+   "input": {
+    "action": "attack"
+   },
+   "at": {
+    "x": -96.2,
+    "z": 109
+   },
+   "expect": {
+    "toasts": [
+     "Strike when he surfaces",
+     "Captain Brine sinks for good. The ring hums — go and stand in it",
+     "Captain's hat · you wear it now (GEAR to take it off)",
+     "Driftwood Isle complete · open the menu to see your island"
+    ]
+   },
+   "played": null
+  }
+ ]
+}
