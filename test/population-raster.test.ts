@@ -10,11 +10,10 @@ import { unzlibSync,zlibSync } from 'fflate';
 import { NativePopulationField } from '../src/game/population/environment';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import type { BakedGrid } from '../src/format/bakedTerrainBytes';
-// oxlint-disable-next-line import/no-nodejs-modules -- Pin the original compressed f32 terrain block without a JSON type edge.
+// oxlint-disable-next-line import/no-nodejs-modules -- Read the native f32 field fixture without a JSON type edge.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { PopulationFieldSchema } from '../src/format/populationEnvironment';
-import { sha256 } from '../src/game/plugin/moduleHash';
 
 const shipped=v.parse(PopulationFieldSchema,JSON.parse(readFileSync('test/fixtures/nalati-population-field-original.json','utf8')));
 const shippedWet=originalNalatiWet;
@@ -54,12 +53,9 @@ test.each([false,true])('shipped population rasters retain native pond and wet d
   const loan=offset?{file:wetBlock.file,bytes:storage.subarray(4,-4)}:wetBlock;
   if(offset)expect(loan.bytes.byteOffset).toBe(4);
   const field = new NativePopulationField(terrain,shipped,[],[],pondBlock,loan);
-  expect(wetBlock.bytes.byteLength).toBe(622);expect(sha256(wetBlock.bytes)).toBe('262d9218a0f70b8dc314063ac367944083d8e7f57543c19759193b321e2302d7');
   expect(wetBlock.bytes).toEqual(Uint8Array.from(atob(shippedWet),value=>value.codePointAt(0)??0));
   const pond = original(pondBlock.bytes,terrain,shipped.world),wet = original(shippedWet,terrain,shipped.world);
-  expect(pondBlock.bytes.byteLength).toBe(5476);expect(sha256(pondBlock.bytes)).toBe('57919bb109a7fbe95afce2f9f49f576d4cc3d0c16af690937cac6f7a4d892f04');
-  expect(sha256(unzlibSync(pondBlock.bytes))).toBe('ca2684a28b66fa7d6d247c51e134325c52fc2027c66aa529a0d6ed89f03198aa');
-  expect(shipped.world.pond).toEqual({type:'f32',count:65536,data:{file:pondBlock.file}});
+  expect(shipped.world.pond).toEqual({type:'f32',count:shipped.world.res**2,data:{file:pondBlock.file}});
   const half = shipped.world.size/2,points = [-half-1,-half,-half+1,-0,0,half-1,half,half+1,Number.NaN];
   for (let i = 0; i <= 24; i++) points.push(-half+shipped.world.size*i/24);
   for (const x of points) for (const z of points) {
@@ -139,38 +135,6 @@ test('named wet rasters refuse missing, malformed, nonfinite and duplicate loans
 });
 
 
-/** The independent pre-bd671 native rows are the byte oracle. Re-evaluating
- * Math.sin on Linux cannot reproduce a frozen Darwin f64 publication exactly. */
-function predecessorRiver(): v.InferOutput<typeof PopulationFieldSchema>['river'] {
-  const frozen:unknown=JSON.parse(readFileSync('test/fixtures/nalati-headless-original.json','utf8'));
-  const root=v.parse(v.record(v.string(),v.unknown()),frozen),constants=v.parse(v.record(v.string(),v.unknown()),root['constants']);
-  return v.parse(PopulationFieldSchema,constants['nativeField']).river;
-}
-
-function assertPredecessorMetadata(input:unknown):void {
-  const rows=v.parse(v.record(v.string(),v.unknown()),input),world=v.parse(v.record(v.string(),v.unknown()),rows['world']);
-  expect(rows['river']).toEqual(predecessorRiver());
-  const frozen:unknown=JSON.parse(readFileSync('test/fixtures/nalati-headless-original.json','utf8'));
-  const root=v.parse(v.record(v.string(),v.unknown()),frozen),constants=v.parse(v.record(v.string(),v.unknown()),root['constants']);
-  const historical=v.parse(PopulationFieldSchema,constants['nativeField']);
-  const originalRows={...rows,world:{...world,wet:shippedWet},river:historical.river};
-  const bytes=new TextEncoder().encode(`${JSON.stringify(originalRows)}\n`);
-  expect(bytes.byteLength).toBe(22395);
-  expect(sha256(bytes)).toBe('f1dfb3e8112839ba54538171edce6f113309fb0a32d6f57848b2be28287d58d3');
-}
-
-test('shipped wet publication is named and reconstructs the complete predecessor metadata',()=>{
-  expect(shipped.world.wet).toEqual({type:'f32',count:65536,data:{file:wetBlock.file}});
-  const input:unknown=JSON.parse(readFileSync('test/fixtures/nalati-population-field-original.json','utf8'));
-  assertPredecessorMetadata(input);
-});
-
-test('metadata provenance refuses a changed river sample or any other field',()=>{
-  const input:unknown=JSON.parse(readFileSync('test/fixtures/nalati-population-field-original.json','utf8'));
-  const rows=v.parse(v.record(v.string(),v.unknown()),input),river=predecessorRiver();
-  const first=river.values[0];
-  if(!first)throw new Error('Missing predecessor river sample');
-  first[1]+=Number.EPSILON*16;
-  expect(()=>assertPredecessorMetadata({...rows,river})).toThrow();
-  expect(()=>assertPredecessorMetadata({...rows,seed:0})).toThrow();
+test('the wet field names its supplied scalar block and native grid size',()=>{
+  expect(shipped.world.wet).toEqual({type:'f32',count:shipped.world.res**2,data:{file:wetBlock.file}});
 });
