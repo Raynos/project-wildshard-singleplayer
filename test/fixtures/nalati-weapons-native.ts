@@ -18,6 +18,7 @@ import {PolearmDecision} from '../../src/game/weapons/polearmDecision';
 import {PolearmContact} from '../../src/game/weapons/polearmContact';
 import {JavelinFlight,type JavelinSlot} from '../../src/game/weapons/javelinFlight';
 import {nativeRangedHit} from '../../src/game/plugin/nativeItems';
+import type {SimHost} from '../../src/engine/sim';
 import {mountedPlayerOf} from '../../src/game/riding/native';
 import {nativeTamingOf} from '../../src/game/riding/nativeTaming';
 import type {AnimalSim} from '../../src/engine/entities/AnimalSim';
@@ -40,7 +41,9 @@ const Saved=v.strictObject({version:v.literal(1),slot:v.string(),queued:v.boolea
 /** Actual held inputs and admitted rows, sharing the page's decision and
  * projectile laws. This decision/projectile proof does not certify target
  * hits. No target is created. */
-export function withNalatiWeapons(prepare:PrepareHeadlessRuntime):PrepareHeadlessRuntime {return async preparation=>{
+export type NalatiWeaponRay=(host:SimHost,from:Vector3,direction:Vector3,distance:number,
+  hit:ReturnType<typeof nativeRangedHit>)=>ReturnType<typeof nativeRangedHit>;
+export function withNalatiWeapons(prepare:PrepareHeadlessRuntime,contacts?:NalatiWeaponRay):PrepareHeadlessRuntime {return async preparation=>{
   const base=await prepare(preparation),product=preparation.product;
   const slots=parseHeldSlots(await product.json('held/slots.json'));
   const bowSlot=slots.slots.find(row=>row.kind==='bow'),bladeSlot=slots.slots.find(row=>row.kind==='blade'),spearSlot=slots.slots.find(row=>row.kind==='polearm');
@@ -73,7 +76,8 @@ export function withNalatiWeapons(prepare:PrepareHeadlessRuntime):PrepareHeadles
     const eye=new Vector3(),forward=new Vector3(),scratch=new Vector3(),velocity=new Vector3(),rotation=new Quaternion(),euler=new Euler(0,0,0,'YXZ');
     const random=():number=>host.rng.stream('gameplay').next();
     const ray=(from:Vector3,dir:Vector3,distance:number)=>{
-      const hit=nativeRangedHit(targets(),from,dir,distance);return hit===null||hit.body===null?null:{animal:hit.body,point:hit.point,distance:hit.distance,headshot:hit.head};
+      const original=nativeRangedHit(targets(),from,dir,distance);
+      const hit=contacts===undefined?original:contacts(host,from,dir,distance,original);return hit===null||hit.body===null?null:{animal:hit.body,point:hit.point,distance:hit.distance,headshot:hit.head};
     };
     const spearContacts=new PolearmContact<AnimalSim>({raycast:ray,same:(animal,target)=>animal===target,
       contact:(animal,amount,point,dir,from,moveId)=>host.combat.hit({source:'env',sourceTags:['actor.player',spearItem.id,'dmg.melee'],
