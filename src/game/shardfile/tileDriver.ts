@@ -356,8 +356,8 @@ export function residentTiles(resident: Scope, contents: readonly TileContent[],
   started.set(resident, { pending, state: preparation });
   return pending;
 }
-/** T4: membership follows the player. MF13's horizontal view retains its
- * defer guard; NT8's cell-local streaming view orders the eligible jobs. */
+/** T4: membership follows the player. NT8's cell-local view orders render
+ * work; only camera-less callers retain MF13's horizontal defer guard. */
 export function followResidentTiles(resident: Scope, position: () => { readonly x: number; readonly z: number }, view?: () => ViewCone | null, streaming?: () => StreamingView | null): (() => void) | null {
   const driver = drivers.get(resident);
   if (driver === undefined) return null;

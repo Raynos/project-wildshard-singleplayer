@@ -238,6 +238,35 @@ observations: `tmp/sp-x9-nt8/posed-pine-attachments-{0,1}.json`.
 Browser and preview closed. No extra pair or deadline change. Source and
 results stay local during the coordinator's push hold.
 
+**NT8 visible-first correction `9634ee80f0` (pushed).** The old horizontal
+camera-cone rule deferred seen tiles for 3 s before NT8's 3-D ranking could
+consider them. Supplying both camera ports in the high-eye behavior test
+reproduced an off-view attach with the visible tile blocked. Full camera
+ranking now takes precedence; camera-less callers retain the old rule,
+and collider priority/membership are unchanged. All 31 streaming/refinement
+controls, game types and scoped lint pass.
+
+Second corrected Pine pair, `9634ee8-mvvec1k4`: **129.962 / 90.486 s**
+cold / warm, versus the earlier corrected pair **129.872 / 90.219 s**.
+Warm remains above the earlier parent's 88.068 s. This repeats the difference
+but does not isolate NT8 from intervening rendering changes or host drift.
+Spawn detail is 31.916 / 15.169 s; both native controls qualify. Telemetry
+405s and one navigated-away response accounting gap per leg remain visible.
+
+The refined observer compares triangle multisets from prior geometry/draw
+ranges to their successors and clips additions against all six spawn-frustum
+planes. Ground unions compare against the prior union members, including
+replaced mesh identities. In each leg, **10,722 added triangles from visible
+world meshes, zero intersecting the spawn frustum**; hidden source tiles and
+knife are recorded separately. Each full 10 s observation completes without
+overflow or unsupported geometry (99 / 107 sampled frames). This closes the
+Pine geometric attachment ambiguity, not the remaining Driftwood check.
+Raw pair: `tmp/phone-loading/2026-10-30T20-00-40-070Z-9634ee8-mvvec1k4/`;
+exact additions: `tmp/sp-x9-nt8/visible2-pine-attachments-{0,1}.json`.
+An earlier wrong-port launch hit `db9f363-mvve9bzo`, was interrupted before
+control and is explicitly excluded (`visible-pine.log`). NT8 remains open
+for warm timing attribution and Driftwood's precise attachment check.
+
 NT7 preserves the existing all-product `checkTileBake` ratchet exactly (G872 ruling). Its new report is advisory; its separate Nine baseline refuses a lost `ring: 'cell'`, worsened exact L0 coordinate debt, or a declared slab chunk above 4 MB. Uncut long-triangle heights remain explicit advisory exceptions for NT3, never disguised as zero or trimmed geometry. Products without declared slab metadata print **not declared** for max chunk, rather than claiming zero. Published NF10 slab rows are read only after the defining section schema admits them. Recommendations distinguish dense vertical concentration (> 80 % in five tiles and > 125 m tall) from small, spread-out or open-sky sightline warnings; every measured warning is printed. The current declared-camera catalogue hash is `359156f0cfabb3c4915ec46217daaa85a2aaeaf57d74db48e3db303c927029f4`.
 
 **Order.**
