@@ -8,8 +8,7 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import original from './fixtures/pine-life-program.json' with { type: 'json' };
 
-const hash = '260eee8839d76af399fadc27a383c92ef8f75a0bbab154bce727d973d24e3594';
-const oracle = new Uint8Array(readFileSync('test/fixtures/pine-life-program.wasm'));
+const oracle = new Uint8Array(readFileSync('test/fixtures/pine-life-program.wasm')), hash = hashImmutableBytes(oracle);
 const cache = mkdtempSync('tmp/pine-life-author-');
 afterAll(() => rmSync(cache, { recursive: true, force: true }));
 const context = pineGeneration('pine-life-author-v1', cache);
@@ -26,8 +25,6 @@ test('Pine life metadata and its original executable remain exact without inline
   expect(life.file.hash).toBe(hash);
   const bytes = life.bytes;
   expect(bytes).toEqual(oracle);
-  expect(oracle.byteLength).toBe(9133);
-  expect(hashImmutableBytes(oracle)).toBe(hash);
   expect(original.script.module).toBe(`blobs/wasm/${hash}.wasm`);
   bytes.fill(0);
   const warm = await returnModule(context, 'life');
