@@ -4,7 +4,7 @@
 import * as v from 'valibot';
 import { CellFieldSchema,type CellFieldRows } from '@wildshard/format/cellField';
 import { isJsonData } from '@wildshard/format/json';
-import { ProjectedState,type ReturnProgram } from '../population/returnProgram';
+import { ProjectedState,type ProjectedSnapshot,type ReturnProgram } from '../population/returnProgram';
 import type { Rng } from '@wildshard/engine/core/rng';
 
 function freeze(value: unknown): void {
@@ -12,6 +12,11 @@ function freeze(value: unknown): void {
 }
 
 /** Plain rows and an already admitted module; no shard callbacks or rendering. */
+/** A field's continuation (`CellField.snapshot`): each cell's mode and lifetime, the step clocks and the contact law's state. */
+export interface CellFieldSnapshot {
+  readonly modes: readonly number[]; readonly lifetimes: readonly number[]; readonly elapsed: number; readonly clock: number;
+  readonly contactElapsed: number; readonly contact: ProjectedSnapshot | null;
+}
 export class CellField {
   readonly rows: CellFieldRows;
   private readonly modes: Uint8Array;
@@ -29,6 +34,21 @@ export class CellField {
     this.contact = this.rows.contact === undefined ? null : new ProjectedState(this.rows.contact.law, program);
     this.modes = new Uint8Array(this.rows.width * this.rows.depth).fill(this.rows.states.idle);
     this.lifetimes = new Float32Array(this.modes.length);
+  }
+  /** CI12: the field's continuation as data: its cells, its clocks and its contact law (its draws come from the owner's
+   *  stream, which the owner continues) */
+  snapshot(): CellFieldSnapshot {
+    return { modes: [...this.modes], lifetimes: [...this.lifetimes], elapsed: this.elapsed, clock: this.clock, contactElapsed: this.contactElapsed,
+      contact: this.contact?.snapshot() ?? null };
+  }
+  /** Continue from `saved` (a snapshot of a field of these rows). */
+  restore(saved: CellFieldSnapshot): void {
+    if (saved.modes.length !== this.modes.length || saved.lifetimes.length !== this.lifetimes.length || (saved.contact === null) !== (this.contact === null)
+      || [saved.elapsed, saved.clock, saved.contactElapsed, ...saved.lifetimes].some(value => !Number.isFinite(value))
+      || saved.modes.some(mode => !Number.isSafeInteger(mode) || mode < 0 || mode > 255)) throw new Error('Invalid cell field snapshot');
+    this.modes.set(saved.modes); this.lifetimes.set(saved.lifetimes);
+    this.elapsed = saved.elapsed; this.clock = saved.clock; this.contactElapsed = saved.contactElapsed;
+    if (saved.contact !== null) this.contact?.restore(saved.contact);
   }
   get length(): number { return this.modes.length; }
   /** every cell's mode and remaining lifetime, live and in cell order (a view program reads them whole each frame) */

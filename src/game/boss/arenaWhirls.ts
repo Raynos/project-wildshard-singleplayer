@@ -10,11 +10,16 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ArenaWhirlsRows } from '@wildshard/format/encounterRows';
-import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
+import { ProjectedState, type ProjectedSnapshot, type ReturnProgram } from '../population/returnProgram';
 
 /** a whirlwind that touched the player this tick, where it stands */
 export interface WhirlHit { x: number; y: number; z: number }
 export interface WhirlFrame { readonly wx: number; readonly wz: number; readonly px: number; readonly pz: number }
+/** The whirlwinds' continuation (`ArenaWhirls.snapshot`): the gate's and each wander law's state, and what each one drew. */
+export interface ArenaWhirlsSnapshot {
+  readonly gate: ProjectedSnapshot; readonly laws: readonly ProjectedSnapshot[];
+  readonly drawn: readonly { readonly k: number; readonly shown: number; readonly x: number; readonly y: number; readonly z: number }[];
+}
 
 export class ArenaWhirls {
   private readonly rows: ArenaWhirlsRows;
@@ -41,6 +46,16 @@ export class ArenaWhirls {
   }
   /** Which whirlwinds blow (bit i: whirlwind i), at the original arm slot. */
   arm(mask: number): void { this.live(); this.gate.event('arm', { [this.rows.gate.inputs.mask]: mask | 0 }); }
+  /** CI12: the whirlwinds' continuation as data, for a native checkpoint. */
+  snapshot(): ArenaWhirlsSnapshot { return { gate: this.gate.snapshot(), laws: this.laws.map(law => law.snapshot()), drawn: this.drawn.map(d => ({ ...d })) }; }
+  /** Continue from `saved` (a snapshot of whirlwinds of these rows). */
+  restore(saved: ArenaWhirlsSnapshot): void {
+    this.live();
+    if (saved.laws.length !== this.laws.length || saved.drawn.length !== this.drawn.length
+      || saved.drawn.some(d => [d.k, d.shown, d.x, d.y, d.z].some(value => !Number.isFinite(value)))) throw new Error('Invalid whirlwind snapshot');
+    this.gate.restore(saved.gate); this.laws.forEach((law, i) => { const row = saved.laws[i]; if (row === undefined) throw new Error('Missing whirlwind law snapshot'); law.restore(row); });
+    this.drawn.forEach((d, i) => { const row = saved.drawn[i]; if (row === undefined) throw new Error('Missing whirlwind draw snapshot'); Object.assign(d, row); });
+  }
   /** Disarm them all and show none. */
   reset(): void { this.arm(0); for (const d of this.drawn) d.shown = 0; }
   /** Ease and gate them and step the shown ones' laws on a decision tick (`thinkDt` > 0) with `frame` (wx, wz, px, pz);

@@ -39,6 +39,10 @@ export interface ViewProgramPorts {
   /** An admitted slot may prepare its private memory before the native lender binds. */
   readonly preparedMemory?: PreparedViewMemory;
   readonly player: { readonly position: Vector3; readonly velocity: Vector3; readonly yaw: number };
+  /** The display rate the lane's rate policy may halve the guest from (default 60: down to every fourth frame when it runs
+   *  over its time target). A host that needs every frame (CI12's Node simulation, whose decisions read the cells) passes
+   *  15: the guest then runs on every frame whatever it costs. */
+  readonly displayHz?: number;
   readonly camera: Camera;
   /** a lent numeric snapshot by id: each named field read once a frame; null for one the owner lacks */
   readonly values: (source: string) => ((field: string) => number) | null;
@@ -93,7 +97,7 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
   for (const row of rows.samples) if (row.kind === 'value' && !sources.has(row.source)) {
     const read = ports.values(row.source); if (read === null) return null; sources.set(row.source, read);
   }
-  const scope = ports.scope, live = (): boolean => !scope.disposed && !scope.disposing;
+  const scope = ports.scope, live = (): boolean => !scope.disposed && !scope.disposing, displayHz = ports.displayHz ?? 60;
   const position = new Vector3(), rotation = new Quaternion(), size = new Vector3();
   /** A target: a lent object is resolved and claimed once; a slot's actor on each write, re-claimed when its identity changes. */
   const target = (ref: ViewTargetRef, site: Site): ((value: number | Matrix4) => void) => {
@@ -286,7 +290,7 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
         : row.field === 'speed' ? Math.hypot(player.velocity.x, player.velocity.z) : row.field === 'yaw' ? player.yaw : p[row.field], true);
     }
     tick++;
-    const ran = lane.frame(dt, 0, tick, [{ previousTick: tick - 1, currentTick: tick, values: columns }], 60, diagnosticNow, arrays.map(read => read()));
+    const ran = lane.frame(dt, 0, tick, [{ previousTick: tick - 1, currentTick: tick, values: columns }], displayHz, diagnosticNow, arrays.map(read => read()));
     if (lane.isFrozen) return ran;
     for(let i=0;i<rows.channels.length;i++){
       const row=rows.channels[i];if(row===undefined)throw new Error('Missing view channel');

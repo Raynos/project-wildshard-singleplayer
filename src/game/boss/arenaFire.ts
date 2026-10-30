@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
 import type { ReturnProgram } from '../population/returnProgram';
-import { ArenaWhirls, type WhirlFrame } from './arenaWhirls';
+import { ArenaWhirls, type ArenaWhirlsSnapshot, type WhirlFrame } from './arenaWhirls';
 import type {Scope} from '@wildshard/engine/app/scope';
 import {presentEntryOwner,publishEntryOwner} from '../shardfile/entryOwners';
 import {preflightViewLends,lendViewValues,lendViewDraw,lendViewFrame} from '../shardfile/clientViewProgram';
@@ -63,6 +63,9 @@ export class ArenaWhirlsView {
     this.whirls = new ArenaWhirls(input, program, gateProgram, nativeScope);
   }
   private live():void{if(this.nativeScope.disposed||this.nativeScope.disposing)throw new Error('Whirlwind native owner has ended');}
+  /** CI12: the whirlwinds' continuation (the funnels and debris are drawn from it again) */
+  snapshot():ArenaWhirlsSnapshot{return this.whirls.snapshot();}
+  restore(saved:ArenaWhirlsSnapshot):void{this.whirls.restore(saved);}
   /** Admit all gate references before the caller allocates native resources. */
   static preflight(rows:ArenaWhirlsRows,program?:ReturnType<typeof ReturnProgram.projectionBindings>):void{ ArenaWhirls.preflight(rows,program); }
   /** Lend only this owner's concrete resources on the entered view scope.
