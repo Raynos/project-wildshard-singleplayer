@@ -2,13 +2,12 @@
 
 `generators/physics.ts` defines the source-owned physics declaration from the camp placement, tower, ridge and scout
 recipes, species scale ranges and seeded creature stream, plus authored arena, dressing, species and spot rows.
-The SDK product and this witness consume that declaration directly. The 23,200-byte original handoff is pinned by
-`test/sunscar-physics-source.test.ts`; its standalone writer job is retired.
+The SDK product and this witness consume that declaration directly. G919 retired the frozen declaration-byte
+snapshot test; the standalone writer job is retired too. Native gameplay and continuation checks remain.
 
-Compare the complete source bytes and run the existing gameplay/replay/Ledger witness:
+Run the existing gameplay/replay/Ledger witness:
 
 ```sh
-pnpm exec vitest run test/sunscar-physics-source.test.ts
 node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/sunscar-dunes/run.mjs all
 ```
 
