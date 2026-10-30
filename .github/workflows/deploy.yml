@@ -326,6 +326,38 @@ jobs:
       # A runner is isolated: save current reusable products rather than six
       # historical payload generations. Keep every input receipt for validation.
       - run: node scripts/ci-product-cache.mjs
+      - name: Select recent completed-push timing observations
+        id: timing-history
+        run: |
+          prior=$(gh run list --workflow deploy.yml --branch main --event push --status completed --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          if [[ -n "$prior" ]]; then
+            names=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$prior/artifacts?per_page=100" --jq '.artifacts[] | select(.expired == false and (.name | startswith("vitest-times-"))) | .name')
+            if [[ -n "$names" ]]; then echo "run=$prior" >> "$GITHUB_OUTPUT"; fi
+          fi
+      - uses: actions/download-artifact@v4
+        if: steps.timing-history.outputs.run != ''
+        with:
+          pattern: vitest-times-*
+          path: tmp/ci-vitest/recent
+          run-id: ${{ steps.timing-history.outputs.run }}
+          github-token: ${{ github.token }}
+      - name: Plan every test from complete-module observations
+        run: |
+          mkdir -p tmp/ci-vitest/recent
+          observations=()
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              */timings.json) observations+=(--timings "$file") ;;
+              */results.json) observations+=(--results "$file") ;;
+            esac
+          done < <(find tmp/ci-vitest/recent -type f -name '*.json' -print0)
+          node scripts/vitest-plan.ts --shards 12 --workers 2 --output tmp/ci-vitest/plan.json "${observations[@]}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vitest-plan
+          path: tmp/ci-vitest/plan.json
+          retention-days: 3
+          if-no-files-found: error
       - name: Pack exact-run generated inputs and products
         run: |
           python3 scripts/ci-products.py pack
@@ -501,11 +533,18 @@ jobs:
         run: |
           zstd -d --rm test-products.tar.zst
           python3 scripts/ci-products.py unpack
+      - uses: actions/download-artifact@v4
+        with:
+          name: vitest-plan
+          path: tmp/ci-vitest
       # CI7: one duration-packed wave includes every product and source suite.
-      - run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --config scripts/vitest-ci.config.ts --shard=${{ matrix.shard }}/12 --bail=1 --reporter=default --reporter=json --outputFile=tmp/ci-vitest/results.json
+      - run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --config scripts/vitest-ci.config.ts --shard=${{ matrix.shard }}/12 --bail=0 --reporter=default --reporter=json --reporter=./scripts/vitest-timings.ts --outputFile=tmp/ci-vitest/results.json
         env:
           VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
           WS_TEST_PRODUCTS_SHA: ${{ github.sha }}
+          WS_VITEST_MAX_WORKERS: '2'
+          WS_VITEST_PLAN: tmp/ci-vitest/plan.json
+          WS_VITEST_TIMINGS: tmp/ci-vitest/timings.json
 
       - name: Publish exact failure paths
         if: failure()
@@ -520,7 +559,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vitest-times-${{ matrix.shard }}
-          path: tmp/ci-vitest/results.json
+          path: |
+            tmp/ci-vitest/results.json
+            tmp/ci-vitest/timings.json
           retention-days: 7
           if-no-files-found: warn
 

@@ -59,7 +59,11 @@ test('one CI matrix discovers every existing file exactly once across both isola
  expect(job).toContain(`WS_TEST_PRODUCTS_SHA: \${{ github.sha }}`);
  expect(job).not.toContain('WS_TEST_COHORT:');
  expect(job).toContain('fail-fast: false');
- expect(job).toContain(`--config scripts/vitest-ci.config.ts --shard=\${{ matrix.shard }}/12 --bail=1`);
+ expect(job).toContain(`--config scripts/vitest-ci.config.ts --shard=\${{ matrix.shard }}/12 --bail=0`);
+ expect(job).toContain('name: vitest-plan');
+ expect(job).toContain('WS_VITEST_PLAN: tmp/ci-vitest/plan.json');
+ expect(job).toContain('WS_VITEST_TIMINGS: tmp/ci-vitest/timings.json');
+ expect(job).toContain('--reporter=./scripts/vitest-timings.ts');
  expect(job).toContain('python3 scripts/ci-products.py unpack');
  const matrix=/^\s+shard: \[([\d, ]+)\]/mu.exec(job)?.[1]?.split(',').map(Number);
  expect(matrix).toEqual(Array.from({length:12},(_,i)=>i+1));
@@ -117,7 +121,13 @@ test('one preparation owns the source cache, generation and complete admission',
   expect(key).toContain(`\${{ steps.inputs.outputs.tree }}`);
   expect(key).toContain(`\${{ runner.arch }}`);
   expect(prepare).not.toMatch(/^ {4}needs:/mu);
-  expect(prepare).not.toContain('actions/download-artifact');
+  // Prior artifacts may supply timing hints, never generated/product inputs.
+  const downloads = [...prepare.matchAll(/- uses: actions\/download-artifact@v4\n([\s\S]*?)(?=\n {6}- |$)/gu)].map(match => match[1]);
+  expect(downloads).toHaveLength(1);
+  expect(downloads[0]).toContain('pattern: vitest-times-*');
+  expect(downloads[0]).toContain(`run-id: \${{ steps.timing-history.outputs.run }}`);
+  expect(prepare).toContain('--branch main --event push --status completed');
+  expect(prepare).toContain('node scripts/vitest-plan.ts --shards 12 --workers 2');
   const generation = prepare.indexOf('node scripts/gen.mjs --reuse');
   expect(prepare).not.toContain('node scripts/build-shardfiles.mjs');
   expect(prepare).not.toContain('node scripts/gen.mjs --inputs-only');
