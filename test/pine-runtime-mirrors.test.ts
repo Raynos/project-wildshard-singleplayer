@@ -30,6 +30,7 @@ import { resolve } from 'node:path';
 import { currentPageMode, setPageMode } from '../src/game/grid/pageMode';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
+import { installAssetFixture } from './fixtures/bootSetup';
 
 const ASTC6_PHONE = originalPineAstcAliases();
 
@@ -54,7 +55,8 @@ test('world view rows come from the admitted section', () => {
 const discovery = await pineBootProgram(pineGeneration('pine-boot-fixture-v1', resolve(homedir(), '.cache/wildshard/gen')));
 const metadata = discovery['boot.pageModes'], gpuTables = discovery['ktx2.pageModes'];
 
-test('program boot discovery preserves the ordered boot recipes', () => {
+test('program boot discovery preserves the ordered boot recipes', async () => {
+  await installAssetFixture();
   // GR8 G37 (generators/bootInventory.ts): the boot pack keeps the original prop payloads, so no prop aliases apply
   const inputs = { aliases:{ props:{} } };
   const before = currentPageMode();
