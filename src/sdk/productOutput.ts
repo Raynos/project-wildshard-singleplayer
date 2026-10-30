@@ -24,12 +24,31 @@ export function assertProductTargets(source: Shardfile, policy: 'warn' | 'refuse
   throw new Error(issues.map(issue => `REFUSAL: ${issue.metric}: ${issue.actual} > ${issue.limit}`).join('\n'));
 }
 
+/** Each product admitProduct returned: the assets map, policy and script rows it was admitted with, and its exact JSON then
+ *  (by object identity only: a different object, even an equal one, is admitted in full) */
+const admitted = new WeakMap<object, { readonly assets: ReadonlyMap<string, Uint8Array>; readonly policy: 'warn' | 'refuse'; readonly scripts: string; readonly snapshot: string }>();
+
 /** Admit declared costs and actual immutable bytes through the browser's defining contracts, without a config loader. */
 export function admitProduct(input: unknown, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse' = 'refuse', scripts: ScriptAdmissionRows = []): Shardfile {
   const source = parseShardfile(input);
   preflightDeclaredCosts(source, offlineMemoryAdmission(policy));
   assertProductTargets(source, policy);
-  return validateShardfileAssets(source, assets, hashImmutableBytes, offlineMemoryAdmission(policy), undefined, scripts);
+  const product = validateShardfileAssets(source, assets, hashImmutableBytes, offlineMemoryAdmission(policy), undefined, scripts);
+  admitted.set(product, { assets, policy, scripts: JSON.stringify(scripts), snapshot: JSON.stringify(product) });
+  return product;
+}
+
+/**
+ * CI6: the product this very call chain just admitted, handed straight back to a writer that would admit it again: the same
+ * object admitProduct returned, with the same assets map, policy and script rows, and JSON unchanged since (nothing wrote
+ * to it). Its admission's own result then is a fresh parse of it; any other input (a copy, a mutated object, another map
+ * or policy) returns null and takes the full admission. The written folder's own re-admission never depends on this.
+ */
+export function readmitted(input: unknown, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', scripts: ScriptAdmissionRows): Shardfile | null {
+  if (typeof input !== 'object' || input === null) return null;
+  const row = admitted.get(input);
+  if (row === undefined || row.assets !== assets || row.policy !== policy || row.scripts !== JSON.stringify(scripts) || row.snapshot !== JSON.stringify(input)) return null;
+  return parseShardfile(input);
 }
 
 /** Emit a complete product: canonical shard.json, every charged local/commons asset and the informational validation receipt.

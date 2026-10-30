@@ -22,7 +22,7 @@ import { preflightDeclaredCosts } from '@wildshard/format/assetAdmission';
 import { isTerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { parseImageAsset } from '@wildshard/format/stillImage';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
-import { admitProduct } from './productOutput';
+import { admitProduct, readmitted } from './productOutput';
 import { performanceTargetIssues } from './reportCard';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { readBoundedFile } from './sourceReader';
@@ -105,7 +105,8 @@ function checkWorldTargets(source: Shardfile, input: unknown): void {
 }
 /** Split an admitted product without changing host values or any immutable asset byte. */
 export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Uint8Array>, destination: string, options: OutputProductOptions = {}): OutputIndex {
-  const scripts = outputScriptAdmissionRows(options.platform), source = admitProduct(input,assets,'warn',scripts);
+  // the product buildProject admitted a moment ago is not admitted twice in memory (readmitted); the written folder always is
+  const scripts = outputScriptAdmissionRows(options.platform), source = readmitted(input,assets,'warn',scripts) ?? admitProduct(input,assets,'warn',scripts);
   const targetEntry = options.platform?.sections.find(row => row.name === 'world/targets');
   if (targetEntry !== undefined) {
     const bytes = options.platform?.files.get(targetEntry.path);
