@@ -4,7 +4,7 @@ import type { Scope } from '../app/scope';
 import type { AssetService } from '../app/assets';
 import { shaderPatchTextures } from './shaderPatches';
 import { renderCount, type Renders } from './frameCounter';
-import { drawHooks, propertyHooks } from './drawHooks';
+import { drawHooks, invalidatePropertyObservation, propertyHooks } from './drawHooks';
 
 function eventMethod(resource: object, method: 'addEventListener' | 'removeEventListener', listener: () => void): void {
   const fn: unknown = Reflect.get(resource, method);
@@ -224,6 +224,7 @@ export class UploadOwnership {
       this.releasing.add(resource); queueMicrotask(() => { this.releasing.delete(resource); });
       this.observedIn.delete(resource); // a re-upload later in the same render is observed again
       this.settledIn.delete(resource);
+      invalidatePropertyObservation();
       this.retire(resource);
       eventMethod(resource, 'removeEventListener', released); forget();
       // Three deletes colour attachments with their target but does not dispatch their dispose events. Those events
@@ -278,10 +279,12 @@ export class UploadOwnership {
     const counted = renders(renderer) ? renderer : null;
     // Reuse one slot per nested draw, clearing the Scope as soon as it returns.
     const owners: (Scope | null)[] = [], ids: (symbol | null | undefined)[] = [], generations: number[] = [];
-    drawHooks(renderer).ownership = {
+    const hooks = drawHooks(renderer);
+    hooks.ownership = {
       begin: (_camera, _scene, geometry, material, object) => {
         owners[this.drawDepth] = this.drawOwner; ids[this.drawDepth] = this.drawOwnerId; generations[this.drawDepth] = this.drawGen;
         this.drawOwner = sceneObjectOwner(object); this.drawOwnerId = this.ownerId(this.drawOwner);
+        hooks.ownerToken = this.drawOwnerId;
         this.drawDepth++; this.drawGen = counted === null ? ++this.drawGens : renderCount(counted);
         // A batch must claim its private aggregate geometry/textures before renderer property reads observe them.
         if (object instanceof InstancedMesh || object instanceof BatchedMesh) this.observe(object);
@@ -289,6 +292,7 @@ export class UploadOwnership {
       },
       end: () => {
         this.drawDepth--; this.drawOwner = owners[this.drawDepth] ?? null; this.drawOwnerId = ids[this.drawDepth];
+        hooks.ownerToken = this.drawOwnerId ?? null;
         this.drawGen = generations[this.drawDepth] ?? 0; owners[this.drawDepth] = null;
       },
     };

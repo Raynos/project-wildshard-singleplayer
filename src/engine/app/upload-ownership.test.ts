@@ -11,10 +11,12 @@ import { AssetService } from './assets';
 import { ownSceneResource, ownSceneTree } from './sceneOwnership';
 import { UploadOwnership } from '../render/uploadOwnership';
 import type { Renderer } from '../render/renderer';
+import { installFrameCounter } from '../render/frameCounter';
 
 function rendererFor(texture: Texture): { properties: Renderer['properties']; renderBufferDirect: Renderer['renderBufferDirect']; render: Renderer['render'] } {
   const properties = { has: () => false, get: (object: unknown) => object, remove: () => undefined, update: () => undefined, dispose: () => undefined };
-  return { properties, render: () => undefined, renderBufferDirect: () => { properties.get(texture); properties.get(texture); } };
+  const renderer = { properties, render: () => undefined, renderBufferDirect: () => { properties.get(texture); properties.get(texture); } };
+  installFrameCounter(renderer); return renderer;
 }
 
 test('upload observations dedupe only the same resource, render and owner identity', () => {

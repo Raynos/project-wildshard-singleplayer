@@ -1,7 +1,8 @@
 import { expect, test, vi } from 'vitest';
 import { BufferGeometry, Camera, CompressedTexture, Mesh, MeshBasicMaterial, MeshDepthMaterial, Scene, Texture } from 'three';
 import type { Renderer } from './renderer';
-import { drawHooks, propertyHooks } from './drawHooks';
+import { drawHooks, invalidatePropertyObservation, propertyHooks } from './drawHooks';
+import { installFrameCounter } from './frameCounter';
 
 function fixture(material: MeshBasicMaterial | MeshDepthMaterial = new MeshBasicMaterial()) {
   const geometry = new BufferGeometry(), object = new Mesh(geometry, material);
@@ -84,4 +85,46 @@ test('classification preserves changed native rows, compressed observers and fro
   expect(renderer.properties.get(resource)).toBe(replacement); expect(after).toHaveBeenLastCalledWith(resource, replacement);
   expect(renderer.properties.get(frozen)).toBe(replacement); expect(renderer.properties.get(frozen)).toBe(replacement);
   expect(before).toHaveBeenCalledTimes(2); expect(Object.getOwnPropertySymbols(frozen)).toHaveLength(0);
+});
+
+test('native rows stay live until removal and disposal, including within one draw', () => {
+  const f = fixture(), resource = new Texture(); let native = { value: 1 };
+  const renderer = { ...f.renderer, properties: { get: (_value: unknown) => native,
+    remove: (_value: unknown) => { native = { value: 2 }; }, dispose: () => { native = { value: 3 }; } },
+  render: (_scene: Scene, _camera: Camera) => { renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group); } };
+  installFrameCounter(renderer); drawHooks(renderer); propertyHooks(renderer);
+  f.stock.mockImplementation(() => {
+    const first = renderer.properties.get(resource); first.value = 42;
+    expect(renderer.properties.get(resource)).toBe(first); expect(renderer.properties.get(resource).value).toBe(42);
+    renderer.properties.remove(resource); const second = renderer.properties.get(resource);
+    expect(second).not.toBe(first); expect(second.value).toBe(2);
+    renderer.properties.dispose(); expect(renderer.properties.get(resource).value).toBe(3);
+  });
+  renderer.render(f.scene, f.camera);
+});
+
+test('new render, consuming owner, label policy and upload registrations invalidate reuse', () => {
+  const f = fixture(), resource = new Texture(), native = {}, proxies = [{}, {}];
+  const renderer = { ...f.renderer, properties: { get: (_value: unknown) => native },
+    render: (_scene: Scene, _camera: Camera) => { renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group); } };
+  installFrameCounter(renderer); const draws = drawHooks(renderer), hooks = propertyHooks(renderer);
+  const owners: (symbol | null)[] = []; let policy = 0;
+  hooks.ownership = () => { owners.push(draws.ownerToken); };
+  hooks.labelsVersion = () => policy; hooks.labels = () => proxies[policy];
+  const uploaded = vi.fn<(resource: Texture) => void>(); hooks.uploaded = uploaded;
+  f.stock.mockImplementation(() => {
+    expect(renderer.properties.get(resource)).toBe(proxies[policy]);
+    expect(renderer.properties.get(resource)).toBe(proxies[policy]);
+  });
+  const first = Symbol('first owner'), second = Symbol('second owner');
+  draws.ownerToken = first; renderer.render(f.scene, f.camera); renderer.render(f.scene, f.camera);
+  draws.ownerToken = second; renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+  expect(owners).toEqual([first, first, second]);
+  f.stock.mockImplementation(() => {
+    renderer.properties.get(resource); policy = 1;
+    expect(renderer.properties.get(resource)).toBe(proxies[1]);
+    invalidatePropertyObservation(); renderer.properties.get(resource);
+  });
+  renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+  expect(uploaded).toHaveBeenCalledTimes(5);
 });

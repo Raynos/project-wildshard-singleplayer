@@ -9,6 +9,7 @@ import { drawHooks, propertyHooks } from './drawHooks';
 
 interface Label { owner: string; asset: string; priority: number }
 const labels = new WeakMap<object, Label>();
+let labelGeneration = 0;
 let skeletonBridgeInstalled = false;
 const isTexture = (value: unknown): value is Texture => value instanceof Texture;
 const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
@@ -56,6 +57,7 @@ function remember(resource: object, label: Label): Label {
   const previous = labels.get(resource);
   if (previous && previous.priority >= label.priority) return previous;
   labels.set(resource, label);
+  labelGeneration++;
   if (label.priority > 0) memoryAttribution.label(resource, label);
   return label;
 }
@@ -360,7 +362,9 @@ export function installGpuLabels(renderer: LabelRenderer, developer: () => boole
     if (!same) tags.set(value, { owner: label.owner, base: label.asset, priority: label.priority });
     emit('__sc_label_gl', value, derive(label, role));
   };
-  propertyHooks(renderer).labels = (resource, properties) => {
+  const property = propertyHooks(renderer);
+  property.labelsVersion = () => drawCensus && !drawSampled ? Number.NaN : labelGeneration * 2 + (developer() || census() ? 1 : 0);
+  property.labels = (resource, properties) => {
     if (!developer() && !census()) return properties;
     if (properties === null || typeof properties !== 'object' || (!isTexture(resource) && !(resource instanceof RenderTarget))) return properties;
     const label = resourceLabel(resource), prior = proxies.get(properties);

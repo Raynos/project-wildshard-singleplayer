@@ -1,6 +1,6 @@
 import type { Texture } from 'three';
 import type { Renderer } from './renderer';
-import { propertyHooks } from './drawHooks';
+import { invalidatePropertyObservation, propertyHooks } from './drawHooks';
 
 const listeners = new WeakMap<Texture, Set<(texture: Texture) => void>>();
 const installed = new WeakSet();
@@ -11,6 +11,7 @@ export function onceTextureUploaded(texture: Texture, run: (texture: Texture) =>
   let rows = listeners.get(texture);
   if (rows === undefined) { rows = new Set(); listeners.set(texture, rows); }
   rows.add(run);
+  invalidatePropertyObservation();
 }
 
 export interface TextureUploadRenderer {

@@ -15,7 +15,10 @@ import type { Renderer } from './renderer';
 /** what the counter needs of a renderer (the game's `Renderer`, or a test's stand-in) */
 export type Renders = Pick<Renderer, 'render'>;
 
-const counts = new WeakMap<Renders, { n: number }>();
+const counts = new WeakMap<object, { n: number }>();
+
+/** Borrow the existing scalar counter without installing another render hook. */
+export function renderCounter(renderer: object): Readonly<{ n: number }> | undefined { return counts.get(renderer); }
 
 /**
  * Start counting this renderer's renders (createRenderer does it for the game's renderer). Idempotent. It wraps
