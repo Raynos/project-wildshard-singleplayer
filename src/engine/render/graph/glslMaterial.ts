@@ -14,7 +14,7 @@
  *   vertex stage (`ClassicGraph.depth`), attached per mesh as three's `customDepthMaterial`.
  */
 import * as THREE from 'three';
-import { graphUsesMeshMap, type GraphBinding, type GraphCost, type GraphLiteral } from '@wildshard/format/materialGraph';
+import { graphUsesMeshMap, type GraphBinding, type GraphCost, type GraphLiteral, type GraphNode } from '@wildshard/format/materialGraph';
 import type { ToonLook } from '../families/toon';
 import { emitClassicGraph, graphShaders, graphUniformValues, syncGraphEnvironment, type ClassicFog, type GraphShaderOptions } from './glslProgram';
 import type { EmitGraphGlslOptions, GraphGlsl } from './glsl';
@@ -32,6 +32,11 @@ function ownValue(value: unknown): unknown {
     || value instanceof THREE.Matrix3 ? value.clone() : value;
 }
 
+/** whether a graph (or a loop body in it) reads the instance colour */
+function readsInstanceColour(nodes: Readonly<Record<string, GraphNode>>): boolean {
+  return Object.values(nodes).some(node => node.op === 'instanceColour' || (node.body !== undefined && readsInstanceColour(node.body.nodes)));
+}
+
 /** the compiled materials that own their graph's shadow depth (their clones share it) */
 const depthOwners = new WeakSet<THREE.Material>();
 
@@ -46,6 +51,10 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
   shadowDepth: GraphShaderMaterial | null = null;
   /** this variant's own copy of `shadowDepth` (its map and cutoff), made at its first cast and freed with it */
   castDepth: GraphShaderMaterial | null = null;
+  /** EP7: the graph reads `instanceColour`. An instanced mesh drawn with no colours gets white ones at its first draw (the
+   *  same pixels: `wsInstanceColour()` is white without them), so it shares the coloured instances' program instead of
+   *  compiling its own (Nine's architecture drew instanced sets and sitters apart from its walkers and plants) */
+  instanceColour = false;
   /** a lit graph's image-based light: the drawn scene's prefiltered environment (`syncGraphEnvironment`), as a node
    *  material reads `scene.environment` */
   envMap: THREE.Texture | null = null;
@@ -94,6 +103,10 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
 
   override onBeforeRender(_renderer: THREE.WebGLRenderer, scene: THREE.Scene, _camera: THREE.Camera, _geometry: THREE.BufferGeometry, object: THREE.Object3D): void {
     this.codec?.draw(this, object);
+    // three picks the program after this hook: the colours are in place for this very draw
+    if (this.instanceColour && object instanceof THREE.InstancedMesh && object.instanceColor === null) {
+      object.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(object.instanceMatrix.count * 3).fill(1), 3);
+    }
     // the environment uniforms are shared with clones: every lit draw writes its own scene's before it uploads
     if (this.lights) syncGraphEnvironment(this, scene);
   }
@@ -115,6 +128,7 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
     try { super.copy(source); } finally { source.uniforms = uniforms; }
     this.codec = source instanceof GraphShaderMaterial && source.codec !== null ? new ClassicCodec() : null;
     this.shadowDepth = source instanceof GraphShaderMaterial ? source.shadowDepth : null;
+    this.instanceColour = source instanceof GraphShaderMaterial && source.instanceColour;
     for (const [name, uniform] of Object.entries(uniforms)) this.uniforms[name] = OWN_UNIFORMS.has(name) ? { value: ownValue(uniform.value) } : uniform;
     return this;
   }
@@ -214,6 +228,7 @@ function shaderMaterial(glsl: GraphGlsl, opts: GraphShaderOptions): GraphShaderM
   const m = new GraphShaderMaterial({ vertexShader: shaders.vertexShader, fragmentShader: shaders.fragmentShader, uniforms: shaders.uniforms, lights: shaders.lights, fog: shaders.fog });
   m.name = outline ? 'graph:outline' : `graph:${ir.kind}`;
   if (readsCodec(shaders.vertexShader)) m.codec = new ClassicCodec();
+  m.instanceColour = readsInstanceColour(ir.nodes);
   m.defaultAttributeValues = attributeDefaults(glsl, m);
   if (ir.kind === 'post') { m.depthTest = false; m.depthWrite = false; return m; }
   if (outline) { m.side = THREE.BackSide; return m; }

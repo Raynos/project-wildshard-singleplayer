@@ -153,3 +153,21 @@ test('a clone never clones a texture: a shared source keeps its version (a compr
   expect(copy.uniforms['wsT_ramp']?.value).toBe(ramp); expect(copy.map).toBe(map); expect(copy.normalMap).toBe(normal);
   copy.normalScale.set(3, 3); expect(compiled.material.normalScale.x).toBe(1);
 });
+
+// EP7: instanced meshes with and without colours drew one graph through two programs; the colourless ones now get white
+// colours at their first draw (white is what the graph reads without them), and share the coloured program
+test('a classic graph reading the instance colour gives a colourless instanced mesh white colours at its first draw', () => {
+  const reads = compileClassicGraph({ version: 1, kind: 'material', model: 'unlit', nodes: { c: { op: 'instanceColour' }, v: { op: 'varying', in: ['c'] } }, stages: { surface: { colour: 'v' } } }).material;
+  const plain = compileClassicGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } }).material;
+  const geometry = new THREE.BoxGeometry(), scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(), renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
+  if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer fixture');
+  const a = new THREE.InstancedMesh(geometry, reads, 3), b = new THREE.InstancedMesh(geometry, plain, 3), c = reads.clone(), d = new THREE.InstancedMesh(geometry, c, 2);
+  try {
+    reads.onBeforeRender(renderer, scene, camera, geometry, a);
+    expect(a.instanceColor?.count).toBe(3); expect([...(a.instanceColor?.array ?? [])].every(v => v === 1)).toBe(true);
+    plain.onBeforeRender(renderer, scene, camera, geometry, b);
+    expect(b.instanceColor).toBe(null);
+    c.onBeforeRender(renderer, scene, camera, geometry, d);
+    expect(d.instanceColor?.count).toBe(2);
+  } finally { geometry.dispose(); reads.dispose(); plain.dispose(); c.dispose(); }
+});
