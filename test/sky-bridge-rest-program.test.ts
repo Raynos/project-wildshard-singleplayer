@@ -9,21 +9,17 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
 import { BRIDGE_REST_FILES, BRIDGE_REST_INPUTS, skyBridgeRestSource, skyBridgeRestProgram } from '../src/shards/far-reach/generators/bridgeRestProgram';
 
-const check = (files: ReadonlyMap<string, Uint8Array>): void => {
+const check = (files: ReadonlyMap<string, Uint8Array>, expected: ReadonlyMap<string, { bytes: number; hash: string }>): void => {
   expect([...files.keys()]).toEqual(BRIDGE_REST_FILES);
   for (const [name, bytes] of files) {
-    if (name === 'bridge-rest.glb') {
-      expect(bytes.byteLength).toBe(2_109_968);
-      expect(hashImmutableBytes(bytes)).toBe('1a31cb2c7b426d9ffb14db4e39792aeb0bde86f6f01d0b1796130a3a0c7d8bf0');
-    }
-    else {
-      expect(bytes.byteLength).toBe(59_699);
-      expect(hashImmutableBytes(bytes)).toBe('ae5faee1125143aa75aa053cfbd418f9899c1b1a9907b617280a97e00c538bb4');
-    }
+    const original = expected.get(name);
+    if (original === undefined) throw new Error('Missing current cold bridge output');
+    expect(bytes.byteLength).toBe(original.bytes);
+    expect(hashImmutableBytes(bytes)).toBe(original.hash);
   }
 };
 
-test('cold and persistent bridge hits preserve every original native geometry and hierarchy byte', async () => {
+test('cold and persistent bridge hits preserve complete current geometry and hierarchy bytes', async () => {
   const scratch = mkdtempSync(resolve('tmp/sky-bridge-rest-program-')), source = resolve(scratch, 'source'), prefix = '/assets/far-reach/';
   let builds = 0;
   const context = (identity = 'a'): Pick<ProjectGenerationContext, 'cached'> => {
@@ -38,15 +34,17 @@ test('cold and persistent bridge hits preserve every original native geometry an
       const path = resolve(source, name.slice(prefix.length)); mkdirSync(dirname(path), { recursive: true });
       writeFileSync(path, readFileSync(`public${name}`));
     }
-    const cold = await skyBridgeRestProgram(context()); check(cold);
+    const cold = await skyBridgeRestProgram(context());
+    const expected = new Map([...cold].map(([name, bytes]) => [name, { bytes: bytes.byteLength, hash: hashImmutableBytes(bytes) }]));
+    check(cold, expected);
     for (const bytes of cold.values()) bytes.fill(0);
-    check(await skyBridgeRestProgram(context())); expect(builds).toBe(1);
+    check(await skyBridgeRestProgram(context()), expected); expect(builds).toBe(1);
     const first = BRIDGE_REST_INPUTS[0]; if (first === undefined) throw new Error('Missing original bridge deck');
     const path = resolve(source, first.slice(prefix.length)), changed = readFileSync(path), label = changed.indexOf('glTF-Transform v4.5.0');
     if (label === -1) throw new Error('Missing original model author label');
     changed[label] = 71; writeFileSync(path, changed);
-    check(await skyBridgeRestProgram(context())); expect(builds).toBe(2);
-    check(await skyBridgeRestProgram(context('b'))); expect(builds).toBe(3);
+    check(await skyBridgeRestProgram(context()), expected); expect(builds).toBe(2);
+    check(await skyBridgeRestProgram(context('b')), expected); expect(builds).toBe(3);
     await expect(skyBridgeRestProgram(createProjectGeneration(resolve('src/shards/far-reach'), 'c'.repeat(64), new Map(), scratch)))
       .rejects.toThrow('Generation input needs exactly one declared root');
   } finally { rmSync(scratch, { recursive: true, force: true }); }
