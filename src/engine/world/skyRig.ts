@@ -1,5 +1,5 @@
 import { PLANET_DIST, SkyBackdropView, cloudLayer, paintedSkyEnvironment } from './skyBackdrop';
-import { cascadeRedraws, idleFrames, stillRedraws } from './shadowCadence';
+import { cascadeRedraws } from './shadowCadence';
 import { ownSceneResource } from '../app/sceneOwnership';
 import { BackdropLayer, applyLayers, layerKeyedSky, seedLayerTargets, type LayeredSkyBackdrop, type LayerEnvironmentOnly } from './backdropLayer';
 import { app } from '../app/runtime';
@@ -25,8 +25,6 @@ import type { LookStrategy, SkyBackdrop, SkyBackdropContext, SkyBackdropFactory,
 import { PATCH_ORDER, hasProgramKey, patchShader, takeForeignHook } from '../render/shaderPatches';
 import { horizonLight } from './Horizon';
 import type { LookupTexture } from 'postprocessing';
-/** FC13: how far a view element may move in a frame and still count as standing still (walking moves ~0.13 m a frame) */
-const STILL_EPSILON = 0.005;
 
 /** the key light's shadow direction steps (E89, as a stepped day / night clock's): ≤ ~1 shadow texel about every 1.5 s */
 const KEY_SHADOW_STEP = 0.25 * Math.PI / 180;
@@ -422,18 +420,6 @@ export class SkyRig {
    */
   private farEveryOther = false;
   private farTick = 0;
-  /** FC13: the view a frame ago, and how many frames it has stood still (Debug ▸ Idle frames) */
-  private readonly lastView = new THREE.Matrix4();
-  private stillFrames = 0;
-  private viewStill(): boolean {
-    const now = this.camera.matrixWorld.elements, was = this.lastView.elements;
-    let moved = false;
-    // the idle breathing sways the view ~0.003 a frame; a held cascade keeps the matrix it was drawn with, so that is still
-    for (let i = 0; i < 16; i++) if (Math.abs((now[i] ?? 0) - (was[i] ?? 0)) > STILL_EPSILON) { moved = true; break; }
-    this.lastView.copy(this.camera.matrixWorld);
-    this.stillFrames = moved ? 0 : this.stillFrames + 1;
-    return this.stillFrames >= 2;
-  }
   private fitNormalBias(): void {
     for (const l of this.csm.lights) {
       const texel = (l.shadow.camera.right - l.shadow.camera.left) / l.shadow.mapSize.x;
@@ -474,8 +460,7 @@ export class SkyRig {
     this.shadowFade?.update(dt); // after the CSM and its bias: each ghost copies its cascade's square
     if (this.farEveryOther) {
       this.farTick = (this.farTick + 1) % 8;
-      const still = this.viewStill() && idleFrames() === 'hold';
-      const redraw = (still ? stillRedraws : cascadeRedraws)(this.farTick, this.csm.lights.length);
+      const redraw = cascadeRedraws(this.farTick, this.csm.lights.length);
       this.csm.lights.forEach((light, i) => { light.shadow.autoUpdate = redraw[i] ?? true; });
     }
     this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;

@@ -1,5 +1,4 @@
 import { graphBatches, setGraphBatches } from '../render/graphBatches';
-import { TIER } from '../core/tier';
 import { authoredRows } from './authoredDebugRows';
 import { engineString } from '../strings';
 /**
@@ -27,7 +26,6 @@ import { settingsReloadUrl } from './Settings';
 import type { DebugRowSpec } from '../level/context';
 import { isDev, onDev } from '../core/devMode';
 import { setTileResidency, tileResidency, TILE_RESIDENCY, setRoadResidency, roadResidency, ROAD_RESIDENCY } from './tileResidency';
-import { IDLE_FRAMES, idleFrames, setIdleFrames } from '../world/shadowCadence';
 import { POSE_RATES, poseRate, setPoseRate } from '../entities/poseCadence';
 
 /** what "applies" reads: the shard you are in and the weapons you hold (re-read every time the menu opens) */
@@ -163,12 +161,6 @@ const roadResidencyRow: DebugRow = { purpose: 'developer', id: 'roadResidency', 
   get: () => roadResidency(), set: value => { const pick = ROAD_RESIDENCY.find(choice => choice === value); if (pick !== undefined && isDev()) setRoadResidency(pick); },
   on: () => undefined, reload: true, when: always, note: engineString('s_road_residency_note'), ask: 'E435', reviewBy: '2026-10-28' };
 
-/** FC13 (G912): idle-frame reuse, default off until a phone reading backs it; the winner ships and this goes. */
-const idleFramesRow: DebugRow = { purpose: 'developer', id: 'idleFrames', group: 'perf', label: engineString('s_idle_frames'),
-  choices: () => [{ v: 'off', text: engineString('s_ca7981b46ecf') }, { v: 'hold', text: engineString('s_idle_frames_hold') }],
-  get: () => idleFrames(), set: value => { const pick = IDLE_FRAMES.find(choice => choice === value); if (pick !== undefined && isDev()) setIdleFrames(pick); },
-  on: () => undefined, reload: false, when: () => TIER === 'phone', note: engineString('s_idle_frames_note'), ask: 'E435', reviewBy: '2026-11-12' };
-
 /** PF1 (G936): graph looks on batched draws, A batched (default) / B instanced (the E271 / E272 path, a fallback until
  *  the phone QA); a reload. */
 const graphBatchesRow: DebugRow = { purpose: 'developer', id: 'graphBatches', group: 'perf', label: engineString('s_graph_batches'),
@@ -195,7 +187,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Performance ──
   tileResidencyRow,
   roadResidencyRow,
-  idleFramesRow,
   graphBatchesRow,
 
   // ── Loading & memory ──
