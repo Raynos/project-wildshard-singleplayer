@@ -9455,7 +9455,16 @@ sound banks remain unchanged.
 Pine's bow, bolt and cycling firearm and Driftwood's swept kit use this entry.
 The existing `RangedAction`, `BowDraw`, projectile/contact and swept-melee laws
 retain their clocks and each item's existing continuation id and payload.
-`launcher` admits a bolt slot, ADS/pitch and fire/reload. The loadout gates action; ammo and flags stay native-owned.
+`launcher` keeps native bolt/loadout authority.
+
+**Native verb tapes (CI12).** `@wildshard/sdk/headlessTape` defines finite
+segments of repeated tick commands and optional real waypoint routes.
+`HeadlessSimulation.verbTape` is terminal and trusted-offline only. It
+returns actual flags, effects, positions/peak height and named adapter
+observations, never a continuation or author-supplied assertions. Total
+work is capped at 60,000 ticks and 8 MB of observations. Normal command
+allowances, owner retirement and the independent 30 s request watchdog
+remain in force; runtime sessions cannot select this offline operation.
 
 The SDK owns one mutable `NativeCombatFrame` per native resident and refills it
 at `lend()`: all attacks in tape order, first ranged heavy hold, last melee and

@@ -1,12 +1,14 @@
+import type {HeadlessTapePlan,HeadlessTapeReport} from './headlessTape';
 import { HeadlessJourneyReportSchema, type HeadlessJourneyPlan, type HeadlessJourneyReport } from './headlessJourney';
 // oxlint-disable-next-line import/no-nodejs-modules -- The isolated simulation communicates through the Node worker boundary.
 import { parentPort, workerData } from 'node:worker_threads';
 // oxlint-disable-next-line import/no-nodejs-modules -- Parent and worker use the same monotonic clock for a preemptible wall deadline.
 import { hrtime } from 'node:process';
 import * as v from 'valibot';
-import { WorkerRequestSchema, TickCommitSchema, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommand, type HeadlessTickCommit } from './tickProtocol';
+import { WorkerRequestSchema, TickCommitSchema, HeadlessTapeReportSchema, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommand, type HeadlessTickCommit } from './tickProtocol';
 
 export interface TickWorkerAdapter {
+  verbTape?:(plan:HeadlessTapePlan)=>HeadlessTapeReport;
   journey?: (plan:HeadlessJourneyPlan)=>HeadlessJourneyReport;
   step: (commands: readonly HeadlessCommand[]) => void;
   commit: () => HeadlessTickCommit;
@@ -29,6 +31,12 @@ export async function runTickWorker(create: (payload: unknown) => Promise<TickWo
   const handle = async (raw: unknown): Promise<void> => {
     try {
       const request = v.parse(WorkerRequestSchema, raw);
+      if(request.kind==='verbTape'){
+        if(envelope.enforceTickDeadline)throw new Error('Verb tape requires trusted offline timing');
+        for(const segment of request.plan.segments)if(segment.commands.length+(segment.route===undefined?0:1)>envelope.commandsPerTick)throw new Error('Aggregate commandsPerTick exceeded');
+        if(adapter.verbTape===undefined)throw new Error('Missing native verb tape capability');
+        port.postMessage({verbTape:v.parse(HeadlessTapeReportSchema,adapter.verbTape(request.plan))});return;
+      }
       if(request.kind==='journey'||request.kind==='walk'){
         if(envelope.enforceTickDeadline)throw new Error('Journey requires trusted offline timing');
         if(envelope.commandsPerTick<1)throw new Error('Journey needs one player command per tick');

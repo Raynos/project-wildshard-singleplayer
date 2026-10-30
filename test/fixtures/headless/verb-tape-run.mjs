@@ -1,0 +1,39 @@
+import assert from 'node:assert/strict';
+import {HeadlessSimulation} from '../../../src/sdk/headless.ts';
+import {emptyShardfile} from '../../../src/sdk/author.ts';
+import {decodeSimSnapshotBytes} from '../../../src/engine/sim/snapshot.ts';
+const source=emptyShardfile({slug:'verb-tape-fixture',name:'Verb tape',author:'Test',revision:1,seed:435});
+source.serverBudget.commandsPerTick=1;
+const input={kind:'player',moveX:.2,moveZ:0,yaw:0};
+const plan={version:1,observe:[],segments:[{id:'walk',ticks:12,commands:[input]},{id:'release',ticks:60,commands:[]}]};
+const sim=await HeadlessSimulation.create(source,new Map(),undefined,{deadline:'advisory'});
+const control=await HeadlessSimulation.create(source,new Map(),undefined,{deadline:'advisory'});
+try {
+  const initial=sim.checkpoint;
+  await assert.rejects(sim.verbTape({...plan,segments:[{id:'overflow',ticks:1,commands:[input],route:[{x:0,z:0},{x:2,z:0}]}]}),/Aggregate/);
+  assert.deepEqual(sim.checkpoint,initial,'generated route input shares the ordinary command allowance');
+  await assert.rejects(sim.verbTape({...plan,segments:[{id:'too-many',ticks:60_001,commands:[]}]}));
+  assert.deepEqual(sim.checkpoint,initial,'invalid tape must retain the real continuation');
+  let last=decodeSimSnapshotBytes(control.checkpoint.snapshot);
+  for(let tick=0;tick<72;tick++)last=decodeSimSnapshotBytes((await control.step([{source:'control',commands:tick<12?[input]:[]}])).snapshot);
+  const report=await sim.verbTape(plan);
+  assert.equal(report.ticks,72);assert.deepEqual(report.observations.map(row=>row.tick),[12,72]);
+  assert.deepEqual(report.observations.at(-1).position,last.player.position,'batch must use exactly the normal native ticks');
+  assert.equal(report.observations.at(-1).grounded,last.player.motor.result.grounded);
+  assert.deepEqual(sim.checkpoint,initial,'terminal observations cannot become a resumable checkpoint');
+  assert.equal(sim.quarantined,false);
+  await assert.rejects(sim.step(),/validation finished/);
+  await assert.rejects(sim.verbTape(plan),/already finished/);
+}finally{await sim.dispose();await control.dispose();}
+const runtime=await HeadlessSimulation.create(source,new Map());
+try {
+  await assert.rejects(runtime.verbTape(plan),/trusted offline timing/);
+  assert.equal(runtime.checkpoint.tick,0);await runtime.step();
+}finally{await runtime.dispose();}
+const failed=await HeadlessSimulation.create(source,new Map(),undefined,{deadline:'advisory'});
+try {
+  const before=failed.checkpoint;
+  await assert.rejects(failed.verbTape({...plan,observe:['undeclared.owner']}),/Missing tape observation owner/);
+  assert.equal(failed.quarantined,true);assert.deepEqual(failed.checkpoint,before);
+}finally{await failed.dispose();}
+console.log('native verb tape parity, terminal ownership and runtime refusal pass');

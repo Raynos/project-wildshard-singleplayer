@@ -1,3 +1,4 @@
+import {runTrustedHeadlessTape} from '../../src/sdk/headlessTape';
 import { installNativeWalkBounds } from './headless/nativeBounds';
 import { installWalkRopeBodies } from './headless/ropeBodies';
 import { runHeadlessJourney } from '../../src/sdk/headlessJourney';
@@ -89,6 +90,7 @@ export async function createNativeProofAdapter(preparation: HeadlessRuntimeInput
   let retireWalkBodies=()=>{},walkPrepared=false;
   return {
     step: input => { resident.step(input); },
+    verbTape:plan=>runTrustedHeadlessTape(host,input=>resident.step(input),()=>resident.effects,plan),
     journey: plan => { if(plan.start!==undefined&&!walkPrepared){retireWalkBodies=installWalkRopeBodies(host,preparation.product);installNativeWalkBounds(host);walkPrepared=true;}return runHeadlessJourney(host,input=>resident.step(input),plan); },
     commit: () => ({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(host)), effects: [...resident.effects] }),
     finish: () => ({ ticks: host.state.tick, lanes: 0, steps: 0 }),

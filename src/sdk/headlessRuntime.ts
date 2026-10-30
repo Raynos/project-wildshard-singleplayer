@@ -1,3 +1,4 @@
+import {runTrustedHeadlessTape} from './headlessTape';
 import * as v from 'valibot';
 import { runHeadlessJourney } from './headlessJourney';
 import { registerNativeQuestInputs } from '@wildshard/game/quest/nativeInputs';
@@ -199,6 +200,7 @@ export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeI
   const resident = await createTrustedHeadlessResident(preparation, snapshot), { host } = resident;
   return {
     step: input => { resident.step(input); },
+    verbTape:plan=>runTrustedHeadlessTape(host,input=>resident.step(input),()=>resident.effects,plan),
     journey: plan => runHeadlessJourney(host,input=>resident.step(input),plan),
     commit: () => ({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(host)), effects: [...resident.effects] }),
     finish: () => ({ ticks: host.state.tick, lanes: 0, steps: 0 }),

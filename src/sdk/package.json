@@ -84,6 +84,7 @@
     "./admission": "./admission.ts",
     "./headless": "./headless.ts",
     "./headlessJourney": "./headlessJourney.ts",
+    "./headlessTape": "./headlessTape.ts",
     "./headlessRuntime": "./headlessRuntime.ts",
     "./commons": "./commons.ts",
     "./commonsCosts": "./commonsCosts.ts",
@@ -434,6 +435,10 @@
       "./headlessJourney": {
         "types": "./dist/types/sdk/headlessJourney.d.ts",
         "default": "./dist/headlessJourney.js"
+      },
+      "./headlessTape": {
+        "types": "./dist/types/sdk/headlessTape.d.ts",
+        "default": "./dist/headlessTape.js"
       },
       "./headlessRuntime": {
         "types": "./dist/types/sdk/headlessRuntime.d.ts",

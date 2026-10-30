@@ -1,3 +1,4 @@
+import {headlessTapePlanSchema,headlessTapeReportSchema,type HeadlessTapePlan,type HeadlessTapeReport} from './headlessTape';
 import { HeadlessJourneyPlanSchema, type HeadlessJourneyPlan } from './headlessJourney';
 import { DecisionPublicationSchema, type DecisionPublication } from '@wildshard/format/decisionPublication';
 import type { SimCommand } from '@wildshard/engine/sim';
@@ -49,6 +50,9 @@ export const TickEffectSchema: v.GenericSchema<BoundedTickEffectInput, BoundedTi
 ]);
 /** Only completed, in-budget ticks can expose these durable quest requests to the parent. */
 export type HeadlessEffect = v.InferOutput<typeof TickEffectSchema>;
+/** One canonical bounded native tape codec, composed with actual tick/effect authority. */
+export const HeadlessTapePlanSchema:v.GenericSchema<HeadlessTapePlan>=headlessTapePlanSchema(TickCommandSchema);
+export const HeadlessTapeReportSchema:v.GenericSchema<HeadlessTapeReport>=headlessTapeReportSchema(TickEffectSchema);
 /** Validated tick result carrying its continuation, effects and optional script cost observations. */
 export const TickCommitSchema: v.GenericSchema<BoundedTickCommitInput, BoundedTickCommit> = v.strictObject({ tick: natural, snapshot: v.pipe(v.string(), v.maxLength(32_000_000)), effects: v.pipe(v.array(TickEffectSchema), v.maxLength(1024)), fuelUsed: v.exactOptional(natural), scriptMicros: v.exactOptional(v.pipe(finite, v.minValue(0))), decisions: v.exactOptional(DecisionPublicationSchema) });
 /** Complete same-engine continuation and effects from one atomically committed worker tick. */
@@ -77,6 +81,7 @@ export const WorkerRequestSchema: v.GenericSchema<BoundedWorkerRequestInput, Bou
   v.strictObject({ kind: v.literal('finish') }),
   v.strictObject({ kind: v.literal('journey'), plan: HeadlessJourneyPlanSchema }),
   v.strictObject({ kind: v.literal('walk'), plan: HeadlessJourneyPlanSchema }),
+  v.strictObject({kind:v.literal('verbTape'),plan:HeadlessTapePlanSchema}),
   v.strictObject({ kind: v.literal('authorProof'), plan: AuthorProofPlanSchema }),
 ]);
 /** Validate and copy ordered source batches against one aggregate per-tick command allowance. */
@@ -200,4 +205,5 @@ type BoundedAuthorProofReport = { [Key in keyof BoundedAuthorProofReportFields]:
 type BoundedWorkerRequestInput = BoundedWorkerRequest;
 type BoundedWorkerRequest = {kind:'walk';plan:HeadlessJourneyPlan} | {kind:'journey';plan:HeadlessJourneyPlan}
   | {kind:'step';commands:BoundedTickCommand[]}
+  | {kind:'verbTape';plan:HeadlessTapePlan}
   | {kind:'finish'} | {kind:'authorProof';plan:BoundedAuthorProofPlan};

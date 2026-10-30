@@ -1,3 +1,4 @@
+import {runTrustedHeadlessTape} from '../headlessTape';
 import { runHeadlessJourney } from '../headlessJourney';
 import { proveShardfileEntries } from '@wildshard/game/bake/entryways';
 import { createTrustedHeadlessAdapter } from '../headlessRuntime';
@@ -78,6 +79,7 @@ await runTickWorker(async raw => {
   };
   return {
     step,
+    verbTape:plan=>runTrustedHeadlessTape(sim.host,step,()=>effects,plan),
     journey: plan=>runHeadlessJourney(sim.host,step,plan),
     commit: () => {
       const script = sim.lane?.host.checkpoint();

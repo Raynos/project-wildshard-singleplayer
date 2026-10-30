@@ -8,7 +8,7 @@ import {builtProduct} from '../builtProduct';
 import {createNativeProofWorker} from '../headless-worker';
 
 /** The same checked products and fixed native adapters as the main integration journey. */
-export async function openProductSession(slug:string):Promise<{sim:Pick<HeadlessSimulation,'journey'|'walkLeg'|'step'|'dispose'|'quarantined'>;product:Awaited<ReturnType<typeof loadHeadlessProduct>>}> {
+export async function openProductSession(slug:string):Promise<{sim:Pick<HeadlessSimulation,'verbTape'|journey'|'walkLeg'|'step'|'dispose'|'quarantined'>;product:Awaited<ReturnType<typeof loadHeadlessProduct>>}> {
   const directory=builtProduct(slug),product=await loadHeadlessProduct(directory),source=product.shardfile;
   const descriptor=outputDescriptor(source);if(descriptor===undefined)throw new Error('Missing admitted headless inventory');
   const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,
