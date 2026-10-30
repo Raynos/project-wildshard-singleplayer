@@ -77,6 +77,9 @@ export interface HarnessPins {
   /** G717 A, measurement only until it ships: the phone tier's initial entry settles its first frames' programs under the
    *  loader (game/session/settlePrograms.ts) */
   entrySettle?: true;
+  /** NT4 / EP12, measurement only: every refined coarse cover draws in full (its fine tiles' quadrant mask lifted), read
+   *  each frame, so a capture can compare the far level with the fine one at the same pose */
+  coarseLevel?: 'forced';
 }
 export type ProbeWorld = World & {
   animals: AnimalManager; weapons: EquipmentService; hud: HUD; audio: Audio; music: Music; arena: TrainingArena | null;

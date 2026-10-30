@@ -1,5 +1,6 @@
 import { Group } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
+import { harnessPins } from '@wildshard/engine/app/identity';
 import type { ShardContext } from '../plugin/context';
 import { clientTileViews } from './clientViews';
 import { prepareClientTile, ring, type ResidentTile, type TileContent } from './tileContent';
@@ -51,9 +52,11 @@ export function wholeRefinementCover(ctx: ShardContext, owner: Scope, entry: { r
     for (const key of order) if (!spawn.has(key)) await load(key);
     ctx.system({ id: 'client.world.refinement-mask', phase: 'update', run: () => {
       if (scope.disposed || scope.disposing) return;
+      // measurement only: a capture's pin lifts the mask, so the coarse cover draws over its fine tiles
+      const forced = harnessPins()?.coarseLevel === 'forced';
       for (const [key, tiles] of masks) {
         const x = key % 4 * 2, z = Math.floor(key / 4) * 2, hidden = new Set<number>();
-        for (let quadrant = 0; quadrant < 4; quadrant++) if (rendered((z + Math.floor(quadrant / 2)) * 8 + x + quadrant % 2)) hidden.add(quadrant);
+        for (let quadrant = 0; quadrant < 4; quadrant++) if (!forced && rendered((z + Math.floor(quadrant / 2)) * 8 + x + quadrant % 2)) hidden.add(quadrant);
         for (const tile of tiles) tile.mask(hidden);
       }
     } });
