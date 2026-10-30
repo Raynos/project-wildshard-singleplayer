@@ -1918,7 +1918,6 @@
  "test/sky-signal-quest-product.test.ts": 0.0,
  "test/sky-static-placement-inputs.test.ts": 7,
  "test/sky-storm-noise.test.ts": 0.2,
- "test/sky-storm-output.test.ts": 0,
  "test/sky-sward-atlas-program.test.ts": 2.5,
  "test/sky-texture-binary.test.ts": 0,
  "test/sky-tile-ownership.test.ts": 0.8,
