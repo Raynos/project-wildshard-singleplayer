@@ -181,6 +181,7 @@ export class SimHost {
   physics: Physics;
   readonly player: { id: string; position: Vector3; yaw: number; health: PlayerHealth; motor: CharacterMotor };
   private playerDriver: SimPlayerDriver | undefined;
+  private walkingControl: SimWalkingControl | undefined;
   private playerMotionObserver: { receive: (sample: SimPlayerMotionSample | null) => void; sample: { velocityX: number; velocityZ: number; grounded: boolean; swimming: boolean; hover: boolean } } | undefined;
   private readonly callbacks = new Map<string, (dt: number, host: SimHost) => void>();
   private readonly afterCallbacks = new Map<string, (dt: number, host: SimHost) => void>();
@@ -428,6 +429,19 @@ export class SimHost {
       if (!installed) return;
       installed = false; forget();
       if (this.playerDriver === driver) this.playerDriver = undefined;
+    };
+    forget = this.scope.capture('disposers', remove); return remove;
+  }
+  /** Bind one scoped on-foot law without replacing the native riding/input
+   * driver. A delegated mode still owns motion; borrowed hosts refuse. */
+  useWalkingControl(control: SimWalkingControl): () => void {
+    if (this.disposed || this.embedded || !this.ownsPlayer || !this.hasPlayerMotor || this.walkingControl !== undefined) throw new Error('Walking control belongs to one owned active host');
+    this.walkingControl = control;
+    let installed = true, forget: () => void = () => undefined;
+    const remove = (): void => {
+      if (!installed) return;
+      installed = false; forget();
+      if (this.walkingControl === control) this.walkingControl = undefined;
     };
     forget = this.scope.capture('disposers', remove); return remove;
   }
@@ -779,7 +793,7 @@ export class SimHost {
     const driver = this.modeDriver ?? this.playerDriver, delegated = driver?.input(command, FIXED_STEP, this) === true;
     const observeMotion = this.playerMotionObserver;
     if (observeMotion !== undefined) { observeMotion.sample.velocityX = 0; observeMotion.sample.velocityZ = 0; }
-    const walking = delegated ? undefined : driver?.walking;
+    const walking = delegated ? undefined : this.walkingControl ?? driver?.walking;
     if (walking !== undefined && (!Number.isFinite(walking.speed) || walking.speed < 0 || typeof walking.crouching !== 'boolean')) throw new RangeError('Invalid walking control');
     if (walking?.clientMotion !== undefined && ![walking.clientMotion.x, walking.clientMotion.z].every(Number.isFinite)) throw new RangeError('Invalid client walking velocity');
     // the HOVER press lands in the ordinary input phase; an active alternative driver owns its own motion switches

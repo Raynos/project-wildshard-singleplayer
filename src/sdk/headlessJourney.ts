@@ -101,7 +101,7 @@ export function runHeadlessJourney(host:SimHost,step:(commands:readonly Headless
   };
   const preparationTicks=plan.start===undefined?0:36;
   const walking={speed:walkingSpeed(false,false,0,1,1),crouching:false,clientMotion:{x:0,z:0}};
-  const releaseWalk=host.usePlayerDriver({walking,input:()=>false,step:()=>undefined});
+  const releaseWalk=host.useWalkingControl(walking);
   try {
   if(plan.start!==undefined){
     const start=plan.start,p=host.player.position,ground=host.groundHeightAt(start.x,start.z);

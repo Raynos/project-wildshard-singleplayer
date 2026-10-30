@@ -41,7 +41,25 @@ test('a failed route releases its temporary page motion before a later driver bi
   const sim=createShardfileSim(emptyShardfile({slug:'walk-release',name:'Walk release',author:'Test',revision:1,seed:1}),new Map(),{rapier});
   try{
     expect(()=>runHeadlessJourney(sim.host,()=>{throw new Error('Native step refused');},{ticks:1,points:[{x:0,z:0},{x:10,z:0}]})).toThrow('Native step refused');
-    const release=sim.host.usePlayerDriver({input:()=>false,step:()=>undefined});
+    const release=sim.host.useWalkingControl({speed:4.3,crouching:false});
     release();
+  }finally{sim.dispose();}
+});
+
+test('route walking preserves the existing native driver and delegated motion authority',async()=>{
+  const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const sim=createShardfileSim(emptyShardfile({slug:'walk-driver',name:'Walk driver',author:'Test',revision:1,seed:1}),new Map(),{rapier});
+  try{
+    const {host}=sim;let delegated=false,inputs=0,steps=0;
+    const driver={input:()=>{inputs++;return delegated;},step:()=>{steps++;}};
+    const remove=host.usePlayerDriver(driver),clientMotion={x:0,z:0};
+    const release=host.useWalkingControl({speed:4.3,crouching:false,clientMotion});
+    expect(()=>host.usePlayerDriver(driver)).toThrow('Player driver belongs');
+    expect(()=>host.useWalkingControl({speed:4.3,crouching:false})).toThrow('Walking control belongs');
+    host.step({moveX:1,moveZ:0,yaw:0});expect(inputs).toBe(1);expect(steps).toBe(0);expect(clientMotion.x).toBeGreaterThan(0);
+    const velocity=clientMotion.x;delegated=true;
+    host.step({moveX:1,moveZ:0,yaw:0});expect(inputs).toBe(2);expect(steps).toBe(1);expect(clientMotion.x).toBe(velocity);
+    release();remove();
+    const retry=host.useWalkingControl({speed:4.3,crouching:false});retry();
   }finally{sim.dispose();}
 });
