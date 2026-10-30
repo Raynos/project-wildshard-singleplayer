@@ -4,6 +4,7 @@ import type { Scope } from '../app/scope';
 import type { AssetService } from '../app/assets';
 import { shaderPatchTextures } from './shaderPatches';
 import { renderCount, type Renders } from './frameCounter';
+import { drawHooks, propertyHooks } from './drawHooks';
 
 function eventMethod(resource: object, method: 'addEventListener' | 'removeEventListener', listener: () => void): void {
   const fn: unknown = Reflect.get(resource, method);
@@ -86,6 +87,9 @@ export class UploadOwnership {
   // Tokens preserve identity; neither a token nor a weak key retains its Scope.
   private readonly ownerIds = new WeakMap<Scope, symbol>();
   private readonly observedIn = new WeakMap<object, { render: number; owner: symbol | null }>();
+  /** Stable lifetime authority is independent of the per-render residency pulse.
+   * Tokens retain neither the resource's owner nor its last consuming scope. */
+  private readonly settledIn = new WeakMap<Resource, { consumer: symbol | null; owner: symbol | null; acquired: boolean }>();
   constructor(level: Scope, assets: AssetService) { this.level = level; this.assets = assets; }
   /** A snapshot of the live uploads (owned, and the unowned ones not yet collected). */
   resources(): ReadonlySet<object> {
@@ -121,7 +125,7 @@ export class UploadOwnership {
     if (this.level.disposed || !isResource(value)) return;
     const resource = value;
     if (this.drawDepth > 0) {
-      const owner = this.ownerId(this.drawOwner);
+      const owner = this.drawOwnerId ?? null;
       const seen = this.observedIn.get(resource);
       if (seen === undefined) this.observedIn.set(resource, { render: this.drawGen, owner });
       else if (seen.render === this.drawGen && seen.owner === owner) return;
@@ -129,6 +133,14 @@ export class UploadOwnership {
     }
     const acquired = this.assets.isAcquired(resource);
     const consumer = this.drawOwner ?? (this.drawDepth > 0 ? this.level : this.hints.get(resource)?.deref() ?? null);
+    const previousOwner = sceneResourceOwner(resource), settled = this.settledIn.get(resource);
+    if (this.drawDepth > 0 && settled !== undefined && settled.consumer === this.drawOwnerId && settled.acquired === acquired
+      && settled.owner === this.ownerId(previousOwner) && (previousOwner === null || !previousOwner.disposed)) {
+      // Lifetime ownership/acquisition is already installed. Residency still
+      // observes the first use in EVERY render, preserving eviction authority.
+      this.assets.observeResidency(resource, acquired ? consumer ?? previousOwner : previousOwner ?? this.drawOwner);
+      return;
+    }
     if (acquired && consumer !== null) this.retainAsset(resource, consumer);
     // Uniform samplers and lazily allocated targets need not be reachable from the material's public properties.
     // Their actual draw still identifies the subtree owner, even if an asynchronous build uploaded them earlier.
@@ -155,6 +167,11 @@ export class UploadOwnership {
     this.assets.observeResidency(resource, acquired ? consumer ?? owner : owner ?? this.drawOwner);
     if (owner !== null || acquired) this.hold(resource);
     else this.holdWeakly(resource);
+    if (this.drawDepth > 0 && (owner !== null || acquired)) {
+      const authority = this.ownerId(owner), using = this.drawOwnerId ?? null;
+      if (settled === undefined) this.settledIn.set(resource, { consumer: using, owner: authority, acquired });
+      else { settled.consumer = using; settled.owner = authority; settled.acquired = acquired; }
+    }
   }
   /** A sampler binding is a real cache consumer, including page meshes outside delegated cell roots. */
   private retainAsset(resource: Resource, owner: Scope): void {
@@ -205,6 +222,7 @@ export class UploadOwnership {
     const released = (): void => {
       this.releasing.add(resource); queueMicrotask(() => { this.releasing.delete(resource); });
       this.observedIn.delete(resource); // a re-upload later in the same render is observed again
+      this.settledIn.delete(resource);
       this.retire(resource);
       eventMethod(resource, 'removeEventListener', released); forget();
       // Three deletes colour attachments with their target but does not dispatch their dispose events. Those events
@@ -252,22 +270,26 @@ export class UploadOwnership {
     });
   }
   attach(renderer: ObservedRenderer): void {
-    const get = renderer.properties.get.bind(renderer.properties);
-    renderer.properties.get = (object) => {
+    propertyHooks(renderer).ownership = (object) => {
       // a lookup outside any draw while the resource's dispose is dispatched is three's own teardown, not an upload
       if (this.drawOwner !== null || !(isResource(object) && this.releasing.has(object))) this.observe(object);
-      return get(object);
     };
-    const draw = renderer.renderBufferDirect.bind(renderer), counted = renders(renderer) ? renderer : null;
-    renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
-      const prior = this.drawOwner, priorId = this.drawOwnerId, priorGen = this.drawGen; this.drawOwner = sceneObjectOwner(object);
-      this.drawOwnerId = this.ownerId(this.drawOwner);
-      this.drawDepth++; this.drawGen = counted === null ? ++this.drawGens : renderCount(counted);
-      try {
+    const counted = renders(renderer) ? renderer : null;
+    // Reuse one slot per nested draw, clearing the Scope as soon as it returns.
+    const owners: (Scope | null)[] = [], ids: (symbol | null | undefined)[] = [], generations: number[] = [];
+    drawHooks(renderer).ownership = {
+      begin: (_camera, _scene, geometry, material, object) => {
+        owners[this.drawDepth] = this.drawOwner; ids[this.drawDepth] = this.drawOwnerId; generations[this.drawDepth] = this.drawGen;
+        this.drawOwner = sceneObjectOwner(object); this.drawOwnerId = this.ownerId(this.drawOwner);
+        this.drawDepth++; this.drawGen = counted === null ? ++this.drawGens : renderCount(counted);
         // A batch must claim its private aggregate geometry/textures before renderer property reads observe them.
-        this.observe(object); this.observe(geometry); this.observe(material);
-        draw(camera, scene, geometry, material, object, group);
-      } finally { this.drawDepth--; this.drawOwner = prior; this.drawOwnerId = priorId; this.drawGen = priorGen; }
+        if (object instanceof InstancedMesh || object instanceof BatchedMesh) this.observe(object);
+        this.observe(geometry); this.observe(material);
+      },
+      end: () => {
+        this.drawDepth--; this.drawOwner = owners[this.drawDepth] ?? null; this.drawOwnerId = ids[this.drawDepth];
+        this.drawGen = generations[this.drawDepth] ?? 0; owners[this.drawDepth] = null;
+      },
     };
     // Test doubles carry only the draw path.
     if (renderer.compile !== undefined) {

@@ -1,6 +1,7 @@
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import type { Renderer } from './renderer';
 import { assertCompressedMipmapsUnchanged, finalizeCompressedMipmaps, immutableCompressedMipmaps } from './compressedMipmaps';
+import { drawHooks, propertyHooks } from './drawHooks';
 
 type DrawTarget = Pick<Renderer, 'properties' | 'renderBufferDirect'>;
 const installed = new WeakMap<DrawTarget, WeakSet<THREE.Texture>>();
@@ -20,40 +21,18 @@ export function installCompressedTextureRetirement(renderer: DrawTarget): WeakSe
 // after that first real draw succeeds. No source walk or second frame scheduler.
 function observeDraws(renderer: DrawTarget, final: WeakSet<THREE.Texture>): void {
   const get = renderer.properties.get.bind(renderer.properties);
-  const draw = renderer.renderBufferDirect.bind(renderer);
   const bound = new Set<THREE.Texture>();
   const retired = new WeakMap<THREE.Texture, unknown>();
   allocations.add(retired);
   /** the draw each texture was last checked in: a draw asks for a bound texture's properties several times, and the
    *  retirement checks (its sampler fields, its allocation) need one look a draw (G639); outside a draw, every time */
   const checked = new WeakMap<THREE.Texture, number>();
-  let depth = 0, drawGen = 0;
-  renderer.properties.get = object => {
-    if (object instanceof THREE.CompressedTexture) {
-      // three's own lookup, once: it returns the same properties object every time (G639: a draw asks several times)
-      if (depth > 0 && checked.get(object) === drawGen) { const properties: unknown = get(object); if (final.has(object) || immutableCompressedMipmaps(object)) bound.add(object); return properties; }
-      if (depth > 0) checked.set(object, drawGen);
-      assertCompressedMipmapsUnchanged(object);
-      const native = retired.get(object);
-      const properties: unknown = get(object);
-      if (native !== undefined && (typeof properties !== 'object' || properties === null || Reflect.get(properties, '__webglTexture') !== native)) {
-        throw new Error(`Compressed texture ${object.name || object.id} lost its allocation after mip retirement`);
-      }
-      if (depth > 0 && (final.has(object) || immutableCompressedMipmaps(object))) bound.add(object);
-      return properties;
-    }
-    return get(object);
-  };
-  renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
-    if (depth === 0) drawGen++;
-    depth++; let complete = false;
-    try { draw(camera, scene, geometry, material, object, group); complete = true; }
-    finally {
-      depth--;
+  const hooks = drawHooks(renderer);
+  const finish = (complete: boolean): void => {
       // Empty Set.clear() still replaces V8's backing table. Most draws have
       // no pending compressed input after first-draw retirement; keep that
       // empty storage instead of allocating a table for every ordinary draw.
-      if (depth === 0 && bound.size > 0) {
+      if (bound.size > 0) {
         if (complete) for (const texture of bound) {
           const properties: unknown = get(texture);
           // A direct immutable draw has no earlier loader readiness fence. Retain
@@ -69,7 +48,25 @@ function observeDraws(renderer: DrawTarget, final: WeakSet<THREE.Texture>): void
         }
         bound.clear();
       }
-    }
   };
+  propertyHooks(renderer).compressed = {
+    before: object => {
+      if (hooks.depth > 0 && checked.get(object) === hooks.generation) return;
+      assertCompressedMipmapsUnchanged(object);
+    },
+    after: (object, properties) => {
+      if (hooks.depth > 0 && checked.get(object) === hooks.generation) {
+        if (final.has(object) || immutableCompressedMipmaps(object)) { bound.add(object); hooks.retire = finish; }
+        return;
+      }
+      if (hooks.depth > 0) checked.set(object, hooks.generation);
+      const native = retired.get(object);
+      if (native !== undefined && (typeof properties !== 'object' || properties === null || Reflect.get(properties, '__webglTexture') !== native)) {
+        throw new Error(`Compressed texture ${object.name || object.id} lost its allocation after mip retirement`);
+      }
+      if (hooks.depth > 0 && (final.has(object) || immutableCompressedMipmaps(object))) { bound.add(object); hooks.retire = finish; }
+    },
+  };
+
 }
 

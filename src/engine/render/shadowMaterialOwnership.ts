@@ -4,6 +4,7 @@ import type { AssetService } from '../app/assets';
 import type { Scope } from '../app/scope';
 import { admitObjectDraw } from './drawGuards';
 import { instancedMaterial } from './instancedTwin';
+import { drawHooks } from './drawHooks';
 
 type ShadowRenderer = Pick<Renderer, 'renderBufferDirect'> & { shadowMap: Pick<Renderer['shadowMap'], 'render'> };
 
@@ -66,9 +67,9 @@ export function installShadowMaterialOwnership(renderer: ShadowRenderer, assets:
     }
     return kind;
   };
-  const draw = renderer.renderBufferDirect.bind(renderer), shadows = renderer.shadowMap.render.bind(renderer.shadowMap);
-  renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
-    if (!admitObjectDraw(camera, scene, geometry, material, object, group)) return;
+  const shadows = renderer.shadowMap.render.bind(renderer.shadowMap);
+  drawHooks(renderer).material = (camera, scene, geometry, material, object, group) => {
+    if (!admitObjectDraw(camera, scene, geometry, material, object, group)) return null;
     if (drawing && (material instanceof MeshDepthMaterial || material instanceof MeshDistanceMaterial) &&
       // asked by resource, not by key: a key string per shadow draw was garbage on every frame
       material !== object.customDepthMaterial && material !== object.customDistanceMaterial && !assets.isAcquired(material)) {
@@ -83,7 +84,7 @@ export function installShadowMaterialOwnership(renderer: ShadowRenderer, assets:
     }
     // js-heap H1: a main-pass instanced draw of a classic material wears its twin, so the material keeps one program per
     // variant whatever plain objects also draw it (`instancedTwin.ts`)
-    draw(camera, scene, geometry, !drawing && object instanceof InstancedMesh ? instancedMaterial(material) : material, object, group);
+    return !drawing && object instanceof InstancedMesh ? instancedMaterial(material) : material;
   };
   renderer.shadowMap.render = (lights, scene, camera) => {
     const previous = drawing; drawing = true;

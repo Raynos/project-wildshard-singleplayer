@@ -56,7 +56,6 @@ import { shaderPatchProgramKey, shaderPatchSet, shaderPatchSceneShape } from '..
 import { fogPatches, materialNodeFogOf } from '../fogPatches';
 import { planeBiasShadowFilterOn, tentShadowFilterOn } from '../../world/shadowFilter';
 import { colourRampFog, engineFog } from './engineFog';
-import { partFaded, partFadeStage } from './partFade';
 import { tentShadowFilter } from './tentShadowFilter';
 import { planeBiasShadowFilter } from './planeBiasShadowFilter';
 import { EngineDirectionalLightNode } from './cascadeLightNode';
@@ -68,6 +67,7 @@ import { rebindGeometry } from '../../app/cachedAssets';
 import { diagnosticNow } from '../../core/clock';
 import { worldTime } from '../../core/time';
 import type { Renderer } from '../renderer';
+import { drawHooks } from '../drawHooks';
 import type { ProgramLike } from '../../boot/perflog';
 import { NodePlainUniforms, type BlockGroup } from './nodePlainUniforms';
 import { installNodeCoarseMask, type NodeCoarseMask } from '../nodeCoarseMask';
@@ -716,8 +716,6 @@ export class EngineNodesHandler extends WebGLNodesHandler {
         camera: shift === null ? cameraPosition : cameraPosition.sub(shift), ...(node === undefined ? {} : { scale: node }) };
       return typeof patch === 'function' ? patch(out, fogContext) : colourRampFog(out, fogContext, patch.colourRamp);
     });
-    // MF13: a part-faded material dithers each object's parts in by the object's fade table (partFade.ts)
-    this.epilogue.push((out, ctx) => (partFaded(ctx.material) ? partFadeStage(out) : out));
     // a layered backdrop's node dressing fades by its owner weight last, where a classic piece's gl_FragColor is faded
     this.epilogue.push((out, ctx) => {
       const layer = layerFrameOf(ctx.material);
@@ -773,16 +771,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // Shader-only hosts have no buffer draw to wrap. Real renderers install it in their constructor.
     const stock: unknown = Reflect.get(renderer, 'renderBufferDirect');
     if (previous !== renderer && typeof stock === 'function') {
-      const draw = renderer.renderBufferDirect.bind(renderer);
-      renderer.renderBufferDirect = (camera, scene, geometry, material, object, group): void => {
+      drawHooks(renderer).outer = (draw, camera, scene, geometry, material, object, group): void => {
         // Ordinary draws need no shadow continuation closure.
         if (!(material instanceof THREE.MeshDepthMaterial || material instanceof THREE.MeshDistanceMaterial)) {
-          if (!(material instanceof NodeMaterial)) this.blocks?.invalidateBindings();
           draw(camera, scene, geometry, material, object, group); return;
         }
         // A shadow cast: the stock depth material, or a vertex-moving graph's own depth variant (no closure per cast)
         const depth = this.shadowCasterDepth(material, object, group);
-        if (depth === null) { this.blocks?.invalidateBindings(); draw(camera, scene, geometry, material, object, group); return; }
+        if (depth === null) { draw(camera, scene, geometry, material, object, group); return; }
         this.drawShadow(camera, depth, object, () => { draw(camera, scene, geometry, depth, object, group); });
       };
     }

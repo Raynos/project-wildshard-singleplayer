@@ -5,6 +5,7 @@ import { isDev } from '../core/devMode';
 import { memoryAttribution, withMemoryLabel } from '../core/memoryAttribution';
 import { observeImageMemory, relabelImageMemory } from './memoryImages';
 import { sceneObjectOwner, sceneResourceOwner } from '../app/sceneOwnership';
+import { drawHooks, propertyHooks } from './drawHooks';
 
 interface Label { owner: string; asset: string; priority: number }
 const labels = new WeakMap<object, Label>();
@@ -225,14 +226,13 @@ function due(cache: WeakMap<object, Walked>, node: Object3D, geometry: unknown, 
  * Developer off; its cabin pose is GPU-bound at vsync, so the stalled submission doubled frames,
  * progress/frame-floor/2026-10-09-head/). The scene is flattened (pre-order, so a parent's label precedes its children)
  * once per sweep window (`SWEEP_WINDOW`, four refresh windows), and each render labels the next slice of that list. The
- * whole scene is covered within half a sweep window. A drawn object is still relabelled at its next draw when its geometry
- * or material changes (`renderBufferDirect`); a node that is not drawn picks up its change within the sweep window. Labels
- * are diagnostics.
+ * whole scene is covered within half a sweep window. Explicit census frames also label drawn objects immediately;
+ * ordinary Developer draws leave that traversal to the sweep. Labels are diagnostics.
  */
 interface Sweep { nodes: Object3D[]; parents: (Object3D | null)[]; indices: number[]; cursor: number; built: number }
 const sweeps = new WeakMap<Object3D, Sweep>();
 // G639 frame floor: the sweep re-walks the scene once every four refresh windows (≈ 4–8 s), not every window (~0.75 ms of a
-// Developer Pine grid frame at 3080f174e5); drawn objects are relabelled at their draw, so only undrawn ones wait longer
+// Developer Pine grid frame at 3080f174e5); explicit census frames still inspect every drawn object immediately
 const SWEEP_WINDOW = REFRESH * 4;
 const SWEEP_SLICES = SWEEP_WINDOW / 2;
 // nodes a render labels at least, so a small scene is labelled within its first renders (G639: 64 a render was ~1.4 ms of a
@@ -346,9 +346,8 @@ export function installGpuLabels(renderer: LabelRenderer, developer: () => boole
     censusFlushers.set(renderer, flush);
     Reflect.apply(register, window, [flush]);
   }
-  const proxies = new WeakMap<object, object>();
+  const proxies = new WeakMap<object, { proxy: object; label: Label; dirty: boolean }>();
   const tags = new WeakMap<object, { owner: string; base: string; priority: number }>();
-  const get = renderer.properties.get.bind(renderer.properties);
   const tag = (resource: unknown, value: unknown, role: string): void => {
     if (Array.isArray(value)) { for (let index = 0; index < value.length; index++) tag(resource, value[index], `${role}/${index}`); return; }
     if (value === null || typeof value !== 'object') return;
@@ -361,50 +360,66 @@ export function installGpuLabels(renderer: LabelRenderer, developer: () => boole
     if (!same) tags.set(value, { owner: label.owner, base: label.asset, priority: label.priority });
     emit('__sc_label_gl', value, derive(label, role));
   };
-  renderer.properties.get = (resource) => {
-    if (!developer() && !census()) return get(resource);
+  propertyHooks(renderer).labels = (resource, properties) => {
+    if (!developer() && !census()) return properties;
+    if (properties === null || typeof properties !== 'object' || (!isTexture(resource) && !(resource instanceof RenderTarget))) return properties;
+    const label = resourceLabel(resource), prior = proxies.get(properties);
+    // A proxy observes every later allocation write. Revisit existing handles
+    // only for a changed label, writes made while diagnostics were off, or an
+    // explicit full census. Ordinary material/geometry properties stay raw.
+    if (prior !== undefined && prior.label === label && !prior.dirty && (!drawCensus || drawSampled)) return prior.proxy;
     if (sampled && resource !== null && typeof resource === 'object' && !resourceSeen.has(resource)) { resourceSeen.add(resource); resourceRefs.add(new WeakRef(resource)); }
     if (isTarget(resource)) {
-      const label = resourceLabel(resource);
       remember(resource.texture, derive(label, 'color'));
       if (resource.depthTexture) remember(resource.depthTexture, derive(label, 'depth'));
     }
-    const properties = get(resource);
-    if (properties === null || typeof properties !== 'object') return properties;
     // three keeps the GL handles (GL_HANDLES) only in a texture's or a render target's properties: a material's, a
     // geometry's or an object's stay the plain object. Proxied, every field three reads of them on every draw (setProgram's
     // dozens) went through the proxy, which JavaScriptCore runs off its inline caches: the top render frame of a steady
     // Nalati Simulator profile with Developer on (sp-x1, b17146eb2f: NodeProgramVariants.select 217 of 5980 samples).
-    if (!isTexture(resource) && !(resource instanceof RenderTarget)) return properties;
     // Assets initialized before joining a scene acquire their authored identity later; update the existing GL tag.
     for (let index = 0; index < GL_HANDLES.length; index++) {
       const key = GL_HANDLES[index], role = GL_ROLES[index];
       const value: unknown = key === undefined ? undefined : Reflect.get(properties, key);
       if (value !== undefined && role !== undefined) tag(resource, value, role);
     }
-    const prior = proxies.get(properties);
-    if (prior) return prior;
+    if (prior !== undefined) { prior.label = label; prior.dirty = false; return prior.proxy; }
+    const record = { proxy: properties, label, dirty: false };
     const stamp = (value: unknown, role: string): unknown => {
       if (Array.isArray(value)) {
         tag(resource, value, role);
-        return new Proxy(value, { set(target, key, item: unknown) { return Reflect.set(target, key, developer() || census() ? stamp(item, `${role}/${String(key)}`) : item); } });
+        return new Proxy(value, { set(target, key, item: unknown) {
+          if (!developer() && !census()) { record.dirty = true; return Reflect.set(target, key, item); }
+          return Reflect.set(target, key, stamp(item, `${role}/${String(key)}`));
+        } });
       }
       tag(resource, value, role);
       return value;
     };
     const proxy = new Proxy(properties, { set(target, key, value: unknown) {
-      if (!developer() && !census()) return Reflect.set(target, key, value);
+      if (!developer() && !census()) { record.dirty = true; return Reflect.set(target, key, value); }
       const tagged = typeof key === 'string' && GL_HANDLE_KEY.test(key) ? stamp(value, key.slice(7)) : value;
       return Reflect.set(target, key, tagged);
     } });
-    proxies.set(properties, proxy);
+    record.proxy = proxy; proxies.set(properties, record);
     return proxy;
+  };
+  const hooks = drawHooks(renderer);
+  const labelDraw: Renderer['renderBufferDirect'] = (_camera, _scene, geo, mat, object) => {
+    const own: unknown = Reflect.get(object, 'material');
+    if (drawSampled && !due(drawn, object, geo, own)) return;
+    const label = drawLabel(object, mat);
+    markGeometry(geo, label); markMaterial(mat, label);
+    if (Array.isArray(own)) for (const m of own as readonly unknown[]) if (isMaterial(m) && m !== mat) markMaterial(m, label);
   };
   for (const method of ['render', 'compile', 'compileAsync'] as const) {
     const original: unknown = Reflect.get(renderer, method);
     if (typeof original !== 'function') continue;
     Reflect.set(renderer, method, function labelledRender(this: Renderer, ...args: unknown[]): unknown {
       generation++; drawCensus = census(); drawSampled = sampledCensus();
+      // Developer's amortized scene walk owns ordinary labels. Per-draw
+      // traversal is reserved for explicit census frames.
+      hooks.labels = drawCensus ? labelDraw : undefined;
       const scene = args[0];
       if ((developer() || census()) && isObject(scene)) {
         if (sampled && !sceneSeen.has(scene)) { sceneSeen.add(scene); sceneRefs.add(new WeakRef(scene)); }
@@ -415,16 +430,4 @@ export function installGpuLabels(renderer: LabelRenderer, developer: () => boole
       return result;
     });
   }
-  const draw = renderer.renderBufferDirect.bind(renderer);
-  renderer.renderBufferDirect = (camera, scene, geo, mat, object, group) => {
-    if (!developer() && !drawCensus) { draw(camera, scene, geo, mat, object, group); return; }
-    // keyed on the object's own material (an array for multi-material meshes), not the group's: a per-group key flipped on
-    // every draw of a multi-material mesh and re-marked it each time (SF69: ~1.2 MB / frame)
-    const own: unknown = Reflect.get(object, 'material');
-    if ((!drawCensus || drawSampled) && !due(drawn, object, geo, own)) { draw(camera, scene, geo, mat, object, group); return; }
-    const label = drawLabel(object, mat);
-    markGeometry(geo, label); markMaterial(mat, label);
-    if (Array.isArray(own)) for (const m of own as readonly unknown[]) if (isMaterial(m) && m !== mat) markMaterial(m, label);
-    draw(camera, scene, geo, mat, object, group);
-  };
 }

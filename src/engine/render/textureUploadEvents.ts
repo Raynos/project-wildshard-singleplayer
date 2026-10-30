@@ -1,9 +1,9 @@
-import { Texture } from 'three';
+import type { Texture } from 'three';
 import type { Renderer } from './renderer';
+import { propertyHooks } from './drawHooks';
 
 const listeners = new WeakMap<Texture, Set<(texture: Texture) => void>>();
 const installed = new WeakSet();
-const isTexture = (value: unknown): value is Texture => value instanceof Texture;
 
 /** One notification after native upload completion. Never replaces Texture.onUpdate.
  * Unuploaded textures and their listeners remain weakly owned by the texture. */
@@ -27,11 +27,10 @@ export function installTextureUploadEvents(renderer: TextureUploadRenderer): voi
   installed.add(renderer);
   const pending = new Set<WeakRef<Texture>>(), queued = new WeakMap<Texture, WeakRef<Texture>>();
   const get = renderer.properties.get.bind(renderer.properties);
-  renderer.properties.get = object => {
-    if (isTexture(object) && listeners.has(object) && !queued.has(object)) {
+  propertyHooks(renderer).uploaded = object => {
+    if (listeners.has(object) && !queued.has(object)) {
       const ref = new WeakRef(object); queued.set(object, ref); pending.add(ref);
     }
-    return get(object);
   };
   const version = (object: object): unknown => {
     const row: unknown = get(object);

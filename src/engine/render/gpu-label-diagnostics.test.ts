@@ -42,6 +42,28 @@ test('public reads and draws bypass resource traversal and property proxies', ()
   expect(render).toHaveBeenCalledOnce(); expect(draw).toHaveBeenCalledOnce();
 });
 
+test('ordinary Developer draws leave labels to the scene census rather than walking each submission', () => {
+  setDev(true);
+  const { renderer } = fixture(); installGpuLabels(renderer);
+  const geometry = new BufferGeometry(), material = new MeshBasicMaterial(), mesh = new Mesh(geometry, material);
+  renderer.render(new Scene(), new Camera());
+  Object.defineProperty(mesh, 'material', { get: () => { throw new Error('per-draw diagnostic walk'); } });
+  expect(() => renderer.renderBufferDirect(new Camera(), new Scene(), geometry, material, mesh, { start: 0, count: 3, materialIndex: 0 })).not.toThrow();
+});
+
+test('an unchanged allocation is inspected once until its authored label changes', () => {
+  setDev(true);
+  const { renderer, raw } = fixture(), texture = new Texture(), handle = {};
+  let reads = 0;
+  Object.defineProperty(raw(texture), '__webglTexture', { get: () => { reads++; return handle; } });
+  installGpuLabels(renderer);
+  const first = renderer.properties.get(texture), inspected = reads;
+  renderer.properties.get(texture); renderer.properties.get(texture);
+  expect(inspected).toBeGreaterThan(0); expect(reads).toBe(inspected);
+  labelAsset(texture, 'late-owner', 'late.ktx2');
+  expect(renderer.properties.get(texture)).toBe(first); expect(reads).toBeGreaterThan(inspected);
+});
+
 test('Developer reuses the property proxy and retains authored handle labels', () => {
   setDev(true);
   const { renderer } = fixture(), texture = new Texture(), handle = {};

@@ -22,10 +22,10 @@ import { RenderPass, type EffectComposer, type Pass } from 'postprocessing';
 import { markGpuOnly } from '../core/gpuOnly';
 import { arrayReleased, markArrayReleased, markArrayRestored } from './releasedArrays';
 import type { Renderer } from './renderer';
+import { drawHooks, propertyHooks } from './drawHooks';
 import { renderCount } from './frameCounter';
 
 const LABEL = 'engine/memorySaver';
-const isTexture = (value: unknown): value is THREE.Texture => value instanceof THREE.Texture;
 const isTarget = (value: unknown): value is THREE.WebGLRenderTarget => value instanceof THREE.WebGLRenderTarget;
 
 // ── textures ──
@@ -203,10 +203,8 @@ export function installMemorySaver(renderer: Renderer): void {
   const context = renderer.getContext();
   if (context instanceof WebGL2RenderingContext) watchUploads(context);
   const seenTextures = new WeakSet<THREE.Texture>();
-  const get = renderer.properties.get.bind(renderer.properties);
-  renderer.properties.get = (object) => {
-    if (isTexture(object) && !seenTextures.has(object)) { seenTextures.add(object); watchTexture(object); }
-    return get(object);
+  propertyHooks(renderer).texture = (object) => {
+    if (!seenTextures.has(object)) { seenTextures.add(object); watchTexture(object); }
   };
   const seenGeometry = new WeakSet<THREE.BufferGeometry>();
   const queue: ((Pending & { label: string }) | undefined)[] = [];
@@ -225,9 +223,7 @@ export function installMemorySaver(renderer: Renderer): void {
     }
     if (head > 256 && head * 2 > queue.length) { queue.splice(0, head); head = 0; }
   };
-  const draw = renderer.renderBufferDirect.bind(renderer);
-  renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
-    draw(camera, scene, geometry, material, object, group);
+  drawHooks(renderer).memory = (_camera, _scene, geometry, _material, object) => {
     const frame = renderCount(renderer); // SF59: the engine's render count, not three's (node draws bump three's)
     if (frame !== lastFrame) { lastFrame = frame; settle(frame); }
     // A rig's geometry stays whole: the far and shadow herds copy every attribute of it when a batch grows, and reading

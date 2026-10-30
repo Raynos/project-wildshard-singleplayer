@@ -113,8 +113,9 @@ without double cleanup. Uniforms, passes, draw order and pixels stay exact.
 texture/source versions and preserves `Texture.onUpdate`.
 `render/compressedTextureRetirement.installCompressedTextureRetirement`
 observes direct draws; provisional loaders keep their preparation fence.
+`render/drawHooks` orders shadow, ownership and successful-draw retirement in one dispatch.
 
-`render/memorySaver.releaseOnUpload(source, done)` retires exclusive immutable images after upload: close the bitmap/release its owner, keep dimensions/GPU storage. No later CPU reader or different-sampler clone may need pixels. Also release on disposal; Memory saver OFF retains the decode until then. GPU-only context loss reloads.
+`render/memorySaver.releaseOnUpload(source, done)` releases exclusive CPU backing after upload/disposal, retaining GPU storage/dimensions. Later CPU readers/sampler clones are ineligible. Memory saver OFF keeps decode; GPU-only context loss reloads.
 
 `world/BakedTerrain.installBakedGrid(grid, binding?)` installs original samplers/undergrowth without refetching; wrong seeds refuse. Authored-world bakes install it before forest/models; geometry capture retains the production constructor and native collision owner.
 

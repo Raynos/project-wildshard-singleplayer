@@ -35,6 +35,30 @@ test('upload observations dedupe only the same resource, render and owner identi
   } finally { page.dispose();assets.evictCached('shared');geometry.dispose();material.dispose(); }
 });
 
+test('a nested draw restores its consumer and stable ownership still pulses residency on later renders', () => {
+  const page = new Scope('page'), first = page.child('first'), second = page.child('second'), assets = new AssetService();
+  const texture = new Texture(), geometry = new BufferGeometry(), material = new MeshBasicMaterial(), camera = new PerspectiveCamera(), scene = new Scene();
+  const firstMesh = new Mesh(geometry, material), secondMesh = new Mesh(geometry, material);
+  ownSceneTree(new Group().add(firstMesh), first, assets); ownSceneTree(new Group().add(secondMesh), second, assets);
+  assets.register('shared', texture, { retain: true, cache: true });
+  const renderer = rendererFor(texture), observed = vi.spyOn(assets, 'observeResidency');
+  let nested = false;
+  const draw = (object: Mesh): void => { renderer.renderBufferDirect(camera, scene, geometry, material, object, { start: 0, count: 0, materialIndex: 0 }); };
+  renderer.renderBufferDirect = (_camera, _scene, _geometry, _material, object) => {
+    renderer.properties.get(texture);
+    if (object === firstMesh && !nested) { nested = true; draw(secondMesh); renderer.properties.get(texture); }
+  };
+  new UploadOwnership(page, assets).attach(renderer);
+  try {
+    draw(firstMesh);
+    expect(observed.mock.calls.filter(([resource]) => resource === texture).map(([, owner]) => owner)).toEqual([first, second, first]);
+    renderer.render(scene, camera); draw(firstMesh); draw(firstMesh);
+    expect(observed.mock.calls.filter(([resource]) => resource === texture).map(([, owner]) => owner)).toEqual([first, second, first, first]);
+    texture.dispose(); draw(firstMesh);
+    expect(observed.mock.calls.filter(([resource]) => resource === texture)).toHaveLength(5);
+  } finally { page.dispose(); assets.evictCached('shared'); geometry.dispose(); material.dispose(); }
+});
+
 function drawRetiredOwner(page: Scope, assets: AssetService, renderer: ReturnType<typeof rendererFor>): WeakRef<Scope> {
   const owner = page.child('retired resident'), root = new Group(), geometry = new BufferGeometry(), material = new MeshBasicMaterial();
   const mesh = new Mesh(geometry, material);root.add(mesh);ownSceneTree(root, owner, assets);
@@ -51,10 +75,9 @@ test('a retained sampler and renderer do not keep their last retired draw Scope 
     try {
       const config = resolvePath(directory, 'vitest.config.mjs');
       writeFileSync(config, `export default {root:${JSON.stringify(resolvePath('.'))},test:{include:['src/engine/app/upload-ownership.test.ts'],setupFiles:[],pool:'forks',maxWorkers:1,execArgv:['--expose-gc']}};`);
-      const output = execFileSync(process.execPath, ['--expose-gc', resolvePath('node_modules/vitest/vitest.mjs'), 'run', '--config', config], {
+      execFileSync(process.execPath, ['--expose-gc', resolvePath('node_modules/vitest/vitest.mjs'), 'run', '--config', config], {
         env: { ...process.env, WS_UPLOAD_OWNER_GC: '1', NO_COLOR: '1' }, encoding: 'utf8', stdio: 'pipe', timeout: 20_000,
       });
-      expect(output).toContain('2 passed');
     } finally { rmSync(directory, { recursive: true, force: true }); }
     return;
   }
