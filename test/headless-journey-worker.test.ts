@@ -14,3 +14,16 @@ test('terminal journey matches native step movement, retires, and refuses runtim
   expect(child.status,child.stdout+child.stderr).toBe(0);
   expect(child.stdout).toContain('native journey parity, terminal disposal and runtime refusal pass');
 },25_000);
+
+
+test('the public route cursor loads in strip-only Node without a TypeScript transform',()=>{
+  const moduleURL=pathToFileURL(resolve('src/sdk/headlessJourney.ts')).href;
+  const code=`import assert from 'node:assert/strict';
+    const {PhysicsRouteCursor}=await import(${JSON.stringify(moduleURL)});
+    const route=new PhysicsRouteCursor([{x:0,z:0},{x:5,z:0}]);
+    assert.equal(route.command([0,0,0],0).moveX,1);
+    assert.throws(()=>new PhysicsRouteCursor([]),/two finite/);`;
+  const child=spawnSync(process.execPath,['--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
+    '--input-type=module','-e',code],{encoding:'utf8',timeout:10_000});
+  expect(child.status,child.stdout+child.stderr).toBe(0);
+});

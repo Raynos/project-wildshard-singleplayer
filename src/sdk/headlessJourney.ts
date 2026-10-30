@@ -48,7 +48,10 @@ export class PhysicsRouteCursor {
   visited=0;
   traversals=0;
   complete=false;
-  constructor(private readonly points:readonly WalkPoint[],private readonly options:{once?:boolean;edge?:boolean}={}) {
+  private readonly points:readonly WalkPoint[];
+  private readonly options:{once?:boolean;edge?:boolean};
+  constructor(points:readonly WalkPoint[],options:{once?:boolean;edge?:boolean}={}) {
+    this.points=points;this.options=options;
     if(points.length<2||points.some(point=>![point.x,point.z].every(Number.isFinite)))throw new Error('Walk needs two finite route points');
   }
   command(position:readonly number[],tick:number):PlayerCommand {
