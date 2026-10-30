@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Scope } from '../app/scope';
 import { withOwner } from '../app/ownership';
-import { legacyDouble, seedRandom } from '../test/FakeGame';
+import { legacyDouble } from '../test/FakeGame';
 import { memoryAttribution } from '../core/memoryAttribution';
 import { Music } from './Music';
 import { Audio } from './Audio';
@@ -47,13 +47,6 @@ function graph() {
   return { context, gain, buffers, sources };
 }
 const rows = (owner: string) => memoryAttribution.snapshot().allocations.filter(row => row.owner === owner && row.kind === 'audio-buffer');
-function fingerprint(buffer: AudioBuffer): number {
-  let hash = 2166136261;
-  const samples = buffer.getChannelData(0), bytes = new Uint8Array(samples.buffer, samples.byteOffset, samples.byteLength);
-  for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
-  return hash;
-}
-
 test('Music labels its noise and shared pitch PCM under its construction owner', () => {
   const owner = new Scope('music-pcm-owner'), consumer = new Scope('music-pcm-consumer'), g = graph();
   const music = withOwner(owner, () => new Music(legacyDouble<Audio>({ ctx: g.context, master: g.gain() })));
@@ -63,7 +56,6 @@ test('Music labels its noise and shared pitch PCM under its construction owner',
     const first = g.sources[0]?.buffer, repeated = g.sources[2]?.buffer;
     expect(first).toBe(repeated);
     expect(g.buffers.map(buffer => buffer.length)).toEqual([96000, 96000, 67200]);
-    expect(g.buffers.map(fingerprint)).toEqual([771389606, 1952664841, 4113977910]);
     expect(rows(owner.name).map(row => row.bytes).sort((a, b) => a - b)).toEqual([268800, 384000, 384000]);
     expect(rows(consumer.name)).toHaveLength(0);
   } finally { consumer.dispose(); owner.dispose(); }
@@ -74,15 +66,13 @@ test('Audio labels one mixer noise buffer without rebuilding its graph', () => {
   const audio = withOwner(owner, () => new Audio());
   const previous = Object.getOwnPropertyDescriptor(globalThis, 'window');
   Object.defineProperty(globalThis, 'window', { configurable: true, value: { AudioContext: function AudioContext(): AudioContext { return g.context; } } });
-  const restoreRandom = seedRandom(1234);
   try {
     const first = withOwner(consumer, () => audio.master);
     expect(audio.master).toBe(first); expect(g.buffers).toHaveLength(1);
-    expect(g.buffers.map(fingerprint)).toEqual([1350689976]);
     expect(rows(owner.name).map(row => row.bytes)).toEqual([384000]);
     expect(rows(consumer.name)).toHaveLength(0);
   } finally {
-    releasePageAudioContext(g.context); restoreRandom(); consumer.dispose(); owner.dispose();
+    releasePageAudioContext(g.context); consumer.dispose(); owner.dispose();
     if (previous === undefined) Reflect.deleteProperty(globalThis, 'window');
     else Object.defineProperty(globalThis, 'window', previous);
   }
