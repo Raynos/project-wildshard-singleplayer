@@ -14,15 +14,12 @@ CI1-CI4 done (CI2 / CI3 await first deploy), CI5 x9, CI6 / CI7 / CI9 x2, CI8 x9,
 QB17 zip video tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 
 **Autonomous decisions (for Jake's review):**
-- CPU bar (Sim WebContent ≤ 15 %, now ~22 %): engine walk and per-draw cuts are near their exact limit; the rest is draw count (viewmodel merge, provably-invisible shadow casters), shipped only at identical captures.
+- CPU bar (Sim WebContent ≤ 15 %, now ~22 %): engine walk and per-draw cuts are near their exact limit; viewmodel merge = 1 draw, shadow casters = 0 exact. **For wildshard-v / Jake:** Pine's last ~7 % needs fewer draws (look trade); sp-o5 builds a default-off Debug 'Draw budget: current / lean' + board for his phone pick.
 - P0 found by CI: the grid could stop drawing after a crossing (a cached frame gate held async readiness, ca0c7c8b60); fixed 4779bbdd6f (x1).
 - Finding (CI13): headless SimHost moves with radius .35 / step .3 / climb 45° / snap .2, the client Player .38 / .35 / 40° / .3; the Node walk uses the client's, nothing changed in play.
 - FC12 closes at identical captures (Pine 184, Driftwood ~194 draws); no default-off look trades, they cut nothing by default.
 - QB17 (b): LEGACY's zip is flat too (31 hooks, identical floors); new default rises to the ring per Jake's ask, flat kept as Debug 'Hook zip' (o3).
-- FC10 closes with Nine at 7 real switches, Nalati 4 real passes.
-- MF11 closes on the lease deletion + footprint; ownership loans fold into Family 4.
-- FC13 done at G912's default-off Debug row (Driftwood 190 → 165 draws).
-- FC10: phone bloom off by default; old look = Debug 'Phone bloom' (G910).
+- FC10 closed (Nine 7 real switches, Nalati 4 passes; phone bloom off, Debug 'Phone bloom'); FC13 at its Debug row; MF11 on lease deletion + footprint.
 - **For wildshard-v (QB1):** Jake's home-screen icon predates the launch image; one delete + re-add of the icon fixes the black.
 - QB10 / MF12: Sentry verdicts in e74ca75809; S fixed b3b1723a9a, 7S fixed cc75f528ea + 93cf905edc. **wildshard-v: Sentry-only ids need a build + stack.**
 
