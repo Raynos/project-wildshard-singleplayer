@@ -22,7 +22,7 @@ const Saved = v.strictObject({
 });
 
 /** Install traversal on the server's actual player motor and tick boundary. */
-export function installGrapple(host: SimHost, context: GrappleTickContext, profile: GrappleProfile, mode: GrappleMode, hooks: readonly { readonly x: number; readonly y: number; readonly z: number }[], guardHandles: readonly number[]): { readonly sim: GrappleSim; readonly guardOpen: () => boolean } {
+export function installGrapple(host: SimHost, context: GrappleTickContext, profile: GrappleProfile, mode: GrappleMode, hooks: readonly { readonly x: number; readonly y: number; readonly z: number }[], guardHandles: readonly number[], rise = false): { readonly sim: GrappleSim; readonly guardOpen: () => boolean } {
   const state = { pitch: 0, last: host.player.position.clone(), fall: { vy: host.playerFall.vy, grounded: host.playerFall.grounded }, guard: [...guardHandles] };
   const velocity = new Vector3();
   const body: GrappleBody = {
@@ -49,7 +49,7 @@ export function installGrapple(host: SimHost, context: GrappleTickContext, profi
   const setGuard = (open: boolean): void => {
     state.guard.forEach(handle => { host.physics.world.getCollider(handle).setEnabled(!open); });
   };
-  const sim = new GrappleSim(ports, grappleCourse({ ...profile.course, mode, hooks }));
+  const sim = new GrappleSim(ports, grappleCourse({ ...profile.course, mode, hooks }), { rise: () => rise });
   const moved = new Vector3(), walked = { vy: 0, grounded: true }, tick: { lock: boolean; jump: boolean; pitch: number | undefined } = { lock: false, jump: false, pitch: undefined };
   host.onStep(profile.headless.step, (dt) => {
     tick.lock = false; tick.jump = false; tick.pitch = undefined;

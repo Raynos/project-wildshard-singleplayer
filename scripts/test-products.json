@@ -1,4 +1,6 @@
 {
+  "test/nine-verb-tape.test.ts": ["nine-dragon-stack"],
+  "test/nine-walk-verbs.test.ts": ["nine-dragon-stack"],
   "test/headless-quest-verbs.test.ts": ["driftwood-isle", "far-reach"],
   "test/ink-native-proof.test.ts": ["ink-cel-valley"],
   "test/driftwood-trail-layout.test.ts": ["driftwood-isle"],

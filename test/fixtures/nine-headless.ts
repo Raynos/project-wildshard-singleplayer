@@ -12,7 +12,8 @@ import manifest from '../../src/shards/nine-dragon-stack/manifest.json' with {ty
 import {registerNativeWalkBounds} from './headless/nativeBounds';
 
 /** Direct typed native calls retain the Nine gameplay witness without a declaration interpreter. */
-export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async preparation => {
+export function nineHeadlessRuntime(rise: boolean): PrepareHeadlessRuntime {
+return async preparation => {
   const { product } = preparation;
   const shard = product.shardfile;
   const { constants } = await product.json<{ constants: typeof assembly.constants }>('sim/headless-assembly.json');
@@ -37,6 +38,10 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async preparation 
       installNativeItems(host, context.combat, { kind: 'swept', items: shard.items.rows, policy: constants.jianPolicy });
       const fact = (name: string, actorId: string): void => { context.emit({ kind: 'fact', name, actorId }); };
       installHostPortalRide(host, constants.portalStep, shard, payload.portalRide, fact);
-      installGrapple(host, { emit: context.emit, commands: () => context.commands().map(command => command.kind === 'script' ? command : { kind: command.kind, ...(command.kind === 'player' && command.jump !== undefined ? { jump: command.jump } : {}) }) }, parseGrappleProfile(payload.grappleProfile), grapple, payload.hooks, guard);
+      installGrapple(host, { emit: context.emit, commands: () => context.commands().map(command => command.kind === 'script' ? command : { kind: command.kind, ...(command.kind === 'player' && command.jump !== undefined ? { jump: command.jump } : {}) }) }, parseGrappleProfile(payload.grappleProfile), grapple, payload.hooks, guard, rise);
     } };
 };
+}
+
+/** Current browser winner; the flat factory remains a negative QB17 control. */
+export const prepareHeadlessRuntime: PrepareHeadlessRuntime = nineHeadlessRuntime(true);
