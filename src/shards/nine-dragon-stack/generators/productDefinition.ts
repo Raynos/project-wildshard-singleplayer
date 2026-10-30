@@ -71,6 +71,9 @@ return parseShardfile({ ...base, plumbing, budgets, navigation: navigation.navig
   files: [...world.shardfile.files, ...navigation.files, ...heldGraphFiles.files].sort((a, b) => a.hash.localeCompare(b.hash)), tiles: world.shardfile.tiles, library: [...library],
   accent: 'iris', runtime: { kind: 'client-plan', binds: ['props', 'items', 'ledger', 'modes'], cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
   entryways: portalEntries, directors: [portalStages],
+  // QC1 (E510): the city is in view from everywhere and its whole L0 is 81.6 MB of GPU, so the whole cell stays resident
+  // as Far Reach's does: no tile retires in play, and no retire re-joins a held refine union mid-walk
+  ring: 'cell',
   // the look.materials graphs (data/lookGraphs.json: the sky, the Well's silk sheets, the steam), lent by plugin.ts
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, ...architectureGraphs(), 'nine-streaks': streakGraph(), 'nine-halo': haloGraph(), 'nine-filament': filamentGraph(), ...burstGraphs() }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])), ...heldGraphFiles.materials } },
   // NR12: the props family draws only the coarse L1 parents (the whole libraries draw the L0 and library pieces), so it is
