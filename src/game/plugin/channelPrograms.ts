@@ -84,11 +84,12 @@ function buildChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<stri
     if(isVector&&(inputs.size>0||external.length!==values.length))throw new Error('Numeric channel vector differs from its declared reads');
     const reads=lane.reads;
     for(let index=0;index<reads.length;index++){
-     const id=reads[index]??'',read=readers[index]??-1;let value:number|undefined;
-     if(read<0)value=isVector?external[index]:Object.hasOwn(external,id)?external[id]:undefined;
-     else if(sharedCall[read]===call)value=sharedValues[read];
-     else{value=shared[read]?.();if(value!==undefined){sharedValues[read]=value;sharedCall[read]=call;}}
-     if(value===undefined||!Number.isFinite(value)||Math.abs(value)>1e12)throw new NumericInputError(id,`Missing or invalid channel observation: ${id}`);
+     const read=readers[index]??-1;let value:number|undefined;
+     // a shared value this call already read passed the check below at its first read (a failing one ends the call)
+     if(read>=0&&sharedCall[read]===call){values[index]=sharedValues[read]??Number.NaN;continue;}
+     if(read<0){const id=reads[index]??'';value=isVector?external[index]:Object.hasOwn(external,id)?external[id]:undefined;}
+     else{value=shared[read]?.();if(value!==undefined&&Number.isFinite(value)&&Math.abs(value)<=1e12){sharedValues[read]=value;sharedCall[read]=call;}}
+     if(value===undefined||!Number.isFinite(value)||Math.abs(value)>1e12){const id=reads[index]??'';throw new NumericInputError(id,`Missing or invalid channel observation: ${id}`);}
      values[index]=value;
     }
    }
