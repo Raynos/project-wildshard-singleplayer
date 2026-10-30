@@ -7,6 +7,7 @@ import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { registerCascades } from '../../world/cascadeLights';
 import { copyShaderPatches, patchShader } from '../shaderPatches';
 import { registerShadowDepthResolver, shadowDepthResolver } from '../shadowDepthVariants';
+import { sceneJobs } from '../precompile';
 
 test('a clone shares params, clocks and lent textures; its colour and borrowed map are its own', () => {
   const graph = { version: 1, kind: 'material', model: 'unlit', params: { tint: { type: 'colour', value: [1, 0.5, 0.25] }, ramp: { type: 'texture', value: 'ramp', role: 'lent' } },
@@ -186,6 +187,25 @@ test('a classic graph reading the instance colour gives a colourless instanced m
     reads.onBeforeRender(renderer, scene, camera, geometry, a); await Promise.resolve();
     expect(a.instanceColor).toBe(own);
   } finally { geometry.dispose(); reads.dispose(); plain.dispose(); c.dispose(); }
+});
+
+// NF15: the warm-up gave its stand-in's hook the colours (a copy it discards), so it linked a colourless program that only
+// the live mesh's first frame drew: the live mesh takes its white colours before its stand-in is copied
+test('the shader warm-up gives a colourless instanced mesh white colours before it copies the stand-in', () => {
+  const reads = compileClassicGraph({ version: 1, kind: 'material', model: 'unlit', nodes: { c: { op: 'instanceColour' }, v: { op: 'varying', in: ['c'] } }, stages: { surface: { colour: 'v' } } }).material;
+  const plain = compileClassicGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } }).material;
+  const geometry = new THREE.BoxGeometry(), scene = new THREE.Scene();
+  const a = new THREE.InstancedMesh(geometry, reads, 3), b = new THREE.InstancedMesh(geometry, plain, 3);
+  scene.add(a, b);
+  try {
+    const { jobs } = sceneJobs(scene, null);
+    expect(a.instanceColor?.count).toBe(3); expect([...(a.instanceColor?.array ?? [])].every(v => v === 1)).toBe(true);
+    expect(b.instanceColor).toBe(null);
+    const copies: THREE.Object3D[] = [];
+    for (const job of jobs) job.root.traverse(o => { if (o instanceof THREE.InstancedMesh && o.material === reads) copies.push(o); });
+    expect(copies.length).toBeGreaterThan(0);
+    for (const copy of copies) if (copy instanceof THREE.InstancedMesh) expect([...(copy.instanceColor?.array ?? [])]).toEqual(Array.from({ length: 9 }, () => 1));
+  } finally { geometry.dispose(); reads.dispose(); plain.dispose(); }
 });
 
 test('a lit program gates its sun by the registered cascades once; an unlit one never does', () => {

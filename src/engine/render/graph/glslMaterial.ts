@@ -54,10 +54,14 @@ function giveWhiteColours(object: THREE.Object3D): void {
   pendingWhite.add(object);
   queueMicrotask(() => {
     pendingWhite.delete(object);
-    if (!needsWhite(object) || !(object instanceof THREE.InstancedMesh)) return;
-    const white = new THREE.InstancedBufferAttribute(new Float32Array(object.instanceMatrix.count * 3).fill(1), 3);
-    whiteColours.add(white); object.instanceColor = white;
+    if (needsWhite(object)) makeWhite(object);
   });
+}
+/** white colours at an instanced `object`'s size */
+function makeWhite(object: THREE.Object3D): void {
+  if (!(object instanceof THREE.InstancedMesh)) return;
+  const white = new THREE.InstancedBufferAttribute(new Float32Array(object.instanceMatrix.count * 3).fill(1), 3);
+  whiteColours.add(white); object.instanceColor = white;
 }
 
 /** whether a graph (or a loop body in it) reads the instance colour */
@@ -135,6 +139,13 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
   gateCascades(): void {
     if (!this.lights || hasShaderPatch(this, 'engine.csm')) return;
     latestCascades()?.setup?.(this);
+  }
+
+  /** NF15: the shader warm-up's white instance colours for the live `object`, before it copies its stand-in. No draw is
+   *  under way (the next object update uploads them), so the warm-up links the coloured program the draws bind, not a
+   *  colourless one only the first frame (before `giveWhiteColours`) drew */
+  prepareInstances(object: THREE.Object3D): void {
+    if (this.instanceColour && needsWhite(object)) makeWhite(object);
   }
 
   override onBeforeRender(_renderer: THREE.WebGLRenderer, scene: THREE.Scene, _camera: THREE.Camera, _geometry: THREE.BufferGeometry, object: THREE.Object3D): void {

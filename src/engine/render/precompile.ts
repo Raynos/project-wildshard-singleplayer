@@ -338,6 +338,12 @@ function compileObjects(root: THREE.Object3D, visit: (object: THREE.Object3D) =>
  * variants compile again at the first frame.
  */
 function standIn(mesh: MeshLike): MeshLike {
+  // NF15: a classic graph that reads instance colours gives the live mesh its white ones first (its draw hook gives them
+  // only after a frame), so the copy compiles the coloured program the draws use
+  for (const material of materialsOf(mesh)) {
+    const prepare: unknown = Reflect.get(material, 'prepareInstances');
+    if (typeof prepare === 'function') Reflect.apply(prepare, material, [mesh]);
+  }
   const copy = mesh.clone(false) as BatchedLike;
   const src = mesh as BatchedLike;
   if (src.isBatchedMesh && src._colorsTexture && !copy._colorsTexture) copy._colorsTexture = src._colorsTexture;
