@@ -214,6 +214,14 @@ export class Interactables {
     this.unsub = this.host.flags.onChange(() => this.refresh());
     this.refresh(true);
     this.placeModels();
+    // FC16: an instanced batch draws its still copies as one mesh; the bobbing / opening parts keep their own
+    for (const b of ['lit', 'glow'] as const) {
+      const drawn = this.batches[b];
+      if (!(drawn instanceof InstancedBatch)) continue;
+      const animated = new Set<number>();
+      for (const lv of this.lives) for (const part of lv.parts) if (part.batch === b && (part.animated || part.glow !== undefined)) animated.add(part.inst);
+      drawn.mergeStill(animated);
+    }
     return this;
   }
 
