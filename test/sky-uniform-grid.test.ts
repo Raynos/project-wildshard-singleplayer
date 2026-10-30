@@ -9,6 +9,11 @@ import { skyIsleProps } from '../src/shards/far-reach/generators/isleProps';
 import { tileBakeCensus } from '../scripts/tile-bakes.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { parseGlb } from '../src/sdk/assets';
+import { MeshoptSimplifier } from 'meshoptimizer/simplifier';
+import { GeometryPack, packedRows } from '../src/sdk/kit/geometryPack';
+import { bakeSkyIsles } from '../src/shards/far-reach/generators/isles';
+import { ISLES } from '../src/shards/far-reach/generators/layout';
+import { RISING_ISLETS } from '../src/shards/far-reach/generators/risingIslets';
 
 const documentSchema = v.looseObject({
   materials: v.array(v.looseObject({ name: v.string() })),
@@ -38,7 +43,7 @@ function predecessorBytes(bytes: Uint8Array, lod: number): Uint8Array {
   return restored;
 }
 
-test('Sky keeps the complete predecessor lattice and binary payload under explicit surface/receiver metadata', () => {
+test('Sky keeps native lattice and payload while reporting measured coarse error', async () => {
   // This frozen declaration predates T8 named tile ownership. It remains the
   // independent whole-wire oracle; the product now emits contextual rows.
   const original = v.parse(v.object({ tiles: TilesSchema, props: PropsSchema, files: FilesSchema }),
@@ -63,9 +68,48 @@ test('Sky keeps the complete predecessor lattice and binary payload under explic
     compressed: tile.files.reduce((sum, hash) => sum + prior(hash).compressed, 0),
     decoded: tile.files.reduce((sum, hash) => sum + prior(hash).decoded, 0) }))
     .sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z);
-  expect(tiles).toEqual(completeEmptyL1Tiles(completeL0Tiles(occupied)));
+  // The predecessor recorded zero for L1 simplification. Keep its entire physical lattice/payload oracle, but
+  // check error against current native simplifier evidence instead of treating that historical zero as quality.
+  const lattice = (rows: typeof tiles) => rows.map(tile => {
+    if (tile.lod === 0 || tile.files.length === 0) return tile;
+    const { geometricError: _historicalError, ...rest } = tile; return rest;
+  });
+  expect(lattice(tiles)).toEqual(lattice(completeEmptyL1Tiles(completeL0Tiles(occupied))));
+  await MeshoptSimplifier.ready;
+  const native = bakeSkyIsles(), pack = new GeometryPack(native.bin, packedRows(native.rows), 'coarse-error oracle');
+  const sourceIds = new Set([...ISLES.map(isle => isle.id), ...RISING_ISLETS.map(row => row.gate.id)]);
+  let achieved = 0;
+  for (let at = 0; at < native.rows.isles.length; at++) {
+    const id = native.rows.isles[at]; if (id === undefined || !sourceIds.has(id)) continue;
+    const geometry = pack.geometry(at);
+    try {
+      const position = geometry.getAttribute('position'), index = geometry.getIndex();
+      expect(position.array).toBeInstanceOf(Float32Array);
+      const indices = index === null ? Uint32Array.from({ length: position.count }, (_, vertex) => vertex) : Uint32Array.from(index.array);
+      const positions = Float32Array.from({ length: position.count * 3 }, (_, word) => position.getComponent(Math.floor(word / 3), word % 3));
+      const target = Math.max(3, Math.floor(indices.length / 3 * 0.015) * 3);
+      let [kept, error] = MeshoptSimplifier.simplify(indices, positions, 3, target, 2, ['LockBorder', 'ErrorAbsolute']);
+      if (kept.length > target * 1.5) {
+        [kept, error] = MeshoptSimplifier.simplifySloppy(indices, positions, 3, null, target, 1);
+        error *= MeshoptSimplifier.getScale(positions, 3);
+      }
+      if (kept.length !== indices.length) achieved = Math.max(achieved, error);
+    } finally { geometry.dispose(); }
+  }
+  expect(achieved).toBeGreaterThan(0);
+  for (const tile of baked.tiles.filter(row => row.lod === 1 && row.files.length > 0)) {
+    // Each clipped source point rounds once to Float32; its error cannot exceed this quantization-cell radius.
+    const extent = Math.max(...tile.bounds.min.map(Math.abs), ...tile.bounds.max.map(Math.abs));
+    const bits = new Uint32Array(Float32Array.of(extent).buffer), word = bits[0];
+    if (word === undefined) throw new Error('Missing Float32 extent');
+    const next = new Float32Array(Uint32Array.of(word + 1).buffer)[0];
+    if (next === undefined) throw new Error('Missing Float32 successor');
+    const storageRadius = Math.sqrt(3) * (next - Math.fround(extent)) / 2;
+    expect(tile.geometricError).toBeGreaterThanOrEqual(achieved);
+    expect(tile.geometricError).toBeLessThanOrEqual(achieved + storageRadius);
+  }
   expect(tiles.filter(row => row.lod === 0)).toHaveLength(64);
-  expect(tiles.filter(row => row.files.length > 0)).toEqual(occupied);
+  expect(lattice(tiles.filter(row => row.files.length > 0))).toEqual(lattice(occupied));
   expect(tiles.filter(row => row.lod === 0 && row.files.length === 0)).toHaveLength(42);
   expect(tiles.filter(row => row.lod === 1)).toHaveLength(16);
   const priorProps = structuredClone(baked.props);
