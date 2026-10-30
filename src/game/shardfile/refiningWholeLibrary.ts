@@ -34,6 +34,7 @@ export class RefiningWholeLibrary {
   private readonly transforms = new WeakMap<BufferGeometry, boolean>();
   constructor(private readonly owner: Scope, product: ShardProduct, private readonly row: Library, private readonly queue: ControlRefinement, private readonly cover: (tile: number) => Promise<void>) {
     const wanted = new Set(row.models.flatMap(model => model.files));
+    const bounds = new Map(product.shardfile.tiles.filter(tile => tile.lod === 0).map(tile => [tile.z * 8 + tile.x, tile.drawBounds ?? tile.bounds] as const));
     const declared = new Map(product.shardfile.files.map(file => [file.hash, file]));
     for (const tile of product.shardfile.tiles) if (tile.lod === 0) {
       const files = tile.files.filter(hash => wanted.has(hash));
@@ -45,7 +46,9 @@ export class RefiningWholeLibrary {
       const hashes = this.files.get(tile); if (hashes === undefined) throw new Error('Missing refinement tile');
       const pieces: WholeGeometryPiece[] = [];
       scope.onDispose(() => { for (const piece of pieces) piece.geometry.dispose(); pieces.length = 0; });
-      const at = { x: -250 + (tile % 8 + 0.5) * 62.5, z: -250 + (Math.floor(tile / 8) + 0.5) * 62.5 };
+      const box = bounds.get(tile);
+      const at = { x: -250 + (tile % 8 + 0.5) * 62.5, y: box === undefined ? 0 : (box.min[1] + box.max[1]) / 2,
+        z: -250 + (Math.floor(tile / 8) + 0.5) * 62.5, ...(box === undefined ? {} : { bounds: box }) };
       await queue.add(`${row.id}:${String(tile)}:${String(this.serial++)}`, at, async () => {
         if (scope.disposed || scope.disposing) return;
         await this.cover(tile);

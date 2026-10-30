@@ -4,6 +4,8 @@ import { TileDriver, tileKeys, residentTiles, followResidentTiles, tileRing } fr
 import { ring, type TileContent } from './tileContent';
 import { tileOrder, tileOf } from './tileOrder';
 import { noteFrameDrawn, setBuildHeld } from '@wildshard/engine/core/framePacing';
+import { Group, PerspectiveCamera } from 'three';
+import { StreamingCamera, type StreamingBounds } from './streamingView';
 
 // Tile streaming T4: an entered region's per-tile content follows the player. A made-up content with something in every
 // tile records each attach and each tile scope's end.
@@ -16,6 +18,25 @@ function content(failing?: number): TileContent & { attached: Map<string, Scope>
 const settle = async (driver: TileDriver, x: number, z: number, frames: number): Promise<void> => {
   for (let i = 0; i < frames; i++) { driver.step(x, z); await Promise.resolve(); await Promise.resolve(); }
 };
+
+test('a high eye ranks visible render tiles first without moving the player or collider ring', async () => {
+  const scope = new Scope('camera-tiles'), camera = new PerspectiveCamera(50, 0.5, 0.1, 1000), seen: number[] = [];
+  camera.position.set(0, 160, 0); camera.lookAt(150, 40, -25);
+  const front = 30, behind = 35, bounds = new Map<number, StreamingBounds>([
+    [front, { min: [125, 0, -62.5], max: [187.5, 100, 0] }],
+    [behind, { min: [-62.5, 161, 0], max: [0, 170, 62.5] }],
+  ]);
+  const source: TileContent = { id: 'camera-order', tiles: () => new Set([front, behind]),
+    attach: key => { seen.push(key); return Promise.resolve(); } };
+  const driver = new TileDriver(scope, [source], () => 2, () => Promise.resolve(), bounds), view = new StreamingCamera(new Group(), () => camera);
+  driver.setStreamingView(() => view.read());
+  try {
+    await settle(driver, 0, 0, 100);
+    expect(seen).toEqual([front, behind]);
+    expect(driver.resident('colliders')).toEqual(ring(tileOf(0, 0), 1));
+    expect(driver.resident('render')).toEqual(ring(tileOf(0, 0), 2));
+  } finally { scope.dispose(); }
+});
 
 test('the rank-0 tiles attach before controls, then the 5 x 5 fills nearest first and follows the player', async () => {
   const scope = new Scope('tiles'), made = content(), radius = { value: 2 };

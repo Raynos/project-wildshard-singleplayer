@@ -23,6 +23,7 @@ import { residentTileEntry } from './tileEntry';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { SPAWN_VIEW_M, spawnViewBusy } from './controlRefinement';
+import { streamingDistance, streamingOrder, streamingVisible, type StreamingBounds, type StreamingPoint, type StreamingView } from './streamingView';
 
 /** MF5: the live drivers, and whether the loader is settling them (no world frames under the card since FC2). */
 const liveDrivers = new Set<TileDriver>();
@@ -67,8 +68,16 @@ export class TileDriver {
   private plan: TileRingPlan | null = null;
   private coarseScope: Scope | null = null;
   private coarseCount = 0;
+  private readonly targets: ReadonlyMap<number, StreamingPoint>;
+  private streamingView: (() => StreamingView | null) | undefined;
   constructor(private readonly scope: Scope, private readonly contents: readonly TileContent[], private readonly radius: () => number,
-    private readonly pause: () => Promise<void>) {
+    private readonly pause: () => Promise<void>, bounds?: ReadonlyMap<number, StreamingBounds>) {
+    this.targets = new Map(Array.from({ length: TILES_PER_SIDE * TILES_PER_SIDE }, (_, key) => {
+      const box = bounds?.get(key);
+      return [key, { x: -250 + (key % TILES_PER_SIDE + 0.5) * TILE_SIZE,
+        y: box === undefined ? 0 : (box.min[1] + box.max[1]) / 2,
+        z: -250 + (Math.floor(key / TILES_PER_SIDE) + 0.5) * TILE_SIZE, ...(box === undefined ? {} : { bounds: box }) }];
+    }));
     liveDrivers.add(this); scope.onDispose(() => { liveDrivers.delete(this); });
   }
   private last: { readonly x: number; readonly z: number } | null = null;
@@ -76,6 +85,8 @@ export class TileDriver {
   private view: (() => ViewCone | null) | null = null;
   private readonly wantedAt = new Map<number, number>();
   setView(view: () => ViewCone | null): void { this.view = view; }
+  /** NT8: the actual eye in the content root's frame ranks work, not residency. */
+  setStreamingView(view: () => StreamingView | null): void { this.streamingView = view; }
   /** MF5 (settleTileDrivers): step on tasks until nothing of the render ring inside the fence is left to start, or the
    *  one attach in flight has waited SETTLE_IDLE_MS with no spawn-view job running (one outside the fence: it runs after
    *  control). A shorter wait reads an attach in its own budget pause (a frame wait, capped) as that. */
@@ -83,7 +94,8 @@ export class TileDriver {
     let idleSince: number | null = null;
     while (this.last !== null && !this.scope.disposed && !this.scope.disposing && diagnosticNow() < until) {
       this.step(this.last.x, this.last.z);
-      const plan = this.plan, pending = plan !== null && plan.nearest.render.some(key => this.inView(key) && (this.attached.render.get(key) === undefined || !this.complete(key)));
+      const view = this.streamingView?.() ?? null;
+      const plan = this.plan, pending = plan !== null && plan.nearest.render.some(key => this.inView(key, view) && (this.attached.render.get(key) === undefined || !this.complete(key)));
       if (!this.busy && !pending) return;
       if (this.busy && !spawnViewBusy()) { idleSince ??= diagnosticNow(); if (diagnosticNow() - idleSince > SETTLE_IDLE_MS) return; }
       else idleSince = null;
@@ -135,14 +147,24 @@ export class TileDriver {
       this.attached[layer].delete(key); tile.scope.dispose();
     }
     if (this.busy) return;
-    const now = diagnosticNow(), cone = loaderMode || this.view === null ? null : this.view();
+    const now = diagnosticNow(), cone = loaderMode || this.view === null ? null : this.view(), streamView = this.streamingView?.() ?? null;
     for (const key of this.wantedAt.keys()) if (!wanted.render.has(key)) this.wantedAt.delete(key);
     for (const layer of ['colliders', 'render'] as const) {
       // a tile with every content done (done.size >= contents.length, as everywhere here) skips the content scan
-      const next = plan.nearest[layer].find(key => {
+      let next: number | undefined;
+      for (const key of plan.nearest[layer]) {
         const tile = this.attached[layer].get(key);
-        return this.inView(key) && !(layer === 'render' && this.deferred(key, cone, now)) && (tile === undefined || tile.done.size < this.contents.length && this.contents.some(content => !tile.done.has(content) && (layer === 'colliders' || content.ready?.() !== false))) && !this.failed.has(`${layer}:${String(key)}`);
-      });
+        if (!this.inView(key, streamView) || (layer === 'render' && this.deferred(key, cone, now))
+          || !(tile === undefined || tile.done.size < this.contents.length && this.contents.some(content => !tile.done.has(content) && (layer === 'colliders' || content.ready?.() !== false)))
+          || this.failed.has(`${layer}:${String(key)}`)) continue;
+        if (next === undefined) next = key;
+        else if (streamView !== null) {
+          const candidate = this.targets.get(key), prior = this.targets.get(next);
+          if (candidate === undefined || prior === undefined) throw new Error('Missing streaming tile');
+          if (streamingOrder(candidate, prior, streamView) < 0) next = key;
+        }
+        if (streamView === null) break;
+      }
       if (next === undefined) continue;
       // MF13: in play, each render tile's attach and whether the camera sees it then (the walk probes read these)
       if (layer === 'render' && cone !== null) performance.mark('wildshard.tile.render', { detail: { key: next, seen: this.seen(next, cone), waited: Math.round(now - (this.wantedAt.get(next) ?? now)) } });
@@ -152,8 +174,8 @@ export class TileDriver {
     }
   }
 
-  /** Ring membership and distance ordering depend only on the followed tile and radius. Reuse them while the
-   * player stays in that tile; attachment, failure and late-content eligibility still read live state each step. */
+  /** Membership and fallback ordering depend only on the player's tile/radius.
+   * Camera ranking, attachment, failure and readiness still read live each step. */
   private ringPlan(centre: CellTile, radius: number): TileRingPlan {
     const known = this.plan;
     if (known !== null && known.i === centre.i && known.j === centre.j && known.radius === radius) return known;
@@ -169,10 +191,14 @@ export class TileDriver {
     return plan;
   }
 
-  /** While the loader settles (MF5), only tiles whose centre is inside the spawn-view fence: one attach waiting on a job
-   *  outside it would hold back the in-view tiles ordered after it. Otherwise every tile. */
-  private inView(key: number): boolean {
+  /** The loader and refinement queue use the same camera/bounds fence, so a
+   * tile cannot block on an out-of-view job ahead of visible work. */
+  private inView(key: number, view: StreamingView | null): boolean {
     if (!loaderMode || this.last === null) return true;
+    if (view !== null) {
+      const target = this.targets.get(key); if (target === undefined) throw new Error('Missing streaming tile');
+      return streamingDistance(target, view) <= SPAWN_VIEW_M ** 2 && (target.bounds === undefined || streamingVisible(target, view));
+    }
     const half = TILES_PER_SIDE * TILE_SIZE / 2;
     return Math.hypot(-half + (key % TILES_PER_SIDE + 0.5) * TILE_SIZE - this.last.x, -half + (Math.floor(key / TILES_PER_SIDE) + 0.5) * TILE_SIZE - this.last.z) <= SPAWN_VIEW_M;
   }
@@ -289,9 +315,13 @@ export function followRing(radius: number = TILE_RING): (viewer: { readonly x: n
 const drivers = new WeakMap<Scope, TileDriver>();
 const started = new WeakMap<Scope, { readonly pending: Promise<void>; readonly state: { complete: boolean } }>();
 const tileBytes = new WeakMap<Scope, ReadonlyMap<number, number>>();
+const tileBounds = new WeakMap<Scope, ReadonlyMap<number, StreamingBounds>>();
 /** A resident's L0 tile rows (key j * 8 + i), their declared decoded + GPU bytes: what the overlay labels each tile with. */
-export function noteTileBytes(resident: Scope, rows: readonly { readonly lod: number; readonly x: number; readonly z: number; readonly decoded: number; readonly gpu: number }[]): void {
+export function noteTileBytes(resident: Scope, rows: readonly { readonly lod: number; readonly x: number; readonly z: number; readonly decoded: number; readonly gpu: number; readonly bounds?: StreamingBounds; readonly drawBounds?: StreamingBounds }[]): void {
   tileBytes.set(resident, new Map(rows.filter(row => row.lod === 0).map(row => [row.z * 8 + row.x, row.decoded + row.gpu] as const)));
+  const bounds = new Map<number, StreamingBounds>();
+  for (const row of rows) if (row.lod === 0 && row.bounds !== undefined) bounds.set(row.z * 8 + row.x, row.drawBounds ?? row.bounds);
+  tileBounds.set(resident, bounds);
 }
 /**
  * T4: a resident world's tiled content attached before its player has controls: the actual crossing's entry ring,
@@ -312,7 +342,7 @@ export function residentTiles(resident: Scope, contents: readonly TileContent[],
     const live = (): void => { if (resident.disposed || resident.disposing) throw new Error('Tile resident is disposed'); };
     live();
     const entry = residentTileEntry(resident), at = entry ?? spawn;
-    const driver = drivers.get(resident) ?? new TileDriver(resident, contents, radius, () => buildYield(resident)), order = tileOrder(at);
+    const driver = drivers.get(resident) ?? new TileDriver(resident, contents, radius, () => buildYield(resident), tileBounds.get(resident)), order = tileOrder(at);
     await driver.require(tileKeys(order.tiles.filter(tile => order.rank(tile) === 0))); live();
     await driver.coarse(at.x, at.z); live();
     drivers.set(resident, driver);
@@ -323,12 +353,13 @@ export function residentTiles(resident: Scope, contents: readonly TileContent[],
   started.set(resident, { pending, state: preparation });
   return pending;
 }
-/** T4: once a frame while a world is entered, its resident's tiles follow the player's cell-local position. `view`
- *  (MF13): the camera's horizontal view, so a tile in it attaches only once it leaves the view or VIEW_DEFER_MS on. */
-export function followResidentTiles(resident: Scope, position: () => { readonly x: number; readonly z: number }, view?: () => ViewCone | null): (() => void) | null {
+/** T4: membership follows the player. MF13's horizontal view retains its
+ * defer guard; NT8's cell-local streaming view orders the eligible jobs. */
+export function followResidentTiles(resident: Scope, position: () => { readonly x: number; readonly z: number }, view?: () => ViewCone | null, streaming?: () => StreamingView | null): (() => void) | null {
   const driver = drivers.get(resident);
   if (driver === undefined) return null;
   if (view !== undefined) driver.setView(view);
+  if (streaming !== undefined) driver.setStreamingView(streaming);
   return () => { const at = position(); driver.step(at.x, at.z); };
 }
 

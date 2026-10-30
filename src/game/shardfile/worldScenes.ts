@@ -1,4 +1,5 @@
 import { TileDriver, tileRing } from './tileDriver';
+import { StreamingCamera } from './streamingView';
 import { ring, ringRadius, type TileContent } from './tileContent';
 import { tileOf } from './tileOrder';
 import { residentTileEntry } from './tileEntry';
@@ -335,7 +336,11 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
   // Ordinary/headless declarations need no control clock. Acquire it only at
   // the first actual after-control consumer, retaining that host's real fence.
   const refinementQueue = (): ControlRefinement => {
-    refinement ??= new ControlRefinement(owner, ctx.game.runtime?.world?.game.levelScope, () => ctx.game.runtime?.world?.player.position ?? refinementOrigin, () => buildYield(owner));
+    if (refinement === undefined) {
+      const world = ctx.game.runtime?.world, camera = (world === undefined || world === null) ? undefined : new StreamingCamera(ctx.root, () => world.game.camera);
+      refinement = new ControlRefinement(owner, world?.game.levelScope, () => ctx.game.runtime?.world?.player.position ?? refinementOrigin,
+        () => buildYield(owner), camera === undefined ? undefined : () => camera.read());
+    }
     return refinement;
   };
   const handles = new SceneHandles(ctx.game.runtime?.world?.sky, (id, at, needed, run) => refinementQueue().add(id, at, async () => {
@@ -699,7 +704,10 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       // Their separate child driver keeps those hosts from attaching them twice.
       const tiles = owner.child('buffered-tiles');
       const at = residentTileEntry(resident) ?? product.shardfile.spawn;
-      const radius = (): number => ringRadius(product.shardfile, tileRing), driver = new TileDriver(tiles, bufferedContents, radius, () => buildYield(tiles));
+      const bounds = new Map(product.shardfile.tiles.filter(tile => tile.lod === 0).map(tile => [tile.z * 8 + tile.x, tile.drawBounds ?? tile.bounds] as const));
+      const camera = new StreamingCamera(ctx.root, () => world.game.camera);
+      const radius = (): number => ringRadius(product.shardfile, tileRing), driver = new TileDriver(tiles, bufferedContents, radius, () => buildYield(tiles), bounds);
+      driver.setStreamingView(() => camera.read());
       // Warm only the requested render ring, including every edge-overlap chunk.
       // Spawn and unrelated entryways do not belong to this crossing's intake.
       await driver.require(ring(tileOf(at.x, at.z), radius()));

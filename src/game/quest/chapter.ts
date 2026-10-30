@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
+import { StreamingCamera } from '../shardfile/streamingView';
 import { BatchedMesh, Vector3, type Object3D, type Mesh } from 'three';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { WORK_SLICE_MS, workSlice, buildYield } from '@wildshard/engine/core/workSlice';
@@ -257,7 +258,10 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
           figures.set(row.id, { kind: 'posed', create: (at, yaw) => {
             const figure = book.create(row.id, scene, [at.x, at.y, at.z], yaw, ctx.scope, { viewer: world.player.position,
               later: (id, position, run) => {
-                skinQueue ??= new ControlRefinement(ctx.scope, world.game.levelScope, () => world.player.position, () => buildYield(ctx.scope));
+                if (skinQueue === undefined) {
+                  const camera = new StreamingCamera(ctx.root, () => world.game.camera);
+                  skinQueue = new ControlRefinement(ctx.scope, world.game.levelScope, () => world.player.position, () => buildYield(ctx.scope), () => camera.read());
+                }
                 return skinQueue.add(`${id}:${String(skinSequence++)}`, position, run);
               } });
             if (!figure.skinDeferred) immediate.push(figure.ready);

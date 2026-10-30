@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { BufferGeometry, Float32BufferAttribute, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
+import { BufferGeometry, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { legacyDouble } from '../src/engine/test/FakeGame';
 import { emptyShardfile } from '../src/sdk/author';
@@ -42,7 +42,7 @@ function fixture(slug: string, host?: 'world.assembly' | 'world.forest-page') {
   }
   const player = { position: new Vector3() }, system = vi.fn<ShardContext['system']>();
   type World = NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>;
-  const ctx = legacyDouble<ShardContext>({ scope, product, system,
+  const ctx = legacyDouble<ShardContext>({ scope, product, system, root: new Group(),
     game: legacyDouble<ShardContext['game']>({ runtime: legacyDouble<NonNullable<ShardContext['game']['runtime']>>({
       // MF13: the tile follower reads the world camera's view (cf7426e56d)
       world: legacyDouble<World>({ player: legacyDouble<World['player']>({ position: player.position }), game: legacyDouble<World['game']>({ camera: new PerspectiveCamera() }) }),

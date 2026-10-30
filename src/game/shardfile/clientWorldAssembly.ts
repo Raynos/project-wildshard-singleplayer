@@ -17,6 +17,7 @@ import { bakedTileContents, residentBakedTiles, type BakedTiles } from './bakedT
 import { publishEntryOwner, lendEntryOwner, entryOwner, presentEntryOwner } from './entryOwners';
 import { timeClientPreparation } from './preparationTiming';
 import { cameraCone, followResidentTiles, noteTileBytes, productTileRing, residentTiles } from './tileDriver';
+import { StreamingCamera } from './streamingView';
 import { farStandIn } from './farStandIn';
 import { wholeRefinementCover } from './wholeRefinementCover';
 
@@ -118,6 +119,7 @@ export async function installClientWorldAssembly(ctx: ShardContext, row: Extract
   }
   // NT1: the product's own ring (its whole cell where it declares `ring: 'cell'`), as the client plan's driver takes it
   noteTileBytes(owner, source.tiles); await residentTiles(owner, scenes.tiled(), source.spawn, source.entryways, productTileRing(source)); live();
-  const follow = followResidentTiles(owner, () => world.player.position, () => cameraCone(world.game.camera));
+  const camera = new StreamingCamera(ctx.root, () => world.game.camera);
+  const follow = followResidentTiles(owner, () => world.player.position, () => cameraCone(world.game.camera), () => camera.read());
   if (follow !== null) ctx.system({ id: 'client.world.tiles', phase: 'update', run: () => { follow(); } });
 }

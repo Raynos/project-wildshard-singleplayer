@@ -1,18 +1,18 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { whenControl } from '@wildshard/engine/boot/prefetch';
 import { pageScope } from '@wildshard/engine/app/resources';
+import { streamingDistance, streamingVisible, type StreamingPoint, type StreamingView } from './streamingView';
 
-interface Point { readonly x: number; readonly z: number }
+type Point = StreamingPoint;
 interface Job {
   readonly id: string; readonly at: Point; readonly order: number; readonly run: () => Promise<void>;
   readonly resolve: (published: boolean) => void; readonly reject: (error: Error) => void;
 }
 
-/** MF5 / NP-1 (Jake 10-29: pop-in is worse than a longer load): the loader's spawn-view fence. While it is open, each
- * queue runs, before control, the jobs within `radius` m of its viewer (the spawn ring's L0 tiles, late welds, dressing
- * reads), nearest first; the loader awaits them before its shaders link, so the reveal shows the refined spawn view.
- * Jobs outside it still wait for control. 221 m: the whole 5 x 5 render ring, its corner tile centres (two 62.5 m tiles
- * out on both axes, 177 m) seen from anywhere in the centre tile (+44 m); at 160 m Nine read four ring tiles in play. */
+/** MF5 / NT8: the loader awaits spatial jobs in the real camera frustum within
+ * a 3-D radius before reveal. Published boxes are conservative; unbounded
+ * catalogue/recipe jobs keep the radius fence. Camera-less owners retain their
+ * original viewer-distance order. 221 m retains the former 5 x 5 ring reach. */
 export const SPAWN_VIEW_M = 221;
 let spawnView: { readonly radius: number } | null = null;
 const queues = new Set<ControlRefinement>();
@@ -40,8 +40,8 @@ export async function prepareSpawnView(radius: number = SPAWN_VIEW_M, settle?: (
   } finally { spawnView = null; }
 }
 
-/** One resident's low-priority refinement cursor. The first controlled paint
- * precedes every read; each next job follows the current viewer, nearest first.
+/** One resident's low-priority refinement cursor. Outside the loader fence,
+ * controlled paint precedes reads; visible jobs lead, then 3-D eye distance.
  * Retirement drains the started job and cancels queued publication. */
 export class ControlRefinement {
   private readonly waiting = new Map<string, Job>();
@@ -55,7 +55,7 @@ export class ControlRefinement {
   private sequence = 0;
   private failure: Error | undefined;
   private idle: (() => void)[] = [];
-  constructor(owner: Scope, level: Scope | undefined, position: () => Point, pause: () => Promise<void>) {
+  constructor(owner: Scope, level: Scope | undefined, position: () => Point, pause: () => Promise<void>, private readonly view?: () => StreamingView | null) {
     this.owner = owner; this.position = position; this.pause = pause;
     queues.add(this);
     owner.onDispose(() => { queues.delete(this); for (const job of this.waiting.values()) job.resolve(false); this.waiting.clear(); this.known.clear(); this.settle(); });
@@ -68,16 +68,22 @@ export class ControlRefinement {
   add(id: string, at: Point, run: () => Promise<void>): Promise<boolean> {
     if (this.owner.disposed || this.owner.disposing) return Promise.resolve(false);
     if (this.failure !== undefined) return Promise.reject(this.failure);
-    if (id.length === 0 || this.known.has(id) || !Number.isFinite(at.x) || !Number.isFinite(at.z)) return Promise.reject(new Error('Invalid or duplicate refinement job'));
+    if (id.length === 0 || this.known.has(id) || !Number.isFinite(at.x) || !Number.isFinite(at.z) || (at.y !== undefined && !Number.isFinite(at.y))
+      || (at.bounds !== undefined && (!at.bounds.min.every(Number.isFinite) || !at.bounds.max.every(Number.isFinite)
+        || at.bounds.min.some((n, i) => n > (at.bounds?.max[i] ?? -Infinity))))) return Promise.reject(new Error('Invalid or duplicate refinement job'));
     const order = this.sequence++; this.known.add(id);
     const result = new Promise<boolean>((resolve, reject) => { this.waiting.set(id, { id, at: { ...at }, order, run, resolve, reject }); });
     this.kick(); return result;
   }
   /** The viewer, the queue's size and its nearest waiting job's distance (prepareSpawnView's mark). */
   describe(): { readonly at: Point; readonly waiting: number; readonly nearest: number | null; readonly active: boolean } {
-    const from = this.position(); let nearest: number | null = null;
-    for (const job of this.waiting.values()) { const d = Math.hypot(job.at.x - from.x, job.at.z - from.z); if (nearest === null || d < nearest) nearest = d; }
-    return { at: { x: Math.round(from.x), z: Math.round(from.z) }, waiting: this.waiting.size, nearest: nearest === null ? null : Math.round(nearest), active: this.active };
+    const view = this.view?.() ?? null, from = view?.eye ?? this.position(); let nearest: number | null = null;
+    for (const job of this.waiting.values()) {
+      const d = view === null ? Math.hypot(job.at.x - from.x, job.at.z - from.z) : Math.sqrt(streamingDistance(job.at, view));
+      if (nearest === null || d < nearest) nearest = d;
+    }
+    return { at: { x: Math.round(from.x), z: Math.round(from.z), ...(from.y === undefined ? {} : { y: Math.round(from.y) }) },
+      waiting: this.waiting.size, nearest: nearest === null ? null : Math.round(nearest), active: this.active };
   }
   /** The spawn-view fence opened: run what is in view (prepareSpawnView). */
   wake(): void { this.kick(); }
@@ -90,13 +96,23 @@ export class ControlRefinement {
   }
   private settle(): void { const waiters = this.idle; this.idle = []; for (const resolve of waiters) resolve(); }
   /** Before control, the nearest waiting job inside the open spawn-view fence. */
-  private inView(): Job | undefined {
-    if (spawnView === null || this.waiting.size === 0) return undefined;
-    const from = this.position(), radius = spawnView.radius;
-    if (!Number.isFinite(from.x) || !Number.isFinite(from.z)) return undefined;
-    const distance = (job: Job): number => (job.at.x - from.x) ** 2 + (job.at.z - from.z) ** 2;
-    return [...this.waiting.values()].filter(job => distance(job) <= radius * radius)
-      .sort((a, b) => distance(a) - distance(b) || a.order - b.order)[0];
+  private inView(): Job | undefined { return this.select(true); }
+  private select(beforeControl: boolean): Job | undefined {
+    if (this.waiting.size === 0 || (beforeControl && spawnView === null)) return undefined;
+    const view = this.view?.() ?? null, from = view?.eye ?? this.position();
+    if (!Number.isFinite(from.x) || !Number.isFinite(from.z)) throw new Error('Invalid refinement viewer');
+    let best: Job | undefined, bestSeen = false, bestDistance = Infinity;
+    for (const job of this.waiting.values()) {
+      const distance = view === null ? (job.at.x - from.x) ** 2 + (job.at.z - from.z) ** 2 : streamingDistance(job.at, view);
+      const seen = view !== null && streamingVisible(job.at, view);
+      // Unbounded catalogue/recipe jobs retain the conservative radius fence.
+      // Spatial jobs use their whole published box, never only its centre.
+      if (beforeControl && (distance > (spawnView?.radius ?? 0) ** 2 || (view !== null && job.at.bounds !== undefined && !seen))) continue;
+      if (best === undefined || (seen && !bestSeen) || (seen === bestSeen && (distance < bestDistance || (distance === bestDistance && job.order < best.order)))) {
+        best = job; bestSeen = seen; bestDistance = distance;
+      }
+    }
+    return best;
   }
   private kick(): void {
     if (this.busy || this.scheduled || this.owner.disposed || this.owner.disposing || this.waiting.size === 0) return;
@@ -109,11 +125,8 @@ export class ControlRefinement {
     this.busy = true;
     try {
       while (this.waiting.size > 0 && !this.owner.disposed && !this.owner.disposing) {
-        const from = this.position();
-        if (!Number.isFinite(from.x) || !Number.isFinite(from.z)) throw new Error('Invalid refinement viewer');
-        const distance = (job: Job): number => (job.at.x - from.x) ** 2 + (job.at.z - from.z) ** 2;
-        // before control only the spawn view runs (MF5); after it, everything, nearest first
-        const job = this.active ? [...this.waiting.values()].sort((a, b) => distance(a) - distance(b) || a.order - b.order)[0] : this.inView();
+        // The current camera is sampled again after every yielded job.
+        const job = this.active ? this.select(false) : this.inView();
         if (job === undefined) break;
         this.waiting.delete(job.id);
         try {

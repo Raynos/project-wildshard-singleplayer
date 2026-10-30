@@ -2,19 +2,48 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import { reachControl } from '@wildshard/engine/boot/prefetch';
 import { ControlRefinement, prepareSpawnView } from './controlRefinement';
+import { Group, PerspectiveCamera } from 'three';
+import { StreamingCamera, type StreamingView } from './streamingView';
 
 const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); vi.restoreAllMocks(); });
-function fixture() {
+function fixture(view?: () => StreamingView | null) {
   const level = new Scope('refine-level'), owner = new Scope('refine-owner'), position = { x: 0, z: 0 }, seen: string[] = [];
   const frames: FrameRequestCallback[] = [];
   vi.spyOn(owner, 'raf').mockImplementation(run => { frames.push(run); return frames.length; });
   owner.onDispose(() => { frames.length = 0; });
   scopes.push(level, owner);
-  const queue = new ControlRefinement(owner, level, () => position, () => Promise.resolve());
+  const queue = new ControlRefinement(owner, level, () => position, () => Promise.resolve(), view);
   const paint = () => { const frame = frames.shift(); if (frame === undefined) throw new Error('Missing first controlled paint'); frame(1); };
   return { level, owner, queue, seen, position, paint, frames };
 }
+
+test('a high eye schedules visible work before a closer job behind the camera', async () => {
+  const camera = new PerspectiveCamera(50, 0.5, 0.1, 1000);
+  camera.position.set(0, 160, 0); camera.lookAt(90, 40, -25);
+  const view = new StreamingCamera(new Group(), () => camera), f = fixture(() => view.read());
+  const behind = f.queue.add('behind', { x: -10, y: 160, z: 0 }, () => { f.seen.push('behind'); return Promise.resolve(); });
+  const front = f.queue.add('front', { x: 95, y: 50, z: -30, bounds: { min: [62.5, 0, -62.5], max: [125, 100, 0] } }, () => { f.seen.push('front'); return Promise.resolve(); });
+  reachControl(f.level); f.paint(); f.paint();
+  expect(await Promise.all([behind, front])).toEqual([true, true]);
+  expect(f.seen).toEqual(['front', 'behind']);
+});
+
+test('the spawn fence uses visible bounds and eye height while keeping unbounded recipes conservative', async () => {
+  const camera = new PerspectiveCamera(50, 0.5, 0.1, 1000);
+  camera.position.set(0, 160, 0); camera.lookAt(90, 40, -25);
+  const view = new StreamingCamera(new Group(), () => camera), f = fixture(() => view.read());
+  const behind = f.queue.add('behind', { x: -30, y: 160, z: 30, bounds: { min: [-40, 150, 20], max: [-20, 170, 40] } }, () => { f.seen.push('behind'); return Promise.resolve(); });
+  const front = f.queue.add('front', { x: 95, y: 50, z: -30, bounds: { min: [62.5, 0, -62.5], max: [125, 100, 0] } }, () => { f.seen.push('front'); return Promise.resolve(); });
+  const recipe = f.queue.add('recipe', { x: 0, y: 160, z: 0 }, () => { f.seen.push('recipe'); return Promise.resolve(); });
+  const high = f.queue.add('high', { x: 0, y: 500, z: 0 }, () => { f.seen.push('high'); return Promise.resolve(); });
+  await prepareSpawnView();
+  expect(f.seen).toEqual(['front', 'recipe']);
+  expect(await front).toBe(true); expect(await recipe).toBe(true);
+  reachControl(f.level); f.paint(); f.paint();
+  expect(await Promise.all([behind, high])).toEqual([true, true]);
+  expect(f.seen).toEqual(['front', 'recipe', 'behind', 'high']);
+});
 
 test('refinement starts after controlled paint and reorders the remaining queue by the viewer', async () => {
   const f = fixture();

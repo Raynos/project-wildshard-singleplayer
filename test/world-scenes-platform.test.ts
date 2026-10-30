@@ -4,8 +4,10 @@ import {nineCastBlobs} from './fixtures/nine-cast-blobs';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { installBrowserScopeEnvironment } from '../src/engine/app/view/scopeEnvironment';
 import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
-import { Box3, BufferAttribute as NativeBufferAttribute, BufferGeometry as NativeBufferGeometry, Group, Mesh, MeshStandardMaterial, Object3D, Vector3 } from 'three';
+import { Box3, BufferAttribute as NativeBufferAttribute, BufferGeometry as NativeBufferGeometry, Group, Mesh, MeshStandardMaterial, Object3D, PerspectiveCamera, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
+import { legacyDouble } from '../src/engine/test/FakeGame';
+import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { AssetService } from '../src/engine/app/assets';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { LivingBuildings } from '../src/game/shardfile/livingBuildings';
@@ -61,9 +63,16 @@ function fixture(cell = false): ShardContext {
   const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value));
   const files = new Map([['models/stone.glb', triangle()], ['scenes/open.json', encode(recipe)], ['scenes/cell.json', encode(cellRecipe)]]);
   const source = emptyShardfile({ slug: 'fixture-harbour', name: 'Harbour', author: 'Fixture', revision: 1, seed: 3 });
-  return { scope, app: { registry, assets: new AssetService() }, game: {}, cube: cell ? { half: 250 } : null,
-    product: { slug: 'fixture-harbour', shardfile: source, hasFile: (name: string) => files.has(name), url: (name: string) => name,
-      file: (name: string) => { const value = files.get(name); return value === undefined ? Promise.reject(new Error('Missing fixture blob')) : Promise.resolve(value); } } } as ShardContext;
+  const game = legacyDouble<ShardContext['game']>({});
+  Object.assign(game, { camera: new PerspectiveCamera(), runtime: undefined, levelScope: undefined, renderer: undefined });
+  const read = (name: string): Promise<Uint8Array> => { const value = files.get(name); return value === undefined ? Promise.reject(new Error('Missing fixture blob')) : Promise.resolve(value); };
+  const product = createShardProduct({ slug: 'fixture-harbour', revision: 1, shardfile: source, sections: new Map(),
+    files: new Map([...files.keys()].map(name => [name, { hash: name, url: name }])), read });
+  // Retain the original fixture's named transport; individual cases extend it
+  // with their own source files and refusal controls.
+  Object.assign(product, { hasFile: (name: string) => files.has(name), url: (name: string) => name, file: read });
+  return legacyDouble<ShardContext>({ scope, root: new Group(), app: legacyDouble<ShardContext['app']>({ registry, assets: new AssetService() }), game, cube: cell ? { half: 250 } : null,
+    product });
 }
 
 test.each([true, false])('library timing names declared rows, replaces re-entry and skips public spans (Developer=%s)', async developer => {

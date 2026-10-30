@@ -34,6 +34,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { anchorOf } from './worldScenePlacement';
 import { colliderTileKeys, type TileContent } from './tileContent';
 import { followResidentTiles, noteTileBytes, productTileRing, residentTiles } from './tileDriver';
+import { StreamingCamera } from './streamingView';
 import type { ShardContext } from '../plugin/context';
 
 /** N2: a tile's dressing colliders register this many a task (Rapier hulls: ~1 ms each on the phone) */
@@ -215,13 +216,14 @@ export class SceneDressing {
       const tiles=ctx.scope.child('scene.dressing.tiles'),shard=ctx.product.shardfile,world=ctx.game.runtime?.world;
       // T5: this driver is the entered readout the Developer minimap labels, so it carries the shard's declared tile bytes too
       noteTileBytes(tiles,shard.tiles);await residentTiles(tiles,[owner.colliderTiles(rows.name)],shard.spawn,shard.entryways,productTileRing(shard)); // NT1: the product's ring (colliders keep min(r, 1))
-      if(world!==undefined&&world!==null)owner.follow=followResidentTiles(tiles,()=>world.player.position);
+      if(world!==undefined&&world!==null){const camera=new StreamingCamera(ctx.root,()=>world.game.camera);owner.follow=followResidentTiles(tiles,()=>world.player.position,undefined,()=>camera.read());}
     }
     ctx.scope.onDispose(()=>{if(installed.get(ctx.product)===owner)installed.delete(ctx.product);owner.instances?.dispose();for(const piece of owner.pieces.values())piece.object.removeFromParent();owner.group.removeFromParent();});
     ctx.system({id:'client.scene.dressing',phase:'update',after:['main.world'],before:['engine.creatures.update'],run:dt=>owner.update(dt)});
     if(catalogueReads.size>0){
       const world=runtime?.world,origin=product.shardfile.spawn;
-      const queue=new ControlRefinement(scope,world?.game.levelScope,()=>world?.player.position??origin,()=>buildYield(scope));
+      const camera=(world===undefined||world===null)?undefined:new StreamingCamera(ctx.root,()=>world.game.camera);
+      const queue=new ControlRefinement(scope,world?.game.levelScope,()=>world?.player.position??origin,()=>buildYield(scope),camera===undefined?undefined:()=>camera.read());
       const pending=[...catalogueReads].map(([index,prepare])=>queue.add(`catalogue:${String(index)}`,origin,prepare));
       const warm=async():Promise<void>=>{try{await Promise.all(pending);}catch(error:unknown){if(!scope.disposed&&!scope.disposing)console.error('[scene] deferred catalogue preparation failed',error);}};
       void warm();
