@@ -23,7 +23,8 @@ export class LookGraph {
     this.store(id, node); this.memo.set(key, id); return id;
   }
   p(name: string, type: GraphParam['type'], value: GraphParam['value']): string { this.params[name] = { type, value }; return this.op('param', undefined, { param: name }); }
-  a(name: string, type: NonNullable<GraphNode['type']>): string { return this.op('attribute', undefined, { name, type }); }
+  /** a vertex channel; with a `fallback`, a mesh without it reads the fallback (one program serves both kinds) */
+  a(name: string, type: NonNullable<GraphNode['type']>, fallback?: GraphNode['default']): string { return this.op('attribute', undefined, fallback === undefined ? { name, type } : { name, type, default: fallback }); }
   sw(a: GraphRef, mask: string): string { return this.op('swizzle', [a], { mask }); }
   add(a: GraphRef, b: GraphRef): string { return this.op('add', [a, b]); }
   sub(a: GraphRef, b: GraphRef): string { return this.op('sub', [a, b]); }

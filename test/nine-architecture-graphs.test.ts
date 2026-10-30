@@ -132,6 +132,15 @@ test('the merged shell also compiles without instance attributes', () => {
   expect(shaders.vertex).not.toContain('instanceColor');
 });
 
+test('the kit reads its walker dye channel even when the first mesh built lacks it', () => {
+  // EP8: one kit program serves every mesh; built first for a mesh without aDye, the plain attribute compiled to a
+  // constant 0 and every dyed umbrella drew its base walker's dark cloth x the dye. The channel's default keeps it read.
+  for (const id of ['nine-architecture', 'nine-architecture-cut']) {
+    const graph = graphs[id]; if (graph === undefined) throw new Error(`Missing ${id}`);
+    expect(build(graph, true).vertex, id).toMatch(/\baDye\b/u);
+  }
+});
+
 test('volume sampling refuses wrong coordinates, dimensions and lent textures', () => {
   const graph: GraphIr = { version: 1, kind: 'material', model: 'unlit', params: { volume: { type: 'texture', role: 'lent', value: 'volume' } }, nodes: { sample: { op: 'texture3D', in: [[0.5, 0.5, 0.5]], param: 'volume' }, colour: { op: 'swizzle', in: ['sample'], mask: 'xyz' } }, stages: { surface: { colour: 'colour' } } };
   const compiled = compileGraph(graph), volume = new THREE.Data3DTexture(new Uint8Array([1, 2, 3, 255]), 1, 1, 1);

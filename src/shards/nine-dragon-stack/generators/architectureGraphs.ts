@@ -413,8 +413,10 @@ function architecture(cut: boolean, nr13: boolean): GraphIr {
   const kind = g.floor(add(sw(pat, 'x'), 0.5)), flags = g.floor(add(sw(misc, 'w'), 0.5)), surf = g.floor(div(flags, 4096));
   // EP8 (B5): a dyed walker draws as its base walker's instance, the dye its instance colour: its umbrella (aDye > 0) takes
   // the dye x the factor the cast carries, its other vertices (aDye < 0) their own colour; geometry without the channel
-  // reads 0 and keeps vertex x instance colour exactly (a white instance draws the walker's own colours too)
-  const dye = g.attr('aDye', 'float'), white = g.op('and', [g.eq(sw(g.tint, 'x'), 1), g.op('and', [g.eq(sw(g.tint, 'y'), 1), g.eq(sw(g.tint, 'z'), 1)])]);
+  // reads 0 and keeps vertex x instance colour exactly (a white instance draws the walker's own colours too). The channel
+  // carries its 0 as a default: the kit's program is shared by every mesh, and one built first for a mesh without the
+  // channel otherwise baked it in as a constant 0, so every dyed umbrella drew its base walker's dark cloth x the dye
+  const dye = g.v(g.a('aDye', 'float', 0)), white = g.op('and', [g.eq(sw(g.tint, 'x'), 1), g.op('and', [g.eq(sw(g.tint, 'y'), 1), g.eq(sw(g.tint, 'z'), 1)])]);
   const coloured = choose(g.eq(dye, 0), g.colour, choose(g.op('and', [g.gt(dye, 0), g.op('not', [white])]), mul(g.tint, dye), g.op('vertexColour')));
   const accent = g.bit(flags, 16), gloss = g.bit(flags, 32), gold = g.bit(flags, 64), base = mul(coloured, mix(g.u('uWashTint'), [1, 1, 1], accent));
   const uv = sw(face, 'xy'), sz = sw(face, 'zw'), q = add(uv, off), x = sw(uv, 'x'), y = sw(uv, 'y'), w = sw(sz, 'x'), h = sw(sz, 'y');
