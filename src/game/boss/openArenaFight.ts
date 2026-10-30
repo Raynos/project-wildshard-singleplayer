@@ -11,9 +11,9 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 import type { ArenaScriptData, ArenaScriptFightFile, ArenaScriptRows } from '@wildshard/format/arenaScriptRows';
 import { ARENA_BURNT_PER_FRAME, ARENA_VIEW, arenaChainTell } from '@wildshard/format/arenaView';
 import { V2_ACTION_OPS, type V2ActionBinding } from '@wildshard/format/scriptActionsV2';
-import { ReturnProgram, ProjectedState } from '../population/returnProgram';
+import { ReturnProgram, ProjectedState, type ProjectedSnapshot } from '../population/returnProgram';
 import { installChannelPrograms } from '../plugin/channelPrograms';
-import { CellField } from '../systems/cellField';
+import { CellField, type CellFieldSnapshot } from '../systems/cellField';
 import { lendViewArray, lendViewCell, lendViewDraw, lendViewFrame, lendViewTell, lendViewValues } from '../shardfile/clientViewProgram';
 import { prepareV2WorldActions, type V2WorldActionLoan } from '../shardfile/worldActionsV2';
 import type { GroundTell } from '../Elite';
@@ -23,6 +23,7 @@ import type { ArenaBoundary } from '../riding/client';
 import type { WeatherReactions } from '../weather/reactions';
 import type { wildEnv } from '../population/pageGroups';
 import type { ArenaFireView, ArenaWhirlsView } from './arenaFire';
+import type { ArenaWhirlsSnapshot } from './arenaWhirls';
 import type { ArenaSceneView, CloudBody, PatrolEncounterView } from './encounterView';
 
 /** The fight's rows: its fight file's arena script, programs and fire with its geometry file (the page's entered
@@ -44,7 +45,7 @@ function freezeDeclaration(value: unknown): void {
 export type ArenaBodyPort = Pick<CloudBody, 'alpha' | 'flash' | 'fogColour' | 'part' | 'setVisible' | 'visible' | 'aim' | 'update' | 'focusWorld'>;
 export type ArenaScenePort = Pick<ArenaSceneView, 'tell' | 'tells' | 'instances' | 'mesh' | 'update'>;
 export type ArenaFirePort = Pick<ArenaFireView, 'update' | 'smoke' | 'flames'>;
-export type ArenaWhirlsPort = Pick<ArenaWhirlsView, 'arm' | 'reset' | 'update' | 'bindView'>;
+export type ArenaWhirlsPort = Pick<ArenaWhirlsView, 'arm' | 'reset' | 'update' | 'bindView' | 'snapshot' | 'restore'>;
 /** Each look made once, in the fight's construction order: the body (over the fight's pose), the arena, its whirl funnels
  *  (over the arena, the wind law, the attack program and the level scope) and the fire. */
 export interface OpenArenaViews {
@@ -71,6 +72,22 @@ export interface OpenArenaFightHost {
   readonly toast: (message: string) => void; readonly riderOwner: () => PatrolEncounterView | null;
 }
 interface SupportActor { readonly a: Animal; readonly lane: GroundTell; readonly law: ProjectedState }
+/** the view module's cells (format/arenaView `cells`): the eased pose and the aim's operands */
+export type ArenaPoseCells = Record<'bend' | 'raise' | 'castL' | 'struck' | 'alpha', { value: number }>;
+const POSE_CELLS = ['bend', 'raise', 'castL', 'struck', 'alpha'] as const;
+/** CI12: the fight's whole continuation as data (`OpenArenaFight.snapshot`). The host's own parts stay the host's: the `ai`
+ *  stream every draw comes from, the weather, the riders' actors (handed back by site on restore) and the player. */
+export interface OpenArenaFightSnapshot {
+  readonly life: ProjectedSnapshot; readonly clocks: ProjectedSnapshot; readonly support: ProjectedSnapshot;
+  readonly field: CellFieldSnapshot; readonly whirls: ArenaWhirlsSnapshot;
+  readonly pose: Readonly<Record<string, number>>; readonly spear: readonly [number, number, number];
+  readonly fireOn: boolean; readonly fireClear: boolean; readonly burnt: readonly number[];
+  readonly hazardDt: number; readonly boundary: { readonly mask: number; readonly effect: Readonly<Record<string, number>> | null };
+  readonly riders: readonly { readonly site: number; readonly law: ProjectedSnapshot }[];
+  readonly body: { readonly visible: boolean; readonly alpha: number; readonly flash: number; readonly dome: boolean };
+  /** the view module's cells after its last frame (null: no view bound) */
+  readonly view: Readonly<Record<typeof POSE_CELLS[number], number>> | null;
+}
 interface Chain { readonly tell:GroundTell; readonly row:ArenaScriptData['clocks']['landings'][number] }
 const _openV = new THREE.Vector3(), _openRAY = new THREE.Ray(), _openSPH = new THREE.Sphere(), _openHITP = new THREE.Vector3();
 /** The open arena's fight (Nalati's Storm Titan) as numbers and rules: its life, clocks, support riders, grass fire,
@@ -126,7 +143,7 @@ export class OpenArenaFight implements BossScript {
   private readonly viewRead = { fighting: 0, victoryT: -1, phase: 0, domeBroken: 0, open: 0, flash: 0 };
   /** Nalati zero R6: the tells and pose run in the fight's view module at its frame slot (format/arenaView), lent in the
    *  entered encounter's bind; its cells are the eased pose and the aim's operands */
-  private view: { readonly frame: (dt: number, time: number) => void; readonly cells: Record<'bend' | 'raise' | 'castL' | 'struck' | 'alpha', { value: number }> } | null = null;
+  private view: { readonly frame: (dt: number, time: number) => void; readonly cells: ArenaPoseCells } | null = null;
 
   constructor(private readonly ctx: OpenArenaFightWorld, private readonly host: OpenArenaFightHost, data: ArenaScriptData, views: OpenArenaViews) {
     this.clockRandom=ctx.ai();
@@ -176,13 +193,10 @@ export class OpenArenaFight implements BossScript {
 
   /** Lend the view module (format/arenaView) what it samples and writes, then the frame slot it runs at, for `scope`'s life. */
   lendView(scope: Scope): void {
-    const { sources, cells: ids, tells } = ARENA_VIEW, pose = this.pose;
-    lendViewValues(scope, sources.life, field => this.life.value(field));
-    lendViewValues(scope, sources.clocks, field => this.clocks.value(field));
-    lendViewValues(scope, sources.pose, field => field === 'bend' ? pose.bend : field === 'raise' ? pose.raise : field === 'castL' ? pose.castL : Number.NaN);
-    lendViewValues(scope, sources.spear, field => field === 'x' ? this.spearAt.x : field === 'z' ? this.spearAt.z : Number.NaN);
-    const cells = { bend: { value: pose.bend }, raise: { value: pose.raise }, castL: { value: pose.castL }, struck: { value: 0 }, alpha: { value: 0 } };
-    for (const key of ['bend', 'raise', 'castL', 'struck', 'alpha'] as const) lendViewCell(scope, ids[key], cells[key]);
+    const { sources, cells: ids, tells } = ARENA_VIEW;
+    for (const source of [sources.life, sources.clocks, sources.pose, sources.spear]) lendViewValues(scope, source, this.viewSource(source));
+    const cells = this.poseCells();
+    for (const key of POSE_CELLS) lendViewCell(scope, ids[key], cells[key]);
     lendViewTell(scope, tells.spear, this.arena.tell('spear')); lendViewTell(scope, tells.fork, this.arena.tell('fork'));
     for (const [i, chain] of this.chains.entries()) lendViewTell(scope, arenaChainTell(i), chain.tell);
     const view = { frame: lendViewFrame(scope, ARENA_VIEW.slot).frame, cells };
@@ -201,7 +215,60 @@ export class OpenArenaFight implements BossScript {
     const fireFrame = lendViewFrame(scope, fire.slot).frame;
     this.fireFrame = fireFrame; scope.onDispose(() => { if (this.fireFrame === fireFrame) this.fireFrame = null; });
     this.whirls.bindView(scope);
+    this.adoptView(scope, view);
+  }
+  /** What the view module samples from `source` (format/arenaView `sources`: the life and clock state, the pose, the spear
+   *  on the ground), one finite field at a time; the page lends these, a native host's lane reads the same (arenaPoseView.ts). */
+  viewSource(source: string): (field: string) => number {
+    const { sources } = ARENA_VIEW, pose = this.pose;
+    if (source === sources.life) return field => this.life.value(field);
+    if (source === sources.clocks) return field => this.clocks.value(field);
+    if (source === sources.pose) return field => field === 'bend' ? pose.bend : field === 'raise' ? pose.raise : field === 'castL' ? pose.castL : Number.NaN;
+    if (source === sources.spear) return field => field === 'x' ? this.spearAt.x : field === 'z' ? this.spearAt.z : Number.NaN;
+    throw new Error(`Unknown arena view source ${source}`);
+  }
+  /** Fresh cells for the view module to write: the pose as it stands, no aim. */
+  poseCells(): ArenaPoseCells {
+    const pose = this.pose;
+    return { bend: { value: pose.bend }, raise: { value: pose.raise }, castL: { value: pose.castL }, struck: { value: 0 }, alpha: { value: 0 } };
+  }
+  /** The fight's frame slot runs `view` (its module writing `cells`) for `scope`'s life: the page's lent slot, or a native
+   *  host's own lane over the same sources (arenaPoseView.ts). */
+  adoptView(scope: Scope, view: { readonly frame: (dt: number, time: number) => void; readonly cells: ArenaPoseCells }): void {
+    if (this.view !== null) throw new Error('Arena view is already bound');
     this.view = view; scope.onDispose(() => { if (this.view === view) this.view = null; });
+  }
+
+  /** CI12: the fight's whole continuation as data, for a native checkpoint (the host's parts excluded, see the type). */
+  snapshot(): OpenArenaFightSnapshot {
+    const b = this.body, lanes = this.arena.tells('lane'), cells = this.view?.cells ?? null;
+    return { life: this.life.snapshot(), clocks: this.clocks.snapshot(), support: this.support.snapshot(), field: this.field.snapshot(), whirls: this.whirls.snapshot(),
+      pose: { ...this.pose }, spear: [this.spearAt.x, this.spearAt.y, this.spearAt.z], fireOn: this.fireOn, fireClear: this.fireClear, burnt: [...this.burntQueue],
+      hazardDt: this.hazardDt, boundary: { mask: this.boundary.mask, effect: this.boundaryEffect === null ? null : { ...this.boundaryEffect } },
+      riders: this.stormRiders.map(r => ({ site: lanes.indexOf(r.lane), law: r.law.snapshot() })),
+      body: { visible: b.visible, alpha: b.alpha.value, flash: b.flash.value, dome: b.part(this.data.view.dome).visible },
+      view: cells === null ? null : { bend: cells.bend.value, raise: cells.raise.value, castL: cells.castL.value, struck: cells.struck.value, alpha: cells.alpha.value } };
+  }
+  /** Continue a fresh fight (no riders yet; its view bound first when the snapshot has one) from `saved`: the next update
+   *  runs as the snapshotted fight's would. `rider` hands back the host's own restored actor at a support site. */
+  restore(saved: OpenArenaFightSnapshot, rider: (site: number) => Animal | null): void {
+    if (this.stormRiders.length > 0 || (saved.view === null) !== (this.view === null)) throw new Error('Arena restore needs a fresh fight with its view bound alike');
+    const keys = Object.keys(this.pose);
+    if (Object.keys(saved.pose).length !== keys.length || keys.some(key => !Number.isFinite(saved.pose[key]))
+      || [...saved.spear, saved.hazardDt, saved.boundary.mask, ...saved.burnt].some(value => !Number.isFinite(value))) throw new Error('Invalid arena fight snapshot');
+    this.life.restore(saved.life); this.clocks.restore(saved.clocks); this.support.restore(saved.support);
+    this.field.restore(saved.field); this.whirls.restore(saved.whirls);
+    Object.assign(this.pose, saved.pose); this.spearAt.set(saved.spear[0], saved.spear[1], saved.spear[2]);
+    this.fireOn = saved.fireOn; this.fireClear = saved.fireClear; this.burntQueue.length = 0; this.burntQueue.push(...saved.burnt);
+    this.hazardDt = saved.hazardDt; this.boundary.mask = saved.boundary.mask; this.boundaryEffect = saved.boundary.effect === null ? null : { ...saved.boundary.effect };
+    for (const row of saved.riders) {
+      const a = rider(row.site), lane = this.arena.tells('lane')[row.site];
+      if (a === null || lane === undefined) throw new Error('Missing restored support rider');
+      const law = this.riderLaw(row.site, a); law.restore(row.law); this.stormRiders.push({ a, lane, law });
+    }
+    const b = this.body; b.setVisible(saved.body.visible); b.alpha.value = saved.body.alpha; b.flash.value = saved.body.flash; b.part(this.data.view.dome).visible = saved.body.dome;
+    const cells = this.view?.cells;
+    if (cells !== undefined && saved.view !== null) for (const key of POSE_CELLS) cells[key].value = saved.view[key];
   }
 
   // ── BossScript ──
@@ -386,13 +453,19 @@ export class OpenArenaFight implements BossScript {
       if (a === null) continue;
       const lane = this.arena.tells('lane')[i];
       if (lane === undefined) continue;
-      const rows=this.data.support,actors=rows.actors;if(actors===undefined)throw new Error('Missing support actor rows');
-      const law=new ProjectedState({initial:{...rows.member,theta:site.theta},parameters:rows.parameters,signals:rows.signals,signal:'member',outputsEvents:{member:this.memberOutputs,damage:['alpha']}},this.author),player=this.host.player.position;
+      const actors=this.data.support.actors;if(actors===undefined)throw new Error('Missing support actor rows');
       a.maxHp=actors.hp;a.hp=actors.hp;
-      setEliteDamage(a,(body,point)=>law.event('damage',{x:point.x,z:point.z,px:player.x,pz:player.z,radius:body.scale})['alpha']??1);
-      const r: SupportActor = { a,lane,law };
+      const r: SupportActor = { a,lane,law: this.riderLaw(i,a) };
       this.stormRiders.push(r);
     }
+  }
+
+  /** A support rider's law at `site` and its damage share on `a` (spawned, or the host's restored actor). */
+  private riderLaw(site: number, a: Animal): ProjectedState {
+    const rows=this.data.support,actors=rows.actors,at=this.data.supportSites[site];if(actors===undefined||at===undefined)throw new Error('Missing support actor rows');
+    const law=new ProjectedState({initial:{...rows.member,theta:at.theta},parameters:rows.parameters,signals:rows.signals,signal:'member',outputsEvents:{member:this.memberOutputs,damage:['alpha']}},this.author),player=this.host.player.position;
+    setEliteDamage(a,(body,point)=>law.event('damage',{x:point.x,z:point.z,px:player.x,pz:player.z,radius:body.scale})['alpha']??1);
+    return law;
   }
 
   private clearRiders(): void {
