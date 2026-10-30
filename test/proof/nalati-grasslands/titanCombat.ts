@@ -23,8 +23,14 @@ function snapshotValue(owner:{readonly snapshot:()=>unknown}):unknown{
  const value:unknown=JSON.parse(wire);return value;
 }
 
-export async function titanBowPilot(product:ShardProduct,host:SimHost,step:(commands:readonly HeadlessCommand[])=>Promise<void>,goal:1|2|3=1):Promise<void>{
+/** Exact input-controller continuation; the native fight/save remains authoritative. */
+export interface TitanBowCursor {tick:number;lastShots:number;lastDodge:boolean;currentAim:{yaw:number;pitch:number;flight:number}}
+
+export async function titanBowPilot(product:ShardProduct,host:SimHost,step:(commands:readonly HeadlessCommand[])=>Promise<void>,goal:1|2|3=1,
+ continuation?:{readonly cursor?:TitanBowCursor;readonly pauseAfterRetry?:boolean}):Promise<TitanBowCursor|null>{
  const titan=nalatiTitanOf(host),mount=mountedPlayerOf(host);assert.ok(titan);assert.ok(mount);
+ if(continuation!==undefined){assert.equal(goal,3);const tick=continuation.cursor?.tick;
+  assert.ok(tick===undefined||Number.isSafeInteger(tick)&&tick>=1&&tick<=9600,'the shared pilot bound must not restart');}
  const rows=v.parse(HeldBowFileSchema,await product.json('weapons/bow-page.json')),bow=heldBowBase({bow:rows.bow,base:rows.base});
  const data=await readArenaScriptData(product,{fight:'combat/titan-fight.json',geometry:'combat/titan-geometry.json'});
  const assembly=await product.json<{constants:{nativeWeather:unknown}}>('sim/headless-assembly.json');
@@ -39,7 +45,8 @@ export async function titanBowPilot(product:ShardProduct,host:SimHost,step:(comm
    puffs:{...geometry.body.puffs,rows:geometry.phone.puffs}},predictedPose,
    new Map([['place',{...data.arena.body,ground:host.groundHeightAt(data.arena.ground.x,data.arena.ground.z)}]]));
  const camera=new PerspectiveCamera();
- let lastShots=0,lastDodge=false;
+ let lastShots=continuation?.cursor?.lastShots??0,lastDodge=continuation?.cursor?.lastDodge??false;
+ const initialAttempts=titan.boss.attempts;
  const aim=()=>{
   titan.fight.body.focusWorld(focus);eye.copy(host.player.position);eye.y+=1.68;
   const actualFocus=focus.clone(),actualPose=JSON.stringify(titan.fight.pose);
@@ -77,8 +84,8 @@ export async function titanBowPilot(product:ShardProduct,host:SimHost,step:(comm
   assert.equal(JSON.stringify(titan.fight.pose),actualPose,'aim prediction cannot pose the actual fight');
   focus.copy(predictedFocus);return {yaw,pitch,flight:forecast};
  };
- let currentAim={yaw:host.player.yaw,pitch:0,flight:1};
- for(let tick=0;tick<9600&&(goal===3?titan.boss.state!=='victory':titan.fight.phase<goal);tick++){
+ let currentAim=continuation?.cursor?.currentAim??{yaw:host.player.yaw,pitch:0,flight:1};
+ for(let tick=continuation?.cursor?.tick??0;tick<9600&&(goal===3?titan.boss.state!=='victory':titan.fight.phase<goal);tick++){
   const clocks=titan.fight.clocks,mode=clocks.value('mode'),time=clocks.value('t'),weapons=savedWeapon();
   if(tick%30===0){titan.fight.body.focusWorld(focus);const p=host.player.position,dx=focus.x-p.x,dz=focus.z-p.z;
    currentAim={yaw:Math.atan2(-dx,-dz),pitch:Math.atan2(focus.y-p.y-1.68,Math.hypot(dx,dz)),flight:currentAim.flight};}
@@ -97,9 +104,13 @@ export async function titanBowPilot(product:ShardProduct,host:SimHost,step:(comm
   if(weapons.shots!==lastShots||tick%300===0){lastShots=weapons.shots;console.error(JSON.stringify({stage:'heart-bow',tick:host.state.tick,hp:titan.fight.hp,phase:titan.fight.phase,
    health:host.player.health.attributes.health,mounted:mount.mounted,speed:mount.body.speed,bolts:weapons.bolts,shots:weapons.shots,mode,time,at:host.player.position.toArray()}));}
   if(titan.boss.state==='armed')await step([{kind:'script',actorId:'nalati.titan.use',value:1}]);
+  if(continuation?.pauseAfterRetry===true&&titan.boss.attempts>initialAttempts&&titan.boss.state==='fight'
+   &&titan.fight.body.visible&&(tick+1)%30!==0&&savedWeapon().draw.drawT<1)
+   return {tick:tick+1,lastShots,lastDodge,currentAim:{...currentAim}};
  }
  if(goal===3)assert.equal(titan.boss.state,'victory','actual contacts must win');else assert.equal(titan.fight.phase,goal,'natural arrows must earn the next phase');
  console.error(JSON.stringify({stage:'heart-phase-earned',tick:host.state.tick,hp:titan.fight.hp}));
+ return null;
 }
 
 export async function titanRidersPilot(product:ShardProduct,host:SimHost,step:(commands:readonly HeadlessCommand[])=>Promise<void>):Promise<void>{

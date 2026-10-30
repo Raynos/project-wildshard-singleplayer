@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute each bounded native capture and independent replay.
 import {spawnSync} from 'node:child_process';
-// oxlint-disable-next-line import/no-nodejs-modules -- Keep the genuinely earned continuation private to these two cases and remove it on every outcome.
+// oxlint-disable-next-line import/no-nodejs-modules -- Keep the genuinely earned continuation private to these bounded cases and remove it on every outcome.
 import {mkdirSync,mkdtempSync,readFileSync,rmSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only the checked-in runner, loader and owned scratch directory.
 import {resolve} from 'node:path';
@@ -10,10 +10,10 @@ import {afterAll,describe,expect,test} from 'vitest';
 import {titanWireHash} from './fixtures/headless/titanHandoff';
 
 mkdirSync(resolve('tmp'),{recursive:true});
-const directory=mkdtempSync(resolve('tmp/nalati-titan-')),storm=resolve(directory,'storm.json'),fire=resolve(directory,'fire.json');
-let stormHash:string|undefined,fireHash:string|undefined;
+const directory=mkdtempSync(resolve('tmp/nalati-titan-')),storm=resolve(directory,'storm.json'),fire=resolve(directory,'fire.json'),retry=resolve(directory,'retry.json');
+let stormHash:string|undefined,fireHash:string|undefined,retryHash:string|undefined;
 afterAll(()=>{rmSync(directory,{recursive:true,force:true});});
-function run(stage:'entry'|'opening'|'victory',input:string,hash?:string,output?:string):string{
+function run(stage:'entry'|'opening'|'retry'|'victory',input:string,hash?:string,output?:string):string{
   const started=performance.now();
   const child=spawnSync(process.execPath,['--experimental-transform-types','--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
     resolve('test/fixtures/headless/nalati-titan-run.ts'),stage,input,...(hash===undefined?[]:[hash]),...(output===undefined?[]:[output])],{encoding:'utf8',timeout:150_000});
@@ -33,10 +33,17 @@ describe('the complete natural Titan fight',()=>{
     const report=run('opening',storm,stormHash,fire),hash=titanWireHash(readFileSync(fire,'utf8'));
     expect(report).toContain(`"hash":"${hash}"`);fireHash=hash;
   },180_000);
-  test('the exact earned fire continuation wins and replays the remaining fight',()=>{
+  test('the exact earned fire continuation earns the real death and retry checkpoint',()=>{
     expect(fireHash,'the preceding case must earn and fully replay its checkpoint').toBeDefined();
     if(fireHash===undefined)throw new Error('Missing checked Titan continuation');
     expect(titanWireHash(readFileSync(fire,'utf8'))).toBe(fireHash);
-    run('victory',fire,fireHash);
+    const report=run('retry',fire,fireHash,retry),hash=titanWireHash(readFileSync(retry,'utf8'));
+    expect(report).toContain(`"hash":"${hash}"`);retryHash=hash;
+  },180_000);
+  test('the exact retry and input cursor win and replay the remaining fight',()=>{
+    expect(retryHash,'the preceding case must earn and check its actual retry').toBeDefined();
+    if(retryHash===undefined)throw new Error('Missing checked retry continuation');
+    expect(titanWireHash(readFileSync(retry,'utf8'))).toBe(retryHash);
+    run('victory',retry,retryHash);
   },180_000);
 });

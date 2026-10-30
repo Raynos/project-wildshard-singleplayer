@@ -20,18 +20,18 @@ import {reachTitanCairn} from '../../proof/nalati-grasslands/titanTravel';
 import {titanBowPilot,titanRidersPilot} from '../../proof/nalati-grasslands/titanCombat';
 import {checkedReplayPipeline} from './checkedReplayPipeline';
 import type {HeadlessTapeObservation} from '../../../src/sdk/headlessTape';
-import {TitanHandoffSchema,checkTitanLedger,titanWireHash,type TitanHandoff,type TitanPart} from './titanHandoff';
+import {TitanHandoffSchema,checkTitanLedger,titanWireHash,titanInputDigest,titanObservationDigest,type TitanHandoff,type TitanPart} from './titanHandoff';
 import type {HeadlessCommand,HeadlessEffect} from '../../../src/sdk/tickProtocol';
 
 const [stage,handoffPath,handoffHash,outputPath]=process.argv.slice(2);
-assert.ok(stage==='entry'||stage==='opening'||stage==='victory','name the bounded Titan case');assert.ok(handoffPath);
+assert.ok(stage==='entry'||stage==='opening'||stage==='retry'||stage==='victory','name the bounded Titan case');assert.ok(handoffPath);
 let inherited:TitanHandoff|undefined;
 if(stage!=='entry'){
   assert.ok(handoffHash);assert.ok(statSync(handoffPath).size<=32_000_000);
   const wire=readFileSync(handoffPath,'utf8');assert.equal(titanWireHash(wire),handoffHash,'use only the preceding case\'s actual checked handoff');
   inherited=v.parse(TitanHandoffSchema,JSON.parse(wire));checkTitanLedger(inherited.parts,inherited.checkpointTick);
-  assert.equal(inherited.stage,stage==='opening'?'storm':'fire','consume only the immediately preceding earned stage');
-  if(stage==='opening')assert.ok(outputPath);
+  assert.equal(inherited.stage,stage==='opening'?'storm':stage==='retry'?'fire':'retry','consume only the immediately preceding earned stage');
+  if(stage==='opening'||stage==='retry')assert.ok(outputPath);
 }
 const directory=builtProduct('nalati-grasslands'),product=await loadHeadlessProduct(directory),shard=product.shardfile;
 const descriptor=outputDescriptor(shard);assert.ok(descriptor);
@@ -51,11 +51,15 @@ try{
   const initial=titan.records.bosses.read()[rows.definition.id],initialKills=inherited?.initialKills??initial?.kills??0;
   if(inherited!==undefined){assert.equal(canonicalSimDigest(snapshotSimHost(host)),inherited.digest,'the capture resident restores the exact earned checkpoint');
     assert.equal(host.state.tick,inherited.captureTicks);assert.equal(historyTick(inherited.parts)??inherited.checkpointTick,host.state.tick);
-    assert.equal(titan.fight.phase,inherited.stage==='storm'?0:2);assert.equal(titan.fight.tied,inherited.stage==='fire');
+    assert.equal(titan.fight.phase,inherited.stage==='storm'?0:2);
+    if(inherited.stage!=='retry')assert.equal(titan.fight.tied,inherited.stage==='fire');
+    else{assert.ok(titan.boss.attempts>1);assert.ok(host.player.health.attributes.health>0);assert.equal(titan.boss.state,'fight');assert.equal(titan.fight.body.visible,true);}
     if(inherited.stage==='storm'){assert.equal(titan.boss.state,'dormant');assert.equal(titan.storm(),true);}}
   assert.equal(initial?.defeated??false,false);assert.equal(initial?.rewardTaken??false,false);
-  const deaths:{tick:number;phase:number;checkpoint:boolean}[]=[];
+  const deaths:{tick:number;phase:number;checkpoint:boolean}[]=structuredClone(inherited?.deaths??[]);
   host.events.on('player.died',event=>{deaths.push({tick:host.state.tick,phase:titan.fight.phase,checkpoint:event.checkpoint});},host.scope);
+  const fireTick=inherited?.stage==='fire'?inherited.captureTicks:inherited?.stage==='retry'?inherited.fireTick:undefined;
+  const fenceTick=fireTick??host.state.tick;
   const observed=['nalati.titan','nalati.weapons','nalati.chapter-records'];
   const history:Part[]=inherited?.parts??[];
   let captureTicks=inherited?.captureTicks??0,checkpointTick=inherited?.checkpointTick??0,partTicks=0,partNumber=history.length,replayedTicks=0,replayMs=0,peakY=host.player.position.y;
@@ -84,7 +88,7 @@ try{
     });
     const beforeStep=performance.now();resident.step(actual);captureStepMs+=performance.now()-beforeStep;
     if(pipeline!==undefined){frames.push(structuredClone(actual));effects.push(...structuredClone(resident.effects));partTicks++;peakY=Math.max(peakY,host.player.position.y);
-      if(frames.length===512)await flush();}
+      if((host.state.tick-fenceTick)%512===0)await flush();}
   };
   if(inherited===undefined){
     await reachTitanCairn(host,step);mark('storm-entry');
@@ -101,10 +105,10 @@ try{
       assert.equal(canonicalSimDigest(replay.checkpoint.snapshot),checkpointDigest,'fresh worker restores this case\'s physically earned checkpoint');}
     return replay;
   };
-  const publish=(next:'storm'|'fire',path:string):void=>{
+  const publish=(next:'storm'|'fire'|'retry',path:string,cursor?:NonNullable<Awaited<ReturnType<typeof titanBowPilot>>>):void=>{
     const snapshot=snapshotSimHost(host),digest=canonicalSimDigest(snapshot);
     assert.equal(next==='storm'?checkpointDigest:history.at(-1)?.digest,digest,'handoff is the checked commit, with no intervening tick');
-    const handoff=v.parse(TitanHandoffSchema,{version:1,source,stage:next,snapshot:serializeSimSnapshot(snapshot),digest,checkpointTick,captureTicks,initialKills,parts:history});
+    const handoff=v.parse(TitanHandoffSchema,{version:1,source,stage:next,snapshot:serializeSimSnapshot(snapshot),digest,checkpointTick,captureTicks,initialKills,parts:history,deaths,...(cursor===undefined?{}:{cursor,fireTick})});
     const wire=JSON.stringify(handoff);assert.ok(Buffer.byteLength(wire)<=32_000_000);
     writeFileSync(path,wire,{flag:'wx',mode:0o600});
     console.info(JSON.stringify({story:`titan-${stage}`,hash:titanWireHash(wire),tick:host.state.tick,parts:history.length,ms:performance.now()-started,phases}));
@@ -128,9 +132,18 @@ try{
       assert.equal(deaths.length,0);assert.equal(titan.fight.phase,2);
       await flush();await pipeline.finish();assert.equal(replayedTicks,partTicks);assert.ok(replay);assert.equal(replay.quarantined,false);
       assert.ok(outputPath);publish('fire',outputPath);
+    }else if(stage==='retry'){
+      assert.ok(inherited);assert.equal(inherited.stage,'fire');assert.equal(deaths.length,0);
+      const cursor=await titanBowPilot(product,host,step,3,{pauseAfterRetry:true});assert.ok(cursor);
+      assert.ok(deaths.length>0);assert.ok(deaths.every(event=>event.checkpoint&&event.phase===2));
+      assert.equal(titan.fight.phase,2);assert.ok(titan.boss.attempts>1);assert.ok(host.player.health.attributes.health>0);
+      assert.equal(titan.boss.state,'fight');assert.equal(titan.fight.body.visible,true);
+      mark('earned-retry');await flush();await pipeline.finish();assert.equal(replayedTicks,partTicks);assert.ok(replay);assert.equal(replay.quarantined,false);
+      assert.ok(outputPath);publish('retry',outputPath,cursor);
     }else{
-      assert.ok(inherited);
-      await titanBowPilot(product,host,step,3);
+      assert.ok(inherited);assert.equal(inherited.stage,'retry');
+      if(inherited.stage!=='retry')throw new Error('Victory requires the actual earned retry');
+      assert.equal(await titanBowPilot(product,host,step,3,{cursor:inherited.cursor}),null);
       mark('victory');
       for(let tick=0;tick<120;tick++)await step([]);
       assert.equal(titan.boss.state,'victory');assert.equal(titan.fight.dead,true);assert.equal(titan.fight.hp,0);
@@ -156,7 +169,8 @@ try{
       assert.equal(host.flags.has('tamed:horse'),false,'a borrowed camp horse cannot grant the taming chapter');
       await flush();await pipeline.finish();assert.equal(replayedTicks,partTicks);assert.ok(replay);assert.equal(replay.quarantined,false);
       const aggregateReplayedTicks=history.reduce((sum,part)=>sum+part.expected.ticks,0);assert.equal(aggregateReplayedTicks,host.state.tick-checkpointTick);
-      console.info(JSON.stringify({story:'titan-victory',ticks:captureTicks,checkpointTick,replayedTicks,aggregateReplayedTicks,parts:partNumber,deaths,ms:performance.now()-started,replayMs,captureStepMs,captureDigestMs,replayCheckMs,phases}));
+      assert.ok(fireTick);
+      console.info(JSON.stringify({inputDigest:titanInputDigest(history,fireTick),observationDigest:titanObservationDigest(history,fireTick),finalDigest:history.at(-1)?.digest,story:'titan-victory',ticks:captureTicks,checkpointTick,replayedTicks,aggregateReplayedTicks,parts:partNumber,deaths,ms:performance.now()-started,replayMs,captureStepMs,captureDigestMs,replayCheckMs,phases}));
     }
   }
 }finally{
