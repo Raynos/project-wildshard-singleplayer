@@ -107,12 +107,13 @@ export class CollisionPose {
     this.lastOrder[index] = null;
   }
 
-  /** Apply an absolute local transform without subtracting/re-adding its rest translation. Does not publish worlds. */
-  setLocal(index: number, transform: CollisionTransform): void {
+  /** Apply an absolute local transform without subtracting/re-adding its rest translation. Does not publish worlds.
+   *  False: the joint's inputs were unchanged and its matrix stays as composed. */
+  setLocal(index: number, transform: CollisionTransform): boolean {
     const matrix = this.local[index], { position, rotation, scale } = transform, seen = this.lastLocal, o = index * 9;
     if (matrix !== undefined && this.lastOrder[index] === rotation.order && Object.is(seen[o], position.x) && Object.is(seen[o + 1], position.y)
       && Object.is(seen[o + 2], position.z) && Object.is(seen[o + 3], rotation.x) && Object.is(seen[o + 4], rotation.y) && Object.is(seen[o + 5], rotation.z)
-      && Object.is(seen[o + 6], scale.x) && Object.is(seen[o + 7], scale.y) && Object.is(seen[o + 8], scale.z)) return;
+      && Object.is(seen[o + 6], scale.x) && Object.is(seen[o + 7], scale.y) && Object.is(seen[o + 8], scale.z)) return false;
     if (matrix === undefined || !finiteVector(position) || !finiteVector(rotation) || !finiteVector(scale)
       || !ORDERS.has(rotation.order)) throw new RangeError('Invalid collision joint pose');
     seen[o] = position.x; seen[o + 1] = position.y; seen[o + 2] = position.z; seen[o + 3] = rotation.x; seen[o + 4] = rotation.y; seen[o + 5] = rotation.z;
@@ -121,6 +122,7 @@ export class CollisionPose {
     this.quaternion.setFromEuler(this.rotation.set(rotation.x, rotation.y, rotation.z, rotation.order));
     this.scale.set(scale.x, scale.y, scale.z);
     matrix.compose(this.position, this.quaternion, this.scale);
+    return true;
   }
 
   /** Resolve once after posing; the caller supplies its existing world frame, including terrain tilt and scale.
@@ -433,6 +435,8 @@ export class NativeCreaturePose {
   private readonly root = NativeCreaturePose.joint();
   private readonly published: Float64Array;
   private readonly publishedFrame = new Float64Array(16);
+  /** the joints the last solve covered (-1: none): a publish that changes no local and keeps the frame needs no solve */
+  private solvedThrough = -1;
   private readonly frame = new Matrix4();
   private readonly quaternion = new Quaternion();
   private readonly fk: CollisionPose;
@@ -501,14 +505,21 @@ export class NativeCreaturePose {
   publish(through?: string): void {
     const last = through === undefined ? this.joints.length - 1 : this.recipe.joints.findIndex(row => row.name === through);
     if (last === -1) throw new Error('Missing native creature publish joint');
+    let changed = false;
     for (let n = 0; n < 32; n++) {
       if (n > last) break;
-      const j = this.joints[n]; if (j === undefined) throw new Error('Missing native creature pose joint'); this.fk.setLocal(n, j);
+      const j = this.joints[n]; if (j === undefined) throw new Error('Missing native creature pose joint'); if (this.fk.setLocal(n, j)) changed = true;
       const p = n * 10; this.published[p] = j.position.x; this.published[p + 1] = j.position.y; this.published[p + 2] = j.position.z;
       this.published[p + 3] = j.rotation.x; this.published[p + 4] = j.rotation.y; this.published[p + 5] = j.rotation.z; this.published[p + 6] = NativeCreaturePose.ORDERS.indexOf(j.rotation.order);
       this.published[p + 7] = j.scale.x; this.published[p + 8] = j.scale.y; this.published[p + 9] = j.scale.z;
     }
-    this.frame.compose(this.root.position, this.quaternion.setFromEuler(this.root.rotation), this.root.scale); this.publishedFrame.set(this.frame.elements); this.fk.solve(this.frame, last);
+    this.frame.compose(this.root.position, this.quaternion.setFromEuler(this.root.rotation), this.root.scale);
+    // a body that neither moved nor reposed keeps the worlds its last solve wrote (a roster publishes every body every step)
+    const e = this.frame.elements, pf = this.publishedFrame;
+    let same = !changed && last <= this.solvedThrough;
+    for (let k = 0; same && k < 16; k++) if (!Object.is(e[k], pf[k])) same = false;
+    if (same) return;
+    pf.set(e); this.fk.solve(this.frame, last); this.solvedThrough = last;
   }
   /** An extra contact point on any recipe joint (a weak point, an anchor), read from the last publication. */
   jointPoint(name: string, at: readonly [number, number, number], out: Vector3): Vector3 {
@@ -569,7 +580,7 @@ export class NativeCreaturePose {
     this.published.set(published); this.publishedFrame.set(frame); this.frame.fromArray(frame);
     const probe = NativeCreaturePose.joint();
     for (let n = 0; n < 32; n++) { if (n >= this.joints.length) break; NativeCreaturePose.read(probe, published, n * 10); this.fk.setLocal(n, probe); }
-    this.fk.solve(this.frame);
+    this.fk.solve(this.frame); this.solvedThrough = this.joints.length - 1;
     this.joints.forEach((j, n) => { NativeCreaturePose.read(j, local, n * 10); }); NativeCreaturePose.read(this.root, local, this.joints.length * 10);
   }
 }
