@@ -18,6 +18,22 @@ def wait_for_safari(udid):
         print('sim-lane: SIM_SAFARI_READY_TIMEOUT must be in (0, 600] seconds', file=sys.stderr)
         return 64
     deadline = time.monotonic() + timeout
+    # Boot completion is not Safari launch completion. Start the actual app
+    # once before asking its URL service to accept a page. This shares the
+    # original readiness deadline; a failed launch never publishes a lease.
+    started = time.monotonic()
+    try:
+        launch = subprocess.run(['xcrun', 'simctl', 'launch', udid, 'com.apple.mobilesafari'],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+            timeout=max(0.001, deadline - started), check=False)
+    except subprocess.TimeoutExpired:
+        print(f'sim-lane: Safari app launch timed out within {timeout:g}s readiness deadline', file=sys.stderr)
+        return 124
+    elapsed = time.monotonic() - started
+    if launch.returncode != 0:
+        print(f'sim-lane: Safari app launch failed in {elapsed:.3f}s: {launch.stderr.strip()}', file=sys.stderr)
+        return launch.returncode if launch.returncode > 0 else 128 - launch.returncode
+    print(f'sim-lane: Safari app launched in {elapsed:.3f}s: {launch.stdout.strip()}', file=sys.stderr)
     code, detail = 124, 'URL service did not respond'
     while True:
         remaining = deadline - time.monotonic()

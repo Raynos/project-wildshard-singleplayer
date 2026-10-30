@@ -36,7 +36,15 @@ elif args[1]=='boot':
     if code==0: booted.touch()
     sys.exit(code)
 elif args[1]=='bootstatus': sys.exit(int(os.environ.get('SIM_STATUS_RC','0')))
+elif args[1]=='launch':
+    time.sleep(float(os.environ.get('SIM_LAUNCH_DELAY','0')))
+    code=int(os.environ.get('SIM_LAUNCH_RC','0'))
+    if code==0:
+        (root/'safari-launched').touch();print('com.apple.mobilesafari: 123')
+    sys.exit(code)
 elif args[1]=='openurl':
+    if os.environ.get('SIM_REQUIRES_LAUNCH') and not (root/'safari-launched').exists():
+        print('Safari has no running application',file=sys.stderr);sys.exit(60)
     count=root/'attempts';n=int(count.read_text())+1 if count.exists() else 1;count.write_text(str(n))
     if os.environ.get('SIM_OPEN_HANG'): time.sleep(30)
     if n<=int(os.environ.get('SIM_OPEN_FAILURES','0')):
@@ -143,6 +151,34 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual((self.root / 'attempts').read_text(), '1')
         self.assertEqual(sum(row[1] == 'bootstatus' for row in self.calls()), 2)
+
+    def test_cold_safari_application_precedes_url_readiness(self):
+        result = self.lane(SIM_REQUIRES_LAUNCH='1')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        calls = [row[1] for row in self.calls()]
+        self.assertEqual(calls.count('launch'), 1)
+        self.assertLess(calls.index('bootstatus'), calls.index('launch'))
+        self.assertLess(calls.index('launch'), calls.index('openurl'))
+        self.assertEqual((self.root / 'child-ran').read_text(), '1')
+
+    def test_failed_app_launch_cannot_publish_or_retry_a_lease(self):
+        result = self.lane(SIM_LAUNCH_RC='61')
+        self.assertEqual(result.returncode, 61, result.stderr)
+        self.assertIn('Safari app launch failed', result.stderr)
+        self.assert_not_handed_over()
+        calls = [row[1] for row in self.calls()]
+        self.assertEqual(calls.count('launch'), 1)
+        self.assertNotIn('openurl', calls)
+        self.assertFalse((self.root / 'booted').exists())
+
+    def test_safari_launch_consumes_the_same_readiness_deadline(self):
+        started = time.monotonic()
+        result = self.lane(SIM_LAUNCH_DELAY='30', SIM_SAFARI_READY_TIMEOUT='.3')
+        self.assertEqual(result.returncode, 124, result.stderr)
+        self.assertLess(time.monotonic() - started, 5)
+        self.assertIn('Safari app launch timed out', result.stderr)
+        self.assert_not_handed_over()
+        self.assertFalse(any(row[1] == 'openurl' for row in self.calls()))
 
     def test_full_lane_fails_and_does_not_boot_or_handover(self):
         started = time.monotonic()
