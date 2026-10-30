@@ -304,7 +304,7 @@ test('orchard fixture installs the complete native population through data rows'
   lendNalatiPasture(host.scope);
   const owner = installNativePopulation(host, hunt, random, { boot: { admission, pasture, streamSeed: 71, species: { boar: { kind: BOAR.kind, variants: BOAR.variants } }, recipes: [sample.spec] },
     config: { step: 'orchard.population', raidStep: 'orchard.raid', groups: 'orchard.groups', herds: 'orchard.herds', tokens: 'orchard.tokens', preyPrefix: 'orchard:',
-      packKind: 'boar', dogKind: 'collie', eliteKinds: ['silver-boar'], motorKinds: ['boar'], retiredY: -9999, variants: [], flocks: [], forager: { row: foragers.row, seed: 41 },
+      packKind: 'boar', dogKind: 'collie', eliteKinds: ['silver-boar',sample.spec.kind], motorKinds: ['boar'], retiredY: -9999, variants: [], flocks: [], forager: { row: foragers.row, seed: 41 },
       frame: { speed: 'speed', alert: 'whistle', range: 'scare', packRadius: 20, scareSeconds: 6, scareRadius: 60, foragerRunSpeed: 5,
         trample: { kinds: { boar: .5 }, minSpeed: .6, range: 80, fullSpeed: 6 }, knockdown: { speed: 7, min: .4, max: 1.5, seconds: .28 } },
       driver: { dispatch: 'dispatch' }, companion: { id: 'orchard.companion', kind: 'boar', variant: 'boar', wildKinds: ['boar'] }, shepherdOffset: [2, 3], raidVariants: ['boar'] },
@@ -322,6 +322,28 @@ test('orchard fixture installs the complete native population through data rows'
     companions.retire(bound.entityId); expect(owner.bondedHorseIds()).toEqual([]);
     expect(owner.bodies).toEqual([actor]); expect(host.entities.has(bound.entityId)).toBe(false);
     expect(() => owner.spawnElite('foreign', 0, 0, 0, 'boar')).toThrow('Foreign');
+    const {SpawnScript}=await import('../src/game/population/spawnScript');
+    const {charge,chargeModule}=await import('./fixtures/nalati-charge');
+    const row={...charge,roster:owner.id,bytes:Buffer.from(chargeModule).toString('base64'),
+      species:charge.species.map(source=>({id:source.id,kind:sample.spec.kind,variant:sample.spec.variant}))};
+    const initial=serializeSimSnapshot(snapshotSimHost(host)),draws=random.snapshot();
+    expect(owner.id).toBe('orchard.population');expect(owner.available()).toBe(63);
+    owner.validateSpawn(sample.spec.kind,sample.spec.variant);
+    expect(()=>owner.validateSpawn('foreign',sample.spec.variant)).toThrow('Foreign');
+    expect(()=>owner.validateSpawn(sample.spec.kind,'missing')).toThrow();
+    expect(()=>SpawnScript.nativePopulation(host,{...row,roster:'foreign.population'})).toThrow('matching native population');
+    expect(()=>SpawnScript.nativePopulation(host,{...row,species:row.species.map(source=>({id:source.id,kind:source.kind,variant:'missing'}))})).toThrow();
+    const script=SpawnScript.nativePopulation(host,row);
+    expect(serializeSimSnapshot(snapshotSimHost(host))).toBe(initial);
+    expect(random.snapshot()).toEqual(draws);
+    const spawn=row.spawns[0],slot=row.slots[0];if(spawn===undefined||slot===undefined)throw new Error('Missing native encounter recipe');
+    script.activate(spawn.id,0);
+    const borrowed=script.body(slot.id);expect(borrowed).not.toBeNull();
+    if(borrowed===null)throw new Error('Missing native script body');
+    expect(owner.bodies).toContain(borrowed);expect(host.entities.get(borrowed.entityId)).toBe(borrowed);
+    expect(owner.available()).toBe(62);script.retire(slot.id);
+    expect(owner.bodies).not.toContain(borrowed);expect(host.entities.has(borrowed.entityId)).toBe(false);
+    expect(owner.available()).toBe(63);
   } finally { host.dispose(); }
 });
 

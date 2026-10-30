@@ -3,6 +3,10 @@ import {PopulationFieldSchema} from '@wildshard/format/populationEnvironment';
 import type {BakedGrid} from '../../src/format/bakedTerrainBytes';
 import type { ShardProduct } from '../../src/game/shardfile/shardProduct';
 import type { SimHost } from '../../src/engine/sim';
+import type { AnimalSimSpec } from '../../src/engine/entities/AnimalSim';
+import type { SpeciesData } from '../../src/format/speciesPrograms';
+import {SpeciesSchema} from '../../src/format/speciesPrograms';
+import {nativeBodySchema} from '../../src/format/nativePhysics';
 import type { NativeEliteKernelLoans } from '../../src/engine/ai/eliteKernels';
 import type { Ecology } from '../../src/shards/nalati-grasslands/data/ecologyTypes';
 import type { NalatiHeadlessAssembly } from '../../src/shards/nalati-grasslands/generators/nativeGroups';
@@ -44,7 +48,14 @@ import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 import { need, readJson, prepareReturns } from './headless-plan';
 
 const physicsRows = originalNalatiPhysics();
-export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHeadlessRuntime>[0], decodeNativeTerrain: (bytes:Uint8Array|undefined,row:{resolution:number;size:number;seed:number})=>BakedGrid = decodeTerrainTile): Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>> => {
+/** Optional encounter intake comes from the same admitted species/body book;
+ * it adds no initial body, identity or random draw. Ordinary consumers retain
+ * their original boot and population rows by identity. */
+export interface NalatiEncounterIntake {
+    readonly species: readonly SpeciesData[];
+    readonly recipes: readonly AnimalSimSpec[];
+}
+export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHeadlessRuntime>[0], decodeNativeTerrain: (bytes:Uint8Array|undefined,row:{resolution:number;size:number;seed:number})=>BakedGrid = decodeTerrainTile, encounters?:NalatiEncounterIntake): Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>> => {
     const { product, assets } = preparation, shard = product.shardfile;
     const { constants } = await product.json<{
         constants: Omit<NalatiHeadlessAssembly['constants'], 'nativePopulation' | 'nativeRide' | 'nativeTaming' | 'pageWildlife' | 'pageGroups' | 'groupAdmission'> & {
@@ -85,13 +96,41 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
     const nativeBake=bakeReader.read();
     const {room}=await product.json<{room:ArenaSealDimensions & {sealId:string;origin:{x:number;y:number;z:number}}}>('combat/room-entry.json');
     const bake = {...bakeMetadata,...nativeBake,solids:nativeArenaSealSolids(physicsRows,nativeBake.solids,room)};
-    const boot = await (readJson<NativePopulationBootRows & {
+    const originalBoot = await (readJson<NativePopulationBootRows & {
         riding: NativeTamingRows["programs"] & {
             riding: unknown;
         };
         rest: NativeTamingRows["rest"];
         mountable: readonly string[];
     }>(product, "sim/headless-boot.json"));
+    const boot = encounters === undefined ? originalBoot : {
+        ...originalBoot,
+        species: {...originalBoot.species,...Object.fromEntries(encounters.species.map(row=>[row.kind,{
+          kind:row.kind,variants:row.variants,...(row.spawnOnly===undefined?{}:{spawnOnly:row.spawnOnly}),
+        }]))},
+        hunt: {...originalBoot.hunt,...Object.fromEntries(encounters.species.map(row=>[row.kind,row]))},
+        recipes: [...originalBoot.recipes,...encounters.recipes],
+    };
+    if(encounters!==undefined && (encounters.species.length>16 || encounters.recipes.length>64
+      ||new Set(encounters.species.map(row=>row.kind)).size!==encounters.species.length
+      ||encounters.species.some(row=>Object.hasOwn(originalBoot.species,row.kind))
+      ||encounters.recipes.some(row=>!encounters.species.some(species=>species.kind===row.kind))
+      ||new Set(encounters.recipes.map(row=>`${row.kind}\0${row.variant}`)).size!==encounters.recipes.length))
+      throw new Error('Native encounter intake duplicates or replaces an admitted population recipe');
+    if(encounters!==undefined){
+      for(const species of encounters.species)v.parse(SpeciesSchema,species);
+      for(const recipe of encounters.recipes){
+        v.parse(nativeBodySchema('axis'),recipe);
+        const species=encounters.species.find(row=>row.kind===recipe.kind);
+        if(species===undefined||![...species.variants,...species.spawnOnly??[]].some(row=>row.id===recipe.variant))
+          throw new Error('Native encounter recipe has no admitted species variant');
+      }
+    }
+    const populationConfig = encounters === undefined ? constants.nativePopulation : {
+        ...constants.nativePopulation,
+        eliteKinds: [...constants.nativePopulation.eliteKinds,...encounters.species.map(row=>row.kind)],
+        motorKinds: [...constants.nativePopulation.motorKinds,...encounters.species.map(row=>row.kind)],
+    };
     const grid = await ((decodeNativeTerrain)(((need(shard.terrain, "Missing terrain")["sampling"] === undefined) ? undefined : (assets["get"])(need(need(shard.terrain, "Missing terrain").sampling, "Missing sampling").file)), { "resolution": 256, "size": 500, "seed": shard["identity"]["seed"] }));
     const samplers = await ((bakedSamplers)(grid));
     const heightAt = await (samplers["heightAt"]);
@@ -122,7 +161,7 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
             const elites = new (NativeEliteRoster)(nalatiEliteRows(constants, nativeEliteStrikes), { "host": host, "core": eliteCore, "bindings": bindings, "kernel": { "contacts": strikeContacts, "strikes": [nativeEliteStrikes["swipe"], nativeEliteStrikes["pounce"], nativeEliteStrikes["bite"]], "terrain": samplers, "environment": env, "ledges": bake["ledges"] }, "groups": groups });
             (elites["bindProjected"])(2, (ReturnProgram["native"])(host, boot["admission"]), eliteCore);
             (elites["install"])();
-            const creatures = (installNativePopulationHunt)(host, Object.assign({}, { "boot": boot, "elites": bindings, "bodies": bodies, "herds": roster["herds"], "nav": nav, "stream": roster["stream"], "wildStream": roster["wildStream"], "bake": bake, "spawnY": shard["spawn"]["y"], "config": constants["nativePopulation"], "field": populationField }, ((context["snapshot"] === undefined) ? {} : { "snapshot": context["snapshot"] })));
+            const creatures = (installNativePopulationHunt)(host, Object.assign({}, { "boot": boot, "elites": bindings, "bodies": bodies, "herds": roster["herds"], "nav": nav, "stream": roster["stream"], "wildStream": roster["wildStream"], "bake": bake, "spawnY": shard["spawn"]["y"], "config": populationConfig, "field": populationField }, ((context["snapshot"] === undefined) ? {} : { "snapshot": context["snapshot"] })));
             population.installMounted(host, Object.assign({}, constants["nativeRide"], { "world": constants["nativeField"]["world"], "mountable": (boot["mountable"]["concat"])((creatures["bondedHorseIds"])()), "program": boot["riding"]["riding"] }));
             const taming = (installNativeTaming)(host, { commands: () => context.commands().map(command => command.kind === "script" ? command : command.kind === "player" ? { kind: "player", ...(command.steer === undefined ? {} : { steer: command.steer }) } : { kind: "action" }) }, Object.assign({}, constants["nativeTaming"], { "programs": boot["riding"], "rest": boot["rest"], "poses": tamingPoses["poses"], "poseProgram": tamingPoses["horse"] }));
             initializeNalatiElites(elites,creatures,taming,context);

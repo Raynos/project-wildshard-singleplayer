@@ -347,7 +347,7 @@ export function variantOf(d: VariantTable, id: string | undefined): VariantDef {
 }
 
 /** Fully-populated gameplay multipliers for a variant (missing keys → 1 / species default). */
-export function variantMods(species: SpeciesDef, v: VariantDef): VariantMods {
+export function variantMods(species: Pick<SpeciesDef, 'chargeDamage'>, v: Pick<VariantDef, 'mods'>): VariantMods {
   const m = v.mods ?? {};
   return {
     speed: m.speed ?? 1,

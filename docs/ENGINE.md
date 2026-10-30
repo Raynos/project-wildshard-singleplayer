@@ -12665,6 +12665,8 @@ rows, author, wetBlock?) and bindPageGroups(ctx, rows, wetBlock?) accept the
 same wet loan. Named profiles retain their sampler, motor, RNG, snapshot and
 entered-state re-entry laws. Inline channel/lattice registration refuses.
 
+`SpawnScript.nativePopulation` borrows the matching native roster.
+
 ScalarLatticeBindings owns one definition's raw blocks. lattice(rows,
 {min,max}?) binds a stable sampler; channel(rows) binds an exact indexed
 f32/f64 reader. Both refuse reads until prepare(blocks) validates every

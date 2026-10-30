@@ -29,6 +29,7 @@ import { SCRIPT_V1_EVENTS, SCRIPT_V1_READS, SCRIPT_V1_LISTS, type ScriptV1Comman
 import { sha256 } from '../plugin/moduleHash';
 import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { populationRoster } from './roster';
+import { nativePopulationOf } from '../riding/nativePopulation';
 import { ANIMAL_STATES, type AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
@@ -168,6 +169,25 @@ export class SpawnScript {
     }, actor: roster.actor,
       height: (x, z) => host.groundHeightAt(x, z), available: roster.available, boot: () => roster.bodies().filter(row => row.scripted).map(row => row.actor),
       reach: (body, target) => canReach(body, target, host.physics) },v2Owners,worldActions === undefined ? undefined : { world: worldActions },queries,host);
+  }
+  /** Borrow the installed mounted-world population explicitly. This is not a
+   * fallback for a missing roster: the admitted id and every recipe must match
+   * that concrete owner before the script allocates its guest or any body. */
+  static nativePopulation(host: SimHost, input: unknown): SpawnScript {
+    const rows = parseSpawnScript(input), roster = nativePopulationOf(host);
+    if (host.scope.disposed || host.scope.disposing || roster === undefined || roster.host !== host || roster.id !== rows.roster)
+      throw new Error('Missing matching native population service');
+    for (const row of rows.species) roster.validateSpawn(row.kind, row.variant);
+    const actor = (id: string): ControlledBody | null => roster.bodies.find(body => body.entityId === id) ?? null;
+    return new SpawnScript(rows, {
+      spawn: roster.spawnElite,
+      retire: body => {
+        if (actor(body.entityId) !== body || host.entities.get(body.entityId) !== body) throw new Error('Foreign native script actor');
+        roster.retireElite(body);
+      }, actor, height: (x, z) => host.groundHeightAt(x, z), available: roster.available,
+      boot: () => roster.bodies.filter(body => body.scripted),
+      reach: (body, target) => canReach(body, target, host.physics),
+    }, undefined, undefined, undefined, host);
   }
   /** Client-only binding to the actual AnimalManager. Its existing spawn/retire path owns bodies and draws. */
   static page(animals: AnimalManager, input: unknown, physics?: Physics | null,v2Owners?: SpawnV2Owners,elites?: Elites,worldActions?: readonly V2WorldActionLoan[],queries?: SpawnQueryLoansV2): SpawnScript {

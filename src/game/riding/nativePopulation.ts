@@ -111,11 +111,16 @@ export interface NativePopulationBindings {
 }
 /** The feature's concrete native owners and ordinary actor-id actions. */
 export interface NativePopulation {
+  readonly id: string;
   readonly host: SimHost;
   readonly hunt: StalkerBrain<HuntBody>; readonly rng: Rng; readonly bodies: readonly HuntBody[]; readonly flocks: readonly FlockBrain[];
   readonly scare: (x: number, z: number, radius?: number) => void;
   readonly raid: NativePastureRaid<AnimalSim, PackBrain<AnimalSim>>; readonly marmots: ForagerPopulation;
   readonly spawnElite: (kind: string, x: number, z: number, yaw: number, variant: string) => HuntBody;
+  /** Preflight the same admitted encounter recipe without allocating or drawing. */
+  readonly validateSpawn: (kind: string, variant: string) => void;
+  /** Remaining native body capacity, including the installed population. */
+  readonly available: () => number;
   readonly bondedHorseIds: () => readonly string[]; readonly retireElite: (actor: AnimalSim) => void;
   readonly spawnElitePack: (x: number, z: number, variants: readonly string[]) => PackBrain<AnimalSim>; readonly retirePack: (pack: PackBrain<AnimalSim>) => void;
 }
@@ -344,7 +349,14 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
   });
   // Match the original adapter insertion order: fixed controllers first, actors materialized later.
   restoreRoster(); reinstalling = false;
-  const out = { host, hunt, rng, bodies, flocks, raid, marmots, spawnElite, retireElite, spawnElitePack, retirePack, bondedHorseIds: (): readonly string[] => bonded.map(row => row.body.id), scare: wildScare };
+  const out = { id: cfg.step, host, hunt, rng, bodies, flocks, raid, marmots, spawnElite, retireElite, spawnElitePack, retirePack,
+    validateSpawn: (kind: string, variant: string): void => {
+      if (!cfg.eliteKinds.includes(kind)) throw new Error('Foreign native elite kind');
+      intake.spec(kind, variant);
+      if (!scaleVariants.get(kind)?.some(row => row.id === variant)) throw new Error('Missing native creature scale');
+    },
+    available: (): number => Math.max(0, POP_BODY_MAX - host.entities.size),
+    bondedHorseIds: (): readonly string[] => bonded.map(row => row.body.id), scare: wildScare };
   nativePopulations.set(host, out);
   return out;
 }
