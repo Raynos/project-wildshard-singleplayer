@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { BufferGeometry, Group, Matrix4, type Material } from 'three';
+import { BufferGeometry, Group, Matrix4, PerspectiveCamera, type Material } from 'three';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardWorld } from '../src/game/shard/world';
 import type { ShardRuntime } from '../src/game/shard/runtime';
@@ -101,8 +101,8 @@ function nativeFixture(f: ReturnType<typeof fixture>, construction?: Scope) {
   const scope=construction?.child('entered')??new Scope('unbound');
   if(construction!==undefined)bindResidentWorldScope(scope,construction);
   const registrationScope=construction??scope;
-  const world=legacyDouble<ShardWorld>({game:legacyDouble<ShardWorld['game']>({registrationScope}),registry:legacyDouble<ShardWorld['registry']>({}),sky:legacyDouble<ShardWorld['sky']>({}),physics:legacyDouble<ShardWorld['physics']>({})}),runtime=legacyDouble<ShardRuntime>({world});
-  const ctx=legacyDouble<ShardContext>({scope,product:f.product,cube:null,progress:legacyDouble<ShardContext['progress']>({set:()=>undefined,detail:()=>undefined}),game:legacyDouble<ShardContext['game']>({runtime})});
+  const world=legacyDouble<ShardWorld>({game:legacyDouble<ShardWorld['game']>({registrationScope,camera:new PerspectiveCamera()}),registry:legacyDouble<ShardWorld['registry']>({}),sky:legacyDouble<ShardWorld['sky']>({}),physics:legacyDouble<ShardWorld['physics']>({})}),runtime=legacyDouble<ShardRuntime>({world});
+  const ctx=legacyDouble<ShardContext>({scope,root:new Group(),product:f.product,cube:null,progress:legacyDouble<ShardContext['progress']>({set:()=>undefined,detail:()=>undefined}),game:legacyDouble<ShardContext['game']>({runtime})});
   return{scope,world,runtime,ctx};
 }
 

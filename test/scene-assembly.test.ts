@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { Group, Scene, Vector3, type Material } from 'three';
+import { Group, PerspectiveCamera, Scene, Vector3, type Material } from 'three';
 import { expect, test, vi } from 'vitest';
 import * as gpu from '../src/engine/core/gpuOnly';
 import { Scope } from '../src/engine/app/scope';
@@ -49,7 +49,7 @@ function fixture() {
   const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections, files: new Map(), read });
   const resident = new Scope('resident'), handles = new SceneHandles(), closed = new Group(), open = new Group();
   handles.publish('closed-door', closed); handles.publish('open-door', open);
-  const world = legacyDouble<ShardWorld>({ game: legacyDouble<ShardWorld['game']>({ scene: new Scene(), tier: 'desktop', renderer: legacyDouble<ShardWorld['game']['renderer']>({}) }),
+  const world = legacyDouble<ShardWorld>({ game: legacyDouble<ShardWorld['game']>({ scene: new Scene(), camera: new PerspectiveCamera(), tier: 'desktop', renderer: legacyDouble<ShardWorld['game']['renderer']>({}) }),
     registry: new WorldRegistry(), sky: legacyDouble<ShardWorld['sky']>({}), physics: legacyDouble<ShardWorld['physics']>({}),
     player: legacyDouble<ShardWorld['player']>({ position: new Vector3() }) });
   const runtime = legacyDouble<ShardRuntime>({ world, viewer: () => new Vector3() });
@@ -57,7 +57,7 @@ function fixture() {
     const scope = bound ? resident.child('entered') : new Scope('standalone');
     if (bound) bindResidentWorldScope(scope, resident);
     const register = vi.fn((piece: Piece) => { world.registry.add(piece); });
-    const ctx = legacyDouble<ShardContext>({ scope, product, piece: register, cube: cell ? legacyDouble<NonNullable<ShardContext['cube']>>({}) : null,
+    const ctx = legacyDouble<ShardContext>({ scope, root: new Group(), product, piece: register, cube: cell ? legacyDouble<NonNullable<ShardContext['cube']>>({}) : null,
       progress: { set: vi.fn<ShardContext['progress']['set']>(), detail: vi.fn<ShardContext['progress']['detail']>() }, game: legacyDouble<ShardContext['game']>({ runtime }) });
     return { ctx, scope, register };
   };
