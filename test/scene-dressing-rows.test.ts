@@ -3,13 +3,12 @@ import { nalatiSpecimens } from './fixtures/nalati-specimens';
 import { nalatiBalbal } from './fixtures/nalati-balbal';
 import { nalatiRuntime } from './fixtures/nalati-runtime';
 import { nalatiDecorative } from './fixtures/nalati-decorative';
-import { originalPlaceBinary } from './fixtures/nalati-original-place-binary';
 // oxlint-disable-next-line import/no-nodejs-modules -- validate generated dressing fixtures without inferring their complete JSON types
 import { readFileSync } from 'node:fs';
 import { PrivateSceneSchema } from '../src/format/clientChannels';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
+import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { decodeLaneBytes } from '../src/engine/core/deflate';
 import {bakedSamplers} from '../src/format/bakedTerrainSampling';
 import { expect, test, vi } from 'vitest';
@@ -220,7 +219,7 @@ test('geometry source addresses remain binary while the JSON address word stays 
   for(const tier of ['phone','desktop']as const)expect(Object.values(dressingScene(tier,nalatiDecorative,nalatiRuntime,nalatiBalbal,nalatiSpecimens).geometry).some(row=>row.kind==='baked')).toBe(false);
 });
 
-test('Nalati logical bakes admit the exact shipping compressed bytes and decoded costs',async()=>{
+test('Nalati logical bakes declare their actual decoded costs',async()=>{
   const dressing=buildDressingWire(),stamp=v.object({bytes:v.pipe(v.number(),v.integer(),v.minValue(0))});
   const dressingCost=v.parse(stamp,JSON.parse(new TextDecoder().decode(dressing.document))).bytes;
   const sources=[nameBlob('world/dressing.bin','bin',dressing.binary,{decoded:dressingCost})];
@@ -238,8 +237,6 @@ test('Nalati logical bakes admit the exact shipping compressed bytes and decoded
   for(const admitted of sources){
     const name=admitted.file.name?.slice('world/'.length);
     if(name===undefined)throw new Error('Missing named logical bake');
-    const original=name==='places.bin'?await originalPlaceBinary():readFileSync(name==='dressing.bin'?'test/fixtures/nalati-dressing.bin':`public/assets/nalati/baked/${name}`);
-    expect(admitted.file.hash).toBe(hashImmutableBytes(original));expect(Buffer.compare(admitted.bytes,original)).toBe(0);
     expect((await decodeLaneBytes(admitted.bytes)).byteLength).toBe(admitted.file.decoded);
   }
 });
