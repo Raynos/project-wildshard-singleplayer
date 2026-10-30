@@ -9,7 +9,7 @@ import { PlayerHealth } from '../src/engine/combat/health';
 import { fakeWorld } from '@wildshard/engine/test/world';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { ShardContext } from '../src/game/plugin/context';
-import { bindPageWeatherHit,installWeatherReactions } from '../src/game/weather/reactions';
+import { applyWeatherCover,bindPageWeatherHit,installWeatherReactions } from '../src/game/weather/reactions';
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import {weatherWitness as storm} from './fixtures/weatherInlineWitness';
 
@@ -164,4 +164,15 @@ test('weather listener cleanup is idempotent during dispatch',()=>{
   weather.on('flicker',()=>{seen.push('second');});
   weather.raise('flicker',{far:600,towards:1});weather.raise('flicker',{far:700,towards:1});
   expect(seen).toEqual(['first','second','second']);
+});
+
+test('a storm frame\'s cover holds the weather and sets covered / held as the page forest did', () => {
+  for (const indoors of [false, true]) for (const held of [false, true]) {
+    const air = { hold: !(indoors || held) }, inputs: Record<string, number> = { px: 1, covered: 9, sheltered: 0, held: 9 };
+    applyWeatherCover(air, inputs, indoors, held);
+    // the page's three assignments, verbatim
+    const page = { hold: !(indoors || held) }, pageInputs: Record<string, number> = { px: 1, covered: 9, sheltered: 0, held: 9 };
+    page.hold = indoors || held; pageInputs['covered'] = Number(indoors || held); pageInputs['held'] = Number(held);
+    expect([air, Object.entries(inputs)]).toEqual([page, Object.entries(pageInputs)]);
+  }
 });

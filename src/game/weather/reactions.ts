@@ -127,6 +127,13 @@ export class WeatherReactions {
   }
 }
 /** Reactions on a page (its scope owns the program) or a renderer-free host (one admitted instance per host scope). */
+/** A storm frame's cover (the page forest's stormFrame; a native host's step): indoors no storm starts, and a held storm (a
+ *  fight in progress, `weather.storm-hold`) runs on until its fight ends; the reactions read both as `covered` / `held`. */
+export function applyWeatherCover(air: { hold: boolean }, inputs: Record<string, number>, indoors: boolean, held: boolean): void {
+  air.hold = indoors || held;
+  inputs['covered'] = Number(indoors || held); inputs['held'] = Number(held);
+}
+
 export function installWeatherReactions(air: WeatherContinuation, rows: WeatherReactionRows, owner: { readonly host: SimHost } | { readonly scope: Scope }): WeatherReactions {
   return new WeatherReactions(air, rows, 'host' in owner ? ReturnProgram.native(owner.host, { script: rows.script, bytes: rows.bytes }) : ReturnProgram.page({ script: rows.script, bytes: rows.bytes }, owner.scope));
 }

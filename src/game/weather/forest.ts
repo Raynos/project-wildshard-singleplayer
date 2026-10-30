@@ -17,7 +17,7 @@ import { windBoost, windUniforms, WIND_DIR } from '@wildshard/engine/world/wind'
 import { wind as steppeWind } from '@wildshard/engine/world/steppeWind';
 import { paintedSky, skyFaceOf, type PaintedSky, type SkyFace } from '../looks/keyedSky';
 import { installWeatherContinuation } from './continuation';
-import { bindPageWeatherHit, installWeatherReactions, nativeWeatherBundle, weatherWorldLight, type WeatherReactions } from './reactions';
+import { applyWeatherCover, bindPageWeatherHit, installWeatherReactions, nativeWeatherBundle, weatherWorldLight, type WeatherReactions } from './reactions';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import { parseWeatherProgram, WeatherWorldSchema } from '@wildshard/format/weatherProgram';
 import type { WeatherHUD } from '@wildshard/engine/ui/HUD';
@@ -183,9 +183,8 @@ function installWeatherPresentation(ctx: ShardContext, world: ShardWorld, skies:
     const { reactions, rows } = storm, p = world.player.position, events = game.app.events, inputs = reactions.inputs;
     indoors = events.ask('weather.indoors', 0) > 0;
     const held = events.ask('weather.storm-hold', 0) > 0;
-    weather.hold = indoors || held; // indoors no storm starts; a held storm runs on until its fight ends
     inputs['px'] = p.x; inputs['py'] = p.y; inputs['pz'] = p.z; inputs['crouched'] = Number(world.player.crouching); inputs['mounted'] = Number(wildEnv.playerMounted);
-    inputs['covered'] = Number(indoors || held); inputs['held'] = Number(held);
+    applyWeatherCover(weather, inputs, indoors, held); // indoors no storm starts; a held storm runs on until its fight ends
     reactions.update(dt);
     wildEnv.light = weatherWorldLight(storm.world.light, sky.clock.sunElevation, reactions.stormActive); wildEnv.storm = reactions.stormActive;
     const hud = reactions.hud(steppeWind.speed, indoors);
