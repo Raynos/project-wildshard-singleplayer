@@ -198,8 +198,8 @@ Codex does the workflow engineering (non-visual). Ordered to unstick the deploy 
 | CI7 | One test wave: all vitest files in one matrix sharded by measured time; `isolate: false` for pure files | Vitest wave ≤ 5 min, no shard > 1.2× the mean | Codex sp-x2 (after CI6) | M |
 | CI8 | Slowest files ≤ 10 s each (§2 list), or deleted if they are pins | None over 10 s | Codex sp-x9 | M |
 | CI9 | Browser journeys (§8) in the push wave on the prepare artifact; the ship job deploys after them; the boot-smoke dispatch chain goes | Push → live ≤ 15 min; the 4 real breaks replayed red | Codex sp-x2 (after CI7) | M |
-| CI10 | Simulator leg fast on GitHub macOS (G921): early boot, cached proxy, condition waits, shorter route | ≤ 6 min, 0 timeouts for a day | Codex | M |
+| CI10 | Simulator leg fast on GitHub macOS (G921): early boot, cached proxy, condition waits, shorter route | ≤ 6 min, 0 timeouts for a day | Codex sp-x10 (workflow edit via sp-x2) | M |
 | CI11 | Node harness v1 (G922): every shard enters, walks 1,800 ticks, quests, disposes | All shards < 60 s in the wave | Codex sp-x1 | M |
 | CI12 | Verbs as sim commands + tapes (MF15–MF18 verb lists) | Hook, crank, crossbow and quest steps pass; QB11 / QB17 replayed red | Codex sp-x1 (after CI13; verb lists from sp-o4 MF16-MF18) | L |
 | CI13 | Physics walk moves into the harness; the Chromium walk retires | 0 stuck in Node | Codex sp-x1 (after CI11) | M |
-| CI14 | Pin waves 2+ (G919): rank files by reds-on-intended-change over 14 days; delete from the top | No file red twice in a week for a drift-only change | Codex sp-x2 (until the workflow hand-off) | M |
+| CI14 | Pin waves 2+ (G919): rank files by reds-on-intended-change over 14 days; delete from the top | No file red twice in a week for a drift-only change | Codex sp-x6 (sp-x2 deleted 1a25, da679) | M |
