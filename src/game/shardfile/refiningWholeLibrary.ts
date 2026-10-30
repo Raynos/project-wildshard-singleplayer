@@ -82,6 +82,15 @@ export class RefiningWholeLibrary {
     const keys = (): number[] | undefined => (dither ? [...held].flatMap(([tile, list]) => list.map(() => tile)) : undefined);
     let closed = false, owned: BufferGeometry | undefined, revision = 0, published = 0;
     let building: Promise<void> | undefined, hidden = false;
+    // QC1: each held tile's index range in the union on screen (pieces join in held order), so a retire drops exactly its
+    // triangles instead of re-joining and re-uploading every other held tile in one frame (Nine: 13-28 MB, 132-342 ms)
+    let ranges = new Map<number, { readonly start: number; readonly count: number }>();
+    const layout = (): (readonly [number, number])[] => [...held].map(([tile, pieces]) => [tile, pieces.reduce((n, piece) => n + (piece.geometry.index?.count ?? 0), 0)] as const);
+    const place = (geometry: BufferGeometry, rows: readonly (readonly [number, number])[]): void => {
+      ranges = new Map(); let start = 0;
+      for (const [tile, count] of rows) { ranges.set(tile, { start, count }); start += count; }
+      if (geometry.index === null || geometry.index.count !== start) ranges.clear();
+    };
     // NR4: a channel-less geometry draws nothing, and a program compiled against it warns per channel and draws collapsed:
     // the mesh stays out of the draw (and precompile skips it) until a union gives it channels
     const hold = (): void => {
@@ -107,7 +116,24 @@ export class RefiningWholeLibrary {
     const redraw = (): void => {
       revision++;
       if (retired()) return;
-      publish(joinWholePieces(heldPieces(), model.matrix, forceIdentityTransform, keys())); published = revision;
+      const rows = layout(), geometry = joinWholePieces(heldPieces(), model.matrix, forceIdentityTransform, keys());
+      place(geometry, rows); publish(geometry); published = revision;
+    };
+    // A retiring tile leaves the draw at once. In an indexed union its triangles become degenerate (index 0, no pixels:
+    // the draw equals a re-join of the remaining tiles) and only that index range uploads; the next attach's sliced
+    // join compacts. A union without the tile's range (unindexed, or not yet published) takes the original re-join.
+    const retire = (tile: number, pieces: readonly WholeGeometryPiece[]): void => {
+      if (held.get(tile) !== pieces) return;
+      held.delete(tile);
+      const range = ranges.get(tile), index = mesh.geometry.index;
+      if (retired() || range === undefined || index === null || held.size === 0) { redraw(); return; }
+      const current = published === revision;
+      revision++;
+      index.array.fill(0, range.start, range.start + range.count);
+      index.addUpdateRange(range.start, range.count); index.needsUpdate = true;
+      ranges.delete(tile);
+      // an in-flight join still publishes the current tiles; with none, the union on screen is already exact
+      if (current) published = revision;
     };
     const redrawSliced = (): Promise<void> => {
       revision++;
@@ -115,14 +141,14 @@ export class RefiningWholeLibrary {
       const drain = async (): Promise<void> => {
         const slice = workSlice(undefined, lifetime);
         while (!retired() && published < revision) {
-          const generation = revision, steps = joinWholePieceSteps(heldPieces(), model.matrix, forceIdentityTransform, keys());
+          const generation = revision, rows = layout(), steps = joinWholePieceSteps(heldPieces(), model.matrix, forceIdentityTransform, keys());
           try {
             for (;;) {
               if (retired() || generation !== revision) break;
               const next = steps.next();
               if (next.done) {
                 if (next.value === undefined) throw new Error('Whole piece join did not complete');
-                publish(next.value); published = generation; break;
+                place(next.value, rows); publish(next.value); published = generation; break;
               }
               const pause = slice.check(); if (pause !== undefined) await pause;
             }
@@ -146,7 +172,7 @@ export class RefiningWholeLibrary {
         const pieces = read.filter(piece => piece.part === model.part);
         if (pieces.length === 0) throw new Error('Fine tile omits its declared whole partition');
         held.set(tile, pieces);
-        scope.onDispose(() => { if (held.get(tile) === pieces) { held.delete(tile); redraw(); } });
+        scope.onDispose(() => { retire(tile, pieces); });
         // A concurrent arrival joins the same publication promise. Never mark
         // its fine tile ready while a stale generation is still being rebuilt.
         try { await redrawSliced(); } catch (error) { if (held.get(tile) === pieces) held.delete(tile); throw error; }
