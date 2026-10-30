@@ -1,4 +1,5 @@
 import { NativePastureRaid } from './pastureController';
+import type { PastureCues } from './pastureCues';
 import * as v from 'valibot';
 import { ATTACK_TURN, type HuntBody, type HuntNav } from '@wildshard/engine/ai/hunt';
 import type { StalkerBrain } from '@wildshard/engine/ai/stalker';
@@ -108,6 +109,8 @@ export interface NativePopulationBindings {
   bodies: readonly { actor: AnimalSim; boot: { id: string; seed: number; adopted: { x: number; z: number; stream: RngState } } }[];
   herds: readonly { kind: string; cx: number; cz: number }[]; stream: RngState; wildStream: RngState;
   bake: { actors: readonly { spec: AnimalSimSpec }[]; marmots: unknown }; spawnY: number; elites: NativeEliteBindings; snapshot?: Readonly<SimSnapshot>;
+  /** CI12: the raid's presentation cues (the page's PagePastureRaid rows), read by a native tape; absent, none are kept */
+  pastureCues?: PastureCues;
 }
 /** The feature's concrete native owners and ordinary actor-id actions. */
 export interface NativePopulation {
@@ -316,7 +319,7 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
     && a.position.x === firstFlock.cx + cfg.shepherdOffset[0] && a.position.z === firstFlock.cz + cfg.shepherdOffset[1]) ?? null;
   const raid = new NativePastureRaid<AnimalSim, PackBrain<AnimalSim>>(ReturnProgram.native(host, ports.boot.pasture), host.rng.stream('ai'), horse, firstFlock, groups.packs, i => {
     const prey = preyRows[0]?.[i]; if (prey === undefined) throw new Error('Unknown native population sheep'); return prey;
-  }, spawnPack, groups.firstRaid, cfg.raidVariants);
+  }, spawnPack, groups.firstRaid, cfg.raidVariants, ports.pastureCues?.sink);
   host.onStep(cfg.raidStep, () => undefined, { snapshot: () => raid.snapshot(), restore: value => { raid.restore(value); } });
   const savePacks = (list: readonly v.InferOutput<typeof PopulationPack>[]): v.InferOutput<typeof PopulationPack>[] => list.map(r => ({ x: r.x, z: r.z, herd: r.herd, bodies: r.bodies.map(b => ({ id: b.id, variant: b.variant, seed: b.seed, scale: b.scale, at: [...b.at], yaw: b.yaw, adopted: { ...b.adopted } })) }));
   host.onStep(cfg.step, dt => {
