@@ -10,8 +10,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **[FOUNDATIONS](../FOUNDATIONS.md):** done MF1-MF10 (MF7 memory), MF13 (Debug), MF14-MF17, MF19, CX1-CX3; FC1-FC14 done or closed.
 Open: MF11 footprint, MF12 Sentry, MF18 (o3 Driftwood, o4 Nalati / Sky), MF20, FC15 (o5). **[CI](../CI-FIRST-PRINCIPLES.md):**
 CI1-CI4 done (CI2 / CI3 await first deploy), CI5 x9, CI6 / CI7 / CI9 x2, CI8 x9, CI10 x10, CI11-CI13 x1, CI14 x6.
-**G924 (19:30):** order FOUNDATIONS / frame-cost / QA → CX → CI last. Opus lanes are all on priority 1 (MF18, FC15, MF11). The listed QA unlock rows and CX1-CX3 are done, so no Codex row outranks CI; Codex lanes keep their CI rows and take any new FOUNDATIONS / QA row first. **(19:25):** both 40977059379 reds are fixed (b8fe18ace2, da679) and ride 9561743057. sp-o5 is not idle (FC15
-Sim readings since 18:47). sp-x8 stays released (5-Codex cap). For Jake: MF13 'Refine dither' needs his phone check;
+**For wildshard-v (20:25):** 083d's reds are routed and mostly fixed: docs 9d28656aef (x1), boot-smoke fa13b9fce6 (x2); the 11 CI5 fixture reds are sp-x9's top job now. sp-o5 is running FC15 (not idle, until ~21:00); sp-o4 finished QB16 / MF19, QS1, FC12-14, MF16-18 Pine / Nine / Nalati / Sky verbs, and waits on FC15 for the MF20 board. **G924:** FOUNDATIONS / frame-cost / QA → CX → CI last; no Codex row outranks CI now. sp-x8 stays released (5-Codex cap). For Jake: MF13 'Refine dither' needs his phone check;
 QB17 zip video tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 
 **Autonomous decisions (for Jake's review):**
