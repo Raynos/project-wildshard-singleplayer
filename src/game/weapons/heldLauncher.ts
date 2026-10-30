@@ -23,7 +23,8 @@ import { WIND_DIR, windGustAt } from '@wildshard/engine/world/wind';
 import * as v from 'valibot';
 import { heldFirearmParts, heldGrip, placeHeldFist, type HeldFirearmHands, type HeldFirearmModel, type HeldModelRows } from '../plugin/heldFirearm';
 import type { ModelLibrary } from '../plugin/geometry';
-import { type HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
+import type { HeldBowRowsSchema } from '@wildshard/format/weaponProfiles';
+import { heldBowBase, type HeldBowBase } from './heldBowBase';
 import { createClientScene } from '../plugin/scene';
 import { HeldPlayback } from '../plugin/weaponFamily';
 import { advanceLauncherSpring, type LauncherSpringState } from './launcherSpring';
@@ -375,15 +376,11 @@ type HeldBowPoseRow = HeldBowRows['poses']['rest'];
 type HeldBowMaterialRow = HeldBowRows['materials']['bow'];
 /** Borrow named bow parts and construct its profile from admitted data. No mesh or clock is allocated here. */
 export function bindHeldBow(input: unknown, library: Pick<ModelLibrary<never, never>, 'geometry'>): { readonly rows: HeldBowRows; readonly model: HeldFirearmModel; readonly profile: BowProfile } {
-  const { bow: rows, base } = v.parse(HeldBowDefinitionSchema, input);
-  const { parent, mounted, ...values } = base;
+  const { rows, base } = heldBowBase(input);
   const model = { geometry: new Map(Object.values(rows.parts).map(id => [id, need(library.geometry(id, { borrow: true }), `bow part ${id}`)])) };
-  const profile = heldBowProfile({ ...values, ...(parent === undefined ? {} : { parent: parent as NonNullable<BowProfile['parent']> }),
-    ...(mounted === undefined ? {} : { mounted: { ...mounted, gaits: mounted.gaits.map(({ below, spread }) => ({ below: below ?? Infinity, spread })) } }) }, rows, model);
+  const profile = heldBowProfile(base, rows, model);
   return { rows, model, profile };
 }
-/** The profile's numbers: all but what the rows build (the view, arrow, wind, poses, the arrow's rest and length). */
-export type HeldBowBase = Omit<BowProfile, 'build' | 'arrow' | 'wind' | 'poses' | 'arrowX' | 'arrowY' | 'arrowLength'>;
 
 const part = (model: HeldFirearmModel, id: string): THREE.BufferGeometry => need(model.geometry?.get(id), `bow part ${id}`);
 const staveLook = (rows: HeldBowRows) => v.parse(StaveLookSchema, JSON.parse(rows.bake.look));

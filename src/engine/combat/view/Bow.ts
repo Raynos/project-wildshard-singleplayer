@@ -25,8 +25,9 @@ import * as THREE from 'three';
 
 
 
-import { BowDraw, DRAW_TIME, RENOCK_TIME } from '../bowDraw';
-import { drawnSpreadDegrees, shotSpread } from '../shotSpread';
+import { BowDraw, RENOCK_TIME } from '../bowDraw';
+import { shotSpread } from '../shotSpread';
+import { bowAimOn, bowBlocked, bowLaunchSpeed, bowLooseSpreadDegrees, bowMount, bowMuzzle } from '../bowLaw';
 
 import type { BowProfile, BowView } from './bowProfile';
 
@@ -185,8 +186,7 @@ export class Bow<Style extends string = string> extends Weapon {
   private loose(): void {
     const p = 1;
     this.aimRay(_v1, _fwd);
-    const spreadDeg = drawnSpreadDegrees(this.profile.loose?.degrees ?? 0.3, this.profile.aimSpread, this.aimBlend, this.profile.loose?.motion ?? 0.6,
-      this.player.speedFactor, this.extraSpreadDeg, this.mountSpread);
+    const spreadDeg = bowLooseSpreadDegrees(this.profile, this.aimBlend, this.player.speedFactor, this.extraSpreadDeg, this.mountSpread);
     const spread = THREE.MathUtils.degToRad(spreadDeg);
     _dir.copy(_fwd);
     shotSpread(_dir, spread, gameplayRandom, this.profile.loose ?? { radius: 'sqrt', axisScale: 1 }, _v2);
@@ -202,8 +202,8 @@ export class Bow<Style extends string = string> extends Weapon {
   /** the arrow's start (on the aim line, just in front of the eye, where the nocked arrow's tip is) and velocity */
   private launchFrom(dir: THREE.Vector3, p: number, pos: THREE.Vector3, vel: THREE.Vector3): void {
     this.aimRay(pos, _fwd);
-    pos.addScaledVector(dir, this.profile.loose?.muzzle ?? 0.55);
-    vel.copy(dir).multiplyScalar(this.profile.speedBase + this.profile.speedDraw * p).add(this.carrierVelocity);
+    pos.addScaledVector(dir, bowMuzzle(this.profile));
+    vel.copy(dir).multiplyScalar(bowLaunchSpeed(this.profile, p)).add(this.carrierVelocity);
   }
 
   /** the aim is the CAMERA forward — the rider's head, not the horse / body */
@@ -212,17 +212,11 @@ export class Bow<Style extends string = string> extends Weapon {
   /** Apply authored mounting data (draw, spread, rear shots and arc) without changing an unmounted profile.
    * Carrier velocity belongs to the saddle; external source and draw multipliers keep their own share. */
   setMount(m: { speed: number; yaw: number } | null): void {
-    if (m === null) { this.mountDraw = 1; this.mountSpread = 0; this.carrierVelocity.set(0, 0, 0); this.mountArc = true; this.parthian = false; this.mounted = false; return; }
-    const mounted = this.profile.mounted;
-    if (mounted === undefined) return;
-    const v = m.speed;
-    const gait = mounted.gaits.find((row) => v < row.below)?.spread ?? 0;
-    let off = this.player.yaw - m.yaw; off = Math.abs(Math.atan2(Math.sin(off), Math.cos(off)));
-    this.parthian = off > THREE.MathUtils.degToRad(mounted.rearAngle);
-    this.mountDraw = (this.profile.draw?.drawTime ?? DRAW_TIME) / (mounted.drawTime + (this.parthian ? mounted.rearDraw : 0));
-    this.mountSpread = gait + (this.parthian ? mounted.rearSpread : 0);
-    this.carrierVelocity.set(-Math.sin(m.yaw) * v, 0, -Math.cos(m.yaw) * v);
-    this.mountArc = mounted.arc; this.mounted = true;
+    // the saddle's numbers: combat/bowLaw.ts (the Node simulation reads the same)
+    const s = bowMount(this.profile, this.player.yaw, m);
+    if (s === null) return;
+    this.mountDraw = s.draw; this.mountSpread = s.spread; this.carrierVelocity.set(s.carrier.x, s.carrier.y, s.carrier.z);
+    this.mountArc = s.arc; this.parthian = s.parthian; this.mounted = s.mounted;
   }
   carryMountState(previous: Bow<Style>): void {
     this.mountDraw = previous.mountDraw; this.mountSpread = previous.mountSpread;
@@ -258,8 +252,8 @@ export class Bow<Style extends string = string> extends Weapon {
     //    hand is still coming up from the quiver (RN_EARLY of the re-nock left): the string comes back to meet the hand
     //    halfway, instead of the hand reaching all the way out to the braced string ──
     const held = this.mouseDraw || this.altHeld;
-    const running = pl.sprinting && !this.mounted; // sprinting on foot lowers the bow; a gallop does not (horse archery)
-    const blocked = !this.enabled || this.mouseCancel || this.state.bolts <= 0 || running || pl.swimming;
+    // sprinting on foot lowers the bow; a gallop does not (horse archery): combat/bowLaw.ts
+    const { running, blocked } = bowBlocked({ enabled: this.enabled, cancel: this.mouseCancel, bolts: this.state.bolts, sprinting: pl.sprinting, mounted: this.mounted, swimming: pl.swimming });
     if (!held) this.mouseCancel = false;
     const ev = this.draw.step(dt, held, blocked, this.drawSpeedScale * this.mountDraw);
     if (ev === 'start') { this.chargeEvent('draw'); this.onDrawStart?.(); }
@@ -275,7 +269,7 @@ export class Bow<Style extends string = string> extends Weapon {
     if (running || !this.enabled) this.mouseAds = false;
     // `state.ads` stays false: the HUD hides the crosshair on `ads` (the crossbow's iron sights replace it) — the bow has no
     // sight, the crosshair over the arrow IS the aim, so it stays up (and `aimed` / `aimOn` say AIM is on)
-    this.aimOn = (this.mouseAds || this.adsHeld) && this.enabled && !running && !pl.swimming;
+    this.aimOn = bowAimOn({ asked: this.mouseAds || this.adsHeld, enabled: this.enabled, running, swimming: pl.swimming });
     this.aimBlend += ((this.aimOn && this.model.visible ? 1 : 0) - this.aimBlend) * Math.min(1, dt * this.profile.aimIn);
     if (Math.abs(this.aimBlend - (this.aimOn ? 1 : 0)) < 0.002) this.aimBlend = this.aimOn ? 1 : 0;
     const aimK = sstep(0, 1, this.aimBlend);
