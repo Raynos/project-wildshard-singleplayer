@@ -6,9 +6,15 @@ import { expect, test } from 'vitest';
 import wrapper from '../scripts/commit.sh?raw';
 
 test('checks release the lease and preserve the captured candidate and working edits', () => {
-  const output = execFileSync('python3', ['test/fixtures/commit-snapshot.py', resolve('.'), '-'], {
-    encoding: 'utf8', input: wrapper, timeout: 20_000,
-  });
+  let output: string;
+  try {
+    output = execFileSync('python3', ['test/fixtures/commit-snapshot.py', resolve('.'), '-'], {
+      encoding: 'utf8', input: wrapper, timeout: 20_000,
+    });
+  } catch (error) {
+    const progress = error instanceof Error && 'stderr' in error && typeof error.stderr === 'string' ? error.stderr : '';
+    throw new Error(`Commit snapshot scenarios failed\n${progress}`, { cause: error });
+  }
   expect(output).toContain('"outsideLock": true');
   expect(output).toContain('"pinnedHead": true');
   expect(output).toContain('"disjointPreserved": true');
