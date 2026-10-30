@@ -14,7 +14,7 @@ tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 **03:30:** CI14 16 waves landed (o4, 0f5c9acf1e..dc1bd18988; bar = a week with no drift-only red). Watchdog = sweep cron e7a1a5d2 every 5 min (G927).
 **Autonomous decisions (for Jake's review):**
 - CI9 (o3): shared upload paint 8b025a0981 cut Explorer first-canvas 57 -> 52 s but Pine's Sim worst loader frame went ~220 -> ~300 ms, so d329a6eedc makes it a default-off Debug row (old pacing default). Jake: keep the row for a phone reading, or delete it?
-- wildshard-v 08:35: f0b8 reds routed (Titan opening x8, Qara x1; Explorer + B4 already fixed ac653c31d1 / c1fc4e5356). Codex lanes stopped on purpose (credits); non-visual rows move to Opus: o3 CI9 Explorer boot, o5 CI7 long poles.
+- 10:20: Qara split, asset scope, Explorer qualified on Linux (8b025a0981); Titan four-part split d55c5d0239 awaits CI. CI7 (o5): fixture snapshots in a parallel job, run start -> last job 2283 -> 1406 s, max shard 279 s (bar 300 met), balance 1.49x open. Codex lanes stopped (credits).
 - wildshard-v 05:32 / 06:32: live smoke of fe0ca11 done, PASS (o5, Chromium as iPhone): all 11 worlds load to 100 % and exit, kill + reopen resumes Driftwood, 0 page errors.
 - MF20 (o5, a72db5ac86): Sim WebContent ~22 % on HEAD; tonight's exact cuts move it < 1 point (floor = render work); GPU <= 10 % met. 15 % bar = Jake.
 - CI6 (o5): any shared generator SDK edit cold-rebuilds all 24 products on CI (step key = whole program hash; 4a41 prepare ~600 s). Held such edits until after 07:00, then batched; no coverage-keyed cache (G585). **Jake: bigger CI runners (cost)?**
