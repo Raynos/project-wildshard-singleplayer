@@ -30,12 +30,19 @@ export type ArenaPortalStep =
   | { readonly kind: 'decided'; readonly enter: boolean; readonly exit: number | undefined; readonly slow: boolean }
   | { readonly kind: 'wait' };
 const FADING: ArenaPortalStep = { kind: 'fading' }, WAIT: ArenaPortalStep = { kind: 'wait' };
+/** the portal's continuation as data: inside, the decision clock, the fade (-1: none) and what it fades towards */
+export interface ArenaPortalSnapshot { readonly inside: boolean; readonly elapsed: number; readonly fade: number; readonly pending: 'enter' | 'exit' | null }
 
 export class ArenaPortalLaw {
   inside = false;
   private elapsed = 0; private fade = -1; private pending: 'enter' | 'exit' | null = null;
   constructor(private readonly program: Pick<ReturnProgram, 'project'>, private readonly rows: { readonly signal: string; readonly end: number },
     private readonly entrance: ArenaPortalEntrance | null) {}
+  snapshot(): ArenaPortalSnapshot { return { inside: this.inside, elapsed: this.elapsed, fade: this.fade, pending: this.pending }; }
+  restore(saved: ArenaPortalSnapshot): void {
+    if (!Number.isFinite(saved.elapsed) || saved.elapsed < 0 || !Number.isFinite(saved.fade)) throw new Error('Invalid arena portal snapshot');
+    this.inside = saved.inside; this.elapsed = saved.elapsed; this.fade = saved.fade; this.pending = saved.pending;
+  }
   /** Fade for `hold` seconds, then report `pending` (an entry, or a teleporting exit). */
   begin(pending: 'enter' | 'exit', hold: number): void { this.fade = hold; this.pending = pending; }
   step(dt: number, observe: () => ArenaPortalFrame): ArenaPortalStep {

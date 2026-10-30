@@ -54,6 +54,7 @@ import type { WeatherReactions } from '../weather/reactions';
 import { wildEnv } from '../population/pageGroups';
 import { ArenaFireView, ArenaWhirlsView } from './arenaFire';
 import { ArenaPortalLaw } from './arenaPortal';
+import { ArenaRoomGround } from './arenaGround';
 import { OpenArenaFight, readArenaScriptData } from './openArenaFight';
 import { ArenaSceneView, CloudBody, type PatrolEncounterView } from './encounterView';
 import {entryOwner, lateEntryOwner, presentEntryOwner} from '../shardfile/entryOwners';
@@ -195,21 +196,20 @@ export class BossArenaRoom {
   declare private heap: THREE.Mesh;
   private fx: FxMaterial[] = [];
   // the sand drifts: a heightfield over the chamber floor (this.rows.sandCells × this.rows.sandCells cells), drawn as one displaced grid
-  private sandH: Float32Array;
+  /** the room's ground: its volumes, floor and sand drifts (renderer-free, CI12) */
+  readonly ground: ArenaRoomGround;
   declare private sandMesh: THREE.Mesh;
   private sandLight: Float32Array;
   private readonly sandColor: THREE.Color;
   actor: Animal | null = null;
-  private sandDirty = false;
   private sandPatch: HeightPatch | null = null;
-  private sandAcc = 0;
   private staticMaterial: THREE.MeshBasicMaterial | null = null;
   private staticBuilt = false;
 
   readonly rows: ArenaRoomRows;
   constructor(input: unknown, private readonly geometry: ReadonlyMap<string, THREE.BufferGeometry>) {
     const rows = v.parse(ArenaRoomSchema, input); this.rows = rows;
-    this.sandH = new Float32Array(rows.sandCells * rows.sandCells);
+    this.ground = new ArenaRoomGround(rows);
     this.sandLight = new Float32Array((rows.sandCells + 1) ** 2 * 3);
     this.sandColor = new THREE.Color(rows.sandColor);
     this.sealCollider = { x: this.rows.origin.x, z: this.rows.origin.z + this.rows.halfWidth + 0.1, hw: this.rows.doorHalfWidth + 0.3, hd: 0.25, rot: 0, yTop: this.rows.origin.y - 50, yBottom: this.rows.origin.y - 51 };
@@ -218,9 +218,9 @@ export class BossArenaRoom {
 
   // Local frames.
   world(lx: number, ly: number, lz: number, out: THREE.Vector3 = new THREE.Vector3()): THREE.Vector3 { return out.set(this.rows.origin.x + lx, this.rows.origin.y + ly, this.rows.origin.z + lz); }
-  inChamber(p: THREE.Vector3): boolean { const x = p.x - this.rows.origin.x, z = p.z - this.rows.origin.z, y = p.y - this.rows.origin.y; return Math.abs(x) < this.rows.halfWidth && Math.abs(z) < this.rows.halfWidth && y > -3 && y < 8; }
-  inDromos(p: THREE.Vector3): boolean { const x = p.x - this.rows.origin.x, z = p.z - this.rows.origin.z, y = p.y - this.rows.origin.y; return Math.abs(x) < this.rows.corridorHalfWidth + 0.5 && z >= this.rows.halfWidth && z < this.rows.corridorEnd + 1 && y > -3 && y < 8; }
-  inVolume(p: THREE.Vector3): boolean { return this.inChamber(p) || this.inDromos(p); }
+  inChamber(p: THREE.Vector3): boolean { return this.ground.inChamber(p); }
+  inDromos(p: THREE.Vector3): boolean { return this.ground.inDromos(p); }
+  inVolume(p: THREE.Vector3): boolean { return this.ground.inVolume(p); }
 
   build(lazyStatic = false): this {
     const steps = this.buildSteps(lazyStatic);
@@ -300,53 +300,12 @@ export class BossArenaRoom {
   }
 
   // Walkable heights.
-  private floorAt(x: number, z: number): number | undefined {
-    const lx = x - this.rows.origin.x, lz = z - this.rows.origin.z;
-    const inCh = Math.abs(lx) <= this.rows.halfWidth + 1.4 && Math.abs(lz) <= this.rows.halfWidth, inDr = Math.abs(lx) <= this.rows.corridorHalfWidth + 0.2 && lz >= this.rows.halfWidth - 0.1 && lz <= this.rows.corridorEnd + 0.6;
-    if (!inCh && !inDr) return undefined;
-    let y = 0;
-    if (inCh) {
-      y = this.sandAt(lx, lz);
-      // the coffin plinth
-      if (Math.abs(lx - this.rows.cover.x) < this.rows.cover.wid / 2 + 0.65 && Math.abs(lz - this.rows.cover.z) < this.rows.cover.len / 2 + 0.6) y = Math.max(y, this.rows.cover.plinthH);
-      // the pedestal's step
-      if (Math.abs(lx - this.rows.pedestal.x) < 0.8 && Math.abs(lz - this.rows.pedestal.z) < 0.7) y = Math.max(y, 0.18);
-      // the fallen beams (their round tops)
-      for (const f of this.rows.beams) {
-        const ax = f.a.x, az = f.a.z, bx = f.b.x, bz = f.b.z;
-        const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz;
-        const u = Math.max(0, Math.min(1, ((lx - ax) * dx + (lz - az) * dz) / L2));
-        const d = Math.hypot(lx - (ax + dx * u), lz - (az + dz * u));
-        if (d < f.r) y = Math.max(y, f.r + Math.sqrt(f.r * f.r - d * d) - 0.02);
-      }
-    }
-    return this.rows.origin.y + y;
-  }
+  private floorAt(x: number, z: number): number | undefined { return this.ground.floorAt(x, z); }
 
-  sandAt(lx: number, lz: number): number {
-    const fx = (lx + this.rows.halfWidth) / (this.rows.halfWidth * 2) * this.rows.sandCells - 0.5, fz = (lz + this.rows.halfWidth) / (this.rows.halfWidth * 2) * this.rows.sandCells - 0.5;
-    const ix = Math.floor(fx), iz = Math.floor(fz), tx = fx - ix, tz = fz - iz;
-    const h = (i: number, j: number) => (i < 0 || j < 0 || i >= this.rows.sandCells || j >= this.rows.sandCells ? 0 : this.sandH[j * this.rows.sandCells + i] ?? 0);
-    return (h(ix, iz) * (1 - tx) + h(ix + 1, iz) * tx) * (1 - tz) + (h(ix, iz + 1) * (1 - tx) + h(ix + 1, iz + 1) * tx) * tz;
-  }
-  addSand(lx: number, lz: number, r: number, dh: number, max = 1.0): void {
-    const cell = (this.rows.halfWidth * 2) / this.rows.sandCells;
-    const i0 = Math.max(0, Math.floor((lx - r + this.rows.halfWidth) / cell)), i1 = Math.min(this.rows.sandCells - 1, Math.ceil((lx + r + this.rows.halfWidth) / cell));
-    const j0 = Math.max(0, Math.floor((lz - r + this.rows.halfWidth) / cell)), j1 = Math.min(this.rows.sandCells - 1, Math.ceil((lz + r + this.rows.halfWidth) / cell));
-    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
-      const cx = -this.rows.halfWidth + (i + 0.5) * cell, cz = -this.rows.halfWidth + (j + 0.5) * cell, d = Math.hypot(cx - lx, cz - lz) / r;
-      if (d >= 1) continue;
-      const k = j * this.rows.sandCells + i;
-      this.sandH[k] = Math.min(max, (this.sandH[k] ?? 0) + dh * (1 - d * d) * (1 - d * d));
-    }
-    this.sandDirty = true;
-  }
-  clearSand(): void { this.sandH.fill(0); this.sandDirty = true; }
-  drainSand(dt: number, rate = 0.25): void {
-    let any = false;
-    for (let k = 0; k < this.sandH.length; k++) { const h = this.sandH[k] ?? 0; if (h > 0) { this.sandH[k] = Math.max(0, h - rate * dt); any = true; } }
-    if (any) this.sandDirty = true;
-  }
+  sandAt(lx: number, lz: number): number { return this.ground.sandAt(lx, lz); }
+  addSand(lx: number, lz: number, r: number, dh: number, max = 1.0): void { this.ground.addSand(lx, lz, r, dh, max); }
+  clearSand(): void { this.ground.clearSand(); }
+  drainSand(dt: number, rate = 0.25): void { this.ground.drainSand(dt, rate); }
 
   private writeSand(): void {
     const g = this.sandMesh.geometry, pos = g.getAttribute('position'), col = g.getAttribute('color');
@@ -357,7 +316,7 @@ export class BossArenaRoom {
       const vertex = j * N1 + i;
       // vertex height = the mean of the (up to) four cells round it
       let s = 0, c = 0;
-      for (const [di, dj] of [[-1, -1], [0, -1], [-1, 0], [0, 0]] as const) { const ci = i + di, cj = j + dj; if (ci >= 0 && cj >= 0 && ci < this.rows.sandCells && cj < this.rows.sandCells) { s += this.sandH[cj * this.rows.sandCells + ci] ?? 0; c++; } }
+      for (const [di, dj] of [[-1, -1], [0, -1], [-1, 0], [0, 0]] as const) { const ci = i + di, cj = j + dj; if (ci >= 0 && cj >= 0 && ci < this.rows.sandCells && cj < this.rows.sandCells) { s += this.ground.sand[cj * this.rows.sandCells + ci] ?? 0; c++; } }
       const h = c > 0 ? s / c : 0;
       if (h > 0.01) any = true;
       if (grid) grid[vertex] = h;
@@ -405,8 +364,7 @@ export class BossArenaRoom {
     c.mat.uniforms.uAlpha.value = c.k;
     c.mesh.visible = c.k > 0.02;
     this.flames.uniforms.uAlpha.value = 0.85 + 0.15 * Math.sin(t * 13) * Math.sin(t * 7.3);
-    this.sandAcc += dt;
-    if (this.sandDirty && this.sandAcc > 1 / 15) { this.sandAcc = 0; this.sandDirty = false; this.writeSand(); }
+    if (this.ground.pace(dt)) this.writeSand();
   }
 }
 
