@@ -427,6 +427,12 @@ export class SkyRig {
    */
   private farEveryOther = false;
   private farTick = 0;
+  /**
+   * PF3 (Pine's phone row, `shadowEvery`): every cascade redraws on every Nth drawn frame; -1 while every frame. Pine's one
+   * 1024² cascade cost ~1.8-2.2 ms of a Chromium-4x phone frame for ~10 casters (the batched trees' per-draw cost,
+   * not the walk); a held frame keeps its map and its matrix, so only the swaying crowns and the animals step (15 Hz at 30).
+   */
+  private everyTick = -1;
   private fitNormalBias(): void {
     for (const l of this.csm.lights) {
       const texel = (l.shadow.camera.right - l.shadow.camera.left) / l.shadow.mapSize.x;
@@ -439,7 +445,7 @@ export class SkyRig {
    * bias and the fade's ghosts (Game.warmTurn: the boot draws the world once facing each way).
    */
   warmShadows(): void {
-    if (this.farEveryOther) for (const light of this.csm.lights) light.shadow.autoUpdate = true; // the boot's warm-up draws every cascade
+    if (this.farEveryOther || this.everyTick >= 0) for (const light of this.csm.lights) light.shadow.autoUpdate = true; // the boot's warm-up draws every cascade
     this.csm.update();
     if (this.texelBias) this.fitNormalBias();
     this.shadowFade?.warm();
@@ -469,6 +475,12 @@ export class SkyRig {
       this.farTick = (this.farTick + 1) % 8;
       const redraw = cascadeRedraws(this.farTick, this.csm.lights.length);
       this.csm.lights.forEach((light, i) => { light.shadow.autoUpdate = redraw[i] ?? true; });
+    } else if (TIER_CONFIG.shadowEvery > 1) {
+      this.everyTick = (this.everyTick + 1) % TIER_CONFIG.shadowEvery;
+      for (const light of this.csm.lights) light.shadow.autoUpdate = this.everyTick === 0;
+    } else if (this.everyTick >= 0) {
+      this.everyTick = -1;
+      for (const light of this.csm.lights) light.shadow.autoUpdate = true;
     }
     this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
     if (B?.updateAt === 'late') B.update(dt, this.camera); // a clock that steps its own shadow light: after the cascades
