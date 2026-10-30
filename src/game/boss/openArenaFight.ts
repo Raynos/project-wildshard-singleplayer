@@ -2,10 +2,8 @@ import * as THREE from 'three';
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
 import type { AimTarget } from '@wildshard/engine/player/AimTargets';
-import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import type { ArenaScriptData, ArenaScriptFightFile, ArenaScriptRows } from '@wildshard/format/arenaScriptRows';
@@ -24,7 +22,7 @@ import type { WeatherReactions } from '../weather/reactions';
 import type { wildEnv } from '../population/pageGroups';
 import type { ArenaFireView, ArenaWhirlsView } from './arenaFire';
 import type { ArenaWhirlsSnapshot } from './arenaWhirls';
-import type { ArenaSceneView, CloudBody, PatrolEncounterView } from './encounterView';
+import type { ArenaSceneView, CloudBody } from './encounterView';
 
 /** The fight's rows: its fight file's arena script, programs and fire with its geometry file (the page's entered
  *  encounter and the Node simulation read the same). */
@@ -63,15 +61,31 @@ export interface OpenArenaFightWorld {
   readonly scope: Scope; readonly weather: Pick<WeatherReactions, 'stormActive' | 'flash' | 'raise'>; readonly tieSpot: THREE.Vector3 | null;
   readonly ai: () => Rng; readonly fog: () => { readonly color: THREE.Color } | null; readonly camera: THREE.Camera;
   readonly wild: Pick<typeof wildEnv, 'trample' | 'onEvent'>; readonly phone: boolean;
+  /** CI12: the ground's height and the steppe wind the fight reads (absent: the page's terrainHeight and steppe wind) */
+  readonly ground?: (x: number, z: number) => number;
+  readonly wind?: { readonly dirX: number; readonly dirZ: number; readonly speed: number };
+}
+/** CI12: a support rider's body as the fight reads and writes it (a page Animal, or a native host's hunt body). */
+export interface ArenaSupportBody { readonly position: THREE.Vector3; alive: boolean; maxHp: number; hp: number; readonly mem: Record<string, number> }
+/** A rider its owner spawned: its body, its damage share (a law of the hit body's scale and the hit point, null: whole
+ *  damage) and its dissolve. */
+export interface ArenaSupportRider {
+  readonly body: ArenaSupportBody;
+  readonly share: (law: ((scale: number, x: number, z: number) => number) | null) => void;
+  readonly dissolve: () => void;
+}
+/** The riders' owner: the page's patrol view (arenaRoom.ts), or a native host's. */
+export interface ArenaRiderOwner {
+  readonly spawnRider: (at: { readonly x: number; readonly z: number; readonly yaw: number; readonly variant?: string; readonly quiet?: boolean }) => ArenaSupportRider | null;
 }
 /** What the fight asks of its encounter: the player, the boss's state, the mount, contacts and the HUD lines. */
 export interface OpenArenaFightHost {
   readonly player: { readonly position: THREE.Vector3 }; readonly boss: { readonly state: string } | null; readonly engaged: boolean;
   readonly mounted: () => boolean; readonly contact: (name: string, origin: THREE.Vector3, amount: number, why: string) => boolean;
   readonly throwRider: () => void; readonly horseSteed: (amount: number) => void; readonly feed: (message: string) => void;
-  readonly toast: (message: string) => void; readonly riderOwner: () => PatrolEncounterView | null;
+  readonly toast: (message: string) => void; readonly riderOwner: () => ArenaRiderOwner | null;
 }
-interface SupportActor { readonly a: Animal; readonly lane: GroundTell; readonly law: ProjectedState }
+interface SupportActor { readonly rider: ArenaSupportRider; readonly a: ArenaSupportBody; readonly lane: GroundTell; readonly law: ProjectedState }
 /** the view module's cells (format/arenaView `cells`): the eased pose and the aim's operands */
 export type ArenaPoseCells = Record<'bend' | 'raise' | 'castL' | 'struck' | 'alpha', { value: number }>;
 const POSE_CELLS = ['bend', 'raise', 'castL', 'struck', 'alpha'] as const;
@@ -145,7 +159,11 @@ export class OpenArenaFight implements BossScript {
    *  entered encounter's bind; its cells are the eased pose and the aim's operands */
   private view: { readonly frame: (dt: number, time: number) => void; readonly cells: ArenaPoseCells } | null = null;
 
+  /** the ground's height and the wind the fight reads (OpenArenaFightWorld `ground` / `wind`, else the page's) */
+  private readonly groundAt: (x: number, z: number) => number;
+  private readonly windNow: { readonly dirX: number; readonly dirZ: number; readonly speed: number };
   constructor(private readonly ctx: OpenArenaFightWorld, private readonly host: OpenArenaFightHost, data: ArenaScriptData, views: OpenArenaViews) {
+    this.groundAt = ctx.ground ?? heightAt; this.windNow = ctx.wind ?? wind;
     this.clockRandom=ctx.ai();
     this.scope=ctx.scope;this.data = data; this.pose={...data.pose};
     const clocks=this.data.clocks;
@@ -203,10 +221,10 @@ export class OpenArenaFight implements BossScript {
     // the grass fire: its field (modes, lifetimes, the ground under each cell, this frame's burnt-out cells), its values
     // and its draws, at the fire's own slot
     const fire = ARENA_VIEW.fire, field = this.field, ground = new Float32Array(field.length), smoke = this.data.arenaFire.cells?.smoke;
-    for (let c = 0; c < field.length; c++) ground[c] = heightAt(field.x(c), field.z(c));
+    for (let c = 0; c < field.length; c++) ground[c] = this.groundAt(field.x(c), field.z(c));
     const smokeRate = smoke === undefined ? 0 : this.ctx.phone ? smoke[0] : smoke[1];
-    const values: Readonly<Record<string, () => number>> = { on: () => Number(this.fireOn), clear: () => Number(this.fireClear), windX: () => wind.dirX,
-      windZ: () => wind.dirZ, windSpeed: () => wind.speed, smokeCap: () => this.fire.smoke.instanceMatrix.count, smokeRate: () => smokeRate,
+    const values: Readonly<Record<string, () => number>> = { on: () => Number(this.fireOn), clear: () => Number(this.fireClear), windX: () => this.windNow.dirX,
+      windZ: () => this.windNow.dirZ, windSpeed: () => this.windNow.speed, smokeCap: () => this.fire.smoke.instanceMatrix.count, smokeRate: () => smokeRate,
       scorchCap: () => this.scorch.instanceMatrix.count };
     lendViewValues(scope, fire.values, name => values[name]?.() ?? Number.NaN);
     lendViewArray(scope, fire.arrays.modes, () => field.modeCells); lendViewArray(scope, fire.arrays.lifetimes, () => field.lifetimeCells);
@@ -251,7 +269,7 @@ export class OpenArenaFight implements BossScript {
   }
   /** Continue a fresh fight (no riders yet; its view bound first when the snapshot has one) from `saved`: the next update
    *  runs as the snapshotted fight's would. `rider` hands back the host's own restored actor at a support site. */
-  restore(saved: OpenArenaFightSnapshot, rider: (site: number) => Animal | null): void {
+  restore(saved: OpenArenaFightSnapshot, rider: (site: number) => ArenaSupportRider | null): void {
     if (this.stormRiders.length > 0 || (saved.view === null) !== (this.view === null)) throw new Error('Arena restore needs a fresh fight with its view bound alike');
     const keys = Object.keys(this.pose);
     if (Object.keys(saved.pose).length !== keys.length || keys.some(key => !Number.isFinite(saved.pose[key]))
@@ -262,9 +280,9 @@ export class OpenArenaFight implements BossScript {
     this.fireOn = saved.fireOn; this.fireClear = saved.fireClear; this.burntQueue.length = 0; this.burntQueue.push(...saved.burnt);
     this.hazardDt = saved.hazardDt; this.boundary.mask = saved.boundary.mask; this.boundaryEffect = saved.boundary.effect === null ? null : { ...saved.boundary.effect };
     for (const row of saved.riders) {
-      const a = rider(row.site), lane = this.arena.tells('lane')[row.site];
-      if (a === null || lane === undefined) throw new Error('Missing restored support rider');
-      const law = this.riderLaw(row.site, a); law.restore(row.law); this.stormRiders.push({ a, lane, law });
+      const held = rider(row.site), lane = this.arena.tells('lane')[row.site];
+      if (held === null || lane === undefined) throw new Error('Missing restored support rider');
+      const law = this.riderLaw(row.site, held); law.restore(row.law); this.stormRiders.push({ rider: held, a: held.body, lane, law });
     }
     const b = this.body; b.setVisible(saved.body.visible); b.alpha.value = saved.body.alpha; b.flash.value = saved.body.flash; b.part(this.data.view.dome).visible = saved.body.dome;
     const cells = this.view?.cells;
@@ -290,9 +308,9 @@ export class OpenArenaFight implements BossScript {
     const answer = this.life.event('point',{ x: at.x,z: at.z,cx: center.x,cz: center.z,bodyX: body.x,bodyZ: body.z,amount: Number(respawn) });
     return { x: answer['x'] ?? at.x,z: answer['z'] ?? at.z,yaw: answer['yaw'] ?? 0 };
   }
-  rewardPoint(): THREE.Vector3 { const p = this.point(false); return new THREE.Vector3(p.x,heightAt(p.x,p.z)+this.data.view.reward.lift,p.z); }
-  respawnPoint(): { pos: THREE.Vector3; yaw: number } { const p = this.point(true); return { pos: new THREE.Vector3(p.x,heightAt(p.x,p.z),p.z),yaw: p.yaw }; }
-  cairnSpot(): THREE.Vector3 { return this.ctx.tieSpot ?? new THREE.Vector3(this.data.arena.anchor.x, heightAt(this.data.arena.anchor.x, this.data.arena.anchor.z), this.data.arena.anchor.z); }
+  rewardPoint(): THREE.Vector3 { const p = this.point(false); return new THREE.Vector3(p.x,this.groundAt(p.x,p.z)+this.data.view.reward.lift,p.z); }
+  respawnPoint(): { pos: THREE.Vector3; yaw: number } { const p = this.point(true); return { pos: new THREE.Vector3(p.x,this.groundAt(p.x,p.z),p.z),yaw: p.yaw }; }
+  cairnSpot(): THREE.Vector3 { return this.ctx.tieSpot ?? new THREE.Vector3(this.data.arena.anchor.x, this.groundAt(this.data.arena.anchor.x, this.data.arena.anchor.z), this.data.arena.anchor.z); }
 
   reset(phase: number): void {
     this.life.restart({ phase,share: this.data.phases[phase]?.at ?? 1,tied: Number(this.tied),sealed: Number(this.sealed) }); this.clocks.reset();
@@ -433,7 +451,7 @@ export class OpenArenaFight implements BossScript {
       const n = (key: string): number => { const value = answer[key]; if (value === undefined) throw new Error('Missing attack decision'); return value; };
       this.spearAt.x = this.clocks.value('x'); this.spearAt.z = this.clocks.value('z');
       if (n('strike') === 1) {
-        this.spearAt.y = heightAt(this.spearAt.x, this.spearAt.z); this.bolt(this.spearAt.x, this.spearAt.z);
+        this.spearAt.y = this.groundAt(this.spearAt.x, this.spearAt.z); this.bolt(this.spearAt.x, this.spearAt.z);
         if (n('hurt') === 1 && this.host.contact('spear', this.spearAt, this.data.tuning.spearDamage, this.data.lines.spear)) this.host.throwRider();
         if (n('spread') === 1) this.ignite(this.spearAt.x, this.spearAt.z);
       }
@@ -449,28 +467,29 @@ export class OpenArenaFight implements BossScript {
     if (gr === null) { this.domeBroken = true; return; }
     for (const [i, site] of this.data.supportSites.entries()) {
       const { x, z } = site;
-      const a = gr.spawnRider({ x, z, yaw: 0, variant: this.data.view.quietVariant, quiet: true });
-      if (a === null) continue;
+      const rider = gr.spawnRider({ x, z, yaw: 0, variant: this.data.view.quietVariant, quiet: true });
+      if (rider === null) continue;
+      const a = rider.body;
       const lane = this.arena.tells('lane')[i];
       if (lane === undefined) continue;
       const actors=this.data.support.actors;if(actors===undefined)throw new Error('Missing support actor rows');
       a.maxHp=actors.hp;a.hp=actors.hp;
-      const r: SupportActor = { a,lane,law: this.riderLaw(i,a) };
+      const r: SupportActor = { rider,a,lane,law: this.riderLaw(i,rider) };
       this.stormRiders.push(r);
     }
   }
 
   /** A support rider's law at `site` and its damage share on `a` (spawned, or the host's restored actor). */
-  private riderLaw(site: number, a: Animal): ProjectedState {
+  private riderLaw(site: number, rider: ArenaSupportRider): ProjectedState {
     const rows=this.data.support,actors=rows.actors,at=this.data.supportSites[site];if(actors===undefined||at===undefined)throw new Error('Missing support actor rows');
     const law=new ProjectedState({initial:{...rows.member,theta:at.theta},parameters:rows.parameters,signals:rows.signals,signal:'member',outputsEvents:{member:this.memberOutputs,damage:['alpha']}},this.author),player=this.host.player.position;
-    setEliteDamage(a,(body,point)=>law.event('damage',{x:point.x,z:point.z,px:player.x,pz:player.z,radius:body.scale})['alpha']??1);
+    rider.share((scale,x,z)=>law.event('damage',{x,z,px:player.x,pz:player.z,radius:scale})['alpha']??1);
     return law;
   }
 
   private clearRiders(): void {
     const gr = this.host.riderOwner();
-    for (const r of this.stormRiders) { setEliteDamage(r.a,()=>1);r.lane.hide(); if (r.a.alive && gr !== null) { r.a.alive = false; gr.dissolve(r.a); } }
+    for (const r of this.stormRiders) { r.rider.share(null);r.lane.hide(); if (r.a.alive && gr !== null) { r.a.alive = false; r.rider.dissolve(); } }
     this.stormRiders = [];
     for (const l of this.arena.tells('lane')) l.hide();
   }
@@ -488,7 +507,7 @@ export class OpenArenaFight implements BossScript {
     for(let i=riders.length-1;i>=0;i--){
       const r=riders[i];if(r===undefined)continue;
       if(((state['mask']??0)&(1<<i))!==0){
-        setEliteDamage(r.a,()=>1);r.lane.hide();riders.splice(i,1);
+        r.rider.share(null);r.lane.hide();riders.splice(i,1);
         this.host.feed(riders.length>0?this.data.lines.riderBreaks+this.data.view.remaining.replace('{count}',String(riders.length)):this.data.lines.lastRider);continue;
       }
       const a=r.a,answer=r.law.project({...frame,ax:a.position.x,az:a.position.z});
@@ -520,8 +539,8 @@ export class OpenArenaFight implements BossScript {
   private clearFire(): void { this.field.clear(); this.burntQueue.length = 0; this.fireClear = true; this.fireOn = false; }
 
   private updateFire(dt: number, t: number, live: boolean, thinkDt = 0): void {
-    this.fire.update(t, wind.dirX, wind.dirZ, wind.speed, this.body.fogColour, this.body.flash.value);
-    if (this.fireOn && live) for (const cell of this.field.update(dt, { wx: wind.dirX, wz: wind.dirZ })) this.addScorch(cell);
+    this.fire.update(t, this.windNow.dirX, this.windNow.dirZ, this.windNow.speed, this.body.fogColour, this.body.flash.value);
+    if (this.fireOn && live) for (const cell of this.field.update(dt, { wx: this.windNow.dirX, wz: this.windNow.dirZ })) this.addScorch(cell);
     // the fire slot: the view module draws the smoke, the burning cells' flames and up to a frame's share of the burnt-out
     // cells' scorch; what it has not run for (its lane's rate can skip a frame) waits for the frame it runs
     const n = Math.min(ARENA_BURNT_PER_FRAME, this.burntQueue.length); this.burnt[0] = n;
@@ -548,13 +567,13 @@ export class OpenArenaFight implements BossScript {
 
   private updateWhirls(dt: number, t: number, live: boolean, thinkDt: number): void {
     const p = this.host.player.position;
-    const hits = this.whirls.update(dt, t, live, thinkDt, { wx: wind.dirX, wz: wind.dirZ, px: p.x, pz: p.z });
+    const hits = this.whirls.update(dt, t, live, thinkDt, { wx: this.windNow.dirX, wz: this.windNow.dirZ, px: p.x, pz: p.z });
     for (const at of hits) if (this.host.contact('whirl', at, this.data.tuning.whirlDamage, this.data.lines.whirl)) this.host.throwRider();
   }
 
   // ── a strike from the sky ──
   private bolt(x: number, z: number): void {
-    const y = heightAt(x, z);
+    const y = this.groundAt(x, z);
     this.ctx.weather.raise(this.data.weather.strike, { x, y, z, kind: 0 });
     this.ctx.weather.flash = 1;
     this.body.flash.value = 1;

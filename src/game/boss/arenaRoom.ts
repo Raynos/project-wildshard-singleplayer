@@ -56,7 +56,8 @@ import { ArenaFireView, ArenaWhirlsView } from './arenaFire';
 import { ArenaPortalLaw } from './arenaPortal';
 import { ArenaRoomGround } from './arenaGround';
 import { arenaBoundary, arenaTie } from './arenaAnswers';
-import { OpenArenaFight, readArenaScriptData } from './openArenaFight';
+import { OpenArenaFight, readArenaScriptData, type ArenaRiderOwner } from './openArenaFight';
+import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';
 import { ArenaSceneView, CloudBody, type PatrolEncounterView } from './encounterView';
 import {entryOwner, lateEntryOwner, presentEntryOwner} from '../shardfile/entryOwners';
 import { prepareLentLooks } from '../shardfile/lentLooks';
@@ -641,7 +642,12 @@ export class ArenaRoomEncounter {
     await dungeon.buildSliced(true,macrotask);await macrotask();world.scene.add(dungeon.group);this.spareLight=pooledSpare(world.scene,this.spareLight.color,this.spareLight.position);dungeon.register(world.registry);
     return this;
   }
-  riderOwner():PatrolEncounterView|null{return this.riders;}
+  /** the fight's riders (OpenArenaFightHost): the patrol view's actors, their damage share as an elite damage law */
+  riderOwner():ArenaRiderOwner|null{
+    const riders=this.riders;if(riders===null)return null;
+    return {spawnRider:at=>{const a=riders.spawnRider(at);return a===null?null:{body:a,
+      share:law=>{setEliteDamage(a,law===null?()=>1:(body,point)=>law(body.scale,point.x,point.z));},dissolve:()=>{riders.dissolve(a);}};}};
+  }
   mounted():boolean{return this.mount?.mounted===true;}
   throwRider():void{if(this.mount?.mounted===true)this.openFight.dismount(this.mount,this.context?.scope??this.openFight.scope);}
   horseSteed(amount:number):void{if(this.mount!==null)this.mount.steed=Math.max(0,this.mount.steed+amount);}
