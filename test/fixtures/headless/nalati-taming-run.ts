@@ -15,16 +15,29 @@ import {canonicalSimDigest} from '../../fake/simState';
 import {walkNalatiHorsePlains} from '../../proof/nalati-grasslands/horsePlainsWalk';
 import {createNalatiTamingPilot} from '../../proof/nalati-grasslands/tamingPilot';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
+import type {PrepareHeadlessRuntime} from '../../../src/sdk/headlessRuntime';
+
+interface BondedObservation {
+  readonly phase:string;readonly upgraded:boolean;readonly flags:readonly string[];
+  readonly quests:readonly {id:string;started:boolean;complete:boolean;current:string|null}[];
+}
+interface TamingProofOptions {
+  /** Reinstall the same real owners on both sides of the earned checkpoint. */
+  readonly prepare?:PrepareHeadlessRuntime;
+  /** Detached observations only; the verifier cannot mutate either resident. */
+  readonly verifyBonded?:(first:BondedObservation,restored:BondedObservation)=>void;
+}
 
 /** The real entry, physical approach and every bucking round. A checkpoint
  * is captured from accepted live state, never supplied by the caller. */
-export async function runNalatiFieldTaming():Promise<{ticks:number;approachTicks:number;breakingTicks:number;checkpointTick:number;rounds:number}> {
+export async function runNalatiFieldTaming(options:TamingProofOptions={}):Promise<{ticks:number;approachTicks:number;breakingTicks:number;checkpointTick:number;rounds:number}> {
+  const prepare=options.prepare??prepareHeadlessRuntime;
   const directory=builtProduct('nalati-grasslands'),product=await loadHeadlessProduct(directory),shard=product.shardfile;
   const descriptor=outputDescriptor(shard);assert.ok(descriptor);
   const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,
     Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-  const preparation={shard,assets,rapier,product},first=await createNativeProofResident(preparation,prepareHeadlessRuntime);
+  const preparation={shard,assets,rapier,product},first=await createNativeProofResident(preparation,prepare);
   let restored:Awaited<ReturnType<typeof createNativeProofResident>>|undefined;
   try{
     const taming=nativeTamingOf(first.host),mounted=mountedPlayerOf(first.host);assert.ok(taming);assert.ok(mounted);
@@ -44,7 +57,7 @@ export async function runNalatiFieldTaming():Promise<{ticks:number;approachTicks
       step(commands);restored?.step(commands);
       if(restored===undefined&&taming.phase==='breaking'&&breakingTicks===250){
         const saved=snapshotSimHost(first.host);checkpointTick=first.host.state.tick;
-        restored=await createNativeProofResident(preparation,prepareHeadlessRuntime,serializeSimSnapshot(saved));
+        restored=await createNativeProofResident(preparation,prepare,serializeSimSnapshot(saved));
         assert.equal(canonicalSimDigest(snapshotSimHost(restored.host)),canonicalSimDigest(saved),'the earned mid-round checkpoint restores quietly');
       }
     }
@@ -54,6 +67,12 @@ export async function runNalatiFieldTaming():Promise<{ticks:number;approachTicks
     assert.equal(original.position.y,-1e4);assert.equal(original.motor,null);
     assert.equal(canonicalSimDigest(snapshotSimHost(restored.host)),canonicalSimDigest(snapshotSimHost(first.host)),
       'the complete actual bucking/adoption suffix survives reinstall');
+    const observe=(owner:typeof first):BondedObservation=>{
+      const state=nativeTamingOf(owner.host);assert.ok(state);
+      return {phase:state.phase,upgraded:state.upgraded,flags:[...owner.host.flags.all],
+        quests:owner.host.quests.map(quest=>({id:quest.def.id,started:quest.isStarted,complete:quest.isComplete,current:quest.current?.id??null}))};
+    };
+    options.verifyBonded?.(observe(first),observe(restored));
     return {ticks:first.host.state.tick,approachTicks,breakingTicks,checkpointTick,rounds};
   }finally{restored?.dispose();first.dispose();}
 }
