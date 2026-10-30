@@ -191,6 +191,7 @@
     "./weapons/starterGlyphs": "./weapons/starterGlyphs.ts",
     "./weapons/mountedPass": "./weapons/mountedPass.ts",
     "./weapons/heldBowBase": "./weapons/heldBowBase.ts",
+    "./weapons/polearmContact": "./weapons/polearmContact.ts",
     "./weapons/starterMoves": "./weapons/starterMoves.ts",
     "./weapons/starterMeleeProfile": "./weapons/starterMeleeProfile.ts",
     "./weapons/starterBowProfile": "./weapons/starterBowProfile.ts",
