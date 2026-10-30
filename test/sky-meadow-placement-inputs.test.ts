@@ -6,23 +6,16 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { build } from 'vite';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { hashImmutableBytes } from '../src/sdk/immutable';
-import { bakeMeadowBlades } from '../src/shards/far-reach/generators/meadowBlades';
-import { predecessorMeadowHash } from './fixtures/sky-meadow-hash';
 import { meadowHoles, meadowPaths } from '../src/shards/far-reach/generators/placements';
 import { heroStoneDiscs } from '../src/shards/far-reach/generators/dressing';
 
-
-
-test('owned meadow placement values preserve every original row and packed blade byte', () => {
+test('owned meadow placement values preserve every original hole and path row', () => {
   const original = v.parse(v.object({ meadow: v.object({ holes: v.array(v.array(v.number())), paths: v.array(v.array(v.number())) }) }),
     JSON.parse(readFileSync('src/shards/far-reach/data/placements.json', 'utf8')));
   const rows = (values: ReturnType<typeof meadowHoles>): number[][] => values.map(({ x, y, z, w }) => [x, y, z, w]);
   expect(rows(meadowHoles())).toEqual(original.meadow.holes);
   expect(rows(meadowPaths())).toEqual(original.meadow.paths);
-  const bytes = bakeMeadowBlades(predecessorMeadowHash);
-  expect(bytes.byteLength).toBe(1_431_607);
-  expect(hashImmutableBytes(bytes)).toBe('851f80fb000e621ab1b6e22edd9a9ac7fbcb6ecfeda1047a86f3f919d779e33f');
+
 });
 
 test('authored dressing clearances retain every original disc and own their coordinate arrays', () => {

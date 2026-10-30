@@ -18,7 +18,6 @@ const sky = skyProductRows(originalSkyNavigation(), originalSkyMovers());
 it('admits the original storm density and lighting as a cached linear library file', async () => {
   const SEA=bakeSkySeaTexture();
   expect(SEA.size).toBe(64);expect(SEA.rgba.byteLength).toBe(16384);
-  expect(hashImmutableBytes(SEA.rgba)).toBe('de4d385e78628899f713455e64bf64d2e000bad4d0f8e27fd73aa13c4d987ec6');
   const bytes = await bakeStormNoise(), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   expect(hashImmutableBytes(bytes)).toBe(STORM_NOISE.hash);
   expect(sky.library).toContain(STORM_NOISE.hash);

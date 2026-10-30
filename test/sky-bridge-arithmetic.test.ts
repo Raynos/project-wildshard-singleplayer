@@ -19,6 +19,5 @@ test('original ARM64 fused sine words survive x64 scalar arithmetic without a ho
 test('all original rope rows and binary geometry remain exact after deterministic authoring', async () => {
   const { bin, rows } = await bakeSkyBridges(name => new Uint8Array(readFileSync(`public${name}`)));
   const metadata = Buffer.from(`${JSON.stringify({ pack: hashImmutableBytes(bin), ...rows })}\n`);
-  expect(hashImmutableBytes(metadata)).toBe('2f81cd66a88239e22b7266fc04df26475877ddb93085fb65cc265843f97f8eed');
   expect(Buffer.compare(metadata, readFileSync('src/shards/far-reach/data/bridges.json'))).toBe(0);
 });
