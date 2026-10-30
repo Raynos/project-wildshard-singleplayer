@@ -23,7 +23,7 @@
     "chip": "TALK TO THE KEEPER",
     "hint": "He stands by the rope bridge at Sunrest"
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: chip TALK TO THE KEEPER"
   },
   {
    "id": "keeper",
@@ -39,7 +39,7 @@
     "prompt": "Talk to the keeper",
     "talk": "Ho there, walker! Mind the edge: it is a long way down to the clouds."
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Talk to the keeper, Old Tamsin's talk"
   },
   {
    "id": "bridge",
@@ -56,7 +56,7 @@
      "Discovered · Windmill isle"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Discovered · Windmill isle"
   },
   {
    "id": "swing",
@@ -196,10 +196,10 @@
      "A vane turns"
     ],
     "chip": "TURN THE VANES",
-    "hint": "GUST each vane: the keeper's isle, the windmill isle, the vane ruin",
+    "hint": "GUST each vane: the keeper's isle, the pine grove, the vane ruin",
     "check": "the hint names the windmill isle; the vanes stand on Pine grove, Keeper's isle, Vane ruin (both trees)"
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Discovered · Vane ruin (the GUST tap turned no vane in either mode)"
   },
   {
    "id": "vane-grove",
@@ -216,7 +216,7 @@
      "A vane turns"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Discovered · Pine grove (no vane turn)"
   },
   {
    "id": "vane-keeper",
@@ -233,7 +233,7 @@
      "A vane turns"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Discovered · Keeper's isle (no vane turn)"
   },
   {
    "id": "notes",
@@ -251,7 +251,7 @@
      "The crown bridge only answers the winch when the vanes turn and the roost is quiet."
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Read the keeper's notes: notes toast, Step complete, objective Clear the roost of drift rays"
   },
   {
    "id": "updraft",
@@ -285,7 +285,7 @@
      "The crown bridge is up"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Turn the winch: The winch will not turn while the roost is loud..."
   },
   {
    "id": "reward",
@@ -300,7 +300,7 @@
      "Quest reward: 10 coins"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: none (quest not complete)"
   },
   {
    "id": "keeper-again",
@@ -315,7 +315,7 @@
    "expect": {
     "talk": "You did it! Listen to the crown thunder. Whatever nests up there will not thank you."
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Talk to the keeper: The roost first..."
   },
   {
    "id": "roc",
@@ -353,7 +353,7 @@
     ],
     "retry": "Face the Storm Roc again"
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: none"
   },
   {
    "id": "fall",
@@ -380,7 +380,7 @@
    "expect": {
     "prompt": "Ride the islet"
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Ride the islet prompt"
   }
  ]
 }

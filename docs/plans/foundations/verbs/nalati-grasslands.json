@@ -42,7 +42,7 @@
      "Discovered · NOMAD CAMP"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Discovered · NOMAD CAMP"
   },
   {
    "id": "ch1-chip",
@@ -58,7 +58,7 @@
     "chip": "Visit the nomad camp by the Kunes",
     "hint": "Baqyt Ata sits by the big yurt"
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: chip Tulpar / BAQYT ATA"
   },
   {
    "id": "elder",
@@ -76,7 +76,7 @@
      "New quest · Tulpar"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Talk to Baqyt Ata, his talk"
   },
   {
    "id": "camp-npcs",
@@ -96,7 +96,7 @@
      "Talk to Gulnar Apa"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Talk to Dauren, his talk"
   },
   {
    "id": "camp-horse",
@@ -114,7 +114,7 @@
      "Dismount"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Talk to Erlan (the horse's spot is by Erlan)"
   },
   {
    "id": "name-horse",
@@ -132,7 +132,7 @@
      "Your horse is <name>"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Erlan talk continues"
   },
   {
    "id": "bow",
@@ -190,7 +190,7 @@
     "z": 172
    },
    "expect": {},
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Discovered · BRIDGE"
   },
   {
    "id": "wolves",
@@ -226,7 +226,7 @@
      "TULPAR is yours · he waits at the camp's hitching rail · whistle (X / HORSE) to call him"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Discovered · HORSE PLAINS (taming not played)"
   },
   {
    "id": "call-horse",
@@ -274,7 +274,7 @@
      "Chapter 1 · complete"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Talk to Baqyt Ata"
   },
   {
    "id": "ch2-start",
@@ -292,7 +292,7 @@
      "New quest · The Golden King"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Baqyt talk (dialogue not paged: quest not advanced)"
   },
   {
    "id": "balbals",
@@ -322,7 +322,7 @@
    "expect": {
     "objective": "Find the way into the great kurgan"
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Discovered · GREAT KURGAN"
   },
   {
    "id": "golden-king",
@@ -357,7 +357,7 @@
      "Chapter 2 · complete"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Talk to Baqyt Ata"
   },
   {
    "id": "elites",
@@ -372,7 +372,8 @@
    "expect": {
     "check": "Qara Batyr waits for 5 ghost riders felled that night in LEGACY; SHARDFILE row says night only"
    },
-   "played": null
+   "played": null,
+   "note": "Checked: SHARDFILE keeps LEGACY's gate (ecology.mjs qara-batyr ready: 'eliteAux' = admission.as kills >= 5, plus rule night)"
   },
   {
    "id": "cairn",
@@ -390,7 +391,7 @@
      "The strip snaps in the wind — JEL ATA wakes"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Discovered · WIND CAIRN (cloth strip not played)"
   },
   {
    "id": "jel-ata",
@@ -425,7 +426,7 @@
      "Chapter 3 · complete"
     ]
    },
-   "played": null
+   "played": "MF18 (sp-o4): LEGACY 91a9eef081 vs SHARDFILE 033e816719, Chromium as iPhone 16 Pro, same: Talk to Baqyt Ata"
   }
  ]
 }
