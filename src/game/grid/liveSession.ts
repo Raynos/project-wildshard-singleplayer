@@ -24,8 +24,7 @@ import { loadingUnits } from '@wildshard/engine/boot/waits';
  *   walls until M3.
  */
 import { Vector3, type PerspectiveCamera } from 'three';
-import { createProgramKeeper, retainRendererPrograms, RETAINED_PROGRAM_BYTES, RETAINED_PROGRAM_LIMIT, type ProgramKeeper } from '@wildshard/engine/render/programRetention';
-import { installBootProgramChoice } from './bootPrograms';
+import { createProgramKeeper, RETAINED_PROGRAM_BYTES, RETAINED_PROGRAM_LIMIT, type ProgramKeeper } from '@wildshard/engine/render/programRetention';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { WORK_SLICE_MS, workSlice } from '@wildshard/engine/core/workSlice';
 import { CHUNK_HALF, CONTENT_CAPS, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
@@ -158,7 +157,6 @@ export interface LiveGridSessionPorts {
 }
 /** The readout: the live host's crossing telemetry, the crossing coordinator and the safe-zone state. */
 export interface LiveGridSessionState {
-  readonly bootPrograms: { readonly instance: string; readonly graphs: number; readonly programs: number; readonly elapsedMs: number; readonly chargedBytes: number } | null;
   /** G580 T2: the distinct compiled programs kept across retired cells (null: the Developer row is off) */
   readonly keptPrograms: number | null;
   readonly live: LiveGridState; readonly crossing: GridCrossingState; readonly stowed: boolean; readonly renderOrigin: { x: number; z: number };
@@ -223,10 +221,8 @@ export class LiveGridSession {
   private readonly hybrid: HybridRuntimeSession;
   private readonly startedRuntimes = new Set<string>();
   private activation: Promise<boolean> | undefined;
-  private bootPrograms: LiveGridSessionState['bootPrograms'] = null;
   /** G580 T2: the Developer choice, read at construction; the keeper is made at the first retirement */
   private keeper: ProgramKeeper | null = null;
-  readonly bootProgramCell: string | null;
   private checkpointsSuppressed = false;
   /** The periodic autosave in flight: one stage a frame, superseded by any direct checkpoint (rt3-freeze). */
   private autosave: Generator<undefined, boolean> | null = null;
@@ -243,10 +239,6 @@ export class LiveGridSession {
     gridCells.leave();
     this.framePhysics = ports.physics;
     const { assembly, home, scope } = ports;
-    this.bootProgramCell = installBootProgramChoice(scope, assembly.cells.flatMap(cell => {
-      const manifest = findShard(cell.slug);
-      return manifest === undefined || manifest.clientPlanRuntime !== true ? [] : [{ instance: cell.instance, label: manifest.name }];
-    }));
     const traveller = page.traveller;
     // Register the resident parent before the live host disposer: the traveller returns before native children free.
     this.runtimeScope = scope.child('grid.runtime.residents');
@@ -511,45 +503,6 @@ export class LiveGridSession {
     if (this.live.current() !== null) throw new Error('Road recovery requires the neutral road');
     this.page.traveller.position.set(road.x, 0.5, road.z);
     this.road.observe({ x: road.x, y: 0, z: road.z }, road.yaw, true);
-  }
-
-  /** Reload-only experiment. Reuse the real exclusive admission before home activation, then retire its world.
-   * Only native programs survive on a page-owned material; no geometry, textures, live actors or second world are kept. */
-  async prepareBootPrograms(): Promise<void> {
-    const start = diagnosticNow();
-    if (this.live.current() !== null || this.live.state().residents.length > 0) throw new Error('Loading program preparation requires the initial neutral road');
-    const page = this.page.runtimePage?.();
-    if (page === null || page === undefined) throw new Error('Loading programs need the page services');
-    const cell = this.ports.assembly.cells.find(row => row.instance === this.bootProgramCell);
-    if (cell === undefined) return;
-    const pending = gridShardfileProduct(cell.slug, { allocator: this.ports.allocator, scope: this.ports.scope });
-    if (pending === null) throw new Error('Loading program cell lacks its admitted product');
-    const product = await pending;
-    let graphs: number;
-    try { graphs = Object.values(product.admitted.source.look.materials).filter(row => row.family === 'graph').length; }
-    finally { product.release(); }
-    const selected = { instance: cell.instance, graphs };
-    const game = page.world.game, owner = this.ports.scope.child('grid.boot-programs');
-    // Reserve before acquiring any extra program references. Driver storage is opaque, so this is an explicit
-    // conservative estimate, not a claimed native measurement or a discount against the temporary world.
-    const claim = this.ports.allocator.reserve({ id: 'page:loading-programs', category: 'page', owner: 'platform',
-      bytes: RETAINED_PROGRAM_LIMIT * RETAINED_PROGRAM_BYTES, distance: 0, needed: true });
-    if (claim === null) { owner.dispose(); throw new Error('Loading programs exceed page residency'); }
-    owner.onDispose(() => { claim.release(); });
-    let programs = 0;
-    const failures: unknown[] = [];
-    try {
-      const retained = retainRendererPrograms(game.renderer, owner, game.camera, game.rootScene);
-      const prepared = await this.prepareCrossing(null, selected.instance);
-      prepared.cancel(); // Never transfer the traveller, enter the cell or advance its simulation.
-      programs = retained.capture();
-    } catch (error) { failures.push(error); }
-    try {
-      if (this.live.state().residents.includes(selected.instance) && !this.live.unload(selected.instance)) throw new Error('Loading world could not retire durably');
-    } catch (error) { failures.push(error); }
-    if (failures.length > 0) { owner.dispose(); throw new AggregateError(failures, 'Loading program preparation failed'); }
-    this.bootPrograms = { ...selected, programs, elapsedMs: diagnosticNow() - start, chargedBytes: RETAINED_PROGRAM_LIMIT * RETAINED_PROGRAM_BYTES };
-    console.info(`[grid loading programs] ${JSON.stringify(this.bootPrograms)}`);
   }
 
   /** G580 T2: a retiring cell's compiled programs, kept for the next (Developer row). The keeper and its conservative
@@ -989,7 +942,7 @@ export class LiveGridSession {
 
   state(): LiveGridSessionState {
     const cap = this.page.traveller.hoverSpeedLimit?.();
-    return { bootPrograms: this.bootPrograms, keptPrograms: this.keeper?.size ?? 0, live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z }, runtimeTiming: this.hybrid.timings(), crossingTiming: this.crossing.crossing.timings(), leaveTiming: this.leaveTiming.map(row => ({ ...row })), crossingLoading: this.crossing.crossing.timings().map(crossingLoadingRows),
+    return { keptPrograms: this.keeper?.size ?? 0, live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z }, runtimeTiming: this.hybrid.timings(), crossingTiming: this.crossing.crossing.timings(), leaveTiming: this.leaveTiming.map(row => ({ ...row })), crossingLoading: this.crossing.crossing.timings().map(crossingLoadingRows),
       hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100 };
   }
 }

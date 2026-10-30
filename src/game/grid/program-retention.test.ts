@@ -3,7 +3,6 @@ import { BoxGeometry, Group, Mesh, MeshBasicMaterial, type Material } from 'thre
 import { createProgramKeeper, createViewProgramKeeper, pinProgramReferences, RETAINED_PROGRAM_LIMIT, type ProgramReference, type ProgramRenderer } from '@wildshard/engine/render/programRetention';
 import { Scope } from '@wildshard/engine/app/scope';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { selectedBootCell } from './bootProgramSelection';
 
 test('one program hold survives source retirement, is idempotent and releases through its material owner', () => {
   const program: ProgramReference = { cacheKey: 'one', usedTimes: 1 }, held = new Map<string, ProgramReference>();
@@ -26,15 +25,6 @@ test('capacity and invalid cache identities refuse before any program reference 
   const other = { cacheKey: 'two', usedTimes: 1 };
   expect(() => pinProgramReferences(held, [other, { cacheKey: 'one', usedTimes: 1 }])).toThrow('reference');
   expect(other.usedTimes).toBe(1); expect(held.size).toBe(1);
-});
-
-test('one explicit admitted cell is selected only in Developer; absent and stale picks stay off', () => {
-  const rows = [{ instance: 'home', label: 'Home' }, { instance: 'next', label: 'Next' }];
-  expect(selectedBootCell(rows, 'next', true)).toBe('next');
-  expect(selectedBootCell(rows, 'next', false)).toBeNull();
-  expect(selectedBootCell(rows, 'off', true)).toBeNull();
-  expect(selectedBootCell(rows, 'stale', true)).toBeNull();
-  expect(selectedBootCell(rows, undefined, true)).toBeNull();
 });
 
 // G580 T2: a renderer double whose material program maps release their references on disposal, as three's do

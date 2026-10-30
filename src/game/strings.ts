@@ -74,10 +74,6 @@ export const GAME_STRINGS = {
   },
   /** Infinite Wildshard, the 3 × 3 grid (SHARD-PLATFORM §3.3, G58, G79; SF21a) */
   grid: {
-    loadingPrograms: {
-      label: 'Grid programs during loading', off: 'Off',
-      note: 'G451 · E435: warm one admitted cell before play. Longer loading; programs stay until page exit. Default off pending a device reading and quiet frame floor; reloads',
-    },
     ended: 'Infinite Wildshard ended unexpectedly last time.',
     /** QB6: the same one line for a standalone world that ended unexpectedly (iOS's memory kill), by its name */
     shardEnded: (name: string): string => `${name} ended unexpectedly last time.`,

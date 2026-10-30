@@ -6,7 +6,7 @@ import {stripTypeScriptTypes} from 'node:module';
 // oxlint-disable-next-line import/no-nodejs-modules -- Run the real prefix with explicit controlled preparation ports.
 import {runInNewContext} from 'node:vm';
 
-function fixture(options: {owned?: boolean; live?: boolean; warm?: boolean; standalone?: boolean; refuseComposer?: boolean} = {}) {
+function fixture(options: {owned?: boolean; live?: boolean; standalone?: boolean; refuseComposer?: boolean} = {}) {
   const source = readFileSync(new URL('finish.ts', import.meta.url), 'utf8');
   const start = source.indexOf('export async function finishStage('), end = source.indexOf('  const programs =', start);
   if (start === -1 || end < start) throw new Error('Boot composer prefix missing');
@@ -23,7 +23,6 @@ function fixture(options: {owned?: boolean; live?: boolean; warm?: boolean; stan
   const ctx = {
     session: {ownedGridHome: options.owned !== false},
     gridLive: options.live === false ? null : {
-      bootProgramCell: options.warm === true ? {} : null,
       enterInitialHome: () => {calls.push('enter'); return Promise.resolve();},
     },
     grid: options.standalone === true ? null : {
@@ -46,14 +45,9 @@ test('initial owned home prepares one composer before world construction', async
   expect(f.calls).toEqual(['prepare', 'build', 'home', 'metadata', 'enter', 'reload', 'road', 'turn', 'road-ready', 'frame', 'layers']);
 });
 
-test.each([
-  {owned: false},
-  {warm: true},
-])('legacy and experimental grid entries retain late composer preparation: %j', async options => {
-  const f = fixture(options); await f.run();
-  expect(f.calls).toEqual(options.warm === true
-    ? ['reload', 'road', 'turn', 'road-ready', 'prepare', 'build', 'frame', 'layers']
-    : ['home', 'reload', 'road', 'turn', 'road-ready', 'prepare', 'build', 'frame', 'layers']);
+test('legacy grid entry retains late composer preparation', async () => {
+  const f = fixture({owned: false}); await f.run();
+  expect(f.calls).toEqual(['home', 'reload', 'road', 'turn', 'road-ready', 'prepare', 'build', 'frame', 'layers']);
 });
 
 test('standalone retains its sky clock before composer allocation', async () => {

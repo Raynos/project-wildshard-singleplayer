@@ -46,7 +46,6 @@ async function linkWorldUnderLoader(game: Awaited<ReturnType<typeof playStage>>[
 
 export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
   const { manifest, boot, slug, loading, audioProfile, files, plan, step, audioLoad, deferredAudio, world, game, sky, player, chunk, fragileBoot, failGpuBoot, onBootContextLost, edgeDressing, boundary, water, interactables, props, disableBootGpuGuard, level, animals, getArena, crossbow, weapons, lockSys, hud, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground, leakPhysics } = ctx;
-  const warmGrid = ctx.gridLive?.bootProgramCell !== null && ctx.gridLive?.bootProgramCell !== undefined && ctx.session.ownedGridHome === true;
 
   // The staged loader invokes the trusted play hook after buildPlay. Only a fully installed runtime can leave:
   // leaving during buildPlay disposes its kit scope before that hook runs and makes recovery fall back to title.
@@ -68,10 +67,10 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   };
   // The initial owned home can issue its exact program inventory while kit/play
   // construct. Allocate the same page-owned composer once before that work;
-  // standalone, legacy-grid and the reload experiment keep their prior order.
-  const eagerGridComposer = !warmGrid && ctx.session.ownedGridHome === true && ctx.gridLive !== null;
+  // standalone and legacy-grid keep their prior order.
+  const eagerGridComposer = ctx.session.ownedGridHome === true && ctx.gridLive !== null;
   if (eagerGridComposer) { await game.prepareComposer(); game.buildComposer(); }
-  if (!warmGrid && (ctx.gridLive !== null || ctx.session.recovery !== undefined)) await loadingStage('home', enterGrid);
+  if (ctx.gridLive !== null || ctx.session.recovery !== undefined) await loadingStage('home', enterGrid);
   if (ctx.gridLive !== null) {
     const grid = ctx.gridLive;
     // GPU/background own the same checkpoint port above; New game captured it before resetting and suppresses stale saves.
@@ -103,11 +102,6 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   await loadingStage('spawnDetail', () => prepareSpawnView());
   try {
     await step('shaders', async (p) => {
-      if (warmGrid && ctx.gridLive !== null) {
-        await loadingStage('homePrograms', () => ctx.gridLive?.prepareBootPrograms());
-        await loadingStage('home', enterGrid);
-        ctx.grid?.prepareFrame(); game.sky.prepareLayers();
-      }
       // Until the first systems step the camera stands at the origin (Nine: 127 m below the spawn's eye, at 72° not the
       // held 93°) and placed copies hold none until their first cull: one step without its draw poses the spawn view,
       // so the shaders below and firstFrame's warm turns link and draw what the player sees, not the origin's view
