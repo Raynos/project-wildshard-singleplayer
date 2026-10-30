@@ -14,9 +14,9 @@ import { parseManifestMetadata } from '@wildshard/format/minimap';
 import { parseDiscoveryValues } from '@wildshard/format/discoveryValues';
 import { ShardfileSchema } from '@wildshard/format/shardSchema';
 import { defineAuthoredShard } from '@wildshard/game/shard/manifest';
-import { readProjectAssets } from '../src/sdk/project';
 import { decisionLegacyLines } from '../scripts/decision-legacy-lines.mjs';
 import { productMapInput } from '../scripts/built-product.mjs';
+import { readProgramDiscovery } from '../scripts/program-discovery.mjs';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 import { MANIFEST as nalati } from '../src/shards/nalati-grasslands/discovery.generated';
 import { MANIFEST as sky } from '../src/shards/far-reach/discovery.generated';
@@ -67,7 +67,7 @@ describe('authored JSON discovery', () => {
       expect(read).toThrow(/bounded generators directory/u);
     } finally { rmSync(scratch, {recursive: true}); }
   });
-  for (const manifest of [sky, signal, template, pine, driftwood, blender, nalati]) test(`${manifest.slug} composes typed native bindings and complete images`, async () => {
+  for (const manifest of [sky, signal, template, pine, driftwood, blender, nalati]) test(`${manifest.slug} composes typed native bindings and complete images`, () => {
     const row = parseManifestMetadata(metadata(manifest.slug));
     expect(manifest.name).toBe(row.name); expect(manifest.spawn).toEqual(row.spawn);
     expect(manifest.bounds).toEqual(row.bounds); expect(manifest.sky).toEqual(row.sky);
@@ -77,10 +77,10 @@ describe('authored JSON discovery', () => {
     if (manifest.slug === 'far-reach') {
       const lines = decisionLegacyLines(root, 'far-reach');
       if (lines === undefined) throw new Error('Missing original Far Reach decision budget');
-      const loaded = await readProjectAssets(resolve(root, 'src/shards/far-reach'), undefined, {
-        folder: 'far-reach', imageRoots: [{ prefix: '/assets/', directory: resolve(root, 'public/assets') }],
-      }, { decisionLegacyLines: lines });
-      source = authoredManifestSource(root, manifest.slug, { discovery: parseDiscoveryValues(loaded.output.discovery) });
+      // The ordinary prepare already builds and admits this source's world,
+      // models and AS budget. This case reads its current bounded metadata,
+      // with source/run/index/value receipt checks, inside the same deadline.
+      source = authoredManifestSource(root, manifest.slug, { discovery: readProgramDiscovery(root, manifest.slug) });
     } else source = declaredSource(manifest.slug);
     for (const path of Object.values(row.card).concat(Object.values(row.explore.art))) {
       if (path.startsWith('/src/')) { expect(source).toContain(path); expect(existsSync(resolve(root, path.slice(1)))).toBe(true); }

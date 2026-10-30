@@ -90,7 +90,9 @@
     "driftwood-isle",
     "pine-hollow"
   ],
-  "test/authored-manifest.test.ts": [],
+  "test/authored-manifest.test.ts": [
+    "far-reach"
+  ],
   "test/quadruped-rig-platform.test.ts": [],
   "test/ambient-flock-host.test.ts": [],
   "test/animal-model-preparation.test.ts": [],
