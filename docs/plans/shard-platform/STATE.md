@@ -18,7 +18,7 @@ tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 - Player bug found by CI12: after dying in her storm phase, Signal's Matriarch flew off the map on retry (script restarted at step 0 only); fixed ddb75a9d0a (o3, board art/signal-matriarch-retry/).
 - **For wildshard-v / Jake (pick):** Debug 'Draw budget' (da65599389, board 6123924204): Lean = 166 → 149 draws, Chromium 4x Pine 18.9 → 16.3 ms, but Sim WebContent stays ~22 %; it thins distant trees / nearer shadows. Recommend Current. The 15 % WebContent bar isn't reachable by exact or draw cuts; Jake decides the bar.
 - P0 found by CI: the grid could stop drawing after a crossing (a cached frame gate held async readiness, ca0c7c8b60); fixed 4779bbdd6f (x1).
-- **For wildshard-v (QB1):** Jake's home-screen icon predates the launch image; one delete + re-add of the icon fixes the black.
+- QB1: Jake's icon predates the launch image; delete + re-add it once.
 - QB10 / MF12: Sentry verdicts in e74ca75809; S fixed b3b1723a9a, 7S fixed cc75f528ea + 93cf905edc. **wildshard-v: Sentry-only ids need a build + stack.**
 
 **Rules:** G704, G807, G828, G844, G846, G848, G853, G858. No reverts (G674), no new Debug rows (G669), never herdr wildshard-v.
