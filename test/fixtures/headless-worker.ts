@@ -1,5 +1,9 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- This native Node worker uses the original repository physics binary and loader.
 import { resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Worker source and loader are fixed native file URLs.
 import { pathToFileURL } from 'node:url';
+// oxlint-disable-next-line import/no-nodejs-modules -- Publish already compiled parent modules to Node's content-checked cache before the independent worker imports them.
+import {flushCompileCache} from 'node:module';
 import { TickWorkerHost } from '../../src/sdk/tickWorkerHost';
 import type { Shardfile } from '../../src/sdk/shardfile';
 import { headlessSections } from '../../src/sdk/headlessSections';
@@ -18,10 +22,11 @@ export async function createNativeProofWorker(shard: Shardfile, assets: Readonly
   await prepareAssetDecoders();
   validateShardfileAssets(shard, assets, hashImmutableBytes, offlineMemoryAdmission('refuse'), undefined, scriptAdmissionRows(sections));
   const admitted = new Map<string, Uint8Array>();
-  for (const hash of [...shard.files.map(file => file.hash), ...shard.requires.commons.map(hash => `commons:${hash}`)]) {
+  for (const hash of [...shard.files.map(file => file.hash), ...shard.requires.commons.map(identity => `commons:${identity}`)]) {
     const bytes = assets.get(hash); if (bytes === undefined) throw new Error('Missing admitted worker bytes'); admitted.set(hash, bytes);
   }
-  const worker = new TickWorkerHost(new URL('./headless/worker.ts', import.meta.url),
+  flushCompileCache();
+  const worker = new TickWorkerHost(new URL('headless/worker.ts', import.meta.url),
     { shard, assets: admitted, kind, directory, sections, binary: resolve('public/assets/physics/rapier.wasm'), ...(snapshot === undefined ? {} : { snapshot }) },
     shard.serverBudget, ['--experimental-transform-types', '--import', pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href], 'advisory');
   try { await worker.initialized(); return worker; } catch (error) { await worker.dispose(); throw error; }
