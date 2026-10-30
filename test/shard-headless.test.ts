@@ -5,13 +5,28 @@ import { QuestState } from '../src/engine/quest/core';
 import { Flags } from '../src/engine/world/interact/flags';
 import { afterAll, expect, it, vi } from 'vitest';
 import { parseShardfileField } from '../src/sdk/shardfile';
-import { decodeSimSnapshot } from '../src/engine/sim/snapshot';
 import { HeadlessSimulation } from '../src/sdk/headless';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { createNativeProofWorker } from './fixtures/headless-worker';
+import type { WalkPoint } from '../src/sdk/headlessJourney';
+import * as v from 'valibot';
+
+const coordinate=v.pipe(v.number(),v.finite());
+const routeLeg=v.object({name:v.string(),start:v.object({x:coordinate,z:coordinate,hover:v.optional(v.boolean())}),
+  inside:v.optional(v.unknown()),waypoints:v.pipe(v.array(v.object({x:coordinate,z:coordinate,
+    jump:v.exactOptional(v.union([v.boolean(),v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(2))])),jumpAt:v.exactOptional(v.pipe(coordinate,v.minValue(0)))})),v.minLength(1))});
+const routeInput:unknown=JSON.parse(readFileSync('scripts/physics-route.json','utf8'));
+const routes=v.parse(v.record(v.string(),v.unknown()),routeInput);
+function spawnRoute(slug:string,spawn:{x:number;z:number}):{name:string;points:readonly WalkPoint[]}{
+  if(slug==='_template'||slug==='pastel-plain')return {name:'spawn-square',points:[{x:spawn.x,z:spawn.z},{x:spawn.x+5,z:spawn.z},{x:spawn.x+5,z:spawn.z+5},{x:spawn.x,z:spawn.z+5}]};
+  const legs=v.parse(v.array(routeLeg),routes[slug]).filter(leg=>leg.inside===undefined&&leg.start.hover!==true);
+  const nearest=legs.sort((a,b)=>Math.hypot(a.start.x-spawn.x,a.start.z-spawn.z)-Math.hypot(b.start.x-spawn.x,b.start.z-spawn.z))[0];
+  if(nearest===undefined)throw new Error(`Missing authored spawn walk for ${slug}`);
+  return {name:nearest.name,points:[nearest.start,...nearest.waypoints]};
+}
 // Admit the same verified products the native scenarios run. Quest-source
 // declarations are checked separately without constructing whole author worlds.
 const cases = await Promise.all([
@@ -22,10 +37,20 @@ const cases = await Promise.all([
 // Each simulation owns a separate native worker. Overlap two independent
 // starts/tick tapes without multiplying the file's peak native residency by five.
 vi.setConfig({ maxConcurrency: 2 });
-afterAll(() => { vi.resetConfig(); });
+let waveStarted:number|undefined;
+let completedJourneys=0;
+afterAll(() => {
+  vi.resetConfig();
+  if(waveStarted!==undefined){
+    expect(completedJourneys).toBe(cases.length);
+    expect(performance.now()-waveStarted).toBeLessThan(60_000);
+  }
+});
 
-// Compatibility means a living headless shard, never a historical fingerprint or replay suffix.
-for (const { slug } of cases) it.concurrent(`${slug}: boots and advances a living headless simulation`, async () => {
+// The main Node integration journey uses real products, worker ticks and the
+// authored physics route. No historical output fingerprint or replay suffix.
+for (const { slug } of cases) it.concurrent(`${slug}: enters, walks 1800 ticks and disposes`, async () => {
+  const started=performance.now();waveStarted??=started;
   const directory = builtProduct(slug), product = await loadHeadlessProduct(directory), source = product.shardfile;
   const descriptor = outputDescriptor(source); if (descriptor === undefined) throw new Error('Missing admitted headless inventory');
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
@@ -37,19 +62,18 @@ for (const { slug } of cases) it.concurrent(`${slug}: boots and advances a livin
     ? await HeadlessSimulation.create(source, assets, undefined, { deadline: 'advisory', sections })
     : await createNativeProofWorker(source, assets, nativeKind, undefined, sections, directory);
   try {
-    const first = decodeSimSnapshot((await sim.step()).snapshot);
-    for (let tick = 0; tick < 24; tick++) await sim.step([{ source: 'player', commands: [{ kind: 'player', moveX: 0.2, moveZ: 0.2, yaw: 0 }] }]);
-    const committed = sim.checkpoint;
-    if (committed === undefined) throw new Error('Headless shard did not commit a live tick');
-    expect(committed.tick).toBeGreaterThan(0);
-    const state = decodeSimSnapshot(committed.snapshot);
-    expect(state.player.position.every(Number.isFinite)).toBe(true);
-    const distance = Math.hypot((state.player.position[0] ?? 0) - (first.player.position[0] ?? 0), (state.player.position[2] ?? 0) - (first.player.position[2] ?? 0));
-    expect(distance).toBeGreaterThan(0);
-    expect(state.player.motor.result.grounded).toBe(true); // real character collision supports the player's feet
+    const route=spawnRoute(slug,source.spawn),report=await sim.journey({ticks:1800,points:[...route.points]});
+    expect(report.ticks).toBe(1800);expect(report.distance).toBeGreaterThan(0);
+    expect(report.visited,JSON.stringify(report)).toBeGreaterThan(1);
+    expect(report.final.grounded).toBe(true); // actual Rapier support after input release
+    expect(report.final.position.every(Number.isFinite)).toBe(true);
     expect(sim.quarantined).toBe(false);
+    process.stdout.write(`node-harness ${slug} ${JSON.stringify({route:route.name,ticks:report.ticks,settledTicks:report.settledTicks,distance:report.distance,
+      visited:report.visited,stuck:report.stuck,maxTickMicros:report.maxTickMicros,elapsedMs:performance.now()-started})}\n`);
   } finally { await sim.dispose(); }
-}, 120_000);
+  await expect(sim.step()).rejects.toThrow();
+  expect(performance.now()-started).toBeLessThan(60_000);completedJourneys++;
+}, 60_000);
 
 for (const { slug, product } of cases) for (const row of product.shardfile.quests.quests) it(`${slug}: ${row.title} completes without repeating its completion`, () => {
   const flags = new Flags(`behaviour.${slug}`, false), quest = new QuestState(row, flags);

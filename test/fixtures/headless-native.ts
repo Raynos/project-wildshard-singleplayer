@@ -1,3 +1,4 @@
+import { runHeadlessJourney } from '../../src/sdk/headlessJourney';
 import type { HeadlessRuntimeInput, HeadlessRuntimeInstallation, HeadlessRuntimePreparation, HeadlessRuntimePlan, PrepareHeadlessRuntime, TrustedHeadlessResident } from '../../src/sdk/headlessRuntime';
 import { fillNativeCombatFrame } from '../../src/sdk/headlessRuntime';
 import { prepareAssetDecoders } from '../../src/format/product';
@@ -85,6 +86,7 @@ export async function createNativeProofAdapter(preparation: HeadlessRuntimeInput
   const resident = await createNativeProofResident(preparation, prepare, snapshot), { host } = resident;
   return {
     step: input => { resident.step(input); },
+    journey: plan => runHeadlessJourney(host,input=>resident.step(input),plan),
     commit: () => ({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(host)), effects: [...resident.effects] }),
     finish: () => ({ ticks: host.state.tick, lanes: 0, steps: 0 }),
     dispose: () => { resident.dispose(); },

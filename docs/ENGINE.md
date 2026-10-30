@@ -9038,6 +9038,25 @@ passes its decision rows into this boundary before measuring the native
 simulation. Decision execution/event wiring remains KA6; KT2 exercises the
 real DecisionHost separately, rather than inventing a second interpreter.
 
+### Terminal headless routes (CI11)
+
+`HeadlessSimulation.journey({ticks, points})` runs 1–1,800 native fixed ticks
+inside the owned worker, then 60 neutral settle ticks. Points come from the
+authored physics route; movement follows committed feet, including jump presses.
+The report contains actual travel, visited waypoints, stalls, final feet and
+support, and maximum native tick time. The 0.8 m waypoint tolerance and
+0.3 m / two-second progress rule are shared with the physics walk.
+
+This terminal offline operation requires advisory timing and at least one
+player command per tick. It retains per-tick script, decision and finite-state
+checks plus the independent worker request watchdog. It does not encode or
+publish a new resumable checkpoint after every tick: the previous complete
+checkpoint stays authoritative, further steps refuse, and the caller disposes
+the worker. Ordinary `step`, restore, fuel and runtime deadlines are unchanged.
+The defining schemas, cursor and result types live in
+`@wildshard/sdk/headlessJourney`; no caller-selected code or synthetic facts
+enter the worker.
+
 ### Declared decision author compilation (KA3)
 
 `@wildshard/sdk/decisionScriptBindings.generateDecisionBindings(row, registries)`
@@ -9064,6 +9083,25 @@ the renderer-free melee owner claim the same contact-family cooldown and land
 in their original phase. The Sky fan uses this row instead of an item Wasm
 module; contact targets, damage and impulses remain on the existing owner.
 
+
+### Terminal headless routes (CI11)
+
+`HeadlessSimulation.journey({ticks, points})` runs 1–1,800 native fixed ticks
+inside the owned worker, then 60 neutral settle ticks. Points come from the
+authored physics route; movement follows committed feet, including jump presses.
+The report contains actual travel, visited waypoints, stalls, final feet and
+support, and maximum native tick time. The 0.8 m waypoint tolerance and
+0.3 m / two-second progress rule are shared with the physics walk.
+
+This terminal offline operation requires advisory timing and at least one
+player command per tick. It retains per-tick script, decision and finite-state
+checks plus the independent worker request watchdog. It does not encode or
+publish a new resumable checkpoint after every tick: the previous complete
+checkpoint stays authoritative, further steps refuse, and the caller disposes
+the worker. Ordinary `step`, restore, fuel and runtime deadlines are unchanged.
+The defining schemas, cursor and result types live in
+`@wildshard/sdk/headlessJourney`; no caller-selected code or synthetic facts
+enter the worker.
 
 ### Declared decision author compilation (KA3)
 

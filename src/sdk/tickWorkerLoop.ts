@@ -1,3 +1,4 @@
+import { HeadlessJourneyReportSchema, type HeadlessJourneyPlan, type HeadlessJourneyReport } from './headlessJourney';
 // oxlint-disable-next-line import/no-nodejs-modules -- The isolated simulation communicates through the Node worker boundary.
 import { parentPort, workerData } from 'node:worker_threads';
 // oxlint-disable-next-line import/no-nodejs-modules -- Parent and worker use the same monotonic clock for a preemptible wall deadline.
@@ -6,6 +7,7 @@ import * as v from 'valibot';
 import { WorkerRequestSchema, TickCommitSchema, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommand, type HeadlessTickCommit } from './tickProtocol';
 
 export interface TickWorkerAdapter {
+  journey?: (plan:HeadlessJourneyPlan)=>HeadlessJourneyReport;
   step: (commands: readonly HeadlessCommand[]) => void;
   commit: () => HeadlessTickCommit;
   finish: () => { ticks: number; lanes: number; steps: number; liftRides?: number; liftCalls?: number; portalTransfers?: number };
@@ -27,6 +29,12 @@ export async function runTickWorker(create: (payload: unknown) => Promise<TickWo
   const handle = async (raw: unknown): Promise<void> => {
     try {
       const request = v.parse(WorkerRequestSchema, raw);
+      if(request.kind==='journey'){
+        if(envelope.enforceTickDeadline)throw new Error('Journey requires trusted offline timing');
+        if(envelope.commandsPerTick<1)throw new Error('Journey needs one player command per tick');
+        if(adapter.journey===undefined)throw new Error('Missing native journey capability');
+        port.postMessage({journey:v.parse(HeadlessJourneyReportSchema,adapter.journey(request.plan))});return;
+      }
       if (request.kind === 'authorProof') {
         if (adapter.authorProof === undefined) throw new Error('Author proof requires the data-only native owner');
         port.postMessage({ authorProof: await adapter.authorProof(request.plan) }); return;

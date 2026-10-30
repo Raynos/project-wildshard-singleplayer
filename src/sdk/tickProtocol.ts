@@ -1,3 +1,4 @@
+import { HeadlessJourneyPlanSchema, type HeadlessJourneyPlan } from './headlessJourney';
 import { DecisionPublicationSchema, type DecisionPublication } from '@wildshard/format/decisionPublication';
 import type { SimCommand } from '@wildshard/engine/sim';
 import * as v from 'valibot';
@@ -71,6 +72,7 @@ export type AuthorProofReport = v.InferOutput<typeof AuthorProofReportSchema>;
 export const WorkerRequestSchema: v.GenericSchema<BoundedWorkerRequestInput, BoundedWorkerRequest> = v.variant('kind', [
   v.strictObject({ kind: v.literal('step'), commands: v.pipe(v.array(TickCommandSchema), v.maxLength(1024)) }),
   v.strictObject({ kind: v.literal('finish') }),
+  v.strictObject({ kind: v.literal('journey'), plan: HeadlessJourneyPlanSchema }),
   v.strictObject({ kind: v.literal('authorProof'), plan: AuthorProofPlanSchema }),
 ]);
 /** Validate and copy ordered source batches against one aggregate per-tick command allowance. */
@@ -227,7 +229,7 @@ interface BoundedAuthorProofReportFields {
 }
 type BoundedAuthorProofReport = { [Key in keyof BoundedAuthorProofReportFields]: BoundedAuthorProofReportFields[Key] };
 type BoundedWorkerRequestInput = BoundedWorkerRequest;
-type BoundedWorkerRequest = {
+type BoundedWorkerRequest = { kind: 'journey'; plan: HeadlessJourneyPlan } | {
     kind: "step";
     commands: ({
         kind: "player";

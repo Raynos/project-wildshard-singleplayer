@@ -1,3 +1,4 @@
+import type { HeadlessJourneyPlan, HeadlessJourneyReport } from './headlessJourney';
 import { outputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native validation reads the SDK's distributed physics binary.
 import { existsSync } from 'node:fs';
@@ -53,6 +54,8 @@ export class HeadlessSimulation {
   get lastTickMicros(): number { return this.runner.lastTickMicros; }
   /** Admit the aggregate command count across all sources, then atomically return state and effects from one bounded tick. */
   step(sources: readonly HeadlessCommandSource[] = []): Promise<HeadlessTickCommit> { return this.runner.step(sources); }
+  /** Terminal native route proof without per-tick continuation encoding. Trusted offline sessions only. */
+  journey(plan:HeadlessJourneyPlan):Promise<HeadlessJourneyReport>{return this.runner.journey(plan);}
   /** Final validation walks every entry under a separate request deadline. Further ticks refuse; resume from the last committed checkpoint in a fresh worker. */
   finish(): Promise<{ ticks: number; lanes: number; steps: number; liftRides?: number; liftCalls?: number; portalTransfers?: number }> { return this.runner.finish(); }
   /** Terminal author proof; the worker hosts the real grid and ledger from this finite command tape. */

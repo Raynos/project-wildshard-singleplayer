@@ -1,3 +1,4 @@
+import { HeadlessJourneyPlanSchema, HeadlessJourneyReportSchema, type HeadlessJourneyPlan, type HeadlessJourneyReport } from './headlessJourney';
 // oxlint-disable-next-line import/no-nodejs-modules -- A separate isolate makes blocked WASM and native host queries preemptible.
 import { Worker } from 'node:worker_threads';
 // oxlint-disable-next-line import/no-nodejs-modules -- Same monotonic wall clock as the worker, independent of its event loop.
@@ -9,7 +10,7 @@ import { tickCommands, TickCommitSchema, AuthorProofPlanSchema, AuthorProofRepor
 const proofSchema: v.StrictObjectSchema<{ readonly ticks: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly lanes: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly steps: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly liftRides: v.ExactOptionalSchema<v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>, v.MaxValueAction<number, 8, undefined>]>, undefined>; readonly liftCalls: v.ExactOptionalSchema<v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>, v.MaxValueAction<number, 8, undefined>]>, undefined>; readonly portalTransfers: v.ExactOptionalSchema<v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>, v.MaxValueAction<number, 8, undefined>]>, undefined>; }, undefined> = v.strictObject({ ticks: v.pipe(v.number(), v.integer(), v.minValue(0)), lanes: v.pipe(v.number(), v.integer(), v.minValue(0)), steps: v.pipe(v.number(), v.integer(), v.minValue(0)),
   liftRides: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(8))), liftCalls: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(8))),
   portalTransfers: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(8))) });
-const replySchema = v.variant('kind', [v.strictObject({ kind: v.literal('commit'), value: TickCommitSchema }), v.strictObject({ kind: v.literal('proof'), value: proofSchema }), v.strictObject({ kind: v.literal('authorProof'), value: AuthorProofReportSchema })]);
+const replySchema = v.variant('kind', [v.strictObject({ kind: v.literal('commit'), value: TickCommitSchema }), v.strictObject({ kind: v.literal('journey'), value: HeadlessJourneyReportSchema }), v.strictObject({ kind: v.literal('proof'), value: proofSchema }), v.strictObject({ kind: v.literal('authorProof'), value: AuthorProofReportSchema })]);
 type Reply = v.InferOutput<typeof replySchema>;
 /** A deadline failure quarantines the worker while retaining the last fully committed continuation. */
 export class HeadlessDeadlineError extends Error {
@@ -39,9 +40,9 @@ export class TickWorkerHost {
     this.worker = new Worker(url, { workerData: { payload, ...budget, clock: this.clock.buffer, enforceTickDeadline: deadline === 'runtime' }, execArgv });
     this.worker.on('message', (raw: unknown) => {
       try {
-        const message = v.parse(v.union([v.strictObject({ commit: TickCommitSchema }), v.strictObject({ proof: proofSchema }), v.strictObject({ authorProof: AuthorProofReportSchema }), v.strictObject({ error: v.string() })]), raw);
+        const message = v.parse(v.union([v.strictObject({ commit: TickCommitSchema }), v.strictObject({ proof: proofSchema }), v.strictObject({ journey: HeadlessJourneyReportSchema }), v.strictObject({ authorProof: AuthorProofReportSchema }), v.strictObject({ error: v.string() })]), raw);
         if ('error' in message) { this.fail(message.error.includes('tick deadline') ? new HeadlessDeadlineError(this.last, Number(Atomics.load(this.clock, 2)) / 1000) : new Error(message.error)); return; }
-        const reply: Reply = 'commit' in message ? { kind: 'commit', value: message.commit } : 'proof' in message ? { kind: 'proof', value: message.proof } : { kind: 'authorProof', value: message.authorProof };
+        const reply: Reply = 'commit' in message ? { kind: 'commit', value: message.commit } : 'proof' in message ? { kind: 'proof', value: message.proof } : 'journey' in message ? { kind: 'journey', value: message.journey } : { kind: 'authorProof', value: message.authorProof };
         if (reply.kind === 'commit') this.last = structuredClone(reply.value);
         const pending = this.pending; this.pending = undefined; pending?.resolve(reply);
       } catch (error) { this.fail(error instanceof Error ? error : new Error(String(error))); }
@@ -76,6 +77,18 @@ export class TickWorkerHost {
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node Worker messages have no browser target origin.
     this.worker.postMessage({ kind: 'step', commands });
     const reply = await result; if (reply.kind !== 'commit') throw new Error('Missing worker tick checkpoint'); return reply.value;
+  }
+  /** Terminal offline route; retains the original request watchdog and entry checkpoint. */
+  async journey(input:HeadlessJourneyPlan):Promise<HeadlessJourneyReport> {
+    const plan=v.parse(HeadlessJourneyPlanSchema,input);
+    if(this.deadline!=='advisory')throw new Error('Journey requires trusted offline timing');
+    if(this.budget.commandsPerTick<1)throw new Error('Journey needs one player command per tick');
+    if(this.finished)throw new Error('Headless validation already finished');
+    await this.initialized();if(this.closed||this.pending!==undefined)throw new Error('Headless worker unavailable or busy');
+    this.finished=true;const result=this.wait();
+    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node Worker messages have no browser target origin.
+    this.worker.postMessage({kind:'journey',plan});
+    const reply=await result;if(reply.kind!=='journey')throw new Error('Missing headless journey report');return reply.value;
   }
   async finish(): Promise<v.InferOutput<typeof proofSchema>> {
     if (this.finished) throw new Error('Headless validation already finished');

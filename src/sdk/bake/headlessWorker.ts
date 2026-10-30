@@ -1,3 +1,4 @@
+import { runHeadlessJourney } from '../headlessJourney';
 import { proveShardfileEntries } from '@wildshard/game/bake/entryways';
 import { createTrustedHeadlessAdapter } from '../headlessRuntime';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
@@ -11,7 +12,7 @@ import { snapshotSimHostBytes, serializeSimSnapshot, decodeSimSnapshot, restoreS
 import type { SimCommand } from '@wildshard/engine/sim';
 import { parseShardfile } from '../shardfile';
 import { runTickWorker } from '../tickWorkerLoop';
-import { simPlayerCommand, type HeadlessEffect } from '../tickProtocol';
+import { simPlayerCommand, type HeadlessEffect, type HeadlessCommand } from '../tickProtocol';
 import { headlessSections } from '../headlessSections';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
@@ -59,8 +60,7 @@ await runTickWorker(async raw => {
       try { return call(...args); } finally { scriptMicros += (diagnosticNow() - started) * 1000; }
     };
   }
-  return {
-    step: input => {
+  const step=(input:readonly HeadlessCommand[]):void => {
       scriptMicros = 0; decisionFuel = 0; effects = []; const numeric = new Map<string, number>(); let player: SimCommand | undefined;
       for (const command of input) {
         if (command.kind === 'player') player = simPlayerCommand(command);
@@ -71,7 +71,13 @@ await runTickWorker(async raw => {
       }
       commands = numeric; sim.host.step(player);
       if (![sim.host.player.position, ...[...sim.host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite headless simulation state');
-    },
+      const script=sim.lane?.host.checkpoint();
+      if(script?.modules.some(module=>module.failures>0||module.disabled))throw new Error('Headless script call failed');
+      if(sim.decisions?.host.metrics().some(row=>row.refusals>0||row.disabled))throw new Error('Headless decision call failed');
+  };
+  return {
+    step,
+    journey: plan=>runHeadlessJourney(sim.host,step,plan),
     commit: () => {
       const script = sim.lane?.host.checkpoint();
       if (script?.modules.some(module => module.failures > 0 || module.disabled)) throw new Error('Headless script call failed');

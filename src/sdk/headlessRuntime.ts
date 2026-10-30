@@ -1,3 +1,4 @@
+import { runHeadlessJourney } from './headlessJourney';
 import { registerNativeQuestInputs } from '@wildshard/game/quest/nativeInputs';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { prepareAssetDecoders } from '@wildshard/format/product';
@@ -197,6 +198,7 @@ export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeI
   const resident = await createTrustedHeadlessResident(preparation, snapshot), { host } = resident;
   return {
     step: input => { resident.step(input); },
+    journey: plan => runHeadlessJourney(host,input=>resident.step(input),plan),
     commit: () => ({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(host)), effects: [...resident.effects] }),
     finish: () => ({ ticks: host.state.tick, lanes: 0, steps: 0 }),
     dispose: () => { resident.dispose(); },
