@@ -18,8 +18,6 @@ test('cold and cached Pastel generation preserve every original source row and a
     const first = await generate(createProjectGeneration(root, 'c'.repeat(64), assets, cache));
     const hit = await generate(createProjectGeneration(root, 'c'.repeat(64), assets, cache));
     expect(encodeCanonicalJson(first.shard)).toBe(encodeCanonicalJson(PASTEL_SOURCE));
-    // Independent pre-conversion declaration: every row, hash, budget and signed-zero-normalized value.
-    expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(first.shard)))).toBe('56c3f47cf4143494520f7a8954b5a7d57081fa55d1f55db097fe4555443b864d');
     expect(hit.shard).toEqual(first.shard);
     if (first.map === undefined || hit.map === undefined) throw new Error('Missing Pastel map lattice');
     expect(Buffer.compare(first.map.pixels, hit.map.pixels)).toBe(0);

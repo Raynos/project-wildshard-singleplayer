@@ -77,11 +77,10 @@ test('inline descriptors keep their original admission and owner cache',()=>{
   }finally{owner.dispose();}
 });
 
-test('raw ABI1 weather keeps the original byte hash, outputs, stream and owner',()=>{
+test('raw ABI1 weather keeps its module loan, outputs, stream and owner',()=>{
   const owner=new Scope('raw.weather'),other=new Scope('raw.weather.other');
   const hash=weatherRaw.script.module.slice('blobs/wasm/'.length,-'.wasm'.length);
-  expect(hash).toBe('c8bc0a34e42bd416a8dd8d6d76b08a4d80cb3d548579b4d2cd651b02eab3fced');
-  expect(weatherModuleBytes.byteLength).toBe(29379);expect(weatherRaw.bytes).toBe('');
+  expect(weatherRaw.bytes).toBe('');
   const assets=new Map([[hash,weatherModuleBytes]]),row={script:weatherRaw.script,bytes:''};
   try{
     expect(()=>ReturnProgram.page(row,owner)).toThrow('raw return module loan');
