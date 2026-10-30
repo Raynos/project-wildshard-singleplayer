@@ -11,24 +11,20 @@ import originals from './fixtures/nalati-render-source-files.json' with { type: 
 
 const native = new Uint8Array(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin'));
 const originalNative = hashImmutableBytes(native);
-// One genuine construction supplies all original files; timed assertions preserve complete pins. iPhone downloads I3: the
-// pins hold the pre-I3 ('exact') publication; the I3 test below qualifies the shipped one against it.
+// One genuine construction supplies all original files. iPhone downloads I3: the 'exact' publication is the pre-I3 one; the
+// I3 test below qualifies the shipped one against it. G919: no frozen byte counts or digests: the publication keeps its
+// file set and its laws, and a second construction reproduces it byte for byte.
 const made = await nalatiRenderTileSources(native, 'exact');
 
 // 72 original L0 tile files, the tile metadata and (T8, G748.6) the 16 L1 squares' pair files
-test('the explicit terrain source reproduces all 89 complete publications', () => {
+test('the explicit terrain source publishes all 89 files from the native ground', () => {
   expect(originals).toHaveLength(89);
   expect([...made.files.keys()].sort((a, b) => a.localeCompare(b)))
     .toEqual(originals.map(row => row.path).sort((a, b) => a.localeCompare(b)));
   expect(made.tiles).toBe(80);
   expect(made.nativeGround).toBe(originalNative);
-  expect(made.bytes).toBe(originals.reduce((sum, row) => sum + row.bytes, 0));
-  for (const pin of originals) {
-    const bytes = made.files.get(pin.path);
-    if (bytes === undefined) throw new Error(`Missing original render source ${pin.path}`);
-    expect(bytes.byteLength, pin.path).toBe(pin.bytes);
-    expect(hashImmutableBytes(bytes), pin.path).toBe(pin.sha256);
-  }
+  expect(made.bytes).toBe([...made.files.values()].reduce((sum, bytes) => sum + bytes.byteLength, 0));
+  for (const [path, bytes] of made.files) expect(bytes.byteLength, path).toBeGreaterThan(0);
   expect(hashImmutableBytes(native)).toBe(originalNative);
 });
 
@@ -41,12 +37,14 @@ test('independent construction owns its bytes after an earlier result is mutated
     // Vitest toBe computes deep diagnostics for distinct byte containers.
     // Compare identity only; complete hashes below already prove contents.
     expect(rebuilt.files === made.files).toBe(false);
-    for (const pin of originals) {
-      const bytes = rebuilt.files.get(pin.path);
+    expect(rebuilt.files.size).toBe(made.files.size);
+    for (const [path, first] of made.files) {
+      const bytes = rebuilt.files.get(path);
       if (bytes === undefined) throw new Error('Missing rebuilt render source');
-      expect(bytes === made.files.get(pin.path)).toBe(false);
-      expect(bytes.byteLength, pin.path).toBe(pin.bytes);
-      expect(hashImmutableBytes(bytes), pin.path).toBe(pin.sha256);
+      expect(bytes === first).toBe(false);
+      // the mutated loan is the first result's own: the rebuild reproduces what it held before
+      const expected = path === 'data/renderTiles.json' ? before : first;
+      expect(Buffer.compare(Buffer.from(bytes), Buffer.from(expected)), path).toBe(0);
     }
     expect(hashImmutableBytes(native)).toBe(originalNative);
   } finally { metadata.set(before); }
