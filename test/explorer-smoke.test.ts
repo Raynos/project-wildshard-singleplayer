@@ -100,11 +100,11 @@ test.each(['state', 'pixels'] as const)('a stuck %s read refuses within the unch
 
 test('the Explorer leg retains every primary, including Signal and Developer-only rows, once', () => {
   expect(explorerCases(catalogue)).toEqual(['driftwood-isle','nine-dragon-stack','sunscar-dunes','_template','open-plot-alien-plain']);
-  const workflow = readFileSync('.github/workflows/boot-smoke.yml','utf8');
+  const workflow = readFileSync('.github/workflows/deploy.yml','utf8');
   expect(workflow).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route]');
   expect(workflow).toContain("if: matrix.part == 'explorer'");
   expect(workflow).toContain('run: node scripts/parity/explorer-smoke.mjs');
-  expect(workflow).toContain('needs: [build, boot-smoke]');
+  expect(workflow).toContain('needs: [prepare, journeys]');
 });
 
 test('missing, failed, duplicate and black card frames refuse with their real model identity', () => {

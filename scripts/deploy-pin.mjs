@@ -60,9 +60,6 @@ export function workflowRunsPath(workflow, query = ghApi) {
       if (!/^\d+$/.test(id) || ids.has(path)) throw new Error(`Invalid workflow identity: ${row}`);
       ids.set(path, id);
     }
-    for (const path of ['.github/workflows/deploy.yml', '.github/workflows/boot-smoke.yml']) {
-      if (!ids.has(path)) throw new Error(`Missing workflow: ${path}`);
-    }
     workflowIds.set(query, ids);
   }
   const id = ids.get(`.github/workflows/${workflow}`);
@@ -211,6 +208,28 @@ export function ciRunGreen(sha, runId, query = ghApi) {
   return required.size === 0;
 }
 
+/** Bind the current push's successful wave before its own ship job completes.
+ * GitHub supplies needs from this exact run; no neighbouring aggregate grants proof.
+ * @param {{mode:string,event:string,ref:string,repository:string,sha:string,run:string,head:string,needs:unknown}} input
+ * @returns {{skip:boolean,sha:string,run:string}} */
+export function waveSource(input) {
+  if (input.event !== 'push' || input.ref !== 'refs/heads/main' || input.repository !== REPO
+    || !/^[a-f0-9]{40}$/u.test(input.sha) || input.head !== input.sha || !/^[1-9][0-9]*$/u.test(input.run))
+    throw new Error('Wave source is not the exact main push checkout');
+  if (typeof input.needs !== 'object' || input.needs === null || Array.isArray(input.needs))
+    throw new Error('Missing exact-run wave verdicts');
+  const required = ['prepare','typecheck-lint','derived-docs','behaviour','journeys','boot-verdict'];
+  /** @type {Map<string, unknown>} */
+  const rows = new Map(Object.entries(input.needs));
+  if (rows.size !== required.length) throw new Error('Wave verdict inventory differs');
+  for (const name of required) {
+    const row = rows.get(name);
+    if (typeof row !== 'object' || row === null || !('result' in row) || row.result !== 'success')
+      throw new Error(`Wave prerequisite did not succeed: ${name}`);
+  }
+  return {skip:input.mode !== 'newest-ci-green',sha:input.sha,run:input.run};
+}
+
 /** No CI-green SHA has a successful exact-SHA smoke yet. */
 export class PendingBootSmokeError extends Error {
   /** @param {string} sha */
@@ -321,6 +340,18 @@ async function main() {
     if (typeof version?.build !== 'string') throw new Error('Production floor has no build ID');
     const floor = productionFloor(version.build, a1);
     console.log(`Production floor ${floor}; target ${a1}; forward-only verified`);
+    return 0;
+  }
+  if (cmd === 'read-wave') {
+    const pin = readPin();
+    /** @type {unknown} */
+    const needs = JSON.parse(process.env.CI_WAVE_NEEDS ?? 'null');
+    const selected = waveSource({mode:pin.mode,event:process.env.GITHUB_EVENT_NAME??'',ref:process.env.GITHUB_REF??'',
+      repository:process.env.GITHUB_REPOSITORY??'',sha:process.env.GITHUB_SHA??'',run:process.env.GITHUB_RUN_ID??'',
+      head:git('rev-parse','HEAD'),needs});
+    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT,
+      `sha=${selected.sha}\nmode=${pin.mode}\ngate=${pin.gate}\nci_green=true\nsource_run=${selected.run}\nskip=${selected.skip}\n`);
+    console.log(`Exact push wave ${selected.run}: ${selected.sha}; automatic mode ${!selected.skip}`);
     return 0;
   }
   if (cmd === 'read') {

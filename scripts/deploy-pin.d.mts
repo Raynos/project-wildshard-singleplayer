@@ -17,6 +17,9 @@ export function ciSourceRun(sha: string, query?: (args: string[]) => string): st
 /** Explicit exact-run proof, including a stuck aggregate only when all 16 required jobs succeeded. */
 export function ciRunGreen(sha: string, runId: string, query?: (args: string[]) => string): boolean;
 
+/** Bind trusted same-run wave results before that run's own ship job completes. */
+export function waveSource(input: {mode:string;event:string;ref:string;repository:string;sha:string;run:string;head:string;needs:unknown}): {skip:boolean;sha:string;run:string};
+
 
 /** No CI-green candidate has a successful exact-SHA smoke yet. */
 export class PendingBootSmokeError extends Error { constructor(sha: string); sha: string; }

@@ -17,9 +17,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   milestone runs** (Jake G287); it is not a normal push-release prerequisite. **A push that only touches
   `docs/`, `progress/`, `art/` or `sources/` runs no push CI** (`paths-ignore`; it would re-test the parent's code): that SHA never becomes a release candidate, and production's
   "newest proven main" is its newest code ancestor, so compare `version.json` with the newest CI-green SHA, not the
-  tip. Releases reuse that complete test proof when the
-  selected exact SHA has a successful main push-CI run. That push packages its tested dist and API functions into
-  `.vercel/output`. Release downloads `vercel-prebuilt` from that exact successful run, verifies the source identity
+  tip. Manual releases reuse completed exact-SHA push proof. Automatic shipping requires every successful
+  same-run wave verdict before its own release job can start; it never waits for its own aggregate to finish.
+  Prepare packages its tested dist and API functions into
+  `.vercel/output`. Release downloads `vercel-prebuilt` from that exact proven source run, verifies the source identity
   and complete archive/member inventory, and runs `vercel deploy --prebuilt`. No app or native rebuild runs during
   release; missing artifacts refuse. A nearby commit or successful manual release cannot supply the test proof.
   **CI is the full backstop of the push gate** (Jake, 2026-10-15): the gate runs only the tests that import the changed
@@ -36,23 +37,25 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `scripts/test-products.json` still supplies strict preflight dependencies, not an exclusion or second wave.
   Every matrix job sets `WS_TEST_PRODUCTS_SHA` only after verified artifact restoration. Missing or mismatched
   artifacts fail instead of rebuilding. File timing JSON is retained per shard to refresh measured weights.
-  The matrix keeps `fail-fast: false` and each shard's original first-failure bail. Exact-SHA smoke dispatch
-  requires prepare, every behavior shard, types/lint and docs to pass. Local/full/nightly configuration stays
+  The matrix keeps `fail-fast: false` and each shard's original first-failure bail. The ship job requires prepare,
+  every behavior shard, types/lint/docs, all six browser journeys and their exact-SHA verdict to pass. Local/full/nightly configuration stays
   unchanged. G923 removed quarantine workflows, registry and exclusions; Native Escape, headless and every other
   real behavior case remain blocking. Each job finishes its own verdict independently of peer failures.
 - **G745 phone route rollout:** the exact push build also publishes a separate
   `boot-dist-phone-route` bundle. The seventh matrix leg selects Simulator Safari
   when an iOS runtime is installed, otherwise records its inventory and uses
-  phone-tier WebKit. It follows title → SHARD SELECT → grid/Driftwood → road →
-  Night Market → road → Driftwood, retaining first-paint, resident tiles, board
+  phone-tier WebKit. The selected Xcode and background Simulator preparation run before artifact transfer;
+  the route awaits that exact atomic ready/failed receipt without repeating runtime inventory. Homebrew proxy
+  bottles are cached by OS/architecture/Xcode with auto-update disabled and binary version checked. It follows title → SHARD SELECT → grid/Driftwood → road →
+  Night Market with the CI entry route (the full return remains a milestone route), retaining first-paint, resident tiles, board
   collision, wall-clock draw/pill, grain, fatal and pixel evidence. Its first
   ordinary smoke is report-only through that leg's exact `continue-on-error`
   expression; the existing six checks still decide release. After that report,
   remove the exemption to make all seven checks required. No retry or cap rise.
-- **Automatic boot proofs coalesce as whole workflows**, with one active six-leg
+- **Automatic push proofs coalesce as whole workflows**, with one active six-leg
   cohort and the newest pending cohort. An active proof finishes all six legs;
-  a newer dispatch may replace a pending workflow, never individual legs from
-  different exact SHAs. Explicit SHA proofs use their own workflow group. All
+  a newer push may replace a pending workflow, never individual legs from
+  different exact SHAs. Browser legs have no independent cancellation groups. All
   original case, fatal, pixel and deadline checks remain within each exact run.
 - **CI's vitest is Linux x64 (under coverage in the nightly): other floats, and ~2–2.5× a Mac's time** (ci-green, 2026-10-09; main was
   red for hours on both):
@@ -69,17 +72,16 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
     (`test/fake/simSnapshot.ts`), never `toEqual` on whole snapshots nor serialising both sides to compare. A walk tape
     is at most 10k ticks per test, with a 60 s budget.
 - **G920 retires the hourly GitHub schedule, local calendar backstop and shared hourly slot.** A green exact-SHA
-  smoke dispatches the newest fully proven build immediately. Release concurrency and the production ancestry
+  push wave ships its own exact prebuilt output immediately after all required checks succeed. Release concurrency and the production ancestry
   floor remain mandatory. The separately requested 2026-10-30 07:00 Cancun one-off remains installed.
 - **Production ships the newest CI-green `main`** (Jake, 2026-10-02: "fix the deploy, whatever it takes"). The automatic
   or manual release reads `.github/deploy-pin.json`: mode `newest-ci-green` picks the newest main commit whose push
-  `deploy` run (typecheck, lint, test, build) passed **and whose exact SHA has `boot-smoke = success`**. The separate
-  `.github/workflows/boot-smoke.yml` is explicitly dispatched by the successful push CI job (or by an operator), reuses that exact
-  successful main push run's exact dist artifacts, and drives every public primary shard to entered, unpaused page-ready
-  with ten live gameplay frames. Push CI archives its actual web dist with its full commit, run ID and tar checksum.
-  The producer publishes a small `boot-dist-manifest` and separate public, Developer and world bundles. The central
-  smoke job verifies only that manifest; each browser leg downloads its bundle directly from the exact successful
-  push run, without relaying a full dist through another job. Four grid/Explorer legs share the same complete-world
+  wave (typecheck, lint, tests, prepare and browser journeys) passed. `.github/workflows/deploy.yml` now owns
+  the browser matrix directly after prepare; the old boot-smoke workflow and dispatch chain are retired.
+  Every public primary still reaches entered, unpaused page-ready with ten live gameplay frames. Prepare
+  archives its actual web dist with its full commit, source run and tar checksum. Each browser job verifies
+  the small manifest and downloads its exact same-run bundle, without a full-dist relay or another build.
+  Four grid/Explorer legs share the same complete-world
   bundle because prediction and catalogue coverage can visit every declared primary. Standalone bundles omit only
   unselected shard-owned paths; shared assets, title images, compiled modules and source maps remain available.
   Historical content-addressed packs absent from every emitted JS or JSON URL table are not transferred.
@@ -173,15 +175,13 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   the outer deadline before its grid case could finish. The grid now has its own required leg;
   no case, gameplay deadline or failure condition changed. HOVER waits for the loading overlay
   to close within its existing 150-second title budget before tapping the real entry button.
-  The `verdict` job requires all six legs before publishing the one `boot-smoke` status (SF74 W16). Fatal UI, page errors and bad asset
-  responses refuse the proof. Its macOS queue stays outside push CI's critical path. An automatic or manual
-  release immediately selects the newest SHA with both push CI and exact-SHA smoke green. A newer CI-green SHA
-  whose smoke is pending or not started never delays that proven release. With no fully proven candidate, the
-  release refreshes candidates and statuses every 30 seconds for at most 20 minutes, then refuses with the unresolved
-  SHA. Neither waiting nor an automatic dispatch can select an unproven candidate. Terminal failed proofs can be skipped
-  for an older proven build. There is no hourly cadence or minimum gap between proven releases.
-  Manual releases and pull requests never dispatch smoke. The automatic proof waits up to five minutes
-  for its exact parent CI aggregate to close successfully before reading its artifact; no per-job exception applies.
+  The `boot-verdict` job requires all six legs before publishing the one `boot-smoke` status. Fatal UI, page
+  errors and bad asset responses still refuse. macOS jobs now run within the push wave, with at most five
+  concurrent legs. Automatic shipping uses trusted GitHub `needs` from that same main push and binds its full
+  SHA and source run; a missing, failed, cancelled, skipped or foreign prerequisite refuses. The ship job is
+  serialized with manual releases, verifies its prebuilt artifact, and checks the live forward-only floor.
+  Manual releases keep newest-completed-CI plus exact-SHA smoke selection; a newer unfinished proof does not
+  replace an older fully proven candidate. PRs run browser journeys but never publish production or statuses.
   An explicit emergency rollback may instead return to any SHA
   proven previously live in production, even before the smoke existed: verified `production-live` status or a
   successful historical release job's exact full pin plus matching production-version reading. Pin history alone
@@ -190,11 +190,11 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   The old gpu-gate workflow was deleted on 2026-10-13; it runs neither nightly nor by dispatch. Pixel parity and
   golden comparisons are local look tools, not release prerequisites. Historical `newest-green` pin mode reads
   the old status only; current production uses `newest-ci-green` with full push CI and exact six-leg smoke.
-- **A green exact-SHA smoke releases immediately (G920).** The smoke workflow's `release` job calls
-  `release-ready`, checks whether production already serves that candidate, and dispatches `deploy`. A newer
-  incomplete proof never blocks an older fully proven candidate. Manual `gh workflow run deploy` uses the same
-  newest-proven selection and forward floor. Release concurrency serializes deployments and retains only the
-  newest pending release; there is no hourly slot or cooldown.
+- **A green push wave releases immediately (G920/CI9).** `build-and-deploy` runs after all required wave jobs,
+  downloads the same prepare artifact and deploys it without dispatching or rebuilding. `read-wave` checks
+  exact main/source/checkout identity and every prerequisite; automatic shipping respects `newest-ci-green`
+  mode. Manual `gh workflow run deploy` retains configured pin/rollback selection. Both paths share the same
+  production concurrency group, private source-map handling and ancestry floor. No hourly slot or cooldown.
 - **Nobody waits for GitHub after a push** (Jake, E428, 2026-10-03: "waiting 15 minutes for remote GitHub is just too
   slow"). The local gates on a clean export of HEAD are the check; CI and automatic deploys run on their own. A red CI
   run is fixed by whoever sees it. If the game needs an immediate release, `gh workflow run deploy` (no need to watch it).

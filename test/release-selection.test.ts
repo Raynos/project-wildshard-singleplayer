@@ -139,7 +139,7 @@ test('resolves both workflow paths once and selects numeric runs with exact proo
 });
 
 test('missing or ambiguous workflow identities refuse release selection', () => {
-  expect(() => releaseReady(() => '.github/workflows/deploy.yml\t123', () => undefined, now)).toThrow('Missing workflow: .github/workflows/boot-smoke.yml');
+  expect(() => releaseReady(() => '.github/workflows/boot-smoke.yml\t456', () => undefined, now)).toThrow('Missing workflow: deploy.yml');
   expect(() => releaseReady(() => `${workflows}\n.github/workflows/deploy.yml\t789`, () => undefined, now)).toThrow('Invalid workflow identity');
 });
 

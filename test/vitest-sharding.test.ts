@@ -81,8 +81,8 @@ test('one CI matrix discovers every existing file exactly once across both isola
  expect(new Set(selected).size).toBe(paths.length);
  const registry=v.parse(v.record(v.string(),v.array(v.string())),JSON.parse(readFileSync('scripts/test-products.json','utf8')));
  for(const [file,products] of Object.entries(registry))if(products.length>0)expect(paths).toContain(file);
- const dispatch=workflow.split('\n  dispatch-boot-smoke:\n')[1];
- expect(dispatch).toContain('prepare, typecheck-lint, derived-docs, behaviour]');
+ const ship=workflow.split('\n  build-and-deploy:\n')[1]?.split('\n  typecheck-lint:\n')[0];
+ expect(ship).toContain('prepare, typecheck-lint, derived-docs, behaviour, journeys, boot-verdict]');
 });
 
 test('shared workers admit only reviewed format suites without host or import-state mutation',()=>{

@@ -1,4 +1,4 @@
-# Pushes and pull requests run the gates. Exact green smoke dispatches production immediately.
+# One prepare, one parallel test/browser wave, then exact-artifact production.
 # A release resolves .github/deploy-pin.json's policy; newest-ci-green requires push CI and an exact-SHA boot proof.
 # It checks /version.json and skips only when that selected commit is already live.
 # GitHub builds the Vercel artifact; Vercel only uploads the prebuilt output.
@@ -55,7 +55,13 @@ env:
 
 jobs:
   build-and-deploy:
-    if: github.event_name == 'workflow_dispatch'
+    needs: [prepare, typecheck-lint, derived-docs, behaviour, journeys, boot-verdict]
+    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && needs.prepare.result == 'success' && needs.typecheck-lint.result == 'success' && needs.derived-docs.result == 'success' && needs.behaviour.result == 'success' && needs.journeys.result == 'success' && needs.boot-verdict.result == 'success')) }}
+    concurrency:
+      group: production-release
+      cancel-in-progress: false
+    env:
+      DEPLOY: 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -74,29 +80,33 @@ jobs:
       # main's reader runs from $RUNNER_TEMP because the selected tree may predate it.
       - name: Read the deploy pin
         id: pin
-        if: env.DEPLOY == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          CI_WAVE_NEEDS: ${{ toJSON(needs) }}
         run: |
           cp scripts/deploy-pin.mjs scripts/deploy-version.mjs scripts/deploy-source-maps.mjs scripts/prebuilt-output.py "$RUNNER_TEMP/"
-          node "$RUNNER_TEMP/deploy-pin.mjs" read
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            node "$RUNNER_TEMP/deploy-pin.mjs" read-wave
+          else
+            node "$RUNNER_TEMP/deploy-pin.mjs" read
+          fi
 
       - name: Check out the pin
-        if: env.DEPLOY == 'true'
+        if: github.event_name == 'workflow_dispatch'
         run: |
           git fetch --no-tags --filter=blob:none origin "${{ steps.pin.outputs.sha }}"
           git checkout --detach "${{ steps.pin.outputs.sha }}"
 
       - name: Check live commit
         id: live
-        if: env.DEPLOY == 'true'
+        if: steps.pin.outputs.skip != 'true'
         env:
           DEPLOY_FORCE: ${{ inputs.force }}
           DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
         run: node "$RUNNER_TEMP/deploy-version.mjs" check
 
       - name: Require deployment credentials
-        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        if: steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true'
         env:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
         run: |
@@ -104,12 +114,12 @@ jobs:
           test -n "$VERCEL_ORG_ID" && test -n "$VERCEL_PROJECT_ID" || { echo '::error::Vercel project IDs are missing'; exit 1; }
 
       - uses: actions/setup-node@v4
-        if: steps.live.outputs.skip != 'true'
+        if: steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true'
         with:
           node-version: 24
 
       - name: Restore the exact successful push artifact
-        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        if: steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true'
         env:
           SOURCE_RUN: ${{ steps.pin.outputs.source_run }}
           DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
@@ -124,7 +134,7 @@ jobs:
       # Hidden maps remain in dist for build checks, local profiles and stack
       # decoding. Keep the release's copies off the public CDN.
       - name: Retain production source maps privately
-        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        if: steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: production-source-maps-${{ steps.pin.outputs.sha }}
@@ -139,7 +149,7 @@ jobs:
           if-no-files-found: error
 
       - name: Deploy prebuilt output
-        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        if: steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true'
         env:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
           DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
@@ -152,7 +162,7 @@ jobs:
           echo "### Deployed \`$DEPLOY_SHA\` (the deploy pin) to $url" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify production
-        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        if: steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true'
         env:
           DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
         run: |
@@ -161,7 +171,7 @@ jobs:
           test "$code" = 401 || { echo "::error::/api/inbox returned HTTP $code, expected 401"; exit 1; }
 
       - name: Record verified production history
-        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        if: steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
@@ -355,20 +365,20 @@ jobs:
             python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs --mode native
 
       - name: Pack the exact web build for boot smoke
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
         run: |
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           node scripts/boot-dist-plan.mjs > boot-dist-plan.json
           python3 scripts/boot-dist.py pack --sha "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
       - uses: actions/upload-artifact@v4
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
         with:
           name: boot-dist-manifest
           path: boot-dist-parts/boot-dist-manifest.json
           retention-days: 3
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
         with:
           name: boot-dist-boot-public
           path: boot-dist-parts/boot-public/
@@ -376,7 +386,7 @@ jobs:
           retention-days: 3
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
         with:
           name: boot-dist-boot-developer
           path: boot-dist-parts/boot-developer/
@@ -384,7 +394,7 @@ jobs:
           retention-days: 3
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
         with:
           name: boot-dist-worlds
           path: boot-dist-parts/worlds/
@@ -393,7 +403,7 @@ jobs:
           if-no-files-found: error
 
       - uses: actions/upload-artifact@v4
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
         with:
           name: boot-dist-phone-route
           path: boot-dist-parts/phone-route/
@@ -513,21 +523,212 @@ jobs:
           if-no-files-found: warn
 
 
-  # Exact-SHA smoke waits for every independent push-wave verdict.
-  dispatch-boot-smoke:
-    # All push checks must pass; release/PR runs never create skipped smoke runs.
-    needs: [prepare, typecheck-lint, derived-docs, behaviour]
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      actions: write
+  journeys:
+    needs: prepare
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    # Every browser drives the verified exact-SHA push-CI artifact; no cold
+    # generation/build is repeated inside the smoke workflow.
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route]
+    # G745: exactly the phone route reports without gating for its first ordinary run.
+    # G758: the two Nine title PNG assertions report for 24 hours (owner sp-x1).
+    # D13: the repaired full grid preparation and route case blocks in boot-grid.
+    continue-on-error: ${{ matrix.part == 'phone-route' }}
+    runs-on: macos-15
+    timeout-minutes: 20
     steps:
-      - name: Dispatch the exact successful push proof
+      - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: 1
+          GIT_CONFIG_KEY_0: http.version
+          GIT_CONFIG_VALUE_0: HTTP/1.1
+        with:
+          ref: ${{ github.sha }}
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+            !/docs/
+            !/public/
+          sparse-checkout-cone-mode: false
+      - name: Bind the tested commit
+        id: tested
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Select the phone Simulator toolchain
+        if: matrix.part == 'phone-route'
+        env:
+          DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+        run: |
+          test -d "$DEVELOPER_DIR"
+          xcodebuild -version
+          xcrun --find simctl
+          test "$(xcrun --sdk iphonesimulator --show-sdk-version)" = 26.2
+          printf 'DEVELOPER_DIR=%s\n' "$DEVELOPER_DIR" >> "$GITHUB_ENV"
+      - name: Select the native iPhone runner or record WebKit fallback
+        if: matrix.part == 'phone-route'
+        id: phone
+        run: node scripts/parity/phone-route-runner.mjs --select-engine >> "$GITHUB_OUTPUT"
+      - name: Start Simulator preparation while inputs transfer
+        if: matrix.part == 'phone-route'
+        run: |
+          mkdir -p "$RUNNER_TEMP/phone-preparation"
+          receipt="$RUNNER_TEMP/phone-preparation/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
+          echo "PHONE_SIMULATOR_PREPARATION=$receipt" >> "$GITHUB_ENV"
+          PHONE_SIMULATOR_PREPARATION="$receipt" node scripts/parity/phone-route-runner.mjs --prepare-simulator > "$RUNNER_TEMP/phone-preparation/native.log" 2>&1 &
+      - name: Cache Simulator Inspector transport bottles
+        if: matrix.part == 'phone-route' && steps.phone.outputs.engine == 'simulator'
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: phone-inspector-${{ runner.os }}-${{ runner.arch }}-xcode26.2-v1
+      - name: Install and verify Simulator Inspector transport
+        if: matrix.part == 'phone-route' && steps.phone.outputs.engine == 'simulator'
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+          HOMEBREW_NO_INSTALL_CLEANUP: '1'
+        run: |
+          if ! command -v ios_webkit_debug_proxy; then brew install ios-webkit-debug-proxy; fi
+          ios_webkit_debug_proxy --version
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/ms-playwright
+          key: boot-touch-browsers-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm exec playwright install chromium webkit
+      - name: Start exact-leg transfer clock
+        run: date +%s > boot-dist-download-started
+      - uses: actions/download-artifact@v4
+        with:
+          name: boot-dist-manifest
+          github-token: ${{ github.token }}
+          run-id: ${{ github.run_id }}
+      - name: Verify the exact push manifest
+        env:
+          TESTED_SHA: ${{ github.sha }}
+          SOURCE_RUN: ${{ github.run_id }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const proof = JSON.parse(readFileSync('boot-dist-manifest.json', 'utf8'));
+          const core = ['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'];
+          // An older successful push can dispatch while this dry-run lands.
+          // Its original six exact artifacts remain usable; its phone leg
+          // reports missing support and cannot count as the G745 trial.
+          const parts = Object.hasOwn(proof.legs, 'phone-route') ? [...core, 'phone-route'] : core;
+          const prefix = proof.version.build.split('-')[0];
+          if (proof.sha !== process.env.TESTED_SHA || proof.run !== process.env.SOURCE_RUN
+            || !/^[a-f0-9]{7,40}$/u.test(prefix) || !proof.sha.startsWith(prefix)
+            || Object.keys(proof.legs).sort().join() !== [...parts].sort().join()
+            || parts.some(part => !/^[a-f0-9]{64}$/u.test(proof.legs[part].archiveHash)
+              || !Number.isSafeInteger(proof.legs[part].archiveBytes) || proof.legs[part].archiveBytes <= 0))
+            throw new Error('Push manifest does not match tested SHA/run and all seven artifact legs');
+          NODE
+      - uses: actions/download-artifact@v4
+        with:
+          name: boot-dist-${{ (matrix.part == 'boot-public' || matrix.part == 'boot-developer' || matrix.part == 'phone-route') && matrix.part || 'worlds' }}
+          github-token: ${{ github.token }}
+          run-id: ${{ github.run_id }}
+          path: boot-dist-parts
+      - name: Unpack and verify the tested dist
+        env:
+          TESTED_SHA: ${{ github.sha }}
+          SOURCE_RUN: ${{ github.run_id }}
+          SMOKE_PART: ${{ matrix.part }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$TESTED_SHA"
+          python3 scripts/boot-dist.py restore --sha "$TESTED_SHA" --run "$SOURCE_RUN" --part "$SMOKE_PART"
+          mkdir -p boot-smoke-results
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const proof = JSON.parse(readFileSync('boot-dist-parts/boot-dist-proof.json', 'utf8'));
+          const seconds = Date.now()/1000 - Number(readFileSync('boot-dist-download-started', 'utf8'));
+          const receipt = { part: process.env.SMOKE_PART, sha: process.env.TESTED_SHA, run: process.env.SOURCE_RUN,
+            archiveBytes: proof.archiveBytes, transferAndVerifySeconds: seconds };
+          console.log(`boot-dist transfer ${JSON.stringify(receipt)}`);
+          writeFileSync('boot-smoke-results/dist-transfer.json', JSON.stringify(receipt));
+          NODE
+          mkdir -p public/assets/physics
+          cp dist/assets/physics/rapier.wasm public/assets/physics/rapier.wasm
+      - name: Jake's cold phone route (first ordinary run reports only)
+        if: matrix.part == 'phone-route'
+        env:
+          TESTED_SHA: ${{ github.sha }}
+          PHONE_ROUTE_MODE: report-only
+        run: node scripts/parity/phone-route-runner.mjs --route=entry
+      - name: Every public shard reaches real page-ready
+        if: matrix.part == 'boot-public'
+        run: node scripts/parity/boot-smoke.mjs --case-group=public
+      - name: Experimental shards reach real page-ready
+        if: matrix.part == 'boot-developer'
+        run: node scripts/parity/boot-smoke.mjs --case-group=developer
+      - name: Grid home and Signal road entry reach real page-ready
+        if: matrix.part == 'boot-grid'
+        run: node scripts/parity/boot-smoke.mjs --case-group=grid
+      - name: Chromium touch HOVER mounts in the template and on the grid road
+        if: matrix.part == 'hover-chromium'
+        run: node scripts/parity/hover-touch.mjs --out=boot-smoke-results/hover-chromium
+      - name: WebKit touch HOVER mounts in the template and on the grid road
+        if: matrix.part == 'hover-webkit'
+        run: scripts/browser-lane.sh --max 8 node scripts/parity/hover-touch.mjs --engine=webkit --out=boot-smoke-results/hover-webkit
+      - name: WebKit world and held-item rendering
+        if: matrix.part == 'hover-webkit'
+        run: scripts/browser-lane.sh --max 3 node scripts/webkit-render-smoke.mjs --dist=dist
+      - name: Every primary Model Explorer draws its actual catalogue
+        if: matrix.part == 'explorer'
+        run: node scripts/parity/explorer-smoke.mjs
+      - name: Record smoke queue and run timings
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
         run: |
-          gh workflow run boot-smoke.yml --ref main \
-            -f sha="$GITHUB_SHA" -f source_run="$GITHUB_RUN_ID" -f automatic=true
+          mkdir -p boot-smoke-results
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq '{created_at, run_started_at}' > boot-smoke-results/workflow-timing.json
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" --jq '.jobs[] | select(.name == "journeys (${{ matrix.part }})") | {created_at, started_at, completed_at, runner_name, steps}' > boot-smoke-results/job-timing.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: boot-smoke-${{ matrix.part }}
+          path: |
+            boot-smoke-results/
+            ${{ runner.temp }}/phone-preparation/
+          retention-days: 7
+          if-no-files-found: warn
+
+  boot-verdict:
+    # G745 dry run: six required legs plus one report-only phone route.
+    # Remove only its continue-on-error after the first ordinary report.
+    # A replaced required leg leaves this SHA unproven:
+    # it gets `error` so a pending status never lingers; the newer SHA carries the proof.
+    needs: [prepare, journeys]
+    if: always() && (github.event_name == 'push' || github.event_name == 'pull_request') && needs.prepare.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Publish exact-SHA proof outcome
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TESTED_SHA: ${{ github.sha }}
+          BUILD: ${{ needs.prepare.result }}
+          LEGS: ${{ needs.journeys.result }}
+        run: |
+          case "$BUILD:$LEGS" in
+            success:success) state=success; description='Real built-dist title and gameplay proof' ;;
+            *cancelled*) state=error; description='Cancelled before all smoke legs completed' ;;
+            *) state=failure; description='Real built-dist title and gameplay proof' ;;
+          esac
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$TESTED_SHA" \
+            -f context=boot-smoke -f state="$state" -f description="$description" \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"

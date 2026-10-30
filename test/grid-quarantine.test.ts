@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 
 test('D13 returns the repaired full grid case to the blocking leg before quarantine expiry', () => {
-  const workflow = readFileSync('.github/workflows/boot-smoke.yml', 'utf8');
+  const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
   const source = readFileSync('scripts/parity/boot-smoke.mjs', 'utf8');
   const reporting = workflow.split('\n').find(line => line.includes('continue-on-error:'));
   expect(reporting).toBeDefined();
