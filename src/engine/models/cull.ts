@@ -91,14 +91,41 @@ const EYE_JITTER = 0.02;
 const VIEW_MARGIN = 7 * Math.PI / 180, VIEW_TURN = Math.cos(3.5 * Math.PI / 360), VIEW_MOVE = 1;
 /** FC16: the camera whose world matrix the caller brought up to date for this pass of every culler (`cullFresh`) */
 let freshCamera: THREE.Camera | null = null;
+/** the current `cullFresh` pass (0: none yet) */
+let passStamp = 0;
 /**
  * Run `pass` with `camera`'s own world matrix brought up to date once: each culler's view reads it without updating it again
  * (Nine: every placed culler updated the camera's matrix every frame, 0.14 ms at phone 4x). Nothing in a pass moves it.
  */
 export function cullFresh(camera: THREE.Camera, pass: () => void): void {
   camera.updateWorldMatrix(false, false);
-  freshCamera = camera;
+  freshCamera = camera; passStamp++;
   try { pass(); } finally { freshCamera = null; }
+}
+
+/** a camera's pose as a pass saw it: its world matrix and projection, and a version bumped when either differs */
+interface Pose { pass: number; version: number; readonly world: Float64Array; readonly projection: Float64Array }
+const poses = new WeakMap<THREE.Camera, Pose>();
+let lastPosed: THREE.Camera | null = null, lastPose: Pose | null = null;
+/**
+ * The pose version of `camera` in this pass, compared once a pass however many cullers ask: a view that saw the same version
+ * last time sees exactly the inputs it last decided on, and stays unchanged without comparing them again (Nine: the placed
+ * cullers re-compared the held camera's matrices every frame, 0.17 ms at P5 phone 4x).
+ */
+function poseVersion(camera: THREE.Camera): number {
+  let pose = camera === lastPosed ? lastPose : poses.get(camera);
+  if (pose === undefined || pose === null) {
+    pose = { pass: -1, version: 0, world: new Float64Array(16), projection: new Float64Array(16) };
+    poses.set(camera, pose);
+  }
+  lastPosed = camera; lastPose = pose;
+  if (pose.pass === passStamp) return pose.version;
+  const w = camera.matrixWorld.elements, p = camera.projectionMatrix.elements;
+  let same = pose.pass !== -1;
+  for (let i = 0; same && i < 16; i++) same = pose.world[i] === w[i] && pose.projection[i] === p[i];
+  if (!same) { pose.version++; pose.world.set(w); pose.projection.set(p); }
+  pose.pass = passStamp;
+  return pose.version;
 }
 /** the two world matrices' rotation-and-scale parts are exactly equal */
 function sameTurn(a: ArrayLike<number>, b: ArrayLike<number>): boolean {
@@ -124,6 +151,9 @@ class View {
   private readonly widened = new THREE.Matrix4();
   private readonly expanded = new THREE.Sphere();
   private margin = 0;
+  /** the camera and its pose version (`poseVersion`) this view last decided for, inside a `cullFresh` pass */
+  private seen: THREE.Camera | null = null;
+  private seenVersion = -1;
   /** `step` > 0: only a move of the eye past it counts (a culler with no frustum test ignores turning) */
   constructor(step = 0, buffered = false) {
     this.step = step;
@@ -133,6 +163,10 @@ class View {
     // the camera's own world matrix only: `updateMatrixWorld` also walked its children (the held weapon's whole viewmodel)
     // once per culler per frame (G639: ~1.4 ms a Signal Dunes drive frame at phone 4x); the render updates them itself
     if (camera !== freshCamera) camera.updateWorldMatrix(false, false);
+    // inside a pass, a camera this view already decided for at the same pose: every branch below would return false
+    const version = freshCamera === null ? -1 : poseVersion(camera);
+    if (version !== -1 && this.primed && camera === this.seen && version === this.seenVersion) return false;
+    this.seen = version === -1 ? null : camera; this.seenVersion = version;
     if (this.step > 0) {
       this.eye.setFromMatrixPosition(camera.matrixWorld);
       if (this.primed && this.eye.distanceToSquared(this.lastEye) <= this.step * this.step) return false;
