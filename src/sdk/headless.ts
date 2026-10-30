@@ -1,4 +1,4 @@
-import type {HeadlessTapePlan,HeadlessTapeReport} from './headlessTape';
+import type {HeadlessTapePlan,HeadlessTapeReport,HeadlessTapeSegment} from './headlessTape';
 import type { HeadlessJourneyPlan, HeadlessJourneyReport } from './headlessJourney';
 import { outputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native validation reads the SDK's distributed physics binary.
@@ -57,6 +57,8 @@ export class HeadlessSimulation {
   step(sources: readonly HeadlessCommandSource[] = []): Promise<HeadlessTickCommit> { return this.runner.step(sources); }
   /** Terminal fixed-tick verb tape; observations do not grant a continuation. */
   verbTape(plan:HeadlessTapePlan):Promise<HeadlessTapeReport>{return this.runner.verbTape(plan);}
+  /** Terminal native replay with bounded next-segment prefetch and one unchanged 30s request clock. */
+  streamVerbTape(observe:readonly string[],source:AsyncIterable<HeadlessTapeSegment>):Promise<HeadlessTapeReport>{return this.runner.streamVerbTape(observe,source);}
   /** Terminal native route proof without per-tick continuation encoding. Trusted offline sessions only. */
   journey(plan:HeadlessJourneyPlan):Promise<HeadlessJourneyReport>{return this.runner.journey(plan);}
   /** Complete one offline physics leg, retaining its full checkpoint and resident for ordered later legs. */

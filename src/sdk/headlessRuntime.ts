@@ -1,4 +1,4 @@
-import {runTrustedHeadlessTape} from './headlessTape';
+import {createTrustedHeadlessTape} from './headlessTape';
 import * as v from 'valibot';
 import { runHeadlessJourney } from './headlessJourney';
 import { registerNativeQuestInputs } from '@wildshard/game/quest/nativeInputs';
@@ -198,9 +198,10 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
 /** Worker-side composition only: owns one trusted resident (its real SimHost, native continuation and scoped installers). */
 export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeInput, snapshot?: string): Promise<TickWorkerAdapter> {
   const resident = await createTrustedHeadlessResident(preparation, snapshot), { host } = resident;
+  const tape=createTrustedHeadlessTape(host,input=>resident.step(input),()=>resident.effects);
   return {
     step: input => { resident.step(input); },
-    verbTape:plan=>runTrustedHeadlessTape(host,input=>resident.step(input),()=>resident.effects,plan),
+    verbTape:tape,
     journey: plan => runHeadlessJourney(host,input=>resident.step(input),plan),
     commit: () => ({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(host)), effects: [...resident.effects] }),
     finish: () => ({ ticks: host.state.tick, lanes: 0, steps: 0 }),

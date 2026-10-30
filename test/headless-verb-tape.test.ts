@@ -5,7 +5,7 @@ import {beforeAll,expect,test} from 'vitest';
 import * as v from 'valibot';
 import {loadRapier,type Rapier} from '../src/engine/physics/rapier';
 import {createSimHost} from '../src/engine/sim';
-import {headlessTapePlanSchema,runTrustedHeadlessTape,type HeadlessTapePlan} from '../src/sdk/headlessTape';
+import {headlessTapePlanSchema,runTrustedHeadlessTape,createTrustedHeadlessTape,type HeadlessTapePlan} from '../src/sdk/headlessTape';
 import {TickCommandSchema,simPlayerCommand} from '../src/sdk/tickProtocol';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
 
@@ -79,5 +79,19 @@ test('a declared route uses actual movement and refuses a blocked endpoint inste
     const blocked=createSimHost({...SIM_LEVEL,entities:[]},{rapier});
     try {expect(()=>runTrustedHeadlessTape(blocked,()=>blocked.step(),()=>[],v.parse(schema,route))).toThrow('route stuck');}
     finally{blocked.dispose();}
+  }finally{host.dispose();}
+});
+
+
+test('a streamed resident keeps the original observation owner between parts',()=>{
+  const host=createSimHost({...SIM_LEVEL,entities:[]},{rapier});
+  host.onStep('counter',()=>undefined,{snapshot:()=>({count:host.state.tick}),restore:()=>undefined});
+  try{
+    const tape=createTrustedHeadlessTape(host,()=>host.step(),()=>[]);
+    tape({...plan,segments:[{id:'first',ticks:1,commands:[]}]});
+    const old=host.adapters.get('counter');if(old===undefined)throw new Error('Missing counter owner');
+    host.adapters.set('counter',{...old,snapshot:()=>({count:host.state.tick})});
+    expect(()=>tape({...plan,segments:[{id:'second',ticks:1,commands:[]}]})).toThrow('owner changed between parts');
+    expect(host.state.tick).toBe(1);
   }finally{host.dispose();}
 });

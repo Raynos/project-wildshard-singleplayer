@@ -10,7 +10,7 @@ import {createNativeProofWorker,type NativeProofKind} from '../headless-worker';
 export type ProductSessionVariant = Extract<NativeProofKind, 'driftwood' | 'nine-flat' | 'nalati-world' | 'nalati-verbs' | 'nalati-kokpar' | 'pine-verbs' | 'sky-verbs'>;
 const variantHosts: Readonly<Record<string, string>> = { 'driftwood': 'driftwood-isle', 'sky-verbs': 'far-reach', 'pine-verbs': 'pine-hollow', 'nine-flat': 'nine-dragon-stack', 'nalati-world': 'nalati-grasslands', 'nalati-verbs': 'nalati-grasslands', 'nalati-kokpar': 'nalati-grasslands' };
 
-type ProductSimulation=Pick<HeadlessSimulation,'verbTape'|'journey'|'walkLeg'|'step'|'dispose'|'quarantined'>;
+type ProductSimulation=Pick<HeadlessSimulation,'verbTape'|'streamVerbTape'|'journey'|'walkLeg'|'step'|'dispose'|'quarantined'>;
 
 /** Start the independent replay owner while its caller records native input.
  * Readiness still awaits the same worker admission and initial checkpoint. */

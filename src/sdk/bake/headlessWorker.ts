@@ -1,4 +1,4 @@
-import {runTrustedHeadlessTape} from '../headlessTape';
+import {createTrustedHeadlessTape} from '../headlessTape';
 import { runHeadlessJourney } from '../headlessJourney';
 import { proveShardfileEntries } from '@wildshard/game/bake/entryways';
 import { createTrustedHeadlessAdapter } from '../headlessRuntime';
@@ -77,9 +77,10 @@ await runTickWorker(async raw => {
       if(script?.modules.some(module=>module.failures>0||module.disabled))throw new Error('Headless script call failed');
       if(sim.decisions?.host.metrics().some(row=>row.refusals>0||row.disabled))throw new Error('Headless decision call failed');
   };
+  const tape=createTrustedHeadlessTape(sim.host,step,()=>effects);
   return {
     step,
-    verbTape:plan=>runTrustedHeadlessTape(sim.host,step,()=>effects,plan),
+    verbTape:tape,
     journey: plan=>runHeadlessJourney(sim.host,step,plan),
     commit: () => {
       const script = sim.lane?.host.checkpoint();

@@ -1,4 +1,4 @@
-import type {HeadlessTapePlan,HeadlessTapeReport} from './headlessTape';
+import type {HeadlessTapePlan,HeadlessTapeReport,HeadlessTapeSegment} from './headlessTape';
 import { HeadlessJourneyPlanSchema, HeadlessJourneyReportSchema, type HeadlessJourneyPlan, type HeadlessJourneyReport } from './headlessJourney';
 // oxlint-disable-next-line import/no-nodejs-modules -- A separate isolate makes blocked WASM and native host queries preemptible.
 import { Worker } from 'node:worker_threads';
@@ -26,6 +26,8 @@ export class TickWorkerHost {
   private last: HeadlessTickCommit | undefined;
   private pending: { resolve: (value: Reply) => void; reject: (error: Error) => void } | undefined;
   private requestStarted = 0n;
+  private streamStarted = 0n;
+  private streamReject:((error:Error)=>void)|undefined;
   private closed = false;
   private cold = true;
   private tickBudgetMicros: number;
@@ -54,7 +56,7 @@ export class TickWorkerHost {
     this.scope.interval(1, () => {
       const now = hrtime.bigint();
       if (this.deadline === 'runtime' && Atomics.load(this.clock, 0) === 1n && now - Atomics.load(this.clock, 1) > BigInt(this.tickBudgetMicros) * 1000n) this.fail(new HeadlessDeadlineError(this.last, Number(now - Atomics.load(this.clock, 1)) / 1000));
-      else if (this.pending !== undefined && now - this.requestStarted > 30_000_000_000n) this.fail(new Error('Headless worker request deadline exceeded; quarantined'));
+      else if ((this.streamStarted!==0n&&now-this.streamStarted>30_000_000_000n)||(this.pending !== undefined && now - this.requestStarted > 30_000_000_000n)) this.fail(new Error('Headless worker request deadline exceeded; quarantined'));
     });
   }
   private wait(): Promise<Reply> {
@@ -63,7 +65,7 @@ export class TickWorkerHost {
   }
   private fail(error: Error): void {
     if (this.closed) return;
-    this.closed = true; this.scope.dispose();
+    this.closed = true; this.scope.dispose();this.streamReject?.(error);
     const pending = this.pending; this.pending = undefined; pending?.reject(error); void this.worker.terminate();
   }
   async initialized(): Promise<void> { const reply = await this.ready; if (reply.kind !== 'commit') throw new Error('Missing initial worker checkpoint'); }
@@ -73,7 +75,7 @@ export class TickWorkerHost {
   async step(sources: readonly HeadlessCommandSource[] = []): Promise<HeadlessTickCommit> {
     const commands = tickCommands(sources, this.budget.commandsPerTick);
     if (this.finished) throw new Error('Headless validation finished; resume a fresh worker from the committed checkpoint');
-    await this.initialized(); if (this.closed || this.pending !== undefined) throw new Error('Headless worker unavailable or busy');
+    await this.initialized(); if (this.closed || this.pending !== undefined || this.streamStarted!==0n) throw new Error('Headless worker unavailable or busy');
     this.tickBudgetMicros = this.cold ? 16_666 : this.budget.tickMicros; this.cold = false;
     Atomics.store(this.clock, 0, 0n); const result = this.wait();
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node Worker messages have no browser target origin.
@@ -86,7 +88,7 @@ export class TickWorkerHost {
     if(this.deadline!=='advisory')throw new Error('Journey requires trusted offline timing');
     if(this.budget.commandsPerTick<1)throw new Error('Journey needs one player command per tick');
     if(this.finished)throw new Error('Headless validation already finished');
-    await this.initialized();if(this.closed||this.pending!==undefined)throw new Error('Headless worker unavailable or busy');
+    await this.initialized();if(this.closed||this.pending!==undefined||this.streamStarted!==0n)throw new Error('Headless worker unavailable or busy');
     this.finished=true;const result=this.wait();
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node Worker messages have no browser target origin.
     this.worker.postMessage({kind:'journey',plan});
@@ -98,7 +100,7 @@ export class TickWorkerHost {
     if(this.deadline!=='advisory')throw new Error('Walk requires trusted offline timing');
     if(this.budget.commandsPerTick<1)throw new Error('Walk needs one player command per tick');
     if(this.finished)throw new Error('Headless validation already finished');
-    await this.initialized();if(this.closed||this.pending!==undefined)throw new Error('Headless worker unavailable or busy');
+    await this.initialized();if(this.closed||this.pending!==undefined||this.streamStarted!==0n)throw new Error('Headless worker unavailable or busy');
     const result=this.wait();
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node Worker messages have no browser target origin.
     this.worker.postMessage({kind:'walk',plan});
@@ -115,15 +117,54 @@ export class TickWorkerHost {
       }
     }
     if(this.finished)throw new Error('Headless validation already finished');
-    await this.initialized();if(this.closed||this.pending!==undefined)throw new Error('Headless worker unavailable or busy');
+    await this.initialized();if(this.closed||this.pending!==undefined||this.streamStarted!==0n)throw new Error('Headless worker unavailable or busy');
     this.finished=true;const result=this.wait();
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node Worker messages have no browser origin.
     this.worker.postMessage({kind:'verbTape',plan});
     const reply=await result;if(reply.kind!=='verbTape')throw new Error('Missing native verb tape report');return reply.value;
   }
+  /** Terminal bounded tape produced incrementally. Prefetch only the next
+   * recorded segment while the same fresh worker executes its predecessor. */
+  async streamVerbTape(observe:readonly string[],source:AsyncIterable<HeadlessTapeSegment>):Promise<HeadlessTapeReport>{
+    if(this.deadline!=='advisory')throw new Error('Verb tape requires trusted offline timing');
+    if(this.finished)throw new Error('Headless validation already finished');
+    await this.initialized();if(this.closed||this.pending!==undefined||this.streamStarted!==0n)throw new Error('Headless worker unavailable or busy');
+    this.finished=true;this.streamStarted=hrtime.bigint();
+    const failed=new Promise<never>((_resolve,reject)=>{this.streamReject=reject;});
+    const iterator=source[Symbol.asyncIterator](),observations:HeadlessTapeReport['observations']=[],ids=new Set<string>(),encoder=new TextEncoder();
+    let ticks=0,commands=0,bytes=0,committed=0;
+    try{
+      let current=await Promise.race([iterator.next(),failed]);
+      while(!current.done){
+        const plan=v.parse(HeadlessTapePlanSchema,{version:1,observe:[...observe],segments:[current.value]}),segment=plan.segments[0];
+        if(segment===undefined)throw new Error('Missing streamed tape segment');
+        ticks+=segment.ticks;commands+=segment.frames?.reduce((sum,frame)=>sum+frame.length,0)??segment.commands.length;
+        if(ids.has(segment.id)||ids.size>=128||ticks>60_000||commands>60_000)throw new Error('Streamed tape aggregate allowance exceeded');
+        ids.add(segment.id);
+        for(const frame of segment.frames??[segment.commands]){
+          tickCommands([{source:'verb-tape',commands:frame}],this.budget.commandsPerTick);
+          if(frame.length+(segment.route===undefined?0:1)>this.budget.commandsPerTick)throw new Error('Aggregate commandsPerTick exceeded');
+        }
+        const pending=this.wait();
+        // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node Worker messages have no browser origin.
+        this.worker.postMessage({kind:'verbTape',plan});
+        const upcoming=(async()=>{try{return {value:await iterator.next()};}catch(error){return {error};}})();
+        const reply=await Promise.race([pending,failed]);
+        if(hrtime.bigint()-this.streamStarted>30_000_000_000n)throw new Error('Headless worker request deadline exceeded; quarantined');
+        if(reply.kind!=='verbTape')throw new Error('Missing native verb tape report');
+        committed+=reply.value.ticks;
+        for(const row of reply.value.observations){bytes+=encoder.encode(JSON.stringify(row)).byteLength;observations.push(row);}
+        if(bytes>8_000_000)throw new Error('Tape observation allowance exceeded');
+        const next=await Promise.race([upcoming,failed]);if('error' in next)throw next.error;current=next.value;
+      }
+      if(ids.size===0)throw new Error('Empty streamed tape');
+      return v.parse(HeadlessTapeReportSchema,{version:1,ticks:committed,observations});
+    }catch(error){this.fail(error instanceof Error?error:new Error(String(error)));throw error;}
+    finally{this.streamStarted=0n;this.streamReject=undefined;void (async()=>{try{await iterator.return?.();}catch{ /* Producer cleanup cannot replace the original failure. */ }})();}
+  }
   async finish(): Promise<v.InferOutput<typeof proofSchema>> {
     if (this.finished) throw new Error('Headless validation already finished');
-    await this.initialized(); if (this.closed || this.pending !== undefined) throw new Error('Headless worker unavailable or busy');
+    await this.initialized(); if (this.closed || this.pending !== undefined || this.streamStarted!==0n) throw new Error('Headless worker unavailable or busy');
     this.finished = true;
     const result = this.wait();
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node Worker messages have no browser target origin.
@@ -135,12 +176,12 @@ export class TickWorkerHost {
     const plan = v.parse(AuthorProofPlanSchema, input);
     for (const commands of plan.tape) tickCommands([{ source: 'author-proof', commands }], this.budget.commandsPerTick);
     if (this.finished) throw new Error('Headless validation already finished');
-    await this.initialized(); if (this.closed || this.pending !== undefined) throw new Error('Headless worker unavailable or busy');
+    await this.initialized(); if (this.closed || this.pending !== undefined || this.streamStarted!==0n) throw new Error('Headless worker unavailable or busy');
     this.finished = true; const result = this.wait();
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node Worker messages have no browser target origin.
     this.worker.postMessage({ kind: 'authorProof', plan });
     const reply = await result; if (reply.kind !== 'authorProof') throw new Error('Missing author proof'); return reply.value;
   }
-  async dispose(): Promise<void> { this.closed = true; this.scope.dispose(); this.pending?.reject(new Error('Headless worker disposed')); this.pending = undefined; await this.worker.terminate(); }
+  async dispose(): Promise<void> { this.closed = true; this.scope.dispose();this.streamReject?.(new Error('Headless worker disposed')); this.pending?.reject(new Error('Headless worker disposed')); this.pending = undefined; await this.worker.terminate(); }
   private finished = false;
 }

@@ -83,3 +83,16 @@ export function runTrustedHeadlessTape(host:SimHost,step:(commands:readonly Head
   }
   return {version:1,ticks:host.state.tick-initial,observations};
 }
+
+/** A resident tape owner stays pinned across streamed parts as well as inside
+ * each ordinary terminal plan. No part may silently rebind an observation. */
+export function createTrustedHeadlessTape(host:SimHost,step:(commands:readonly HeadlessCommand[])=>void,
+  effects:()=>readonly HeadlessEffect[]):(plan:HeadlessTapePlan)=>HeadlessTapeReport {
+  let pinned:{id:string;owner:unknown}[]|undefined;
+  return plan=>{
+    const owners=plan.observe.map(id=>({id,owner:host.adapters.get(id)}));
+    if(pinned===undefined)pinned=owners;
+    else if(owners.length!==pinned.length||owners.some((row,index)=>row.id!==pinned?.[index]?.id||row.owner!==pinned[index]?.owner))throw new Error('Tape observation owner changed between parts');
+    return runTrustedHeadlessTape(host,step,effects,plan);
+  };
+}
