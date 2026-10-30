@@ -56,3 +56,34 @@ test('property observers share one native lookup and diagnostics receive its exa
   expect(renderer.properties.get(resource)).toBe(proxy); expect(get).toHaveBeenCalledExactlyOnceWith(resource);
   expect(ownership).toHaveBeenCalledExactlyOnceWith(resource); expect(texture).toHaveBeenCalledExactlyOnceWith(resource);
 });
+
+test('repeated property reads share observation but nested draws keep their own pulse', () => {
+  const f = fixture(), native = {}, get = vi.fn((_resource: unknown) => native);
+  const renderer = { ...f.renderer, properties: { get } }, owned: number[] = [];
+  const draws = drawHooks(renderer); propertyHooks(renderer).ownership = () => { owned.push(draws.depth); };
+  let nested = false;
+  f.stock.mockImplementation(() => {
+    expect(renderer.properties.get(f.material)).toBe(native);
+    expect(renderer.properties.get(f.material)).toBe(native);
+    if (!nested) { nested = true; renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group); }
+    expect(renderer.properties.get(f.material)).toBe(native);
+  });
+  renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+  expect(owned).toEqual([1, 2, 1]); expect(get).toHaveBeenCalledTimes(6);
+  renderer.properties.get(f.material); renderer.properties.get(f.material);
+  expect(owned).toEqual([1, 2, 1, 0, 0]);
+});
+
+test('native removal and upload changes reobserve a resource within the same draw', () => {
+  const f = fixture(), resource = new Texture(), get = vi.fn((_resource: unknown) => ({})), remove = vi.fn((_resource: unknown) => undefined);
+  const renderer = { ...f.renderer, properties: { get, remove } };
+  drawHooks(renderer); const owned = vi.fn<(resource: unknown) => void>(); propertyHooks(renderer).ownership = owned;
+  f.stock.mockImplementation(() => {
+    renderer.properties.get(resource); renderer.properties.get(resource);
+    resource.needsUpdate = true; renderer.properties.get(resource);
+    resource.source.needsUpdate = true; renderer.properties.get(resource);
+    renderer.properties.remove(resource); renderer.properties.get(resource);
+  });
+  renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+  expect(owned).toHaveBeenCalledTimes(4); expect(get).toHaveBeenCalledTimes(5); expect(remove).toHaveBeenCalledExactlyOnceWith(resource);
+});
