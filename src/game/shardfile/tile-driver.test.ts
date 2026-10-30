@@ -20,7 +20,7 @@ const settle = async (driver: TileDriver, x: number, z: number, frames: number):
 };
 
 test('a high eye ranks visible render tiles first without moving the player or collider ring', async () => {
-  const scope = new Scope('camera-tiles'), camera = new PerspectiveCamera(50, 0.5, 0.1, 1000), seen: number[] = [];
+  const scope = new Scope('camera-tiles'), camera = new PerspectiveCamera(50, 0.5, 0.1, 1000), seen: number[] = [], colliders: number[] = [];
   camera.position.set(0, 160, 0); camera.lookAt(150, 40, -25);
   const front = 30, behind = 35, bounds = new Map<number, StreamingBounds>([
     [front, { min: [125, 0, -62.5], max: [187.5, 100, 0] }],
@@ -28,11 +28,16 @@ test('a high eye ranks visible render tiles first without moving the player or c
   ]);
   const source: TileContent = { id: 'camera-order', tiles: () => new Set([front, behind]),
     attach: key => { seen.push(key); return Promise.resolve(); } };
-  const driver = new TileDriver(scope, [source], () => 2, () => Promise.resolve(), bounds), view = new StreamingCamera(new Group(), () => camera);
+  const collision: TileContent = { id: 'player-collision', tiles: () => new Set(Array.from({ length: 64 }, (_, key) => key)),
+    attach: () => Promise.resolve(),
+    attachColliders: key => { colliders.push(key); return Promise.resolve(); } };
+  const driver = new TileDriver(scope, [source, collision], () => 2, () => Promise.resolve(), bounds), view = new StreamingCamera(new Group(), () => camera);
   driver.setStreamingView(() => view.read());
   try {
-    await settle(driver, 0, 0, 100);
+    await settle(driver, 0, 0, 150);
     expect(seen).toEqual([front, behind]);
+    const playerTile = tileOf(0, 0);
+    expect(colliders[0]).toBe(playerTile.j * 8 + playerTile.i);
     expect(driver.resident('colliders')).toEqual(ring(tileOf(0, 0), 1));
     expect(driver.resident('render')).toEqual(ring(tileOf(0, 0), 2));
   } finally { scope.dispose(); }

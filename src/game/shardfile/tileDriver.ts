@@ -154,16 +154,18 @@ export class TileDriver {
       let next: number | undefined;
       for (const key of plan.nearest[layer]) {
         const tile = this.attached[layer].get(key);
-        if (!this.inView(key, streamView) || (layer === 'render' && this.deferred(key, cone, now))
+        if (!this.inView(key, layer === 'render' ? streamView : null) || (layer === 'render' && this.deferred(key, cone, now))
           || !(tile === undefined || tile.done.size < this.contents.length && this.contents.some(content => !tile.done.has(content) && (layer === 'colliders' || content.ready?.() !== false)))
           || this.failed.has(`${layer}:${String(key)}`)) continue;
         if (next === undefined) next = key;
-        else if (streamView !== null) {
+        else if (layer === 'render' && streamView !== null) {
           const candidate = this.targets.get(key), prior = this.targets.get(next);
           if (candidate === undefined || prior === undefined) throw new Error('Missing streaming tile');
           if (streamingOrder(candidate, prior, streamView) < 0) next = key;
         }
-        if (streamView === null) break;
+        // Physics retains its original nearest-player priority. Only visual
+        // preparation follows the camera; the collider ring is not a view.
+        if (layer === 'colliders' || streamView === null) break;
       }
       if (next === undefined) continue;
       // MF13: in play, each render tile's attach and whether the camera sees it then (the walk probes read these)
