@@ -9,6 +9,7 @@ import { bindRuntimeJsonRecord, bindRuntimeLedger, bindRuntimeState, projectRunt
 import { bossesSave, elitesSave, progressSave } from '../saves';
 import type { Progress } from '../Progress';
 import { publishBoundPersistence } from './chapterBindings';
+import { featOutcome, witnessSavedFeats, type FeatCounterPorts } from './featCounters';
 import { publishEntryOwner } from '../shardfile/entryOwners';
 
 const finite = v.pipe(v.number(), v.finite());
@@ -77,20 +78,12 @@ export function bindAdventurePersistence(ctx: Pick<ShardContext, 'app' | 'scope'
   } };
   const counterRows = rows.counters;
   const savedCounts = record(counterRows?.key, counts, () => progressSave.read(legacyInstance).counts);
-  const witness = (feat: NonNullable<typeof counterRows>['feats'][number], total: number): void => {
-    if (feat.fact === null || counterRows === undefined) return;
-    for (let n = 1; n <= Math.min(total, counterRows.maximum); n++) facts(feat.fact, `${counterRows.prefix}${feat.id}${counterRows.separator}${String(n)}`);
-  };
-  if (counterRows !== undefined) for (const feat of counterRows.feats) witness(feat, Math.min(feat.count, savedCounts.read()[feat.id] ?? 0));
+  // the feat counters' law (featCounters.ts: a Node simulation runs the same over its own saved counts and ledger)
+  const counterPorts: FeatCounterPorts = { read: () => savedCounts.read(), write: saved => { savedCounts.write(saved); }, fact: (fact, key) => { facts(fact, key); } };
+  if (counterRows !== undefined) witnessSavedFeats(counterRows, counterPorts);
   const outcome = (kind: 'event' | 'kill', name: string, variant?: string, total?: number): void => {
     if (counterRows === undefined) return;
-    const saved = savedCounts.read();
-    for (const feat of counterRows.feats) {
-      if (kind === 'event' ? feat.event !== name : feat.kind !== name || feat.variant !== undefined && feat.variant !== variant) continue;
-      const before = saved[feat.id] ?? 0, after = Math.min(feat.count, total === undefined ? before + 1 : Math.max(before, total));
-      if (after === before) continue;
-      saved[feat.id] = after; savedCounts.write(saved); witness(feat, after);
-    }
+    featOutcome(counterRows, counterPorts, kind, name, variant, total);
   };
   if (bondState !== undefined) projectBond(bond.read());
   const persistence: AdventurePersistence = { flags, facts, bosses, elites, names: nameRecord, cosmetics: cosmeticRecord, bond,

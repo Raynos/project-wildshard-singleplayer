@@ -55,6 +55,7 @@
     "./quest/questPageViews": "./quest/questPageViews.ts",
     "./quest/figureOrbit": "./quest/figureOrbit.ts",
     "./quest/carriedRound": "./quest/carriedRound.ts",
+    "./quest/featCounters": "./quest/featCounters.ts",
     "./quest/figures": "./quest/figures.ts",
     "./shardfile/clientPopulationProjection": "./shardfile/clientPopulationProjection.ts",
     "./quest/carriedProp": "./quest/carriedProp.ts",
