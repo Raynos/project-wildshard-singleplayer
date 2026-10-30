@@ -29,7 +29,7 @@ import type { ToonLook } from '@wildshard/engine/render/families/toon';
 import { Color, Mesh, PointsMaterial, SRGBColorSpace, type Material, type Object3D, type Texture } from 'three';
 import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphBinding, type GraphBudget, type GraphIr, type GraphParamType, type GraphLiteral } from '@wildshard/format/materialGraph';
 import { DATA_LOOK_DAY, dataLookClock, lookSample, sampleLook, type LookSample } from '@wildshard/engine/render/dataLook';
-import { graphMeshMapBase, type GraphCompiler } from '@wildshard/engine/render/graphBackend';
+import { graphMeshMapBase, tslLookCompiler, type GraphCompiler, type LookGraphCompiler, type LookGraphFog } from '@wildshard/engine/render/graphBackend';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { graphBindingSources, graphFileJson, presetLooks } from '@wildshard/format/materials';
 import { GRAPH_PRESET_VERSION, parseFamilyMaterial } from '@wildshard/format/materialFamilies';
@@ -177,7 +177,7 @@ export function graphFallbackEntry(graph: Pick<GraphIr, 'model' | 'doubleSided' 
  * `trustedGraphs` is host authority from an admitted runtime, never a field read from graph JSON.
  * An explicit budget refuses on admission failure instead of using a family material.
  */
-export function clientGraphs(source: Pick<Shardfile, 'identity' | 'look' | 'state'> & Partial<Pick<Shardfile, 'runtime' | 'questHost'>>, options: { compiler: GraphCompiler | null; toon?: ToonLook; trustedGraphs?: boolean; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string, role?: 'colour' | 'data') => Texture; file?: (hash: string) => Uint8Array | undefined }): {
+export function clientGraphs(source: Pick<Shardfile, 'identity' | 'look' | 'state'> & Partial<Pick<Shardfile, 'runtime' | 'questHost'>>, options: { compiler: LookGraphCompiler | Pick<GraphCompiler, 'compileGraph' | 'attachOutline'> | null; toon?: ToonLook; trustedGraphs?: boolean; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string, role?: 'colour' | 'data') => Texture; file?: (hash: string) => Uint8Array | undefined }): {
   /** Update a compiled material uniform; unknown/fallback materials and invalid values refuse. */
   setParam: (material: Material, name: string, value: GraphLiteral) => void;
   /** Lend a compiled material's `role: 'lent'` texture param its texture; unknown/fallback materials refuse. */
@@ -191,10 +191,11 @@ export function clientGraphs(source: Pick<Shardfile, 'identity' | 'look' | 'stat
   const outlines = new WeakMap<Material, GraphOutline>();
   const setters = new WeakMap<Material, (name: string, value: GraphLiteral) => void>();
   const lenders = new WeakMap<Material, (name: string, texture: Texture) => void>();
-  type NodeFogPatch = NonNullable<ReturnType<GraphCompiler['compileGraph']>['fog']>;
+  // either back-end behind the look-material contract (a bare TSL compiler, as tests hand one, through its adapter)
+  const lookCompiler = options.compiler === null ? null : 'backend' in options.compiler ? options.compiler : tslLookCompiler(options.compiler);
   /** the shard's declared fogs (O11): each `kind: 'fog'` entry compiles once (its carrier, by entry) and lends its patch */
   const fogCarriers = new WeakMap<GraphMaterialEntry, Material>();
-  const fogPatches = new WeakMap<Material, NodeFogPatch>();
+  const fogPatches = new WeakMap<Material, LookGraphFog>();
 
   const looks = presetLooks(source.look.familyLooks);
   /** the preset clocks: seconds since the client was made, as each family look's own clock (both tick by dt) */
@@ -222,7 +223,7 @@ export function clientGraphs(source: Pick<Shardfile, 'identity' | 'look' | 'stat
     const carried = fogCarriers.get(entry); if (carried !== undefined) return carried;
     const resolved = resolve(entry), graph = resolved.graph, budget = resolved.budget;
     // a preset reference while the row is off draws its own family: the preset is held to parity with it
-    if (resolved.family !== null && options.compiler === null) { readout.fallback++; readout.reasons.push('graph materials row off'); return options.fallback(resolved.family); }
+    if (resolved.family !== null && lookCompiler === null) { readout.fallback++; readout.reasons.push('graph materials row off'); return options.fallback(resolved.family); }
     // validation with the admitted lists first: a refusal (an unknown binding, a bad program) throws, row on or off
     const checked = validateGraph(graph, { dayKeys, stateFields, budget, trustedBudget: options.trustedGraphs === true });
     if (!checked.ok) {
@@ -237,12 +238,12 @@ export function clientGraphs(source: Pick<Shardfile, 'identity' | 'look' | 'stat
       return options.fallback(graphFallbackEntry({ model: Reflect.get(shape, 'model') === 'toon' ? 'toon' : Reflect.get(shape, 'model') === 'unlit' ? 'unlit' : 'standard', doubleSided: Reflect.get(shape, 'doubleSided') === true }));
     }
     const ir = checked.graph;
-    if (options.compiler === null) {
+    if (lookCompiler === null) {
       readout.fallback++; readout.reasons.push('graph materials row off');
       return ir.primitive === 'points' ? pointFallback() : options.fallback(graphFallbackEntry(ir));
     }
     // a toon preset leaves the environment's diffuse out, as its family does (the tone-parity harness, scripts/tone-parity)
-    const compiler = options.compiler, compiled = compiler.compileGraph(ir, { ...(options.toon === undefined ? {} : { toon: options.toon }), ...(resolved.family?.['family'] === 'toon' ? { replaceEnvironmentDiffuse: true } : {}), dayKeys, stateFields, budget, trustedBudget: options.trustedGraphs === true, textures: options.textures, fog: fogFor, validated: checked });
+    const compiler = lookCompiler, compiled = compiler.compileGraph(ir, { ...(options.toon === undefined ? {} : { toon: options.toon }), ...(resolved.family?.['family'] === 'toon' ? { replaceEnvironmentDiffuse: true } : {}), dayKeys, stateFields, budget, trustedBudget: options.trustedGraphs === true, textures: options.textures, fog: fogFor, validated: checked });
     if (compiled.fog !== null) { fogPatches.set(compiled.material, compiled.fog); fogCarriers.set(entry, compiled.material); }
     if (resolved.preset) for (const name of PRESET_CLOCK_PARAMS) if (ir.params?.[name] !== undefined) { compiled.setParam(name, elapsed); clocks.push(() => { compiled.setParam(name, elapsed); }); }
     setters.set(compiled.material, compiled.setParam);
@@ -253,7 +254,7 @@ export function clientGraphs(source: Pick<Shardfile, 'identity' | 'look' | 'stat
     readout.compiled++;
     return compiled.material;
   };
-  function fogFor(id: string): NodeFogPatch {
+  function fogFor(id: string): LookGraphFog {
     const entry: unknown = source.look.materials[id];
     if (!isGraphEntry(entry)) throw new Error(`material graph: fog ${id} is not a graph of this look catalogue`);
     const patch = fogPatches.get(compile(entry));

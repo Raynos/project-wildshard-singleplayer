@@ -22,7 +22,8 @@ import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import type { LookInstance } from './lentLooks';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { buildYield } from '@wildshard/engine/core/workSlice';
-import { loadGraphCompiler, bindGraphMeshMap } from '@wildshard/engine/render/graphBackend';
+import { loadLookGraphCompiler, bindGraphMeshMap } from '@wildshard/engine/render/graphBackend';
+import { graphBackendChoice } from '@wildshard/engine/ui/graphBackend';
 import { curvedParams, graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
 import { clientGraphs, graphOutlineHook, isGraphEntry, type GraphOutlineHook, type GraphReadout, type GraphSources } from './clientGraphs';
 import { parseSkinFile, skinLookParameters } from '@wildshard/format/skinAssets';
@@ -183,7 +184,8 @@ export async function clientMaterials(shard: Shardfile, input: ReadonlyMap<strin
   // a family's implicit surface is plain and vertex-coloured; PBR's metalness default is a map multiplier, so the plain one is dielectric
   for (const id of defaults) if (!Object.hasOwn(shard.look.materials, id)) materials.set(id, ownMaterial(familyMaterial({ family: id, vertexColours: true, ...(id === 'pbr' ? { metalness: 0 } : {}) }, context)));
   // graph entries: the lazy compiler loads only when the row is on and the shard carries one (a shard without pays nothing)
-  const compiler = graphsOn && carriesGraph(shard, assets) ? await loadGraphCompiler(renderer) : null;
+  // pause ▸ Settings ▸ Debug ▸ Graph back-end (NF14): the shipped TSL node materials, or classic GLSL programs
+  const compiler = graphsOn && carriesGraph(shard, assets) ? await loadLookGraphCompiler(renderer, graphBackendChoice()) : null;
   if (scope.disposed) throw new Error('Material scope unloaded during the graph compiler load');
   // Lazy catalogue/skin graph compiles need JSON, never the preparation's GLB,
   // texture or Wasm Map. Grid input leases retain and charge this same subset.

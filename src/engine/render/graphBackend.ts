@@ -5,11 +5,14 @@
  * (`nodes/engineNodesHandler.ts`) on the renderer once and returns it. Nothing on the default render path calls it, so a
  * shard without a graph material pays nothing and its programs stay byte for byte.
  */
-import { Texture, Material, Vector2 } from 'three';
+import { Texture, Material, Vector2, type Mesh } from 'three';
+import type { GraphBinding, GraphLiteral, GraphValidation, GraphValidationOptions } from '@wildshard/format/materialGraph';
+import type { ToonLook } from './families/toon';
 import type { Scope } from '../app/scope';
 import { graphNodeOwner, ownGraphNodes } from './nodes/graphOwners';
 import type { attachOutline, compileGraph, GraphNormalPrepass, GraphPostPass } from './graph/compile';
 import type { EngineNodesHandler } from './nodes/engineNodesHandler';
+import type { NodeMaterial } from 'three/webgpu';
 import type { Renderer } from './renderer';
 
 const installed = new WeakMap<Renderer, Promise<EngineNodesHandler>>();
@@ -51,6 +54,76 @@ export async function loadGraphCompiler(renderer: Renderer): Promise<GraphCompil
   await loadGraphBackend(renderer);
   const { attachOutline: attach, compileGraph: compile, GraphPostPass: PostPass, GraphNormalPrepass: NormalPrepass } = await import('./graph/compile');
   return { compileGraph: compile, attachOutline: attach, GraphPostPass: PostPass, GraphNormalPrepass: NormalPrepass };
+}
+
+/** a compiled declared fog (`kind: 'fog'`), opaque outside the back-end that compiled it */
+export interface LookGraphFog { readonly backend: 'tsl' | 'glsl' }
+/** what a look material's compile takes, on either back-end */
+export interface LookGraphOptions extends GraphValidationOptions {
+  readonly toon?: ToonLook;
+  readonly replaceEnvironmentDiffuse?: boolean;
+  readonly textures?: (ref: string, role?: 'colour' | 'data') => Texture;
+  /** resolves a material's `effectState.fog` catalogue id to that compiled fog graph (this back-end's) */
+  readonly fog?: (id: string) => LookGraphFog;
+  readonly validated?: Extract<GraphValidation, { ok: true }>;
+}
+/** a compiled look material, on either back-end */
+export interface LookGraph {
+  readonly material: Material;
+  readonly outline: Material | null;
+  readonly fog: LookGraphFog | null;
+  readonly bindings: readonly { readonly param: string; readonly bind: GraphBinding }[];
+  readonly setParam: (name: string, value: GraphLiteral) => void;
+  readonly setTexture: (name: string, texture: Texture) => void;
+}
+/** A look material's graph compiler: the shipped TSL one (`graph/compile.ts`) or the classic GLSL one
+ *  (`graph/glslMaterial.ts`, nine-fix NF14). A compile's declared fogs and outlines are its own back-end's. */
+export interface LookGraphCompiler {
+  readonly backend: 'tsl' | 'glsl';
+  readonly compileGraph: (input: unknown, opts: LookGraphOptions) => LookGraph;
+  readonly attachOutline: (mesh: Mesh, outline: Material) => Mesh;
+}
+/** a back-end's declared fogs behind their tokens */
+function fogTokens<P>(backend: 'tsl' | 'glsl'): { readonly wrap: (fog: P | null) => LookGraphFog | null; readonly unwrap: (token: LookGraphFog) => P } {
+  const own = new WeakMap<LookGraphFog, P>();
+  return {
+    wrap: (fog) => { if (fog === null) return null; const token: LookGraphFog = { backend }; own.set(token, fog); return token; },
+    unwrap: (token) => { const fog = own.get(token); if (fog === undefined) throw new Error(`material graph: a declared fog of another ${backend === 'tsl' ? 'back-end' : 'compile'}`); return fog; },
+  };
+}
+const isNodeMaterial = (material: Material): material is NodeMaterial => Reflect.get(material, 'isNodeMaterial') === true;
+/** The shipped TSL compiler behind the look-material contract (its declared fogs as tokens). */
+export function tslLookCompiler(compiler: Pick<GraphCompiler, 'compileGraph' | 'attachOutline'>): LookGraphCompiler {
+  const fogs = fogTokens<NonNullable<ReturnType<GraphCompiler['compileGraph']>['fog']>>('tsl');
+  return {
+    backend: 'tsl',
+    compileGraph: (input, { fog, ...opts }) => {
+      const compiled = compiler.compileGraph(input, { ...opts, ...(fog === undefined ? {} : { fog: (id: string) => fogs.unwrap(fog(id)) }) });
+      return { material: compiled.material, outline: compiled.outline, fog: fogs.wrap(compiled.fog), bindings: compiled.bindings, setParam: compiled.setParam, setTexture: compiled.setTexture };
+    },
+    attachOutline: (mesh, outline) => {
+      if (!isNodeMaterial(outline)) throw new Error('material graph: a TSL outline is a node material');
+      return compiler.attachOutline(mesh, outline);
+    },
+  };
+}
+/**
+ * The look-material compiler of the chosen back-end (pause ▸ Settings ▸ Debug ▸ Graph back-end): the classic one loads
+ * no node runtime and installs no node handler; the shipped one is `loadGraphCompiler`'s.
+ */
+export async function loadLookGraphCompiler(renderer: Renderer, backend: 'tsl' | 'glsl'): Promise<LookGraphCompiler> {
+  if (backend === 'tsl') return tslLookCompiler(await loadGraphCompiler(renderer));
+  const [{ compileClassicGraph, attachClassicOutline }, { installGraphShaderHost }] = await Promise.all([import('./graph/glslMaterial'), import('./graph/glslProgram')]);
+  installGraphShaderHost(renderer);
+  const fogs = fogTokens<NonNullable<ReturnType<typeof compileClassicGraph>['fog']>>('glsl');
+  return {
+    backend,
+    compileGraph: (input, { fog, ...opts }) => {
+      const compiled = compileClassicGraph(input, { ...opts, ...(fog === undefined ? {} : { fog: (id: string) => fogs.unwrap(fog(id)) }) });
+      return { material: compiled.material, outline: compiled.outline, fog: fogs.wrap(compiled.fog), bindings: compiled.bindings, setParam: compiled.setParam, setTexture: compiled.setTexture };
+    },
+    attachOutline: attachClassicOutline,
+  };
 }
 
 const meshMapBases = new WeakMap<Material, Material>();

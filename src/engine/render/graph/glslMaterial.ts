@@ -14,7 +14,7 @@
  *   vertex stage (`ClassicGraph.depth`), attached per mesh as three's `customDepthMaterial`.
  */
 import * as THREE from 'three';
-import type { GraphBinding, GraphCost, GraphLiteral } from '@wildshard/format/materialGraph';
+import { graphUsesMeshMap, type GraphBinding, type GraphCost, type GraphLiteral } from '@wildshard/format/materialGraph';
 import type { ToonLook } from '../families/toon';
 import { emitClassicGraph, graphShaders, graphUniformValues, type ClassicFog, type GraphShaderOptions } from './glslProgram';
 import type { EmitGraphGlslOptions, GraphGlsl } from './glsl';
@@ -124,6 +124,9 @@ function shaderMaterial(glsl: GraphGlsl, opts: GraphShaderOptions): GraphShaderM
   if (effect?.depthBias !== undefined) { m.polygonOffset = true; m.polygonOffsetFactor = effect.depthBias.factor; m.polygonOffsetUnits = effect.depthBias.units; }
   // an unlit graph writes raw colour (no output transform), as the GLSL program it stands for did; a graded one is display linear
   if (ir.stages.lighting?.grade !== undefined || (ir.model === 'unlit' && effect?.output !== 'colour')) m.toneMapped = false;
+  // the flags the client reads off a compiled graph, as compile.ts sets them: a borrowed mesh map, raw unlit output, points
+  if (graphUsesMeshMap(ir)) m.userData['graphMeshMap'] = true;
+  if (ir.kind === 'material' && ir.model === 'unlit' && effect?.output !== 'colour') m.userData['graphRawOutput'] = true;
   if (ir.primitive === 'points') m.userData['graphPrimitive'] = 'points';
   return m;
 }
