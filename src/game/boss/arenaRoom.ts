@@ -53,6 +53,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import type { WeatherReactions } from '../weather/reactions';
 import { wildEnv } from '../population/pageGroups';
 import { ArenaFireView, ArenaWhirlsView } from './arenaFire';
+import { ArenaPortalLaw } from './arenaPortal';
 import { OpenArenaFight, readArenaScriptData } from './openArenaFight';
 import { ArenaSceneView, CloudBody, type PatrolEncounterView } from './encounterView';
 import {entryOwner, lateEntryOwner, presentEntryOwner} from '../shardfile/entryOwners';
@@ -89,28 +90,30 @@ export interface ArenaRoomPortalWorld {
  * the actual room floor and entrance; the host owns fades, isolation, movement
  * and the single ordered boss/room update. Row data chooses all room policy. */
 export class ArenaRoomPortal {
-  inside = false;
+  /** the portal's decisions and fade (renderer-free, CI12) */
+  private readonly law: ArenaPortalLaw;
+  get inside(): boolean { return this.law.inside; }
   private readonly rows;
   private readonly keep: RegExp;
   private hidden: THREE.Object3D[] = [];
   private calmWas = false;
   private locked = false; private slow = false;
-  private elapsed = 0; private fade = -1; private pending: 'enter' | 'exit' | null = null;
   private boss: Boss | null = null; private ui: BossBar | null = null;
   private fight: ReturnType<typeof arenaRoomFight> | null = null;
   constructor(private readonly world: ArenaRoomPortalWorld, private readonly room: BossArenaRoom, input: unknown,
-    private readonly program: ReturnProgram, private readonly entrance: { readonly x: number; readonly y: number; readonly z: number; readonly facing: number } | null) {
+    program: ReturnProgram, private readonly entrance: { readonly x: number; readonly y: number; readonly z: number; readonly facing: number } | null) {
     this.rows = v.parse(ArenaRoomPortalSchema, input); this.keep = new RegExp(this.rows.keep, 'i');
+    this.law = new ArenaPortalLaw(program, this.rows, entrance);
   }
   bind(boss: Boss, ui: BossBar, fight: ReturnType<typeof arenaRoomFight>): void { this.boss = boss; this.ui = ui; this.fight = fight; }
   setLocked(on: boolean): void { this.locked = on; this.move(); }
   private move(): void { this.world.player.moveScale = this.locked ? 0 : this.slow ? this.rows.slow : 1; }
   enter(immediate = false, atZ: number = this.rows.spawn.z): void {
-    if (!immediate) { this.ui?.fade(true, this.rows.fade.out); this.fade = this.rows.fade.hold; this.pending = 'enter'; return; }
+    if (!immediate) { this.ui?.fade(true, this.rows.fade.out); this.law.begin('enter', this.rows.fade.hold); return; }
     const { game, player, animals } = this.world, origin = this.room.rows.origin;
     this.room.world(this.rows.spawn.x, 0, atZ, player.position);
     player.velocity.set(0,0,0); player.yaw = this.rows.spawn.yaw; player.pitch = 0;
-    this.inside = true; this.room.setVisible(true); this.hidden = [];
+    this.law.inside = true; this.room.setVisible(true); this.hidden = [];
     for (const object of game.scene.children) {
       if (!object.visible || object === this.room.group || object === animals.group || object === game.camera || object instanceof THREE.Light || this.keep.test(object.name) || object.type === 'Points'
         || object.position.distanceToSquared(new THREE.Vector3(origin.x,origin.y,origin.z)) < this.rows.near ** 2) continue;
@@ -119,34 +122,30 @@ export class ArenaRoomPortal {
     this.calmWas = animals.calm; animals.calm = true; this.fight?.setPresent(true); this.boss?.arm();
   }
   leave(teleport: boolean, immediate = false): void {
-    if (teleport && !immediate) { this.ui?.fade(true, this.rows.fade.out); this.fade = this.rows.fade.hold; this.pending = 'exit'; return; }
+    if (teleport && !immediate) { this.ui?.fade(true, this.rows.fade.out); this.law.begin('exit', this.rows.fade.hold); return; }
     const { player, animals } = this.world, e = this.entrance;
     if (teleport && e !== null) {
       player.position.set(e.x - Math.sin(e.facing) * this.rows.exitOffset, e.y, e.z - Math.cos(e.facing) * this.rows.exitOffset);
       player.yaw = e.facing; player.pitch = 0; player.velocity.set(0,0,0);
     }
-    this.inside = false; this.room.setVisible(false);
+    this.law.inside = false; this.room.setVisible(false);
     for (const object of this.hidden) object.visible = true;
     this.hidden = []; animals.calm = this.calmWas; this.boss?.disarm(); this.fight?.setPresent(false);
     this.slow = false; this.locked = false; this.move();
   }
   update(dt: number, t: number): void {
-    if (this.fade >= 0) {
-      this.fade -= dt;
-      if (this.fade < 0) { const pending = this.pending; this.pending = null; if (pending === 'enter') this.enter(true); else if (pending === 'exit') this.leave(true,true); this.ui?.fade(false,this.rows.fade.in); }
-      return;
-    }
     const p = this.world.player.position, origin = this.room.rows.origin;
-    this.elapsed += dt;
-    if (this.elapsed >= .1 - 1e-9) {
-      const e = this.entrance, z = p.z - origin.z, floor = this.room.floorHeightAt(p.x,p.z);
-      const result = this.program.project(this.rows.signal, { px: p.x, pz: p.z, y: p.y, ex: e?.x ?? 0, ey: e?.y ?? 0, ez: e?.z ?? 0, facing: e?.facing ?? 0,
-        volume: Number(this.room.inVolume(p)), inside: Number(this.inside), corridor: z, land: this.rows.end, engaged: Number(this.boss?.engaged === true),
-        sand: this.room.inChamber(p) ? this.room.sandAt(p.x-origin.x,z) : 0, floor: floor ?? origin.y, cy: origin.y });
-      this.elapsed = 0;
-      if (!this.inside) { if (e !== null && result['enter'] === 1) this.enter(); }
-      else if (result['exit'] !== 0) { this.leave(result['exit'] === 2); return; }
-      if (this.inside) { this.slow = result['slow'] === 1; this.move(); }
+    const step = this.law.step(dt, () => {
+      const z = p.z - origin.z, floor = this.room.floorHeightAt(p.x,p.z);
+      return { px: p.x, py: p.y, pz: p.z, floor, volume: this.room.inVolume(p), engaged: this.boss?.engaged === true,
+        sand: this.room.inChamber(p) ? this.room.sandAt(p.x-origin.x,z) : 0, originY: origin.y, originZ: origin.z };
+    });
+    if (step.kind === 'fading') return;
+    if (step.kind === 'faded') { if (step.pending === 'enter') this.enter(true); else if (step.pending === 'exit') this.leave(true,true); this.ui?.fade(false,this.rows.fade.in); return; }
+    if (step.kind === 'decided') {
+      if (!this.inside) { if (this.entrance !== null && step.enter) this.enter(); }
+      else if (step.exit !== 0) { this.leave(step.exit === 2); return; }
+      if (this.inside) { this.slow = step.slow; this.move(); }
     }
     if (!this.inside) return;
     const floor = this.room.floorHeightAt(p.x,p.z);
