@@ -183,12 +183,12 @@ generated inclusive rectangles drive the existing `floorAtRects` query.
 The runtime `meshLod`, `edgeDecks`, `world/floorRows` and `data/decks`
 modules are deleted. The fixed-kits JSON book remains byte-identical.
 
-The parent-generated `test/fixtures/nine-lods.json` records all 25 native
-levels' channel/index bytes, typed storage and bounds. The existing cast
-test now checks those facts and middle-level sharing, alongside the nine
-original cast/fixed-kit cases and 100 inclusive floor boundary queries.
-All 37 cast cases and all 17 shard-headless cases pass. Root/layer types,
-typed lint and all ten products pass on the isolated candidate.
+At B4, a parent-generated snapshot pinned all 25 native levels' channel/index
+bytes, typed storage and bounds. G919 retired that snapshot; the cast test
+retains live half-float decoding, middle-level sharing, borrowing and inclusive
+floor-boundary behavior instead. At B4, all 37 cast cases and all 17
+shard-headless cases passed. Root/layer types, typed lint and all ten products
+passed on the isolated candidate.
 The integrated check also includes the six traversal contracts: 60 cases
 pass in total. On admission repair `d36f4694b`, the unchanged full native
 witness reports `compatible: true`: both shipping-worker continuation

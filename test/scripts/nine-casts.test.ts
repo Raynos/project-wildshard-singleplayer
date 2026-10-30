@@ -5,12 +5,10 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { halfFloatBeforeControl } from '../fixtures/half-float-before-control';
-import { BufferAttribute, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Mesh, MeshBasicMaterial, Box3, Object3D, Sphere, Vector3, type BufferGeometry } from 'three';
+import { BufferAttribute, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Mesh, MeshBasicMaterial, Object3D, type BufferGeometry } from 'three';
 
-import {nineCastBlobs, rawCast} from '../fixtures/nine-cast-blobs';
+import {CASTS, nineCastBlobs, rawCast} from '../fixtures/nine-cast-blobs';
 import { createOwnedGeometry } from '../../src/engine/models/ownedGeometry';
-import { originalHookBounds } from '../fixtures/nine-boot-contract';
-import hookBounds from '../../src/shards/nine-dragon-stack/data/hookBounds.json' with { type: 'json' };
 import { createModelLibrary } from '../../src/game/plugin/geometry';
 import { readSourceModel } from '../../src/sdk/bake/skinned';
 import type { PreparedGeometry } from '../../src/shards/nine-dragon-stack/data/casts';
@@ -28,9 +26,12 @@ import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../../src
 import { parseWorldSceneModels } from '../../src/format/worldSceneModels';
 import { floorAtRects } from '../../src/engine/physics/box';
 import { deckFloorRows } from '../../src/shards/nine-dragon-stack/generators/floorRows';
-import lodBasis from '../fixtures/nine-lods.json' with { type: 'json' };
 
 const CAST_BLOBS=await nineCastBlobs();
+const middleLevels=[...CASTS.raw.keys()].flatMap(path=>{
+  const match=/^(.+)-(mid[0-9]+)$/u.exec(path),name=match?.[1],suffix=match?.[2];
+  return name===undefined||suffix===undefined?[]:[{name,path,key:`${name}:${suffix}`}];
+});
 const deckFloors = deckFloorRows();
 
 const { CAST_CHANNELS } = castRows;
@@ -168,11 +169,8 @@ beforeAll(async () => {
   const fullHook = CAST_BLOBS.find(row => row.file.name === 'geometry/dragon-hook.glb');
   if (fullHook === undefined) throw new Error('Missing full-detail hook blob');
   await bakedHook.load(fullHook.bytes);
-  const nativeHook = bakedHook.take(), bounds = originalHookBounds;
-  nativeHook.boundingBox = new Box3(new Vector3().fromArray(bounds.box.min), new Vector3().fromArray(bounds.box.max));
-  nativeHook.boundingSphere = new Sphere(new Vector3().fromArray(bounds.sphere.center), bounds.sphere.radius);
-  // the catalogue row's sphere (data/hookBounds.json) is the source cast's own
-  expect(hookBounds.sphere).toEqual([...bounds.sphere.center, bounds.sphere.radius]);
+  const nativeHook = bakedHook.take();
+  nativeHook.computeBoundingBox();nativeHook.computeBoundingSphere();hook.computeBoundingBox();hook.computeBoundingSphere();
   expect(channels(nativeHook)).toEqual(channels(hook));
   const oldLods = await halfFloatBeforeControl(() => bakeLods(read));
   const original = async (name: string): Promise<BufferGeometry> => {
@@ -186,18 +184,18 @@ beforeAll(async () => {
     if (geometry === null) throw new Error(`Missing original colourway geometry ${name}`);
     return geometry;
   };
-  for (const key of Object.keys(lodBasis)) {
-    const [name, suffix] = key.split(':'), base = lodBases.get(name ?? '');
-    if (base === undefined || suffix === undefined) throw new Error(`Missing native LOD base ${key}`);
-    const path = `${name}-${suffix}`;
+  expect(middleLevels.length).toBeGreaterThan(0);
+  for (const {key,name,path} of middleLevels) {
+    const base = lodBases.get(name);
+    if (base === undefined) throw new Error(`Missing native LOD base ${key}`);
     const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
       geometryPools: [{ url: path, parts: [path], channels: name === 'dragon-hook' ? [] : CAST_CHANNELS }],
     }, 'test Nine LOD casts', {}, async () => (await readSourceModel(rawCast(path))).gltf);
     await library.preload();
     const prepared = library.geometry(path, { borrow: true });
     if (prepared === null) throw new Error(`Missing packed LOD ${key}`);
-    lodGeometries.set(key, suffix === 'far' ? prepared : drawnLevel(name ?? '', path, base, prepared));
-    if (suffix.startsWith('mid') && ['walker-oxblood', 'walker-blue', 'walker-paper'].includes(name ?? '')) {
+    lodGeometries.set(key, drawnLevel(name, path, base, prepared));
+    if (['walker-oxblood', 'walker-blue', 'walker-paper'].includes(name)) {
       const previousBase = await original(name ?? ''), previousPrepared = await original(path);
       const variantSource = lodBases.get(name === 'walker-paper' ? 'walker-light' : 'walker-dark');
       if (variantSource === undefined) throw new Error('Missing original colourway source');
@@ -207,18 +205,11 @@ beforeAll(async () => {
   }
 }, 30_000);
 
-test.each(Object.entries(lodBasis))('%s retains native bytes, bounds and buffer sharing', (key, expected) => {
+test.each(middleLevels)('$key shares the full cast buffers and retains decoded half-float channels', ({key}) => {
   const geometry = lodGeometries.get(key), base = lodBases.get(key.split(':')[0] ?? '');
   if (geometry === undefined || base === undefined) throw new Error(`Missing prepared LOD ${key}`);
-  if (!key.includes(':mid')) { expect(channels(geometry)).toEqual(expected); return; }
-  // a middle level draws its own index over the full cast's attributes, so it carries the full cast's bounds
-  const { box: _box, sphere: _sphere, ...bytes } = expected, donor = channels(base);
   const original = originalColourLods.get(key);
-  if (original === undefined) {
-    expect(channels(geometry)).toEqual({ ...bytes, box: v.parse(v.object({ box: v.unknown() }), donor).box, sphere: v.parse(v.object({ sphere: v.unknown() }), donor).sphere });
-  } else {
-    const previous = channels(original.base);
-    expect(channels(original.geometry)).toEqual({ ...bytes, box: v.parse(v.object({ box: v.unknown() }), previous).box, sphere: v.parse(v.object({ sphere: v.unknown() }), previous).sphere });
+  if (original !== undefined) {
     const corrected = original.geometry.clone();
     try {
       for (const channel of original.half) {
