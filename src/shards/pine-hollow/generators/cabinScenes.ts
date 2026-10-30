@@ -17,6 +17,7 @@ interface SourceModel { readonly scene: THREE.Group; readonly descriptors: reado
 export interface CabinSceneSources {
   readonly tier: 'phone' | 'desktop'; readonly rows: CabinRows;
   readonly geometry: ReadonlyMap<number, THREE.BufferGeometry>;
+  /** each prop's source parts merged into one geometry; `partCount` is only the source check's (its parts are not drawn apart) */
   readonly props: Readonly<Record<PropKind, { readonly geometry: THREE.BufferGeometry; readonly matrix: readonly number[]; readonly partCount: number }>>;
   readonly firePit: SourceModel; readonly lantern: SourceModel;
 }
@@ -197,7 +198,9 @@ export class CabinSceneRecorder {
     const hosted = [[], []] as [Hosted[], Hosted[]];
     for (const kind of propKinds) {
       const part = source.props[kind];
-      const shapes = Array.from({ length: part.partCount }, () => part.geometry.clone().applyMatrix4(new THREE.Matrix4().fromArray(part.matrix)));
+      // the prop's parts are one merged geometry (pineCabinPropShapes): drawn once, not once per source part (PF7 / EP6: the
+      // barrel drew its whole merged geometry 4 times over, crate and bucket twice; the same pixels, 8 draws -> 3)
+      const shapes = [part.geometry.clone().applyMatrix4(new THREE.Matrix4().fromArray(part.matrix))];
       for (const shape of shapes) shape.computeBoundingBox();
       for (const inHamlet of [false, true]) {
         const selected = owners.filter(owner => owner.record.hamlet === inHamlet), lists: { unit: number; matrices: Float32Array }[] = [], matrices: THREE.Matrix4[] = [];
@@ -334,7 +337,7 @@ export class CabinSceneRecorder {
       for (const kind of propKinds) {
         const copies = record.props[kind], part = source.props[kind];
         if (copies.length === 0) continue;
-        for (let partIndex = 0; partIndex < part.partCount; partIndex++) {
+        {
           const mesh = new THREE.InstancedMesh(part.geometry, need(surfaces.get(`prop.${kind}`), 'Specimen prop material absent'), copies.length);
           copies.forEach((values, index) => { mesh.setMatrixAt(index, matrix.multiplyMatrices(toLocal, new THREE.Matrix4().fromArray(values)).multiply(new THREE.Matrix4().fromArray(part.matrix))); });
           mesh.instanceMatrix.needsUpdate = true; mesh.computeBoundingSphere(); mesh.castShadow = true; mesh.receiveShadow = true;
@@ -351,11 +354,11 @@ export class CabinSceneRecorder {
       }
     }
     for (const kind of propKinds) {
-      const part = source.props[kind], meshes = Array.from({ length: part.partCount }, () => {
+      const part = source.props[kind], meshes = [((): THREE.Mesh => {
         const geometry = part.geometry.clone().applyMatrix4(new THREE.Matrix4().fromArray(part.matrix));
         const mesh = new THREE.Mesh(geometry, need(surfaces.get(`prop.${kind}`), 'Prop card material absent'));
         mesh.castShadow = true; mesh.receiveShadow = true; return mesh;
-      });
+      })()];
       const object = meshes.length === 1 ? need(meshes[0], 'Prop card mesh absent') : new THREE.Group();
       if (meshes.length > 1) object.add(...meshes);
       object.name = `pine-hollow/${propIds[kind]}`;
