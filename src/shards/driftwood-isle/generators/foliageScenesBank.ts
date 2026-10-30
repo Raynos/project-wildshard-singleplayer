@@ -182,7 +182,7 @@ export async function foliageSceneFiles(only?: ReadonlySet<string>): Promise<Map
 }
 /** The product's batch files, `meshopt: true` as the job's sources were; the phone compaction measures with brotli, so the
  *  files come through the owned-byte cache. */
-export async function driftwoodFoliageSceneOutput(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<EmittedBlobs> {
+export async function driftwoodFoliageSceneOutput(ctx: Pick<ProjectGenerationContext, 'cached' | 'meshoptNoLarger'>): Promise<EmittedBlobs> {
   const files = await ctx.cached({ id: 'driftwood-foliage-scenes', native: true }, inputs => {
     if (inputs.size > 0) throw new Error('Unexpected Driftwood foliage scene input');
     return foliageSceneFiles();
@@ -190,6 +190,6 @@ export async function driftwoodFoliageSceneOutput(ctx: Pick<ProjectGenerationCon
   return emitNamedBlobs(await Promise.all(FOLIAGE_SCENE_FILES.map(name => {
     const bytes = files.get(name);
     if (bytes === undefined || files.size !== FOLIAGE_SCENE_FILES.length) throw new Error('Driftwood foliage scene cache inventory differs');
-    return nameMeshoptBlob(name, bytes);
+    return nameMeshoptBlob(name, bytes, {}, ctx.meshoptNoLarger);
   })));
 }

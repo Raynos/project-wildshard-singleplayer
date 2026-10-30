@@ -9,19 +9,38 @@ export function validateNamedJson(schemaBytes: Uint8Array, bytes: Uint8Array, Va
   return validateDefinedSchema(schemaBytes, parseNamedJson(bytes), Validator);
 }
 
-/** CI6: each compiled schema by its exact canonical text, per validator class (a product names hundreds of JSON blobs
- *  under a few schemas, and every call built a new validator and compiled again). A compiled schema is a pure function of
- *  its text; only a schema text that passed the checks below is kept. Bounded: the oldest goes first. */
+/** CI6: each compiled schema by its exact canonical text, per validator (a product names hundreds of JSON blobs under a
+ *  few schemas, and every call built a new validator and compiled again). A compiled schema is a pure function of its text;
+ *  only a schema text that passed the checks below is kept. Bounded: the oldest goes first.
+ *  The table is the process's: a product build loads this module twice, in the shard config's bundle and in the author's,
+ *  each with its own copy of the same Ajv, and both validate the same named JSON, so the author's admission compiled every
+ *  schema the config had just compiled (Driftwood: 31 schemas, ~0.3 s). A validator is known by its class's source,
+ *  so only the same Ajv shares an entry. */
 type AjvInstance = InstanceType<typeof Ajv>;
 interface Compiled { readonly validator: AjvInstance; readonly validate: ReturnType<AjvInstance['compile']> }
-const compiled = new Map<typeof Ajv, Map<string, Compiled>>();
+type CompiledTable = Map<string, Map<string, Compiled>>;
+const SHARED = Symbol.for('wildshard.sdk.compiledSchemas/1');
+const isTable = (value: unknown): value is CompiledTable => value instanceof Map;
+const compiled = ((): CompiledTable => {
+  const existing: unknown = Reflect.get(globalThis, SHARED);
+  if (isTable(existing)) return existing;
+  const table: CompiledTable = new Map();
+  Reflect.set(globalThis, SHARED, table); return table;
+})();
+const validators = new WeakMap<typeof Ajv, string>();
 const COMPILED_LIMIT = 256;
+/** The validator's identity across bundles: its class's source. */
+function validatorKey(Validator: typeof Ajv): string {
+  let key = validators.get(Validator);
+  if (key === undefined) { key = String(Validator); validators.set(Validator, key); }
+  return key;
+}
 
 /** Shared canonical draft-07 validation policy; the dependency is supplied only by schema consumers. */
 export function validateDefinedSchema(schemaBytes: Uint8Array, value: unknown, Validator: typeof Ajv): unknown {
   if (schemaBytes.length > 1_000_000) throw new Error('Custom section schema exceeds its byte limit');
   const text = new TextDecoder('utf-8', { fatal: true }).decode(schemaBytes);
-  const own = compiled.get(Validator), known = own?.get(text);
+  const kind = validatorKey(Validator), own = compiled.get(kind), known = own?.get(text);
   if (known !== undefined) {
     if (known.validate(value) !== true) throw new Error(`Custom section value refuses its schema: ${known.validator.errorsText(known.validate.errors)}`);
     return value;
@@ -32,7 +51,7 @@ export function validateDefinedSchema(schemaBytes: Uint8Array, value: unknown, V
   const validate = validator.compile(schema);
   if (validate.$async === true) throw new Error('Custom section schemas cannot be asynchronous');
   const table = own ?? new Map<string, Compiled>();
-  if (own === undefined) compiled.set(Validator, table);
+  if (own === undefined) compiled.set(kind, table);
   if (table.size >= COMPILED_LIMIT) { const oldest = table.keys().next().value; if (oldest !== undefined) table.delete(oldest); }
   table.set(text, { validator, validate });
   if (validate(value) !== true) throw new Error(`Custom section value refuses its schema: ${validator.errorsText(validate.errors)}`);

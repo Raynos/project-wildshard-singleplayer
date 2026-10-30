@@ -2,7 +2,7 @@ import type { ScriptContract } from '@wildshard/format/scriptContract';
 import type { JsonSchema } from '@valibot/to-json-schema';
 import type { AssetCost } from '@wildshard/format/product';
 import type { OutputFile } from '@wildshard/format/outputIndex';
-import { encodeCanonicalJson } from './immutable';
+import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { nameBlobBytes } from './blobBytes';
 import { validateDefinedJson } from './sections';
 import { compileGltfSource } from './bake/gltfSource';
@@ -33,14 +33,30 @@ export function nameBlob(name: string, kind: NamedBlobKind, input: Uint8Array, o
 
 const MAX_BYTES = 25_000_000;
 
-/** Name a GLB the way a `meshopt: true` blob source is named: losslessly meshopt-packed when that gzips (level 9) no
- *  larger, otherwise as given. For a program that builds its GLB in memory (GR8) rather than reading a source file. */
-export async function nameMeshoptBlob(name: string, input: Uint8Array, options: BlobOptions = {}): Promise<NamedBlob> {
+/** Whether a meshopt-packed GLB gzips (level 9) no larger than its source: the download encoding decides, as source intake
+ *  does. */
+export async function meshoptNoLarger(packed: Uint8Array, input: Uint8Array): Promise<boolean> {
   // oxlint-disable-next-line import/no-nodejs-modules -- Compare actual download encoding, as source intake does.
   const compression = await import('node:zlib');
-  const packed = compressGlb(input);
-  const selected = compression.gzipSync(packed, { level: 9 }).length <= compression.gzipSync(input, { level: 9 }).length ? packed : input;
-  return nameBlob(name, 'glb', selected, options);
+  return compression.gzipSync(packed, { level: 9 }).length <= compression.gzipSync(input, { level: 9 }).length;
+}
+// CI6: one answer per packed / source pair and comparison a process (Pine names some GLBs more than once); identical bytes
+// need no gzip
+const choices = new WeakMap<typeof meshoptNoLarger, Map<string, boolean>>();
+
+/** Name a GLB the way a `meshopt: true` blob source is named: losslessly meshopt-packed when that gzips (level 9) no
+ *  larger, otherwise as given. For a program that builds its GLB in memory (GR8) rather than reading a source file.
+ *  `noLarger` is the comparison (a build context's memoised `meshoptNoLarger`, when it has one). */
+export async function nameMeshoptBlob(name: string, input: Uint8Array, options: BlobOptions = {}, noLarger: typeof meshoptNoLarger = meshoptNoLarger): Promise<NamedBlob> {
+  const packed = compressGlb(input), key = `${hashImmutableBytes(packed)}:${hashImmutableBytes(input)}`;
+  const known = choices.get(noLarger) ?? new Map<string, boolean>();
+  choices.set(noLarger, known);
+  let pick = known.get(key);
+  if (pick === undefined) {
+    pick = packed.length === input.length && packed.every((byte, i) => byte === input[i]) ? true : await noLarger(packed, input);
+    known.set(key, pick);
+  }
+  return nameBlob(name, 'glb', pick ? packed : input, options);
 }
 
 /** Read only project-contained files. Textual .gltf sources compile with bounded local/embedded resources into GLB;

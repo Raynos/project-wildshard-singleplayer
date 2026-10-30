@@ -1,5 +1,5 @@
 import Ajv from 'ajv';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { encodeCanonicalJson } from './immutable';
 import { validateDefinedSchema } from './schemaValidation';
 
@@ -23,6 +23,22 @@ it('a non-canonical or wrong-draft schema is refused even after its canonical tw
   expect(() => validateDefinedSchema(spaced, { n: 1 }, Ajv)).toThrow('canonical draft-07');
   const other = new TextEncoder().encode(encodeCanonicalJson({ ...schema, $schema: 'http://json-schema.org/draft-04/schema#' }));
   expect(() => validateDefinedSchema(other, { n: 1 }, Ajv)).toThrow('canonical draft-07');
+});
+
+it('a second copy of the same validator (the other bundle) reuses the compile; a different validator compiles its own', () => {
+  const own = { ...schema, properties: { n: { type: 'number', maximum: 5 } } }, text = new TextEncoder().encode(encodeCanonicalJson(own));
+  const compiles = vi.spyOn(Ajv.prototype, 'compile');
+  try {
+    // two classes with the same source (as each bundle's copy of the same pinned Ajv), and one with its own
+    const copy = (): typeof Ajv => class extends Ajv {};
+    const First = copy(), Second = copy();
+    class Other extends Ajv { override compile(input: Parameters<Ajv['compile']>[0]): ReturnType<Ajv['compile']> { return super.compile(input); } }
+    expect(validateDefinedSchema(text, { n: 4 }, First)).toEqual({ n: 4 });
+    expect(() => validateDefinedSchema(text, { n: 6 }, Second)).toThrow('should be <= 5');
+    expect(compiles).toHaveBeenCalledTimes(1);
+    expect(() => validateDefinedSchema(text, { n: 6 }, Other)).toThrow('should be <= 5');
+    expect(compiles).toHaveBeenCalledTimes(2);
+  } finally { compiles.mockRestore(); }
 });
 
 /** The pre-memo path: a new validator and a new compile for every value. */
