@@ -37,6 +37,13 @@ export function clipEntryPolygon(vertices: readonly EntryVertex[], rect: EntryFo
 }
 /** Does any triangle surface rise above the road inside its open clearance rectangle? Touching a side wall is legal. */
 export function obstructsEntry(vertices: readonly EntryVertex[], rect: EntryFootprint): boolean {
+  // CI6: a shape wholly past one side of the footprint clips to nothing (no vertex kept, no crossing): the same false
+  // without the four clipping passes. Footprints are edge strips, so nearly every prop triangle of a shard takes this exit.
+  if (vertices.length > 0) {
+    let left = true, right = true, near = true, far = true;
+    for (const v of vertices) { if (!(v.x < rect.minX)) left = false; if (!(v.x > rect.maxX)) right = false; if (!(v.z < rect.minZ)) near = false; if (!(v.z > rect.maxZ)) far = false; }
+    if (left || right || near || far) return false;
+  }
   const clipped = clipEntryPolygon(vertices, rect), above: EntryVertex[] = [];
   for (let i = 0; i < clipped.length; i++) {
     const a = clipped[i], b = clipped[(i + 1) % clipped.length]; if (a === undefined || b === undefined) continue;
