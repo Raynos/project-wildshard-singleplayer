@@ -16,9 +16,10 @@ import {arenaTie,arenaBoundary} from '../../src/game/boss/arenaAnswers';
 import {mountedPlayerOf} from '../../src/game/riding/native';
 import {respawnNativeMounted} from '../../src/game/riding/nativeTaming';
 import {nativeGroupCollection} from '../../src/game/shardfile/groupRuntime';
-import type {WeatherReactions} from '../../src/game/weather/reactions';
+import {applyWeatherCover,type WeatherReactions} from '../../src/game/weather/reactions';
 import type {Wind} from '../../src/engine/world/steppeWind';
 import {ledgerPorts} from '../../src/game/plugin/simulation';
+import type {ObservedRecords} from '../../src/game/quest/questObservation';
 import {prepareNalatiPatrol,nalatiPatrolOf} from './nalati-patrol-native';
 import {withNalatiCompanions} from './nalati-companions-native';
 import {withNalatiWeapons,nalatiWeaponsOf} from './nalati-weapons-native';
@@ -27,7 +28,7 @@ import {titanNativeViews} from './nalati-titan-views';
 import {TitanSaved} from './nalati-titan-state';
 
 export interface NativeNalatiTitan {readonly fight:OpenArenaFight;readonly boss:BossBrain;readonly locked:()=>boolean;readonly reward:()=>boolean;readonly storm:()=>boolean;
-  readonly weather:()=>{state:string;left:number};readonly rewardPrompt:()=>{position:Vector3;radius:number;label:string}|null}
+  readonly records:ObservedRecords;readonly weather:()=>{state:string;left:number};readonly rewardPrompt:()=>{position:Vector3;radius:number;label:string}|null}
 const owners=new WeakMap<SimHost,NativeNalatiTitan>();
 export function nalatiTitanOf(host:SimHost):NativeNalatiTitan|undefined{return owners.get(host);}
 
@@ -50,13 +51,20 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
   const composed=withNalatiWeapons(withNalatiCompanions(async input=>{
     const base=await patrol(input);
     return {...base,install:(host,context)=>{
+      // The page samples its encounter answer before the weather advances.
+      // Bind before base.install registers that same native weather clock.
+      host.onStep('nalati.titan.weather-cover',()=>{
+        const owner=owners.get(host),actual=weather.get(host);
+        if(owner===undefined||actual===undefined)throw new Error('Titan weather cover lost its entered owners');
+        applyWeatherCover(actual.storm.weather,actual.storm.inputs,host.events.ask('weather.indoors',0)>0,owner.boss.engaged);
+      });
       base.install(host,context);
       const actual=weather.get(host),mount=mountedPlayerOf(host),patrolOwner=nalatiPatrolOf(host);
       const env=nativeGroupCollection(host,assembly.constants.nativePopulation.groups).environment;
       if(actual===undefined||mount===undefined||patrolOwner===undefined||env===undefined||owners.has(host))throw new Error('Titan requires its actual world owners');
       const records=installRecords(host,ledgerPorts(context.emit)),camera=new PerspectiveCamera(),strikes=new StrikeRunner();
       const contacts=new Map(Object.entries(data.contacts).map(([id,row])=>[id,strikeFromData(row)]));
-      let locked=false,reward=false,bar=false,totalContacts=0;
+      let locked=false,reward=false,bar=false,totalContacts=0,rewardPoint:Vector3|null=null;
       const toasts:string[]=[],feeds:string[]=[],support=new Map<number,HuntBody>(),damageShares=new Map<HuntBody,(scale:number,x:number,z:number)=>number>();
       shares.set(host,damageShares);
       const toast=(line:string):void=>{toasts.push(line);if(toasts.length>256)toasts.shift();};
@@ -97,7 +105,9 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
         respawn:(position,yaw)=>{respawnNativeMounted(host,position,yaw,data.view.respawn);weapons().refill();},
         skipHeld:()=>context.commands().some(command=>command.kind==='script'&&command.actorId==='nalati.titan.skip'&&command.value===1),
         faceToward:(target,dt)=>{const p=host.player.position;camera.position.set(p.x,p.y+1.68,p.z);
-          easeViewToward(weapons().look,camera.position,target,dt);},spawnReward:()=>{reward=true;},persist:saved=>{records.bosses.write({...records.bosses.read(),[data.definition.id]:saved});},toast,feed},ui,current);
+          easeViewToward(weapons().look,camera.position,target,dt);},spawnReward:()=>{
+          const at=itemPickupFloor(host.physics,fight.rewardPoint());rewardPoint=new Vector3(at.x,at.y+ITEM_PICKUP_HOVER+.5,at.z);reward=true;
+        },persist:saved=>{records.bosses.write({...records.bosses.read(),[data.definition.id]:saved});},toast,feed},ui,current);
       encounter.boss=boss;host.player.health.checkpoint(host.scope,()=>boss.onPlayerDeath());
       const boundaryPorts={boss,fight,prompt,player:host.player.position,toast,
         wall:()=>{hit('wall',host.player.position,data.view.wallDamage,data.lines.wall);},clear:()=>{actual.storm.weather.force(data.weather.clearing);},
@@ -112,22 +122,22 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
         if(boss.state!=='dormant'||fight.body.visible)boss.update(dt,host.clock.now);else fight.update(dt,host.clock.now,false);
         const answer=fight.takeBoundary();if(answer!==null)arenaBoundary(answer,data.lines,data.record,boundaryPorts);
       };
-      updates.set(host,run);owners.set(host,{fight,boss,locked:()=>locked,reward:()=>reward,storm:()=>actual.storm.stormActive,
+      updates.set(host,run);owners.set(host,{fight,boss,records,locked:()=>locked,reward:()=>reward,storm:()=>actual.storm.stormActive,
         weather:()=>({state:actual.storm.weather.state,left:actual.storm.weather.phaseLeft}),
-        rewardPrompt:()=>{if(!reward)return null;const at=itemPickupFloor(host.physics,fight.rewardPoint());
-          return {position:new Vector3(at.x,at.y+ITEM_PICKUP_HOVER+.5,at.z),radius:2.6,label:data.reward.prompt};}});
+        rewardPrompt:()=>rewardPoint===null?null:{position:rewardPoint.clone(),radius:2.6,label:data.reward.prompt}});
       host.scope.onDispose(()=>{owners.delete(host);updates.delete(host);shares.delete(host);weather.delete(host);});
       host.onStep('nalati.titan',()=>undefined,{snapshot:()=>{
         const state=fight.snapshot();
-        return JSON.stringify({version:1,fight:state,boss:boss.snapshot(),locked,reward,bar,prompt:{radius:prompt.radius,label:prompt.label},
+        return JSON.stringify({version:1,fight:state,boss:boss.snapshot(),locked,reward,...(rewardPoint===null?{}:{rewardPoint:rewardPoint.toArray()}),bar,prompt:{radius:prompt.radius,label:prompt.label},
           support:state.riders.map(({site})=>{const body=support.get(site);if(body===undefined)throw new Error('Titan support lost its actual site');return [site,body.entityId];}),
           toasts:[...toasts],feeds:[...feeds],contacts:totalContacts});},
         restore:value=>{
           const saved=v.parse(TitanSaved,typeof value==='string'?JSON.parse(value):value);
+          if(saved.reward!==(saved.rewardPoint!==null))throw new Error('Titan reward continuation lost its actual pickup point');
           const restored=new Map(saved.support.map(([site,id])=>{const body=patrolOwner.law.riders.find(row=>row.a.entityId===id)?.a;
             if(body===undefined)throw new Error('Titan continuation lost its actual support actor');return [site,body] as const;}));
           fight.restore(saved.fight,site=>{const body=restored.get(site);return body===undefined?null:rider(body);});boss.restore(saved.boss);
-          support.clear();for(const [site,body]of restored)support.set(site,body);locked=saved.locked;reward=saved.reward;bar=saved.bar;
+          support.clear();for(const [site,body]of restored)support.set(site,body);locked=saved.locked;reward=saved.reward;rewardPoint=saved.rewardPoint===null?null:new Vector3().fromArray(saved.rewardPoint);bar=saved.bar;
           if(host.playerMoveScale!==(locked?0:1))throw new Error('Titan input lock differs from the restored native motor owner');
           weapons().setEnabled(!locked);
           prompt.radius=saved.prompt.radius;prompt.label=saved.prompt.label;toasts.splice(0,toasts.length,...saved.toasts);feeds.splice(0,feeds.length,...saved.feeds);totalContacts=saved.contacts;
