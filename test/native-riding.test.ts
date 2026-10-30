@@ -7,7 +7,8 @@ import type { HuntBody } from '@wildshard/engine/ai/hunt';
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Freeze the complete predecessor native snapshot history.
 import {createHash} from 'node:crypto';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
+import { onFault, type Fault } from '@wildshard/engine/core/faults';
 import { zlibSync } from 'fflate';
 import { Vector3 } from 'three';
 import { createSimHost, type SimHost } from '@wildshard/engine/sim';
@@ -20,6 +21,7 @@ import fixtureBrains from '../src/shards/nalati-grasslands/data/brains.json' wit
 import { installMountedPlayer } from '@wildshard/game/riding/native';
 import { NALATI_RIDING_PROGRAMS as programs } from './fixtures/nalati-riding';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+
 
 // Full canonical predecessor histories: 90 native ticks plus dismount,
 // recorded before replacing inline fixture inputs with named blocks.
@@ -196,7 +198,8 @@ test('orchard wildlife frame continues real foragers and tramples through numeri
   const population = new ForagerPopulation(v.parse(ForagerPopulationSchema, { ...foragerRow, id: 'orchard.foragers', count: 4, place: { ...foragerRow.place, size: [2, 2] } }), 41);
   population.colonies([{ x: 5, z: 5 }]);
   const trample = new TrampleField(), wolves: HuntBody[] = [], signals: string[] = [];
-  const frame = new NativeWildlifeFrame(host, admissionNative(host), [actor], [], wolves, [], [], [], population, trample,
+  const author = admissionNative(host);
+  const frame = new NativeWildlifeFrame(host, author, [actor], [], wolves, [], [], [], population, trample,
     { speed: 'speed', alert: 'whistle', range: 'scare', packRadius: 20, scareSeconds: 6, scareRadius: 60, foragerRunSpeed: 5,
       trample: { kinds: { boar: .5 }, minSpeed: .6, range: 80, fullSpeed: 6 }, knockdown: { speed: 7, min: .4, max: 1.5, seconds: .28 } });
   const field = new GrassField({ seed: 9, half: 16, heightAt: () => 0, normalAt: () => [0, 1, 0], splatAt: () => [1, 0, 0, 0], trailDistance: () => Infinity, cabinMask: () => 0, pondMask: () => 0, waterLevel: () => -100, paint: () => false, layout: null });
@@ -212,6 +215,17 @@ test('orchard wildlife frame continues real foragers and tramples through numeri
     expect(environment.grassHeightAt(actor.position.x, actor.position.z)).toBeLessThan(standing);
     environment.onEvent('scare', 3, 4); host.step({ moveX: 0, moveZ: 0, yaw: 0 }); expect(signals).toEqual(['scare']);
     frame.update(.1, true); frame.restore(saved); expect(frame.snapshot()).toEqual(saved);
+    host.clock.tick(.11);
+    const before = frame.snapshot(), beforeTrample = trample.snapshot(), faults: Fault[] = [];
+    const off = onFault(fault => { faults.push(fault); }), projection = vi.spyOn(author, 'project').mockReturnValue({});
+    try {
+      for (let i = 0; i < 2; i++) expect(() => frame.update(1 / 60, false)).not.toThrow();
+      expect(frame.snapshot()).toEqual(before); expect(trample.snapshot()).toEqual(beforeTrample);
+      expect(faults).toHaveLength(1); expect(faults[0]).toMatchObject({system: 'population.wildlife', verdict: 'retry', error: expect.objectContaining({message: 'Invalid native wildlife speed'})});
+      projection.mockRestore();
+      frame.update(1 / 60, false); expect(frame.snapshot().wild.at).toBe(host.clock.now);
+      expect(() => author.project('missing-signal', {})).toThrow();
+    } finally { projection.mockRestore(); off(); }
   } finally { host.dispose(); }
 });
 

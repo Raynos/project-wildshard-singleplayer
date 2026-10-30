@@ -20,6 +20,7 @@ import { huntMemoryCodec } from '@wildshard/engine/ai/huntPattern';
 import { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { SimHost } from '@wildshard/engine/sim';
+import { emitFault } from '@wildshard/engine/core/faults';
 
 /** Existing native envelope fields; adapters retain their historical wire names. */
 export interface NativeHuntContinuation {
@@ -212,6 +213,7 @@ export interface NativeWildlifeRows {
 /** Continuous world observations around the existing native group and crowd
  * owners. Placement and response decisions stay in their admitted guest. */
 export class NativeWildlifeFrame {
+  private reportedFrame = false;
   private readonly state: WildlifeFrameState = { init: false, x: 0, z: 0, v: 0, at: 0 };
   private readonly fields = { x: 0, z: 0, px: 0, pz: 0, dt: 0, speed: 0 };
   private readonly relations: PopulationRelations<AnimalSim>;
@@ -224,6 +226,13 @@ export class NativeWildlifeFrame {
       disturbRadius: 0, disturbSeconds: 0, scareSeconds: rows.scareSeconds });
   }
   update(dt: number, crouched: boolean): void {
+    try { this.updateFrame(dt, crouched); }
+    catch (error) {
+      if (!this.reportedFrame) { this.reportedFrame = true; emitFault({system: 'population.wildlife', error, verdict: 'retry'}); }
+    }
+  }
+  /** Accepted native effects stay accepted; a refused frame is never replayed. */
+  private updateFrame(dt: number, crouched: boolean): void {
     const player = this.host.player.position, state = this.state;
     if (!state.init) { state.x = player.x; state.z = player.z; state.init = true; }
     const elapsed = this.host.clock.now-(state.at ?? 0);
