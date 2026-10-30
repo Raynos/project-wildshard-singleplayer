@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { lendNalatiHeld } from './fixtures/nalati-return-modules';
+import { lendNalatiHeld } from './fixtures/nalati-held-loan';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import * as v from 'valibot';
