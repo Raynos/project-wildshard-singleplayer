@@ -1,6 +1,7 @@
 import {spawnSync} from 'node:child_process';
 import {mkdirSync,readFileSync} from 'node:fs';
 import {join,resolve} from 'node:path';
+import {assertBuiltTestProducts} from './built-product.mjs';
 
 /** @param {readonly string[]} args @param {string} name @param {string} fallback */
 const flag=(args,name,fallback)=>args.find(arg=>arg.startsWith(`--${name}=`))?.slice(name.length+3)??fallback;
@@ -53,6 +54,8 @@ export function runNativePhysicsWalk(root,args){
       join(root,'scripts/build-shardfiles.mjs'),'--reuse',`--shard=${slugs.join(',')}`],{cwd:root,stdio:'inherit'});
     if(build.status!==0)return {status:build.status??1,legs:selection.count,report:null};
   }
+  // Use the same strict reader as CI before the reporter can omit blocked suites.
+  assertBuiltTestProducts(root,files);
   const out=resolve(root,flag(args,'out','tmp/physics'));mkdirSync(out,{recursive:true});
   const report=join(out,`${flag(args,'label','native-walk')}-${new Date().toISOString().replaceAll(':','-')}-${process.pid}.json`);
   const run=spawnSync(process.execPath,[join(root,'scripts/vitest-tmp.ts'),'run',
