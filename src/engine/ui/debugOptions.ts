@@ -1,5 +1,4 @@
 import {spawnRingReveal, setSpawnRingReveal} from '../boot/spawnRingReveal';
-import { phoneBloom, setPhoneBloom } from '../render/phoneBloom';
 import { graphBatches, setGraphBatches } from '../render/graphBatches';
 import { TIER } from '../core/tier';
 import { authoredRows } from './authoredDebugRows';
@@ -165,12 +164,6 @@ const roadResidencyRow: DebugRow = { purpose: 'developer', id: 'roadResidency', 
   get: () => roadResidency(), set: value => { const pick = ROAD_RESIDENCY.find(choice => choice === value); if (pick !== undefined && isDev()) setRoadResidency(pick); },
   on: () => undefined, reload: true, when: always, note: engineString('s_road_residency_note'), ask: 'E435', reviewBy: '2026-10-28' };
 
-/** FC10 (G910): the phone frame's bloom, A on (the old look) / B off (default); a reload. */
-const phoneBloomRow: DebugRow = { id: 'phoneBloom', group: 'look', label: engineString('s_phone_bloom'),
-  choices: () => [{ v: 'on', text: engineString('s_130011756125') }, { v: 'off', text: engineString('s_ca7981b46ecf') }],
-  get: () => phoneBloom() ? 'on' : 'off', set: value => { if (value === 'on' || value === 'off') setPhoneBloom(value === 'on'); },
-  on: () => undefined, reload: true, when: () => TIER === 'phone', note: engineString('s_phone_bloom_note'), ask: 'E435', reviewBy: '2026-12-30' };
-
 /** FC13 (G912): idle-frame reuse, default off until a phone reading backs it; the winner ships and this goes. */
 const idleFramesRow: DebugRow = { purpose: 'developer', id: 'idleFrames', group: 'perf', label: engineString('s_idle_frames'),
   choices: () => [{ v: 'off', text: engineString('s_ca7981b46ecf') }, { v: 'hold', text: engineString('s_idle_frames_hold') }],
@@ -198,7 +191,6 @@ const spawnRingRevealRow: DebugRow = {purpose: 'developer', id: 'spawnRingReveal
 
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
-  phoneBloomRow,
 
 
 

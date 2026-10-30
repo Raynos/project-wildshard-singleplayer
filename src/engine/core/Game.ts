@@ -55,7 +55,6 @@ import { duringShadowPass } from '../world/cascadeCull';
 import { recordGpuCheckpoint, traceBootPasses } from '../boot/gpuTrace';
 import { exploreEntryPending, recordExploreFrame, recordBootCheckpoint, bootTraceActive } from '../boot/bootTrace';
 import { cullPlaced } from '../models/place';
-import { phoneBloom } from '../render/phoneBloom';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
@@ -657,8 +656,8 @@ export class Game {
     const aa = gfxPrefs.aa === 'on' ? 'fxaa' : gfxPrefs.aa === 'off' ? 'off' : knobs.aa ?? (TIER === 'phone' || TIER_CONFIG.smaa === 'off' ? 'off' : 'fxaa');
     const fxaa = aa === 'off' ? null : new FXAAEffect();
     const raysOn = knobs.godRays ?? true;
-    // FC10 (G910): no bloom in the phone frame unless Debug ▸ Look ▸ Phone bloom keeps the old look (render/phoneBloom.ts)
-    const bloomOn = TIER !== 'phone' || phoneBloom();
+    // G945: the phone's engine chain keeps bloom off; desktop keeps its existing chain.
+    const bloomOn = TIER !== 'phone';
     const chain = (clean: boolean): BuiltChain => {
       const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
         blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
