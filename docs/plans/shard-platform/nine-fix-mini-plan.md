@@ -60,8 +60,10 @@ No decision or damage-list row approves any of the cuts above, so every one is r
 | NF18 | **Delete the TSL runtime** after Jake's fps QA (G933): `EngineNodesHandler` (1,514 lines), `render/nodes/*` (~2.2k), the TSL half of `graph/compile.ts`, the `three/webgpu` chunk, the node halves of fog / mask / precompile / shadow depth, NF2 and the Debug row. Build-time authoring may keep TSL as a DSL. | No runtime chunk imports `three/webgpu` or `three/tsl`; boot download ≥ 100 KB gzip smaller; NF15 / NF17 numbers still hold on HEAD; frame-floor and golden checks green on every shard. | Opus | M |
 | NF19 | *(Optional)* **Half-float slab channels** (`_AMISC`, `_ASPILL`, `_AOFF`). | Nine L0 GPU ≤ 56 MB (today 81.6); no visible change at the five poses. | Codex (bake) | S |
 | NF20 | **The loading card counts wire bytes**: "Spawn view 81.2 MB" is the decoded size; the wire is ~18 MB. | Nine's cold card reads ~18 MB, equal to the network log's transfer sizes. | Codex | S |
+| NF21 | **One per-draw hook, not six** (low-hanging fruit L1 from the [engine performance draft](../../ENGINE-PERFORMANCE-DRAFT.md) §7, E515): six engine bookkeeping wrappers plus two `properties.get` hooks run around every draw, in legacy too (0.9–2.0 ms + 0.2–1.1 ms a frame at Chromium 4x). Fold them into one hook. Shared with [pine-fps](pine-fps-mini-plan.md) PF14. | Nine P4 work p50 −1.0 ms or more at Chromium 4x against the parent build, same draws, pixel-identical at P1–P5. | Opus | S |
+| NF22 | **Opaque draws sorted by program** (L2, E515): opaque objects sort by material id, not by program. Measure first. Shared with pine-fps PF15. | Nine P4 program switches a frame ≤ legacy's 52, work p50 not worse; pixel-identical. | Opus | S |
 
-Order: wave 1 in parallel now. NF1 first, since it alone removes in-play retires. NF4 and NF5 next, as the biggest
+Order: wave 1 in parallel now, with NF21 / NF22 (E515's low-hanging fruit, about −1.2 to −2.2 ms on Nine before the GLSL back-end). NF1 first, since it alone removes in-play retires. NF4 and NF5 next, as the biggest
 visible and frame wins. Then NF10 → NF11 → NF12 and NF13 → NF14 → NF15 → NF16 in parallel, NF17 after NF15, and NF18
 last, after Jake's phone QA.
 
