@@ -2,6 +2,7 @@
 import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Assert actual native ownership and checkpoint continuation.
 import assert from 'node:assert/strict';
+import * as v from 'valibot';
 import {builtProduct} from '../builtProduct';
 import {loadHeadlessProduct} from '../../../src/sdk/headlessProduct';
 import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
@@ -14,16 +15,21 @@ import {prepareHeadlessRuntime} from '../nalati-headless';
 import {canonicalSimDigest} from '../../fake/simState';
 import {walkNalatiHorsePlains} from '../../proof/nalati-grasslands/horsePlainsWalk';
 import {createNalatiTamingPilot} from '../../proof/nalati-grasslands/tamingPilot';
-import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
+import {TickCommandSchema,type HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import type {PrepareHeadlessRuntime} from '../../../src/sdk/headlessRuntime';
 
 interface BondedObservation {
   readonly phase:string;readonly upgraded:boolean;readonly flags:readonly string[];
   readonly quests:readonly {id:string;started:boolean;complete:boolean;current:string|null}[];
+  readonly player:{readonly x:number;readonly y:number;readonly z:number};
+  readonly companion:{readonly id:string;readonly x:number;readonly y:number;readonly z:number}|null;
+  readonly companions:string|null;
 }
 interface TamingProofOptions {
   /** Reinstall the same real owners on both sides of the earned checkpoint. */
   readonly prepare?:PrepareHeadlessRuntime;
+  /** Bounded native input after actual adoption, replayed on both owners. */
+  readonly postBondCommands?:readonly (readonly HeadlessCommand[])[];
   /** Detached observations only; the verifier cannot mutate either resident. */
   readonly verifyBonded?:(first:BondedObservation,restored:BondedObservation)=>void;
 }
@@ -32,6 +38,7 @@ interface TamingProofOptions {
  * is captured from accepted live state, never supplied by the caller. */
 export async function runNalatiFieldTaming(options:TamingProofOptions={}):Promise<{ticks:number;approachTicks:number;breakingTicks:number;checkpointTick:number;rounds:number}> {
   const prepare=options.prepare??prepareHeadlessRuntime;
+  const after=v.parse(v.pipe(v.array(v.pipe(v.array(TickCommandSchema),v.maxLength(1024))),v.maxLength(600)),options.postBondCommands??[]);
   const directory=builtProduct('nalati-grasslands'),product=await loadHeadlessProduct(directory),shard=product.shardfile;
   const descriptor=outputDescriptor(shard);assert.ok(descriptor);
   const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,
@@ -67,9 +74,15 @@ export async function runNalatiFieldTaming(options:TamingProofOptions={}):Promis
     assert.equal(original.position.y,-1e4);assert.equal(original.motor,null);
     assert.equal(canonicalSimDigest(snapshotSimHost(restored.host)),canonicalSimDigest(snapshotSimHost(first.host)),
       'the complete actual bucking/adoption suffix survives reinstall');
+    for(const commands of after){step(commands);restored.step(commands);}
+    assert.equal(canonicalSimDigest(snapshotSimHost(restored.host)),canonicalSimDigest(snapshotSimHost(first.host)),
+      'the same real post-bond inputs retain the restored continuation');
     const observe=(owner:typeof first):BondedObservation=>{
       const state=nativeTamingOf(owner.host);assert.ok(state);
-      return {phase:state.phase,upgraded:state.upgraded,flags:[...owner.host.flags.all],
+      const at=owner.host.player.position,companion=state.companion,observation=owner.host.adapters.get('nalati.companions')?.snapshot();
+      return {phase:state.phase,upgraded:state.upgraded,flags:[...owner.host.flags.all],player:{x:at.x,y:at.y,z:at.z},
+        companion:companion===null?null:{id:companion.entityId,x:companion.position.x,y:companion.position.y,z:companion.position.z},
+        companions:observation===undefined?null:typeof observation==='string'?observation:JSON.stringify(observation),
         quests:owner.host.quests.map(quest=>({id:quest.def.id,started:quest.isStarted,complete:quest.isComplete,current:quest.current?.id??null}))};
     };
     options.verifyBonded?.(observe(first),observe(restored));
