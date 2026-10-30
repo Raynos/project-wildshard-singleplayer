@@ -65,6 +65,8 @@ test('a key draws its tiles\' chunks under its anchor, one instanced mesh each, 
     await f.content.attach(0, first);
     expect(f.read).toHaveBeenCalledTimes(1); expect(f.cover).toHaveBeenCalledOnce();
     expect(f.anchor.children).toHaveLength(2); expect(f.anchor.visible).toBe(true); expect(f.material.version).toBe(version + 1);
+    // EP7: the anchor holds its chunks but draws nothing itself (no empty call on a plain program)
+    expect(f.anchor.layers.mask).toBe(0);
     // the anchor compiles against its chunks' channels and draws none
     expect(f.anchor.geometry.getAttribute('position').count).toBe(0); expect(f.anchor.geometry.getAttribute('normal').count).toBe(0);
     const [a, b] = f.anchor.children, ga = geometryOf(a), gb = geometryOf(b);

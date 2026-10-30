@@ -147,6 +147,9 @@ export class SlabLibrary {
       ownSceneResource(layout, lifetime); mesh.geometry = layout;
       for (const material of [mesh.material].flat()) material.needsUpdate = true;
       if (hidden) { mesh.visible = true; hidden = false; }
+      // EP7: it stays visible for its chunks (and its band), but never draws itself: its triangle-less draw issued an
+      // empty call a frame on a plain-mesh program its instanced chunks no longer use
+      mesh.layers.disableAll();
     };
     return { id: `slab:${this.row.id}:${id}:${mesh.uuid}`, tiles: () => tiles, ready: () => this.queue.ready,
       attach: async (tile, scope) => {
