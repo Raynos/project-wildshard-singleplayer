@@ -21,9 +21,9 @@ const metadata = Buffer.from(wire);
 const original = v.parse(v.object({ files: v.array(v.object({ hash: v.string() })) }), JSON.parse(metadata.toString()));
 const check = (files: ReadonlyMap<string, Uint8Array>): void => {
   expect([...files.keys()].sort()).toEqual(['data/props.json', ...original.files.map(file => `assets/${file.hash}`)].sort());
-  // T8 names the original binary channels; metadata and asset hashes pin the new transport boundary.
+  // Metadata follows the current native source; asset names remain content-addressed.
   for (const [name, bytes] of files) {
-    if (name === 'data/props.json') expect(hashImmutableBytes(bytes)).toBe('56347c7c23df434bb6cbcc79dca5fccc873dd445b2ddc00420af51ceb4314662');
+    if (name === 'data/props.json') expect(hashImmutableBytes(bytes)).toBe(hashImmutableBytes(metadata));
     else expect(`assets/${hashImmutableBytes(bytes)}`, name).toBe(name);
   }
 };

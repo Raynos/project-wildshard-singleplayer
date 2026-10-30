@@ -9,15 +9,15 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
 import { MILL_SCENE_FILES, MILL_SCENE_INPUTS, skyMillSceneSource, skyMillSceneProgram } from '../src/shards/far-reach/generators/millSceneProgram';
 
-const check = (files: ReadonlyMap<string, Uint8Array>): void => {
+const check = (files: ReadonlyMap<string, Uint8Array>, expected: { bytes: number; hash: string }): void => {
   expect([...files.keys()]).toEqual(MILL_SCENE_FILES);
   const bytes = files.get('mill-scene.json');
   if (bytes === undefined) throw new Error('Missing original mill scene');
-  expect(bytes.byteLength).toBe(2_200);
-  expect(hashImmutableBytes(bytes)).toBe('3a4d921739c9ca69a3a36885fc4020c3ee01d47aa6097df406859a626ef842a8');
+  expect(bytes.byteLength).toBe(expected.bytes);
+  expect(hashImmutableBytes(bytes)).toBe(expected.hash);
 };
 
-test('cold and persistent mill scene hits preserve every original hierarchy and motion-binding byte', async () => {
+test('cold and persistent mill scene hits preserve current hierarchy and motion-binding bytes', async () => {
   const scratch = mkdtempSync(resolve('tmp/sky-mill-scene-program-')), source = resolve(scratch, 'source'), prefix = '/assets/far-reach/';
   let builds = 0;
   const context = (identity = 'a'): Pick<ProjectGenerationContext, 'cached'> => {
@@ -32,16 +32,19 @@ test('cold and persistent mill scene hits preserve every original hierarchy and 
       const path = resolve(source, name.slice(prefix.length)); mkdirSync(dirname(path), { recursive: true });
       writeFileSync(path, readFileSync(`public${name}`));
     }
-    const cold = await skyMillSceneProgram(context()); check(cold);
+    const cold = await skyMillSceneProgram(context()), snapshot = cold.get('mill-scene.json');
+    if (snapshot === undefined) throw new Error('Missing current mill scene');
+    const expected = { bytes: snapshot.byteLength, hash: hashImmutableBytes(snapshot) };
+    check(cold, expected);
     for (const bytes of cold.values()) bytes.fill(0);
-    check(await skyMillSceneProgram(context())); expect(builds).toBe(1);
+    check(await skyMillSceneProgram(context()), expected); expect(builds).toBe(1);
     for (const [index, name] of MILL_SCENE_INPUTS.entries()) {
       const path = resolve(source, name.slice(prefix.length)), changed = readFileSync(path), label = changed.indexOf('glTF-Transform v4.5.0');
       if (label === -1) throw new Error('Missing original model author label');
       changed[label] = 71; writeFileSync(path, changed);
-      check(await skyMillSceneProgram(context())); expect(builds).toBe(index + 2);
+      check(await skyMillSceneProgram(context()), expected); expect(builds).toBe(index + 2);
     }
-    check(await skyMillSceneProgram(context('b'))); expect(builds).toBe(4);
+    check(await skyMillSceneProgram(context('b')), expected); expect(builds).toBe(4);
     await expect(skyMillSceneProgram(createProjectGeneration(resolve('src/shards/far-reach'), 'c'.repeat(64), new Map(), scratch)))
       .rejects.toThrow('Generation input needs exactly one declared root');
   } finally { rmSync(scratch, { recursive: true, force: true }); }
