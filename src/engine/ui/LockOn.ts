@@ -18,7 +18,8 @@ import { engineString } from '../strings';
  * when nothing is framed or the target is behind the camera. Every write is skipped when nothing changed.
  */
 import * as THREE from 'three';
-import { lockOn, meleeLock, targetRadius, type AimTarget } from '../player/AimTargets';
+import { lockOn, meleeLock, type AimTarget } from '../player/AimTargets';
+import { targetRadius } from '../combat/lungeTarget';
 import { aimPoint, type FlickDir } from '../player/LockOnTarget';
 import { viewportHeight } from '../core/viewport';
 

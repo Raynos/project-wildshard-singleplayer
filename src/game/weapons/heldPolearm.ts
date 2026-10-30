@@ -14,7 +14,8 @@ import { quiverState, type WeaponState, type AimInfo } from '@wildshard/engine/c
 import type { Game } from '@wildshard/engine/core/Game';
 import { weaponActionGate } from '@wildshard/engine/input/weaponActions';
 import { floorBelow } from '@wildshard/engine/physics/query';
-import { targetRadius, type AimTarget } from '@wildshard/engine/player/AimTargets';
+import type { AimTarget } from '@wildshard/engine/player/AimTargets';
+import { targetRadius } from '@wildshard/engine/combat/lungeTarget';
 import type { Player } from '@wildshard/engine/player/Player';
 import { viewmodel } from '@wildshard/engine/render/viewmodelFeel';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';

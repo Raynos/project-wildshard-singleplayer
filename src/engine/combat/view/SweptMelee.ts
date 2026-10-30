@@ -10,7 +10,8 @@ import { worldTime } from '../../core/time';
 import { Impacts } from '../../fx/Impacts';
 import { ParticlePool, pointScale } from '../../fx/ParticlePool';
 import { weaponActionGate } from '../../input/weaponActions';
-import { lockOn, meleeLock, targetRadius, type AimTarget } from '../../player/AimTargets';
+import { lockOn, meleeLock, type AimTarget } from '../../player/AimTargets';
+import { pickLunge, targetRadius } from '../lungeTarget';
 import { BladeGlow } from '../../player/bladeGlow';
 import { CameraFX } from '../../player/CameraFX';
 import { dodgeFx, dodgeEnv } from '../../player/dodge';
@@ -329,28 +330,10 @@ export class SweptMelee extends Melee {
     if (heavy) this.onHeavy?.();
     this.defaults.events.onSwing?.(heavy ? 1 : move === this.defaults.finisher ? 0.85 : 0.7, heavy, move.sweep > 0 ? -1 : 1);
   }
-  /** the animal a swing would lunge onto: alive, within `range` m (feet → body edge), inside ±this.profile.lunge.cone of the view, near the
-   *  feet's height — the smallest angle wins, distance breaking near-ties */
+  /** the animal a swing would lunge onto (pickLunge, lungeTarget.ts): alive, within `range` m (feet → body edge), inside
+   *  ±this.profile.lunge.cone of the view, near the feet's height; locked on (E50 §2.4), only ever the locked enemy */
   private findLunge(range: number): AimTarget | null {
-    const p = this.player.position, yaw = this.player.yaw;
-    // locked on (E50 §2.4): only ever the locked enemy — no cone check (the view is on it), and never a different one
-    if (lockOn.state === 'locked') {
-      const t = lockOn.target;
-      if (t === null || !t.alive || t.hidden) return null;
-      return Math.hypot(t.position.x - p.x, t.position.z - p.z) - targetRadius(t) <= range ? t : null;
-    }
-    const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
-    let best: AimTarget | null = null, bestScore = Infinity;
-    for (const t of app.aimTargets) {
-      if (!t.alive || t.hidden || Math.abs(t.position.y - p.y) > 2) continue;
-      const dx = t.position.x - p.x, dz = t.position.z - p.z, d = Math.hypot(dx, dz);
-      if (d < 0.01 || d - targetRadius(t) > range) continue;
-      const angle = Math.acos(THREE.MathUtils.clamp((dx * fx + dz * fz) / d, -1, 1));
-      if (angle > this.profile.lunge.cone) continue;
-      const score = angle / this.profile.lunge.cone + 0.3 * d / range;
-      if (score < bestScore) { bestScore = score; best = t; }
-    }
-    return best;
+    return pickLunge(app.aimTargets, this.player.position, this.player.yaw, range, this.profile.lunge.cone, lockOn.state === 'locked' ? lockOn : undefined);
   }
 
   /** no ammo to add / nothing to reload */

@@ -27,7 +27,8 @@ import type { InputService } from '../input/InputService';
 import * as THREE from 'three';
 import type { Player } from './Player';
 import type { EquipmentService } from '../combat/EquipmentService';
-import { lockOn, targetRadius, type AimTarget } from './AimTargets';
+import { lockOn, type AimTarget } from './AimTargets';
+import { targetRadius } from '../combat/lungeTarget';
 import { lineOfSight } from '../physics/query';
 import { getNumber, getSetting } from '../ui/Settings';
 

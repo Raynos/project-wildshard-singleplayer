@@ -39,11 +39,6 @@ export function setAimTargets(list: readonly AimTarget[]): void { app.aimTargets
  * (src/engine/ui/LockOn.ts) and the touch layer's lunge camera turn (TouchControls.ts).
  */
 export const meleeLock: { target: AimTarget | null; lunging: boolean } = { target: null, lunging: false };
-/** the animal's horizontal half-size (m) from its dims — where a lunge stops short of it */
-export function targetRadius(t: AimTarget): number {
-  const d = t.dims;
-  return Math.max(0.3, Math.max(d?.bodyRadius ?? 0.33, (d?.bodyHalfLen ?? 0.5) * 0.6)) * (t.scale ?? 1);
-}
 
 /**
  * The Zelda-style lock-on (E50, project/archive/2026-09-23-lock-on.md — src/engine/player/LockOnTarget.ts runs it): `state` 'off' (nothing to lock),

@@ -248,6 +248,7 @@
     "./physics/surface": "./physics/surface.ts",
     "./physics/terrain": "./physics/terrain.ts",
     "./player/AimTargets": "./player/AimTargets.ts",
+    "./combat/lungeTarget": "./combat/lungeTarget.ts",
     "./player/CameraFX": "./player/CameraFX.ts",
     "./player/Hands": "./player/Hands.ts",
     "./player/LockOnTarget": "./player/LockOnTarget.ts",
