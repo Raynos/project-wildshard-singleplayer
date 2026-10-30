@@ -1,5 +1,4 @@
 import {spawnRingReveal, setSpawnRingReveal} from '../boot/spawnRingReveal';
-import { sharedUploadPaint, setSharedUploadPaint } from '../render/sharedUploadPaint';
 import { phoneBloom, setPhoneBloom } from '../render/phoneBloom';
 import { leanDrawBudget, setLeanDrawBudget } from '../render/drawBudget';
 import { TIER } from '../core/tier';
@@ -196,12 +195,6 @@ const spawnRingRevealRow: DebugRow = {purpose: 'developer', id: 'spawnRingReveal
   get: () => spawnRingReveal() ? 'on' : 'off', set: value => {if (value === 'off' || value === 'on') setSpawnRingReveal(value === 'on');},
   on: () => undefined, reload: true, when: always, note: engineString('s_spawn_ring_reveal_note'), ask: 'E435', reviewBy: '2026-10-30'};
 
-/** CI9: shared paints between back-to-back compressed texture uploads, default off until a phone reading. */
-const sharedUploadPaintRow: DebugRow = { purpose: 'developer', id: 'sharedUploadPaint', group: 'loading', label: engineString('s_shared_upload_paint'),
-  choices: () => [{ v: 'off', text: engineString('s_ca7981b46ecf') }, { v: 'on', text: engineString('s_130011756125') }],
-  get: () => sharedUploadPaint() ? 'on' : 'off', set: value => { if (value === 'off' || value === 'on') setSharedUploadPaint(value === 'on'); },
-  on: () => undefined, reload: true, when: always, note: engineString('s_shared_upload_paint_note'), ask: 'E435', reviewBy: '2026-11-13' };
-
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
   phoneBloomRow,
@@ -222,7 +215,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Loading & memory ──
   clearDownloadsRow,
   spawnRingRevealRow,
-  sharedUploadPaintRow,
 
   // ── Developer tools ──
 

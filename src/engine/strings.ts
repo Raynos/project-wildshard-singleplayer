@@ -1,8 +1,6 @@
 /** English engine UI strings. Content-owned overrides are installed by the composition root. */
 export const ENGINE_STRINGS = {
   "s_spawn_ring_reveal": "Reveal at 3x3 spawn ring",
-  "s_shared_upload_paint": "Shared upload paint",
-  "s_shared_upload_paint_note": "CI9: back-to-back compressed texture uploads share the paint between them (one frame an upload, not two); reloads. Off (default) is the old pacing: on the iPhone Simulator On loaded a large world faster but raised its worst loader frame (~220 to ~300 ms).",
   "s_phone_bloom": "Phone bloom",
   "s_draw_budget": "Draw budget",
   "s_draw_budget_current": "Current",
