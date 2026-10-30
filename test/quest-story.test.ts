@@ -21,8 +21,8 @@ import { PAGE_STORY as driftStory } from '../src/shards/driftwood-isle/generator
 import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pageStory';
 import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/generators/questInventory';
 import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';
-import { DRIFTWOOD as drift } from './fixtures/driftwood-program';
-import { PINE as pine } from './fixtures/pine-program';
+import {loadHeadlessProduct} from '../src/sdk/headlessProduct';
+import {builtProduct} from './fixtures/builtProduct';
 import * as v from 'valibot';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
@@ -36,6 +36,14 @@ import deaths from '../src/shards/driftwood-isle/data/questDeaths.json';
 import { TRADER_PAGE } from '../src/shards/driftwood-isle/generators/traderPage';
 import { PINE_PAGE_DEATH_EFFECTS } from '../src/shards/pine-hollow/generators/questDeaths';
 import { installWorldFixture } from './fixtures/worldSetup';
+
+// Runtime story behavior uses the prepare job's strict declarations; story
+// rows and achievement inputs remain the original source oracles below.
+const [driftProduct,pineProduct]=await Promise.all([
+  loadHeadlessProduct(builtProduct('driftwood-isle')),
+  loadHeadlessProduct(builtProduct('pine-hollow')),
+]);
+const drift=driftProduct.shardfile,pine=pineProduct.shardfile;
 
 await installWorldFixture();
 

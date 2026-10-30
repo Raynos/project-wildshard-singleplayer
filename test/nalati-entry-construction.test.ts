@@ -7,23 +7,15 @@ import {ForestWeatherSchema} from '../src/format/forestWeather';
 import {parseEliteEntryPageRows} from '../src/format/eliteEntryRows';
 import {ArenaScriptFightFileSchema} from '../src/format/arenaScriptRows';
 import {CLIENT_FEATURES} from '../src/game/shardfile/clientPlan';
-import {createShardProduct} from '../src/game/shardfile/shardProduct';
-import {outputPlatformPayloads} from '../src/sdk/outputProduct';
-import {readProjectAssets} from '../src/sdk/project';
+import {loadHeadlessProduct} from '../src/sdk/headlessProduct';
+import {builtProduct} from './fixtures/builtProduct';
 
-// Prepare the complete live source product before the unchanged timed
-// assertions; compiler/native setup failures still refuse collection.
-const nalatiEnvelope=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
-    { prefix: '/src/shards/nalati-grasslands/', directory: 'src/shards/nalati-grasslands' },
-    { prefix: '/assets/', directory: 'public/assets' },
-  ] });
+// Use the normal prepare's exact product through strict native admission. Its
+// actual client plan and verified named JSON retain all constructor oracles.
+const nalatiProduct=await loadHeadlessProduct(builtProduct('nalati-grasslands'));
 
 test('the declared plan constructs the original elite and night owners once after assembly',async()=>{
-  const emitted=nalatiEnvelope;
-  const files=new Map((emitted.output.namedFiles??[]).flatMap(file=>file.name===undefined?[]:[[file.name,{...file,url:file.path}] as const]));
-  const product=createShardProduct({slug:emitted.shard.identity.slug,revision:emitted.shard.identity.revision,shardfile:emitted.shard,
-    sections:outputPlatformPayloads(emitted.output.platform,['client/plan']),files,
-    read:hash=>{const bytes=emitted.assets.get(hash);if(bytes===undefined)throw new Error('Missing admitted constructor input');return Promise.resolve(bytes);}});
+  const product=nalatiProduct;
   const plan=parseClientPlan(product.section('client/plan')),entry=parseManifestMetadata(metadata).bindings.entry;
   expect(entry).toEqual({platform:'client-plan',retainHomeRuntime:true,stagesOwner:'declared'});
   const runtime=product.shardfile.runtime;
