@@ -85,3 +85,23 @@ test('a frozen opcode accessor keeps one live read when it changes from its inst
   const lane=admittedClientChannels(row);live=true;lane.evaluate(observation);
   expect(lane.frame.value).toBe(7);expect(reads).toBe(1);
 });
+
+test('a clockless stateless lane keeps its values for repeated reads, and a refused call refuses again', () => {
+  const lane = (name: string, build: (dag: ClientChannels, input: number) => number) => {
+    const dag = new ClientChannels(name); dag.output('value', build(dag, dag.read('input')));
+    const row = dag.build(); row.nodes.forEach(node => { Object.freeze(node); }); Object.freeze(row.nodes);
+    return admittedClientChannels(row);
+  };
+  const at = (value: number): { time: number; delta: number; values: number[] } => ({ ...observation, values: [value] });
+  const quarter = lane('constants.repeat', (dag, input) => dag.binary('div', input, dag.constant(4)));
+  quarter.evaluate(at(2)); expect(quarter.frame.value).toBe(0.5);
+  quarter.evaluate(at(2)); expect(quarter.frame.value).toBe(0.5);
+  quarter.evaluate(at(0)); expect(Object.is(quarter.frame.value, 0)).toBe(true);
+  quarter.evaluate(at(-0)); expect(Object.is(quarter.frame.value, -0)).toBe(true);
+  const inverse = lane('constants.refuse', (dag, input) => dag.binary('div', dag.constant(1), input));
+  inverse.evaluate(at(4)); expect(inverse.frame.value).toBe(0.25);
+  expect(() => { inverse.evaluate(at(0)); }).toThrow();
+  expect(() => { inverse.evaluate(at(0)); }).toThrow();
+  expect(inverse.frame.value).toBe(0.25);
+  inverse.evaluate(at(4)); expect(inverse.frame.value).toBe(0.25);
+});

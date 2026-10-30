@@ -69,6 +69,11 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
   const nodes = Object.isFrozen(program.nodes) ? program.nodes : structuredClone(program.nodes), scratch = new Float64Array(nodes.length), published = new Float64Array(nodes.length), reads = new Float64Array(program.reads.length);
   const slots = program.locals !== undefined && Object.isFrozen(program.locals) ? program.locals : structuredClone(program.locals ?? []), locals = new Float64Array(slots.length), previous = new Float64Array(slots.length), next = new Float64Array(slots.length);
   let initialized = false;
+  // FC CPU cut: a lane with no locals, no clock and fixed rows (frozen, or this lane's own copy) publishes the same values
+  // for the same reads, so a call whose reads all equal the last call's keeps its published values without a walk
+  let settled = false;   // the last call published (a refused one may have taken its reads, never its values)
+  const repeatable = slots.length === 0 && nodes.every(node => node.op !== 'clock') && (nodes !== program.nodes
+    || nodes.every(node => frozenData(node) && (node.op !== 'sample' || frozenData(node.keys) && node.keys.every(frozenData))));
   // each expression's operand slots, read once (-1: none), so the evaluator never asks a node which fields it has
   const { a: operandA, b: operandB, codes, dynamic } = operandsOf(nodes, nodes !== program.nodes);
   const frame: Partial<Record<ClientChannelProperty, number>> = {}, index = new Map<ClientChannelProperty, number>();
@@ -138,7 +143,9 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
     const { time, delta, values } = observation;
     if (values.length !== reads.length) throw new Error('Invalid copied client observation');
     if (!Number.isFinite(time) || !Number.isFinite(delta) || delta < 0 || Math.abs(time) > 1e12 || delta > 1e12) throw new NumericInputError('time/delta', 'Invalid copied client observation');
-    for (let i = 0; i < reads.length; i++) { const value = values[i]; if (value === undefined || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new NumericInputError(program.reads[i] ?? String(i), 'Invalid copied client state'); reads[i] = value; }
+    let same = initialized && repeatable && settled; settled = false;
+    for (let i = 0; i < reads.length; i++) { const value = values[i]; if (value === undefined || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new NumericInputError(program.reads[i] ?? String(i), 'Invalid copied client state'); if (same && !Object.is(reads[i], value)) same = false; reads[i] = value; }
+    if (same) { settled = true; return; }
     for (let i = 0; i < slots.length; i++) {
       const slot = slots[i]; if (slot === undefined) throw new Error('Missing private client slot');
       previous[i] = initialized ? locals[i] ?? Number.NaN : slot.initial.op === 'constant' ? slot.initial.value : reads[slot.initial.index] ?? Number.NaN;
@@ -183,7 +190,7 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
       const slot = slots[i]; if (slot === undefined) throw new Error('Missing private client slot');
       next[i] = scratch[slot.next] ?? Number.NaN;
     }
-    published.set(scratch); locals.set(next); initialized = true;
+    published.set(scratch); locals.set(next); initialized = true; settled = true;
   };
   return Object.freeze({ bindNumeric: (rows: readonly ClientNumericPortRow[], targets: ReadonlyMap<string, unknown>) => createClientNumericPorts(rows, targets, own), reads: Object.freeze([...program.reads]), frame, evaluate, stateless: slots.length === 0, ...(geometry === undefined ? {} : { geometry }), ...(connectors === undefined ? {} : { connectors }) });
 }
