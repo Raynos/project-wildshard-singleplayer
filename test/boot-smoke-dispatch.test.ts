@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Parse the actual native bootstrap without browser or network.
 import { spawnSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Evaluate only the actual workflow's concurrency-key expressions.
+import { runInNewContext } from 'node:vm';
 import { expect, test } from 'vitest';
 import { watchPhoneEntry } from '../scripts/parity/phone-route-page.mjs';
 import { phoneBootstrap } from '../scripts/parity/phone-route-browser.mjs';
@@ -53,8 +55,40 @@ test('one push wave keeps all six browser guards and serialized exact-artifact s
   expect(deploy).not.toContain('dispatch-boot-smoke:');expect(deploy).not.toContain('gh workflow run boot-smoke');
   expect(journeys).toContain('needs: prepare');expect(journeys).toContain('fail-fast: false');
   expect(journeys).toContain('max-parallel: 5');
-  expect(journeys).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer]');
+  const parts=/part: \[([^\]]+)\]/u.exec(journeys)?.[1]?.split(',').map(part=>part.trim());
+  const core=['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'];
+  expect(parts).toHaveLength(core.length);expect(new Set(parts)).toEqual(new Set(core));
   expect(journeys).not.toContain('run watch');expect(journeys).not.toContain('vercel build');
+});
+
+test('only pending producer and native admission coalesce while running waves and releases keep their keys',()=>{
+  const top=deploy.split('\njobs:\n')[0]??'';
+  const section=(name:string)=>deploy.split(`\n  ${name}:\n`)[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0]??'';
+  const group=(source:string,github:{event_name:string;run_id:string;sha:string;ref:string})=>{
+    const template=/^\s+group: (.+)$/mu.exec(source)?.[1];
+    if(template===undefined)throw new Error('Missing real concurrency key');
+    return template.replaceAll(/\$\{\{(.*?)\}\}/gu,(_match:string,expression:string)=>{
+      const value:unknown=runInNewContext(expression,{github,format:(pattern:string,argument:string)=>pattern.replace('{0}',argument)});
+      if(typeof value!=='string')throw new Error('Invalid concurrency key expression');
+      return value;
+    });
+  };
+  const old={event_name:'push',run_id:'1',sha:'a'.repeat(40),ref:'refs/heads/main'};
+  const next={...old,run_id:'2',sha:'b'.repeat(40)};
+  expect(group(top,old)).not.toBe(group(top,next));
+  for(const name of ['prepare','phone-route']) {
+    const job=section(name);
+    expect(group(job,old)).toBe(group(job,next));
+    expect(group(job,old)).not.toBe(group(job,{...next,ref:'refs/heads/other'}));
+    expect(job).toContain('cancel-in-progress: false');
+  }
+  const manual={...old,event_name:'workflow_dispatch'};
+  expect(group(top,manual)).toBe(group(top,{...manual,run_id:'2'}));
+  expect(group(top,manual)).not.toBe(group(top,old));
+  expect(section('build-and-deploy')).toContain('group: production-release');
+  expect(section('build-and-deploy')).toContain('cancel-in-progress: false');
+  expect(section('phone-route')).not.toContain('needs:');
+  for(const name of ['behaviour','native-escape','journeys'])expect(section(name)).not.toContain('concurrency:');
 });
 
 function recoveryFixture(native=false,splitPhone=false,shards=12) {

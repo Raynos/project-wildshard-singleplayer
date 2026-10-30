@@ -45,10 +45,11 @@ on:
 # Releases (manual or green-smoke dispatches) queue apart from push / PR CI: GitHub keeps one PENDING run per group,
 # and with many agents pushing, every push's CI run replaced the pending release, so nothing shipped for hours (E339,
 # 2026-09-30: two dispatches in a row cancelled). Releases still queue behind each other.
-# Main push CI shares one ref group (G582): finish the running check and retain only
-# the newest pending push. Frequent pushes must not cancel every run before it finishes.
+# A push's running wave finishes while the next prepare overlaps it. Only the
+# producer and phone admission coalesce pending sources; neither cancels running
+# work. Holding a whole push here added 482 s before fe0 could start preparing.
 concurrency:
-  group: deploy-${{ (github.event_name == 'workflow_dispatch') && 'release' || github.event_name == 'push' && 'ci' || format('ci-{0}', github.sha) }}-${{ github.ref }}
+  group: deploy-${{ (github.event_name == 'workflow_dispatch') && 'release' || github.event_name == 'push' && format('ci-{0}', github.run_id) || format('ci-{0}', github.sha) }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
@@ -344,6 +345,9 @@ jobs:
   # All wave jobs consume this exact SHA/run preparation; none rebuild it.
   prepare:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
+    concurrency:
+      group: deploy-prepare-${{ github.event_name }}-${{ github.ref }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 40
     # Repeated producer children share V8 parsing within this isolated job.
@@ -691,6 +695,9 @@ jobs:
   # Report-only native startup overlaps Linux generation, never its own installs.
   phone-route:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
+    concurrency:
+      group: deploy-phone-${{ github.event_name }}-${{ github.ref }}
+      cancel-in-progress: false
     continue-on-error: true
     # Standard 14 GB Intel image; retain Xcode/iOS 26.2 and the native profile.
     runs-on: macos-15-intel
@@ -862,7 +869,9 @@ jobs:
       fail-fast: false
       max-parallel: 5
       matrix:
-        part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer]
+        # Longest measured macOS work is created first. This is a scheduling
+        # hint, not a guaranteed runner priority or a change to the SIX guards.
+        part: [explorer, boot-public, boot-developer, hover-webkit, hover-chromium, boot-grid]
     runs-on: macos-15
     timeout-minutes: 20
     steps:
