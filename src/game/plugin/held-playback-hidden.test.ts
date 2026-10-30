@@ -28,13 +28,13 @@ test('T10: a hidden held model skips its stateless views; shown again, they writ
   expect(parts.pose.position.x).toBe(7);
 });
 
-test('T10: a view with private locals runs every frame, hidden or not', () => {
+test('PF6: a view with private locals holds its state while hidden and resumes from it when shown', () => {
   const { holster, parts, playback } = rig();
   for (let i = 0; i < 3; i++) { if (i === 1) holster.visible = false; playback.beginFrame(1 / 60); playback.apply('count', {}); }
   holster.visible = true; playback.beginFrame(1 / 60); playback.apply('count', {});
-  // the same four evaluations as an always-shown model: its local counted every one
+  // two evaluations (the hidden two skipped): its local counted only while drawn, from where it stopped
   const shown = rig();
-  for (let i = 0; i < 4; i++) { shown.playback.beginFrame(1 / 60); shown.playback.apply('count', {}); }
+  for (let i = 0; i < 2; i++) { shown.playback.beginFrame(1 / 60); shown.playback.apply('count', {}); }
   expect(parts.count.position.x).toBe(shown.parts.count.position.x);
 });
 

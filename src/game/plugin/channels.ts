@@ -31,6 +31,8 @@ export interface ClientChannelLane {
   bindNumeric: (rows: readonly ClientNumericPortRow[], targets: ReadonlyMap<string, unknown>) => ClientNumericPorts;
   /** no private locals: an evaluation depends only on its observation, so a skipped one loses nothing (T10) */
   readonly stateless: boolean;
+  /** it sets a node's visibility (a view of it, clientChannelView): it may be what shows a hidden model again */
+  readonly toggles?: boolean;
 }
 /** A lane over a program its caller has just admitted with `parseClientChannels` (G639: a table installed group by group
  *  re-validated every row it had parsed; Nalati's entry spent 0.3-0.65 s frames in it). Its arrays are copied, never kept. */

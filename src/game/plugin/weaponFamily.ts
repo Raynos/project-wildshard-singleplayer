@@ -285,11 +285,13 @@ export class HeldPlayback {
   apply(group: string, values: Readonly<Record<string, number>>): void {
     const views = this.groups.get(group); if (views === undefined) throw new Error('Missing held playback group');
     // T10: a holstered weapon's model is hidden, yet every equipped weapon is updated each frame (its clocks, its shots in
-    // flight); a stateless view of an undrawn model is skipped: its next evaluation, from that frame's observation, writes
-    // exactly what it would have (views with private locals still run every frame)
+    // flight). PF6 (reverses T10's exactness for stateful views): every view of an undrawn model is skipped, those with
+    // private locals too: a spring or counter holds its state while the weapon is stowed and resumes from it when drawn
+    // (the holstered firearm's presentation was 0.1 ms of Pine's frame at 4x). A stateless view's next evaluation writes
+    // exactly what it would have; a view that sets visibility still runs (it may be what shows the model)
     const hidden = this.hidden();
     for (const { lane, copied, outputs } of views) {
-      if (hidden && lane.stateless) continue;
+      if (hidden && lane.toggles !== true) continue;
       for (let i = 0; i < lane.reads.length; i++) {
         const key = lane.reads[i]; if (key === undefined) throw new Error('Missing held playback read');
         const value = values[key] ?? this.inputs.get(group)?.get(key)?.(); if (value === undefined) throw new Error(`Missing held playback observation ${key}`);
