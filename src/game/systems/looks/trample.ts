@@ -93,6 +93,12 @@ export class TrampleField {
   private oz = 0x7fffffff;
   private anyFlat = false;
   private dirty = false;
+  // FC CPU cut: every texel the recovery may change (amount > 0 when listed). A texel off the list has amount 0 and its RG8
+  // texel at rest (128, 128), so the recovery walks the list, not all 65,536; a restore or a whole-window clear asks for
+  // one full walk, which rebuilds the list
+  private readonly active: number[] = [];
+  private readonly listed = new Uint8Array(SIZE * SIZE);
+  private full = true;
   private tick = 0;
   /** the window centre: the player at the last update */
   protected cx = 0;
@@ -143,18 +149,24 @@ export class TrampleField {
     this.tick = 0;
     if (!this.anyFlat && !this.dirty) return;
     let any = false;
-    const a = this.amount, g = this.angle, out = this.texels();
-    for (let i = 0; i < SIZE * SIZE; i++) {
+    const a = this.amount, g = this.angle, out = this.texels(), list = this.active, listed = this.listed, full = this.full;
+    if (full) { list.length = 0; listed.fill(0); this.full = false; }
+    const count = full ? SIZE * SIZE : list.length;
+    let kept = 0;
+    for (let n = 0; n < count; n++) {
+      const i = full ? n : list[n] ?? 0;
       const v = a[i] ?? 0;
-      if (v <= 0) { if (out !== null) { out[i * 2] = 128; out[i * 2 + 1] = 128; } continue; }
+      if (v <= 0) { if (out !== null) { out[i * 2] = 128; out[i * 2 + 1] = 128; } if (!full) listed[i] = 0; continue; }
       const nv = v - step;
-      if (nv <= 0) { a[i] = 0; if (out !== null) { out[i * 2] = 128; out[i * 2 + 1] = 128; } continue; }
+      if (nv <= 0) { a[i] = 0; if (out !== null) { out[i * 2] = 128; out[i * 2 + 1] = 128; } if (!full) listed[i] = 0; continue; }
       a[i] = nv; any = true;
+      if (full) { listed[i] = 1; list.push(i); } else list[kept++] = i;
       if (out === null) continue;
       const ang = g[i] ?? 0;
       out[i * 2] = Math.round(127.5 + 127 * Math.cos(ang) * nv);
       out[i * 2 + 1] = Math.round(127.5 + 127 * Math.sin(ang) * nv);
     }
+    if (!full) list.length = kept;
     this.anyFlat = any;
     this.dirty = false;
     this.uploaded();
@@ -184,7 +196,7 @@ export class TrampleField {
     for (let k = 0; k < cells.length; k += 3) { const i = cells[k] ?? 0; this.amount[i] = cells[k + 1] ?? 0; this.angle[i] = cells[k + 2] ?? 0; }
     [this.ox, this.oz] = origin ?? [0x7fffffff, 0x7fffffff];
     [this.cx, this.cz] = centre;
-    this.anyFlat = state.anyFlat; this.dirty = state.dirty; this.tick = state.tick;
+    this.anyFlat = state.anyFlat; this.dirty = state.dirty; this.tick = state.tick; this.full = true;
   }
 
   /** after this frame's pushes, before the recovery: the page hands its live movers to the shader */
@@ -215,6 +227,7 @@ export class TrampleField {
       this.amount[k] = Math.max(cur, Math.min(1, w));
       const ang = moving ? heading + (px * vz - pz * vx > 0 ? -0.35 : 0.35) : Math.atan2(pz, px);
       this.angle[k] = ang;
+      if (this.listed[k] === 0) { this.listed[k] = 1; this.active.push(k); }
       this.dirty = true; this.anyFlat = true;
     }
   }
@@ -227,7 +240,7 @@ export class TrampleField {
     const dx = nx - this.ox, dz = nz - this.oz;
     if (first || Math.abs(dx) >= SIZE || Math.abs(dz) >= SIZE) {
       this.amount.fill(0);
-      this.dirty = true;
+      this.dirty = true; this.full = true;
     } else {
       // columns entering: [ox+SIZE, nx+SIZE) when moving +x, [nx, ox) when moving −x
       const clearCol = (i: number) => { for (let j = 0; j < SIZE; j++) this.amount[this.idx(i, j)] = 0; };
