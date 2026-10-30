@@ -373,11 +373,13 @@ jobs:
       - name: Select recent completed-push timing observations
         id: timing-history
         run: |
-          prior=$(gh run list --workflow deploy.yml --branch main --event push --status completed --limit 1 --json databaseId --jq '.[0].databaseId // empty')
-          if [[ -n "$prior" ]]; then
-            names=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$prior/artifacts?per_page=100" --jq '.artifacts[] | select(.expired == false and (.name | startswith("vitest-times-"))) | .name')
-            if [[ -n "$names" ]]; then echo "run=$prior" >> "$GITHUB_OUTPUT"; fi
-          fi
+          mkdir -p tmp/ci-vitest
+          gh run list --workflow deploy.yml --branch main --event push --status completed --limit 20 --json databaseId,headSha,event,headBranch,status > tmp/ci-vitest/completed.json
+          # One named artifact per run is enough to locate a measured cohort;
+          # the existing download still restores every available shard report.
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=vitest-times-1&per_page=100" --jq '[.artifacts[] | {name,expired,workflow_run}]' > tmp/ci-vitest/history-artifacts.json
+          prior=$(node scripts/vitest-plan.ts history tmp/ci-vitest/completed.json tmp/ci-vitest/history-artifacts.json)
+          if [[ -n "$prior" ]]; then echo "run=$prior" >> "$GITHUB_OUTPUT"; fi
       - uses: actions/download-artifact@v4
         if: steps.timing-history.outputs.run != ''
         with:

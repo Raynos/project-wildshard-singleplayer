@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve isolated synthetic report paths.
 import { resolve } from 'node:path';
 import { createShardPlan, readShardPlan } from '../scripts/test-shard-plan';
-import { measuredWeights } from '../scripts/vitest-plan';
+import { measuredWeights, selectTimingHistory } from '../scripts/vitest-plan';
 
 const source = { sha: 'a'.repeat(40), run: '123' };
 function fixture() {
@@ -57,4 +57,36 @@ test('recent successful complete-module observations include import/setup and ov
     expect(result.measuredFiles).toBe(1);
     expect(() => measuredWeights(root, [], [], [{ files: [{ ...timings[0]?.files[0], collectMs: -1 }] }])).toThrow();
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+const historyRun = (id: number) => ({ databaseId: id, headSha: id.toString(16).padStart(40, '0'), event: 'push', headBranch: 'main', status: 'completed' });
+const historyArtifact = (run: ReturnType<typeof historyRun>) => ({ name: 'vitest-times-1', expired: false,
+  workflow_run: { id: run.databaseId, head_sha: run.headSha, head_branch: run.headBranch } });
+
+test('a newer completed push without timings preserves an older measured wave', () => {
+  const cancelled = historyRun(4), prepareFailed = historyRun(3), measured = historyRun(2), older = historyRun(1);
+  expect(selectTimingHistory([cancelled, prepareFailed, measured, older], [historyArtifact(older), historyArtifact(measured)])).toBe('2');
+  expect(selectTimingHistory([measured, older], [historyArtifact(older), historyArtifact(measured)])).toBe('2');
+});
+
+test('history ignores expired, foreign and unfinished reports without changing no-history fallback', () => {
+  const foreign = { ...historyRun(5), event: 'pull_request' }, unfinished = { ...historyRun(4), status: 'in_progress' };
+  const expired = historyRun(3), mismatch = historyRun(2), main = historyRun(1);
+  const artifacts = [historyArtifact(foreign), historyArtifact(unfinished), { ...historyArtifact(expired), expired: true },
+    { ...historyArtifact(mismatch), workflow_run: { ...historyArtifact(mismatch).workflow_run, head_sha: 'f'.repeat(40) } },
+    { ...historyArtifact(main), name: 'unrelated-output' }];
+  expect(selectTimingHistory([foreign, unfinished, expired, mismatch, main], artifacts)).toBeUndefined();
+  expect(selectTimingHistory([main], [])).toBeUndefined();
+  expect(selectTimingHistory([], [historyArtifact(main)])).toBeUndefined();
+  expect(selectTimingHistory([{ ...main, headBranch: 'other' }], [historyArtifact(main)])).toBeUndefined();
+  expect(selectTimingHistory([main], [{ ...historyArtifact(main), workflow_run: { ...historyArtifact(main).workflow_run, head_branch: 'other' } }])).toBeUndefined();
+});
+
+test('malformed, duplicate or unbounded history listings refuse', () => {
+  const run = historyRun(1);
+  expect(() => selectTimingHistory([run, run], [])).toThrow('Duplicate');
+  expect(() => selectTimingHistory([null], [])).toThrow();
+  expect(() => selectTimingHistory([run], [{ ...historyArtifact(run), workflow_run: null }])).toThrow();
+  expect(() => selectTimingHistory(Array.from({ length: 21 }, (_, index) => historyRun(index + 1)), [])).toThrow();
+  expect(() => selectTimingHistory([run], Array.from({ length: 101 }, () => historyArtifact(run)))).toThrow();
 });

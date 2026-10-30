@@ -11,6 +11,26 @@ const timingsSchema = v.object({ files: v.array(v.object({ file: v.string(), sta
   durationMs: finite, collectMs: finite, setupMs: finite, environmentMs: finite, prepareMs: finite })) });
 const resultsSchema = v.object({ testResults: v.array(v.object({ name: v.string(), status: v.string(), startTime: finite, endTime: finite })) });
 const discovered = v.array(v.object({ file: v.string() }));
+const runId = v.pipe(v.number(), v.integer(), v.minValue(1), v.safeInteger());
+const commit = v.pipe(v.string(), v.regex(/^[a-f0-9]{40}$/u));
+const historyRuns = v.pipe(v.array(v.object({ databaseId: runId, headSha: commit,
+  event: v.string(), headBranch: v.string(), status: v.string() })), v.maxLength(20));
+const historyArtifacts = v.pipe(v.array(v.object({ name: v.string(), expired: v.boolean(),
+  workflow_run: v.object({ id: runId, head_sha: commit, head_branch: v.string() }) })), v.maxLength(100));
+
+/** A newer cancelled/prepare-red push must not hide an older measured wave.
+ * Inputs are two bounded GitHub listings, not a poll or a release verdict. */
+export function selectTimingHistory(runs: unknown, artifacts: unknown): string | undefined {
+  const completed = v.parse(historyRuns, runs), available = v.parse(historyArtifacts, artifacts);
+  if (new Set(completed.map(run => run.databaseId)).size !== completed.length) throw new Error('Duplicate timing-history run');
+  for (const run of completed) {
+    if (run.status !== 'completed' || run.event !== 'push' || run.headBranch !== 'main') continue;
+    if (available.some(artifact => !artifact.expired && /^vitest-times-[1-9][0-9]*$/u.test(artifact.name)
+      && artifact.workflow_run.id === run.databaseId && artifact.workflow_run.head_sha === run.headSha
+      && artifact.workflow_run.head_branch === run.headBranch)) return String(run.databaseId);
+  }
+  return undefined;
+}
 
 /** Latest successful observations replace the old body-only registry per file. */
 export function measuredWeights(root: string, paths: readonly string[], results: readonly unknown[], timings: readonly unknown[]): { weights: Map<string, number>; fallbackSeconds: number; measuredFiles: number } {
@@ -39,6 +59,13 @@ export function measuredWeights(root: string, paths: readonly string[], results:
 }
 
 export function planMain(args: readonly string[]): void {
+  if (args[0] === 'history') {
+    const [, runs, artifacts] = args;
+    if (args.length !== 3 || runs === undefined || artifacts === undefined) throw new Error('Specify timing-history run and artifact listings');
+    const selected = selectTimingHistory(JSON.parse(readFileSync(runs, 'utf8')), JSON.parse(readFileSync(artifacts, 'utf8')));
+    if (selected !== undefined) console.log(selected);
+    return;
+  }
   const { values } = parseArgs({ args: [...args], options: { shards: { type: 'string', default: '12' }, workers: { type: 'string', default: '2' },
     output: { type: 'string' }, files: { type: 'string' }, results: { type: 'string', multiple: true }, timings: { type: 'string', multiple: true } } });
   if (values.output === undefined) throw new Error('Specify --output for the shard plan artifact');
