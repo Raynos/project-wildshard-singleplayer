@@ -1,5 +1,6 @@
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
-import { ArenaRoomEncounter, readArenaScriptData } from '../src/game/boss/arenaRoom';
+import { ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
+import { readArenaScriptData } from '../src/game/boss/openArenaFight';
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import * as v from 'valibot';

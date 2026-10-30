@@ -8,7 +8,7 @@ import type { AimTarget } from '@wildshard/engine/player/AimTargets';
 import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { wind } from '@wildshard/engine/world/steppeWind';
-import type { ArenaScriptData, ArenaScriptRows } from '@wildshard/format/arenaScriptRows';
+import type { ArenaScriptData, ArenaScriptFightFile, ArenaScriptRows } from '@wildshard/format/arenaScriptRows';
 import { ARENA_BURNT_PER_FRAME, ARENA_VIEW, arenaChainTell } from '@wildshard/format/arenaView';
 import { V2_ACTION_OPS, type V2ActionBinding } from '@wildshard/format/scriptActionsV2';
 import { ReturnProgram, ProjectedState } from '../population/returnProgram';
@@ -17,6 +17,7 @@ import { CellField } from '../systems/cellField';
 import { lendViewArray, lendViewCell, lendViewDraw, lendViewFrame, lendViewTell, lendViewValues } from '../shardfile/clientViewProgram';
 import { prepareV2WorldActions, type V2WorldActionLoan } from '../shardfile/worldActionsV2';
 import type { GroundTell } from '../Elite';
+import type { ShardProduct } from '../shardfile/shardProduct';
 import type { Mount } from '../riding/mount';
 import type { ArenaBoundary } from '../riding/client';
 import type { WeatherReactions } from '../weather/reactions';
@@ -24,6 +25,21 @@ import type { wildEnv } from '../population/pageGroups';
 import type { ArenaFireView, ArenaWhirlsView } from './arenaFire';
 import type { ArenaSceneView, CloudBody, PatrolEncounterView } from './encounterView';
 
+/** The fight's rows: its fight file's arena script, programs and fire with its geometry file (the page's entered
+ *  encounter and the Node simulation read the same). */
+export async function readArenaScriptData(product: Pick<ShardProduct,'json'>, files: { fight: string; geometry: string }): Promise<ArenaScriptData> {
+  const [root,geometry]=await Promise.all([product.json<ArenaScriptFightFile>(files.fight),product.json<ArenaScriptData['geometry']>(files.geometry)]);
+  // T10: the fight's two programme declarations are read-only; frozen, ReturnProgram admits each once (its frozen-input
+  // memo) instead of re-parsing it in projectionBindings, page and prepareMemory (two 8-11 ms parses inside the encounter's
+  // constructor frame of a Nalati drive at phone 4x)
+  for (const program of [root.programs.attack, root.programs.wind]) freezeDeclaration(program);
+  return {...root.arenaScript,programs:root.programs,arenaFire:root.arenaFire,geometry};
+}
+function freezeDeclaration(value: unknown): void {
+  if (typeof value !== 'object' || value === null || Object.isFrozen(value)) return;
+  for (const child of Object.values(value)) freezeDeclaration(child);
+  Object.freeze(value);
+}
 /** The fight's looks, as the parts it calls (the page passes its views; the Node simulation its own). */
 export type ArenaBodyPort = Pick<CloudBody, 'alpha' | 'flash' | 'fogColour' | 'part' | 'setVisible' | 'visible' | 'aim' | 'update' | 'focusWorld'>;
 export type ArenaScenePort = Pick<ArenaSceneView, 'tell' | 'tells' | 'instances' | 'mesh' | 'update'>;

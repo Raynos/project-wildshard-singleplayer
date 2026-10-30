@@ -1,4 +1,4 @@
-import { readArenaScriptData } from '../src/game/boss/arenaRoom';
+import { readArenaScriptData } from '../src/game/boss/openArenaFight';
 import { expect,test } from 'vitest';
 import { ArenaScriptFightFileSchema,ArenaScriptGeometrySchema } from '@wildshard/format/arenaScriptRows';
 import { TimedEncountersSchema,CloudSpecimenSchema } from '@wildshard/format/encounterRows';

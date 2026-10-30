@@ -43,7 +43,7 @@ import { macrotask } from '@wildshard/engine/boot/plan';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { listenPage } from '@wildshard/engine/input/dom';
-import type { ArenaScriptData,ArenaScriptFightFile } from '@wildshard/format/arenaScriptRows';
+import type { ArenaScriptData } from '@wildshard/format/arenaScriptRows';
 import type { TargetHit } from '@wildshard/engine/combat/types';
 import type { AimTarget } from '@wildshard/engine/player/AimTargets';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -51,10 +51,9 @@ import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinu
 import { TIER } from '@wildshard/engine/core/tier';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { WeatherReactions } from '../weather/reactions';
-import type { ShardProduct } from '../shardfile/shardProduct';
 import { wildEnv } from '../population/pageGroups';
 import { ArenaFireView, ArenaWhirlsView } from './arenaFire';
-import { OpenArenaFight } from './openArenaFight';
+import { OpenArenaFight, readArenaScriptData } from './openArenaFight';
 import { ArenaSceneView, CloudBody, type PatrolEncounterView } from './encounterView';
 import {entryOwner, lateEntryOwner, presentEntryOwner} from '../shardfile/entryOwners';
 import { prepareLentLooks } from '../shardfile/lentLooks';
@@ -612,19 +611,6 @@ export const ArenaRoomEncounterSchema: v.GenericSchema<BoundedArenaEncounterInpu
   program: ReturnProgramSchema,
 });
 /** Read schema-checked named products; no validator is imported into play. */
-export async function readArenaScriptData(product: Pick<ShardProduct,'json'>, files: { fight: string; geometry: string }): Promise<ArenaScriptData> {
-  const [root,geometry]=await Promise.all([product.json<ArenaScriptFightFile>(files.fight),product.json<ArenaScriptData['geometry']>(files.geometry)]);
-  // T10: the fight's two programme declarations are read-only; frozen, ReturnProgram admits each once (its frozen-input
-  // memo) instead of re-parsing it in projectionBindings, page and prepareMemory (two 8-11 ms parses inside the encounter's
-  // constructor frame of a Nalati drive at phone 4x)
-  for (const program of [root.programs.attack, root.programs.wind]) freezeDeclaration(program);
-  return {...root.arenaScript,programs:root.programs,arenaFire:root.arenaFire,geometry};
-}
-function freezeDeclaration(value: unknown): void {
-  if (typeof value !== 'object' || value === null || Object.isFrozen(value)) return;
-  for (const child of Object.values(value)) freezeDeclaration(child);
-  Object.freeze(value);
-}
 /** Native cloud resources are identical for an entered fight and its specimen. */
 function arenaScriptCloud(scene: THREE.Scene, state: Readonly<Record<string,number>>, data: ArenaScriptData): CloudBody {
   const g = data.geometry;
