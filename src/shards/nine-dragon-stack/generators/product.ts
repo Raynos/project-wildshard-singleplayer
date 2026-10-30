@@ -4,6 +4,7 @@ import { nineSignsProgram } from './signsProgram';
 import { nineDeclarationsProgram } from './declarationsProgram';
 import { nineWorldProgram } from './worldProgram';
 import { nineWorldScenes } from './worldScenes';
+import { nineSlabScenes } from './slabs';
 import { useLightVolumeEncoder } from './lightVolumes';
 import { nineProductFrom, type NineProductInputs } from './productDefinition';
 import { nineNavigation } from './navigationProgram';
@@ -23,7 +24,7 @@ export async function readNineProductInputs(ctx: ProjectGenerationContext): Prom
   const profile = await nineHeldProfile(ctx), ownedWorld = await nineWorldProgram(ctx, native.atlas), casts = await nineCastsProgram(ctx), signs = await nineSignsProgram(ctx, native, glyphs);
   const declarations = await nineDeclarationsProgram(ctx, ownedWorld), courseProgram = await ninePracticeProgram(ctx);
   useLightVolumeEncoder(ownedWorld.layout, ctx.encodePortableBytes); // CI6: the build's memoed deflate, the same bytes
-  return { casts, signs, courseProgram, navigation: await nineNavigation(ctx), world: ownedWorld.metadata, ownedWorld, scenes: nineWorldScenes(ownedWorld.layout, casts.material, signs, declarations.world, new Set(ownedWorld.metadata.shardfile.tiles.filter(tile => tile.lod === 0).flatMap(tile => tile.files))), held: { profile, files: createHeldGraphFiles(profile) } };
+  return { casts, signs, courseProgram, navigation: await nineNavigation(ctx), world: ownedWorld.metadata, ownedWorld, scenes: await nineSlabScenes(ctx, ownedWorld, nineWorldScenes(ownedWorld.layout, casts.material, signs, declarations.world, new Set(ownedWorld.metadata.shardfile.tiles.filter(tile => tile.lod === 0).flatMap(tile => tile.files)))), held: { profile, files: createHeldGraphFiles(profile) } };
 }
 
 /** Build the declaration from this invocation's admitted source results. */

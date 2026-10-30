@@ -322,7 +322,9 @@
     "./session/session": "./session/session.ts",
     "./engineStrings": "./engineStrings.ts",
     "./audio/theme": "./audio/theme.ts",
-    "./identity": "./identity.ts"
+    "./identity": "./identity.ts",
+    "./shardfile/wholePieceJoin": "./shardfile/wholePieceJoin.ts",
+    "./shardfile/wholeGeometryPieces": "./shardfile/wholeGeometryPieces.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

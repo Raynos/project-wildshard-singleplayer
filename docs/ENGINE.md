@@ -5295,6 +5295,15 @@ metre estimate (not Hausdorff). `coarseCopy.errorMetres`,
 it through scale. `sdk/bake/geometryError` adds float32 loss or transformed
 quantization-cell radius; lossless data keeps zero. Payloads stay exact.
 
+### Static tile slabs
+
+`sdk/bake/slabs.bakeWholeSlabs` stages exact fine joins beside the whole
+source; `readSlabLibrary` admits metadata. Keys retain anchor/cull owners:
+≤64 tiles, ≤16 files/64 chunks per tile, ≤4 MB per chunk with bounds/error.
+Partition, bit/key equality, budgets and determinism are checked.
+`game/shardfile/wholeGeometryPieces` owns `wholeGeometryPieces` and
+`readWholePartition`; runtime activation is separate.
+
 ### Provisional prop-tile budgets
 
 `bakeProps.report[].warnings` lists exceeded provisional resident,

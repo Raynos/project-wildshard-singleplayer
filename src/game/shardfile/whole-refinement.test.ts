@@ -1,7 +1,8 @@
 import { afterEach, expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, Float16BufferAttribute, Matrix4, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { assembleWholeGeometryViews, wholeGeometryPieces, type WholeGeometryPiece } from '../plugin/geometry';
+import { assembleWholeGeometryViews, type WholeGeometryPiece } from '../plugin/geometry';
+import { wholeGeometryPieces } from './wholeGeometryPieces';
 import { joinWholePieces } from './refiningWholeLibrary';
 import { joinWholePieceSteps } from './wholePieceJoin';
 

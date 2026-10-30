@@ -1,7 +1,8 @@
 import { type BufferGeometry, Mesh, type Object3D } from 'three';
 import { prepareRigLoader } from '@wildshard/engine/anim/rig';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { wholeGeometryPieces, type WholeGeometryPiece } from '../plugin/geometry';
+import { wholeGeometryPieces } from './wholeGeometryPieces';
+import type { WholeGeometryPiece } from '../plugin/geometry';
 import type { ShardProduct } from './shardProduct';
 import { runtimeProduct } from './runtimeProduct';
 

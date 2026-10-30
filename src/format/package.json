@@ -301,7 +301,8 @@
     "./scriptGroupBankV2": "./scriptGroupBankV2.ts",
     "./scriptGroupStepV2": "./scriptGroupStepV2.ts",
     "./binarySource": "./binarySource.ts",
-    "./discoveryValues": "./discoveryValues.ts"
+    "./discoveryValues": "./discoveryValues.ts",
+    "./worldSceneSlabs": "./worldSceneSlabs.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

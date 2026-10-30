@@ -140,7 +140,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       : geometryNames.get(ref.library)?.has(ref.model) === true)) throw new Error(`Missing world scene model: ${ref.library}/${ref.model}`);
   };
   // Admission precedes geometry/material allocation, including both cube variants.
-  for (const row of section.libraries) for (const file of row.kind === 'whole' ? [] : row.kind === 'models' || row.kind === 'baked' ? [row.file] : row.kind === 'owned' ? row.models.flatMap(model => [tierFile(model.file), ...model.segments ?? []]) : [...row.files.map(entry => tierFile(entry.file)), ...row.painted.map(entry => entry.file)]) requireFile(file);
+  for (const row of section.libraries) for (const file of row.kind === 'whole' ? [] : row.kind === 'slabs' ? row.tiles.flatMap(tile => tile.files.map(slabFile => slabFile.file)) : row.kind === 'models' || row.kind === 'baked' ? [row.file] : row.kind === 'owned' ? row.models.flatMap(model => [tierFile(model.file), ...model.segments ?? []]) : [...row.files.map(entry => tierFile(entry.file)), ...row.painted.map(entry => entry.file)]) requireFile(file);
   for (const row of section.materials) if (row.kind === 'look' || row.kind === 'surface') {
     if (row.look !== undefined && product.shardfile.look.materials[row.look] === undefined) throw new Error(`Missing world scene look: ${row.look}`);
     if (row.kind === 'look' && row.over !== undefined) reference(row.over, true);
@@ -388,6 +388,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       libraryProgress(0);
       for (const [libraryIndex, row] of section.libraries.entries()) {
         await timeClientPreparation(product.slug, `scene.library:${row.kind}:${row.id}`, async () => {
+          if (row.kind === 'slabs') return; // NF10: staged bake data; NF11 owns activation.
           if (row.kind === 'models') {
             const models = sceneModelSource(product, row.id); await models.preload(() => constructionCheckpoint(owner) ?? Promise.resolve());
             libraries.set(row.id, { geometry: id => models.geometry(id), models });
