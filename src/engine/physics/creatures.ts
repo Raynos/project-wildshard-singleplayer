@@ -44,7 +44,24 @@ export interface CreatureHit<C extends Creature = Creature> { creature: C; head:
 // The physics body LOD (NEAR 45 m / FAR 55 m) and the capsule recipe are sim/bands.ts's, shared with SimHost (SF72).
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _q = new THREE.Quaternion(), _up = new THREE.Vector3(0, 1, 0), _d = new THREE.Vector3();
 
-interface Boxes { head: Collider; body: Collider; fore: Collider | null; bodyHalf: number; on: boolean }
+interface Boxes { head: Collider; body: Collider; fore: Collider | null; bodyHalf: number; on: boolean;
+  /** what sync last wrote: head xyz, body xyz + rotation xyzw, fore xyz + rotation xyzw (NaN: nothing yet) */
+  readonly pose: Float64Array }
+/**
+ * FC16: a hitbox is written only when its pose differs from the one sync last wrote. Most of a shard's creatures stand still
+ * or hold a frozen far pose, and every write was a wasm call that Rapier also counts as a moved collider for its next step
+ * (Pine: ~170 creatures, 2-3 colliders each, every frame). Equal numbers leave the collider exactly where it was.
+ */
+function moveTo(collider: Collider, pose: Float64Array, at: number, x: number, y: number, z: number): void {
+  if (pose[at] === x && pose[at + 1] === y && pose[at + 2] === z) return;
+  pose[at] = x; pose[at + 1] = y; pose[at + 2] = z;
+  collider.setTranslation({ x, y, z });
+}
+function turnTo(collider: Collider, pose: Float64Array, at: number, q: THREE.Quaternion): void {
+  if (pose[at] === q.x && pose[at + 1] === q.y && pose[at + 2] === q.z && pose[at + 3] === q.w) return;
+  pose[at] = q.x; pose[at + 1] = q.y; pose[at + 2] = q.z; pose[at + 3] = q.w;
+  collider.setRotation(q);
+}
 
 export class CreatureBodies<C extends Creature = Creature> {
   private readonly boxes = new Map<C, Boxes>();
@@ -87,23 +104,24 @@ export class CreatureBodies<C extends Creature = Creature> {
           fore = world.createCollider(R.ColliderDesc.capsule(Math.max(0.01, d.fore.halfLen * s), d.fore.radius * s).setCollisionGroups(groups('HITBOX')));
           tagCollider(fore, 'flesh', bodyOwner); this.owners.set(fore.handle, bodyOwner);
         }
-        b = { head, body, fore, bodyHalf, on: true };
+        b = { head, body, fore, bodyHalf, on: true, pose: new Float64Array(17).fill(Number.NaN) };
         this.boxes.set(c, b);
       }
       if (live !== b.on) { b.on = live; b.head.setEnabled(live); b.body.setEnabled(live); b.fore?.setEnabled(live); }
       if (live) {
+        const pose = b.pose;
         c.headWorld(_a);
-        b.head.setTranslation(_a);
+        moveTo(b.head, pose, 0, _a.x, _a.y, _a.z);
         c.bodyCapsule(_a, _b);
         _d.subVectors(_b, _a);
         const len = _d.length();
-        if (len > 1e-4) { _q.setFromUnitVectors(_up, _d.multiplyScalar(1 / len)); b.body.setRotation(_q); }
-        b.body.setTranslation({ x: (_a.x + _b.x) / 2, y: (_a.y + _b.y) / 2, z: (_a.z + _b.z) / 2 });
+        if (len > 1e-4) { _q.setFromUnitVectors(_up, _d.multiplyScalar(1 / len)); turnTo(b.body, pose, 6, _q); }
+        moveTo(b.body, pose, 3, (_a.x + _b.x) / 2, (_a.y + _b.y) / 2, (_a.z + _b.z) / 2);
         if (b.fore !== null && c.foreCapsule?.(_a, _b) === true) {
           _d.subVectors(_b, _a);
           const fl = _d.length();
-          if (fl > 1e-4) { _q.setFromUnitVectors(_up, _d.multiplyScalar(1 / fl)); b.fore.setRotation(_q); }
-          b.fore.setTranslation({ x: (_a.x + _b.x) / 2, y: (_a.y + _b.y) / 2, z: (_a.z + _b.z) / 2 });
+          if (fl > 1e-4) { _q.setFromUnitVectors(_up, _d.multiplyScalar(1 / fl)); turnTo(b.fore, pose, 13, _q); }
+          moveTo(b.fore, pose, 10, (_a.x + _b.x) / 2, (_a.y + _b.y) / 2, (_a.z + _b.z) / 2);
         }
       }
       // the creature physics LOD
