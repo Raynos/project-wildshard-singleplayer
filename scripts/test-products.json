@@ -10,6 +10,7 @@
   "test/nalati-qara-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-wolf-howl-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-sabre-contact-verbs.test.ts": ["nalati-grasslands"],
+  "test/nalati-mounted-chain-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-spear-contact-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-javelin-contact-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-world-verbs.test.ts": ["nalati-grasslands"],
