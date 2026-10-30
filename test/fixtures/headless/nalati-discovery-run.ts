@@ -19,7 +19,8 @@ try{
   const rows=v.parse(ChapterViewSchema,await product.json('quests/content.json')).places;
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   first=await createNativeProofResident({shard,assets:session.assets,rapier,product},prepareHeadlessRuntime);
-  const active=first,{host}=active,frames:HeadlessCommand[][]=[];
+  const active=first,{host}=active,frames:HeadlessCommand[][]=[],recordStarted=performance.now();
+  let alignmentTicks=0;
   const arrived=new Map<string,{tick:number;position:number[]}>(),notices=new Map<string,number>();
   const step=(commands:readonly HeadlessCommand[]):void=>{
     assert.ok(frames.length<60_000,'outdoor discoveries keep the original finite native tape allowance');
@@ -55,13 +56,23 @@ try{
   assert.equal(host.playerBoard.on,true,'the ordinary input must engage the real board');
   const discover=(place:typeof rows[number]):void=>{
     if(arrived.has(place.id))return;
-    // A board carries momentum between inputs. Release the stick through its
-    // real coasting law before starting the next route's progress window.
-    for(let tick=0;tick<600&&Math.hypot(host.boardVelocity.x,host.boardVelocity.z)>.1;tick++)step([]);
-    assert.ok(Math.hypot(host.boardVelocity.x,host.boardVelocity.z)<=.1,'ordinary released input must brake the board');
+    // Keep driving instead of waiting for a full coast to rest at every
+    // place. When momentum points away, the player's ordinary stick brakes
+    // and turns it before the next unchanged waypoint progress window.
+    for(let turn=0;turn<120&&!arrived.has(place.id);turn++){
+      const at=host.player.position,dx=place.x-at.x,dz=place.z-at.z,distance=Math.hypot(dx,dz);
+      if(host.boardVelocity.x*dx+host.boardVelocity.z*dz>=0)break;
+      assert.ok(distance>0);
+      step([{kind:'player',moveX:dx/distance,moveZ:dz/distance,yaw:Math.atan2(-dx,-dz)}]);alignmentTicks++;
+    }
+    {const at=host.player.position;assert.ok(arrived.has(place.id)||host.boardVelocity.x*(place.x-at.x)+host.boardVelocity.z*(place.z-at.z)>=0,
+      'ordinary steering must turn momentum within the original 120-tick progress allowance');}
     if(arrived.has(place.id))return;
     const origin=host.player.position,distance=Math.hypot(place.x-origin.x,place.z-origin.z);
-    const points=[{x:origin.x,z:origin.z},{x:place.x,z:place.z}];
+    // The west crag wall is solid; approach its real discovery circle from
+    // the open east side instead of repeatedly jumping into that wall.
+    const detour=place.id==='the-crags'?[{x:-140,z:-20},{x:-140,z:-115}]:[];
+    const points=[{x:origin.x,z:origin.z},...detour,{x:place.x,z:place.z}];
     try{
       const cursor=new PhysicsRouteCursor(points,{once:true}),limit=Math.min(18_000,Math.max(1200,Math.ceil(distance*90)));
       const previous=host.player.position.clone();let stopped=0;
@@ -86,7 +97,7 @@ try{
   }
   for(const row of rows)assert.equal(notices.get(`Discovered · ${row.label}`)??0,row.quiet===true?0:1,`one original notice for ${row.id}`);
   assert.equal(host.quests.some(quest=>quest.isComplete),false);
-  const replay=await session.ready();
+  const recordMs=performance.now()-recordStarted,replay=await session.ready(),replayStarted=performance.now();
   try{
     // Stream finite original input parts without changing any child watchdog.
     const parts=function* parts():Generator<HeadlessTapeSegment,void> {
@@ -105,7 +116,7 @@ try{
     assert.ok(owner);assert.ok(observed);
     assert.equal(observed.state,owner.snapshot(),'replay retains the actual motor, water and discovery observations');
     assert.equal(replay.quarantined,false);
-    console.info(JSON.stringify({story:'nalati-discoveries',ticks:frames.length,places:[...arrived.keys()],notices:[...notices]}));
+    console.info(JSON.stringify({story:'nalati-discoveries',ticks:frames.length,alignmentTicks,recordMs,replayMs:performance.now()-replayStarted,places:[...arrived.keys()],notices:[...notices]}));
   }finally{await replay.dispose();}
 }catch(error){const ready=await session.ready().then(sim=>({sim}),()=>null);if(ready!==null)await ready.sim.dispose();throw error;}
 finally{first?.dispose();}

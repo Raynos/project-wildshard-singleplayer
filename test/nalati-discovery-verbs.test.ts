@@ -11,4 +11,5 @@ test('Nalati places require real native arrival and survive independent input re
     resolve('test/fixtures/headless/nalati-discovery-run.ts')],{encoding:'utf8',timeout:150_000});
   expect(child.status,child.stdout+child.stderr+String(child.error??'')+(child.signal??'')).toBe(0);
   expect(child.stdout).toContain('"story":"nalati-discoveries"');
+  console.info(child.stdout.trim());
 },180_000);
