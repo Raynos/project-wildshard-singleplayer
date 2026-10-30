@@ -3,6 +3,7 @@ import type { ObservationRef } from '@wildshard/format/sceneRefs';
 import type { ShardContext } from '../plugin/context';
 import type { QuestChapter } from './chapter';
 import { boundQuestState } from './boundState';
+import { questObservation } from './questObservation';
 import type { AdventurePersistence } from './persistence';
 
 const persistenceOwners = new WeakMap<Scope, AdventurePersistence>();
@@ -39,27 +40,12 @@ export function boundChapter(scope: Scope, id: string): QuestChapter {
   return chapter;
 }
 
-/** Typed saved and quest observations share their actual entered owners.
+/** Typed saved and quest observations share their actual entered owners (questObservation.ts reads them).
  * Only elite record read failures recover; flag/listener failures are outside
  * that read boundary and always propagate. No reflected author path is read. */
 export function readQuestObservation(ctx: Pick<ShardContext, 'scope'>, quest: string, ref: ObservationRef): number {
-  if ('flag' in ref) return Number(boundQuestState(ctx.scope, quest).flags.has(ref.flag));
-  if ('quest' in ref) {
-    const state = boundQuestState(ctx.scope, ref.quest);
-    if (ref.state === 'complete' && !state.isComplete) return 0;
-    if (ref.state === 'active' && boundChapter(ctx.scope, quest).line?.active !== state) return 0;
-    return Number(ref.step === undefined ? ref.state === 'active' || state.isComplete : state.current?.id === ref.step);
-  }
-  if (!('saved' in ref)) throw new Error('Observation requires its admitted scene owner');
-  const persistence = enteredAdventurePersistence(ctx.scope), row = ref.saved;
-  if (row.record === 'bosses') {
-    const saved = persistence.bosses.read()[row.id];
-    return saved === undefined ? 0 : Number(saved[row.field]);
-  }
-  if (row.field !== 'kills') throw new Error('Elite observation requires its kill field');
-  let saved: ReturnType<typeof persistence.elites.read>;
-  try { saved = persistence.elites.read(); } catch { return 0; }
-  return saved[row.id]?.kills ?? 0;
+  return questObservation(ref, { flags: () => boundQuestState(ctx.scope, quest).flags, quest: id => boundQuestState(ctx.scope, id),
+    active: () => boundChapter(ctx.scope, quest).line?.active, saved: () => enteredAdventurePersistence(ctx.scope) });
 }
 
 
