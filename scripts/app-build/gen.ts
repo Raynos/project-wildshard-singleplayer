@@ -44,8 +44,7 @@ function versionsModule(): string {
 
 /** Actual artifact versions, shared by the boot writer and final publication. */
 export function assetVersionRows(): Record<string, string> {
-  const all = hashTree('assets');
-  return Object.fromEntries(Object.entries(all).filter(([name]) => !contentNamed(name)));
+  return hashTree('assets', process.cwd(), name => !contentNamed(name));
 }
 
 // /asset-manifest.json (E160 / E161): every file under public/assets — the packs included — with its content hash: what

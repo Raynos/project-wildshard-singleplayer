@@ -32,8 +32,9 @@ function hashFile(abs: string): string {
   return hash;
 }
 
-/** `/<sub>/…` → hash8 for every file under `<root>/public/<sub>` (sorted; .DS_Store skipped) */
-export function hashTree(sub: string, root: string = process.cwd()): Record<string, string> {
+/** `/<sub>/…` → hash8 for selected files under `<root>/public/<sub>`.
+ * Filtering happens before reading bodies; the default includes every file. */
+export function hashTree(sub: string, root: string = process.cwd(), include: (path: string) => boolean = () => true): Record<string, string> {
   const out: Record<string, string> = {};
   const walk = (dir: string, pub: string): void => {
     if (!existsSync(dir)) return;
@@ -41,7 +42,7 @@ export function hashTree(sub: string, root: string = process.cwd()): Record<stri
       if (name === '.DS_Store') continue;
       const p = join(dir, name);
       if (statSync(p).isDirectory()) walk(p, `${pub}/${name}`);
-      else out[`${pub}/${name}`] = hashFile(p);
+      else if (include(`${pub}/${name}`)) out[`${pub}/${name}`] = hashFile(p);
     }
   };
   walk(join(root, 'public', sub), `/${sub}`);
