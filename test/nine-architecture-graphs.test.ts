@@ -206,8 +206,8 @@ test('every held body (and every hull) mesh is one graph shape, its channels cho
   // EP7: heldRigGraphs rewrote a missing COLOR_0 / _AFACE into constants, so each channel set compiled its own program
   const shapes = new Map<string, Set<string>>();
   for (const [id, graph] of Object.entries(viewmodelGraphs(heldProfile)).filter(([key]) => key.startsWith('nine-vm-rig-'))) {
-    const kind = graph.params['uHullK'] === undefined ? 'body' : 'hull';
-    const shape = JSON.stringify({ ...graph, params: Object.fromEntries(Object.entries(graph.params).map(([name, row]) => [name, row.type])) });
+    const params = graph.params ?? {}, kind = params['uHullK'] === undefined ? 'body' : 'hull';
+    const shape = JSON.stringify({ ...graph, params: Object.fromEntries(Object.entries(params).map(([name, row]) => [name, row.type])) });
     shapes.set(kind, (shapes.get(kind) ?? new Set()).add(shape));
     expect(validateGraph(graph, { trustedBudget: true }).ok, id).toBe(true);
   }
