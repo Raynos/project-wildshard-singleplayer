@@ -20,7 +20,7 @@
 import * as THREE from 'three';
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
-import { emitGraphGlsl, glslFloat, graphGlslLibraries, type EmitGraphGlslOptions, type GraphGlsl, type GraphGlslProgram, type GraphGlslUniform } from './glsl';
+import { emitGraphGlsl, graphGlslLibraries, type EmitGraphGlslOptions, type GraphGlsl, type GraphGlslProgram, type GraphGlslUniform } from './glsl';
 import { toonGraph } from './presets';
 import type { ToonLook } from '../families/toon';
 import { windUniforms } from '../../world/wind';
@@ -256,8 +256,8 @@ function fogEpilogue(program: GraphGlslProgram, fog: GraphGlsl | undefined): str
 /** an unlit graph's fragment stage (or, `depth`, a displaced caster's shadow depth: three's BasicDepthPacking) */
 function unlitFragment(glsl: GraphGlsl, program: GraphGlslProgram, uniforms: string, fogged: boolean, fog: GraphGlsl | undefined, depth = false): string {
   const o = program.outputs, ir = glsl.ir, s = ir.stages.surface;
-  // a drawn material's cutoff is its own `alphaTest` (the uniform it feeds); a displaced caster's depth keeps the graph's
-  const cutoff = s?.alphaCutoff === undefined ? '' : `  if ( diffuseColor.a < ${depth ? glslFloat(s.alphaCutoff) : 'wsAlphaCutoff'} ) discard;`;
+  // the cutoff is the material's own `alphaTest` (the uniform it feeds): a caster's depth takes its caster's
+  const cutoff = s?.alphaCutoff === undefined ? '' : '  if ( diffuseColor.a < wsAlphaCutoff ) discard;';
   // a node material's output is clamped at 0 (three's \`max( output, 0 )\`); a written target alpha is not
   const alpha = o.targetAlpha ?? (ir.effectState?.output === 'colour' ? '1.0' : 'max( diffuseColor.a, 0.0 )');
   const output = depth ? '  gl_FragColor = vec4( vec3( 1.0 - gl_FragCoord.z ), 1.0 );' : `  gl_FragColor = vec4( max( diffuseColor.rgb, 0.0 ), ${alpha} );
@@ -611,7 +611,7 @@ export function graphShaders(glsl: GraphGlsl, opts: GraphShaderOptions = {}): Gr
   // the material's own ports a node material reads from its properties: `alphaTest` (the graph's cutoff until a row sets
   // it) and, for a lit graph without a roughness output, `roughness`
   const ports: string[] = [];
-  if (!depth && ir.stages.surface?.alphaCutoff !== undefined) { uniforms['wsAlphaCutoff'] = { value: ir.stages.surface.alphaCutoff }; ports.push('uniform float wsAlphaCutoff;'); }
+  if (ir.stages.surface?.alphaCutoff !== undefined) { uniforms['wsAlphaCutoff'] = { value: ir.stages.surface.alphaCutoff }; ports.push('uniform float wsAlphaCutoff;'); }
   if (lit && program.outputs.roughness === null) { uniforms['wsMaterialRoughness'] = { value: 1 }; ports.push('uniform float wsMaterialRoughness;'); }
   const fragmentText = ports.length === 0 ? text : [text, ...ports].join('\n');
   const declaredFog = fogged && fog !== undefined ? fog.glsl : undefined;

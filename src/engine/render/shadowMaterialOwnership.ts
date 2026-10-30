@@ -40,7 +40,7 @@ function depthKind(object: Object3D): string | null {
  *  a depth variant of its own (or the graph back-end does) */
 function depthFacts(own: unknown): string | null {
   if (!(own instanceof Material)) return null;
-  if (Reflect.get(own, 'isNodeMaterial') === true && own.userData['graphShadowDepth'] === true) return null;
+  if (own.userData['graphShadowDepth'] === true) return null;
   const field = (name: string): unknown => Reflect.get(own, name);
   const has = (name: string): boolean => { const value = field(name); return value !== null && value !== undefined; };
   const displacement = field('displacementScale');
@@ -50,6 +50,13 @@ function depthFacts(own: unknown): string | null {
     field('wireframe') === true ? 'wire' : '', `side${String(own.shadowSide ?? own.side)}`];
   return facts.filter(fact => fact !== '').join('+');
 }
+
+/** the classic graph back-end's depth for a vertex-moving caster (`glslMaterial.ts`'s `classicShadowDepth`), installed by
+ *  its loader; null under the node back-end, whose handler substitutes its own */
+type ClassicShadowDepth = (material: unknown, stock: MeshDepthMaterial, object: Object3D) => Material | null;
+let classicDepth: ClassicShadowDepth | null = null;
+/** Let the classic graph back-end's vertex-moving casters cast from their own vertex stage (called by its loader). */
+export function installClassicShadowDepth(resolve: ClassicShadowDepth): void { classicDepth = resolve; }
 
 /** Install after upload observation: native shadow cache materials must be registered before their first upload.
  * Offscreen precompile depths belong to the warm-up owner, never to the renderer cache. */
@@ -77,6 +84,11 @@ export function installShadowMaterialOwnership(renderer: ShadowRenderer, assets:
       // native: three disposes a per-material depth variant with its source, maybe while a resident still leases it
       assets.register(key, material, { retain: true, native: true });
       scope.listenOnceEmitter(material, 'dispose', () => { assets.forgetDisposed(key); });
+    }
+    if (drawing && classicDepth !== null && material instanceof MeshDepthMaterial && material !== object.customDepthMaterial) {
+      const own: unknown = Reflect.get(object, 'material');
+      const depth = classicDepth(Array.isArray(own) ? own[group?.materialIndex ?? 0] : own, material, object);
+      if (depth !== null) return depth;
     }
     if (drawing && material instanceof MeshDepthMaterial && object.customDepthMaterial === undefined) {
       const kind = depthKind(object);

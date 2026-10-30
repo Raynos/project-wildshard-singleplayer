@@ -26,12 +26,20 @@ const OWN_UNIFORMS: ReadonlySet<string> = new Set(['wsMaterialColour', 'wsMateri
   'wsMaterialRoughness', 'wsAlphaCutoff', 'wsCodecStep', 'wsCodecOrigin', 'normalMap', 'normalMapTransform', 'normalScale', 'roughnessMap',
   'roughnessMapTransform', 'aoMap', 'aoMapTransform', 'aoMapIntensity']);
 
+/** the compiled materials that own their graph's shadow depth (their clones share it) */
+const depthOwners = new WeakSet<THREE.Material>();
+
 /** A lowered graph's `ShaderMaterial`: its clones share the graph's uniforms; its colour, emissive and mesh maps are ports. */
 export class GraphShaderMaterial extends THREE.ShaderMaterial {
   readonly isGraphShaderMaterial = true;
   /** the tile grid codec this program decodes positions with (null: it reads no model-space position): its own step and
    *  origin follow the drawn object, re-uploaded only when they change (RM8.1e) */
   codec: ClassicCodec | null = null;
+  /** a vertex-moving caster's shadow depth from the graph's own vertex stage (null: the stock depth), shared by its clones;
+   *  each variant casts with its own copy (`classicShadowDepth`) */
+  shadowDepth: GraphShaderMaterial | null = null;
+  /** this variant's own copy of `shadowDepth` (its map and cutoff), made at its first cast and freed with it */
+  castDepth: GraphShaderMaterial | null = null;
   /** a lit graph's image-based light: the drawn scene's prefiltered environment (`syncGraphEnvironment`), as a node
    *  material reads `scene.environment` */
   envMap: THREE.Texture | null = null;
@@ -85,9 +93,16 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
   }
 
 
+  override dispose(): void {
+    this.castDepth?.dispose(); this.castDepth = null;
+    if (depthOwners.has(this)) this.shadowDepth?.dispose();
+    super.dispose();
+  }
+
   override copy(source: THREE.ShaderMaterial): this {
     super.copy(source);
     this.codec = source instanceof GraphShaderMaterial && source.codec !== null ? new ClassicCodec() : null;
+    this.shadowDepth = source instanceof GraphShaderMaterial ? source.shadowDepth : null;
     // three's copy clones every uniform value (a texture too): the graph's are shared again, a variant's own map stays the
     // same texture, its colours its own copies
     for (const [name, uniform] of Object.entries(source.uniforms)) {
@@ -138,7 +153,7 @@ export interface ClassicGraph {
   /** the outline stage's hull (null without one): attach it with `attachClassicOutline` */
   readonly outline: GraphShaderMaterial | null;
   /** a displaced caster's shadow depth (null unless a vertex stage says `shadow: true`): attach it with `attachClassicDepth` */
-  readonly depth: THREE.ShaderMaterial | null;
+  readonly depth: GraphShaderMaterial | null;
   /** a fog graph's lowering and its uniform objects, for the materials that select it (null for any other kind) */
   readonly fog: ClassicFog | null;
   readonly setParam: (name: string, value: GraphLiteral) => void;
@@ -153,10 +168,37 @@ export interface ClassicGraphOptions extends Omit<EmitGraphGlslOptions, 'toon'> 
   readonly fog?: (id: string) => ClassicFog;
 }
 
+/** a program that reads a model-space position or offsets one decodes a tile primitive's grid (RM8.1e) */
+const readsCodec = (vertexShader: string): boolean => /\bwsCodec(Step|Origin)\b/.test(vertexShader.slice(vertexShader.indexOf('void main()')));
+/** a mesh without a declared attribute reads its default, else TSL's attribute() constant (three's generateConst: zeros,
+ *  a vec4 as a new Vector4, 0, 0, 0, 1), never the generic value the last draw left at that location */
+function attributeDefaults(glsl: GraphGlsl, m: THREE.ShaderMaterial): THREE.ShaderMaterial['defaultAttributeValues'] {
+  const missing = (type: string): number[] => (type === 'float' ? [0] : type === 'vec2' ? [0, 0] : type === 'vec3' ? [0, 0, 0] : [0, 0, 0, 1]);
+  return { ...m.defaultAttributeValues, ...Object.fromEntries(glsl.attributes.map(a => [a.name, a.default === null ? missing(a.type) : [...a.default]])) };
+}
 /** a displaced caster's shadow depth: the graph's vertex stage and surface mask, writing depth (three's BasicDepthPacking) */
-function depthMaterial(glsl: GraphGlsl, opts: GraphShaderOptions): THREE.ShaderMaterial {
+function depthMaterial(glsl: GraphGlsl, opts: GraphShaderOptions): GraphShaderMaterial {
   const shaders = graphShaders(glsl, { ...opts, depth: true });
-  return new THREE.ShaderMaterial({ vertexShader: shaders.vertexShader, fragmentShader: shaders.fragmentShader, uniforms: shaders.uniforms, name: 'graph:depth' });
+  const m = new GraphShaderMaterial({ vertexShader: shaders.vertexShader, fragmentShader: shaders.fragmentShader, uniforms: shaders.uniforms });
+  m.name = 'graph:depth'; m.userData['graphDepthVariant'] = true;
+  if (readsCodec(shaders.vertexShader)) m.codec = new ClassicCodec();
+  m.defaultAttributeValues = attributeDefaults(glsl, m);
+  return m;
+}
+
+/**
+ * The depth a shadow cast of `object` with the classic graph material `source` draws with in place of three's stock depth
+ * material `stock` (its configured copy of the caster's depth facts), or null where the stock draws: a vertex-moving
+ * graph (`shadow: true`) casts from its own vertex stage, as the node path's depth variant does. Installed by the classic
+ * back-end's loader (`installClassicShadowDepth`).
+ */
+export function classicShadowDepth(source: unknown, stock: THREE.MeshDepthMaterial, object: THREE.Object3D): THREE.Material | null {
+  if (!(source instanceof GraphShaderMaterial) || source.shadowDepth === null) return null;
+  const depth = source.castDepth ??= source.shadowDepth.clone();
+  depth.side = stock.side; depth.map = stock.map; depth.alphaTest = stock.alphaTest;
+  // three's shadow pass calls no material hook: the caster's grid decode is fed here
+  depth.codec?.draw(depth, object);
+  return depth;
 }
 
 /** A lowered graph as its classic material, with the graph's render state (sides, blend, depth, flat shading, points). */
@@ -164,12 +206,8 @@ function shaderMaterial(glsl: GraphGlsl, opts: GraphShaderOptions): GraphShaderM
   const shaders = graphShaders(glsl, opts), ir = glsl.ir, effect = ir.effectState, outline = opts.outline === true;
   const m = new GraphShaderMaterial({ vertexShader: shaders.vertexShader, fragmentShader: shaders.fragmentShader, uniforms: shaders.uniforms, lights: shaders.lights, fog: shaders.fog });
   m.name = outline ? 'graph:outline' : `graph:${ir.kind}`;
-  // a program that reads a model-space position or offsets one decodes a tile primitive's grid (RM8.1e)
-  if (/\bwsCodec(Step|Origin)\b/.test(shaders.vertexShader.slice(shaders.vertexShader.indexOf('void main()')))) m.codec = new ClassicCodec();
-  // a mesh without a declared attribute reads its default, else TSL's attribute() constant (three's generateConst: zeros,
-  // a vec4 as a new Vector4, 0, 0, 0, 1), never the generic value the last draw left at that location
-  const missing = (type: string): number[] => (type === 'float' ? [0] : type === 'vec2' ? [0, 0] : type === 'vec3' ? [0, 0, 0] : [0, 0, 0, 1]);
-  m.defaultAttributeValues = { ...m.defaultAttributeValues, ...Object.fromEntries(glsl.attributes.map(a => [a.name, a.default === null ? missing(a.type) : [...a.default]])) };
+  if (readsCodec(shaders.vertexShader)) m.codec = new ClassicCodec();
+  m.defaultAttributeValues = attributeDefaults(glsl, m);
   if (ir.kind === 'post') { m.depthTest = false; m.depthWrite = false; return m; }
   if (outline) { m.side = THREE.BackSide; return m; }
   m.side = ir.doubleSided === true ? THREE.DoubleSide : THREE.FrontSide;
@@ -214,6 +252,9 @@ export function compileClassicGraph(input: unknown, opts: ClassicGraphOptions = 
   const outline = glsl.outline === null ? null : shaderMaterial(glsl, { ...shaderOpts, outline: true });
   const casts = ir.stages['vertex.offset']?.shadow === true || ir.stages['vertex.position']?.shadow === true;
   const depth = casts ? depthMaterial(glsl, shaderOpts) : null;
+  if (depth !== null) {
+    material.shadowDepth = depth; material.userData['graphShadowDepth'] = true; depthOwners.add(material);
+  }
   const uniformsOf = (name: string): THREE.IUniform | undefined => fogOwn?.get(name) ?? shared.get(name);
   const param = (name: string): string | undefined => glsl.uniforms.find(u => (u.from === 'param' || u.from === 'texture' || u.from === 'array') && u.param === name)?.name;
   return {

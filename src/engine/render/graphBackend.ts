@@ -14,6 +14,7 @@ import type { attachOutline, compileGraph, GraphNormalPrepass, GraphPostPass } f
 import type { EngineNodesHandler } from './nodes/engineNodesHandler';
 import type { NodeMaterial } from 'three/webgpu';
 import type { Renderer } from './renderer';
+import { installClassicShadowDepth } from './shadowMaterialOwnership';
 
 const installed = new WeakMap<Renderer, Promise<EngineNodesHandler>>();
 const ready = new WeakMap<Renderer, EngineNodesHandler>();
@@ -113,8 +114,9 @@ export function tslLookCompiler(compiler: Pick<GraphCompiler, 'compileGraph' | '
  */
 export async function loadLookGraphCompiler(renderer: Renderer, backend: 'tsl' | 'glsl'): Promise<LookGraphCompiler> {
   if (backend === 'tsl') return tslLookCompiler(await loadGraphCompiler(renderer));
-  const [{ compileClassicGraph, attachClassicOutline }, { installGraphShaderHost }] = await Promise.all([import('./graph/glslMaterial'), import('./graph/glslProgram')]);
+  const [{ compileClassicGraph, attachClassicOutline, classicShadowDepth }, { installGraphShaderHost }] = await Promise.all([import('./graph/glslMaterial'), import('./graph/glslProgram')]);
   installGraphShaderHost(renderer);
+  installClassicShadowDepth(classicShadowDepth);
   const fogs = fogTokens<NonNullable<ReturnType<typeof compileClassicGraph>['fog']>>('glsl');
   return {
     backend,

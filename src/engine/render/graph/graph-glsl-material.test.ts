@@ -2,7 +2,7 @@
 // while a variant's own colour and borrowed map stay its own; a declared fog's params move every program selecting it.
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { compileClassicGraph } from './glslMaterial';
+import { classicShadowDepth, compileClassicGraph } from './glslMaterial';
 
 test('a clone shares params, clocks and lent textures; its colour and borrowed map are its own', () => {
   const graph = { version: 1, kind: 'material', model: 'unlit', params: { tint: { type: 'colour', value: [1, 0.5, 0.25] }, ramp: { type: 'texture', value: 'ramp', role: 'lent' } },
@@ -124,4 +124,21 @@ test('a lit graph borrows a model\'s normal, roughness and ao maps as its own sl
   expect(copy.uniforms['roughnessMapTransform']?.value).toEqual(new THREE.Matrix3().setUvTransform(0.5, 0, 1, 1, 0, 0, 0));
   expect(lit.normalMap).toBe(null); expect(lit.aoMapIntensity).toBe(1); expect(lit.normalScale).toEqual(new THREE.Vector2(1, 1));
   expect(lit.fragmentShader).toContain('USE_NORMALMAP_TANGENTSPACE');
+});
+
+test('each variant of a displaced caster casts with its own copy of the graph depth, configured as three configures the stock', () => {
+  const compiled = compileClassicGraph({ version: 1, kind: 'material', model: 'standard', nodes: { p: { op: 'positionGeometry' }, y: { op: 'mul', in: ['p', [0, 1, 0]] },
+    u: { op: 'uv' }, a: { op: 'swizzle', in: ['u'], mask: 'x' } }, stages: { 'vertex.offset': { offset: 'y', shadow: true }, surface: { colour: [1, 1, 1], alpha: 'a', alphaCutoff: 0.5 } } });
+  const source = compiled.material, variant = source.clone(), mesh = new THREE.Mesh(new THREE.BufferGeometry(), variant);
+  expect(source.userData['graphShadowDepth']).toBe(true); expect(variant.shadowDepth).toBe(compiled.depth);
+  const stock = new THREE.MeshDepthMaterial(), map = new THREE.Texture();
+  stock.side = THREE.BackSide; stock.map = map; stock.alphaTest = 0.35;
+  const depth = classicShadowDepth(variant, stock, mesh);
+  if (!(depth instanceof THREE.ShaderMaterial)) throw new Error('a displaced caster casts with its graph depth');
+  expect(depth).not.toBe(compiled.depth); expect(depth.side).toBe(THREE.BackSide);
+  expect(depth.uniforms['wsMeshMap']?.value).toBe(map); expect(depth.uniforms['wsAlphaCutoff']?.value).toBe(0.35);
+  expect(compiled.depth?.uniforms['wsAlphaCutoff']?.value).toBe(0.5);
+  expect(classicShadowDepth(variant, stock, mesh)).toBe(depth); expect(classicShadowDepth(source, stock, mesh)).not.toBe(depth);
+  const plain = compileClassicGraph({ version: 1, kind: 'material', model: 'standard', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } }).material;
+  expect(classicShadowDepth(plain, stock, mesh)).toBe(null); expect(classicShadowDepth(stock, stock, mesh)).toBe(null);
 });
