@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
+import * as v from 'valibot';
 import {openProductSession} from './productSession.ts';
 import {driftwoodQuestIntroTape} from '../../proof/driftwood-isle/verbTape.ts';
 import {skyKeeperTape} from '../../proof/far-reach/verbTape.ts';
+import {nalatiCampIntroTape} from '../../proof/nalati-grasslands/verbTape.ts';
 const slug=process.argv[2];
-if(slug!=='driftwood-isle'&&slug!=='far-reach')throw new Error('Unknown native quest tape');
-const {sim}=await openProductSession(slug);
+if(slug!=='driftwood-isle'&&slug!=='far-reach'&&slug!=='nalati-grasslands')throw new Error('Unknown native quest tape');
+const {sim,product}=await openProductSession(slug,slug==='nalati-grasslands'?'nalati-verbs':undefined);
 try {
-  const report=await sim.verbTape(slug==='driftwood-isle'?driftwoodQuestIntroTape():skyKeeperTape());
+  const report=await sim.verbTape(slug==='driftwood-isle'?driftwoodQuestIntroTape():slug==='far-reach'?skyKeeperTape():nalatiCampIntroTape(product.shardfile.spawn));
   const at=id=>{const row=report.observations.find(row=>row.id===id);assert.ok(row,`Missing actual observation ${id}`);return row;};
   if(slug==='driftwood-isle'){
     assert.equal(at('chest-out-of-reach').flags.includes('has:flint'),false);
@@ -22,12 +24,25 @@ try {
     assert.equal(at('take-lookout-shard-again').effects.length,0,'repeated use cannot mint another reward');
     assert.equal(at('take-lookout-shard').quests.find(row=>row.id==='sealed-ring')?.complete,false,'the other two real shards are still required');
     assert.deepEqual(at('open-chest-again').flags,at('open-chest').flags,'a second use cannot repeat the chest transition');
-  }else{
+  }else if(slug==='far-reach'){
     assert.equal(at('keeper-out-of-reach').flags.includes('far.notes'),false);
     assert.equal(at('talk-to-keeper').flags.includes('far.notes'),true);
     assert.equal(at('talk-to-keeper').quests.find(row=>row.id==='far.quest')?.currentId,'roost');
     assert.equal(at('talk-to-keeper-again').quests.find(row=>row.id==='far.quest')?.currentId,'roost');
     for(const flag of ['far.roost','far.vanes','far.bridge'])assert.equal(at('unearned-winch').flags.includes(flag),false);
+  }else{
+    for(const id of ['elder-out-of-reach','walk-to-elder','open-elder-reading','cancel-elder-reading']){
+      assert.equal(at(id).flags.includes('talked:elder'),false,'only a completed reading may grant the introduction');
+      assert.equal(at(id).quests.find(row=>row.id==='tulpar')?.started,false);
+    }
+    const reading=at('open-elder-reading').adapters.find(row=>row.id==='nalati.talk');
+    assert.ok(reading);const opened=v.parse(v.object({dialogue:v.object({npc:v.string(),clock:v.object({open:v.boolean()})})}),JSON.parse(reading.state));
+    assert.equal(opened.dialogue.npc,'elder');assert.equal(opened.dialogue.clock.open,true);
+    assert.equal(at('cancel-elder-reading').adapters.find(row=>row.id==='nalati.talk')?.state,'null');
+    const finished=at('finish-elder-reading');
+    assert.equal(finished.flags.includes('talked:elder'),true);assert.equal(finished.quests.find(row=>row.id==='tulpar')?.currentId,'tame');
+    for(const flag of ['tamed:horse','won:kokpar','quest:tulpar','quest:golden-king','quest:father-wind'])assert.equal(finished.flags.includes(flag),false);
+    assert.equal(finished.effects.length,0,'an introduction cannot mint a completion fact or coins');
   }
   assert.equal(sim.quarantined,false);
   console.log(JSON.stringify({slug,ticks:report.ticks,observations:report.observations.map(({id,tick,position,flags,quests})=>({id,tick,position,flags,quests}))}));
