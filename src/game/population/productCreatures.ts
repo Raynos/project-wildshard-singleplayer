@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import type * as THREE from 'three';
-import type { MeshStandardNodeMaterial } from 'three/webgpu';
 import { CreatureInstallSchema, type CreatureInstallRows } from '@wildshard/format/speciesLooks';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
+import type { AnimalMaterial } from '@wildshard/engine/entities/AnimalFactory';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import type { SpeciesDecisionAuthority } from '../plugin/brain';
 import type { ShardContext } from '../plugin/context';
@@ -49,9 +49,11 @@ export async function installProductCreatures(ctx: ShardContext, decisions: Spec
 }
 
 
-const isLitGraph = (m: THREE.Material): m is MeshStandardNodeMaterial => Reflect.get(m, 'isMeshStandardNodeMaterial') === true;
+/** a lit graph material of either back-end: the node path's standard material, or a lit classic graph program */
+const isLitGraph = (m: THREE.Material): m is AnimalMaterial => Reflect.get(m, 'isMeshStandardNodeMaterial') === true
+  || (Reflect.get(m, 'isGraphShaderMaterial') === true && Reflect.get(m, 'lights') === true);
 /** a lent creature body (a lit graph); refuses before the lend or on another kind of look */
-function body(id: string): MeshStandardNodeMaterial {
+function body(id: string): AnimalMaterial {
   const m = lentLook(id);
   if (!isLitGraph(m)) throw new Error(`Creature looks: ${id} is not a lit creature graph`);
   return m;

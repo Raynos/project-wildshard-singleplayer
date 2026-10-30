@@ -3,6 +3,7 @@ import type { CreatureRenderSpec } from '../level/spec';
 import { selectedLevel } from '../level/selection';
 import * as THREE from 'three';
 import type { MeshStandardNodeMaterial } from 'three/webgpu';
+import type { GraphShaderMaterial } from '../render/graph/glslMaterial';
 import { mergeAnimalGeometry } from '../models/animalGeometry';
 import { Rng } from '../core/rng';
 import type { SkyRig as Sky } from '../world/skyRig';
@@ -140,7 +141,7 @@ export interface AnimalRig {
 }
 
 /** Lit body materials retain colour, map and emissive hit-flash ports, including compiled standard/toon graphs. */
-export type AnimalMaterial = THREE.MeshStandardMaterial | THREE.MeshLambertMaterial | MeshStandardNodeMaterial;
+export type AnimalMaterial = THREE.MeshStandardMaterial | THREE.MeshLambertMaterial | MeshStandardNodeMaterial | GraphShaderMaterial;
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
 // Procedural fur textures
@@ -695,8 +696,9 @@ export class AnimalFactory {
     if (model.render.lowPoly && model.geometry.hasAttribute('aGlow') && fur instanceof THREE.MeshStandardMaterial) patchEyeGlow(fur, model.eye.emissive, model.eye.emissiveIntensity);
     const v = (tint - 0.5) * model.render.tintRange;
     fur.color.setRGB(0.9 + v, 0.9 + v * 0.9, 0.9 + v * 0.7);
-    // a compiled graph body reads its cascades through the engine's light nodes: no classic CSM patch
-    if (Reflect.get(fur, 'isNodeMaterial') !== true) this.sky.setupMaterial(fur);
+    // a compiled graph body reads its cascades through the engine's light nodes, a classic graph program through the sky
+    // rig's cascade setup at its build (its clones keep it): no family slots, no second patch
+    if (Reflect.get(fur, 'isNodeMaterial') !== true && Reflect.get(fur, 'isGraphShaderMaterial') !== true) this.sky.setupMaterial(fur);
     // low-poly rigs are one group (oneMaterial): one draw, and the per-animal body clone is the whole body (the hit flash)
     // a generated hull (Pine Hollow) is one group too: one draw, and one shadow draw without animalShadow's caster
     // a `sharedBody` look (O15): every rig whose body copies the same one (and wears the same hull map and side) draws
