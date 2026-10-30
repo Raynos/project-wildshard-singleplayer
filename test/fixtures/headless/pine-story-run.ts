@@ -17,6 +17,7 @@ import {WILDSHARD_IDENTITY} from '../../../src/game/identity';
 import {ForestPageSchema,LivingPageInputSchema} from '../../../src/format/forestPage';
 import {prepareHeadlessRuntime} from '../pine-verbs';
 import {pineHeadlessAssets} from '../pine-headless';
+import CONTROLLER_TERRAIN from '../../../src/shards/pine-hollow/data/terrainBindings.json' with {type:'json'};
 
 const started=performance.now();let phaseStart=started;
 const measured=(phase:string)=>{const now=performance.now();console.info(JSON.stringify({phase:'timing',stage:phase,milliseconds:now-phaseStart}));phaseStart=now;};
@@ -33,8 +34,9 @@ try{
     plan=await prepareHeadlessRuntime(preparation);return plan;
   });
   assert.ok(plan);const active=resident;measured('resident');
-  const {pineTape,kingRow,kingSnapshotRow}=await import('../../proof/pine-hollow/witness');
-  const controller=pineTape(plan),{host}=resident;measured('controller');
+  const {pineTape,kingRow,kingSnapshotRow}=await import('../../proof/pine-hollow/controller');
+  const navBytes=assets.get(CONTROLLER_TERRAIN.navmesh);assert.ok(navBytes);
+  const controller=pineTape(plan,navBytes),{host}=resident;measured('controller');
   retireRopes=installWalkRopeBodies(host,product);installNativeWalkBounds(host);
   const page=v.parse(ForestPageSchema,await product.json('world/forest-page.json'));
   const variant=page.buildings.variants.find(row=>row.tier==='phone'&&!row.shadow&&!row.shared);assert.ok(variant);
