@@ -66,8 +66,10 @@ const sets = new Map(layout.rows.sets.map(row => [`set:${row.name}`, `layout_${r
 const SET_TILES = new Set([...sets.values()].flatMap(part => tiles.get(part) ?? []));
 
 // One alias per source: its partition, its tiles, its pose; resident or Explorer-only by where the bake put it.
-// D179 B (Jake): the layout kits and shell, the city fabric the spawn ring's L0 tiles hold, refine after control from the
-// coarse L1 tiles ('native-refine', load 'refine'); every other resident source stays ordinary
+// The layout kits and shell, the city fabric the spawn ring's L0 tiles hold, refine from the coarse L1 tiles
+// ('native-refine', load 'refine'); every other resident source stays ordinary. Since G884 (Jake 10-29, QB16, superseding
+// D179 B's refine-after-control) the whole spawn view refines under the loader before the reveal (NP-1 / MF5); only tiles
+// outside it refine after control
 const aliases = { native: new Map<string, unknown>(), 'native-refine': new Map<string, unknown>(), 'native-explorer': new Map<string, unknown>() };
 const libraryOf = new Map<string, keyof typeof aliases>();
 function alias(id: string, key: string, matrix?: readonly number[]): void {
