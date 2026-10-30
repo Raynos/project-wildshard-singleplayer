@@ -2,13 +2,9 @@
 import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Behavior assertions run in the bounded native child.
 import assert from 'node:assert/strict';
-import {builtProduct} from '../builtProduct';
-import {loadHeadlessProduct} from '../../../src/sdk/headlessProduct';
-import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
+import {beginProductSession} from './productSession';
 import {loadRapier} from '../../../src/engine/physics/rapier';
 import {createNativeProofResident} from '../headless-native';
-import {createNativeProofWorker} from '../headless-worker';
-import {productHeadlessSections} from '../../../src/sdk/headlessSections';
 import {installWalkRopeBodies} from './ropeBodies';
 import {installNativeWalkBounds} from './nativeBounds';
 import {prepareHeadlessRuntime} from '../../proof/driftwood-isle/worker';
@@ -18,26 +14,31 @@ import type {HeadlessTapeSegment} from '../../../src/sdk/headlessTape';
 
 const journey=process.argv[2]??'sealed-ring';
 if(journey!=='sealed-ring'&&journey!=='zipline')throw new Error('Unknown native Driftwood story');
-const directory=builtProduct('driftwood-isle'),product=await loadHeadlessProduct(directory),source=product.shardfile;
-const descriptor=outputDescriptor(source);assert.ok(descriptor);
-const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,
-  Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
-const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-const resident=await createNativeProofResident({shard:source,assets,rapier,product},prepareHeadlessRuntime);
-const releaseRopes=installWalkRopeBodies(resident.host,product);installNativeWalkBounds(resident.host);
-const frames:HeadlessCommand[][]=[],marks:{id:string;tick:number;flags:string[]}[]=[];
+const started=performance.now();
+const phase=(stage:string):void=>{console.info(JSON.stringify({phase:stage,milliseconds:performance.now()-started}));};
+// The independent replay owner may prepare while the real input author walks.
+// It still admits its own assets and starts from a fresh native checkpoint.
+const session=await beginProductSession('driftwood-isle','driftwood'),{product,assets}=session,source=product.shardfile;
+phase('product');
 try{
-  // This authors inputs from actual feet/targets and pushes the barrel with
-  // the player motor. It neither reads nor writes the historical goldens.
-  await playDriftwood(resident.host,commands=>{
-    if(frames.length>=60_000)throw new Error('Story exceeds the admitted tape allowance');
-    frames.push(structuredClone(commands));resident.step(commands);
-  },id=>{marks.push({id,tick:frames.length,flags:[...resident.host.flags.all]});return Promise.resolve();},journey);
-  assert.ok(resident.host.flags.has(journey==='sealed-ring'?'quest:driftwood-done':'used:zipline'));
-}finally{releaseRopes();resident.dispose();}
+  const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const resident=await createNativeProofResident({shard:source,assets,rapier,product},prepareHeadlessRuntime);
+  const releaseRopes=installWalkRopeBodies(resident.host,product);installNativeWalkBounds(resident.host);
+  phase('capture-ready');
+  const frames:HeadlessCommand[][]=[],marks:{id:string;tick:number;flags:string[]}[]=[];
+  try{
+    // This authors inputs from actual feet/targets and pushes the barrel with
+    // the player motor. It neither reads nor writes the historical goldens.
+    await playDriftwood(resident.host,commands=>{
+      if(frames.length>=60_000)throw new Error('Story exceeds the admitted tape allowance');
+      frames.push(structuredClone(commands));resident.step(commands);
+    },id=>{marks.push({id,tick:frames.length,flags:[...resident.host.flags.all]});return Promise.resolve();},journey);
+    assert.ok(resident.host.flags.has(journey==='sealed-ring'?'quest:driftwood-done':'used:zipline'));
+  }finally{releaseRopes();resident.dispose();}
+  phase('capture-done');
 
-const replay=await createNativeProofWorker(source,assets,'driftwood',undefined,productHeadlessSections(product),directory);
-try{
+  const replay=await session.ready();
+  phase('replay-ready');
   const segments:HeadlessTapeSegment[]=[];let start=0;
   for(const mark of marks){
     while(mark.tick-start>18_000){
@@ -46,6 +47,7 @@ try{
     segments.push({id:mark.id,ticks:mark.tick-start,commands:[],frames:frames.slice(start,mark.tick)});start=mark.tick;
   }
   const report=await replay.verbTape({version:1,observe:[],segments});
+  phase('replay-done');
   assert.equal(report.ticks,frames.length);
   for(const mark of marks){
     const actual=report.observations.find(row=>row.id===mark.id);assert.ok(actual);
@@ -65,4 +67,4 @@ try{
   }
   assert.equal(replay.quarantined,false);
   console.info(JSON.stringify({story:journey,ticks:report.ticks,marks:report.observations.map(row=>({id:row.id,tick:row.tick}))}));
-}finally{await replay.dispose();}
+}finally{await(await session.ready()).dispose();}
