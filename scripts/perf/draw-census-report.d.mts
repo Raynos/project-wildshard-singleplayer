@@ -17,6 +17,7 @@ export interface AttributionSummary {
 }
 export function attributionSummary(frames: AttributionFrame[]): AttributionSummary;
 export interface SampleProfile<T> {nodes: {id: number; callFrame: T; children?: number[]}[]; samples?: number[]; timeDeltas: number[]}
-export function sampledCpu<T>(profile: SampleProfile<T>, locate: (frame: T) => {source: string; name: string}, frames: number): {
+export function sampledCpu<T>(profile: SampleProfile<T>, locate: (frame: T) => {source: string; name: string; line?: number | null; column?: number | null}, frames: number): {
+  functions: {source: string; name: string; line: number | null; column: number | null; selfMs: number; inclusiveMs: number; selfMsPerFrame: number | null; inclusiveMsPerFrame: number | null}[];
   frames: number; mappedSources: number; msPerFrame: Record<string, number | null>; qualifier: string;
 };

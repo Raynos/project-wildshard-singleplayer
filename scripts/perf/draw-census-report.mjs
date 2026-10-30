@@ -16,17 +16,26 @@ export function nativeSummary(frames) {
 /** Source-mapped sampled CPU. Attribute samples once to each category even if
  * recursive/nested wrappers occur. Wrapper overhead is the part of an engine
  * renderBufferDirect stack outside the stock three renderBufferDirect stack.
- * @param {object} profile @param {(frame: object)=>{source:string,name:string}} locate @param {number} frames */
+ * @param {object} profile @param {(frame: object)=>{source:string,name:string,line?:number|null,column?:number|null}} locate @param {number} frames */
 export function sampledCpu(profile, locate, frames) {
   const nodes = new Map(profile.nodes.map(node => [node.id, node])), parents = new Map();
   for (const node of profile.nodes) for (const child of node.children ?? []) parents.set(child, node.id);
-  const totals = { renderWorld: 0, stockDraw: 0, drawWrappers: 0, propertyHooks: 0 }, mapped = new Set(), identified = new Set(), locations = new Map();
+  const totals = { renderWorld: 0, stockDraw: 0, drawWrappers: 0, propertyHooks: 0 }, mapped = new Set(), identified = new Set(), locations = new Map(), functions = new Map();
   for (const node of profile.nodes) locations.set(node.id, locate(node.callFrame));
   for (let index = 0; index < (profile.samples ?? []).length; index++) {
-    const categories = new Set(); let id = profile.samples[index];
+    const categories = new Set(), seen = new Set(), leaf = profile.samples[index];
+    const elapsed = (profile.timeDeltas[index] ?? 0) / 1000; let id = leaf;
     while (id !== undefined) {
       const node = nodes.get(id); if (!node) throw new Error('CPU profile references a missing node');
-      const { source, name } = locations.get(id); if (source) mapped.add(source);
+      const location = locations.get(id), { source, name } = location; if (source) mapped.add(source);
+      if (source.includes('/src/engine/')) {
+        const line = location.line ?? null, column = location.column ?? null;
+        const key = JSON.stringify([source, name, line, column]);
+        let row = functions.get(key);
+        if (row === undefined) { row = { source, name, line, column, selfMs: 0, inclusiveMs: 0 }; functions.set(key, row); }
+        if (!seen.has(key)) { row.inclusiveMs += elapsed; seen.add(key); }
+        if (id === leaf) row.selfMs += elapsed;
+      }
       if (/renderWorld/u.test(name) && source.includes('/core/worldDepth')) categories.add('renderWorld');
       if (/\/three\/(?:src\/renderers\/WebGLRenderer|build\/three(?:\.module)?\.js)/u.test(source) && /renderBufferDirect/u.test(name)) categories.add('stockDraw');
       if (/src\/engine\/render\//u.test(source) && (/renderBufferDirect/u.test(name)
@@ -36,10 +45,11 @@ export function sampledCpu(profile, locate, frames) {
     }
     for (const category of categories) identified.add(category);
     if (categories.has('stockDraw')) categories.delete('drawWrappers');
-    for (const category of categories) totals[category] += (profile.timeDeltas[index] ?? 0) / 1000;
+    for (const category of categories) totals[category] += elapsed;
   }
   const present = mapped.size > 0;
   return { frames, mappedSources: mapped.size, msPerFrame: Object.fromEntries(Object.entries(totals).map(([name, ms]) => [name, present && identified.has(name) && frames > 0 ? ms / frames : null])),
+    functions: [...functions.values()].sort((a, b) => b.selfMs - a.selfMs || b.inclusiveMs - a.inclusiveMs).map(row => Object.assign(row, { selfMsPerFrame: frames > 0 ? row.selfMs / frames : null, inclusiveMsPerFrame: frames > 0 ? row.inclusiveMs / frames : null })),
     qualifier: 'CDP sampled inclusive renderWorld/stock draw; exclusive engine draw-wrapper stack; not GPU time or an uninstrumented acceptance reading' };
 }
 

@@ -50,7 +50,7 @@ const locate = frame => {
   if (!maps.has(file)) maps.set(file, existsSync(`${file}.map`) ? new TraceMap(readFileSync(`${file}.map`, 'utf8')) : null);
   const map = maps.get(file);
   const position = map ? originalPositionFor(map, { line: frame.lineNumber + 1, column: Math.max(0, frame.columnNumber) }) : null;
-  return { source: position?.source ?? '', name: `${frame.functionName} ${position?.name ?? ''} ${originalFunction(map, position)}`.trim() };
+  return { source: position?.source ?? '', line: position?.line ?? null, column: position?.column ?? null, name: `${frame.functionName} ${position?.name ?? ''} ${originalFunction(map, position)}`.trim() };
 };
 if (arg('reprocess') !== '') {
   const retained = JSON.parse(readFileSync(join(resolve(arg('reprocess')), 'census.json'), 'utf8'));

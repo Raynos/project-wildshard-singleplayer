@@ -45,3 +45,17 @@ test('a source-mapped minified submission stays attributed outside the stock dra
   expect(result.msPerFrame['drawWrappers']).toBe(1);
   expect(result.msPerFrame['stockDraw']).toBe(2.5);
 });
+
+
+test('function rankings retain source positions and count recursive inclusive samples once', () => {
+  const frame = { source: '/src/engine/render/drawHooks.ts', name: 'submit', line: 48, column: 2 };
+  const profile = { nodes: [
+    { id: 1, callFrame: frame, children: [2] },
+    { id: 2, callFrame: frame, children: [3] },
+    { id: 3, callFrame: { ...frame, source: '/node_modules/three/native.js', name: 'native' } },
+  ], samples: [2, 3], timeDeltas: [2000, 4000] };
+  const result = sampledCpu(profile, value => value, 2);
+  expect(result.functions).toEqual([{ ...frame, selfMs: 2, inclusiveMs: 6, selfMsPerFrame: 1, inclusiveMsPerFrame: 3 }]);
+  expect(sampledCpu(profile, value => value, 0).functions[0]?.selfMsPerFrame).toBeNull();
+  expect(sampledCpu(profile, () => ({ source: '', name: '' }), 2).functions).toEqual([]);
+});
