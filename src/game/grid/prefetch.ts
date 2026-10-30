@@ -239,13 +239,14 @@ class GridPrefetch {
 }
 
 declare global { interface Window { __ws_gridPrefetch?: () => GridPrefetchStatus | null } }
-let current: GridPrefetch | null = null;
+/** Each document owns one run; retaining this module never retains a retired window. */
+const pageRuns = new WeakMap<Window, GridPrefetch>();
 /** Start (or re-prioritize) the page's one whole-set prefetch; it runs on its own and never throws into the caller. */
 export function startGridPrefetch(slugs: readonly string[], ring: readonly string[] = slugs, explicit = false): void {
   if (typeof caches === 'undefined' || !('storage' in navigator)) return;
-  const running = current;
-  if (running !== null) { if (explicit) running.explicit = true; running.prioritize(slugs, ring); return; }
-  const run = new GridPrefetch(); current = run; run.explicit = explicit; run.prioritize(slugs, ring);
+  const running = pageRuns.get(window);
+  if (running !== undefined) { if (explicit) running.explicit = true; running.prioritize(slugs, ring); return; }
+  const run = new GridPrefetch(); pageRuns.set(window, run); run.explicit = explicit; run.prioritize(slugs, ring);
   launchPrefetch(run);
 }
 function launchPrefetch(run: GridPrefetch): void {
@@ -282,7 +283,7 @@ export function startTitlePrefetch(slugs: readonly string[], flow: 'client' | 'g
   }};
 }
 /** The run's counts (null before any start): for the loading screen's download line and captures. */
-export function gridPrefetchStatus(): GridPrefetchStatus | null { return current?.snapshot() ?? null; }
+export function gridPrefetchStatus(): GridPrefetchStatus | null { return pageRuns.get(window)?.snapshot() ?? null; }
 
 /** Every product the title list knows (G727's "everything"). */
 function everyProduct(): string[] {
@@ -322,8 +323,8 @@ export async function remainingDownloadBytes(owner?: Scope): Promise<number | nu
  *  one; the worker warms the whole code bundle beside it. `progress` gets the stored and present bytes of the known set. */
 export async function downloadEverything(owner: Scope, progress: (done: number, total: number) => void): Promise<OfflineDownloadEnd> {
   if (typeof caches === 'undefined' || !('storage' in navigator)) return 'stopped';
-  const slugs = everyProduct(), running = current;
-  if (running === null || running.snapshot().phase !== 'running') current = null; // a finished run makes way for a new one
+  const slugs = everyProduct(), running = pageRuns.get(window);
+  if (running?.snapshot().phase !== 'running') pageRuns.delete(window); // a finished run makes way for a new one
   startGridPrefetch(slugs, slugs, true);
   navigator.serviceWorker?.controller?.postMessage({ type: 'WARM_ALL_CODE' });
   for (;;) {
