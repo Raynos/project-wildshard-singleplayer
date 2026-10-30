@@ -76,7 +76,6 @@
   "src/engine/boot/prefetchQuota.test.ts": 0.024186,
   "src/engine/boot/readContentResponse.test.ts": 0.991078,
   "src/engine/boot/sky-horizon.test.ts": 0.048206,
-  "src/engine/boot/spawn-ring-reveal.test.ts": 0.168159,
   "src/engine/boot/stall.test.ts": 0.033039,
   "src/engine/boot/sw-ready-controller.test.ts": 0.352648,
   "src/engine/boot/sw-ready-uncontrolled.test.ts": 0.35329,

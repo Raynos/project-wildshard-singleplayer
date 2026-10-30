@@ -246,6 +246,8 @@ QA (G933) is the final check.
 | Phone bloom, G945 | **done** `03cf658f60` (sp-x1): phone Off, desktop On; Debug setting/module/strings removed. Existing borrowed effect settings and live custom post-graph bloom remain. | Actual before/after engine inclusion expression in the same three/postprocessing HDR component: both tier profiles zero changed decoded pixels. Not a whole-world or performance claim. |
 | Hook zip, G946 | **done** `9f82c22737` (sp-x1): browser Rise fixed; Debug/query/module/strings removed. Explicit native course API retained for existing behavior oracles. | Real Rapier/SimHost course: 96 ticks, peak Y 6.050000000745058, every snapshot/event/position/velocity f64 bit identical. Native trajectory component captures: zero changed decoded pixels; three original guard controls pass. |
 
+| Early 3x3 reveal, G946 | **done** (sp-x8): initial full coverage; readiness experiment, Debug row and saved selector removed. | Actual ClientAssets/TileStreamer/registration component: 804 × 1200, zero changed decoded pixels; all 64 tiles covered and every lease released. Original first/return/refusal laws remain. [Labelled component capture](../../../art/debug-retirements/g946-early-default.webp). |
+
 Refine dither, Early 3x3 reveal and Idle-frame reuse are sp-x8's separate G946 retirements. FXAA stays merged (G947).
 The component captures above do not claim full-world screenshot parity. Shared-tree root types and the 7,710-file
 ratchet pass after the three source landings; browsers/builds are closed.

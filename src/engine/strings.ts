@@ -1,6 +1,5 @@
 /** English engine UI strings. Content-owned overrides are installed by the composition root. */
 export const ENGINE_STRINGS = {
-  "s_spawn_ring_reveal": "Reveal at 3x3 spawn ring",
   "s_idle_frames": "Idle frames",
   "s_graph_batches": "Graph batches",
   "s_graph_batches_batched": "Batched",
@@ -12,7 +11,6 @@ export const ENGINE_STRINGS = {
   "s_pose_rate_note": "FC11: animals past 30 m pose their legs every 2nd frame, past 70 m every 4th; they still move every frame. Every frame is the old cost.",
   "s_idle_frames_hold": "Hold shadows while still",
   "s_idle_frames_note": "FC13 (G912): while the view stands still the phone redraws its shadow cascades half as often (near every 2nd frame, middle every 4th, far every 8th); the first moved frame goes back. Off (default) is every frame's cadence.",
-  "s_spawn_ring_reveal_note": "Developer experiment; reloads. Off waits for full coverage. On reveals after the required spawn ring and streams the remaining coverage.",
   "s_update_next_boundary": "New version · reload",
   "s_update_next_boundary_dev": "new ⟦0⟧ · reload",
   "s_update_confirm": "Confirm reload",

@@ -1,4 +1,3 @@
-import {spawnRingReveal, setSpawnRingReveal} from '../boot/spawnRingReveal';
 import { graphBatches, setGraphBatches } from '../render/graphBatches';
 import { TIER } from '../core/tier';
 import { authoredRows } from './authoredDebugRows';
@@ -183,12 +182,6 @@ const poseRateRow: DebugRow = { purpose: 'developer', id: 'animalPoseRate', grou
   get: () => poseRate(), set: value => { const pick = POSE_RATES.find(choice => choice === value); if (pick !== undefined && isDev()) setPoseRate(pick); },
   on: () => undefined, reload: false, when: always, note: engineString('s_pose_rate_note'), ask: 'E435', reviewBy: '2026-11-12' };
 
-/** G867: one default-off initial spawn-readiness experiment. */
-const spawnRingRevealRow: DebugRow = {purpose: 'developer', id: 'spawnRingReveal', group: 'loading', label: engineString('s_spawn_ring_reveal'),
-  choices: () => [{v: 'off', text: engineString('s_ca7981b46ecf')}, {v: 'on', text: engineString('s_130011756125')}],
-  get: () => spawnRingReveal() ? 'on' : 'off', set: value => {if (value === 'off' || value === 'on') setSpawnRingReveal(value === 'on');},
-  on: () => undefined, reload: true, when: always, note: engineString('s_spawn_ring_reveal_note'), ask: 'E435', reviewBy: '2026-10-30'};
-
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
 
@@ -207,7 +200,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Loading & memory ──
   clearDownloadsRow,
-  spawnRingRevealRow,
 
   // ── Developer tools ──
 
