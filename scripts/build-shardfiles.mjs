@@ -21,6 +21,7 @@ import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
 import { orderProductBuilds, readProductBuildTimes, recordProductBuildTimes } from './product-build-times.mjs';
 import { prepareProductBuildTools } from './product-build-tools.mjs';
 import { checkTileBake } from './tile-bakes.mjs';
+import { reportTileBake } from './tile-bake-report.mjs';
 import { runtimeCopyIssues, productMapInput, publishProductMap, productFlags, productRecipe, readBuiltShardfile as selectBuiltShardfile } from './built-product.mjs';
 
 /** Read CI's output or a matching immutable product without invoking the builder.
@@ -141,6 +142,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     // file hashes, schemas, budgets and executing the admitted script bytes.
     if (strict && how !== 'built') await buildOne(['validate',destination]);
     const tiles = checkTileBake(root, name, destination);
+    reportTileBake(root, name, destination);
     if (map !== undefined && map.image === undefined) await publishProductMap(root, name, destination, map.tilesHash);
     console.info(`tile bake: ${name} ${tiles.l0} L0/${tiles.l1} L1, 16 full 5x5 windows checked, ${Object.keys(tiles.debt).length} existing debt metrics`);
     console.info(`wildshard build: ${name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
