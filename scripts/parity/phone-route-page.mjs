@@ -15,6 +15,27 @@ export function phoneTouchButton(selector) {
   return true;
 }
 
+/** Failure-only evidence also works before a world/grid exists. Read the
+ * existing loading snapshot and native timings without installing observers. */
+export function phoneLoadingObservation() {
+  const root = /** @type {HTMLElement|null} */ (document.querySelector('.ws-load'));
+  const { step } = root?.dataset ?? {};
+  /** @param {string} key */
+  const text = key => root?.querySelector(`[data-el="${key}"]`)?.textContent ?? null;
+  /** @type {unknown} */
+  const timeline = root === null ? null : Reflect.get(root, Symbol.for('engine.loading.snapshot')) ?? null;
+  return { at: performance.now(), url: location.href, readyState: document.readyState,
+    loading: root === null ? null : { step: step ?? null, clock: text('clock'),
+      download: text('dlFact'), setup: text('suFact'), wait: text('foot'), timeline },
+    resources: performance.getEntriesByType('resource').map(entry => {
+      const resource = /** @type {PerformanceResourceTiming} */ (entry);
+      return { name: resource.name, kind: resource.initiatorType, start: resource.startTime,
+        duration: resource.duration, responseStart: resource.responseStart, responseEnd: resource.responseEnd,
+        transferBytes: resource.transferSize, encodedBytes: resource.encodedBodySize, decodedBytes: resource.decodedBodySize };
+    }),
+    measures: performance.getEntriesByType('measure').map(entry => ({ name: entry.name, start: entry.startTime, duration: entry.duration })) };
+}
+
 /** Read the rendered G718 pill and completed draws, not simulation ticks or p50. */
 export function phoneRouteObservation() {
   const api = window.__wildshard, world = api?.world;

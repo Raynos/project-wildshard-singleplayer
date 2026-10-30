@@ -5,7 +5,7 @@ import { resolve as resolvePath, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import sharp from 'sharp';
 import { runFloorGridRoute, gridFloorDocumentIdentity, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
-import { phoneRouteObservation, phoneBoardWall, phoneWallTarget, watchPhoneEntry, installPhoneTitlePaint } from './phone-route-page.mjs';
+import { phoneRouteObservation, phoneLoadingObservation, phoneBoardWall, phoneWallTarget, watchPhoneEntry, installPhoneTitlePaint } from './phone-route-page.mjs';
 import { openPhoneBrowser } from './phone-route-browser.mjs';
 import { serve } from './serve.mjs';
 
@@ -185,7 +185,7 @@ export async function phoneRoute(page, base, sha, out, route = 'full') {
     receipt.failures = phoneRouteFailures(receipt);
   } catch (error) {
     receipt.failures.push(String(error));
-    receipt.stop = await page.evaluate(`(()=>{const api=window.__wildshard,grid=api?.shard.grid;if(!grid||typeof grid.state!=='function')return null;const state=grid.state();return {drive:window.__frameFloorGridStop??null,ringsReady:state.ringsReady,ringsWait:state.ringsWait,crossing:state.live?.crossing,live:state.live?.live};})()`).catch((/** @type {unknown} */ diagnosticError) => ({ unavailable: String(diagnosticError) }));
+    receipt.stop = await page.evaluate(`(()=>{const loading=(${phoneLoadingObservation.toString()})();const api=window.__wildshard,grid=api?.shard.grid;if(!grid||typeof grid.state!=='function')return {loading};const state=grid.state();return {loading,drive:window.__frameFloorGridStop??null,ringsReady:state.ringsReady,ringsWait:state.ringsWait,crossing:state.live?.crossing,live:state.live?.live};})()`).catch((/** @type {unknown} */ diagnosticError) => ({ unavailable: String(diagnosticError) }));
     await capturePhoneFailure(page,join(out, 'phone-route-failure.jpg'));
   } finally { writeFileSync(join(out, 'phone-route.json'), `${JSON.stringify(receipt, null, 2)}\n`); }
   if (receipt.failures.length > 0) throw new Error(receipt.failures.join('\n'));

@@ -1,6 +1,7 @@
 import type {PhoneObservation,PhoneWall,PhoneWallTarget} from './phone-route.mjs';
 
 export function phoneTouchButton(selector:string):boolean;
+export function phoneLoadingObservation():unknown;
 export function phoneRouteObservation():PhoneObservation|null;
 export function watchPhoneEntry(instance:string):void;
 export function phoneWallTarget():PhoneWallTarget;

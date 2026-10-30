@@ -5,8 +5,25 @@ import { Window } from 'happy-dom';
 import { runInNewContext } from 'node:vm';
 import { phoneEngine } from '../scripts/parity/phone-route-runner.mjs';
 import { capturePhoneFailure, waitPhoneCondition, enterPhoneGrid, phoneRouteFailures, phoneRoutePlans, type PhoneReceipt, type PhoneObservation, type PhoneDocument } from '../scripts/parity/phone-route.mjs';
-import { phoneTouchButton, phoneWallTarget } from '../scripts/parity/phone-route-page.mjs';
+import { phoneTouchButton, phoneWallTarget, phoneLoadingObservation } from '../scripts/parity/phone-route-page.mjs';
 import { phoneBootstrap, phoneDocumentMatches, phonePageTarget, followNativePhoneDocument } from '../scripts/parity/phone-route-browser.mjs';
+
+test('a pre-world failure preserves loading rows and native timings without mutating the page',async()=>{
+  const dom=new Window({url:'https://example.com/'});
+  try {
+    dom.document.body.innerHTML='<section class="ws-load" data-step="warm.links"><span data-el="clock">01:02.0</span><span data-el="dlFact">Spawn view complete</span><span data-el="suFact">Spawn program links</span><span data-el="foot">Read product data section</span></section>';
+    const root=dom.document.querySelector('.ws-load');if(root===null)throw new Error('Missing loading fixture');
+    const timeline={current:'warm.links',rows:[{key:'modules',ms:13400},{key:'home',ms:22200}]};
+    Reflect.set(root,Symbol.for('engine.loading.snapshot'),timeline);
+    const before=dom.document.body.innerHTML;
+    const resources=[{name:'https://example.com/code.js',initiatorType:'script',startTime:10,duration:200,responseStart:20,responseEnd:210,transferSize:100,encodedBodySize:80,decodedBodySize:160}];
+    const performance={now:()=>62000,getEntriesByType:(kind:string)=>kind==='resource'?resources:[{name:'modules',startTime:0,duration:13400}]};
+    const result:unknown=runInNewContext(`(${phoneLoadingObservation.toString()})()`,{document:dom.document,location:dom.location,performance});
+    expect(result).toMatchObject({at:62000,url:'https://example.com/',loading:{step:'warm.links',clock:'01:02.0',timeline},
+      resources:[{kind:'script',duration:200,transferBytes:100,encodedBytes:80,decodedBytes:160}],measures:[{name:'modules',duration:13400}]});
+    expect(dom.document.body.innerHTML).toBe(before);
+  } finally { await dom.happyDOM.abort(); }
+});
 
 test('phone bootstrap persists numeric mute after a caller replaces settings',()=>{
   const stored=new Map<string,string>();
