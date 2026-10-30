@@ -89,7 +89,7 @@ export class UploadOwnership {
   private readonly observedIn = new WeakMap<object, { render: number; owner: symbol | null }>();
   /** Stable lifetime authority is independent of the per-render residency pulse.
    * Tokens retain neither the resource's owner nor its last consuming scope. */
-  private readonly settledIn = new WeakMap<Resource, { consumer: symbol | null; owner: symbol | null; acquired: boolean }>();
+  private readonly settledIn = new WeakMap<Resource, { consumer: symbol | null; owner: symbol | null; acquired: boolean; drawing: boolean }>();
   constructor(level: Scope, assets: AssetService) { this.level = level; this.assets = assets; }
   /** A snapshot of the live uploads (owned, and the unowned ones not yet collected). */
   resources(): ReadonlySet<object> {
@@ -134,7 +134,8 @@ export class UploadOwnership {
     const acquired = this.assets.isAcquired(resource);
     const consumer = this.drawOwner ?? (this.drawDepth > 0 ? this.level : this.hints.get(resource)?.deref() ?? null);
     const previousOwner = sceneResourceOwner(resource), settled = this.settledIn.get(resource);
-    if (this.drawDepth > 0 && settled !== undefined && settled.consumer === this.drawOwnerId && settled.acquired === acquired
+    const drawing = this.drawDepth > 0, consumerKey = drawing ? this.drawOwnerId ?? null : this.ownerId(consumer);
+    if (settled !== undefined && settled.drawing === drawing && settled.consumer === consumerKey && settled.acquired === acquired
       && settled.owner === this.ownerId(previousOwner) && (previousOwner === null || !previousOwner.disposed)) {
       // Lifetime ownership/acquisition is already installed. Residency still
       // observes the first use in EVERY render, preserving eviction authority.
@@ -167,10 +168,10 @@ export class UploadOwnership {
     this.assets.observeResidency(resource, acquired ? consumer ?? owner : owner ?? this.drawOwner);
     if (owner !== null || acquired) this.hold(resource);
     else this.holdWeakly(resource);
-    if (this.drawDepth > 0 && (owner !== null || acquired)) {
-      const authority = this.ownerId(owner), using = this.drawOwnerId ?? null;
-      if (settled === undefined) this.settledIn.set(resource, { consumer: using, owner: authority, acquired });
-      else { settled.consumer = using; settled.owner = authority; settled.acquired = acquired; }
+    if (owner !== null || acquired) {
+      const authority = this.ownerId(owner);
+      if (settled === undefined) this.settledIn.set(resource, { consumer: consumerKey, owner: authority, acquired, drawing });
+      else { settled.consumer = consumerKey; settled.owner = authority; settled.acquired = acquired; settled.drawing = drawing; }
     }
   }
   /** A sampler binding is a real cache consumer, including page meshes outside delegated cell roots. */

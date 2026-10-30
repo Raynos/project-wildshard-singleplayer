@@ -1,4 +1,4 @@
-import { CompressedTexture, Texture } from 'three';
+import { CompressedTexture, RenderTarget, Texture } from 'three';
 import type { Renderer } from './renderer';
 
 type Draw = Renderer['renderBufferDirect'];
@@ -84,7 +84,7 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
     hooks.ownership?.(resource);
     const native: unknown = get(resource);
     if (compressed) hooks.compressed?.after(resource, native);
-    return hooks.labels === undefined ? native : hooks.labels(resource, native);
+    return hooks.labels === undefined || (!texture && !(resource instanceof RenderTarget)) ? native : hooks.labels(resource, native);
   };
   return hooks;
 }

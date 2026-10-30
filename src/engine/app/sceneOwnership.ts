@@ -82,18 +82,41 @@ function resourceKey(resource: object): string {
 export function sceneResourceOwner(resource: object): Scope | null { return ownerOf(resource) ?? null; }
 
 const standIns = new WeakMap<Object3D, { source: Object3D; owner: Scope | null }>();
+let ownerGeneration = 0;
 /** A detached copy drawn or compiled in place of `source` (the shader warm-up's stand-ins, SF57) uploads for `source`'s
  *  owner: its materials and geometry are `source`'s. */
-export function linkStandIn(copy: Object3D, source: Object3D): void { standIns.set(copy, { source, owner: sceneObjectOwner(source) }); }
+export function linkStandIn(copy: Object3D, source: Object3D): void { standIns.set(copy, { source, owner: sceneObjectOwner(source) }); ownerGeneration++; }
+
+const ownerPaths = new WeakMap<Object3D, { generation: number; parent: Object3D | null; root: WeakRef<Object3D> | null }>();
+const watchedOwners = new WeakSet<Object3D>();
+const ownerPathChanged = (): void => { ownerGeneration++; };
+
+function rememberOwnerPath(node: Object3D, root: Object3D | null): void {
+  // Three emits added/removed on the moved subtree root. Watch every ancestor
+  // in the resolved path, so moving a whole branch invalidates its descendants.
+  // Listeners capture no node or Scope; the object alone owns its listener.
+  for (let parent: Object3D | null = node; parent !== root && parent !== null; parent = parent.parent) if (!watchedOwners.has(parent)) {
+    watchedOwners.add(parent);
+    parent.addEventListener('added', ownerPathChanged); parent.addEventListener('removed', ownerPathChanged);
+  }
+  ownerPaths.set(node, { generation: ownerGeneration, parent: node.parent, root: root === null ? null : new WeakRef(root) });
+}
 
 /** Nearest explicitly owned scene subtree, including meshes drawn through a shared page renderer. */
 export function sceneObjectOwner(node: Object3D): Scope | null {
+  const cached = ownerPaths.get(node);
+  if (cached !== undefined && cached.generation === ownerGeneration && cached.parent === node.parent) {
+    if (cached.root === null) return null;
+    const root = cached.root.deref(), delegated = root === undefined ? undefined : delegatedScenes.get(root);
+    if (delegated !== undefined) return delegated.scope;
+  }
   for (let parent: Object3D | null = node; parent !== null; parent = parent.parent) {
     const delegated = delegatedScenes.get(parent);
-    if (delegated !== undefined) return delegated.scope;
+    if (delegated !== undefined) { rememberOwnerPath(node, parent); return delegated.scope; }
     const source = standIns.get(parent);
     if (source !== undefined) return sceneObjectOwner(source.source) ?? source.owner;
   }
+  rememberOwnerPath(node, null);
   return null;
 }
 
@@ -171,6 +194,7 @@ export function ownSceneTree(root: Object3D, scope: Scope, assets: Pick<AssetSer
     for (const child of delegated) if (!scope.sharesTeardown(child.scope)) child.capture();
   };
   delegatedScenes.set(root, { scope, capture });
+  ownerGeneration++;
   // G598: a sliced retirement walks the subtree 256 nodes a step, then frees its resources 16 a step (Driftwood's world held
   // single 9-15 ms steps); `dispose()` runs it whole, in the same order. A stepped owner hides its tree first (a retiring
   // region's root)
@@ -184,7 +208,7 @@ export function ownSceneTree(root: Object3D, scope: Scope, assets: Pick<AssetSer
       yield;
     }
     for (const child of delegated) if (!scope.sharesTeardown(child.scope)) child.capture();
-    root.removeFromParent(); root.clear(); delegatedScenes.delete(root);
+    root.removeFromParent(); root.clear(); delegatedScenes.delete(root); ownerGeneration++;
   });
 }
 function captureDelegatedScenes(root: Object3D): void {
