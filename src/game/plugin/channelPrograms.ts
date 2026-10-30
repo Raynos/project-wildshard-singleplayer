@@ -3,7 +3,7 @@ import type { Euler } from 'three';
 import { NumericPoseSchema, type NumericPoseInputSchema, parseClientChannels, type ClientChannelProgram } from '@wildshard/format/clientChannels';
 import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
 import { lookAngles, squashBody } from '@wildshard/engine/entities/species/rigs';
-import {admittedClientChannels,bindClientChannelInputRows} from './channels';
+import {admittedClientChannels,bindClientChannelInputRows,planMergedChannels,publishMergedChannels,type MergedChannelPlan} from './channels';
 import { parsePackedCreatureLooks } from '@wildshard/format/speciesLooks';
 import { emitFault, NumericInputError } from '@wildshard/engine/core/faults';
 
@@ -34,6 +34,15 @@ export function admittedChannelTable(input:unknown):readonly ClientChannelProgra
 export function installChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<string,unknown>):{
  evaluate:(observation:ChannelProgramObservation)=>void;capture:()=>()=>void;readonly ids:readonly string[]
 }{return buildChannelPrograms(input,group,owners);}
+/** A merged plan per admitted table, group and copied read order (the same for every rig over that table). */
+const plans=new WeakMap<object,Map<string,MergedChannelPlan|null>>();
+function mergedPlan(input:unknown,group:string,selected:readonly ClientChannelProgram[],names:readonly string[]):MergedChannelPlan|null{
+ if(typeof input!=='object'||input===null)return planMergedChannels(selected,names);
+ let byGroup=plans.get(input);if(byGroup===undefined){byGroup=new Map();plans.set(input,byGroup);}
+ const key=`${group}\0${names.join('\0')}`;
+ if(!byGroup.has(key))byGroup.set(key,planMergedChannels(selected,names));
+ return byGroup.get(key)??null;
+}
 // Only this module's detached pose observations use prebound vector indices.
 function buildChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<string,unknown>,copiedNames?:readonly string[]):ReturnType<typeof installChannelPrograms>{
  const selected=admittedChannelTable(input).filter(row=>row.numeric?.group===group);
@@ -53,6 +62,11 @@ function buildChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<stri
   return {lane,inputs,readers,ports,restoreOnly,values,indices,observation:{time:0,delta:0,values}};
  });
  const ids=Object.freeze(selected.map(row=>row.id));
+ // DW story margin: a rig's pose programs share most expressions (Driftwood's rows: 68 % of their dynamic nodes), so a
+ // copied pose evaluates them once as one merged lane and publishes each lane's channels; a refused merged frame runs the
+ // lanes themselves, which refuse exactly as before
+ const merge=copiedNames===undefined?null:mergedPlan(input,group,selected,copiedNames);
+ const merged=merge===null?null:admittedClientChannels(merge.program),laneList=lanes.map(row=>row.lane);
  let reported=false;
  return Object.freeze({ids,
   evaluate:(observation:ChannelProgramObservation):void=>{
@@ -62,6 +76,9 @@ function buildChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<stri
    if(copiedNames!==undefined){
     if(!isVector||external.length!==copiedNames.length)throw new Error('Invalid copied pose vector');
     for(let index=0;index<external.length;index++){const value=external[index];if(value===undefined||!Number.isFinite(value)||Math.abs(value)>1e12)throw new NumericInputError(copiedNames[index]??String(index),'Invalid copied pose value');}
+    let published=false;
+    if(merge!==null&&merged!==null&&isVector){try{merged.evaluate({time:observation.time,delta:observation.delta,values:external});publishMergedChannels(merge,merged,laneList);published=true;}catch{/* the lanes below refuse as before */}}
+    if(published){for(const {lane,ports} of lanes)ports.apply(lane.frame);return;}
     for(const {indices,values}of lanes){if(indices===undefined)throw new Error('Missing copied pose indices');for(let index=0;index<indices.length;index++)values[index]=external[indices[index]??-1]??Number.NaN;}
    }else for(const {lane,inputs,readers,values} of lanes){
     if(isVector&&(inputs.size>0||external.length!==values.length))throw new Error('Numeric channel vector differs from its declared reads');

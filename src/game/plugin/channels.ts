@@ -64,6 +64,8 @@ function operandsOf(nodes: ClientChannelProgram['nodes'], privateNodes: boolean)
   if (Object.isFrozen(nodes)) operandTables.set(nodes, made);
   return made;
 }
+/** A lane's published values and a reset to its first-frame state, for a merged evaluation of lanes a host steps together. */
+const internals = new WeakMap<ClientChannelLane, { readonly published: Float64Array; readonly reset: () => void }>();
 export function admittedClientChannels(program: ClientChannelProgram): ClientChannelLane {
   // a frozen (admitted, shared) table is read in place; any other caller's arrays are copied
   const nodes = Object.isFrozen(program.nodes) ? program.nodes : structuredClone(program.nodes), scratch = new Float64Array(nodes.length), published = new Float64Array(nodes.length), reads = new Float64Array(program.reads.length);
@@ -192,7 +194,58 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
     }
     published.set(scratch); locals.set(next); initialized = true; settled = true;
   };
-  return Object.freeze({ bindNumeric: (rows: readonly ClientNumericPortRow[], targets: ReadonlyMap<string, unknown>) => createClientNumericPorts(rows, targets, own), reads: Object.freeze([...program.reads]), frame, evaluate, stateless: slots.length === 0, ...(geometry === undefined ? {} : { geometry }), ...(connectors === undefined ? {} : { connectors }) });
+  const lane: ClientChannelLane = Object.freeze({ bindNumeric: (rows: readonly ClientNumericPortRow[], targets: ReadonlyMap<string, unknown>) => createClientNumericPorts(rows, targets, own), reads: Object.freeze([...program.reads]), frame, evaluate, stateless: slots.length === 0, ...(geometry === undefined ? {} : { geometry }), ...(connectors === undefined ? {} : { connectors }) });
+  internals.set(lane, { published, reset: () => { initialized = false; settled = false; } });
+  return lane;
+}
+
+/** One evaluation for programs a host steps together over one copied read vector (a creature rig's pose programs): their
+ *  structurally identical expressions (the same op and row data over the same canonical operands, reads by vector slot)
+ *  share one node, so each is computed once a frame. Every node is a pure function of the reads, the clock and its row,
+ *  so a merged node equals each copy it stands for, bit for bit; a refused merged frame reruns the lanes themselves. */
+export interface MergedChannelPlan { readonly program: ClientChannelProgram; readonly outputs: readonly (readonly [lane: number, slot: number, merged: number])[] }
+const exactNumber = (value: number): string => Object.is(value, -0) ? '-0' : String(value);
+export function planMergedChannels(programs: readonly ClientChannelProgram[], readNames: readonly string[]): MergedChannelPlan | null {
+  if (programs.some(program => program.locals !== undefined)) return null;
+  const nodes: ClientChannelProgram['nodes'][number][] = [], byKey = new Map<string, number>(), outputs: [number, number, number][] = [];
+  for (const [laneIndex, program] of programs.entries()) {
+    const canonical: number[] = [];
+    const at = (index: number): number => { const merged = canonical[index]; if (merged === undefined) throw new Error('Invalid merged channel operand'); return merged; };
+    for (const node of program.nodes) {
+      let row: ClientChannelProgram['nodes'][number];
+      switch (node.op) {
+        case 'constant': case 'clock': case 'local': row = node; break;
+        case 'read': { const slot = readNames.indexOf(program.reads[node.index] ?? ''); if (slot === -1) return null; row = { op: 'read', index: slot }; break; }
+        case 'neg': case 'sin': case 'cos': case 'sqrt': case 'abs': row = { op: node.op, a: at(node.a) }; break;
+        case 'hypot3': row = { op: 'hypot3', a: at(node.a), b: at(node.b), c: at(node.c) }; break;
+        case 'sample': row = { op: 'sample', a: at(node.a), interpolation: node.interpolation, keys: node.keys.map(([x, y]) => [x, y]) }; break;
+        case 'select': row = { op: 'select', test: at(node.test), yes: at(node.yes), no: at(node.no) }; break;
+        case 'add': case 'sub': case 'mul': case 'div': case 'mod': case 'min': case 'max': case 'atan2': case 'hypot': case 'gt': case 'pow':
+          row = { op: node.op, a: at(node.a), b: at(node.b) }; break;
+        default: return null;
+      }
+      const key = row.op === 'constant' ? `constant ${exactNumber(row.value)}` : row.op === 'sample'
+        ? `sample ${row.a} ${row.interpolation} ${row.keys.map(([x, y]) => `${exactNumber(x)},${exactNumber(y)}`).join(' ')}` : JSON.stringify(row);
+      let merged = byKey.get(key);
+      if (merged === undefined) { merged = nodes.length; nodes.push(row); byKey.set(key, merged); }
+      canonical.push(merged);
+    }
+    for (const channel of program.channels) outputs.push([laneIndex, channel.value, at(channel.value)]);
+  }
+  const program: ClientChannelProgram = { id: 'merged', reads: [...readNames], nodes, channels: [] };
+  const deep = <T,>(value: T): T => { if (typeof value === 'object' && value !== null && !Object.isFrozen(value)) { for (const field of Object.values(value)) deep(field); Object.freeze(value); } return value; };
+  return deep({ program, outputs });
+}
+/** Publish a merged lane's last frame into the lanes it stands for, at their channels' slots. Each lane returns to its
+ *  first-frame state, so a frame it later evaluates itself recomputes every expression from its own reads. */
+export function publishMergedChannels(plan: MergedChannelPlan, merged: ClientChannelLane, lanes: readonly ClientChannelLane[]): void {
+  const source = internals.get(merged)?.published; if (source === undefined) throw new Error('Unknown merged channel lane');
+  for (const lane of lanes) internals.get(lane)?.reset();
+  for (const [laneIndex, slot, at] of plan.outputs) {
+    const lane = lanes[laneIndex], target = lane === undefined ? undefined : internals.get(lane)?.published;
+    if (target === undefined) throw new Error('Unknown merged channel target');
+    target[slot] = source[at] ?? Number.NaN;
+  }
 }
 
 
