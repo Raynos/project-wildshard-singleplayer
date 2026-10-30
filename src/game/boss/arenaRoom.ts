@@ -55,6 +55,7 @@ import { wildEnv } from '../population/pageGroups';
 import { ArenaFireView, ArenaWhirlsView } from './arenaFire';
 import { ArenaPortalLaw } from './arenaPortal';
 import { ArenaRoomGround } from './arenaGround';
+import { arenaBoundary, arenaTie } from './arenaAnswers';
 import { OpenArenaFight, readArenaScriptData } from './openArenaFight';
 import { ArenaSceneView, CloudBody, type PatrolEncounterView } from './encounterView';
 import {entryOwner, lateEntryOwner, presentEntryOwner} from '../shardfile/entryOwners';
@@ -703,8 +704,9 @@ export class ArenaRoomEncounter {
   }
   private tie():void{
     const boss=this.boss;if(boss===null)return;const fight=this.openFight;
-    const answer=fight.life.event('tie',{engaged:Number(this.engaged),victory:Number(boss.state==='victory'),hit:Number(boss.reward!==null),mounted:Number(this.mounted()),storm:Number(this.world.weather.stormActive)});
-    if(answer['arm']===1){fight.tied=true;if(answer['disarm']===1)boss.disarm();boss.arm();}const line=this.data.tieLines[answer['index']??-1];if(line)this.toast(line);
+    // the tie answer's order is arenaTie's (renderer-free, CI12)
+    arenaTie(fight.life,{engaged:this.engaged,victory:boss.state==='victory',hit:boss.reward!==null,mounted:this.mounted(),storm:this.world.weather.stormActive},this.data.tieLines,
+      {boss,fight,toast:line=>{this.toast(line);}});
   }
   devStartAt(phase:number):void{
     if(this.openRows===null){this.portal?.enter(true,this.rows?.client.debugZ);this.boss?.devStartAt(phase);return;}
@@ -716,10 +718,11 @@ export class ArenaRoomEncounter {
     this.power?.update(dt,t);this.hurtT-=dt;const boss=this.boss;if(boss===null||this.context===null||this.kit===null)return;
     const fight=this.openFight;if(boss.state!=='dormant'||fight.body.visible)boss.update(dt,t);else fight.update(dt,t,false);
     const answer=fight.takeBoundary();if(answer===null)return;const prompt=this.prompt;if(prompt===null)throw new Error('Missing open arena prompt');
-    prompt.radius=answer['radius']??0;prompt.label=answer['label']===1?this.data.lines.tieOnFoot:answer['label']===2?this.data.lines.tieQuiet:this.data.lines.tie;
-    if(answer['disarm']===1){fight.tied=false;boss.disarm();}const p=this.player.position;p.x=answer['x']??p.x;p.z=answer['z']??p.z;
-    if(answer['hurt']===1)this.contact('wall',p,this.data.view.wallDamage,this.data.lines.wall);
-    if(answer['clear']===1){fight.tied=false;this.world.air.force(this.data.weather.clearing);const saved=enteredAdventurePersistence(this.context.scope);saved.kill(this.data.record.kind,this.data.record.variant);saved.feat(this.data.record.kind);}
+    // the boundary answer's order is arenaBoundary's (renderer-free, CI12)
+    const p=this.player.position,scope=this.context.scope;
+    arenaBoundary(answer,this.data.lines,this.data.record,{boss,fight,prompt,player:p,toast:line=>{this.toast(line);},
+      wall:()=>{this.contact('wall',p,this.data.view.wallDamage,this.data.lines.wall);},clear:()=>{this.world.air.force(this.data.weather.clearing);},
+      get persistence(){return enteredAdventurePersistence(scope);}});
   }
   target(origin:THREE.Vector3,dir:THREE.Vector3,max:number,hit:TargetHit|null):TargetHit|null{return this.openFight.target(origin,dir,max,hit);}
   lockTarget():AimTarget|null{return this.openFight.lockTarget();}
