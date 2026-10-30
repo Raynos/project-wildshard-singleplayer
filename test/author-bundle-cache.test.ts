@@ -2,6 +2,8 @@
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine cache fixtures to this checkout.
 import { resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- A foreign writer must bypass the compiler's declared writes.
+import { execFileSync } from 'node:child_process';
 import { afterEach, expect, test, vi } from 'vitest';
 import { authorBundleCached } from '../scripts/author-bundle-cache.mjs';
 import { captureProductInputs, productInputKey, recordBundle, recordResolution } from '../scripts/shardfile-inputs.mjs';
@@ -45,6 +47,15 @@ test('warm compiler replay keeps source and absent resolution dependencies in ev
   expect(productInputKey(f.root,receipt,[],new InputHashMemo(f.root))).toBeDefined();
   writeFileSync(resolve(f.root,'dependency.ts'),'export const added=true;');
   expect(productInputKey(f.root,receipt,[],new InputHashMemo(f.root))).toBeUndefined();
+});
+
+test('a replayed compiler still refuses a foreign edit before the product finishes',async()=>{
+  const f=fixture();await f.run();
+  await expect(captureProductInputs(f.root,resolve(f.root,'product.json'),async()=>{
+    const bundle=await f.run();expect(bundle.reused).toBe(true);
+    recordBundle({output:[{type:'chunk',moduleIds:bundle.modules}]},{execution:true});
+    execFileSync(process.execPath,['-e','require("node:fs").writeFileSync(process.argv[1],"changed")',f.source]);
+  })).rejects.toThrow('Product input changed during build');
 });
 
 test('corrupt compiled payloads rebuild and failed compilers publish no hit',async()=>{

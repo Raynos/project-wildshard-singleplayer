@@ -9,7 +9,7 @@ import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture subprocess runtime.
 import process from 'node:process';
 import { afterEach, expect, it } from 'vitest';
-import { captureProductInputs, productInputKey, productToolchainKey, recordBundle, recordModuleInput, recordResolution, inputRecorderPlugin, matchingProductInputKey, publishProductInputs } from '../scripts/shardfile-inputs.mjs';
+import { captureProductInputs, productInputKey, productToolchainKey, recordBundle, recordModuleInput, recordResolution, inputRecorderPlugin, matchingProductInputKey, publishProductInputs, replayProductInputs } from '../scripts/shardfile-inputs.mjs';
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { build } from '../scripts/shardfile-vite.mjs';
 import {build as buildCompiler} from 'vite';
@@ -91,6 +91,20 @@ it('keys compiler writes, refuses concurrent source edits and rejects incomplete
     recordBundle({output:[]}); return Promise.resolve();
   })).rejects.toThrow('Product input changed during build');
   await expect(captureProductInputs(root,receipt,() => Promise.resolve())).rejects.toThrow('Incomplete');
+});
+
+it('replay keeps an earlier observation and refuses a crossed product scope',async()=>{
+  const root=fixture(),receipt=resolve(root,'compiler.json'),other=fixture(),source=resolve(root,'asset.txt');
+  await captureProductInputs(root,receipt,()=>{readFileSync(source);recordBundle({output:[]});return Promise.resolve();});
+  await expect(captureProductInputs(other,resolve(other,'product.json'),()=>{
+    replayProductInputs(root,receipt);recordBundle({output:[]});return Promise.resolve();
+  })).rejects.toThrow('Invalid compiler input receipt');
+  await expect(captureProductInputs(root,resolve(root,'product.json'),async()=>{
+    readFileSync(source);
+    execFileSync(process.execPath,['-e','require("node:fs").writeFileSync(process.argv[1],"changed")',source]);
+    await captureProductInputs(root,receipt,()=>{readFileSync(source);recordBundle({output:[]});return Promise.resolve();});
+    replayProductInputs(root,receipt);recordBundle({output:[]});
+  })).rejects.toThrow('Product input changed during build');
 });
 it('keys workspace installation while complete receipts own SDK and format source freshness', () => {
   const root = fixture(), memo = new InputHashMemo(root), key = () => productToolchainKey(root,memo), before = key();

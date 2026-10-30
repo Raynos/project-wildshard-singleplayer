@@ -331,11 +331,19 @@ export async function captureProductInputs(root,receipt,run) {
  * @param {string} root @param {string} receipt */
 export function replayProductInputs(root,receipt) {
   const saved=v.parse(Receipt,JSON.parse(raw.read(receipt,'utf8')));
-  if(saved.node!==process.version || saved.seal!==digest(JSON.stringify({schema:saved.schema,node:saved.node,inputs:saved.inputs,values:saved.values})))throw new Error('Invalid compiler input receipt');
+  const scope=inputScope(),canonical=raw.real(root);
+  if(saved.node!==process.version || scope!==undefined&&scope.root!==canonical
+    || saved.inputs.some(entry=>!entry.startsWith('G ')&&inside(canonical,resolve(canonical,entry.slice(2)))!==entry.slice(2))
+    || new Set(saved.inputs).size!==saved.inputs.length || Object.keys(saved.values).length!==saved.inputs.length
+    || saved.seal!==digest(JSON.stringify({schema:saved.schema,node:saved.node,inputs:saved.inputs,values:saved.values})))throw new Error('Invalid compiler input receipt');
   for(const entry of saved.inputs) {
-    if(value(root,entry)!==saved.values[entry])throw new Error(`Compiler input changed: ${entry}`);
-    if(entry.startsWith('G '))inputScope()?.reads.set(entry,saved.values[entry]);
-    else note(entry.slice(0,1),resolve(root,entry.slice(2)));
+    if(value(canonical,entry)!==saved.values[entry])throw new Error(`Compiler input changed: ${entry}`);
+    // The check above already read these exact bytes/types. Repeating it in
+    // note() doubles filesystem work for thousands of resolver candidates.
+    // Keep the first observation; captureProductInputs still checks every
+    // joined dependency again when the enclosing product finishes.
+    if(scope?.traceOnly===true&&!entry.startsWith('G '))note(entry.slice(0,1),resolve(canonical,entry.slice(2)));
+    else if(scope!==undefined&&!scope.reads.has(entry))scope.reads.set(entry,saved.values[entry]);
   }
 }
 /** A missing/malformed receipt always misses. Unread generated files never enter it.
