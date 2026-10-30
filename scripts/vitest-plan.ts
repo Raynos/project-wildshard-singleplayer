@@ -1,4 +1,4 @@
-import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -13,6 +13,8 @@ const resultsSchema = v.object({ testResults: v.array(v.object({ name: v.string(
 const discovered = v.array(v.object({ file: v.string() }));
 const runId = v.pipe(v.number(), v.integer(), v.minValue(1), v.safeInteger());
 const commit = v.pipe(v.string(), v.regex(/^[a-f0-9]{40}$/u));
+const moduleBaseline = v.object({ version: v.literal(1), sha: commit, run: v.string(), measuredAt: finite,
+  files: v.record(v.string(), finite) });
 const historyRuns = v.pipe(v.array(v.object({ databaseId: runId, headSha: commit,
   event: v.string(), headBranch: v.string(), status: v.string() })), v.maxLength(20));
 const historyArtifacts = v.pipe(v.array(v.object({ name: v.string(), expired: v.boolean(),
@@ -40,6 +42,16 @@ export function measuredWeights(root: string, paths: readonly string[], results:
     const previous = updates.get(file);
     if (previous === undefined || previous.at < value.at || (previous.at === value.at && value.complete)) updates.set(file, value);
   };
+  // Keep the full-snapshot cohort when history is absent or only partially
+  // reported. Newer successful observations still replace each measured file.
+  const baselineFile = resolve(root, 'test/ci-module-durations.json'), completeBaseline: number[] = [];
+  if (existsSync(baselineFile)) {
+    const saved = v.parse(moduleBaseline, JSON.parse(readFileSync(baselineFile, 'utf8')));
+    for (const [file, seconds] of Object.entries(saved.files)) {
+      update(file, { at: saved.measuredAt, seconds, complete: true });
+      if (paths.includes(file)) completeBaseline.push(seconds);
+    }
+  }
   for (const input of results) for (const row of v.parse(resultsSchema, input).testResults) if (row.status === 'passed' && row.endTime >= row.startTime) {
     update(relative(root, resolve(root, row.name)).replaceAll('\\', '/'), { at: row.endTime, seconds: (row.endTime - row.startTime) / 1000, complete: false });
   }
@@ -50,7 +62,7 @@ export function measuredWeights(root: string, paths: readonly string[], results:
   }
   const median = (values: readonly number[], fallback: number): number => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)] ?? fallback;
   const overhead = median(overheads, LEGACY_FILE_OVERHEAD);
-  const fallbackSeconds = median([...baseline.values()], 1) + overhead;
+  const fallbackSeconds = median(completeBaseline, median([...baseline.values()], 1) + overhead);
   const weights = new Map(paths.map(file => {
     const observation = updates.get(file), body = observation?.seconds ?? baseline.get(file);
     return [file, body === undefined ? fallbackSeconds : body + (observation?.complete === true ? 0 : overhead)];
@@ -87,7 +99,7 @@ export function planMain(args: readonly string[]): void {
   const mean = plan.shards.reduce((sum, shard) => sum + shard.expectedSeconds, 0) / plan.shardCount;
   const floor = plan.shards.reduce((sum, shard) => sum + shard.totalSeconds, 0) / (plan.shardCount * plan.workers);
   const ratio = mean === 0 ? 1 : plan.expectedSeconds / mean;
-  console.log(`vitest-plan: ${paths.length} files / ${plan.shardCount} shards / ${plan.workers} workers; modeled max ${plan.expectedSeconds.toFixed(1)} s / mean ${mean.toFixed(1)} s = ${ratio.toFixed(3)}x; work floor ${floor.toFixed(1)} s; ${plan.measuredFiles} recent observations; not a measured CI wall`);
+  console.log(`vitest-plan: ${paths.length} files / ${plan.shardCount} shards / ${plan.workers} workers; modeled max ${plan.expectedSeconds.toFixed(1)} s / mean ${mean.toFixed(1)} s = ${ratio.toFixed(3)}x; work floor ${floor.toFixed(1)} s; ${plan.measuredFiles} measured observations; not a measured CI wall`);
 }
 
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) planMain(process.argv.slice(2));
