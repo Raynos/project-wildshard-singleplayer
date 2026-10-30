@@ -326,6 +326,18 @@ export async function captureProductInputs(root,receipt,run) {
   const body = {schema,node:process.version,inputs:Object.keys(values),values};
   raw.mkdir(dirname(receipt),{recursive:true}); raw.write(receipt,JSON.stringify({...body,seal:digest(JSON.stringify(body))}));
 }
+/** Replay a verified compiler's reads into the current product scope. The
+ * compiler cache does not replace dependencies with its own opaque file path.
+ * @param {string} root @param {string} receipt */
+export function replayProductInputs(root,receipt) {
+  const saved=v.parse(Receipt,JSON.parse(raw.read(receipt,'utf8')));
+  if(saved.node!==process.version || saved.seal!==digest(JSON.stringify({schema:saved.schema,node:saved.node,inputs:saved.inputs,values:saved.values})))throw new Error('Invalid compiler input receipt');
+  for(const entry of saved.inputs) {
+    if(value(root,entry)!==saved.values[entry])throw new Error(`Compiler input changed: ${entry}`);
+    if(entry.startsWith('G '))inputScope()?.reads.set(entry,saved.values[entry]);
+    else note(entry.slice(0,1),resolve(root,entry.slice(2)));
+  }
+}
 /** A missing/malformed receipt always misses. Unread generated files never enter it.
  * @param {string} root @param {string} receipt @param {string[]} args @param {import('./bake-input-hashes.mjs').InputHashMemo} memo */
 export function productInputKey(root,receipt,args,memo) {

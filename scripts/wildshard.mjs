@@ -10,17 +10,17 @@ import { importBundle } from './import-bundle.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { rapierAlias } from '../vite/rapier.ts';
 import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
+import { authorBundleCached } from './author-bundle-cache.mjs';
 import { decisionLegacyLines } from './decision-legacy-lines.mjs';
 import { outputManifest, shardOutputs } from './shard-outputs.mjs';
 
 let runner;
 const authorRequire = createRequire(resolve(import.meta.dirname, '../src/sdk/package.json'));
-/** Bundle trusted workspace tooling once; external Vite resolves against this installed tool, not a data URL. */
-export async function runWildshard(args) {
-  const receipt = args.find(arg=>arg.startsWith('--input-receipt='))?.slice('--input-receipt='.length);
-  if (receipt !== undefined) { await captureProductInputs(resolve(import.meta.dirname,'..'),receipt,()=>runWildshard(args.filter(arg=>!arg.startsWith('--input-receipt=')))); return; }
-  runner ??= (async () => {
-    const started = performance.now();
+/** Compile the trusted CLI once before product children; later invocations
+ * verify the same content-addressed compiler and replay its complete inputs. */
+export function prepareWildshard() {
+  const root=resolve(import.meta.dirname,'..');
+  return authorBundleCached(root,[shardfileValidationRevision(root)],async()=>{
     const result = await build({ configFile: false, publicDir: false, resolve: { alias: rapierAlias }, logLevel: 'silent', define: { __SHARDFILE_VALIDATOR__: JSON.stringify(shardfileValidationRevision()), 'import.meta.dirname': JSON.stringify(resolve(import.meta.dirname, '../src/sdk')) }, plugins: [inputRecorderPlugin({execution:true}), { name: 'author-node-vite', enforce: 'pre', resolveId(id) {
       if (id === 'vite') return { id: pathToFileURL(resolve(import.meta.dirname,'shardfile-vite.mjs')).href, external: true };
       if (id === 'sharp' || id === 'binaryen' || /^assemblyscript(?:\/|$)/u.test(id)) return { id: pathToFileURL(authorRequire.resolve(id)).href, external: true };
@@ -31,9 +31,19 @@ export async function runWildshard(args) {
     if (output === undefined || !('output' in output)) throw new Error('Author CLI build produced no output');
     const chunks = output.output.filter((chunk) => chunk.type === 'chunk');
     if (chunks.length !== 1) throw new Error('Author CLI must bundle to one module');
-    const cli = await importBundle(chunks[0].code);
+    return { code: chunks[0].code, modules: chunks[0].moduleIds ?? Object.keys(chunks[0].modules) };
+  });
+}
+/** Bundle trusted workspace tooling once; external Vite resolves against this installed tool, not a data URL. */
+export async function runWildshard(args) {
+  const receipt = args.find(arg=>arg.startsWith('--input-receipt='))?.slice('--input-receipt='.length);
+  if (receipt !== undefined) { await captureProductInputs(resolve(import.meta.dirname,'..'),receipt,()=>runWildshard(args.filter(arg=>!arg.startsWith('--input-receipt=')))); return; }
+  runner ??= (async () => {
+    const started = performance.now(), bundle = await prepareWildshard();
+    recordBundle({output:[{type:'chunk',moduleIds:bundle.modules}]},{execution:true});
+    const cli = await importBundle(bundle.code);
     if (cli === null || typeof cli !== 'object' || !('runCli' in cli) || typeof cli.runCli !== 'function') throw new Error('Author CLI has no runner');
-    if (process.env.GITHUB_ACTIONS === 'true') console.info(`author timing: ${JSON.stringify({ pid: process.pid, phase: 'compiler-bundle', product: args[1] ?? null, seconds: Number(((performance.now() - started) / 1000).toFixed(3)) })}`);
+    if (process.env.GITHUB_ACTIONS === 'true') console.info(`author timing: ${JSON.stringify({ pid: process.pid, phase: 'compiler-bundle', reused:bundle.reused, product: args[1] ?? null, seconds: Number(((performance.now() - started) / 1000).toFixed(3)) })}`);
     return cli.runCli;
   })();
   const root = resolve(import.meta.dirname, '..');
