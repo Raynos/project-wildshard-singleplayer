@@ -4,7 +4,7 @@ import ARM_STYLE from '../src/shards/nalati-grasslands/data/armsStyle.json' with
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
 // oxlint-disable-next-line import/no-nodejs-modules -- The runtime URL must name its exact content-addressed bytes.
 import { createHash } from 'node:crypto';
-import { expect, test, vi } from 'vitest';
+import { afterAll, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { gloveFist, riderArm } from '../src/engine/player/firstPersonArms';
@@ -17,7 +17,8 @@ import { nalatiSpearPool, SPEAR_POOL_NAME } from '../src/shards/nalati-grassland
 
 const { held: heldWeapons } = originalHeldMetadata();
 
-installPortableMath();
+const restoreMath = installPortableMath();
+afterAll(restoreMath);
 const { buildSpear: authorSpear, buildJavelin: authorJavelin, SPEAR_VIEW, SPEAR_PROFILE } = await import('../src/shards/nalati-grasslands/generators/spear');
 
 const { glb: poolGlb, rows } = nalatiSpearPool();
