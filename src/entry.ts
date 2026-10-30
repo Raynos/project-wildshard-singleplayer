@@ -184,6 +184,10 @@ async function startSelected(): Promise<void> {
   // This exact mandatory bank can download/compile while services prepare;
   // modulepreload never executes or publishes its modules.
   modules('common');
+  // Resolve the already-required session code while services/admission yield.
+  // Its failure stays captured until the original post-kit barrier below;
+  // importing declarations must not start a session or publish its services.
+  const sessionCode = prepareBootImports(import('@wildshard/game/session/session'));
   loading.waiting('Preparing application services');
   // Resolve the same required code while each memory reserve yields. Imports
   // cannot publish content: the memory bank and full import barrier still
@@ -273,7 +277,7 @@ async function startSelected(): Promise<void> {
     }},PICKUP_CATALOGUE,entryScope);
     installPickupCatalogue(PICKUP_CATALOGUE,pickupFiles);
     installKitProps();
-    const { startSession } = await import('@wildshard/game/session/session');
+    const { startSession } = await sessionCode.ready();
     await startSession(manifest, {
       items: STARTER_BAG_ITEMS,
       tools: [HOVERBOARD_TOOL],
