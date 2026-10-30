@@ -1,6 +1,6 @@
 // NF11: a refine library's baked slabs draw as plain chunk meshes under their key's anchor, one a frame, with no join.
 import { expect, test, vi } from 'vitest';
-import { BufferAttribute, BufferGeometry, Matrix4, Mesh, MeshBasicMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { staticGlb } from '../src/sdk/bake/glb';
@@ -55,7 +55,7 @@ function fixture() {
   } };
 }
 
-test('a key draws its tiles\' chunks under its anchor, one mesh each, and a retire takes only its own', async () => {
+test('a key draws its tiles\' chunks under its anchor, one instanced mesh each, and a retire takes only its own', async () => {
   const f = fixture(), first = f.owner.child('first'), second = f.owner.child('second');
   try {
     expect([...f.content.tiles()]).toEqual([0, 1]); expect([...f.aliasContent.tiles()]).toEqual([]);
@@ -73,6 +73,10 @@ test('a key draws its tiles\' chunks under its anchor, one mesh each, and a reti
     expect(Array.from(gb.getAttribute('position').array)).toEqual(Array.from(f.shapes[1]?.getAttribute('position').array ?? []));
     expect(Reflect.get(a, 'material')).toBe(f.material); expect(a.castShadow).toBe(true); expect(a.renderOrder).toBe(2); expect(a.matrixAutoUpdate).toBe(false);
     expect(ga.boundingSphere?.radius).toBe(1); expect(ga.boundingBox?.max.x).toBe(1);
+    // EP7: one identity instance with white colours, drawn through its material's instanced (coloured) program
+    if (!(a instanceof InstancedMesh)) throw new Error('Expected an instanced chunk');
+    expect(a.count).toBe(1); expect(Array.from(a.instanceMatrix.array)).toEqual(new Matrix4().toArray());
+    expect(Array.from(a.instanceColor?.array ?? [])).toEqual([1, 1, 1]);
     await f.content.attach(1, second);
     expect(f.anchor.children).toHaveLength(3); expect(f.material.version).toBe(version + 1);
     first.dispose(); expect(f.anchor.children).toHaveLength(1);

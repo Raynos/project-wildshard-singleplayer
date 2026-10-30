@@ -1,4 +1,4 @@
-import { Box3, BufferAttribute, BufferGeometry, Float16BufferAttribute, Mesh, Sphere, Vector3, type Material, type Object3D } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, Float16BufferAttribute, InstancedBufferAttribute, InstancedMesh, Mesh, Sphere, Vector3, type Material, type Object3D } from 'three';
 import * as v from 'valibot';
 import { prepareRigLoader } from '@wildshard/engine/anim/rig';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -161,7 +161,11 @@ export class SlabLibrary {
           if (lifetime.disposed || lifetime.disposing || scope.disposed || scope.disposing) return;
           const geometry = geometries[index]; if (geometry === undefined) throw new Error('Missing slab chunk');
           if (!laid) lay(geometry);
-          const part = new Mesh(geometry, mesh.material);
+          // EP7: one identity instance with white colours, so a chunk draws through the same program as the instanced
+          // copies of its material (the sets, sitters and walkers on nine-architecture) instead of a plain-mesh one;
+          // the colours exist before its first frame (three binds only attributes it uploaded before the draw hooks)
+          const part = new InstancedMesh(geometry, mesh.material, 1);
+          part.instanceColor = new InstancedBufferAttribute(new Float32Array([1, 1, 1]), 3);
           part.name = `${mesh.name}:slab:${String(tile)}:${String(index)}`; part.matrixAutoUpdate = false;
           part.castShadow = key.castShadow; part.receiveShadow = key.receiveShadow; part.renderOrder = key.renderOrder;
           part.layers.mask = key.layers; part.frustumCulled = key.frustumCulled;
