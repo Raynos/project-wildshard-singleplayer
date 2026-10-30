@@ -87,8 +87,9 @@ test('Nine staged slabs equal the complete original fine joins, with bounded upl
   expect(expected.size).toBeGreaterThan(0); expect([...actual.keys()].sort()).toEqual([...expected.keys()].sort());
   for (const [key, before] of expected) { const after = actual.get(key); if (after === undefined) throw new Error('Missing slab key'); compareSlabTriangles(before, after); }
   const finite = v.pipe(v.number(), v.finite()), camera = v.looseObject({ name: v.string(), eye: v.tuple([finite, finite, finite]), yaw: finite, pitch: finite, fov: finite });
-  // Test-owned catalogue input, not a generated product or an authority over the rendered camera.
-  const catalogue = v.parse(v.looseObject({ cameras: v.record(v.string(), v.array(camera)) }), JSON.parse(readFileSync('art/legacy-goldens/compare/cameras24.json', 'utf8')));
+  // CI-carried loan of every authored Nine camera row; art/ is excluded by the lean test checkout.
+  // This is a test input, not a generated product or an authority over the rendered camera.
+  const catalogue = v.parse(v.looseObject({ cameras: v.record(v.string(), v.array(camera)) }), JSON.parse(readFileSync('test/fixtures/nine-slab-cameras.json', 'utf8')));
   const cameras = (catalogue.cameras['nine-dragon-stack'] ?? []).map(row => ({ name: row.name, eye: row.eye, yaw: row.yaw, pitch: row.pitch, fov: row.fov, origin: 'declared' as const }));
   cameras.push({ name: 'EP1-P4-derived-eye', eye: [76, 147.7, 6], yaw: -90, pitch: -10, fov: 93.01050490332493, origin: 'declared' });
   const visibility = slabVisibilityCensus(chunkBoxes, [...quadrants.values()], cameras);
