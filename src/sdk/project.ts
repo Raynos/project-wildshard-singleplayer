@@ -18,7 +18,7 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 
 import { readBoundedFile } from './sourceReader';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
-import { withAssetOwner } from './assetOwner';
+import { withAssetOwner } from './assetScope';
 import { hashAssetBytes } from './assetHandle';
 
 import { projectPerformancePolicy } from './performancePolicy';

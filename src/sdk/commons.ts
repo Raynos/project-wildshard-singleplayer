@@ -2,7 +2,6 @@ import * as v from 'valibot';
 import { assetCost, type AssetCost } from './assets';
 import { encodeCanonicalJson } from './immutable';
 import { ownAssetBytes } from './assetOwner';
-import { hashAssetBytes } from './assetHandle';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admission';
 import type { CommonsCosts } from './commonsCosts';
 
@@ -65,7 +64,7 @@ export function commonsRequirements(built: BuiltCommons, entryIds: readonly stri
     if (selected.has(entry.hash)) continue;
     if (selected.size >= limits.commons) throw new Error('Commons hashes exceed admission cap');
     const bytes = built.assets.get(entry.hash);
-    if (bytes === undefined || hashAssetBytes(bytes) !== entry.hash) throw new Error('Pinned commons bytes differ from catalogue hash');
+    if (bytes === undefined || ownAssetBytes(bytes).hash !== entry.hash) throw new Error('Pinned commons bytes differ from catalogue hash');
     selected.set(entry.hash, { wire: bytes.length, cost: assetCost(entry.kind, bytes) });
   }
   const commons = [...selected.keys()].sort();

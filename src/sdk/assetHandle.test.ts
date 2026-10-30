@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
 import { copyAssetBytes, hashAssetBytes, immutableAsset, verifyAssetBytes } from './assetHandle';
-import { ownAssetBytes, withAssetOwner } from './assetOwner';
+import { ownAssetBytes } from './assetOwner';
+import { withAssetOwner } from './assetScope';
 import { hashImmutableBytes } from './immutable';
 
 it('carries a private snapshot through owned copies and refuses later mutation', () => {
@@ -68,4 +69,15 @@ it('keeps explicit async producer ownership detached and propagates failures', a
 it('refuses other typed-array families at a JavaScript ownership boundary', () => {
   expect(() => { Reflect.apply(immutableAsset, undefined, [new Uint16Array([256])]); }).toThrow('Uint8Array');
   expect(() => { Reflect.apply(hashAssetBytes, undefined, [new Uint16Array(new SharedArrayBuffer(2))]); }).toThrow('Uint8Array');
+});
+
+it('keeps unscoped config-safe copies private across public mutations', () => {
+  const source = new Uint8Array([1, 2, 3]), first = ownAssetBytes(source);
+  source.fill(7);
+  expect(first.bytes).toEqual(new Uint8Array([1, 2, 3]));
+  first.bytes.fill(8);
+  const next = ownAssetBytes(source);
+  expect(next.hash).toBe(hashImmutableBytes(source));
+  expect(next.bytes).toEqual(source);
+  expect(next.bytes).not.toBe(source);
 });

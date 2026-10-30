@@ -1,39 +1,43 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- The explicit author operation lends one snapshot factory across bundled helper copies.
-import { AsyncLocalStorage } from 'node:async_hooks';
-// oxlint-disable-next-line import/no-nodejs-modules -- Complete native comparison preserves the exact input even across an author bundle boundary.
-import { Buffer } from 'node:buffer';
-import { immutableAsset } from './assetHandle';
+import { hashImmutableBytes } from './immutable';
 
-interface OwnedAsset { readonly bytes: Uint8Array; readonly hash: string }
-type Factory = (input: Uint8Array) => OwnedAsset;
-interface ScopePort { readonly current: () => Factory | undefined }
+/** Data-only result of the explicit host factory, never an admission certificate. */
+export interface OwnedAsset { readonly bytes: Uint8Array; readonly hash: string }
+interface Snapshot { readonly bytes: Uint8Array<ArrayBuffer>; readonly hash: string }
+const aliases = new WeakMap<Uint8Array, Snapshot>();
 const slot = Symbol.for('wildshard.sdk.asset-owner.v1');
-const scope = new AsyncLocalStorage<Factory>();
-const port: ScopePort = Object.freeze({ current: (): Factory | undefined => scope.getStore() });
-let active = 0;
-
+function accessor(name: 'byteLength' | 'buffer'): (input: Uint8Array) => unknown {
+  const prototype: object | null = Object.getPrototypeOf(Uint8Array.prototype);
+  if (prototype === null) throw new Error('Missing native typed array prototype');
+  const descriptor = Object.getOwnPropertyDescriptor(prototype, name);
+  const getter: unknown = descriptor === undefined ? undefined : Reflect.get(descriptor, 'get');
+  if (typeof getter !== 'function') throw new Error('Missing native typed array accessor');
+  return (input: Uint8Array): unknown => Reflect.apply(getter, input, []);
+}
+const byteLength = accessor('byteLength'), buffer = accessor('buffer');
+function copy(input: Uint8Array): Uint8Array<ArrayBuffer> {
+  const length = byteLength(input);
+  if (typeof length !== 'number') throw new Error('Invalid native byte length');
+  const bytes = new Uint8Array(length); bytes.set(input); return bytes;
+}
+function equal(a: Uint8Array, b: Uint8Array): boolean {
+  const length = byteLength(a);
+  if (typeof length !== 'number' || length !== byteLength(b)) return false;
+  for (let at = 0; at < length; at++) if (a[at] !== b[at]) return false;
+  return true;
+}
 function own(input: Uint8Array): OwnedAsset {
-  const asset = immutableAsset(input);
-  return { bytes: asset.copy(), hash: asset.hash };
+  if (!(input instanceof Uint8Array)) throw new Error('Asset ownership needs Uint8Array bytes');
+  const unshared = buffer(input) instanceof ArrayBuffer, previous = unshared ? aliases.get(input) : undefined;
+  let snapshot: Snapshot;
+  if (previous !== undefined && equal(input, previous.bytes)) snapshot = previous;
+  else { const bytes = copy(input); snapshot = { bytes, hash: hashImmutableBytes(bytes) }; }
+  if (unshared) aliases.set(input, snapshot);
+  const bytes = copy(snapshot.bytes); aliases.set(bytes, snapshot); return { bytes, hash: snapshot.hash };
 }
 
-/** Explicit author-only ownership scope; importing a module installs nothing.
- * Its frozen port exposes the active factory, never the private snapshot table.
- * Canonical format hash/verification functions do not consult this port. */
-export async function withAssetOwner<T>(work: () => Promise<T>): Promise<T> {
-  const present: unknown = Reflect.get(globalThis, slot);
-  if (present !== undefined && present !== port) return work();
-  if (present === undefined) Object.defineProperty(globalThis, slot, { value: port, configurable: true });
-  active++;
-  try { return await scope.run(own, work); }
-  finally { if (--active === 0 && Reflect.get(globalThis, slot) === port) Reflect.deleteProperty(globalThis, slot); }
-
-}
-
-/** A bundled producer receives exact owned bytes and their identity from its
- * active CLI factory. Fresh contexts fall back to their own actual digest.
- * These metadata are not an admission capability: every validator uses its
- * private handle registry and checks complete current bytes independently. */
+/** A config-safe producer consults an explicitly installed host factory or
+ * owns its own detached snapshot. It imports neither async scope machinery nor
+ * native comparison services. Every returned body still crosses full admission. */
 export function ownAssetBytes(input: Uint8Array): OwnedAsset {
   const activePort: unknown = Reflect.get(globalThis, slot);
   if (typeof activePort !== 'object' || activePort === null || !('current' in activePort) || typeof activePort.current !== 'function') return own(input);
@@ -41,9 +45,8 @@ export function ownAssetBytes(input: Uint8Array): OwnedAsset {
   if (typeof current !== 'function') return own(input);
   const result: unknown = Reflect.apply(current, undefined, [input]);
   if (typeof result !== 'object' || result === null || !('bytes' in result) || !(result.bytes instanceof Uint8Array) ||
-    !('hash' in result) || typeof result.hash !== 'string' || !/^[a-f0-9]{64}$/u.test(result.hash) || Buffer.compare(input, result.bytes) !== 0)
+    !('hash' in result) || typeof result.hash !== 'string' || !/^[a-f0-9]{64}$/u.test(result.hash) || !equal(input, result.bytes))
     throw new Error('Author asset owner did not preserve its input bytes');
-  // The factory's byte copy must own an ordinary buffer, not a concurrent shared view.
-  if (!(result.bytes.buffer instanceof ArrayBuffer)) throw new Error('Author asset owner returned shared bytes');
+  if (!(buffer(result.bytes) instanceof ArrayBuffer)) throw new Error('Author asset owner returned shared bytes');
   return { bytes: result.bytes, hash: result.hash };
 }
