@@ -221,8 +221,11 @@ function buildCrossbow(into: { readonly model: THREE.Group; readonly peep: THREE
   foreShape.moveTo(-fw + fr, -fh); foreShape.lineTo(fw - fr, -fh); foreShape.quadraticCurveTo(fw, -fh, fw, -fh + fr); foreShape.lineTo(fw, fh - fr); foreShape.quadraticCurveTo(fw, fh, fw - fr, fh); foreShape.lineTo(-fw + fr, fh); foreShape.quadraticCurveTo(-fw, fh, -fw, fh - fr); foreShape.lineTo(-fw, -fh + fr); foreShape.quadraticCurveTo(-fw, -fh, -fw + fr, -fh);
   const fore = new THREE.ExtrudeGeometry(foreShape, { depth: 0.17, bevelEnabled: true, bevelThickness: 0.002, bevelSize: 0.002, bevelSegments: 2, curveSegments: 6 });
   fore.translate(0, -0.03, -0.24); // forearm wrap between the front band and the mid band
-  model.add(new THREE.Mesh(fore, leatherMat));
-  model.add(new THREE.Mesh(grip, leatherMat));
+  // PF4: the fore wrap and the grip are one static leather draw (the same material, never posed apart); weapon skins swap
+  // the leather by its material's name, so the merged part takes a skin as both did
+  const leather = mergeGeometries([fore, grip]); if (leather === null) throw new Error('Crossbow: leather parts do not merge');
+  fore.dispose(); grip.dispose();
+  model.add(new THREE.Mesh(leather, leatherMat));
 
   // ── loaded bolt on the rail ──
   const { geometry: boltGeo, material: boltMat } = { geometry: buildBoltGeometry(), material: new THREE.MeshStandardMaterial() };
