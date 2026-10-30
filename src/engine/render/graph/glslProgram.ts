@@ -536,7 +536,9 @@ function uniformValue(glsl: GraphGlsl, u: GraphGlslUniform, opts: GraphShaderOpt
       if (p.type === 'colour') { const [r = 0, g = 0, b = 0] = typeof p.value === 'number' ? [p.value] : p.value; return { value: new THREE.Color().setRGB(r, g, b, THREE.SRGBColorSpace) }; }
       return { value: vector(u.type, p.value) };
     }
-    case 'array': return { value: (glsl.ir.arrays?.[u.param]?.value ?? []).map(v => vector(u.type, v)) };
+    // one flat Float32Array, as three uploads it: a list of vectors was flattened again on every upload (NF15 P4: 0.3 ms
+    // a frame and its garbage)
+    case 'array': return { value: Float32Array.from((glsl.ir.arrays?.[u.param]?.value ?? []).flatMap(v => (typeof v === 'number' ? [v] : v))) };
     case 'texture': {
       const p = glsl.ir.params?.[u.param];
       if (p?.role === 'lent') return { value: lentStandIn(u.type) };

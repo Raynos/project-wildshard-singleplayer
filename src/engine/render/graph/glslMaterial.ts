@@ -294,13 +294,9 @@ export function compileClassicGraph(input: unknown, opts: ClassicGraphOptions = 
       const width = row.type === 'float' ? 1 : row.type === 'vec2' ? 2 : row.type === 'vec3' ? 3 : 4;
       for (const v of value) if ((typeof v === 'number' ? width !== 1 : v.length !== width) || !(typeof v === 'number' ? [v] : v).every(Number.isFinite)) throw new Error(`material graph: array element must be a finite ${row.type}`);
       if (uniform === undefined) return;
-      const current: unknown = uniform.value;
-      if (!Array.isArray(current)) return;
-      value.forEach((v, i) => {
-        const slot: unknown = current[i];
-        if (typeof v === 'number') current[i] = v;
-        else if (slot instanceof THREE.Vector2 || slot instanceof THREE.Vector3 || slot instanceof THREE.Vector4) slot.fromArray(v);
-      });
+      const flat: unknown = uniform.value;
+      if (!(flat instanceof Float32Array)) return;
+      value.forEach((v, i) => { if (typeof v === 'number') flat[i] = v; else flat.set(v, i * width); });
     },
   };
 }
