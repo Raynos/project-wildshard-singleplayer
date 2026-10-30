@@ -154,6 +154,7 @@
     "./combat/health": "./combat/health.ts",
     "./combat/pipeline": "./combat/pipeline.ts",
     "./combat/sweptMeleeCore": "./combat/sweptMeleeCore.ts",
+    "./combat/sweptBasePose": "./combat/sweptBasePose.ts",
     "./combat/targets": "./combat/targets.ts",
     "./combat/types": "./combat/types.ts",
     "./combat/view/EquipmentHost": "./combat/view/EquipmentHost.ts",

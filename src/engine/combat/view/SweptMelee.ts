@@ -20,7 +20,8 @@ import { type DrawingBuffer, viewmodel } from '../../render/viewmodelFeel';
 import type { SkyRig as Sky } from '../../world/skyRig';
 import { Melee } from '../Melee';
 import { SweptMeleeCore, sweptLunge, sweptMoveDamage } from '../sweptMeleeCore';
-import { BladeSweep, bladeInReach, sweptBladeDirs, sweptSwingPose } from '../sweptBlade';
+import { BladeSweep, bladeInReach, sweptBladeDirs } from '../sweptBlade';
+import { SweptBasePose } from '../sweptBasePose';
 import type { MeleeProfile } from '../meleeProfile';
 
 import * as THREE from 'three';
@@ -60,7 +61,6 @@ export interface SweptMeleeDefaults {
   readonly events: MeleeEvents;
   readonly debris: (kind: string) => { surface: 'shell' | 'wood' | 'sand'; count: number; atFeet: boolean; sparks: boolean };
 }
-const clamp01 = (v: number) => (v < 0 ? 0 : Math.min(1, v));
 
 // ───────────────────────────── hit stars ─────────────────────────────
 
@@ -196,9 +196,9 @@ export class SweptMelee extends Melee {
 
   // swing / combo / heavy clock (renderer-free, combat/sweptMeleeCore.ts; the headless runtimes run the same one)
   private readonly clock: SweptMeleeCore<Move>;
-  private fromPos = new THREE.Vector3(); private fromQ = new THREE.Quaternion();   // where the sword was when this swing started
-  private readonly from = { pos: this.fromPos, q: this.fromQ };
-  private basePos = new THREE.Vector3(); private baseQ = new THREE.Quaternion(); // this frame's pose before sway / portrait
+  // where the sword was when this swing started, this frame's pose before sway / portrait and the charge / sprint blends
+  // (renderer-free, combat/sweptBasePose.ts; a Node simulation steps the same)
+  private readonly basePose = new SweptBasePose();
   private hitDone = false; private kicked = false; private clanged = false;
   private fx: CameraFX;
   private impacts: Impacts;
@@ -207,7 +207,6 @@ export class SweptMelee extends Melee {
   private dodgeLagX = 0; private dodgeLagV = 0; private dodgeSeen = 0; // the T dodge's lateral blade spring (E63)
   // heavy
   private mouseHeld = false;
-  private chargeBlend = 0; private sprintBlend = 0;
   private lookBlock = viewmodel(this.profile.feel.lag);
   private lookSpring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
   private lookDelta = new THREE.Vector2();
@@ -235,7 +234,7 @@ export class SweptMelee extends Melee {
     super({ ...profile, ...opts.row }, app.combat);
     this.defaults = defaults;
     this.mv = defaults.moves;
-    this.basePos.copy(defaults.moves.rest.pos); this.baseQ.copy(defaults.moves.rest.q);
+    this.basePose.rest(defaults.moves.rest);
     this.trailStyle = defaults.slash.trail;
     this.row = { ...this.row, ui: { ...this.row.ui, inputContext: opts.inputContext } };
     this.game = world.game; this.sky = world.sky; this.player = world.player;
@@ -251,7 +250,7 @@ export class SweptMelee extends Melee {
     this.swingScale = profile.swingScale;
     this.framing = { ...profile.framing, ...opts.framing };
     const moves = opts.moves ?? profile.moves;
-    if (moves) { this.mv = moves; this.basePos.copy(moves.rest.pos); this.baseQ.copy(moves.rest.q); }
+    if (moves) { this.mv = moves; this.basePose.rest(moves.rest); }
     this.clock = new SweptMeleeCore<Move>(this.mv, this.profile, { queue: () => { app.input.queue('attack'); }, consume: () => app.input.consume('attack') },
       { start: (move, lunge) => { this.startSwing(move, lunge); }, charge: (phase) => { this.chargeEvent('heavy', phase); if (phase === 0) this.arms?.play('charge'); } });
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
@@ -312,7 +311,7 @@ export class SweptMelee extends Melee {
   private startSwing(move: Move, lunge: boolean): void {
     this.hitDone = false; this.kicked = false; this.clanged = false;
     this.sweep.reset();
-    this.fromPos.copy(this.basePos); this.fromQ.copy(this.baseQ);
+    this.basePose.startSwing();
     this.ribbon.reset(); this.trail.visible = false;
     this.trailStyle = move.trail; this.trailColor.value.copy(move.trail.color);
     // lunge onto the locked animal (a chained combo swing re-locks, so a fleeing target is chased swing by swing)
@@ -467,7 +466,7 @@ export class SweptMelee extends Melee {
   /** this frame's blade from the swing pose (basePos / baseQ, scale 1): unit dirs from the eye through the grip and tip, camera space */
   private bladeDirs(grip: THREE.Vector3, tip: THREE.Vector3): void {
     if (this.arms) { this.arms.blade(grip, tip); grip.add(this.armsHolder.position).normalize(); tip.add(this.armsHolder.position).normalize(); return; }
-    sweptBladeDirs(this.basePos, this.baseQ, this.tipX, this.tipY, grip, tip);
+    sweptBladeDirs(this.basePose.basePos, this.basePose.baseQ, this.tipX, this.tipY, grip, tip);
   }
   private sweepHit(move: Move, active: boolean): void {
     this.bladeDirs(_g1, _t1);
@@ -544,10 +543,6 @@ export class SweptMelee extends Melee {
     this.onMoveHit(move, hit, killed);
   }
 
-  /** evaluate a move at `t` s into it → position + quaternion (camera space, scale 1): from-pose → cocked → mid → follow-through → REST */
-  private evalSwing(move: Move, t: number, outPos: THREE.Vector3, outQ: THREE.Quaternion): void {
-    sweptSwingPose(move, t, this.from, this.mv.rest, outPos, outQ);
-  }
 
   // ── per-frame ──
   update(dt: number, t: number): void {
@@ -589,8 +584,7 @@ export class SweptMelee extends Melee {
     // charge pose blend (the blade rises over the shoulder), sprint
     const charging = this.clock.chargingHeavy;
     this.state.ads = charging;
-    { const step = dt / this.profile.chargeBlend; this.chargeBlend = clamp01(this.chargeBlend + THREE.MathUtils.clamp((charging ? 1 : 0) - this.chargeBlend, -step, step)); }
-    this.sprintBlend += ((p.sprinting && !move && !charging ? 1 : 0) - this.sprintBlend) * Math.min(1, dt * 7);
+    this.basePose.blend(dt, this.profile.chargeBlend, charging, p.sprinting, Boolean(move));
 
     // look lag (spring, substepped like the crossbow)
     let dYaw = p.yaw - this.lastYaw, dPitch = p.pitch - this.lastPitch;
@@ -610,19 +604,9 @@ export class SweptMelee extends Melee {
       this.arms.update(dt, { speed: p.speedFactor, walkPhase: p.bobTime, lookVel: this.armsLook, camera: cam, renderer: this.game.renderer, holster: h });
     }
 
-    // base pose: rest, or the swing, blended toward the charge / sprint poses
+    // base pose: rest, or the swing, blended toward the charge (its ready tremble) / sprint poses
     const pos = _v1, q = _q;
-    if (move) this.evalSwing(move, this.clock.swingTime, pos, q);
-    else { pos.copy(this.mv.rest.pos); q.copy(this.mv.rest.q); }
-    const c = smoothstep(0, 1, this.chargeBlend), sp = this.sprintBlend;
-    if (c > 0) {
-      pos.lerp(this.mv.charge.pos, c); q.slerp(this.mv.charge.q, c);
-      // charged: a taut tremble in the raised blade, and a small lift as it comes ready
-      const ready = this.charge;
-      pos.x += Math.sin(t * 43) * 0.0025 * ready * c; pos.y += (Math.sin(t * 37) * 0.002 + 0.02 * ready) * c;
-    }
-    if (sp > 0) { pos.lerp(this.mv.sprint.pos, sp); q.slerp(this.mv.sprint.q, sp); }
-    this.basePos.copy(pos); this.baseQ.copy(q);
+    const c = this.basePose.pose(this.mv, move ?? null, this.clock.swingTime, this.charge, t, pos, q);
     if (move) this.sweepHit(move, active); // the blade sweep hit test, on this frame's swing pose (before sway / portrait framing)
 
     // idle sway / walk bob (counter-phase to the camera bob) / look lag / hit jolt — full at the hip, 30 % in the charge
