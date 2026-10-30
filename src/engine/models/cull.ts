@@ -87,6 +87,8 @@ export interface CullView {
 
 /** metres: an eye shift under this (no turn, no zoom) keeps the copies chosen for the last view (`View.changed`) */
 const EYE_JITTER = 0.02;
+/** Legacy camera-driven instance thresholds. The padded view covers turns and translation between choices. */
+const VIEW_MARGIN = 7 * Math.PI / 180, VIEW_TURN = Math.cos(3.5 * Math.PI / 360), VIEW_MOVE = 1;
 /** FC16: the camera whose world matrix the caller brought up to date for this pass of every culler (`cullFresh`) */
 let freshCamera: THREE.Camera | null = null;
 /**
@@ -116,9 +118,16 @@ class View {
   private readonly projection = new THREE.Matrix4();
   private readonly lastEye = new THREE.Vector3();
   private readonly step: number;
+  private readonly buffered: boolean;
+  private readonly turn = new THREE.Quaternion();
+  private readonly lastTurn = new THREE.Quaternion();
+  private readonly widened = new THREE.Matrix4();
+  private readonly expanded = new THREE.Sphere();
+  private margin = 0;
   /** `step` > 0: only a move of the eye past it counts (a culler with no frustum test ignores turning) */
-  constructor(step = 0) {
+  constructor(step = 0, buffered = false) {
     this.step = step;
+    this.buffered = buffered;
   }
   changed(camera: THREE.Camera): boolean {
     // the camera's own world matrix only: `updateMatrixWorld` also walked its children (the held weapon's whole viewmodel)
@@ -131,6 +140,28 @@ class View {
       this.lastEye.copy(this.eye);
       return true;
     }
+    // Only camera-driven perspective instances hold a widened view. Handed views,
+    // orthographic cameras and distance-only cullers keep their original contracts.
+    const padded = this.buffered && camera instanceof THREE.PerspectiveCamera && camera.view === null
+      && camera.projectionMatrix.elements[8] === 0 && camera.projectionMatrix.elements[9] === 0;
+    if (padded) {
+      this.eye.setFromMatrixPosition(camera.matrixWorld);
+      this.turn.setFromRotationMatrix(camera.matrixWorld);
+      if (this.primed && this.projection.equals(camera.projectionMatrix)
+        && this.eye.distanceToSquared(this.lastEye) <= VIEW_MOVE * VIEW_MOVE
+        && Math.abs(this.turn.dot(this.lastTurn)) >= VIEW_TURN) return false;
+      this.primed = true; this.lastEye.copy(this.eye); this.lastTurn.copy(this.turn);
+      this.held.copy(camera.matrixWorld); this.projection.copy(camera.projectionMatrix);
+      this.widened.copy(camera.projectionMatrix);
+      const e = this.widened.elements;
+      e[0] = 1 / Math.tan(Math.min(1.5, Math.atan(1 / e[0]) + VIEW_MARGIN));
+      e[5] = 1 / Math.tan(Math.min(85 * Math.PI / 180, Math.atan(1 / e[5]) + VIEW_MARGIN));
+      this.inv.copy(camera.matrixWorld).invert();
+      this.pv.multiplyMatrices(this.widened, this.inv);
+      this.frustum.setFromProjectionMatrix(this.pv); this.margin = VIEW_MOVE;
+      return true;
+    }
+    this.margin = 0;
     // A camera that only shifts by under EYE_JITTER (a standing player's controller settles by tenths of a millimetre every
     // frame) keeps the copies chosen for its last view: every copy test is skipped, and no frustum plane moves by more
     // than EYE_JITTER from the one they were chosen for. A turn, a zoom or a real move re-chooses at once.
@@ -154,11 +185,15 @@ class View {
   use(frustum: THREE.Frustum, eye: THREE.Vector3): void {
     this.frustum.copy(frustum);
     this.eye.copy(eye);
+    this.margin = 0;
   }
   /** the casting cascades' frusta for this choice (`CullOptions.casters`) */
   readonly shadows: THREE.Frustum[] = [];
   /** the sphere is in the camera's view or a casting cascade's */
-  sees(sphere: THREE.Sphere): boolean { return this.frustum.intersectsSphere(sphere) || this.shadows.some((f) => f.intersectsSphere(sphere)); }
+  sees(sphere: THREE.Sphere): boolean {
+    this.expanded.copy(sphere); this.expanded.radius += this.margin;
+    return this.frustum.intersectsSphere(this.expanded) || this.shadows.some((f) => f.intersectsSphere(sphere));
+  }
 }
 
 /** Shared copy-selection maths: which level (or -1: not drawn) copy i takes from this view. */
@@ -231,6 +266,7 @@ class Chooser {
    * `radiusBias`, and for few copies.
    */
   private cellOf: Uint32Array | null = null;
+  private runEnd = new Uint32Array(0);
   private cellBoxes: THREE.Box3[] = [];
   private cellPoints = new Float64Array(0);
   private skip = new Uint8Array(0);
@@ -264,6 +300,14 @@ class Chooser {
       points[at + 3] = Math.max(points[at + 3] ?? px, px); points[at + 4] = Math.max(points[at + 4] ?? py, py); points[at + 5] = Math.max(points[at + 5] ?? pz, pz);
     }
     this.cellOf = cellOf; this.cellBoxes = boxes; this.cellPoints = Float64Array.from(points); this.skip = new Uint8Array(boxes.length);
+    // Skip rejected contiguous cell runs without reordering any kept copies.
+    this.runEnd = new Uint32Array(count);
+    for (let i = count - 1; i >= 0; i--) this.runEnd[i] = cellOf[i] === cellOf[i + 1] ? this.runEnd[i + 1] ?? count : i + 1;
+  }
+  next(first: number): number {
+    let i = first;
+    while (this.cellOf !== null && i < this.cellOf.length && this.skip[this.cellOf[i] ?? 0] === 1) i = this.runEnd[i] ?? i + 1;
+    return i;
   }
   level(i: number, view: View): number {
     if (this.resident !== null && !this.resident(i)) return -1;
@@ -288,8 +332,11 @@ class Chooser {
 }
 
 /** mark a buffer's drawn prefix for upload with a reused range object (three clears `updateRanges` after the upload) */
-function upload(a: THREE.InstancedBufferAttribute, range: { start: number; count: number }): void {
-  if (!a.updateRanges.includes(range)) a.updateRanges.push(range);
+function upload(a: THREE.InstancedBufferAttribute, range: { start: number; count: number }, start: number, end: number): void {
+  if (a.updateRanges.includes(range)) {
+    const last = Math.max(range.start + range.count, end);
+    range.start = Math.min(range.start, start); range.count = last - range.start;
+  } else { range.start = start; range.count = end - start; a.updateRanges.push(range); }
   a.needsUpdate = true;
 }
 
@@ -315,6 +362,10 @@ class Sinks {
   /** each group's copy scale (1: as placed), or null when no group scales */
   private readonly scales: Float32Array | null;
   private readonly counts: Int32Array;
+  private readonly changed: Int32Array;
+  private readonly changedEnd: Int32Array;
+  private readonly colorChanged: Int32Array;
+  private readonly colorEnd: Int32Array;
   private readonly until2: Float64Array;
   /** each sink's upload ranges, reused (only the drawn prefix of a buffer goes to the GPU; nothing allocated per update) */
   private readonly ranges: readonly { matrix: { start: number; count: number }; color: { start: number; count: number } }[];
@@ -337,10 +388,15 @@ class Sinks {
     this.first[groups.length] = members.length;
     this.members = Uint32Array.from(members);
     this.counts = new Int32Array(this.flat.length);
+    this.changed = new Int32Array(this.flat.length); this.changedEnd = new Int32Array(this.flat.length);
+    this.colorChanged = new Int32Array(this.flat.length); this.colorEnd = new Int32Array(this.flat.length);
     this.until2 = Float64Array.from(this.flat, (x) => (x.until === undefined ? Number.POSITIVE_INFINITY : x.until * x.until));
     this.ranges = this.flat.map(() => ({ matrix: { start: 0, count: 0 }, color: { start: 0, count: 0 } }));
   }
-  reset(): void { this.counts.fill(0); }
+  reset(): void {
+    this.counts.fill(0); this.changed.fill(-1); this.changedEnd.fill(0);
+    this.colorChanged.fill(-1); this.colorEnd.fill(0);
+  }
   /** copy i, at distance² d2, into group g's sinks */
   put(i: number, g: number, d2: number): void {
     const m = this.matrices, c = this.colors, k = this.scales?.[g] ?? 1;
@@ -351,8 +407,21 @@ class Sinks {
       if (!sink) continue;
       const n = this.counts[s] ?? 0, dst = sink.matrix.array as Float32Array;
       // a scaled group (another variant's shape at this copy's size) scales the basis about the copy's origin
-      for (let j = 0, a = i * 16, d = n * 16; j < 16; j++) dst[d + j] = (m[a + j] ?? 0) * (j < 12 ? k : 1);
-      if (c && sink.color) { const cd = sink.color.array as Float32Array; cd[n * 3] = c[i * 3] ?? 1; cd[n * 3 + 1] = c[i * 3 + 1] ?? 1; cd[n * 3 + 2] = c[i * 3 + 2] ?? 1; }
+      for (let j = 0, a = i * 16, d = n * 16; j < 16; j++) {
+        const value = Math.fround((m[a + j] ?? 0) * (j < 12 ? k : 1)), offset = d + j;
+        if (!Object.is(dst[offset], value)) {
+          dst[offset] = value; if (this.changed[s] === -1) this.changed[s] = offset; this.changedEnd[s] = offset + 1;
+        }
+      }
+      if (c && sink.color) {
+        const cd = sink.color.array as Float32Array;
+        for (let j = 0; j < 3; j++) {
+          const value = c[i * 3 + j] ?? 1, offset = n * 3 + j;
+          if (!Object.is(cd[offset], value)) {
+            cd[offset] = value; if (this.colorChanged[s] === -1) this.colorChanged[s] = offset; this.colorEnd[s] = offset + 1;
+          }
+        }
+      }
       this.counts[s] = n + 1;
     }
   }
@@ -364,13 +433,17 @@ class Sinks {
       for (const mesh of sink.meshes) { mesh.count = n; mesh.visible = n > 0; }
       if (n === 0) continue;
       const r = this.ranges[s];
-      if (r) { r.matrix.count = n * 16; upload(sink.matrix, r.matrix); if (sink.color) { r.color.count = n * 3; upload(sink.color, r.color); } }
+      if (r) {
+        const start = this.changed[s] ?? -1, colorStart = this.colorChanged[s] ?? -1;
+        if (start >= 0) upload(sink.matrix, r.matrix, start, this.changedEnd[s] ?? start);
+        if (sink.color && colorStart >= 0) upload(sink.color, r.color, colorStart, this.colorEnd[s] ?? colorStart);
+      }
     }
   }
 }
 
 /** the view a culler reads: the camera's (re-chosen when it changed, or moved past `step`) or one handed in */
-const viewFor = (o: CullOptions): View => new View(o.frustum === false ? o.step ?? 0 : 0);
+const viewFor = (o: CullOptions, buffered = false): View => new View(o.frustum === false ? o.step ?? 0 : 0, buffered && o.frustum !== false);
 
 export class InstancedCull {
   private readonly view: View;
@@ -401,7 +474,7 @@ export class InstancedCull {
     this.casting = casting;
     this.levels = levels;
     this.variantOf = variantOf;
-    this.view = viewFor(o);
+    this.view = viewFor(o, true);
     this.chooser = new Chooser(from, o, bounds, origins, fades);
     this.sinks = new Sinks(groups, matrices, colors, scales);
     this.resident = o.resident?.version ?? null;
@@ -428,7 +501,7 @@ export class InstancedCull {
     this.view.shadows.length = 0; this.view.shadows.push(...this.casting());
     ch.begin(this.view);
     sinks.reset();
-    for (let i = 0; i < this.variantOf.length; i++) {
+    for (let i = ch.next(0); i < this.variantOf.length; i = ch.next(i + 1)) {
       const l = ch.level(i, this.view);
       if (l < 0) continue;
       const base = (this.variantOf[i] ?? 0) * this.levels, a = ch.also(l);
@@ -469,7 +542,7 @@ export class CelledCopiesCull {
     this.levels = levels;
     this.variantOf = variantOf;
     this.origins = origins;
-    this.view = viewFor(o);
+    this.view = viewFor(o, true);
     this.sinks = new Sinks(groups, matrices, colors);
     this.far = o.far ?? Number.POSITIVE_INFINITY;
     this.test = o.test ?? null;
@@ -517,7 +590,7 @@ export class CelledCopiesCull {
       const dx = cx - e.x, dz = cz - e.z;
       if (dx * dx + dz * dz > (far + r) * (far + r)) continue;
       this.sphere.center.set(cx, cells[c * 4 + 1] ?? 0, cz); this.sphere.radius = r;
-      if (!this.view.frustum.intersectsSphere(this.sphere)) continue;
+      if (!this.view.sees(this.sphere)) continue;
       for (let j = this.start[c] ?? 0; j < (this.start[c + 1] ?? 0); j++) {
         const i = this.order[j] ?? 0;
         const ex = (p[i * 3] ?? 0) - e.x, ez = (p[i * 3 + 2] ?? 0) - e.z, d2 = ex * ex + ez * ez;

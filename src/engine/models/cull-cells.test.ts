@@ -21,13 +21,13 @@ test('square pre-rejection draws exactly the per-copy choice, in copy order', ()
     return { matrix, color: null, meshes: [mesh] };
   };
   const levels = [sink(), sink()], copyAt = new Map(Array.from({ length: n }, (_, i) => [`${String(bounds[i * 4])},${String(bounds[i * 4 + 2])}`, i]));
-  const cull = new InstancedCull(levels.map(level => [level]), 2, new Uint16Array(n), matrices, null, bounds, [0, lod], { far, keepNear });
+  const cull = new InstancedCull(levels.map(level => [level]), 2, new Uint16Array(n), matrices, null, bounds, [0, lod], { far, keepNear, view: { onViewChange: () => undefined } });
   const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000), frustum = new THREE.Frustum(), sphere = new THREE.Sphere();
   for (let pose = 0; pose < 60; pose++) {
     camera.position.set((random() - 0.5) * 300, random() * 70, (random() - 0.5) * 300);
     camera.rotation.set((random() - 0.5) * 1.2, random() * Math.PI * 2, 0, 'YXZ'); camera.updateMatrixWorld();
-    cull.update(camera);
     frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+    cull.updateWith(frustum, camera.position);
     const expected: number[][] = [[], []];
     for (let i = 0; i < n; i++) {
       const x = bounds[i * 4] ?? 0, y = bounds[i * 4 + 1] ?? 0, z = bounds[i * 4 + 2] ?? 0, d2 = camera.position.distanceToSquared(new THREE.Vector3(x, y, z));
