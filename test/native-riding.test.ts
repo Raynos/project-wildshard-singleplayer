@@ -13,7 +13,7 @@ import { zlibSync } from 'fflate';
 import { Vector3 } from 'three';
 import { createSimHost, type SimHost } from '@wildshard/engine/sim';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
-import { restoreSimHost, snapshotSimHost, serializeSimSnapshot } from '@wildshard/engine/sim/snapshot';
+import { restoreSimHost, snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { NativeGroupCollection as FixtureNativeGroups, nativeGroupCollection as fixtureGroup, nativeHerdCollection } from '@wildshard/game/shardfile/groupRuntime';
 import { Rng as FixtureRandom } from '@wildshard/engine/core/rng';
 import { nativeGroupBrain as fixtureBrain } from '@wildshard/format/groupBrains';
@@ -90,12 +90,16 @@ test('an input lock holds the walk and the reins through a save, and a respawn r
     expect(Math.hypot(host.player.position.x - start.x, host.player.position.z - start.z)).toBeLessThan(1e-3);
     const saved = snapshotSimHost(host);
     expect(saved.player.moveScale).toBe(0);
-    restored = restoreSimHost(level, { rapier }, saved, fresh => { install(fresh); });
+    expect(decodeSimSnapshot(serializeSimSnapshot({...saved,player:{...saved.player,moveScale:.35}})).player.moveScale).toBe(.35);
+    for(const moveScale of [-1,1,Infinity,Number.NaN])expect(()=>serializeSimSnapshot({...saved,player:{...saved.player,moveScale}})).toThrow();
+    restored = restoreSimHost(level, { rapier }, decodeSimSnapshot(serializeSimSnapshot(saved)), fresh => { install(fresh); });
     expect(restored.playerMoveScale).toBe(0);
     host.playerMoveScale = 1;
     for (let tick = 0; tick < 20; tick++) host.step(walk);
     expect(host.player.position.distanceTo(start)).toBeGreaterThan(1);
-    expect(snapshotSimHost(host).player.moveScale).toBeUndefined();
+    const unlocked=snapshotSimHost(host);
+    expect(unlocked.player.moveScale).toBeUndefined();
+    expect(decodeSimSnapshot(serializeSimSnapshot(unlocked))).toEqual(unlocked);
     // mounted: the reins read the same scale (a boss intro's lock reins the horse in)
     expect(mounted.mount('boar:1')).toBe(true);
     const gallop = { moveX: 0, moveZ: 0, yaw: 0, sprint: true, commandVersion: 1 as const, steer: { keyX: 0, keyY: 1, stickX: 0, stickY: 0 } };

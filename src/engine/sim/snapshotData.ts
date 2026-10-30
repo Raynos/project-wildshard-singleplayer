@@ -79,6 +79,7 @@ const entries = {
   player: v.strictObject({ id, position: vector, yaw: finite, health: eventValue, motor, impulse: v.optional(vector),
     traversals: v.optional(v.pipe(v.array(v.picklist(['ride', 'grapple', 'glide', 'climb', 'drive'])), v.minLength(1), v.maxLength(5))),
     walk: v.optional(v.strictObject({ x: finite, z: finite })),
+    moveScale: v.optional(v.pipe(nonnegative, v.check(value => value !== 1, 'Default move scale must stay omitted'))),
     fall: v.optional(v.strictObject({ vy: finite, grounded: v.boolean() })), shove: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })),
     board: v.optional(v.strictObject({ velocity: vector, air: v.boolean(), bob: finite, ground: v.boolean() })),
     swim: v.optional(v.strictObject({ on: v.boolean(), velocity: vector, diving: v.boolean(), climbTo: v.nullable(finite), climbCooldown: nonnegative, stroke: nonnegative, stood: v.boolean() })),
