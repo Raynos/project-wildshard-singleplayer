@@ -39,7 +39,7 @@ import { withTier } from '../explore/tiers';
 import { loadingSpecimen } from './gear';
 import { specimenReady, paramsOf, seedOf, type ModelBuild, type ModelBuildVisit, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
 import { drawnHullOwn, drawnHullWorld, placeCollider, poseGeometry, poseOf, type Pose } from './colliders';
-import { BatchedCull, CelledCopiesCull, CellCull, InstancedCull, SetCull, UntilCull, WeldCull, type BatchedSlot, type CullOptions, type HostedSet, type InstancedSink } from './cull';
+import { BatchedCull, CelledCopiesCull, CellCull, cullFresh, InstancedCull, SetCull, UntilCull, WeldCull, type BatchedSlot, type CullOptions, type HostedSet, type InstancedSink } from './cull';
 import { UnitParts, nearProxy, weldAcross, type WeldBuild } from './weld';
 import { resourceScope } from '../app/resources';
 import { ownSceneResource } from '../app/sceneOwnership';
@@ -285,10 +285,12 @@ function eachLife(fn: (life: Life) => void): void {
  */
 export function cullPlaced(camera: THREE.Camera): void {
   cullStamp = (cullStamp + 1) % 0x40000000;
-  for (let i = 0; i < cullers.length; i++) {
-    const frame = cullerLives[i]?.frame ?? null;
-    cullers[i]?.(frame === null ? camera : frame.of(camera, cullStamp), camera);
-  }
+  cullFresh(camera, () => {
+    for (let i = 0; i < cullers.length; i++) {
+      const frame = cullerLives[i]?.frame ?? null;
+      cullers[i]?.(frame === null ? camera : frame.of(camera, cullStamp), camera);
+    }
+  });
 }
 
 

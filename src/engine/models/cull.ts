@@ -87,6 +87,17 @@ export interface CullView {
 
 /** metres: an eye shift under this (no turn, no zoom) keeps the copies chosen for the last view (`View.changed`) */
 const EYE_JITTER = 0.02;
+/** FC16: the camera whose world matrix the caller brought up to date for this pass of every culler (`cullFresh`) */
+let freshCamera: THREE.Camera | null = null;
+/**
+ * Run `pass` with `camera`'s own world matrix brought up to date once: each culler's view reads it without updating it again
+ * (Nine: every placed culler updated the camera's matrix every frame, 0.14 ms at phone 4x). Nothing in a pass moves it.
+ */
+export function cullFresh(camera: THREE.Camera, pass: () => void): void {
+  camera.updateWorldMatrix(false, false);
+  freshCamera = camera;
+  try { pass(); } finally { freshCamera = null; }
+}
 /** the two world matrices' rotation-and-scale parts are exactly equal */
 function sameTurn(a: ArrayLike<number>, b: ArrayLike<number>): boolean {
   return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[4] === b[4] && a[5] === b[5] && a[6] === b[6] && a[8] === b[8] && a[9] === b[9] && a[10] === b[10];
@@ -112,7 +123,7 @@ class View {
   changed(camera: THREE.Camera): boolean {
     // the camera's own world matrix only: `updateMatrixWorld` also walked its children (the held weapon's whole viewmodel)
     // once per culler per frame (G639: ~1.4 ms a Signal Dunes drive frame at phone 4x); the render updates them itself
-    camera.updateWorldMatrix(false, false);
+    if (camera !== freshCamera) camera.updateWorldMatrix(false, false);
     if (this.step > 0) {
       this.eye.setFromMatrixPosition(camera.matrixWorld);
       if (this.primed && this.eye.distanceToSquared(this.lastEye) <= this.step * this.step) return false;
