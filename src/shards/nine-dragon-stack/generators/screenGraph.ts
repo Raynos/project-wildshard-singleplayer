@@ -10,7 +10,7 @@ export class Screen extends LookGraph {
   override op(op: string, inputs?: readonly Ref[], extra: Omit<GraphNode, 'op' | 'in'> = {}): string {
     const row = { op, ...(inputs === undefined ? {} : { in: inputs }), ...extra }, key = JSON.stringify(row), old = this.cache.get(key);
     if (old !== undefined) return old;
-    const id = `${this.prefix}${Object.keys(this.nodes).length}`; this.nodes[id] = row; this.cache.set(key, id); return id;
+    const id = `${this.prefix}${this.nodeCount}`; this.store(id, row); this.cache.set(key, id); return id;
   }
   readonly uv: string = this.op('screenUV');
   scalar(name: string, value = 0): string { return this.p(name, 'float', value); }

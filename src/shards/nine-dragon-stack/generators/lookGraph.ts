@@ -8,11 +8,19 @@ export class LookGraph {
   readonly params: Record<string, GraphParam> = {};
   readonly arrays: Record<string, GraphArrayParam> = {};
   private readonly memo = new Map<string, string>();
+  /** CI6: `Object.keys(nodes).length` (a new node's id number), kept as nodes arrive instead of counted per node (a big
+   *  graph's build was quadratic); a caller that writes `nodes` itself calls `recount()` after */
+  private size = 0;
+  recount(): void { this.size = Object.keys(this.nodes).length; }
+  /** the id number the next node takes */
+  protected get nodeCount(): number { return this.size; }
+  /** Store `node` at `id`, as `nodes[id] = node` did (a new key grows the count, an existing one is overwritten). */
+  protected store(id: string, node: GraphNode): void { if (!Object.hasOwn(this.nodes, id)) this.size++; this.nodes[id] = node; }
   op(op: string, inputs?: readonly GraphRef[], extra: Omit<GraphNode, 'op' | 'in'> = {}): string {
     const node = { op, ...(inputs === undefined ? {} : { in: inputs }), ...extra }, key = JSON.stringify(node), old = this.memo.get(key);
     if (old !== undefined) return old;
-    const id = `n${Object.keys(this.nodes).length.toString(36)}`;
-    this.nodes[id] = node; this.memo.set(key, id); return id;
+    const id = `n${this.nodeCount.toString(36)}`;
+    this.store(id, node); this.memo.set(key, id); return id;
   }
   p(name: string, type: GraphParam['type'], value: GraphParam['value']): string { this.params[name] = { type, value }; return this.op('param', undefined, { param: name }); }
   a(name: string, type: NonNullable<GraphNode['type']>): string { return this.op('attribute', undefined, { name, type }); }
@@ -53,6 +61,7 @@ export class LookGraph {
     for (const [id, row] of Object.entries(graph.nodes)) this.nodes[`fog_${id}`] = row.op === 'fogScale' ? { op: 'const', value: 1 } : row.op === 'positionWorld'
       ? { op: 'add', in: [world, [0, 0, 0]] }
       : rewrite(row);
+    this.recount();
     Object.assign(this.params, graph.params); Object.assign(this.arrays, graph.arrays);
     return rename(transmission);
   }

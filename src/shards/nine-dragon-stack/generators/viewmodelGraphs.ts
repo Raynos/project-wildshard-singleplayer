@@ -113,7 +113,7 @@ export function viewmodelGraphs(profile: NineHeldProfile): Readonly<Record<strin
 /** Both existing cloth draws read the same baked field; no mutable geometry or frame callback. */
 function flutter(source: GraphIr): GraphIr {
   const g = new LookGraph();
-  Object.assign(g.nodes, source.nodes); Object.assign(g.params, source.params); Object.assign(g.arrays, source.arrays);
+  Object.assign(g.nodes, source.nodes); g.recount(); Object.assign(g.params, source.params); Object.assign(g.arrays, source.arrays);
   const field = g.a('aCloth', 'vec4'), time = g.p('uTime', 'float', 0), phase = g.sw(field, 'y');
   const wave = (speed: number): string => g.op('sin', [g.add(g.mul(time, speed), phase)]);
   const flutterOffset = g.mul(g.vec(wave(motion.speed), 0, g.mul(wave(motion.secondSpeed), g.sw(field, 'z'))), g.sw(field, 'x'));
@@ -123,6 +123,7 @@ function flutter(source: GraphIr): GraphIr {
   else {
     const world = g.op('positionWorld'), delta = g.op('localToWorldVector', [offset]);
     for (const [id, row] of Object.entries(source.nodes)) if (row.op === 'positionWorld') g.nodes[id] = { op: 'add', in: [world, delta] };
+    g.recount();
   }
   const graph = g.finish(stages, source.effectState);
   return { ...graph, doubleSided: source.doubleSided ?? false };

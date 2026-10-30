@@ -29,6 +29,7 @@ function silkFog(g: Screen, world: GraphRef, eye: GraphRef, input: GraphRef): { 
       : row.op === 'cameraPosition' ? { op: 'add', in: [eye, [0, 0, 0]] } : row.op === 'fogInput' ? { op: 'add', in: [input, [0, 0, 0]] }
       : row.op === 'param' && row.param === 'rootAt' ? { op: 'add', in: [[0, 0, 0], [0, 0, 0]] } : rewrite(row);
   }
+  g.recount();
   for (const [name, param] of Object.entries(graph.params ?? {})) if (name !== 'rootAt') g.params[name] = param;
   Object.assign(g.arrays, graph.arrays);
   return { colour: rename(output), transmission: rename(transmission) };
