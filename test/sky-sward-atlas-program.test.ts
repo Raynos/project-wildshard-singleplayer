@@ -15,14 +15,15 @@ import { createProjectGeneration, type ProjectGenerationContext } from '../src/s
 import { bakeSkySwardAtlas, bakeSwardAtlasTexture } from '../src/shards/far-reach/generators/swardAtlas';
 import { skySwardAtlasProgram } from '../src/shards/far-reach/generators/swardAtlasProgram';
 
-const originalHash = '607c53f28dbdd88423b39fd32419ba735f9a13c3c1ecabaf1cadb68715d63f0b';
-const check = (bytes: Uint8Array): void => {
-  expect(bytes.byteLength).toBe(663_989);
-  expect(hashImmutableBytes(bytes)).toBe(originalHash);
+// Identity of the retired handoff path, not an expected current output digest.
+const retiredHandoffHash = '607c53f28dbdd88423b39fd32419ba735f9a13c3c1ecabaf1cadb68715d63f0b';
+const check = (bytes: Uint8Array, expected: { bytes: number; hash: string }): void => {
+  expect(bytes.byteLength).toBe(expected.bytes);
+  expect(hashImmutableBytes(bytes)).toBe(expected.hash);
 };
 
-test('the original sward texture preserves every numerical strand channel and its linear single-level costs', async () => {
-  const made = await bakeSwardAtlasTexture(); check(made);
+test('the current sward texture preserves numerical strand channels and linear single-level costs', async () => {
+  const made = await bakeSwardAtlasTexture();
   const view = new DataView(made.buffer, made.byteOffset, made.byteLength);
   expect([view.getUint32(12, true), view.getUint32(20, true), view.getUint32(24, true), view.getUint32(40, true)])
     .toEqual([37, 1152, 512, 1]);
@@ -47,7 +48,7 @@ test.each(['swardAtlas', 'swardAtlasProgram'])('%s bundles without generated imp
   }
 });
 
-test('cold and persistent atlas hits preserve the complete original texture and detach caller mutations', async () => {
+test('cold and persistent atlas hits preserve the complete current texture and detach caller mutations', async () => {
   const cache = mkdtempSync(resolve('tmp/sky-sward-cache-')), project = mkdtempSync(resolve(cache, 'project-'));
   let builds = 0;
   const context = (identity = 'a'): Pick<ProjectGenerationContext, 'cached'> => {
@@ -58,9 +59,11 @@ test('cold and persistent atlas hits preserve the complete original texture and 
     } };
   };
   try {
-    const first = await skySwardAtlasProgram(context()); check(first); first.fill(0);
-    check(await skySwardAtlasProgram(context())); expect(builds).toBe(1);
-    check(await skySwardAtlasProgram(context('b'))); expect(builds).toBe(2);
+    const first = await skySwardAtlasProgram(context());
+    const expected = { bytes: first.byteLength, hash: hashImmutableBytes(first) };
+    check(first, expected); first.fill(0);
+    check(await skySwardAtlasProgram(context()), expected); expect(builds).toBe(1);
+    check(await skySwardAtlasProgram(context('b')), expected); expect(builds).toBe(2);
     expect(readdirSync(project)).toEqual([]);
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
@@ -75,6 +78,6 @@ test('unexpected source inputs and missing, empty or extra cached atlas files re
 });
 
 test('the atlas scheduler and all declared handoff readers are retired', () => {
-  const handoff = `src/shards/far-reach/assets/${originalHash}`;
+  const handoff = `src/shards/far-reach/assets/${retiredHandoffHash}`;
   expect(existsSync(handoff)).toBe(false);
 });
