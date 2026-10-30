@@ -1,19 +1,25 @@
 // @vitest-environment happy-dom
-import { expect, test, vi } from 'vitest';
+import { beforeEach, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { App } from '@wildshard/engine/app/app';
 import { Scope } from '@wildshard/engine/app/scope';
 import { PlayerHealth } from '@wildshard/engine/combat/health';
 import { EffectService } from '@wildshard/engine/combat/effects/EffectService';
 import type { DamageDealt } from '@wildshard/engine/combat/pipeline';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { PageCombatSession } from './Boss';
 import type { ShardContext } from './plugin/context';
 import { manager } from '@wildshard/engine/test/manager';
+import { registerSpecies } from '@wildshard/engine/entities/species/registry';
+import { speciesWithLook } from '@wildshard/engine/entities/species/look';
+import { BOAR } from './systems/species/boar';
+import { BOAR_LOOK } from './systems/species/view/boar';
+
+beforeEach(() => { registerSpecies(speciesWithLook(BOAR, BOAR_LOOK)); });
 
 const rows = { god: false, bossKinds: ['boar'], stunEffect: 'effect.marsh-root', unlockSkins: [] };
 function marsh() {
-  const restoreTerrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
+  const restoreTerrain = bindFlatTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
   const scope = new Scope('salt-marsh.combat'), app = new App(), fixture = manager();
   Object.defineProperty(fixture.sky, 'dayNight', { value: null });
   app.levelScope = scope;

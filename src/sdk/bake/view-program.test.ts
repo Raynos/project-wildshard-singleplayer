@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, Scene, ShaderMaterial, Vector3 } from 'three';
 import { GroundTell } from '@wildshard/engine/fx/groundTell';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { parse } from 'valibot';
 import { Scope } from '@wildshard/engine/app/scope';
 import { viewProgram, type ViewSlotActor } from '@wildshard/engine/script/viewProgram';
@@ -232,7 +232,7 @@ test('a lent cell takes its channel on landing, before its owner reads it, and i
 
 test('a lent tell draws the ring, lane or wedge its channels name with its owner\'s own geometry, and hides', async () => {
   const module = await compileScriptV2(LANTERN, { lane: 'view', ioBytes: 4096 });
-  const restore = overrideTerrain({ heightAt: (x: number, z: number) => .1 * x + .05 * z });
+  const restore = bindFlatTerrain({ heightAt: (x: number, z: number) => .1 * x + .05 * z });
   const owner = new Scope('marsh.tells'), scene = new Scene(), make = (kind: 'ring' | 'lane' | 'wedge'): GroundTell =>
     owner.run(() => kind === 'wedge' ? new GroundTell(scene, kind, 0xffffff, { cone: .6, material: new MeshBasicMaterial(), fill: { value: 0 }, alpha: { value: 0 } }) : new GroundTell(scene, kind, 0xffcc00));
   const drawn = { ring: make('ring'), lane: make('lane'), wedge: make('wedge') }, direct = { ring: make('ring'), lane: make('lane'), wedge: make('wedge') };

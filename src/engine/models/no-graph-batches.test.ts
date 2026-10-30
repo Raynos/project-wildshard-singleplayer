@@ -21,7 +21,7 @@ test('a batched model draw with a graph look draws instanced, a classic one stil
     const model = defineModel({ id: 'shared/graph-batch-fixture', name: 'Graph batch fixture', category: 'props', pipeline: 'code', file: 'src/engine/models/no-graph-batches.test.ts', defaults: {},
       build: () => [{ geometry: new BoxGeometry(1, 1, 1), material }] });
     const placements = Array.from({ length: 6 }, (_, i) => ({ x: i * 3, y: 0, z: 0, matrix: new Matrix4().makeTranslation(i * 3, 0, 0) }));
-    return kinds(place(model, placements, { ctx, draw: 'batched' }).object);
+    return kinds(place(model, placements, { ctx, draw: 'batched', registry: null }).object);
   };
   expect(graphLook(nodeMaterial())).toBe(true); expect(graphLook(new MeshStandardMaterial())).toBe(false);
   const graph = drawn(nodeMaterial());
