@@ -40,6 +40,7 @@ import { ProductFigureCatalogue } from '../models/figureCatalogue';
 import { SceneHandles } from '../shardfile/sceneHandles';
 import { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 import { QuestStepRunner } from './steps';
+import { chapterDecide } from './chapterDecision';
 import { openQuestTrader, installQuestTrader, parseQuestTrader, type QuestTrader } from './trader';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { cableModes } from '@wildshard/engine/player/modes';
@@ -399,20 +400,10 @@ export function buildQuestChapter(ctx: ShardContext, storyInput: unknown, input:
   const decision = chapterRows?.decision;
   const program = rows.program ?? decision?.program;
   const brain = program === undefined ? null : ReturnProgram.page(program, ctx.scope);
+  // the observe -> project -> commit order is chapterDecide's (renderer-free, CI12)
   const project = (signal: string, values: Readonly<Record<string, number>>): Readonly<Record<string, number>> => {
     if (brain === null) throw new Error('Chapter has no admitted decision program');
-    const observed = { ...values };
-    for (const [observationId, row] of Object.entries(decision?.observations ?? {})) {
-      if (row.on === undefined || row.on === signal) observed[observationId] = readQuestObservation(ctx, quest.def.id, row.source);
-    }
-    const result = brain.project(signal, observed);
-    for (const [channel, value] of Object.entries(result)) if (value !== 0) {
-      const effects = decision?.actions[channel];
-      if (effects !== undefined) {
-        commitQuestEffects(ctx, quest.def.id, effects);
-      }
-    }
-    return result;
+    return chapterDecide(brain, decision, signal, values, source => readQuestObservation(ctx, quest.def.id, source), effects => { commitQuestEffects(ctx, quest.def.id, effects); });
   };
   const chapter: QuestChapter = { quest, line, project, reading: readingInput => {
     const row = v.parse(QuestEffectSchema, readingInput);
