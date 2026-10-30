@@ -290,6 +290,10 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
     if (!Number.isInteger(ports.limit) || ports.limit < 1 || ports.limit > 512
       || !['combined', 'interrupt'].includes(ports.order)) throw new RangeError('Invalid hunt roster cadence');
     const { player, noise, sight } = ports;
+    const reported = new WeakSet<A>();
+    const refused = (actor: A, error: unknown): void => {
+      if (!reported.has(actor)) { reported.add(actor); emitFault({system: 'ai.roster', error, verdict: 'retry'}); }
+    };
     const run = (body: B, actor: A, dt: number): void => {
       const policy = ports.policy?.(body) ?? null;
       if (policy === null) { this.think(actor, dt, player, false, noise.speed); return; }
@@ -300,12 +304,16 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
       const index = ports.herd?.(body), herd = index === undefined ? undefined : this.herds[index];
       if (herd !== undefined) this.updateHerd(herd);
     };
-    const wake = (body: B | null | undefined): void => {
-      if (body === undefined || body === null) return;
-      const actor = ports.actor(body); if (actor === null || !actor.alive) return;
-      const dt = ports.brainDt(ports.id(body), true);
-      if (ports.order === 'interrupt' || dt > 0) run(body, actor, dt);
+    const wakeFrame = (body: B | null | undefined): boolean => {
+      if (body === undefined || body === null) return true;
+      const actor = ports.actor(body); if (actor === null || !actor.alive) return true;
+      try {
+        const dt = ports.brainDt(ports.id(body), true);
+        if (ports.order === 'interrupt' || dt > 0) run(body, actor, dt);
+        return true;
+      } catch (error) { refused(actor, error); return false; }
     };
+    const wake = (body: B | null | undefined): void => { wakeFrame(body); };
     return {
       observe: dt => {
         if (!Number.isFinite(dt) || dt <= 0) throw new RangeError('Invalid hunt noise step');
@@ -320,14 +328,16 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
         for (let i = 0; i < ports.limit; i++) {
           const body = ports.at(i); if (body === undefined || body === null) continue;
           const actor = ports.actor(body); if (actor === null) continue;
-          let urgent = false;
-          if (actor.alive && actor.aggressive && (actor.state === 'charge' || actor.state === 'stalk' || actor.state === 'alert')) {
-            const clear = ports.reach(actor, player); urgent = sight[i] === true && !clear;
-            if (ports.order === 'interrupt' && urgent) wake(body);
-            sight[i] = clear;
-          }
-          const dt = ports.brainDt(ports.id(body), ports.order === 'combined' ? urgent : undefined);
-          if (dt > 0) { ports.policy?.(body)?.sample?.(actor); run(body, actor, dt); }
+          try {
+            let urgent = false;
+            if (actor.alive && actor.aggressive && (actor.state === 'charge' || actor.state === 'stalk' || actor.state === 'alert')) {
+              const clear = ports.reach(actor, player); urgent = sight[i] === true && !clear;
+              if (ports.order === 'interrupt' && urgent && !wakeFrame(body)) continue;
+              sight[i] = clear;
+            }
+            const dt = ports.brainDt(ports.id(body), ports.order === 'combined' ? urgent : undefined);
+            if (dt > 0) { ports.policy?.(body)?.sample?.(actor); run(body, actor, dt); }
+          } catch (error) { refused(actor, error); }
         }
       },
       wake,
