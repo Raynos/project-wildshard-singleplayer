@@ -229,7 +229,9 @@ export function shardTables(root) {
   return { 'src/shards.generated.ts': shardSource(root), 'src/game/shard/manifest-closure.generated.json': `${JSON.stringify(closure, null, 2)}\n` };
 }
 
-export function genShards(root = resolve(import.meta.dirname, '..'), check = false, initializeMissing = false, shard = '') {
+/** Emit the manifest/slug inputs the boot writer actually consumes. Title data
+ * is emitted by the final genShards pass after boot tables are complete. */
+export function genShardInputs(root = resolve(import.meta.dirname, '..'), check = false, initializeMissing = false, shard = '') {
   genShardWords(root, check, shard);
   for (const product of shardProducts(root, shardFolders(root))) {
     if (!existsSync(resolve(root, `src/shards/${product.folder}/manifest.json`))) continue;
@@ -246,20 +248,26 @@ export function genShards(root = resolve(import.meta.dirname, '..'), check = fal
     if (check) throw new Error(`gen-shards: stale ${relative(root, path)} (run pnpm gen)`);
     rmSync(path);
   }
-  const write = (outputs) => {
-    for (const [name, source] of Object.entries(outputs)) {
-      const out = resolve(root, name);
-      const exists = existsSync(out), same = exists && readFileSync(out, 'utf8') === source;
-      // A staged-tree export lacks these untracked tables. Only that caller initializes missing outputs;
-      // committed vocabulary above and any existing runtime table still have strict --check semantics.
-      const initialize = initializeMissing && !exists;
-      if (check && !same && !initialize) throw new Error(`gen-shards: stale ${name} (run pnpm gen)`);
-      if ((!check || initialize) && !same) { mkdirSync(dirname(out), { recursive: true }); writeFileSync(out, source); }
-    }
-  };
-  write({ ...shardTables(root), ...slugTables(root) });
-  // the title tables read the shard list just written
-  write(titleTables(root));
+  writeTables(root, { ...shardTables(root), ...slugTables(root) }, check, initializeMissing);
+}
+
+function writeTables(root, outputs, check, initializeMissing) {
+  for (const [name, source] of Object.entries(outputs)) {
+    const out = resolve(root, name);
+    const exists = existsSync(out), same = exists && readFileSync(out, 'utf8') === source;
+    // A staged-tree export lacks these untracked tables. Only that caller initializes missing outputs;
+    // committed vocabulary above and any existing runtime table still have strict --check semantics.
+    const initialize = initializeMissing && !exists;
+    if (check && !same && !initialize) throw new Error(`gen-shards: stale ${name} (run pnpm gen)`);
+    if ((!check || initialize) && !same) { mkdirSync(dirname(out), { recursive: true }); writeFileSync(out, source); }
+  }
+}
+
+/** Full standalone generation retains title publication and strict checking. */
+export function genShards(root = resolve(import.meta.dirname, '..'), check = false, initializeMissing = false, shard = '') {
+  genShardInputs(root, check, initializeMissing, shard);
+  // The title reads the same completed shard list, once after boot generation.
+  writeTables(root, titleTables(root), check, initializeMissing);
 }
 
 /**

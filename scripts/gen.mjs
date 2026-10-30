@@ -1,6 +1,6 @@
 // Node's TypeScript/asset hooks let the CLI and Vite share the same table writers.
 import { resolve } from 'node:path';
-import { genShards, refreshDiscovery } from './gen-shards.mjs';
+import { genShardInputs, genShards, refreshDiscovery } from './gen-shards.mjs';
 import { genBudgetDerivations } from './gen-budget-derivations.mjs';
 import { generationPlan, buildPrograms, emitProgramTables, programInputPlan } from './gen-programs.mjs';
 import { assertHeavyLease } from './heavy-lane-lease.mjs';
@@ -59,7 +59,7 @@ await emitProgramTables(root, plan, {
     return count;
   },
   writeTables: async () => {
-    await step('shards', () => sourceTablesCached(root, 'shards-before', () => genShards(undefined, false, false, vocabularyShard)));
+    await step('shards', () => sourceTablesCached(root, 'shards-before', () => genShardInputs(undefined, false, false, vocabularyShard)));
     const { generateBootTables } = await import('./app-build/gen.ts');
     await step('boot-tables', () => sourceTablesCached(`${import.meta.dirname}/..`, 'boot', async () => {
       if (buildInputs && process.env.WS_PRECOMMIT_BOOT_CACHE) {
