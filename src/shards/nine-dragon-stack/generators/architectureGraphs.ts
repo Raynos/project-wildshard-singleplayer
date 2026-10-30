@@ -131,9 +131,23 @@ function facade(small: boolean): GraphIr {
   const runs = mul(g.smooth(0.5, 0.85, g.noise(g.vec(mul(worldX, 6.5), 0.5))), g.noise(g.vec(add(mul(worldX, 1.3), 9), g.floor(g.div(sw(g.world, 'y'), 3)))));
   let wall = mul(mul(base, weather), sub(1, mul(mul(runs, g.smooth(0.25, 1, g.div(y, h))), 0.28)));
   wall = mul(wall, sub(1, mul(sub(1, g.smooth(0.24, 1.1, y)), 0.16)));
-  const tileInk = max(rule(x, 0.3, fx, 0.5), rule(y, 0.3, fy, 0.5)), boardInk = rule(worldX, 0.26, fx, 0.55);
-  const finishInk = g.choose(g.eq(finish, 1), mul(tileInk, 0.32), g.choose(g.eq(finish, 3), mul(boardInk, 0.6), g.choose(g.eq(finish, 2), mul(rule(x, 1.25, fx, 0.7), 0.55), 0)));
-  use(1, wall, max(finishInk, max(max(line(y, fy, 1.3), line(sub(h, y), fy, 1.3)), mul(line(g.abs(sub(y, 0.24)), fy, 0.7), 0.75))));
+  // NF4 audit (LEGACY facadeMaterial.ts kind 1): the slab band's shade, the long streaks, the stain under an AC and each
+  // finish's own tone, all multiplicative as LEGACY's; the sill / lintel courses, finish 2's offset ruling and mid rail,
+  // finish 3's rails and the faint bay seams in the ink
+  const streak = mul(g.noise(g.vec(mul(worldX, 2.1), add(mul(y, 0.5), 3))), g.noise(g.vec(add(mul(worldX, 0.7), 5), 1)));
+  wall = mul(mul(wall, sub(1, mul(g.cover(y, 0, 0.24, fy), 0.12))), sub(1, mul(mul(g.smooth(0.2, 0.6, streak), g.smooth(0.1, 1, g.div(y, h))), 0.2)));
+  const stain = sub(sw(pat, 'z'), mul(finish, 2)), wob = mul(sub(g.noise(g.vec(mul(y, 2.5), mul(sw(pat, 'y'), 7))), 0.5), 0.14);
+  const stainX = g.abs(add(sub(x, sw(pat, 'y')), wob));
+  const stained = mul(mul(sub(1, g.smooth(0.04, add(0.2, mul(sub(1, g.div(y, h)), 0.1)), stainX)), g.smooth(0, mul(h, 0.5), y)), sub(1, g.smooth(mul(h, 0.62), mul(h, 0.7), y)));
+  wall = mul(wall, sub(1, mul(mul(g.choose(g.gt(stain, 0), stain, 0), stained), 0.3)));
+  const finishTone = g.choose(g.eq(finish, 1), add(0.96, mul(g.hash(add(g.floor(g.div(q, 0.3)), sw(pat, 'y'))), 0.08)),
+    g.choose(g.eq(finish, 2), add(0.97, mul(g.hash(add(g.floor(g.vec(g.div(x, 1.25), g.div(y, 1.5))), 3)), 0.07)),
+      g.choose(g.eq(finish, 3), add(0.9, mul(g.hash(g.vec(g.floor(g.div(worldX, 0.26)), g.floor(g.div(sw(g.world, 'y'), 3)))), 0.2)), 1)));
+  wall = mul(wall, finishTone);
+  const tileInk = max(rule(x, 0.3, fx, 0.5), rule(y, 0.3, fy, 0.5)), boardInk = max(mul(rule(worldX, 0.26, fx, 0.55), 0.6), mul(max(line(g.abs(sub(y, 0.8)), fy, 0.9), line(g.abs(sub(y, 2.62)), fy, 0.9)), 0.7));
+  const finishInk = g.choose(g.eq(finish, 1), mul(tileInk, 0.32), g.choose(g.eq(finish, 3), boardInk, g.choose(g.eq(finish, 2), mul(max(rule(add(x, 0.3), 1.25, fx, 0.7), line(g.abs(sub(y, 1.5)), fy, 0.7)), 0.55), 0)));
+  const courses = mul(max(line(g.abs(sub(y, 0.72)), fy, 0.6), line(g.abs(sub(y, 2.58)), fy, 0.6)), 0.45), seams = mul(max(line(x, fx, 0.6), line(sub(w, x), fx, 0.6)), 0.3);
+  use(1, wall, max(max(courses, finishInk), max(max(max(line(y, fy, 1.3), line(sub(h, y), fy, 1.3)), mul(line(g.abs(sub(y, 0.24)), fy, 0.7), 0.75)), seams)));
   const tp = g.u('uTilePitch'), tx = sw(tp, 'x'), ty = sw(tp, 'y'), tileFar = sub(1, g.smooth(2, 5, g.div(tx, fx))), bx = mul(g.abs(sub(g.fract(g.div(x, tx)), 0.5)), 2);
   let tiles = mul(base, add(0.92, mul(g.hash(g.floor(g.div(q, tp))), 0.14)));
   tiles = mul(tiles, g.paint(q, 5, tp, mul(sw(g.u('uPaintK'), 'x'), sw(g.u('uPaintK'), 'w')), 3));
@@ -141,9 +155,11 @@ function facade(small: boolean): GraphIr {
   const lum = g.op('dot', [tiles, [0.3, 0.59, 0.11]]);
   tiles = mix(tiles, mul(mix(g.vec(lum, lum, lum), tiles, 0.68), 0.72), tileFar);
   use(2, tiles, max(rule(y, ty, fy, 0.9), mul(rule(x, tx, fx, 0.6), 0.7)));
-  use(3, base, max(rule(x, sw(pat, 'y'), fx, 0.95), g.choose(g.gt(sw(pat, 'z'), 0), rule(y, sw(pat, 'z'), fy, 0.95), 0)));
+  // a far railing reads as a painted panel once its bars fall under ~4 px (LEGACY kind 3's density term)
+  const barDensity = g.smooth(2.5, 5, g.div(sw(pat, 'y'), fx));
+  use(3, base, max(max(rule(x, sw(pat, 'y'), fx, 0.95), g.choose(g.gt(sw(pat, 'z'), 0), rule(y, sw(pat, 'z'), fy, 0.95), 0)), mul(sub(1, barDensity), 0.35)));
   const stripe = g.cover(g.fract(g.div(x, max(sw(pat, 'y'), 1e-5))), 0, 0.5, g.div(fx, max(sw(pat, 'y'), 1e-5)));
-  use(4, mul(mix(base, [0.86, 0.84, 0.78], mul(stripe, sw(pat, 'z'))), add(0.94, mul(g.noise(mul(q, 3)), 0.12))), 0);
+  use(4, mul(mix(base, [0.86, 0.84, 0.78], mul(g.choose(g.gt(sw(pat, 'y'), 0), stripe, 0), sw(pat, 'z'))), add(0.94, mul(g.noise(mul(q, 3)), 0.12))), 0);
   const leaf = g.div(g.projected(g.world), 0.16), cells = g.floor(leaf), local = g.fract(leaf);
   let first: Ref = 9, second: Ref = 9, leafId: Ref = 0;
   for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) {
@@ -154,8 +170,11 @@ function facade(small: boolean): GraphIr {
   use(5, mix(base, mul(base, add(0.7, mul(leafId, 0.6))), leafDetail), mul(mul(line(mul(sub(g.pow(second, 0.5), g.pow(first, 0.5)), 0.5), leafFw, 0.8), leafDetail), 0.6));
   const centre = g.vec(mul(w, 0.66), mul(h, 0.5)), radius = mul(h, 0.36), distance = g.op('length', [sub(q, centre)]);
   const fan = max(line(g.abs(sub(distance, radius)), fwm, 0.9), line(g.abs(sub(distance, mul(radius, 0.22))), fwm, 0.7));
-  const grille = mul(rule(y, 0.06, fy, 0.6), mul(g.step(0.05, x), g.step(x, mul(w, 0.36))));
-  use(6, mix(base, mul(base, 0.62), g.step(distance, radius)), max(fan, mul(grille, 0.8)));
+  // LEGACY kind 6 whole: six spokes between hub and ring, the grille inside its frame, all faded out under ~3 px
+  const turn = g.op('atan', [sub(y, sw(centre, 'y')), sub(x, sw(centre, 'x'))]);
+  const spokes = mul(mul(line(mul(mul(g.abs(sub(g.fract(add(mul(g.div(turn, 6.2831853), 6), 0.5)), 0.5)), distance), 1.047), fwm, 0.5), g.step(mul(radius, 0.22), distance)), g.step(distance, radius));
+  const grille = mul(mul(rule(y, 0.06, fy, 0.6), mul(g.step(0.05, x), g.step(x, mul(w, 0.36)))), mul(g.step(0.05, y), g.step(y, sub(h, 0.05))));
+  use(6, mix(base, mul(base, 0.62), g.step(distance, radius)), mul(max(max(fan, mul(spokes, 0.8)), mul(grille, 0.8)), g.smooth(3, 8, g.div(radius, fwm))));
   use(7, mul(base, add(0.96, mul(g.hash(g.vec(g.floor(g.div(y, max(sw(pat, 'y'), 1e-5))), sw(pat, 'w'))), 0.08))), mul(rule(y, sw(pat, 'y'), fy, 0.7), 0.85));
   use(8, mul(base, add(0.9, mul(g.noise(g.vec(mul(x, 4), mul(sw(g.world, 'y'), 0.3))), 0.2))), rule(sw(g.world, 'y'), sw(pat, 'y'), g.op('fwidth', [sw(g.world, 'y')]), 1.1));
   const inset = min(min(x, sub(w, x)), min(y, sub(h, y)));
