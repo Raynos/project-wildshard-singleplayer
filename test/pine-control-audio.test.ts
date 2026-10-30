@@ -1,3 +1,4 @@
+import { installAssetFixture } from './fixtures/bootSetup';
 import { expect, test, vi } from 'vitest';
 import { parseAudioData } from '@wildshard/format/audio';
 import { createCatalogueAudio } from '@wildshard/engine/audio/levelAudio';
@@ -5,6 +6,8 @@ import * as stems from '@wildshard/engine/audio/Stems';
 import * as samples from '@wildshard/engine/audio/preload';
 import * as settings from '@wildshard/engine/ui/Settings';
 import source from '../src/shards/pine-hollow/data/audioSource.json' with { type: 'json' };
+
+await installAssetFixture();
 
 test('Pine keeps exact calm and inventory while only tension leaves the phone control set', async () => {
   const data = parseAudioData(source.audio);
