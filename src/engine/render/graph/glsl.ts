@@ -270,7 +270,10 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
       if (ir.model !== 'toon' || toon === undefined) return null;
       const presetCheck = validateGraph(toon.preset, { budget: MAX_GRAPH_BUDGET });
       if (!presetCheck.ok) throw new Error(`material graph: the toon preset is refused:\n  ${presetCheck.errors.join('\n  ')}`);
-      const types = presetCheck.types, seeds = new Map<string, V>([['rough', { t: 'float', e: 'wsRoughness' }]]);
+      // the preset's gloss gate (`rough` < `gloss`) reads 0 on the node path, where `rough` inside the sun hook's layout
+      // function is not the material's: every toon surface takes the sun's specular there, and the shipped look is that.
+      // The classic program follows it (with the material's roughness, Driftwood's rough decks and sea lost their glint)
+      const types = presetCheck.types, seeds = new Map<string, V>([['rough', { t: 'float', e: '0.0' }]]);
       lateSeeds.set(toon.preset.nodes, new Set(seeds.keys()));
       return { path: 'toon:nodes', nodes: toon.preset.nodes, parent: null, home: null, acc: null, index: null, types, params: toon,
         seeds };
