@@ -281,7 +281,6 @@
     "./render/graphBackend": "./render/graphBackend.ts",
     "./render/graph/presets": "./render/graph/presets.ts",
     "./render/nodes/engineNodesHandler": "./render/nodes/engineNodesHandler.ts",
-    "./render/nodes/partFade": "./render/nodes/partFade.ts",
     "./world/cascadeLights": "./world/cascadeLights.ts",
     "./world/shadowFade": "./world/shadowFade.ts",
     "./world/csmLightBlock": "./world/csmLightBlock.ts",

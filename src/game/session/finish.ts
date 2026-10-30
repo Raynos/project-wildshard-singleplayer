@@ -171,7 +171,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // the loop starts parked behind its gate and the first world frame is ONE hidden frame under the opaque card
   // What changed in view since the shaders step (the steps between move the clock, culling and the spawn ring) links
   // sliced under the card before the hidden frame draws it: before the posed shaders step, 14 programs linked inside this
-  // frame (2.25 s on the Simulator with Refine dither on)
+  // frame.
   await loadingStage('worldFrame', async () => {
     game.start(); game.stepFrame();
     await precompileLevel(game, undefined, { sliceMs: BOOT_SHADER_SLICE_MS, drawnOnly: true, turns: game.warmTurnYaws() });

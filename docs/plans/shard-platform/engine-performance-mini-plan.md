@@ -250,9 +250,10 @@ QA (G933) is the final check.
 
 | Idle-frame reuse, G946 | **done** (sp-x8): normal cascade cadence; still-view detection, alternate cadence and Debug row removed. | Actual cascade policy and WebGL shadow maps: identical 16-frame decisions and 804 × 1200 pixels. Normal cascadeRedraws stays. [Labelled component capture](../../../art/debug-retirements/g946-idle-default.webp). |
 
-Refine dither, Early 3x3 reveal and Idle-frame reuse are sp-x8's separate G946 retirements. FXAA stays merged (G947).
-The component captures above do not claim full-world screenshot parity. Shared-tree root types and the 7,710-file
-ratchet pass after the three source landings; browsers/builds are closed.
+| Refine dither, G946 | **done** (sp-x8): immediate fine/coarse publication; Debug row, fade tables, channels and unused shader helper removed. | Actual TileDriver/tiledMesh scoped component: identical resident sets, index buffer and 804 × 1200 pixels. Retained rings and fine/coarse completion masks stay. Handler no-op removal was carried in ace8409509, acknowledged by sp-x2. [Labelled component capture](../../../art/debug-retirements/g946-dither-default.webp). |
+
+All six approved rows are retired. FXAA stays merged (G947).
+The component captures above do not claim full-world screenshot parity. For the sp-x8 rows, same-build whole-world repeats changed 43 Nine pixels; that live-view evidence is retained without a zero-pixel claim. Six native coverage/residency/cadence/tile suites pass 63 assertions; root types and named typed lint pass. All component browsers are closed.
 
 ## 7. Low-hanging fruit for the Pine / Nine plans
 

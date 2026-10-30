@@ -35,7 +35,6 @@ import type { ShardSlug } from './shard/slugs.generated';
 import type { ShardEntries, ShardEntryMode } from './shard/manifest';
 import { chooseShardEntry, defaultEntry, hasEntry, shardEntries } from './shard/entryMode';
 import { installLegacyButtonsRow, legacyButtons, onLegacyButtons } from './shard/legacyButtons';
-import { installRefineDitherRow } from './shardfile/refineDither';
 import { DRAFT_TITLES, type DraftTitle } from './draftTitles';
 import { readSummary, summaryView } from './summary';
 import { GAME_STRINGS } from './strings';
@@ -206,7 +205,6 @@ function hintFor(card: DeckEntry, active: boolean, mode: MenuMode = menuMode()):
 
 export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   installLegacyButtonsRow(); // G531: Settings ▸ Debug offers it from the title on
-  installRefineDitherRow(); // MF13: Settings ▸ Debug ▸ Refine dither (default off), set before a world loads
   const mode = opts.mode ?? menuMode;
   const scope = pageScope.child('title-deck');
   const onTap = (el: HTMLElement, fn: () => void): void => { listenTap(scope, el, fn); };

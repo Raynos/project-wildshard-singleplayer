@@ -37,9 +37,6 @@ export const GAME_STRINGS = {
     built: (version: number): string => `BUILT FOR SHARDFILE V${version}`,
     saveKept: 'YOUR SAVE IS KEPT',
   },
-  /** MF13: Settings ▸ Debug ▸ Refine dither (shardfile/refineDither.ts), default off until an iPhone reading */
-  refineDither: { label: 'Refine dither', off: 'Off', on: 'On',
-    note: 'MF13: a tile refined in play dithers its fine pieces in over 0.5 s and the coarse cover leaves after; Off swaps at once (as before); reloads' },
   /** SF65 (G237–G241): SHARD SELECT's LEGACY / SHARDFILE entry buttons (G531: behind the Legacy shard buttons row) and each card's port badge */
   entry: {
     legacy: 'LEGACY',
