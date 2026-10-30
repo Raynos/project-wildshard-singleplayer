@@ -21,7 +21,8 @@
     "chip": "Who lit the fire?",
     "hint": "Follow the sand path up from the pier"
    },
-   "played": null
+   "played": null,
+   "note": "not yet played: the phone page takes touch, not the keyboard (MOVE / JUMP / SWAP discs); swim needs a deeper spot than (-6, -190)"
   },
   {
    "id": "jump",
@@ -36,7 +37,8 @@
    "expect": {
     "hint": "JUMP (after 12 m walked, no enemy within 15 m)"
    },
-   "played": null
+   "played": null,
+   "note": "not yet played: the phone page takes touch, not the keyboard (MOVE / JUMP / SWAP discs); swim needs a deeper spot than (-6, -190)"
   },
   {
    "id": "swim",
@@ -51,7 +53,8 @@
    "expect": {
     "mode": "swim (1.5-2.5 m deep)"
    },
-   "played": null
+   "played": null,
+   "note": "not yet played: the phone page takes touch, not the keyboard (MOVE / JUMP / SWAP discs); swim needs a deeper spot than (-6, -190)"
   },
   {
    "id": "hover",
@@ -63,7 +66,7 @@
    "expect": {
     "mode": "hover"
    },
-   "played": null
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs): both modes, same: H puts the player on the board"
   },
   {
    "id": "discover",
@@ -126,7 +129,7 @@
     ],
     "at15": "Every piece of sea glass on the island · 15 / 15"
    },
-   "played": null
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs): both modes, same: 'Sea glass · 1 / 15' (the counter renders: the check holds)"
   },
   {
    "id": "bench",
@@ -219,7 +222,7 @@
     ],
     "camera": "sways"
    },
-   "played": null
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs): both modes, same: 'Discovered · ROPE BRIDGE'"
   },
   {
    "id": "beacon",
@@ -345,7 +348,8 @@
    "expect": {
     "weapon": "iron sword, then sword"
    },
-   "played": null
+   "played": null,
+   "note": "not yet played: the phone page takes touch, not the keyboard (MOVE / JUMP / SWAP discs); swim needs a deeper spot than (-6, -190)"
   },
   {
    "id": "hold-key",
@@ -657,7 +661,7 @@
      "Driftwood Isle complete · open the menu to see your island"
     ]
    },
-   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs, full chain in one session): both modes, same: the captain falls (lethal damage through his own death path): 'Captain Brine sinks for good. The ring hums — go and stand in it'; in the ring: achievement 'The Sealed Ring — Ringbearer', 'Quest complete · The Sealed Ring' (the hat line not in either run's window)",
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs, full chain in one session): both modes, same: the captain falls (lethal damage through his own death path): 'Captain Brine sinks for good. The ring hums — go and stand in it'; in the ring: achievement 'The Sealed Ring — Ringbearer', 'Quest complete · The Sealed Ring' (the hat line lands in either mode's window on different runs: timing)",
    "after": {
     "x": -96.2,
     "z": 109,
