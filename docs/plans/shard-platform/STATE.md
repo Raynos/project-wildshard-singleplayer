@@ -13,7 +13,8 @@ tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 
 **03:30:** CI6 prepare cuts by o5 / o3 / x1, CI14 16 waves landed (o4, 0f5c9acf1e..dc1bd18988; bar = a week with no drift-only red), CI12 Nalati x6 / x8 (kernels landed by o3 / o4). Phone GRID entry: CI margin miss, no iPhone trades (o3). **00:35:** sweep cron e7a1a5d2 runs every 5 min (G927; watchdog EXEMPT trimmed 09fdb1516c).
 **Autonomous decisions (for Jake's review):**
-- wildshard-v 04:32: o4 stopped by G853 (Claude weekly 60 % = 2 Opus). Native Escape passes; the native job's only red is Nalati discovery (fix ca3a9c3b42 in run 41033309159); phone is report-only (x2). o3: Sim grid spawn p95 36 ms; o5: DW pose margin + Sim QB. 05:30 fallback unneeded (fe0 shipped green).
+- wildshard-v 05:32: live smoke of fe0ca11 (Chromium as iPhone, 6 shards, exit, kill + reopen) goes to o5; o4 stays stopped (G853).
+- 04:32: Sim grid spawn p95 34-42 ms on repeats of one SHA = flake at the bar, not a regression (o3). Phone leg stays report-only (x2).
 - CI6 (o5): any shared generator SDK edit cold-rebuilds all 24 products on CI (step key = whole program hash; 4a41 prepare ~600 s). Held such edits until after 07:00, then batched; no coverage-keyed cache (G585). **Jake: bigger CI runners (cost)?**
 - Nalati discovery tape (7,686 ticks) can't fit one 30 s CI replay: x8 adds bounded verbTapePart requests, 30 s each; 150 / 180 s guards kept.
 - CI12 player bug: Signal's Matriarch flew off the map on retry; fixed ddb75a9d0a (board art/signal-matriarch-retry/).
