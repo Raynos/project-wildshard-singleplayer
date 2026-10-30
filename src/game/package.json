@@ -285,6 +285,7 @@
     "./grapple/sim": "./grapple/sim.ts",
     "./shardfile/sceneBuffers": "./shardfile/sceneBuffers.ts",
     "./stealth/controller": "./stealth/controller.ts",
+    "./stealth/stealthLaw": "./stealth/stealthLaw.ts",
     "./weapons/heldPolearm": "./weapons/heldPolearm.ts",
     "./weapons/mountedBlade": "./weapons/mountedBlade.ts",
     "./weapons/arcPower": "./weapons/arcPower.ts",

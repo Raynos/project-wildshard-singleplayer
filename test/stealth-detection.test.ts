@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, it } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { lendNalatiHeld } from './fixtures/nalati-return-modules';
-import { StealthDetection } from '../src/game/stealth/controller';
+import { StealthDetection } from '../src/game/stealth/stealthLaw';
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
 import {onFault,type Fault} from '../src/engine/core/faults';
 

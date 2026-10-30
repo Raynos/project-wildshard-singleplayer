@@ -1,5 +1,5 @@
 import {parse} from 'valibot';
-import {StealthRowsSchema,type StealthRows,type StealthSources} from '@wildshard/format/stealth';
+import {StealthRowsSchema,type StealthRows} from '@wildshard/format/stealth';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { Player } from '@wildshard/engine/player/Player';
@@ -7,107 +7,55 @@ import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { hudSlots } from '@wildshard/engine/ui/hudSlots';
 import { declarePanel, type PanelView } from '@wildshard/engine/ui/panel';
 import { mountUi } from '@wildshard/engine/ui/ownership';
-import { ReturnProgram } from '../population/returnProgram';
-import { emitFault } from '@wildshard/engine/core/faults';
+import { sampleStealthSources, StealthCrouch, type StealthObservation, type StealthSampleOwners } from './stealthLaw';
 import type { PageWildlife } from '../population/wildlife';
 import type { PageRidingView } from '../riding/client';
 import type { HeldSlotKit } from '../loadout/claims';
 import type { PageWildEnvironment } from '../population/pageGroups';
 import './stealth.css';
 
-/** Admitted scalar awareness observations; animal senses retain their actual owners. */
-export interface StealthThreat {x:number;z:number;awareness:number;alert:number;hunting:number}
-export interface StealthObservation {grass:number;mounted:boolean;forced:boolean;threats:readonly StealthThreat[]}
 /** Concrete native sources, with no copied roster or authored callback. */
-export interface StealthSourcesOwners {
+export interface StealthSourcesOwners extends StealthSampleOwners {
  readonly population: Pick<PageWildlife, 'packs' | 'herds'> | null;
  readonly riding: PageRidingView | null;
  readonly kit: HeldSlotKit | null;
  readonly grass: Pick<PageWildEnvironment, 'grassStandingAt'>;
 }
-/** Read each live exclusion once, in the original short-circuit order. */
-function excludedThreat(actor:{readonly mem:Readonly<Record<string,number>>},fields:readonly string[]):boolean{
- const length=fields.length;
- for(let index=0;index<length;index++)if(index in fields&&(actor.mem[fields[index]??'undefined']??0)===1)return true;
- return false;
-}
-/** Gather in row/group/member order, then select the nearest threats stably.
- * Positions remain native doubles, independent of render projections. */
-export function sampleStealthSources(rows:StealthSources,player:Pick<Player,'position'>,owners:StealthSourcesOwners):StealthObservation {
- const threats:StealthThreat[]=[];
- for(const row of rows.sources){
-  if(row.kind==='packs'){
-   for(let i=0;i<row.groups;i++){const pack=owners.population?.packs[i];if(pack===undefined)break;
-    for(let j=0;j<row.members;j++){const actor=pack.members[j];if(actor===undefined)break;if(actor.alive)threats.push({x:actor.position.x,z:actor.position.z,awareness:pack.awareness,alert:row.alert,hunting:Number(row.hunting.includes(pack.phase))});}}
-  }else{
-   for(let i=0;i<row.groups;i++){const herd=owners.population?.herds[i];if(herd===undefined)break;
-    for(let j=0;j<row.members;j++){const actor=herd.members[j];if(actor===undefined)break;if(actor.alive&&!excludedThreat(actor,row.exclude))threats.push({x:actor.position.x,z:actor.position.z,awareness:actor.mem['aw']??0,alert:row.alert,hunting:0});}}
-  }
- }
- return {grass:owners.grass.grassStandingAt(player.position.x,player.position.z),mounted:owners.riding?.mounted??false,
-  forced:owners.riding!==null&&owners.riding.taming.view.trust!==null,
-  threats:threats.sort((a,b)=>Math.hypot(a.x-player.position.x,a.z-player.position.z)-Math.hypot(b.x-player.position.x,b.z-player.position.z)).slice(0,rows.take)};
-}
-/** Renderer-free decision owner: rows and scalar snapshots only, with one projection at most every 100 ms. */
-export class StealthDetection {
- readonly program:ReturnProgram;
- state:Readonly<Record<string,number>>={on:0,off:0,inLong:0,can:0,latched:0,cover:0,threat:0,x:0,z:0,state:0};
- private elapsed=0;
- private reportedFrame=false;
- constructor(input:unknown,owner?:Scope){this.program=ReturnProgram.page(input,owner);}
- step(dt:number,observations:Readonly<Record<string,number>>,threats:readonly StealthThreat[]):boolean{
-  try{
-   if(!Number.isFinite(dt)||dt<0)throw new Error('Invalid stealth step delta');
-   const elapsed=this.elapsed+dt;
-   if(elapsed<.1-1e-9){this.elapsed=elapsed;return false;}
-   if(threats.length>8)throw new Error('Stealth threat observation bound');
-   const state=this.program.project('step',{...this.state,...observations,dt:elapsed,count:threats.length},undefined,threats.map(row=>({...row})));
-   this.state=state;this.elapsed=0;return true;
-  }catch(error){
-   if(!this.reportedFrame){this.reportedFrame=true;emitFault({system:'stealth.detection',error,verdict:'retry'});}
-   return false;
-  }
- }
-}
 /** Client-only crouch/detection presentation. The guest owns eligibility, concealment and alert-state decisions. */
 export class StealthController {
- private readonly scope:Scope;private readonly player:Player;private readonly law:StealthDetection;
- state:string;cover=0;threat=0;inLongGrass=false;canCrouch=false;latched=false;
- private toggleWas=false;private pendingToggle=false;private pendingCancel=false;
- private observation:StealthObservation={grass:0,mounted:false,forced:false,threats:[]};
- private shotUntil=-1;private t=0;private threatX=0;private threatZ=0;private hinted=false;
+ private readonly scope:Scope;private readonly player:Player;
+ /** The renderer-free crouch, detection and shot state (stealthLaw.ts); this controller samples its pose and draws it. */
+ readonly core:StealthCrouch;
+ get state():string{return this.core.state;}
+ get cover():number{return this.core.cover;}
+ get threat():number{return this.core.threat;}
+ get inLongGrass():boolean{return this.core.inLongGrass;}
+ get canCrouch():boolean{return this.core.canCrouch;}
+ get latched():boolean{return this.core.latched;}
  private readonly layer:PanelView;private readonly row:PanelView;private readonly grassRow:PanelView;private readonly disc:HTMLElement;
  private shown='';private lastCover=-1;private lastThreat=-1;
  private readonly rows:StealthRows;
  constructor(ctx:LevelContext,player:Player,input:unknown){
   const rows=parse(StealthRowsSchema,input);this.rows=rows;
-  this.scope=ctx.scope;this.player=player;this.law=new StealthDetection(rows.program,ctx.scope);this.state=rows.states[0]??'none';
+  this.scope=ctx.scope;this.player=player;this.core=new StealthCrouch(rows,ctx.scope);
   this.layer=declarePanel(rows.panels.layer);mountUi(this.layer.root,this.scope);
-  this.disc=ctx.hud.disc({cls:'ws-stealth-crouch',icon:rows.disc,label:rows.discLabel,spot:'up0',press:()=>{this.pendingToggle=!this.pendingToggle;}});
+  this.disc=ctx.hud.disc({cls:'ws-stealth-crouch',icon:rows.disc,label:rows.discLabel,spot:'up0',press:()=>{this.core.press();}});
   this.row=declarePanel(rows.panels.row);ctx.hud.widget('band.3',this.row.root,3);
   this.grassRow=declarePanel(rows.panels.grass);ctx.hud.widget('band.3',this.grassRow.root,4);
   this.scope.onDispose(hudSlots.onLayer(()=>{this.layer.text('hint',rows.hint);this.layer.flag('hint','touch',true);}));
-  this.scope.onDispose(()=>{this.layer.remove();this.row.remove();this.grassRow.remove();this.latched=false;});
+  this.scope.onDispose(()=>{this.layer.remove();this.row.remove();this.grassRow.remove();this.core.latched=false;});
   ctx.inputContext(rows.input);ctx.app.input.push(rows.input.id,this.scope);
   ctx.answer('player.crouch',request=>this.answerCrouch(request));
   ctx.system({id:rows.system,phase:'input',before:['engine.player.input'],run:dt=>{this.crouchStep(dt);}});
  }
  private crouchStep(dt:number):void{
-  const p=this.player,o=this.observation;
+  const p=this.player;
   const sprint=(p.inputService?.held('sprint')??false)&&((p.inputService?.held('move.forward')??false)||p.touchMove.y>.1),jump=p.touchJump||(p.inputService?.pressed('jump')??false);
-  this.pendingCancel ||= sprint||jump;
-  const stepped=this.law.step(dt,{...this.rows.tuning,grass:o.grass,forced:Number(o.forced),blocked:Number(p.hover||p.swimming||o.mounted||practiceRoom.open),practice:Number(practiceRoom.open),crouched:Number(p.crouching),px:p.position.x,pz:p.position.z,sprint:Number(sprint),jump:Number(this.pendingCancel),toggle:Number(this.pendingToggle)},o.threats);
-  if(!stepped)return;this.pendingToggle=false;this.pendingCancel=false;
-  const v=this.law.state;this.inLongGrass=v['inLong']===1;this.canCrouch=v['can']===1;this.latched=v['latched']===1;
-  this.cover=v['cover']??0;this.threat=v['threat']??0;this.threatX=v['x']??0;this.threatZ=v['z']??0;
-  const state=this.rows.states[v['state']??0];if(state===undefined)throw new Error('Undeclared stealth state');this.state=state;
+  this.core.step(dt,{sprint,jump,hover:p.hover,swimming:p.swimming,practice:practiceRoom.open,crouching:p.crouching,x:p.position.x,z:p.position.z});
  }
- answerCrouch(request:{want:boolean;via:'toggle'|'hold'}):{allowed:boolean;latched:boolean}{
-  if(request.via==='toggle'){if(request.want&&!this.toggleWas)this.pendingToggle=!this.pendingToggle;this.toggleWas=request.want;}
-  return {allowed:request.via==='hold'&&this.canCrouch,latched:this.latched};
- }
- noteShot():void{this.shotUntil=this.state===this.rows.sneak.state?this.t+this.rows.sneak.seconds:-1;}
- sneakMultiplier():number{return this.t<this.shotUntil?this.rows.sneak.multiplier:1;}
+ answerCrouch(request:{want:boolean;via:'toggle'|'hold'}):{allowed:boolean;latched:boolean}{return this.core.answer(request);}
+ noteShot():void{this.core.noteShot();}
+ sneakMultiplier():number{return this.core.sneakMultiplier();}
  private validateSources():void{
   if(this.scope.disposed||this.scope.disposing)throw new Error('Stealth observation owner has ended');
  }
@@ -121,7 +69,7 @@ export class StealthController {
   this.validateSources();
   if(owners.kit!==null&&rows.melee!==undefined)owners.kit.polearm(rows.melee).damageScale=this.sneakMultiplier();
  }
- update(_dt:number,t:number,observation:StealthObservation):void{this.t=t;this.observation=observation;this.render();}
+ update(_dt:number,t:number,observation:StealthObservation):void{this.core.observe(t,observation);this.render();}
   private render(): void {
     const s = this.state;
     if (s !== this.shown) {
@@ -148,7 +96,7 @@ export class StealthController {
     this.layer.flag('chev', 'on', threatening);
     if (threatening) {
       const p = this.player.position, yaw = this.player.yaw;
-      const dx = this.threatX - p.x, dz = this.threatZ - p.z;
+      const dx = this.core.threatX - p.x, dz = this.core.threatZ - p.z;
       const ax = dx * Math.cos(yaw) - dz * Math.sin(yaw), ay = -dx * Math.sin(yaw) - dz * Math.cos(yaw); // right / forward
       const a = Math.atan2(ax, ay);
       this.layer.style('chev', 'transform', `translate(${(Math.sin(a) * 64).toFixed(1)}px, ${(-Math.cos(a) * 64).toFixed(1)}px) rotate(${a.toFixed(3)}rad)`);
@@ -157,8 +105,7 @@ export class StealthController {
     const avail = this.canCrouch || this.latched;
     hudSlots.show(this.disc, avail);
     this.disc.classList.toggle('on', this.latched);
-    if (avail && !this.hinted) {
-      this.hinted = true;
+    if (this.core.takeHint()) {
       this.disc.classList.add('pulse');
       this.layer.flag('hint', 'on', true);
       const endHint = (): void => { this.layer.flag('hint', 'on', false); this.disc.classList.remove('pulse'); };
