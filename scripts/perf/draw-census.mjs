@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // scripts/browser-lane.sh node scripts/perf/draw-census.mjs --url=http://127.0.0.1:4400/ --dist=tmp/serve/.../dist
-// Four fresh contexts: Nine P4 and Pine Q4, LEGACY then SHARDFILE.
+// Default: Nine P4 and Pine Q4, LEGACY then SHARDFILE.
+// --slug=pine-hollow --pine-pose=P1 measures the PF14 spawn bar separately.
 import { chromium, devices } from 'playwright';
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
@@ -13,7 +14,9 @@ import { nativeSummary, attributionSummary, sampledCpu } from './draw-census-rep
 
 const arg = (name, fallback = '') => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const base = arg('url'), dist = resolve(arg('dist', 'dist')), frames = Number(arg('frames', '60'));
-const surface = arg('surface', 'pwa');
+const surface = arg('surface', 'pwa'), requestedSlug = arg('slug'), pinePose = arg('pine-pose', 'Q4');
+if (requestedSlug !== '' && !['nine-dragon-stack', 'pine-hollow'].includes(requestedSlug)) throw new Error('Unknown census shard');
+if (!['P1', 'Q4'].includes(pinePose)) throw new Error('Unknown Pine census pose');
 if (!['pwa', 'browser'].includes(surface)) throw new Error('Unknown phone surface');
 const device = devices['iPhone 16 Pro'], viewport = surface === 'pwa' ? device.screen : device.viewport;
 if (viewport === undefined) throw new Error('Requested phone surface has no native viewport');
@@ -65,7 +68,7 @@ if (arg('reprocess') !== '') {
   writeFileSync(target, JSON.stringify(retained, null, 2)); console.info(target); process.exit(0);
 }
 const result = { build: version.build, url: base, protocol: { device: 'iPhone 16 Pro', tier: 'phone', dpr: 2, cpuRate: 4, frames,
-  surface, viewport,
+  surface, viewport, slug: requestedSlug === '' ? null : requestedSlug, pinePose,
   baseline: 'native completed Game renderMs/workMs and whole-frame calls, before any census hooks or profiler',
   attribution: 'separate GL submission observation, including shadow/post/held; no GPU synchronization',
   profile: 'separate CDP sampled stacks mapped through the matching private dist; diagnostic, not a floor' }, rows: [] };
@@ -73,8 +76,10 @@ const browser = await chromium.launch({ headless: true, args: ['--mute-audio', '
 try {
   for (const { slug, poseName, pose } of [
     { slug: 'nine-dragon-stack', poseName: 'P4', pose: { x: 76, y: 146, z: 6, yaw: Math.PI / 2, pitch: -10 * Math.PI / 180 } },
-    { slug: 'pine-hollow', poseName: 'Q4', pose: { x: 0, z: -28, yaw: Math.PI / 2, pitch: -4 * Math.PI / 180 } },
-  ]) for (const mode of ['legacy', 'shardfile']) {
+    { slug: 'pine-hollow', poseName: pinePose, pose: pinePose === 'P1'
+      ? { x: 0, z: -235, yaw: Math.PI, pitch: 0 }
+      : { x: 0, z: -28, yaw: Math.PI / 2, pitch: -4 * Math.PI / 180 } },
+  ].filter(row => requestedSlug === '' || row.slug === requestedSlug)) for (const mode of ['legacy', 'shardfile']) {
     const context = await browser.newContext({ ...device, viewport });
     const row = { slug, poseName, mode, errors: [] }; result.rows.push(row);
     const persist = () => writeFileSync(join(out, 'census.json'), JSON.stringify(result, null, 2));
@@ -114,13 +119,13 @@ try {
         row.sampledCpu = sampledCpu(profile, locate, profileWindow?.length ?? 0);
       }
       if (row.errors.length > 0) throw new Error('Page errors during draw census');
-      row.status = 'passed'; persist(); console.info(`${slug} ${mode}: ${row.native.drawsP50} draws, ${row.native.renderUsPerDrawP50.toFixed(1)} us/draw (native baseline)`);
+      row.status = 'passed'; persist(); console.info(`${slug}/${poseName} ${mode}: ${row.native.drawsP50} draws, ${row.native.renderUsPerDrawP50.toFixed(1)} us/draw (native baseline)`);
     } catch (error) { row.status = 'failed'; row.failure = String(error.stack ?? error); persist(); throw error; }
     finally { await context.close(); }
   }
 } finally { await browser.close(); }
 const value = number => number === null || number === undefined ? 'n/a' : number.toFixed(2);
-const columns = result.rows.map(row => `${row.slug} ${row.mode}`);
+const columns = result.rows.map(row => `${row.slug}/${row.poseName} ${row.mode}`);
 const table = [ ['metric', ...columns], ['---', ...columns.map(() => '---')],
   ['work p50 ms', ...result.rows.map(row => value(row.native.workMsP50))],
   ['render p50 ms', ...result.rows.map(row => value(row.native.renderMsP50))],
