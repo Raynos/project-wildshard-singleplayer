@@ -6,17 +6,22 @@ export function listenDom<K extends string>(scope: Scope, target: EventTarget | 
   if (target === null || target === undefined) return;
   scope.listen(target, type, (event) => { fn(event); }, typeof options === 'boolean' ? { capture: options } : options);
 }
+// When the last tap was answered on its pointerup, page-wide: iOS hit-tests the click that follows a touch again after
+// that answer ran, so a tap that swaps a screen also clicks whatever the new screen put under the finger (QC2: title
+// SHARD SELECT clicked the picker's ENTER WORLD and loaded Driftwood).
+let tappedAt = -Infinity;
+/** A pointer click that only follows a tap already answered on its pointerup, on this element or any other. */
+export function followsTap(event: MouseEvent): boolean { return event.detail > 0 && event.timeStamp - tappedAt < 500; }
 /** Answer an iOS tap before its cancellable synthesized click; keyboard clicks
  * remain active. Both listeners retire with the widget scope. */
 export function listenTap(scope: Scope, target: HTMLElement, fn: () => void): void {
-  let pointerAt = -Infinity;
   listenDom(scope, target, 'pointerup', (event) => {
     if (event.button !== 0 || (target instanceof HTMLButtonElement && target.disabled)) return;
-    event.stopPropagation(); pointerAt = event.timeStamp; fn();
+    event.stopPropagation(); tappedAt = event.timeStamp; fn();
   });
   listenDom(scope, target, 'click', (event) => {
     event.stopPropagation();
-    if (event.detail > 0 && event.timeStamp - pointerAt < 500) return;
+    if (followsTap(event)) return;
     fn();
   });
 }

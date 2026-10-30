@@ -1,7 +1,7 @@
 import { titleAssetURL } from './titleAssets';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { isDev } from '@wildshard/engine/core/devMode';
-import { listenDom, listenTap } from '@wildshard/engine/input/dom';
+import { followsTap, listenDom, listenTap } from '@wildshard/engine/input/dom';
 import { beginNavigationShell } from '@wildshard/engine/boot/shell';
 import { startEntryDownload } from './shardfile/entryTransport';
 import { saves } from '@wildshard/engine/saves/runtime';
@@ -365,8 +365,9 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     else place(index);
   };
   listenDom(scope, list, 'pointerup', endDrag); listenDom(scope, list, 'pointercancel', endDrag);
-  cardEls.forEach((e, i) => { listenDom(scope, e, 'click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }); });
-  dots.forEach((d, i) => { listenDom(scope, d, 'click', (ev) => { ev.stopPropagation(); select(i); }); });
+  // a click that only follows the title's SHARD SELECT tap lands where that tap was, not on a card or dot (QC2)
+  cardEls.forEach((e, i) => { listenDom(scope, e, 'click', (ev) => { ev.stopPropagation(); if (!followsTap(ev) && i !== index && performance.now() - swipedAt > 400) select(i); }); });
+  dots.forEach((d, i) => { listenDom(scope, d, 'click', (ev) => { ev.stopPropagation(); if (!followsTap(ev)) select(i); }); });
   onTap(required(root, '.ws-menu-play'), () => {
     const c = entries[index];
     if (c !== undefined && dualEntry(c, mode())) enterAs(c, 'legacy'); else activate();

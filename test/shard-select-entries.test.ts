@@ -168,6 +168,31 @@ test('shared title actions toggle once per tap and disabled entry buttons stay i
   built.dispose();
 });
 
+test('the click iOS sends after the title SHARD SELECT tap enters no world and moves no card (QC2)', async () => {
+  const entered = vi.fn<() => void>();
+  const built = buildTitleDeck({ cards: CARDS, active: null, onEnter: entered,
+    onExplore: () => undefined, onSettings: () => undefined, mode: () => ({ developer: true, devserver: true }) });
+  decks.push(built); document.body.append(built.root);
+  // the title's SHARD SELECT answers its tap on pointerup and swaps to the picker (src/game/mainMenu.ts)
+  const shardSelect = document.createElement('button'), opened = vi.fn<() => void>();
+  built.onTap(shardSelect, opened);
+  shardSelect.dispatchEvent(new PointerEvent('pointerup', { button: 0 }));
+  expect(opened).toHaveBeenCalledTimes(1);
+  // WebKit hit-tests the synthesized click again: ENTER WORLD, a card or a dot is now under the finger
+  const playButton = built.root.querySelector<HTMLButtonElement>('.ws-menu-play'), cardButton = built.root.querySelector<HTMLButtonElement>('.ws-menu-card[data-i="1"]');
+  const dot = built.root.querySelector<HTMLElement>('.ws-menu-dots i[data-i="2"]');
+  if (playButton === null || cardButton === null || dot === null) throw new Error('missing picker controls');
+  const before = built.index;
+  for (const target of [playButton, cardButton, dot]) target.dispatchEvent(new MouseEvent('click', { detail: 1, bubbles: true }));
+  await paintFrames();
+  expect(entered).not.toHaveBeenCalled();
+  expect(built.index).toBe(before);
+  // a keyboard press (no pointer detail) right after still enters, once
+  playButton.click();
+  await paintFrames();
+  expect(entered).toHaveBeenCalledTimes(1);
+});
+
 test('every retained Legacy button resolves and boots its original plugin and look modules', async () => {
   const manifests = [...SHARDS, ...LEGACY_SHARDS];
   installShards(manifests); setDev(true);
