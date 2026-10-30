@@ -97,8 +97,8 @@ async function processMemory(label){
     writeFileSync(resolvePath(out,`${label}-process.json`),JSON.stringify(events));return chromiumProcessPeaks(events);
   }finally{browserSession.off('Tracing.dataCollected',receive);}
 }
-/** @param {'3x3'|'5x5'} ring @param {'resident'|'tiles'} road */
-async function open(ring,road){
+/** @param {'3x3'|'5x5'} ring */
+async function open(ring){
   const context=await browser.newContext({...devices['iPhone 16 Pro'],serviceWorkers:'block'}),page=await context.newPage();
   page.setDefaultTimeout(120000);
   const cdp=await context.newCDPSession(page);await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
@@ -107,7 +107,6 @@ async function open(ring,road){
   await saveFixture(context,{scope:'device',key:'devMode',data:true});
   await saveFixture(context,{scope:'device',key:'debug.global.legacyShardButtons',data:'on'});
   await saveFixture(context,{scope:'device',key:'debug.tileResidency',data:ring});
-  await saveFixture(context,{scope:'device',key:'debug.roadResidency',data:road});
   await harnessPins(context,{seed:357,browser:'Chromium / iPhone 16 Pro',lane:'tile-plan-end'});
   await context.addInitScript({content:GL_FULL_INIT});await context.addInitScript({content:TILE_PAINT_INIT});
   /** @type {string[]} */const errors=[];
@@ -140,7 +139,7 @@ async function sample(page,label){
 try{
   for(const shard of shards)for(const requestedRing of rings){
     const ring = v.parse(v.picklist(['3x3','5x5']), requestedRing);
-    const visit=await open(ring,'resident'),label=`${shard}-${ring}`;
+    const visit=await open(ring),label=`${shard}-${ring}`;
     try{
       const source=await declaration(shard);
       let tapAt=Date.now(),entry='observed SHARDFILE button';
@@ -181,9 +180,9 @@ try{
     }catch(error){result.rows.push({shard,ring,failures:[String(error),...visit.errors]});result.errors.push(`${label}: ${String(error)}`);}
     finally{await visit.context.close();write();}
   }
-  // The same road source/setting, one resident reference then one streamed cohort.
-  for(const road of spawnOnly?[]:/** @type {const} */(['resident','tiles'])){
-    const visit=await open('5x5',road);
+  // G955: the shipped streamed road only; historical reports retain their original comparison rows.
+  for(const road of spawnOnly?[]:/** @type {const} */(['tiles'])){
+    const visit=await open('5x5');
     const gridStartedAt=Date.now();let phase='grid navigation',phaseAt=gridStartedAt;
     const mark=(/** @type {string} */ next)=>{phase=next;phaseAt=Date.now();};
     /** @type {Awaited<ReturnType<typeof sample>>|null} */let before=null;

@@ -1,5 +1,4 @@
 import { prelinkGridViews } from './prelinkViews';
-import { roadResidency } from '@wildshard/engine/ui/tileResidency';
 import type { RoadTileBacking } from './roadTileBacking';
 import { roadTileCache } from './roadTileArchive';
 import { bootWaits, waitFor, type BootWait } from '@wildshard/engine/boot/waits';
@@ -460,8 +459,8 @@ export class GridSession {
     const roadScope = host.scope.child('grid-road-construction');
     progress?.set(2, 3, `Road geometry · ${strips.length} initial seams`);
     const admission = new PlatformRenderResidency(allocator, roadScope), plans = new Map<Mesh, CullPlan>();
-    const tileBacking = roadResidency() === 'tiles' ? new (await import('./roadTileBacking')).RoadTileBacking(
-      roadScope.child('road-tiles'), roadTileCache(caches, location.origin), { pitch: assembly.pitch, plans, camera: () => host.frame?.camera }) : undefined;
+    const tileBacking = new (await import('./roadTileBacking')).RoadTileBacking(
+      roadScope.child('road-tiles'), roadTileCache(caches, location.origin), { pitch: assembly.pitch, plans, camera: () => host.frame?.camera });
     // Use the same source set for both halves if initial certification selected
     // the existing flat fallback. Outer failures never substitute different edges.
     const outerStrips = async (owner: Scope): Promise<readonly GeneratedStrip[]> => {
@@ -477,7 +476,7 @@ export class GridSession {
       return compiledOuter?.strips ?? generatePlatformSliced(source.cells, source.empty, pause, OUTER_RING_STRETCH_MS, await seamPlans(), (x, z) => !ring(x, z)); // T10: built in play after controls, short stretches beside the frame
     };
     const roadInput = { strips, home, pitch: assembly.pitch, layout, scene: host.scene,
-      scope: roadScope, camera: () => host.frame?.camera, plans, admission, ...(tileBacking === undefined ? {} : { tileBacking }),
+      scope: roadScope, camera: () => host.frame?.camera, plans, admission, tileBacking,
       ...(grain === undefined ? {} : { grain: grain.get }), ...(signs === undefined ? {} : { signs: signs.get }) };
     const pause = async (): Promise<void> => { await construction.check(); };
     // Spawn heap (T10): no closure here may capture `compiled`. Every closure of this scope shares one context, and the
