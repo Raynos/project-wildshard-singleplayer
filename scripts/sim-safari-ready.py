@@ -264,5 +264,16 @@ def wait_for_safari(udid):
 
 
 if __name__ == '__main__':
-    print(f'sim-lane: Safari readiness Python imports finished in {time.monotonic() - IMPORT_STARTED:.3f}s', file=sys.stderr)
+    print(f'sim-lane: Safari readiness Python imports finished in {time.monotonic() - IMPORT_STARTED:.3f}s', file=sys.stderr, flush=True)
+    if sys.argv[2:] == ['--await-bootstatus']:
+        status = sys.stdin.readline().strip()
+        if not status.isdecimal() or not 0 <= int(status) <= 255:
+            print('sim-lane: missing or invalid bootstatus prerequisite', file=sys.stderr)
+            sys.exit(64)
+        if int(status) != 0:
+            sys.exit(int(status))
+        print(f'sim-lane: bootstatus prerequisite accepted after {time.monotonic() - IMPORT_STARTED:.3f}s; starting original Safari proof deadline', file=sys.stderr)
+    elif sys.argv[2:]:
+        print('sim-lane: invalid Safari readiness arguments', file=sys.stderr)
+        sys.exit(64)
     sys.exit(wait_for_safari(sys.argv[1]))

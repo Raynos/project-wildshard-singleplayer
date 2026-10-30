@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 from pathlib import Path
 import runpy
+import select
 import signal
 import shutil
 import subprocess
@@ -331,6 +332,36 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual((self.root / 'attempts').read_text(), '1')
         self.assertEqual(sum(row[1] == 'bootstatus' for row in self.calls()), 2)
+
+    def test_readiness_imports_can_finish_before_bootstatus_without_launching(self):
+        with subprocess.Popen([sys.executable, str(ROOT / 'scripts/sim-safari-ready.py'),
+                               UDID, '--await-bootstatus'], env=self.env, text=True,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as child:
+            try:
+                self.assertTrue(select.select([child.stderr], [], [], 5)[0])
+                first = child.stderr.readline()
+                self.assertIn('Python imports finished', first)
+                self.assertIsNone(child.poll())
+                self.assertFalse((self.root / 'calls').exists())
+                output, errors = child.communicate(input='0\n', timeout=5)
+                self.assertEqual(child.returncode, 0, errors)
+                self.assertEqual(output, '')
+                self.assertIn('bootstatus prerequisite accepted', errors)
+                self.assertTrue((self.root / 'safari-rendered').exists())
+                self.assertEqual(sum(row[1] == 'launch' for row in self.calls()), 1)
+            finally:
+                if child.poll() is None:
+                    child.kill()
+                    child.wait()
+
+    def test_failed_or_missing_bootstatus_never_launches_safari(self):
+        for status, expected in [('23\n', 23), ('', 64), ('999\n', 64)]:
+            result = subprocess.run([sys.executable, str(ROOT / 'scripts/sim-safari-ready.py'),
+                                     UDID, '--await-bootstatus'], env=self.env,
+                                    text=True, input=status, capture_output=True, timeout=5)
+            self.assertEqual(result.returncode, expected, result.stderr)
+            self.assertFalse((self.root / 'calls').exists())
+            self.assert_not_handed_over()
 
     def test_cold_safari_application_precedes_url_readiness(self):
         result = self.lane(SIM_REQUIRES_LAUNCH='1')
