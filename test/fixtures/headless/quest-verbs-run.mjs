@@ -3,12 +3,12 @@ import * as v from 'valibot';
 import {openProductSession} from './productSession.ts';
 import {driftwoodQuestIntroTape} from '../../proof/driftwood-isle/verbTape.ts';
 import {skyKeeperTape} from '../../proof/far-reach/verbTape.ts';
-import {nalatiCampIntroTape} from '../../proof/nalati-grasslands/verbTape.ts';
+import {nalatiCampTalkTape} from '../../proof/nalati-grasslands/verbTape.ts';
 const slug=process.argv[2];
 if(slug!=='driftwood-isle'&&slug!=='far-reach'&&slug!=='nalati-grasslands')throw new Error('Unknown native quest tape');
 const {sim,product}=await openProductSession(slug,slug==='nalati-grasslands'?'nalati-verbs':undefined);
 try {
-  const report=await sim.verbTape(slug==='driftwood-isle'?driftwoodQuestIntroTape():slug==='far-reach'?skyKeeperTape():nalatiCampIntroTape(product.shardfile.spawn));
+  const report=await sim.verbTape(slug==='driftwood-isle'?driftwoodQuestIntroTape():slug==='far-reach'?skyKeeperTape():nalatiCampTalkTape(product.shardfile.spawn));
   const at=id=>{const row=report.observations.find(row=>row.id===id);assert.ok(row,`Missing actual observation ${id}`);return row;};
   if(slug==='driftwood-isle'){
     assert.equal(at('chest-out-of-reach').flags.includes('has:flint'),false);
@@ -43,6 +43,14 @@ try {
     assert.equal(finished.flags.includes('talked:elder'),true);assert.equal(finished.quests.find(row=>row.id==='tulpar')?.currentId,'tame');
     for(const flag of ['tamed:horse','won:kokpar','quest:tulpar','quest:golden-king','quest:father-wind'])assert.equal(finished.flags.includes(flag),false);
     assert.equal(finished.effects.length,0,'an introduction cannot mint a completion fact or coins');
+    for(const [id,npc] of [['herderRail','herder-rail'],['herderGate','herder-gate'],['cook','cook'],['child','child']]){
+      const snapshot=at(`open-${id}`).adapters.find(row=>row.id==='nalati.talk');assert.ok(snapshot);
+      const reading=v.parse(v.object({kind:v.string(),reading:v.object({dialogue:v.object({npc:v.string(),clock:v.object({open:v.boolean()})})})}),JSON.parse(snapshot.state));
+      assert.equal(reading.kind,id);assert.equal(reading.reading.dialogue.npc,npc);assert.equal(reading.reading.dialogue.clock.open,true);
+      assert.equal(at(`dismiss-${id}`).adapters.find(row=>row.id==='nalati.talk')?.state,'null');
+      for(const flag of ['tamed:horse','won:kokpar','quest:tulpar','quest:golden-king','quest:father-wind'])assert.equal(at(`dismiss-${id}`).flags.includes(flag),false);
+      assert.equal(at(`dismiss-${id}`).effects.length,0);
+    }
   }
   assert.equal(sim.quarantined,false);
   console.log(JSON.stringify({slug,ticks:report.ticks,observations:report.observations.map(({id,tick,position,flags,quests})=>({id,tick,position,flags,quests}))}));
