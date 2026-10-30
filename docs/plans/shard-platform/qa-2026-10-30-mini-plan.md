@@ -8,7 +8,7 @@ marks them. Jake, 11:38: *"Let's start a qa 1 todays date mini plan"* (ask E511;
 Jake; it decides on the recommended fix and logs the call in STATE.md. Visual fixes are Opus-only (G848).
 
 His QA: iPhone 17 Pro portrait Safari home-screen PWA, Developer on, from ~11:20 on live `7c64790-mvv5fpng`, then
-`ff31df0`. No crash all session so far (QB6's white-screen kills did not recur).
+`ff31df0`. No crash all session so far (QB6's white-screen kills did not recur). Jake, ~11:50: *"The actual QA is good there's no crash or graphics difference."* The open rows are frame rate (QC1, QC4) and three UI bugs (QC1 textures, QC2, QC3).
 
 ## Rows
 
