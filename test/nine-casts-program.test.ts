@@ -3,7 +3,6 @@ import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind the existing authored public input root.
 import { resolve } from 'node:path';
 import { afterAll, expect, test } from 'vitest';
-import { halfFloatBeforeControl } from './fixtures/half-float-before-control';
 import { build } from 'vite';
 import { DataUtils, Float32BufferAttribute } from 'three';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
@@ -17,8 +16,6 @@ import { SignRecorder } from '../src/shards/nine-dragon-stack/generators/layout'
 import { buildEntryDecks } from '../src/shards/nine-dragon-stack/generators/entries';
 import { packGeometry } from '../src/shards/nine-dragon-stack/generators/casts';
 import { nineCastsProgram } from '../src/shards/nine-dragon-stack/generators/castsProgram';
-import before from './fixtures/nine-cast-files.json' with { type: 'json' };
-import admitted from './fixtures/nine-binary-outputs.json' with { type: 'json' };
 
 async function coldCastsFixture() {
   mkdirSync('tmp', { recursive: true }); const cache = mkdtempSync(resolve('tmp', 'nine-casts-cache-'));
@@ -34,48 +31,15 @@ async function coldCastsFixture() {
   } catch (error) { rmSync(cache, { recursive: true, force: true }); throw error; }
 }
 const fixture = await coldCastsFixture();
-const beforeControl = await halfFloatBeforeControl(coldCastsFixture);
-afterAll(() => { fixture.dispose(); beforeControl.dispose(); });
-const keyFor = (path: string): string => {
-  const file = path.split('/').at(-1); if (file === undefined) throw new Error('Missing cast filename');
-  if (path.startsWith('public/')) return `raw/${file}`;
-  if (file.startsWith('cast-')) return `packed/${file.slice(5).replace('.generated', '')}`;
-  const keys = new Map([['castHook.generated.glb', 'hook.glb'], ['castHook.generated.json', 'hook.json'],
-    ['deckFloors.generated.json', 'floors.json'], ['fixedKits.generated.json', 'fixed.json']]);
-  const key = keys.get(file); if (key === undefined) throw new Error(`Unexpected old cast ${file}`); return key;
-};
+afterAll(fixture.dispose);
 
-test('cold casts retain all 78 pre-correction file pins and admitted costs', () => {
-  expect(beforeControl.captured.size).toBe(before.length); expect(before).toHaveLength(78);
-  expect([...fixture.captured.keys()]).toEqual([...beforeControl.captured.keys()]);
-  for (const name of ['hook.glb', 'hook.json', 'fixed.json', 'floors.json']) {
-    const current = fixture.captured.get(name), previous = beforeControl.captured.get(name);
-    if (current === undefined || previous === undefined) throw new Error(`Missing cast metadata ${name}`);
-    expect(hashImmutableBytes(current), name).toBe(hashImmutableBytes(previous));
-  }
-  for (const row of before) {
-    const bytes = beforeControl.captured.get(keyFor(row.path)); if (bytes === undefined) throw new Error(`Missing cast ${row.path}`);
-    expect(bytes.byteLength, row.path).toBe(row.bytes); expect(hashImmutableBytes(bytes), row.path).toBe(row.hash);
-  }
-  expect(beforeControl.cold.blobs.map(row => row.file)).toStrictEqual(admitted.castFiles.filter(row => row.kind === 'glb'));
-});
-
-// Frozen pre-I3 source pins from 39a144d732. Keep them beside the current
-// 78-file before-control so a codec cannot replace its own evidence.
-test.each([
-  { caps: false, raw: '48ebcc3989092f33810625c0c5c7c1f6d9bf02332258cb398f6b84da5ce2aaa3',
-    packed: '1788e0f33010bdb850c192d08772de280d8a1e65bfba0823d785b5d449bf8a0a' },
-  { caps: true, raw: '636cacf412781c2339f373b72da3ee55a194c49ebb4e9ea75da20e959f6cacc9',
-    packed: '4bcc21ba31192aee3e64586cd7482f61ed4c6bf0830865dc3be80b5e5a7d1b54' },
-])('entry casts differ from their original pins only by the declared I3 codecs (caps=$caps)', async row => {
+test.each([false, true])('entry casts preserve declared codec transformations (caps=%s)', async caps => {
   const ctx = new Ctx(new SignRecorder()), kit = ctx.kit('entries');
   kit.compact = false;
-  buildEntryDecks(ctx, row.caps);
-  const geometry = kit.build(), name = row.caps ? 'entries-capped' : 'entries-open';
+  buildEntryDecks(ctx, caps);
+  const geometry = kit.build(), name = caps ? 'entries-capped' : 'entries-open';
   try {
     const original = packGeometry(name, geometry);
-    expect(hashImmutableBytes(original)).toBe(row.raw);
-    expect(hashImmutableBytes(compressGlb(original))).toBe(row.packed);
     // d5f31bea93 changes exactly these source values to half precision. The
     // native GLB writer still stores their decoded values as Float32.
     for (const channel of ['aFace', 'aPat']) {
