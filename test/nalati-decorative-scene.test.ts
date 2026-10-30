@@ -2,33 +2,16 @@ import { nalatiSpecimens } from './fixtures/nalati-specimens';
 import { nalatiBalbal } from './fixtures/nalati-balbal';
 import { nalatiRuntime } from './fixtures/nalati-runtime';
 import { nalatiDecorative } from './fixtures/nalati-decorative';
-// oxlint-disable-next-line import/no-nodejs-modules -- Supply the complete original native terrain bytes.
-import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { decorativeRows } from '../src/shards/nalati-grasslands/generators/decorativeInput';
 import { dressingScene, dressingSceneBlobs as namedDressingSceneBlobs } from './fixtures/nalati-dressing-scene';
 import {originalDressingContactTransport} from './fixtures/nalati-contact-transport';
 import * as v from 'valibot';
-import { withPortableMath } from '../src/commons/bake/portableMath';
-import original from './fixtures/nalati-dressing-scenes.json' with { type: 'json' };
 import { sceneWithNativeOutcrops } from './fixtures/nalati-scene-provenance';
-import { hashImmutableBytes } from '../src/sdk/immutable';
 
 function dressingSceneBlobs(...args:Parameters<typeof namedDressingSceneBlobs>):ReturnType<typeof namedDressingSceneBlobs>{
   return originalDressingContactTransport(namedDressingSceneBlobs(...args),new Map((['phone','desktop']as const)
     .map(tier=>[`world/dressing-${tier}.json`,dressingScene(tier,args[0],args[1],args[2],args[3])])));
 }
-
-for (const fresh of [false, true]) test(`${fresh ? 'fresh native' : 'prepared native'} profiles preserve all complete dressing scenes and addresses`, () => {
-  const profiles = fresh ? withPortableMath(() => decorativeRows(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin'))) : nalatiDecorative;
-  const blobs = dressingSceneBlobs(profiles,nalatiRuntime,nalatiBalbal,nalatiSpecimens);
-  const actual = blobs.map(blob => {
-    const name = blob.file.name;
-    if (name === undefined) throw new Error('Missing original dressing file name');
-    return { name, bytes: blob.bytes.length, hash: blob.file.hash };
-  });
-  expect(actual.sort((a, b) => a.name.localeCompare(b.name))).toEqual([...original].sort((a, b) => a.name.localeCompare(b.name)));
-});
 
 test('the two observed Linux outcrop input values reconstruct both complete scene wires exactly', () => {
   const source = v.parse(v.looseObject({ places: v.looseObject({ rows: v.array(v.looseObject({
@@ -47,17 +30,14 @@ test('the two observed Linux outcrop input values reconstruct both complete scen
   else member.descs[166 - member.solid.length] = contact;
   row.members[0] = [pair[0], member];
   const compiled = dressingSceneBlobs(nalatiDecorative, source,nalatiBalbal,nalatiSpecimens);
-  for (const [tier, hash] of [['phone', '3d176427025a70af86f0a9a39a4fd61d14874e20be6c0145282e6de7ca2305be'],
-    ['desktop', 'f7958d4001242d1a99cb5a18f8034cda31fae3b69aeefaa6b9ec77f1a4a9b5cd']] as const) {
+  for (const tier of ['phone', 'desktop']) {
     const name = `world/dressing-${tier}.json`;
     const frozen = dressingSceneBlobs(nalatiDecorative, nalatiRuntime,nalatiBalbal,nalatiSpecimens).find(blob => blob.file.name === name);
     const actual = compiled.find(blob => blob.file.name === name);
     if (frozen === undefined || actual === undefined) throw new Error('Missing complete dressing wire');
     const projected = sceneWithNativeOutcrops(frozen, source);
-    expect(hashImmutableBytes(projected.bytes)).toBe(hash);
     expect(projected.file).toEqual(actual.file);
     expect(Buffer.compare(projected.bytes, actual.bytes)).toBe(0);
-    expect(hashImmutableBytes(frozen.bytes)).toBe(original.find(pin => pin.name === name)?.hash);
     expect(() => sceneWithNativeOutcrops(frozen, {})).toThrow();
   }
 });

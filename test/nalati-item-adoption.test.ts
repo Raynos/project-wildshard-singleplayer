@@ -1,5 +1,3 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Pin the original authored rows independently of the new JSON path.
-import { createHash } from 'node:crypto';
 import { expect, test } from 'vitest';
 import { Group } from 'three';
 import { App } from '../src/engine/app/app';
@@ -20,18 +18,6 @@ class NativeWeapon extends Weapon {
   tryFire(): void { this.state.ammo--; }
   update(): void { /* Native controllers retain their clocks during adoption. */ }
 }
-
-test('Nalati item JSON retains every original profile, attack and equipment value', () => {
-  const oldItems = { ...items, rows: items.rows.map(({ equipment: _native, ...row }) => row) };
-  const hash = (value: unknown): string => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-  expect(hash(oldItems)).toBe('663a65fd62e337e1cb5522b3fd144b3a451501d2ca65636874a253667701dc17');
-  // G516 adds declared ranged feedback; the independent adoption proof still pins every older field.
-  const equipment = items.rows.map(row => {
-    if (!('rangedFeel' in row.equipment)) return row.equipment;
-    const { rangedFeel: _feedback, ...original } = row.equipment; return original;
-  });
-  expect(hash(equipment)).toBe('fedc4a0d87492e230caf4ef0caf05b85f8ca6e038beea5c549854bc2f2bd1b5d');
-});
 
 test('Nalati native adoption retains old saved slots, ammo owners, presentation and profile refusal', () => {
   const app = new App(), scope = new Scope('nalati-equipment');

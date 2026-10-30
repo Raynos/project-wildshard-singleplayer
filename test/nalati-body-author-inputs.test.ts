@@ -16,9 +16,6 @@ test('author body ports retain native rig, dimension and complete geometry-input
 
 test('owned noise and RNG inputs retain all 27 original bodies and every native byte', () => {
   const baked = bakeNalatiBodies();
-  expect(baked.rows.bodies).toHaveLength(27);
-  expect(baked.bin.byteLength).toBe(8729328);
-  expect(hashImmutableBytes(baked.bin)).toBe('42448bde496ea13fc9ef81a61987a42147826fc621cae2598cd45a1a625cd163');
   expect(baked.bin.byteLength).toBe(original.bytes);
   expect(hashImmutableBytes(baked.bin)).toBe(original.bin);
   expect(JSON.stringify(baked.rows)).toBe(JSON.stringify({ bodies: original.bodies }));

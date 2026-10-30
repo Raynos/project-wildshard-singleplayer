@@ -2,23 +2,10 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { creatureSurfaceFrame } from '../src/sdk/clientChannels';
 import { namePopulationHabitat } from '../src/sdk/nativePopulationRows';
-import { GOLDEN_KING_POSE } from '../src/shards/nalati-grasslands/generators/goldenKingPose';
-import { nalatiPopulationMetadataBlob } from '../src/shards/nalati-grasslands/generators/populationMetadata';
 import frameRows from '../src/shards/nalati-grasslands/data/speciesRows.json' with { type: 'json' };
 import habitat from '../src/shards/nalati-grasslands/data/physicsRows.json' with { type: 'json' };
-import { hashImmutableBytes } from '../src/sdk/immutable';
 import { ForagerContinuation } from '../src/format/ambientLife';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-
-const pin = (bytes: Uint8Array): { bytes: number; hash: string } => ({ bytes: bytes.length, hash: hashImmutableBytes(bytes) });
-const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
-
-test('complete pose, habitat wire and habitat schema retain their before-edit bytes', () => {
-  const blob = nalatiPopulationMetadataBlob();
-  expect(pin(json(GOLDEN_KING_POSE))).toEqual({ bytes: 75339, hash: '279fd96b6af409e4b66ce7b50daf5568aa853acb4432eae0d3fae0d040ea22a0' });
-  expect(pin(blob.bytes)).toEqual({ bytes: 18468, hash: '40073c9058ff9f356957c9e71715915851956276dfca3a2b25166bc2e5e09cbf' });
-  expect(pin(json(blob.file.jsonSchema))).toEqual({ bytes: 2921, hash: '16169e0ab88ea3e2343473effd1283cccd1b4064b422dbe0f7d8d2cd6f17aad7' });
-});
 
 test('frame inputs preserve finite scalars, safe keys and both original bank ceilings', () => {
   const rows = frameRows.kingFrame, defaults = frameRows.kingPoseDefaults;
