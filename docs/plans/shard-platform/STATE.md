@@ -10,7 +10,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **[FOUNDATIONS](../FOUNDATIONS.md):** done MF1-MF10 (MF7 memory), MF13 (Debug), MF14-MF17, MF19, CX1-CX3; FC1-FC14 done or closed.
 Open: MF11 footprint, MF12 Sentry, MF18 (o3 Driftwood, o4 Nalati / Sky), MF20, FC15 (o5). **[CI](../CI-FIRST-PRINCIPLES.md):**
 CI1-CI4 done (CI2 / CI3 await first deploy), CI5 x9, CI6 / CI7 / CI9 x2, CI8 x9, CI10 x10, CI11-CI13 x1, CI14 x6.
-**For wildshard-v (21:25):** 1fe838b24a carries every 72cd fix incl. the grid wake P0 (4779bbdd6f) and ships when green. sp-o4 is not idle: it cuts engine scene-walk CPU (the one missed frame bar); QB16 / MF19, QB20 Sim, FC9 and QS1 are all done. **G924:** FOUNDATIONS / frame-cost / QA → CX → CI last; no Codex row outranks CI now. **G925: sp-x8 reactivated as sp-ci-deploy's red-test helper tonight (Jake named it).** For Jake: MF13 'Refine dither' needs his phone check;
+**For wildshard-v (21:25):** 1fe838b24a carries every 72cd fix incl. the grid wake P0 (4779bbdd6f) and ships when green. sp-o4 is not idle: it cuts engine scene-walk CPU (the one missed frame bar); QB16 / MF19, QB20 Sim, FC9 and QS1 are all done. **G924:** FOUNDATIONS / frame-cost / QA → CX → CI last; no Codex row outranks CI now. **G925: sp-x8 helps sp-ci-deploy. G926: 5 building Codex; sp-x10 retires (CI12 → sp-x9, phone checks → sp-x2).** For Jake: MF13 'Refine dither' needs his phone check;
 QB17 zip video tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 
 **Autonomous decisions (for Jake's review):**
