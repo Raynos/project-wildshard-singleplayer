@@ -1,4 +1,4 @@
-import {lendNalatiKokpar} from './fixtures/nalati-return-modules';
+import {lendNalatiKokpar} from './fixtures/nalati-kokpar-loan';
 import {expect,test,vi} from 'vitest';
 import * as THREE from 'three';
 import * as bowBinding from '../src/game/weapons/Bow';

@@ -8,7 +8,7 @@ import { HeldClaims, type HeldSlotKit } from '../src/game/loadout/claims';
 import type { ModelDef } from '../src/engine/models/model';
 import { currentOwner } from '../src/engine/app/ownership';
 import finishes from '../src/shards/nalati-grasslands/data/skinFinishes.json' with {type:'json'};
-import {lendNalatiPasture} from './fixtures/nalati-return-modules';
+import {lendNalatiPasture} from './fixtures/nalati-titan-loan';
 import { arenaRoomFight, ArenaRoomEncounter, type OpenArenaWorld } from '../src/game/boss/arenaRoom';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import { eliteDamageMul } from '../src/engine/entities/eliteBrain';
