@@ -14,13 +14,16 @@ interface Job {
  * catalogue/recipe jobs keep the radius fence. Camera-less owners retain their
  * original viewer-distance order. 221 m retains the former 5 x 5 ring reach. */
 export const SPAWN_VIEW_M = 221;
-let spawnView: { readonly radius: number } | null = null;
+let spawnView: { readonly radius: number; readonly reference: 'camera' | 'player' } | null = null;
 const queues = new Set<ControlRefinement>();
+/** The first boot fence precedes camera posing and explicitly keeps the player
+ * reference. Later fences and controlled streaming use the real camera. */
+export function spawnViewUsesCamera(): boolean { return spawnView?.reference !== 'player'; }
 /** A spawn-view job waits or runs in some queue (the tile driver's settle stops when none does). */
 export function spawnViewBusy(): boolean { return [...queues].some(queue => queue.spawnViewOpen()); }
 /** Run every queue's spawn-view jobs now and resolve once none is left (a failure rejects, as the job's own promise does). */
-export async function prepareSpawnView(radius: number = SPAWN_VIEW_M, settle?: () => void | Promise<void>): Promise<void> {
-  spawnView = { radius };
+export async function prepareSpawnView(radius: number = SPAWN_VIEW_M, settle?: () => void | Promise<void>, reference: 'camera' | 'player' = 'camera'): Promise<void> {
+  spawnView = { radius, reference };
   if (settle !== undefined) {
     // the content a frame asks for while the fence is open (the tile driver attaches only ready content) queues its jobs
     // a few tasks after it: let them arrive before the queues are read
@@ -77,7 +80,7 @@ export class ControlRefinement {
   }
   /** The viewer, the queue's size and its nearest waiting job's distance (prepareSpawnView's mark). */
   describe(): { readonly at: Point; readonly waiting: number; readonly nearest: number | null; readonly active: boolean } {
-    const view = this.view?.() ?? null, from = view?.eye ?? this.position(); let nearest: number | null = null;
+    const view = spawnViewUsesCamera() ? this.view?.() ?? null : null, from = view?.eye ?? this.position(); let nearest: number | null = null;
     for (const job of this.waiting.values()) {
       const d = view === null ? Math.hypot(job.at.x - from.x, job.at.z - from.z) : Math.sqrt(streamingDistance(job.at, view));
       if (nearest === null || d < nearest) nearest = d;
@@ -99,7 +102,7 @@ export class ControlRefinement {
   private inView(): Job | undefined { return this.select(true); }
   private select(beforeControl: boolean): Job | undefined {
     if (this.waiting.size === 0 || (beforeControl && spawnView === null)) return undefined;
-    const view = this.view?.() ?? null, from = view?.eye ?? this.position();
+    const view = spawnViewUsesCamera() ? this.view?.() ?? null : null, from = view?.eye ?? this.position();
     if (!Number.isFinite(from.x) || !Number.isFinite(from.z)) throw new Error('Invalid refinement viewer');
     let best: Job | undefined, bestSeen = false, bestDistance = Infinity;
     for (const job of this.waiting.values()) {

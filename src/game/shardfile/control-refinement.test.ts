@@ -29,6 +29,21 @@ test('a high eye schedules visible work before a closer job behind the camera', 
   expect(f.seen).toEqual(['front', 'behind']);
 });
 
+test('the unposed boot fence follows the player once, then uses the posed camera', async () => {
+  const camera = new PerspectiveCamera(50, 0.5, 0.1, 1000);
+  const view = new StreamingCamera(new Group(), () => camera), read = vi.fn(() => view.read()), f = fixture(read);
+  f.position.x = 500;
+  const player = f.queue.add('spawn', { x: 501, y: 80, z: 0, bounds: { min: [500, 70, -1], max: [502, 90, 1] } }, () => { f.seen.push('spawn'); return Promise.resolve(); });
+  const origin = f.queue.add('origin', { x: 0, y: 0, z: -10, bounds: { min: [-1, -1, -11], max: [1, 1, -9] } }, () => { f.seen.push('origin'); return Promise.resolve(); });
+  await prepareSpawnView(undefined, undefined, 'player');
+  expect(await player).toBe(true); expect(f.seen).toEqual(['spawn']);
+  expect(read).not.toHaveBeenCalled();
+  camera.position.set(0, 2, 0); camera.lookAt(0, 0, -10);
+  await prepareSpawnView();
+  expect(await origin).toBe(true); expect(f.seen).toEqual(['spawn', 'origin']);
+  expect(read).toHaveBeenCalled();
+});
+
 test('the spawn fence uses visible bounds and eye height while keeping unbounded recipes conservative', async () => {
   const camera = new PerspectiveCamera(50, 0.5, 0.1, 1000);
   camera.position.set(0, 160, 0); camera.lookAt(90, 40, -25);

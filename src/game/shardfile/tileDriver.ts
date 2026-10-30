@@ -21,7 +21,7 @@ import { noteEnteredTiles } from './enteredTileReadout';
 import { residentTileEntry } from './tileEntry';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
-import { SPAWN_VIEW_M, spawnViewBusy } from './controlRefinement';
+import { SPAWN_VIEW_M, spawnViewBusy, spawnViewUsesCamera } from './controlRefinement';
 import { streamingDistance, streamingOrder, streamingVisible, type StreamingBounds, type StreamingPoint, type StreamingView } from './streamingView';
 
 /** MF5: the live drivers, and whether the loader is settling them (no world frames under the card since FC2). */
@@ -93,7 +93,7 @@ export class TileDriver {
     let idleSince: number | null = null;
     while (this.last !== null && !this.scope.disposed && !this.scope.disposing && diagnosticNow() < until) {
       this.step(this.last.x, this.last.z);
-      const view = this.streamingView?.() ?? null;
+      const view = spawnViewUsesCamera() ? this.streamingView?.() ?? null : null;
       const plan = this.plan, pending = plan !== null && plan.nearest.render.some(key => this.inView(key, view) && (this.attached.render.get(key) === undefined || !this.complete(key)));
       if (!this.busy && !pending) return;
       if (this.busy && !spawnViewBusy()) { idleSince ??= diagnosticNow(); if (diagnosticNow() - idleSince > SETTLE_IDLE_MS) return; }
@@ -146,7 +146,7 @@ export class TileDriver {
       this.attached[layer].delete(key); tile.scope.dispose();
     }
     if (this.busy) return;
-    const now = diagnosticNow(), cone = loaderMode || this.view === null ? null : this.view(), streamView = this.streamingView?.() ?? null;
+    const now = diagnosticNow(), cone = loaderMode || this.view === null ? null : this.view(), streamView = spawnViewUsesCamera() ? this.streamingView?.() ?? null : null;
     for (const key of this.wantedAt.keys()) if (!wanted.render.has(key)) this.wantedAt.delete(key);
     for (const layer of ['colliders', 'render'] as const) {
       // a tile with every content done (done.size >= contents.length, as everywhere here) skips the content scan

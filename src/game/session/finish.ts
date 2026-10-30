@@ -99,7 +99,9 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   const programs = () => `${game.renderer.info.programs?.length ?? 0} programs`;
   // MF5 / NP-1: the spawn view refines under the loader (its L0 tiles, late welds and dressing reads, before control),
   // so the shaders below link the fine pieces and the reveal shows them; only what lies outside it refines in play
-  await loadingStage('spawnDetail', () => prepareSpawnView());
+  // The camera is posed by the shader step below. Keep the player reference
+  // for this first fence; the final readyFrame fence uses the posed camera.
+  await loadingStage('spawnDetail', () => prepareSpawnView(undefined, undefined, 'player'));
   try {
     await step('shaders', async (p) => {
       // Until the first systems step the camera stands at the origin (Nine: 127 m below the spawn's eye, at 72° not the
