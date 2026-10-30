@@ -545,6 +545,11 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: 24, cache: pnpm}
       - run: pnpm install --frozen-lockfile
+      - name: Pre-read native Chrome (post-read warmed)
+        run: |
+          mkdir -p tmp/ci-native-escape
+          node scripts/warm-native-chrome.mjs > tmp/ci-native-escape/warm-read.json
+          cat tmp/ci-native-escape/warm-read.json
       - name: Run the original native Escape controls alone
         run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --config scripts/vitest-native-escape.config.ts --maxWorkers=1 --bail=0 --reporter=default --reporter=json --outputFile=tmp/ci-native-escape/results.json
       - name: Publish exact failure paths
@@ -560,7 +565,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: native-escape-results
-          path: tmp/ci-native-escape/results.json
+          path: |
+            tmp/ci-native-escape/results.json
+            tmp/ci-native-escape/warm-read.json
           retention-days: 7
           if-no-files-found: warn
 

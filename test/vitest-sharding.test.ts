@@ -97,6 +97,12 @@ test('parallel and dedicated native CI discover every existing file exactly once
  expect(nativeJob).toContain('--config scripts/vitest-native-escape.config.ts');
  expect(nativeJob).not.toContain('--shard=');
  expect(nativeJob).toContain("WS_VITEST_MAX_WORKERS: '1'");
+ if(nativeJob===undefined)throw new Error('Missing native runner');
+ const warmed=nativeJob.indexOf('node scripts/warm-native-chrome.mjs');
+ expect(warmed).toBeGreaterThan(nativeJob.indexOf('pnpm install --frozen-lockfile'));
+ expect(warmed).toBeLessThan(nativeJob.indexOf('Run the original native Escape controls alone'));
+ expect(nativeJob).toContain('post-read warmed');
+ expect(nativeJob).toContain('tmp/ci-native-escape/warm-read.json');
  expect(ship).toContain("needs.native-escape.result == 'success'");
 });
 
