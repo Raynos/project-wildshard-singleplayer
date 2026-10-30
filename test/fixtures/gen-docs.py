@@ -25,7 +25,7 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp', prefix='gen-docs-test-') as fol
     program_tables = 'export function programInputPlan(root,plan){return plan}export async function emitProgramTables(root,plan,{inputsOnly,writeTables,build}){await writeTables();if(!inputsOnly)await build(root,plan)}'
     module('gen-programs', 'import {resolve} from "node:path";export function generationPlan(){return {products:["fixture"],folders:["fixture"],legacy:["fixture"],scoped:false}}export function prepareProgramInputs(){'+record('prepareGeneration')+'}export function buildPrograms(root){if(root!==resolve(root))throw Error("product receipt root is not canonical");'+record('programs')+'}'+program_tables)
     module('bake-loader', record('loader'))
-    module('gen-shards', 'export function refreshDiscovery(){'+record('discovery')+'}export function genShards(){'+record('shards')+'}')
+    module('gen-shards', 'export function refreshDiscovery(){'+record('discovery')+'}export function genShardInputs(){'+record('shard-inputs')+'}export function genShards(){'+record('shards')+'}')
     for file, function in [('gen-budget-derivations','genBudgetDerivations'),('generate','prepareGeneration'),('gen-starter-arm-clips','genStarterArmClips'),('gen-starter-weapons','genStarterWeapons'),('gen-starter-bag','genStarterBag'),('gen-starter-effects','genStarterEffects'),('gen-format-schema','writeFormatJsonSchemas'),('gen-shard-words','genShardWords')]:
         module(file, 'export function '+function+'(){'+record(function)+'}')
     module('push-post-inputs', 'export function beginPushInputs(){return ()=>{'+record('seal')+'}}')
@@ -45,8 +45,8 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp', prefix='gen-docs-test-') as fol
         result,calls = run('scripts/gen.mjs',*mode)
         assert result.returncode == 0,result.stderr
         assert not set(calls)&set(docs_steps),calls
-        assert calls[-1]=='seal' and 'boot' in calls and calls.count('shards')==2,calls
-        assert calls.index('writeFormatJsonSchemas') < calls.index('genShardWords') < calls.index('shards'),calls
+        assert calls[-1]=='seal' and calls.count('shard-inputs')==1 and calls.count('shards')==1,calls
+        assert calls.index('writeFormatJsonSchemas') < calls.index('genShardWords') < calls.index('shard-inputs') < calls.index('boot') < calls.index('shards'),calls
         expected_programs = 0 if any(flag in mode for flag in ['--proof','--build-inputs','--inputs-only']) else 1
         assert calls.count('programs') == expected_programs,calls
         if expected_programs:
