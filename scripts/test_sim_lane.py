@@ -292,6 +292,45 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
         self.assertEqual(result.returncode, 124, result.stderr)
         self.assert_not_handed_over()
 
+    def test_owned_pid_read_crossing_deadline_cannot_use_earlier_frames(self):
+        clock = SimpleNamespace(now=0, frames=False, reads=0)
+        clock.monotonic = lambda: clock.now
+        ready = SimpleNamespace(is_set=lambda: clock.frames)
+        @contextmanager
+        def page(_deadline, _started):
+            yield 'http://127.0.0.1/owned', ready
+        def read(_fd, _size, _offset):
+            clock.reads += 1
+            if clock.reads == 1:
+                return b''
+            clock.now = 2
+            return b'com.apple.mobilesafari: 123\n'
+        class Native:
+            def __init__(self, kind):
+                self.kind = kind
+                self.returncode = None if kind == 'launch' else 0
+            def __enter__(self):
+                if self.kind == 'openurl':
+                    clock.now, clock.frames = .3, True
+                return self
+            def __exit__(self, *_args):
+                pass
+            def poll(self):
+                return self.returncode
+            def kill(self):
+                self.returncode = -9
+            def wait(self):
+                return self.returncode
+        native = READY['wait_for_safari']
+        ports = {**native.__globals__, 'time': clock, 'readiness_page': page,
+            'os': SimpleNamespace(environ={'SIM_SAFARI_READY_TIMEOUT': '1'}, pread=read),
+            'subprocess': SimpleNamespace(DEVNULL=subprocess.DEVNULL, Popen=lambda args, **_kwargs: Native(args[2]))}
+        opening = READY['open_ready_page']
+        ports['open_ready_page'] = FunctionType(opening.__code__, ports, argdefs=opening.__defaults__)
+        helper = FunctionType(native.__code__, ports)
+        self.assertEqual(helper(UDID), 124)
+        self.assertEqual(clock.now, 2, 'the native read must have crossed the deadline')
+
     def test_complete_owned_receipt_survives_an_incomplete_output_tail(self):
         self.assertEqual(READY['owned_launch_pid']('com.apple.mobilesafari: 101\npending reply'), 101)
         self.assertIsNone(READY['owned_launch_pid']('foreign.application: 101\n'))

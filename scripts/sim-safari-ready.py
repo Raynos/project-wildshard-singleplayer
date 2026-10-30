@@ -243,6 +243,12 @@ def wait_for_safari(udid):
                     evidence['totalMs'] = round(evidence['totalMs'] + cost, 3)
                     evidence['maxMs'] = round(max(evidence['maxMs'], cost), 3)
                     next_receipt_check = time.monotonic() + .25
+                    # The native read itself can cross the wall deadline. An
+                    # earlier document cannot make that late launch proof valid.
+                    if time.monotonic() >= deadline:
+                        print('sim-lane: Safari launch receipt read crossed the readiness deadline', file=sys.stderr)
+                        report_receipt_evidence()
+                        return 124
                     if pid is not None:
                         admitted = True
                         print(f'sim-lane: owned Safari launch receipt {pid} in {time.monotonic() - started:.3f}s before launch client replied; '
