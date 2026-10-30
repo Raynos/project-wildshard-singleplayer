@@ -10,7 +10,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **[FOUNDATIONS](../FOUNDATIONS.md):** done MF1-MF10 (MF7 memory), MF13 (Debug), MF14-MF17, MF19, CX1-CX3; FC1-FC14 done or closed.
 Open: MF11 footprint, MF12 Sentry, MF18 (o3 Driftwood, o4 Nalati / Sky), MF20, FC15 (o5). **[CI](../CI-FIRST-PRINCIPLES.md):**
 CI1-CI4 done (CI2 / CI3 await first deploy), CI5 x9, CI6 / CI7 / CI9 x2, CI8 x9, CI10 x10, CI11-CI13 x1, CI14 x6.
-**For wildshard-v (20:25):** 083d's reds are routed and mostly fixed: docs 9d28656aef (x1), boot-smoke fa13b9fce6 (x2); the 11 CI5 fixture reds are sp-x9's top job now. sp-o5 is running FC15 (not idle, until ~21:00); sp-o4 finished QB16 / MF19, QS1, FC12-14, MF16-18 Pine / Nine / Nalati / Sky verbs, and waits on FC15 for the MF20 board. **G924:** FOUNDATIONS / frame-cost / QA → CX → CI last; no Codex row outranks CI now. sp-x8 stays released (5-Codex cap). For Jake: MF13 'Refine dither' needs his phone check;
+**For wildshard-v (20:25):** 083d's reds are routed and mostly fixed: docs 9d28656aef (x1), boot-smoke fa13b9fce6 (x2); the 11 CI5 fixture reds are sp-x9's top job now. sp-o5 is running FC15 (not idle, until ~21:00); sp-o4 finished QB16 / MF19, QS1, FC12-14, MF16-18 Pine / Nine / Nalati / Sky verbs, and waits on FC15 for the MF20 board. **G924:** FOUNDATIONS / frame-cost / QA → CX → CI last; no Codex row outranks CI now. **G925: sp-x8 reactivated as sp-ci-deploy's red-test helper tonight (Jake named it).** For Jake: MF13 'Refine dither' needs his phone check;
 QB17 zip video tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 
 **Autonomous decisions (for Jake's review):**
@@ -21,8 +21,6 @@ QB17 zip video tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 - MF11 closes on the lease deletion + footprint; ownership loans fold into Family 4.
 - FC13 done at G912's default-off Debug row (shadow hold, Driftwood 190 → 165 draws); held post only if Jake turns it on.
 - FC10: phone bloom off by default; old look = Debug 'Phone bloom' (G910).
-- MF3: launch → title 0.7 s warm, ~0.5 s of it iOS (page 0.16 s).
-- Earlier calls: see this file's git log.
 - **For wildshard-v (QB1):** Jake's home-screen icon predates the launch image; one delete + re-add of the icon fixes the black.
 - QB18 = B, TRUST under GRASS (fc707ba74d).
 - QB10 / MF12: Sentry verdicts in e74ca75809; S fixed b3b1723a9a, 7S fixed cc75f528ea + 93cf905edc. **wildshard-v: Sentry-only ids need a build + stack.**
