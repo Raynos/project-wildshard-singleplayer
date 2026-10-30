@@ -262,6 +262,7 @@
     "./player/firstPersonArms": "./player/firstPersonArms.ts",
     "./player/viewmodelTextures": "./player/viewmodelTextures.ts",
     "./practice/TrainingArena": "./practice/TrainingArena.ts",
+    "./practice/practiceLoan": "./practice/practiceLoan.ts",
     "./practice/playground/Playground": "./practice/playground/Playground.ts",
     "./practice/playground/catalog": "./practice/playground/catalog.ts",
     "./practice/playground/devGrid": "./practice/playground/devGrid.ts",

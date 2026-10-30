@@ -24,6 +24,7 @@ import { applyDummyStudio } from './DummyStudio';
 import { DUMMY_JOINTS, type DummyVariant, type TrainingDummyModel } from './TrainingDummy';
 import { DUMMY_VARIANTS } from './dummyMetadata';
 import { ARENA_LINEUP } from './lineup';
+import { enterPracticeLoan, exitPracticeLoan, practiceViewDistance } from './practiceLoan';
 import { paramsOf } from '../models/model';
 import { trainingDummy } from '../models/trainingDummy';
 import { dummyFigure, dummyStandIn } from '../models/trainingDummyFigure';
@@ -36,8 +37,6 @@ const CYAN = 0x75d9ff;
 
 /** the lineup (./lineup.ts: placements of the shared dummy model, room-local) */
 const LINEUP = ARENA_LINEUP;
-/** the dummy's half width with its arms, metres: what must stay inside the frame */
-const DUMMY_HALF_WIDTH = 0.5;
 const LABEL_Y = 2.05;
 /** the figure's weight against a blow: straw is light, steel heavy */
 const MASS: Record<DummyVariant, number> = { 'straw-cloth': 0.8, wood: 1, 'wood-steel': 1.3 };
@@ -381,20 +380,7 @@ export class TrainingArena {
    * nearer on a wide frame (Driftwood's portrait, any landscape), further on Nalati's narrow one. The labels clamp
    * inside the frame on their own (update).
    */
-  private viewDistance(): number {
-    const cam = this.game.camera;
-    // the frame's usable half width, less a 10 px margin
-    const half = innerWidth / 2;
-    const usable = Math.max(0.5, (half - 10) / half);
-    const tanH = Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2) * cam.aspect * usable;
-    const centre = LINEUP[1] ?? { x: 0, z: -7 };
-    let need = 4.8;
-    for (const spot of LINEUP) {
-      const reach = Math.abs(spot.x) + DUMMY_HALF_WIDTH;
-      need = Math.max(need, reach / Math.max(0.15, tanH) - (centre.z - spot.z));
-    }
-    return Math.min(11, need);
-  }
+  private viewDistance(): number { return practiceViewDistance(this.game.camera.fov, this.game.camera.aspect, innerWidth); }
 
   enter(player: Player, weapons: EquipmentService): void {
     this.active = true; this.root.visible = true; this.overlay.classList.add('show');
@@ -409,13 +395,10 @@ export class TrainingArena {
     if (!this.modelsReady) for (const t of this.targets) if (!t.ready) t.install(dummyStandIn(t.variant), this.game.renderer);
     this.preparation.hidden = true;
     void this.preload();
-    weapons.lendAll(); // the weapon explorer: every weapon this shard has, only while in here (E298 A)
+    // the weapon explorer (every weapon this shard has, only while in here) and the spawn facing the lineup (practiceLoan.ts)
     this.weapons = weapons;
-    weapons.select(weapons.list[0]?.id ?? weapons.current.id, true);
-    player.setHover(false); // off the board: spawn() keeps it, and on it there is no dodge (E285)
     const centre = LINEUP[1] ?? { x: 0, z: -7 };
-    player.spawn(this.center.x, this.center.z + centre.z + this.viewDistance(), 0, Y);
-    player.pitch = -0.1; // a touch down: the lineup and its floor pool fill the frame, not the ceiling
+    enterPracticeLoan({ weapons, player }, { x: this.center.x, z: this.center.z + centre.z + this.viewDistance(), y: Y });
   }
 
   exit(): void {
@@ -423,7 +406,7 @@ export class TrainingArena {
     app.setState('play');
     for (const t of this.targets) t.bodies?.setEnabled(false); // E300: no dummy volume left for the world's rays over the shard
     practiceFps.on = false;
-    this.weapons?.endLoan(); this.weapons = null; // the world's own unlocks again
+    exitPracticeLoan(this.weapons); this.weapons = null; // the world's own unlocks again
     this.player = null;
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: false }));
     app.events.emit('practice.active', false);
