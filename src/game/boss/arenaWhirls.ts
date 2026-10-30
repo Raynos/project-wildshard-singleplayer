@@ -4,7 +4,7 @@
  * `drawn` holds each one's ease, whether it shows, and where it stands after an update; `ArenaWhirlsView` (arenaFire.ts)
  * draws the funnels and debris from it.
  *
- *   const whirls = new ArenaWhirls(rows, windProgram, gateProgram, scope);
+ *   const whirls = new ArenaWhirls(rows, windProgram, gateProgram, scope);   // + ground (x, z) => y: a native host's sampler
  *   whirls.arm(0b11); const hits = whirls.update(dt, t, true, thinkDt, { wx, wz, px, pz });
  */
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -28,7 +28,11 @@ export class ArenaWhirls {
   private readonly hits: WhirlHit[] = [];
   /** per whirlwind after the last update: its ease, whether it shows, and where it stands (x, the ground, z) */
   readonly drawn: { k: number; shown: number; x: number; y: number; z: number }[];
-  constructor(input: ArenaWhirlsRows, program: ReturnProgram, gateProgram: ReturnProgram, private readonly nativeScope: Scope) {
+  /** CI12: the ground each whirlwind stands on (its drawn and hit y): the page's terrainHeight, or a native host's sampler */
+  private readonly ground: (x: number, z: number) => number;
+  constructor(input: ArenaWhirlsRows, program: ReturnProgram, gateProgram: ReturnProgram, private readonly nativeScope: Scope,
+    ground: (x: number, z: number) => number = heightAt) {
+    this.ground = ground;
     this.live(); ArenaWhirls.preflight(input); const gate = input.gate;
     this.gate = new ProjectedState({ ...gate.law, signals: { step: gate.law.signal, arm: gate.arm }, signal: 'step', outputs: Object.keys(gate.law.retain) }, gateProgram);
     this.rows = input; this.drawn = input.laws.map(() => ({ k: 0, shown: 0, x: 0, y: 0, z: 0 }));
@@ -74,7 +78,7 @@ export class ArenaWhirls {
         if (result['broke'] === 1) shared?.set({ cd: result['cd'] ?? 0 });
         hurt = result['hurt'] === 1;
       }
-      const x = law.value('x'), z = law.value('z'), y = heightAt(x, z);
+      const x = law.value('x'), z = law.value('z'), y = this.ground(x, z);
       drawn.x = x; drawn.y = y; drawn.z = z;
       if (hurt) { const at = this.hits[hit] ?? { x: 0, y: 0, z: 0 }; at.x = x; at.y = y; at.z = z; this.hits[hit++] = at; }
     }
