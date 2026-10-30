@@ -335,6 +335,8 @@ export class AnimalManager {
   private readonly farHerd = new FarHerd<FarRig>((m) => this.factory.farMaterial(m.model), { keyOf: (m) => this.factory.farKey(m.model),
     pageSlots: () => TIER_CONFIG.animalFarPageSlots });
   private readonly farRigs = new Map<Animal, FarRig>();
+  /** the rigs holding a far-herd slot now (holdFarSlot) */
+  private readonly farHeld = new Set<Animal>();
   /** PH-P2: the casting animals' shadows per model (farHerd.ts { shadow }), within animalShadowDist */
   private readonly shadowHerd = new FarHerd<FarRig>((m) => m.model.fur, { shadow: true });
   /**
@@ -471,7 +473,7 @@ export class AnimalManager {
     a.hidden = true; a.mesh.visible = false;
     if (!a.simulationBound) { a.alive = false; a.position.y = -9999; }
     const i = this.animals.indexOf(a); if (i !== -1) this.animals.splice(i, 1);
-    this.hunt.forget(a); const far = this.farRigs.get(a); if (far !== undefined) this.farHerd.unreserve(far); this.farRigs.delete(a); this.casters.delete(a); this.tokens.release(a); this.scheduler.forget(a);
+    this.hunt.forget(a); this.holdFarSlot(a, false); this.farRigs.delete(a); this.casters.delete(a); this.tokens.release(a); this.scheduler.forget(a);
     this.bodies?.remove(a);
     a.retireBody();
     a.mesh.removeFromParent();
@@ -528,8 +530,8 @@ export class AnimalManager {
       const slotData = this.factory.farSlotData(model);
       const far: FarRig = { mesh: a.mesh, tint: fur.color, model, mask: null, ...(slotData === undefined ? {} : { slotData }) };
       this.farRigs.set(a, far);
-      // its far-herd page, opened now so the entry warm-up uploads it (farHerd.ts reserve)
-      if (TIER_CONFIG.animalFarBatchDist > 0) this.farHerd.reserve(far);
+      // its far-herd page, opened now so the entry warm-up uploads it (farHerd.ts reserve), when it can draw from here
+      if (TIER_CONFIG.animalFarBatchDist > 0) this.holdFarSlot(a, this.inFarReach(a, this.playerPos));
     }
     this.group.add(a.mesh); this.group.own(a);
     this.animals.push(a);
@@ -585,6 +587,23 @@ export class AnimalManager {
   /** dormant: outside the ring (MF11: no texture lease; a woken model draws at once, its textures never left) */
   private dormant(a: Animal): boolean { return this.outside(a); }
 
+  /** whether `a` can be drawn from `from`: shown, awake and within animalHideDist */
+  private inFarReach(a: Animal, from: THREE.Vector3): boolean {
+    const hide = TIER_CONFIG.animalHideDist;
+    return !a.hidden && !this.dormant(a) && a.position.distanceToSquared(from) < hide * hide;
+  }
+
+  /**
+   * PF7b: a rig holds a far-herd slot (farHerd.ts reserve) only while it can be drawn. Its page stays open for the next,
+   * so the herd's geometry follows the most rigs ever in reach at once, not every rig spawned (Pine's phone: ~200 spawned
+   * rigs reserved ~91 MB of pages).
+   */
+  private holdFarSlot(a: Animal, hold: boolean): void {
+    const far = this.farRigs.get(a);
+    if (far === undefined || hold === this.farHeld.has(a)) return;
+    if (hold) { this.farHerd.reserve(far); this.farHeld.add(a); } else { this.farHerd.unreserve(far); this.farHeld.delete(a); }
+  }
+
   update(dt: number, t: number, playerPos: THREE.Vector3, playerSprinting = false, viewPos: THREE.Vector3 = playerPos, camera: THREE.PerspectiveCamera | null = null): void {
     this.playerPos.copy(playerPos);
     this.resident = this.residency === null ? null : this.residency(playerPos);
@@ -629,7 +648,9 @@ export class AnimalManager {
     const poseT0 = frameCost.on ? performance.now() : 0;
     for (let i = 0; i < n; i++) {
       const a = this.animals[i];
-      if (a === undefined || a.hidden) continue;
+      if (a === undefined) continue;
+      if (farD > 0) this.holdFarSlot(a, this.inFarReach(a, viewPos));
+      if (a.hidden) continue;
       if (this.dormant(a)) { a.mesh.visible = false; (this.casters.get(a) ?? a.mesh).castShadow = false; continue; }   // T6: asleep outside the ring
       const d2 = a.position.distanceToSquared(viewPos);
       const near = d2 < ANIM_LOD * ANIM_LOD;
