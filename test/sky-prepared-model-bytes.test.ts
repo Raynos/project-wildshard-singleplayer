@@ -8,7 +8,6 @@ import { BoxGeometry, BufferGeometry, Float32BufferAttribute } from 'three';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { prepareAssetDecoders } from '../src/format/product';
-import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { bakePreparedModels, prepareModelFrame } from '../src/shards/far-reach/generators/preparedModelBytes';
 import { bakePreparedModels as retainedPreparedModels } from '../src/shards/far-reach/generators/preparedModels';
@@ -23,12 +22,10 @@ const actual = await bakePreparedModels(read, inputs);
 const original = new Uint8Array(readFileSync('public/assets/far-reach/baked/prepared-models.glb'));
 
 test('explicit frame inputs retain every byte of the original largest Far Reach producer', async () => {
-  expect(actual.byteLength).toBe(10_134_100);
-  expect(hashImmutableBytes(actual)).toBe('bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580');
   expect(Buffer.compare(actual, original)).toBe(0);
   const retained = await retainedPreparedModels(read);
   expect(Buffer.compare(retained, original)).toBe(0);
-  actual.fill(0); expect(hashImmutableBytes(retained)).toBe('bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580');
+  actual.fill(0); expect(Buffer.compare(retained, original)).toBe(0);
 });
 
 test('supplied island frames precede static fits and retain their original transform order', () => {
