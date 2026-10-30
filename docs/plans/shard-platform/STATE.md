@@ -6,7 +6,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **Legacy (G882 / G883 / G885 / G891):** legacy-final 91a9eef081; Sky + Signal 3be88b3081, Nalati b592b94008, Driftwood
 019fa6d0c7. **G908: Pine + Nine untouched** (no prep) until Jake's word after his final QA, likely 10-30.
 
-**LIVE fe0ca11-mvuso9aw (05:16 Cancun; fully green CI 41035012795, shipped prebuilt by the normal path, no fallback needed).** G917's 07:00 run was a no-op (fe0 already live) = Jake's QA build. Story margins: Pine memo c510d3e794 + d91517c445, DW pose CSE 420440d2e9, Nalati pipelined replay 04615724cd.
+**LIVE 8832a4d-mvv4kw6d (10:27 Cancun; fully green CI 41079261879, auto-shipped). Jake's 07:00 QA build was fe0ca11.** Story margins: Pine memo c510d3e794 + d91517c445, DW pose CSE 420440d2e9, Nalati pipelined replay 04615724cd.
 **Open:** MF7 battery (phone), MF20 CPU bar (Jake's pick), QB20 thermal (phone), CI2 / 3 / 5 / 6 / 7 / 9 / 10
 remote acceptance, CI12 Nalati (x6, x8, kernels o3 / o4), CI14 pin waves. **QA recheck on HEAD (o5, 95196a14db + QB12 app switch b6b19d5095): every QB row passes, no regressions, QB16 too.** For Jake: MF13 'Refine dither' phone check (ready: Sim Nine dither-on longest loader frame 110 ms, was 2.25 s; 9165621261); QB17 zip video
 tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
