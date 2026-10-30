@@ -38,7 +38,9 @@ function noMask(excluded: ReadonlySet<number>): void { if (excluded.size > 0) th
  */
 export interface ClientTileViews {
   terrain: (input: Uint8Array | TerrainTileData, root: Object3D, scope: Scope, shadow: boolean) => ResidentTile;
-  props: (props: NonNullable<Shardfile['props']>, key: string, bytes: Uint8Array, root: Object3D, scope: Scope, additional?: ReadonlyMap<string, Uint8Array>) => Promise<ResidentTile | null>;
+  /** `ground`: where a drawn splat ground's tiles merge (absent: `root`); a ring passes its shared root, as each tile's
+   *  `root` is its own group */
+  props: (props: NonNullable<Shardfile['props']>, key: string, bytes: Uint8Array, root: Object3D, scope: Scope, additional?: ReadonlyMap<string, Uint8Array>, ground?: Object3D) => Promise<ResidentTile | null>;
   /**
    * The declared library panels only (a door, a gate: what `targets.panels` shows and hides), under `root`, each starting at
    * its declared `visible`; no tiles, models or far proxy. The grid draws a neighbour's panels with these (G222 playtest #7).
@@ -96,7 +98,7 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
       const mask = (excluded: ReadonlySet<number>): void => { maskTerrainTile(mesh, excluded); for (const hull of hulls) hull.geometry.setDrawRange(mesh.geometry.drawRange.start, mesh.geometry.drawRange.count); };
       return { mask, shadow: cast ? (enabled) => { mesh.castShadow = enabled; } : () => undefined };
     },
-    props: async (props, key, bytes, scene, scope, additional): Promise<ResidentTile | null> => {
+    props: async (props, key, bytes, scene, scope, additional, groundRoot): Promise<ResidentTile | null> => {
       const row = props.tiles.find((tile) => `${tile.lod}/${tile.x}/${tile.z}` === key);
       if (row === undefined) throw new Error(`shardfile views: no props tile ${key}`);
       const installed = await installDeclaredProps(props, { scene, scope, assets: new Map([[row.file, bytes], ...additional ?? []]), materials: ports.materials, textures: ports.textures,
@@ -104,8 +106,9 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
       const root = installed.tiles.get(key); if (root === undefined) return null;
       // P1 draws: a drawn splat ground's tiles merge, the fine tiles on its material, a coarse tile's meshes by material with
       // the fine tiles over it left out (in place of the coarse tile mask), so the ground keeps one draw per material
-      // the ring's own root: each install wraps its tile in its own group, so the tiles share only `scene`
-      const ground = ports.ground ?? null, parent = scene;
+      // the ring's shared root (`groundRoot`): each ring tile installs in its own group, and a merge under that group drew
+      // one mesh a tile (FC16)
+      const ground = ports.ground ?? null, parent = groundRoot ?? scene;
       if (ground !== null) {
         const meshes: Mesh[] = []; root.traverse((object) => { if (isMesh(object)) meshes.push(object); });
         if (row.lod === 1) {

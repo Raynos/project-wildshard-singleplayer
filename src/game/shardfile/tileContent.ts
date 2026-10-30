@@ -332,7 +332,7 @@ export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstanc
         const data = await ports.decoder.decode(bytes); if (owner.disposed || owner.disposing) throw new Error('shardfile rings: tile dropped while decoding');
         return views.terrain(data, group, owner, false);
       },
-      props: (props, address, bytes, owner, additional) => views.props(props, address, bytes, group, owner, additional),
+      props: (props, address, bytes, owner, additional) => views.props(props, address, bytes, group, owner, additional, instance.root),
     });
     return { scope, group, tiles, root: instance.root };
   };

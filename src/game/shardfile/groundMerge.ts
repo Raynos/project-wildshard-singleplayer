@@ -42,17 +42,39 @@ export class GroundMerge {
   constructor(private readonly parent: Object3D, private readonly material: Material, private readonly name: string, private readonly onRebuild?: (mesh: Mesh) => void) {}
 
   /** The tile's ground `mesh` joins (hidden itself) until `scope` ends. Detached meshes are already parent-local;
-   * attached meshes keep their scene transform. `coarse` returns the quadrant setter. */
+   * attached meshes keep their scene transform. `coarse` returns the quadrant setter.
+   *
+   * A mesh attached under a tree that is not under the parent yet (a ring tile prepared in its own group, published under
+   * the ring's root later) joins when that tree is added under the parent, rebuilding its block then: never drawn before
+   * its tile is, and placed by the transform it is published with (FC16: the ring tiles had merged per tile group, one
+   * draw a tile, 22 of Pine's ground draws a frame). */
   add(mesh: Mesh, scope: Scope, coarse?: { readonly x: number; readonly z: number }): (hidden: ReadonlySet<number>) => void {
     const corner = coarse === undefined ? null : { x: -HALF + coarse.x * COARSE, z: -HALF + coarse.z * COARSE };
     const member: Member = { mesh, corner, hidden: new Set(), attributes: new Map(), triangles: null, bounds: null };
-    const key = this.blockOf(member);
-    let block = this.blocks.get(key);
-    if (block === undefined) { block = { members: new Map(), merged: null, queued: false }; this.blocks.set(key, block); }
-    const owner = block;
-    mesh.visible = false; owner.members.set(mesh, member); this.queue(owner);
-    scope.onDispose(() => { if (owner.members.delete(mesh)) this.queue(owner); });
-    return (hidden) => { member.hidden = new Set(hidden); this.queue(owner); };
+    let owner: Block | null = null;
+    const join = (now: boolean): void => {
+      const key = this.blockOf(member);
+      let block = this.blocks.get(key);
+      if (block === undefined) { block = { members: new Map(), merged: null, queued: false }; this.blocks.set(key, block); }
+      owner = block; block.members.set(mesh, member);
+      if (now) this.rebuildBlock(block); else this.queue(block);
+    };
+    // the tree's own 'added', owned by the tile's scope (released with it, so a retired tile never joins)
+    const wait = (): void => {
+      let top: Object3D = mesh; while (top.parent !== null) top = top.parent;
+      scope.listenOnceEmitter(top, 'added', () => { if (this.outside(mesh)) wait(); else join(true); });
+    };
+    mesh.visible = false;
+    if (this.outside(mesh)) wait(); else join(false);
+    scope.onDispose(() => { if (owner?.members.delete(mesh) === true) this.queue(owner); });
+    return (hidden) => { member.hidden = new Set(hidden); if (owner !== null) this.queue(owner); };
+  }
+
+  /** attached, but not (yet) under the parent */
+  private outside(mesh: Mesh): boolean {
+    if (mesh.parent === null) return false;
+    for (let node: Object3D | null = mesh.parent; node !== null; node = node.parent) if (node === this.parent) return false;
+    return true;
   }
 
   /** How many members the merge draws (tests and the overlay read it). */

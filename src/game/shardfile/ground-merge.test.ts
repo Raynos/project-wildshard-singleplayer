@@ -61,6 +61,29 @@ test('tiles draw one mesh per 250 m block; a change rebuilds only its block', as
   expect(merge.meshes).toHaveLength(0); expect(parent.children).toHaveLength(0);
 });
 
+test('FC16: ring tiles prepared in their own groups merge under the shared root once published, not before', async () => {
+  const root = new THREE.Group(), merge = new GroundMerge(root, new THREE.MeshBasicMaterial(), 'ground.fine');
+  const a = new Scope('a'), b = new Scope('b'), ga = new THREE.Group(), gb = new THREE.Group(), ta = tile(-250, -250), tb = tile(-125, -250);
+  ga.add(ta); gb.add(tb);
+  merge.add(ta, a); merge.add(tb, b); await settle();
+  expect(ta.visible).toBe(false);
+  expect(merge.meshes).toHaveLength(0);                              // prepared, not published: nothing draws yet
+  gb.position.set(0, 3, 0); root.add(gb);                            // published: it joins at once, at its transform
+  expect(merge.meshes).toHaveLength(1);
+  expect(merge.mesh?.geometry.getIndex()?.count).toBe(6);
+  expect(merge.mesh?.geometry.getAttribute('position').getY(0)).toBe(3);
+  root.add(ga); await settle();                                      // the second tile joins the same block: one draw
+  expect(merge.meshes).toHaveLength(1);
+  expect(merge.mesh?.geometry.getIndex()?.count).toBe(12);
+  b.dispose(); await settle();
+  expect(merge.mesh?.geometry.getIndex()?.count).toBe(6);
+  const c = new Scope('c'), gc = new THREE.Group(), tc = tile(-250, -125); gc.add(tc);
+  merge.add(tc, c); c.dispose(); root.add(gc); await settle();       // retired before it was published: never joins
+  expect(merge.mesh?.geometry.getIndex()?.count).toBe(6);
+  a.dispose(); await settle();
+  expect(merge.meshes).toHaveLength(0);
+});
+
 test('detached painted tiles stay cell-local after their region moves and rebuilds', async () => {
   const parent = new THREE.Group(), scope = new Scope('painted region');
   const merge = new GroundMerge(parent, new THREE.MeshBasicMaterial(), 'ground');
