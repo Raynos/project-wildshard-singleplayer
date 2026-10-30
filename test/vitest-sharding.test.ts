@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { selectTestCohort,PURE_TESTS } from '../scripts/vitest-shard';
-import { CI_SERIAL_TESTS } from '../scripts/vitest-ci-files';
+import { CI_SERIAL_TESTS, CI_NATIVE_GROUPS } from '../scripts/vitest-ci-files';
 import { packShards,readDurations,CI_SHARD_COUNT } from '../scripts/test-shard-plan';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual workflow covers every discovered test partition.
@@ -98,7 +98,7 @@ test('parallel and dedicated native CI discover every existing file exactly once
  expect(nativeJob).toContain('--config scripts/vitest-native-escape.config.ts');
  expect(nativeJob).not.toContain('--shard=');
  expect(nativeJob).toContain("WS_VITEST_MAX_WORKERS: '1'");
- for(const file of ['test/pine-quest-verbs.test.ts','test/driftwood-story-verbs.test.ts','test/nalati-discovery-verbs.test.ts','test/nalati-titan-verbs.test.ts'])
+ for(const file of ['test/pine-quest-verbs.test.ts','test/driftwood-story-verbs.test.ts','test/nalati-discovery-verbs.test.ts','test/nalati-titan-verbs.test.ts','test/nalati-qara-verbs.test.ts'])
   expect(serial).toContain(file);
  expect(nativeJob).toContain('needs: prepare');
  expect(nativeJob).toContain('name: test-products');
@@ -117,6 +117,16 @@ test('parallel and dedicated native CI discover every existing file exactly once
  const nativeRuns=[...nativeJob.matchAll(/pnpm exec vitest run (.+?) --config scripts\/vitest-native-escape\.config.ts/gu)]
   .map(match=>match[1]?.split(/\s+/u)??[]);
  expect(nativeRuns[0]).toEqual(['test/tooling/parity/browser-escape.test.mjs']);
+ expect(nativeRuns.slice(0,2).flat()).toEqual([...CI_NATIVE_GROUPS['escape-titan']]);
+ expect(nativeRuns[2]).toEqual([...CI_NATIVE_GROUPS['stories-qara']]);
+ const groups=/group: \[([^\]]+)\]/u.exec(nativeJob)?.[1]?.split(',').map(group=>group.trim());
+ expect(groups).toHaveLength(Object.keys(CI_NATIVE_GROUPS).length);
+ expect(new Set(groups)).toEqual(new Set(Object.keys(CI_NATIVE_GROUPS)));
+ expect(nativeJob).toContain('fail-fast: false');
+ for(const group of Object.keys(CI_NATIVE_GROUPS))
+  expect(nativeJob).toContain(`!cancelled() && steps.native-inputs.outcome == 'success' && matrix.group == '${group}'`);
+ expect(nativeJob).toContain(`name: native-escape-results-\${{ matrix.group }}`);
+ expect(nativeJob).toContain(`name: ci-failures-native-escape-\${{ matrix.group }}`);
  expect(nativeRuns.flat().sort()).toEqual([...CI_SERIAL_TESTS].sort());
  expect(new Set(nativeRuns.flat()).size).toBe(nativeRuns.flat().length);
  expect(nativeJob).toContain("!cancelled() && steps.native-inputs.outcome == 'success'");

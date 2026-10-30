@@ -161,6 +161,38 @@ test('recovery keeps historical twelve and current twenty-four source jobs exhau
   expect(()=>recoverySource('123',recoveryFixture(true,true,1).query)).toThrow('topology');
 });
 
+function splitNativeRecoveryFixture() {
+  const fixture=recoveryFixture(true,true,24);
+  fixture.source=fixture.source.replace('\n  native-escape:\n',
+    '\n  native-escape:\n    strategy:\n      matrix:\n        group: [escape-titan, stories-qara]\n');
+  fixture.rows=fixture.rows.filter(row=>row[0]!=='native-escape');
+  fixture.rows.push(['native-escape (escape-titan)','completed','success'],
+    ['native-escape (stories-qara)','completed','success']);
+  return fixture;
+}
+
+test('recovery requires both exact-source native groups and preserves historical singleton proof',()=>{
+  const original=recoveryFixture(true,true);
+  expect(recoverySource('123',original.query)).toEqual({sha,run:'123'});
+  const split=splitNativeRecoveryFixture();
+  expect(recoverySource('123',split.query)).toEqual({sha,run:'123'});
+  for(const name of ['native-escape (escape-titan)','native-escape (stories-qara)']) {
+    for(const result of ['failure','skipped','cancelled','timed_out']) {
+      const broken=splitNativeRecoveryFixture(),row=broken.rows.find(candidate=>candidate[0]===name);
+      if(row===undefined)throw new Error('Missing native group fixture');
+      row[2]=result;expect(()=>recoverySource('123',broken.query)).toThrow();
+    }
+    const missing=splitNativeRecoveryFixture();missing.rows=missing.rows.filter(row=>row[0]!==name);
+    expect(()=>recoverySource('123',missing.query)).toThrow();
+  }
+  const duplicate=splitNativeRecoveryFixture();duplicate.rows.push(['native-escape (escape-titan)','completed','success']);
+  expect(()=>recoverySource('123',duplicate.query)).toThrow();
+  for(const matrix of ['escape-titan','escape-titan, escape-titan','escape-titan, foreign']) {
+    const malformed=splitNativeRecoveryFixture();malformed.source=malformed.source.replace('escape-titan, stories-qara',matrix);
+    expect(()=>recoverySource('123',malformed.query)).toThrow('native topology');
+  }
+});
+
 test('recovery refuses partial, duplicated, foreign, divergent and stale proofs',()=>{
   for(const change of [{head_sha:'short'},{event:'workflow_dispatch'},{head_branch:'other'},{workflow_id:999},
     {status:'in_progress'},{conclusion:'cancelled'},{path:'.github/workflows/other.yml'},

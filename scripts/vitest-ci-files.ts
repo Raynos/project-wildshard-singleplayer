@@ -1,10 +1,15 @@
-/** Native controls own both runner cores: a story child already runs its real
- * resident and independent replay worker. A sibling Vitest file must not add a
- * second pair. Every file still runs once; local/nightly discovery is unchanged. */
-export const CI_SERIAL_TESTS = [
-  'test/tooling/parity/browser-escape.test.mjs',
-  'test/pine-quest-verbs.test.ts',
-  'test/driftwood-story-verbs.test.ts',
-  'test/nalati-discovery-verbs.test.ts',
-  'test/nalati-titan-verbs.test.ts',
-] as const;
+/** Each native file already occupies both cores with capture and replay.
+ * Groups run files sequentially; parallel discovery excludes their exact union. */
+export const CI_NATIVE_GROUPS = {
+  'escape-titan': [
+    'test/tooling/parity/browser-escape.test.mjs',
+    'test/nalati-titan-verbs.test.ts',
+  ],
+  'stories-qara': [
+    'test/pine-quest-verbs.test.ts',
+    'test/driftwood-story-verbs.test.ts',
+    'test/nalati-discovery-verbs.test.ts',
+    'test/nalati-qara-verbs.test.ts',
+  ],
+} as const;
+export const CI_SERIAL_TESTS = Object.values(CI_NATIVE_GROUPS).flat();

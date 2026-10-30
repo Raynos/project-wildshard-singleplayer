@@ -257,7 +257,15 @@ function recoveryEvidence(runId, query, deadline) {
   const source = query([`repos/${REPO}/contents/.github/workflows/deploy.yml?ref=${sha}`,
     '-H','Accept: application/vnd.github.raw+json']);
   // The complete behavior wave owned the native file before its dedicated job.
-  const native = source.includes('\n  native-escape:\n');
+  const native = /\n {2}native-escape:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
+  let nativeJobs = native === undefined ? [] : ['native-escape'];
+  if (native?.includes('matrix:')) {
+    const groups = /^\s+group: \[([^\]]+)\]/mu.exec(native)?.[1]?.split(',').map(group => group.trim());
+    if (groups?.length !== 2 || new Set(groups).size !== 2
+      || !groups.every(group => ['escape-titan','stories-qara'].includes(group)))
+      throw new Error('Recovery source has an unreviewed native topology');
+    nativeJobs = groups.map(group => `native-escape (${group})`);
+  }
   const phone = /\n {2}phone-route:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
   if (phone === undefined ? !source.includes(`continue-on-error: \${{ matrix.part == 'phone-route' }}`)
     : !/(?:^|\n) {4}continue-on-error: true(?:\n|$)/u.test(phone))
@@ -273,7 +281,7 @@ function recoveryEvidence(runId, query, deadline) {
   const required = new Set(['prepare','typecheck-lint','derived-docs','boot-verdict',
     ...matrix.map(index=>`behaviour (${index})`),
     ...['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'].map(name=>`journeys (${name})`),
-    ...(native?['native-escape']:[])]);
+    ...nativeJobs]);
   const rows = query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--jq',
     '.jobs[] | [.name, .status, .conclusion] | @tsv']).trim().split('\n').filter(Boolean);
   const optional = new Set(['build-and-deploy',phone === undefined ? 'journeys (phone-route)' : 'phone-route']);
