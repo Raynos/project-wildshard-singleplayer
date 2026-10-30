@@ -13,7 +13,7 @@ import { offlineMemoryAdmission, prepareAssetDecoders } from '../../src/format/p
 import { scriptAdmissionRows } from '../../src/format/scriptContract';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
 
-export type NativeProofKind = 'driftwood' | 'sky-verbs' | 'pine' | 'pine-verbs' | 'nine' | 'nine-flat' | 'nalati' | 'nalati-companions' | 'nalati-weapons' | 'nalati-predators' | 'nalati-world' | 'nalati-stealth' | 'nalati-verbs' | 'nalati-kokpar' | 'nalati-qara' | 'nalati-titan' | 'trusted' | 'deferred';
+export type NativeProofKind = 'driftwood' | 'sky-verbs' | 'pine' | 'pine-verbs' | 'nine' | 'nine-flat' | 'nalati' | 'nalati-companions' | 'nalati-weapons' | 'nalati-predators' | 'nalati-world' | 'nalati-stealth' | 'nalati-verbs' | 'nalati-kokpar' | 'nalati-qara' | 'nalati-titan' | 'nalati-practice' | 'trusted' | 'deferred';
 
 /** One fixed test worker with statically named native factories; no caller-selected code URL. */
 export async function createNativeProofWorker(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, kind: NativeProofKind,

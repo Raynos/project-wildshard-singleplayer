@@ -5,6 +5,7 @@
   "test/nalati-taming-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-name-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-weapon-verbs.test.ts": ["nalati-grasslands"],
+  "test/nalati-practice-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-flock-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-wolf-fight-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-qara-verbs.test.ts": ["nalati-grasslands"],
