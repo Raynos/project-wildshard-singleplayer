@@ -27,13 +27,39 @@ def stream_digest(stream):
     return result.hexdigest()
 
 
-def compress_archive(archive):
-    """Fast transport only; the original tar and every member stay hash-bound."""
-    compressed = archive.with_suffix('.tar.zst')
-    subprocess.run(['zstd', '-q', '--long=27', '-3', '-T2', '-f',
-                    str(archive), '-o', str(compressed)], check=True)
-    return {'encoding': 'zstd', 'bytes': compressed.stat().st_size,
-            'hash': digest(compressed)}
+def stream_archive(dist, selected, directory):
+    """Hash the actual tar stream while compressing; never materialize it twice."""
+    compressed = directory / 'boot-dist.tar.zst'
+    result, size = hashlib.sha256(), 0
+    with compressed.open('wb') as output:
+        encoder = subprocess.Popen(['zstd', '-q', '--long=27', '-3', '-T2', '-c'],
+                                   stdin=subprocess.PIPE, stdout=output)
+
+        class Sink:
+            def write(self, block):
+                nonlocal size
+                result.update(block)
+                size += len(block)
+                return encoder.stdin.write(block)
+
+        try:
+            with tarfile.open(fileobj=Sink(), mode='w|') as tar:
+                for row in selected:
+                    tar.add(dist / row['path'], arcname=row['path'], recursive=False)
+            encoder.stdin.close()
+            if encoder.wait() != 0:
+                raise subprocess.CalledProcessError(encoder.returncode, encoder.args)
+        finally:
+            try:
+                if not encoder.stdin.closed:
+                    encoder.stdin.close()
+            finally:
+                if encoder.poll() is None:
+                    encoder.kill()
+                encoder.wait()
+    return {'archiveHash': result.hexdigest(), 'archiveBytes': size,
+            'transport': {'encoding': 'zstd', 'bytes': compressed.stat().st_size,
+                          'hash': digest(compressed)}}
 
 
 @contextmanager
@@ -138,14 +164,8 @@ def pack(dist, output, plan, sha, run):
                     or row['path'] in plan['shared']]
         directory = output / artifact
         directory.mkdir()
-        archive = directory / 'boot-dist.tar'
-        with tarfile.open(archive, 'w') as tar:
-            for row in selected:
-                tar.add(dist / row['path'], arcname=row['path'], recursive=False)
         proof = {'sha': sha, 'run': run, 'parts': parts, 'shards': sorted(plan[part]), 'version': version,
-                 'archiveHash': digest(archive), 'archiveBytes': archive.stat().st_size, 'files': selected}
-        proof['transport'] = compress_archive(archive)
-        archive.unlink()
+                 'files': selected, **stream_archive(dist, selected, directory)}
         (directory / 'boot-dist-proof.json').write_text(json.dumps(proof, separators=(',', ':')) + '\n')
         for name in parts:
             inventory['legs'][name] = {key: proof[key] for key in ('archiveHash', 'archiveBytes', 'shards', 'transport')}

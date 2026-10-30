@@ -2,10 +2,12 @@ import importlib.util
 import io
 import json
 import subprocess
+import sys
 from pathlib import Path
 import tarfile
 import tempfile
 import unittest
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('boot_dist', Path(__file__).resolve().parents[1] / 'scripts/boot-dist.py')
 boot = importlib.util.module_from_spec(spec)
@@ -150,7 +152,11 @@ class Transfer(unittest.TestCase):
         proof_path = directory / 'boot-dist-proof.json'
         proof = json.loads(proof_path.read_text())
         proof['archiveHash'], proof['archiveBytes'] = boot.digest(archive), archive.stat().st_size
-        proof['transport'] = boot.compress_archive(archive)
+        compressed = archive.with_suffix('.tar.zst')
+        subprocess.run(['zstd', '-q', '--long=27', '-3', '-T2', '-f',
+                        str(archive), '-o', str(compressed)], check=True)
+        proof['transport'] = {'encoding': 'zstd', 'bytes': compressed.stat().st_size,
+                              'hash': boot.digest(compressed)}
         archive.unlink()
         proof_path.write_text(json.dumps(proof))
         self.manifest['legs']['boot-public'].update({k: proof[k] for k in ('archiveHash', 'archiveBytes', 'transport')})
@@ -176,6 +182,23 @@ class Transfer(unittest.TestCase):
         (self.dist / 'link').unlink()
         with self.assertRaisesRegex(ValueError, 'version'):
             boot.pack(self.dist, self.root / 'other', self.plan, 'b' * 40, '123')
+        original = subprocess.Popen
+        children = []
+
+        def failed_encoder(*args, **kwargs):
+            child = original([sys.executable, '-c', 'raise SystemExit(17)'], **kwargs)
+            children.append(child)
+            return child
+
+        failed = self.root / 'encoder-failure'
+        with patch.object(boot.subprocess, 'Popen', side_effect=failed_encoder), \
+                self.assertRaises((BrokenPipeError, subprocess.CalledProcessError)):
+            boot.pack(self.dist, failed, self.plan, self.sha, '123')
+        self.assertEqual(len(children), 1)
+        self.assertIsNotNone(children[0].poll())
+        self.assertTrue(children[0].stdin.closed)
+        self.assertFalse((failed / 'boot-dist-manifest.json').exists())
+        self.assertFalse((failed / 'boot-public/boot-dist-proof.json').exists())
 
 
 if __name__ == '__main__':
