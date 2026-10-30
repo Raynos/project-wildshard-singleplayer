@@ -140,8 +140,13 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     if (library === undefined || library.kind === 'baked' || !(mapped ? library.kind === 'pool' && paintedNames.get(ref.library)?.has(ref.model) === true
       : geometryNames.get(ref.library)?.has(ref.model) === true)) throw new Error(`Missing world scene model: ${ref.library}/${ref.model}`);
   };
-  // Admission precedes geometry/material allocation, including both cube variants.
-  for (const row of section.libraries) for (const file of row.kind === 'whole' ? [] : row.kind === 'slabs' ? row.tiles.flatMap(tile => tile.files.map(slabFile => slabFile.file)) : row.kind === 'models' || row.kind === 'baked' ? [row.file] : row.kind === 'owned' ? row.models.flatMap(model => [tierFile(model.file), ...model.segments ?? []]) : [...row.files.map(entry => tierFile(entry.file)), ...row.painted.map(entry => entry.file)]) requireFile(file);
+  // Admission precedes geometry/material allocation, including both cube variants. A slab file is a declared GLB by its
+  // content hash (the bake's blob name is not in the row)
+  const declaredGlbs = new Set(product.shardfile.files.flatMap(file => file.kind === 'glb' ? [file.hash] : []));
+  for (const row of section.libraries) if (row.kind === 'slabs') for (const tile of row.tiles) for (const file of tile.files) {
+    if (!declaredGlbs.has(file.file)) throw new Error(`Missing world scene slab: ${file.file}`);
+  }
+  for (const row of section.libraries) for (const file of row.kind === 'whole' || row.kind === 'slabs' ? [] : row.kind === 'models' || row.kind === 'baked' ? [row.file] : row.kind === 'owned' ? row.models.flatMap(model => [tierFile(model.file), ...model.segments ?? []]) : [...row.files.map(entry => tierFile(entry.file)), ...row.painted.map(entry => entry.file)]) requireFile(file);
   for (const row of section.materials) if (row.kind === 'look' || row.kind === 'surface') {
     if (row.look !== undefined && product.shardfile.look.materials[row.look] === undefined) throw new Error(`Missing world scene look: ${row.look}`);
     if (row.kind === 'look' && row.over !== undefined) reference(row.over, true);
