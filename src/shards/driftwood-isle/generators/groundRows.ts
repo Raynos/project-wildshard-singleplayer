@@ -16,8 +16,16 @@ export interface DriftwoodGroundRows {
   notice: string; resolution: number; size: number; datum: number; heights: number[];
 }
 
-/** Cold native floor lattice compiled from retained equations, with no terrain.bin or runtime seed. */
+const groundRows = new Map<number, DriftwoodGroundRows>();
+/** Cold native floor lattice compiled from retained equations, with no terrain.bin or runtime seed. It reads only the seed
+ *  and constants, so each seed's lattice is sampled once a process (CI6: five producers read it per build); each caller
+ *  gets its own copy of the heights. */
 export function driftwoodGroundRows(seed: number = SEED): DriftwoodGroundRows {
+  let rows = groundRows.get(seed);
+  if (rows === undefined) { rows = sampleGroundRows(seed); groundRows.set(seed, rows); }
+  return { ...rows, heights: rows.heights.slice() };
+}
+function sampleGroundRows(seed: number): DriftwoodGroundRows {
   const field = driftwoodGroundField(seed);
   const heightAt: TerrainBakeSource['heightAt'] = field.heightAt;
   const resolution = 256, size = CHUNK_HALF * 2, stride = size / (resolution - 1), heights = new Float32Array(resolution ** 2);
