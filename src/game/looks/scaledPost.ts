@@ -69,7 +69,10 @@ export class ScaledPostPass extends Pass {
   private h = 0;
   settings: Record<string, number>;
   debugGain = 1;
-  constructor(private readonly row: ScaledPostRow, private readonly ctx: { readonly renderer: Renderer; readonly camera: PerspectiveCamera; readonly links?: UniformMap; readonly params?: UniformMap }) {
+  constructor(private readonly row: ScaledPostRow, private readonly ctx: { readonly renderer: Renderer; readonly camera: PerspectiveCamera; readonly links?: UniformMap; readonly params?: UniformMap
+    /** G924: the output this pass may draw straight to the screen when it is the composer's last pass (its target is
+     *  then never drawn: nothing else reads it), instead of into its target for a copy pass to display */
+    readonly screen?: string }) {
     super(row.name);
     const compiler = compilers.get(ctx.renderer);
     if (compiler === undefined) throw new Error('Scaled post backend was not prepared during world loading');
@@ -164,7 +167,8 @@ export class ScaledPostPass extends Pass {
       const graph = this.graphs.get(draw.program); if (graph === undefined) throw new Error('Missing post program');
       for (const [key, target] of Object.entries(draw.textures ?? {})) graph.setTexture(key, source(target).texture);
       if (draw.texel !== undefined) { const target = source(draw.texel.of); graph.setParam(draw.texel.uniform, [1 / target.width, 1 / target.height]); }
-      this.fullscreenMaterial = graph.material; renderer.setRenderTarget(source(draw.to)); renderer.render(this.scene, this.camera);
+      const toScreen = this.renderToScreen && this.ctx.screen !== undefined && this.row.outputs[this.ctx.screen] === draw.to;
+      this.fullscreenMaterial = graph.material; renderer.setRenderTarget(toScreen ? null : source(draw.to)); renderer.render(this.scene, this.camera);
     }
     if (this.row.drawnOnly === true) this.publish();
   }

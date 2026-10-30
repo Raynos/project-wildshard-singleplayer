@@ -254,7 +254,7 @@ export function postGraphLookOf(slug: string, input: unknown): LookStrategy {
     readonly channels: ReturnType<typeof frameChannels> | null; readonly textures: (() => void) | null } | null = null;
   const size = new Vector2();
 
-  const build = (camera: PerspectiveCamera, tier: Tier, renderer: Renderer, root: Object3D | null): Built => {
+  const build = (camera: PerspectiveCamera, tier: Tier, renderer: Renderer, root: Object3D | null, screen = false): Built => {
     const framed = root === null ? null : new FrameCamera(root);
     const view = framed?.pose(camera) ?? camera, pose = framed === null ? null : (): void => { framed.pose(camera); };
     const bag: UniformMap = { ...uniformsFrom(row.uniforms), ...(row.live === undefined ? {} : lentUniforms(row.live)), ...lut };
@@ -267,7 +267,7 @@ export function postGraphLookOf(slug: string, input: unknown): LookStrategy {
       const params = Object.fromEntries(Object.entries(side.params ?? {}).map(([key, link]) => [key, typeof link === 'number' ? { value: link } : need(bag, link)]));
       sides.set(side.pass, new ScaledPostPass(passRow(row, side.pass), { renderer, camera: view, links: { ...bag, ...uniformsFrom(side.constants ?? {}) }, params }));
     }
-    const frame = new ScaledPostPass(passRow(row, row.composite.pass), { renderer, camera: view, links: bag });
+    const frame = new ScaledPostPass(passRow(row, row.composite.pass), { renderer, camera: view, links: bag, ...(screen ? { screen: row.composite.output } : {}) });
     const display = new TextureEffect({ texture: black, blendFunction: BlendFunction.SRC });
     const show = display.update.bind(display);
     display.update = (r, target, dt): void => { display.texture = frame.output(row.composite.output) ?? black; show(r, target, dt); };
@@ -307,10 +307,12 @@ export function postGraphLookOf(slug: string, input: unknown): LookStrategy {
     dispose: (): void => { live = null; },
   };
   // its own composer: the scene pass, the sides, the graphs and the displayed frame (the tier's MSAA is the engine's)
+  const gradeToScreen = !(row.events ?? []).some(event => event.on.display !== undefined || event.off.display !== undefined);
   if (row.scene !== undefined) return { ...parts, mode: 'replace', compose: (c) => {
-    const built = build(c.camera, c.tier, c.renderer, null);
+    const built = build(c.camera, c.tier, c.renderer, null, gradeToScreen);
     bindPostGraphEvents(row.events, built.bag, built.display, c.app.events, c.scope);
-    return { chain: [new ShadowFirstRenderPass(c.scene, c.camera), ...built.passes, new EffectPass(c.camera, built.display)] };
+    // G924: with no event fading the displayed frame, the composite grades straight to the screen (no frame target, no copy)
+    return { chain: [new ShadowFirstRenderPass(c.scene, c.camera), ...built.passes, ...(gradeToScreen ? [] : [new EffectPass(c.camera, built.display)])] };
   } };
   return {
     ...parts,

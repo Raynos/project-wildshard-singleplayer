@@ -221,8 +221,9 @@ test('Nalati grades on the post-graph look: scene pass, desktop bloom side, the 
   Reflect.set(app, 'events', new Events());
   const chain = (tier: 'phone' | 'desktop'): string[] => look.compose({ app, scope: levelScope, debug: { expose: () => undefined }, renderer: render, scene, camera, composer: new EffectComposer(), tier }).chain.map(pass => pass.name);
   try {
-    expect(chain('desktop')).toEqual(['RenderPass', 'PostGraphBloom', 'PostGraphInputs', 'GradeV2Graph', 'EffectPass']);
-    expect(chain('phone')).toEqual(['RenderPass', 'PostGraphInputs', 'GradeV2Graph', 'EffectPass']);
+    // G924: no event fades the displayed frame, so the grade draws straight to the screen (no copy pass)
+    expect(chain('desktop')).toEqual(['RenderPass', 'PostGraphBloom', 'PostGraphInputs', 'GradeV2Graph']);
+    expect(chain('phone')).toEqual(['RenderPass', 'PostGraphInputs', 'GradeV2Graph']);
     expect(look.cell?.replaces).toBe('chain');
     // the grid cell carries the same chain, its desktop bloom included
     const cell = (tier: 'phone' | 'desktop'): string[] => (look.cell?.build({ root: new THREE.Group(), camera, renderer: render, tier, scope: levelScope }).passes ?? []).map(pass => pass.name);
