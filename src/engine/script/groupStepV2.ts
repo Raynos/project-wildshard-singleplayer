@@ -41,6 +41,8 @@ export interface GroupStepOperationV2 {
   readonly native?: Readonly<GroupStepNativeV2>;
 }
 const stateSlice:unknown=Reflect.get(Float64Array.prototype,'slice');
+/** whether a Float64Array writes the bytes DataView.setFloat64(…, true) writes (every supported engine: little-endian) */
+const LITTLE_ENDIAN=new Uint8Array(Float64Array.of(1).buffer)[7]===0x3f;
 function sameRng(a: RngState, b: RngState): boolean {
   return a.version === b.version && a.state === b.state && a.initial === b.initial && a.scrambledFork === b.scrambledFork;
 }
@@ -71,6 +73,8 @@ export class GroupStepV2 {
       observations: Array.from({length:rows.members},()=>new Float64Array(rows.columns.length)),
       actions: new Map(rows.actions.map(row=>{if(row.native!==undefined)freezeNative(row.native);return [row.id,row];})),
       order: rows.columns.map((row,column)=>({name:row.name,index:column})).sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0).map(row=>row.index),
+      /** the last capture selection's common names (a copy) and the columns they select: a group asks the same each segment */
+      selection: undefined as { readonly names: readonly string[]; readonly selected: readonly boolean[] } | undefined,
     };});
     const source = Uint8Array.from(bytes), admitted = admitScriptV2(source, { lane: 'project', ioBytes: this.layout.bytes });
     if (admitted.io !== 0 || admitted.initialPages !== this.rows.pages) throw new Error('Group step module layout mismatch');
@@ -136,9 +140,13 @@ export class GroupStepV2 {
       const identities = input.members.filter(owners => owners.self.actor !== null).map(owners => owners.self.identity);
       if (new Set(identities).size !== identities.length) throw new Error('Duplicate group body loan');
       const selection=input.capture,common=selection?.common.slice(),captureSlots=selection?.slots.slice();
-      if(selection!==undefined&&(selection.common.length>128||selection.slots.length>16||selection.common.some(name=>!profile.rows.columns.some(row=>row.name===name))
+      // The admitted columns never change: the same common names (element by element) select the same columns as last time
+      const known=profile.selection,same=selection!==undefined&&known!==undefined&&known.names.length===selection.common.length
+        &&selection.common.every((name,index)=>name===known.names[index]);
+      if(selection!==undefined&&(selection.common.length>128||selection.slots.length>16||!same&&selection.common.some(name=>!profile.rows.columns.some(row=>row.name===name))
         ||selection.slots.some(slot=>!Number.isInteger(slot)||slot<0||slot>=input.members.length)))throw new Error('Invalid group capture selection');
-      const selected=selection===undefined?undefined:profile.rows.columns.map(row=>selection.common.includes(row.name));
+      if(selection!==undefined&&!same)profile.selection={names:selection.common.slice(),selected:profile.rows.columns.map(row=>selection.common.includes(row.name))};
+      const selected=selection===undefined?undefined:profile.selection?.selected;
       const members = input.members.map((owners, slot) => {
         if (owners.scope !== this.scope || owners.self.group !== input.group || owners.self.slot !== slot) throw new Error('Foreign group member loan');
         const referenceOwner = owners.references;
@@ -210,7 +218,9 @@ export class GroupStepV2 {
         view.setUint32(b+28,parameters,true);view.setUint32(b+40,fieldCount,true);view.setUint32(b+44,6,true);
         view.setInt32(b+48,stamp,true);view.setInt32(b+52,stamp,true);view.setUint32(b+56,this.rows.fuel,true);
         view.setUint32(o,input.handle,true);view.setInt32(o+16,stamp,true);
-        for(let index=0;index<originalState.length;index++)view.setFloat64(state+index*8,originalState[index]??0,true);
+        // one bulk copy of the same little-endian words where the bank region is 8-aligned
+        if(LITTLE_ENDIAN&&(view.byteOffset+state)%8===0)new Float64Array(view.buffer,view.byteOffset+state,originalState.length).set(originalState);
+        else for(let index=0;index<originalState.length;index++)view.setFloat64(state+index*8,originalState[index]??0,true);
         view.setFloat64(p,signal,true);view.setFloat64(p+8,members.length,true);
         if(parameters===3)view.setFloat64(p+16,profileIndex,true);
         let field=0;
