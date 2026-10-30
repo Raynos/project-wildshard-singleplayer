@@ -11,9 +11,11 @@ import { Actor, Move, Strike, Timer, State, Params, Do, Read, Event } from './ge
 @inline function climb(phase:i32):void {
   State.step=phase*10+3; Do.move(Actor.matriarch,phase==0?Move.climb:Move.stormClimb);
 }
+// Mode 0 is a phase not yet flown: a fresh fight (step 0), or a retry whose kept phase arrived as a threshold while the
+// fight was off (step 10). Either starts circling at that phase; without it a retried fight in the storm never moved again.
 export function onStart():void {
-  if(State.step!=0) return;
-  orbit(0); Do.timer(Timer.beat,Params.firstRest);
+  if(State.step%10!=0) return;
+  orbit(State.step/10); Do.timer(Timer.beat,Params.firstRest);
 }
 export function onStop():void { Do.stop(Actor.matriarch); Do.timer(Timer.beat,0); State.step=0; }
 export function onThreshold(index:i32):void {

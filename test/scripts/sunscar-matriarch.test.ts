@@ -31,3 +31,13 @@ test('the published Matriarch guest flies, grounds and restores without replayin
   expect(boss.maxFuel()).toBeLessThan(400_000);
   expect(boss.host.metrics()[0]).toMatchObject({ refusals: 0, disabled: false });
 }, 2_000);
+test('a retried fight in the storm starts circling at its kept phase', async () => {
+  // A retry restores the guest's start state while the encounter keeps its phase: the phase arrives as a threshold
+  // before the fight restarts, and the restarted fight must fly (it hung on its last idle steering and left the map).
+  const boss = await scenario('sunscar-dunes', 'sunscar.matriarch.decision', { productDirectory: directory, seed: 6511,
+    actors: [{ id: 'matriarch', at: [-14, 18, -150] }], players: [{ id: 101, at: [-14, 0, -130] }] });
+  boss.send('threshold', 'matriarch', 1); expect(boss.commands()).toEqual([]); expect(boss.state()).toEqual({ step: 10 });
+  boss.send('start');
+  expect(boss.commands(), JSON.stringify(boss.trace().slice(-3))).toEqual([['move', 'matriarch', 'stormOrbit'], ['timer', 'beat', 3]]);
+  boss.advance(3); expect(boss.commands()).toContainEqual(['move', 'matriarch', 'stormDive', 101]);
+}, 2_000);
