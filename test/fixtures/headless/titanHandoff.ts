@@ -7,13 +7,19 @@ const natural=v.pipe(v.number(),v.safeInteger(),v.minValue(0));
 const digest=v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u));
 export const TitanPartSchema=v.strictObject({plan:HeadlessTapePlanSchema,expected:HeadlessTapeReportSchema,digest});
 export type TitanPart=v.InferOutput<typeof TitanPartSchema>;
-export const TitanHandoffSchema=v.strictObject({version:v.literal(1),source:digest,snapshot:v.pipe(v.string(),v.maxLength(24_000_000)),digest,
-  checkpointTick:natural,captureTicks:natural,initialKills:natural,
-  parts:v.pipe(v.array(TitanPartSchema),v.minLength(1),v.maxLength(128))});
+const handoffFields={version:v.literal(1),source:digest,snapshot:v.pipe(v.string(),v.maxLength(24_000_000)),digest,
+  checkpointTick:natural,captureTicks:natural,initialKills:natural};
+export const TitanHandoffSchema=v.pipe(v.variant('stage',[
+  // Entry has consumed no combat inputs. Its real initialization commit is
+  // checked independently before the first combat part may be recorded.
+  v.strictObject({...handoffFields,stage:v.literal('storm'),parts:v.tuple([])}),
+  v.strictObject({...handoffFields,stage:v.literal('fire'),parts:v.pipe(v.array(TitanPartSchema),v.minLength(1),v.maxLength(128))}),
+]),v.check(value=>value.stage==='storm'?value.captureTicks===value.checkpointTick:
+  value.parts.at(-1)?.expected.observations[0]?.tick===value.captureTicks,'Handoff must end at its actual checked tick'));
 export type TitanHandoff=v.InferOutput<typeof TitanHandoffSchema>;
 export const titanWireHash=(wire:string):string=>createHash('sha256').update(wire).digest('hex');
 
-/** The second case inherits the first case's actual, checked inputs and
+/** Every combat case inherits the preceding case's actual, checked inputs and
  * observations. A fresh worker does not grant a second tape allowance. */
 export function checkTitanLedger(parts:readonly TitanPart[],checkpointTick:number):void{
   let tick=checkpointTick,commands=0,bytes=0;

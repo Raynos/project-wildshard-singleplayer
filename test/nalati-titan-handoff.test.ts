@@ -1,5 +1,6 @@
 import {expect,test} from 'vitest';
-import {checkTitanLedger,type TitanPart} from './fixtures/headless/titanHandoff';
+import * as v from 'valibot';
+import {checkTitanLedger,TitanHandoffSchema,type TitanPart} from './fixtures/headless/titanHandoff';
 
 function parts(count:number,ticks=1,commands=0,ownerBytes=0):TitanPart[]{
   return Array.from({length:count},(_,index)=>({plan:{version:1,observe:['nalati.titan','nalati.weapons','nalati.chapter-records'],
@@ -35,4 +36,14 @@ test('a handoff cannot omit, reorder or relabel the checked input intervals',()=
   expect(()=>checkTitanLedger(selection,900)).toThrow('ordered');
   const truncated=parts(2);entry(entry(truncated,1).plan.segments,0).frames?.pop();
   expect(()=>checkTitanLedger(truncated,900)).toThrow('ordered');
+});
+
+test('only the checked pre-combat storm handoff may have an empty combat ledger',()=>{
+  const common={version:1,source:'a'.repeat(64),snapshot:'actual-wire',digest:'b'.repeat(64),checkpointTick:900,captureTicks:900,initialKills:0};
+  expect(()=>v.parse(TitanHandoffSchema,{...common,stage:'storm',parts:[]})).not.toThrow();
+  expect(()=>v.parse(TitanHandoffSchema,{...common,stage:'storm',captureTicks:901,parts:[]})).toThrow();
+  expect(()=>v.parse(TitanHandoffSchema,{...common,stage:'storm',captureTicks:901,parts:parts(1)})).toThrow();
+  expect(()=>v.parse(TitanHandoffSchema,{...common,stage:'fire',parts:[]})).toThrow();
+  expect(()=>v.parse(TitanHandoffSchema,{...common,stage:'fire',captureTicks:901,parts:parts(1)})).not.toThrow();
+  expect(()=>v.parse(TitanHandoffSchema,{...common,stage:'fire',captureTicks:902,parts:parts(1)})).toThrow();
 });

@@ -10,26 +10,33 @@ import {afterAll,describe,expect,test} from 'vitest';
 import {titanWireHash} from './fixtures/headless/titanHandoff';
 
 mkdirSync(resolve('tmp'),{recursive:true});
-const directory=mkdtempSync(resolve('tmp/nalati-titan-')),handoff=resolve(directory,'earned.json');
-let checkedHash:string|undefined;
+const directory=mkdtempSync(resolve('tmp/nalati-titan-')),storm=resolve(directory,'storm.json'),fire=resolve(directory,'fire.json');
+let stormHash:string|undefined,fireHash:string|undefined;
 afterAll(()=>{rmSync(directory,{recursive:true,force:true});});
-function run(stage:'opening'|'victory',hash?:string):string{
+function run(stage:'entry'|'opening'|'victory',input:string,hash?:string,output?:string):string{
   const started=performance.now();
   const child=spawnSync(process.execPath,['--experimental-transform-types','--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
-    resolve('test/fixtures/headless/nalati-titan-run.ts'),stage,handoff,...(hash===undefined?[]:[hash])],{encoding:'utf8',timeout:150_000});
+    resolve('test/fixtures/headless/nalati-titan-run.ts'),stage,input,...(hash===undefined?[]:[hash]),...(output===undefined?[]:[output])],{encoding:'utf8',timeout:150_000});
   expect(child.status,child.stdout+child.stderr+String(child.error??'')+(child.signal??'')).toBe(0);
   expect(child.stdout).toContain(`"story":"titan-${stage}"`);
   process.stdout.write(child.stdout);process.stdout.write(`${JSON.stringify({case:stage,childMs:performance.now()-started})}\n`);return child.stdout;
 }
 describe('the complete natural Titan fight',()=>{
-  test('real storm, mounted arrows and support combat earn the checked fire phase',()=>{
-    const report=run('opening'),hash=titanWireHash(readFileSync(handoff,'utf8'));
-    expect(report).toContain(`"hash":"${hash}"`);checkedHash=hash;
+  test('natural storm, real entry and borrowed mount earn the checked cairn checkpoint',()=>{
+    const report=run('entry',storm),hash=titanWireHash(readFileSync(storm,'utf8'));
+    expect(report).toContain(`"hash":"${hash}"`);stormHash=hash;
   },180_000);
-  test('the exact earned continuation wins and replays the remaining fight',()=>{
-    expect(checkedHash,'the first case must earn and fully replay its checkpoint').toBeDefined();
-    if(checkedHash===undefined)throw new Error('Missing checked Titan continuation');
-    expect(titanWireHash(readFileSync(handoff,'utf8'))).toBe(checkedHash);
-    run('victory',checkedHash);
+  test('the exact storm checkpoint earns the checked fire phase through real combat',()=>{
+    expect(stormHash,'the first case must physically earn its storm checkpoint').toBeDefined();
+    if(stormHash===undefined)throw new Error('Missing checked storm continuation');
+    expect(titanWireHash(readFileSync(storm,'utf8'))).toBe(stormHash);
+    const report=run('opening',storm,stormHash,fire),hash=titanWireHash(readFileSync(fire,'utf8'));
+    expect(report).toContain(`"hash":"${hash}"`);fireHash=hash;
+  },180_000);
+  test('the exact earned fire continuation wins and replays the remaining fight',()=>{
+    expect(fireHash,'the preceding case must earn and fully replay its checkpoint').toBeDefined();
+    if(fireHash===undefined)throw new Error('Missing checked Titan continuation');
+    expect(titanWireHash(readFileSync(fire,'utf8'))).toBe(fireHash);
+    run('victory',fire,fireHash);
   },180_000);
 });
