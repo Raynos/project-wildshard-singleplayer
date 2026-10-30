@@ -28,7 +28,7 @@ import { ItemCatalogue } from '@wildshard/game/loadout/itemCatalogue';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { HeldDecision } from './heldDecision';
+import { PolearmDecision } from './polearmDecision';
 
 type JavelinProfile = schema.InferOutput<typeof ThrownWeaponProfileSchema>;
 
@@ -124,11 +124,8 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
   private viewOwner: Scope;
   private javs: Jav[] = [];
 
-  private thrustT = -1; private hitDone = false; private queued = false;
-  private rehit = new Map<object, number>();
   private rmbDown = false; private rmbT = 0;
 
-  private windT = -1; private throwT = -1; private releaseQueued = false; private throwPrev = false; private threw = false;
 
   private lanceBlend = 0;
 
@@ -136,14 +133,13 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
   private fov = this.profile.feel.fovHip; private baseFov = 0; private jolt = 0; private sprintBlend = 0;
   private throwBlend = 0; private inHand = false; private aimFrame = 0;
   private aimCache: AimInfo = { kind: 'deer', distance: 0 };
-  private prevPos = new Map<object, THREE.Vector3>();
 
   private readonly view: HeldPolearmView;
-  private readonly law:HeldDecision;
+  /** the thrust / lance / javelin decisions (renderer-free, CI12) */
+  private readonly law:PolearmDecision<AimTarget>;
   private geometry:ReadonlyMap<string,THREE.BufferGeometry>;
   private readonly readGeometry: (() => Promise<ReadonlyMap<string,THREE.BufferGeometry>>) | undefined;
   private readonly presentation:PolearmPresentation;
-  private attackPending=false;private tapPending=false;private decisionT=0;private lanceActive=false;
 
   constructor(w: HeldPolearmWorld, targets: Targets | undefined, opts: HeldPolearmOptions<P>) {
     super(opts.profile, app.combat);
@@ -152,7 +148,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
     this.projectile = opts.javelin; this.javelins = carried;
     for (let i = 0; i < this.projectile.pool; i++) this.javs.push({ state: 0, pos: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion(), age: 0 });
     this.arcPos = new Float32Array(this.projectile.arcPoints * 3);
-    this.view = opts.view;this.law=new HeldDecision(opts.program,w.game.levelScope);this.presentation=opts.presentation;
+    this.view = opts.view;this.law=new PolearmDecision<AimTarget>(opts.program,w.game.levelScope);this.presentation=opts.presentation;
     this.viewOwner=opts.owner??w.game.levelScope;
     this.readGeometry=typeof opts.geometry==='function'?opts.geometry:undefined;
     this.geometry=typeof opts.geometry==='function'?new Map():opts.geometry;
@@ -215,29 +211,17 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
     app.input.onReset(() => { this.rmbDown = false; }, ctx.scope);
   }
 
-  tryFire():void{this.attackPending=true;}
-  private requestThrow():void{this.tapPending=true;}
+  tryFire():void{this.law.attackPending=true;}
+  private requestThrow():void{this.law.tapPending=true;}
   private part(name:string):THREE.BufferGeometry{const part=this.geometry.get(name);if(part===undefined)throw new Error(`Missing polearm part ${name}`);return part.clone();}
   private decide(dt:number,t:number):void{
-   this.decisionT+=dt;if(this.decisionT<.1-1e-9)return;
-   const p=this.player.position,heading=this.mount?.yaw??this.player.yaw,fx=-Math.sin(heading),fz=-Math.cos(heading);
-   const candidates:Record<string,number>[]=[],targets:AimTarget[]=[];
-   for(const a of [...app.aimTargets].filter(target=>target.alive&&target.hidden!==true).sort((left,right)=>left.position.distanceToSquared(p)-right.position.distanceToSquared(p))){
-    if(targets.length>=6)break;
-    const prev=this.prevPos.get(a),dx=a.position.x-p.x,dz=a.position.z-p.z,d=Math.hypot(dx,dz);
-    const vx=prev===undefined?0:(a.position.x-prev.x)/Math.max(this.decisionT,.001),vz=prev===undefined?0:(a.position.z-prev.z)/Math.max(this.decisionT,.001);
-    targets.push(a);candidates.push({kind:0,id:targets.length,live:Number(a.alive&&a.hidden!==true&&prev!==undefined),distance:d,radius:targetRadius(a),height:Math.abs(a.position.y-p.y),angle:Math.acos(THREE.MathUtils.clamp((dx*fx+dz*fz)/Math.max(d,.0001),-1,1)),closing:-(vx*dx+vz*dz)/Math.max(d,.0001),since:t-(this.rehit.get(a)??-1e9)});
-   }
-   for(const [i,j] of [...this.javs.entries()].filter(([,slot])=>slot.state===2).sort(([,left],[,right])=>left.pos.distanceToSquared(p)-right.pos.distanceToSquared(p))){if(candidates.length>=8)break;candidates.push({kind:1,id:i+1,distance:Math.hypot(j.pos.x-p.x,j.pos.z-p.z),height:Math.abs(j.pos.y-p.y),random:gameplayRandom()});}
-   const policy=this.profile,projectile=this.projectile,v=this.law.update(this.decisionT,{mode:0,held:Number(this.model.visible),enabled:Number(this.enabled),ads:Number(this.adsHeld),previousAds:Number(this.throwPrev),attack:Number(this.attackPending),tap:Number(this.tapPending),ammo:this.javelins,capacity:this.maxJavelins,thrust:this.thrustT,wind:this.windT,throwing:this.throwT,queued:Number(this.queued),release:Number(this.releaseQueued),threw:Number(this.threw),hit:Number(this.hitDone),windup:policy.thrust.windup,activeEnd:policy.thrust.activeEnd,total:policy.thrust.total,throwWindup:projectile.windup,throwRelease:projectile.release,recovery:projectile.recovery,mounted:Number(this.mount!==null),speed:this.mount?.speed??0,minSpeed:policy.lance.minSpeed,lanceReach:policy.lance.reach,cone:policy.lance.cone,rehit:policy.lance.rehit,baseDamage:policy.lance.baseDamage,speedDamage:policy.lance.speedDamage,pickupRadius:projectile.pickupRadius,pickupHeight:projectile.pickupHeight,survive:projectile.survive},candidates);
-   if(v===null)return;
-   for(const target of targets)this.prevPos.set(target,target.position.clone());this.decisionT=0;this.attackPending=false;this.tapPending=false;
-   this.thrustT=v['thrust']??-1;this.windT=v['wind']??-1;this.throwT=v['throwing']??-1;this.queued=v['queued']===1;this.releaseQueued=v['release']===1;this.threw=v['threw']===1;this.hitDone=v['hit']===1;this.throwPrev=v['previousAds']===1;this.lanceActive=v['lance']===1;
-   if(v['start']===1)this.onFire?.();if(v['dry']===1)this.onDry?.();if(v['charge']===1)this.chargeEvent('throw',0);if(v['launch']===1)this.launch();if(v['strike']===1)this.thrustHit();
-   const target=targets[(v['target']??0)-1];if(target!==undefined)this.lanceContact(target,v['damage']??0,t);
-   const j=this.javs[(v['pickup']??0)-1];if(j!==undefined){j.state=0;if(v['recover']===1){this.javelins++;this.onPickup?.(this.javelins);this.chargeEvent('recover',this.javelins);}}
+   const out=this.law.decide(dt,t,{player:this.player.position,heading:this.mount?.yaw??this.player.yaw,held:this.model.visible,enabled:this.enabled,ads:this.adsHeld,
+    ammo:this.javelins,capacity:this.maxJavelins,mount:this.mount,targets:app.aimTargets,radius:targetRadius,javelins:this.javs,random:gameplayRandom,policy:this.profile,projectile:this.projectile});
+   if(out===null)return;
+   if(out.start)this.onFire?.();if(out.dry)this.onDry?.();if(out.charge)this.chargeEvent('throw',0);if(out.launch)this.launch();if(out.strike)this.thrustHit();
+   if(out.target!==undefined)this.lanceContact(out.target,out.damage,t);
+   const j=this.javs[out.pickup];if(j!==undefined){j.state=0;if(out.recover){this.javelins++;this.onPickup?.(this.javelins);this.chargeEvent('recover',this.javelins);}}
   }
-
   private build(): THREE.InstancedMesh {
     const look=this.presentation.materials;
     const mat = painterlyMaterial(this.sky, { vertexColors: true, rim: look.rim, bands: look.bands, transparent: true, depthWrite: true }); mat.name = 'held-viewmodel';
@@ -410,7 +394,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
    _dir.subVectors(_v1,_commandOrigin);const len=_dir.length();_dir.multiplyScalar(1/Math.max(len,.0001));
    const hit=this.targets?.raycast(_commandOrigin,_dir,len+1)??null;if(hit===null||!this.same(hit.animal,a))return;
    const result=this.contact(hit.animal,dmg,hit.point,_dir,_commandOrigin,'move.lance');if(!result)return;
-   this.rehit.set(a,t);if(!result.killed)hit.animal.stagger?.(_v2.set(a.position.x-this.player.position.x,0,a.position.z-this.player.position.z).normalize(),1);
+   this.law.struck(a,t);if(!result.killed)hit.animal.stagger?.(_v2.set(a.position.x-this.player.position.x,0,a.position.z-this.player.position.z).normalize(),1);
    this.jolt=1.4;this.onHit?.(hit.animal.kind,false,result.killed);this.onImpact?.('flesh',hit.point);
   }
   private same(a: TargetAnimal, b: AimTarget): boolean { return a.position === b.position; }
@@ -430,7 +414,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
       if (!result) continue;
       const killed = result.killed;
       if (!killed) hit.animal.stagger?.(_v2.set(_fwd.x, 0, _fwd.z).normalize(), this.profile.thrust.stagger);
-      this.hitDone = true; this.jolt = 1;
+      this.law.hitDone = true; this.jolt = 1;
       this.onHit?.(hit.animal.kind, false, killed);
       this.onImpact?.('flesh', hit.point);
       return;
@@ -440,12 +424,8 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
   update(dt: number, t: number): void {
     const p = this.player, cam = this.game.camera;
     const inHand = this.model.visible;
-    if (!inHand || !this.enabled) {
-
-      this.rmbDown = false;
-      if (this.windT >= 0 && !inHand) { this.windT = -1; this.releaseQueued = false; }
-      if (!inHand) { this.thrustT = -1; this.queued = false; }
-    }
+    if (!inHand || !this.enabled) this.rmbDown = false;
+    this.law.stow(inHand, this.enabled);
     if (inHand !== this.inHand) { this.inHand = inHand; if (!inHand) { p.moveScale = 1; p.swinging = false; } }
 
     if (inHand) {
@@ -463,12 +443,12 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
     p.moveScale = 1;
 
     this.decide(dt,t);
-    const lance=this.lanceActive;
-    if(inHand)p.swinging=this.thrustT>=0;
+    const lance=this.law.lanceActive;
+    if(inHand)p.swinging=this.law.thrustT>=0;
     this.flyJavelins(dt);
-    this.state.bolts = this.javelins; this.state.loaded = this.javelins > 0; this.state.ads = this.windT >= 0;
+    this.state.bolts = this.javelins; this.state.loaded = this.javelins > 0; this.state.ads = this.law.windT >= 0;
 
-    const thrustPose=this.thrustT<0?-1:this.thrustT+this.decisionT,windPose=this.windT<0?-1:this.windT+this.decisionT,throwPose=this.throwT<0?-1:this.throwT+this.decisionT;
+    const thrustPose=this.law.thrustT<0?-1:this.law.thrustT+this.law.decisionT,windPose=this.law.windT<0?-1:this.law.windT+this.law.decisionT,throwPose=this.law.throwT<0?-1:this.law.throwT+this.law.decisionT;
     this.jolt *= Math.exp(-dt * 14);
     const throwing = windPose >= 0 || throwPose >= 0;
     this.throwBlend += ((throwing ? 1 : 0) - this.throwBlend) * (1 - Math.exp(-dt * (throwing ? 16 : 8)));
@@ -512,7 +492,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
       if (windPose >= 0) { _vCock.x += Math.sin(t * 31) * 0.002 * wind; _vCock.z += 0.02 * wind * sstep(0.6, 1, windPose / this.projectile.windup); } // drawn back taut
       hp.lerp(_vCock, tb); hq.slerp(_qCock, tb);
     }
-    this.heldJav.visible = (windPose >= 0 || (throwPose >= 0 && !this.threw)) && this.javelins > 0;
+    this.heldJav.visible = (windPose >= 0 || (throwPose >= 0 && !this.law.threw)) && this.javelins > 0;
 
     const sf = p.speedFactor, m = 1;
     const swX = Math.sin(t * this.profile.feel.sway.fx) * this.profile.feel.sway.ax, swY = Math.sin(t * this.profile.feel.sway.fy) * this.profile.feel.sway.ay;
