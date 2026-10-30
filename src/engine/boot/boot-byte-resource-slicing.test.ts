@@ -15,7 +15,7 @@ const tableSlot = Symbol.for('engine.asset-tables');
 const previousTables = Object.getOwnPropertyDescriptor(globalThis, tableSlot);
 const files: ChunkFiles = { sky: [], baked: [], terrain: [], trees: [], cabins: [], props: Array.from({ length: 12 }, (_, i) => `/assets/byte-slice-${String(i)}.png`), physics: [], art: [], music: [], sfx: [] };
 const frames: ((time: number) => void)[] = [];
-let now = 1000, cost = 0, extractionCost = 0, extractions = 0;
+let now = 1000, cost = 0, extractionCost = 0, extractions = 0, disconnections = 0;
 let deliver: (entries: PerformanceResourceTiming[]) => void = () => { throw new Error('Observer is not installed'); };
 
 beforeAll(() => {
@@ -24,11 +24,12 @@ beforeAll(() => {
       deliver = entries => { receive(legacyDouble<PerformanceObserverEntryList>({ getEntries: () => { extractions++;now += extractionCost;return entries; } }), legacyDouble<PerformanceObserver>({})); };
     }
     observe(): void { /* The fixture supplies exact native resource batches. */ }
+    disconnect(): void { disconnections++; }
   });
   window.fetch = () => Promise.resolve(new Response(new Uint8Array([1, 2, 3])));
 });
 beforeEach(() => {
-  vi.useFakeTimers();now = 1000;cost = 0;extractionCost = 0;extractions = 0;frames.length = 0;
+  vi.useFakeTimers();now = 1000;cost = 0;extractionCost = 0;extractions = 0;disconnections = 0;frames.length = 0;
   vi.spyOn(performance, 'now').mockImplementation(() => now);
   initializeTier('phone');setBuildHeld(false);noteFrameDrawn(Number.NEGATIVE_INFINITY);
   Reflect.set(globalThis, 'MessageChannel', undefined);
@@ -125,4 +126,24 @@ test('fetch-counted paths remain excluded from resource timing credit', async ()
   const response = await window.fetch(name);await response.arrayBuffer();await vi.runAllTimersAsync();
   const before = { filesDone: plan.view.filesDone, bytesRead: plan.view.bytesRead };
   deliver([entry(name, 10)]);expect(plan.view).toMatchObject(before);expect(frames).toHaveLength(0);
+});
+
+
+test('a replacement transport owns its exact bytes and retires the old resource watch', async () => {
+  const first = counter(), original = window.fetch, before = disconnections;
+  const replacement = vi.fn<typeof window.fetch>(() => Promise.resolve(new Response(new Uint8Array([7, 8, 9]))));
+  window.fetch = replacement;
+  try {
+    const next = counter(), [name] = files.props;
+    if (name === undefined) throw new Error('Missing declared path');
+    expect(disconnections).toBe(before + 1);
+    const response = await window.fetch(name);
+    expect(new Uint8Array(await response.arrayBuffer())).toEqual(new Uint8Array([7, 8, 9]));
+    await vi.runAllTimersAsync();
+    expect(replacement).toHaveBeenCalledOnce();
+    expect(next.plan.view).toMatchObject({ filesDone: 1, bytesRead: 3 });
+    expect(first.plan.view).toMatchObject({ filesDone: 0, bytesRead: 0 });
+    deliver([entry(name, 99)]);
+    expect(next.plan.view).toMatchObject({ filesDone: 1, bytesRead: 3 });
+  } finally { window.fetch = original; }
 });

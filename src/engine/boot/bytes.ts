@@ -105,7 +105,8 @@ function versionedFetch(net: typeof window.fetch): typeof window.fetch {
 interface Counting { sourceOf: Map<string, ByteKey>; reader: (k: ByteKey) => ByteProgress; seen: Set<string>; finished: Set<string>; plan: Plan<BootStep>;
   resourceBatches: PerformanceObserverEntryList[]; drainingResources: boolean }
 let counting: Counting | null = null;
-let counterInstalled = false;
+let counterFetch: typeof window.fetch | undefined;
+let counterObserver: PerformanceObserver | undefined;
 
 export function installByteCounter(plan: Plan<BootStep>, files: ChunkFiles): void {
   const sourceOf = new Map<string, ByteKey>();
@@ -165,13 +166,14 @@ function creditResources(c: Counting, list: PerformanceObserverEntryList): void 
   void drain();
 }
 
-/** the fetch layer + the resource-timing watch, once per page; they read the running boot's `counting` */
+/** Bind the fetch layer and resource watch to the current transport; both read the running boot's counter. */
 function installCounter(): void {
-  if (counterInstalled) return;
-  counterInstalled = true;
+  if (counterFetch !== undefined && window.fetch === counterFetch) return;
+  counterObserver?.disconnect();
+  counterObserver = undefined;
 
   const orig = versionedFetch(window.fetch.bind(window)); // the innermost layer: the network sees `?v=` (versionedUrl)
-  window.fetch = async (input, init) => {
+  const counted: typeof window.fetch = async (input, init) => {
     const c = counting;
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     const p = pathOf(url);
@@ -191,6 +193,9 @@ function installCounter(): void {
     return new Response(a, { status: res.status, statusText: res.statusText, headers: res.headers });
   };
 
+  window.fetch = counted;
+  counterFetch = counted;
+
   // <img>-loaded files never pass through fetch: credit them when resource timing reports them done.
   if ('PerformanceObserver' in window) {
     const po = new PerformanceObserver((list) => {
@@ -199,6 +204,7 @@ function installCounter(): void {
       creditResources(c, list);
     });
     po.observe({ type: 'resource', buffered: true });
+    counterObserver = po;
   }
 }
 
