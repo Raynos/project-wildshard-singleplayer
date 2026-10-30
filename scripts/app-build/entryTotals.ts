@@ -10,6 +10,9 @@ import {entryReadSet} from './entryReadSet';
 import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifestAddress} from '../../src/format/spawnManifest';
 import {contentNamed} from './assetHashes';
+import {homedir} from 'node:os';
+import {brotliCompressSync, constants} from 'node:zlib';
+import {BrotliSizeCache} from '../brotli-size-cache.mjs';
 import {ASSET_CACHE_NAME} from '../../src/engine/pwa/cacheNames';
 
 const size = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
@@ -32,6 +35,15 @@ export interface SpawnManifestBook {
 export function writeSpawnManifests(outDir: string, input: unknown,
   strips: Readonly<Record<string, Readonly<Record<string, readonly Address[]>>>>, root: string): SpawnManifestBook {
   const bank = v.parse(schema, input), publicRoot = resolve(root, 'public'), output = resolve(outDir), assets = new Map<string, SpawnFile>();
+  const encoded = new BrotliSizeCache(process.env['WILDSHARD_WIRE_SIZE_CACHE'] ?? resolve(homedir(), '.cache/wildshard/gen/served-bytes/1'));
+  const wireSizes = new Map<string, number>();
+  const wireBytes = (url: string, bytes: Uint8Array, hash: string): number => {
+    const key = `${hash}:${url}`, previous = wireSizes.get(key); if (previous !== undefined) return previous;
+    // Match the deployed/preview representation; Rapier retains its precompressed native body.
+    const length = bytes.length < 1024 || /\.(?:png|jpe?g|webp|avif|gif|ico|woff2?|ttf|mp4|webm|mp3|ogg|m4a|wav)$/iu.test(url) ? bytes.length
+      : url === '/assets/physics/rapier.wasm' ? brotliCompressSync(bytes, {params: {[constants.BROTLI_PARAM_QUALITY]: 11}}).length : encoded.bytes(bytes);
+    wireSizes.set(key, length); return length;
+  };
   const bytesFor = (url: string): Uint8Array => {
     if (!/^\/(?:assets|basis|fonts)\/(?:[a-zA-Z0-9_.-]+\/)*[a-zA-Z0-9_.-]+$/u.test(url) || url.split('/').includes('..')) throw new Error('Unsafe spawn asset URL');
     const emitted = join(output, url.slice(1)), authored = join(publicRoot, url.slice(1));
@@ -44,7 +56,7 @@ export function writeSpawnManifests(outDir: string, input: unknown,
     const bytes = bytesFor(url), hash = createHash('sha256').update(bytes).digest('hex');
     if (declared !== undefined && declared !== bytes.length) throw new Error(`Spawn asset size differs: ${url}`);
     const versioned = contentNamed(url) || /[-_][a-zA-Z0-9_-]{8}\.(?:js|css)$/u.test(url) || url.startsWith('/basis/r');
-    const row = {url: versioned ? url : `${url}?v=${hash.slice(0, 8)}`, bytes: bytes.length, hash};
+    const row = {url: versioned ? url : `${url}?v=${hash.slice(0, 8)}`, bytes: bytes.length, hash, wireBytes: wireBytes(url, bytes, hash)};
     assets.set(url, row); return row;
   };
   const common: SpawnFile[] = [];
@@ -75,11 +87,19 @@ export function writeSpawnManifests(outDir: string, input: unknown,
       sections.set(row.name, JSON.parse(bytes.toString('utf8')));
     }
     const source = assembleOutputShardfile(raw, sections), headerHash = createHash('sha256').update(header).digest('hex');
-    const productFile = (path: string, bytes: number, hash: string): SpawnFile => ({url: /\/[a-f0-9]{64}\.[a-z0-9]+$/u.test(path)
-      ? `${prefix}${path}` : `${prefix}${path}?v=${hash.slice(0, 8)}`, bytes, hash});
+    const productFile = (path: string, bytes: number, hash: string): SpawnFile => {
+      let wire = wireSizes.get(`${hash}:${path}`);
+      if (wire === undefined) {
+        const body = readFileSync(join(product, path));
+        if (body.length !== bytes || createHash('sha256').update(body).digest('hex') !== hash) throw new Error('Spawn file differs from index');
+        wire = wireBytes(path, body, hash);
+      }
+      return {url: /\/[a-f0-9]{64}\.[a-z0-9]+$/u.test(path)
+      ? `${prefix}${path}` : `${prefix}${path}?v=${hash.slice(0, 8)}`, bytes, hash, wireBytes: wire};
+    };
     const write = (tier: 'phone' | 'desktop', flow: 'client' | 'grid', addresses: readonly Address[] = []): SpawnManifestAddress => {
       const selected = new Map<string, SpawnFile>(), add = (row: SpawnFile): void => {selected.set(row.url, row);};
-      add({url: `${prefix}shard.json?v=${headerHash.slice(0, 8)}`, bytes: header.length, hash: headerHash});
+      add({url: `${prefix}shard.json?v=${headerHash.slice(0, 8)}`, bytes: header.length, hash: headerHash, wireBytes: wireBytes(`${prefix}shard.json`, header, headerHash)});
       for (const row of [...index.sections, ...index.schemas]) add(productFile(row.path, row.bytes, row.hash));
       const wanted = entryReadSet(source, tier, index, sections);
       for (const row of index.files) if (wanted.has(row.hash)) add(productFile(row.path, row.compressed, row.hash));
@@ -108,10 +128,10 @@ export function writeSpawnManifests(outDir: string, input: unknown,
         if (inventory.length !== extra[1] || createHash('sha256').update(inventory).digest('hex') !== extra[3]) throw new Error('Spawn public inventory differs');
         for (const [url, bytes] of v.parse(files, JSON.parse(new TextDecoder().decode(inventory)))) add(asset(url, bytes));
       }
-      const rows = [...selected.values()], totalBytes = rows.reduce((sum, row) => sum + row.bytes, 0);
-      const manifest = readSpawnManifest({version: 1, shard: directory, tier, flow, files: rows, totalBytes});
+      const rows = [...selected.values()], totalBytes = rows.reduce((sum, row) => sum + row.bytes, 0), wire = rows.reduce((sum, row) => {if (row.wireBytes === undefined) throw new Error('Missing spawn wire size'); return sum + row.wireBytes;}, 0);
+      const manifest = readSpawnManifest({version: 1, shard: directory, tier, flow, files: rows, totalBytes, wireBytes: wire});
       const text = JSON.stringify(manifest), hash = createHash('sha256').update(text).digest('hex'), name = `assets/spawn/${directory}-${flow}-${tier}-${hash.slice(0, 16)}.json`;
-      writeFileSync(join(output, name), text); return {url: `/${name}`, bytes: Buffer.byteLength(text), totalBytes, files: rows.length};
+      writeFileSync(join(output, name), text); return {url: `/${name}`, bytes: Buffer.byteLength(text), totalBytes, files: rows.length, wireBytes: wire};
     };
     client[directory] = {phone: write('phone', 'client'), desktop: write('desktop', 'client')};
     for (const [mode, homes] of Object.entries(strips)) (grid[mode] ??= {})[directory] = {

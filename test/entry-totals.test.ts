@@ -42,6 +42,7 @@ test('spawn manifests union code once, keep grid selection and content identity 
     expect(writeSpawnManifests(output, input, strips, root)).toEqual(totals);
     const address = totals.client['example']?.phone; if (address === undefined) throw new Error('Missing manifest');
     const text = readFileSync(resolve(output, address.url.slice(1)), 'utf8');
+    expect(address.wireBytes).toBeDefined(); expect(address.wireBytes).toBeLessThan(address.totalBytes);
     expect(text).not.toContain('code/pack.pack'); expect(text).not.toContain('/assets/other.js');
     expect(() => writeSpawnManifests(output, {...input, products: {'/shardfiles/example/': [3, -1]}}, {}, root)).toThrow();
     expect(() => writeSpawnManifests(output, {...input, optional: {...input.optional, groups: {'home:/shardfiles/example/': [9]}}}, {}, root)).toThrow('module index');

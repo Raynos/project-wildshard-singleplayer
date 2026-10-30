@@ -30,3 +30,10 @@ it('the grid prefetch row reports disk progress against the set known so far, an
   expect(loadingPrefetchFraction(cached)).toBeLessThan(1);
   expect(loadingPrefetchFraction({ ...cached, phase: 'done' })).toBe(1);
 });
+
+it('prints encoded sizes while decoded progress keeps its own denominator', () => {
+  const row = {...manifest, wire: {totalBytes: 18_000_000, completedBytes: 9_000_000, cachedBytes: 2_000_000}};
+  expect(loadingDownloadText(row)).toBe('Spawn view · 9.00 MB of 18.0 MB · 2.00 MB from cache');
+  expect(loadingDownloadFraction(row)).toBe(0.75);
+  expect(loadingDownloadText({...row, complete: true, wire: {...row.wire, completedBytes: 18_000_000}})).toBe('Spawn view · 18.0 MB · 2.00 MB from cache');
+});

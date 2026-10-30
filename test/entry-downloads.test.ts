@@ -45,7 +45,9 @@ test('plain build publishes exact tier spawn files and rejects changed section b
   try {
     mkdirSync(product, {recursive: true}); mkdirSync(resolve(out, 'assets'), {recursive: true});
     const source = emptyShardfile({slug: 'example', name: 'Example', author: 'Test', revision: 1, seed: 1});
-    const hashes = ['phone', 'desktop', 'late'].map(digest);
+    const bodies = ['000', '111', '222'], hashes = bodies.map(digest);
+    mkdirSync(resolve(product, 'blobs/bin'), {recursive: true});
+    hashes.forEach((hash, i) => {writeFileSync(resolve(product, `blobs/bin/${hash}.bin`), bodies[i] ?? '');});
     const files = hashes.map((hash, i) => ({hash, kind: 'bin' as const, name: `${i}.bin`, path: `blobs/bin/${hash}.bin`,
       compressed: 3, decoded: 3, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false,
       ...i < 2 ? {tier: i === 0 ? 'phone' as const : 'desktop' as const} : {}}));

@@ -5,6 +5,8 @@ import {readSpawnManifest, readSpawnManifestAddress, type SpawnManifestAddress} 
 export interface SpawnDownloadSnapshot {
   /** False while native cache presence is unresolved; zero is not yet an observed transfer fact. */
   readonly progressKnown?: boolean;
+  /** Compressed representation facts for text only; decoded reads keep their original bounds/progress. */
+  readonly wire?: {readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number};
   readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number;
   readonly filesTotal: number; readonly filesDone: number; readonly complete: boolean; readonly error: string | null;
 }
@@ -48,7 +50,8 @@ async function readSpawnFile(url: string, maximum: number, ports: SpawnDownloadP
 export function downloadSpawnManifest(address: SpawnManifestAddress, ports: SpawnDownloadPorts, base: string): SpawnDownload {
   const controller = new AbortController(), listeners = new Set<(snapshot: SpawnDownloadSnapshot) => void>(), aliases = new Map<string, string>();
   let completedBytes = 0, cachedBytes = 0, filesDone = 0, complete = false, progressKnown = false, error: string | null = null;
-  const snapshot = (): SpawnDownloadSnapshot => ({progressKnown, totalBytes: address.totalBytes, completedBytes, cachedBytes,
+  let wireCompleted = 0, wireCached = 0;
+  const snapshot = (): SpawnDownloadSnapshot => ({...(address.wireBytes === undefined ? {} : {wire: {totalBytes: address.wireBytes, completedBytes: wireCompleted, cachedBytes: wireCached}}), progressKnown, totalBytes: address.totalBytes, completedBytes, cachedBytes,
     filesTotal: address.files, filesDone, complete, error});
   const publish = (): void => { if (!controller.signal.aborted) for (const listener of listeners) listener(snapshot()); };
   const ready = (async () => {
@@ -58,10 +61,10 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       if (bytes.length !== address.bytes) {void copy?.body?.cancel().catch(() => undefined); throw new Error('Spawn manifest size differs');}
       const text = new TextDecoder().decode(bytes);
       const manifest = readSpawnManifest(JSON.parse(text));
-      if (manifest.totalBytes !== address.totalBytes || manifest.files.length !== address.files) throw new Error('Spawn address differs from manifest');
+      if (manifest.totalBytes !== address.totalBytes || manifest.wireBytes !== address.wireBytes || manifest.files.length !== address.files) throw new Error('Spawn address differs from manifest');
       if (copy !== undefined) await ports.store?.(manifestURL, copy);
       const files = manifest.files.map(file => {
-        const url = new URL(file.url, base); aliases.set(url.pathname, url.href); return {bytes: file.bytes, hash: file.hash, url: url.href};
+        const url = new URL(file.url, base); aliases.set(url.pathname, url.href); return {bytes: file.bytes, hash: file.hash, wireBytes: file.wireBytes ?? 0, url: url.href};
       });
       const present = await ports.present?.(files.map(file => file.url));
       // Bulk native metadata avoids hundreds of cache IPC calls. Unmapped
@@ -71,7 +74,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       const missing: typeof files = [];
       for (let index = 0; index < files.length; index++) {
         const file = files[index]; if (file === undefined) throw new Error('Missing spawn file');
-        if (present?.has(file.url) === true || cached[index]?.status === 200 && !/\btext\/html\b/iu.test(cached[index]?.headers.get('content-type') ?? '')) { completedBytes += file.bytes; cachedBytes += file.bytes; filesDone++; }
+        if (present?.has(file.url) === true || cached[index]?.status === 200 && !/\btext\/html\b/iu.test(cached[index]?.headers.get('content-type') ?? '')) { completedBytes += file.bytes; cachedBytes += file.bytes; wireCompleted += file.wireBytes; wireCached += file.wireBytes; filesDone++; }
         else missing.push(file);
       }
       progressKnown = true;
@@ -89,7 +92,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
           });
           if (body.length !== file.bytes) { void cachedCopy?.body?.cancel().catch(() => undefined); throw new Error(`Spawn file size differs: ${new URL(file.url).pathname}`); }
           if (cachedCopy !== undefined) await ports.store?.(file.url, cachedCopy);
-          filesDone++; publish();
+          wireCompleted += file.wireBytes; filesDone++; publish();
         }
       }));
       controller.signal.throwIfAborted(); complete = true; publish();
@@ -106,7 +109,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
 
 let current: {address: SpawnManifestAddress; download: SpawnDownload; foreground: boolean} | undefined;
 function sameAddress(left: SpawnManifestAddress, right: SpawnManifestAddress): boolean {
-  return left.url === right.url && left.bytes === right.bytes && left.totalBytes === right.totalBytes && left.files === right.files;
+  return left.url === right.url && left.bytes === right.bytes && left.totalBytes === right.totalBytes && left.files === right.files && left.wireBytes === right.wireBytes;
 }
 /** The selected entry is explicit; no engine import is needed on the title. */
 export function startSpawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode = '000'): SpawnDownload | null {
@@ -171,7 +174,8 @@ export function paintSpawnDownload(download: SpawnDownload, root: HTMLElement): 
     root.dataset['readUnknownSourceBytes'] = '0'; root.dataset['readsClosed'] = String(row.complete);
     root.dataset['spawnFilesDone'] = String(row.filesDone); root.dataset['spawnFilesTotal'] = String(row.filesTotal);
     const fact = root.querySelector('[data-el="dlFact"]'), pct = root.querySelector('[data-el="dlPct"]'), bar = root.querySelector<HTMLElement>('[data-el="dlBar"]');
-    if (fact !== null) fact.textContent = `Spawn view · ${mb(row.completedBytes)}${row.complete ? '' : ` of ${mb(row.totalBytes)}`} · ${mb(row.cachedBytes)} from cache`;
+    const text = row.wire ?? row;
+    if (fact !== null) fact.textContent = `Spawn view · ${mb(text.completedBytes)}${row.complete ? '' : ` of ${mb(text.totalBytes)}`} · ${mb(text.cachedBytes)} from cache`;
     if (pct !== null) pct.textContent = percent === null ? '—' : String(percent);
     if (bar !== null) bar.style.width = `${percent ?? 0}%`;
   });

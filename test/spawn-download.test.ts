@@ -137,3 +137,20 @@ test('a cached HTML content response is a miss without reading or crediting its 
   expect(read).not.toHaveBeenCalled();
   expect(download.snapshot()).toMatchObject({complete: true, cachedBytes: 0, completedBytes: 7});
 });
+
+test('encoded text sizes never replace decoded body bounds or cache progress', async () => {
+  const encoded = {...manifest, files: files.map(file => ({...file, wireBytes: 1})), wireBytes: 2};
+  const encodedText = JSON.stringify(encoded), selected = {...address, bytes: encodedText.length, wireBytes: 2};
+  const ports = {cached: () => Promise.resolve(undefined), fetch: (url: string) => Promise.resolve(new Response(url.endsWith('.json') ? encodedText : new Uint8Array(url.endsWith('.js') ? 3 : 4)))};
+  const cold = downloadSpawnManifest(selected, ports, base); await cold.ready;
+  expect(cold.snapshot()).toMatchObject({totalBytes: 7, completedBytes: 7, cachedBytes: 0, complete: true,
+    wire: {totalBytes: 2, completedBytes: 2, cachedBytes: 0}});
+  const warm = downloadSpawnManifest(selected, {...ports, cached: (url: string) => Promise.resolve(url.endsWith('.json') ? new Response(encodedText) : new Response(new Uint8Array(1)))}, base);
+  await warm.ready;
+  expect(warm.snapshot()).toMatchObject({completedBytes: 7, cachedBytes: 7, wire: {totalBytes: 2, completedBytes: 2, cachedBytes: 2}});
+  const short = downloadSpawnManifest(selected, {...ports, fetch: (url: string) => Promise.resolve(new Response(url.endsWith('.json') ? encodedText : new Uint8Array(1)))}, base);
+  await expect(short.ready).rejects.toThrow('size differs');
+  expect(short.snapshot().complete).toBe(false);
+  expect(() => readSpawnManifest({...encoded, wireBytes: 3})).toThrow('wire total differs');
+  expect(() => readSpawnManifest({...encoded, files})).toThrow('wire total differs');
+});
