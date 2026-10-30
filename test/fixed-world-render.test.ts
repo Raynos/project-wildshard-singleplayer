@@ -11,6 +11,7 @@ function fixture(fail = false, locked = false) {
   const descriptor = Object.getOwnPropertyDescriptor(uniform, 'value');
   const held = new Object3D(), target = {};
   const observed:number[] = [];
+  const drawnCameras:number[][] = [];
   let currentTarget:object|null = target, scissor = true, dither = true, completions = 0;
   const material = {uniforms:{wsTime:uniform}}, scene = {traverse:(visit:(object:object)=>void) => { visit({material}); }};
   const vector = new Vector3(1,2,3), camera = new PerspectiveCamera();
@@ -23,11 +24,11 @@ function fixture(fail = false, locked = false) {
     setRenderTarget:(value:object|null) => {currentTarget=value;},setScissorTest:(value:boolean) => {scissor=value;},
     setViewport:(_x:number,_y:number,_width:number,_height:number) => { live = 37; },getPixelRatio:()=>2,
     properties:{get:(_material:object)=>({uniforms:{wsTime:uniform}})},clear:()=>{live=37;},
-    render(){this.renderBufferDirect();uniform.value=912;observed.push(uniform.value);if(fail)throw new Error('native render failure');},
+    render(){drawnCameras.push([...camera.position.toArray(),...camera.quaternion.toArray()]);this.renderBufferDirect();uniform.value=912;observed.push(uniform.value);if(fail)throw new Error('native render failure');},
     info:{render:{calls:1,triangles:2},reset:()=>{live=37;}}};
   const game = {renderer,rootScene:scene,camera,clock:{elapsedTime:23},shardFrame:()=>{live=37;},frameCount:7,app:{clock:{snapshot:()=>({frames:7})}}};
   const world = {game,player:{position:vector},hud:{entered:true,paused:false}};
-  return {uniform,descriptor,held,game,observed,target:()=>currentTarget,scissor:()=>scissor,dither:()=>dither,completions:()=>completions,camera,cameraState,
+  return {uniform,descriptor,held,game,observed,drawnCameras,target:()=>currentTarget,scissor:()=>scissor,dither:()=>dither,completions:()=>completions,camera,cameraState,
     run:():unknown => runInNewContext(`(${fixedWorldFrame.toString()})({yaw:0,pitch:0})`, {window:{__wildshard:{requireWorld:()=>world}},document:{querySelector:()=>null}}, {timeout:1000})};
 }
 
@@ -36,6 +37,7 @@ test('M3 pins accessor clocks through both real draws and restores their exact d
   read.run();
   expect(read.observed).toEqual([10,10]);
   expect(read.completions()).toBe(2);
+  for (const drawn of read.drawnCameras) expect(drawn).toEqual([...read.cameraState.position,...read.cameraState.quaternion]);
   expect(read.camera.position.toArray()).toEqual(read.cameraState.position);
   expect(read.camera.quaternion.toArray()).toEqual(read.cameraState.quaternion);
   expect(read.camera.up.toArray()).toEqual(read.cameraState.up);

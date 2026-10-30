@@ -45,7 +45,7 @@ const rows = [];
 const differences = [];
 /** @type {{repeat:number,url:string,build:string}[]} */
 const builds = [];
-const result = { mode, builds, protocol: 'M3 world only; no post/viewmodel; Metal iPhone 16 Pro DPR2; fixed uniform time10; fresh-context seeded A/A; GL_DITHER off; serial GPU draw completion; full RGBA exact', build: version.build, candidate: candidate ?? null, rows, differences };
+const result = { mode, builds, protocol: 'M3 world/native posed camera; no post/viewmodel; Metal iPhone 16 Pro DPR2; fixed uniform time10; fresh-context seeded A/A; GL_DITHER off; serial GPU draw completion; full RGBA exact', build: version.build, candidate: candidate ?? null, rows, differences };
 const save = () => writeFileSync(join(out, 'reading.json'), JSON.stringify(result, null, 2));
 const device = devices['iPhone 16 Pro'];
 if (device === undefined) throw new Error('Missing maintained phone preset');
@@ -111,5 +111,7 @@ try {
     }
   }
   save();
-  if (result.differences.some(row => row.pixels !== 0)) throw new Error('World AA/AB pixel mismatch; inspect reading.json');
+  const failed = result.differences.filter(row => row.pixels !== 0);
+  for (const row of failed) console.error(`${row.kind} ${row.slug}/${row.pose}: ${row.pixels} differing RGBA pixels`);
+  if (failed.length > 0) throw new Error('World AA/AB pixel mismatch; inspect reading.json');
 } finally { await browser.close(); }

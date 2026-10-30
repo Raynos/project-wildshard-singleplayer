@@ -1,4 +1,5 @@
 /** A fixed M3 world render, with no composer or camera-child viewmodel.
+ * Keep the native posed camera: its view already selected the live instances.
  * Runs in the native page; every temporary clock/visibility change is restored.
  * @param {{yaw:number,pitch:number}} pose */
 export function fixedWorldFrame(pose) {
@@ -6,9 +7,7 @@ export function fixedWorldFrame(pose) {
   const gl = r.getContext(), scene = g.rootScene, cam = g.camera;
   if (!w.hud.entered || w.hud.paused || document.querySelector('.ws-load')) throw new Error('World capture requires native control');
   const cameraState = {position:cam.position.clone(),quaternion:cam.quaternion.clone(),up:cam.up.clone()};
-  const at = w.player.position, cp = Math.cos(pose.pitch);
-  cam.position.set(at.x, at.y + 1.62, at.z); cam.up.set(0, 1, 0);
-  cam.lookAt(at.x - Math.sin(pose.yaw) * cp * 20, at.y + 1.62 + Math.sin(pose.pitch) * 20, at.z - Math.cos(pose.yaw) * cp * 20);
+  const at = w.player.position;
   cam.updateMatrixWorld(true);
   const elapsed = g.clock.elapsedTime, target = r.getRenderTarget(), scissor = r.getScissorTest();
   const hidden = cam.children.filter(child => child.visible);
@@ -55,7 +54,8 @@ export function fixedWorldFrame(pose) {
     const data = new Uint8Array(gl.drawingBufferWidth * gl.drawingBufferHeight * 4);
     gl.readPixels(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight, gl.RGBA, gl.UNSIGNED_BYTE, data);
     if (gl.getError() !== gl.NO_ERROR || calls <= 0 || triangles <= 0 || gl.isContextLost()) throw new Error('Invalid native world readback');
-    return { width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, data, calls, triangles, pinned: pinned.sort(), at: at.toArray(), frame: g.frameCount, clock: g.app.clock.snapshot() };
+    return { width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, data, calls, triangles, pinned: pinned.sort(), at: at.toArray(), frame: g.frameCount, clock: g.app.clock.snapshot(),
+      requested: {yaw:pose.yaw,pitch:pose.pitch}, camera: {world:cam.matrixWorld.toArray(),projection:cam.projectionMatrix.toArray()} };
   } finally {
     r.renderBufferDirect = direct;
     if (dither) gl.enable(gl.DITHER); else gl.disable(gl.DITHER);
