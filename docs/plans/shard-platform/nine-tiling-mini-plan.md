@@ -253,19 +253,30 @@ but does not isolate NT8 from intervening rendering changes or host drift.
 Spawn detail is 31.916 / 15.169 s; both native controls qualify. Telemetry
 405s and one navigated-away response accounting gap per leg remain visible.
 
-The refined observer compares triangle multisets from prior geometry/draw
+**Withdrawn triangle attribution:** the first refined observer compared triangle multisets from prior geometry/draw
 ranges to their successors and clips additions against all six spawn-frustum
 planes. Ground unions compare against the prior union members, including
 replaced mesh identities. In each leg, **10,722 added triangles from visible
 world meshes, zero intersecting the spawn frustum**; hidden source tiles and
 knife are recorded separately. Each full 10 s observation completes without
 overflow or unsupported geometry (99 / 107 sampled frames). This closes the
-Pine geometric attachment ambiguity, not the remaining Driftwood check.
+Pine geometric attachment ambiguity only provisionally; that claim is withdrawn
+because the observer retained a live mutable index buffer (correction below).
 Raw pair: `tmp/phone-loading/2026-10-30T20-00-40-070Z-9634ee8-mvvec1k4/`;
 exact additions: `tmp/sp-x9-nt8/visible2-pine-attachments-{0,1}.json`.
 An earlier wrong-port launch hit `db9f363-mvve9bzo`, was interrupted before
 control and is explicitly excluded (`visible-pine.log`). NT8 remains open
 for warm timing attribution and Driftwood's precise attachment check.
+
+**Observer correction:** `tiledMesh` compacts its index buffer in place. Keeping
+the prior geometry reference did not preserve its prior triangle order. The
+reported Pine zero / Driftwood 122 in-frustum triangle counts are both invalid
+and are not qualification evidence. The corrected observer copies index bytes;
+two scratch behavior controls prove an inserted off-view tile does not falsely
+count an old visible triangle moved in the compacted index, while an actual
+new visible triangle is detected. Original raw observations remain retained;
+cause-directed attachment reads on the same source follow. The independent
+dual-camera ordering regression test and source fix remain valid.
 
 NT7 preserves the existing all-product `checkTileBake` ratchet exactly (G872 ruling). Its new report is advisory; its separate Nine baseline refuses a lost `ring: 'cell'`, worsened exact L0 coordinate debt, or a declared slab chunk above 4 MB. Uncut long-triangle heights remain explicit advisory exceptions for NT3, never disguised as zero or trimmed geometry. Products without declared slab metadata print **not declared** for max chunk, rather than claiming zero. Published NF10 slab rows are read only after the defining section schema admits them. Recommendations distinguish dense vertical concentration (> 80 % in five tiles and > 125 m tall) from small, spread-out or open-sky sightline warnings; every measured warning is printed. The current declared-camera catalogue hash is `359156f0cfabb3c4915ec46217daaa85a2aaeaf57d74db48e3db303c927029f4`.
 
