@@ -1325,6 +1325,7 @@
  "test/nalati-king-controls.test.ts": 0.2,
  "test/nalati-king-pose.test.ts": 11.7,
  "test/nalati-kokpar-binary.test.ts": 0.3,
+ "test/nalati-kokpar-verbs.test.ts": 32.8,
  "test/nalati-kokpar.test.ts": 0.9,
  "test/nalati-kurgan-data.test.ts": 0,
  "test/nalati-kurgan-fabric.test.ts": 1.3,

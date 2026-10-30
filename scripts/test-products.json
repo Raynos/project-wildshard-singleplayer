@@ -4,6 +4,7 @@
   "test/nalati-ride-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-taming-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-chapter-verbs.test.ts": ["nalati-grasslands"],
+  "test/nalati-kokpar-verbs.test.ts": ["nalati-grasslands"],
   "test/driftwood-zipline-verbs.test.ts": ["driftwood-isle"],
   "test/driftwood-story-verbs.test.ts": ["driftwood-isle"],
   "test/signal-verb-tape.test.ts": ["sunscar-dunes"],
