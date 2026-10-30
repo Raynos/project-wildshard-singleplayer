@@ -96,7 +96,7 @@ test('records image pixels without inventing bytes and leaves PBO/invalid metada
 test('whole-drive samples retain upload banks beside GL time while short samples cannot drain them', async () => {
   const f = fixture(), callbacks: ((at: number) => void)[] = [];
   let now = 100;
-  const game = {frameCount: 0, frameI: 1, frameMs: [33], workMs: [1], lastFrame: {calls: 1, triangles: 1},
+  const game = {frameCount: 0, frameI: 1, frameMs: [33], workMs: [1], renderMs: [0.25], lastFrame: {calls: 1, triangles: 1},
     app: {cpu: {enabled: false, snapshot: () => ({enabled: true, frame: 0, owners: []})}}, renderer: {getContext: () => ({isContextLost: () => false})}};
   const source = readFileSync(new URL('../scripts/frame-floor.mjs', import.meta.url), 'utf8');
   const begin = source.indexOf('function sample(n, timeline = false) {'), end = source.indexOf('/** the whole-drive sampler', begin);
@@ -117,6 +117,7 @@ test('whole-drive samples retain upload banks beside GL time while short samples
   const result = await whole;
   expect(result).toMatchObject({frames: 30, p95Ms: 33});
   if (typeof result !== 'object' || result === null) throw new Error('Sampler result missing');
+  expect(Reflect.get(result, 'drawSamples')).toEqual(Array.from({length: 30}, () => ({draws: 1, renderMs: 0.25})));
   expect(Reflect.get(result, 'glUploadFrames')).toEqual(Array.from({length: 30}, (_, i) => [133 + i * 33,
     {bufferData: {calls: 1, sourceBytes: 16, allocationBytes: 0, imagePixels: 0, unknownCalls: 0}}]));
   expect(callbacks).toHaveLength(0);
