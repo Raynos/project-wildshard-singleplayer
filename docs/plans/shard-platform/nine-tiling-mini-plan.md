@@ -210,6 +210,34 @@ cases and 19 collider-priority cases pass; root types, scoped lint and ratchet
 passed at their source boundaries. NT8 stays open for the first-camera fence,
 Pine reveal bar and precise post-control attachment attribution.
 
+**NT8 first-camera correction.** Locally committed `3d14d956e7` keeps the
+player reference for the initial `prepareSpawnView` call only. The existing
+shader step still poses the camera at the same point; final readiness and
+controlled streaming use the real camera. A focused test with the player far
+from the origin camera verifies that the first fence never samples the camera,
+then the next fence uses its posed view. All 35 focused refinement, camera,
+collider and finish-order cases pass (313 ms); game types and scoped lint pass.
+
+One Pine cold / warm pair on pinned `3d14d95-mvvdsy9c` measured
+**129.872 / 90.219 s**, versus parent **130.295 / 88.068 s**:
+**-0.423 / +2.151 s**. Spawn detail returned to **31.978 / 15.020 s**,
+versus parent **32.034 / 14.869 s**. The initial-camera defect is fixed,
+but **the overall warm reveal bar remains unmet**. Other warm stage increases
+include Region world +0.694 s, gameplay / saved state +0.377 s and world
+program links +0.497 s; no causal explanation is inferred from one pair.
+Both native control witnesses qualify. Cold retains one telemetry response-body
+accounting loss and its 405; warm accounting is complete and retains two 405s.
+The full CLI exits 1 with those retained errors.
+
+Both 10-second observers complete without overflow (122 / 123 frames,
+15 changes each): one hidden off-frustum ground tile and its aggregate rebuild,
+12 off-frustum cabin draw-range changes, and one hidden knife mesh. Aggregate
+triangle locations remain unmeasured, so this does not close the attachment
+bar. Raw pair: `tmp/phone-loading/2026-10-30T19-45-27-989Z-3d14d95-mvvdsy9c/`;
+observations: `tmp/sp-x9-nt8/posed-pine-attachments-{0,1}.json`.
+Browser and preview closed. No extra pair or deadline change. Source and
+results stay local during the coordinator's push hold.
+
 **Order.**
 1. NT1 now: it is a one-line class of bug with the largest visible effect, and it makes NF1 true.
 2. NT2 and NT7 now, in parallel (bake, no look change).
