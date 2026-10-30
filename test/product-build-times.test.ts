@@ -33,6 +33,15 @@ test('saved durations merge across builds and corrupt/unwritable hints never blo
   mkdirSync(resolve(root,'other')); // The fixture remains usable after refused metadata.
 });
 
+test('strict validation seeds an empty runner without overwriting an observed build',()=>{
+  const root=fixture(),jobs=[{name:'small'},{name:'large'},{name:'new'}];
+  recordProductBuildTimes(root,new Map(),new Map([['small',1],['large',10]]));
+  expect(orderProductBuilds(jobs,readProductBuildTimes(root)).map(row=>row.name)).toEqual(['large','small','new']);
+  recordProductBuildTimes(root,new Map([['large',20]]),new Map([['large',2],['new',5]]));
+  recordProductBuildTimes(root,new Map(),new Map([['large',1],['small',0.1],['new',0.1]]));
+  expect([...readProductBuildTimes(root)]).toEqual([['large',20],['small',1],['new',5]]);
+});
+
 test('observed queue avoids a long final tail under the same six-worker bound',async()=>{
   vi.useFakeTimers();const products=Array.from({length:7},(_,i)=>({name:String(i),cost:i===6?10:1}));
   const costs=new Map(products.map(row=>[row.name,row.cost]));

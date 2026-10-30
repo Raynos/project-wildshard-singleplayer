@@ -24,15 +24,17 @@ export function orderProductBuilds(products,times) {
     .sort((a,b)=>(times.get(b.product.name)??0)-(times.get(a.product.name)??0)||a.index-b.index)
     .map(row=>row.product);
 }
-/** Publish only completed build measurements. Cache hits never replace an
- * expensive build's duration with a short copy/lookup time. Write failure is
- * harmless: the normal build has already completed all its required checks.
- * @param {string} cache @param {ReadonlyMap<string,number>} measured */
-export function recordProductBuildTimes(cache,measured) {
-  if(measured.size===0)return;
+/** Publish completed build measurements. A fully validated cache hit can seed
+ * a missing hint, but never replace an observed build's duration. Unchecked
+ * copies/lookups do not qualify. Write failure is harmless: the normal build
+ * has already completed all its required checks.
+ * @param {string} cache @param {ReadonlyMap<string,number>} measured
+ * @param {ReadonlyMap<string,number>} [validated] */
+export function recordProductBuildTimes(cache,measured,validated=new Map()) {
+  if(measured.size===0&&validated.size===0)return;
   const target=path(cache),temporary=`${target}.${process.pid}-${randomBytes(4).toString('hex')}.tmp`;
   try {
-    const products=Object.fromEntries([...readProductBuildTimes(cache),...measured]);
+    const products=Object.fromEntries([...validated,...readProductBuildTimes(cache),...measured]);
     const document=v.parse(Times,{version:1,products});
     mkdirSync(dirname(target),{recursive:true});writeFileSync(temporary,JSON.stringify(document));renameSync(temporary,target);
   } catch { /* Hints cannot refuse or authorize a product. */ }

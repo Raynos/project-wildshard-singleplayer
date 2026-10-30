@@ -81,6 +81,8 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   const recorded = build === runWildshard;
   /** @type {Map<string,number>} */
   const buildTimes=new Map();
+  /** @type {Map<string,number>} */
+  const validationTimes=new Map();
   const ordered=recorded?orderProductBuilds(products,readProductBuildTimes(shardfileCacheRoot())):products;
   const files = recorded ? undefined : treeHashes(root);
   const inputHashes = new InputHashMemo(root,resolve(root,'.cache/shardfile-input-hashes.json'));
@@ -145,6 +147,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     count++;
     measured.push(name);
     if(how==='built')buildTimes.set(name,performance.now()-started);
+    else if(strict)validationTimes.set(name,performance.now()-started);
     } catch(error) {
       if(onFailure===undefined)throw error;
       // A previous product cannot vouch for a failed rebuild or grant a census user.
@@ -173,7 +176,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     if (strict) throw new Error(message);
     console.warn(message);
   }
-  if(recorded)recordProductBuildTimes(shardfileCacheRoot(),buildTimes);
+  if(recorded)recordProductBuildTimes(shardfileCacheRoot(),buildTimes,validationTimes);
   return count;
 }
 
