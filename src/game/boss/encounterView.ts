@@ -21,6 +21,7 @@ import { replaceSpecimenInstances } from '../models/specimenCatalogue';
 import type { CueDirector } from '../audio/cueDirector';
 import { GroundTell } from '../Elite';
 import { LightningStrip } from '../weapons/arcPower';
+import { nearestJointHit, type JointPorts } from './jointTargets';
 import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
 import { PatrolLaw, type PatrolRider } from './patrolLaw';
 import { createClientScene } from '../plugin/scene';
@@ -220,7 +221,7 @@ export interface PatrolHit<A> { readonly damage: number; readonly from: A | null
 /** A rider's drawn state beside its law (patrolLaw.ts): its scope, its looks' fades and the bone its figure rides. */
 interface RiderView { readonly scope: Scope; readonly fades: { value: number }[]; readonly bone: THREE.Object3D }
 type Rider<A extends PatrolViewActor> = PatrolRider<A, RiderView>;
-const seat = new THREE.Vector3(), back = new THREE.Vector3(), aimed = new THREE.Vector3(), ray = new THREE.Ray(), sphere = new THREE.Sphere(), crossing = new THREE.Vector3();
+const seat = new THREE.Vector3(), back = new THREE.Vector3(), aimed = new THREE.Vector3(), ray = new THREE.Ray();
 
 /** One native patrol roster drawn; its numbers (cycle, lines, riders' laws, steering, aim) are PatrolLaw's. */
 export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
@@ -231,6 +232,9 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   private readonly rows: PatrolViewRows;
   private readonly hits: PatrolHit<A>[] = [];
   private readonly hit: TargetHit;
+  // the drawn riders' joint spheres (jointTargets.ts): a rider's figure bone carries them
+  private readonly joints: JointPorts<Rider<A>, A> = { actor: r => r.a, dead: r => r.law.state[this.rows.states.dead] === 1,
+    joint: (r, at, out) => out.set(...at).applyMatrix4(r.view.bone.matrixWorld) };
   private shooter: A | null = null;
   get killsTonight(): number { return this.law.killsTonight; }
   constructor(input: { readonly patrol: EncounterPatrolRows; readonly motion: EncounterScheduleRows; readonly view: PatrolViewRows }, program: ReturnProgram,
@@ -275,19 +279,10 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   }
   /** The nearest of the drawn targets along the ray, if nearer than `hit` (the body's own capsules). */
   target(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, hit: TargetHit | null): TargetHit | null {
-    let best = hit === null ? maxDist : Math.min(maxDist, hit.distance), found: A | null = null, head = false;
     ray.set(origin, dir);
-    for (const r of this.riders) {
-      if (r.law.state[this.rows.states.dead] === 1 || !r.a.alive || r.a.hidden || r.a.position.distanceToSquared(origin) > (best + 4) * (best + 4)) continue;
-      for (const row of this.rows.targets) {
-        sphere.set(sphere.center.set(...row.at).applyMatrix4(r.view.bone.matrixWorld), row.radius * r.a.scale);
-        if (ray.intersectSphere(sphere, crossing) === null) continue;
-        const d = crossing.distanceTo(origin);
-        if (d < best) { best = d; found = r.a; head = row.head; this.hit.point.copy(crossing); }
-      }
-    }
+    const found = nearestJointHit(ray, hit === null ? maxDist : Math.min(maxDist, hit.distance), this.riders, this.joints, this.rows.targets, this.hit.point);
     if (found === null) return hit;
-    this.hit.animal = found; this.hit.distance = best; this.hit.headshot = head;
+    this.hit.animal = found.actor; this.hit.distance = found.distance; this.hit.headshot = found.head;
     return this.hit;
   }
   /** Step the patrol and draw it (`frame`: its own fields beside the player's px / py / pz); the arrows that struck the
