@@ -22,6 +22,7 @@ import type { CueDirector } from '../audio/cueDirector';
 import { GroundTell } from '../Elite';
 import { LightningStrip } from '../weapons/arcPower';
 import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
+import { PatrolLaw, type PatrolRider } from './patrolLaw';
 import { createClientScene } from '../plugin/scene';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { lentLook, lentLookInstance, setLentParam, type LookInstance } from '../shardfile/lentLooks';
@@ -216,28 +217,27 @@ export interface PatrolViewActor extends TargetAnimal { readonly entityId: strin
   readonly mesh: THREE.SkinnedMesh; scale: number; readonly variant: string; readonly yaw: number }
 /** An arrow that struck the player this step: its damage and who loosed it. */
 export interface PatrolHit<A> { readonly damage: number; readonly from: A | null }
-interface Rider<A> { readonly a: A; readonly scope: Scope; readonly fades: { value: number }[]; readonly law:ProjectedState; readonly group:ProjectedState|null; readonly slot:number; readonly steering:Record<string,number>; readonly bone: THREE.Object3D }
+/** A rider's drawn state beside its law (patrolLaw.ts): its scope, its looks' fades and the bone its figure rides. */
+interface RiderView { readonly scope: Scope; readonly fades: { value: number }[]; readonly bone: THREE.Object3D }
+type Rider<A extends PatrolViewActor> = PatrolRider<A, RiderView>;
 const seat = new THREE.Vector3(), back = new THREE.Vector3(), aimed = new THREE.Vector3(), ray = new THREE.Ray(), sphere = new THREE.Sphere(), crossing = new THREE.Vector3();
 
-/** One native patrol roster; existing AS projections own cycle, group and member decisions. */
+/** One native patrol roster drawn; its numbers (cycle, lines, riders' laws, steering, aim) are PatrolLaw's. */
 export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
-  readonly riders: Rider<A>[] = [];
-  private readonly cycle:ProjectedState;
-  private readonly groups:ProjectedState[]=[];
-  private roster:PatrolActorRoster<A>|null=null;
-  private readonly random=app.rng.stream('ai');
+  /** the patrol's law: the same one a Node simulation runs (CI12's Qara Batyr tape) */
+  readonly law: PatrolLaw<A, RiderView>;
+  get riders(): readonly Rider<A>[] { return this.law.riders; }
   readonly arrows: Projectiles;
   private readonly rows: PatrolViewRows;
-  private readonly motion: ProjectedState;
   private readonly hits: PatrolHit<A>[] = [];
   private readonly hit: TargetHit;
   private shooter: A | null = null;
-  get killsTonight(): number { return this.cycle.value('kills'); }
-  private get living():number{return this.riders.filter(r=>r.law.state['dead']!==1).length;}
-  constructor(private readonly input: { readonly patrol: EncounterPatrolRows; readonly motion: EncounterScheduleRows; readonly view: PatrolViewRows }, private readonly program: ReturnProgram,
+  get killsTonight(): number { return this.law.killsTonight; }
+  constructor(input: { readonly patrol: EncounterPatrolRows; readonly motion: EncounterScheduleRows; readonly view: PatrolViewRows }, program: ReturnProgram,
     private readonly ports: ProjectileWorld & { readonly cues: CueDirector; readonly figures: Readonly<Record<string, THREE.BufferGeometry>> }) {
     this.rows = input.view;
-    this.cycle=new ProjectedState({initial:{respawn:-1,phase:-1,kills:0},signals:{step:input.patrol.signals.cycle,empty:input.patrol.signals.empty}},program);this.motion=new ProjectedState(input.motion,program);
+    this.law = new PatrolLaw<A, RiderView>(input.patrol, input.motion, program, { player: ports.player, random: app.rng.stream('ai'), aimRandom: () => app.rng.stream('ai'),
+      present: (a, quiet) => this.present(a, quiet) });
     for (const key of Object.keys(this.rows.looks)) if (ports.figures[key] === undefined) throw new Error(`Missing patrol figure: ${key}`);
     const { geometry, colour, renderOrder, ...kind } = this.rows.arrow;
     this.arrows = new Projectiles(ports, undefined, { ...kind, geometry: new THREE.BufferGeometryLoader().parse(geometry),
@@ -248,35 +248,15 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
     this.arrows.onImpact = (_surface, at) => { ports.cues.cue(this.rows.cues.impact, at, UP); };
     this.hit = { animal: { kind: '', position: new THREE.Vector3(), alive: false, applyDamage: () => false, damageFor: () => 0 }, point: new THREE.Vector3(), distance: 0, headshot: false };
   }
-  attachActors(roster:PatrolActorRoster<A>):void{
-    const rows=this.input.patrol.actors;if(rows===undefined)throw new Error('Missing patrol actor rows');
-    roster.factory.model(rows.kind,rows.variant);this.roster=roster;
-  }
+  attachActors(roster: PatrolActorRoster<A>): void { this.law.attachActors(roster); }
   /** One actor at (x, z) facing `yaw`, outside any line (drive its steering memory); `quiet` takes the quiet look. */
-  spawnRider(at: { readonly x: number; readonly z: number; readonly yaw: number; readonly variant?: string; readonly quiet?: boolean }): A | null {
-    return this.spawn(at,null,0);
-  }
+  spawnRider(at: { readonly x: number; readonly z: number; readonly yaw: number; readonly variant?: string; readonly quiet?: boolean }): A | null { return this.law.spawnRider(at); }
   /** A line of `count` from `at` (m along the route; default the farthest from the player), `captain` at its head. */
-  spawnLine(at: { readonly count?: number; readonly captain?: boolean; readonly at?: number } = {}): A[] {
-    const rows=this.input.patrol,actors=rows.actors;if(actors===undefined||this.roster===null)return [];
-    const count=at.count??actors.count;if(!Number.isSafeInteger(count)||count<0||count>8)throw new RangeError('Invalid patrol group size');
-    const p=this.ports.player.position,start=this.program.project(rows.signals.start,{...rows.parameters,at:at.at??-1,px:p.x,pz:p.z},this.random);
-    const group=new ProjectedState({initial:{...rows.group,...start},parameters:rows.parameters,signal:rows.signals.group},this.program);this.groups.push(group);
-    const slots=Array.from({length:count},(_,slot)=>this.program.project(rows.signals.slot,{...rows.parameters,...group.state,slot}));
-    return slots.flatMap((placement,slot)=>{const actor=this.spawn({x:placement['x']??0,z:placement['z']??0,yaw:placement['yaw']??0,variant:slot===0&&at.captain===true?actors.leader:actors.variant},group,slot);return actor===null?[]:[actor];});
-  }
-  dissolve(actor:A):void{this.riders.find(r=>r.a===actor)?.law.event('dissolve');}
-  dawn(): void { for (const r of this.riders) this.dissolve(r.a); }
-  private spawn(at:{readonly x:number;readonly z:number;readonly yaw:number;readonly variant?:string;readonly quiet?:boolean},group:ProjectedState|null,slot:number):A|null{
-    const rows=this.input.patrol,actors=rows.actors;if(actors===undefined||this.roster===null)return null;
-    const a=this.roster.spawn(actors.kind,at.x,at.z,at.yaw,at.variant??actors.variant);a.herd=actors.herd;
-    if(this.riders.some(r=>r.a.entityId===a.entityId))throw new Error('Invalid patrol member');
-    const law=new ProjectedState({initial:{...rows.member,quiet:Number(at.quiet===true),...this.program.project(rows.signals.retry,{first:1},this.random)},
-      signals:{member:rows.signals.member,fire:rows.signals.fire,retry:rows.signals.retry,dissolve:rows.signals.dissolve}},this.program);
-    return this.present(a,law,group,slot,at.quiet===true);
-  }
-  private present(a:A,law:ProjectedState,group:ProjectedState|null,slot:number,quiet:boolean):A {
-    const rows=this.rows,key=quiet?rows.quietLook:rows.looks[a.variant]===undefined?Object.keys(rows.looks)[0]??'':a.variant;
+  spawnLine(at: { readonly count?: number; readonly captain?: boolean; readonly at?: number } = {}): A[] { return this.law.spawnLine(at); }
+  dissolve(actor: A): void { this.law.dissolve(actor); }
+  dawn(): void { this.law.dawn(); }
+  private present(a: A, quiet: boolean): RiderView {
+    const rows = this.rows, key = quiet ? rows.quietLook : rows.looks[a.variant] === undefined ? Object.keys(rows.looks)[0] ?? '' : a.variant;
     const look = rows.looks[key], figure = this.ports.figures[key], bone = a.mesh.skeleton.getBoneByName(rows.figure.bone);
     if (look === undefined || figure === undefined || bone === undefined) throw new Error(`Patrol look ${key} needs its look, figure and bone`);
     const scope = this.ports.game.levelScope.child('patrol-actor'), fades: { value: number }[] = [];
@@ -290,9 +270,8 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
     // a ghost casts no shadow: the roster sets castShadow every frame, so it stays pinned off
     Object.defineProperty(a.mesh, 'castShadow', { get: () => false, set: () => undefined, configurable: true });
     const mesh = new THREE.Mesh(figure, material()); mesh.name = `${look}-figure`; mesh.frustumCulled = false; bone.add(mesh);
-    this.riders.push({a,scope,fades,law,bone,group,slot,steering:{}});
     this.ports.cues.cue(rows.cues.form, seat.set(a.position.x, heightAt(a.position.x, a.position.z) + rows.lift.form, a.position.z), UP);
-    return a;
+    return { scope, fades, bone };
   }
   /** The nearest of the drawn targets along the ray, if nearer than `hit` (the body's own capsules). */
   target(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, hit: TargetHit | null): TargetHit | null {
@@ -301,7 +280,7 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
     for (const r of this.riders) {
       if (r.law.state[this.rows.states.dead] === 1 || !r.a.alive || r.a.hidden || r.a.position.distanceToSquared(origin) > (best + 4) * (best + 4)) continue;
       for (const row of this.rows.targets) {
-        sphere.set(sphere.center.set(...row.at).applyMatrix4(r.bone.matrixWorld), row.radius * r.a.scale);
+        sphere.set(sphere.center.set(...row.at).applyMatrix4(r.view.bone.matrixWorld), row.radius * r.a.scale);
         if (ray.intersectSphere(sphere, crossing) === null) continue;
         const d = crossing.distanceTo(origin);
         if (d < best) { best = d; found = r.a; head = row.head; this.hit.point.copy(crossing); }
@@ -315,39 +294,13 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
    *  player since the last call. `freeze` holds every actor where it stands. */
   update(dt: number, _t: number, frame: Readonly<Record<string, number>>, freeze = false): readonly PatrolHit<A>[] {
     this.hits.length = 0;
-    const rows = this.rows, cues = this.ports.cues, p = this.ports.player.position;
-    const tick={...frame,px:p.x,py:p.y,pz:p.z},step=this.cycle.step(this.roster===null?0:dt,{...tick,living:this.living});
-    const effects=new Map<Rider<A>,Readonly<Record<string,number>>>(),patrol=this.input.patrol,actors=patrol.actors;
-    if(actors===undefined)throw new Error('Missing patrol actor rows');
-    if(step.dt>0){
-      if(step.values['dissolve']===1)this.dawn();
-      for(const group of this.groups){
-        const members=this.riders.filter(r=>r.group===group),lead=members.find(r=>r.law.state['dead']!==1);if(lead===undefined)continue;
-        group.project({...tick,dt:step.dt,ax:lead.a.position.x,az:lead.a.position.z});
-        for(const r of members){if(r.law.state['dead']===1)continue;const a=r.a,target=this.program.project(patrol.signals.target,{...patrol.parameters,...group.state,...tick,slot:r.slot,ax:a.position.x,az:a.position.z});
-          Object.assign(r.steering,{tx:target['x']??a.position.x,tz:target['z']??a.position.z,v:target['speed']??0,turn:target['turn']??0});}
-      }
-      for(const r of this.riders){
-        const a=r.a,result=r.law.event('member',{dt:step.dt,alive:Number(a.alive)});
-        const fire=r.law.event('fire',{dt:step.dt,hidden:Number(a.hidden),distance:Math.hypot(p.x-a.position.x,p.z-a.position.z),engaged:Number(r.group===null||r.group.state['mode']===1)});
-        if(fire['shoot']===1)r.law.event('retry',{first:0},this.random);effects.set(r,{...result,shoot:fire['shoot']??0});
-      }
-      const empty=Number(this.groups.some(group=>this.riders.filter(r=>r.group===group).every(r=>r.law.state['dead']===1||r.a.hidden)));
-      this.cycle.event('empty',{...tick,living:this.living,killed:[...effects.values()].filter(effect=>effect['killed']===1).length,empty});
-      for(let i=this.groups.length-1;i>=0;i--){const group=this.groups[i];if(group!==undefined&&this.riders.filter(r=>r.group===group).every(r=>r.law.state['dead']===1||r.a.hidden))this.groups.splice(i,1);}
-    }
-    for(const r of this.riders){
-      const a=r.a;a.mem[actors.player.x]=p.x;a.mem[actors.player.z]=p.z;
-      if(r.group!==null)for(const [slot,channel]of Object.entries(actors.steering)){const value=r.steering[channel]??r.law.state[channel];if(value!==undefined)a.mem[slot]=value;}
-      if(freeze){a.mem[actors.target.x]=a.position.x;a.mem[actors.target.z]=a.position.z;}
-    }
-    if(step.dt>0)this.motion.project({dt:step.dt,px:p.x,pz:p.z});
-    if(step.values['spawn']===1)this.spawnLine();
-    for (let i = this.riders.length - 1; i >= 0; i--) {
-      const r = this.riders[i]; if (r === undefined) continue;
+    const rows = this.rows, cues = this.ports.cues, riders = this.law.riders;
+    const effects = this.law.step(dt, frame, freeze);
+    for (let i = riders.length - 1; i >= 0; i--) {
+      const r = riders[i]; if (r === undefined) continue;
       const a = r.a, effect = effects.get(r), state = r.law.state;
-      if (effect?.['retire'] === 1) { this.roster?.retire(a); r.scope.dispose(); this.riders.splice(i, 1); continue; }
-      for (const fade of r.fades) fade.value = state[rows.states.fade] ?? 0;
+      if (effect?.['retire'] === 1) { this.law.retire(i); r.view.scope.dispose(); continue; }
+      for (const fade of r.view.fades) fade.value = state[rows.states.fade] ?? 0;
       if ((state[rows.states.dying] ?? 0) > 0) cues.cue(rows.cues.tear, this.seat(r), UP);
       if (state[rows.states.dead] === 1 || a.hidden) continue;
       if (app.rng.stream('cosmetic').next() < dt * rows.trail.rate) {
@@ -359,11 +312,11 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
     this.arrows.update(dt);
     return this.hits;
   }
-  private seat(r: Rider<A>): THREE.Vector3 { return seat.set(...this.rows.seat).applyMatrix4(r.bone.matrixWorld); }
+  private seat(r: Rider<A>): THREE.Vector3 { return seat.set(...this.rows.seat).applyMatrix4(r.view.bone.matrixWorld); }
   /** One arrow at the player: the `aim` signal's lead and spread from the rider's shoulders. */
   private shoot(r: Rider<A>): void {
-    const p = this.ports.player.position, from = this.seat(r); from.y += this.rows.lift.loose * r.a.scale;
-    const aim = this.program.project(this.rows.aim, { x: from.x, y: from.y, z: from.z, px: p.x, py: p.y, pz: p.z, vx: this.motion.value('vx'), vz: this.motion.value('vz') }, app.rng.stream('ai'));
+    const from = this.seat(r); from.y += this.rows.lift.loose * r.a.scale;
+    const aim = this.law.aim(this.rows.aim, from);
     this.shooter = r.a;
     this.arrows.launch(from, aimed.set(aim['dx'] ?? 0, aim['dy'] ?? 0, aim['dz'] ?? 0), { damageScale: 1 });
     this.ports.cues.cue(this.rows.cues.loose, from, UP);

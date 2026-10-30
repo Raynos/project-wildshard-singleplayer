@@ -97,7 +97,7 @@ test('the member\'s fade drives its looks, and a dying one tears into its own mi
   const a = watch.spawnRider({ x: 0, z: 0, yaw: 0 }); if (a === null) throw new Error('Missing watch');
   const rider = watch.riders[0]; if (rider === undefined) throw new Error('Missing rider');
   rider.law.state['fade'] = 0.4; watch.update(0.05, 0, { hold: 1, night: 1 });
-  expect(rider.fades.map(fade => fade.value)).toEqual([0.4, 0.4]);
+  expect(rider.view.fades.map(fade => fade.value)).toEqual([0.4, 0.4]);
   heard.length = 0; watch.dissolve(a); expect(rider.law.state['dying']).toBeGreaterThan(0);
   watch.update(0.05, 0.05, { hold: 1, night: 1 });
   expect(heard.some(row => row.id === 'cue.orchard.tear')).toBe(true);

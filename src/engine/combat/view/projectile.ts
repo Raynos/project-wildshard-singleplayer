@@ -8,11 +8,11 @@ import { terrainHeight as heightAt } from '../../world/terrainHeight';
 import { CHUNK_HALF } from '../../core/config';
 import { Puffs, impactSurfaceOf, worldHit } from './ranged';
 import type { ImpactSurface } from '../Weapon';
-import type { TargetAnimal, TargetHit, Targets } from '../types';
+import type { TargetHit, Targets } from '../types';
 import { floorBelow } from '../../physics/query';
 import { app, gameplayRandom } from '../../app/runtime';
-import { projectileFlightStep, ProjectileSlots, type FlightSlot } from '../projectileFlight';
-import { ProjectileContact, StoppedProjectileSlots, type StoppedProjectile } from '../projectileContact';
+import { StoppedProjectileSlots } from '../projectileContact';
+import { ProjectileLaw, type LawFlight, type LawStuck } from '../projectileLaw';
 
 
 
@@ -60,22 +60,13 @@ export interface ShotOpts {
   onHitScale?: ((hit: TargetHit) => number) | undefined;
 }
 
-interface FlyingData { slot: number; origin: THREE.Vector3; roll: number; scale: number; hitScale: ((hit: TargetHit) => number) | undefined }
-type Flying = FlightSlot<FlyingData>;
+interface FlyingView { slot: number; roll: number }
+type Flying = LawFlight<FlyingView>;
+type Stuck = LawStuck<{ slot: number; roll: number }>;
 
-type Stuck = StoppedProjectile<{ slot: number; roll: number }, TargetAnimal>;
-
-/** the ball an arrow sweeps through the world (the broadhead) */
-const ARROW_RADIUS = 0.02;
-
-const GLANCE_LIFT = 0.03, GLANCE_KEEP = 0.35, GLANCE_BOUNCE = 0.25, GLANCE_MAX = 9;
-const RECOVER_R = 1.25; // m, horizontal reach from the feet
-const RECOVER_UP = 2.1; // m, highest point of a stuck arrow's midpoint the player can pull out
-const RECOVER_REACH = { radius: RECOVER_R, up: RECOVER_UP, down: 1.2 };
-const GLANCE = { lift: GLANCE_LIFT, keep: GLANCE_KEEP, bounce: GLANCE_BOUNCE, maxSpeed: GLANCE_MAX };
 const NEG_Z = new THREE.Vector3(0, 0, -1), POS_Z = new THREE.Vector3(0, 0, 1);
 const _cp = new THREE.Vector3(), _chord = new THREE.Vector3();
-const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _dir = new THREE.Vector3(), _wind = new THREE.Vector3();
+const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _dir = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3(1, 1, 1);
 const ZERO_M = new THREE.Matrix4().makeScale(0, 0, 0);
 
@@ -95,10 +86,10 @@ export class Projectiles {
   private readonly kind: ProjectileKind;
   private readonly game: Game; private readonly player: Player;
   private readonly targets: Targets | undefined;
-  private readonly pool: ProjectileSlots<FlyingData>;
-  private get flying(): Flying[] { return this.pool.slots; }
-  private readonly stopped: StoppedProjectileSlots<{ slot: number; roll: number }, TargetAnimal>;
-  private get stuck(): Stuck[] { return this.stopped.slots; }
+  /** the flight, contact, stick and recovery law (projectileLaw.ts: the one a Node simulation also runs) */
+  private readonly law: ProjectileLaw<FlyingView, { slot: number; roll: number }>;
+  private get flying(): Flying[] { return this.law.pool.slots; }
+  private get stuck(): Stuck[] { return this.law.stopped.slots; }
   private readonly puffs = new Puffs();
   private dirty = false;
 
@@ -111,19 +102,20 @@ export class Projectiles {
     this.mesh.frustumCulled = false; this.mesh.castShadow = false; this.mesh.receiveShadow = true;
     this.mesh.name = 'projectiles';
     for (let i = 0; i < cap; i++) this.mesh.setMatrixAt(i, ZERO_M);
-    this.pool = new ProjectileSlots<FlyingData>(kind.maxFlying, slot => ({ slot, origin: new THREE.Vector3(), roll: 0, scale: 1, hitScale: undefined }), {
-      substeps: kind.substeps ?? 4, extent: CHUNK_HALF + 80, floor: -150, lifetime: kind.lifetime ?? 12,
-      integrate: (slot, h) => { this.step(slot.pos, slot.vel, h); }, contact: (slot, previous) => this.testHit(slot, previous),
-      expired: slot => { this.endFlying(slot); }, moved: (slot, dt) => { slot.roll += dt * 9; this.writeFlying(slot); },
-    });
-    this.stopped = new StoppedProjectileSlots({ capacity: kind.maxStuck, length: kind.length, bury: kind.bury,
-      radius: kind.radius ?? ARROW_RADIUS, reach: RECOVER_REACH, recover: kind.recover, recoveryStride: 8 }, {
-      feet: this.player.position, floorAt: floorUnder,
-      body: animal => animal,
-      attachment: (animal, point) => animal.stuckFrame?.(point) ?? null,
-      canRecover: () => this.canRecover(), recover: survived => this.onRecover?.(survived), random: gameplayRandom,
+    this.law = new ProjectileLaw<FlyingView, { slot: number; roll: number }>(kind, {
+      feet: this.player.position, extent: CHUNK_HALF + 80, floorAt: floorUnder, world: worldHit,
+      targets: (from, direction, distance) => this.targets?.raycast(from, direction, distance) ?? null,
+      wind: () => this.wind, surface: wall => impactSurfaceOf(wall.material),
+      random: gameplayRandom, canRecover: () => this.canRecover(), recover: survived => this.onRecover?.(survived),
+      flight: slot => ({ slot, roll: 0 }), stuck: index => ({ slot: cap - 1 - index, roll: 0 }),
+      moved: (slot, dt) => { slot.roll += dt * 9; this.writeFlying(slot); }, ended: slot => { this.mesh.setMatrixAt(slot.slot, ZERO_M); this.dirty = true; },
+      settled: (stuck, from) => { stuck.data.roll = from.roll; },
       changed: slot => this.writeStuck(slot), removed: slot => { this.mesh.setMatrixAt(slot.data.slot, ZERO_M); this.dirty = true; },
-    }, index => ({ slot: cap - 1 - index, roll: 0 }));
+      impact: (surface, at, direction) => { if (this.kind.puffs !== false) this.puffs.emit(at, direction, surface); this.onImpact?.(surface, at); },
+      playerHit: (point, direction) => { this.onPlayerHit?.(point, direction); },
+      targetHit: hit => { this.onTargetHit?.(hit); },
+      hit: (animal, headshot, killed, point, damage) => { this.onHit?.(animal, headshot, killed, point, damage); },
+    });
     world.game.scene.add(this.mesh, this.puffs.points);
   }
 
@@ -131,10 +123,8 @@ export class Projectiles {
 
   /** loose one: from `origin` (world) with `velocity` (m/s, world — any carrier velocity already added) */
   launch(origin: THREE.Vector3, velocity: THREE.Vector3, opts: ShotOpts): void {
-    const f = this.pool.take();
-    f.pos.copy(origin); f.origin.copy(origin); f.vel.copy(velocity);
+    const f = this.law.launch(origin, velocity, opts);
     f.roll = app.rng.stream('cosmetic').next() * Math.PI * 2;
-    f.scale = opts.damageScale; f.hitScale = opts.onHitScale;
     this.writeFlying(f);
   }
 
@@ -142,15 +132,11 @@ export class Projectiles {
   get stuckCount(): number { return this.stuck.length; }
   /** world positions of the stuck ones (dev / screenshots) */
   stuckPositions(): THREE.Vector3[] { return this.stuck.map((s) => s.position.clone()); }
-  clearStuck(): void { this.stopped.clear(); }
+  clearStuck(): void { this.law.stopped.clear(); }
 
   // ── the one integrator (flight and the preview share it) ──
 
-  private step(pos: THREE.Vector3, vel: THREE.Vector3, h: number): void {
-    const k = this.kind;
-    const wind = this.wind !== null && k.windCoupling > 0 ? this.wind.vecAt(pos.x, pos.z, _wind) : null;
-    projectileFlightStep(pos, vel, h, k, wind);
-  }
+  private step(pos: THREE.Vector3, vel: THREE.Vector3, h: number): void { this.law.step(pos, vel, h); }
 
   /**
    * The drop-arc preview: integrate from `origin` / `velocity` with the flight model (wind included) and write a dot
@@ -203,54 +189,9 @@ export class Projectiles {
   // ── per frame ──
 
   update(dt: number): void {
-    this.pool.step(dt);
-    this.stopped.update();
+    this.law.update(dt);
     if (this.dirty) { this.mesh.instanceMatrix.needsUpdate = true; this.dirty = false; }
     this.puffs.update(dt, this.game.renderer, this.game.camera);
-  }
-
-  // ── hits ──
-
-  /** segment prev → f.pos vs animals, trunks, colliders, terrain; true when it stopped */
-  private readonly contacts = new ProjectileContact<Flying>({ glance: GLANCE, spentRest: 'any', impactAfterLift: false, impactOnRepeatedGlance: true }, {
-    beforeWorld: (flight, from, direction, length) => {
-      const hp = this.kind.hurtsPlayer;
-      if (hp === undefined) return false;
-      const t = segmentCapsule(from, direction, length, this.player.position, hp.radius, hp.height);
-      if (!(t >= 0)) return false;
-      _v2.copy(from).addScaledVector(direction, t); this.onPlayerHit?.(_v2, direction);
-      this.stop(flight, _v2, direction, 'flesh', null, false); return true;
-    },
-    world: worldHit,
-    target: (from, direction, distance) => this.kind.hitsAnimals !== false ? this.targets?.raycast(from, direction, distance) ?? null : null,
-    hit: (flight, hit, direction) => {
-      this.onTargetHit?.(hit);
-      const animal = hit.animal;
-      const damage = Math.max(1, Math.round(animal.damageFor(hit.headshot, hit.point.distanceTo(flight.origin)) * flight.scale * (flight.hitScale?.(hit) ?? 1)));
-      const killed = animal.applyDamage(damage, hit.point, direction);
-      this.onHit?.(animal.kind, hit.headshot, killed, hit.point, damage);
-      this.stop(flight, hit.point, direction, 'flesh', animal.alive ? animal : null, true);
-      if (!animal.alive) this.stopped.dropLast();
-    },
-    stop: (flight, at, direction, wall) => { this.stop(flight, at, direction, impactSurfaceOf(wall.material), null, true); },
-    rest: (flight, at, direction) => { this.endFlying(flight); this.stopped.settle(at, direction, slot => { slot.data.roll = flight.roll; }); },
-    impact: (at, direction, wall) => { const surface = impactSurfaceOf(wall.material); if (this.kind.puffs !== false) this.puffs.emit(at, direction, surface); this.onImpact?.(surface, at); },
-    expire: flight => { this.endFlying(flight); },
-  });
-  private testHit(flight: Flying, from: THREE.Vector3): boolean { return this.contacts.step(flight, from, this.kind.radius ?? ARROW_RADIUS, this.kind.length, this.kind.stick !== false); }
-
-  private stop(f: Flying, point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface, animal: TargetAnimal | null, stick: boolean): void {
-    const roll = f.roll;
-    this.endFlying(f);
-    if (this.kind.puffs !== false) this.puffs.emit(point, dir, surface);
-    this.onImpact?.(surface, point);
-    if (!stick || this.kind.stick === false) return;
-    this.stopped.stop(point, dir, surface === 'flesh', animal, slot => { slot.data.roll = roll; });
-  }
-
-  private endFlying(f: Flying): void {
-    f.active = false;
-    this.mesh.setMatrixAt(f.slot, ZERO_M); this.dirty = true;
   }
 
   private writeFlying(f: Flying): void {
@@ -271,23 +212,6 @@ export class Projectiles {
 function floorUnder(x: number, y: number, z: number): number {
   const ph = app.physics;
   return (ph ? floorBelow(ph, x, z, y + 0.3, 60) : undefined) ?? heightAt(x, z);
-}
-
-/** where along o + d·[0, len] the segment first comes within `r` of the vertical axis from `feet` to `feet + h`, or −1 */
-function segmentCapsule(o: THREE.Vector3, d: THREE.Vector3, len: number, feet: THREE.Vector3, r: number, h: number): number {
-  // horizontal: solve |(o + d t − feet)_xz| = r; then check the height at that t (the caps are ignored: a body, not a pill)
-  const ox = o.x - feet.x, oz = o.z - feet.z;
-  const a = d.x * d.x + d.z * d.z;
-  if (a < 1e-8) return -1;
-  const b = 2 * (ox * d.x + oz * d.z), c = ox * ox + oz * oz - r * r;
-  const disc = b * b - 4 * a * c;
-  if (disc < 0) return -1;
-  const sq = Math.sqrt(disc);
-  let t = (-b - sq) / (2 * a);
-  if (t < 0) t = c < 0 ? 0 : -1;                       // starts inside the body's circle
-  if (t < 0 || t > len) return -1;
-  const y = o.y + d.y * t - feet.y;
-  return y >= 0 && y <= h ? t : -1;
 }
 
 /** Bounded drawn-projectile continuation. Flight/contact clocks and damage remain caller-owned.
