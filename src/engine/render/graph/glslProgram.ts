@@ -472,6 +472,18 @@ const HOST_SCREEN: THREE.IUniform<THREE.Vector2> = {
   set value(_: THREE.Vector2) { /* the renderer owns it */ },
 };
 
+/** what a lent texture samples until its runtime lends one, as the node path's stand-ins: black and opaque (a volume half
+ *  opaque), one of each kind, shared and never freed */
+const standIns = new Map<string, THREE.Texture>();
+function lentStandIn(type: 'sampler2D' | 'sampler2DArray' | 'sampler3D'): THREE.Texture {
+  const known = standIns.get(type);
+  if (known !== undefined) return known;
+  const texture = type === 'sampler3D' ? new THREE.Data3DTexture(new Uint8Array([0, 0, 0, 128]), 1, 1, 1)
+    : type === 'sampler2DArray' ? new THREE.DataArrayTexture(new Uint8Array([0, 0, 0, 255]), 1, 1, 1) : new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1);
+  texture.needsUpdate = true; standIns.set(type, texture);
+  return texture;
+}
+
 /** a uniform's starting value: a param's own (a colour held linear, as the families hold theirs), an engine clock or light
  *  shared by reference, a texture its resolver admits, else a neutral value the host moves */
 function uniformValue(glsl: GraphGlsl, u: GraphGlslUniform, opts: GraphShaderOptions): THREE.IUniform {
@@ -489,7 +501,8 @@ function uniformValue(glsl: GraphGlsl, u: GraphGlslUniform, opts: GraphShaderOpt
     case 'array': return { value: (glsl.ir.arrays?.[u.param]?.value ?? []).map(v => vector(u.type, v)) };
     case 'texture': {
       const p = glsl.ir.params?.[u.param];
-      if (p === undefined || typeof p.value !== 'string' || p.role === 'lent' || opts.textures === undefined) return { value: null };
+      if (p?.role === 'lent') return { value: lentStandIn(u.type) };
+      if (p === undefined || typeof p.value !== 'string' || opts.textures === undefined) return { value: null };
       return { value: p.role === undefined ? opts.textures(p.value) : opts.textures(p.value, p.role) };
     }
     case 'toon': {

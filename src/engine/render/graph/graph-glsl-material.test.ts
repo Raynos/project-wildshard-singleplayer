@@ -66,9 +66,19 @@ test('a row sets a variant its own alphaTest and roughness, as on a node materia
   expect(rough.fragmentShader).not.toContain('wsMaterialRoughness');
 });
 
-test('a declared attribute a mesh lacks reads its default, else zeros (never a leftover generic value)', () => {
+test('a declared attribute a mesh lacks reads its default, else TSL\'s constant (never a leftover generic value)', () => {
   const m = compileClassicGraph({ version: 1, kind: 'material', model: 'unlit', nodes: { a: { op: 'attribute', name: 'aLump', type: 'vec4' }, b: { op: 'attribute', name: 'aTone', type: 'vec2', default: [0.5, 1] },
     c: { op: 'swizzle', in: ['a'], mask: 'xyz' }, d: { op: 'swizzle', in: ['b'], mask: 'x' }, e: { op: 'mul', in: ['c', 'd'] }, v: { op: 'varying', in: ['e'] } }, stages: { surface: { colour: 'v' } } }).material;
-  expect(Reflect.get(m.defaultAttributeValues, 'aLump')).toEqual([0, 0, 0, 0]);
+  expect(Reflect.get(m.defaultAttributeValues, 'aLump')).toEqual([0, 0, 0, 1]);
   expect(Reflect.get(m.defaultAttributeValues, 'aTone')).toEqual([0.5, 1]);
+});
+
+test('a lent texture samples the node path\'s black opaque stand-in until its runtime lends one', () => {
+  const compiled = compileClassicGraph({ version: 1, kind: 'material', model: 'unlit', params: { field: { type: 'texture', value: 'field', role: 'lent' } },
+    nodes: { u: { op: 'uv' }, f: { op: 'texture', param: 'field', in: ['u'] }, c: { op: 'swizzle', in: ['f'], mask: 'www' } }, stages: { surface: { colour: 'c' } } });
+  const sampler: unknown = compiled.material.uniforms['wsT_field']?.value;
+  expect(sampler instanceof THREE.DataTexture && sampler.image.data !== null ? [...new Uint8Array(sampler.image.data.buffer)] : null).toEqual([0, 0, 0, 255]);
+  const lent = new THREE.DataTexture(new Uint8Array(4), 1, 1);
+  compiled.setTexture('field', lent);
+  expect(compiled.material.uniforms['wsT_field']?.value).toBe(lent);
 });
