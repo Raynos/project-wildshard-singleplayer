@@ -10,7 +10,9 @@ The separate taming fixture starts beside the authored living wild stallion, the
 
 CI12's `test/nalati-taming-verbs.test.ts` additionally starts at the actual entry spawn, walks the river bridge and traversable bowl shelves, follows the living stallion and earns all five bucking rounds through native inputs. Its pilot holds the observed gauge velocity between the real 10 Hz publications. An earned mid-round checkpoint reproduces the complete adoption suffix. No feet, horse, health, trust or quest state is granted; the original beside-horse fixture remains unchanged.
 
-Taming remains an open **whole-gameplay** requirement: the actual Argymaq breaking encounter, companion whistle/resting, the global quest prompt list and taming quest/ledger facts are not certified by these ordinary Tulpar proofs.
+CI12's naming tape walks to the real rail, types one key per native frame and distinguishes cancel from submit. Camp horses remain unbonded and ignore the whistle. After genuine five-round adoption, the existing checkpoint proof dismounts, sprints away and whistles the actual Tulpar back within 4 m; both earned checkpoint continuations agree. These inputs grant no chapter or quest completion.
+
+Taming remains an open **whole-gameplay** requirement: the actual Argymaq breaking encounter, companion resting, the global quest prompt list and taming quest/ledger facts are not certified by these ordinary Tulpar proofs.
 
 This is **not whole-shard compatibility**. The CLI stays nonzero and `compatible: false` until Qyran, Qara/night roster, Golden King, Storm Titan, taming, sabre/held heavy, quest/gameplay ledger outcomes are actually hosted. The 17 declared ledger-row tests still prove storage refusal/retry/reload/duplicate ingress only; they do not stand in for gameplay emissions. `compatibility.json` is a compact observed summary, not a passing certificate.
 

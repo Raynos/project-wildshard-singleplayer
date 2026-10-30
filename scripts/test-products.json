@@ -3,6 +3,7 @@
   "test/pine-quest-verbs.test.ts": ["pine-hollow"],
   "test/nalati-ride-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-taming-verbs.test.ts": ["nalati-grasslands"],
+  "test/nalati-name-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-world-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-chapter-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-kokpar-verbs.test.ts": ["nalati-grasslands"],
