@@ -1,7 +1,9 @@
 // @vitest-environment node
 import {expect,test} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Observe actual atomic job receipts and native directory notification.
-import {mkdtempSync,mkdirSync,writeFileSync,renameSync,rmSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,renameSync,rmSync,readFileSync,existsSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Execute the workflow's actual Bash pipeline with an owned fake producer.
+import {spawnSync} from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- The preparation protocol is a Node job boundary.
 import {join} from 'node:path';
 import {preparePhoneSimulator,waitPhonePreparation,waitPhoneProducer} from '../scripts/parity/phone-route-preparation.mjs';
@@ -78,4 +80,24 @@ test('producer condition waiting spends the existing job deadline and never star
     wait:()=>{clock=f.started+20*60*1000;return Promise.resolve();}})).rejects.toThrow('original job deadline');
   for(const run of ['0','123\ninjected','not-a-run'])
     await expect(waitPhoneProducer('fixture/repo',run)).rejects.toThrow('identity');
+});
+
+test('the actual preparation pipeline propagates failure before installs or transfer',()=>{
+  const workflow=readFileSync('.github/workflows/deploy.yml','utf8');
+  const step=workflow.split('      - name: Prepare isolated Safari while the build runs\n')[1]?.split('\n      - ')[0];
+  if(step===undefined)throw new Error('Missing native preparation step');
+  const run=step.split('        run: |\n')[1];if(run===undefined)throw new Error('Missing native preparation command');
+  const body=run.split('\n').map(line=>line.startsWith('          ')?line.slice(10):line).join('\n');
+  // GitHub's implicit bash uses -e; an explicit bash step adds pipefail.
+  const args=step.includes('        shell: bash\n')?['--noprofile','--norc','-e','-o','pipefail']:['-e'];
+  const f=fixture();const bin=join(f.path,'..','bin');mkdirSync(bin);
+  writeFileSync(join(bin,'node'),'#!/bin/sh\nprintf "native refused\\n"\nexit 124\n',{mode:0o755});
+  try {
+    const continued=join(f.path,'..','continued');
+    const result=spawnSync('/bin/bash',[...args,'-c',`${body}\nprintf continued > "$FOLLOWUP"`],{
+      encoding:'utf8',timeout:5000,env:{...process.env,PATH:`${bin}:${process.env['PATH']??''}`,RUNNER_TEMP:join(f.path,'..'),
+        GITHUB_RUN_ID:'123',GITHUB_RUN_ATTEMPT:'1',GITHUB_ENV:join(f.path,'..','env'),FOLLOWUP:continued}});
+    expect(result.status,result.stderr).toBe(124);expect(existsSync(continued)).toBe(false);
+    expect(readFileSync(join(f.path,'..','phone-preparation/native.log'),'utf8')).toContain('native refused');
+  }finally{f.close();}
 });

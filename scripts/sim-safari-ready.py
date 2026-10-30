@@ -3,12 +3,29 @@ from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import math
 import os
+from pathlib import Path
 import secrets
 from socketserver import TCPServer
 import subprocess
 import sys
+import tempfile
 import threading
 import time
+
+
+@contextmanager
+def native_transcript():
+    # A native service may inherit simctl's output handle. Pipe EOF then
+    # waits for that service, not for the bounded client command to exit.
+    scratch = Path(__file__).resolve().parent.parent / 'tmp'
+    scratch.mkdir(exist_ok=True)
+    with tempfile.TemporaryFile(dir=scratch) as stream:
+        yield stream
+
+
+def native_text(stream):
+    # Snapshot current output without EOF or changing an inherited offset.
+    return os.pread(stream.fileno(), os.fstat(stream.fileno()).st_size, 0).decode(errors='replace')
 
 
 @contextmanager
@@ -83,18 +100,18 @@ def open_ready_page(udid, url, ready, deadline, timeout, started):
         if remaining <= 0:
             print(f'sim-lane: Safari URL readiness timed out after {timeout:g}s: {detail}', file=sys.stderr)
             return code
-        with subprocess.Popen(['xcrun', 'simctl', 'openurl', udid, url],
-                              stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True) as child:
+        with native_transcript() as errors, subprocess.Popen(['xcrun', 'simctl', 'openurl', udid, url],
+                              stdout=subprocess.DEVNULL, stderr=errors, text=True) as child:
             attempt_deadline = min(deadline, time.monotonic() + 10)
             while child.poll() is None and not ready.is_set() and time.monotonic() < attempt_deadline:
                 ready.wait(min(.05, max(0, attempt_deadline - time.monotonic())))
             if child.poll() is None:
                 child.kill()
-                _, error = child.communicate()
+                child.wait()
                 code = 124
                 detail = 'openurl client stopped after frame proof' if ready.is_set() else 'openurl did not respond before its deadline'
             else:
-                _, error = child.communicate()
+                error = native_text(errors)
                 code = child.returncode if child.returncode >= 0 else 128 - child.returncode
                 detail = error.strip() or f'openurl exited {code}'
                 if code == 0 and not ready.is_set():
@@ -123,17 +140,19 @@ def wait_for_safari(udid):
     # original readiness deadline; a failed launch never publishes a lease.
     started = time.monotonic()
     try:
-        launch = subprocess.run(['xcrun', 'simctl', 'launch', udid, 'com.apple.mobilesafari'],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-            timeout=max(0.001, deadline - started), check=False)
+        with native_transcript() as output, native_transcript() as errors:
+            launch = subprocess.run(['xcrun', 'simctl', 'launch', udid, 'com.apple.mobilesafari'],
+                stdout=output, stderr=errors, text=True,
+                timeout=max(0.001, deadline - started), check=False)
+            launch_output, launch_error = native_text(output), native_text(errors)
     except subprocess.TimeoutExpired:
         print(f'sim-lane: Safari app launch timed out within {timeout:g}s readiness deadline', file=sys.stderr)
         return 124
     elapsed = time.monotonic() - started
     if launch.returncode != 0:
-        print(f'sim-lane: Safari app launch failed in {elapsed:.3f}s: {launch.stderr.strip()}', file=sys.stderr)
+        print(f'sim-lane: Safari app launch failed in {elapsed:.3f}s: {launch_error.strip()}', file=sys.stderr)
         return launch.returncode if launch.returncode > 0 else 128 - launch.returncode
-    print(f'sim-lane: Safari app launched in {elapsed:.3f}s: {launch.stdout.strip()}', file=sys.stderr)
+    print(f'sim-lane: Safari app launched in {elapsed:.3f}s: {launch_output.strip()}', file=sys.stderr)
     with readiness_page(deadline, started) as (url, ready):
         return open_ready_page(udid, url, ready, deadline, timeout, started)
 

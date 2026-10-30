@@ -70,7 +70,9 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   A missing, foreign or late signal still refuses the lease. Boot/bootstatus
   progress and separate URL-acceptance, document-request and owned-frame clocks
   remain in the native artifact; successful frame proof is never labelled as
-  a URL timeout.
+  a URL timeout. Native command transcripts use unlinked files, so an
+  inherited output handle cannot make client completion wait for service EOF.
+  The log pipeline propagates a failed preparation before installs/transfer.
   Before transfer, a condition wait requires this exact run's prepare job to
   succeed, within the phone job's original twenty-minute budget. It never
   waits on its own aggregate or retries a failed producer. SHA/run/archive

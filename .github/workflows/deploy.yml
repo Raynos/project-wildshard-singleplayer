@@ -695,6 +695,7 @@ jobs:
       # The Linux prepare job runs concurrently; Safari keeps its 120 s bound.
       - name: Prepare isolated Safari while the build runs
         id: phone
+        shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/phone-preparation"
           receipt="$RUNNER_TEMP/phone-preparation/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"

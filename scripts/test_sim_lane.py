@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 from pathlib import Path
 import runpy
+import signal
 import shutil
 import subprocess
 import sys
@@ -33,6 +34,10 @@ class SimulatorReadinessTests(unittest.TestCase):
         self.command('xcrun', '''import json,os,pathlib,sys,time
 root=pathlib.Path(os.environ['SIM_FIXTURE']);args=sys.argv[1:]
 with (root/'calls').open('a') as output: output.write(json.dumps(args)+'\\n')
+if os.environ.get('SIM_HELD_NATIVE_OUTPUT')==args[1]:
+    import subprocess
+    child=subprocess.Popen([sys.executable,'-c','import time;time.sleep(30)'],stdin=subprocess.DEVNULL)
+    (root/'output-holder').write_text(str(child.pid))
 booted=root/'booted'
 if args[:3]==['simctl','list','devices']:
     time.sleep(float(os.environ.get('SIM_LIST_DELAY','0')))
@@ -79,7 +84,16 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         self.command('osascript', "raise RuntimeError('No app should be touched')\n")
         self.child = self.root / 'child.py'
         self.child.write_text("import os,pathlib\nr=pathlib.Path(os.environ['SIM_FIXTURE']);assert (r/'safari-rendered').exists();(r/'child-ran').write_text((r/'attempts').read_text())\n")
+        self.addCleanup(self.release_output_holder)
         self.assertIsNotNone(shutil.which('jq'))
+
+    def release_output_holder(self):
+        path = self.root / 'output-holder'
+        if path.exists():
+            try:
+                os.kill(int(path.read_text()), signal.SIGTERM)
+            except ProcessLookupError:
+                pass
 
     def command(self, name, code):
         path = self.bin / name
@@ -165,6 +179,25 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         self.assertNotIn('never reached frame callbacks', result.stderr)
         self.assertNotIn('readiness timed out', result.stderr)
         self.assertTrue((self.root / 'child-ran').exists())
+
+    def test_completed_launch_does_not_wait_for_a_services_inherited_output(self):
+        result = self.lane(SIM_HELD_NATIVE_OUTPUT='launch')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue((self.root / 'child-ran').exists())
+        # The service is still alive: readiness did not kill it to close EOF.
+        os.kill(int((self.root / 'output-holder').read_text()), 0)
+
+    def test_completed_url_does_not_wait_for_a_services_inherited_error_output(self):
+        result = self.lane(SIM_HELD_NATIVE_OUTPUT='openurl')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue((self.root / 'child-ran').exists())
+        os.kill(int((self.root / 'output-holder').read_text()), 0)
+
+    def test_inherited_url_output_cannot_substitute_for_a_frame_proof(self):
+        result = self.lane(SIM_HELD_NATIVE_OUTPUT='openurl', SIM_OPEN_NO_FRAME='1', SIM_SAFARI_READY_TIMEOUT='.3')
+        self.assertEqual(result.returncode, 124, result.stderr)
+        self.assertIn('never reached frame callbacks', result.stderr)
+        self.assert_not_handed_over()
 
     def test_probe_requires_two_frames_and_only_its_own_timely_callback(self):
         with READY['readiness_page'](time.monotonic() + 5) as (url, ready):
