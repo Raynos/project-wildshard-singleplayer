@@ -285,7 +285,7 @@ export class ColourRampFog {
   model(order: number): { readonly order: number; readonly install: () => void; readonly node: NodeFogPatch } {
     return { order, node: { colourRamp: this }, install: () => {
       THREE.ShaderChunk.fog_pars_fragment += this.panorama !== undefined ? PANORAMA_PARS
-        : '\n#ifdef USE_FOG\n  uniform vec3 fogRampZenith; uniform vec3 fogRampNear; uniform float fogRampStart; uniform float fogRampEnd;\n#endif';
+        : '\n#ifdef USE_FOG\n  #define WS_FOG_RAMP_ZENITH\n  uniform vec3 fogRampZenith; uniform vec3 fogRampNear; uniform float fogRampStart; uniform float fogRampEnd;\n#endif';
       THREE.ShaderChunk.fog_fragment = this.panorama !== undefined ? PANORAMA_FRAGMENT : fogFragment(false, false, true);
       addFogUniforms(this.uniforms);
     } };

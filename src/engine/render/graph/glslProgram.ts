@@ -301,6 +301,17 @@ const NORMAL_MAP = `#ifdef USE_NORMALMAP_TANGENTSPACE
 /** A lit program's sky light (`skyLightDirection` / `skyLightColour`) is three's first directional light, as the node path
  *  reads its first shadow caster (three sorts its casters first), the direction turned back to world space; every other
  *  program keeps the neutral host uniform. */
+/** A graph's fog zenith (`fogZenithColour`) in a fogged fragment: the level's colour-ramp fog's zenith where its fog chunk
+ *  declares one (Atmosphere's `ColourRampFog`), else the fog's colour, as the node path reads its fog patch's ramp, else the
+ *  scene's fog; unfogged, the neutral host uniform. */
+const FOG_ZENITH = `#if defined( USE_FOG ) && defined( WS_FOG_RAMP_ZENITH )
+#define wsFogZenithColour fogRampZenith
+#elif defined( USE_FOG )
+#define wsFogZenithColour fogColor
+#else
+uniform vec3 wsFogZenithColour;
+#endif`;
+
 function skyLightFromLights(text: string): string {
   return text.replaceAll(/^uniform vec3 wsSkyLight(Direction|Colour);$/gm, (_, which: string) => `#if NUM_DIR_LIGHTS > 0
 #define wsSkyLight${which} ${which === 'Direction' ? 'normalize( ( vec4( directionalLights[ 0 ].direction, 0.0 ) * viewMatrix ).xyz )' : 'directionalLights[ 0 ].color'}
@@ -621,7 +632,7 @@ export function graphShaders(glsl: GraphGlsl, opts: GraphShaderOptions = {}): Gr
   const ports: string[] = [];
   if (ir.stages.surface?.alphaCutoff !== undefined) { uniforms['wsAlphaCutoff'] = { value: ir.stages.surface.alphaCutoff }; ports.push('uniform float wsAlphaCutoff;'); }
   if (lit && program.outputs.roughness === null) { uniforms['wsMaterialRoughness'] = { value: 1 }; ports.push('uniform float wsMaterialRoughness;'); }
-  const fragmentText = ports.length === 0 ? text : [text, ...ports].join('\n');
+  const fragmentText = (ports.length === 0 ? text : [text, ...ports].join('\n')).replaceAll('uniform vec3 wsFogZenithColour;', FOG_ZENITH);
   const declaredFog = fogged && fog !== undefined ? fog.glsl : undefined;
   // the environment's own uniforms (`syncGraphEnvironment` fills them from the drawn scene), three's DFG table and the
   // borrowed PBR maps' slots (`GraphShaderMaterial`'s normal, roughness and ao maps)

@@ -139,3 +139,10 @@ test('a value first built inside one arm is built again where the other arm read
     for (const [, useIndent = ''] of uses) expect(useIndent.length).toBeGreaterThanOrEqual(indent.length);
   }
 });
+
+test('a fogged graph reads its fog zenith from the level\'s colour-ramp fog, else the fog colour', () => {
+  const material = graphShaders(emitClassicGraph({ version: 1, kind: 'material', model: 'unlit', nodes: { z: { op: 'fogZenithColour' } }, stages: { surface: { colour: 'z' } } }));
+  expect(material.fragmentShader).toContain('#define wsFogZenithColour fogRampZenith');
+  expect(material.fragmentShader).toContain('#define wsFogZenithColour fogColor');
+  expect(material.fragmentShader.indexOf('#include <fog_pars_fragment>')).toBeLessThan(material.fragmentShader.indexOf('WS_FOG_RAMP_ZENITH'));
+});
