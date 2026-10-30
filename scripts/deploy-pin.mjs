@@ -292,7 +292,7 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
   if (ready && !Array.isArray(details)) throw new Error('Ready source job inventory is unreadable');
   const rows = details !== null ? details.map(job => [job.name, job.status, job.conclusion ?? ''].join('\t'))
     : query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--jq',
-      '.jobs[] | [.name, .status, .conclusion] | @tsv']).trim().split('\n').filter(Boolean);
+      '.jobs[] | [.name, .status, .conclusion] | @tsv']).split(/\r?\n/u).filter(Boolean);
   const optional = new Set(['build-and-deploy',phone === undefined ? 'journeys (phone-route)' : 'phone-route']);
   const drawBudget = /\n {2}draw-budget:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
   if (drawBudget !== undefined) {
@@ -317,17 +317,16 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     if (row.split('\t').length !== 3 || conclusion === undefined)
       throw new Error(`Recovery job has an unreadable verdict: ${name}`);
     if (!required.has(name) && !optional.has(name)) throw new Error('Recovery job inventory differs');
-    if (ready && optional.delete(name)) {
+    if ((ready || name === 'draw-budget') && optional.delete(name)) {
       if (!['completed','queued','in_progress'].includes(status)
         || (status !== 'completed' && conclusion !== '')
         || (status === 'completed' && !['success','failure','cancelled','timed_out','skipped'].includes(conclusion)))
-        throw new Error(`Ready source optional verdict is unreadable: ${name}`);
+        throw new Error(`Source optional verdict is unreadable: ${name}`);
       jobs.push({name,status,conclusion}); continue;
     }
     if (status !== 'completed') throw new SourceGateError(`Recovery job has no completed verdict: ${name}`);
     if (optional.delete(name)) {
-      const terminal = name === 'draw-budget' ? ['success','failure','cancelled','timed_out','skipped']
-        : deadline ? ['success','failure','timed_out',...(name === 'build-and-deploy' ? ['skipped'] : [])] : ['success','failure'];
+      const terminal = deadline ? ['success','failure','timed_out',...(name === 'build-and-deploy' ? ['skipped'] : [])] : ['success','failure'];
       if (!terminal.includes(conclusion))
         throw new Error(`Recovery terminal job did not finish: ${name}`);
     } else if (!required.delete(name) || (deadline && !essential.has(name)

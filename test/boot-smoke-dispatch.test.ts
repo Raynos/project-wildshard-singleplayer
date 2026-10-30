@@ -276,6 +276,21 @@ test('reviewed diagnostic inventory remains exhaustive and duplicated or undecla
   expect(()=>recoverySource('123',undeclared.query)).toThrow('inventory');
 });
 
+test('an explicitly report-only draw job can remain queued in recovery while every source gate stays mandatory',()=>{
+  for(const status of ['queued','in_progress']) {
+    const fixture=recoveryFixture(true,true);
+    fixture.source+='\n  draw-budget:\n    continue-on-error: true\n';
+    fixture.rows.push(['draw-budget',status,'']);
+    expect(recoverySource('123',fixture.query)).toEqual({sha,run:'123'});
+    const evidence=deadlineRecoverySource('123',fixture.query,Date.parse('2026-10-30T22:00:00Z'));
+    expect(evidence.jobs).toContainEqual({name:'draw-budget',status,conclusion:''});
+    const native=fixture.rows.find(row=>row[0]==='native-escape');
+    if(native===undefined)throw new Error('Missing required native gate');
+    native[1]='in_progress';native[2]='';
+    expect(()=>recoverySource('123',fixture.query)).toThrow('completed verdict');
+  }
+});
+
 test('ready source refuses duplicate releases, a regressing floor, and unreadable or newer proven waves',()=>{
   for(const kind of ['already-live','released','behind']) {
     const {state}=readyFixture();

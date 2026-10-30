@@ -19,7 +19,9 @@ test('draw diagnostics read exact prepared worlds and never join source, boot or
   }
   expect(diagnostic).toContain('name: boot-dist-worlds');
   expect(diagnostic).toContain('name: boot-dist-manifest');
-  expect(diagnostic.match(/run-id: \$\{\{ github.run_id \}\}/gu)).toHaveLength(2);
+  const readers=diagnostic.split(/\n {6}- /u).filter(step=>step.includes('actions/download-artifact@'));
+  expect(readers.length).toBeGreaterThan(0);
+  for(const reader of readers)expect(reader).toContain(`run-id: \${{ github.run_id }}`);
   expect(diagnostic).toContain('python3 scripts/boot-dist.py restore --sha "$TESTED_SHA" --run "$SOURCE_RUN" --part boot-grid');
   expect(diagnostic).not.toContain('serve-build.sh');
   expect(diagnostic).not.toContain('scripts/gen.mjs');
