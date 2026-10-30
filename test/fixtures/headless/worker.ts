@@ -14,7 +14,7 @@ import type { PrepareHeadlessRuntime } from '../../../src/sdk/headlessRuntime';
 
 await runTickWorker(async raw => {
   const payload = v.parse(v.strictObject({ shard: v.unknown(), assets: v.map(v.string(), v.instance(Uint8Array)),
-    kind: v.picklist(['driftwood', 'sky-verbs', 'pine', 'pine-verbs', 'nine', 'nine-flat', 'nalati', 'nalati-companions', 'nalati-weapons', 'nalati-predators', 'nalati-world', 'nalati-verbs', 'nalati-kokpar', 'trusted', 'deferred']), directory: v.string(), binary: v.string(),
+    kind: v.picklist(['driftwood', 'sky-verbs', 'pine', 'pine-verbs', 'nine', 'nine-flat', 'nalati', 'nalati-companions', 'nalati-weapons', 'nalati-predators', 'nalati-world', 'nalati-stealth', 'nalati-verbs', 'nalati-kokpar', 'trusted', 'deferred']), directory: v.string(), binary: v.string(),
     sections: v.map(v.string(), v.unknown()), snapshot: v.exactOptional(v.string()) }), raw);
   const shard = parseShardfile(payload.shard), rapier = await loadRapier(readFileSync(payload.binary));
   await prepareAssetDecoders();
@@ -33,6 +33,7 @@ await runTickWorker(async raw => {
   else if (payload.kind === 'nalati-weapons') prepare = (await import('../nalati-weapons-native')).prepareHeadlessRuntime;
   else if (payload.kind === 'nalati-predators') prepare = (await import('../nalati-predators-native')).prepareHeadlessRuntime;
   else if (payload.kind === 'nalati-world') prepare = (await import('../nalati-world-verbs')).prepareHeadlessRuntime;
+  else if (payload.kind === 'nalati-stealth') prepare = (await import('../nalati-stealth-native')).prepareHeadlessRuntime;
   else if (payload.kind === 'nalati-verbs') prepare = (await import('../nalati-verbs')).prepareHeadlessRuntime;
   else if (payload.kind === 'nalati-kokpar') prepare = (await import('../nalati-kokpar-native')).prepareHeadlessRuntime;
   else if (payload.kind === 'trusted') prepare = (await import('./trustedRuntime')).prepareHeadlessRuntime;
