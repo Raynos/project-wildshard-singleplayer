@@ -21,6 +21,6 @@ test.each([0, 7])('prebuilt packaging never rebuilds dist and restores config af
     expect(readFileSync(join(root,'vercel.json'),'utf8')).toBe(original);
     const observed: {config:{headers:unknown[]};args:string[]}=JSON.parse(readFileSync(join(root,'observed.json'),'utf8'));
     expect(observed.config.headers).toEqual([{source:'/sw.js',headers:[]}]);
-    expect(observed.args).toEqual(['build','--prod','--scope','raynos-projects','--token','fixture-token']);
+    expect(observed.args).toEqual(['build','--standalone','--prod','--scope','raynos-projects','--token','fixture-token']);
   } finally {rmSync(root,{recursive:true,force:true});}
 });
