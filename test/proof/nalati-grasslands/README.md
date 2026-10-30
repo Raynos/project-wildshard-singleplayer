@@ -14,7 +14,9 @@ CI12's naming tape walks to the real rail, types one key per native frame and di
 
 Taming remains an open **whole-gameplay** requirement: the actual Argymaq breaking encounter, companion resting, the global quest prompt list and taming quest/ledger facts are not certified by these ordinary Tulpar proofs.
 
-This is **not whole-shard compatibility**. The CLI stays nonzero and `compatible: false` until Qyran, Qara/night roster, Golden King, Storm Titan, taming, sabre/held heavy, quest/gameplay ledger outcomes are actually hosted. The 17 declared ledger-row tests still prove storage refusal/retry/reload/duplicate ingress only; they do not stand in for gameplay emissions. `compatibility.json` is a compact observed summary, not a passing certificate.
+CI12's weapon tape binds admitted held rows to the page's bow law/projectiles, mounted-pass and swept swing clocks, polearm decisions/contact and javelin flight. Real inputs prove early-release refusal, full bow release, AIM and sprint blocking; the three light sabre moves, held heavy and a pass from an actually mounted camp horse; spear thrust and spending one of three real carried javelins through physical landing. An independent fresh worker reproduces every recorded weapon cursor and flight slot. No target-hit or whole combat parity is claimed by this decision/projectile proof.
+
+This is **not whole-shard compatibility**. The CLI stays nonzero and `compatible: false` until Qyran, Qara/night roster, Golden King, Storm Titan, taming upgrades, sabre target contacts, quest/gameplay ledger outcomes are actually hosted. The 17 declared ledger-row tests still prove storage refusal/retry/reload/duplicate ingress only; they do not stand in for gameplay emissions. `compatibility.json` is a compact observed summary, not a passing certificate.
 
 The taming worker uses an explicit proof-side filesystem adapter for Nalati's still-path-addressed terrain/navmesh. It runs the unchanged native installer and shipping tick worker; hash-addressed shardfile admission of these inputs remains unfinished.
 
