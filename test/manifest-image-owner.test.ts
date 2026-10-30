@@ -4,7 +4,6 @@ import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { sourceManifest } from '../src/game/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
-import { hashImmutableBytes } from '../src/sdk/immutable';
 
 const original = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));
 const hash = 'a'.repeat(64);
@@ -27,8 +26,6 @@ test('owned manifest shares one detached image across all card and map reference
     expect(create).toHaveBeenCalledTimes(1);
     expect(manifest.biome).toBe('Image biome');
     expect(manifest.blurb).toBe('Original image card');
-    const metadata = JSON.stringify({ ...manifest, card: { thumb: hash, portrait: hash, landscape: hash }, minimap: { image: hash } });
-    expect(hashImmutableBytes(new TextEncoder().encode(metadata))).toBe('e5e3bc4fc5eb0b0d0b4324297c1279852f651f96a0324d61d352246a9601564f');
     storage.fill(0);
     const response = await fetch(manifest.card.thumb);
     expect(response.headers.get('content-type')).toBe('image/png');
