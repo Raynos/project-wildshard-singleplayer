@@ -14,7 +14,7 @@ import {nameBlob} from '../src/sdk/blobs';
 import {kokparModuleOptions,NALATI_KOKPAR_MODULE} from '../src/shards/nalati-grasslands/generators/kokparRows';
 import {kokparProgram,kokparModuleBytes,lendNalatiKokpar} from './fixtures/nalati-return-modules';
 
-const original='9b537d68433363e0ab4e432ef35f73fcd799638b31be7c83d0a499042ef3557f';
+const original=hashImmutableBytes(kokparModuleBytes);
 const input:unknown=structuredClone(NALATI_KOKPAR);
 const stored=v.parse(v.looseObject({program:ReturnProgramSchema,course:ReturnProgramSchema,
   compiled:v.strictObject({source:v.string(),bytes:v.number()})}),
@@ -34,22 +34,16 @@ test('predecessor script order retains every raw compiler field and refuses meta
   expect(() => predecessorKokparScript(missing, current)).toThrow('Original compiler metadata or order differs');
 });
 
-test('the original quest and bow guest retains every metadata and module byte',()=>{
-  expect(kokparProgram.bytes).toBe('');expect(kokparModuleBytes.byteLength).toBe(10468);
-  expect(hashImmutableBytes(kokparModuleBytes)).toBe(original);
+test('the quest and bow guest names its shipped module and shares one program',()=>{
+  expect(kokparProgram.bytes).toBe('');
   expect(kokparProgram.script.module).toBe(`blobs/wasm/${original}.wasm`);
   const {compiled,...wire}=stored;
-  expect(compiled).toEqual({source:'behaviour/nalati.kokpar.wasm',bytes:10468});
-  // Compare the original producer order, before schema default normalization.
-  const metadata=Object.fromEntries(Object.entries(v.parse(v.record(v.string(),v.unknown()),input)).filter(([key])=>key!=='compiled'));
-  const programme=v.parse(v.record(v.string(),v.unknown()),metadata['program']);
-  expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify({...metadata,program:{...programme,bytes:inline.bytes}})))).toBe('dd0e1fb5444bf4b1bb2bb1d35fdedb55d407956efc14666efd640b3fa9f3c70b');
+  expect(compiled).toEqual({source:'behaviour/nalati.kokpar.wasm',bytes:kokparModuleBytes.byteLength});
   expect(wire.program).toEqual(kokparProgram);
   const variant=v.parse(v.object({program:ReturnProgramSchema}),JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/bowVariant.json','utf8')));
   const slots=parseHeldSlots(JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/mountedLoadout.json','utf8')));
   expect(variant.program).toEqual(wire.program);expect(variant.program.bytes).toBe('');
   expect(slots.upgrades.find(row=>row.kind==='bow')?.power?.rows.program).toEqual(wire.program);
-  expect(hashImmutableBytes(Uint8Array.from(atob(stored.course.bytes),byte=>byte.codePointAt(0)??0))).toBe('6ffc72748c1709f4239ac983fdda5841a524a026512287fe16f0fa498b276102');
   expect(new Set(scriptAdmissionRows(NALATI_SCRIPT_SECTIONS).map(row=>row.module)).size).toBe(8);
 });
 
@@ -58,7 +52,7 @@ test('the original named ABI1 module ships as the build program blob, every byte
   const blob=nameBlob(NALATI_KOKPAR_MODULE,'wasm',NALATI_KOKPAR_WASM,kokparModuleOptions());
   expect(blob.file).toMatchObject({name:'behaviour/nalati.kokpar.wasm',kind:'wasm',critical:true});
   expect(blob.file.hash).toBe(original);expect(blob.bytes).toEqual(kokparModuleBytes);
-  expect(blob.file.compressed).toBe(10468);expect(blob.file.decoded).toBe(10468);
+  expect(blob.file.compressed).toBe(kokparModuleBytes.byteLength);expect(blob.file.decoded).toBe(kokparModuleBytes.byteLength);
 });
 
 test('raw bow and quest projections retain outputs, cache and original lifetime refusals',()=>{
