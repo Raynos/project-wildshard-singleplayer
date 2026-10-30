@@ -190,7 +190,7 @@ Codex does the workflow engineering (non-visual). Ordered to unstick the deploy 
 | Row | What | Done when | Lane | Size |
 |---|---|---|---|---|
 | CI1 | Pin wave 1 (G919): delete tonight's red Nalati pins and the 2-day repeat offenders (§2); each commit lists the test and what it pinned | Push CI green on main again | Codex sp-ci-deploy · done 143b3edd27, 5b54b7d044, ba70969be3 | S |
-| CI2 | Ship the tested build (G920): push CI uploads `.vercel/output`; the release runs `vercel deploy --prebuilt` on it, with no native or vercel rebuild | Release ≤ 3 min; live `version.json` = the tested SHA | Codex sp-ci-deploy · landed 94c85866ef; first remote deploy pending | M |
+| CI2 | Ship the tested build (G920): push CI uploads `.vercel/output`; the release runs `vercel deploy --prebuilt` on it, with no native or vercel rebuild | Release ≤ 3 min; live `version.json` = the tested SHA | Codex sp-ci-deploy · 94c85866ef + 8e893e31a5; first remote package qualified (083d3c1c83 prebuilt artifact 1.54 GB); <= 3 min live acceptance open | M |
 | CI3 | Deploy as soon as green (G920): drop the hourly slot; a green exact-SHA proof deploys at once if newer than live | Live = the newest green SHA within 5 min of its verdict | Codex sp-ci-deploy · landed 419a077b21 (hourly slot gone, 07:00 one-off kept) | S |
 | CI4 | Delete `test-quarantine.yml` (G923); fix DEPLOY.md's gpu-gate text | Workflow gone; DEPLOY.md matches | Codex sp-ci-deploy · done 87baf789f5 | S |
 | CI5 | Lazy `test/setup.ts`: world installs move to opt-in fixtures | Setup < 10 % of vitest Duration; shards −40 % | Codex sp-x9 · landed 72aad6c49d (cohort 24.85 → 10.42 s, setup 52 % → 1 %); full-wave check pending | M |
