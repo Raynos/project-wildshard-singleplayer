@@ -12,7 +12,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 QS2, G895, G896, G901, QB18; MF1 / MF4 / MF10 landed, proofs open. Opus (G915, 3 lanes held G916): sp-o3 FC12, sp-o4 QB19 → QS1 →
 FC14 → FC13, sp-o5 FC9 → FC10 → FC15. Codex: sp-x1 CX1 (MF9 done), sp-x2 FC11 → MF12, sp-x6 MF4 → CX1, sp-x9 MF8 → CX3, sp-x10 MF10 →
 CX2. **[CI-FIRST-PRINCIPLES](../CI-FIRST-PRINCIPLES.md) (G918-G923):** CI1-CI4 sp-ci-deploy, CI5 sp-x9, CI6/CI7/CI9 sp-x2 after
-the workflow hand-off, CI8 sp-x6; CI10-CI14 next free lane. **For wildshard-v:** QB17 zip before/after video for Jake's pick: tmp/sp-o3-mf15/qb17-zip-before-after.mp4 (1.6 MB). G919 pin waves CI1 done (143b3edd27, 5b54b7d044, ba70969be3); sp-x8 stays released (5-Codex cap).
+the workflow hand-off, CI8 sp-x6; CI10-CI14 next free lane. **For wildshard-v:** MF13 'Refine dither' row needs Jake's phone check before its default flips. QB17 zip before/after video for Jake's pick: tmp/sp-o3-mf15/qb17-zip-before-after.mp4 (1.6 MB). G919 pin waves CI1 done (143b3edd27, 5b54b7d044, ba70969be3); sp-x8 stays released (5-Codex cap).
 
 **Autonomous decisions (for Jake's review):**
 - FC12 closes at identical captures (Pine 184, Driftwood ~194 draws); no default-off look trades, they cut nothing by default.
