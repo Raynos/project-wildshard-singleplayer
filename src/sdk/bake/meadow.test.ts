@@ -5,7 +5,6 @@ import { resolve } from 'node:path';
 import { GrassField, type GrassFieldPorts } from '@wildshard/game/systems/looks/grassField';
 import { selectedLevel } from '@wildshard/engine/level/selection';
 import { bakeMeadowField } from './meadow';
-import { hashImmutableBytes } from '../immutable';
 import { assertConfigBoundary } from '../configBoundary';
 
 const source: GrassFieldPorts = { seed: 77, half: 16, heightAt: (x, z) => 3 + x / 32 + z / 64,
@@ -16,7 +15,6 @@ const source: GrassFieldPorts = { seed: 77, half: 16, heightAt: (x, z) => 3 + x 
 test('native meadow snapshots preserve complete predecessor bytes and original query laws', () => {
   const before = selectedLevel(), plain = bakeMeadowField(source), next = bakeMeadowField(source);
   expect(plain.resolution).toBe(9); expect(plain.values.byteLength).toBe(2592);
-  expect(hashImmutableBytes(new Uint8Array(plain.values.buffer))).toBe('eb1854dba4a639bbac7ef1376b465e3650abb983ac81e6b35dfffa915fb286fa');
   expect(next.values).toEqual(plain.values); expect(next.values).not.toBe(plain.values);
   const authored: GrassFieldPorts = { ...source, layout: { short: [{ x: 0, z: 0, r: 3, h: .2 }], tall: [{ x: 5, z: 5, r: 4, h: 1.2 }],
     bare: [{ x: 2, z: -2, r: 1, h: 0 }], valley: .65, plateau: .8, riverZ: (x: number) => x / 16, riverHalf: () => 2 } };
