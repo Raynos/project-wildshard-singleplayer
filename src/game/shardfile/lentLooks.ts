@@ -41,6 +41,8 @@ export interface LookInstance {
 }
 
 const lends: { readonly looks: LentLooks; readonly scope: Scope | null }[] = [];
+/** bumped whenever a lend starts or ends: the param writers below are cached per lend set */
+let lendGeneration = 0;
 const sceneMaterials = new WeakMap<Scope, Map<string, ReadonlyMap<string, Material>>>();
 
 /** Internal terrain loan, isolated to its resident and product identity. Scene
@@ -61,8 +63,8 @@ export function sceneMaterial(scope: Scope, slug: string, id: string): Material 
 /** Lend a compile pass's looks until `scope` ends. */
 export function lendLooks(scope: { onDispose: (run: () => void) => unknown }, looks: LentLooks): void {
   const lend = { looks, scope: 'belongsTo' in scope && typeof scope.belongsTo === 'function' ? scope as Scope : null };
-  lends.push(lend);
-  scope.onDispose(() => { const at = lends.indexOf(lend); if (at !== -1) lends.splice(at, 1); });
+  lends.push(lend); lendGeneration++;
+  scope.onDispose(() => { const at = lends.indexOf(lend); if (at !== -1) { lends.splice(at, 1); lendGeneration++; } });
 }
 
 /** the newest lend that compiled `id` within the caller's owner, else the newest that compiled it, or null */
@@ -119,14 +121,31 @@ export function lentMappedLook(id: string, source: Texture | Material): Material
  *  take its writes (lend audit after QF21: Pine's hearth smoke and cave crag drew the page's compile while frames under
  *  the level wrote the runtime's; Driftwood's moored rope read a lend a newer one then shadowed). */
 export function setLentParam(id: string, name: string, value: GraphLiteral): void {
+  for (const looks of paramWriters(id)) looks.setParam(id, name, value);
+}
+
+// NF15: the day and channel feeds write lent params every frame, and each write scanned every lend and walked the owner's
+// scope line. The writers of an id depend only on the lend set and the owner (a scope's line never changes, and a lend's
+// materials are compiled before it is lent), so they are found once per owner until a lend starts or ends.
+const writerCache = new Map<Scope | null, Map<string, readonly LentLooks[]>>();
+let writerGeneration = -1;
+function paramWriters(id: string): readonly LentLooks[] {
+  if (writerGeneration !== lendGeneration) { writerCache.clear(); writerGeneration = lendGeneration; }
   const owner = enteredOwner();
-  let newest: LentLooks | null = null, wrote = false;
+  let byId = writerCache.get(owner);
+  if (byId === undefined) { byId = new Map(); writerCache.set(owner, byId); }
+  const cached = byId.get(id);
+  if (cached !== undefined) return cached;
+  const writers: LentLooks[] = [];
+  let newest: LentLooks | null = null;
   for (let i = lends.length - 1; i >= 0; i--) {
     const lend = lends[i]; if (lend === undefined || !lend.looks.materials.has(id)) continue;
     newest ??= lend.looks;
-    if (owner !== null && lend.scope !== null && (owner.belongsTo(lend.scope) || lend.scope.belongsTo(owner))) { lend.looks.setParam(id, name, value); wrote = true; }
+    if (owner !== null && lend.scope !== null && (owner.belongsTo(lend.scope) || lend.scope.belongsTo(owner))) writers.push(lend.looks);
   }
-  if (!wrote) newest?.setParam(id, name, value);
+  if (writers.length === 0 && newest !== null) writers.push(newest);
+  byId.set(id, writers);
+  return writers;
 }
 
 /** Lend a look's `role: 'lent'` texture param a texture the runtime made (no program change); throws when none is lent. */
