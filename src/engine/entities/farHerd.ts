@@ -20,8 +20,9 @@ import { presenting } from '../core/framePacing';
  * point); the slots are kept packed (the top member moves into a hole) and the draw range ends at the last one.
  *
  * Desktop (tier.ts animalHullBatch) also takes Pine Hollow's generated hulls at every distance: one group, no fur shells,
- * no draw LOD, so the batch is their pixels near as far. It culls by bearing (begin), so it can hold a few rigs three's
- * frustum test would have skipped (below the view's bottom edge): vertex work only.
+ * no draw LOD, so the batch is their pixels near as far. It takes members by bearing (begin), so a page can hold a few
+ * rigs three's frustum test would have skipped (below the view's bottom edge); each page is frustum-culled per camera by a
+ * sphere round its members, so a page holding only those is not drawn (a pond reflection still draws it where it shows).
  *
  * `{ shadow: true }` makes the shadow herd instead: the same batching for the animals that cast (within
  * animalShadowDist), drawn only into the sun's shadow maps (SHADOW_LAYER; its material is the model's fur, whose depth
@@ -45,7 +46,18 @@ export interface FarMember {
   readonly mesh: THREE.SkinnedMesh;
   /** the rig's fur colour (the per-animal tint): read live, a later tint (an overgrown coat's moss) follows */
   readonly tint: THREE.Color;
+  /** what its slot's draw reads in place of the batch material's uniforms (≤ 16 numbers, a matrix's elements): the slot's
+   *  data bone (`FAR_SLOT_DATA`), read when it takes a slot and on a re-tint. PF7b: a coat family's layer, sheen, rim… */
+  readonly slotData?: readonly number[];
 }
+
+/**
+ * A batch whose members carry `slotData` gives each slot a data bone after the skinning bones: a bone off the scene graph
+ * whose world matrix is the member's data (so the skeleton's bone texture, already per page and per draw, carries it), and
+ * each vertex the index of its slot's (`aSlotData`, static). The material reads it in its vertex stage as
+ * `getBoneMatrix( aSlotData )` (three's skinning lookup).
+ */
+export const FAR_SLOT_DATA = 'aSlotData';
 
 /**
  * The attributes the shadow herd keeps: the depth pass's (position, skinning) and the ones its program is keyed on — the
@@ -75,23 +87,28 @@ class FarBatch {
   /** per slot: the tint its colours were written with (r, g, b), in doubles: a float32 copy of the Color's doubles never
    *  compares equal, and every member repainted its slot every frame (a third of Pine Hollow's gate frame, SF22d) */
   private tints = new Float64Array(0);
-  /** the members' bounds this frame (the shadow herd's culling sphere) */
+  /** the members' bounds this frame (each batch's culling sphere) */
   private readonly bounds = new THREE.Box3();
   private readonly sphere = new THREE.Sphere();
 
   private readonly src: THREE.BufferGeometry;
   private readonly shadow: boolean;
-  constructor(src: THREE.BufferGeometry, material: THREE.Material, bones: number, shadow: boolean, cap = 8) {
+  /** each slot has a data bone (FAR_SLOT_DATA) */
+  private readonly slotted: boolean;
+  constructor(src: THREE.BufferGeometry, material: THREE.Material, bones: number, shadow: boolean, cap = 8, slotted = false) {
     this.src = src;
     this.shadow = shadow;
+    this.slotted = slotted && !shadow;
     this.bones = bones;
     this.verts = src.getAttribute('position').count;
     const index = src.getIndex();
     this.indices = index === null ? this.verts : index.count;
     this.mesh = new THREE.SkinnedMesh(new THREE.BufferGeometry(), material);
     this.mesh.name = shadow ? 'herd-shadow' : 'far-herd';
-    // the view batch: the slots move every frame, the manager culls per animal; the shadow batch: a sphere round its members
-    this.mesh.frustumCulled = shadow;
+    // a sphere round its members, per camera: the manager's cull is by azimuth (so a pond reflection keeps its far animals),
+    // and a view batch holding only members off the screen's bottom or behind a hill no longer draws (PF7: Pine's ten coat
+    // models drew 10 batches at the gate for 4 models in view)
+    this.mesh.frustumCulled = true;
     this.mesh.castShadow = shadow;   // the view batch: past animalShadowDist, no animal casts there
     this.mesh.receiveShadow = !shadow;
     if (shadow) this.mesh.layers.set(SHADOW_LAYER);
@@ -99,6 +116,7 @@ class FarBatch {
     this.mesh.raycast = () => { /* never a hit target: the rigs' hitboxes are */ };
     // never left null: SkinnedMesh.computeBoundingSphere would skin every slot on the CPU (the boot's precompile clones, a
     // frustum test) — and the view batch's CPU copies are gone after upload
+    // (the view batch's stays infinite until its first members, so the entry warm-up's draw of an empty page uploads it)
     this.mesh.boundingSphere = shadow ? this.sphere : new THREE.Sphere(new THREE.Vector3(), Infinity);
     this.mesh.boundingBox = new THREE.Box3(new THREE.Vector3(-Infinity, -Infinity, -Infinity), new THREE.Vector3(Infinity, Infinity, Infinity));
     this.mesh.visible = false; // until its first members
@@ -150,7 +168,7 @@ class FarBatch {
       if (s < 0) { s = this.cap; this.grow(Math.ceil(this.cap * 1.5)); }
       this.assign(s, m);
     }
-    if (this.shadow && this.pending.length > 0) this.mesh.boundingSphere = this.bounds.getBoundingSphere(this.sphere);
+    if (this.pending.length > 0) this.mesh.boundingSphere = this.bounds.getBoundingSphere(this.sphere);
     this.pending = [];
     // keep the slots packed (the draw range skins every slot up to the last used one): the highest member moves down
     for (let lo = 0, hi = this.cap - 1; ; lo++, hi--) {
@@ -207,6 +225,8 @@ class FarBatch {
       col.addUpdateRange(base * n, this.verts * n);
       col.needsUpdate = true;
     }
+    const data = this.slotted ? this.mesh.skeleton.bones[this.cap * this.bones + s] : undefined;
+    if (data !== undefined) { const e = data.matrixWorld.elements; e.fill(0); m.slotData?.forEach((v, i) => { if (i < 16) e[i] = v; }); }
   }
 
   /** (re)build the geometry and the skeleton for `cap` slots, keeping every member in its slot */
@@ -230,6 +250,12 @@ class FarBatch {
         g.setAttribute(name, new THREE.BufferAttribute(arr, n, a.normalized));
       }
     }
+    if (this.slotted) {
+      // each slot's vertices point at its data bone, after the cap × B skinning bones
+      const at = new Float32Array(cap * verts);
+      for (let s = 0; s < cap; s++) at.fill(cap * B + s, s * verts, (s + 1) * verts);
+      g.setAttribute(FAR_SLOT_DATA, new THREE.BufferAttribute(at, 1));
+    }
     const idx = new Uint32Array(cap * indices);
     // the source index read once as plain numbers, each slot then an offset copy (getX a slot an index was most of a
     // page's build: G639, the far herd's pages in Pine's desktop entry frames)
@@ -246,6 +272,8 @@ class FarBatch {
     }
     const bones: THREE.Bone[] = [], inverses: THREE.Matrix4[] = [];
     for (let i = 0; i < cap * B; i++) { bones.push(_idle); inverses.push(new THREE.Matrix4()); }
+    // the slots' data bones: off the scene graph, their world matrix written by `paint`, never by an update
+    if (this.slotted) for (let s = 0; s < cap; s++) { const d = new THREE.Bone(); d.matrixAutoUpdate = false; d.matrixWorldAutoUpdate = false; bones.push(d); inverses.push(new THREE.Matrix4()); }
     const old = this.mesh.geometry, oldSkeleton = this.cap > 0 ? this.mesh.skeleton : null;
     this.mesh.geometry = g;
     this.mesh.bind(new THREE.Skeleton(bones, inverses), _ident);
@@ -281,7 +309,7 @@ export class FarHerd<M extends FarMember = FarMember> {
   private readonly eye = new THREE.Vector3();
 
   private readonly materialFor: (m: M) => THREE.Material | null;
-  private readonly opts: { shadow?: boolean; keyOf?: (m: M) => object };
+  private readonly opts: { shadow?: boolean; keyOf?: (m: M) => object; pageSlots?: () => number };
   /**
    * `materialFor(m)` is m's model's white fur (AnimalFactory.farMaterial), made once per model; null = never batched
    */
@@ -289,7 +317,8 @@ export class FarHerd<M extends FarMember = FarMember> {
    * `opts.keyOf`: what one batch holds — the view herd's is the member's model (a variant: its own coat atlas on a hull
    * geometry the species' other variants share), the shadow herd's the geometry (depth is the same whatever the coat)
    */
-  constructor(materialFor: (m: M) => THREE.Material | null, opts: { shadow?: boolean; keyOf?: (m: M) => object } = {}) {
+  /** `opts.pageSlots`: a paced page's slots, read as a page opens (default PAGE_SLOTS; the phone's are smaller, PF7b) */
+  constructor(materialFor: (m: M) => THREE.Material | null, opts: { shadow?: boolean; keyOf?: (m: M) => object; pageSlots?: () => number } = {}) {
     this.materialFor = materialFor;
     this.opts = opts;
     this.group.name = opts.shadow === true ? 'herd-shadow' : 'far-herd';
@@ -327,9 +356,10 @@ export class FarHerd<M extends FarMember = FarMember> {
     const b = this.pagesOf(m);
     if (b === null || b.reserved.has(m)) return;
     b.reserved.add(m); b.reservedCount++;
-    const wanted = Math.ceil(b.reservedCount / PAGE_SLOTS);
+    const slots = this.pageSlots();
+    const wanted = Math.ceil(b.reservedCount / slots);
     while (b.pages.length < wanted) {
-      const page = new FarBatch(b.src, b.material, b.bones, this.opts.shadow === true, PAGE_SLOTS);
+      const page = new FarBatch(b.src, b.material, b.bones, this.opts.shadow === true, slots, b.slotted);
       page.uploadEmpty();
       b.pages.push(page); this.group.add(page.mesh);
     }
@@ -359,6 +389,8 @@ export class FarHerd<M extends FarMember = FarMember> {
     return true;
   }
 
+  private pageSlots(): number { return Math.max(1, Math.floor(this.opts.pageSlots?.() ?? PAGE_SLOTS)); }
+
   /** `m`'s batch key's pages (made on first use); null = it cannot be batched (a bound rig, no material or colours) */
   private pagesOf(m: M): FarPages | null {
     const mesh = m.mesh;
@@ -368,7 +400,7 @@ export class FarHerd<M extends FarMember = FarMember> {
     if (b === undefined) {
       const shadow = this.opts.shadow === true;
       const mat = shadow || mesh.geometry.hasAttribute('color') ? this.materialFor(m) : null;
-      b = mat === null ? null : { src: mesh.geometry, material: mat, bones: mesh.skeleton.bones.length, pages: [], pageOf: new WeakMap(), reserved: new WeakSet(), reservedCount: 0 };
+      b = mat === null ? null : { src: mesh.geometry, material: mat, bones: mesh.skeleton.bones.length, slotted: !shadow && m.slotData !== undefined, pages: [], pageOf: new WeakMap(), reserved: new WeakSet(), reservedCount: 0 };
       if (b !== null && !shadow) markGpuOnly('the far herd');
       this.batches.set(key, b);
     }
@@ -387,8 +419,8 @@ export class FarHerd<M extends FarMember = FarMember> {
       else if (paced && this.opened >= 1) return null; // a page a frame: the rig draws itself until there is room
       else {
         const shadow = this.opts.shadow === true;
-        const slots = paced ? PAGE_SLOTS : 8;
-        page = new FarBatch(b.src, b.material, b.bones, shadow, slots);
+        const slots = paced ? this.pageSlots() : 8;
+        page = new FarBatch(b.src, b.material, b.bones, shadow, slots, b.slotted);
         b.pages.push(page); this.group.add(page.mesh);
         if (paced) this.opened++;
       }
@@ -413,6 +445,8 @@ interface FarPages {
   readonly src: THREE.BufferGeometry;
   readonly material: THREE.Material;
   readonly bones: number;
+  /** its members carry slot data (a coat family's batch, PF7b) */
+  readonly slotted: boolean;
   readonly pages: FarBatch[];
   readonly pageOf: WeakMap<FarMember, FarBatch>;
   /** the members `reserve` counted (each once) */

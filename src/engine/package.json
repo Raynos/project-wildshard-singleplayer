@@ -28,6 +28,7 @@
     "./boot/liveJsonParser": "./boot/liveJsonParser.ts",
     "./boot/download": "./boot/download.ts",
     "./render/lightmaps": "./render/lightmaps.ts",
+    "./render/layeredMaps": "./render/layeredMaps.ts",
     "./ai/director": "./ai/director.ts",
     "./fx/effectField": "./fx/effectField.ts",
     "./core/deflate": "./core/deflate.ts",

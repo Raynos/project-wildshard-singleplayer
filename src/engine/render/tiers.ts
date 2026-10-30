@@ -18,6 +18,9 @@ export const TIER_TABLE = {
     animalHullBatch: false,
     // the shadow herd (farHerd.ts { shadow }): the casting animals' shadows in one draw per model per cascade
     animalShadowBatch: true,
+    // a far-herd page's slots (farHerd.ts): every spawned rig reserves one, so a page is memory whether drawn or not. PF7b:
+    // Pine's 8 coat families held 14 pages of 16 (~113 MB of geometry); a family rarely shows 8 animals at once
+    animalFarPageSlots: 8,
     // trees: hi cards → lo cards → far card beyond loDist (Forest dissolves lo → far over its last 12 m, twigs over 6 m).
     // E94: the hi cards reach the shadow cascade's edge (80 m; they swapped at 55 m, inside it, so a crown and its
     // shadow changed shape in plain view), so no shadow ever changes shape. The batched path's lo cards share the casting
@@ -55,6 +58,7 @@ export const TIER_TABLE = {
     // PH-P2: and the generated hulls at every distance — their batch draws the same pixels near as far (one group, no shells)
     animalHullBatch: true,
     animalShadowBatch: true,
+    animalFarPageSlots: 16,
     treeHiDist: 110, treeLoDist: 210, treeTwigDist: 38, loTreeShadows: true,
     grassRadius: 55, grassSlots: 96, grassQuads: 5,
     beaconLights: true,

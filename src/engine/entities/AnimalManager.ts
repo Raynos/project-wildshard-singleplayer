@@ -330,8 +330,10 @@ export class AnimalManager {
     a.alive && !a.hidden && !a.stunned && (speciesDef(a.kind).think !== undefined ? a.attackPhase >= 0 && a.attackPhase < 1 : a.state === 'charge');
   /** each multi-group rig's one-draw shadow caster (animalShadow.ts); the per-frame shadow distance switches it */
   private readonly casters = new Map<Animal, THREE.SkinnedMesh>();
-  /** PH-P2: the far animals drawn per model (farHerd.ts), desktop past TIER_CONFIG.animalFarBatchDist; each rig's entry */
-  private readonly farHerd = new FarHerd<FarRig>((m) => this.factory.farMaterial(m.model), { keyOf: (m) => m.model });
+  /** PH-P2: the far animals drawn per model (farHerd.ts), desktop past TIER_CONFIG.animalFarBatchDist; each rig's entry.
+   *  PF7b: a hull's coat variants whose coats are one layer array draw as one batch (AnimalFactory.farKey) */
+  private readonly farHerd = new FarHerd<FarRig>((m) => this.factory.farMaterial(m.model), { keyOf: (m) => this.factory.farKey(m.model),
+    pageSlots: () => TIER_CONFIG.animalFarPageSlots });
   private readonly farRigs = new Map<Animal, FarRig>();
   /** PH-P2: the casting animals' shadows per model (farHerd.ts { shadow }), within animalShadowDist */
   private readonly shadowHerd = new FarHerd<FarRig>((m) => m.model.fur, { shadow: true });
@@ -523,7 +525,8 @@ export class AnimalManager {
     if (caster !== null) this.casters.set(a, caster);
     const fur = rig.materials[0];
     if (fur !== undefined) {
-      const far: FarRig = { mesh: a.mesh, tint: fur.color, model, mask: null };
+      const slotData = this.factory.farSlotData(model);
+      const far: FarRig = { mesh: a.mesh, tint: fur.color, model, mask: null, ...(slotData === undefined ? {} : { slotData }) };
       this.farRigs.set(a, far);
       // its far-herd page, opened now so the entry warm-up uploads it (farHerd.ts reserve)
       if (TIER_CONFIG.animalFarBatchDist > 0) this.farHerd.reserve(far);

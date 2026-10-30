@@ -9,6 +9,9 @@ export interface EyeSpot { centre: THREE.Vector3; radius: number }
 export interface CreatureHull {
   geometry: THREE.BufferGeometry; map: THREE.Texture | null; normalMap: THREE.Texture | null;
   bones: BoneDef[]; overgrown: boolean; doubleSided?: boolean; fur?: Partial<FurStyle>;
+  /** `map` as one layer of its hull's coat array (render/layeredMaps.ts): the far herd draws every coat of the hull in one
+   *  batch (PF7b); absent when the coats are not one compressed format */
+  coatLayer?: { readonly array: THREE.CompressedArrayTexture; readonly layer: number };
 }
 export interface SpeciesLook extends Pick<SpeciesDef, 'rigContract' | 'fur' | 'build' | 'pose' | 'gait' | 'postPose' | 'rig' | 'animate' | 'damageMul' | 'eyeGlow' | 'eyeGlowIntensity'> {
   id: string; species: string; kind: string;

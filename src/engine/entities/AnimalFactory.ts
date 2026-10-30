@@ -11,9 +11,11 @@ import { bakedTexture } from '../boot/bakedTextures';
 import { validateCreatureBones, speciesDef, variantDef, type SpeciesDef, type VariantDef, type AnimalDims, type BoneDef, type FurStyle } from './species/registry';
 import { setLowPoly } from './species/loft';
 import { facetGeometry, lowPolyMaterials, oneMaterial, patchEyeGlow } from './lowpoly';
-import type { EyeSpot } from './species/look';
+import type { CreatureHull, EyeSpot } from './species/look';
 import { app } from '../app/runtime';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
+import { layeredMap } from '../render/layeredMaps';
+import { FAR_SLOT_DATA } from './farHerd';
 import { drawNeutral } from '../render/drawNeutral';
 import { pageScope, resourceScope } from '../app/resources';
 import { workSlice } from '../core/workSlice';
@@ -110,8 +112,9 @@ export interface AnimalModel {
   /** the fur's backlit rim colour (FurStyle.rim), needed to re-patch a cloned fur material; absent in 'toon' */
   rim?: THREE.Color;
   /** 'pbr' on a generated hull (Pine Hollow, pineCreatures.ts): one group, the fur material over the hull's PBR atlas +
-   *  normal map, no fur shells; `overgrown` = its eyes glow and its moss clumps take their vertex colour (aOvergrown) */
-  hull?: { overgrown: boolean };
+   *  normal map, no fur shells; `overgrown` = its eyes glow and its moss clumps take their vertex colour (aOvergrown);
+   *  `coatLayer` = its coat as a layer of the hull's coat array (the far herd's one batch per hull, PF7b) */
+  hull?: { overgrown: boolean; coatLayer?: CreatureHull['coatLayer'] };
   /** 'painterly' with a generated hull (glbCreatures.ts): the hull's atlas, set as every instance's `map` */
   map?: THREE.Texture | null;
   /** the hull is thin sheets (the eagle's wings): every instance's material is double-sided */
@@ -251,12 +254,47 @@ export const SHELL_LAYERS = 8;
 function hashSeed(s: string): number { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 
 const col3 = (c: [number, number, number]): THREE.Color => new THREE.Color(c[0], c[1], c[2]);
+/**
+ * PF7b: a far-herd coat family's slot data (farHerd.ts FAR_SLOT_DATA, a matrix's elements): its coat layer, then its sheen
+ * and emissive (x their strengths, as three uploads them), its rim and whether it is self-lit (traits.selfLight: the coat
+ * fed back as emissive), read in place of the uniforms, which hold only the first member's.
+ */
+const SLOT = `getBoneMatrix( ${FAR_SLOT_DATA} )`, SLOT_LAYER = `${SLOT}[0].x`;
+function slotData(layer: number, sheen: THREE.Color, rim: THREE.Color, emissive: THREE.Color, selfLit: boolean): number[] {
+  return [layer, sheen.r, sheen.g, sheen.b, rim.r, rim.g, rim.b, emissive.r, emissive.g, emissive.b, selfLit ? 1 : 0];
+}
+function slotFurColours(fur: THREE.Material): void {
+  patchShader(fur, 'engine.animal-fur-slots', PATCH_ORDER.decorate, (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>
+        attribute float ${FAR_SLOT_DATA}; flat varying vec3 vFurSheen; flat varying vec3 vFurRim; flat varying vec3 vFurEmissive; flat varying float vFurSelfLight;`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        {
+          mat4 slot = ${SLOT};
+          vFurSheen = slot[0].yzw; vFurRim = slot[1].xyz; vFurEmissive = vec3( slot[1].w, slot[2].xy ); vFurSelfLight = slot[2].z;
+        }`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>
+        flat varying vec3 vFurSheen; flat varying vec3 vFurRim; flat varying vec3 vFurEmissive; flat varying float vFurSelfLight;`)
+      .replace('uniform vec3 furRimColor; uniform vec3 furSunDir;', `uniform vec3 furRimColor; uniform vec3 furSunDir;
+        #define furRimColor vFurRim`)
+      .replace('#include <emissivemap_fragment>', `
+        totalEmissiveRadiance = vFurEmissive * mix( vec3( 1.0 ), sampledDiffuseColor.rgb, vFurSelfLight );`)
+      .replace('#include <lights_physical_fragment>', `#include <lights_physical_fragment>
+        #ifdef USE_SHEEN
+          material.sheenColor = vFurSheen;
+        #endif`);
+  }, { key: (prior) => `${prior}|fur-slots`, pureKey: true });
+}
+
 export class AnimalFactory {
   private models = new Map<string, AnimalModel>();
   private tex = new Map<string, { map: THREE.Texture; normalMap: THREE.Texture }>();
   private strandTex?: THREE.Texture;
   /** painterly rigs still on the procedural stand-in while their hull loads, per model key */
   private pendingRigs = new Map<string, { mesh: THREE.SkinnedMesh; fur: AnimalMaterial }[]>();
+  /** PF7b: the far herd's coat families, by everything their one material must share (farFamily) */
+  private farFamilies = new Map<string, { readonly key: object; readonly material: THREE.Material | null }>();
 
   /** the hull for `key` has loaded: swap the cached model and every rig already made from it onto the skinned hull */
   private upgradeHull(key: string): void {
@@ -417,7 +455,8 @@ export class AnimalFactory {
         const rim = col3(style.rim);
         this.patchFur(fur, rim, undefined, -1, hull.overgrown);
         this.sky.setupMaterial(fur);
-        m = { kind, variant: v.id, style: 'pbr', render: DEFAULT_CREATURE_RENDER, species, variantDef: v, geometry: hull.geometry, bones: hull.bones, dims: sp.dims, fur, hard: fur, eye: new THREE.MeshPhysicalMaterial(), shells: [], rim, hull: { overgrown: hull.overgrown } };
+        const coatLayer = hull.coatLayer;
+        m = { kind, variant: v.id, style: 'pbr', render: DEFAULT_CREATURE_RENDER, species, variantDef: v, geometry: hull.geometry, bones: hull.bones, dims: sp.dims, fur, hard: fur, eye: new THREE.MeshPhysicalMaterial(), shells: [], rim, hull: { overgrown: hull.overgrown, ...(coatLayer === undefined ? {} : { coatLayer }) } };
         this.models.set(key, m);
         return m;
       }
@@ -548,6 +587,49 @@ export class AnimalFactory {
    * colours. null where a batch would not draw the rig's pixels: low-poly rigs and overgrown hulls (their shader reads the colour).
    */
   farMaterial(model: AnimalModel): THREE.Material | null {
+    const family = this.farFamily(model);
+    return family === null ? this.ownFarMaterial(model) : family.material;
+  }
+
+  /** the far herd's batch for `model` (farHerd.ts keyOf): its coat family's, else the model's own */
+  farKey(model: AnimalModel): object { return this.farFamily(model)?.key ?? model; }
+
+  /** what a coat family's slot carries for `model` (farHerd.ts FarMember.slotData, see `slotData`); none outside a family */
+  farSlotData(model: AnimalModel): readonly number[] | undefined {
+    const fur = model.fur, rim = model.rim;
+    if (this.farFamily(model) === null || !(fur instanceof THREE.MeshPhysicalMaterial) || rim === undefined) return undefined;
+    return slotData(model.hull?.coatLayer?.layer ?? 0, fur.sheenColor.clone().multiplyScalar(fur.sheen), rim,
+      fur.emissive.clone().multiplyScalar(fur.emissiveIntensity), fur.emissiveMap !== null);
+  }
+
+  /**
+   * PF7b: the variants of one hull whose coats are layers of one array (render/layeredMaps.ts) and whose fur is otherwise
+   * the same (its sheen, rim, roughness, normal map, emissive) draw in one far-herd batch: the fur with its map read from
+   * the array at each slot's layer. Pine's ~10 coat variants on 4 hulls were ~10 batches. Variants of a hull with no coat
+   * array that wear one map share a batch too (the same material).
+   */
+  private farFamily(model: AnimalModel): { readonly key: object; readonly material: THREE.Material | null } | null {
+    const hull = model.hull, coat = hull?.coatLayer, fur = model.fur, rim = model.rim;
+    if (hull === undefined || hull.overgrown || !(fur instanceof THREE.MeshPhysicalMaterial) || rim === undefined) return null;
+    // a variant with no coat layer shares a batch with the variants wearing its very map
+    // its layer, sheen, rim and emissive ride each slot (farSlotData), so an elite's coat shares its hull's batch
+    const id = [model.geometry.uuid, coat?.array.uuid ?? fur.map?.uuid ?? '', fur.normalMap?.uuid ?? '', fur.sheenRoughness, fur.roughness, fur.envMapIntensity].join('|');
+    let family = this.farFamilies.get(id);
+    if (family === undefined) {
+      const material = this.ownFarMaterial(model);
+      if (material instanceof THREE.MeshPhysicalMaterial) {
+        // one program whoever came first: the emissive is each slot's (farSlotData)
+        material.emissiveMap = null; material.emissive.setRGB(1, 1, 1); material.emissiveIntensity = 1;
+        if (coat !== undefined) layeredMap(material, coat.array, { layer: SLOT_LAYER });
+        slotFurColours(material);
+      }
+      family = { key: {}, material };
+      this.farFamilies.set(id, family);
+    }
+    return family;
+  }
+
+  private ownFarMaterial(model: AnimalModel): THREE.Material | null {
     if (!model.render.furRim || model.rim === undefined || model.hull?.overgrown === true) return null;
     const fur = model.fur.clone();
     if (!(fur instanceof THREE.MeshPhysicalMaterial)) return null;

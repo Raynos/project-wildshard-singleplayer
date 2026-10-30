@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { Bone, BufferAttribute, BufferGeometry, Color, Float32BufferAttribute, MeshBasicMaterial, Skeleton, SkinnedMesh, Vector3, type Object3D } from 'three';
-import { FarHerd } from './farHerd';
+import { Bone, BufferAttribute, BufferGeometry, Color, Float32BufferAttribute, Frustum, Matrix4, MeshBasicMaterial, PerspectiveCamera, Skeleton, SkinnedMesh, Vector3, type Object3D } from 'three';
+import { FAR_SLOT_DATA, FarHerd } from './farHerd';
 import { noteFrameDrawn } from '../core/framePacing';
 
 function isSkinnedMesh(object: Object3D | undefined): object is SkinnedMesh { return object instanceof SkinnedMesh; }
@@ -47,5 +47,42 @@ test('reserved members open their pages ahead and take them later', () => {
     for (const rig of rigs) herd.unreserve(rig);
     herd.begin(null); herd.end();
     expect(herd.pageCount()).toBe(2); expect(first.visible).toBe(false);
+  } finally { herd.dispose(); for (const rig of rigs) rig.mesh.skeleton.dispose(); source.dispose(); material.dispose(); noteFrameDrawn(Number.NEGATIVE_INFINITY); }
+});
+
+// PF7: a view page is culled per camera by a sphere round its members (the manager's own cull is by azimuth only), and a
+// reserved page with no members yet stays in every frustum, so the entry warm-up still uploads it
+test('view pages cull by their members, and an empty reserved page still uploads', () => {
+  noteFrameDrawn(performance.now());
+  const source = geometry(64, true), material = new MeshBasicMaterial(), herd = new FarHerd(() => material);
+  const mesh = new SkinnedMesh(source, material); mesh.bind(new Skeleton([new Bone()]));
+  const rig = { mesh, tint: new Color() }, camera = new PerspectiveCamera(60, 1, 0.1, 500), frustum = new Frustum();
+  camera.position.set(0, 2, 0); camera.lookAt(0, 2, -10); camera.updateMatrixWorld();
+  frustum.setFromProjectionMatrix(new Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+  try {
+    herd.reserve(rig);
+    const page = herd.group.children[0]; if (!isSkinnedMesh(page)) throw new Error('Missing page');
+    expect(page.frustumCulled).toBe(true); expect(frustum.intersectsObject(page)).toBe(true);
+    herd.begin(null); herd.take(rig, new Vector3(0, 0, -60), 2); herd.end();
+    expect(frustum.intersectsObject(page)).toBe(true);
+    herd.begin(null); herd.take(rig, new Vector3(0, 0, 60), 2); herd.end();
+    expect(page.visible).toBe(true); expect(frustum.intersectsObject(page)).toBe(false);
+  } finally { herd.dispose(); mesh.skeleton.dispose(); source.dispose(); material.dispose(); noteFrameDrawn(Number.NEGATIVE_INFINITY); }
+});
+
+// PF7b: a coat family's batch holds members of several coats, each slot's data (its coat layer, its colours) on its own
+// data bone after the skinning bones, each vertex pointing at its slot's
+test('a slotted batch gives each slot a data bone holding its member data', () => {
+  noteFrameDrawn(performance.now());
+  const source = geometry(4, true), material = new MeshBasicMaterial(), family = {};
+  const herd = new FarHerd<{ mesh: SkinnedMesh; tint: Color; slotData: readonly number[] }>(() => material, { keyOf: () => family });
+  const rigs = [0, 2, 1].map((layer) => { const mesh = new SkinnedMesh(source, material); mesh.bind(new Skeleton([new Bone()])); return { mesh, tint: new Color(), slotData: [layer, 0.5] }; });
+  try {
+    herd.begin(null); for (const rig of rigs) expect(herd.take(rig, new Vector3(), 1)).toBe(true); herd.end();
+    expect(herd.group.children).toHaveLength(1);
+    const page = herd.group.children[0]; if (!isSkinnedMesh(page)) throw new Error('Missing page');
+    const at = page.geometry.getAttribute(FAR_SLOT_DATA), cap = page.skeleton.bones.length / 2;
+    expect([0, 4, 8].map((v) => at.getX(v))).toEqual([cap, cap + 1, cap + 2]);
+    expect([0, 1, 2].map((s) => page.skeleton.bones[cap + s]?.matrixWorld.elements.slice(0, 2))).toEqual([[0, 0.5], [2, 0.5], [1, 0.5]]);
   } finally { herd.dispose(); for (const rig of rigs) rig.mesh.skeleton.dispose(); source.dispose(); material.dispose(); noteFrameDrawn(Number.NEGATIVE_INFINITY); }
 });

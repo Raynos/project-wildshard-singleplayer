@@ -6,6 +6,7 @@ import type { RiggedHullFamilyRow, RiggedHullFiles, RiggedHullFlap, RiggedHullUr
 import { retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { cacheUntilDisposed } from '@wildshard/engine/app/disposalCache';
 import { ktx2File, ktx2Texture, prepareCompressedTexture, parseKtx2Bytes } from '@wildshard/engine/core/ktx2';
+import { compressedLayerArray } from '@wildshard/engine/render/layeredMaps';
 import type { RGB } from '@wildshard/engine/entities/species/loft';
 import type { CreatureHull } from '@wildshard/engine/entities/species/look';
 import type { BoneDef } from '@wildshard/engine/entities/species/registry';
@@ -102,7 +103,7 @@ export function riggedHullMap<T extends THREE.Texture>(texture: T, slot: 'base' 
 }
 
 /** a hull's separate maps, sampled and fenced before the rig publishes them (a failed one frees the other) */
-async function loadHullMaps(hull: string, files: RiggedHullFiles, texture: (name: string) => Promise<THREE.Texture>): Promise<{ map: THREE.Texture; normalMap: THREE.Texture }> {
+async function loadHullMaps(hull: string, files: RiggedHullFiles, texture: (name: string) => Promise<THREE.Texture>): Promise<{ map: THREE.Texture; normalMap: THREE.Texture; layer: THREE.CompressedTexture | null }> {
   const [base, normal] = await Promise.allSettled([texture(files.base), texture(files.normal)]);
   if (base.status === 'rejected' || normal.status === 'rejected') {
     if (base.status === 'fulfilled') base.value.dispose();
@@ -110,8 +111,11 @@ async function loadHullMaps(hull: string, files: RiggedHullFiles, texture: (name
     const reason: unknown = base.status === 'rejected' ? base.reason : normal.status === 'rejected' ? normal.reason : null;
     throw reason instanceof Error ? reason : new Error(`creature rig ${hull}: its maps did not load`);
   }
+  // PF7b: the atlas's mip chain, held past its upload (which empties `mipmaps`) until its coats join it in one array
+  const b = base.value, top = b instanceof THREE.CompressedTexture ? b.mipmaps[0] : undefined;
+  const layer = b instanceof THREE.CompressedTexture && top !== undefined ? new THREE.CompressedTexture(b.mipmaps, top.width, top.height, b.format) : null;
   const [map, normalMap] = await Promise.all([prepareCompressedTexture(riggedHullMap(base.value, 'base', hull)), prepareCompressedTexture(riggedHullMap(normal.value, 'normal', hull))]);
-  return { map, normalMap };
+  return { map, normalMap, layer };
 }
 
 /** true when the rig's skin joints are `bones` by name, in order (their rest positions are the rig's) */
@@ -153,6 +157,10 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls, tran
   const ready = new Map<string, RiggedHullAsset>();
   const extraGeo = new Map<string, THREE.BufferGeometry | null>();
   const coats = new Map<string, THREE.Texture>();
+  /** PF7b: per rig, its baked coats as one compressed array and each coat's layer (`<hull>:<kind>:<variant>`) */
+  const coatArrays = new Map<string, { readonly array: THREE.CompressedArrayTexture; readonly layers: ReadonlyMap<string, number> }>();
+  /** a rig's own atlas as a CPU mip chain, until `layerCoats` copies it (layer 0: the variants with no baked coat) */
+  const atlasLayers = new Map<string, THREE.CompressedTexture>();
   const parts = new Map<string, THREE.BufferGeometry>();
   let partsLoading: Promise<void> | undefined;
   const prepareParts = (): Promise<void> => {
@@ -183,6 +191,7 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls, tran
           throw reason instanceof Error ? reason : new Error(`creature rig ${name}: ${String(reason)}`);
         }
         const gltf = file.value, separate = separateMaps.value;
+        if (separate?.layer) atlasLayers.set(name, separate.layer);
         gltf.scene.updateMatrixWorld(true);
         const found: THREE.SkinnedMesh[] = [];
         gltf.scene.traverse((o) => { if (isSkinned(o)) found.push(o); });
@@ -232,6 +241,24 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls, tran
     return p;
   };
 
+  /** PF7b: a rig's coats copied into one array while their mips are still on the CPU (nothing has drawn them yet), so the
+   *  far herd draws every coat of the hull in one batch (render/layeredMaps.ts); none when they are not one format */
+  const layerCoats = (name: string, like: THREE.Texture): void => {
+    const atlas = atlasLayers.get(name);
+    atlasLayers.delete(name);
+    if (coatArrays.has(name)) return;
+    // layer 0 the rig's own atlas (the variants with no baked coat; a rig without its chain leaves them their own batch)
+    const ids = [...(atlas === undefined ? [] : [name]), ...Object.entries(row.hulls).filter(([kv, hull]) => hull === name && coats.has(`${name}:${kv}`)).map(([kv]) => `${name}:${kv}`)];
+    const textures = ids.flatMap(id => { const t = id === name ? atlas : coats.get(id); return t === undefined ? [] : [t]; });
+    if (textures.length < 2 || textures.length !== ids.length) return;
+    const array = compressedLayerArray(textures, { like, name: `${like.name}:${name}:coats` });
+    if (array === null) return;
+    coatArrays.set(name, { array, layers: new Map(ids.map((id, i) => [id, i])) });
+    retainCachedResources(array);
+    // the array goes with its coats (a shard's departure retires them)
+    cacheUntilDisposed({ array, textures }, () => { if (coatArrays.get(name)?.array !== array) return; coatArrays.delete(name); array.dispose(); });
+  };
+
   /** Every repaint is an authored, hash-checked image; the compressed path retains its original KTX2 identity. */
   const adoptBakedCoats = async (name: string, rig: RiggedHullAsset): Promise<void> => {
     const map = rig.map;
@@ -252,6 +279,7 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls, tran
       coats.set(identity, retainCachedResources(tex));
       cacheUntilDisposed(tex, () => { if (coats.get(identity) === tex) coats.delete(identity); adopting.delete(rig); });
     }));
+    layerCoats(name, map);
   };
 
   /** each loaded rig's coats are adopted once: a later visit's preload reuses them instead of retaining a fresh set */
@@ -289,7 +317,10 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls, tran
     }
     const f = row.fur?.[name]?.[variant];
     const fur = f === undefined ? undefined : { rim: [f.rim[0], f.rim[1], f.rim[2]] satisfies RGB, sheenColor: [f.sheenColor[0], f.sheenColor[1], f.sheenColor[2]] satisfies RGB };
-    return { geometry: extra ?? rig.geometry, map, normalMap: rig.normalMap, bones: out, overgrown: extra !== null, ...(fur !== undefined ? { fur } : {}), ...(urls.doubleSided === undefined ? {} : { doubleSided: urls.doubleSided.includes(name) }) };
+    // its coat's layer: its baked coat's, else (wearing the rig's own atlas) the atlas's
+    const family = coatArrays.get(name), layer = family?.layers.get(coats.get(key) === map ? key : name);
+    const coatLayer = family === undefined || layer === undefined || (coats.get(key) !== map && map !== rig.map) ? undefined : { array: family.array, layer };
+    return { geometry: extra ?? rig.geometry, map, normalMap: rig.normalMap, bones: out, overgrown: extra !== null, ...(fur !== undefined ? { fur } : {}), ...(urls.doubleSided === undefined ? {} : { doubleSided: urls.doubleSided.includes(name) }), ...(coatLayer === undefined ? {} : { coatLayer }) };
   };
 
   return { hullOf, load, preload, skin };
