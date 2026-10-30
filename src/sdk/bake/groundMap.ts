@@ -28,10 +28,19 @@ const hex = (value: string): Triple => [Number.parseInt(value.slice(1, 3), 16), 
 
 function stylize(raster: MapRaster, style: Style): Uint8Array {
   const { size, height, colour } = raster, out = new Uint8Array(size * size * 4);
-  const nearest = (rgb: Triple, rows: Style['classes']): Style['classes'][number] => rows.reduce((best, row) => {
-    const match = hex(row.match), distance = match.reduce((sum, c, k) => sum + (c - item(rgb, k)) ** 2, 0);
-    return distance < best.distance ? { row, distance } : best;
-  }, { row: item(rows, 0), distance: Infinity }).row;
+  // CI6: a palette's nearest class for a byte colour, and a parsed hex colour, are pure: each is worked out once per map
+  // (the class search ran up to five times a pixel, each reparsing every class's hex) with the same first-nearest pick
+  const parsed = new Map<string, Triple>(), hexOf = (value: string): Triple => { let rgb = parsed.get(value); if (rgb === undefined) { rgb = hex(value); parsed.set(value, rgb); } return rgb; };
+  const picks = new Map<Style['classes'], Map<number, Style['classes'][number]>>();
+  const nearest = (rgb: Triple, rows: Style['classes']): Style['classes'][number] => {
+    let known = picks.get(rows); if (known === undefined) { known = new Map(); picks.set(rows, known); }
+    const key = item(rgb, 0) * 65536 + item(rgb, 1) * 256 + item(rgb, 2), seen = known.get(key); if (seen !== undefined) return seen;
+    const row = rows.reduce((best, candidate) => {
+      const match = hexOf(candidate.match), distance = match.reduce((sum, c, k) => sum + (c - item(rgb, k)) ** 2, 0);
+      return distance < best.distance ? { row: candidate, distance } : best;
+    }, { row: item(rows, 0), distance: Infinity }).row;
+    known.set(key, row); return row;
+  };
   const valid = (at: number): boolean => at >= 0 && at < height.length && height[at] !== -2147483648;
   const sourceColour = (at: number): Triple => triple(Array.from(colour.subarray(at * 3, at * 3 + 3), c => byte(c * style.sourceGain)));
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
@@ -39,16 +48,16 @@ function stylize(raster: MapRaster, style: Style): Uint8Array {
     const neighbours = [x > 0 ? at - 1 : -1, x + 1 < size ? at + 1 : -1, y > 0 ? at - size : -1, y + 1 < size ? at + size : -1];
     const border = neighbours.some(other => !valid(other));
     if (!valid(at)) {
-      if (style.void !== 'transparent') { const bg = hex(style.void ?? item(style.classes, 0).fill); for (let k = 0; k < 3; k++) out[at * 4 + k] = item(bg, k); out[at * 4 + 3] = 255; }
+      if (style.void !== 'transparent') { const bg = hexOf(style.void ?? item(style.classes, 0).fill); for (let k = 0; k < 3; k++) out[at * 4 + k] = item(bg, k); out[at * 4 + 3] = 255; }
       continue;
     }
-    const row = nearest(rgb, style.classes); let fill = hex(row.fill);
+    const row = nearest(rgb, style.classes); let fill = hexOf(row.fill);
     if (style.water !== undefined && h < style.water.below) {
       const w = style.water.within, wx = 250 - (x + .5) * 500 / size, wz = 250 - (y + .5) * 500 / size;
-      if (w === undefined || wx >= w.x0 && wx <= w.x1 && wz >= w.z0 && wz <= w.z1) fill = hex(style.water.fill);
+      if (w === undefined || wx >= w.x0 && wx <= w.x1 && wz >= w.z0 && wz <= w.z1) fill = hexOf(style.water.fill);
     }
-    if (border && style.rim !== undefined) fill = hex(style.rim);
-    else if (row.edge !== undefined && neighbours.some(other => valid(other) && nearest(sourceColour(other), style.classes) !== row)) fill = hex(row.edge);
+    if (border && style.rim !== undefined) fill = hexOf(style.rim);
+    else if (row.edge !== undefined && neighbours.some(other => valid(other) && nearest(sourceColour(other), style.classes) !== row)) fill = hexOf(row.edge);
     const raisedStyle = style.raised;
     if (raisedStyle !== undefined) {
       const around: number[] = [];
@@ -61,7 +70,7 @@ function stylize(raster: MapRaster, style: Style): Uint8Array {
       if (item(height, at) - ground > raisedStyle.bump * 65536) {
         const raised = nearest(rgb, raisedStyle.classes), edge = raised.edge;
         if (edge === undefined) throw new Error('Raised map palette needs edges');
-        fill = hex(neighbours.some(other => valid(other) && item(height, at) - item(height, other) > raisedStyle.bump * 32768) ? edge : raised.fill);
+        fill = hexOf(neighbours.some(other => valid(other) && item(height, at) - item(height, other) > raisedStyle.bump * 32768) ? edge : raised.fill);
       }
     }
     const left = valid(at - 1) && x > 0 ? item(height, at - 1) : item(height, at), top = valid(at - size) ? item(height, at - size) : item(height, at);
