@@ -135,7 +135,7 @@ export class TickWorkerHost {
     const observations:HeadlessTapeReport['observations']=[],ids=new Set<string>(),encoder=new TextEncoder();
     let ticks=0,commands=0,bytes=0,committed=0;
     try{
-      let current=await Promise.race([(async()=>await iterator.next())(),failed]);
+      let current=await Promise.race([(async()=>{const next=await iterator.next();return next;})(),failed]);
       while(!current.done){
         const plan=v.parse(HeadlessTapePlanSchema,{version:1,observe:[...observe],segments:[current.value]}),segment=plan.segments[0];
         if(segment===undefined)throw new Error('Missing streamed tape segment');
