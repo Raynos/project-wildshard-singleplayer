@@ -6,18 +6,19 @@ import { pageScope } from '../app/resources';
  * Loaded as its own `<script type="module">` in index.html, ahead of main.ts, so the worker is registered
  * at the very first line of boot. Two jobs, both before the first big fetch:
  *
- *  1. Register while the title is visible. On a first installation, readiness
- *     waits for activation or an actual registration failure. This title is never
- *     claimed: its next world navigation is the first controlled document.
- *     An existing controller is ready immediately, without waiting for updates.
+ *  1. A controlled document registers at once (update discovery) and is ready immediately. A first visit's
+ *     install precaches the whole build (~330 files, ~20 MB), so an uncontrolled document is ready at once and
+ *     registers only when its world first has control (`ws:control-ready`): the title tap and the boot's own
+ *     downloads never wait on or race that install (MF21: waiting for first activation took the phone profile's
+ *     cold tap from 0.1 s to 30.9 s). No document is ever claimed; the next visit is the first controlled one.
  *
  *  2. Announce updates without replacing gameplay. Adoption is explicit on the
  *     title or a fresh document; a running world never changes its controller.
  *
  * CONTRACT — `window.__ws_sw` (also the module's exports):
  *
- *   ready: Promise<void>        resolves for an existing controller, first activation, registration failure, or when
- *                               service workers are off (`?sw=0`, dev without `?sw=1`, no SW support).
+ *   ready: Promise<void>        resolves at once: a controlled document, an uncontrolled one (it registers at control), or
+ *                               service workers off (`?sw=0`, dev without `?sw=1`, no SW support).
  *   waiting: ServiceWorker|null a newer build is installed and waiting to activate; null otherwise.
  *   activate(): Promise<boolean> activate an installed update at a natural boundary; never navigates.
  *   adopt(to?): Promise<boolean> explicit recovery: activate, then reload/replace once; true if sent.
@@ -219,41 +220,28 @@ function boot(): Promise<void> {
     return Promise.resolve();
   }
   const s = sw;
-  return new Promise<void>((resolve) => {
-    const settle = (): void => { resolve(); };
-    pageScope.onDispose(settle);
-    // A controlling worker already owns this document's fetches. Registration
-    // still discovers updates, but its network/update check cannot gate boot.
-    if (s.controller) settle();
-    void register(s, settle);
-  });
+  // A controlling worker already owns this document's fetches. Registration
+  // still discovers updates, but its network/update check cannot gate boot.
+  if (s.controller) void register(s);
+  // MF21: the first install's precache runs behind play, not before the title tap or under the boot's downloads.
+  else pageScope.listen(document, 'ws:control-ready', () => { void register(s); }, { once: true });
+  return Promise.resolve();
 }
 
-async function register(s: ServiceWorkerContainer, settle: () => void): Promise<void> {
+async function register(s: ServiceWorkerContainer): Promise<void> {
   const url = import.meta.env.DEV ? '/sw.js?sw=1' : '/sw.js';
   let reg: ServiceWorkerRegistration;
   // The host's no-cache still revalidates every update. Consult its ETag:
   // WebKit's default imports mode bypasses that conditional HTTP cache.
-  try { reg = await s.register(url, { scope: '/', updateViaCache: 'all' }); } catch { settle(); return; }
+  try { reg = await s.register(url, { scope: '/', updateViaCache: 'all' }); } catch { return; }
   // A host that blocks worker installation can resolve without a registration.
   // Treat that as unavailable support, just like a rejected registration.
-  if (reg === undefined) { settle(); return; }
+  if (reg === undefined) return;
   watch(reg);
   // Standalone installs live for days: keep discovering updates so the pill can offer them.
   pageScope.listen(document, 'visibilitychange', () => {
     if (!document.hidden) void reg.update().catch(() => undefined);
   });
-  // First installation does not claim this title. Wait for activation so
-  // its next world navigation is controlled; MF4 still owns cold body copies.
-  if (s.controller !== null || reg.active?.state === 'activated') { settle(); return; }
-  const worker = reg.installing ?? reg.waiting ?? reg.active;
-  if (worker === null) { settle(); return; }
-  const owner = pageScope.child('first-worker-activation');
-  owner.onDispose(settle);
-  const inspect = (): void => {
-    if (worker.state === 'activated' || worker.state === 'redundant') owner.dispose();
-  };
-  owner.listen(worker, 'statechange', inspect); inspect();
 }
 
 if (typeof window !== 'undefined') window.__ws_sw = api;

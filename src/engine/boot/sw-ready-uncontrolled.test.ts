@@ -1,14 +1,13 @@
 // @vitest-environment happy-dom
 import {expect, test, vi} from 'vitest';
 
-test('without a controller, readiness follows first activation without claiming this title', async () => {
+test('without a controller, readiness is immediate and the worker registers only at control, never claiming', async () => {
   vi.useFakeTimers();
   vi.stubGlobal('__BUILD_ID__', 'controller-ready');
   vi.stubGlobal('location', new URL('https://example.com/?sw=1'));
   const worker = Object.assign(new EventTarget(), { state: 'installing', postMessage: vi.fn() });
   const registration = Object.assign(new EventTarget(), {active: null, installing: worker, waiting: null, update: vi.fn(() => Promise.resolve())});
-  let complete = (_value: typeof registration): void => { throw new Error('Registration not started'); };
-  const register = vi.fn(() => new Promise<typeof registration>(resolve => { complete = resolve; }));
+  const register = vi.fn(() => Promise.resolve(registration));
   const container = Object.assign(new EventTarget(), {controller: null, register});
   Object.defineProperty(navigator, 'serviceWorker', {configurable: true, value: container});
   try {
@@ -17,15 +16,15 @@ test('without a controller, readiness follows first activation without claiming 
     const {wsSw} = await import('./sw');
     let ready = false;
     void wsSw.ready.then(() => {ready = true; return undefined;});
-    await vi.advanceTimersByTimeAsync(180_000);
-    expect(ready).toBe(false);
-    complete(registration); await vi.advanceTimersByTimeAsync(0); expect(ready).toBe(false);
-    worker.state = 'installed'; worker.dispatchEvent(new Event('statechange'));
-    await vi.advanceTimersByTimeAsync(180_000); expect(ready).toBe(false);
+    await vi.advanceTimersByTimeAsync(0);
+    // MF21: the title travels and the boot downloads without the first install's precache under them
+    expect(ready).toBe(true); expect(register).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(180_000); expect(register).not.toHaveBeenCalled();
+    document.dispatchEvent(new Event('ws:control-ready')); document.dispatchEvent(new Event('ws:control-ready'));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(register).toHaveBeenCalledTimes(1);
     worker.state = 'activated'; worker.dispatchEvent(new Event('statechange'));
-    await wsSw.ready; await Promise.resolve();
-    expect(ready).toBe(true);
-    expect(register).toHaveBeenCalledTimes(1); expect(container.controller).toBeNull(); expect(worker.postMessage).not.toHaveBeenCalled();
+    expect(container.controller).toBeNull(); expect(worker.postMessage).not.toHaveBeenCalled();
     expect(vi.getTimerCount()).toBe(pageTimers);
   } finally {
     (await import('../app/resources')).pageScope.dispose();

@@ -19,6 +19,9 @@ test('a host-blocked worker registration settles without installing watchers', a
     let settled = false;
     void wsSw.ready.then(() => { settled = true; return undefined; });
     await vi.advanceTimersByTimeAsync(0);
+    expect(settled).toBe(true); expect(register).not.toHaveBeenCalled();
+    document.dispatchEvent(new Event('ws:control-ready')); // a first visit registers at control (MF21)
+    await vi.advanceTimersByTimeAsync(0);
     expect(register).toHaveBeenCalledExactlyOnceWith(import.meta.env.DEV ? '/sw.js?sw=1' : '/sw.js', { scope: '/', updateViaCache: 'all' });
     expect(settled).toBe(true);
     expect(wsSw.waiting).toBeNull();
