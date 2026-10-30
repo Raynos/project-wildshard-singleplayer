@@ -115,3 +115,25 @@ test('a polearm checkpoint keeps pending input, cadences and actual target histo
   }
   const before=restored.snapshot(key);expect(()=>restored.restore({...before,cadence:Number.NaN},resolve)).toThrow();expect(restored.snapshot(key)).toEqual(before);
 });
+
+test('a retired target restores as its id alone, in place: strict by default, exact with the retired predicate',()=>{
+  const first=new PolearmDecision<Deer>(rows.programs.polearm,scope),restored=new PolearmDecision<Deer>(rows.programs.polearm,scope);
+  const rider:Deer={position:new Vector3(.3,0,-1.5),alive:true},deer:Deer={position:new Vector3(0,0,-2),alive:true},player=new Vector3();
+  const ids=new Map<Deer,string>([[rider,'creature:50'],[deer,'deer']]);
+  const key=(target:Deer):string=>{const id=ids.get(target);if(id===undefined)throw new Error('Foreign polearm target');return id;};
+  const live=new Map<string,Deer>([['deer',deer]]),resolve=(id:string):Deer=>{const target=live.get(id);if(target===undefined)throw new Error('Missing polearm target');return target;};
+  const frame=(targets:Deer[])=>({player,heading:0,held:true,enabled:true,ads:false,ammo:3,capacity:3,mount:{speed:9},targets,radius,javelins:[],random:()=>.5,policy,projectile});
+  // the rider is seen and struck first, then killed and its body retired: the original keeps its history
+  first.attackPending=true;first.decide(.1,.1,frame([rider,deer]));first.struck(rider,.1);first.decide(.1,.2,frame([rider,deer]));
+  rider.alive=false;first.decide(.1,.3,frame([deer]));
+  const saved=first.snapshot(key);
+  expect(saved.rehit.map(([id])=>id)).toEqual(['creature:50']);expect(saved.previous.map(([id])=>id)).toEqual(['creature:50','deer']);
+  expect(()=>restored.restore(saved,resolve)).toThrow('Missing polearm target');expect(restored.snapshot(key).previous).toEqual([]);
+  restored.restore(saved,resolve,id=>id==='creature:50');
+  expect(restored.snapshot(key)).toEqual(saved);
+  for(let tick=0;tick<40;tick++){
+    deer.position.z-=.01;const time=.3+(tick+1)*.03;
+    if(tick===10){first.struck(deer,time);restored.struck(deer,time);first.attackPending=true;restored.attackPending=true;}
+    expect(restored.decide(.03,time,frame([deer]))).toEqual(first.decide(.03,time,frame([deer])));expect(restored.snapshot(key)).toEqual(first.snapshot(key));
+  }
+});

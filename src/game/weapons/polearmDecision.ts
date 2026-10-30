@@ -67,27 +67,38 @@ export interface PolearmState {
  readonly rehit:readonly (readonly [string,number])[];readonly previous:readonly (readonly [string,Point])[];
 }
 
+/** A retired target's history entry after a restore: its id only, an inert key no live target equals (`decide` reads only
+ *  live targets' entries), kept in its place so the next snapshot names it again. */
+class RetiredTarget { constructor(readonly key: string) {} }
+
 export class PolearmDecision<T extends PolearmTarget = PolearmTarget> {
   thrustT = -1; windT = -1; throwT = -1; queued = false; releaseQueued = false; threw = false; hitDone = false; throwPrev = false;
   lanceActive = false; attackPending = false; tapPending = false;
   /** seconds since the last snapshot */
   decisionT = 0;
   private readonly law: HeldDecision;
-  private readonly rehit = new Map<T, number>();
-  private readonly prevPos = new Map<T, Point>();
+  private readonly rehit = new Map<T | RetiredTarget, number>();
+  private readonly prevPos = new Map<T | RetiredTarget, Point>();
   constructor(program: unknown, owner?: Scope) { this.law = new HeldDecision(program, owner); }
 
   /** Capture pending presses, both cadences and every target's observed history. */
-  snapshot(key:(target:T)=>string):PolearmState{return {thrustT:this.thrustT,windT:this.windT,throwT:this.throwT,queued:this.queued,
+  snapshot(key:(target:T)=>string):PolearmState{const name=(target:T|RetiredTarget):string=>target instanceof RetiredTarget?target.key:key(target);
+    return {thrustT:this.thrustT,windT:this.windT,throwT:this.throwT,queued:this.queued,
     releaseQueued:this.releaseQueued,threw:this.threw,hitDone:this.hitDone,throwPrev:this.throwPrev,lanceActive:this.lanceActive,
     attackPending:this.attackPending,tapPending:this.tapPending,decisionT:this.decisionT,cadence:this.law.snapshot(),
-    rehit:[...this.rehit].map(([target,time])=>[key(target),time]),previous:[...this.prevPos].map(([target,point])=>[key(target),{...point}])};}
-  /** Resolve and validate the entire cursor before committing any replacement. */
-  restore(input:unknown,resolve:(key:string)=>T):void{
+    rehit:[...this.rehit].map(([target,time])=>[name(target),time]),previous:[...this.prevPos].map(([target,point])=>[name(target),{...point}])};}
+  /** Resolve and validate the entire cursor before committing any replacement. `retired` (optional) names the targets the
+   *  caller's owner has retired for good (a killed rider whose body is gone): their history entries keep only their ids, in
+   *  their places, and every other key must still resolve. */
+  restore(input:unknown,resolve:(key:string)=>T,retired?:(key:string)=>boolean):void{
     const saved=schema.parse(PolearmStateSchema,input);
     if(new Set(saved.rehit.map(([key])=>key)).size!==saved.rehit.length
       ||new Set(saved.previous.map(([key])=>key)).size!==saved.previous.length)throw new Error('Duplicate polearm continuation target');
-    const rehit=saved.rehit.map(([key,time])=>[resolve(key),time] as const),previous=saved.previous.map(([key,point])=>[resolve(key),{...point}] as const);
+    const inert=new Map<string,RetiredTarget>(),own=(key:string):T|RetiredTarget=>{
+      if(retired?.(key)!==true)return resolve(key);
+      const known=inert.get(key)??new RetiredTarget(key);inert.set(key,known);return known;
+    };
+    const rehit=saved.rehit.map(([key,time])=>[own(key),time] as const),previous=saved.previous.map(([key,point])=>[own(key),{...point}] as const);
     if(new Set(rehit.map(([target])=>target)).size!==rehit.length
       ||new Set(previous.map(([target])=>target)).size!==previous.length)throw new Error('Aliased polearm continuation target');
     this.law.restore(saved.cadence);this.thrustT=saved.thrustT;this.windT=saved.windT;this.throwT=saved.throwT;this.queued=saved.queued;
