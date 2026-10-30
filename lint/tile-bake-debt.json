@@ -164,7 +164,18 @@
       "window/5/4/resident": 251803436,
       "window/5/4/compressed": 126342860,
       "window/5/5/resident": 217645748,
-      "window/5/5/compressed": 109227552
+      "window/5/5/compressed": 109227552,
+      "tile/1/1/0/compressed": 470580,
+      "tile/1/1/1/resident": 11472504,
+      "tile/1/1/1/compressed": 5738772,
+      "tile/1/1/1/triangles": 57443,
+      "tile/1/1/2/compressed": 737932,
+      "tile/1/1/2/triangles": 11775,
+      "tile/1/2/1/compressed": 995236,
+      "tile/1/2/1/triangles": 17729,
+      "tile/1/2/2/resident": 3141764,
+      "tile/1/2/2/compressed": 1573416,
+      "tile/1/2/2/triangles": 28732
     },
     "open-plot-alien-plain": {
       "tile/0/3/4/compressed": 1017496,

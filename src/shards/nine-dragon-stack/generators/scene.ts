@@ -22,9 +22,15 @@ export function nineChannels(geometry: BufferGeometry): Record<string, string> {
     .map(name => [`_${name.toUpperCase()}`, name]));
 }
 
-// The L1 tile caps (CONTENT_CAPS.l1: 2 draws, 10k triangles, 0.2 MB), with headroom: a parent's raw channel bytes stand in
-// for its stored GLB (the store never grows them)
-const COARSE_DRAWS = 2, COARSE_TRIANGLES = 9_000, COARSE_BYTES = 180_000;
+// NT4 (nine-tiling plan): the far level spends the cell's budget where the city is, not 9k triangles in every parent. The
+// cell's 16 parents share CELL_COARSE_TRIANGLES (under 16 x the 10k L1 report cap) and CELL_COARSE_BYTES (L1 GPU under
+// 20 MB) by their share of the city's simplified triangles, each in at most COARSE_DRAWS draws; a parent's raw channel
+// bytes stand in for its stored GLB (the store never grows them)
+const COARSE_DRAWS = 8, CELL_COARSE_TRIANGLES = 150_000, CELL_COARSE_BYTES = 18_000_000;
+/** what any parent may keep, however little of the city it holds (an edge parent's few walls) */
+const COARSE_FLOOR = { triangles: 1_000, bytes: 64_000 };
+/** the share of each L0 piece the coarse pass starts from before the cell budget trims it */
+const COARSE_START = 0.25;
 const geometryBytes = (geometry: BufferGeometry): number =>
   Object.values(geometry.attributes).reduce((sum, attribute) => sum + attribute.array.byteLength, geometry.getIndex()?.array.byteLength ?? 0);
 const triangleCount = (geometry: BufferGeometry): number => (geometry.getIndex()?.count ?? geometry.getAttribute('position').count) / 3;
@@ -85,24 +91,24 @@ function usedVertices(geometry: BufferGeometry): BufferGeometry {
   return used;
 }
 
-/** Simplify a parent's sets until together they fit the caps: each pass shrinks the largest set that still shrinks by the
+/** Simplify a parent's sets until together they fit its share of the cell's budget (`triangles`, `bytes`): each pass shrinks the largest set that still shrinks by the
  *  share it must lose. Replaced geometries are disposed. */
-function fitCoarse(input: readonly BufferGeometry[], parent: string): BufferGeometry[] {
+function fitCoarse(input: readonly BufferGeometry[], parent: string, triangles: number, bytes: number): BufferGeometry[] {
   const sets = [...input], stuck = new Set<number>();
   const sum = (cost: (geometry: BufferGeometry) => number): number => sets.reduce((total, geometry) => total + cost(geometry), 0);
-  for (let pass = 0; pass < 32 && (sum(triangleCount) > COARSE_TRIANGLES || sum(geometryBytes) > COARSE_BYTES); pass++) {
+  for (let pass = 0; pass < 32 && (sum(triangleCount) > triangles || sum(geometryBytes) > bytes); pass++) {
     let at = -1;
     for (const [i, geometry] of sets.entries()) if (!stuck.has(i) && (at < 0 || geometryBytes(geometry) > geometryBytes(sets[at] ?? geometry))) at = i;
     const largest = sets[at];
     if (largest === undefined) break;
-    const keep = Math.min((COARSE_TRIANGLES - (sum(triangleCount) - triangleCount(largest))) / triangleCount(largest),
-      (COARSE_BYTES - (sum(geometryBytes) - geometryBytes(largest))) / geometryBytes(largest));
+    const keep = Math.min((triangles - (sum(triangleCount) - triangleCount(largest))) / triangleCount(largest),
+      (bytes - (sum(geometryBytes) - geometryBytes(largest))) / geometryBytes(largest));
     const simplified = coarseGeometry(largest, Math.min(0.9, Math.max(0.05, 0.9 * keep)), 6, { sloppy: true }), next = usedVertices(simplified);
     simplified.dispose();
     if (triangleCount(next) >= triangleCount(largest)) { next.dispose(); stuck.add(at); continue; }
     largest.dispose(); sets[at] = next;
   }
-  if (sum(triangleCount) > COARSE_TRIANGLES || sum(geometryBytes) > COARSE_BYTES) {
+  if (sum(triangleCount) > triangles || sum(geometryBytes) > bytes) {
     throw new Error(`Nine coarse parent ${parent} does not fit its L1 caps: ${sum(triangleCount)} triangles, ${sum(geometryBytes)} B`);
   }
   return sets;
@@ -131,15 +137,18 @@ function buildNineScene(atlas: NineSpillAtlas): { baked: BakedScene; layout: Ret
     if (local.has(i)) continue;
     const mesh = new Mesh(geometry, material); mesh.name = `layout_${i}`;
     scene.add(new WholeShape(mesh.name, mesh, { customAttributes: nineChannels(geometry), nativeAttributes: true, partition: 'runs', compact: true }));
-    const coarse = coarseGeometry(geometry, 0.05, 3, { sloppy: true });
+    const coarse = coarseGeometry(geometry, COARSE_START, 3, { sloppy: true });
     for (const piece of coarseParents(coarse)) { const key = piece.z * 4 + piece.x, list = parents.get(key) ?? []; list.push(piece.geometry); parents.set(key, list); }
     coarse.dispose();
   }
+  // each parent's share of the cell budget follows its share of the city's simplified triangles
+  const mass = new Map([...parents].map(([key, pieces]) => [key, pieces.reduce((sum, piece) => sum + triangleCount(piece), 0)] as const));
+  const total = [...mass.values()].reduce((sum, n) => sum + n, 0);
   for (const [key, pieces] of parents) {
     const x = key % 4, z = Math.floor(key / 4), transform = new Matrix4().makeTranslation(-250 + (x + 0.5) * 125, 0, -250 + (z + 0.5) * 125);
-    const sets = coarseSets(pieces);
+    const sets = coarseSets(pieces), share = total === 0 ? 0 : (mass.get(key) ?? 0) / total;
     if (sets.length > COARSE_DRAWS) throw new Error(`Nine coarse parent ${x}/${z} needs ${sets.length} channel sets`);
-    for (const [s, fitted] of fitCoarse(sets, `${x}/${z}`).entries()) {
+    for (const [s, fitted] of fitCoarse(sets, `${x}/${z}`, Math.max(COARSE_FLOOR.triangles, Math.floor(CELL_COARSE_TRIANGLES * share)), Math.max(COARSE_FLOOR.bytes, Math.floor(CELL_COARSE_BYTES * share))).entries()) {
       coarseWhole.push({ id: `coarse_${x}_${z}_${s}`, mesh: new Mesh(fitted, coarseWhite), transform, customAttributes: nineChannels(fitted), nativeAttributes: true, compact: true });
     }
   }
