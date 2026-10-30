@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
-import { TileDriver, tileKeys, residentTiles, followResidentTiles } from './tileDriver';
+import { TileDriver, tileKeys, residentTiles, followResidentTiles, tileRing } from './tileDriver';
 import { ring, type TileContent } from './tileContent';
 import { tileOrder, tileOf } from './tileOrder';
 import { noteFrameDrawn, setBuildHeld } from '@wildshard/engine/core/framePacing';
@@ -120,10 +120,10 @@ test('resident boot callers share pending tiles and coarse readiness before publ
     if (prepares === 1) { started.release(); await tile.promise; }
     await made.attach(key, owner);
   }, coarse: () => { coarseStarted.release(); return coarse.promise; } };
-  const first = residentTiles(scope, [source], { x: 0, z: 0 }, []);
+  const first = residentTiles(scope, [source], { x: 0, z: 0 }, [], tileRing);
   try {
     await started.promise;
-    const second = residentTiles(scope, [source], { x: 0, z: 0 }, []);
+    const second = residentTiles(scope, [source], { x: 0, z: 0 }, [], tileRing);
     let ready = false;
     void second.then(() => { ready = true; return undefined; });
     await Promise.resolve();
@@ -135,7 +135,7 @@ test('resident boot callers share pending tiles and coarse readiness before publ
     coarse.release(); await Promise.all([first, second]);
     expect(followResidentTiles(scope, () => ({ x: 0, z: 0 }))).not.toBeNull();
     const count = prepares;
-    await residentTiles(scope, [source], { x: 0, z: 0 }, []);
+    await residentTiles(scope, [source], { x: 0, z: 0 }, [], tileRing);
     expect(prepares).toBe(count);
   } finally { tile.release(); coarse.release(); await Promise.allSettled([first]); scope.dispose(); }
 });
@@ -146,8 +146,8 @@ test('a failed resident boot remains refused without publishing or retrying its 
   const source: TileContent = { id: 'failed', tiles: () => new Set([36]), attach, coarse };
   const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   try {
-    await expect(residentTiles(scope, [source], { x: 0, z: 0 }, [])).rejects.toBe(failure);
-    await expect(residentTiles(scope, [source], { x: 0, z: 0 }, [])).rejects.toBe(failure);
+    await expect(residentTiles(scope, [source], { x: 0, z: 0 }, [], tileRing)).rejects.toBe(failure);
+    await expect(residentTiles(scope, [source], { x: 0, z: 0 }, [], tileRing)).rejects.toBe(failure);
     expect(attach).toHaveBeenCalledTimes(1);
     expect(coarse).not.toHaveBeenCalled();
     expect(followResidentTiles(scope, () => ({ x: 0, z: 0 }))).toBeNull();
@@ -158,7 +158,7 @@ test('retiring a resident during coarse preparation refuses publication', async 
   const scope = new Scope('retired-resident'), started = gate(), coarse = gate();
   const source: TileContent = { id: 'retired', tiles: () => new Set(), attach: () => Promise.resolve(),
     coarse: () => { started.release(); return coarse.promise; } };
-  const pending = residentTiles(scope, [source], { x: 0, z: 0 }, []);
+  const pending = residentTiles(scope, [source], { x: 0, z: 0 }, [], tileRing);
   try {
     await started.promise; scope.dispose(); coarse.release();
     await expect(pending).rejects.toThrow('Tile resident is disposed');

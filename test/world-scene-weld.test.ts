@@ -8,7 +8,7 @@ import { parsePlumbing } from '../src/format/plumbing';
 import { TIER, TIER_CONFIG } from '../src/engine/core/tier';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { WorldEntry } from '../src/game/shardfile/worldEntry';
-import { residentTiles } from '../src/game/shardfile/tileDriver';
+import { residentTiles, tileRing } from '../src/game/shardfile/tileDriver';
 import { hydrateWorldSceneWeld, worldSceneWeldFile, admitWorldSceneModelGraphs, WorldSceneWeldAssembly } from '../src/game/shardfile/worldSceneWeld';
 import { parseWorldSceneWeld } from '../src/format/worldSceneWeld';
 import { SkyRig } from '../src/engine/world/skyRig';
@@ -219,7 +219,7 @@ test('deferred world assembly publishes live seeds before borrowing the living r
     await entry.run('members');
     expect(await handles.assemble(graph.id)).toBe(root);
     expect(await handles.assemble(graph.id)).toBe(root);
-    await residentTiles(owner, handles.tiled(), { x: 0, z: 0 }, []);
+    await residentTiles(owner, handles.tiled(), { x: 0, z: 0 }, [], tileRing);
     expect(context.app.registry.pieces).toHaveLength(1);
     owner.dispose(); expect(handles.object('living.root')).toBe(root);
   } finally { owner.dispose(); }

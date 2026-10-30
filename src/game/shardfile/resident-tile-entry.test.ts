@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import { SceneHandles } from './sceneHandles';
-import { TileDriver, followResidentTiles, residentTiles } from './tileDriver';
+import { TileDriver, followResidentTiles, residentTiles, tileRing } from './tileDriver';
 import type { TileContent } from './tileContent';
 import { bindResidentTileEntry } from './tileEntry';
 
@@ -21,13 +21,13 @@ test('a bound crossing requires its actual entry ring, leaving unrelated spawn a
   const sources: TileContent[] = [source];
   bindResidentTileEntry(owner, point);
   try {
-    await residentTiles(owner, sources, spawn, exits);
+    await residentTiles(owner, sources, spawn, exits, tileRing);
     expect([...source.render.keys()]).toEqual([30, 31, 38, 39, 46, 47]);
     expect([...source.colliders.keys()]).toEqual([...source.render.keys()]);
     expect(source.render.has(36)).toBe(false); expect(source.render.has(0)).toBe(false);
     // Later content still fills the same required entry under the old owners.
     const roots = new Map(source.render), later = content('later'); sources.push(later);
-    await residentTiles(owner, sources, spawn, exits);
+    await residentTiles(owner, sources, spawn, exits, tileRing);
     expect(source.render).toEqual(roots);
     expect([...later.render.keys()]).toEqual([...roots.keys()]);
     expect([...later.colliders.keys()]).toEqual([...roots.keys()]);
@@ -37,7 +37,7 @@ test('a bound crossing requires its actual entry ring, leaving unrelated spawn a
 test('unbound construction requires the spawn ring, leaving distant exits to play', async () => {
   const owner = new Scope('authored-entry'), source = content('world');
   try {
-    await residentTiles(owner, [source], spawn, [{ at: [-250, 0, -250], width: 10 }]);
+    await residentTiles(owner, [source], spawn, [{ at: [-250, 0, -250], width: 10 }], tileRing);
     expect([...source.render.keys()]).toEqual([27,28,29,35,36,37,43,44,45]);
     expect([...source.colliders.keys()]).toEqual([...source.render.keys()]);
     expect(source.render.has(0)).toBe(false); expect(source.colliders.has(0)).toBe(false);
@@ -50,7 +50,7 @@ test('bound entry failures still refuse before controls while an unrelated tile 
   const source: TileContent = { id: 'entry', tiles: () => new Set([0, 30]), attach: key => {
     seen.push(key); return Promise.reject(key === 30 ? failure : new Error('unrelated tile'));
   } };
-  try { await expect(residentTiles(owner, [source], spawn, [{ at: [-250, 0, -250], width: 10 }])).rejects.toBe(failure); }
+  try { await expect(residentTiles(owner, [source], spawn, [{ at: [-250, 0, -250], width: 10 }], tileRing)).rejects.toBe(failure); }
   finally { owner.dispose(); }
   expect(seen).toEqual([30]);
 });
@@ -60,10 +60,10 @@ test('a later scene stage attaches its rank-0 content without rebuilding earlier
   const firstCoarse = vi.fn(() => Promise.resolve()), laterCoarse = vi.fn(() => Promise.resolve());
   scenes.addTiled({ ...initial, coarse: firstCoarse });
   try {
-    await residentTiles(owner, scenes.tiled(), spawn, []);
+    await residentTiles(owner, scenes.tiled(), spawn, [], tileRing);
     const original = new Map(initial.render);
     scenes.addTiled({ ...later, coarse: laterCoarse });
-    await residentTiles(owner, scenes.tiled(), spawn, []);
+    await residentTiles(owner, scenes.tiled(), spawn, [], tileRing);
     expect(later.render.size).toBe(9); expect(later.colliders.size).toBe(9);
     expect(initial.render).toEqual(original);
     expect(firstCoarse).toHaveBeenCalledTimes(1); expect(laterCoarse).toHaveBeenCalledTimes(1);
@@ -75,12 +75,12 @@ test('re-entry restores required tiles evicted by the previous entry', async () 
   const owner = new Scope('returning-world'), source = content('world');
   let at = spawn;
   try {
-    await residentTiles(owner, [source], spawn, []);
+    await residentTiles(owner, [source], spawn, [], tileRing);
     const follow = followResidentTiles(owner, () => at);
     if (follow === null) throw new Error('Missing resident driver');
     at = { x: -240, z: -240 }; follow(); await Promise.resolve(); await Promise.resolve();
     expect(source.render.has(36)).toBe(false); expect(source.colliders.has(36)).toBe(false);
-    await residentTiles(owner, [source], spawn, []);
+    await residentTiles(owner, [source], spawn, [], tileRing);
     expect(source.render.has(36)).toBe(true); expect(source.colliders.has(36)).toBe(true);
   } finally { owner.dispose(); }
 });

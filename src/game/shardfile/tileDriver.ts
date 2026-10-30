@@ -323,7 +323,7 @@ export function noteTileBytes(resident: Scope, rows: readonly { readonly lod: nu
  * surviving tiles or coarse stand-ins. Nothing tiled: nothing to do.
  */
 export function residentTiles(resident: Scope, contents: readonly TileContent[], spawn: { readonly x: number; readonly z: number },
-  _entryways: readonly TileEntryway[], radius: () => number = tileRing): Promise<void> {
+  _entryways: readonly TileEntryway[], radius: () => number): Promise<void> {
   if (contents.length === 0) return Promise.resolve();
   const existing = started.get(resident);
   if (existing !== undefined && !existing.state.complete) return existing.pending;
