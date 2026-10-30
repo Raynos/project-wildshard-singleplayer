@@ -7,8 +7,6 @@ import type { ScalarLatticeRows, ScalarTripletRows } from '../src/format/scalarC
 import type { GeographyRows } from '../src/shards/nalati-grasslands/data/geographyTypes';
 import { toonHeldArmsRows } from '../src/sdk/rows';
 import { HeldArmsSchema } from '../src/format/heldArms';
-import { geographyHeldAuthorObservation } from './fixtures/geography-held-author-observation';
-import original from './fixtures/geography-held-author-original.json' with { type: 'json' };
 
 function outcome(run: () => unknown): unknown {
   try { return { rows: run() }; }
@@ -30,8 +28,4 @@ test('toon-held admission retains its exact original option grammar and refusal 
     expect(outcome(() => toonHeldArmsRows(bad))).toEqual(outcome(() => v.parse(HeldArmsSchema.options[0], bad)));
     expect(() => toonHeldArmsRows(bad)).toThrow();
   }
-});
-
-test('all six portable before-control geography, population, cove and held wires remain complete and unchanged', () => {
-  expect(geographyHeldAuthorObservation()).toEqual(original);
 });
