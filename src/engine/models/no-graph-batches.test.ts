@@ -44,6 +44,9 @@ test('PF1: a graph look\'s levels that share a material but not their shadow fla
     return out;
   };
   expect(casts(nodeMaterial())).toEqual([true, false]);
+  // PF3: a graph on the GLSL back-end (a classic program, `isGraphShaderMaterial`) splits its levels the same way
+  const glsl = new MeshStandardMaterial(); Object.defineProperty(glsl, 'isGraphShaderMaterial', { value: true });
+  expect(casts(glsl)).toEqual([true, false]);
   expect(casts(new MeshStandardMaterial())).toEqual([true]);
 });
 

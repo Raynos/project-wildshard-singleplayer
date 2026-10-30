@@ -812,9 +812,11 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
   // one batch per material: every (variant, level) part with that material is one of its geometries. A graph look's batch
   // also keeps its parts' draw flags apart (PF1: a tree's far level shares the near level's bark and needles but casts no
   // shadow on the phone; one batch per material cast every far tree's shadow, as instancing per part never did); a
-  // classic look's batches are as they were
+  // classic look's batches are as they were. A graph on the GLSL back-end (a classic ShaderMaterial) keys the same way:
+  // as one batch per material it cast every far tree's shadow again (PF3, Pine's mill: 54 shadow trees, TSL 17)
   const byMat = new Map<THREE.Material | string, { part: ModelPart; geos: { v: number; l: number; g: THREE.BufferGeometry; until: number | undefined }[] }>();
-  const batchKey = (part: ModelPart): THREE.Material | string => !graphLook(part.material) ? part.material
+  const flagged = (material: THREE.Material): boolean => graphLook(material) || Reflect.get(material, 'isGraphShaderMaterial') === true;
+  const batchKey = (part: ModelPart): THREE.Material | string => !flagged(part.material) ? part.material
     : `${part.material.uuid}|${String(part.castShadow ?? false)}|${String(part.receiveShadow ?? false)}|${String(part.tint !== false)}|${part.customDepthMaterial?.uuid ?? ''}`;
   // a part's `scale` (a level drawn at another variant's shape, model.ts) is per-copy instancing's; a batch takes the
   // geometry already scaled about the copy's origin (PF1: the forest's far trees drew at their species' first height)
