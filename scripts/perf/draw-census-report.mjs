@@ -29,7 +29,8 @@ export function sampledCpu(profile, locate, frames) {
       const { source, name } = locations.get(id); if (source) mapped.add(source);
       if (/renderWorld/u.test(name) && source.includes('/core/worldDepth')) categories.add('renderWorld');
       if (/\/three\/(?:src\/renderers\/WebGLRenderer|build\/three(?:\.module)?\.js)/u.test(source) && /renderBufferDirect/u.test(name)) categories.add('stockDraw');
-      if (/src\/engine\/render\//u.test(source) && /renderBufferDirect/u.test(name)) categories.add('drawWrappers');
+      if (/src\/engine\/render\//u.test(source) && (/renderBufferDirect/u.test(name)
+        || (source.endsWith('/drawHooks.ts') && /(?:^|\s)submit(?:\s|$)/u.test(name)))) categories.add('drawWrappers');
       if (/src\/engine\/render\//u.test(source) && /properties\.get/u.test(name)) categories.add('propertyHooks');
       id = parents.get(id);
     }

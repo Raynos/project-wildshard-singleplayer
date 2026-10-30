@@ -5,6 +5,7 @@ import { chromium, devices } from 'playwright';
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { createRequire } from 'node:module';
+import ts from '@typescript/typescript6';
 import { developerSettings, saveFixture, hideDeveloperOverlays } from '../debug-settings.mjs';
 import { loadingCardIndex } from '../loading-benchmark/catalogue.mjs';
 import { drawFrames } from './draw-census-page.mjs';
@@ -20,6 +21,24 @@ if (!version.build || version.build !== local.build) throw new Error('Private ma
 const out = resolve(arg('out', `tmp/draw-census/${new Date().toISOString().replaceAll(':', '-')}-${version.build}`)); mkdirSync(out, { recursive: true });
 const require = createRequire(import.meta.url), { TraceMap, originalPositionFor } = require('@jridgewell/trace-mapping');
 const maps = new Map();
+const declarations = new Map();
+const originalFunction = (map, position) => {
+  if (!map || !position?.source || position.line === null || position.column === null) return '';
+  let known = declarations.get(position.source);
+  if (known === undefined) {
+    const index = map.resolvedSources.indexOf(position.source), text = map.sourcesContent?.[index];
+    if (typeof text !== 'string') return '';
+    const tree = ts.createSourceFile(position.source, text, ts.ScriptTarget.Latest, true);
+    const ranges = [];
+    const visit = node => {
+      if (ts.isFunctionDeclaration(node) && node.name) ranges.push({ start: node.getStart(tree), end: node.end, name: node.name.text });
+      ts.forEachChild(node, visit);
+    };
+    visit(tree); known = { tree, ranges }; declarations.set(position.source, known);
+  }
+  const at = known.tree.getPositionOfLineAndCharacter(position.line - 1, position.column);
+  return known.ranges.filter(range => range.start <= at && at < range.end).sort((a, b) => (a.end - a.start) - (b.end - b.start))[0]?.name ?? '';
+};
 const locate = frame => {
   const path = new URL(frame.url === '' ? 'about:blank' : frame.url).pathname;
   if (!/^\/assets\/[^/]+\.js$/u.test(path)) return { source: '', name: frame.functionName };
@@ -27,8 +46,20 @@ const locate = frame => {
   if (!maps.has(file)) maps.set(file, existsSync(`${file}.map`) ? new TraceMap(readFileSync(`${file}.map`, 'utf8')) : null);
   const map = maps.get(file);
   const position = map ? originalPositionFor(map, { line: frame.lineNumber + 1, column: Math.max(0, frame.columnNumber) }) : null;
-  return { source: position?.source ?? '', name: `${frame.functionName} ${position?.name ?? ''}`.trim() };
+  return { source: position?.source ?? '', name: `${frame.functionName} ${position?.name ?? ''} ${originalFunction(map, position)}`.trim() };
 };
+if (arg('reprocess') !== '') {
+  const retained = JSON.parse(readFileSync(join(resolve(arg('reprocess')), 'census.json'), 'utf8'));
+  if (retained.build !== version.build) throw new Error('Retained profile and private maps disagree');
+  for (const row of retained.rows) {
+    const count = row.sampledCpu?.frames;
+    if (!Number.isSafeInteger(count) || count <= 0) throw new Error('Missing original profile frame count');
+    const profile = JSON.parse(readFileSync(join(resolve(arg('reprocess')), `${row.slug}-${row.mode}.cpuprofile`), 'utf8'));
+    row.sampledCpu = sampledCpu(profile, locate, count);
+  }
+  const target = join(resolve(arg('reprocess')), 'census-remapped.json');
+  writeFileSync(target, JSON.stringify(retained, null, 2)); console.info(target); process.exit(0);
+}
 const result = { build: version.build, url: base, protocol: { device: 'iPhone 16 Pro', tier: 'phone', dpr: 2, cpuRate: 4, frames,
   baseline: 'native completed Game renderMs/workMs and whole-frame calls, before any census hooks or profiler',
   attribution: 'separate GL submission observation, including shadow/post/held; no GPU synchronization',

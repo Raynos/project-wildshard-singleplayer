@@ -35,3 +35,13 @@ test('CPU wrapper overhead excludes the stock draw and counts nested hooks once'
   expect(result.msPerFrame).toMatchObject({ renderWorld: 7, stockDraw: 4, drawWrappers: 3 });
   expect(sampledCpu(profile, () => ({ source: '', name: '' }), 1).msPerFrame['drawWrappers']).toBeNull();
 });
+
+test('a source-mapped minified submission stays attributed outside the stock draw', () => {
+  const profile = { nodes: [
+    { id: 1, callFrame: { source: '/src/engine/render/drawHooks.ts', name: 'o submit' }, children: [2] },
+    { id: 2, callFrame: { source: '/node_modules/three/src/renderers/WebGLRenderer.js', name: 'renderBufferDirect' } },
+  ], samples: [1, 2], timeDeltas: [2000, 5000] };
+  const result = sampledCpu(profile, frame => frame, 2);
+  expect(result.msPerFrame['drawWrappers']).toBe(1);
+  expect(result.msPerFrame['stockDraw']).toBe(2.5);
+});
