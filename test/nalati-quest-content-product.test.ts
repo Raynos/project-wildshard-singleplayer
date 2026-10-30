@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { parseChapterStoryPresentation } from '../src/format/questStory';
 import { Flags } from '../src/engine/world/interact/flags';
 import { QuestState, lineFor } from '../src/engine/quest/core';
-import { readProjectAssets } from '../src/sdk/project';
+import { preparedProductEnvelope } from './fixtures/prepared-product-envelope';
 import feats from '../src/shards/nalati-grasslands/data/feats.json' with { type: 'json' };
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 import { NALATI_KOKPAR as kokpar } from './fixtures/nalati-kokpar';
@@ -11,12 +11,9 @@ import chapters from '../src/shards/nalati-grasslands/data/chapterStory.json' wi
 import view from '../src/shards/nalati-grasslands/data/chapterView.json' with { type: 'json' };
 import { peopleRows as figures } from '../src/shards/nalati-grasslands/generators/peopleRows.mjs';
 
-// Prepare the complete live source product before the unchanged timed
-// assertions; compiler/native setup failures still refuse collection.
-const nalatiEnvelope=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
-    { prefix: '/src/shards/nalati-grasslands/', directory: 'src/shards/nalati-grasslands' },
-    { prefix: '/assets/', directory: 'public/assets' },
-  ] });
+// The normal prepare compiled the source; keep the complete verified index and
+// original assertion bytes without rebuilding the author during collection.
+const nalatiEnvelope=await preparedProductEnvelope('nalati-grasslands', name=>name==='quests/content.json'||name==='quests/chapters.json');
 
 test('Nalati compiles its chapters, camp dialogues, placements and discovery into its product', () => {
   const { achievements, ...quests } = source.quests;

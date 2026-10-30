@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { nativeDressingRows } from './fixtures/nalati-dressing-placements';
 import { packDressingTable } from '../src/shards/nalati-grasslands/generators/dressingTable';
 import * as v from 'valibot';
-import { readProjectAssets } from '../src/sdk/project';
+import { preparedProductEnvelope } from './fixtures/prepared-product-envelope';
 import { readSceneNumericTable as readDressingTable } from '../src/game/shardfile/sceneDressing';
 import { DRESSING_SCHEMAS } from '../src/shards/nalati-grasslands/generators/dressingSchemas';
 import { SceneScatterPoseSchema } from '../src/format/sceneDressing';
@@ -13,12 +13,9 @@ import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 
 const cover = nalatiCover.rows;
 
-// Prepare the complete live source product before the unchanged timed
-// assertions; compiler/native setup failures still refuse collection.
-const nalatiEnvelope=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
-    { prefix: '/src/shards/nalati-grasslands/', directory: 'src/shards/nalati-grasslands' },
-    { prefix: '/assets/', directory: 'public/assets' },
-  ] });
+// Preserve all authored/runtime comparisons over the exact prepared product,
+// admitted through the same strict native reader as the headless proofs.
+const nalatiEnvelope=await preparedProductEnvelope('nalati-grasslands', name=>name.startsWith('world/dressing-'));
 
 test('prepared ambient rows keep both tier populations and finite flight at 10 Hz', () => {
   setTerrainHeight(() => 0);

@@ -8,7 +8,7 @@ import {unzlibSync} from 'fflate';
 import {bakedSamplers} from '../src/format/bakedTerrainSampling';
 import {AudioSceneSchema} from '../src/format/audioScene';
 import {namedJsonSchema} from '../src/sdk/formatJsonSchema';
-import {readProjectAssets} from '../src/sdk/project';
+import {preparedProductEnvelope} from './fixtures/prepared-product-envelope';
 import {admitClientPlan} from '../src/game/shardfile/clientPlan';
 import {jsonDataNodes,isJsonData} from '../src/format/json';
 import {parseAudioData,AudioDataSchema} from '../src/format/audio';
@@ -115,12 +115,9 @@ test('a disposed named-scene owner publishes nothing and never starts field read
  await refusal;expect(read).toHaveBeenCalledTimes(1);expect(f.on).not.toHaveBeenCalled();
 });
 
-// Actual source compilation/native construction belongs to fixture preparation,
-// before the unchanged 30 s assertions over the complete admitted envelope.
-const nalatiEnvelope=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
-    { prefix: '/src/shards/nalati-grasslands/', directory: 'src/shards/nalati-grasslands' },
-    { prefix: '/assets/', directory: 'public/assets' },
-  ] });
+// Prepare already compiled this exact source; retain native admission and the
+// unchanged assertions without running the whole author project again.
+const nalatiEnvelope=await preparedProductEnvelope('nalati-grasslands', name=>name==='audio/scene.json');
 
 test('the actual Nalati envelope keeps its complete audio scene outside the 100000-node source budget',()=>{
  const loaded=nalatiEnvelope,nodes=jsonDataNodes(loaded.shard);
