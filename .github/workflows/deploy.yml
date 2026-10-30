@@ -523,13 +523,16 @@ jobs:
 
 
   # The native trusted-input control keeps its original deadlines on its own
-  # runner. No sibling Vitest worker or product build competes for startup I/O.
+  # runner. Native story tapes also run sequentially without a sibling worker.
   native-escape:
+    needs: prepare
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
       WS_VITEST_MAX_WORKERS: '1'
+      VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+      WS_TEST_PRODUCTS_SHA: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -545,13 +548,24 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: 24, cache: pnpm}
       - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-products
+      - name: Verify and restore exact-run native inputs and products
+        id: native-inputs
+        run: |
+          zstd -d --rm test-products.tar.zst
+          python3 scripts/ci-products.py unpack
       - name: Pre-read native Chrome (post-read warmed)
         run: |
           mkdir -p tmp/ci-native-escape
           node scripts/warm-native-chrome.mjs > tmp/ci-native-escape/warm-read.json
           cat tmp/ci-native-escape/warm-read.json
       - name: Run the original native Escape controls alone
-        run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --config scripts/vitest-native-escape.config.ts --maxWorkers=1 --bail=0 --reporter=default --reporter=json --outputFile=tmp/ci-native-escape/results.json
+        run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run test/tooling/parity/browser-escape.test.mjs --config scripts/vitest-native-escape.config.ts --maxWorkers=1 --bail=0 --reporter=default --reporter=json --outputFile=tmp/ci-native-escape/results.json
+      - name: Run native story tapes without sibling workers
+        if: ${{ !cancelled() && steps.native-inputs.outcome == 'success' }}
+        run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run test/pine-quest-verbs.test.ts test/driftwood-story-verbs.test.ts test/nalati-discovery-verbs.test.ts --config scripts/vitest-native-escape.config.ts --maxWorkers=1 --bail=0 --reporter=default --reporter=json --outputFile=tmp/ci-native-escape/sim-results.json
       - name: Publish exact failure paths
         if: failure()
         uses: actions/upload-artifact@v4
@@ -567,6 +581,7 @@ jobs:
           name: native-escape-results
           path: |
             tmp/ci-native-escape/results.json
+            tmp/ci-native-escape/sim-results.json
             tmp/ci-native-escape/warm-read.json
           retention-days: 7
           if-no-files-found: warn

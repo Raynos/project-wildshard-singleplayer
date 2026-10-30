@@ -79,7 +79,7 @@ test('parallel and dedicated native CI discover every existing file exactly once
  const actual=ci.map(row=>relative('.',row.file));
  const serial=native.map(row=>relative('.',row.file));
  expect(actual.length).toBeGreaterThan(0);
- expect(serial).toEqual([...CI_SERIAL_TESTS]);
+ expect([...serial].sort()).toEqual([...CI_SERIAL_TESTS].sort());
  expect([...actual,...serial].sort()).toEqual([...paths].sort());
  expect(new Set([...actual,...serial]).size).toBe(paths.length);
  expect(ci.filter(row=>row.projectName==='pure').map(row=>relative('.',row.file)).sort()).toEqual([...PURE_TESTS].sort());
@@ -97,12 +97,29 @@ test('parallel and dedicated native CI discover every existing file exactly once
  expect(nativeJob).toContain('--config scripts/vitest-native-escape.config.ts');
  expect(nativeJob).not.toContain('--shard=');
  expect(nativeJob).toContain("WS_VITEST_MAX_WORKERS: '1'");
+ for(const file of ['test/pine-quest-verbs.test.ts','test/driftwood-story-verbs.test.ts','test/nalati-discovery-verbs.test.ts'])
+  expect(serial).toContain(file);
+ expect(nativeJob).toContain('needs: prepare');
+ expect(nativeJob).toContain('name: test-products');
+ expect(nativeJob).toContain('python3 scripts/ci-products.py unpack');
+ expect(nativeJob).toContain(`WS_TEST_PRODUCTS_SHA: \${{ github.sha }}`);
+ const restore=nativeJob?.indexOf('python3 scripts/ci-products.py unpack')??-1;
+ const warm=nativeJob?.indexOf('node scripts/warm-native-chrome.mjs')??-1;
+ const controls=nativeJob?.indexOf('--config scripts/vitest-native-escape.config.ts')??-1;
+ expect(restore).toBeGreaterThanOrEqual(0);expect(warm).toBeGreaterThan(restore);expect(controls).toBeGreaterThan(warm);
  if(nativeJob===undefined)throw new Error('Missing native runner');
  const warmed=nativeJob.indexOf('node scripts/warm-native-chrome.mjs');
  expect(warmed).toBeGreaterThan(nativeJob.indexOf('pnpm install --frozen-lockfile'));
  expect(warmed).toBeLessThan(nativeJob.indexOf('Run the original native Escape controls alone'));
  expect(nativeJob).toContain('post-read warmed');
  expect(nativeJob).toContain('tmp/ci-native-escape/warm-read.json');
+ const nativeRuns=[...nativeJob.matchAll(/pnpm exec vitest run (.+?) --config scripts\/vitest-native-escape\.config.ts/gu)]
+  .map(match=>match[1]?.split(/\s+/u)??[]);
+ expect(nativeRuns[0]).toEqual(['test/tooling/parity/browser-escape.test.mjs']);
+ expect(nativeRuns.flat().sort()).toEqual([...CI_SERIAL_TESTS].sort());
+ expect(new Set(nativeRuns.flat()).size).toBe(nativeRuns.flat().length);
+ expect(nativeJob).toContain("!cancelled() && steps.native-inputs.outcome == 'success'");
+ expect(nativeJob).toContain('tmp/ci-native-escape/sim-results.json');
  expect(ship).toContain("needs.native-escape.result == 'success'");
 });
 
@@ -129,7 +146,7 @@ test('native source suites start with verified inputs and never wait for a produ
 
 test('one preparation owns the source cache, generation and complete admission', () => {
   const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
-  const prepare = workflow.split('\n  prepare:\n')[1]?.split('\n  behaviour:\n')[0];
+  const prepare = workflow.split('\n  prepare:\n')[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0];
   if (prepare === undefined) throw new Error('Missing preparation owner');
   for (const path of ['~/.cache/wildshard/shardfiles', '~/.cache/wildshard/gen', '~/.cache/wildshard/basis'])
     expect(prepare).toContain(path);
