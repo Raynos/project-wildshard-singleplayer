@@ -51,7 +51,15 @@ export function phoneLoadingObservation() {
   const text = key => root?.querySelector(`[data-el="${key}"]`)?.textContent ?? null;
   /** @type {unknown} */
   const timeline = root === null ? null : Reflect.get(root, Symbol.for('engine.loading.snapshot')) ?? null;
-  return { at: performance.now(), url: location.href, readyState: document.readyState,
+  const at = performance.now();
+  // Resource Timing contains settled reads only. Retain the existing registry's
+  // live transport identities without importing code or invoking retry owners.
+  const state = /** @type {import('../../src/engine/boot/download').LoadingWaitState|undefined} */ (Reflect.get(document, Symbol.for('engine.loading.waits.v1')));
+  const waits = state?.version === 1 && typeof state.pending?.values === 'function'
+    ? [...state.pending.values()].map(row => ({ id: row.id, label: row.label, kind: row.kind, step: row.step,
+      resource: row.resource ?? null, startedAt: row.startedAt, ageMs: Math.max(0, at - row.startedAt),
+      progressAgeMs: Math.max(0, at - row.progressAt), loadedBytes: row.loadedBytes, totalBytes: row.totalBytes })) : null;
+  return { at, url: location.href, readyState: document.readyState, waits,
     loading: root === null ? null : { step: step ?? null, clock: text('clock'),
       download: text('dlFact'), setup: text('suFact'), wait: text('foot'), timeline },
     resources: performance.getEntriesByType('resource').map(entry => {

@@ -108,6 +108,18 @@ test('a pre-world failure preserves loading rows and native timings without muta
     const result:unknown=runInNewContext(`(${phoneLoadingObservation.toString()})()`,{document:dom.document,location:dom.location,performance});
     expect(result).toMatchObject({at:62000,url:'https://example.com/',loading:{step:'warm.links',clock:'01:02.0',timeline},
       resources:[{kind:'script',duration:200,transferBytes:100,encodedBytes:80,decodedBytes:160}],measures:[{name:'modules',duration:13400}]});
+    expect(result).toMatchObject({waits:null});
+    let retries=0;
+    const row={id:1,label:'Read Product data',kind:'file',step:'home',owner:Symbol('existing loader'),
+      startedAt:61000,progressAt:61500,loadedBytes:7,totalBytes:null,resource:'https://example.com/product.bin',
+      retry:()=>{retries++;},progress:'',inline:false};
+    const pending=new Map([[row.id,row]]);
+    Reflect.set(dom.document,Symbol.for('engine.loading.waits.v1'),{version:1,pending});
+    const active:unknown=runInNewContext(`(${phoneLoadingObservation.toString()})()`,{document:dom.document,location:dom.location,performance});
+    expect(active).toMatchObject({waits:[{resource:row.resource,ageMs:1000,progressAgeMs:500,loadedBytes:7,totalBytes:null}]});
+    const serial=JSON.stringify(active);
+    expect(serial).not.toContain('retry');expect(serial).not.toContain('existing loader');
+    expect(retries).toBe(0);expect(pending.get(row.id)).toBe(row);
     expect(dom.document.body.innerHTML).toBe(before);
   } finally { await dom.happyDOM.abort(); }
 });
