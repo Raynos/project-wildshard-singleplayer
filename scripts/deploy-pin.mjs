@@ -239,14 +239,18 @@ export function deadlineRecoverySource(runId, query = ghApi, now = Date.now()) {
   return selected;
 }
 
-/** @param {string} runId @param {(args:string[])=>string} query @param {boolean} deadline */
-function recoveryEvidence(runId, query, deadline) {
+class SourceGateError extends Error { name = 'SourceGateError'; }
+
+/** @param {string} runId @param {(args:string[])=>string} query @param {boolean} deadline @param {boolean} [ready] */
+function recoveryEvidence(runId, query, deadline, ready = false) {
   if (!/^[1-9][0-9]*$/u.test(runId)) throw new Error('Recovery requires a numeric source run');
   const run = JSON.parse(query([`repos/${REPO}/actions/runs/${runId}`]));
   const workflowId = workflowRunsPath('deploy.yml', query).split('/').at(-2);
   if (String(run.id) !== runId || String(run.workflow_id) !== workflowId || run.event !== 'push'
     || run.head_branch !== 'main' || typeof run.head_sha !== 'string' || !/^[a-f0-9]{40}$/u.test(run.head_sha)
-    || run.status !== 'completed' || !['success','failure'].includes(run.conclusion)
+    || (ready ? !((['queued','pending','in_progress'].includes(run.status) && run.conclusion === null)
+      || (run.status === 'completed' && ['success','failure','cancelled'].includes(run.conclusion)))
+      : run.status !== 'completed' || !['success','failure'].includes(run.conclusion))
     || run.path !== '.github/workflows/deploy.yml' || run.head_repository?.full_name !== REPO)
     throw new Error('Recovery source is not a completed exact main push');
   const sha = String(run.head_sha);
@@ -282,32 +286,85 @@ function recoveryEvidence(runId, query, deadline) {
     ...matrix.map(index=>`behaviour (${index})`),
     ...['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'].map(name=>`journeys (${name})`),
     ...nativeJobs]);
-  const rows = query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--jq',
-    '.jobs[] | [.name, .status, .conclusion] | @tsv']).trim().split('\n').filter(Boolean);
+  const details = ready ? JSON.parse(query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--slurp', '--jq',
+    '[.[].jobs[] | {name,status,conclusion,created_at,started_at,completed_at}]'])) : null;
+  if (ready && !Array.isArray(details)) throw new Error('Ready source job inventory is unreadable');
+  const rows = ready ? details.map(job => [job.name, job.status, job.conclusion ?? ''].join('\t'))
+    : query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--jq',
+      '.jobs[] | [.name, .status, .conclusion] | @tsv']).trim().split('\n').filter(Boolean);
   const optional = new Set(['build-and-deploy',phone === undefined ? 'journeys (phone-route)' : 'phone-route']);
+  // Fixture snapshots only accelerate a source whose successful behaviour
+  // jobs already prove their fallback. Preserve the selected ship's policy.
+  if (ready && /\n {2}fixtures:\n/u.test(source)) {
+    const ship = /\n {2}build-and-deploy:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
+    const needs = /^\s+needs: \[([^\]]+)\]/mu.exec(ship ?? '')?.[1]?.split(',').map(name => name.trim());
+    if (needs === undefined) throw new Error('Ready source ship has no reviewed prerequisite list');
+    (needs.includes('fixtures') ? required : optional).add('fixtures');
+  }
   const essential = new Set(['prepare','boot-verdict',
     ...['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'].map(name=>`journeys (${name})`)]);
   /** @type {{name:string,status:string,conclusion:string}[]} */
   const jobs = [];
   for (const row of rows) {
     const [name='',status,conclusion] = row.split('\t');
-    if (row.split('\t').length !== 3 || status !== 'completed' || conclusion === undefined)
-      throw new Error(`Recovery job has no completed verdict: ${name}`);
+    if (row.split('\t').length !== 3 || conclusion === undefined)
+      throw new Error(`Recovery job has an unreadable verdict: ${name}`);
+    if (!required.has(name) && !optional.has(name)) throw new Error('Recovery job inventory differs');
+    if (ready && optional.delete(name)) {
+      if (!['completed','queued','in_progress'].includes(status)
+        || (status !== 'completed' && conclusion !== '')
+        || (status === 'completed' && !['success','failure','cancelled','timed_out','skipped'].includes(conclusion)))
+        throw new Error(`Ready source optional verdict is unreadable: ${name}`);
+      jobs.push({name,status,conclusion}); continue;
+    }
+    if (status !== 'completed') throw new SourceGateError(`Recovery job has no completed verdict: ${name}`);
     if (optional.delete(name)) {
       const terminal = deadline ? ['success','failure','timed_out',...(name === 'build-and-deploy' ? ['skipped'] : [])] : ['success','failure'];
       if (!terminal.includes(conclusion))
         throw new Error(`Recovery terminal job did not finish: ${name}`);
     } else if (!required.delete(name) || (deadline && !essential.has(name)
       ? !['success','failure','timed_out'].includes(conclusion) : conclusion !== 'success'))
-      throw new Error(`Recovery source gate did not succeed: ${name}`);
+      throw new SourceGateError(`Recovery source gate did not succeed: ${name}`);
     jobs.push({name,status,conclusion});
   }
-  if (required.size > 0 || optional.size > 0) throw new Error('Recovery job inventory differs');
+  if (required.size > 0 || optional.size > 0) throw new SourceGateError('Recovery job inventory differs');
   const boot = query([`repos/${REPO}/commits/${sha}/status`, '--paginate', '--jq',
     '.statuses[] | select(.context == "boot-smoke") | [.state, .target_url] | @tsv']).trim().split('\n')[0];
   if (boot !== `success\thttps://github.com/${REPO}/actions/runs/${runId}`)
-    throw new Error('Recovery requires the latest successful same-run boot status');
-  return {sha,run:runId,jobs,failures:jobs.filter(job=>['failure','timed_out'].includes(job.conclusion))};
+    throw new SourceGateError('Recovery requires the latest successful same-run boot status');
+  return {sha,run:runId,jobs,failures:jobs.filter(job=>['failure','timed_out','cancelled'].includes(job.conclusion)),
+    aggregate:{status:run.status,conclusion:run.conclusion},ship:details?.find(job=>job.name === 'build-and-deploy')};
+}
+
+/** An explicit manual backstop reuses a proven source's existing prebuilt
+ * artifact. A failed/queued ship never manufactures aggregate CI success.
+ * @param {string} runId @param {string} liveBuild @param {(args:string[])=>string} [query] @param {number} [now] */
+export function readySource(runId, liveBuild, query = ghApi, now = Date.now()) {
+  if (!Number.isFinite(now)) throw new Error('Ready source requires a valid current clock');
+  const selected = recoveryEvidence(runId, query, false, true), ship = selected.ship;
+  const queuedAt = Date.parse(ship?.created_at ?? '');
+  const queued = ship?.status === 'queued' && ship.conclusion === null
+    && Number.isFinite(queuedAt) && now - queuedAt >= 30 * 60 * 1000;
+  const terminal = ship?.status === 'completed' && ['failure','cancelled'].includes(ship.conclusion);
+  if (!queued && !terminal) throw new Error('Ready source requires failed/cancelled shipping or at least 30 minutes queued');
+  if (productionFloor(liveBuild, selected.sha, query) === selected.sha)
+    throw new Error('Ready source is already live');
+  const live = query([`repos/${REPO}/commits/${selected.sha}/status`, '--jq',
+    '[.statuses[] | select(.context == "production-live")][0].state // ""']).trim();
+  if (live === 'success') throw new Error('Ready source already has a verified production release');
+  const runs = JSON.parse(query([`${workflowRunsPath('deploy.yml', query)}?branch=main&event=push&per_page=100&page=1`,
+    '--jq', '{workflow_runs:[.workflow_runs[]|{id,status}]}']));
+  if (!Array.isArray(runs.workflow_runs) || runs.workflow_runs.length > 100
+    || !runs.workflow_runs.some(run => String(run.id) === runId))
+    throw new Error('Ready source is outside the bounded current push inventory');
+  for (const run of runs.workflow_runs) {
+    if (!/^[1-9][0-9]*$/u.test(String(run.id))) throw new Error('Ready source has an invalid neighbouring run');
+    if (BigInt(run.id) <= BigInt(runId)) continue;
+    try { recoveryEvidence(String(run.id), query, false, true); }
+    catch (error) { if (error instanceof SourceGateError) continue; throw error; }
+    throw new Error(`Use newer proven source run ${run.id} instead`);
+  }
+  return {...selected,authority:'ready-source',reason:queued?'queued-30m':'terminal-ship',verifiedAt:new Date(now).toISOString(),liveBuild};
 }
 
 /** Bind the current push's successful wave before its own ship job completes.
@@ -432,6 +489,24 @@ function memoryReading(sha) {
 
 async function main() {
   const [cmd, a1] = process.argv.slice(2);
+  if (cmd === 'read-ready-source') {
+    if (process.env.GITHUB_EVENT_NAME !== 'workflow_dispatch' || process.env.GITHUB_REF !== 'refs/heads/main'
+      || process.env.GITHUB_REPOSITORY !== REPO) throw new Error('Ready source requires an explicit main dispatch');
+    const proof = process.env.READY_SOURCE_PROOF;
+    if (!proof) throw new Error('Ready source requires a retained evidence path');
+    const response = await fetch(`https://wildshard-singleplayer.vercel.app/version.json?ready-floor=${Date.now()}`, {
+      headers:{'Cache-Control':'no-store'},signal:AbortSignal.timeout(12000),
+    });
+    if (!response.ok) throw new Error(`Ready source production floor returned HTTP ${response.status}`);
+    const version = await response.json();
+    if (typeof version?.build !== 'string') throw new Error('Ready source production floor has no build ID');
+    const selected = readySource(a1 ?? '', version.build);
+    writeFileSync(proof, `${JSON.stringify({requestRun:process.env.GITHUB_RUN_ID,actor:process.env.GITHUB_ACTOR??null,...selected},null,2)}\n`);
+    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT,
+      `sha=${selected.sha}\nmode=ready-source\ngate=required\nsource_run=${selected.run}\nrecovery=false\nskip=false\n`);
+    console.info(`Explicit prebuilt source ${selected.run}: ${selected.sha}; all source gates/SIX verified, actual aggregate ${selected.aggregate.status}/${selected.aggregate.conclusion}`);
+    return 0;
+  }
   if (cmd === 'check-live-floor') {
     if (!a1) throw new Error('check-live-floor <sha>');
     const response = await fetch(`https://wildshard-singleplayer.vercel.app/version.json?release-floor=${Date.now()}`, {

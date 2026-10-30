@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm';
 import { expect, test } from 'vitest';
 import { watchPhoneEntry } from '../scripts/parity/phone-route-page.mjs';
 import { phoneBootstrap } from '../scripts/parity/phone-route-browser.mjs';
-import { deadlineRecoverySource, recoverySource, waveSource } from '../scripts/deploy-pin.mjs';
+import { deadlineRecoverySource, readySource, recoverySource, waveSource } from '../scripts/deploy-pin.mjs';
 import deploy from '../.github/workflows/deploy.yml?raw';
 
 const sha = 'a'.repeat(40);
@@ -170,6 +170,132 @@ function splitNativeRecoveryFixture() {
     ['native-escape (stories-qara)','completed','success']);
   return fixture;
 }
+
+const readyNow=Date.parse('2026-10-30T22:00:00Z'),liveBuild=`${'b'.repeat(7)}-live`;
+function readyFixture(runId='123') {
+  const base=splitNativeRecoveryFixture();
+  const state={
+    run:{...base.run,id:Number(runId),status:'in_progress',conclusion:null as string|null},
+    details:base.rows.map(([name='',status='',conclusion=''])=>({name,status,conclusion:conclusion as string|null,
+      created_at:new Date(readyNow-30*60*1000).toISOString(),started_at:null,completed_at:null})),
+    source:base.source,boot:`success\thttps://github.com/Raynos/project-wildshard-singleplayer/actions/runs/${runId}`,
+    liveSha:'b'.repeat(40),floorStatus:'ahead',released:false,
+    runs:[{id:Number(runId),status:'in_progress'}],
+    query:(args:string[]):string=>{
+      const path=args[0]??'';
+      if(path.endsWith(`/actions/runs/${runId}`))return JSON.stringify(state.run);
+      if(path.includes('/actions/workflows/456/runs?'))return JSON.stringify({workflow_runs:state.runs});
+      if(path.includes(`/runs/${runId}/jobs?`))return JSON.stringify(state.details);
+      if(path.includes('/contents/'))return state.source;
+      if(path.endsWith('/status'))return args.includes('[.statuses[] | select(.context == "production-live")][0].state // ""')
+        ?state.released?'success':'':state.boot;
+      if(path.includes('/compare/bbbbbbb...'))return JSON.stringify({status:state.floorStatus,base_commit:{sha:state.liveSha}});
+      if(path.includes(`/compare/${state.run.head_sha}...main`))return JSON.stringify({status:'ahead',base_commit:{sha:state.run.head_sha}});
+      return base.query(args);
+    },
+  };
+  const ship=state.details.find(job=>job.name==='build-and-deploy');
+  if(ship===undefined)throw new Error('Missing shipping fixture');
+  ship.status='queued';ship.conclusion=null;
+  return {state,ship};
+}
+
+test('manual prebuilt backstop retains actual aggregate and requires thirty queued minutes or terminal shipping',()=>{
+  const {state,ship}=readyFixture();
+  const proof=readySource('123',liveBuild,state.query,readyNow);
+  expect(proof).toMatchObject({sha,run:'123',authority:'ready-source',reason:'queued-30m',aggregate:{status:'in_progress',conclusion:null}});
+  expect(proof.jobs).toContainEqual({name:'build-and-deploy',status:'queued',conclusion:''});
+  expect(proof).not.toHaveProperty('ciGreen');
+  for(const status of ['queued','pending']) {
+    state.run.status=status;
+    expect(readySource('123',liveBuild,state.query,readyNow).aggregate).toEqual({status,conclusion:null});
+  }
+  expect(()=>readySource('123',liveBuild,state.query,readyNow-1)).toThrow('30 minutes');
+  for(const conclusion of ['failure','cancelled']) {
+    ship.status='completed';ship.conclusion=conclusion;state.run.status='completed';state.run.conclusion=conclusion;
+    expect(readySource('123',liveBuild,state.query,readyNow).reason).toBe('terminal-ship');
+  }
+  for(const status of ['queued','in_progress','completed']) {
+    ship.status=status;ship.conclusion=status==='completed'?'success':null;
+    ship.created_at=new Date(readyNow+1).toISOString();
+    expect(()=>readySource('123',liveBuild,state.query,readyNow)).toThrow('30 minutes');
+  }
+});
+
+test('ready source keeps every source gate, native group, SIX and latest same-run boot mandatory',()=>{
+  const original=readyFixture();
+  for(const job of original.state.details.filter(row=>!['build-and-deploy','phone-route'].includes(row.name))) {
+    for(const failure of ['failure','cancelled','skipped','pending']) {
+      const {state}=readyFixture(),row=state.details.find(candidate=>candidate.name===job.name);
+      if(row===undefined)throw new Error('Missing original source gate');
+      row.status=failure==='pending'?'in_progress':'completed';row.conclusion=failure==='pending'?null:failure;
+      expect(()=>readySource('123',liveBuild,state.query,readyNow)).toThrow();
+    }
+  }
+  for(const boot of ['pending\turl','failure\turl','success\thttps://github.com/foreign/actions/runs/123']) {
+    const {state}=readyFixture();state.boot=boot;
+    expect(()=>readySource('123',liveBuild,state.query,readyNow)).toThrow('same-run boot');
+  }
+  const missing=readyFixture();missing.state.details.pop();
+  expect(()=>readySource('123',liveBuild,missing.state.query,readyNow)).toThrow('inventory');
+  const duplicate=readyFixture();duplicate.state.details.push({...duplicate.state.details[0],name:'prepare',status:'completed',conclusion:'success',created_at:'',started_at:null,completed_at:null});
+  expect(()=>readySource('123',liveBuild,duplicate.state.query,readyNow)).toThrow('inventory');
+});
+
+test('ready source preserves optional fixture fallback only when the selected ship permits it',()=>{
+  const {state}=readyFixture();
+  state.source+='\n  build-and-deploy:\n    needs: [prepare, behaviour]\n  fixtures:\n';
+  state.details.push({name:'fixtures',status:'completed',conclusion:'failure',created_at:'',started_at:null,completed_at:null});
+  expect(readySource('123',liveBuild,state.query,readyNow).failures).toContainEqual({name:'fixtures',status:'completed',conclusion:'failure'});
+  state.source=state.source.replace('needs: [prepare, behaviour]','needs: [prepare, behaviour, fixtures]');
+  expect(()=>readySource('123',liveBuild,state.query,readyNow)).toThrow('source gate');
+});
+
+test('ready source refuses duplicate releases, a regressing floor, and unreadable or newer proven waves',()=>{
+  for(const kind of ['already-live','released','behind']) {
+    const {state}=readyFixture();
+    if(kind==='already-live')state.liveSha=sha;
+    if(kind==='released')state.released=true;
+    if(kind==='behind')state.floorStatus='behind';
+    expect(()=>readySource('123',liveBuild,state.query,readyNow)).toThrow();
+  }
+  const {state}=readyFixture(),newer=readyFixture('124');
+  newer.state.run.head_sha='c'.repeat(40);
+  state.runs.unshift({id:124,status:'in_progress'});
+  const query=(args:string[]):string=>(args[0]?.includes('/runs/124')||args[0]?.includes('c'.repeat(40))?newer.state.query:state.query)(args);
+  expect(()=>readySource('123',liveBuild,query,readyNow)).toThrow('newer proven');
+  newer.state.run.status='queued';state.runs[0]={id:124,status:'queued'};
+  expect(()=>readySource('123',liveBuild,query,readyNow)).toThrow('newer proven');
+  const gate=newer.state.details.find(job=>job.name==='prepare');
+  if(gate===undefined)throw new Error('Missing newer gate');
+  gate.status='in_progress';gate.conclusion=null;
+  expect(readySource('123',liveBuild,query,readyNow).sha).toBe(sha);
+  const unavailable=(args:string[]):string=>{
+    if(args[0]?.includes('/runs/124'))throw new Error('API unavailable');
+    return state.query(args);
+  };
+  expect(()=>readySource('123',liveBuild,unavailable,readyNow)).toThrow('API unavailable');
+});
+
+test('manual ready input selects the existing prebuilt branch without replacing automatic or emergency authorities',()=>{
+  const ship=deploy.split('\n  build-and-deploy:\n')[1]?.split('\n  typecheck-lint:\n')[0];
+  if(ship===undefined)throw new Error('Missing release job');
+  expect(deploy).toContain('ready_source_run:');
+  expect(ship).toContain('read-ready-source "$READY_SOURCE_RUN"');
+  expect(ship).toContain('if [ "$authorities" -gt 1 ]');
+  expect(ship).toContain('name: ready-source');
+  expect(ship).toContain('read-wave');expect(ship).toContain('read-recovery');
+  expect(ship).toContain("steps.pin.outputs.recovery != 'true'");
+});
+
+test('ready-source CLI refuses nonmanual, foreign and nonmain callers before any proof or live request',()=>{
+  for(const change of [{GITHUB_EVENT_NAME:'push'},{GITHUB_REF:'refs/heads/other'},{GITHUB_REPOSITORY:'foreign/repo'}]) {
+    const result=spawnSync(process.execPath,['scripts/deploy-pin.mjs','read-ready-source','123'],{encoding:'utf8',timeout:5000,
+      env:{...process.env,GITHUB_EVENT_NAME:'workflow_dispatch',GITHUB_REF:'refs/heads/main',GITHUB_REPOSITORY:'Raynos/project-wildshard-singleplayer',...change}});
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('Ready source requires an explicit main dispatch');
+  }
+});
 
 test('recovery requires both exact-source native groups and preserves historical singleton proof',()=>{
   const original=recoveryFixture(true,true);

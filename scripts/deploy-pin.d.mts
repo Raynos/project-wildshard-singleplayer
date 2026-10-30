@@ -16,6 +16,13 @@ export function ciGreen(sha: string, query?: (args: string[]) => string): boolea
 export function ciSourceRun(sha: string, query?: (args: string[]) => string): string;
 /** Explicit completed main source proof; failed shipping never waives a source gate. */
 export function recoverySource(runId: string, query?: (args: string[]) => string): {sha:string;run:string};
+/** Explicit prebuilt backstop after terminal shipping failure or thirty queued minutes. */
+export function readySource(runId:string,liveBuild:string,query?:(args:string[])=>string,now?:number):{
+  sha:string;run:string;authority:string;reason:string;verifiedAt:string;liveBuild:string;
+  aggregate:{status:string;conclusion:string|null};
+  jobs:{name:string;status:string;conclusion:string}[];
+  failures:{name:string;status:string;conclusion:string}[];
+};
 /** G917 manual deadline exception, retaining every actual completed verdict. */
 export function deadlineRecoverySource(runId:string,query?:(args:string[])=>string,now?:number):{
   sha:string;run:string;
