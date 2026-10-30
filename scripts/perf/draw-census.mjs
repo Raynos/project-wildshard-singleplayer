@@ -13,7 +13,11 @@ import { nativeSummary, attributionSummary, sampledCpu } from './draw-census-rep
 
 const arg = (name, fallback = '') => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const base = arg('url'), dist = resolve(arg('dist', 'dist')), frames = Number(arg('frames', '60'));
-if (!base || !Number.isInteger(frames) || frames < 10 || frames > 180) throw new Error('Usage: --url=URL --dist=matching-private-dist [--frames=10..180] [--out=tmp/...]');
+const surface = arg('surface', 'pwa');
+if (!['pwa', 'browser'].includes(surface)) throw new Error('Unknown phone surface');
+const device = devices['iPhone 16 Pro'], viewport = surface === 'pwa' ? device.screen : device.viewport;
+if (viewport === undefined) throw new Error('Requested phone surface has no native viewport');
+if (!base || !Number.isInteger(frames) || frames < 10 || frames > 180) throw new Error('Usage: --url=URL --dist=matching-private-dist [--surface=pwa|browser] [--frames=10..180] [--out=tmp/...]');
 const response = await fetch(new URL('version.json', base));
 if (!response.ok) throw new Error('Census requires a served production build');
 const version = await response.json(), local = JSON.parse(readFileSync(join(dist, 'version.json'), 'utf8'));
@@ -61,6 +65,7 @@ if (arg('reprocess') !== '') {
   writeFileSync(target, JSON.stringify(retained, null, 2)); console.info(target); process.exit(0);
 }
 const result = { build: version.build, url: base, protocol: { device: 'iPhone 16 Pro', tier: 'phone', dpr: 2, cpuRate: 4, frames,
+  surface, viewport,
   baseline: 'native completed Game renderMs/workMs and whole-frame calls, before any census hooks or profiler',
   attribution: 'separate GL submission observation, including shadow/post/held; no GPU synchronization',
   profile: 'separate CDP sampled stacks mapped through the matching private dist; diagnostic, not a floor' }, rows: [] };
@@ -70,7 +75,7 @@ try {
     { slug: 'nine-dragon-stack', poseName: 'P4', pose: { x: 76, y: 146, z: 6, yaw: Math.PI / 2, pitch: -10 * Math.PI / 180 } },
     { slug: 'pine-hollow', poseName: 'Q4', pose: { x: 0, z: -28, yaw: Math.PI / 2, pitch: -4 * Math.PI / 180 } },
   ]) for (const mode of ['legacy', 'shardfile']) {
-    const context = await browser.newContext({ ...devices['iPhone 16 Pro'] });
+    const context = await browser.newContext({ ...device, viewport });
     const row = { slug, poseName, mode, errors: [] }; result.rows.push(row);
     const persist = () => writeFileSync(join(out, 'census.json'), JSON.stringify(result, null, 2));
     try {
