@@ -43,9 +43,10 @@ function subset(source: BufferGeometry, selected: readonly number[], indices: re
 }
 
 /** Keep one chunk per tile/key while it fits; split oversized content by quadrant, then height and bytes.
+ * A resident cell packs in source order across tiles, splitting only at the byte cap.
  * A tall original triangle is never split.
  * Displacements and normals have already passed through the original whole-piece join's exact transform order. */
-export function partitionSlabGeometry(source: BufferGeometry, tile: number, world: Matrix4, maximumBytes = 4_000_000): SlabGeometryChunk[] {
+export function partitionSlabGeometry(source: BufferGeometry, tile: number, world: Matrix4, maximumBytes = 4_000_000, residentCell = false): SlabGeometryChunk[] {
   if (!Number.isInteger(tile) || tile < 0 || tile > 63 || !Number.isSafeInteger(maximumBytes) || maximumBytes < 1 || maximumBytes > 4_000_000
     || world.elements.some(value => !Number.isFinite(value))) throw new Error('Invalid slab partition budget or tile');
   const position = source.getAttribute('position'), index = source.index;
@@ -82,7 +83,7 @@ export function partitionSlabGeometry(source: BufferGeometry, tile: number, worl
   const combined = (triangles: Triangle[], quadrant: number): Bucket => ({ quadrant, band: 0, triangles,
     minY: triangles.reduce((value, triangle) => Math.min(value, triangle.minY), Infinity), maxY: triangles.reduce((value, triangle) => Math.max(value, triangle.maxY), -Infinity) });
   const groups: Bucket[] = [];
-  if (byteCost(all) <= maximumBytes) groups.push(combined(all, 0));
+  if (residentCell || byteCost(all) <= maximumBytes) groups.push(combined(all, 0));
   else for (const quadrant of [0, 1, 2, 3]) {
     const rows = bands.filter(bucket => bucket.quadrant === quadrant), triangles = rows.flatMap(bucket => bucket.triangles).sort((a, b) => a.ordinal - b.ordinal);
     if (triangles.length === 0) continue;

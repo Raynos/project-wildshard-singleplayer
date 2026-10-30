@@ -12,10 +12,11 @@ export async function nineSlabScenes(ctx: Pick<ProjectGenerationContext, 'cached
   const fabric = scenes.LAYOUT_PLACEMENT_BLOBS.find(row => row.file.name === 'world/fabric.json');
   if (source?.kind !== 'whole' || fabric === undefined) throw new Error('Nine slabs need their original fine library and fabric');
   const weld: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(fabric.bytes));
-  const tiles = world.metadata.shardfile.tiles.filter(row => row.lod === 0);
-  const identity = hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson([source, weld, tiles])));
+  const shardfile = { ...world.metadata.shardfile, ring: 'cell' as const };
+  const tiles = shardfile.tiles.filter(row => row.lod === 0);
+  const identity = hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson([source, weld, tiles, shardfile.ring])));
   const cached = await ctx.cached({ id: `nine-slabs-${identity}` }, async () => {
-    const baked = await bakeWholeSlabs({ id: 'native-slabs', library: source, weld, shardfile: world.metadata.shardfile, assets: world.assets });
+    const baked = await bakeWholeSlabs({ id: 'native-slabs', library: source, weld, shardfile, assets: world.assets });
     return new Map([['slabs.json', new TextEncoder().encode(JSON.stringify(baked.library))], ...baked.assets]);
   });
   const metadata = cached.get('slabs.json'); if (metadata === undefined) throw new Error('Nine slab cache omits its library');

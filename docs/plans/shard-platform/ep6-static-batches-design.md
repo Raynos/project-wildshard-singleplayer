@@ -39,6 +39,11 @@ draw still becomes a slab (it gains chunking and per-chunk bounds).
   (31.25 m), then by 62.5 m centroid height band, then source order to fit. Small neighbouring bands may merge
   while they fit. Sp-o3 accepts this draw/culling trade: the current Nine draft has 96 chunks instead of 404 and
   56 box-visible at derived P4; NT3's original height/culling bars remain open, not silently relaxed.
+- G872 resident-cell correction: a product declaring `ring: 'cell'` groups each compatible key across all of its
+  fine tiles. The lowest fine tile containing the library's fabric files owns the result and stays attached even from the far side of the cell. Pack in
+  source order and split only past 4 MB; do not introduce quadrant or height cuts in a permanently resident cell.
+  Other ring products retain the per-tile rule above. Key frames, original distance origins and exact triangles
+  remain unchanged. The existing 16-file / 64-chunk caps apply to the single owning tile too.
 - A triangle goes to the chunk holding its centroid and is never split; one longer than a band stays whole, and its
   chunk's box grows to hold it (bands steer the split, they do not bound triangles). Shared vertices are duplicated
   across chunks bit-exactly.

@@ -188,7 +188,7 @@ export function readSlabLibrary(bytes: Uint8Array): WorldSceneSlabLibrary {
  * Every source triangle is charged once; attribute copies are bit-checked before files enter the returned map. */
 export async function bakeWholeSlabs(input: {
   readonly id: string; readonly library: WholeLibrary; readonly weld: unknown;
-  readonly shardfile: Pick<Shardfile, 'tiles' | 'files'>; readonly assets: ReadonlyMap<string, Uint8Array>;
+  readonly shardfile: Pick<Shardfile, 'tiles' | 'files' | 'ring'>; readonly assets: ReadonlyMap<string, Uint8Array>;
 }): Promise<WholeSlabBake> {
   await prepareGlbBuffers();
   const weld = parseWorldSceneWeld(input.weld), draws = sources(input.library, weld), keys: GroupedKey[] = [], assets = new Map<string, Uint8Array>();
@@ -196,7 +196,13 @@ export async function bakeWholeSlabs(input: {
   const wanted = new Set(draws.flatMap(source => source.model.files)), declared = new Map(input.shardfile.files.map(file => [file.hash, file]));
   const available = new Set(input.shardfile.tiles.filter(tile => tile.lod === 0).flatMap(tile => tile.files));
   for (const hash of wanted) if (!available.has(hash) || declared.get(hash)?.kind !== 'glb') throw new Error('Slab source needs a declared fine GLB');
-  for (const tile of [...input.shardfile.tiles].filter(row => row.lod === 0).sort((a, b) => a.z - b.z || a.x - b.x)) {
+  const fine = [...input.shardfile.tiles].filter(row => row.lod === 0 && row.files.some(hash => wanted.has(hash))).sort((a, b) => a.z - b.z || a.x - b.x);
+  const owner = fine[0], cell = input.shardfile.ring === 'cell';
+  // A resident cell retains the lowest owned tile from every viewing position. Ring worlds keep their individual
+  // tile owners; grouping those would retire geometry still needed by another tile.
+  const partitions = cell && owner !== undefined ? [{ ...owner, files: [...new Set(fine.flatMap(tile => tile.files))],
+    geometricError: Math.max(...fine.map(tile => tile.geometricError)) }] : fine;
+  for (const tile of partitions) {
     const files = tile.files.filter(hash => wanted.has(hash)); if (files.length === 0) continue;
     const pieces = new Map<string, readonly WholeGeometryPiece[]>(), staging: WholeGeometryPiece[] = [], chunks: Chunk[] = [];
     const groups = new Map<string, { key: WorldSceneSlabKey; geometries: BufferGeometry[]; frame: Matrix4; custom: Readonly<Record<string, string>>; error: number }>();
@@ -234,7 +240,7 @@ export async function bakeWholeSlabs(input: {
       for (const group of groups.values()) {
         const geometry = concatenate(group.geometries);
         try {
-          for (const part of partitionSlabGeometry(geometry, tile.z * 8 + tile.x, group.frame)) chunks.push({ key: group.key, part, custom: group.custom, error: group.error });
+          for (const part of partitionSlabGeometry(geometry, tile.z * 8 + tile.x, group.frame, 4_000_000, cell)) chunks.push({ key: group.key, part, custom: group.custom, error: group.error });
         } finally { geometry.dispose(); }
       }
       if (chunks.length === 0 || chunks.length > 64) throw new Error('Slab tile exceeds its chunk budget');

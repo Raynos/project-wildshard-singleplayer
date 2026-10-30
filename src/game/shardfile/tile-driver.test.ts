@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
-import { TileDriver, tileKeys, residentTiles, followResidentTiles, tileRing } from './tileDriver';
+import { TileDriver, tileKeys, residentTiles, followResidentTiles, tileRing, productTileRing } from './tileDriver';
 import { ring, type TileContent } from './tileContent';
 import { tileOrder, tileOf } from './tileOrder';
 import { noteFrameDrawn, setBuildHeld } from '@wildshard/engine/core/framePacing';
@@ -354,4 +354,23 @@ test('whole-cell radius clips its retirement slack without loading another cell'
     await settle(driver, 240, 240, 200);
     expect(driver.resident('render').size).toBe(64);
   } finally { owner.dispose(); }
+});
+
+
+test('a resident cell retains its slab owner while the player stands on the farthest tile', async () => {
+  const scope = new Scope('cell-slabs'), owner = 0, attached = vi.fn<() => void>(), retired = vi.fn<() => void>();
+  const source: TileContent = { id: 'cell-slab-key', tiles: () => new Set([owner]), attach: (_tile, child) => {
+    attached(); child.onDispose(retired); return Promise.resolve();
+  } };
+  const driver = new TileDriver(scope, [source], productTileRing({ ring: 'cell' }), () => Promise.resolve());
+  try {
+    await driver.require([owner]);
+    await settle(driver, 249, 249, 160);
+    expect(driver.resident('render').has(owner)).toBe(true);
+    expect(attached).toHaveBeenCalledOnce(); expect(retired).not.toHaveBeenCalled();
+    await settle(driver, -249, -249, 160);
+    expect(driver.resident('render').has(owner)).toBe(true);
+    expect(attached).toHaveBeenCalledOnce(); expect(retired).not.toHaveBeenCalled();
+  } finally { scope.dispose(); }
+  expect(retired).toHaveBeenCalledOnce();
 });

@@ -19,9 +19,9 @@ function triangle(x: number, y: number, z: number, height = 1): BufferGeometry {
     .setAttribute('aFace', new Float16BufferAttribute(new Uint16Array([0x8000, 0x3c00, 0x3800]), 1))
     .setAttribute('aOff', new BufferAttribute(new Float32Array([-0, 0.5, 1]), 1)).setIndex([0, 1, 2]);
 }
-function fixture(shaderNormal = false) {
+function fixture(shaderNormal = false, acrossTiles = false) {
   const material = new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 });
-  const shapes = [triangle(3, 10, 3), triangle(5, 75, 5), triangle(40, 20, 40)];
+  const shapes = [triangle(3, 10, 3), triangle(5, 75, 5), triangle(acrossTiles ? -220 : 40, 20, 40)];
   if (shaderNormal) for (const shape of shapes) shape.setAttribute('normal', new Float32BufferAttribute([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 4));
   const baked = bakeProps({ static: new Group(), whole: shapes.map((geometry, index) => ({ id: `part${index}`, mesh: new Mesh(geometry, material),
     transform: new Matrix4(), partition: 'runs', nativeAttributes: true, compact: true })) });
@@ -188,4 +188,50 @@ test('height bands split oversized quarters, while a small tile stays one draw',
     expect(split.length).toBeGreaterThan(1); expect(split.every(chunk => chunk.worldHeight <= 1 && chunk.bytes <= 100)).toBe(true);
     expect(split.flatMap(chunk => triangles(chunk.geometry)).sort()).toEqual(triangles(geometry));
   } finally { geometry.dispose(); for (const chunk of [...small, ...split]) chunk.geometry.dispose(); }
+});
+
+
+test('only a resident cell groups compatible keys across tiles; rings retain independent owners', async () => {
+  const input = fixture(false, true);
+  const parts = new Map<string, Set<string>>();
+  for (const [hash, bytes] of input.assets) {
+    const decoded = await meshes(bytes), pieces = wholeGeometryPieces(decoded);
+    try { parts.set(hash, new Set(pieces.map(piece => piece.part))); }
+    finally { for (const piece of pieces) piece.geometry.dispose(); release(decoded); }
+  }
+  for (const model of input.library.models) model.files = model.files.filter(hash => parts.get(hash)?.has(model.part));
+  const occupied = input.shardfile.tiles[0]; if (occupied === undefined) throw new Error('Missing occupied source tile');
+  input.shardfile.tiles.push({ ...occupied, x: 0, z: 0, files: [], triangles: 0, draws: 0, compressed: 0, decoded: 0, gpu: 0 });
+  const ring = await bakeWholeSlabs(input);
+  const cell = await bakeWholeSlabs({ ...input, shardfile: { ...input.shardfile, ring: 'cell' } });
+  expect(ring.library.tiles.length).toBeGreaterThan(1);
+  expect(cell.library.tiles).toHaveLength(1);
+  expect(cell.library.tiles[0]?.tile).toBe(Math.min(...ring.library.tiles.map(tile => tile.tile)));
+  expect(cell.report.reduce((sum, tile) => sum + tile.triangles, 0)).toBe(ring.report.reduce((sum, tile) => sum + tile.triangles, 0));
+  const words = async (result: Awaited<ReturnType<typeof bakeWholeSlabs>>): Promise<string[]> => {
+    const out: string[] = [];
+    for (const bytes of result.assets.values()) {
+      const decoded = await meshes(bytes);
+      try { for (const mesh of decoded) { const geometry = nativeWholeGeometry(mesh);
+        try { out.push(...triangles(geometry)); } finally { geometry.dispose(); } } }
+      finally { release(decoded); }
+    }
+    return out.sort();
+  };
+  expect(await words(cell)).toEqual(await words(ring));
+  expect(cell.library.tiles.flatMap(tile => tile.files.flatMap(file => file.chunks))).toHaveLength(1);
+});
+
+test('resident-cell byte splits preserve source triangle order across spatial bands', () => {
+  const geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute([
+    5, 140, 5, 6, 140, 5, 5, 141, 6, 40, 0, 40, 41, 0, 40, 40, 1, 41,
+    -220, 70, -220, -219, 70, -220, -220, 71, -219, 5, 0, 5, 6, 0, 5, 5, 1, 6,
+  ], 3));
+  const chunks = partitionSlabGeometry(geometry, 0, new Matrix4(), 100, true);
+  try {
+    expect(chunks).toHaveLength(2);
+    expect(chunks.flatMap(chunk => chunk.triangles)).toEqual([0, 1, 2, 3]);
+    expect(chunks.every(chunk => chunk.bytes <= 100)).toBe(true);
+    expect(chunks.flatMap(chunk => triangles(chunk.geometry)).sort()).toEqual(triangles(geometry));
+  } finally { geometry.dispose(); for (const chunk of chunks) chunk.geometry.dispose(); }
 });
