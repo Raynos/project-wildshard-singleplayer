@@ -1,4 +1,5 @@
 {
+  "test/signal-quest-verbs.test.ts": ["sunscar-dunes"],
   "test/pine-quest-verbs.test.ts": ["pine-hollow"],
   "test/driftwood-zipline-verbs.test.ts": ["driftwood-isle"],
   "test/driftwood-story-verbs.test.ts": ["driftwood-isle"],

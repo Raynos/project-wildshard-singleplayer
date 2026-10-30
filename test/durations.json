@@ -2087,5 +2087,6 @@
  "test/preview-leases-2.test.ts": 8.2,
  "test/preview-leases-3.test.ts": 7.8,
  "test/python-partition.test.ts": 0.0,
- "test/pine-quest-verbs.test.ts": 12.3
+ "test/pine-quest-verbs.test.ts": 12.3,
+ "test/signal-quest-verbs.test.ts": 3.8
 }
