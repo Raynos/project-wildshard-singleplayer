@@ -13,6 +13,7 @@
   "test/nalati-javelin-contact-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-world-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-stealth-verbs.test.ts": ["nalati-grasslands"],
+  "test/nalati-awareness-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-discovery-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-patrol-intake.test.ts": ["nalati-grasslands"],
   "test/nalati-patrol-verbs.test.ts": ["nalati-grasslands"],
