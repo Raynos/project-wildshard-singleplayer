@@ -71,7 +71,6 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | [qa 10-29 (2)](shard-platform/qa-2026-10-29-2-mini-plan.md) (Jake's phone QA of the QA build) | G879, G880 | **open** 10-29: QB1 black boot, QB2 "Preparing next world" line, QB3 boot shell boat + hung module load, QB4 one boot screen, QB5 download total, QB6 Pine crash, QB7 legacy Pine exit, QB8 error modal; blocks the archive |
 | [qa 10-30 (1)](shard-platform/qa-2026-10-30-mini-plan.md) (Jake's phone QA before the legacy deletion) | G932 | **open** 10-30: QC1 Nine late textures + 7–19 fps, QC2 SHARD SELECT loads Driftwood; blocks the archive |
 | [nine-fix](shard-platform/nine-fix-mini-plan.md) (Nine Dragon fixed properly, E512) | E512 | **draft** 10-30, waits for Jake's grill: NF1–NF9 relief (whole cell, coarse programs, movers, painted facades, re-cull, far dressing, neon), NF10–NF12 tile slabs, NF13–NF18 graphs compile to GLSL and TSL leaves the runtime |
-| [three-r187](shard-platform/three-r187-mini-plan.md) (three.js upgrade, E513) | E513 | **draft** 10-30, waits for Jake's grill: TR0 bench now; bump after types + soak / r187.1 and after nine-fix NF15; r187 is not a QC1 / QC4 fix |
 | [pine-fps](shard-platform/pine-fps-mini-plan.md) (Pine Hollow fps way better, E514) | E514 | **draft** 10-30, waits for Jake's grill: PF1 batched trees back, PF3 cached shadows, PF5 / PF6 system ticks, PF8 hidden rigs, PF10 Pine's share of nine-fix GLSL; bar ≤ 12 / ≤ 16 ms at Chromium 4x |
 | [reload-simplify](shard-platform/reload-simplify-mini-plan.md) (RELOAD just reloads; one boot screen; nothing downloaded twice) | G879 | **open** 10-29: RL1–RL9 (Jake 13:45: *"reload should just reload the page … delete 90% of it"*); carries QB1/QB3/QB4/QB9; G881 no checksums on cache reads; blocks the archive |
 | [FOUNDATIONS](FOUNDATIONS.md) (the zoom-out: six broken families, rewrites, the bars) | G886–G890 | **wave 1 open** 10-29: MF1–MF7 before Jake's next phone QA, superseding most QB / RL / DA / NP rows; waves 2–3 (MF8–MF20) after |
@@ -542,7 +541,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G933+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G938+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.

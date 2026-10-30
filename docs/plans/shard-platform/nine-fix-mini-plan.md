@@ -74,7 +74,7 @@ on camera turns (`grassPresentation.ts:305-327`).
 
 On the Nine route (spawn → first two bridges → stairs → stair-top → arch tunnel), Chromium 4x and WebKit:
 - no frame over 50 ms;
-- work p50 at P1–P5 ≤ legacy + 0.5 ms;
+- work p50 at P1–P5 below legacy (G937);
 - draws ≤ 150, programs ≤ 70.
 
 Also:
