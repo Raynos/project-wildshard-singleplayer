@@ -167,7 +167,48 @@ two levels cover the 0–80 m street views and the 140–230 m deck and aerial v
 | NT5 | **The camera picks the level by screen error.** The refinement mask (`wholeRefinementCover` `rendered(tile)`, today ring membership) chooses per L0 tile between its slabs and its L1 quadrant by the projected `geometricError` at the camera eye: 3-D distance to the chunk box, the phone's 2x pixels, 1 px with 20 % hysteresis, MF13's fade on a switch. It ships behind one Developer Debug row, **Nine far level: off / screen error**, default off until the bars hold, then the row and the off path go (E451). | In-city cams 1–16, 19, 20 and 23–27 are pixel-identical to off. At cams 17 / 18 / 21 / 22, triangles drawn ≤ 60 % of off and work p50 below off at Chromium 4x and WebKit. No crack or pop in a 10 s aerial pan capture. No frame > 50 ms on a deck ↔ city jump. | Opus | M |
 | NT6 | **A copy belongs to every tile its bounds touch.** Ranged placements and the per-copy resident filter (`worldScenePlacement.ts:179-184`, `tileContent.ts` `bucketByTile`) test each copy's bounds, not its origin. A tower or bridge whose origin is outside the ring but whose body is inside draws once. **Overlap:** moot for Nine once NT1 lands; matters for every ring shard. It goes with EP9's cluster culling. | A focused test: a 3-tile bridge whose origin is outside the ring draws while any tile it touches is resident. Pine and Driftwood census: no copy whose bounds touch the ring is missing. Draws unchanged ± 2. | Opus | S |
 | NT7 | **The tiling check in the bake** (rules below). `build-shardfiles` prints one table per shard: tile census, caps per chunk and per cell, height, spanning parts, L1 / L0, zero errors and the sightline audit, plus a verdict line. It is report-only, like the memory gates. It fails only a regression on a pinned shard: Nine losing `ring: 'cell'`, or a chunk over the per-chunk cap after NF10. | On HEAD it prints this plan's tables A, B and D within 5 s for all shards. It flags Nine "hold the cell" (24 of 27 cams cut) and no other shard. A focused test pins the thresholds. | Codex | S |
-| NT8 | **Stream by the camera, not the player.** `TileDriver` and `ControlRefinement` rank the wanted tiles by in-view first, then 3-D distance from the camera eye. The spawn-view fence (`SPAWN_VIEW_M` 221 m in x / z) becomes the spawn camera's frustum plus a 3-D radius. Moot for Nine (whole cell before the reveal); for any tall shard that streams. | A focused test: a high eye over a tile edge ranks the tiles it sees before those behind it. Pine / Driftwood reveal time not worse; no extra after-control attach in the spawn view. | Codex | S |
+| NT8 | **Stream by the camera, not the player.** `TileDriver` and `ControlRefinement` rank the wanted tiles by in-view first, then 3-D distance from the camera eye. The spawn-view fence (`SPAWN_VIEW_M` 221 m in x / z) becomes the spawn camera's frustum plus a 3-D radius. Moot for Nine (whole cell before the reveal); for any tall shard that streams. | A focused test: a high eye over a tile edge ranks the tiles it sees before those behind it. Pine / Driftwood reveal time not worse; no extra after-control attach in the spawn view. | **open; landed, partial** (sp-x9): `26138a5e13` + `4efb4ea3fd`; camera ranking and high-eye tests pass; player-first collider order retained. Phone qualification below fails the Pine reveal bar; attachment bar remains unproven. | S |
+
+**NT8 phone qualification (2026-10-30).** Parent `79bca1916c`
+(`79bca19-mvvcexon`) versus candidate `4efb4ea3fd`
+(`4efb4ea-mvvd2l9a`), one pinned preview at a time. Chromium phone preset:
+10x page CPU, 10 Mbps down / 2 Mbps up, 100 ms latency; CDP cannot throttle
+worker CPU. Each cold / warm pair shares its browser context. Native control
+witnesses qualify in all eight legs; these are single pairs, not steady-state
+performance estimates. Intervening rendering commits prevent attributing
+whole-reveal differences solely to NT8.
+
+| Tap to native control (s) | Parent cold / warm | Candidate cold / warm | Delta cold / warm |
+| --- | --- | --- | --- |
+| Pine Hollow | 130.295 / 88.068 | 134.938 / 91.669 | +4.643 / +3.601 |
+| Driftwood Isle | 51.634 / 36.520 | 51.177 / 35.625 | -0.456 / -0.895 |
+
+Pine's Spawn detail stage rose 32.034 / 14.869 to 34.579 / 17.853 s.
+The first spawn-detail fence runs before `game.stepFrame()` poses the camera;
+the new camera reader can therefore use the initial origin view. This is a
+source-ordering lead, not a measured causal attribution or a completed fix.
+
+Read-only scene observers ran for 10 s from native control, without overflow.
+Pine candidate cold / warm recorded 17 / 13 geometry or draw-range changes:
+12 cabin meshes were outside the spawn frustum; the cold ground union rebuilt
+after two off-frustum raw tiles, and the later knife mesh was hidden. Parent
+had 5 / 1 changes. Driftwood parent had none; candidate had 9 / 9 draw-range
+changes on existing boulder, seabed, palm, hibiscus and ground-cover meshes.
+Their aggregate boxes intersect the spawn frustum, but the observer does not
+locate the newly included triangles, so **no-extra-in-view-attachment is not
+qualified**. Retain the events rather than treating union bounds as proof of
+a new visible tile.
+
+All legs retain local `/api/telemetry` 405 errors, so the complete CLI verdict
+is not green. Candidate Pine cold / warm and Driftwood cold each additionally
+retain one navigated-away response-body accounting failure; Driftwood warm
+accounting is complete. No request guard was weakened. Raw phone JSON lives
+under `tmp/phone-loading/2026-10-30T19-{11,17,25,31}-*`; attachment observations
+and logs are in `tmp/sp-x9-nt8/`. All browsers and both owned previews closed.
+Source checks: 61 focused streaming/refinement cases, 61 original platform
+cases and 19 collider-priority cases pass; root types, scoped lint and ratchet
+passed at their source boundaries. NT8 stays open for the first-camera fence,
+Pine reveal bar and precise post-control attachment attribution.
 
 **Order.**
 1. NT1 now: it is a one-line class of bug with the largest visible effect, and it makes NF1 true.
