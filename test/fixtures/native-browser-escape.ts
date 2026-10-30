@@ -3,22 +3,17 @@ import {spawn} from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Preserve the original complete strict event assertion.
 import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Find an installed browser without installing a dependency in CI.
-import {existsSync, openSync, readSync, closeSync} from 'node:fs';
+import {openSync, readSync, closeSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own and remove this fixture's exact browser profile.
 import {mkdtemp, rm} from 'node:fs/promises';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep the browser profile under the repository scratch root.
 import {resolve} from 'node:path';
-import {chromium} from 'playwright';
 import {pressEscape} from '../../scripts/parity/browser-escape.mjs';
+import {nativeChromeExecutable} from '../../scripts/warm-native-chrome.mjs';
 import {nativeSocketTemporary} from './native-socket-temp.mjs';
 import {drainNativeBrowser} from './native-browser-drain.mjs';
 
-// CI declares its supported system Chrome. Use it before an optional cached
-// Playwright binary; explicit caller selection still wins, with no retry.
-const candidates = [process.env['CHROME_PATH'], process.env['CHROME_BIN'],
-  ...(process.platform === 'linux' ? ['/usr/bin/google-chrome', '/usr/bin/chromium'] : []), chromium.executablePath()];
-const executable = candidates.find((file): file is string => file !== undefined && existsSync(file));
-if (executable === undefined) throw new Error('No installed Chromium for the original trusted-input control');
+const executable = nativeChromeExecutable();
 const directory = await mkdtemp(resolve('tmp/escape-control-'));
 const socketTemp = await nativeSocketTemporary(directory).catch(async (error: unknown) => {
   await rm(directory, {recursive: true, force: true}); throw error;
