@@ -4,6 +4,14 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 
+test('unavailable passive Actions clocks preserve both receipts without replacing journey verdicts', () => {
+  const result = spawnSync('python3', ['test/test_smoke_timings.py'], { encoding: 'utf8', timeout: 10000 });
+  expect(result.status, result.stderr + result.stdout).toBe(0);
+  const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
+  expect(workflow).toContain('python3 scripts/smoke-timings.py phone-route');
+  expect(workflow).toContain(`python3 scripts/smoke-timings.py "journeys (\${{ matrix.part }})"`);
+});
+
 test('exact per-leg archives preserve bytes and refuse corrupt, missing, mixed or unsafe transfers without retry', () => {
   const result = spawnSync('python3', ['test/test_boot_dist.py'], { encoding: 'utf8', timeout: 10_000 });
   expect(result.status, result.stderr + result.stdout).toBe(0);
