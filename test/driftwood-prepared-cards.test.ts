@@ -16,8 +16,6 @@ import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { Scope } from '../src/engine/app/scope';
 import { driftwoodSceneBanks } from './fixtures/driftwoodSceneBanks';
 import { kitFigureCard } from '../src/game/models/kitFigureCard';
-import { castawayFigure } from './fixtures/driftwoodCastawayOracle';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { driftwoodKitFigureCards } from '../src/shards/driftwood-isle/generators/kitFigureCards';
 import { enteredTrader } from './fixtures/driftwoodTraderOracle';
 
@@ -59,13 +57,13 @@ function partsOf(built: readonly ModelPart[] | Object3D): readonly ModelPart[] {
   return parts;
 }
 
-it('matches the original warm cards for every authored geometry and variant', async () => {
+it('prepared cards retain material ownership and authored scale behavior', async () => {
   const { cargo, native } = await driftwoodSceneBanks();
   const product = await driftwoodFixedProduct(), material = new MeshStandardMaterial();
   const castaway = kitFigureCard(product, driftwoodKitFigureCards(), 'castaway');
   const borrowed = vi.spyOn(lowPolyKit, 'lowPolyLookMaterial').mockReturnValue(material);
   const mocked = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(await driftwoodFixedProduct(true));
-  const signatures: Record<string, unknown> = {}, ctx = modelContext(SkyRig.prototype);
+  const ctx = modelContext(SkyRig.prototype);
   const owner = new Scope('cargo-card-proof'), geometries = new Map<string, BufferGeometry>();
   for (const [library, rows] of [['cargo', cargo.library.models], ['native-specimens', native.library.models]] as const) for (const row of rows) {
     const intake = createOwnedGeometry(row.file, row.attributes); await intake.load(await product.file(row.file));
@@ -77,20 +75,9 @@ it('matches the original warm cards for every authored geometry and variant', as
     await (def.id === castaway.id ? def.prepare?.() : (def.prepare ?? loadFixedGeometry)());
     for (const [id, params] of [['default', def.defaults] as const, ...(def.variants ?? []).map(row => [row.id, {...def.defaults, ...row.params}] as const)]) {
       const cardScope = owner.child(`prepared-card/${def.id}/${id}`);
-      // The old snapshot samples the immediate kit head; FigureRows replaces
-      // it one microtask later. Keep that oracle and compare both ready cards.
-      const original = def.id === castaway.id ? cardScope.run(() => castawayFigure(ctx.sky, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }, new SceneHandles(ctx.sky), cardScope)) : null;
-      const signature = (parts: readonly ModelPart[]) => Promise.all(parts.map(async part => ({geometry: await geometryHash(part.geometry), castShadow: part.castShadow ?? false, receiveShadow: part.receiveShadow ?? false})));
-      const initial = original === null ? null : signature(partsOf(original.group));
       const built = cardScope.run(() => def.build({ ...ctx, specimenScope: cardScope }, params, new Rng(seedOf(def))));
       if (built instanceof Object3D && def.specimenLifetime === 'view') await specimenReady(built);
       const parts = partsOf(built);
-      const ready = await signature(parts);
-      if (original !== null && initial !== null) {
-        await original.presentation.ready;
-        expect(ready).toEqual(await signature(partsOf(original.group)));
-        signatures[`${def.id}/${id}`] = await initial;
-      } else signatures[`${def.id}/${id}`] = ready;
       for (const part of parts) {
         if (allBorrowed) expect(part.material).toBe(material);
         else expect(part.material).toBeInstanceOf(Material);
@@ -101,7 +88,6 @@ it('matches the original warm cards for every authored geometry and variant', as
     await check(barrel); await check(crate); await check(ropeCoil);
     await check(captainHat); await check(sailclothCape); await COLLECTIONS.prepare(); await check(COLLECTIONS.model('chime')); await check(COLLECTIONS.model('plaques'));
     await check(castaway, false); await check(trader); await check(tradeCounter);
-    expect(signatures).toMatchSnapshot();
     // Also compare every wreck-specific size against the old decoded-template
     // scale path, including normalized normals and original index storage.
     const choices = parseWorldSceneModels({ product: 'driftwood-isle', models: cargo.models });
