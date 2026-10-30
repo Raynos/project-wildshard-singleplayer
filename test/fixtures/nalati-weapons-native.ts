@@ -27,6 +27,7 @@ import {JavelinFlight,type JavelinSlot} from '../../src/game/weapons/javelinFlig
 import {nativeRangedHit} from '../../src/game/plugin/nativeItems';
 import type {SimHost} from '../../src/engine/sim';
 import {mountedPlayerOf} from '../../src/game/riding/native';
+import {nativePopulationOf} from '../../src/game/riding/nativePopulation';
 import {nativeTamingOf} from '../../src/game/riding/nativeTaming';
 import type {AnimalSim} from '../../src/engine/entities/AnimalSim';
 import type {TargetAnimal,TargetHit} from '../../src/engine/combat/types';
@@ -97,7 +98,25 @@ export function withNalatiWeapons(prepare:PrepareHeadlessRuntime,contacts?:Nalat
     const polearm=new PolearmDecision<AnimalSim>(spear.program,host.scope),wind=new Wind({value:1});
     const foot=bowMount(bow.base,0,null);if(foot===null)throw new Error('Missing on-foot bow state');let saddle:BowMountState=foot;
     const body=(id:string):AnimalSim=>{const actor=host.entities.get(id);if(actor===undefined)throw new Error(`Missing native weapon target ${id}`);return actor;};
-    const key=(actor:TargetAnimal):string=>{for(const [id,row] of host.entities)if(row===actor)return id;throw new Error('Foreign native weapon target');};
+    const knownContacts=new WeakMap<TargetAnimal,string>(),retiredContacts=new Map<number,string>();
+    const key=(actor:TargetAnimal):string=>{for(const [id,row] of host.entities)if(row===actor){knownContacts.set(actor,id);return id;}throw new Error('Foreign native weapon target');};
+    const retired=():ReadonlySet<string>=>{
+      const population=nativePopulationOf(host),owner=population===undefined?undefined:host.adapters.get(population.id);
+      if(owner===undefined)throw new Error('Missing native weapon retirement authority');
+      return new Set(v.parse(v.object({retired:v.array(v.string())}),owner.snapshot()).retired);
+    };
+    // A retired body cannot be raycast again, but its occupied hit slot still
+    // counts against this swing's cap. Restore only the identity witnessed by
+    // the real population, never a replacement body or a new combat target.
+    const bladeContactKey=(actor:TargetAnimal|null,index:number):string=>{
+      if(actor===null){const id=retiredContacts.get(index);
+        if(id===undefined||host.entities.has(id)||!retired().has(id))throw new Error('Missing retired blade contact');return id;}
+      const id=knownContacts.get(actor);
+      if(id!==undefined&&host.entities.get(id)!==actor){
+        if(actor.alive||host.entities.has(id)||!retired().has(id))throw new Error('Foreign retired blade contact');return id;
+      }
+      return key(actor);
+    };
     const arrowKey=(actor:TargetAnimal):string=>{
       if(arrowTargets===undefined)return key(actor);
       const id=arrowTargets.key(host,actor);if(id===null)return key(actor);
@@ -152,7 +171,7 @@ export function withNalatiWeapons(prepare:PrepareHeadlessRuntime,contacts?:Nalat
     host.scope.onDispose(()=>{weaponOwners.delete(host);});
     const pose=():void=>{const p=host.player.position;eye.set(p.x,p.y+1.68,p.z);rotation.setFromEuler(euler.set(pitch,host.player.yaw,0));forward.set(0,0,-1).applyQuaternion(rotation);};
     const clock=new SweptMeleeCore(bladeMoves,melee,{queue:()=>{queued=true;},consume:()=>{const before=queued;queued=false;return before;}},{
-      start:(move,lunge)=>{moves.push(move.name);if(moves.length>64)moves.shift();sweep.reset();basePose.startSwing();
+      start:(move,lunge)=>{moves.push(move.name);if(moves.length>64)moves.shift();sweep.reset();retiredContacts.clear();basePose.startSwing();
         const heavy=move===bladeMoves.heavy;
         const target=lunge?pickLunge(targets(),host.player.position,host.player.yaw,heavy?melee.lunge.heavyRange:melee.lunge.range,melee.lunge.cone):null;
         if(target!==null){const feet=host.player.position,dash=sweptLunge(melee.lunge,heavy,target.position.x-feet.x,target.position.z-feet.z,targetRadius(target));
@@ -232,17 +251,21 @@ export function withNalatiWeapons(prepare:PrepareHeadlessRuntime,contacts?:Nalat
     },{
       snapshot:()=>JSON.stringify({version:1,...(weaponsEnabled?{}:{enabled:false}),slot,queued,aim,pitch,ammo,draw:draw.save(),bolts,shots,letdowns,fullDraws,aimOn,aimBlend,moves:[...moves],passes,passDamage,
         blade:{pose:basePose.snapshot(),grip:sweep.grip.toArray(),tip:sweep.tip.toArray(),have:sweep.have,
-          struck:sweep.struck.slice(0,sweep.struckN).map(actor=>{if(actor===null)throw new Error('Missing struck blade target');return key(actor);}),contacts:bladeContacts},
+          struck:sweep.struck.slice(0,sweep.struckN).map(bladeContactKey),contacts:bladeContacts},
         swing:clock.snapshot(extra),pass:pass.snapshot(),cadence:decision.snapshot(),thrusts,throws,recovered,polearm:polearm.snapshot(actor=>actor.entityId),
         flying:arrows.pool.slots.map(row=>({active:row.active,age:row.age,glanced:row.glanced,pos:row.pos.toArray(),vel:row.vel.toArray(),origin:row.origin.toArray(),scale:row.scale})),
         stopped:arrows.stopped.snapshot(arrowKey),javelins:javelins.map(row=>({state:row.state,age:row.age,pos:row.pos.toArray(),vel:row.vel.toArray(),q:row.q.toArray()}))}),
       restore:input=>{const saved=v.parse(Saved,typeof input==='string'?JSON.parse(input):input);if(!available.has(saved.slot)||saved.flying.length!==arrows.pool.slots.length||saved.javelins.length!==javelins.length
           ||saved.ammo>thrown.carried||saved.bolts>bow.base.quiver||saved.blade.struck.length>melee.sweep.maxHits
           ||new Set(saved.blade.struck).size!==saved.blade.struck.length)throw new Error('Invalid native weapon continuation');
-        const struck=saved.blade.struck.map(body);
-        basePose.restore(saved.blade.pose);sweep.reset();sweep.grip.fromArray(saved.blade.grip);sweep.tip.fromArray(saved.blade.tip);sweep.have=saved.blade.have;
+        const missing=new Map<number,string>();
+        const struck=saved.blade.struck.map((id,index)=>{const actor=host.entities.get(id);if(actor!==undefined){knownContacts.set(actor,id);return actor;}
+          if(!retired().has(id))throw new Error(`Missing native weapon target ${id}`);missing.set(index,id);return null;});
+        basePose.restore(saved.blade.pose);sweep.reset();retiredContacts.clear();for(const [index,id]of missing)retiredContacts.set(index,id);
+        sweep.grip.fromArray(saved.blade.grip);sweep.tip.fromArray(saved.blade.tip);sweep.have=saved.blade.have;
         struck.forEach((actor,index)=>{sweep.struck[index]=actor;});sweep.struckN=struck.length;bladeContacts=saved.blade.contacts;
-        clock.restore(v.parse(SwingSaved,saved.swing),extra);pass.restore(saved.pass);decision.restore(saved.cadence);polearm.restore(saved.polearm,body);draw.load(saved.draw);
+        clock.restore(v.parse(SwingSaved,saved.swing),extra);pass.restore(saved.pass);decision.restore(saved.cadence);
+        polearm.restore(saved.polearm,body,id=>!host.entities.has(id)&&retired().has(id));draw.load(saved.draw);
         arrows.stopped.restore(saved.stopped,arrowBody);
         saved.flying.forEach((row,index)=>{const target=arrows.pool.slots[index];if(target===undefined)throw new Error('Missing native arrow slot');
           target.active=row.active;target.age=row.age;target.glanced=row.glanced;target.pos.fromArray(row.pos);target.vel.fromArray(row.vel);target.origin.fromArray(row.origin);target.scale=row.scale;});
