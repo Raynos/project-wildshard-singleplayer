@@ -55,6 +55,8 @@ export interface SimSnapshot {
     traversals?: DrivenMode[] | undefined;
     /** Opted-in version-1 walking velocity; absent preserves legacy hosts. */
     walk?: { x: number; z: number } | undefined;
+    /** SimHost.playerMoveScale while it is not 1 (an input lock or a slowing room); absent = 1. */
+    moveScale?: number | undefined;
     fall?: { vy: number; grounded: boolean } | undefined; shove?: { t: number; vx: number; vz: number } | undefined;
     /** SF72: the riding hoverboard (SimHost.playerBoard + boardVelocity); absent on foot, so a host that never boards keeps its bytes. */
     board?: { velocity: number[]; air: boolean; bob: number; ground: boolean } | undefined;
@@ -220,6 +222,7 @@ function captureSimHost<Bytes extends number[] | Uint8Array>(host: SimHost, phys
     // a resting impulse is omitted (canonical: absent = zero), so a host that was never shoved keeps its exact bytes
     player: { id: host.player.id, position: host.player.position.toArray(), yaw: host.player.yaw, health: encode(host.player.health.snapshot(), host), motor: host.player.motor.snapshot(),
       ...(host.playerWalk.active ? { walk: { x: host.playerWalk.x, z: host.playerWalk.z } } : {}),
+      ...(host.playerMoveScale === 1 ? {} : { moveScale: host.playerMoveScale }),
       ...(host.playerImpulse.lengthSq() > 0 ? { impulse: host.playerImpulse.toArray() } : {}),
       // likewise a player at rest on the ground (the fall law's canonical state) is omitted
       ...(host.playerFall.grounded && host.playerFall.vy === 0 ? {} : { fall: { ...host.playerFall } }),
@@ -323,6 +326,7 @@ function restoreInstalledHost(host: SimHost, ports: { rapier: Rapier }, saved: S
       || saved.player.position.length !== 3 || !saved.player.position.every(Number.isFinite) || !Number.isFinite(saved.player.yaw)
       || (saved.player.impulse !== undefined && (saved.player.impulse.length !== 3 || !saved.player.impulse.every(Number.isFinite) || saved.player.impulse.every(value => value === 0)))
       || (saved.player.walk !== undefined && ![saved.player.walk.x, saved.player.walk.z].every(Number.isFinite))
+      || (saved.player.moveScale !== undefined && !(Number.isFinite(saved.player.moveScale) && saved.player.moveScale >= 0 && saved.player.moveScale !== 1))
       || (saved.player.fall !== undefined && (!Number.isFinite(saved.player.fall.vy) || (saved.player.fall.grounded && saved.player.fall.vy === 0)))
       || (saved.player.shove !== undefined && (![saved.player.shove.t, saved.player.shove.vx, saved.player.shove.vz].every(Number.isFinite) || saved.player.shove.t <= 0 || saved.player.shove.t > SHOVE_TIME))
       || (saved.player.board !== undefined && (saved.player.board.velocity.length !== 3 || ![...saved.player.board.velocity, saved.player.board.bob].every(Number.isFinite) || saved.player.fall !== undefined))
@@ -334,6 +338,7 @@ function restoreInstalledHost(host: SimHost, ports: { rapier: Rapier }, saved: S
     host.player.position.fromArray(saved.player.position); host.player.yaw = saved.player.yaw;
     if (saved.player.impulse === undefined) host.playerImpulse.set(0, 0, 0); else host.playerImpulse.fromArray(saved.player.impulse);
     Object.assign(host.playerWalk, { active: saved.player.walk !== undefined, x: saved.player.walk?.x ?? 0, z: saved.player.walk?.z ?? 0 });
+    host.playerMoveScale = saved.player.moveScale ?? 1;
     host.playerFall.vy = saved.player.fall?.vy ?? 0; host.playerFall.grounded = saved.player.fall?.grounded ?? true;
     Object.assign(host.playerShove, saved.player.shove ?? { t: 0, vx: 0, vz: 0 });
     const board = saved.player.board;

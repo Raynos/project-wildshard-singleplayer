@@ -197,6 +197,9 @@ export class SimHost {
   readonly playerFall = { vy: 0, grounded: true };
   /** Version-1 on-foot velocity, inactive on legacy hosts. */
   readonly playerWalk = { active: false, x: 0, z: 0 };
+  /** The client Player's moveScale: what its owner (an input lock: 0, a slowing zone) scales the version-1 walk
+   *  by, and what a mounted driver's reins read. Saved while it is not 1. */
+  playerMoveScale = 1;
   private readonly versionedWalking = { speed: 4.3, crouching: false, clientMotion: this.playerWalk };
   private readonly localMove = { x: 0, z: 0 };
   /** The owned player's running creature-hit knockback, the client Player's shove law (player/shove.ts). */
@@ -814,7 +817,7 @@ export class SimHost {
       const crouching = command?.crouch === true && !this.playerBoard.on && !this.playerSwim.on;
       this.versionedWalking.crouching = crouching;
       this.versionedWalking.speed = walkingSpeed(crouching, command?.sprint === true && forward > 0 && !crouching
-        && (this.water === undefined || this.waterDepth() < NO_SPRINT_DEPTH), 0, 1, 1);
+        && (this.water === undefined || this.waterDepth() < NO_SPRINT_DEPTH), 0, this.playerMoveScale, 1);
     } else Object.assign(this.playerWalk, { active: false, x: 0, z: 0 });
     const walking = delegated ? undefined : this.walkingControl ?? (versioned ? this.versionedWalking : driver?.walking);
     if (walking !== undefined && (!Number.isFinite(walking.speed) || walking.speed < 0 || typeof walking.crouching !== 'boolean')) throw new RangeError('Invalid walking control');

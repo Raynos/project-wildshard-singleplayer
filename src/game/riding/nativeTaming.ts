@@ -164,3 +164,22 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
   host.scope.onDispose(() => { for (let i = 0; i < 64; i++) { const actor = poseRows[i]; if (actor === undefined) break; poses.delete(actor.entityId); } poseRows.length = 0; installed.delete(host); });
   installed.set(host, law); return law;
 }
+
+/** The page's respawnPageMounted for a native host: the player stands at `position` facing `yaw`, at rest, and rides the
+ *  first horse the ride rules take (the bonded companion first, then the mountables in their order), placed and turned
+ *  `row.yaw` from the player, its stamina set to `row.steed`. On foot when none can be ridden. */
+export function respawnNativeMounted(host: SimHost, position: Vector3, yaw: number, row: { readonly yaw: number; readonly steed: number }): void {
+  const mounted = mountedPlayerOf(host);
+  if (mounted === undefined) throw new Error('Missing native mounted owner');
+  if (mounted.mounted) mounted.dismount();
+  host.player.position.copy(position); host.player.motor.resetAt(position); host.player.yaw = yaw;
+  mounted.rider.velocity.set(0, 0, 0); host.playerFall.vy = 0; host.playerWalk.x = 0; host.playerWalk.z = 0;
+  const companion = nativeTamingOf(host)?.companion ?? null;
+  for (const actor of [...(companion === null ? [] : [companion]), ...mounted.mountables]) {
+    if (!mounted.canRide(actor.entityId)) continue;
+    actor.place(position.x, position.z, yaw + row.yaw);
+    if (mounted.mount(actor.entityId)) {
+      mounted.teleport(position.x, position.z, yaw + row.yaw); mounted.body.steed = row.steed; mounted.body.winded = false; return;
+    }
+  }
+}

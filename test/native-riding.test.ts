@@ -19,6 +19,7 @@ import { Rng as FixtureRandom } from '@wildshard/engine/core/rng';
 import { nativeGroupBrain as fixtureBrain } from '@wildshard/format/groupBrains';
 import fixtureBrains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
 import { installMountedPlayer } from '@wildshard/game/riding/native';
+import { respawnNativeMounted } from '@wildshard/game/riding/nativeTaming';
 import { NALATI_RIDING_PROGRAMS as programs } from './fixtures/nalati-riding';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { installWorldFixture } from './fixtures/worldSetup';
@@ -74,6 +75,49 @@ test('G478 orchard native fixture owns and restores its actual mounted capsule',
     mounted.dismount(); expect(host.modes.current()).toBe('foot');
     mounted.removeMountable('boar:1'); expect(mounted.mountables).toEqual([]);
     mounted.addMountable('boar:1'); expect(mounted.mountables.map(actor => actor.entityId)).toEqual(['boar:1']);
+  } finally { restored?.dispose(); host.dispose(); }
+});
+
+test('an input lock holds the walk and the reins through a save, and a respawn remounts the horse', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const level = { ...SIM_LEVEL, quests: [] }, host = createSimHost(level, { rapier }), mounted = install(host);
+  let restored: SimHost | undefined;
+  try {
+    // on foot: the page Player's moveScale 0 stands the version-1 walk still, and a save keeps the lock
+    const walk = { moveX: 0, moveZ: -1, yaw: 0, commandVersion: 1 as const }, start = host.player.position.clone();
+    host.playerMoveScale = 0;
+    for (let tick = 0; tick < 20; tick++) host.step(walk);
+    expect(Math.hypot(host.player.position.x - start.x, host.player.position.z - start.z)).toBeLessThan(1e-3);
+    const saved = snapshotSimHost(host);
+    expect(saved.player.moveScale).toBe(0);
+    restored = restoreSimHost(level, { rapier }, saved, fresh => { install(fresh); });
+    expect(restored.playerMoveScale).toBe(0);
+    host.playerMoveScale = 1;
+    for (let tick = 0; tick < 20; tick++) host.step(walk);
+    expect(host.player.position.distanceTo(start)).toBeGreaterThan(1);
+    expect(snapshotSimHost(host).player.moveScale).toBeUndefined();
+    // mounted: the reins read the same scale (a boss intro's lock reins the horse in)
+    expect(mounted.mount('boar:1')).toBe(true);
+    const gallop = { moveX: 0, moveZ: 0, yaw: 0, sprint: true, commandVersion: 1 as const, steer: { keyX: 0, keyY: 1, stickX: 0, stickY: 0 } };
+    for (let tick = 0; tick < 20; tick++) host.step(gallop);
+    expect(mounted.body.target).toBeGreaterThan(0);
+    host.playerMoveScale = 0;
+    host.step(gallop); expect(mounted.body.target).toBe(0);
+    host.playerMoveScale = 1;
+    host.step(gallop); expect(mounted.body.target).toBeGreaterThan(0);
+    // the arena's respawn: off the horse, at the point at rest, and back on the first horse the rules take
+    const at = new Vector3(4, host.groundHeightAt(4, -3), -3);
+    respawnNativeMounted(host, at, .7, { yaw: .5, steed: 40 });
+    expect(mounted.mounted).toBe(true); expect(mounted.horse?.entityId).toBe('boar:1');
+    expect(mounted.body.speed).toBe(0); expect(mounted.body.steed).toBe(40); expect(mounted.body.winded).toBe(false);
+    expect(mounted.body.heading).toBeCloseTo(1.2); expect(host.player.yaw).toBeCloseTo(1.2 - Math.PI);
+    expect([mounted.body.feet.x, mounted.body.feet.z]).toEqual([4, -3]);
+    for (let tick = 0; tick < 10; tick++) host.step(gallop);
+    expect(Math.hypot(mounted.body.feet.x - 4, mounted.body.feet.z + 3)).toBeLessThan(5);
+    // no horse the rules take: the player stands at the point on foot
+    mounted.dismount(); mounted.removeMountable('boar:1');
+    respawnNativeMounted(host, at, .2, { yaw: .5, steed: 40 });
+    expect(mounted.mounted).toBe(false); expect(host.player.position.toArray()).toEqual(at.toArray()); expect(host.player.yaw).toBe(.2);
   } finally { restored?.dispose(); host.dispose(); }
 });
 

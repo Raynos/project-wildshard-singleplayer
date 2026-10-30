@@ -34,6 +34,10 @@ export interface NativeMountedPlayer {
   /** Actual registration order, for the page's strict nearest ride-action selector. */
   readonly mountables: readonly AnimalSim[];
   readonly phase: (id: string) => number;
+  /** Whether the ride rules would take this horse now (the page Mount's canRide; native horses have no rest or bolt). */
+  readonly canRide: (id: string) => boolean;
+  /** The page Mount's teleport: the ridden horse and its rider stand at x, z facing yaw, at rest. */
+  readonly teleport: (x: number, z: number, yaw: number) => void;
 }
 const installed = new WeakMap<SimHost, NativeMountedPlayer>();
 /** Read this host's owned riding law; no page/global singleton. */
@@ -144,7 +148,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     host.playerImpulse.set(0, 0, 0); rider.crouching = false;
     frame.forward = command?.steer?.keyY ?? 0; frame.turn = command?.steer?.keyX ?? 0;
     frame.touchX = command?.steer?.stickX ?? 0; frame.touchY = command?.steer?.stickY ?? 0;
-    frame.gallop = command?.sprint === true; frame.jump = command?.jump === true; frame.phase = phase(a.entityId);
+    frame.gallop = command?.sprint === true; frame.jump = command?.jump === true; frame.phase = phase(a.entityId); frame.moveScale = host.playerMoveScale;
     frame.wet = wetAt(body.feet.x, body.feet.z) || heightAt(body.feet.x, body.feet.z) < waterLevel() - 0.2;
     body.read(dt, frame); a.mem['turnLead'] = body.turnLead; a.lookWeight = 0;
     return true;
@@ -154,10 +158,14 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     if (horse !== null) body.placeRider(dt, 1, a, rider, world);
   } };
   host.usePlayerDriver(driver);
-  const mount = (id: string, breaking = false): boolean => {
+  const accepts = (id: string, breaking: boolean): boolean => {
     const a = host.entities.get(id);
     const allowed = rules.project('mount', { mounted: Number(horse !== null), present: Number(a !== undefined), alive: Number(a?.alive === true), driven: Number(a?.driven === true), available: Number(available.has(id)), breaking: Number(breaking), stallion: Number(herds.some(h => h.stallion === a)) });
-    if (allowed['accept'] !== 1 || a === undefined) return false;
+    return allowed['accept'] === 1 && a !== undefined;
+  };
+  const mount = (id: string, breaking = false): boolean => {
+    const a = host.entities.get(id);
+    if (!accepts(id, breaking) || a === undefined) return false;
     host.setBoard(false); horse = a;
     const h = herd(a); if (h !== null) h.setRidden(a); else a.mem['ridden'] = 1;
     a.setMotion(a.yaw, 0, 2); body.heading = a.yaw; body.speed = 0; body.wUp = 0; body.yawRate = 0;
@@ -248,6 +256,13 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     poses.delete(a.entityId); const at = poseRows.findIndex(row => row.id === a.entityId); if (at === -1) throw new Error('Missing adopted pose');
     poseRows.splice(at, 1);
   };
-  const out: NativeMountedPlayer = { body, rider, get horse() { return horse; }, get mounted() { return horse !== null; }, mount, dismount, phase, addMountable, removeMountable, mountables };
+  const teleport = (x: number, z: number, yaw: number): void => {
+    const a = horse; if (a === null) return;
+    a.place(x, z, yaw); body.heading = yaw; body.speed = 0; a.speed = 0;
+    body.feet.set(x, heightAt(x, z), z); body.settleBody(); body.landBody(world);
+    body.eyeY = body.feet.y; host.player.yaw = yaw - Math.PI; body.yawRate = 0;
+  };
+  const out: NativeMountedPlayer = { body, rider, get horse() { return horse; }, get mounted() { return horse !== null; }, mount, dismount, phase, addMountable, removeMountable, mountables,
+    canRide: id => accepts(id, false), teleport };
   installed.set(host, out); return out;
 }
