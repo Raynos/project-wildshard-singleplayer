@@ -238,7 +238,7 @@
      "The beacon roars up — every ship for miles can see it"
     ]
    },
-   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs): no toast in either mode (the run's spawn on the tower: harness placement, not a mode difference)"
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label 'Light the beacon'; 'The beacon roars up — every ship for miles can see it'"
   },
   {
    "id": "shard-lookout",
@@ -257,7 +257,7 @@
     ],
     "objective": "Recover the glyph shards · 1 / 3"
    },
-   "played": null
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label 'Take the glyph shard'; 'Glyph shard — the Lookout'"
   },
   {
    "id": "zipline",
@@ -314,7 +314,7 @@
      "Iron sword acquired · 1/2 to switch, Q to swap"
     ]
    },
-   "played": null
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label 'Take iron sword' (after the sailor falls); the pickup card 'Iron sword'"
   },
   {
    "id": "swap",
@@ -344,7 +344,7 @@
      "The drowned sailor's hold key"
     ]
    },
-   "played": null
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label 'Take the hold key'; 'The drowned sailor's hold key'"
   },
   {
    "id": "pump",
@@ -363,7 +363,7 @@
      "The pump coughs; the bilge water drains"
     ]
    },
-   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs): both modes, same: locked 'The bilge pump is padlocked — the drowned sailor has the key'"
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label locked 'The bilge pump is padlocked — the drowned sailor has the key', then 'The pump coughs; the bilge water drains'"
   },
   {
    "id": "winch",
@@ -382,7 +382,7 @@
      "The winch hauls a strongbox out of the bilge"
     ]
    },
-   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs): both modes, same: locked 'The winch is jammed — the hold is still flooded'"
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label locked 'The winch is jammed — the hold is still flooded'"
   },
   {
    "id": "strongbox",
@@ -401,7 +401,7 @@
      "Salt-crusted doubloon ×3"
     ]
    },
-   "played": null
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label 'Open the strongbox' (opened before the winch hauled it: no toast in either)"
   },
   {
    "id": "tide-plates",
@@ -428,7 +428,7 @@
      "The tide gate lifts — the cave drains"
     ]
    },
-   "played": null
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): not played: the barrel is a physics body outside the interact points; its push is not automated"
   },
   {
    "id": "shard-cave",
@@ -448,7 +448,7 @@
     ],
     "objective": "Set the shards in the Ring Shrine"
    },
-   "played": null
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label locked 'Behind the tide gate' (the gate stays shut: the barrel push is not automated)"
   },
   {
    "id": "reef",
@@ -468,7 +468,7 @@
      "Found a pearl necklace"
     ]
    },
-   "played": null
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label 'Open the treasure chest' (USE from the surface: no toast in either; needs a dive)"
   },
   {
    "id": "trophies",
@@ -506,7 +506,7 @@
      "The pool boils — the Drowned Captain rises!"
     ]
    },
-   "played": null
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label locked 'Three empty sockets — the glyph shards are out on the island' (two of three shards)"
   },
   {
    "id": "captain",
@@ -526,7 +526,7 @@
      "Driftwood Isle complete · open the menu to see your island"
     ]
    },
-   "played": null
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): not reached in either mode (the altar needs the cave shard)"
   }
  ]
 }
