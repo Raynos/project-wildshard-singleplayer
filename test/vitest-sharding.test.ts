@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
-import { packShards,readDurations,selectTestCohort,PURE_TESTS } from '../scripts/vitest-shard';
+import { selectTestCohort,PURE_TESTS } from '../scripts/vitest-shard';
+import { packShards,readDurations } from '../scripts/test-shard-plan';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual workflow covers every discovered test partition.
 import {readFileSync} from 'node:fs';

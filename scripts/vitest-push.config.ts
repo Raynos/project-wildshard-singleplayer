@@ -1,7 +1,7 @@
 import { relative } from 'node:path';
 import { BaseSequencer, type TestSpecification } from 'vitest/node';
 import base from '../vitest.config';
-import { readDurations } from './vitest-shard';
+import { readDurations } from './test-shard-plan';
 import { defineConfig } from 'vitest/config';
 
 /** Finish the cheapest related files before the shared push deadline. */

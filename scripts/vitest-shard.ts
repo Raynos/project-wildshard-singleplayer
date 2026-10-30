@@ -8,6 +8,7 @@ import { relative, resolve } from 'node:path';
 import { BaseSequencer, type TestSpecification } from 'vitest/node';
 import * as v from 'valibot';
 import { prepareTestBuildTools } from './test-build-tools';
+import { readDurations, packShards, readShardPlan } from './test-shard-plan';
 
 /** Reviewed format-only suites: no host globals, mocked modules or fresh-import contracts.
  * Every other suite retains an isolated worker. Additions require the same audit. */
@@ -23,41 +24,10 @@ export const PURE_TESTS = [
   'src/format/worldScenePlacement-color.test.ts',
 ] as const;
 
-export const DURATIONS_FILE = 'test/durations.json';
-// CI40579806098 part3: 85% of 837.21s / 114 files is already 6.24s
-// per file before accounting for parallel workers. This is a packing weight,
-// not a deadline; every isolated file still pays setup and module collection.
-const FILE_OVERHEAD_S = 6;
 // CF1 preselects exact paths without Vitest's broad related-module transform.
 // Capture its existing worker token before the runner clears child inheritance.
 const { WS_COMMIT_RELATED_TOKEN } = process.env;
 const COMMIT_RELATED = WS_COMMIT_RELATED_TOKEN !== undefined;
-
-/** Recorded seconds per test file (repo-relative path), or null when there is no usable file. */
-export function readDurations(root: string): Map<string, number> | null {
-  const file = resolve(root, DURATIONS_FILE);
-  if (!existsSync(file)) return null;
-  const parsed: unknown = JSON.parse(readFileSync(file, 'utf8'));
-  if (parsed === null || typeof parsed !== 'object') return null;
-  const out = new Map<string, number>();
-  for (const [path, seconds] of Object.entries(parsed)) if (typeof seconds === 'number' && Number.isFinite(seconds) && seconds >= 0) out.set(path, seconds);
-  return out.size > 0 ? out : null;
-}
-
-/** Longest-processing-time packing of `paths` into `count` shards: deterministic for the same paths and durations. */
-export function packShards(paths: readonly string[], durations: ReadonlyMap<string, number>, count: number): string[][] {
-  const known = [...durations.values()].sort((a, b) => a - b);
-  const median = known.length > 0 ? known[Math.floor(known.length / 2)] ?? 1 : 1;
-  // Recorded test-body time alone underweights files with expensive setup/imports.
-  const weight = (path: string): number => (durations.get(path) ?? median) + FILE_OVERHEAD_S;
-  const order = [...paths].sort((a, b) => weight(b) - weight(a) || (a < b ? -1 : a > b ? 1 : 0));
-  const shards = Array.from({ length: count }, () => ({ total: 0, paths: [] as string[] }));
-  for (const path of order) {
-    const lightest = shards.reduce((best, shard) => (shard.total < best.total || (shard.total === best.total && shard.paths.length < best.paths.length) ? shard : best));
-    lightest.total += weight(path); lightest.paths.push(path);
-  }
-  return shards.map((shard) => shard.paths);
-}
 
 /** CF3: partition before packing/collection; no cohort keeps the complete local/nightly suite. */
 export function selectTestCohort(paths: readonly string[], products: Readonly<Record<string,readonly string[]>>, cohort: string | undefined): string[] {
@@ -110,6 +80,15 @@ export class DurationSequencer extends BaseSequencer {
   override shard(candidates: TestSpecification[]): Promise<TestSpecification[]> {
     const files=this.cohort(candidates);
     const { root, shard } = this.ctx.config;
+    const { WS_VITEST_PLAN: planFile, GITHUB_SHA: sha, GITHUB_RUN_ID: run } = process.env;
+    if (shard !== undefined && planFile !== undefined) {
+      const key = (spec: TestSpecification): string => relative(root, spec.moduleId).replaceAll('\\', '/');
+      const paths = files.map(key);
+      const plan = readShardPlan(JSON.parse(readFileSync(resolve(root, planFile), 'utf8')), paths, shard.count,
+        sha === undefined ? undefined : { sha, ...(run === undefined ? {} : { run }) });
+      const mine = new Set(plan.shards[shard.index - 1]?.files);
+      return Promise.resolve(files.filter(spec => mine.has(key(spec))));
+    }
     const durations = shard === undefined ? null : readDurations(root);
     if (shard === undefined || durations === null) return super.shard(files);
     const key = (spec: TestSpecification): string => relative(root, spec.moduleId).replaceAll('\\', '/');
