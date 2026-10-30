@@ -29,6 +29,7 @@ import { labelAsset } from '../render/gpuLabels';
 import { ScopedWorkerPool } from './scopedWorkerPool';
 import { Ktx2Sources } from './ktx2Sources';
 import { uploadCompressedTexture } from '../render/compressedUpload';
+import { installGltfMaterialOrder } from '../render/gltfMaterialOrder';
 import { registerCompressedMipmaps, compressedMipmapsUploaded } from '../render/compressedMipmaps';
 import { harnessPins } from '../app/identity';
 import { applyKtx2Probe, ktx2ProbeResult, linearAstcSurvives } from '../render/ktx2Probe';
@@ -213,6 +214,7 @@ export function installGltfKtx2(type: typeof GLTFLoader): void {
     Object.defineProperty(type.prototype, 'parse', {
       configurable: true, writable: true,
       value(this: GLTFLoader, ...args: Parameters<GLTFLoader['parse']>): void {
+        installGltfMaterialOrder(this);
         if (texMode() !== 'ktx2') { Reflect.apply(parse, this, args); return; }
         if (this.ktx2Loader === null) this.setKTX2Loader(ktx2Loader());
         const [data, path, onLoad, onError] = args;

@@ -16,6 +16,7 @@ import { installCompileShadowSkip } from './compileShadows';
 import { installSkinnedSortSpheres } from './skinnedSpheres';
 import { isDev, onDev } from '../core/devMode';
 import { installShadowMaterialOwnership } from './shadowMaterialOwnership';
+import { gltfOpaqueSort } from './gltfMaterialOrder';
 import type { AssetService } from '../app/assets';
 import type { Scope } from '../app/scope';
 import type { UploadOwnership } from './uploadOwnership';
@@ -39,6 +40,7 @@ export function createRenderer(canvas: HTMLCanvasElement, context: WebGL2Renderi
   // program: 175 ms of a Nalati crossing's shader warm-up); the warm-up reads one link status instead and reports a
   // failure as three would (precompile.ts reportLinkFailure)
   renderer.debug.checkShaderErrors = false;
+  renderer.setOpaqueSort(gltfOpaqueSort);
   installUniformCacheKinds(renderer); // D180: float uniform caches keep double elements (uniformCaches.ts)
   ownership.uploads.attach(renderer);
   installShadowMaterialOwnership(renderer, ownership.assets, ownership.scope);
