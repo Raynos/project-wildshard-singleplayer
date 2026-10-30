@@ -82,3 +82,16 @@ test('a lent texture samples the node path\'s black opaque stand-in until its ru
   compiled.setTexture('field', lent);
   expect(compiled.material.uniforms['wsT_field']?.value).toBe(lent);
 });
+
+test('a program reading a model-space position decodes the drawn tile primitive\'s grid, uploading only on a change', () => {
+  const m = compileClassicGraph({ version: 1, kind: 'material', model: 'unlit', nodes: { p: { op: 'positionGeometry' }, v: { op: 'varying', in: ['p'] } }, stages: { surface: { colour: 'v' } } }).material;
+  const grid = new THREE.BufferGeometry(); grid.setAttribute('position', new THREE.BufferAttribute(new Int16Array([0, 0, 0, 4, 0, 0, 0, 4, 0]), 3));
+  const tile = new THREE.Mesh(grid, m); tile.scale.setScalar(0.25); tile.position.set(1, 2, 3);
+  const plain = new THREE.Mesh(new THREE.BoxGeometry(), m);
+  const at = (object: THREE.Mesh): [unknown, unknown, boolean] => { m.uniformsNeedUpdate = false; m.codec?.draw(m, object); return [m.uniforms['wsCodecStep']?.value, m.uniforms['wsCodecOrigin']?.value, m.uniformsNeedUpdate]; };
+  expect(at(tile)).toEqual([0.25, new THREE.Vector3(1, 2, 3), true]);
+  expect(at(tile)[2]).toBe(false);
+  expect(at(plain)).toEqual([1, new THREE.Vector3(0, 0, 0), true]);
+  expect(m.clone().codec).not.toBe(m.codec);
+});
+

@@ -19,14 +19,18 @@ import type { ToonLook } from '../families/toon';
 import { emitClassicGraph, graphShaders, graphUniformValues, type ClassicFog, type GraphShaderOptions } from './glslProgram';
 import type { EmitGraphGlslOptions, GraphGlsl } from './glsl';
 import { drawNeutral } from '../drawNeutral';
+import { ClassicCodec } from './glslCodec';
 
 /** the uniforms a variant keeps its own (a creature's tint, a borrowed map); every other one is shared with its source */
 const OWN_UNIFORMS: ReadonlySet<string> = new Set(['wsMaterialColour', 'wsMaterialEmissive', 'wsMaterialEmissiveIntensity', 'wsMeshMap', 'wsBumpMap',
-  'wsMaterialRoughness', 'wsAlphaCutoff']);
+  'wsMaterialRoughness', 'wsAlphaCutoff', 'wsCodecStep', 'wsCodecOrigin']);
 
 /** A lowered graph's `ShaderMaterial`: its clones share the graph's uniforms; its colour, emissive and mesh maps are ports. */
 export class GraphShaderMaterial extends THREE.ShaderMaterial {
   readonly isGraphShaderMaterial = true;
+  /** the tile grid codec this program decodes positions with (null: it reads no model-space position): its own step and
+   *  origin follow the drawn object, re-uploaded only when they change (RM8.1e) */
+  codec: ClassicCodec | null = null;
   /** the material's own colour (`materialColour`), as a node material's `color` */
   get color(): THREE.Color { return this.colourUniform('wsMaterialColour', 1).value; }
   /** the material's own emissive colour (`materialEmissive` is this times `emissiveIntensity`) */
@@ -52,8 +56,13 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
   get bumpMap(): THREE.Texture | null { return this.texture('wsBumpMap'); }
   set bumpMap(texture: THREE.Texture | null) { this.lend('wsBumpMap', 'WS_BUMP_MAP', texture); }
 
+  override onBeforeRender(_renderer: THREE.WebGLRenderer, _scene: THREE.Scene, _camera: THREE.Camera, _geometry: THREE.BufferGeometry, object: THREE.Object3D): void {
+    this.codec?.draw(this, object);
+  }
+
   override copy(source: THREE.ShaderMaterial): this {
     super.copy(source);
+    this.codec = source instanceof GraphShaderMaterial && source.codec !== null ? new ClassicCodec() : null;
     // three's copy clones every uniform value (a texture too): the graph's are shared again, a variant's own map stays the
     // same texture, its colours its own copies
     for (const [name, uniform] of Object.entries(source.uniforms)) {
@@ -119,6 +128,8 @@ function shaderMaterial(glsl: GraphGlsl, opts: GraphShaderOptions): GraphShaderM
   const shaders = graphShaders(glsl, opts), ir = glsl.ir, effect = ir.effectState, outline = opts.outline === true;
   const m = new GraphShaderMaterial({ vertexShader: shaders.vertexShader, fragmentShader: shaders.fragmentShader, uniforms: shaders.uniforms, lights: shaders.lights, fog: shaders.fog });
   m.name = outline ? 'graph:outline' : `graph:${ir.kind}`;
+  // a program that reads a model-space position or offsets one decodes a tile primitive's grid (RM8.1e)
+  if (/\bwsCodec(Step|Origin)\b/.test(shaders.vertexShader.slice(shaders.vertexShader.indexOf('void main()')))) m.codec = new ClassicCodec();
   // a mesh without a declared attribute reads its default, else TSL's attribute() constant (three's generateConst: zeros,
   // a vec4 as a new Vector4, 0, 0, 0, 1), never the generic value the last draw left at that location
   const missing = (type: string): number[] => (type === 'float' ? [0] : type === 'vec2' ? [0, 0] : type === 'vec3' ? [0, 0, 0] : [0, 0, 0, 1]);
