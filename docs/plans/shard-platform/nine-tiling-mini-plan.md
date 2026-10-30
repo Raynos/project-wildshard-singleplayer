@@ -278,6 +278,36 @@ new visible triangle is detected. Original raw observations remain retained;
 cause-directed attachment reads on the same source follow. The independent
 dual-camera ordering regression test and source fix remain valid.
 
+**Corrected attachment qualification (copied index bytes).** On unchanged
+`9634ee8-mvveu99q`, Driftwood cold / warm each adds 6,361 world triangles,
+**zero inside the captured spawn frustum**. Full 10 s intervals: 123 / 131
+frames, 14 changes each, no overflow or unsupported geometry. Pine cold / warm
+each adds 10,722 visible-world triangles, **zero inside that frustum**;
+105 / 103 frames, 17 changes each, no overflow or unsupported geometry.
+Hidden source tiles / knife remain separately recorded. Position access is
+checked for retained finite CPU data. These replace the withdrawn live-index
+counts. Scratch controls reproduce index compaction and a real visible addition.
+Raw: `tmp/sp-x9-nt8/indexcopy-{driftwood,pine}-attachments-{0,1}.json`.
+The warm Pine CPU sampler is attribution only, not an uninstrumented timing leg.
+
+Reverse-order parent `79bca19-mvvem0ac` measured **131.136 / 88.943 s**,
+native control qualified and request accounting complete (telemetry 405s stay).
+The unprofiled candidate's **129.962 / 90.486 s** is -1.174 / +1.543 s
+against that reference, so the warm gap cannot be dismissed as noise. The
+source-mapped warm page CPU sample, including 10 s after control, attributes
+14.36 ms inclusive / 4.94 ms self to `streamingView`, 209.86 / 48.66 ms
+to `tileDriver`, and 139.22 / 9.16 ms to `controlRefinement`. This does not
+attribute the remaining multi-source wall-time gap to NT8. Raw profile/rank:
+`tmp/sp-x9-nt8/indexcopy-pine-warm.cpuprofile` and `warm-profile-rank.json`.
+
+A same-source camera/player fallback counterfactual is pending; its first
+launch failed the class-readiness prerequisite and is excluded, and the next
+was stopped for the higher-priority G925 commit-snapshot CI repair. A tiny
+preflight now verifies the lazy pure camera declaration initializer before
+patching that measurement-only port. Neither launch qualifies the timing bar.
+All browsers and the owned preview were closed at the P0 boundary. NT8's
+geometric attachment bar is now qualified; warm timing attribution remains open.
+
 NT7 preserves the existing all-product `checkTileBake` ratchet exactly (G872 ruling). Its new report is advisory; its separate Nine baseline refuses a lost `ring: 'cell'`, worsened exact L0 coordinate debt, or a declared slab chunk above 4 MB. Uncut long-triangle heights remain explicit advisory exceptions for NT3, never disguised as zero or trimmed geometry. Products without declared slab metadata print **not declared** for max chunk, rather than claiming zero. Published NF10 slab rows are read only after the defining section schema admits them. Recommendations distinguish dense vertical concentration (> 80 % in five tiles and > 125 m tall) from small, spread-out or open-sky sightline warnings; every measured warning is printed. The current declared-camera catalogue hash is `359156f0cfabb3c4915ec46217daaa85a2aaeaf57d74db48e3db303c927029f4`.
 
 **Order.**
