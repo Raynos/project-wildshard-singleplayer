@@ -88,10 +88,14 @@ export async function createNativeProofResident(preparation: HeadlessRuntimeInpu
 export async function createNativeProofAdapter(preparation: HeadlessRuntimeInput, prepare: PrepareHeadlessRuntime, snapshot?: string): Promise<TickWorkerAdapter> {
   const resident = await createNativeProofResident(preparation, prepare, snapshot), { host } = resident;
   let retireWalkBodies=()=>{},walkPrepared=false;
+  const prepareWalk=():void=>{
+    if(walkPrepared)return;
+    retireWalkBodies=installWalkRopeBodies(host,preparation.product);installNativeWalkBounds(host);walkPrepared=true;
+  };
   return {
     step: input => { resident.step(input); },
-    verbTape:plan=>runTrustedHeadlessTape(host,input=>resident.step(input),()=>resident.effects,plan),
-    journey: plan => { if(plan.start!==undefined&&!walkPrepared){retireWalkBodies=installWalkRopeBodies(host,preparation.product);installNativeWalkBounds(host);walkPrepared=true;}return runHeadlessJourney(host,input=>resident.step(input),plan); },
+    verbTape:plan=>{if(plan.segments.some(segment=>segment.route!==undefined))prepareWalk();return runTrustedHeadlessTape(host,input=>resident.step(input),()=>resident.effects,plan);},
+    journey: plan => { if(plan.start!==undefined)prepareWalk();return runHeadlessJourney(host,input=>resident.step(input),plan); },
     commit: () => ({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(host)), effects: [...resident.effects] }),
     finish: () => ({ ticks: host.state.tick, lanes: 0, steps: 0 }),
     dispose: () => { retireWalkBodies();resident.dispose(); },
