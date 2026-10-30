@@ -15,6 +15,8 @@ import {WindStateSchema,WeatherWorldSchema} from '../../src/format/weatherProgra
 import {MeleeWeaponProfileSchema,ThrownWeaponProfileSchema,HeldBowFileSchema} from '../../src/format/weaponProfiles';
 import {BladeRowsSchema,PolearmRowsSchema,type BladeRows} from '../../src/format/heldMelee';
 import {parseHeldSlots} from '../../src/format/heldArms';
+import {ClientPlanSchema} from '../../src/format/clientPlan';
+import {filterCombatAimTargets} from '../../src/game/shardfile/aimTargetFilter';
 import {heldBowBase} from '../../src/game/weapons/heldBowBase';
 import {SWORD_WOOD} from '../../src/game/weapons/starterMeleeProfile';
 import {HeldDecision} from '../../src/game/weapons/heldDecision';
@@ -53,6 +55,8 @@ export type NalatiWeaponRay=(host:SimHost,from:Vector3,direction:Vector3,distanc
 export function withNalatiWeapons(prepare:PrepareHeadlessRuntime,contacts?:NalatiWeaponRay):PrepareHeadlessRuntime {return async preparation=>{
   const base=await prepare(preparation),product=preparation.product;
   const slots=parseHeldSlots(await product.json('held/slots.json'));
+  const aimRows=v.parse(ClientPlanSchema,product.section('client/plan')).features.find(row=>row.kind==='combat.targets')?.rows.aim;
+  if(aimRows===undefined)throw new Error('Weapons require their admitted aim exclusions');
   const bowSlot=slots.slots.find(row=>row.kind==='bow'),bladeSlot=slots.slots.find(row=>row.kind==='blade'),spearSlot=slots.slots.find(row=>row.kind==='polearm');
   if(bowSlot?.kind!=='bow'||bladeSlot?.kind!=='blade'||spearSlot?.kind!=='polearm'||bladeSlot.source.kind!=='passes')throw new Error('Missing admitted native weapon slots');
   const blade=v.parse(BladeRowsSchema,await product.json(bladeSlot.source.file)),spear=v.parse(PolearmRowsSchema,await product.json(spearSlot.file));
@@ -84,13 +88,14 @@ export function withNalatiWeapons(prepare:PrepareHeadlessRuntime,contacts?:Nalat
     const foot=bowMount(bow.base,0,null);if(foot===null)throw new Error('Missing on-foot bow state');let saddle:BowMountState=foot;
     const body=(id:string):AnimalSim=>{const actor=host.entities.get(id);if(actor===undefined)throw new Error(`Missing native weapon target ${id}`);return actor;};
     const key=(actor:TargetAnimal):string=>{for(const [id,row] of host.entities)if(row===actor)return id;throw new Error('Foreign native weapon target');};
-    const targets=():AnimalSim[]=>[...host.entities.values()].filter(actor=>actor.alive);
+    const bodies=():AnimalSim[]=>[...host.entities.values()].filter(actor=>actor.alive&&actor!==mount.horse);
+    const targets=():AnimalSim[]=>filterCombatAimTargets(bodies(),aimRows.exclude);
     const basePose=new SweptBasePose(),sweep=new BladeSweep(melee.sweep);basePose.rest(bladeMoves.rest);let bladeContacts=0;
     const grip=new Vector3(),tip=new Vector3(),basePos=new Vector3(),baseQ=new Quaternion(),left=new Vector3(),strikeDirection=new Vector3(),push=new Vector3(),up=new Vector3(0,1,0);
     const eye=new Vector3(),forward=new Vector3(),scratch=new Vector3(),velocity=new Vector3(),rotation=new Quaternion(),euler=new Euler(0,0,0,'YXZ');
     const random=():number=>host.rng.stream('gameplay').next();
     const ray=(from:Vector3,dir:Vector3,distance:number)=>{
-      const original=nativeRangedHit(targets(),from,dir,distance);
+      const original=nativeRangedHit(bodies(),from,dir,distance);
       const hit=contacts===undefined?original:contacts(host,from,dir,distance,original);return hit===null||hit.body===null?null:{animal:hit.body,point:hit.point,distance:hit.distance,headshot:hit.head};
     };
     const spearContacts=new PolearmContact<AnimalSim>({raycast:ray,same:(animal,target)=>animal===target,
@@ -136,7 +141,8 @@ export function withNalatiWeapons(prepare:PrepareHeadlessRuntime,contacts?:Nalat
           if(command.value< -Math.PI/2||command.value>Math.PI/2)throw new Error('Invalid held look pitch');pitch=command.value;
         }
       }
-      const mounted=mount.horse===null?null:{speed:mount.body.speed,yaw:mount.body.heading};
+      // riding/client publishes weapon yaw opposite the horse body heading.
+      const mounted=mount.horse===null?null:{speed:mount.body.speed,yaw:mount.body.heading-Math.PI};
       const sampled=bowMount(bow.base,host.player.yaw,mounted);if(sampled!==null)saddle=sampled;
       const blocked=bowBlocked({enabled:enabled&&slot===bowSlot.id,cancel:false,bolts,sprinting:mount.rider.sprinting,mounted:mount.mounted,swimming:host.playerSwim.on});
       const event=draw.step(dt,slot===bowSlot.id&&player?.heavy!==undefined,blocked.blocked,saddle.draw);

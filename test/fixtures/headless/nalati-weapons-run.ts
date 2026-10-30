@@ -58,6 +58,7 @@ try{
   runTrustedHeadlessTape(resident.host,step,()=>resident.effects,{version:1,observe:[],segments:[{id:'walk-to-real-camp-mount',ticks:6000,commands:[],
     route:[{x:20,z:216},{x:40,z:218},{x:60,z:214},{x:66,z:209.5},{x:66,z:211.5},{x:66.8,z:213.4}]}]});
   step([input('nalati.companion.use')]);assert.equal(mounted.mounted,true);mark('mount-real-horse');
+  const ridden=mounted.horse;assert.ok(ridden);const riddenHealth=ridden.hp;
   const reins=(forward:number,turn:number,sprint=false):HeadlessCommand=>({kind:'player',moveX:0,moveZ:0,yaw:resident.host.player.yaw,
     commandVersion:1,steer:{keyX:0,keyY:forward,stickX:turn,stickY:0},sprint});
   advance(90,()=>[reins(-1,0)]);
@@ -67,6 +68,7 @@ try{
   step([reins(1,0,true),input('nalati.weapon.attack')]);advance(18,()=>[reins(1,0,true)]);
   const pass=mark('mounted-pass');assert.ok(pass.passes>0);assert.ok(pass.passDamage>0);
   assert.ok(blade.moves.passes.left.name===pass.moves.at(-1)||blade.moves.passes.right.name===pass.moves.at(-1));
+  assert.equal(mounted.horse,ridden);assert.equal(ridden.hp,riddenHealth,'a mounted pass never raycasts the ridden horse');
   step([input('nalati.companion.use')]);assert.equal(mounted.mounted,false);mark('dismount');
 }catch(error){await replay.dispose();throw error;}finally{resident.dispose();}
 
