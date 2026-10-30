@@ -169,8 +169,8 @@ export interface PineStaticOutput { platform: ReturnType<typeof emitPlatformSect
 
 /** D65: the output rows over the program's sources (the scene, page and story rows, the props, the floor, the keyed sky);
  *  the platform rows go to `prepareOutput`, which adds the compiled return and spawn scripts. */
-async function outputRows(sources: PineSources, readImagePixels: ProjectGenerationContext['readImagePixels']): Promise<{ output: PineStaticOutput; platformRows: Map<PlatformDataSectionName, unknown> }> {
-  const props = await pineProps(sources), { rows: keyedSky, blobs: skyKeys } = await pineKeyedSky(sources, readImagePixels);
+async function outputRows(sources: PineSources, readImagePixels: ProjectGenerationContext['readImagePixels'], encodeGainKey?: ProjectGenerationContext['encodeGainKey']): Promise<{ output: PineStaticOutput; platformRows: Map<PlatformDataSectionName, unknown> }> {
+  const props = await pineProps(sources), { rows: keyedSky, blobs: skyKeys } = await pineKeyedSky(sources, readImagePixels, encodeGainKey);
   const world = timberWorld(sources), timbers = { propShapes: world.propShapes, cabinSeeds: world.cabins.seeds, poolGround: world.poolGround };
   v.parse(CabinSeedsSchema, timbers.cabinSeeds);
   v.parse(PoolGroundSchema, timbers.poolGround);
@@ -321,7 +321,7 @@ async function eliteModules(ctx: ProjectGenerationContext) {
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<PineStaticOutput> {
   // the return modules need the build's compiler: refuse before the whole static output is built, not after it
   if (ctx.compileDecisionRows === undefined) throw new Error('Pine return modules need decision-row compilation');
-  const sources = await readPineSources(ctx), { output, platformRows } = await outputRows(sources, ctx.readImagePixels);
+  const sources = await readPineSources(ctx), { output, platformRows } = await outputRows(sources, ctx.readImagePixels, ctx.encodeGainKey);
   const shelter = await returnModule(ctx, 'shelter');
   const life = await returnModule(ctx, 'life'), birds = await phoneBirdsAtlasOutput(ctx), client = await pineClientBlobs(ctx), creatures = await pineCreatureBlobs(ctx), rigs = await pineRigBlobs(ctx), contracts = await contractModule(ctx), night = await nightModule(ctx), clock = await clockDirector(ctx), elites = await eliteModules(ctx), journal = emitNamedBlobs((await pineJournal(ctx)).blobs), king = await pineKingKit(ctx), kingFiles = emitNamedBlobs([king.blob, roamingCombatBlob(king.rows)]), flock = await pineBirds(ctx), people = await pineNpcSkins(ctx), coats = await pineCoatPages(ctx);
   // GR8 G32: the forest trees' rest pool, a critical product file (was the pine-tree-rest job's public GLB)

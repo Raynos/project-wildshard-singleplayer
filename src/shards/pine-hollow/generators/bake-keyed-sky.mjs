@@ -6,8 +6,9 @@ import { encodeGainKey, packGainKey } from '@wildshard/sdk/bake/keyedSky';
 import sky from '../data/sky.json' with { type: 'json' };
 import { skyKeySource } from './pineSources.ts';
 
-/** The keyed sky rows and packed key bytes; `readImagePixels` is the build context's decoder. */
-export async function pineKeyedSky(sources, readImagePixels) {
+/** The keyed sky rows and packed key bytes; `readImagePixels` is the build context's decoder and `encode` its memoised
+ *  gain-key gzip when it has one. */
+export async function pineKeyedSky(sources, readImagePixels, encode = encodeGainKey) {
   const packedKeys = {}, blobs = [];
   for (const [name, key] of Object.entries(sky.keys)) {
     const decode = template => readImagePixels(sources.bytes(skyKeySource(template, key.id)));
@@ -15,7 +16,7 @@ export async function pineKeyedSky(sources, readImagePixels) {
     const { width, height } = color;
     if (width !== gain.width || height !== gain.height) throw new Error(`Sky plane sizes differ: ${name}`);
     const { data, horizon } = packGainKey(color.pixels, gain.pixels, width, height), file = `look/sky/${name}.bin`;
-    blobs.push([file, encodeGainKey(data)]);
+    blobs.push([file, encode(data)]);
     packedKeys[name] = { file, width, height, horizon };
   }
   return { rows: { ...sky, packedKeys }, blobs };

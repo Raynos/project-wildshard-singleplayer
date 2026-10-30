@@ -6,13 +6,13 @@ import { resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { expect, test } from 'vitest';
 
-// The keyed sky's gzip memo (keyedSky.ts): a cold call, a hit and a damaged memo all return the uncached transform's bytes.
+// The keyed sky's gzip memo (keyedSkyMemo.ts, the build's encodeGainKey capability): a cold call, a hit and a damaged memo all return the uncached transform's bytes.
 test('the gain-key memo returns the exact gzip bytes cold, warm and after damage', async () => {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp/sp-o5-gain-key-'));
   process.env['WILDSHARD_GAIN_KEY_CACHE'] = root;
   try {
-    const { encodeGainKey } = await import('../src/sdk/bake/keyedSky');
+    const { encodeGainKeyMemo: encodeGainKey } = await import('../src/sdk/bake/keyedSkyMemo');
     const data = Uint16Array.from({ length: 64 * 32 * 3 }, (_v, i) => (i * 2654435761) % 31744);
     const reference = gzipSync(new Uint8Array(data.buffer), { level: 9 }); reference[9] = 19;
     const cold = encodeGainKey(data);
