@@ -77,8 +77,14 @@ export class PosedInstances {
     a[k] = a0; a[k + 1] = a1; a[k + 2] = a2; a[k + 3] = a3;
     if (b !== undefined) { b[k] = b0; b[k + 1] = b1; b[k + 2] = b2; b[k + 3] = b3; }
   }
-  /** draw exactly the instances added since `begin` */
-  commit(): void { this.mesh.count = this.n; this.mesh.instanceMatrix.needsUpdate = true; this.anim.needsUpdate = true; if (this.anim2 !== null) this.anim2.needsUpdate = true; }
+  /** draw exactly the instances added since `begin`. An empty draw reads no instance, so its arrays are not uploaded (Pine:
+   *  an idle flock's draw sent all three every frame, 6 buffer calls with the page's own draw where legacy made 3); the
+   *  next commit with copies uploads them whole. */
+  commit(): void {
+    this.mesh.count = this.n;
+    if (this.n === 0) return;
+    this.mesh.instanceMatrix.needsUpdate = true; this.anim.needsUpdate = true; if (this.anim2 !== null) this.anim2.needsUpdate = true;
+  }
 }
 
 /** Named numeric channels, with an optional threshold union selecting one lane. */

@@ -41,6 +41,12 @@ test('Pine product packing preserves every matrix, pose lane and strict flight t
     expect(library.models).toHaveLength(4);
     expect(library.models.map(row => row.id)).toEqual(WILDLIFE_DRAW.models.map(row => row.id));
     view.begin(); view.commit(); expect(view.mesh.count).toBe(0);
+    // an empty draw uploads nothing; the next one with copies uploads every channel
+    const versions = (): number[] => [view.mesh.instanceMatrix.version, ...['aAnim', 'aAnim2'].map(name => { const a = view.mesh.geometry.getAttribute(name); return 'version' in a ? a.version : -1; })];
+    const idle = versions(); view.begin(); view.commit(); expect(versions()).toEqual(idle);
+    const pose = { kind: 0, x: 1, y: 2, z: 3, yaw: 0, pitch: 0, roll: 0, scale: 1, a0: 0, a1: 1, a2: 0, a3: 0, b1: 0, b2: 0 };
+    view.begin(); view.add(pose); view.commit();
+    expect(versions()).toEqual(idle.map(v => v + 1)); expect(view.mesh.count).toBe(1);
     view.mesh.geometry.dispose(); old.mesh.geometry.dispose();
   } finally { disposals.forEach(run => { run(); }); source.dispose(); material.dispose(); atlas.dispose(); }
 });
