@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { explorerCards, explorerCases, explorerFailures, explorerState, sweepExplorer } from '../scripts/parity/explorer-smoke.mjs';
+import { explorerCards, explorerCases, explorerFailures, explorerState, sweepExplorer, openExplorerSession, verifyExplorerDocument, explorerDiagnostics } from '../scripts/parity/explorer-smoke.mjs';
 import type { Browser, BrowserContext, Page } from 'playwright';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual required workflow leg, without dispatching it.
@@ -14,6 +14,8 @@ const catalogue = [
   {slug:'open-plot-alien-plain',status:'hidden',legacy:false,shardSelect:false},
   {slug:'pine-hollow-legacy',status:'live',legacy:true},
 ];
+const currentDocument={url:'https://test.example/?chunk=fixture',timeOrigin:1,slug:'fixture'};
+const diagnostics={document:currentDocument,timingBufferFull:false,navigation:null,resources:[],measures:[]};
 
 function fixtureBrowser(evaluate: Page['evaluate']): { browser: Browser; close: ReturnType<typeof vi.fn<BrowserContext['close']>> } {
   const page: Page = legacyDouble<Page>({ evaluate, on: () => page,
@@ -39,16 +41,18 @@ test.each(['progress', 'stalled', 'fatal', 'black'] as const)('Explorer no-progr
   const last = { ...first, id: 'last', darkShare: mode === 'black' ? .9 : .2 };
   evaluate.mockImplementationOnce(() => {
     now = 120000;
-    return Promise.resolve({ fatal: [], empty: false, ready: false, readyIds: ['first'] });
+    return Promise.resolve({ document:currentDocument,fatal: [], empty: false, ready: false, readyIds: ['first'] });
   }).mockImplementationOnce(() => {
     now = 240000;
-    return Promise.resolve({ fatal: mode === 'fatal' ? ['real fault'] : [], empty: false, ready: false,
+    return Promise.resolve({ document:currentDocument,fatal: mode === 'fatal' ? ['real fault'] : [], empty: false, ready: false,
       readyIds: mode === 'stalled' ? ['first'] : ['first', 'middle'] });
   }).mockImplementationOnce(() => {
     now = 360000;
-    return Promise.resolve({ fatal: [], empty: false, ready: mode !== 'stalled',
+    return Promise.resolve({ document:currentDocument,fatal: [], empty: false, ready: mode !== 'stalled',
       readyIds: mode === 'stalled' ? ['first'] : ['first', 'middle', 'last'] });
-  }).mockResolvedValue([first, { ...first, id: 'middle' }, last]);
+  }).mockResolvedValueOnce([first, { ...first, id: 'middle' }, last])
+    .mockResolvedValueOnce({document:currentDocument,fatal:[],empty:false,ready:true,readyIds:['first','middle','last']})
+    .mockResolvedValue(diagnostics);
   const { browser, close } = fixtureBrowser(evaluate);
   try {
     if (mode === 'progress') {
@@ -68,13 +72,13 @@ test.each(['progress', 'stalled', 'fatal', 'black'] as const)('Explorer no-progr
 test('progress records only appended canvases and still requires the whole displayed catalogue', () => {
   document.body.innerHTML='<div class="ws-x show" data-mode="model"><div class="ws-x-grid"><button class="ws-x-model" data-id="first"><canvas></canvas></button><button class="ws-x-model" data-id="pending"></button></div></div>';
   try {
-    expect(explorerState()).toEqual({fatal:[],empty:false,ready:false,readyIds:['first']});
+    expect(explorerState()).toMatchObject({fatal:[],empty:false,ready:false,readyIds:['first']});
     const pending=document.querySelector('[data-id="pending"]');
     if(pending===null)throw new Error('Missing pending card');
     pending.append(document.createElement('canvas'));
-    expect(explorerState()).toEqual({fatal:[],empty:false,ready:true,readyIds:['first','pending']});
+    expect(explorerState()).toMatchObject({fatal:[],empty:false,ready:true,readyIds:['first','pending']});
     document.querySelector('.ws-x')?.classList.remove('show');
-    expect(explorerState()).toEqual({fatal:[],empty:false,ready:false,readyIds:[]});
+    expect(explorerState()).toMatchObject({fatal:[],empty:false,ready:false,readyIds:[]});
   } finally { document.body.replaceChildren(); }
 });
 
@@ -83,7 +87,7 @@ test.each(['state', 'pixels'] as const)('a stuck %s read refuses within the unch
   const out = mkdtempSync('tmp/sp-x9-explorer/stopped-renderer-');
   vi.useFakeTimers();
   const evaluate = vi.fn<Page['evaluate']>();
-  if (mode === 'pixels') evaluate.mockResolvedValueOnce({ fatal: [], empty: false, ready: true, readyIds: ['first'] });
+  if (mode === 'pixels') evaluate.mockResolvedValueOnce({ document:currentDocument,fatal: [], empty: false, ready: true, readyIds: ['first'] });
   evaluate.mockImplementation(() => new Promise(() => { /* The renderer never returns a protocol result. */ }));
   const { browser, close } = fixtureBrowser(evaluate);
   try {
@@ -142,11 +146,12 @@ test('a model-ready invalidation between presence and pixels waits for the repla
   mkdirSync('tmp/sp-x7-live', { recursive: true });
   const out = mkdtempSync('tmp/sp-x7-live/explorer-redraw-');
   const evaluate = vi.fn<Page['evaluate']>();
-  const state = { fatal: [], empty: false, ready: true, readyIds: ['shared/training-dummy'] };
+  const state = { document:currentDocument,fatal: [], empty: false, ready: true, readyIds: ['shared/training-dummy'] };
   const missing = { id: 'shared/training-dummy', ready: false, pixels: 0, darkShare: 1 };
   const drawn = { ...missing, ready: true, pixels: 100, darkShare: .2 };
   evaluate.mockResolvedValueOnce(state).mockResolvedValueOnce([missing])
-    .mockResolvedValueOnce(state).mockResolvedValueOnce([drawn]);
+    .mockResolvedValueOnce(state).mockResolvedValueOnce([drawn])
+    .mockResolvedValueOnce(state).mockResolvedValueOnce(diagnostics);
   const page: Page = legacyDouble<Page>({ evaluate, on: () => page,
     goto: vi.fn<Page['goto']>().mockResolvedValue(null),
     close: vi.fn<Page['close']>().mockResolvedValue(),
@@ -164,7 +169,77 @@ test('a model-ready invalidation between presence and pixels waits for the repla
     await sweepExplorer(browser, 'https://test.example/', 'fixture', out);
     const receipt: unknown = JSON.parse(readFileSync(`${out}/fixture.json`, 'utf8'));
     expect(receipt).toMatchObject({ cards: [drawn], failures: [] });
-    expect(evaluate).toHaveBeenCalledTimes(4);
+    expect(evaluate).toHaveBeenCalledTimes(6);
     expect(close).toHaveBeenCalledOnce();
   } finally { rmSync(out, { recursive: true, force: true }); }
+});
+
+test('a ready catalogue must belong to the requested new world document',()=>{
+  expect(()=>verifyExplorerDocument(currentDocument,'https://test.example/','fixture',undefined)).not.toThrow();
+  for(const observed of [
+    {...currentDocument,slug:'previous'},
+    {...currentDocument,url:'https://test.example/?chunk=previous'},
+    {...currentDocument,url:'https://foreign.example/?chunk=fixture'},
+    {...currentDocument,timeOrigin:Number.NaN},
+  ])expect(()=>verifyExplorerDocument(observed,'https://test.example/','fixture',undefined)).toThrow('stale or foreign');
+  expect(()=>verifyExplorerDocument(currentDocument,'https://test.example/','fixture',1)).toThrow('stale or foreign');
+});
+
+function sessionFixture(stale=false){
+  let identity={...currentDocument,timeOrigin:0};
+  const listeners=new Map<string,unknown>();
+  const goto=vi.fn<Page['goto']>().mockImplementation(url=>{
+    identity={url,timeOrigin:stale&&identity.timeOrigin>0?identity.timeOrigin:identity.timeOrigin+1,
+      slug:stale&&identity.timeOrigin>0?identity.slug:new URL(url).searchParams.get('chunk')??''};
+    return Promise.resolve(null);
+  });
+  const evaluate=vi.fn<Page['evaluate']>().mockImplementation(fn=>{
+    if(fn===explorerState)return Promise.resolve({document:identity,fatal:[],empty:false,ready:true,readyIds:[`${identity.slug}/actual`]});
+    if(fn===explorerDiagnostics)return Promise.resolve({...diagnostics,document:identity});
+    return Promise.resolve([{id:`${identity.slug}/actual`,ready:true,pixels:100,darkShare:.2}]);
+  });
+  const page:Page=legacyDouble<Page>({evaluate,goto,on:(event:string,listener:unknown)=>{listeners.set(event,listener);return page;},
+    screenshot:vi.fn<Page['screenshot']>().mockRejectedValue(new Error('No capture in the bounded fixture'))});
+  const close=vi.fn<BrowserContext['close']>().mockResolvedValue(undefined);
+  const newPage=vi.fn<BrowserContext['newPage']>().mockResolvedValue({...page});
+  const route=vi.fn<BrowserContext['route']>();
+  const disposable={dispose:()=>Promise.resolve(),[Symbol.asyncDispose]:()=>Promise.resolve()};
+  const context=legacyDouble<BrowserContext>({newPage,route,close,addInitScript:vi.fn<BrowserContext['addInitScript']>().mockResolvedValue(disposable)});
+  const newContext=vi.fn<Browser['newContext']>().mockResolvedValue({...context});
+  return {browser:legacyDouble<Browser>({newContext}),newContext,newPage,route,close,listeners};
+}
+
+test('one context and page retain native caches while every catalogue has new document and pixel checks',async()=>{
+  mkdirSync('tmp/sp-x9-explorer',{recursive:true});const out=mkdtempSync('tmp/sp-x9-explorer/reused-');
+  const f=sessionFixture(),session=await openExplorerSession(f.browser,'https://test.example/');
+  try{
+    for(const slug of ['first','second','first']){
+      await session.sweep(slug,out);
+      const result:unknown=JSON.parse(readFileSync(`${out}/${slug}.json`,'utf8'));
+      expect(result).toMatchObject({slug,document:{slug},cards:[{id:`${slug}/actual`,pixels:100,darkShare:.2}],failures:[]});
+    }
+    expect(f.newContext).toHaveBeenCalledOnce();expect(f.newPage).toHaveBeenCalledOnce();
+    expect(f.route).not.toHaveBeenCalled();expect(f.close).not.toHaveBeenCalled();
+  }finally{await session.close();rmSync(out,{recursive:true,force:true});}
+  expect(f.close).toHaveBeenCalledOnce();
+});
+
+test('previous ready cards cannot pass the next reused catalogue',async()=>{
+  mkdirSync('tmp/sp-x9-explorer',{recursive:true});const out=mkdtempSync('tmp/sp-x9-explorer/old-document-');
+  const f=sessionFixture(true),session=await openExplorerSession(f.browser,'https://test.example/');
+  try{
+    await session.sweep('first',out);
+    await expect(session.sweep('second',out)).rejects.toThrow('stale or foreign');
+  }finally{await session.close();rmSync(out,{recursive:true,force:true});}
+});
+
+test('a late HTTP error from an earlier catalogue remains fatal to the reused session',async()=>{
+  mkdirSync('tmp/sp-x9-explorer',{recursive:true});const out=mkdtempSync('tmp/sp-x9-explorer/late-http-');
+  const f=sessionFixture(),session=await openExplorerSession(f.browser,'https://test.example/');
+  try{
+    await session.sweep('first',out);
+    const response=f.listeners.get('response');if(typeof response!=='function')throw new Error('Missing HTTP observer');
+    Reflect.apply(response,undefined,[{status:()=>500,url:()=> 'https://test.example/failed.bin'}]);
+    await expect(session.sweep('second',out)).rejects.toThrow('HTTP 500');
+  }finally{await session.close();rmSync(out,{recursive:true,force:true});}
 });
