@@ -21,12 +21,17 @@ const level:BootLevel={slug:'fixture',card:{thumb:'data:,',portrait:'data:,',lan
 const bank:LevelAudioBank={title:undefined,score:{slots:new Map(),stings:new Map()},cues:{loops:new Map(),shots:new Map()}};
 const profile:LevelAudioProfile={files:()=>all,bootFiles:genre=>genre==='folk'?[music,sfx]:[foreignMusic,foreignSfx],decode:()=>Promise.resolve(bank)};
 const priorTables:AssetTables={bytes:{},versions:{},music:{},sfx:{},packs:{}};
+const tableSlot = Symbol.for('engine.asset-tables');
+const previousTables = Object.getOwnPropertyDescriptor(globalThis, tableSlot);
 beforeEach(()=>{
   setBootCatalog({levels:[level],playable:[level],find:()=>level,artBytes:{}});
   installAssetTables({...priorTables,bytes:{[music]:3,[sfx]:3,[foreignMusic]:100,[foreignSfx]:100}});
   vi.spyOn(settings,'getMusicStyle').mockReturnValue('folk');
 });
-afterEach(()=>{installAssetTables(priorTables);});
+afterEach(() => {
+  if (previousTables === undefined) Reflect.deleteProperty(globalThis, tableSlot);
+  else Object.defineProperty(globalThis, tableSlot, previousTables);
+});
 
 test('boot declares only selected profile audio while background inventory retains every style',async()=>{
   await prepareBootAudio(level.boot);

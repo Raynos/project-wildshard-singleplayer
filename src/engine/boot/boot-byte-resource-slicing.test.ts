@@ -11,6 +11,8 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const originalTier = TIER, environment = scopeEnvironment(), nativeFetch = window.fetch, nativeChannel = globalThis.MessageChannel;
 const tables: AssetTables = { bytes: {}, versions: {}, music: {}, sfx: {}, packs: {} };
+const tableSlot = Symbol.for('engine.asset-tables');
+const previousTables = Object.getOwnPropertyDescriptor(globalThis, tableSlot);
 const files: ChunkFiles = { sky: [], baked: [], terrain: [], trees: [], cabins: [], props: Array.from({ length: 12 }, (_, i) => `/assets/byte-slice-${String(i)}.png`), physics: [], art: [], music: [], sfx: [] };
 const frames: ((time: number) => void)[] = [];
 let now = 1000, cost = 0, extractionCost = 0, extractions = 0;
@@ -35,7 +37,9 @@ beforeEach(() => {
 });
 afterEach(() => { releaseByteCounter();noteFrameDrawn(Number.NEGATIVE_INFINITY);setBuildHeld(false);vi.restoreAllMocks();vi.useRealTimers(); });
 afterAll(() => {
-  installAssetTables(tables);initializeTier(originalTier);installScopeEnvironment(environment);
+  if (previousTables === undefined) Reflect.deleteProperty(globalThis, tableSlot);
+  else Object.defineProperty(globalThis, tableSlot, previousTables);
+  initializeTier(originalTier);installScopeEnvironment(environment);
   window.fetch = nativeFetch;Reflect.set(globalThis, 'MessageChannel', nativeChannel);vi.unstubAllGlobals();
 });
 
