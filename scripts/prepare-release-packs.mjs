@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Overlap network-only Vercel setup with the exact tested dist's smoke pack.
+// Overlap the independent smoke and Vercel packages of the exact tested dist.
 // Pull requests pack smoke artifacts without needing deployment credentials.
 import { execFileSync } from 'node:child_process';
 import { parseArgs } from 'node:util';
@@ -47,11 +47,12 @@ async function phase(commands, labels) {
 
 const started = performance.now();
 try {
-  await phase(values.vercel ? [boot, setup] : [boot], values.vercel ? ['boot pack', 'Vercel setup'] : ['boot pack']);
-  if (values.vercel) {
-    await phase([`${node} scripts/build-vercel-output.mjs`
-      + ` && python3 scripts/prebuilt-output.py pack --sha ${quote(sha)} --run ${quote(run)}`], ['Vercel pack']);
-  }
+  // Both consumers read the final immutable dist. Vercel's package depends
+  // on its setup, not on the independent smoke archive finishing. A failure
+  // still drains the sibling and prevents the producer from succeeding.
+  const vercel = `${setup} && ${node} scripts/build-vercel-output.mjs`
+    + ` && python3 scripts/prebuilt-output.py pack --sha ${quote(sha)} --run ${quote(run)}`;
+  await phase(values.vercel ? [boot, vercel] : [boot], values.vercel ? ['boot pack', 'Vercel setup and pack'] : ['boot pack']);
   console.log(`release packaging: ${((performance.now() - started) / 1000).toFixed(3)} s`);
 } catch (error) {
   console.error(error instanceof Error ? error.message : 'Release packaging failed');

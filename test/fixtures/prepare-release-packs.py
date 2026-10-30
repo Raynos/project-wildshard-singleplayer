@@ -36,12 +36,14 @@ assert json.loads(Path('boot-dist-plan.json').read_text()) == {'plan':'exact'}
 assert sys.argv[1:] == ['pack','--sha',os.environ['GITHUB_SHA'],'--run','123']
 Path('boot-start').touch()
 if 'BARRIER' in os.environ: urllib.request.urlopen(os.environ['BARRIER']+'/boot',timeout=3).read()
+if os.environ.get('FAIL_BOOT_LATE'): raise SystemExit(25)
 if os.environ.get('FAIL_BOOT'): raise SystemExit(23)
 Path('boot-done').touch()
 print('original boot pack')
 ''')
         self.put('scripts/build-vercel-output.mjs', '''import{existsSync,writeFileSync}from'node:fs';
-if(!existsSync('boot-done')||!existsSync('pull-done'))throw Error('packaging raced its prerequisites');
+if(!existsSync('pull-done'))throw Error('packaging raced Vercel setup');
+if(process.env.BOOT_BUILD_BARRIER)await fetch(process.env.BARRIER+'/vercel-build');
 writeFileSync('vercel-built','exact dist');console.log('original Vercel build');''')
         self.put('scripts/prebuilt-output.py', '''import os,sys
 from pathlib import Path
@@ -55,7 +57,7 @@ import os,sys,urllib.request
 from pathlib import Path
 assert sys.argv[1:] == ['install','--global','vercel@59.11.2']
 Path('npm-start').touch()
-if 'BARRIER' in os.environ: urllib.request.urlopen(os.environ['BARRIER']+'/npm',timeout=3).read()
+if 'BARRIER' in os.environ and not os.environ.get('BOOT_BUILD_BARRIER'): urllib.request.urlopen(os.environ['BARRIER']+'/npm',timeout=3).read()
 if os.environ.get('FAIL_NPM'): raise SystemExit(24)
 if os.environ.get('WAIT_NPM'):
  import time
@@ -126,6 +128,25 @@ Path('pull-done').touch()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(arrived, {'/boot', '/npm'})
         self.assertTrue((self.root / 'prebuilt-done').exists())
+
+    def test_vercel_build_can_finish_setup_while_the_independent_boot_pack_waits(self):
+        self.credentials()
+        arrived = self.barrier()
+        self.env['BOOT_BUILD_BARRIER'] = '1'
+        result = self.run_pack('--vercel')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(arrived, {'/boot', '/vercel-build'})
+        self.assertTrue((self.root / 'boot-done').exists())
+        self.assertTrue((self.root / 'prebuilt-done').exists())
+
+    def test_late_boot_refusal_still_fails_the_whole_concurrent_producer(self):
+        self.credentials()
+        arrived = self.barrier()
+        self.env.update(BOOT_BUILD_BARRIER='1', FAIL_BOOT_LATE='1')
+        result = self.run_pack('--vercel')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(arrived, {'/boot', '/vercel-build'})
+        self.assertFalse((self.root / 'boot-done').exists())
 
     def test_missing_credentials_and_foreign_identity_refuse_before_work(self):
         result = self.run_pack('--vercel')
