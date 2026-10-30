@@ -111,5 +111,5 @@ try {
     }
   }
   save();
-  if (result.differences.some(row => row.pixels !== 0)) throw new Error('Independent world A/A is not exact; inspect reading.json');
+  if (result.differences.some(row => row.pixels !== 0)) throw new Error('World AA/AB pixel mismatch; inspect reading.json');
 } finally { await browser.close(); }
