@@ -219,6 +219,29 @@ export async function postGraphLook(product: { readonly slug: string; readonly j
 }
 
 /** A level's post-graph look from its admitted row (`slug` names its LUT): an engine-chain look, or with `scene` its own. */
+/**
+ * G924 (FC10's order, worldDepth.ts WorldRenderPass): the scene pass lets three clear its target after the shadow pass (the
+ * background step, with autoClear) instead of the clear pass clearing it first. A target cleared and then left for the
+ * shadow map is stored and loaded back by a tile GPU: on Nalati's phone frame that was a whole MSAA screen and a bind.
+ */
+class ShadowFirstRenderPass extends RenderPass {
+  override render(renderer: Renderer, inputBuffer: WebGLRenderTarget | null, outputBuffer: WebGLRenderTarget | null, deltaTime?: number, stencilTest?: boolean): void {
+    const clear = this.clearPass;
+    if (inputBuffer === null || this.renderToScreen || !clear.enabled || clear.overrideClearColor !== null || clear.overrideClearAlpha !== -1) { super.render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest); return; }
+    // the renderer's own clear, put back as it was at the first clear of the scene target (nested renders keep theirs)
+    const autoClear = renderer.autoClear, own: unknown = Reflect.get(renderer, 'clear');
+    if (typeof own !== 'function') throw new Error('Renderer clear is not a function');
+    let restored = false;
+    const restore = (): void => { if (restored) return; restored = true; renderer.autoClear = autoClear; Reflect.set(renderer, 'clear', own); };
+    Reflect.set(renderer, 'clear', (color?: boolean, depth?: boolean, stencil?: boolean): void => {
+      if (renderer.getRenderTarget() === inputBuffer) restore();
+      Reflect.apply(own, renderer, [color, depth, stencil]);
+    });
+    clear.enabled = false; renderer.autoClear = true;
+    try { super.render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest); } finally { clear.enabled = true; restore(); }
+  }
+}
+
 export function postGraphLookOf(slug: string, input: unknown): LookStrategy {
   const row = v.parse(PostGraphLookSchema, input);
   const lut: UniformMap = row.lut === undefined ? {} : { [row.lut.texture]: { value: neutralLut() }, [row.lut.amount]: { value: 0 } };
@@ -287,7 +310,7 @@ export function postGraphLookOf(slug: string, input: unknown): LookStrategy {
   if (row.scene !== undefined) return { ...parts, mode: 'replace', compose: (c) => {
     const built = build(c.camera, c.tier, c.renderer, null);
     bindPostGraphEvents(row.events, built.bag, built.display, c.app.events, c.scope);
-    return { chain: [new RenderPass(c.scene, c.camera), ...built.passes, new EffectPass(c.camera, built.display)] };
+    return { chain: [new ShadowFirstRenderPass(c.scene, c.camera), ...built.passes, new EffectPass(c.camera, built.display)] };
   } };
   return {
     ...parts,
