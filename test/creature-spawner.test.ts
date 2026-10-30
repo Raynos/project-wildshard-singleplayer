@@ -1,9 +1,10 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
 import { createCreatureSpawner } from '../src/game/plugin/brain';
 import { PageActorGroups } from '../src/game/population/pageGroups';
 import { ReturnGate } from '../src/game/population/respawn';
-import { manager as realManager } from '@wildshard/engine/test/manager';
+import { manager as realManager, huntOf } from '@wildshard/engine/test/manager';
+import {onFault,type Fault} from '../src/engine/core/faults';
 import { speciesDef } from '../src/engine/entities/species/registry';
 import { Scope } from '../src/engine/app/scope';
 import {RETURN_PROGRAM as program} from './fixtures/driftwood-guest-programs';
@@ -110,4 +111,19 @@ test('a sliced retirement retires one owned actor a step, then nothing more', ()
   expect(steps.next().done).toBe(false); expect(steps.next().done).toBe(false); expect(steps.next().done).toBe(true);
   expect(retired).toEqual(actors);
   spawner.dispose(); expect(spawner.retireSteps().next().done).toBe(true); expect(retired).toEqual(actors);
+});
+
+test('a refused manager decision reports once without stopping other animals or later frames',()=>{
+  const restore=overrideTerrain({heightAt:()=>0,normalAt:()=>[0,1,0],waterLevel:()=>-100}),scope=new Scope('manager-frame-guard');
+  const f=scope.run(()=>realManager()),animals=f.manager,hunt=huntOf(animals),faults:Fault[]=[];
+  const first=scope.run(()=>animals.spawn('boar',3,4,0)),second=scope.run(()=>animals.spawn('boar',6,4,0));
+  const thought=vi.spyOn(hunt,'think'),off=onFault(fault=>{faults.push(fault);});
+  try{
+    hunt.forget(first);
+    expect(()=>f.advance(30)).not.toThrow();expect(f.game.dead).toBe(false);
+    expect(faults).toHaveLength(1);expect(faults[0]).toMatchObject({system:'animals.think',verdict:'retry',error:expect.objectContaining({message:expect.stringContaining('has no brain')})});
+    expect(thought.mock.calls.some(call=>call[0]===second)).toBe(true);expect(thought.mock.calls.some(call=>call[0]===first)).toBe(false);
+    const accepted=thought.mock.calls.length;f.advance(12);expect(thought.mock.calls.length).toBeGreaterThan(accepted);expect(faults).toHaveLength(1);
+    expect(()=>animals.spawn('boar',0,0,0,undefined,{y:Number.NaN})).toThrow('Creature spawn placement must be finite');
+  }finally{off();thought.mockRestore();animals.retire(first);animals.retire(second);scope.dispose();restore();}
 });

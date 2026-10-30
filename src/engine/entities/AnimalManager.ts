@@ -2,6 +2,7 @@ import { clearBody as clearNativeBody } from './bodyClear';
 import { poseEvery } from './poseCadence';
 import { EntityIds } from './ids';
 import { app } from '../app/runtime';
+import { emitFault } from '../core/faults';
 import { ParticlePool } from '../fx/ParticlePool';
 import * as THREE from 'three';
 import { canReach } from '../ai/reach';
@@ -269,6 +270,7 @@ interface FarRig extends FarMember {
 /** E322 F-L4: the grass a body parts (m, the trample's radius) */
 
 export class AnimalManager {
+  private readonly reportedDecisions = new WeakSet<Animal>();
   /** the animals' own world-matrix pass: a still, far animal's bones are not recomputed (animalMatrices.ts) */
   group: AnimalGroup = new AnimalGroup();
   animals: Animal[] = [];
@@ -710,6 +712,14 @@ export class AnimalManager {
   }
 
   private think(a: Animal, dt: number, player: THREE.Vector3, sprinting: boolean): void {
+    try { this.thinkFrame(a, dt, player, sprinting); }
+    catch (error) {
+      if (!this.reportedDecisions.has(a)) { this.reportedDecisions.add(a); emitFault({system: 'animals.think', error, verdict: 'retry'}); }
+    }
+  }
+  /** Keep refused observations local to one actor, including interrupt wakes.
+   * Accepted native state/effects are never rolled back or replayed. */
+  private thinkFrame(a: Animal, dt: number, player: THREE.Vector3, sprinting: boolean): void {
     if (a.simulationBound) return;
     if (this.hunt.memory(a) === undefined) throw new Error(`AnimalManager: ${a.kind} has no brain (not spawned through spawn())`);
     const self = speciesDef(a.kind).think;
