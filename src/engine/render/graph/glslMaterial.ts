@@ -23,7 +23,8 @@ import { ClassicCodec } from './glslCodec';
 
 /** the uniforms a variant keeps its own (a creature's tint, a borrowed map); every other one is shared with its source */
 const OWN_UNIFORMS: ReadonlySet<string> = new Set(['wsMaterialColour', 'wsMaterialEmissive', 'wsMaterialEmissiveIntensity', 'wsMeshMap', 'wsBumpMap',
-  'wsMaterialRoughness', 'wsAlphaCutoff', 'wsCodecStep', 'wsCodecOrigin']);
+  'wsMaterialRoughness', 'wsAlphaCutoff', 'wsCodecStep', 'wsCodecOrigin', 'normalMap', 'normalMapTransform', 'normalScale', 'roughnessMap',
+  'roughnessMapTransform', 'aoMap', 'aoMapTransform', 'aoMapIntensity']);
 
 /** A lowered graph's `ShaderMaterial`: its clones share the graph's uniforms; its colour, emissive and mesh maps are ports. */
 export class GraphShaderMaterial extends THREE.ShaderMaterial {
@@ -58,6 +59,24 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
   /** a borrowed bump map (`meshMap` named `bump`) */
   get bumpMap(): THREE.Texture | null { return this.texture('wsBumpMap'); }
   set bumpMap(texture: THREE.Texture | null) { this.lend('wsBumpMap', 'WS_BUMP_MAP', texture); }
+  /** a lit graph's borrowed PBR maps (`bindGraphMeshMap`'s `graphPbrMaps` loan), as a node material's slots: three switches
+   *  their defines from these properties, the lit program samples them with its stock chunks */
+  readonly normalMapType: THREE.NormalMapTypes = THREE.TangentSpaceNormalMap;
+  get normalMap(): THREE.Texture | null { return this.texture('normalMap'); }
+  set normalMap(texture: THREE.Texture | null) { this.slot('normalMap', 'normalMapTransform', texture); }
+  get roughnessMap(): THREE.Texture | null { return this.texture('roughnessMap'); }
+  set roughnessMap(texture: THREE.Texture | null) { this.slot('roughnessMap', 'roughnessMapTransform', texture); }
+  get aoMap(): THREE.Texture | null { return this.texture('aoMap'); }
+  set aoMap(texture: THREE.Texture | null) { this.slot('aoMap', 'aoMapTransform', texture); }
+  get aoMapIntensity(): number { const u = this.uniforms['aoMapIntensity']; return typeof u?.value === 'number' ? u.value : 1; }
+  set aoMapIntensity(value: number) { this.own('aoMapIntensity', value); }
+  /** the normal map's scale, the uniform's own vector (a loan copies into it) */
+  get normalScale(): THREE.Vector2 {
+    const known: unknown = this.uniforms['normalScale']?.value;
+    if (known instanceof THREE.Vector2) return known;
+    const value = new THREE.Vector2(1, 1); this.uniforms['normalScale'] = { value };
+    return value;
+  }
 
   override onBeforeRender(_renderer: THREE.WebGLRenderer, scene: THREE.Scene, _camera: THREE.Camera, _geometry: THREE.BufferGeometry, object: THREE.Object3D): void {
     this.codec?.draw(this, object);
@@ -95,6 +114,17 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
     const defines: Record<string, unknown> = { ...this.defines };
     if (texture === null) Reflect.deleteProperty(defines, define); else defines[define] = '';
     this.defines = defines; this.needsUpdate = true;
+  }
+  /** a PBR map slot and its uv transform (three refreshes neither for a shader material); its presence is a program variant */
+  private slot(name: string, transform: string, texture: THREE.Texture | null): void {
+    const had = this.texture(name) !== null;
+    this.own(name, texture);
+    if (texture !== null) {
+      if (texture.matrixAutoUpdate) texture.updateMatrix();
+      const known: unknown = this.uniforms[transform]?.value;
+      if (known instanceof THREE.Matrix3) known.copy(texture.matrix); else this.uniforms[transform] = { value: texture.matrix.clone() };
+    }
+    if (had !== (texture !== null)) this.needsUpdate = true;
   }
 }
 
@@ -160,6 +190,7 @@ function shaderMaterial(glsl: GraphGlsl, opts: GraphShaderOptions): GraphShaderM
   if (ir.stages.lighting?.grade !== undefined || (ir.model === 'unlit' && effect?.output !== 'colour')) m.toneMapped = false;
   // the flags the client reads off a compiled graph, as compile.ts sets them: a borrowed mesh map, raw unlit output, points
   if (graphUsesMeshMap(ir)) m.userData['graphMeshMap'] = true;
+  if (ir.kind === 'material' && ir.model !== 'unlit') m.userData['graphPbrMaps'] = true;
   if (ir.kind === 'material' && ir.model === 'unlit' && effect?.output !== 'colour') m.userData['graphRawOutput'] = true;
   if (ir.primitive === 'points') m.userData['graphPrimitive'] = 'points';
   return m;

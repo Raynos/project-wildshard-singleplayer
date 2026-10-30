@@ -112,3 +112,16 @@ test('a lit graph takes its drawn scene\'s prefiltered environment, as a node ma
   scene.environment = new THREE.Texture(); draw(lit);
   expect(lit.envMap).toBe(null);
 });
+
+test('a lit graph borrows a model\'s normal, roughness and ao maps as its own slots, as the node path does', () => {
+  const lit = compileClassicGraph({ version: 1, kind: 'material', model: 'standard', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } }).material;
+  expect(lit.userData['graphPbrMaps']).toBe(true);
+  expect(compileClassicGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } }).material.userData['graphPbrMaps']).toBeUndefined();
+  const copy = lit.clone(), normal = new THREE.Texture(), rough = new THREE.Texture();
+  rough.offset.set(0.5, 0);
+  Object.assign(copy, { normalMap: normal, roughnessMap: rough, aoMapIntensity: 0.5 }); copy.normalScale.set(2, 2);
+  expect(copy.normalMap).toBe(normal); expect(copy.uniforms['normalScale']?.value).toEqual(new THREE.Vector2(2, 2));
+  expect(copy.uniforms['roughnessMapTransform']?.value).toEqual(new THREE.Matrix3().setUvTransform(0.5, 0, 1, 1, 0, 0, 0));
+  expect(lit.normalMap).toBe(null); expect(lit.aoMapIntensity).toBe(1); expect(lit.normalScale).toEqual(new THREE.Vector2(1, 1));
+  expect(lit.fragmentShader).toContain('USE_NORMALMAP_TANGENTSPACE');
+});

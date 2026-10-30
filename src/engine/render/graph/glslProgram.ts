@@ -179,7 +179,7 @@ function vertexShader(glsl: GraphGlsl, program: GraphGlslProgram, uniforms: stri
 #include <fog_pars_vertex>
 #include <morphtarget_pars_vertex>
 #include <skinning_pars_vertex>
-${lit ? '#include <normal_pars_vertex>\n#include <shadowmap_pars_vertex>\nvarying vec3 vViewPosition;' : ''}
+${lit ? '#include <uv_pars_vertex>\n#include <normal_pars_vertex>\n#include <shadowmap_pars_vertex>\nvarying vec3 vViewPosition;' : ''}
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>
 uniform float wsCodecStep;
@@ -195,6 +195,7 @@ ${CAMERA_HELPERS}
 ${fogged ? 'varying vec3 wsVFogWorld;' : ''}
 ${program.vertex.head}
 void main() {
+${lit ? '#include <uv_vertex>' : ''}
 #include <morphinstance_vertex>
 #include <batching_vertex>
 ${colourVertex(program)}
@@ -289,6 +290,14 @@ ${output}
 }`;
 }
 
+/** a borrowed tangent-space normal map (`normalMap`), as three's `normal_fragment_maps` without its bump branch (three
+ *  defines USE_BUMPMAP for a borrowed bump map, which the graph samples itself) */
+const NORMAL_MAP = `#ifdef USE_NORMALMAP_TANGENTSPACE
+  vec3 mapN = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;
+  mapN.xy *= normalScale;
+  normal = normalize( tbn * mapN );
+#endif`;
+
 /** a lit graph's fragment stage: three's physical model, its light equations the graph's where it has a lighting stage */
 function litFragment(glsl: GraphGlsl, program: GraphGlslProgram, uniforms: string, fogged: boolean, fog: GraphGlsl | undefined, replaceEnvironmentDiffuse: boolean): string {
   const o = program.outputs, ir = glsl.ir, s = ir.stages.surface, l = program.lighting;
@@ -353,11 +362,15 @@ ${l.specular ? `  IncidentLight specular = directLight; specular.color = base * 
     : replaceEnvironmentDiffuse && l.ambient
       ? '#undef RE_IndirectSpecular\n#define RE_IndirectSpecular( r, i, c, gp, gn, gv, gc, mat, rl ) RE_IndirectSpecular_Physical( r, vec3( 0.0 ), c, gp, gn, gv, gc, mat, rl )'
       : '';
-  const occlusion = o.occlusion === null ? '' : `  float ambientOcclusion = ${o.occlusion};
+  // the graph's occlusion times a borrowed ao map's, as the node path's mapped factor (once: the specular occlusion reads both)
+  const occlusion = `${o.occlusion === null ? '#ifdef USE_AOMAP\n' : ''}  float ambientOcclusion = ${o.occlusion ?? '1.0'};
+#ifdef USE_AOMAP
+  ambientOcclusion *= ( texture2D( aoMap, vAoMapUv ).r - 1.0 ) * aoMapIntensity + 1.0;
+#endif
   reflectedLight.indirectDiffuse *= ambientOcclusion;
 #if defined( USE_ENVMAP ) && defined( STANDARD )
   reflectedLight.indirectSpecular *= computeSpecularOcclusion( saturate( dot( geometryNormal, geometryViewDir ) ), ambientOcclusion, material.roughness );
-#endif`;
+#endif${o.occlusion === null ? '\n#endif' : ''}`;
   return `#define WS_GRAPH
 #define STANDARD
 varying vec3 vViewPosition;
@@ -369,7 +382,11 @@ varying vec3 vViewPosition;
 #include <envmap_physical_pars_fragment>
 #include <fog_pars_fragment>
 #include <lights_pars_begin>
+#include <uv_pars_fragment>
 #include <normal_pars_fragment>
+#include <normalmap_pars_fragment>
+#include <roughnessmap_pars_fragment>
+#include <aomap_pars_fragment>
 #include <lights_physical_pars_fragment>
 #include <shadowmap_pars_fragment>
 #include <logdepthbuf_pars_fragment>
@@ -396,10 +413,13 @@ ${cutoff}
   ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
   vec3 totalEmissiveRadiance = ${o.emissive ?? 'vec3( 0.0 )'};
   float roughnessFactor = ${o.roughness ?? 'wsMaterialRoughness'};
+#ifdef USE_ROUGHNESSMAP
+  roughnessFactor *= texture2D( roughnessMap, vRoughnessMapUv ).g;
+#endif
   float metalnessFactor = ${o.metalness ?? '0.0'};
 #include <normal_fragment_begin>
 ${ir.flipBackfaceNormals === false ? '#ifdef DOUBLE_SIDED\n  normal *= faceDirection;\n#endif' : ''}
-${o.shadingNormal !== null ? `  normal = normalize( ( viewMatrix * vec4( ${o.shadingNormal}, 0.0 ) ).xyz );` : ''}
+${o.shadingNormal !== null ? `  normal = normalize( ( viewMatrix * vec4( ${o.shadingNormal}, 0.0 ) ).xyz );` : NORMAL_MAP}
 #include <lights_physical_fragment>
   wsNormalView = normal;
   wsViewDirection = ( isOrthographic ) ? vec3( 0.0, 0.0, 1.0 ) : normalize( vViewPosition );
@@ -595,8 +615,10 @@ export function graphShaders(glsl: GraphGlsl, opts: GraphShaderOptions = {}): Gr
   if (lit && program.outputs.roughness === null) { uniforms['wsMaterialRoughness'] = { value: 1 }; ports.push('uniform float wsMaterialRoughness;'); }
   const fragmentText = ports.length === 0 ? text : [text, ...ports].join('\n');
   const declaredFog = fogged && fog !== undefined ? fog.glsl : undefined;
-  // the environment's own uniforms (`syncGraphEnvironment` fills them from the drawn scene) and three's DFG table
-  if (lit) Object.assign(uniforms, THREE.UniformsUtils.merge([THREE.UniformsLib.lights, THREE.UniformsLib.envmap]), { envMapIntensity: { value: 1 } }, { ...uniforms });
+  // the environment's own uniforms (`syncGraphEnvironment` fills them from the drawn scene), three's DFG table and the
+  // borrowed PBR maps' slots (`GraphShaderMaterial`'s normal, roughness and ao maps)
+  if (lit) Object.assign(uniforms, THREE.UniformsUtils.merge([THREE.UniformsLib.lights, THREE.UniformsLib.envmap, THREE.UniformsLib.normalmap,
+    THREE.UniformsLib.roughnessmap, THREE.UniformsLib.aomap]), { envMapIntensity: { value: 1 } }, { ...uniforms });
   // three refreshes fogColor only for a fogged material: one that reads it unfogged keeps the uniforms (fog_fragment stays out)
   if (fogged || program.fragment.body.includes('wsFogColour()') || program.vertex.body.includes('wsFogColour()')) Object.assign(uniforms, THREE.UniformsUtils.clone(THREE.UniformsLib.fog), { ...uniforms });
   return {
