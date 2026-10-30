@@ -4,6 +4,9 @@ export const TIER_TABLE = {
     maxTexture: 1024, layerSize: 512, dpr: 2, ao: false, // DPR 2 + SMAA on (E70: 1.5 was a ~2× upscale on a 3× iPhone — "really bad and blurry"; 1.0 was already unacceptable); Settings ▸ Render scale overrides (Native = the screen's 3×)
     // shadows: one cascade to 80 m, 1024² — the 2-cascade rig re-drew the whole world twice (9.8 M tris)
     cascades: 1, shadowMapSize: 1024, shadowFar: 80, shadowMargin: 60, softShadows: false,
+    // PF3: the cascades redraw on every Nth drawn frame (skyRig.ts); a held map keeps the matrix it was drawn with, so a
+    // static shadow stays exactly where it was and only a moving caster's shadow steps. 1 = every frame (a level's row may raise it)
+    shadowEvery: 1,
     // animals shadow as far as the cascade reaches (E90: at 30 m an animal's shadow switched on in plain view)
     animalShadowDist: 80, animalHideDist: 150, furShells: false,
     // animal draws (Animal.setDrawLod): fur / hard / eye within animalEyeDist, eyes in the hard material to animalOneDrawDist,
@@ -46,7 +49,7 @@ export const TIER_TABLE = {
   },
   desktop: {
     maxTexture: 4096, layerSize: 1024, dpr: 1.5, ao: true,
-    cascades: 3, shadowMapSize: 2048, shadowFar: 220, shadowMargin: 120, softShadows: true,
+    cascades: 3, shadowMapSize: 2048, shadowFar: 220, shadowMargin: 120, softShadows: true, shadowEvery: 1,
     animalShadowDist: 90, animalHideDist: 400, furShells: true,
     // PH-P2: an eye is under a pixel past ~20 m at 1600×900 and a hoof tip past ~60 m, so the
     // phone's draw LOD at 1.3–1.5× its distances. ~150 animals × 3 draws were half of the desktop frame;

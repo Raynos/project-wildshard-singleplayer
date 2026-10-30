@@ -248,6 +248,7 @@
       "pointLightSkip": true,
       "animalFarBatchDist": 100,
       "animalHullBatch": true,
+      "shadowEvery": 2,
       "textures": "ktx2"
     },
     "desktop": {
