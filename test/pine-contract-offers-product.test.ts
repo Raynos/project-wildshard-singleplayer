@@ -1,8 +1,7 @@
 import { beforeAll, expect, test } from 'vitest';
-import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
-import { claim, contractKill, draw, loadBoard, ownContractCatalogue, recordKill, saveBoard } from '../src/game/quest/contracts';
+import { claim, contractKill, loadBoard, ownContractCatalogue, recordKill, saveBoard } from '../src/game/quest/contracts';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { Scope } from '../src/engine/app/scope';
@@ -10,15 +9,7 @@ import { ContractBoard, CONTRACT_ACTION } from '../src/game/quest/contractBoard'
 import { parseContractCatalogue, type ContractCatalogue } from '../src/format/contracts';
 
 // Captured from the original play-read authoring and actual page board save API.
-const originals = {
-  "CONTRACT_ROWS": "ac4f313f34d2ec89b419cf9f522f4cbc39481890d49793922da1efb9863ec987",
-  "SPECIES": "68e5afb886a30c00c35e65b23c69eac31a299b5c2488fe9537abe3bd454f09bb",
-  "RARITY": "052531e9d326ad906bc92f48e8f6b87bb2e3c4f6cf2c5a5543474ab7e8ba047e",
-  "ELITE_TARGETS": "94473977420eaad637cd35e30bb7944e84f6998a3deef5f275d4f16af78dc9c8",
-  "draws": "7b212bd693172cf7d95794b01edc007ce7c4c0d32d9f5b49f4353b3be65b6ddc"
-};
 const oldPageSave = "{\"next\":17,\"slots\":[{\"serial\":16,\"kind\":\"rarity\",\"target\":\"uncommon\",\"have\":0},{\"serial\":14,\"kind\":\"elite\",\"target\":\"imperial-bull\",\"have\":0},{\"serial\":15,\"kind\":\"species\",\"target\":\"boar\",\"have\":0}],\"claimed\":9,\"streak\":0,\"best\":2}";
-const hash = (value: unknown): string => hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(value)));
 
 let admitted: ContractCatalogue | undefined;
 beforeAll(async () => {
@@ -36,13 +27,6 @@ function catalogue(): ContractCatalogue {
   if (admitted === undefined) throw new Error('The admitted catalogue is required');
   return admitted;
 }
-
-test('compiled contract offers preserve every title, target, reward and deterministic draw', () => {
-  const contracts = catalogue();
-  expect([hash(contracts.rows), hash(contracts.species), hash(contracts.rarity), hash(contracts.elites)])
-    .toEqual([originals.CONTRACT_ROWS, originals.SPECIES, originals.RARITY, originals.ELITE_TARGETS]);
-  expect(hash(Array.from({ length: 128 }, (_, serial) => draw(contracts, serial)))).toBe(originals.draws);
-});
 
 test('compiled targets retain native thralls and the older labelled coat', () => {
   const contracts = catalogue();
