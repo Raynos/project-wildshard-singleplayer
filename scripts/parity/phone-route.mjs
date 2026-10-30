@@ -37,6 +37,10 @@ export function phoneRoutePlans(state) {
     { name: 'phone-night-market-road', from: market.instance, to: null, movement: 'road-hover', waypoints: [wallStart, marketRoad, northwestRoad, southwestRoad, road], requiredResidents: [] },
     { name: 'phone-road-driftwood-return', from: null, to: home.instance, movement: 'road-hover', waypoints: [{ x: origin.x, z: origin.z - 242.5 }], requiredResidents: [home.instance] },
   ];
+  // This is a functional journey, not the slow frame-floor drive. Use the
+  // existing bounded road allowance; the driver still clamps to the real
+  // board's own limit and slows for each waypoint. Walking stays unchanged.
+  for (const plan of plans) plan.hoverMaxSpeed = 30;
   return { market: market.instance, plans };
 }
 
