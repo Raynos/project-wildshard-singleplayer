@@ -55,6 +55,7 @@ interface Attachment { readonly scope: Scope; done: Set<TileContent>; pending: P
 interface TileRingPlan {
   readonly i: number; readonly j: number; readonly radius: number;
   readonly wanted: Record<Layer, ReadonlySet<number>>;
+  readonly retained: Record<Layer, ReadonlySet<number>>;
   readonly nearest: Record<Layer, readonly number[]>;
 }
 
@@ -117,7 +118,7 @@ export class TileDriver {
   async coarse(x: number, z: number): Promise<void> {
     // the loader settles from here (MF5): no world frame has stepped the driver under the card
     this.last ??= { x, z };
-    this.centre = followTile(null, x, z); this.renderRing = this.ringPlan(this.centre, this.radius()).wanted.render;
+    this.centre = followTile(null, x, z); this.renderRing = this.ringPlan(this.centre, this.radius()).retained.render;
     const scope = this.coarseScope ??= this.scope.child('tiles:coarse');
     for (; this.coarseCount < this.contents.length; this.coarseCount++) {
       this.live();
@@ -129,14 +130,14 @@ export class TileDriver {
   }
 
   /** Once a frame with the player's cell-local position: retire the tiles outside the rings, then start the nearest wanted
-   *  tile not yet attached (colliders first), one at a time. */
+   *  tile not yet attached (colliders first), one at a time. Existing tiles retire one tile beyond each attach ring. */
   step(x: number, z: number): void {
     if (this.scope.disposed || this.scope.disposing) return;
     this.last = { x, z };
     const centre = this.centre = followTile(this.centre, x, z), plan = this.ringPlan(centre, this.radius()), wanted = plan.wanted;
-    this.renderRing = wanted.render;
+    this.renderRing = plan.retained.render;
     for (const layer of ['render', 'colliders'] as const) for (const [key, tile] of this.attached[layer]) {
-      if (wanted[layer].has(key)) continue;
+      if (plan.retained[layer].has(key)) continue;
       this.attached[layer].delete(key); tile.scope.dispose();
       if (layer === 'render') { this.fadingSince.delete(key); this.fades[key] = 1; }
     }
@@ -171,10 +172,14 @@ export class TileDriver {
   private ringPlan(centre: CellTile, radius: number): TileRingPlan {
     const known = this.plan;
     if (known !== null && known.i === centre.i && known.j === centre.j && known.radius === radius) return known;
-    const wanted = { render: ring(centre, radius), colliders: ring(centre, Math.min(radius, 1)) };
+    const colliderRadius = Math.min(radius, 1);
+    const wanted = { render: ring(centre, radius), colliders: ring(centre, colliderRadius) };
+    // NF6: only existing owners use the extra tile. Attachment still uses wanted.
+    const retained = { render: ring(centre, Math.min(radius + 1, TILES_PER_SIDE - 1)),
+      colliders: ring(centre, colliderRadius + 1) };
     const distance = (key: number): number => Math.max(Math.abs((key % 8) - centre.i), Math.abs(Math.floor(key / 8) - centre.j));
     const ordered = (keys: ReadonlySet<number>): number[] => [...keys].sort((a, b) => distance(a) - distance(b) || a - b);
-    const plan = { i: centre.i, j: centre.j, radius, wanted, nearest: { render: ordered(wanted.render), colliders: ordered(wanted.colliders) } };
+    const plan = { i: centre.i, j: centre.j, radius, wanted, retained, nearest: { render: ordered(wanted.render), colliders: ordered(wanted.colliders) } };
     this.plan = plan;
     return plan;
   }

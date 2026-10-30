@@ -1,8 +1,8 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import { TileDriver, tileKeys, residentTiles, followResidentTiles } from './tileDriver';
-import type { TileContent } from './tileContent';
-import { tileOrder } from './tileOrder';
+import { ring, type TileContent } from './tileContent';
+import { tileOrder, tileOf } from './tileOrder';
 import { noteFrameDrawn, setBuildHeld } from '@wildshard/engine/core/framePacing';
 
 // Tile streaming T4: an entered region's per-tile content follows the player. A made-up content with something in every
@@ -25,17 +25,25 @@ test('the rank-0 tiles attach before controls, then the 5 x 5 fills nearest firs
     const rank0 = tileKeys(order.tiles.filter(tile => order.rank(tile) === 0));
     await driver.require(rank0);
     expect([...driver.resident('render')].sort((a, b) => a - b)).toEqual([...rank0].sort((a, b) => a - b));
-    // the player at the spawn (tile 4, 0): the 5 x 5 clipped to the cell is 5 x 3 = 15 render tiles, colliders the 3 x 2
+    // Fill only the attach rings; required entry owners survive within retirement slack.
     await settle(driver, 0, -194, 80);
-    expect(driver.resident('render').size).toBe(15); expect(driver.resident('colliders').size).toBe(6);
-    // walking three tiles north (off the column edge, past the hysteresis): row 0 leaves (its scopes end), rows 4-5 come in
+    const centre = tileOf(0, -194);
+    for (const [layer, attachRadius] of [['render', 2], ['colliders', 1]] as const) {
+      const wanted = ring(centre, attachRadius), keep = ring(centre, attachRadius + 1);
+      expect(driver.resident(layer)).toEqual(new Set([...wanted, ...rank0.filter(key => keep.has(key))]));
+    }
+    // Three tiles north: fine row 0 survives at r + 1; its nearer collider ring has already left.
     await settle(driver, 10, -30, 80);
-    expect(driver.resident('render').size).toBe(25); expect(driver.resident('render').has(4)).toBe(false);
-    expect(made.attached.has('r4')).toBe(false); expect(made.attached.has('c4')).toBe(false);
+    expect(driver.resident('render').has(4)).toBe(true);
+    expect(made.attached.has('r4')).toBe(true); expect(made.attached.has('c4')).toBe(false);
+    await settle(driver, 10, 40, 80);
+    expect(driver.resident('render').has(4)).toBe(false);
+    expect(made.attached.has('r4')).toBe(false);
+    const retained = driver.resident('render');
     // a radius past the whole cell (7) is refused; the current residents stay owned.
     radius.value = 8;
-    expect(() => driver.step(10, -30)).toThrow('0 to 7');
-    expect(driver.resident('render').size).toBe(25);
+    expect(() => driver.step(10, 40)).toThrow('0 to 7');
+    expect(driver.resident('render')).toEqual(retained);
   } finally { scope.dispose(); }
   expect(made.attached.size).toBe(0);
 });
@@ -241,7 +249,7 @@ test('stationary priority plans still admit late content in exact collider-first
   } finally { scope.dispose(); }
 });
 
-test('radius and hysteresis changes invalidate membership without delaying scope retirement', async () => {
+test('radius changes use retirement slack and tile hysteresis while preserving owned scopes', async () => {
   const scope = new Scope('tile-plan-edges'), made = content(), radius = { value: 1 };
   const driver = new TileDriver(scope, [made], () => radius.value, () => Promise.resolve());
   try {
@@ -249,10 +257,11 @@ test('radius and hysteresis changes invalidate membership without delaying scope
     const old = made.attached.get('r18');
     if (old === undefined) throw new Error('Missing first ring');
     radius.value = 0; driver.step(1, -40);
-    expect(old.disposed).toBe(true);
-    expect([...driver.resident('render')]).toEqual([27]);
+    expect(old.disposed).toBe(false);
+    expect(driver.resident('render').has(27)).toBe(true);
     await settle(driver, 4, -40, 30);
-    expect([...driver.resident('render')]).toEqual([28]);
+    expect(old.disposed).toBe(true);
+    expect(driver.resident('render').has(28)).toBe(true);
     radius.value = 2;
     await settle(driver, 4, -40, 160);
     expect(driver.resident('render').size).toBe(25);
@@ -274,5 +283,42 @@ test('a coarse entry keeps colliders while fine visuals wait, then refines on th
     controlled = true; await settle(driver, 0, -30, 30);
     expect(calls).toEqual(['ordinary', 'collision', 'fine']); expect(covered(28)).toBe(true); expect(driver.resident('render').has(28)).toBe(true);
     await settle(driver, -220, -220, 30); expect(calls).toEqual(['ordinary', 'collision', 'fine', 'fine-left']);
+  } finally { owner.dispose(); }
+});
+
+
+test('adjacent ring crossings reuse render and collider owners until beyond one tile of retirement slack', async () => {
+  const owner = new Scope('retire-slack'), made = content();
+  let covered = (_key: number): boolean => false;
+  const coarse: TileContent = { id: 'coarse', tiles: () => new Set(), attach: () => Promise.resolve(),
+    coarse: (_scope, rendered) => { covered = rendered; return Promise.resolve(); } };
+  const driver = new TileDriver(owner, [made, coarse], () => 1, () => Promise.resolve());
+  try {
+    await driver.coarse(-31.25, -31.25);await settle(driver, -31.25, -31.25, 100);
+    const render = made.attached.get('r26'), collider = made.attached.get('c26');
+    if (render === undefined || collider === undefined) throw new Error('Missing original trailing tile');
+    for (let crossing = 0; crossing < 8; crossing++) {
+      await settle(driver, crossing % 2 === 0 ? 31.25 : -31.25, -31.25, 100);
+      expect(made.attached.get('r26')).toBe(render);expect(made.attached.get('c26')).toBe(collider);
+      expect(render.disposed).toBe(false);expect(collider.disposed).toBe(false);
+      expect(covered(26)).toBe(true); // The retained fine tile still owns the coarse cover.
+    }
+    await settle(driver, 93.75, -31.25, 100);
+    expect(render.disposed).toBe(true);expect(collider.disposed).toBe(true);expect(covered(26)).toBe(false);
+    await settle(driver, -31.25, -31.25, 100);
+    expect(made.attached.get('r26')).toBeDefined();expect(made.attached.get('r26')).not.toBe(render);
+    expect(made.attached.get('c26')).toBeDefined();expect(made.attached.get('c26')).not.toBe(collider);
+  } finally { owner.dispose(); }
+  expect(made.attached.size).toBe(0);
+});
+
+test('whole-cell radius clips its retirement slack without loading another cell', async () => {
+  const owner = new Scope('whole-cell-slack'), made = content();
+  const driver = new TileDriver(owner, [made], () => 7, () => Promise.resolve());
+  try {
+    await settle(driver, -240, -240, 400);
+    expect(driver.resident('render').size).toBe(64);
+    await settle(driver, 240, 240, 200);
+    expect(driver.resident('render').size).toBe(64);
   } finally { owner.dispose(); }
 });
