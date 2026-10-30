@@ -10,7 +10,7 @@ import { phoneTouchButton } from './phone-route-page.mjs';
 import { randomUUID } from 'node:crypto';
 import { decodeProtocolPng } from './fast-png.mjs';
 
-/** @typedef {import('../soak/inspector.mjs').Inspector} Inspector */
+/** @typedef {Pick<import('../soak/inspector.mjs').Inspector,'opened'|'send'|'close'|'waitForPageTarget'>} Inspector */
 /** @param {unknown} result */
 function value(result) {
   if (typeof result !== 'object' || result === null || !('result' in result) || typeof result.result !== 'object' || result.result === null) throw new Error('Invalid Safari evaluation result');
@@ -48,6 +48,19 @@ export function phoneDocumentMatches(snapshot, url, previous) {
 }
 
 const documentExpression = '({url:location.href,visit:window.__phoneRouteVisit,document:window.__phoneRouteDocument,boot:window.__phoneRouteBootURL})';
+
+/** Retain the exact bounded native command instead of collapsing every failure
+ * to "spawnSync xcrun ETIMEDOUT".
+ * @param {string[]} args
+ * @param {(command:string,args:string[],options:{encoding:'utf8',timeout:number})=>string} [execute] */
+export function runNativePhoneCommand(args, execute = execFileSync) {
+  const argv = ['simctl', ...args], started = performance.now();
+  try { return execute('xcrun', argv, { encoding: 'utf8', timeout: 10000 }); }
+  catch (error) {
+    const elapsedMs = performance.now() - started;
+    throw new Error(`Native phone command ${JSON.stringify(['xcrun', ...argv])} failed after ${elapsedMs.toFixed(3)}ms: ${String(error)}`, { cause: error });
+  }
+}
 
 /** Keep the target-aware connection that owns this visit's bootstrap across
  * the provisional navigation. Closing it before commit loses that owner.
@@ -94,8 +107,12 @@ export async function captureNativePhonePage(inspector,path) {
   finally{clearTimeout(timer);}
 }
 
-/** @param {string} engine @param {string} base @param {string} _out @returns {Promise<import('./phone-route.mjs').PhonePage>} */
-export async function openPhoneBrowser(engine, base, _out) {
+/** Native-only transport ports keep lifecycle controls independent of an actual
+ * Simulator. Production uses the same bounded native commands and Inspector.
+ * @param {string} engine @param {string} base @param {string} _out
+ * @param {import('./phone-route-browser.mjs').NativePhonePorts} [native]
+ * @returns {Promise<import('./phone-route.mjs').PhonePage>} */
+export async function openPhoneBrowser(engine, base, _out, native = {}) {
   const visit = randomUUID();
   /** @type {string[]} */ const faults = [];
   if (engine === 'webkit') {
@@ -121,11 +138,11 @@ export async function openPhoneBrowser(engine, base, _out) {
       async close() { try { await context.close(); } finally { await browser.close(); } },
     };
   }
-  const { SIM_UDID: udid } = process.env;
+  const udid = native.udid ?? process.env.SIM_UDID;
   if (engine !== 'simulator' || !udid) throw new Error('Native phone route requires the existing Simulator lane');
-  const simctl = (/** @type {string[]} */ args) => execFileSync('xcrun', ['simctl', ...args], { encoding: 'utf8', timeout: 10000 });
+  const simctl = native.command ?? runNativePhoneCommand;
   const sock = simctl(['getenv', udid, 'RWI_LISTEN_SOCKET']).trim();
-  const proxy = spawn('ios_webkit_debug_proxy', ['-s', `unix:${sock}`, '-c', 'null:9221,:9232-9240'], { stdio:'ignore' });
+  const proxy = native.proxy?.(sock) ?? spawn('ios_webkit_debug_proxy', ['-s', `unix:${sock}`, '-c', 'null:9221,:9232-9240'], { stdio:'ignore' });
   /** @type {Inspector|null} */ let inspector = null;
   const raw = async (/** @type {string} */ expression) => {
     if (inspector === null) throw new Error('Safari inspector unavailable');
@@ -138,7 +155,9 @@ export async function openPhoneBrowser(engine, base, _out) {
       // All endpoints describe the same single device; an absent port must not
       // add its entire timeout ahead of the live Inspector port.
       const lists = await Promise.all(Array.from({length:9},async (_,index) => {
-        try { return /** @type {unknown} */ (await (await fetch(`http://127.0.0.1:${9232+index}/json`, {signal:AbortSignal.timeout(500)})).json()); }
+        try { return native.targets === undefined
+          ? /** @type {unknown} */ (await (await fetch(`http://127.0.0.1:${9232+index}/json`, {signal:AbortSignal.timeout(500)})).json())
+          : await native.targets(9232+index); }
         catch { return null; }
       }));
       for (const list of lists) {
@@ -147,7 +166,7 @@ export async function openPhoneBrowser(engine, base, _out) {
         for (const row of rows) {
           const found = phonePageTarget([row],url);
           if (found === undefined) continue;
-          inspector = soakInspector(found.webSocketDebuggerUrl);
+          inspector = (native.inspector ?? soakInspector)(found.webSocketDebuggerUrl);
           try {
             await inspector.opened;
             await inspector.waitForPageTarget(Math.max(0, Math.min(30000, deadline - Date.now())));
@@ -178,7 +197,8 @@ export async function openPhoneBrowser(engine, base, _out) {
   }
   return { engine: 'simulator-safari', faults,
     async cold(url, paintScript) {
-      spawnSync('xcrun', ['simctl','terminate',udid,'com.apple.mobilesafari'], { stdio:'ignore' });
+      // Preparation has already launched Safari and proved two real frames.
+      // Keep that native process; coldness belongs to the cleared game origin.
       const probe = new URL('/version.json',base).href;
       simctl(['openurl',udid,probe]); await connect(probe,undefined);
       await evaluate(`(async()=>{localStorage.clear();sessionStorage.clear();await Promise.all((await caches.keys()).map(key=>caches.delete(key)));await Promise.all((await navigator.serviceWorker.getRegistrations()).map(row=>row.unregister()));return true;})()`);
@@ -211,7 +231,8 @@ export async function openPhoneBrowser(engine, base, _out) {
     },
     close() {
       inspector?.close(); proxy.kill('SIGTERM');
-      spawnSync('xcrun', ['simctl','terminate',udid,'com.apple.mobilesafari'], {stdio:'ignore'});
+      if (native.close === undefined) spawnSync('xcrun', ['simctl','terminate',udid,'com.apple.mobilesafari'], {stdio:'ignore'});
+      else native.close();
       return Promise.resolve();
     },
   };
