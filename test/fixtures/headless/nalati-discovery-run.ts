@@ -8,10 +8,9 @@ import {createNativeProofResident} from '../headless-native';
 import {prepareHeadlessRuntime} from '../nalati-world-verbs';
 import {ChapterViewSchema} from '../../../src/format/questPageComposition';
 import {loadRapier} from '../../../src/engine/physics/rapier';
-import {runTrustedHeadlessTape} from '../../../src/sdk/headlessTape';
+import {runTrustedHeadlessTape,type HeadlessTapeSegment} from '../../../src/sdk/headlessTape';
 import {PhysicsRouteCursor} from '../../../src/sdk/headlessJourney';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
-import type {HeadlessTapeSegment} from '../../../src/sdk/headlessTape';
 
 const session=await beginProductSession('nalati-grasslands','nalati-world');
 let first:Awaited<ReturnType<typeof createNativeProofResident>>|undefined;
@@ -54,15 +53,15 @@ try{
     steer:{keyX:0,keyY:0,stickX:0,stickY:0}}]);
   for(let tick=0;tick<30;tick++)step([]);
   assert.equal(host.playerBoard.on,true,'the ordinary input must engage the real board');
-  function discover(place:typeof rows[number]):void {
+  const discover=(place:typeof rows[number]):void=>{
     if(arrived.has(place.id))return;
     // A board carries momentum between inputs. Release the stick through its
     // real coasting law before starting the next route's progress window.
     for(let tick=0;tick<600&&Math.hypot(host.boardVelocity.x,host.boardVelocity.z)>.1;tick++)step([]);
     assert.ok(Math.hypot(host.boardVelocity.x,host.boardVelocity.z)<=.1,'ordinary released input must brake the board');
     if(arrived.has(place.id))return;
-    const p=host.player.position,distance=Math.hypot(place.x-p.x,place.z-p.z);
-    const points=[{x:p.x,z:p.z},{x:place.x,z:place.z}];
+    const origin=host.player.position,distance=Math.hypot(place.x-origin.x,place.z-origin.z);
+    const points=[{x:origin.x,z:origin.z},{x:place.x,z:place.z}];
     try{
       const cursor=new PhysicsRouteCursor(points,{once:true}),limit=Math.min(18_000,Math.max(1200,Math.ceil(distance*90)));
       const previous=host.player.position.clone();let stopped=0;
@@ -90,13 +89,14 @@ try{
   const replay=await session.ready();
   try{
     // Stream finite original input parts without changing any child watchdog.
-    async function* parts():AsyncGenerator<HeadlessTapeSegment> {
+    const parts=function* parts():Generator<HeadlessTapeSegment,void> {
       for(let offset=0;offset<frames.length;offset+=600){
         const chunk=frames.slice(offset,offset+600);
         yield {id:`discovery-part-${offset/600}`,ticks:chunk.length,commands:[],frames:chunk};
       }
     }
-    const reports=await replay.streamVerbTape(['nalati.world'],parts());
+    const iterator=parts();
+    const reports=await replay.streamVerbTape(['nalati.world'],{[Symbol.asyncIterator]:()=>({next:()=>Promise.resolve(iterator.next())})});
     const end=reports.observations.at(-1);assert.ok(end);
     assert.equal(end.tick,host.state.tick,'replay commits every original movement tick');
     assert.deepEqual(end.position,host.player.position.toArray(),'replay retains the exact final native feet');
