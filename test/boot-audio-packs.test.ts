@@ -1,3 +1,4 @@
+import { installAssetFixture } from './fixtures/bootSetup';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the plain pack writer's owned product fixture.
 import { mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep the synthetic product beneath repository tmp.
@@ -10,6 +11,8 @@ import { createCatalogueAudio } from '@wildshard/engine/audio/levelAudio';
 import { parseAudioData } from '@wildshard/format/audio';
 import * as settings from '@wildshard/engine/ui/Settings';
 import source from '../src/shards/driftwood-isle/data/audioSource.json' with { type: 'json' };
+
+await installAssetFixture();
 
 test('native audio packs contain exactly the original late clips for every style and reject a changed section', async () => {
   const root = mkdtempSync(resolve('tmp', 'audio-pack-product-'));

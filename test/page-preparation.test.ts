@@ -1,8 +1,9 @@
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { Scene, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, Texture } from 'three';
 import { bindPageWater } from '../src/game/shardfile/pageWater';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import type { ShardContext } from '../src/game/plugin/context';
-import { expect, test } from 'vitest';
+import { afterEach, beforeEach, expect, test } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { prepareScriptMemoryLease } from '../src/engine/script/host';
 import { embeddedDirectorBytes, prepareEmbeddedDirector } from '../src/game/plugin/director';
@@ -11,6 +12,10 @@ import { PageTerrainCutSchema } from '../src/format/pagePreparation';
 import * as v from 'valibot';
 import declaration from '../src/shards/driftwood-isle/data/director.json' with { type: 'json' };
 import {driftwoodDirector as module} from './fixtures/director-modules';
+
+let releaseTerrain = (): void => undefined;
+beforeEach(() => { releaseTerrain = bindFlatTerrain(); });
+afterEach(() => { releaseTerrain(); });
 
 const bytes = embeddedDirectorBytes(declaration, module);
 

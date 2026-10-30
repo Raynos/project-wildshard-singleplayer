@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { installPickupFixture } from './fixtures/pickupSetup';
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import { App } from '../src/engine/app/app';
@@ -11,6 +12,8 @@ import { installLoot, type LootPresentation } from '../src/game/loot/runtime';
 import { Owned } from '../src/game/loot/Owned';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
+
+await installPickupFixture();
 
 const none = (): void => undefined;
 

@@ -1,9 +1,12 @@
 // @vitest-environment happy-dom
+import { installCatalogueFixture } from './fixtures/bootSetup';
 import { afterEach, expect, test } from 'vitest';
 import { compiledFloorSave } from '../scripts/shard-phone-memory.mjs';
 import { setDev } from '../src/engine/core/devMode';
 import { jsonSlot } from '../src/engine/saves/slots';
 import { buildTitleDeck, type TitleCard } from '../src/game/titleDeck';
+
+await installCatalogueFixture();
 
 afterEach(() => { jsonSlot(compiledFloorSave.key, compiledFloorSave.scope).reset(); setDev(false); document.body.replaceChildren(); });
 test('the compiled floor fixture enters a template without legacy through its one ENTER WORLD', async () => {
