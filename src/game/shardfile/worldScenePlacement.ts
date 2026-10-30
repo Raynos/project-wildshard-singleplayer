@@ -16,7 +16,7 @@ import type { WorldScenePlacementRow } from '@wildshard/format/worldScenePlaceme
 import type { ShardContext } from '../plugin/context';
 import type { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import type { SceneHandles } from './sceneHandles';
-import { bucketByTile, colliderTileKeys, SharedTileBuilds, tileKey, type TileContent } from './tileContent';
+import { bucketByTile, colliderTileKeys, SharedTileBuilds, tileKey, tilesTouching, type TileContent } from './tileContent';
 import { tiledMesh } from './tiledMesh';
 import { TILE_SIZE, tileOf } from './tileOrder';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -43,6 +43,13 @@ function posed(authored: WorldScenePlacementRow['poses'][number]) {
   return { ...pose, ...tint, matrix: modelPoseMatrix({ ...pose, ...rotation, yaw }) };
 }
 
+/** NT6: how far a copy's pose scales its model's reach (a matrix pose: its largest horizontal axis) */
+function poseScale(pose: WorldScenePlacementRow['poses'][number]): number {
+  if (!('matrix' in pose)) return Math.abs(pose.yxz.scale);
+  const m = pose.matrix;
+  return Math.max(Math.hypot(m[0] ?? 0, m[1] ?? 0, m[2] ?? 0), Math.hypot(m[8] ?? 0, m[9] ?? 0, m[10] ?? 0));
+}
+
 /** Pose conversion can itself fill a frame before the model placer's first yield. */
 async function poseCopies(poses: readonly WorldScenePlacementRow['poses'][number][], owner: Scope): Promise<ReturnType<typeof posed>[]> {
   const result: ReturnType<typeof posed>[] = [], slice = workSlice(undefined, owner);
@@ -65,6 +72,9 @@ async function poseCopies(poses: readonly WorldScenePlacementRow['poses'][number
 export class WorldScenePlacement {
   private pending: Promise<Placed> | undefined;
   private buckets: Map<number, number[]> | undefined;
+  /** NT6: each copy's tiles by its footprint, and the copies touching each tile */
+  private footprints: (readonly number[])[] | undefined;
+  private touching: Map<number, number[]> | undefined;
   private shared: SharedTileBuilds<Placed> | undefined;
   private authored: Map<number, ColliderDesc[]> | undefined;
   private warming = false;
@@ -73,7 +83,7 @@ export class WorldScenePlacement {
   private readonly holders = new Map<number, number>();
   private residentVersion = 0;
   constructor(private readonly ctx: ShardContext, private readonly row: WorldScenePlacementRow,
-    private readonly catalogue: Pick<ReturnType<typeof defineWorldSceneCatalogue>, 'model'>, private readonly owner: Scope,
+    private readonly catalogue: Pick<ReturnType<typeof defineWorldSceneCatalogue>, 'model'> & { readonly reach?: (key: string) => number }, private readonly owner: Scope,
     private readonly materials: Map<string, Material>, private readonly sources: readonly Extract<WorldScenesSection['materials'][number], { kind: 'source' }>[], private readonly handles?: Pick<SceneHandles, 'object'>,
     private readonly coarseMaterials?: { readonly slots: ReadonlySet<string>; readonly origin: { readonly x: number; readonly z: number };
       readonly later: (at: { readonly x: number; readonly z: number }, run: () => Promise<void>) => void }) {}
@@ -92,14 +102,14 @@ export class WorldScenePlacement {
   /** The model its copies are (the placed model's id, as `load()`'s `Placed.model`). */
   modelId(): string { return this.catalogue.model(this.row.model).id; }
   /** T3: the tiles (keys j * 8 + i, cell-local) holding this placement's copies, or reached by its authored colliders. */
-  tiles(): ReadonlySet<number> { return new Set([...this.bucketed().keys(), ...this.authoredByTile().keys()]); }
+  tiles(): ReadonlySet<number> { return new Set([...(this.spans() ? this.touched() : this.bucketed()).keys(), ...this.authoredByTile().keys()]); }
   /**
    * T3: build this placement's copies in `tile` under `scope` (their draws join `container`, the placement's stable object;
    * a placement drawn into a set registers only their colliders and boxes); the scope's end takes them away. Null when
    * the tile holds none of its copies.
    */
   async attach(tile: number, scope: Scope, container: Group | null): Promise<Placed | null> {
-    if (!this.bucketed().has(tile)) return null;
+    if (!(this.spans() ? this.touched() : this.bucketed()).has(tile)) return null;
     if (this.pending !== undefined) throw new Error('Scene placement is built whole');
     if (this.ranged()) {
       // one draw for the whole placement; the tile draws its range of it (the collider ring builds the tile's colliders)
@@ -176,11 +186,32 @@ export class WorldScenePlacement {
       this.residentVersion++;
     });
   }
-  /** FC12: the culler's resident filter over the copies, by their tiles */
+  /** FC12: the culler's resident filter over the copies: a copy draws while any tile its footprint touches is held (NT6) */
   private residentCopies(): NonNullable<CullOptions['resident']> {
-    const of = new Int32Array(this.row.poses.length).fill(-1);
-    for (const [tile, copies] of this.bucketed()) for (const copy of copies) of[copy] = tile;
-    return { has: (i: number) => this.holders.has(of[i] ?? -1), version: () => this.residentVersion };
+    const tiles = this.copyTiles();
+    return { has: (i: number) => {
+      const own = tiles[i]; if (own === undefined) return false;
+      for (const tile of own) if (this.holders.has(tile)) return true;
+      return false;
+    }, version: () => this.residentVersion };
+  }
+  /** NT6: a culled ranged placement holds each copy by its body, not its origin: a bridge whose origin is outside the ring
+   *  draws while any tile its span touches is resident (and its coarse stand-in hides then) */
+  private spans(): boolean { return this.row.cull !== undefined && this.ranged(); }
+  /** NT6: the tiles each copy's footprint touches (its model's horizontal reach, scaled by its pose), its origin's alone
+   *  when the catalogue states no reach */
+  private copyTiles(): readonly (readonly number[])[] {
+    if (this.footprints !== undefined) return this.footprints;
+    const reach = this.catalogue.reach?.(this.row.model) ?? 0;
+    this.footprints = this.row.poses.map(pose => reach > 0 ? tilesTouching(pose.x, pose.z, reach * poseScale(pose)) : [tileKey(tileOf(pose.x, pose.z))]);
+    return this.footprints;
+  }
+  private touched(): Map<number, number[]> {
+    if (this.touching !== undefined) return this.touching;
+    const byTile = new Map<number, number[]>();
+    this.copyTiles().forEach((tiles, copy) => { for (const tile of tiles) { const list = byTile.get(tile); if (list === undefined) byTile.set(tile, [copy]); else list.push(copy); } });
+    this.touching = byTile;
+    return byTile;
   }
   /** T3: the ranged placement's one draw (built whole, once, with no colliders: the collider ring has them) and the tile
    *  contents its meshes draw by; nothing draws until a tile attaches. */
@@ -294,13 +325,15 @@ export class WorldScenePlacement {
     }
     const definition = this.catalogue.model(row.model), last = definition.lods?.at(-1);
     const { lods: _levels, ...base } = definition, model = last === undefined ? base : { ...base, build: last.build };
-    const tiles = row.poses.map(pose => tileKey(tileOf(pose.x, pose.z))), id = `${row.piece?.id ?? definition.id}.coarse`;
+    // NT6: a copy the fine draw holds by its footprint is drawn in full while any of its tiles is
+    const tiles = this.spans() ? this.copyTiles() : row.poses.map(pose => [tileKey(tileOf(pose.x, pose.z))]), id = `${row.piece?.id ?? definition.id}.coarse`;
+    const drawn = (i: number): boolean => { for (const tile of tiles[i] ?? []) if (rendered(tile)) return true; return false; };
     // a model that builds a whole object draws `single` (one object per copy): its few copies hide by tile each frame
     const single = row.draw === 'single';
     const prepared = await poseCopies(row.poses, scope), slice = slicer();
     const placed = await withOwner(scope, () => placeSliced(model, prepared, { ctx: sharedModelContext(world.sky, world.game), registry: world.registry,
       draw: single ? 'single' : 'instanced', piece: { id, collide: false },
-      ...(single ? {} : { cull: { ...this.cullOptions(world.forest), cells: { size: TILE_SIZE, pad: COARSE_REACH }, test: (i: number) => !rendered(tiles[i] ?? -1) } }) },
+      ...(single ? {} : { cull: { ...this.cullOptions(world.forest), cells: { size: TILE_SIZE, pad: COARSE_REACH }, test: (i: number) => !drawn(i) } }) },
       () => { requireLive(scope); const pause = slice.due(); return pause === null ? null : pause.then(() => requireLive(scope)); }));
     requireLive(scope);
     placed.object.name = `${row.name ?? definition.id}.coarse`;
@@ -309,7 +342,7 @@ export class WorldScenePlacement {
     const copies = row.poses.length === 1 ? [placed.object] : placed.object.children;
     this.ctx.system({ id: `scene.${id}`, phase: 'update', run: () => {
       if (scope.disposed) return;
-      copies.forEach((copy, i) => { copy.visible = !rendered(tiles[i] ?? -1); });
+      copies.forEach((copy, i) => { copy.visible = !drawn(i); });
     } });
   }
   private async prepareMaterials(sky: Parameters<typeof worldSceneSourceMaterial>[1], slots?: ReadonlySet<string>): Promise<void> {

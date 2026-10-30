@@ -626,7 +626,9 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       bindWorldSceneModelSources(sharedModelContext(sky), product.shardfile.identity.slug, { catalogue, geometries, materials, plumbing: product.shardfile.plumbing, scenes: modelScenes }, owner);
       // G3: a placement names a site model, or one of the section's code-built specimens (the specimen catalogue host)
       const sites = defineWorldSceneCatalogue(catalogue), specimens = section.specimens === undefined ? null : defineSpecimenCatalogue<Record<string, Record<string, unknown>>>(section.specimens,undefined,{},specimenFiles);
-      const definitions = { model: (key: string) => specimens !== null && section.specimens?.some(model => model.key === key) === true ? specimens.model(key) : sites.model(key) };
+      const definitions = { model: (key: string) => specimens !== null && section.specimens?.some(model => model.key === key) === true ? specimens.model(key) : sites.model(key),
+        // NT6: a site model's horizontal reach from its origin (its widest choice's diagonal: any origin inside its box)
+        reach: (key: string) => Math.max(0, ...(catalogue?.models.find(model => model.key === key)?.choices.map(choice => Math.hypot(choice.size[0], choice.size[2])) ?? [])) };
       for (const row of placements) {
         const model = catalogue.models.find(entry => entry.key === row.model);
         const needed = new Set(model?.choices.flatMap(choice => choice.draws.concat(choice.lods.flatMap(level => level.draws)).map(draw => draw.material)));
