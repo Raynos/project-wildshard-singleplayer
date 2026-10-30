@@ -454,11 +454,17 @@
    "id": "reef",
    "verb": "Dive for the reef treasure (optional)",
    "input": {
-    "action": "use"
+    "action": "dive",
+    "holdUntil": "prompt",
+    "maxMs": 3000,
+    "then": "use"
    },
    "at": {
-    "x": 232,
-    "z": 48
+    "x": 232.8,
+    "z": 48,
+    "y": 0.3,
+    "yaw": 1.5708,
+    "pitch": -0.6
    },
    "expect": {
     "prompt": "Open the treasure chest",
@@ -466,9 +472,48 @@
      "Sunken treasure!",
      "Salt-crusted doubloon ×8",
      "Found a pearl necklace"
-    ]
+    ],
+    "chest": {
+     "x": 232,
+     "y": -2.42,
+     "z": 48,
+     "radius": 1.6
+    }
    },
-   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label 'Open the treasure chest' (USE from the surface: no toast in either; needs a dive)"
+   "played": "MF18 reef (sp-o4) 2026-10-29: LEGACY 91a9eef081 + SHARDFILE 244c41c1b6, Chromium iPhone 16 Pro, trusted touch hold on the DIVE disc from the surface 0.8 m east of the chest: both modes, same: seabed y -2.94 / -3.02, prompt 'Open the treasure chest', USE: 'Sunken treasure!', 'Salt-crusted doubloon ×8', 'Found a pearl necklace'",
+   "commands": [
+    {
+     "spawn": {
+      "x": 232.8,
+      "z": 48,
+      "y": 0.3,
+      "yaw": 1.5708,
+      "pitch": -0.6
+     },
+     "expect": {
+      "swimming": true,
+      "disc": "Dive"
+     }
+    },
+    {
+     "hold": "dive",
+     "untilPrompt": "Open the treasure chest",
+     "maxMs": 3000,
+     "expect": {
+      "yBelow": -2.5
+     }
+    },
+    {
+     "press": "use",
+     "expect": {
+      "toasts": [
+       "Sunken treasure!",
+       "Salt-crusted doubloon ×8",
+       "Found a pearl necklace"
+      ]
+     }
+    }
+   ]
   },
   {
    "id": "trophies",
