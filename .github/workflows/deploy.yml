@@ -1,4 +1,4 @@
-# Pushes and pull requests run the gates. Production deploys hourly or on manual dispatch.
+# Pushes and pull requests run the gates. Exact green smoke dispatches production immediately.
 # A release resolves .github/deploy-pin.json's policy; newest-ci-green requires push CI and an exact-SHA boot proof.
 # It checks /version.json and skips only when that selected commit is already live.
 # GitHub builds the Vercel artifact; Vercel only uploads the prebuilt output.
@@ -24,8 +24,6 @@ on:
       - 'progress/**'
       - 'art/**'
       - 'sources/**'
-  schedule:
-    - cron: '17 * * * *'
   workflow_dispatch:
     inputs:
       force:
@@ -34,13 +32,13 @@ on:
         required: false
         default: false
 
-# Releases (the hourly schedule, a manual dispatch) queue apart from push / PR CI: GitHub keeps one PENDING run per group,
+# Releases (manual or green-smoke dispatches) queue apart from push / PR CI: GitHub keeps one PENDING run per group,
 # and with many agents pushing, every push's CI run replaced the pending release, so nothing shipped for hours (E339,
 # 2026-09-30: two dispatches in a row cancelled). Releases still queue behind each other.
 # Main push CI shares one ref group (G582): finish the running check and retain only
 # the newest pending push. Frequent pushes must not cancel every run before it finishes.
 concurrency:
-  group: deploy-${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'release' || github.event_name == 'push' && 'ci' || format('ci-{0}', github.sha) }}-${{ github.ref }}
+  group: deploy-${{ (github.event_name == 'workflow_dispatch') && 'release' || github.event_name == 'push' && 'ci' || format('ci-{0}', github.sha) }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
@@ -53,14 +51,14 @@ env:
   GH_TOKEN: ${{ github.token }}
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-  DEPLOY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+  DEPLOY: ${{ github.event_name == 'workflow_dispatch' }}
 
 jobs:
   build-and-deploy:
     needs: products
     # Release runs intentionally skip products; push/PR builds require its
     # successful exact-run preparation. A failed producer never builds a dist.
-    if: ${{ !cancelled() && (needs.products.result == 'success' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
+    if: ${{ !cancelled() && (needs.products.result == 'success' || github.event_name == 'workflow_dispatch') }}
     runs-on: ubuntu-latest
     # A CI-green release takes ~4 min; an unproven pin's whole `pnpm test` took 24.5 of the old 30 (2026-10-09).
     timeout-minutes: 40

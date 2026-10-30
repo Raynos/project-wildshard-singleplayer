@@ -877,7 +877,6 @@
  "test/declared-panel-lifecycle.test.ts": 0.1,
  "test/declared-portal-entry.test.ts": 0.1,
  "test/defined-sections.test.ts": 0.1,
- "test/deploy-backstop.test.ts": 1,
  "test/descriptor-check-boundary.test.ts": 1,
  "test/device-cost-boundary.test.ts": 0.1,
  "test/directed-species.test.ts": 0.6,

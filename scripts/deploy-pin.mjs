@@ -4,7 +4,6 @@
 //
 //   node scripts/deploy-pin.mjs read                                  # prints the SHA; sha= mode= gate= to $GITHUB_OUTPUT
 //   node scripts/deploy-pin.mjs check-gate <sha>                      # exit 0 only if <sha> has gpu-gate = success
-//   node scripts/deploy-pin.mjs release-slot                          # free= to $GITHUB_OUTPUT: no release run in the last hour
 //   node scripts/deploy-pin.mjs release-ready                         # ready=, sha= to $GITHUB_OUTPUT; no wait
 //   node scripts/deploy-pin.mjs check-live-floor <sha>                # automatic releases never move behind production
 //   node scripts/deploy-pin.mjs set <sha> --milestone M<n> --go "<where Jake OKed>"
@@ -277,25 +276,7 @@ export async function newestCiGreenAfterBoot(query = ghApi, log = (line) => cons
   }
 }
 
-/** Release runs (the hourly schedule or a dispatch) of deploy.yml that hold the hourly slot: one that started in the last
- * `windowMs` or one still queued / running. A green boot smoke dispatches a release only when this is empty (Jake, G284:
- * at most one release an hour; "Hourly is fine"). Any status that is not `completed` counts as live.
- * @param {number} [now] @param {(args:string[])=>string} [query] @param {number} [windowMs]
- * @returns {{ free: boolean, why: string }} */
-export function releaseSlot(now = Date.now(), query = ghApi, windowMs = 60 * 60 * 1000) {
-  for (const event of ['schedule', 'workflow_dispatch']) {
-    const rows = query([`${workflowRunsPath('deploy.yml', query)}?event=${event}&per_page=10&page=1`,
-      '--jq', '.workflow_runs[] | [.id, .status, .created_at] | @tsv']).trim().split('\n').filter(Boolean);
-    for (const row of rows) {
-      const [id = '', status = '', created = ''] = row.split('\t');
-      const at = Date.parse(created);
-      if (!/^\d+$/.test(id) || Number.isNaN(at)) throw new Error(`release slot: unreadable run row ${JSON.stringify(row)}`);
-      if (status !== 'completed') return { free: false, why: `${event} run ${id} is ${status}` };
-      if (now - at < windowMs) return { free: false, why: `${event} run ${id} started ${Math.round((now - at) / 60000)} min ago` };
-    }
-  }
-  return { free: true, why: 'no release run started in the last hour and none is queued or running' };
-}
+
 
 /** Every SHA the pin file has held, oldest first (R1-16). */
 function history() {
@@ -373,12 +354,7 @@ async function main() {
     if (output) appendFileSync(output, `ready=${candidate.ready}\nsha=${candidate.sha}\n`);
     return 0;
   }
-  if (cmd === 'release-slot') {
-    const slot = releaseSlot();
-    console.log(`release slot: ${slot.free ? 'free' : 'taken'}: ${slot.why}`);
-    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `free=${slot.free}\n`);
-    return 0;
-  }
+
   if (cmd === 'check-gate') {
     if (!a1) throw new Error('check-gate <sha>');
     const green = gateGreen(a1);
@@ -424,7 +400,7 @@ async function main() {
     writePin({ ...readPin(), mode: a1, gate: 'grandfathered', go, set: new Date().toISOString(), by: 'E357 lead' });
     return 0;
   }
-  console.error('usage: deploy-pin.mjs read | release-ready | release-slot | check-gate <sha> | set <sha> --milestone M<n> --go "…" | rollback <sha> --go "…" | mode newest-green|newest-ci-green --go "…"');
+  console.error('usage: deploy-pin.mjs read | release-ready | check-gate <sha> | set <sha> --milestone M<n> --go "…" | rollback <sha> --go "…" | mode newest-green|newest-ci-green --go "…"');
   return 2;
 }
 

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import deployWorkflow from '../.github/workflows/deploy.yml?raw';
-import { ciSourceRun, ciGreen, ciRunGreen, newestCiGreen, newestCiGreenAfterBoot, PendingBootSmokeError, productionFloor, releaseReady, releaseSlot, workflowRunsPath } from '../scripts/deploy-pin.mjs';
+import { ciSourceRun, ciGreen, ciRunGreen, newestCiGreen, newestCiGreenAfterBoot, PendingBootSmokeError, productionFloor, releaseReady, workflowRunsPath } from '../scripts/deploy-pin.mjs';
 
 const newer = 'a'.repeat(40), proven = 'b'.repeat(40), oldest = 'c'.repeat(40);
 const completed = '2026-10-21T14:00:00Z', now = Date.parse('2026-10-21T14:01:00Z');
@@ -107,12 +107,7 @@ test('terminal failures and unreadable proof queries never supply a release', ()
   expect(() => releaseReady(() => { throw new Error('GitHub unavailable'); }, () => undefined, now)).toThrow('GitHub unavailable');
 });
 
-test('the hourly slot still refuses queued or recent releases', () => {
-  const query = (rows: string) => (args: string[]) => args[0]?.endsWith('/actions/workflows?per_page=100&page=1') ? workflows : rows;
-  expect(releaseSlot(now, query(`123\tqueued\t${completed}`))).toMatchObject({ free: false });
-  expect(releaseSlot(now, query(`123\tcompleted\t${completed}`))).toMatchObject({ free: false });
-  expect(releaseSlot(now, query(''))).toMatchObject({ free: true });
-});
+
 
 test('resolves both workflow paths once and selects numeric runs with exact proofs', () => {
   const inventory = { workflows: [

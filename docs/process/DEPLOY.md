@@ -5,7 +5,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
 - **GM1:** a running push run always finishes and lists every red; never cancel push CI or boot smoke by hand.
 - **DA1:** hidden source maps remain in local/CI builds and boot-smoke artifacts for module checks, profiles and stack decoding. A release retains its exact `dist` maps, `version.json` and chunk report in the `production-source-maps-<SHA>` Actions artifact for 30 days, then omits maps only from `.vercel/output/static` before upload. Original build maps survive symlinked Vercel output. Sentry release tagging stays unchanged; there is no existing source-map upload pipeline.
 - `.github/workflows/deploy.yml` runs the gates on every push and pull request. Production
-  deploys at :17 each hour or from `gh workflow run deploy`; the job skips if `/version.json` reports the **selected proven commit**. `gh workflow run deploy -f force=true`
+  deploys as soon as CI and the exact six pass, or from `gh workflow run deploy`; the job skips if `/version.json` reports the **selected proven commit**. `gh workflow run deploy -f force=true`
   redeploys the same commit. The job builds Vercel output in GitHub Actions and uploads it
   with `vercel deploy --prebuilt`, so Vercel does not repeat the build.
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
@@ -19,9 +19,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `docs/`, `progress/`, `art/` or `sources/` runs no push CI** (`paths-ignore`; it would re-test the parent's code): that SHA never becomes a release candidate, and production's
   "newest proven main" is its newest code ancestor, so compare `version.json` with the newest CI-green SHA, not the
   tip. Releases reuse that complete test proof when the
-  selected exact SHA has a successful main push-CI run (SF74 W0); they still build and check chunks and verify
-  production. A historical pin without that CI proof still runs `pnpm test`. The reader reports `ci_green` separately
-  from smoke and pin mode; a nearby commit or successful manual release cannot supply the test proof.
+  selected exact SHA has a successful main push-CI run. That push packages its tested dist and API functions into
+  `.vercel/output`. Release downloads `vercel-prebuilt` from that exact successful run, verifies the source identity
+  and complete archive/member inventory, and runs `vercel deploy --prebuilt`. No app or native rebuild runs during
+  release; missing artifacts refuse. A nearby commit or successful manual release cannot supply the test proof.
   **CI is the full backstop of the push gate** (Jake, 2026-10-15): the gate runs only the tests that import the changed
   files (GIT.md). The `generated-inputs` job publishes exact-run source/public inputs first. The 16 product-free
   behaviour shards restore and verify those inputs immediately, alongside types/lint/docs. The independent
@@ -72,17 +73,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
     (`it.each`), one string round trip per checkpoint, continuations compared with `expectSameSimSnapshot`
     (`test/fake/simSnapshot.ts`), never `toEqual` on whole snapshots nor serialising both sides to compare. A walk tape
     is at most 10k ticks per test, with a 60 s budget.
-- **GitHub drops the :17 schedule** under load, with no error (2026-10-02/03: one run every 4–6 h). A launchd agent on
-  Jake's Mac is the backstop (E403): `scripts/deploy-backstop/backstop.sh` runs at :47 every hour and dispatches
-  the deploy when `deploy-pin.mjs release-slot` proves the shared hourly slot is free, `release-ready` finds the newest
-  BOTH-proof-green candidate, and production does not already serve it. A newer pending smoke never
-  blocks an existing proven candidate; with none proven, readiness defers without consuming the hour. API errors refuse it.
-  Other configured pin modes retain their release-job proof checks. A recent scheduled/manual release or any
-  queued/running release blocks it. Every retry checks
-  again, and an API error or unreadable proof refuses dispatch. `scripts/deploy-backstop/install.sh` (re)installs it
-  with both gh and Node on launchd's PATH; the log is `~/.wildshard/deploy-backstop/backstop.log`;
-  `backstop.sh --dry-run` checks the slot and only reports.
-- **Production ships the newest CI-green `main`** (Jake, 2026-10-02: "fix the deploy, whatever it takes"). The hourly
+- **G920 retires the hourly GitHub schedule, local calendar backstop and shared hourly slot.** A green exact-SHA
+  smoke dispatches the newest fully proven build immediately. Release concurrency and the production ancestry
+  floor remain mandatory. The separately requested 2026-10-30 07:00 Cancun one-off remains installed.
+- **Production ships the newest CI-green `main`** (Jake, 2026-10-02: "fix the deploy, whatever it takes"). The automatic
   or manual release reads `.github/deploy-pin.json`: mode `newest-ci-green` picks the newest main commit whose push
   `deploy` run (typecheck, lint, test, build) passed **and whose exact SHA has `boot-smoke = success`**. The separate
   `.github/workflows/boot-smoke.yml` is explicitly dispatched by the successful push CI job (or by an operator), reuses that exact
@@ -185,13 +179,13 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   no case, gameplay deadline or failure condition changed. HOVER waits for the loading overlay
   to close within its existing 150-second title budget before tapping the real entry button.
   The `verdict` job requires all six legs before publishing the one `boot-smoke` status (SF74 W16). Fatal UI, page errors and bad asset
-  responses refuse the proof. Its macOS queue stays outside push CI's critical path. A scheduled, backstop or manual
+  responses refuse the proof. Its macOS queue stays outside push CI's critical path. An automatic or manual
   release immediately selects the newest SHA with both push CI and exact-SHA smoke green. A newer CI-green SHA
   whose smoke is pending or not started never delays that proven release. With no fully proven candidate, the
   release refreshes candidates and statuses every 30 seconds for at most 20 minutes, then refuses with the unresolved
-  SHA. Neither waiting nor a free hourly slot can select an unproven candidate. Terminal failed proofs can be skipped
-  for an older proven build. The hourly cadence and manual dispatch limit stay unchanged.
-  Manual/scheduled releases and pull requests never dispatch smoke. The automatic proof waits up to five minutes
+  SHA. Neither waiting nor an automatic dispatch can select an unproven candidate. Terminal failed proofs can be skipped
+  for an older proven build. There is no hourly cadence or minimum gap between proven releases.
+  Manual releases and pull requests never dispatch smoke. The automatic proof waits up to five minutes
   for its exact parent CI aggregate to close successfully before reading its artifact; no per-job exception applies.
   An explicit emergency rollback may instead return to any SHA
   proven previously live in production, even before the smoke existed: verified `production-live` status or a
@@ -201,21 +195,18 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `gpu-gate` runs nightly and by dispatch at a milestone (`gh workflow run gpu-gate`, `-f sha=<candidate>`), not on
   every push (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`), and it does not hold a release. `mode pinned` (`deploy-pin.mjs set` / `rollback`)
   freezes production on one SHA; `mode newest-green` waits for gpu-gate.
-- **Any agent may kick the release by hand, at most once an hour** (Jake, 2026-10-09: *"If the hourly cron is not working … agents are allowed to get it deployed out at most once an hour by just kicking it off manually"*): when `version.json` lags the newest proven main
-  and no `deploy` release run (schedule or dispatch) started in the last 60 minutes, run `gh workflow run deploy`; never
-  a second dispatch inside the hour, and never while a release run is queued or in progress.
-  **boot-smoke does the same by itself** (SF74 W16, G284): its `release` job runs after a green exact-SHA smoke of main and
-  dispatches `deploy` only when `release-ready` finds the newest candidate already proven,
-  `node scripts/deploy-pin.mjs release-slot` says the hour is free and `version.json` does
-  not already serve that selected SHA. Newer pending proofs do not block the newest fully proven build from using
-  a free hourly slot. Otherwise it does nothing and the cron, the backstop or a hand dispatch picks the pin up.
+- **A green exact-SHA smoke releases immediately (G920).** The smoke workflow's `release` job calls
+  `release-ready`, checks whether production already serves that candidate, and dispatches `deploy`. A newer
+  incomplete proof never blocks an older fully proven candidate. Manual `gh workflow run deploy` uses the same
+  newest-proven selection and forward floor. Release concurrency serializes deployments and retains only the
+  newest pending release; there is no hourly slot or cooldown.
 - **Nobody waits for GitHub after a push** (Jake, E428, 2026-10-03: "waiting 15 minutes for remote GitHub is just too
-  slow"). The local gates on a clean export of HEAD are the check; CI and the hourly deploy run on their own. A red CI
+  slow"). The local gates on a clean export of HEAD are the check; CI and automatic deploys run on their own. A red CI
   run is fixed by whoever sees it. If the game needs an immediate release, `gh workflow run deploy` (no need to watch it).
 - Do not run `vercel deploy` by hand while CI is healthy. Keep commits and pushes small.
 - **Done does not wait for the deploy** ([ASKS.md](ASKS.md)): an ask is done when its commit is on `origin/main` with
   the local gates green. Add the live build id when the deploy ships it. If `version.json` lags your green HEAD by more than ~2 h,
-  check `~/.wildshard/deploy-backstop/backstop.log`, then `gh workflow run deploy` (retry a `HTTP 500` after ~90 s).
+  inspect the exact CI/smoke/release failure, fix it forward, then use `gh workflow run deploy` when proven.
 - **Deploy from a clean export of HEAD**, never the working tree. Delete the export after.
 - **A frozen public URL per version:** `scripts/release-url.sh vX.Y.Z` deploys a clean export of the tag once to its own
   Vercel project (the main project's aliases sit behind deployment protection). Tag first and bump package.json.

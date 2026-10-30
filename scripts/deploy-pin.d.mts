@@ -16,8 +16,7 @@ export function ciGreen(sha: string, query?: (args: string[]) => string): boolea
 export function ciSourceRun(sha: string, query?: (args: string[]) => string): string;
 /** Explicit exact-run proof, including a stuck aggregate only when all 16 required jobs succeeded. */
 export function ciRunGreen(sha: string, runId: string, query?: (args: string[]) => string): boolean;
-/** Whether the hourly release slot is free: no release run started in the last hour and none is queued or running (G284). */
-export function releaseSlot(now?: number, query?: (args: string[]) => string, windowMs?: number): { free: boolean, why: string };
+
 
 /** No CI-green candidate has a successful exact-SHA smoke yet. */
 export class PendingBootSmokeError extends Error { constructor(sha: string); sha: string; }
