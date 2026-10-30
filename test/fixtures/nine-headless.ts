@@ -8,7 +8,7 @@ import { installHostPortalRide } from '../../src/game/shardfile/portalRideBindin
 import { installNativeItems } from '../../src/game/plugin/nativeItems';
 import type assembly from '../../src/shards/nine-dragon-stack/data/headlessAssembly.json';
 import { prepareReturns } from './headless-plan';
-import manifest from '../../src/shards/nine-dragon-stack/manifest.json';
+import manifest from '../../src/shards/nine-dragon-stack/manifest.json' with {type:'json'};
 import {registerNativeWalkBounds} from './headless/nativeBounds';
 
 /** Direct typed native calls retain the Nine gameplay witness without a declaration interpreter. */
