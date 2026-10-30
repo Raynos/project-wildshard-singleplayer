@@ -12,10 +12,10 @@ remote acceptance, CI12 Nalati (x6, x8, kernels o3 / o4), CI14 pin waves. **QA r
 tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 
 **QA 10-30 ([plan](qa-2026-10-30-mini-plan.md)):** QC2 / QC3 done; fps rows QC1 / QC4 via the Nine / Pine / engine-performance plans.
-**QA build for Jake ~17:00 (16:15 pick must contain 682485bbb9 + 860e3df959; live by 16:45):** NT1 ring fix (o5 next), EP9 landed e43772077d (pan = still on Nine / Pine / DW), frame-cost 2db765940f. **13:40 G943 [engine-performance](engine-performance-mini-plan.md) EP1-EP12 all start (supersedes G940):** o5 NF4 audit -> NF13 -> NF14 -> NF15 -> NF3 / NF8; o3 frame cost -> PF1 -> EP6 design; x1 EP1 -> NF10 bake, x2 EP2, x6 EP9, x8 EP10, x9 PF5. FOUNDATIONS archived (31ab084bce). 2 Opus (G853, Claude 69 %).
+**QA build for Jake ~17:00:** wildshard-v 14:24 answered: runs cancelled because each push supersedes the newest run's *pending* prepare (per-ref coalescing). No CI-green SHA is newer than live 039d788 (reds fixed: 682485bbb9, 860e3df959). A 14:15 push hold let run 41113656659 (761d2acb81, both fixes) start prepare; its downstream jobs can't be cancelled by newer pushes. It's the QA qualifier; release by 16:45. NT1 ring fix (o5 next), EP9 landed e43772077d (pan = still on Nine / Pine / DW), frame-cost 2db765940f. **13:40 G943 [engine-performance](engine-performance-mini-plan.md) EP1-EP12 all start (supersedes G940):** o5 NF4 audit -> NF13 -> NF14 -> NF15 -> NF3 / NF8; o3 frame cost -> PF1 -> EP6 design; x1 EP1 -> NF10 bake, x2 EP2, x6 EP9, x8 EP10, x9 PF5. FOUNDATIONS archived (31ab084bce). 2 Opus (G853, Claude 69 %).
 **Autonomous decisions (for Jake's review):**
-- G953-G956 rows: x8 deletes graphBatches, animalPoseRate, roadResidency (after a 2 km seam check), gridBootPrograms, tileResidency + the debug-flags lint fix; G946's three already landed 5da97f029e / c33d5c2844 / b5925024f0.
-- PF4 folds into EP7 (exact merge only 11 -> 10). PF8 parked (<= 0.1 ms phone, needs owner audit). PF1 + PF2: Pine spawn 165 -> 109 draws.
+- G953-G956: x8 deletes 5 more rows + debug-flags lint fix (4cb6f34ccc).
+- PF4 -> EP7; PF8 parked; PF3 cache skipped (one cascade, ~0.15 ms). PF1 + PF2: Pine spawn 165 -> 109 draws.
 - NF2 closed at 77 programs (o5): the 5 extra are load-time family warms, no per-frame cost; count folds into NF13-NF15. EP3 / NF22 not built (a plain sort made switches worse; needs NF13's per-draw key).
 - NT7 (x8): the existing all-product checkTileBake ratchet stays; NT7 adds advisory tables + a Nine-only blocking baseline. wildshard-v: did G950 mean to replace the old cap?
 - PF1 batched default 8a59427b63 (board art/pine-hollow/pf1-graph-batches/, G952 note: recommend B); Pine spawn 165 -> 121 draws.
