@@ -3213,15 +3213,15 @@ A player's optional ride.sampleCommand() returns RideCommandSample (defined in i
 and detaches its axes into existing fields. Legacy sampling and a traversal without that port keep
 the original device sampling; no traversal identity or new wire version is introduced.
 
-**Command version 1.** Optional `steer: {keyX, keyY, stickX, stickY}` preserves raw local
-keyboard/semantic direction and stick strength separately; optional `sprint` / `crouch` are held
-booleans. Any of those fields requires `commandVersion: 1`; finite axes lie in [-1, 1]. Old commands
-omit all four fields and keep their original bytes and motion. `Player.sampleSteer()` reads the
-same semantic directions and touch stick, without combining or normalizing them;
-`sampleCommand(1)` opts a recorder into that detached sample. The ordinary no-argument sample
-is unchanged. SDK tick admission validates the version before any step, and `simPlayerCommand`
-forwards the detached fields to both ordinary and trusted native workers. Alternative motion
-drivers consume the raw fields; their presence alone does not change the default motion law.
+**Command version 1.** Optional `steer: {keyX, keyY, stickX, stickY}` keeps keyboard
+and stick axes separate; `sprint` / `crouch` are held booleans. They require
+`commandVersion: 1`, finite axes in [-1, 1], and pass through `simPlayerCommand`.
+`Player.sampleCommand(1)` detaches `sampleSteer()`; ordinary sampling is unchanged.
+Native on-foot input uses `localWalkingMove` in `engine/player/walk` for clamped
+keyboard-plus-stick world axes, preserving partial strength, then page speed and
+acceleration. Delegated drivers retain authority. Optional snapshot `player.walk`
+retains velocity through turns and release. Legacy commands retain their law and
+omit that field; a legacy command or pose reset clears versioned continuation.
 The default `beforeBodies` phase preserves existing fixed-step order; `afterBodies` runs after every creature
 body and its contact hook, for equipment that follows the creature loop. `useBodyStep({ before, after })`
 wraps each actual body step once, in actor order; paused bodies run neither hook. Installation and restore

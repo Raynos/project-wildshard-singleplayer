@@ -21,8 +21,8 @@ import { hitShoveSpeed, shoveHop, startShove, stepShove, type ShoveState } from 
 import { boardShoved, HOVER_HARD_LANDING, stepBoard, type BoardPorts, type BoardState, type BoardStepOut } from './player/board';
 import { hoverSpeed } from './player/hoverSpeed';
 import { COYOTE_MS, JUMP_SPEED, jump as jumpLaw, jumpClock, jumpSpeed, type JumpState } from './player/jump';
-import { deepWater, entryKeep, pondBob, stepSwim, swimEntry, swimStroke, wadeFraction, type SwimPorts, type SwimState } from './player/swim';
-import { wadeScale, walkVelocity } from './player/walk';
+import { deepWater, entryKeep, NO_SPRINT_DEPTH, pondBob, stepSwim, swimEntry, swimStroke, wadeFraction, type SwimPorts, type SwimState } from './player/swim';
+import { localWalkingMove, walkingSpeed, wadeScale, walkVelocity } from './player/walk';
 import { modeCollides, PlayerModes, type ModePlayer } from './player/modes';
 import { DODGE_DIST, DODGE_TIME, dashBlocked, dashToward, dodgeHeading, startDash, startDodge, stepDash, stepDodge, type DashState, type DodgeState } from './player/dash';
 import { floorBelow } from './physics/query';
@@ -195,6 +195,10 @@ export class SimHost {
   /** The owned player's vertical speed (m/s, negative = falling) and whether the motor last stood it on ground, the client
    * Player's on-foot fall law (player/fall.ts). At rest (grounded, still) an idle tick leaves the player untouched. */
   readonly playerFall = { vy: 0, grounded: true };
+  /** Version-1 on-foot velocity, inactive on legacy hosts. */
+  readonly playerWalk = { active: false, x: 0, z: 0 };
+  private readonly versionedWalking = { speed: 4.3, crouching: false, clientMotion: this.playerWalk };
+  private readonly localMove = { x: 0, z: 0 };
   /** The owned player's running creature-hit knockback, the client Player's shove law (player/shove.ts). */
   readonly playerShove: ShoveState = { t: 0, vx: 0, vz: 0 };
   /** The owned player's hoverboard (SF72): on the board, each step runs the client Player's board law (player/board.ts)
@@ -679,6 +683,7 @@ export class SimHost {
     this.player.position.set(feet.x,feet.y,feet.z);this.player.yaw=yaw;
     this.player.motor.resetAt(this.player.position);this.playerImpulse.set(0,0,0);this.playerDash.t=0;
     this.playerFall.vy=0;this.playerFall.grounded=false;this.playerSwim.stood=false;
+    Object.assign(this.playerWalk,{active:false,x:0,z:0});
   }
   /** The registry's view of this host's player: the mode driver slot and the motor state. */
   private modePlayer(): ModePlayer<SimPlayerDriver> {
@@ -779,7 +784,8 @@ export class SimHost {
     if (command?.attack !== undefined) this.startStrike(this.player.id, command.attack.targetId);
   }
   /** One simulation tick. No wall clock, renderer, active app or device input is consulted. */
-  step(command?: SimCommand): void {
+  step(input?: SimCommand): void {
+    let command = input;
     if (this.disposed) throw new Error('Simulation host is disposed');
     if (this.embedded) throw new Error('Borrowed simulation uses the existing fixed-step driver');
     if (!this.hasPlayerMotor) throw new Error('Frozen simulation cannot step');
@@ -788,12 +794,27 @@ export class SimHost {
       validateLocalMovement(command);
       if ((command.dive !== undefined && typeof command.dive !== 'boolean') || (command.surface !== undefined && typeof command.surface !== 'boolean')) throw new RangeError('Invalid held swim control');
     }
+    if (command?.commandVersion === 1 && command.steer !== undefined) {
+      localWalkingMove(command.steer, command.yaw, this.localMove);
+      command = { ...command, moveX: this.localMove.x, moveZ: this.localMove.z };
+    }
     this.events.beginFrame(); this.clock.tick(FIXED_STEP);
     // an entered driven mode's driver (SF34, modes.enter) owns the motion ahead of a usePlayerDriver driver
     const driver = this.modeDriver ?? this.playerDriver, delegated = driver?.input(command, FIXED_STEP, this) === true;
     const observeMotion = this.playerMotionObserver;
     if (observeMotion !== undefined) { observeMotion.sample.velocityX = 0; observeMotion.sample.velocityZ = 0; }
-    const walking = delegated ? undefined : this.walkingControl ?? driver?.walking;
+    const versioned = !delegated && (command?.commandVersion === 1 || command === undefined && this.playerWalk.active);
+    if (versioned) {
+      this.playerWalk.active = true;
+      const forward = command === undefined ? 0 : command.steer === undefined
+        ? -Math.sin(command.yaw) * command.moveX - Math.cos(command.yaw) * command.moveZ
+        : Math.max(-1, Math.min(1, command.steer.keyY + command.steer.stickY));
+      const crouching = command?.crouch === true && !this.playerBoard.on && !this.playerSwim.on;
+      this.versionedWalking.crouching = crouching;
+      this.versionedWalking.speed = walkingSpeed(crouching, command?.sprint === true && forward > 0 && !crouching
+        && (this.water === undefined || this.waterDepth() < NO_SPRINT_DEPTH), 0, 1, 1);
+    } else Object.assign(this.playerWalk, { active: false, x: 0, z: 0 });
+    const walking = delegated ? undefined : this.walkingControl ?? (versioned ? this.versionedWalking : driver?.walking);
     if (walking !== undefined && (!Number.isFinite(walking.speed) || walking.speed < 0 || typeof walking.crouching !== 'boolean')) throw new RangeError('Invalid walking control');
     if (walking?.clientMotion !== undefined && ![walking.clientMotion.x, walking.clientMotion.z].every(Number.isFinite)) throw new RangeError('Invalid client walking velocity');
     // the HOVER press lands in the ordinary input phase; an active alternative driver owns its own motion switches
@@ -818,9 +839,10 @@ export class SimHost {
       if (dodge.cd > 0 || dodge.t > 0) stepDodge(dodge, dash.t > 0, FIXED_STEP);
       const water = this.water;
       if (!this.playerSwim.on) this.playerSwim.stood = false; // last tick's stand-up is over
+      if (this.playerBoard.on || this.playerSwim.on) { this.playerWalk.x = 0; this.playerWalk.z = 0; }
       if (this.playerBoard.on) { dash.t = 0; this.stepBoardPlayer(command); }
       else if (this.playerSwim.on) this.stepSwimPlayer(command);
-      else if (command !== undefined || shoved || knocked.t > 0 || dash.t > 0 || !fall.grounded || fall.vy !== 0) {
+      else if (command !== undefined || versioned || shoved || knocked.t > 0 || dash.t > 0 || !fall.grounded || fall.vy !== 0) {
         // SF34 the wade (player/swim.ts): last step's water over the grounded feet slows the walk and saps the jump
         const wadeT = water === undefined ? 0 : wadeFraction(fall.grounded, this.waterDepth());
         if (command === undefined) this.wanted.set(0, 0, 0);
