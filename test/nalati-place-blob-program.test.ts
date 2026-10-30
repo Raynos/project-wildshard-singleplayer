@@ -1,10 +1,10 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Own the real immutable cache and compare the original shipping bytes.
-import { mkdtempSync, rmSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Retire this suite's private source cache after its original controls.
+import { rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Declare the exact public input root without inferring an asset path.
 import { resolve } from 'node:path';
 import { afterAll, expect, test } from 'vitest';
 import { build } from 'vite';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import type { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nameBlob } from '../src/sdk/blobs';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
@@ -14,31 +14,7 @@ import cragOriginal from './fixtures/nalati-crag-blob.json' with { type: 'json' 
 import assemblyOriginal from './fixtures/nalati-headless-assembly.json' with { type: 'json' };
 import * as v from 'valibot';
 
-// One genuinely empty cache owns native compilation during fixture preparation.
-// The timed case still checks every complete cold/warm file and refusal below.
-const coldOutputFixture = await (async () => {
-  const cache = mkdtempSync(resolve('tmp/nalati-place-blob-'));
-  const requested: string[] = [], steps: string[] = [], constructions = new Map<string, number>();
-  let nativeSpecimens: Uint8Array | undefined, nativePlaces: Uint8Array | undefined, nativeRender: Uint8Array | undefined;
-  const context = () => {
-    const ctx = createProjectGeneration(resolve('src/shards/nalati-grasslands'), 'a'.repeat(64), new Map(), cache,
-      [{ prefix: '/src/shards/nalati-grasslands/', directory: resolve('src/shards/nalati-grasslands') },
-        { prefix: '/assets/', directory: resolve('public/assets') }]);
-    return { ...ctx, cached: (step: Parameters<typeof ctx.cached>[0], make: Parameters<typeof ctx.cached>[1]) => {
-      requested.push(...(step.inputs ?? [])); steps.push(step.id);
-      return ctx.cached(step, inputs => { constructions.set(step.id, (constructions.get(step.id) ?? 0) + 1); return make(inputs); }).then(files => {
-        if (step.id === 'places') { nativePlaces = files.get('places.json'); nativeSpecimens = files.get('placeSpecimens.json'); }
-        if (step.id === 'render-tiles') nativeRender = files.get('data/renderTiles.json');
-        return files;
-      });
-    } };
-  };
-  try {
-    const output = await prepareOutput(context());
-    const beforeWarm = new Map(constructions), warm = await prepareOutput(context());
-    return { cache, requested, steps, constructions, context, output, beforeWarm, warm, get nativePlaces() { return nativePlaces; }, get nativeSpecimens() { return nativeSpecimens; }, get nativeRender() { return nativeRender; } };
-  } catch (error) { rmSync(cache, { recursive: true, force: true }); throw error; }
-})();
+import { coldOutputFixture } from './fixtures/nalati-output-cache';
 
 test('cached held source metadata refuses a changed executable or compiled byte charge', async () => {
   for (const kind of ['executable', 'metadata']) {
