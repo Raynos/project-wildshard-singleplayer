@@ -24,6 +24,7 @@ import { fillNativeCombatFrame, type HeadlessRuntimeInstallation, type HeadlessR
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import PINE_TERRAIN from '../../../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 import { prepareHeadlessRuntime } from '../../fixtures/pine-headless';
+import { nativeGroundBossObservation } from '../../fixtures/native-hosts/boss/native';
 import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots, type PineSpots } from '../../../src/shards/pine-hollow/generators/questPrompts';
 import { nativeInventorySchema } from '../../../src/game/inventoryLaw';
 import * as LAYOUT from '../../../src/shards/pine-hollow/generators/layout';
@@ -283,6 +284,13 @@ const KingRow = v.object({ boss: v.object({ state: v.string(), phase: v.number()
     thralls: v.array(v.object({ a: v.string(), mode: v.string() })) }) });
 /** The King's encounter and fight as the boss row continues them (what a player sees: his state, his root rings, his thralls). */
 export function kingRow(host: SimHost): v.InferOutput<typeof KingRow> {
+  const live=nativeGroundBossObservation(host,bossRows.steps.fight);
+  if(live!==undefined)return v.parse(KingRow,{boss:live.boss,fight:{king:live.fight.body,mode:live.fight.mode,open:live.fight.open,
+    waves:live.fight.rings,thralls:live.fight.adds}});
+  return kingSnapshotRow(host);
+}
+/** Independent full-continuation projection for native observer equivalence. */
+export function kingSnapshotRow(host:SimHost):v.InferOutput<typeof KingRow> {
   const saved = host.adapters.get(bossRows.steps.fight)?.snapshot();
   if (typeof saved !== 'string') throw new Error('Missing the King\'s continuation');
   return v.parse(KingRow, (JSON.parse(saved) as { boss: unknown; fight: unknown }));

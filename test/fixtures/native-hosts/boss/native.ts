@@ -21,12 +21,25 @@ import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
  * volume (game/animation/limbPopulation `ribsWorld`: the chest chain, then the baked ribs point). */
 export type NativeGroundBossBody = NativePopulationActor & { readonly ribsWorld?: (out: Vector3) => Vector3 };
 type BossBrain = ReturnType<typeof installBossRow>['boss'];
+/** Read-only controller facts from the same installed brain and fight. Saves
+ * still use their full original continuation, including guest and lane state. */
+interface NativeGroundBossObservation {
+  readonly boss: {readonly state:string;readonly phase:number;readonly attempts:number};
+  readonly fight: {readonly body:string|null;readonly mode:string;readonly open:number;
+    readonly rings:readonly {readonly r:number;readonly on:boolean;readonly delay:number}[];
+    readonly adds:readonly {readonly a:string;readonly mode:string}[]};
+}
+const observations=new WeakMap<SimHost,Map<string,()=>NativeGroundBossObservation>>();
+/** No callback or mutable owner escapes into the controller. */
+export function nativeGroundBossObservation(host:SimHost,id:string):NativeGroundBossObservation|undefined {
+  return observations.get(host)?.get(id)?.();
+}
 /** Data references to built-in services; arbitrary ports are not admitted. */
 const RIB_POINT = new Vector3();
 const silentTell = { setTime: (): void => undefined, ring: (): void => undefined, hide: (): void => undefined };
 
 
-function nativeGroundFight(host: SimHost, row: RoamingEncounterRow, program: SpeciesProgramData, binding: NativeBossBinding): { fight: GroundBossFight<NativeGroundBossBody>; own: { first: boolean; light: boolean } } {
+function nativeGroundFight(host: SimHost, row: RoamingEncounterRow, program: SpeciesProgramData, binding: NativeBossBinding): { fight: GroundBossFight<NativeGroundBossBody>; own: { first: boolean; light: boolean }; waves:readonly {readonly r:number;readonly on:boolean;readonly delay:number}[] } {
   const own = { first: false, light: false }, roster = () => populationRoster(host, binding.population);
   const ribs = (body: NativeGroundBossBody, out: Vector3): Vector3 => {
     if (body.ribsWorld === undefined) throw new Error('Boss body has no ribs volume'); return body.ribsWorld(out);
@@ -86,7 +99,7 @@ function nativeGroundFight(host: SimHost, row: RoamingEncounterRow, program: Spe
       add: () => undefined, ring: () => undefined, tell: silentTell,
     },
   }, host.level.seed, program, nativeDecisions(host));
-  return { fight, own };
+  return { fight, own, waves };
 }
 
 const rewards = new WeakMap<SimHost, Map<string, { take: (eye: { x: number; y: number; z: number }) => boolean }>>();
@@ -100,7 +113,7 @@ const finite = v.pipe(v.number(), v.finite());
 export function installGroundBoss(host: SimHost, input: unknown, profile: unknown, program: SpeciesProgramData, bindingInput: unknown): { boss: BossBrain; fight: GroundBossFight<NativeGroundBossBody>; locked: () => boolean;
   rewardPoint: () => { x: number; y: number; z: number } | null; takeReward: (eye: { x: number; y: number; z: number }) => boolean } {
   const row = parseRoamingEncounter(input, profile), binding = v.parse(NativeBossBindingSchema, bindingInput), roster = () => populationRoster(host, binding.population);
-  const { fight, own } = nativeGroundFight(host, row, program, binding), player = host.player.position, brain: { boss: BossBrain | null } = { boss: null };
+  const { fight, own, waves } = nativeGroundFight(host, row, program, binding), player = host.player.position, brain: { boss: BossBrain | null } = { boss: null };
   host.onStep(row.steps.presence, () => { if (brain.boss !== null) groundBossPresence(row, brain.boss, fight, player, (host.dayClock?.night ?? 0) > 0.5); });
   // read at install (a restoring install's record is the brain's continuation, which restores over it)
   const record = bossFlagRecord(host.flags, row.record), saved = record.saved;
@@ -143,6 +156,12 @@ export function installGroundBoss(host: SimHost, input: unknown, profile: unknow
   const book = rewards.get(host) ?? new Map<string, { take: (eye: { x: number; y: number; z: number }) => boolean }>();
   if (book.has(row.steps.fight)) throw new Error('Duplicate native boss reward');
   book.set(row.steps.fight, { take: result.takeReward }); rewards.set(host, book);
-  host.scope.onDispose(() => { book.delete(row.steps.fight); });
+  const readers=observations.get(host)??new Map<string,()=>NativeGroundBossObservation>();
+  readers.set(row.steps.fight,()=>({boss:{state:owner.boss.state,phase:owner.boss.phase,attempts:owner.boss.attempts},fight:{
+    body:fight.body?.entityId??null,mode:fight.mode,open:fight.open,
+    rings:waves.map(wave=>({r:wave.r,on:wave.on,delay:wave.delay})),adds:fight.adds.map(add=>({a:add.a.entityId,mode:add.mode})),
+  }}));
+  observations.set(host,readers);
+  host.scope.onDispose(() => { book.delete(row.steps.fight);readers.delete(row.steps.fight); });
   return result;
 }

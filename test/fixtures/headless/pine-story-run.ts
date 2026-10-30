@@ -33,7 +33,7 @@ try{
     plan=await prepareHeadlessRuntime(preparation);return plan;
   });
   assert.ok(plan);const active=resident;measured('resident');
-  const {pineTape}=await import('../../proof/pine-hollow/witness');
+  const {pineTape,kingRow,kingSnapshotRow}=await import('../../proof/pine-hollow/witness');
   const controller=pineTape(plan),{host}=resident;measured('controller');
   retireRopes=installWalkRopeBodies(host,product);installNativeWalkBounds(host);
   const page=v.parse(ForestPageSchema,await product.json('world/forest-page.json'));
@@ -53,6 +53,7 @@ try{
   const flush=():HeadlessTapeSegment|undefined=>{
     if(frames.length===0)return undefined;
     const id=`stage-${expected.length}`,segment:HeadlessTapeSegment={id,ticks:frames.length,commands:[],frames};frames=[];
+    assert.deepEqual(kingRow(host),kingSnapshotRow(host),'native boss observations retain the complete continuation facts');
     console.info(JSON.stringify({phase:'record-stage',id,ticks:segment.ticks,current:quest.current?.id??null,at:host.state.tick,milliseconds:performance.now()-started}));
     expected.push({id,flags:[...host.flags.all],current:quest.current?.id??null,complete:quest.isComplete,held:held()});
     return segment;
