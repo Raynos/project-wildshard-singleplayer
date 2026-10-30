@@ -29,6 +29,8 @@ import { installTrampleTrail } from '@wildshard/game/systems/looks/trample';
 import { createNativeBakeReader } from '@wildshard/game/population/nativeBake';
 import { installNativeCollision } from '@wildshard/game/population/nativeBake';
 import { originalNalatiPhysics } from './nalati-physics-original';
+import { nativeArenaSealSolids } from './headless/arenaCollision';
+import type { ArenaSealDimensions } from '../../src/game/boss/arenaCollision';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
@@ -80,7 +82,9 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
         ledges: NativeEliteKernelLoans["ledges"];
         marmots: unknown;
     }>("sim/population-metadata.json"));
-    const bake = await (Object.assign({}, bakeMetadata, (bakeReader["read"])()));
+    const nativeBake=bakeReader.read();
+    const {room}=await product.json<{room:ArenaSealDimensions & {sealId:string;origin:{x:number;y:number;z:number}}}>('combat/room-entry.json');
+    const bake = {...bakeMetadata,...nativeBake,solids:nativeArenaSealSolids(physicsRows,nativeBake.solids,room)};
     const boot = await (readJson<NativePopulationBootRows & {
         riding: NativeTamingRows["programs"] & {
             riding: unknown;

@@ -57,6 +57,8 @@ export interface NativeCollisionSolid {
   readonly half?:readonly[number,number,number];readonly halfHeight?:number;readonly radius?:number;
   readonly points?:Float32Array;readonly indices?:Uint32Array;readonly material?:Material;
   readonly ownerId?:string;readonly owner?:string;
+  /** Retained initial owner activity, resolved before native installation. */
+  readonly enabled?:boolean;
 }
 /** Install the declared native lattice then its ordered solids under the actual
  * host scope. Optional record provenance preserves shared identities across
@@ -85,6 +87,7 @@ export function installNativeCollision(host:Pick<SimHost,'physics'|'scope'|'onSt
       if(desc===null)throw new Error('Unbuildable native collider');
       const collider=world.createCollider(desc.setTranslation(solid.at[0],solid.at[1],solid.at[2]).setRotation({x:solid.rot[0],y:solid.rot[1],z:solid.rot[2],w:solid.rot[3]})
         .setCollisionGroups(solid.groups).setFriction(solid.friction));
+      if(solid.enabled!==undefined)collider.setEnabled(solid.enabled);
       if(policy!==undefined)tagCollider(collider,solid.material??policy.fallback,solid.ownerId===undefined?null:owners.get(solid.ownerId));
       else if(solid.material!==undefined)tagCollider(collider,solid.material,solid.owner??null);
     }

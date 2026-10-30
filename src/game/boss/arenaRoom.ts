@@ -1,4 +1,5 @@
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
+import { arenaSealCollider } from './arenaCollision';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
@@ -300,7 +301,7 @@ export class BossArenaRoom {
     // the seal: its box in the interior group's frame (the group stands at this.rows.origin, never moves)
     registry.add({
       id: this.rows.sealId, name: this.rows.sealName, category: 'buildings', file: this.rows.file, surface: 'sand', follows: this.group,
-      colliders: [{ kind: 'box', x: 0, y: this.rows.doorHeight / 2, z: this.rows.halfWidth + 0.1, hx: this.rows.doorHalfWidth + 0.3, hy: this.rows.doorHeight / 2 + 1, hz: 0.25 }], active: () => this.sealed,
+      colliders: [arenaSealCollider(this.rows)], active: () => this.sealed,
     });
     const ph = app.physics;
     if (ph) this.sandPatch = new HeightPatch(ph, { x: this.rows.origin.x, y: Y0, z: this.rows.origin.z, size: this.rows.halfWidth * 2, res: this.rows.sandCells + 1, material: 'sand', owner: this });
