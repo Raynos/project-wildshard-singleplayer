@@ -73,6 +73,9 @@ export class UploadOwnership {
   private readonly level: Scope;
   private readonly assets: AssetService;
   private drawOwner: Scope | null = null;
+  /** the current draw's owner token (`ownerIds` of `drawOwner`), resolved once a draw; undefined = none resolved (no draw,
+   *  or a compile walk), which no observation matches */
+  private drawOwnerId: symbol | null | undefined = undefined;
   private drawDepth = 0;
   /** G639 frame floor: the engine render a draw belongs to (a test double without `render`: one generation per draw). A
    *  resource already observed in this render for the same consumer is not observed again: three asks for a material's
@@ -98,19 +101,27 @@ export class UploadOwnership {
     let live = 0; for (const ref of this.orphans) if (ref.deref() !== undefined) live++;
     return { live, collected: this.collected };
   }
+  private ownerId(scope: Scope | null): symbol | null {
+    if (scope === null) return null;
+    let owner = this.ownerIds.get(scope);
+    if (owner === undefined) { owner = Symbol('upload owner'); this.ownerIds.set(scope, owner); }
+    return owner;
+  }
   private isOrphan(resource: Resource): boolean {
     const ref = this.orphanRefs.get(resource);
     return ref !== undefined && this.orphans.has(ref);
   }
   observe(value: unknown): void {
+    // FC: a resource already observed in this render for this draw's owner, the common case (several property reads a
+    // draw, shared materials and textures), returns before the type checks; `observedIn` only ever holds resources
+    if (this.drawDepth > 0 && typeof value === 'object' && value !== null) {
+      const seen = this.observedIn.get(value);
+      if (seen !== undefined && seen.render === this.drawGen && seen.owner === this.drawOwnerId) return;
+    }
     if (this.level.disposed || !isResource(value)) return;
     const resource = value;
     if (this.drawDepth > 0) {
-      let owner: symbol | null = null;
-      if (this.drawOwner !== null) {
-        owner = this.ownerIds.get(this.drawOwner) ?? null;
-        if (owner === null) { owner = Symbol('upload owner'); this.ownerIds.set(this.drawOwner, owner); }
-      }
+      const owner = this.ownerId(this.drawOwner);
       const seen = this.observedIn.get(resource);
       if (seen === undefined) this.observedIn.set(resource, { render: this.drawGen, owner });
       else if (seen.render === this.drawGen && seen.owner === owner) return;
@@ -219,7 +230,7 @@ export class UploadOwnership {
       if (material === undefined || material === null) return;
       const delegated = sceneObjectOwner(node), owner = delegated ?? this.level;
       if (owner.disposed) return;
-      const prior = this.drawOwner; this.drawOwner = owner;
+      const prior = this.drawOwner, priorId = this.drawOwnerId; this.drawOwner = owner; this.drawOwnerId = undefined;
       try {
         const materials: unknown[] = Array.isArray(material) ? material : [material];
         const geometry: unknown = Reflect.get(node, 'geometry');
@@ -237,7 +248,7 @@ export class UploadOwnership {
           }
         }
         if (isResource(geometry) && sceneResourceOwner(geometry) === null) this.hints.set(geometry, new WeakRef(owner));
-      } finally { this.drawOwner = prior; }
+      } finally { this.drawOwner = prior; this.drawOwnerId = priorId; }
     });
   }
   attach(renderer: ObservedRenderer): void {
@@ -249,13 +260,14 @@ export class UploadOwnership {
     };
     const draw = renderer.renderBufferDirect.bind(renderer), counted = renders(renderer) ? renderer : null;
     renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
-      const prior = this.drawOwner, priorGen = this.drawGen; this.drawOwner = sceneObjectOwner(object);
+      const prior = this.drawOwner, priorId = this.drawOwnerId, priorGen = this.drawGen; this.drawOwner = sceneObjectOwner(object);
+      this.drawOwnerId = this.ownerId(this.drawOwner);
       this.drawDepth++; this.drawGen = counted === null ? ++this.drawGens : renderCount(counted);
       try {
         // A batch must claim its private aggregate geometry/textures before renderer property reads observe them.
         this.observe(object); this.observe(geometry); this.observe(material);
         draw(camera, scene, geometry, material, object, group);
-      } finally { this.drawDepth--; this.drawOwner = prior; this.drawGen = priorGen; }
+      } finally { this.drawDepth--; this.drawOwner = prior; this.drawOwnerId = priorId; this.drawGen = priorGen; }
     };
     // Test doubles carry only the draw path.
     if (renderer.compile !== undefined) {
