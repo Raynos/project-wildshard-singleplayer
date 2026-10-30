@@ -99,3 +99,19 @@ test('stowing ends a wind-up and a thrust out of hand, as the weapon did', () =>
   law.stow(true, false); expect([law.windT, law.thrustT, law.queued]).toEqual([.2, .1, true]);
   law.stow(false, true); expect([law.windT, law.releaseQueued, law.thrustT, law.queued]).toEqual([-1, false, -1, false]);
 });
+
+test('a polearm checkpoint keeps pending input, cadences and actual target history',()=>{
+  const first=new PolearmDecision<Deer>(rows.programs.polearm,scope),restored=new PolearmDecision<Deer>(rows.programs.polearm,scope);
+  const deer:Deer={position:new Vector3(0,0,-2),alive:true},player=new Vector3();
+  const key=(target:Deer):string=>{if(target!==deer)throw new Error('Foreign polearm target');return 'deer';};
+  const resolve=(id:string):Deer=>{if(id!=='deer')throw new Error('Missing polearm target');return deer;};
+  const frame={player,heading:0,held:true,enabled:true,ads:false,ammo:3,capacity:3,mount:{speed:9},targets:[deer],radius,
+    javelins:[],random:()=>.5,policy,projectile};
+  first.attackPending=true;first.decide(.04,.04,frame);first.struck(deer,.04);first.tapPending=true;
+  restored.restore(first.snapshot(key),resolve);
+  for(let tick=0;tick<40;tick++){
+    deer.position.z-=.01;const time=.04+(tick+1)*.03;
+    expect(restored.decide(.03,time,frame)).toEqual(first.decide(.03,time,frame));expect(restored.snapshot(key)).toEqual(first.snapshot(key));
+  }
+  const before=restored.snapshot(key);expect(()=>restored.restore({...before,cadence:Number.NaN},resolve)).toThrow();expect(restored.snapshot(key)).toEqual(before);
+});

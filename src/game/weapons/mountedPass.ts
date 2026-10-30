@@ -1,3 +1,4 @@
+import * as schema from 'valibot';
 import type { Vector3 } from 'three';
 import type { HeldDecision } from './heldDecision';
 
@@ -22,6 +23,13 @@ export interface MountedPassInputs {
 /** A pass to swing: its side (-1 left, 1 right) and the damage of its one swing. */
 export interface MountedPassStrike { readonly side: number; readonly damage: number }
 
+const finite=schema.pipe(schema.number(),schema.finite());
+const PassState=schema.strictObject({passChain:finite,chainT:finite,mountCd:finite,pendingAttack:schema.boolean(),
+  pendingHits:schema.pipe(finite,schema.integer(),schema.minValue(0)),elapsed:schema.pipe(finite,schema.minValue(0))});
+/** Every pending edge and clock, independent of the caller's decision owner. */
+export interface MountedPassState {readonly passChain:number;readonly chainT:number;readonly mountCd:number;
+ readonly pendingAttack:boolean;readonly pendingHits:number;readonly elapsed:number}
+
 export class MountedPassLaw {
   /** hits in the running chain (0: none), for the HUD's chip */
   passChain = 0;
@@ -29,6 +37,12 @@ export class MountedPassLaw {
   private pendingAttack = false; private pendingHits = 0; private elapsed = 0;
   /** `law`: the sabre's admitted 10 Hz decision (a HeldDecision over its program) */
   constructor(private readonly law: Pick<HeldDecision, 'update'>) {}
+  /** Snapshot the complete input/cadence state, without consuming an attack. */
+  snapshot():MountedPassState{return {passChain:this.passChain,chainT:this.chainT,mountCd:this.mountCd,
+    pendingAttack:this.pendingAttack,pendingHits:this.pendingHits,elapsed:this.elapsed};}
+  /** Check the whole cursor before replacing any accepted state. */
+  restore(input:unknown):void{const saved=schema.parse(PassState,input);this.passChain=saved.passChain;this.chainT=saved.chainT;
+    this.mountCd=saved.mountCd;this.pendingAttack=saved.pendingAttack;this.pendingHits=saved.pendingHits;this.elapsed=saved.elapsed;}
   /** Keep a swapped-out sabre's chain and cooldown. */
   carry(previous: MountedPassLaw): void { this.passChain = previous.passChain; this.chainT = previous.chainT; this.mountCd = previous.mountCd; }
   /** An attack press while mounted (taken by the next decision). */

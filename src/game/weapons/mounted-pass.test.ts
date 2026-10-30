@@ -4,6 +4,19 @@ import { MountedPassLaw, type MountedPassRows, type MountedPassTarget } from './
 
 const rows: MountedPassRows = { chainWindow: 1.4, sense: 3.2, behind: 0.6, speedDivisor: 9, chainMax: 4, chainStep: 0.25, cooldown: 0.45 };
 
+test('a pending attack, hit and partial cadence continue without consuming an extra edge',()=>{
+  const make=()=>new MountedPassLaw({update:(dt,observed)=>({cooldown:Math.max(0,(observed['cooldown']??0)-dt),
+    chain:observed['chain']??0,links:(observed['links']??0)+(observed['hits']??0),
+    side:observed['attack']===1?1:0,damage:observed['baseDamage']??0})});
+  const first=make(),restored=make(),frame={player:{position:new Vector3(),yaw:0},mount:{speed:9,yaw:0},charging:false,baseDamage:20,rows,targets:[]};
+  first.attack();first.hit();expect(first.decide(.05,frame)).toBeNull();restored.restore(first.snapshot());
+  for(let tick=0;tick<40;tick++){
+    if(tick%14===0){first.attack();restored.attack();first.hit();restored.hit();}
+    expect(restored.decide(.03,frame)).toEqual(first.decide(.03,frame));expect(restored.snapshot()).toEqual(first.snapshot());
+  }
+  const before=restored.snapshot();expect(()=>restored.restore({...before,pendingHits:Number.NaN})).toThrow();expect(restored.snapshot()).toEqual(before);
+});
+
 /** HeldDecision's clock over a deterministic stand-in for the sabre's guest (its observations and candidates recorded) */
 function decision(seed: number, seen: string[]): { update: (dt: number, o: Readonly<Record<string, number>>, c?: readonly Readonly<Record<string, number>>[]) => Readonly<Record<string, number>> | null } {
   let elapsed = 0, s = seed;

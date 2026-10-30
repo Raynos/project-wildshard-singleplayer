@@ -2198,7 +2198,9 @@ if (host !== null) {
 
 `viewmodel`, `melee`, `aimRay`, `fovForAspect` and `blendAds` are also exported on their own.
 
-**The swept melee clock (SF72).** `@wildshard/engine/combat/sweptMeleeCore` runs combo gaps, one-deep `chainLag`, heavy charge/release, active windows and cooldown. `new SweptMeleeCore(moves, timing, attackQueue, { start, charge })` exposes `tryFire()`, `strike(move)`, `stop()` and `step(dt, t, swingScale, held)`; `sweptMoveDamage` computes damage. `snapshot(extraMoves)` / `restore(state, extraMoves)` continue exact state: optional authored moves name mounted passes without extending the light combo; unnamed moves refuse. Page pose, sweep rays, lunge and FX stay separate.
+**The swept melee clock (SF72).** `@wildshard/engine/combat/sweptMeleeCore` runs combo gaps, one-deep `chainLag`, heavy charge/release, active windows and cooldown. `new SweptMeleeCore(moves, timing, attackQueue, { start, charge })` exposes `tryFire()`, `strike(move)`, `stop()` and `step(dt, t, swingScale, held)`; `sweptMoveDamage` computes damage. `snapshot(extraMoves)` / `restore(state, extraMoves)` continue exact state: optional authored moves name mounted passes without extending the light combo; unnamed moves refuse.
+
+Game weapon cursors retain pending edges/cadences/target IDs.
 
 `@wildshard/engine/player/WeaponPickup` exports `ItemPickup`, the shared
 orb, take callback, proximity cue and disposal owner. A subclass may wrap its

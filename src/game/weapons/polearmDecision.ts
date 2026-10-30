@@ -10,6 +10,7 @@
  *   law.attackPending = true; const out = law.decide(dt, t, frame);   // out?.start, out?.launch, out?.target …
  */
 import type { Scope } from '@wildshard/engine/app/scope';
+import * as schema from 'valibot';
 import { HeldDecision } from './heldDecision';
 
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -53,6 +54,19 @@ function distanceSquared(a: Point, b: Point): number { const dx = a.x - b.x, dy 
 /** three's MathUtils.clamp */
 function clamp(value: number, min: number, max: number): number { return Math.max(min, Math.min(max, value)); }
 
+const finite=schema.pipe(schema.number(),schema.finite()),id=schema.pipe(schema.string(),schema.minLength(1),schema.maxLength(128));
+const PolearmStateSchema=schema.strictObject({thrustT:finite,windT:finite,throwT:finite,queued:schema.boolean(),releaseQueued:schema.boolean(),
+  threw:schema.boolean(),hitDone:schema.boolean(),throwPrev:schema.boolean(),lanceActive:schema.boolean(),attackPending:schema.boolean(),tapPending:schema.boolean(),
+  decisionT:schema.pipe(finite,schema.minValue(0)),cadence:schema.pipe(finite,schema.minValue(0)),
+  rehit:schema.array(schema.tuple([id,finite])),previous:schema.array(schema.tuple([id,schema.strictObject({x:finite,y:finite,z:finite})]))});
+/** Whole decision cursor. Stable body identities replace borrowed object keys. */
+export interface PolearmState {
+ readonly thrustT:number;readonly windT:number;readonly throwT:number;readonly queued:boolean;readonly releaseQueued:boolean;
+ readonly threw:boolean;readonly hitDone:boolean;readonly throwPrev:boolean;readonly lanceActive:boolean;readonly attackPending:boolean;
+ readonly tapPending:boolean;readonly decisionT:number;readonly cadence:number;
+ readonly rehit:readonly (readonly [string,number])[];readonly previous:readonly (readonly [string,Point])[];
+}
+
 export class PolearmDecision<T extends PolearmTarget = PolearmTarget> {
   thrustT = -1; windT = -1; throwT = -1; queued = false; releaseQueued = false; threw = false; hitDone = false; throwPrev = false;
   lanceActive = false; attackPending = false; tapPending = false;
@@ -62,6 +76,26 @@ export class PolearmDecision<T extends PolearmTarget = PolearmTarget> {
   private readonly rehit = new Map<T, number>();
   private readonly prevPos = new Map<T, Point>();
   constructor(program: unknown, owner?: Scope) { this.law = new HeldDecision(program, owner); }
+
+  /** Capture pending presses, both cadences and every target's observed history. */
+  snapshot(key:(target:T)=>string):PolearmState{return {thrustT:this.thrustT,windT:this.windT,throwT:this.throwT,queued:this.queued,
+    releaseQueued:this.releaseQueued,threw:this.threw,hitDone:this.hitDone,throwPrev:this.throwPrev,lanceActive:this.lanceActive,
+    attackPending:this.attackPending,tapPending:this.tapPending,decisionT:this.decisionT,cadence:this.law.snapshot(),
+    rehit:[...this.rehit].map(([target,time])=>[key(target),time]),previous:[...this.prevPos].map(([target,point])=>[key(target),{...point}])};}
+  /** Resolve and validate the entire cursor before committing any replacement. */
+  restore(input:unknown,resolve:(key:string)=>T):void{
+    const saved=schema.parse(PolearmStateSchema,input);
+    if(new Set(saved.rehit.map(([key])=>key)).size!==saved.rehit.length
+      ||new Set(saved.previous.map(([key])=>key)).size!==saved.previous.length)throw new Error('Duplicate polearm continuation target');
+    const rehit=saved.rehit.map(([key,time])=>[resolve(key),time] as const),previous=saved.previous.map(([key,point])=>[resolve(key),{...point}] as const);
+    if(new Set(rehit.map(([target])=>target)).size!==rehit.length
+      ||new Set(previous.map(([target])=>target)).size!==previous.length)throw new Error('Aliased polearm continuation target');
+    this.law.restore(saved.cadence);this.thrustT=saved.thrustT;this.windT=saved.windT;this.throwT=saved.throwT;this.queued=saved.queued;
+    this.releaseQueued=saved.releaseQueued;this.threw=saved.threw;this.hitDone=saved.hitDone;this.throwPrev=saved.throwPrev;
+    this.lanceActive=saved.lanceActive;this.attackPending=saved.attackPending;this.tapPending=saved.tapPending;this.decisionT=saved.decisionT;
+    this.rehit.clear();this.prevPos.clear();for(const [target,time] of rehit)this.rehit.set(target,time);
+    for(const [target,point] of previous)this.prevPos.set(target,point);
+  }
 
   /** The lance struck `target` at `t` (its rehit clock). */
   struck(target: T, t: number): void { this.rehit.set(target, t); }
