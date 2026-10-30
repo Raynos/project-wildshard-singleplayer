@@ -45,6 +45,8 @@ export interface CreatureHit<C extends Creature = Creature> { creature: C; head:
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _q = new THREE.Quaternion(), _up = new THREE.Vector3(0, 1, 0), _d = new THREE.Vector3();
 
 interface Boxes { head: Collider; body: Collider; fore: Collider | null; bodyHalf: number; on: boolean;
+  /** the creature was live and asleep at the last sync (`sync`'s `asleep`): its bones have not moved since */
+  slept: boolean;
   /** what sync last wrote: head xyz, body xyz + rotation xyzw, fore xyz + rotation xyzw (NaN: nothing yet) */
   readonly pose: Float64Array }
 /**
@@ -83,8 +85,12 @@ export class CreatureBodies<C extends Creature = Creature> {
     this.physics = physics;
   }
 
-  /** Every AnimalManager update: pose every hitbox from the bones, hand out / take back bodies by distance to `player`. */
-  sync(creatures: readonly C[], player: THREE.Vector3): void {
+  /**
+   * Every AnimalManager update: pose every hitbox from the bones, hand out / take back bodies by distance to `player`.
+   * `asleep`: a creature that is not updated this frame (the manager's dormant ones). One asleep at this sync and the last
+   * keeps the pose it was given then, unread (PF6: Pine's ~200 rigs, most outside the resident ring, every frame).
+   */
+  sync(creatures: readonly C[], player: THREE.Vector3, asleep?: (c: C) => boolean): void {
     const { R, world } = this.physics;
     let bodies = 0;
     for (const c of creatures) {
@@ -104,11 +110,14 @@ export class CreatureBodies<C extends Creature = Creature> {
           fore = world.createCollider(R.ColliderDesc.capsule(Math.max(0.01, d.fore.halfLen * s), d.fore.radius * s).setCollisionGroups(groups('HITBOX')));
           tagCollider(fore, 'flesh', bodyOwner); this.owners.set(fore.handle, bodyOwner);
         }
-        b = { head, body, fore, bodyHalf, on: true, pose: new Float64Array(17).fill(Number.NaN) };
+        b = { head, body, fore, bodyHalf, on: true, slept: false, pose: new Float64Array(17).fill(Number.NaN) };
         this.boxes.set(c, b);
       }
+      const wasLive = b.on, sleeping = live && asleep?.(c) === true;
       if (live !== b.on) { b.on = live; b.head.setEnabled(live); b.body.setEnabled(live); b.fore?.setEnabled(live); }
-      if (live) {
+      const held = sleeping && b.slept && wasLive;
+      b.slept = sleeping;
+      if (live && !held) {
         const pose = b.pose;
         c.headWorld(_a);
         moveTo(b.head, pose, 0, _a.x, _a.y, _a.z);

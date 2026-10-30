@@ -586,6 +586,8 @@ export class AnimalManager {
   }
   /** dormant: outside the ring (MF11: no texture lease; a woken model draws at once, its textures never left) */
   private dormant(a: Animal): boolean { return this.outside(a); }
+  /** `dormant` as a reusable callback (CreatureBodies.sync's `asleep`) */
+  private readonly asleepNow = (a: Animal): boolean => this.dormant(a);
 
   /** whether `a` can be drawn from `from`: shown, awake and within animalHideDist */
   private inFarReach(a: Animal, from: THREE.Vector3): boolean {
@@ -612,7 +614,7 @@ export class AnimalManager {
     this.hunt.beginTick(dt);
     if (app.world.trample !== null && !practiceRoom.open) this.trampleGrass(playerPos); // E322 F-L4: Pine Hollow's grass trample
     // hitboxes posed from last frame's bones, bodies handed out / back by distance (PHYSICS P6)
-    this.bodiesFor()?.sync(this.animals, playerPos);
+    this.bodiesFor()?.sync(this.animals, playerPos, this.asleepNow);
     // Decisions and bodies have independent per-subject clocks; the free camera never wakes a herd.
     const n = this.animals.length;
     if (dt > 0) {
