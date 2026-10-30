@@ -116,6 +116,7 @@ class GraphRig {
   private readonly base = new Vector3();
   private readonly tip = new Vector3();
   private readonly buffer = [0, 0];
+  private ratio = Number.NaN;
   private readonly projection = [0, 0, 0, 0];
   /** each loaded look's declared params */
   private readonly params: readonly (readonly [string, ReadonlySet<string>])[];
@@ -161,9 +162,11 @@ class GraphRig {
 
   setClawVisible(on: boolean): void { for (const mesh of this.rig.meshes()) if (mesh.name.startsWith(this.row.claw)) mesh.visible = on; }
 
-  /** the drawing buffer's size and pixel ratio, to the `buffer` and `pixels` frame rows */
+  /** the drawing buffer's size and pixel ratio, to the `buffer` and `pixels` frame rows (written when they change, like
+   *  the projection rows: the held update asks every frame) */
   resize(bw: number, bh: number, pr: number): void {
-    this.buffer[0] = bw; this.buffer[1] = bh;
+    if (this.buffer[0] === bw && this.buffer[1] === bh && this.ratio === pr) return;
+    this.buffer[0] = bw; this.buffer[1] = bh; this.ratio = pr;
     for (const entry of this.row.frame) {
       if (entry.source === 'buffer') this.write(entry, this.buffer);
       else if (entry.source === 'pixels') this.write(entry, Math.max(entry.min ?? -Infinity, pr * (entry.scale ?? 1)));

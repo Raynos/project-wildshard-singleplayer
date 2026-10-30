@@ -152,9 +152,10 @@ export class TileDriver {
     const now = diagnosticNow(), cone = loaderMode || this.view === null ? null : this.view();
     for (const key of this.wantedAt.keys()) if (!wanted.render.has(key)) this.wantedAt.delete(key);
     for (const layer of ['colliders', 'render'] as const) {
+      // a tile with every content done (done.size >= contents.length, as everywhere here) skips the content scan
       const next = plan.nearest[layer].find(key => {
         const tile = this.attached[layer].get(key);
-        return this.inView(key) && !(layer === 'render' && this.deferred(key, cone, now)) && (tile === undefined || this.contents.some(content => !tile.done.has(content) && (layer === 'colliders' || content.ready?.() !== false))) && !this.failed.has(`${layer}:${String(key)}`);
+        return this.inView(key) && !(layer === 'render' && this.deferred(key, cone, now)) && (tile === undefined || tile.done.size < this.contents.length && this.contents.some(content => !tile.done.has(content) && (layer === 'colliders' || content.ready?.() !== false))) && !this.failed.has(`${layer}:${String(key)}`);
       });
       if (next === undefined) continue;
       // MF13: in play, each render tile's attach and whether the camera sees it then (the walk probes read these)
