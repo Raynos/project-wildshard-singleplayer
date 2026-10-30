@@ -1,10 +1,21 @@
-import { expect, test, vi } from 'vitest';
+import { beforeAll, expect, test, vi } from 'vitest';
 import { Scope } from '../app/scope';
 import { withOwner } from '../app/ownership';
 import { legacyDouble } from '../test/FakeGame';
 import type { Audio } from './Audio';
 import { Music } from './Music';
-import { score, type Arrangement } from './score/score';
+import { installScore, score, type Arrangement, type Score } from './score/score';
+
+// The sequencer is a lifetime double; its content must be explicit too.
+const TEST_SCORE: Score = {
+  arrangements: { theme: { name: 'theme', driven: false, segments: [
+    { id: 'idle-fixture', bpm: 96, beats: 4, chords: [{ t: 0, chord: 'tonic' }], notes: {} },
+  ] } },
+  chords: { tonic: [60, 64, 67] }, chordRoot: { tonic: 60 },
+  dorianOf: {}, dorianPitch: n => n,
+  stings: { pickup: [], death: { chords: ['tonic', 'tonic'], bass: [] }, chunk: { chord: 'tonic', bell: [] } },
+};
+beforeAll(() => { installScore(TEST_SCORE); });
 
 function fixture() {
   const owner = new Scope('music-idle-fixture');
