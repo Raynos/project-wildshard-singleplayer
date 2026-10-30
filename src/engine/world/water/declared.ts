@@ -43,6 +43,14 @@ export function declaredWaterBody(input: WaterDeclaration): WaterBody {
   const level = data.kind === 'stream' ? data.points[0]?.level ?? 0 : data.level;
   // Keep lookup metadata in the body; every sample still reads live levels.
   const rest = data.kind === 'stream' ? data.levels : undefined;
+  // FC16: each stream segment's box widened by half the stream's width (min x, max x, min z, max z). A point outside it is
+  // farther than that from the segment, which can then never be the answer: skipped without its distance (the player's and
+  // every animal's dry-ground test asked every segment of Pine's creek)
+  const reach = data.kind === 'stream' ? data.width / 2 : 0, boxes = new Float64Array(data.kind === 'stream' ? Math.max(0, data.points.length - 1) * 4 : 0);
+  if (data.kind === 'stream') for (let i = 1; i < data.points.length; i++) {
+    const a = data.points[i - 1], b = data.points[i]; if (a === undefined || b === undefined) continue;
+    boxes.set([Math.min(a.x, b.x) - reach, Math.max(a.x, b.x) + reach, Math.min(a.z, b.z) - reach, Math.max(a.z, b.z) + reach], (i - 1) * 4);
+  }
   const restAt = (x: number, z: number): number | null => {
     if (!Number.isFinite(x) || !Number.isFinite(z) || Math.abs(x) > 250 || Math.abs(z) > 250) return null;
     const edges = data.dryEntries;
@@ -61,6 +69,8 @@ export function declaredWaterBody(input: WaterDeclaration): WaterBody {
     let distance = Infinity, height = level;
     for (let i = 1; i < data.points.length; i++) {
       const a = data.points[i - 1], b = data.points[i]; if (a === undefined || b === undefined) continue;
+      const k = (i - 1) * 4;
+      if (x < (boxes[k] ?? -Infinity) || x > (boxes[k + 1] ?? Infinity) || z < (boxes[k + 2] ?? -Infinity) || z > (boxes[k + 3] ?? Infinity)) continue;
       const dx = b.x - a.x, dz = b.z - a.z, n = dx * dx + dz * dz;
       const t = n === 0 ? 0 : Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / n));
       const d = Math.hypot(x - a.x - dx * t, z - a.z - dz * t);

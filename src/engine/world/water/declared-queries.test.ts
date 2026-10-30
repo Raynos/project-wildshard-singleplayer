@@ -18,6 +18,27 @@ test('stream queries retain exact interpolation, tie order and live levels', () 
   expect(body.inside(5, 1, 8)).toBe(true); expect(body.inside(5, 1, 9)).toBe(false);
 });
 
+test('FC16: a bent stream answers as its nearest segment within half its width, across a sweep', () => {
+  const points = [{ x: -40, z: -30, level: 1 }, { x: -10, z: -28, level: 2 }, { x: 0, z: 5, level: 3 }, { x: 25, z: 9, level: 1.5 }, { x: 30, z: 40, level: 4 }];
+  const width = 6, body = declaredWaterBody({ id: 'test/fc16-bent', kind: 'stream', width, points });
+  // the plain scan the box skip stands in for: every segment measured, the first nearest kept
+  const reference = (x: number, z: number): number | null => {
+    let distance = Infinity, height = 1;
+    for (let i = 1; i < points.length; i++) {
+      const a = points[i - 1], b = points[i]; if (a === undefined || b === undefined) continue;
+      const dx = b.x - a.x, dz = b.z - a.z, n = dx * dx + dz * dz, t = n === 0 ? 0 : Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / n));
+      const d = Math.hypot(x - a.x - dx * t, z - a.z - dz * t);
+      if (d < distance) { distance = d; height = a.level + (b.level - a.level) * t; }
+    }
+    return distance < width / 2 ? height : null;
+  };
+  let wet = 0;
+  for (let x = -50; x <= 40; x += 0.75) for (let z = -40; z <= 50; z += 0.75) {
+    const got = body.restAt(x, z); expect(got).toBe(reference(x, z)); if (got !== null) wet++;
+  }
+  expect(wet).toBeGreaterThan(500);
+});
+
 test('query bounds, invalid numbers and circle edges retain their original decisions', () => {
   const body = declaredWaterBody({ id: 'circle', kind: 'pool', level: -0, shape: { kind: 'circle', x: 0, z: 0, radius: 250 } });
   expect(Object.is(body.restAt(0, 0), -0)).toBe(true);
