@@ -57,17 +57,28 @@ test('one push wave keeps all six browser guards and serialized exact-artifact s
   expect(journeys).not.toContain('run watch');expect(journeys).not.toContain('vercel build');
 });
 
-function recoveryFixture(native=false,splitPhone=false) {
+function recoveryFixture(native=false,splitPhone=false,shards=12) {
   const repo='Raynos/project-wildshard-singleplayer',runId='123';
   const run={id:123,workflow_id:456,event:'push',head_branch:'main',head_sha:sha,status:'completed',conclusion:'failure',
     path:'.github/workflows/deploy.yml',head_repository:{full_name:repo}};
   const rows=['prepare','typecheck-lint','derived-docs','boot-verdict',
-    ...Array.from({length:12},(_,i)=>`behaviour (${i+1})`),
+    ...Array.from({length:shards},(_,i)=>`behaviour (${i+1})`),
     ...['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'].map(name=>`journeys (${name})`),
     ...(native?['native-escape']:[])].map(name=>[name,'completed','success']);
   rows.push(['build-and-deploy','completed','failure'],[splitPhone?'phone-route':'journeys (phone-route)','completed','failure']);
   const ancestry={base_commit:{sha},status:'ahead'};
-  const fixture={run,rows,ancestry,source:`${splitPhone?'\n  phone-route:\n    continue-on-error: true\n':`continue-on-error: \${{ matrix.part == 'phone-route' }}`}${native?'\n  native-escape:\n':''}`,
+  const topology = `
+  prepare:
+    steps:
+      - run: node scripts/vitest-plan.ts --shards ${shards} --workers 2
+  behaviour:
+    strategy:
+      matrix:
+        shard: [${Array.from({length:shards},(_,i)=>i+1).join(', ')}]
+    steps:
+      - run: pnpm exec vitest run --config scripts/vitest-ci.config.ts --shard=\${{ matrix.shard }}/${shards} --bail=0
+`;
+  const fixture={run,rows,ancestry,source:`${topology}${splitPhone?'\n  phone-route:\n    continue-on-error: true\n':`continue-on-error: \${{ matrix.part == 'phone-route' }}`}${native?'\n  native-escape:\n':''}`,
     green:[] as typeof run[],
     boot:`success\thttps://github.com/${repo}/actions/runs/${runId}`,
     query:(args:string[]):string=>{
@@ -96,6 +107,24 @@ test('explicit recovery accepts original complete source proofs on both sides of
         expect(()=>recoverySource('123',broken.query)).toThrow('source gate');
       }
   }
+});
+
+test('recovery keeps historical twelve and current twenty-four source jobs exhaustive',()=>{
+  for(const count of [12,24]) {
+    const f=recoveryFixture(true,true,count);
+    expect(recoverySource('123',f.query)).toEqual({sha,run:'123'});
+    f.rows=f.rows.filter(row=>row[0]!==`behaviour (${count})`);
+    expect(()=>recoverySource('123',f.query)).toThrow();
+  }
+  for(const mutate of [
+    (f:ReturnType<typeof recoveryFixture>)=>{f.source=f.source.replace('--shards 24','--shards 12');},
+    (f:ReturnType<typeof recoveryFixture>)=>{f.source=f.source.replace('/24 --bail=0','/12 --bail=0');},
+    (f:ReturnType<typeof recoveryFixture>)=>{f.source=f.source.replace('shard: [1, 2,','shard: [1, 1,');},
+  ]) {
+    const f=recoveryFixture(true,true,24);mutate(f);
+    expect(()=>recoverySource('123',f.query)).toThrow('topology');
+  }
+  expect(()=>recoverySource('123',recoveryFixture(true,true,1).query)).toThrow('topology');
 });
 
 test('recovery refuses partial, duplicated, foreign, divergent and stale proofs',()=>{

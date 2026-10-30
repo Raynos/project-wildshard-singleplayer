@@ -4,7 +4,7 @@ import { dirname, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import * as v from 'valibot';
-import { createShardPlan, readDurations, LEGACY_FILE_OVERHEAD } from './test-shard-plan.ts';
+import { createShardPlan, readDurations, LEGACY_FILE_OVERHEAD, CI_SHARD_COUNT } from './test-shard-plan.ts';
 
 const finite = v.pipe(v.number(), v.finite(), v.minValue(0));
 const timingsSchema = v.object({ files: v.array(v.object({ file: v.string(), state: v.string(), measuredAt: finite,
@@ -66,7 +66,7 @@ export function planMain(args: readonly string[]): void {
     if (selected !== undefined) console.log(selected);
     return;
   }
-  const { values } = parseArgs({ args: [...args], options: { shards: { type: 'string', default: '12' }, workers: { type: 'string', default: '2' },
+  const { values } = parseArgs({ args: [...args], options: { shards: { type: 'string', default: String(CI_SHARD_COUNT) }, workers: { type: 'string', default: '2' },
     output: { type: 'string' }, files: { type: 'string' }, results: { type: 'string', multiple: true }, timings: { type: 'string', multiple: true } } });
   if (values.output === undefined) throw new Error('Specify --output for the shard plan artifact');
   const root = process.cwd();
@@ -84,7 +84,10 @@ export function planMain(args: readonly string[]): void {
     sha, run: run ?? null, fallbackSeconds: measurements.fallbackSeconds, measuredFiles: measurements.measuredFiles });
   mkdirSync(dirname(resolve(values.output)), { recursive: true });
   writeFileSync(values.output, `${JSON.stringify(plan, null, 2)}\n`);
-  console.log(`vitest-plan: ${paths.length} files / ${plan.shardCount} shards / ${plan.workers} workers; expected ${plan.expectedSeconds.toFixed(1)} s at measured rate; ${plan.measuredFiles} recent observations`);
+  const mean = plan.shards.reduce((sum, shard) => sum + shard.expectedSeconds, 0) / plan.shardCount;
+  const floor = plan.shards.reduce((sum, shard) => sum + shard.totalSeconds, 0) / (plan.shardCount * plan.workers);
+  const ratio = mean === 0 ? 1 : plan.expectedSeconds / mean;
+  console.log(`vitest-plan: ${paths.length} files / ${plan.shardCount} shards / ${plan.workers} workers; modeled max ${plan.expectedSeconds.toFixed(1)} s / mean ${mean.toFixed(1)} s = ${ratio.toFixed(3)}x; work floor ${floor.toFixed(1)} s; ${plan.measuredFiles} recent observations; not a measured CI wall`);
 }
 
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) planMain(process.argv.slice(2));

@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve isolated synthetic report paths.
 import { resolve } from 'node:path';
-import { createShardPlan, readShardPlan } from '../scripts/test-shard-plan';
+import { createShardPlan, readShardPlan, CI_SHARD_COUNT } from '../scripts/test-shard-plan';
 import { measuredWeights, selectTimingHistory } from '../scripts/vitest-plan';
 
 const source = { sha: 'a'.repeat(40), run: '123' };
@@ -89,4 +89,21 @@ test('malformed, duplicate or unbounded history listings refuse', () => {
   expect(() => selectTimingHistory([run], [{ ...historyArtifact(run), workflow_run: null }])).toThrow();
   expect(() => selectTimingHistory(Array.from({ length: 21 }, (_, index) => historyRun(index + 1)), [])).toThrow();
   expect(() => selectTimingHistory([run], Array.from({ length: 101 }, () => historyArtifact(run)))).toThrow();
+});
+
+
+test('the measured wave retains every file while spreading work below the job budget', () => {
+  // The former twelve jobs cannot process this work in 300 seconds even
+  // with perfect packing; complete-module costs include collection/setup.
+  const paths = Array.from({ length: 2284 }, (_, index) => `test/work-${index}.test.ts`);
+  const weights = new Map(paths.map((path, index) => [path, index < 12 ? 100 : 4]));
+  const options = { ...source, workers: 2, fallbackSeconds: 4, measuredFiles: paths.length };
+  const previous = createShardPlan(paths, weights, { ...options, count: 12 });
+  const current = createShardPlan(paths, weights, { ...options, count: CI_SHARD_COUNT });
+  expect(previous.expectedSeconds).toBeGreaterThan(300);
+  expect(current.expectedSeconds).toBeLessThanOrEqual(250);
+  const mean = current.shards.reduce((sum, shard) => sum + shard.expectedSeconds, 0) / current.shardCount;
+  expect(current.expectedSeconds / mean).toBeLessThanOrEqual(1.2);
+  expect(current.shards.flatMap(shard => shard.files).sort()).toEqual([...paths].sort());
+  expect(new Set(current.shards.flatMap(shard => shard.files)).size).toBe(paths.length);
 });

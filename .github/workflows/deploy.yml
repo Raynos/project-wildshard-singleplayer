@@ -419,7 +419,7 @@ jobs:
               */results.json) observations+=(--results "$file") ;;
             esac
           done < <(find tmp/ci-vitest/recent -type f -name '*.json' -print0)
-          node scripts/vitest-plan.ts --shards 12 --workers 2 --output tmp/ci-vitest/plan.json "${observations[@]}"
+          node scripts/vitest-plan.ts --shards 24 --workers 2 --output tmp/ci-vitest/plan.json "${observations[@]}"
       - uses: actions/upload-artifact@v4
         with:
           name: vitest-plan
@@ -607,7 +607,7 @@ jobs:
       # G678/SW9: every shard reports its own first failure in this run.
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -660,7 +660,7 @@ jobs:
           name: vitest-plan
           path: tmp/ci-vitest
       # CI7: one duration-packed wave includes every product and source suite.
-      - run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --config scripts/vitest-ci.config.ts --shard=${{ matrix.shard }}/12 --bail=0 --reporter=default --reporter=json --reporter=./scripts/vitest-timings.ts --outputFile=tmp/ci-vitest/results.json
+      - run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --config scripts/vitest-ci.config.ts --shard=${{ matrix.shard }}/24 --bail=0 --reporter=default --reporter=json --reporter=./scripts/vitest-timings.ts --outputFile=tmp/ci-vitest/results.json
         env:
           VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
           WS_TEST_PRODUCTS_SHA: ${{ github.sha }}

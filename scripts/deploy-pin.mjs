@@ -262,8 +262,16 @@ function recoveryEvidence(runId, query, deadline) {
   if (phone === undefined ? !source.includes(`continue-on-error: \${{ matrix.part == 'phone-route' }}`)
     : !/(?:^|\n) {4}continue-on-error: true(?:\n|$)/u.test(phone))
     throw new Error('Recovery source lacks the reviewed report-only phone policy');
+  // Recovery must use the selected source's reviewed topology, not today's
+  // count: earlier exact-SIX proofs retain their original twelve-job wave.
+  const behaviour = /\n {2}behaviour:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
+  const matrix = /^\s+shard: \[([\d, ]+)\]/mu.exec(behaviour ?? '')?.[1]?.split(',').map(Number);
+  if (matrix === undefined || ![12,24].includes(matrix.length) || matrix.some((index, i) => index !== i + 1)
+    || !source.includes(`node scripts/vitest-plan.ts --shards ${matrix.length} --workers 2`)
+    || !behaviour?.includes(`--config scripts/vitest-ci.config.ts --shard=\${{ matrix.shard }}/${matrix.length} --bail=0`))
+    throw new Error('Recovery source has an unreviewed behavior topology');
   const required = new Set(['prepare','typecheck-lint','derived-docs','boot-verdict',
-    ...Array.from({length:12},(_,i)=>`behaviour (${i+1})`),
+    ...matrix.map(index=>`behaviour (${index})`),
     ...['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'].map(name=>`journeys (${name})`),
     ...(native?['native-escape']:[])]);
   const rows = query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--jq',

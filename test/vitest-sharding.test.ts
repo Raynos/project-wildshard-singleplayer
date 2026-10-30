@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { selectTestCohort,PURE_TESTS } from '../scripts/vitest-shard';
 import { CI_SERIAL_TESTS } from '../scripts/vitest-ci-files';
-import { packShards,readDurations } from '../scripts/test-shard-plan';
+import { packShards,readDurations,CI_SHARD_COUNT } from '../scripts/test-shard-plan';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual workflow covers every discovered test partition.
 import {readFileSync} from 'node:fs';
@@ -60,14 +60,14 @@ test('parallel and dedicated native CI discover every existing file exactly once
  expect(job).toContain(`WS_TEST_PRODUCTS_SHA: \${{ github.sha }}`);
  expect(job).not.toContain('WS_TEST_COHORT:');
  expect(job).toContain('fail-fast: false');
- expect(job).toContain(`--config scripts/vitest-ci.config.ts --shard=\${{ matrix.shard }}/12 --bail=0`);
+ expect(job).toContain(`--config scripts/vitest-ci.config.ts --shard=\${{ matrix.shard }}/${CI_SHARD_COUNT} --bail=0`);
  expect(job).toContain('name: vitest-plan');
  expect(job).toContain('WS_VITEST_PLAN: tmp/ci-vitest/plan.json');
  expect(job).toContain('WS_VITEST_TIMINGS: tmp/ci-vitest/timings.json');
  expect(job).toContain('--reporter=./scripts/vitest-timings.ts');
  expect(job).toContain('python3 scripts/ci-products.py unpack');
  const matrix=/^\s+shard: \[([\d, ]+)\]/mu.exec(job)?.[1]?.split(',').map(Number);
- expect(matrix).toEqual(Array.from({length:12},(_,i)=>i+1));
+ expect(matrix).toEqual(Array.from({length:CI_SHARD_COUNT},(_,i)=>i+1));
  const list=(config?:string):{file:string;projectName?:string}[]=>{
   const result=spawnSync(process.execPath,[resolve('node_modules/vitest/vitest.mjs'),'list','--filesOnly','--json',
    ...(config===undefined?[]:['--config',config])],{encoding:'utf8',timeout:10000});
@@ -83,7 +83,7 @@ test('parallel and dedicated native CI discover every existing file exactly once
  expect([...actual,...serial].sort()).toEqual([...paths].sort());
  expect(new Set([...actual,...serial]).size).toBe(paths.length);
  expect(ci.filter(row=>row.projectName==='pure').map(row=>relative('.',row.file)).sort()).toEqual([...PURE_TESTS].sort());
- const parts=packShards(actual,readDurations('.')??new Map(),12);
+ const parts=packShards(actual,readDurations('.')??new Map(),CI_SHARD_COUNT);
  const selected=(matrix??[]).flatMap(index=>parts[index-1]??[]);
  expect(selected.sort()).toEqual([...actual].sort());
  expect(new Set(selected).size).toBe(actual.length);
@@ -160,7 +160,7 @@ test('one preparation owns the source cache, generation and complete admission',
   expect(downloads[0]).toContain('pattern: vitest-times-*');
   expect(downloads[0]).toContain(`run-id: \${{ steps.timing-history.outputs.run }}`);
   expect(prepare).toContain('--branch main --event push --status completed');
-  expect(prepare).toContain('node scripts/vitest-plan.ts --shards 12 --workers 2');
+  expect(prepare).toContain(`node scripts/vitest-plan.ts --shards ${CI_SHARD_COUNT} --workers 2`);
   const generation = prepare.indexOf('node scripts/gen.mjs --reuse');
   expect(prepare).not.toContain('node scripts/build-shardfiles.mjs');
   expect(prepare).not.toContain('node scripts/gen.mjs --inputs-only');
