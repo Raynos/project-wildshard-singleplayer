@@ -167,9 +167,32 @@ function facade(small: boolean): GraphIr {
   const grid = g.div(q, g.vec(sw(pat, 'z'), sw(pat, 'y'))), cell = g.floor(grid), f = g.fract(grid), gridFw = max(g.op('fwidth', [grid]), [1e-6, 1e-6]), seed = g.floor(g.div(flags, 16));
   const bayW = add(2, g.step(0.5, g.hash(g.vec(seed, 1.7)))), bay = g.floor(g.div(sw(cell, 'x'), bayW)), timber = g.step(0.72, g.hash(g.vec(bay, add(seed, 3.3))));
   const farBase = mul(mul(base, add(0.84, mul(g.hash(g.vec(bay, add(seed, 5.7))), 0.26))), mix([1, 1, 1], [0.55, 0.42, 0.32], mul(timber, 0.85)));
-  const win = mul(g.cover(sw(f, 'x'), 0.18, 0.82, sw(gridFw, 'x')), g.cover(sw(f, 'y'), 0.3, 0.8, sw(gridFw, 'y'))), lit = g.step(g.hash(add(cell, mul(seed, 7))), add(0.48, mul(timber, 0.12)));
-  const farDetail = g.smooth(2, 6, g.div(1, max(sw(gridFw, 'x'), sw(gridFw, 'y'))));
-  use(11, mix(mul(farBase, 0.8), mix(farBase, mul(farBase, [0.42, 0.47, 0.58]), mul(win, sub(1, lit))), farDetail), mul(rule(y, sw(pat, 'y'), fy, 1), 0.8), mul([1, 0.7, 0.38], mul(mix(0.135, mul(win, lit), farDetail), 1.15)));
+  // NF4 (E510): LEGACY's kind 11 term for term (facadeMaterial.ts, the painted far facade): each cell its own opening
+  // (narrow, wide or bricked up), most cells two windows with a pier, each lit on its own; balcony bays with a pale lip
+  // and a dark rail band; glazed eave stripes every few floors; a two-floor painted neon sign now and then
+  const fx11 = sw(f, 'x'), fy11 = sw(f, 'y'), gx = sw(gridFw, 'x'), gy = sw(gridFw, 'y'), litBar = add(0.48, mul(timber, 0.12));
+  const balc = g.step(0.5, g.hash(g.vec(bay, add(seed, 9.1))));
+  const hw = g.hash(add(add(cell, mul(seed, 3.7)), 11)), wx0 = add(0.14, mul(hw, 0.16)), wx1 = sub(0.86, mul(g.hash(add(add(cell, mul(seed, 5.3)), 2)), 0.16));
+  const two = g.step(g.hash(add(add(cell, mul(seed, 2.3)), 4)), 0.65);
+  const win = mul(mul(mul(g.cover(fx11, wx0, wx1, gx), g.cover(fy11, 0.3, add(0.78, mul(hw, 0.06)), gy)), g.step(0.07, g.hash(add(sw(cell, 'yx'), seed)))),
+    sub(1, mul(two, g.cover(fx11, 0.47, 0.55, gx))));
+  const lit = mix(g.step(g.hash(add(cell, mul(seed, 7))), litBar), g.step(g.hash(add(add(mul(cell, 2), g.vec(g.step(0.5, fx11), 0)), mul(seed, 7))), litBar), two);
+  const dark = mul(farBase, [0.42, 0.47, 0.58]);
+  let cellC: Ref = mix(farBase, dark, mul(win, sub(1, lit)));
+  const lip = mul(balc, g.cover(fy11, 0, 0.07, gy)), rail = mul(balc, g.cover(fy11, 0.07, 0.34, gy));
+  cellC = mix(mix(cellC, mul(farBase, 1.18), lip), mul(farBase, 0.32), mul(rail, 0.8));
+  const eave = mul(g.step(0.8, g.hash(g.vec(sw(cell, 'y'), add(seed, 2.9)))), g.cover(fy11, 0.85, 1, gy));
+  cellC = mix(cellC, mix([0.1, 0.3, 0.23], [0.11, 0.2, 0.38], g.step(0.8, g.hash(g.vec(sw(cell, 'y'), seed)))), eave);
+  const signRow = g.floor(g.div(sw(cell, 'y'), 2)), sc = g.vec(bay, signRow);
+  const pSign = mul(mul(mul(g.step(g.hash(add(add(sc, mul(seed, 1.3)), 7)), 0.06), g.step(sub(sw(cell, 'x'), mul(bay, bayW)), 0.5)),
+    g.cover(fx11, 0.28, 0.72, gx)), g.cover(sub(sw(grid, 'y'), mul(signRow, 2)), 0.25, 1.75, gy));
+  const hn = g.hash(add(sc, seed));
+  const neonC = g.choose(g.lt(hn, 0.2), [1, 0.25, 0.64], g.choose(g.lt(hn, 0.4), [0.25, 0.9, 1], g.choose(g.lt(hn, 0.6), [0.2, 0.94, 0.69], g.choose(g.lt(hn, 0.8), [1, 0.23, 0.19], [1, 0.7, 0.28]))));
+  cellC = mix(cellC, mul(neonC, 0.35), pSign);
+  const farDetail = g.smooth(2, 6, g.div(1, max(gx, gy)));
+  const farLight = mul(mul(mul(mul(win, lit), sub(1, mul(rail, 0.6))), sub(1, eave)), sub(1, pSign));
+  use(11, mix(mix(farBase, dark, 0.3), cellC, farDetail), mul(rule(y, sw(pat, 'y'), fy, 1), 0.8),
+    add(mul([1, 0.7, 0.38], mul(mix(0.135, farLight, farDetail), 1.15)), mul(neonC, mul(mul(pSign, farDetail), 1.6))));
   const concrete = g.op('and', [g.op('and', [g.op('not', [g.eq(kind, 2)]), g.op('not', [g.eq(kind, 3)])]), g.op('and', [g.op('and', [g.op('not', [g.eq(kind, 4)]), g.op('not', [g.eq(kind, 5)])]), g.op('and', [g.op('not', [g.eq(kind, 9)]), g.op('not', [g.eq(kind, 12)])])])]);
   const paintQ = g.choose(g.gt(g.abs(sw(g.normal, 'y')), 0.6), sw(g.world, 'xz'), g.vec(worldX, sw(g.world, 'y')));
   colour = g.choose(concrete, mul(colour, g.paint(paintQ, 4, 6, mul(mul(sw(g.u('uPaintK'), 'x'), sw(g.u('uPaintK'), 'z')), sw(g.u('uPaintStone'), 'z')))), colour);
