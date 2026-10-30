@@ -28,11 +28,12 @@ const publishPushInputs = beginPushInputs(`${import.meta.dirname}/..`);
 const publishProgramProof = beginProgramInputProof(root, plan.products);
 
 const buildInputs = process.argv.includes('--build-inputs');
+const timings = buildInputs || process.argv.includes('--timings');
 /** @param {string} name @param {()=>unknown} run */
 async function step(name, run) {
   const started = performance.now();
   try { return await run(); }
-  finally { if (buildInputs) console.info(`gen-step ${name}: ${((performance.now() - started) / 1000).toFixed(3)}s`); }
+  finally { if (timings) console.info(`gen-step ${name}: ${((performance.now() - started) / 1000).toFixed(3)}s`); }
 }
 
 // Refresh available providers before dependent imports. A stale product keeps its

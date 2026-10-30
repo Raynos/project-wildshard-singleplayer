@@ -18,6 +18,7 @@ import { outputManifest, shardOutputs } from './shard-outputs.mjs';
 import { usesProgramDiscovery } from './program-discovery.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
+import { orderProductBuilds, readProductBuildTimes, recordProductBuildTimes } from './product-build-times.mjs';
 import { prepareProductBuildTools } from './product-build-tools.mjs';
 import { checkTileBake } from './tile-bakes.mjs';
 import { runtimeCopyIssues, productMapInput, publishProductMap, productFlags, productRecipe, readBuiltShardfile as selectBuiltShardfile } from './built-product.mjs';
@@ -78,6 +79,9 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   const selected = scope ?? (strict || only === undefined ? undefined : [...only, ...bound]);
   if (only !== undefined && strict) console.warn('wildshard build: --shard ignored in CI; building every shard');
   const recorded = build === runWildshard;
+  /** @type {Map<string,number>} */
+  const buildTimes=new Map();
+  const ordered=recorded?orderProductBuilds(products,readProductBuildTimes(shardfileCacheRoot())):products;
   const files = recorded ? undefined : treeHashes(root);
   const inputHashes = new InputHashMemo(root,resolve(root,'.cache/shardfile-input-hashes.json'));
   // The validation receipt every product carries is checked against this revision (vite.config.ts, the ruler). The
@@ -86,7 +90,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   const toolchainOf = () => `${productToolchainKey(root,inputHashes)}:${shardfileValidationRevision(root)}`;
   const toolchain = recorded ? toolchainOf() : '';
   try {
-  await runShardBuildPool(products, async ({ name, folder, output }, signal) => {
+  await runShardBuildPool(ordered, async ({ name, folder, output }, signal) => {
     if (scope !== undefined && !scope.includes(name)) return;
     const buildOne = args => build === runWildshard ? runShardBuild(args, signal) : build(args);
     const project = resolve(projects, folder);
@@ -140,6 +144,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     console.info(`wildshard build: ${name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
     count++;
     measured.push(name);
+    if(how==='built')buildTimes.set(name,performance.now()-started);
     } catch(error) {
       if(onFailure===undefined)throw error;
       // A previous product cannot vouch for a failed rebuild or grant a census user.
@@ -168,6 +173,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     if (strict) throw new Error(message);
     console.warn(message);
   }
+  if(recorded)recordProductBuildTimes(shardfileCacheRoot(),buildTimes);
   return count;
 }
 
