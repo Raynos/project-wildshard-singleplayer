@@ -3,7 +3,7 @@ import type {SimHost} from '@wildshard/engine/sim';
 import {PhysicsRouteCursor,type WalkPoint} from './headlessJourney';
 import type {HeadlessCommand,HeadlessEffect} from './tickProtocol';
 
-export interface HeadlessTapeSegment {id:string;ticks:number;commands:HeadlessCommand[];route?:WalkPoint[]}
+export interface HeadlessTapeSegment {id:string;ticks:number;commands:HeadlessCommand[];route?:WalkPoint[];frames?:HeadlessCommand[][]}
 export interface HeadlessTapePlan {version:1;observe:string[];segments:HeadlessTapeSegment[]}
 export interface HeadlessTapeObservation {
   id:string;tick:number;position:[number,number,number];peakY:number;grounded:boolean;
@@ -14,13 +14,16 @@ const finite=v.pipe(v.number(),v.finite());
 const natural=v.pipe(finite,v.integer(),v.minValue(0));
 const text=v.pipe(v.string(),v.minLength(1),v.maxLength(128));
 const validTape=(plan:HeadlessTapePlan):boolean=>plan.segments.reduce((sum,row)=>sum+row.ticks,0)<=60_000
-  &&new Set(plan.segments.map(row=>row.id)).size===plan.segments.length&&new Set(plan.observe).size===plan.observe.length;
+  &&new Set(plan.segments.map(row=>row.id)).size===plan.segments.length&&new Set(plan.observe).size===plan.observe.length
+  &&plan.segments.every(row=>row.frames===undefined||row.frames.length===row.ticks&&row.commands.length===0&&row.route===undefined)
+  &&plan.segments.reduce((sum,row)=>sum+(row.frames?.reduce((total,commands)=>total+commands.length,0)??row.commands.length),0)<=60_000;
 /** Internal codec composition; callers supply the one canonical tick grammar,
  * not a second copy which could silently lose a newly admitted command. */
 export function headlessTapePlanSchema(command:v.GenericSchema<HeadlessCommand>):v.GenericSchema<HeadlessTapePlan> {
   return v.pipe(v.strictObject({version:v.literal(1),observe:v.pipe(v.array(text),v.maxLength(32)),
     segments:v.pipe(v.array(v.strictObject({id:text,ticks:v.pipe(natural,v.minValue(1),v.maxValue(18_000)),
       commands:v.pipe(v.array(command),v.maxLength(1024)),
+      frames:v.exactOptional(v.pipe(v.array(v.pipe(v.array(command),v.maxLength(1024))),v.minLength(1),v.maxLength(18_000))),
       route:v.exactOptional(v.pipe(v.array(v.strictObject({x:finite,z:finite,jump:v.exactOptional(v.union([v.boolean(),v.pipe(natural,v.maxValue(2))])),jumpAt:v.exactOptional(v.pipe(finite,v.minValue(0)))})),v.minLength(2),v.maxLength(256)))})),v.minLength(1),v.maxLength(128))}),
     v.check(validTape,'Distinct tape observations and at most 60000 fixed ticks'));
 }
@@ -51,7 +54,7 @@ export function runTrustedHeadlessTape(host:SimHost,step:(commands:readonly Head
         if(cursor.stuck.length>0)throw new Error(`Tape route stuck ${segment.id}`);
         moving[moving.length-1]=command;
       }
-      const prior=host.state.tick;step(cursor===null?segment.commands:moving);
+      const prior=host.state.tick;step(segment.frames?.[tick]??(cursor===null?segment.commands:moving));
       if(host.scope.disposed||host.scope.disposing)throw new Error('Tape owner retired');
       if(host.state.tick!==prior+1)throw new Error('Tape did not commit exactly one tick');
       const p=host.player.position;if(![p.x,p.y,p.z].every(Number.isFinite))throw new Error('Nonfinite tape feet');

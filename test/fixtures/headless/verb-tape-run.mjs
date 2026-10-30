@@ -37,3 +37,17 @@ try {
   assert.equal(failed.quarantined,true);assert.deepEqual(failed.checkpoint,before);
 }finally{await failed.dispose();}
 console.log('native verb tape parity, terminal ownership and runtime refusal pass');
+
+const recorded=await HeadlessSimulation.create(source,new Map(),undefined,{deadline:'advisory'});
+const ordinary=await HeadlessSimulation.create(source,new Map(),undefined,{deadline:'advisory'});
+try {
+  const frames=Array.from({length:72},(_,tick)=>tick<48?[{kind:'player',moveX:tick<24?.3:0,moveZ:tick<24?0:-.3,yaw:tick/100}]:[]);
+  const initial=recorded.checkpoint;
+  await assert.rejects(recorded.verbTape({version:1,observe:[],segments:[{id:'too-many',ticks:1,commands:[],frames:[[input,input]]}]}),/Aggregate/);
+  assert.deepEqual(recorded.checkpoint,initial,'every explicit frame retains the ordinary command budget');
+  for(const commands of frames)await ordinary.step([{source:'recording',commands}]);
+  const report=await recorded.verbTape({version:1,observe:[],segments:[{id:'recorded',ticks:frames.length,commands:[],frames}]});
+  assert.deepEqual(report.observations[0].position,decodeSimSnapshotBytes(ordinary.checkpoint.snapshot).player.position,'explicit frames must run the same actual native ticks');
+  assert.equal(report.ticks,72);assert.equal(recorded.quarantined,false);
+}finally{await recorded.dispose();await ordinary.dispose();}
+console.log('native per-tick input replay and frame budget pass');

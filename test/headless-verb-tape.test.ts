@@ -24,7 +24,20 @@ test('tape admission is finite, capped, distinct and uses the actual canonical c
     {...plan,segments:[{id:'x',ticks:18_001,commands:[]}]},
     {...plan,segments:Array.from({length:4},(_,i)=>({id:String(i),ticks:18_000,commands:[]}))},
     {...plan,segments:[{id:'x',ticks:1,commands:[{kind:'launcher',slot:1,ads:1,pitch:Number.NaN}]}]},
+    {...plan,segments:[{id:'x',ticks:2,commands:[],frames:[[]]}]},
+    {...plan,segments:[{id:'x',ticks:1,commands:[{kind:'player',moveX:0,moveZ:0,yaw:0}],frames:[[]]}]},
+    {...plan,segments:[{id:'x',ticks:1,commands:[],frames:[[]],route:[{x:0,z:0},{x:1,z:0}]}]},
+    {...plan,segments:[{id:'x',ticks:1,commands:[],frames:[[{kind:'launcher',slot:1,ads:1,pitch:Number.NaN}]]}]},
     {...plan,run:()=>undefined}])expect(v.safeParse(schema,bad).success).toBe(false);
+});
+
+test('per-tick input is detached data and cannot exceed the total declared command allowance',()=>{
+  const source:HeadlessTapePlan={version:1,observe:[],segments:[{id:'recorded',ticks:2,commands:[],frames:[[{kind:'player',moveX:.2,moveZ:0,yaw:0}],[]]}]};
+  const admitted=v.parse(schema,source),first=source.segments[0]?.frames?.[0];
+  if(first===undefined)throw new Error('Missing actual source frame');first.length=0;
+  expect(admitted.segments[0]?.frames?.[0]).toHaveLength(1);
+  const command={kind:'player',moveX:0,moveZ:0,yaw:0} as const;
+  expect(v.safeParse(schema,{version:1,observe:[],segments:[{id:'overflow',ticks:60,commands:[],frames:Array.from({length:60},()=>Array.from({length:1001},()=>command))}]}).success).toBe(false);
 });
 
 test('compact tape executes every native tick and reads actual owners at each segment end',()=>{

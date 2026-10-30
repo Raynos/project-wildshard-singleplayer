@@ -94,7 +94,7 @@ export async function createNativeProofAdapter(preparation: HeadlessRuntimeInput
   };
   return {
     step: input => { resident.step(input); },
-    verbTape:plan=>{if(plan.segments.some(segment=>segment.route!==undefined))prepareWalk();return runTrustedHeadlessTape(host,input=>resident.step(input),()=>resident.effects,plan);},
+    verbTape:plan=>{if(plan.segments.some(segment=>segment.route!==undefined||segment.frames!==undefined))prepareWalk();return runTrustedHeadlessTape(host,input=>resident.step(input),()=>resident.effects,plan);},
     journey: plan => { if(plan.start!==undefined)prepareWalk();return runHeadlessJourney(host,input=>resident.step(input),plan); },
     commit: () => ({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(host)), effects: [...resident.effects] }),
     finish: () => ({ ticks: host.state.tick, lanes: 0, steps: 0 }),

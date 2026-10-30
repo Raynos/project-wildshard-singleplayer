@@ -9462,13 +9462,14 @@ retain their clocks and each item's existing continuation id and payload.
 `launcher` keeps native bolt/loadout authority.
 
 **Native verb tapes (CI12).** `@wildshard/sdk/headlessTape` defines finite
-segments of repeated tick commands and optional real waypoint routes.
-`HeadlessSimulation.verbTape` is terminal and trusted-offline only. It
-returns actual flags, effects, positions/peak height and named adapter
-observations, never a continuation or author-supplied assertions. Total
-work is capped at 60,000 ticks and 8 MB of observations. Normal command
-allowances, owner retirement and the independent 30 s request watchdog
-remain in force; runtime sessions cannot select this offline operation.
+segments of repeated commands, per-tick `frames`, or real waypoint routes.
+Explicit frames require one array per tick and no repeated commands or
+route. `HeadlessSimulation.verbTape` is terminal and trusted-offline only.
+It reports actual flags, effects, feet/peak height and named owners,
+never a continuation. Limits are
+60,000 ticks, 60,000 declared commands and 8 MB of observations. Normal
+command budgets, retirement and the independent 30 s watchdog remain;
+runtime sessions cannot select this operation.
 
 The SDK owns one mutable `NativeCombatFrame` per native resident and refills it
 at `lend()`: all attacks in tape order, first ranged heavy hold, last melee and

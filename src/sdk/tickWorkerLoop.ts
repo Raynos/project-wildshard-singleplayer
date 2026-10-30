@@ -33,7 +33,8 @@ export async function runTickWorker(create: (payload: unknown) => Promise<TickWo
       const request = v.parse(WorkerRequestSchema, raw);
       if(request.kind==='verbTape'){
         if(envelope.enforceTickDeadline)throw new Error('Verb tape requires trusted offline timing');
-        for(const segment of request.plan.segments)if(segment.commands.length+(segment.route===undefined?0:1)>envelope.commandsPerTick)throw new Error('Aggregate commandsPerTick exceeded');
+        for(const segment of request.plan.segments)for(const commands of segment.frames??[segment.commands])
+          if(commands.length+(segment.route===undefined?0:1)>envelope.commandsPerTick)throw new Error('Aggregate commandsPerTick exceeded');
         if(adapter.verbTape===undefined)throw new Error('Missing native verb tape capability');
         port.postMessage({verbTape:v.parse(HeadlessTapeReportSchema,adapter.verbTape(request.plan))});return;
       }

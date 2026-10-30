@@ -109,8 +109,10 @@ export class TickWorkerHost {
     const plan=v.parse(HeadlessTapePlanSchema,input);
     if(this.deadline!=='advisory')throw new Error('Verb tape requires trusted offline timing');
     for(const segment of plan.segments){
-      tickCommands([{source:'verb-tape',commands:segment.commands}],this.budget.commandsPerTick);
-      if(segment.commands.length+(segment.route===undefined?0:1)>this.budget.commandsPerTick)throw new Error('Aggregate commandsPerTick exceeded');
+      for(const commands of segment.frames??[segment.commands]){
+        tickCommands([{source:'verb-tape',commands}],this.budget.commandsPerTick);
+        if(commands.length+(segment.route===undefined?0:1)>this.budget.commandsPerTick)throw new Error('Aggregate commandsPerTick exceeded');
+      }
     }
     if(this.finished)throw new Error('Headless validation already finished');
     await this.initialized();if(this.closed||this.pending!==undefined)throw new Error('Headless worker unavailable or busy');
