@@ -20,6 +20,7 @@ import { type DrawingBuffer, viewmodel } from '../../render/viewmodelFeel';
 import type { SkyRig as Sky } from '../../world/skyRig';
 import { Melee } from '../Melee';
 import { SweptMeleeCore, sweptLunge, sweptMoveDamage } from '../sweptMeleeCore';
+import { BladeSweep, bladeInReach, sweptBladeDirs, sweptSwingPose } from '../sweptBlade';
 import type { MeleeProfile } from '../meleeProfile';
 
 import * as THREE from 'three';
@@ -60,8 +61,6 @@ export interface SweptMeleeDefaults {
   readonly debris: (kind: string) => { surface: 'shell' | 'wood' | 'sand'; count: number; atFeet: boolean; sparks: boolean };
 }
 const clamp01 = (v: number) => (v < 0 ? 0 : Math.min(1, v));
-const easeOut = (t: number) => 1 - (1 - t) * (1 - t);
-const easeIn = (t: number) => t * t;
 
 // ───────────────────────────── hit stars ─────────────────────────────
 
@@ -114,7 +113,7 @@ class Stars {
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3(), _push = new THREE.Vector3();
 const _aimOrigin = new THREE.Vector3(), _aimRotation = new THREE.Quaternion();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler();
-const _b = new THREE.Vector3(), _g0 = new THREE.Vector3(), _g1 = new THREE.Vector3(), _t0 = new THREE.Vector3(), _t1 = new THREE.Vector3(), _hitPoint = new THREE.Vector3();
+const _g1 = new THREE.Vector3(), _t1 = new THREE.Vector3(), _hitPoint = new THREE.Vector3();
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
 /** the heavy's tip glint: one additive star quad (camera space — the model group is camera-parented, so it always faces the eye) that rides the blade tip through the chop, spinning, then winks out */
@@ -198,6 +197,7 @@ export class SweptMelee extends Melee {
   // swing / combo / heavy clock (renderer-free, combat/sweptMeleeCore.ts; the headless runtimes run the same one)
   private readonly clock: SweptMeleeCore<Move>;
   private fromPos = new THREE.Vector3(); private fromQ = new THREE.Quaternion();   // where the sword was when this swing started
+  private readonly from = { pos: this.fromPos, q: this.fromQ };
   private basePos = new THREE.Vector3(); private baseQ = new THREE.Quaternion(); // this frame's pose before sway / portrait
   private hitDone = false; private kicked = false; private clanged = false;
   private fx: CameraFX;
@@ -218,8 +218,7 @@ export class SweptMelee extends Melee {
   // lunge
   private active = false; private lungeTarget: AimTarget | null = null;
   // blade sweep (C1): what this swing has struck, and last frame's blade (camera-space unit dirs from the eye, grip + tip)
-  private struck: (TargetHit['animal'] | null)[] = Array.from({ length: this.profile.sweep.maxHits }, () => null); private struckN = 0;
-  private sweepGrip = new THREE.Vector3(); private sweepTip = new THREE.Vector3(); private sweepHave = false;
+  private readonly sweep = new BladeSweep(this.profile.sweep); // sweptBlade.ts: the law a Node simulation also sweeps
 
   // trail
   private trail!: THREE.Mesh; private trailMat!: THREE.ShaderMaterial;
@@ -312,7 +311,7 @@ export class SweptMelee extends Melee {
   /** the clock started `move` (its swing time is 0 and the queued tap consumed): the presentation and the lunge */
   private startSwing(move: Move, lunge: boolean): void {
     this.hitDone = false; this.kicked = false; this.clanged = false;
-    this.struckN = 0; this.struck.fill(null); this.sweepHave = false;
+    this.sweep.reset();
     this.fromPos.copy(this.basePos); this.fromQ.copy(this.baseQ);
     this.ribbon.reset(); this.trail.visible = false;
     this.trailStyle = move.trail; this.trailColor.value.copy(move.trail.color);
@@ -468,37 +467,19 @@ export class SweptMelee extends Melee {
   /** this frame's blade from the swing pose (basePos / baseQ, scale 1): unit dirs from the eye through the grip and tip, camera space */
   private bladeDirs(grip: THREE.Vector3, tip: THREE.Vector3): void {
     if (this.arms) { this.arms.blade(grip, tip); grip.add(this.armsHolder.position).normalize(); tip.add(this.armsHolder.position).normalize(); return; }
-    grip.copy(this.basePos).normalize();
-    tip.set(this.tipX, this.tipY, 0).applyQuaternion(this.baseQ).add(this.basePos).normalize();
+    sweptBladeDirs(this.basePos, this.baseQ, this.tipX, this.tipY, grip, tip);
   }
   private sweepHit(move: Move, active: boolean): void {
     this.bladeDirs(_g1, _t1);
     if (active && !this.clanged) this.clangTest(move);
-    if (!active || this.targets === undefined || !this.sweepHave || !this.anyInReach()) { this.sweepGrip.copy(_g1); this.sweepTip.copy(_t1); this.sweepHave = true; return; }
+    const targets = this.targets;
+    if (!active || targets === undefined || !this.sweep.have || !this.anyInReach()) { this.sweep.hold(_g1, _t1); return; }
     const physics = app.physics; this.aimPose(_aimOrigin, _aimRotation);
-    const ang = Math.max(this.sweepGrip.angleTo(_g1), this.sweepTip.angleTo(_t1));
-    const subs = Math.min(this.profile.sweep.maxSamples, Math.max(1, Math.ceil(ang / this.profile.sweep.step)));
-    for (let s = 1; s <= subs && this.struckN < this.profile.sweep.maxHits; s++) {
-      const f = s / subs;
-      _g0.copy(this.sweepGrip).lerp(_g1, f).normalize(); _t0.copy(this.sweepTip).lerp(_t1, f).normalize();
-      for (let k = 0; k < this.profile.sweep.rays * (1 + this.profile.sweep.extensions.length); k++) {
-        const j = k % this.profile.sweep.rays, ext = (k - j) / this.profile.sweep.rays;
-        _b.copy(_g0).lerp(_t0, j / (this.profile.sweep.rays - 1)).normalize();
-        if (ext === 0) _dir.copy(_b);
-        else { // under the blade: the blade point's dir pitched further down about the camera's right axis
-          const a = this.profile.sweep.extensions[ext - 1] ?? 0, c = Math.cos(a), sn = Math.sin(a);
-          _dir.set(_b.x, _b.y * c + _b.z * sn, -_b.y * sn + _b.z * c);
-        }
-        _dir.applyQuaternion(_aimRotation);
-        const hit = this.targets.raycast(_aimOrigin, _dir, move.reach ?? this.reach);
-        if (hit === null || !hit.animal.alive || this.struck.includes(hit.animal)) continue;
-        if (bladeBlocked(physics, _aimOrigin, hit.point, this.player.motor.collider)) continue;
-        this.struck[this.struckN++] = hit.animal;
-        this.strike(move, hit);
-        if (this.struckN >= this.profile.sweep.maxHits) break;
-      }
-    }
-    this.sweepGrip.copy(_g1); this.sweepTip.copy(_t1);
+    this.sweep.sweep(_g1, _t1, _aimOrigin, _aimRotation, move.reach ?? this.reach, {
+      raycast: (origin, dir, reach) => targets.raycast(origin, dir, reach),
+      blocked: (origin, point) => bladeBlocked(physics, origin, point, this.player.motor.collider),
+      strike: hit => { this.strike(move, hit); },
+    });
   }
   /**
    * the blade tip meeting a wall / trunk / rock along the tip ray (MeleeSweep.bladeContact → query.castRay), once per
@@ -524,13 +505,8 @@ export class SweptMelee extends Melee {
   }
   /** a live animal's body is within REACH (+ its radius, + a metre of slack) of the eye */
   private anyInReach(): boolean {
-    this.aimPose(_aimOrigin, _aimRotation); const e = _aimOrigin;
-    for (const t of app.aimTargets) {
-      if (!t.alive || t.hidden) continue;
-      const r = this.reach + 0.6 + targetRadius(t) + 1; // + 0.6: a move may reach further than the rig (the sabre's pass)
-      if (t.position.distanceToSquared(e) < r * r) return true;
-    }
-    return false;
+    this.aimPose(_aimOrigin, _aimRotation);
+    return bladeInReach(_aimOrigin, this.reach, app.aimTargets, targetRadius);
   }
   private strike(move: Move, hit: TargetHit): void {
     this.aimPose(_aimOrigin, _aimRotation);
@@ -570,14 +546,7 @@ export class SweptMelee extends Melee {
 
   /** evaluate a move at `t` s into it → position + quaternion (camera space, scale 1): from-pose → cocked → mid → follow-through → REST */
   private evalSwing(move: Move, t: number, outPos: THREE.Vector3, outQ: THREE.Quaternion): void {
-    const k = move.keys;
-    let aPos: THREE.Vector3, aQ: THREE.Quaternion, bPos: THREE.Vector3, bQ: THREE.Quaternion, t0: number, t1: number, f: number;
-    if (t < k[0].t) { aPos = this.fromPos; aQ = this.fromQ; bPos = k[0].pos; bQ = k[0].q; t0 = 0; t1 = k[0].t; f = easeIn(clamp01((t - t0) / (t1 - t0))); }
-    else if (t < k[1].t) { aPos = k[0].pos; aQ = k[0].q; bPos = k[1].pos; bQ = k[1].q; t0 = k[0].t; t1 = k[1].t; f = easeOut(clamp01((t - t0) / (t1 - t0))); } // snap into the slash
-    else if (t < k[2].t) { aPos = k[1].pos; aQ = k[1].q; bPos = k[2].pos; bQ = k[2].q; t0 = k[1].t; t1 = k[2].t; f = clamp01((t - t0) / (t1 - t0)); }
-    else { aPos = k[2].pos; aQ = k[2].q; bPos = this.mv.rest.pos; bQ = this.mv.rest.q; t0 = k[2].t; t1 = move.total; f = smoothstep(0, 1, clamp01((t - t0) / (t1 - t0))); } // settle out of it
-    outPos.copy(aPos).lerp(bPos, f);
-    outQ.slerpQuaternions(aQ, bQ, f);
+    sweptSwingPose(move, t, this.from, this.mv.rest, outPos, outQ);
   }
 
   // ── per-frame ──
