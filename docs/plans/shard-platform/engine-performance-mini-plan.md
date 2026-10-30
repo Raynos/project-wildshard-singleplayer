@@ -255,6 +255,20 @@ QA (G933) is the final check.
 All six approved rows are retired. FXAA stays merged (G947).
 The component captures above do not claim full-world screenshot parity. For the sp-x8 rows, same-build whole-world repeats changed 43 Nine pixels; that live-view evidence is retained without a zero-pixel claim. Six native coverage/residency/cadence/tile suites pass 63 assertions; root types and named typed lint pass. All component browsers are closed.
 
+## Approved Debug retirements (G953–G956)
+
+All five selected paths are **done** on origin/main (sp-x8):
+
+| Row | Source | Verification |
+|---|---|---|
+| Graph batches: Batched; facades stay instanced | `1955c4e49f` | Actual place/Node material/native multi-draw plus explicit instanced component: kinds and buffers identical, 804 × 1200 pixels unchanged; 14 original behavior checks. [Capture](../../../art/debug-retirements/g953-graph-default.webp). |
+| Animal pose rate: stepped | `7556e1f5fe` | Actual pose cadence over 96 frames: 96/96/48/48/24/24 bone updates, root/bone matrices and pixels identical. [Capture](../../../art/debug-retirements/g954-pose-default.webp). |
+| Road residency: Tiles | `153a2cf63f` | Before deletion, held-input phone drives cross 45 seams: Chromium 2,384 m and WebKit 2,800 m after publication, maintained witnesses/errors/context-loss all zero. Chrome's initial far-seed construction prefix is excluded. Actual compact tile component has identical attributes/indices/byte plans and pixels; 12 original native controls. [Default component](../../../art/debug-retirements/g955-road-default.webp), [seam samples](../../../art/debug-retirements/g955-road-seams.webp). |
+| Grid boot programs: dropped experiment | `de0b050da0` | Complete finishStage executable with the old pick Off is byte-identical (12,273 bytes). Actual default/legacy/standalone ordering, refusal and native program keeper: 13 original assertions pass. No material/program key changes; bounded retirement keeper stays. |
+| Tile residency: 5x5 | `5768a89ca6` | Actual TileDriver/tiledMesh: resident sets across three positions, indices and pixels identical; 39 original driver/collider/mesh assertions. Exact 3x3 colliders, visual slack, explicit cell declarations and NT8 ranking stay. [Capture](../../../art/debug-retirements/g956-tile-default.webp). |
+
+All component comparisons use matched 804 × 1200 decoded images; they are not whole-world parity or performance claims. Root types and named typed lint pass. `617668ffaf` + `4cb6f34ccc` add the real authoredRows.add census without double-counting unchanged parameter-forwarding adapters; unresolved ordinary rows still refuse. Five focused census controls pass and the full 7,719-file ratchet passes. Peer NF14 Graph back-end row/strings remain unlanded and preserved for its board. All owned browsers/previews are closed.
+
 ## 7. Low-hanging fruit for the Pine / Nine plans
 
 Each is ≤ 1 day, measured on live `14dd10d` (Chromium 4x). wildshard-v slams these into the plans named.
