@@ -1966,7 +1966,6 @@
  "test/sunscar-generated-source.test.ts": 0,
  "test/sunscar-generation-inputs.test.ts": 3.7,
  "test/sunscar-held-playback-source.test.ts": 0,
- "test/sunscar-layout-source.test.ts": 0,
  "test/sunscar-manifest-ground.test.ts": 1.2,
  "test/sunscar-map-program.test.ts": 14.8,
  "test/sunscar-navigation-program.test.ts": 0.7,

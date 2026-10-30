@@ -50,8 +50,6 @@ alone (E357 Z3, round 4). No engine edits.
 The fixed coordinate recipes in `generators/layout.ts` and `generators/duneRows.ts`
 feed the source product directly. `generators/minimap.ts` supplies its actual
 palette through validated product discovery; runtime discovery stays data-only.
-All three retired JSON handoffs remain pinned by complete source-byte goldens
-in `test/sunscar-layout-source.test.ts`.
 
 ## Budgets
 
