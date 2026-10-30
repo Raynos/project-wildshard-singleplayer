@@ -80,6 +80,9 @@ function value<T>(input: T | undefined, reason: string): T { if (input === undef
 export class SpawnScript {
   readonly host: DecisionHost;
   private readonly rows: SpawnScriptRows;
+  private readonly registries: ReturnType<typeof spawnScriptRegistries>;
+  private readonly sourceFields = new Map<SpawnScriptRows['fields'][number]['source'], number>();
+  private readonly observingSlots = new Set<number>();
   private readonly v2: OwnedSimBatchV2 | undefined;
   private readonly v2Columns: ObservationColumnsV2 | undefined;
   private readonly v2Contract: string | undefined;
@@ -115,7 +118,12 @@ export class SpawnScript {
     this.observedFields = new Set(rows.fields.filter(row => row.source === 'observed').map(row => row.id));
     this.columnFields = new Set(rows.v2?.columns.map(row => row.name));
     this.controlState = v.parse(v.picklist(ANIMAL_STATES), rows.controlState);
-    const registries = spawnScriptRegistries(rows); this.combat = new ScriptStrikes(rows.strikes ?? []);
+    const registries = spawnScriptRegistries(rows); this.registries = registries;
+    // Admission owns these catalogues; only their ordinals/authority are
+    // retained. Actor bodies, numeric values and guest cadence stay live.
+    rows.fields.forEach((row, index) => { if (!this.sourceFields.has(row.source)) this.sourceFields.set(row.source, index + 1); });
+    for (const row of rows.slots) if (row.authority === 'observe') this.observingSlots.add(row.handle);
+    this.combat = new ScriptStrikes(rows.strikes ?? []);
     // an admitted raw module arrives by one loan: the entered v2 owners' or a native population's (CI12), never both
     if (v2Owners?.module !== undefined && rawModule !== undefined) throw new Error('Two raw spawn module loans');
     const lentModule = v2Owners?.module ?? rawModule;
@@ -263,7 +271,7 @@ export class SpawnScript {
         }),sample: { atTick: this.tick,target: player,...(self === undefined ? {} : { pose: { x: self.position.x,y: self.position.y,z: self.position.z,yaw: self.yaw },hpShare: self.hp/self.maxHp }) } };
       }) };
   }
-  private observational(handle: number): boolean { return this.rows.slots.some(row => row.handle === handle && row.authority === 'observe'); }
+  private observational(handle: number): boolean { return this.observingSlots.has(handle); }
   private actor(handle: number): ControlledBody | undefined { return this.handles.get(handle); }
   private position(handle: number): Point { return handle === DECISION_PLAYER_HANDLE ? this.point : this.actor(handle)?.position ?? { x: 0, y: 0, z: 0 }; }
   private field(actor: number, id: number): number {
@@ -278,7 +286,7 @@ export class SpawnScript {
     if (row.source === 'lastHit') return Number.isFinite(body?.lastHitT) ? body?.lastHitT ?? 0 : row.fallback ?? 0;
     if (row.source === 'strikeTime') return this.combat.time(actor);
     if (row.source === 'observed') return this.observations.get(row.id) ?? 0;
-    if (row.source === 'channel') return this.channel(this.rows.channels.indexOf(row.channel ?? '') + 1);
+    if (row.source === 'channel') return this.channel(this.registries.channels?.get(row.channel ?? '') ?? 0);
     return this.fields.get(`${actor}:${id}`) ?? 0;
   }
   private read(op: number, a: number, b: number): number {
@@ -511,9 +519,9 @@ export class SpawnScript {
       return site?.slot === slot.id && species?.kind === body.kind && species.variant === body.variant;
     });
   }
-  private namedField(handle: number, name: string): number { return this.field(handle, this.rows.fields.findIndex(row => row.id === name) + 1); }
+  private namedField(handle: number, name: string): number { return this.field(handle, this.registries.fields?.get(name) ?? 0); }
   private sourceField(handle: number, source: SpawnScriptRows['fields'][number]['source']): number {
-    const id = this.rows.fields.findIndex(row => row.source === source); return id === -1 ? 0 : this.field(handle, id + 1);
+    const id = this.sourceFields.get(source); return id === undefined ? 0 : this.field(handle, id);
   }
   private enqueue(actor: number, event: Parameters<DecisionHost['enqueue']>[1]): void {
     const binding = value(this.bindings.get('spawnGroup' in this.rows.script.binding ? actor : 0), 'binding actor');
@@ -521,7 +529,7 @@ export class SpawnScript {
     else if (this.rows.script.on.some(name => SCRIPT_V1_EVENTS[name] === event[0])) this.v2.enqueue(this.tick,binding,event,this.v2Identities());
   }
   private emitCue(actor: number, name: string): void {
-    const id = this.rows.cues.indexOf(name) + 1; if (id < 1) throw new Error('Missing owned cue');
+    const id = this.registries.cues?.get(name) ?? 0; if (id < 1) throw new Error('Missing owned cue');
     this.effects.push({ kind: 'cue', actor, id, at: { ...this.position(actor) } });
   }
   private detach(handle: number): void {
@@ -530,7 +538,7 @@ export class SpawnScript {
   }
   /** Resolve an actual body only inside this owner's declared slot catalogue. */
   body(slot: string | number): AnimalSim | null {
-    const handle = typeof slot === 'number' ? slot : value(this.rows.slots.find(row => row.id === slot), 'slot').handle;
+    const handle = typeof slot === 'number' ? slot : value(this.registries.actors?.get(slot), 'slot');
     return this.actor(handle) ?? null;
   }
   cue(id: number): string { return value(this.rows.cues[id - 1], 'cue identity'); }
