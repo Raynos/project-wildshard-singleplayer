@@ -121,6 +121,15 @@ export interface AnimalModel {
   doubleSided?: boolean;
 }
 
+/** what farFamily's id was built from (AnimalFactory.farFamilyMemo), and its answer */
+interface FarFamilyMemo {
+  readonly hull: AnimalModel['hull']; readonly overgrown: boolean | undefined; readonly coat: object | undefined;
+  readonly fur: AnimalMaterial; readonly rim: THREE.Color | undefined; readonly geometry: THREE.BufferGeometry;
+  readonly map: THREE.Texture | null | undefined; readonly normalMap: THREE.Texture | null | undefined;
+  readonly sheenRoughness: number; readonly roughness: number; readonly envMapIntensity: number;
+  readonly family: { readonly key: object; readonly material: THREE.Material | null } | null;
+}
+
 /** one fur-shell layer's uniforms (see patchFur) */
 interface ShellLayer { layer: number; len: number; threshold: number; dark: number; strand: THREE.Texture }
 
@@ -295,6 +304,9 @@ export class AnimalFactory {
   private pendingRigs = new Map<string, { mesh: THREE.SkinnedMesh; fur: AnimalMaterial }[]>();
   /** PF7b: the far herd's coat families, by everything their one material must share (farFamily) */
   private farFamilies = new Map<string, { readonly key: object; readonly material: THREE.Material | null }>();
+  /** PF6: farFamily's answer per model while every input of its id is unchanged (the far herd asks it per rig, per frame;
+   *  the id string cost Pine's phone 0.16 ms a frame at 4x) */
+  private farFamilyMemo = new WeakMap<AnimalModel, FarFamilyMemo>();
 
   /** the hull for `key` has loaded: swap the cached model and every rig already made from it onto the skinned hull */
   private upgradeHull(key: string): void {
@@ -609,6 +621,19 @@ export class AnimalFactory {
    * array that wear one map share a batch too (the same material).
    */
   private farFamily(model: AnimalModel): { readonly key: object; readonly material: THREE.Material | null } | null {
+    const memo = this.farFamilyMemo.get(model), fur = model.fur;
+    if (memo !== undefined && memo.hull === model.hull && memo.overgrown === model.hull?.overgrown && memo.coat === model.hull?.coatLayer?.array
+      && memo.fur === fur && memo.rim === model.rim && memo.geometry === model.geometry && memo.map === fur.map
+      && memo.normalMap === fur.normalMap && (!(fur instanceof THREE.MeshPhysicalMaterial) || (memo.sheenRoughness === fur.sheenRoughness
+      && memo.roughness === fur.roughness && memo.envMapIntensity === fur.envMapIntensity))) return memo.family;
+    const family = this.farFamilyNow(model);
+    this.farFamilyMemo.set(model, { hull: model.hull, overgrown: model.hull?.overgrown, coat: model.hull?.coatLayer?.array, fur, rim: model.rim,
+      geometry: model.geometry, map: fur.map, normalMap: fur.normalMap, sheenRoughness: fur instanceof THREE.MeshPhysicalMaterial ? fur.sheenRoughness : 0,
+      roughness: fur instanceof THREE.MeshPhysicalMaterial ? fur.roughness : 0, envMapIntensity: fur instanceof THREE.MeshPhysicalMaterial ? fur.envMapIntensity : 0, family });
+    return family;
+  }
+
+  private farFamilyNow(model: AnimalModel): { readonly key: object; readonly material: THREE.Material | null } | null {
     const hull = model.hull, coat = hull?.coatLayer, fur = model.fur, rim = model.rim;
     if (hull === undefined || hull.overgrown || !(fur instanceof THREE.MeshPhysicalMaterial) || rim === undefined) return null;
     // a variant with no coat layer shares a batch with the variants wearing its very map
