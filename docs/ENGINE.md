@@ -2198,7 +2198,7 @@ if (host !== null) {
 
 `viewmodel`, `melee`, `aimRay`, `fovForAspect` and `blendAds` are also exported on their own.
 
-**The swept melee clock (SF72).** `@wildshard/engine/combat/sweptMeleeCore` is the swept family's swing clock without a renderer: `new SweptMeleeCore(moves, timing, attackQueue, { start, charge })` with `tryFire()`, `strike(move)`, `stop()` and `step(dt, t, swingScale, held) → { move, active }` takes the combo (gap, one-deep chain after `chainLag`), the held heavy's charge and release, the active window and the cooldown; `snapshot()` / `restore()` are its exact continuation and `sweptMoveDamage` a move's damage. `SweptMelee` drives one for every sword, sabre and jian and adds only the pose, sweep rays, lunge and FX, so a headless runtime that steps the same clock from tick commands runs the browser's timing.
+**The swept melee clock (SF72).** `@wildshard/engine/combat/sweptMeleeCore` runs combo gaps, one-deep `chainLag`, heavy charge/release, active windows and cooldown. `new SweptMeleeCore(moves, timing, attackQueue, { start, charge })` exposes `tryFire()`, `strike(move)`, `stop()` and `step(dt, t, swingScale, held)`; `sweptMoveDamage` computes damage. `snapshot(extraMoves)` / `restore(state, extraMoves)` continue exact state: optional authored moves name mounted passes without extending the light combo; unnamed moves refuse. Page pose, sweep rays, lunge and FX stay separate.
 
 `@wildshard/engine/player/WeaponPickup` exports `ItemPickup`, the shared
 orb, take callback, proximity cue and disposal owner. A subclass may wrap its
@@ -3270,6 +3270,7 @@ run by the client Player and, once a runtime calls `host.useWater({ surfaceAt, b
 restore), by the headless player: the walk slows by the wade, the jump saps, a landing in water is soft, a dash stops
 at deep water, `SimCommand.dive` / `surface` are the held swim controls and the board rides the surface. The swim rides
 `SimSnapshot.player.swim` only while it runs; a host without water keeps its exact bytes.
+`host.waterSurfaceAt(x, z)` reads the same live surface (or `null`) without advancing the host.
 
 **Body bands (SF72).** By default a host steps and collides every body every tick. A native shard's headless runtime
 calls `useBodyBands({ rates?, rate?, present?, physics? })` once, in its install (before restore), to run its bodies as the page's

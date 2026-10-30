@@ -172,15 +172,16 @@ export class SweptMeleeCore<M extends SwingTiming> {
     return { move, active: move !== null && this.swingT >= move.windup && this.swingT <= move.slashEnd };
   }
 
-  /** the exact continuation (a move outside the combo / heavy cannot be saved: it refuses) */
-  snapshot(): SweptMeleeState {
-    const all = [...this.moves.combo, this.moves.heavy], index = this.current === null ? null : all.indexOf(this.current);
+  /** The exact continuation. An owner may name additional authored moves
+   * (mounted passes); an unnamed move still refuses. */
+  snapshot(extraMoves:readonly M[]=[]): SweptMeleeState {
+    const all = [...this.moves.combo, this.moves.heavy,...extraMoves], index = this.current === null ? null : all.indexOf(this.current);
     if (index === -1) throw new Error('A swept swing outside its move set has no continuation');
     return { move: index, swingT: this.swingT, comboIdx: this.comboIdx, lastSwingEnd: this.lastSwingEnd, cooldown: this.cooldown, charging: this.charging,
       chargeT: this.chargeT, releaseQueued: this.releaseQueued, chargePending: this.chargePending, heldPrev: this.heldPrev, time: this.time };
   }
-  restore(state: SweptMeleeState): void {
-    const all = [...this.moves.combo, this.moves.heavy], move = state.move === null ? null : all[state.move];
+  restore(state: SweptMeleeState,extraMoves:readonly M[]=[]): void {
+    const all = [...this.moves.combo, this.moves.heavy,...extraMoves], move = state.move === null ? null : all[state.move];
     if (move === undefined) throw new Error('Invalid swept swing continuation');
     this.current = move; this.swingT = state.swingT; this.comboIdx = state.comboIdx; this.lastSwingEnd = state.lastSwingEnd; this.cooldown = state.cooldown;
     this.charging = state.charging; this.chargeT = state.chargeT; this.releaseQueued = state.releaseQueued; this.chargePending = state.chargePending;

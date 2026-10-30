@@ -13,6 +13,18 @@ const level={...SIM_LEVEL,entities:[],quests:[]};
 function flat():SimHost {const host=createSimHost(level,{rapier});for(let tick=0;tick<60;tick++)host.step();return host;}
 const forward:SimCommand={commandVersion:1,moveX:0,moveZ:0,yaw:-Math.PI/2,steer:{keyX:0,keyY:1,stickX:0,stickY:0}};
 
+test('native projectile readers share the installed live water without advancing the host',()=>{
+  const host=flat();let waterLevel=2;
+  try{
+    expect(host.waterSurfaceAt(3,4)).toBeNull();
+    host.useWater({surfaceAt:(x,z)=>x<0?null:waterLevel+x+z});
+    const before=snapshotSimHost(host);
+    expect(host.waterSurfaceAt(-1,4)).toBeNull();expect(host.waterSurfaceAt(3,4)).toBe(9);
+    waterLevel=5;expect(host.waterSurfaceAt(3,4)).toBe(12);
+    expect(snapshotSimHost(host)).toEqual(before);
+  }finally{host.dispose();}
+});
+
 test('raw keyboard and stick axes preserve the page clamp, turn and partial strength',()=>{
   const out={x:0,z:0};
   for(const yaw of [0,.7,-Math.PI/2])for(const steer of [

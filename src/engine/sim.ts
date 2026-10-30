@@ -715,6 +715,8 @@ export class SimHost {
     if (this.disposed || this.embedded || !this.ownsPlayer || this.water !== undefined) throw new Error('Water belongs to an owned host, once');
     this.water = water;
   }
+  /** The installed water's real surface, shared by native projectile readers. */
+  waterSurfaceAt(x:number,z:number):number|null{return this.water?.surfaceAt(x,z)??null;}
   /** Whether the host has water (useWater). */
   get hasWater(): boolean { return this.water !== undefined; }
   /** Start swimming, as the client Player's hand-over from the walk: the fall speed is mostly eaten by the splash. */
