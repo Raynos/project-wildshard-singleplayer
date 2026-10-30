@@ -16,7 +16,7 @@
 import * as THREE from 'three';
 import { graphUsesMeshMap, type GraphBinding, type GraphCost, type GraphLiteral } from '@wildshard/format/materialGraph';
 import type { ToonLook } from '../families/toon';
-import { emitClassicGraph, graphShaders, graphUniformValues, type ClassicFog, type GraphShaderOptions } from './glslProgram';
+import { emitClassicGraph, graphShaders, graphUniformValues, syncGraphEnvironment, type ClassicFog, type GraphShaderOptions } from './glslProgram';
 import type { EmitGraphGlslOptions, GraphGlsl } from './glsl';
 import { drawNeutral } from '../drawNeutral';
 import { ClassicCodec } from './glslCodec';
@@ -31,6 +31,9 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
   /** the tile grid codec this program decodes positions with (null: it reads no model-space position): its own step and
    *  origin follow the drawn object, re-uploaded only when they change (RM8.1e) */
   codec: ClassicCodec | null = null;
+  /** a lit graph's image-based light: the drawn scene's prefiltered environment (`syncGraphEnvironment`), as a node
+   *  material reads `scene.environment` */
+  envMap: THREE.Texture | null = null;
   /** the material's own colour (`materialColour`), as a node material's `color` */
   get color(): THREE.Color { return this.colourUniform('wsMaterialColour', 1).value; }
   /** the material's own emissive colour (`materialEmissive` is this times `emissiveIntensity`) */
@@ -56,9 +59,12 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
   get bumpMap(): THREE.Texture | null { return this.texture('wsBumpMap'); }
   set bumpMap(texture: THREE.Texture | null) { this.lend('wsBumpMap', 'WS_BUMP_MAP', texture); }
 
-  override onBeforeRender(_renderer: THREE.WebGLRenderer, _scene: THREE.Scene, _camera: THREE.Camera, _geometry: THREE.BufferGeometry, object: THREE.Object3D): void {
+  override onBeforeRender(_renderer: THREE.WebGLRenderer, scene: THREE.Scene, _camera: THREE.Camera, _geometry: THREE.BufferGeometry, object: THREE.Object3D): void {
     this.codec?.draw(this, object);
+    // the environment uniforms are shared with clones: every lit draw writes its own scene's before it uploads
+    if (this.lights) syncGraphEnvironment(this, scene);
   }
+
 
   override copy(source: THREE.ShaderMaterial): this {
     super.copy(source);

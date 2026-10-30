@@ -307,6 +307,8 @@ function programCount(renderer: Renderer): number {
 
 /** the object lives on the shadow pass's layer alone (no view camera ever draws it) */
 const shadowOnly = (o: THREE.Object3D): boolean => o.layers.mask === 1 << SHADOW_LAYER;
+/** the geometry and group a classic graph's pre-compile `onBeforeRender` is handed (it reads neither) */
+const NO_GEOMETRY = new THREE.BufferGeometry(), NO_GROUP = new THREE.Group();
 function materialsOf(o: THREE.Object3D): THREE.Material[] { const m = (o as MeshLike).material; return Array.isArray(m) ? m : m ? [m] : []; }
 /** NR4: a geometry with no channels and no index (a refining mesh's placeholder before its first fine tile) cannot
  *  draw; a program compiled against it reads every attribute as a constant (three warns per channel), so it waits
@@ -1245,6 +1247,14 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
         job.materialSide.material.side = job.materialSide.side;
         job.materialSide.material.needsUpdate = true;
       }
+      // a classic graph program follows its drawn scene's environment (and its object's codec) in its onBeforeRender,
+      // which compile never calls: run it first, or the first draw links a second program
+      const scene = job.target;
+      if (scene !== null && scene !== undefined) job.root.traverse(object => {
+        if (object instanceof THREE.Mesh) for (const material of materialsOf(object)) if (Reflect.get(material, 'isGraphShaderMaterial') === true) {
+          material.onBeforeRender(renderer, scene, job.camera ?? camera, NO_GEOMETRY, object, NO_GROUP);
+        }
+      });
       renderer.compile(job.root, job.camera ?? camera, job.target ?? undefined);
       job.root.traverse(object => { for (const material of materialsOf(object)) {
         for (const program of materialPrograms(renderer, material)) {

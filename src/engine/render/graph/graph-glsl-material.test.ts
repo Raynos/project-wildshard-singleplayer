@@ -95,3 +95,20 @@ test('a program reading a model-space position decodes the drawn tile primitive\
   expect(m.clone().codec).not.toBe(m.codec);
 });
 
+
+test('a lit graph takes its drawn scene\'s prefiltered environment, as a node material does', () => {
+  const lit = compileClassicGraph({ version: 1, kind: 'material', model: 'standard', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } }).material;
+  const unlit = compileClassicGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } }).material;
+  const scene = new THREE.Scene(), environment = new THREE.Texture();
+  environment.mapping = THREE.CubeUVReflectionMapping;
+  scene.environment = environment; scene.environmentIntensity = 0.4;
+  const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
+  if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
+  const draw = (m: THREE.ShaderMaterial): void => { m.onBeforeRender(renderer, scene, new THREE.Camera(), new THREE.BufferGeometry(), new THREE.Mesh(), new THREE.Group()); };
+  draw(lit); draw(unlit);
+  expect(lit.envMap).toBe(environment); expect(lit.uniforms['envMap']?.value).toBe(environment); expect(lit.uniforms['envMapIntensity']?.value).toBe(0.4);
+  expect(unlit.envMap).toBe(null);
+  // an environment that is not prefiltered is none (the node path's PMREM has no classic twin)
+  scene.environment = new THREE.Texture(); draw(lit);
+  expect(lit.envMap).toBe(null);
+});

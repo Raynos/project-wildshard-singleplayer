@@ -454,6 +454,24 @@ ${program.fragment.body}
   };
 }
 
+const environmentRotation = new THREE.Matrix4();
+/**
+ * A lit graph's image-based light follows the drawn scene, as a node material's does (three hands `scene.environment`
+ * only to its stock lit materials): the scene's environment, its intensity and rotation. A prefiltered (cube-UV)
+ * environment only, as the node path's PMREM; a change of environment rebuilds the program (its envmap defines), as on a
+ * stock material. Call it before the draw (the material's `onBeforeRender`).
+ */
+export function syncGraphEnvironment(material: { envMap: THREE.Texture | null; readonly uniforms: Record<string, THREE.IUniform> }, scene: THREE.Scene): void {
+  const environment = scene.environment?.mapping === THREE.CubeUVReflectionMapping ? scene.environment : null;
+  if (material.envMap !== environment) material.envMap = environment;
+  if (environment === null) return;
+  const map = material.uniforms['envMap'], intensity = material.uniforms['envMapIntensity'], rotation: unknown = material.uniforms['envMapRotation']?.value;
+  if (map !== undefined) map.value = environment;
+  if (intensity !== undefined) intensity.value = scene.environmentIntensity;
+  // as three's stock refresh: the rotation's transpose (its inverse: the matrix is orthonormal)
+  if (rotation instanceof THREE.Matrix3) rotation.setFromMatrix4(environmentRotation.makeRotationFromEuler(scene.environmentRotation)).transpose();
+}
+
 /** the renderer the host inputs read (the bound target's size): set once by the back-end's loader, never by an import */
 let hostRenderer: THREE.WebGLRenderer | null = null;
 /** Give the classic graph programs their renderer (the screen size `fragCoord` flips by). */
@@ -577,7 +595,8 @@ export function graphShaders(glsl: GraphGlsl, opts: GraphShaderOptions = {}): Gr
   if (lit && program.outputs.roughness === null) { uniforms['wsMaterialRoughness'] = { value: 1 }; ports.push('uniform float wsMaterialRoughness;'); }
   const fragmentText = ports.length === 0 ? text : [text, ...ports].join('\n');
   const declaredFog = fogged && fog !== undefined ? fog.glsl : undefined;
-  if (lit) Object.assign(uniforms, THREE.UniformsUtils.merge([THREE.UniformsLib.lights, THREE.UniformsLib.envmap]), { ...uniforms });
+  // the environment's own uniforms (`syncGraphEnvironment` fills them from the drawn scene) and three's DFG table
+  if (lit) Object.assign(uniforms, THREE.UniformsUtils.merge([THREE.UniformsLib.lights, THREE.UniformsLib.envmap]), { envMapIntensity: { value: 1 } }, { ...uniforms });
   // three refreshes fogColor only for a fogged material: one that reads it unfogged keeps the uniforms (fog_fragment stays out)
   if (fogged || program.fragment.body.includes('wsFogColour()') || program.vertex.body.includes('wsFogColour()')) Object.assign(uniforms, THREE.UniformsUtils.clone(THREE.UniformsLib.fog), { ...uniforms });
   return {
