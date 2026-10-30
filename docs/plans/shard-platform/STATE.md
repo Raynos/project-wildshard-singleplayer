@@ -15,7 +15,7 @@ QB17 zip video tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 
 **Autonomous decisions (for Jake's review):**
 - Player bug found by CI12: after dying in her storm phase, Signal's Matriarch flew off the map on retry (script restarted at step 0 only); fixed ddb75a9d0a (o3, board art/signal-matriarch-retry/).
-- CPU bar (Sim WebContent ≤ 15 %, now ~22 %): engine walk and per-draw cuts are near their exact limit; viewmodel merge = 1 draw, shadow casters = 0 exact. **For wildshard-v / Jake:** Pine's last ~7 % needs fewer draws (look trade); sp-o5 builds a default-off Debug 'Draw budget: current / lean' + board for his phone pick.
+- **For wildshard-v / Jake (pick):** Debug 'Draw budget' (da65599389, board 6123924204): Lean = 166 → 149 draws, Chromium 4x Pine 18.9 → 16.3 ms, but Sim WebContent stays ~22 %; it thins distant trees / nearer shadows. Recommend Current. The 15 % WebContent bar isn't reachable by exact or draw cuts; Jake decides the bar.
 - P0 found by CI: the grid could stop drawing after a crossing (a cached frame gate held async readiness, ca0c7c8b60); fixed 4779bbdd6f (x1).
 - CI13: headless SimHost motor constants differ from the client's; play unchanged.
 - FC12 closes at identical captures (Pine 184, Driftwood ~194 draws).
