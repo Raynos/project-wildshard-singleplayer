@@ -5,7 +5,7 @@ import { admitScript } from '@wildshard/format/scriptAdmission';
 import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 import { worstContentCost } from '@wildshard/format/budget';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
-import { assetCost, validateTerrainAssets, validatePropDrawBounds, preflightAssetGraph } from '@wildshard/format/product';
+import { assetCost, validateTerrainAssets, validatePropDrawBounds, preflightAssetGraph, type PropExtent } from '@wildshard/format/product';
 import type { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 
 import { validateMeshCollisionAssets } from '@wildshard/format/meshCollisionAssets';
@@ -213,12 +213,13 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   validateNavigationAssets(s, assets);
   validateNativeGround(s, assets);
   validateEntrywayTerrain(s, assets);
-  validateEntrywayClearance(s, assets);
+  const propExtents = new Map<string, PropExtent>();
+  validateEntrywayClearance(s, assets, propExtents);
   validateMeshCollisionAssets(s, assets);
   validateMeshEntryways(s, assets);
   validateSocketLandings(s, assets);
   validatePortalFloors(portalLinkEntries(s.entryways), s, assets);
-  validatePropDrawBounds(s, assets);
+  validatePropDrawBounds(s, assets, propExtents);
   if (s.terrain !== null) validateTerrainAssets(s.terrain, assets, s);
   if (s.near !== undefined) validateNearPlaceholderAssets(s.near, assets);
   validateSkinAssets(s, assets);

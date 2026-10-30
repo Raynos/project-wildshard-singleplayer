@@ -237,11 +237,41 @@ export function performanceTargetIssues(source: Shardfile, policy: 'refuse' | 'w
   return issues;
 }
 
-/** Check the exact placed prop XZ footprint, even without drawBounds or overhang. Height keeps its own contract. */
-export function validatePropDrawBounds(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>): void {
+type DrawBounds = Shardfile['tiles'][number]['bounds'];
+/** CI6: the extents of one visit's points. Comparisons only, so a NaN coordinate never counts, exactly as it never fails
+ *  the per-point checks; an admission records them while one validator visits a prop GLB, so the draw-bounds check needs
+ *  one visit per GLB instead of one per validator and placement. */
+export class PropExtent {
+  minX: number; minY: number; minZ: number; maxX: number; maxY: number; maxZ: number; reachX = 0; reachZ = 0;
+  constructor() { this.minX = this.minY = this.minZ = Infinity; this.maxX = this.maxY = this.maxZ = -Infinity; }
+  add(triangle: readonly { readonly x: number; readonly y: number; readonly z: number }[]): void {
+    for (const { x, y, z } of triangle) {
+      if (x < this.minX) this.minX = x; if (x > this.maxX) this.maxX = x; if (y < this.minY) this.minY = y; if (y > this.maxY) this.maxY = y;
+      if (z < this.minZ) this.minZ = z; if (z > this.maxZ) this.maxZ = z;
+      const reachX = Math.abs(x), reachZ = Math.abs(z); if (reachX > this.reachX) this.reachX = reachX; if (reachZ > this.reachZ) this.reachZ = reachZ;
+    }
+  }
+  /** True exactly when no visited point fails validatePropDrawBounds' per-point test. */
+  within(bounds?: DrawBounds): boolean {
+    if (this.reachX > 250 || this.reachZ > 250) return false;
+    return bounds === undefined || !(this.minX < bounds.min[0] || this.maxX > bounds.max[0] || this.minY < bounds.min[1] || this.maxY > bounds.max[1] || this.minZ < bounds.min[2] || this.maxZ > bounds.max[2]);
+  }
+}
+
+/** Check the exact placed prop XZ footprint, even without drawBounds or overhang. Height keeps its own contract. `recorded`
+ *  holds extents another validator recorded from these same assets; any check they would fail visits again, so a refusal
+ *  is the per-point one. */
+export function validatePropDrawBounds(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, recorded?: Map<string, PropExtent>): void {
   const props = source.props; if (props === null) return;
-  const validate = (ref: string, bounds?: Shardfile['tiles'][number]['bounds']): void => {
+  const known = recorded ?? new Map<string, PropExtent>();
+  const validate = (ref: string, bounds?: DrawBounds): void => {
     const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing prop draw bytes');
+    let extent = known.get(ref);
+    if (extent === undefined) {
+      const visited = new PropExtent();
+      try { visitGlbTriangles(bytes, triangle => { visited.add(triangle); }); known.set(ref, visited); extent = visited; } catch { /* the per-point visit below refuses as before */ }
+    }
+    if (extent?.within(bounds) === true) return;
     visitGlbTriangles(bytes, triangle => {
       for (const point of triangle) {
         if (Math.abs(point.x) > 250 || Math.abs(point.z) > 250) throw new Error('Prop exceeds cell draw bounds');

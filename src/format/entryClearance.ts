@@ -2,7 +2,7 @@ import type { ShardEntryways } from '@wildshard/format/entryways';
 import type { ShardProps } from '@wildshard/format/props';
 import type { ShardWater } from '@wildshard/format/water';
 import { entryFootprints, clipEntryPolygon, obstructsEntry, type EntryVertex, type EntryFootprint } from '@wildshard/format/entryGeometry';
-import { visitGlbTriangles } from '@wildshard/format/product';
+import { PropExtent, visitGlbTriangles } from '@wildshard/format/product';
 import { glbPoint, glbTransform } from '@wildshard/format/glbTriangles';
 import { WAVES } from '@wildshard/format/waterWaves';
 
@@ -31,7 +31,7 @@ function segmentIntersects(a: EntryVertex, b: EntryVertex, radius: number, rect:
   });
 }
 /** Refuse declared props, potential collision states and water throughout each socket before allocating a world. */
-export function validateEntrywayClearance(source: { entryways: ShardEntryways; props: ShardProps | null; water: ShardWater }, assets: ReadonlyMap<string, Uint8Array>): void {
+export function validateEntrywayClearance(source: { entryways: ShardEntryways; props: ShardProps | null; water: ShardWater }, assets: ReadonlyMap<string, Uint8Array>, extents?: Map<string, PropExtent>): void {
   const rectangles = entryFootprints(source.entryways);
   const inspect = (triangle: readonly EntryVertex[]) => {
     if (rectangles.some((rect) => obstructsEntry(triangle, rect))) throw new Error('illegal shard: entryway footprint must be clear of props and colliders above road height');
@@ -40,7 +40,14 @@ export function validateEntrywayClearance(source: { entryways: ShardEntryways; p
     const props = source.props;
     // Library models are reusable local assets, not placed objects. All actual tiles, far proxies and panels are placed.
     const hashes = new Set([...props.tiles.map((tile) => tile.file), ...props.panels.map((panel) => panel.file), ...(props.far === null ? [] : [props.far])]);
-    for (const hash of hashes) { const bytes = assets.get(hash); if (bytes === undefined) throw new Error('Missing entryway prop asset'); visitGlbTriangles(bytes, inspect); }
+    for (const hash of hashes) {
+      const bytes = assets.get(hash); if (bytes === undefined) throw new Error('Missing entryway prop asset');
+      if (extents === undefined) { visitGlbTriangles(bytes, inspect); continue; }
+      // CI6: the same visit records the extents validatePropDrawBounds reads (kept only for a completed visit)
+      const extent = new PropExtent();
+      visitGlbTriangles(bytes, triangle => { inspect(triangle); extent.add(triangle); });
+      extents.set(hash, extent);
+    }
     // Hidden/inactive panels can become active, so their authored shapes still count.
     for (const row of props.colliders) for (const shape of row.shapes) {
       if (shape.kind === 'box') boxTriangles(shape, inspect);
