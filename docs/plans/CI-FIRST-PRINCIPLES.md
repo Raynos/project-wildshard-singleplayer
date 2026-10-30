@@ -176,7 +176,11 @@ WebGL / Worker / `fetch` at import time, and timers decide things. three.js itse
 - Wait on conditions, never sleeps or 150 s timeouts. No retries.
 
 **Simulator leg (GitHub macOS, G921):**
-- Boot the Simulator at job start, in parallel with the artifact download.
+- Boot the Simulator after dependency installation drains, in parallel with the artifact download.
+  The da70 run spent 234.741 s preparing while package installation took
+  228.6 s; Safari launch consumed 107.275 s of its unchanged 120 s
+  readiness bound. Installation/startup overlap is removed; a containing
+  cloud run must qualify the scheduling change, not a local retry.
 - Cache `ios-webkit-debug-proxy` instead of `brew install` every run.
 - Use one pre-created device.
 - Run a shorter route that waits on conditions.

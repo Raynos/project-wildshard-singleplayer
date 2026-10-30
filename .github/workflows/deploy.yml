@@ -665,13 +665,6 @@ jobs:
         if: matrix.part == 'phone-route'
         id: phone
         run: node scripts/parity/phone-route-runner.mjs --select-engine >> "$GITHUB_OUTPUT"
-      - name: Start Simulator preparation while inputs transfer
-        if: matrix.part == 'phone-route'
-        run: |
-          mkdir -p "$RUNNER_TEMP/phone-preparation"
-          receipt="$RUNNER_TEMP/phone-preparation/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
-          echo "PHONE_SIMULATOR_PREPARATION=$receipt" >> "$GITHUB_ENV"
-          PHONE_SIMULATOR_PREPARATION="$receipt" node scripts/parity/phone-route-runner.mjs --prepare-simulator > "$RUNNER_TEMP/phone-preparation/native.log" 2>&1 &
       - name: Cache Simulator Inspector transport bottles
         if: matrix.part == 'phone-route' && steps.phone.outputs.engine == 'simulator'
         uses: actions/cache@v4
@@ -692,6 +685,14 @@ jobs:
           path: ~/Library/Caches/ms-playwright
           key: boot-touch-browsers-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm exec playwright install chromium webkit
+      # First launch must not compete with dependency extraction on the same disk.
+      - name: Start Simulator preparation while inputs transfer
+        if: matrix.part == 'phone-route'
+        run: |
+          mkdir -p "$RUNNER_TEMP/phone-preparation"
+          receipt="$RUNNER_TEMP/phone-preparation/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
+          echo "PHONE_SIMULATOR_PREPARATION=$receipt" >> "$GITHUB_ENV"
+          PHONE_SIMULATOR_PREPARATION="$receipt" node scripts/parity/phone-route-runner.mjs --prepare-simulator > "$RUNNER_TEMP/phone-preparation/native.log" 2>&1 &
       - name: Start exact-leg transfer clock
         run: date +%s > boot-dist-download-started
       - uses: actions/download-artifact@v4

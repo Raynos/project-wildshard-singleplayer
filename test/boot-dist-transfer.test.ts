@@ -48,6 +48,13 @@ test('native phone inventory and admission use the matching selected Xcode', () 
   expect(workflow).toContain('PHONE_ROUTE_MODE: report-only');
   const preparation=workflow.indexOf('- name: Start Simulator preparation while inputs transfer');
   const transfer=workflow.indexOf('- name: Start exact-leg transfer clock');
+  const inputs=workflow.slice(inventory,transfer);
+  // Keep installation IO outside native startup, while transfer still overlaps it.
+  for(const installer of ['brew install ios-webkit-debug-proxy','pnpm install --frozen-lockfile','pnpm exec playwright install chromium webkit']) {
+    const install=inputs.indexOf(installer);
+    expect(install).toBeGreaterThan(-1);
+    expect(inventory+install).toBeLessThan(preparation);
+  }
   expect(preparation).toBeGreaterThan(inventory);expect(transfer).toBeGreaterThan(preparation);
   expect(workflow).toContain('PHONE_SIMULATOR_PREPARATION=$receipt');
   expect(workflow).toContain('--prepare-simulator');expect(workflow).toContain('--route=entry');
