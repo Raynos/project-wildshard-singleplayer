@@ -84,7 +84,12 @@ export class TreeGrid<T extends { readonly x: number; readonly z: number; readon
     const cx = Math.floor(x / 16), cz = Math.floor(z / 16);
     for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
       const list = this.cells.get(cellKey(cx + i, cz + j));
-      if (list) for (const t of list) if (Math.hypot(t.x - x, t.z - z) < radius + t.r + 3) out.push(t);
+      if (list) for (const t of list) {
+        const dx = t.x - x, dz = t.z - z, reach = radius + t.r + 3;
+        // Reject only outside the circle's box; keep the exact trunk-distance law.
+        if (Math.abs(dx) > reach || Math.abs(dz) > reach) continue;
+        if (Math.hypot(dx, dz) < reach) out.push(t);
+      }
     }
     return out;
   }
