@@ -28,6 +28,39 @@ def native_text(stream):
     return os.pread(stream.fileno(), os.fstat(stream.fileno()).st_size, 0).decode(errors='replace')
 
 
+def owned_safari_process(udid, remaining):
+    """Observe only a Safari descending from this device's launchd_sim.
+
+    A pid is permission to ask for the owned URL, never readiness proof.
+    Do not launch another client or print unrelated process arguments.
+    """
+    try:
+        result = subprocess.run(['ps', '-axo', 'pid=,ppid=,command='],
+                                capture_output=True, text=True,
+                                timeout=max(.001, min(.25, remaining)), check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode != 0:
+        return None
+    processes = {}
+    for line in result.stdout.splitlines():
+        parts = line.split(None, 2)
+        if len(parts) == 3 and parts[0].isdigit() and parts[1].isdigit():
+            processes[int(parts[0])] = (int(parts[1]), parts[2])
+    roots = {pid for pid, (_, command) in processes.items()
+             if 'launchd_sim' in command and udid in command}
+    for pid, (_, command) in processes.items():
+        if '/MobileSafari.app/MobileSafari' not in command:
+            continue
+        parent, seen = pid, set()
+        while parent in processes and parent not in seen:
+            if parent in roots:
+                return pid
+            seen.add(parent)
+            parent = processes[parent][0]
+    return None
+
+
 @contextmanager
 def readiness_page(deadline, started=None):
     # Port 9 is a Fetch bad port, not a usable Safari warm-up document.
@@ -135,26 +168,43 @@ def wait_for_safari(udid):
         print('sim-lane: SIM_SAFARI_READY_TIMEOUT must be in (0, 600] seconds', file=sys.stderr)
         return 64
     deadline = time.monotonic() + timeout
-    # Boot completion is not Safari launch completion. Start the actual app
-    # once before asking its URL service to accept a page. This shares the
-    # original readiness deadline; a failed launch never publishes a lease.
+    # Start the app once. Its launch RPC may remain pending after the actual
+    # device-owned process exists; only the subsequent frame callback can
+    # publish a lease. Every phase shares the original readiness deadline.
     started = time.monotonic()
     with native_transcript() as output, native_transcript() as errors:
-        try:
-            launch = subprocess.run(['xcrun', 'simctl', 'launch', udid, 'com.apple.mobilesafari'],
-                stdout=output, stderr=errors, text=True,
-                timeout=max(0.001, deadline - started), check=False)
+        with subprocess.Popen(['xcrun', 'simctl', 'launch', udid, 'com.apple.mobilesafari'],
+                              stdout=output, stderr=errors, text=True) as launch:
+            next_process_check = started + 1
+            try:
+                while launch.poll() is None:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        launch.kill()
+                        launch.wait()
+                        elapsed = time.monotonic() - started
+                        print(f'sim-lane: Safari app launch timed out within {timeout:g}s readiness deadline; '
+                              f'observed wall {elapsed:.3f}s', file=sys.stderr)
+                        for label, stream in (('stdout', output), ('stderr', errors)):
+                            detail = native_text(stream).strip()
+                            print(f'sim-lane: Safari timed-out launch {label}: {detail[-2048:] or "<empty>"}', file=sys.stderr)
+                        return 124
+                    if time.monotonic() >= next_process_check:
+                        pid = owned_safari_process(udid, remaining)
+                        next_process_check = time.monotonic() + 1
+                        if pid is not None:
+                            print(f'sim-lane: owned Safari process {pid} in {time.monotonic() - started:.3f}s before launch client replied; '
+                                  'requiring owned frame proof', file=sys.stderr)
+                            with readiness_page(deadline, started) as (url, ready):
+                                return open_ready_page(udid, url, ready, deadline, timeout, started)
+                    threading.Event().wait(max(0, min(.05, deadline - time.monotonic())))
+            finally:
+                # Retire only our launch RPC, never the observed Safari app.
+                # A live app without the owned frames still refuses above.
+                if launch.poll() is None:
+                    launch.kill()
+                    launch.wait()
             launch_output, launch_error = native_text(output), native_text(errors)
-        except subprocess.TimeoutExpired:
-            elapsed = time.monotonic() - started
-            print(f'sim-lane: Safari app launch timed out within {timeout:g}s readiness deadline; '
-                  f'observed wall {elapsed:.3f}s', file=sys.stderr)
-            # Preserve actual partial native errors before the owned transcript
-            # closes. This reads the current file extent, never pipe EOF.
-            for label, stream in (('stdout', output), ('stderr', errors)):
-                detail = native_text(stream).strip()
-                print(f'sim-lane: Safari timed-out launch {label}: {detail[-2048:] or "<empty>"}', file=sys.stderr)
-            return 124
     elapsed = time.monotonic() - started
     if launch.returncode != 0:
         print(f'sim-lane: Safari app launch failed in {elapsed:.3f}s: {launch_error.strip()}', file=sys.stderr)

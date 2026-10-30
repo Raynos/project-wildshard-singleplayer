@@ -49,6 +49,9 @@ elif args[1]=='boot':
     sys.exit(code)
 elif args[1]=='bootstatus': sys.exit(int(os.environ.get('SIM_STATUS_RC','0')))
 elif args[1]=='launch':
+    if os.environ.get('SIM_LAUNCH_IPC_STALL'):
+        (root/'safari-launched').touch()
+        time.sleep(30)
     if os.environ.get('SIM_LAUNCH_PARTIAL_ERROR'):
         print('native launch pending reply',file=sys.stderr,flush=True)
     time.sleep(float(os.environ.get('SIM_LAUNCH_DELAY','0')))
@@ -188,6 +191,42 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         self.assertTrue((self.root / 'child-ran').exists())
         # The service is still alive: readiness did not kill it to close EOF.
         os.kill(int((self.root / 'output-holder').read_text()), 0)
+
+    def test_live_owned_safari_can_render_before_its_launch_client_replies(self):
+        self.command('ps', '''import os,pathlib
+root=pathlib.Path(os.environ['SIM_FIXTURE'])
+if (root/'safari-launched').exists():
+    print('100 1 /runtime/launchd_sim ''' + UDID + '''')
+    print('101 100 /runtime/Applications/MobileSafari.app/MobileSafari')
+''')
+        started = time.monotonic()
+        result = self.lane(SIM_LAUNCH_IPC_STALL='1', SIM_REQUIRES_LAUNCH='1', SIM_SAFARI_READY_TIMEOUT='2')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertLess(time.monotonic() - started, 5)
+        self.assertTrue((self.root/'child-ran').exists())
+        self.assertTrue((self.root/'safari-rendered').exists())
+        self.assertIn('before launch client replied', result.stderr)
+        self.assertEqual(sum(row[1] == 'launch' for row in self.calls()), 1)
+        self.assertEqual(sum(row[1] == 'openurl' for row in self.calls()), 1)
+
+    def test_live_process_without_frames_cannot_substitute_for_readiness(self):
+        self.command('ps', '''print('100 1 /runtime/launchd_sim ''' + UDID + '''')
+print('101 100 /runtime/Applications/MobileSafari.app/MobileSafari')
+''')
+        result = self.lane(SIM_LAUNCH_IPC_STALL='1', SIM_REQUIRES_LAUNCH='1',
+                           SIM_OPEN_NO_FRAME='1', SIM_SAFARI_READY_TIMEOUT='2')
+        self.assertEqual(result.returncode, 124, result.stderr)
+        self.assert_not_handed_over()
+
+    def test_foreign_simulator_safari_cannot_unlock_our_launch(self):
+        self.command('ps', '''print('100 1 /runtime/launchd_sim ''' + UDID + '''')
+print('200 1 /runtime/launchd_sim foreign-device')
+print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
+''')
+        result = self.lane(SIM_LAUNCH_IPC_STALL='1', SIM_REQUIRES_LAUNCH='1', SIM_SAFARI_READY_TIMEOUT='2')
+        self.assertEqual(result.returncode, 124, result.stderr)
+        self.assert_not_handed_over()
+        self.assertFalse(any(row[1] == 'openurl' for row in self.calls()))
 
     def test_completed_url_does_not_wait_for_a_services_inherited_error_output(self):
         result = self.lane(SIM_HELD_NATIVE_OUTPUT='openurl')
