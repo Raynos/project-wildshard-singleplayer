@@ -4,6 +4,9 @@ import { bootRoute } from '../src/bootRoute';
 import { SaveStore } from '../src/engine/saves/store';
 import { gridIntents } from '../src/game/grid/intent';
 import { travelService, travelSlot } from '../src/game/travel/travel';
+import { installCatalogueFixture } from './fixtures/bootSetup';
+
+await installCatalogueFixture();
 
 afterEach(() => { Reflect.deleteProperty(globalThis, 'window'); vi.restoreAllMocks(); });
 
