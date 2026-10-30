@@ -2,7 +2,7 @@ import type { Game } from '@wildshard/engine/core/Game';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { BossBrain, type BossScript } from '@wildshard/engine/ai/BossBrain';
+import { BossBrain, easeViewToward, type BossScript } from '@wildshard/engine/ai/BossBrain';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Player } from '@wildshard/engine/player/Player';
 import { WeaponPickup } from '@wildshard/engine/player/WeaponPickup';
@@ -181,8 +181,6 @@ export interface BossHost {
   pickupHum?: (inside: boolean) => void;
 }
 
-const _to = new THREE.Vector3();
-
 /** Optional typed persistence for a runtime owner; omitted adapters keep the legacy shard slot. */
 export interface BossPersistence {
   read: (slug: string) => ReturnType<typeof bossesSave.read>;
@@ -239,15 +237,7 @@ export class Boss extends BossBrain {
   }
 
   /** ease the camera toward a world point (the intro: "the camera stays first person but eases to face the boss") */
-  private faceToward(target: THREE.Vector3, dt: number): void {
-    const pl = this.renderHost.player;
-    _to.copy(target).sub(this.renderHost.camera.position);
-    const yaw = Math.atan2(-_to.x, -_to.z), pitch = Math.atan2(_to.y, Math.hypot(_to.x, _to.z));
-    let dy = yaw - pl.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
-    const k = 1 - Math.exp(-dt * 3.2);
-    pl.yaw += dy * k;
-    pl.pitch += (THREE.MathUtils.clamp(pitch, -0.6, 0.8) - pl.pitch) * k;
-  }
+  private faceToward(target: THREE.Vector3, dt: number): void { easeViewToward(this.renderHost.player, this.renderHost.camera.position, target, dt); }
 }
 
 /** Ordered score actions at the existing encounter clock's five music boundaries. */

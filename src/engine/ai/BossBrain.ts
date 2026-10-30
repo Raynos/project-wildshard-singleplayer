@@ -64,6 +64,19 @@ export interface BossScript {
   respawnPoint: () => { pos: Vector3; yaw: number };
 }
 
+/** The boss intro's view ease ("the camera stays first person but eases to face the boss"): the view's yaw and pitch move a
+ *  frame-rate-independent share toward the direction from `eye` to `target`, pitch held to -0.6..0.8. The page Boss and a
+ *  native host's player both turn through it. */
+export function easeViewToward(view: { yaw: number; pitch: number }, eye: Readonly<{ x: number; y: number; z: number }>,
+  target: Readonly<{ x: number; y: number; z: number }>, dt: number): void {
+  const x = target.x - eye.x, y = target.y - eye.y, z = target.z - eye.z;
+  const yaw = Math.atan2(-x, -z), pitch = Math.atan2(y, Math.hypot(x, z));
+  let dy = yaw - view.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+  const k = 1 - Math.exp(-dt * 3.2);
+  view.yaw += dy * k;
+  view.pitch += (Math.max(-0.6, Math.min(0.8, pitch)) - view.pitch) * k;
+}
+
 export class BossBrain {
   private readonly machine = new Hfsm<BossState>({ dormant: {}, armed: {}, intro: {}, fight: {}, beat: {}, victory: {} }, 'dormant', undefined);
   get state(): BossState { return this.machine.state; }
