@@ -604,13 +604,16 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
       else {
         const side = mat.shadowSide ?? flip[mat.side] ?? THREE.BackSide;
         const disp = mat.displacementMap && mat.displacementScale !== 0 ? mat.displacementMap : null;
+        // a shader material (a classic graph program) has no displacement fields: three's defaults, not undefined
+        const scale: unknown = Reflect.get(m, 'displacementScale'), bias: unknown = Reflect.get(m, 'displacementBias');
+        const displacementScale = typeof scale === 'number' ? scale : 1, displacementBias = typeof bias === 'number' ? bias : 0;
         const alphaTest = mat.alphaToCoverage ? 0.5 : mat.alphaTest;
         key = `depth|${mat.map ? `m${mat.map.channel}` : ''}|${mat.alphaMap ? `a${mat.alphaMap.channel}` : ''}|${alphaTest > 0 ? 't' : ''}|${side}|${disp ? `d${disp.channel}` : ''}|${ok}`;
         // sp-o289: a renderer whose shadow draw swaps this material's depth (a vertex-moving graph) gets that variant,
         // configured from the same stock depth material, per source material: its program is its own.
         const graphKey = resolve === undefined ? key : `${mat.uuid}|${key}`;
         if (seen.has(key) && seen.has(graphKey)) continue;
-        const stock = new THREE.MeshDepthMaterial({ depthPacking: THREE.BasicDepthPacking, map: mat.map ?? null, alphaMap: mat.alphaMap ?? null, alphaTest, side, displacementMap: disp, displacementScale: mat.displacementScale, displacementBias: mat.displacementBias });
+        const stock = new THREE.MeshDepthMaterial({ depthPacking: THREE.BasicDepthPacking, map: mat.map ?? null, alphaMap: mat.alphaMap ?? null, alphaTest, side, displacementMap: disp, displacementScale, displacementBias });
         temporary.add(stock);
         if (resolve !== undefined && resolve(m, stock) !== null) {
           if (seen.has(graphKey)) continue;
@@ -626,7 +629,7 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
         else {
           // PF3 (shadowDepthKinds): a caster that does not alpha-test draws its depth with no texture
           key = ['depth', '', '', '', side, disp ? `d${disp.channel}` : '', ok].join('|');
-          depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.BasicDepthPacking, alphaTest, side, displacementMap: disp, displacementScale: mat.displacementScale, displacementBias: mat.displacementBias });
+          depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.BasicDepthPacking, alphaTest, side, displacementMap: disp, displacementScale, displacementBias });
           temporary.add(depth);
         }
       }
