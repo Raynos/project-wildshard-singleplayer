@@ -5,7 +5,7 @@ import { resolve as resolvePath, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import sharp from 'sharp';
 import { runFloorGridRoute, gridFloorDocumentIdentity, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
-import { phoneRouteObservation, phoneLoadingObservation, phoneBoardWall, phoneWallTarget, watchPhoneEntry, installPhoneTitlePaint } from './phone-route-page.mjs';
+import { phoneRouteObservation, phoneLoadingObservation, phoneBoardWall, phoneWallTarget, watchPhoneEntry, installPhoneTitlePaint, phoneGridEntryCondition } from './phone-route-page.mjs';
 import { openPhoneBrowser } from './phone-route-browser.mjs';
 import { serve } from './serve.mjs';
 
@@ -72,12 +72,14 @@ export function phoneRouteFailures(receipt) {
   return failures;
 }
 
-/** @param {import('./phone-route.mjs').PhonePage} page @param {string} expression @param {string} label @param {number} deadline */
+/** @param {import('./phone-route.mjs').PhonePage} page @param {string|(()=>()=>boolean)} expression @param {string} label @param {number} deadline */
 export async function waitPhoneCondition(page, expression, label, deadline) {
   // One in-page condition subscription instead of repeated Inspector round trips.
+  const condition=typeof expression==='string'?`()=>(${expression})`:`(${expression.toString()})()`;
   await page.evaluate(`(async()=>{
     const deadline=performance.now()+${Math.max(0,deadline-Date.now())};
-    while(!(${expression})) {
+    const ready=${condition};
+    while(!ready()) {
       if(performance.now()>=deadline)throw new Error(${JSON.stringify(`Phone route deadline: ${label}`)});
       await new Promise(resolve=>requestAnimationFrame(resolve));
     }
@@ -155,7 +157,7 @@ export async function phoneRoute(page, base, sha, out, route = 'full') {
     receipt.steps.push('SHARD SELECT'); await shot('SHARD SELECT'); await page.click('.ws-menu-back');
     const gridDeadline = Date.now()+60000, gridURL = new URL(base); gridURL.search=''; gridURL.hash='';
     await enterPhoneGrid(page,gridURL.href,gridDeadline);
-    await waitPhoneCondition(page, `(()=>{const p=window.__wildshard;if(!p?.world)return false;const g=p.shard.grid?.state?.();const reveal=document.querySelector('.ws-grid-reveal');if(reveal)reveal.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));return g?.live?.live?.gameplayReady===true&&g.inside===g.home&&p.requireWorld().game.frameGate();})()`, 'grid Driftwood entry', gridDeadline);
+    await waitPhoneCondition(page, phoneGridEntryCondition, 'grid Driftwood entry', gridDeadline);
     receipt.steps.push('grid', 'Driftwood'); await observe(); await shot('Driftwood'); receipt.fps.push(await fpsWindow(page, 'Driftwood'));
     const initial = await observe(), { market, plans } = phoneRoutePlans(initial);
     const identity = /** @type {import('../frame-floor-grid.mjs').FloorGridDocumentIdentity} */ (await page.evaluate(`(${gridFloorDocumentIdentity.toString()})()`));
@@ -185,7 +187,7 @@ export async function phoneRoute(page, base, sha, out, route = 'full') {
     receipt.failures = phoneRouteFailures(receipt);
   } catch (error) {
     receipt.failures.push(String(error));
-    receipt.stop = await page.evaluate(`(()=>{const loading=(${phoneLoadingObservation.toString()})();const api=window.__wildshard,grid=api?.shard.grid;if(!grid||typeof grid.state!=='function')return {loading};const state=grid.state();return {loading,drive:window.__frameFloorGridStop??null,ringsReady:state.ringsReady,ringsWait:state.ringsWait,crossing:state.live?.crossing,live:state.live?.live};})()`).catch((/** @type {unknown} */ diagnosticError) => ({ unavailable: String(diagnosticError) }));
+    receipt.stop = await page.evaluate(`(()=>{const loading=(${phoneLoadingObservation.toString()})();const api=window.__wildshard,grid=api?.shard.grid;if(!grid||typeof grid.state!=='function')return {loading};const state=grid.state();return {loading,entryCondition:{at:performance.now(),home:state.home,inside:state.inside,worldPresent:api.world!==undefined,frameGate:api.world?.game.frameGate()??null,visibility:document.visibilityState},drive:window.__frameFloorGridStop??null,ringsReady:state.ringsReady,ringsWait:state.ringsWait,crossing:state.live?.crossing,live:state.live?.live};})()`).catch((/** @type {unknown} */ diagnosticError) => ({ unavailable: String(diagnosticError) }));
     await capturePhoneFailure(page,join(out, 'phone-route-failure.jpg'));
   } finally { writeFileSync(join(out, 'phone-route.json'), `${JSON.stringify(receipt, null, 2)}\n`); }
   if (receipt.failures.length > 0) throw new Error(receipt.failures.join('\n'));

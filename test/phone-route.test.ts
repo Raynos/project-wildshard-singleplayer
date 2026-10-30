@@ -2,11 +2,50 @@
 import { expect, test } from 'vitest';
 import { Window } from 'happy-dom';
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute the real generated bootstrap against isolated storage.
-import { runInNewContext } from 'node:vm';
+import { runInNewContext, createContext, runInContext } from 'node:vm';
 import { phoneEngine } from '../scripts/parity/phone-route-runner.mjs';
 import { capturePhoneFailure, waitPhoneCondition, enterPhoneGrid, phoneRouteFailures, phoneRoutePlans, type PhoneReceipt, type PhoneObservation, type PhoneDocument } from '../scripts/parity/phone-route.mjs';
-import { phoneTouchButton, phoneWallTarget, phoneLoadingObservation } from '../scripts/parity/phone-route-page.mjs';
+import { phoneTouchButton, phoneWallTarget, phoneLoadingObservation, phoneGridEntryCondition } from '../scripts/parity/phone-route-page.mjs';
 import { phoneBootstrap, phoneDocumentMatches, phonePageTarget, followNativePhoneDocument } from '../scripts/parity/phone-route-browser.mjs';
+
+test('GRID waiting keeps fresh readiness but reads the full census once per owner',()=>{
+  let full=0,travel=0,ready=false,inside:string|null='home',drawn=true;
+  const grid={state:()=>{full++;return {home:'home'};},travelState:()=>{travel++;return {inside,live:{live:{gameplayReady:ready}}};}};
+  const api={world:{},shard:{grid},requireWorld:()=>({game:{frameGate:()=>drawn}})};
+  const context=createContext({window:{__wildshard:api},document:{querySelector:()=>null}});
+  runInContext(`globalThis.ready=(${phoneGridEntryCondition.toString()})()`,context);
+  for(let frame=0;frame<1000;frame++)expect(runInContext('ready()',context)).toBe(false);
+  expect(full).toBe(1);expect(travel).toBe(1000);
+  ready=true;inside='road';expect(runInContext('ready()',context)).toBe(false);
+  inside='home';drawn=false;expect(runInContext('ready()',context)).toBe(false);
+  drawn=true;expect(runInContext('ready()',context)).toBe(true);expect(full).toBe(1);
+  const next={state:()=>{full++;return {home:'next'};},travelState:()=>{travel++;return {inside,live:{live:{gameplayReady:ready}}};}};
+  api.shard.grid=next;expect(runInContext('ready()',context)).toBe(false);
+  inside='next';expect(runInContext('ready()',context)).toBe(true);expect(full).toBe(2);
+});
+
+test('GRID waiting retains the real reveal input and never substitutes it for readiness',async()=>{
+  const dom=new Window();
+  try {
+    dom.document.body.innerHTML='<button class="ws-grid-reveal">Enter</button>';
+    let inputs=0;dom.document.querySelector('button')?.addEventListener('pointerdown',()=>{inputs++;});
+    const context=createContext({window:{__wildshard:{world:{},shard:{grid:{}},requireWorld:()=>{throw new Error('No ready world');}}},
+      document:dom.document,PointerEvent:dom.PointerEvent});
+    runInContext(`globalThis.ready=(${phoneGridEntryCondition.toString()})()`,context);
+    expect(runInContext('ready()',context)).toBe(false);expect(inputs).toBe(1);
+  }finally{await dom.happyDOM.close();}
+});
+
+test('condition factories keep one subscription and the existing deadline and fatal checks',async()=>{
+  let clock=0;
+  const page={faults:[] as string[],evaluate:(expression:string)=>Promise.resolve(runInNewContext(expression,{
+    performance:{now:()=>clock},requestAnimationFrame:(next:()=>void)=>{clock++;next();}}))};
+  await waitPhoneCondition(page,()=>{let polls=0;return()=>++polls===3;},'fixture',Date.now()+1000);
+  expect(clock).toBe(2);
+  await expect(waitPhoneCondition(page,()=>()=>false,'fixture',Date.now()-1)).rejects.toThrow('Phone route deadline: fixture');
+  page.faults.push('native fault');
+  await expect(waitPhoneCondition(page,()=>()=>true,'fixture',Date.now()+1000)).rejects.toThrow('native fault');
+});
 
 test('a pre-world failure preserves loading rows and native timings without mutating the page',async()=>{
   const dom=new Window({url:'https://example.com/'});

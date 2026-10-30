@@ -1,5 +1,32 @@
 // G745: read actual page/physics/render owners; never install a replacement game service.
 
+/** Capture the immutable home once per grid owner. Per-frame waiting reads
+ * only the fresh travel port, without constructing the full debug census.
+ * @returns {()=>boolean} */
+export function phoneGridEntryCondition() {
+  /** @type {object|null} */ let owner=null;
+  /** @type {string|null} */ let home=null;
+  return ()=>{
+    const api=window.__wildshard;
+    if(!api?.world)return false;
+    const grid=api.shard.grid;
+    /** @type {{inside:string|null,live:import('./phone-route.mjs').PhoneGrid['live']}|undefined} */ let travel;
+    if(typeof grid==='object'&&grid!==null&&'state' in grid&&typeof grid.state==='function'
+      &&'travelState' in grid&&typeof grid.travelState==='function') {
+      if(grid!==owner) {
+        /** @type {unknown} */ const state=grid.state();
+        if(typeof state==='object'&&state!==null&&'home' in state&&typeof state.home==='string') {
+          owner=grid;home=state.home;
+        }
+      }
+      travel=grid.travelState();
+    }
+    const reveal=document.querySelector('.ws-grid-reveal');
+    if(reveal)reveal.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));
+    return owner===grid&&travel?.live?.live?.gameplayReady===true&&travel.inside===home&&api.requireWorld().game.frameGate();
+  };
+}
+
 /** RWI has no Playwright tap port: dispatch the same touch/control events,
  * including pointerdown (HOVER binds there), under emulateUserGesture.
  * @param {string} selector */
