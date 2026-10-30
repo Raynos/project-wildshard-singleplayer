@@ -1,0 +1,22 @@
+{
+  "shard": "sunscar-dunes",
+  "modes": ["shardfile"],
+  "source": "SHARDFILE (no LEGACY copy); played MF16 on 277508f5c2, 3/3 fresh saves",
+  "verbs": [
+    { "id": "logbook", "verb": "Read the logbook", "input": { "action": "use" }, "at": { "x": -75.77, "z": 30.36, "yaw": 1.5708 },
+      "expect": { "prompt": "Read the logbook", "toasts": ["Step complete · Light signal fire", "Objective · Fetch oil from the dry well"], "objective": "Oil from the well" }, "played": "MF16 3/3" },
+    { "id": "well", "verb": "Find the well", "input": { "action": "walk" }, "at": { "x": 82.67, "z": -6, "yaw": -1.5708, "pitch": -0.12 },
+      "expect": { "prompt": "The bucket hangs down the well", "toasts": ["Discovered · Dry well"] }, "played": "MF16 3/3" },
+    { "id": "crank", "verb": "Pull the windlass crank with a heavy (double) crack", "input": { "action": "attack", "holdMs": 900 }, "at": { "x": 82.67, "z": -6, "yaw": -1.5708, "pitch": -0.12 },
+      "expect": { "prompt": "Take the oil jar", "toasts": ["A heavy (double) crack pulls the crank"] }, "played": "MF16 3/3" },
+    { "id": "oil", "verb": "Take the oil jar", "input": { "action": "use" }, "at": { "x": 82.67, "z": -6, "yaw": -1.5708 },
+      "expect": { "prompt": "The well is empty", "toasts": ["Oil jar taken", "Step complete · Oil from the well"], "objective": "Light the waymarks 0/3" }, "played": "MF16 3/3" },
+    { "id": "pour", "verb": "Pour oil into a waymark brazier", "input": { "action": "use" }, "at": [{ "x": 58, "z": -34 }, { "x": -44, "z": -22 }, { "x": 34, "z": -102 }],
+      "expect": { "prompt": "Pour oil into the brazier" }, "played": null },
+    { "id": "light", "verb": "Light a waymark: crack the whip at the bowl", "input": { "action": "attack" }, "at": [{ "x": 58, "z": -34 }, { "x": -44, "z": -22 }, { "x": 34, "z": -102 }],
+      "expect": { "toasts": ["Waymark lit"], "after3": "All three waymarks burn: now the tower" }, "played": null },
+    { "id": "signal", "verb": "Light the signal fire", "input": { "action": "use" }, "at": { "x": 7.6, "z": -75.5 },
+      "expect": { "prompt": "Light the signal fire", "toasts": ["Signal fire lit"] }, "played": null },
+    { "id": "sefa", "verb": "Talk to Sefa", "input": { "action": "use" }, "at": null, "expect": { "prompt": "Talk to Sefa" }, "played": null }
+  ]
+}
