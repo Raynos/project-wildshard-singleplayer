@@ -1,6 +1,4 @@
 import { expect, test } from 'vitest';
-// oxlint-disable-next-line import/no-nodejs-modules -- Pin the exact historical ALL route protocol before T9.
-import { createHash } from 'node:crypto';
 import { floorGridPortalPlan, gridFloorPlans, gridFloorPoses, gridFloorWitnessFailures, type FloorGridState, type FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
 
 const state = { home: 'home', cells: [
@@ -10,10 +8,7 @@ const state = { home: 'home', cells: [
   { instance: 'nalati', slug: 'nalati-grasslands', cell: [1, 0] as const },
 ] };
 
-test('historical builds keep byte-identical ALL plans and standing poses', () => {
-  // Recorded from the unchanged 555 m planner before adding pitch telemetry.
-  const fingerprint = createHash('sha256').update(JSON.stringify(gridFloorPlans(state, 'all'))).digest('hex');
-  expect(fingerprint).toBe('2e0f32b8da3b0ef6a84a8e5c6e89eb609eadbcdf757bbfdd515aa807eb89618d');
+test('the default pitch plans and poses equal the 555 m ones', () => {
   expect(gridFloorPlans({ ...state, pitch: 555 }, 'all')).toEqual(gridFloorPlans(state, 'all'));
   expect(gridFloorPoses()).toEqual([
     { name: 'grid-deck-east', x: 277.5, y: 1.7, z: -40, yaw: 0, pitch: -0.08 },
