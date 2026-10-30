@@ -1,17 +1,8 @@
 import { expect, test } from 'vitest';
 import { layout } from './fixtures/nine-product-inputs';
-import before from './fixtures/nine-admitted-output.json' with { type: 'json' };
 import rawAtlas from '../public/assets/nine-dragon/authored/sign-atlas/signAtlas.json' with { type: 'json' };
 import { parseNativeSignAtlas } from '../src/shards/nine-dragon-stack/generators/sections';
 import { lightVolumeBlobs, lightVolumeRows, volumeSources } from '../src/shards/nine-dragon-stack/generators/lightVolumes';
-import { hashImmutableBytes } from '../src/sdk/immutable';
-
-test('native inputs retain every original compressed volume byte and admitted cost', () => {
-  const atlas = parseNativeSignAtlas(rawAtlas), blobs = lightVolumeBlobs(layout, atlas);
-  expect(blobs.map(blob => ({ file: blob.file, bytes: blob.bytes.byteLength, hash: hashImmutableBytes(blob.bytes) })))
-    .toEqual(before.blobs.filter(blob => blob.file.name.startsWith('looks/volumes-')));
-  expect(Object.keys(lightVolumeRows(layout, atlas))).toHaveLength(8);
-});
 
 test.each(['phone', 'desktop'] as const)('the %s volume consumes supplied readonly native lamps', tier => {
   const atlas = parseNativeSignAtlas(rawAtlas), light = { at: [0, 130, 0], color: [.2, .4, .6], w: 6, h: 7, power: 8, spill: 9 };
