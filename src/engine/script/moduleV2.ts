@@ -132,7 +132,8 @@ export class ScriptModuleV2 {
     const bytes = new Uint8Array(this.storage.value.buffer);
     // Zero is part of the immutable initialized image, never a dirty-range hint.
     // Dense images keep the single full copy; sparse ones still reset ALL bytes.
-    if (this.image.length < bytes.length) bytes.fill(0);
+    // (the zeroes around the image only: the image's own span is written once, by the copy)
+    if (this.image.length < bytes.length) { bytes.fill(0, 0, this.imageOffset); bytes.fill(0, this.imageOffset + this.image.length); }
     bytes.set(this.image, this.imageOffset);
     for (const entry of this.globals) entry.global.value = entry.value;
   }
