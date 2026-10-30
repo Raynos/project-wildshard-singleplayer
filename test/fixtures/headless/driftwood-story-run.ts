@@ -56,3 +56,4 @@ try{
     console.info(JSON.stringify({story:journey,ticks:report.ticks,marks:report.observations.map(row=>({id:row.id,tick:row.tick}))}));
   }finally{await capture.stop();releaseRopes();resident.dispose();}
 }finally{await(await session.ready()).dispose();}
+const cpu=process.cpuUsage();console.info(JSON.stringify({cpu:{userMs:cpu.user/1000,systemMs:cpu.system/1000},milliseconds:performance.now()-started}));
