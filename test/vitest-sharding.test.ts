@@ -51,7 +51,7 @@ test('both CI cohorts cover every discovered test once and keep exact-run produc
  const paths=['src','test','admin/test','drafts/test'].flatMap(root=>readdirSync(root,{recursive:true,encoding:'utf8'})
   .filter(file=>file.endsWith('.test.ts')&&!file.replaceAll('\\','/').split('/').includes('node_modules')).map(file=>`${root}/${file.replaceAll('\\','/')}`));
  const selected:string[]=[];
- for(const [id,cohort,producer,total] of [['behaviour','product-free','generated-inputs',16],['behaviour-products','products','products',8]] as const){
+ for(const [id,cohort,producer,total] of [['behaviour','product-free','prepare',16],['behaviour-products','products','prepare',8]] as const){
   const job=workflow.split(`\n  ${id}:\n`)[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0];
   if(job===undefined)throw new Error(`Missing ${id} job`);
   expect(job).toContain(`needs: ${producer}`);
@@ -65,8 +65,8 @@ test('both CI cohorts cover every discovered test once and keep exact-run produc
    expect(job).toContain('python3 scripts/ci-products.py unpack\n');
   }else{
    expect(job).not.toContain('WS_TEST_PRODUCTS_SHA');
-   expect(job).not.toContain('name: test-products');
-   expect(job).toContain('python3 scripts/ci-products.py unpack-generated');
+   expect(job).toContain('name: test-products');
+   expect(job).toContain('python3 scripts/ci-products.py unpack');
   }
   const subset=selectTestCohort(paths,registry,cohort);
   const parts=packShards(subset,readDurations('.')??new Map(),total);
@@ -80,7 +80,7 @@ test('both CI cohorts cover every discovered test once and keep exact-run produc
  for(const file of paths)if(/from\s+['"][^'"]*fixtures\/builtProduct['"]/u.test(readFileSync(file,'utf8')))
   expect(registry[file]?.length,`${file} must declare its product dependencies`).toBeGreaterThan(0);
  const dispatch=workflow.split('\n  dispatch-boot-smoke:\n')[1];
- expect(dispatch).toContain('products, behaviour, behaviour-products]');
+ expect(dispatch).toContain('prepare, typecheck-lint, derived-docs, behaviour, behaviour-products]');
 });
 
 
@@ -97,43 +97,26 @@ test('native source suites start with verified inputs and never wait for a produ
   }
 });
 
-test('the independent product phase prepares current inputs before strict complete admission', () => {
+test('one preparation owns the source cache, generation and complete admission', () => {
   const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
-  const generated = workflow.split('\n  generated-inputs:\n')[1]?.split('\n  products:\n')[0];
-  const products = workflow.split('\n  products:\n')[1]?.split('\n  behaviour:\n')[0];
-  if (generated === undefined || products === undefined) throw new Error('Missing preparation/product jobs');
-  const paths = (source: string): string[] => {
-    const list = source.split('          path: |\n')[1]?.split('          key:')[0];
-    if (list === undefined) throw new Error('Missing preparation cache paths');
-    return list.trim().split('\n').map(line => line.trim()).sort();
-  };
-  const provider = products.split('      - name: Restore reusable preparation bytes\n')[1]?.split('      - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --inputs-only')[0];
-  if (provider === undefined) throw new Error('Missing provider cache loan');
-  expect(paths(provider)).toEqual(paths(generated));
-  expect(paths(provider)).toContain('~/.cache/wildshard/shardfiles');
-  expect(paths(provider)).toContain('~/.cache/wildshard/gen');
-  expect(readFileSync('src/sdk/projectGeneration.ts', 'utf8')).toContain("'.cache/wildshard/gen'");
-  expect(generated.indexOf('node scripts/ci-product-cache.mjs')).toBeGreaterThan(generated.indexOf('node scripts/gen.mjs --inputs-only'));
-  expect(generated.indexOf('node scripts/ci-product-cache.mjs')).toBeLessThan(generated.indexOf('python3 scripts/ci-products.py pack-generated'));
-  expect(paths(provider)).toContain('~/.cache/wildshard/basis');
-  const key = (source: string): string | undefined => /^ {10}key: (.+)$/mu.exec(source)?.[1];
-  expect(key(provider)).toBe(key(generated));
-  expect(key(provider)).toContain(`\${{ steps.inputs.outputs.tree }}`);
-  expect(key(provider)).toContain(`\${{ runner.arch }}`);
-  expect(provider).toContain('uses: actions/cache/restore@v4');
-  expect(provider).toContain('restore-keys: preparation-v3-');
-  expect(products.indexOf('key: products-v1-')).toBeLessThan(products.indexOf('uses: actions/cache/restore@v4'));
-  expect(products.indexOf('uses: actions/cache/restore@v4')).toBeLessThan(products.indexOf('node scripts/build-shardfiles.mjs --reuse'));
-  expect(products).not.toMatch(/^ {4}needs:/mu);
-  expect(products).not.toContain('actions/download-artifact');
-  expect(products).not.toContain('python3 scripts/ci-products.py unpack-generated');
-  const prepare = products.indexOf('python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --inputs-only');
-  const build = products.indexOf('python3 scripts/ci-fail-fast.py -- node scripts/build-shardfiles.mjs --reuse');
-  expect(prepare).toBeGreaterThan(products.indexOf('uses: actions/cache/restore@v4'));
-  expect(build).toBeGreaterThan(prepare);
-  expect(products.indexOf('node scripts/no-binary-json.mjs --all')).toBeGreaterThan(build);
-  expect(products.indexOf('node scripts/check-closed-components.mjs')).toBeGreaterThan(build);
-  expect(products.indexOf('python3 scripts/ci-products.py pack\n')).toBeGreaterThan(build);
+  const prepare = workflow.split('\n  prepare:\n')[1]?.split('\n  behaviour:\n')[0];
+  if (prepare === undefined) throw new Error('Missing preparation owner');
+  for (const path of ['~/.cache/wildshard/shardfiles', '~/.cache/wildshard/gen', '~/.cache/wildshard/basis'])
+    expect(prepare).toContain(path);
+  const key = /^ {10}key: (.+)$/mu.exec(prepare)?.[1];
+  expect(key).toContain(`\${{ steps.inputs.outputs.tree }}`);
+  expect(key).toContain(`\${{ runner.arch }}`);
+  expect(prepare).not.toMatch(/^ {4}needs:/mu);
+  expect(prepare).not.toContain('actions/download-artifact');
+  const generation = prepare.indexOf('node scripts/gen.mjs --inputs-only');
+  const build = prepare.indexOf('node scripts/build-shardfiles.mjs --reuse');
+  const pack = prepare.indexOf('python3 scripts/ci-products.py pack\n');
+  expect(generation).toBeGreaterThan(prepare.indexOf('uses: actions/cache@v4'));
+  expect(build).toBeGreaterThan(generation);
+  expect(pack).toBeGreaterThan(build);
+  expect(prepare.indexOf('node scripts/check-closed-components.mjs')).toBeGreaterThan(build);
+  expect(prepare.indexOf('node scripts/ci-product-cache.mjs')).toBeGreaterThan(build);
+  expect(prepare.indexOf('scripts/ci-checks.mjs --prepared')).toBeGreaterThan(pack);
 });
 
 
