@@ -22,7 +22,7 @@ export const ExplorerCatalogueSchema: v.GenericSchema<ExplorerCatalogueInput, Ex
   v.strictObject({ version: v.literal(1), entries: v.pipe(v.array(v.variant('kind', [
     v.strictObject({ ...meta, kind: v.literal('species'), species: text, spawnOnly: v.exactOptional(v.boolean()) }),
     v.strictObject({ ...meta, kind: v.literal('rigs'), library: text }),
-    v.strictObject({ ...meta, kind: v.literal('held'), item: text }),
+    v.strictObject({ ...meta, kind: v.literal('held'), item: text, cards: v.exactOptional(text) }),
     v.strictObject({ ...meta, kind: v.literal('npc'), npc: text }),
     v.strictObject({ ...meta, kind: v.literal('scene'), part: text }),
     v.strictObject({ ...meta, kind: v.literal('library'), library: text, model: text }),
@@ -83,6 +83,8 @@ interface ExplorerCatalogueFields {
     }) | ({
         kind: 'held';
         item: string;
+        /** Existing graph card book; its product, primary and view must match. */
+        cards?: string;
     } & {
         id?: string;
         name?: string;

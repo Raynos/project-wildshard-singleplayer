@@ -11429,12 +11429,12 @@ step or saved cursor.
 
 ## Declared Explorer catalogue (Z10, G486)
 
-`explore/catalogue` is a bounded, client-only ordered roster of references to
-existing species, held items, rigs, NPCs, scene publications and engine models.
-`toLevelSpec` and session loadout resolve it through `models/explorerCatalogue`;
-a transitional
-`library: "native"` row selects a remaining native specimen by id without
-changing display order. Missing references refuse the catalogue.
+`explore/catalogue` orders references to existing species, held items, rigs,
+NPCs, scene publications and engine models. `models/explorerCatalogue`
+resolves them for `toLevelSpec` and loadout. `library: "native"` selects
+a native specimen by id. Missing references refuse. A held row's optional
+`cards` file uses `HeldGraphCardsSchema`, matching its product and primary;
+it selects one existing `heldArmsGear` card without a roster hook.
 
 `world/scenes` accepts named `models` and `baked` source descriptors. The former
 retains `ModelLibraryRows`, the latter the original baked-kind rows and byte

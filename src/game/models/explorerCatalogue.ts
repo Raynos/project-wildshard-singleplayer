@@ -1,4 +1,4 @@
-import { parse } from 'valibot';
+import { literal, parse } from 'valibot';
 import { admittedIslandBook } from '../shardfile/islandBook';
 import { SpecimenBookSchema } from '@wildshard/format/specimenCatalogue';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -24,12 +24,13 @@ import { atlasFigureCard, kitFigureCard } from './kitFigureCard';
 import { productSkinUrl } from '../systems/npc/figureSkins';
 import { declaredSocketRigCreatures } from './socketRigCreature';
 import { PosedDraw } from '../looks/posedInstances';
-import { heldGear } from './heldGear';
+import { heldGear, heldArmsGear } from './heldGear';
 import { HeldEquipment } from '../plugin/heldEquipment';
 import { HeldFinishes } from '../loadout/finishes';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { cloudBodySpecimen } from '../boss/encounterView';
 import { defineMountedSpecimen } from './mountedSpecimen';
+import { HeldGraphCardsSchema } from '@wildshard/format/heldArms';
 
 /** Resolve declarations before registering any card, so an invalid reference
  * refuses the complete catalogue instead of publishing a partial roster. */
@@ -44,7 +45,7 @@ export async function explorerRoster(product: ShardProduct, native: readonly Ros
 async function resolveExplorerRoster(product: ShardProduct, native: readonly RosterEntry[]): Promise<readonly RosterEntry[]> {
   if (!product.has('explore/catalogue')) return [];
   const rows = product.section('explore/catalogue');
-  const sourceKinds = rows.entries.some(row => row.kind === 'rigs' || row.kind === 'held' || row.kind === 'npc' || row.kind === 'scene');
+  const sourceKinds = rows.entries.some(row => row.kind === 'rigs' || row.kind === 'held' && row.cards === undefined || row.kind === 'npc' || row.kind === 'scene');
   if (sourceKinds) await prepareSceneSources(product);
   const definitions = sourceKinds ? sceneModelDefinitions(product) : [];
   const prepare = (): Promise<void> => prepareSceneSpecimens(product);
@@ -76,6 +77,17 @@ async function resolveExplorerRoster(product: ShardProduct, native: readonly Ros
       for (const model of sceneModelSource(product, row.library).models(specimens)) entries.push({ ...present(model, row), prepare });
     } else if (row.kind === 'held') {
       if (!product.shardfile.items.rows.some(item => item.id === row.item)) throw refusal(product, row, 'Unknown held item');
+      if (row.cards !== undefined) {
+        const cards = parse(HeldGraphCardsSchema, await product.json<unknown>(row.cards));
+        const arms = product.section('held/arms');
+        if (!('kind' in arms) || arms.kind !== 'declared-primary' || arms.primary.item !== row.item
+          || arms.primary.file !== cards.file) throw refusal(product, row, 'Held cards require their declared primary and presentation');
+        parse(literal(product.slug), cards.slug);
+        const matches = cards.cards.filter(card => row.id === undefined || card.id === row.id), card = matches[0];
+        if (matches.length !== 1 || card === undefined) throw refusal(product, row, 'Held row requires exactly one existing graph card');
+        entries.push(...heldArmsGear({ ...cards, cards: [card] }));
+        continue;
+      }
       if (product.has('held/arms')) {
         const arms = product.section('held/arms'), weapon = 'kind' in arms ? undefined : arms.weapons.find(entry => entry.item === row.item);
         if (weapon !== undefined && !('kind' in arms)) {

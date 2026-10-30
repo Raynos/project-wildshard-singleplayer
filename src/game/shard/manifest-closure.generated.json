@@ -233,7 +233,6 @@
     "src/game/shard/manifest.ts",
     "src/game/shardfile/fileInputs.ts",
     "src/shards/nine-dragon-stack/data/ground.json",
-    "src/shards/nine-dragon-stack/data/heldCards.json",
     "src/shards/nine-dragon-stack/data/runtimeCost.json",
     "src/shards/nine-dragon-stack/discovery.generated.ts",
     "src/shards/nine-dragon-stack/explore/models-nine-dragon-stack.webp",

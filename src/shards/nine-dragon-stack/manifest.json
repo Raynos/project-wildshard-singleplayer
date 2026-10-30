@@ -431,10 +431,6 @@
         "post"
       ]
     },
-    "roster": {
-      "platform": "held",
-      "rows": "./data/heldCards.json"
-    },
     "ktx2": {
       "module": "./ktx2.generated"
     },
