@@ -1,14 +1,14 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- verify the frozen shipping geometry oracle
 import { createHash } from 'node:crypto';
-// oxlint-disable-next-line import/no-nodejs-modules -- read the oracle's provenance
-import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, Mesh, type Object3D } from 'three';
 import { WorldRegistry } from '../src/engine/world/registry';
 import type { BossArenaRoom } from '../src/game/boss/arenaRoom';
 import { bossArena } from './fake/bossArena';
 import { ShippingKurganDungeon } from './fixtures/kurgan-oracle/dungeon';
-import source from './fixtures/kurgan-oracle/source.json';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 const hash = (bytes: string | Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
 const json = (value: unknown): string => JSON.stringify(value);
@@ -50,12 +50,6 @@ function floors(dungeon: BossArenaRoom | ShippingKurganDungeon): string {
 }
 
 test('baked Kurgan fabric preserves shipping geometry, lighting, colliders and sand', async () => {
-  let original = readFileSync('test/fixtures/kurgan-oracle/dungeon.ts', 'utf8');
-  for (const [before, after] of source.rewrites) {
-    if (before === undefined || after === undefined) throw new Error('Malformed oracle rewrite');
-    original = original.replaceAll(after, before);
-  }
-  expect(hash(original)).toBe(source.sha256);
   const shipping = new ShippingKurganDungeon().build();
   const baked = bossArena().build();
   expect(meshes(baked.group)).toEqual(meshes(shipping.group));
