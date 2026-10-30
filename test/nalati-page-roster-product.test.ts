@@ -7,7 +7,8 @@ import combatTargets from '../src/shards/nalati-grasslands/data/combatTargets.js
 import { outputScriptAdmissionRows } from '../src/sdk/outputProduct';
 import { decisionModuleContracts } from '../src/format/scriptContract';
 import { validateShardfileAssets } from '../src/format/assetAdmission';
-import { contentHash, readProjectAssets } from '../src/sdk/project';
+import { contentHash } from '../src/sdk/project';
+import { readNalatiProject } from './fixtures/nalati-project';
 import { buildEliteEntryPageRows } from '../src/shards/nalati-grasslands/generators/eliteEntryRows';
 import { PopulationFieldSchema } from '../src/format/populationEnvironment';
 
@@ -16,10 +17,7 @@ const populationField=v.parse(PopulationFieldSchema,populationInput);
 
 // Build the complete native source product once before the original timed
 // roster/admission assertions; do not charge compiler/cache setup to that case.
-const nalatiEnvelope = await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
-    { prefix: '/src/shards/nalati-grasslands/', directory: 'src/shards/nalati-grasslands' },
-    { prefix: '/assets/', directory: 'public/assets' },
-  ] });
+const nalatiEnvelope = await readNalatiProject();
 
 test('proof-only native physics stays byte-exact and out of the entered warm', () => {
   const expected = [

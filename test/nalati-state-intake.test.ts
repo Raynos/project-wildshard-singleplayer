@@ -26,7 +26,7 @@ import { nodeNamedJsonCheck } from '../src/game/shardfile/outputChecksNode';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import {ReturnModulesSchema} from '../src/format/scriptContract';
 import * as room from '../src/game/boss/arenaRoom';
-import { readProjectAssets } from '../src/sdk/project';
+import { readNalatiProject } from './fixtures/nalati-project';
 import { fakeWorld } from '@wildshard/engine/test/world';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
@@ -37,10 +37,7 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 // Response is not a Node Response. This King intake stops before UI creation.
 // Compiler/native setup failures still refuse collection before the unchanged
 // timed assertions.
-const nalatiEnvelope=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
-    { prefix: '/src/shards/nalati-grasslands/', directory: 'src/shards/nalati-grasslands' },
-    { prefix: '/assets/', directory: 'public/assets' },
-  ] });
+const nalatiEnvelope=await readNalatiProject();
 
 test('the shipped world assembly King intake retains its attack owner before weather is published',async()=>{
   const emitted=nalatiEnvelope;
