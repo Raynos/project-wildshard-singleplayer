@@ -17,6 +17,9 @@ export class PresentationLoop {
   private active=false;
   constructor(scope:Scope,view:PresentationState,ports:LoopPorts){
     this.scope=scope;this.view=view;this.ports=ports;
+    // The loop's lifetime claims the world. Asynchronous gameplay readiness
+    // is checked by draw; caching it as coverage can park its only wake-up.
+    view.bindGate(scope,()=>true);
     view.observe(scope,()=>{this.reconcile();});
   }
   private reconcile():void{

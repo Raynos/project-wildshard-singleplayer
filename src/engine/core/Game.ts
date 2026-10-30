@@ -1268,7 +1268,6 @@ export class Game {
     // Returning from the background: draw one frame at once (bypassing the gate). The 1–2 s of black on an
     // iOS app switch is iOS restoring a suspended standalone web app before any of this runs — investigated
     // and accepted (overlay / mirror / hidden canvas / wake lock / keep-alive audio made no difference).
-    pagePresentation.bindGate(this.engineScope,()=>!this.dead&&this.frameGate());
     this.engineScope.listen(this.canvas, 'webglcontextlost', () => { this.gl.lostAt = diagnosticNow(); this.gl.events++; console.warn('[gl] context lost'); });
     this.engineScope.listen(this.canvas, 'webglcontextrestored', () => { this.gl.restoredAt = diagnosticNow(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
     // (A timer-driven loop was tried for iOS Low Power Mode: timers are throttled to ~30 ms there too. rAF it is.)
