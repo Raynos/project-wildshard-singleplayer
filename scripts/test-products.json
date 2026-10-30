@@ -6,6 +6,7 @@
   "test/nalati-name-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-weapon-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-world-verbs.test.ts": ["nalati-grasslands"],
+  "test/nalati-discovery-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-patrol-intake.test.ts": ["nalati-grasslands"],
   "test/nalati-chapter-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-kokpar-verbs.test.ts": ["nalati-grasslands"],
