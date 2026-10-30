@@ -49,6 +49,8 @@ elif args[1]=='boot':
     sys.exit(code)
 elif args[1]=='bootstatus': sys.exit(int(os.environ.get('SIM_STATUS_RC','0')))
 elif args[1]=='launch':
+    if os.environ.get('SIM_LAUNCH_PARTIAL_ERROR'):
+        print('native launch pending reply',file=sys.stderr,flush=True)
     time.sleep(float(os.environ.get('SIM_LAUNCH_DELAY','0')))
     code=int(os.environ.get('SIM_LAUNCH_RC','0'))
     if code==0:
@@ -287,6 +289,17 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         self.assertEqual(result.returncode, 124, result.stderr)
         self.assertLess(time.monotonic() - started, 5)
         self.assertIn('Safari app launch timed out', result.stderr)
+        self.assert_not_handed_over()
+        self.assertFalse(any(row[1] == 'openurl' for row in self.calls()))
+
+    def test_launch_timeout_retains_native_partial_error_without_waiting_for_eof(self):
+        started = time.monotonic()
+        result = self.lane(SIM_LAUNCH_DELAY='30', SIM_SAFARI_READY_TIMEOUT='.3',
+                           SIM_LAUNCH_PARTIAL_ERROR='1', SIM_HELD_NATIVE_OUTPUT='launch')
+        self.assertEqual(result.returncode, 124, result.stderr)
+        self.assertLess(time.monotonic() - started, 5)
+        self.assertIn('observed wall', result.stderr)
+        self.assertIn('timed-out launch stderr: native launch pending reply', result.stderr)
         self.assert_not_handed_over()
         self.assertFalse(any(row[1] == 'openurl' for row in self.calls()))
 

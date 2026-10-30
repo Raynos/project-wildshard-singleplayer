@@ -139,15 +139,22 @@ def wait_for_safari(udid):
     # once before asking its URL service to accept a page. This shares the
     # original readiness deadline; a failed launch never publishes a lease.
     started = time.monotonic()
-    try:
-        with native_transcript() as output, native_transcript() as errors:
+    with native_transcript() as output, native_transcript() as errors:
+        try:
             launch = subprocess.run(['xcrun', 'simctl', 'launch', udid, 'com.apple.mobilesafari'],
                 stdout=output, stderr=errors, text=True,
                 timeout=max(0.001, deadline - started), check=False)
             launch_output, launch_error = native_text(output), native_text(errors)
-    except subprocess.TimeoutExpired:
-        print(f'sim-lane: Safari app launch timed out within {timeout:g}s readiness deadline', file=sys.stderr)
-        return 124
+        except subprocess.TimeoutExpired:
+            elapsed = time.monotonic() - started
+            print(f'sim-lane: Safari app launch timed out within {timeout:g}s readiness deadline; '
+                  f'observed wall {elapsed:.3f}s', file=sys.stderr)
+            # Preserve actual partial native errors before the owned transcript
+            # closes. This reads the current file extent, never pipe EOF.
+            for label, stream in (('stdout', output), ('stderr', errors)):
+                detail = native_text(stream).strip()
+                print(f'sim-lane: Safari timed-out launch {label}: {detail[-2048:] or "<empty>"}', file=sys.stderr)
+            return 124
     elapsed = time.monotonic() - started
     if launch.returncode != 0:
         print(f'sim-lane: Safari app launch failed in {elapsed:.3f}s: {launch_error.strip()}', file=sys.stderr)
