@@ -70,6 +70,7 @@ import type { Renderer } from '../renderer';
 import { drawHooks } from '../drawHooks';
 import type { ProgramLike } from '../../boot/perflog';
 import { NodePlainUniforms, type BlockGroup } from './nodePlainUniforms';
+import { depthForKind } from '../shadowDepthKinds';
 import { installNodeCoarseMask, type NodeCoarseMask } from '../nodeCoarseMask';
 import { installNodeLayerFrame, layerFrameOf, type NodeLayerFrameInstaller } from '../nodeLayerFrame';
 import { bindGraphAttributeDefaults, copyGraphAttributeDefaults, prepareGraphAttributeDefaults } from './graphAttributes';
@@ -778,7 +779,11 @@ export class EngineNodesHandler extends WebGLNodesHandler {
         }
         // A shadow cast: the stock depth material, or a vertex-moving graph's own depth variant (no closure per cast)
         const depth = this.shadowCasterDepth(material, object, group);
-        if (depth === null) { draw(camera, scene, geometry, material, object, group); return; }
+        if (depth === null) {
+          // PF3: the stock depth material as the caster kind's own copy, so a pass that alternates kinds keeps each program
+          const cast = material instanceof THREE.MeshDepthMaterial && material !== object.customDepthMaterial ? depthForKind(material, object) : material;
+          draw(camera, scene, geometry, cast, object, group); return;
+        }
         this.drawShadow(camera, depth, object, () => { draw(camera, scene, geometry, depth, object, group); });
       };
     }
