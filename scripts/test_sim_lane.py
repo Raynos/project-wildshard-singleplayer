@@ -218,6 +218,25 @@ print('101 100 /runtime/Applications/MobileSafari.app/MobileSafari')
         self.assertEqual(result.returncode, 124, result.stderr)
         self.assert_not_handed_over()
 
+    def test_complete_owned_process_rows_survive_a_stalled_snapshot_tail(self):
+        rows = f'100 1 /runtime/launchd_sim {UDID}\n101 100 /runtime/Applications/MobileSafari.app/MobileSafari\n'
+        def snapshot(command, **options):
+            self.assertEqual(command[0], 'ps')
+            self.assertLessEqual(options['timeout'], .25)
+            raise subprocess.TimeoutExpired(command, options['timeout'], output=rows.encode())
+        evidence = {'checks': 0, 'timeouts': 0, 'totalMs': 0.0, 'maxMs': 0.0}
+        pid = READY['owned_safari_process'](UDID, 2, evidence, snapshot)
+        self.assertEqual(pid, 101)
+        self.assertEqual(evidence['timeouts'], 1)
+        self.assertEqual(evidence['ownedRoots'], 1)
+        self.assertEqual(evidence['completeRows'], 2)
+
+    def test_truncated_process_row_cannot_unlock_a_launch(self):
+        rows = f'100 1 /runtime/launchd_sim {UDID}\n101 100 /runtime/Applications/MobileSafari.app/MobileSafari'
+        def snapshot(command, **options):
+            raise subprocess.TimeoutExpired(command, options['timeout'], output=rows.encode())
+        self.assertIsNone(READY['owned_safari_process'](UDID, 2, read_snapshot=snapshot))
+
     def test_foreign_simulator_safari_cannot_unlock_our_launch(self):
         self.command('ps', '''print('100 1 /runtime/launchd_sim ''' + UDID + '''')
 print('200 1 /runtime/launchd_sim foreign-device')

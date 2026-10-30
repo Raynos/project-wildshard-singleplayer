@@ -1,16 +1,20 @@
 """Wait for a native Safari document's frame callbacks within one wall deadline."""
+import sys
+import time
+
+IMPORT_STARTED = time.monotonic()
+
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import math
+import json
 import os
 from pathlib import Path
 import secrets
 from socketserver import TCPServer
 import subprocess
-import sys
 import tempfile
 import threading
-import time
 
 
 @contextmanager
@@ -28,27 +32,50 @@ def native_text(stream):
     return os.pread(stream.fileno(), os.fstat(stream.fileno()).st_size, 0).decode(errors='replace')
 
 
-def owned_safari_process(udid, remaining):
+def owned_safari_process(udid, remaining, evidence=None, read_snapshot=subprocess.run):
     """Observe only a Safari descending from this device's launchd_sim.
 
     A pid is permission to ask for the owned URL, never readiness proof.
     Do not launch another client or print unrelated process arguments.
     """
+    started = time.monotonic()
+    status = 'complete'
     try:
-        result = subprocess.run(['ps', '-axo', 'pid=,ppid=,command='],
-                                capture_output=True, text=True,
+        result = read_snapshot(['ps', '-axo', 'pid=,ppid=,command='],
+                                capture_output=True, text=True, errors='replace',
                                 timeout=max(.001, min(.25, remaining)), check=False)
-    except (OSError, subprocess.TimeoutExpired):
-        return None
-    if result.returncode != 0:
-        return None
+        raw = result.stdout if result.returncode == 0 else ''
+        if result.returncode != 0:
+            status = f'exit:{result.returncode}'
+    except subprocess.TimeoutExpired as error:
+        status = 'timeout'
+        raw = error.stdout or b''
+        if isinstance(raw, bytes):
+            raw = raw.decode(errors='replace')
+    except OSError:
+        status, raw = 'unavailable', ''
+    if evidence is not None:
+        elapsed = (time.monotonic() - started) * 1000
+        evidence['checks'] += 1
+        evidence['timeouts'] += status == 'timeout'
+        evidence['totalMs'] = round(evidence['totalMs'] + elapsed, 3)
+        evidence['maxMs'] = round(max(evidence['maxMs'], elapsed), 3)
+        evidence['lastStatus'] = status
     processes = {}
-    for line in result.stdout.splitlines():
+    # A timed-out ps can already have delivered a complete owned parent chain.
+    # Incomplete final rows never grant permission; the frame proof still does.
+    for line in raw.splitlines(keepends=True):
+        if not line.endswith('\n'):
+            continue
         parts = line.split(None, 2)
         if len(parts) == 3 and parts[0].isdigit() and parts[1].isdigit():
             processes[int(parts[0])] = (int(parts[1]), parts[2])
     roots = {pid for pid, (_, command) in processes.items()
              if 'launchd_sim' in command and udid in command}
+    if evidence is not None:
+        evidence['completeRows'] = len(processes)
+        evidence['ownedRoots'] = len(roots)
+        evidence['safariCandidates'] = sum('/MobileSafari.app/MobileSafari' in row[1] for row in processes.values())
     for pid, (_, command) in processes.items():
         if '/MobileSafari.app/MobileSafari' not in command:
             continue
@@ -125,6 +152,7 @@ def readiness_page(deadline, started=None):
 
 def open_ready_page(udid, url, ready, deadline, timeout, started):
     code, detail = 124, 'URL service did not respond'
+    attempts = 0
     while True:
         if ready.is_set():
             print(f'sim-lane: Safari readiness page reached two animation frames in {time.monotonic() - started:.3f}s; {detail}', file=sys.stderr)
@@ -133,6 +161,9 @@ def open_ready_page(udid, url, ready, deadline, timeout, started):
         if remaining <= 0:
             print(f'sim-lane: Safari URL readiness timed out after {timeout:g}s: {detail}', file=sys.stderr)
             return code
+        attempts += 1
+        attempt_started = time.monotonic()
+        print(f'sim-lane: Safari openurl attempt {attempts} started at {attempt_started - started:.3f}s', file=sys.stderr)
         with native_transcript() as errors, subprocess.Popen(['xcrun', 'simctl', 'openurl', udid, url],
                               stdout=subprocess.DEVNULL, stderr=errors, text=True) as child:
             attempt_deadline = min(deadline, time.monotonic() + 10)
@@ -143,6 +174,9 @@ def open_ready_page(udid, url, ready, deadline, timeout, started):
                 child.wait()
                 code = 124
                 detail = 'openurl client stopped after frame proof' if ready.is_set() else 'openurl did not respond before its deadline'
+                partial_error = native_text(errors).strip()
+                if partial_error:
+                    detail += f'; native stderr: {partial_error[-2048:]}'
             else:
                 error = native_text(errors)
                 code = child.returncode if child.returncode >= 0 else 128 - child.returncode
@@ -155,6 +189,8 @@ def open_ready_page(udid, url, ready, deadline, timeout, started):
                         detail = 'owned two-frame callback confirmed'
                     else:
                         code, detail = 124, 'accepted URL but readiness page never reached frame callbacks'
+            print(f'sim-lane: Safari openurl attempt {attempts} settled in {time.monotonic() - attempt_started:.3f}s; '
+                  f'client exit {code}; ownedFrames={ready.is_set()}; {detail[-2048:]}', file=sys.stderr)
         if not ready.is_set():
             ready.wait(min(1, max(0, deadline - time.monotonic())))
 
@@ -172,6 +208,9 @@ def wait_for_safari(udid):
     # device-owned process exists; only the subsequent frame callback can
     # publish a lease. Every phase shares the original readiness deadline.
     started = time.monotonic()
+    evidence = {'checks': 0, 'timeouts': 0, 'totalMs': 0.0, 'maxMs': 0.0}
+    def report_process_evidence():
+        print(f'sim-lane: Safari launch process evidence {json.dumps(evidence)}', file=sys.stderr)
     with native_transcript() as output, native_transcript() as errors:
         with subprocess.Popen(['xcrun', 'simctl', 'launch', udid, 'com.apple.mobilesafari'],
                               stdout=output, stderr=errors, text=True) as launch:
@@ -188,11 +227,13 @@ def wait_for_safari(udid):
                         for label, stream in (('stdout', output), ('stderr', errors)):
                             detail = native_text(stream).strip()
                             print(f'sim-lane: Safari timed-out launch {label}: {detail[-2048:] or "<empty>"}', file=sys.stderr)
+                        report_process_evidence()
                         return 124
                     if time.monotonic() >= next_process_check:
-                        pid = owned_safari_process(udid, remaining)
+                        pid = owned_safari_process(udid, remaining, evidence)
                         next_process_check = time.monotonic() + 1
                         if pid is not None:
+                            report_process_evidence()
                             print(f'sim-lane: owned Safari process {pid} in {time.monotonic() - started:.3f}s before launch client replied; '
                                   'requiring owned frame proof', file=sys.stderr)
                             with readiness_page(deadline, started) as (url, ready):
@@ -205,6 +246,7 @@ def wait_for_safari(udid):
                     launch.kill()
                     launch.wait()
             launch_output, launch_error = native_text(output), native_text(errors)
+    report_process_evidence()
     elapsed = time.monotonic() - started
     if launch.returncode != 0:
         print(f'sim-lane: Safari app launch failed in {elapsed:.3f}s: {launch_error.strip()}', file=sys.stderr)
@@ -215,4 +257,5 @@ def wait_for_safari(udid):
 
 
 if __name__ == '__main__':
+    print(f'sim-lane: Safari readiness Python imports finished in {time.monotonic() - IMPORT_STARTED:.3f}s', file=sys.stderr)
     sys.exit(wait_for_safari(sys.argv[1]))
