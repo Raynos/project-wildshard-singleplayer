@@ -8,6 +8,7 @@ import type { Flags } from '../world/interact/flags';
 import type { Interactable } from '../world/interact/types';
 import type { MapPoi } from '../ui/Map';
 import { practiceRoom } from '../core/practiceRoom';
+import { emitFault } from '../core/faults';
 
 /** a quest marker resolved to world coordinates */
 export interface LiveMarker { id: string; label: string; short: string; x: number; z: number }
@@ -174,6 +175,7 @@ interface GuidePorts<P extends GuidePoint> {
  * idle schedules preserve progress, retry and successful-guide cooldowns.
  */
 export class PlaceGuide<P extends GuidePoint> {
+  private reportedFrame = false;
   private readonly profile: v.InferOutput<typeof GuideProfile>;
   private readonly ports: GuidePorts<P>;
   private sinceProgress = 0;
@@ -217,6 +219,14 @@ export class PlaceGuide<P extends GuidePoint> {
    * when due; periodic ineligible attempts still consume their next delay.
    */
   update(dt: number, speed = 0, eligible: () => boolean = () => true): void {
+    try { this.updateFrame(dt, speed, eligible); }
+    catch (error) {
+      if (!this.reportedFrame) { this.reportedFrame = true; emitFault({system: 'quest.guide', error, verdict: 'retry'}); }
+    }
+  }
+  /** A refused automatic schedule never escapes into unrelated frame work.
+   * Direct target/attempt APIs keep their source and ownership refusals. */
+  private updateFrame(dt: number, speed: number, eligible: () => boolean): void {
     if (!Number.isFinite(dt) || dt < 0 || !Number.isFinite(speed) || speed < 0) throw new RangeError('Invalid guide step');
     const schedule = this.profile.schedule;
     if (schedule.kind === 'periodic') {
