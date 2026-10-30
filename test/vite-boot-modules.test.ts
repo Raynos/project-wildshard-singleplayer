@@ -164,9 +164,9 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
 
 test('feature module facts follow literal rows and share one file table', () => {
   const actual = clientFeatureImports(readFileSync('src/game/shardfile/clientPlan.ts', 'utf8'));
-  // Hostless plans need the driver before controls (18aaab1583). worldScenes
-  // already imports it statically, so this explicit root adds no JS payload.
-  expect(actual['world.scenes']).toEqual(['./worldScenes', './tileDriver']);
+  // Hostless plans need the driver and its camera view before controls.
+  // These explicit roots are already in the worldScenes static closure.
+  expect(actual['world.scenes']).toEqual(['./worldScenes', './tileDriver', './streamingView']);
   expect(actual['world.dressing']).toEqual(['./sceneDressing']);
   expect(clientFeatureImports(`export const CLIENT_FEATURES = {
     'world.first': { install: () => import('./first'), play: { install: () => import('./first') } },
