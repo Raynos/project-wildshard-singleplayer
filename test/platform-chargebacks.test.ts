@@ -9,15 +9,15 @@ import { componentInventory } from '../scripts/shard-components.mjs';
 import { g571HostApprovals,approvedG571Host } from '../scripts/g571-hosts.mjs';
 
 test('optional shared dispatch does not invent another arena or keeper user', () => {
-  const arena = 'src/game/boss/arenaRoom.ts', phase = 'src/game/plugin/bossPhase.ts';
+  const arena = 'src/game/boss/openArenaFight.ts', phase = 'src/game/plugin/bossPhase.ts';
   const groups = 'src/game/population/pageGroups.ts';
   const both = new Set(['nalati-grasslands', 'pine-hollow']);
   const modules = new Map([[arena, both], [phase, both], [groups, both]]);
-  const bindings = new Map([[`${arena}\0OpenArenaProjection`,both],[`${phase}\0bossFight`, both],
+  const bindings = new Map([[`${arena}\0OpenArenaFight`,both],[`${phase}\0bossFight`, both],
     [`${groups}\0PageGroups`, both], [`${groups}\0FixedPageSpawnTable`, both]]);
   chargePlatformUsers(modules, bindings);
   expect(modules.get(arena)).toEqual(both);
-  expect(bindings.get(`${arena}\0OpenArenaProjection`)).toEqual(both);
+  expect(bindings.get(`${arena}\0OpenArenaFight`)).toEqual(both);
   expect(bindings.get(`${groups}\0PageGroups`)).toEqual(both);
   expect(bindings.get(`${phase}\0bossFight`)).toEqual(both);
   expect(bindings.get(`${groups}\0FixedPageSpawnTable`)).toEqual(both);
@@ -121,7 +121,7 @@ test('the real Pine and Driftwood Explorer dispatcher no longer has a sole-user 
   }
   // Dispatch credit does not waive a private intake or presentation owner.
   expect(platformChargeback('src/engine/models/geometrySources.ts', 'registerPackedGeometrySource')).toBeNull();
-  expect(platformChargeback('src/game/boss/arenaRoom.ts','OpenArenaProjection')).toBeNull();
+  expect(platformChargeback('src/game/boss/openArenaFight.ts','OpenArenaFight')).toBeNull();
 });
 
 test('day-one feature credit cannot erase a G520 chargeback', () => {
@@ -392,7 +392,7 @@ test('G615 credits only timed encounters and its selected slot and patrol views'
 test('retired arsenal and variant modules leave no standalone item charge',()=>{
   expect(platformChargeback('src/game/loadout/mounted.ts')).toBeNull();
   expect(platformChargeback('src/game/weapons/bowVariant.ts')).toBeNull();
-  expect(platformChargeback('src/game/boss/arenaRoom.ts','OpenArenaProjection')).toBeNull();
+  expect(platformChargeback('src/game/boss/openArenaFight.ts','OpenArenaFight')).toBeNull();
 });
 
 test('G667 credits the crowd prey joins and keeps the original Pine ray consumer', () => {
@@ -457,7 +457,8 @@ test('G621 D4 retires only the three already-approved chapter dependency overrid
 
 test('G665 credits only the complete listed open-arena host',()=>{
   const rows = [
-    ['src/game/boss/arenaRoom.ts',['OpenArenaProjection','buildOpenArenaEncounter','OpenArenaWorld','SupportActor','Chain','_openV','_openW','_openRAY','_openSPH','_openHITP','arenaScriptCloud','readArenaScriptData']],
+    ['src/game/boss/arenaRoom.ts',['buildOpenArenaEncounter','OpenArenaWorld','_openW','arenaScriptCloud']],
+    ['src/game/boss/openArenaFight.ts',['OpenArenaFight','SupportActor','Chain','_openV','_openRAY','_openSPH','_openHITP','readArenaScriptData','OpenArenaViews','OpenArenaFightWorld','OpenArenaFightHost','ArenaBodyPort','ArenaScenePort','ArenaFirePort','ArenaWhirlsPort']],
     ['src/game/riding/client.ts',['ArenaBoundary','boundaries','arenaBlockedAt','installArenaBoundary','arenaBoundaryBlocked']],
   ] as const;
   const shared=new Set(['nalati-grasslands','pine-hollow']),approvals=g571HostApprovals('.');
