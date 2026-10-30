@@ -422,6 +422,9 @@ export class OpenArenaFight implements BossScript {
   // ── the heart as a target (main's Targets chain) ──
 
   private readonly heartTarget: TargetAnimal;
+  /** CI12: the heart as the combat target `target()` hits (the same object every hit), for a native host that keys an arrow
+   *  stuck in it to this encounter and finds it again after a restore. */
+  get combatTarget(): TargetAnimal { return this.heartTarget; }
   private readonly heartHit: TargetHit;
   private readonly heartLock: AimTarget;
   lockTarget(): AimTarget | null {
