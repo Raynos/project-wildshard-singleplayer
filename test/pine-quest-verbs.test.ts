@@ -23,4 +23,6 @@ test('Pine earns every story step through native commands and replays the fresh 
   const line=child.stdout.split('\n').find(row=>row.includes('"phase":"replayed"'));
   if(line===undefined)throw new Error('Missing real native quest completion');
   const result=v.parse(resultSchema,JSON.parse(line));expect(result.ticks).toBeGreaterThan(0);expect(result.segments).toBeGreaterThan(1);
+  console.info(facts);
+  for(const row of child.stdout.split('\n'))if(row.includes('"phase":"timing"')||row.includes('"phase":"replayed"'))console.info(row);
 },35_000);
