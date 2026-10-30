@@ -12,19 +12,20 @@ const rows = {
   goals: [{ x: -80, z: 10 }, { x: 0, z: 40 }],
 };
 
+interface World { readonly px: number; readonly pz: number; readonly mounted: number; readonly carrier: number; readonly fast: number; readonly practice: number; readonly cx: number; readonly cz: number }
 /** carriedProp.ts's round as it was inline before the kernel (decisions recorded instead of the page's effects) */
 class Inline {
   state: Record<string, number> = { ...rows.state }; at = { ...rows.home }; pending = 0; log: string[] = [];
-  update(dt: number, world: Record<string, number>, project: (frame: Record<string, number>) => Record<string, number>): void {
+  update(dt: number, world: World, project: (frame: Record<string, number>) => Record<string, number>): void {
     this.pending += dt;
     if (this.pending >= rows.step) { const elapsed = this.pending; this.pending = 0; this.project(elapsed, world, project); }
     else if ((this.state[rows.outputs.carrying] ?? 0) !== 0) this.log.push('carry');
   }
-  private project(dt: number, w: Record<string, number>, project: (frame: Record<string, number>) => Record<string, number>): void {
+  private project(dt: number, w: World, project: (frame: Record<string, number>) => Record<string, number>): void {
     const fields = rows.fields;
-    const out = project({ ...this.state, [fields.dt]: dt, [fields.playerX]: w.px ?? 0, [fields.playerZ]: w.pz ?? 0, [fields.objectX]: this.at.x, [fields.objectZ]: this.at.z,
+    const out = project({ ...this.state, [fields.dt]: dt, [fields.playerX]: w.px, [fields.playerZ]: w.pz, [fields.objectX]: this.at.x, [fields.objectZ]: this.at.z,
       [fields.mounted]: Number(w.mounted === 1), [fields.carrier]: Number(w.carrier === 1), [fields.fast]: Number(w.fast === 1), [fields.practice]: Number(w.practice === 1),
-      [fields.carrierX]: w.cx ?? 0, [fields.carrierZ]: w.cz ?? 0 });
+      [fields.carrierX]: w.cx, [fields.carrierZ]: w.cz });
     for (const key of Object.keys(this.state)) { const value = out[key]; if (value === undefined) throw new Error('Missing carried quest continuation'); this.state[key] = value; }
     if (out[rows.outputs.warning] === 1) this.log.push('warning');
     const pose = out[rows.outputs.pose];
@@ -45,7 +46,7 @@ test('the carried round kernel projects, decides and delivers exactly as the inl
   const a = new Inline(), b = carriedRound(rows), log: string[] = [], frames: [Record<string, number>, Record<string, number>][] = [];
   for (let frame = 0; frame < 3000; frame++) {
     const dt = rnd() < 0.05 ? 0.3 : 1 / 30;
-    const world = { px: rnd() * 100 - 50, pz: rnd() * 100 - 50, mounted: Number(rnd() < 0.8), carrier: Number(rnd() < 0.9), fast: Number(rnd() < 0.5),
+    const world: World = { px: rnd() * 100 - 50, pz: rnd() * 100 - 50, mounted: Number(rnd() < 0.8), carrier: Number(rnd() < 0.9), fast: Number(rnd() < 0.5),
       practice: Number(rnd() < 0.1), cx: rnd() * 10, cz: rnd() * 10 };
     // one set of guest outputs per frame, shared by both (a goal step, a reset, a carry, a warning, events incl. NaN)
     const out: Record<string, number> = { carrying: Number(rnd() < 0.4), left: rnd() * 45, slow: rnd(), cheer: rnd() * 4, warned: Number(rnd() < 0.2),
