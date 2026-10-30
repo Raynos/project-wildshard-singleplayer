@@ -21,6 +21,7 @@ import { worldSceneSourceMaterial } from './worldSceneMaterials';
 import { WorldScenePlacement } from './worldScenePlacement';
 import { readWholeLibrary } from './wholeLibrary';
 import { RefiningWholeLibrary } from './refiningWholeLibrary';
+import { SlabLibrary } from './slabLibrary';
 import { wholeRefinementCover } from './wholeRefinementCover';
 import { lendWorldSceneTextures } from './worldSceneTextures';
 import { lendWorldSceneUniforms } from './worldSceneUniforms';
@@ -363,7 +364,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     })();
     materialReads.set(id, pending); return pending;
   }
-  const refining = new Map<string, RefiningWholeLibrary>();
+  const refining = new Map<string, RefiningWholeLibrary | SlabLibrary>();
   const coarse = section.libraries.some(row => row.kind === 'whole' && row.load === 'refine') ? wholeRefinementCover(ctx, owner, refinementOrigin) : undefined;
   if (coarse !== undefined) handles.addTiled(coarse.content);
   const bufferedContents: TileContent[] = [];
@@ -388,7 +389,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       libraryProgress(0);
       for (const [libraryIndex, row] of section.libraries.entries()) {
         await timeClientPreparation(product.slug, `scene.library:${row.kind}:${row.id}`, async () => {
-          if (row.kind === 'slabs') return; // NF10: staged bake data; NF11 owns activation.
+          if (row.kind === 'slabs') return; // NF11: read by the refine library it covers (`of`)
           if (row.kind === 'models') {
             const models = sceneModelSource(product, row.id); await models.preload(() => constructionCheckpoint(owner) ?? Promise.resolve());
             libraries.set(row.id, { geometry: id => models.geometry(id), models });
@@ -398,7 +399,11 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
             if (row.load === 'explorer' || used.size === 0) { libraryProgress(libraryIndex + 1, `${row.id} · deferred`); return; }
             if (row.load === 'refine') {
               if (coarse === undefined) throw new Error('Fine refinement requires coarse coverage');
-              const whole = new RefiningWholeLibrary(owner, product, row, refinementQueue(), coarse.ensure); refining.set(row.id, whole);
+              // NF11: baked slabs replace the run-time join of the library they cover
+              const slabs = section.libraries.find(entry => entry.kind === 'slabs' && entry.of === row.id);
+              const whole = slabs?.kind === 'slabs' ? new SlabLibrary(owner, product, row, slabs, refinementQueue(), coarse.ensure)
+                : new RefiningWholeLibrary(owner, product, row, refinementQueue(), coarse.ensure);
+              refining.set(row.id, whole);
               libraries.set(row.id, { geometry: id => whole.geometry(id) }); return;
             }
             const whole = await readWholeLibrary(owner, product, row, used, () => constructionCheckpoint(owner) ?? Promise.resolve(), ctx.app.assets);
