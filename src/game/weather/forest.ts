@@ -36,7 +36,6 @@ import { parsePopulationShelter } from '@wildshard/format/herdShelter';
 
 declare module '@wildshard/engine/events/maps' {
   interface EventMap { 'weather.changed': WeatherHUD }
-  interface AskMap { 'weather.indoors': readonly [number, number]; 'weather.storm-hold': readonly [number, number] }
 }
 
 type ShardContext = Parameters<typeof installEnteredRuntimeService>[0];
