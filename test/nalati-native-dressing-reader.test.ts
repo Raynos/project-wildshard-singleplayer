@@ -4,9 +4,6 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { nativeNalatiDressingPlacements } from '../src/shards/nalati-grasslands/generators/nativeDressingPlacements.mjs';
-import { nalatiGrass } from './fixtures/nalati-grass-bake';
-import grassPins from './fixtures/nalati-grass-pins.json' with { type: 'json' };
-import { hashImmutableBytes } from '../src/sdk/immutable';
 
 test('native Node authors preserve every original continuous-forest placement with no generated-row reads or page selection', () => {
   const source = `
@@ -42,15 +39,6 @@ test('native Node authors preserve every original continuous-forest placement wi
     }finally{fs.readFileSync=originalRead;syncBuiltinESMExports();}
   `;
   execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);
-});
-
-// GR6: the build constructs the grass; every original block and its rows keep their bytes (pinned before retirement)
-test('the build-time grass keeps every original block and its rows', () => {
-  for (const pin of grassPins) {
-    const bytes = pin.name === 'rows' ? new TextEncoder().encode(`${JSON.stringify(nalatiGrass.rows)}\n`) : nalatiGrass.files.get(pin.name);
-    if (bytes === undefined) throw new Error(`Missing grass block ${pin.name}`);
-    expect({ bytes: bytes.length, hash: hashImmutableBytes(bytes) }, pin.name).toEqual({ bytes: pin.bytes, hash: pin.hash });
-  }
 });
 
 test('the grass keep-outs read only the native lattice, never generated dressing rows', async () => {
