@@ -106,12 +106,15 @@ export class SpawnScript {
   private readonly controlState: AnimalSim['state'];
   /** The decision host's final refusal, exposed without a callback into content. */
   get failure(): string | null { return this.disabledReason; }
-  private constructor(input: unknown, private readonly bodies: SpawnBodyOwner, private readonly v2Owners?: SpawnV2Owners,private readonly effectOwners?: SpawnEffectOwners,queryLoans?: SpawnQueryLoansV2,private readonly nativeHost?: SimHost) {
+  private constructor(input: unknown, private readonly bodies: SpawnBodyOwner, private readonly v2Owners?: SpawnV2Owners,private readonly effectOwners?: SpawnEffectOwners,queryLoans?: SpawnQueryLoansV2,private readonly nativeHost?: SimHost,rawModule?: Uint8Array) {
     const rows = parseSpawnScript(input); this.rows = rows;
     this.controlState = v.parse(v.picklist(ANIMAL_STATES), rows.controlState);
     const registries = spawnScriptRegistries(rows); this.combat = new ScriptStrikes(rows.strikes ?? []);
-    const bytes = v2Owners?.module ?? Uint8Array.from(atob(rows.bytes), byte => byte.codePointAt(0) ?? 0);
-    if (v2Owners?.module !== undefined && (rows.bytes !== '' || !(bytes instanceof Uint8Array) || rows.script.module !== `blobs/wasm/${sha256(bytes)}.wasm`)) throw new Error('Invalid raw spawn module');
+    // an admitted raw module arrives by one loan: the entered v2 owners' or a native population's (CI12), never both
+    if (v2Owners?.module !== undefined && rawModule !== undefined) throw new Error('Two raw spawn module loans');
+    const lentModule = v2Owners?.module ?? rawModule;
+    const bytes = lentModule ?? Uint8Array.from(atob(rows.bytes), byte => byte.codePointAt(0) ?? 0);
+    if (lentModule !== undefined && (rows.bytes !== '' || !(bytes instanceof Uint8Array) || rows.script.module !== `blobs/wasm/${sha256(bytes)}.wasm`)) throw new Error('Invalid raw spawn module');
     admitScriptContract(bytes, { abi: 1, pages: rows.script.pages });
     const { v2: selected,...originalRows } = rows;
     this.contract = JSON.stringify({ ...originalRows, script: decisionScriptContract(rows.script), bytes: undefined });
@@ -172,8 +175,9 @@ export class SpawnScript {
   }
   /** Borrow the installed mounted-world population explicitly. This is not a
    * fallback for a missing roster: the admitted id and every recipe must match
-   * that concrete owner before the script allocates its guest or any body. */
-  static nativePopulation(host: SimHost, input: unknown): SpawnScript {
+   * that concrete owner before the script allocates its guest or any body. `module`: the admitted raw module for a row whose
+   * bytes are blank (its script.module names the module's SHA-256), checked as the entered v2 owners' loan is (CI12). */
+  static nativePopulation(host: SimHost, input: unknown, module?: Uint8Array): SpawnScript {
     const rows = parseSpawnScript(input), roster = nativePopulationOf(host);
     if (host.scope.disposed || host.scope.disposing || roster === undefined || roster.host !== host || roster.id !== rows.roster)
       throw new Error('Missing matching native population service');
@@ -187,7 +191,7 @@ export class SpawnScript {
       }, actor, height: (x, z) => host.groundHeightAt(x, z), available: roster.available,
       boot: () => roster.bodies.filter(body => body.scripted),
       reach: (body, target) => canReach(body, target, host.physics),
-    }, undefined, undefined, undefined, host);
+    }, undefined, undefined, undefined, host, module);
   }
   /** Client-only binding to the actual AnimalManager. Its existing spawn/retire path owns bodies and draws. */
   static page(animals: AnimalManager, input: unknown, physics?: Physics | null,v2Owners?: SpawnV2Owners,elites?: Elites,worldActions?: readonly V2WorldActionLoan[],queries?: SpawnQueryLoansV2): SpawnScript {

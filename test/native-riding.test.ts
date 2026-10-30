@@ -333,6 +333,13 @@ test('orchard fixture installs the complete native population through data rows'
     expect(()=>owner.validateSpawn(sample.spec.kind,'missing')).toThrow();
     expect(()=>SpawnScript.nativePopulation(host,{...row,roster:'foreign.population'})).toThrow('matching native population');
     expect(()=>SpawnScript.nativePopulation(host,{...row,species:row.species.map(source=>({id:source.id,kind:source.kind,variant:'missing'}))})).toThrow();
+    // CI12: the product's row has blank bytes and names its module by hash; the native population takes the module as a loan
+    const blank={...row,bytes:''},foreign=Uint8Array.from(chargeModule);foreign[foreign.length-1]=(foreign[foreign.length-1]??0)^1;
+    expect(()=>SpawnScript.nativePopulation(host,blank)).toThrow();
+    expect(()=>SpawnScript.nativePopulation(host,blank,foreign)).toThrow('Invalid raw spawn module');
+    expect(()=>SpawnScript.nativePopulation(host,row,chargeModule)).toThrow('Invalid raw spawn module');
+    expect(row.script.module).toBe(`blobs/wasm/${createHash('sha256').update(chargeModule).digest('hex')}.wasm`);
+    expect(SpawnScript.nativePopulation(host,blank,chargeModule).failure).toBeNull();
     const script=SpawnScript.nativePopulation(host,row);
     expect(serializeSimSnapshot(snapshotSimHost(host))).toBe(initial);
     expect(random.snapshot()).toEqual(draws);
