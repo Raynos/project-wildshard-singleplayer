@@ -6,14 +6,14 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **Legacy (G882 / G883 / G885 / G891):** legacy-final 91a9eef081; Sky + Signal 3be88b3081, Nalati b592b94008, Driftwood
 019fa6d0c7. **G908: Pine + Nine untouched** (no prep) until Jake's word after his final QA, likely 10-30.
 
-**LIVE 2b62556-mvuk0s65 (00:52 Cancun; source 2b62556596, fully green CI 40998533769).** Next green SHA auto-ships; G917's 07:00 refresh stays. Pine + DW stories pass on CI but thin (29.4 / 27.6 s of 30; x9 / x1 + o5 margin); last red Nalati discovery, fix ca3a9c3b42 awaits CI. 03:10 Pine config break (47d3470271) fixed 5c3af08a68.
+**LIVE fe0ca11-mvuso9aw (05:16 Cancun; fully green CI 41035012795, shipped prebuilt by the normal path, no fallback needed).** Next green SHA auto-ships; G917's 07:00 refresh stays. Story margins: Pine memo c510d3e794 + d91517c445, DW pose CSE 420440d2e9, Nalati pipelined replay 04615724cd.
 **Open:** MF7 battery (phone), MF20 CPU bar (Jake's pick), QB20 thermal (phone), CI2 / 3 / 5 / 6 / 7 / 9 / 10
 remote acceptance, CI12 Nalati (x6, x8, kernels o3 / o4), CI14 pin waves. **QA recheck on HEAD (o5, 95196a14db + QB12 app switch b6b19d5095): every QB row passes, no regressions, QB16 too.** For Jake: MF13 'Refine dither' phone check (ready: Sim Nine dither-on longest loader frame 110 ms, was 2.25 s; 9165621261); QB17 zip video
 tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 
 **03:30:** CI6 prepare cuts by o5 / o3 / x1, CI14 16 waves landed (o4, 0f5c9acf1e..dc1bd18988; bar = a week with no drift-only red), CI12 Nalati x6 / x8 (kernels landed by o3 / o4). Phone GRID entry: CI margin miss, no iPhone trades (o3). **00:35:** sweep cron e7a1a5d2 runs every 5 min (G927; watchdog EXEMPT trimmed 09fdb1516c).
 **Autonomous decisions (for Jake's review):**
-- wildshard-v 03:32: agreed. 91cce8152f's prepare red is fixed (5c3af08a68, run 41024941591). If main isn't green by 05:30, sp-ci-deploy ships the newest boot-smoke-green SHA via the recovery release. Watchdog: cron e7a1a5d2 does its job.
+- wildshard-v 04:32: o4 stopped by G853 (Claude weekly 60 % = 2 Opus). Native Escape passes; the native job's only red is Nalati discovery (fix ca3a9c3b42 in run 41033309159); phone is report-only (x2). o3: Sim grid spawn p95 36 ms; o5: DW pose margin + Sim QB. 05:30 fallback unneeded (fe0 shipped green).
 - CI6 (o5): any shared generator SDK edit cold-rebuilds all 24 products on CI (step key = whole program hash; 4a41 prepare ~600 s). Held such edits until after 07:00, then batched; no coverage-keyed cache (G585). **Jake: bigger CI runners (cost)?**
 - Nalati discovery tape (7,686 ticks) can't fit one 30 s CI replay: x8 adds bounded verbTapePart requests, 30 s each; 150 / 180 s guards kept.
 - CI12 player bug: Signal's Matriarch flew off the map on retry; fixed ddb75a9d0a (board art/signal-matriarch-retry/).
