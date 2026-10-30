@@ -7,8 +7,8 @@ import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
 import {builtProduct} from '../builtProduct';
 import {createNativeProofWorker,type NativeProofKind} from '../headless-worker';
 
-export type ProductSessionVariant = Extract<NativeProofKind, 'driftwood' | 'nine-flat' | 'nalati-companions' | 'nalati-weapons' | 'nalati-predators' | 'nalati-world' | 'nalati-stealth' | 'nalati-verbs' | 'nalati-kokpar' | 'pine-verbs' | 'sky-verbs'>;
-const variantHosts: Readonly<Record<string, string>> = { 'driftwood': 'driftwood-isle', 'sky-verbs': 'far-reach', 'pine-verbs': 'pine-hollow', 'nine-flat': 'nine-dragon-stack', 'nalati-companions': 'nalati-grasslands', 'nalati-weapons': 'nalati-grasslands', 'nalati-predators': 'nalati-grasslands', 'nalati-world': 'nalati-grasslands', 'nalati-stealth': 'nalati-grasslands', 'nalati-verbs': 'nalati-grasslands', 'nalati-kokpar': 'nalati-grasslands' };
+export type ProductSessionVariant = Extract<NativeProofKind, 'driftwood' | 'nine-flat' | 'nalati-companions' | 'nalati-weapons' | 'nalati-predators' | 'nalati-world' | 'nalati-stealth' | 'nalati-verbs' | 'nalati-kokpar' | 'nalati-qara' | 'pine-verbs' | 'sky-verbs'>;
+const variantHosts: Readonly<Record<string, string>> = { 'driftwood': 'driftwood-isle', 'sky-verbs': 'far-reach', 'pine-verbs': 'pine-hollow', 'nine-flat': 'nine-dragon-stack', 'nalati-companions': 'nalati-grasslands', 'nalati-weapons': 'nalati-grasslands', 'nalati-predators': 'nalati-grasslands', 'nalati-world': 'nalati-grasslands', 'nalati-stealth': 'nalati-grasslands', 'nalati-verbs': 'nalati-grasslands', 'nalati-kokpar': 'nalati-grasslands', 'nalati-qara': 'nalati-grasslands' };
 
 type ProductSimulation=Pick<HeadlessSimulation,'verbTape'|'verbTapePart'|'streamVerbTape'|'journey'|'walkLeg'|'step'|'dispose'|'quarantined'>;
 
@@ -26,7 +26,7 @@ export async function beginProductSession(slug:string,variant?:ProductSessionVar
   const pending=nativeKind===undefined?HeadlessSimulation.create(source,assets,snapshot,{deadline:'advisory',sections})
     :createNativeProofWorker(source,assets,nativeKind,snapshot,sections,directory);
   // Observe failure immediately even while the caller is preparing its owner.
-  const outcome=pending.then(sim=>({ok:true as const,sim}),(error:unknown)=>({ok:false as const,error}));
+  const outcome=(async()=>{try{return {ok:true as const,sim:await pending};}catch(error){return {ok:false as const,error};}})();
   return {product,assets,ready:async()=>{const result=await outcome;if(!result.ok)throw result.error;return result.sim;}};
 }
 
