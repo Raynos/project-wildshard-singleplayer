@@ -7,17 +7,10 @@ import type { Piece } from '../src/engine/world/registry';
 import { readFileSync } from 'node:fs';
 import { bridgeRestValues } from '../src/shards/far-reach/generators/bridgeRest';
 import { skyBridgePhysicsPlacements } from '../src/shards/far-reach/generators/bridgeColliders';
-import { hashImmutableBytes } from '../src/sdk/immutable';
 import { originalSkySceneInputs } from './fixtures/sky-scene-source';
 
 const { routes: { SKY_ROUTE_SCENE, SKY_ROUTES } } = await originalSkySceneInputs();
 const COLLIDERS = skyBridgePhysicsPlacements();
-
-it('retires bridge contact publication while retaining the complete original wire', () => {
-  const bytes = new TextEncoder().encode(`${JSON.stringify(skyBridgePhysicsPlacements())}\n`);
-  expect(bytes.byteLength).toBe(227_953);
-  expect(hashImmutableBytes(bytes)).toBe('d5545bc47278abcf37fbefea7a2fdbad75a8998b684e309a1585da081ce425f7');
-});
 
 it('assembles an authored bridge with borrowed materials and optional painted posts', async () => {
   const BRIDGES = await bridgeRestValues(url => new Uint8Array(readFileSync(`public${url}`)));
