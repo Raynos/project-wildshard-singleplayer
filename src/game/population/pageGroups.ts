@@ -7,6 +7,7 @@ import { CrowdRoster, type CrowdTargets } from '../shardfile/crowdRuntime';
 import { app } from '@wildshard/engine/app/runtime';
 import { nativeGroupBrain, type ShardHerdGroup } from '@wildshard/format/groupBrains';
 import { PageGroupRowsSchema } from '@wildshard/format/creatures';
+import { GroupNotices } from './groupNotices';
 import { readScalarLattice } from '@wildshard/engine/world/scalarChannel';
 import { grassBaseHeightAt } from '../systems/looks/grassField';
 import { grassHeightAt, trample } from '../systems/looks/trample';
@@ -194,20 +195,18 @@ let renderedDamage: { program: ReturnProgram; variant: string } | null = null;
 export function bindPageGroups(ctx: ShardContext,input: unknown,wetBlock?: {readonly file:string;readonly bytes:Uint8Array}): void {
   const rows = v.parse(PageGroupRowsSchema,input),herd = nativeGroupBrain(rows.herd);
   if (herd.kind !== 'herd') throw new Error('Invalid rendered damage preset');
-  const program=ReturnProgram.page(rows.damage,ctx.scope),lastNotice=new Map<string,number>(),knocked={x:0,z:0};
+  const program=ReturnProgram.page(rows.damage,ctx.scope),notices=rows.effects===undefined?null:new GroupNotices(rows.effects),knocked={x:0,z:0};
   installEnteredRuntimeService(ctx,scope=>{
     const previous=renderedDamage;renderedDamage={program,variant:herd.stallionVariant};
     scope.onDispose(()=>{renderedDamage=previous;});wildEnv.enter(scope,input,program,wetBlock);
-    const effects=rows.effects;if(effects===undefined)return;
-    const toast=(key:string,text:string,every:number):void=>{
-      const now=ctx.app.clock.now;if(now-(lastNotice.get(key)??-1e9)<every)return;
-      lastNotice.set(key,now);ctx.game.runtime?.play?.hud.toast(text);
-    };
-    ctx.app.events.on('creature.signal',({name})=>{const notice=effects.notices.find(row=>row.signal===name);if(notice!==undefined)toast(name,notice.text,notice.every);},scope);
+    const effects=rows.effects;if(effects===undefined||notices===null)return;
+    // the notice law (cooldowns per signal, and one for knockdowns) is GroupNotices (renderer-free, CI12)
+    const toast=(text:string|null):void=>{if(text!==null)ctx.game.runtime?.play?.hud.toast(text);};
+    ctx.app.events.on('creature.signal',({name})=>{toast(notices.signal(name,ctx.app.clock.now));},scope);
     ctx.app.events.on('creature.knockdown',({x,z,strength})=>{
       const player=ctx.game.runtime?.world?.player;if(player===undefined)return;
       knockdownVelocity(effects.knockdown,x,z,strength,knocked);player.dash(knocked.x,knocked.z,effects.knockdown.seconds);
-      ctx.game.runtime?.play?.hud.damageFlash();toast('knockdown',effects.knockdown.text,effects.knockdown.every);
+      ctx.game.runtime?.play?.hud.damageFlash();toast(notices.knockdown(ctx.app.clock.now));
     },scope);
   });
 }
