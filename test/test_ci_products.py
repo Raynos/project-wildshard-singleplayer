@@ -1,5 +1,6 @@
 """The CI preparation must survive transfer and refuse wrong or unsafe bytes."""
 import importlib.util
+import io
 import json
 import os
 import shutil
@@ -173,6 +174,42 @@ class PreparedProducts(unittest.TestCase):
         self.assertEqual((self.root / 'public/generated.bin').read_bytes(), b'\0\x01')
         self.assertEqual((self.root / self.table).read_text(), 'export const value=7;')
         self.assertEqual((self.root / 'out/fictional/shard.json').read_text(), '{"format":2}')
+
+    def test_streamed_checksum_covers_the_unchanged_tar_and_its_padding(self):
+        files = {'public/empty.bin': b'',
+                 'public/non-block.bin': bytes(range(251)) * 17,
+                 'public/' + 'long-name-' * 14 + '\u00e9.bin': b'long name'}
+        for name, content in files.items():
+            (self.root / name).write_bytes(content)
+        for generated in [False, True]:
+            products.pack(self.root, generated=generated)
+            name, proof_name = products.archive_names(generated)
+            path = self.root / name
+            proof = json.loads((self.root / proof_name).read_text())
+            self.assertEqual(proof['sha256'], products.digest(path))
+            with tarfile.open(path) as archive:
+                names = archive.getnames()
+            # Compare with the original direct-file tar writer, not a frozen
+            # digest: real headers, PAX names, bodies and end padding must match.
+            expected = self.root / 'reference.tar'
+            with tarfile.open(expected, 'w') as archive:
+                for member in names:
+                    archive.add(self.root / member, arcname=member, recursive=False)
+            self.assertEqual(path.read_bytes(), expected.read_bytes())
+            for member in files:
+                (self.root / member).unlink()
+            products.unpack(self.root, generated=generated)
+            for member, content in files.items():
+                self.assertEqual((self.root / member).read_bytes(), content)
+
+    def test_streamed_checksum_refuses_a_short_write(self):
+        class ShortOutput(io.BytesIO):
+            def write(self, block):
+                return super().write(block[:-1])
+
+        writer = products.ArchiveWriter(ShortOutput())
+        with self.assertRaisesRegex(OSError, 'Incomplete prepared archive write'):
+            writer.write(b'cannot attest unwritten bytes')
 
     def test_unchanged_retained_catalogue_output_is_transferred(self):
         name = self.asset

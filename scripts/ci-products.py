@@ -52,6 +52,24 @@ def digest(file):
     return result.hexdigest()
 
 
+class ArchiveWriter:
+    """Hash every tar byte as it is written, including headers and padding."""
+
+    def __init__(self, stream):
+        self.stream = stream
+        self.checksum = hashlib.sha256()
+
+    def tell(self):
+        return self.stream.tell()
+
+    def write(self, block):
+        written = self.stream.write(block)
+        if written != len(block):
+            raise OSError('Incomplete prepared archive write')
+        self.checksum.update(block)
+        return written
+
+
 def target(root, name):
     path = root / admitted_path(name)
     if path.is_symlink() or any(parent.is_symlink() for parent in path.parents if parent != root):
@@ -125,34 +143,36 @@ def pack(root, generated=False):
     retained = {}
     duplicates, content = {}, {}
     archived = 0
-    with tarfile.open(root / archive_name, 'w') as archive:
-        for name in files:
-            path = target(root, name)
-            if not path.is_file() or path.is_symlink():
-                raise ValueError('Prepared output is not a regular file: ' + name)
-            source = tracked.get(name)
-            if source is not None and not name.startswith('out/'):
-                size, sha256, blob = file_identity(path, object_format)
-                mode = path.stat().st_mode & 0o777
-                if source == (mode, blob):
-                    retained[name] = {'size': size, 'sha256': sha256, 'blob': blob, 'mode': mode}
-                    continue
-            # Reconstruct repeated large payloads as regular files. Artifact
-            # compression has a bounded window; distant copies of identical
-            # assets otherwise cross the network once for every product.
-            size = path.stat().st_size
-            if size >= 65536:
-                sha256 = digest(path)
-                key = (size, sha256)
-                previous = content.get(key)
-                if previous is not None:
-                    duplicates[name] = {'source': previous, 'size': size,
-                                        'sha256': sha256, 'mode': path.stat().st_mode & 0o777}
-                    continue
-                content[key] = name
-            archive.add(path, arcname=name, recursive=False)
-            archived += 1
-    proof = {'sha': sha, 'run': run, 'sha256': digest(root / archive_name),
+    with (root / archive_name).open('wb') as output:
+        writer = ArchiveWriter(output)
+        with tarfile.open(fileobj=writer, mode='w') as archive:
+            for name in files:
+                path = target(root, name)
+                if not path.is_file() or path.is_symlink():
+                    raise ValueError('Prepared output is not a regular file: ' + name)
+                source = tracked.get(name)
+                if source is not None and not name.startswith('out/'):
+                    size, sha256, blob = file_identity(path, object_format)
+                    mode = path.stat().st_mode & 0o777
+                    if source == (mode, blob):
+                        retained[name] = {'size': size, 'sha256': sha256, 'blob': blob, 'mode': mode}
+                        continue
+                # Reconstruct repeated large payloads as regular files. Artifact
+                # compression has a bounded window; distant copies of identical
+                # assets otherwise cross the network once for every product.
+                size = path.stat().st_size
+                if size >= 65536:
+                    sha256 = digest(path)
+                    key = (size, sha256)
+                    previous = content.get(key)
+                    if previous is not None:
+                        duplicates[name] = {'source': previous, 'size': size,
+                                            'sha256': sha256, 'mode': path.stat().st_mode & 0o777}
+                        continue
+                    content[key] = name
+                archive.add(path, arcname=name, recursive=False)
+                archived += 1
+    proof = {'sha': sha, 'run': run, 'sha256': writer.checksum.hexdigest(),
              'files': archived, 'retained': retained, 'duplicates': duplicates}
     (root / proof_name).write_text(json.dumps(proof) + '\n')
     print(f'Published {archived} prepared files, {len(duplicates)} duplicate paths and verified {len(retained)} checkout files for {sha} in run {run}')
