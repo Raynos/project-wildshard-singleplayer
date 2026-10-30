@@ -7,12 +7,13 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **Legacy (G882 / G883 / G885 / G891):** legacy-final 91a9eef081; Sky + Signal 3be88b3081, Nalati b592b94008, Driftwood
 019fa6d0c7. **G908: Pine + Nine untouched** (no prep) until Jake's word after his final QA, likely 10-30.
 
-**LIVE 125bda048-mvu1h3gt** (code ~13:43); a94d52f935 deploys once green.
-**REPLAN (G886): [FOUNDATIONS](../FOUNDATIONS.md); overnight G914-G917.** Done: MF2, MF3, MF5, MF6, MF7 memory, FC1-6, FC8,
-QS2, G895, G896, G901, QB18; MF1 / MF4 / MF10 landed, proofs open. Opus (G915, 3 lanes held G916): sp-o3 FC12, sp-o4 QB19 → QS1 →
-FC14 → FC13, sp-o5 FC9 → FC10 → FC15. Codex: sp-x1 CX1 (MF9 done), sp-x2 FC11 → MF12, sp-x6 MF4 → CX1, sp-x9 MF8 → CX3, sp-x10 MF10 →
-CX2. **[CI-FIRST-PRINCIPLES](../CI-FIRST-PRINCIPLES.md) (G918-G923):** CI1-CI4 sp-ci-deploy, CI5 sp-x9, CI6/CI7/CI9 sp-x2 after
-the workflow hand-off, CI8 sp-x6; CI10-CI14 next free lane. **For wildshard-v:** MF13 'Refine dither' row needs Jake's phone check before its default flips. QB17 zip before/after video for Jake's pick: tmp/sp-o3-mf15/qb17-zip-before-after.mp4 (1.6 MB). G919 pin waves CI1 done (143b3edd27, 5b54b7d044, ba70969be3); sp-x8 stays released (5-Codex cap).
+**LIVE 125bda048-mvu1h3gt** (code ~13:43); 9561743057 deploys the moment CI + six are green (CI3: every proven build ships).
+**[FOUNDATIONS](../FOUNDATIONS.md):** done MF1-MF10 (MF7 memory), MF13 (Debug), MF14-MF17, MF19, CX1-CX3; FC1-FC14 done or closed.
+Open: MF11 footprint, MF12 Sentry, MF18 (o3 Driftwood, o4 Nalati / Sky), MF20, FC15 (o5). **[CI](../CI-FIRST-PRINCIPLES.md):**
+CI1-CI4 done (CI2 / CI3 await first deploy), CI5 x9, CI6 / CI7 / CI9 x2, CI8 x9, CI10 x10, CI11-CI13 x1, CI14 x6.
+**For wildshard-v (19:25):** both 40977059379 reds are fixed (b8fe18ace2, da679) and ride 9561743057. sp-o5 is not idle (FC15
+Sim readings since 18:47). sp-x8 stays released (5-Codex cap). For Jake: MF13 'Refine dither' needs his phone check;
+QB17 zip video tmp/sp-o3-mf15/qb17-zip-before-after.mp4.
 
 **Autonomous decisions (for Jake's review):**
 - FC12 closes at identical captures (Pine 184, Driftwood ~194 draws); no default-off look trades, they cut nothing by default.
