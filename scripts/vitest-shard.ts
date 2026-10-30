@@ -9,6 +9,20 @@ import { BaseSequencer, type TestSpecification } from 'vitest/node';
 import * as v from 'valibot';
 import { prepareTestBuildTools } from './test-build-tools';
 
+/** Reviewed format-only suites: no host globals, mocked modules or fresh-import contracts.
+ * Every other suite retains an isolated worker. Additions require the same audit. */
+export const PURE_TESTS = [
+  'src/format/audio-entry.test.ts',
+  'src/format/contentCost.test.ts',
+  'src/format/entry-reads.test.ts',
+  'src/format/mesh-entryways.test.ts',
+  'src/format/scalar-storage.test.ts',
+  'src/format/scene-scatter-pose.test.ts',
+  'src/format/scriptWireV2.test.ts',
+  'src/format/skin-sample-admission.test.ts',
+  'src/format/worldScenePlacement-color.test.ts',
+] as const;
+
 export const DURATIONS_FILE = 'test/durations.json';
 // CI40579806098 part3: 85% of 837.21s / 114 files is already 6.24s
 // per file before accounting for parallel workers. This is a packing weight,

@@ -1,8 +1,12 @@
 import { expect, test } from 'vitest';
-import { packShards,readDurations,selectTestCohort } from '../scripts/vitest-shard';
+import { packShards,readDurations,selectTestCohort,PURE_TESTS } from '../scripts/vitest-shard';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual workflow covers every discovered test partition.
-import {readdirSync,readFileSync} from 'node:fs';
+import {readFileSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Inspect actual Vitest discovery without collecting or executing suites.
+import {spawnSync} from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Match discovery paths to the repository-relative duration registry.
+import {relative,resolve} from 'node:path';
 
 test('duration partitions retain every file once, including unmeasured files', () => {
   const paths = Array.from({ length: 137 }, (_, i) => `test/fixture-${i}.test.ts`);
@@ -45,44 +49,49 @@ test('cohorts separate real product consumers before duration or fallback shardi
  expect(()=>selectTestCohort(files,registry,'typo')).toThrow('Unknown test cohort');
 });
 
-test('both CI cohorts cover every discovered test once and keep exact-run producer gates',()=>{
+test('one CI matrix discovers every existing file exactly once across both isolation modes',()=>{
  const workflow=readFileSync('.github/workflows/deploy.yml','utf8');
- const registry=v.parse(v.record(v.string(),v.array(v.string())),JSON.parse(readFileSync('scripts/test-products.json','utf8')));
- const paths=['src','test','admin/test','drafts/test'].flatMap(root=>readdirSync(root,{recursive:true,encoding:'utf8'})
-  .filter(file=>file.endsWith('.test.ts')&&!file.replaceAll('\\','/').split('/').includes('node_modules')).map(file=>`${root}/${file.replaceAll('\\','/')}`));
- const selected:string[]=[];
- for(const [id,cohort,producer,total] of [['behaviour','product-free','prepare',16],['behaviour-products','products','prepare',8]] as const){
-  const job=workflow.split(`\n  ${id}:\n`)[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0];
-  if(job===undefined)throw new Error(`Missing ${id} job`);
-  expect(job).toContain(`needs: ${producer}`);
-  expect(job).toContain(`WS_TEST_COHORT: ${cohort}`);
-  expect(job).toContain('fail-fast: false');
-  expect(job).toContain(`vitest run --shard=\${{ matrix.shard }}/${total} --bail=1`);
-  const matrix=/^\s+shard: \[([\d, ]+)\]/mu.exec(job)?.[1]?.split(',').map(Number);
-  expect(matrix).toEqual(Array.from({length:total},(_,i)=>i+1));
-  if(cohort==='products'){
-   expect(job).toContain(`WS_TEST_PRODUCTS_SHA: \${{ github.sha }}`);
-   expect(job).toContain('python3 scripts/ci-products.py unpack\n');
-  }else{
-   expect(job).not.toContain('WS_TEST_PRODUCTS_SHA');
-   expect(job).toContain('name: test-products');
-   expect(job).toContain('python3 scripts/ci-products.py unpack');
-  }
-  const subset=selectTestCohort(paths,registry,cohort);
-  const parts=packShards(subset,readDurations('.')??new Map(),total);
-  selected.push(...(matrix??[]).flatMap(index=>parts[index-1]??[]));
- }
- expect(selected.length).toBeGreaterThan(0);
+ const job=workflow.split('\n  behaviour:\n')[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0];
+ if(job===undefined)throw new Error('Missing behavior wave');
+ expect(workflow).not.toContain('\n  behaviour-products:');
+ expect(job).toContain('needs: prepare');
+ expect(job).toContain(`WS_TEST_PRODUCTS_SHA: \${{ github.sha }}`);
+ expect(job).not.toContain('WS_TEST_COHORT:');
+ expect(job).toContain('fail-fast: false');
+ expect(job).toContain(`--config scripts/vitest-ci.config.ts --shard=\${{ matrix.shard }}/12 --bail=1`);
+ expect(job).toContain('python3 scripts/ci-products.py unpack');
+ const matrix=/^\s+shard: \[([\d, ]+)\]/mu.exec(job)?.[1]?.split(',').map(Number);
+ expect(matrix).toEqual(Array.from({length:12},(_,i)=>i+1));
+ const list=(config?:string):{file:string;projectName?:string}[]=>{
+  const result=spawnSync(process.execPath,[resolve('node_modules/vitest/vitest.mjs'),'list','--filesOnly','--json',
+   ...(config===undefined?[]:['--config',config])],{encoding:'utf8',timeout:10000});
+  expect(result.status,result.stderr).toBe(0);
+  return v.parse(v.array(v.object({file:v.string(),projectName:v.exactOptional(v.string())})),JSON.parse(result.stdout));
+ };
+ const normal=list(),ci=list('scripts/vitest-ci.config.ts');
+ const paths=normal.map(row=>relative('.',row.file));
+ const actual=ci.map(row=>relative('.',row.file));
+ expect(actual.length).toBeGreaterThan(0);
+ expect([...actual].sort()).toEqual([...paths].sort());
+ expect(new Set(actual).size).toBe(actual.length);
+ expect(ci.filter(row=>row.projectName==='pure').map(row=>relative('.',row.file)).sort()).toEqual([...PURE_TESTS].sort());
+ const parts=packShards(paths,readDurations('.')??new Map(),12);
+ const selected=(matrix??[]).flatMap(index=>parts[index-1]??[]);
  expect(selected.sort()).toEqual([...paths].sort());
  expect(new Set(selected).size).toBe(paths.length);
+ const registry=v.parse(v.record(v.string(),v.array(v.string())),JSON.parse(readFileSync('scripts/test-products.json','utf8')));
  for(const [file,products] of Object.entries(registry))if(products.length>0)expect(paths).toContain(file);
- // New imports of the real-product fixture cannot silently join the early job.
- for(const file of paths)if(/from\s+['"][^'"]*fixtures\/builtProduct['"]/u.test(readFileSync(file,'utf8')))
-  expect(registry[file]?.length,`${file} must declare its product dependencies`).toBeGreaterThan(0);
  const dispatch=workflow.split('\n  dispatch-boot-smoke:\n')[1];
- expect(dispatch).toContain('prepare, typecheck-lint, derived-docs, behaviour, behaviour-products]');
+ expect(dispatch).toContain('prepare, typecheck-lint, derived-docs, behaviour]');
 });
 
+test('shared workers admit only reviewed format suites without host or import-state mutation',()=>{
+ for(const file of PURE_TESTS){
+  const source=readFileSync(file,'utf8');
+  expect(source,file).not.toMatch(/vi\.(?:mock|doMock|resetModules|stubGlobal|useFakeTimers|spyOn)|globalThis|process\.env|@vitest-environment|beforeAll|afterAll/u);
+  expect(source,file).not.toMatch(/from ['"](?:node:|[^'"]*(?:engine|game|shards)\/)/u);
+ }
+});
 
 test('native source suites start with verified inputs and never wait for a product', () => {
   const registry = v.parse(v.record(v.string(), v.array(v.string())), JSON.parse(readFileSync('scripts/test-products.json', 'utf8')));

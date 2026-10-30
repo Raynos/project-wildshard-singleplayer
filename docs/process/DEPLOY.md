@@ -11,8 +11,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
   `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
   CLI account lookup; `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` name the project. No credentials belong in Git.
-- **Push / PR CI runs the whole vitest suite once**, in 16 product-free `behaviour` shards and eight
-  `behaviour-products` shards (**without coverage**, Jake G287/G691); `typecheck-lint` runs typecheck and lint;
+- **Push / PR CI runs the whole vitest suite once**, in twelve duration-balanced `behaviour` shards (**without coverage**, Jake G287/G691); `typecheck-lint` runs typecheck and lint;
   `prepare` runs the node checks and the
   vite build + chunk check in parallel (`scripts/ci-checks.mjs`), then the CSS check and the native build. **Coverage is reserved for nightly and
   milestone runs** (Jake G287); it is not a normal push-release prerequisite. **A push that only touches
@@ -28,21 +27,19 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   verifies source publication, and revalidates/builds every product. It packs the exact-run full product/input
   snapshot, then verifies that same archive before the parallel node checks and web build. Native output shares
   those prepared inputs and builds only when native inputs changed. The job packages the tested Vercel output and
-  smoke projections; neither release nor wave jobs regenerate or rebuild. Types/lint/docs and both behavior
-  cohorts consume the same `test-products` snapshot after prepare succeeds. Every reader verifies the full SHA,
-  run ID, archive checksum and inventory before accepting bytes. Nonempty declarations in
-  `scripts/test-products.json` partition suites before duration packing (or hash fallback), so every discovered
-  file runs once across both cohorts. Without `WS_TEST_COHORT`, local/full/nightly selection stays complete.
-  `WS_TEST_PRODUCTS_SHA` is set only for the product cohort, keeping its exact-product preflight strict; missing or
-  mismatched artifacts fail instead of rebuilding. Both matrices keep `fail-fast: false` and each shard's own
-  first-failure bail; neither command wrapper stops for a peer failure. Exact-SHA smoke dispatch requires both
-  cohorts, prepare, types/lint and docs to pass.
-  G923 removes the optional quarantine workflow and PR reporter. There is no quarantine registry or exclusion
-  path: every discovered test belongs to exactly one blocking product or product-free cohort. The retired registry
-  was empty. Native Escape, headless and all other real behavior cases remain blocking.
-  Products and every typecheck/lint shard also finish independently after another job fails, so their own
-  admission and source errors remain visible in the same run. Each command still stops on its own error;
-  typecheck/lint matrix cancellation is disabled.
+  smoke projections; neither release nor wave jobs regenerate or rebuild. Types/lint/docs and the behavior
+  matrix consume the same `test-products` snapshot after prepare succeeds. Every reader verifies the full SHA,
+  run ID, archive checksum and inventory before accepting bytes. `scripts/vitest-ci.config.ts` discovers every
+  test once across isolated and explicitly reviewed pure projects, packed together by `DurationSequencer` using
+  `test/durations.json` (unknown files receive the measured median weight). The pure format suites use fork
+  workers with `isolate: false` and no global setup; every other suite retains isolation and ordinary setup.
+  `scripts/test-products.json` still supplies strict preflight dependencies, not an exclusion or second wave.
+  Every matrix job sets `WS_TEST_PRODUCTS_SHA` only after verified artifact restoration. Missing or mismatched
+  artifacts fail instead of rebuilding. File timing JSON is retained per shard to refresh measured weights.
+  The matrix keeps `fail-fast: false` and each shard's original first-failure bail. Exact-SHA smoke dispatch
+  requires prepare, every behavior shard, types/lint and docs to pass. Local/full/nightly configuration stays
+  unchanged. G923 removed quarantine workflows, registry and exclusions; Native Escape, headless and every other
+  real behavior case remain blocking. Each job finishes its own verdict independently of peer failures.
 - **G745 phone route rollout:** the exact push build also publishes a separate
   `boot-dist-phone-route` bundle. The seventh matrix leg selects Simulator Safari
   when an iOS runtime is installed, otherwise records its inventory and uses

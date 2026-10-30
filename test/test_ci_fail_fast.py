@@ -52,7 +52,7 @@ class FailFastTests(unittest.TestCase):
         self.assertLess(prepare.index(generation), prepare.index(products))
         self.assertLess(prepare.index(products), prepare.index('scripts/ci-products.py pack'))
         self.assertLess(prepare.index('scripts/ci-products.py pack'), prepare.index('scripts/ci-checks.mjs --prepared'))
-        for name in ('typecheck-lint', 'derived-docs', 'behaviour', 'behaviour-products'):
+        for name in ('typecheck-lint', 'derived-docs', 'behaviour'):
             # Job extraction stops only at the next job, not deeper step fields.
             lines = source.split('\n  '+name+':\n', 1)[1].splitlines()
             end = next((i for i, line in enumerate(lines) if line.startswith('  ')
@@ -114,7 +114,7 @@ class FailFastTests(unittest.TestCase):
 
     def test_every_ci_job_finishes_its_own_verdict_without_peer_io(self):
         main=API['main'];run=API['run']
-        jobs=('behaviour','behaviour-products','prepare','typecheck-lint',
+        jobs=('behaviour','prepare','typecheck-lint',
               'build-and-deploy','derived-docs','dispatch-boot-smoke')
         payload=json.dumps({'total_count':1,'jobs':[dict(name='foreign red',
             conclusion='failure',completed_at='2026-01-01',html_url='https://example.invalid/peer')]})
@@ -182,11 +182,11 @@ class FailFastTests(unittest.TestCase):
 
     def test_behaviour_matrix_keeps_independent_jobs_and_per_shard_bail(self):
         source=Path('.github/workflows/deploy.yml').read_text()
-        for job, count in [('behaviour',16),('behaviour-products',8)]:
+        for job, count in [('behaviour',12)]:
             behaviour=source.split(f'\n  {job}:\n',1)[1].split('\n  dispatch-boot-smoke:\n',1)[0].split('\n  behaviour-products:\n',1)[0]
             self.assertIn('fail-fast: false',behaviour)
             self.assertNotIn('fail-fast: true',behaviour)
-            self.assertIn('python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/'+str(count)+' --bail=1',behaviour)
+            self.assertIn('python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --config scripts/vitest-ci.config.ts --shard=${{ matrix.shard }}/'+str(count)+' --bail=1',behaviour)
 
     def test_failure_record_contains_paths_not_log_text(self):
         function=API['diagnose']
