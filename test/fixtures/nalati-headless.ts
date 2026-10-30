@@ -28,7 +28,8 @@ import { installNativeBootRoster } from '@wildshard/game/riding/nativePopulation
 import { installNativePopulationHunt } from '@wildshard/game/riding/nativePopulation';
 import type { PastureCues } from '../../src/game/riding/pastureCues';
 import { installWeatherContinuation } from '@wildshard/game/weather/continuation';
-import { nativeWeatherBundle } from '@wildshard/game/weather/reactions';
+import type { Wind } from '@wildshard/engine/world/steppeWind';
+import { nativeWeatherBundle,type WeatherReactions } from '@wildshard/game/weather/reactions';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { installTrampleTrail } from '@wildshard/game/systems/looks/trample';
 import { createNativeBakeReader } from '@wildshard/game/population/nativeBake';
@@ -56,7 +57,8 @@ export interface NalatiEncounterIntake {
     readonly species: readonly SpeciesData[];
     readonly recipes: readonly AnimalSimSpec[];
 }
-export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHeadlessRuntime>[0], decodeNativeTerrain: (bytes:Uint8Array|undefined,row:{resolution:number;size:number;seed:number})=>BakedGrid = decodeTerrainTile, encounters?:NalatiEncounterIntake, pastureCues?:PastureCues): Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>> => {
+export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHeadlessRuntime>[0], decodeNativeTerrain: (bytes:Uint8Array|undefined,row:{resolution:number;size:number;seed:number})=>BakedGrid = decodeTerrainTile, encounters?:NalatiEncounterIntake, pastureCues?:PastureCues,
+    observeWeather?:(host:SimHost,weather:{wind:Wind;storm:WeatherReactions})=>void): Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>> => {
     const { product, assets } = preparation, shard = product.shardfile;
     const { constants } = await product.json<{
         constants: Omit<NalatiHeadlessAssembly['constants'], 'nativePopulation' | 'nativeRide' | 'nativeTaming' | 'pageWildlife' | 'pageGroups' | 'groupAdmission'> & {
@@ -153,7 +155,8 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
             const grass = populationField["grass"];
             (installTrampleTrail)(host, grass["trample"], { "id": "nalati.trample", "radius": 0.55, "strength": 1, "speedLimit": 30 });
             const env = new (NativeWildEnvironment)(grass["field"], grass["trample"], { "wind": { "x": -0.8, "z": 0.6, "strength": 0.5 }, "flatten": 0.85 }, (ReturnProgram["native"])(host, boot["admission"]));
-            (installWeatherContinuation)(host, { "program": airRows, "clock": clock, "env": env, "bake": bake, "rows": constants["nativeWeather"] });
+            const weather=installWeatherContinuation(host, { "program": airRows, "clock": clock, "env": env, "bake": bake, "rows": constants["nativeWeather"] });
+            observeWeather?.(host,weather);
             const groups = ((installNativeGroupRows)(host, constants["groupRows"], grid, env));
             const strikeContacts = new (StrikeRunner)();
             const nativeEliteStrikes = { "swipe": (strikeFromData)(need(constants.pageElites.strikes[0], "Missing elite strikes")["strike"]), "pounce": (strikeFromData)(need(constants.pageElites.strikes[1], "Missing elite strikes")["strike"]), "bite": (strikeFromData)(need(constants.pageElites.strikes[2], "Missing elite strikes")["strike"]) };

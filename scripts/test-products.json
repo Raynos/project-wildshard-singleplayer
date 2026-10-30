@@ -18,6 +18,7 @@
   "test/nalati-patrol-intake.test.ts": ["nalati-grasslands"],
   "test/nalati-patrol-verbs.test.ts": ["nalati-grasslands"],
   "test/nalati-chapter-verbs.test.ts": ["nalati-grasslands"],
+  "test/nalati-chapter-records.test.ts": ["nalati-grasslands"],
   "test/nalati-kokpar-verbs.test.ts": ["nalati-grasslands"],
   "test/driftwood-zipline-verbs.test.ts": ["driftwood-isle"],
   "test/driftwood-story-verbs.test.ts": ["driftwood-isle"],
