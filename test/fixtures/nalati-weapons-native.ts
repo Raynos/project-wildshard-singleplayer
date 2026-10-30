@@ -40,8 +40,8 @@ const Saved=v.strictObject({version:v.literal(1),slot:v.string(),queued:v.boolea
 /** Actual held inputs and admitted rows, sharing the page's decision and
  * projectile laws. This decision/projectile proof does not certify target
  * hits. No target is created. */
-export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
-  const base=await prepareCompanions(preparation),product=preparation.product;
+export function withNalatiWeapons(prepare:PrepareHeadlessRuntime):PrepareHeadlessRuntime {return async preparation=>{
+  const base=await prepare(preparation),product=preparation.product;
   const slots=parseHeldSlots(await product.json('held/slots.json'));
   const bowSlot=slots.slots.find(row=>row.kind==='bow'),bladeSlot=slots.slots.find(row=>row.kind==='blade'),spearSlot=slots.slots.find(row=>row.kind==='polearm');
   if(bowSlot?.kind!=='bow'||bladeSlot?.kind!=='blade'||spearSlot?.kind!=='polearm'||bladeSlot.source.kind!=='passes')throw new Error('Missing admitted native weapon slots');
@@ -165,4 +165,6 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
       },
     },'afterBodies');
   }};
-};
+};}
+
+export const prepareHeadlessRuntime:PrepareHeadlessRuntime=withNalatiWeapons(prepareCompanions);

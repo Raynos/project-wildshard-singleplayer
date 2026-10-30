@@ -26,6 +26,7 @@ import { NativeWildEnvironment } from '@wildshard/game/population/nativeManager'
 import { NativePopulationField } from '@wildshard/game/population/environment';
 import { installNativeBootRoster } from '@wildshard/game/riding/nativePopulation';
 import { installNativePopulationHunt } from '@wildshard/game/riding/nativePopulation';
+import type { PastureCues } from '../../src/game/riding/pastureCues';
 import { installWeatherContinuation } from '@wildshard/game/weather/continuation';
 import { nativeWeatherBundle } from '@wildshard/game/weather/reactions';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
@@ -55,7 +56,7 @@ export interface NalatiEncounterIntake {
     readonly species: readonly SpeciesData[];
     readonly recipes: readonly AnimalSimSpec[];
 }
-export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHeadlessRuntime>[0], decodeNativeTerrain: (bytes:Uint8Array|undefined,row:{resolution:number;size:number;seed:number})=>BakedGrid = decodeTerrainTile, encounters?:NalatiEncounterIntake): Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>> => {
+export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHeadlessRuntime>[0], decodeNativeTerrain: (bytes:Uint8Array|undefined,row:{resolution:number;size:number;seed:number})=>BakedGrid = decodeTerrainTile, encounters?:NalatiEncounterIntake, pastureCues?:PastureCues): Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>> => {
     const { product, assets } = preparation, shard = product.shardfile;
     const { constants } = await product.json<{
         constants: Omit<NalatiHeadlessAssembly['constants'], 'nativePopulation' | 'nativeRide' | 'nativeTaming' | 'pageWildlife' | 'pageGroups' | 'groupAdmission'> & {
@@ -161,7 +162,7 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
             const elites = new (NativeEliteRoster)(nalatiEliteRows(constants, nativeEliteStrikes), { "host": host, "core": eliteCore, "bindings": bindings, "kernel": { "contacts": strikeContacts, "strikes": [nativeEliteStrikes["swipe"], nativeEliteStrikes["pounce"], nativeEliteStrikes["bite"]], "terrain": samplers, "environment": env, "ledges": bake["ledges"] }, "groups": groups });
             (elites["bindProjected"])(2, (ReturnProgram["native"])(host, boot["admission"]), eliteCore);
             (elites["install"])();
-            const creatures = (installNativePopulationHunt)(host, Object.assign({}, { "boot": boot, "elites": bindings, "bodies": bodies, "herds": roster["herds"], "nav": nav, "stream": roster["stream"], "wildStream": roster["wildStream"], "bake": bake, "spawnY": shard["spawn"]["y"], "config": populationConfig, "field": populationField }, ((context["snapshot"] === undefined) ? {} : { "snapshot": context["snapshot"] })));
+            const creatures = (installNativePopulationHunt)(host, Object.assign({}, { "boot": boot, "elites": bindings, "bodies": bodies, "herds": roster["herds"], "nav": nav, "stream": roster["stream"], "wildStream": roster["wildStream"], "bake": bake, "spawnY": shard["spawn"]["y"], "config": populationConfig, "field": populationField }, pastureCues===undefined?{}:{pastureCues}, ((context["snapshot"] === undefined) ? {} : { "snapshot": context["snapshot"] })));
             population.installMounted(host, Object.assign({}, constants["nativeRide"], { "world": constants["nativeField"]["world"], "mountable": (boot["mountable"]["concat"])((creatures["bondedHorseIds"])()), "program": boot["riding"]["riding"] }));
             const taming = (installNativeTaming)(host, { commands: () => context.commands().map(command => command.kind === "script" ? command : command.kind === "player" ? { kind: "player", ...(command.steer === undefined ? {} : { steer: command.steer }) } : { kind: "action" }) }, Object.assign({}, constants["nativeTaming"], { "programs": boot["riding"], "rest": boot["rest"], "poses": tamingPoses["poses"], "poseProgram": tamingPoses["horse"] }));
             initializeNalatiElites(elites,creatures,taming,context);
