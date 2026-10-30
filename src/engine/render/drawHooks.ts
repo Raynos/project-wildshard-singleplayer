@@ -1,4 +1,4 @@
-import { CompressedTexture, RenderTarget, Texture } from 'three';
+import { BatchedMesh, BufferGeometry, CompressedTexture, InstancedMesh, Material, RenderTarget, Texture } from 'three';
 import type { Renderer } from './renderer';
 
 type Draw = Renderer['renderBufferDirect'];
@@ -66,15 +66,16 @@ interface PropertyHooks {
   labels?: (resource: unknown, properties: unknown) => unknown;
 }
 const properties = new WeakMap<PropertyTarget, PropertyHooks>();
-interface ResourceKind { texture: Texture | null; compressed: CompressedTexture | null; target: boolean }
+interface ResourceKind { texture: Texture | null; compressed: CompressedTexture | null; target: boolean; owned: boolean }
 const KIND = Symbol('renderer resource kind');
 const frozenKinds = new WeakMap<object, ResourceKind>();
 function resourceKind(resource: object): ResourceKind {
   const tagged: { readonly [KIND]?: ResourceKind } = resource;
   const known = tagged[KIND] ?? frozenKinds.get(resource);
   if (known !== undefined) return known;
-  const kind: ResourceKind = { texture: resource instanceof Texture ? resource : null,
-    compressed: resource instanceof CompressedTexture ? resource : null, target: resource instanceof RenderTarget };
+  const texture = resource instanceof Texture ? resource : null, target = resource instanceof RenderTarget;
+  const kind: ResourceKind = { texture, compressed: resource instanceof CompressedTexture ? resource : null, target,
+    owned: texture !== null || target || resource instanceof BufferGeometry || resource instanceof Material || resource instanceof InstancedMesh || resource instanceof BatchedMesh };
   // This immutable, non-enumerable record holds only its own resource. It has
   // no renderer, callback or Scope edge, so it cannot extend their lifetimes.
   if (Object.isExtensible(resource)) Object.defineProperty(resource, KIND, { value: kind });
@@ -95,7 +96,9 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
     const texture = kind?.texture, compressed = kind?.compressed;
     if (texture !== undefined && texture !== null) { hooks.texture?.(texture); hooks.uploaded?.(texture); }
     if (compressed !== undefined && compressed !== null) hooks.compressed?.before(compressed);
-    hooks.ownership?.(resource);
+    // Native Source/camera/object metadata is not a disposable upload. The
+    // ownership consumer previously repeated six class checks to ignore it.
+    if (kind?.owned === true) hooks.ownership?.(resource);
     const native: unknown = get(resource);
     if (compressed !== undefined && compressed !== null) hooks.compressed?.after(compressed, native);
     return hooks.labels === undefined || kind === undefined || (kind.texture === null && !kind.target) ? native : hooks.labels(resource, native);
