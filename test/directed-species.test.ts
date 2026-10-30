@@ -1,6 +1,6 @@
 import {Scope} from '../src/engine/app/scope';
 import {app} from '../src/engine/app/runtime';
-import {lendNalatiAdmission,admission} from './fixtures/nalati-return-modules';
+import {lendNalatiAdmission,admission} from './fixtures/nalati-admission-loan';
 import { afterEach, expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import type { Animal } from '../src/engine/entities/AnimalView';
@@ -9,9 +9,9 @@ import { DirectedSpecies } from '../src/game/population/directedSpecies';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { riderGeometry } from '../src/shards/nalati-grasslands/generators/ghostFigure';
 import { SHAPES } from './fixtures/nalatiShapes';
-import { installWorldFixture } from './fixtures/worldSetup';
+import { installArenaShapes } from './fixtures/arenaShapes';
 
-await installWorldFixture();
+await installArenaShapes();
 
 const scopes:Scope[]=[];
 afterEach(()=>{for(const scope of scopes.splice(0))scope.dispose();});

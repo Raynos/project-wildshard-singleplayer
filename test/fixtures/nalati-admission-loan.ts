@@ -10,7 +10,8 @@ import { NALATI_ADMISSION, NALATI_ADMISSION_PROGRAM } from './nalati-admission';
 const input = v.parse(v.object({ ...ReturnProgramSchema.entries }), NALATI_ADMISSION);
 const script = parseDecisionScripts([input.script])[0];
 if (script === undefined || input.v2 === undefined) throw new Error('Missing actual admission script');
-const admission = { ...input, script, v2: input.v2 }, artifact = admission.v2.artifact;
+export const admission = { ...input, script, v2: input.v2 };
+const artifact = admission.v2.artifact;
 const modules = new Map([
   [script.module.slice('blobs/wasm/'.length, -'.wasm'.length), Uint8Array.from(NALATI_ADMISSION_PROGRAM.witness)],
   [artifact.hash, Uint8Array.from(NALATI_ADMISSION_PROGRAM.wasm)],
@@ -25,6 +26,9 @@ afterEach(() => { for (const owner of owners.splice(0)) owner.dispose(); });
  * bank, without constructing unrelated held, riding, Kokpar or Titan programs. */
 export function admissionPage(owner?: Scope): ReturnProgram {
   if (owner === undefined) { owner = new Scope('admission.fixture'); owners.push(owner); }
-  ReturnProgram.lendModules(owner, modules, rows);
+  lendNalatiAdmission(owner);
   return ReturnProgram.page(admission, owner);
 }
+
+/** Existing explicit-scope callers retain the same raw module ownership. */
+export function lendNalatiAdmission(owner: Scope): void { ReturnProgram.lendModules(owner, modules, rows); }
