@@ -246,6 +246,8 @@
       "skipRaysOffscreen": true,
       "envSteps": true,
       "pointLightSkip": true,
+      "animalFarBatchDist": 100,
+      "animalHullBatch": true,
       "textures": "ktx2"
     },
     "desktop": {
@@ -262,6 +264,7 @@
         "animalShadowDist": 45,
         "animalEyeDist": 33.75,
         "animalOneDrawDist": 75,
+        "animalFarBatchDist": 75,
         "shadowFar": 45,
         "pickupOrbDist": 90
       }
