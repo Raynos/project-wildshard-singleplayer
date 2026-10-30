@@ -1,5 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Assert real mounted entry and the unchanged natural raid.
 import assert from 'node:assert/strict';
+import * as v from 'valibot';
+import {runSnapshot} from '../runSnapshot';
+import {hashImmutableBytes} from '../../../src/sdk/immutable';
+import {snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
+import {canonicalSimDigest} from '../../fake/simState';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read only the admitted product and shipped physics bytes.
 import {readFileSync} from 'node:fs';
 import {builtProduct} from '../builtProduct';
@@ -26,24 +31,65 @@ interface EarnedMountedRaid {
   readonly reins:(forward:number,turn:number,sprint?:boolean,jump?:boolean,yaw?:number)=>HeadlessCommand;
 }
 
-/** The existing mounted-chain approach: real camp mount, north-bank road,
- * braking and turning inputs, then the untouched native raid clock. */
+interface ConstructedMountedRaid extends EarnedMountedRaid { readonly inputs:number }
+const CachedRaid=v.object({version:v.literal(1),product:v.string(),snapshot:v.string(),digest:v.string(),
+  inputs:v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(24_000)),tick:v.pipe(v.number(),v.integer(),v.minValue(0)),
+  horse:v.string(),horseHp:v.number(),riddenHealth:v.number(),raiders:v.array(v.tuple([v.string(),v.number()]))});
+
+function mountedControls(resident:EarnedMountedRaid['resident'],start=0):Pick<ConstructedMountedRaid,'move'|'reins'|'inputs'>{
+  const host=resident.host;let inputs=start;
+  const move=(commands:readonly HeadlessCommand[]):void=>{assert.ok(inputs++<24_000,'mounted inputs retain their finite allowance');resident.step(commands);};
+  const reins=(forward:number,turn:number,sprint=false,jump=false,yaw=host.player.yaw):HeadlessCommand=>{
+    const length=Math.max(1,Math.hypot(forward,turn));return {kind:'player',moveX:0,moveZ:0,yaw,commandVersion:1,
+      steer:{keyX:0,keyY:0,stickX:turn/length,stickY:forward/length},sprint,...(jump?{jump:true}:{})};
+  };
+  return {move,reins,get inputs(){return inputs;}};
+}
+
+/** The exact run computes its earned entry checkpoint once. Every consumer
+ * still admits the current product and restores a fresh complete real owner;
+ * ordinary local calls retain the original from-entry construction. */
 export async function earnNalatiMountedRaid():Promise<EarnedMountedRaid>{
   const directory=builtProduct('nalati-grasslands'),product=await loadHeadlessProduct(directory),descriptor=outputDescriptor(product.shardfile);assert.ok(descriptor);
   const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
-  const resident=await createNativeProofResident({product,assets,shard:product.shardfile,rapier:await loadRapier(readFileSync('public/assets/physics/rapier.wasm'))},prepareHeadlessRuntime);
+  const preparation={product,assets,shard:product.shardfile,rapier:await loadRapier(readFileSync('public/assets/physics/rapier.wasm'))};
+  const productKey=hashImmutableBytes(new TextEncoder().encode(JSON.stringify(descriptor.index)));
+  let constructed:ConstructedMountedRaid|undefined;
+  try{
+    const saved=v.parse(CachedRaid,await runSnapshot('nalati-mounted-raid',async()=>{
+      constructed=await buildNalatiMountedRaid(preparation);
+      const {host}=constructed.resident,snapshot=serializeSimSnapshot(snapshotSimHost(host));
+      return {version:1 as const,product:productKey,snapshot,digest:canonicalSimDigest(snapshot),inputs:constructed.inputs,
+        tick:host.state.tick,horse:constructed.ridden.entityId,horseHp:constructed.ridden.hp,riddenHealth:constructed.riddenHealth,
+        raiders:constructed.pack.members.map(actor=>[actor.entityId,actor.hp])};
+    }));
+    assert.equal(saved.product,productKey,'earned checkpoint belongs to this complete admitted product');
+    if(constructed!==undefined)return constructed;
+    const resident=await createNativeProofResident(preparation,prepareHeadlessRuntime,saved.snapshot);
+    try{
+      const host=resident.host,mount=mountedPlayerOf(host),population=nativePopulationOf(host);assert.ok(mount);assert.ok(population);
+      assert.equal(canonicalSimDigest(snapshotSimHost(host)),saved.digest,'fresh earned fixture retains every native body, owner and clock');
+      assert.equal(host.state.tick,saved.tick);assert.equal(mount.mounted,true);assert.equal(population.raid.raids,1);
+      const ridden=mount.horse;assert.ok(ridden);assert.equal(ridden.entityId,saved.horse);assert.equal(ridden.hp,saved.horseHp);
+      const pack=nativeGroupCollection(host,'nalati.groups').packs[population.raid.snapshot().raiders];assert.ok(pack);
+      assert.deepEqual(pack.members.map(actor=>[actor.entityId,actor.hp]),saved.raiders);
+      return {resident,product,mount,pack,ridden,riddenHealth:saved.riddenHealth,...mountedControls(resident,saved.inputs)};
+    }catch(error){resident.dispose();throw error;}
+  }catch(error){constructed?.resident.dispose();throw error;}
+}
+
+/** The existing mounted-chain approach: real camp mount, north-bank road,
+ * braking and turning inputs, then the untouched native raid clock. */
+async function buildNalatiMountedRaid(preparation:Parameters<typeof createNativeProofResident>[0]):Promise<ConstructedMountedRaid>{
+  const product=preparation.product;assert.ok(product);
+  const resident=await createNativeProofResident(preparation,prepareHeadlessRuntime);
   try{
     const host=resident.host,mount=mountedPlayerOf(host),population=nativePopulationOf(host);assert.ok(mount);assert.ok(population);
-    let inputs=0;
-    const move=(commands:readonly HeadlessCommand[]):void=>{assert.ok(inputs++<24_000,'mounted inputs retain their finite allowance');resident.step(commands);};
+    const controls=mountedControls(resident),{move,reins}=controls;
     runTrustedHeadlessTape(host,move,()=>resident.effects,{version:1,observe:[],segments:[{id:'walk-to-camp-horse',ticks:6000,commands:[],
       route:[{x:20,z:216},{x:40,z:218},{x:60,z:214},{x:66,z:209.5},{x:66,z:211.5},{x:66.8,z:213.4}]}]});
     move([{kind:'script',actorId:'nalati.companion.use',value:1}]);assert.equal(mount.mounted,true);
     const ridden=mount.horse;assert.ok(ridden);const riddenHealth=ridden.hp;
-    const reins=(forward:number,turn:number,sprint=false,jump=false,yaw=host.player.yaw):HeadlessCommand=>{
-      const length=Math.max(1,Math.hypot(forward,turn));return {kind:'player',moveX:0,moveZ:0,yaw,commandVersion:1,
-        steer:{keyX:0,keyY:0,stickX:turn/length,stickY:forward/length},sprint,...(jump?{jump:true}:{})};
-    };
     for(let tick=0;tick<90;tick++)move([reins(-1,0)]);
     const drive=(x:number,z:number):void=>{
       for(let tick=0;tick<1800;tick++){
@@ -66,6 +112,6 @@ export async function earnNalatiMountedRaid():Promise<EarnedMountedRaid>{
     for(let tick=0;tick<18_000&&population.raid.raids===0;tick++)move([reins(0,0)]);
     assert.equal(population.raid.raids,1,'the untouched natural raid clock must admit the actual raiders');
     const pack=nativeGroupCollection(host,'nalati.groups').packs[population.raid.snapshot().raiders];assert.ok(pack);
-    return {resident,product,mount,pack,ridden,riddenHealth,move,reins};
+    return {resident,product,mount,pack,ridden,riddenHealth,move,reins,get inputs(){return controls.inputs;}};
   }catch(error){resident.dispose();throw error;}
 }
