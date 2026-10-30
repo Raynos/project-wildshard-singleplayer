@@ -222,7 +222,8 @@ export function recoverySource(runId, query = ghApi) {
     || run.path !== '.github/workflows/deploy.yml' || run.head_repository?.full_name !== REPO)
     throw new Error('Recovery source is not a completed exact main push');
   const sha = String(run.head_sha);
-  const ancestry = JSON.parse(query([`repos/${REPO}/compare/${sha}...main`]));
+  const ancestry = JSON.parse(query([`repos/${REPO}/compare/${sha}...main`, '--jq',
+    '{status,base_commit:{sha:.base_commit.sha}}']));
   if (ancestry.base_commit?.sha !== sha || !['ahead','identical'].includes(ancestry.status))
     throw new Error('Recovery source is outside main ancestry');
   const source = query([`repos/${REPO}/contents/.github/workflows/deploy.yml?ref=${sha}`,

@@ -129,6 +129,22 @@ test('recovery CLI refuses non-manual or non-main contexts before reading proofs
   }
 });
 
+test('recovery projects ancestry before the bounded GitHub stdout boundary',()=>{
+  const f=recoveryFixture();let compared=false;
+  const query=(args:string[]):string=>{
+    if(args[0]?.includes('/compare/')) {
+      compared=true;
+      const option=args.indexOf('--jq'),projection=option===-1?undefined:args[option+1];
+      if(projection===undefined)throw new Error('Unbounded comparison includes every changed file');
+      // The consumer needs neither the file list nor commit bodies. The API
+      // projection occurs in gh, before execFileSync's original stdout bound.
+      expect(projection).toBe('{status,base_commit:{sha:.base_commit.sha}}');
+    }
+    return f.query(args);
+  };
+  expect(recoverySource('123',query)).toEqual({sha,run:'123'});expect(compared).toBe(true);
+});
+
 test('the exact native save/harness/paint bootstrap parses as separate source statements',()=>{
   const source=phoneBootstrap('window.__paint=true');
   const parse=(input:string)=>spawnSync(process.execPath,['--check','--input-type=module'],{input,encoding:'utf8',timeout:5000});
