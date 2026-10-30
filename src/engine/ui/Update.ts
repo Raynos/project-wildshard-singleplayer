@@ -37,17 +37,22 @@ hudSlots.widget('band.1', el, 0, scope, document.body);
 
 let busy = false;
 let newer = false;
-/** RL2 (RELOAD = reload): the pill's tap (the title's, or the confirmed second tap elsewhere, `tap` below) reloads at
- *  once. A waiting worker gets SKIP_WAITING without a wait (it takes over as this page leaves); the title loads a fresh
- *  `/`, anywhere else the page reloads where it is. No cover, no progress text, no automatic reload. */
+/** RL2 (RELOAD = reload): the pill's tap (the title's, or the confirmed second tap elsewhere, `tap` below) reloads; the
+ *  title loads a fresh `/`, anywhere else the page reloads where it is. No cover, no progress text, no automatic reload.
+ *  QC3: a waiting worker is activated first (SKIP_WAITING, then its `activated` state) so the next document is the new
+ *  build's and the pill goes dark; reloading in the same turn left the old worker serving it and the pill lit forever.
+ *  Nothing to adopt (no worker, or it retired) is a plain reload. */
 function reload(): void {
   if (busy) return;
   busy = true;
-  const waiting = window.__ws_sw?.waiting;
-  // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter (that is Window.postMessage)
-  if (waiting && waiting.state !== 'redundant') waiting.postMessage({ type: 'SKIP_WAITING' });
-  if (titleBoundary()) { markReload('update at title'); location.replace('/'); }
-  else { markReload('update tapped'); location.reload(); }
+  const title = titleBoundary(), sw = window.__ws_sw;
+  const plain = (): void => {
+    if (title) { markReload('update at title'); location.replace('/'); }
+    else { markReload('update tapped'); location.reload(); }
+  };
+  if (sw === undefined || !sw.waiting || sw.waiting.state === 'redundant') { plain(); return; }
+  void sw.adopt(title ? '/' : undefined, title ? 'update at title' : 'update tapped')
+    .then(sent => { if (!sent) plain(); return undefined; }, plain);
 }
 // pointerup as well as click: iOS drops the synthesized click when a tap jitters (index.html cancels touchmove for the
 // rubber-band), so the pill answers the lift itself; `busy` keeps the pair from running twice
