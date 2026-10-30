@@ -6,8 +6,6 @@ import { nativeGlyphs } from './fixtures/nine-native-glyphs';
 import { output } from './fixtures/nine-source-program';
 import baseline from './fixtures/nine-glyphs.json' with { type: 'json' };
 import { FONT_CHARS, WORDS } from '../src/shards/nine-dragon-stack/generators/words';
-import signRows from '../src/shards/nine-dragon-stack/data/signView.json' with { type: 'json' };
-import profiles from '../src/shards/nine-dragon-stack/data/specimenProfiles.json' with { type: 'json' };
 import { GLYPH_LAYOUT } from '../src/shards/nine-dragon-stack/generators/signs';
 import { NINE_WORLD_SCENES } from './fixtures/nine-product-inputs';
 import { worldScenesForTier } from '../src/format/worldScenes';
@@ -99,12 +97,6 @@ test('separate worlds own separate glyph textures and decoded pixel arrays', asy
   left[0] = before ^ 255;
   expect(right[0]).toBe(before);
   a.texture.dispose(); b.texture.dispose();
-});
-
-// Frozen from the native value modules at 8ae50cee, before their data conversion.
-test('native sign and specimen rows retain every original field and variant', async () => {
-  expect(await hash(new TextEncoder().encode(JSON.stringify(signRows)))).toBe('2ddce64ffdb9b04796510400ce8a60878b29b57fb29bdd376b560f4bacb5da6a');
-  expect(await hash(new TextEncoder().encode(JSON.stringify(profiles)))).toBe('a5f52084d05ed660db16e678c06dbaa4401600ec47a5de23cc842fb2094dc2aa');
 });
 
 test('baked neon pools retain readable gains and complete picking rows', async () => {

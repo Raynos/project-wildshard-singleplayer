@@ -14,10 +14,3 @@ export function scalarBlockBytes(data:ScalarChannelRows['data']):Uint8Array{
 export function readNalatiScalarBlocks():ReadonlyMap<string,Uint8Array>{
   return new Map(reference.map(row=>[row.file,block(row.file)]));
 }
-/** Reconstruct only the old inline transport for the unchanged whole-book hash. */
-export function inlineScalarBook(value:unknown):unknown{
-  if(Array.isArray(value))return value.map((entry:unknown)=>inlineScalarBook(entry));
-  if(typeof value!=='object'||value===null)return value;
-  if('file' in value&&typeof value.file==='string')return Buffer.from(block(value.file)).toString('base64');
-  return Object.fromEntries(Object.entries(value).filter(([key])=>key!=='sources').map(([key,entry])=>[key,inlineScalarBook(entry)]));
-}

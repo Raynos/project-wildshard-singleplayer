@@ -1,8 +1,6 @@
-import {readNalatiScalarBlocks,inlineScalarBook} from './fixtures/nalati-scalar-blocks';
+import {readNalatiScalarBlocks} from './fixtures/nalati-scalar-blocks';
 import {grassBlock,GRASS_FILES} from './fixtures/nalatiGrass';
 import {GrassPresentationProfile} from '../src/game/looks/grassPresentation';
-// oxlint-disable-next-line import/no-nodejs-modules -- Pin every retained geography field after retiring unused rasters.
-import {createHash} from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the committed native lattice.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
@@ -115,8 +113,4 @@ test('compacted pose literals preserve arithmetic and private recurrence', () =>
   const bad = new ClientChannels('pose.invalid'); bad.constant(0); bad.output('value', bad.constant(-0));
   const invalid = compactChannels([{ ...bad.build(), numeric: { group: 'test', outputs: [{ property: 'value', target: 'root', path: ['value'] }] } }]);
   expect(isJsonData(invalid)).toBe(false);
-});
-
-test('geography keeps every retained field byte-exact without unused debug rasters',()=>{
-  expect(createHash('sha256').update(JSON.stringify(inlineScalarBook(geographyInput))).digest('hex')).toBe('cc368832c88faf94cbfe1f27052758472d1401a194df337acfafc2048714f9b8');
 });

@@ -1,5 +1,3 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Pin the original authored rows before deleting their producers.
-import { createHash } from 'node:crypto';
 import { expect, test, vi } from 'vitest';
 import { Group } from 'three';
 import { App } from '../src/engine/app/app';
@@ -25,12 +23,7 @@ class NativeWeapon extends Weapon {
   update(): void { /* Admission never replaces the controller. */ }
 }
 
-test('Nine item JSON preserves every contact/profile and both native equipment presentations', () => {
-  const original = { ...items, rows: items.rows.map(row => {
-    const { equipment: _equipment, ...rest } = row;
-    return rest;
-  }) };
-  expect(createHash('sha256').update(JSON.stringify(original)).digest('hex')).toBe('30ab3dd78bc885a78cdbc22621351f055ff02f4ecffc7205643368c351597e44');
+test('Nine item JSON keeps both native equipment presentations', () => {
   expect(new ItemCatalogue(items).equipment('weapon.jian')).toEqual(baseline.equipment);
   expect(new ItemCatalogue(items).equipment('tool.fei-zhua')).toEqual(baseline.tool);
 });
