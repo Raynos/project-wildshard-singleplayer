@@ -24,7 +24,19 @@ for(const id of ['stairs','street','well-rim'])test(`Nine ${id} follows the list
       const commands=[{kind:'player' as const,moveX:-Math.sin(yaw),moveZ:-Math.cos(yaw),yaw}];
       plan={version:1,observe:[],segments:[{id,ticks,commands},{id:'held-at-rim',ticks:120,commands}]};
     }else plan={version:1,observe:[],segments:[{id,ticks,commands:[],route:[{x:spawn.x,z:spawn.z},{x:goal[0],z:goal[2]}]}]};
-    const report=await f.sim.verbTape(plan),arrived=report.observations[0],last=report.observations.at(-1);
+    // Observe the actual entered motor before the listed route, without
+    // resetting its pose or granting a saved discovery/quest state.
+    plan.segments.unshift({id:'entered',ticks:1,commands:[]});
+    const report=await f.sim.verbTape(plan),entered=report.observations[0],arrived=report.observations[1],last=report.observations.at(-1);
+    if(entered===undefined)throw new Error('Missing actual spawn observation');
+    expect(Math.hypot(entered.position[0]-spawn.x,entered.position[2]-spawn.z)).toBeLessThan(.01);
+    expect(Math.abs(entered.position[1]-spawn.y)).toBeLessThan(1);
+    // The listed place walks have no talk/shop/quest owner or discovery
+    // reward in either mode. Check admitted owners and actual native output.
+    expect(f.product.shardfile.quests.quests).toEqual([]);
+    expect(f.product.shardfile.questNpcs??[]).toEqual([]);
+    expect(f.product.shardfile.questHost??null).toBeNull();
+    expect(report.observations.every(row=>row.quests.length===0&&row.effects.length===0&&row.flags.length===0)).toBe(true);
     if(arrived===undefined||last===undefined)throw new Error('Missing native route observation');
     expect(Math.hypot(arrived.position[0]-goal[0],arrived.position[2]-goal[2])).toBeLessThan(.8);
     expect(Math.abs(arrived.position[1]-goal[1])).toBeLessThan(1);
