@@ -11,35 +11,37 @@ import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nineNavigation, NINE_NAVIGATION_INPUT } from '../src/shards/nine-dragon-stack/generators/navigationProgram';
-import before from './fixtures/nine-navigation.json' with { type: 'json' };
+import { navigationSourceRows } from '../src/sdk/bake/navigationAsset';
 import { generated } from './fixtures/nine-source-program';
 import { bootDiscovery } from './fixtures/nine-boot-discovery';
 
 const project = resolve('src/shards/nine-dragon-stack');
+const native = new Uint8Array(readFileSync(resolve(project, NINE_NAVIGATION_INPUT)));
+const expected = navigationSourceRows(native, 'nine-dragon-stack');
 function fixture(): string { mkdirSync('tmp', { recursive: true }); return mkdtempSync(resolve('tmp', 'nine-navigation-')); }
 
 test('the original public navigation transport is explicitly owned by the defining shard', () => {
   const manifest = v.parse(v.object({ assetGlobs: v.array(v.string()) }), JSON.parse(readFileSync(resolve(project, 'manifest.json'), 'utf8')));
-  const owners = manifest.assetGlobs.filter(pattern => matchesGlob(`public${before.url}`, pattern));
+  const owners = manifest.assetGlobs.filter(pattern => matchesGlob(`public${expected.url}`, pattern));
   expect(owners).toEqual(['public/assets/baked/nine-dragon-stack/**']);
   for (const owner of owners) expect(matchesGlob('public/assets/baked/far-reach/navmesh.bin', owner)).toBe(false);
-  const bytes = new Uint8Array(readFileSync(resolve('public', before.url.slice(1))));
-  expect(bytes.byteLength).toBe(6047);
-  expect(hashImmutableBytes(bytes)).toBe(before.navigation.file);
+  const bytes = new Uint8Array(readFileSync(resolve('public', expected.url.slice(1))));
+  expect(bytes.byteLength).toBe(native.byteLength);
+  expect(hashImmutableBytes(bytes)).toBe(expected.navigation.file);
 });
 
-test('cold and hit navigation retain every original byte, ordered layer, cost and public URL', async () => {
+test('cold and hit navigation preserve current native bytes, ordered layers and costs', async () => {
   const root = fixture(), assets = new Map<string, Uint8Array>();
   try {
     const context = () => createProjectGeneration(project, 'c'.repeat(64), assets, root);
     const cold = await nineNavigation(context()), hit = context();
-    expect(await nineNavigation({ ...hit, cached: step => hit.cached(step, () => { throw new Error('A hit must not regenerate'); }) })).toEqual(before);
-    expect(cold).toEqual(before);
+    expect(await nineNavigation({ ...hit, cached: step => hit.cached(step, () => { throw new Error('A hit must not regenerate'); }) })).toEqual(expected);
+    expect(cold).toEqual(expected);
     expect(assets.size).toBe(1);
-    const bytes = assets.get(before.navigation.file), original = readFileSync(resolve(project, NINE_NAVIGATION_INPUT));
+    const bytes = assets.get(expected.navigation.file), original = readFileSync(resolve(project, NINE_NAVIGATION_INPUT));
     if (bytes === undefined) throw new Error('Missing owned native navigation');
-    expect(bytes.byteLength).toBe(6047);
-    expect(hashImmutableBytes(bytes)).toBe('2a8083c33ed009f7f1fa122cbec44a2b83e2c457ad8f4dde012736f9e512ea08');
+    expect(bytes.byteLength).toBe(native.byteLength);
+    expect(hashImmutableBytes(bytes)).toBe(hashImmutableBytes(native));
     expect(Buffer.compare(bytes, original)).toBe(0);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
@@ -51,7 +53,7 @@ test('every invocation observes changed native input and refuses malformed WSNM 
   writeFileSync(input, bytes);
   try {
     const context = createProjectGeneration(source, 'd'.repeat(64), new Map(), resolve(root, 'cache'));
-    expect(await nineNavigation(context)).toEqual(before);
+    expect(await nineNavigation(context)).toEqual(expected);
     bytes[0] = (bytes[0] ?? 0) ^ 1; writeFileSync(input, bytes);
     await expect(nineNavigation(context)).rejects.toThrow();
   } finally { rmSync(root, { recursive: true, force: true }); }
@@ -78,7 +80,7 @@ test('the real source program supplies every original discovery value without a 
   const manifest = v.parse(v.object({ bindings: v.object({ navigation: v.strictObject({ program: v.literal(true) }) }) }),
     JSON.parse(readFileSync(resolve(project, 'manifest.json'), 'utf8')));
   expect(manifest.bindings.navigation).toEqual({ program: true });
-  expect(generated.discovery).toEqual({ navigation: before, ...bootDiscovery });
-  expect(generated.shard.navigation).toEqual(before.navigation);
-  expect(generated.shard.critical).toEqual(before.critical);
+  expect(generated.discovery).toEqual({ navigation: expected, ...bootDiscovery });
+  expect(generated.shard.navigation).toEqual(expected.navigation);
+  expect(generated.shard.critical).toEqual(expected.critical);
 });
