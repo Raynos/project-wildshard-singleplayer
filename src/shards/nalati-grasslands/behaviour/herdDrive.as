@@ -1,5 +1,5 @@
 // One group-tick locomotion plan. Native path/contact/taming slots stay live.
-import { S,C,M,Read } from './herdBindings';
+import { S,C,M,Read,MEMBER_COLUMNS } from './herdBindings';
 import * as core from '../sdk/as/wsV2';
 let inputBase:usize=0,outputBase:usize=0,count:i32=0;
 export enum P {
@@ -16,7 +16,7 @@ export enum P {
 // Native clears toss for beaten-post; that is not the toss=1 mask bit.
 @inline function s(k:i32):f64{assert(k>=0&&k<73);return load<f64>(outputBase+usize(k)*8);}
 @inline function c(k:i32):f64{assert(k>=0&&k<40);return load<f64>(outputBase+usize(73+k)*8);}
-@inline function m(i:i32,k:i32):f64{assert(i>=0&&i<count&&k>=0&&k<51);return load<f64>(inputBase+usize(i*51+k)*16+8);}
+@inline function m(i:i32,k:i32):f64{assert(i>=0&&i<count&&k>=0&&k<MEMBER_COLUMNS);return load<f64>(inputBase+usize(i*MEMBER_COLUMNS+k)*16+8);}
 @inline function scratch(k:i32):i32{switch(k){case 0:return 2;case 1:return 3;case 2:return 11;case 3:return 12;case 4:return 13;case 5:return 14;case 6:return 27;case 7:return 35;case 8:return 36;case 9:return 37;case 10:return 38;case 11:return 44;case 12:return 52;case 13:return 53;case 14:return 67;case 15:return 68;case 16:return 70;case 17:return 71;case 18:return 5;case 19:return 7;case 20:return 8;case 21:return 23;case 22:return 24;case 23:return 31;default:unreachable();}return 0;}
 @inline function w(i:i32,k:i32,v:f64):void{assert(i>=0&&i<16&&k>=0&&k<24&&Math.abs(v)<Infinity);store<f64>(outputBase+usize(scratch(k))*8,v);}
 @inline function r(k:i32):f64{return load<f64>(outputBase+usize(scratch(k))*8);}
@@ -111,9 +111,9 @@ export function planDrive(first:i32):void{
  // The entire fixed input/output span is checked once, rather than walking
  // the ABI directory again for every pair in the boid sum. No pointer survives
  // this synchronous projection and the host validates the complete bank.
- count=Read.members();assert(count>0&&core.count(6)==count*51&&core.count(3)==115);
+ count=Read.members();assert(count>0&&core.count(6)==count*MEMBER_COLUMNS&&core.count(3)==115);
  inputBase=core.row(6,0);outputBase=core.row(3,0);
- for(let i=0;i<count*51;i++){const at=inputBase+usize(i)*16;assert(load<i32>(at)==i+1&&load<i32>(at+4)==1);}
+ for(let i=0;i<count*MEMBER_COLUMNS;i++){const at=inputBase+usize(i)*16;assert(load<i32>(at)==i+1&&load<i32>(at+4)==1);}
  const st=role(S.stallion),ridden=role(S.ridden);
  for(let i=first;i<Math.min(count,first+8);i++){
   for(let k=0;k<24;k++)w(i,k,0);w(i,P.lookWeight,-1);w(i,P.sound,-1);

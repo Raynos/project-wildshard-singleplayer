@@ -20,7 +20,7 @@ interface HerdGuestColumns<A extends AnimalSim> {
   scope: Scope; self: {group:string;slot:number;identity:string;actor:A};
   player: {position:Vector3}; observed: Map<number,AnimalSim>;
   references: Map<string,(GroupBankReferenceV2 & {readonly body:A}) | null>;
-  results: {foal:number;mother:number;reply:number};
+  results: {foal:number;mother:number;reply:number} & Record<string,number>;
   t:number;dt:number;context?:GuardedHerdContext<A>;
 }
 
@@ -382,6 +382,9 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     readonly scope: Scope; readonly group: string; readonly handle: number; readonly player: Vector3;
     readonly actors: Map<string,A> | readonly A[];
     readonly codec: GroupBankV2;
+    /** every native result channel the profile declares as a member result column (always `reply`); a guest may ask
+     *  several native queries in one segment, each answering on its own channel */
+    readonly replyChannels: readonly string[];
     readonly contextFields: readonly string[];
     readonly referenceFields: readonly (readonly [string,string])[];
   } | undefined;
@@ -401,6 +404,8 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     parameters?: Record<string,number>;
     changes?: Record<string,GroupBankValueV2>;
     reply: number;
+    /** the latest answer on each declared reply channel, kept across this call's segments like `reply` */
+    replies: Record<string,number>;
     fresh: boolean;
     values: Readonly<Record<string,GroupBankValueV2>>;
   } | undefined;
@@ -430,6 +435,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     Object.freeze(rows.resume.values);Object.freeze(rows.resume);
     this.guest = {program,prepare:program.prepareGroup,bindings,shape,rows,scope:loans.scope,group:loans.group,handle:loans.handle,
       player:loans.player,actors:loans.actors,codec:new GroupBankV2(shape.bank),
+      replyChannels:[...new Set(['reply',...shape.columns.flatMap(row=>row.source.kind==='result'&&row.source.channel!=='foal'&&row.source.channel!=='mother'?[row.source.channel]:[])])],
       contextFields:shape.bank.filter(row=>row.name.startsWith('context.')).map(row=>row.name),referenceFields:Object.entries(rows.references??{})};
   }
   private validateHerdGuest():void {
@@ -470,7 +476,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     const random=this.herdPorts.sharedRng();
     this.guestDepth=depth+1;
     this.guestCall={binding,context,signal,slot:Math.max(0,slot),bank:buffer.bank,values:buffer.values,references,
-      random,arguments:{...arguments_,'context.argHandle':argumentHandle},reply:0,fresh:true,members:[]};
+      random,arguments:{...arguments_,'context.argHandle':argumentHandle},reply:0,replies:Object.fromEntries(binding.replyChannels.map(channel=>[channel,0])),fresh:true,members:[]};
     try{this.runGuest(binding.program);}
     finally{buffer.values=this.guestCall.values;this.guestCall=previous;this.guestDepth=depth;}
     return true;
@@ -481,7 +487,10 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     const {binding,context,references} = call, player = context?.player ?? binding.player;
     if (binding.scope.disposed || binding.scope.disposing || binding.program.prepareGroup !== binding.prepare
       || binding.program.groupBindings !== binding.bindings) throw new Error('Replaced herd guest binding');
-    for (const reply of replies) { if (reply.channel !== 'reply') throw new Error('Unknown herd guest result');call.reply = reply.value; }
+    for (const reply of replies) {
+      if (!Object.hasOwn(call.replies, reply.channel)) throw new Error('Unknown herd guest result');
+      call.replies[reply.channel] = reply.value;if (reply.channel === 'reply') call.reply = reply.value;
+    }
     for (let slot=0;slot<this.members.length;slot++) {
       const actor=this.members[slot];
       const reference = references.find(row => row.body === actor);
@@ -530,6 +539,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
       }
       member.references.set('self',references.find(row=>row.body===actor)??null);member.references.set('target',target);member.references.set('threat',threat);
       Object.assign(member.results,this.captureHerdGuestRoles(actor,member.results));member.results.reply=call.reply;
+      for(const channel of binding.replyChannels)if(channel!=='reply')member.results[channel]=call.replies[channel]??0;
     }
     const selection=binding.rows.capture,slots=new Set<number>([0,call.slot]);
     if(call.signal==='tick'&&(retained[binding.rows.resume.field]===170||retained[binding.rows.resume.field]===171))for(let index=0;index<members.length;index++)slots.add(index);

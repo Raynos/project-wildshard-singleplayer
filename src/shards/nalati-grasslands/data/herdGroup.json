@@ -977,6 +977,38 @@
         "kind": "actor",
         "field": "z"
       }
+    },
+    {
+      "name": "zzDownwind",
+      "id": 52,
+      "source": {
+        "kind": "result",
+        "channel": "zzDownwind"
+      }
+    },
+    {
+      "name": "zzHeard",
+      "id": 53,
+      "source": {
+        "kind": "result",
+        "channel": "zzHeard"
+      }
+    },
+    {
+      "name": "zzMounted",
+      "id": 54,
+      "source": {
+        "kind": "result",
+        "channel": "zzMounted"
+      }
+    },
+    {
+      "name": "zzSeen",
+      "id": 55,
+      "source": {
+        "kind": "result",
+        "channel": "zzSeen"
+      }
     }
   ],
   "members": 16,
@@ -1050,7 +1082,7 @@
       "member": 0,
       "native": {
         "kind": "downwind",
-        "channel": "reply"
+        "channel": "zzDownwind"
       }
     },
     {
@@ -1068,7 +1100,7 @@
       "native": {
         "kind": "environment",
         "field": "playerMounted",
-        "channel": "reply"
+        "channel": "zzMounted"
       }
     },
     {
@@ -1108,7 +1140,7 @@
       "member": 0,
       "native": {
         "kind": "hearing",
-        "channel": "reply",
+        "channel": "zzHeard",
         "radii": [
           4,
           8,
@@ -1263,7 +1295,7 @@
       "member": 0,
       "native": {
         "kind": "visibility",
-        "channel": "reply"
+        "channel": "zzSeen"
       }
     },
     {

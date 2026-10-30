@@ -58,22 +58,22 @@ function senseStart():void{
  const slot=i32(s(S.senseSlot));
  if(c(C.calm)!=0){finishSense();return;}
  const dx=c(C.px)-m(slot,M.x),dz=c(C.pz)-m(slot,M.z);w(S.senseDistance,hypot(dx,dz));
- w(S.senseBearing,Math.atan2(dx,dz));Do.native(A.visibility,slot);pause(103);
+ w(S.senseBearing,Math.atan2(dx,dz));
+ // the member's sense samples, in their original order, as one segment: each answers on its own channel and nothing they
+ // read changes between them (the guest's own writes come after), so one pause replaces three or four
+ Do.native(A.visibility,slot);Do.native(A.hearing,slot);
+ if(slot==role(S.stallion)&&s(S.senseDistance)<40)Do.native(A.downwind,slot);
+ Do.native(A.environmentMounted);pause(103);
 }
-function afterVisibility():void{
- const slot=i32(s(S.senseSlot)),sight=(m(slot,M.grazing)==1?c(C.grazingSight):c(C.sight))*c(C.reply),d=s(S.senseDistance);
+function senseReplies():void{
+ const slot=i32(s(S.senseSlot)),sight=(m(slot,M.grazing)==1?c(C.grazingSight):c(C.sight))*c(C.seenReply),d=s(S.senseDistance);
  const delta=s(S.senseBearing)-m(slot,M.yaw),angle=Math.atan2(Math.sin(delta),Math.cos(delta));
  if(d<sight&&Math.abs(angle)<c(C.cone))w(S.senseRate,Math.max(s(S.senseRate),.4*(2-d/sight)));
- Do.native(A.hearing,slot);pause(104);
-}
-function afterHearing():void{
- const slot=i32(s(S.senseSlot)),d=s(S.senseDistance),hear=c(C.reply);
+ const hear=c(C.heardReply);
  if(d<hear)w(S.senseRate,Math.max(s(S.senseRate),.5*(2-d/hear)));
- if(slot==role(S.stallion)&&d<40){Do.native(A.downwind,slot);pause(105);return;}
- afterSenses();
-}
-function afterSenses():void{
- Do.native(A.environmentMounted);pause(109);
+ if(slot==role(S.stallion)&&d<40&&c(C.downwindReply)!=0)w(S.senseRate,Math.max(s(S.senseRate),.3*(2-s(S.senseDistance)/40)));
+ if(c(C.mountedReply)!=0&&c(C.playerSpeed)>10&&s(S.senseDistance)<8){flight(c(C.px),c(C.pz),true,108);return;}
+ senseCalm();
 }
 function senseCalm():void{
  const slot=i32(s(S.senseSlot)),d=s(S.senseDistance);
@@ -226,13 +226,9 @@ export function run(signal:i32,pc:i32):void{
  switch(pc){
   case 101:senseNext();return;
   case 102:senseStart();return;
-  case 103:afterVisibility();return;
-  case 104:afterHearing();return;
-  case 105:if(c(C.reply)!=0)w(S.senseRate,Math.max(s(S.senseRate),.3*(2-s(S.senseDistance)/40)));afterSenses();return;
+  case 103:senseReplies();return;
   case 106:finishSense();return;
-  case 107:afterSenses();return;
   case 108:senseCalm();return;
-  case 109:if(c(C.reply)!=0&&c(C.playerSpeed)>10&&s(S.senseDistance)<8){flight(c(C.px),c(C.pz),true,108);return;}senseCalm();return;
   case 110:afterMembers();return;
   case 111:Do.native(A.onFlight,s(S.flightStampede));pause(114);return;
   case 114:if(s(S.flightStampede)!=0){Do.native(A.event,c(C.stampede),s(S.cx),s(S.cz));pause(i32(s(S.flightReturn)));return;}pause(i32(s(S.flightReturn)));return;
