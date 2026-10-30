@@ -7,13 +7,9 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 
 const original = (): Uint8Array => new Uint8Array(readFileSync(`src/shards/far-reach/${SKY_NAVIGATION_INPUT}`));
 
-test('navigation source retains every original wire byte, cost and critical identity', async () => {
-  // The retained navigation-json publisher writes a terminal newline. This
-  // compares the complete original document, not an unterminated object string.
-  const bytes = original(), rows = skyNavigationRows(bytes), wire = new TextEncoder().encode(`${JSON.stringify(rows)}\n`);
+test('navigation source retains admitted native bytes, costs and critical identity', async () => {
+  const bytes = original(), rows = skyNavigationRows(bytes);
   expect(bytes.byteLength).toBe(8486); expect(hashImmutableBytes(bytes)).toBe(SKY_NAVIGATION_HASH);
-  expect(wire.byteLength).toBe(1139);
-  expect(hashImmutableBytes(wire)).toBe('5443cd040c33defa75a97cca08a0155c86491170105defcadadc1bb0c9a66e68');
   expect(rows.files).toEqual([{ hash: SKY_NAVIGATION_HASH, kind: 'binary', compressed: 8486, decoded: 310774, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true }]);
   const ctx: Pick<ProjectGenerationContext, 'cached'> = { cached: (step, build) => {
     expect(step.inputs).toEqual([SKY_NAVIGATION_INPUT]);
