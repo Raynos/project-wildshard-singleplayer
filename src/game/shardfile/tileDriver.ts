@@ -11,7 +11,6 @@
  * One tile attaches at a time; a tile that fails stays out (it is reported once, never retried in a loop).
  * The entered ring is at most 5 x 5; the former whole-cell override is retired (G669/G747).
  */
-import { tileResidencyRadius } from '@wildshard/engine/ui/tileResidency';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
 import { buildYield, WORK_SLICE_MS } from '@wildshard/engine/core/workSlice';
@@ -292,8 +291,8 @@ export const tileKeys = (tiles: readonly CellTile[]): number[] => tiles.map(tile
 
 /** The render ring's radius in tiles (G669 DR11: the 5 x 5 around the player's tile; its colliders the 3 x 3 inside). */
 export const TILE_RING = 2;
-/** T5/T10: Developer picks 3 x 3 or the shipped 5 x 5. Creatures sleep beyond the 5 x 5 (`followRing`'s default). */
-export function tileRing(): number { return tileResidencyRadius(); }
+/** G956: the shipped 5 x 5. Creatures sleep beyond it (`followRing`'s default). */
+export function tileRing(): number { return TILE_RING; }
 /** FR2: a product's ring radius as a driver's `radius`: its whole cell where it declares `ring: 'cell'`, else `tileRing`. */
 export function productTileRing(source: Pick<Shardfile, 'ring'>): () => number { return () => ringRadius(source, tileRing); }
 

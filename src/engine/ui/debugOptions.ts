@@ -24,7 +24,6 @@ import { markReload } from '../boot/lastEnd';
 import { settingsReloadUrl } from './Settings';
 import type { DebugRowSpec } from '../level/context';
 import { isDev, onDev } from '../core/devMode';
-import { setTileResidency, tileResidency, TILE_RESIDENCY } from './tileResidency';
 
 /** what "applies" reads: the shard you are in and the weapons you hold (re-read every time the menu opens) */
 export interface DebugCtx { chunk: LevelSpec; weapons: ReadonlySet<string> }
@@ -147,12 +146,6 @@ const clearDownloadsRow = action('clearDownloads', 'tools', engineString('s_59cb
 });
 
 
-/** T5/T10: an entered world's 3 x 3 or shipped 5 x 5 ring; a reload. */
-const tileResidencyRow: DebugRow = { purpose: 'developer', id: 'tileResidency', group: 'perf', label: engineString('s_tile_residency'),
-  choices: () => [{ v: '5x5', text: engineString('s_tile_residency_5x5') }, { v: '3x3', text: engineString('s_tile_residency_3x3') }],
-  get: () => tileResidency(), set: value => { const pick = TILE_RESIDENCY.find(choice => choice === value); if (pick !== undefined && isDev()) setTileResidency(pick); },
-  on: () => undefined, reload: true, when: always, note: engineString('s_tile_residency_note'), ask: 'E435', reviewBy: '2026-12-30' };
-
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
 
@@ -163,7 +156,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Creatures & NPCs ──
 
   // ── Performance ──
-  tileResidencyRow,
 
   // ── Loading & memory ──
   clearDownloadsRow,

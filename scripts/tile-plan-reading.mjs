@@ -23,7 +23,7 @@ import { tileRetirementRoute, tileRetirementPortalPlans, seedTileRetirementHome 
 const arg = (/** @type {string} */ name) => process.argv.find(s => s.startsWith(`--${name}=`))?.slice(name.length + 3);
 if (process.argv.includes('--help')) {
   console.info('browser-lane.sh --max 45 node --experimental-transform-types --import ./scripts/shard-platform-format.mjs scripts/tile-plan-reading.mjs --base=URL --pin=FULL_SHA --out=FRESH_DIR');
-  console.info('8 families x 3x3/5x5 spawn; one resident-road reference and streamed-road DW/Sky handoff cohort. No retry/build/GC/Simulator.');
+  console.info('8 families x shipped 5x5 spawn; streamed-road DW/Sky handoff cohort. No retry/build/GC/Simulator.');
   console.info('--shards=SLUGS --rings=5x5 --spawn-only restricts a repair census to its requested rows.');
   console.info('--report=READING_JSON renders the retained cohort offline, without opening a browser.');
   process.exit(0);
@@ -41,8 +41,8 @@ const allShards = ['driftwood-isle', 'nalati-grasslands', 'pine-hollow', 'nine-d
 const shards=arg('shards')?.split(',')??allShards;
 if(new Set(shards).size!==shards.length||shards.some(shard=>!allShards.includes(shard)))throw new Error('Unknown or duplicate requested shard');
 const spawnOnly=process.argv.includes('--spawn-only');
-const rings = arg('rings')?.split(',') ?? ['3x3','5x5'];
-if (new Set(rings).size !== rings.length || rings.length === 0 || rings.some(ring => ring !== '3x3' && ring !== '5x5')) throw new Error('Unknown or duplicate requested ring');
+const rings = arg('rings')?.split(',') ?? ['5x5'];
+if (new Set(rings).size !== rings.length || rings.length === 0 || rings.some(ring => ring !== '5x5')) throw new Error('Only the shipped 5x5 ring is available (G956)');
 /** @type {{protocol:string,pin:string,version:unknown,complete:boolean,rows:object[],grid:object[],errors:string[],limits:object}} */
 const result = {protocol:'tile-plan-chromium/1',pin,version,complete:false,rows:[],grid:[],errors:[],limits:{
   tools:Object.fromEntries(['tile-plan-reading.mjs','tile-plan-page.mjs','tile-retirement-proof.mjs','frame-floor-grid.mjs'].map(path=>
@@ -97,8 +97,7 @@ async function processMemory(label){
     writeFileSync(resolvePath(out,`${label}-process.json`),JSON.stringify(events));return chromiumProcessPeaks(events);
   }finally{browserSession.off('Tracing.dataCollected',receive);}
 }
-/** @param {'3x3'|'5x5'} ring */
-async function open(ring){
+async function open(){
   const context=await browser.newContext({...devices['iPhone 16 Pro'],serviceWorkers:'block'}),page=await context.newPage();
   page.setDefaultTimeout(120000);
   const cdp=await context.newCDPSession(page);await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
@@ -106,7 +105,6 @@ async function open(ring){
   await saveFixture(context,{scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}});
   await saveFixture(context,{scope:'device',key:'devMode',data:true});
   await saveFixture(context,{scope:'device',key:'debug.global.legacyShardButtons',data:'on'});
-  await saveFixture(context,{scope:'device',key:'debug.tileResidency',data:ring});
   await harnessPins(context,{seed:357,browser:'Chromium / iPhone 16 Pro',lane:'tile-plan-end'});
   await context.addInitScript({content:GL_FULL_INIT});await context.addInitScript({content:TILE_PAINT_INIT});
   /** @type {string[]} */const errors=[];
@@ -138,8 +136,8 @@ async function sample(page,label){
 }
 try{
   for(const shard of shards)for(const requestedRing of rings){
-    const ring = v.parse(v.picklist(['3x3','5x5']), requestedRing);
-    const visit=await open(ring),label=`${shard}-${ring}`;
+    const ring = v.parse(v.literal('5x5'), requestedRing);
+    const visit=await open(),label=`${shard}-${ring}`;
     try{
       const source=await declaration(shard);
       let tapAt=Date.now(),entry='observed SHARDFILE button';
@@ -174,7 +172,7 @@ try{
       // unavailable evidence, not an observed mismatch of a global row.
       const effectiveRing=state.settings.find((/** @type {{id:string,value:string}} */ pick)=>pick.id==='tileResidency')?.value??null;
       if(effectiveRing!==null&&effectiveRing!==ring)failures.push('Effective ring Debug choice differs');
-      if(actual.length>(ring==='3x3'?9:25))failures.push('Render tile ring exceeds selected limit');
+      if(actual.length>25)failures.push('Render tile ring exceeds selected limit');
       if(reading.overlay.rects.length===0||reading.overlay.labels.length===0)failures.push('No actual T5 border/MB paint');
       result.rows.push({shard,ring,effectiveRing,observedTapToControlsMs:controlsAt-tapAt,entry,...reading,declared:{resident,wholeFine:source.wholeFine,rowResident:rows.reduce((n,t)=>n+t.decoded+t.gpu,0)},failures});
     }catch(error){result.rows.push({shard,ring,failures:[String(error),...visit.errors]});result.errors.push(`${label}: ${String(error)}`);}
@@ -182,7 +180,7 @@ try{
   }
   // G955: the shipped streamed road only; historical reports retain their original comparison rows.
   for(const road of spawnOnly?[]:/** @type {const} */(['tiles'])){
-    const visit=await open('5x5');
+    const visit=await open();
     const gridStartedAt=Date.now();let phase='grid navigation',phaseAt=gridStartedAt;
     const mark=(/** @type {string} */ next)=>{phase=next;phaseAt=Date.now();};
     /** @type {Awaited<ReturnType<typeof sample>>|null} */let before=null;
