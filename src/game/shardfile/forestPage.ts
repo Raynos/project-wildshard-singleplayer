@@ -29,7 +29,7 @@ import { timeClientPreparation } from './preparationTiming';
 import { lendLooks, setLentParam } from './lentLooks';
 import type { SceneHandles } from './sceneHandles';
 import type { ShardContext } from '../plugin/context';
-import { followResidentTiles, noteTileBytes, residentTiles, tileRing } from './tileDriver';
+import { followResidentTiles, noteTileBytes, productTileRing, residentTiles, tileRing } from './tileDriver';
 import { bucketByTile, followTile, ring, tileKey } from './tileContent';
 import { tileOf, type CellTile } from './tileOrder';
 import { withOwner } from '@wildshard/engine/app/ownership';
@@ -149,7 +149,7 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
         if (rows.farStandIn === true && !resources.tiled().some(content => content.id === `${ctx.product.slug}.far-stand-in`)) {
           const standIn = farStandIn(ctx); if (standIn !== null) resources.addTiled(standIn);
         }
-        noteTileBytes(owner, shard.tiles); await residentTiles(owner, resources.tiled(), shard.spawn, shard.entryways);
+        noteTileBytes(owner, shard.tiles); await residentTiles(owner, resources.tiled(), shard.spawn, shard.entryways, productTileRing(shard)); // NT1: the product's ring
         const follow = followResidentTiles(owner, () => player.position);
         if (follow !== null) ctx.system({ id: `client.forest.tiles.${rows.id}`, phase: 'update', run: () => { follow(); } }); }); },
     roofAt: (x, z) => floorAtRects(row.floors, x, z, 'first') !== undefined, setLantern: lanterns.set,

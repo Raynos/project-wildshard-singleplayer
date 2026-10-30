@@ -33,7 +33,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { anchorOf } from './worldScenePlacement';
 import { colliderTileKeys, type TileContent } from './tileContent';
-import { followResidentTiles, noteTileBytes, residentTiles } from './tileDriver';
+import { followResidentTiles, noteTileBytes, productTileRing, residentTiles } from './tileDriver';
 import type { ShardContext } from '../plugin/context';
 
 /** N2: a tile's dressing colliders register this many a task (Rapier hulls: ~1 ms each on the phone) */
@@ -214,7 +214,7 @@ export class SceneDressing {
     if(owner.colliderGroups.length>0){
       const tiles=ctx.scope.child('scene.dressing.tiles'),shard=ctx.product.shardfile,world=ctx.game.runtime?.world;
       // T5: this driver is the entered readout the Developer minimap labels, so it carries the shard's declared tile bytes too
-      noteTileBytes(tiles,shard.tiles);await residentTiles(tiles,[owner.colliderTiles(rows.name)],shard.spawn,shard.entryways);
+      noteTileBytes(tiles,shard.tiles);await residentTiles(tiles,[owner.colliderTiles(rows.name)],shard.spawn,shard.entryways,productTileRing(shard)); // NT1: the product's ring (colliders keep min(r, 1))
       if(world!==undefined&&world!==null)owner.follow=followResidentTiles(tiles,()=>world.player.position);
     }
     ctx.scope.onDispose(()=>{if(installed.get(ctx.product)===owner)installed.delete(ctx.product);owner.instances?.dispose();for(const piece of owner.pieces.values())piece.object.removeFromParent();owner.group.removeFromParent();});
