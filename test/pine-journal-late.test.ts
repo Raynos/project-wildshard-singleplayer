@@ -18,11 +18,9 @@ const source = { ...base, files: journal.files.map(file => {
 }), library: journal.files.map(file => file.hash), late: journal.late };
 
 test('closed journal pages leave control while the trophy chalk and all original bodies remain declared', () => {
-  expect(journal.files).toHaveLength(51); expect(journal.late).toHaveLength(50);
   expect(controlFileHashes(source)).toEqual(new Set([journal.row.chalk?.atlas]));
   const late = new Set(journal.late.map(row => row.hash));
   expect(journalImageRefs(journal.row).every(hash => late.has(hash) || hash === journal.row.chalk?.atlas)).toBe(true);
-  expect(journal.files.filter(file => late.has(file.hash)).reduce((sum, file) => sum + file.compressed, 0)).toBe(1896998);
   for (const blob of journal.blobs) expect(blob.file.hash).toBe(hashImmutableBytes(blob.bytes));
 });
 

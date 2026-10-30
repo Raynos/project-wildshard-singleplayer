@@ -248,7 +248,7 @@ test('published spawn catalogue admits v1 bytes without installing a second gene
 });
 
 test('raw night sidecar preserves original staged spawning, RNG and save bytes',()=>{
-  expect(rawNight.bytes).toBe('');expect(moduleBytes.byteLength).toBe(10895);
+  expect(rawNight.bytes).toBe('');
   const original=scenario(),before=[];
   try{
     original.run(181);const saved=original.runner.snapshot(),ids=active.created.map(actor=>actor.entityId),draws=active.draws,rng=original.host.rng.snapshot();

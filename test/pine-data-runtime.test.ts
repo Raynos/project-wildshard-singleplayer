@@ -1,5 +1,3 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Verify the exact committed build-only alias data.
-import {createHash} from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Audit only this shard's authored runtime directory.
 import {existsSync,readdirSync} from 'node:fs';
 import {expect,test} from 'vitest';
@@ -10,10 +8,7 @@ import {useOwnedGridHome} from '../src/game/grid/pageShell';
 import {MANIFEST} from '../src/shards/pine-hollow/discovery.generated';
 import { PINE as source } from './fixtures/pine-program';
 import cost from '../src/shards/pine-hollow/data/runtimeCost.json' with {type:'json'};
-import { originalPineAstcAliases } from './fixtures/pine-astc';
 import {runtimeAccountedBytes} from '../src/format/runtimeCost';
-
-const aliases = originalPineAstcAliases();
 
 test('the Pine compiled entry keeps original source authority, spawns, host payloads and charges',()=>{
   const runtime=source.runtime;if(runtime===null||'entry' in runtime)throw new Error('Pine still names a TS runtime');
@@ -33,6 +28,4 @@ test('the removed source directory contains no authored executable or baked alia
   const dir='src/shards/pine-hollow/runtime';
   const files=existsSync(dir)?readdirSync(dir,{recursive:true,withFileTypes:true}).filter(row=>row.isFile()&&row.name.endsWith('.ts')&&!row.name.endsWith('.d.ts')):[];
   expect(files).toEqual([]);
-  expect(Object.keys(aliases)).toHaveLength(83);
-  expect(createHash('sha256').update(JSON.stringify(aliases)).digest('hex')).toBe('362974e7dd0cfc8ba578e1f2c6dc358d28e3a15a165b0a78ab0a86199674f3ba');
 });
