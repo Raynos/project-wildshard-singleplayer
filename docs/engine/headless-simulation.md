@@ -26,7 +26,8 @@ optional finite start pose, one-way completion and declared escape bounds.
 A start releases the prior native ride, swimming, dash and velocity before
 36 settling ticks; ordinary routes never skip a blocked waypoint. Only an
 escape leg may advance a target after the original 1.2 s held-edge interval.
-The walk records any bounds escape. The standard integration journey still
+One-way legs finish at the endpoint without an extra idle phase; the walk
+records any bounds escape. The standard integration journey still
 uses exactly 1,800 movement ticks and 60 neutral settling ticks.
 
 The Node physics proof uses `PLAYER_CAPSULE` from
@@ -35,4 +36,3 @@ An owned host's `resetPlayerPose(feet, yaw)` requires a living owned motor,
 validates every coordinate before mutation, and never advances physics.
 Native owned players carry their grounded feet with a moving body's pose
 before their own move, matching the existing page's ride law.
-

@@ -117,7 +117,9 @@ export function runHeadlessJourney(host:SimHost,step:(commands:readonly Headless
     if(box!==undefined&&(p.x<box.x0||p.x>box.x1||p.z<box.z0||p.z>box.z1||p.y<box.floor))out++;
     if(plan.once===true&&cursor.stuck.length>0)break;
   }
-  const settledTicks=60;for(let at=0;at<settledTicks;at++)tick([]);
+  // The original one-way ruler stops at the endpoint; only the continuous
+  // integration tape releases input for its final grounded observation.
+  const settledTicks=plan.once===true?0:60;for(let at=0;at<settledTicks;at++)tick([]);
   if(host.state.tick!==initial+preparationTicks+ticks+settledTicks)throw new Error('Journey tick count differs');
   const p=host.player.position;
   return {ticks,preparationTicks,settledTicks,complete:cursor.complete,out,distance,visited:cursor.visited,traversals:cursor.traversals,stuck:cursor.stuck,

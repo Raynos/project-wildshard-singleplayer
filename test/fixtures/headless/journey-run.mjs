@@ -30,7 +30,7 @@ const routeSim=await HeadlessSimulation.create(source,new Map(),undefined,{deadl
 try {
   const start={x:20,z:10,y:source.spawn.y??0,yaw:0};
   const report=await routeSim.journey({ticks:600,start,once:true,points:[{x:start.x,z:start.z},{x:22,z:10}]});
-  assert.equal(report.complete,true);assert.equal(report.preparationTicks,36);
+  assert.equal(report.complete,true);assert.equal(report.preparationTicks,36);assert.equal(report.settledTicks,0);
   assert.ok(report.ticks<600,'one-way physics walk must stop at its actual endpoint');
   assert.equal(report.stuck.length,0);assert.ok(Math.hypot(report.final.position[0]-22,report.final.position[2]-10)<.8);
 } finally {await routeSim.dispose();}

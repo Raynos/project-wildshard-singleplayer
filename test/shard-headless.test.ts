@@ -5,13 +5,10 @@ import { QuestState } from '../src/engine/quest/core';
 import { Flags } from '../src/engine/world/interact/flags';
 import { afterAll, expect, it, vi } from 'vitest';
 import { parseShardfileField } from '../src/sdk/shardfile';
-import { HeadlessSimulation } from '../src/sdk/headless';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
-import { productHeadlessSections } from '../src/sdk/headlessSections';
-import { createNativeProofWorker } from './fixtures/headless-worker';
 import type { WalkPoint } from '../src/sdk/headlessJourney';
+import {openProductSession} from './fixtures/headless/productSession';
 import * as v from 'valibot';
 
 const coordinate=v.pipe(v.number(),v.finite());
@@ -51,16 +48,7 @@ afterAll(() => {
 // authored physics route. No historical output fingerprint or replay suffix.
 for (const { slug } of cases) it.concurrent(`${slug}: enters, walks 1800 ticks and disposes`, async () => {
   const started=performance.now();waveStarted??=started;
-  const directory = builtProduct(slug), product = await loadHeadlessProduct(directory), source = product.shardfile;
-  const descriptor = outputDescriptor(source); if (descriptor === undefined) throw new Error('Missing admitted headless inventory');
-  const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
-    Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
-  const nativeKinds = { 'driftwood-isle': 'driftwood', 'pine-hollow': 'pine', 'nine-dragon-stack': 'nine' } as const;
-  const sections = productHeadlessSections(product);
-  const nativeKind = !sections.has('sim/runtime-plan') && (slug === 'driftwood-isle' || slug === 'pine-hollow' || slug === 'nine-dragon-stack') ? nativeKinds[slug] : undefined;
-  const sim = nativeKind === undefined
-    ? await HeadlessSimulation.create(source, assets, undefined, { deadline: 'advisory', sections })
-    : await createNativeProofWorker(source, assets, nativeKind, undefined, sections, directory);
+  const {sim,product}=await openProductSession(slug),source=product.shardfile;
   try {
     const route=spawnRoute(slug,source.spawn),report=await sim.journey({ticks:1800,points:[...route.points]});
     expect(report.ticks).toBe(1800);expect(report.distance).toBeGreaterThan(0);

@@ -104,6 +104,7 @@
   "test/nalati-strike-assembly.test.ts": [
     "nalati-grasslands"
   ],
+  "test/physics-headless.test.ts": ["driftwood-isle"],
   "test/shard-headless.test.ts": [
     "_template",
     "pastel-plain",
