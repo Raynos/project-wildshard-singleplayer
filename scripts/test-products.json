@@ -1,4 +1,6 @@
 {
+  "test/pine-door-continuation.test.ts": ["pine-hollow"],
+  "test/pine-door-verbs.test.ts": ["pine-hollow"],
   "test/pine-ammunition-verbs.test.ts": ["pine-hollow"],
   "test/nine-verb-tape.test.ts": ["nine-dragon-stack"],
   "test/nine-walk-verbs.test.ts": ["nine-dragon-stack"],
