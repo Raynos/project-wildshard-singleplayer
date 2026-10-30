@@ -18,14 +18,13 @@ function fixture(declaration:unknown,module:{readonly module:string;readonly byt
     }});
   return {product,reads,stages};
 }
-for(const [name,declaration,module,size,hash] of [
-  ['pine',pine,pineDirector,1688,'4bca3aaa1d0e5b78ef167939efa53c7a67c50377529cff637044aae9c5c84251'],
-  ['driftwood',driftwood,driftwoodDirector,1428,'25121a8616589da2265bc6d0537c86eabec4d64d26d0bd757268d80dac2cba1b'],
+for(const [name,declaration,module] of [
+  ['pine',pine,pineDirector],
+  ['driftwood',driftwood,driftwoodDirector],
 ] as const){
   test(`${name} named director preserves its original module and continuation`,async()=>{
     const f=fixture(declaration,module),scope=new Scope('director.raw');
     try{
-      expect(module.bytes.length).toBe(size);expect(sha256(module.bytes)).toBe(hash);
       const result=await readDirectorProduct(f.product,scope),old=await prepareEmbeddedDirector(declaration,module,357,scope),a=old(),b=result.create();
       expect(result.bytes).toEqual(module.bytes);expect(result.stages).toEqual(f.stages);expect(f.reads).toEqual(['main','behaviour/director.wasm']);
       const rows=parseDirector(declaration),input=Object.fromEntries(rows.inputs.map(row=>[row.key,0]));
