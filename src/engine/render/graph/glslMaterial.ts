@@ -321,22 +321,46 @@ export function compileClassicGraph(input: unknown, opts: ClassicGraphOptions = 
     if (!Number.isFinite(n)) throw new Error(`material graph: param ${name} must be finite`);
     if ((min !== undefined && n < min) || (max !== undefined && n > max)) throw new Error(`material graph: param ${name} outside declared range`);
   };
+  // NF15: a param's checked writer, resolved on its first write. Most feed writes repeat the value the uniform holds
+  // (a held value was checked when written), so those return before the range check.
+  const setters = new Map<string, (value: GraphLiteral) => void>();
+  const setterOf = (name: string): ((value: GraphLiteral) => void) => {
+    const p = ir.params?.[name];
+    if (p === undefined || p.type === 'texture') throw new Error(`material graph: no param ${name}`);
+    const length = p.type === 'vec2' ? 2 : p.type === 'vec4' ? 4 : 3;
+    const mismatch = (): Error => new Error(`material graph: param ${name} type mismatch`);
+    // a param no stage reads has no uniform: nothing draws it
+    const uniform = uniformsOf(param(name) ?? '');
+    const target: unknown = uniform?.value;
+    let set: (value: GraphLiteral) => void;
+    if (p.type === 'float') set = (value) => {
+      if (typeof value !== 'number') throw mismatch();
+      if (uniform !== undefined && uniform.value === value) return;
+      inRange(name, value, p.min, p.max);
+      if (uniform !== undefined) uniform.value = value;
+    };
+    else if (target instanceof THREE.Vector2 || target instanceof THREE.Vector3 || target instanceof THREE.Vector4) set = (value) => {
+      if (typeof value === 'number' || value.length !== length) throw mismatch();
+      let same = true;
+      for (let i = 0; i < length; i++) if (target.getComponent(i) !== value[i]) { same = false; break; }
+      if (same) return;
+      for (const n of value) inRange(name, n, p.min, p.max);
+      target.fromArray(value);
+    };
+    else set = (value) => {
+      if (typeof value === 'number' || value.length !== length) throw mismatch();
+      for (const n of value) inRange(name, n, p.min, p.max);
+      if (target instanceof THREE.Color) target.setRGB(value[0] ?? 0, value[1] ?? 0, value[2] ?? 0, THREE.SRGBColorSpace);
+    };
+    setters.set(name, set);
+    return set;
+  };
   return {
     material, glsl, cost: glsl.cost, bindings: glsl.bindings, selects: glsl.program?.selects ?? { light: 0, branch: 0 }, outline, depth,
     fog: fogOwn === null ? null : { glsl, uniforms: fogOwn },
     setParam(name, value) {
-      const p = ir.params?.[name];
-      if (p === undefined || p.type === 'texture') throw new Error(`material graph: no param ${name}`);
-      const length = p.type === 'vec2' ? 2 : p.type === 'vec4' ? 4 : 3;
-      if (p.type === 'float' ? typeof value !== 'number' : typeof value === 'number' || value.length !== length) throw new Error(`material graph: param ${name} type mismatch`);
-      if (typeof value === 'number') inRange(name, value, p.min, p.max); else for (const n of value) inRange(name, n, p.min, p.max);
-      const uniform = uniformsOf(param(name) ?? '');
-      // a param no stage reads has no uniform: nothing draws it
-      if (uniform === undefined) return;
-      const target: unknown = uniform.value;
-      if (typeof value === 'number') uniform.value = value;
-      else if (target instanceof THREE.Color) target.setRGB(value[0] ?? 0, value[1] ?? 0, value[2] ?? 0, THREE.SRGBColorSpace);
-      else if (target instanceof THREE.Vector2 || target instanceof THREE.Vector3 || target instanceof THREE.Vector4) target.fromArray(value);
+      const set = setters.get(name) ?? setterOf(name);
+      set(value);
     },
     setTexture(name, texture) {
       if (ir.params?.[name]?.role !== 'lent') throw new Error(`material graph: no sampled lent texture ${name}`);
