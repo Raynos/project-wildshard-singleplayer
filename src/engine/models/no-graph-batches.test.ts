@@ -17,7 +17,7 @@ import { setGraphBatches } from '../render/graphBatches';
 const nodeMaterial = (): MeshStandardMaterial => { const m = new MeshStandardMaterial(); Object.defineProperty(m, 'isNodeMaterial', { value: true }); return m; };
 const kinds = (root: Object3D): string[] => { const out: string[] = []; root.traverse(o => { if (o instanceof BatchedMesh) out.push('batched'); else if (o instanceof InstancedMesh) out.push('instanced'); }); return out; };
 
-test('a batched model draw keeps a graph look instanced by default; the Batched row batches it as a classic one', () => {
+test('a batched model draw batches a graph look as a classic one by default; the Instanced row draws it instanced', () => {
   const ctx = modelContext(null);
   Object.assign(ctx, { renderer: { extensions: { has: (name: string) => name === 'WEBGL_multi_draw' } } });
   const drawn = (material: MeshStandardMaterial): string[] => {
@@ -27,14 +27,14 @@ test('a batched model draw keeps a graph look instanced by default; the Batched 
     return kinds(place(model, placements, { ctx, draw: 'batched', registry: null }).object);
   };
   expect(graphLook(nodeMaterial())).toBe(true); expect(graphLook(new MeshStandardMaterial())).toBe(false);
-  const graph = drawn(nodeMaterial());
-  expect(graph).not.toContain('batched'); expect(graph).toContain('instanced');
+  expect(drawn(nodeMaterial())).toEqual(['batched']);
   expect(drawn(new MeshStandardMaterial())).toEqual(['batched']);
-  setDev(true); setGraphBatches(true);
+  setDev(true); setGraphBatches(false);
   try {
-    expect(drawn(nodeMaterial())).toEqual(['batched']);
+    const graph = drawn(nodeMaterial());
+    expect(graph).not.toContain('batched'); expect(graph).toContain('instanced');
     expect(drawn(new MeshStandardMaterial())).toEqual(['batched']);
-  } finally { setGraphBatches(false); setDev(false); }
+  } finally { setGraphBatches(true); setDev(false); }
 });
 
 test('PF1: a graph look\'s levels that share a material but not their shadow flag batch apart; a classic one as before', () => {
@@ -49,11 +49,8 @@ test('PF1: a graph look\'s levels that share a material but not their shadow fla
     place(model, placements, { ctx, draw: 'batched', registry: null }).object.traverse(o => { if (o instanceof BatchedMesh) out.push(o.castShadow); });
     return out;
   };
-  setDev(true); setGraphBatches(true);
-  try {
-    expect(casts(nodeMaterial())).toEqual([true, false]);
-    expect(casts(new MeshStandardMaterial())).toEqual([true]);
-  } finally { setGraphBatches(false); setDev(false); }
+  expect(casts(nodeMaterial())).toEqual([true, false]);
+  expect(casts(new MeshStandardMaterial())).toEqual([true]);
 });
 
 test('PF1: a batched level drawn at a scale (another variant\'s shape) holds its geometry scaled, as instancing draws it', () => {
