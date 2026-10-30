@@ -10,6 +10,7 @@ import {clientWildlifeState,type PageWildlife} from '../population/wildlife';
 import type { CrowdDraw } from '../ambient/crowdDraw';
 import {entryOwner} from './entryOwners';
 import { installEnteredLevelService } from '../shard/retainedHooks';
+import { filterCombatAimTargets } from './aimTargetFilter';
 
 /** Borrow original native projections; rows never provide a callback or factory. */
 export type CombatTargetOwner = Pick<CrowdWeaponTarget<ForagerTargets>, 'raycast'>
@@ -63,10 +64,7 @@ export function installCombatTargets(ctx: Pick<ShardContext, 'scope'> & { readon
       const row = rows.aim;
       events.answer('combat.aimTargets', list => {
         validate();
-        const result = list.filter(actor => {
-          const memory = 'mem' in actor ? actor.mem : null;
-          return typeof memory !== 'object' || memory === null || !row.exclude.some(rule => rule.field in memory && Reflect.get(memory, rule.field) === rule.equals);
-        });
+        const result = filterCombatAimTargets(list, row.exclude);
         for (const source of locks) { validate(); const target = source.lock?.call(source.owner); if (target !== null && target !== undefined) result.push(target); }
         return result;
       }, entered);
