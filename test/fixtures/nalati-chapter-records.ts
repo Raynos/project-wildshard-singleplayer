@@ -5,6 +5,8 @@ import {AdventurePersistenceSchema} from '../../src/format/namedJsonContracts';
 import type {ShardProduct} from '../../src/game/shardfile/shardProduct';
 import {installRuntimeState} from '../../src/game/shardfile/runtimeState';
 import type {ObservedRecords} from '../../src/game/quest/questObservation';
+import {featOutcome,witnessSavedFeats} from '../../src/game/quest/featCounters';
+import {nativeQuestInputs,type NativeQuestInputs} from '../../src/game/quest/nativeInputs';
 
 interface BossRecord { defeated:boolean;rewardTaken:boolean;kills:number }
 /** The actual declared boss field and the existing elite continuation, borrowed
@@ -13,8 +15,9 @@ export interface NalatiChapterRecords extends ObservedRecords {
   readonly bosses:ObservedRecords['bosses'] & {
     readonly write:(value:Readonly<Record<string,BossRecord>>)=>boolean;
   };
+  readonly outcomes:{readonly kill:(kind:string,variant?:string)=>void;readonly feat:(event:string,total?:number)=>void};
 }
-export type InstallNalatiChapterRecords=(host:SimHost)=>NalatiChapterRecords;
+export type InstallNalatiChapterRecords=(host:SimHost,facts?:Pick<NativeQuestInputs['ledger'],'fact'>)=>NalatiChapterRecords;
 
 /** Fresh native sessions start from the admitted field default. Checkpoint
  * restore writes that same validated field; it never manufactures a boss,
@@ -23,8 +26,10 @@ export async function prepareNalatiChapterRecords(product:Pick<ShardProduct,'jso
   const source=product.shardfile,rows=v.parse(AdventurePersistenceSchema,await product.json('quests/persistence.json'));
   const finite=v.pipe(v.number(),v.finite()),number=rows.nonnegative?v.pipe(finite,v.minValue(0)):finite;
   const bosses=v.record(v.string(),v.object({defeated:v.boolean(),rewardTaken:v.boolean(),kills:number}));
+  const counts=v.record(v.string(),v.pipe(number,v.integer()));
+  const continuation=v.strictObject({version:v.literal(1),bosses,counts});
   const elites=v.object({records:v.record(v.string(),v.object({kills:number}))});
-  return host=>{
+  return (host,facts)=>{
     if(host.level.id!==source.identity.slug||host.scope.disposed||host.scope.disposing||host.hasStep('nalati.chapter-records'))
       throw new Error('Chapter records require their unique live native entry');
     const eliteOwner=host.adapters.get('nalati.elites');
@@ -38,6 +43,9 @@ export async function prepareNalatiChapterRecords(product:Pick<ShardProduct,'jso
       removeItem:key=>{documents.delete(key);}};
     const saves=new SaveStore({local,session:null});host.scope.onDispose(()=>{documents.clear();});
     const field=installRuntimeState(saves,host.scope,source,source.identity.slug,rows.bosses.key,()=>null);
+    const counterRows=rows.counters;
+    if(counterRows===undefined)throw new Error('Nalati chapter outcomes require their declared counter field');
+    const counterField=installRuntimeState(saves,host.scope,source,source.identity.slug,counterRows.key,()=>null);
     const live=():void=>{
       if(host.scope.disposed||host.scope.disposing||host.adapters.get('nalati.elites')!==eliteOwner)
         throw new Error('Chapter record owners retired or changed');
@@ -56,13 +64,26 @@ export async function prepareNalatiChapterRecords(product:Pick<ShardProduct,'jso
         if(saved.defeated)host.flags.set(rows.bosses.flagPrefix+id);
       return result;
     };
+    const readCounts=():Record<string,number>=>{
+      live();const text=counterField.read();if(typeof text!=='string')throw new Error('Chapter counts must retain their declared JSON wire');
+      const input:unknown=JSON.parse(text);return v.parse(counts,input);
+    };
+    const writeCounts=(value:Record<string,number>):void=>{
+      live();if(!counterField.write(JSON.stringify(v.parse(counts,value)))&&rows.refuseWrites)throw new Error('Chapter counts could not be saved');
+    };
+    const counterPorts={read:readCounts,write:writeCounts,fact:(fact:string,key:string)=>{
+      if(!source.ledger.some(row=>row.fact===fact))throw new Error(`Undeclared chapter ledger fact ${fact}`);
+      (facts??nativeQuestInputs(host).ledger).fact(fact,key);
+    }};
+    witnessSavedFeats(counterRows,counterPorts);
     const owner:NalatiChapterRecords={bosses:{read,write},elites:{read:()=>{
       live();return v.parse(elites,eliteOwner.snapshot()).records;
-    }}};
+    }},outcomes:{kill:(kind,variant)=>{featOutcome(counterRows,counterPorts,'kill',kind,variant);},
+      feat:(event,total)=>{featOutcome(counterRows,counterPorts,'event',event,undefined,total);}}};
     host.onStep('nalati.chapter-records',()=>{/* Encounters own all writes; this adapter adds no tick work. */}, {
-      snapshot:()=>JSON.stringify(read()),restore:value=>{
+      snapshot:()=>JSON.stringify({version:1,bosses:read(),counts:readCounts()}),restore:value=>{
         if(typeof value!=='string')throw new Error('Chapter boss continuation requires its JSON wire');
-        const input:unknown=JSON.parse(value);write(v.parse(bosses,input));
+        const input:unknown=JSON.parse(value),saved=v.parse(continuation,input);write(saved.bosses);writeCounts(saved.counts);
       },
     });
     return owner;
