@@ -1,6 +1,6 @@
 # CI-FIRST-PRINCIPLES: what GitHub Actions does per push, why it is slow, and what it should do
 
-**State:** `open` 2026-10-29, ruled by Jake ~17:45 (G918–G923); revised ~18:45 to match: every test still runs on
+**State:** `open` 2026-10-29, ruled by Jake ~17:45 (G918–G923); revised ~18:45 to match: every test still runs on **Not part of SHARD-PLATFORM; lowest priority (G924): its rows come after FOUNDATIONS, frame-cost, the Pine / Nine QA rows and CX1–CX3.**
 every push, in far less wall clock; pins are deleted outright; the tested build ships as soon as it is green; the
 Simulator stays on GitHub Actions; the Node harness is the main integration test; test-quarantine goes. Rows CI1–CI14
 are open. Where this text disagrees with G918–G923, the G-rows win.
