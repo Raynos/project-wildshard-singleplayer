@@ -99,6 +99,9 @@ export async function installForestWeather(ctx: ShardContext, input: unknown): P
   return installWeatherPresentation(ctx, world, { face: sky, painted }, weather, storm, forest, parts, policy, dev, retainsRuntimeServices(ctx) ? ctx : undefined);
 }
 
+/** PF6: the weather presentation's slow step (s): its channel programs and the herd's shelter */
+const SLOW_STEP = 0.1;
+
 function installWeatherPresentation(ctx: ShardContext, world: ShardWorld, skies: { face: SkyFace; painted: PaintedSky | null }, weather: WeatherContinuation,
   storm: { rows: Storm; reactions: WeatherReactions; world: v.InferOutput<typeof WeatherWorldSchema> } | null,
   forest: { h: ForestWeatherObservations; fx: RainPresentation; shelter: ReturnType<typeof parsePopulationShelter> } | null,
@@ -197,19 +200,25 @@ function installWeatherPresentation(ctx: ShardContext, world: ShardWorld, skies:
     }
   };
 
+  // PF6: the channel programs (fog, mist and the wind boost, from the weather's own 10 Hz state, the eye and the gust) and
+  // the herd's shelter step at 10 Hz with the time since their last step (their first frame steps at once); the rain and
+  // the fog's focus stay per frame
+  let slowDue = SLOW_STEP;
   const update = (dt: number): void => {
     if (dev.paused) return; // dev: the numbers below left as they are, to poke at one by hand
+    slowDue += dt;
+    const slowDt = slowDue >= SLOW_STEP ? slowDue : 0; if (slowDt > 0) slowDue = 0;
     stormFrame(dt);
     skies.painted?.frame(dt, { overcast: weather.overcast, rain: weather.rain, wet: weather.wet, flash: storm?.reactions.flash ?? 0, indoors });
     const eye = ctx.game.runtime?.viewer() ?? game.camera.position;
     const room = practiceRoom.open;
-    if (channels !== null) channels.evaluate({ time: 0, delta: dt, values: [weather.overcast, weather.fog, weather.rain, weather.wet, weather.wind, windUniforms.uGust.value,
+    if (channels !== null && slowDt > 0) channels.evaluate({ time: 0, delta: slowDt, values: [weather.overcast, weather.fog, weather.rain, weather.wet, weather.wind, windUniforms.uGust.value,
       game.app.events.ask('weather.hold', 0), eye.x, eye.z, baseH, baseFall, baseMist, Number(room), WIND_DIR.x, WIND_DIR.z] }); // a sealed boss room's own fog wins (F-L7)
     if (forest !== null) {
       if (forest.h.horizonVeil) forest.h.horizonVeil.value.set(veil.x.value, veil.y.value);
       forest.h.ambience.inputs['rain'] = room ? 0 : weather.rain;
       forest.fx.update(dt, weather, wind, game.camera);
-      shelter?.update(dt, weather.rain);
+      if (slowDt > 0) shelter?.update(slowDt, weather.rain);
       focusInFog(forest.h, eye, dt);
     }
     if (parts !== null) parts.update(dt, weather, storm?.reactions ?? null, storm?.rows.idle ?? null, indoors);
