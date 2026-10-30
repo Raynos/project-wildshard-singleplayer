@@ -24,7 +24,18 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   Prepare packages its tested dist and API functions into
   `.vercel/output`. Release downloads `vercel-prebuilt` from that exact proven source run, verifies the source identity
   and complete archive/member inventory, and runs `vercel deploy --prebuilt`. No app or native rebuild runs during
-  release; missing artifacts refuse. A nearby commit or successful manual release cannot supply the test proof.
+  ordinary release; missing artifacts refuse. A nearby commit or successful manual release cannot supply the test proof.
+  The explicit emergency input `recovery_source_run` is the sole rebuild exception:
+  `gh workflow run deploy.yml --ref main -f recovery_source_run=<exact-push-run>`.
+  It verifies that completed main push's complete original job inventory, all twelve
+  behavior shards, types/docs/prepare, SIX and the latest same-run boot status.
+  The dedicated native job is required if it existed in that source. Only the
+  already report-only phone leg and shipping may have failed. No status is changed.
+  Recovery checks out that exact proven source, installs its frozen dependencies,
+  and uses the pre-CI2 `vercel pull` / `vercel build` controller. Both built version
+  files must match the full selected commit; private maps, serialized shipping,
+  forward-only live floor, production version and API checks remain mandatory.
+  An empty recovery input leaves the automatic prebuilt path unchanged.
   **CI is the full backstop of the push gate** (Jake, 2026-10-15): the gate runs only the tests that import the changed
   files (GIT.md). One `prepare` job restores the content-addressed preparation cache, runs generation once,
   builds and admits every product once before its dependent tables, then verifies source publication.

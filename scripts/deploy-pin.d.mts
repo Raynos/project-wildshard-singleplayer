@@ -14,6 +14,8 @@ export function productionLive(sha: string, query?: (args: string[]) => string):
 export function ciGreen(sha: string, query?: (args: string[]) => string): boolean;
 /** Successful exact main push producer of the prebuilt artifact. */
 export function ciSourceRun(sha: string, query?: (args: string[]) => string): string;
+/** Explicit completed main source proof; failed shipping never waives a source gate. */
+export function recoverySource(runId: string, query?: (args: string[]) => string): {sha:string;run:string};
 /** Explicit exact-run proof, including a stuck aggregate only when all 16 required jobs succeeded. */
 export function ciRunGreen(sha: string, runId: string, query?: (args: string[]) => string): boolean;
 

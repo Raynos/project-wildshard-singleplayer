@@ -208,6 +208,52 @@ export function ciRunGreen(sha, runId, query = ghApi) {
   return required.size === 0;
 }
 
+/** Explicit recovery of proven source after shipping failed. Only the original
+ * source gates may grant proof; the failed aggregate never becomes CI success.
+ * @param {string} runId @param {(args:string[])=>string} [query]
+ * @returns {{sha:string,run:string}} */
+export function recoverySource(runId, query = ghApi) {
+  if (!/^[1-9][0-9]*$/u.test(runId)) throw new Error('Recovery requires a numeric source run');
+  const run = JSON.parse(query([`repos/${REPO}/actions/runs/${runId}`]));
+  const workflowId = workflowRunsPath('deploy.yml', query).split('/').at(-2);
+  if (String(run.id) !== runId || String(run.workflow_id) !== workflowId || run.event !== 'push'
+    || run.head_branch !== 'main' || typeof run.head_sha !== 'string' || !/^[a-f0-9]{40}$/u.test(run.head_sha)
+    || run.status !== 'completed' || !['success','failure'].includes(run.conclusion)
+    || run.path !== '.github/workflows/deploy.yml' || run.head_repository?.full_name !== REPO)
+    throw new Error('Recovery source is not a completed exact main push');
+  const sha = String(run.head_sha);
+  const ancestry = JSON.parse(query([`repos/${REPO}/compare/${sha}...main`]));
+  if (ancestry.base_commit?.sha !== sha || !['ahead','identical'].includes(ancestry.status))
+    throw new Error('Recovery source is outside main ancestry');
+  const source = query([`repos/${REPO}/contents/.github/workflows/deploy.yml?ref=${sha}`,
+    '-H','Accept: application/vnd.github.raw+json']);
+  // The complete behavior wave owned the native file before its dedicated job.
+  const native = source.includes('\n  native-escape:\n');
+  if (!source.includes(`continue-on-error: \${{ matrix.part == 'phone-route' }}`))
+    throw new Error('Recovery source lacks the reviewed report-only phone policy');
+  const required = new Set(['prepare','typecheck-lint','derived-docs','boot-verdict',
+    ...Array.from({length:12},(_,i)=>`behaviour (${i+1})`),
+    ...['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'].map(name=>`journeys (${name})`),
+    ...(native?['native-escape']:[])]);
+  const rows = query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--jq',
+    '.jobs[] | [.name, .status, .conclusion] | @tsv']).trim().split('\n').filter(Boolean);
+  const optional = new Set(['build-and-deploy','journeys (phone-route)']);
+  for (const row of rows) {
+    const [name='',status,conclusion] = row.split('\t');
+    if (optional.delete(name)) {
+      if (status !== 'completed' || !['success','failure'].includes(conclusion ?? ''))
+        throw new Error(`Recovery terminal job did not finish: ${name}`);
+    } else if (!required.delete(name) || status !== 'completed' || conclusion !== 'success')
+      throw new Error(`Recovery source gate did not succeed: ${name}`);
+  }
+  if (required.size > 0 || optional.size > 0) throw new Error('Recovery job inventory differs');
+  const boot = query([`repos/${REPO}/commits/${sha}/status`, '--paginate', '--jq',
+    '.statuses[] | select(.context == "boot-smoke") | [.state, .target_url] | @tsv']).trim().split('\n')[0];
+  if (boot !== `success\thttps://github.com/${REPO}/actions/runs/${runId}`)
+    throw new Error('Recovery requires the latest successful same-run boot status');
+  return {sha,run:runId};
+}
+
 /** Bind the current push's successful wave before its own ship job completes.
  * GitHub supplies needs from this exact run; no neighbouring aggregate grants proof.
  * @param {{mode:string,event:string,ref:string,repository:string,sha:string,run:string,head:string,needs:unknown}} input
@@ -340,6 +386,15 @@ async function main() {
     if (typeof version?.build !== 'string') throw new Error('Production floor has no build ID');
     const floor = productionFloor(version.build, a1);
     console.log(`Production floor ${floor}; target ${a1}; forward-only verified`);
+    return 0;
+  }
+  if (cmd === 'read-recovery') {
+    if (process.env.GITHUB_EVENT_NAME !== 'workflow_dispatch' || process.env.GITHUB_REF !== 'refs/heads/main'
+      || process.env.GITHUB_REPOSITORY !== REPO) throw new Error('Recovery requires an explicit main dispatch');
+    const selected = recoverySource(a1 ?? '');
+    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT,
+      `sha=${selected.sha}\nmode=recovery\ngate=required\nsource_run=${selected.run}\nrecovery=true\nskip=false\n`);
+    console.log(`Explicit source recovery ${selected.run}: ${selected.sha}; all original source gates and SIX verified`);
     return 0;
   }
   if (cmd === 'read-wave') {
