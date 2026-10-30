@@ -9,6 +9,7 @@ import shutil
 import tarfile
 import tempfile
 import unittest
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('prebuilt', Path(__file__).with_name('prebuilt-output.py'))
 prebuilt = importlib.util.module_from_spec(spec)
@@ -56,6 +57,48 @@ class PrebuiltTests(unittest.TestCase):
         prebuilt.restore(self.target, self.packet, SHA, '123')
         self.assertEqual({p.relative_to(self.target).as_posix(): p.read_text()
                           for p in self.target.rglob('*') if p.is_file()}, self.files)
+
+    def test_stream_retains_the_original_tar_headers_order_and_padding(self):
+        (self.source / '.vercel/output/functions/api/errors.func/alias.cjs').symlink_to('index.cjs')
+        long_name = self.source / ('dist/assets/' + 'long-name-' * 14 + 'é.js.map')
+        long_name.write_bytes(b'private source map with a PAX header')
+        prebuilt.pack(self.source, self.packet, SHA, '123')
+        proof = json.loads((self.packet / 'proof.json').read_text())
+        expected = io.BytesIO()
+        with tarfile.open(fileobj=expected, mode='w', dereference=False) as output:
+            for row in proof['files']:
+                path = self.source / row['path']
+                if 'link' in row:
+                    output.add(path, arcname=row['path'], recursive=False)
+                else:
+                    info = output.gettarinfo(str(path.resolve()), arcname=row['path'])
+                    info.type, info.linkname, info.size = tarfile.REGTYPE, '', row['bytes']
+                    with path.open('rb') as content:
+                        output.addfile(info, content)
+        actual = subprocess.check_output(['zstd', '-q', '-dc', str(self.packet / 'prebuilt.tar.zst')])
+        self.assertEqual(actual, expected.getvalue())
+        self.assertEqual(proof['archiveBytes'], len(actual))
+        self.assertEqual(proof['archiveHash'], hashlib.sha256(actual).hexdigest())
+        self.assertFalse((self.packet / 'prebuilt.tar').exists())
+
+    def test_failed_encoder_is_drained_and_cannot_leave_a_partial_transport(self):
+        directory = self.root / 'failed-encoder'
+        original = subprocess.Popen
+        children = []
+
+        def failed(*args, **kwargs):
+            child = original(['sh', '-c', 'exit 23'], **kwargs)
+            children.append(child)
+            return child
+
+        with patch.object(prebuilt.subprocess, 'Popen', failed):
+            with self.assertRaises((BrokenPipeError, subprocess.CalledProcessError)):
+                prebuilt.pack(self.source, directory, SHA, '123')
+        self.assertTrue(children)
+        self.assertTrue(all(child.poll() is not None for child in children))
+        self.assertFalse((directory / 'prebuilt.tar.zst').exists())
+        self.assertFalse((directory / 'prebuilt.tar').exists())
+        self.assertFalse((directory / 'proof.json').exists())
 
     def test_standalone_dependency_and_transitive_bytes_execute_without_source_dependencies(self):
         function = self.source / '.vercel/output/functions/api/errors.func'

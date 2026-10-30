@@ -183,24 +183,57 @@ def pack(root, directory, sha, run):
             row.update(bytes=path.stat().st_size, hash=file_hash(path), mode=path.stat().st_mode & 0o777)
     function_links(files)
     required(files, sha, root)
-    archive = directory / 'prebuilt.tar'
-    with tarfile.open(archive, 'w', dereference=False) as output:
-        for path, row in zip(paths, files):
-            safe(row['path'])
-            if 'link' in row:
-                output.add(path, arcname=row['path'], recursive=False)
-            else:
-                info = output.gettarinfo(str(path.resolve()), arcname=row['path'])
-                info.type, info.linkname, info.size = tarfile.REGTYPE, '', row['bytes']
-                with path.open('rb') as content:
-                    output.addfile(info, content)
-    proof = {'version': 1, 'sha': sha, 'run': run, 'files': files,
-             'archiveBytes': archive.stat().st_size, 'archiveHash': file_hash(archive)}
     compressed = directory / 'prebuilt.tar.zst'
-    subprocess.run(['zstd', '-q', '-3', '-T2', '-f', str(archive), '-o', str(compressed)], check=True)
+    value, size, complete = hashlib.sha256(), 0, False
+    try:
+        with compressed.open('wb') as destination:
+            encoder = subprocess.Popen(['zstd', '-q', '-3', '-T2', '-c'],
+                                       stdin=subprocess.PIPE, stdout=destination)
+
+            class Sink:
+                def write(self, block):
+                    nonlocal size
+                    written = encoder.stdin.write(block)
+                    if written != len(block):
+                        raise OSError('Incomplete prebuilt archive write')
+                    value.update(block)
+                    size += written
+                    return written
+
+            try:
+                # Preserve the exact tar headers, member order, links and
+                # padding while hashing those bytes on the way to zstd.
+                with tarfile.open(fileobj=Sink(), mode='w|', dereference=False) as output:
+                    for path, row in zip(paths, files):
+                        safe(row['path'])
+                        if 'link' in row:
+                            output.add(path, arcname=row['path'], recursive=False)
+                        else:
+                            info = output.gettarinfo(str(path.resolve()), arcname=row['path'])
+                            info.type, info.linkname, info.size = tarfile.REGTYPE, '', row['bytes']
+                            with path.open('rb') as content:
+                                output.addfile(info, content)
+                encoder.stdin.close()
+                if encoder.wait() != 0:
+                    raise subprocess.CalledProcessError(encoder.returncode, encoder.args)
+            finally:
+                try:
+                    if not encoder.stdin.closed:
+                        encoder.stdin.close()
+                except BrokenPipeError:
+                    pass  # Preserve the originating encoder/write failure.
+                finally:
+                    if encoder.poll() is None:
+                        encoder.kill()
+                    encoder.wait()
+        complete = True
+    finally:
+        if not complete:
+            compressed.unlink(missing_ok=True)
+    proof = {'version': 1, 'sha': sha, 'run': run, 'files': files,
+             'archiveBytes': size, 'archiveHash': value.hexdigest()}
     proof['transport'] = {'bytes': compressed.stat().st_size, 'hash': file_hash(compressed)}
     (directory / 'proof.json').write_text(json.dumps(proof) + '\n')
-    archive.unlink()
 
 
 def restore(root, directory, sha, run):

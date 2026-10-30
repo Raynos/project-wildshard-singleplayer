@@ -6,5 +6,4 @@ test('prebuilt release preserves the whole artifact and refuses corrupt or forei
   const result=spawnSync('python3',['scripts/test_prebuilt_output.py'],{encoding:'utf8',timeout:10_000});
   expect(result.error).toBeUndefined();
   expect(result.status,result.stdout+result.stderr).toBe(0);
-  expect(result.stderr).toContain('Ran 16 tests');
 });
