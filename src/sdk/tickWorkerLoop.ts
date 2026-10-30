@@ -6,7 +6,8 @@ import { parentPort, workerData } from 'node:worker_threads';
 // oxlint-disable-next-line import/no-nodejs-modules -- Parent and worker use the same monotonic clock for a preemptible wall deadline.
 import { hrtime } from 'node:process';
 import * as v from 'valibot';
-import { WorkerRequestSchema, TickCommitSchema, TickObservationSchema, HeadlessTapeReportSchema, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommand, type HeadlessTickCommit, type HeadlessTickObservation } from './tickProtocol';
+import { WorkerRequestSchema, TickCommitSchema, TickObservationSchema, HeadlessTapeReportSchema, HeadlessTapePartReportSchema, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommand, type HeadlessTickCommit, type HeadlessTickObservation } from './tickProtocol';
+import {TapePartBudget} from './headlessTapeParts';
 
 export interface TickWorkerAdapter {
   /** Checks all snapshot/tick fields without publishing an intermediate save. */
@@ -31,9 +32,23 @@ export async function runTickWorker(create: (payload: unknown) => Promise<TickWo
   catch (error) { sendError(error); return; }
   port.on('close', () => { adapter.dispose(); });
   let cold = true;
+  let parts:TapePartBudget|undefined;
+  let partsFinished=false;
   const handle = async (raw: unknown): Promise<void> => {
     try {
       const request = v.parse(WorkerRequestSchema, raw);
+      if(partsFinished)throw new Error('Headless tape parts already finished');
+      if(parts!==undefined&&request.kind!=='verbTapePart'&&request.kind!=='finish')throw new Error('Tape parts own this worker until finish');
+      if(request.kind==='verbTapePart'){
+        if(envelope.enforceTickDeadline)throw new Error('Verb tape requires trusted offline timing');
+        for(const segment of request.plan.segments)for(const commands of segment.frames??[segment.commands])
+          if(commands.length+(segment.route===undefined?0:1)>envelope.commandsPerTick)throw new Error('Aggregate commandsPerTick exceeded');
+        if(adapter.verbTape===undefined)throw new Error('Missing native verb tape capability');
+        const guard=parts??=new TapePartBudget(v.parse(TickCommitSchema,adapter.commit()).tick);
+        guard.admit(request.plan);
+        const result=v.parse(HeadlessTapePartReportSchema,{report:adapter.verbTape(request.plan),commit:adapter.commit()});
+        guard.accept(result);port.postMessage({verbTapePart:result});return;
+      }
       if (request.kind === 'observe') {
         if (envelope.enforceTickDeadline) throw new Error('Observation requires trusted offline timing');
         if (adapter.observe === undefined) throw new Error('Missing offline observation capability');
@@ -70,7 +85,7 @@ export async function runTickWorker(create: (payload: unknown) => Promise<TickWo
         if (adapter.authorProof === undefined) throw new Error('Author proof requires the data-only native owner');
         port.postMessage({ authorProof: await adapter.authorProof(request.plan) }); return;
       }
-      if (request.kind === 'finish') { port.postMessage({ proof: adapter.finish() }); return; }
+      if (request.kind === 'finish') { partsFinished=parts!==undefined;port.postMessage({ proof: adapter.finish() }); return; }
       if (request.commands.length > envelope.commandsPerTick) throw new Error('Aggregate commandsPerTick exceeded');
       // One first-touch/JIT tick has the platform's bounded 16.666 ms ceiling, never an unarmed watchdog.
       const tickMicros = cold ? 16_666 : envelope.tickMicros; cold = false;

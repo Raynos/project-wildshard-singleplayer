@@ -9468,15 +9468,14 @@ The existing `RangedAction`, `BowDraw`, projectile/contact and swept-melee laws
 retain their clocks and each item's existing continuation id and payload.
 `launcher` keeps native bolt/loadout authority.
 
-**Native verb tapes (CI12).** `@wildshard/sdk/headlessTape` has repeated
-commands, per-tick `frames` (one array/tick, no route/repeated commands),
-or waypoint routes. `HeadlessSimulation.verbTape` and
-`streamVerbTape(observe, asyncSegments)` are terminal/offline-only: actual
-flags, effects, feet/peak and owners, never continuations. Streaming
-prefetches one segment while replaying its prior. Both retain native
-budgets, retirement, pinned owners, 60,000 ticks/declared commands, 128
-distinct segments, 8 MB observations and one 30 s watchdog, including
-streamed producer waits. Failures quarantine.
+**Native verb tapes (CI12).** `@wildshard/sdk/headlessTape`: repeated commands,
+frames or routes; actual flags/effects, feet/peak and pinned owners.
+`HeadlessSimulation.verbTape`/`streamVerbTape(observe, asyncSegments)` are
+terminal: one global 30 s, including producer waits (prefetch one segment).
+`verbTapePart(plan)` returns `{report,commit}` in one worker: 30 s/request,
+then only parts or finish. All are offline; retain native budgets/retirement,
+128 ids, 60k declared ticks/commands, 8 MB observations and failure quarantine.
+Parts keep the caller's aggregate outer deadline.
 
 
 The SDK owns one mutable `NativeCombatFrame` per native resident and refills it

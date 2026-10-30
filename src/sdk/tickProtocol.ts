@@ -60,6 +60,9 @@ const tickCommit = v.strictObject({ tick: natural, snapshot: v.pipe(v.string(), 
 export const TickCommitSchema: v.GenericSchema<BoundedTickCommitInput, BoundedTickCommit> = tickCommit;
 /** Complete same-engine continuation and effects from one atomically committed worker tick. */
 export type HeadlessTickCommit = v.InferOutput<typeof TickCommitSchema>;
+/** A bounded non-terminal tape request publishes its checked full continuation. */
+export interface HeadlessTapePartReport { report:HeadlessTapeReport;commit:HeadlessTickCommit }
+export const HeadlessTapePartReportSchema:v.GenericSchema<HeadlessTapePartReport>=v.strictObject({report:HeadlessTapeReportSchema,commit:TickCommitSchema});
 /** Identical tick/effect/fuel/decision guards when no intermediate save escapes. */
 export const TickObservationSchema: v.GenericSchema<Omit<HeadlessTickCommit, 'snapshot'>> = v.omit(tickCommit, ['snapshot']);
 export type HeadlessTickObservation = v.InferOutput<typeof TickObservationSchema>;
@@ -89,6 +92,7 @@ export const WorkerRequestSchema: v.GenericSchema<BoundedWorkerRequestInput, Bou
   v.strictObject({ kind: v.literal('journey'), plan: HeadlessJourneyPlanSchema }),
   v.strictObject({ kind: v.literal('walk'), plan: HeadlessJourneyPlanSchema }),
   v.strictObject({kind:v.literal('verbTape'),plan:HeadlessTapePlanSchema}),
+  v.strictObject({kind:v.literal('verbTapePart'),plan:HeadlessTapePlanSchema}),
   v.strictObject({ kind: v.literal('authorProof'), plan: AuthorProofPlanSchema }),
 ]);
 /** Validate and copy ordered source batches against one aggregate per-tick command allowance. */
@@ -213,4 +217,5 @@ type BoundedWorkerRequestInput = BoundedWorkerRequest;
 type BoundedWorkerRequest = {kind:'walk';plan:HeadlessJourneyPlan} | {kind:'journey';plan:HeadlessJourneyPlan}
   | {kind:'step';commands:BoundedTickCommand[]}
   | {kind:'verbTape';plan:HeadlessTapePlan}
+  | {kind:'verbTapePart';plan:HeadlessTapePlan}
   | {kind:'finish'} | {kind:'observe'} | {kind:'authorProof';plan:BoundedAuthorProofPlan};

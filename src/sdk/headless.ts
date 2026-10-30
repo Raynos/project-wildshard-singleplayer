@@ -14,7 +14,7 @@ import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import type { Shardfile } from './shardfile';
 import { offlineMemoryAdmission, prepareAssetDecoders } from '@wildshard/format/product';
 import { TickWorkerHost } from './tickWorkerHost';
-import { AuthorProofPlanSchema, TickCommandSchema, type HeadlessCommand, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommandSource, type HeadlessTickCommit } from './tickProtocol';
+import { AuthorProofPlanSchema, TickCommandSchema, type HeadlessCommand, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommandSource, type HeadlessTickCommit, type HeadlessTapePartReport } from './tickProtocol';
 import * as v from 'valibot';
 import { decodeSimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
@@ -60,6 +60,8 @@ export class HeadlessSimulation {
   observe(): Promise<HeadlessObservationReport> { return this.runner.observe(); }
   /** Terminal fixed-tick verb tape; observations do not grant a continuation. */
   verbTape(plan:HeadlessTapePlan):Promise<HeadlessTapeReport>{return this.runner.verbTape(plan);}
+  /** One offline tape part and checked commit. All parts share one resident and aggregate allowance; only later parts or finish may follow. */
+  verbTapePart(plan:HeadlessTapePlan):Promise<HeadlessTapePartReport>{return this.runner.verbTapePart(plan);}
   /** Terminal native replay with bounded next-segment prefetch and one unchanged 30s request clock. */
   streamVerbTape(observe:readonly string[],source:AsyncIterable<HeadlessTapeSegment>):Promise<HeadlessTapeReport>{return this.runner.streamVerbTape(observe,source);}
   /** Terminal native route proof without per-tick continuation encoding. Trusted offline sessions only. */
