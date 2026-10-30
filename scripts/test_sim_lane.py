@@ -121,6 +121,37 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         self.assertFalse((self.root / 'child-ran').exists())
         self.assertFalse((self.root / 'lane' / f'{UDID}.lease').exists())
 
+    def immediate_url_failure_fixture(self):
+        """Inject the service error without two unrelated Python cold starts.
+
+        Delay, hang, late-frame and foreign-frame controls keep the full fake.
+        This case checks native exit 60 propagation inside its original .15s.
+        """
+        command = self.bin / 'xcrun'
+        original = self.bin / 'xcrun-python'
+        original.write_bytes(command.read_bytes())
+        original.chmod(0o755)
+        command.write_text('''#!/bin/bash
+if [ "$#" -eq 4 ] && [ "$1" = simctl ]; then
+  case "$2:$4" in
+    launch:com.apple.mobilesafari|openurl:http://127.0.0.1:*)
+      printf '["%s","%s","%s","%s"]\\n' "$1" "$2" "$3" "$4" >> "$SIM_FIXTURE/calls"
+      if [ "$2" = launch ]; then
+        touch "$SIM_FIXTURE/safari-launched"
+        printf 'com.apple.mobilesafari: 123\\n'
+        exit 0
+      fi
+      n=0
+      if [ -f "$SIM_FIXTURE/attempts" ]; then read -r n < "$SIM_FIXTURE/attempts"; fi
+      printf '%s' "$((n+1))" > "$SIM_FIXTURE/attempts"
+      printf 'URL service unavailable (60)\\n' >&2
+      exit 60
+      ;;
+  esac
+fi
+exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
+''')
+
     def test_unlisted_device_is_refused_and_never_created(self):
         # G563: a lane never creates a device; only the machine's three named devices run
         result = self.lane(device='sf57-sp-x3-new-phone')
@@ -302,6 +333,7 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
                 self.assertFalse(ready.is_set())
 
     def test_url_failure_is_bounded_and_lease_is_not_published(self):
+        self.immediate_url_failure_fixture()
         started = time.monotonic()
         result = self.lane('lease', SIM_OPEN_FAILURES='999', SIM_SAFARI_READY_TIMEOUT='0.15')
         self.assertEqual(result.returncode, 60, result.stderr)
