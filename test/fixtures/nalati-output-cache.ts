@@ -2,7 +2,7 @@
 import { mkdtempSync, mkdirSync, readdirSync, statSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Cache paths stay inside this fixture's private repository scratch root.
 import { resolve, dirname } from 'node:path';
-import { createProjectGeneration } from '../../src/sdk/projectGeneration';
+import { createProjectGeneration, type ProjectGenerationContext } from '../../src/sdk/projectGeneration';
 import { prepareOutput } from '../../src/shards/nalati-grasslands/generators/output';
 import { runSnapshot } from './runSnapshot';
 
@@ -12,7 +12,7 @@ export const coldOutputFixture = await (async () => {
   const cache = mkdtempSync(resolve('tmp/nalati-place-blob-'));
   const requested: string[] = [], steps: string[] = [], constructions = new Map<string, number>();
   let nativeSpecimens: Uint8Array | undefined, nativePlaces: Uint8Array | undefined, nativeRender: Uint8Array | undefined;
-  const context = () => {
+  const context = (): ProjectGenerationContext => {
     const ctx = createProjectGeneration(resolve('src/shards/nalati-grasslands'), 'a'.repeat(64), new Map(), cache,
       [{ prefix: '/src/shards/nalati-grasslands/', directory: resolve('src/shards/nalati-grasslands') },
         { prefix: '/assets/', directory: resolve('public/assets') }]);
