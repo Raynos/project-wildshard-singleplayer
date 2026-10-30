@@ -9,6 +9,7 @@ import {loadRapier} from '../../../src/engine/physics/rapier';
 import {snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
 import {nativePopulationOf,type NativePopulation} from '../../../src/game/riding/nativePopulation';
 import {runTrustedHeadlessTape} from '../../../src/sdk/headlessTape';
+import type {WalkPoint} from '../../../src/sdk/headlessJourney';
 import {createNativeProofResident} from '../headless-native';
 import {prepareHeadlessRuntime} from '../nalati-predators-native';
 
@@ -21,7 +22,7 @@ interface EarnedPasture {
 }
 
 /** Earn a checkpoint through the physical entry and unchanged natural raid clock. */
-export async function earnNalatiPasture():Promise<EarnedPasture>{
+export async function earnNalatiPasture(interception?:readonly WalkPoint[]):Promise<EarnedPasture>{
   const directory=builtProduct('nalati-grasslands'),product=await loadHeadlessProduct(directory),shard=product.shardfile;
   const descriptor=outputDescriptor(shard);assert.ok(descriptor);
   const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,
@@ -36,8 +37,14 @@ export async function earnNalatiPasture():Promise<EarnedPasture>{
     runTrustedHeadlessTape(resident.host,commands=>resident.step(commands),()=>resident.effects,{version:1,observe:[],segments:[{
       id:'walk-and-jump-to-pasture',ticks:6000,commands:[],route:[{x:-10,z:232,jump:true,jumpAt:6},{x:-30,z:228},{x:-60,z:222},{x:-100,z:212}],
     }]});
-    const arrivalTick=resident.host.state.tick;
+    let arrivalTick=resident.host.state.tick;
     assert.ok(Math.hypot(resident.host.player.position.x-flock.cx,resident.host.player.position.z-flock.cz)<30);
+    if(interception!==undefined){
+      runTrustedHeadlessTape(resident.host,commands=>resident.step(commands),()=>resident.effects,{version:1,observe:[],segments:[{
+        id:'walk-to-interception',ticks:6000,commands:[],route:[...interception],
+      }]});
+      arrivalTick=resident.host.state.tick;
+    }
     for(let tick=0;tick<18_000&&population.raid.snapshot().state.raidT>.2;tick++)resident.step([]);
     assert.equal(population.raid.raids,0,'the checkpoint precedes the actual scheduled raid');
     assert.ok(population.raid.snapshot().state.raidT<=.2,'the real clock reaches its scheduled attempt');
