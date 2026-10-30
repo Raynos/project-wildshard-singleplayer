@@ -100,7 +100,6 @@
     "../scripts/app-build/serviceWorker.ts",
     "../scripts/bake/skyTexturesPage.ts",
     "../scripts/test-build-tools.ts",
-    "../scripts/test-quarantine.ts",
     "../scripts/bake/viewmodelBytes.ts",
     "../scripts/vitest-shard.ts",
     "../scripts/vitest-lane.ts",

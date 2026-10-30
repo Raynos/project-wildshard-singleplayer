@@ -26,7 +26,6 @@ async function fixture(named = false) {
   // These synthetic suites need no native tools, but still declare their runner input.
   write(root, 'test/build-tools.json', '{}');
   // This isolated root has no quarantined cases; cohort selection still reads its explicit registry.
-  write(root, 'scripts/test-quarantine.json', JSON.stringify({ version: 1, entries: [] }));
   const source = `src/shards/${folder}/shard.config.ts`; write(root, source, 'export default {};');
   const flags = ['--copy-runtime'];
   if (named) {

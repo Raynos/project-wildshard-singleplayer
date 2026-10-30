@@ -37,11 +37,9 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   mismatched artifacts fail instead of rebuilding. Both matrices keep `fail-fast: false` and each shard's own
   first-failure bail; neither command wrapper stops for a peer failure. Exact-SHA smoke dispatch requires both
   cohorts, every producer, types/lint, docs and the web build to pass.
-  Active flaky-suite reports run in two non-blocking parts outside the main-push aggregate, triggered by its
-  completed workflow. The reporter attests the exact main push and both successful producers before downloading
-  that run's artifact; the unchanged unpacker verifies its SHA, run, checksum, full inventory and checkout. PR
-  reporting stays in the push/PR workflow. Original tests, owner deadlines and automatic expiry back to the
-  blocking cohorts stay unchanged. Older in-flight pushes keep their embedded reporter.
+  G923 removes the optional quarantine workflow and PR reporter. There is no quarantine registry or exclusion
+  path: every discovered test belongs to exactly one blocking product or product-free cohort. The retired registry
+  was empty. Native Escape, headless and all other real behavior cases remain blocking.
   Products and every typecheck/lint shard also finish independently after another job fails, so their own
   admission and source errors remain visible in the same run. Each command still stops on its own error;
   typecheck/lint matrix cancellation is disabled.
@@ -192,9 +190,9 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   successful historical release job's exact full pin plus matching production-version reading. Pin history alone
   is insufficient. The OTA reader enforces the same proof. `force`
   only bypasses the already-live check. Inspect the smoke artifact's queue/run timings when a release waits.
-  `gpu-gate` runs nightly and by dispatch at a milestone (`gh workflow run gpu-gate`, `-f sha=<candidate>`), not on
-  every push (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`), and it does not hold a release. `mode pinned` (`deploy-pin.mjs set` / `rollback`)
-  freezes production on one SHA; `mode newest-green` waits for gpu-gate.
+  The old gpu-gate workflow was deleted on 2026-10-13; it runs neither nightly nor by dispatch. Pixel parity and
+  golden comparisons are local look tools, not release prerequisites. Historical `newest-green` pin mode reads
+  the old status only; current production uses `newest-ci-green` with full push CI and exact six-leg smoke.
 - **A green exact-SHA smoke releases immediately (G920).** The smoke workflow's `release` job calls
   `release-ready`, checks whether production already serves that candidate, and dispatches `deploy`. A newer
   incomplete proof never blocks an older fully proven candidate. Manual `gh workflow run deploy` uses the same

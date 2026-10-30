@@ -135,3 +135,13 @@ test('the independent product phase prepares current inputs before strict comple
   expect(products.indexOf('node scripts/check-closed-components.mjs')).toBeGreaterThan(build);
   expect(products.indexOf('python3 scripts/ci-products.py pack\n')).toBeGreaterThan(build);
 });
+
+
+test('every former quarantine owner remains in exactly one blocking product cohort', () => {
+ const files=['test/nalati-creature-views.test.ts','test/shard-headless.test.ts','test/heavy-lane.test.ts'];
+ const registry=v.parse(v.record(v.string(),v.array(v.string())),JSON.parse(readFileSync('scripts/test-products.json','utf8')));
+ const selected=[...selectTestCohort(files,registry,'product-free'),...selectTestCohort(files,registry,'products')];
+ expect(selected.sort()).toEqual([...files].sort());
+ expect(new Set(selected).size).toBe(files.length);
+ expect(() => selectTestCohort(files,registry,'quarantine')).toThrow('Unknown test cohort');
+});
