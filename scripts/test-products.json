@@ -1,6 +1,7 @@
 {
   "test/signal-quest-verbs.test.ts": ["sunscar-dunes"],
   "test/pine-quest-verbs.test.ts": ["pine-hollow"],
+  "test/nalati-ride-verbs.test.ts": ["nalati-grasslands"],
   "test/driftwood-zipline-verbs.test.ts": ["driftwood-isle"],
   "test/driftwood-story-verbs.test.ts": ["driftwood-isle"],
   "test/signal-verb-tape.test.ts": ["sunscar-dunes"],
