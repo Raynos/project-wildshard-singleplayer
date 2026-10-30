@@ -25,11 +25,12 @@ export class ScriptStrikes {
   cancel(actor: number, body?: AnimalSim): void { this.active.get(actor)?.runner.cancel(); this.active.delete(actor); body?.cancelAttack(); }
   state(actor: number): StrikePhase { return this.active.get(actor)?.runner.state ?? 'idle'; }
   time(actor: number): number { return this.active.get(actor)?.runner.time ?? 0; }
-  advance(actor: number, dt: number, body: AnimalSim, target: BrainPoint, reach: boolean): ScriptStrikeFrame {
+  /** `reach` is the contact frame's line of sight, asked only when a strike lands (FC: no raycast for an idle actor) */
+  advance(actor: number, dt: number, body: AnimalSim, target: BrainPoint, reach: () => boolean): ScriptStrikeFrame {
     const current = this.active.get(actor); if (current === undefined) return { hit: null, cues: [], done: false };
     const row = this.row(current.id), before = current.runner.state, cues: string[] = [];
     let hit: ScriptStrikeHit | null = null;
-    current.runner.update(dt, { actor: body, target, canReach: () => reach,
+    current.runner.update(dt, { actor: body, target, canReach: reach,
       hit: spec => { hit = { damage: spec.damage, tags: spec.tags, stun: row.stun, trauma: row.trauma, throughWalls: spec.tags.includes('cover.exempt') }; } });
     if (before !== 'active' && current.runner.state === 'active' && row.activeCue !== undefined) cues.push(row.activeCue);
     const done = current.runner.state === 'idle';

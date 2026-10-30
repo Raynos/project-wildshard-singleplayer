@@ -66,13 +66,15 @@ export function standingFigure(group: THREE.Group, resources: SceneHandles, inpu
   };
   const home = yaw, notice = row.noticeRadius, pt = row.point, sway = row.sway;
   let cur = yaw;
-  let lodState = -1;
+  let lodState = -1, unposed = false;
+  const held: Parameters<FigureRig['pose']> = [0, 0, 0, 0, 0, 0, 0];
   const person = {
     group, talkPoint, collider, talking: false,
     lod: (d: number) => {
       const st = d > row.drawDistance ? 0 : d > row.shadowDistance ? 1 : 2;
       if (st === lodState) return;
       lodState = st; group.visible = st > 0; shown.castShadow = st === 2; mesh.castShadow = st === 2;
+      if (st > 0 && rig !== null && unposed) { rig.pose(...held); unposed = false; }
     },
     walkTo: (x: number, y: number, z: number) => {
       walk = { from: new THREE.Vector3(pos.x, pos.y, pos.z), to: new THREE.Vector3(x, y, z), done: 0 };
@@ -94,7 +96,9 @@ export function standingFigure(group: THREE.Group, resources: SceneHandles, inpu
         let py = Math.atan2(input.pointAt[0] - pos.x, input.pointAt[2] - pos.z) - cur;
         py = Math.max(-1, Math.min(1, Math.atan2(Math.sin(py), Math.cos(py))));
         const look = near ? Math.max(-0.6, Math.min(0.6, Math.atan2(Math.sin(want - cur), Math.cos(want - cur)))) : 0;
-        rig.pose(t, talkK, pointK, py, look, walkK, phase);
+        // FC: a hidden person keeps its clocks but not its bones; the frame it shows again poses it from these inputs
+        if (lodState === 0) { held[0] = t; held[1] = talkK; held[2] = pointK; held[3] = py; held[4] = look; held[5] = walkK; held[6] = phase; unposed = true; }
+        else { unposed = false; rig.pose(t, talkK, pointK, py, look, walkK, phase); }
         return;
       }
       mesh.scale.y = 1 + Math.sin(t * sway.breatheRate) * sway.breathe;

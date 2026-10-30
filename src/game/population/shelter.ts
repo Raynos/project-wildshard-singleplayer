@@ -34,6 +34,8 @@ export class HerdShelter<T extends Tree> {
   private shelters = new Map<Herd, Shelter>();
   private readonly steps = new Map<Herd, ProjectedState>();
   private readonly goals = new Map<Herd, { x: number; z: number; r: number } | null>();
+  private readonly lastGoal = new Map<Herd, { present: number; spot: number; homeX: number; homeZ: number; spotX: number; spotZ: number; rain: number;
+    goal: { x: number; z: number; r: number } | null }>();
 
   /** `animals` lends the herds; each tree carries its fixed crown-cover sample; `look` supplies the rule's numbers. */
   constructor(private readonly animals: { readonly herds: readonly Herd[] }, trees: readonly T[], private readonly look: HerdShelterRows, private readonly program: ReturnProgram) {
@@ -83,13 +85,20 @@ export class HerdShelter<T extends Tree> {
 
   private goal(hd: Herd, rain: number): { x: number; z: number; r: number } | null {
     const s = this.shelters.get(hd), spot = s?.spot;
-    const out = this.program.project('shelterGoal', { present: Number(s !== undefined), spot: Number(spot !== undefined && spot !== null),
-      homeX: s?.home.x ?? 0, homeZ: s?.home.z ?? 0, spotX: spot?.x ?? 0, spotZ: spot?.z ?? 0,
+    const present = Number(s !== undefined), hasSpot = Number(spot !== undefined && spot !== null), homeX = s?.home.x ?? 0, homeZ = s?.home.z ?? 0,
+      spotX = spot?.x ?? 0, spotZ = spot?.z ?? 0;
+    // the guest is rewound before every call, so the same observations give the same goal: a frame that changed none of
+    // them reuses the last answer instead of a module call per herd per frame (FC, Pine's update)
+    const last = this.lastGoal.get(hd);
+    if (last !== undefined && last.present === present && last.spot === hasSpot && last.homeX === homeX && last.homeZ === homeZ
+      && last.spotX === spotX && last.spotZ === spotZ && last.rain === rain) return last.goal;
+    const out = this.program.project('shelterGoal', { present, spot: hasSpot, homeX, homeZ, spotX, spotZ,
       rain, wet: this.look.wet, spotR: this.look.spotR, homeR: this.look.homeR });
     const accept = out['accept'], x = out['x'], z = out['z'], r = out['r'];
-    if (accept === 0) return null;
-    if (accept !== 1 || x === undefined || z === undefined || r === undefined || r < 0) throw new Error('Invalid shelter goal projection');
-    return { x, z, r };
+    if (accept !== 0 && (accept !== 1 || x === undefined || z === undefined || r === undefined || r < 0)) throw new Error('Invalid shelter goal projection');
+    const goal = accept === 0 || x === undefined || z === undefined || r === undefined ? null : { x, z, r };
+    this.lastGoal.set(hd, { present, spot: hasSpot, homeX, homeZ, spotX, spotZ, rain, goal });
+    return goal;
   }
 
   /** Borrow the latest projected goal; a v1 restore is sampled on its first query. */

@@ -468,7 +468,7 @@ export class SpawnScript {
       for (const [handle, body] of this.handles) {
         if (this.observational(handle)) continue;
         if ('spawnGroup' in this.rows.script.binding) { body.lookTarget.set(this.point.x, this.point.y + this.sourceField(handle, 'lookHeight'), this.point.z); }
-        const frame = this.combat.advance(handle, 1 / 60, body, this.point, this.bodies.reach(body, this.point));
+        const frame = this.combat.advance(handle, 1 / 60, body, this.point, () => this.bodies.reach(body, this.point));
         if (frame.hit !== null) this.effects.push({ kind: 'hit', actor: handle, hit: frame.hit });
         for (const cue of frame.cues) this.emitCue(handle, cue);
       }

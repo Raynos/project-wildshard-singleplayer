@@ -20,15 +20,15 @@ test('an unrelated marsh contact uses real geometry, cover, one hit and declared
     const target = { x: body.position.x, y: body.position.y, z: body.position.z + 1 };
     const runner = new ScriptStrikes(marshStrike());
     expect(runner.start(1, 1, body, target)).toEqual(['hiss']);
-    expect(runner.advance(1, 0.1, body, target, false)).toEqual({ hit: null, cues: ['snap'], done: false });
-    expect(runner.advance(1, 0.05, body, target, false).hit).toBeNull();
-    expect(runner.advance(1, 0.05, body, target, true).hit).toEqual({ damage: 7, tags: ['cover.checked'], stun: 0.5, trauma: 0.2, throughWalls: false });
-    expect(runner.advance(1, 0.05, body, target, true).hit).toBeNull();
-    runner.advance(1, 0.2, body, target, true);
-    expect(runner.advance(1, 0.2, body, target, true).done).toBe(true);
+    expect(runner.advance(1, 0.1, body, target, () => false)).toEqual({ hit: null, cues: ['snap'], done: false });
+    expect(runner.advance(1, 0.05, body, target, () => false).hit).toBeNull();
+    expect(runner.advance(1, 0.05, body, target, () => true).hit).toEqual({ damage: 7, tags: ['cover.checked'], stun: 0.5, trauma: 0.2, throughWalls: false });
+    expect(runner.advance(1, 0.05, body, target, () => true).hit).toBeNull();
+    runner.advance(1, 0.2, body, target, () => true);
+    expect(runner.advance(1, 0.2, body, target, () => true).done).toBe(true);
     const exempt = new ScriptStrikes(marshStrike(true)); exempt.start(1, 1, body, target);
-    exempt.advance(1, 0.1, body, target, false);
-    expect(exempt.advance(1, 0.05, body, target, false).hit?.throughWalls).toBe(true);
+    exempt.advance(1, 0.1, body, target, () => false);
+    expect(exempt.advance(1, 0.05, body, target, () => false).hit?.throughWalls).toBe(true);
   } finally { host.dispose(); }
 });
 
@@ -39,7 +39,7 @@ test('scripted contact continuation validates actor/row identity atomically and 
     const body = host.entities.get('boar:1'); if (body === undefined) throw new Error('Missing native fixture');
     const target = { x: body.position.x, y: body.position.y, z: body.position.z + 1 };
     const source = new ScriptStrikes(marshStrike()); source.start(1, 1, body, target);
-    source.advance(1, 0.1, body, target, true); source.advance(1, 0.05, body, target, true);
+    source.advance(1, 0.1, body, target, () => true); source.advance(1, 0.05, body, target, () => true);
     const saved = source.snapshot(), replay = new ScriptStrikes(marshStrike());
     const commit = replay.prepareRestore(saved, new Set([1])); expect(replay.snapshot()).toEqual([]); commit();
     expect(replay.snapshot()).toEqual(saved);
@@ -48,7 +48,7 @@ test('scripted contact continuation validates actor/row identity atomically and 
       expect(() => replay.prepareRestore(bad, new Set([1]))).toThrow(); expect(replay.snapshot()).toEqual(saved);
     }
     for (let i = 0; i < 40; i++) {
-      expect(replay.advance(1, 1 / 60, body, target, true)).toEqual(source.advance(1, 1 / 60, body, target, true));
+      expect(replay.advance(1, 1 / 60, body, target, () => true)).toEqual(source.advance(1, 1 / 60, body, target, () => true));
       expect(replay.snapshot()).toEqual(source.snapshot());
     }
     expect(() => new ScriptStrikes([{ ...marshStrike()[0], after: () => undefined }])).toThrow();
