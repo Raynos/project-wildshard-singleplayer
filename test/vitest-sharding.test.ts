@@ -56,7 +56,8 @@ test('parallel and dedicated native CI discover every existing file exactly once
  const job=workflow.split('\n  behaviour:\n')[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0];
  if(job===undefined)throw new Error('Missing behavior wave');
  expect(workflow).not.toContain('\n  behaviour-products:');
- expect(job).toContain('needs: prepare');
+ expect(job).toContain('needs: [prepare, fixtures]');
+ expect(job).toContain("needs.prepare.result == 'success'");
  expect(job).toContain(`WS_TEST_PRODUCTS_SHA: \${{ github.sha }}`);
  expect(job).not.toContain('WS_TEST_COHORT:');
  expect(job).toContain('fail-fast: false');

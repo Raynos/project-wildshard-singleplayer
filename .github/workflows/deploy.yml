@@ -443,16 +443,6 @@ jobs:
           compression-level: 0
           retention-days: 3
           if-no-files-found: error
-      # CI7: the costly program fixtures run once per run, beside the build; every
-      # shard of this SHA reads them (test/fixtures/runSnapshot.ts). A writer that
-      # refuses or fails leaves those fixtures to compute in the shards as before.
-      - name: Start exact-run fixture snapshots
-        run: |
-          mkdir -p tmp/ci-fixtures
-          (WS_FIXTURE_SNAPSHOT_WRITE="$PWD/tmp/ci-fixtures" WS_TEST_PRODUCTS_SHA="$GITHUB_SHA" VERCEL_GIT_COMMIT_SHA="$GITHUB_SHA" WS_VITEST_MAX_WORKERS=2 \
-            pnpm exec vitest run --config scripts/vitest-fixture-snapshots.config.ts test/fixture-snapshots > tmp/ci-fixture-writer.log 2>&1
-            echo $? > tmp/ci-fixture-writer.exit) &
-          echo $! > tmp/ci-fixture-writer.pid
 
       - name: Verify preparation, checks and build (parallel)
         run: python3 scripts/ci-fail-fast.py -- node scripts/build-without-browser.mjs -- node scripts/ci-checks.mjs --prepared 'python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs && node scripts/check-devserver.mjs dist'
@@ -538,20 +528,6 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-      - name: Pack exact-run fixture snapshots
-        run: |
-          tail --pid="$(cat tmp/ci-fixture-writer.pid)" -f /dev/null
-          tail -n 20 tmp/ci-fixture-writer.log
-          if [ "$(cat tmp/ci-fixture-writer.exit)" != 0 ]; then echo '::warning::Fixture snapshot writer failed; shards compute those fixtures'; fi
-          tar -C tmp/ci-fixtures -cf - --exclude='*.partial' . | zstd --long=30 -3 -T0 -o test-fixtures.tar.zst
-      - uses: actions/upload-artifact@v4
-        with:
-          name: test-fixtures
-          path: test-fixtures.tar.zst
-          compression-level: 0
-          retention-days: 3
-          if-no-files-found: error
-
       - name: Publish exact failure paths
         if: failure()
         uses: actions/upload-artifact@v4
@@ -626,9 +602,71 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
-  behaviour:
-    needs: prepare
+  # CI7: the costly program fixtures run once per run on their own runner, beside
+  # prepare (same checkout, cache and generation), so prepare's path is unchanged.
+  # Shards read these snapshots only when their generated tree hashes the same
+  # (scripts/ci-generated-manifest.sh); otherwise they compute, as off CI.
+  fixtures:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NODE_COMPILE_CACHE: ${{ github.workspace }}/.cache/node-compile
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: {version: 10}
+      - uses: actions/setup-node@v4
+        with: {node-version: 24, cache: pnpm}
+      - run: pnpm install --frozen-lockfile
+      - name: Bind cache snapshot to source inputs
+        id: inputs
+        run: echo "tree=$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_OUTPUT"
+      # Read-only: prepare alone saves this snapshot.
+      - uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/wildshard/generate
+            ~/.cache/wildshard/gen
+            ~/.cache/wildshard/compiler-code/1
+            ~/.cache/wildshard/shardfiles
+            ~/.cache/wildshard/basis
+          key: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
+          restore-keys: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-
+      - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --reuse
+      - name: Write exact-run fixture snapshots
+        env:
+          WS_TEST_PRODUCTS_SHA: ${{ github.sha }}
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+          WS_VITEST_MAX_WORKERS: '3'
+        run: |
+          mkdir -p tmp/ci-fixtures
+          bash scripts/ci-generated-manifest.sh > tmp/ci-generated.sha256
+          if ! WS_FIXTURE_SNAPSHOT_WRITE="$PWD/tmp/ci-fixtures" pnpm exec vitest run --config scripts/vitest-fixture-snapshots.config.ts test/fixture-snapshots; then
+            echo '::warning::A fixture snapshot writer failed; shards compute that fixture'
+          fi
+          cp tmp/ci-generated.sha256 tmp/ci-fixtures/generated.sha256
+          tar -C tmp/ci-fixtures -cf - --exclude='*.partial' . | zstd --long=30 -3 -T0 -o test-fixtures.tar.zst
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-fixtures
+          path: test-fixtures.tar.zst
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error
+
+  behaviour:
+    needs: [prepare, fixtures]
+    # A failed or skipped fixtures job only costs speed: shards then compute.
+    if: ${{ !cancelled() && needs.prepare.result == 'success' && (github.event_name == 'push' || github.event_name == 'pull_request') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -688,13 +726,23 @@ jobs:
           name: vitest-plan
           path: tmp/ci-vitest
       - uses: actions/download-artifact@v4
+        if: needs.fixtures.result == 'success'
+        continue-on-error: true
         with:
           name: test-fixtures
       - name: Restore exact-run fixture snapshots
         run: |
           mkdir -p tmp/ci-fixtures
-          zstd -d --long=30 -c test-fixtures.tar.zst | tar -C tmp/ci-fixtures -xf -
-          rm test-fixtures.tar.zst
+          if [ -f test-fixtures.tar.zst ]; then
+            zstd -d --long=30 -c test-fixtures.tar.zst | tar -C tmp/ci-fixtures -xf -
+            rm test-fixtures.tar.zst
+          fi
+          if [ -f tmp/ci-fixtures/generated.sha256 ] && bash scripts/ci-generated-manifest.sh | cmp -s - tmp/ci-fixtures/generated.sha256; then
+            ls tmp/ci-fixtures
+          else
+            echo '::warning::Fixture snapshots do not match this generated tree; shards compute them'
+            rm -f tmp/ci-fixtures/*.v8
+          fi
       # CI7: one duration-packed wave includes every product and source suite.
       - run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --config scripts/vitest-ci.config.ts --shard=${{ matrix.shard }}/24 --bail=0 --reporter=default --reporter=json --reporter=./scripts/vitest-timings.ts --outputFile=tmp/ci-vitest/results.json
         env:

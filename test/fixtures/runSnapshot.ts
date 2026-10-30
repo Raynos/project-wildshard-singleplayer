@@ -122,7 +122,7 @@ function readValue(bytes: Uint8Array, name: string, sha: string): unknown {
 }
 
 /**
- * CI7: an expensive program fixture computed once per CI run instead of once per importing file. The prepare job sets
+ * CI7: an expensive program fixture computed once per CI run instead of once per importing file. The fixtures CI job sets
  * `WS_FIXTURE_SNAPSHOT_WRITE` and writes `<name>.v8` after refusing any value a structured clone would not return
  * exactly (class instances, accessors, hidden or symbol keys, shared buffers; frozen objects are frozen again on read).
  * Test shards of the same commit (`WS_TEST_PRODUCTS_SHA`, set only after the exact-run artifacts verify) read it from
