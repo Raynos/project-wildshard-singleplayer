@@ -38,9 +38,17 @@ class FailFastTests(unittest.TestCase):
 
     def test_one_prepare_publishes_exact_inputs_and_builds_without_download_or_regeneration(self):
         source = Path('.github/workflows/deploy.yml').read_text()
-        prepare = source.split('\n  prepare:\n', 1)[1].split('\n  behaviour:\n', 1)[0]
+        prepare = source.split('\n  prepare:\n', 1)[1].split('\n  native-escape:\n', 1)[0]
         generation = 'node scripts/gen.mjs --reuse'
-        self.assertEqual(source.count(generation), 1)
+        # CI7: the fixtures job repeats generation on its own runner only to write
+        # snapshots; prepare alone packs and publishes products.
+        fixtures = source.split('\n  fixtures:\n', 1)[1].split('\n  behaviour:\n', 1)[0]
+        self.assertEqual(source.count(generation), 2)
+        self.assertEqual(prepare.count(generation), 1)
+        self.assertEqual(fixtures.count(generation), 1)
+        self.assertNotIn('ci-products.py pack', fixtures)
+        self.assertEqual(fixtures.count('actions/upload-artifact'), 1)
+        self.assertIn('name: test-fixtures', fixtures)
         self.assertNotIn('node scripts/build-shardfiles.mjs', prepare)
         self.assertNotIn('node scripts/gen.mjs --inputs-only', prepare)
         self.assertNotIn('  generated-inputs:', source)
@@ -58,7 +66,7 @@ class FailFastTests(unittest.TestCase):
             end = next((i for i, line in enumerate(lines) if line.startswith('  ')
                         and not line.startswith('   ') and line.endswith(':')), len(lines))
             job = '\n'.join(lines[:end])
-            self.assertIn('needs: prepare', job)
+            self.assertIn('needs: [prepare, fixtures]' if name == 'behaviour' else 'needs: prepare', job)
             self.assertIn('name: test-products', job)
             self.assertIn('python3 scripts/ci-products.py unpack', job)
             self.assertNotIn('node scripts/gen.mjs', job)
