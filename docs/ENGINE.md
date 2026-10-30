@@ -8021,25 +8021,26 @@ This pending allowance is rechecked at the end of W3.
 
 ### Shader-posed instance owner
 
-`src/game/looks/posedInstances.ts` defines `PosedInstances`: one bounded
-(1–4096) instanced draw with one or two named dynamic vec4 channels.
-`begin/add/commit` packs the current visible roster; `wrap` lends the same
-channel buffers to replacement geometry without copying its source arrays.
-The caller retains geometry, material, shader semantics, colours, bounds,
-clocks and visibility decisions. `PosedDraw` adds named numeric pose lanes,
-constants and bounded threshold unions, compiled once before drawing. Its
-`begin/add/commit` consumes the caller's poses without owning their clocks.
-Driftwood's gulls and Pine's guide ravens use it through `AmbientFlockDraw`;
-Pine's free wildlife uses the same draw directly.
+`src/game/looks/posedInstances.ts` supplies `PosedInstances`: 1–4096
+instances, one/two named dynamic vec4 channels. `begin/add/commit` packs
+visible poses; `wrap` lends buffers to replacement geometry without copies.
+Callers own source arrays, looks, colours, bounds, clocks and visibility.
+`PosedDraw` compiles numeric lanes, constants and bounded threshold unions.
+`AmbientFlockDraw` uses it for gulls/guides; wildlife uses it directly.
 
-`PosedDraw.library(product, name)` admits a named JSON library of tiered
-geometry/atlas files, original vertex ranges and Explorer rest cards.
-Admission loads no geometry: `preload()` prepares its shared immutable
-arrays, `draw(capacity)` borrows them with the lent look, and `models` lists
-its original rest specimens with loading boxes until preparation finishes.
-The library is shared by content-addressed row URL across world and Explorer
-readers. Atlas and glow parameter names, channel packing and rest poses
-belong to the rows. The host preserves each source range's original box.
+`PosedDraw.library(product, name)` admits tiered geometry/atlas, source
+ranges and Explorer rest cards by content-addressed row URL. Admission
+loads nothing; `preload()` prepares shared immutable arrays;
+`draw(capacity)` lends them with the look. `models` uses loading boxes
+until ready. World/Explorer share the library; rows own atlas/glow names,
+packing and rest poses. Source boxes stay exact.
+
+`PosedBufferPool` (`src/game/looks/posedBufferPool.ts`) optionally shares
+uploads within one Scope: disjoint CPU/geometry offsets, separate draws,
+counts and shadow flags. Updates precede rendering. Compatible page-owned
+guide/wildlife share; borrowed flocks and other libraries do not. Pool
+reservations refuse overflow/mismatch/ended owners; nonempty publication
+refuses retirement.
 
 ### Cell-streamed instances
 

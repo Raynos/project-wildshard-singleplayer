@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { BufferGeometry, Float32BufferAttribute, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
+import { BufferGeometry, Float32BufferAttribute, InstancedMesh, InterleavedBufferAttribute, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { parsePageLife } from '../src/format/pageLife';
@@ -24,6 +24,7 @@ import type { EquipmentService } from '../src/engine/combat/EquipmentService';
 import type { Audio } from '../src/engine/audio/Audio';
 import type { DeclaredSoundBank } from '../src/engine/audio/declaredBank';
 import type { ShardManifest } from '../src/game/shard/manifest';
+import { PosedDraw, type PosedLayout } from '../src/game/looks/posedInstances';
 
 test('forest v1 decisions retain arrival draws and exact corpse boundaries', () => {
   const guest = ReturnProgram.page(program);
@@ -64,6 +65,35 @@ test('hollow admission retains the original floor-plane distance and strict vert
 
 // the coast's borrowed gull flock (its reef fish school draws from its own product library, read through a real product)
 const coast = parsePageLife({ ...coastLife, flocks: coastLife.flocks.filter(row => row.library === undefined) });
+test('page wildlife and its own guide retain two shadow policies over one scoped upload owner', async () => {
+  const fake = new FakeGame(), source = new BufferGeometry().setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3));
+  const material = new MeshBasicMaterial(), systems: SystemSpec[] = [];
+  const layout: PosedLayout = { name: 'wildlife', attributes: ['aAnim', 'aAnim2'], channels: [['a0', 'a1', 'a2', 'a3'], ['kind', 'b1', 'b2', 1]] };
+  const library = vi.spyOn(PosedDraw, 'library').mockResolvedValue({ name: layout.name, models: [], preload: () => Promise.resolve(),
+    look: () => ({ name: layout.name, geometry: source, material }),
+    draw: (capacity, buffers) => new PosedDraw(layout, capacity, source, material, buffers) });
+  const rows = { version: 1, seed: PAGE_LIFE.seed, system: PAGE_LIFE.system, draw: PAGE_LIFE.draw, flocks: PAGE_LIFE.flocks, foragers: [] };
+  const ctx = legacyDouble<ShardContext>({ scope: fake.playerScope, product: legacyDouble<ShardContext['product']>({}),
+    game: legacyDouble<GameServices>({ runtime: legacyDouble<ShardRuntime>({ hooks: {}, play: null,
+      world: legacyDouble<ShardWorld>({ game: fake.asGame(), player: legacyDouble<Player>({ position: new Vector3(), sprinting: false }),
+        sky: legacyDouble<SkyRig>({ dayNight: null }) }) }) }), system: spec => { systems.push(spec); } });
+  try {
+    const life = await installPageLife(ctx, rows), wild = life.mesh;
+    if (wild === undefined) throw new Error('Missing wildlife');
+    const guideGroup = wild.children[0], guide = guideGroup?.children[0];
+    if (!(guide instanceof InstancedMesh)) throw new Error('Missing guide draw');
+    expect(wild.receiveShadow).toBe(true); expect(guide.receiveShadow).toBe(false);
+    expect(guide.parent?.parent).toBe(wild);
+    const guideRow = PAGE_LIFE.flocks.find(row => row.id === 'guide');
+    if (guideRow === undefined || !(guide.geometry instanceof BufferGeometry)) throw new Error('Missing guide row or geometry');
+    expect(systems.map(system => system.id).sort((a, b) => a.localeCompare(b))).toEqual([PAGE_LIFE.system.id, guideRow.row.system.id].sort((a, b) => a.localeCompare(b)));
+    const a = wild.geometry.getAttribute('aAnim'), b = guide.geometry.getAttribute('aAnim');
+    if (!(a instanceof InterleavedBufferAttribute) || !(b instanceof InterleavedBufferAttribute)) throw new Error('Expected shared channels');
+    expect(a.data).toBe(b.data); expect(a.offset).toBe(0); expect(b.offset).toBe((PAGE_LIFE.draw?.capacity ?? 0) * 4);
+    for (const system of systems) system.run(1 / 60, 1 / 60);
+    expect(wild.receiveShadow).toBe(true); expect(guide.receiveShadow).toBe(false);
+  } finally { library.mockRestore(); fake.playerScope.dispose(); source.dispose(); material.dispose(); }
+});
 test('page owner preserves the real coast flock and an independent marsh draw', async () => {
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3));

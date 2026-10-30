@@ -25,6 +25,7 @@ import { parsePageLife, type PageLifeRows } from '@wildshard/format/pageLife';
 import { CrowdRoster, CrowdWeaponTarget, ForagerTargets } from '../shardfile/crowdRuntime';
 import { type AmbientFlockDraw, createAmbientFlock, installAmbientFlock } from '../ambient/ambientFlock';
 import { PosedDraw } from '../looks/posedInstances';
+import { PosedBufferPool } from '../looks/posedBufferPool';
 import { lendLooks } from '../shardfile/lentLooks';
 import { runtimeLookMaterials } from '../shardfile/runtimeProduct';
 
@@ -55,7 +56,12 @@ export async function installPageLife(ctx: ShardContext, input: unknown, journal
   let lifeTime = app.clock.now;
   const now = (): number => retained ? lifeTime : app.clock.now;
   const rng = new Rng(data.seed), fwd = new THREE.Vector3();
-  const wild = data.draw === null ? null : library?.draw(data.draw.capacity) ?? null;
+  // Only the page's own guide draws share storage. Borrowed and independently
+  // loaded flocks retain their separate ownership and upload lifetimes.
+  const guideCapacity = data.flocks.reduce((sum, entry) => sum + (!entry.borrowed && !entry.packed && entry.library === undefined ? entry.row.count : 0), 0);
+  const capacity = (data.draw?.capacity ?? 0) + guideCapacity;
+  const buffers = data.draw !== null && library !== null && guideCapacity > 0 && capacity <= 4096 ? new PosedBufferPool(ctx.scope, capacity) : undefined;
+  const wild = data.draw === null ? null : library?.draw(data.draw.capacity, buffers) ?? null;
   if (wild !== null) game.scene.add(wild.mesh);
   const groups = new Map<string, AmbientGroup>(), packed: AmbientGroup[] = [], separate: AmbientFlockDraw[] = [];
   for (const entry of data.flocks) {
@@ -77,7 +83,9 @@ export async function installPageLife(ctx: ShardContext, input: unknown, journal
       game.scene.add(draw.group); installAmbientFlock(ctx, draw, entry.anchor === undefined ? player : { position: entry.anchor }); groups.set(entry.id, draw.flock);
     } else {
       if (wild === null) throw new Error('Ambient guide needs its model library');
-      const draw = createAmbientFlock(entry.row, wild.look, entry.perches);
+      const channels: readonly [string, string?] = entry.row.attributes[1] === null ? [entry.row.attributes[0]] : [entry.row.attributes[0], entry.row.attributes[1]];
+      const look = buffers?.configured === true && buffers.supports(channels) ? { ...wild.look, buffers } : wild.look;
+      const draw = createAmbientFlock(entry.row, look, entry.perches);
       wild.mesh.add(draw.group); installAmbientFlock(ctx, draw, player); groups.set(entry.id, draw.flock);
     }
   }

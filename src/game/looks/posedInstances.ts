@@ -10,6 +10,7 @@ import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { posedAssets, type PosedAssetSet } from '../plugin/geometry';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { lentLook, setLentParam, setLentTexture } from '../shardfile/lentLooks';
+import type { PosedBufferPool, PosedBufferView } from './posedBufferPool';
 
 /** One dynamic instance owner for shader-posed crowds. Geometry attributes,
  * material, channel meanings, decisions and clocks belong to the caller.
@@ -25,20 +26,23 @@ export class PosedInstances {
   readonly capacity: number;
   private readonly anim: THREE.InstancedBufferAttribute;
   private readonly anim2: THREE.InstancedBufferAttribute | null;
+  private readonly shared: PosedBufferView | null;
   private readonly m = new THREE.Matrix4(); private readonly q = new THREE.Quaternion(); private readonly e = new THREE.Euler();
   private readonly p = new THREE.Vector3(); private readonly s = new THREE.Vector3();
   private n = 0;
 
   /** `capacity` instances of the packed `src` (authored geometry) drawn in `material` (the shard's posed look) */
-  constructor(capacity: number, name: string, material: THREE.Material, src: () => THREE.BufferGeometry, readonly channels: readonly [string, string?]) {
+  constructor(capacity: number, name: string, material: THREE.Material, src: () => THREE.BufferGeometry, readonly channels: readonly [string, string?], buffers?: PosedBufferPool) {
     if (!Number.isInteger(capacity) || capacity < 1 || capacity > 4096 || channels.some(channel => channel !== undefined && !/^[a-zA-Z_][a-zA-Z0-9_]*$/u.test(channel)) || channels[0] === channels[1]) throw new Error('Invalid posed instance capacity or channels');
     this.capacity = capacity;
-    this.anim = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4); this.anim.setUsage(THREE.DynamicDrawUsage);
-    this.anim2 = channels[1] === undefined ? null : new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4); this.anim2?.setUsage(THREE.DynamicDrawUsage);
+    this.shared = buffers?.reserve(capacity, channels) ?? null;
+    this.anim = new THREE.InstancedBufferAttribute(this.shared?.first ?? new Float32Array(capacity * 4), 4); this.anim.setUsage(THREE.DynamicDrawUsage);
+    this.anim2 = channels[1] === undefined ? null : new THREE.InstancedBufferAttribute(this.shared?.second ?? new Float32Array(capacity * 4), 4); this.anim2?.setUsage(THREE.DynamicDrawUsage);
     const geo = this.wrap(src(), true);
     this.mesh = new THREE.InstancedMesh(geo, material, capacity);
+    if (this.shared !== null) this.mesh.instanceMatrix = new THREE.InstancedBufferAttribute(this.shared.matrix, 16);
     this.mesh.name = name;
-    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.mesh.instanceMatrix.setUsage(this.shared === null ? THREE.DynamicDrawUsage : THREE.StaticDrawUsage);
     this.mesh.frustumCulled = false;
     this.mesh.castShadow = false;
     this.mesh.receiveShadow = true;
@@ -53,8 +57,9 @@ export class PosedInstances {
     const geo = new THREE.InstancedBufferGeometry();
     for (const [key, attribute] of Object.entries(src.attributes)) geo.setAttribute(key, attribute);
     geo.setIndex(src.getIndex());
-    geo.setAttribute(this.channels[0], this.anim);
-    if (this.anim2 !== null && this.channels[1] !== undefined) geo.setAttribute(this.channels[1], this.anim2);
+    if (this.shared !== null) geo.setAttribute('instanceMatrix', this.shared.matrixAttribute);
+    geo.setAttribute(this.channels[0], this.shared?.firstAttribute ?? this.anim);
+    if (this.anim2 !== null && this.channels[1] !== undefined) geo.setAttribute(this.channels[1], this.shared?.secondAttribute ?? this.anim2);
     if (bound) geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e5);
     return geo;
   }
@@ -83,6 +88,7 @@ export class PosedInstances {
   commit(): void {
     this.mesh.count = this.n;
     if (this.n === 0) return;
+    if (this.shared !== null) { this.shared.publish(); return; }
     this.mesh.instanceMatrix.needsUpdate = true; this.anim.needsUpdate = true; if (this.anim2 !== null) this.anim2.needsUpdate = true;
   }
 }
@@ -99,7 +105,7 @@ export interface PosedLayout {
   readonly yaw?: number | undefined;
   readonly glow?: string | undefined;
 }
-interface PosedLibrary { readonly name: string; readonly preload: () => Promise<void>; readonly draw: (capacity: number) => PosedDraw; readonly models: readonly RosterEntry[];
+interface PosedLibrary { readonly name: string; readonly preload: () => Promise<void>; readonly draw: (capacity: number, buffers?: PosedBufferPool) => PosedDraw; readonly models: readonly RosterEntry[];
   /** the loaded library as a flock's look (its own posed draw packs it) */
   readonly look: () => { readonly name: string; readonly geometry: THREE.BufferGeometry; readonly material: THREE.Material; readonly yaw?: number } }
 interface DrawPose { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number; readonly pitch: number; readonly roll: number; readonly scale?: number }
@@ -114,9 +120,9 @@ export class PosedDraw {
   readonly glow: { value: number };
   private readonly posed: PosedInstances;
   private readonly lanes: readonly ((pose: DrawPose) => number)[];
-  constructor(private readonly row: PosedLayout, capacity: number, geometry: THREE.BufferGeometry, material: THREE.Material) {
+  constructor(private readonly row: PosedLayout, capacity: number, geometry: THREE.BufferGeometry, material: THREE.Material, buffers?: PosedBufferPool) {
     this.look = { name: row.name, geometry, material };
-    this.posed = new PosedInstances(capacity, row.name, material, () => geometry, row.attributes);
+    this.posed = new PosedInstances(capacity, row.name, material, () => geometry, row.attributes, buffers?.supports(row.attributes) === true ? buffers : undefined);
     this.mesh = this.posed.mesh;
     const read = (pose: DrawPose, field: string): number => {
       const value: unknown = Reflect.get(pose, field);
@@ -168,8 +174,8 @@ export class PosedDraw {
       assets = set;
     })());
     const ready = (): PosedAssetSet => { if (assets === null) throw new Error('Required posed library is not loaded'); return assets; };
-    const draw = (capacity: number): PosedDraw => {
-      const set = ready(), view = new PosedDraw(row, capacity, set.geometry, lentLook(row.name));
+    const draw = (capacity: number, buffers?: PosedBufferPool): PosedDraw => {
+      const set = ready(), view = new PosedDraw(row, capacity, set.geometry, lentLook(row.name), buffers);
       if (row.atlas !== undefined && set.atlas !== null) { setLentTexture(row.name, row.atlas, set.atlas); uploadTexture(set.atlas); }
       return view;
     };
