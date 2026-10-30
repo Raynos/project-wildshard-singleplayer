@@ -79,7 +79,7 @@ export function witnessProductInputFiles(): readonly string[] {
   const root = pathToFileURL(`${witnessProductDirectory()}/`);
   return ['shard.json', ...nativeFiles(witnessProduct).map(file => file.path)].map(path => new URL(path, root).href);
 }
-function nativeAssets(product: ShardProduct): Map<string, Uint8Array> {
+function readNativeAssets(product: ShardProduct): Map<string, Uint8Array> {
   const assets = new Map<string, Uint8Array>(), root = pathToFileURL(`${witnessProductDirectory()}/`);
   for (const file of nativeFiles(product)) {
     const bytes = Uint8Array.from(readFileSync(new URL(file.path, root)));
@@ -88,9 +88,15 @@ function nativeAssets(product: ShardProduct): Map<string, Uint8Array> {
   }
   return assets;
 }
-async function boot(rapier: Rapier, snapshot?: string): Promise<TrustedHeadlessResident> {
-  const product = await loadHeadlessProduct(witnessProductDirectory());
-  return createNativeProofResident({ shard: product.shardfile, assets: nativeAssets(product), rapier, product }, prepareHeadlessRuntime, snapshot);
+// The pinned immutable product is admitted once per witness process. Every
+// resident/fresh worker gets its own byte arrays, never another host's loans.
+let checkedNativeAssets: ReadonlyMap<string, Uint8Array> | undefined;
+function nativeAssets(): Map<string, Uint8Array> {
+  checkedNativeAssets ??= readNativeAssets(witnessProduct);
+  return new Map([...checkedNativeAssets].map(([name, bytes]) => [name, bytes.slice()]));
+}
+function boot(rapier: Rapier, snapshot?: string): Promise<TrustedHeadlessResident> {
+  return createNativeProofResident({ shard: witnessProduct.shardfile, assets: nativeAssets(), rapier, product: witnessProduct }, prepareHeadlessRuntime, snapshot);
 }
 function manifest(): Recorded { return v.parse(Manifest, readWitnessManifest(MANIFEST)); }
 function tape(m: Recorded): HeadlessCommand[][] {
@@ -244,8 +250,8 @@ export async function reefProof(rapier: Rapier): Promise<object> {
     if (!session.host.playerSwim.diving) throw new Error('Real held DIVE never entered a dive');
     const restoreTick = session.host.state.tick, checkpoint = save(session);
     fork = await boot(rapier, checkpoint);
-    const product = await loadHeadlessProduct(witnessProductDirectory());
-    worker = await createNativeProofWorker(product.shardfile, nativeAssets(product), 'driftwood', checkpoint, productHeadlessSections(product), witnessProductDirectory());
+    const product = witnessProduct;
+    worker = await createNativeProofWorker(product.shardfile, nativeAssets(), 'driftwood', checkpoint, productHeadlessSections(product), witnessProductDirectory());
     const initial = worker.checkpoint;
     if (digest(fork) !== digest(session) || initial === undefined || canonicalSimDigest(initial.snapshot) !== digest(session)) throw new Error('Mid-dive restore was not exact');
     const wetStep = async (commands: HeadlessCommand[]): Promise<void> => {
@@ -320,8 +326,8 @@ export async function ziplineProof(rapier: Rapier): Promise<object> {
     if (checkpoint === undefined || fork === undefined || frames.length !== 60 || !session.host.flags.has('used:zipline') || digest(fork) !== digest(session)) throw new Error('Zipline continuation did not land exactly');
     const earned = Object.values(profile(local).state().achievements).find(row => row.id === 'zipline');
     if (earned?.count !== 1) throw new Error('Real landing did not persist its single zipline fact');
-    const product = await loadHeadlessProduct(witnessProductDirectory());
-    worker = await createNativeProofWorker(product.shardfile, nativeAssets(product), 'driftwood', checkpoint, productHeadlessSections(product), witnessProductDirectory());
+    const product = witnessProduct;
+    worker = await createNativeProofWorker(product.shardfile, nativeAssets(), 'driftwood', checkpoint, productHeadlessSections(product), witnessProductDirectory());
     if (worker.checkpoint === undefined || canonicalSimDigest(worker.checkpoint.snapshot) !== canonicalSimDigest(checkpoint)) throw new Error('SDK mid-ride restore diverged');
     for (const frame of frames) {
       const commit = await worker.step([{ source: 'witness.zipline', commands: frame.commands }]);
@@ -369,8 +375,8 @@ export async function replayProof(rapier: Rapier, workerTicks = 60): Promise<obj
     if (captain === undefined || !captain.alive || captain.hp >= 200 || typeof encounter !== 'string') throw new Error('Checkpoint is not the living mid-fight Captain');
     const hp = captain.hp, checkpoint = save(original); restored = await boot(rapier, checkpoint);
     if (digest(original) !== digest(restored)) throw new Error('Mid-fight restore not exact');
-    const product = await loadHeadlessProduct(witnessProductDirectory());
-    worker = await createNativeProofWorker(product.shardfile, nativeAssets(product), 'driftwood', checkpoint, productHeadlessSections(product), witnessProductDirectory());
+    const product = witnessProduct;
+    worker = await createNativeProofWorker(product.shardfile, nativeAssets(), 'driftwood', checkpoint, productHeadlessSections(product), witnessProductDirectory());
     const until = Math.min(m.ticks, cp.tick + 1000), a: Recorded['effects'] = [], b: Recorded['effects'] = [];
     if (until - cp.tick < workerTicks) throw new Error('Captain tape is shorter than the requested worker replay');
     if (until - cp.tick > 10_000) throw new Error('Captain replay exceeded its 10k window');
