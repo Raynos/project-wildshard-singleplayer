@@ -21,7 +21,7 @@ export async function authorBundleCached(root, recipe, compile, cacheRoot = shar
   const environment = Object.fromEntries(Object.entries(process.env)
     .filter(([name]) => name.startsWith('VITE_') || name === 'NODE_ENV' || name === 'NODE_OPTIONS')
     .sort(([left], [right]) => left.localeCompare(right)));
-  const args = ['author-bundle/2', root, JSON.stringify(environment), ...recipe];
+  const args = ['author-bundle/3', root, JSON.stringify(environment), ...recipe];
   const directory = resolve(cacheRoot, '.author-bundles', digest(JSON.stringify(args)));
   const receipts = resolve(directory, 'inputs'), memo = new InputHashMemo(root);
   const key = matchingProductInputKey(root, receipts, args, memo);

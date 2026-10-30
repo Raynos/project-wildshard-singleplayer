@@ -64,6 +64,13 @@ export async function runWildshard(args) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  try { await runWildshard(process.argv.slice(2)); }
+  try {
+    const args=process.argv.slice(2);
+    if(args[0]==='--prepare-compiler') {
+      if(args.length!==1)throw new Error('Compiler preparation accepts no product arguments');
+      const started=performance.now(),compiler=await prepareWildshard();
+      console.info(`Author compiler ${compiler.reused?'reused':'built'} in ${((performance.now()-started)/1000).toFixed(3)}s (before product workers)`);
+    } else await runWildshard(args);
+  }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }

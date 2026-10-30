@@ -6,7 +6,7 @@
 import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { runWildshard, prepareWildshard } from './wildshard.mjs';
+import { runWildshard } from './wildshard.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { mapInputHashes, mapTilesHash, verifyMapPixels } from './map-hash.mjs';
 import { readBuildKey, reuseOrBuild, shardfileCacheRoot, shardfileKey, treeHashes } from './shardfile-cache.mjs';
@@ -148,8 +148,9 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     }
   }, recorded ? async () => {
     await prepareProductBuildTools(products.filter(row => selected === undefined || selected.includes(row.name)).map(row => row.name));
-    const started=performance.now(), compiler=await prepareWildshard();
-    console.info(`Author compiler ${compiler.reused?'reused':'built'} in ${((performance.now()-started)/1000).toFixed(3)}s (before product workers)`);
+    // Keep the compiler receipt independent of modules loaded by generation's
+    // parent. Otherwise unrelated table generators become every product's input.
+    await runShardBuild(['--prepare-compiler'],new AbortController().signal);
   } : undefined);
   } finally { inputHashes.flush(); }
   runtimeReport.sort((a,b)=>a.slug.localeCompare(b.slug));
