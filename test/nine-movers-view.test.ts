@@ -9,7 +9,7 @@ import { ViewProgramSchema } from '../src/format/viewProgram';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import plan from '../src/shards/nine-dragon-stack/data/layoutPlan.json' with { type: 'json' };
 import dressing from '../src/shards/nine-dragon-stack/data/worldDressing.json' with { type: 'json' };
-import { MOVER_REST, MOVER_STAGES, nineMoversView } from '../src/shards/nine-dragon-stack/generators/moversView';
+import { MOVER_REST, MOVER_STAGES, moverPlacements, nineMoversView } from '../src/shards/nine-dragon-stack/generators/moversView';
 
 const UP = new Vector3(0, 1, 0), { MOVERS } = dressing, datum = plan.Y0;
 
@@ -49,4 +49,12 @@ test('Nine\'s movers view module poses the train, the gondola and the drones on 
     t += 600; program.frame(dt, t); check(t);
   } finally { clock.mockRestore(); scope.dispose(); }
   for (const [i, pose] of original(0).entries()) expect(MOVER_REST[i]).toMatchObject({ x: expect.closeTo(pose.x, 4) as number, y: expect.closeTo(pose.y, 4) as number, z: expect.closeTo(pose.z, 4) as number, yaw: expect.closeTo(pose.yaw, 6) as number });
+});
+
+test('each mover copy stands at identity under the object the view module poses (NF3: no double rest pose)', () => {
+  const rows = moverPlacements();
+  expect(rows.map(row => row.id)).toEqual([...MOVER_STAGES]);
+  for (const row of rows) expect(row.poses).toEqual([{ x: 0, y: 0, z: 0, yxz: { yaw: 0, scale: 1 } }]);
+  // the world height then is the module's own pose: the train on its viaduct, not in the sky
+  expect(MOVER_REST[0]?.y).toBeCloseTo(150.5, 1); expect(MOVER_REST[1]?.y).toBeCloseTo(109.7, 0);
 });

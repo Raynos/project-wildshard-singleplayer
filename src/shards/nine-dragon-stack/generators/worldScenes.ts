@@ -1,6 +1,6 @@
 import { NINE_MATERIAL_LOOKS, NINE_WHOLE_DRESSING } from './wholeDressing';
 import { addWindowNodes, windowStep } from './facadeWindowRecipe';
-import { MOVER_REST, MOVER_STAGES } from './moversView';
+import { moverPlacements } from './moversView';
 import type { NineSourceSigns } from './signsProgram';
 import signTextures from '../data/signTextureSources.json' with { type: 'json' };
 import rawSignRows from '../data/signView.json' with { type: 'json' };
@@ -160,13 +160,8 @@ models.push({ key: 'sign', id: 'nine-dragon-stack/sign', name: 'Sign (neon, ligh
       ? [signDraw('boards', `${name}-boards`, 'neon-board'), signDraw('tubes', `${name}-tubes`, 'neon-tube', 5)] : [signDraw('main', name, 'neon')], p);
   }) });
 const catalogue = parseWorldSceneModels({ product: 'nine-dragon-stack', models });
-// the movers (the train, the gondola, the drones): one copy each where the movers view module poses it at its first
-// frame (generators/moversView.ts); the world assembly places each and the module moves it
-const MOVER_PLACEMENTS = MOVER_STAGES.map((id, i) => {
-  const pose = MOVER_REST[i]; if (pose === undefined) throw new Error(`Nine mover ${id} has no rest pose`);
-  return { id, model: i === 0 ? 'monorailTrain' : i === 1 ? 'cableGondola' : 'drone', name: 'movers', draw: 'single' as const, piece: { id },
-    poses: [{ x: pose.x, y: pose.y, z: pose.z, yxz: { yaw: pose.yaw, scale: 1 } }] };
-});
+// the movers (the train, the gondola, the drones): one copy each under its object, which the movers view module poses
+const MOVER_PLACEMENTS = moverPlacements();
 
 // The world's banyan crown (its cards drawn twice: colour, then the depth pass) and the Well's mist.
 /** a dressing draw: its node, source model, material slot, draw order, mesh name, whether it is frustum-culled and its pose */

@@ -19,6 +19,14 @@ export const MOVER_REST: { x: number; y: number; z: number; yaw: number; }[] = [
   ...MOVERS.drones.map(path => ({ x: path.x + path.r * Math.cos(path.phase), y: datum + path.y + Math.sin(path.phase) * path.bob, z: path.z + path.r * Math.sin(path.phase), yaw: 0 - path.phase })),
 ];
 
+/** Each mover's placement (NF3): one copy at identity under its stage's object. The movers view module poses that object at
+ *  its world pose from the first frame (MOVER_REST at page time 0), so a copy carrying its rest pose too stood at double
+ *  height: the train at y 301, not 150.5. */
+export function moverPlacements(): { id: string; model: 'monorailTrain' | 'cableGondola' | 'drone'; name: 'movers'; draw: 'single'; piece: { id: string }; poses: [{ x: 0; y: 0; z: 0; yxz: { yaw: 0; scale: 1 } }] }[] {
+  return MOVER_STAGES.map((id, i) => ({ id, model: i === 0 ? 'monorailTrain' : i === 1 ? 'cableGondola' : 'drone', name: 'movers', draw: 'single',
+    piece: { id }, poses: [{ x: 0, y: 0, z: 0, yxz: { yaw: 0, scale: 1 } }] }));
+}
+
 /** Nine's movers as a view program (behaviour/movers.as): the page clock then constants in the module's order, one transform per mover. */
 export function nineMoversView(): ViewProgramRows {
   const constant = (value: number) => ({ kind: 'constant' as const, value });
