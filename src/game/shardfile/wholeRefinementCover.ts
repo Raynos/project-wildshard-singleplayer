@@ -18,6 +18,8 @@ export function wholeRefinementCover(ctx: ShardContext, owner: Scope, entry: { r
   if (props === null) throw new Error('Fine refinement requires declared coarse props');
   const parents = new Map(props.tiles.filter(tile => tile.lod === 1).map(tile => [tile.z * 4 + tile.x, tile]));
   const pending = new Map<number, Promise<void>>(), masks = new Map<number, readonly ResidentTile[]>();
+  /** the quadrant bits last written to a parent's tiles (a reloaded parent is a new list, so it is written again) */
+  const applied = new WeakMap<readonly ResidentTile[], number>();
   const live = (): void => { if (owner.disposed || owner.disposing) throw new Error('Coarse refinement owner is retired'); };
   let presentation: Promise<ReturnType<typeof clientTileViews>> | undefined;
   const views = (): Promise<ReturnType<typeof clientTileViews>> => {
@@ -55,8 +57,14 @@ export function wholeRefinementCover(ctx: ShardContext, owner: Scope, entry: { r
       // measurement only: a capture's pin lifts the mask, so the coarse cover draws over its fine tiles
       const forced = harnessPins()?.coarseLevel === 'forced';
       for (const [key, tiles] of masks) {
-        const x = key % 4 * 2, z = Math.floor(key / 4) * 2, hidden = new Set<number>();
-        for (let quadrant = 0; quadrant < 4; quadrant++) if (!forced && rendered((z + Math.floor(quadrant / 2)) * 8 + x + quadrant % 2)) hidden.add(quadrant);
+        const x = key % 4 * 2, z = Math.floor(key / 4) * 2;
+        let bits = 0;
+        for (let quadrant = 0; quadrant < 4; quadrant++) if (!forced && rendered((z + Math.floor(quadrant / 2)) * 8 + x + quadrant % 2)) bits |= 1 << quadrant;
+        // NF15: a parent's mask changes only when a fine tile publishes or leaves; the rest of the frames write nothing
+        if (applied.get(tiles) === bits) continue;
+        applied.set(tiles, bits);
+        const hidden = new Set<number>();
+        for (let quadrant = 0; quadrant < 4; quadrant++) if ((bits & 1 << quadrant) !== 0) hidden.add(quadrant);
         for (const tile of tiles) tile.mask(hidden);
       }
     } });
