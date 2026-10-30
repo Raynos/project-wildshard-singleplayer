@@ -1,5 +1,7 @@
 # Frame cost: draw only what is seen, and make every frame cheap (mini plan)
 
+**Archived 2026-10-30 ~13:30 Cancun**, every row done. Jake: *"If plans are done, that's archived, and foundation's done, archived."*
+
 **State:** open 2026-10-29, written by wildshard-v's subagent for wildshard-new; part of FOUNDATIONS wave 1 (MF7 / G890); every row blocks the SHARD-PLATFORM archive (G877 / G892); the builder is autonomous (G872).
 
 ## Jake's words (2026-10-29 ~14:55 Cancun)

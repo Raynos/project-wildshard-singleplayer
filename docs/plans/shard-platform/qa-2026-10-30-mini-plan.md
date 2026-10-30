@@ -2,7 +2,7 @@
 
 **State:** `open` 2026-10-30 ~11:38 Cancun. Written by wildshard-v for wildshard-new, which hands the rows to lanes and
 marks them. Jake, 11:38: *"Let's start a qa 1 todays date mini plan"* (ask E511; G932). The lists before it,
-[qa 10-29](qa-2026-10-29-mini-plan.md) and [qa 10-29 (2)](qa-2026-10-29-2-mini-plan.md), are all done. Same rules
+[qa 10-29](../../../project/archive/2026-10-30-qa-2026-10-29.md) and [qa 10-29 (2)](../../../project/archive/2026-10-30-qa-2026-10-29-2.md), are all done. Same rules
 (G877, G879): **every row here blocks the SHARD-PLATFORM archive**, none goes to the damage list, and the legacy deletion
 (LD5–LD10) still waits for Jake's word after this QA (G873, G908). The builder is autonomous (G872): it never waits for
 Jake; it decides on the recommended fix and logs the call in STATE.md. Visual fixes are Opus-only (G848).
