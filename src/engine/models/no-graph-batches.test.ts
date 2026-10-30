@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
-// E271 / E272: no multi-draw for a graph look. A graph (node) material on a BatchedMesh did not even compile on the grid
-// (the cell prefix landed above its GL_ANGLE_multi_draw directive) and spammed 'program not valid'; this keeps it gone.
+// E271 / E272, then PF1 (G936): a graph look batches like a classic one on the guarded batched draws (the grid's cell clip
+// now keeps a batch's GL_ANGLE_multi_draw directive first, game/grid/cell-clip-defines.test.ts); Debug ▸ Graph batches ▸
+// Instanced is the old per-geometry fallback. Facades never batch (scripts/test-facade-instancing.mjs).
 // oxlint-disable-next-line import/no-nodejs-modules -- Scans the live source for BatchedMesh constructions.
 import { readdirSync, readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Joins the scanned source paths.
@@ -10,11 +11,13 @@ import { BatchedMesh, BoxGeometry, Color, InstancedMesh, Matrix4, MeshStandardMa
 import { defineModel, modelContext } from './model';
 import { place } from './place';
 import { graphLook, InstancedBatch } from './instancedBatch';
+import { setDev } from '../core/devMode';
+import { setGraphBatches } from '../render/graphBatches';
 
 const nodeMaterial = (): MeshStandardMaterial => { const m = new MeshStandardMaterial(); Object.defineProperty(m, 'isNodeMaterial', { value: true }); return m; };
 const kinds = (root: Object3D): string[] => { const out: string[] = []; root.traverse(o => { if (o instanceof BatchedMesh) out.push('batched'); else if (o instanceof InstancedMesh) out.push('instanced'); }); return out; };
 
-test('a batched model draw with a graph look draws instanced, a classic one still batches', () => {
+test('a batched model draw batches a graph look as a classic one; the Instanced row draws it instanced', () => {
   const ctx = modelContext(null);
   Object.assign(ctx, { renderer: { extensions: { has: (name: string) => name === 'WEBGL_multi_draw' } } });
   const drawn = (material: MeshStandardMaterial): string[] => {
@@ -24,9 +27,14 @@ test('a batched model draw with a graph look draws instanced, a classic one stil
     return kinds(place(model, placements, { ctx, draw: 'batched', registry: null }).object);
   };
   expect(graphLook(nodeMaterial())).toBe(true); expect(graphLook(new MeshStandardMaterial())).toBe(false);
-  const graph = drawn(nodeMaterial());
-  expect(graph).not.toContain('batched'); expect(graph).toContain('instanced');
+  expect(drawn(nodeMaterial())).toEqual(['batched']);
   expect(drawn(new MeshStandardMaterial())).toEqual(['batched']);
+  setDev(true); setGraphBatches(false);
+  try {
+    const graph = drawn(nodeMaterial());
+    expect(graph).not.toContain('batched'); expect(graph).toContain('instanced');
+    expect(drawn(new MeshStandardMaterial())).toEqual(['batched']);
+  } finally { setGraphBatches(true); setDev(false); }
 });
 
 test('an instanced batch packs only visible copies per geometry, keeps their matrices and tints, and moves them between shapes', () => {
@@ -80,7 +88,7 @@ test('every BatchedMesh in the live source is one of the three guarded engine dr
     }
   };
   walk('src');
-  // each routes a graph look (graphLook) to instancing before it builds a batch; a new BatchedMesh needs the same guard here
+  // each names a graph look (graphLook) before it builds a batch (the Instanced row's fallback); a new BatchedMesh needs the same here
   const guarded = ['src/engine/models/place.ts', 'src/engine/world/forest/Forest.ts', 'src/engine/world/interact/Interactables.ts'];
   expect(found.sort((p, q) => p.localeCompare(q))).toEqual([...guarded].sort((p, q) => p.localeCompare(q)));
   for (const path of guarded) expect(readFileSync(path, 'utf8')).toMatch(/graphLook\(/u);

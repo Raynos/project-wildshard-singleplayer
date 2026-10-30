@@ -6,6 +6,7 @@ import { updateWind } from '../wind';
 import type { SkyRig as Sky } from '../skyRig';
 import { TIER_CONFIG } from '../../core/tier';
 import { graphLook } from '../../models/instancedBatch';
+import { graphBatches } from '../../render/graphBatches';
 
 
 /**
@@ -91,8 +92,9 @@ export class Forest {
   constructor(factory: TreeFactory, sky: Sky) {
     this.factory = factory;
     this.sky = sky;
-     // a graph tree look never draws on a multi-draw batch (E271 / E272)
-     this.path = factory.multiDraw && !graphLook(factory.barkMaterial) && !graphLook(factory.needleMaterial) ? 'batched' : 'instanced'; }
+     // a graph tree look batches as a classic one does (PF1, G936); Debug ▸ Graph batches ▸ Instanced is the E271 / E272 path
+     const graph = graphLook(factory.barkMaterial) || graphLook(factory.needleMaterial);
+     this.path = factory.multiDraw && (!graph || graphBatches()) ? 'batched' : 'instanced'; }
 
   /** Soft canopy-density texture (for terrain darkening under trees, and grass thinning). */
   canopyMap!: THREE.DataTexture;

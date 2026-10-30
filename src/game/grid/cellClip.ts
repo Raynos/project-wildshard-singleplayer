@@ -36,6 +36,14 @@ const isDraw = (node: Object3D): node is Draw => node instanceof Mesh || node in
 const isSkin = (node: Object3D): node is SkinnedMesh => node instanceof SkinnedMesh;
 const isMaterial = (value: unknown): value is Material => value instanceof Material;
 const MAIN = /void\s+main\s*\(\s*(?:void)?\s*\)/;
+/** a stage's leading `#version` / `#extension` lines (a graph batch's vertex stage opens with `#extension
+ *  GL_ANGLE_multi_draw`): they must precede every other token, so the clip's own declarations go after them (PF1; the
+ *  E271 / E272 compile failure, ~200 'program not valid' a minute on the grid) */
+const DIRECTIVES = /^(?:[ \t]*\n)*(?:[ \t]*#(?:version|extension)\b[^\n]*\n(?:[ \t]*\n)*)+/u;
+function splitDirectives(source: string): readonly [string, string] {
+  const head = DIRECTIVES.exec(source)?.[0] ?? '';
+  return [head, source.slice(head.length)];
+}
 
 /** Extend the old lit-sheet clip to basic, graph, custom, line, point and sprite programs.
  * The final projected vertex includes instancing, skinning and shader displacement. */
@@ -44,8 +52,9 @@ function clipProgram(material: Material, cell: { value: Vector4 }, camera: { val
     if (!MAIN.test(shader.vertexShader) || !MAIN.test(shader.fragmentShader)) throw new Error('Cell draw has no clippable shader main');
     shader.uniforms['wsCellClip'] = cell;
     shader.uniforms['wsCellClipToWorld'] = camera;
-    const vertex = shader.vertexShader.replace(MAIN, 'void wsCellVertex()');
-    shader.vertexShader = `
+    const [vertexHead, vertexBody] = splitDirectives(shader.vertexShader), [fragmentHead, fragmentBody] = splitDirectives(shader.fragmentShader);
+    const vertex = vertexBody.replace(MAIN, 'void wsCellVertex()');
+    shader.vertexShader = `${vertexHead}
 #if __VERSION__ >= 300
 out highp vec3 wsCellWorld;
 #else
@@ -58,14 +67,14 @@ void main() {
   vec4 cellWorld = wsCellClipToWorld * gl_Position;
   wsCellWorld = cellWorld.xyz / cellWorld.w;
 }`;
-    shader.fragmentShader = `
+    shader.fragmentShader = `${fragmentHead}
 #if __VERSION__ >= 300
 in highp vec3 wsCellWorld;
 #else
 varying highp vec3 wsCellWorld;
 #endif
 uniform highp vec4 wsCellClip;
-${shader.fragmentShader.replace(MAIN, 'void wsCellFragment()')}
+${fragmentBody.replace(MAIN, 'void wsCellFragment()')}
 void main() {
   if (wsCellWorld.x < wsCellClip.x || wsCellWorld.z < wsCellClip.y || wsCellWorld.x > wsCellClip.z || wsCellWorld.z > wsCellClip.w) discard;
   wsCellFragment();

@@ -47,3 +47,27 @@ test('T10: matrix writes are hooked only on manual nodes (an auto node recompose
     expect(Object.getOwnPropertyDescriptor(manual.matrix, 'copy')).toBeDefined();
   } finally { scope.dispose(); }
 });
+
+test('PF1: a clipped stage keeps its leading #extension lines first (a graph batch opens with GL_ANGLE_multi_draw)', () => {
+  const scope = new Scope('clip directives'), root = new Group();
+  try {
+    const material = new MeshLambertMaterial(), guard = cellClip(root, 250, scope); guard.sweep();
+    const crossing = new Mesh(new BoxGeometry(2, 40, 2), material); crossing.position.x = 250; root.add(crossing);
+    const clipped = crossing.material;
+    expect(clipped).not.toBe(material);
+    const compile = (vertexShader: string): { vertexShader: string; fragmentShader: string } => {
+      const shader = { vertexShader, fragmentShader: 'void main() { }', uniforms: {} };
+      const run: unknown = Reflect.get(clipped, 'onBeforeCompile');
+      if (typeof run !== 'function') throw new Error('Missing clip patch');
+      Reflect.apply(run, clipped, [shader, null]);
+      return shader;
+    };
+    const batched = compile('#extension GL_ANGLE_multi_draw : require\n\n#define USE_BATCHING\nvoid main() { gl_Position = vec4(0.0); }');
+    expect(batched.vertexShader.startsWith('#extension GL_ANGLE_multi_draw : require\n\n\n#if __VERSION__ >= 300')).toBe(true);
+    expect(batched.vertexShader.indexOf('#extension', 1)).toBe(-1);
+    // a stage without directives is the old text, byte for byte
+    const plain = compile('void main() { gl_Position = vec4(0.0); }');
+    expect(plain.vertexShader.startsWith('\n#if __VERSION__ >= 300\nout highp vec3 wsCellWorld;')).toBe(true);
+    expect(plain.fragmentShader.startsWith('\n#if __VERSION__ >= 300\nin highp vec3 wsCellWorld;')).toBe(true);
+  } finally { scope.dispose(); }
+});

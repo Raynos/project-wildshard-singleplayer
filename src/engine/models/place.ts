@@ -22,6 +22,7 @@ import type { BoxSpec } from '../physics/box';
  */
 import { app } from '../app/runtime';
 import { graphLook } from './instancedBatch';
+import { graphBatches } from '../render/graphBatches';
 import { frameBudgetSpent, paceYield, presenting } from '../core/framePacing';
 import { WORK_SLICE_MS, yieldTask } from '../core/workSlice';
 import * as THREE from 'three';
@@ -809,9 +810,9 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
   const { keys, of } = variantKeys(pls);
   const levels = levelsOf(def).length, n = pls.length;
   const built = keys.map((k) => levelParts(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def)), o.visitBuild === undefined ? pls : pls.filter((pl) => pl.variant === k)));
-  // A graph (node) look never draws on a multi-draw batch: it draws instanced (E271 / E272; on the grid its batched
-  // shader did not even compile). The parts just built are reused, never built twice.
-  if (o.batch === undefined && built.some((variant) => variant.some((parts) => parts.some((part) => graphLook(part.material))))) {
+  // A graph (node) look batches like a classic one (PF1, G936; the grid's cell clip keeps the batch's #extension first).
+  // Debug ▸ Graph batches ▸ Instanced draws it instanced as E271 / E272 did, reusing the parts just built.
+  if (o.batch === undefined && !graphBatches() && built.some((variant) => variant.some((parts) => parts.some((part) => graphLook(part.material))))) {
     return runSteps(drawInstancedSteps(def, pls, poses, params, o, built));
   }
   // one batch per material: every (variant, level) part with that material is one of its geometries
