@@ -87,11 +87,11 @@ no board. Heavy proofs (Simulator, frame floor) run at the milestones only.
 | PF2 | **Crags and props on the same path** | The world-scene batch and `place`'s batched rows take graph looks too (crag-cliff coarse tiles, pine-crags, mossy boulders, logs, stumps, the cabin yard's barrels / crates / buckets): one batch per material per tile, as LEGACY. Done: P1 crag-cliff 6 → 1, boulders 6 + 6 → 1 + 1; P4 barrels / crates / buckets 8 → ≤ 3; work −0.5 ms at P1, −1.0 at P4; captures identical | Opus | S |
 | PF3 | **Shadow pass on a budget** | After PF1 / PF2 the cascade draws ~10 casters. Then a static-caster cache: terrain, trees, crags and buildings render into a cached depth target that is redrawn only when the cascade snaps or the sun moves; animals, the player and held gear draw on top every frame (the half of FC8 / FC13 that never shipped; FC13's "Idle frames" row only helps standing still). Behind a Debug row until a Simulator reading shows no swim or stutter, then on (G912 precedent). Done: shadow pass CPU ≤ 0.8 ms at P1–P4 and on the walk (from 2.6–3.8); no visible swim on a turn and a walk clip | Opus | M |
 | PF4 | **Viewmodel draws** | The crossbow's static parts merged per material (11 → ≤ 6: wood, iron, prod, leather, cord, brass; the animated prod / string / bolt stay apart), hands + sleeves 4 → 2. Same materials, same look. Done: viewmodel ≤ 8 draws; its attributed render ≤ 0.35 ms; captures identical at P1 and in an aim / fire clip | Opus | S |
-| PF5 | **Non-visual systems** | `elites`: the rule loop stays per frame, but an idle elite beyond 1.5 × its `awareR` calls its AssemblyScript `tick` on the `ai` band (10 Hz, as LEGACY's 0.14 ms); `main.world`, `quest` / `quest.kit`, `hud.combat` run on change or at 10 Hz; allocation hunt to 0 steady-state allocations a frame (GC 0.42 → ≤ 0.1 ms). No pixel changes (logic and bookkeeping only; anything that moves a body or the HUD look goes to PF6). Done: those systems sum ≤ 0.5 ms at P1–P4 (from ~1.7); update p50 ≤ 4.0 ms; elites still spawn, aggro and leash in the elite e2e | Codex | S |
+| PF5 | **Non-visual systems** | `elites`: the rule loop stays per frame, but an idle elite beyond 1.5 × its `awareR` calls its AssemblyScript `tick` on the `ai` band (10 Hz, as LEGACY's 0.14 ms); `main.world`, `quest` / `quest.kit`, `hud.combat` run on change or at 10 Hz; allocation hunt to 0 steady-state allocations a frame (GC 0.42 → ≤ 0.1 ms). No pixel changes (logic and bookkeeping only; anything that moves a body or the HUD look goes to PF6). Done: those systems sum ≤ 0.5 ms at P1–P4 (from ~1.7); update p50 ≤ 4.0 ms; elites still spawn, aggro and leash in the elite e2e | **open; landed partial** (2026-10-30, sp-x9; 5fbb571fc5 / 8cfbb131ca): no material frame-cost gain; verdict below | S |
 | PF6 | **Visible per-frame systems** | `engine.creatures.update`: extend FC11's distance bands to think and motor (far idle animals step at 10 Hz, bodies interpolated); `main.equipment`: sway / recoil only while it moves; `shard.pine.weather`: state at 10 Hz, uniforms per frame (LEGACY 0.05 ms). Done: creatures ≤ 0.5 ms at P1 and ≤ 0.8 at P3 / P4 (from 0.8–1.8), equipment ≤ 0.2, weather ≤ 0.05; update p50 ≤ 3.2 ms; walk clip and an animal close-up clip show no stepping (before / after) | Opus | M |
 | PF7 | **Animal draws** | Phone tier on Pine: the far herd (`animalFarBatchDist`) on past the eye distance for rigs with vertex colours, eye draws folded into the body past `animalEyeDist`; same materials. Done: animals ≤ 5 draws at P1 / P4 (from 9–13); attributed ≤ 0.3 ms; captures identical | Opus | S |
 | PF8 | **Scene walk** | Hidden rigs leave the matrix walk (`animals` keeps 3,550 bone objects updated with 28 visible): a parked or culled rig gets `matrixWorldAutoUpdate = false` until it shows; static tile roots, coarse tiles, props and cabins get static matrices (`matrixAutoUpdate = false`, updated once at placement). Done: auto-updated objects 4,256 → ≤ 800 at P1; `updateMatrixWorld` ≤ 0.3 ms a frame (profile, from 1.1); captures identical; an animal walking into view poses on its first visible frame | Opus | S |
-| PF9 | **The costly single draws** | `interact-lit` costs 0.35–0.40 ms for 1 + 1 draws, `pine-wildlife` 0.25 ms for 2: find what each pays per draw (material refresh, morphs, per-draw uniforms) and cut it without a look change. Done: each ≤ 0.1 ms attributed; captures identical | Opus; **open attribution (2026-10-30, sp-x6)**: at gate, `pine-wildlife` sends `aAnim`, `aAnim2` and `instanceMatrix` twice per rendered frame (122 calls each / 61 frames), 6 calls total vs legacy's 3. Unchanged by EP9 `e43772077d`; remaining moving-frame total 6.96 vs legacy 5.98. Read-only buffer-source identity, not a fix or timing pass. | S |
+| PF9 | **The costly single draws** | `interact-lit` costs 0.35–0.40 ms for 1 + 1 draws, `pine-wildlife` 0.25 ms for 2: find what each pays per draw (material refresh, morphs, per-draw uniforms) and cut it without a look change. Done: each ≤ 0.1 ms attributed; captures identical | Opus | S |
 | PF10 | **Pine on the GLSL graph back-end** (Pine's half of FG4, `tmp/wildshard-v-nine-plan/frame-cost.md` §8) | After FG1 / FG2 land: Pine's lit graphs (forest bark / needles / twigs, crag, water, cabins, wildlife, sky) compile to classic materials with the lighting stage as a GLSL light-model patch; trees and crags then batch as plain classic materials (PF1's graph-batch path is no longer used by Pine). Done: golden-still parity per graph (≥ 40 dB PSNR, < 1 % of pixels off by > 8) or a G844 board; 0 `beforeDraw` a frame; programs ≤ 100 (from 117), `useProgram` ≤ 60, `uniform*` ≤ 750 a frame at P1; FG4's Pine bar (≤ LEGACY + 0.5 ms) **and** this plan's ≤ 12 ms | Opus | M |
 | PF11 | **GPU check, not a cut** | The plan works the main thread; confirm the phone GPU is not next. Done: Simulator GPU process ≤ 10 % at P1–P4 (FC15's bar) with grass (317 k triangles) and needle-card overdraw as they are; if it misses, a separate row with a board, never a silent density cut | Opus | S |
 | PF12 | **Milestone A: legacy beaten** (after PF1–PF9) | Chromium 4x: every pose and the walk ≤ 14 ms p50 / ≤ 17 ms p95 (≤ LEGACY at each); WebKit (Mac) ≤ LEGACY at each; one Simulator reading through `scripts/sim-lane.sh` (official reader, quiet window): 30 fps held at P1–P4 and on the walk, max frame ≤ 50 ms. Then Jake's phone QA of QC4 (G933) | Opus | S |
@@ -99,6 +99,41 @@ no board. Heavy proofs (Simulator, frame floor) run at the milestones only.
 | PF14 | **One per-draw hook, not six** (low-hanging fruit L1 from the [engine performance draft](engine-performance-mini-plan.md) §7, E515; shared with [nine-fix](nine-fix-mini-plan.md) NF21): fold the six engine bookkeeping wrappers and two `properties.get` hooks around every draw into one. | Pine P1 work p50 −1.0 ms or more at Chromium 4x against the parent build, same draws, pixel-identical at P1–P4. | **in flight** (2026-10-30, sp-x2), shared EP2: Pine Q4 LG/SF sampled wrapper 1.445/1.846 → 0.686/1.188 ms at 4x. Work 17.3/22.9 → 17.1/23.2 ms; live draw medians 142/175 → 139/212, so no matched whole-frame gain is claimed. P1 and the pixel matrix remain unqualified; row stays open. | S |
 | PF15 | **Opaque draws sorted by program** (L2, E515; shared with NF22): Pine switches programs 98 times a frame for 66 programs, with 1,629 uniform calls. Measure first. | Pine P1 program switches ≤ 70 a frame; work p50 ~−0.5 ms; pixel-identical. | Opus | S |
 | PF16 | **Re-cull like legacy on Pine** (L5, E515; the Pine line of NF5): per-copy culling with legacy's thresholds and changed-only uploads. | Pine 360° pan at 4x: work p50 within 0.5 ms of the still hold; no instance missing at the frame edge. | Opus | S |
+
+### PF5 measured verdict (2026-10-30)
+
+**Open; landed partial.** `5fbb571fc5` reuses elite observation selection, flag scratch and empty effect/strike
+collections; `8cfbb131ca` compiles chapter observation reads and queries the actual flag owner, including silent
+restore. No rule, guest, motion/contact, chapter clock or presentation step is deferred. Pine's guests already declare
+`tick: 10`; its outer owner advances fixed-step motion/contact at 60 Hz. Batching that owner was withdrawn because it
+would shift observations without reducing guest calls.
+
+Exact parent `1550680178` (`1550680-mvvay9ea`) versus `8cfbb131ca` (`8cfbb13-mvvb02xz`), only these two commits
+between them. Chromium 4x, iPhone 16 Pro portrait, phone tier, 2x, seed 357, midday/clear, muted; shared Mac, no quiet
+window. Each pose: 4 s settle, separate 4 s clean and system-attribution windows. All four road arrivals are required.
+LEGACY is a reference on the candidate pin; it is unchanged by these two commits.
+
+| Chromium 4x work p50 / p95 ms | Parent SHARDFILE | Candidate SHARDFILE | LEGACY reference |
+|---|---|---|---|
+| P1 | 19.7 / 21.8 | 17.7 / 22.0 | 15.3 / 18.0 |
+| P2 | 18.6 / 20.4 | 18.7 / 22.4 | 12.8 / 14.7 |
+| P3 | 19.2 / 21.0 | 21.7 / 23.6 | 14.0 / 15.4 |
+| P4 | 20.1 / 22.1 | 21.6 / 23.6 | 16.1 / 17.9 |
+| Gate road | 20.1 / 26.5 | 21.2 / 24.9 | 15.1 / 18.3 |
+
+The five targeted systems sum to **1.064–1.255 → 1.093–1.355 ms**, not ≤0.5. Elite time is approximately unchanged
+(0.483–0.569 → 0.509–0.566 ms). Update p50 is **5.3–5.8 → 5.2–6.2 ms**, not ≤4.0. Untouched world/render cost
+also drifts, so no causal whole-frame win is claimed. WebKit native work p50 at P1–P4 is **6/6/6/7 → 6/5/6/6 ms**
+(1 ms timer resolution); the walk is 6 → 6 ms. LEGACY WebKit is 4/4/4/4 ms, walk 4 ms. Every six-leg reading
+completed all four poses and four road arrivals with no page errors. Zero steady-state allocation and the GC bar
+are not established.
+
+Remaining cost is fixed-step guest/motion work plus live material/forest/building updates and quest/HUD presentation;
+those visible parts remain per frame and belong with PF6. The source removes temporary bookkeeping without meeting the
+row's performance bar. The original 29 elite/ABI focused cases, new atomic observation refusal, seven chapter/story
+controls and six Pine/entered-presentation controls pass; root types, named lint and 7712-file ratchet pass. The
+product-backed chapter suite refused stale DW/Pine products before collection; no guard was weakened. Raw readings:
+`tmp/sp-x9-pf5/` (scratch). No Simulator milestone or physical-phone claim.
 
 **Why 12 ms.** A hot iPhone runs ~2x slower than a cool one. 12 ms at Chromium 4x leaves ~24 ms hot, inside the 33 ms of
 a 30 fps frame with room for a spawn, a fight or a turn. LEGACY's 14 ms becomes ~28 ms hot: it holds, but only just.
