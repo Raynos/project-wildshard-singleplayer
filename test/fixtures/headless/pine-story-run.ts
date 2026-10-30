@@ -23,7 +23,7 @@ const measured=(phase:string)=>{const now=performance.now();console.info(JSON.st
 installAppIdentity(WILDSHARD_IDENTITY);
 const slug='pine-hollow',session=await beginProductSession(slug,'pine-verbs'),{product}=session;
 measured('product-session');
-let resident:Awaited<ReturnType<typeof createNativeProofResident>>|undefined,retireRopes=()=>{};
+let resident:Awaited<ReturnType<typeof createNativeProofResident>>|undefined,retireRopes=()=>{ /* Nothing is installed until the resident is ready. */ };
 try{
   const assets=pineHeadlessAssets(session.assets);
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
@@ -32,7 +32,7 @@ try{
   resident=await createNativeProofResident({shard:product.shardfile,assets,product,rapier,sections:productHeadlessSections(product)},async preparation=>{
     plan=await prepareHeadlessRuntime(preparation);return plan;
   });
-  assert.ok(plan);measured('resident');
+  assert.ok(plan);const active=resident;measured('resident');
   const {pineTape}=await import('../../proof/pine-hollow/witness');
   const controller=pineTape(plan),{host}=resident;measured('controller');
   retireRopes=installWalkRopeBodies(host,product);installNativeWalkBounds(host);
@@ -46,13 +46,18 @@ try{
   const held=()=>v.parse(loadoutSchema,host.adapters.get(loadoutInput.step)?.snapshot()).held;
   const heldSlots:number[]=[held()],requestedSlots=new Set<number>();
   const quest=host.quests[0];assert.ok(quest,'actual story owner');
-  const segments:HeadlessTapeSegment[]=[],expected:{id:string;flags:string[];current:string|null;complete:boolean;held:number}[]=[];
+  const expected:{id:string;flags:string[];current:string|null;complete:boolean;held:number}[]=[];
+  // Small transport parts keep both complete simulations busy without changing a tick input.
+  const partTicks=512;
   let frames:HeadlessCommand[][]=[],commandsCount=0,last=quest.current?.id;
-  const flush=()=>{
-    if(frames.length===0)return;
-    const id=`stage-${segments.length}`;segments.push({id,ticks:frames.length,commands:[],frames});frames=[];
+  const flush=():HeadlessTapeSegment|undefined=>{
+    if(frames.length===0)return undefined;
+    const id=`stage-${expected.length}`,segment:HeadlessTapeSegment={id,ticks:frames.length,commands:[],frames};frames=[];
+    console.info(JSON.stringify({phase:'record-stage',id,ticks:segment.ticks,current:quest.current?.id??null,at:host.state.tick}));
     expected.push({id,flags:[...host.flags.all],current:quest.current?.id??null,complete:quest.isComplete,held:held()});
+    return segment;
   };
+  const recording=async function* recording():AsyncGenerator<HeadlessTapeSegment>{
   measured('recorder-setup');
   for(let tick=0;tick<60_000;tick++){
     const commands=structuredClone(controller.next(host));
@@ -64,25 +69,27 @@ try{
     for(const command of commands)if(command.kind==='script'&&command.actorId===loadoutInput.command)requestedSlots.add(command.value);
     commandsCount+=commands.length;
     if(commandsCount>60_000)throw new Error('Story exceeds canonical declared command allowance');
-    resident.step(commands);frames.push(commands);
+    active.step(commands);frames.push(commands);
     const current=quest.current?.id;
     const selected=held(),swapped=selected!==heldSlots.at(-1);if(swapped)heldSlots.push(selected);
-    if(current!==last||swapped||frames.length===18_000){flush();last=current;}
-    if(controller.walked&&quest.isComplete){flush();break;}
+    if(current!==last||swapped||frames.length===partTicks){const segment=flush();last=current;if(segment!==undefined)yield await Promise.resolve(segment);}
+    if(controller.walked&&quest.isComplete){const segment=flush();if(segment!==undefined)yield await Promise.resolve(segment);break;}
   }
-  flush();
+  const final=flush();if(final!==undefined)yield await Promise.resolve(final);
   assert.equal(controller.walked,true,JSON.stringify({current:quest.current?.id,position:host.player.position,tape:controller.state}));
   assert.equal(quest.isComplete,true);
   for(const flag of ['talked:ranger','owned:lever-rifle','open:dam-sluice','taken:pond-glass','lit:pond','taken:ridge-flint',
     'lit:ridge','used:ph-zip','lit:den','followed:stag','dead:king','seen:dawn','quest:warden-done'])assert.ok(host.flags.has(flag),flag);
   const slot=(id:string)=>{const row=product.shardfile.items.rows.find(item=>item.id===id);assert.ok(row?.kind==='weapon'&&row.ranged!==undefined);return row.ranged.slot;};
   const crossbow=slot('weapon.crossbow'),lever=slot('weapon.lever'),firstLever=heldSlots.indexOf(lever),backToCrossbow=heldSlots.indexOf(crossbow,firstLever+1);
-  assert.ok(firstLever>=0&&backToCrossbow>firstLever&&heldSlots.indexOf(lever,backToCrossbow+1)>backToCrossbow,JSON.stringify(heldSlots));
+  assert.ok(firstLever!==-1&&backToCrossbow>firstLever&&heldSlots.indexOf(lever,backToCrossbow+1)>backToCrossbow,JSON.stringify(heldSlots));
   assert.ok(requestedSlots.has(crossbow)&&requestedSlots.has(lever),'the real controller must request both selections');
-  measured('record');
+  measured('record-source-complete');
+  };
   const sim=await session.ready();measured('replay-ready');
-  const report=await sim.verbTape({version:1,observe:[loadoutInput.step],segments});
-  measured('replay');
+  const pipelineStarted=performance.now();
+  const report=await sim.streamVerbTape([loadoutInput.step],recording());
+  measured('replay-tail');
   for(const wanted of expected){
     const actual=report.observations.find(row=>row.id===wanted.id);assert.ok(actual);
     assert.deepEqual(actual.flags,wanted.flags,'fresh current input replay must earn the same transitions');
@@ -91,5 +98,5 @@ try{
     const equipment=actual.adapters[0];assert.ok(equipment);assert.equal(v.parse(loadoutSchema,JSON.parse(equipment.state)).held,wanted.held);
   }
   assert.equal(report.ticks,host.state.tick);assert.equal(sim.quarantined,false);
-  console.info(JSON.stringify({phase:'replayed',slug,ticks:report.ticks,quest:quest.def.id,complete:true,segments:report.observations.length,heldSlots}));
+  console.info(JSON.stringify({phase:'replayed',slug,ticks:report.ticks,quest:quest.def.id,complete:true,segments:report.observations.length,heldSlots,pipelineMs:performance.now()-pipelineStarted}));
 }finally{retireRopes();resident?.dispose();await (await session.ready()).dispose();}
