@@ -6,7 +6,7 @@ import { MathUtils, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { HeldDecision } from '../src/game/weapons/heldDecision';
 import { PolearmDecision, type PolearmTarget } from '../src/game/weapons/polearmDecision';
-import { lendNalatiHeld } from './fixtures/nalati-return-modules';
+import { lendNalatiHeld } from './fixtures/nalati-held-loan';
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
 
 const { held: rows } = originalHeldMetadata();
