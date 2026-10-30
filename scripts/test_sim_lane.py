@@ -166,10 +166,14 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
                 self.assertTrue(url.path.startswith('/safari/'))
         self.assertIn('readiness page reached two animation frames', result.stderr)
 
-    def test_accepted_url_without_rendered_document_never_hands_over(self):
+    def test_no_frame_never_hands_over_regardless_of_url_rpc_phase(self):
         result = self.lane(SIM_OPEN_NO_FRAME='1', SIM_SAFARI_READY_TIMEOUT='.3')
         self.assertEqual(result.returncode, 124, result.stderr)
-        self.assertIn('never reached frame callbacks', result.stderr)
+        # Shared load can exhaust this same budget before openurl replies.
+        # The authority is the absent frame proof and lease, not an RPC phase.
+        self.assertFalse((self.root / 'safari-rendered').exists())
+        self.assertNotIn('owned two-frame callback confirmed', result.stderr)
+        self.assertNotIn('readiness page reached two animation frames', result.stderr)
         self.assert_not_handed_over()
 
     def test_rendered_document_does_not_wait_for_a_stuck_openurl_client(self):
@@ -267,7 +271,9 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
     def test_inherited_url_output_cannot_substitute_for_a_frame_proof(self):
         result = self.lane(SIM_HELD_NATIVE_OUTPUT='openurl', SIM_OPEN_NO_FRAME='1', SIM_SAFARI_READY_TIMEOUT='.3')
         self.assertEqual(result.returncode, 124, result.stderr)
-        self.assertIn('never reached frame callbacks', result.stderr)
+        self.assertFalse((self.root / 'safari-rendered').exists())
+        self.assertNotIn('owned two-frame callback confirmed', result.stderr)
+        self.assertNotIn('readiness page reached two animation frames', result.stderr)
         self.assert_not_handed_over()
 
     def test_probe_requires_two_frames_and_only_its_own_timely_callback(self):

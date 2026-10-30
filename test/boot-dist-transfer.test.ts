@@ -24,7 +24,9 @@ test('smoke downloads each exact source-run leg directly without a full-dist rel
   expect(phone).toContain('continue-on-error: true');
   expect(phone).not.toContain('needs: prepare');
   expect(central).toContain('timeout-minutes: 20');
-  expect(central).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer]');
+  const parts=/part: \[([^\]]+)\]/u.exec(central)?.[1]?.split(',').map(part=>part.trim());
+  const core=['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'];
+  expect(parts).toHaveLength(core.length);expect(new Set(parts)).toEqual(new Set(core));
   expect(phone).toContain('SMOKE_PART: phone-route');
   expect(phone).toContain('name: boot-dist-phone-route');
   expect(workflow).toMatch(/SMOKE_PART: \$\{\{ matrix\.part \}\}/u);
