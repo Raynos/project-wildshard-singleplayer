@@ -1,0 +1,87 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the actual CI Node glue without starting a browser.
+import { spawnSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Read the maintained workflow as the executable source under test.
+import { readFileSync } from 'node:fs';
+import { expect, test } from 'vitest';
+
+const workflow=readFileSync('.github/workflows/deploy.yml','utf8');
+const section=(name:string)=>workflow.split(`\n  ${name}:\n`)[1]?.split(/\n {2}[a-z][a-z0-9-]*:\n/u)[0]??'';
+
+test('draw diagnostics read exact prepared worlds and never join source, boot or ship prerequisites',()=>{
+  const diagnostic=section('draw-budget');
+  expect(diagnostic).toContain('continue-on-error: true');
+  expect(diagnostic).toContain('needs: prepare');
+  expect(diagnostic).toContain('runs-on: ubuntu-latest');
+  expect(diagnostic).toContain('timeout-minutes: 20');
+  for(const name of ['build-and-deploy','boot-verdict','journeys']) {
+    const needs=/^\s+needs: (.+)$/mu.exec(section(name))?.[1];
+    expect(needs).toBeDefined();expect(needs).not.toContain('draw-budget');
+  }
+  expect(diagnostic).toContain('name: boot-dist-worlds');
+  expect(diagnostic).toContain('name: boot-dist-manifest');
+  expect(diagnostic.match(/run-id: \$\{\{ github.run_id \}\}/gu)).toHaveLength(2);
+  expect(diagnostic).toContain('python3 scripts/boot-dist.py restore --sha "$TESTED_SHA" --run "$SOURCE_RUN" --part boot-grid');
+  expect(diagnostic).not.toContain('serve-build.sh');
+  expect(diagnostic).not.toContain('scripts/gen.mjs');
+  const upload=diagnostic.split('- name: Retain paired draw budget evidence')[1];
+  expect(upload).toContain('if: always()');
+  expect(upload).toContain('path: tmp/ci-draw-budget/');
+});
+
+const executor=String.raw`
+import {SourceTextModule,SyntheticModule,createContext} from 'node:vm';
+import {EventEmitter} from 'node:events';
+import {readFileSync} from 'node:fs';
+const record={};
+const processStub=Object.assign(new EventEmitter(),{env:{GITHUB_SHA:'a'.repeat(40)},cwd:()=>'/fixture',execPath:process.execPath,exitCode:undefined});
+const context=createContext({process:processStub});
+const module=new SourceTextModule(readFileSync(0,'utf8'),{context});
+await module.link(specifier=>{
+  if(specifier==='node:child_process')return new SyntheticModule(['spawn'],function(){
+    this.setExport('spawn',(executable,args)=>{
+      record.executable=executable;record.args=args;
+      const child=new EventEmitter();child.kill=()=>true;
+      queueMicrotask(()=>process.env.DRAW_OUTCOME==='error'?child.emit('error',new Error('native child refused'))
+        :child.emit('exit',Number(process.env.DRAW_OUTCOME),null));
+      return child;
+    });
+  },{context});
+  if(specifier==='./scripts/parity/serve.mjs')return new SyntheticModule(['serve'],function(){
+    this.setExport('serve',async(...args)=>{
+      record.serve=args;
+      return {url:'http://127.0.0.1:4173/',close(){record.closed=true;}};
+    });
+  },{context});
+  throw new Error('Unreviewed workflow dependency '+specifier);
+});
+try{await module.evaluate();}catch(error){record.error=String(error);}
+record.exitCode=processStub.exitCode??null;record.listeners=processStub.eventNames().length;
+console.log(JSON.stringify(record));
+`;
+
+test('the real report step preserves floor exit codes and closes its built-only server on success or failure',()=>{
+  const step=section('draw-budget').split('- name: Report paired phone draw budgets')[1]?.split('- name: Retain')[0];
+  const body=/<<'NODE'\n([\s\S]*?)\n {10}NODE/u.exec(step??'')?.[1];
+  if(body===undefined)throw new Error('Missing native report program');
+  const script=body.split('\n').map(line=>line.slice(10)).join('\n');
+  for(const outcome of ['0','2','3','error']) {
+    const result=spawnSync(process.execPath,['--experimental-vm-modules','--input-type=module','-e',executor],{
+      input:script,encoding:'utf8',timeout:5000,env:{...process.env,DRAW_OUTCOME:outcome},
+    });
+    expect(result.status,result.stderr).toBe(0);
+    const report: {serve:unknown[];closed:boolean;args:string[];exitCode:number|null;listeners:number;error?:string}=JSON.parse(result.stdout);
+    expect(report.serve).toEqual(['/fixture','a'.repeat(40),true]);
+    expect(report.closed).toBe(true);expect(report.listeners).toBe(0);
+    if(outcome==='error')expect(report.error).toContain('native child refused');
+    else expect(report.exitCode).toBe(Number(outcome));
+    const args=report.args;
+    expect(args[0]).toBe('scripts/frame-floor.mjs');
+    expect(args).toContain('--draw-budget-report-only');expect(args).not.toContain('--draw-budget');
+    expect(args).toContain('--chromium-cpu=4');expect(args).toContain('--chromium-phone');
+    expect(args).toContain('--frames=120');expect(args).toContain('--settle=2');
+    expect(args).toContain('--serve-base=http://127.0.0.1:4173/');
+    expect(args).toContain(`--rev=${'a'.repeat(40)}`);
+    const shards=args.find(arg=>arg.startsWith('--shards='))?.slice(9).split(',');
+    expect(new Set(shards)).toEqual(new Set(['nine-dragon-stack','pine-hollow','driftwood-isle']));
+  }
+});

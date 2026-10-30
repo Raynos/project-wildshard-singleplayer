@@ -251,6 +251,31 @@ test('ready source preserves optional fixture fallback only when the selected sh
   expect(()=>readySource('123',liveBuild,state.query,readyNow)).toThrow('source gate');
 });
 
+test('only a source-declared report-only draw job may fail without replacing source proof',()=>{
+  const {state}=readyFixture();
+  state.source+='\n  draw-budget:\n    continue-on-error: true\n';
+  state.details.push({name:'draw-budget',status:'completed',conclusion:'failure',created_at:'',started_at:null,completed_at:null});
+  expect(readySource('123',liveBuild,state.query,readyNow).failures).toContainEqual({name:'draw-budget',status:'completed',conclusion:'failure'});
+  const row=state.details.find(job=>job.name==='draw-budget');
+  if(row===undefined)throw new Error('Missing diagnostic fixture');
+  row.status='queued';row.conclusion=null;
+  expect(readySource('123',liveBuild,state.query,readyNow).sha).toBe(sha);
+  state.source=state.source.replace('draw-budget:\n    continue-on-error: true','draw-budget:\n    continue-on-error: false');
+  expect(()=>readySource('123',liveBuild,state.query,readyNow)).toThrow('draw-budget');
+});
+
+test('reviewed diagnostic inventory remains exhaustive and duplicated or undeclared readers refuse',()=>{
+  const {state}=readyFixture();
+  state.source+='\n  draw-budget:\n    continue-on-error: true\n';
+  expect(()=>readySource('123',liveBuild,state.query,readyNow)).toThrow('inventory');
+  state.details.push({name:'draw-budget',status:'completed',conclusion:'failure',created_at:'',started_at:null,completed_at:null});
+  state.details.push({name:'draw-budget',status:'completed',conclusion:'success',created_at:'',started_at:null,completed_at:null});
+  expect(()=>readySource('123',liveBuild,state.query,readyNow)).toThrow('inventory');
+  const undeclared=recoveryFixture(true,true);
+  undeclared.rows.push(['draw-budget','completed','success']);
+  expect(()=>recoverySource('123',undeclared.query)).toThrow('inventory');
+});
+
 test('ready source refuses duplicate releases, a regressing floor, and unreadable or newer proven waves',()=>{
   for(const kind of ['already-live','released','behind']) {
     const {state}=readyFixture();

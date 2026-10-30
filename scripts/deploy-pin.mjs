@@ -294,6 +294,12 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     : query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--jq',
       '.jobs[] | [.name, .status, .conclusion] | @tsv']).trim().split('\n').filter(Boolean);
   const optional = new Set(['build-and-deploy',phone === undefined ? 'journeys (phone-route)' : 'phone-route']);
+  const drawBudget = /\n {2}draw-budget:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
+  if (drawBudget !== undefined) {
+    if (!/(?:^|\n) {4}continue-on-error: true(?:\n|$)/u.test(drawBudget))
+      throw new Error('Source draw-budget job lacks the reviewed report-only policy');
+    optional.add('draw-budget');
+  }
   // Fixture snapshots only accelerate a source whose successful behaviour
   // jobs already prove their fallback. Preserve the selected ship's policy.
   if (ready && /\n {2}fixtures:\n/u.test(source)) {
@@ -320,7 +326,8 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     }
     if (status !== 'completed') throw new SourceGateError(`Recovery job has no completed verdict: ${name}`);
     if (optional.delete(name)) {
-      const terminal = deadline ? ['success','failure','timed_out',...(name === 'build-and-deploy' ? ['skipped'] : [])] : ['success','failure'];
+      const terminal = name === 'draw-budget' ? ['success','failure','cancelled','timed_out','skipped']
+        : deadline ? ['success','failure','timed_out',...(name === 'build-and-deploy' ? ['skipped'] : [])] : ['success','failure'];
       if (!terminal.includes(conclusion))
         throw new Error(`Recovery terminal job did not finish: ${name}`);
     } else if (!required.delete(name) || (deadline && !essential.has(name)

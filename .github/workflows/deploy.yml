@@ -806,6 +806,93 @@ jobs:
           if-no-files-found: warn
 
 
+  # Paired CPU/draw evidence is diagnostic. It never joins the source/SIX wave.
+  draw-budget:
+    needs: prepare
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+            !/docs/
+            !/public/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: {version: 10}
+      - uses: actions/setup-node@v4
+        with: {node-version: 24, cache: pnpm}
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: draw-budget-chromium-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm exec playwright install --with-deps chromium
+      - uses: actions/download-artifact@v4
+        with:
+          name: boot-dist-manifest
+          github-token: ${{ github.token }}
+          run-id: ${{ github.run_id }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: boot-dist-worlds
+          github-token: ${{ github.token }}
+          run-id: ${{ github.run_id }}
+          path: boot-dist-parts
+      - name: Verify the exact prepared three-world closure
+        env:
+          TESTED_SHA: ${{ github.sha }}
+          SOURCE_RUN: ${{ github.run_id }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$TESTED_SHA"
+          python3 scripts/boot-dist.py restore --sha "$TESTED_SHA" --run "$SOURCE_RUN" --part boot-grid
+      - name: Report paired phone draw budgets
+        run: |
+          node --input-type=module <<'NODE'
+          import {spawn} from 'node:child_process';
+          import {serve} from './scripts/parity/serve.mjs';
+          const sha = process.env.GITHUB_SHA;
+          if (!sha || !/^[a-f0-9]{40}$/.test(sha)) throw new Error('Missing exact prepared SHA');
+          const server = await serve(process.cwd(), sha, true);
+          try {
+            const args = ['scripts/frame-floor.mjs', '--surface=desktop', '--chromium-phone', '--chromium-cpu=4',
+              '--draw-budget-report-only', '--shards=nine-dragon-stack,pine-hollow,driftwood-isle',
+              `--rev=${sha}`, `--serve-base=${server.url}`, '--frames=120', '--settle=2',
+              '--output-dir=tmp/ci-draw-budget', '--scratch-dir=tmp/ci-draw-budget/work'];
+            const outcome = await new Promise((resolve, reject) => {
+              const child = spawn(process.execPath, args, {stdio:'inherit'});
+              const stop = () => { child.kill('SIGTERM'); };
+              process.once('SIGTERM', stop); process.once('SIGINT', stop);
+              const cleanup = () => {
+                process.removeListener('SIGTERM', stop); process.removeListener('SIGINT', stop);
+              };
+              child.once('error', error => { cleanup(); reject(error); });
+              child.once('exit', (code, signal) => {
+                cleanup();
+                resolve({code,signal});
+              });
+            });
+            if (outcome.code === null) throw new Error(`Draw report terminated: ${outcome.signal}`);
+            process.exitCode = outcome.code;
+          } finally { server.close(); }
+          NODE
+      - name: Retain paired draw budget evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: draw-budget-report
+          path: tmp/ci-draw-budget/
+          retention-days: 7
+          if-no-files-found: warn
+
   # Report-only native startup overlaps Linux generation, never its own installs.
   phone-route:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
