@@ -97,16 +97,25 @@ export function explorerDiagnostics(){
     timingBufferFull:Reflect.get(window,'__explorerTimingFull')===true,navigation:navigation?.toJSON()??null,resources,measures};
 }
 
-/** Retain native browser caches across fresh world documents. Reset saves
- * before each boot, matching the original independent input fixtures.
+/** Retain native HTTP/shader caches across fresh world documents. Clear
+ * persistent origin data after retiring each document's writers, matching
+ * the original independent input fixtures without accumulating world bodies.
  * @param {import('playwright').Browser} browser @param {string} base */
 export async function openExplorerSession(browser,base){
   const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true,serviceWorkers:'block'});
   try{
     // The existing harness identity suppresses telemetry without request
     // routing, which would disable the native HTTP cache for every asset.
-    await context.addInitScript({content:`localStorage.clear();sessionStorage.clear();performance.setResourceTimingBufferSize(8000);performance.addEventListener('resourcetimingbufferfull',()=>{Reflect.set(window,'__explorerTimingFull',true);});${saveFixtureCode({scope:'device',key:'devMode',data:true})};${harnessPinCode({lane:'explorer-smoke'})};`});
+    await context.addInitScript({content:`if(location.origin===${JSON.stringify(new URL(base).origin)}){localStorage.clear();sessionStorage.clear();performance.setResourceTimingBufferSize(8000);performance.addEventListener('resourcetimingbufferfull',()=>{Reflect.set(window,'__explorerTimingFull',true);});${saveFixtureCode({scope:'device',key:'devMode',data:true})};${harnessPinCode({lane:'explorer-smoke'})};}`});
     const page=await context.newPage();
+    const storage=await context.newCDPSession(page);
+    const reset=async()=>{
+      // Leaving first retires the old world's dedicated workers and prevents
+      // them from publishing into the store after its deletion has completed.
+      await page.goto('about:blank',{waitUntil:'domcontentloaded',timeout:30000});
+      await storage.send('Storage.clearDataForOrigin',{origin:new URL(base).origin,
+        storageTypes:'cache_storage,indexeddb,local_storage,service_workers,file_systems,websql,storage_buckets,cookies,shared_storage,interest_groups'});
+    };
     /** @type {string[]} */ const faults=[];
     page.on('pageerror',error=>faults.push(error.message));
     page.on('crash',()=>faults.push('Page crashed'));
@@ -116,7 +125,7 @@ export async function openExplorerSession(browser,base){
     return {sweep:async(/** @type {string} */slug,/** @type {string} */out)=>{
       if(lifetime.busy)throw new Error('Explorer session already owns a catalogue');
       lifetime.busy=true;
-      try{await sweepPage(page,faults,base,slug,out,lifetime);}finally{lifetime.busy=false;}
+      try{await sweepPage(page,faults,base,slug,out,lifetime,reset);}finally{lifetime.busy=false;}
     },close:()=>context.close()};
   }catch(error){await context.close();throw error;}
 }
@@ -129,13 +138,14 @@ export async function sweepExplorer(browser,base,slug,out){
 }
 
 /** @param {import('playwright').Page} page @param {string[]} faults @param {string} base @param {string} slug
- * @param {string} out @param {{previous:number|undefined}} lifetime */
-async function sweepPage(page,faults,base,slug,out,lifetime){
+ * @param {string} out @param {{previous:number|undefined}} lifetime @param {()=>Promise<void>} reset */
+async function sweepPage(page,faults,base,slug,out,lifetime,reset){
   const started=Date.now(),hangMs=180000;
   let progressAt=started;
   /** @type {Map<string,number>} */ const firstReady=new Map();
   /** @type {ReturnType<typeof explorerCards>} */ let cards=[];
   try{
+    await withinProgressBudget(reset(),hangMs-(Date.now()-progressAt));
     const url=new URL(base);
     for(const [key,value]of Object.entries({chunk:slug,explore:'model',tier:'phone',touch:'1',mute:'1',nolock:'1',sw:'0'}))url.searchParams.set(key,value);
     await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:30000});

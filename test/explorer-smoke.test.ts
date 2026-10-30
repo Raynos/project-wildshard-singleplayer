@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { explorerCards, explorerCases, explorerFailures, explorerState, sweepExplorer, openExplorerSession, verifyExplorerDocument, explorerDiagnostics } from '../scripts/parity/explorer-smoke.mjs';
-import type { Browser, BrowserContext, Page } from 'playwright';
+import type { Browser, BrowserContext, CDPSession, Page } from 'playwright';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual required workflow leg, without dispatching it.
 import { readFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
@@ -16,6 +16,10 @@ const catalogue = [
 ];
 const currentDocument={url:'https://test.example/?chunk=fixture',timeOrigin:1,slug:'fixture'};
 const diagnostics={document:currentDocument,timingBufferFull:false,navigation:null,resources:[],measures:[]};
+function storageFixture() {
+  const storage=legacyDouble<CDPSession>({send:()=>Promise.reject(new Error('Unconfigured protocol response'))});
+  const send=vi.spyOn(storage,'send').mockResolvedValue({});return {storage,send};
+}
 
 function fixtureBrowser(evaluate: Page['evaluate']): { browser: Browser; close: ReturnType<typeof vi.fn<BrowserContext['close']>> } {
   const page: Page = legacyDouble<Page>({ evaluate, on: () => page,
@@ -24,6 +28,7 @@ function fixtureBrowser(evaluate: Page['evaluate']): { browser: Browser; close: 
   const close = vi.fn<BrowserContext['close']>().mockResolvedValue(undefined);
   const disposable = { dispose: (): Promise<void> => Promise.resolve(), [Symbol.asyncDispose]: (): Promise<void> => Promise.resolve() };
   const context = legacyDouble<BrowserContext>({
+    newCDPSession: vi.fn<BrowserContext['newCDPSession']>().mockResolvedValue({ ...storageFixture().storage }),
     addInitScript: vi.fn<BrowserContext['addInitScript']>().mockResolvedValue(disposable),
     route: vi.fn<BrowserContext['route']>().mockResolvedValue(disposable),
     newPage: vi.fn<BrowserContext['newPage']>().mockResolvedValue({ ...page }), close,
@@ -159,6 +164,7 @@ test('a model-ready invalidation between presence and pixels waits for the repla
   const close = vi.fn<BrowserContext['close']>().mockResolvedValue(undefined);
   const disposable = { dispose: (): Promise<void> => Promise.resolve(), [Symbol.asyncDispose]: (): Promise<void> => Promise.resolve() };
   const context = legacyDouble<BrowserContext>({
+    newCDPSession: vi.fn<BrowserContext['newCDPSession']>().mockResolvedValue({ ...storageFixture().storage }),
     addInitScript: vi.fn<BrowserContext['addInitScript']>().mockResolvedValue(disposable),
     route: vi.fn<BrowserContext['route']>().mockResolvedValue(disposable),
     newPage: vi.fn<BrowserContext['newPage']>().mockResolvedValue({ ...page }),
@@ -189,6 +195,7 @@ function sessionFixture(stale=false){
   let identity={...currentDocument,timeOrigin:0};
   const listeners=new Map<string,unknown>();
   const goto=vi.fn<Page['goto']>().mockImplementation(url=>{
+    if(url==='about:blank')return Promise.resolve(null);
     identity={url,timeOrigin:stale&&identity.timeOrigin>0?identity.timeOrigin:identity.timeOrigin+1,
       slug:stale&&identity.timeOrigin>0?identity.slug:new URL(url).searchParams.get('chunk')??''};
     return Promise.resolve(null);
@@ -204,9 +211,11 @@ function sessionFixture(stale=false){
   const newPage=vi.fn<BrowserContext['newPage']>().mockResolvedValue({...page});
   const route=vi.fn<BrowserContext['route']>();
   const disposable={dispose:()=>Promise.resolve(),[Symbol.asyncDispose]:()=>Promise.resolve()};
-  const context=legacyDouble<BrowserContext>({newPage,route,close,addInitScript:vi.fn<BrowserContext['addInitScript']>().mockResolvedValue(disposable)});
+  const {storage,send}=storageFixture();
+  const newCDPSession=vi.fn<BrowserContext['newCDPSession']>().mockResolvedValue({...storage});
+  const context=legacyDouble<BrowserContext>({newPage,route,close,newCDPSession,addInitScript:vi.fn<BrowserContext['addInitScript']>().mockResolvedValue(disposable)});
   const newContext=vi.fn<Browser['newContext']>().mockResolvedValue({...context});
-  return {browser:legacyDouble<Browser>({newContext}),newContext,newPage,route,close,listeners};
+  return {browser:legacyDouble<Browser>({newContext}),newContext,newPage,route,close,listeners,send,goto};
 }
 
 test('one context and page retain native caches while every catalogue has new document and pixel checks',async()=>{
@@ -219,9 +228,45 @@ test('one context and page retain native caches while every catalogue has new do
       expect(result).toMatchObject({slug,document:{slug},cards:[{id:`${slug}/actual`,pixels:100,darkShare:.2}],failures:[]});
     }
     expect(f.newContext).toHaveBeenCalledOnce();expect(f.newPage).toHaveBeenCalledOnce();
+    expect(f.send).toHaveBeenCalledTimes(3);
+    expect(f.goto.mock.calls.map(([url])=>url)).toEqual([
+      'about:blank',expect.stringContaining('chunk=first'),
+      'about:blank',expect.stringContaining('chunk=second'),
+      'about:blank',expect.stringContaining('chunk=first'),
+    ]);
+    for(const [method,params] of f.send.mock.calls){
+      expect(method).toBe('Storage.clearDataForOrigin');
+      expect(params).toMatchObject({origin:'https://test.example'});
+      if(params===undefined || !('storageTypes' in params) || typeof params.storageTypes!=='string')throw new Error('Missing store selection');
+      expect(params.storageTypes.split(',')).toEqual(expect.arrayContaining(['cache_storage','indexeddb','local_storage','service_workers']));
+      expect(params.storageTypes.split(',')).not.toContain('all');
+      expect(params.storageTypes.split(',')).not.toContain('shader_cache');
+    }
     expect(f.route).not.toHaveBeenCalled();expect(f.close).not.toHaveBeenCalled();
   }finally{await session.close();rmSync(out,{recursive:true,force:true});}
   expect(f.close).toHaveBeenCalledOnce();
+});
+
+test('origin cleanup failure refuses before another world can boot',async()=>{
+  mkdirSync('tmp/sp-x9-explorer',{recursive:true});const out=mkdtempSync('tmp/sp-x9-explorer/storage-refusal-');
+  const f=sessionFixture(),session=await openExplorerSession(f.browser,'https://test.example/');
+  f.send.mockRejectedValue(new Error('Storage deletion failed'));
+  try{
+    await expect(session.sweep('first',out)).rejects.toThrow('Storage deletion failed');
+    expect(f.goto).toHaveBeenCalledExactlyOnceWith('about:blank',{waitUntil:'domcontentloaded',timeout:30000});
+  }finally{await session.close();rmSync(out,{recursive:true,force:true});}
+});
+
+test('stalled origin cleanup stays inside the original no-progress guard',async()=>{
+  mkdirSync('tmp/sp-x9-explorer',{recursive:true});const out=mkdtempSync('tmp/sp-x9-explorer/storage-stalled-');
+  const f=sessionFixture(),session=await openExplorerSession(f.browser,'https://test.example/');
+  f.send.mockImplementation(()=>new Promise(()=>{ /* No protocol completion. */ }));
+  vi.useFakeTimers();
+  try{
+    const refusal=expect(session.sweep('first',out)).rejects.toThrow('stalled for 180 seconds without progress');
+    await vi.advanceTimersByTimeAsync(180001);await refusal;
+    expect(f.goto).toHaveBeenCalledExactlyOnceWith('about:blank',{waitUntil:'domcontentloaded',timeout:30000});
+  }finally{vi.useRealTimers();await session.close();rmSync(out,{recursive:true,force:true});}
 });
 
 test('previous ready cards cannot pass the next reused catalogue',async()=>{
