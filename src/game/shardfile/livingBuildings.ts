@@ -10,14 +10,15 @@ import type { SceneHandles } from './sceneHandles';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { instanceSave } from '../instanceSaves';
+import { buildingDoor, buildingDoorCollides, buildingDoorSwinging, buildingDoorYaw, stepBuildingDoor, toggleBuildingDoor, type BuildingDoorState } from './buildingDoor';
 
 const buildingSave = { key: 'platform.buildings', scope: 'shard' as const, version: 1,
   schema: v.record(v.string(), BuildingContinuationSchema), initial: (): Record<string, BuildingContinuation> => ({}) };
 
-interface Door {
-  readonly id: string; readonly pivot: Object3D; readonly prompt: Interactable;
+/** a door's state (buildingDoor.ts: the same owner the Node simulation drives) with its leaf, prompt and slab */
+interface Door extends BuildingDoorState {
+  readonly pivot: Object3D; readonly prompt: Interactable;
   readonly slab: ColliderDesc; readonly labels: readonly [string, string];
-  open: boolean; t: number; enabled: boolean;
 }
 
 class BuildingDoorChanges extends EventTarget implements DoorMotionEvents {
@@ -89,7 +90,7 @@ export class LivingBuildings {
       anchors: site.anchors.map(anchor => ({ ...anchor, anchor: this.resources.object(anchor.anchor) })),
       ...(site.rooms === undefined ? {} : { rooms: site.rooms }), ...(site.door === undefined ? {} : { door: site.door }) } }));
     for (const { row: spec, pivot } of doors) {
-      const door: Door = { id: spec.id, pivot, open: false, t: 0, enabled: true, slab: spec.slab, labels: [spec.open, spec.close],
+      const door: Door = { ...buildingDoor(spec.id), pivot, slab: spec.slab, labels: [spec.open, spec.close],
         prompt: { position: new Vector3(...spec.at), radius: spec.reach, label: spec.open, onInteract: () => { this.use(spec.id); } } };
       this.doors.push(door); this.interactables.push(door.prompt);
     }
@@ -109,21 +110,17 @@ export class LivingBuildings {
     this.registeredDoors = true;
     const at = new Vector3(), radius2 = collision.rearmRadius * collision.rearmRadius;
     for (const door of this.doors) registry.add({ id: door.id, name: collision.name, category: 'buildings', file: collision.file, surface: collision.surface,
-      follows: door.pivot, colliders: [door.slab], active: () => {
-        if (door.t !== (door.open ? 1 : 0)) door.enabled = false;
-        else if (!door.enabled) door.enabled = door.pivot.getWorldPosition(at).distanceToSquared(player) > radius2;
-        return door.enabled;
-      } });
+      follows: door.pivot, colliders: [door.slab], active: () => buildingDoorCollides(door, () => door.pivot.getWorldPosition(at).distanceToSquared(player) > radius2) });
   }
 
   /** Platform output callbacks bind only this host's commands, never shard code. */
   doorPieces(): { id: string; pivot: Object3D; colliders: ColliderDesc[]; use: () => void; swinging: () => boolean }[] {
-    return this.doors.map(door => ({ id: door.id, pivot: door.pivot, colliders: [door.slab], use: () => { this.use(door.id); }, swinging: () => door.t !== (door.open ? 1 : 0) }));
+    return this.doors.map(door => ({ id: door.id, pivot: door.pivot, colliders: [door.slab], use: () => { this.use(door.id); }, swinging: () => buildingDoorSwinging(door) }));
   }
   use(id: string): void {
     const door = this.doors.find(value => value.id === id);
     if (door === undefined) throw new Error(`Missing building door: ${id}`);
-    door.open = !door.open; door.prompt.label = door.open ? door.labels[1] : door.labels[0];
+    door.prompt.label = toggleBuildingDoor(door) ? door.labels[1] : door.labels[0];
     const changes = this.doorChanges;
     if (changes instanceof BuildingDoorChanges) changes.emit(door.prompt.position, door.open);
     this.checkpoint?.();
@@ -133,20 +130,12 @@ export class LivingBuildings {
     const site = this.sites.get(id); if (site === undefined) throw new Error(`Missing building site: ${id}`);
     site.state.lit = lit;
   }
-  private pose(door: Door): void {
-    const t = door.t, eased = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
-    door.pivot.rotation.y = -eased * this.look.door.angle;
-  }
+  private pose(door: Door): void { door.pivot.rotation.y = buildingDoorYaw(door.t, this.look.door.angle); }
   /** Same operation order as the native presentation: wheels, doors, lighting, glass, swings. */
   tick(dt: number, t: number, eye: Vector3, lamps: number): void {
     if (!Number.isFinite(dt) || dt < 0 || !Number.isFinite(t) || !Number.isFinite(lamps)) throw new Error('Invalid building clock');
     for (const wheel of this.wheels) wheel.object.rotation.x += dt * this.wheelSpeed;
-    for (const door of this.doors) {
-      const target = door.open ? 1 : 0;
-      if (door.t === target) continue;
-      door.t = Math.min(1, Math.max(0, door.t + Math.sign(target - door.t) * dt / this.look.door.seconds));
-      this.pose(door);
-    }
+    for (const door of this.doors) if (stepBuildingDoor(door, dt, this.look.door.seconds)) this.pose(door);
     const look = this.look;
     this.gain.fire = look.fire[0] + look.fire[1] * lamps; this.gain.lamp = look.lamp[0] + look.lamp[1] * lamps;
     this.lights.step(t, eye, this.gain);

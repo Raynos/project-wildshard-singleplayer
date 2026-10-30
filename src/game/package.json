@@ -242,6 +242,7 @@
     "./loadout/claims": "./loadout/claims.ts",
     "./shardfile/worldScenes": "./shardfile/worldScenes.ts",
     "./shardfile/lentLooks": "./shardfile/lentLooks.ts",
+    "./shardfile/buildingDoor": "./shardfile/buildingDoor.ts",
     "./shardfile/livingBuildings": "./shardfile/livingBuildings.ts",
     "./shardfile/buildingCloud": "./shardfile/buildingCloud.ts",
     "./animation/limbRig": "./animation/limbRig.ts",
