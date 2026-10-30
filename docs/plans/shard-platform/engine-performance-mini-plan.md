@@ -238,6 +238,18 @@ grill except EP5, which waits on question 2.
 4x and WebKit, ≤ 150 draws and ≤ 30 µs per draw, and the iOS Simulator holds 30 fps with max frame ≤ 50 ms. Jake's phone
 QA (G933) is the final check.
 
+## Approved Debug retirements (G944–G947)
+
+| Row | Kept default / source | Verification |
+|---|---|---|
+| TRUST meter (phone), G944 | **done** `1550680178` (sp-x1): B status row; desktop arc retained. Debug A/C, selector and low-arc CSS removed. | Actual RideHUD/HudSlots/App component, phone B and desktop arc at trust 0/50/100: six matched captures, zero changed decoded pixels and identical DOM. No HUD layout change. |
+| Phone bloom, G945 | **done** `03cf658f60` (sp-x1): phone Off, desktop On; Debug setting/module/strings removed. Existing borrowed effect settings and live custom post-graph bloom remain. | Actual before/after engine inclusion expression in the same three/postprocessing HDR component: both tier profiles zero changed decoded pixels. Not a whole-world or performance claim. |
+| Hook zip, G946 | **done** `9f82c22737` (sp-x1): browser Rise fixed; Debug/query/module/strings removed. Explicit native course API retained for existing behavior oracles. | Real Rapier/SimHost course: 96 ticks, peak Y 6.050000000745058, every snapshot/event/position/velocity f64 bit identical. Native trajectory component captures: zero changed decoded pixels; three original guard controls pass. |
+
+Refine dither, Early 3x3 reveal and Idle-frame reuse are sp-x8's separate G946 retirements. FXAA stays merged (G947).
+The component captures above do not claim full-world screenshot parity. Shared-tree root types and the 7,710-file
+ratchet pass after the three source landings; browsers/builds are closed.
+
 ## 7. Low-hanging fruit for the Pine / Nine plans
 
 Each is ≤ 1 day, measured on live `14dd10d` (Chromium 4x). wildshard-v slams these into the plans named.
