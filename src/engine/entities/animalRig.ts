@@ -45,12 +45,13 @@ export class QuadrupedRigPose {
       const leg = this.legs[l];
       if (leg === undefined) continue;
       const [u, m, lo] = leg;
-      u.rotation.x = -(p[P_LEG + l * 3] ?? 0);
       m.rotation.x = p[P_LEG + l * 3 + 1] ?? 0;
       lo.rotation.x = p[P_LEG + l * 3 + 2] ?? 0;
       // keyframed corpse: legs swing sideways by legAbd; ground is local +X when the body rolled onto its left side
       // (side < 0), local -X otherwise
-      u.rotation.z = dead * (clock.legAbd[l] ?? 0) * (clock.deathSide < 0 ? 1 : -1);
+      // Publish the two upper-joint axes together, computing its quaternion once.
+      u.rotation.set(-(p[P_LEG + l * 3] ?? 0), u.rotation.y,
+        dead * (clock.legAbd[l] ?? 0) * (clock.deathSide < 0 ? 1 : -1));
     }
     // breathing: the belly bone swells (visible at a few metres), faster after running
     if (clock.alive) {
