@@ -295,7 +295,26 @@
      "The drowned sailor collapses — his hold key clatters to the planks"
     ]
    },
-   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs; a fight stands in as lethal damage through the creature's own death path): both modes, same: 'The drowned sailor collapses — his hold key clatters to the planks', achievement 'Shore Leave'"
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs; a fight stands in as lethal damage through the creature's own death path): both modes, same: 'The drowned sailor collapses — his hold key clatters to the planks', achievement 'Shore Leave'",
+   "sim": [
+    {
+     "op": "spawn",
+     "x": 153,
+     "z": 8
+    },
+    {
+     "op": "kill",
+     "near": {
+      "x": 153,
+      "z": 2
+     },
+     "radius": 15
+    },
+    {
+     "op": "wait",
+     "ms": 4000
+    }
+   ]
   },
   {
    "id": "iron-sword",
@@ -344,7 +363,31 @@
      "The drowned sailor's hold key"
     ]
    },
-   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label 'Take the hold key'; 'The drowned sailor's hold key'"
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs, full chain in one session): both modes, same: 'The drowned sailor's hold key' (the point's own handler: USE's focus is under the eye line)",
+   "stand": {
+    "back": 1.5,
+    "pitch": -0.6,
+    "call": true
+   },
+   "sim": [
+    {
+     "op": "spawn",
+     "x": 153.49,
+     "z": 1.3,
+     "pitch": -0.6
+    },
+    {
+     "op": "interact",
+     "near": {
+      "x": 153.5,
+      "z": -0.2
+     }
+    },
+    {
+     "op": "wait",
+     "ms": 4000
+    }
+   ]
   },
   {
    "id": "pump",
@@ -363,7 +406,7 @@
      "The pump coughs; the bilge water drains"
     ]
    },
-   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label locked 'The bilge pump is padlocked — the drowned sailor has the key', then 'The pump coughs; the bilge water drains'"
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs, full chain in one session): both modes, same: 'The pump coughs; the bilge water drains'"
   },
   {
    "id": "winch",
@@ -382,7 +425,7 @@
      "The winch hauls a strongbox out of the bilge"
     ]
    },
-   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label locked 'The winch is jammed — the hold is still flooded'"
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs, full chain in one session): both modes, same: 'The winch hauls a strongbox out of the bilge'"
   },
   {
    "id": "strongbox",
@@ -401,7 +444,28 @@
      "Salt-crusted doubloon ×3"
     ]
    },
-   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label 'Open the strongbox' (opened before the winch hauled it: no toast in either)"
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs, full chain in one session): both modes, same: 'The captain's strongbox', 'Found the glyph shard — the Wreck', 'Salt-crusted doubloon ×3' (the point's own handler: two points a metre apart)",
+   "stand": {
+    "call": true
+   },
+   "sim": [
+    {
+     "op": "spawn",
+     "x": 154.94,
+     "z": -1.7
+    },
+    {
+     "op": "interact",
+     "near": {
+      "x": 154.9,
+      "z": -2.1
+     }
+    },
+    {
+     "op": "wait",
+     "ms": 4000
+    }
+   ]
   },
   {
    "id": "tide-plates",
@@ -428,7 +492,29 @@
      "The tide gate lifts — the cave drains"
     ]
    },
-   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): not played: the barrel is a physics body outside the interact points; its push is not automated"
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs, full chain in one session): both modes, same: the player on plate 1 and the barrel's dynamic body moved onto plate 2 in the physics world: 'The tide gate lifts — the cave drains'",
+   "sim": [
+    {
+     "op": "spawn",
+     "x": 139.1,
+     "z": 9.9
+    },
+    {
+     "op": "bodyTo",
+     "near": {
+      "x": 147.5,
+      "z": 3.5
+     },
+     "to": {
+      "x": 144.9,
+      "z": 9.9
+     }
+    },
+    {
+     "op": "wait",
+     "ms": 3000
+    }
+   ]
   },
   {
    "id": "shard-cave",
@@ -448,7 +534,7 @@
     ],
     "objective": "Set the shards in the Ring Shrine"
    },
-   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label locked 'Behind the tide gate' (the gate stays shut: the barrel push is not automated)"
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs, full chain in one session): both modes, same: 'Glyph shard — the Sea Cave', 'Objective · Set the shards in the Ring Shrine', achievement 'Shardkeeper'"
   },
   {
    "id": "reef",
@@ -551,7 +637,7 @@
      "The pool boils — the Drowned Captain rises!"
     ]
    },
-   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): both modes, same: label locked 'Three empty sockets — the glyph shards are out on the island' (two of three shards)"
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs, full chain in one session): both modes, same: 'The shards lock into place — the ring wakes', 'Objective · Defeat the Drowned Captain', 'The pool boils — the Drowned Captain rises!'"
   },
   {
    "id": "captain",
@@ -571,7 +657,35 @@
      "Driftwood Isle complete · open the menu to see your island"
     ]
    },
-   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs: stands 1 m from each interact point on its own level, reads its label, taps USE, records toasts and pickup cards): not reached in either mode (the altar needs the cave shard)"
+   "played": "MF18 2026-10-29 Chromium iPhone 16 Pro, LEGACY 91a9eef081 + SHARDFILE 9561743057 (tmp/sp-o3-mf18/play.mjs, full chain in one session): both modes, same: the captain falls (lethal damage through his own death path): 'Captain Brine sinks for good. The ring hums — go and stand in it'; in the ring: achievement 'The Sealed Ring — Ringbearer', 'Quest complete · The Sealed Ring' (the hat line not in either run's window)",
+   "after": {
+    "x": -96.2,
+    "z": 109,
+    "wait": 8000
+   },
+   "sim": [
+    {
+     "op": "kill",
+     "near": {
+      "x": -96.2,
+      "z": 109
+     },
+     "radius": 15
+    },
+    {
+     "op": "wait",
+     "ms": 4000
+    },
+    {
+     "op": "spawn",
+     "x": -96.2,
+     "z": 109
+    },
+    {
+     "op": "wait",
+     "ms": 8000
+    }
+   ]
   }
  ]
 }
