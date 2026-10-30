@@ -13,7 +13,7 @@ in that draft plan finds any low-hanging fruit that would impact Pinewood and Ni
 and Nine Dragon mini plans, we can slam those into the mini plans, just the low-hanging fruit component."*
 
 Related plans: [nine-fix](nine-fix-mini-plan.md) (NF rows), pine-fps (`shard-platform/pine-fps-mini-plan.md`,
-being written), [three r187, dropped G938](../../../project/archive/2026-10-30-three-r187.md), [qa 10-30](qa-2026-10-30-mini-plan.md)
+being written), [three r187, dropped G938](../../../project/archive/2026-10-30-three-r187.md), [qa 10-30](../../../project/archive/2026-10-30-qa-2026-10-30.md)
 QC1 / QC4. This draft does not repeat their rows. It names them where they are the fix.
 
 ## 1. The verdict

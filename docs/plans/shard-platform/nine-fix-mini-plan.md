@@ -6,7 +6,7 @@ reports by its subagents; wildshard-new hands the rows to lanes and marks them a
 detail, no matter what it takes, fixing everything properly, in the engine, in the shard file, all that stuff in 9
 dragon. I don't know what the fix is, but you need to think hard, research exhaustively, and come up with a permanent
 fix of doing it properly. Any dressing that's missing has to be added back."* It replaces the fix half of
-[qa 10-30 QC1](qa-2026-10-30-mini-plan.md); QC1 closes when this plan's done-when holds. G933 keeps legacy Nine as the
+[qa 10-30 QC1](../../../project/archive/2026-10-30-qa-2026-10-30.md); QC1 closes when this plan's done-when holds. G933 keeps legacy Nine as the
 A/B baseline until Jake's phone QA of these fixes. Visual rows are Opus-only (G848). The engine-wide rows (NF13–NF18)
 are shared with [pine-fps](pine-fps-mini-plan.md) and the [engine performance draft](engine-performance-mini-plan.md)
 (E515); their low-hanging fruit for Nine lands here when that draft reports.
