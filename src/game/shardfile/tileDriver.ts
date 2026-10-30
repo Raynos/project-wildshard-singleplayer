@@ -23,6 +23,7 @@ import { residentTileEntry } from './tileEntry';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { SPAWN_VIEW_M, spawnViewBusy } from './controlRefinement';
+import { REFINE_FADE_MS, refineDither } from './refineDither';
 
 /** MF5: the live drivers, and whether the loader is settling them (no world frames under the card since FC2). */
 const liveDrivers = new Set<TileDriver>();
@@ -73,6 +74,12 @@ export class TileDriver {
   private last: { readonly x: number; readonly z: number } | null = null;
   /** MF13: the camera's view, and when each wanted render tile was first wanted (an in-view one waits up to VIEW_DEFER_MS) */
   private view: (() => ViewCone | null) | null = null;
+  /** MF13 slice 2 (Settings ▸ Debug ▸ Refine dither): each render tile's fade-in (0 … 1 by key), when the fading ones
+   *  completed, and the contents already handed the table */
+  private readonly dither = refineDither();
+  readonly fades: Float32Array = new Float32Array(TILES_PER_SIDE * TILES_PER_SIDE).fill(1);
+  private readonly fadingSince = new Map<number, number>();
+  private readonly handed = new WeakSet<TileContent>();
   private readonly wantedAt = new Map<number, number>();
   setView(view: () => ViewCone | null): void { this.view = view; }
   /** MF5 (settleTileDrivers): step on tasks until nothing of the render ring inside the fence is left to start, or the
@@ -131,6 +138,15 @@ export class TileDriver {
     for (const layer of ['render', 'colliders'] as const) for (const [key, tile] of this.attached[layer]) {
       if (wanted[layer].has(key)) continue;
       this.attached[layer].delete(key); tile.scope.dispose();
+      if (layer === 'render') { this.fadingSince.delete(key); this.fades[key] = 1; }
+    }
+    // MF13: the fading tiles' tables move on; a finished one hands its quadrant over from the coarse cover
+    if (this.fadingSince.size > 0) {
+      const at = diagnosticNow();
+      for (const [key, since] of this.fadingSince) {
+        const fade = Math.min(1, (at - since) / REFINE_FADE_MS); this.fades[key] = fade;
+        if (fade >= 1) this.fadingSince.delete(key);
+      }
     }
     if (this.busy) return;
     const now = diagnosticNow(), cone = loaderMode || this.view === null ? null : this.view();
@@ -189,7 +205,7 @@ export class TileDriver {
 
   /** Coarse coverage stays until every declared fine visual actually publishes. */
   private rendered(key: number): boolean {
-    return this.renderRing.has(key) && this.complete(key);
+    return this.renderRing.has(key) && this.complete(key) && !this.fadingSince.has(key);
   }
   private complete(key: number): boolean {
     const tile = this.attached.render.get(key);
@@ -224,11 +240,15 @@ export class TileDriver {
   }
 
   private async prepare(key: number, layer: Layer, tile: Attachment, required: boolean): Promise<TileFailure> {
+    // MF13: a fresh render tile in play starts hidden and dithers in once its stages are done (under the loader: whole)
+    const fresh = layer === 'render' && tile.done.size === 0, fades = this.dither && fresh && !loaderMode;
+    if (fresh && this.dither) this.fades[key] = fades ? 0 : 1;
     try {
       for (const content of this.contents) {
         if (tile.done.has(content)) continue;
         if (!content.tiles().has(key)) { tile.done.add(content); continue; }
         if (layer === 'render' && content.ready?.() === false) continue;
+        if (this.dither && layer === 'render' && !this.handed.has(content)) { content.fadeTable?.(this.fades); this.handed.add(content); }
         // Cached stages may resolve in microtasks; share the live frame's
         // budget before admitting another stage, including background tiles.
         if (frameBudgetSpent(WORK_SLICE_MS)) await (loaderMode ? task() : this.pause()); // MF5: no frames under the card
@@ -237,8 +257,10 @@ export class TileDriver {
         if (tile.scope.disposed || tile.scope.disposing) return null;
         tile.done.add(content);
       }
+      if (fades) { if (tile.done.size >= this.contents.length) this.fadingSince.set(key, diagnosticNow()); else this.fades[key] = 1; }
       return null;
     } catch (error: unknown) {
+      if (fresh) this.fades[key] = 1;
       if (this.attached[layer].get(key) === tile) this.attached[layer].delete(key);
       // Movement cancellation can be retried; every waiter sees a live content
       // failure even when the first waiter was a background streaming step.

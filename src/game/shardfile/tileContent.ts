@@ -38,6 +38,8 @@ export interface TileContent {
   /** T11: a coarse stand-in of the element for the whole cell, kept under `scope`, leaving out the tiles `rendered` says the
    *  render ring draws in full (a landmark's skyline beyond the ring) */
   readonly coarse?: (scope: Scope, rendered: (tile: number) => boolean) => Promise<void>;
+  /** MF13: the driver's per-tile fade-in table (0 … 1 by tile key), handed once before the content's first attach */
+  readonly fadeTable?: (table: Float32Array) => void;
 }
 
 const TILES = TILES_PER_SIDE * TILES_PER_SIDE;

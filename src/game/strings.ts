@@ -37,6 +37,9 @@ export const GAME_STRINGS = {
     built: (version: number): string => `BUILT FOR SHARDFILE V${version}`,
     saveKept: 'YOUR SAVE IS KEPT',
   },
+  /** MF13: Settings ▸ Debug ▸ Refine dither (shardfile/refineDither.ts), default off until an iPhone reading */
+  refineDither: { label: 'Refine dither', off: 'Off', on: 'On',
+    note: 'MF13: a tile refined in play dithers its fine pieces in over 0.5 s and the coarse cover leaves after; Off swaps at once (as before); reloads' },
   /** QB17 (b) / MF15: Settings ▸ Debug ▸ Hook zip (grapple/zipRise.ts), the rise-to-the-ring zip beside the flat one */
   hookZip: { label: 'Hook zip', rise: 'Rise to ring', flat: 'Flat (legacy)',
     note: 'QB17: Jake asked the zip to lift him to the hook; Rise to ring (new) climbs to the ring, hangs, then drops onto the landing; Flat is the old straight zip to the landing; live' },

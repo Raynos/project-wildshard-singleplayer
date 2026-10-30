@@ -56,6 +56,7 @@ import { shaderPatchProgramKey, shaderPatchSet, shaderPatchSceneShape } from '..
 import { fogPatches, materialNodeFogOf } from '../fogPatches';
 import { planeBiasShadowFilterOn, tentShadowFilterOn } from '../../world/shadowFilter';
 import { colourRampFog, engineFog } from './engineFog';
+import { partFaded, partFadeStage } from './partFade';
 import { tentShadowFilter } from './tentShadowFilter';
 import { planeBiasShadowFilter } from './planeBiasShadowFilter';
 import { EngineDirectionalLightNode } from './cascadeLightNode';
@@ -709,6 +710,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
         camera: shift === null ? cameraPosition : cameraPosition.sub(shift), ...(node === undefined ? {} : { scale: node }) };
       return typeof patch === 'function' ? patch(out, fogContext) : colourRampFog(out, fogContext, patch.colourRamp);
     });
+    // MF13: a part-faded material dithers each object's parts in by the object's fade table (partFade.ts)
+    this.epilogue.push((out, ctx) => (partFaded(ctx.material) ? partFadeStage(out) : out));
     // a layered backdrop's node dressing fades by its owner weight last, where a classic piece's gl_FragColor is faded
     this.epilogue.push((out, ctx) => {
       const layer = layerFrameOf(ctx.material);

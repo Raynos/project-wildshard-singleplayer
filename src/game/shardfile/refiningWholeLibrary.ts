@@ -9,12 +9,14 @@ import type { ShardProduct } from './shardProduct';
 import { SharedTileBuilds, type TileContent } from './tileContent';
 import type { ControlRefinement } from './controlRefinement';
 import { readWholePieces } from './wholePieces';
+import { markPartFade } from '@wildshard/engine/render/nodes/partFade';
+import { refineDither } from './refineDither';
 
 type Library = Extract<WorldScenesSection['libraries'][number], { kind: 'whole' }>;
 /** The same exact join cursor is also available to synchronous oracles and
  * retirement, where publication must finish before a tile releases its lease. */
-export function joinWholePieces(pieces: readonly WholeGeometryPiece[], pose?: readonly number[], forceIdentityTransform = false): BufferGeometry {
-  const steps = joinWholePieceSteps(pieces, pose, forceIdentityTransform);
+export function joinWholePieces(pieces: readonly WholeGeometryPiece[], pose?: readonly number[], forceIdentityTransform = false, fadeKeys?: readonly number[]): BufferGeometry {
+  const steps = joinWholePieceSteps(pieces, pose, forceIdentityTransform, fadeKeys);
   for (;;) {
     const next = steps.next();
     if (next.done) {
@@ -72,6 +74,12 @@ export class RefiningWholeLibrary {
     const model = this.row.models.find(candidate => candidate.id === id); if (model === undefined) throw new Error('Missing refining model');
     const files = new Set(model.files), tiles = new Set([...this.files].filter(([, hashes]) => hashes.some(hash => files.has(hash))).map(([key]) => key));
     const held = new Map<number, readonly WholeGeometryPiece[]>(), sphere = mesh.geometry.boundingSphere?.clone(), box = mesh.geometry.boundingBox?.clone();
+    // MF13 slice 2 (Settings ▸ Debug ▸ Refine dither): each held tile's pieces carry their tile as their fade part, and the
+    // mesh's materials dither each part in by the tile driver's table (engine render/nodes/partFade.ts)
+    const dither = refineDither();
+    if (dither) for (const material of [mesh.material].flat()) markPartFade(material);
+    const heldPieces = (): WholeGeometryPiece[] => [...held.values()].flat();
+    const keys = (): number[] | undefined => (dither ? [...held].flatMap(([tile, list]) => list.map(() => tile)) : undefined);
     let closed = false, owned: BufferGeometry | undefined, revision = 0, published = 0;
     let building: Promise<void> | undefined, hidden = false;
     // NR4: a channel-less geometry draws nothing, and a program compiled against it warns per channel and draws collapsed:
@@ -99,7 +107,7 @@ export class RefiningWholeLibrary {
     const redraw = (): void => {
       revision++;
       if (retired()) return;
-      publish(joinWholePieces([...held.values()].flat(), model.matrix, forceIdentityTransform)); published = revision;
+      publish(joinWholePieces(heldPieces(), model.matrix, forceIdentityTransform, keys())); published = revision;
     };
     const redrawSliced = (): Promise<void> => {
       revision++;
@@ -107,7 +115,7 @@ export class RefiningWholeLibrary {
       const drain = async (): Promise<void> => {
         const slice = workSlice(undefined, lifetime);
         while (!retired() && published < revision) {
-          const generation = revision, steps = joinWholePieceSteps([...held.values()].flat(), model.matrix, forceIdentityTransform);
+          const generation = revision, steps = joinWholePieceSteps(heldPieces(), model.matrix, forceIdentityTransform, keys());
           try {
             for (;;) {
               if (retired() || generation !== revision) break;
@@ -130,6 +138,7 @@ export class RefiningWholeLibrary {
     hold();
     lifetime.onDispose(() => { closed = true; held.clear(); owned?.dispose(); owned = undefined; });
     return { id: `refine:${this.row.id}:${id}:${mesh.uuid}`, tiles: () => tiles, ready: () => this.queue.ready,
+      ...(dither ? { fadeTable: (table: Float32Array) => { mesh.userData['fadeTable'] = table; } } : {}),
       attach: async (tile, scope) => {
         if (!tiles.has(tile) || closed || scope.disposed || scope.disposing) return;
         const read = await this.builds.hold(tile, scope);

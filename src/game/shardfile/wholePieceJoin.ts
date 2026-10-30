@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Float16BufferAttribute, InterleavedBufferAttribute, Matrix3, Matrix4, Vector3, type TypedArrayConstructor } from 'three';
+import { BufferAttribute, BufferGeometry, Float16BufferAttribute, Float32BufferAttribute, InterleavedBufferAttribute, Matrix3, Matrix4, Vector3, type TypedArrayConstructor } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { WholeGeometryPiece } from '../plugin/geometry';
 
@@ -98,7 +98,7 @@ function* merge(copies: readonly BufferGeometry[]): Generator<void, BufferGeomet
 /** Validate every shared original lane, including signed zero, before a new
  * one-draw union can publish. A caller may yield between bounded scalar chunks;
  * closing the cursor disposes all private intermediate geometry. */
-export function* joinWholePieceSteps(pieces: readonly WholeGeometryPiece[], pose?: readonly number[], forceIdentityTransform = false): Generator<void, BufferGeometry | undefined> {
+export function* joinWholePieceSteps(pieces: readonly WholeGeometryPiece[], pose?: readonly number[], forceIdentityTransform = false, fadeKeys?: readonly number[]): Generator<void, BufferGeometry | undefined> {
   const first = pieces[0]; if (first === undefined) return new BufferGeometry();
   const vertices = new Map<number, { readonly piece: WholeGeometryPiece; readonly local: number }>(), triangles = new Set<number>();
   for (const piece of pieces) {
@@ -123,9 +123,11 @@ export function* joinWholePieceSteps(pieces: readonly WholeGeometryPiece[], pose
   }
   const copies: BufferGeometry[] = [], identity = new Matrix4();
   try {
-    for (const piece of pieces) {
+    for (const [index, piece] of pieces.entries()) {
       yield;
       const copy = piece.geometry.clone(); copies.push(copy);
+      // MF13: each piece's fade part (its tile), for the refine dither (engine render/nodes/partFade.ts)
+      if (fadeKeys !== undefined) copy.setAttribute('aFadeKey', new Float32BufferAttribute(new Float32Array(copy.getAttribute('position').count).fill(fadeKeys[index] ?? 0), 1));
       if (forceIdentityTransform || pose !== undefined || !piece.matrix.equals(identity)) yield* transform(copy, piece.matrix);
       if (pose !== undefined) yield* transform(copy, new Matrix4().fromArray(pose));
     }
