@@ -146,6 +146,8 @@ export async function phoneBoardWall(milliseconds, target) {
 
 /** Lightweight early shell witness: actual hero image loaded plus a presented animation frame. */
 export function installPhoneTitlePaint() {
+  // Keep late entry reads: WebKit defaults to only the first 250 resources.
+  performance.setResourceTimingBufferSize(10_000);
   /** @type {{heroMs:number|null, fcpMs:number|null, heroURL:string|null}} */
   const evidence = { heroMs: null, fcpMs: null, heroURL: null };
   Reflect.set(window, '__phoneRoutePaint', evidence);
