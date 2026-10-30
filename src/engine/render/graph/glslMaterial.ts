@@ -36,6 +36,29 @@ function ownValue(value: unknown): unknown {
 
 /** the white instance colours `GraphShaderMaterial.onBeforeRender` made (remade when their mesh outgrows them) */
 const whiteColours = new WeakSet<THREE.BufferAttribute>();
+const pendingWhite = new WeakSet<THREE.Object3D>();
+/** no colours yet, or white ones a later, larger instanceMatrix outgrew (worldScenes' target rows swap one in) */
+function needsWhite(object: THREE.Object3D): boolean {
+  if (!(object instanceof THREE.InstancedMesh)) return false;
+  const colours = object.instanceColor;
+  return colours === null || (whiteColours.has(colours) && colours.count < object.instanceMatrix.count);
+}
+/**
+ * White instance colours for `mesh`, given once this frame has drawn: three creates an instanced attribute's buffer in
+ * its object update, before the draw hooks run, so colours set inside the hook were bound to no buffer, and the vertex
+ * array three caches for the geometry and program kept them unbound (read as 0: Nine's mahjong diners drew black). This
+ * frame draws the mesh as it was; the next uploads the colours before it binds them.
+ */
+function giveWhiteColours(object: THREE.Object3D): void {
+  if (pendingWhite.has(object)) return;
+  pendingWhite.add(object);
+  queueMicrotask(() => {
+    pendingWhite.delete(object);
+    if (!needsWhite(object) || !(object instanceof THREE.InstancedMesh)) return;
+    const white = new THREE.InstancedBufferAttribute(new Float32Array(object.instanceMatrix.count * 3).fill(1), 3);
+    whiteColours.add(white); object.instanceColor = white;
+  });
+}
 
 /** whether a graph (or a loop body in it) reads the instance colour */
 function readsInstanceColour(nodes: Readonly<Record<string, GraphNode>>): boolean {
@@ -118,16 +141,7 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
     // a material built before its sky registered its cascades takes them at its first draw (precompile runs this hook)
     this.gateCascades();
     this.codec?.draw(this, object);
-    // three picks the program after this hook: the colours are in place for this very draw. A part whose matrices arrive
-    // later (worldScenes' target rows swap in a larger instanceMatrix) outgrows white colours made at its first draw: they
-    // are remade at its size (read past their end, the extra copies drew black: Nine's mahjong diners)
-    if (this.instanceColour && object instanceof THREE.InstancedMesh) {
-      const colours = object.instanceColor, count = object.instanceMatrix.count;
-      if (colours === null || (whiteColours.has(colours) && colours.count < count)) {
-        const white = new THREE.InstancedBufferAttribute(new Float32Array(count * 3).fill(1), 3);
-        whiteColours.add(white); object.instanceColor = white;
-      }
-    }
+    if (this.instanceColour && needsWhite(object)) giveWhiteColours(object);
     // the environment uniforms are shared with clones: every lit draw writes its own scene's before it uploads
     if (this.lights) syncGraphEnvironment(this, scene);
   }

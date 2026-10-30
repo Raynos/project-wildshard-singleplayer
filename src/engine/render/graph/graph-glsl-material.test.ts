@@ -160,7 +160,7 @@ test('a clone never clones a texture: a shared source keeps its version (a compr
 
 // EP7: instanced meshes with and without colours drew one graph through two programs; the colourless ones now get white
 // colours at their first draw (white is what the graph reads without them), and share the coloured program
-test('a classic graph reading the instance colour gives a colourless instanced mesh white colours at its first draw', () => {
+test('a classic graph reading the instance colour gives a colourless instanced mesh white colours after its first draw', async () => {
   const reads = compileClassicGraph({ version: 1, kind: 'material', model: 'unlit', nodes: { c: { op: 'instanceColour' }, v: { op: 'varying', in: ['c'] } }, stages: { surface: { colour: 'v' } } }).material;
   const plain = compileClassicGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } }).material;
   const geometry = new THREE.BoxGeometry(), scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(), renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
@@ -168,19 +168,22 @@ test('a classic graph reading the instance colour gives a colourless instanced m
   const a = new THREE.InstancedMesh(geometry, reads, 3), b = new THREE.InstancedMesh(geometry, plain, 3), c = reads.clone(), d = new THREE.InstancedMesh(geometry, c, 2);
   try {
     reads.onBeforeRender(renderer, scene, camera, geometry, a);
+    // not inside the draw that found none: three made this frame's buffers already, and would bind them to nothing
+    expect(a.instanceColor).toBe(null);
+    await Promise.resolve();
     expect(a.instanceColor?.count).toBe(3); expect([...(a.instanceColor?.array ?? [])].every(v => v === 1)).toBe(true);
-    plain.onBeforeRender(renderer, scene, camera, geometry, b);
+    plain.onBeforeRender(renderer, scene, camera, geometry, b); await Promise.resolve();
     expect(b.instanceColor).toBe(null);
-    c.onBeforeRender(renderer, scene, camera, geometry, d);
+    c.onBeforeRender(renderer, scene, camera, geometry, d); await Promise.resolve();
     expect(d.instanceColor?.count).toBe(2);
     // matrices arriving later (a larger instanceMatrix) get white colours at their size, never a short buffer read as black
     d.instanceMatrix = new THREE.InstancedBufferAttribute(new Float32Array(5 * 16), 16); d.count = 5;
-    c.onBeforeRender(renderer, scene, camera, geometry, d);
+    c.onBeforeRender(renderer, scene, camera, geometry, d); await Promise.resolve();
     expect(d.instanceColor?.count).toBe(5); expect([...(d.instanceColor?.array ?? [])].every(v => v === 1)).toBe(true);
     // colours the owner set are its own: never replaced
     const own = new THREE.InstancedBufferAttribute(new Float32Array(3 * 3).fill(0.5), 3); a.instanceColor = own;
     a.instanceMatrix = new THREE.InstancedBufferAttribute(new Float32Array(6 * 16), 16);
-    reads.onBeforeRender(renderer, scene, camera, geometry, a);
+    reads.onBeforeRender(renderer, scene, camera, geometry, a); await Promise.resolve();
     expect(a.instanceColor).toBe(own);
   } finally { geometry.dispose(); reads.dispose(); plain.dispose(); c.dispose(); }
 });
