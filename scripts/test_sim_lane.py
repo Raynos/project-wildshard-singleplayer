@@ -1,5 +1,6 @@
 """Real Bash startup/handover against an isolated simctl fixture."""
 import json
+from concurrent.futures import ThreadPoolExecutor
 import os
 from pathlib import Path
 import shutil
@@ -231,5 +232,58 @@ sys.exit(75 if len(path.read_text().splitlines())==2 else 0)
         self.assert_not_handed_over()
 
 
+class ParallelReadinessSuite(unittest.TestSuite):
+    """Two independent fake-device cases share the unchanged whole-run cap."""
+
+    def run(self, result, debug=False):
+        if debug:
+            return super().run(result, debug)
+
+        def run_case(case):
+            local = unittest.TestResult()
+            case.run(local)
+            return local
+
+        # Every case owns its directory, fake commands and child environment;
+        # none touches the real Simulator or process-global environment.
+        # Merge completed results on this thread so failure traces and counts
+        # remain ordinary unittest results without concurrent result mutation.
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            for local in pool.map(run_case, self):
+                result.testsRun += local.testsRun
+                for name in ('errors', 'failures', 'skipped',
+                             'expectedFailures', 'unexpectedSuccesses'):
+                    getattr(result, name).extend(getattr(local, name))
+        return result
+
+
+class ReadinessLoader(unittest.TestLoader):
+    def loadTestsFromTestCase(self, testCaseClass):
+        return ParallelReadinessSuite(super().loadTestsFromTestCase(testCaseClass))
+
+
+class ParallelResultTests(unittest.TestCase):
+    def test_failure_error_and_skip_remain_visible(self):
+        def refuse():
+            raise AssertionError('retained assertion')
+
+        def error():
+            raise RuntimeError('retained error')
+
+        def skip():
+            raise unittest.SkipTest('retained skip')
+
+        result = unittest.TestResult()
+        ParallelReadinessSuite(unittest.FunctionTestCase(case)
+            for case in (lambda: None, refuse, error, skip)).run(result)
+        self.assertEqual(result.testsRun, 4)
+        self.assertFalse(result.wasSuccessful())
+        self.assertEqual(len(result.failures), 1)
+        self.assertIn('retained assertion', result.failures[0][1])
+        self.assertEqual(len(result.errors), 1)
+        self.assertIn('retained error', result.errors[0][1])
+        self.assertEqual(len(result.skipped), 1)
+
+
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testLoader=ReadinessLoader())
