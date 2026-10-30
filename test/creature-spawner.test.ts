@@ -10,9 +10,9 @@ import { Scope } from '../src/engine/app/scope';
 import {RETURN_PROGRAM as program} from './fixtures/driftwood-guest-programs';
 import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
 import { overrideTerrain } from '@wildshard/engine/test/terrain';
-import { installWorldFixture } from './fixtures/worldSetup';
+import { installBoarWorldFixture } from './fixtures/boar-world';
 
-await installWorldFixture();
+await installBoarWorldFixture();
 
 test('materializes ordered groups through the manager and retires only owned actors', () => {
   interface Actor { herd: number; kind: string; pose: number[]; roll: number }
