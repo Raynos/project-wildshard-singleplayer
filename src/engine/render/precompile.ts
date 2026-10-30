@@ -620,7 +620,13 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
           graphDepths.push({ copy, prepare });
           continue;
         }
-        depth = stock;
+        if (alphaTest > 0) depth = stock;
+        else {
+          // PF3 (shadowDepthKinds): a caster that does not alpha-test draws its depth with no texture
+          key = ['depth', '', '', '', side, disp ? `d${disp.channel}` : '', ok].join('|');
+          depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.BasicDepthPacking, alphaTest, side, displacementMap: disp, displacementScale: mat.displacementScale, displacementBias: mat.displacementBias });
+          temporary.add(depth);
+        }
       }
       if (seen.has(key)) continue;
       seen.add(key);

@@ -5,10 +5,15 @@ import { depthForKind } from './shadowDepthKinds';
 test('PF3: each caster kind draws its own copy of the stock depth material, as three set the stock for this draw', () => {
   const stock = new MeshDepthMaterial({ side: BackSide }), geometry = new BoxGeometry(), material = new MeshBasicMaterial();
   const plain = new Mesh(geometry, material), instanced = new InstancedMesh(geometry, material, 2), batched = new BatchedMesh(2, 64, 64, material);
-  // a plain FrontSide caster (three casts it BackSide) keeps the stock; a DoubleSide one is its own program
-  expect(depthForKind(stock, plain)).toBe(stock);
+  // every caster draws a copy, the stock never; a DoubleSide one is its own program
+  const forPlain = depthForKind(stock, plain);
+  expect(forPlain).not.toBe(stock); expect(depthForKind(stock, plain)).toBe(forPlain);
   stock.side = DoubleSide; const doubled = depthForKind(stock, plain); stock.side = BackSide;
-  expect(doubled).not.toBe(stock); expect(doubled.side).toBe(DoubleSide);
+  expect(doubled).not.toBe(forPlain); expect(doubled.side).toBe(DoubleSide);
+  // a caster that does not alpha-test binds no texture into the shadow pass
+  const texture = new Texture(); stock.map = texture;
+  expect(depthForKind(stock, plain).map).toBe(null);
+  stock.map = null; texture.dispose();
   const forInstanced = depthForKind(stock, instanced), forBatched = depthForKind(stock, batched);
   expect(forInstanced).not.toBe(stock); expect(forBatched).not.toBe(stock); expect(forBatched).not.toBe(forInstanced);
   expect(depthForKind(stock, instanced)).toBe(forInstanced); // one copy a kind, kept

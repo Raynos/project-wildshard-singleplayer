@@ -89,7 +89,11 @@ test('opted-in casters share live displacement and alpha, cache by material and 
     object.customDepthMaterial = undefined;
     compiled.material.dispose(); expect(released).toHaveBeenCalledOnce();
     const plain = compileGraph({ ...graph, stages: { ...graph.stages, 'vertex.offset': { offset: 'offset' } } });
-    object.material = plain.material; draw(); expect(draws.at(-1)).toBe(stock); plain.material.dispose();
+    // a graph without the shadow opt-in casts through the stock depth material, as its caster kind's copy (PF3)
+    object.material = plain.material; draw();
+    const cast = draws.at(-1);
+    expect(cast).toBeInstanceOf(THREE.MeshDepthMaterial); expect(cast).not.toBe(depth); expect(cast?.side).toBe(stock.side);
+    plain.material.dispose();
     expect(authorGraph({ model: 'unlit', vertex: { offset: vec3(0, 1, 0), shadow: true }, surface: { colour: vec3(1) } }).stages['vertex.offset']?.shadow).toBe(true);
     expect(validateGraph({ ...graph, stages: { ...graph.stages, 'vertex.clip': { position: [0, 0, 0, 1] } } }).ok).toBe(false);
   } finally { clone.dispose(); compiled.material.dispose(); stock.dispose(); geometry.dispose(); map.dispose(); shadowMap.dispose(); handler.renderEnd(); csm.dispose(); csm.remove(); }
