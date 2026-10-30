@@ -16,7 +16,9 @@ never multi-draw (E271 / E272).
 
 ## 2. The draw key (what may share a slab)
 
-Two source draws share a slab only when everything three or the engine reads per draw is equal. From the weld node
+Two source draws share a slab only when everything three or the engine reads per draw is equal. First cut: one key
+per original refine anchor (no cross-anchor merge); keys under different anchors merge only when the anchors' world
+poses are bit-identical, after a key census shows the gain. From the weld node
 (`format/worldSceneWeld.ts` `common` + `draw`):
 
 | field | why it is in the key |
@@ -35,8 +37,13 @@ draw still becomes a slab (it gains chunking and per-chunk bounds).
 - Budget: vertex + index bytes ≤ 4 MB per chunk (the run time uploads one chunk a frame).
 - Split order: by sub-tile quadrant (31.25 m), then by height band of ≤ 62.5 m (sp-x1's NT3; Nine's tiles span ~500 m of
   height, so this also makes each chunk's box tight), then by source order until under budget.
-- A triangle goes to the chunk holding its centroid; shared vertices are duplicated across chunks bit-exactly.
-- Each chunk records its AABB and bounding sphere in the weld frame (the run time uses them as-is, frozen).
+- A triangle goes to the chunk holding its centroid and is never split; one longer than a band stays whole, and its
+  chunk's box grows to hold it (bands steer the split, they do not bound triangles). Shared vertices are duplicated
+  across chunks bit-exactly.
+- Geometry frame: a chunk's vertices are in its key's anchor frame, posed exactly as `joinWholePieces` poses them
+  (piece matrix, then the model matrix, the same rounding); the run time keeps the anchor's local transform.
+- Each chunk records its AABB and bounding sphere in that frame (the run time uses them as-is, frozen), and its
+  `geometricError` (NT2).
 
 ## 4. Format
 
@@ -45,9 +52,9 @@ A new library kind beside `whole` in `format/worldScenes.ts` (strict, bounded li
 ```
 { id, kind: 'slabs', of: <whole library id>,
   keys: [{ id, node: <weld node id whose anchor owns it>, material, castShadow, receiveShadow, castFrom?, until?,
-           renderOrder, layers, frustumCulled, sources: [<refine model ids>] }],          // ≤ 64
+           renderOrder, layers, frustumCulled, visible, sources: [<refine model ids>] }],  // ≤ 64
   tiles: [{ tile: z * 8 + x, file: <asset hash>,
-            chunks: [{ key: <keys[].id>, bytes, box: [6], sphere: [4] }] }] }               // ≤ 64 tiles, ≤ 64 chunks
+            chunks: [{ key: <keys[].id>, bytes, box: [6], sphere: [4], geometricError }] }] }   // ≤ 64 tiles, ≤ 64 chunks
 ```
 
 - One GLB per tile (`file`), one glTF node per chunk, written in `chunks` order. Channels are **exactly** today's whole
