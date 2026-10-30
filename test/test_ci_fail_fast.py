@@ -30,28 +30,39 @@ class FailFastTests(unittest.TestCase):
 
     def test_existing_source_guards_use_the_same_reporter(self):
         source=Path('.github/workflows/deploy.yml').read_text()
-        for command,count in [('check-css.mjs',1),('no-binary-json.mjs --all',2),('check-closed-components.mjs',1)]:
+        for command,count in [('check-css.mjs',1),('no-binary-json.mjs --all',1),('check-closed-components.mjs',1)]:
             with self.subTest(command=command):
                 self.assertEqual(source.count('run: python3 scripts/ci-fail-fast.py -- node scripts/'+command+'\n'),count)
                 self.assertNotIn('run: node scripts/'+command+'\n',source)
 
-    def test_web_prepared_download_is_owned_and_keeps_exact_run_and_unpack(self):
+    def test_one_prepare_publishes_exact_inputs_and_builds_without_download_or_regeneration(self):
         source = Path('.github/workflows/deploy.yml').read_text()
-        # A job body includes two-space job names and deeper step indentation.
-        lines = source.splitlines()
-        start = lines.index('  build-and-deploy:')
-        end = next((index for index in range(start + 1, len(lines))
-                    if lines[index].startswith('  ') and not lines[index].startswith('   ')
-                    and lines[index].endswith(':')), len(lines))
-        web = '\n'.join(lines[start:end])
-        command = 'python3 scripts/ci-fail-fast.py -- gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name test-products'
-        self.assertEqual(web.count('run: ' + command), 1)
-        self.assertNotIn('uses: actions/download-artifact@', web)
-        self.assertIn("if: env.DEPLOY != 'true'", web)
-        self.assertIn('run: zstd -d --rm test-products.tar.zst', web)
-        self.assertIn('scripts/ci-checks.mjs --prepared', web)
-        self.assertIn('python3 scripts/ci-products.py unpack', web)
-        self.assertLess(web.index('run: ' + command), web.index('run: zstd -d --rm test-products.tar.zst'))
+        prepare = source.split('\n  prepare:\n', 1)[1].split('\n  behaviour:\n', 1)[0]
+        generation = 'node scripts/gen.mjs --inputs-only'
+        products = 'node scripts/build-shardfiles.mjs --reuse'
+        self.assertEqual(source.count(generation), 1)
+        self.assertEqual(source.count(products), 1)
+        self.assertNotIn('  generated-inputs:', source)
+        self.assertNotIn('  products:', source)
+        self.assertNotIn('gh run download', prepare)
+        self.assertIn('python3 scripts/ci-products.py pack', prepare)
+        self.assertIn('zstd --long=27 -3 -T2 --keep test-products.tar', prepare)
+        self.assertIn('scripts/ci-checks.mjs --prepared', prepare)
+        self.assertIn('python3 scripts/ci-products.py unpack', prepare)
+        self.assertLess(prepare.index(generation), prepare.index(products))
+        self.assertLess(prepare.index(products), prepare.index('scripts/ci-products.py pack'))
+        self.assertLess(prepare.index('scripts/ci-products.py pack'), prepare.index('scripts/ci-checks.mjs --prepared'))
+        for name in ('typecheck-lint', 'derived-docs', 'behaviour', 'behaviour-products'):
+            # Job extraction stops only at the next job, not deeper step fields.
+            lines = source.split('\n  '+name+':\n', 1)[1].splitlines()
+            end = next((i for i, line in enumerate(lines) if line.startswith('  ')
+                        and not line.startswith('   ') and line.endswith(':')), len(lines))
+            job = '\n'.join(lines[:end])
+            self.assertIn('needs: prepare', job)
+            self.assertIn('name: test-products', job)
+            self.assertIn('python3 scripts/ci-products.py unpack', job)
+            self.assertNotIn('node scripts/gen.mjs', job)
+            self.assertNotIn('node scripts/build-app.mjs', job)
 
     def test_annotation_properties_are_not_part_of_the_file(self):
         output='::error file=test/script-v2-strip.test.ts,title=test/script-v2-strip.test.ts::Error: missing input'
@@ -103,8 +114,8 @@ class FailFastTests(unittest.TestCase):
 
     def test_every_ci_job_finishes_its_own_verdict_without_peer_io(self):
         main=API['main'];run=API['run']
-        jobs=('behaviour','behaviour-products','products','typecheck-lint',
-              'build-and-deploy','derived-docs','generated-inputs','dispatch-boot-smoke')
+        jobs=('behaviour','behaviour-products','prepare','typecheck-lint',
+              'build-and-deploy','derived-docs','dispatch-boot-smoke')
         payload=json.dumps({'total_count':1,'jobs':[dict(name='foreign red',
             conclusion='failure',completed_at='2026-01-01',html_url='https://example.invalid/peer')]})
         for event in ('push','pull_request'):
@@ -161,7 +172,7 @@ class FailFastTests(unittest.TestCase):
         self.assertNotIn('strategy:',types)
         self.assertNotIn('matrix.',types)
         self.assertNotIn('lint:fast',types)
-        self.assertIn('python3 scripts/ci-products.py unpack-generated',types)
+        self.assertIn('python3 scripts/ci-products.py unpack',types)
         self.assertIn('python3 scripts/ci-fail-fast.py -- /usr/bin/time -v bash scripts/typecheck-lint.sh',types)
         command=Path('scripts/typecheck-lint.sh').read_text()
         self.assertIn('pnpm exec tsc -b tsconfig.layers.json --builders 1',command)

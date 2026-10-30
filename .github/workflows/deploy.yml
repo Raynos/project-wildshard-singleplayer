@@ -55,12 +55,8 @@ env:
 
 jobs:
   build-and-deploy:
-    needs: products
-    # Release runs intentionally skip products; push/PR builds require its
-    # successful exact-run preparation. A failed producer never builds a dist.
-    if: ${{ !cancelled() && (needs.products.result == 'success' || github.event_name == 'workflow_dispatch') }}
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    # A CI-green release takes ~4 min; an unproven pin's whole `pnpm test` took 24.5 of the old 30 (2026-10-09).
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
@@ -107,44 +103,240 @@ jobs:
           test -n "$VERCEL_BUILD_TOKEN" || { echo '::error::VERCEL_BUILD_TOKEN is missing; a team-scoped token is required for the Vercel CLI'; exit 1; }
           test -n "$VERCEL_ORG_ID" && test -n "$VERCEL_PROJECT_ID" || { echo '::error::Vercel project IDs are missing'; exit 1; }
 
-      - uses: pnpm/action-setup@v4
-        if: env.DEPLOY != 'true'
-        with:
-          version: 10
-
       - uses: actions/setup-node@v4
         if: steps.live.outputs.skip != 'true'
         with:
           node-version: 24
-          cache: ${{ env.DEPLOY != 'true' && 'pnpm' || '' }}
 
+      - name: Restore the exact successful push artifact
+        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        env:
+          SOURCE_RUN: ${{ steps.pin.outputs.source_run }}
+          DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
+        run: |
+          test -n "$SOURCE_RUN"
+          gh run download "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --name vercel-prebuilt --dir prebuilt-output
+          python3 "$RUNNER_TEMP/prebuilt-output.py" restore --sha "$DEPLOY_SHA" --run "$SOURCE_RUN"
+          npm install --global vercel@59.11.2
+          mkdir -p .vercel
+          printf '{"projectId":"%s","orgId":"%s"}' "$VERCEL_PROJECT_ID" "$VERCEL_ORG_ID" > .vercel/project.json
+
+      # Hidden maps remain in dist for build checks, local profiles and stack
+      # decoding. Keep the release's copies off the public CDN.
+      - name: Retain production source maps privately
+        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-source-maps-${{ steps.pin.outputs.sha }}
+          path: |
+            dist/version.json
+            dist/.vite/chunk-modules.json
+            dist/**/*.map
+            dist/**/*.map.gz
+            dist/**/*.map.br
+          retention-days: 30
+          include-hidden-files: true
+          if-no-files-found: error
+
+      - name: Deploy prebuilt output
+        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        env:
+          VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
+          DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
+          DEPLOY_MODE: ${{ steps.pin.outputs.mode }}
+        run: |
+          if [ "$DEPLOY_MODE" != pinned ]; then node "$RUNNER_TEMP/deploy-pin.mjs" check-live-floor "$DEPLOY_SHA"; fi
+          node "$RUNNER_TEMP/deploy-source-maps.mjs" .vercel/output/static
+          url=$(vercel deploy --prebuilt --prod --yes --scope raynos-projects --token "$VERCEL_BUILD_TOKEN")
+          echo "deployed $url for $DEPLOY_SHA (the pin)"
+          echo "### Deployed \`$DEPLOY_SHA\` (the deploy pin) to $url" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify production
+        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        env:
+          DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
+        run: |
+          node "$RUNNER_TEMP/deploy-version.mjs" verify
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -H 'x-review-password: invalid' https://wildshard-singleplayer.vercel.app/api/inbox)
+          test "$code" = 401 || { echo "::error::/api/inbox returned HTTP $code, expected 401"; exit 1; }
+
+      - name: Record verified production history
+        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
+        run: |
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$DEPLOY_SHA" \
+            -f context=production-live -f state=success -f description='Exact pin verified live in production' \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+      - name: Publish exact failure paths
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-failures-web
+          path: tmp/ci-failures/*.json
+          if-no-files-found: ignore
+          retention-days: 2
+
+  # Types and lint use the same verified prepared input as every test shard.
+  typecheck-lint:
+    needs: prepare
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # One complete solution and one complete typed program; each keeps its own verdict.
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
       - name: Install
-        if: env.DEPLOY != 'true'
         run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-products
+      - name: Verify and restore exact-run generated inputs and products
+        run: |
+          zstd -d --rm test-products.tar.zst
+          python3 scripts/ci-products.py unpack
+      - name: Typecheck and typed lint
+        # Generated inputs above are verified for this exact run. Both checks
+        # finish, even when one fails; typed lint includes every fast rule.
+        run: python3 scripts/ci-fail-fast.py -- /usr/bin/time -v bash scripts/typecheck-lint.sh
 
-      # SF74 W16: push / PR CI runs test:checks' commands and the vite build + chunk check at once (serial ~205 s on the
-      # runner); typecheck and lint run in their own job beside this one, and vitest in its shards.
-      # Own the whole download/extraction process after the observed Node-action
-      # zero exit without completion, which left a partial zstd file.
-      - name: Download exact-run prepared products
-        if: env.DEPLOY != 'true'
-        run: python3 scripts/ci-fail-fast.py -- gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name test-products
-      - name: Decompress exact-run prepared products
-        if: env.DEPLOY != 'true'
-        run: zstd -d --rm test-products.tar.zst
+      - name: Publish exact failure paths
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-failures-lint
+          path: tmp/ci-failures/*.json
+          if-no-files-found: ignore
+          retention-days: 2
+
+  # Documentation consumes completed game inputs without extending their job.
+  derived-docs:
+    needs: prepare
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: {version: 10}
+      - uses: actions/setup-node@v4
+        with: {node-version: 24, cache: pnpm}
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-products
+      - name: Verify and restore exact-run generated inputs and products
+        run: |
+          zstd -d --rm test-products.tar.zst
+          python3 scripts/ci-products.py unpack
+      - run: python3 scripts/ci-fail-fast.py -- pnpm run docs
+      - name: Publish exact failure paths
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-failures-docs
+          path: tmp/ci-failures/*.json
+          if-no-files-found: ignore
+          retention-days: 2
+
+  # CI6: one owner generates, builds products and publishes the tested app.
+  # All wave jobs consume this exact SHA/run preparation; none rebuild it.
+  prepare:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    # Repeated producer children share V8 parsing within this isolated job.
+    env:
+      NODE_COMPILE_CACHE: ${{ github.workspace }}/.cache/node-compile
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: {version: 10}
+      - uses: actions/setup-node@v4
+        with: {node-version: 24, cache: pnpm}
+      - run: pnpm install --frozen-lockfile
+      - name: Bind cache snapshot to source inputs
+        id: inputs
+        run: echo "tree=$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_OUTPUT"
+      # Snapshots contain content-addressed entries, not CI proof artifacts.
+      # Every restored entry rechecks its input hashes; strict product hits run
+      # current byte/schema/budget/script admission before this run publishes proof.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/wildshard/generate
+            ~/.cache/wildshard/gen
+            ~/.cache/wildshard/compiler-code/1
+            ~/.cache/wildshard/shardfiles
+            ~/.cache/wildshard/basis
+          key: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
+          restore-keys: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-
+      - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --inputs-only
+      - name: Verify committed source tables after generation
+        run: python3 scripts/ci-fail-fast.py -- node scripts/committed-source-tables.mjs --check --after-publication
+      - run: python3 scripts/ci-fail-fast.py -- node scripts/no-binary-json.mjs --all
+      - run: python3 scripts/ci-fail-fast.py -- node scripts/build-shardfiles.mjs --reuse
+      - name: Enforce closed component source and host locks
+        run: python3 scripts/ci-fail-fast.py -- node scripts/check-closed-components.mjs
+      # A runner is isolated: save current reusable products rather than six
+      # historical payload generations. Keep every input receipt for validation.
+      - run: node scripts/ci-product-cache.mjs
+      - name: Pack exact-run generated inputs and products
+        run: |
+          python3 scripts/ci-products.py pack
+          zstd --long=27 -3 -T2 --keep test-products.tar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-products
+          path: |
+            test-products.tar.zst
+            test-products-proof.json
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error
+
       - name: Verify preparation, checks and build (parallel)
-        if: env.DEPLOY != 'true'
         run: python3 scripts/ci-fail-fast.py -- node scripts/build-without-browser.mjs -- node scripts/ci-checks.mjs --prepared 'python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs && node scripts/check-devserver.mjs dist'
 
       - name: CSS check
-        if: env.DEPLOY != 'true'
         run: python3 scripts/ci-fail-fast.py -- node scripts/check-css.mjs
 
-      # A CI-green release pin skips the steps that used to run `pnpm gen` first, and the generated sources are out of
-      # git (SF74 W13), so generate them here (~1 s); 21:25 / 21:45 UTC 2026-10-09 failed on portShares.generated.
+      # Native output shares the verified preparation; only native inputs build it.
       - name: Detect native-only build inputs
         id: native-inputs
-        if: env.DEPLOY != 'true' && steps.live.outputs.skip != 'true'
         env:
           NATIVE_BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: |
@@ -156,7 +348,7 @@ jobs:
             echo "needed=$(node scripts/native-build-inputs.mjs < "$RUNNER_TEMP/native-paths")" >> "$GITHUB_OUTPUT"
           fi
       - name: Native web build
-        if: env.DEPLOY != 'true' && steps.native-inputs.outputs.needed == 'true'
+        if: steps.native-inputs.outputs.needed == 'true'
         run: |
           python3 scripts/ci-fail-fast.py -- python3 scripts/ci-products.py unpack
           WS_TEST_PRODUCTS_SHA="$GITHUB_SHA" VERCEL_GIT_COMMIT_SHA="$GITHUB_SHA" \
@@ -230,311 +422,18 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-      - name: Restore the exact successful push artifact
-        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
-        env:
-          SOURCE_RUN: ${{ steps.pin.outputs.source_run }}
-          DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
-        run: |
-          test -n "$SOURCE_RUN"
-          gh run download "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --name vercel-prebuilt --dir prebuilt-output
-          python3 "$RUNNER_TEMP/prebuilt-output.py" restore --sha "$DEPLOY_SHA" --run "$SOURCE_RUN"
-          npm install --global vercel@59.11.2
-          mkdir -p .vercel
-          printf '{"projectId":"%s","orgId":"%s"}' "$VERCEL_PROJECT_ID" "$VERCEL_ORG_ID" > .vercel/project.json
-
-      # Hidden maps remain in dist for build checks, local profiles and stack
-      # decoding. Keep the release's copies off the public CDN.
-      - name: Retain production source maps privately
-        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: production-source-maps-${{ steps.pin.outputs.sha }}
-          path: |
-            dist/version.json
-            dist/.vite/chunk-modules.json
-            dist/**/*.map
-            dist/**/*.map.gz
-            dist/**/*.map.br
-          retention-days: 30
-          include-hidden-files: true
-          if-no-files-found: error
-
-      - name: Deploy prebuilt output
-        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
-        env:
-          VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
-          DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
-          DEPLOY_MODE: ${{ steps.pin.outputs.mode }}
-        run: |
-          if [ "$DEPLOY_MODE" != pinned ]; then node "$RUNNER_TEMP/deploy-pin.mjs" check-live-floor "$DEPLOY_SHA"; fi
-          node "$RUNNER_TEMP/deploy-source-maps.mjs" .vercel/output/static
-          url=$(vercel deploy --prebuilt --prod --yes --scope raynos-projects --token "$VERCEL_BUILD_TOKEN")
-          echo "deployed $url for $DEPLOY_SHA (the pin)"
-          echo "### Deployed \`$DEPLOY_SHA\` (the deploy pin) to $url" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Verify production
-        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
-        env:
-          DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
-        run: |
-          node "$RUNNER_TEMP/deploy-version.mjs" verify
-          code=$(curl -sS -o /dev/null -w '%{http_code}' -H 'x-review-password: invalid' https://wildshard-singleplayer.vercel.app/api/inbox)
-          test "$code" = 401 || { echo "::error::/api/inbox returned HTTP $code, expected 401"; exit 1; }
-
-      - name: Record verified production history
-        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
-        run: |
-          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$DEPLOY_SHA" \
-            -f context=production-live -f state=success -f description='Exact pin verified live in production' \
-            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-
       - name: Publish exact failure paths
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-failures-web
+          name: ci-failures-prepare
           path: tmp/ci-failures/*.json
           if-no-files-found: ignore
           retention-days: 2
 
-  # SF74 W16: typecheck and lint beside build-and-deploy (they were ~1.5 min of its serial critical path).
-  typecheck-lint:
-    needs: generated-inputs
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    # One complete solution and one complete typed program; each keeps its own verdict.
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          filter: blob:none
-          sparse-checkout: |
-            /*
-            !/progress/
-            !/art/
-            !/sources/
-          sparse-checkout-cone-mode: false
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-      - name: Install
-        run: pnpm install --frozen-lockfile
-      - uses: actions/download-artifact@v4
-        with:
-          name: generated-inputs
-      - name: Verify and restore exact-run generated inputs
-        run: |
-          zstd -d --rm generated-inputs.tar.zst
-          python3 scripts/ci-products.py unpack-generated
-      - name: Typecheck and typed lint
-        # Generated inputs above are verified for this exact run. Both checks
-        # finish, even when one fails; typed lint includes every fast rule.
-        run: python3 scripts/ci-fail-fast.py -- /usr/bin/time -v bash scripts/typecheck-lint.sh
-
-      - name: Publish exact failure paths
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-failures-lint
-          path: tmp/ci-failures/*.json
-          if-no-files-found: ignore
-          retention-days: 2
-
-  # Documentation consumes completed game inputs without extending their job.
-  derived-docs:
-    needs: generated-inputs
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          filter: blob:none
-          sparse-checkout: |
-            /*
-            !/progress/
-            !/art/
-            !/sources/
-          sparse-checkout-cone-mode: false
-      - uses: pnpm/action-setup@v4
-        with: {version: 10}
-      - uses: actions/setup-node@v4
-        with: {node-version: 24, cache: pnpm}
-      - run: pnpm install --frozen-lockfile
-      - uses: actions/download-artifact@v4
-        with:
-          name: generated-inputs
-      - name: Verify and restore exact-run generated inputs
-        run: |
-          zstd -d --rm generated-inputs.tar.zst
-          python3 scripts/ci-products.py unpack-generated
-      - run: python3 scripts/ci-fail-fast.py -- pnpm run docs
-      - name: Publish exact failure paths
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-failures-docs
-          path: tmp/ci-failures/*.json
-          if-no-files-found: ignore
-          retention-days: 2
-
-  # Product-free behaviour, types and lint start with generated inputs.
-  # Only product readers and web builds wait for the complete products.
-  generated-inputs:
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    # Repeated producer children share V8 parsing within this isolated job.
-    env:
-      NODE_COMPILE_CACHE: ${{ github.workspace }}/.cache/node-compile
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          filter: blob:none
-          sparse-checkout: |
-            /*
-            !/progress/
-            !/art/
-            !/sources/
-          sparse-checkout-cone-mode: false
-      - uses: pnpm/action-setup@v4
-        with: {version: 10}
-      - uses: actions/setup-node@v4
-        with: {node-version: 24, cache: pnpm}
-      - run: pnpm install --frozen-lockfile
-      - name: Bind cache snapshot to source inputs
-        id: inputs
-        run: echo "tree=$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_OUTPUT"
-      # Snapshots contain content-addressed entries, not CI proof artifacts.
-      # Every restored entry rechecks its input hashes; strict product hits run
-      # current byte/schema/budget/script admission before this run publishes proof.
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/wildshard/generate
-            ~/.cache/wildshard/gen
-            ~/.cache/wildshard/compiler-code/1
-            ~/.cache/wildshard/shardfiles
-            ~/.cache/wildshard/basis
-          key: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
-          restore-keys: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-
-      - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --inputs-only
-      - name: Verify committed source tables after generation
-        run: python3 scripts/ci-fail-fast.py -- node scripts/committed-source-tables.mjs --check --after-publication
-      - run: python3 scripts/ci-fail-fast.py -- node scripts/no-binary-json.mjs --all
-      - name: Pack exact-run generated inputs
-        run: |
-          node scripts/ci-product-cache.mjs
-          python3 scripts/ci-products.py pack-generated
-          zstd --long=27 -3 -T2 --rm generated-inputs.tar
-      - uses: actions/upload-artifact@v4
-        with:
-          name: generated-inputs
-          path: |
-            generated-inputs.tar.zst
-            generated-inputs-proof.json
-          compression-level: 0
-          retention-days: 3
-          if-no-files-found: error
-
-      - name: Publish exact failure paths
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-failures-generated
-          path: tmp/ci-failures/*.json
-          if-no-files-found: ignore
-          retention-days: 2
-
-  products:
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    # Product children and their headless workers still run every admission.
-    env:
-      NODE_COMPILE_CACHE: ${{ github.workspace }}/.cache/node-compile
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          filter: blob:none
-          sparse-checkout: |
-            /*
-            !/progress/
-            !/art/
-            !/sources/
-          sparse-checkout-cone-mode: false
-      - uses: pnpm/action-setup@v4
-        with: {version: 10}
-      - uses: actions/setup-node@v4
-        with: {node-version: 24, cache: pnpm}
-      - run: pnpm install --frozen-lockfile
-      - name: Bind cache snapshot to source inputs
-        id: inputs
-        run: echo "tree=$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_OUTPUT"
-      # Snapshots contain content-addressed entries, not CI proof artifacts.
-      # Every restored entry rechecks its input hashes; strict product hits run
-      # current byte/schema/budget/script admission before this run publishes proof.
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/wildshard/shardfiles
-            ~/.cache/wildshard/compiler-code/1
-          key: products-v1-${{ runner.os }}-node24-${{ steps.inputs.outputs.tree }}
-          restore-keys: products-v1-${{ runner.os }}-node24-
-      # This runner prepares current inputs itself, in parallel with the free-test
-      # producer. Prior caches only save construction; no cache grants admission.
-      - name: Restore reusable preparation bytes
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ~/.cache/wildshard/generate
-            ~/.cache/wildshard/gen
-            ~/.cache/wildshard/compiler-code/1
-            ~/.cache/wildshard/shardfiles
-            ~/.cache/wildshard/basis
-          key: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
-          restore-keys: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-
-      - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --inputs-only
-      - run: python3 scripts/ci-fail-fast.py -- node scripts/build-shardfiles.mjs --reuse
-      - run: python3 scripts/ci-fail-fast.py -- node scripts/no-binary-json.mjs --all
-      - name: Enforce closed component source and host locks
-        run: python3 scripts/ci-fail-fast.py -- node scripts/check-closed-components.mjs
-      # A runner is isolated: save current reusable products rather than six
-      # historical payload generations. Keep every input receipt for validation.
-      - run: node scripts/ci-product-cache.mjs
-      - name: Pack exact-run generated inputs and products
-        run: |
-          python3 scripts/ci-products.py pack
-          zstd --long=27 -3 -T2 --rm test-products.tar
-      - uses: actions/upload-artifact@v4
-        with:
-          name: test-products
-          path: |
-            test-products.tar.zst
-            test-products-proof.json
-          compression-level: 0
-          retention-days: 3
-          if-no-files-found: error
-
-      - name: Publish exact failure paths
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-failures-products
-          path: tmp/ci-failures/*.json
-          if-no-files-found: ignore
-          retention-days: 2
 
   behaviour:
-    needs: generated-inputs
+    needs: prepare
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -585,12 +484,12 @@ jobs:
           restore-keys: native-witness-v2-${{ runner.os }}-${{ runner.arch }}-node24-${{ matrix.shard }}-
       - uses: actions/download-artifact@v4
         with:
-          name: generated-inputs
-      - name: Verify and restore exact-run generated inputs
+          name: test-products
+      - name: Verify and restore exact-run generated inputs and products
         run: |
-          zstd -d --rm generated-inputs.tar.zst
-          python3 scripts/ci-products.py unpack-generated
-      # CF3: all product-free suites start as soon as generated inputs are verified.
+          zstd -d --rm test-products.tar.zst
+          python3 scripts/ci-products.py unpack
+      # CI6: product-free suites share the same completed preparation.
       - run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/16 --bail=1
         env:
           VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
@@ -606,7 +505,7 @@ jobs:
           retention-days: 2
 
   behaviour-products:
-    needs: products
+    needs: prepare
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -679,11 +578,10 @@ jobs:
           if-no-files-found: ignore
           retention-days: 2
 
-  # G758/CF2: original tests, same-run products, no retry or softened oracle.
-  # Expired entries also return to both blocking behaviour cohorts automatically.
+  # Exact-SHA smoke waits for every independent push-wave verdict.
   dispatch-boot-smoke:
     # All push checks must pass; release/PR runs never create skipped smoke runs.
-    needs: [build-and-deploy, typecheck-lint, derived-docs, generated-inputs, products, behaviour, behaviour-products]
+    needs: [prepare, typecheck-lint, derived-docs, behaviour, behaviour-products]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 5

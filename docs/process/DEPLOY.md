@@ -13,7 +13,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   CLI account lookup; `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` name the project. No credentials belong in Git.
 - **Push / PR CI runs the whole vitest suite once**, in 16 product-free `behaviour` shards and eight
   `behaviour-products` shards (**without coverage**, Jake G287/G691); `typecheck-lint` runs typecheck and lint;
-  `build-and-deploy` runs the node checks and the
+  `prepare` runs the node checks and the
   vite build + chunk check in parallel (`scripts/ci-checks.mjs`), then the CSS check and the native build. **Coverage is reserved for nightly and
   milestone runs** (Jake G287); it is not a normal push-release prerequisite. **A push that only touches
   `docs/`, `progress/`, `art/` or `sources/` runs no push CI** (`paths-ignore`; it would re-test the parent's code): that SHA never becomes a release candidate, and production's
@@ -24,19 +24,19 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   and complete archive/member inventory, and runs `vercel deploy --prebuilt`. No app or native rebuild runs during
   release; missing artifacts refuse. A nearby commit or successful manual release cannot supply the test proof.
   **CI is the full backstop of the push gate** (Jake, 2026-10-15): the gate runs only the tests that import the changed
-  files (GIT.md). The `generated-inputs` job publishes exact-run source/public inputs first. The 16 product-free
-  behaviour shards restore and verify those inputs immediately, alongside types/lint/docs. The independent
-  `products` job starts at checkout, restores reusable preparation/product caches, constructs its own current inputs,
-  then revalidates every product hit and builds missing or changed products. Its existing source/byte/schema/budget
-  guards still publish the exact-run full snapshot. This spends extra provider CI compute to remove the serial
-  generation-to-checkout hand-off. Eight product-consuming behaviour shards and the web
-  build wait for it. Both artifact readers verify the full SHA, run ID and archive checksum. Nonempty declarations in
+  files (GIT.md). One `prepare` job restores the content-addressed preparation cache, runs generation once,
+  verifies source publication, and revalidates/builds every product. It packs the exact-run full product/input
+  snapshot, then verifies that same archive before the parallel node checks and web build. Native output shares
+  those prepared inputs and builds only when native inputs changed. The job packages the tested Vercel output and
+  smoke projections; neither release nor wave jobs regenerate or rebuild. Types/lint/docs and both behavior
+  cohorts consume the same `test-products` snapshot after prepare succeeds. Every reader verifies the full SHA,
+  run ID, archive checksum and inventory before accepting bytes. Nonempty declarations in
   `scripts/test-products.json` partition suites before duration packing (or hash fallback), so every discovered
   file runs once across both cohorts. Without `WS_TEST_COHORT`, local/full/nightly selection stays complete.
   `WS_TEST_PRODUCTS_SHA` is set only for the product cohort, keeping its exact-product preflight strict; missing or
   mismatched artifacts fail instead of rebuilding. Both matrices keep `fail-fast: false` and each shard's own
   first-failure bail; neither command wrapper stops for a peer failure. Exact-SHA smoke dispatch requires both
-  cohorts, every producer, types/lint, docs and the web build to pass.
+  cohorts, prepare, types/lint and docs to pass.
   G923 removes the optional quarantine workflow and PR reporter. There is no quarantine registry or exclusion
   path: every discovered test belongs to exactly one blocking product or product-free cohort. The retired registry
   was empty. Native Escape, headless and all other real behavior cases remain blocking.
