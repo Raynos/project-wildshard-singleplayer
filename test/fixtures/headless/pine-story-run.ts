@@ -18,7 +18,7 @@ import {ForestPageSchema,LivingPageInputSchema} from '../../../src/format/forest
 import {prepareHeadlessRuntime} from '../pine-verbs';
 import {pineHeadlessAssets} from '../pine-headless';
 
-let phaseStart=performance.now();
+const started=performance.now();let phaseStart=started;
 const measured=(phase:string)=>{const now=performance.now();console.info(JSON.stringify({phase:'timing',stage:phase,milliseconds:now-phaseStart}));phaseStart=now;};
 installAppIdentity(WILDSHARD_IDENTITY);
 const slug='pine-hollow',session=await beginProductSession(slug,'pine-verbs'),{product}=session;
@@ -53,7 +53,7 @@ try{
   const flush=():HeadlessTapeSegment|undefined=>{
     if(frames.length===0)return undefined;
     const id=`stage-${expected.length}`,segment:HeadlessTapeSegment={id,ticks:frames.length,commands:[],frames};frames=[];
-    console.info(JSON.stringify({phase:'record-stage',id,ticks:segment.ticks,current:quest.current?.id??null,at:host.state.tick}));
+    console.info(JSON.stringify({phase:'record-stage',id,ticks:segment.ticks,current:quest.current?.id??null,at:host.state.tick,milliseconds:performance.now()-started}));
     expected.push({id,flags:[...host.flags.all],current:quest.current?.id??null,complete:quest.isComplete,held:held()});
     return segment;
   };
@@ -99,4 +99,8 @@ try{
   }
   assert.equal(report.ticks,host.state.tick);assert.equal(sim.quarantined,false);
   console.info(JSON.stringify({phase:'replayed',slug,ticks:report.ticks,quest:quest.def.id,complete:true,segments:report.observations.length,heldSlots,pipelineMs:performance.now()-pipelineStarted}));
+}catch(error){
+  console.error(JSON.stringify({phase:'pine-story-failed',milliseconds:performance.now()-started,tick:resident?.host.state.tick,
+    error:error instanceof Error?{name:error.name,message:error.message,stack:error.stack}:String(error)}));
+  throw error;
 }finally{retireRopes();resident?.dispose();await (await session.ready()).dispose();}
