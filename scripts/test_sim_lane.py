@@ -1,6 +1,8 @@
 """Real Bash startup/handover against an isolated simctl fixture."""
 import json
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
+from types import FunctionType, SimpleNamespace
 import os
 from pathlib import Path
 import runpy
@@ -50,6 +52,9 @@ elif args[1]=='boot':
     sys.exit(code)
 elif args[1]=='bootstatus': sys.exit(int(os.environ.get('SIM_STATUS_RC','0')))
 elif args[1]=='launch':
+    if os.environ.get('SIM_LAUNCH_NEEDS_DOCUMENT'):
+        (root/'safari-launched').touch()
+        while not (root/'safari-rendered').exists(): time.sleep(.01)
     if os.environ.get('SIM_LAUNCH_IPC_STALL'):
         (root/'safari-launched').touch()
         time.sleep(30)
@@ -238,7 +243,48 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
         self.assertTrue((self.root/'safari-rendered').exists())
         self.assertIn('before launch client replied', result.stderr)
         self.assertEqual(sum(row[1] == 'launch' for row in self.calls()), 1)
+        # A pending app may refuse the first RPC through the existing URL
+        # service retry policy. Every request must target the same owned probe.
+        self.assertEqual(len({row[-1] for row in self.calls() if row[1] == 'openurl'}), 1)
+
+    def test_document_can_complete_before_the_owned_launch_reply(self):
+        result = self.lane(SIM_LAUNCH_NEEDS_DOCUMENT='1')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue((self.root/'child-ran').exists())
+        self.assertLess(result.stderr.index('readiness document requested'), result.stderr.index('Safari app launched'))
+        self.assertEqual(sum(row[1] == 'launch' for row in self.calls()), 1)
         self.assertEqual(sum(row[1] == 'openurl' for row in self.calls()), 1)
+
+    def test_early_owned_frames_cannot_hide_a_failed_launch(self):
+        result = self.lane(SIM_LAUNCH_NEEDS_DOCUMENT='1', SIM_LAUNCH_RC='61')
+        self.assertEqual(result.returncode, 61, result.stderr)
+        self.assertTrue((self.root/'safari-rendered').exists())
+        self.assertIn('Safari app launch failed', result.stderr)
+        self.assert_not_handed_over()
+        self.assertEqual(sum(row[1] == 'launch' for row in self.calls()), 1)
+
+    def test_late_successful_launch_cannot_use_an_earlier_frame_proof(self):
+        clock = SimpleNamespace(now=0)
+        clock.monotonic = lambda: clock.now
+        ready = SimpleNamespace(is_set=lambda: True)
+        @contextmanager
+        def page(_deadline, _started):
+            yield 'http://127.0.0.1/owned', ready
+        class Launch:
+            def __enter__(self):
+                clock.now = 2
+                return self
+            def __exit__(self, *_args):
+                pass
+            def poll(self):
+                return 0
+        native = READY['wait_for_safari']
+        # Clone the helper's environment: parallel cases keep their real clock.
+        helper = FunctionType(native.__code__, {**native.__globals__,
+            'time': clock, 'readiness_page': page,
+            'os': SimpleNamespace(environ={'SIM_SAFARI_READY_TIMEOUT': '1'}),
+            'subprocess': SimpleNamespace(Popen=lambda *_args, **_kwargs: Launch())})
+        self.assertEqual(helper(UDID), 124)
 
     def test_owned_pid_receipt_without_frames_cannot_substitute_for_readiness(self):
         result = self.lane(SIM_LAUNCH_RECEIPT_STALL='1', SIM_REQUIRES_LAUNCH='1',
@@ -271,7 +317,7 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
         result = self.lane(SIM_LAUNCH_IPC_STALL='1', SIM_REQUIRES_LAUNCH='1', SIM_SAFARI_READY_TIMEOUT='2')
         self.assertEqual(result.returncode, 124, result.stderr)
         self.assert_not_handed_over()
-        self.assertFalse(any(row[1] == 'openurl' for row in self.calls()))
+        self.assertNotIn('readiness page reached two animation frames', result.stderr)
 
     def test_completed_url_does_not_wait_for_a_services_inherited_error_output(self):
         result = self.lane(SIM_HELD_NATIVE_OUTPUT='openurl')
@@ -412,7 +458,7 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
         self.assert_not_handed_over()
         calls = [row[1] for row in self.calls()]
         self.assertEqual(calls.count('launch'), 1)
-        self.assertNotIn('openurl', calls)
+        self.assertNotIn('readiness page reached two animation frames', result.stderr)
         self.assertFalse((self.root / 'booted').exists())
 
     def test_safari_launch_consumes_the_same_readiness_deadline(self):
@@ -422,7 +468,7 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
         self.assertLess(time.monotonic() - started, 5)
         self.assertIn('Safari app launch timed out', result.stderr)
         self.assert_not_handed_over()
-        self.assertFalse(any(row[1] == 'openurl' for row in self.calls()))
+        self.assertNotIn('readiness page reached two animation frames', result.stderr)
 
     def test_launch_timeout_retains_native_partial_error_without_waiting_for_eof(self):
         started = time.monotonic()
@@ -433,7 +479,7 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
         self.assertIn('observed wall', result.stderr)
         self.assertIn('timed-out launch stderr: native launch pending reply', result.stderr)
         self.assert_not_handed_over()
-        self.assertFalse(any(row[1] == 'openurl' for row in self.calls()))
+        self.assertNotIn('readiness page reached two animation frames', result.stderr)
 
     def test_full_lane_fails_and_does_not_boot_or_handover(self):
         started = time.monotonic()

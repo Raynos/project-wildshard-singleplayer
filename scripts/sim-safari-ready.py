@@ -125,24 +125,38 @@ def readiness_page(deadline, started=None):
             thread.join()
 
 
-def open_ready_page(udid, url, ready, deadline, timeout, started):
+def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=None):
     code, detail = 124, 'URL service did not respond'
-    attempts = 0
+    attempts, accepted = 0, False
+    ownership = launch_state if launch_state is not None else lambda: 0
     while True:
-        if ready.is_set():
-            print(f'sim-lane: Safari readiness page reached two animation frames in {time.monotonic() - started:.3f}s; {detail}', file=sys.stderr)
+        launch_code = ownership()
+        if launch_code is not None and launch_code != 0:
+            return launch_code
+        if ready.is_set() and launch_code == 0:
+            print(f'sim-lane: Safari readiness page reached two animation frames in {time.monotonic() - started:.3f}s; '
+                  'owned launch and owned two-frame callback confirmed', file=sys.stderr)
             return 0
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             print(f'sim-lane: Safari URL readiness timed out after {timeout:g}s: {detail}', file=sys.stderr)
-            return code
+            return 124 if code == 0 else code
+        if ready.is_set() or accepted:
+            # The URL was delivered. Do not issue another request or let an
+            # early document bypass the still-pending owned launch receipt.
+            threading.Event().wait(min(.05, remaining))
+            continue
         attempts += 1
+        launch_pending = launch_code is None
         attempt_started = time.monotonic()
         print(f'sim-lane: Safari openurl attempt {attempts} started at {attempt_started - started:.3f}s', file=sys.stderr)
         with native_transcript() as errors, subprocess.Popen(['xcrun', 'simctl', 'openurl', udid, url],
                               stdout=subprocess.DEVNULL, stderr=errors, text=True) as child:
             attempt_deadline = min(deadline, time.monotonic() + 10)
             while child.poll() is None and not ready.is_set() and time.monotonic() < attempt_deadline:
+                launch_code = ownership()
+                if launch_code is not None and launch_code != 0:
+                    break
                 ready.wait(min(.05, max(0, attempt_deadline - time.monotonic())))
             if child.poll() is None:
                 child.kill()
@@ -157,16 +171,22 @@ def open_ready_page(udid, url, ready, deadline, timeout, started):
                 code = child.returncode if child.returncode >= 0 else 128 - child.returncode
                 detail = error.strip() or f'openurl exited {code}'
                 if code == 0 and not ready.is_set():
-                    # Accepted URL alone is insufficient; spend only the
-                    # existing readiness budget waiting for actual frames.
+                    accepted = True
                     print(f'sim-lane: Safari URL accepted in {time.monotonic() - started:.3f}s; awaiting owned frame callback', file=sys.stderr)
-                    if ready.wait(max(0, deadline - time.monotonic())):
-                        detail = 'owned two-frame callback confirmed'
-                    else:
-                        code, detail = 124, 'accepted URL but readiness page never reached frame callbacks'
+                    detail = 'URL accepted; owned two-frame callback pending'
             print(f'sim-lane: Safari openurl attempt {attempts} settled in {time.monotonic() - attempt_started:.3f}s; '
                   f'client exit {code}; ownedFrames={ready.is_set()}; {detail[-2048:]}', file=sys.stderr)
-        if not ready.is_set():
+        if launch_code is not None and launch_code != 0:
+            return launch_code
+        if not ready.is_set() and not accepted:
+            current_launch = ownership()
+            if current_launch is not None and current_launch != 0:
+                return current_launch
+            if launch_pending and current_launch == 0:
+                # The failed request raced app initialization. Its prerequisite
+                # has now changed; no arbitrary backoff is needed for that edge.
+                # Later failures retain the existing one-second service delay.
+                continue
             ready.wait(min(1, max(0, deadline - time.monotonic())))
 
 
@@ -179,63 +199,64 @@ def wait_for_safari(udid):
         print('sim-lane: SIM_SAFARI_READY_TIMEOUT must be in (0, 600] seconds', file=sys.stderr)
         return 64
     deadline = time.monotonic() + timeout
-    # Start the app once. Its launch RPC may remain pending after the actual
-    # device-owned process exists; only the subsequent frame callback can
-    # publish a lease. Every phase shares the original readiness deadline.
+    # Start the app once and deliver its one owned probe concurrently. A slow
+    # launch reply must not postpone the document until the final few seconds.
+    # Neither proof alone grants a lease; both keep the same wall deadline.
     started = time.monotonic()
     evidence = {'source': 'owned-launch-output', 'checks': 0, 'totalMs': 0.0, 'maxMs': 0.0}
-    next_receipt_check = started
+    next_receipt_check, admitted = started, False
     def report_receipt_evidence():
         print(f'sim-lane: Safari launch receipt evidence {json.dumps(evidence)}', file=sys.stderr)
-    with native_transcript() as output, native_transcript() as errors:
+    with native_transcript() as output, native_transcript() as errors, readiness_page(deadline, started) as (url, ready):
         with subprocess.Popen(['xcrun', 'simctl', 'launch', udid, 'com.apple.mobilesafari'],
                               stdout=output, stderr=errors, text=True) as launch:
-            try:
-                while launch.poll() is None:
-                    remaining = deadline - time.monotonic()
-                    if remaining <= 0:
-                        launch.kill()
-                        launch.wait()
-                        elapsed = time.monotonic() - started
-                        print(f'sim-lane: Safari app launch timed out within {timeout:g}s readiness deadline; '
-                              f'observed wall {elapsed:.3f}s', file=sys.stderr)
-                        for label, stream in (('stdout', output), ('stderr', errors)):
-                            detail = native_text(stream).strip()
-                            print(f'sim-lane: Safari timed-out launch {label}: {detail[-2048:] or "<empty>"}', file=sys.stderr)
+            def launch_state():
+                nonlocal next_receipt_check, admitted
+                status = launch.poll()
+                if status is not None and status != 0:
+                    print(f'sim-lane: Safari app launch failed in {time.monotonic() - started:.3f}s: '
+                          f'{native_text(errors).strip()}', file=sys.stderr)
+                    report_receipt_evidence()
+                    return status if status > 0 else 128 - status
+                if admitted:
+                    return 0
+                if time.monotonic() >= deadline:
+                    print(f'sim-lane: Safari app launch timed out within {timeout:g}s readiness deadline; '
+                          f'observed wall {time.monotonic() - started:.3f}s', file=sys.stderr)
+                    for label, stream in (('stdout', output), ('stderr', errors)):
+                        detail = native_text(stream).strip()
+                        print(f'sim-lane: Safari timed-out launch {label}: {detail[-2048:] or "<empty>"}', file=sys.stderr)
+                    report_receipt_evidence()
+                    return 124
+                if status == 0:
+                    admitted = True
+                    print(f'sim-lane: Safari app launched in {time.monotonic() - started:.3f}s: '
+                          f'{native_text(output).strip()}', file=sys.stderr)
+                    report_receipt_evidence()
+                    return 0
+                if time.monotonic() >= next_receipt_check:
+                    sample = time.monotonic()
+                    # Snapshot our exact launch output, never a process census.
+                    pid = owned_launch_pid(os.pread(output.fileno(), 4096, 0).decode(errors='replace'))
+                    cost = (time.monotonic() - sample) * 1000
+                    evidence['checks'] += 1
+                    evidence['totalMs'] = round(evidence['totalMs'] + cost, 3)
+                    evidence['maxMs'] = round(max(evidence['maxMs'], cost), 3)
+                    next_receipt_check = time.monotonic() + .25
+                    if pid is not None:
+                        admitted = True
+                        print(f'sim-lane: owned Safari launch receipt {pid} in {time.monotonic() - started:.3f}s before launch client replied; '
+                              'requiring owned frame proof', file=sys.stderr)
                         report_receipt_evidence()
-                        return 124
-                    if time.monotonic() >= next_receipt_check:
-                        sample = time.monotonic()
-                        # Read at most one small page of our already-open output.
-                        # A ps spawn exceeded its nominal timeout by72s in ff31.
-                        pid = owned_launch_pid(os.pread(output.fileno(), 4096, 0).decode(errors='replace'))
-                        cost = (time.monotonic() - sample) * 1000
-                        evidence['checks'] += 1
-                        evidence['totalMs'] = round(evidence['totalMs'] + cost, 3)
-                        evidence['maxMs'] = round(max(evidence['maxMs'], cost), 3)
-                        next_receipt_check = time.monotonic() + .25
-                        if pid is not None:
-                            report_receipt_evidence()
-                            print(f'sim-lane: owned Safari launch receipt {pid} in {time.monotonic() - started:.3f}s before launch client replied; '
-                                  'requiring owned frame proof', file=sys.stderr)
-                            with readiness_page(deadline, started) as (url, ready):
-                                return open_ready_page(udid, url, ready, deadline, timeout, started)
-                    threading.Event().wait(max(0, min(.05, deadline - time.monotonic())))
+                        return 0
+                return None
+            try:
+                return open_ready_page(udid, url, ready, deadline, timeout, started, launch_state)
             finally:
                 # Retire only our launch RPC, never the observed Safari app.
-                # A live app without the owned frames still refuses above.
                 if launch.poll() is None:
                     launch.kill()
                     launch.wait()
-            launch_output, launch_error = native_text(output), native_text(errors)
-    report_receipt_evidence()
-    elapsed = time.monotonic() - started
-    if launch.returncode != 0:
-        print(f'sim-lane: Safari app launch failed in {elapsed:.3f}s: {launch_error.strip()}', file=sys.stderr)
-        return launch.returncode if launch.returncode > 0 else 128 - launch.returncode
-    print(f'sim-lane: Safari app launched in {elapsed:.3f}s: {launch_output.strip()}', file=sys.stderr)
-    with readiness_page(deadline, started) as (url, ready):
-        return open_ready_page(udid, url, ready, deadline, timeout, started)
 
 
 if __name__ == '__main__':
