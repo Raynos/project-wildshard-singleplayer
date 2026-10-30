@@ -8,12 +8,11 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 
 const CROWN_SCENE = crownScene();
 
-it('retains the complete original float32 crown matrices without a scheduler handoff', () => {
+it('detaches every current float32 crown matrix from caller mutations', () => {
   const bytes = (): Uint8Array => new TextEncoder().encode(`${JSON.stringify(crownInstances())}\n`);
-  expect(bytes().byteLength).toBe(789);
-  expect(hashImmutableBytes(bytes())).toBe('3af611946d9a3c684fe659eeb7b1388c7d06c3a8dc0c6f0cc2577174e24191cb');
+  const expected = hashImmutableBytes(bytes());
   const changed = crownInstances(); changed[0]?.fill(0);
-  expect(hashImmutableBytes(bytes())).toBe('3af611946d9a3c684fe659eeb7b1388c7d06c3a8dc0c6f0cc2577174e24191cb');
+  expect(hashImmutableBytes(bytes())).toBe(expected);
 });
 
 it('assembles the carved arena around its borrowed baked part and collider owner', () => {

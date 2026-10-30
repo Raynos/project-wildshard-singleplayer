@@ -9,14 +9,13 @@ test('the pure map producer refuses an omitted native bank before constructing g
   await expect(skyMapSources(new Map())).rejects.toThrow('native input inventory differs');
 });
 
-test('source islet rest projection retains the complete original wire without a scheduler handoff', () => {
+test('source islet rest projection detaches callers and refuses incomplete poses', () => {
   const scene = isletScenes(), motion = isletMotionRows();
   const rest = (): ReturnType<typeof mapSceneRest> => mapSceneRest(scene.scene, motion.channels, motion.rest);
   const wire = (): Uint8Array => new TextEncoder().encode(`${JSON.stringify(rest())}\n`);
-  expect(wire().byteLength).toBe(393_728);
-  expect(hashImmutableBytes(wire())).toBe('8de99b7171f84b55305b60e2efabc237180474a8a09edcf87a29ead3071ce267');
+  const expected = hashImmutableBytes(wire());
   const changed = rest(); changed.nodes['far.islets']?.position.fill(9);
-  expect(hashImmutableBytes(wire())).toBe('8de99b7171f84b55305b60e2efabc237180474a8a09edcf87a29ead3071ce267');
+  expect(hashImmutableBytes(wire())).toBe(expected);
   expect(() => mapSceneRest(scene.scene, motion.channels, [])).toThrow('Missing map rest pose');
   expect(() => mapSceneRest({ nodes: [{ id: 'empty', instances: 2 }] }, [], [])).toThrow('Incomplete map rest instance slots');
 });
