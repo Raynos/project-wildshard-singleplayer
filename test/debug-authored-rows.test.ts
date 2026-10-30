@@ -47,6 +47,21 @@ test('an unresolvable authored row refuses instead of disappearing from the cap'
   expect(() => debugFlags(f.root)).toThrow('Unresolvable Debug row');
 });
 
+test('generic adapter forwarding is counted at its caller; extra literal registrations still count', () => {
+  const f = fixture(`
+    import { authoredRows } from '@wildshard/engine/ui/authoredDebugRows';
+    function forward(spec) {
+      const row = { ...(spec.purpose ? {purpose: spec.purpose} : {}),
+        id: spec.id, ask: spec.ask, reviewBy: spec.reviewBy };
+      authoredRows.add(row);
+      authoredRows.add({ id: 'extra', ${fields} });
+    }
+    const rows = { debugRow: forward };
+    rows.debugRow({ id: 'caller', ${fields} });
+  `);
+  expect(debugFlags(f.root).map(row => row.id).sort()).toEqual(['caller', 'extra']);
+});
+
 test('verified file facts cannot hide a newly registered comparison row', () => {
   const source = `import { authoredRows } from '@wildshard/engine/ui/authoredDebugRows'; authoredRows.add({id:'first', ${fields}});`;
   const f = fixture(source), cache = resolve(f.root, 'cache');

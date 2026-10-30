@@ -8,12 +8,13 @@ const object = (value) => value !== null && typeof value === 'object';
 const unwrap = (node) => { let current = node; while (current?.expression) current = current.expression; return current; };
 const literal = (node) => unwrap(node)?.value;
 const field = (node, key) => unwrap(node)?.properties?.find((property) => (property.key?.name ?? property.key?.value) === key)?.value;
-function walk(node, visit) {
+function walk(node, visit, scope = null) {
   if (!object(node)) return;
-  if (typeof node.type === 'string') visit(node);
+  const current = ['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression'].includes(node.type) ? node : scope;
+  if (typeof node.type === 'string') visit(node, current);
   for (const [key, value] of Object.entries(node)) if (key !== 'parent') {
-    if (Array.isArray(value)) { for (const child of value) walk(child, visit); }
-    else if (object(value)) walk(value, visit);
+    if (Array.isArray(value)) { for (const child of value) walk(child, visit, current); }
+    else if (object(value)) walk(value, visit, current);
   }
 }
 // Collect syntax once; evaluate after traversal so imports/definitions retain
@@ -23,7 +24,9 @@ function debugSyntax(program) {
   const definitions = new Map(), calls = [], authored = [], additions = [];
   const registries = new Set(), namespaces = new Set();
   const aliases = new Map([['parsePlumbing', names], ['directorVariant', directors], ['runtimeVariantEnabled', variants], ['registerGlobalDebugAction', actions]]);
-  walk(program, node => {
+  const scopes = new Map();
+  walk(program, (node, scope) => {
+    if (scope !== null) scopes.set(node, scope);
     if (node.type === 'ImportDeclaration' && /(?:^|\/)authoredDebugRows(?:\.[cm]?[jt]s)?$/u.test(node.source?.value ?? '')) {
       for (const specifier of node.specifiers) {
         if (specifier.type === 'ImportSpecifier' && (specifier.imported?.name ?? specifier.imported?.value) === 'authoredRows') registries.add(specifier.local.name);
@@ -54,7 +57,24 @@ function debugSyntax(program) {
     return registry?.type === 'MemberExpression' && (registry.property?.name ?? registry.property?.value) === 'authoredRows'
       && registry.object?.type === 'Identifier' && namespaces.has(registry.object.name);
   };
-  for (const node of additions) if (isRegistry(node.callee.object)) authored.push(node);
+  const forwardsSpec = node => {
+    const input = unwrap(node.arguments[0]);
+    const value = input?.type === 'Identifier' ? unwrap(definitions.get(input.name)) : input;
+    const parameters = new Set(scopes.get(node)?.params.filter(param => param.type === 'Identifier').map(param => param.name));
+    // ctx.debugRow/plumbing already counts a generic adapter's declarations.
+    // Only unchanged identity/approval fields from one actual parameter are
+    // forwarding; a literal extra registration inside that adapter still counts.
+    let parameter;
+    for (const key of ['id', 'ask', 'reviewBy']) {
+      const member = unwrap(field(value, key));
+      if (member?.type !== 'MemberExpression' || member.object?.type !== 'Identifier'
+        || !parameters.has(member.object.name) || (member.property?.name ?? member.property?.value) !== key
+        || parameter !== undefined && parameter !== member.object.name) return false;
+      parameter = member.object.name;
+    }
+    return true;
+  };
+  for (const node of additions) if (isRegistry(node.callee.object) && !forwardsSpec(node)) authored.push(node);
   return {names, directors, variants, actions, definitions, calls, authored};
 }
 function declaredFromSyntax({names, directors, variants, actions, calls}) {
