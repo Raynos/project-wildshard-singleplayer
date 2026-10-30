@@ -44,6 +44,7 @@
     "./quest/nativeBodyScripts": "./quest/nativeBodyScripts.ts",
     "./boss/roamingProjection": "./boss/roamingProjection.ts",
     "./boss/socketRig": "./boss/socketRig.ts",
+    "./boss/openArenaFight": "./boss/openArenaFight.ts",
     "./ambient/crowdDraw": "./ambient/crowdDraw.ts",
     "./population/relations": "./population/relations.ts",
     "./population/wildlife": "./population/wildlife.ts",
