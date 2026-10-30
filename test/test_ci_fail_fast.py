@@ -38,10 +38,10 @@ class FailFastTests(unittest.TestCase):
     def test_one_prepare_publishes_exact_inputs_and_builds_without_download_or_regeneration(self):
         source = Path('.github/workflows/deploy.yml').read_text()
         prepare = source.split('\n  prepare:\n', 1)[1].split('\n  behaviour:\n', 1)[0]
-        generation = 'node scripts/gen.mjs --inputs-only'
-        products = 'node scripts/build-shardfiles.mjs --reuse'
+        generation = 'node scripts/gen.mjs --reuse'
         self.assertEqual(source.count(generation), 1)
-        self.assertEqual(source.count(products), 1)
+        self.assertNotIn('node scripts/build-shardfiles.mjs', prepare)
+        self.assertNotIn('node scripts/gen.mjs --inputs-only', prepare)
         self.assertNotIn('  generated-inputs:', source)
         self.assertNotIn('  products:', source)
         self.assertNotIn('gh run download', prepare)
@@ -49,8 +49,7 @@ class FailFastTests(unittest.TestCase):
         self.assertIn('zstd --long=27 -3 -T2 --keep test-products.tar', prepare)
         self.assertIn('scripts/ci-checks.mjs --prepared', prepare)
         self.assertIn('python3 scripts/ci-products.py unpack', prepare)
-        self.assertLess(prepare.index(generation), prepare.index(products))
-        self.assertLess(prepare.index(products), prepare.index('scripts/ci-products.py pack'))
+        self.assertLess(prepare.index(generation), prepare.index('scripts/ci-products.py pack'))
         self.assertLess(prepare.index('scripts/ci-products.py pack'), prepare.index('scripts/ci-checks.mjs --prepared'))
         for name in ('typecheck-lint', 'derived-docs', 'behaviour'):
             # Job extraction stops only at the next job, not deeper step fields.

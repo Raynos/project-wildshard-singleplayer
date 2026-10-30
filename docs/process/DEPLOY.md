@@ -25,7 +25,8 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   release; missing artifacts refuse. A nearby commit or successful manual release cannot supply the test proof.
   **CI is the full backstop of the push gate** (Jake, 2026-10-15): the gate runs only the tests that import the changed
   files (GIT.md). One `prepare` job restores the content-addressed preparation cache, runs generation once,
-  verifies source publication, and revalidates/builds every product. It packs the exact-run full product/input
+  builds and admits every product once before its dependent tables, then verifies source publication.
+  It packs the exact-run full product/input
   snapshot, then verifies that same archive before the parallel node checks and web build. Native output shares
   those prepared inputs and builds only when native inputs changed. The job packages the tested Vercel output and
   smoke projections; neither release nor wave jobs regenerate or rebuild. Types/lint/docs and the behavior

@@ -117,14 +117,14 @@ test('one preparation owns the source cache, generation and complete admission',
   expect(key).toContain(`\${{ runner.arch }}`);
   expect(prepare).not.toMatch(/^ {4}needs:/mu);
   expect(prepare).not.toContain('actions/download-artifact');
-  const generation = prepare.indexOf('node scripts/gen.mjs --inputs-only');
-  const build = prepare.indexOf('node scripts/build-shardfiles.mjs --reuse');
+  const generation = prepare.indexOf('node scripts/gen.mjs --reuse');
+  expect(prepare).not.toContain('node scripts/build-shardfiles.mjs');
+  expect(prepare).not.toContain('node scripts/gen.mjs --inputs-only');
   const pack = prepare.indexOf('python3 scripts/ci-products.py pack\n');
   expect(generation).toBeGreaterThan(prepare.indexOf('uses: actions/cache@v4'));
-  expect(build).toBeGreaterThan(generation);
-  expect(pack).toBeGreaterThan(build);
-  expect(prepare.indexOf('node scripts/check-closed-components.mjs')).toBeGreaterThan(build);
-  expect(prepare.indexOf('node scripts/ci-product-cache.mjs')).toBeGreaterThan(build);
+  expect(pack).toBeGreaterThan(generation);
+  expect(prepare.indexOf('node scripts/check-closed-components.mjs')).toBeGreaterThan(generation);
+  expect(prepare.indexOf('node scripts/ci-product-cache.mjs')).toBeGreaterThan(generation);
   expect(prepare.indexOf('scripts/ci-checks.mjs --prepared')).toBeGreaterThan(pack);
 });
 

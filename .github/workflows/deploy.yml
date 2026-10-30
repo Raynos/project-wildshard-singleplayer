@@ -314,11 +314,13 @@ jobs:
             ~/.cache/wildshard/basis
           key: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
           restore-keys: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-
-      - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --inputs-only
+      # Full generation builds every product once, then publishes its dependent
+      # discovery/boot tables. Inputs-only would build six providers and force
+      # the later product phase to admit those same products a second time.
+      - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --reuse
       - name: Verify committed source tables after generation
         run: python3 scripts/ci-fail-fast.py -- node scripts/committed-source-tables.mjs --check --after-publication
       - run: python3 scripts/ci-fail-fast.py -- node scripts/no-binary-json.mjs --all
-      - run: python3 scripts/ci-fail-fast.py -- node scripts/build-shardfiles.mjs --reuse
       - name: Enforce closed component source and host locks
         run: python3 scripts/ci-fail-fast.py -- node scripts/check-closed-components.mjs
       # A runner is isolated: save current reusable products rather than six
