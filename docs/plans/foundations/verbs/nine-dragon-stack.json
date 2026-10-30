@@ -1,0 +1,24 @@
+{
+  "shard": "nine-dragon-stack",
+  "modes": ["legacy", "shardfile"],
+  "source": "LEGACY src/shards/nine-dragon-stack-legacy (a partial shard: the fragment round the spawn, six named places, no strata, lifts, cable cars, quests, talks, shop or enemies: manifest.ts). Played 2026-10-29 (sp-o4) on HEAD f6d742eefa, LEGACY and SHARDFILE, Chromium as iPhone 16 Pro. Nine's decks keep no teleport: every route walks from the spawn",
+  "verbs": [
+    { "id": "spawn", "verb": "Enter on the bridge deck", "input": { "action": "none" }, "at": { "x": 0.95, "z": 7.5, "y": 125, "yaw": -0.2094 },
+      "expect": { "position": [0.95, 125, 7.5] }, "played": "MF18 Nine (sp-o4): both modes, same spawn", "commands": [{ "enter": "nine-dragon-stack", "expect": { "position": [0.95, 125, 7.5] } }] },
+    { "id": "hook", "verb": "Grapple: LOCK a dragon hook, ZIP, rise to the ring, land", "input": { "action": "lock", "then": "jump" }, "at": null,
+      "expect": { "labels": ["GRAPPLE", "LOCKED", "ZIP"] }, "played": "MF15 (sp-o3, 410b3cb840): see its row" },
+    { "id": "stairs", "verb": "Climb the stair-street east", "input": { "action": "move", "walkMs": 12000 }, "at": { "x": 0.95, "z": 7.5, "yaw": -1.5708 },
+      "expect": { "to": [44.3, 135, 7.5] }, "played": "MF18 Nine (sp-o4): both modes, same: from (1, 125, 7.5) to (44.3, 134.9 / 135, 7.5)",
+      "commands": [{ "face": { "yaw": -1.5708 } }, { "hold": "move.forward", "ms": 12000, "expect": { "x": [43, 46], "y": [133, 137] } }] },
+    { "id": "street", "verb": "Walk the street south", "input": { "action": "move", "walkMs": 16000 }, "at": { "x": 0.95, "z": 7.5, "yaw": -0.082 },
+      "expect": { "to": [6.8, 125, -49] }, "played": "MF18 Nine (sp-o4): both modes, same: to (6.8, 125, -49.2 / -48.5)",
+      "commands": [{ "face": { "yaw": -0.082 } }, { "hold": "move.forward", "ms": 16000, "expect": { "x": [5.5, 8], "y": [124.5, 125.5], "z": [-51, -47] } }] },
+    { "id": "well-rim", "verb": "Walk to the Yamen Well's rim: the balustrade stops you", "input": { "action": "move", "walkMs": 12000 }, "at": { "x": 0.95, "z": 7.5, "yaw": 0.305 },
+      "expect": { "to": [0.9, 125, -23.6] }, "played": "MF18 Nine (sp-o4): both modes, same: stops at (0.9, 125, -23.6)",
+      "commands": [{ "face": { "yaw": 0.305 } }, { "hold": "move.forward", "ms": 12000, "expect": { "x": [0, 2], "z": [-25, -22] } }] },
+    { "id": "places", "verb": "The six named places: LANTERN SQUARE, NIGHT MARKET, STAIR-STREET, THE WELL RIM, WELL GALLERIES, THE CROSSINGS", "input": { "action": "move" }, "at": null,
+      "expect": { "toasts": [] }, "played": "MF18 Nine (sp-o4): no discovery toast on any route in either mode (the same)" },
+    { "id": "interactables", "verb": "Talks, quests, the shop", "input": { "action": "use" }, "at": null,
+      "expect": { "interactables": [] }, "played": "MF18 Nine (sp-o4): none within 25-40 m of the square, street, market or well in either mode (LEGACY has none; SHARDFILE adds none)" }
+  ]
+}
