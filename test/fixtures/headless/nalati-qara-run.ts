@@ -32,7 +32,8 @@ if(stage!=='night'){
   inherited=v.parse(QaraHandoffSchema,JSON.parse(wire));checkQaraLedger(inherited.parts,inherited.nightTick,inherited.ticks);
 }
 const started=performance.now(),phases:{id:string;tick:number;ms:number}[]=[];
-const mark=(id:string,tick:number):void=>{phases.push({id,tick,ms:performance.now()-started});};
+const trace=(id:string,tick:number):void=>{console.info(JSON.stringify({stage,id,tick,ms:performance.now()-started}));};
+const mark=(id:string,tick:number):void=>{phases.push({id,tick,ms:performance.now()-started});trace(id,tick);};
 const directory=builtProduct('nalati-grasslands'),product=await loadHeadlessProduct(directory),shard=product.shardfile;
 const descriptor=outputDescriptor(shard);assert.ok(descriptor);
 const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
@@ -64,10 +65,10 @@ try{
   const history:QaraPart[]=inherited?.parts??[];
   let ticks=inherited?.ticks??0;
   const save=():void=>{
-    checkQaraLedger(history,nightTick,ticks);const snapshot=snapshotSimHost(host);
+    trace('handoff-snapshot',host.state.tick);checkQaraLedger(history,nightTick,ticks);const snapshot=snapshotSimHost(host);
     const handoff:QaraHandoff={version:1,source:sourceHash,snapshot:serializeSimSnapshot(snapshot),digest:canonicalSimDigest(snapshot),nightTick,ticks,parts:history,motion:[...motion]};
-    const wire=JSON.stringify(v.parse(QaraHandoffSchema,handoff));assert.ok(Buffer.byteLength(wire)<=32_000_000);
-    writeFileSync(outputPath,wire,{flag:'wx',mode:0o600});
+    trace('handoff-codec',host.state.tick);const wire=JSON.stringify(v.parse(QaraHandoffSchema,handoff));assert.ok(Buffer.byteLength(wire)<=32_000_000);
+    trace('handoff-write',host.state.tick);writeFileSync(outputPath,wire,{flag:'wx',mode:0o600});
     console.info(JSON.stringify({story:`qara-${stage}`,hash:qaraWireHash(wire),tick:host.state.tick,ticks,parts:history.length,ms:performance.now()-started,phases}));
   };
   if(stage==='night'){mark('earned-night',host.state.tick);save();}
@@ -78,10 +79,11 @@ try{
   const ready=session.ready();
   let final:HeadlessTickCommit|undefined,replayedTicks=0,replayMs=0,captureMs=0;
   pipeline=checkedReplayPipeline<QaraPart>(async part=>{
-    const worker=await ready;replay=worker;
+    const expected=part.expected.observations[0];assert.ok(expected);
+    trace('worker-ready-await',expected.tick);const worker=await ready;replay=worker;trace('worker-request',expected.tick);
     const before=performance.now(),repeated=await worker.verbTapePart(part.plan);replayMs+=performance.now()-before;
-    assert.deepEqual(repeated.report,part.expected,'fresh worker must reproduce all native observations and ordered effects');
-    final=repeated.commit;replayedTicks+=repeated.report.ticks;
+    trace('worker-reply',repeated.commit.tick);assert.deepEqual(repeated.report,part.expected,'fresh worker must reproduce all native observations and ordered effects');
+    trace('report-compared',expected.tick);final=repeated.commit;replayedTicks+=repeated.report.ticks;
   });
   let frames:HeadlessCommand[][]=[],effects:HeadlessEffect[]=[],peakY=host.player.position.y;
   const firstTick=ticks;
@@ -95,10 +97,10 @@ try{
     const part:QaraPart={plan:{version:1,observe:observed,segments:[{id,ticks:frames.length,commands:[],frames}]},expected:{version:1,ticks:frames.length,observations:[expected]}};
     history.push(part);checkQaraLedger(history,nightTick,ticks);
     frames=[];effects=[];peakY=host.player.position.y;
-    await pipeline.offer(part);
+    trace('offer-part',host.state.tick);await pipeline.offer(part);trace('offered-part',host.state.tick);
   };
   const complete=async():Promise<void>=>{
-    await flush();assert.ok(pipeline);await pipeline.finish();assert.ok(final);assert.ok(replay);
+    trace('complete-flush',host.state.tick);await flush();assert.ok(pipeline);trace('complete-drain',host.state.tick);await pipeline.finish();assert.ok(final);assert.ok(replay);trace('complete-canonical',host.state.tick);
     assert.equal(replayedTicks,ticks-firstTick);
     assert.equal(canonicalSimDigest(decodeSimSnapshot(final.snapshot)),canonicalSimDigest(snapshotSimHost(host)),
       'the complete native fight retains its canonical continuation');
