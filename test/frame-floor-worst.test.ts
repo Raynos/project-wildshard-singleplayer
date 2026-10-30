@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- isolate the real page sampler with controlled drawn-frame timestamps
 import {runInNewContext} from 'node:vm';
 
-async function sampleIntervals(intervals: number[], options: {timeline?: boolean; frameDeltas?: number[]} = {}): Promise<unknown> {
+async function sampleIntervals(intervals: number[], options: {timeline?: boolean; frameDeltas?: number[]; draws?: number[]; renderMs?: number[]} = {}): Promise<unknown> {
   const source = readFileSync(new URL('../scripts/frame-floor.mjs', import.meta.url), 'utf8');
   const start = source.indexOf('function sample(n, timeline = false) {');
   const end = source.indexOf('/** the whole-drive sampler', start);
@@ -23,6 +23,8 @@ async function sampleIntervals(intervals: number[], options: {timeline?: boolean
   const result: unknown = runInNewContext(`(${source.slice(start, end)})(${intervals.length},${options.timeline === true})`, context);
   for (const [index, delta] of [0, ...intervals].entries()) {
     now += delta; game.frameCount += options.frameDeltas?.[index] ?? 1;
+    game.lastFrame.calls = options.draws?.[index] ?? 1;
+    game.renderMs[0] = options.renderMs?.[index] ?? 0.75;
     const callback = callbacks.shift();
     if (callback === undefined) throw new Error('Sampler stopped before every drawn frame');
     // oxlint-disable-next-line promise/prefer-await-to-callbacks -- deliver the retained native rAF callback at the controlled frame timestamp
@@ -36,6 +38,11 @@ test('retains the six worst real cadence intervals without changing the measured
   expect(await sampleIntervals([33.111, 80.222, 35.123, 70.123, 40.456, 60.789, 50.222, 45.123, 34.555]))
     .toMatchObject({frames: 9, skipped: 0, p50Ms: 45.123, p95Ms: 80.222, p99Ms: 80.222, maxMs: 80.222,
       worstFrameMs: [80.222, 70.123, 60.789, 50.222, 45.123, 40.456]});
+});
+
+test('pairs each whole-frame draw count with its own render CPU sample', async () => {
+  expect(await sampleIntervals([33, 34], { draws: [999, 150, 100], renderMs: [99, 4.5, 3] }))
+    .toMatchObject({ frames: 2, drawSamples: [{ draws: 150, renderMs: 4.5 }, { draws: 100, renderMs: 3 }] });
 });
 
 test('keeps ties and reports only existing intervals in samples shorter than six', async () => {

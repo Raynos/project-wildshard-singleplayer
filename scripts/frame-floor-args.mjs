@@ -1,10 +1,10 @@
-const switches = new Set(['help', 'worker', 'quiet', 'devserver', 'chromium-phone', 'entry-settle', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket', 'wasm-memory-probe', 'pause-ablation', 'buffer-ablation']);
+const switches = new Set(['help', 'worker', 'draw-budget', 'quiet', 'devserver', 'chromium-phone', 'entry-settle', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket', 'wasm-memory-probe', 'pause-ablation', 'buffer-ablation']);
 const values = new Set(['base', 'chromium-cpu', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
   'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile', 'safari-steady', 'safari-drive', 'safari-prefix', 'safari-window',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir',
   'textures', 'ktx2-probe', 'serve-shard', 'serve-base', 'standing-poses', 'native-memory', 'webkit-timeline', 'webkit-steady', 'native-pressure', 'wasm-constructors', 'jsc-gc-log', 'jsc-ram-size']);
 
-/** Diagnostic throttle only; never accepted by the official Simulator floor.
+/** Diagnostic throttle or the explicit EP10 4x protocol; never an official Simulator floor.
  * @param {readonly string[]} args */
 export function frameFloorChromiumCpuRate(args) {
   const selections = args.filter(arg => arg.startsWith('--chromium-cpu='));
@@ -14,7 +14,7 @@ export function frameFloorChromiumCpuRate(args) {
   if (selections.length !== 1 || !Number.isSafeInteger(rate) || rate < 1 || rate > 20
     || !args.includes('--surface=desktop') || !args.includes('--chromium-phone')
     || args.some(arg => arg.startsWith('--regrade='))
-    || !args.some(arg => /^(?:--cpu-profile|--gpu-trace)=.+/u.test(arg)))
+    || !(args.some(arg => /^(?:--cpu-profile|--gpu-trace)=.+/u.test(arg)) || args.includes('--draw-budget') && rate === 4))
     throw new Error('--chromium-cpu requires a diagnostic phone Chromium profile and one integer rate from 1 to 20');
   return rate;
 }
@@ -23,7 +23,11 @@ export function frameFloorChromiumCpuRate(args) {
  * @param {readonly string[]} args
  */
 export function validateFrameFloorArgs(args) {
-  frameFloorChromiumCpuRate(args);
+  const cpuRate = frameFloorChromiumCpuRate(args);
+  if (args.includes('--draw-budget') && (cpuRate !== 4 || !args.includes('--chromium-phone') || !args.includes('--surface=desktop')))
+    throw new Error('Draw budget requires phone Chromium at exactly 4x CPU');
+  if (args.includes('--draw-budget') && args.some(arg => ['--gl-time', '--gpu-bisect', '--task-clock', '--gl-observer=on'].includes(arg)
+    || /^(?:--cpu-profile|--gpu-trace)=/u.test(arg))) throw new Error('Draw budget requires a window without profiling or GL wrappers');
   for (const arg of args) {
     const equals = arg.indexOf('='), name = arg.slice(2, equals === -1 ? undefined : equals);
     if (!arg.startsWith('--') || !(equals === -1 ? switches : values).has(name))

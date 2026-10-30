@@ -62,6 +62,12 @@ unresident clone without upload data. Cache presence alone does not prove GPU re
   see it, and it once passed. The 120-frame travel and standing rows keep median / p95 grading only.
 - `--regrade=<progress/frame-floor/….json>` reapplies the current policy to an old result without rerendering;
   `--cpu-profile=<scratch dir>` attributes desktop travel legs' long tasks (diagnostic only).
+- EP10 gates every observed phone frame at **≤ 150 native draw calls**, including shadows, post and held passes.
+  `--surface=desktop --chromium-phone --chromium-cpu=4 --draw-budget` also gates **≤ 30 µs render CPU per draw**,
+  pairing each whole-frame `Game.lastFrame.calls` with its `Game.renderMs` sample. This protocol refuses profilers and
+  GL wrappers, defaults the GL observer off, and earns no official Simulator cadence credit. No 1x or Simulator cost
+  is extrapolated to 4x. Missing samples refuse the applicable budget. The existing Developer perf panel shows the
+  actual unscaled cost and the 4x reference; it adds no setting or render hook.
 - Every whole-drive row lists its long frames (`longFrames.at`: start, ms) and `longFrameHooks`: which runtime hook
   (`<instance>:<hook>`, or `between hooks`) each overlapped. `--gl-time` (both surfaces, diagnostic only: it wraps the
   heavy WebGL calls) adds each long frame's GL split, so a Simulator long frame says upload, link or first draw.

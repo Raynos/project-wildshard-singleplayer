@@ -27,6 +27,8 @@ import { TIER, frameCapFps } from '../core/tier';
 import { frameCost, BUCKETS, SUBS, type FrameRecord } from '../core/frameCost';
 import { textureReport } from '../boot/gpuFiles';
 import { ktx2ProbeLine } from '../render/ktx2Probe';
+import { isDev } from '../core/devMode';
+import { drawBudgetCounter } from './drawBudgetCounter';
 
 const savedStorage = saveStorage('device');
 
@@ -241,6 +243,10 @@ export class PerfHud {
     L.push(`audio ${g('audio live')} live · ${f1(c['audio starts/s'] ?? 0)} starts/s · fx ${g('fx chips')}`);
     L.push(`DOM ${g('dom writes/s')} writes/s`);
     L.push(`calls ${g('calls')} · tris ${g('tris')} · programs ${g('programs')}`);
+    if (isDev()) {
+      const i = (this.game.frameI + this.game.renderMs.length - 1) % this.game.renderMs.length;
+      L.push(drawBudgetCounter({ draws: this.game.lastFrame.calls, renderMs: this.game.renderMs[i] ?? Number.NaN }, TIER));
+    }
     L.push(`gpu mem: ${g('textures')} textures · ${g('geometries')} geometries`);
     L.push('DEVICE');
     L.push(device(this.game));
