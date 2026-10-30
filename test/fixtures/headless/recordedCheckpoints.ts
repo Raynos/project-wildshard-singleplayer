@@ -12,34 +12,35 @@ type Publication = { kind: 'parts'; segments: HeadlessTapeSegment[]; gate: Retur
   | { kind: 'done' } | { kind: 'error'; error: unknown };
 
 /** Bridge a real native recorder's existing checkpoint fences to one streamed
- * replay. The recorder pauses only at its own marks, and resumes after the
- * previous part has been offered to the replay owner. No commands are invented. */
-export function recordedCheckpoints(run: (tick: (commands: HeadlessCommand[]) => void, mark: (id: string) => Promise<void>) => Promise<void>,
+ * replay. Transport-only fences let recording pause between native ticks before
+ * the next bounded part is offered. Named gameplay marks stay exact; no
+ * commands are invented and the native step always precedes the next read. */
+export function recordedCheckpoints(run: (tick: (commands: HeadlessCommand[]) => Promise<void>, mark: (id: string) => Promise<void>) => Promise<void>,
   step: (commands: readonly HeadlessCommand[]) => void, flags: () => readonly string[]): {
     parts: AsyncGenerator<HeadlessTapeSegment, void, void>; marks: readonly Mark[]; ticks: () => number; stop: () => Promise<void>;
   } {
   const marks: Mark[] = [];
   let frames: HeadlessCommand[][] = [], ticks = 0, start = 0, stopped = false;
   let pending = deferred<Publication>(), gate: ReturnType<typeof deferred<void>> | undefined;
+  const publish = async (id: string, checkpoint: boolean): Promise<void> => {
+    const captured = frames; frames = [];
+    if (checkpoint) marks.push({ id, tick: ticks, flags: [...flags()] });
+    const waiting = deferred<void>(); gate = waiting;
+    pending.resolve({ kind: 'parts', segments: [{ id, ticks: ticks - start, commands: [], frames: captured }], gate: waiting });
+    start = ticks;
+    try { await waiting.promise; } finally { if (gate === waiting) gate = undefined; }
+  };
   const recording = (async () => {
     try {
-      await run(commands => {
+      await run(async commands => {
+        // Flush before the next input, so an original mark at this exact tick
+        // still owns its nonempty last part and original observation id.
+        if (frames.length >= 512) await publish(`recording-${start}`, false);
         if (stopped) throw new Error('Native recording owner ended');
         if (ticks >= 60_000) throw new Error('Story exceeds the admitted tape allowance');
         frames.push(structuredClone(commands)); ticks++; step(commands);
-      }, async id => {
-        const segments: HeadlessTapeSegment[] = [], captured = frames; frames = [];
-        marks.push({ id, tick: ticks, flags: [...flags()] });
-        let offset = 0;
-        while (ticks - start > 18_000) {
-          segments.push({ id: `walk-${start}`, ticks: 18_000, commands: [], frames: captured.slice(offset, offset + 18_000) });
-          start += 18_000; offset += 18_000;
-        }
-        segments.push({ id, ticks: ticks - start, commands: [], frames: captured.slice(offset) }); start = ticks;
-        const waiting = deferred<void>(); gate = waiting;
-        pending.resolve({ kind: 'parts', segments, gate: waiting });
-        try { await waiting.promise; } finally { if (gate === waiting) gate = undefined; }
-      });
+      }, id => publish(id, true));
+      if (frames.length !== 0) throw new Error('Native recording ended without its final checkpoint');
       pending.resolve({ kind: 'done' });
     } catch (error) { pending.resolve({ kind: 'error', error }); }
   })();

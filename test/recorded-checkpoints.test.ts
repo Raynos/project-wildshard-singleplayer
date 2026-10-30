@@ -6,8 +6,8 @@ test('the real recorder advances only after its preceding checkpoint is offered'
   const stepped: number[] = [], flags: string[] = [];
   const recording = recordedCheckpoints(async (tick, mark) => {
     const command: HeadlessCommand = { kind: 'script', actorId: 'first', value: 1 };
-    tick([command]); command.value = 9; flags.push('earned:first'); await mark('first');
-    tick([{ kind: 'script', actorId: 'second', value: 2 }]); flags.push('earned:second'); await mark('second');
+    await tick([command]); command.value = 9; flags.push('earned:first'); await mark('first');
+    await tick([{ kind: 'script', actorId: 'second', value: 2 }]); flags.push('earned:second'); await mark('second');
   }, commands => { stepped.push(commands.length); }, () => flags);
   try {
     const first = await recording.parts.next(); expect(first.value).toMatchObject({ id: 'first', ticks: 1 });
@@ -24,7 +24,7 @@ test('the real recorder advances only after its preceding checkpoint is offered'
 test('a native refusal after an earlier part reaches the consumer and settles', async () => {
   let steps = 0;
   const recording = recordedCheckpoints(async (tick, mark) => {
-    tick([]); await mark('first'); throw new Error('Later native refusal');
+    await tick([]); await mark('first'); throw new Error('Later native refusal');
   }, () => { steps++; }, () => []);
   expect((await recording.parts.next()).done).toBe(false);
   await expect(recording.parts.next()).rejects.toThrow('Later native refusal');
@@ -34,7 +34,7 @@ test('a native refusal after an earlier part reaches the consumer and settles', 
 test('returning or failing a streamed owner settles a paused recorder without later steps', async () => {
   let steps = 0, ended = false;
   const recording = recordedCheckpoints(async (tick, mark) => {
-    try { tick([]); await mark('first'); tick([]); }
+    try { await tick([]); await mark('first'); await tick([]); }
     finally { ended = true; }
   }, () => { steps++; }, () => []);
   await recording.parts.next(); await recording.parts.return(undefined);
@@ -48,14 +48,42 @@ test('returning or failing a streamed owner settles a paused recorder without la
 test('long recorded fences retain the existing part and total-command bounds', async () => {
   let steps = 0;
   const recording = recordedCheckpoints(async (tick, mark) => {
-    for (let i = 0; i < 36_001; i++) tick([]);
+    for (let i = 0; i < 36_001; i++) await tick([]);
     await mark('long');
   }, () => { steps++; }, () => []);
   const parts = [];
   for await (const part of recording.parts) parts.push(part);
-  expect(parts.map(part => part.ticks)).toEqual([18_000, 18_000, 1]);
+  expect(parts.every(part => part.ticks > 0 && part.ticks <= 18_000)).toBe(true);
   expect(parts.flatMap(part => part.frames ?? []).length).toBe(steps);
   expect(recording.ticks()).toBe(36_001);
-  const exceeded = recordedCheckpoints(tick => { for (let i = 0; i <= 60_000; i++) tick([]); return Promise.resolve(); }, () => { steps++; }, () => []);
-  await expect(exceeded.parts.next()).rejects.toThrow('tape allowance'); await exceeded.stop();
+  const exceeded = recordedCheckpoints(async tick => { for (let i = 0; i <= 60_000; i++) await tick([]); }, () => { steps++; }, () => []);
+  let accepted = 0;
+  await expect((async () => { for await (const part of exceeded.parts) accepted += part.ticks; })()).rejects.toThrow('tape allowance');
+  expect(accepted).toBeLessThanOrEqual(60_000); await exceeded.stop();
+});
+
+
+test('a transport fence pauses before the next native step and retains a mark at the boundary', async () => {
+  let steps = 0, ended = false;
+  const recording = recordedCheckpoints(async (tick, mark) => {
+    try { for (let i = 0; i < 1_500; i++) await tick([]); await mark('complete'); }
+    finally { ended = true; }
+  }, () => { steps++; }, () => []);
+  const first = await recording.parts.next();
+  if (first.done) throw new Error('Missing transport part');
+  expect(first.value.ticks).toBeGreaterThan(0); expect(first.value.ticks).toBeLessThanOrEqual(512);
+  expect(steps).toBe(first.value.ticks); expect(recording.marks).toEqual([]);
+  await recording.parts.return(undefined); expect(steps).toBe(first.value.ticks); expect(ended).toBe(true);
+  const marked = recordedCheckpoints(async (tick, mark) => {
+    for (let i = 0; i < 512; i++) await tick([]); await mark('exact-mark');
+  }, () => { steps++; }, () => ['earned']);
+  const parts = [];
+  for await (const part of marked.parts) parts.push(part);
+  expect(parts).toHaveLength(1); expect(parts[0]?.id).toBe('exact-mark'); expect(marked.marks[0]?.flags).toEqual(['earned']);
+});
+
+test('unmarked final input is refused rather than silently omitted', async () => {
+  let steps = 0;
+  const recording = recordedCheckpoints(async tick => { await tick([]); }, () => { steps++; }, () => []);
+  await expect(recording.parts.next()).rejects.toThrow('final checkpoint'); await recording.stop(); expect(steps).toBe(1);
 });
