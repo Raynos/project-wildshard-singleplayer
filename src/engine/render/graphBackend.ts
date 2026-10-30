@@ -5,7 +5,7 @@
  * (`nodes/engineNodesHandler.ts`) on the renderer once and returns it. Nothing on the default render path calls it, so a
  * shard without a graph material pays nothing and its programs stay byte for byte.
  */
-import { Texture, Material, Vector2, type Mesh } from 'three';
+import { Texture, Material, Object3D, Vector2, type Mesh, type MeshDepthMaterial } from 'three';
 import type { GraphBinding, GraphLiteral, GraphValidation, GraphValidationOptions } from '@wildshard/format/materialGraph';
 import type { ToonLook } from './families/toon';
 import type { Scope } from '../app/scope';
@@ -15,6 +15,7 @@ import type { EngineNodesHandler } from './nodes/engineNodesHandler';
 import type { NodeMaterial } from 'three/webgpu';
 import type { Renderer } from './renderer';
 import { installClassicShadowDepth } from './shadowMaterialOwnership';
+import { registerShadowDepthResolver, type ShadowDepthResolver } from './shadowDepthVariants';
 
 const installed = new WeakMap<Renderer, Promise<EngineNodesHandler>>();
 const ready = new WeakMap<Renderer, EngineNodesHandler>();
@@ -130,6 +131,15 @@ export async function loadPostGraphCompiler(renderer: Renderer, backend: 'tsl' |
   installGraphShaderHost(renderer);
   return { backend, compileGraph: (input, opts) => compileClassicGraph(input, opts) };
 }
+/** a renderer's classic depth resolver, made once (registration dedupes by identity); the caster is unknown at compile time,
+ *  so its grid decode reads a plain object's (step 1): uniforms only, the program is the same */
+const classicDepthResolvers = new WeakMap<object, ShadowDepthResolver>();
+const compileCaster = new Object3D();
+function classicDepthResolver(depthOf: (source: unknown, stock: MeshDepthMaterial, object: Object3D) => Material | null): ShadowDepthResolver {
+  let resolve = classicDepthResolvers.get(depthOf);
+  if (resolve === undefined) { resolve = (source, stock) => depthOf(source, stock, compileCaster); classicDepthResolvers.set(depthOf, resolve); }
+  return resolve;
+}
 /**
  * The look-material compiler of the chosen back-end (pause ▸ Settings ▸ Debug ▸ Graph back-end): the classic one loads
  * no node runtime and installs no node handler; the shipped one is `loadGraphCompiler`'s.
@@ -139,6 +149,8 @@ export async function loadLookGraphCompiler(renderer: Renderer, backend: 'tsl' |
   const [{ compileClassicGraph, attachClassicOutline, classicShadowDepth }, { installGraphShaderHost }] = await Promise.all([import('./graph/glslMaterial'), import('./graph/glslProgram')]);
   installGraphShaderHost(renderer);
   installClassicShadowDepth(classicShadowDepth);
+  // precompile's shadow jobs warm each classic caster's own depth program (it links in the loading, not at its first cast)
+  registerShadowDepthResolver(renderer, classicDepthResolver(classicShadowDepth));
   const fogs = fogTokens<NonNullable<ReturnType<typeof compileClassicGraph>['fog']>>('glsl');
   return {
     backend,

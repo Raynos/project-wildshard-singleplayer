@@ -3,6 +3,10 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import { classicShadowDepth, compileClassicGraph } from './glslMaterial';
+import { CSM } from 'three/examples/jsm/csm/CSM.js';
+import { registerCascades } from '../../world/cascadeLights';
+import { copyShaderPatches, patchShader } from '../shaderPatches';
+import { registerShadowDepthResolver, shadowDepthResolver } from '../shadowDepthVariants';
 
 test('a clone shares params, clocks and lent textures; its colour and borrowed map are its own', () => {
   const graph = { version: 1, kind: 'material', model: 'unlit', params: { tint: { type: 'colour', value: [1, 0.5, 0.25] }, ramp: { type: 'texture', value: 'ramp', role: 'lent' } },
@@ -171,3 +175,29 @@ test('a classic graph reading the instance colour gives a colourless instanced m
     expect(d.instanceColor?.count).toBe(2);
   } finally { geometry.dispose(); reads.dispose(); plain.dispose(); c.dispose(); }
 });
+
+test('a lit program gates its sun by the registered cascades once; an unlit one never does', () => {
+  const gated: THREE.Material[] = [];
+  const csm = new CSM({ camera: new THREE.PerspectiveCamera(), parent: new THREE.Scene(), cascades: 2, lightDirection: new THREE.Vector3(0, -1, 0) });
+  registerCascades({ csm, ghosts: [], fade: { value: 1 }, setup: material => { gated.push(material); patchShader(material, 'engine.csm', 900, () => undefined); } });
+  const lit = compileClassicGraph({ version: 1, kind: 'material', model: 'standard', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } }).material;
+  const unlit = compileClassicGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } }).material;
+  expect(gated).toEqual([lit]);
+  lit.gateCascades(); unlit.gateCascades();
+  expect(gated).toEqual([lit]);
+  const variant = lit.clone(); copyShaderPatches(lit, variant); variant.gateCascades();
+  expect(gated).toEqual([lit]);
+});
+
+test('a renderer holds both back-ends\' depth resolvers; each claims its own materials', () => {
+  const renderer = {}, node = new THREE.MeshBasicMaterial(), classic = new THREE.MeshBasicMaterial(), nodeDepth = new THREE.MeshDepthMaterial(), classicDepth = new THREE.MeshDepthMaterial();
+  const byNode = (source: THREE.Material): THREE.Material | null => (source === node ? nodeDepth : null);
+  registerShadowDepthResolver(renderer, byNode);
+  registerShadowDepthResolver(renderer, source => (source === classic ? classicDepth : null));
+  registerShadowDepthResolver(renderer, byNode);
+  const resolve = shadowDepthResolver(renderer), stock = new THREE.MeshDepthMaterial();
+  expect(resolve?.(node, stock)).toBe(nodeDepth);
+  expect(resolve?.(classic, stock)).toBe(classicDepth);
+  expect(resolve?.(new THREE.MeshBasicMaterial(), stock)).toBe(null);
+});
+

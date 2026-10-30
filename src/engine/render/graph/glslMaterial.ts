@@ -20,6 +20,8 @@ import { emitClassicGraph, graphShaders, graphUniformValues, syncGraphEnvironmen
 import type { EmitGraphGlslOptions, GraphGlsl } from './glsl';
 import { drawNeutral } from '../drawNeutral';
 import { ClassicCodec } from './glslCodec';
+import { latestCascades } from '../../world/cascadeLights';
+import { hasShaderPatch } from '../shaderPatches';
 
 /** the uniforms a variant keeps its own (a creature's tint, a borrowed map); every other one is shared with its source */
 const OWN_UNIFORMS: ReadonlySet<string> = new Set(['wsMaterialColour', 'wsMaterialEmissive', 'wsMaterialEmissiveIntensity', 'wsMeshMap', 'wsBumpMap',
@@ -101,7 +103,17 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
     return value;
   }
 
+  /** A lit program gates its sun by the sky's cascades (the CSM chunk's setup: one cascade per depth slice, the shadow
+   *  fade's ghosts), as the node back-end gates the registered cascade lights; without it every cascade lit it at full
+   *  strength. A clone that copied the patch (a coarse tile's variant) keeps it. */
+  gateCascades(): void {
+    if (!this.lights || hasShaderPatch(this, 'engine.csm')) return;
+    latestCascades()?.setup?.(this);
+  }
+
   override onBeforeRender(_renderer: THREE.WebGLRenderer, scene: THREE.Scene, _camera: THREE.Camera, _geometry: THREE.BufferGeometry, object: THREE.Object3D): void {
+    // a material built before its sky registered its cascades takes them at its first draw (precompile runs this hook)
+    this.gateCascades();
     this.codec?.draw(this, object);
     // three picks the program after this hook: the colours are in place for this very draw
     if (this.instanceColour && object instanceof THREE.InstancedMesh && object.instanceColor === null) {
@@ -226,6 +238,7 @@ export function classicShadowDepth(source: unknown, stock: THREE.MeshDepthMateri
 function shaderMaterial(glsl: GraphGlsl, opts: GraphShaderOptions): GraphShaderMaterial {
   const shaders = graphShaders(glsl, opts), ir = glsl.ir, effect = ir.effectState, outline = opts.outline === true;
   const m = new GraphShaderMaterial({ vertexShader: shaders.vertexShader, fragmentShader: shaders.fragmentShader, uniforms: shaders.uniforms, lights: shaders.lights, fog: shaders.fog });
+  m.gateCascades();
   m.name = outline ? 'graph:outline' : `graph:${ir.kind}`;
   if (readsCodec(shaders.vertexShader)) m.codec = new ClassicCodec();
   m.instanceColour = readsInstanceColour(ir.nodes);

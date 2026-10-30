@@ -13,14 +13,24 @@ import type * as THREE from 'three';
  */
 export type ShadowDepthResolver = (source: THREE.Material, stock: THREE.MeshDepthMaterial) => THREE.Material | null;
 
-const resolvers = new WeakMap<object, ShadowDepthResolver>();
+const resolvers = new WeakMap<object, ShadowDepthResolver[]>();
 
-/** Register the shadow pass's depth substitution for this renderer (the graph back-end, once it is installed). */
+/** Register a shadow-pass depth substitution for this renderer (each graph back-end that loads on it, once: the node
+ *  handler's for node materials, the classic one's for classic graph programs; NF17). */
 export function registerShadowDepthResolver(renderer: object, resolve: ShadowDepthResolver): void {
-  resolvers.set(renderer, resolve);
+  const list = resolvers.get(renderer) ?? [];
+  if (!list.includes(resolve)) list.push(resolve);
+  resolvers.set(renderer, list);
 }
 
-/** This renderer's shadow-pass depth substitution, or undefined where its shadow draws keep three's stock materials. */
+/** This renderer's shadow-pass depth substitution (the first registered that claims a material), or undefined where its
+ *  shadow draws keep three's stock materials. */
 export function shadowDepthResolver(renderer: object): ShadowDepthResolver | undefined {
-  return resolvers.get(renderer);
+  const list = resolvers.get(renderer);
+  if (list === undefined || list.length === 0) return undefined;
+  if (list.length === 1) return list[0];
+  return (source, stock) => {
+    for (const resolve of list) { const variant = resolve(source, stock); if (variant !== null) return variant; }
+    return null;
+  };
 }

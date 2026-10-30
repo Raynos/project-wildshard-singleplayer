@@ -15,16 +15,23 @@ export interface CascadeSet {
   readonly csm: CSM;
   readonly ghosts: readonly THREE.DirectionalLight[];
   readonly fade: { value: number };
+  /** give a classic program the cascade gate and the fade (the sky rig's CSM chunk setup, without a family's texture slots) */
+  readonly setup?: (material: THREE.Material) => void;
 }
 
 const byLight = new WeakMap<THREE.Light, { set: CascadeSet; index: number }>();
 const ghosts = new WeakMap<THREE.Light, { set: CascadeSet; index: number }>();
 
+let latest: CascadeSet | null = null;
 /** the sky rig's cascades (after the CSM and its fade exist); a light belongs to the last set registered for it */
 export function registerCascades(set: CascadeSet): void {
+  latest = set;
   set.csm.lights.forEach((light, index) => { byLight.set(light, { set, index }); });
   set.ghosts.forEach((light, index) => { ghosts.set(light, { set, index }); });
 }
+
+/** the newest registered sky's cascades (a classic graph program gates its sun by them, as the node back-end does), or null */
+export function latestCascades(): CascadeSet | null { return latest; }
 
 /** the cascade a light draws, or undefined for any other light */
 export function cascadeOf(light: THREE.Light): { set: CascadeSet; index: number } | undefined { return byLight.get(light); }

@@ -146,7 +146,8 @@ export class SkyRig {
       this.shadowFade = new ShadowFade(this.csm, this.camera, this.scene);
       for (const [i, g] of this.shadowFade.ghosts.entries()) cullToSlice(this.csm, this.camera, g.shadow, i); // E153: a ghost draws only its cascade's casters
     }
-    registerCascades({ csm: this.csm, ghosts: this.shadowFade?.ghosts ?? [], fade: sunFadeUniform }); // SF59: node materials gate the cascades too (cascadeLights.ts)
+    // SF59: node materials gate the cascades too (cascadeLights.ts); NF17: a classic graph program takes the chunk setup
+    registerCascades({ csm: this.csm, ghosts: this.shadowFade?.ghosts ?? [], fade: sunFadeUniform, setup: (mat) => { this.setupCascades(mat); } });
     if (this.level.tiers?.[TIER]?.pointLightSkip === true) patchPointLightSkip(); // E142: a far / dark point light skips its BRDF (pointLightSkip.ts)
     // a low sun (golden hour, dawn) grazes flat decks: a shadow style may take more normal bias, or the planks speckle with acne
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = shadows?.normalBias ?? 0.05; l.shadow.radius = shadows?.radius ?? 2; }
@@ -379,8 +380,14 @@ export class SkyRig {
   /** Wrap CSM's onBeforeCompile so materials keep their own shader patches. */
   setupMaterial(mat: THREE.Material): void {
     if (this.materials.has(mat)) return;
-    this.materials.add(mat);
     SkyRig.fillSlots(mat);
+    this.setupCascades(mat);
+  }
+
+  /** the cascade gate and the shadow fade alone (CSM's chunk setup): a classic graph program, which has no family texture slots */
+  setupCascades(mat: THREE.Material): void {
+    if (this.materials.has(mat)) return;
+    this.materials.add(mat);
     const csmHook = takeForeignHook(mat, () => { this.csm.setupMaterial(mat); });
     const fade = this.shadowFade !== null;
     if (this.shadowFade) mat.defines = { ...mat.defines, CSM_GHOSTS: this.shadowFade.ghosts.length }; // E147: the cascades mix in the fade's ghost shadows
@@ -420,6 +427,12 @@ export class SkyRig {
    */
   private farEveryOther = false;
   private farTick = 0;
+  /**
+   * PF3 (Pine's phone row, `shadowEvery`): every cascade redraws on every Nth drawn frame; -1 while every frame. Pine's one
+   * 1024² cascade cost ~1.8-2.2 ms of a Chromium-4x phone frame for ~10 casters (the batched trees' per-draw cost,
+   * not the walk); a held frame keeps its map and its matrix, so only the swaying crowns and the animals step (15 Hz at 30).
+   */
+  private everyTick = -1;
   private fitNormalBias(): void {
     for (const l of this.csm.lights) {
       const texel = (l.shadow.camera.right - l.shadow.camera.left) / l.shadow.mapSize.x;
@@ -432,7 +445,7 @@ export class SkyRig {
    * bias and the fade's ghosts (Game.warmTurn: the boot draws the world once facing each way).
    */
   warmShadows(): void {
-    if (this.farEveryOther) for (const light of this.csm.lights) light.shadow.autoUpdate = true; // the boot's warm-up draws every cascade
+    if (this.farEveryOther || this.everyTick >= 0) for (const light of this.csm.lights) light.shadow.autoUpdate = true; // the boot's warm-up draws every cascade
     this.csm.update();
     if (this.texelBias) this.fitNormalBias();
     this.shadowFade?.warm();
@@ -462,6 +475,12 @@ export class SkyRig {
       this.farTick = (this.farTick + 1) % 8;
       const redraw = cascadeRedraws(this.farTick, this.csm.lights.length);
       this.csm.lights.forEach((light, i) => { light.shadow.autoUpdate = redraw[i] ?? true; });
+    } else if (TIER_CONFIG.shadowEvery > 1) {
+      this.everyTick = (this.everyTick + 1) % TIER_CONFIG.shadowEvery;
+      for (const light of this.csm.lights) light.shadow.autoUpdate = this.everyTick === 0;
+    } else if (this.everyTick >= 0) {
+      this.everyTick = -1;
+      for (const light of this.csm.lights) light.shadow.autoUpdate = true;
     }
     this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
     if (B?.updateAt === 'late') B.update(dt, this.camera); // a clock that steps its own shadow light: after the cascades
