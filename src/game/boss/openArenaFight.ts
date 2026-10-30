@@ -14,7 +14,7 @@ import { installChannelPrograms } from '../plugin/channelPrograms';
 import { CellField, type CellFieldSnapshot } from '../systems/cellField';
 import { lendViewArray, lendViewCell, lendViewDraw, lendViewFrame, lendViewTell, lendViewValues } from '../shardfile/clientViewProgram';
 import { prepareV2WorldActions, type V2WorldActionLoan } from '../shardfile/worldActionsV2';
-import type { GroundTell } from '../Elite';
+import type { ViewTell } from '@wildshard/engine/script/viewProgram';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import type { Mount } from '../riding/mount';
 import type { ArenaBoundary } from '../riding/client';
@@ -41,7 +41,14 @@ function freezeDeclaration(value: unknown): void {
 }
 /** The fight's looks, as the parts it calls (the page passes its views; the Node simulation its own). */
 export type ArenaBodyPort = Pick<CloudBody, 'alpha' | 'flash' | 'fogColour' | 'part' | 'setVisible' | 'visible' | 'aim' | 'update' | 'focusWorld'>;
-export type ArenaScenePort = Pick<ArenaSceneView, 'tell' | 'tells' | 'instances' | 'mesh' | 'update'>;
+/** CI12: a ground tell as the fight draws it: what its view module (the spear, fork and chain rings) and its riders' lanes
+ *  call. The page's tells are Elite's GroundTell; a native host's draw nothing. */
+export type ArenaTell = ViewTell;
+/** The arena's scene as the fight uses it (the page's ArenaSceneView). */
+export interface ArenaScenePort {
+  readonly tell: (key: string, index?: number) => ArenaTell; readonly tells: (key: string) => readonly ArenaTell[];
+  readonly instances: ArenaSceneView['instances']; readonly mesh: ArenaSceneView['mesh']; readonly update: ArenaSceneView['update'];
+}
 export type ArenaFirePort = Pick<ArenaFireView, 'update' | 'smoke' | 'flames'>;
 export type ArenaWhirlsPort = Pick<ArenaWhirlsView, 'arm' | 'reset' | 'update' | 'bindView' | 'snapshot' | 'restore'>;
 /** Each look made once, in the fight's construction order: the body (over the fight's pose), the arena, its whirl funnels
@@ -85,7 +92,7 @@ export interface OpenArenaFightHost {
   readonly throwRider: () => void; readonly horseSteed: (amount: number) => void; readonly feed: (message: string) => void;
   readonly toast: (message: string) => void; readonly riderOwner: () => ArenaRiderOwner | null;
 }
-interface SupportActor { readonly rider: ArenaSupportRider; readonly a: ArenaSupportBody; readonly lane: GroundTell; readonly law: ProjectedState }
+interface SupportActor { readonly rider: ArenaSupportRider; readonly a: ArenaSupportBody; readonly lane: ArenaTell; readonly law: ProjectedState }
 /** the view module's cells (format/arenaView `cells`): the eased pose and the aim's operands */
 export type ArenaPoseCells = Record<'bend' | 'raise' | 'castL' | 'struck' | 'alpha', { value: number }>;
 const POSE_CELLS = ['bend', 'raise', 'castL', 'struck', 'alpha'] as const;
@@ -102,7 +109,7 @@ export interface OpenArenaFightSnapshot {
   /** the view module's cells after its last frame (null: no view bound) */
   readonly view: Readonly<Record<typeof POSE_CELLS[number], number>> | null;
 }
-interface Chain { readonly tell:GroundTell; readonly row:ArenaScriptData['clocks']['landings'][number] }
+interface Chain { readonly tell:ArenaTell; readonly row:ArenaScriptData['clocks']['landings'][number] }
 const _openV = new THREE.Vector3(), _openRAY = new THREE.Ray(), _openSPH = new THREE.Sphere(), _openHITP = new THREE.Vector3();
 /** The open arena's fight (Nalati's Storm Titan) as numbers and rules: its life, clocks, support riders, grass fire,
  *  whirlwinds, spear and chains, the heart as a target and its damage. Its looks are ports the page fills (the cloud body,
