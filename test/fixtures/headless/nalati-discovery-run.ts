@@ -8,7 +8,7 @@ import {createNativeProofResident} from '../headless-native';
 import {prepareHeadlessRuntime} from '../nalati-world-verbs';
 import {ChapterViewSchema} from '../../../src/format/questPageComposition';
 import {loadRapier} from '../../../src/engine/physics/rapier';
-import {runTrustedHeadlessTape,type HeadlessTapeSegment} from '../../../src/sdk/headlessTape';
+import {runTrustedHeadlessTape,type HeadlessTapeObservation} from '../../../src/sdk/headlessTape';
 import {PhysicsRouteCursor} from '../../../src/sdk/headlessJourney';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 
@@ -21,6 +21,14 @@ try{
   first=await createNativeProofResident({shard,assets:session.assets,rapier,product},prepareHeadlessRuntime);
   const active=first,{host}=active,frames:HeadlessCommand[][]=[],recordStarted=performance.now();
   let alignmentTicks=0;
+  const owner=host.adapters.get('nalati.world');assert.ok(owner);
+  const marks:{tick:number;position:number[];flags:string[];state:string}[]=[];
+  const mark=():void=>{
+    if(marks.at(-1)?.tick===frames.length)return;
+    assert.equal(host.adapters.get('nalati.world'),owner,'the recorder retains its actual observation owner');
+    const state=owner.snapshot();if(typeof state!=='string')throw new Error('Discovery owner requires its actual JSON wire');
+    marks.push({tick:frames.length,position:host.player.position.toArray(),flags:[...host.flags.all],state});
+  };
   const arrived=new Map<string,{tick:number;position:number[]}>(),notices=new Map<string,number>();
   const step=(commands:readonly HeadlessCommand[]):void=>{
     assert.ok(frames.length<60_000,'outdoor discoveries keep the original finite native tape allowance');
@@ -41,6 +49,7 @@ try{
       assert.equal(effect.kind,'hint','discovery cannot grant quest facts, inventory or damage');
       if(effect.kind==='hint')notices.set(effect.text,(notices.get(effect.text)??0)+1);
     }
+    if(frames.length%512===0)mark();
   };
   step([]);
   assert.equal(arrived.size,0,'the entry cannot pre-discover distant places');
@@ -97,26 +106,35 @@ try{
   }
   for(const row of rows)assert.equal(notices.get(`Discovered · ${row.label}`)??0,row.quiet===true?0:1,`one original notice for ${row.id}`);
   assert.equal(host.quests.some(quest=>quest.isComplete),false);
-  const recordMs=performance.now()-recordStarted,replay=await session.ready(),replayStarted=performance.now();
+  mark();
+  const recordMs=performance.now()-recordStarted;
+  console.info(JSON.stringify({phase:'capture-done',ticks:frames.length,recordMs,parts:marks.length}));
+  const replay=await session.ready(),replayStarted=performance.now();
   try{
-    // Stream finite original input parts without changing any child watchdog.
-    const parts=function* parts():Generator<HeadlessTapeSegment,void> {
-      for(let offset=0;offset<frames.length;offset+=600){
-        const chunk=frames.slice(offset,offset+600);
-        yield {id:`discovery-part-${offset/600}`,ticks:chunk.length,commands:[],frames:chunk};
-      }
+    let end:HeadlessTapeObservation|undefined,replayed=0,maxPartMs=0,partCount=0;
+    for(let offset=0;offset<frames.length;offset+=512){
+      const chunk=frames.slice(offset,offset+512),expected=marks[partCount];assert.ok(expected);
+      assert.equal(expected.tick,offset+chunk.length,'every recorded boundary is consumed once, in order');
+      const started=performance.now(),part=await replay.verbTapePart({version:1,observe:['nalati.world'],segments:[{
+        id:`discovery-part-${partCount}`,ticks:chunk.length,commands:[],frames:chunk,
+      }]});
+      const elapsed=performance.now()-started;maxPartMs=Math.max(maxPartMs,elapsed);partCount++;
+      end=part.report.observations.at(-1);assert.ok(end);
+      assert.equal(part.report.ticks,chunk.length);replayed+=part.report.ticks;
+      assert.equal(part.commit.tick,expected.tick,'only a complete native checkpoint advances the tape');
+      assert.equal(end.tick,expected.tick);assert.deepEqual(end.position,expected.position);assert.deepEqual(end.flags,expected.flags);
+      const state=end.adapters.find(row=>row.id==='nalati.world');assert.ok(state);
+      assert.equal(state.state,expected.state,'each bounded request retains exact native motor, water and discovery state');
+      console.info(JSON.stringify({phase:'replay-part',part:partCount,tick:part.commit.tick,milliseconds:elapsed}));
     }
-    const iterator=parts();
-    const reports=await replay.streamVerbTape(['nalati.world'],{[Symbol.asyncIterator]:()=>({next:()=>Promise.resolve(iterator.next())})});
-    const end=reports.observations.at(-1);assert.ok(end);
+    assert.equal(partCount,marks.length);assert.equal(replayed,frames.length);assert.ok(end);
     assert.equal(end.tick,host.state.tick,'replay commits every original movement tick');
     assert.deepEqual(end.position,host.player.position.toArray(),'replay retains the exact final native feet');
     assert.deepEqual(end.flags,[...host.flags.all],'fresh native input replay preserves every earned discovery');
-    const owner=host.adapters.get('nalati.world'),observed=end.adapters.find(row=>row.id==='nalati.world');
-    assert.ok(owner);assert.ok(observed);
+    const observed=end.adapters.find(row=>row.id==='nalati.world');assert.ok(observed);
     assert.equal(observed.state,owner.snapshot(),'replay retains the actual motor, water and discovery observations');
     assert.equal(replay.quarantined,false);
-    console.info(JSON.stringify({story:'nalati-discoveries',ticks:frames.length,alignmentTicks,recordMs,replayMs:performance.now()-replayStarted,places:[...arrived.keys()],notices:[...notices]}));
+    console.info(JSON.stringify({story:'nalati-discoveries',ticks:frames.length,alignmentTicks,recordMs,partCount,maxPartMs,replayMs:performance.now()-replayStarted,places:[...arrived.keys()],notices:[...notices]}));
   }finally{await replay.dispose();}
 }catch(error){const ready=await session.ready().then(sim=>({sim}),()=>null);if(ready!==null)await ready.sim.dispose();throw error;}
 finally{first?.dispose();}
