@@ -11,7 +11,7 @@ import * as gpuFiles from '../src/engine/boot/gpuFiles';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { modelContext } from '../src/engine/models/model';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { bakeRawColourPixels } from '../src/sdk/bake/rawTexture';
 import { emptyShardfile } from '../src/sdk/author';
@@ -156,7 +156,7 @@ test('Explorer, direct dressing and generated encounter adapters prepare the sam
     sections: new Map([['explore/catalogue', parseExplorerCatalogue({ version: 1, entries: [{ kind: 'specimen', id: 'atlas-crate', books: { phone: book, desktop: book }, model: 'crate' }] })]]),
     files: new Map(declared.files.flatMap(row => row.name === undefined ? [] : [[row.name, { hash: row.hash, url: row.hash }]])),
     read: hash => { const bytes = declared.assets.get(hash); if (bytes === undefined) throw new Error('Missing admitted atlas fixture'); return Promise.resolve(bytes); }, check: true });
-  const sky = skyFixture(), registry = new WorldRegistry(), scope = new Scope('atlas-adapters'), root = new THREE.Group(), restore = overrideTerrain({ heightAt: () => 0 });
+  const sky = skyFixture(), registry = new WorldRegistry(), scope = new Scope('atlas-adapters'), root = new THREE.Group(), restore = bindFlatTerrain({ heightAt: () => 0 });
   try {
     const roster = await explorerRoster(product), card = roster[0]; if (card === undefined) throw new Error('Missing atlas Explorer card');
     card.list(modelContext(sky), () => [], registry);

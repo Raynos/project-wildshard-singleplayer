@@ -1,3 +1,4 @@
+import { installAssetFixture } from './fixtures/bootSetup';
 import {expect,it,vi} from 'vitest';
 import {Vector3} from 'three';
 import {Scope} from '@wildshard/engine/app/scope';
@@ -11,6 +12,8 @@ import {createCueRouter} from '@wildshard/engine/audio/cueRouting';
 import {tap} from '@wildshard/engine/core/harnessTap';
 import pineSource from '../src/shards/pine-hollow/data/audioSource.json' with {type:'json'};
 import islandSource from '../src/shards/driftwood-isle/data/audioSource.json' with {type:'json'};
+
+await installAssetFixture();
 
 const pine=parseAudioData(pineSource.audio),island=parseAudioData(islandSource.audio);
 function nativeAudio(){

@@ -1,3 +1,4 @@
+import { installArenaShapes } from './fixtures/arenaShapes';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import {carriedPropFiles,carriedPropBytes} from './fixtures/carriedPropFiles';
 import {lendNalatiPasture,lendNalatiKokpar} from './fixtures/nalati-return-modules';
@@ -14,7 +15,7 @@ import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { CarriedQuestProp } from '../src/game/quest/carriedProp';
 import { manager } from '@wildshard/engine/test/manager';
 import { bossArena } from './fake/bossArena';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };
 import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFight';
@@ -52,11 +53,13 @@ const geometry = titanGeometryRows();
 
 afterEach(() => { vi.restoreAllMocks(); });
 
+await installArenaShapes();
+
 function fixture() {
   type Runtime = NonNullable<ShardContext['game']['runtime']>;
   type World = NonNullable<Runtime['world']>;
   mockCanvas();
-  const terrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
+  const terrain = bindFlatTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
   const scope = new Scope('chapter-view'), flags = new Flags('chapter-view', false), f = manager();
   lendNalatiPasture(scope);lendNalatiKokpar(scope);
   scope.onDispose(terrain);

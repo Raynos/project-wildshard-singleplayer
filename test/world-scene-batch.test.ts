@@ -7,8 +7,10 @@ import { Scope } from '../src/engine/app/scope';
 import { AssetService } from '../src/engine/app/assets';
 import { WorldSceneBatchSchema } from '../src/format/worldSceneBatch';
 import { WorldSceneBatch } from '../src/game/shardfile/worldSceneBatch';
-import { WorldRegistry } from '../src/engine/world/registry';
+import { installWorldRegistry, WorldRegistry } from '../src/engine/world/registry';
 import type { ShardContext } from '../src/game/plugin/context';
+
+installWorldRegistry();
 
 const triangle = () => {
   const geometry = new BufferGeometry();

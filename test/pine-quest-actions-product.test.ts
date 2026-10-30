@@ -1,3 +1,5 @@
+import { PINE_BAG_ITEMS } from '../src/shards/pine-hollow/generators/questInventory';
+import { registerItemRow } from '../src/game/bag/itemCatalog';
 import { QuestStepRunner } from '../src/game/quest/steps';
 import { commitQuestEffects, readQuestServiceActions } from '../src/game/quest/effects';
 import { publishBoundQuest } from '../src/game/quest/boundState';
@@ -7,7 +9,7 @@ import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import type { ShardContext } from '../src/game/plugin/context';
 import steps from '../src/shards/pine-hollow/data/questSteps.json' with { type: 'json' };
 import { CONTRACTS } from './fixtures/pine-contracts';
-import { beforeAll, expect, test } from 'vitest';
+import { afterAll, beforeAll, expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
@@ -19,6 +21,9 @@ import { Flags } from '../src/engine/world/interact/flags';
 import { claim, loadBoard, newBoard, recordKill, saveBoard } from '../src/game/quest/contracts';
 import { Exchange } from '../src/game/loot/exchange';
 import { TRADES, tradeExchange } from '../src/shards/pine-hollow/generators/trades';
+
+const releaseItems = PINE_BAG_ITEMS.map(registerItemRow);
+afterAll(() => { for (const release of releaseItems.reverse()) release(); });
 
 const serviceProducts = new Map<string, ShardProduct>();
 const admitted = new Map<string, QuestPageInteractionsData>();

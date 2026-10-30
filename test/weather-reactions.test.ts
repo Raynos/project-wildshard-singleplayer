@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from 'vitest';
-import { overrideTerrain } from '@wildshard/engine/test/terrain';
+import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { Scope } from '../src/engine/app/scope';
 import {onFault, type Fault} from '../src/engine/core/faults';
 import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
@@ -31,7 +31,7 @@ const marsh = { version: 1, hz: 5, script: storm.script, bytes: storm.bytes, act
 let restore = (): void => undefined;
 afterEach(() => { restore(); });
 function install(rows: unknown = marsh): ReturnType<typeof installWeatherReactions> {
-  restore = overrideTerrain({ heightAt: () => 0 });
+  restore = bindFlatTerrain({ heightAt: () => 0 });
   const air = new WeatherContinuation(program, { seed: 5, mode: 'live' });
   const reactions = installWeatherReactions(air, parseWeatherReactions(rows, program), { scope: new Scope('marsh') });
   Object.assign(reactions.inputs, { crouched: 0, mounted: 0 });

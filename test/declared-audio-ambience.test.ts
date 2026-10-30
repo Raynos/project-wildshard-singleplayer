@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { installAssetFixture } from './fixtures/bootSetup';
 import {expect,it,vi} from 'vitest';
 import {Camera} from 'three';
 import {Audio} from '@wildshard/engine/audio/Audio';
@@ -11,6 +12,8 @@ import {DeclaredAmbience} from '@wildshard/engine/audio/declaredAmbience';
 import {AmbienceMix,type AmbienceMixPorts} from '@wildshard/engine/audio/ambience';
 import pineSource from '../src/shards/pine-hollow/data/audioSource.json' with {type:'json'};
 import islandSource from '../src/shards/driftwood-isle/data/audioSource.json' with {type:'json'};
+
+await installAssetFixture();
 
 // The injected native constructor records ports and retains every real mix method.
 const captured:AmbienceMixPorts[]=[];

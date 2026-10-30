@@ -1,3 +1,4 @@
+import { installAssetFixture } from './fixtures/bootSetup';
 import {expect,it,vi,afterEach} from 'vitest';
 import {createCatalogueAudio} from '@wildshard/engine/audio/levelAudio';
 import {SetScore,type ScoreBank} from '@wildshard/engine/audio/SetScore';
@@ -14,6 +15,8 @@ import {ND_AUDIO} from '../src/shards/nine-dragon-stack/generators/audio';
 import NINE_FROZEN from './fixtures/legacy-oracles/nine-audio.json' with {type:'json'};
 import NALATI_FROZEN from './fixtures/legacy-oracles/nalati-audio.json' with {type:'json'};
 import type {CombatCueOpts} from '@wildshard/engine/combat/cues';
+
+await installAssetFixture();
 
 const NALATI_AUDIO=parseAudioData(audioDeclaration.audio);
 

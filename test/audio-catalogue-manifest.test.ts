@@ -1,3 +1,4 @@
+import { installAssetFixture } from './fixtures/bootSetup';
 import { DRIFTWOOD_ISLAND_FACTS } from './fixtures/driftwood-island-facts';
 import {expect,it,vi} from 'vitest';
 import {Scope} from '@wildshard/engine/app/scope';
@@ -11,6 +12,8 @@ import {MANIFEST as island} from '../src/shards/driftwood-isle/discovery.generat
 import { pineAudio as pineAudioSection } from '../src/shards/pine-hollow/generators/channelSections';
 import { driftwoodAudio } from '../src/shards/driftwood-isle/generators/audio';
 import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';
+
+await installAssetFixture();
 
 // GR8: called, not read from a scheduler job's output
 const pineAudio = pineAudioSection(), islandAudio = { audio: driftwoodAudio(DRIFTWOOD_LAYOUTS.wreck, DRIFTWOOD_ISLAND_FACTS) };

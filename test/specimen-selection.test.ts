@@ -1,3 +1,4 @@
+import { installWorldRegistry } from '../src/engine/world/registry';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the original named carving blocks through the same product fixture.
 import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin the exact former inline blocks.
@@ -14,6 +15,8 @@ import { modelContext, paramsOf } from '../src/engine/models/model';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { defineSpecimenCatalogue, prepareSpecimenCatalogue, loadBoundSpecimen, awaitSpecimenAssets } from '../src/game/models/specimenCatalogue';
 import rows from './fixtures/nalati-balbal-original.json' with {type:'json'};
+
+installWorldRegistry();
 
 /** Nalati's baked balbal rows: the generated model and both carved steles as one selection. */
 const files=await prepareSpecimenCatalogue({file:name=>{const row=rows.sources.find(source=>source.name===name);if(row===undefined)throw new Error('Missing carving fixture');return Promise.resolve(new Uint8Array(readFileSync(`test/fixtures/nalati-balbal-original-${row.name.endsWith('balbal-0.bin')?'0':'1'}.bin`)));}},rows.catalogue);

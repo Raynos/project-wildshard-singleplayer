@@ -1,3 +1,4 @@
+import { installCatalogueFixture } from './fixtures/bootSetup';
 import { afterEach, expect, test, vi } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
@@ -10,6 +11,8 @@ import { prepareHomeMetadata } from '../src/game/grid/homeMetadata';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { prepareApproachProductInputs } from '../src/game/grid/approachProductInputs';
 import { ApproachInputsDeferredError } from '../src/game/grid/productInputs';
+
+await installCatalogueFixture();
 
 const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); });
