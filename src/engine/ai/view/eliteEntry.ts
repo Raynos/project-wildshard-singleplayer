@@ -16,6 +16,7 @@ import { Color, MeshLambertMaterial, Object3D, Vector3 } from 'three';
 import { GroundTell } from '../../fx/groundTell';
 import { setEliteDamage } from '../../entities/eliteBrain';
 import { pinBrain } from '../pinning';
+import { EliteReadiness, eliteDamageScale, eliteScriptFrame, type EliteScriptFight } from '../eliteScript';
 import type { HerdBrain } from '../herd';
 import type { Game } from '../../core/Game';
 import type { Player } from '../../player/Player';
@@ -38,15 +39,9 @@ export type BorrowedEliteEffect = NativeEliteEffect | { readonly kind: 'page-ban
   | { readonly kind: 'record'; readonly species: string; readonly variant: string };
 /** The guarded group a herd-mode elite reads and steers: the existing herd brain's leader state and body, and lead-away. */
 export type BorrowedEliteHerd = Pick<HerdBrain<Animal>, 'leaderState' | 'leader' | 'leadAway'>;
-/** The fight a script-mode elite drives: its owner's admitted spawn program, paged afresh for each adopted body. */
-export interface BorrowedEliteFight {
-  readonly adopt: (slot: string, id: string) => void; readonly interrupt: () => void; readonly signal: (slot: string, n: number) => void;
-  readonly cue: (id: number) => string; readonly state: (slot: string) => Readonly<Record<string, number | boolean>>;
-  readonly frame: (point: Vector3, night: number, observations: Readonly<Record<string, number>>) => void; readonly advanceFrame: (dt: number) => void;
-  readonly drainEffects: () => readonly ({ readonly kind: 'cue' | 'retire'; readonly id: number } | { readonly kind: 'hit'; readonly hit: { readonly damage: number } }
-    | Extract<BorrowedEliteEffect, { readonly kind: 'page-bank' }>)[];
-  readonly strikePresentation: () => readonly { readonly phase: string; readonly x0: number; readonly z0: number; readonly x1: number; readonly z1: number; readonly width: number }[];
-}
+/** The fight a script-mode elite drives: its owner's admitted spawn program, paged afresh for each adopted body (its
+ *  numbers: ai/eliteScript.ts, which the Node simulation drives too). */
+export type BorrowedEliteFight = EliteScriptFight<Vector3, Extract<BorrowedEliteEffect, { readonly kind: 'page-bank' }>['bank']>;
 /** The admitted decision program a borrowed elite projects (the entry's condition program loan). */
 type EliteProjection = EliteEntryLoans<BorrowedEliteController>['programs'][number]['program'];
 /** The existing services a borrowed elite works through; none is authored. `fight` pages a script-mode elite's program. */
@@ -72,11 +67,12 @@ export class BorrowedElite implements BorrowedEliteController {
   private tellValue: GroundTell | null = null;
   private readonly presentationOwner = resourceScope();
   private scope: Scope | null = null;
-  private phase2 = false; private pending = false; private elapsed = 0; private readyTime = 0; private initialized = false;
+  private phase2 = false; private pending = false; private elapsed = 0;
+  /** the readiness check (ai/eliteScript.ts) */
+  private readonly readiness = new EliteReadiness();
   private laneT = 0; private runT = 0; private previousState = 0; private fraction = 0; private isBroken = false;
   private readonly from = new Vector3(); private readonly to = new Vector3();
   private observations: { available: boolean; kills: number; bonded: boolean; mount: Animal | null } = { available: false, kills: 0, bonded: false, mount: null };
-  private eligible = false;
   private readonly view = new Map<string, number>();
   readonly viewValue = (field: string): number => this.view.get(field) ?? 0;
   private readonly services: BorrowedEliteServices;
@@ -96,13 +92,9 @@ export class BorrowedElite implements BorrowedEliteController {
     this.tellValue = new GroundTell(this.services.game.scene, 'lane', new Color(...this.row.tell));
   }
   observe(dt: number, observations: typeof this.observations): void {
-    this.observations = observations; this.readyTime += dt;
-    if (!this.initialized || this.readyTime + 1e-9 >= .1) {
-      this.initialized = true; this.readyTime = 0;
-      this.eligible = this.row.mode === 'herd' || this.decisions.project(this.row.ready, { kills: observations.kills, engaged: 0, line: 0 })['accept'] === 1;
-    }
+    this.observations = observations; this.readiness.observe(this.row, this.decisions, dt, observations.kills);
   }
-  canSpawn(): boolean { return this.observations.available && this.eligible; }
+  canSpawn(): boolean { return this.observations.available && this.readiness.eligible; }
   spawn(): void { if (this.animal?.alive === true || this.pending) return; this.pending = true; this.events.push({ kind: 'request', row: this.row }); }
   adopt(animal: Animal, herd: BorrowedEliteHerd | null = null): void {
     if (!this.pending) throw new Error('Unrequested encounter body');
@@ -111,7 +103,7 @@ export class BorrowedElite implements BorrowedEliteController {
     this.pending = false; this.animal = animal; this.herd = herd;
     if (program !== null) {
       this.program = program;
-      setEliteDamage(animal, (_body, point) => this.decisions.project(this.row.damage, { mode: Number(this.program?.state('main')['mode'] ?? 0), distance: point.distanceTo(this.services.player.position) })['scale'] ?? 1);
+      setEliteDamage(animal, (_body, point) => eliteDamageScale(this.row, this.decisions, Number(this.program?.state('main')['mode'] ?? 0), point.distanceTo(this.services.player.position)));
     } else if (this.row.mode === 'herd') {
       const color = this.row.spawn.color;
       for (const material of Array.isArray(animal.mesh.material) ? animal.mesh.material : [animal.mesh.material]) if (material instanceof MeshLambertMaterial) material.color.setRGB(...color);
@@ -137,26 +129,21 @@ export class BorrowedElite implements BorrowedEliteController {
     this.elapsed += dt;
     if (this.row.mode === 'script') {
       const program = this.program; if (program === null) return;
-      if (this.elapsed + 1e-9 >= .1) {
-        this.elapsed = 0;
-        const count = this.decisions.project(this.row.step, { kills: this.observations.kills, engaged: Number(engaged), line: this.line.filter(actor => actor.alive).length })['count'] ?? 0;
-        if (count > 0) this.events.push({ kind: 'support', count });
-      }
-      program.frame(this.services.player.position, 0, { engaged: Number(engaged), leashing: Number(leashing), phase2: Number(this.phase2), clock: time }); program.advanceFrame(dt);
-      for (const effect of program.drainEffects()) {
-        if (effect.kind === 'page-bank') this.events.push(effect);
-        else if (effect.kind === 'hit') { this.events.push({ kind: 'hit', animal, amount: effect.hit.damage }, { kind: 'knock', x: Math.sin(animal.yaw), z: Math.cos(animal.yaw) }); }
-        else if (effect.kind === 'cue') {
-          const cue = this.row.cues[program.cue(effect.id)]; if (cue === undefined) continue;
-          if (cue.signature === true) this.services.elites.signature(this.def.id);
-          if (cue.voice !== undefined) this.events.push({ kind: 'sound', id: cue.voice, at: animal.position.clone() });
-          if (cue.feed !== undefined) this.events.push({ kind: 'feed', id: cue.feed, at: animal.position.clone() });
+      const frame = eliteScriptFrame(this.row, this.decisions, program, this.elapsed, dt, this.services.player.position,
+        { kills: this.observations.kills, engaged, leashing, phase2: this.phase2, time, line: this.line.filter(actor => actor.alive).length, yaw: () => animal.yaw });
+      this.elapsed = frame.elapsed;
+      for (const effect of frame.effects) {
+        if (effect.kind === 'support' || effect.kind === 'page-bank') this.events.push(effect);
+        else if (effect.kind === 'hit') this.events.push({ kind: 'hit', animal, amount: effect.amount }, { kind: 'knock', x: effect.knockX, z: effect.knockZ });
+        else {
+          if (effect.signature) this.services.elites.signature(this.def.id);
+          if (effect.voice !== undefined) this.events.push({ kind: 'sound', id: effect.voice, at: animal.position.clone() });
+          if (effect.feed !== undefined) this.events.push({ kind: 'feed', id: effect.feed, at: animal.position.clone() });
         }
       }
-      this.tell.setTime(time); this.view.set('strike', 0);
-      for (const strike of program.strikePresentation()) if (strike.phase === 'windup' || strike.phase === 'active') {
-        const view = this.view; view.set('strike', strike.phase === 'windup' ? 1 : 2); view.set('sx0', strike.x0); view.set('sz0', strike.z0); view.set('sx1', strike.x1); view.set('sz1', strike.z1); view.set('sw', strike.width);
-      }
+      this.tell.setTime(time);
+      const tell = frame.tell, view = this.view; view.set('strike', tell?.strike ?? 0);
+      if (tell !== null) { view.set('sx0', tell.x0); view.set('sz0', tell.z0); view.set('sx1', tell.x1); view.set('sz1', tell.z1); view.set('sw', tell.width); }
       return;
     }
     const herd = this.herd; if (herd === null) return;
