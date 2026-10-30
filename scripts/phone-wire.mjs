@@ -7,7 +7,8 @@
 // No boot-smoke request counting.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { brotliCompressSync, constants } from 'node:zlib';
+import { homedir } from 'node:os';
+import { BrotliSizeCache } from './brotli-size-cache.mjs';
 
 await import('./bake-loader.mjs');
 const { loadHeadlessProduct } = await import('../src/sdk/headlessProduct.ts');
@@ -16,15 +17,14 @@ const { tierProductFilesPaced } = await import('../src/game/shardfile/productCos
 /** the budget key that holds `name`'s phone ceiling */
 export const phoneWireKey = name => `wire/${name}/phone`;
 
+const wireSizes=new BrotliSizeCache(process.env.WILDSHARD_WIRE_SIZE_CACHE??resolve(homedir(),'.cache/wildshard/gen/served-bytes/1'));
+
 /**
  * The bytes the deploy sends for `bytes`: its brotli at quality 3 (Vercel's on-the-fly encoding; measured equal to
  * the live responses of Driftwood's GLB, bin, JSON and WASM files, 2026-10-27), or the file itself when that is smaller.
  * @param {Uint8Array} bytes
  */
-export function servedBytes(bytes) {
-  const encoded = brotliCompressSync(bytes, { params: { [constants.BROTLI_PARAM_QUALITY]: 3, [constants.BROTLI_PARAM_SIZE_HINT]: bytes.length } });
-  return Math.min(encoded.length, bytes.length);
-}
+export function servedBytes(bytes) { return wireSizes.bytes(bytes); }
 
 /**
  * Measure `names` (built products under `<root>/out/`, or `products` when given) against lint/ratchet.json's ceilings.
