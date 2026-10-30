@@ -102,6 +102,13 @@ export class BossBrain {
   }
 
   protected save(): void { this.host.persist(this.saved); }
+  /** The reward pickup's record, the one place it changes: once the boss is beaten, the reward is marked taken and saved.
+   *  The page's drop callback and a native host's reached prompt both call it; false (nothing saved) when the boss is not
+   *  beaten or the reward was already taken. Granting, the drop and its presentation stay with the caller. */
+  takeReward(): boolean {
+    if (!this.saved.defeated || this.saved.rewardTaken) return false;
+    this.saved.rewardTaken = true; this.save(); return true;
+  }
 
   /** Native eligibility hooks preserve observation order; an authored subclass may select the transition. */
   protected introReady(inside: boolean): boolean { return inside; }

@@ -227,7 +227,7 @@ export class Boss extends BossBrain {
     this.renderHost.addInteractable(drop.interactable);
     drop.onNear = (inside) => this.renderHost.pickupHum?.(inside);
     drop.onPickup = () => {
-      this.saved.rewardTaken = true; this.save();
+      this.takeReward();
       r.grant();
       this.renderHost.removeInteractable(drop.interactable);
       this.renderHost.pickupHum?.(false);

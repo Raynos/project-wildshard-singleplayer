@@ -68,6 +68,7 @@ test('Pine keeps bar/prewarm/register order, borrowed room stepping, phase check
     expect(live.onPlayerDeath()).toBe(true); expect(live.boss.state).toBe('armed'); expect(f.ports.player.position.x).toBe(4);
     expect(f.events.indexOf('sting:death')).toBeLessThan(f.events.indexOf('respawn'));
     const before = f.events.length; live.boss.restore(checkpoint); expect(f.events).toHaveLength(before); // silent old continuation
+    expect(live.boss.takeReward()).toBe(false); expect(live.boss.rewardTaken).toBe(false); // not beaten yet: nothing to take
     live.update(2, 10); f.die(); f.daytime(); live.update(0.1, 11);
     expect(live.boss.state).toBe('victory'); expect(f.trophies).toBe(1); expect(f.grants).toBe(0);
     expect(f.events.filter(value => /scene:day|sting:chunk/.test(value))).toEqual(['scene:day', 'sting:chunk']);
@@ -76,6 +77,7 @@ test('Pine keeps bar/prewarm/register order, borrowed room stepping, phase check
     drop.interactable.onInteract(); drop.interactable.onInteract();
     expect(f.grants).toBe(1); expect(f.ports.interactables).toEqual([]); expect(f.saved['antler-king']?.rewardTaken).toBe(true);
     expect(f.events.filter(value => value === 'sting:pickup')).toHaveLength(1);
+    expect(live.boss.takeReward()).toBe(false); // the record transition is once, whoever reaches the prompt
   } finally { live.ui.scope.dispose(); f.scope.dispose(); }
 });
 
