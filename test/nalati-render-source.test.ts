@@ -3,25 +3,41 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare tile bytes natively.
 import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
+import * as v from 'valibot';
 import { nalatiRenderTileSources } from '../src/shards/nalati-grasslands/generators/renderTileSources';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { visitGlbTriangles } from '../src/format/product';
+import { FilesSchema, TilesSchema } from '../src/format/shardSections';
+import { WIRE_CELL, WIRE_TILE_SIZES } from '../src/format/wireLimits';
 import { i3Predecessor } from './fixtures/nalati-render-i3';
-import originals from './fixtures/nalati-render-source-files.json' with { type: 'json' };
 
 const native = new Uint8Array(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin'));
 const originalNative = hashImmutableBytes(native);
 // One genuine construction supplies all original files. iPhone downloads I3: the 'exact' publication is the pre-I3 one; the
 // I3 test below qualifies the shipped one against it. G919: no frozen byte counts or digests: the publication keeps its
-// file set and its laws, and a second construction reproduces it byte for byte.
+// current file references and laws, and a second construction reproduces it byte for byte.
 const made = await nalatiRenderTileSources(native, 'exact');
 
-// 72 original L0 tile files, the tile metadata and (T8, G748.6) the 16 L1 squares' pair files
-test('the explicit terrain source publishes all 89 files from the native ground', () => {
-  expect(originals).toHaveLength(89);
-  expect([...made.files.keys()].sort((a, b) => a.localeCompare(b)))
-    .toEqual(originals.map(row => row.path).sort((a, b) => a.localeCompare(b)));
-  expect(made.tiles).toBe(80);
+test('the terrain publication covers the native grid with current content identities', () => {
+  const metadata = made.files.get('data/renderTiles.json');
+  if (metadata === undefined) throw new Error('Missing native render metadata');
+  const rows = v.parse(v.object({ files: FilesSchema, tiles: TilesSchema }), JSON.parse(new TextDecoder().decode(metadata)));
+  const addresses = new Set<string>();
+  for (const lod of [0, 1] as const) {
+    const side = WIRE_CELL.half * 2 / (lod === 0 ? WIRE_TILE_SIZES.l0 : WIRE_TILE_SIZES.l1);
+    for (let z = 0; z < side; z++) for (let x = 0; x < side; x++) addresses.add(`${lod}:${x}:${z}`);
+  }
+  expect(new Set(rows.tiles.map(tile => `${tile.lod}:${tile.x}:${tile.z}`))).toEqual(addresses);
+  expect(rows.tiles).toHaveLength(addresses.size);
+  expect(made.tiles).toBe(rows.tiles.length);
+  const names = new Set(['data/renderTiles.json', ...rows.files.map(file => `assets/${file.hash}`)]);
+  for (const tile of rows.tiles) if (tile.lod === 1) names.add(`assets/world-terrain/ground-l1-${Math.floor(tile.x / 2)}-${tile.z}.generated.glb`);
+  expect(new Set(made.files.keys())).toEqual(names);
+  for (const file of rows.files) {
+    const bytes = made.files.get(`assets/${file.hash}`);
+    if (bytes === undefined) throw new Error('Missing declared render bytes');
+    expect(hashImmutableBytes(bytes)).toBe(file.hash);
+  }
   expect(made.nativeGround).toBe(originalNative);
   expect(made.bytes).toBe([...made.files.values()].reduce((sum, bytes) => sum + bytes.byteLength, 0));
   for (const [path, bytes] of made.files) expect(bytes.byteLength, path).toBeGreaterThan(0);

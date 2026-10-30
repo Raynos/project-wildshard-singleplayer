@@ -2,14 +2,24 @@
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Explicit roots bind only the committed original terrain input.
 import { resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare current cold and cache-hit bytes without deep typed-array traversal.
+import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
+import * as v from 'valibot';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nalatiRenderTileProgram } from '../src/shards/nalati-grasslands/generators/renderTileProgram';
-import originals from './fixtures/nalati-render-source-files.json' with { type: 'json' };
+import { FilesSchema, TilesSchema } from '../src/format/shardSections';
 import { EXACT_RENDER_METADATA, i3Predecessor } from './fixtures/nalati-render-i3';
 
-test('the owned render cache preserves all original cold bytes and isolated persistent hits', async () => {
+const exact = v.parse(v.object({ files: FilesSchema, tiles: TilesSchema }), JSON.parse(new TextDecoder().decode(EXACT_RENDER_METADATA)));
+const currentPaths = (renamed: ReadonlyMap<string, string> = new Map()): Set<string> => new Set([
+  'data/renderTiles.json',
+  ...exact.files.map(file => `assets/${renamed.get(file.hash) ?? file.hash}`),
+  ...exact.tiles.filter(tile => tile.lod === 1).map(tile => `assets/world-terrain/ground-l1-${Math.floor(tile.x / 2)}-${tile.z}.generated.glb`),
+]);
+
+test('the owned render cache preserves current cold bytes and isolated persistent hits', async () => {
   const cache = mkdtempSync(resolve('tmp/nalati-render-owned-'));
   let constructions = 0;
   const context = (declared = true) => {
@@ -21,31 +31,29 @@ test('the owned render cache preserves all original cold bytes and isolated pers
       return ctx.cached(step, inputs => { constructions++; return make(inputs); });
     } };
   };
-  // iPhone downloads I3: the program publishes the I3 render tiles; through the predecessor layer (nalati-render-i3.ts, whose
-  // geometry nalati-render-source.test.ts qualifies) every original pin maps to its file: a compacted L0 tile under its
-  // own hash, the pre-I3 metadata for the shipped one, every other file byte for byte
+  // I3 is compared with the current exact native construction, never a historical digest.
+  // Only compacted L0 hashes/costs may change; all other metadata and file references stay exact.
   const check = (files: ReadonlyMap<string, Uint8Array>) => {
     const metadata = files.get('data/renderTiles.json');
     if (metadata === undefined) throw new Error('Missing render metadata');
-    const { renamed } = i3Predecessor(EXACT_RENDER_METADATA, metadata), path = (pin: string): string => {
-      const next = renamed.get(pin.slice('assets/'.length)); return next === undefined ? pin : `assets/${next}`;
-    };
-    expect([...files.keys()].sort((a, b) => a.localeCompare(b)))
-      .toEqual(originals.map(row => path(row.path)).sort((a, b) => a.localeCompare(b)));
-    for (const pin of originals) {
-      const bytes = files.get(path(pin.path));
-      if (bytes === undefined) throw new Error(`Missing original render source ${pin.path}`);
-      if (pin.path === 'data/renderTiles.json') { expect(hashImmutableBytes(EXACT_RENDER_METADATA)).toBe(pin.sha256); continue; }
-      if (path(pin.path) !== pin.path) { expect(hashImmutableBytes(bytes), pin.path).toBe(path(pin.path).slice('assets/'.length)); continue; }
-      expect(bytes.byteLength, pin.path).toBe(pin.bytes);
-      expect(hashImmutableBytes(bytes), pin.path).toBe(pin.sha256);
+    const { renamed } = i3Predecessor(EXACT_RENDER_METADATA, metadata);
+    expect(new Set(files.keys())).toEqual(currentPaths(renamed));
+    for (const [name, bytes] of files) if (/^assets\/[a-f0-9]{64}$/u.test(name)) {
+      expect(hashImmutableBytes(bytes), name).toBe(name.slice('assets/'.length));
     }
   };
   try {
     const cold = await nalatiRenderTileProgram(context()); check(cold);
+    const expected = new Map([...cold].map(([name, bytes]) => [name, bytes.slice()]));
     for (const bytes of cold.values()) bytes.fill(0);
     const hit = await nalatiRenderTileProgram(context()); check(hit);
-    for (const [name, bytes] of hit) expect(bytes === cold.get(name)).toBe(false);
+    expect(new Set(hit.keys())).toEqual(new Set(expected.keys()));
+    for (const [name, bytes] of hit) {
+      expect(bytes === cold.get(name)).toBe(false);
+      const saved = expected.get(name);
+      if (saved === undefined) throw new Error('Missing current cold render file');
+      expect(Buffer.compare(bytes, saved), name).toBe(0);
+    }
     expect(constructions).toBe(1);
     const asset = [...hit.keys()].find(name => /^assets\/[a-f0-9]{64}$/u.test(name));
     if (asset === undefined) throw new Error('Missing original render tile asset');
@@ -67,5 +75,5 @@ test('missing native input and incomplete cached render publications refuse', as
 });
 
 test('the scheduler and every original render handoff remain retired', () => {
-  for (const file of originals) expect(existsSync(resolve('src/shards/nalati-grasslands', file.path)), file.path).toBe(false);
+  for (const path of currentPaths()) expect(existsSync(resolve('src/shards/nalati-grasslands', path)), path).toBe(false);
 });
