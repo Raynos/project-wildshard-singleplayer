@@ -3,10 +3,12 @@ import original from './fixtures/driftwood-boot-original.json' with { type: 'jso
 import { resolveBootFiles, bootLateReads } from '../src/engine/boot/filePolicy';
 import { DRIFTWOOD_BOOT_FILES } from '../src/shards/driftwood-isle/generators/bootRecipes';
 import { GPU_FILES } from '../src/shards/driftwood-isle/ktx2.generated';
+import { installAssetFixture } from './fixtures/bootSetup';
 
 const lateReadRows = original.lateReads;
 
-test('only the eight migrated public prefetch groups retire; remaining boot content stays selected', () => {
+test('only the eight migrated public prefetch groups retire; remaining boot content stays selected', async () => {
+  await installAssetFixture();
   for (const tier of ['phone', 'desktop'] as const) for (const mode of ['img', 'ktx2'] as const) {
     const previous = resolveBootFiles(DRIFTWOOD_BOOT_FILES, 'late', tier, mode, GPU_FILES);
     const migrated = new Set(['reef', 'ground', 'palms', 'hibiscus', 'cover', 'island', 'records', 'lights'].flatMap(group => resolveBootFiles(DRIFTWOOD_BOOT_FILES, group, tier, mode, GPU_FILES)));
