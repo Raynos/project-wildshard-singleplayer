@@ -5,13 +5,12 @@ import time
 IMPORT_STARTED = time.monotonic()
 
 from contextlib import contextmanager
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import math
 import json
 import os
 from pathlib import Path
 import secrets
-from socketserver import TCPServer
+from socketserver import StreamRequestHandler, ThreadingTCPServer
 import subprocess
 import tempfile
 import threading
@@ -111,49 +110,64 @@ def readiness_page(deadline, started=None):
                 '<script>requestAnimationFrame(()=>requestAnimationFrame(()=>'
                 f'fetch("{callback}",{{cache:"no-store"}})));</script>').encode()
 
-    class Handler(BaseHTTPRequestHandler):
+    class Handler(StreamRequestHandler):
         def setup(self):
             super().setup()
             self.connection.settimeout(1)
 
-        def do_GET(self):
-            if self.path not in (page, callback):
-                self.send_error(404)
+        def reply(self, code, body, probe=False):
+            reason = {200: 'OK', 400: 'Bad Request', 404: 'Not Found',
+                      431: 'Request Header Fields Too Large', 501: 'Not Implemented'}[code]
+            headers = [f'HTTP/1.0 {code} {reason}', 'Content-Type: text/html; charset=utf-8',
+                       f'Content-Length: {len(body)}', 'Cache-Control: no-store', 'Connection: close']
+            if probe:
+                headers.append(f'X-Safari-Ready: {callback}')
+            self.wfile.write(('\r\n'.join(headers) + '\r\n\r\n').encode() + body)
+            self.wfile.flush()
+
+        def handle(self):
+            # Only the owned loopback GET probe is served. Bound parsing under
+            # the same one-second connection limit; no HTTP/email/MIME stack.
+            line = self.rfile.readline(8193)
+            parts = line.split()
+            if len(line) > 8192 or len(parts) != 3 or parts[2] not in (b'HTTP/1.0', b'HTTP/1.1'):
+                self.reply(400, b'Bad request')
                 return
-            if self.path == page and not requested.is_set():
+            size = len(line)
+            for _ in range(100):
+                header = self.rfile.readline(8193)
+                size += len(header)
+                if not header or len(header) > 8192 or size > 16384:
+                    self.reply(431, b'Invalid headers')
+                    return
+                if header in (b'\r\n', b'\n'):
+                    break
+            else:
+                self.reply(431, b'Too many headers')
+                return
+            if parts[0] != b'GET':
+                self.reply(501, b'GET only')
+                return
+            path = parts[1]
+            if path not in (page.encode(), callback.encode()):
+                self.reply(404, b'Not found')
+                return
+            probe = path == page.encode()
+            if probe and not requested.is_set():
                 requested.set()
                 print(f'sim-lane: Safari readiness document requested in {time.monotonic() - started:.3f}s', file=sys.stderr)
-            body = document if self.path == page else b'ready'
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html; charset=utf-8')
-            self.send_header('Content-Length', str(len(body)))
-            self.send_header('Cache-Control', 'no-store')
-            self.send_header('Connection', 'close')
-            if self.path == page:
-                self.send_header('X-Safari-Ready', callback)
-            self.end_headers()
-            self.wfile.write(body)
-            self.wfile.flush()
-            if self.path == callback and time.monotonic() <= deadline:
+            self.reply(200, document if probe else b'ready', probe)
+            if not probe and time.monotonic() <= deadline:
                 ready.set()
                 print(f'sim-lane: Safari owned frame callback received in {time.monotonic() - started:.3f}s', file=sys.stderr)
 
-        def log_message(self, _format, *_args):
-            pass
-
-    class ProbeServer(ThreadingHTTPServer):
-        def server_bind(self):
-            # HTTPServer otherwise reverse-resolves the fixed loopback host.
-            # This probe needs no resolver work inside its readiness budget.
-            TCPServer.server_bind(self)
-            self.server_name, self.server_port = self.server_address
-
-    with ProbeServer(('127.0.0.1', 0), Handler) as server:
+    # TCPServer binds the fixed loopback address without reverse-DNS work.
+    with ThreadingTCPServer(('127.0.0.1', 0), Handler) as server:
         server.daemon_threads = True
         thread = threading.Thread(target=lambda: server.serve_forever(poll_interval=.02), daemon=True)
         thread.start()
         try:
-            yield f'http://127.0.0.1:{server.server_port}{page}', ready
+            yield f'http://127.0.0.1:{server.server_address[1]}{page}', ready
         finally:
             server.shutdown()
             thread.join()

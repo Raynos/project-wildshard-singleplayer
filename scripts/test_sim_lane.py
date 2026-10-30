@@ -15,7 +15,7 @@ import unittest
 from urllib.parse import urlsplit
 from urllib.error import HTTPError
 from urllib.parse import urljoin
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parent.parent
 UDID = '00000000-0000-0000-0000-000000000016'
@@ -305,6 +305,21 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
             with urlopen(urljoin(url, callback), timeout=1) as response:
                 self.assertEqual(response.read(), b'ready')
             self.assertFalse(ready.is_set())
+
+    def test_probe_rejects_foreign_paths_methods_and_oversized_headers(self):
+        with READY['readiness_page'](time.monotonic() + 5) as (url, ready):
+            with urlopen(url, timeout=1) as response:
+                callback = response.headers['X-Safari-Ready']
+                response.read()
+            requests = [(Request(urljoin(url, '/ready/foreign')), 404),
+                        (Request(urljoin(url, callback), method='POST'), 501),
+                        (Request(urljoin(url, callback), headers={'X-Probe': 'x' * 9000}), 431)]
+            for request, code in requests:
+                with self.assertRaises(HTTPError) as refused:
+                    urlopen(request, timeout=1)
+                self.assertEqual(refused.exception.code, code)
+                refused.exception.close()
+                self.assertFalse(ready.is_set())
 
     def test_url_failure_is_bounded_and_lease_is_not_published(self):
         started = time.monotonic()
