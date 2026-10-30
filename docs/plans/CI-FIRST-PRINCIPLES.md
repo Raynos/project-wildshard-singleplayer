@@ -193,7 +193,7 @@ Codex does the workflow engineering (non-visual). Ordered to unstick the deploy 
 | CI2 | Ship the tested build (G920): push CI uploads `.vercel/output`; the release runs `vercel deploy --prebuilt` on it, with no native or vercel rebuild | Release ≤ 3 min; live `version.json` = the tested SHA | Codex sp-ci-deploy · landed 94c85866ef; first remote deploy pending | M |
 | CI3 | Deploy as soon as green (G920): drop the hourly slot; a green exact-SHA proof deploys at once if newer than live | Live = the newest green SHA within 5 min of its verdict | Codex sp-ci-deploy · landed 419a077b21 (hourly slot gone, 07:00 one-off kept) | S |
 | CI4 | Delete `test-quarantine.yml` (G923); fix DEPLOY.md's gpu-gate text | Workflow gone; DEPLOY.md matches | Codex sp-ci-deploy · done 87baf789f5 | S |
-| CI5 | Lazy `test/setup.ts`: world installs move to opt-in fixtures | Setup < 10 % of vitest Duration; shards −40 % | Codex sp-x9 | M |
+| CI5 | Lazy `test/setup.ts`: world installs move to opt-in fixtures | Setup < 10 % of vitest Duration; shards −40 % | Codex sp-x9 · in flight: fixed 12 files / 51 cases 24.85 → 10.42 s (−58.1%), setup 52 → 1%; explicit consumers qualified; ordinary all-test CI pending | M |
 | CI6 | One prepare job: merge `generated-inputs` + `products` + vite / vercel build; gen once; every job reads one artifact | Prepare ≤ 6 min; no job rebuilds | Codex sp-x2 (workflows handed over) | M |
 | CI7 | One test wave: all vitest files in one matrix sharded by measured time; `isolate: false` for pure files | Vitest wave ≤ 5 min, no shard > 1.2× the mean | Codex sp-x2 (after CI6) | M |
 | CI8 | Slowest files ≤ 10 s each (§2 list), or deleted if they are pins | None over 10 s | Codex sp-x6 (after MF12) | M |

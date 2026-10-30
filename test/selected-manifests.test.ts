@@ -2,6 +2,9 @@ import { expect, test } from 'vitest';
 import { selectedManifests, gridManifests } from '../src/selectedManifests';
 import { legacyContentIdentity, shards } from '../src/game/shard/list';
 import { prepareBootImports } from '../src/bootDownloads';
+import { installCatalogueFixture } from './fixtures/bootSetup';
+
+await installCatalogueFixture();
 
 function fixture() {
   const copy = shards().find(row => row.legacy === true);

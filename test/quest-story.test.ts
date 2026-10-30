@@ -35,6 +35,9 @@ import type { Animal } from '../src/engine/entities/AnimalView';
 import deaths from '../src/shards/driftwood-isle/data/questDeaths.json';
 import { TRADER_PAGE } from '../src/shards/driftwood-isle/generators/traderPage';
 import { PINE_PAGE_DEATH_EFFECTS } from '../src/shards/pine-hollow/generators/questDeaths';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 function product(source: typeof drift, story: typeof driftStory, counters: typeof DRIFTWOOD_FEAT_COUNTERS | typeof PINE_FEAT_COUNTERS) {
   const policy = { ...counters, feats: counters.feats.map(({ id, count, ...row }) => ({ id, count,

@@ -4,7 +4,7 @@ import {bootFiles,extraFetches,startDeferredAudioPreload,startMenuPreload,startL
 import {setBootCatalog,type BootLevel} from './catalog';
 import {prepareBootAudio} from './audioInventory';
 import {declareTotals,installByteCounter,releaseByteCounter,type ChunkFiles} from './bytes';
-import {installAssetTables,publicBytes,assetVersions,musicManifests,sfxManifests,bootPacks} from './tables';
+import {installAssetTables,type AssetTables} from './tables';
 import {NO_AUDIO,type LevelAudioProfile,type LevelAudioBank} from '../audio/levelAudio';
 import {createBootPlan,type StepProgress} from './plan';
 import * as settings from '../ui/Settings';
@@ -20,7 +20,7 @@ const level:BootLevel={slug:'fixture',card:{thumb:'data:,',portrait:'data:,',lan
   boot:{files:[],sources:()=>blank,audio:[...all.music,...all.sfx]}};
 const bank:LevelAudioBank={title:undefined,score:{slots:new Map(),stings:new Map()},cues:{loops:new Map(),shots:new Map()}};
 const profile:LevelAudioProfile={files:()=>all,bootFiles:genre=>genre==='folk'?[music,sfx]:[foreignMusic,foreignSfx],decode:()=>Promise.resolve(bank)};
-const priorTables={bytes:publicBytes(),versions:assetVersions(),music:musicManifests(),sfx:sfxManifests(),packs:bootPacks()};
+const priorTables:AssetTables={bytes:{},versions:{},music:{},sfx:{},packs:{}};
 beforeEach(()=>{
   setBootCatalog({levels:[level],playable:[level],find:()=>level,artBytes:{}});
   installAssetTables({...priorTables,bytes:{[music]:3,[sfx]:3,[foreignMusic]:100,[foreignSfx]:100}});

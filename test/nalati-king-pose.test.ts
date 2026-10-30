@@ -16,6 +16,9 @@ import { animateKing } from './fixtures/nalati-king-pose';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { RigAnimCtx } from '../src/engine/entities/species/registry';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 const speciesRows=parse(object({poses:record(string(),NumericPoseSchema),program:ReturnProgramSchema}),
   originalSpeciesJson('species.json'));

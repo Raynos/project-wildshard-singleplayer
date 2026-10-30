@@ -7,6 +7,9 @@ import { bodyKey } from '../src/shards/nalati-grasslands/generators/bodyKey';
 import { bodySpecies } from '../src/shards/nalati-grasslands/generators/speciesRows';
 import { nalatiSpeciesCatalogue } from './fake/nalatiSpecies';
 import { NalatiTamingHorsePose } from './fixtures/nalati-taming-pose';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 const HORSE_SPECIES = bodySpecies('horse');
 const wind = { x: .6, z: .8, strength: .7 };

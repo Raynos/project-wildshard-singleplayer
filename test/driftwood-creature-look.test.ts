@@ -9,6 +9,9 @@ import * as THREE from 'three';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { CRAB_LOOK } from './fake/driftwoodLooks';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 const CREATURE_GRAPHS = authoredGraphs(lookGraphs.looks);
 

@@ -17,6 +17,9 @@ import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import type { ShardContext } from '../src/game/plugin/context';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 const rows = { bodies: [{ id: 'crate', kind: 'prop', at: { x: 2, y: 1, z: 3 }, yaw: .3,
   shape: { cuboid: { x: .4, y: .5, z: .6 } }, material: 'wood', owner: { kind: 'crate', id: 'crate' }, keep: true }],

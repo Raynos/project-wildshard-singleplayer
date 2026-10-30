@@ -16,6 +16,9 @@ import { Mesh, BufferGeometry, BufferAttribute, Material, MeshLambertMaterial, D
 import oracle from './fixtures/nalati-poi-paint.json';
 import staticOracle from './fixtures/nalati-static-contacts.json';
 import fixed from './fixtures/nalati-poi-paint-original.json';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 const hash = (array: ArrayBufferView): string => createHash('sha256')
   .update(new Uint8Array(array.buffer, array.byteOffset, array.byteLength)).digest('hex');

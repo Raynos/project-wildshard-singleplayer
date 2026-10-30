@@ -20,6 +20,9 @@ import { arenaRoomProgram } from './fixtures/arena-room-program';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import room from '../src/shards/nalati-grasslands/data/bossArenaRoom.json' with { type: 'json' };
 import view from '../src/shards/nalati-grasslands/data/kurganView.json' with { type: 'json' };
+import { installArenaShapes } from './fixtures/arenaShapes';
+
+await installArenaShapes();
 
 const encounterRows = {
   definition: { id: 'room-fixture', name: 'Room', title: '', retryTitle: '', intro: 0, introShort: 0, phases: [{ at: 1, caption: '', name: '' }] },
@@ -33,7 +36,7 @@ const encounterRows = {
 };
 
 async function installed() {
-  if (!SHAPES.ready) throw new Error('The real shape fixture must be installed by test/setup.ts');
+  if (!SHAPES.ready) throw new Error('The original room shapes fixture must be installed');
   const scope = new Scope('room-upload'), scene = new Scene(), registry = new WorldRegistry(), copies = new Map<string, BufferGeometry>();
   type Runtime = NonNullable<ShardContext['game']['runtime']>;
   type World = NonNullable<Runtime['world']>;

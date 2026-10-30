@@ -18,6 +18,9 @@ import { coinModel } from '../src/game/loot/coinModel';
 import { installPickupCatalogue, preparePickupCatalogue } from '../src/game/models/specimenCatalogue';
 import { authoredPickups } from '../src/game/generators/pickups';
 import data from '../src/game/data/pickupCatalogue.json' with { type: 'json' };
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 function sameGeometry(actual: THREE.BufferGeometry, expected: THREE.BufferGeometry): void {
   expect(Object.keys(actual.attributes)).toEqual(Object.keys(expected.attributes));

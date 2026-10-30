@@ -3,14 +3,14 @@ import { afterAll, afterEach, beforeAll, beforeEach, expect, test, vi } from 'vi
 import { installByteCounter, releaseByteCounter, declareTotals, type ChunkFiles } from './bytes';
 import { createBootPlan, type Plan, type ProgressView } from './plan';
 import type { BootStep } from './steps';
-import { installAssetTables, publicBytes, assetVersions, musicManifests, sfxManifests, bootPacks } from './tables';
+import { installAssetTables, type AssetTables } from './tables';
 import { initializeTier, TIER } from '../core/tier';
 import { noteFrameDrawn, setBuildHeld } from '../core/framePacing';
 import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const originalTier = TIER, environment = scopeEnvironment(), nativeFetch = window.fetch, nativeChannel = globalThis.MessageChannel;
-const tables = { bytes: publicBytes(), versions: assetVersions(), music: musicManifests(), sfx: sfxManifests(), packs: bootPacks() };
+const tables: AssetTables = { bytes: {}, versions: {}, music: {}, sfx: {}, packs: {} };
 const files: ChunkFiles = { sky: [], baked: [], terrain: [], trees: [], cabins: [], props: Array.from({ length: 12 }, (_, i) => `/assets/byte-slice-${String(i)}.png`), physics: [], art: [], music: [], sfx: [] };
 const frames: ((time: number) => void)[] = [];
 let now = 1000, cost = 0, extractionCost = 0, extractions = 0;

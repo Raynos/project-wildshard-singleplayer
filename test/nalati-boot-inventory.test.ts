@@ -4,6 +4,9 @@ import { publicBytes } from '@wildshard/engine/boot/tables';
 import originalBoot from './fixtures/nalati-boot-original.json' with { type: 'json' };
 import { nalatiBootInventory } from '../src/shards/nalati-grasslands/generators/bootInventory';
 import { bootSources, lateReads, nalatiBootAssets } from '../src/shards/nalati-grasslands/generators/bootFiles';
+import { installAssetFixture } from './fixtures/bootSetup';
+
+await installAssetFixture();
 
 test('explicit authored boot paths retain every original ordered mode', () => {
   const inventory: Record<string, true> = {};

@@ -7,6 +7,9 @@ import { MOUNTED_FIGURE } from './fixtures/nalati-poi-paint-original';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { ModelContext } from '../src/engine/models/model';
 import type { Rng } from '../src/engine/core/rng';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 const row = { model: { id: 'fixture/rider', name: 'A rider', category: 'people', pipeline: ['code'], file: 'test/mounted-specimen-factory.test.ts', defaults: {} },
   slug: 'fixture', json: 'riding/seat.json', species: 'pony', variant: 'grey', tint: 0.25 };

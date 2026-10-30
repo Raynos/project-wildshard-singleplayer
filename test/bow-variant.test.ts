@@ -27,6 +27,9 @@ import * as geometry from '../src/game/plugin/geometry';
 import bowPage from '../public/assets/nalati/baked/recurve-pool.json' with {type:'json'};
 import rows from '../src/shards/nalati-grasslands/boot/bowVariant.json' with {type:'json'};
 import items from '../src/shards/nalati-grasslands/data/items.json' with {type:'json'};
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 const NativeBow=bowBinding.Bow;
 function actor(kind:string):Animal{

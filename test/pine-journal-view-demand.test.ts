@@ -20,6 +20,9 @@ import { declaredCompendium } from '../src/game/shard/declaredRows';
 import { emptyShardfile } from '../src/sdk/author';
 import { pineJournal } from '../src/shards/pine-hollow/generators/journal';
 import { pineGeneration } from './fixtures/pine-generation';
+import { installCatalogueFixture } from './fixtures/bootSetup';
+
+await installCatalogueFixture();
 
 test('the cold journal resolves original named silhouettes and sketches only when opened', async () => {
   const emitted = await pineJournal(pineGeneration('pine-journal-demand', resolve(homedir(), '.cache/wildshard/gen')));

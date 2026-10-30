@@ -8,6 +8,9 @@ import ISLAND_PLAN_FILES from '../src/shards/driftwood-isle/data/islandPlanFiles
 import original from './fixtures/driftwood-boot-original.json' with { type: 'json' };
 import manifest from '../src/shards/driftwood-isle/manifest.json' with { type: 'json' };
 import { driftwoodBootProgram } from '../src/shards/driftwood-isle/generators/bootProgram';
+import { installAssetFixture } from './fixtures/bootSetup';
+
+await installAssetFixture();
 
 const { sources, files, lateReads } = original;
 

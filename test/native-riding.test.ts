@@ -21,6 +21,9 @@ import fixtureBrains from '../src/shards/nalati-grasslands/data/brains.json' wit
 import { installMountedPlayer } from '@wildshard/game/riding/native';
 import { NALATI_RIDING_PROGRAMS as programs } from './fixtures/nalati-riding';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 
 // Full canonical predecessor histories: 90 native ticks plus dismount,

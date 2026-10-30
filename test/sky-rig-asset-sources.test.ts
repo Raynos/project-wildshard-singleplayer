@@ -16,6 +16,9 @@ import { skyModelSource } from '../src/shards/far-reach/generators/sceneSources'
 import { skyProductBoot, LATE_READS } from '../src/shards/far-reach/generators/bootInventory';
 import { SKY_CREATURES, SKY_CREATURE_RIGS } from '../src/shards/far-reach/generators/fileInventory';
 import { GPU_FILES } from '../src/shards/far-reach/ktx2.generated';
+import { installAssetFixture } from './fixtures/bootSetup';
+
+await installAssetFixture();
 
 const blobs = [...originalSkyRigs()].map(([name, bytes]) => nameBlob(`world/rigs/${name}`, 'glb', bytes));
 const files = blobs.map(blob => blob.file);

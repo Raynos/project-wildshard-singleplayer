@@ -12,6 +12,9 @@ import { ISLAND_BOAR, ISLAND_BEAR } from '../src/shards/driftwood-isle/generator
 import { PINE_BOAR, PINE_SPECIES, pineDeer, pineElk } from '../src/shards/pine-hollow/generators/speciesRows';
 import { speciesBrains } from '../src/sdk/speciesBrains';
 import { BOAR } from '../src/game/systems/species/boar';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 test('both populations admit the same gameplay fields without visual or callback metadata', () => {
   const pine = readSpeciesPrograms(structuredClone(PINE_SPECIES_PROGRAMS));

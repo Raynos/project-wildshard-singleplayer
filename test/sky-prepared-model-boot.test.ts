@@ -18,6 +18,9 @@ import { skyRigAssetSources } from '../src/shards/far-reach/generators/rigAssetS
 import { originalSkyOutput } from './fixtures/sky-scene-source';
 import { skyPhysics } from '../src/shards/far-reach/generators/physics';
 import { hashImmutableBytes } from '../src/sdk/immutable';
+import { installAssetFixture } from './fixtures/bootSetup';
+
+await installAssetFixture();
 
 const output = await originalSkyOutput();
 

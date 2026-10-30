@@ -1,6 +1,9 @@
 import { expect, test } from 'vitest';
-import { installShards, shards } from './list';
-import { findShard } from './registry';
+import { installShards, shards } from '../src/game/shard/list';
+import { findShard } from '../src/game/shard/registry';
+import { installCatalogueFixture } from './fixtures/bootSetup';
+
+await installCatalogueFixture();
 
 test('prefetch lookups retain live manifests across replacement and reinstallation', () => {
   const previous = shards(), original = previous[0];

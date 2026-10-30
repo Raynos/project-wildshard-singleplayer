@@ -21,6 +21,9 @@ import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/gr
 import { WORLD_DROP } from '../src/shards/driftwood-isle/generators/landscapeRows';
 import { islandFoliagePlacements } from '../src/shards/driftwood-isle/generators/islandDressing';
 import { DRIFTWOOD_ISLAND_FACTS as island } from './fixtures/driftwood-island-facts';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 const foliage = islandFoliagePlacements();
 

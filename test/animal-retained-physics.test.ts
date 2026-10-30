@@ -12,6 +12,9 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { addPiece } from '../src/engine/physics/pieces';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 test.each([true, false])('animal floors retain destination physics across source retirement: %s', async retained => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));

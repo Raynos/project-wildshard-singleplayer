@@ -32,6 +32,9 @@ import { NALATI_RIDING_PROGRAMS as fixturePrograms } from './fixtures/nalati-rid
 import { Mount } from '@wildshard/game/riding/mount';
 import { RideHUD } from '@wildshard/game/riding/hud';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 function fixture(kind: string, speeds: MountProfile['speeds'], registerMode = true): { player: Player; animals: AnimalManager; mount: Mount; actor: Animal; scope: Scope; ctx: LevelContext; camera: PerspectiveCamera; slots: DiscOpts[]; widgets: string[] } {
   const scope = new Scope('riding-fixture'), app = new App(), camera = new PerspectiveCamera(), slots: DiscOpts[] = [], widgets: string[] = [];

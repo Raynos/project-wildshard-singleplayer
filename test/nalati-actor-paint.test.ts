@@ -3,6 +3,9 @@ import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import { SHAPES } from './fixtures/nalatiShapes';
 import oracle from './fixtures/nalati-actor-paint.json';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 it('preserves all original actor attributes, index and bounds', () => {
   for (const row of oracle.rows) {

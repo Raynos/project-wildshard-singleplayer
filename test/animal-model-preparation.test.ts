@@ -1,11 +1,14 @@
+import { installWorldFixture } from './fixtures/worldSetup';
 import { afterEach, expect, test, vi } from 'vitest';
-import { AnimalFactory, type AnimalModel } from './AnimalFactory';
-import { SkyRig } from '../world/skyRig';
-import { Scope } from '../app/scope';
-import { currentOwner } from '../app/ownership';
-import { pageScope } from '../app/resources';
-import { app } from '../app/runtime';
+import { AnimalFactory, type AnimalModel } from '../src/engine/entities/AnimalFactory';
+import { SkyRig } from '../src/engine/world/skyRig';
+import { Scope } from '../src/engine/app/scope';
+import { currentOwner } from '../src/engine/app/ownership';
+import { pageScope } from '../src/engine/app/resources';
+import { app } from '../src/engine/app/runtime';
 import { BufferAttribute, Skeleton, Vector3 } from 'three';
+
+await installWorldFixture();
 
 const models = new Set<AnimalModel>(), owners: Scope[] = [];
 afterEach(() => {

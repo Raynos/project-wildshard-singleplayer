@@ -26,6 +26,9 @@ import { SHAPES } from './fixtures/nalatiShapes';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import {titanPrograms as titan} from './fixtures/titanInlineWitness';
 import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 test('second-shard arena owns its translated floor, gate, cover and sand', () => {
  const source = structuredClone(view);

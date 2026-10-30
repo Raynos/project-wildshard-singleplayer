@@ -9,6 +9,9 @@ import { DirectedSpecies } from '../src/game/population/directedSpecies';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { riderGeometry } from '../src/shards/nalati-grasslands/generators/ghostFigure';
 import { SHAPES } from './fixtures/nalatiShapes';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 const scopes:Scope[]=[];
 afterEach(()=>{for(const scope of scopes.splice(0))scope.dispose();});

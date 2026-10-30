@@ -11,6 +11,9 @@ import {readModuleFiles} from '../src/engine/boot/download';
 import {catalogueManifests,titleManifests,titleMetadata,installTitleManifests} from '../src/game/shard/titleList';
 import {shards,installShards,legacyContentIdentity} from '../src/game/shard/list';
 import {saveCards} from '../src/game/savesSettings';
+import { installCatalogueFixture } from './fixtures/bootSetup';
+
+await installCatalogueFixture();
 
 test('one selected discovery graph excludes other worlds and full catalogue bytes',async()=>{
  mkdirSync('tmp/shard-selection',{recursive:true});const root=mkdtempSync(resolve('tmp/shard-selection/compiler-'));

@@ -15,6 +15,9 @@ import { shardContentIdentity } from '../src/game/shard/list';
 import type { CompendiumHost } from '../src/game/compendium/install';
 import { PINE_HOLLOW_COMPENDIUM } from '../src/shards/pine-hollow-legacy/compendium';
 import { installPineCompendium } from '../src/shards/pine-hollow-legacy/compendium/install';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 test('the frozen manifest opens its authored journal and retains the original save identity', async () => {
   const owner = new Scope('pine-journal-entry');

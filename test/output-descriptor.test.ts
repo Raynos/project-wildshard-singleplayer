@@ -24,6 +24,9 @@ import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { leaseClientLibrary } from '../src/game/shardfile/clientLibrary';
 import { entryReadPlan } from '../src/game/grid/entryReadPrefetch';
 import { parseEntryReadSet } from '../src/format/entryReads';
+import { installCatalogueFixture } from './fixtures/bootSetup';
+
+await installCatalogueFixture();
 
 const encodeCanonicalJson = (value: unknown): Uint8Array => new TextEncoder().encode(canonicalJson(value));
 const base = 'https://example.test/shardfiles/loader-fixture/';

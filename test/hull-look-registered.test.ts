@@ -11,6 +11,9 @@ import { BEAR } from '../src/game/systems/species/bear';
 import { PINE_BOAR } from '../src/shards/pine-hollow/generators/speciesRows';
 import { SPECIES_LOOKS } from '../src/shards/pine-hollow/generators/nativeView';
 import { driftwoodCreatureBodyBank } from '../src/shards/driftwood-isle/generators/creatureBodyBank';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 // G602: Pine's boar and bear resolve through the hull book's 'registered' base (the kit looks the page registers), which
 // lends look fields only. Before, the book read the kit looks directly; the species each page registers must not change.

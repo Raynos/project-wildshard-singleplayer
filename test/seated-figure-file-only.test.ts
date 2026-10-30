@@ -6,6 +6,9 @@ import {prepareSeatedFigure,seatedFigureView} from '../src/game/riding/seatedFig
 import {MOUNTED_FIGURE} from './fixtures/nalati-poi-paint-original';
 import {SHAPE_BYTES} from './fixtures/nalatiShapes';
 import * as geometry from '../src/game/plugin/geometry';
+import { installWorldFixture } from './fixtures/worldSetup';
+
+await installWorldFixture();
 
 function inlineRows(mixed:boolean){
   return v.parse(MountedSpecimenSeatSchema,{...MOUNTED_FIGURE,shapes:MOUNTED_FIGURE.shapes.map((shape,index)=>{
