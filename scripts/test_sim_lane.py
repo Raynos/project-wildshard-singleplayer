@@ -3,15 +3,21 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 import os
 from pathlib import Path
+import runpy
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
 import unittest
+from urllib.parse import urlsplit
+from urllib.error import HTTPError
+from urllib.parse import urljoin
+from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parent.parent
 UDID = '00000000-0000-0000-0000-000000000016'
+READY = runpy.run_path(str(ROOT / 'scripts/sim-safari-ready.py'))
 
 
 class SimulatorReadinessTests(unittest.TestCase):
@@ -50,6 +56,15 @@ elif args[1]=='openurl':
     if os.environ.get('SIM_OPEN_HANG'): time.sleep(30)
     if n<=int(os.environ.get('SIM_OPEN_FAILURES','0')):
         print('URL service unavailable (60)',file=sys.stderr);sys.exit(60)
+    import urllib.parse,urllib.request
+    with urllib.request.urlopen(args[-1],timeout=2) as response:
+        callback=response.headers['X-Safari-Ready'];body=response.read()
+    if not os.environ.get('SIM_OPEN_NO_FRAME'):
+        assert b'requestAnimationFrame' in body
+        (root/'safari-rendered').touch()
+        with urllib.request.urlopen(urllib.parse.urljoin(args[-1],callback),timeout=2) as response:
+            assert response.read()==b'ready'
+    if os.environ.get('SIM_OPEN_HANG_AFTER_FRAME'): time.sleep(30)
 elif args[1]=='shutdown': booted.unlink(missing_ok=True)
 else: raise RuntimeError('Unexpected fixture command '+repr(args))
 ''')
@@ -58,7 +73,7 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         self.command('pgrep', 'import sys\nsys.exit(1)\n')
         self.command('osascript', "raise RuntimeError('No app should be touched')\n")
         self.child = self.root / 'child.py'
-        self.child.write_text("import os,pathlib\nr=pathlib.Path(os.environ['SIM_FIXTURE']);(r/'child-ran').write_text((r/'attempts').read_text())\n")
+        self.child.write_text("import os,pathlib\nr=pathlib.Path(os.environ['SIM_FIXTURE']);assert (r/'safari-rendered').exists();(r/'child-ran').write_text((r/'attempts').read_text())\n")
         self.assertIsNotNone(shutil.which('jq'))
 
     def command(self, name, code):
@@ -118,7 +133,55 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         commands = [row[1] for row in self.calls()]
         self.assertLess(commands.index('bootstatus'), commands.index('openurl'))
         self.assertEqual(commands[-2:], ['shutdown', 'list'])
-        self.assertTrue(all(row[-1] == 'http://127.0.0.1:9/' for row in self.calls() if row[1] == 'openurl'))
+        for row in self.calls():
+            if row[1] == 'openurl':
+                url = urlsplit(row[-1])
+                self.assertEqual(url.hostname, '127.0.0.1')
+                self.assertGreater(url.port, 1024)
+                self.assertTrue(url.path.startswith('/safari/'))
+        self.assertIn('readiness page reached two animation frames', result.stderr)
+
+    def test_accepted_url_without_rendered_document_never_hands_over(self):
+        result = self.lane(SIM_OPEN_NO_FRAME='1', SIM_SAFARI_READY_TIMEOUT='.3')
+        self.assertEqual(result.returncode, 124, result.stderr)
+        self.assertIn('never reached frame callbacks', result.stderr)
+        self.assert_not_handed_over()
+
+    def test_rendered_document_does_not_wait_for_a_stuck_openurl_client(self):
+        result = self.lane(SIM_OPEN_HANG_AFTER_FRAME='1')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('client stopped after frame proof', result.stderr)
+        self.assertEqual((self.root / 'child-ran').read_text(), '1')
+
+    def test_probe_requires_two_frames_and_only_its_own_timely_callback(self):
+        with READY['readiness_page'](time.monotonic() + 5) as (url, ready):
+            with urlopen(url, timeout=1) as response:
+                callback = response.headers['X-Safari-Ready']
+                script = response.read().decode().split('<script>', 1)[1].split('</script>', 1)[0]
+            program = ('const frames=[];let sent=null;'
+                       'globalThis.requestAnimationFrame=fn=>frames.push(fn);'
+                       'globalThis.fetch=(path,options)=>{sent={path,options};return Promise.resolve()};'
+                       + script + ';if(sent!==null||frames.length!==1)throw Error("early readiness");'
+                       'frames.shift()();if(sent!==null||frames.length!==1)throw Error("one-frame readiness");'
+                       'frames.shift()();if(sent===null||frames.length!==0)throw Error("missing readiness");'
+                       'console.log(JSON.stringify(sent));')
+            result = subprocess.run(['node', '--input-type=module', '-e', program],
+                                    capture_output=True, text=True, timeout=2, check=False)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(json.loads(result.stdout), {'path': callback, 'options': {'cache': 'no-store'}})
+            self.assertFalse(ready.is_set())
+            with self.assertRaises(HTTPError):
+                urlopen(urljoin(url, '/ready/foreign'), timeout=1)
+            self.assertFalse(ready.is_set())
+            with urlopen(urljoin(url, callback), timeout=1) as response:
+                self.assertEqual(response.read(), b'ready')
+            self.assertTrue(ready.wait(1))
+        with READY['readiness_page'](time.monotonic() - 1) as (url, ready):
+            with urlopen(url, timeout=1) as response:
+                callback = response.headers['X-Safari-Ready']
+            with urlopen(urljoin(url, callback), timeout=1) as response:
+                self.assertEqual(response.read(), b'ready')
+            self.assertFalse(ready.is_set())
 
     def test_url_failure_is_bounded_and_lease_is_not_published(self):
         started = time.monotonic()
@@ -233,7 +296,7 @@ sys.exit(75 if len(path.read_text().splitlines())==2 else 0)
 
 
 class ParallelReadinessSuite(unittest.TestSuite):
-    """Two independent fake-device cases share the unchanged whole-run cap."""
+    """Three independent fake-device cases share the unchanged whole-run cap."""
 
     def run(self, result, debug=False):
         if debug:
@@ -248,7 +311,7 @@ class ParallelReadinessSuite(unittest.TestSuite):
         # none touches the real Simulator or process-global environment.
         # Merge completed results on this thread so failure traces and counts
         # remain ordinary unittest results without concurrent result mutation.
-        with ThreadPoolExecutor(max_workers=2) as pool:
+        with ThreadPoolExecutor(max_workers=3) as pool:
             for local in pool.map(run_case, self):
                 result.testsRun += local.testsRun
                 for name in ('errors', 'failures', 'skipped',

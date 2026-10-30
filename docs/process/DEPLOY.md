@@ -63,6 +63,11 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   once, then boots and warms Safari in the foreground before dependency or
   artifact IO. A real native failure refuses; WebKit is used only when no iOS
   runtime exists. The route awaits the original atomic ready/failed receipt.
+  Native readiness serves a fresh loopback document and requires its signal
+  after two animation-frame callbacks within the same 120-second budget.
+  A successful URL command alone cannot grant readiness. An already proven
+  document can retire its stuck owned `openurl` client; Safari stays running.
+  A missing, foreign or late signal still refuses the lease.
   Before transfer, a condition wait requires this exact run's prepare job to
   succeed, within the phone job's original twenty-minute budget. It never
   waits on its own aggregate or retries a failed producer. SHA/run/archive
