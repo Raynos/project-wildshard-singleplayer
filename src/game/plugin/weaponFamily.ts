@@ -204,7 +204,7 @@ export class HeldPlayback {
   /** the held model's own node (its private scene's root, else its first part): a hidden ancestor means nothing of it draws */
   private readonly anchor: Object3D | null;
   private readonly inputs = new Map<string, ReadonlyMap<string, () => number>>();
-  private readonly groups = new Map<string, { lane: ReturnType<typeof createClientChannelView>; copied: number[]; outputs?: ReturnType<ReturnType<typeof createClientChannelView>['bindNumeric']> }[]>();
+  private readonly groups = new Map<string, { lane: ReturnType<typeof createClientChannelView>; copied: number[]; readers: ((() => number) | undefined)[]; outputs?: ReturnType<ReturnType<typeof createClientChannelView>['bindNumeric']> }[]>();
   constructor(rows: Readonly<Record<string, readonly unknown[]>>, parts: ReadonlyMap<string, unknown>, kernels?: ClientGeometryKernels | ((parts: ReadonlyMap<string, unknown>, model: ClientScene | null) => ClientGeometryKernels), source?: { readonly row: unknown; readonly ports: ClientScenePorts }) {
     const groups = Object.entries(rows);
     if (groups.length === 0 || groups.length > 16) throw new RangeError('Held playback groups exceed admission');
@@ -224,7 +224,7 @@ export class HeldPlayback {
       this.groups.set(id, programs.map(program => {
         const visual = typeof program === 'object' && program !== null && ('bindings' in program || 'geometry' in program || 'connectors' in program);
         const lane = visual ? createClientChannelView(program, targets, binding) : createClientChannels(program);
-        return { lane, copied: Array.from({ length: lane.reads.length }, () => 0) };
+        return { lane, copied: Array.from({ length: lane.reads.length }, () => 0), readers: [] };
       }));
     }    } catch (error) { this.model?.dispose(); throw error; }
   }
@@ -266,7 +266,11 @@ export class HeldPlayback {
   bindInputs(group: string, rows: unknown, owners: ReadonlyMap<string, unknown>): void {
     const views = this.groups.get(group); if (views === undefined) throw new Error('Missing held playback group');
     if (this.inputs.has(group)) throw new Error('Held numeric inputs already bound');
-    this.inputs.set(group, bindClientChannelInputs(rows, owners, new Set(views.flatMap(view => view.lane.reads))));
+    const inputs = bindClientChannelInputs(rows, owners, new Set(views.flatMap(view => view.lane.reads)));
+    this.inputs.set(group, inputs);
+    // Reader identities are admitted once. Their closures still resolve and
+    // validate the current borrowed value on every evaluation.
+    for (const view of views) for (let i = 0; i < view.lane.reads.length; i++) view.readers[i] = inputs.get(view.lane.reads[i] ?? '');
   }
   /** Bind one numeric programme's existing output channels to explicitly borrowed private visual fields. */
   bindOutputs(group: string, rows: readonly { readonly property: string; readonly target: string; readonly path: readonly string[] }[], owners: ReadonlyMap<string, unknown>): void {
@@ -290,11 +294,11 @@ export class HeldPlayback {
     // (the holstered firearm's presentation was 0.1 ms of Pine's frame at 4x). A stateless view's next evaluation writes
     // exactly what it would have; a view that sets visibility still runs (it may be what shows the model)
     const hidden = this.hidden();
-    for (const { lane, copied, outputs } of views) {
+    for (const { lane, copied, readers, outputs } of views) {
       if (hidden && lane.toggles !== true) continue;
       for (let i = 0; i < lane.reads.length; i++) {
         const key = lane.reads[i]; if (key === undefined) throw new Error('Missing held playback read');
-        const value = values[key] ?? this.inputs.get(group)?.get(key)?.(); if (value === undefined) throw new Error(`Missing held playback observation ${key}`);
+        const value = values[key] ?? readers[i]?.(); if (value === undefined) throw new Error(`Missing held playback observation ${key}`);
         copied[i] = value;
       }
       lane.evaluate({ time: this.elapsed, delta: this.delta, values: copied }); outputs?.apply(lane.frame);
