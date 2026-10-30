@@ -35,3 +35,21 @@ test('upper leg publication preserves native rotation bits through motion and de
     }
   }
 });
+
+test('a shared joint keeps the final write order of its leg chain', () => {
+  for (const shared of ['FL_carpus', 'FL_fetlock']) {
+    const bones = rig(), oracle = rig(), a = bones['FL_shoulder'], b = oracle['FL_shoulder'];
+    if (a === undefined || b === undefined) throw new Error('Missing test joint');
+    bones[shared] = a; oracle[shared] = b;
+    const owner = new QuadrupedRigPose(bones), pose = new Float32Array(27);
+    pose[15] = -.7; pose[16] = .4; pose[17] = -.2;
+    owner.apply(pose, 1 / 60, { bodyY: 0, alive: false, deathT: .5, deathSide: -1, speed: 0, legAbd: new Float32Array([.3]) });
+    b.rotation.x = -(pose[15] ?? 0);
+    const mid = oracle['FL_carpus'], low = oracle['FL_fetlock'];
+    if (mid === undefined || low === undefined) throw new Error('Missing test joint');
+    mid.rotation.x = pose[16] ?? 0; low.rotation.x = pose[17] ?? 0;
+    b.rotation.z = .5 * Math.fround(.3);
+    expect(a.rotation.toArray()).toEqual(b.rotation.toArray());
+    expect(a.quaternion.toArray()).toEqual(b.quaternion.toArray());
+  }
+});
