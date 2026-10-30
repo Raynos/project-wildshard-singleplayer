@@ -5,12 +5,13 @@ import type { SimHost } from '@wildshard/engine/sim';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { walkingSpeed } from '@wildshard/engine/player/walk';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 
 export interface WalkPoint { readonly x:number;readonly z:number;readonly jump?:boolean|number;readonly jumpAt?:number }
 export interface WalkStall { readonly tick:number;readonly waypoint:number;readonly x:number;readonly y:number;readonly z:number }
 export interface WalkStart { x:number;z:number;y?:number;yaw:number;hover?:boolean }
 export interface WalkBounds { x0:number;x1:number;z0:number;z1:number;floor:number }
-export interface HeadlessJourneyPlan { ticks:number;points:WalkPoint[];start?:WalkStart;once?:boolean;inside?:WalkBounds }
+export interface HeadlessJourneyPlan { ticks:number;points:WalkPoint[];start?:WalkStart;once?:boolean;inside?:WalkBounds;holdActors?:boolean }
 export interface HeadlessJourneyReport {
   ticks:number;preparationTicks:number;settledTicks:number;complete:boolean;out:number;distance:number;visited:number;traversals:number;stuck:WalkStall[];
   final:{tick:number;position:[number,number,number];grounded:boolean};maxTickMicros:number;
@@ -22,6 +23,7 @@ export const HeadlessJourneyPlanSchema:v.GenericSchema<HeadlessJourneyPlan> = v.
   ticks:v.pipe(natural,v.minValue(1),v.maxValue(14_400)),
   start:v.exactOptional(v.strictObject({x:finite,z:finite,y:v.exactOptional(finite),yaw:finite,hover:v.exactOptional(v.boolean())})),
   once:v.exactOptional(v.boolean()),
+  holdActors:v.exactOptional(v.boolean()),
   inside:v.exactOptional(v.pipe(v.strictObject({x0:finite,x1:finite,z0:finite,z1:finite,floor:finite}),v.check(box=>box.x0<box.x1&&box.z0<box.z1,'Ordered walk bounds'))),
   points:v.pipe(v.array(v.strictObject({x:finite,z:finite,jump:v.exactOptional(v.union([v.boolean(),v.pipe(natural,v.maxValue(2))])),
     jumpAt:v.exactOptional(v.pipe(finite,v.minValue(0)))})),v.minLength(2),v.maxLength(256)),
@@ -94,7 +96,15 @@ export class PhysicsRouteCursor {
 export function runHeadlessJourney(host:SimHost,step:(commands:readonly HeadlessCommand[])=>void,input:HeadlessJourneyPlan):HeadlessJourneyReport {
   const plan=v.parse(HeadlessJourneyPlanSchema,input),cursor=new PhysicsRouteCursor(plan.points,{once:plan.once===true,edge:plan.inside!==undefined}),initial=host.state.tick;
   let distance=0,maxTickMicros=0,out=0,ticks=0;
+  const held=new Map<AnimalSim,boolean>();
+  const holdActors=():void=>{
+    for(const actor of host.entities.values()){
+      if(!held.has(actor))held.set(actor,actor.harnessHold);
+      actor.harnessHold=true;
+    }
+  };
   const tick=(commands:readonly HeadlessCommand[]):void=>{
+    if(plan.holdActors===true)holdActors();
     const prior=host.state.tick,started=diagnosticNow();step(commands);maxTickMicros=Math.max(maxTickMicros,(diagnosticNow()-started)*1000);
     if(host.state.tick!==prior+1)throw new Error('Journey did not commit exactly one tick');
     const p=host.player.position;if(![p.x,p.y,p.z].every(Number.isFinite))throw new Error('Journey produced invalid feet');
@@ -102,7 +112,9 @@ export function runHeadlessJourney(host:SimHost,step:(commands:readonly Headless
   const preparationTicks=plan.start===undefined?0:36;
   const walking={speed:walkingSpeed(false,false,0,1,1),crouching:false,clientMotion:{x:0,z:0}};
   const releaseWalk=host.useWalkingControl(walking);
+  let releaseActors:()=>void=()=>undefined;
   try {
+  if(plan.holdActors===true){holdActors();releaseActors=host.onStep('physics.walk.hold',holdActors);}
   if(plan.start!==undefined){
     const start=plan.start,p=host.player.position,ground=host.groundHeightAt(start.x,start.z);
     const floor=start.y??Math.max(ground,floorBelow(host.physics,start.x,start.z,ground+2.5,2.6,host.player.motor.collider)??ground);
@@ -128,5 +140,5 @@ export function runHeadlessJourney(host:SimHost,step:(commands:readonly Headless
   const p=host.player.position;
   return {ticks,preparationTicks,settledTicks,complete:cursor.complete,out,distance,visited:cursor.visited,traversals:cursor.traversals,stuck:cursor.stuck,
     final:{tick:host.state.tick,position:[p.x,p.y,p.z],grounded:host.player.motor.snapshot().result.grounded},maxTickMicros};
-  } finally { releaseWalk(); }
+  } finally { releaseActors();for(const [actor,prior] of held)actor.harnessHold=prior;held.clear();releaseWalk(); }
 }

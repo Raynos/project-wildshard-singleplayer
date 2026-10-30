@@ -3188,9 +3188,9 @@ frozen, disposed and duplicate bindings refuse; the returned remover releases th
 The installer registers its mutable clocks/native handles through a `SimStateAdapter` and reinstalls
 both before restore; `physicsRestored` reconnects its handles after the native world is replaced.
 An absent driver adds no continuation fields and preserves the original snapshot bytes.
-`useWalkingControl` binds scoped on-foot parameters independently of native
-drivers; delegated motion wins. `clientMotion` opts into page acceleration/
-gravity with caller-owned velocity. Walks release it before checkpoints.
+`useWalkingControl` scopes page on-foot tuning; native delegation wins.
+`clientMotion` owns velocity. Physics journeys opt into `holdActors` for
+the original ruler's creature pause; flags/hooks restore before commit.
 `observePlayerMotion(receive)` supplies one owned host's combat velocity input before gameplay callbacks.
 The native walk samples commanded, shove or dash velocity before the motor, excluding transient impulses;
 ground and hover state are post-move. Board motion uses its velocity. A delegated driver's optional

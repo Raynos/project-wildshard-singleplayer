@@ -1,6 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Use the shipped native motor in the walk parity proof.
 import {readFileSync} from 'node:fs';
-import {expect,test} from 'vitest';
+import {expect,test,vi} from 'vitest';
+import {SIM_CREATURE_RECIPE} from '../src/game/test/creatureRecipe';
 import {loadRapier} from '../src/engine/physics/rapier';
 import {createShardfileSim} from '../src/game/plugin/simulation';
 import {emptyShardfile} from '../src/sdk/author';
@@ -61,5 +62,31 @@ test('route walking preserves the existing native driver and delegated motion au
     host.step({moveX:1,moveZ:0,yaw:0});expect(inputs).toBe(2);expect(steps).toBe(1);expect(clientMotion.x).toBe(velocity);
     release();remove();
     const retry=host.useWalkingControl({speed:4.3,crouching:false});retry();
+  }finally{sim.dispose();}
+});
+
+test('only the explicit physics ruler holds actors, including births, then restores their flags',async()=>{
+  const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const sim=createShardfileSim(emptyShardfile({slug:'walk-actors',name:'Walk actors',author:'Test',revision:1,seed:1}),new Map(),{rapier});
+  try{
+    const {host}=sim,first=host.spawn({...SIM_CREATURE_RECIPE,id:'first',at:{x:10,y:0,z:10}}),held=host.spawn({...SIM_CREATURE_RECIPE,id:'held',at:{x:15,y:0,z:15}});
+    held.harnessHold=true;const firstStep=vi.spyOn(first,'step'),heldStep=vi.spyOn(held,'step');
+    let born:typeof first|undefined,bornSteps=0;
+    host.onStep('walk.birth',()=>{
+      if(born!==undefined)return;
+      born=host.spawn({...SIM_CREATURE_RECIPE,id:'born',at:{x:20,y:0,z:20}});
+      const step=born.step.bind(born);vi.spyOn(born,'step').mockImplementation(dt=>{bornSteps++;step(dt);});
+    });
+    const plan={ticks:10,points:[{x:0,z:0},{x:100,z:0}],holdActors:true};
+    runHeadlessJourney(host,()=>host.step(),plan);
+    expect(firstStep).not.toHaveBeenCalled();expect(heldStep).not.toHaveBeenCalled();
+    expect(first.harnessHold).toBe(false);expect(held.harnessHold).toBe(true);expect(born?.harnessHold).toBe(false);
+    expect(bornSteps).toBe(0);
+    expect(host.hasStep('physics.walk.hold')).toBe(false);
+    host.step();expect(firstStep).toHaveBeenCalledTimes(1);expect(heldStep).not.toHaveBeenCalled();expect(bornSteps).toBe(1);
+    expect(()=>runHeadlessJourney(host,()=>{throw new Error('Native refusal');},plan)).toThrow('Native refusal');
+    expect(first.harnessHold).toBe(false);expect(held.harnessHold).toBe(true);expect(host.hasStep('physics.walk.hold')).toBe(false);
+    runHeadlessJourney(host,()=>host.step(),{ticks:10,points:plan.points});
+    expect(firstStep).toHaveBeenCalledTimes(11);expect(bornSteps).toBe(11);expect(heldStep).not.toHaveBeenCalled();
   }finally{sim.dispose();}
 });

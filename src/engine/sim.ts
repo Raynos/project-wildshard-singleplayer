@@ -926,6 +926,7 @@ export class SimHost {
   private readonly visitStepCallback = (run: (dt: number, host: SimHost) => void): void => { run(FIXED_STEP, this); };
   private readonly visitStrike = (runner: StrikeRunner, id: string): void => { this.updateStrike(id, runner); };
   private readonly visitBody = (entity: AnimalSim, id: string): void => {
+    if (entity.harnessHold) return;
     const dt = this.visitingBodyBands ? this.bodyDt(id) : FIXED_STEP, hooks = this.visitingBodyHooks;
     if (dt <= 0) return;
     hooks?.before?.(id, entity, dt);
