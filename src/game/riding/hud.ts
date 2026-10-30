@@ -48,8 +48,6 @@ export class RideHUD {
   private readonly steed: HTMLElement; private readonly sbar: HTMLElement; private readonly gait: HTMLElement; private readonly sname: HTMLElement;
   private readonly trust: HTMLElement; private readonly trustFill: SVGPathElement;
   private readonly trustRow: HTMLElement; private readonly trustRowFill: HTMLElement;
-  /** QB18: where the phone shows TRUST (Settings ▸ Debug ▸ TRUST meter): B a status row (ships), A the old top arc, C a lower, smaller arc */
-  private trustStyle: 'row' | 'arc' | 'low' = 'row';
   private trustShown = -1;
   private readonly ear: HTMLElement; private earCol = '';
   private readonly hold: HTMLElement; private readonly holdRound: HTMLElement; private readonly holdMark: SVGGElement;
@@ -83,10 +81,6 @@ export class RideHUD {
     // QB18 (G872): on the phone the top arc ran from the GRASS row into the minimap; it is a row under GRASS instead, so
     // VISIBLE · GRASS · TRUST read as one block that crosses nothing. A desktop keeps the arc (no status column there)
     this.ctx.hud.widget('band.3', this.trustRow, 5);
-    ctx.debugRow({ id: 'trustMeter', group: 'look', label: 'TRUST meter (phone)', ask: 'E435', reviewBy: '2026-11-12',
-      note: 'QB18: where the taming TRUST meter sits on the phone; B ships, A is the old top arc, C the arc made smaller under the chips',
-      choices: [{ value: 'row', text: 'B · status row' }, { value: 'arc', text: 'A · top arc (old)' }, { value: 'low', text: 'C · low arc' }],
-      initial: 'row', change: (value) => { this.trustStyle = value === 'arc' || value === 'low' ? value : 'row'; } });
     this.ctx.scope.onDispose(() => {
       this.steed.remove(); this.trust.remove(); this.ear.remove(); this.hold.remove();
       for (const tag of this.tags.values()) tag.el.remove();
@@ -191,9 +185,8 @@ export class RideHUD {
       if (this.sname.textContent !== name) { this.sname.textContent = name; t.sname.textContent = name; }
     }
     // ── taming ──
-    const trust = view?.trust ?? null, row = this.trustStyle === 'row' && hudSlots.touch;
+    const trust = view?.trust ?? null, row = hudSlots.touch;
     this.trust.classList.toggle('show', trust !== null && !breaking && !row);
-    this.trust.classList.toggle('low', this.trustStyle === 'low' && hudSlots.touch);
     this.trustRow.classList.toggle('show', trust !== null && !breaking && row);
     if (trust !== null && trust !== this.trustShown) { // FC14: only when trust moves
       this.trustShown = trust;

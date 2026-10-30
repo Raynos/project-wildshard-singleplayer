@@ -37,8 +37,6 @@
 .ws-ride-trust { position: absolute; left: 50%; top: calc(var(--ws-top, 14px) + 44px); width: 260px; margin-left: -130px; display: none; flex-direction: column; align-items: center; pointer-events: none; }
 .ws-ride-trust.show { display: flex; }
 .ws-ride-trust svg { width: 260px; height: 64px; overflow: visible; }
-/* QB18 C (Debug): the arc smaller, lowered under the status column and the quest chip */
-.ws-ride-trust.low { top: calc(var(--ws-top, 14px) + 160px); transform: scale(0.62); transform-origin: 50% 0; }
 /* QB18 B: on the phone, TRUST is a status row under GRASS (the GRASS row's look, the arc's colours) */
 .ws-ride-trustrow { font-size: 7.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-cyan-dim); }
 .ws-touch-row.ws-ride-trustrow:not(.show) { display: none; }
