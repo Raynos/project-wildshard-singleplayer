@@ -393,10 +393,16 @@ export class Game {
   hiddenFrame: () => void = () => undefined;
   /**
    * The first frame's view without its draw: ONE systems step and the view's preparation (the player's eye and FOV on the
-   * camera, the shard's per-frame look, placed copies culled for the view) now, even with the gate shut. Until the first
-   * step the camera stands at the origin, so a boot warm-up taken after this links what the next hidden frame draws.
+   * camera, the shard's per-frame look, placed copies culled for the view) now, even with the gate shut and before
+   * start(). Until the first step the camera stands at the origin, so a boot warm-up taken after this links what the
+   * next frame draws. Nothing is drawn, and the loop itself still starts parked in start().
    */
-  stepFrame: () => void = () => undefined;
+  stepFrame(): void {
+    if (this.dead || pagePresentation.state === 'hidden') return;
+    const frame = this.pageFrame();
+    this.stepOnly = true;
+    try { frame.draw(undefined, true); } finally { this.stepOnly = false; }
+  }
   private stepOnly = false;
   /** FC2: one draw of the world into the composer's input buffer (the real formats, nothing presented): what a live frame
    *  would build, upload and link, without a frame on screen. False when there is no composer target yet. */
@@ -1266,17 +1272,15 @@ export class Game {
     this.kickLoop();
   }
 
-  start(): void {
+  /** The page frame (the systems' step and the draw), built once: by start(), or before it by stepFrame (the boot's
+   *  shader warm-up poses the view before the loop starts). */
+  private frame: { readonly draw: (now: number | undefined, forced: boolean) => void; readonly parked: () => void } | null = null;
+  private pageFrame(): { readonly draw: (now: number | undefined, forced: boolean) => void; readonly parked: () => void } {
+    if (this.frame !== null) return this.frame;
     this.app.scheduler.configure(this.level.tiers?.[TIER]?.ticks);
-    const composer = this.composer, sky = this.sky; // both built before start() (buildComposer reads the sky)
+    const composer = this.composer, sky = this.sky; // both built before the first frame (buildComposer reads the sky)
     this.clock.start();
     this.fixedAcc = 0; this.firstFixedStep = true;
-    this.renderer.info.autoReset = false; // the composer renders several passes per frame: count the whole frame
-    // Returning from the background: draw one frame at once (bypassing the gate). The 1–2 s of black on an
-    // iOS app switch is iOS restoring a suspended standalone web app before any of this runs — investigated
-    // and accepted (overlay / mirror / hidden canvas / wake lock / keep-alive audio made no difference).
-    this.engineScope.listen(this.canvas, 'webglcontextlost', () => { this.gl.lostAt = diagnosticNow(); this.gl.events++; console.warn('[gl] context lost'); });
-    this.engineScope.listen(this.canvas, 'webglcontextrestored', () => { this.gl.restoredAt = diagnosticNow(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
     // (A timer-driven loop was tried for iOS Low Power Mode: timers are throttled to ~30 ms there too. rAF it is.)
     // PresentationLoop owns the only world request and cancels it while covered.
     // One chain only: every animation-frame callback of a frame gets the same timestamp, so a second chain (kickLoop
@@ -1372,15 +1376,24 @@ export class Game {
       this.stats.frames++; this.stats.acc += realDt;
       if (this.stats.acc >= 0.5) { this.stats.fps = Math.round(this.stats.frames / this.stats.acc); this.stats.frames = 0; this.stats.acc = 0; }
     };
-    const driver=new PresentationLoop(this.engineScope,pagePresentation,{
-      draw:loop,parked:()=>{this.clock.getDelta();lastDrawn=-Infinity;},
-    });
+    this.frame = { draw: loop, parked: () => { this.clock.getDelta(); lastDrawn = -Infinity; } };
+    return this.frame;
+  }
+
+  start(): void {
+    const frame = this.pageFrame();
+    this.renderer.info.autoReset = false; // the composer renders several passes per frame: count the whole frame
+    // Returning from the background: draw one frame at once (bypassing the gate). The 1–2 s of black on an
+    // iOS app switch is iOS restoring a suspended standalone web app before any of this runs — investigated
+    // and accepted (overlay / mirror / hidden canvas / wake lock / keep-alive audio made no difference).
+    this.engineScope.listen(this.canvas, 'webglcontextlost', () => { this.gl.lostAt = diagnosticNow(); this.gl.events++; console.warn('[gl] context lost'); });
+    this.engineScope.listen(this.canvas, 'webglcontextrestored', () => { this.gl.restoredAt = diagnosticNow(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
+    const driver=new PresentationLoop(this.engineScope,pagePresentation,frame);
     this.kickLoop=()=>{driver.wake();};
     this.app.ui.bindPresentation(this.engineScope,this.kickLoop);
     for(const state of ['play','explore','practice','playground','capture'] as const)this.app.onEnter(state,this.kickLoop,this.engineScope);
     this.primeFrame=()=>{if(!this.dead)driver.primeFrame();};
     this.hiddenFrame=()=>{if(!this.dead)driver.hiddenFrame();};
-    this.stepFrame=()=>{if(this.dead)return;this.stepOnly=true;try{driver.hiddenFrame();}finally{this.stepOnly=false;}};
     this.app.ui.bindStill(this.engineScope,()=>{driver.stillFrame();});
     setLoopState('running');
     driver.wake();

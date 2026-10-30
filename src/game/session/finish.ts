@@ -108,6 +108,10 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
         await loadingStage('home', enterGrid);
         ctx.grid?.prepareFrame(); game.sky.prepareLayers();
       }
+      // Until the first systems step the camera stands at the origin (Nine: 127 m below the spawn's eye, at 72° not the
+      // held 93°) and placed copies hold none until their first cull: one step without its draw poses the spawn view,
+      // so the shaders below and firstFrame's warm turns link and draw what the player sees, not the origin's view
+      game.stepFrame();
       // A six-material job exceeded the loading text's one-second update
       // budget at phone CPU speed. Use the existing one-material sliced path.
       // PL6: and what the first frame's warm turns show, so none of it builds and links inside that frame
@@ -165,10 +169,9 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   app.setState(hud.entered ? 'play' : 'title');
   // MF5 / NP-4: the first world frame is a named step, never a gap after Audio. FC2: nothing free-runs behind the loader;
   // the loop starts parked behind its gate and the first world frame is ONE hidden frame under the opaque card
-  // Until the first systems step the camera stands at the origin (Nine: 127 m below the spawn's eye, at 72° not the held
-  // 93°) and placed copies hold none until their first cull, so the shaders step missed what the first frame draws: 14
-  // programs linked inside the hidden frame (2.25 s on the Simulator with Refine dither on). The step runs first without
-  // its draw, and what it shows links sliced under the card before the frame draws it
+  // What changed in view since the shaders step (the steps between move the clock, culling and the spawn ring) links
+  // sliced under the card before the hidden frame draws it: before the posed shaders step, 14 programs linked inside this
+  // frame (2.25 s on the Simulator with Refine dither on)
   await loadingStage('worldFrame', async () => {
     game.start(); game.stepFrame();
     await precompileLevel(game, undefined, { sliceMs: BOOT_SHADER_SLICE_MS, drawnOnly: true, turns: game.warmTurnYaws() });
