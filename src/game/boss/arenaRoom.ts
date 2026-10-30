@@ -665,9 +665,10 @@ export class ArenaRoomEncounter {
     }else{
       this.room=null;this.rows=null;this.openWorld=source.world;this.openRows=source.rows;
       for(const [name,row]of Object.entries(source.rows.contacts))this.contacts.set(name,strikeFromData(row));
-      // the fight's numbers live in openArenaFight.ts (the Node simulation fights the same); the page lends it its world and looks
+      // the fight's numbers live in openArenaFight.ts (the Node simulation fights the same); the page lends it its world and
+      // looks, the world's parts read when the fight uses them (the weather owner publishes after the arena is built)
       const world=source.world,rows=source.rows,scene=world.game.scene;
-      const projection=this.projection=new OpenArenaFight({scope:world.game.levelScope,weather:world.weather,tieSpot:world.tieSpot,ai:()=>app.rng.stream('ai'),
+      const projection=this.projection=new OpenArenaFight({scope:world.game.levelScope,get weather(){return world.weather;},get tieSpot(){return world.tieSpot;},ai:()=>app.rng.stream('ai'),
         fog:()=>world.game.scene.fog,get camera(){return world.game.camera;},wild:wildEnv,phone:TIER==='phone'},this,rows,{
         body:pose=>arenaScriptCloud(scene,pose,rows),arena:()=>new ArenaSceneView(scene,rows.geometry.arena),
         whirls:(arena,windLaw,author,scope)=>new ArenaWhirlsView(rows.whirls,windLaw,[arena.mesh('funnel0'),arena.mesh('funnel1'),arena.mesh('funnel2')],arena.instances('debris'),author,scope),
