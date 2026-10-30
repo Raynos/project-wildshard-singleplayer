@@ -909,7 +909,6 @@
  "test/driftwood-enemy-placement.test.ts": 0.3,
  "test/driftwood-entry-lifetime.test.ts": 0,
  "test/driftwood-entry-pier-layout.test.ts": 0,
- "test/driftwood-faceted-author-readers.test.ts": 7.8,
  "test/driftwood-faceted-ground.test.ts": 0.3,
  "test/driftwood-finale-controller.test.ts": 0,
  "test/driftwood-fixed-author-policy.test.ts": 0.2,
