@@ -25,7 +25,6 @@ import { settingsReloadUrl } from './Settings';
 import type { DebugRowSpec } from '../level/context';
 import { isDev, onDev } from '../core/devMode';
 import { setTileResidency, tileResidency, TILE_RESIDENCY, setRoadResidency, roadResidency, ROAD_RESIDENCY } from './tileResidency';
-import { POSE_RATES, poseRate, setPoseRate } from '../entities/poseCadence';
 
 /** what "applies" reads: the shard you are in and the weapons you hold (re-read every time the menu opens) */
 export interface DebugCtx { chunk: LevelSpec; weapons: ReadonlySet<string> }
@@ -160,12 +159,6 @@ const roadResidencyRow: DebugRow = { purpose: 'developer', id: 'roadResidency', 
   get: () => roadResidency(), set: value => { const pick = ROAD_RESIDENCY.find(choice => choice === value); if (pick !== undefined && isDev()) setRoadResidency(pick); },
   on: () => undefined, reload: true, when: always, note: engineString('s_road_residency_note'), ask: 'E435', reviewBy: '2026-10-28' };
 
-/** FC11: the stepped animal pose (B, shipped) beside the old every-frame pose (A); the old goes when Jake has seen it. */
-const poseRateRow: DebugRow = { purpose: 'developer', id: 'animalPoseRate', group: 'creatures', label: engineString('s_pose_rate'),
-  choices: () => [{ v: 'stepped', text: engineString('s_pose_rate_stepped') }, { v: 'every', text: engineString('s_pose_rate_every') }],
-  get: () => poseRate(), set: value => { const pick = POSE_RATES.find(choice => choice === value); if (pick !== undefined && isDev()) setPoseRate(pick); },
-  on: () => undefined, reload: false, when: always, note: engineString('s_pose_rate_note'), ask: 'E435', reviewBy: '2026-11-12' };
-
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
 
@@ -174,7 +167,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Combat & weapons ──
 
   // ── Creatures & NPCs ──
-  poseRateRow,
 
   // ── Performance ──
   tileResidencyRow,

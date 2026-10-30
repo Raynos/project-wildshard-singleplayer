@@ -1,9 +1,5 @@
 /** English engine UI strings. Content-owned overrides are installed by the composition root. */
 export const ENGINE_STRINGS = {
-  "s_pose_rate": "Animal pose rate",
-  "s_pose_rate_stepped": "Stepped by distance",
-  "s_pose_rate_every": "Every frame (old)",
-  "s_pose_rate_note": "FC11: animals past 30 m pose their legs every 2nd frame, past 70 m every 4th; they still move every frame. Every frame is the old cost.",
   "s_update_next_boundary": "New version · reload",
   "s_update_next_boundary_dev": "new ⟦0⟧ · reload",
   "s_update_confirm": "Confirm reload",
