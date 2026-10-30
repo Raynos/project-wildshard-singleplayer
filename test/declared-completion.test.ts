@@ -11,6 +11,9 @@ import { completionProjection, fmtPlayTime, installCompletion, type CompletionCo
 import { completeEntry } from '../src/game/complete/ShardComplete';
 import { completionRows, COMPLETE_CONTENT } from '../src/shards/driftwood-isle/generators/completion';
 import { templateOutput } from '../src/shards/_template/generators/productOutput';
+import { installCatalogueFixture } from './fixtures/bootSetup';
+
+await installCatalogueFixture();
 
 const template = templateOutput({ hash: '0'.repeat(64) });
 
