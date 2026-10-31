@@ -11,10 +11,14 @@ import {installWalkRopeBodies} from './ropeBodies';
 import {installNativeWalkBounds} from './nativeBounds';
 import {prepareHeadlessRuntime} from '../sky-verbs';
 import {SkyTape} from '../../proof/far-reach/tape';
+import {FAN_ACT,FAN_ACTOR} from '../../../src/shards/far-reach/generators/rows/nativeMelee';
 import {ROOST_IDS} from '../../../src/shards/far-reach/generators/questPrompts';
 import type {HeadlessCommand,HeadlessEffect} from '../../../src/sdk/tickProtocol';
 import type {HeadlessTapeObservation,HeadlessTapeSegment} from '../../../src/sdk/headlessTape';
 
+const stage=process.argv[2]??'roost';
+if(stage!=='roost'&&stage!=='vanes')throw new Error('Unknown Sky progression tape');
+const earned=stage==='roost'?'far.roost':'far.vanes';
 const started=performance.now(),session=await beginProductSession('far-reach','sky-verbs'),{product,assets}=session;
 let resident:Awaited<ReturnType<typeof createNativeProofResident>>|undefined,releaseRopes=()=>{ /* No ropes are installed before the resident is ready. */ };
 /** The existing controller's world axes enter the actual camera-relative phone stick law. */
@@ -56,7 +60,7 @@ try{
       'each complete fresh-worker native continuation is exact');
     replayedTicks+=replay.report.ticks;
   };
-  while(total<30_000&&!host.flags.has('far.roost')){
+  while(total<30_000&&!host.flags.has(earned)){
     const commands=structuredClone(controller.next(host).map(controls));commandsCount+=commands.length;assert.ok(commandsCount<=60_000);
     active.step(commands);total++;frames.push(commands);effects.push(...structuredClone(active.effects));
     peakY=Math.max(peakY,host.player.position.y);
@@ -66,29 +70,33 @@ try{
   assert.ok(host.flags.has('far.notes'),'actual keeper talk earns the introduction');
   assert.ok(host.flags.has('far.roost'),'the real fan must clear all roost rays');
   assert.ok(actors.every(actor=>!actor.alive),'the quest cannot clear a live roost');
-  assert.equal(quest.current?.id,'vanes');assert.equal(quest.isComplete,false);
+  assert.equal(quest.current?.id,stage==='roost'?'vanes':'raise');assert.equal(quest.isComplete,false);
+  if(stage==='vanes')for(const id of ['grove','keeper','ruin'])assert.ok(host.flags.has(`far.vane.${id}`));
   assert.equal(host.player.motor.snapshot().result.grounded,true,'the completed fan fight ends on the actual roost deck');
-  for(const flag of ['far.vanes','far.bridge','far.complete','far.roc.down'])assert.equal(host.flags.has(flag),false,flag);
+  for(const flag of [...(stage==='roost'?['far.vanes']:[]),'far.bridge','far.complete','far.roc.down'])assert.equal(host.flags.has(flag),false,flag);
   assert.equal(replayedTicks,total);
   assert.equal(sim.quarantined,false);
   const negativeSession=await beginProductSession('far-reach','sky-verbs');
-  let removedSwings=0;
+  let removedSwings=0,removedGusts=0;
   try{
     const negative=await negativeSession.ready();
     for(const part of parts){
-      const unarmed=part.frames?.map(frame=>frame.map(command=>{
-        if(command.kind!=='player'||command.attack===undefined)return command;
-        const rest={...command};delete rest.attack;removedSwings++;return rest;
+      const unarmed=part.frames?.map(frame=>frame.flatMap(command=>{
+        if(stage==='vanes'&&command.kind==='script'&&command.actorId===FAN_ACTOR&&command.value===FAN_ACT.gust){removedGusts++;return [];}
+        if(stage!=='roost')return [command];
+        if(command.kind!=='player'||command.attack===undefined)return [command];
+        const rest={...command};delete rest.attack;removedSwings++;return [rest];
       }));assert.ok(unarmed);
       const replay=await negative.verbTapePart({version:1,observe:[],segments:[{...part,frames:unarmed}]});
       const observed=replay.report.observations[0];assert.ok(observed);
-      assert.equal(observed.flags.includes('far.roost'),false,'identical movement without swings cannot earn the roost');
+      assert.equal(observed.flags.includes(earned),false,'identical movement without the required fan input cannot earn this step');
       const saved=decodeSimSnapshot(replay.commit.snapshot);
-      for(const id of ROOST_IDS){const actor=saved.entities.find(row=>row.id===id);assert.ok(actor);assert.equal(actor.state.flags.alive,true);}
+      if(stage==='roost')for(const id of ROOST_IDS){const actor=saved.entities.find(row=>row.id===id);assert.ok(actor);assert.equal(actor.state.flags.alive,true);}
+      else for(const id of ['grove','keeper','ruin'])assert.equal(saved.flags.includes(`far.vane.${id}`),false);
     }
-    assert.ok(removedSwings>0);assert.equal(negative.quarantined,false);
+    assert.ok(stage==='roost'?removedSwings>0:removedGusts>0);assert.equal(negative.quarantined,false);
   }finally{await(await negativeSession.ready()).dispose();}
-  console.info(JSON.stringify({phase:'replayed',story:'sky-roost',ticks:total,commands:commandsCount,parts:expected.length,removedSwings,
+  console.info(JSON.stringify({phase:'replayed',story:`sky-${stage}`,ticks:total,commands:commandsCount,parts:expected.length,removedSwings,removedGusts,
     flags:[...host.flags.all],milliseconds:performance.now()-started}));
 }catch(error){console.error(JSON.stringify({phase:'failed',tick:resident?.host.state.tick,error:error instanceof Error?error.message:String(error)}));throw error;}
 finally{releaseRopes();resident?.dispose();await(await session.ready()).dispose();}

@@ -35,6 +35,7 @@
   "test/nine-walk-verbs.test.ts": ["nine-dragon-stack"],
   "test/sky-quest-verbs.test.ts": ["far-reach"],
   "test/sky-roost-verbs.test.ts": ["far-reach"],
+  "test/sky-progression-verbs.test.ts": ["far-reach"],
   "test/headless-quest-verbs.test.ts": ["driftwood-isle", "far-reach", "nalati-grasslands"],
   "test/ink-native-proof.test.ts": ["ink-cel-valley"],
   "test/driftwood-trail-layout.test.ts": ["driftwood-isle"],
