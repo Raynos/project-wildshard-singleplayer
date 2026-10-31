@@ -36,7 +36,10 @@ class SimulatorReadinessTests(unittest.TestCase):
             'SIM_SAFARI_READY_TIMEOUT': '5'}
         self.command('xcrun', '''import json,os,pathlib,sys,time
 root=pathlib.Path(os.environ['SIM_FIXTURE']);args=sys.argv[1:]
+if args[1]=='launch' and os.environ.get('SIM_REVERSE_CHILD_LOGS'):
+    while not (root/'openurl-child-observed').exists(): time.sleep(.01)
 with (root/'calls').open('a') as output: output.write(json.dumps(args)+'\\n')
+if args[1]=='openurl': (root/'openurl-child-observed').touch()
 if os.environ.get('SIM_HELD_NATIVE_OUTPUT')==args[1]:
     import subprocess
     child=subprocess.Popen([sys.executable,'-c','import time;time.sleep(30)'],stdin=subprocess.DEVNULL)
@@ -482,12 +485,31 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
             self.assert_not_handed_over()
 
     def test_cold_safari_application_precedes_url_readiness(self):
-        result = self.lane(SIM_REQUIRES_LAUNCH='1')
+        # Observe the real helper's request boundary, before the native child
+        # can be scheduled. The fixture deliberately reverses child log order.
+        (self.bin/'sitecustomize.py').write_text('''import json,os,pathlib,sys
+def request(event,details):
+    if event!='subprocess.Popen': return
+    args=details[1]
+    if isinstance(args,(list,tuple)) and list(args[:2])==['xcrun','simctl'] and args[2] in ('launch','openurl'):
+        path=pathlib.Path(os.environ['SIM_FIXTURE'])/'parent-requests'
+        with path.open('a') as output: output.write(json.dumps(list(args))+'\\n')
+sys.addaudithook(request)
+''')
+        result = self.lane(SIM_REQUIRES_LAUNCH='1', SIM_REVERSE_CHILD_LOGS='1', PYTHONPATH=str(self.bin))
         self.assertEqual(result.returncode, 0, result.stderr)
         calls = [row[1] for row in self.calls()]
         self.assertEqual(calls.count('launch'), 1)
         self.assertLess(calls.index('bootstatus'), calls.index('launch'))
-        self.assertLess(calls.index('launch'), calls.index('openurl'))
+        self.assertGreater(calls.index('launch'), calls.index('openurl'))
+        requests = [json.loads(line) for line in (self.root/'parent-requests').read_text().splitlines()]
+        names = [row[2] for row in requests]
+        self.assertEqual(names.count('launch'), 1)
+        self.assertLess(names.index('launch'), names.index('openurl'))
+        self.assertEqual({row[3] for row in requests}, {UDID})
+        self.assertTrue((self.root/'safari-launched').exists())
+        self.assertTrue((self.root/'safari-rendered').exists())
+        self.assertIn('owned launch and owned two-frame callback confirmed', result.stderr)
         self.assertEqual((self.root / 'child-ran').read_text(), '1')
 
     def test_failed_app_launch_cannot_publish_or_retry_a_lease(self):
