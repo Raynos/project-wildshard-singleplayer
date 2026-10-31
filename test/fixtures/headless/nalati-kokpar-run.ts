@@ -7,7 +7,7 @@ import {builtProduct} from '../builtProduct';
 import {loadHeadlessProduct} from '../../../src/sdk/headlessProduct';
 import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
 import {productHeadlessSections} from '../../../src/sdk/headlessSections';
-import {snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
+import {snapshotSimHostBytes,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
 import {canonicalSimDigest} from '../../fake/simState';
 import {loadRapier} from '../../../src/engine/physics/rapier';
 import {mountedPlayerOf} from '../../../src/game/riding/native';
@@ -94,7 +94,7 @@ try{
   drive(rows.home.x-ux*12,rows.home.z-uz*12);
   // This checkpoint is earned by the entire real entry/ride above, never
   // supplied as a pose or fabricated save. Replay every pickup/delivery input.
-  const saved=snapshotSimHost(host);checkpointTick=frames.length;checkpointDigest=canonicalSimDigest(saved);
+  const saved=snapshotSimHostBytes(host);checkpointTick=frames.length;checkpointDigest=canonicalSimDigest(saved);
   pending=createNativeProofWorker(product.shardfile,assets,'nalati-kokpar',serializeSimSnapshot(saved),
     productHeadlessSections(product),directory).then(worker=>({ok:true as const,worker}),(error:unknown)=>({ok:false as const,error}));
   drive(rows.home.x,rows.home.z,true,2.8);
