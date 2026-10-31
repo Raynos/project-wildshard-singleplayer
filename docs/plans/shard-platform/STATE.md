@@ -10,7 +10,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 table qa-2026-10-30 (2508e90724).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
-**16:40:** LEGACY bug fixed c18337ffe3 (kept: Nine + Pine). G965 Pine update gap -> sp-x6. Pine physics 5596fde41e (75/75 walk).
+**17:40:** warm-load regression closed: road 18 ms (9cca), cold 51.4 / warm 26.3 s. Pine legacy retired (5abfc53bb9..02ad71d020). 19c9 in CI.
 **wildshard-v (16:30):** PR5: no Simulator.app here, so Jake's playtest (G872). 6324 red is pre-f9caf76f31.
 CS1/CS2/CS4/CS5/CS6/CS9 slices landed; DAT T5 no (G872, $4/mo), T6 superseded; CI9 x6, CI10 x9 + x8.
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
