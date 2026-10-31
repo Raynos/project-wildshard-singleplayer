@@ -62,10 +62,18 @@ export class MapRaster {
     const y2 = projected ? at(p2, 2) : Math.round(((250 - at(p2, 2)) * this.size / 500) * 1024);
     const area = (x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0);
     if (area === 0) return;
-    const minX = Math.max(0, Math.floor(Math.min(x0, x1, x2) / 1024));
-    const maxX = Math.min(this.size - 1, Math.ceil(Math.max(x0, x1, x2) / 1024));
-    const minY = Math.max(0, Math.floor(Math.min(y0, y1, y2) / 1024));
-    const maxY = Math.min(this.size - 1, Math.ceil(Math.max(y0, y1, y2) / 1024));
+    const lowX = Math.min(x0, x1, x2), highX = Math.max(x0, x1, x2);
+    const lowY = Math.min(y0, y1, y2), highY = Math.max(y0, y1, y2);
+    // Internal projections are integer subpixels. In this bounded range all
+    // edge products are exact integers, and the retained 1e-12 edge allowance
+    // spans less than one subpixel. A centre outside this box cannot pass.
+    // Public triangle inputs and wider projections keep the original range.
+    const bounded = projected && lowX >= -1048576 && highX <= 1048576
+      && lowY >= -1048576 && highY <= 1048576;
+    const minX = Math.max(0, bounded ? Math.ceil((lowX - 512) / 1024) : Math.floor(lowX / 1024));
+    const maxX = Math.min(this.size - 1, bounded ? Math.floor((highX - 512) / 1024) : Math.ceil(highX / 1024));
+    const minY = Math.max(0, bounded ? Math.ceil((lowY - 512) / 1024) : Math.floor(lowY / 1024));
+    const maxY = Math.min(this.size - 1, bounded ? Math.floor((highY - 512) / 1024) : Math.ceil(highY / 1024));
     for (let y = minY; y <= maxY; y++) for (let x = minX; x <= maxX; x++) {
       const sx = x * 1024 + 512, sy = y * 1024 + 512;
       const a = ((x2 - x1) * (sy - y1) - (y2 - y1) * (sx - x1)) / area,

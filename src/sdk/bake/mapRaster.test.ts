@@ -100,3 +100,42 @@ test('shared GLB vertices retain winding, coloured edges and clipping after proj
     expect(actual.height).toEqual(expected.height); expect(actual.colour).toEqual(expected.colour);
   }
 });
+
+test('internal pixel-centre bounds match public raster edges and wide-coordinate fallback', () => {
+  const boundary = 1048576;
+  const cases: number[][] = [
+    [511, 511, 513, 511, 512, 513], [510, 510, 511, 510, 510, 511],
+    [512, 512, 1536, 512, 512, 1536], [512, 512, 513, 512, 512, 513],
+    [-boundary, -boundary, boundary, -boundary, 512, boundary],
+    [-boundary - 1, -boundary, boundary, -boundary, 512, boundary + 1],
+    [0, 0, 1, 0, boundary, 1], [512, 512, 512, 512, 512, 512],
+  ];
+  let seed = 357;
+  for (let row = 0; row < 256; row++) cases.push(Array.from({ length: 6 }, () => {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return seed % (boundary * 2 + 3) - boundary - 1;
+  }));
+  const matrix = new Matrix4(), colours = [[255, 0, 0], [0, 255, 0], [0, 0, 255]];
+  for (const coordinates of cases) for (const reverse of [false, true]) {
+    const geometry = new BufferGeometry(), size = 8;
+    const points = Array.from({ length: 3 }, (_, index) => {
+      const x = coordinates[index * 2], z = coordinates[index * 2 + 1];
+      if (x === undefined || z === undefined) throw new Error('Missing projected test point');
+      return new Vector3(250 - x * 500 / (size * 1024), index === 1 ? -0 : index + .25,
+        250 - z * 500 / (size * 1024)).applyMatrix4(matrix).toArray();
+    });
+    geometry.setAttribute('position', new BufferAttribute(Float64Array.from(points.flat()), 3));
+    geometry.setAttribute('color', new BufferAttribute(Float32Array.from([1, 0, 0, 0, 1, 0, 0, 0, 1]), 3));
+    const order = reverse ? [2, 1, 0] : [0, 1, 2]; geometry.setIndex(order);
+    const actual = new MapRaster(size, { clipBelow: -.25, clipAbove: 3 }), expected = new MapRaster(size, { clipBelow: -.25, clipAbove: 3 });
+    actual.geometry(geometry, matrix);
+    expected.triangle(order.map(index => {
+      const point = points[index]; if (point === undefined) throw new Error('Missing reference point'); return point;
+    }), order.map(index => {
+      const colour = colours[index]; if (colour === undefined) throw new Error('Missing reference colour'); return colour;
+    }));
+    expect(actual.triangles).toBe(expected.triangles);
+    expect(actual.height).toEqual(expected.height); expect(actual.colour).toEqual(expected.colour);
+    geometry.dispose();
+  }
+});
