@@ -194,6 +194,36 @@ The remaining CS6 species/population and behaviour-to-AS work stays open;
 no legacy file is part of either slice (G908).
 
 
+
+## CS6: existing native population documents
+
+**2026-10-31, sp-x2.** The next three names retain their already approved
+G571 hosts and original complete format roots: Driftwood's
+`actors/creature-install.json` (`CreatureInstallSchema`) and
+`actors/projection.json` (`PopulationProjectionSchema`), and Pine's
+`actors/shelter.json` (`PopulationShelterSchema` / its native parser).
+These single-user documents gain defining-contract registration; this is
+no new shared-host claim, callback, behaviour port or schema inference.
+Wire values retain the existing input types and consumer defaults.
+
+One normal coalesced six-product AFTER build exits successfully in
+48.91 s with declared ordinary builder overlap, followed by independent
+strict admission of all six. Every Driftwood/Pine payload remains exact:
+1,511 paths / 234,296,562 B, with only these three defining metadata
+records changed. Six focused suites pass (5.9 s), including the original
+kit/leave/shelter controls and coalesced field controls; root types and
+touched typed lint pass. The actual-product test declares both products
+for CI and keeps missing/foreign metadata and native-bound refusals.
+
+The separate field owner's coalesced proof covers 2,993 raw payloads /
+484,588,041 B. Exactly two Far/Sun 164-byte map source stamps differ;
+2,991 other payloads and every image stay exact. Ordered pack members,
+offsets and original pack hashes reconstruct with only those same stamp
+members replaced. Its raw comparator remains FAIL and its exact source
+classification belongs to that separate slice. No general tolerance or
+admission guard change is added here. Remaining creature/behaviour rows
+and AS ownership exits stay open; no legacy source is touched (G908).
+
 ## CS2: shared names and remaining exits
 
 **2026-10-31, sp-x1.** Model catalogues (`79b336bd52`) bind the existing

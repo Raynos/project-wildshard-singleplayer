@@ -11,11 +11,16 @@ import { QuestTraderSchema } from './namedJsonContracts';
 import { WorldScenePlacementSchema,parseWorldScenePlacement } from './worldScenePlacement';
 import { QuestPageInteractionsSchema,parseQuestPageInteractions } from './questInteractions';
 import { PageLifeSchema,parsePageLife } from './pageLife';
-import { PackedCreatureLooksSchema } from './speciesLooks';
+import { PopulationProjectionSchema } from './populationProjection';
+import { PopulationShelterSchema,parsePopulationShelter } from './herdShelter';
+import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks';
 
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'actors/creature-install.json':{readonly schema:typeof CreatureInstallSchema;readonly source:'@wildshard/format/speciesLooks#CreatureInstallSchema'};
+  readonly 'actors/projection.json':{readonly schema:typeof PopulationProjectionSchema;readonly source:'@wildshard/format/populationProjection#PopulationProjectionSchema'};
+  readonly 'actors/shelter.json':{readonly schema:typeof PopulationShelterSchema;readonly source:'@wildshard/format/herdShelter#PopulationShelterSchema'};
   readonly 'world/forest-weather.json':{readonly schema:typeof ForestWeatherSchema;readonly source:'@wildshard/format/forestWeather#ForestWeatherSchema'};
   readonly 'models/world-scenes.json':{readonly schema:typeof WorldSceneModelsSchema;readonly source:'@wildshard/format/worldSceneModels#WorldSceneModelsSchema'};
   readonly 'actors/page-life.json':{readonly schema:typeof PageLifeSchema;readonly source:'@wildshard/format/pageLife#PageLifeSchema'};
@@ -33,6 +38,9 @@ export interface RegisteredJsonContracts {
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'actors/creature-install.json': {schema:CreatureInstallSchema,source:'@wildshard/format/speciesLooks#CreatureInstallSchema'},
+  'actors/projection.json': {schema:PopulationProjectionSchema,source:'@wildshard/format/populationProjection#PopulationProjectionSchema'},
+  'actors/shelter.json': {schema:PopulationShelterSchema,source:'@wildshard/format/herdShelter#PopulationShelterSchema'},
   'world/forest-weather.json':{schema:ForestWeatherSchema,source:'@wildshard/format/forestWeather#ForestWeatherSchema'},
   'models/world-scenes.json':{schema:WorldSceneModelsSchema,source:'@wildshard/format/worldSceneModels#WorldSceneModelsSchema'},
   'actors/page-life.json': {schema:PageLifeSchema,source:'@wildshard/format/pageLife#PageLifeSchema'},
@@ -85,6 +93,9 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'actors/creature-install.json':v.parse(CreatureInstallSchema,value);break;
+    case 'actors/projection.json':v.parse(PopulationProjectionSchema,value);break;
+    case 'actors/shelter.json':parsePopulationShelter(value);break;
     case 'world/forest-weather.json':v.parse(ForestWeatherSchema,value);break;
     case 'models/world-scenes.json':parseWorldSceneModels(value);break;
     case 'actors/page-life.json':parsePageLife(value);break;
