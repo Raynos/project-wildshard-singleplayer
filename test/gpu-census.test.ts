@@ -4,6 +4,7 @@ import {gpuPairs,gpuPhoneModel} from '../scripts/perf/gpu-census-report.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Validate real CLI refusals before any browser or output is opened.
 import process from 'node:process';
 import {runGpuCensus} from '../scripts/perf/gpu-census.mjs';
+import {sourceMatchedCoverageAliases} from '../scripts/perf/gpu-census-coverage.mjs';
 
 const windowDescriptor=Object.getOwnPropertyDescriptor(globalThis,'window');
 function fixture() {
@@ -55,6 +56,18 @@ test('paired subtraction retains negative savings, no-op noise and the model lab
  expect(()=>gpuPairs([{baseline:1,off:Number.NaN,baselineCpu:1,offCpu:1}])).toThrow('Invalid paired');
  expect(gpuPhoneModel(2,79)).toEqual({kind:'phone-frame / Mac-throughput MODEL',macThroughputMs:2,phoneFrameMs:79,factor:39.5,officialTimingCredit:false});
  expect(()=>gpuPhoneModel(0,79)).toThrow('Invalid GPU calibration');
+});
+
+test('extra coverage aliases require actual emitted-source identity, not a familiar material name',()=>{
+ const known='a'.repeat(64),other='b'.repeat(64);
+ const materials=[{name:'graph:material:tree',fragmentShaderHash:known},{name:'under-fern',fragmentShaderHash:known},
+  {name:'under-fern',fragmentShaderHash:known},{name:'under-shrub',fragmentShaderHash:other}];
+ expect(sourceMatchedCoverageAliases(materials,[known])).toEqual(['under-fern']);
+ expect(sourceMatchedCoverageAliases(materials,[])).toEqual([]);
+ expect(()=>sourceMatchedCoverageAliases(materials,['invalid'])).toThrow('source hashes');
+ expect(()=>sourceMatchedCoverageAliases([...materials,{name:'under-fern',fragmentShaderHash:other}],[known])).toThrow('several shader sources');
+ expect(()=>sourceMatchedCoverageAliases([...materials,{name:'under-fern'}],[known])).toThrow('several shader sources');
+ expect(()=>sourceMatchedCoverageAliases([{name:'',fragmentShaderHash:known}],[known])).toThrow('unique material alias');
 });
 
 test('the real probe inventories submitted aliases and restores native methods and scissor rectangle',()=>{

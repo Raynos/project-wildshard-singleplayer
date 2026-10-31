@@ -8,7 +8,7 @@ import {loadingCardIndex} from '../loading-benchmark/catalogue.mjs';
 import {installGpuProbe} from './gpu-census-page.mjs';
 import {overdraw} from './gpu-census-overdraw.mjs';
 import {gpuPairs,gpuPhoneModel} from './gpu-census-report.mjs';
-import {graphCoverage} from './gpu-census-coverage.mjs';
+import {graphCoverage,sourceMatchedCoverageAliases} from './gpu-census-coverage.mjs';
 /** Modern GPU census entry: native loading cards, immutable preview, explicit modes. */
 export async function runGpuCensus(){
 const arg=(key,fallback)=>process.argv.find(s=>s.startsWith(`--${key}=`))?.slice(key.length+3)??fallback;
@@ -23,6 +23,8 @@ const selected=arg('poses','').split(','),poses=(slug==='nine-dragon-stack'?nine
 if(poses.length === 0||!modes.every(x=>['legacy','shardfile'].includes(x)))throw new Error('Invalid pose/mode selection');
 if(selected[0]&&selected.some(id=>!poses.some(p=>p.id===id)))throw new Error('Unknown requested census pose');
 if(!['0','1'].includes(arg('coverage','0')))throw new Error('Invalid coverage capability');
+const coverageHashPath=arg('coverage-source-hashes',''),coverageHashes=coverageHashPath===''?[]:JSON.parse(readFileSync(coverageHashPath,'utf8'));
+sourceMatchedCoverageAliases([],coverageHashes);
 if(!url||!['nine-dragon-stack','pine-hollow'].includes(slug)||!Number.isSafeInteger(rounds)||rounds<1||rounds>20||!Number.isSafeInteger(K)||K<1||K>64)throw new Error('Requires URL, supported shard and bounded rounds/frames');
 mkdirSync(out,{recursive:true});const version=await(await fetch(new URL('version.json',url))).json();
 const readings=[],saveAll=()=>writeFileSync(`${out}/reading.json`,JSON.stringify({rows:readings,requested:{slug,modes,poses:poses.map(p=>p.id)},method:'paired frozen-frame throughput, includes CPU submission; no official timing credit',partitionStatus:'NOT_MEASURABLE (G872): overlapping subtraction, occlusion and tile flushes'},null,2));
@@ -57,7 +59,7 @@ try{for(const mode of modes)for(const pose of poses){
   if(arg('coverage','0')==='1'){
    const before=await page.evaluateHandle(()=>{const g=window.__wildshard.requireWorld().game,r=g.renderer,gl=r.getContext();g.composer.render(0);const bytes=new Uint8Array(gl.drawingBufferWidth*gl.drawingBufferHeight*4);gl.readPixels(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight,gl.RGBA,gl.UNSIGNED_BYTE,bytes);return bytes;});
    try{
-    row.graphCoverage=await page.evaluate(graphCoverage);
+    row.graphCoverage=await page.evaluate(graphCoverage,sourceMatchedCoverageAliases(inventory.materials,coverageHashes));
     for(const fact of row.graphCoverage.rows)fact.fragmentShaderHashes=[...new Set(inventory.materials.filter(m=>m.name===fact.alias).map(m=>m.fragmentShaderHash).filter(Boolean))];
     row.coverageRestoration=await page.evaluate(beforePixels=>{const g=window.__wildshard.requireWorld().game,r=g.renderer,gl=r.getContext();g.composer.render(0);const bytes=new Uint8Array(gl.drawingBufferWidth*gl.drawingBufferHeight*4);gl.readPixels(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight,gl.RGBA,gl.UNSIGNED_BYTE,bytes);const first=[];let pixels=0,max=0;for(let i=0;i<bytes.length;i+=4){let bad=false;for(let c=0;c<4;c++){const d=Math.abs(bytes[i+c]-beforePixels[i+c]);if(d>0)bad=true;max=Math.max(max,d);}if(bad){pixels++;if(first.length<20)first.push([i/4%gl.drawingBufferWidth,Math.floor(i/4/gl.drawingBufferWidth)]);}}return{pixels,max,first};},before);
     if(row.coverageRestoration.pixels>0)throw new Error('Coverage material restoration changed native pixels');
