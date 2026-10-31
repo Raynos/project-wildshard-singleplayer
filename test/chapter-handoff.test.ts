@@ -1,6 +1,7 @@
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
-import {ChapterPartSchema,chapterObserved,chapterWire,chapterRead,chapterWireHash,chapterInputHash,checkChapterLedger,type ChapterPart} from './fixtures/headless/chapterHandoff';
+import {ChapterPartSchema,chapterObserved,chapterTwoObserved,chapterWire,chapterRead,chapterWireHash,chapterInputHash,checkChapterLedger,type ChapterPart} from './fixtures/headless/chapterHandoff';
+import {PACKED_CHAPTER_TAMING,packChapterTaming} from './fixtures/headless/chapterObservation';
 import type {HeadlessCommand} from '../src/sdk/tickProtocol';
 
 const idle:HeadlessCommand={kind:'player',moveX:0,moveZ:0,yaw:0};
@@ -39,4 +40,13 @@ test('the combined part and serialized observation allowances remain bounded',()
     observation.adapters=[{id:chapterObserved[0]??'missing',state:'x'.repeat(80_000)}];return row;
   });
   expect(()=>checkChapterLedger(rows,100)).toThrow(/aggregate tape/u);
+});
+test('later complete packed observations require the earned prefix and preserve one-way selection and all caps',()=>{
+  const prefix=part(0),next=part(1),first=prefix.expected.observations[0],second=next.expected.observations[0];
+  if(first===undefined||second===undefined)throw new Error('Missing unplayed boundary');
+  next.plan.observe=[...chapterTwoObserved];second.adapters=[{id:PACKED_CHAPTER_TAMING,state:packChapterTaming({phase:'bonded',pose:[-0,1,2]})}];
+  expect(()=>checkChapterLedger([prefix,next],2)).toThrow('earned');
+  first.flags.push('quest:tulpar');second.flags.push('quest:tulpar');expect(()=>checkChapterLedger([prefix,next],2)).not.toThrow();
+  expect(()=>checkChapterLedger([prefix,next,part(2)],3)).toThrow('observation selection');
+  second.adapters[0]={id:PACKED_CHAPTER_TAMING,state:'bad'};expect(()=>checkChapterLedger([prefix,next],2)).toThrow();
 });
