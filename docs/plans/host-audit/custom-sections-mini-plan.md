@@ -110,7 +110,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 |---|---|---|
 | **CS0** | **done (2026-10-24, sp-x6):** measured ceilings 387 / 33,613,009 B; shrink-only existing-name inventory, new custom sections refused, new named JSON requires an exact defining format schema. **Ceilings to actuals and a schema freeze** (free, can land now): set every `custom-sections/<slug>` ceiling to the measured value (549 → 387, 62 MB → 33.6 MB); refuse a new `custom/` section and any new named JSON whose schema is defined in a shard folder | 0.5 day, Codex |
 | **CS1** | **done (2026-10-31, sp-x1):** plain hash-bound section inventory in `9a616b4b82`; exclusive test-project ownership fixed in `b13ad77350`. Records sections/named JSON, shard, bytes, defining bindings, source emitters and reading-host evidence; unresolved evidence remains explicit. No ruler, scores or progress tool. | 0.5–1 day, Codex |
-| **CS2** | **open (2026-10-31, sp-x1):** persistence and 27 native world-scene recipes join the qualified registrations. The next known shared native root is `WorldSceneWeldSchema` across Pine cabin and Nine cast/fabric documents; CS7 audio/cards are owned separately. These remain real registration work, so the five repeated-name inline/collision exits below do not justify marking CS2 done. **Platform names for blobs**: `product.json` admits only names whose schema is registered platform-wide; shard-local schemas retain explicit CS3–CS9 exits. | 2–3 days, Codex + Opus review |
+| **CS2** | **open (2026-10-31, sp-x1):** persistence and 27 native world-scene recipes are qualified. The entire unlanded 62-document weld registration is withdrawn: Pine's index grows from 1,703,170 to 3,120,670 B against the unchanged 2,000,000 B cap, an explicit index-footprint exit below. Cross-name recipe, buffer and posed-library aliases still need source-first coverage; CS7 audio/cards are owned separately. The five repeated-name inline/collision exits alone cannot mark CS2 done. | 2–3 days, Codex + Opus review |
 | **CS3** | **K1 scenes**: one streamed `world/scenes` family and `models/library`; Pine's 112 placement files become one indexed section; tier copies derived. Pine first, then Sky / Signal / Nine / Driftwood / Nalati | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **K2 ground and physics**: Pine physics into `world/physics`; floor, crag cave, Sky fields, Signal embers into a streamed `world/fields` | 2–3 days, Codex (Opus memory reading) |
 | **CS5** | **K3 quests**: one `quest/*` family across Pine, Driftwood, Nalati (and Sky's quest rows); Pine `questRuntime` program to AS | 4–6 days, Opus design + Codex port |
@@ -523,9 +523,10 @@ introduced.
 
 ### Source-first remainder, without inferred registrations
 
-The current seven modern product bodies are hash-verified for candidate
-selection, independently of current-source admission. After these
-registrations, 194 distinct named JSON identities remain unregistered.
+The seven modern product bodies at the `929d759689` boundary are
+hash-verified for candidate selection, independently of current-source
+admission. After those registrations and before CS7's next slice,
+194 distinct named JSON identities remain unregistered.
 Only five names repeat across shards; their complete contracts are:
 
 | Remaining repeated name | Exact source evidence and exit |
@@ -539,8 +540,42 @@ Only five names repeat across shards; their complete contracts are:
 Repeated literal names are not the whole CS2 bar. Cross-name shared
 native roots still require source-first coverage: Pine cabin shell and
 specimen documents and Nine cast/fabric documents already use
-`WorldSceneWeldSchema`. That is the next bounded CS2 slice; the mixed
-living-cabin `{graph,life}` wrapper remains a separate CS3 exit. The
+`WorldSceneWeldSchema`. That attempted slice is fully withdrawn for the
+measured index-footprint exit below; the mixed living-cabin
+`{graph,life}` wrapper remains a separate CS3 exit. The
 CS3–CS9 family table continues to own remaining single-user, inline,
 unknown and collision cases; neither a shape match nor this inventory
 grants a new host or one-user waiver. **CS2 stays open.**
+
+### CS2 explicit index-footprint exit: weld documents
+
+**2026-10-31, sp-x1; explicit ruling to withdraw.** The real emitters
+already use `WorldSceneWeldSchema` for 60 modern Pine cabin shell and
+specimen documents / 1,041,529 B and two modern Nine cast/fabric documents
+/ 25,380 B. Eight living-cabin `{graph,life}` wrappers correctly refuse
+that whole-document root and stay outside the proposal. Feasibility and
+25 focused/native-format controls pass; these are not an emitted-product
+qualification.
+
+The one coalesced normal six-product AFTER attempt fails after 33.99 s
+at Pine index admission: `shard.json` grows from **1,703,170 B** to
+**3,120,670 B**, exceeding the unchanged **2,000,000 B** cap. Repeating
+the full defining weld schema across the 62 records adds about 1.4 MB
+to that index. The normal guard refuses it. No complete strict-six,
+payload-identity or original welded-product qualification is claimed.
+
+The **entire unlanded 62-document slice is withdrawn**: its common
+registry entries/families, three emitter metadata changes, changed
+existing negative control and new test are removed. The three emitters
+and existing test are verified exactly HEAD-clean; x2 restores only its
+two-entry CS7 seed. No weld registration, compact-schema protocol,
+serializer/reader change or cap waiver lands. The immutable before
+baseline and actual refusal remain unchanged; x2 owns one cause-directed
+CS7-only AFTER proof.
+
+This is an explicit **open index-footprint exit on CS2**. A later,
+separately reviewed index-compaction row may revisit it while preserving
+the original index cap, defining provenance and native checks. It is not
+a registration pass or permission to retry a subset of the withdrawn
+slice. Other known cross-name native contracts remain source-first work;
+CS2 cannot yet be marked done.
