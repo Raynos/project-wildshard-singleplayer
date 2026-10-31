@@ -90,13 +90,45 @@ test('bounded independent archives drain before capture returns and retain every
   scope.dispose(); expect(store.counts.releases).toBe(store.counts.pins); warm.close(); f.close();
 });
 
-test('large conservative scratch estimates retain the original serial path', async () => {
-  const f = fixture(2, 60_000), scope = new Scope('large road scratch'), store = gatedStore(1);
+test.each(['large', 'unknown'] as const)('%s scratch estimates retain the original serial path', async mode => {
+  const f = fixture(2, mode === 'large' ? 60_000 : 3), scope = new Scope('large road scratch'), store = gatedStore(1);
+  if (mode === 'unknown') {
+    const attribute = f.mesh.geometry.getAttribute('position'), array = attribute.array;
+    Object.defineProperty(attribute, 'array', { get: () => array });
+  }
   const backing = new RoadTileBacking(scope, store.store, { pitch: 125, plans: new Map() });
   const work = capture(backing, f.mesh, f.plan); await store.started;
   expect(store.counts.reads).toBe(1); store.release(); await work;
   expect(store.counts.peak).toBe(1); expect(store.counts.reads).toBe(4);
   scope.dispose(); expect(store.counts.releases).toBe(store.counts.pins); f.close();
+});
+
+test('the next archive refills one completed authored slot while five reads remain held', async () => {
+  const f = fixture(12), scope = new Scope('rolling road archives');
+  const expected = await serialBodies(f.mesh, f.plan), bodies = new Map<string, Uint8Array>();
+  const release: (() => void)[] = []; let reads = 0, active = 0, peak = 0;
+  let six = (): void => undefined, seven = (): void => undefined;
+  const firstWindow = new Promise<void>(resolve => { six = resolve; });
+  const refilled = new Promise<void>(resolve => { seven = resolve; });
+  const backing = new RoadTileBacking(scope, {
+    get: async hash => {
+      reads++; active++; peak = Math.max(peak, active);
+      try {
+        if (reads <= 6) await new Promise<void>(resolve => { release.push(resolve); if (release.length === 6) six(); });
+        else if (reads === 7) seven();
+        return bodies.get(hash)?.slice() ?? null;
+      } finally { active--; }
+    },
+    put: (hash, bytes) => { bodies.set(hash, bytes.slice()); return Promise.resolve(true); },
+  }, { pitch: 125, plans: new Map() });
+  const work = capture(backing, f.mesh, f.plan);
+  try {
+    await firstWindow; release[0]?.(); await refilled;
+    expect(reads).toBe(7); expect(active).toBe(5); expect(peak).toBe(6);
+  } finally { for (const done of release) done(); await work; scope.dispose(); f.close(); }
+  expect(reads).toBe(24); expect(active).toBe(0);
+  expect([...bodies.keys()].sort()).toEqual([...expected.keys()].sort());
+  for (const [hash, bytes] of expected) expect(bodies.get(hash)).toEqual(bytes);
 });
 
 test('quota failure drains every started operation and publishes no failed source', async () => {

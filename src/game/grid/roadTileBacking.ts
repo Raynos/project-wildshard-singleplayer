@@ -17,7 +17,7 @@ interface Source {
   retire: (() => void) | null; pool: RoadTilePool | null;
 }
 type ArchiveResult = { readonly ok: true; readonly reference: RoadTileReference } | { readonly ok: false; readonly error: unknown };
-interface PendingArchive { readonly owner: Scope; readonly references: RoadTileReference[]; readonly ready: Promise<ArchiveResult> }
+interface PendingArchive { readonly owner: Scope; readonly references: RoadTileReference[]; readonly ready: Promise<ArchiveResult>; readonly budget: number }
 const ARCHIVE_WINDOW = 6;
 
 /** Conservative scratch bound: compacted attributes/indices, number tables,
@@ -109,7 +109,7 @@ export class RoadTileBacking {
   private *write(source: Source, data: RoadTileGeometry, references: RoadTileReference[], budget: number): Generator<void, void> {
     try {
       const ready = this.archiveResult(persistRoadTile(source.scope, this.store, data));
-      this.pending.push({ owner: source.scope, references, ready }); this.pendingBytes += budget;
+      this.pending.push({ owner: source.scope, references, ready, budget }); this.pendingBytes += budget;
     } finally { data.geometry.dispose(); }
     yield;
     if (source.scope.disposed || source.scope.disposing) throw new Error('Road backing owner retired');
@@ -118,23 +118,39 @@ export class RoadTileBacking {
     try { return { ok: true, reference: await pending }; }
     catch (error) { this.failureSeen = true; return { ok: false, error }; }
   }
-  /** Called at every yielded construction step. A full window, byte boundary,
-   * failure or source end drains before the caller advances/publicizes it. */
+  /** Refill one authored slot at a full window instead of waiting for all six.
+   * Byte boundaries, failures and source publication still drain the full set. */
   flush(): Promise<void> | null {
     if (this.flushing !== null) return this.flushing;
     if (this.pending.length === 0) { this.flushRequested = false; this.failureSeen = false; return null; }
     if (!this.flushRequested && !this.failureSeen && this.pending.length < ARCHIVE_WINDOW && this.pendingBytes < ROAD_TILE_ARCHIVE_BYTES) return null;
-    const jobs = this.pending.splice(0); this.pendingBytes = 0; this.flushRequested = false;
+    const jobs = this.pending.splice(0, this.flushRequested || this.failureSeen ? this.pending.length : 1);
+    for (const job of jobs) this.pendingBytes -= job.budget;
+    // Unsupported estimates use Infinity to force the serial fallback. Its
+    // completed single job must reset the budget rather than retain NaN.
+    if (this.pending.length === 0) this.pendingBytes = 0;
+    this.flushRequested = false;
+    const takeRemaining = (): PendingArchive[] => {
+      const remaining = this.pending.splice(0); this.pendingBytes = 0; return remaining;
+    };
     const pending = (async (): Promise<void> => {
       try {
         const results = await Promise.all(jobs.map(job => job.ready));
+        // A later authored job can fail while the oldest slot is awaited. Join
+        // every started job before reporting the first authored refusal.
+        if (this.failureSeen) {
+          const remaining = takeRemaining(); jobs.push(...remaining);
+          results.push(...await Promise.all(remaining.map(job => job.ready)));
+        }
         for (const [index, job] of jobs.entries()) {
           const result = results[index]; if (result === undefined) throw new Error('Missing road archive result');
           if (!result.ok) throw result.error;
           if (job.owner.disposed || job.owner.disposing) throw new Error('Road backing owner retired');
           job.references.push(result.reference);
         }
-      } finally { this.failureSeen = false; }
+      } catch (error) {
+        await Promise.all(takeRemaining().map(job => job.ready)); throw error;
+      } finally { if (this.pending.length === 0) this.failureSeen = false; }
     })();
     this.flushing = pending;
     return pending.finally(() => { if (this.flushing === pending) this.flushing = null; });
