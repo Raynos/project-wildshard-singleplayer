@@ -1,11 +1,13 @@
 /** Browser-serialized census. Baseline reads native completed-frame counters;
  * attribution wraps submissions and optional property counts only in a separate diagnostic window.
- * @param {{frames: number, attribution: boolean, propertyCalls?: boolean}} options */
-export function drawFrames({ frames, attribution, propertyCalls = false }) {
+ * @param {{frames: number, attribution: boolean, propertyCalls?: boolean, systemIds?: string[]}} options */
+export function drawFrames({ frames, attribution, propertyCalls = false, systemIds }) {
   const api = window.__wildshard, world = api?.world, game = world?.game;
   if (!game || !world.hud.entered || world.hud.paused || !game.frameGate()) throw new Error('Census requires uncovered, entered controls');
   const renderer = game.renderer, gl = renderer.getContext();
   const restores = [], results = [];
+  const selectedSystems = new Set(systemIds), presentSystems = new Set();
+  let systemBucket;
   let bucket, current = null, shadow = 0, pass = 'outside-composer', started = false, last = game.frameCount;
   let program = gl.getParameter(gl.CURRENT_PROGRAM), nextProgram = 0;
   const programs = new Map();
@@ -29,6 +31,22 @@ export function drawFrames({ frames, attribution, propertyCalls = false }) {
     bucket.draws.push({ ...current, owner: current?.owner ?? '(unattributed)', method, count: 1, subDraws: count, program: programId(),
       pass: shadow > 0 ? 'shadow' : target === null ? 'screen' : 'render-target', composerPass: pass });
   };
+  if (systemIds !== undefined) {
+    if (attribution || selectedSystems.size !== systemIds.length || systemIds.length === 0) throw new Error('System census needs a separate, unique native window');
+    try {
+      for (const specs of Object.values(game.app.systemsByPhase())) for (const spec of specs) {
+        if (!selectedSystems.has(spec.id)) continue;
+        if (presentSystems.has(spec.id)) throw new Error('Duplicate census system identity');
+        presentSystems.add(spec.id);
+        replace(spec, 'run', original => function censusSystem(...args) {
+          if (systemBucket === undefined) return Reflect.apply(original, this, args);
+          const start = performance.now();
+          try { return Reflect.apply(original, this, args); }
+          finally { const row = systemBucket[spec.id]; row.calls++; row.ms += performance.now() - start; }
+        });
+      }
+    } catch (error) { for (const restore of restores.reverse()) restore(); throw error; }
+  }
   if (attribution) {
     try {
       if (propertyCalls) replace(renderer.properties, 'get', original => function censusProperties(resource) {
@@ -98,11 +116,13 @@ export function drawFrames({ frames, attribution, propertyCalls = false }) {
             const index = (game.frameI + game.frameMs.length - 1) % game.frameMs.length;
             const row = { frame: game.frameCount, calls: game.lastFrame.calls, triangles: game.lastFrame.triangles,
               workMs: game.workMs[index], renderMs: game.renderMs[index], ...bucket };
+            if (systemIds !== undefined) row.systems = systemBucket;
             if (attribution && row.draws.reduce((sum, draw) => sum + draw.count, 0) !== row.calls) throw new Error('Native draw submissions disagree with whole-frame calls');
             results.push(row);
           }
           if (results.length >= frames) { finish(); return; }
           started = true; last = game.frameCount; bucket = attribution ? fresh() : undefined;
+          if (systemIds !== undefined) systemBucket = Object.fromEntries([...presentSystems].map(id => [id, {calls:0, ms:0}]));
         } catch (error) { finish(error); }
       });
     } catch (error) { finish(error); }

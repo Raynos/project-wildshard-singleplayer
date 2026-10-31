@@ -1,6 +1,21 @@
 import { expect, test, vi } from 'vitest';
 import { drawFrames } from '../scripts/perf/draw-census-page.mjs';
 import { nativeSummary, attributionSummary, sampledCpu } from '../scripts/perf/draw-census-report.mjs';
+import { censusSelection } from '../scripts/perf/draw-census-poses.mjs';
+
+test('census preserves the paired defaults and selects standing golden P1 cameras', () => {
+  expect(censusSelection().map(row => [row.slug, row.poseName, row.modes])).toEqual([
+    ['nine-dragon-stack', 'P4', ['legacy', 'shardfile']], ['pine-hollow', 'Q4', ['legacy', 'shardfile']],
+  ]);
+  expect(censusSelection('pine-hollow', 'P1', 'legacy')[0]?.pose).toEqual({x:0,z:-235,yaw:Math.PI,pitch:0});
+  expect(censusSelection('driftwood-isle', 'Q4', 'shardfile')[0]).toMatchObject({poseName:'P1:pier',pose:{x:0,z:-194,yaw:Math.PI,pitch:0},modes:['shardfile']});
+  expect(censusSelection('nalati-grasslands')[0]?.pose).toMatchObject({x:60,z:214,yaw:-Math.PI/2,pitch:0});
+  expect(censusSelection('far-reach')[0]?.pose).toMatchObject({x:0,y:30,z:-5.5,yaw:-0,pitch:0});
+  expect(censusSelection('sunscar-dunes')[0]?.pose).toMatchObject({x:0,z:70,yaw:-0,pitch:2*Math.PI/180});
+  expect(() => censusSelection('missing')).toThrow('Unknown census shard');
+  expect(() => censusSelection('', 'missing')).toThrow('Unknown Pine census pose');
+  expect(() => censusSelection('', 'P1', 'missing')).toThrow('Unknown census mode');
+});
 
 test('render cost stays paired with its completed frame and zero draws stay unknown', () => {
   const result = nativeSummary([
@@ -123,5 +138,43 @@ test('native baseline never installs a property observer', async () => {
     expect(f.renderer.properties.get).toBe(f.get);
     f.callbacks.frame?.();f.game.frameCount++;f.callbacks.frame?.();
     expect((await capture)[0]?.propertyReads).toBeUndefined();
+  }finally{restore();}
+});
+
+test('system attribution keeps native calls, frame buckets and descriptor restoration', async () => {
+  for (const fail of [false, true]) {
+    const f = propertyFixture(), calls: unknown[][] = [];
+    const spec = {id:'main.world', run(...args: unknown[]) {calls.push([this, ...args]);}};
+    const descriptor = Object.getOwnPropertyDescriptor(spec, 'run');
+    Object.assign(f.game, {app:{systemsByPhase:()=>({update:[spec]})}});
+    const restore = browserFixture(f.world);
+    try {
+      const capture = drawFrames({frames:1, attribution:false, systemIds:['main.world','absent']});
+      const original = descriptor?.value;
+      expect(Reflect.get(spec, 'run')).not.toBe(original);
+      // A pre-window call runs normally but does not enter the first frame.
+      spec.run(.1, 1); f.callbacks.frame?.();
+      spec.run(.2, 2);
+      if (fail) {f.world.hud.paused=true;f.callbacks.frame?.();await expect(capture).rejects.toThrow('presentation changed');}
+      else {
+        f.game.frameCount++;f.callbacks.frame?.();
+        const rows = await capture;
+        expect(rows[0]?.systems?.['main.world']?.calls).toBe(1);
+        expect(rows[0]?.systems?.['main.world']?.ms).toBeGreaterThanOrEqual(0);
+        expect(rows[0]?.systems).not.toHaveProperty('absent');
+      }
+      expect(calls).toEqual([[spec,.1,1],[spec,.2,2]]);
+      expect(Object.getOwnPropertyDescriptor(spec,'run')).toEqual(descriptor);
+      expect(f.renderer.properties.get).toBe(f.get);
+      expect(f.renderer.renderBufferDirect).toBe(f.originalDraw);
+    } finally {restore();}
+  }
+});
+
+test('system window refuses mixed or duplicate observation identities before mutation', () => {
+  const f=propertyFixture(), restore=browserFixture(f.world);
+  try {
+    expect(()=>drawFrames({frames:1,attribution:true,systemIds:['x']})).toThrow('separate');
+    expect(()=>drawFrames({frames:1,attribution:false,systemIds:['x','x']})).toThrow('unique');
   }finally{restore();}
 });

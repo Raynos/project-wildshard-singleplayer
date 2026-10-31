@@ -2,6 +2,8 @@
 // scripts/browser-lane.sh node scripts/perf/draw-census.mjs --url=http://127.0.0.1:4400/ --dist=tmp/serve/.../dist
 // Default: Nine P4 and Pine Q4, LEGACY then SHARDFILE.
 // --slug=pine-hollow --pine-pose=P1 measures the PF14 spawn bar separately.
+// Other public shards select golden camera 1. --environment=golden pins midday/clear;
+// --mode=shardfile measures the graph back-end without an unrelated legacy leg.
 import { chromium, devices } from 'playwright';
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
@@ -11,12 +13,15 @@ import { developerSettings, saveFixture, hideDeveloperOverlays } from '../debug-
 import { loadingCardIndex } from '../loading-benchmark/catalogue.mjs';
 import { drawFrames } from './draw-census-page.mjs';
 import { nativeSummary, attributionSummary, sampledCpu } from './draw-census-report.mjs';
+import { censusSelection } from './draw-census-poses.mjs';
 
 const arg = (name, fallback = '') => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const base = arg('url'), dist = resolve(arg('dist', 'dist')), frames = Number(arg('frames', '60'));
 const surface = arg('surface', 'pwa'), requestedSlug = arg('slug'), pinePose = arg('pine-pose', 'Q4');
-if (requestedSlug !== '' && !['nine-dragon-stack', 'pine-hollow'].includes(requestedSlug)) throw new Error('Unknown census shard');
-if (!['P1', 'Q4'].includes(pinePose)) throw new Error('Unknown Pine census pose');
+const selections = censusSelection(requestedSlug, pinePose, arg('mode', 'both'));
+const environment = arg('environment', 'live');
+if (!['live', 'golden'].includes(environment)) throw new Error('Unknown census environment');
+const systemIds = arg('systems') === '' ? undefined : arg('systems').split(',');
 if (!['pwa', 'browser'].includes(surface)) throw new Error('Unknown phone surface');
 const device = devices['iPhone 16 Pro'], viewport = surface === 'pwa' ? device.screen : device.viewport;
 if (viewport === undefined) throw new Error('Requested phone surface has no native viewport');
@@ -68,24 +73,20 @@ if (arg('reprocess') !== '') {
   writeFileSync(target, JSON.stringify(retained, null, 2)); console.info(target); process.exit(0);
 }
 const result = { build: version.build, url: base, protocol: { device: 'iPhone 16 Pro', tier: 'phone', dpr: 2, cpuRate: 4, frames,
-  surface, viewport, slug: requestedSlug === '' ? null : requestedSlug, pinePose,
+  surface, viewport, slug: requestedSlug === '' ? null : requestedSlug, pinePose, environment,
+  systems: systemIds ?? null,
   baseline: 'native completed Game renderMs/workMs and whole-frame calls, before any census hooks or profiler',
   attribution: 'separate GL submission observation, including shadow/post/held; no GPU synchronization',
   propertyCounts: 'separate attribution window; native getter and descriptors restored before profile',
   profile: 'separate CDP sampled stacks mapped through the matching private dist; diagnostic, not a floor' }, rows: [] };
 const browser = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
-  for (const { slug, poseName, pose } of [
-    { slug: 'nine-dragon-stack', poseName: 'P4', pose: { x: 76, y: 146, z: 6, yaw: Math.PI / 2, pitch: -10 * Math.PI / 180 } },
-    { slug: 'pine-hollow', poseName: pinePose, pose: pinePose === 'P1'
-      ? { x: 0, z: -235, yaw: Math.PI, pitch: 0 }
-      : { x: 0, z: -28, yaw: Math.PI / 2, pitch: -4 * Math.PI / 180 } },
-  ].filter(row => requestedSlug === '' || row.slug === requestedSlug)) for (const mode of ['legacy', 'shardfile']) {
+  for (const { slug, poseName, pose, modes } of selections) for (const mode of modes) {
     const context = await browser.newContext({ ...device, viewport });
     const row = { slug, poseName, mode, errors: [] }; result.rows.push(row);
     const persist = () => writeFileSync(join(out, 'census.json'), JSON.stringify(result, null, 2));
     try {
-      await developerSettings(context, { tier: 'phone', volume: 0, time: 'live', weather: 'live' });
+      await developerSettings(context, { tier: 'phone', volume: 0, time: environment === 'golden' ? 'midday' : 'live', weather: environment === 'golden' ? 'clear' : 'live' });
       await saveFixture(context, { scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } });
       await saveFixture(context, { scope: 'device', key: 'debug.global.legacyShardButtons', data: 'on' });
       await saveFixture(context, { scope: 'device', key: 'debug.global.refineDither', data: 'off' });
@@ -106,11 +107,13 @@ try {
       // Keep actual actors/health/visibility alive. Settle at the measured pose;
       // record its actual position rather than promising an identical scene.
       await page.waitForTimeout(8000);
-      row.pose = await page.evaluate(() => { const world = window.__wildshard.world; return { at: world.player.position.toArray(), yaw: world.player.yaw, pitch: world.player.pitch }; });
+      row.pose = await page.evaluate(() => { const world = window.__wildshard.world; return { at: world.player.position.toArray(), yaw: world.player.yaw, pitch: world.player.pitch,
+        camera: world.game.camera.position.toArray(), fov: world.game.camera.fov }; });
       row.baselineFrames = await page.evaluate(drawFrames, { frames, attribution: false });
       row.native = nativeSummary(row.baselineFrames); persist();
       row.attributionFrames = await page.evaluate(drawFrames, { frames, attribution: true, propertyCalls: true });
       row.attribution = attributionSummary(row.attributionFrames); persist();
+      if (systemIds !== undefined) { row.systemFrames = await page.evaluate(drawFrames, { frames, attribution: false, systemIds }); persist(); }
       await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 200 }); await cdp.send('Profiler.start');
       let profileWindow;
       try { profileWindow = await page.evaluate(drawFrames, { frames, attribution: false }); }
