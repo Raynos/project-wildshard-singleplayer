@@ -64,7 +64,9 @@ export function postGraphRow(passes: ReturnType<typeof postRows>): PostGraphLook
     lut: { url: light.lut, texture: 'uLut', amount: 'uLutAmt' },
     // the streak cards' gain: the whole wet-floor reflection where no reflection pass runs
     lent: [{ look: 'nine-streaks', param: 'cardOn', side: 'reflect', drawn: bindings.cardOn, absent: 1 }],
-    events: [{ event: 'practice.active', on: { set: [rain(0)], display: 0 }, off: { set: [rain(B.rain)], display: 1 } },
+    // G4: no `display` fade (the display copy's SRC blend never read its opacity: 4 of 1.1 M px at 0), so the composite
+    // grades straight into the composer's buffer, with no frame target and no display copy pass
+    events: [{ event: 'practice.active', on: { set: [rain(0)] }, off: { set: [rain(B.rain)] } },
       // the studio's clear air (no drizzle, no base fog, no band depth) and its specimen light until it closes
       { event: 'explore.studio', on: { set: [rain(0)], hold: [{ param: 'uFogBase', value: 0 }, { param: 'uBands', index: 2, each: true, value: 0 }, ...specimenLight()] }, off: { set: [rain(B.rain)] } }],
     ao: { ...ao, color: [ao.color[0] ?? 0, ao.color[1] ?? 0, ao.color[2] ?? 0], fog: [ao.fog[0] ?? 0, ao.fog[1] ?? 0] },
