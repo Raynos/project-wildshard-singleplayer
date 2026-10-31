@@ -14,7 +14,7 @@ import plots from '../src/shards/open-plots/outputs.json' with { type: 'json' };
 // G531: SHARD SELECT shows one entry per shard, its shardfile; the Developer-tools row Legacy shard buttons brings LEGACY back.
 const card = (slug: TitleCard['slug'], legacy: boolean): TitleCard => ({ slug, name: slug, label: slug, thumbnail: '', heroPortrait: '', heroLandscape: '',
   entries: { legacy, shardfile: true } });
-const CARDS = [card('driftwood-isle', true), card('pine-hollow', true), card('far-reach', false)];
+const CARDS = [card('nine-dragon-stack', true), card('pine-hollow', true), card('far-reach', false)];
 const decks: ReturnType<typeof buildTitleDeck>[] = [];
 const paintFrames = (): Promise<void> => new Promise(resolve => { requestAnimationFrame(() => { requestAnimationFrame(() => { resolve(); }); }); });
 
@@ -68,7 +68,7 @@ test('row on in Developer: LEGACY and SHARDFILE come back where a legacy copy is
   d.select(0); play(d.root);
   expect(d.entered).toEqual([]);
   await paintFrames();
-  expect(d.entered).toEqual([['driftwood-isle', 'legacy']]);
+  expect(d.entered).toEqual([['nine-dragon-stack', 'legacy']]);
   row().set('off');
   expect(shown(d.root)).toEqual(['Enter world']);
 });
@@ -88,6 +88,37 @@ test('the boot honours a LEGACY pick only with the legacy buttons on', () => {
   expect(shardEntry(pine, false, () => choices)).toBe('shardfile');
   expect(shardEntry(pine, true, () => choices)).toBe('legacy');
   expect(shardEntry({ slug: 'pine-hollow-legacy', entries: { legacy: true, shardfile: false, public: 'legacy' } }, false, () => choices)).toBe('legacy');
+});
+
+test.each([
+  ['driftwood-isle', false], ['nalati-grasslands', false],
+  ['sunscar-dunes', false], ['far-reach', false],
+  ['nine-dragon-stack', true], ['pine-hollow', true],
+] as const)('%s card offers legacy only while its frozen copy remains', async (slug, legacy) => {
+  const manifests = [...SHARDS, ...LEGACY_SHARDS];
+  installShards(manifests); setDev(true);
+  const choice = titleCards(true).find(candidate => candidate.slug === slug);
+  const manifest = manifests.find(candidate => candidate.slug === slug);
+  if (choice === undefined || manifest === undefined) throw new Error('Missing real shard card');
+  expect(choice.entries).toEqual({legacy, shardfile: true});
+  expect(LEGACY_SHARDS.some(copy => copy.slug === `${slug}-legacy`)).toBe(legacy);
+  const entered: [string, string | undefined][] = [];
+  const built = buildTitleDeck({cards: [choice], active: null,
+    onEnter: (selected, entry) => { entered.push([selected.slug, entry]); },
+    onExplore: () => undefined, onSettings: () => undefined,
+    mode: () => ({developer: true, devserver: true})});
+  decks.push(built); document.body.append(built.root);
+  row().set('on');
+  try {
+    expect(shown(built.root)).toEqual(legacy
+      ? [GAME_STRINGS.entry.legacy, GAME_STRINGS.entry.shardfile] : ['Enter world']);
+    if (!legacy) {
+      // A saved pick from before retirement must not revive the deleted entry.
+      expect(shardEntry(manifest, true, () => ({choose: () => undefined, read: () => 'legacy'}))).toBe('shardfile');
+      play(built.root); await paintFrames();
+      expect(entered).toEqual([[slug, 'shardfile']]);
+    }
+  } finally { row().set('off'); installShards([]); }
 });
 
 

@@ -17,7 +17,7 @@
   "gridShardfile": "/shardfiles/nalati-grasslands/shard.json",
   "cellGround": "world",
   "entries": {
-    "legacy": true,
+    "legacy": false,
     "shardfile": true
   },
   "loadout": {
