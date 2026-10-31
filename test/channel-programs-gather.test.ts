@@ -59,6 +59,22 @@ test('zero-read lanes keep exact empty-vector admission',()=>{
  expect(()=>host.evaluate({time:0,delta:0,values:[1]})).toThrow('vector differs');
 });
 
+test('unchanged borrowed values retain clock refusal and recovery',()=>{
+ const dag=new ClientChannels('clock');dag.output('value',dag.binary('add',dag.read('a'),dag.clock('time')));
+ const rows=parseClientChannels([{...dag.build(),numeric:{group:'gather',outputs:[{property:'value',target:'root',path:['x']}],inputs:[{input:'a',owner:'root',path:['a']}]}}]);
+ const root={a:2,x:0},host=installChannelPrograms(rows,'gather',new Map([['root',root]])),faults:Fault[]=[];
+ const stop=onFault(fault=>{faults.push(fault);});
+ try{
+  host.evaluate({time:1,delta:.1,values:{}});expect(root.x).toBe(3);
+  const refused:readonly (readonly [number,number])[]=[[Number.NaN,.1],[1,-.1],[1e13,.1],[1,Number.POSITIVE_INFINITY]];
+  for(const [time,delta]of refused){
+   host.evaluate({time,delta,values:{}});expect(root.x).toBe(3);
+  }
+  expect(faults).toHaveLength(1);
+  host.evaluate({time:2,delta:.1,values:{}});expect(root.x).toBe(4);
+ }finally{stop();}
+});
+
 test('getter reentry keeps the existing shared snapshot and first-read order',()=>{
  let reenter=false,a=0;const reads:string[]=[];
  const nested:{run?:()=>void}={};
