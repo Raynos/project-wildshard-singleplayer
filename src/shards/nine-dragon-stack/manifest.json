@@ -14,6 +14,9 @@
     "oneMaterial": false
   },
   "debugOptions": [],
+  "boundary": {
+    "visible": false
+  },
   "uses": [
     "hover",
     "explore",
