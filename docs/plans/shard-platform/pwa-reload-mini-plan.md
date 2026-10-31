@@ -1,6 +1,6 @@
 # Clean PWA reload: one tap on NEW BUILD lands the newest build
 
-**State:** `draft` 2026-10-31 for Jake's grill. Written by wildshard-v's planning subagent; after the grill, wildshard-new
+**State:** `open` (grilled 10-31 ~08:20: G961 the pill lights only when one tap lands the newest build, G962 a fresh open offers it, no auto-switch); was `draft` 2026-10-31 for Jake's grill. Written by wildshard-v's planning subagent; after the grill, wildshard-new
 hands out the rows and marks them. Ask E519. Jake: *"Have a subagent make a mini plan about how to reload cleanly in game
 for a PWA. I think we might have problems it smells to me. I definitely have to reload multiple times to get the 'new
 build' pill to go away."* It follows [QC3](../../../project/archive/2026-10-30-qa-2026-10-30.md) (e2dfc879b5: the tap
