@@ -2,7 +2,7 @@ import {expect,test} from 'vitest';
 import {ShaderMaterial} from 'three';
 // oxlint-disable-next-line import/no-nodejs-modules -- The browser loan checks the identical complete source digest.
 import {createHash} from 'node:crypto';
-import {loanMaterialPrograms,type ProgramSource,type MaterialProgramLoan} from '../scripts/perf/material-program-loan.mjs';
+import {loanMaterialPrograms,trackMaterialProgramDraws,type ProgramSource,type MaterialProgramLoan,type ProgramDrawRenderer} from '../scripts/perf/material-program-loan.mjs';
 
 function source(body:string):ProgramSource{
  const vertex='attribute vec3 aSeed; uniform float phase; void main(){gl_Position=vec4(aSeed,1.0);}';
@@ -29,6 +29,20 @@ test('loans only source and restores native material policy and uniforms by iden
   expect(material.fragmentShader).toBe(program.before.fragment);expect(material.vertexShader).toBe(program.before.vertex);
   expect(material.uniforms).toBe(uniforms);
  }finally{material.dispose();}
+});
+
+test('draw evidence counts only native target identities and restores the submission owner',async()=>{
+ const {material,program}=fixture();
+ const loan=await loanMaterialPrograms([material],[program]);
+ const calls:unknown[][]=[];
+ const renderer:ProgramDrawRenderer={renderBufferDirect(...args){expect(this).toBe(renderer);calls.push(args);return 17;}};
+ const original=renderer.renderBufferDirect,track=trackMaterialProgramDraws(renderer,loan.receipts);
+ try{
+  expect(renderer.renderBufferDirect(null,null,null,material)).toBe(17);
+  renderer.renderBufferDirect(null,null,null,{uuid:'unrelated'});
+  expect(track.read()).toEqual({owned:1});expect(calls).toHaveLength(2);
+  track.restore();track.restore();expect(renderer.renderBufferDirect).toBe(original);
+ }finally{track.restore();loan.restore();material.dispose();}
 });
 
 test('wrong source, missing uniforms and attribute/uniform changes refuse before any mutation',async()=>{

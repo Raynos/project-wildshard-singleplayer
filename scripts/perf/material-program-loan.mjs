@@ -35,7 +35,7 @@ export async function loanMaterialPrograms(materials, programs) {
       seen.add(material);
       changes.push({material, vertex: material.vertexShader, fragment: material.fragmentShader});
     }
-    receipts.push({aliases:program.aliases, materials:matches.length, before:{vertexHash:program.before.vertexHash,fragmentHash:program.before.fragmentHash}, after:{vertexHash:program.after.vertexHash,fragmentHash:program.after.fragmentHash}});
+    receipts.push({aliases:program.aliases, materials:matches.length, targets:matches.map(material=>({uuid:material.uuid,name:material.name})), before:{vertexHash:program.before.vertexHash,fragmentHash:program.before.fragmentHash}, after:{vertexHash:program.after.vertexHash,fragmentHash:program.after.fragmentHash}});
   }
   if (changes.length === 0) throw new Error('Program loan is empty');
   let restored = false;
@@ -54,4 +54,35 @@ export async function loanMaterialPrograms(materials, programs) {
     }
   } catch (error) { restore(); throw error; }
   return {receipts, restore};
+}
+
+/** Observe actual native submissions, preserving arguments and receiver.
+ * @param {import('./material-program-loan.mjs').ProgramDrawRenderer} renderer
+ * @param {readonly import('./material-program-loan.mjs').ProgramLoanReceipt[]} receipts */
+export function trackMaterialProgramDraws(renderer,receipts){
+  const original=renderer.renderBufferDirect;
+  /** @type {Map<string,string>} */
+  const targets=new Map();
+  /** @type {Map<string,number>} */
+  const counts=new Map();
+  for(const receipt of receipts)for(const target of receipt.targets){
+    if(typeof target.uuid!=='string'||target.uuid.length===0||targets.has(target.uuid))throw new Error('Program draw target identity differs');
+    targets.set(target.uuid,target.name);counts.set(target.name,0);
+  }
+  if(targets.size===0)throw new Error('Program draw tracking has no actual targets');
+  /** @this {import('./material-program-loan.mjs').ProgramDrawRenderer} @param {...unknown} args */
+  function draw(...args){
+    const material=args[3];
+    if(typeof material==='object'&&material!==null&&'uuid'in material&&typeof material.uuid==='string'){
+      const name=targets.get(material.uuid);if(name!==undefined)counts.set(name,(counts.get(name)??0)+1);
+    }
+    return original.apply(this,args);
+  }
+  renderer.renderBufferDirect=draw;
+  let restored=false;
+  return {read:()=>Object.fromEntries(counts),restore:()=>{
+    if(restored)return;
+    if(renderer.renderBufferDirect!==draw)throw new Error('Program draw tracking lost its native owner');
+    renderer.renderBufferDirect=original;restored=true;
+  }};
 }

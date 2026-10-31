@@ -10,7 +10,7 @@ import { fixedWorldFrame } from '../parity/fixed-render.mjs';
 import { readParityFrame } from '../parity/frame-bytes.mjs';
 import { developerSettings, saveFixture } from '../debug-settings.mjs';
 import { loadingCardIndex } from '../loading-benchmark/catalogue.mjs';
-import { loanMaterialPrograms } from './material-program-loan.mjs';
+import { loanMaterialPrograms, trackMaterialProgramDraws } from './material-program-loan.mjs';
 
 /** @param {string} name */
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
@@ -57,7 +57,7 @@ const builds = [];
 const protocol = includeViewmodel
   ? 'M3 world/native posed camera; no post; viewmodel included/actual draws required; Metal iPhone 16 Pro DPR2; fixed uniform time10; fresh-context seeded A/A; GL_DITHER off; serial GPU draw completion; full RGBA exact'
   : 'M3 world/native posed camera; no post/viewmodel; Metal iPhone 16 Pro DPR2; fixed uniform time10; fresh-context seeded A/A; GL_DITHER off; serial GPU draw completion; full RGBA exact';
-/** @type {{slug:string,pose:string,receipts:import('./material-program-loan.mjs').ProgramLoanReceipt[]}[]} */
+/** @type {{slug:string,pose:string,receipts:import('./material-program-loan.mjs').ProgramLoanReceipt[],draws?:Record<string,number>}[]} */
 const loanReceipts=[];
 /** @type {{slug:string,pose:string,pixels:number}[]} */
 const loanRestoration=[];
@@ -105,7 +105,7 @@ try {
       for (const pose of poses) {
         await bounded(`${slug}/${pose.name}/pose`, async () => { await poseAt(page, pose); await advance(page, 90); });
         if (repeat === 2 && materialPrograms !== null) {
-          const receipts = await page.evaluate(`(async()=>{const materials=new Set();window.__wildshard.requireWorld().game.rootScene.traverse(o=>{for(const m of Array.isArray(o.material)?o.material:[o.material])if(m?.isShaderMaterial)materials.add(m);});const loan=await (${loanMaterialPrograms.toString()})([...materials],${JSON.stringify(materialPrograms)});window.__exactWorldProgramLoan=loan;return loan.receipts;})()`);
+          const receipts = await page.evaluate(`(async()=>{const g=window.__wildshard.requireWorld().game,materials=new Set();g.rootScene.traverse(o=>{for(const m of Array.isArray(o.material)?o.material:[o.material])if(m?.isShaderMaterial)materials.add(m);});const loan=await (${loanMaterialPrograms.toString()})([...materials],${JSON.stringify(materialPrograms)});try{const track=(${trackMaterialProgramDraws.toString()})(g.renderer,loan.receipts),restore=loan.restore;loan.draws=track.read;loan.restore=()=>{try{track.restore();}finally{restore();}};window.__exactWorldProgramLoan=loan;return loan.receipts;}catch(error){loan.restore();throw error;}})()`);
           result.programLoan?.receipts.push({slug,pose:pose.name,receipts});
         }
         const file = join(out, `${repeat}-${slug}-${pose.name}.rgba`);
@@ -117,6 +117,9 @@ try {
         result.rows.push({repeat,slug,pose:pose.name,...frame,pixels,file}); save();
         console.log(`${repeat} ${slug}/${pose.name} ${frame.calls} draws ${frame.triangles} tris frame${frame.frame} ${pixels.slice(0,12)}`);
         if (repeat === 2 && materialPrograms !== null) {
+          const draws=v.parse(v.record(v.string(),v.pipe(v.number(),v.integer(),v.minValue(0))),await page.evaluate('window.__exactWorldProgramLoan.draws()'));
+          const receipt=loanReceipts.find(row=>row.slug===slug&&row.pose===pose.name);
+          if(receipt===undefined)throw new Error('Program draw receipt is absent');receipt.draws=draws;
           await page.evaluate('window.__exactWorldProgramLoan.restore();delete window.__exactWorldProgramLoan;');
           const restoredFile=join(out,`restored-${slug}-${pose.name}.rgba`);
           await readWorldFrame(page,await page.evaluateHandle(fixedWorldFrame,{...pose,includeViewmodel}),restoredFile);
@@ -149,6 +152,9 @@ try {
     }
   }
   save();
+  if(materialPrograms!==null)for(const program of materialPrograms)for(const alias of program.aliases){
+    if(!loanReceipts.some(row=>(row.draws?.[alias]??0)>0))throw new Error(`Program loan has no actual native submission: ${alias}`);
+  }
   const failed = result.differences.filter(row => row.pixels !== 0);
   for (const row of failed) console.error(`${row.kind} ${row.slug}/${row.pose}: ${row.pixels} differing RGBA pixels`);
   if (failed.length > 0) throw new Error('World AA/AB pixel mismatch; inspect reading.json');
