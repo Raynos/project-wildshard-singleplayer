@@ -299,13 +299,14 @@ function streamedGeometry(draw: typeof warmParkedDraws) {
   if (start === -1 || end < start) throw new Error('Streamed preparation method missing');
   const owner = new Scope('streamed-geometry'), scene = new Scene(), root = new Group(); root.visible = false; scene.add(root);
   const prepare = vi.fn<() => Promise<void>>().mockResolvedValue(undefined), pause = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
-  const game = { _composer: { inputBuffer: {} }, frameCount: 0, levelScope: owner, rootScene: scene, camera: {}, renderer: {} };
+  const game = { _composer: { inputBuffer: {} }, frameCount: 0, frameGate: (): boolean => false, levelScope: owner, rootScene: scene, camera: {}, renderer: {} };
+  const presentation = { state: 'covered' }, task = vi.fn<typeof yieldTask>().mockImplementation(scope => yieldTask(scope));
   const body = source.slice(start, end).replace("await import('../render/precompile')", 'programs').replace("await import('../render/parkedDraws')", 'nativeDraws');
   const method: unknown = runInNewContext(stripTypeScriptTypes(`class Harness { ${body} }\nHarness.prototype.warmSceneRoots`), {
-    programs: { prepareSceneRoots: prepare, waitForDrawnFrame: pause, LIVE_UPLOAD_BUDGET: {} }, nativeDraws: { warmParkedDraws: draw }, boundEntryWarmup, yieldTask,
+    programs: { prepareSceneRoots: prepare, waitForDrawnFrame: pause, LIVE_UPLOAD_BUDGET: {} }, nativeDraws: { warmParkedDraws: draw }, boundEntryWarmup, yieldTask: task, pagePresentation: presentation,
   });
   if (typeof method !== 'function') throw new Error('Streamed preparation method is not callable');
-  return { owner, root, scene, game, prepare, pause,
+  return { owner, root, scene, game, prepare, pause, presentation, task,
     run: (): Promise<unknown> => Promise.resolve(Reflect.apply(method, game, [[root], () => !owner.disposed, undefined, { drawGeometry: true }])),
   };
 }
@@ -334,3 +335,17 @@ test('an incomplete native warm cannot publish streamed geometry as ready', asyn
   try { await expect(f.run()).rejects.toThrow('Streamed geometry preparation did not complete'); }
   finally { f.owner.dispose(); }
 });
+
+
+for (const [gate, state] of [[false, 'play'], [true, 'covered']] as const) {
+  test(`hidden loader draw count does not wait for live frames (gate ${gate}, view ${state})`, async () => {
+    const draw = vi.fn<typeof warmParkedDraws>().mockImplementation(async (_renderer, _scene, _camera, _target, _root, _current, pause, options) => {
+      options?.onProgress?.(0, 1); await pause(); options?.onProgress?.(1, 1); return 1;
+    });
+    const f = streamedGeometry(draw); f.game.frameCount = 1; f.game.frameGate = () => gate; f.presentation.state = state;
+    try {
+      await f.run();
+      expect(draw).toHaveBeenCalledOnce(); expect(f.pause).not.toHaveBeenCalled(); expect(f.task).toHaveBeenCalledWith(f.owner);
+    } finally { f.owner.dispose(); }
+  });
+}

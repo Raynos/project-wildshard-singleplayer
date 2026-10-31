@@ -887,7 +887,13 @@ export class Game {
     const { prepareSceneRoots, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
     await boundEntryWarmup(this.levelScope, async withinBound => {
       const live = (): boolean => withinBound() && current() && this._composer === composer;
-      const pause = this.frameCount > 0 ? () => waitForDrawnFrame(this.levelScope, () => this.frameCount, live) : undefined;
+      // Forced hidden loader draws also increment frameCount. Only the
+      // opt-in geometry path distinguishes covered work from live draws;
+      // existing shader-only callers keep their original barrier.
+      const pause = options?.drawGeometry === true
+        ? (): Promise<void> => this.frameCount > 0 && this.frameGate() && pagePresentation.state === 'play'
+          ? waitForDrawnFrame(this.levelScope, () => this.frameCount, live) : yieldTask(this.levelScope)
+        : this.frameCount > 0 ? () => waitForDrawnFrame(this.levelScope, () => this.frameCount, live) : undefined;
       // before play (no frame drawn yet) the boot's Shaders step builds what the first frame draws and the rest is warmed
       // in play: a region's own warm-up here keeps only its resources then
       await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, live, pause,
