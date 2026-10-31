@@ -1,11 +1,11 @@
 import {expect, test} from 'vitest';
-import type {Request} from 'playwright';
+import type {Request, Response} from 'playwright';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {NativeSizeLedger} from '../scripts/phone-loading/native-sizes';
 
-function request(url: string, start = 1000, worker = false, method = 'GET'): Request {
+function request(url: string, start = 1000, worker = false, method = 'GET', responseEnd = -1): Request {
   return legacyDouble<Request>({url: () => url, method: () => method,
-    timing: () => legacyDouble<ReturnType<Request['timing']>>({startTime: start}),
+    timing: () => legacyDouble<ReturnType<Request['timing']>>({startTime: start, responseEnd}),
     serviceWorker: () => worker ? legacyDouble<NonNullable<ReturnType<Request['serviceWorker']>>>({}) : null});
 }
 function begin(ledger: NativeSizeLedger, url: string, id = '1', wallTime = 1, worker = false): void {
@@ -100,4 +100,31 @@ test('an uncached empty POST is zero body; a cached GET still requires body evid
   ledger.event('session', false, 'Network.responseReceived', {requestId: 'get', response: {encodedDataLength: 0, fromDiskCache: true}});
   ledger.event('session', false, 'Network.loadingFinished', {requestId: 'get', encodedDataLength: 0});
   expect(ledger.read(request(url, 2000))?.decodedBytes).toBeUndefined();
+});
+
+test('independent CDP clock drift joins only one overlapping, validated response', () => {
+  const url = 'https://game.test/startup.js', headers = {etag: 'exact', 'content-type': 'text/javascript', 'content-encoding': 'br'};
+  const response = (values = headers, status = 200): Response => legacyDouble<Response>({headers: () => values, status: () => status});
+  const make = (ids = ['one'], validators: Record<string, string> = headers): NativeSizeLedger => {
+    const ledger = new NativeSizeLedger();
+    for (const id of ids) {
+      ledger.event('s', false, 'Network.requestWillBeSent', {requestId: id, wallTime: 1, timestamp: 10, request: {url, method: 'GET'}});
+      ledger.event('s', false, 'Network.responseReceived', {requestId: id, response: {status: 200, headers: validators, encodedDataLength: 80}});
+      ledger.event('s', false, 'Network.dataReceived', {requestId: id, dataLength: 123, encodedDataLength: 17});
+      ledger.event('s', false, 'Network.loadingFailed', {requestId: id, timestamp: 10.2});
+    }
+    return ledger;
+  };
+  const ledger = make(), drifted = request(url, 1005, false, 'GET', 190);
+  expect(ledger.read(drifted, response())).toMatchObject({decodedBytes: 123, encodedBytes: 17, transferBytes: 97, partial: true});
+  expect(ledger.read(request(url, 1005, false, 'GET', 190), response())).toBeNull(); // already claimed
+  expect(make(['one', 'two']).read(drifted, response())).toBeNull();
+  expect(make().read(request(url, 2000, false, 'GET', 190), response())).toBeNull();
+  expect(make().read(request(url, 1005, true, 'GET', 190), response())).toBeNull();
+  expect(make().read(request(url, 1005, false, 'POST', 190), response())).toBeNull();
+  expect(make().read(request(url, 1005), response())).toBeNull(); // no completed lifetime
+  expect(make().read(drifted, response({...headers, etag: 'other'}))).toBeNull();
+  expect(make().read(drifted, response({...headers, 'content-encoding': 'gzip'}))).toBeNull();
+  expect(make().read(drifted, response(headers, 404))).toBeNull();
+  expect(make(['one'], {}).read(drifted, response())).toBeNull();
 });

@@ -66,6 +66,24 @@ test('a refused native size is unknown, while a measured zero remains an exact z
   } finally {network.stop();}
 });
 
+test('a delayed passive socket keeps the accounting deadline and cannot mutate a sealed refusal', async () => {
+  vi.useFakeTimers();
+  let deliver: (value: {requestId: string; decodedBytes: number; encodedBytes: number; transferBytes: number}) => void = () => {throw new Error('No native waiter');};
+  const wait = new Promise<{requestId: string; decodedBytes: number; encodedBytes: number; transferBytes: number}>(resolve => {deliver = resolve;});
+  const {network, request, finish} = fixture(() => wait);
+  try {
+    finish(request('native-delay', () => Promise.resolve(response()), () => Promise.resolve(sizes)));
+    const settled = network.settle();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(await settled).toMatchObject({complete: false, incomplete: 1, pending: 1});
+    expect(network.errors).toMatchObject([{source: 'native.events'}]);
+    const sealed = JSON.stringify(network.rows);
+    deliver({requestId: 'native', decodedBytes: 90, encodedBytes: 4, transferBytes: 6});
+    await vi.advanceTimersByTimeAsync(0);
+    expect(JSON.stringify(network.rows)).toBe(sealed);
+  } finally {network.stop();}
+});
+
 test('stop detaches listeners and prevents unresolved native jobs from mutating retained data', async () => {
   const {network, request, finish, events} = fixture();
   let respond: (value: Response) => void = () => {throw new Error('No response resolver');};

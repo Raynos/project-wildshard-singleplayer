@@ -48,7 +48,7 @@ async function accountSizes(row: RequestRow, request: Request, response: Respons
 }
 /** One context owns one request ledger, across both visits and their gap.
  * Native response/size metadata cannot hold the measured visit indefinitely. */
-export function observeRequests(attach: (start: (request: Request) => void, finish: (request: Request) => void) => () => void, nativeSizes?: (request: Request) => NativeSizes | null): {
+export function observeRequests(attach: (start: (request: Request) => void, finish: (request: Request) => void) => () => void, nativeSizes?: (request: Request, response?: Response | null) => NativeSizes | null | Promise<NativeSizes | null>): {
   readonly rows: RequestRow[]; readonly errors: ErrorRow[]; settle: (since?: number) => Promise<RequestAccounting>; stop: () => void;
 } {
   const rows: RequestRow[] = [], errors: ErrorRow[] = [], jobs = new Set<Job>();
@@ -84,7 +84,8 @@ export function observeRequests(attach: (start: (request: Request) => void, fini
         row.source = request.serviceWorker() !== null ? 'worker' : response?.fromServiceWorker() ? 'service-worker' : 'network';
         row.status = response?.status() ?? 0;
         if (response === null && row.failure !== null) {
-          const partial = nativeSizes?.(request);
+          const partial = await nativeSizes?.(request, response);
+          if (!job.active) return;
           const encoded = partial?.encodedBytes ?? 0, transfer = partial?.transferBytes ?? 0;
           Object.assign(row, {bytes: encoded, decodedBytes: partial?.decodedBytes ?? 0, transferBytes: transfer,
             headerBytes: transfer - encoded, bodyBasis: 'no-response', sizeBasis: partial === null || partial === undefined ? 'native-encoded' : 'native-events',
@@ -94,7 +95,11 @@ export function observeRequests(attach: (start: (request: Request) => void, fini
         job.stage = 'request.sizes';
         const sizes = await request.sizes();
         if (!job.active) return;
-        const recovered = await accountSizes(row, request, response, sizes.responseBodySize, sizes.responseHeadersSize, nativeSizes?.(request) ?? null, value => {job.stage = value;});
+        job.stage = 'native.events';
+        const native = await nativeSizes?.(request, response) ?? null;
+        if (!job.active) return;
+        job.stage = 'request.sizes';
+        const recovered = await accountSizes(row, request, response, sizes.responseBodySize, sizes.responseHeadersSize, native, value => {job.stage = value;});
         if (!job.active) return;
         Object.assign(row, recovered); job.active = false;
       } catch (error) {incomplete(job, String(error));}

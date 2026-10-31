@@ -1,11 +1,12 @@
 import {spawn} from 'node:child_process';
 import {mkdir} from 'node:fs/promises';
-import {chromium, type Browser, type Request} from 'playwright';
+import {setImmediate} from 'node:timers/promises';
+import {chromium, type Browser, type Request, type Response} from 'playwright';
 import {nativeBodyBytes} from './native-body.ts';
 import {NativeSizeLedger, type NativeSizes} from './native-sizes.ts';
 import {record, type Profile} from './model.ts';
 
-export interface ChromiumRun {browser: Browser; close: () => Promise<void>; workerNetwork: () => boolean; errors: string[]; nativeSizes: (request: Request) => NativeSizes | null}
+export interface ChromiumRun {browser: Browser; close: () => Promise<void>; workerNetwork: () => boolean; errors: string[]; nativeSizes: (request: Request, response?: Response | null) => Promise<NativeSizes | null>}
 /** Browser-level auto-attach catches the worker before its first network request. */
 export async function launchChromium(directory: string, profile: Profile): Promise<ChromiumRun> {
   await mkdir(directory, {recursive: true});
@@ -87,7 +88,12 @@ export async function launchChromium(directory: string, profile: Profile): Promi
     });
     await send('Target.setAutoAttach', {autoAttach: true, waitForDebuggerOnStart: true, flatten: true});
     const browser = await chromium.connectOverCDP(endpoint);
-    return {browser, errors, nativeSizes: request => native.read(request), workerNetwork: () => workers > 0, close: async () => {
+    return {browser, errors, nativeSizes: async (request, response) => {
+      // Playwright and the passive ledger use separate sockets. Let queued
+      // native completion events arrive before asking for their bytes.
+      await setImmediate();
+      return native.read(request, response);
+    }, workerNetwork: () => workers > 0, close: async () => {
       try {await browser.close();} finally {
         ws.close(); child.kill();
         for (const command of pending.values()) {clearTimeout(command.timer); command.reject(new Error('CDP closed'));}

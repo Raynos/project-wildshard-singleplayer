@@ -1,9 +1,9 @@
-import type {Request} from 'playwright';
+import type {Request, Response} from 'playwright';
 import {record} from './model.ts';
 
 export interface NativeSizes {decodedBytes?: number; encodedBytes?: number; transferBytes?: number; requestId: string; partial?: boolean; readBody?: () => Promise<number>}
 interface Entry {
-  key: string; session: string; protocolId: string; seenData: Set<string>; worker: boolean; url: string; method: string; start: number; timestamp?: number; timedStart?: number;
+  key: string; session: string; protocolId: string; seenData: Set<string>; worker: boolean; url: string; method: string; start: number; timestamp?: number; timedStart?: number; end?: number; status?: number;
   headers: Record<string, string>; decoded: number; encoded: number; chunks: boolean; cached: boolean; sw: boolean;
   initial?: number; transfer?: number; complete: boolean; revalidated?: boolean; failed?: boolean;
 }
@@ -39,6 +39,7 @@ export class NativeSizeLedger {
     entry.session = session;
     if (method === 'Network.responseReceived') {
       const response = record(data['response']);
+      if (typeof response['status'] === 'number') entry.status = response['status'];
       for (const [name, value] of Object.entries(record(response['headers'])))
         if (typeof value === 'string' && ['etag', 'last-modified', 'content-type', 'content-encoding', 'content-length'].includes(name.toLowerCase())) entry.headers[name.toLowerCase()] = value;
       entry.cached ||= response['fromDiskCache'] === true || response['fromPrefetchCache'] === true;
@@ -60,24 +61,51 @@ export class NativeSizeLedger {
       if (size(data['dataLength'])) {entry.decoded += data['dataLength']; entry.chunks = true;}
       if (size(data['encodedDataLength'])) entry.encoded += data['encodedDataLength'];
     } else if (method === 'Network.loadingFailed') {
+      this.finishTime(entry, data);
       entry.failed = true; entry.complete = true;
       entry.transfer = (entry.initial ?? 0) + entry.encoded;
     } else if (method === 'Network.loadingFinished') {
+      this.finishTime(entry, data);
       if (size(data['encodedDataLength'])) entry.transfer = data['encodedDataLength'];
       // A blob/data URL reads local content; it performs no network transfer.
       else if (/^(?:blob|data):/u.test(entry.url)) entry.transfer = 0;
       entry.complete = true;
     }
   }
-  read(request: Request): NativeSizes | null {
+  private finishTime(entry: Entry, data: Record<string, unknown>): void {
+    const timestamp = data['timestamp'];
+    if (typeof timestamp === 'number' && Number.isFinite(timestamp) && entry.timestamp !== undefined)
+      entry.end = entry.start + (timestamp - entry.timestamp) * 1000;
+  }
+  private overlaps(row: Entry, request: Request, response: Response): boolean {
+    const timing = request.timing(), start = timing.startTime, end = start + timing.responseEnd;
+    // Separate CDP connections can report different wall-clock bases. A
+    // drifted join needs overlapping completed lifetimes and exact validators
+    // plus every retained representation header; a nearest URL is insufficient.
+    if (!(start > 0 && timing.responseEnd >= 0 && Number.isFinite(end) && row.end !== undefined
+      && row.start <= end && start <= row.end && row.status === response.status())) return false;
+    const headers = response.headers();
+    if (row.headers['etag'] === undefined && row.headers['last-modified'] === undefined) return false;
+    return ['etag', 'last-modified', 'content-type', 'content-encoding', 'content-length']
+      .every(name => row.headers[name] === headers[name]);
+  }
+  read(request: Request, response?: Response | null): NativeSizes | null {
     let entry = this.requests.get(request);
     if (entry === undefined) {
       const start = request.timing().startTime, worker = request.serviceWorker() !== null;
       const distance = (row: Entry): number => Math.min(Math.abs(row.start - start), Math.abs((row.timedStart ?? row.start) - start));
-      const candidates = this.entries.filter(row => !this.claimed.has(row) && row.url === request.url() && row.method === request.method()
-        && row.worker === worker && distance(row) < 1).sort((a, b) => distance(a) - distance(b));
-      const first = candidates[0], second = candidates[1];
-      if (first === undefined || (second !== undefined && distance(first) === distance(second))) return null;
+      const eligible = this.entries.filter(row => !this.claimed.has(row) && row.url === request.url()
+        && row.method === request.method() && row.worker === worker);
+      const candidates = eligible.filter(row => distance(row) < 1).sort((a, b) => distance(a) - distance(b));
+      let first = candidates[0];
+      const second = candidates[1];
+      if (first !== undefined && second !== undefined && distance(first) === distance(second)) return null;
+      if (first === undefined && response !== undefined && response !== null) {
+        const overlapping = eligible.filter(row => this.overlaps(row, request, response));
+        if (overlapping.length !== 1) return null;
+        first = overlapping[0];
+      }
+      if (first === undefined) return null;
       entry = first; this.claimed.add(entry); this.requests.set(request, entry);
     }
     if (!entry.complete) return null;
