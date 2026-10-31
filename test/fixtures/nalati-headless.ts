@@ -66,8 +66,8 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
     observeWeather?:(host:SimHost,weather:{wind:Wind;storm:WeatherReactions})=>void,
     observeBindings?:(host:SimHost,bindings:NativeEliteBindings)=>void): Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>> => {
     const { product, assets } = preparation, shard = product.shardfile;
-    const { constants } = await product.json<{
-        constants: Omit<NalatiHeadlessAssembly['constants'], 'nativePopulation' | 'nativeRide' | 'nativeTaming' | 'pageWildlife' | 'pageGroups' | 'groupAdmission'> & {
+    const { constants: assemblyConstants } = await product.json<{
+        constants: Omit<NalatiHeadlessAssembly['constants'], 'nativePopulation' | 'nativeRide' | 'nativeTaming' | 'pageWildlife' | 'pageGroups' | 'groupAdmission' | 'nativeField'> & {
             nativeShelters: ReturnType<typeof nalatiNativeShelters>;
             pageElites: Omit<ReturnType<typeof buildEliteEntryPageRows>, "profiles"> & {
                 profiles: {
@@ -81,6 +81,8 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
             nativeTaming: Omit<NativeTamingRows, "programs" | "poses" | "poseProgram" | "rest">;
         };
     }>('sim/headless-assembly.json');
+    const nativeField = v.parse(PopulationFieldSchema, await product.json('world/meadow.json'));
+    const constants = { ...assemblyConstants, nativeField };
     const lendReturns = await prepareReturns(preparation);
     const tamingPoses = await (readJson<{
         poses: NativeTamingRows["poses"];

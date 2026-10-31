@@ -12,6 +12,7 @@ import { dayClock } from '@wildshard/game/looks/dayClock';
 import { TOON_DAY_PRESET } from '@wildshard/format/toonLook';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { readNavmesh } from '@wildshard/engine/physics/navmesh';
+import { parseChapterDirector, parseChapterWake } from '@wildshard/format/chapterDirector';
 import { readDirectorProduct } from '@wildshard/game/plugin/director';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { waveHeight } from '@wildshard/engine/world/waves';
@@ -44,8 +45,6 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation
             };
             nativeQuestSpots: unknown;
             mixedPopulation: unknown;
-            chapterDirector: unknown;
-            nativeEncounter: unknown;
             nativeChapterCues: unknown;
             questProps: unknown;
             questKillSteps: unknown;
@@ -56,6 +55,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation
             nativeCounters: NativeQuestCompositionInput["counters"];
         };
     }>('sim/headless-assembly.json');
+    const chapterDirector = parseChapterDirector(await product.json('quests/chapter-director.json'));
+    const wake = parseChapterWake(await product.json('quests/wake-boss.json'));
     const lendReturns = await prepareReturns(preparation);
     const countersJson = await (readJson(product, "quests/achievements.json"));
     const counters = await ((parseAchievementCounterData)(countersJson));
@@ -95,7 +96,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation
             ((!context["restoring"]) ? (installNativeCollision)(host, bake, { "resolution": 256 }) : undefined);
             (nativeDecisionAuthority)(shard, assets, host);
             const island = (installMixedPopulation)(host, { "perchProgram": monkeyJson["program"], "rows": constants["mixedPopulation"], "reserved": bake["captain"], "placement": placement, "keeper": keeper, "fauna": fauna, "launch": launch, "population": species, "bake": { "ground": bake["ground"], "actors": bake["actors"], "herds": bake["herds"], "habitat": bake["habitat"] }, "specs": specs, "seed": shard["identity"]["seed"], "waterLevel": sea["level"], "spawnY": shard["spawn"]["y"], "nav": nav }, context["snapshot"]);
-            (installNativeChapterDirector)(host, director, { "id": constants["nativeQuest"]["reward"]["director"], "rows": constants["chapterDirector"], "reward": constants["nativeQuest"]["reward"]["channels"], "wake": { "population": constants["nativeQuest"]["acquisition"]["population"], "encounter": constants["nativeEncounter"], "placement": { "pool": { "x": bake["captain"]["pool"]["x"], "z": bake["captain"]["pool"]["z"] }, "arena": bake["captain"]["arena"] }, "cues": constants["nativeChapterCues"] } }, context["restoring"]);
+            (installNativeChapterDirector)(host, director, { "id": constants["nativeQuest"]["reward"]["director"], "rows": chapterDirector, "reward": constants["nativeQuest"]["reward"]["channels"], "wake": { "population": constants["nativeQuest"]["acquisition"]["population"], "encounter": wake.encounter, "placement": { "pool": { "x": bake["captain"]["pool"]["x"], "z": bake["captain"]["pool"]["z"] }, "arena": bake["captain"]["arena"] }, "cues": constants["nativeChapterCues"] } }, context["restoring"]);
             const input = (bindHeadlessCommands)(context, host);
             const combat = (need)(context["combat"], "Driftwood requires its native combat frame");
             (host["events"]["answer"])("item.reaction", (arg1_0) => ((((arg1_0["kind"] === "alarm") ? (island["alarm"])() : (island["staggered"])(arg1_0["actor"], arg1_0["strength"], arg1_0["running"])), arg1_0)), host["scope"]);

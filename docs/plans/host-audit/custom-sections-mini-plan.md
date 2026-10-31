@@ -327,19 +327,35 @@ Nalati 135,522 B and Nine 731 B. All four source declarations have empty
 scaffolding and unique native constants are not yet retired. Registering
 that scaffold under a new name would not satisfy CS9.
 
-A bounded derivation candidate is prepared off-tree. Driftwood's
-`chapterDirector` exactly duplicates `quests/chapter-director.json`, and
-`nativeEncounter` duplicates `quests/wake-boss.json#encounter`; Nalati's
-`nativeField` exactly duplicates `world/meadow.json`. The existing defining
-native parsers admit all three payloads. Reconstructing each original full
-assembly from the proposed remaining constants and these real payloads
-produces byte-identical canonical JSON. The projected assembly sizes are
-931,426 B and 113,878 B respectively. These are offline feasibility facts,
-not qualified producer outputs or a native behavior result. The producer,
-reader and original product-test patches remain off-tree through the
-already reserved earned-chain and physics-walk turns. CS9 stays open
-until actual emission, full unrelated-payload identity and native controls
-qualify; all other constants and the view/graph AS exits remain explicit.
+The first bounded derivation slice removes Driftwood's `chapterDirector`
+and `nativeEncounter` copies and Nalati's `nativeField` copy. Native proof
+readers now obtain the same values from the existing admitted
+`quests/chapter-director.json`, `quests/wake-boss.json#encounter` and
+`world/meadow.json` payloads through their original defining parsers.
+Driftwood's assembly shrinks to 931,426 B and Nalati's to 113,878 B:
+23,081 B of duplicated JSON removed, with no new schema, host or callback.
+
+One normal seven-product publisher completes in 25.77 s (two builds,
+five reuses), followed by independent strict admission of all seven.
+Both original full canonical assembly byte strings reconstruct exactly;
+the other 861 payloads / 167,436,194 B, all other metadata and custom
+schemas remain exact. Every old and new ordered pack member, offset and
+pack hash reconstructs. Five original suites / 25 cases pass in 18.8 s;
+root types and named typed lint pass. Pine's separately queued physics
+slice is still uncommitted and its emitted proof remains unchanged.
+
+The raw full-payload comparator remains **FAIL** only on Nalati's
+164-byte `look/map` source stamp: `07afaebe…9197a9e` becomes
+`e785ea8f…924b21`. The old full source stamp is independently reconstructed;
+the new value equals `mapTilesHash` after only `output.ts` drops the
+already duplicated `nativeField`. Image `80afaa55…aff2d6` is identical,
+and Driftwood's map stamp is unchanged. G872 accepts this exact case
+only. No old stamp is frozen and no map freshness check is weakened.
+
+**CS9 remains open** for the retired declaration scaffolding, every
+remaining unique native constant and the view/graph AS exits. This slice
+establishes actual defining-payload derivation, not complete headless
+assembly retirement.
 
 ## CS3: modern scene inventory before captures
 
