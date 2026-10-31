@@ -5,15 +5,15 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE f5c78e8-mvwlooti = GLSL** (11:40 Cancun; King P2; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
+**LIVE 82b90ba-mvwnnoty = GLSL** (12:34 Cancun; King win; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
 (G2, kinds 0 + 3, copy cut, Boundary, facade), EP8 crowd, NF11 4 MB cap, Pine uploads -70 %, Sky look. **For Jake:** QC
 table qa-2026-10-30 (2508e90724).
 
 **21:50 E518 (Jake): finish every row of the 4 fps plans tonight**, schedule = finish-fps-2026-10-30-mini-spike.md.
 Nine was GPU-bound on his phone (13 fps, gpu 45.7 ms vs CPU 10).
-**11:45:** .gen prune a6e6105c8d, ship checkout f15555814f; Pine + King P2 P0s fixed; King victory required (x1).
-**wildshard-v (CI plan):** CI2 (26/32 <= 180 s) / CI3 (23/32 <= 300 s) measured, stay open (557d180b03); CI5 by x9; CI9 (x6 / x9 / x2 /
-x8 prepare cuts) and CI10 (x2, Simulator.app opened 6a84ecffe6) stay on Codex today.
+**12:45:** CI9 82b9 33 min: cache 321 -> 17 s, prepare 323 s; wave 807 s. Warm load 24 -> 35.5 s (x8 bisects).
+**wildshard-v (G963/G964):** PWA PR1-PR5 sp-x9 (12:30). CI3 met (G872: 21/21 since 93bd); CI2 open; CI9 x6, CI10 x2 + x8.
+At boundaries: CS1 -> CS9 sp-x1; TOOLING-PERF sp-x6; item 4 (grass upload, plan marks) sp-x2; DAT T3-T6 next free.
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
 (f33d642372) G4 fusion closed measured (precision frontiers). Pine GPU ok.
