@@ -6,6 +6,7 @@ import { expect,test } from 'vitest';
 import * as v from 'valibot';
 import { ResolvedIslandLibrarySchema } from '../src/format/islandLibrary';
 import { WorldAssemblySchema } from '../src/format/worldAssembly';
+import { parseChapterWake } from '../src/format/chapterDirector';
 import { parseClientPlan } from '../src/format/clientPlan';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../src/shards/driftwood-isle/generators/clientSections';
@@ -51,9 +52,12 @@ test('native chapter admission receives the exact original encounter without rea
   const file=output.namedFiles.find(row=>row.name==='sim/headless-assembly.json');if(file===undefined)throw new Error('Missing native declaration');
   const bytes=output.assets.get(file.hash);if(bytes===undefined)throw new Error('Missing native bytes');
   const wire:unknown=JSON.parse(new TextDecoder().decode(bytes));
-  expect(wire).toMatchObject({constants:{nativeEncounter:WAKE_ENCOUNTER.encounter}});expect(WAKE_ENCOUNTER.encounter).toEqual(NATIVE_VIEW.BOSS_ENCOUNTER);
+  const wakeFile=output.namedFiles.find(row=>row.name==='quests/wake-boss.json');if(wakeFile===undefined)throw new Error('Missing defining native encounter');
+  const wakeBytes=output.assets.get(wakeFile.hash);if(wakeBytes===undefined)throw new Error('Missing defining native encounter bytes');
+  const wake=parseChapterWake(JSON.parse(new TextDecoder().decode(wakeBytes)));
+  expect(wake.encounter).toEqual(WAKE_ENCOUNTER.encounter);expect(WAKE_ENCOUNTER.encounter).toEqual(NATIVE_VIEW.BOSS_ENCOUNTER);
   expect(JSON.stringify(headless)).not.toContain('bossView');expect(JSON.stringify(headless)).not.toContain('custom/fixedLayouts');
-  expect(JSON.stringify(wire)).toContain('nativeEncounter');
+  expect(wire).not.toHaveProperty('constants.nativeEncounter');
 });
 
 test('both real pages publish ordered product Explorer rows and Driftwood borrows its original book', () => {
