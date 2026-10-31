@@ -7,7 +7,7 @@ import {Scope} from '../src/engine/app/scope';
 import {packChapterTaming,unpackChapterTaming,chapterObservationWire,installPackedChapterTaming,PACKED_CHAPTER_TAMING} from './fixtures/headless/chapterObservation';
 import type {SimHost,SimStateAdapter,SimValue} from '../src/engine/sim';
 // oxlint-disable-next-line import/no-nodejs-modules -- Construct an actual bounded decompression refusal, not a metadata-only substitute.
-import {deflateSync} from 'node:zlib';
+import {deflateSync,brotliCompressSync} from 'node:zlib';
 
 test('complete observations round-trip every numeric bit and field within the unchanged byte boundary',()=>{
   const value={pose:Array.from({length:4000},(_,index)=>[index%2?0:-0,index%11,1.1234567890123457]),
@@ -120,5 +120,26 @@ test('compact report state refuses trailing, truncated and foreign-basis payload
   assert.throws(()=>unpackChapterReport(packed,currentReport),/basis/u);
   assert.throws(()=>unpackChapterReport(change(packed,wire=>{if(typeof wire['data']!=='string')throw new Error('Missing compact state');wire['data']=wire['data'].slice(0,-8);}),baseReport));
   assert.throws(()=>unpackChapterReport(change(packed,wire=>{if(typeof wire['data']!=='string')throw new Error('Missing compact state');wire['data']=Buffer.concat([Buffer.from(wire['data'],'base64'),Buffer.from('junk')]).toString('base64');}),baseReport),/Trailing/u);
+});
+
+const numericBefore=report(codecOwner,JSON.stringify({values:Array.from({length:512},(_,index)=>Math.sin(index*.123)*471.113),unchanged:Array.from({length:512},(_,index)=>Math.cos(index*.321)*132.733)}));
+const numericAfter=report(codecOwner,JSON.stringify({values:Array.from({length:512},(_,index)=>Math.sin(index*.123)*471.113+(index<64?.25:0)),unchanged:Array.from({length:512},(_,index)=>Math.cos(index*.321)*132.733)}));
+const numericPacked=packChapterReport(numericAfter,numericBefore,true);
+test('compact numeric patches preserve the complete original floating-point report',()=>{
+  assert.ok(codecState(numericPacked).includes('brotli-f64-patch'));
+  assert.equal(chapterObservationWire(unpackChapterReport(numericPacked,numericBefore)),chapterObservationWire(numericAfter));
+});
+function numericPayload(shape:unknown,numbers:number[]):string {
+  const text=Buffer.from(JSON.stringify(shape)),payload=Buffer.alloc(4+text.byteLength+numbers.length*8);
+  payload.writeUInt32LE(text.byteLength);text.copy(payload,4);numbers.forEach((value,index)=>{payload.writeDoubleLE(value,4+text.byteLength+index*8);});
+  return brotliCompressSync(payload).toString('base64');
+}
+test('numeric report framing, ordered slots and scalar validity refuse',()=>{
+  const patch=(value:unknown)=>[{path:['values'],value}],slot={'chapter.report.float':0};
+  for(const [shape,numbers]of [[patch(1),[]],[patch({'chapter.report.float':-1}),[1]],[patch([slot,slot]),[1]],[[],[1]],[patch(slot),[Number.NaN]]] as const){
+    assert.throws(()=>unpackChapterReport(change(numericPacked,wire=>{wire['data']=numericPayload(shape,[...numbers]);}),numericBefore),/numeric|Numeric/u);
+  }
+  assert.throws(()=>unpackChapterReport(change(numericPacked,wire=>{wire['data']=brotliCompressSync(Buffer.alloc(4)).toString('base64');}),numericBefore),/shape/u);
+  assert.throws(()=>unpackChapterReport(change(numericPacked,wire=>{wire['data']=brotliCompressSync(Buffer.alloc(1_000_001)).toString('base64');}),numericBefore));
 });
 

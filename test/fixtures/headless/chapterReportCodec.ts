@@ -9,11 +9,11 @@ import {packChapterTaming,unpackChapterTaming} from './chapterObservation';
 
 type Json=null|boolean|number|string|Json[]|{[key:string]:Json};
 interface Operation {path:string[];value:Json}
-const LIMIT=1_000_000,DEPTH=64,OPERATIONS=8192,marker='chapter.report.number';
+const LIMIT=1_000_000,DEPTH=64,OPERATIONS=8192,marker='chapter.report.number',floatMarker='chapter.report.float';
 const ownerSchema=v.picklist(['nalati.chapter-taming','nalati.king-closed']);
 type Owner=v.InferOutput<typeof ownerSchema>;
 const digest=v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u));
-const Wire=v.strictObject({'chapter.report':v.literal(1),owner:ownerSchema,codec:v.picklist(['deflate-patch','brotli-state']),basis:digest,result:digest,
+const Wire=v.strictObject({'chapter.report':v.literal(1),owner:ownerSchema,codec:v.picklist(['deflate-patch','brotli-state','brotli-f64-patch']),basis:digest,result:digest,
   bytes:v.pipe(v.number(),v.safeInteger(),v.minValue(1),v.maxValue(LIMIT)),
   data:v.pipe(v.string(),v.maxLength(1_400_000),v.regex(/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u))});
 const Inflated=v.object({buffer:v.instance(Buffer),engine:v.object({bytesWritten:v.pipe(v.number(),v.safeInteger(),v.minValue(0))})});
@@ -95,17 +95,57 @@ function encoded(state:string):boolean {
   const parsed:unknown=JSON.parse(state);
   return parsed!==null&&typeof parsed==='object'&&!Array.isArray(parsed)&&Object.hasOwn(parsed,'chapter.report');
 }
+/** An optional bounded numeric payload; values retain their exact IEEE bits.
+ * JSON shape and ordered one-use slots are checked before applying a patch. */
+function floatPatch(operations:Operation[]):Buffer|undefined {
+  if(!isJson(operations))return undefined;
+  const numbers:number[]=[];let supported=true;
+  const shape=(value:Json):Json=>{
+    if(typeof value==='number'){const index=numbers.length;numbers.push(value);return {[floatMarker]:index};}
+    if(Array.isArray(value))return value.map(shape);
+    if(value!==null&&typeof value==='object'){
+      if(Object.hasOwn(value,floatMarker))supported=false;
+      return Object.fromEntries(Object.entries(value).map(([key,item])=>[key,shape(item)]));
+    }
+    return value;
+  };
+  const text=Buffer.from(JSON.stringify(shape(operations))),bytes=4+text.byteLength+numbers.length*8;
+  if(!supported||bytes>LIMIT)return undefined;
+  const payload=Buffer.alloc(bytes);payload.writeUInt32LE(text.byteLength);text.copy(payload,4);
+  numbers.forEach((value,index)=>{payload.writeDoubleLE(value,4+text.byteLength+index*8);});return payload;
+}
+function readFloatPatch(payload:Buffer):Json {
+  if(payload.byteLength<4)throw new Error('Truncated numeric report shape');
+  const length=payload.readUInt32LE(),offset=4+length,remaining=payload.byteLength-offset;
+  if(length<2||offset>payload.byteLength||remaining%8!==0)throw new Error('Invalid numeric report shape');
+  let next=0;
+  const restore=(value:unknown,depth=0):Json=>{
+    if(depth>DEPTH)throw new Error('Numeric report depth exceeded');
+    if(value===null||typeof value==='string'||typeof value==='boolean')return value;
+    if(Array.isArray(value))return value.map((item:unknown)=>restore(item,depth+1));
+    if(typeof value!=='object'||value===undefined)throw new Error('Invalid numeric report scalar');
+    if(Object.hasOwn(value,floatMarker)){
+      const index:unknown=Reflect.get(value,floatMarker);
+      if(Object.keys(value).length!==1||index!==next||next>=remaining/8)throw new Error('Invalid numeric report slot');
+      const number=payload.readDoubleLE(offset+next*8);next++;
+      if(Number.isNaN(number))throw new Error('Numeric report refuses NaN');return number;
+    }
+    return Object.fromEntries(Object.entries(value).map(([key,item])=>[key,restore(item,depth+1)]));
+  };
+  const shape:unknown=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(payload.subarray(4,offset))),value=restore(shape);
+  if(next!==remaining/8)throw new Error('Unused numeric report slots');return value;
+}
 function unpackState(owner:Owner,state:string,before:string|undefined):string {
   if(state.length>LIMIT)throw new Error('Original report state length bound exceeded');
   if(!encoded(state))return state;
   const wire=v.parse(Wire,JSON.parse(state));
   if(wire.owner!==owner||before===undefined||wire.basis!==hash(before))throw new Error('Foreign or missing report delta basis');
   const packed=Buffer.from(wire.data,'base64');if(packed.toString('base64')!==wire.data)throw new Error('Noncanonical report delta encoding');
-  const inflated:unknown=wire.codec==='brotli-state'?brotliDecompressSync(packed,{maxOutputLength:LIMIT,info:true}):inflateSync(packed,{maxOutputLength:LIMIT,info:true});
+  const inflated:unknown=wire.codec==='deflate-patch'?inflateSync(packed,{maxOutputLength:LIMIT,info:true}):brotliDecompressSync(packed,{maxOutputLength:LIMIT,info:true});
   const payload=v.parse(Inflated,inflated);
   if(payload.engine.bytesWritten!==packed.byteLength)throw new Error('Trailing report delta bytes');
-  const text=new TextDecoder('utf-8',{fatal:true}).decode(payload.buffer);
-  const restored=wire.codec==='brotli-state'?text:render(owner,apply(ownerValue(owner,before),v.parse(Operations,read(text))));
+  const text=():string=>new TextDecoder('utf-8',{fatal:true}).decode(payload.buffer);
+  const restored=wire.codec==='brotli-state'?text():render(owner,apply(ownerValue(owner,before),v.parse(Operations,wire.codec==='brotli-f64-patch'?readFloatPatch(payload.buffer):read(text()))));
   if(Buffer.byteLength(restored)!==wire.bytes||hash(restored)!==wire.result)throw new Error('Report delta result differs');
   return restored;
 }
@@ -129,10 +169,18 @@ function packPatchState(owner:Owner,state:string,before:string|undefined):string
 function packState(owner:Owner,state:string,before:string|undefined,compact:boolean):string {
   const patch=packPatchState(owner,state,before);
   if(!compact||before===undefined||Buffer.byteLength(state)>LIMIT||Buffer.byteLength(before)>LIMIT)return patch;
+  let best=patch;
   const wire=JSON.stringify({'chapter.report':1,owner,codec:'brotli-state',basis:hash(before),result:hash(state),bytes:Buffer.byteLength(state),
     data:brotliCompressSync(Buffer.from(state),{params:{[constants.BROTLI_PARAM_QUALITY]:5}}).toString('base64')});
-  if(Buffer.byteLength(wire)>=Buffer.byteLength(patch))return patch;
-  if(unpackState(owner,wire,before)!==state)throw new Error('Report state is not byte-exact');return wire;
+  if(Buffer.byteLength(wire)<Buffer.byteLength(best))best=wire;
+  if(encoded(patch)){
+    const legacy=v.parse(Wire,JSON.parse(patch)),payload=floatPatch(v.parse(Operations,read(inflateSync(Buffer.from(legacy.data,'base64'),{maxOutputLength:LIMIT}).toString('utf8'))));
+    if(payload!==undefined){
+      const candidate=JSON.stringify({...legacy,codec:'brotli-f64-patch',data:brotliCompressSync(payload,{params:{[constants.BROTLI_PARAM_QUALITY]:5}}).toString('base64')});
+      if(Buffer.byteLength(candidate)<Buffer.byteLength(best))best=candidate;
+    }
+  }
+  if(unpackState(owner,best,before)!==state)throw new Error('Report state is not byte-exact');return best;
 }
 function bases(previous:HeadlessTapeReport|undefined):Map<Owner,string> {
   const result=new Map<Owner,string>();
