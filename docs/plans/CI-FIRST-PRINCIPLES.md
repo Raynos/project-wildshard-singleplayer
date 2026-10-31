@@ -297,7 +297,7 @@ same **25** compiler-use marks with `local-prepare:1`.
 | Compiler preparation seconds | 0.205 | 0.466 |
 
 **Neutral (+0.22% wall), rejected.** The small child import improvement
-was offset by serial preparation. All **6,570 payload files /
+did not reduce the whole prepare wall. All **6,570 payload files /
 919,593,028 bytes** compare directly against pinned ordinary cache
 entries. All 24 validation receipts agree apart from their expected
 control-source `buildKey`; no other byte or admission check is omitted.
@@ -310,6 +310,57 @@ current. Evidence: `tmp/sp-x8-ci9-reuse-validation/prepare-pair.json`.
 The remaining phone-wire report reads and validates products serially;
 bounded independent reads are the next source-only candidate. CI9 and
 whole-prepare timing remain open; this trial grants no Linux/CI gain.
+
+### CI9 reuse validation: measured stop (2026-10-31, sp-x8)
+
+The original strict validators already run in a bounded pool of six.
+The later phone-wire report is serial. A private bounded-six report
+counterfactual preserves all descriptor reads, admission, hashes,
+selection, Brotli policy and ceilings. Its real format-2 controls pass
+sorted duplicates, zero/exact/missing ceilings, corrupt sections, the
+first sorted refusal and drained recovery. Two initial
+fixture declarations correctly refused before timing; neither changed
+production policy.
+
+Across all 24 existing products, the complete reports are identical:
+**990.622 ms serial → 966.186 ms bounded (-2.47%, only 24.435 ms)**.
+**Rejected; never activated.** No additional whole-prepare A/B is warranted
+for this neutral component. The earlier 18.112545 → 18.153146 s full
+prepare comparison remains rejected too. Evidence:
+`tmp/sp-x8-ci9-wire-parallel/result.json`.
+
+One original HEAD prepare with parent/validator V8 sampling first
+populates the current source frontier: 18 built, six reused, 21.494 s.
+That is not an all-reuse reading. The following fresh process passes
+**24 reused / zero built / zero nested author-cache lookups**, all 24
+original validation messages, in **16.330 s with diagnostic overhead**.
+This is a profile, not a before/after gain. Top five sampled self items:
+
+| Item | Prepare parent ms | 24 validator processes, pooled ms |
+| --- | ---: | ---: |
+| `realpath` | 1,862.904 | 2,094.474 |
+| synchronous subprocess wait (`spawnSync`) | 1,296.834 | — |
+| `lstat` | 870.544 | 1,018.142 |
+| hash `update` | 754.594 | — |
+| file `open` | 735.419 | 1,511.545 |
+| module compilation (`compileSourceTextModule`) | — | 1,306.748 |
+| Binaryen `Ar` | — | 1,182.541 |
+
+The two columns each show their own top five; native calls include I/O
+and samples are not isolated CPU resource time. Validators overlap, so
+pooled milliseconds cannot be added to the prepare wall. Idle, program
+and GC samples are excluded from this table. In the repeated-asset audit,
+`inspectBlob` totals 1,935.122 inclusive sampled ms across all validators
+(maximum one product 644.169 ms); `validateShardfileAssets` totals
+2,943.745 ms (maximum 574.663 ms). These nested, overlapping checks are
+not independent wall-time savings. Byte/kind inspection and reconstructed
+source admission both remain intact.
+
+**Reuse validation is spread thin; this audit is stopped under G872's
+at-least-two-seconds wall-saving bar.** No exact cut meeting that bar was
+qualified; no source optimization, skipped check, cache change or cap
+change ships from either rejected trial. Current evidence:
+`tmp/sp-x8-ci9-reuse-profile/reuse/{reading,ranked}.json`.
 
 ### CI9 Nalati uncached author (2026-10-31, sp-x8 hourly batch)
 
