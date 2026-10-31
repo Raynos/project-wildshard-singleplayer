@@ -428,6 +428,66 @@ the original measured visit and neither register nor wait for a worker.
 The separate diagnostic CPU source maps were unavailable; no mapped
 hotspot attribution is invented from that profile.
 
+### CI10 warm Road serial archive cut (2026-10-31, sp-x8)
+
+**Timing bar open; checked candidate `4b2e47dc51` is on origin.** Home's
+accepted `4ef7467733` two-sided result remains closed. The next Road
+diagnostic uses the unchanged original phone preset and dwell/entry
+protocol, with warm page CPU sampling and observers of original cache,
+body-reader and SHA promises. No extra lookup/body read or substituted
+response is made. Its 6,851 ms Road interval is instrumented, not an
+uninstrumented after result or isolated speedup.
+
+Warm native control and request accounting qualify; CPU clocks align
+within 0.5 ms. All 1,725 direct cache queries intersecting Road hit,
+with zero writes/repairs. The serial chain is
+`RoadTileBacking.write -> installPlatformRoadSliced.flush -> persist`:
+one archive's fresh SHA, lookup, body read and verification precede the
+next archive. The selected-tiles default remains required (G674).
+
+| Road operation | Count | Clipped union ms |
+|---|---:|---:|
+| Named-cache lookup | 1,725 | 1,351.0 |
+| Full body read | 1,726 | 1,539.5 |
+| SHA joined to exact Road content keys | 3,451 | 380.0 |
+| Combined promise spans | — | 3,270.5 |
+
+Boundary-crossing operations explain counts that differ by one. Body
+reads cover 31,132,528 bytes. These spans include callback execution;
+sampled CPU must not be added to them. Road's sampled self costs include
+compaction532.0 ms, native reader382.6, native digest296.8, cull planning
+174.5, bounded body reader151.1, backing capture145.7, clipping135.3,
+resident merge132.7 and encoding121.9. Idle/program frames contribute
+1,278.2 /1,037.4 ms without an isolated internal-browser attribution.
+The exact served maps cover 50 of 52 requests; main/runtime maps remain
+missing. Retained possible brief peer CPU overlap forbids an isolated
+timing claim; the larger reported 14.1 s peer gate predates this profile.
+
+`4b2e47dc51` overlaps at most six independent archives under a conservative
+25 MB aggregate scratch estimate. Unsupported/large estimates use the
+original serial path. Encoded writers retain only bytes and detached
+reference fields; scratch geometry retires immediately after encoding.
+Every fresh/stored/restored SHA, miss repair, quota/corruption refusal
+and live-owner fence remains. Completed references commit in authored
+order; every source drains before the original publication barrier.
+Failure/cancellation joins all started work and forbids late writes.
+No render/physics math, selected-tile default or residency cap changes.
+
+All 40 focused cases/eight suites, root types and typed lint pass. The
+tests compare all serial/pipelined fine/coarse archive bytes, hold six
+reads simultaneously, verify the large-job serial fallback, warm reuse,
+quota failure, late retirement and first-authored refusal after reverse
+completion. The original-preset candidate cold/warm reading is pending
+the next machine turn; **no tens-of-ms Road verdict yet**.
+
+Raw diagnostic:
+`tmp/phone-loading/2026-10-31T20-41-25-844Z-6324eee-mvwv7aw5/`.
+Its warm JSON/profile/cache trace and `warm-ranked.json` retain the
+numbers; `tmp/sp-x8-road-serial/window.json` retains host clock caveats.
+CLI exit1 keeps static telemetry405 and the cold navigated-away startup
+body-accounting refusal. Neither is filtered into a whole-command PASS.
+
+
 ### CI10 current-HEAD Home proxy (2026-10-31, sp-x8)
 
 The stale `47392c5322` capture is before-only and is not an after
