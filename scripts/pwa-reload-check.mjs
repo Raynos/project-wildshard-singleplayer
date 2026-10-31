@@ -76,6 +76,7 @@ export async function createReloadProxy(base) {
     const knownCore=Object.values(variants).find(row=>row.path===path);
     const body=path==='/'||path==='/index.html'?current.html:path==='/version.json'?current.version:path==='/sw.js'?current.bootstrap:knownCore?.core;
     if(body!==undefined){
+      if(path==='/'||path==='/index.html')res.setHeader('X-PWA-Repro-Network-Document','1');
       const etag=`W/"${digest(body)}"`;
       res.setHeader('Content-Type',path==='/version.json'?'application/json':path==='/'||path==='/index.html'?'text/html; charset=utf-8':'text/javascript; charset=utf-8');
       res.setHeader('Cache-Control',knownCore===undefined?path==='/version.json'?'no-store':'no-cache':coreCache);res.setHeader('ETag',etag);
@@ -141,6 +142,15 @@ async function titleReady(page){
   await page.locator('.ws-update.visible').waitFor({state:'visible',timeout:45000});
   await page.evaluate(()=>new Promise(/** @param {(value:unknown)=>void} _resolve */_resolve=>{requestAnimationFrame(()=>{requestAnimationFrame(()=>_resolve(undefined));});}));
 }
+/** This ruler starts from an installed A, not a fabricated game-control event.
+ * First-install timing belongs to the separate original phone-preset check.
+ * @param {Page} page */
+async function installFixtureWorker(page){
+  await page.evaluate(async()=>{
+    if(await navigator.serviceWorker.getRegistration()===undefined)await navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'all'});
+    await navigator.serviceWorker.ready;
+  });
+}
 /** @param {Page} page @param {string} target */
 async function waitingFor(page,target){
   const ready=await page.evaluate(async expected=>{
@@ -195,21 +205,36 @@ export async function checkReloads(base,engine,scenarios,fixed) {
       const page=await context.newPage();
       /** @type {string[]} */const errors=[];
       /** @type {{url:string,status:number,method:string,body:string|null}[]} */const httpErrors=[];
+      /** An HTML fetch/precache is not a navigation. The origin marker cannot
+       * appear on the controlling worker's baked DOCUMENT response.
+       * @type {{url:string,network:boolean}[]} */const navigations=[];
       page.on('pageerror',error=>errors.push(error.stack??error.message));page.on('console',message=>{if(message.type()==='error')errors.push(`${message.text()} ${JSON.stringify(message.location())}`);});
-      page.on('response',response=>{if(response.status()>=400)httpErrors.push({url:response.url(),status:response.status(),method:response.request().method(),body:response.request().postData()});});
+      page.on('response',response=>{
+        if(response.status()>=400)httpErrors.push({url:response.url(),status:response.status(),method:response.request().method(),body:response.request().postData()});
+        if(response.request().isNavigationRequest())navigations.push({url:response.url(),network:response.headers()['x-pwa-repro-network-document']==='1'});
+      });
       const started=performance.now(),requestStart=proxy.requests.length;let taps=0,manualReloads=0,timeout=null;
+      /** @type {number[]} */const warmReloadBytes=[];
       /** @type {Awaited<ReturnType<typeof state>>[]} */const observations=[];
       try {
         await page.goto(proxy.url,{waitUntil:'load'});
-        await page.evaluate(()=>document.dispatchEvent(new Event('ws:control-ready')));
-        await page.evaluate(()=>navigator.serviceWorker.ready);
+        if(navigations.at(-1)?.network!==true)throw new Error('Uncontrolled A did not expose the origin document marker');
+        await installFixtureWorker(page);
         await page.reload({waitUntil:'load'});
         await page.waitForFunction(()=>navigator.serviceWorker.controller!==null&&document.querySelector('#hud.intro .ws-menu:not(.hide), #hud.intro .ws-main:not(.hide)')!==null,null,{timeout:45000});
         await titleReady(page);
+        if(navigations.at(-1)?.network!==false)throw new Error('Installed A did not serve its own controlled document');
+        // Let the ordinary title prefetch finish; never stop or omit its work.
+        // This primes a warm origin, not a cold-loading performance sample.
+        await page.waitForLoadState('networkidle',{timeout:45000});
         observations.push(await state(page));
-        const warmStart=proxy.requests.length,wireStart=proxy.wireBytes();
+        const warmStart=proxy.requests.length,wireStart=proxy.wireBytes(),navigationStart=navigations.length;
         if(scenario==='no-deploy'){
-          for(let index=0;index<3;index++){await page.reload({waitUntil:'load'});await titleReady(page);manualReloads++;await foreground(page);observations.push(await state(page));}
+          for(let index=0;index<3;index++){
+            const before=proxy.wireBytes();await page.reload({waitUntil:'load'});await titleReady(page);
+            await page.waitForLoadState('networkidle',{timeout:45000});
+            warmReloadBytes.push(proxy.wireBytes()-before);manualReloads++;observations.push(await state(page));
+          }
         }else{
           if(scenario==='abc-mid-install'){
             proxy.deploy('B');await foreground(page);await waitingFor(page,proxy.builds.B);
@@ -233,11 +258,12 @@ export async function checkReloads(base,engine,scenarios,fixed) {
         if((scenario==='ab-delayed'||scenario==='abc-mid-install')&&!proxy.requests.slice(requestStart).some(row=>row.delayMs===25000))throw new Error('Delayed install did not request its delayed shell asset');
         const final=await state(page),target=scenario==='no-deploy'?proxy.builds.A:scenario==='abc-mid-install'?proxy.builds.C:proxy.builds.B;
         const aligned=observations.every(row=>row.doc!==null&&row.controller?.startsWith(`${row.doc}-`)===true);
-        const networkDocuments=proxy.requests.slice(warmStart).filter(row=>row.path==='/'||row.path==='/index.html').length;
+        const networkDocuments=navigations.slice(navigationStart).filter(row=>row.network).length;
+        const originHtmlRequests=proxy.requests.slice(warmStart).filter(row=>row.path==='/'||row.path==='/index.html').length;
         const warmWireBytes=scenario==='no-deploy'?proxy.wireBytes()-wireStart:null;
-        const passed=aligned&&networkDocuments===0&&(warmWireBytes===null||warmWireBytes<100000)&&final.doc===target&&!final.lit&&(scenario==='no-deploy'?taps===0:taps===1)&&final.controller?.startsWith(`${target}-`)===true;
+        const passed=aligned&&networkDocuments===0&&warmReloadBytes.every(bytes=>bytes<100000)&&final.doc===target&&!final.lit&&(scenario==='no-deploy'?taps===0:taps===1)&&final.controller?.startsWith(`${target}-`)===true;
         const warmRequests=scenario==='no-deploy'?proxy.requests.slice(warmStart):null;
-        const result={engine,scenario,sourceBuild:proxy.sourceBuild,target,taps,manualReloads,passed,aligned,networkDocuments,warmWireBytes,warmRequests,timeout,elapsedMs:performance.now()-started,final,observations,errors,httpErrors};results.push(result);console.log(JSON.stringify(result));
+        const result={engine,scenario,sourceBuild:proxy.sourceBuild,target,taps,manualReloads,passed,aligned,networkDocuments,originHtmlRequests,navigations:navigations.slice(navigationStart),setup:'explicit A install and network-quiet title; not a cold phone profile',warmWireBytes,warmReloadBytes,warmBudgetPerReload:100000,warmRequests,timeout,elapsedMs:performance.now()-started,final,observations,errors,httpErrors};results.push(result);console.log(JSON.stringify(result));
         if(errors.length>0||httpErrors.length>0)throw new Error(`Unexpected browser errors: ${errors.join('; ')} ${JSON.stringify(httpErrors)}`,{cause:result});
         if(fixed&&!passed)throw new Error(`One-tap contract failed: ${engine}/${scenario}`,{cause:result});
       }finally{await context.close();}
@@ -265,8 +291,7 @@ export async function checkRestart(base){
   try{
     let opened=await launch();context=opened.owner;let page=opened.page;
     await page.goto(proxy.url,{waitUntil:'load'});
-    await page.evaluate(()=>document.dispatchEvent(new Event('ws:control-ready')));
-    await page.evaluate(()=>navigator.serviceWorker.ready);await page.reload({waitUntil:'load'});
+    await installFixtureWorker(page);await page.reload({waitUntil:'load'});
     await page.waitForSelector('#hud.intro .ws-menu:not(.hide), #hud.intro .ws-main:not(.hide)',{timeout:45000});await titleReady(page);
     proxy.deploy('B',25000);await foreground(page);
     await page.waitForFunction(()=>document.querySelector('.ws-update')?.classList.contains('newer')===true);

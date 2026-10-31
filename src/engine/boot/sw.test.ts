@@ -49,7 +49,11 @@ test('adoption skips stale workers, fences its controller and retires unavailabl
   await vi.waitFor(()=>{expect(announced.messages).toContainEqual({type:'SKIP_WAITING'});});
   container.controller=new WorkerHandle();container.dispatchEvent(new Event('controllerchange'));
   expect(replace).not.toHaveBeenCalled();expect(reload).not.toHaveBeenCalled();
-  container.controller=announced;container.dispatchEvent(new Event('controllerchange'));await adoption;
+  container.controller=announced;container.dispatchEvent(new Event('controllerchange'));
+  await vi.advanceTimersByTimeAsync(0);expect(replace).not.toHaveBeenCalled();
+  announced.state='activating';announced.dispatchEvent(new Event('statechange'));container.dispatchEvent(new Event('controllerchange'));
+  await vi.advanceTimersByTimeAsync(0);expect(replace).not.toHaveBeenCalled();
+  announced.state='activated';announced.dispatchEvent(new Event('statechange'));await adoption;
   expect(replace).toHaveBeenCalledExactlyOnceWith('/resume');
   const boundary=new WorkerHandle();wsSw.waiting=registration.waiting=boundary;
   const boundaryAttempt=swAdopt('/boundary');await vi.advanceTimersByTimeAsync(999);
@@ -62,6 +66,7 @@ test('adoption skips stale workers, fences its controller and retires unavailabl
   expect(replace).toHaveBeenCalledTimes(1);
   const claimed=new WorkerHandle();wsSw.waiting=registration.waiting=claimed;const claim=swAdopt('/claimed');await vi.waitFor(()=>{expect(claimed.messages).toContainEqual({type:'SKIP_WAITING'});});
   container.controller=claimed;container.dispatchEvent(new Event('controllerchange'));
+  claimed.state='activated';claimed.dispatchEvent(new Event('statechange'));
   expect(await claim).toBe(true);expect(wsSw.waiting).toBeNull();
   expect(replace).toHaveBeenLastCalledWith('/claimed');
   expect(replace).toHaveBeenCalledTimes(2);

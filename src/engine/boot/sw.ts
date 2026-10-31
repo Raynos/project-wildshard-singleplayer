@@ -195,7 +195,7 @@ async function activateWaiting(): Promise<boolean> {
     const finish = (claimed: boolean): void => { resolve(claimed); attempt.dispose(); };
     attempt.onDispose(() => { resolve(false); });
     attempt.listen(sw, 'controllerchange', () => {
-      if (sw.controller !== w) return;
+      if (sw.controller !== w || w.state !== 'activated') return;
       if (api.waiting === w) api.waiting = null;
       finish(true);
     });
