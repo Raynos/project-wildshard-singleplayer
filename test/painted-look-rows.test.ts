@@ -51,6 +51,13 @@ test('page lighting installs the identical painter shader used by scoped materia
   } finally { ShaderChunk.lights_fragment_end = before; }
 });
 
+// GLSL parity (Sky Reach): a graph program includes three's lights chunk, but its lighting stage carries its own painted
+// light, as the node graph did; the page's painter light must not land on it a second time
+test('the painter light leaves graph programs (WS_GRAPH) to their own lighting', () => {
+  const light = parse(PaintedNumbersSchema, sky.look).light;
+  expect(painterLightGlsl(light, sky.look.sun.dir)).toContain(`#if !defined( ${light.optOut} ) && !defined( WS_GRAPH )`);
+});
+
 test('product presentation retains both original look rows and all dressing resources', () => {
   const presentation = skyPaintedPresentation(), dusk = parsePaintedLook(signalPaintedPresentation());
   expect(presentation.look).toEqual(sky.look);

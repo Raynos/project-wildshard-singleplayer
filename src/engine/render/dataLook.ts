@@ -236,8 +236,10 @@ export function painterLightGlsl(row: PainterLightRow, sun: LookVec3): string {
   reflectedLight.indirectDiffuse += material.diffuseColor * ${vec3Glsl(row.bounce)} * ${p}Wrap;`;
   const floorLine = black(row.floor) ? '' : `
   reflectedLight.indirectDiffuse = max( reflectedLight.indirectDiffuse, material.diffuseColor * ${vec3Glsl(row.floor)} );`;
+  // a graph program (WS_GRAPH, the GLSL back-end) lights itself, as a node graph did: a lit graph's lighting stage carries
+  // its own painted light, so the page's would land twice (Sky Reach's islands drew 11-30 % brighter)
   return `
-#ifndef ${row.optOut}
+#if !defined( ${row.optOut} ) && !defined( WS_GRAPH )
 {
   vec3 ${p}L = normalize( ( viewMatrix * vec4( ${vec3Glsl([sun.x, sun.y, sun.z])}, 0.0 ) ).xyz );
   vec3 ${p}B = normalize( ( viewMatrix * vec4( ${vec3Glsl(bounce.toArray())}, 0.0 ) ).xyz );
@@ -545,8 +547,9 @@ export function paintedLook(spec: PaintedLookSpec): LookStrategy {
   };
   const freePainted = (): void => { if (painted) { painted.scope.dispose(); for (const t of painted.textures) t.dispose(); painted = null; } };
   const worldPatch: NonNullable<LookStrategy['worldPatch']> = (material, scope) => {
-    // a node material (an SF59 graph) builds its own program: the haze is a classic fog-chunk patch, its fog the epilogue's
-    if (haze === null || !('haze' in skySpec) || Reflect.get(material, 'isNodeMaterial') === true) return;
+    // a graph (an SF59 node material, or its classic GLSL program) carries its own fog: the haze is a classic fog-chunk
+    // patch, a graph's fog the epilogue's
+    if (haze === null || !('haze' in skySpec) || Reflect.get(material, 'isNodeMaterial') === true || Reflect.get(material, 'isGraphShaderMaterial') === true) return;
     const { strip } = sky ?? makeSky();
     if (strip !== null) patchShader(material, skySpec.haze.name, PATCH_ORDER.decorate, (shader) => { haze(shader, strip); }, { scope });
   };
