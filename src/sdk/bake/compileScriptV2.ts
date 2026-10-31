@@ -2,6 +2,7 @@
  * this path. No optimization runs after the verified finite/fuel passes. */
 import binaryen from 'binaryen';
 import { loadAssemblyScriptCompiler } from '../assemblyscriptCompiler.mjs';
+import type { AssemblyScriptMemo } from './assemblyscriptMemoPort';
 import { instrumentV2Finite } from './v2Finite';
 import { instrumentV2Fuel } from './v2Fuel';
 import type { V2Lane } from '@wildshard/format/scriptFuelV2';
@@ -40,7 +41,7 @@ function localStartAndAbort(bytes: Uint8Array): Uint8Array {
 /** Source exports the H0b signatures, including the final i32 fuel parameter
  * and i32 result for each work entry. Generated wrappers return the real fuel
  * remainder rather than trusting the authored result. */
-export async function compileScriptV2(source: string,options: { maximumPages?: number; ioBytes?: number; lane?: V2Lane; sources?: Readonly<Record<string,string>>; compilerRevision?: number } = {}): Promise<Uint8Array> {
+export async function compileScriptV2(source: string,options: { maximumPages?: number; ioBytes?: number; lane?: V2Lane; sources?: Readonly<Record<string,string>>; compilerRevision?: number; compileMemo?: AssemblyScriptMemo } = {}): Promise<Uint8Array> {
   if (options.compilerRevision !== undefined && options.compilerRevision !== SCRIPT_V2_REVISIONS.compiler) throw new Error('Unsupported v2 compiler revision');
   const pages = options.maximumPages ?? 1;
   if (!Number.isInteger(pages) || pages < 1 || pages > 4) throw new Error('V2 fixed memory must be 1..4 pages');
@@ -48,12 +49,18 @@ export async function compileScriptV2(source: string,options: { maximumPages?: n
   if (sources.size > 64 || [...sources].some(([name,value]) => name === 'main.ts' || !/^(?:[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\/)*[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\.ts$/u.test(name) || typeof value !== 'string')) throw new Error('Invalid v2 virtual sources');
   const asc = await loadAssemblyScriptCompiler(); if (!compiler(asc)) throw new Error('Invalid pinned AssemblyScript compiler');
   const compile = async (memoryBase: number): Promise<Uint8Array> => {
-    let bytes: Uint8Array = new Uint8Array();
-    const result = await asc.main(['main.ts','--outFile','v2.wasm','--runtime','stub','--importMemory','--noExportMemory','--initialMemory',String(pages),'--maximumMemory',String(pages),'--memoryBase',String(memoryBase),'--exportStart','__v2_start','--disable','bulk-memory','-O3'],{
-      readFile: name => name === 'main.ts' ? source : sources.get(name) ?? null,
-      writeFile: (name,value) => { if (name === 'v2.wasm' && value instanceof Uint8Array) bytes = value; },
-    });
-    if (result.error || bytes.length === 0) throw new Error(`V2 AssemblyScript compile failed: ${result.error?.message ?? 'no output'}${result.stderr?.toString() ?? ''}`);
+    const args = ['main.ts','--outFile','v2.wasm','--runtime','stub','--importMemory','--noExportMemory','--initialMemory',String(pages),'--maximumMemory',String(pages),'--memoryBase',String(memoryBase),'--exportStart','__v2_start','--disable','bulk-memory','-O3'];
+    const generate = async (): Promise<Uint8Array> => {
+      let bytes: Uint8Array = new Uint8Array();
+      const result = await asc.main(args,{
+        readFile: name => name === 'main.ts' ? source : sources.get(name) ?? null,
+        writeFile: (name,value) => { if (name === 'v2.wasm' && value instanceof Uint8Array) bytes = value; },
+      });
+      if (result.error || bytes.length === 0) throw new Error(`V2 AssemblyScript compile failed: ${result.error?.message ?? 'no output'}${result.stderr?.toString() ?? ''}`);
+      return bytes;
+    };
+    const bytes = options.compileMemo === undefined ? await generate()
+      : await options.compileMemo(args, new Map([['main.ts', source], ...sources]), generate);
     return localStartAndAbort(bytes);
   };
   // Discover the literal IO base without executing the getter. Compile again

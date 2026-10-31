@@ -74,7 +74,7 @@ export async function compileReturnProjectionV2(input:unknown,registries:Decisio
     export function ws_io():i32{return 0;}
     export function ws_init(lo:i32,hi:i32,fuel:i32):i32{return fuel;}
     export function ws_project(fuel:i32):i32{core.beginState();assert(core.beginBinding(0));${groups===undefined?'':'if(core.count(2)>0)groupStep();else '}onSignal(i32(core.parameter(0)),0,0);core.endBinding();return fuel;}`;
-  const bytes=await compileScriptV2(source,{maximumPages:row.pages,ioBytes:layout.bytes,lane:'project',sources});
+  const bytes=await compileScriptV2(source,{maximumPages:row.pages,ioBytes:layout.bytes,lane:'project',sources,...(options.compileMemo===undefined?{}:{compileMemo:options.compileMemo})});
   const candidate=parseReturnProjectionV2({artifact:{abi:2,minor:0,compilerRevision:SCRIPT_V2_REVISIONS.compiler,admissionRevision:SCRIPT_V2_REVISIONS.admission,
     hash:hashImmutableBytes(bytes),lane:'project',pages:row.pages,ioBytes:layout.bytes},fields,signals,channels,...(additional===undefined?{}:{additional}),...(options.outputCapacity===undefined?{}:{outputCapacity:options.outputCapacity}),bytes:btoa(Array.from(bytes,byte=>String.fromCodePoint(byte)).join('')),...(groups===undefined?{}:{groups:groups.rows})});
   return {legacy:{script,bytes:btoa(Array.from(blob.bytes,byte=>String.fromCodePoint(byte)).join(''))},candidate,binary:bytes,witness:blob.bytes};

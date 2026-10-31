@@ -18,8 +18,10 @@ import { hashImmutableBytes } from './immutable';
 import { hashAssetBytes } from './assetHandle';
 import { WS_CORE } from './as/ws';
 
+import type { AssemblyScriptMemo } from './bake/assemblyscriptMemoPort';
+
 /** Root adapters supply the sealed legacy count; standalone authors declare their explicit ceiling. */
-export interface DecisionBuildOptions { decisionLegacyLines?: number; asLineCeiling?: number; development?: boolean; singleSignal?: boolean }
+export interface DecisionBuildOptions { compileMemo?: AssemblyScriptMemo; decisionLegacyLines?: number; asLineCeiling?: number; development?: boolean; singleSignal?: boolean }
 /** No SDK import reaches repo policy. An explicit legacy denominator overrides a standalone declaration. */
 export function decisionLineCeiling(options: DecisionBuildOptions): number {
   const count = options.decisionLegacyLines ?? options.asLineCeiling;
@@ -36,7 +38,7 @@ export async function compileDecisionScripts(input: unknown, registries: Decisio
   const generated=new Map<string,string>(),compiled:DecisionScriptRow[]=[],blobs=new Map<string,NamedBlob>();
   for(const row of rows){
     const binding=generateDecisionBindings(row,registries,options),sources={...binding.sources,...captured.entry(row,binding.path)};
-    const bytes = await compileScript(binding.glue, { abi: 1, maximumPages: row.pages, sources });
+    const bytes = await compileScript(binding.glue, { abi: 1, maximumPages: row.pages, sources, ...(options.compileMemo === undefined ? {} : { compileMemo: options.compileMemo }) });
     admitScriptContract(bytes, { abi: 1, pages: row.pages });
     const hash = hashAssetBytes(bytes), module = `blobs/wasm/${hash}.wasm`;
     const text = authored.get(row.source);

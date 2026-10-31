@@ -1,6 +1,7 @@
 /** Portable AssemblyScript compiler and structural Binaryen metering, pinned by SDK dependencies. */
 import binaryen from 'binaryen';
 import { loadAssemblyScriptCompiler } from '../assemblyscriptCompiler.mjs';
+import type { AssemblyScriptMemo } from './assemblyscriptMemoPort';
 
 interface Compiler { main: (args: string[], options: { readFile: (name: string) => string | null; writeFile: (name: string, contents: string | Uint8Array) => void }) => Promise<{ error: Error | null; stderr?: { toString: () => string } }> }
 function isCompiler(value: unknown): value is Compiler { return typeof value === 'object' && value !== null && 'main' in value && typeof value.main === 'function'; }
@@ -92,7 +93,7 @@ export function instrumentScript(bytes: Uint8Array): Uint8Array {
 }
 /** Build source in-memory; no native compiler or Rust toolchain. ABI/compiler versions are pinned in package.json.
  */
-export async function compileScript(source: string, options: { abi?: 0 | 1; maximumPages?: number; sources?: Readonly<Record<string, string>> } = {}): Promise<Uint8Array> {
+export async function compileScript(source: string, options: { abi?: 0 | 1; maximumPages?: number; sources?: Readonly<Record<string, string>>; compileMemo?: AssemblyScriptMemo } = {}): Promise<Uint8Array> {
   const maximumPages = options.maximumPages ?? (options.abi === 1 ? 1 : 64);
   const ceiling = options.abi === 1 ? 4 : 64;
   if (!Number.isSafeInteger(maximumPages) || maximumPages < 1 || maximumPages > ceiling) throw new Error(`Script maximumPages must be 1..${ceiling}`);
@@ -102,11 +103,17 @@ export async function compileScript(source: string, options: { abi?: 0 | 1; maxi
   // Keep its portable ambient declarations inside the author compiler, not the host type program.
   const compiler = await loadAssemblyScriptCompiler();
   if (!isCompiler(compiler)) throw new Error('Invalid pinned AssemblyScript compiler');
-  let bytes: Uint8Array = new Uint8Array();
-  const result = await compiler.main(['main.ts', '--outFile', 'main.wasm', '--runtime', 'stub', '--importMemory', '--initialMemory', String(options.abi === 1 ? maximumPages : 1), '--maximumMemory', String(maximumPages), '--exportStart', '__start', '--disable', 'bulk-memory', '-O3'], {
-    readFile: (name) => name === 'main.ts' ? source : sources.get(name) ?? null,
-    writeFile: (name, contents) => { if (name === 'main.wasm' && contents instanceof Uint8Array) bytes = contents; },
-  });
-  if (result.error || bytes.length === 0) throw new Error(`AssemblyScript compile failed: ${result.error?.message ?? 'no output'}${result.stderr === undefined ? '' : `\n${result.stderr.toString()}`}`);
+  const args = ['main.ts', '--outFile', 'main.wasm', '--runtime', 'stub', '--importMemory', '--initialMemory', String(options.abi === 1 ? maximumPages : 1), '--maximumMemory', String(maximumPages), '--exportStart', '__start', '--disable', 'bulk-memory', '-O3'];
+  const generate = async (): Promise<Uint8Array> => {
+    let bytes: Uint8Array = new Uint8Array();
+    const result = await compiler.main(args, {
+      readFile: (name) => name === 'main.ts' ? source : sources.get(name) ?? null,
+      writeFile: (name, contents) => { if (name === 'main.wasm' && contents instanceof Uint8Array) bytes = contents; },
+    });
+    if (result.error || bytes.length === 0) throw new Error(`AssemblyScript compile failed: ${result.error?.message ?? 'no output'}${result.stderr === undefined ? '' : `\n${result.stderr.toString()}`}`);
+    return bytes;
+  };
+  const bytes = options.compileMemo === undefined ? await generate()
+    : await options.compileMemo(args, new Map([['main.ts', source], ...sources]), generate);
   return instrumentScript(bytes);
 }

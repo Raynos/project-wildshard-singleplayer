@@ -24,6 +24,7 @@ import { createBasisEncoder } from './bake/basisEncoder';
 import { encodeGainKeyMemo } from './bake/keyedSkyMemo';
 import { encodePortableBytesMemo } from './bake/portableBytesMemo';
 import { encodeZstdBytesMemo } from './bake/zstdBytesMemo';
+import { memoAssemblyScript } from './bake/assemblyscriptMemo';
 import { meshoptNoLargerMemo } from './bake/meshoptChoiceMemo';
 import { projectInputFiles } from './projectInputFiles';
 import type { Shardfile } from './shardfile';
@@ -119,7 +120,12 @@ export function createProjectGeneration(project: string, programHash: string, as
     return { prefix: source.prefix, directory: realpathSync(source.directory) };
   });
   return {
-    compileScript, compileScriptV2, compileDecisionScripts: compileDeclaredDecisionScripts, compileDecisionRows: compileDecisionScripts, compileReturnProjection: compileReturnProjectionV2, proveStaticPortalEntries, readImagePixels, writeImagePixels, normalizeWorldGlb,
+    compileScript: (source, options) => compileScript(source, { ...options, compileMemo: memoAssemblyScript }),
+    compileScriptV2: (source, options) => compileScriptV2(source, { ...options, compileMemo: memoAssemblyScript }),
+    compileDecisionScripts: (input, source, moves, authored, options) => compileDeclaredDecisionScripts(input, source, moves, authored, { ...options, compileMemo: memoAssemblyScript }),
+    compileDecisionRows: (input, registries, authored, options) => compileDecisionScripts(input, registries, authored, { ...options, compileMemo: memoAssemblyScript }),
+    compileReturnProjection: (input, registries, authored, options) => compileReturnProjectionV2(input, registries, authored, { ...options, compileMemo: memoAssemblyScript }),
+    proveStaticPortalEntries, readImagePixels, writeImagePixels, normalizeWorldGlb,
     basisEncoder: createBasisEncoder, encodeGainKey: encodeGainKeyMemo, encodePortableBytes: encodePortableBytesMemo, encodeZstdBytes: encodeZstdBytesMemo, meshoptNoLarger: meshoptNoLargerMemo,
     inputFiles: prefixes => projectInputFiles(roots, prefixes, root),
     asset(bytes) {

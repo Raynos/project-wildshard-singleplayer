@@ -8,7 +8,12 @@ detached bytes keyed by bundled source, compiler, explicit inputs and native
 host; hits still read inputs. `asset(bytes)`
 publishes owned bytes. Injected `compileScript`, `compileScriptV2`,
 `compileDecisionScripts` and optional `compileDecisionRows` compile without
-author filesystem/compiler imports. Compiler dependencies enter cache keys.
+author filesystem/compiler imports. Compiler dependencies enter cache keys. The trusted build context may reuse
+raw optimized AssemblyScript output keyed by every source, compiler flag and
+installed compiler dependency. It never caches source-budget/import checks,
+ABI/IO admission, finite/fuel instrumentation or witnesses. Pure compiler
+callers without the optional host `compileMemo` callback keep the uncached
+path, with no filesystem capability imported by those compilers.
 An output sidecar may export `prepareOutput(ctx)` alongside `output`; its
 result crosses product admission, keyed by config and sidecar source. It may
 also export `prepareMap(ctx)`, returning `{ pixels, name? }` (a 1000 × 1000
