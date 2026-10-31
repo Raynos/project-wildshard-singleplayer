@@ -35,9 +35,12 @@ test('a direct miss stays a miss rather than searching another cache or fetching
 });
 
 test('open-only hosts and refused direct queries keep the original read and presence ports', async () => {
-  for (const direct of [false, true]) {
+  for (const direct of ['absent', 'reject', 'accessor'] as const) {
     const old = fixture(() => new Response(Uint8Array.of(5, 6)));
-    const storage = direct ? { open: old.open, match: () => Promise.reject(new Error('Direct query unavailable')) } : { open: old.open };
+    const storage = direct === 'absent' ? { open: old.open } : { open: old.open, get match(): CacheStorage['match'] {
+      if (direct === 'accessor') throw new Error('Direct port unavailable');
+      return () => Promise.reject(new Error('Direct query unavailable'));
+    } };
     expect(await cachedAsset(storage, address, 2)).toEqual(Uint8Array.of(5, 6));
     expect(await hasCachedAsset(storage, address)).toBe(true);
     expect(old.open.mock.calls).toEqual([[ASSET_CACHE_NAME], [ASSET_CACHE_NAME]]);

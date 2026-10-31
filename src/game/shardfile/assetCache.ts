@@ -5,10 +5,10 @@ type ReadStorage = Pick<CacheStorage, 'open'> & Partial<Pick<CacheStorage, 'matc
 /** Query exactly the original cache in one native operation. Older/injected
  * hosts and a refused direct query retain the original open/match path. */
 async function matchAsset(storage: ReadStorage, url: string): Promise<Response | undefined> {
-  if (storage.match !== undefined) {
-    try { return await storage.match(url, { cacheName: ASSET_CACHE_NAME, ignoreVary: true }); }
-    catch { /* The existing read port may still be available. */ }
-  }
+  try {
+    const match = storage.match;
+    if (match !== undefined) return await match.call(storage, url, { cacheName: ASSET_CACHE_NAME, ignoreVary: true });
+  } catch { /* The existing read port may still be available. */ }
   return (await storage.open(ASSET_CACHE_NAME)).match(url, { ignoreVary: true });
 }
 
