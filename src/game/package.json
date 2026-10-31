@@ -114,6 +114,7 @@
     "./weather/continuation": "./weather/continuation.ts",
     "./weather/reactions": "./weather/reactions.ts",
     "./plugin/channelPrograms": "./plugin/channelPrograms.ts",
+    "./plugin/creatureFrame": "./plugin/creatureFrame.ts",
     "./shard/declaredRows": "./shard/declaredRows.ts",
     "./plugin/nativeItems": "./plugin/nativeItems.ts",
     "./loadout/itemCatalogue": "./loadout/itemCatalogue.ts",

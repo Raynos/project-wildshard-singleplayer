@@ -3008,11 +3008,12 @@ bodies. `definition(kind)` returns the declared gameplay fields with a fresh
 rest-body copy, while `look(kind)` resolves the registered rig when requested.
 The ordered `looks` getter follows the authored rows. Pine and Driftwood use
 this product section without installing another body cache.
-`parsePackedCreatureLooks` checks unknown input and owns a detached, deeply frozen
-book. Only that private parsed output can be reused by the hull and packed-body
-readers; raw inputs and copies always run the complete schema again.
-`numericCreaturePoseFromBook(book, id)` selects a checked nested pose before
-compilation; direct `numericCreaturePose` still checks unknown pose rows.
+`parsePackedCreatureLooks` validates and freezes a detached book; only
+its private output is reusable. Raw/copy inputs revalidate.
+`numericCreaturePoseFromBook` checks nested poses; `numericCreaturePose`
+checks raw rows. `plugin/creatureFrame.creatureFrame(row, groundHeight)`
+runs the surface/observe/pose frame on its terrain query (page:
+`terrainHeight`).
 
 `productSpeciesCatalogue(product, data, lookRows)` constructs the admitted behaviour
 and packed look rows in their original order. A species may declare

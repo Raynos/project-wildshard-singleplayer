@@ -1,10 +1,12 @@
 import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import { Scope } from '../src/engine/app/scope';
 import { lendNalatiHeld } from './fixtures/nalati-held-loan';
-import { object, parse, record, string } from 'valibot';
+import { object, parse, record, string, unknown } from 'valibot';
 import { NumericPoseSchema } from '../src/format/clientChannels';
 import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
 import { numericCreaturePose } from '../src/game/plugin/channelPrograms';
+import { creatureFrame } from '../src/game/plugin/creatureFrame';
+import { parsePackedCreatureLooks } from '../src/format/speciesLooks';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Bone, Vector3 } from 'three';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
@@ -35,20 +37,26 @@ function context(): AnimalRigContext & { bones: Record<string, Bone> } {
 function transforms(c: AnimalRigContext): number[] { return Object.values(c.bones).flatMap(b => [b.position.x, b.position.y, b.position.z, b.rotation.x, b.rotation.y, b.rotation.z, b.scale.x, b.scale.y, b.scale.z]); }
 
 test('King pose rows retain every joint through the full fight and its reset', () => {
-  setTerrainHeight(() => 0);
+  let ground=0;setTerrainHeight(() => ground);
   // the King's frame is his packed look's channel frame
   const animateGoldenKing = nalatiSpeciesCatalogue().looks.find(look => look.kind === 'golden-king')?.animate;
   if (animateGoldenKing === undefined) throw new Error('Missing Golden King frame');
-  const actual = context(), expected = context();
+  const packed=parsePackedCreatureLooks(parse(object({looks:unknown()}),originalSpeciesJson('species.json')).looks);
+  const frame=packed.frames['king'];if(frame===undefined)throw new Error('Missing admitted King frame');
+  const nativeFrame=creatureFrame(frame,()=>ground);
+  const actual = context(), native=context(), expected = context();
   for (const pose of [0, 1, 2]) for (const act of [0, 1, 2, 3, 4]) for (const strike of [0, 1, 2, 3])
     for (const attack of [-1, 0, .2, .55, .62, .72, .78, .88, 1]) for (const deathT of [-1, 0, .4, 1]) {
-      for (const c of [actual, expected]) {
+      ground=strike===0?-0:strike*3;
+      for (const c of [actual, native, expected]) {
         Object.assign(c.mem, { pose, act, strike, floorY: 140, rise: .43, lift: .12, kneel: act === 3 ? 1 : 0,
           raise: act === 2 ? 1 : 0, cape: act === 4 ? .001 : 1, crown: strike === 3 ? 0 : 1 });
         c.attack = attack; c.deathT = deathT; c.alive = deathT < 0;
         c.t += .037; c.phase = (c.phase + .117) % 1; c.speed = Math.sin(c.t) * 2.4;
       }
       animateKing(expected); animateGoldenKing(legacyDouble<RigAnimCtx>({ ...actual, animal: legacyDouble<Animal>(actual.animal) }));
+      nativeFrame(native);expect(transforms(native)).toEqual(transforms(actual));
+      expect(native.mem).toEqual(actual.mem);expect(native.animal.yOffset).toBe(actual.animal.yOffset);
       const wanted = transforms(expected);
       transforms(actual).forEach((value, i) => expect(value, `${pose}/${act}/${strike}/${attack}/${deathT} scalar ${i}`).toBeCloseTo(wanted[i] ?? Number.NaN, 12));
       expect(actual.animal.yOffset).toBe(expected.animal.yOffset);
