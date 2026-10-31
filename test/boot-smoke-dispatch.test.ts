@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Evaluate only the actual workflow's concurrency-key expressions.
 import { runInNewContext } from 'node:vm';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise only owned archive staging across a simulated checkout cleanup.
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Locate the controller copy and isolated runner directories.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
@@ -332,6 +332,93 @@ ${/^ {6}group: .+$/mu.exec(deploy.split('\n  build-and-deploy:\n')[1] ?? '')?.[0
 const manualDescription = 'Manual merged-v1 SIX: source 123/1; through 2026-10-30T21:29:00.000Z';
 const manualStatus = { state: 'success', target_url: 'https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/123',
   description: manualDescription, created_at: '2026-10-30T21:31:00Z' };
+
+test('the real gh subprocess keeps paginated jobs and newest statuses without incompatible flags', () => {
+  mkdirSync('tmp', { recursive: true });
+  const directory = mkdtempSync(resolve('tmp/deploy-pagination-'));
+  try {
+    const gh = resolve(directory, 'gh');
+    writeFileSync(gh, String.raw`#!${process.execPath}
+import fs from 'node:fs';
+const args = process.argv.slice(5);
+fs.appendFileSync(process.env.GH_TEST_CALLS, JSON.stringify(args) + '\n');
+if (args.includes('--slurp') && args.includes('--jq')) throw new Error('incompatible gh flags');
+const replies = JSON.parse(fs.readFileSync(process.env.GH_TEST_REPLIES, 'utf8'));
+const key = JSON.stringify(args);
+if (!Object.hasOwn(replies, key)) throw new Error('Unexpected API subprocess: ' + key);
+process.stdout.write(replies[key]);
+`);
+    chmodSync(gh, 0o755);
+    for (const merged of [false, true]) {
+      const fixture = merged ? mergedReadyFixture() : readyFixture();
+      const { state, ship } = fixture;
+      if (merged && 'steps' in ship && Array.isArray(ship.steps)) {
+        ship.status = 'completed'; ship.conclusion = 'failure';
+        ship.steps.push({ name: 'Publish exact-SHA proof outcome', number: 2, status: 'completed', conclusion: 'success' });
+        state.boot = `success\thttps://github.com/Raynos/project-wildshard-singleplayer/actions/runs/123`;
+      }
+      const replies: Record<string, string> = {};
+      readySource('123', liveBuild, args => {
+        const output = state.query(args);
+        replies[JSON.stringify(args)] = output;
+        if (args.includes('--slurp')) {
+          const jqAt = args.indexOf('--jq');
+          const rawArgs = args.filter((_arg, index) => index !== jqAt && index !== jqAt + 1);
+          replies[JSON.stringify(rawArgs)] = args[0]?.includes('/jobs?')
+            ? JSON.stringify([{ jobs: state.details.slice(0, 10) }, { jobs: state.details.slice(10) }])
+            : JSON.stringify([{ statuses: [{ context: 'unrelated', state: 'failure' }] },
+              { statuses: [{ context: 'boot-smoke', ...JSON.parse(output) }] }]);
+        }
+        return output;
+      }, readyNow);
+      const jobKey = Object.keys(replies).find(key => key.includes('/jobs?') && !key.includes('--jq'));
+      const statusKey = Object.keys(replies).find(key => key.includes('/status') && !key.includes('--jq'));
+      if (jobKey === undefined || (merged && statusKey === undefined)) throw new Error('Missing paginated subprocess fixture');
+      const run = () => {
+        writeFileSync(resolve(directory, 'replies.json'), JSON.stringify(replies));
+        return spawnSync(process.execPath, ['--input-type=module', '-e',
+          `import { readySource } from './scripts/deploy-pin.mjs';
+           console.log(JSON.stringify(readySource('123', ${JSON.stringify(liveBuild)}, undefined, ${readyNow})));`],
+        { encoding: 'utf8', timeout: 5000, env: { ...process.env,
+          PATH: `${directory}:${process.env['PATH'] ?? ''}`,
+          GH_TEST_REPLIES: resolve(directory, 'replies.json'), GH_TEST_CALLS: resolve(directory, 'calls.json') } });
+      };
+      const accepted = run();
+      expect(accepted.stderr).toBe('');
+      expect(accepted.error).toBeUndefined();
+      expect(accepted.status).toBe(0);
+      const acceptedProof: unknown = JSON.parse(accepted.stdout);
+      expect(acceptedProof).toEqual(expect.objectContaining({ sha }));
+      const fullJobs = replies[jobKey];
+      replies[jobKey] = JSON.stringify([{ jobs: state.details.slice(0, 10) }]);
+      const incomplete = run();
+      expect(incomplete.error).toBeUndefined();
+      expect(incomplete.status).toBe(1);
+      expect(incomplete.stderr).toContain('inventory');
+      if (fullJobs === undefined) throw new Error('Missing full jobs');
+      replies[jobKey] = fullJobs;
+      if (statusKey !== undefined) for (const verdict of ['failure', 'pending']) {
+        replies[statusKey] = JSON.stringify([{ statuses: [{ ...manualStatus, context: 'boot-smoke', state: verdict }] },
+          { statuses: [{ ...manualStatus, context: 'boot-smoke' }] }]);
+        const refused = run();
+        expect(refused.error).toBeUndefined();
+        expect(refused.status).toBe(1);
+        expect(refused.stderr).toContain('boot');
+      }
+    }
+    const calls = readFileSync(resolve(directory, 'calls.json'), 'utf8').trim().split('\n')
+      .map((line): string[] => {
+        const parsed: unknown = JSON.parse(line);
+        if (!Array.isArray(parsed)) throw new Error('Unreadable subprocess arguments');
+        return parsed.map((arg: unknown) => {
+          if (typeof arg !== 'string') throw new Error('Non-string subprocess argument');
+          return arg;
+        });
+      });
+    expect(calls.some(args => args.includes('--paginate') && args.includes('--slurp'))).toBe(true);
+    expect(calls.every(args => !args.includes('--slurp') || !args.includes('--jq'))).toBe(true);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
 
 test('merged queued selection is read-only and retains every actual source gate before staging its missing publisher', () => {
   const { state } = mergedReadyFixture(), calls: string[][] = [];

@@ -35,13 +35,25 @@ const ok = (fn) => { try { fn(); return true; } catch { return false; } };
 /** `gh api …`, retried: one GitHub 5xx (HTTP 503 "No server is currently available", 2026-10-03 run 37157015487) failed
  *  a whole release at this step. Four tries, 5 / 15 / 45 s apart. @param {string[]} args @returns {string} */
 function ghApi(args) {
+  // gh forbids --slurp with --jq. Keep the complete page array and apply
+  // the same trusted filter afterward; filtering errors are not API retries.
+  const jqAt = args.includes('--slurp') ? args.indexOf('--jq') : -1;
+  const filter = jqAt < 0 ? undefined : args[jqAt + 1];
+  if (jqAt >= 0 && filter === undefined) throw new Error('Missing paginated API filter');
+  const apiArgs = jqAt < 0 ? args : args.filter((_arg, index) => index !== jqAt && index !== jqAt + 1);
+  let response;
   for (let i = 0; ; i++) {
-    try { return execFileSync('gh', ['api', '-H', 'Cache-Control: no-cache', ...args], { encoding: 'utf8' }); } catch (e) {
+    try {
+      response = execFileSync('gh', ['api', '-H', 'Cache-Control: no-cache', ...apiArgs], { encoding: 'utf8' });
+      break;
+    } catch (e) {
       if (i === 3) throw e;
       console.error(`gh api ${args[0]}: try ${i + 1} failed, retrying`);
       Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 5000 * 3 ** i);
     }
   }
+  return filter === undefined ? response
+    : execFileSync('jq', ['-r', filter], { input: response, encoding: 'utf8' });
 }
 
 /** @type {WeakMap<(args:string[])=>string, Map<string, string>>} */
