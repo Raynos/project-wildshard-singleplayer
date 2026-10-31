@@ -192,3 +192,52 @@ ruling** accepts exactly that current-source stamp classification; no
 general tolerance, stamp/image write or admission guard change is added.
 The remaining CS6 species/population and behaviour-to-AS work stays open;
 no legacy file is part of either slice (G908).
+
+
+## CS2: shared names and remaining exits
+
+**2026-10-31, sp-x1.** Model catalogues (`79b336bd52`) bind the existing
+`models/world-scenes.json` name in modern Driftwood, Pine and Nine to
+`WorldSceneModelsSchema` / its original parser. Weather presentation
+(`59dd3208e1`) binds Pine and Nalati `world/forest-weather.json` to their
+existing `ForestWeatherSchema`, including its native program/storm and
+observation-block checks. Payload encoding, resource ownership, consumer
+defaults and all legacy sources remain unchanged. The weather fixtures
+retain every original held-read, retirement, HUD and owner assertion and
+now carry real defining metadata plus the native validator.
+
+Fourteen model controls and 21 weather controls pass, as do root types
+and touched typed lint. One normal coalesced publisher takes 44.15 s;
+independent strict admission accepts all four products. All **2,376 file
+rows** retain their names, paths, hashes, ordering and costs; precisely
+five defining-schema metadata records change. Of **2,599 payload paths /
+440,949,804 B**, 2,597 are byte-identical. The original strict comparator
+fails on exactly the two 164-byte `look/map` source-stamp records and is
+retained as a failure. Independent full comparison verifies that each
+record differs only in `map.tilesHash`: Nalati `f11c8cb9…5ddc96` becomes
+`07afaebe…197a9e`, and Nine `7ed9611d…deba07e` becomes
+`0579007a…6603a8`. Both equal current `mapTilesHash`; only the respective
+`output.ts` / `worldScenes.ts` metadata options changed among map inputs.
+Map images remain exactly `80afaa55…aff2d6` and `ce62e427…9fefd`.
+G872 accepts these two exact cases only. No source stamp is frozen and
+neither the strict comparator nor map freshness is weakened.
+
+Registration preserves an existing logical name and its complete shared
+native parser. It does not merge payloads, derive tier copies, change
+host ownership or make a one-user schema generic. The private ingestion
+bridge remains open until the following existing exit rows replace its
+remaining documents; an inventory shape match alone proves no contract.
+
+| Remaining document family | Explicit exit and retained requirement |
+|---|---|
+| Scene/source families, cabin tier/shadow copies, fixed model geometry, dressing and model libraries | **CS3**: streamed scenes/models and derived copies; retain geometry/resource/ownership checks. Placement-name registration alone does not collapse the 194 placement documents. |
+| Fields, Pine floor/cave and `data/physics.generated.json`, Nalati meadow and other ground bakes | **CS4**: streamed fields and the existing physics section; retain Pine profile/notice/King-hit/tree/shelter/piece owners, not just the ground subset. |
+| Remaining quest/story/step/panel/persistence/carried/runtime documents | **CS5**: complete shared quest schemas and approved WASM programs. Persistence and panel-catalogue registration remain explicit work in that row. |
+| `directors/main.json`, population/keeper/return/install/roster/shelter documents and remaining creature custom sections | **CS6**: retain complete native controller/module/ownership rows; executable behaviour belongs on the approved sim host. |
+| Held kits/weapons, collections/appearance/sky/audio/weather/water, people/places and raw jian geometry | **CS7**: unify complete wire shapes and retain native consumers. Pine `world/weather.json` is a program; Nalati's same name is `{weather,reactions}`, so it is not yet one contract. Raw geometry exits through the model library. |
+| Room/boss/encounter/fight/riding documents | **CS8**: retain closed encounter/riding owners; executable fights use the approved host. |
+| Headless assembly/boot/constants, native views and runtime graphs | **CS9**: derive assemblies from platform sections and use approved view hosts; permissive assembly envelopes are not CS2 registrations. |
+
+These exits remain open work, not completed platform contracts. CS10
+removes the checked private path only after they land. Missing provenance,
+unresolved readers and one-user schemas remain explicit audit evidence.
