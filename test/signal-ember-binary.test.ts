@@ -7,6 +7,7 @@ import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { emitNamedBlobs } from '../src/sdk/blobs';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { prepareSceneDrawRows, drawSceneRows } from '../src/game/shardfile/sceneDraws';
 import { SIGNAL_EMITTERS } from '../src/shards/sunscar-dunes/generators/lightEmitters';
 import { signalEmberBuffer, SIGNAL_EMBER_BLOBS } from '../src/shards/sunscar-dunes/generators/emberBuffers';
@@ -53,7 +54,7 @@ function product(mode: 'complete' | 'missing' | 'truncated') {
   });
   const value = createShardProduct({ slug: 'ember-binary', revision: 1,
     shardfile: emptyShardfile({ slug: 'ember-binary', name: 'Embers', author: 'Fixture', revision: 1, seed: 1 }), sections: new Map(),
-    files: new Map(emitted.files.flatMap(file => file.name === undefined || mode === 'missing' && file.kind === 'bin' ? [] : [[file.name, { hash: file.hash, url: file.hash }]])), read });
+    files: new Map(emitted.files.flatMap(file => file.name === undefined || mode === 'missing' && file.kind === 'bin' ? [] : [[file.name, fixtureProductFile(file.name, { ...file, url: file.hash })]])), jsonCheck: fixtureJsonCheck, read });
   return { value, read };
 }
 const draws = [...files].map(file => ({ kind: 'buffered', file, material: 'fire' }));

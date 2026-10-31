@@ -7,6 +7,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { emitNamedBlobs } from '../src/sdk/blobs';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { prepareSceneDrawRows, drawSceneRows } from '../src/game/shardfile/sceneDraws';
 import { SKY_MEADOW_BLOB, SKY_MEADOW_BLOBS, SKY_MEADOW_FILE, SKY_MEADOW_DATA_FILE, skyMeadowBlobs } from '../src/shards/far-reach/generators/meadowScene';
 import { bakeMeadowBlades } from '../src/shards/far-reach/generators/meadowBlades';
@@ -65,7 +66,7 @@ function product(mode: 'complete' | 'missing' | 'truncated') {
     plumbing: { namespace: 'far', input: [], debug: [], knobs: [{ id: 'far.meadowBlades' as const, phone: 1600, desktop: 3200 }] } };
   const value = createShardProduct({ slug: 'meadow-binary', revision: 1, shardfile, sections: new Map(),
     files: new Map(emitted.files.flatMap(file => file.name === undefined || mode === 'missing' && file.kind === 'bin' ? []
-      : [[file.name, { hash: file.hash, url: file.hash }]])), read });
+      : [[file.name, fixtureProductFile(file.name, { ...file, url: file.hash })]])), jsonCheck: fixtureJsonCheck, read });
   return { value, read };
 }
 const draws = [{ kind: 'buffered', file: SKY_MEADOW_FILE, material: 'grass' }];

@@ -9,6 +9,7 @@ import { parseWorldScene } from '../src/format/clientChannels';
 import { emptyShardfile } from '../src/sdk/author';
 import { nameBlob, emitNamedBlobs } from '../src/sdk/blobs';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { ProductFigureCatalogue } from '../src/game/models/figureCatalogue';
 import { defineModel } from '../src/engine/models/model';
 import { PINE_WILDLIFE_DRAW as WILDLIFE_DRAW } from './fixtures/pine-wildlife';
@@ -32,7 +33,8 @@ function fixture(slug: string, catalogue: unknown, scenes = parseWorldScenes({ v
   const declared = emitNamedBlobs(blobs);
   return createShardProduct({ slug, revision: 1, shardfile: emptyShardfile({ slug, name: slug, author: 'Fixture', revision: 1, seed: 1 }),
     sections: new Map<string, unknown>([['explore/catalogue', parseExplorerCatalogue(catalogue)], ['world/scenes', scenes]]),
-    files: new Map(declared.files.flatMap(row => row.name === undefined ? [] : [[row.name, { hash: row.hash, url: row.hash }]])),
+    files: new Map(declared.files.flatMap(row => row.name === undefined ? [] : [[row.name, fixtureProductFile(row.name, { ...row, url: row.hash })]])),
+    jsonCheck: fixtureJsonCheck,
     read: hash => { const bytes = declared.assets.get(hash); if (bytes === undefined) throw new Error('Missing fixture bytes'); return Promise.resolve(bytes); }, check: true });
 }
 
@@ -52,7 +54,7 @@ test('every emitted Sky and Signal scene recipe passes runtime admission', async
     const blobs = output.namedFiles.flatMap(file => {
       if (file.name === undefined) return [];
       const data = output.assets.get(file.hash); if (data === undefined) throw new Error('Missing declared source');
-      return [nameBlob(file.name, file.kind, data)];
+      return [nameBlob(file.name, file.kind, data, file)];
     });
     const product = fixture(`fixture-sources-${String(index)}`, { version: 1, entries: [] }, scenes, blobs);
     await sceneSources.prepareSceneSources(product);
