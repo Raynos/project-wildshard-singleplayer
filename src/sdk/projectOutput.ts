@@ -1,3 +1,7 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Build admission compares every byte with the native comparator.
+import { Buffer } from 'node:buffer';
+// oxlint-disable-next-line import/no-nodejs-modules -- Proxy inputs retain their original getter/callback path.
+import { isProxy } from 'node:util/types';
 import { parseRiggedHullBook } from '@wildshard/format/riggedHulls';
 import { AdmissionLateSchema, lateLibraryRootsValid, type AdmissionLate, type LateFile } from '@wildshard/format/admissionLate';
 import * as v from 'valibot';
@@ -144,6 +148,40 @@ function libraryCost(source: Shardfile): { compressed: number; resident: number 
   return { compressed, resident };
 }
 
+const comparisonPrototype: object | null = Object.getPrototypeOf(Uint8Array.prototype);
+const comparisonSome: unknown = Reflect.get(Uint8Array.prototype, 'some');
+function comparisonAccessor(name: 'length' | 'buffer'): unknown {
+  const descriptor = comparisonPrototype === null ? undefined : Object.getOwnPropertyDescriptor(comparisonPrototype, name);
+  return descriptor === undefined ? undefined : Reflect.get(descriptor, 'get');
+}
+const comparisonLength = comparisonAccessor('length'), comparisonBuffer = comparisonAccessor('buffer');
+const comparisonNative = typeof comparisonSome === 'function' && !isProxy(comparisonSome) && Function.prototype.toString.call(comparisonSome).includes('[native code]');
+
+/** Only ordinary nonempty unshared views can avoid the original per-byte callback.
+ * No authored accessor or proxy trap is invoked to select this path. */
+function comparisonBytes(value: unknown): value is Uint8Array {
+  if (!comparisonNative || !ArrayBuffer.isView(value) || isProxy(value) || Object.getPrototypeOf(value) !== Uint8Array.prototype
+    || Object.hasOwn(value, 'length') || Object.hasOwn(value, 'some') || comparisonPrototype === null
+    || Object.getPrototypeOf(Uint8Array.prototype) !== comparisonPrototype
+    || Object.hasOwn(Uint8Array.prototype, 'length') || Object.hasOwn(Uint8Array.prototype, 'some')
+    || Object.getOwnPropertyDescriptor(comparisonPrototype, 'length')?.get !== comparisonLength
+    || Object.getOwnPropertyDescriptor(comparisonPrototype, 'some')?.value !== comparisonSome
+    || typeof comparisonLength !== 'function' || typeof comparisonBuffer !== 'function') return false;
+  try {
+    const length: unknown = Reflect.apply(comparisonLength, value, []);
+    return typeof length === 'number' && length > 0 && Reflect.apply(comparisonBuffer, value, []) instanceof ArrayBuffer;
+  } catch { return false; }
+}
+
+function conflictingBytes(previous: Uint8Array, blob: NamedBlob): boolean {
+  if (!isProxy(blob)) {
+    const candidate: unknown = Object.getOwnPropertyDescriptor(blob, 'bytes')?.value;
+    if (comparisonBytes(previous) && comparisonBytes(candidate) && previous.length === candidate.length)
+      return Buffer.compare(previous, candidate) !== 0;
+  }
+  return previous.some((value, index) => value !== blob.bytes[index]);
+}
+
 /** Admit named bytes once. Existing declarations, conservative costs and names win when content is reused;
  * new content becomes a library root and charges only the newly reachable closure. Inputs are never mutated. */
 export function mergeProjectBlobs(input: Shardfile, inputAssets: ReadonlyMap<string, Uint8Array>, blobs: readonly NamedBlob[], namedFiles: readonly OutputFile[] = [], late: readonly LateFile[] = []): { shard: Shardfile; assets: Map<string, Uint8Array>; namedFiles: readonly OutputFile[] } {
@@ -162,7 +200,7 @@ export function mergeProjectBlobs(input: Shardfile, inputAssets: ReadonlyMap<str
     if (claimed !== undefined && claimed !== file.hash) throw new Error('Blob logical name has conflicting content');
     const existing = files.get(file.hash), common = source.requires.commons.includes(file.hash);
     const previous = assets.get(file.hash) ?? (common ? assets.get(`commons:${file.hash}`) : undefined);
-    if (previous !== undefined && (hashAssetBytes(previous) !== file.hash || previous.length !== blob.bytes.length || previous.some((value, index) => value !== blob.bytes[index]))) throw new Error('Blob conflicts with admitted asset bytes');
+    if (previous !== undefined && (hashAssetBytes(previous) !== file.hash || previous.length !== blob.bytes.length || conflictingBytes(previous, blob))) throw new Error('Blob conflicts with admitted asset bytes');
     let overlay: OutputFile;
     if (existing !== undefined) {
       if (existing.kind !== (file.kind === 'bin' || file.kind === 'tile' ? 'binary' : file.kind) || existing.compressed !== blob.bytes.length) throw new Error('Blob kind or size differs from admitted declaration');

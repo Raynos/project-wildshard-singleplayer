@@ -1,5 +1,7 @@
 import { ktx2DeviceCosts } from '@wildshard/format/ktx2Cost';
-import { afterEach, expect, test } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Observe the exact public-view pair used by native build comparison.
+import { Buffer } from 'node:buffer';
 // oxlint-disable-next-line import/no-nodejs-modules -- Observe exact immutable keys for the owned build fixture only.
 import { channel } from 'node:diagnostics_channel';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture owns a bounded author project and its output.
@@ -23,7 +25,70 @@ function directory(): string {
 }
 const source = () => emptyShardfile({ slug: 'output-test', name: 'Output', author: 'Test', revision: 1, seed: 3 });
 const binary = new Uint8Array([1, 2, 3]);
-afterEach(() => { for (const path of directories.splice(0)) rmSync(path, { recursive: true }); });
+afterEach(() => { vi.restoreAllMocks(); for (const path of directories.splice(0)) rmSync(path, { recursive: true }); });
+
+function repeatedBlob() {
+  const blob = nameBlob('base.bin', 'bin', binary);
+  const first = mergeProjectBlobs(source(), new Map(), [blob]);
+  const alias = nameBlob('alias.bin', 'bin', binary);
+  const previous = Uint8Array.from(binary);
+  return { alias, previous, merge: (bytes: Uint8Array = previous, selected = alias) =>
+    mergeProjectBlobs(first.shard, new Map([[blob.file.hash, bytes]]), [selected], first.namedFiles) };
+}
+
+test('ordinary repeated assets compare complete native views while retaining names, costs and independent bytes', () => {
+  const fixture = repeatedBlob(), compare = vi.spyOn(Buffer, 'compare');
+  const result = fixture.merge();
+  expect(compare.mock.calls.some(([a, b]) => a === fixture.previous && b === fixture.alias.bytes)).toBe(true);
+  expect([...result.assets.values()]).toEqual([binary]);
+  expect(result.namedFiles[0]?.name).toBe('base.bin');
+  fixture.previous.fill(7); fixture.alias.bytes.fill(8);
+  expect([...result.assets.values()]).toEqual([binary]);
+});
+
+test('custom some behavior, scalar callbacks and blob byte getters retain their original path', () => {
+  const fixture = repeatedBlob(), bytes = fixture.alias.bytes;
+  const nativeSome: unknown = Reflect.get(Uint8Array.prototype, 'some');
+  if (typeof nativeSome !== 'function') throw new Error('Missing native some');
+  let reads = 0, iterations = 0;
+  Object.defineProperty(fixture.alias, 'bytes', { get: () => { reads++; return bytes; } });
+  Object.defineProperty(fixture.previous, 'some', { value: (predicate: (value: number, index: number) => boolean) => {
+    const result: unknown = Reflect.apply(nativeSome, fixture.previous, [(value: number, index: number) => {
+      const before = reads, verdict = predicate(value, index);
+      expect(reads).toBe(before + 1); iterations++; return verdict;
+    }]);
+    return Boolean(result);
+  } });
+  expect([...fixture.merge().assets.values()]).toEqual([binary]);
+  expect(iterations).toBe(binary.length);
+  const refusal = repeatedBlob(); Object.defineProperty(refusal.previous, 'some', { value: () => true });
+  expect(() => refusal.merge()).toThrow('conflicts with admitted asset bytes');
+});
+
+test('proxy blobs and shared views retain scalar comparison without extra descriptor traps', () => {
+  const fixture = repeatedBlob(), compare = vi.spyOn(Buffer, 'compare');
+  let descriptors = 0;
+  const selected = new Proxy(fixture.alias, { getOwnPropertyDescriptor: (target, key) => {
+    descriptors++; return Reflect.getOwnPropertyDescriptor(target, key);
+  } });
+  expect([...fixture.merge(fixture.previous, selected).assets.values()]).toEqual([binary]);
+  expect(descriptors).toBe(0);
+  expect(compare.mock.calls.some(([a, b]) => a === fixture.previous && b === fixture.alias.bytes)).toBe(false);
+  const shared = new Uint8Array(new SharedArrayBuffer(binary.length)); shared.set(binary);
+  expect([...fixture.merge(shared).assets.values()]).toEqual([binary]);
+  expect(compare.mock.calls.some(([a, b]) => a === shared && b === fixture.alias.bytes)).toBe(false);
+});
+
+test('a some getter that detaches the view still runs once and retains the native refusal', () => {
+  const fixture = repeatedBlob();
+  const nativeSome: unknown = Reflect.get(Uint8Array.prototype, 'some');
+  if (typeof nativeSome !== 'function') throw new Error('Missing native some');
+  let reads = 0;
+  Object.defineProperty(fixture.previous, 'some', { get: () => {
+    reads++; structuredClone(fixture.previous, { transfer: [fixture.previous.buffer] }); return nativeSome;
+  } });
+  expect(() => fixture.merge()).toThrow(TypeError); expect(reads).toBe(1);
+});
 
 test('named JSON schemas survive merging and run during disk and runtime validation', async () => {
   const jsonSchema = { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', properties: { n: { type: 'number' } }, required: ['n'], additionalProperties: false };
