@@ -426,6 +426,9 @@ jobs:
       # Every restored entry rechecks its input hashes; strict product hits run
       # current byte/schema/budget/script admission before this run publishes proof.
       - uses: actions/cache@v4
+        # The post action inherits this env; retain every cached byte with faster lossless compression.
+        env:
+          ZSTD_CLEVEL: '1'
         with:
           path: |
             ~/.cache/wildshard/generate
@@ -585,6 +588,36 @@ jobs:
           compression-level: 0
           retention-days: 7
           if-no-files-found: error
+
+      - name: Report preparation cache family metadata
+        # Nomination only: real split keys must hash generating inputs, never this metadata fingerprint.
+        run: |
+          python3 - "$HOME/.cache/wildshard" <<'PY'
+          import hashlib, json, os, pathlib, sys, time
+          started = time.monotonic()
+          def files(directory, deadline, prefix=''):
+              with os.scandir(directory) as stream:
+                  entries = sorted(stream, key=lambda entry: entry.name)
+              for entry in entries:
+                  if time.monotonic() > deadline: raise TimeoutError('Metadata budget')
+                  if entry.is_symlink(): raise OSError('Linked entry')
+                  if entry.is_dir(follow_symlinks=False): yield from files(entry.path, deadline, prefix + entry.name + '/')
+                  elif entry.is_file(follow_symlinks=False): yield prefix + entry.name, entry.stat(follow_symlinks=False).st_size
+          for family in ('generate', 'gen', 'compiler-code/1', 'shardfiles'):
+              root = pathlib.Path(sys.argv[1]) / family
+              digest, size, count, complete = hashlib.sha256(), 0, 0, False
+              deadline = min(started + 2, time.monotonic() + .45)
+              try:
+                  if root.is_symlink() or not root.is_dir(): raise OSError('Unavailable family')
+                  for name, length in files(root, deadline):
+                      digest.update((json.dumps([name, length]) + '\n').encode())
+                      size += length; count += 1
+                  complete = True
+              except (OSError, TimeoutError): pass
+              print(json.dumps(dict(cacheFamily=family, bytes=size, files=count, complete=complete,
+                  fileListSHA256=digest.hexdigest() if complete else None, metadataOnly=True,
+                  elapsedMs=round((time.monotonic()-started)*1000))), flush=True)
+          PY
 
       - name: Publish exact failure paths
         if: failure()

@@ -1,10 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the real prepare workflow's shell admission without packaging or a network request.
 import { spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own one small command fixture under repository scratch.
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the fixture's executable and output paths.
 import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
+import * as v from 'valibot';
 
 test('prepare enables Vercel only on push and binds both packs to the exact source run', () => {
   const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
@@ -36,5 +37,84 @@ test('prepare enables Vercel only on push and binds both packs to the exact sour
     for (const artifact of ['boot-dist-manifest', 'boot-dist-boot-public', 'boot-dist-boot-developer', 'boot-dist-worlds', 'boot-dist-phone-route', 'vercel-prebuilt'])
       expect(prepare.indexOf(`name: ${artifact}\n`), artifact).toBeGreaterThan(producer);
     expect(prepare).not.toContain('npm install --global vercel');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('prepare cache compression keeps every restored family and its native bytes', () => {
+  const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
+  const prepare = workflow.split('\n  prepare:\n')[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0];
+  const cache = prepare?.split('      - uses: actions/cache@v4\n')[1]?.split('\n      - ')[0];
+  const level = /^ {10}ZSTD_CLEVEL: '(\d+)'$/mu.exec(cache ?? '')?.[1];
+  if (level === undefined) throw new Error('Missing preparation cache compression environment');
+  const paths = /^ {10}path: \|\n((?: {12}[^\n]+\n)+)/mu.exec(cache ?? '')?.[1]
+    ?.trim().split('\n').map(path => path.trim());
+  const families = ['generate', 'gen', 'compiler-code/1', 'shardfiles', 'basis'];
+  expect(new Set(paths)).toEqual(new Set(families.map(family => `~/.cache/wildshard/${family}`)));
+  // Step-local tuning must not change other archive producers or native codecs.
+  expect(workflow.match(/ZSTD_CLEVEL:/gu)).toHaveLength(1);
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/prepare-cache-roundtrip-'));
+  try {
+    const source = join(root, 'source'), restored = join(root, 'restored'), archive = join(root, 'cache.tzst');
+    mkdirSync(source); mkdirSync(restored);
+    const bytes = Buffer.from(Array.from({ length: 4096 }, (_, i) => i % 251));
+    for (const [index, family] of families.entries()) {
+      const directory = join(source, family); mkdirSync(directory, { recursive: true });
+      writeFileSync(join(directory, 'body'), Buffer.concat([Buffer.from(`${family}:\0`), bytes, Buffer.from([index])]));
+    }
+    const env = { ...process.env, ZSTD_CLEVEL: level };
+    const packed = spawnSync('tar', ['--posix', '-cf', archive, '-C', source, '--use-compress-program', 'zstdmt', '.'],
+      { encoding: 'utf8', env, timeout: 5000 });
+    expect(packed.status, packed.stderr + String(packed.error ?? '')).toBe(0);
+    const unpacked = spawnSync('tar', ['-xf', archive, '-C', restored, '--use-compress-program', 'unzstd'],
+      { encoding: 'utf8', timeout: 5000 });
+    expect(unpacked.status, unpacked.stderr + String(unpacked.error ?? '')).toBe(0);
+    for (const family of families)
+      expect(readFileSync(join(restored, family, 'body'))).toEqual(readFileSync(join(source, family, 'body')));
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('cache metadata reports byte totals and candidates without claiming payload identity', () => {
+  const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
+  const step = workflow.split('      - name: Report preparation cache family metadata\n')[1]?.split('      - name:')[0];
+  const body = /<<'PY'\n([\s\S]+?)\n {10}PY/u.exec(step ?? '')?.[1];
+  if (body === undefined) throw new Error('Missing cache metadata producer');
+  const script = body.split('\n').map(line => line.slice(10)).join('\n');
+  const schema = v.array(v.object({
+    cacheFamily: v.string(), bytes: v.number(), files: v.number(), complete: v.boolean(),
+    fileListSHA256: v.nullable(v.string()), metadataOnly: v.literal(true), elapsedMs: v.number(),
+  }));
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/cache-metadata-'));
+  try {
+    const families = ['generate', 'gen', 'compiler-code/1', 'shardfiles'];
+    for (const family of families) {
+      mkdirSync(join(root, family), { recursive: true });
+      writeFileSync(join(root, family, 'data'), 'abcd');
+    }
+    const read = () => {
+      const result = spawnSync('python3', ['-', root], { input: script, encoding: 'utf8', timeout: 5000 });
+      expect(result.status, result.stderr + String(result.error ?? '')).toBe(0);
+      return v.parse(schema, result.stdout.trim().split('\n').map((line: string): unknown => JSON.parse(line)));
+    };
+    const first = read();
+    expect(new Set(first.map(row => row.cacheFamily))).toEqual(new Set(families));
+    for (const row of first) {
+      expect(row.complete).toBe(true);
+      expect(row.files).toBe(1);
+      expect(row.bytes).toBe(4);
+      expect(row.fileListSHA256).toMatch(/^[a-f0-9]{64}$/u);
+    }
+    // Deliberately expose the limitation: equal-size changes cannot qualify a real cache key.
+    writeFileSync(join(root, 'gen/data'), 'dcba');
+    expect(read().map(row => row.fileListSHA256)).toEqual(first.map(row => row.fileListSHA256));
+    writeFileSync(join(root, 'gen/data'), 'longer');
+    const changed = read().find(row => row.cacheFamily === 'gen');
+    expect(changed?.bytes).toBe(6);
+    expect(changed?.fileListSHA256).not.toBe(first.find(row => row.cacheFamily === 'gen')?.fileListSHA256);
+    symlinkSync(join(root, 'gen/data'), join(root, 'gen/linked'));
+    const linked = read().find(row => row.cacheFamily === 'gen');
+    expect(linked?.complete).toBe(false);
+    expect(linked?.fileListSHA256).toBeNull();
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
