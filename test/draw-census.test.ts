@@ -11,11 +11,12 @@ test('single shardfile entry does not silently become a legacy leg', () => {
   expect(()=>censusEntry('shardfile', false, 'Coming soon')).toThrow('unavailable');
 });
 
-test('census preserves the paired defaults and selects standing golden P1 cameras', () => {
+test('census keeps Nine paired, Pine shardfile-only and standing golden P1 cameras', () => {
   expect(censusSelection().map(row => [row.slug, row.poseName, row.modes])).toEqual([
-    ['nine-dragon-stack', 'P4', ['legacy', 'shardfile']], ['pine-hollow', 'Q4', ['legacy', 'shardfile']],
+    ['nine-dragon-stack', 'P4', ['legacy', 'shardfile']], ['pine-hollow', 'Q4', ['shardfile']],
   ]);
-  expect(censusSelection('pine-hollow', 'P1', 'legacy')[0]?.pose).toEqual({x:0,z:-235,yaw:Math.PI,pitch:0});
+  expect(censusSelection('pine-hollow', 'P1', 'shardfile')[0]?.pose).toEqual({x:0,z:-235,yaw:Math.PI,pitch:0});
+  expect(()=>censusSelection('pine-hollow', 'P1', 'legacy')).toThrow('Pine legacy entry is retired');
   // Input fixtures exercise both authored representations; the CLI lends its
   // actual camera table instead of making this pure module import art/.
   const cameras = {

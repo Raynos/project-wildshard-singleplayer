@@ -90,7 +90,6 @@
     "./commons": "./commons.ts",
     "./commonsCosts": "./commonsCosts.ts",
     "./runtime/weapons/Firearm": "./runtime/weapons/Firearm.ts",
-    "./runtime/weapons/Weapon": "./runtime/weapons/Weapon.ts",
     "./weapons/firearmProfile": "./weapons/firearmProfile.ts",
     "./worldSource": "./worldSource.ts",
     "./weapons/meleeProfile": "./weapons/meleeProfile.ts",
@@ -105,7 +104,6 @@
     "./bake/splatGround": "./bake/splatGround.ts",
     "./bake/worldRows": "./bake/worldRows.ts",
     "./bake/staticMaterials": "./bake/staticMaterials.ts",
-    "./runtime/effects": "./runtime/effects.ts",
     "./runtime/audio/weaponVoices": "./runtime/audio/weaponVoices.ts",
     "./interactions": "./interactions.ts",
     "./questGraph": "./questGraph.ts",
@@ -469,10 +467,6 @@
         "types": "./dist/types/sdk/runtime/weapons/Firearm.d.ts",
         "default": "./dist/runtime/weapons/Firearm.js"
       },
-      "./runtime/weapons/Weapon": {
-        "types": "./dist/types/sdk/runtime/weapons/Weapon.d.ts",
-        "default": "./dist/runtime/weapons/Weapon.js"
-      },
       "./weapons/firearmProfile": {
         "types": "./dist/types/sdk/weapons/firearmProfile.d.ts",
         "default": "./dist/weapons/firearmProfile.js"
@@ -528,10 +522,6 @@
       "./bake/staticMaterials": {
         "types": "./dist/types/sdk/bake/staticMaterials.d.ts",
         "default": "./dist/bake/staticMaterials.js"
-      },
-      "./runtime/effects": {
-        "types": "./dist/types/sdk/runtime/effects.d.ts",
-        "default": "./dist/runtime/effects.js"
       },
       "./runtime/audio/weaponVoices": {
         "types": "./dist/types/sdk/runtime/audio/weaponVoices.d.ts",

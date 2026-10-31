@@ -84,8 +84,7 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 - G478 riding presentation: `game/riding/mount` consumes profile rows and actor identities (fixture second shard).
 - G478 riding HUD: `game/riding/hud` consumes observation rows and retains the baseline HUD slots (fixture second shard).
 
-- `engine/world/waterSurface.ts` (Pine's water body) stays in the engine until `pine-hollow-legacy` is deleted
-  (SHARD-PLATFORM-NEXT N5) and moves to Pine in that commit (G500); the sealed legacy copy cannot import primary Pine.
+- G966 retires the old frozen Pine water body and its private view uniform. Modern Pine keeps its admitted graph water and the G571 transition host; no second-user credit is inferred.
 
 - G520 X20: Pine's reversible beaver-pool wet-bed projection is listed
   client-only view code owned by Pine.

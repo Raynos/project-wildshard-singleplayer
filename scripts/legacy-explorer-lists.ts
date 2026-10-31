@@ -23,6 +23,7 @@ import { borrowShardfileEntry, readBuildKey, shardfileCacheRoot } from './shardf
 import { installBakeEnvironment } from './bake/environment.mjs';
 import { initializeTier } from '@wildshard/engine/core/tier';
 import { recorderCacheRoot, recorderOutputHashes } from './native-recorder-cache.mjs';
+import { legacyInventory } from './legacy-shards.mjs';
 
 const slugs = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack', 'far-reach', 'sunscar-dunes'];
 /** Every observed difference and unresolved native registration stays in the live LD4 prep rows. */
@@ -142,6 +143,10 @@ async function capture(slug: string, side: string): Promise<Capture> {
   const inputs: Record<string, string> = {}, gaps: string[] = [], infrastructureWarnings: string[] = [];
   const lists: Lists = { models: null, sets: null, world: null, arenas: null };
   if (side === 'legacy') {
+    if (legacyInventory(root).shards[`${slug}-legacy`] === undefined) {
+      gaps.push('legacy: frozen entry retired; no live comparison or parity claim');
+      return {lists,inputs,gaps,infrastructureWarnings};
+    }
     const module = async (file: string): Promise<Fields> => {
       inputs[file] = hash(readFileSync(file));
       const value: unknown = await import(pathToFileURL(resolve(file)).href); return object(value);

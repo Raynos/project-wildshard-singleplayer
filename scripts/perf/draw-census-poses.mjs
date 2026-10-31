@@ -12,7 +12,7 @@ export function censusEntry(mode, paired, primary) {
   throw new Error('Requested census entry is unavailable');
 }
 
-/** Keep the original Nine/Pine defaults; the other shards use golden camera 1.
+/** Keep Nine paired and the retired Pine entry shardfile-only; the other shards use golden camera 1.
  * The CLI lends its authored table; importing this pure selector needs no art.
  * @param {string} slug @param {string} pinePose @param {string} mode
  * @param {Readonly<Record<string, readonly CensusCamera[]>>} [cameras]
@@ -22,6 +22,7 @@ export function censusSelection(slug = '', pinePose = 'Q4', mode = 'both', camer
   if (!['P1', 'Q4'].includes(pinePose)) throw new Error('Unknown Pine census pose');
   if (!['both', 'legacy', 'shardfile'].includes(mode)) throw new Error('Unknown census mode');
   if (slug !== '' && !['nine-dragon-stack', 'pine-hollow', ...goldenShards].includes(slug)) throw new Error('Unknown census shard');
+  if (slug === 'pine-hollow' && mode === 'legacy') throw new Error('Pine legacy entry is retired');
   const defaults = [
     { slug: 'nine-dragon-stack', poseName: ninePose, pose: ninePose === 'P5'
       ? { x: 76, y: 146, z: 6, yaw: -90 * (Math.PI / 180), pitch: 4 * (Math.PI / 180) }
@@ -41,5 +42,6 @@ export function censusSelection(slug = '', pinePose = 'Q4', mode = 'both', camer
     if (!pose || ![pose.x, pose.z, pose.yaw, pose.pitch].every(Number.isFinite)) throw new Error('Golden camera is not a standing pose');
     return [{ slug, poseName: `P1:${camera.name}`, pose, modes: mode === 'both' ? ['legacy', 'shardfile'] : [mode] }];
   }
-  return defaults.filter(row => slug === '' || row.slug === slug).map(row => Object.assign(row, { modes: mode === 'both' ? ['legacy', 'shardfile'] : [mode] }));
+  return defaults.filter(row => slug === '' || row.slug === slug).map(row => Object.assign(row,
+    { modes: row.slug === 'pine-hollow' && mode === 'both' ? ['shardfile'] : mode === 'both' ? ['legacy', 'shardfile'] : [mode] }));
 }

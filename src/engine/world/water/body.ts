@@ -1,6 +1,7 @@
 import type { Scope } from '../../app/scope';
 import { insideWaterExtent, waveHeight } from '../waves';
-import type { WaterView } from './view';
+/** A registered body's eye or Explorer map view; shading remains body-owned. */
+export type WaterView = 'eye' | 'top-down';
 
 /**
  * A body of water a level registers with the engine (01 §6, §17; 08 §6.1 step 4): the sea (S4.1), a still basin (a

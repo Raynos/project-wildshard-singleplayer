@@ -29,7 +29,7 @@ builders until their baked commons entries (SF54 step 4) replace the procedural 
 `@wildshard/game/systems/species/{boar,bear,deer,elk}` hold the shared species rows (`BOAR`, `BEAR` and their tunings; the
 lofted `DEER` / `ELK` with `DEER_PALETTE` / `ELK_PALETTE`), and `@wildshard/game/systems/species/install.installKitSpecies`
 registers the four plus the default creature calls; the composition root calls it, nothing installs on import.
-`@wildshard/game/models/creatures` defines the shared `shared/deer`, `shared/boar` and `shared/bear` models.
+Product Explorer rows retain their original model ids and source labels; the native species reader defines their live models without importing the retired Pine catalogue module.
 All moved unchanged from the kit (SF54); species ids (`kit.creature.*`) and model ids are kept.
 
 `@wildshard/game/systems/looks/{particles,trample,grassField,fogProgram,rainCurtain}` hold the shared look layers
@@ -75,21 +75,19 @@ for exact SF73-registered frozen callers only. Primaries own Nalati `models/npc/
 `npc/faceHeads`; `wildshard/legacy-npc-imports` rejects every other caller. The historical internal type dependency is
 kept, and each definition/export is deleted with its last registered legacy consumer. No aliases or frozen edits.
 
-`@wildshard/game/loadout/effects` (`installStarterEffects` and its status-icon row; trusted runtimes use
-`@wildshard/sdk/runtime/effects`), `@wildshard/game/plugin/weaponFamily` (`declaredKitItemFamilies`),
+`@wildshard/game/loadout/effects` (`installStarterEffects` and its status-icon row), `@wildshard/game/plugin/weaponFamily` (`declaredKitItemFamilies`),
 `@wildshard/game/systems/tools/hoverboard` and `@wildshard/game/icons` (with `src/game/icons.merge.d.ts`) moved unchanged
 from the kit, and its weapon compatibility names gave way to the defining `@wildshard/game/weapons/*` and engine
 modules (SF54). That emptied the kit: `@wildshard/kit`, its workspace entry and its guard layer are deleted.
 
 `@wildshard/game/loadout/effects.STARTER_EFFECTS` owns the typed runtime
 view of the authored rows in `game/systems/effects/starterRows.json`. The SDK exposes the same rows through
-`runtime/effects`; `pnpm gen` and direct Vite/native builds generate their literal
+`game/loadout/effects`; `pnpm gen` and direct Vite/native builds generate their literal
 table before compilation. Runtime imports apply nothing.
 
-`@wildshard/sdk/runtime/effects.bindPlayerEffects` is the same defining function
-as `@wildshard/engine/combat/effects/EffectService.bindPlayerEffects`. It owns scoped
+`@wildshard/engine/combat/effects/EffectService.bindPlayerEffects` is the defining status-effect port. It owns scoped
 status movement / periodic-damage / death bindings, with no second kit wrapper,
-HUD changes or import-time installation. `StatusMovement` derives from that port.
+HUD changes or import-time installation. `StatusMovement` callers derive the movement type from that port.
 
 `@wildshard/game/bag/items.normalizeItemRow` normalizes registered bag rows. Starter harvest content is authored once in
 `game/bag/starterItems.json` and expanded by `pnpm gen` into
@@ -278,7 +276,7 @@ The template's imports show the rule:
 ```ts
 import { ShardPlugin, installLoot, installCompendium, type ShardContext } from '@wildshard/game';
 import { Sword } from '@wildshard/game/weapons/Sword';
-import { STARTER_EFFECTS, installStarterEffects } from '@wildshard/sdk/runtime/effects';
+import { STARTER_EFFECTS, installStarterEffects } from '@wildshard/game/loadout/effects';
 import type { QuestState, Interactable } from '@wildshard/engine';
 import { STRINGS } from './strings';
 ```
@@ -2124,14 +2122,14 @@ rigContract: { skeleton: 'template.greyBlob', sockets: ['body', 'head'], clips: 
 | Sky | `Sky`, `SkyBackdrop*` (§13.1), `compassDir` | the template's backdrop drives `sky.setKeyLight` |
 | Day cycle | `DayCycle`, `DayCycleSpec`, `DayCycleClock`, `DayKeys`, `DayPhase`, `TimePick`, `LightPreset`, `ScheduleSeg`; `app.registerDayCycle(clock, scope)` | `createDay()` in `_template/world/climate.ts` |
 | Weather | `Weather`, `WeatherProfile`, `WeatherNumbers`, `WeatherSaved`; asks `weather.hold` / `weather.damage`; kit `rainCurtain` | `new Weather<'clear' \| 'cloudy'>({ states, next, length, … }, ctx.app.rng.stream('gameplay'))`; `captureWeather()` / `prepareWeatherRestore(value)` / `restoreWeather(value)` preserve the base RNG, phase, mode, hold and exact numeric output keys silently; content-owned extra state is separate |
-| Water | `WaterBody`, `WaterBodies` (`app.world.water`), `swellBody`, `basinBody` (`@wildshard/engine/world/water/body`), `surfaceReflect`, `WaterView`, `pondGrid`, `waveHeight` | the template's `POOL` row in `ground.water` |
+| Water | `WaterBody`, `WaterBodies` (`app.world.water`), `swellBody`, `basinBody` (`@wildshard/engine/world/water/body`), `WaterView`, `pondGrid`, `waveHeight` | the template's `POOL` row in `ground.water` |
 | Fog | `attachFogUniforms`, `addFogUniforms`, `fogUniforms`; your `FogModel`; weather fog `weatherFog`, `WeatherFog`, `WeatherFogSpec` (E390: a second exponential fog over the level's own, compiled only when the manifest sets `atmosphere.weather: true`; `set(strength 0..1)` each time it changes, cleared when the scope ends; it composes with a backdrop's clock and the underwater blend) | `const storm = weatherFog(ctx.scope, { dist: 0.05, color: 0x8a5238 }); storm.set(eased)` (Signal Dunes' sand storm) |
 | Wind | `wind`, `WIND_DIR`, `windGustAt`, `windUniforms`, `WindField` | grass, trees and arrow drift read it |
 | Placement and models | `defineModel`, `ModelDef`, `modelContext`, `ModelContext`, `ModelPart`, `live`, `listModel`, `RosterEntry`, `twoSidedPositions`, `WeldBuild`, `markGpuOnly` | `defineModel({ id: '_template/lantern', pipeline: 'code', build: () => … })` |
-| Forest and trees | `Forest`, `TreeFactory`, `TreeVariant`, `FadeBand`, `patchFade`, `patchWind`, `TREE_SPECS`, `TreeSpeciesTraits` (a species' planting: scale, growth, girth, spacing, hue), `TreeSetVariant` (a tree set's variant), `SpeciesWeights` (the level's own set and traits: `TreeSpec.setVariants`, `ForestSpec.speciesTraits`; E405), `treeSetOf`, `treeSetUrls`, `loadTreeSetGeometry`, `BARK_LAYERS`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn`, `loadBakedCards`, `exportCardTextures` | |
+| Forest and trees | `Forest`, `TreeFactory`, `TreeVariant`, `FadeBand`, `patchFade`, `patchWind`, `TREE_SPECS`, `TreeSpeciesTraits` (a species' planting: scale, growth, girth, spacing, hue), `TreeSetVariant` (a tree set's variant), `SpeciesWeights` (the level's own set and traits: `TreeSpec.setVariants`, `ForestSpec.speciesTraits`; E405), `treeSetOf`, `treeSetUrls`, `loadTreeSetGeometry`, `BARK_LAYERS`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn` | |
 | Geometry kit | `log`, `beam`, `rope`, `sagLine`, `rock`, `plank`, `tris`, `wobble`, `pole`, `blob`, `lathe`, `revolve`, `revolveUV`, `mergeVerticesByPos`, `voxelAO`, `aoTint`, `hemisphere`, `VoxelAOParams`, `HemiRing`, `HemiDir`, `lin`; the AO bake (SF67): `addVoxelAOBake`, `withVoxelAOBake` (a world build with a shard's baked table added, then dropped), `decodeVoxelAOBake`, `encodeVoxelAOBake`, `recordVoxelAO`, `voxelAOBakeStats`; its key drops the trig last bits Node and the browsers disagree on (hemisphere directions to 1e-9, normals to 2^-16) and probes the ground coarsely, so a hit skips the full column cache | |
 | Interactables | `Interactable`, `Interactables`, `InteractEvent`, `Flags`, `Place`, `PoiId` | the template's hut door |
-| Bounds and layout | `installBounds`, `layoutFauna` (`@wildshard/engine/world/faunaLayout`), `CHUNK_*` | |
+| Bounds and layout | `installBounds`, `CHUNK_*` | |
 | Content loaders | `loadPBR`, `loadPBRArray`, `loadGLTF`, `loadTexture`, `pbrMaterial`, `PBRSet` | lazy engine content (ports) |
 | Painterly helpers | `painterlyMaterial`, `syncPainterlySun`, `updatePainterly`, `setPainterlyLook`, `painterlyUniforms` | ports of Nalati's material, waiting to move |
 | Light layers | `SHADOW_LAYER`, `World` (a port) | |
@@ -2962,10 +2960,10 @@ existing transitional runtime facades in `@wildshard/sdk/runtime/*` (deleted und
 | Content | Defining module (runtime facade) |
 |---|---|
 | starter weapons | `@wildshard/game/weapons/{Sword,Bow,starterMoves,starterMeleeProfile,starterBowProfile,starterEquipment,starterGlyphs}` (`@wildshard/sdk/runtime/weapons/*`); the families themselves are the engine's (`@wildshard/engine/combat/{Melee,bowDraw}`, `combat/view/*`) |
-| species, creatures | `@wildshard/game/systems/species/*` (`installKitSpecies`), `@wildshard/game/systems/species/view/{boar,bear}`, `@wildshard/game/models/creatures` |
+| species, creatures | `@wildshard/game/systems/species/*` (`installKitSpecies`), `@wildshard/game/systems/species/view/{boar,bear}` |
 | icons | `@wildshard/game/icons` (`installKitIcons`, `BAG_ICONS`); their ids merge into `IconMap` from `src/game/icons.merge.d.ts` |
 | interactables, pickups | `@wildshard/game/models/{interact,pickups}` (`installKitProps`, `installKitPickups`) |
-| effects | `@wildshard/game/systems/effects/{starter,install}` (`STARTER_EFFECTS`, `installStarterEffects`; `@wildshard/sdk/runtime/effects`) |
+| effects | `@wildshard/game/loadout/effects` (`STARTER_EFFECTS`, `installStarterEffects`) |
 | NPCs | `@wildshard/game/systems/npc/{npcRig,figureRig,figureMotion,faceHeads}` |
 | declared items | `@wildshard/game/plugin/weaponFamily` (`declaredKitItemFamilies`: `kit.melee`, `kit.lantern`) |
 | tools | `@wildshard/game/systems/tools/hoverboard` (`Hoverboard`, `HOVERBOARD_TOOL`; all shards; its `board` movement mode stays engine) |

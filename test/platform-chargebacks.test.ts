@@ -165,7 +165,17 @@ test('whole-module cuts retire their old receipts while unknown missing modules 
     const put = (modules: string[]) => writeFileSync(`${root}/lint/platform-pending-users.json`, JSON.stringify({
       schema: 'platform-pending-users/1', entries: modules.map(receipt),
     }));
-    put(['src/engine/models/glbNodes.ts', 'src/game/shardfile/buildingAssembly.ts']);
+    put(['src/engine/models/glbNodes.ts', 'src/game/shardfile/buildingAssembly.ts',
+      'src/engine/models/glb.ts',
+      'src/engine/models/hull.ts',
+      'src/engine/world/BakedCards.ts',
+      'src/engine/world/faunaLayout.ts',
+      'src/engine/world/waterSurface.ts',
+      'src/engine/world/water/view.ts',
+      'src/game/models/creatures.ts',
+      'src/game/shardfile/quests.ts',
+      'src/sdk/runtime/effects.ts',
+      'src/sdk/runtime/weapons/Weapon.ts']);
     expect(pendingPlatformUsers(root)).toEqual([]);
     put(['src/game/missing.ts']); expect(() => pendingPlatformUsers(root)).toThrow('ENOENT');
   } finally { rmSync(root, { recursive: true, force: true }); }

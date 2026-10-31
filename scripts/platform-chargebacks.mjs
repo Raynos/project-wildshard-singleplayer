@@ -95,7 +95,17 @@ export function hasChargebackDeclarations(path) { return declarations.has(path);
 /** Whole-module G520 deletions leave no host to receive a pending-user credit.
  * Keep the shared WIP ledger untouched. @param {string} path */
 export function retiredPlatformModule(path) {
-  return path === 'src/engine/models/glbNodes.ts' || path === 'src/game/shardfile/buildingAssembly.ts';
+  return path === 'src/engine/models/glbNodes.ts' || path === 'src/game/shardfile/buildingAssembly.ts'
+    || path === 'src/engine/models/glb.ts'
+    || path === 'src/engine/models/hull.ts'
+    || path === 'src/engine/world/BakedCards.ts'
+    || path === 'src/engine/world/faunaLayout.ts'
+    || path === 'src/engine/world/waterSurface.ts'
+    || path === 'src/engine/world/water/view.ts'
+    || path === 'src/game/models/creatures.ts'
+    || path === 'src/game/shardfile/quests.ts'
+    || path === 'src/sdk/runtime/effects.ts'
+    || path === 'src/sdk/runtime/weapons/Weapon.ts';
 }
 
 /** A canonical output census can omit an audited host's owning shard.

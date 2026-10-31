@@ -123,7 +123,6 @@ const reviewedW2Owners = new Map([
   ['src/game/systems/viewmodel/rigArms.ts#parsed', 'C6'],
   ['src/game/systems/viewmodel/rigArms.ts#rigScene', 'C6'],
   ['src/game/systems/viewmodel/rigArms.ts#swordArmsOf', 'C6'],
-  ['src/sdk/runtime/effects.ts', 'C6'],
   // Loading, continuation parsing, lifecycle plumbing, instrumentation and localization.
   ['src/engine/core/assets.ts#gltfLoader', 'C9'],
   ['src/engine/core/assets.ts#loadGLTF', 'C9'],

@@ -1,11 +1,10 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test, vi } from 'vitest';
-import { BoxGeometry, DefaultLoadingManager, Mesh, MeshStandardMaterial } from 'three';
+import { DefaultLoadingManager } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { prepareRigLoader, loadRigFile } from './rig';
 import {readModuleGroups} from '../boot/download';
 import { loadGLTF } from '../core/assets';
-import { loadGlbPart } from '../models/glb';
 
 let inventory: HTMLScriptElement | undefined;
 afterEach(() => { inventory?.remove(); inventory = undefined; vi.restoreAllMocks(); });
@@ -69,18 +68,10 @@ test('concurrent file reads keep the original shared loader and isolated alias m
   expect(receivers[3]?.manager).not.toBe(DefaultLoadingManager);
 });
 
-test('the asset and prop owners each retain one original loader across concurrent first reads', async () => {
-  const file = await new GLTFLoader().parseAsync(empty, ''), assets: GLTFLoader[] = [], props: GLTFLoader[] = [];
+test('the asset owner retains one original loader across concurrent first reads', async () => {
+  const file = await new GLTFLoader().parseAsync(empty, ''), assets: GLTFLoader[] = [];
   vi.spyOn(GLTFLoader.prototype, 'load').mockImplementation(function readOriginalAsset(this: GLTFLoader, _url, onLoad) { assets.push(this); onLoad(file); return undefined; });
   expect(await Promise.all([loadGLTF('first'),loadGLTF('second')])).toEqual([file,file]);
   expect(new Set(assets).size).toBe(1);
-  const geometry = new BoxGeometry(), material = new MeshStandardMaterial(); file.scene.add(new Mesh(geometry,material));
-  vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(function readOriginalProp(this: GLTFLoader) { props.push(this); return Promise.resolve(file); });
-  const results = await Promise.all([loadGlbPart('/first.glb',()=>undefined),loadGlbPart('/second.glb',()=>undefined)]);
-  try {
-    expect(new Set(props).size).toBe(1);
-    expect(props[0]).not.toBe(assets[0]);
-    expect(results.every(result => result !== null && result.material === material)).toBe(true);
-    expect(results[0]?.geometry).not.toBe(results[1]?.geometry);
-  } finally { for (const result of results) result?.geometry.dispose(); geometry.dispose(); material.dispose(); }
+
 });
