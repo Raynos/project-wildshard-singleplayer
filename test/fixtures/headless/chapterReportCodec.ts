@@ -134,6 +134,10 @@ function bases(previous:HeadlessTapeReport|undefined):Map<Owner,string> {
   }
   return result;
 }
+/** Inspect only the two selected report owners; no native adapter is sampled. */
+export function chapterReportUsesCodec(report:HeadlessTapeReport):boolean {
+  return report.observations.some(observation=>observation.adapters.some(adapter=>owned(adapter.id)&&encoded(adapter.state)));
+}
 /** Pure future-report transport. Previous reports must already be expanded;
  * no original prefix, input, native snapshot, observer or budget is rewritten. */
 export function packChapterReport(report:HeadlessTapeReport,previous?:HeadlessTapeReport):HeadlessTapeReport {

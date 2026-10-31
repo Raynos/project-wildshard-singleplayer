@@ -2,6 +2,7 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {ChapterHandoffSchema,ChapterPartSchema,chapterObserved,chapterTwoObserved,chapterWire,chapterRead,chapterWireHash,chapterInputHash,checkChapterLedger,type ChapterPart} from './fixtures/headless/chapterHandoff';
 import {PACKED_CHAPTER_TAMING,packChapterTaming} from './fixtures/headless/chapterObservation';
+import {packChapterReport,chapterReportUsesCodec} from './fixtures/headless/chapterReportCodec';
 import type {HeadlessCommand} from '../src/sdk/tickProtocol';
 
 const idle:HeadlessCommand={kind:'player',moveX:0,moveZ:0,yaw:0};
@@ -55,4 +56,40 @@ test('later complete packed observations require the earned prefix and preserve 
   first.flags.push('quest:tulpar');second.flags.push('quest:tulpar');expect(()=>checkChapterLedger([prefix,next],2)).not.toThrow();
   expect(()=>checkChapterLedger([prefix,next,part(2)],3)).toThrow('observation selection');
   second.adapters[0]={id:PACKED_CHAPTER_TAMING,state:'bad'};expect(()=>checkChapterLedger([prefix,next],2)).toThrow();
+});
+
+
+function victoryReportParts():{parts:ChapterPart[];raw:ChapterPart} {
+  const first=part(0),before=part(1),raw=part(2),a=first.expected.observations[0],b=before.expected.observations[0],c=raw.expected.observations[0];
+  if(a===undefined||b===undefined||c===undefined)throw new Error('Missing unplayed report interval');
+  a.flags=['quest:tulpar'];b.flags=['quest:tulpar','clue:1','clue:2','clue:3','entered:kurgan'];c.flags=[...b.flags];
+  before.plan.observe=[...chapterTwoObserved];raw.plan.observe=[...chapterTwoObserved];
+  const king={kind:'entered',core:{boss:{state:'beat',phase:2,checkpoint:2,saved:{defeated:false,rewardTaken:false,kills:0}}},pad:'unplayed'.repeat(1000),clock:0};
+  b.adapters=[{id:PACKED_CHAPTER_TAMING,state:packChapterTaming({phase:'bonded',pose:[-0,1]})},{id:'nalati.king-closed',state:chapterWire(king)}];
+  c.adapters=[structuredClone(b.adapters[0]),{id:'nalati.king-closed',state:chapterWire({...king,clock:1})}].filter(adapter=>adapter!==undefined);
+  const next={...raw,expected:packChapterReport(raw.expected,before.expected)};
+  if(!chapterReportUsesCodec(next.expected))throw new Error('Unplayed control did not exercise the codec');
+  return {parts:[first,before,next],raw};
+}
+
+test('report deltas begin only after an actually earned raw King checkpoint',()=>{
+  const {parts,raw}=victoryReportParts(),prefix=chapterWire(parts.slice(0,2)),inputs=chapterInputHash(parts);
+  expect(()=>checkChapterLedger(parts,3)).toThrow('raw earned prefix');
+  expect(()=>checkChapterLedger(parts,3,2)).not.toThrow();
+  expect(chapterWire(parts.slice(0,2))).toBe(prefix);expect(chapterInputHash(parts)).toBe(inputs);
+  expect(parts[2]?.expected).not.toEqual(raw.expected);
+  for(const boundary of [0,3,4,Number.NaN,1.5])expect(()=>checkChapterLedger(parts,3,boundary)).toThrow();
+});
+test('report codec metadata cannot authorize an earlier stage or a missing King outcome',()=>{
+  const {parts}=victoryReportParts();
+  const value={version:1,stage:'king-victory',source:chapterWireHash('unplayed'),tick:3,snapshot:'unplayed',digest:chapterWireHash('unplayed'),reportStart:2,parts};
+  expect(v.safeParse(ChapterHandoffSchema,value).success).toBe(true);
+  for(const stage of ['home','carvings','king-entry','king-phase-one','king-phase-two'])expect(v.safeParse(ChapterHandoffSchema,{...value,stage}).success).toBe(false);
+  const before=parts[1]?.expected.observations[0];if(before===undefined)throw new Error('Missing unplayed boundary');
+  before.flags=before.flags.filter(flag=>flag!=='clue:3');expect(()=>checkChapterLedger(parts,3,2)).toThrow('earned King checkpoint');
+});
+test('an encoded prefix refuses even if a later report boundary is claimed',()=>{
+  const {parts}=victoryReportParts(),before=parts[1],coded=parts[2];
+  if(before===undefined||coded===undefined)throw new Error('Missing unplayed prefix');
+  before.expected=structuredClone(coded.expected);expect(()=>checkChapterLedger(parts,3,2)).toThrow('raw earned prefix');
 });
