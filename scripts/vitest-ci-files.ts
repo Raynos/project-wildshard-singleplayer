@@ -14,6 +14,7 @@ export const CI_NATIVE_GROUPS = {
     'test/pine-door-continuation.test.ts',
     'test/native-runtime-observation.test.ts',
     'test/driftwood-story-verbs.test.ts',
+    'test/sky-progression-verbs.test.ts',
     'test/nalati-discovery-verbs.test.ts',
     'test/nalati-qara-verbs.test.ts',
   ],
