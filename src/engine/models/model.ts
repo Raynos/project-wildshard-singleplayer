@@ -221,6 +221,8 @@ export type ColliderSpec = ColliderDesc | { readonly kind: 'drawn-hull'; readonl
 export interface ModelVariant<P> {
   readonly id: string;
   readonly label: string;
+  /** Internal draw choice: selectable by placements, omitted from Explorer buttons. */
+  readonly hidden?: true;
   readonly params: Partial<P>;
 }
 

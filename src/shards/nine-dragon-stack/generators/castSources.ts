@@ -11,7 +11,7 @@ type WorldSceneWeld = ReturnType<typeof parseWorldSceneWeld>;
 const crowd = Object.entries(crowdRows).flatMap(([key, row]) => row.variants.map(variant => `${key}-${variant.id}`));
 export const CAST_NAMES: string[] = [...crowd, 'lion', ...castRows.FIXED_KITS, ...[10, 30].map(distance => `lion-mid${distance}`),
   ...hookRows.lods.map(distance => `dragon-hook-mid${distance}`),
-  ...crowd.flatMap(name => lodRows.MID_FROM.map(distance => `${name}-mid${distance}`).concat(`${name}-far`))];
+  ...crowd.flatMap(name => lodRows.MID_FROM.map(distance => `${name}-mid${distance}`).concat(`${name}-far`)), ...castRows.CROWD_TABLES];
 const names = CAST_NAMES;
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
 
@@ -23,7 +23,9 @@ export const CAST_SOURCES: { id: string; kind: string; files: { file: string; pa
 }));
 /** A cast file's declared rest channels: none on the dragon hook's levels, the umbrella dye (EP8) on the walkers only. */
 export function castChannels(name: string): { name: string; source: string; width: number }[] {
-  return name.startsWith('dragon-hook-') ? [] : castRows.CAST_CHANNELS.filter(row => row.name !== 'aDye' || name.startsWith('walker-'));
+  return name.startsWith('dragon-hook-') ? [] : castRows.CAST_CHANNELS.filter(row =>
+    row.name === 'aLightColor' ? castRows.CROWD_TABLES.includes(name) : row.name === 'aLightDye' ? name.startsWith('walker-table')
+      : row.name !== 'aDye' || name.startsWith('walker-'));
 }
 const libraries = new Map(names.map((name, index) => [name, `casts-${Math.floor(index / 16)}`]));
 /** the cast pool library a cast's file is in */

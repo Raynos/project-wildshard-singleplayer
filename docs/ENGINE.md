@@ -2339,17 +2339,17 @@ The practice predicate isolates the room when true, even when it has no targets.
 The starter set (`@wildshard/game/loadout/effects`) is `effect.poison`, `effect.burn`, `effect.bleed`, `effect.slow`, `effect.stun`
 (`STARTER_EFFECTS`, `installStarterEffects`). Register rows with `ctx.rows.effect(STARTER_EFFECTS)` in `kit`.
 
-**Explorer specimen ownership (CM1).** Data model catalogues use
-`ModelDef.specimenLifetime: 'view'`. `listModel` and `place` create a child scope for
-each displayed choice or temporary tier build and supply it as
-`ModelContext.specimenScope`. Registry entries forward `ready()` and
-`release()` to the Explorer. Thumbnail capture awaits geometry readiness;
-closing a card or switching variants retires its scopes and clears cached
-builds. World placement retains its resident source ownership. Scene
-catalogue intake borrows world sources and loads only the selected missing
-geometry into the view scope; it never extends the resident source maps.
-Borrowed world surfaces skip preparation; newly loaded scan maps share the
-surface lease and retire after its final owner, including eager GPU uploads.
+**Explorer specimens (CM1).** Catalogues use
+`ModelDef.specimenLifetime: 'view'`. `listModel`/`place` give each shown
+choice/temporary tier its own child `ModelContext.specimenScope`.
+Registry `ready()`/`release()` gate thumbnails and retire scopes/caches
+when cards close or variants switch. World placement keeps resident
+ownership; intake borrows it, loading only missing chosen geometry into
+the view scope, never extending resident maps. Borrowed surfaces skip
+preparation; new scan maps share a lease retired after its last owner,
+including eager GPU uploads. `ModelVariant.hidden: true` retains a declared
+placement choice but omits its Explorer button; defaults and public
+variants keep their original specimen builds.
 The memory projection retains world, dependency and transport costs and
 reserves four complete specimen choices: the shown copy, two tier builds
 and one cancelled decode, including each intake and its copied CPU draw

@@ -49,10 +49,12 @@ test('a different vertex, index order or unselected channel cannot be represente
 
 test('paired channels refuse absent donors, duplicate targets, position replacement and changed frames',async()=>{
   const primary=pack(geometry()),alternate=pack(geometry(true));
-  await expect(pairedChannelGlb(primary,alternate,'cast',[{from:'_ABSENT',to:'_LIGHT'}])).rejects.toThrow();
-  await expect(pairedChannelGlb(primary,alternate,'cast',[{from:'COLOR_0',to:'_DYE'}])).rejects.toThrow();
+  await expect(pairedChannelGlb(primary,primary,'cast',[{from:'_ABSENT',to:'_LIGHT'}])).rejects.toThrow();
+  await expect(pairedChannelGlb(primary,primary,'cast',[{from:'COLOR_0',to:'_DYE'}])).rejects.toThrow();
   await expect(pairedChannelGlb(primary,alternate,'cast',[{from:'POSITION',to:'_LIGHT'}])).rejects.toThrow();
   await expect(pairedChannelGlb(primary,alternate,'cast',[...channels,{from:'COLOR_0',to:'_OTHER'}])).rejects.toThrow();
   const moved=staticGlb([{geometry:geometry(true),material,customAttributes:{_DYE:'dye'},quantizedChannels:true,transform:new Matrix4().makeTranslation(0,1,0)}],'cast');
   await expect(pairedChannelGlb(primary,moved,'cast',channels)).rejects.toThrow('frames');
+  const changed=staticGlb([{geometry:geometry(),material:new MeshStandardMaterial({roughness:.9}),customAttributes:{_DYE:'dye'},quantizedChannels:true}],'cast');
+  await expect(pairedChannelGlb(primary,changed,'cast',channels)).rejects.toThrow('material');
 });

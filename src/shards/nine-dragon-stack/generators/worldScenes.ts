@@ -23,8 +23,8 @@ import { NINE_SHARED } from './sharedRows';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
-import { Color, Matrix4, MeshBasicMaterial, PlaneGeometry, Quaternion, SphereGeometry, Vector3 } from 'three';
-import { WALKER_DYES } from './casts';
+import { Matrix4, MeshBasicMaterial, PlaneGeometry, Quaternion, SphereGeometry, Vector3 } from 'three';
+import { crowdPaletteColor } from './crowdPalette';
 import { bakedLayoutProjection } from './layoutProjection';
 import explorer from '../data/explorerModels.json' with { type: 'json' };
 import type { NineWorldDeclarations } from './worldRows';
@@ -32,8 +32,9 @@ import type { NineSourceWorld } from './worldProgram';
 import rawProfiles from '../data/specimenProfiles.json' with { type: 'json' };
 import plan from '../data/layoutPlan.json' with { type: 'json' };
 import { presentationData } from './presentation';
-import { architectureGraphs, groundGraph } from './architectureGraphs';
-import { GROUND_LOOK } from './groundGraph';
+import { architectureGraphs } from './architectureGraphs';
+import { kitKind } from './kitKinds';
+import { kitKindGraphs } from './kitKindGraphs';
 import { lightVolumeRows } from './lightVolumes';
 import paint from '../data/paint.json' with { type: 'json' };
 import canopy from '../data/canopy.json' with { type: 'json' };
@@ -85,7 +86,7 @@ function alias(id: string, key: string, matrix?: readonly number[]): void {
 // The original layout partitions are native resources; the scene owner reads each tile once.
 const layoutRows = parseSectionValue(LayoutRowsSchema, JSON.parse(JSON.stringify(layout.rows), (_key, value: unknown) =>
   value === '-0' ? -0 : value === 'Infinity' ? Infinity : value === '-Infinity' ? -Infinity : value));
-const layoutIds = [...new Set([...layoutRows.kits.flatMap(row => row.geo === null ? [] : [row.geo]), ...layoutRows.alphaKits.map(row => row.geo), ...layoutRows.groundKits.map(row => row.geo), ...layoutRows.shell === null ? [] : [layoutRows.shell]])];
+const layoutIds = [...new Set([...layoutRows.kits.flatMap(row => row.geo === null ? [] : [row.geo]), ...layoutRows.alphaKits.map(row => row.geo), ...layoutRows.kindKits.map(row => row.geo), ...layoutRows.shell === null ? [] : [layoutRows.shell]])];
 for (const id of layoutIds) alias(`layout-${id}`, `layout_${id}`);
 for (const row of explorer.sources) if (!('resident' in row) || !row.resident.startsWith('lion')) alias(row.id, 'resident' in row ? row.resident : row.key, 'transform' in row ? row.transform : undefined);
 const draw = (id: string, model: string, material: string, renderOrder?: number): Draw => {
@@ -143,10 +144,15 @@ models.push({ key: 'feiZhuaHook', id: hook.model.id, name: hook.model.name, cate
     const level = `dragon-hook-mid${String(from)}`; return { from, draws: [{ ...hookDraw, library: castLibrary(level), model: level, attributes: { library: 'cast-hook', model: 'dragon-hook' } }] }; }))] });
 for (const [key, row] of Object.entries(crowdRows)) {
   const name = key === 'walker' ? 'umbrellaWalker' : 'mahjongSitter';
-  models.push({ key: name, id: row.id, name: row.name, category: 'people', pipeline: 'trellis', file: FILE, defaults: row.defaults, variants: row.variants, assembly: 'parts',
-    choices: row.variants.map(variant => { const full = `${key}-${variant.id}`;
+  models.push({ key: name, id: row.id, name: row.name, category: 'people', pipeline: 'trellis', file: FILE, defaults: row.defaults, variants: [...row.variants, { id: 'table', label: 'Palette table', hidden: true, params: { pick: 'table' } }], assembly: 'parts',
+    // The public Explorer variants retain their original independent sources.
+    // Only placed crowd copies select the table's internal authored choice.
+    choices: [...row.variants.map(variant => { const full = `${key}-${variant.id}`;
       return choice(variant.id, [cast(full)], variant.params, [], [...lodRows.MID_FROM.map(from => ({ from, draws: [sharing(`${full}-mid${String(from)}`, full)] })),
-        { from: lodRows.LOD_NEAR, draws: [cast(`${full}-far`)] }, { from: lodRows.LOD_FAR, draws: [] }]); }) });
+        { from: lodRows.LOD_NEAR, draws: [cast(`${full}-far`)] }, { from: lodRows.LOD_FAR, draws: [] }]); }),
+    choice('table', [cast(`${key}-table`)], { pick: 'table' }, [], [
+      ...lodRows.MID_FROM.map(from => ({ from, draws: [sharing(`${key}-table-mid${String(from)}`, `${key}-table`)] })),
+      { from: lodRows.LOD_NEAR, draws: [cast(`${key}-table-far`)] }, { from: lodRows.LOD_FAR, draws: [] }]) ] });
 }
 // the sign (E306 / E315): every shop sign, plaque, paper strip and banner the fragment hangs, one model, its variants the
 // styles; a variant draws its prepared atlas cells (hand-bent neon calligraphy: a dark plank board under its tubes; a
@@ -223,7 +229,7 @@ const CARD_BLOBS = [...cardFiles].map(([text, file]) => {
 const portalLook = portalLookRows();
 const NINE_SCENE_BLOBS: NamedBlob[] = [...castBlobs(), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
   nameBlob('world/scenes/cards.json', 'json', json(empty)), ...SHAPE_BLOBS, ...cardBuffers.values(), ...CARD_BLOBS];
-const KIT_GRAPHS = { ...architectureGraphs(), [GROUND_LOOK]: groundGraph() };
+const KIT_GRAPHS = { ...architectureGraphs(), ...kitKindGraphs() };
 // the painted surfaces' texture array (data/paint.json), the canopy's leaf atlas and the scroll screen, lent to their looks
 const painted = Object.entries(KIT_GRAPHS).flatMap(([id, graph]) => graph.params !== undefined && 'uPaint' in graph.params ? [id] : []);
 // the light pools' two baked volumes (generators/lightVolumes.ts) per tier and deck ending, lent to every look that reads them
@@ -265,15 +271,11 @@ const frame = (offset: number): number[] => Array.from({ length: 16 }, (_, k) =>
 // plain JSON numbers: a signed zero (three's matrix maths) is written as 0
 const posed = (words: readonly number[], color?: readonly number[]) => { const matrix = words.map(value => value + 0);
   return { x: matrix[12] ?? 0, y: matrix[13] ?? 0, z: matrix[14] ?? 0, matrix, ...(color === undefined ? {} : { color: [color[0] ?? 0, color[1] ?? 0, color[2] ?? 0].map(value => value + 0) }) }; };
-/** EP8 (B5): a dyed walker draws as an instance of its base walker with the dye as its instance colour (the kit graph's
- *  `aDye`), so the crowd's five walker colourways share two walkers' draws; every other walker carries white (its own
- *  colours). Sitters keep their colourways. */
-const crowdPose = (group: 'walkers' | 'sitters', row: { readonly matrix: number; readonly variant: string }) => {
-  const pose = posed(frame(row.matrix));
-  if (group === 'sitters') return { ...pose, variant: row.variant };
-  const dye = Object.entries(WALKER_DYES).find(([pick]) => pick === row.variant)?.[1], color = dye === undefined ? null : new Color(dye.color);
-  return { ...pose, variant: dye?.base ?? row.variant, color: color === null ? [1, 1, 1] : [color.r, color.g, color.b] };
-};
+/** EP8: all original copies and their LOD laws share one geometry per figure
+ * and level. The instance colour selects the admitted palette/dye table; the
+ * catalogue's visible choices remain untouched. */
+const crowdPose = (group: 'walkers' | 'sitters', row: { readonly matrix: number; readonly variant: string }) =>
+  ({ ...posed(frame(row.matrix)), variant: 'table', color: [...crowdPaletteColor(group, row.variant)] });
 /** the wall kit's catalogue model per piece (a copy key is `<piece>@<region>`) */
 const WALL_KIT: Readonly<Record<string, string>> = { plant: 'galleryPlant' };
 const catalogueName = new Map(parseWorldSceneModels(explorer.catalogue).models.map(row => [row.key, row.name]));
@@ -391,10 +393,10 @@ const FABRIC = parseWorldSceneWeld({ id: 'fabric', root: 'dressing.root', resour
   { id: 'fabric.root', parent: 'dressing.root', name: 'fabric', kind: 'group' },
   ...projection.kits.flatMap(([name, geo]) => geo === null ? [] : [kitNode(`fabric.kit.${name}`, 'fabric.root', `kit:${name}`, geo, 'kit', farOf.get(name))]),
   ...projection.alphaKits.map(([name, geo]) => kitNode(`fabric.kit.${name}`, 'fabric.root', `kit:${name}`, geo, 'kit-cut', farOf.get(name))),
-  // G5: each kit's flagstones, drawn by the kind-3 program as a child of their kit (its cull and band hold them too)
-  ...projection.groundKits.map(([name, geo]) => projection.kits.some(([kit, at]) => kit === name && at !== null)
-    ? kitNode(`fabric.kit.${name}.ground`, `fabric.kit.${name}`, `kit:${name}:ground`, geo, 'kit-ground')
-    : kitNode(`fabric.kit.${name}.ground`, 'fabric.root', `kit:${name}:ground`, geo, 'kit-ground', farOf.get(name))),
+  // G5: each kit's split kinds, drawn by their own programs as children of their kit (its cull and band hold them too)
+  ...projection.kindKits.map(([name, geo, kind]) => projection.kits.some(([kit, at]) => kit === name && at !== null)
+    ? kitNode(`fabric.kit.${name}.k${kind}`, `fabric.kit.${name}`, `kit:${name}:k${kind}`, geo, kitKind(kind).material)
+    : kitNode(`fabric.kit.${name}.k${kind}`, 'fabric.root', `kit:${name}:k${kind}`, geo, kitKind(kind).material, farOf.get(name))),
   ...shell === null ? [] : [{ id: 'fabric.facade', parent: 'fabric.root', name: 'facade', kind: 'group' }, kitNode('fabric.shell', 'fabric.facade', 'facade-shell', shell, 'facade')],
 ], culls: farKits.length === 0 ? [] : [{ roots: farKits.map(row => row.id), origins: farKits.flatMap(row => row.at), units: [], details: [], hosted: [] }],
 sets: [...market.length === 0 ? [] : [{ id: 'nine-dragon-stack/night-market', name: 'Lantern Square night market', file: 'src/shards/nine-dragon-stack/generators/stalls.ts', place: 'nine-dragon-stack/night-market', members: market }],

@@ -1,7 +1,7 @@
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
+import { compressGlb, pairedChannelGlb } from '@wildshard/sdk/bake/glbCompression';
 import { compactPhoneGlb } from '@wildshard/sdk/bake/compactGlb';
 import { parseGlb } from '@wildshard/sdk/assets';
 import { bakeCasts, bakeFixedKits, readFixedSlots } from './casts';
@@ -10,6 +10,7 @@ import { hookProduct, type HookProduct } from './hookProduct';
 import { nineLayoutData } from './layoutSource';
 import { deckFloorRows } from './floorRows';
 import { CAST_NAMES } from './castSources';
+import castRows from '../data/casts.json' with { type: 'json' };
 import { parseCastHook } from './sections';
 
 const INPUTS = ['/assets/nine-dragon/lab/walker.glb', '/assets/nine-dragon/lab/sitter.glb',
@@ -23,9 +24,20 @@ export async function nineCastFiles(read: (url: string) => Uint8Array): Promise<
   const packs = new Map([...casts, ...fixed.packs, ...lods]), hook = await hookProduct(read);
   const files = new Map<string, Uint8Array>();
   for (const [name, bytes] of packs) { files.set(`raw/${name}.glb`, bytes); files.set(`packed/${name}.glb`, compressGlb(bytes)); }
+  // Copy the actual phone-packed channels, so the palette retains the old
+  // quantization decision and no geometry passes through a second grid.
+  for (const kind of ['walker', 'sitter'] as const) for (const suffix of ['', '-mid12', '-mid22', '-far']) {
+    const primary = files.get(`packed/${kind}-dark${suffix}.glb`), alternate = files.get(`packed/${kind}-light${suffix}.glb`);
+    if (primary === undefined || alternate === undefined) throw new Error('Missing crowd palette source');
+    const name = `${kind}-table${suffix}`;
+    if (!castRows.CROWD_TABLES.includes(name)) throw new Error('Missing crowd table declaration');
+    const bytes = await pairedChannelGlb(await compactPhoneGlb(primary), await compactPhoneGlb(alternate), name,
+      [{ from: 'COLOR_0', to: '_LIGHT_COLOR' }, ...kind === 'walker' ? [{ from: '_DYE', to: '_LIGHT_DYE' }] : []]);
+    files.set(`raw/${name}.glb`, bytes); files.set(`packed/${name}.glb`, bytes);
+  }
   files.set('hook.glb', hook.glb);
   files.set('hook.json', json({ glb: 'castHook.generated.glb', material: hook.material,
-    casts: [...packs.keys()].map(name => ({ name, file: `data/cast-${name}.generated.glb` })) }, '\n'));
+    casts: [...packs.keys(), ...castRows.CROWD_TABLES].map(name => ({ name, file: `data/cast-${name}.generated.glb` })) }, '\n'));
   files.set('fixed.json', new TextEncoder().encode(`${JSON.stringify({ signs: fixed.signs, lanterns: fixed.lanterns },
     (_key, value: unknown) => typeof value === 'number' && Object.is(value, -0) ? '-0' : value)}\n`));
   files.set('floors.json', json(deckFloorRows(), '\n'));

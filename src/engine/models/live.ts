@@ -103,8 +103,9 @@ export function listModel<P extends object>(def: ModelDef<P>, o: ListOptions): v
     ...(def.rig?.species === undefined ? {} : { species: def.rig.species }),
     ...(def.rig?.dress === undefined ? {} : { dress: ((dress) => (a: Animal): void => { dress(a, o.ctx); })(def.rig.dress) }),
   };
-  if (def.variants && def.variants.length > 0) {
-    entry.variants = def.variants.map((v) => ({ id: v.id, label: v.label }));
+  const visibleVariants = def.variants?.filter(variant => variant.hidden !== true);
+  if (visibleVariants !== undefined && visibleVariants.length > 0) {
+    entry.variants = visibleVariants.map((v) => ({ id: v.id, label: v.label }));
     entry.rebuild = (variant?: string): void => {
       const container = specimen.parent;
       if (scoped) release();

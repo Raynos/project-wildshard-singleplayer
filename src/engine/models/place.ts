@@ -1232,7 +1232,8 @@ function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: Mo
       return best ? best.copyBox(bi, new THREE.Box3()) : null;
     },
   };
-  if (def.variants && def.variants.length > 0) { entry.variants = def.variants.map((v) => ({ id: v.id, label: v.label })); entry.rebuild = rebuild; }
+  const visibleVariants = def.variants?.filter(variant => variant.hidden !== true);
+  if (visibleVariants !== undefined && visibleVariants.length > 0) { entry.variants = visibleVariants.map((v) => ({ id: v.id, label: v.label })); entry.rebuild = rebuild; }
   return entry;
 }
 

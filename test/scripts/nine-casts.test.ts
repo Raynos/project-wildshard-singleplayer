@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { halfFloatBeforeControl } from '../fixtures/half-float-before-control';
-import { BufferAttribute, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Mesh, MeshBasicMaterial, Object3D, type BufferGeometry } from 'three';
+import { Color, Matrix4, InstancedMesh, BufferAttribute, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Mesh, MeshBasicMaterial, Object3D, type BufferGeometry } from 'three';
 
 import {CASTS, nineCastBlobs, rawCast} from '../fixtures/nine-cast-blobs';
 import { createOwnedGeometry } from '../../src/engine/models/ownedGeometry';
@@ -15,7 +15,7 @@ import type { PreparedGeometry } from '../../src/shards/nine-dragon-stack/data/c
 import castRows from '../../src/shards/nine-dragon-stack/data/casts.json' with { type: 'json' };
 import { layoutBlobs } from '../../src/shards/nine-dragon-stack/generators/layoutBlobs';
 import { bakeLods } from '../../src/shards/nine-dragon-stack/generators/lods';
-import { castChannels } from '../../src/shards/nine-dragon-stack/generators/castSources';
+import { castLibrary, castChannels } from '../../src/shards/nine-dragon-stack/generators/castSources';
 import { bakeCasts, bakeFixedKits, castGeometry } from '../../src/shards/nine-dragon-stack/generators/casts';
 import { layoutProjection, restoreLayoutZeros } from '../../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { LayoutRowsSchema, GeometryBootSchema } from '../../src/shards/nine-dragon-stack/generators/sections';
@@ -24,7 +24,11 @@ import { Scope } from '../../src/engine/app/scope';
 import { modelContext } from '../../src/engine/models/model';
 import { Rng } from '../../src/engine/core/rng';
 import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../../src/game/models/worldSceneCatalogue';
+import { place } from '../../src/engine/models/place';
+import { withOwner } from '../../src/engine/app/ownership';
+import crowdRows from '../../src/shards/nine-dragon-stack/data/crowdModels.json' with {type:'json'};
 import { parseWorldSceneModels } from '../../src/format/worldSceneModels';
+import { parseWorldScenePlacement } from '../../src/format/worldScenePlacement';
 import { floorAtRects } from '../../src/engine/physics/box';
 import { deckFloorRows } from '../../src/shards/nine-dragon-stack/generators/floorRows';
 
@@ -139,7 +143,7 @@ const originalColourLods = new Map<string, { geometry: BufferGeometry; base: Buf
 beforeAll(async () => {
   const read = (url: string): Uint8Array => new Uint8Array(readFileSync(`public${url}`));
   for (const name of ['lion', 'walker-dark', 'walker-light', 'sitter-dark', 'sitter-light'] as const) lodBases.set(name, await castGeometry(name, read));
-  for (const name of ['walker-oxblood', 'walker-paper', 'walker-blue']) {
+  for (const name of ['walker-oxblood', 'walker-paper', 'walker-blue', 'walker-table', 'sitter-table']) {
     const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
       geometryPools: [{ url: name, parts: [name], channels: castChannels(name) }],
     }, 'test Nine baked dye', {}, async () => (await readSourceModel(rawCast(name))).gltf);
@@ -229,4 +233,36 @@ test('all entry floors preserve inclusive native deck boundaries', () => {
     const expected=native.some(s => Math.abs(x-s.x)<=s.sx/2 && Math.abs(z-s.z)<=s.sz/2) ? 0 : undefined;
     expect(floorAtRects(deckFloors,x,z,'first')).toBe(expected);
   }
+});
+
+
+const isTableInstance=(object:Object3D):object is InstancedMesh=>object instanceof InstancedMesh;
+
+test('the placed palette tables need at most eight plain draws and keep every public Explorer choice',async()=>{
+  const file=scenes.NINE_SCENE_BLOBS.find(row=>row.file.name==='models/world-scenes.json');
+  if(file===undefined)throw new Error('Missing source catalogue');
+  const catalogue=parseWorldSceneModels(JSON.parse(new TextDecoder().decode(file.bytes)));
+  const geometry=new Map<string,BufferGeometry>(),material=new MeshBasicMaterial(),scope=new Scope('crowd-table-draws');
+  try{
+    for(const name of castRows.CROWD_TABLES){
+      const row=CAST_BLOBS.find(blob=>blob.file.name===`geometry/casts/${name}.glb`);if(row===undefined)throw new Error('Missing table bytes');
+      const library=createModelLibrary<never,never>({meshes:[],meshUrls:{},hd:[],hdUrls:{},hdLooks:{},aoFloor:1,geometryPools:[{url:name,parts:[name],channels:castChannels(name)}]},
+        'table draw proof',{},async()=>(await readSourceModel(row.bytes)).gltf);
+      await library.preload();const g=library.geometry(name,{borrow:true});if(g===null)throw new Error('Missing native table');
+      geometry.set(JSON.stringify([castLibrary(name),name]),g);
+    }
+    const ctx=modelContext(null);bindWorldSceneModelSources(ctx,catalogue.product,{catalogue,materials:new Map([['kit',material]]),geometries:geometry},scope);
+    const models=defineWorldSceneCatalogue(catalogue);let draws=0;
+    for(const [group,key,original] of [['walkers','umbrellaWalker',crowdRows.walker],['sitters','mahjongSitter',crowdRows.sitter]] as const){
+      const authored=scenes.LAYOUT_PLACEMENTS.find(row=>row.id===`nds-crowd-${group}`);if(authored===undefined)throw new Error('Missing placed crowd');
+      const source=parseWorldScenePlacement(authored);
+      const row=catalogue.models.find(model=>model.key===key);if(row===undefined)throw new Error('Missing crowd model');
+      expect(row.defaults).toEqual(original.defaults);expect(row.variants.filter(variant=>variant.hidden!==true)).toEqual(original.variants);
+      const copies=source.poses.map(pose=>{if(!('matrix' in pose)||pose.variant!=='table'||pose.color===undefined)throw new Error('Crowd must select its declared shared table');
+        return {x:pose.x,y:pose.y,z:pose.z,variant:pose.variant,matrix:new Matrix4().fromArray(pose.matrix),color:new Color(pose.color[0],pose.color[1],pose.color[2])};});
+      const placed=withOwner(scope,()=>place(models.model(key),copies,{ctx,draw:'instanced',registry:null,cull:{}}));
+      placed.object.traverse(object=>{if(!isTableInstance(object))return;draws++;expect(object.geometry.hasAttribute('aLightColor')).toBe(true);});
+    }
+    expect(draws).toBeLessThanOrEqual(8);expect(draws).toBeGreaterThan(0);
+  }finally{scope.dispose();for(const g of geometry.values())g.dispose();material.dispose();}
 });

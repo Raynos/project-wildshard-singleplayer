@@ -37,11 +37,31 @@
       "name": "aDye",
       "source": "_dye",
       "width": 1
+    },
+    {
+      "name": "aLightColor",
+      "source": "_light_color",
+      "width": 3
+    },
+    {
+      "name": "aLightDye",
+      "source": "_light_dye",
+      "width": 1
     }
   ],
   "FIXED_KITS": [
     "entries-open",
     "entries-capped",
     "facade-signs"
+  ],
+  "CROWD_TABLES": [
+    "walker-table",
+    "walker-table-mid12",
+    "walker-table-mid22",
+    "walker-table-far",
+    "sitter-table",
+    "sitter-table-mid12",
+    "sitter-table-mid22",
+    "sitter-table-far"
   ]
 }

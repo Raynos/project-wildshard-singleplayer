@@ -1,5 +1,6 @@
 import type { AuthorGraph as GraphIr, AuthorGraphRef as GraphRef, AuthorGraphStages as GraphStages } from '@wildshard/sdk/bake/materialGraph';
 import { LookGraph } from './lookGraph';
+import { CROWD_LIGHT_DYE } from './crowdPalette';
 import SHARED from '../data/sharedUniforms.json' with { type: 'json' };
 
 const shapes = {
@@ -124,8 +125,10 @@ function facade(small: boolean): GraphIr {
   for (const [distance, footprint, bit] of [[x, fx, 1], [sub(w, x), fx, 2], [y, fy, 4], [sub(h, y), fy, 8]] as const) lines = max(lines, mul(g.bit(flags, bit), g.line(distance, footprint, lw)));
   const rule = (value: Ref, pitch: Ref, footprint: Ref, scale: number): string => g.rule(value, pitch, footprint, mul(width, scale));
   const line = (distance: Ref, footprint: Ref, scale: number): string => g.line(distance, footprint, mul(width, scale));
-  let colour: Ref = base, emit: Ref = mul(g.colour, sw(misc, 'x'));
-  const use = (k: number, col: Ref, ink: Ref, em?: Ref): void => { const on = g.eq(kind, k); colour = g.choose(on, col, colour); lines = g.choose(on, max(lines, ink), lines); if (em !== undefined) emit = g.choose(on, em, emit); };
+  // The flat pattern kind selects colour and ink together: separate readers
+  // otherwise hoist their shared paint outside both branches (G3).
+  let painted: Ref = g.vec(base, 0), emit: Ref = mul(g.colour, sw(misc, 'x'));
+  const use = (k: number, col: Ref, ink: Ref, em?: Ref): void => { const on = g.eq(kind, k); painted = g.choose(on, g.vec(col, ink), painted); if (em !== undefined) emit = g.choose(on, em, emit); };
   const worldX = add(sw(g.world, 'x'), sw(g.world, 'z')), finish = g.floor(add(mul(sw(pat, 'z'), 0.5), 1e-3));
   const weather = add(add(0.93, mul(g.noise(g.vec(mul(worldX, 0.45), mul(sw(g.world, 'y'), 0.3))), 0.1)), mul(g.noise(g.vec(mul(worldX, 1.7), mul(sw(g.world, 'y'), 1.3))), 0.04));
   const runs = mul(g.smooth(0.5, 0.85, g.noise(g.vec(mul(worldX, 6.5), 0.5))), g.noise(g.vec(add(mul(worldX, 1.3), 9), g.floor(g.div(sw(g.world, 'y'), 3)))));
@@ -212,6 +215,8 @@ function facade(small: boolean): GraphIr {
   const farLight = mul(mul(mul(mul(win, lit), sub(1, mul(rail, 0.6))), sub(1, eave)), sub(1, pSign));
   use(11, mix(mix(farBase, dark, 0.3), cellC, farDetail), mul(rule(y, sw(pat, 'y'), fy, 1), 0.8),
     add(mul([1, 0.7, 0.38], mul(mix(0.135, farLight, farDetail), 1.15)), mul(neonC, mul(mul(pSign, farDetail), 1.6))));
+  let colour: Ref = sw(painted, 'xyz');
+  lines = max(lines, sw(painted, 'w'));
   const concrete = g.op('and', [g.op('and', [g.op('not', [g.eq(kind, 2)]), g.op('not', [g.eq(kind, 3)])]), g.op('and', [g.op('and', [g.op('not', [g.eq(kind, 4)]), g.op('not', [g.eq(kind, 5)])]), g.op('and', [g.op('not', [g.eq(kind, 9)]), g.op('not', [g.eq(kind, 12)])])])]);
   const paintQ = g.choose(g.gt(g.abs(sw(g.normal, 'y')), 0.6), sw(g.world, 'xz'), g.vec(worldX, sw(g.world, 'y')));
   colour = g.choose(concrete, mul(colour, g.paint(paintQ, 4, 6, mul(mul(sw(g.u('uPaintK'), 'x'), sw(g.u('uPaintK'), 'z')), sw(g.u('uPaintStone'), 'z')))), colour);
@@ -323,8 +328,8 @@ function windows(): GraphIr {
   return g.output(colour, emit, mul(lines, mix(0.5, 1, detail)));
 }
 
-/** G5: the kit's flagstone program (kind 3 only), shipped as a material file (groundGraph.ts) */
-export function groundGraph(): GraphIr { return architecture(false, true, 3); }
+/** G5: the kit's program for faces of one kind, shipped as a material file (kitKindGraphs.ts) */
+export function kindGraph(kind: number): GraphIr { return architecture(false, true, kind); }
 
 /** `nr13: false` builds the kit graphs as before NR13 and NR16 (no tread glints, every face painted at full strength, a
  *  bare window grid for kind 1): the declaration oracle's predecessor. */
@@ -421,7 +426,22 @@ function architecture(cut: boolean, nr13: boolean, only?: number): GraphIr {
   // carries its 0 as a default: the kit's program is shared by every mesh, and one built first for a mesh without the
   // channel otherwise baked it in as a constant 0, so every dyed umbrella drew its base walker's dark cloth x the dye
   const dye = g.v(g.a('aDye', 'float', 0)), white = g.op('and', [g.eq(sw(g.tint, 'x'), 1), g.op('and', [g.eq(sw(g.tint, 'y'), 1), g.eq(sw(g.tint, 'z'), 1)])]);
-  const coloured = choose(g.eq(dye, 0), g.colour, choose(g.op('and', [g.gt(dye, 0), g.op('not', [white])]), mul(g.tint, dye), g.op('vertexColour')));
+  let coloured = choose(g.eq(dye, 0), g.colour, choose(g.op('and', [g.gt(dye, 0), g.op('not', [white])]), mul(g.tint, dye), g.op('vertexColour')));
+  if (!cut && only === undefined) {
+    // Classify the explicit palette key at the Float32 vertex input, never on
+    // an interpolated RGB value. Non-table geometry takes the original branch.
+    const lightColor = g.a('aLightColor', 'vec3', [-1, -1, -1]), tint = g.op('instanceColour');
+    const equal = (value: Ref, rgb: readonly [number, number, number]): string => g.op('and', [g.eq(sw(value, 'x'), rgb[0]),
+      g.op('and', [g.eq(sw(value, 'y'), rgb[1]), g.eq(sw(value, 'z'), rgb[2])])]);
+    const light = g.op('or', [equal(tint, [0, 0, 0]), equal(tint, CROWD_LIGHT_DYE)]);
+    const table = g.gt(g.flat(choose(g.op('gte', [sw(lightColor, 'x'), 0]), 1, 0)), .5);
+    const lightPalette = g.gt(g.flat(choose(light, 1, 0)), .5);
+    const ownPalette = g.gt(g.flat(choose(g.op('or', [equal(tint, [1, 1, 1]), equal(tint, [0, 0, 0])]), 1, 0)), .5);
+    const color = choose(lightPalette, g.v(lightColor), g.op('vertexColour'));
+    const factor = choose(lightPalette, g.v(g.a('aLightDye', 'float', 0)), dye);
+    const paired = choose(g.op('and', [g.gt(factor, 0), g.op('not', [ownPalette])]), mul(g.tint, factor), color);
+    coloured = choose(table, paired, coloured);
+  }
   const accent = g.bit(flags, 16), gloss = g.bit(flags, 32), gold = g.bit(flags, 64), base = mul(coloured, mix(g.u('uWashTint'), [1, 1, 1], accent));
   const uv = sw(face, 'xy'), sz = sw(face, 'zw'), q = add(uv, off), x = sw(uv, 'x'), y = sw(uv, 'y'), w = sw(sz, 'x'), h = sw(sz, 'y');
   const footprint = (value: Ref): string => max(g.op('length', [g.vec(g.op('dFdx', [value]), g.op('dFdy', [value]))]), 1e-6);
