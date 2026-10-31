@@ -172,7 +172,12 @@ class SafariScreenshots:
         self.active[pid] = (record, end)
         self.poll()
 
-    def poll(self):
+    def reap(self):
+        # EOF/group death can precede waitpid terminal availability. Observe
+        # reap without issuing the fallback kill from an expired parent tick.
+        self.poll(reap_only=True)
+
+    def poll(self, reap_only=False):
         for pid, (record, end) in list(self.active.items()):
             try:
                 done, status = os.waitpid(pid, os.WNOHANG)
@@ -182,7 +187,7 @@ class SafariScreenshots:
                     if record['status'] == 'running':
                         record['status'] = 'stopped' if record['supervisorExit'] == -9 else 'failed'
                     del self.active[pid]
-                elif time.monotonic() >= end and record['killAt'] is None:
+                elif not reap_only and time.monotonic() >= end and record['killAt'] is None:
                     record.update(status='timeout', killAt=round(time.monotonic() - self.started, 3))
                     try:
                         os.killpg(pid, 9)

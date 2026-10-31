@@ -622,8 +622,22 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
             for read, _ in pipes.values():
                 self.assertTrue(select.select([read], [], [], 2)[0])
                 self.assertEqual(os.read(read, 1), b'')
-            controller.poll()
+            # Linux may close the group's final writer before waitpid can
+            # report its supervisor as terminal. Model two such observations
+            # even on a fast host, then wait only for reap (never fallback kill).
+            owned_os = type(controller).reap.__globals__['os']
+            original_waitpid, observations = owned_os.waitpid, {}
+            def delayed_reap(pid, flags):
+                observations[pid] = observations.get(pid, 0) + 1
+                return (0, 0) if observations[pid] <= 2 else original_waitpid(pid, flags)
+            owned_os.waitpid = delayed_reap
+            reap_deadline = time.monotonic() + 1
+            while controller.active and time.monotonic() < reap_deadline:
+                controller.reap()
+                if controller.active: time.sleep(.001)
             self.assertFalse(controller.active)
+            self.assertEqual(len(observations), 2)
+            self.assertTrue(all(count >= 3 for count in observations.values()))
             for record in controller.records:
                 self.assertLessEqual(record['deadlineAt'] - record['requestedAt'], 1.001)
                 self.assertIsNone(record['killAt'], 'parent must not be responsible for stopping the group')
