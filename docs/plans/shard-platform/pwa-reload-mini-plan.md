@@ -99,11 +99,20 @@ apart from the deleted route.
 
 | Row | What | Done when (measured) | Lane | Size |
 |---|---|---|---|---|
-| PR1 | **The reload counter as a check**: commit this session's `repro.mjs` / `proxy.mjs` / `make-variant.mjs` as `scripts/pwa-reload-check.mjs`, run through `browser-lane.sh` on one served build. Scenarios: no deploy; A→B tapped the moment the pill lights; A→B with a 25 s install; A→B→C with C mid-install. It prints taps-to-clear. | On today's HEAD it reproduces the table above (8 / never, 2 on Chromium); under 3 min a run. | Codex | S |
+| PR1 | **in flight (2026-10-31, sp-x9)** — **The reload counter as a check**: commit this session's `repro.mjs` / `proxy.mjs` / `make-variant.mjs` as `scripts/pwa-reload-check.mjs`, run through `browser-lane.sh` on one served build. Scenarios: no deploy; A→B tapped the moment the pill lights; A→B with a 25 s install; A→B→C with C mid-install. It prints taps-to-clear. | On today's HEAD it reproduces the table above (8 / never, 2 on Chromium); under 3 min a run. | Codex | S |
 | PR2 | **Never wait on `register()` in a controlled page** (`sw.ts` `boot` / `register` / `watch`): watch `getRegistration()`, register only when there is none, `update()` stays fire-and-forget. The tap reads `reg.waiting` fresh (`adopt`). | PR1's wedged case (one tap mid-install, then wait): the next tap lands B in **1** reload; `sw`, `sw-ready-*`, `sw-registration-blocked`, `update-*` tests pass. | Codex | S |
 | PR3 | **Light only for a deliverable newest build** (`Update.ts` `check` / `lightUp`, `sw.ts` `announce`): `/version.json` only discovers while a worker controls; `announce` compares the waiting worker's build against the document and the newest `/version.json`; the poll keeps running while lit. | WebKit **A→B = 1** tap even when tapped the moment anything lights (25 s install: dark until installed); **A→B→C = 1** tap landing C, with B already waiting and with C mid-install; no deploy: dark through 3 reloads; Chromium the same. | Codex | S |
 | PR4 | **Delete what disagrees**: the document race route in `sw.js`, `requestInstall`'s text swap, `WsSw.activate()` and the tests that pin them (G416). | Chromium A→B: the page never runs a newer build than its controller (doc = ctrl after every tap in PR1); WebKit warm title unchanged (MF1's ≤ 0.1 MB warm network). | Codex | S |
 | PR5 | **One Simulator home-screen pass** (`scripts/sim-lane.sh`, a real home-screen web app): deploy A, install, serve B, tap the pill once; then A→B→C. Before PR2 / PR3 land, also check whether a wedge survives an app-switcher kill. | Taps-to-clear = 1 for A→B and A→B→C on the Simulator's home-screen app; the wedge finding is noted in this plan. | Codex | S |
+
+PR1 ruler is on origin at `ceea928a1b`. Its source-checked 131 preview
+(`13123182d4b35067a6bafaaa7b320315ab5d5561`) reproduces the delayed WebKit
+failure: a real 25 s shell-asset delay, then eight taps still serve A while B is
+installed and waiting (27.56 s, zero page/HTTP errors). Raw and identities:
+`tmp/sp-x9-pwa/pr1-webkit-delayed-corrected.{log,json}`. Clean-session telemetry
+gets a local receipt; error telemetry and other HTTP errors still refuse.
+The remaining baseline scenarios and Simulator app-kill finding are pending;
+PR2–PR5 runtime changes have not landed.
 
 Order: PR1 first (it's the ruler), then PR2 → PR3 → PR4, then PR5 once at the end. Jake's next playtest on the phone is
 the final check (he does no phone chores); this plan closes when a deploy during his session takes one tap.
