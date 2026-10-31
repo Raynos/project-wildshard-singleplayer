@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 /** Build only an isolated native component, reading engine modules directly
  * from landed main revisions. This never exports or modifies a repository. */
 export async function buildComponents(control, candidate, out, fixtures = {}) {
-  const allowed = new Set(['src/engine/render/drawHooks.ts', 'src/engine/render/uploadOwnership.ts', 'src/engine/render/compressedMipmaps.ts']);
+  const allowed = new Set(['src/engine/render/drawHooks.ts', 'src/engine/render/uploadOwnership.ts', 'src/engine/render/compressedMipmaps.ts', 'src/engine/render/textureUploadEvents.ts']);
   if (Object.keys(fixtures).some(path => !allowed.has(path))) throw new Error('Unknown isolated component module');
   const root = resolve('.');
   if (!resolve(out).startsWith(`${resolve(root, 'tmp')}/`)) throw new Error('Components require repository tmp output');

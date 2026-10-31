@@ -212,3 +212,25 @@ test('texture callbacks run once a render while compressed admission still runs 
     renderer.render();expect(watch).toHaveBeenCalledTimes(2);expect(before).toHaveBeenCalledTimes(4);expect(after).toHaveBeenCalledTimes(4);
   }finally{texture.dispose();f.geometry.dispose();f.material.dispose();}
 });
+
+test('a texture listener rearms only that texture while disposal still invalidates all owners', () => {
+  const f = fixture(), first = new Texture(), other = new Texture(), native = {};
+  const renderer = {...f.renderer, properties:{get:(_value:unknown)=>native}, render:()=>{
+    renderer.renderBufferDirect(f.camera,f.scene,f.geometry,f.material,f.object,f.group);
+  }};
+  installFrameCounter(renderer);drawHooks(renderer);const hooks=propertyHooks(renderer);
+  const uploaded=vi.fn<(resource:Texture)=>void>(), ownership=vi.fn<(resource:unknown)=>void>();
+  hooks.uploaded=uploaded;hooks.ownership=ownership;
+  f.stock.mockImplementation(()=>{
+    renderer.properties.get(first);renderer.properties.get(other);
+    invalidatePropertyObservation(first);
+    renderer.properties.get(first);renderer.properties.get(other);
+    expect(uploaded.mock.calls.map(([resource])=>resource)).toEqual([first,other,first]);
+    expect(ownership.mock.calls.map(([resource])=>resource)).toEqual([first,other,first]);
+    invalidatePropertyObservation();
+    renderer.properties.get(first);renderer.properties.get(other);
+    expect(uploaded.mock.calls.map(([resource])=>resource)).toEqual([first,other,first,first,other]);
+    expect(ownership.mock.calls.map(([resource])=>resource)).toEqual([first,other,first,first,other]);
+  });
+  try{renderer.render();}finally{first.dispose();other.dispose();f.geometry.dispose();f.material.dispose();}
+});

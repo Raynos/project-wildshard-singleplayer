@@ -11,7 +11,7 @@ export function onceTextureUploaded(texture: Texture, run: (texture: Texture) =>
   let rows = listeners.get(texture);
   if (rows === undefined) { rows = new Set(); listeners.set(texture, rows); }
   rows.add(run);
-  invalidatePropertyObservation();
+  invalidatePropertyObservation(texture);
 }
 
 export interface TextureUploadRenderer extends Partial<Pick<Renderer, 'renderBufferDirect'>> {

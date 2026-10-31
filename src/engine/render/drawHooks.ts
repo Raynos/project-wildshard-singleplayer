@@ -32,8 +32,12 @@ function pipelineOf(renderer: object): Pipeline {
   return pipeline;
 }
 let observationRevision = 0;
-/** A new upload callback must observe even a repeated lookup in the current render. */
-export function invalidatePropertyObservation(): void { observationRevision++; }
+/** A new upload callback rearms its texture even within a render. Omit the
+ * texture to invalidate all ownership observations after native disposal. */
+export function invalidatePropertyObservation(texture?: Texture): void {
+  if (texture === undefined) observationRevision++;
+  else resourceKind(texture).uploadRevision++;
+}
 
 /** The sole engine renderBufferDirect hook. Keep the renderer's current target:
  * third-party draw adapters installed before us must still run. */
@@ -89,7 +93,7 @@ interface PropertyHooks {
   labels?: (resource: unknown, properties: unknown) => unknown;
   labelsVersion?: () => number;
 }
-interface ResourceKind { texture: Texture | null; compressed: CompressedTexture | null; target: boolean; owned: boolean; shadow: MeshDepthMaterial | MeshDistanceMaterial | null }
+interface ResourceKind { uploadRevision: number; texture: Texture | null; compressed: CompressedTexture | null; target: boolean; owned: boolean; shadow: MeshDepthMaterial | MeshDistanceMaterial | null }
 const KIND = Symbol('renderer resource kind');
 const frozenKinds = new WeakMap<object, ResourceKind>();
 function resourceKind(resource: object): ResourceKind {
@@ -97,10 +101,10 @@ function resourceKind(resource: object): ResourceKind {
   const known = tagged[KIND] ?? frozenKinds.get(resource);
   if (known !== undefined) return known;
   const texture = resource instanceof Texture ? resource : null, target = resource instanceof RenderTarget;
-  const kind: ResourceKind = { texture, compressed: resource instanceof CompressedTexture ? resource : null, target,
+  const kind: ResourceKind = { uploadRevision: 0, texture, compressed: resource instanceof CompressedTexture ? resource : null, target,
     shadow: resource instanceof MeshDepthMaterial || resource instanceof MeshDistanceMaterial ? resource : null,
     owned: texture !== null || target || resource instanceof BufferGeometry || resource instanceof Material || resource instanceof InstancedMesh || resource instanceof BatchedMesh };
-  // This immutable, non-enumerable record holds only its own resource. It has
+  // This non-enumerable record holds only its own resource. It has
   // no renderer, callback or Scope edge, so it cannot extend their lifetimes.
   if (Object.isExtensible(resource)) Object.defineProperty(resource, KIND, { value: kind });
   else frozenKinds.set(resource, kind);
@@ -116,15 +120,15 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
   pipeline.properties = hooks;
   const get = renderer.properties.get.bind(renderer.properties);
   let counter = renderCounter(renderer);
-  interface Observation { kind: ResourceKind; frame: number; metadata: boolean; owner: symbol | null; revision: number; labels: number | undefined; value: unknown }
-  let observed = new WeakMap<object, Observation>(), texturesSeen = new WeakSet();
+  interface Observation { textureVersion: number; kind: ResourceKind; frame: number; metadata: boolean; owner: symbol | null; revision: number; labels: number | undefined; value: unknown }
+  let observed = new WeakMap<object, Observation>(), texturesSeen = new WeakMap<object, number>();
   let textureFrame = -1, textureRevision = observationRevision;
   const remove = renderer.properties.remove?.bind(renderer.properties), dispose = renderer.properties.dispose?.bind(renderer.properties);
   if (remove !== undefined) renderer.properties.remove = resource => {
     if (typeof resource === 'object' && resource !== null) { observed.delete(resource); texturesSeen.delete(resource); }
     remove(resource);
   };
-  if (dispose !== undefined) renderer.properties.dispose = () => { observed = new WeakMap(); texturesSeen = new WeakSet(); dispose(); };
+  if (dispose !== undefined) renderer.properties.dispose = () => { observed = new WeakMap(); texturesSeen = new WeakMap<object, number>(); dispose(); };
   renderer.properties.get = (resource: unknown) => {
     if (typeof resource !== 'object' || resource === null) return get(resource);
     if (counter === undefined) {
@@ -133,7 +137,7 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
         counter = frameCounter;
         // The real renderer installs upload observation before its render
         // counter. Its first counted render must not reuse a per-draw epoch.
-        observed = new WeakMap(); texturesSeen = new WeakSet(); textureFrame = -1;
+        observed = new WeakMap(); texturesSeen = new WeakMap<object, number>(); textureFrame = -1;
       }
     }
     const prior = observed.get(resource);
@@ -154,19 +158,20 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
     const labels = hooks.labels === undefined || !labelable ? 0 : hooks.labelsVersion?.();
     if (active && prior !== undefined && prior.frame === frame && prior.owner === owner
       && prior.revision === observationRevision && labels !== undefined && prior.labels === labels
-      && (kind.texture === null || textureRevision === observationRevision)) return prior.value;
-    const texture = kind.texture, compressed = kind.compressed;
+      && (kind.texture === null || (textureRevision === observationRevision && prior.textureVersion === kind.uploadRevision))) return prior.value;
+    const texture = kind.texture, compressed = kind.compressed, textureVersion = kind.uploadRevision;
     // Enrollment is per texture/render; consuming-owner residency and
     // compressed sampler/allocation checks keep their original stamps below.
-    // A late upload listener invalidates this weak set through the revision.
+    // A late upload listener rearms only its resource; disposal keeps the
+    // global revision invalidation for ownership and all enrollment stamps.
     if (texture !== null) {
       const currentFrame = counter?.n ?? pipeline.epoch;
       if (active && (textureFrame !== currentFrame || textureRevision !== observationRevision)) {
-        texturesSeen = new WeakSet(); textureFrame = currentFrame; textureRevision = observationRevision;
+        texturesSeen = new WeakMap<object, number>(); textureFrame = currentFrame; textureRevision = observationRevision;
       }
-      if (!active || !texturesSeen.has(texture)) {
+      if (!active || texturesSeen.get(texture) !== textureVersion) {
         hooks.texture?.(texture); hooks.uploaded?.(texture);
-        if (active) texturesSeen.add(texture);
+        if (active) texturesSeen.set(texture, textureVersion);
       }
     }
     if (compressed !== undefined && compressed !== null) hooks.compressed?.before(compressed);
@@ -179,8 +184,8 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
     const value = hooks.labels === undefined || !labelable ? native : hooks.labels(resource, native);
     const metadata = !kind.owned && remove !== undefined && dispose !== undefined
       && native !== null && typeof native === 'object';
-    if (prior === undefined) observed.set(resource, { kind, frame: active ? frame : -1, metadata, owner, revision, labels, value });
-    else { prior.frame = active ? frame : -1; prior.metadata = metadata; prior.owner = owner; prior.revision = revision; prior.labels = labels; prior.value = value; }
+    if (prior === undefined) observed.set(resource, { textureVersion, kind, frame: active ? frame : -1, metadata, owner, revision, labels, value });
+    else { prior.textureVersion = textureVersion; prior.frame = active ? frame : -1; prior.metadata = metadata; prior.owner = owner; prior.revision = revision; prior.labels = labels; prior.value = value; }
     return value;
   };
   return hooks;
