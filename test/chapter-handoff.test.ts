@@ -2,7 +2,7 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {ChapterHandoffSchema,ChapterPartSchema,chapterObserved,chapterTwoObserved,chapterWire,chapterRead,chapterWireHash,chapterInputHash,checkChapterLedger,type ChapterPart} from './fixtures/headless/chapterHandoff';
 import {PACKED_CHAPTER_TAMING,packChapterTaming} from './fixtures/headless/chapterObservation';
-import {packChapterReport,chapterReportUsesCodec} from './fixtures/headless/chapterReportCodec';
+import {packChapterReport,unpackChapterReport,chapterReportUsesCodec} from './fixtures/headless/chapterReportCodec';
 import type {HeadlessCommand} from '../src/sdk/tickProtocol';
 
 const idle:HeadlessCommand={kind:'player',moveX:0,moveZ:0,yaw:0};
@@ -84,6 +84,7 @@ test('report codec metadata cannot authorize an earlier stage or a missing King 
   const {parts}=victoryReportParts();
   const value={version:1,stage:'king-victory',source:chapterWireHash('unplayed'),tick:3,snapshot:'unplayed',digest:chapterWireHash('unplayed'),reportStart:2,parts};
   expect(v.safeParse(ChapterHandoffSchema,value).success).toBe(true);
+  expect(v.safeParse(ChapterHandoffSchema,{...value,stage:'king-home'}).success).toBe(true);
   for(const stage of ['home','carvings','king-entry','king-phase-one','king-phase-two'])expect(v.safeParse(ChapterHandoffSchema,{...value,stage}).success).toBe(false);
   const before=parts[1]?.expected.observations[0];if(before===undefined)throw new Error('Missing unplayed boundary');
   before.flags=before.flags.filter(flag=>flag!=='clue:3');expect(()=>checkChapterLedger(parts,3,2)).toThrow('earned King checkpoint');
@@ -92,4 +93,15 @@ test('an encoded prefix refuses even if a later report boundary is claimed',()=>
   const {parts}=victoryReportParts(),before=parts[1],coded=parts[2];
   if(before===undefined||coded===undefined)throw new Error('Missing unplayed prefix');
   before.expected=structuredClone(coded.expected);expect(()=>checkChapterLedger(parts,3,2)).toThrow('raw earned prefix');
+});
+
+test('an elder continuation inherits the same raw prefix and expanded codec basis',()=>{
+  const {parts,raw}=victoryReportParts(),prior=parts.at(-1);if(prior===undefined)throw new Error('Missing victory report');
+  const previous=unpackChapterReport(prior.expected,parts[1]?.expected),next=structuredClone(raw);
+  const segment=next.plan.segments[0];if(segment===undefined)throw new Error('Missing elder input interval');segment.id='chapter-3';
+  const observation=next.expected.observations[0];if(observation===undefined)throw new Error('Missing elder report');
+  observation.id='chapter-3';observation.tick=4;observation.flags.push('told:king');
+  next.expected=packChapterReport(next.expected,previous);
+  expect(()=>checkChapterLedger([...parts,next],4,2)).not.toThrow();
+  expect(()=>unpackChapterReport(next.expected,prior.expected)).toThrow();
 });

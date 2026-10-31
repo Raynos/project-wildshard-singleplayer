@@ -104,3 +104,21 @@ test('the original report character limit still refuses',()=>assert.throws(()=>p
 
 test('unsupported JSON depth keeps the complete original state',()=>{let deep:unknown=0;for(let depth=0;depth<70;depth++)deep={deep};const raw=report(codecOwner,JSON.stringify({deep}));assert.equal(codecState(packChapterReport(raw,baseReport)),codecState(raw));});
 
+test('new compact reports retain complete bytes when a patch is too complex',()=>{
+  const a=report(codecOwner,JSON.stringify({many:Array.from({length:9000},()=>0)})),b=report(codecOwner,JSON.stringify({many:Array.from({length:9000},()=>1)}));
+  const packed=packChapterReport(b,a,true);assert.ok(codecState(packed).includes('brotli-state'));
+  assert.equal(chapterObservationWire(unpackChapterReport(packed,a)),chapterObservationWire(b));
+  assert.equal(codecState(packChapterReport(b,a)),codecState(b),'the existing report encoder stays unchanged');
+});
+test('compact reports preserve noncanonical complete original strings',()=>{
+  const raw=report(codecOwner,` { "pad": ${JSON.stringify(pad)}, "x": -0 } `),packed=packChapterReport(raw,baseReport,true);
+  assert.equal(codecState(unpackChapterReport(packed,baseReport)),codecState(raw));
+});
+test('compact report state refuses trailing, truncated and foreign-basis payloads',()=>{
+  const raw=report(codecOwner,` { "pad": ${JSON.stringify(pad)} } `),packed=packChapterReport(raw,baseReport,true);
+  assert.ok(codecState(packed).includes('brotli-state'));
+  assert.throws(()=>unpackChapterReport(packed,currentReport),/basis/u);
+  assert.throws(()=>unpackChapterReport(change(packed,wire=>{if(typeof wire['data']!=='string')throw new Error('Missing compact state');wire['data']=wire['data'].slice(0,-8);}),baseReport));
+  assert.throws(()=>unpackChapterReport(change(packed,wire=>{if(typeof wire['data']!=='string')throw new Error('Missing compact state');wire['data']=Buffer.concat([Buffer.from(wire['data'],'base64'),Buffer.from('junk')]).toString('base64');}),baseReport),/Trailing/u);
+});
+

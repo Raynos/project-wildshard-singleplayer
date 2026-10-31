@@ -12,11 +12,19 @@ import {titanPrograms} from './fixtures/titanInlineWitness';
 import king from './fixtures/nalati-goldenKing-original.json' with {type:'json'};
 import room from '../src/shards/nalati-grasslands/data/bossArenaRoom.json' with {type:'json'};
 import {KingContinuation,type KingContinuationRows} from './fixtures/nalati-king-continuation';
-import {kingEntryPoint,kingWalkingRoute,kingPhaseInputs,kingExitPoint,kingHomeRoad,kingElderReadingInputs,type KingFightRead} from './proof/nalati-grasslands/king';
+import {kingEntryPoint,kingWalkingRoute,kingPhaseInputs,kingExitPoint,kingHomeRoad,kingElderReadingInputs,kingCheckpointSettleInputs,type KingFightRead} from './proof/nalati-grasslands/king';
 import {SKY_ROAD} from '../src/shards/nalati-grasslands/generators/layout';
 
 const profile=(()=>{const p=parseBossProfile(king.page.profile);if(p.pattern!=='arena')throw new Error('Missing original King');return p;})();
 const row=profile.fight;
+test('a victory checkpoint waits only with bounded neutral inputs for an actually live contact',()=>{
+  expect([...kingCheckpointSettleInputs(()=>true)]).toEqual([]);
+  let elapsed=0;const inputs=kingCheckpointSettleInputs(()=>elapsed>=3);
+  for(const commands of inputs){expect(commands).toEqual([]);elapsed++;}expect(elapsed).toBe(3);
+  const blocked=kingCheckpointSettleInputs(()=>false);
+  for(let tick=0;tick<60;tick++)expect(blocked.next()).toEqual({value:[],done:false});
+  expect(()=>blocked.next()).toThrow('live native ground contact');
+});
 const rows:KingContinuationRows={room,profile,entrance:{x:200,y:2,z:200,facing:0},encounter:{definition:king.encounter,portal:king.portal}};
 // Unplayed kernel bodies; this unit harness never supplies a native tape,
 // encounter checkpoint, earned fact or author-controlled damage command.

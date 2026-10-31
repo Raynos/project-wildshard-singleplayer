@@ -2,7 +2,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind complete report strings to their exact owned basis and result.
 import {createHash} from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bounded test-only report transport; no asset or executable is decoded.
-import {deflateSync,inflateSync} from 'node:zlib';
+import {deflateSync,inflateSync,brotliCompressSync,brotliDecompressSync,constants} from 'node:zlib';
 import * as v from 'valibot';
 import type {HeadlessTapeReport} from '../../../src/sdk/headlessTape';
 import {packChapterTaming,unpackChapterTaming} from './chapterObservation';
@@ -13,7 +13,7 @@ const LIMIT=1_000_000,DEPTH=64,OPERATIONS=8192,marker='chapter.report.number';
 const ownerSchema=v.picklist(['nalati.chapter-taming','nalati.king-closed']);
 type Owner=v.InferOutput<typeof ownerSchema>;
 const digest=v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u));
-const Wire=v.strictObject({'chapter.report':v.literal(1),owner:ownerSchema,codec:v.literal('deflate-patch'),basis:digest,result:digest,
+const Wire=v.strictObject({'chapter.report':v.literal(1),owner:ownerSchema,codec:v.picklist(['deflate-patch','brotli-state']),basis:digest,result:digest,
   bytes:v.pipe(v.number(),v.safeInteger(),v.minValue(1),v.maxValue(LIMIT)),
   data:v.pipe(v.string(),v.maxLength(1_400_000),v.regex(/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u))});
 const Inflated=v.object({buffer:v.instance(Buffer),engine:v.object({bytesWritten:v.pipe(v.number(),v.safeInteger(),v.minValue(0))})});
@@ -101,14 +101,15 @@ function unpackState(owner:Owner,state:string,before:string|undefined):string {
   const wire=v.parse(Wire,JSON.parse(state));
   if(wire.owner!==owner||before===undefined||wire.basis!==hash(before))throw new Error('Foreign or missing report delta basis');
   const packed=Buffer.from(wire.data,'base64');if(packed.toString('base64')!==wire.data)throw new Error('Noncanonical report delta encoding');
-  const inflated:unknown=inflateSync(packed,{maxOutputLength:LIMIT,info:true}),payload=v.parse(Inflated,inflated);
+  const inflated:unknown=wire.codec==='brotli-state'?brotliDecompressSync(packed,{maxOutputLength:LIMIT,info:true}):inflateSync(packed,{maxOutputLength:LIMIT,info:true});
+  const payload=v.parse(Inflated,inflated);
   if(payload.engine.bytesWritten!==packed.byteLength)throw new Error('Trailing report delta bytes');
-  const operations=v.parse(Operations,read(new TextDecoder('utf-8',{fatal:true}).decode(payload.buffer)));
-  const restored=render(owner,apply(ownerValue(owner,before),operations));
+  const text=new TextDecoder('utf-8',{fatal:true}).decode(payload.buffer);
+  const restored=wire.codec==='brotli-state'?text:render(owner,apply(ownerValue(owner,before),v.parse(Operations,read(text))));
   if(Buffer.byteLength(restored)!==wire.bytes||hash(restored)!==wire.result)throw new Error('Report delta result differs');
   return restored;
 }
-function packState(owner:Owner,state:string,before:string|undefined):string {
+function packPatchState(owner:Owner,state:string,before:string|undefined):string {
   if(state.length>LIMIT)throw new Error('Original report state length bound exceeded');
   if(encoded(state))throw new Error('Report basis and input must be expanded');
   // A valid UTF-8 state may occupy more bytes than the original character
@@ -125,6 +126,14 @@ function packState(owner:Owner,state:string,before:string|undefined):string {
   if(Buffer.byteLength(wire)>=Buffer.byteLength(state))return state;
   if(unpackState(owner,wire,before)!==state)throw new Error('Report delta is not byte-exact');return wire;
 }
+function packState(owner:Owner,state:string,before:string|undefined,compact:boolean):string {
+  const patch=packPatchState(owner,state,before);
+  if(!compact||before===undefined||Buffer.byteLength(state)>LIMIT||Buffer.byteLength(before)>LIMIT)return patch;
+  const wire=JSON.stringify({'chapter.report':1,owner,codec:'brotli-state',basis:hash(before),result:hash(state),bytes:Buffer.byteLength(state),
+    data:brotliCompressSync(Buffer.from(state),{params:{[constants.BROTLI_PARAM_QUALITY]:5}}).toString('base64')});
+  if(Buffer.byteLength(wire)>=Buffer.byteLength(patch))return patch;
+  if(unpackState(owner,wire,before)!==state)throw new Error('Report state is not byte-exact');return wire;
+}
 function bases(previous:HeadlessTapeReport|undefined):Map<Owner,string> {
   const result=new Map<Owner,string>();
   for(const adapter of previous?.observations.at(-1)?.adapters??[])if(owned(adapter.id)){
@@ -140,14 +149,14 @@ export function chapterReportUsesCodec(report:HeadlessTapeReport):boolean {
 }
 /** Pure future-report transport. Previous reports must already be expanded;
  * no original prefix, input, native snapshot, observer or budget is rewritten. */
-export function packChapterReport(report:HeadlessTapeReport,previous?:HeadlessTapeReport):HeadlessTapeReport {
+export function packChapterReport(report:HeadlessTapeReport,previous?:HeadlessTapeReport,compact=false):HeadlessTapeReport {
   const prior=bases(previous),copy=structuredClone(report);
   for(const observation of copy.observations){
     const seen=new Set<Owner>();
     for(const adapter of observation.adapters){
       if(!owned(adapter.id))continue;
       if(seen.has(adapter.id))throw new Error('Duplicate report owner');seen.add(adapter.id);
-      const state=packState(adapter.id,adapter.state,prior.get(adapter.id));prior.set(adapter.id,adapter.state);
+      const state=packState(adapter.id,adapter.state,prior.get(adapter.id),compact);prior.set(adapter.id,adapter.state);
       adapter.state=state;
     }
   }

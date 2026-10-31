@@ -9,7 +9,7 @@ import {prepareHeadlessRuntime} from '../nalati-chapter-native';
 import {prepareHeadlessRuntime as prepareKing} from '../nalati-king-native';
 import {nativeKingOf} from '../nalati-king-host';
 import {readNalatiKingData} from '../nalati-king-data';
-import {kingEntryInputs,kingPhaseInputs} from '../../proof/nalati-grasslands/king';
+import {kingEntryInputs,kingPhaseInputs,kingHomeInputs,kingCheckpointSettleInputs} from '../../proof/nalati-grasslands/king';
 import {loadRapier} from '../../../src/engine/physics/rapier';
 import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
 import {parseCarriedQuest} from '../../../src/format/questSteps';
@@ -28,22 +28,23 @@ import type {HeadlessTapeObservation,HeadlessTapeReport} from '../../../src/sdk/
 import {packChapterReport,unpackChapterReport} from './chapterReportCodec';
 import {PACKED_CHAPTER_TAMING,unpackChapterTaming} from './chapterObservation';
 
-const [stage,outputPath,inputPath,inputHash]=process.argv.slice(2);assert.ok(stage==='plains'||stage==='approach'||stage==='bond'||stage==='goat'||stage==='return'||stage==='home'||stage==='carving-road'||stage==='carving-arrival'||stage==='carvings'||stage==='king-entry'||stage==='king-phase-one'||stage==='king-phase-two'||stage==='king-victory');
-const kingStage=stage==='king-entry'||stage==='king-phase-one'||stage==='king-phase-two'||stage==='king-victory';assert.ok(outputPath);
+const [stage,outputPath,inputPath,inputHash]=process.argv.slice(2);assert.ok(stage==='plains'||stage==='approach'||stage==='bond'||stage==='goat'||stage==='return'||stage==='home'||stage==='carving-road'||stage==='carving-arrival'||stage==='carvings'||stage==='king-entry'||stage==='king-phase-one'||stage==='king-phase-two'||stage==='king-victory'||stage==='king-home');
+const kingStage=stage==='king-entry'||stage==='king-phase-one'||stage==='king-phase-two'||stage==='king-victory'||stage==='king-home';assert.ok(outputPath);
 const observed=stage==='carving-road'||stage==='carving-arrival'||stage==='carvings'||kingStage?chapterTwoObserved:chapterObserved;
 let inherited:ChapterHandoff|undefined;
 if(stage!=='plains'){
   assert.ok(inputPath);assert.ok(inputHash);assert.ok(statSync(inputPath).size<=32_000_000);
   const wire=readFileSync(inputPath,'utf8');assert.equal(chapterWireHash(wire),inputHash);
   inherited=v.parse(ChapterHandoffSchema,chapterRead(wire));assert.equal(inherited.stage,
-    stage==='approach'?'plains':stage==='bond'?'approach':stage==='goat'?'bond':stage==='return'?'goat':stage==='home'?'return':stage==='carving-road'?'home':stage==='carving-arrival'?'carving-road':stage==='carvings'?'carving-arrival':stage==='king-entry'?'carvings':stage==='king-phase-one'?'king-entry':stage==='king-phase-two'?'king-phase-one':'king-phase-two');checkChapterLedger(inherited.parts,inherited.tick,inherited.reportStart);
+    stage==='approach'?'plains':stage==='bond'?'approach':stage==='goat'?'bond':stage==='return'?'goat':stage==='home'?'return':stage==='carving-road'?'home':stage==='carving-arrival'?'carving-road':stage==='carvings'?'carving-arrival':stage==='king-entry'?'carvings':stage==='king-phase-one'?'king-entry':stage==='king-phase-two'?'king-phase-one':stage==='king-victory'?'king-phase-two':'king-victory');checkChapterLedger(inherited.parts,inherited.tick,inherited.reportStart);
 }
 const started=performance.now(),session=await beginProductSession('nalati-grasslands',kingStage?'nalati-king':'nalati-chapter',inherited?.snapshot),{product,assets}=session;
 const descriptor=outputDescriptor(product.shardfile);assert.ok(descriptor?.indexHash);
 if(inherited!==undefined)assert.equal(inherited.source,descriptor.indexHash);
 const inheritedParts=inherited?.parts.length??0,inheritedPartsHash=inherited===undefined?undefined:chapterWireHash(chapterWire(inherited.parts));
-const reportStart=stage==='king-victory'?inheritedParts:undefined;
+const reportStart=stage==='king-victory'?inheritedParts:inherited?.reportStart;
 if(stage==='king-victory'){assert.ok(inherited);assert.equal(inherited.reportStart,undefined);assert.ok(reportStart!==undefined&&reportStart>0);}
+if(stage==='king-home')assert.ok(reportStart!==undefined,'the elder inherits the same earned report boundary');
 let resident:Awaited<ReturnType<typeof createNativeProofResident>>|undefined;
 let pipeline:ReturnType<typeof checkedReplayPipeline<ChapterPart>>|undefined;
 try{
@@ -51,9 +52,21 @@ try{
   resident=await createNativeProofResident({shard:product.shardfile,assets,product,rapier},kingStage?prepareKing:prepareHeadlessRuntime,inherited?.snapshot);
   const active=resident,{host}=active,ready=session.ready(),history:ChapterPart[]=inherited?.parts??[],firstTick=host.state.tick;
   let commandsCount=history.reduce((sum,part)=>sum+(part.plan.segments[0]?.frames??[]).reduce((count,frame)=>count+frame.length,0),0);
-  if(inherited!==undefined)assert.equal(chapterSnapshotDigest(snapshotSimHostBytes(host)),inherited.digest,'the recorder quietly restores the earned arrival');
+  if(inherited!==undefined){
+    const restored=snapshotSimHostBytes(host),digest=chapterSnapshotDigest(restored);
+    if(digest!==inherited.digest){
+      const {physics:actualPhysics,...actual}=restored,{physics:expectedPhysics,...expected}=decodeSimSnapshot(inherited.snapshot);
+      assert.deepEqual(actual,expected,'a quiet restore retains every original native field');
+      assert.deepEqual(physicsState(actualPhysics),physicsState(expectedPhysics),'a quiet restore retains every original physics field');
+    }
+    assert.equal(digest,inherited.digest,'the recorder quietly restores the earned arrival');
+  }
   const rawReports=new WeakMap<ChapterPart,HeadlessTapeReport>();
   let previousReport:HeadlessTapeReport|undefined=inherited?.parts.at(-1)?.expected;
+  if(inherited?.reportStart!==undefined){
+    previousReport=inherited.parts[inherited.reportStart-1]?.expected;
+    for(const part of inherited.parts.slice(inherited.reportStart))previousReport=unpackChapterReport(part.expected,previousReport);
+  }
   let initialized=false;
   let final:HeadlessTickCommit|undefined,replayedTicks=0,frames:HeadlessCommand[][]=[],effects:HeadlessEffect[]=[],peakY=host.player.position.y;
   pipeline=checkedReplayPipeline<ChapterPart>(async part=>{
@@ -85,7 +98,7 @@ try{
       adapters:observed.map(identity=>{const adapter=host.adapters.get(identity);assert.ok(adapter);const state=adapter.snapshot();
         return {id:identity,state:typeof state==='string'?state:JSON.stringify(state)};})};
     const raw:HeadlessTapeReport={version:1,ticks:frames.length,observations:[observation]};
-    const expectedReport:HeadlessTapeReport=reportStart===undefined?raw:packChapterReport(raw,previousReport);
+    const expectedReport:HeadlessTapeReport=reportStart===undefined?raw:packChapterReport(raw,previousReport,stage==='king-home');
     if(reportStart!==undefined)assert.equal(chapterWire(unpackChapterReport(expectedReport,previousReport)),chapterWire(raw),'the report codec preserves every original byte');
     const part:ChapterPart={plan:{version:1,observe:[...observed],segments:[{id,ticks:frames.length,commands:[],frames}]},
       expected:expectedReport,digest:chapterSnapshotDigest(snapshotSimHostBytes(host))};
@@ -102,19 +115,28 @@ try{
   };
   const kingInputs=async():Promise<Generator<readonly HeadlessCommand[]>>=>{
     const king=nativeKingOf(host);assert.ok(king);const rows=await readNalatiKingData(product);
-    return stage==='king-entry'?kingEntryInputs(host,king.observe,rows):kingPhaseInputs(host,king.observe,rows,
-      parseHeldSlots(await product.json('held/slots.json')),stage==='king-phase-one'?1:stage==='king-phase-two'?2:'victory');
+    if(stage==='king-entry')return kingEntryInputs(host,king.observe,rows);
+    if(stage==='king-home')return kingHomeInputs(host,king.observe,rows);
+    return kingPhaseInputs(host,king.observe,rows,parseHeldSlots(await product.json('held/slots.json')),stage==='king-phase-one'?1:stage==='king-phase-two'?2:'victory');
   };
   const inputs=stage==='plains'?chapterCampInputs(host,product.shardfile.spawn):stage==='approach'?chapterApproachInputs(host):stage==='bond'?chapterBondInputs(host,bondTicks)
     :stage==='goat'?chapterGoatInputs(host,parseCarriedQuest(await product.json('quests/carried.json'))):stage==='return'?chapterReturnInputs(host):stage==='home'?chapterHomeInputs(host,true)
       :stage==='carving-road'?chapterCarvingRoadInputs(host):stage==='carving-arrival'?chapterCarvingArrivalInputs(host,true):stage==='carvings'?await carvingInputs():await kingInputs();
-  for(const commands of inputs){
+  const recordInput=(commands:readonly HeadlessCommand[]):void=>{
     checked.check();commandsCount+=commands.length;assert.ok(commandsCount<=60_000&&host.state.tick<60_000);
     frames.push(structuredClone([...commands]));active.step(commands);effects.push(...structuredClone(active.effects));
     assert.ok(host.player.health.alive);peakY=Math.max(peakY,host.player.position.y);
-    if(host.state.tick%512===0)await flush();
+  };
+  for(const commands of inputs){recordInput(commands);if(host.state.tick%512===0)await flush();}
+  await flush();
+  if(stage==='king-victory'){
+    for(const commands of kingCheckpointSettleInputs(()=>{
+      const hit=host.player.motor.result.groundCollider;
+      return hit===null||host.physics.world.colliders.contains(hit.handle)&&host.physics.world.getCollider(hit.handle)?.handle===hit.handle;
+    })){recordInput(commands);if(host.state.tick%512===0)await flush();}
+    await flush();
   }
-  await flush();await checked.finish();assert.ok(final);
+  await checked.finish();assert.ok(final);
   assert.equal(replayedTicks,host.state.tick-firstTick);
   const {physics:a,...actual}=decodeSimSnapshot(final.snapshot),{physics:b,...expected}=snapshotSimHostBytes(host);
   assert.deepEqual(actual,expected);if(!sameBytes(a,b))assert.deepEqual(physicsState(a),physicsState(b));
@@ -126,13 +148,19 @@ try{
   assert.equal(host.flags.has('told:tulpar'),firstComplete);assert.equal(host.flags.has('quest:tulpar'),firstComplete);
   assert.equal(host.flags.has('talked:elder:2'),secondChapter);
   assert.equal(host.flags.has('entered:kurgan'),kingStage);
-  for(const flag of ['quest:golden-king','quest:father-wind','dead:jel-ata'])assert.equal(host.flags.has(flag),false,flag);
-  assert.equal(host.flags.has('dead:golden-king'),stage==='king-victory');
+  for(const flag of ['quest:father-wind','dead:jel-ata'])assert.equal(host.flags.has(flag),false,flag);
+  assert.equal(host.flags.has('quest:golden-king'),stage==='king-home');assert.equal(host.flags.has('told:king'),stage==='king-home');
+  assert.equal(host.flags.has('dead:golden-king'),stage==='king-victory'||stage==='king-home');
   for(const flag of ['clue:1','clue:2','clue:3'])assert.equal(host.flags.has(flag),stage==='carvings'||kingStage,flag);
   const quest=product.shardfile.quests.quests.find(row=>row.id==='tulpar');assert.ok(quest?.onComplete?.fact);
   const fact=quest.onComplete.fact,earned=history.flatMap(part=>part.expected.observations.flatMap(row=>row.effects));
   const completionFacts=earned.filter(effect=>effect.kind==='fact'&&effect.name===fact&&effect.actorId===quest.id).length;
   assert.equal(completionFacts,Number(firstComplete));
+  if(stage==='king-home'){
+    const kingQuest=product.shardfile.quests.quests.find(row=>row.id==='golden-king');assert.ok(kingQuest?.onComplete?.fact);
+    assert.equal(earned.filter(effect=>effect.kind==='fact'&&effect.name===kingQuest.onComplete?.fact&&effect.actorId===kingQuest.id).length,1);
+    assert.equal(host.quests.find(row=>row.def.id===kingQuest.id)?.isComplete,true);
+  }
   const snapshot=snapshotSimHostBytes(host),handoff:ChapterHandoff={version:1,stage,source:descriptor.indexHash,tick:host.state.tick,
     ...(stage==='approach'?{bondStart:firstTick}:{}),...(reportStart===undefined?{}:{reportStart}),snapshot:serializeSimSnapshot(snapshot),digest:chapterSnapshotDigest(snapshot),parts:history};
   assert.equal(chapterSnapshotDigest(handoff.snapshot),handoff.digest,'the saved continuation retains every numeric native field');

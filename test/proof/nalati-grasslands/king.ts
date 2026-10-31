@@ -36,6 +36,12 @@ export function kingHomeRoad():readonly (readonly[number,number])[] {
 }
 
 export interface KingElderObservation {readonly dead:boolean;readonly told:boolean;readonly complete:boolean;readonly nextTalk:boolean}
+/** Keep the earned victory running while a retired sand contact is still
+ * cached. Only neutral input may earn the next live-contact checkpoint. */
+export function* kingCheckpointSettleInputs(ready:()=>boolean):Generator<readonly HeadlessCommand[],void> {
+  for(let tick=0;tick<60&&!ready();tick++)yield [];
+  assert.ok(ready(),'the victory must retain a live native ground contact');
+}
 /** Read-only story observations; only real dialogue inputs may earn the
  * elder's outcome, followed by neutral time for the original quest poll. */
 export function* kingElderReadingInputs(read:()=>KingElderObservation):Generator<readonly HeadlessCommand[],void> {
@@ -129,22 +135,33 @@ export function* kingPhaseInputs(host:KingFightRead,read:()=>KingObservation,row
 export function* kingHomeInputs(host:SimHost,read:()=>KingObservation,rows:NalatiKingData):Generator<readonly HeadlessCommand[]> {
   assert.ok(host.flags.has('dead:golden-king'));assert.equal(host.flags.has('told:king'),false);
   assert.equal(host.flags.has('quest:golden-king'),false);assert.equal(read().state,'victory');assert.equal(read().inside,true);
+  const trace=(phase:string):void=>{console.info(JSON.stringify({story:'king-home-input',phase,tick:host.state.tick,at:host.player.position.toArray()}));};
+  trace('victory-exit');
   for(const commands of chapterWalkInputs(host,'earned-king-exit',kingWalkingRoute(host.player.position,kingExitPoint(rows.room,rows.encounter.portal.end)),2400)){
     if(!read().inside)break;yield commands;
   }
   for(let tick=0;tick<120&&read().inside;tick++)yield [];
   assert.equal(read().inside,false,'the real exit program must return the player');
+  trace('field-return');
   const taming=nativeTamingOf(host),mount=mountedPlayerOf(host);assert.ok(taming?.companion);assert.ok(mount);
   const horse=taming.companion;
-  yield* chapterWalkInputs(host,'return-to-field-horse',kingWalkingRoute(host.player.position,horse.position),2400);
+  // The companion has its real collider. Stop the route before its centre;
+  // the original mount input below approaches the actual interaction range.
+  for(const commands of chapterWalkInputs(host,'return-to-field-horse',kingWalkingRoute(host.player.position,horse.position),2400)){
+    if(Math.hypot(host.player.position.x-horse.position.x,host.player.position.z-horse.position.z)<4)break;
+    yield commands;
+  }
   for(let tick=0;tick<600&&!mount.mounted;tick++){
     const p=host.player.position,dx=horse.position.x-p.x,dz=horse.position.z-p.z,d=Math.hypot(dx,dz);
     yield [{kind:'player',moveX:d>2.5?dx/d:0,moveZ:d>2.5?dz/d:0,yaw:Math.atan2(-dx,-dz)},
       ...(d<3.2&&tick%20===0?[{kind:'script' as const,actorId:'nalati.ride',value:1}]:[])];
   }
   assert.equal(mount.mounted,true);assert.equal(mount.horse,horse);
+  trace('companion-mounted');
   for(const [x,z]of kingHomeRoad())yield* chapterRideInputs(host,x,z);
+  trace('graded-road');
   yield* chapterCampReturnInputs(host);
+  trace('elder-arrival');
   yield* kingElderReadingInputs(()=>({dead:host.flags.has('dead:golden-king'),told:host.flags.has('told:king'),
     complete:host.flags.has('quest:golden-king')&&host.quests.find(quest=>quest.def.id==='golden-king')?.isComplete===true,
     nextTalk:host.flags.has('talked:elder:3')}));
