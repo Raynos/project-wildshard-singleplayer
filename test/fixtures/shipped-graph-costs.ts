@@ -71,6 +71,7 @@ export async function shippedGraphCosts(directory:string):Promise<readonly Shipp
   if('preset'in entry){const graph=familyPresetGraph(entry.preset,looks);add(graph,hash(JSON.stringify(graph)),[`look.materials.${name}:preset`],PRESET_GRAPH_BUDGET);}
   else if('graph'in entry)add(entry.graph,hash(JSON.stringify(entry.graph)),[`look.materials.${name}:inline`]);
  }
+ for(const [index,pass] of (source.look.post??[]).entries())if('graph'in pass)add(pass.graph,hash(JSON.stringify(pass.graph)),[`look.post.${index}:inline`]);
  for(const key of required)if(!rows.has(key))throw new Error(`Declared graph ${key} was absent from the emitted census`);
  for(const [key,row] of rows){
   const glsl=lowered.get(key);if(glsl===undefined)throw new Error('Graph lowering was absent from the emitted census');
