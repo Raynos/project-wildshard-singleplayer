@@ -57,16 +57,21 @@ import os,sys,urllib.request
 from pathlib import Path
 assert sys.argv[1:] == ['install','--global','vercel@59.11.2']
 Path('npm-start').touch()
+count=Path('npm-count');count.write_text(str(int(count.read_text())+1 if count.exists() else 1))
 if 'BARRIER' in os.environ and not os.environ.get('BOOT_BUILD_BARRIER'): urllib.request.urlopen(os.environ['BARRIER']+'/npm',timeout=3).read()
 if os.environ.get('FAIL_NPM'): raise SystemExit(24)
 if os.environ.get('WAIT_NPM'):
  import time
  time.sleep(2)
 Path('npm-done').touch()
+Path('cli-version').write_text(os.environ.get('INSTALLED_CLI_VERSION','59.11.2'))
 ''', executable=True)
         self.put('bin/vercel', '''#!/usr/bin/env python3
 import json,os,sys
 from pathlib import Path
+if sys.argv[1:] == ['--version']:
+ print(Path('cli-version').read_text() if Path('cli-version').exists() else 'missing')
+ raise SystemExit(0 if Path('cli-version').exists() else 1)
 assert sys.argv[1:] == ['pull','--yes','--environment','production','--scope','raynos-projects','--token',os.environ['VERCEL_BUILD_TOKEN']]
 assert json.loads(Path('.vercel/project.json').read_text()) == {'projectId':'fixture-project','orgId':'fixture-org'}
 Path('pull-done').touch()
@@ -112,6 +117,55 @@ Path('pull-done').touch()
                                 cwd=self.root, env=self.env, capture_output=True, text=True, timeout=12)
         self.assertNotIn('fixture-secret-never-print', result.stdout + result.stderr)
         return result
+
+    def test_early_install_needs_no_credentials_and_final_pack_reuses_it(self):
+        receipt = str(self.root / 'ready.txt')
+        result = self.run_pack('--install-cli', '--cli-ready', receipt)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse((self.root / 'boot-start').exists())
+        self.assertFalse((self.root / 'pull-done').exists())
+        self.assertEqual(Path(receipt).read_text(), self.sha+'\n123\nvercel@59.11.2\n')
+        self.credentials()
+        result = self.run_pack('--vercel', '--cli-ready', receipt)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.root / 'npm-count').read_text(), '1')
+        self.assertTrue((self.root / 'prebuilt-done').exists())
+
+    def test_unqualified_receipt_or_cli_keeps_original_install(self):
+        self.credentials()
+        for state in ['missing', 'foreign-source', 'foreign-run', 'foreign-version', 'wrong-installed-cli', 'linked', 'oversize']:
+            with self.subTest(state=state):
+                receipt = self.root / 'ready.txt'
+                receipt.unlink(missing_ok=True)
+                (self.root / 'npm-count').unlink(missing_ok=True)
+                (self.root / 'cli-version').write_text('59.11.2')
+                if state != 'missing':
+                    receipt.write_text(('0'*40 if state == 'foreign-source' else self.sha)+'\n'
+                                      +('999' if state == 'foreign-run' else '123')+'\nvercel@'
+                                      +('58.0.0' if state == 'foreign-version' else '59.11.2')+'\n')
+                if state == 'linked':
+                    receipt.unlink(); target = self.root / 'linked-target.txt'
+                    target.write_text(self.sha+'\n123\nvercel@59.11.2\n'); receipt.symlink_to(target)
+                if state == 'oversize': receipt.write_text('x'*257)
+                if state == 'wrong-installed-cli':
+                    (self.root / 'cli-version').write_text('58.0.0')
+                result = self.run_pack('--vercel', '--cli-ready', str(receipt))
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual((self.root / 'npm-count').read_text(), '1')
+                self.assertTrue((self.root / 'prebuilt-done').exists())
+
+    def test_failed_or_wrong_early_install_never_admits_a_receipt(self):
+        for state in ['failure', 'wrong-version']:
+            with self.subTest(state=state):
+                receipt = self.root / 'ready.txt'
+                receipt.unlink(missing_ok=True)
+                self.env.pop('FAIL_NPM', None)
+                self.env.pop('INSTALLED_CLI_VERSION', None)
+                self.env.update({'FAIL_NPM':'1'} if state == 'failure' else {'INSTALLED_CLI_VERSION':'58.0.0'})
+                result = self.run_pack('--install-cli', '--cli-ready', str(receipt))
+                self.assertNotEqual(result.returncode, 0)
+                self.assertFalse(receipt.exists())
+                self.assertFalse((self.root / 'boot-start').exists())
 
     def test_pr_needs_no_credentials_and_runs_only_the_original_boot_pack(self):
         result = self.run_pack()

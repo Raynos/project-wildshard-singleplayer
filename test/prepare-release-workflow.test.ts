@@ -25,19 +25,54 @@ test('prepare enables Vercel only on push and binds both packs to the exact sour
       const sha = 'a'.repeat(40), run = '123';
       const result = spawnSync('/bin/bash', ['-eu', '-c', script], { encoding: 'utf8', env: {
         ...process.env, PATH: `${root}:/usr/bin:/bin`, PACK_ARGS: output,
-        GITHUB_EVENT_NAME: event, GITHUB_SHA: sha, GITHUB_RUN_ID: run,
+        GITHUB_EVENT_NAME: event, GITHUB_SHA: sha, GITHUB_RUN_ID: run, RUNNER_TEMP: root,
       } });
       expect(result.status, result.stderr).toBe(0);
       const args = readFileSync(output, 'utf8').trim().split('\n');
       expect(args.slice(0, 4)).toEqual(['scripts/ci-fail-fast.py', '--', 'node', 'scripts/prepare-release-packs.mjs']);
-      expect(args.slice(4)).toEqual(['--sha', sha, '--run', run, ...(event === 'push' ? ['--vercel'] : [])]);
+      expect(args.slice(4)).toEqual(['--sha', sha, '--run', run, ...(event === 'push' ? ['--vercel', '--cli-ready', join(root, 'prepare-vercel-cli.txt')] : [])]);
     }
-    const producer = prepare.indexOf('node scripts/prepare-release-packs.mjs');
+    const producer = prepare.indexOf('      - name: Pack the exact web build for boot smoke');
     expect(producer).toBeGreaterThan(prepare.indexOf('scripts/check-css.mjs'));
     for (const artifact of ['boot-dist-manifest', 'boot-dist-boot-public', 'boot-dist-boot-developer', 'boot-dist-worlds', 'boot-dist-phone-route', 'vercel-prebuilt'])
       expect(prepare.indexOf(`name: ${artifact}\n`), artifact).toBeGreaterThan(producer);
     expect(prepare).not.toContain('npm install --global vercel');
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('prepare overlaps only tokenless pinned CLI installation with the original app check', () => {
+  const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
+  const step = workflow.split('      - name: Verify preparation, checks and build (parallel)\n')[1]?.split('\n      - name:')[0];
+  const body = /run: \|\n((?: {10}[^\n]*\n)+)/u.exec(step ?? '')?.[1];
+  if (body === undefined) throw new Error('Missing parallel prepare checks');
+  const script = body.split('\n').map(line => line.slice(10)).join('\n');
+  mkdirSync('tmp', {recursive:true});
+  const root = mkdtempSync(resolve('tmp/prepare-cli-overlap-')), output = join(root, 'argv'), installed = join(root, 'installed');
+  try {
+    const python = join(root, 'python3'), node = join(root, 'node');
+    writeFileSync(python, '#!/bin/sh\nprintf "%s\\n" "$@" > "$CHECK_ARGS"\n');
+    writeFileSync(node, '#!/bin/sh\nprintf "%s\\n" "$@" > "$CLI_ARGS"\n');
+    chmodSync(python, 0o755); chmodSync(node, 0o755);
+    for (const event of ['push', 'pull_request']) {
+      rmSync(installed, {force:true});
+      const sha = 'b'.repeat(40), run = '123';
+      const env = {...process.env, PATH:`${root}:/usr/bin:/bin`, CHECK_ARGS:output, CLI_ARGS:installed,
+        GITHUB_EVENT_NAME:event, GITHUB_SHA:sha, GITHUB_RUN_ID:run, RUNNER_TEMP:root};
+      const result = spawnSync('/bin/bash', ['-eu', '-c', script], {encoding:'utf8', env});
+      expect(result.status, result.stderr).toBe(0);
+      const args = readFileSync(output, 'utf8').trim().split('\n');
+      expect(args.slice(0, 8)).toEqual(['scripts/ci-fail-fast.py', '--', 'node', 'scripts/build-without-browser.mjs', '--', 'node', 'scripts/ci-checks.mjs', '--prepared']);
+      expect(args[8]).toBe('python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs && node scripts/check-devserver.mjs dist');
+      expect(args).toHaveLength(10);
+      const prerequisite = args[9]; if (prerequisite === undefined) throw new Error('Missing tokenless prerequisite');
+      expect(step).not.toContain('secrets.');
+      const install = spawnSync('/bin/bash', ['-eu', '-c', prerequisite], {encoding:'utf8', env});
+      expect(install.status, install.stderr).toBe(0);
+      if (event === 'push') expect(readFileSync(installed, 'utf8').trim().split('\n')).toEqual([
+        'scripts/prepare-release-packs.mjs', '--sha', sha, '--run', run, '--install-cli', '--cli-ready', join(root, 'prepare-vercel-cli.txt')]);
+      else expect(() => readFileSync(installed)).toThrow();
+    }
+  } finally { rmSync(root, {recursive:true, force:true}); }
 });
 
 test('prepare cache compression keeps every restored family and its native bytes', () => {

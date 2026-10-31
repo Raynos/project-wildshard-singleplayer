@@ -1993,3 +1993,151 @@ to distinguish replay from canonical physics. It is not yet executed;
 no replay/physics shortcut or timing gain is claimed. All original
 150 s child /180 s case /30 s request and 128-part /60k tick/command /
 8 MB observation allowances remain unchanged.
+
+## CI9: 1dae prepare after the cache transport cuts
+
+**2026-10-31, sp-x6; retained log only.** Exact source
+`1dae75e945a2c0980425ca047bdbd2e9d295763d`, run `41226021250`,
+prepare `124610228528` takes **353 s**. Its step metadata sums to
+350 s; the remaining 3 s is step-boundary/rounding time. No new remote
+log, artifact or status query is used.
+
+| Prepare work | Step seconds |
+|---|---:|
+| Runner startup, checkout, pnpm/Node setup | 32 |
+| Frozen dependency installation | 3 |
+| Main cache restore / checked Basis restore | 7 /1 |
+| Generation, full reused-product validation and phone packs | 85 |
+| Source tables, binary-JSON, closed-components, CSS and native-input checks | 27 |
+| Current-generation retention / admitted save identity | 10 /7 |
+| Timing observations and complete test planning, excluding uploads | 3 |
+| Exact-run products archive | 8 |
+| Strict prepared unpack plus parallel graph/app checks | 80 |
+| Concurrent boot / Vercel release packaging | 44 |
+| Artifact uploads, including the plan | 36 |
+| Main cache save / Basis post-action | 6 /1 |
+| Boundary/rounding remainder | 3 |
+| **Total** | **353** |
+
+The main cache restores **1,014,369,857 B** and saves **1,014,125,161 B**;
+its action-log intervals are 7.533615 /6.005440 s. This source still
+misses its qualified exact save key; the earlier acceptance row preserves
+that fact. No save-skip is inferred from product reuse.
+
+All **24 products reuse admitted outputs; zero authors run** and every
+nested producer counter has zero lookups, explicitly not invoked.
+The generation wrapper is **85 s on this run**, not a substituted 59 s
+from another source. Its last product-summary timestamp is 73.627 s
+after wrapper entry, the complete phone-wire/counter output is at
+76.233 s, and the next step starts at 85.408 s. Those timestamps bound
+startup, parallel validation and later publication; they do not isolate
+per-shard author CPU. The reuse-validation prototype was already rejected
+as neutral, and the phone-wire work keeps every original admission check.
+
+The app/checks container is 79.325 s by raw step boundaries (80 s
+metadata): the complete same-run unpack reports 6 s, app plus its original
+devserver check reports 73 s, and heavy-lane app execution is **72.79 s**
+with zero queue. **Vite 4.58 s is nested in that app time**. The source-graph
+check runs alongside it and reports 5 s. Typecheck/lint are different
+jobs, not hidden inside this step. X9's existing app phase breakdown and
+measured grid close remain the finer source authority; no new grid gain
+or revived negative trial is asserted here.
+
+Uploads carry the unchanged plan, test-products, boot manifest, public,
+developer, shared-worlds and prebuilt artifacts. Their logged final zip
+sizes are 21,992 /567,827,285 /1,028 /1,174,739,002 /959,347,077 /
+1,226,075,282 /1,539,133,837 B. Shared worlds still serves the original
+four grid/hover/Explorer consumers; the optional phone-route upload is
+not invoked on this source. The earlier current-size archive dedup
+experiment remains rejected below its five-second bar.
+
+### Next exact step: overlap the pinned CLI prerequisite
+
+Release packaging is the largest step without an existing measured
+close: **43.511 s** wall, overlapping boot **29.011 s** with Vercel setup
+and pack **43.508 s**. Vercel's buffered output reports **16 s installing
+its 291-package pinned 59.11.2 CLI**, then a 9 s Vercel build. The latter
+includes a 2.7 s dependency check; these figures must not be added twice.
+The remaining setup, pull, strict archive and framework work is not
+separately timed by that buffered log.
+
+The checked cut starts only that tokenless pinned npm installation as
+an extra sibling of the original app/source-graph commands in the
+existing owned process group. It publishes a small runner-temp receipt
+only after successful installation and an exact CLI version check.
+Final packaging reuses it only for the identical full source SHA/run,
+pin and actual installed version. Missing, foreign, linked, oversize or
+refused receipts retain the original installation. This is not a
+persistent tool cache or a new input-cache key. PRs retain boot-only
+packaging; credentials and the original project setup, production pull,
+Vercel build, strict source/run pack and every artifact remain at their
+original later boundary. Early failures drain sibling checks and fail
+prepare normally.
+
+**Conditional model, not observed after-time:** hiding the reported
+16 s install under the 73 s app changes the later packaging floor from
+43.508 s to max(29.011, 43.508−16) = **29.011 s**, at most **14.497 s**
+off this critical path before the added version checks and shared-CPU /
+network effects. The next ordinary containing prepare supplies actual
+seconds. No dispatch, Vercel deployment, cap, job-count, protected
+concurrency group or test/assertion change is part of this work.
+
+Seven maintained Vitest controls pass in 8.36 s, including the actual CLI
+fixture's ten process-level cases in 7.231 s. The two new workflow
+expectations fail against the original source before the workflow hunk.
+Root/scripts types, named typed lint and owner Actionlint pass. The
+SC2016 annotation is scoped to the one deliberate deferred child-shell
+command; its runtime fixture checks the actual push and PR expansion,
+source/run and receipt arguments, and absence of early credentials.
+
+Evidence: `tmp/sp-x6-ci9-prepare-1dae/audit.json` and the already retained
+`tmp/sp-x6-ci9-all4-after/prepare-124610228528.log`; metadata is root's
+`qa-1dae-attempt-jobs.json`. The separate original plains profile first
+refused stale product admission in 0.685 s before worker creation/ticks;
+that startup-only profile supplies no replay/canonical-physics ranking.
+The cause-directed current-product stage below is separate evidence.
+
+### Original plains-stage CPU attribution
+
+After X1's necessary normal four-product publication and independent strict
+admission, the one cause-directed original stage passes in **31.954229 s**,
+UTC **19:52:58.200–19:53:30.154Z**. It earns tick6609 /7845 commands /
+13 parts from a fresh world, with no inherited checkpoint or source repin.
+Product authority is
+`39ca456e350af828cf2038fffb36d53ca16ea457e00847fd356ea861bf9d48eb`.
+All original assertions, caps and before/after source hashes pass; both
+normal parent/worker threads produce profiles with zero negative deltas.
+The 31.461 s story clock is nested in that child wall, not another stage.
+
+| Disjoint ancestry attribution | Parent sampled CPU (s) | Worker sampled CPU (s) |
+|---|---:|---:|
+| Snapshot encoding | 0.611 | **8.756** |
+| Canonical physics restore/enumeration | **0.339** | 0 |
+| Remaining canonical native digest, including decode | 2.378 | 0 |
+| Trusted tape replay | 0.032 | **8.136** |
+| Ledger checks | 0.016 | 0 |
+
+These are sampled thread CPU, not additive wall-clock phases. Recording
+and independent replay overlap; idle is 16.545 /12.156 s and GC is
+0.553 /0.254 s. Other setup/recording/validation work remains outside
+these categories. The hottest active worker call-tree node is fflate
+`dflt`: **3.443 s /10.78% of child wall**. Aggregating that same function
+across call sites gives **3.687 s /11.54%**. Worker snapshot encoding is
+27.40% of child wall in sampled CPU; canonical physics alone is 1.06%.
+Thus the chapter stage is **not spread thin**, and a canonical-physics
+cache is not the demonstrated lever.
+
+The source explains the encoding: each trusted tape-part commit emits a
+complete strictly decoded continuation string; initialization and the
+first part-budget tick also request commits. The parent decodes and
+canonically checks every returned boundary. It cannot substitute raw
+physics-byte equality for canonical state, since valid Rapier restores
+can reorder records. The ending stored handoff still uses its original
+serializer. X1 agrees to an encoding-only investigation next, keeping
+all stored tape codecs and the near-full 8 MB observation ledger intact;
+no such serializer, protocol or assertion change is included here.
+
+Raw and rank: `tmp/sp-x6-ci9-chapter/plains-profile-current/` contains
+`stage.log`, `reading.json`, both CPU profiles and `ranked.json`. This is
+one local instrumented stage, not a new CI job time or a 710 s whole-tape
+speedup. The original pre-worker refusal remains separately retained.

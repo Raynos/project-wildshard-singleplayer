@@ -558,7 +558,11 @@ jobs:
           if-no-files-found: error
 
       - name: Verify preparation, checks and build (parallel)
-        run: python3 scripts/ci-fail-fast.py -- node scripts/build-without-browser.mjs -- node scripts/ci-checks.mjs --prepared 'python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs && node scripts/check-devserver.mjs dist'
+        run: |
+          # shellcheck disable=SC2016 # Expand CI identity only inside the owned child shell.
+          python3 scripts/ci-fail-fast.py -- node scripts/build-without-browser.mjs -- node scripts/ci-checks.mjs --prepared \
+            'python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs && node scripts/check-devserver.mjs dist' \
+            'if [ "$GITHUB_EVENT_NAME" = push ]; then node scripts/prepare-release-packs.mjs --sha "$GITHUB_SHA" --run "$GITHUB_RUN_ID" --install-cli --cli-ready "$RUNNER_TEMP/prepare-vercel-cli.txt"; fi'
 
       - name: CSS check
         run: python3 scripts/ci-fail-fast.py -- node scripts/check-css.mjs
@@ -589,7 +593,7 @@ jobs:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
         run: |
           set -- --sha "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
-          if [ "$GITHUB_EVENT_NAME" = push ]; then set -- "$@" --vercel; fi
+          if [ "$GITHUB_EVENT_NAME" = push ]; then set -- "$@" --vercel --cli-ready "$RUNNER_TEMP/prepare-vercel-cli.txt"; fi
           python3 scripts/ci-fail-fast.py -- node scripts/prepare-release-packs.mjs "$@"
       - uses: actions/upload-artifact@v4
         if: github.event_name == 'push' || github.event_name == 'pull_request'
