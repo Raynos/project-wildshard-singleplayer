@@ -248,6 +248,22 @@ function stringify(value: unknown): string {
   throw new TypeError('Snapshot contains a non-JSON value');
 }
 
+/** Count the same UTF-16 wire characters without allocating parent JSON strings. */
+function stringifiedLength(value: unknown): number {
+  if (value === null || typeof value !== 'object') return stringify(value).length;
+  let chars = 2;
+  if (Array.isArray(value)) {
+    chars += Math.max(0, value.length - 1);
+    for (let index = 0; index < value.length; index++) if (index in value) chars += stringifiedLength(value[index]);
+  } else {
+    let separator = 0;
+    for (const [key, item] of Object.entries(value)) {
+      chars += separator + JSON.stringify(key).length + 1 + stringifiedLength(item); separator = 1;
+    }
+  }
+  return chars;
+}
+
 /** Run a staged job to completion in one call (the synchronous form of every `*Steps` writer). */
 export function finishSteps<T>(steps: Generator<undefined, T>): T {
   for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
@@ -272,7 +288,7 @@ export function checkSnapshotDataWire(input: SimSnapshot | SimSnapshotBytes, api
   if (!Number.isSafeInteger(maximumChars) || maximumChars < 0) throw new RangeError('Invalid snapshot character bound');
   const { raw, saved } = prepareSnapshot(input, apiVersion);
   if (raw.length === 0) throw new RangeError('Snapshot physics exceeds byte bounds');
-  const metadataChars = stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics: 0 } }).length - 1;
+  const metadataChars = stringifiedLength({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics: 0 } }) - 1;
   if (metadataChars + Math.ceil(raw.length / 3) * 4 + physicsHeaderChars <= maximumChars) return;
   const physics = finishSteps(packedPhysics(raw));
   if (stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics } }).length > maximumChars) throw new RangeError('Snapshot wire exceeds character bound');

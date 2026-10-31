@@ -75,3 +75,14 @@ test('recursive metadata stays isolated after failed validation', () => {
     expect(() => checkSimSnapshotWire(saved, wire.length)).not.toThrow();
   }
 });
+
+
+test.each(['', '"\\\b\f\n\r\t\u0000', '\uD800', '\uDC00', '\uD800\uDC00', 'é😀'])('wire character accounting keeps exact bounds for %j', text => {
+  const saved = structuredClone(initial);
+  saved.physics = Uint8Array.of(173);
+  saved.adapters.push({ id: 'quoted', state: { [text.repeat(8)]: [text.repeat(512), -0, 1e-7, 1e21, Number.MIN_VALUE, Number.MAX_VALUE, Infinity, -Infinity] } });
+  const wire = serializeSimSnapshot(saved);
+  expect(() => checkSimSnapshotWire(saved, wire.length - 1)).toThrow('character bound');
+  expect(() => checkSimSnapshotWire(saved, wire.length)).not.toThrow();
+  expect(() => checkSimSnapshotWire(saved, MAX_TICK_SNAPSHOT_CHARS)).not.toThrow();
+});
