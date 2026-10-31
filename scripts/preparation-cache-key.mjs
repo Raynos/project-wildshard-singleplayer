@@ -23,6 +23,7 @@ const digest=/** @param {Uint8Array|string} value */ value=>createHash('sha256')
 export function preparationCacheKey(sourceRoot,fallback,{cacheRoot=shardfileCacheRoot(),env=process.env}={}) {
   if(!/^preparation-v3-[A-Za-z0-9_-]+-node24-[a-f0-9]{40}$/u.test(fallback))throw new Error('Invalid preparation fallback key');
   try {
+    if(env.WS_PREPARATION_PRUNE_STATUS!==undefined&&env.WS_PREPARATION_PRUNE_STATUS!=='complete')throw new Error('Generation history retention incomplete');
     const root=realpathSync(sourceRoot),products=generationPlan(root).products;
     if(products.length===0)throw new Error('No admitted products');
     // This is the exact generating-input boundary used by beginProgramInputProof,

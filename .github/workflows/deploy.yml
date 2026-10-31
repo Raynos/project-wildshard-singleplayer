@@ -456,11 +456,16 @@ jobs:
         run: python3 scripts/ci-fail-fast.py -- node scripts/check-closed-components.mjs
       # A runner is isolated: save current reusable products rather than six
       # historical payload generations. Keep every input receipt for validation.
-      - run: node scripts/ci-product-cache.mjs
+      - name: Retain current cache generations
+        id: generation-cache
+        env:
+          PREPARATION_FALLBACK_KEY: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
+        run: node scripts/ci-product-cache.mjs --prune-generation
       - name: Bind preparation save to admitted inputs
         id: preparation-save
         env:
           PREPARATION_FALLBACK_KEY: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
+          WS_PREPARATION_PRUNE_STATUS: ${{ steps.generation-cache.outputs.status }}
         run: |
           if ! node scripts/preparation-cache-key.mjs; then
             echo "::warning::Preparation identity unavailable; retain the legacy save"

@@ -137,3 +137,11 @@ test('invalid fallback keys refuse before writing an unsafe workflow output',asy
   const f=await fixture();for(const key of ['',`${fallback}\nother=bad`,'preparation-v3-Linux-X64-node24-unknown'])
     expect(()=>preparationCacheKey(f.root,key,f.options)).toThrow('Invalid preparation fallback key');
 });
+
+test('an incomplete generation prune retains the legacy save while complete retention can hit',async()=>{
+  const f=await fixture();
+  for(const status of ['unknown','', 'refused'])expect(preparationCacheKey(f.root,fallback,{...f.options,
+    env:{...f.options.env,WS_PREPARATION_PRUNE_STATUS:status}})).toMatchObject({qualified:false,key:fallback});
+  expect(preparationCacheKey(f.root,fallback,{...f.options,
+    env:{...f.options.env,WS_PREPARATION_PRUNE_STATUS:'complete'}})).toEqual(f.read());
+});

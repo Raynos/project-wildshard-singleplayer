@@ -92,6 +92,12 @@ test('post-generation cache lookup preserves admitted bytes and every legacy res
   expect(restore).toContain(`preparation-v3-\${{ runner.os }}-\${{ runner.arch }}-node24-`);
   const binding = prepare.split('      - name: Bind preparation save to admitted inputs\n')[1]?.split('\n      - ')[0];
   expect(binding).toContain('id: preparation-save');
+  expect(binding).toContain(`WS_PREPARATION_PRUNE_STATUS: \${{ steps.generation-cache.outputs.status }}`);
+  const retention=prepare.split('      - name: Retain current cache generations\n')[1]?.split('\n      - ')[0];
+  expect(retention).toContain('id: generation-cache');
+  expect(retention).toContain('node scripts/ci-product-cache.mjs --prune-generation');
+  expect(prepare.indexOf('Retain current cache generations')).toBeGreaterThan(prepare.indexOf('node scripts/gen.mjs --reuse'));
+  expect(prepare.indexOf('Bind preparation save to admitted inputs')).toBeGreaterThan(prepare.indexOf('Retain current cache generations'));
   expect(binding).toContain('PREPARATION_FALLBACK_KEY: preparation-v3-');
   expect(binding).toContain('if ! node scripts/preparation-cache-key.mjs; then');
   expect(prepare.indexOf('Bind preparation save to admitted inputs')).toBeGreaterThan(prepare.indexOf('node scripts/gen.mjs --reuse'));

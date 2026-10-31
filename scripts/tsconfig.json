@@ -43,6 +43,8 @@
     "bake-loader.mjs",
     "perf/exact-world-capture.mjs",
     "preparation-cache-key.mjs",
-    "author-bundle-usage.mjs"
+    "author-bundle-usage.mjs",
+    "generation-cache-prune.mjs",
+    "ci-product-cache.mjs"
   ]
 }

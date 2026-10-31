@@ -84,3 +84,10 @@ it('does not prune through a linked root or a linked current manifest',()=>{
   expect(trimProductCache(root,linked)).toEqual({products:0,removed:0});
   expect(existsSync(resolve(cache,'alpha',old))).toBe(true);
 });
+
+
+it('refuses generation-history apply outside the isolated hosted Linux workspace',()=>{
+  const result=spawnSync(process.execPath,['scripts/ci-product-cache.mjs','--prune-generation'],{
+    encoding:'utf8',env:{...process.env,GITHUB_ACTIONS:'true',CI:'true',RUNNER_ENVIRONMENT:'self-hosted'}});
+  expect(result.status).toBe(1);expect(result.stderr).toContain('requires the isolated hosted Linux workspace');
+});
