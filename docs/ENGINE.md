@@ -8927,19 +8927,21 @@ requires a validator. The ordinary `nameBlob` API always supplies the defining
 validator. `schemaValidation` keeps the same canonical draft-07 policy with an
 explicit compiler dependency, which producer tools load only for schema use.
 
-`readNamedBlob(project,name,source,'glb',{meshopt:true})` and output
-`options.meshopt` retain lossless encoding only when gzip-9 does not grow;
-already compressed bytes stay unchanged. Named hashes and runtime decoding
-remain. No quantization, welding, reordering, scene or material change.
-SDK `bake/glbCompression.meshoptGlb` owns the separate-channel native writer,
-with explicit optional deduplication; it applies no quantization transform,
-reorder or filter. Custom attributes and metadata retain their native bytes.
+`readNamedBlob(project,name,source,'glb',{meshopt:true})`/output
+`options.meshopt`: lossless only if gzip-9 does not grow. Compressed bytes,
+hashes and runtime decoding stay; no quantization, welding, reorder or
+scene/material edit. SDK `bake/glbCompression`:
+
+- `meshoptGlb`: separate native writer, optional dedup; no quantization,
+  reorder or filter; exact custom channels/metadata.
+- `pairedChannelGlb`: static same-frame/material/topology pair; only listed
+  channels may differ. Copies exact typed/normalized alternate accessors;
+  primary channels and input owners stay unchanged.
 
 `format/glbBuffers` checks physical BIN ranges, declared virtual fallback
 buffers, modes, strides, filters and aggregate decoded caps before decoding.
-The existing parser then validates positions, indices, skin, animation and
-triangle accounting against those decoded bytes. Compressed wire bytes
-and decoded resident costs remain distinct. The format layer's sole codec
+The parser validates decoded positions, indices, skin, animation and
+triangle counts. Wire and decoded residency costs remain distinct. Its sole codec
 exception is this defining module importing the already-pinned
 `meshoptimizer/decoder` (1.2.0): server-safe pure Wasm needed for decoded-byte
 admission, not a schema bypass. `format/product.prepareAssetDecoders()`

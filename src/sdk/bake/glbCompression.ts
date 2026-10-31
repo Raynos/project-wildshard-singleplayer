@@ -1,5 +1,5 @@
-import { VertexLayout, WebIO } from '@gltf-transform/core';
-import { EXTMeshoptCompression } from '@gltf-transform/extensions';
+import { VertexLayout, WebIO, type Accessor } from '@gltf-transform/core';
+import { EXTMeshoptCompression, KHRMeshQuantization } from '@gltf-transform/extensions';
 import { dedup } from '@gltf-transform/functions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { MeshoptEncoder } from 'meshoptimizer/encoder';
@@ -84,4 +84,60 @@ export async function meshoptGlb(input: Uint8Array, options: { readonly deduplic
   if (deduplicate) await document.transform(dedup());
   document.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({ method: EXTMeshoptCompression.EncoderMethod.QUANTIZE });
   return io.writeBinary(document);
+}
+
+function sameNumbers(a: ArrayLike<number> | null, b: ArrayLike<number> | null): boolean {
+  if (a === null || b === null || a.length !== b.length) return false;
+  for (let index = 0; index < a.length; index++) if (!Object.is(a[index], b[index])) return false;
+  return true;
+}
+const sameAccessor = (a: Accessor | null, b: Accessor | null): boolean => a !== null && b !== null
+  && a.getType() === b.getType() && a.getNormalized() === b.getNormalized() && a.getComponentType() === b.getComponentType()
+  && sameNumbers(a.getArray(), b.getArray());
+
+/** Pack alternate vertex channels beside an identical static mesh, without
+ * requantizing its frame, positions, indices or existing channels. Both inputs
+ * require one unskinned mesh in the same frame and material; only explicitly
+ * selected channels may differ. New application accessors keep the source's
+ * exact component storage and normalization. Inputs remain independently owned.
+ */
+export async function pairedChannelGlb(primary: Uint8Array, alternate: Uint8Array, name: string,
+  channels: readonly { readonly from: string; readonly to: string }[]): Promise<Uint8Array> {
+  if (!/^[A-Za-z_][A-Za-z0-9_-]{0,127}$/u.test(name) || channels.length === 0 || channels.length > 8
+    || new Set(channels.map(row => row.from)).size !== channels.length || new Set(channels.map(row => row.to)).size !== channels.length
+    || channels.some(row => !/^[A-Z_][A-Z0-9_]*$/u.test(row.from) || !/^_[A-Z0-9_]+$/u.test(row.to) || row.from === 'POSITION')) throw new Error('Invalid paired GLB channels');
+  parseGlb(primary); parseGlb(alternate); await MeshoptDecoder.ready;
+  const io = new WebIO().setVertexLayout(VertexLayout.SEPARATE).registerExtensions([EXTMeshoptCompression, KHRMeshQuantization])
+    .registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
+  const left = await io.readBinary(Uint8Array.from(primary)), right = await io.readBinary(Uint8Array.from(alternate));
+  const a = left.getRoot(), b = right.getRoot(), node = a.listNodes()[0], otherNode = b.listNodes()[0], mesh = a.listMeshes()[0], otherMesh = b.listMeshes()[0];
+  if (node === undefined || otherNode === undefined || mesh === undefined || otherMesh === undefined
+    || a.listNodes().length !== 1 || b.listNodes().length !== 1 || a.listMeshes().length !== 1 || b.listMeshes().length !== 1
+    || a.listAnimations().length > 0 || b.listAnimations().length > 0 || a.listSkins().length > 0 || b.listSkins().length > 0
+    || a.listTextures().length > 0 || b.listTextures().length > 0 || node.getMesh() !== mesh || otherNode.getMesh() !== otherMesh
+    || !sameNumbers(node.getMatrix(), otherNode.getMatrix())) throw new Error('Paired GLB requires identical static frames');
+  const part = mesh.listPrimitives()[0], other = otherMesh.listPrimitives()[0];
+  const semantics = part?.listSemantics().sort(), otherSemantics = other?.listSemantics().sort();
+  if (part === undefined || other === undefined || mesh.listPrimitives().length !== 1 || otherMesh.listPrimitives().length !== 1
+    || part.listTargets().length > 0 || other.listTargets().length > 0 || part.getMode() !== other.getMode()
+    || semantics === undefined || otherSemantics === undefined || semantics.length !== otherSemantics.length
+    || semantics.some((semantic, index) => semantic !== otherSemantics[index])
+    || !sameAccessor(part.getAttribute('POSITION'), other.getAttribute('POSITION'))
+    || (part.getIndices() !== null || other.getIndices() !== null) && !sameAccessor(part.getIndices(), other.getIndices())) throw new Error('Paired GLB topology differs');
+  const material = part.getMaterial(), otherMaterial = other.getMaterial();
+  if (material === null ? otherMaterial !== null : otherMaterial === null || !material.equals(otherMaterial)) throw new Error('Paired GLB material differs');
+  const selected = new Set(channels.map(row => row.from));
+  for (const semantic of part.listSemantics()) if (!selected.has(semantic) && !sameAccessor(part.getAttribute(semantic), other.getAttribute(semantic))) throw new Error(`Paired GLB channel differs: ${semantic}`);
+  const buffer = part.getAttribute('POSITION')?.getBuffer();
+  if (buffer === undefined || buffer === null) throw new Error('Missing paired GLB buffer');
+  for (const { from, to } of channels) {
+    const source = other.getAttribute(from), values = source?.getArray();
+    if (source === null || source === undefined || values === null || values === undefined || part.getAttribute(to) !== null) throw new Error('Missing or duplicate paired GLB channel');
+    part.setAttribute(to, left.createAccessor(to).setType(source.getType()).setNormalized(source.getNormalized()).setArray(values.slice()).setBuffer(buffer));
+  }
+  node.setName(name); mesh.setName(name);
+  // Decode the old transport once, then use the existing lossless view codec.
+  // No second grid quantization or meshopt attribute filter enters the table.
+  for (const extension of a.listExtensionsUsed()) if (extension.extensionName === EXT) extension.dispose();
+  return compressGlb(await io.writeBinary(left));
 }
