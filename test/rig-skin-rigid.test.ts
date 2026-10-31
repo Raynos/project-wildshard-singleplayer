@@ -29,3 +29,25 @@ test('a rigid part becomes a skinned mesh on an identity bone in its place, ever
     expect(geometry.getAttribute('skinWeight')).toBe(weights);
   } finally { geometry.dispose(); material.dispose(); }
 });
+
+test('the cached identity palette does not freeze a moving parent or any rigid world-space vertex', () => {
+  const geometry = new BoxGeometry(1,2,3), material = new MeshBasicMaterial(), socket = new Group(), stockSocket = new Group();
+  const rigid = new Mesh(geometry,material), stock = new Mesh(geometry,material);
+  rigid.position.set(.2,.3,.4); stock.position.copy(rigid.position); socket.add(rigid); stockSocket.add(stock);
+  const skinned = skinRigid(rigid);
+  try {
+    const position = geometry.getAttribute('position'), actual = new Vector3(), expected = new Vector3();
+    for (let frame = 0; frame < 36; frame++) {
+      for (const parent of [socket,stockSocket]) {
+        parent.position.set(frame*.1,Math.sin(frame*.2),-frame*.2);
+        parent.rotation.set(frame*.03,frame*.05,-frame*.02); parent.scale.setScalar(1+frame*.01); parent.updateMatrixWorld(true);
+      }
+      skinned.skeleton.update();
+      for (let vertex = 0; vertex < position.count; vertex++) {
+        skinned.applyBoneTransform(vertex,actual.fromBufferAttribute(position,vertex)).applyMatrix4(skinned.matrixWorld);
+        expected.fromBufferAttribute(position,vertex).applyMatrix4(stock.matrixWorld);
+        expect(actual.toArray()).toEqual(expected.toArray());
+      }
+    }
+  } finally { skinned.skeleton.dispose(); geometry.dispose(); material.dispose(); }
+});
