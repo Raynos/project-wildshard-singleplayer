@@ -1,6 +1,8 @@
 import { ForestGroundLayoutSchema } from './forestPage';
 import { CaveFileSchema, CaveInteriorSchema } from './caveInterior';
 import * as v from 'valibot';
+import { AudioSceneSchema } from './audioScene';
+import { KitFigureCardsSchema } from './questFigures';
 import {SceneBuffersSchema,parseSceneBuffers} from './sceneBuffers';
 import {WorldSceneSchema,parseWorldScene} from './clientChannels';
 import {ForestWeatherSchema} from './forestWeather';
@@ -22,6 +24,8 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'audio/scene.json':{readonly schema:typeof AudioSceneSchema;readonly source:'@wildshard/format/audioScene#AudioSceneSchema'};
+  readonly 'people/cards.json':{readonly schema:typeof KitFigureCardsSchema;readonly source:'@wildshard/format/questFigures#KitFigureCardsSchema'};
   readonly 'quests/persistence.json':{readonly schema:typeof AdventurePersistenceSchema;readonly source:'@wildshard/format/namedJsonContracts#AdventurePersistenceSchema'};
   readonly 'world/floor.json':{readonly schema:typeof ForestGroundLayoutSchema;readonly source:'@wildshard/format/forestPage#ForestGroundLayoutSchema'};
   readonly 'world/crag-cave.json':{readonly schema:typeof CaveFileSchema;readonly source:'@wildshard/format/caveInterior#CaveFileSchema'};
@@ -46,6 +50,8 @@ export interface RegisteredJsonContracts {
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'audio/scene.json':{schema:AudioSceneSchema,source:'@wildshard/format/audioScene#AudioSceneSchema'},
+  'people/cards.json':{schema:KitFigureCardsSchema,source:'@wildshard/format/questFigures#KitFigureCardsSchema'},
   'quests/persistence.json':{schema:AdventurePersistenceSchema,source:'@wildshard/format/namedJsonContracts#AdventurePersistenceSchema'},
   'world/floor.json':{schema:ForestGroundLayoutSchema,source:'@wildshard/format/forestPage#ForestGroundLayoutSchema'},
   'world/crag-cave.json':{schema:CaveFileSchema,source:'@wildshard/format/caveInterior#CaveFileSchema'},
@@ -127,6 +133,8 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'audio/scene.json':v.parse(AudioSceneSchema,value);break;
+    case 'people/cards.json':v.parse(KitFigureCardsSchema,value);break;
     case 'quests/persistence.json':v.parse(AdventurePersistenceSchema,value);break;
     case 'world/floor.json':v.parse(ForestGroundLayoutSchema,value);break;
     case 'world/crag-cave.json':v.parse(CaveFileSchema,value);break;

@@ -5,7 +5,8 @@ import {Vector3} from 'three';
 import {unzlibSync} from 'fflate';
 import {bakedSamplers} from '../src/format/bakedTerrainSampling';
 import {AudioSceneSchema} from '../src/format/audioScene';
-import {namedJsonSchema} from '../src/sdk/formatJsonSchema';
+import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
+import {fixtureJsonCheck} from './fixtures/productFile';
 import {preparedProductEnvelope} from './fixtures/prepared-product-envelope';
 import {admitClientPlan} from '../src/game/shardfile/clientPlan';
 import {jsonDataNodes,isJsonData} from '../src/format/json';
@@ -32,9 +33,9 @@ function context(read:(name:string)=>Promise<Uint8Array>,named=false){
  const scope=new Scope('audio.fixture');scopes.push(scope);
  const declared=data();if(named){delete declared.scene;declared.sceneFile='audio/scene.json';}
  const files=new Map<string,{hash:string;url:string;jsonSchema?:Readonly<Record<string,unknown>>}>([...blocks.keys()].map(name=>[name,{hash:name,url:name}]));
- if(named)files.set('audio/scene.json',{hash:'audio/scene.json',url:'audio/scene.json',jsonSchema:namedJsonSchema(AudioSceneSchema)});
+ if(named)files.set('audio/scene.json',{hash:'audio/scene.json',url:'audio/scene.json',jsonSchema:registeredJsonSchema('audio/scene.json')});
  const source={...emptyShardfile({slug:'orchard',name:'Orchard',author:'Fixture',revision:1,seed:1}),audio:declared};
- const product=createShardProduct({slug:'orchard',revision:1,shardfile:source,sections:new Map(),files,read});
+ const product=createShardProduct({slug:'orchard',revision:1,shardfile:source,sections:new Map(),files,read,jsonCheck:fixtureJsonCheck});
  const world=legacyDouble<NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>>({player});
  const runtime=legacyDouble<NonNullable<ShardContext['game']['runtime']>>({world});
  const game=legacyDouble<ShardContext['game']>({runtime,declaredAudio:declared});
