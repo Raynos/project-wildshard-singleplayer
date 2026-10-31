@@ -1,5 +1,6 @@
 import { noGeneratedImportRule, noGeneratedJsonImportRule } from './no-generated-import.mjs';
 import { execMaxBufferRule } from './exec-max-buffer.mjs';
+import { recordedDebtRule } from './recorded-debt.mjs';
 import { BASE64_POLICY, noBase64Rule } from './no-base64.mjs';
 import { clientPlanSchemaViolations } from './client-plan-boundary.mjs';
 import { explicitSchemaTypes } from './schema-types.mjs';
@@ -1210,6 +1211,14 @@ const plugin = {
     'shard-services': shardServices,
   },
 };
+// L1: these nonzero migration counts previously ran only in the standalone
+// census. Ordinary typed lint now enforces the same recorded file ceilings in
+// its existing AST pass. Default census behavior and hard rules stay intact.
+for(const name of ['no-raw-random-time','shard-sandbox','shard-game-imports','shard-game-plugins',
+  'generator-imports','shard-engine-imports','sdk-no-facade']) {
+  plugin.rules[name]=recordedDebtRule(plugin.rules[name],`wildshard/${name}`,shardfileDebt,pathOf,
+    file=>legacySourcePath(file)!==null);
+}
 for (const name of TEST_DOMAIN_RUNTIME_RULES) {
   const original = plugin.rules[name];
   plugin.rules[name] = { ...original, create(context) { return testDomain(context) ? {} : original.create(context); } };

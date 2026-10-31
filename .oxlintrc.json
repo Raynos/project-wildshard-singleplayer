@@ -22,6 +22,15 @@
     "nursery": "off"
   },
   "rules": {
+    // L1: existing nonzero migration debt is enforced in this same lint pass.
+    // Keep outside the hard src override: the raw census still counts every site.
+    "wildshard/no-raw-random-time": ["error", {"ratchet": true}],
+    "wildshard/shard-sandbox": ["error", {"ratchet": true}],
+    "wildshard/shard-game-imports": ["error", {"ratchet": true}],
+    "wildshard/shard-game-plugins": ["error", {"ratchet": true}],
+    "wildshard/generator-imports": ["error", {"ratchet": true}],
+    "wildshard/shard-engine-imports": ["error", {"ratchet": true}],
+    "wildshard/sdk-no-facade": ["error", {"ratchet": true}],
     "wildshard/no-generated-import": "error",
     "wildshard/no-generated-json-import": "error",
     "wildshard/no-base64": "error",
@@ -222,12 +231,6 @@
         // LT1: composition roots use defining workspace exports; zero stays zero.
         "wildshard/public-index": "error",
         "wildshard/no-production-test-import": "error",
-        // G307/SF78: report-only until SF76 move-backs finish; run scripts/game-plugins.mjs --report.
-        "wildshard/shard-game-plugins": "off",
-        // SF79 DS0.3: seeded shrink-only counts during the move-backs; report before promotion.
-        "wildshard/generator-imports": "off",
-        "wildshard/shard-engine-imports": "off",
-        "wildshard/sdk-no-facade": "off",
         // E405 LP2: engine code names no shard, creature, item or game word (wire contracts: lint/ratchet.json allow)
         "wildshard/engine-words": "error",
         // E405 LP3 / LP4: the game and the kit name no particular shard
