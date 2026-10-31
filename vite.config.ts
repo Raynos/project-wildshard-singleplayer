@@ -30,9 +30,12 @@ export default defineConfig(({ mode, command }) => {
     build: native
       // native.html: the web page with the web-only boot swapped for src/native.ts (scripts/native-page.mjs); build-app names it
       // index.html in dist-native/ (capacitor.config.ts `webDir`)
-      ? { target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: false, outDir: 'dist-native', rolldownOptions: { input: { index: join(process.cwd(), 'native.html') } } }
+      ? { copyPublicDir: process.env['WS_APP_DEFER_PUBLIC_COPY'] !== '1', target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: false, outDir: 'dist-native', rolldownOptions: { input: { index: join(process.cwd(), 'native.html') } } }
       // one stylesheet: src/entry.ts splits three.js from the game's graph, and code-split CSS would add a request
       : {
+        // build-app publishes public files after bundling, omitting the obsolete
+        // shardfiles tree that final product publication replaces (G799: no plugin).
+        copyPublicDir: process.env['WS_APP_DEFER_PUBLIC_COPY'] !== '1',
         // The mandatory chunk report measures and gates gzip bytes after this web build.
         target: 'es2022', reportCompressedSize: false, chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false, manifest: true,
         // G221: standalone CLI calibration, never a game-entry or Developer switch.

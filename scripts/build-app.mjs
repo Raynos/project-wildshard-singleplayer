@@ -11,7 +11,7 @@ import { writeChunkReport } from './app-build/chunkReport.mjs';
 import { bakeGridSeams, writeGridSeams } from './app-build/gridSeams.mjs';
 import { checkNoTopLevelAwait } from './app-build/noTopLevelAwait.mjs';
 import { writeTitleAssets } from './title-assets.mjs';
-import { copyOutputProducts } from './app-build/outputProducts.mjs';
+import { copyOutputProducts, copyDeferredPublic, deferredPublicCopy } from './app-build/outputProducts.mjs';
 import { stampBuildDocuments } from './app-build/buildIdentity.mjs';
 import { carryPreviousDeploy } from './app-build/previousDeploy.mjs';
 import { buildValidationReceipts } from './app-build/validationReceipts.mjs';
@@ -55,9 +55,13 @@ catch (error) { console.error(error instanceof Error ? error.message : String(er
 step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', "await (await import('./scripts/app-build/worldMapAtlas.ts')).writeWorldMapAtlas(process.cwd());"]);
 
 const vite = resolve(import.meta.dirname, '../node_modules/vite/bin/vite.js');
-const build = spawnSync(process.execPath, [vite, 'build', ...args], { stdio: 'inherit' });
+const deferPublic = deferredPublicCopy(process.cwd(), outDir, args);
+const build = spawnSync(process.execPath, [vite, 'build', ...args], {
+  stdio: 'inherit', env: {...process.env, WS_APP_DEFER_PUBLIC_COPY: deferPublic ? '1' : '0'},
+});
 if (build.error !== undefined) throw build.error;
 if (build.status !== 0) { process.exitCode = build.status ?? 1; process.exit(); }
+if (deferPublic) copyDeferredPublic(process.cwd(), outDir);
 
 // the native page as dist-native's index.html, the WebView error page beside it, and no trailers (was vite.config.ts's
 // native plugin; capacitor.config.ts names the error page)
