@@ -3,7 +3,7 @@ import {installGpuProbe, type GpuCensusPort} from '../scripts/perf/gpu-census-pa
 import {gpuPairs,gpuPhoneModel} from '../scripts/perf/gpu-census-report.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Validate real CLI refusals before any browser or output is opened.
 import process from 'node:process';
-import {runGpuCensus} from '../scripts/perf/gpu-census.mjs';
+import {runGpuCensus,gpuCensusPoses} from '../scripts/perf/gpu-census.mjs';
 import {sourceMatchedCoverageAliases} from '../scripts/perf/gpu-census-coverage.mjs';
 
 const windowDescriptor=Object.getOwnPropertyDescriptor(globalThis,'window');
@@ -107,4 +107,19 @@ test('legacy kit owners retain the facade label and fused effects are isolated t
  expect(update).not.toHaveBeenCalled();expect(f.effect.update).toBe(update);expect(f.effect.blendMode.blendFunction).toBe(30);
  f.port.batch('throughput',1);expect(update).toHaveBeenCalled();
  expect(()=>f.port.batch('throughput',1,'effect:0:7')).toThrow('Unknown effect');f.port.restore();
+});
+
+
+test('GPU pose selection lends authored coordinates without art imports or dropped route legs',()=>{
+ const supplied=[1,5,14].map(n=>({n,fov:70+n,probe:{x:n,y:2*n,z:3*n,yaw:n/10,pitch:-n/20}}));
+ const chosen=gpuCensusPoses('nine-dragon-stack',[],supplied);
+ expect(chosen.map(pose=>pose.id)).toEqual(['cam-1','cam-5','cam-14','cam-27','approx-a','approx-b']);
+ for(const camera of supplied)expect(chosen.find(pose=>pose.id===`cam-${camera.n}`)).toMatchObject({...camera.probe,fov:camera.fov});
+ expect(gpuCensusPoses('pine-hollow',[])).toHaveLength(4);
+ expect(gpuCensusPoses('pine-hollow',['P3']).map(pose=>pose.id)).toEqual(['P3']);
+ expect(gpuCensusPoses('nine-dragon-stack',['approx-b'])).toHaveLength(1);
+ expect(()=>gpuCensusPoses('nine-dragon-stack',['cam-1'])).toThrow('authored');
+ expect(()=>gpuCensusPoses('nine-dragon-stack',['missing'])).toThrow('Unknown requested');
+ expect(()=>gpuCensusPoses('missing',[])).toThrow('Unsupported');
+ expect(()=>gpuCensusPoses('nine-dragon-stack',['cam-1'],[{...supplied[0],n:1,fov:70,probe:{x:0,y:0,z:0,yaw:Infinity,pitch:0}}])).toThrow('authored');
 });

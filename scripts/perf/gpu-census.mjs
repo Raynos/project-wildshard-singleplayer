@@ -9,23 +9,44 @@ import {installGpuProbe} from './gpu-census-page.mjs';
 import {overdraw} from './gpu-census-overdraw.mjs';
 import {gpuPairs,gpuPhoneModel} from './gpu-census-report.mjs';
 import {graphCoverage,sourceMatchedCoverageAliases} from './gpu-census-coverage.mjs';
+
+const nineIds=['cam-1','cam-5','cam-14','cam-27','approx-a','approx-b'];
+const pineIds=['P1','P2','P3','P4'];
+/** Pure selection: the CLI lends authored camera rows only after validating its
+ * options. Importing or rejecting a request never reads omitted art files.
+ * @param {string} slug @param {readonly string[]} selected
+ * @param {readonly import('./gpu-census.mjs').GpuCensusCamera[]} [cameras] */
+export function gpuCensusPoses(slug,selected,cameras=[]){
+ const ids=slug==='nine-dragon-stack'?nineIds:slug==='pine-hollow'?pineIds:[];
+ if(ids.length===0)throw new Error('Unsupported GPU census shard');
+ if(selected.some(id=>!ids.includes(id)))throw new Error('Unknown requested census pose');
+ const D=Math.PI/180;
+ const pine=[{id:'P1',x:0,z:-235,yaw:Math.PI,pitch:0},{id:'P2',x:0,z:-200,yaw:Math.PI,pitch:0},{id:'P3',x:0,z:-28,yaw:Math.PI,pitch:0},{id:'P4',x:0,z:-28,yaw:Math.PI/2,pitch:-4*D}];
+ if(slug==='pine-hollow')return pine.filter(pose=>selected.length===0||selected.includes(pose.id));
+ const authored=[1,5,14].filter(n=>selected.length===0||selected.includes(`cam-${n}`)).map(n=>{
+  const camera=cameras.find(row=>row.n===n),at=camera?.probe;
+  if(camera===undefined||at===undefined||![at.x,at.y,at.z,at.yaw,at.pitch,camera.fov].every(Number.isFinite))throw new Error('Missing authored GPU census camera');
+  return {x:at.x,y:at.y,z:at.z,yaw:at.yaw,pitch:at.pitch,id:`cam-${n}`,source:'art/legacy-goldens/compare/cameras24.json',fov:camera.fov};
+ });
+ const extra=[{id:'cam-27',x:74,y:146,z:6,yaw:.349066,pitch:.0349066,fov:93.01,source:'NF4 cameras-27.json / afed7029ce'},
+ {id:'approx-a',x:.95,y:135,z:7.5,yaw:-12*D,pitch:-60*D,hover:true,source:'approx: phone2133-a + sp-o1 trial; not exact phone pose'},
+ {id:'approx-b',x:.95,y:135,z:7.5,yaw:-12*D,pitch:-20*D,hover:true,source:'approx: phone2133-b shallower view; not exact phone pose'}];
+ return [...authored,...extra].filter(pose=>selected.length===0||selected.includes(pose.id));
+}
 /** Modern GPU census entry: native loading cards, immutable preview, explicit modes. */
 export async function runGpuCensus(){
 const arg=(key,fallback)=>process.argv.find(s=>s.startsWith(`--${key}=`))?.slice(key.length+3)??fallback;
 const url=arg('url',''),out=arg('out','tmp/gpu-census'),slug=arg('chunk','nine-dragon-stack'),modes=arg('mode','legacy,shardfile').split(','),rounds=Number(arg('rounds','5')),K=Number(arg('frames','16'));
-const catalog=JSON.parse(readFileSync('art/legacy-goldens/compare/cameras24.json','utf8')).cameras, D=Math.PI/180;
-const nine=[...catalog['nine-dragon-stack'].filter(x=>[1,5,14].includes(x.n)).map(x=>({x:x.probe.x,y:x.probe.y,z:x.probe.z,yaw:x.probe.yaw,pitch:x.probe.pitch,id:`cam-${x.n}`,source:'art/legacy-goldens/compare/cameras24.json',fov:x.fov})),
- {id:'cam-27',x:74,y:146,z:6,yaw:.349066,pitch:.0349066,fov:93.01,source:'NF4 cameras-27.json / afed7029ce'},
- {id:'approx-a',x:.95,y:135,z:7.5,yaw:-12*D,pitch:-60*D,hover:true,source:'approx: phone2133-a + sp-o1 trial; not exact phone pose'},
- {id:'approx-b',x:.95,y:135,z:7.5,yaw:-12*D,pitch:-20*D,hover:true,source:'approx: phone2133-b shallower view; not exact phone pose'}];
-const pine=[{id:'P1',x:0,z:-235,yaw:Math.PI,pitch:0},{id:'P2',x:0,z:-200,yaw:Math.PI,pitch:0},{id:'P3',x:0,z:-28,yaw:Math.PI,pitch:0},{id:'P4',x:0,z:-28,yaw:Math.PI/2,pitch:-4*D}];
-const selected=arg('poses','').split(','),poses=(slug==='nine-dragon-stack'?nine:pine).filter(x=>!selected[0]||selected.includes(x.id));
-if(poses.length === 0||!modes.every(x=>['legacy','shardfile'].includes(x)))throw new Error('Invalid pose/mode selection');
-if(selected[0]&&selected.some(id=>!poses.some(p=>p.id===id)))throw new Error('Unknown requested census pose');
+const requested=arg('poses',''),selected=requested===''?[]:requested.split(','),ids=slug==='nine-dragon-stack'?nineIds:pineIds;
+if(selected.some(id=>!ids.includes(id)))throw new Error('Unknown requested census pose');
+if(!modes.every(x=>['legacy','shardfile'].includes(x)))throw new Error('Invalid pose/mode selection');
 if(!['0','1'].includes(arg('coverage','0')))throw new Error('Invalid coverage capability');
 const coverageHashPath=arg('coverage-source-hashes',''),coverageHashes=coverageHashPath===''?[]:JSON.parse(readFileSync(coverageHashPath,'utf8'));
 sourceMatchedCoverageAliases([],coverageHashes);
 if(!url||!['nine-dragon-stack','pine-hollow'].includes(slug)||!Number.isSafeInteger(rounds)||rounds<1||rounds>20||!Number.isSafeInteger(K)||K<1||K>64)throw new Error('Requires URL, supported shard and bounded rounds/frames');
+const needsAuthored=slug==='nine-dragon-stack'&&(selected.length===0||selected.some(id=>['cam-1','cam-5','cam-14'].includes(id)));
+const catalog=needsAuthored?JSON.parse(readFileSync('art/legacy-goldens/compare/cameras24.json','utf8')).cameras['nine-dragon-stack']:[];
+const poses=gpuCensusPoses(slug,selected,catalog);
 mkdirSync(out,{recursive:true});const version=await(await fetch(new URL('version.json',url))).json();
 const readings=[],saveAll=()=>writeFileSync(`${out}/reading.json`,JSON.stringify({rows:readings,requested:{slug,modes,poses:poses.map(p=>p.id)},method:'paired frozen-frame throughput, includes CPU submission; no official timing credit',partitionStatus:'NOT_MEASURABLE (G872): overlapping subtraction, occlusion and tile flushes'},null,2));
 const browser=await chromium.launch({headless:true,args:['--mute-audio','--use-angle=metal','--ignore-gpu-blocklist']});
