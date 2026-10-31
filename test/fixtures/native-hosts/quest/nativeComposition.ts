@@ -18,7 +18,7 @@ import { nativeHeldAmmunition, NativeAmmunitionSavedSchema } from '../loadout/na
 import { nativeInventorySchema, type NativeInventory } from '../../../../src/game/inventoryLaw';
 import { cableModes } from '@wildshard/engine/player/modes';
 import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
-import { bindHeadlessPrompts, parsePromptRegistrations, type PromptRegistration } from '../../../../src/game/quest/interactionRows';
+import { bindHeadlessPrompts, parsePromptRegistrations, type PromptRegistration, type HeadlessPrompt } from '../../../../src/game/quest/interactionRows';
 import { ContractBoard, CONTRACT_ACTION } from '../../../../src/game/quest/contractBoard';
 import { contractKill } from '../../../../src/game/quest/contracts';
 import { Exchange } from '../../../../src/game/loot/exchange';
@@ -29,6 +29,13 @@ import { installNativeChapterDirector } from './nativeChapter';
 import { takeNativeBossReward } from '../boss/native';
 import { ReturnProgram } from '../../../../src/game/population/returnProgram';
 
+const promptLoans = new WeakMap<SimHost, Map<string, readonly HeadlessPrompt[]>>();
+/** Borrow the actual bound roster, including unhosted prompts and live reach. */
+export function nativeQuestPromptRoster(host: SimHost, id: string): readonly HeadlessPrompt[] {
+  const roster = promptLoans.get(host)?.get(id);
+  if (host.scope.disposed || roster === undefined) throw new Error('Missing native quest prompt roster');
+  return roster;
+}
 const MAX_BODIES = 64;
 const finite = v.pipe(v.number(), v.finite()), xyz = { x: finite, y: finite, z: finite };
 const Row = v.strictObject({ id: v.string(), kind: v.string(), ...xyz, yaw: finite, prompt: v.optional(v.strictObject(xyz)),
@@ -88,6 +95,7 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   const need = <T>(value: T | undefined, name: string): T => { if (value === undefined) throw new Error(`Missing native quest ${name}`); return value; };
   const entry = prepareNativeQuestEntry(host, ports.source, ports.table, spots.rows, rows.bounds, rows.saved.names);
   const { input, pack } = entry, rules = [...entry.rules.values()], indexed = entry.rules;
+  let promptRoster: readonly HeadlessPrompt[] | undefined;
   const state = { iron: false, pickup: false, rewardOwned: false }; let finishes = new Set<string>();
   const population = rows.acquisition === undefined ? null : mixedPopulation(host, rows.acquisition.population);
   const equipment = rows.acquisition === undefined ? null : nativeMeleeItem(host, rows.acquisition.equipment);
@@ -224,6 +232,7 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
       if (rule?.spot.prompt === undefined || rule.spot.prompt === null) return undefined;
       return { act: policy.rowBase + i, get position() { return promptOf(rule) ?? rule.spot; }, get radius() { return rule.promptRadius(); } };
     });
+    promptRoster = prompts;
     return { mechanics: { cables }, observations, actions, ...(prompts === undefined ? {} : { prompts, directorActions: new Map() }),
       ...(prompts === undefined ? { spots: { crack: [], interact: [
         ...rules.flatMap(rule => rule.spot.prompt === null || rule.spot.prompt === undefined ? [] : [{ id: rule.d.id, ...rule.spot.prompt, get radius() { return rule.promptRadius(); } }]),
@@ -301,6 +310,12 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
       for (const key of rows.saved.restore) need(pending.get(key), 'restore role')();
     }, ...(props === null ? {} : { physicsRestored: () => { props.physicsRestored(); } }),
   });
+  if (promptRoster !== undefined) {
+    const loans = promptLoans.get(host) ?? new Map<string, readonly HeadlessPrompt[]>();
+    if (loans.has(rows.step)) throw new Error('Duplicate native quest prompt roster');
+    loans.set(rows.step, promptRoster); promptLoans.set(host, loans);
+    host.scope.onDispose(() => { loans.delete(rows.step); });
+  }
   return { quests, pack, cables, lead: lead?.state ?? null, board, trader,
     riding: (): boolean => cables.state(cableId).riding || host.events.ask('player.carrying', false),
     talking: (): boolean => (dialogue?.active ?? false) || (board?.active ?? false) || (trader?.active ?? false),

@@ -5,6 +5,7 @@ import { RngService } from '../src/engine/core/rng';
 import { installCoinModel } from '../src/game/loot/coinModel';
 import { coinGeometry } from '../src/game/generators/pickups';
 import { CoinBurst } from '../src/game/loot/CoinBurst';
+import { Purse } from '../src/game/loot/Purse';
 import { Owned } from '../src/game/loot/Owned';
 import { Bounty } from '../src/game/loot/Bounty';
 import { ownedSave, bountySave } from '../src/game/saves';
@@ -113,4 +114,17 @@ test('an in-flight pool restores every word and award group silently before an e
     expect(() => restored.restore(saved, () => { throw new Error('Missing award owner'); })).toThrow('Missing award owner');
     expect(restored.inFlight).toBe(0);
   } finally { first.dispose(); restored.dispose(); }
+});
+
+test('purse restore retains unflushed earned coins without a write or listener call', () => {
+  let durable = 0; const events: string[] = [];
+  const slot = { read: () => durable, write: (n: number) => { durable = n; events.push(`save:${n}`); return true; } };
+  const original = new Purse('earned', slot); original.add(3, false);
+  const saved = original.snapshot(), restored = new Purse('earned', slot);
+  restored.onChange(() => { events.push('changed'); });
+  restored.restore(saved); expect(events).toEqual([]); expect(durable).toBe(0);
+  expect(restored.snapshot()).toEqual(saved); expect(restored.flush()).toBe(true);
+  expect(events).toEqual(['save:3']); expect(durable).toBe(3);
+  expect(() => restored.restore({ coins: -1, unsaved: false })).toThrow();
+  expect(restored.coins).toBe(3); expect(restored.unsaved).toBe(false);
 });

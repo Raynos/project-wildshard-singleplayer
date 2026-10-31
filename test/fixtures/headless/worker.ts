@@ -15,13 +15,14 @@ import type { PrepareHeadlessRuntime } from '../../../src/sdk/headlessRuntime';
 
 await runTickWorker(async raw => {
   const payload = v.parse(v.strictObject({ shard: v.unknown(), assets: v.map(v.string(), v.instance(Uint8Array)),
-    kind: v.picklist(['driftwood', 'sky-verbs', 'pine', 'pine-verbs', 'nine', 'nine-flat', 'nalati', 'nalati-companions', 'nalati-weapons', 'nalati-predators', 'nalati-world', 'nalati-stealth', 'nalati-verbs', 'nalati-kokpar', 'nalati-chapter', 'nalati-qara', 'nalati-titan', 'nalati-practice', 'trusted', 'deferred']), directory: v.string(), binary: v.string(),
+    kind: v.picklist(['driftwood', 'driftwood-trade', 'sky-verbs', 'pine', 'pine-verbs', 'nine', 'nine-flat', 'nalati', 'nalati-companions', 'nalati-weapons', 'nalati-predators', 'nalati-world', 'nalati-stealth', 'nalati-verbs', 'nalati-kokpar', 'nalati-chapter', 'nalati-qara', 'nalati-titan', 'nalati-practice', 'trusted', 'deferred']), directory: v.string(), binary: v.string(),
     sections: v.map(v.string(), v.unknown()), snapshot: v.exactOptional(v.string()) }), raw);
   const shard = parseShardfile(payload.shard), rapier = await loadRapier(readFileSync(payload.binary));
   await prepareAssetDecoders();
   validateShardfileAssets(shard, payload.assets, hashImmutableBytes, offlineMemoryAdmission('refuse'), undefined, scriptAdmissionRows(payload.sections));
   let prepare: PrepareHeadlessRuntime, assets: ReadonlyMap<string, Uint8Array> = payload.assets;
   if (payload.kind === 'driftwood') prepare = (await import('../../proof/driftwood-isle/worker')).prepareHeadlessRuntime;
+  else if (payload.kind === 'driftwood-trade') prepare = (await import('../driftwood-trade-native')).prepareHeadlessRuntime;
   else if (payload.kind === 'pine' || payload.kind === 'pine-verbs') {
     const native = await import('../pine-headless');
     prepare = payload.kind === 'pine-verbs' ? (await import('../pine-verbs')).prepareHeadlessRuntime : native.prepareHeadlessRuntime; assets = native.pineHeadlessAssets(payload.assets);

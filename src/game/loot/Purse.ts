@@ -12,6 +12,7 @@
  *   purse.onChange((n, delta) => chip.set(n))   // returns an unsubscribe
  */
 import { purseSave, saveSlug } from '../saves';
+import * as schema from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';
 
 const entered = new WeakMap<Scope, Purse>();
@@ -34,6 +35,14 @@ export class Purse {
   constructor(readonly shard: string, private readonly save: Pick<typeof purseSave, 'read' | 'write'> = purseSave) {
     const saved = this.save.read(saveSlug(shard));
     this.n = typeof saved === 'number' && Number.isFinite(saved) && saved > 0 ? Math.floor(saved) : 0;
+  }
+
+  /** The current balance and its pending durable write; no callback or save runs. */
+  snapshot(): { coins: number; unsaved: boolean } { return { coins: this.n, unsaved: this.dirty }; }
+  /** Rehydrate the same continuation silently; earned changes still use add/spend. */
+  restore(input: unknown): void {
+    const saved = schema.parse(schema.strictObject({ coins: schema.pipe(schema.number(), schema.finite(), schema.integer(), schema.minValue(0)), unsaved: schema.boolean() }), input);
+    this.n = saved.coins; this.dirty = saved.unsaved;
   }
 
   get coins(): number { return this.n; }
