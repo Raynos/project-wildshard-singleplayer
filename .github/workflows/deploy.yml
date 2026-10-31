@@ -1211,6 +1211,7 @@ jobs:
           GIT_CONFIG_VALUE_0: HTTP/1.1
         with:
           ref: ${{ github.sha }}
+          clean: true
           filter: blob:none
           sparse-checkout: |
             /*
@@ -1229,8 +1230,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - name: Install exact dependencies from a fresh store
+        run: |
+          store="$(mktemp -d "${RUNNER_TEMP:?}/journey-pnpm-store.XXXXXX")"
+          pnpm install --frozen-lockfile --package-import-method=copy --verify-store-integrity --store-dir "$store"
       - uses: actions/cache@v4
         with:
           path: ~/Library/Caches/ms-playwright
