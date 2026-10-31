@@ -5,8 +5,6 @@
  */
 import type { SplatGroundOptions } from '@wildshard/sdk/bake/splatGround';
 import { groundRgb } from './farLook';
-import { parse } from 'valibot';
-import { SplatTerrainSchema } from '@wildshard/format/splatTerrain';
 
 /** The material name the ground primitives carry; Pine's `props.splat` row binds it. */
 export const PINE_GROUND_MATERIAL = 'pine.ground';
@@ -40,6 +38,9 @@ const lodOf = (lod: number): 0 | 1 => { if (lod !== 0 && lod !== 1) throw new Er
  */
 export function withPineGround<P extends { tiles: readonly PropsTile[] }, S extends { tiles: readonly TileRow[]; files: readonly FileRow[]; library: readonly string[] }>(
   props: P, shardfile: S, ground: PineGroundRows): { props: P & { splat: unknown; tiles: PropsTile[] }; shardfile: S & { tiles: TileRow[]; files: FileRow[]; library: string[] } } {
+  // The product's props admission still validates every splat field. This
+  // author only adds the grouping to the original object, without a parser.
+  if (typeof ground.splat !== 'object' || ground.splat === null || Array.isArray(ground.splat)) throw new Error('Pine ground splat must be an object');
   const key = (row: { lod: number; x: number; z: number }): string => `${String(row.lod)}/${String(row.x)}/${String(row.z)}`;
   const propsTiles = new Map(props.tiles.map(row => [key(row), row])), contentTiles = new Map(shardfile.tiles.map(row => [key(row), row]));
   const covered = new Set(ground.tiles.map(key));
@@ -54,7 +55,7 @@ export function withPineGround<P extends { tiles: readonly PropsTile[] }, S exte
       files: [file.hash, ...content?.files ?? []], compressed: sum('compressed'), decoded: sum('decoded'), gpu: sum('gpu'), triangles: sum('triangles'), draws: sum('draws') };
     return { propsTile, tile };
   });
-  return { props: { ...props, splat: { ...parse(SplatTerrainSchema, ground.splat), merge: 'cell' as const }, tiles: tiles.map(row => row.propsTile) },
+  return { props: { ...props, splat: { ...ground.splat, merge: 'cell' as const }, tiles: tiles.map(row => row.propsTile) },
     shardfile: { ...shardfile, tiles: tiles.map(row => row.tile), files: [...shardfile.files, ...ground.tiles.map(row => row.file), ...ground.textures],
       library: [...shardfile.library, ...ground.textures.map(file => file.hash)] } };
 }
