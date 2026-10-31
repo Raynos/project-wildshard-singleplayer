@@ -133,11 +133,45 @@ export function explorerDiagnostics(){
     timingBufferFull:Reflect.get(window,'__explorerTimingFull')===true,navigation:navigation?.toJSON()??null,resources,measures};
 }
 
+const CONTEXT_CATALOGUES=4;
+
+/** Retain native HTTP/shader caches across a bounded group of world documents.
+ * Retiring the native context bounds document/isolate ownership; origin
+ * storage deletion alone does not collect the previous document's Wasm banks.
+ * Faults and document provenance remain shared across every group.
+ * @param {import('playwright').Browser} browser @param {string} base */
+export async function openExplorerSession(browser,base){
+  /** @type {string[]} */ const faults=[];
+  /** @type {{previous:number|undefined}} */ const lifetime={previous:undefined};
+  let generation=1,used=0,busy=false,closed=false;
+  /** @type {Awaited<ReturnType<typeof openExplorerContext>>|undefined} */ let active=await openExplorerContext(browser,base,faults,lifetime,generation);
+  const retire=async()=>{const previous=active;active=undefined;try{await previous?.close();}catch(error){closed=true;throw error;}};
+  return {sweep:async(/** @type {string} */slug,/** @type {string} */out)=>{
+    if(closed)throw new Error('Explorer session is closed');
+    if(busy)throw new Error('Explorer session already owns a catalogue');
+    busy=true;
+    try{
+      if(used===CONTEXT_CATALOGUES){
+        await retire();if(closed)throw new Error('Explorer session is closed');
+        generation++;
+        /** @type {Awaited<ReturnType<typeof openExplorerContext>>} */ let next;
+        try{next=await openExplorerContext(browser,base,faults,lifetime,generation);}catch(error){closed=true;throw error;}
+        if(closed){await next.close();throw new Error('Explorer session is closed');}
+        active=next;used=0;
+      }
+      const context=active;if(context===undefined)throw new Error('Explorer context has ended');
+      used++;await context.sweep(slug,out,used);
+    }finally{busy=false;}
+  },close:async()=>{if(closed)return;closed=true;await retire();}};
+}
+
 /** Retain native HTTP/shader caches across fresh world documents. Clear
  * persistent origin data after retiring each document's writers, matching
  * the original independent input fixtures without accumulating world bodies.
- * @param {import('playwright').Browser} browser @param {string} base */
-export async function openExplorerSession(browser,base){
+ * @param {import('playwright').Browser} browser @param {string} base
+ * @param {string[]} faults @param {{previous:number|undefined}} lifetime
+ * @param {number} generation */
+async function openExplorerContext(browser,base,faults,lifetime,generation){
   const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true,serviceWorkers:'block'});
   try{
     // The existing harness identity suppresses telemetry without request
@@ -152,16 +186,12 @@ export async function openExplorerSession(browser,base){
       await storage.send('Storage.clearDataForOrigin',{origin:new URL(base).origin,
         storageTypes:'cache_storage,indexeddb,local_storage,service_workers,file_systems,websql,storage_buckets,cookies,shared_storage,interest_groups'});
     };
-    /** @type {string[]} */ const faults=[];
     page.on('pageerror',error=>faults.push(error.message));
     page.on('crash',()=>faults.push('Page crashed'));
     page.on('console',message=>{if(message.type()==='error')faults.push(message.text());});
     page.on('response',response=>{if(response.status()>=400)faults.push(`HTTP ${response.status()}: ${response.url()}`);});
-    /** @type {{previous:number|undefined,busy:boolean}} */ const lifetime={previous:undefined,busy:false};
-    return {sweep:async(/** @type {string} */slug,/** @type {string} */out)=>{
-      if(lifetime.busy)throw new Error('Explorer session already owns a catalogue');
-      lifetime.busy=true;
-      try{await sweepPage(page,faults,base,slug,out,lifetime,reset);}finally{lifetime.busy=false;}
+    return {sweep:async(/** @type {string} */slug,/** @type {string} */out,/** @type {number} */catalogue)=>{
+      await sweepPage(page,faults,base,slug,out,lifetime,reset,{generation,catalogue,maxCatalogues:CONTEXT_CATALOGUES});
     },close:()=>context.close()};
   }catch(error){await context.close();throw error;}
 }
@@ -174,8 +204,9 @@ export async function sweepExplorer(browser,base,slug,out){
 }
 
 /** @param {import('playwright').Page} page @param {string[]} faults @param {string} base @param {string} slug
- * @param {string} out @param {{previous:number|undefined}} lifetime @param {()=>Promise<void>} reset */
-async function sweepPage(page,faults,base,slug,out,lifetime,reset){
+ * @param {string} out @param {{previous:number|undefined}} lifetime @param {()=>Promise<void>} reset
+ * @param {{generation:number,catalogue:number,maxCatalogues:number}} session */
+async function sweepPage(page,faults,base,slug,out,lifetime,reset,session){
   const started=Date.now(),hangMs=180000;
   let progressAt=started;
   /** @type {Map<string,number>} */ const firstReady=new Map();
@@ -226,7 +257,7 @@ async function sweepPage(page,faults,base,slug,out,lifetime,reset){
     verifyExplorerDocument(diagnostics.document,base,slug,lifetime.previous);
     if(diagnostics.document.timeOrigin!==final.document.timeOrigin)failures.push('Explorer document changed during final capture');
     if(faults.length>0)failures.push(...faults);
-    const result={slug,elapsedMs:Date.now()-started,hangMs,empty,cards,failures,document:final.document,captureBefore:captured.before,captureAfter:final,diagnostics,firstReadyMs:Object.fromEntries(firstReady)};
+    const result={slug,session,elapsedMs:Date.now()-started,hangMs,empty,cards,failures,document:final.document,captureBefore:captured.before,captureAfter:final,diagnostics,firstReadyMs:Object.fromEntries(firstReady)};
     writeFileSync(join(out,`${slug}.json`),`${JSON.stringify(result,null,2)}\n`);
     if(failures.length>0)throw new Error(`${slug}: ${failures.join('; ')}`);
     lifetime.previous=final.document.timeOrigin;
@@ -235,7 +266,7 @@ async function sweepPage(page,faults,base,slug,out,lifetime,reset){
     await page.screenshot({path:join(out,`${slug}-failure.jpg`),type:'jpeg',quality:70,timeout:5000}).catch(()=>undefined);
     // Keep the last completed observation. A second unbounded renderer read
     // after the hang refusal would hide the very stall this receipt records.
-    writeFileSync(join(out,`${slug}-failure.json`),`${JSON.stringify({slug,elapsedMs:Date.now()-started,hangMs,idleMs:Date.now()-progressAt,error:String(error),faults,cards,firstReadyMs:Object.fromEntries(firstReady)},null,2)}\n`);
+    writeFileSync(join(out,`${slug}-failure.json`),`${JSON.stringify({slug,session,elapsedMs:Date.now()-started,hangMs,idleMs:Date.now()-progressAt,error:String(error),faults,cards,firstReadyMs:Object.fromEntries(firstReady)},null,2)}\n`);
     throw error;
   }
 }

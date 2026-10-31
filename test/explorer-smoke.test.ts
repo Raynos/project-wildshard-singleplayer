@@ -193,12 +193,13 @@ test('a ready catalogue must belong to the requested new world document',()=>{
 });
 
 function sessionFixture(stale=false){
+  let frozen=stale;
   let identity={...currentDocument,timeOrigin:0};
   const listeners=new Map<string,unknown>();
   const goto=vi.fn<Page['goto']>().mockImplementation(url=>{
     if(url==='about:blank')return Promise.resolve(null);
-    identity={url,timeOrigin:stale&&identity.timeOrigin>0?identity.timeOrigin:identity.timeOrigin+1,
-      slug:stale&&identity.timeOrigin>0?identity.slug:new URL(url).searchParams.get('chunk')??''};
+    identity={url,timeOrigin:frozen&&identity.timeOrigin>0?identity.timeOrigin:identity.timeOrigin+1,
+      slug:frozen&&identity.timeOrigin>0?identity.slug:new URL(url).searchParams.get('chunk')??''};
     return Promise.resolve(null);
   });
   const evaluate=vi.fn<Page['evaluate']>().mockImplementation(fn=>{
@@ -218,8 +219,68 @@ function sessionFixture(stale=false){
   const newCDPSession=vi.fn<BrowserContext['newCDPSession']>().mockResolvedValue({...storage});
   const context=legacyDouble<BrowserContext>({newPage,route,close,newCDPSession,addInitScript:vi.fn<BrowserContext['addInitScript']>().mockResolvedValue(disposable)});
   const newContext=vi.fn<Browser['newContext']>().mockResolvedValue({...context});
-  return {browser:legacyDouble<Browser>({newContext}),newContext,newPage,route,close,listeners,send,goto};
+  return {browser:legacyDouble<Browser>({newContext}),newContext,newPage,route,close,listeners,send,goto,freezeDocument:()=>{frozen=true;}};
 }
+
+test('native context retirement bounds each group while every catalogue still draws',async()=>{
+  mkdirSync('tmp/sp-x9-explorer',{recursive:true});const out=mkdtempSync('tmp/sp-x9-explorer/context-groups-');
+  const f=sessionFixture(),session=await openExplorerSession(f.browser,'https://test.example/');
+  try{
+    const cases=['first','second','third','fourth','fifth'];
+    for(const [index,slug]of cases.entries()){
+      await session.sweep(slug,out);
+      const result:unknown=JSON.parse(readFileSync(`${out}/${slug}.json`,'utf8'));
+      expect(result).toMatchObject({slug,session:{generation:index<4?1:2,catalogue:index%4+1,maxCatalogues:4},
+        cards:[{id:`${slug}/actual`,ready:true,pixels:100}],failures:[]});
+    }
+    expect(f.newContext).toHaveBeenCalledTimes(2);expect(f.newPage).toHaveBeenCalledTimes(2);
+    expect(f.close).toHaveBeenCalledOnce();expect(f.send).toHaveBeenCalledTimes(5);expect(f.route).not.toHaveBeenCalled();
+    expect(f.close.mock.invocationCallOrder[0]).toBeLessThan(f.newContext.mock.invocationCallOrder[1]??0);
+  }finally{await session.close();rmSync(out,{recursive:true,force:true});}
+  expect(f.close).toHaveBeenCalledTimes(2);
+});
+
+test('retirement keeps both earlier HTTP faults and prior document identity authoritative',async()=>{
+  for(const mode of ['http','document']){
+    mkdirSync('tmp/sp-x9-explorer',{recursive:true});const out=mkdtempSync('tmp/sp-x9-explorer/retired-fault-');
+    const f=sessionFixture(),session=await openExplorerSession(f.browser,'https://test.example/');
+    try{
+      for(const slug of ['first','second','third','fourth'])await session.sweep(slug,out);
+      if(mode==='document')f.freezeDocument();
+      else{
+        const response=f.listeners.get('response');if(typeof response!=='function')throw new Error('Missing HTTP observer');
+        f.close.mockImplementationOnce(()=>{Reflect.apply(response,undefined,[{status:()=>500,url:()=> 'https://test.example/late.bin'}]);return Promise.resolve();});
+      }
+      await expect(session.sweep('fifth',out)).rejects.toThrow(mode==='http'?'HTTP 500':'stale or foreign');
+      expect(f.newContext).toHaveBeenCalledTimes(2);
+    }finally{await session.close();rmSync(out,{recursive:true,force:true});}
+  }
+});
+
+test('failed context retirement stops replacement and never retries a catalogue',async()=>{
+  mkdirSync('tmp/sp-x9-explorer',{recursive:true});const out=mkdtempSync('tmp/sp-x9-explorer/retire-refusal-');
+  const f=sessionFixture(),session=await openExplorerSession(f.browser,'https://test.example/');
+  try{
+    for(const slug of ['first','second','third','fourth'])await session.sweep(slug,out);
+    f.close.mockRejectedValueOnce(new Error('Native context retirement refused'));
+    await expect(session.sweep('fifth',out)).rejects.toThrow('Native context retirement refused');
+    await expect(session.sweep('sixth',out)).rejects.toThrow('session is closed');
+    expect(f.newContext).toHaveBeenCalledOnce();expect(f.send).toHaveBeenCalledTimes(4);
+  }finally{await session.close();rmSync(out,{recursive:true,force:true});}
+});
+
+test('closing during retirement cannot publish a replacement native context',async()=>{
+  mkdirSync('tmp/sp-x9-explorer',{recursive:true});const out=mkdtempSync('tmp/sp-x9-explorer/retire-close-');
+  const f=sessionFixture(),session=await openExplorerSession(f.browser,'https://test.example/');
+  let finish:(()=>void)|undefined;
+  try{
+    for(const slug of ['first','second','third','fourth'])await session.sweep(slug,out);
+    f.close.mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));
+    const fifth=expect(session.sweep('fifth',out)).rejects.toThrow('session is closed');
+    await session.close();if(finish===undefined)throw new Error('Missing retirement completion');finish();await fifth;
+    expect(f.newContext).toHaveBeenCalledOnce();expect(f.send).toHaveBeenCalledTimes(4);
+  }finally{finish?.();await session.close();rmSync(out,{recursive:true,force:true});}
+});
 
 test('one context and page retain native caches while every catalogue has new document and pixel checks',async()=>{
   mkdirSync('tmp/sp-x9-explorer',{recursive:true});const out=mkdtempSync('tmp/sp-x9-explorer/reused-');
