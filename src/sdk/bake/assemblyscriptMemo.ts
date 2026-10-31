@@ -6,6 +6,7 @@ import { randomBytes } from 'node:crypto';
 import { homedir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Construct paths from trusted roots and content hashes.
 import { resolve } from 'node:path';
+import { reportBuildCache } from '../buildCacheMetrics';
 import { projectCompilerIdentity } from '../projectCompilerIdentity';
 import { encodeCanonicalJson, hashImmutableBytes } from '../immutable';
 import { readBoundedFile } from '../sourceReader';
@@ -19,29 +20,37 @@ export const memoAssemblyScript: AssemblyScriptMemo = async (args, sources, gene
   const files = [...sources];
   // Unusually large direct tool callers retain their original uncached path.
   if (args.length > 64 || files.length > 65 || files.reduce((sum, [, value]) => sum + text.encode(value).byteLength, 0) > maximum)
-    return generate();
+    { reportBuildCache({cache:'assemblyscript-raw',event:'bypass',bytes:0}); return generate(); }
   const key = hashImmutableBytes(text.encode(encodeCanonicalJson({ version: 1, compiler: await projectCompilerIdentity(),
     node: process.version, platform: process.platform, arch: process.arch, args: [...args], sources: files })));
   const root = process.env['WILDSHARD_AS_RAW_CACHE'] ?? resolve(homedir(), '.cache/wildshard/gen/as-raw/1');
   const body = resolve(root, `${key}.wasm`), meta = resolve(root, `${key}.json`);
+  reportBuildCache({cache:'assemblyscript-raw',event:'lookup',bytes:0});
   try {
     const saved: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readBoundedFile(meta, 1000)));
     if (typeof saved === 'object' && saved !== null && 'key' in saved && saved.key === key
       && 'hash' in saved && typeof saved.hash === 'string' && /^[a-f0-9]{64}$/u.test(saved.hash)
       && 'bytes' in saved && typeof saved.bytes === 'number' && Number.isSafeInteger(saved.bytes) && saved.bytes > 0 && saved.bytes <= maximum) {
       const bytes = readBoundedFile(body, saved.bytes);
-      if (bytes.byteLength === saved.bytes && hashImmutableBytes(bytes) === saved.hash) return Uint8Array.from(bytes);
+      if (bytes.byteLength === saved.bytes && hashImmutableBytes(bytes) === saved.hash) {
+        reportBuildCache({cache:'assemblyscript-raw',event:'disk-hit',bytes:bytes.byteLength});
+        return Uint8Array.from(bytes);
+      }
     }
   } catch { /* An absent or damaged memo recompiles, without changing caller admission. */ }
+  reportBuildCache({cache:'assemblyscript-raw',event:'miss',bytes:0});
   const bytes = Uint8Array.from(await generate());
+  reportBuildCache({cache:'assemblyscript-raw',event:'computed',bytes:bytes.byteLength});
   if (bytes.byteLength === 0 || bytes.byteLength > maximum) return bytes;
+  let populated=false;
   const suffix = `.${process.pid}.${randomBytes(8).toString('hex')}.tmp`;
   try {
     mkdirSync(root, { recursive: true });
     writeFileSync(body + suffix, bytes, { flag: 'wx' }); renameSync(body + suffix, body);
     writeFileSync(meta + suffix, JSON.stringify({ key, bytes: bytes.byteLength, hash: hashImmutableBytes(bytes) }), { flag: 'wx' });
-    renameSync(meta + suffix, meta);
+    renameSync(meta + suffix, meta); populated=true;
   } catch { /* Optional storage cannot change the compiler result. */ }
   finally { for (const file of [body + suffix, meta + suffix]) try { rmSync(file, { force: true }); } catch { /* Own temporary only. */ } }
+  reportBuildCache({cache:'assemblyscript-raw',event:populated?'population':'write-failure',bytes:populated?bytes.byteLength:0});
   return bytes;
 };

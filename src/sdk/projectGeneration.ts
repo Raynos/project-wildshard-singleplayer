@@ -9,6 +9,7 @@ import { channel } from 'node:diagnostics_channel';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native output keys include the original runtime and host.
 import process from 'node:process';
 import * as v from 'valibot';
+import { reportBuildCache } from './buildCacheMetrics';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { copyAssetBytes, hashAssetBytes } from './assetHandle';
 import { readBoundedFile } from './sourceReader';
@@ -150,11 +151,17 @@ export function createProjectGeneration(project: string, programHash: string, as
         if (!path.startsWith(base + sep)) throw new Error('Generation input escaped its declared root');
         inputs.set(file, readBoundedFile(path, 256_000_000));
       }
-      const key = hashImmutableBytes(text.encode(encodeCanonicalJson({ version: 2, programHash, compiler: await projectCompilerIdentity(), id: step.id, node: process.version,
+      let diagnosticId='';
+      const key = hashImmutableBytes(text.encode(encodeCanonicalJson({ version: 2, programHash, compiler: await projectCompilerIdentity(), id: diagnosticId=step.id, node: process.version,
         native: step.native === true ? [process.platform, process.arch] : null,
         inputs: [...inputs].map(([file, bytes]) => [file, hashImmutableBytes(bytes)]).sort(([a], [b]) => String(a).localeCompare(String(b))) })));
       keys.publish({ key });
+      const metric=(event:Parameters<typeof reportBuildCache>[0]['event'],bytes:number):void=>{
+        reportBuildCache({cache:'generation-step',project:basename(root),step:diagnosticId,event,bytes});
+      };
+      metric('lookup',0);
       let work = pending.get(key);
+      const memoryHit=work!==undefined;
       if (work === undefined) {
         work = (async () => {
           const directory = resolve(cacheRoot, basename(root), step.id, key), index = resolve(directory, 'index.json');
@@ -169,26 +176,32 @@ export function createProjectGeneration(project: string, programHash: string, as
               if (bytes.byteLength !== row.bytes || hashAssetBytes(bytes) !== row.hash) throw new Error('Generation cache byte mismatch');
               files.set(row.name, bytes);
             }
+            metric('disk-hit',[...files.values()].reduce((sum,bytes)=>sum+bytes.byteLength,0));
             return files;
           }
           // Input URL keys have already crossed the explicit-root checks above;
           // output names still cross the stricter cache-file path contract.
+          metric('miss',0);
           const copy = new Map([...inputs].map(([file, bytes]) => [file, new Uint8Array(bytes)]));
           const files = detached(await generate(copy)), parent = resolve(directory, '..');
+          const payloadBytes=[...files.values()].reduce((sum,body)=>sum+body.byteLength,0);
+          metric('computed',payloadBytes);
           mkdirSync(parent, { recursive: true });
           const temporary = mkdtempSync(resolve(parent, '.writing-'));
           try {
             const rows = [...files].map(([file, bytes]) => ({ name: file, hash: hashAssetBytes(bytes), bytes: bytes.byteLength }));
             for (const bytes of files.values()) writeFileSync(resolve(temporary, hashAssetBytes(bytes)), bytes);
             writeFileSync(resolve(temporary, 'index.json'), encodeCanonicalJson({ key, files: rows }));
-            try { renameSync(temporary, directory); }
-            catch (error) { if (!(error instanceof Error && 'code' in error && (error.code === 'EEXIST' || error.code === 'ENOTEMPTY'))) throw error; }
+            try { renameSync(temporary, directory); metric('population',payloadBytes); }
+            catch (error) { if (!(error instanceof Error && 'code' in error && (error.code === 'EEXIST' || error.code === 'ENOTEMPTY'))) throw error; metric('population-race',0); }
           } finally { rmSync(temporary, { recursive: true, force: true }); }
           return files;
         })();
         pending.set(key, work);
       }
-      return detached(await work);
+      const files=await work;
+      if(memoryHit)metric('memory-hit',[...files.values()].reduce((sum,bytes)=>sum+bytes.byteLength,0));
+      return detached(files);
     },
   };
 }

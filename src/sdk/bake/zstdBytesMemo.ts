@@ -6,6 +6,7 @@ import { mkdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Cache paths use only trusted roots and hashes.
 import { resolve } from 'node:path';
+import { reportBuildCache } from '../buildCacheMetrics';
 import { readBoundedFile } from '../sourceReader';
 import { encodeBuildBytes } from './byteCodec';
 
@@ -23,21 +24,29 @@ export function encodeZstdBytesMemo(input: Uint8Array, level = 19): Uint8Array<A
   const root = process.env['WILDSHARD_ZSTD_BYTES_CACHE'] ?? resolve(homedir(), '.cache/wildshard/gen/native-zstd/1');
   const key = sha(`${codec}\0${level}\0${owned.byteLength}\0${sha(owned)}`);
   const body = resolve(root, `${key}.bin`), meta = resolve(root, `${key}.json`);
+  reportBuildCache({cache:'zstd-bytes',event:'lookup',bytes:0});
   try {
     const saved: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readBoundedFile(meta, 1000)));
     if (typeof saved === 'object' && saved !== null && 'key' in saved && saved.key === key
       && 'hash' in saved && typeof saved.hash === 'string' && /^[a-f0-9]{64}$/u.test(saved.hash)) {
       const bytes = readBoundedFile(body, 256_000_000);
-      if (sha(bytes) === saved.hash) return Uint8Array.from(bytes);
+      if (sha(bytes) === saved.hash) {
+        reportBuildCache({cache:'zstd-bytes',event:'disk-hit',bytes:bytes.byteLength});
+        return Uint8Array.from(bytes);
+      }
     }
   } catch { /* An optional memo never replaces the original encoder's admission. */ }
+  reportBuildCache({cache:'zstd-bytes',event:'miss',bytes:0});
   const bytes = encodeBuildBytes(owned, 'zstd', level);
+  reportBuildCache({cache:'zstd-bytes',event:'computed',bytes:bytes.byteLength});
+  let populated=false;
   const suffix = `.${process.pid}.${randomBytes(8).toString('hex')}.tmp`;
   try {
     mkdirSync(root, { recursive: true });
     writeFileSync(body + suffix, bytes, { flag: 'wx' }); renameSync(body + suffix, body);
-    writeFileSync(meta + suffix, JSON.stringify({ key, hash: sha(bytes) }), { flag: 'wx' }); renameSync(meta + suffix, meta);
+    writeFileSync(meta + suffix, JSON.stringify({ key, hash: sha(bytes) }), { flag: 'wx' }); renameSync(meta + suffix, meta); populated=true;
   } catch { /* Storage availability does not change the build. */ }
   finally { for (const file of [body + suffix, meta + suffix]) try { rmSync(file, { force: true }); } catch { /* Own temporaries only. */ } }
+  reportBuildCache({cache:'zstd-bytes',event:populated?'population':'write-failure',bytes:populated?bytes.byteLength:0});
   return Uint8Array.from(bytes);
 }
