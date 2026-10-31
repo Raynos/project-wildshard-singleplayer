@@ -12,9 +12,11 @@ for(const stage of ['vanes','winch','roc'] as const)test(stage==='vanes'
   ?'Sky turns all three vanes through real GUSTs; movement alone cannot turn them'
   :stage==='winch'?'Sky earns the winch after the roost and vanes; omitting USE cannot raise the bridge'
   :'Sky defeats the Storm Roc with actual fan contacts and exact fresh-worker replay',()=>{
+  const started=performance.now();
   const child=spawnSync(process.execPath,['--experimental-transform-types','--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
     resolve('test/fixtures/headless/sky-roost-run.ts'),stage],{encoding:'utf8',timeout:30_000});
-  expect(child.status,child.stdout+child.stderr).toBe(0);
+  const outcome=child.stdout+child.stderr+JSON.stringify({error:child.error?.message,code:child.error!==undefined&&'code' in child.error?child.error.code:null,signal:child.signal,elapsedMs:performance.now()-started});
+  expect(child.error,outcome).toBeUndefined();expect(child.signal,outcome).toBeNull();expect(child.status,outcome).toBe(0);
   const line=child.stdout.split('\n').find(row=>row.includes('"phase":"replayed"'));
   if(line===undefined)throw new Error('Missing actual Sky progression replay');
   const observed=v.parse(result,JSON.parse(line));

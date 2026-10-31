@@ -22,6 +22,7 @@ const stage=process.argv[2]??'roost';
 if(stage!=='roost'&&stage!=='vanes'&&stage!=='winch'&&stage!=='roc')throw new Error('Unknown Sky progression tape');
 const earned=stage==='roost'?'far.roost':stage==='vanes'?'far.vanes':stage==='winch'?'far.bridge':'far.roc.down';
 const started=performance.now(),session=await beginProductSession('far-reach','sky-verbs'),{product,assets}=session;
+let negativeSession:Awaited<ReturnType<typeof beginProductSession>>|undefined;
 let resident:Awaited<ReturnType<typeof createNativeProofResident>>|undefined,releaseRopes=()=>{ /* No ropes are installed before the resident is ready. */ };
 /** The existing controller's world axes enter the actual camera-relative phone stick law. */
 function controls(command:HeadlessCommand):HeadlessCommand {
@@ -39,6 +40,16 @@ try{
   assert.ok(actors.every(actor=>actor.alive));assert.equal(host.flags.has('far.roost'),false);
   const parts:HeadlessTapeSegment[]=[];
   let firstRocDamagePart:string|undefined,rocDamageChanges=0,negativeThroughTick=0;
+  negativeSession=await beginProductSession('far-reach','sky-verbs');
+  const negativeOwner=negativeSession;
+  const negativeOutcome=(async()=>{
+    try{
+      const negative=await negativeOwner.ready();
+      console.info(JSON.stringify({phase:'negative-ready',milliseconds:performance.now()-started}));
+      return {ok:true as const,negative};
+    }catch(error){return {ok:false as const,error};}
+  })();
+  let removedSwings=0,removedGusts=0,removedWinches=0,removedRocAttacks=0,negativeFinished=false;
   const controller=new SkyTape(),expected:HeadlessTapeObservation[]=[],encoder=new TextEncoder(),sim=await session.ready();
   let frames:HeadlessCommand[][]=[],effects:HeadlessEffect[]=[],total=0,commandsCount=0,bytes=0,peakY=host.player.position.y,last=quest.current?.id;
   const flush=():HeadlessTapeSegment|undefined=>{
@@ -55,9 +66,41 @@ try{
       alive:actors.filter(actor=>actor.alive).length,rocHp:roc.hp,rocY:roc.position.y,position:host.player.position.toArray(),milliseconds:performance.now()-started}));
     return segment;
   };
+  const counterfactual=async(part:HeadlessTapeSegment):Promise<void>=>{
+    if(negativeFinished)return;
+    const ready=await negativeOutcome;if(!ready.ok)throw ready.error;const negative=ready.negative;
+      const unarmed=part.frames?.map(frame=>{
+        const omitRoc=stage==='roc'&&frame.some(command=>command.kind==='player'&&command.attack?.targetId===ROC_ID);
+        return frame.flatMap(command=>{
+        if(omitRoc&&command.kind==='script'&&command.actorId===FAN_ACTOR&&command.value===FAN_ACT.gust){removedRocAttacks++;return [];}
+        if(omitRoc&&command.kind==='player'&&command.attack!==undefined){const rest={...command};delete rest.attack;removedRocAttacks++;return [rest];}
+        if(stage==='winch'&&command.kind==='script'&&command.actorId===SKY_INTERACT&&command.value===SKY_ACT.winch){removedWinches++;return [];}
+        if(stage==='vanes'&&command.kind==='script'&&command.actorId===FAN_ACTOR&&command.value===FAN_ACT.gust){removedGusts++;return [];}
+        if(stage!=='roost')return [command];
+        if(command.kind!=='player'||command.attack===undefined)return [command];
+        const rest={...command};delete rest.attack;removedSwings++;return [rest];
+      });});assert.ok(unarmed);
+      const replay=await negative.verbTapePart({version:1,observe:[],segments:[{...part,frames:unarmed}]});
+      const observed=replay.report.observations[0];assert.ok(observed);
+      const saved=decodeSimSnapshot(replay.commit.snapshot);
+      assert.equal(observed.flags.includes(earned),false,'identical movement without the required fan input cannot earn this step');
+      if(stage==='roost')for(const id of ROOST_IDS){const actor=saved.entities.find(row=>row.id===id);assert.ok(actor);assert.equal(actor.state.flags.alive,true);}
+      else if(stage==='vanes')for(const id of ['grove','keeper','ruin'])assert.equal(saved.flags.includes(`far.vane.${id}`),false);
+      else if(stage==='roc'){
+        const actor=saved.entities.find(row=>row.id===ROC_ID);assert.ok(actor);assert.equal(actor.state.flags.alive,true);
+        assert.equal(actor.state.motion.hp,actor.state.motion.maxHp,'the first recorded damage needs the real fan input');
+        // Beyond this first-damage control the unarmed bird can dive off the
+        // island and die to the kill plane. That is not an attack-only win law.
+        if(part.id===firstRocDamagePart){negativeThroughTick=replay.commit.tick;negativeFinished=true;}
+      }
+
+    console.info(JSON.stringify({phase:'negative-checked',id:part.id,tick:replay.commit.tick,complete:negativeFinished,milliseconds:performance.now()-started}));
+  };
   let replayedTicks=0;
   const submit=async():Promise<void>=>{
     const segment=flush();if(segment===undefined)return;parts.push(segment);
+    const positive=async():Promise<void>=>{
+    console.info(JSON.stringify({phase:'replay-request',id:segment.id,tick:host.state.tick,milliseconds:performance.now()-started}));
     const replay=await sim.verbTapePart({version:1,observe:[],segments:[segment]});
     const wanted=expected.at(-1);assert.ok(wanted);
     assert.deepEqual(replay.report.observations,[wanted],'fresh inputs retain every boundary, feet, quest, peak and effect');
@@ -68,6 +111,12 @@ try{
     assert.deepEqual(actual,wantedSave,'the replay retains every native continuation field');
     assert.deepEqual(physicsState(actualPhysics),physicsState(expectedPhysics),'all native body/collider/contact values remain exact');
     replayedTicks+=replay.report.ticks;
+    console.info(JSON.stringify({phase:'replay-checked',id:segment.id,tick:replay.commit.tick,milliseconds:performance.now()-started}));
+    };
+    // Distinct owners may replay together; drain both replies and every old
+    // comparison before recording the next part, including on refusal.
+    const results=await Promise.allSettled([positive(),counterfactual(segment)]);
+    for(const result of results)if(result.status==='rejected')throw result.reason;
   };
   const complete=()=>host.flags.has(earned)&&(stage!=='roc'||host.player.motor.snapshot().result.grounded);
   while(total<30_000&&!complete()){
@@ -102,40 +151,14 @@ try{
   }
   assert.equal(replayedTicks,total);
   assert.equal(sim.quarantined,false);
-  const negativeSession=await beginProductSession('far-reach','sky-verbs');
-  let removedSwings=0,removedGusts=0,removedWinches=0,removedRocAttacks=0;
-  try{
-    const negative=await negativeSession.ready();
-    for(const part of parts){
-      const unarmed=part.frames?.map(frame=>{
-        const omitRoc=stage==='roc'&&frame.some(command=>command.kind==='player'&&command.attack?.targetId===ROC_ID);
-        return frame.flatMap(command=>{
-        if(omitRoc&&command.kind==='script'&&command.actorId===FAN_ACTOR&&command.value===FAN_ACT.gust){removedRocAttacks++;return [];}
-        if(omitRoc&&command.kind==='player'&&command.attack!==undefined){const rest={...command};delete rest.attack;removedRocAttacks++;return [rest];}
-        if(stage==='winch'&&command.kind==='script'&&command.actorId===SKY_INTERACT&&command.value===SKY_ACT.winch){removedWinches++;return [];}
-        if(stage==='vanes'&&command.kind==='script'&&command.actorId===FAN_ACTOR&&command.value===FAN_ACT.gust){removedGusts++;return [];}
-        if(stage!=='roost')return [command];
-        if(command.kind!=='player'||command.attack===undefined)return [command];
-        const rest={...command};delete rest.attack;removedSwings++;return [rest];
-      });});assert.ok(unarmed);
-      const replay=await negative.verbTapePart({version:1,observe:[],segments:[{...part,frames:unarmed}]});
-      const observed=replay.report.observations[0];assert.ok(observed);
-      const saved=decodeSimSnapshot(replay.commit.snapshot);
-      assert.equal(observed.flags.includes(earned),false,'identical movement without the required fan input cannot earn this step');
-      if(stage==='roost')for(const id of ROOST_IDS){const actor=saved.entities.find(row=>row.id===id);assert.ok(actor);assert.equal(actor.state.flags.alive,true);}
-      else if(stage==='vanes')for(const id of ['grove','keeper','ruin'])assert.equal(saved.flags.includes(`far.vane.${id}`),false);
-      else if(stage==='roc'){
-        const actor=saved.entities.find(row=>row.id===ROC_ID);assert.ok(actor);assert.equal(actor.state.flags.alive,true);
-        assert.equal(actor.state.motion.hp,actor.state.motion.maxHp,'the first recorded damage needs the real fan input');
-        // Beyond this first-damage control the unarmed bird can dive off the
-        // island and die to the kill plane. That is not an attack-only win law.
-        if(part.id===firstRocDamagePart){negativeThroughTick=replay.commit.tick;break;}
-      }
-    }
-    if(stage==='roc')assert.ok(negativeThroughTick>0);
-    assert.ok(stage==='roost'?removedSwings>0:stage==='vanes'?removedGusts>0:stage==='winch'?removedWinches>0:removedRocAttacks>0);assert.equal(negative.quarantined,false);
-  }finally{await(await negativeSession.ready()).dispose();}
+  const negativeReady=await negativeOutcome;if(!negativeReady.ok)throw negativeReady.error;
+  if(stage==='roc')assert.ok(negativeThroughTick>0);
+  assert.ok(stage==='roost'?removedSwings>0:stage==='vanes'?removedGusts>0:stage==='winch'?removedWinches>0:removedRocAttacks>0);assert.equal(negativeReady.negative.quarantined,false);
   console.info(JSON.stringify({phase:'replayed',story:`sky-${stage}`,ticks:total,commands:commandsCount,parts:expected.length,removedSwings,removedGusts,removedWinches,removedRocAttacks,rocDamageChanges,negativeThroughTick,
     flags:[...host.flags.all],milliseconds:performance.now()-started}));
 }catch(error){console.error(JSON.stringify({phase:'failed',tick:resident?.host.state.tick,error:error instanceof Error?error.message:String(error)}));throw error;}
-finally{releaseRopes();resident?.dispose();await(await session.ready()).dispose();}
+finally{
+  releaseRopes();resident?.dispose();
+  try{if(negativeSession!==undefined)await(await negativeSession.ready()).dispose();}
+  finally{await(await session.ready()).dispose();}
+}
