@@ -6,7 +6,8 @@ import {resolve,sep} from 'node:path';
 import {createHash} from 'node:crypto';
 import {loadHeadlessProduct} from '../../src/sdk/headlessProduct';
 import {outputDescriptor} from '../../src/game/shardfile/outputDescriptor';
-import {emitClassicGraph,graphShaders} from '../../src/engine/render/graph/glslProgram';
+import {emitClassicGraph} from '../../src/engine/render/graph/glslProgram';
+import {graphFragmentIdentity} from './graph-fragment-identity';
 import {ToonLook} from '../../src/engine/render/families/toon';
 import {familyPresetGraph,PRESET_GRAPH_BUDGET} from '../../src/engine/render/graph/presets';
 import {presetLooks} from '../../src/format/materials';
@@ -19,6 +20,10 @@ export interface ShippedGraphCost {
  readonly codeHash:string;
  /** Exact live ShaderMaterial source identity for the fullscreen post program. */
  readonly postFragmentShaderHash:string|null;
+ /** Exact wrapped main/outline sources, including the selected admitted fog. */
+ readonly fragmentShaderHashes:ReturnType<typeof graphFragmentIdentity>;
+ /** Its cost is reported separately: a fog function is not a standalone draw. */
+ readonly selectedFogGraphHash:string|null;
  readonly aliases:readonly string[];
  readonly kind:GraphGlsl['ir']['kind'];
  readonly admission:GraphGlsl['cost'];
@@ -35,7 +40,7 @@ function graphLike(value:unknown):boolean{
 export async function shippedGraphCosts(directory:string):Promise<readonly ShippedGraphCost[]>{
  const root=realpathSync(directory),product=await loadHeadlessProduct(root),source=product.shardfile;
  const descriptor=outputDescriptor(source);if(descriptor===undefined)throw new Error('Graph census requires its verified output descriptor');
- const toonLook=new ToonLook(source.look.familyLooks.toon??{}),rows=new Map<string,ShippedGraphCost>();
+ const toonLook=new ToonLook(source.look.familyLooks.toon??{}),rows=new Map<string,ShippedGraphCost>(),lowered=new Map<string,GraphGlsl>();
  const aliases=new Map<string,string[]>(),required=new Set<string>();
  const alias=(key:string,name:string):void=>{aliases.set(key,[...(aliases.get(key)??[]),name]);};
  for(const [name,entry] of Object.entries(source.look.materials))if(entry.family==='graph'&&'file'in entry){required.add(entry.file);alias(entry.file,`look.materials.${name}`);}
@@ -46,7 +51,8 @@ export async function shippedGraphCosts(directory:string):Promise<readonly Shipp
   const options={toonLook,trustedBudget:true,...(budget===undefined?{}:{budget})};
   const plain=emitClassicGraph(input,options),{executionCost,...emitted}=emitClassicGraph(input,{...options,reportExecutionCost:true});
   if(executionCost===undefined||JSON.stringify(emitted)!==JSON.stringify(plain))throw new Error('Graph reporting changed emitted code or admission');
-  rows.set(key,{slug:product.slug,graphHash:key,codeHash:hash(JSON.stringify({program:plain.program,outline:plain.outline,fog:plain.fog,libraries:plain.libraries,uniforms:plain.uniforms,attributes:plain.attributes})),postFragmentShaderHash:plain.ir.kind==='post'?hash(graphShaders(plain,{toonLook}).fragmentShader):null,aliases:[...new Set(names)],kind:plain.ir.kind,admission:plain.cost,execution:executionCost,selects:{main:plain.program?.selects??null,outline:plain.outline?.selects??null}});
+  lowered.set(key,plain);
+  rows.set(key,{slug:product.slug,graphHash:key,codeHash:hash(JSON.stringify({program:plain.program,outline:plain.outline,fog:plain.fog,libraries:plain.libraries,uniforms:plain.uniforms,attributes:plain.attributes})),postFragmentShaderHash:null,fragmentShaderHashes:{main:null,outline:null},selectedFogGraphHash:null,aliases:[...new Set(names)],kind:plain.ir.kind,admission:plain.cost,execution:executionCost,selects:{main:plain.program?.selects??null,outline:plain.outline?.selects??null}});
  };
  const visit=(value:unknown,name:string,key?:string):void=>{
   if(graphLike(value)){add(value,key??hash(JSON.stringify(value)),[...(key===undefined?[]:aliases.get(key)??[]),name]);return;}
@@ -61,9 +67,24 @@ export async function shippedGraphCosts(directory:string):Promise<readonly Shipp
   visit(data,file.name??file.path,file.hash);
  }
  const looks=presetLooks(source.look.familyLooks);
- for(const [name,entry] of Object.entries(source.look.materials))if(entry.family==='graph'&&'preset'in entry){
-  const graph=familyPresetGraph(entry.preset,looks);add(graph,hash(JSON.stringify(graph)),[`look.materials.${name}:preset`],PRESET_GRAPH_BUDGET);
+ for(const [name,entry] of Object.entries(source.look.materials))if(entry.family==='graph'){
+  if('preset'in entry){const graph=familyPresetGraph(entry.preset,looks);add(graph,hash(JSON.stringify(graph)),[`look.materials.${name}:preset`],PRESET_GRAPH_BUDGET);}
+  else if('graph'in entry)add(entry.graph,hash(JSON.stringify(entry.graph)),[`look.materials.${name}:inline`]);
  }
  for(const key of required)if(!rows.has(key))throw new Error(`Declared graph ${key} was absent from the emitted census`);
+ for(const [key,row] of rows){
+  const glsl=lowered.get(key);if(glsl===undefined)throw new Error('Graph lowering was absent from the emitted census');
+  const selected=glsl.ir.effectState?.fog;
+  let fog:GraphGlsl|undefined,selectedFogGraphHash:string|null=null;
+  if(typeof selected==='string'){
+   const entry=source.look.materials[selected];
+   if(entry?.family!=='graph'||'preset'in entry)throw new Error('Selected fog is absent from the admitted catalogue');
+   selectedFogGraphHash='file'in entry?entry.file:hash(JSON.stringify(entry.graph));
+   fog=lowered.get(selectedFogGraphHash);
+   if(fog===undefined)throw new Error('Selected fog lowering is absent from the emitted census');
+  }
+  const fragmentShaderHashes=graphFragmentIdentity(glsl,toonLook,fog);
+  rows.set(key,{...row,fragmentShaderHashes,selectedFogGraphHash,postFragmentShaderHash:row.kind==='post'?fragmentShaderHashes.main:null});
+ }
  return [...rows.values()].sort((a,b)=>a.graphHash.localeCompare(b.graphHash));
 }
