@@ -297,6 +297,9 @@ def wait_for_bootstatus(udid, remaining):
         result = subprocess.run(['xcrun', 'simctl', 'bootstatus', udid, '-b', '-d'],
                                 stdout=sys.stderr, timeout=budget, check=False)
         code = result.returncode if result.returncode >= 0 else 128 - result.returncode
+        if code == 0 and time.monotonic() >= deadline:
+            print('sim-lane: bootstatus success observed after admission deadline', file=sys.stderr, flush=True)
+            code = 75
     except subprocess.TimeoutExpired:
         print(f'sim-lane: bootstatus admission timed out; owned helper {os.getpid()}, parent {os.getppid()}, device {udid}',
               file=sys.stderr, flush=True)

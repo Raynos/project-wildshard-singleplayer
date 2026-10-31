@@ -211,6 +211,24 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
         self.assertFalse((self.root / 'calls').exists())
         self.assert_not_handed_over()
 
+    def test_bootstatus_observed_late_success_is_refused(self):
+        native = READY['wait_for_bootstatus']
+        for returned, completed, expected in [(0, 2, 75), (23, 2, 23), (0, .5, 0)]:
+            clock = [0]
+            requests = []
+
+            def run(args, **kwargs):
+                requests.append((args, kwargs['timeout']))
+                clock[0] = completed
+                return SimpleNamespace(returncode=returned)
+
+            helper = FunctionType(native.__code__, {**native.__globals__,
+                'IMPORT_STARTED': 0, 'time': SimpleNamespace(monotonic=lambda: clock[0]),
+                'subprocess': SimpleNamespace(run=run, TimeoutExpired=subprocess.TimeoutExpired)})
+            self.assertEqual(helper(UDID, 1), expected)
+            self.assertEqual(requests, [(['xcrun', 'simctl', 'bootstatus', UDID, '-b', '-d'], 1)])
+        self.assert_not_handed_over()
+
     def test_native_bootstatus_75_is_not_reported_as_a_queue_timeout(self):
         result = self.lane(SIM_STATUS_RC='75')
         self.assertEqual(result.returncode, 75, result.stderr)
