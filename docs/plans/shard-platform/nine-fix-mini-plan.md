@@ -154,6 +154,24 @@ Raw: `tmp/sp-x8-g1/nine-a2dc-corrected/reading.json`,
 | approx-a | 0.600 | 0.056 | group:facades-slabs: 1.087; pass:2: 0.444; silhouette: 0.325; group:viewmodel: 0.244; group:crowd-umbrellas: 0.175 |
 | approx-b | 0.712 | 0.119 | group:facades-slabs: 1.281; pass:2: 0.469; silhouette: 0.400; group:viewmodel: 0.212; group:crowd-umbrellas: 0.194 |
 
+### nine-dragon-stack — after tonight's GPU cuts, HEAD b124f46e8d (sp-o1, 00:40)
+
+Same harness and settings (`scripts/pine-hollow-gpu.mjs --chunk=nine-dragon-stack`, phone tier, 804×1748, night/rain,
+whole throughput only: `--subtract=0`), two full passes on one `--head` preview; a2dc011 columns from the table above.
+Between them: G2 silk fog on line pixels (4801c23feb, already in a2dc), kinds 3 + 0 on their own programs (1c3b618319,
+3a1b02062a), the standalone display copy cut (8f591b94bc), Nine's buried chunk boundary hidden (12738017cf), plus every
+other lane's landings since a2dc. LEGACY reads within its run-to-run spread of a2dc (host drift ±0.07).
+This throughput floors at the CPU submit (~0.8–1.0 ms here), so it shows less of each GPU cut than the EXT-timer frozen-frame A/Bs in the commits (the boundary: −0.6…−0.95 ms there, −0.15…−0.34 on the whole SHARDFILE row here, with everything else).
+
+| Pose | a2dc LEGACY | a2dc SHARDFILE | a2dc gap | HEAD LEGACY (pass 1 / 2) | HEAD SHARDFILE (pass 1 / 2) | HEAD gap | SHARDFILE change |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| cam-1 | 1.488 | 2.200 | +0.712 | 1.500 / 1.456 | 1.919 / 1.913 | +0.438 | -0.284 |
+| cam-5 | 1.456 | 2.212 | +0.756 | 1.519 / 1.456 | 2.025 / 2.038 | +0.544 | -0.181 |
+| cam-14 | 1.525 | 2.256 | +0.731 | 1.631 / 1.544 | 1.981 / 1.981 | +0.394 | -0.275 |
+| cam-27 | 1.169 | 1.563 | +0.394 | 1.181 / 1.156 | 1.244 / 1.200 | +0.053 | -0.341 |
+| approx-a | 1.425 | 2.025 | +0.600 | 1.500 / 1.381 | 1.856 / 1.887 | +0.431 | -0.153 |
+| approx-b | 1.525 | 2.238 | +0.713 | 1.438 / 1.544 | 2.012 / 2.025 | +0.528 | -0.219 |
+
 ### pine-hollow — source a2dc011-mvvu4ju0
 
 | Pose | Mode | Whole throughput ms | CPU submit ms | Shadow skip | Depth-copy skip | Silhouette skip | Jiehua skip | Display skip | FXAA skip | No-op | End-start drift ms |
