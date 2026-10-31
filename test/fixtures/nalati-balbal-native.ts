@@ -61,7 +61,7 @@ export async function prepareNalatiBalbals(preparation:Parameters<PrepareHeadles
   if(damage===undefined||projected.step===undefined)throw new Error('Balbals require all original think and damage requests');
   const bindings=new WeakMap<SimHost,NativeEliteBindings>(),updates=new WeakMap<SimHost,(dt:number)=>void>(),
     poseUpdates=new WeakMap<SimHost,(dt:number)=>void>();
-  const combined=extra===undefined?intake:{species:[...intake.species,...extra.intake.species],recipes:[...intake.recipes,...extra.intake.recipes]};
+  const combined=extra===undefined?intake:{...extra.intake,species:[...intake.species,...extra.intake.species],recipes:[...intake.recipes,...extra.intake.recipes]};
   const base=await prepareNalatiTitan(preparation,{intake:combined,beforePatrol:(host,dt)=>{
     const run=updates.get(host);if(run===undefined)throw new Error('Timed slots did not bind before their original patrol slot');run(dt);
   },bindings:(host,owner)=>{

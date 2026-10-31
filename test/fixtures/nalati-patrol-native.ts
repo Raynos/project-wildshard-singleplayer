@@ -80,7 +80,7 @@ export async function prepareNalatiPatrol(preparation:Parameters<PrepareHeadless
   const directed=metadata.directed,programRows=actors.species.lookBook.program;
   const external=assembly.constants.pageElites.borrowed.map(parseExternalElite).find(row=>row.mode==='script'&&row.spawn.variant===declared.leader);
   if(external===undefined)throw new Error('Patrol requires its actual script-elite readiness owner');
-  const combined=extras===undefined?intake:{species:[...intake.species,...extras.intake.species],recipes:[...intake.recipes,...extras.intake.recipes]};
+  const combined=extras===undefined?intake:{...extras.intake,species:[...intake.species,...extras.intake.species],recipes:[...intake.recipes,...extras.intake.recipes]};
   const base=await prepareNalati(preparation,decodeTerrainTile,combined,undefined,observeWeather,extras?.bindings);
   return {...base,install:(host,context)=>{
     // The page advances timed encounters before native population movement.

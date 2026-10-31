@@ -48,6 +48,7 @@ import { nativeEliteBindings, type NativeEliteBindings } from '@wildshard/engine
 import { trustedLevel } from '../../src/game/plugin/simulation';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 import { need, readJson, prepareReturns } from './headless-plan';
+import {validateNalatiEncounterLoans} from './nalati-encounter-loans';
 
 const physicsRows = originalNalatiPhysics();
 /** Optional encounter intake comes from the same admitted species/body book;
@@ -56,6 +57,10 @@ const physicsRows = originalNalatiPhysics();
 export interface NalatiEncounterIntake {
     readonly species: readonly SpeciesData[];
     readonly recipes: readonly AnimalSimSpec[];
+    /** Explicit existing variant-book loans; missing physical recipes only. */
+    readonly borrowedKinds?:readonly string[];
+    /** Only these admitted always species acquire fixed decision cadence. */
+    readonly alwaysKinds?:readonly string[];
 }
 export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHeadlessRuntime>[0], decodeNativeTerrain: (bytes:Uint8Array|undefined,row:{resolution:number;size:number;seed:number})=>BakedGrid = decodeTerrainTile, encounters?:NalatiEncounterIntake, pastureCues?:PastureCues,
     observeWeather?:(host:SimHost,weather:{wind:Wind;storm:WeatherReactions})=>void,
@@ -109,7 +114,7 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
     }>(product, "sim/headless-boot.json"));
     const boot = encounters === undefined ? originalBoot : {
         ...originalBoot,
-        species: {...originalBoot.species,...Object.fromEntries(encounters.species.map(row=>[row.kind,{
+        species: {...originalBoot.species,...Object.fromEntries(encounters.species.filter(row=>!Object.hasOwn(originalBoot.species,row.kind)).map(row=>[row.kind,{
           kind:row.kind,variants:row.variants,...(row.spawnOnly===undefined?{}:{spawnOnly:row.spawnOnly}),
         }]))},
         hunt: {...originalBoot.hunt,...Object.fromEntries(encounters.species.map(row=>[row.kind,row]))},
@@ -117,11 +122,12 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
     };
     if(encounters!==undefined && (encounters.species.length>16 || encounters.recipes.length>64
       ||new Set(encounters.species.map(row=>row.kind)).size!==encounters.species.length
-      ||encounters.species.some(row=>Object.hasOwn(originalBoot.species,row.kind))
+      ||encounters.species.some(row=>Object.hasOwn(originalBoot.species,row.kind)&&!encounters.borrowedKinds?.includes(row.kind))
       ||encounters.recipes.some(row=>!encounters.species.some(species=>species.kind===row.kind))
       ||new Set(encounters.recipes.map(row=>`${row.kind}\0${row.variant}`)).size!==encounters.recipes.length))
       throw new Error('Native encounter intake duplicates or replaces an admitted population recipe');
     if(encounters!==undefined){
+      validateNalatiEncounterLoans(originalBoot,encounters);
       for(const species of encounters.species)v.parse(SpeciesSchema,species);
       for(const recipe of encounters.recipes){
         v.parse(nativeBodySchema('axis'),recipe);
@@ -134,8 +140,8 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
         ...constants.nativePopulation,
         eliteKinds: [...constants.nativePopulation.eliteKinds,...encounters.species.map(row=>row.kind)],
         motorKinds: [...constants.nativePopulation.motorKinds,...encounters.species.map(row=>row.kind)],
-        ...(encounters.species.some(row=>row.tick==='always')?{driver:{...constants.nativePopulation.driver,
-          alwaysKinds:[...constants.nativePopulation.driver.alwaysKinds??[],...encounters.species.filter(row=>row.tick==='always').map(row=>row.kind)]}}:{}),
+        ...((encounters.alwaysKinds?.length??0)>0?{driver:{...constants.nativePopulation.driver,
+          alwaysKinds:[...constants.nativePopulation.driver.alwaysKinds??[],...encounters.alwaysKinds??[]]}}:{}),
     };
     const grid = await ((decodeNativeTerrain)(((need(shard.terrain, "Missing terrain")["sampling"] === undefined) ? undefined : (assets["get"])(need(need(shard.terrain, "Missing terrain").sampling, "Missing sampling").file)), { "resolution": 256, "size": 500, "seed": shard["identity"]["seed"] }));
     const samplers = await ((bakedSamplers)(grid));

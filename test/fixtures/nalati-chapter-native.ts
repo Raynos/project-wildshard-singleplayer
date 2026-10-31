@@ -74,7 +74,7 @@ export function installNalatiChapterPoll(host:SimHost,content:ChapterViewRows,st
 export async function prepareNalatiChapter(preparation:Parameters<PrepareHeadlessRuntime>[0],enterKing=false):Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>>{
   const product=preparation.product,kingData=enterKing?await readNalatiKingData(product):undefined;
   const kingBindings=new WeakMap<SimHost,NativeEliteBindings>();
-  const base=await prepareNalatiBalbals(preparation,kingData===undefined?undefined:{intake:kingData.intake,
+  const base=await prepareNalatiBalbals(preparation,kingData===undefined?undefined:{intake:{...kingData.intake,borrowedKinds:[kingData.declared.kind],alwaysKinds:[kingData.declared.kind]},
     bindings:(host,bindings)=>{kingBindings.set(host,bindings);}});
   const content=v.parse(ChapterViewSchema,await product.json('quests/content.json'));
   const story=parseChapterStoryPresentation(await product.json('quests/chapters.json'));
