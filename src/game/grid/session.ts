@@ -53,7 +53,7 @@ import { GridAssembly, type GridCell } from './assembly';
 import { neighbourEdges } from './readinessEdges';
 import { DEVSERVER, gridMode } from './menu';
 import { gridCells, pageGridInstance } from '../plugin/context';
-import { prepareHomeMetadata } from './homeMetadata';
+import { prepareHomeMetadata, withInitialHomeMetadata } from './homeMetadata';
 import type { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
 import { PlatformRenderResidency } from './renderResidency';
@@ -374,7 +374,7 @@ export class GridSession {
 
   /** Load every cell's edge rows (`loadGridEdgeProfiles` over the shards' own data, baked by the build: a grid entry read
    *  20 products' index and edge section through the serial content cache, 3.5 s on Jake's phone), then build the session. */
-  static async create(host: GridSessionHost, progress?: StepProgress): Promise<GridSession> {
+  static async create(host: GridSessionHost, progress?: StepProgress, initialHomeMetadata = false): Promise<GridSession> {
     if (host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
     const timing = clientPreparationBatch('grid', 'assembly', ['setup', 'seam-source', 'edge-admission', 'compiled-page', 'worker-wait', 'road-start', 'collider-join', 'session', 'final-yield']);
     const allocator = host.residency.allocator;
@@ -382,6 +382,7 @@ export class GridSession {
     const instance = pageGridInstance();
     if (instance === null) throw new Error('A grid session needs a grid page');
     const home = assembly.cell(instance);
+    const create = async (metadata?: Promise<void>): Promise<GridSession> => {
     const reach = 1.5 * assembly.pitch + 1;
     const ring = (x: number, z: number): boolean => Math.abs(x - home.origin.x) <= reach && Math.abs(z - home.origin.z) <= reach;
     const layout = roadLayout(assembly, slug => findShard(slug)?.name ?? slug);
@@ -513,6 +514,7 @@ export class GridSession {
       if (host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during collider preparation');
       timing?.mark('collider-join');
       const session = new GridSession(host, edges, allocator, strips, { road, outer, outerStrips, publishStrips: added => { strips.push(...added); }, plans, collidersInstalled: true });
+      session.initialHomeMetadata = metadata ?? null;
       timing?.mark('session');
       progress?.set(3, 3, `${assembly.cells.length} cells · ${strips.length} seams`);
       await construction.yield();
@@ -521,6 +523,10 @@ export class GridSession {
     } catch (error) { roadScope.dispose(); throw error; }
     } catch (error) { signs?.release(); grain?.release(); throw error; }
     finally { timing?.finish(); }
+    };
+    const completed = await (initialHomeMetadata ? withInitialHomeMetadata(host.scope,
+      () => gridShardfileProduct(home.slug, { allocator, scope: host.scope }, 'metadata'), create) : create());
+    return completed;
   }
 
   constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad | Promise<PlatformRoad>; readonly outer?: () => Promise<PlatformRoad>; readonly outerStrips?: (scope: Scope) => Promise<readonly GeneratedStrip[]>; readonly publishStrips?: (strips: readonly GeneratedStrip[]) => void; readonly plans: Map<Mesh, CullPlan>; readonly collidersInstalled?: true }) {

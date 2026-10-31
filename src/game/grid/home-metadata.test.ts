@@ -1,6 +1,58 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
-import { initialHomeMetadataRequired, prepareHomeMetadata } from './homeMetadata';
+import { initialHomeMetadataRequired, prepareHomeMetadata, withInitialHomeMetadata } from './homeMetadata';
+
+function deferred<T>() {
+  let finish = (_value: T): void => { throw new Error('Missing resolver'); };
+  const ready = new Promise<T>(resolve => { finish = resolve; });
+  return { ready, finish };
+}
+
+test('session work overlaps the same metadata read without moving the Home barrier', async () => {
+  const page = new Scope('page'), source = deferred<{ release: () => void }>(), session = deferred<undefined>();
+  const release = vi.fn<() => void>(), read = vi.fn(() => source.ready), events: string[] = [];
+  const creating = withInitialHomeMetadata(page, read, async homeReady => {
+    events.push('create'); await session.ready; events.push('created');
+    return { homeReady };
+  });
+  await Promise.resolve();
+  expect(read).toHaveBeenCalledOnce(); expect(events).toEqual(['create']);
+  session.finish(undefined); const created = await creating;
+  let entered = false;
+  const home = created.homeReady.then(() => { entered = true; return undefined; });
+  await Promise.resolve(); expect(entered).toBe(false); expect(release).not.toHaveBeenCalled();
+  source.finish({ release }); await home;
+  expect(entered).toBe(true); expect(read).toHaveBeenCalledOnce(); expect(release).not.toHaveBeenCalled();
+  page.dispose(); expect(release).toHaveBeenCalledOnce();
+});
+
+test('early metadata rejection stays at Home and does not reject session creation', async () => {
+  const page = new Scope('page'), error = new Error('Original metadata refusal');
+  const read = vi.fn(() => Promise.reject(error));
+  const created = await withInitialHomeMetadata(page, read, ready => Promise.resolve({ ready }));
+  await expect(created.ready).rejects.toBe(error);
+  await expect(created.ready).rejects.toBe(error);
+  expect(read).toHaveBeenCalledOnce(); page.dispose();
+});
+
+test.each([false, true])('failed session drops its metadata lease without retiring the page (settled=%s)', async settled => {
+  const page = new Scope('page'), source = deferred<{ release: () => void }>(), session = deferred<undefined>();
+  const release = vi.fn<() => void>(), error = new Error('Original session refusal');
+  const read = vi.fn(() => source.ready);
+  const creating = withInitialHomeMetadata(page, read, async ready => {
+    await session.ready;
+    if (settled) await ready;
+    throw error;
+  });
+  await Promise.resolve();
+  if (settled) source.finish({ release });
+  session.finish(undefined); await expect(creating).rejects.toBe(error);
+  expect(page.disposed).toBe(false);
+  if (!settled) source.finish({ release });
+  await Promise.resolve(); await Promise.resolve();
+  expect(release).toHaveBeenCalledOnce(); expect(read).toHaveBeenCalledOnce();
+  page.dispose(); expect(release).toHaveBeenCalledOnce();
+});
 
 test('metadata starts before the barrier and keeps one page-owned lease', async () => {
   const owner = new Scope('initial home'), release = vi.fn<() => void>();

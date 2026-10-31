@@ -180,7 +180,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
         renderer.setRenderTarget(game.composer.inputBuffer);
         try { renderer.compile(object, game.camera, game.rootScene); } finally { renderer.setRenderTarget(prev); }
       } }; },
-      onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }, p);
+      onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }, p, initialHomeMetadataRequired(session));
   });
   // This home is already the real control dependency, not a neighbour or a
   // recovery-road guess. Metadata can overlap UI; construction stays in finish.

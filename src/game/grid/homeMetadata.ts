@@ -1,4 +1,5 @@
 import type { SessionState } from '../session/context';
+import type { Scope } from '@wildshard/engine/app/scope';
 
 interface MetadataOwner { readonly disposed: boolean; readonly disposing: boolean; onDispose: (release: () => void) => void }
 interface MetadataLease { readonly release: () => void }
@@ -24,4 +25,16 @@ export function prepareHomeMetadata(owner: MetadataOwner, read: () => Promise<Me
   // barrier. An earlier page-setup failure cannot leave an unhandled rejection.
   void ready.catch(() => undefined);
   return ready;
+}
+
+/** The page remains the product-cache owner. Only the borrowed metadata lease
+ * belongs to this child lifetime, so failed session creation cannot retain it.
+ * Metadata rejection stays behind the original Home wait; it never rejects an
+ * otherwise successful session constructor. */
+export async function withInitialHomeMetadata<T>(owner: Scope, read: () => Promise<MetadataLease | null> | null,
+  create: (ready: Promise<void>) => Promise<T>): Promise<T> {
+  const lifetime = owner.child('initial home metadata');
+  const ready = prepareHomeMetadata(lifetime, read);
+  try { return await create(ready); }
+  catch (error) { lifetime.dispose(); throw error; }
 }
