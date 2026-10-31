@@ -6,6 +6,7 @@ import * as v from 'valibot';
 import { InputHashMemo } from './bake-input-hashes.mjs';
 import { captureProductInputs, matchingProductInputKey, productInputKey, publishProductInputs, replayProductInputs } from './shardfile-inputs.mjs';
 import { shardfileCacheRoot } from './shardfile-cache.mjs';
+import { authorBundleUseLine } from './author-bundle-usage.mjs';
 
 /** @param {string} value */
 const digest = value => createHash('sha256').update(value).digest('hex');
@@ -22,13 +23,19 @@ export async function authorBundleCached(root, recipe, compile, cacheRoot = shar
     .filter(([name]) => name.startsWith('VITE_') || name === 'NODE_ENV' || name === 'NODE_OPTIONS')
     .sort(([left], [right]) => left.localeCompare(right)));
   const args = ['author-bundle/3', root, JSON.stringify(environment), ...recipe];
-  const directory = resolve(cacheRoot, '.author-bundles', digest(JSON.stringify(args)));
+  const namespace = digest(JSON.stringify(args)), directory = resolve(cacheRoot, '.author-bundles', namespace);
+  /** @param {string} key */
+  const used = key => {
+    const line = authorBundleUseLine(root, cacheRoot, namespace, key);
+    if (line !== undefined) console.info(line);
+  };
   const receipts = resolve(directory, 'inputs'), memo = new InputHashMemo(root);
   const key = matchingProductInputKey(root, receipts, args, memo);
   if (key !== undefined) try {
     const saved = v.parse(Saved, JSON.parse(readFileSync(resolve(directory, `${key}.json`), 'utf8')));
     if (saved.key === key && saved.seal === digest(JSON.stringify(saved.bundle))) {
       replayProductInputs(root, resolve(receipts, `${key}.json`));
+      used(key);
       return { ...saved.bundle, reused: true };
     }
   } catch { /* A missing/corrupt compiled transform never grants reuse. */ }
@@ -46,6 +53,7 @@ export async function authorBundleCached(root, recipe, compile, cacheRoot = shar
     renameSync(temporary, resolve(directory, `${captured}.json`));
     publishProductInputs(receipts, receipt, captured);
     replayProductInputs(root, receipt);
+    used(captured);
     return { ...bundle, reused: false };
   } finally { rmSync(receipt, { force: true }); rmSync(temporary, { force: true }); }
 }
