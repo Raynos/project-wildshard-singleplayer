@@ -312,12 +312,9 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
     const spring = this.springState; spring.draw = this.draw; spring.velocity = this.drawVel;
     advanceLauncherSpring(spring, this.drawTarget, k, c, dt);
     this.draw = spring.draw; this.drawVel = spring.velocity;
-    // PF6: a stowed launcher (its model hidden) skips its pose, as a stowed held weapon's views hold; its spring, clocks,
-    // aim feel and bolts in flight run on, and the frame it is drawn again poses it before it renders
-    const shown = this.model.visible;
-    if (shown) this.posePlayback.apply('string', this.poseFrame);
+    this.posePlayback.apply('string', this.poseFrame);
     const parts = this.partValues; parts.loaded = Number(s.loaded); parts.reloading = Number(s.reloading); parts.reloadProgress = s.reloadProgress;
-    if (shown) this.posePlayback.apply('parts', parts);
+    this.posePlayback.apply('parts', parts);
     this.loadedBolt.material = this.boltMod.material ?? this.boltMat;
     const frame = this.frameInputs;
     frame.enabled = this.enabled; frame.active = true; frame.held = this.adsHeld;
@@ -325,11 +322,12 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
     s.ads = this.feel.sampleFrame(dt, p, frame, cam, this.sky.csm);
     // pose: hip ↔ sighted ↔ sprint ↔ reload
     this.poseFrame.sprinting = Number(p.sprinting); this.poseFrame.reloading = Number(s.reloading);
-    if (shown) this.posePlayback.apply('frame', this.poseFrame);
-    const a = this.poseFrame.ads; if (shown && a > 0) this.posePlayback.apply('sight', this.poseFrame);
+    this.posePlayback.apply('frame', this.poseFrame);
+    const a = this.poseFrame.ads; if (a > 0) this.posePlayback.apply('sight', this.poseFrame);
     this.sight.visible = a > 0.001 && !this.inspect;
-    if (shown && this.sight.visible) { this.posePlayback.apply('peep', this.poseFrame); for (const m of this.fadeMats) m.opacity = a; }
-    if (shown) { this.posePlayback.apply('pose', this.poseFrame); this.hands?.aim(this.model); }
+    if (this.sight.visible) { this.posePlayback.apply('peep', this.poseFrame); for (const m of this.fadeMats) m.opacity = a; }
+    this.posePlayback.apply('pose', this.poseFrame);
+    this.hands?.aim(this.model);
     this.feel.scanAim(this, this.targets, true, _v3, _fwd, _aimEnd, this.model);
     this.flightPool.step(dt);
     this.feel.presentEffects(dt, t, this.game.renderer, cam, this.puffs, this.presentation.traces, this.presentation.paint);

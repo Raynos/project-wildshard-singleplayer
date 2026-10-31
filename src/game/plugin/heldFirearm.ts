@@ -357,14 +357,11 @@ export class HeldFirearm<P extends HeldFirearmProfile = HeldFirearmProfile> exte
       values['cycleU'] = this.cycleU; values['cycling'] = Number(this.freezeCycle !== null || act.phase === 'cycle');
       values['cocked'] = Number(this.freezeCycle !== null ? this.cycleU >= 0.2 : act.hammerCocked); values['reloading'] = Number(act.phase === 'reload');
     }
-    // PF6: a stowed firearm (its model hidden) skips its pose, as a stowed held weapon's views hold (HeldPlayback.apply):
-    // its clocks, flash, aim feel and shots in flight run on, and the frame it is drawn again poses it before it renders
-    const shown = this.model.visible;
     // the parts: the action's groups, then the right hand
-    if (shown) for (const [key, mesh] of this.rotationReads) values[key] = mesh.rotation.x;
-    if (shown) for (const group of sc.action) this.posePlayback.apply(group, values);
+    for (const [key, mesh] of this.rotationReads) values[key] = mesh.rotation.x;
+    for (const group of sc.action) this.posePlayback.apply(group, values);
     const hands = this.hands;
-    if (shown && hands?.group.visible === true) {
+    if (hands?.group.visible === true) {
       this.handFrame.roundVisible = Number(this.round?.visible ?? false);
       for (const group of sc.grip) this.posePlayback.apply(group, this.handFrame);
       const right = hands.fist(1); placeHeldFist(right, this.grips.out, false); right.visible = this.sightedHidden.every(mesh => mesh.visible);
@@ -377,13 +374,13 @@ export class HeldFirearm<P extends HeldFirearmProfile = HeldFirearmProfile> exte
     // pose: hip ↔ sighted ↔ sprint ↔ reload ↔ the cycle's rock ↔ holster
     const f = this.poseFrame;
     f.sprinting = Number(p.sprinting); f.reloading = Number(this.reloadingAction()); f.reloadProgress = s.reloadProgress;
-    if (shown) this.posePlayback.apply(sc.frame, f);
-    const { ads: a, scale } = f; if (shown && a > 0 && (this.adsPose.scale !== scale || this.adsPose.rearDepth <= 0)) this.posePlayback.apply(sc.sight, f);
+    this.posePlayback.apply(sc.frame, f);
+    const { ads: a, scale } = f; if (a > 0 && (this.adsPose.scale !== scale || this.adsPose.rearDepth <= 0)) this.posePlayback.apply(sc.sight, f);
     for (const mesh of this.sightedHidden) mesh.visible = a < 0.85 || this.inspect > 0;
     const glow = this.glow, glowRow = this.rows.glow;
     if (glow !== null && glowRow !== undefined && glow.material instanceof THREE.MeshBasicMaterial) { glow.visible = a > 0.001; glow.material.opacity = a * glowRow.opacity; }
     if (this.rows.scaleRoot === true) this.model.scale.setScalar(scale);
-    f.cycle = values['open'] ?? 0; if (shown) this.posePlayback.apply(sc.pose, f);
+    f.cycle = values['open'] ?? 0; this.posePlayback.apply(sc.pose, f);
     this.feel.scanAim(this, this.targets, this.active, _o, _d, _v2, this.model);
     this.effects.publish(dt, t, this.game.renderer, this.tracerLife);
   }
