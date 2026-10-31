@@ -17,6 +17,11 @@ export function manifestClosure(root) {
   const configPath = ts.findConfigFile(root, (file) => ts.sys.fileExists(file));
   const config = configPath ? ts.readConfigFile(configPath, (file) => ts.sys.readFile(file)).config : {};
   const { options } = ts.parseJsonConfigFileContent(config, ts.sys, root);
+  // All products in this synchronous walk resolve against the same options.
+  // Reuse resolution work and immutable syntax, never the closure or file bytes.
+  const resolutions = ts.createModuleResolutionCache(root, name => ts.sys.useCaseSensitiveFileNames ? name : name.toLowerCase(), options);
+  /** @type {Map<string,{text:string,source:import('@typescript/typescript6').SourceFile}>} */
+  const syntax = new Map();
   const result = {};
   for (const product of shardProducts(root, shardFolders(root))) {
     const slug = product.slug, seen = new Set();
@@ -31,7 +36,12 @@ export function manifestClosure(root) {
         ? authoredManifestImports(root, product.folder, product.output === null ? JSON.parse(readFileSync(authored, 'utf8')) : outputManifest(root, product.folder, product.output), product.output !== null)
           .map(specifier => `import ${JSON.stringify(specifier)};`).join('\n')
         : readFileSync(file, 'utf8');
-      const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+      let parsed = syntax.get(file);
+      if (parsed?.text !== text) {
+        parsed = { text, source: ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true) };
+        syntax.set(file, parsed);
+      }
+      const source = parsed.source;
       for (const node of source.statements) {
         if (!ts.isImportDeclaration(node) && !ts.isExportDeclaration(node)) continue;
         if (!node.moduleSpecifier || !ts.isStringLiteral(node.moduleSpecifier)) continue;
@@ -41,7 +51,7 @@ export function manifestClosure(root) {
           if (!node.importClause?.name && bindings && ts.isNamedImports(bindings) && bindings.elements.length > 0 && bindings.elements.every((e) => e.isTypeOnly)) continue;
         } else if (node.isTypeOnly || (node.exportClause && ts.isNamedExports(node.exportClause) && node.exportClause.elements.length > 0 && node.exportClause.elements.every((e) => e.isTypeOnly))) continue;
         const specifier = node.moduleSpecifier.text;
-        const target = ts.resolveModuleName(specifier, file, options, ts.sys).resolvedModule?.resolvedFileName;
+        const target = ts.resolveModuleName(specifier, file, options, ts.sys, resolutions).resolvedModule?.resolvedFileName;
         if (target && !target.includes('/node_modules/') && !target.endsWith('.d.ts')) visit(target);
         // TypeScript intentionally does not resolve raster imports; include their bundler module ids too.
         else if (specifier.startsWith('.') && existsSync(resolve(dirname(file), specifier))) visit(resolve(dirname(file), specifier));

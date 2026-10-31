@@ -201,6 +201,41 @@ test('the committed closure follows authored static edges with no product or dis
 });
 
 
+test('shared manifest imports retain separate products and refresh path aliases on the next walk', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp', 'gen-source-shared-'));
+  try {
+    const write = (path: string, source: string): void => {
+      mkdirSync(resolve(root, path, '..'), { recursive: true }); writeFileSync(resolve(root, path), source);
+    };
+    for (const slug of ['one', 'two']) {
+      write(`src/shards/${slug}/manifest.json`, JSON.stringify({ slug, card: `/src/shards/${slug}/card.webp`,
+        bindings: { accent: 'sand', runtimeCost: { module: './data/runtimeCost.json', export: 'default' } } }));
+      write(`src/shards/${slug}/card.webp`, 'image'); write(`src/shards/${slug}/data/runtimeCost.json`, '{}');
+    }
+    const config = (folder: string): string => JSON.stringify({ compilerOptions: { module: 'ESNext', moduleResolution: 'Bundler', paths: { '@common/*': [`./src/${folder}/*`] } } });
+    write('tsconfig.json', config('game/shard'));
+    write('src/game/shard/manifest.ts', "export {visible} from '@common/visible';export type {Erased} from './erased';export const lazy=()=>import('./lazy');");
+    write('src/game/shard/visible.ts', "import './loop';export const visible=true;");
+    write('src/game/shard/loop.ts', "import './visible';");
+    write('src/game/shard/erased.ts', 'export interface Erased {}'); write('src/game/shard/lazy.ts', 'export const lazy=true;');
+    const first = manifestClosure(root);
+    for (const slug of ['one', 'two']) {
+      expect(first[slug]).toContain('src/game/shard/visible.ts'); expect(first[slug]).toContain('src/game/shard/loop.ts');
+      expect(first[slug]).toContain(`src/shards/${slug}/data/runtimeCost.json`);
+      expect(first[slug]).not.toContain(`src/shards/${slug === 'one' ? 'two' : 'one'}/data/runtimeCost.json`);
+      expect(first[slug]).not.toContain('src/game/shard/erased.ts'); expect(first[slug]).not.toContain('src/game/shard/lazy.ts');
+      expect(new Set(first[slug]).size).toBe(first[slug]?.length);
+    }
+    write('src/replacement/visible.ts', "export const visible='new';"); write('tsconfig.json', config('replacement'));
+    const next = manifestClosure(root);
+    for (const slug of ['one', 'two']) {
+      expect(next[slug]).toContain('src/replacement/visible.ts'); expect(next[slug]).not.toContain('src/game/shard/visible.ts');
+      expect(next[slug]).not.toContain('src/game/shard/loop.ts');
+    }
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test('the stage CLI returns the selected tracked output and never runs build-written rows', () => {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp', 'gen-source-stage-'));
