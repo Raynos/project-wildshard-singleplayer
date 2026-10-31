@@ -27,6 +27,7 @@
   "test/nalati-kokpar-verbs.test.ts": ["nalati-grasslands"],
   "test/driftwood-zipline-verbs.test.ts": ["driftwood-isle"],
   "test/driftwood-story-verbs.test.ts": ["driftwood-isle"],
+  "test/driftwood-optional-verbs.test.ts": ["driftwood-isle"],
   "test/signal-verb-tape.test.ts": ["sunscar-dunes"],
   "test/pine-door-continuation.test.ts": ["pine-hollow"],
   "test/pine-door-verbs.test.ts": ["pine-hollow"],
