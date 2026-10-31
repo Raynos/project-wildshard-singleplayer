@@ -35,7 +35,9 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
   const point = new THREE.Vector3(), direction = new THREE.Vector3(), tells = new Map<string, GroundTell>();
   const bodyFor = (controller: EliteDecisions): Animal | null => {
     const body = controller.animal; if (body === null) return null;
-    const real = animals.animals.find(row => row === body); if (real === undefined) throw new Error('Foreign elite page body'); return real;
+    // PF5: a plain identity loop, no closure a read (several reads a frame per elite)
+    for (const real of animals.animals) if (real === body) return real;
+    throw new Error('Foreign elite page body');
   };
   for (const controller of controllers) {
     for (const slot of controller.row.program.slots) for (const kind of new Set((controller.row.program.strikes ?? []).flatMap(row => row.tell === undefined ? [] : [row.tell]))) {
@@ -44,6 +46,7 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
     const script: EliteScript = { def: controller.def, get animal() { return bodyFor(controller); },
       spawn: () => { controller.spawn(); }, despawn: () => { controller.despawn(); },
       tick: (dt, t, engaged, leashing) => { controller.tick(dt, t, engaged, leashing); },
+      cadence: far => { controller.cadence(far); },
       enterPhase2: () => { controller.enterPhase2(); }, reset: () => { controller.reset(); }, trophy: () => { controller.trophy(); hud.killFeed(`${controller.def.drop.trophyName ?? 'Felled'} — ${controller.def.name}`); },
       dropModel: () => {
         const id = controller.def.drop.skin, model = id === null ? undefined : models.get(id);

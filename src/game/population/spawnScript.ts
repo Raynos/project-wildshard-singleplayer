@@ -91,6 +91,8 @@ export class SpawnScript {
   private readonly handles = new Map<number, ControlledBody>();
   private readonly adoptedBodies = new WeakSet<AnimalSim>();
   private readonly fields = new Map<string, number>();
+  /** PF5: each (actor, field)'s key in `fields`, made once: a guest read builds no string */
+  private readonly fieldKeys = new Map<number, string>();
   private readonly channels = new Map<number, number>();
   private readonly motions = new Map<number, Motion>();
   private readonly contract: string;
@@ -287,7 +289,12 @@ export class SpawnScript {
     if (row.source === 'strikeTime') return this.combat.time(actor);
     if (row.source === 'observed') return this.observations.get(row.id) ?? 0;
     if (row.source === 'channel') return this.channel(this.registries.channels?.get(row.channel ?? '') ?? 0);
-    return this.fields.get(`${actor}:${id}`) ?? 0;
+    return this.fields.get(this.fieldKey(actor, id)) ?? 0;
+  }
+  private fieldKey(actor: number, id: number): string {
+    const n = actor * 65536 + id; let key = this.fieldKeys.get(n);
+    if (key === undefined) { key = `${actor}:${id}`; this.fieldKeys.set(n, key); }
+    return key;
   }
   private read(op: number, a: number, b: number): number {
     if (op === 9) return DECISION_PLAYER_HANDLE;
@@ -651,6 +658,8 @@ export class SpawnScript {
     return this.prepareRestore(JSON.stringify({ version: 2, contract: this.contract, decision: { ...decision, bindings, staged: [] },
       actors, fields, channels: [], strikes: legacy.strikes, force: 0, elapsed: 0, moves: [] }));
   }
+  /** PF5: every binding's periodic decisions at 1 / `scale` of their declared rate (1 restores it; `DecisionHost.throttle`) */
+  throttle(scale: number): void { for (const binding of new Set(this.bindings.values())) this.host.throttle(binding, scale); }
   /** Debug force is a bounded input; normal decision cadence and spawn quotas still apply. */
   force(): void { this.forced = Math.min(8, this.maximum || this.rows.maximum); }
   channel(id: number): number { return this.channels.get(id) ?? 0; }
