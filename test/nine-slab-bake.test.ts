@@ -17,7 +17,7 @@ import { slabGeometryBytes } from '../src/sdk/bake/slabChunks';
 // Current source results are the oracle. No historical byte count, hash, geometry total or output is pinned.
 test('Nine staged slabs equal the complete original fine joins, with bounded uploads and frozen bounds', async () => {
   const scene = v.parse(WorldScenesSchema, inputs.scenes.NINE_WORLD_SCENES), library = scene.libraries.find(row => row.kind === 'slabs');
-  const source = library === undefined ? undefined : scene.libraries.find(row => row.kind === 'whole' && row.id === library.of);
+  const source = inputs.scenes.NINE_REFINEMENT_SOURCE;
   const fabric = inputs.scenes.LAYOUT_PLACEMENT_BLOBS.find(row => row.file.name === 'world/fabric.json');
   if (library?.kind !== 'slabs' || source?.kind !== 'whole' || fabric === undefined) throw new Error('Missing staged Nine slab source');
   const weld = parseWorldSceneWeld(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(fabric.bytes)));

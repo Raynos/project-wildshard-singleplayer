@@ -18,7 +18,7 @@ import { readSourceModel } from './skinned';
 import { positionErrorScale } from './geometryError';
 import { partitionSlabGeometry, type SlabGeometryChunk } from './slabChunks';
 
-type WholeLibrary = Extract<WorldScenesSection['libraries'][number], { kind: 'whole' }>;
+type WholeLibrary = Exclude<Extract<WorldScenesSection['libraries'][number], { kind: 'whole' }>, { storage: 'slabs' }>;
 type Draw = Extract<WorldSceneWeldNode, { kind: 'mesh' }>;
 interface Source { node: Draw; model: WholeLibrary['models'][number]; forceIdentity: boolean; frame: Matrix4; owners: readonly string[] }
 interface Chunk { key: WorldSceneSlabKey; part: SlabGeometryChunk; custom: Readonly<Record<string, string>>; error: number }

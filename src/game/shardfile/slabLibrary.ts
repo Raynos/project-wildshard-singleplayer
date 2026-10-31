@@ -86,19 +86,31 @@ export class SlabLibrary {
     const bounds = new Map(product.shardfile.tiles.filter(tile => tile.lod === 0).map(tile => [tile.z * 8 + tile.x, tile.drawBounds ?? tile.bounds] as const));
     const declared = new Set(product.shardfile.files.filter(file => file.kind === 'glb').map(file => file.hash));
     for (const entry of row.tiles) {
-      if (!bounds.has(entry.tile)) throw new Error(`Slabs require a declared fine tile: ${String(entry.tile)}`);
+      for (const tile of entry.covers ?? [entry.tile]) if (!bounds.has(tile)) throw new Error(`Slabs require a declared fine tile: ${String(tile)}`);
       for (const file of entry.files) if (!declared.has(file.file)) throw new Error(`Slabs require a declared GLB: ${file.file}`);
       this.entries.set(entry.tile, entry);
     }
     this.builds = new SharedTileBuilds(owner, async (tile, scope) => {
       const entry = this.entries.get(tile); if (entry === undefined) throw new Error('Missing slab tile');
       const chunks: BufferGeometry[] = [];
-      const box = bounds.get(tile);
-      const at = { x: -250 + (tile % 8 + 0.5) * 62.5, y: box === undefined ? 0 : (box.min[1] + box.max[1]) / 2,
-        z: -250 + (Math.floor(tile / 8) + 0.5) * 62.5, ...(box === undefined ? {} : { bounds: box }) };
+      let box = bounds.get(tile);
+      if (entry.covers !== undefined) {
+        const min: [number, number, number] = [Infinity, Infinity, Infinity], max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
+        for (const logical of entry.covers) {
+          const covered = bounds.get(logical); if (covered === undefined) throw new Error('Missing slab logical bounds');
+          for (const axis of [0, 1, 2] as const) { min[axis] = Math.min(min[axis], covered.min[axis]); max[axis] = Math.max(max[axis], covered.max[axis]); }
+        }
+        box = { min, max };
+      }
+      // A shared bank is visible wherever any of its actual logical coverage
+      // is visible. Its storage address alone cannot fence its publication.
+      const at = { x: entry.covers === undefined || box === undefined ? -250 + (tile % 8 + 0.5) * 62.5 : (box.min[0] + box.max[0]) / 2,
+        y: box === undefined ? 0 : (box.min[1] + box.max[1]) / 2,
+        z: entry.covers === undefined || box === undefined ? -250 + (Math.floor(tile / 8) + 0.5) * 62.5 : (box.min[2] + box.max[2]) / 2,
+        ...(box === undefined ? {} : { bounds: box }) };
       await queue.add(`${row.id}:${String(tile)}:${String(this.serial++)}`, at, async () => {
         if (scope.disposed || scope.disposing) return;
-        await this.cover(tile);
+        for (const logical of entry.covers ?? [tile]) await this.cover(logical);
         for (const file of entry.files) {
           if (scope.disposed || scope.disposing) return;
           let read: readonly BufferGeometry[];
@@ -118,7 +130,13 @@ export class SlabLibrary {
     const key = this.keys.get(id); if (key === undefined) throw new Error('Missing slab model');
     // a merged anchor's triangles draw under its key's own anchor
     if (key.sources[0] !== id) { mesh.visible = false; return { id: `slab:${this.row.id}:${id}:${mesh.uuid}`, tiles: () => EMPTY, ready: () => this.queue.ready, attach: () => Promise.resolve() }; }
-    const tiles = new Set(this.row.tiles.filter(entry => chunksOf(entry).some(chunk => chunk.key === key.id)).map(entry => entry.tile));
+    const banks = new Map<number, Set<number>>();
+    for (const entry of this.row.tiles) if (chunksOf(entry).some(chunk => chunk.key === key.id)) {
+      for (const logical of entry.covers ?? [entry.tile]) {
+        const held = banks.get(logical) ?? new Set<number>(); held.add(entry.tile); banks.set(logical, held);
+      }
+    }
+    const tiles = new Set(banks.keys());
     // NR4: a channel-less anchor stays out of the draw until its key's first chunk
     let hidden = false, laid = false;
     if (mesh.visible) { mesh.visible = false; hidden = true; }
@@ -130,30 +148,39 @@ export class SlabLibrary {
       // stand-in, so the precompile skips it too (NR4) instead of linking that plain program and its depth variant
       mesh.layers.disableAll();
     };
+    // Storage banks may cover several logical fine tiles. Their actual mounted
+    // chunks have one publication owner; logical holds retain it without drawing
+    // the same bank twice. Readiness resolves only after its verified publication.
+    const publications = new SharedTileBuilds<readonly Mesh[]>(lifetime, async (tile, scope) => {
+      const geometries = await this.builds.hold(tile, scope), entry = this.entries.get(tile);
+      if (entry === undefined) throw new Error('Missing slab storage bank');
+      const drawn: InstancedMesh[] = [];
+      if (lifetime.disposed || lifetime.disposing || scope.disposed || scope.disposing) return drawn;
+      scope.onDispose(() => { for (const part of drawn) { part.removeFromParent(); part.dispose(); } drawn.length = 0; });
+      const slice = workSlice(undefined, scope);
+      for (const [index, chunk] of chunksOf(entry).entries()) {
+        if (chunk.key !== key.id) continue;
+        if (lifetime.disposed || lifetime.disposing || scope.disposed || scope.disposing) return drawn;
+        const geometry = geometries[index]; if (geometry === undefined) throw new Error('Missing slab chunk');
+        if (!laid) lay();
+        // Keep the same one-instance channel layout, identity matrix, white
+        // colours and draw flags as the admitted storage chunk.
+        const part = new InstancedMesh(geometry, mesh.material, 1);
+        part.instanceColor = new InstancedBufferAttribute(new Float32Array([1, 1, 1]), 3);
+        part.name = `${mesh.name}:slab:${String(tile)}:${String(index)}`; part.matrixAutoUpdate = false;
+        part.castShadow = key.castShadow; part.receiveShadow = key.receiveShadow; part.renderOrder = key.renderOrder;
+        part.layers.mask = key.layers; part.frustumCulled = key.frustumCulled;
+        mesh.add(part); drawn.push(part);
+        await slice.yield();
+      }
+      return drawn;
+    });
     return { id: `slab:${this.row.id}:${id}:${mesh.uuid}`, tiles: () => tiles, ready: () => this.queue.ready,
       attach: async (tile, scope) => {
-        if (!tiles.has(tile) || lifetime.disposed || lifetime.disposing || scope.disposed || scope.disposing) return;
-        const geometries = await this.builds.hold(tile, scope), entry = this.entries.get(tile);
-        if (entry === undefined || lifetime.disposed || lifetime.disposing || scope.disposed || scope.disposing) return;
-        const drawn: Mesh[] = [];
-        scope.onDispose(() => { for (const part of drawn) part.removeFromParent(); drawn.length = 0; });
-        const slice = workSlice(undefined, scope);
-        for (const [index, chunk] of chunksOf(entry).entries()) {
-          if (chunk.key !== key.id) continue;
+        if (lifetime.disposed || lifetime.disposing || scope.disposed || scope.disposing) return;
+        for (const bank of banks.get(tile) ?? []) {
           if (lifetime.disposed || lifetime.disposing || scope.disposed || scope.disposing) return;
-          const geometry = geometries[index]; if (geometry === undefined) throw new Error('Missing slab chunk');
-          if (!laid) lay();
-          // EP7: one identity instance with white colours, so a chunk draws through the same program as the instanced
-          // copies of its material (the sets, sitters and walkers on nine-architecture) instead of a plain-mesh one;
-          // the colours exist before its first frame (three binds only attributes it uploaded before the draw hooks)
-          const part = new InstancedMesh(geometry, mesh.material, 1);
-          part.instanceColor = new InstancedBufferAttribute(new Float32Array([1, 1, 1]), 3);
-          part.name = `${mesh.name}:slab:${String(tile)}:${String(index)}`; part.matrixAutoUpdate = false;
-          part.castShadow = key.castShadow; part.receiveShadow = key.receiveShadow; part.renderOrder = key.renderOrder;
-          part.layers.mask = key.layers; part.frustumCulled = key.frustumCulled;
-          mesh.add(part); drawn.push(part);
-          // one chunk a frame: its upload (≤ 4 MB) is the only one its first draw makes
-          await slice.yield();
+          await publications.hold(bank, scope);
         }
       } };
   }

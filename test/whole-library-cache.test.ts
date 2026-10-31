@@ -39,7 +39,7 @@ function fixture(limit = 10000, transform = new Matrix4(), part = 'draw', readCo
     { id: 'plain', part, files: [hash] }, { id: 'alias', part, files: [hash] },
     { id: 'posed', part, files: [hash], matrix: new Matrix4().makeTranslation(4, 2, 1).elements },
   ] }], materials: [], steps: [] }).libraries[0];
-  if (parsed?.kind !== 'whole') throw new Error('Missing whole library');
+  if (parsed?.kind !== 'whole' || 'storage' in parsed) throw new Error('Missing whole library');
   const assets = new AssetService<BufferGeometry>();
   const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil(limit * CONTENT_CAPS.residentFactor), memory: new MemoryAdmission() });
   const bridge = new AssetResidencyBridge(allocator, geometry => {

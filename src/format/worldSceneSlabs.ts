@@ -14,10 +14,11 @@ export interface WorldSceneSlabChunk {
 }
 /** A bounded file group within a uniquely owned L0 tile, in decode/draw order. */
 export interface WorldSceneSlabFile { file: string; chunks: WorldSceneSlabChunk[] }
-/** Prejoined fine geometry; the original whole library remains the cold reconstruction source. */
+/** Prejoined fine geometry paired with whole-model identities or retained cold bodies.
+ * covers names the logical L0 tiles awaiting this storage bank's real publication. */
 export interface WorldSceneSlabLibrary {
   id: string; kind: 'slabs'; of: string; keys: WorldSceneSlabKey[];
-  tiles: { tile: number; files: WorldSceneSlabFile[] }[];
+  tiles: { tile: number; covers?: number[]; files: WorldSceneSlabFile[] }[];
 }
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6));
@@ -32,11 +33,11 @@ const chunk = v.strictObject({ key: id, bytes: v.pipe(integer, v.minValue(1), v.
   sphere: v.tuple([finite, finite, finite, nonnegative]) });
 /** No duplicate tile/key identity, dangling key, unbounded upload or repeated file is admitted. */
 export const WorldSceneSlabsSchema: v.GenericSchema<unknown, WorldSceneSlabLibrary> = v.pipe(v.strictObject({ id, kind: v.literal('slabs'), of: id,
-  keys: bounded(key, 64), tiles: bounded(v.strictObject({ tile: v.pipe(integer, v.maxValue(63)), files: bounded(v.strictObject({ file: id, chunks: bounded(chunk, 64) }), 16) }), 64) }),
+  keys: bounded(key, 64), tiles: bounded(v.strictObject({ tile: v.pipe(integer, v.maxValue(63)), covers: v.exactOptional(bounded(v.pipe(integer, v.maxValue(63)), 64)), files: bounded(v.strictObject({ file: id, chunks: bounded(chunk, 64) }), 16) }), 64) }),
   v.check(row => row.id !== row.of && new Set(row.keys.map(entry => entry.id)).size === row.keys.length
     && row.keys.every(entry => new Set(entry.sources).size === entry.sources.length)
     && new Set(row.tiles.map(tile => tile.tile)).size === row.tiles.length
     && new Set(row.tiles.flatMap(tile => tile.files.map(file => file.file))).size === row.tiles.reduce((sum, tile) => sum + tile.files.length, 0)
-    && row.tiles.every(tile => tile.files.reduce((sum, file) => sum + file.chunks.length, 0) <= 64
+    && row.tiles.every(tile => (tile.covers === undefined || new Set(tile.covers).size === tile.covers.length && tile.covers.includes(tile.tile)) && tile.files.reduce((sum, file) => sum + file.chunks.length, 0) <= 64
       && tile.files.every(file => file.chunks.every(part => row.keys.some(entry => entry.id === part.key))))
     && row.keys.every(entry => row.tiles.some(tile => tile.files.some(file => file.chunks.some(part => part.key === entry.id)))), 'Unique bounded slab keys, tiles, files and covered chunks'));

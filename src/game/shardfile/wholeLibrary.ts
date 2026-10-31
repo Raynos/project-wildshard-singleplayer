@@ -12,6 +12,7 @@ type WholeLibrary = Extract<WorldScenesSection['libraries'][number], { kind: 'wh
  * `geometry` hands each partition out once as is and any repeat or posed alias as a copy; `done` frees the rest.
  * Client-only presentation. */
 export async function readWholeLibrary(owner: Scope, product: ShardProduct, row: WholeLibrary, ids: ReadonlySet<string>, pause?: () => Promise<void>, assets?: Pick<App['assets'], 'register' | 'acquireResource' | 'evictCached'>): Promise<{ geometry: (id: string) => BufferGeometry | null; done: () => void }> {
+  if ('storage' in row) throw new Error('Slab identities have no cold whole source');
   if (assets !== undefined && (owner.disposed || owner.disposing)) throw new Error('Whole library owner is disposed or retiring');
   const models = new Map(row.models.filter(model => ids.has(model.id)).map(model => [model.id, model]));
   const files = [...new Set([...models.values()].flatMap(model => model.files))], taken = new Set<string>();

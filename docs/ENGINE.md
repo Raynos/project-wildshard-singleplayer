@@ -5297,12 +5297,13 @@ quantization-cell radius; lossless data keeps zero. Payloads stay exact.
 
 ### Static tile slabs
 
-`sdk/bake/slabs.bakeWholeSlabs` stages exact fine joins beside the whole
-source; `readSlabLibrary` admits metadata. Keys retain anchor/cull owners:
-≤64 tiles, ≤16 files/64 chunks per tile, ≤4 MB per chunk with bounds/error.
-Partition, bit/key equality, budgets and determinism are checked.
-`game/shardfile/wholeGeometryPieces` owns `wholeGeometryPieces` and
-`readWholePartition`; runtime activation is separate.
+`sdk/bake/slabs` retains the exact join as a bake oracle. Runtime fine
+rows may use `storage: 'slabs'` with model ids only, requiring complete
+paired slab keys and explicit logical tile `covers`. One real bank
+publication serves overlapping holds; verified mounting makes them
+ready, and the last hold retires it. Caps remain 64 tiles, 16 files and
+64 chunks per tile, 4 MB per chunk, with original bounds/channel words.
+`game/shardfile/wholeGeometryPieces` still owns partition intake.
 
 ### Provisional prop-tile budgets
 
@@ -5323,9 +5324,6 @@ draws/materials using `assembleWholeGeometryViews` below.
 `partitionWholeGeometry` lives in `sdk/bake/props`; omission keeps the old
 byte path. Application extras are charged and cannot overwrite reserved
 storage keys.
-
-Refine libraries require slabs; exact joins are bake-only in
-`sdk/bake/wholePieceJoin`.
 
 ### Runtime whole-geometry assembly
 

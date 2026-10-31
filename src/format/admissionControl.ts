@@ -39,7 +39,7 @@ export function* playLibrarySteps(source: Shardfile, descriptor: { readonly inde
   const scenes = parseWorldScenes(input), names = new Map<string, string>();
   for (const file of descriptor.index.files) for (const name of [file.hash, file.path, `/shardfiles/${source.identity.slug}/${file.path}`, ...file.name === undefined ? [] : [file.name]]) names.set(name, file.hash);
   const eligible = new Set<string>(), other = new Set<string>([...source.critical, ...source.files.filter(file => file.critical).map(file => file.hash)]);
-  for (const row of scenes.libraries) if (row.kind === 'whole') {
+  for (const row of scenes.libraries) if (row.kind === 'whole' && !('storage' in row)) {
     for (const model of row.models) for (const ref of model.files) { const hash = names.get(ref) ?? ref; (row.load === 'explorer' ? eligible : other).add(hash); }
   }
   const into = (text: string): void => { const hash = names.get(text); if (hash !== undefined) other.add(hash); };

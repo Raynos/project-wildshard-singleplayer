@@ -5,7 +5,7 @@ import { parseWorldScenes, worldScenesForTier } from '../src/format/worldScenes'
 import { controlFileHashes } from '../src/format/admissionControl';
 import { emptyShardfile } from '../src/sdk/author';
 import { defineWorldSceneCatalogue } from '../src/game/models/worldSceneCatalogue';
-import NINE, { NINE_SCENE_BLOBS, NINE_WORLD_SCENES, world, layout as sourceLayout } from './fixtures/nine-product-inputs';
+import { NINE_SCENE_BLOBS, NINE_WORLD_SCENES, world, inputs, layout as sourceLayout } from './fixtures/nine-product-inputs';
 import { LayoutRowsSchema } from '../src/shards/nine-dragon-stack/generators/sections';
 import { nineRefinementFiles } from '../src/shards/nine-dragon-stack/generators/refinementAdmission';
 
@@ -29,9 +29,10 @@ test('phone pool selection preserves shared files and explicit device pairs with
 });
 
 test('the real fine-file inventory defers transport while critical demand still wins', () => {
-  const late = nineRefinementFiles(NINE_WORLD_SCENES.libraries), hashes = new Set(late.map(row => row.hash));
+  const original = inputs.scenes.NINE_REFINEMENT_SOURCE;
+  const late = nineRefinementFiles(NINE_WORLD_SCENES.libraries.map(row => row.id === original.id ? original : row)), hashes = new Set(late.map(row => row.hash));
   const source = emptyShardfile({ slug: 'fine-transport', name: 'Fine transport', author: 'Test', revision: 1, seed: 1 });
-  source.files = NINE.files.filter(file => hashes.has(file.hash)); source.library = [...hashes];
+  source.files = world.shardfile.files.filter(file => hashes.has(file.hash)); source.library = [...hashes];
   expect(source.files.length).toBeGreaterThan(0); expect(source.files).toHaveLength(hashes.size);
   expect(source.files.every(file => file.kind === 'glb')).toBe(true);
   expect(controlFileHashes(source)).toEqual(hashes);
@@ -49,18 +50,20 @@ test('every Nine catalogue draw names a declared whole-library model on its own 
   const libraries = new Map(NINE_WORLD_SCENES.libraries.flatMap(row => row.kind === 'whole' ? [[row.id, row] as const] : []));
   const explorer = new Set(world.libraries.explorer);
   expect([...libraries.keys()]).toEqual(['native', 'native-refine', 'native-explorer']);
-  for (const id of ['native', 'native-refine']) for (const tile of libraries.get(id)?.models.flatMap(model => model.files) ?? []) expect(explorer.has(tile)).toBe(false);
+  for (const id of ['native', 'native-refine']) for (const tile of libraries.get(id)?.models.flatMap(model => 'files' in model ? model.files : []) ?? []) expect(explorer.has(tile)).toBe(false);
   // D179 B: the refine library is the city fabric alone (the layout kits and shell), read only by the fabric weld's plain
   // mesh nodes; no catalogue draw reads it (a catalogue model keeps its full exact intake)
   const refine = libraries.get('native-refine');
   expect(refine?.load).toBe('refine');
   expect(refine?.models.length).toBeGreaterThan(0);
   expect(refine?.models.every(row => row.id.startsWith('layout-'))).toBe(true);
+  expect(refine?.models).toEqual(inputs.scenes.NINE_REFINEMENT_SOURCE.models.map(model => ({ id: model.id })));
+  expect(refine !== undefined && 'storage' in refine ? refine.storage : null).toBe('slabs');
   for (const model of catalogue.models) for (const choice of model.choices) for (const draw of [...choice.draws, ...choice.lods.flatMap(level => level.draws)]) expect(draw.library).not.toBe('native-refine');
-  // the reader refines a model only from L0 tile rows (refiningWholeLibrary): every file of it is a fine tile's, never a
-  // layout-set piece's (layout-9's set geometry stays in 'native')
+  // The independent bake oracle still uses every original L0 body. The
+  // published identities have the same models and no obsolete body references.
   const fine = new Set(world.shardfile.tiles.filter(tile => tile.lod === 0).flatMap(tile => tile.files));
-  for (const model of refine?.models ?? []) for (const hash of model.files) expect(fine.has(hash), `${model.id} ${hash}`).toBe(true);
+  for (const model of inputs.scenes.NINE_REFINEMENT_SOURCE.models) for (const hash of model.files) expect(fine.has(hash), `${model.id} ${hash}`).toBe(true);
   expect(libraries.get('native')?.models.some(row => row.id === 'layout-9')).toBe(true);
   // a draw reads a whole-library model on its baked tiles, a cast in its pool file (the lion's, the crowd's, the hook's
   // levels) or an owned file (the hook's full cast)

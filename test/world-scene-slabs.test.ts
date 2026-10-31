@@ -10,6 +10,7 @@ import { provideRuntimeProduct, runtimeProduct } from '../src/game/shardfile/run
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { ControlRefinement } from '../src/game/shardfile/controlRefinement';
 import { SlabLibrary } from '../src/game/shardfile/slabLibrary';
+import { readWholeLibrary } from '../src/game/shardfile/wholeLibrary';
 import * as work from '../src/engine/core/workSlice';
 
 const triangle = (x: number): BufferGeometry => new BufferGeometry()
@@ -24,7 +25,7 @@ function geometryOf(part: unknown): BufferGeometry {
   return geometry;
 }
 
-function fixture(indexed = false) {
+function fixture(indexed = false, covers?: number[]) {
   const owner = new Scope('slab-resident'), source = emptyShardfile({ slug: 'slab-fixture', name: 'Slabs', author: 'Fixture', revision: 1, seed: 1 });
   const bakeMaterial = new MeshBasicMaterial(), assets = new Map<string, Uint8Array>(), shapes = [triangle(0), triangle(5), triangle(40)];
   if (indexed) for (const shape of shapes) shape.setIndex([0, 1, 2]);
@@ -42,10 +43,13 @@ function fixture(indexed = false) {
       putAsset: () => Promise.resolve(), putProduct: () => Promise.resolve() },
     fetch: () => Promise.reject(new Error('Only admitted source bytes are permitted')), hash: bytes => Promise.resolve(hashImmutableBytes(bytes)) });
   const product = createShardProduct({ slug: 'slab-fixture', revision: 1, shardfile: source, sections: new Map(), files: new Map(), read: () => Promise.reject(new Error('Use declared content hash')) });
+  const covered: (typeof files[number] & { covers?: number[] })[] = [];
+  for (const entry of files) covered.push(entry.tile === 0 && covers !== undefined ? { ...entry, covers } : entry);
   const [whole, slabs] = parseWorldScenes({ version: 1, materials: [], steps: [], libraries: [
     { id: 'fine', kind: 'whole', load: 'refine', models: [{ id: 'fabric', part: 'fabric', files: [...assets.keys()] }, { id: 'alias', part: 'alias', files: [...assets.keys()] }] },
     { id: 'fine-slabs', kind: 'slabs', of: 'fine', keys: [{ id: 'k0', node: 'fabric.node', material: 'kit', castShadow: true, receiveShadow: true, renderOrder: 2, layers: 1,
-      frustumCulled: true, visible: true, sources: ['fabric', 'alias'] }], tiles: files }] }).libraries;
+      frustumCulled: true, visible: true, sources: ['fabric', 'alias'] }],
+    tiles: covered }] }).libraries;
   if (whole?.kind !== 'whole' || slabs?.kind !== 'slabs') throw new Error('Missing fixture libraries');
   const queue = new ControlRefinement(owner, undefined, () => ({ x: -230, z: -230 }), () => Promise.resolve()), cover = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
   const library = new SlabLibrary(owner, product, whole, slabs, queue, cover), material = new MeshBasicMaterial();
@@ -136,10 +140,9 @@ test('retirement during a chunk yield drains and removes every partial publicati
   const f = fixture(), holder = f.owner.child('publishing');
   let release = (): void => undefined, started = (): void => undefined, held = false;
   const paused = new Promise<void>(resolve => { started = resolve; }), resume = new Promise<void>(resolve => { release = resolve; });
-  const original = work.workSlice;
-  vi.spyOn(work, 'workSlice').mockImplementation((budget, owner) => owner !== holder ? original(budget, owner) : {
-    due: () => true, check: () => undefined, yield: () => { if (held) return Promise.resolve(); held = true; started(); return resume; },
-  });
+  vi.spyOn(work, 'workSlice').mockImplementation(() => ({
+    due: () => true, check: () => undefined, yield: () => { if (held || f.anchor.children.length === 0) return Promise.resolve(); held = true; started(); return resume; },
+  }));
   const pending = f.content.attach(0, holder);
   try {
     await paused; expect(f.anchor.children).toHaveLength(1);
@@ -167,3 +170,59 @@ test('concurrent arrivals retain both readiness promises until verified source r
   } finally { f.close(); }
 });
 
+
+
+test('overlapping logical tiles share one real bank publication until its final hold retires', async () => {
+  const f = fixture(false, [0, 1]), first = f.owner.child('logical.0'), second = f.owner.child('logical.1');
+  const queued = vi.spyOn(f.queue, 'add');
+  try {
+    await f.content.attach(0, first); const original = [...f.anchor.children], disposed = vi.fn<() => void>();
+    for (const part of original) if (part instanceof InstancedMesh) part.addEventListener('dispose', disposed);
+    expect(original).toHaveLength(2); expect(f.read).toHaveBeenCalledTimes(1);
+    expect(queued.mock.calls[0]?.[1]).toEqual({ x: -187.5, y: 0, z: -218.75, bounds: { min: [-250, -1, -250], max: [-125, 1, -187.5] } });
+    await f.content.attach(1, second);
+    expect(f.anchor.children).toHaveLength(3); expect(f.anchor.children.slice(0, 2)).toEqual(original);
+    expect(f.read).toHaveBeenCalledTimes(2);
+    first.dispose(); expect(f.anchor.children).toHaveLength(3); expect(disposed).not.toHaveBeenCalled();
+    second.dispose(); expect(f.anchor.children).toEqual([]); expect(disposed).toHaveBeenCalledTimes(2);
+    const again = f.owner.child('logical.again'); await f.content.attach(0, again);
+    expect(f.anchor.children).toHaveLength(2); expect(f.read).toHaveBeenCalledTimes(3);
+    again.dispose(); expect(f.anchor.children).toEqual([]);
+  } finally { f.close(); }
+});
+
+test('one canceled logical hold cannot retire a pending bank retained by another tile', async () => {
+  const f = fixture(false, [0, 1]), first = f.owner.child('logical.0'), second = f.owner.child('logical.1');
+  let release = (_bytes: Uint8Array): void => { throw new Error('Missing held read'); }, started = (): void => undefined;
+  const reading = new Promise<void>(resolve => { started = resolve; });
+  f.read.mockImplementationOnce(() => new Promise<Uint8Array>(resolve => { release = resolve; started(); }));
+  const left = f.content.attach(0, first), right = f.content.attach(1, second);
+  try {
+    await reading; first.dispose(); expect(f.anchor.children).toEqual([]);
+    const bytes = f.assets.get(f.slabs.tiles[0]?.files[0]?.file ?? ''); if (bytes === undefined) throw new Error('Missing verified bank');
+    release(bytes); await Promise.all([left, right]);
+    expect(f.read).toHaveBeenCalledTimes(2); expect(f.anchor.children).toHaveLength(3);
+    second.dispose(); expect(f.anchor.children).toEqual([]);
+  } finally { f.close(); }
+});
+
+
+test('fine identities require complete explicit coverage and refuse cold reconstruction', async () => {
+  const f = fixture(false, [0, 1]);
+  const fine = { id: f.whole.id, kind: 'whole', load: 'refine', storage: 'slabs', models: f.whole.models.map(model => ({ id: model.id })) };
+  const slabs = { ...f.slabs, tiles: f.slabs.tiles.map(tile => ({ ...tile, covers: tile.covers ?? [tile.tile] })) };
+  const input = { version: 1, libraries: [fine, slabs], materials: [], steps: [] };
+  try {
+    const admitted = parseWorldScenes(input), row = admitted.libraries[0];
+    if (row?.kind !== 'whole' || !('storage' in row)) throw new Error('Missing admitted identities');
+    await expect(readWholeLibrary(f.owner, f.product, row, new Set(['fabric']))).rejects.toThrow('no cold whole source');
+    expect(f.read).not.toHaveBeenCalled(); expect(f.anchor.children).toEqual([]);
+    expect(() => parseWorldScenes({ ...input, libraries: [fine] })).toThrow('complete explicit slab coverage');
+    expect(() => parseWorldScenes({ ...input, libraries: [fine, { ...slabs, tiles: f.slabs.tiles }] })).toThrow('complete explicit slab coverage');
+    expect(() => parseWorldScenes({ ...input, libraries: [{ ...fine, models: [...fine.models, { id: 'missing' }] }, slabs] })).toThrow('complete explicit slab coverage');
+    for (const covers of [[0, 0], [0, 64], [1]]) {
+      expect(() => parseWorldScenes({ ...input, libraries: [fine, { ...slabs, tiles: [{ ...slabs.tiles[0], covers }] }] })).toThrow();
+    }
+    expect(() => new SlabLibrary(f.owner, f.product, row, { ...slabs, tiles: [{ ...slabs.tiles[0], tile: 0, covers: [0, 2], files: slabs.tiles[0]?.files ?? [] }] }, f.queue, f.cover)).toThrow('declared fine tile');
+  } finally { f.close(); }
+});
