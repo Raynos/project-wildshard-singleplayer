@@ -8,11 +8,13 @@ import { FigureCatalogueSchema } from './figures';
 import { QuestTraderSchema } from './namedJsonContracts';
 import { WorldScenePlacementSchema,parseWorldScenePlacement } from './worldScenePlacement';
 import { QuestPageInteractionsSchema,parseQuestPageInteractions } from './questInteractions';
+import { PageLifeSchema,parsePageLife } from './pageLife';
 import { PackedCreatureLooksSchema } from './speciesLooks';
 
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'actors/page-life.json':{readonly schema:typeof PageLifeSchema;readonly source:'@wildshard/format/pageLife#PageLifeSchema'};
   readonly 'look/creature-looks.json':{readonly schema:typeof PackedCreatureLooksSchema;readonly source:'@wildshard/format/speciesLooks#PackedCreatureLooksSchema'};
   readonly 'actors/species-looks.json':{readonly schema:typeof PackedCreatureLooksSchema;readonly source:'@wildshard/format/speciesLooks#PackedCreatureLooksSchema'};
   readonly 'people/catalogue.json':{readonly schema:typeof FigureCatalogueSchema;readonly source:'@wildshard/format/figures#FigureCatalogueSchema'};
@@ -27,6 +29,7 @@ export interface RegisteredJsonContracts {
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'actors/page-life.json': {schema:PageLifeSchema,source:'@wildshard/format/pageLife#PageLifeSchema'},
   'look/creature-looks.json': {schema:PackedCreatureLooksSchema,source:'@wildshard/format/speciesLooks#PackedCreatureLooksSchema'},
   'actors/species-looks.json': {schema:PackedCreatureLooksSchema,source:'@wildshard/format/speciesLooks#PackedCreatureLooksSchema'},
   'people/catalogue.json': {schema:FigureCatalogueSchema,source:'@wildshard/format/figures#FigureCatalogueSchema'},
@@ -76,6 +79,7 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'actors/page-life.json':parsePageLife(value);break;
     case 'look/creature-looks.json':
     case 'actors/species-looks.json':v.parse(PackedCreatureLooksSchema,value);break;
     case 'people/catalogue.json':v.parse(FigureCatalogueSchema,value);break;

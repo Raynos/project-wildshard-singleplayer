@@ -151,3 +151,44 @@ calendar, plus WASM-HOST H6 / H8 / H17 if not already built (that plan's own est
    and a third of the bytes, mostly mechanical.
 5. **Delete the custom path at the end with no exception?** Recommended: **yes**: no `custom/` sections and no
    shard-defined JSON schemas; a one-shard schema needs a Jake G row or goes to WASM.
+
+## CS5 / CS6: initial shared-document slices
+
+**2026-10-31, sp-x2.** CS5's first slice (`4e345989fb`) registers the
+existing `QuestPageInteractionsSchema` for Driftwood's `quests/trader.json`
+and Pine's `quests/mill-door.json` / `quests/lanterns.json`. Their native
+parser, logical names, payloads and consumer ownership stay unchanged.
+One normal build and independent admission preserve all **1,511 payload
+paths / 234,296,562 B**, with only the three defining-schema metadata
+records changed. Eighteen focused controls, root types and touched typed
+lint pass. This is a registration slice, not completion of CS5's remaining
+quest families or its quest-runtime eviction.
+
+CS6's source inventory uses CS1's retained primary-shard rows: **55**
+actor, behaviour, director and grazer entries across the six primary
+shards, comprising **42 platform**, **12 named JSON** and **one custom**
+entry. Schema candidates in that inventory do not themselves prove an
+admitted contract or a shared host. The first independently inspected
+family is `actors/page-life.json`, whose real Pine and Driftwood producers
+already use `PageLifeSchema` / `parsePageLife`. Its live host retains the
+original flock, forager, borrowed-draw, system-order and AS program
+ownership; no new callback, program, tick or default application is added.
+
+The final candidate passes **29 controls across six suites**, including
+the original ambient ownership, retirement and page-life controls; root
+types and touched typed lint pass. One coalesced normal DW/Pine/Nalati
+build takes 47.60 s with declared peer overlap (no isolated timing claim),
+and independently admits all three products. Its 1,911 payload paths /
+322,948,635 B differ in exactly one 164-byte Nalati `look/map` record:
+only `map.tilesHash` moves from `a9646fb2…abe455b` to the exact current
+source hash `f11c8cb9…5ddc96`. The only map input edit is the earlier
+`7de65890f1` two-line defining-metadata change in `generators/output.ts`.
+Image `80afaa55…aff2d6`, the other 1,910 payloads, and every DW/Pine byte
+are identical. Four defining metadata records change: two prior
+creature-look records and the two page-life records.
+
+The strict raw comparator remains **FAIL**. Jake's **G872 per-case
+ruling** accepts exactly that current-source stamp classification; no
+general tolerance, stamp/image write or admission guard change is added.
+The remaining CS6 species/population and behaviour-to-AS work stays open;
+no legacy file is part of either slice (G908).

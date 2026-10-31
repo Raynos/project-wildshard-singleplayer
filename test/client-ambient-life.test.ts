@@ -11,6 +11,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { FISH_DRAW } from '../src/shards/driftwood-isle/generators/fishDraw';
 import { PAGE_LIFE } from '../src/shards/driftwood-isle/generators/pageLife';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 
 const lifeRows = parsePageLife({ ...PAGE_LIFE, flocks: PAGE_LIFE.flocks.filter(row => row.borrowed) });
 const bindings = { file: 'actors/page-life.json', flocks: [{ id: 'gulls', owner: 'original.gulls' }] };
@@ -29,7 +30,7 @@ function fixture(deferred = false, innerLibrary = false) {
     return Promise.resolve(bytes);
   });
   const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map(),
-    files: new Map([[bindings.file, { hash: 'fixture', url: 'fixture' }], ['look/fish-draw.json', { hash: 'library', url: 'ambient-inner-leave-library' }]]), read });
+    files: new Map([[bindings.file, fixtureProductFile(bindings.file, { hash: 'fixture', url: 'fixture' })], ['look/fish-draw.json', { hash: 'library', url: 'ambient-inner-leave-library' }]]), read, jsonCheck: fixtureJsonCheck });
   type World = NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>;
   const world = legacyDouble<World>({ game: legacyDouble<World['game']>({ camera: new PerspectiveCamera() }),
     sky: legacyDouble<World['sky']>({ dayNight: null }), player: legacyDouble<World['player']>({ position: new Vector3(0, 1.7, 0) }) });
