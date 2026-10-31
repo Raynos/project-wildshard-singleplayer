@@ -12,10 +12,10 @@ import {chapterWireHash} from './fixtures/headless/chapterHandoff';
 mkdirSync(resolve('tmp'),{recursive:true});
 const directory=mkdtempSync(resolve('tmp/nalati-chapter-one-')),plains=resolve(directory,'plains.json'),approach=resolve(directory,'approach.json'),bond=resolve(directory,'bond.json'),goat=resolve(directory,'goat.json'),returning=resolve(directory,'return.json'),home=resolve(directory,'home.json');
 const rim=resolve(directory,'carving-road.json');
-const arrival=resolve(directory,'carving-arrival.json'),carvings=resolve(directory,'carvings.json'),kingEntry=resolve(directory,'king-entry.json'),kingOne=resolve(directory,'king-one.json');
-let plainsHash:string|undefined,approachHash:string|undefined,bondHash:string|undefined,goatHash:string|undefined,returnHash:string|undefined,homeHash:string|undefined,rimHash:string|undefined,arrivalHash:string|undefined,carvingsHash:string|undefined,kingEntryHash:string|undefined;
+const arrival=resolve(directory,'carving-arrival.json'),carvings=resolve(directory,'carvings.json'),kingEntry=resolve(directory,'king-entry.json'),kingOne=resolve(directory,'king-one.json'),kingTwo=resolve(directory,'king-two.json');
+let plainsHash:string|undefined,approachHash:string|undefined,bondHash:string|undefined,goatHash:string|undefined,returnHash:string|undefined,homeHash:string|undefined,rimHash:string|undefined,arrivalHash:string|undefined,carvingsHash:string|undefined,kingEntryHash:string|undefined,kingOneHash:string|undefined;
 afterAll(()=>{rmSync(directory,{recursive:true});});
-function run(stage:'plains'|'approach'|'bond'|'goat'|'return'|'home'|'carving-road'|'carving-arrival'|'carvings'|'king-entry'|'king-phase-one',output:string,input?:string,hash?:string):string {
+function run(stage:'plains'|'approach'|'bond'|'goat'|'return'|'home'|'carving-road'|'carving-arrival'|'carvings'|'king-entry'|'king-phase-one'|'king-phase-two',output:string,input?:string,hash?:string):string {
   const started=performance.now();
   const child=spawnSync(process.execPath,['--experimental-transform-types','--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
     resolve('test/fixtures/headless/nalati-chapter-one-run.ts'),stage,output,...(input===undefined?[]:[input]),...(hash===undefined?[]:[hash])],{encoding:'utf8',timeout:150_000});
@@ -88,5 +88,13 @@ test('the entered King earns and exactly replays its first real health checkpoin
   expect(kingEntryHash,'the preceding case must enter the real King fight').toBeDefined();
   if(kingEntryHash===undefined)throw new Error('Missing earned King entry');
   expect(chapterWireHash(readFileSync(kingEntry,'utf8'))).toBe(kingEntryHash);
-  run('king-phase-one',kingOne,kingEntry,kingEntryHash);
+  kingOneHash=run('king-phase-one',kingOne,kingEntry,kingEntryHash);
+},180_000);
+
+
+test('the earned first King checkpoint fights through the real shield adds and second health threshold',()=>{
+  expect(kingOneHash,'the preceding case must earn the real first King health checkpoint').toBeDefined();
+  if(kingOneHash===undefined)throw new Error('Missing earned first King checkpoint');
+  expect(chapterWireHash(readFileSync(kingOne,'utf8'))).toBe(kingOneHash);
+  run('king-phase-two',kingTwo,kingOne,kingOneHash);
 },180_000);
