@@ -110,7 +110,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 |---|---|---|
 | **CS0** | **done (2026-10-24, sp-x6):** measured ceilings 387 / 33,613,009 B; shrink-only existing-name inventory, new custom sections refused, new named JSON requires an exact defining format schema. **Ceilings to actuals and a schema freeze** (free, can land now): set every `custom-sections/<slug>` ceiling to the measured value (549 → 387, 62 MB → 33.6 MB); refuse a new `custom/` section and any new named JSON whose schema is defined in a shard folder | 0.5 day, Codex |
 | **CS1** | **done (2026-10-31, sp-x1):** plain hash-bound section inventory in `9a616b4b82`; exclusive test-project ownership fixed in `b13ad77350`. Records sections/named JSON, shard, bytes, defining bindings, source emitters and reading-host evidence; unresolved evidence remains explicit. No ruler, scores or progress tool. | 0.5–1 day, Codex |
-| **CS2** | **open (2026-10-31, sp-x1):** persistence and 27 native world-scene recipes are qualified. The entire unlanded 62-document weld registration is withdrawn: Pine's index grows from 1,703,170 to 3,120,670 B against the unchanged 2,000,000 B cap, an explicit index-footprint exit below. Cross-name recipe, buffer and posed-library aliases still need source-first coverage; CS7 audio/cards are owned separately. The five repeated-name inline/collision exits alone cannot mark CS2 done. | 2–3 days, Codex + Opus review |
+| **CS2** | **open (2026-10-31, sp-x1):** persistence, 27 native world-scene recipes and the 23 aliases/forest-page documents in `31bffc86fb` are qualified. The 62 welds remain withdrawn; eight separate living-cabin envelopes are also an explicit index-footprint exit under the new approximately 1.9 MB Pine headroom rule. Building-sites and shape-book are the next two approved native roots, source-first. Remaining names need the concrete family exits below; the five repeated-name exits alone do not close CS2. | 2–3 days, Codex + Opus review |
 | **CS3** | **K1 scenes**: one streamed `world/scenes` family and `models/library`; Pine's 112 placement files become one indexed section; tier copies derived. Pine first, then Sky / Signal / Nine / Driftwood / Nalati | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **K2 ground and physics**: Pine physics into `world/physics`; floor, crag cave, Sky fields, Signal embers into a streamed `world/fields` | 2–3 days, Codex (Opus memory reading) |
 | **CS5** | **K3 quests**: one `quest/*` family across Pine, Driftwood, Nalati (and Sky's quest rows); Pine `questRuntime` program to AS | 4–6 days, Opus design + Codex port |
@@ -652,3 +652,57 @@ contracts. For example, Driftwood keeper/return/quest row roots already
 exist but still need complete source and approved-owner qualification;
 Nalati's specimen/dressing roots still need their one-user/genericity
 exit. **CS2 remains open** with these concrete remainders.
+
+### CS2 scene-family remainder: exact source traces
+
+**2026-10-31, sp-x1, after `31bffc86fb`.** The forest-page request is
+already satisfied by that accepted 23-document slice and its same
+payload proof; no second forest-page publisher is required. The
+42 distinct remaining scene-family names in the six-primary snapshot
+split into two next native registrations, eight withheld living
+envelopes, and 32 explicit source/contract exits below. This is source
+evidence, not scene consolidation, host adoption or pixel qualification.
+
+The two approved next names are Pine `world/building-sites.json`, whose
+complete `LivingPageSitesSchema` is consumed by
+`game/shardfile/forestPage`, and Nalati `models/shape-book.json`, whose
+complete `FixedDrawRowsSchema` is consumed by `game/models/fixedDraws`.
+Their existing G571 forest-page and G602 fixed-draw approvals apply.
+Hash-verified bodies are 963 B and 12,854 B; native-root feasibility
+preserves them exactly. Seven off-tree controls pass, including missing
+and foreign provenance refusal before reads. Metadata-only physical-index
+projections add 790 B and 62 B respectively; these are not current-source
+admission or an AFTER payload qualification. The two-name source stays
+off-tree through the director owner's checked registry handback.
+
+**Eight living-cabin names are an explicit index-footprint exit.**
+`cabinLivingContribution.ts` emits the complete
+`LivingPageInputSchema` envelope `{graph,life,geometry}` at exactly
+`scenes/cabins/living/{phone,desktop}-{false,true}-{false,true}.json`.
+These eight names are distinct from all 62 withdrawn shell/specimen/
+cast/fabric names. A read-only projection with the existing full native
+schema takes Pine from **1,757,786 B to 1,984,106 B** before the pending
+director metadata, leaving only 15,894 B below the unchanged 2,000,000 B
+cap. Jake rejects this 0.8% headroom: keep Pine's index at or below
+approximately **1.9 MB**. No living-envelope registration or new wire
+root activates. Like the 62 welds, these eight wait for a separate
+index-compaction row; neither the hard cap nor freshness is relaxed.
+
+| Remaining exact names | Source/complete-contract evidence | Explicit exit |
+|---|---|---|
+| Nine `geometry/fixed-kits.json`, `geometry/layout.json`; DW `models/fixed-geometry.json` (3) | Nine `productOutput.ts` and `layoutBlobs.ts` use shard-local `FixedPracticeFileSchema` and `GeometryBootSchema`; DW `namedSchemas.ts` imports its shard-local `FixedGeometryGroupsSchema`. Native checks exist, but these are not shared format roots. | **CS3:** complete shared/approved document contracts before registration; preserve practice, layout, negative-zero and geometry/resource admission. |
+| Nalati `models/cover-{phone,desktop}.json` (2) | `coverSpecimens.ts` calls `nameSpecimenBook`; the complete `SpecimenBookSchema` root is real, but these named-book emissions and `models/gear-book.json` have only Nalati as a demonstrated source user. | **CS3:** establish the second-user or exact one-user approval evidence for this root; shape equality alone gives no genericity or host credit. |
+| Nine `signs/atlas-{phone,desktop}.json` (2) | `signAtlasOutput.ts` uses the shard-local `sections.ts#SignAtlasSchema`, with its exact glyph, light, pool and channel bindings. | **CS3:** shared atlas/native-resource contract or existing approved shader/model exit; retain the original complete sign parser. |
+| DW `world/building-life.json` (1) | `namedSchemas.ts` composes `{look: BuildingLifeLook, life: BuildingLifeRows, initialDusk: number}` inline. The two native child roots do not define the whole envelope. | **CS3:** complete life-document root and original site owner; no child-only registration. |
+| Nalati `world/dressing-{boulder,slab,juniper,rose,willow,lupin,reed,logs,stumps,ovoos,poles,fences,gates,drifts,colliders,clutter}.json` (16) | `dressingSchemas.ts#DRESSING_SCHEMAS` declares local instance, spot, log, fence, gate, drift, collider and clutter array grammars and re-encodes through their existing parsers. | **CS3**, with **CS4** for collider ownership: adopt complete native shared rows without changing doubles, resources or collision; no permissive array wrapper. |
+| Nalati `world/dressing-{phone,desktop}.json` (2) | `dressingScene.ts` emits the complete `SceneDressingSchema`; `output.ts` then binds the original painted books without changing that metadata. Only Nalati emits this named root in the source trace. | **CS3:** complete shared/approved dressing-book adoption, including tier resources, ordered paint bindings and scope retirement. |
+| DW `world/island/plan-{phone,desktop}.json` (2) | `productPageFiles.ts#driftwoodPlanBytes` encodes `islandCover.ts#bakeIslandPlan`; `IslandPlacementPlan` is a local interface with sets, families, small rocks and unclaimed boxes, not an exported complete native schema. | **CS3:** complete placement-plan contract and exact native collider/resource checks; do not infer a format root from the interface or bytes. |
+| Far/Sun `world/sources/bakes.json`; Far `world/sources/{heroes,sky}.json`; Sun `world/sources/models.json` (4 distinct names) | `sdk/worldScenes#bakedSceneSourceFile` and `modelSceneSourceFile` emit `SceneBakeSource` / `SceneModelSource` interfaces with kind/inventory limits; downstream `game/shardfile/sceneSources` retains full resource/owner admission. There is no complete defining native format root for these envelopes. | **CS3:** complete the shared source contracts before registration. X2 owns the first two-user bakes slice plus its original refusals, payload identity and affected-pose AA/AB proof; no unknown/child-only envelope or new host credit. |
+
+The eight withheld living envelopes plus the table's 32 names account
+for every scene-family remainder beyond the two approved next names.
+The separate 62-name weld exit remains unchanged. Other CS2 families
+are still audited in plan order. The existing all-product inventory
+command currently refuses missing `out/_template/shard.json`; it is not
+treated as a zero or silently skipped, and no full-product coverage is
+claimed from the six-primary snapshot.
