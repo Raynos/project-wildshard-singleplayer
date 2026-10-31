@@ -148,7 +148,15 @@ async function titleReady(page){
 async function installFixtureWorker(page){
   await page.evaluate(async()=>{
     if(await navigator.serviceWorker.getRegistration()===undefined)await navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'all'});
-    await navigator.serviceWorker.ready;
+    const registration=await navigator.serviceWorker.ready,worker=registration.active;
+    if(worker===null)throw new Error('Installed fixture A has no active worker');
+    if(worker.state!=='activated')await new Promise((_resolve,_reject)=>{
+      const changed=()=>{
+        if(worker.state==='activated'){worker.removeEventListener('statechange',changed);_resolve(undefined);}
+        else if(worker.state==='redundant'){worker.removeEventListener('statechange',changed);_reject(new Error('Fixture A retired before activation'));}
+      };
+      worker.addEventListener('statechange',changed);changed();
+    });
   });
 }
 /** @param {Page} page @param {string} target */
