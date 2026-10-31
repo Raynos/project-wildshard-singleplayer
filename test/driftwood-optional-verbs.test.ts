@@ -13,7 +13,9 @@ for(const stage of ['bench','reef'] as const)test(stage==='bench'
   :'Driftwood reaches the reef through real HOVER, swim and DIVE before opening its treasure',()=>{
   const child=spawnSync(process.execPath,['--experimental-transform-types','--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
     resolve('test/fixtures/headless/driftwood-optional-run.ts'),stage],{encoding:'utf8',timeout:30_000});
-  expect(child.status,child.stdout+child.stderr).toBe(0);
+  const outcome=JSON.stringify({stage,status:child.status,signal:child.signal,error:child.error?.message});
+  expect(child.error,`${outcome}\n${child.stdout}${child.stderr}`).toBeUndefined();
+  expect(child.status,`${outcome}\n${child.stdout}${child.stderr}`).toBe(0);
   const line=child.stdout.split('\n').find(row=>row.includes('"story":"driftwood-'));
   if(line===undefined)throw new Error('Missing actual optional Driftwood replay');
   const observed=v.parse(result,JSON.parse(line));

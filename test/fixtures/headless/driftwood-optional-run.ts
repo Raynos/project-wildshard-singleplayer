@@ -4,9 +4,10 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import * as v from 'valibot';
 import {beginProductSession} from './productSession';
+import {checkedReplayPipeline} from './checkedReplayPipeline';
 import {createNativeProofResident} from '../headless-native';
 import {loadRapier} from '../../../src/engine/physics/rapier';
-import {snapshotSimHost,decodeSimSnapshot} from '../../../src/engine/sim/snapshot';
+import {snapshotSimHostBytes,decodeSimSnapshot} from '../../../src/engine/sim/snapshot';
 import {castRay,floorBelow} from '../../../src/engine/physics/query';
 import {physicsState,sameBytes} from '../../fake/simState';
 import {installWalkRopeBodies} from './ropeBodies';
@@ -23,18 +24,32 @@ import type {HeadlessTapeObservation,HeadlessTapeSegment} from '../../../src/sdk
 const stage=process.argv[2]??'bench';
 if(stage!=='bench'&&stage!=='reef')throw new Error('Unknown optional Driftwood tape');
 const earned=stage==='bench'?'used:vista-bench':'open:reef-treasure';
-const started=performance.now(),session=await beginProductSession('driftwood-isle','driftwood'),{product,assets}=session;
+const started=performance.now();
+const trace=(phase:string):void=>{console.info(JSON.stringify({stage,phase,ms:performance.now()-started}));};
+const session=await beginProductSession('driftwood-isle','driftwood'),{product,assets}=session;
+trace('product-started');
+let stopReplay:(()=>Promise<void>)|undefined;
 let resident:Awaited<ReturnType<typeof createNativeProofResident>>|undefined,releaseRopes=()=>{ /* No rope owner before installation. */ };
 try{
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   resident=await createNativeProofResident({shard:product.shardfile,assets,product,rapier},prepareHeadlessRuntime);
   const active=resident,{host}=active,sim=await session.ready();releaseRopes=installWalkRopeBodies(host,product);installNativeWalkBounds(host);
+  trace('capture-ready');
   const spots=readNativeQuestSpots(DRIFTWOOD_SPOTS),index=spots.rows.findIndex(row=>row.id===(stage==='bench'?'vista-bench':'reef-treasure')),bench=spots.rows[index];assert.ok(bench);
   const use:HeadlessCommand={kind:'script',actorId:policy.actor,value:policy.actions.row+index};
   const schema=v.object({counts:v.record(v.string(),v.number())});
   const counts=()=>v.parse(schema,host.adapters.get(policy.step)?.snapshot()).counts;
   const parts:HeadlessTapeSegment[]=[],observations:HeadlessTapeObservation[]=[],encoder=new TextEncoder();
   let frames:HeadlessCommand[][]=[],effects:HeadlessEffect[]=[],peakY=host.player.position.y,ticks=0,commandsCount=0,bytes=0,divingTicks=0,boardTicks=0,identicalPhysics=0,canonicalPhysics=0;
+  let captureMs=0,replayMs=0,backpressureMs=0,negativeMs=0;
+  const pipeline=checkedReplayPipeline<{segment:HeadlessTapeSegment;wanted:HeadlessTapeObservation;snapshot:ReturnType<typeof snapshotSimHostBytes>}>(async({segment,wanted,snapshot})=>{
+    const replayStarted=performance.now(),replay=await sim.verbTapePart({version:1,observe:[],segments:[segment]});replayMs+=performance.now()-replayStarted;
+    assert.deepEqual(replay.report.observations,[wanted],'fresh inputs preserve every boundary observation and effect');
+    const {physics:actualPhysics,...actual}=decodeSimSnapshot(replay.commit.snapshot),{physics:expectedPhysics,...expected}=snapshot;
+    assert.deepEqual(actual,expected,'every native continuation field is exact');
+    if(sameBytes(actualPhysics,expectedPhysics))identicalPhysics++;
+    else{canonicalPhysics++;assert.deepEqual(physicsState(actualPhysics),physicsState(expectedPhysics),'every native physics value is exact');}
+  });stopReplay=pipeline.stop;
   const flush=async(id:string):Promise<void>=>{
     if(frames.length===0)return;
     const segment:HeadlessTapeSegment={id,ticks:frames.length,commands:[],frames};frames=[];parts.push(segment);
@@ -43,16 +58,12 @@ try{
       quests:host.quests.map(row=>({id:row.def.id,currentId:row.current?.id??null,started:row.snapshot().started,complete:row.isComplete})),effects,adapters:[]};
     effects=[];peakY=host.player.position.y;observations.push(wanted);
     bytes+=encoder.encode(JSON.stringify(wanted)).byteLength;assert.ok(bytes<=8_000_000);assert.ok(parts.length<=128);
-    const replay=await sim.verbTapePart({version:1,observe:[],segments:[segment]});
-    assert.deepEqual(replay.report.observations,[wanted],'fresh inputs preserve every boundary observation and effect');
-    const {physics:actualPhysics,...actual}=decodeSimSnapshot(replay.commit.snapshot),{physics:expectedPhysics,...expected}=snapshotSimHost(host);
-    assert.deepEqual(actual,expected,'every native continuation field is exact');
-    if(sameBytes(actualPhysics,expectedPhysics))identicalPhysics++;
-    else{canonicalPhysics++;assert.deepEqual(physicsState(actualPhysics),physicsState(expectedPhysics),'every native physics value is exact');}
+    const snapshot=snapshotSimHostBytes(host),offered=performance.now();
+    await pipeline.offer({segment,wanted,snapshot});backpressureMs+=performance.now()-offered;
   };
   const step=async(commands:HeadlessCommand[]):Promise<void>=>{
-    ticks++;commandsCount+=commands.length;assert.ok(ticks<=30_000&&commandsCount<=60_000);
-    active.step(commands);if(host.playerSwim.diving)divingTicks++;if(host.playerBoard.on)boardTicks++;frames.push(structuredClone(commands));effects.push(...structuredClone(active.effects));peakY=Math.max(peakY,host.player.position.y);
+    pipeline.check();ticks++;commandsCount+=commands.length;assert.ok(ticks<=30_000&&commandsCount<=60_000);
+    const captureStarted=performance.now();active.step(commands);captureMs+=performance.now()-captureStarted;if(host.playerSwim.diving)divingTicks++;if(host.playerBoard.on)boardTicks++;frames.push(structuredClone(commands));effects.push(...structuredClone(active.effects));peakY=Math.max(peakY,host.player.position.y);
     if(frames.length===512)await flush(`walk-${parts.length}`);
   };
   const wait=async(n:number)=>{for(let i=0;i<n;i++)await step([]);};
@@ -114,9 +125,10 @@ try{
     for(const flag of ['talked:castaway','has:flint','quest:driftwood-done','used:vista-bench'])assert.equal(host.flags.has(flag),false,flag);
     assert.equal(sim.quarantined,false);
   }
+  await pipeline.finish();assert.equal(sim.quarantined,false);trace('positive-complete');
   const negativeSession=await beginProductSession('driftwood-isle','driftwood');
   try{
-    const negative=await negativeSession.ready();let omitted=0;
+    const negative=await negativeSession.ready();trace('negative-ready');const negativeStarted=performance.now();let omitted=0;
     for(const part of parts){
       const unarmed=part.frames?.map(frame=>frame.flatMap(command=>{
         if(stage==='bench'&&command.kind==='script'&&command.actorId===use.actorId&&command.value===use.value){omitted++;return [];}
@@ -130,7 +142,7 @@ try{
       const wanted=observations.find(row=>row.id===part.id);assert.ok(wanted);
       for(const flag of ['glass:1','glass:2'])assert.equal(actual.flags.includes(flag),wanted.flags.includes(flag),'only movement picks up sea glass');
     }
-    assert.ok(omitted>0);assert.equal(negative.quarantined,false);
+    assert.ok(omitted>0);assert.equal(negative.quarantined,false);negativeMs=performance.now()-negativeStarted;trace('negative-complete');
   }finally{await(await negativeSession.ready()).dispose();}
-  console.info(JSON.stringify({story:stage==='bench'?'driftwood-optional':'driftwood-reef',ticks,commands:commandsCount,parts:parts.length,glass:counts()['glass'],vista:counts()['vista'],doubloons:v.parse(v.object({pack:v.object({counts:v.record(v.string(),v.number())})}),host.adapters.get(policy.step)?.snapshot()).pack.counts['doubloon']??0,divingTicks,boardTicks,identicalPhysics,canonicalPhysics,milliseconds:performance.now()-started}));
-}finally{releaseRopes();resident?.dispose();await(await session.ready()).dispose();}
+  console.info(JSON.stringify({story:stage==='bench'?'driftwood-optional':'driftwood-reef',ticks,commands:commandsCount,parts:parts.length,glass:counts()['glass'],vista:counts()['vista'],doubloons:v.parse(v.object({pack:v.object({counts:v.record(v.string(),v.number())})}),host.adapters.get(policy.step)?.snapshot()).pack.counts['doubloon']??0,divingTicks,boardTicks,identicalPhysics,canonicalPhysics,captureMs,replayMs,backpressureMs,negativeMs,milliseconds:performance.now()-started}));
+}finally{await stopReplay?.();releaseRopes();resident?.dispose();await(await session.ready()).dispose();}
