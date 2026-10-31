@@ -2,6 +2,7 @@ import {expect,test} from 'vitest';
 import {Vector3} from 'three';
 import {Scope} from '../src/engine/app/scope';
 import {Rng} from '../src/engine/core/rng';
+import {PhysicsRouteCursor} from '../src/sdk/headlessJourney';
 import type {BossPresentation} from '../src/engine/ai/BossBrain';
 import {parseBossProfile} from '../src/format/bossProfiles';
 import {ArenaRoomGround} from '../src/game/boss/arenaGround';
@@ -11,7 +12,7 @@ import {titanPrograms} from './fixtures/titanInlineWitness';
 import king from './fixtures/nalati-goldenKing-original.json' with {type:'json'};
 import room from '../src/shards/nalati-grasslands/data/bossArenaRoom.json' with {type:'json'};
 import {KingContinuation,type KingContinuationRows} from './fixtures/nalati-king-continuation';
-import {kingEntryPoint} from './proof/nalati-grasslands/king';
+import {kingEntryPoint,kingWalkingRoute} from './proof/nalati-grasslands/king';
 
 const profile=(()=>{const p=parseBossProfile(king.page.profile);if(p.pattern!=='arena')throw new Error('Missing original King');return p;})();
 const row=profile.fight;
@@ -150,4 +151,12 @@ test('the owned room constructs its real hidden body once before portal arm',()=
     expect(()=>a.owner.open()).toThrow('already opened');
     a.enter();expect(a.bodies.size).toBe(1);expect(a.owner.observe().state).toBe('fight');
   }finally{a.scope.dispose();}
+});
+
+test('King walking supplies both observed feet and destination to the physical cursor',()=>{
+  const from={x:-142,z:83},to=kingEntryPoint({x:-172.1,z:75,facing:-Math.PI/2});
+  const cursor=new PhysicsRouteCursor(kingWalkingRoute(from,to),{once:true});
+  const command=cursor.command([from.x,35,from.z],0);
+  expect(cursor.complete).toBe(false);expect(cursor.stuck).toEqual([]);
+  expect([command.moveX,command.moveZ,command.yaw].every(Number.isFinite)).toBe(true);
 });

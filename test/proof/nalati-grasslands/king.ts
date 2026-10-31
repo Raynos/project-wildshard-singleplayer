@@ -13,19 +13,24 @@ export function kingEntryPoint(e:Pick<NalatiKingData['entrance'],'x'|'z'|'facing
   return {x:e.x+Math.sin(e.facing)*1.7,z:e.z+Math.cos(e.facing)*1.7};
 }
 
+/** The maintained physical cursor requires a real start and destination. */
+export function kingWalkingRoute(from:{readonly x:number;readonly z:number},to:{readonly x:number;readonly z:number}):[{x:number;z:number},{x:number;z:number}] {
+  return [{x:from.x,z:from.z},{x:to.x,z:to.z}];
+}
+
 /** Commands only. The caller lends detached observations, not the encounter,
  * its bodies, its reset/phase controls, a saved record or a damage port. */
 export function* kingEntryInputs(host:SimHost,read:()=>KingObservation,rows:NalatiKingData):Generator<readonly HeadlessCommand[]> {
   for(const flag of ['clue:1','clue:2','clue:3'])assert.ok(host.flags.has(flag),flag);
   assert.equal(host.flags.has('dead:golden-king'),false);
   const e=rows.entrance;
-  for(const commands of chapterWalkInputs(host,'earned-king-door',[kingEntryPoint(e)],2400)){
+  for(const commands of chapterWalkInputs(host,'earned-king-door',kingWalkingRoute(host.player.position,kingEntryPoint(e)),2400)){
     if(read().inside)break;yield commands;
   }
   for(let tick=0;tick<120&&!read().inside;tick++)yield [{kind:'player',moveX:0,moveZ:0,yaw:e.facing,commandVersion:1,steer:{keyX:0,keyY:0,stickX:0,stickY:0}}];
   assert.equal(read().inside,true,'the original door program must actually enter');
   const p=rows.profile.fight.origin;
-  for(const commands of chapterWalkInputs(host,'entered-king-corridor',[{x:p.x,z:p.z+rows.room.halfWidth-2}],1800)){
+  for(const commands of chapterWalkInputs(host,'entered-king-corridor',kingWalkingRoute(host.player.position,{x:p.x,z:p.z+rows.room.halfWidth-2}),1800)){
     if(read().state!=='armed')break;yield commands;
   }
   for(let tick=0;tick<600&&read().state!=='fight';tick++)yield [];
