@@ -136,7 +136,8 @@ export function installNativeKing(host:SimHost,context:Pick<HeadlessRuntimeInsta
         nativeBody(body).hidden=!on||retired.has(id);}},sealed:seal.read,advanceRoom:dt=>{sand.advance(dt);}},ReturnProgram.native(host,data.encounter.program));
   encounter.core=core;const ownedCore=core;
   if(context.restoring)onSimHostRestored(host,()=>{restoreEncounterBrains(owned,bindings.brains,
-    body=>host.entities.get(body.entityId)===body&&body.kind===data.declared.kind&&poses.has(body.entityId)&&!host.scope.disposed);});
+    body=>host.entities.get(body.entityId)===body&&body.kind===data.declared.kind&&poses.has(body.entityId)&&!host.scope.disposed);
+    for(const body of owned.keys())bindings.pinned.add(body);});
   host.player.health.checkpoint(host.scope,()=>active&&ownedCore.onPlayerDeath());
   host.onStep('nalati.king.poses',()=>{if(!active)return;for(const [id,pose]of poses){const body=host.entities.get(id),dt=host.bodyDt(id);
     if(body===undefined)throw new Error('King pose body disappeared');if(dt>0){pose.advance(dt,host.clock.now,true);pose.publish();}}},undefined,'afterBodies');
@@ -157,7 +158,10 @@ export function installNativeKing(host:SimHost,context:Pick<HeadlessRuntimeInsta
         ||new Set(saved.views.map(([id])=>id)).size!==saved.views.length||saved.views.some(([id])=>!data.profile.fight.views.includes(id)))throw new Error('King continuation lost its original pose/view inventory');
       for(const [id,wire]of saved.poses){const pose=poses.get(id);if(pose===undefined)throw new Error('Missing restored King joints');pose.restore(wire);}
       seal.restore(saved.seal);sand.restore(saved.sand);ownedCore.restore(saved.core);Object.assign(uiState,saved.ui);visual.clear();
-      for(const [id,args]of saved.views)visual.set(id,[...args]);lines.splice(0,lines.length,...saved.lines.map((row):['feed'|'toast',string]=>[row[0],row[1]]));retired.clear();for(const id of saved.retired)retired.add(id);present=ownedCore.observe().inside;active=true;
+      for(const [id,args]of saved.views)visual.set(id,[...args]);lines.splice(0,lines.length,...saved.lines.map((row):['feed'|'toast',string]=>[row[0],row[1]]));retired.clear();for(const id of saved.retired)retired.add(id);present=ownedCore.observe().inside;
+      for(const id of [...poses.keys(),...ownedCore.observe().adds.map(body=>body.id)]){
+        const body=host.entities.get(id);if(body===undefined)throw new Error('Restored King presence lost its body');nativeBody(body).hidden=!present||retired.has(id);
+      }active=true;
     },physicsRestored:()=>{live();seal.physicsRestored();sand.physicsRestored();}};
   observers.set(host,{observe:owner.observe});host.scope.onDispose(()=>{
     observers.delete(host);for(const [body,brain]of owned)if(bindings.brains.get(body)===brain)bindings.brains.delete(body);
