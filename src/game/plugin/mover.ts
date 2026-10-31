@@ -334,7 +334,9 @@ export class MoverRuntime {
       gate = Number(value === m.trigger.equals);
     } else if (m.trigger?.kind === 'interact') gate = permission === m.trigger.permission
       ? m.driver?.kind === 'winch' && m.driver.mode === 'hinge' ? permission : 1 : 0;
-    return [tick, 1 / 60, this.pending.get(m.id) ?? 0, m.entity, gate, m.input.length, ...Object.values(MOVER_FIELDS).map(field => e.fields[field] ?? 0)];
+    return [tick, 1 / 60, this.pending.get(m.id) ?? 0, m.entity, gate, m.input.length,
+      e.fields[MOVER_FIELDS.pitch] ?? 0, e.fields[MOVER_FIELDS.yaw] ?? 0, e.fields[MOVER_FIELDS.roll] ?? 0,
+      e.fields[MOVER_FIELDS.enabled] ?? 0, e.fields[MOVER_FIELDS.raised] ?? 0, e.fields[MOVER_FIELDS.raising] ?? 0];
   }
   /** Apply an admitted call once; a composed scheduler already owns execution and the global host tick. */
   publish(id: string, ok: boolean): void {

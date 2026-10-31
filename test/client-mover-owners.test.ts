@@ -35,6 +35,22 @@ async function fixtureRuntime(scope:Scope):Promise<movers.MoverRuntime>{
   const host=await movers.createMoverHost([platform],new Map(),()=>[]);
   return new movers.MoverRuntime([platform],{scope,host,physics:legacyDouble<Physics>({}),adopt:()=>({pose:()=>undefined})});
 }
+
+test('mover ABI reads every live pose field in order and returns detached input',async()=>{
+  const scope=new Scope('mover-input'),host=await movers.createMoverHost([platform],new Map(),()=>[]);
+  const runtime=new movers.MoverRuntime([platform],{scope,host,physics:()=>{throw new Error('Unexpected body');},adopt:()=>({pose:()=>undefined})});
+  const native=host.world.entity.bind(host.world),read:number[]=[],fields:Record<number,number>={};
+  for(const field of [1,2,3,4,5,6])Object.defineProperty(fields,field,{get:()=>{read.push(field);return field===1?-0:field;}});
+  const reader=vi.spyOn(host.world,'entity').mockImplementation(handle=>{const row=native(handle);return row===undefined?undefined:{...row,fields};});
+  try{
+    const first=runtime.scriptInput(platform.id,17);
+    expect(read).toEqual([1,2,3,4,5,6]);expect(first.slice(6)).toEqual([-0,2,3,4,5,6]);
+    expect(first.slice(0,4)).toEqual([17,1/60,0,platform.entity]);
+    Reflect.set(first,6,99);read.length=0;
+    expect(runtime.scriptInput(platform.id,18).slice(6)).toEqual([-0,2,3,4,5,6]);
+    expect(read).toEqual([1,2,3,4,5,6]);
+  }finally{reader.mockRestore();scope.dispose();}
+});
 // D74: the fixture product's graph files by hash (a catalogue graph is its file)
 const graphFiles=new Map<string,Uint8Array>();
 function fixture(rows=admitted,bound=true){
