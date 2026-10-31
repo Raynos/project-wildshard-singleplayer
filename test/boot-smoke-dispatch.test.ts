@@ -87,8 +87,9 @@ test('the actual merged job keeps red status publication outside the production 
 });
 
 test('the merged first step publishes the original exact-SHA SIX verdict before any checkout or release work', () => {
-  const first = deploy.split('\n  build-and-deploy:\n')[1]?.split('\n      - uses: actions/checkout')[0];
-  const body = first?.split('        run: |\n')[1]?.split('\n').map(line => line.startsWith('          ') ? line.slice(10) : line).join('\n');
+  const first = deploy.split('\n  build-and-deploy:\n')[1]?.split('\n      - ')[1];
+  const shell = /^ {8}run: \|\n((?: {10}[^\n]*\n)+)/mu.exec(first ?? '')?.[1];
+  const body = shell?.split('\n').map(line => line.slice(10)).join('\n');
   if (body === undefined) throw new Error('Missing actual boot publisher');
   for (const build of ['success', 'failure', 'cancelled', 'skipped']) for (const legs of ['success', 'failure', 'cancelled', 'skipped']) {
     const result = spawnSync('bash', ['-e', '-c', `gh() { printf '%s\\n' "$@"; };\n${body}`], {

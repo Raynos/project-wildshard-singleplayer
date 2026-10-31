@@ -103,8 +103,26 @@ jobs:
             -f context=boot-smoke -f state="$state" -f description="$description" \
             -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
-      - uses: actions/checkout@v4
-        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' }}
+      # Automatic releases restore the exact tested output; source bodies are
+      # not rebuilt. Retain root configs plus the self-contained controllers.
+      - name: Check out automatic release controller
+        uses: actions/checkout@v4
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && github.event_name == 'push' }}
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/*/
+            /.github/deploy-pin.json
+            /scripts/deploy-pin.mjs
+            /scripts/deploy-version.mjs
+            /scripts/deploy-source-maps.mjs
+            /scripts/prebuilt-output.py
+          sparse-checkout-cone-mode: false
+
+      - name: Check out manual release source
+        uses: actions/checkout@v4
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && github.event_name != 'push' }}
         with:
           # Progress captures and art sources are not used by this build.
           filter: blob:none
