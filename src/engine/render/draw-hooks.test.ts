@@ -328,3 +328,39 @@ test('a texture listener rearms only that texture while disposal still invalidat
   });
   try{renderer.render();}finally{first.dispose();other.dispose();f.geometry.dispose();f.material.dispose();}
 });
+
+test('failed compressed admission keeps a completed enrollment within its original render', () => {
+  const f = fixture(), texture = new CompressedTexture([], 1, 1), native = {};
+  const renderer = { ...f.renderer, properties: { get: (_resource: unknown) => native },
+    render: () => {
+      const draw = (): void => { renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group); };
+      expect(draw).toThrow('allocation refused');
+      draw();
+    } };
+  // Use this renderer's counted draw while retaining the fixture's native sink.
+  installFrameCounter(renderer); drawHooks(renderer); const hooks = propertyHooks(renderer);
+  const enrolled = vi.fn<(resource: Texture) => void>(), uploaded = vi.fn<(resource: Texture) => void>();
+  hooks.texture = enrolled; hooks.uploaded = uploaded;
+  let refused = true;
+  hooks.compressed = { before: () => { if (refused) { refused = false; throw new Error('allocation refused'); } }, after: () => undefined };
+  f.stock.mockImplementation(() => { renderer.properties.get(texture); });
+  try {
+    renderer.render(); expect(enrolled).toHaveBeenCalledOnce(); expect(uploaded).toHaveBeenCalledOnce();
+  } finally { texture.dispose(); f.geometry.dispose(); f.material.dispose(); }
+});
+
+test('an upload callback cannot hide a listener registered during its own enrollment', () => {
+  const f = fixture(), texture = new Texture(), native = {};
+  const renderer = { ...f.renderer, properties: { get: (_resource: unknown) => native },
+    render: (_scene: Scene, _camera: Camera) => {
+      renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+    } };
+  installFrameCounter(renderer); drawHooks(renderer); const hooks = propertyHooks(renderer);
+  let calls = 0;
+  hooks.uploaded = () => { calls++; if (calls === 1) invalidatePropertyObservation(texture); };
+  f.stock.mockImplementation(() => { renderer.properties.get(texture); renderer.properties.get(texture); });
+  try {
+    renderer.render(f.scene, f.camera); expect(calls).toBe(2);
+    renderer.render(f.scene, f.camera); expect(calls).toBe(3);
+  } finally { texture.dispose(); f.geometry.dispose(); f.material.dispose(); }
+});

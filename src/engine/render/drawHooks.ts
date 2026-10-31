@@ -120,16 +120,19 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
   pipeline.properties = hooks;
   const get = renderer.properties.get.bind(renderer.properties);
   let counter = renderCounter(renderer);
-  interface Observation { native: unknown; textureVersion: number; kind: ResourceKind; frame: number; metadata: boolean; owner: symbol | null; revision: number; labels: number | undefined; value: unknown }
-  let observed = new WeakMap<object, Observation>(), texturesSeen = new WeakMap<object, number>();
-  let textureFrame = -1, textureRevision = observationRevision, nativeEpoch = 0;
+  // Reuse each weakly owned enrollment stamp across renders and retain it
+  // beside the native row. Hot compressed reads need no second weak lookup.
+  interface Enrollment { frame: number; revision: number; version: number }
+  interface Observation { enrollment: Enrollment | null; native: unknown; textureVersion: number; kind: ResourceKind; frame: number; metadata: boolean; owner: symbol | null; revision: number; labels: number | undefined; value: unknown }
+  let observed = new WeakMap<object, Observation>(), texturesSeen = new WeakMap<object, Enrollment>();
+  let nativeEpoch = 0;
   const remove = renderer.properties.remove?.bind(renderer.properties), dispose = renderer.properties.dispose?.bind(renderer.properties);
   if (remove !== undefined) renderer.properties.remove = resource => {
     nativeEpoch++;
     if (typeof resource === 'object' && resource !== null) { observed.delete(resource); texturesSeen.delete(resource); }
     remove(resource);
   };
-  if (dispose !== undefined) renderer.properties.dispose = () => { nativeEpoch++; observed = new WeakMap(); texturesSeen = new WeakMap<object, number>(); dispose(); };
+  if (dispose !== undefined) renderer.properties.dispose = () => { nativeEpoch++; observed = new WeakMap(); texturesSeen = new WeakMap<object, Enrollment>(); dispose(); };
   renderer.properties.get = (resource: unknown) => {
     if (typeof resource !== 'object' || resource === null) return get(resource);
     if (counter === undefined) {
@@ -138,7 +141,7 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
         counter = frameCounter;
         // The real renderer installs upload observation before its render
         // counter. Its first counted render must not reuse a per-draw epoch.
-        observed = new WeakMap(); texturesSeen = new WeakMap<object, number>(); textureFrame = -1;
+        observed = new WeakMap(); texturesSeen = new WeakMap<object, Enrollment>();
       }
     }
     const prior = observed.get(resource);
@@ -159,21 +162,26 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
     const labels = hooks.labels === undefined || !labelable ? 0 : hooks.labelsVersion?.();
     if (active && prior !== undefined && prior.frame === frame && prior.owner === owner
       && prior.revision === observationRevision && labels !== undefined && prior.labels === labels
-      && (kind.texture === null || (textureRevision === observationRevision && prior.textureVersion === kind.uploadRevision))) return prior.value;
+      && (kind.texture === null || (prior.enrollment?.revision === observationRevision && prior.textureVersion === kind.uploadRevision))) return prior.value;
     const epoch = nativeEpoch;
     const texture = kind.texture, compressed = kind.compressed, textureVersion = kind.uploadRevision;
     // Enrollment is per texture/render; consuming-owner residency and
     // compressed sampler/allocation checks keep their original stamps below.
     // A late upload listener rearms only its resource; disposal keeps the
     // global revision invalidation for ownership and all enrollment stamps.
+    let enrollment: Enrollment | null = prior?.enrollment ?? null;
     if (texture !== null) {
-      const currentFrame = counter?.n ?? pipeline.epoch;
-      if (active && (textureFrame !== currentFrame || textureRevision !== observationRevision)) {
-        texturesSeen = new WeakMap<object, number>(); textureFrame = currentFrame; textureRevision = observationRevision;
+      const currentFrame = counter?.n ?? pipeline.epoch, enrollmentRevision = observationRevision;
+      if (enrollment === null) {
+        enrollment = texturesSeen.get(texture) ?? null;
+        if (enrollment === null) {
+          enrollment = { frame: -1, revision: -1, version: -1 };
+          texturesSeen.set(texture, enrollment);
+        }
       }
-      if (!active || texturesSeen.get(texture) !== textureVersion) {
+      if (!active || enrollment.frame !== currentFrame || enrollment.revision !== enrollmentRevision || enrollment.version !== textureVersion) {
         hooks.texture?.(texture); hooks.uploaded?.(texture);
-        if (active) texturesSeen.set(texture, textureVersion);
+        if (active) { enrollment.frame = currentFrame; enrollment.revision = enrollmentRevision; enrollment.version = textureVersion; }
       }
     }
     if (compressed !== undefined && compressed !== null) hooks.compressed?.before(compressed);
@@ -194,8 +202,8 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
     if (nativeAt !== nativeEpoch) { observed.delete(resource); return value; }
     const metadata = !kind.owned && remove !== undefined && dispose !== undefined
       && native !== null && typeof native === 'object';
-    if (prior === undefined) observed.set(resource, { native, textureVersion, kind, frame: active ? frame : -1, metadata, owner, revision, labels, value });
-    else { prior.native = native; prior.textureVersion = textureVersion; prior.frame = active ? frame : -1; prior.metadata = metadata; prior.owner = owner; prior.revision = revision; prior.labels = labels; prior.value = value; }
+    if (prior === undefined) observed.set(resource, { enrollment, native, textureVersion, kind, frame: active ? frame : -1, metadata, owner, revision, labels, value });
+    else { prior.enrollment = enrollment; prior.native = native; prior.textureVersion = textureVersion; prior.frame = active ? frame : -1; prior.metadata = metadata; prior.owner = owner; prior.revision = revision; prior.labels = labels; prior.value = value; }
     return value;
   };
   return hooks;
