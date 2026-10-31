@@ -14,6 +14,13 @@ import { cabinLiving, cabinSites } from './cabinLivingContribution';
 import { perSources, type PineSources } from './pineSources';
 import { HAMLET } from './layout';
 
+const cabinPacking = new WeakMap<PineSources, typeof nameCompactBlobs>();
+/** The owning build may lend an exact packer; standalone source bakes keep
+ * the original path. Registration does no work or change producer order. */
+export function lendCabinPacking(sources: PineSources, pack: typeof nameCompactBlobs): void {
+  cabinPacking.set(sources, pack);
+}
+
 type WorldSceneWeld = ReturnType<typeof parseWorldSceneWeld>;
 
 const text = { kind: 'string' } as const, number = { kind: 'number' } as const;
@@ -146,7 +153,7 @@ export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSour
   const CABIN_RAW_MODELS: NamedBlob[] = shapes.map(([name, bytes]) => nameBlob(name, 'glb', bytes));
   // iPhone downloads I3: the shipped shapes in phone geometry when that serves fewer bytes (nameCompactBlob: 16-bit grid
   // positions, 8-bit normals and colours, the owned-geometry intake baking the grid back), else the meshopt pick
-  const CABIN_PACKED_MODELS: NamedBlob[] = await nameCompactBlobs(shapes);
+  const CABIN_PACKED_MODELS: NamedBlob[] = await (cabinPacking.get(sources) ?? nameCompactBlobs)(shapes);
   // the living libraries' models name shared shape files too: those are the resources' files, read at intake
   const livingFiles = new Set([...living.CABIN_LIVING_SHAPES.map(([name]) => name), ...living.CABIN_LIVING_LIBRARIES.flatMap(library => library.models.map(model => model.file))]);
   const resident = new Set(CABIN_PACKED_MODELS.filter(blob => blob.file.name !== undefined && livingFiles.has(blob.file.name)).map(blob => blob.file.hash));

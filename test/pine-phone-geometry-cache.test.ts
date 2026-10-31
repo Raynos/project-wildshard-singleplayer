@@ -1,11 +1,11 @@
 import { expect, it } from 'vitest';
 import { WebIO } from '@gltf-transform/core';
 import { MeshStandardMaterial, SphereGeometry } from 'three';
-import { compactPhoneGlb, compactClearGlb } from '@wildshard/sdk/bake/compactGlb';
+import { compactPhoneGlb, compactClearGlb, nameCompactBlobs } from '@wildshard/sdk/bake/compactGlb';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { cachedTreeRest, cachedGroundTile } from '../src/shards/pine-hollow/generators/phoneGeometryCache';
+import { cachedTreeRest, cachedGroundTile, cachedCompactShapes } from '../src/shards/pine-hollow/generators/phoneGeometryCache';
 
 function pool(radius: number): Uint8Array {
   const geometry = new SphereGeometry(radius, 16, 12), material = new MeshStandardMaterial();
@@ -82,4 +82,57 @@ it('retains normalized float accessor decoding beside the raw-storage scan', asy
   const ordinary = await compactPhoneGlb(input), fallback = await compactPhoneGlb(normalized);
   expect(ordinary === input).toBe(false); expect(fallback === normalized).toBe(false);
   expect(fallback).toEqual(ordinary);
+});
+
+it('retains the complete ordered compact batch and independent cache hits', async () => {
+  const shared = pool(2.75), shapes: readonly (readonly [string, Uint8Array])[] = [
+    ['cabins/a.glb', shared], ['cabins/b.glb', shared], ['cabins/c.glb', pool(5.5)],
+  ];
+  const expected = await nameCompactBlobs(shapes);
+  const saved = new Map<string, ReadonlyMap<string, Uint8Array>>(); let builds = 0;
+  const ctx: Pick<ProjectGenerationContext, 'cached'> = { cached: async (step, generate) => {
+    expect(step.native).toBe(true); expect(step.inputs).toBeUndefined();
+    expect(step.id).toMatch(/^cab-pack-[a-f0-9]{64}$/u);
+    let files = saved.get(step.id);
+    if (files === undefined) { builds++; files = await generate(new Map()); saved.set(step.id, files); }
+    return new Map([...files].map(([name, bytes]) => [name, new Uint8Array(bytes)]));
+  } };
+  const first = await cachedCompactShapes(ctx, shapes);
+  expect(first.map(blob => blob.file)).toEqual(expected.map(blob => blob.file));
+  for (const [index, blob] of first.entries()) {
+    expect(blob.bytes).toEqual(expected[index]?.bytes); blob.bytes.fill(0);
+  }
+  const hit = await cachedCompactShapes(ctx, shapes);
+  expect(builds).toBe(1); expect(hit.map(blob => blob.file)).toEqual(expected.map(blob => blob.file));
+  for (const [index, blob] of hit.entries()) expect(blob.bytes).toEqual(expected[index]?.bytes);
+});
+
+it('binds every ordered name and source byte, owning input before cache callbacks', async () => {
+  const one: [string, Uint8Array] = ['cabins/one.glb', pool(3.5)], two: [string, Uint8Array] = ['cabins/two.glb', pool(7)];
+  const shapes: [string, Uint8Array][] = [one, two];
+  const expected = await nameCompactBlobs(shapes), ids: string[] = [];
+  const cached = new Map(expected.map((blob, index) => [`${String(index)}.glb`, blob.bytes]));
+  const hit: Pick<ProjectGenerationContext, 'cached'> = { cached: step => {
+    ids.push(step.id); return Promise.resolve(cached);
+  } };
+  await cachedCompactShapes(hit, shapes);
+  await cachedCompactShapes(hit, [...shapes].reverse());
+  await cachedCompactShapes(hit, [['cabins/renamed.glb', one[1]], two]);
+  await cachedCompactShapes(hit, [['cabins/one.glb', pool(9)], two]);
+  expect(new Set(ids).size).toBe(4);
+  const actual = await cachedCompactShapes({ cached: (_step, generate) => {
+    for (const [, bytes] of shapes) bytes.fill(0); shapes.length = 0;
+    return Promise.resolve(generate(new Map()));
+  } }, shapes);
+  expect(actual.map(blob => blob.file)).toEqual(expected.map(blob => blob.file));
+  for (const [index, blob] of actual.entries()) expect(blob.bytes).toEqual(expected[index]?.bytes);
+});
+
+it('refuses incomplete batch caches and keeps named GLB admission on hits', async () => {
+  const input = pool(8), shapes: [string, Uint8Array][] = [['cabins/only.glb', input]];
+  for (const files of [new Map<string, Uint8Array>(), new Map([['wrong.glb', input]]),
+    new Map([['0.glb', input], ['extra.glb', input]]), new Map([['0.glb', new Uint8Array()]]),
+    new Map([['0.glb', new Uint8Array([1, 2, 3])]])]) {
+    await expect(cachedCompactShapes({ cached: () => Promise.resolve(files) }, shapes)).rejects.toThrow();
+  }
 });

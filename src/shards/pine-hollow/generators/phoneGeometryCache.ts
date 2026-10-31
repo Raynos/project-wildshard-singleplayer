@@ -1,7 +1,8 @@
-import { compactPhoneGlb, compactClearGlb } from '@wildshard/sdk/bake/compactGlb';
+import { compactPhoneGlb, compactClearGlb, nameCompactBlobs } from '@wildshard/sdk/bake/compactGlb';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import type { Shardfile } from '@wildshard/sdk/shardfile';
+import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 
 function owned(input: Uint8Array): Uint8Array {
   if (!(input instanceof Uint8Array) || input.byteLength > 256_000_000) throw new Error('Invalid Pine phone geometry input');
@@ -34,4 +35,22 @@ export async function cachedGroundTile(ctx: Pick<ProjectGenerationContext, 'cach
   const key = hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson({ input: hash, entries })));
   const result = await cached(ctx, `ground-glb-${key}`, () => compactClearGlb(bytes, entries));
   return hashImmutableBytes(result) === hash && hashImmutableBytes(input) === hash ? input : result;
+}
+
+/** Memo the original ordered batch, including its duplicate-hash fallback.
+ * Keep all name/kind/cost admission fresh on the returned bytes. Inputs are
+ * privately copied before hashing or awaiting the cache owner. */
+export async function cachedCompactShapes(ctx: Pick<ProjectGenerationContext, 'cached'>,
+  shapes: readonly (readonly [string, Uint8Array])[]): Promise<NamedBlob[]> {
+  const inputs = shapes.map(([name, bytes]) => [name, owned(bytes)] as const);
+  const identity = hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(
+    inputs.map(([name, bytes]) => [name, hashImmutableBytes(bytes)]))));
+  const files = await ctx.cached({ id: `cab-pack-${identity}`, native: true }, async () =>
+    new Map((await nameCompactBlobs(inputs)).map((blob, index) => [`${String(index)}.glb`, blob.bytes])));
+  if (files.size !== inputs.length) throw new Error('Pine shape cache inventory differs');
+  return inputs.map(([name], index) => {
+    const bytes = files.get(`${String(index)}.glb`);
+    if (bytes === undefined || bytes.byteLength === 0) throw new Error('Pine shape cache inventory differs');
+    return nameBlob(name, 'glb', bytes);
+  });
 }
