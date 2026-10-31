@@ -85,7 +85,7 @@ export function skinRigid(mesh: Mesh): SkinnedMesh {
   const skinned = new SkinnedMesh(geometry, mesh.material);
   skinned.name = mesh.name; skinned.userData = mesh.userData;
   skinned.position.copy(mesh.position); skinned.quaternion.copy(mesh.quaternion); skinned.scale.copy(mesh.scale);
-  skinned.visible = mesh.visible; skinned.renderOrder = mesh.renderOrder; skinned.layers.mask = mesh.layers.mask;
+  skinned.visible = mesh.visible; skinned.renderOrder = mesh.renderOrder; skinned.layers.mask = mesh.layers.mask; skinned.frustumCulled = mesh.frustumCulled;
   skinned.castShadow = mesh.castShadow; skinned.receiveShadow = mesh.receiveShadow;
   skinned.bindMode = DetachedBindMode; skinned.bind(new Skeleton([new Bone()]), new Matrix4());
   while (mesh.children.length > 0) { const child = mesh.children[0]; if (child !== undefined) skinned.add(child); }
@@ -129,16 +129,17 @@ export class RigArms {
     if (vm.userData['rig'] !== contract.skeleton) throw new Error(`[anim] arm rig skeleton mismatch: ${String(vm.userData['rig'])}`);
     this.meta = vm.userData as RigMeta;
     while (vm.children.length > 0) { const c = vm.children[0]; if (c !== undefined) this.root.add(c); }
-    // before the nodes and the clips bind, so both find the skinned stand-in
-    const rigid: Mesh[] = [];
-    this.root.traverse((o) => { if (isMesh(o) && !(o instanceof SkinnedMesh) && this.o.skinRigid(o.name)) rigid.push(o); });
-    for (const mesh of rigid) skinRigid(mesh);
     this.root.traverse((o) => {
       if (o.name !== '') this.nodes.set(o.name, o);
       if (isMesh(o)) o.frustumCulled = false;
     });
     const aliases = this.o.aliases;
     const rig = bindRig(this.root, clips, contract, bake);
+    // after bindRig checked the authored skins' joint order (the stand-in's one bone is none of them), before the clips
+    // resolve their tracks: the nodes and the mixer find the skinned stand-in
+    const rigid: Mesh[] = [];
+    this.root.traverse((o) => { if (isMesh(o) && !(o instanceof SkinnedMesh) && this.o.skinRigid(o.name)) rigid.push(o); });
+    for (const mesh of rigid) { const skinned = skinRigid(mesh); if (this.nodes.get(mesh.name) === mesh) this.nodes.set(mesh.name, skinned); }
     const loops = armClipNames(aliases).filter((name) => this.meta.clips[aliases[name] ?? name]?.loop === true);
     this.mixer = new AnimMachine({ states: {}, loops }, rig, app.levelScope ?? undefined);
     for (const name of armClipNames(aliases)) this.actions.set(aliases[name] ?? name, this.mixer.action(name));
