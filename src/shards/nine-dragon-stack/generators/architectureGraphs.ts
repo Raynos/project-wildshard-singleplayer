@@ -328,8 +328,8 @@ function windows(): GraphIr {
   return g.output(colour, emit, mul(lines, mix(0.5, 1, detail)));
 }
 
-/** G5: the kit's program for faces of one kind, shipped as a material file (kitKindGraphs.ts) */
-export function kindGraph(kind: number): GraphIr { return architecture(false, true, kind); }
+/** G5: the kit's flagstone program (kind 3 only), shipped as a material file (groundGraph.ts) */
+export function groundGraph(): GraphIr { return architecture(false, true, 3); }
 
 /** `nr13: false` builds the kit graphs as before NR13 and NR16 (no tread glints, every face painted at full strength, a
  *  bare window grid for kind 1): the declaration oracle's predecessor. */
