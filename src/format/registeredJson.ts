@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import {SceneBuffersSchema,parseSceneBuffers} from './sceneBuffers';
 import {ForestWeatherSchema} from './forestWeather';
 import {WorldSceneModelsSchema,parseWorldSceneModels} from './worldSceneModels';
 import { AchievementCounterDataSchema,parseAchievementCounterData } from './achievementCounters';
@@ -64,12 +65,18 @@ export type RegisteredJsonValues={readonly[Name in RegisteredJsonName]:v.InferIn
 /** Existing streamed placement names; no shard identity or draw policy. */
 export type RegisteredPlacementJsonName = `world/placements/${string}.json`|`scenes/placements/${string}.json`
   |`world/foliage/${string}.json`|`world/piers/${string}.json`;
-export type RegisteredSchemaJsonName=RegisteredJsonName|RegisteredPlacementJsonName;
+export type RegisteredFieldJsonName=`world/fields/${string}.json`;
+export type RegisteredSchemaJsonName=RegisteredJsonName|RegisteredPlacementJsonName|RegisteredFieldJsonName;
 export interface RegisteredPlacementContract {
   readonly schema:typeof WorldScenePlacementSchema;
   readonly source:'@wildshard/format/worldScenePlacement#WorldScenePlacementSchema';
 }
-export type RegisteredJsonContract=RegisteredJsonContracts[RegisteredJsonName]|RegisteredPlacementContract;
+export interface RegisteredFieldContract {
+  readonly schema:typeof SceneBuffersSchema;
+  readonly source:'@wildshard/format/sceneBuffers#SceneBuffersSchema';
+}
+export type RegisteredJsonContract=RegisteredJsonContracts[RegisteredJsonName]|RegisteredPlacementContract|RegisteredFieldContract;
+const fieldContract:RegisteredFieldContract={schema:SceneBuffersSchema,source:'@wildshard/format/sceneBuffers#SceneBuffersSchema'};
 const placementContract:RegisteredPlacementContract={schema:WorldScenePlacementSchema,source:'@wildshard/format/worldScenePlacement#WorldScenePlacementSchema'};
 const placementPrefixes=['world/placements/','scenes/placements/','world/foliage/','world/piers/'];
 /** Shared families use the existing defining parser, not an inferred schema.
@@ -78,6 +85,11 @@ export function registeredJsonContract(name:RegisteredSchemaJsonName):Registered
 export function registeredJsonContract(name:string):RegisteredJsonContract|undefined;
 export function registeredJsonContract(name:string):RegisteredJsonContract|undefined{
   if(isRegisteredJsonName(name))return REGISTERED_JSON[name];
+  if(name.endsWith('.json')&&name.startsWith('world/fields/')){
+    if(!/^world\/fields\/[A-Za-z0-9_-][A-Za-z0-9_.-]{0,179}\.json$/u.test(name))
+      throw new Error('Field JSON requires one bounded platform id');
+    return fieldContract;
+  }
   if(name.endsWith('.json')&&placementPrefixes.some(prefix=>name.startsWith(prefix))){
     if(!/^(?:world\/placements|scenes\/placements|world\/foliage|world\/piers)\/[A-Za-z0-9_-][A-Za-z0-9_.-]{0,179}\.json$/u.test(name))
       throw new Error('Placement JSON requires one bounded platform id');
@@ -112,6 +124,7 @@ export function validateRegisteredJson(name:string,value:unknown):void {
     case 'quests/mill-door.json':
     case 'quests/lanterns.json':parseQuestPageInteractions(value);break;
     default:
+      if(registeredJsonContract(name)===fieldContract){parseSceneBuffers(value);break;}
       if(registeredJsonContract(name)===placementContract){parseWorldScenePlacement(value);break;}
       throw new Error(`Unregistered JSON name: ${name}`);
   }

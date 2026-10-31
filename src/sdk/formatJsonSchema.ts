@@ -1,3 +1,4 @@
+import { SceneBuffersSchema } from '@wildshard/format/sceneBuffers';
 import { BakedTilesSchema } from '@wildshard/format/bakedTiles';
 import { ClientRidingSessionSchema } from '@wildshard/format/riding';
 import { ManifestMetadataSchema } from '@wildshard/format/minimap';
@@ -242,6 +243,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'pageLife.PageLife': PageLifeSchema,
   'worldSceneWeld.WorldSceneWeld': WorldSceneWeldSchema,
   'worldSceneModels.WorldSceneModels': WorldSceneModelsSchema,
+  'sceneBuffers.SceneBuffers': SceneBuffersSchema,
   'worldScenePlacement.WorldScenePlacement': WorldScenePlacementSchema,
   'clientChannels.WorldScene': WorldSceneSchema,
   'buildings.BuildingLifeRows': BuildingLifeRowsSchema,

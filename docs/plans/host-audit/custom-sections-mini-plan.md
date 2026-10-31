@@ -271,3 +271,48 @@ remaining documents; an inventory shape match alone proves no contract.
 These exits remain open work, not completed platform contracts. CS10
 removes the checked private path only after they land. Missing provenance,
 unresolved readers and one-user schemas remain explicit audit evidence.
+
+
+## CS4: existing streamed field descriptors
+
+**2026-10-31, sp-x1.** The first bounded slice registers
+`world/fields/<id>.json` against the existing `SceneBuffersSchema` and
+native parser. Sky's meadow and Signal's four ember descriptors retain
+all **142,101 JSON bytes** and **1,745,112 binary bytes**. Their two real
+producers keep each original name, dependency, byte range, stride,
+instance count, LOD and draw order; only defining metadata is added.
+The existing client-only buffer and tile hosts retain detached geometry
+storage, scope ownership and retirement. No new host or drawing path is
+introduced, and neither Pine nor Nine legacy is touched.
+
+Four suites / **14 controls** pass, including the original complete
+scene-buffer byte/LOD/transform, construction-retirement and buffered-tile
+controls; root types and touched typed lint pass. The cold Explorer
+fixture retains its real emitted metadata and uses the native validator;
+all original rendering, missing-file and lifetime assertions remain.
+
+One coalesced six-product build takes **48.91 s**, followed by independent
+strict admission of all six products. Of **2,993 declared payload paths /
+484,588,041 B**, 2,991 are byte-identical. Eight defining metadata records
+change: the five field records and sp-x2's three native population records
+in `d066e8f046`. The original raw comparator remains **FAIL** on exactly
+the two 164-byte map records: Far Reach `81c78376…57b4fdf` becomes
+`aa064ca3…97e5ec`, and Sunscar `d3e1f33c…05f3a90` becomes
+`75b09cfc…923c87`. Each is the exact current source hash after only the
+respective field emitter metadata/type annotations changed. Their images
+stay exactly `a4d2c580…04728d` / `bac93934…5cb399`. Full ordered pack
+members and offsets reconstruct; only these map members and the derived
+pack hashes differ. G872 accepts these two exact cases only, preserving
+both the strict failure and all map freshness checks.
+
+The old full source stamps are independently reconstructed. Far Reach's
+pre-existing untracked `generators/rows/islets.generated.ts` contributes
+hash-bound bytes matching the old aggregate; its local/CI divergence is
+an open BURN-DAMAGE-LIST finding, and the file is left intact.
+
+**CS4 stays open** for Pine floor/cave and physics owners, Nalati meadow
+and other ground bakes. The read-only Pine projection accepts all 2,078
+solids, 164 actors, three parked bodies and 52 herds through the existing
+`WorldPhysicsSchema` without changing their values. Its separate profile,
+notice, King-hit, tree, shelter-tree and piece owners must survive the
+actual migration; no projection or native-world completion is claimed.

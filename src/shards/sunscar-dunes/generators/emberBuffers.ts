@@ -1,10 +1,11 @@
+import {registeredJsonSchema} from '@wildshard/sdk/formatJsonSchema';
 import { worldSceneBuffers as parseSceneBuffers } from '@wildshard/sdk/worldScenes';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 
 export const SIGNAL_EMBER_BLOBS: NamedBlob[] = [];
 /** Original Points storage and golden-ratio seed rounding, baked once per authored ember count. */
 export function signalEmberBuffer(count: number, name: string): string {
-  const file = `world/fields/embers-${String(count)}.json`;
+  const file = `world/fields/embers-${String(count)}.json` as const;
   if (SIGNAL_EMBER_BLOBS.some(row => row.file.name === file)) return file;
   const index = new Float32Array(count), seed = new Float32Array(count);
   for (let i = 0; i < count; i++) { index[i] = i; seed[i] = (i * 0.618034) % 1; }
@@ -24,6 +25,7 @@ export function signalEmberBuffer(count: number, name: string): string {
     draws: [{ id: 'embers', name, draw: { kind: 'points', geometry: 'embers', frustum: false } }] });
   SIGNAL_EMBER_BLOBS.push(...(binary === undefined ? [] : [binary]), nameBlob(file, 'json', new TextEncoder().encode(JSON.stringify(row)), {
     dependencies: binary === undefined ? [] : [binary.file.hash],
+    jsonSchema: registeredJsonSchema(file),
     gpu: Object.values(channels).reduce((sum, values) => sum + values.byteLength, 0),
   })); return file;
 }

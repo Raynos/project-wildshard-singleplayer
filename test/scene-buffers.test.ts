@@ -2,6 +2,7 @@
 import { Buffer } from 'node:buffer';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
+import {fixtureJsonCheck} from './fixtures/productFile';
 import * as v from 'valibot';
 import { unzlibSync } from 'fflate';
 import { BufferAttribute, BufferGeometry, Group, Matrix4, InstancedBufferGeometry, InterleavedBufferAttribute, LOD, Mesh, MeshBasicMaterial, Points, ShaderMaterial, Vector3, type Object3D } from 'three';
@@ -177,7 +178,7 @@ test('cold Explorer preparation admits buffered effects and refuses missing file
     return createShardProduct({ slug: 'fixture-cold-effects', revision: 1,
       shardfile: emptyShardfile({ slug: 'fixture-cold-effects', name: 'Cold effects', author: 'Fixture', revision: 1, seed: 1 }),
       sections: new Map([['world/scenes', scenes]]),
-      files: new Map(data.files.flatMap(row => row.name === undefined ? [] : [[row.name, { hash: row.hash, url: row.hash }]])),
+      files: new Map(data.files.flatMap(row => row.name === undefined ? [] : [[row.name, { ...row, url: row.hash }]])), jsonCheck: fixtureJsonCheck,
       read: hash => { const bytes = data.assets.get(hash); if (bytes === undefined) throw new Error('Missing fixture bytes'); return Promise.resolve(bytes); } });
   };
   const draws = [{ kind: 'buffered' as const, file, material: 'paint', scale: 1, y: 0 }];

@@ -63,6 +63,11 @@ uses its checked bridge until its custom-section exit row is complete.
 Streamed placement JSON under `world/placements/`, `scenes/placements/`,
 `world/foliage/` and `world/piers/` shares `WorldScenePlacementSchema`.
 Each file keeps its original poses, draw policy and native consumer parser.
+Streamed `world/fields/<id>.json` descriptors share `SceneBuffersSchema`;
+ids are bounded to one path component. Their named binary files retain
+independent content hashes and exact native alignment, length and finite
+storage checks before geometry allocation. The existing client-only
+buffered-draw owner keeps geometry sharing, tier selection and retirement.
 The ordinary map `tilesHash` fingerprints generator source, including
 metadata-only edits. A schema migration can therefore change that stamp
 while the map image and all authored payload bytes remain identical; keep

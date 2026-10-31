@@ -1,3 +1,4 @@
+import {registeredJsonSchema} from '@wildshard/sdk/formatJsonSchema';
 import { decodePortableBytes } from '@wildshard/sdk/bake/portableBytes';
 import { worldSceneBuffers as parseSceneBuffers } from '@wildshard/sdk/worldScenes';
 
@@ -61,6 +62,7 @@ export function skyMeadowBlobs(blades: Uint8Array = bakeMeadowBlades()): { reado
   return { binary, scene: nameBlob(SKY_MEADOW_FILE, 'json', new TextEncoder().encode(JSON.stringify(scene)), {
     gpu: scene.buffers.reduce((sum, buffer) => sum + (buffer.byteLength ?? 0), 0),
     dependencies: [binary.file.hash],
+    jsonSchema: registeredJsonSchema(SKY_MEADOW_FILE),
   }) };
 }
 const meadowBlobs = skyMeadowBlobs();
