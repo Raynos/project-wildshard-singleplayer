@@ -293,25 +293,6 @@ export function checkSnapshotDataWire(input: SimSnapshot | SimSnapshotBytes, api
   const physics = finishSteps(packedPhysics(raw));
   if (stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics } }).length > maximumChars) throw new RangeError('Snapshot wire exceeds character bound');
 }
-/** A transient transfer may trade compression for CPU only when its complete
- * existing base64 form fits the caller's unchanged wire fence. Stored writers
- * never call this entry; a larger raw form retains the original level-6 codec. */
-export function serializeSnapshotDataForTransfer(input: SimSnapshot | SimSnapshotBytes, apiVersion: number, maximumChars: number): string {
-  if (!Number.isSafeInteger(maximumChars) || maximumChars < 0) throw new RangeError('Invalid snapshot character bound');
-  const { raw, saved } = prepareSnapshot(input, apiVersion);
-  // The reference encoder enforces this same lower bound in the stored path.
-  if (raw.length === 0) throw new RangeError('Snapshot physics exceeds byte bounds');
-  const physics = { encoding: 'base64' as const, data: '', checksum: checksum(raw) };
-  const rawChars = stringifiedLength({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics } }) + Math.ceil(raw.length / 3) * 4;
-  if (rawChars <= maximumChars) {
-    const transferWire = stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics: { ...physics, data: pack(raw) } } });
-    if (transferWire.length <= maximumChars) return transferWire;
-  }
-  // Do not replace the caller's original complete commit-schema refusal if
-  // even the compressed wire exceeds its bound. No raw byte is discarded.
-  const packed = finishSteps(packedPhysics(raw));
-  return stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics: packed } });
-}
 /** Internal packed wire writer, in stages a caller may spread over frames (rt3-freeze: one regional autosave was a
  *  1–2.7 s main-thread task). Each `yield` is a safe pause: the input is read in the first stage only, so later stages
  *  touch nothing the live simulation can change. */

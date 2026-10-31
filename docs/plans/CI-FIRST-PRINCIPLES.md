@@ -2248,3 +2248,56 @@ reviewed native-job defining source before it admits that topology's source.
 **Containing Linux qualification and any wave-time gain remain open.** The
 chapter job is still the measured first pole; this cut does not establish the
 15-minute CI9 bar.
+
+## CI9: raw transient checkpoint transfer rejected
+
+**2026-10-31, sp-x6; one matched original plains-stage pair.** The
+necessary normal scoped generation exits0 in **18.39 s**; independent
+ordinary product selection and full product loading accept current Nalati
+index `2146230282b33d03ace62cb64fa607709b37668db191b7266ffb30c62f793ee3`.
+Both instrumented children use that same product, source and profiler /
+exit-resource observer, with the original 150 s child /30 s request,
+all replay assertions, cumulative budgets and one independent worker.
+There is no inter-leg source edit, repin, injected game state or retry.
+
+| Measurement | Original level-6 transfer | Bounded raw transfer |
+|---|---:|---:|
+| Complete instrumented child | **31.995379 s** | **39.674875 s** |
+| Original story clock | 31.363717 s | 39.162508 s |
+| Maximum of 13 returned checkpoint wires | 13,237,323 chars | 29,999,484 chars |
+| Sum of those 13 checkpoint wires | 170,916,979 chars | 388,814,316 chars |
+| Stored ending snapshot | **13,237,323 chars** | **13,237,323 chars** |
+| Node process resourceUsage maxRSS, as reported | 2,363,440 | 4,301,936 |
+
+**Rejected: +24.00% stage time and +82.02% reported process peak RSS.**
+Peak transfer length rises126.63%; total transfer characters rise127.49%.
+The RSS is the process-wide peak of an instrumented Node proof owning
+both recorder and replay worlds, not summed thread readings or phone RAM.
+No parent/worker sample totals are added to the wall clock.
+
+All **6609 earned ticks /7845 commands /13 parts** retain every input,
+observation, ordered effect, full native digest and final decoded field.
+Actual physics bytes also match literally. The **entire 15,819,695-byte
+earned handoff is byte-for-byte identical**, including its original stored
+codec. One additional actual full-continuation transfer round trip retains
+every native byte and field through the unchanged commit schema. All
+**7028 source inputs /40 generated outputs**, the complete source
+inventory, current recipe key and product hash remain fixed. Both child
+profiles and raw resource rows are retained; this is a local instrumented
+comparison, not an ordinary CI or whole-chapter improvement.
+
+`a029bb53e9` added only an explicit, default-inactive API/private selector;
+the maintained root never activated it. This fix-forward removes that raw
+API, selector, injected writer port and its new-only tests, preserving the
+passive wire-length marker and all foreign elder work. Existing level-6
+writers, stored reports/raw82, 24 M stored-snapshot /32 M commit and 8 MB
+observation fences remain. **40 original codec/native controls pass in
+1.06 s**, root types and full expanded fixture typed lint pass. The
+approved deflate-level-1 alternative remains off-tree through the next
+required elder/physics cohort; no unused raw API stays on main.
+
+Evidence: `tmp/sp-x6-ci9-transient/matched/comparison.json`, both original
+stage logs /CPU profiles /resource reports, and `strict.json` /`intake.log`
+in the parent task directory. Before UTC20:34:38.369–20:35:10.365;
+after20:35:11.319–20:35:50.995. No CI read, dispatch, cap change or stored
+tape codec change accompanies this measured rejection.

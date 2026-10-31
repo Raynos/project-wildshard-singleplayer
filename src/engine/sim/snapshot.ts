@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { serializeSnapshotData, serializeSnapshotDataForTransfer, serializeSnapshotDataSteps, decodeSnapshotData, decodeSnapshotDataBytes, finishSteps, checkSnapshotDataWire } from './snapshotData';
+import { serializeSnapshotData, serializeSnapshotDataSteps, decodeSnapshotData, decodeSnapshotDataBytes, finishSteps, checkSnapshotDataWire } from './snapshotData';
 import { byteArray } from './snapshotPhysics';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimHostPorts, type SimLevel, type SimSlots, type SimValue } from '../sim';
 import { SHOVE_TIME } from '../player/shove';
@@ -88,13 +88,6 @@ export type SimSnapshotBytes = Omit<SimSnapshot, 'physics'> & { physics: Uint8Ar
 /** Serialize exact physics (≤32 MB) in bounded lossless blocks; optional immutable fresh-world bytes serve as a checked basis. */
 export function serializeSimSnapshot(saved: SimSnapshot | SimSnapshotBytes, physicsBasis?: Uint8Array): string {
   return serializeSnapshotData(saved, SIM_API_VERSION, physicsBasis);
-}
-/** Encode an ephemeral continuation with the existing raw base64 form when
- * it fits the explicit transfer bound; otherwise retain the stored codec.
- * Callers still apply their original complete wire schema and its refusal.
- * Durable saves and observation/tape ledgers keep serializeSimSnapshot. */
-export function serializeSimSnapshotForTransfer(saved: SimSnapshot | SimSnapshotBytes, maximumChars: number): string {
-  return serializeSnapshotDataForTransfer(saved, SIM_API_VERSION, maximumChars);
 }
 /** The same metadata/native-byte and wire-length refusal as a complete unbased
  * continuation, for terminal observations that do not publish intermediate saves. */

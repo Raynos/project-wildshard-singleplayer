@@ -154,8 +154,7 @@ and returns detached bytes. Both restores accept `SimSnapshotBytes` without
 boxing native views; replacement physics detaches. Regional durability uses it.
 `checkSimSnapshotWire` keeps writer/size guards; terminal
 `HeadlessSimulation.observe()` keeps 240 ticks and full initial/final saves.
-`serializeSimSnapshotForTransfer(saved, bound)` selects raw base64 if it fits,
-else the stored codec. Caller admission and stored/staged bytes stay unchanged.
+Stored and staged serialization retain the original codec and full caller admission.
 
 `@wildshard/game/shardfile/skinLayers` declares independent numeric pose clocks in skin bindings.
 Each clock has a period, monotonic sample times and joint-local translation, Euler rotation, scale

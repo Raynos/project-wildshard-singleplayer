@@ -17,8 +17,7 @@ export type NativeProofKind = 'driftwood' | 'driftwood-trade' | 'sky-verbs' | 'p
 
 /** One fixed test worker with statically named native factories; no caller-selected code URL. */
 export async function createNativeProofWorker(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, kind: NativeProofKind,
-  snapshot?: string, supplied?: ReadonlyMap<string, unknown>, directory = `out/${shard.identity.slug}`, transferSnapshots = false): Promise<TickWorkerHost> {
-  if (transferSnapshots && kind !== 'nalati-chapter' && kind !== 'nalati-king') throw new Error('Transient snapshots require the chapter proof owner');
+  snapshot?: string, supplied?: ReadonlyMap<string, unknown>, directory = `out/${shard.identity.slug}`): Promise<TickWorkerHost> {
   const sections = headlessSections(supplied ?? outputDescriptor(shard)?.sections);
   flushCompileCache();
   const worker = new TickWorkerHost(new URL('headless/worker.ts', import.meta.url), undefined,
@@ -29,7 +28,7 @@ export async function createNativeProofWorker(shard: Shardfile, assets: Readonly
       for (const hash of [...shard.files.map(file => file.hash), ...shard.requires.commons.map(identity => `commons:${identity}`)]) {
         const bytes = assets.get(hash); if (bytes === undefined) throw new Error('Missing admitted worker bytes'); admitted.set(hash, bytes);
       }
-      return {shard, assets: admitted, kind, directory, sections, binary: resolve('public/assets/physics/rapier.wasm'), ...(snapshot === undefined ? {} : {snapshot}), ...(transferSnapshots ? {snapshotTransfer:'bounded-base64'} : {})};
+      return {shard, assets: admitted, kind, directory, sections, binary: resolve('public/assets/physics/rapier.wasm'), ...(snapshot === undefined ? {} : {snapshot})};
     });
   try { await worker.initialized(); return worker; } catch (error) { await worker.dispose(); throw error; }
 }
