@@ -11,6 +11,7 @@ import { readParityFrame } from '../parity/frame-bytes.mjs';
 import { developerSettings, saveFixture } from '../debug-settings.mjs';
 import { loadingCardIndex } from '../loading-benchmark/catalogue.mjs';
 import { loanMaterialPrograms, trackMaterialProgramDraws } from './material-program-loan.mjs';
+import { worldPixelDifference } from './world-pixel-difference.mjs';
 
 /** @param {string} name */
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
@@ -23,6 +24,10 @@ const hasCandidate = candidate !== undefined || materialPrograms !== null;
 const held = arg('include-viewmodel');
 if (held !== undefined && held !== '1' && held !== '0') throw new Error('Requires --include-viewmodel=0|1');
 const includeViewmodel = held === '1';
+const approvedFlakes=arg('g941-nine-flakes');
+if(approvedFlakes!==undefined&&approvedFlakes!=='1')throw new Error('Requires explicit --g941-nine-flakes=1');
+const g941=approvedFlakes==='1';
+if(g941&&(arg('slug')!=='nine-dragon-stack'||includeViewmodel))throw new Error('G941 applies only to the explicit Nine world-only cohort');
 if (mode !== 'legacy' && mode !== 'shardfile') throw new Error('Requires --mode=legacy|shardfile');
 if (!url) throw new Error('Requires --url=URL [--candidate=URL --slug=SLUG --pose=P1 --out=tmp/...]');
 /** @type {typeof readParityFrame<ReturnType<typeof fixedWorldFrame>>} */
@@ -50,7 +55,7 @@ mkdirSync(out, { recursive: true });
 const version = v.parse(v.object({build:v.string()}), await (await fetch(new URL('version.json', url))).json());
 /** @type {(Omit<ReturnType<typeof fixedWorldFrame>,'data'> & {repeat:number,slug:string,pose:string,pixels:string,file:string})[]} */
 const rows = [];
-/** @type {{kind:'AA'|'AB',slug:string,pose:string,pixels:number}[]} */
+/** @type {{kind:'AA'|'AB',slug:string,pose:string,pixels:number,approvedPixels:number,unapprovedPixels:number,first:import('./world-pixel-difference.mjs').WorldPixelDifference['first']}[]} */
 const differences = [];
 /** @type {{repeat:number,url:string,build:string}[]} */
 const builds = [];
@@ -59,9 +64,9 @@ const protocol = includeViewmodel
   : 'M3 world/native posed camera; no post/viewmodel; Metal iPhone 16 Pro DPR2; fixed uniform time10; fresh-context seeded A/A; GL_DITHER off; serial GPU draw completion; full RGBA exact';
 /** @type {{slug:string,pose:string,receipts:import('./material-program-loan.mjs').ProgramLoanReceipt[],draws?:Record<string,number>}[]} */
 const loanReceipts=[];
-/** @type {{slug:string,pose:string,pixels:number}[]} */
+/** @type {{slug:string,pose:string,pixels:number,approvedPixels:number,unapprovedPixels:number,first:import('./world-pixel-difference.mjs').WorldPixelDifference['first']}[]} */
 const loanRestoration=[];
-const result = { mode, builds, protocol, build: version.build, candidate: candidate ?? null, rows, differences,
+const result = { mode, builds, protocol, approvedFlakes:g941?'G941 exact two coordinate/RGBA pairs; raw differences retained':null, build: version.build, candidate: candidate ?? null, rows, differences,
   ...(materialPrograms === null ? {} : {programLoan:{source:loanPath,kind:'injected compiled-program proof, not immutable product A/B',receipts:loanReceipts,restoration:loanRestoration}}) };
 const save = () => writeFileSync(join(out, 'reading.json'), JSON.stringify(result, null, 2));
 const device = devices['iPhone 16 Pro'];
@@ -127,9 +132,9 @@ try {
           if (original===undefined) throw new Error('Program restoration has no original image');
           const restored=readFileSync(restoredFile),before=readFileSync(original.file);
           if(restored.length!==before.length)throw new Error('Program restoration dimensions differ');
-          let changed=0;for(let i=0;i<before.length;i+=4)if(before[i]!==restored[i]||before[i+1]!==restored[i+1]||before[i+2]!==restored[i+2]||before[i+3]!==restored[i+3])changed++;
-          result.programLoan?.restoration.push({slug,pose:pose.name,pixels:changed});save();
-          if(changed!==0)throw new Error('Program loan did not restore exact native pixels');
+          const difference=worldPixelDifference(before,restored,frame.width,frame.height,pose.name,g941);
+          result.programLoan?.restoration.push({slug,pose:pose.name,...difference});save();
+          if(difference.unapprovedPixels!==0)throw new Error('Program loan did not restore exact native pixels');
         }
       }
       errors.push(...await page.evaluate(() => window.__wildshardHarness?.errors ?? []));
@@ -147,15 +152,15 @@ try {
     if (!next) throw new Error('Missing independent A/A capture');
     const a = readFileSync(row.file), b = readFileSync(next.file);
     if (a.length !== b.length) throw new Error('Readback dimensions changed');
-    let pixels = 0; for (let at = 0; at < a.length; at += 4) if (a[at] !== b[at] || a[at+1] !== b[at+1] || a[at+2] !== b[at+2] || a[at+3] !== b[at+3]) pixels++;
-    result.differences.push({kind:repeat===1?'AA':'AB',slug:row.slug,pose:row.pose,pixels});
+    const difference=worldPixelDifference(a,b,row.width,row.height,row.pose,g941);
+    result.differences.push({kind:repeat===1?'AA':'AB',slug:row.slug,pose:row.pose,...difference});
     }
   }
   save();
   if(materialPrograms!==null)for(const program of materialPrograms)for(const alias of program.aliases){
     if(!loanReceipts.some(row=>(row.draws?.[alias]??0)>0))throw new Error(`Program loan has no actual native submission: ${alias}`);
   }
-  const failed = result.differences.filter(row => row.pixels !== 0);
+  const failed = result.differences.filter(row => row.unapprovedPixels !== 0);
   for (const row of failed) console.error(`${row.kind} ${row.slug}/${row.pose}: ${row.pixels} differing RGBA pixels`);
   if (failed.length > 0) throw new Error('World AA/AB pixel mismatch; inspect reading.json');
 } finally { await browser.close(); }

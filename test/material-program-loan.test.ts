@@ -1,5 +1,6 @@
 import {expect,test} from 'vitest';
 import {ShaderMaterial} from 'three';
+import {worldPixelDifference} from '../scripts/perf/world-pixel-difference.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The browser loan checks the identical complete source digest.
 import {createHash} from 'node:crypto';
 import {loanMaterialPrograms,trackMaterialProgramDraws,type ProgramSource,type MaterialProgramLoan,type ProgramDrawRenderer} from '../scripts/perf/material-program-loan.mjs';
@@ -67,4 +68,21 @@ test('wrong source, missing uniforms and attribute/uniform changes refuse before
    expect(material.fragmentShader,kind).toBe(before);
   }finally{material.dispose();}
  }
+});
+
+
+test('G941 retains raw differences and permits only its exact pose, coordinate and RGBA pairs',()=>{
+ const width=804,height=1748,a=new Uint8Array(width*height*4),b=a.slice(),at=(1139*width+569)*4;
+ a.set([14,15,15,1],at);b.set([15,16,15,1],at);
+ expect(worldPixelDifference(a,b,width,height,'P1')).toMatchObject({pixels:1,approvedPixels:0,unapprovedPixels:1});
+ expect(worldPixelDifference(a,b,width,height,'P1',true)).toMatchObject({pixels:1,approvedPixels:1,unapprovedPixels:0});
+ expect(worldPixelDifference(b,a,width,height,'P1',true).approvedPixels).toBe(1);
+ expect(worldPixelDifference(a,b,width,height,'P2',true).unapprovedPixels).toBe(1);
+ b[0]=1;expect(worldPixelDifference(a,b,width,height,'P1',true).unapprovedPixels).toBe(1);b[0]=0;
+ b[at+3]=2;expect(worldPixelDifference(a,b,width,height,'P1',true).unapprovedPixels).toBe(1);
+ a.fill(0);b.fill(0);const canopy=(715*width+591)*4;
+ a.set([26,30,22,1],canopy);b.set([25,30,22,1],canopy);
+ expect(worldPixelDifference(a,b,width,height,'P2',true)).toMatchObject({pixels:1,approvedPixels:1,unapprovedPixels:0});
+ b[canopy]=24;expect(worldPixelDifference(a,b,width,height,'P2',true).unapprovedPixels).toBe(1);
+ expect(()=>worldPixelDifference(a,b,width,height-1,'P2',true)).toThrow('dimensions');
 });
