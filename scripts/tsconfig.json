@@ -41,6 +41,7 @@
   ],
   "files": [
     "bake-loader.mjs",
-    "perf/exact-world-capture.mjs"
+    "perf/exact-world-capture.mjs",
+    "preparation-cache-key.mjs"
   ]
 }

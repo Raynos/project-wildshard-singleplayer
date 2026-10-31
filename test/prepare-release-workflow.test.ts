@@ -74,6 +74,50 @@ test('prepare cache compression keeps every restored family and its native bytes
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
+test('post-generation cache lookup preserves admitted bytes and every legacy restore family', () => {
+  const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
+  const prepare = workflow.split('\n  prepare:\n')[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0];
+  if (prepare === undefined) throw new Error('Missing prepare producer');
+  const restore = prepare.split('      - uses: actions/cache/restore@v4\n')[1]?.split('\n      - ')[0];
+  const save = prepare.split('      - uses: actions/cache@v4\n')[1]?.split('\n      - ')[0];
+  const paths = (step: string | undefined): string[] | undefined => /^ {10}path: \|\n((?: {12}[^\n]+\n)+)/mu.exec(step ?? '')?.[1]
+    ?.trim().split('\n').map(path => path.trim());
+  expect(paths(restore)).toBeDefined();
+  expect(paths(save)).toEqual(paths(restore));
+  // A second download would replace bytes already admitted by this run.
+  expect(save).toContain('lookup-only: true');
+  expect(save).not.toContain('restore-keys:');
+  expect(save).toContain(`key: \${{ steps.preparation-save.outputs.key }}`);
+  expect(restore).toContain(`preparation-v4-\${{ runner.os }}-\${{ runner.arch }}-node24-`);
+  expect(restore).toContain(`preparation-v3-\${{ runner.os }}-\${{ runner.arch }}-node24-`);
+  const binding = prepare.split('      - name: Bind preparation save to admitted inputs\n')[1]?.split('\n      - ')[0];
+  expect(binding).toContain('id: preparation-save');
+  expect(binding).toContain('PREPARATION_FALLBACK_KEY: preparation-v3-');
+  expect(binding).toContain('if ! node scripts/preparation-cache-key.mjs; then');
+  expect(prepare.indexOf('Bind preparation save to admitted inputs')).toBeGreaterThan(prepare.indexOf('node scripts/gen.mjs --reuse'));
+});
+
+test('an unavailable cache identity process preserves the legacy save rather than masking generation', () => {
+  const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
+  const binding = workflow.split('      - name: Bind preparation save to admitted inputs\n')[1]?.split('\n      - ')[0];
+  const body = /run: \|\n((?: {10}[^\n]*\n)+)/u.exec(binding ?? '')?.[1];
+  if (body === undefined) throw new Error('Missing preparation save fallback');
+  const script = body.split('\n').map(line => line.slice(10)).join('\n');
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/prepare-cache-process-'));
+  try {
+    const executable = join(root, 'node'), output = join(root, 'output');
+    writeFileSync(executable, '#!/bin/sh\nexit 7\n'); chmodSync(executable, 0o755);
+    const fallback = `preparation-v3-Linux-X64-node24-${'a'.repeat(40)}`;
+    const child = spawnSync('/bin/bash', ['-eu', '-c', script], { encoding: 'utf8', env: {
+      ...process.env, PATH: `${root}:/usr/bin:/bin`, GITHUB_OUTPUT: output, PREPARATION_FALLBACK_KEY: fallback,
+    } });
+    expect(child.status, child.stderr).toBe(0);
+    expect(readFileSync(output, 'utf8').trim().split('\n')).toEqual([`key=${fallback}`, 'qualified=false']);
+    expect(binding).not.toContain('always()');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test('cache metadata reports byte totals and candidates without claiming payload identity', () => {
   const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
   const step = workflow.split('      - name: Report preparation cache family metadata\n')[1]?.split('      - name:')[0];

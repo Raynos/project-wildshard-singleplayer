@@ -425,10 +425,8 @@ jobs:
       # Snapshots contain content-addressed entries, not CI proof artifacts.
       # Every restored entry rechecks its input hashes; strict product hits run
       # current byte/schema/budget/script admission before this run publishes proof.
-      - uses: actions/cache@v4
-        # The post action inherits this env; retain every cached byte with faster lossless compression.
-        env:
-          ZSTD_CLEVEL: '1'
+      # Restore once. The save identity is known only after current strict admission.
+      - uses: actions/cache/restore@v4
         with:
           path: |
             ~/.cache/wildshard/generate
@@ -437,7 +435,9 @@ jobs:
             ~/.cache/wildshard/shardfiles
             ~/.cache/wildshard/basis
           key: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
-          restore-keys: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-
+          restore-keys: |
+            preparation-v4-${{ runner.os }}-${{ runner.arch }}-node24-
+            preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-
       # Reuse only the pinned native tool. Consumers still verify its recipe
       # and executable digest before any encode; cold misses build normally.
       - name: Cache the checked Basis compiler
@@ -457,6 +457,30 @@ jobs:
       # A runner is isolated: save current reusable products rather than six
       # historical payload generations. Keep every input receipt for validation.
       - run: node scripts/ci-product-cache.mjs
+      - name: Bind preparation save to admitted inputs
+        id: preparation-save
+        env:
+          PREPARATION_FALLBACK_KEY: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
+        run: |
+          if ! node scripts/preparation-cache-key.mjs; then
+            echo "::warning::Preparation identity unavailable; retain the legacy save"
+            echo "key=$PREPARATION_FALLBACK_KEY" >> "$GITHUB_OUTPUT"
+            echo "qualified=false" >> "$GITHUB_OUTPUT"
+          fi
+      # Lookup only: never replace this run's admitted bytes with a second restore.
+      # Exact hits use the action's ordinary post-save skip; misses save all five roots.
+      - uses: actions/cache@v4
+        env:
+          ZSTD_CLEVEL: '1'
+        with:
+          path: |
+            ~/.cache/wildshard/generate
+            ~/.cache/wildshard/gen
+            ~/.cache/wildshard/compiler-code/1
+            ~/.cache/wildshard/shardfiles
+            ~/.cache/wildshard/basis
+          key: ${{ steps.preparation-save.outputs.key }}
+          lookup-only: true
       - name: Select recent completed-push timing observations
         id: timing-history
         run: |
