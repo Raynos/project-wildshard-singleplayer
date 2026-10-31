@@ -53,6 +53,7 @@ const sets = [
 if (!sets.some(set => set.poses.length)) throw new Error('No requested capture pose');
 mkdirSync(out, { recursive: true });
 const version = v.parse(v.object({build:v.string()}), await (await fetch(new URL('version.json', url))).json());
+const candidateBuild = candidate === undefined ? null : v.parse(v.object({build:v.string()}), await (await fetch(new URL('version.json', candidate))).json()).build;
 /** @type {(Omit<ReturnType<typeof fixedWorldFrame>,'data'> & {repeat:number,slug:string,pose:string,pixels:string,file:string})[]} */
 const rows = [];
 /** @type {{kind:'AA'|'AB',slug:string,pose:string,pixels:number,approvedPixels:number,unapprovedPixels:number,first:import('./world-pixel-difference.mjs').WorldPixelDifference['first']}[]} */
@@ -67,7 +68,7 @@ const loanReceipts=[];
 /** @type {{slug:string,pose:string,pixels:number,approvedPixels:number,unapprovedPixels:number,first:import('./world-pixel-difference.mjs').WorldPixelDifference['first']}[]} */
 const loanRestoration=[];
 const result = { mode, builds, protocol, approvedFlakes:g941?'G941 exact two coordinate/RGBA pairs; raw differences retained':null, build: version.build, candidate: candidate ?? null, rows, differences,
-  ...(materialPrograms === null ? {} : {programLoan:{source:loanPath,kind:'injected compiled-program proof, not immutable product A/B',receipts:loanReceipts,restoration:loanRestoration}}) };
+  candidateBuild, ...(materialPrograms === null ? {} : {programLoan:{source:loanPath,kind:'injected compiled-program proof, not immutable product A/B',receipts:loanReceipts,restoration:loanRestoration}}) };
 const save = () => writeFileSync(join(out, 'reading.json'), JSON.stringify(result, null, 2));
 const device = devices['iPhone 16 Pro'];
 if (device === undefined) throw new Error('Missing maintained phone preset');
@@ -86,7 +87,7 @@ try {
   for (const [repeat, sourceUrl] of [url,url,...(hasCandidate ? [candidate ?? url] : [])].entries()) for (const {slug, poses} of sets) {
     if (poses.length === 0) continue;
     const sourceVersion = v.parse(v.object({build:v.string()}), await (await fetch(new URL('version.json', sourceUrl))).json());
-    if (repeat === 1 && sourceVersion.build !== version.build) throw new Error('A/A source changed');
+    if (sourceVersion.build !== (repeat === 2 ? candidateBuild ?? version.build : version.build)) throw new Error('Capture source build changed');
     builds.push({repeat,url:sourceUrl,build:sourceVersion.build});
     const context = await browser.newContext({ ...device, viewport: {width:402,height:874}, deviceScaleFactor: 2 });
     try {
