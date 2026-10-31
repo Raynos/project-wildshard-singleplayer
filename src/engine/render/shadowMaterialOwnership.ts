@@ -17,8 +17,8 @@ type ShadowRenderer = Pick<Renderer, 'renderBufferDirect'> & { shadowMap: Pick<R
  * caster's `customDepthMaterial`), so each depth material always sees one kind. Program keys do not name the material,
  * so the kinds link the programs the stock material already had. three copies each caster's own depth facts (map, alpha
  * map and test, side, clipping, displacement, wireframe) onto whatever depth material it draws, a custom one too, so a
- * kind is also keyed by those facts of the caster's material: the plan-end probe found every Template `family:pbr`
- * caster skipped, as its white filler map reached the stock material first. A caster whose depth three would give a
+ * kind is also keyed by the caster's effective depth facts. Opaque stock depths omit their unused alpha textures;
+ * an opaque caster and a white filler map therefore share their kind. A caster whose depth three would give a
  * per-material variant (`WebGLShadowMap.getDepthMaterial`: a map or alpha map with an alpha test, displacement, shadow
  * clipping, alpha to coverage) and a vertex-moving graph (the graph back-end's own depth variant, `graphShadowDepth`)
  * stay as they were; a multi-material caster takes a kind only when every one of its materials has the same depth facts.
@@ -49,9 +49,20 @@ function depthFacts(own: unknown): string | null {
   const displacement = field('displacementScale');
   if ((has('displacementMap') && displacement !== 0) || ((has('map') || has('alphaMap')) && own.alphaTest > 0) || own.alphaToCoverage
     || (own.clipShadows && (own.clippingPlanes?.length ?? 0) > 0)) return null;
-  const facts = [has('map') ? 'map' : '', has('alphaMap') ? 'alpha' : '', own.alphaTest > 0 ? 'test' : '', has('displacementMap') ? 'displace' : '',
+  const facts = [has('displacementMap') ? 'displace' : '',
     field('wireframe') === true ? 'wire' : '', `side${String(own.shadowSide ?? own.side)}`];
   return facts.filter(fact => fact !== '').join('+');
+}
+
+// The native depth shader only consumes sampled alpha in its discard stages.
+// Without either stage, its packed depth (or basic depth plus opacity) is
+// independent of map/alphaMap. Keep custom shader hooks and alpha hashing
+// untouched; three copies the caster's texture fields again on every draw.
+function omitUnusedDepthTextures(material: Material): void {
+  if (!(material instanceof MeshDepthMaterial) || Object.getPrototypeOf(material) !== MeshDepthMaterial.prototype
+    || material.alphaTest !== 0 || material.alphaHash || material.alphaToCoverage || material.onBeforeCompile !== Material.prototype.onBeforeCompile
+    || material.customProgramCacheKey !== Material.prototype.customProgramCacheKey) return;
+  material.map = null; material.alphaMap = null;
 }
 
 /** the classic graph back-end's depth for a vertex-moving caster (`glslMaterial.ts`'s `classicShadowDepth`), installed by
@@ -97,6 +108,7 @@ export function installShadowMaterialOwnership(renderer: ShadowRenderer, assets:
       const kind = depthKind(object);
       if (kind !== null) object.customDepthMaterial = kindOf(kind);
     }
+    if (drawing) omitUnusedDepthTextures(material);
     // js-heap H1: a main-pass instanced draw of a classic material wears its twin, so the material keeps one program per
     // variant whatever plain objects also draw it (`instancedTwin.ts`)
     return !drawing && object instanceof InstancedMesh ? instancedMaterial(material) : material;

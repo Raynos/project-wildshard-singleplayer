@@ -104,15 +104,15 @@ test('instanced casters get a depth material per kind and depth facts; plain and
   expect(cutout.customDepthMaterial).toBeUndefined(); // three gives it a variant of its own
   expect(instanced.customDepthMaterial).toBeInstanceOf(MeshDepthMaterial); // the white filler map no longer skips it
   expect(bare.customDepthMaterial).toBeInstanceOf(MeshDepthMaterial);
-  expect(bare.customDepthMaterial).not.toBe(instanced.customDepthMaterial); // map presence keys a kind of its own
+  expect(bare.customDepthMaterial).toBe(instanced.customDepthMaterial); // unused alpha textures do not split opaque depth
   const twin = new InstancedMesh(geometry, new MeshStandardMaterial({ map: filler }), 3); shadowDraw(twin);
   expect(twin.customDepthMaterial).toBe(instanced.customDepthMaterial);
-  expect(assets.has('renderer:shadow-kind:instanced|map+side0')).toBe(true);
+  expect(assets.has('renderer:shadow-kind:instanced|side0')).toBe(true);
   // PF3: a batch takes a kind of its own (three's batching parameters), never the instanced one
   const batch = new BatchedMesh(1, 3, 3, pbr); shadowDraw(batch);
   expect(batch.customDepthMaterial).toBeInstanceOf(MeshDepthMaterial);
   expect(batch.customDepthMaterial).not.toBe(instanced.customDepthMaterial);
-  expect(assets.has('renderer:shadow-kind:batched|map+side0')).toBe(true);
+  expect(assets.has('renderer:shadow-kind:batched|side0')).toBe(true);
   page.dispose(); filler.dispose();
 });
 
@@ -132,6 +132,41 @@ test('a multi-material skinned caster takes a kind only when its materials share
   expect(alike.customDepthMaterial).toBeInstanceOf(MeshDepthMaterial);
   expect(mixed.customDepthMaterial).toBeUndefined();
   page.dispose();
+});
+
+test('only unpatched opaque native depth drops unused alpha textures, without changing the caster', () => {
+  const page = new Scope('renderer'), assets = new AssetService(), camera = new PerspectiveCamera(), scene = new Scene();
+  const map = new DataTexture(), alpha = new DataTexture(), source = new MeshStandardMaterial({ map, alphaMap: alpha });
+  const geometry = new BufferGeometry(), object = new Mesh(geometry, source);
+  const submit = vi.fn<Renderer['renderBufferDirect']>();
+  let depth = new MeshDepthMaterial();
+  const renderer = { renderBufferDirect: submit, shadowMap: { render: vi.fn<Renderer['shadowMap']['render']>(() => {
+    depth.map = source.map; depth.alphaMap = source.alphaMap;
+    renderer.renderBufferDirect(camera, scene, geometry, depth, object, { start: 0, count: 0, materialIndex: 0 });
+  }) } };
+  installShadowMaterialOwnership(renderer, assets, page);
+  try {
+    depth.displacementMap = map; depth.displacementScale = 2; depth.displacementBias = 0.1;
+    renderer.shadowMap.render([], scene, camera);
+    expect(depth.map).toBeNull(); expect(depth.alphaMap).toBeNull();
+    expect(depth.displacementMap).toBe(map); expect(depth.displacementScale).toBe(2); expect(depth.displacementBias).toBe(0.1);
+    expect(source.map).toBe(map); expect(source.alphaMap).toBe(alpha);
+    expect(submit.mock.calls.at(-1)?.[3]).toBe(depth);
+    // The next native caster can still install its own tested textures.
+    depth.alphaTest = 0.5; renderer.shadowMap.render([], scene, camera);
+    expect(depth.map).toBe(map); expect(depth.alphaMap).toBe(alpha);
+    depth.alphaTest = 0; depth.alphaHash = true; renderer.shadowMap.render([], scene, camera);
+    expect(depth.map).toBe(map); expect(depth.alphaMap).toBe(alpha);
+    depth.alphaHash = false; depth.alphaToCoverage = true; renderer.shadowMap.render([], scene, camera);
+    expect(depth.map).toBe(map); expect(depth.alphaMap).toBe(alpha);
+    depth.alphaToCoverage = false; depth.onBeforeCompile = () => undefined; renderer.shadowMap.render([], scene, camera);
+    expect(depth.map).toBe(map); expect(depth.alphaMap).toBe(alpha);
+    depth = new MeshDepthMaterial(); depth.customProgramCacheKey = () => 'custom-depth';
+    renderer.shadowMap.render([], scene, camera); expect(depth.map).toBe(map); expect(depth.alphaMap).toBe(alpha);
+    class CustomDepth extends MeshDepthMaterial {}
+    depth = new CustomDepth(); renderer.shadowMap.render([], scene, camera);
+    expect(depth.map).toBe(map); expect(depth.alphaMap).toBe(alpha);
+  } finally { page.dispose(); geometry.dispose(); source.dispose(); map.dispose(); alpha.dispose(); }
 });
 
 test('a main-pass instanced draw of a classic material wears its twin; plain, shadow and node draws keep theirs', () => {

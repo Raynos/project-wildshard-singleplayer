@@ -647,10 +647,11 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
     }
   }, excludedRoots);
   // Generic variants for casters that appear after this step (a fired bolt, a fade clone, a detail LOD
-  // that pops in): plain and mapped, front and double sided — cache hits when the scene already had them.
+  // that pops in): opaque and alpha-tested — cache hits when the scene already had them.
+  // Opaque native depth draws omit maps; do not warm a texture-only duplicate.
   const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1); white.needsUpdate = true;
   const box = new THREE.BoxGeometry(1, 1, 1);
-  for (const [map, side, alphaTest] of [[null, THREE.BackSide, 0], [white, THREE.BackSide, 0], [white, THREE.DoubleSide, 0.5]] as [THREE.Texture | null, THREE.Side, number][]) {
+  for (const [map, side, alphaTest] of [[null, THREE.BackSide, 0], [white, THREE.DoubleSide, 0.5]] as [THREE.Texture | null, THREE.Side, number][]) {
     const key = `depth|${map ? 'm0' : ''}||${alphaTest > 0 ? 't' : ''}|${side}||generic`;
     if (seen.has(key)) continue;
     seen.add(key);
