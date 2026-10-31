@@ -20,6 +20,9 @@ export class EliteDecisions implements EliteCoreScript<AnimalSim> {
   private phase2 = false;
   /** PF5: idle far from the player (`cadence`): its fixed steps pause */
   private far = false;
+  /** PF5: a paused elite's latest frame inputs, handed to its program when it wakes (before its next tick) */
+  private held = false; private heldPoint: Readonly<{ x: number; y: number; z: number }> = { x: 0, y: 0, z: 0 };
+  private heldDusk = 0; private heldNight = 0; private heldGod = false; private heldYaw = 0;
   constructor(readonly row: Fight, readonly program: SpawnScript, feature: EliteFeatureRows, seed: number) {
     this.def = row.def;
     this.spawnStream = eliteStream(feature, seed, 'spawn', row.def.id);
@@ -40,6 +43,7 @@ export class EliteDecisions implements EliteCoreScript<AnimalSim> {
   trophy(): void { this.program.interrupt(); }
   force(move: string): void { this.program.signal(this.row.main, this.row.forces[move] ?? this.row.defaultForce); }
   frame(point: Readonly<{ x: number; y: number; z: number }>, dusk: number, night: number, god: boolean, yaw: number): void {
+    if (this.far) { this.held = true; this.heldPoint = point; this.heldDusk = dusk; this.heldNight = night; this.heldGod = god; this.heldYaw = yaw; return; }
     for (const row of this.frameRows) this.frameValues[row.field] = row.source === 'dusk' ? dusk : row.source === 'night' ? night : Number(god);
     this.program.frame(point, night, this.frameValues, yaw);
   }
@@ -49,6 +53,7 @@ export class EliteDecisions implements EliteCoreScript<AnimalSim> {
     if (far === this.far) return;
     this.far = far;
     const body = this.animal; if (far && body !== null) body.setMotion(body.yaw, 0);
+    if (!far && this.held) { this.held = false; this.frame(this.heldPoint, this.heldDusk, this.heldNight, this.heldGod, this.heldYaw); }
   }
   tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
     if (this.far) return;

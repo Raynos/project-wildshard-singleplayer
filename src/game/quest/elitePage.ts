@@ -66,7 +66,9 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
     isElite: body => controllers.some(controller => controller.animal === body),
     force: (id, move) => { controllers.find(controller => controller.def.id === id)?.force(move); },
     update: (dt, t) => {
-      for (const controller of controllers) controller.frame(player.position, sky.dayNight?.dusk ?? 0, sky.dayNight?.night ?? 0, god, player.yaw);
+      // PF5: the clock's dusk and night curves, evaluated once a frame for every elite
+      const clock = sky.dayNight, dusk = clock?.dusk ?? 0, night = clock?.night ?? 0;
+      for (const controller of controllers) controller.frame(player.position, dusk, night, god, player.yaw);
       elites.update(dt, t);
       for (const controller of controllers) {
         const program = controller.program;
