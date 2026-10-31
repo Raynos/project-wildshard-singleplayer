@@ -11,9 +11,10 @@ import {chapterWireHash} from './fixtures/headless/chapterHandoff';
 
 mkdirSync(resolve('tmp'),{recursive:true});
 const directory=mkdtempSync(resolve('tmp/nalati-chapter-one-')),plains=resolve(directory,'plains.json'),approach=resolve(directory,'approach.json'),bond=resolve(directory,'bond.json'),goat=resolve(directory,'goat.json'),returning=resolve(directory,'return.json'),home=resolve(directory,'home.json');
-let plainsHash:string|undefined,approachHash:string|undefined,bondHash:string|undefined,goatHash:string|undefined,returnHash:string|undefined;
+const rim=resolve(directory,'carving-road.json'),arrival=resolve(directory,'carving-arrival.json');
+let plainsHash:string|undefined,approachHash:string|undefined,bondHash:string|undefined,goatHash:string|undefined,returnHash:string|undefined,homeHash:string|undefined,rimHash:string|undefined;
 afterAll(()=>{rmSync(directory,{recursive:true});});
-function run(stage:'plains'|'approach'|'bond'|'goat'|'return'|'home',output:string,input?:string,hash?:string):string {
+function run(stage:'plains'|'approach'|'bond'|'goat'|'return'|'home'|'carving-road'|'carving-arrival',output:string,input?:string,hash?:string):string {
   const started=performance.now();
   const child=spawnSync(process.execPath,['--experimental-transform-types','--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
     resolve('test/fixtures/headless/nalati-chapter-one-run.ts'),stage,output,...(input===undefined?[]:[input]),...(hash===undefined?[]:[hash])],{encoding:'utf8',timeout:150_000});
@@ -54,5 +55,17 @@ test('the earned road return crosses the bridge and finishes the real elder read
   expect(returnHash,'the preceding case must ride the original return road').toBeDefined();
   if(returnHash===undefined)throw new Error('Missing earned graded-road return');
   expect(chapterWireHash(readFileSync(returning,'utf8'))).toBe(returnHash);
-  run('home',home,returning,returnHash);
+  homeHash=run('home',home,returning,returnHash);
+},180_000);
+test('the completed first chapter accepts the next story and rides to the real graded-road rim',()=>{
+  expect(homeHash,'the first chapter must finish and exactly replay before accepting the next one').toBeDefined();
+  if(homeHash===undefined)throw new Error('Missing earned first-chapter completion');
+  expect(chapterWireHash(readFileSync(home,'utf8'))).toBe(homeHash);
+  rimHash=run('carving-road',rim,home,homeHash);
+},180_000);
+test('the earned rim continuation rides to the real balbal field and dismounts',()=>{
+  expect(rimHash,'the preceding case must earn the real road rim').toBeDefined();
+  if(rimHash===undefined)throw new Error('Missing earned graded-road rim');
+  expect(chapterWireHash(readFileSync(rim,'utf8'))).toBe(rimHash);
+  run('carving-arrival',arrival,rim,rimHash);
 },180_000);

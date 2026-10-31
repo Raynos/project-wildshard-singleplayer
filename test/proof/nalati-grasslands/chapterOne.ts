@@ -37,6 +37,10 @@ function* planInputs(host:SimHost,plan:HeadlessTapePlan):Generator<readonly Head
     }
   }
 }
+/** Later earned chapters reuse the same checked physical route cursor. */
+export function* chapterWalkInputs(host:SimHost,id:string,route:NonNullable<HeadlessTapePlan['segments'][number]['route']>,ticks:number):Generator<readonly HeadlessCommand[]> {
+  yield* planInputs(host,{version:1,observe:[],segments:[{id,ticks,commands:[],route}]});
+}
 
 /** Earn the chapter's actual horse-plains arrival through the camp and bank. */
 export function* chapterCampInputs(host:SimHost,spawn:{readonly x:number;readonly z:number}):Generator<readonly HeadlessCommand[]> {
@@ -126,6 +130,8 @@ function* drive(host:SimHost,x:number,z:number,sprint=false,radius=2.5):Generato
   }
   throw new Error(`Chapter rein route blocked at ${x}, ${z}`);
 }
+/** Ordinary reins on the actually earned companion; no arrival teleport. */
+export function* chapterRideInputs(host:SimHost,x:number,z:number):Generator<readonly HeadlessCommand[]> {yield* drive(host,x,z);}
 function round(host:SimHost):{carrying:boolean;events:number[]} {
   const owner=host.adapters.get('nalati.kokpar');assert.ok(owner);const value=owner.snapshot();
   return v.parse(v.object({carrying:v.boolean(),events:v.array(v.number())}),typeof value==='string'?JSON.parse(value):value);
