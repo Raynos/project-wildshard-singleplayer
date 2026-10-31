@@ -54,9 +54,10 @@ export class Owned {
   private listeners: (() => void)[] = [];
 
   readonly shard: string;
-  constructor(shard: string) {
+  /** The page save or an injected continuation slot owns the same durable rows. */
+  constructor(shard: string, private readonly save: Pick<typeof ownedSave, 'read' | 'write'> = ownedSave) {
     this.shard = shard;
-    const saved = ownedSave.read(saveSlug(shard));
+    const saved = this.save.read(saveSlug(shard));
     const { owned, worn } = saved as { owned?: unknown; worn?: unknown };
     if (Array.isArray(owned)) for (const id of owned) if (isOwnedId(id)) this.have.add(id);
     if (Array.isArray(worn)) for (const id of worn) if (isOwnedId(id) && isCosmetic(id) && this.have.has(id)) this.wearing.add(id);
@@ -105,7 +106,7 @@ export class Owned {
   }
 
   private changed(): void {
-    ownedSave.write({ owned: [...this.have], worn: [...this.wearing] }, saveSlug(this.shard));
+    this.save.write({ owned: [...this.have], worn: [...this.wearing] }, saveSlug(this.shard));
     for (const l of this.listeners) l();
   }
 }

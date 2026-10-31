@@ -56,7 +56,8 @@ export class CoinBurst {
   private coins: Coin[] = [];
   private live = 0;
 
-  constructor(private scene: THREE.Scene) {
+  /** Native continuations lend their cosmetic stream; page calls retain lazy app RNG reads. */
+  constructor(private scene: THREE.Scene, private readonly random: () => number = () => app.rng.stream('cosmetic').next()) {
     const geo = coinModel(0xc01);
     const mat = new THREE.MeshBasicMaterial({ vertexColors: true, fog: true, toneMapped: true, color: new THREE.Color(1.25, 1.12, 0.8) });
     mat.name = 'loot-coin';
@@ -78,16 +79,16 @@ export class CoinBurst {
     const count = burstCount(total);
     if (count <= 0) return;
     const burst: Burst = { left: 0, onCoin, onDone };
-    const turn = app.rng.stream('cosmetic').next() * Math.PI * 2;
+    const turn = this.random() * Math.PI * 2;
     for (let i = 0; i < count; i++) {
       const c = this.coins.find((k) => !k.live);
       const share = coinShare(total, count, i);
       if (!c) { onCoin(share); continue; } // the pool is full: count it at once
-      const a = turn + (i / count) * Math.PI * 2 + (app.rng.stream('cosmetic').next() - 0.5) * 0.6, out = 1.4 + app.rng.stream('cosmetic').next() * 1.4;
+      const a = turn + (i / count) * Math.PI * 2 + (this.random() - 0.5) * 0.6, out = 1.4 + this.random() * 1.4;
       c.live = true; c.age = 0; c.value = share; c.burst = burst;
       c.pos.set(at.x, at.y + 0.7, at.z);
-      c.vel.set(Math.cos(a) * out, 4.2 + app.rng.stream('cosmetic').next() * 1.6, Math.sin(a) * out);
-      c.spin = app.rng.stream('cosmetic').next() * Math.PI * 2; c.spinRate = 9 + app.rng.stream('cosmetic').next() * 6;
+      c.vel.set(Math.cos(a) * out, 4.2 + this.random() * 1.6, Math.sin(a) * out);
+      c.spin = this.random() * Math.PI * 2; c.spinRate = 9 + this.random() * 6;
       burst.left++; this.live++;
     }
     if (burst.left === 0) onDone?.();

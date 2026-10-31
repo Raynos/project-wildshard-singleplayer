@@ -28,8 +28,9 @@ export class Bounty {
     return caps;
   }
 
-  constructor(readonly shard: string, private caps: ReadonlyMap<string, number>) {
-    const saved = bountySave.read(saveSlug(shard));
+  /** Page and native owners share the same once-per-starting-slot law. */
+  constructor(readonly shard: string, private caps: ReadonlyMap<string, number>, private readonly save: Pick<typeof bountySave, 'read' | 'write'> = bountySave) {
+    const saved = this.save.read(saveSlug(shard));
     for (const [k, v] of Object.entries(saved)) if (typeof v === 'number' && Number.isFinite(v) && v > 0) this.paid[k] = Math.floor(v);
   }
 
@@ -42,7 +43,7 @@ export class Bounty {
     if (this.left(a) <= 0) return false;
     const k = bountyKey(a);
     this.paid[k] = (this.paid[k] ?? 0) + 1;
-    bountySave.write(this.paid, saveSlug(this.shard));
+    this.save.write(this.paid, saveSlug(this.shard));
     return true;
   }
 }
