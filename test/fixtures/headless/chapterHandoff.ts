@@ -11,8 +11,11 @@ export const chapterObserved:readonly string[]=Object.freeze(['nalati.taming','n
 export const chapterTwoObserved:readonly string[]=Object.freeze([PACKED_CHAPTER_TAMING,...chapterObserved.slice(1)]);
 export const ChapterPartSchema=v.strictObject({plan:HeadlessTapePlanSchema,expected:HeadlessTapeReportSchema,digest});
 export type ChapterPart=v.InferOutput<typeof ChapterPartSchema>;
-export const ChapterHandoffSchema=v.strictObject({version:v.literal(1),stage:v.picklist(['plains','bond','goat','home','carving-arrival','carvings']),source:digest,
-  tick:natural,snapshot:v.pipe(v.string(),v.maxLength(24_000_000)),digest,parts:v.pipe(v.array(ChapterPartSchema),v.minLength(1),v.maxLength(128))});
+export const ChapterHandoffSchema=v.pipe(v.strictObject({version:v.literal(1),stage:v.picklist(['plains','approach','bond','goat','home','carving-arrival','carvings']),source:digest,
+  tick:natural,bondStart:v.optional(natural),snapshot:v.pipe(v.string(),v.maxLength(24_000_000)),digest,parts:v.pipe(v.array(ChapterPartSchema),v.minLength(1),v.maxLength(128))}),
+  v.check(row=>row.stage==='approach'?row.bondStart!==undefined&&row.bondStart<row.tick
+    &&row.parts.some(part=>part.expected.observations[0]?.tick===row.bondStart):row.bondStart===undefined,
+  'Only an earned approach carries its original bond input budget'));
 export type ChapterHandoff=v.InferOutput<typeof ChapterHandoffSchema>;
 
 /** Unlike ordinary JSON, preserve every original signed-zero input and

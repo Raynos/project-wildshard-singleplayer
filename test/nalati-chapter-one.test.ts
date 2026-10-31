@@ -10,10 +10,10 @@ import {afterAll,expect,test} from 'vitest';
 import {chapterWireHash} from './fixtures/headless/chapterHandoff';
 
 mkdirSync(resolve('tmp'),{recursive:true});
-const directory=mkdtempSync(resolve('tmp/nalati-chapter-one-')),plains=resolve(directory,'plains.json'),bond=resolve(directory,'bond.json'),goat=resolve(directory,'goat.json'),home=resolve(directory,'home.json');
-let plainsHash:string|undefined,bondHash:string|undefined,goatHash:string|undefined;
+const directory=mkdtempSync(resolve('tmp/nalati-chapter-one-')),plains=resolve(directory,'plains.json'),approach=resolve(directory,'approach.json'),bond=resolve(directory,'bond.json'),goat=resolve(directory,'goat.json'),home=resolve(directory,'home.json');
+let plainsHash:string|undefined,approachHash:string|undefined,bondHash:string|undefined,goatHash:string|undefined;
 afterAll(()=>{rmSync(directory,{recursive:true});});
-function run(stage:'plains'|'bond'|'goat'|'home',output:string,input?:string,hash?:string):string {
+function run(stage:'plains'|'approach'|'bond'|'goat'|'home',output:string,input?:string,hash?:string):string {
   const started=performance.now();
   const child=spawnSync(process.execPath,['--experimental-transform-types','--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
     resolve('test/fixtures/headless/nalati-chapter-one-run.ts'),stage,output,...(input===undefined?[]:[input]),...(hash===undefined?[]:[hash])],{encoding:'utf8',timeout:150_000});
@@ -26,11 +26,17 @@ function run(stage:'plains'|'bond'|'goat'|'home',output:string,input?:string,has
 test('chapter one earns its horse-plains arrival through the real elder talk and bank walk',()=>{
   plainsHash=run('plains',plains);
 },180_000);
-test('the earned plains continuation tames its stallion through real gaze and all five bucking rounds',()=>{
+test('the earned plains continuation approaches its real stallion and earns the first bucking round',()=>{
   expect(plainsHash,'the first case must earn and fully replay the actual arrival').toBeDefined();
   if(plainsHash===undefined)throw new Error('Missing earned horse-plains continuation');
   expect(chapterWireHash(readFileSync(plains,'utf8'))).toBe(plainsHash);
-  bondHash=run('bond',bond,plains,plainsHash);
+  approachHash=run('approach',approach,plains,plainsHash);
+},180_000);
+test('the earned first bucking round tames its stallion through all five real rounds',()=>{
+  expect(approachHash,'the preceding case must earn its actual trust and mount').toBeDefined();
+  if(approachHash===undefined)throw new Error('Missing earned first breaking round');
+  expect(chapterWireHash(readFileSync(approach,'utf8'))).toBe(approachHash);
+  bondHash=run('bond',bond,approach,approachHash);
 },180_000);
 test('the earned horse wins and exactly replays the actual Kokpar pickup and delivery',()=>{
   expect(bondHash,'the preceding case must earn its real companion').toBeDefined();

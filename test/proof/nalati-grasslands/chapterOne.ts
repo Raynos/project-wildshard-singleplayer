@@ -54,14 +54,26 @@ export function* chapterCampInputs(host:SimHost,spawn:{readonly x:number;readonl
 /** Side gaze avoids staring the original living horse into flight. A moving
  * target is intercepted using observed positions; the public gauge controls
  * each lean. All movement, trust, five rounds and adoption stay native. */
-export function* chapterBondInputs(host:SimHost):Generator<readonly HeadlessCommand[]> {
+export function* chapterBondInputs(host:SimHost,usedTicks=0):Generator<readonly HeadlessCommand[]> {
+  yield* bondInputs(host,false,usedTicks);
+}
+/** Stop only after real trust and the mount input earn the first bucking
+ * round. Both balance readers initialize on that next original tick. */
+export function* chapterApproachInputs(host:SimHost):Generator<readonly HeadlessCommand[]> {
+  yield* bondInputs(host,true,0);
+}
+function* bondInputs(host:SimHost,approach:boolean,usedTicks:number):Generator<readonly HeadlessCommand[]> {
   const original=[...host.entities.values()].find(actor=>actor.kind==='horse'&&actor.variant==='stallion');assert.ok(original);
   assert.equal(original.alive,true);
   const taming=nativeTamingOf(host),mounted=mountedPlayerOf(host);assert.ok(taming);assert.ok(mounted);
   const pilot=createNalatiTamingPilot();
   const rounds=new Set<number>();
   let wasBreaking=false,balance=0,velocity=0,sampled=0,horseX=original.position.x,horseZ=original.position.z,horseTick=host.state.tick,vx=0,vz=0;
-  for(let tick=0;tick<20_000&&taming.phase!=='bonded';tick++){
+  assert.ok(Number.isSafeInteger(usedTicks)&&usedTicks>=0&&usedTicks<20_000);
+  for(let tick=usedTicks;tick<20_000&&taming.phase!=='bonded';tick++){
+    if(approach&&taming.phase==='breaking'){
+      assert.equal(taming.view.round,1);assert.equal(host.flags.has('tamed:horse'),false);return;
+    }
     const commands=pilot(host,original.entityId);
     if(taming.phase==='wild'){
       const dx=original.position.x-host.player.position.x,dz=original.position.z-host.player.position.z,d=Math.hypot(dx,dz),yaw=Math.atan2(-dx,-dz)+Math.PI/3;
@@ -87,6 +99,7 @@ export function* chapterBondInputs(host:SimHost):Generator<readonly HeadlessComm
     }
     wasBreaking=taming.phase==='breaking';yield commands;
   }
+  assert.equal(approach,false,'the approach must earn the first real breaking round');
   assert.equal(taming.phase,'bonded');assert.ok(taming.companion);assert.equal(mounted.horse,taming.companion);
   assert.deepEqual([...rounds].sort((a,b)=>a-b),[1,2,3,4,5]);assert.equal(taming.upgraded,false);assert.equal(taming.companion.variant,'tulpar');
   assert.equal(original.alive,true);assert.equal(host.entities.get(original.entityId),original);assert.equal(original.position.y,-1e4);assert.equal(original.motor,null);
