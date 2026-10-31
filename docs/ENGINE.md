@@ -6018,11 +6018,13 @@ The hybrid host admits it during kit, retains catalogue and witness, and
 binds shove in the entered lifetime before audio. Callback behavior stays.
 
 `prepareNativePopulation` (`game/shardfile/bossRow`) preflights baked
-recipes without actors or ticks. Homes accept `late: ground`; unlimited
-attackers use `null`; `think: legacy` keeps the decision band. `admission`
-keeps preparation or per-host catalogue construction; `install` binds
-population and encounter in the caller's phase and settle timing.
-Both hosts use unchanged `format/creatures.CreatureStrikeSchema`.
+recipes without actors/ticks. Homes use `late: ground`; `null` means
+unlimited attackers; `think: legacy` keeps cadence. `admission` retains
+preparation/per-host catalogues; `install` binds population/encounter in
+the caller's phase/settle. Both use `format/creatures.CreatureStrikeSchema`.
+`riding/nativePopulation.NativePopulation.calm` lends the page's encounter
+state to fresh decisions. False saves keep old bytes; true restores quietly.
+Retired calm loans refuse reads/writes. The entered portal owns this state.
 
 `NativeDriverRows.alwaysKinds` keeps actual fixed decision dt for up to
 16 distinct admitted elite kinds declaring `tick: always`. The caller

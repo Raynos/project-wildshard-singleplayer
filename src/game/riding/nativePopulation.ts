@@ -35,7 +35,7 @@ const RaidBody = v.strictObject({ id: v.string(), variant: v.string(), seed: fin
 const EliteSpawn = v.strictObject({ body: RaidBody, kind: v.string() });
 const BondedSpawn = v.strictObject({ body: RaidBody, upgraded: v.boolean() });
 const PopulationPack = v.strictObject({ x: finite, z: finite, herd: v.pipe(finite, v.integer()), bodies: v.array(RaidBody) });
-const PopulationSaved = v.strictObject({ rng: Stream, clock: finite, speed: v.strictObject({ init: v.boolean(), x: finite, z: finite, v: finite }),
+const PopulationSaved = v.strictObject({ calm: v.exactOptional(v.boolean()), rng: Stream, clock: finite, speed: v.strictObject({ init: v.boolean(), x: finite, z: finite, v: finite }),
   seen: v.array(v.boolean()), memories: v.array(v.tuple([v.string(), Memory])), herds: v.array(v.tuple([finite, finite])),
   // the declared groups' continuations (PackBrain / HerdBrain `snapshot()`), packs then herds: they decide on this step
   groups: v.array(v.string()),
@@ -114,6 +114,8 @@ export interface NativePopulationBindings {
 }
 /** The feature's concrete native owners and ordinary actor-id actions. */
 export interface NativePopulation {
+  /** The original encounter-owned calm state; false is omitted from old saves. */
+  calm: boolean;
   readonly id: string;
   readonly host: SimHost;
   readonly hunt: StalkerBrain<HuntBody>; readonly rng: Rng; readonly bodies: readonly HuntBody[]; readonly flocks: readonly FlockBrain[];
@@ -335,7 +337,7 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
   }, {
     snapshot: () => {
       const ids = bodies.map(a => a.entityId), common = manager.snapshot(ids, ids);
-      return ({ ...(bonded.length === 0 ? {} : { bonded: bonded.map(row => ({ upgraded: row.upgraded, body: { ...row.body, at: [...row.body.at], adopted: { ...row.body.adopted } } })) }),
+      return ({ ...(driver.calm ? { calm: true } : {}), ...(bonded.length === 0 ? {} : { bonded: bonded.map(row => ({ upgraded: row.upgraded, body: { ...row.body, at: [...row.body.at], adopted: { ...row.body.adopted } } })) }),
       ...(hiddenStallions.size === 0 ? {} : { hiddenStallions: [...hiddenStallions] }), elitePacks: savePacks(elitePacks), dormant: [...ports.elites.absent].map(a => a.entityId), dodgeCd: driver.snapshot(), nextId: nextId(), retired: [...retired], elites: eliteSpawns.map(row => ({ kind: row.kind, body: { ...row.body, at: [...row.body.at], adopted: { ...row.body.adopted } } })), rng: common.rng, clock: common.clock, speed: { init: speed.seen, x: speed.prev.x, z: speed.prev.z, v: speed.speed }, seen: common.sight.map(value => value === true),
       memories: bodies.flatMap((a, i) => { const memory = common.memories[i]; return memory === null || memory === undefined ? [] : [[a.entityId, memory] as [string, SavedMemory]]; }),
       herds: common.herds, groups: decided().map(g => g.snapshot()), ...frame.snapshot(), placement: { ...placement.snapshot() }, raids: savePacks(raids) });
@@ -343,7 +345,7 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
     restore: value => {
       const saved = v.parse(PopulationSaved, value);
       if (saved.seen.length !== bodies.length || saved.herds.length !== hunt.herds.length || saved.groups.length !== decided().length || saved.flocks.length !== flocks.length) throw new Error('Incompatible native population creatures continuation');
-      driver.restore(saved.dodgeCd);
+      driver.restore(saved.dodgeCd); driver.calm = saved.calm ?? false;
       frame.restore(saved); placement.restore(saved.placement);
       const memories = new Map(saved.memories), ids = bodies.map(a => a.entityId);
       manager.restore({ rng: saved.rng, clock: saved.clock, noise: { seen: saved.speed.init, speed: saved.speed.v,
@@ -355,6 +357,7 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
   // Match the original adapter insertion order: fixed controllers first, actors materialized later.
   restoreRoster(); reinstalling = false;
   const out = { id: cfg.step, host, hunt, rng, bodies, flocks, raid, marmots, spawnElite, retireElite, spawnElitePack, retirePack,
+    get calm(): boolean { return driver.calm; }, set calm(value: boolean) { driver.calm = value; },
     validateSpawn: (kind: string, variant: string): void => {
       if (!cfg.eliteKinds.includes(kind)) throw new Error('Foreign native elite kind');
       intake.spec(kind, variant);

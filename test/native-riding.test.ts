@@ -216,8 +216,11 @@ test('an admitted always species retains every original fixed decision without a
     const roster=createNativeCreatureRoster(host,{specs:[sample.spec],variants:new Map(),rng:random,services,hunted:'every',spawnY:10});
     const slot=roster.body('orchard.always',sample.spec.kind,sample.spec.variant,-1,{x:2,z:3},0,[1,1]),actor=roster.arrive(slot);roster.remember(slot);
     const manager=new NativeManager(host,hunt,random,{limit:64,sightSlots:1,initialSight:false}),bindings=nativeEliteBindings();
-    const decisions:{dt:number;t:number}[]=[];
-    bindings.brains.set(actor,{think:(_body,context)=>{decisions.push({dt:context.dt,t:host.clock.now});},act:()=>undefined});
+    const decisions:{dt:number;t:number;calm:boolean}[]=[];
+    bindings.brains.set(actor,{think:(_body,context)=>{
+      if(!('calm' in context)||typeof context.calm!=='boolean')throw new Error('Missing actual population calm observation');
+      decisions.push({dt:context.dt,t:host.clock.now,calm:context.calm});
+    },act:()=>undefined});
     // A real body owner selects the existing always band; the decision port
     // must preserve that band's actual fixed dt rather than add a 10 Hz cap.
     actor.driven=true;
@@ -227,9 +230,14 @@ test('an admitted always species retains every original fixed decision without a
     expect(()=>new NativePopulationDriver(host,manager,hunt,random,[actor],new Map(),new Map(),bindings,[],[],{...driverRows,alwaysKinds:['foreign']},groups)).toThrow('always species');
     expect(()=>new NativePopulationDriver(host,manager,hunt,random,[actor],new Map(),new Map(),bindings,[],[],{...driverRows,alwaysKinds:[...always,...always]},groups)).toThrow('always species');
     const driver=new NativePopulationDriver(host,manager,hunt,random,[actor],new Map(),new Map(),bindings,[],[],driverRows,groups);always.splice(0);
+    expect(driver.calm).toBe(false);expect(()=>Reflect.set(driver,'calm',1)).toThrow();
     host.onStep('orchard.always.population',dt=>{driver.update(dt);});
-    const times:number[]=[];
-    for(let tick=0;tick<60;tick++){host.step({moveX:0,moveZ:0,yaw:0});times.push(host.clock.now);}
+    const times:number[]=[],calm:boolean[]=[];
+    for(let tick=0;tick<60;tick++){
+      if(tick===20)driver.calm=true;if(tick===40)driver.calm=false;
+      host.step({moveX:0,moveZ:0,yaw:0});times.push(host.clock.now);calm.push(driver.calm);
+    }
+    expect(decisions.map(row=>row.calm)).toStrictEqual(calm);
     expect(decisions.map(row=>row.t)).toStrictEqual(times);
     expect(decisions.map(row=>row.dt)).toStrictEqual(times.map((time,index)=>time-(times[index-1]??0)));
     expect(Object.hasOwn(actor.mem,'groupThinkAt')).toBe(false);
@@ -392,6 +400,16 @@ test('orchard fixture installs the complete native population through data rows'
     bake: { actors: [{ spec: sample.spec }], marmots: foragers.snapshot() }, spawnY: 10, elites: eliteBindings() });
   try {
     expect(nativePopulationOf(host)).toBe(owner); expect(owner.bodies).toEqual([actor]);
+    const population=host.adapters.get(owner.id);if(population===undefined)throw new Error('Missing native population save');
+    const initialCalm=population.snapshot();
+    if(initialCalm===null||typeof initialCalm!=='object'||Array.isArray(initialCalm))throw new Error('Missing population snapshot object');
+    expect(owner.calm).toBe(false);expect(Object.hasOwn(initialCalm,'calm')).toBe(false);
+    owner.calm=true;const calm=population.snapshot();expect(calm).toEqual({...initialCalm,calm:true});
+    owner.calm=false;expect(population.snapshot()).toEqual(initialCalm);
+    population.restore(calm);expect(owner.calm).toBe(true);
+    population.restore(initialCalm);expect(owner.calm).toBe(false);
+    expect(()=>population.restore({...initialCalm,calm:1})).toThrow();
+    expect(population.snapshot()).toEqual(initialCalm);
     for (let i = 0; i < 12; i++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
     expect(owner.marmots.rows).toHaveLength(2); expect(owner.raid.raids).toBe(0); expect(host.adapters.has('orchard.population')).toBe(true);
     const { bondedMountRoster } = await import('@wildshard/game/riding/roster');
@@ -432,6 +450,7 @@ test('orchard fixture installs the complete native population through data rows'
     expect(owner.bodies).not.toContain(borrowed);expect(host.entities.has(borrowed.entityId)).toBe(false);
     expect(owner.available()).toBe(63);
   } finally { host.dispose(); }
+  expect(()=>owner.calm).toThrow();expect(()=>{owner.calm=true;}).toThrow();
 });
 
 test('native herd service keeps both id namespaces and retires with its real group owner', async () => {

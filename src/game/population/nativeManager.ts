@@ -119,6 +119,16 @@ export class NativePopulationDriver {
   private readonly missing = new Error('Missing native population context');
   private readonly always:ReadonlySet<string>;
   private dodgeCd = 0;
+  private calmState = false;
+  /** The entered population owner's current calm state, as on the page. */
+  get calm(): boolean {
+    if (this.host.scope.disposed || this.host.scope.disposing) throw this.missing;
+    return this.calmState;
+  }
+  set calm(value: boolean) {
+    if (typeof value !== 'boolean' || this.host.scope.disposed || this.host.scope.disposing) throw this.missing;
+    this.calmState = value;
+  }
   /** CI12: kinds that decide through their own directed law (Nalati's ghost riders), as the page's self-thinking species */
   private readonly directed = new Map<string, NativeDirected>();
   private readonly policy = { state: 'owned' as const, decide: (dt: number, actor: HuntBody): void => { this.decide(actor, dt); }, sample: (actor: HuntBody): void => { actor.sampleTerrain(); } };
@@ -183,7 +193,7 @@ export class NativePopulationDriver {
   }
   private context(actor: HuntBody, dt: number) {
     const context = this.contexts.get(actor); if (context === undefined) throw this.missing;
-    context.dt = dt; context.t = this.host.clock.now; context.playerSpeed = this.manager.noise.speed;
+    context.dt = dt; context.t = this.host.clock.now; context.playerSpeed = this.manager.noise.speed; context.calm = this.calmState;
     context.herd = actor.herd >= 0 ? this.hunt.herds[actor.herd]?.members ?? null : null; return context;
   }
   private dog(actor: HuntBody, dt: number): void {
