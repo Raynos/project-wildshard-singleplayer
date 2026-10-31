@@ -22,7 +22,7 @@ test('an approach continuation retains the original bond start instead of a new 
   const row={version:1,stage:'approach',source:chapterWireHash('unplayed'),tick:2,bondStart:1,snapshot:'unplayed',digest:chapterWireHash('unplayed'),parts:[part(0),part(1)]};
   expect(v.safeParse(ChapterHandoffSchema,row).success).toBe(true);
   for(const bondStart of [undefined,0,2,3])expect(v.safeParse(ChapterHandoffSchema,{...row,bondStart}).success).toBe(false);
-  expect(v.safeParse(ChapterHandoffSchema,{...row,stage:'bond'}).success).toBe(false);
+  for(const stage of ['bond','return','home'])expect(v.safeParse(ChapterHandoffSchema,{...row,stage}).success).toBe(false);
 });
 test('an earned boundary must retain its exact interval and original observation owners',()=>{
   expect(()=>checkChapterLedger([part(0),part(1)],2)).not.toThrow();

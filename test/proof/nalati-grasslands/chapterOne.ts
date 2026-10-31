@@ -155,13 +155,26 @@ export function* chapterGoatInputs(host:SimHost,rows:CarriedQuestRows):Generator
   assert.equal(host.quests.find(quest=>quest.def.id==='tulpar')?.current?.id,'home');
   assert.equal(host.flags.has('quest:tulpar'),false);
 }
-/** Ride the graded road and real bridge home, then dismount and finish only
- * the eligible elder reading. A second chapter's talk is never pressed. */
-export function* chapterHomeInputs(host:SimHost):Generator<readonly HeadlessCommand[]> {
+/** Earn the original graded-road bend before its remaining descent and
+ * bridge. The next original leg starts with a fresh route cursor anyway. */
+export function* chapterReturnInputs(host:SimHost):Generator<readonly HeadlessCommand[]> {
   const mount=mountedPlayerOf(host),taming=nativeTamingOf(host);assert.ok(mount);assert.ok(taming?.companion);
   assert.equal(mount.horse,taming.companion);assert.ok(host.flags.has('won:kokpar'));
-  const road:readonly (readonly [number,number])[]=[[-20,54],[20,40],[65,55],[95,65],
-    ...SKY_ROAD.slice(4).reverse(),[40,133],[57,134],[57,136],[53,139],[39,141],[27,142],[23,146],[1,146],
+  for(const [x,z]of [[-20,54],[20,40],[65,55],[95,65],...SKY_ROAD.slice(8).reverse()]){
+    assert.ok(x!==undefined&&z!==undefined);yield* drive(host,x,z);
+  }
+  assert.equal(mount.mounted,true);assert.ok(Math.hypot(host.player.position.x-12,host.player.position.z-96)<2.5);
+  assert.equal(host.quests.find(quest=>quest.def.id==='tulpar')?.current?.id,'home');
+  assert.equal(host.flags.has('told:tulpar'),false);assert.equal(host.flags.has('quest:tulpar'),false);
+}
+/** Ride the remaining graded road and real bridge home, then dismount and
+ * finish only the eligible reading. No second-chapter talk is pressed. */
+export function* chapterHomeInputs(host:SimHost,fromReturn=false):Generator<readonly HeadlessCommand[]> {
+  if(!fromReturn)yield* chapterReturnInputs(host);
+  const mount=mountedPlayerOf(host),taming=nativeTamingOf(host);assert.ok(mount);assert.ok(taming?.companion);
+  assert.equal(mount.horse,taming.companion);assert.equal(mount.mounted,true);assert.ok(host.flags.has('won:kokpar'));
+  assert.ok(Math.hypot(host.player.position.x-12,host.player.position.z-96)<2.5);
+  const road:readonly (readonly [number,number])[]=[...SKY_ROAD.slice(4,8).reverse(),[40,133],[57,134],[57,136],[53,139],[39,141],[27,142],[23,146],[1,146],
     [0,147],[0,158],[0,170],[0,183],[0,190],[0,200],[0,205],[0,216],[20,216],[40,218],[60,214]];
   for(const [x,z] of road)yield* drive(host,x,z);
   for(let tick=0;tick<120&&Math.abs(mount.body.speed)>.2;tick++)yield [reins(host,-1,0)];

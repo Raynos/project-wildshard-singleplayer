@@ -10,10 +10,10 @@ import {afterAll,expect,test} from 'vitest';
 import {chapterWireHash} from './fixtures/headless/chapterHandoff';
 
 mkdirSync(resolve('tmp'),{recursive:true});
-const directory=mkdtempSync(resolve('tmp/nalati-chapter-one-')),plains=resolve(directory,'plains.json'),approach=resolve(directory,'approach.json'),bond=resolve(directory,'bond.json'),goat=resolve(directory,'goat.json'),home=resolve(directory,'home.json');
-let plainsHash:string|undefined,approachHash:string|undefined,bondHash:string|undefined,goatHash:string|undefined;
+const directory=mkdtempSync(resolve('tmp/nalati-chapter-one-')),plains=resolve(directory,'plains.json'),approach=resolve(directory,'approach.json'),bond=resolve(directory,'bond.json'),goat=resolve(directory,'goat.json'),returning=resolve(directory,'return.json'),home=resolve(directory,'home.json');
+let plainsHash:string|undefined,approachHash:string|undefined,bondHash:string|undefined,goatHash:string|undefined,returnHash:string|undefined;
 afterAll(()=>{rmSync(directory,{recursive:true});});
-function run(stage:'plains'|'approach'|'bond'|'goat'|'home',output:string,input?:string,hash?:string):string {
+function run(stage:'plains'|'approach'|'bond'|'goat'|'return'|'home',output:string,input?:string,hash?:string):string {
   const started=performance.now();
   const child=spawnSync(process.execPath,['--experimental-transform-types','--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
     resolve('test/fixtures/headless/nalati-chapter-one-run.ts'),stage,output,...(input===undefined?[]:[input]),...(hash===undefined?[]:[hash])],{encoding:'utf8',timeout:150_000});
@@ -44,9 +44,15 @@ test('the earned horse wins and exactly replays the actual Kokpar pickup and del
   expect(chapterWireHash(readFileSync(bond,'utf8'))).toBe(bondHash);
   goatHash=run('goat',goat,bond,bondHash);
 },180_000);
-test('the earned Kokpar winner rides home and finishes the real elder reading once',()=>{
+test('the earned Kokpar winner rides back to the real graded-road bend',()=>{
   expect(goatHash,'the preceding case must earn its actual delivery').toBeDefined();
   if(goatHash===undefined)throw new Error('Missing earned Kokpar continuation');
   expect(chapterWireHash(readFileSync(goat,'utf8'))).toBe(goatHash);
-  run('home',home,goat,goatHash);
+  returnHash=run('return',returning,goat,goatHash);
+},180_000);
+test('the earned road return crosses the bridge and finishes the real elder reading once',()=>{
+  expect(returnHash,'the preceding case must ride the original return road').toBeDefined();
+  if(returnHash===undefined)throw new Error('Missing earned graded-road return');
+  expect(chapterWireHash(readFileSync(returning,'utf8'))).toBe(returnHash);
+  run('home',home,returning,returnHash);
 },180_000);

@@ -11,19 +11,19 @@ import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
 import {parseCarriedQuest} from '../../../src/format/questSteps';
 import {decodeSimSnapshot,snapshotSimHostBytes,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
 import {physicsState,sameBytes} from '../../fake/simState';
-import {chapterCampInputs,chapterApproachInputs,chapterBondInputs,chapterGoatInputs,chapterHomeInputs} from '../../proof/nalati-grasslands/chapterOne';
+import {chapterCampInputs,chapterApproachInputs,chapterBondInputs,chapterGoatInputs,chapterReturnInputs,chapterHomeInputs} from '../../proof/nalati-grasslands/chapterOne';
 import {checkedReplayPipeline} from './checkedReplayPipeline';
 import {ChapterHandoffSchema,chapterObserved,chapterWire,chapterRead,chapterWireHash,chapterSnapshotDigest,
   chapterInputHash,checkChapterLedger,type ChapterPart,type ChapterHandoff} from './chapterHandoff';
 import type {HeadlessCommand,HeadlessEffect,HeadlessTickCommit} from '../../../src/sdk/tickProtocol';
 import type {HeadlessTapeObservation} from '../../../src/sdk/headlessTape';
 
-const [stage,outputPath,inputPath,inputHash]=process.argv.slice(2);assert.ok(stage==='plains'||stage==='approach'||stage==='bond'||stage==='goat'||stage==='home');assert.ok(outputPath);
+const [stage,outputPath,inputPath,inputHash]=process.argv.slice(2);assert.ok(stage==='plains'||stage==='approach'||stage==='bond'||stage==='goat'||stage==='return'||stage==='home');assert.ok(outputPath);
 let inherited:ChapterHandoff|undefined;
 if(stage!=='plains'){
   assert.ok(inputPath);assert.ok(inputHash);assert.ok(statSync(inputPath).size<=32_000_000);
   const wire=readFileSync(inputPath,'utf8');assert.equal(chapterWireHash(wire),inputHash);
-  inherited=v.parse(ChapterHandoffSchema,chapterRead(wire));assert.equal(inherited.stage,stage==='approach'?'plains':stage==='bond'?'approach':stage==='goat'?'bond':'goat');checkChapterLedger(inherited.parts,inherited.tick);
+  inherited=v.parse(ChapterHandoffSchema,chapterRead(wire));assert.equal(inherited.stage,stage==='approach'?'plains':stage==='bond'?'approach':stage==='goat'?'bond':stage==='return'?'goat':'return');checkChapterLedger(inherited.parts,inherited.tick);
 }
 const started=performance.now(),session=await beginProductSession('nalati-grasslands','nalati-chapter',inherited?.snapshot),{product,assets}=session;
 const descriptor=outputDescriptor(product.shardfile);assert.ok(descriptor?.indexHash);
@@ -69,7 +69,7 @@ try{
   let bondTicks=0;
   if(stage==='bond'){assert.ok(inherited?.bondStart!==undefined);bondTicks=host.state.tick-inherited.bondStart;}
   const inputs=stage==='plains'?chapterCampInputs(host,product.shardfile.spawn):stage==='approach'?chapterApproachInputs(host):stage==='bond'?chapterBondInputs(host,bondTicks)
-    :stage==='goat'?chapterGoatInputs(host,parseCarriedQuest(await product.json('quests/carried.json'))):chapterHomeInputs(host);
+    :stage==='goat'?chapterGoatInputs(host,parseCarriedQuest(await product.json('quests/carried.json'))):stage==='return'?chapterReturnInputs(host):chapterHomeInputs(host,true);
   for(const commands of inputs){
     checked.check();commandsCount+=commands.length;assert.ok(commandsCount<=60_000&&host.state.tick<60_000);
     frames.push(structuredClone([...commands]));active.step(commands);effects.push(...structuredClone(active.effects));
@@ -83,7 +83,7 @@ try{
   assert.equal((await ready).quarantined,false);checkChapterLedger(history,host.state.tick);
   if(inheritedPartsHash!==undefined)assert.equal(chapterWireHash(chapterWire(history.slice(0,inheritedParts))),inheritedPartsHash,
     'the checked prefix retains every original input, observation, effect and native digest');
-  assert.equal(host.flags.has('tamed:horse'),stage!=='plains'&&stage!=='approach');assert.equal(host.flags.has('won:kokpar'),stage==='goat'||stage==='home');
+  assert.equal(host.flags.has('tamed:horse'),stage!=='plains'&&stage!=='approach');assert.equal(host.flags.has('won:kokpar'),stage==='goat'||stage==='return'||stage==='home');
   assert.equal(host.flags.has('told:tulpar'),stage==='home');assert.equal(host.flags.has('quest:tulpar'),stage==='home');
   for(const flag of ['talked:elder:2','quest:golden-king','quest:father-wind','entered:kurgan','dead:golden-king','dead:jel-ata'])assert.equal(host.flags.has(flag),false,flag);
   const quest=product.shardfile.quests.quests.find(row=>row.id==='tulpar');assert.ok(quest?.onComplete?.fact);
