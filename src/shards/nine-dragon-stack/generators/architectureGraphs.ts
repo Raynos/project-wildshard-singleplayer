@@ -323,6 +323,9 @@ function windows(): GraphIr {
   return g.output(colour, emit, mul(lines, mix(0.5, 1, detail)));
 }
 
+/** G5: the kit's flagstone program (kind 3 only), shipped as a material file (groundGraph.ts) */
+export function groundGraph(): GraphIr { return architecture(false, true, 3); }
+
 /** `nr13: false` builds the kit graphs as before NR13 and NR16 (no tread glints, every face painted at full strength, a
  *  bare window grid for kind 1): the declaration oracle's predecessor. */
 export function architectureGraphs(options: { readonly nr13?: boolean } = {}): Readonly<Record<string, GraphIr>> {
@@ -406,11 +409,12 @@ function facadeCell(g: Surface, q: Ref, gu: Ref, gv: Ref, wpx: Ref, rowP: Ref, c
   return { wall, glass: glassC, emit, keep: g.choose(g.gt(det, 0), keep, 1), ink };
 }
 
-/** The world kit retains its encoded kinds, explicit surfaces and edge masks. */
-function architecture(cut: boolean, nr13: boolean): GraphIr {
+/** The world kit retains its encoded kinds, explicit surfaces and edge masks. `only`: the program for faces of that one kind
+ *  (G5: the kit's flagstones draw apart, kind 3, so their program carries none of the other kinds' registers). */
+function architecture(cut: boolean, nr13: boolean, only?: number): GraphIr {
   const g = new Surface(), sw = g.sw.bind(g), mul = g.mul.bind(g), add = g.add.bind(g), sub = g.sub.bind(g), div = g.div.bind(g), max = g.max.bind(g), min = g.min.bind(g), mix = g.mix.bind(g), choose = g.choose.bind(g);
   const face = g.attr('aFace', 'vec4'), pat = g.attr('aPat', 'vec4', true), misc = g.attr('aMisc', 'vec4', true), off = g.attr('aOff', 'vec2'), spill = g.attr('aSpill', 'vec3');
-  const kind = g.floor(add(sw(pat, 'x'), 0.5)), flags = g.floor(add(sw(misc, 'w'), 0.5)), surf = g.floor(div(flags, 4096));
+  const kind = only ?? g.floor(add(sw(pat, 'x'), 0.5)), flags = g.floor(add(sw(misc, 'w'), 0.5)), surf = g.floor(div(flags, 4096));
   // EP8 (B5): a dyed walker draws as its base walker's instance, the dye its instance colour: its umbrella (aDye > 0) takes
   // the dye x the factor the cast carries, its other vertices (aDye < 0) their own colour; geometry without the channel
   // reads 0 and keeps vertex x instance colour exactly (a white instance draws the walker's own colours too). The channel

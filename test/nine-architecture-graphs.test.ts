@@ -1,4 +1,6 @@
 import { graphFileRules } from '../src/format/materials';
+import { lowerMaterialGraphs } from '../src/sdk/materialGraphFiles';
+import { parseShardfile } from '../src/sdk/shardfile';
 import product, { heldGraphFiles, heldProfile } from './fixtures/nine-product-inputs';
 import { postRows } from '../src/shards/nine-dragon-stack/generators/postGraphs';
 import { ScaledPostPass, prepareScaledPost } from '../src/game/looks/scaledPost';
@@ -16,7 +18,8 @@ import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
 import { GRAPH_ADMISSION_LIMITS, validateGraph, type GraphIr } from '../src/format/materialGraph';
 import { viewmodelGraphs } from '../src/shards/nine-dragon-stack/generators/viewmodelGraphs';
-import { architectureGraphs } from '../src/shards/nine-dragon-stack/generators/architectureGraphs';
+import { architectureGraphs, groundGraph } from '../src/shards/nine-dragon-stack/generators/architectureGraphs';
+import { groundGraphFile } from '../src/shards/nine-dragon-stack/generators/groundGraph';
 import fog from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 
 import { lendUniforms as lendGrade } from '../src/game/shardfile/lentLooks';
@@ -71,7 +74,9 @@ function build(graph: GraphIr, instanced: boolean, skinned = false): { vertex: s
 
 const graphs = architectureGraphs();
 test('held material files declare their admitted texture dependencies', () => {
-  expect(graphFileRules(product, hash => heldGraphFiles.assets.get(hash))).toEqual([]);
+  // the SDK lowers the inline graphs to files before admission (D74), so a file's fog names a file too
+  const ground = groundGraphFile(), lowered = lowerMaterialGraphs(product), built = parseShardfile(lowered.declaration);
+  expect(graphFileRules(built, hash => heldGraphFiles.assets.get(hash) ?? lowered.assets.get(hash) ?? (hash === ground.file.hash ? ground.bytes : undefined))).toEqual([]);
 });
 /** the reads in `main` of a variable no enclosing block (nor both arms of an if / else in one) has assigned */
 function undominatedReads(shader: string): string[] {
@@ -291,7 +296,8 @@ test('the look channel rows give each lent look its shared params every frame, t
   // each write is a param its own look declares (the fog's colour only the silk fog's)
   for (const key of writes.keys()) {
     const [id = '', param = ''] = key.split(':'), entry: unknown = product.look.materials[id];
-    const graph: unknown = typeof entry === 'object' && entry !== null ? Reflect.get(entry, 'graph') : null;
+    // the kit's flagstone graph ships as a file (groundGraph.ts)
+    const graph: unknown = typeof entry === 'object' && entry !== null ? Reflect.get(entry, 'file') === groundGraphFile().file.hash ? groundGraph() : Reflect.get(entry, 'graph') : null;
     const params: unknown = typeof graph === 'object' && graph !== null ? Reflect.get(graph, 'params') : null;
     expect(typeof params === 'object' && params !== null ? Object.keys(params) : [], key).toContain(param);
   }

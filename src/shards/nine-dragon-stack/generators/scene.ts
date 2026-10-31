@@ -127,6 +127,11 @@ function buildNineScene(atlas: NineSpillAtlas): { baked: BakedScene; layout: Ret
     if (geometry === undefined) throw new Error(`Nine scene: missing kit geometry ${name}`);
     if (geometry !== null) withSpill(geometry, spill, name);
   }
+  for (const { name, geo } of layout.rows.groundKits) {
+    const geometry = layout.geometries[geo];
+    if (geometry === undefined) throw new Error(`Nine scene: missing ground geometry ${name}`);
+    withSpill(geometry, spill, `${name}:ground`);
+  }
   const local = new Set(layout.rows.sets.map(set => set.geo));
   // The skyline crown reaches +273.5 m: retain that out-of-cube backdrop as an unchanged library geometry.
   const crown = layout.rows.kits.find(kit => kit.name === 'crown')?.geo;
@@ -135,11 +140,28 @@ function buildNineScene(atlas: NineSpillAtlas): { baked: BakedScene; layout: Ret
   // merge into one draw per channel set, simplified until the parent fits the L1 tile caps (CONTENT_CAPS.l1)
   const coarseWhite = new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 1, metalness: 0 }), coarseWhole: PropWhole[] = [];
   const parents = new Map<number, BufferGeometry[]>(), errors = new WeakMap<BufferGeometry, number>();
+  // G5: a kit's flagstones draw apart (layout.ts `splitKind`), but its coarse copy simplifies the kit whole, as before
+  const grounds = new Map(layout.rows.groundKits.flatMap(({ name, geo }) => {
+    const kit = layout.rows.kits.find(row => row.name === name)?.geo;
+    return kit === undefined || kit === null ? [] : [[kit, geo] as const];
+  })), merged = new Set(grounds.values());
+  const whole = (i: number, geometry: BufferGeometry): BufferGeometry => {
+    const kit = layout.wholes.get(i), ground = grounds.get(i), only = ground === undefined ? undefined : layout.geometries[ground];
+    if (kit === undefined || only === undefined) return geometry;
+    const [restSpill, onlySpill] = [geometry.getAttribute('aSpill'), only.getAttribute('aSpill')], [restMap, onlyMap] = kit.maps;
+    const words = new Float32Array(kit.geometry.getAttribute('position').count * 3);
+    for (let v = 0; v < words.length / 3; v++) {
+      const r = restMap[v] ?? -1, o = onlyMap[v] ?? -1, from = r !== -1 ? restSpill : onlySpill, at = r !== -1 ? r : o;
+      if (at !== -1) for (let k = 0; k < 3; k++) words[v * 3 + k] = from.array[at * 3 + k] ?? 0;
+    }
+    return kit.geometry.setAttribute('aSpill', new BufferAttribute(words, 3));
+  };
   for (const [i, geometry] of layout.geometries.entries()) {
     if (local.has(i)) continue;
     const mesh = new Mesh(geometry, material); mesh.name = `layout_${i}`;
     scene.add(new WholeShape(mesh.name, mesh, { customAttributes: nineChannels(geometry), nativeAttributes: true, partition: 'runs', compact: true }));
-    const result = measuredCoarseGeometry(geometry, COARSE_START, 3, { sloppy: true }), coarse = result.geometry;
+    if (merged.has(i)) continue;
+    const result = measuredCoarseGeometry(whole(i, geometry), COARSE_START, 3, { sloppy: true }), coarse = result.geometry;
     errors.set(coarse, result.errorMetres);
     for (const piece of coarseParents(coarse, errors)) { const key = piece.z * 4 + piece.x, list = parents.get(key) ?? []; list.push(piece.geometry); parents.set(key, list); }
     coarse.dispose();

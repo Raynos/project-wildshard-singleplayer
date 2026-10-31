@@ -3,7 +3,7 @@
  * worldProgram.ts caches the checked layout rows, float64 records and immutable
  * world GLBs. Product consumers receive those owned values directly.
  */
-import type { BufferGeometry, Color, Matrix4, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, Float16BufferAttribute, Uint32BufferAttribute, type Color, type Matrix4, type Vector3 } from 'three';
 import { mergeKits } from './kit/sweptKit';
 import { Ctx } from './ctx';
 import { Kit } from './kit';
@@ -78,8 +78,41 @@ function bakedAt(model: string, at: Placement<object>): LayoutRows['inKit'][numb
   return { x, y, z, ...(yaw === undefined ? {} : { yaw }), ...(variant === undefined ? {} : { variant }), ...(params === undefined ? {} : { params: plain }) };
 }
 
+/** G5: a kit's flagstone faces (aPat.x kind 3) apart from its other faces, each with only the vertices it indexes (raw words
+ *  copied, the half-float class kept). The flagstones draw through the kind-3 program (architectureGraphs `only`), which
+ *  at the phone's street pose (a) is 72 % of the frame's pixels at about a quarter less GPU time than the kit's program. */
+function splitKind(geometry: BufferGeometry, kind: number): { rest: BufferGeometry | null; only: BufferGeometry | null; maps: readonly [Int32Array, Int32Array] } {
+  const pat = geometry.getAttribute('aPat'), index = geometry.index, count = geometry.getAttribute('position').count;
+  if (pat === undefined || index === null) throw new Error('Nine kit split needs an indexed aPat');
+  const of = (vertex: number): number => Math.floor(pat.getX(vertex) + 0.5), sides: [number[], number[]] = [[], []];
+  for (let i = 0; i < index.count; i += 3) {
+    const a = index.getX(i), b = index.getX(i + 1), c = index.getX(i + 2);
+    sides[of(a) === kind && of(b) === kind && of(c) === kind ? 1 : 0].push(a, b, c);
+  }
+  const maps: [Int32Array, Int32Array] = [new Int32Array(count).fill(-1), new Int32Array(count).fill(-1)];
+  const part = (triangles: readonly number[], map: Int32Array): BufferGeometry | null => {
+    if (triangles.length === 0) return null;
+    const order: number[] = [];
+    const indices = triangles.map(vertex => { let at = map[vertex] ?? -1; if (at === -1) { at = order.length; map[vertex] = at; order.push(vertex); } return at; });
+    const out = new BufferGeometry();
+    for (const [name, attribute] of Object.entries(geometry.attributes)) {
+      if (!(attribute instanceof BufferAttribute)) throw new Error(`Nine kit split: ${name} is interleaved`);
+      const size = attribute.itemSize, source = attribute.array, words = new (source.constructor as new (length: number) => typeof source)(order.length * size);
+      order.forEach((vertex, at) => { for (let k = 0; k < size; k++) words[at * size + k] = source[vertex * size + k] ?? 0; });
+      out.setAttribute(name, attribute instanceof Float16BufferAttribute ? new Float16BufferAttribute(words, size, attribute.normalized) : new BufferAttribute(words, size, attribute.normalized));
+    }
+    out.setIndex(new Uint32BufferAttribute(indices, 1)); out.computeBoundingSphere();
+    return out;
+  };
+  return { rest: part(sides[0], maps[0]), only: part(sides[1], maps[1]), maps };
+}
+
+/** A split kit as it was before the split: its coarse copy simplifies it whole (scene.ts), its spill gathered back from
+ *  the two sides' (each vertex's spill is its own: lightSpill.ts) through `maps` (a source vertex's index in each side, or -1). */
+export interface WholeKit { readonly name: string; readonly geometry: BufferGeometry; readonly maps: readonly [Int32Array, Int32Array] }
+
 /** the layout, run and written as the bake's binary (inflated) */
-export function nineLayoutSource(): { bin: Uint8Array; rows: LayoutRows; records: number[]; geometries: BufferGeometry[] } {
+export function nineLayoutSource(): { bin: Uint8Array; rows: LayoutRows; records: number[]; geometries: BufferGeometry[]; wholes: ReadonlyMap<number, WholeKit> } {
   const signs = new SignRecorder();
   const ctx = runLayout(signs);
   const built: BufferGeometry[] = [], geometries: LayoutRows['geometries'] = [], writer = geometryWriter('bake-nine-layout'), blocks = writer.blocks;
@@ -92,12 +125,18 @@ export function nineLayoutSource(): { bin: Uint8Array; rows: LayoutRows; records
   }
   // Native boot used to merge solid and swept builders by name. Emit those final
   // streams in the same order, including swept-only names after the solid names.
+  // the flagstones' geometries follow every other layout geometry, so the others keep their ids
+  const grounds: [string, BufferGeometry][] = [], wholes = new Map<number, WholeKit>();
   const kits = [...ctx.kits].map(([name, k]) => {
     const extra = ctx.kitxs.get(name), base = k.vertexCount > 0 ? k.build() : null;
     const swept = extra !== undefined && extra.vertexCount > 0 ? extra.build() : null;
-    const geometry = base === null ? swept : swept === null ? base : mergeKits([base, swept]);
+    const merged = base === null ? swept : swept === null ? base : mergeKits([base, swept]);
+    const split = merged === null ? null : splitKind(merged, 3), geometry = split === null ? null : split.rest;
+    if (split !== null && split.only !== null) grounds.push([name, split.only]);
     geometry?.computeBoundingSphere();
-    return { name, geo: geometry === null ? null : addGeometry(geometry), compact: k.compact };
+    const geo = geometry === null ? null : addGeometry(geometry);
+    if (geo !== null && merged !== null && split !== null && split.only !== null) wholes.set(geo, { name, geometry: merged, maps: split.maps });
+    return { name, geo, compact: k.compact };
   });
   for (const [name, k] of ctx.kitxs) if (!ctx.kits.has(name) && k.vertexCount > 0) {
     const geometry = k.build(); geometry.computeBoundingSphere();
@@ -120,9 +159,10 @@ export function nineLayoutSource(): { bin: Uint8Array; rows: LayoutRows; records
   for (const [, s] of queued.sets) s.at.forEach(m4);
   const sets = queued.sets.map(([name, s]) => ({ name, geo: addGeometry(s.geo), count: s.at.length }));
   const shell = ctx.fd.shell.vertexCount > 0 ? addGeometry(ctx.fd.shell.build()) : null;
+  const groundKits = grounds.map(([name, geometry]) => ({ name, geo: addGeometry(geometry) }));
   const plan = banyanOut.plan;
   const draft: LayoutRows = {
-    version: 1, geometries, kits, alphaKits, kitxs: [],
+    version: 1, geometries, kits, alphaKits, groundKits, kitxs: [],
     reflective: [...ctx.reflective], farOf: [...ctx.farOf],
     counts: { walkers: ctx.walkers.length, sitters: ctx.sitters.length, lanterns: ctx.lanterns.length, acs: ctx.acs.length, hooks: ctx.hooks.length, hookMounts: ctx.hookMounts.length, steam: ctx.steam.length, pieces: ctx.fd.pieces.length, windows: ctx.fd.windows.length, lions: queued.lions.length },
     inKit: ctx.inKit.map((c) => {
@@ -161,6 +201,6 @@ export function nineLayoutSource(): { bin: Uint8Array; rows: LayoutRows; records
   out.set(new Uint8Array(new Float64Array(f64).buffer), head);
   let at = head + f64.length * 8;
   for (const b of blocks) { out.set(b, at); at += b.length; }
-  return { bin: out, rows, records: f64, geometries: built };
+  return { bin: out, rows, records: f64, geometries: built, wholes };
 }
 

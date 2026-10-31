@@ -53,7 +53,8 @@ function spillInputsPrepared(caps: boolean, tier: 'phone' | 'desktop', input: Ni
       if (geometry === undefined) throw new Error('Missing spill layout geometry');
       return geometry.clone();
     };
-    const solid = new Map(layout.rows.kits.map(row => [row.name, row.geo === null ? null : take(row.geo)]));
+    const solid = new Map([...layout.rows.kits.map(row => [row.name, row.geo === null ? null : take(row.geo)] as const),
+      ...layout.rows.groundKits.map(row => [`${row.name}:ground`, take(row.geo)] as const)]);
     const swept = new Map(layout.rows.kitxs.map(row => [row.name, take(row.geo)]));
     const entries = fixed.geometries.get(caps ? 'entries-capped' : 'entries-open')?.clone(), boards = fixed.geometries.get('facade-signs')?.clone();
     if (entries === undefined || boards === undefined) throw new Error('Missing spill fixed geometry');

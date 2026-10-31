@@ -1,6 +1,6 @@
 /** The world-scene materials that draw through a look graph (material id, graph id), in the catalogue's order. */
 export const NINE_MATERIAL_LOOKS: readonly (readonly [string, string])[] = [
-  ['kit', 'nine-architecture'], ['kit-cut', 'nine-architecture-cut'], ['facade', 'nine-facade'], ['small', 'nine-facade-small'],
+  ['kit', 'nine-architecture'], ['kit-cut', 'nine-architecture-cut'], ['kit-ground', 'nine-architecture-ground'], ['facade', 'nine-facade'], ['small', 'nine-facade-small'],
   ['windows', 'nine-windows'], ['lantern', 'nine-lantern'], ['canopy-core', 'nine-canopy-inner'], ['canopy-cards', 'nine-canopy-cards'],
   ['canopy-depth', 'nine-canopy-depth'], ['mist-sheet', 'nine-mist-sheet'], ['steam', 'nine-steam'], ['sky', 'nine-sky'], ['scroll', 'nine-scroll'],
   ['streaks', 'nine-streaks'], ['halo', 'nine-halo'], ['neon', 'nine-neon'], ['neon-board', 'nine-neon-board'], ['neon-tube', 'nine-neon-tube'],

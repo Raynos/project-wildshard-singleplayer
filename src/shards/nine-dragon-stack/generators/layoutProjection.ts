@@ -42,7 +42,7 @@ export function layoutProjection(rows: LayoutRows, records: readonly number[], b
   const inst = rows.inst.map(([name, count]) => [name, Array.from({ length: count }, () => ({ matrix: words(16), color: point() }))]);
   at += (c.lions + rows.sets.reduce((sum, row) => sum + row.count, 0)) * 16;
   if (at !== records.length) throw new Error('Nine layout has records left over');
-  const used = new Set([...rows.kits.flatMap(row => row.geo === null ? [] : [row.geo]), ...rows.alphaKits.map(row => row.geo), ...(rows.shell === null ? [] : [rows.shell])]);
+  const used = new Set([...rows.kits.flatMap(row => row.geo === null ? [] : [row.geo]), ...rows.alphaKits.map(row => row.geo), ...rows.groundKits.map(row => row.geo), ...(rows.shell === null ? [] : [rows.shell])]);
   for (const row of rows.inKit) if (!rows.kits.some(kit => kit.name === row.kit)) throw new Error(`Nine model ${row.model} has no kit ${row.kit}`);
   return parseSectionValue(LayoutProjectionSchema, { geometries: [...used].map(id => {
     const row = rows.geometries[id]; if (row === undefined) throw new Error(`Missing Nine geometry ${id}`);
@@ -55,6 +55,7 @@ export function layoutProjection(rows: LayoutRows, records: readonly number[], b
       || [0, 1, 2].some(i => ((baked.box[i] ?? Number.NaN) + (baked.box[i + 3] ?? Number.NaN)) * 0.5 !== baked.sphere[i])) throw new Error(`Nine layout bounds ${id} do not pack exactly`);
     return { id, box: row.box, s: [...box, radius] };
   }), kits: rows.kits.map(row => [row.name, row.geo]), alphaKits: rows.alphaKits.map(row => [row.name, row.geo]),
+  groundKits: rows.groundKits.map(row => [row.name, row.geo]),
   farOf: rows.farOf, inKit: rows.inKit, shell: rows.shell, lanterns, acs, hooks, hookMounts, inst,
   fixed: { lanterns: (fixedRows ?? fixedKitRows(rows.slots)).lanterns.map(row => row.map(Number)), drop: lantern.drop } });
 }

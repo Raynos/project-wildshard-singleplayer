@@ -32,7 +32,8 @@ import type { NineSourceWorld } from './worldProgram';
 import rawProfiles from '../data/specimenProfiles.json' with { type: 'json' };
 import plan from '../data/layoutPlan.json' with { type: 'json' };
 import { presentationData } from './presentation';
-import { architectureGraphs } from './architectureGraphs';
+import { architectureGraphs, groundGraph } from './architectureGraphs';
+import { GROUND_LOOK } from './groundGraph';
 import { lightVolumeRows } from './lightVolumes';
 import paint from '../data/paint.json' with { type: 'json' };
 import canopy from '../data/canopy.json' with { type: 'json' };
@@ -84,7 +85,7 @@ function alias(id: string, key: string, matrix?: readonly number[]): void {
 // The original layout partitions are native resources; the scene owner reads each tile once.
 const layoutRows = parseSectionValue(LayoutRowsSchema, JSON.parse(JSON.stringify(layout.rows), (_key, value: unknown) =>
   value === '-0' ? -0 : value === 'Infinity' ? Infinity : value === '-Infinity' ? -Infinity : value));
-const layoutIds = [...new Set([...layoutRows.kits.flatMap(row => row.geo === null ? [] : [row.geo]), ...layoutRows.alphaKits.map(row => row.geo), ...layoutRows.shell === null ? [] : [layoutRows.shell]])];
+const layoutIds = [...new Set([...layoutRows.kits.flatMap(row => row.geo === null ? [] : [row.geo]), ...layoutRows.alphaKits.map(row => row.geo), ...layoutRows.groundKits.map(row => row.geo), ...layoutRows.shell === null ? [] : [layoutRows.shell]])];
 for (const id of layoutIds) alias(`layout-${id}`, `layout_${id}`);
 for (const row of explorer.sources) if (!('resident' in row) || !row.resident.startsWith('lion')) alias(row.id, 'resident' in row ? row.resident : row.key, 'transform' in row ? row.transform : undefined);
 const draw = (id: string, model: string, material: string, renderOrder?: number): Draw => {
@@ -222,10 +223,11 @@ const CARD_BLOBS = [...cardFiles].map(([text, file]) => {
 const portalLook = portalLookRows();
 const NINE_SCENE_BLOBS: NamedBlob[] = [...castBlobs(), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
   nameBlob('world/scenes/cards.json', 'json', json(empty)), ...SHAPE_BLOBS, ...cardBuffers.values(), ...CARD_BLOBS];
+const KIT_GRAPHS = { ...architectureGraphs(), [GROUND_LOOK]: groundGraph() };
 // the painted surfaces' texture array (data/paint.json), the canopy's leaf atlas and the scroll screen, lent to their looks
-const painted = Object.entries(architectureGraphs()).flatMap(([id, graph]) => graph.params !== undefined && 'uPaint' in graph.params ? [id] : []);
+const painted = Object.entries(KIT_GRAPHS).flatMap(([id, graph]) => graph.params !== undefined && 'uPaint' in graph.params ? [id] : []);
 // the light pools' two baked volumes (generators/lightVolumes.ts) per tier and deck ending, lent to every look that reads them
-const lit = Object.entries(architectureGraphs()).flatMap(([id, graph]) => graph.params !== undefined && 'uLpVolA' in graph.params ? [id] : []);
+const lit = Object.entries(KIT_GRAPHS).flatMap(([id, graph]) => graph.params !== undefined && 'uLpVolA' in graph.params ? [id] : []);
 const volumeOf = (caps: 'capped' | 'open', tier: 'phone' | 'desktop', index: number) => {
   const row = lightVolumeRows(layout, signs.atlas)[`${tier}-${caps}-${index}`]; if (row === undefined) throw new Error(`Nine has no light volume ${tier}-${caps}-${index}`);
   return { file: row.file, size: [...row.size], min: [...row.min], inv: [...row.inv], maximum: row.maximum };
@@ -235,7 +237,7 @@ const VOLUMES = (['A', 'B'] as const).map((suffix, index) => ({ kind: 'volume', 
   files: { standalone: { phone: volumeOf('capped', 'phone', index), desktop: volumeOf('capped', 'desktop', index) }, cell: { phone: volumeOf('open', 'phone', index), desktop: volumeOf('open', 'desktop', index) } } }));
 // the silk weave (looks/silk-weave.r8, 256 x 256 r8): lent to the looks that weave it (and as the painted sky's silk) and
 // published for the shared set
-const woven = Object.entries(architectureGraphs()).flatMap(([id, graph]) => graph.params !== undefined && 'uSilk' in graph.params ? [id] : []);
+const woven = Object.entries(KIT_GRAPHS).flatMap(([id, graph]) => graph.params !== undefined && 'uSilk' in graph.params ? [id] : []);
 const SILK = { kind: 'raster', file: 'looks/silk-weave.r8', size: [256, 256], format: 'r8', wrap: 'repeat', magnify: 'nearest', mipmaps: true, label: 'Nine Dragon silk weave' } as const;
 const lent = [...signTextures, ...VOLUMES, { ...SILK, looks: woven, param: 'uSilk', publish: 'nine.silk' }, { ...SILK, looks: ['nine-sky'], param: 'silk' }, { kind: 'layers', looks: painted, param: 'uPaint', base: '/assets/nine-dragon/paint', label: 'Nine Dragon paint array (GPU only)', size: paint.sizes, anisotropy: 8, layers: paint.layers.map(({ name, alpha }) => ({ name, alpha })) },
   { kind: 'image', looks: ['nine-canopy-cards'], param: 'atlas', sizeParam: 'atlasSize', ...canopy.atlas },
@@ -389,6 +391,10 @@ const FABRIC = parseWorldSceneWeld({ id: 'fabric', root: 'dressing.root', resour
   { id: 'fabric.root', parent: 'dressing.root', name: 'fabric', kind: 'group' },
   ...projection.kits.flatMap(([name, geo]) => geo === null ? [] : [kitNode(`fabric.kit.${name}`, 'fabric.root', `kit:${name}`, geo, 'kit', farOf.get(name))]),
   ...projection.alphaKits.map(([name, geo]) => kitNode(`fabric.kit.${name}`, 'fabric.root', `kit:${name}`, geo, 'kit-cut', farOf.get(name))),
+  // G5: each kit's flagstones, drawn by the kind-3 program as a child of their kit (its cull and band hold them too)
+  ...projection.groundKits.map(([name, geo]) => projection.kits.some(([kit, at]) => kit === name && at !== null)
+    ? kitNode(`fabric.kit.${name}.ground`, `fabric.kit.${name}`, `kit:${name}:ground`, geo, 'kit-ground')
+    : kitNode(`fabric.kit.${name}.ground`, 'fabric.root', `kit:${name}:ground`, geo, 'kit-ground', farOf.get(name))),
   ...shell === null ? [] : [{ id: 'fabric.facade', parent: 'fabric.root', name: 'facade', kind: 'group' }, kitNode('fabric.shell', 'fabric.facade', 'facade-shell', shell, 'facade')],
 ], culls: farKits.length === 0 ? [] : [{ roots: farKits.map(row => row.id), origins: farKits.flatMap(row => row.at), units: [], details: [], hosted: [] }],
 sets: [...market.length === 0 ? [] : [{ id: 'nine-dragon-stack/night-market', name: 'Lantern Square night market', file: 'src/shards/nine-dragon-stack/generators/stalls.ts', place: 'nine-dragon-stack/night-market', members: market }],
