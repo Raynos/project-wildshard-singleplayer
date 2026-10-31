@@ -120,3 +120,20 @@ test('three-world software reports print actual paired numbers and never claim o
   if (absent === undefined) throw new Error('Missing incomplete row');
   expect(frameFloorDrawConsole(absent.shard, absent.pose, absent.frames, absent.budget, renderer)).toContain('n/a max draws; n/a max us/draw; paired samples 0/2 draws, 0/2 CPU');
 });
+
+
+test('shard mean pools raw paired draws across poses instead of averaging pose means', () => {
+  const input = record(), first = input.results[0]?.rows[0];
+  if (first === undefined) throw new Error('Missing fixture shard');
+  first.rows = [{ pose: { name: 'one' }, frames: 1, drawSamples: [{ draws: 100, renderMs: 1 }] },
+    { pose: { name: 'two' }, frames: 2, drawSamples: [{ draws: 10, renderMs: .3 }, { draws: 20, renderMs: .1 }] }];
+  const report = frameFloorDrawReport(input);
+  expect(report.shards[0]?.meanRenderCpuUsPerDraw).toBeCloseTo(1400 / 130);
+  expect(report.poses[1]?.budget.meanRenderCpuUsPerDraw).toBeCloseTo(400 / 30);
+  expect(report.shards[0]?.maxRenderCpuUsPerDraw).toBe(30);
+  expect(frameFloorDrawMarkdown(report)).toContain('Mean us/draw');
+  const reading = input.results[0];
+  if (reading === undefined) throw new Error('Missing fixture reading');
+  reading.rows = [...reading.rows, first];
+  expect(frameFloorDrawReport(input).shards[0]).toMatchObject({ status: 'INCOMPLETE', meanRenderCpuUsPerDraw: null });
+});

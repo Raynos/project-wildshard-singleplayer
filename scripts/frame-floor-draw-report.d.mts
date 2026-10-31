@@ -22,7 +22,7 @@ export interface FloorDrawShard {
   viewport: number[] | null; canvas: number[] | null;
   surface: string; shard: string; bootCpuRate: number; measuredCpuRate: number | null; poses: number; samples: number; frames: number;
   validDrawSamples: number; validCpuSamples: number; status: DrawReportStatus;
-  maxDraws: number | null; maxRenderCpuUsPerDraw: number | null;
+  maxDraws: number | null; maxRenderCpuUsPerDraw: number | null; meanRenderCpuUsPerDraw: number | null;
 }
 export interface FloorDrawReport {
   officialTimingCredit: false;

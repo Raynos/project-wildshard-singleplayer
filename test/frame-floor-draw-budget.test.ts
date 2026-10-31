@@ -96,3 +96,21 @@ test('report-only protocol is explicit, wrapper-free 4x and cannot silently repl
     args.map(value => value === '--chromium-cpu=4' ? '--chromium-cpu=1' : value), args.filter(value => value !== '--chromium-phone')])
     expect(() => validateFrameFloorArgs(bad)).toThrow();
 });
+
+
+test('pooled mean uses every paired draw without weakening the worst-frame gate', () => {
+  const samples = [{ draws: 150, renderMs: 1 }, { draws: 1, renderMs: .04 }];
+  const result = assessDrawBudget(samples, 2, phone4);
+  expect(result.meanRenderCpuUsPerDraw).toBeCloseTo(1040 / 151);
+  expect(result.meanRenderCpuUsPerDraw).not.toBeCloseTo((1000 / 150 + 40) / 2);
+  expect(result).toMatchObject({ maxRenderCpuUsPerDraw: 40, cpuPass: false, pass: false });
+});
+
+test('missing or invalid paired coverage earns no mean and no clock extrapolation', () => {
+  for (const samples of [undefined, [], [{ draws: 1, renderMs: 1 }], [{ draws: 0, renderMs: 0 }, { draws: 10, renderMs: 1 }],
+    [{ draws: 10, renderMs: Infinity }, { draws: 10, renderMs: 1 }]]) {
+    expect(assessDrawBudget(samples, 2, phone4).meanRenderCpuUsPerDraw).toBeNull();
+  }
+  const unscaled = assessDrawBudget([{ draws: 100, renderMs: 1 }], 1, { tier: 'phone', cpuRate: 1 });
+  expect(unscaled).toMatchObject({ meanRenderCpuUsPerDraw: 10, cpuApplied: false, cpuPass: null });
+});
