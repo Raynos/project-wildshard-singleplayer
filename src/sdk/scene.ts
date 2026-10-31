@@ -111,12 +111,22 @@ export interface SceneDescription {
 function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
 function isSkin(object: Object3D): object is SkinnedMesh { return object instanceof SkinnedMesh; }
 function isBone(object: Object3D): object is Bone { return object instanceof Bone; }
+/** Preserve each scalar read and native ToLength behavior while avoiding a
+ * generic Array.from callback for ordinary bounded array lengths. */
+function copyGeometryArray(length: number, read: (index: number) => number): number[] {
+    if (!Number.isSafeInteger(length) || length < 0 || length >= 2 ** 32)
+        return Array.from({ length }, (_, index) => read(index));
+    const values: number[] = [];
+    values.length = length;
+    for (let index = 0; index < length; index++) values[index] = read(index);
+    return values;
+}
 function geometryData(geometry: BufferGeometry): SceneGeometry {
     const attributes: Record<string, SceneAttribute> = {};
     for (const name of Object.keys(geometry.attributes).sort()) {
         const attribute = geometry.getAttribute(name);
         // Preserve integer storage, including normalized weights; component getters decode those integers.
-        const array = Array.from({ length: attribute.count * attribute.itemSize }, (_, i) => attribute instanceof InterleavedBufferAttribute
+        const array = copyGeometryArray(attribute.count * attribute.itemSize, i => attribute instanceof InterleavedBufferAttribute
             ? attribute.data.array[Math.floor(i / attribute.itemSize) * attribute.data.stride + attribute.offset + i % attribute.itemSize] ?? Number.NaN
             : attribute.array[i] ?? Number.NaN);
         if (!array.every(Number.isFinite))
@@ -126,7 +136,7 @@ function geometryData(geometry: BufferGeometry): SceneGeometry {
     if (Object.keys(geometry.morphAttributes).length > 0)
         throw new Error('Scene reader does not yet compile morph targets');
     const index = geometry.getIndex();
-    return { attributes, index: index === null ? null : Array.from({ length: index.count }, (_, i) => index.getX(i)), groups: geometry.groups.map(group => ({ start: group.start, count: group.count, ...(group.materialIndex === undefined ? {} : { materialIndex: group.materialIndex }) })), drawRange: { start: geometry.drawRange.start, count: geometry.drawRange.count === Infinity ? null : geometry.drawRange.count } };
+    return { attributes, index: index === null ? null : copyGeometryArray(index.count, i => index.getX(i)), groups: geometry.groups.map(group => ({ start: group.start, count: group.count, ...(group.materialIndex === undefined ? {} : { materialIndex: group.materialIndex }) })), drawRange: { start: geometry.drawRange.start, count: geometry.drawRange.count === Infinity ? null : geometry.drawRange.count } };
 }
 function materialData(material: Material): SceneMaterial {
     if (material instanceof ShaderMaterial || material.onBeforeCompile !== Material.prototype.onBeforeCompile)
