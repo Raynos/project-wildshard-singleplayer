@@ -113,8 +113,26 @@ def readiness_page(deadline, started=None):
                 ready.set()
                 print(f'sim-lane: Safari owned frame callback received in {time.monotonic() - started:.3f}s', file=sys.stderr)
 
+    class ReadinessServer(ThreadingTCPServer):
+        def handle_error(self, request, client_address):
+            # socketserver's default logger imports traceback after printing
+            # its heading. Keep the actual exception/phase in one flushed
+            # record, without importing or reading source on this cold path.
+            _, error, trace = sys.exc_info()
+            frames = []
+            for _ in range(8):
+                if trace is None:
+                    break
+                code = trace.tb_frame.f_code
+                frames.append({'file': code.co_filename, 'function': code.co_name, 'line': trace.tb_lineno})
+                trace = trace.tb_next
+            evidence = {'elapsedSeconds': time.monotonic() - started,
+                        'documentRequested': requested.is_set(), 'ownedFrames': ready.is_set(),
+                        'errorType': type(error).__name__, 'message': str(error)[:512], 'frames': frames}
+            print('sim-lane: Safari readiness handler error ' + json.dumps(evidence), file=sys.stderr, flush=True)
+
     # TCPServer binds the fixed loopback address without reverse-DNS work.
-    with ThreadingTCPServer(('127.0.0.1', 0), Handler) as server:
+    with ReadinessServer(('127.0.0.1', 0), Handler) as server:
         server.daemon_threads = True
         thread = threading.Thread(target=lambda: server.serve_forever(poll_interval=.02), daemon=True)
         thread.start()
