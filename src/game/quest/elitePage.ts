@@ -33,10 +33,13 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
   const puffs = new DomePuffs(game.scene, new THREE.Color(...view.puffColor), view.puffPool.capacity, view.puffPool.segments, view.puffPool.order), color = new THREE.Color(...view.tellColor);
   const controllers = rows.fights.map(row => new EliteDecisions(row, SpawnScript.page(animals, row.program, game.app.physics), rows, seed));
   const point = new THREE.Vector3(), direction = new THREE.Vector3(), tells = new Map<string, GroundTell>();
+  // PF5: a body is checked against the roster once a frame (the rules, the bar and the page read it several times a frame)
+  const checked = new WeakMap<object, { frame: number; real: Animal }>();
   const bodyFor = (controller: EliteDecisions): Animal | null => {
     const body = controller.animal; if (body === null) return null;
-    // PF5: a plain identity loop, no closure a read (several reads a frame per elite)
-    for (const real of animals.animals) if (real === body) return real;
+    const known = checked.get(body), frame = game.frameCount;
+    if (known !== undefined && known.frame === frame) return known.real;
+    for (const real of animals.animals) if (real === body) { if (known === undefined) checked.set(body, { frame, real }); else { known.frame = frame; known.real = real; } return real; }
     throw new Error('Foreign elite page body');
   };
   for (const controller of controllers) {

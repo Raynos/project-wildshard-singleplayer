@@ -211,10 +211,15 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
 
   /** the fog wall, the puffs, the ribcage's opening and the fight's light, every frame (I–II: the ribcage's amber on the
    *  stones; III: your lantern) */
+  // PF5: the wall's look params are written when they change (outside a fight, never: every frame wrote the same values)
+  let wallSeal = Number.NaN; const wallFog = new THREE.Color(-1, -1, -1);
   function room(dt: number, t: number): void {
     const seal = rows.wall.seal * fight.sealK, fog = scene.fog;
-    setLentParam(rows.wall.look, rows.wall.alpha, seal); wall.visible = seal > rows.wall.visible;
-    if (fog instanceof THREE.Fog) setLentParam(rows.wall.look, rows.wall.colour, _col.copy(fog.color).multiplyScalar(rows.wall.colourGain).toArray(_fog));
+    if (seal !== wallSeal) { wallSeal = seal; setLentParam(rows.wall.look, rows.wall.alpha, seal); }
+    wall.visible = seal > rows.wall.visible;
+    if (fog instanceof THREE.Fog && !fog.color.equals(wallFog)) {
+      wallFog.copy(fog.color); setLentParam(rows.wall.look, rows.wall.colour, _col.copy(fog.color).multiplyScalar(rows.wall.colourGain).toArray(_fog));
+    }
     puffs.update(dt, t);
     if (fight.body === null || look === null) return;
     look.setOpen(Math.max(fight.open, 0.35 * fight.darkK), t);

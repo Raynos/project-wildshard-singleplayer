@@ -93,6 +93,8 @@ export class SpawnScript {
   private readonly fields = new Map<string, number>();
   /** PF5: each (actor, field)'s key in `fields`, made once: a guest read builds no string */
   private readonly fieldKeys = new Map<number, string>();
+  /** PF5: each moving actor's site (static rows), found once instead of per fixed step */
+  private readonly motionSites = new Map<number, SpawnScriptRows['sites'][number] | undefined>();
   private readonly channels = new Map<number, number>();
   private readonly motions = new Map<number, Motion>();
   private readonly contract: string;
@@ -499,7 +501,8 @@ export class SpawnScript {
       }
       for (const [handle, motion] of this.motions) {
         const body = this.actor(handle); if (body === undefined || !body.alive) { this.motions.delete(handle); continue; }
-        const site = this.rows.sites.find(row => this.rows.slots.find(slot => slot.id === row.slot)?.handle === handle);
+        let site = this.motionSites.get(handle);
+        if (site === undefined && !this.motionSites.has(handle)) { site = this.rows.sites.find(row => this.rows.slots.find(slot => slot.id === row.slot)?.handle === handle); this.motionSites.set(handle, site); }
         const face = site?.face;
         const target = motion.target !== 0 ? this.position(motion.target) : face === undefined || face === 'player' ? this.point : { x: face[0], y: body.position.y, z: face[1] };
         const move = value(this.rows.moves[motion.id - 1], 'owned motion');
