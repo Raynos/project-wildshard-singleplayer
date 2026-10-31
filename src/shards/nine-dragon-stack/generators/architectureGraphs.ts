@@ -125,8 +125,10 @@ function facade(small: boolean): GraphIr {
   for (const [distance, footprint, bit] of [[x, fx, 1], [sub(w, x), fx, 2], [y, fy, 4], [sub(h, y), fy, 8]] as const) lines = max(lines, mul(g.bit(flags, bit), g.line(distance, footprint, lw)));
   const rule = (value: Ref, pitch: Ref, footprint: Ref, scale: number): string => g.rule(value, pitch, footprint, mul(width, scale));
   const line = (distance: Ref, footprint: Ref, scale: number): string => g.line(distance, footprint, mul(width, scale));
-  let colour: Ref = base, emit: Ref = mul(g.colour, sw(misc, 'x'));
-  const use = (k: number, col: Ref, ink: Ref, em?: Ref): void => { const on = g.eq(kind, k); colour = g.choose(on, col, colour); lines = g.choose(on, max(lines, ink), lines); if (em !== undefined) emit = g.choose(on, em, emit); };
+  // The flat pattern kind selects colour and ink together: separate readers
+  // otherwise hoist their shared paint outside both branches (G3).
+  let painted: Ref = g.vec(base, 0), emit: Ref = mul(g.colour, sw(misc, 'x'));
+  const use = (k: number, col: Ref, ink: Ref, em?: Ref): void => { const on = g.eq(kind, k); painted = g.choose(on, g.vec(col, ink), painted); if (em !== undefined) emit = g.choose(on, em, emit); };
   const worldX = add(sw(g.world, 'x'), sw(g.world, 'z')), finish = g.floor(add(mul(sw(pat, 'z'), 0.5), 1e-3));
   const weather = add(add(0.93, mul(g.noise(g.vec(mul(worldX, 0.45), mul(sw(g.world, 'y'), 0.3))), 0.1)), mul(g.noise(g.vec(mul(worldX, 1.7), mul(sw(g.world, 'y'), 1.3))), 0.04));
   const runs = mul(g.smooth(0.5, 0.85, g.noise(g.vec(mul(worldX, 6.5), 0.5))), g.noise(g.vec(add(mul(worldX, 1.3), 9), g.floor(g.div(sw(g.world, 'y'), 3)))));
@@ -213,6 +215,8 @@ function facade(small: boolean): GraphIr {
   const farLight = mul(mul(mul(mul(win, lit), sub(1, mul(rail, 0.6))), sub(1, eave)), sub(1, pSign));
   use(11, mix(mix(farBase, dark, 0.3), cellC, farDetail), mul(rule(y, sw(pat, 'y'), fy, 1), 0.8),
     add(mul([1, 0.7, 0.38], mul(mix(0.135, farLight, farDetail), 1.15)), mul(neonC, mul(mul(pSign, farDetail), 1.6))));
+  let colour: Ref = sw(painted, 'xyz');
+  lines = max(lines, sw(painted, 'w'));
   const concrete = g.op('and', [g.op('and', [g.op('not', [g.eq(kind, 2)]), g.op('not', [g.eq(kind, 3)])]), g.op('and', [g.op('and', [g.op('not', [g.eq(kind, 4)]), g.op('not', [g.eq(kind, 5)])]), g.op('and', [g.op('not', [g.eq(kind, 9)]), g.op('not', [g.eq(kind, 12)])])])]);
   const paintQ = g.choose(g.gt(g.abs(sw(g.normal, 'y')), 0.6), sw(g.world, 'xz'), g.vec(worldX, sw(g.world, 'y')));
   colour = g.choose(concrete, mul(colour, g.paint(paintQ, 4, 6, mul(mul(sw(g.u('uPaintK'), 'x'), sw(g.u('uPaintK'), 'z')), sw(g.u('uPaintStone'), 'z')))), colour);
