@@ -362,6 +362,50 @@ qualified; no source optimization, skipped check, cache change or cap
 change ships from either rejected trial. Current evidence:
 `tmp/sp-x8-ci9-reuse-profile/reuse/{reading,ranked}.json`.
 
+### CI10 warm Home / Road regression (2026-10-31, sp-x8)
+
+**Open; Road first-bad identified, neither regression closed.** Original
+phone preset: Chromium iPhone 16 Pro, 10x page CPU, 10 Mbps down /2 Mbps
+up, 100 ms latency, grid entry, 3 s title dwell and 4 s post-control dwell.
+Each revision owns one normal immutable preview, stopped after its pair.
+
+| Revision | Warm total (ms) | Home (ms) | Road system (ms) |
+|---|---:|---:|---:|
+| `afe90e0` | 26,638.9 | 13,654.2 | 15.9 |
+| `61f0961dc4` | 33,772.9 | 18,922.0 | 17.6 |
+| `153a2cf63f` | 39,666.1 | 21,006.4 | 4,485.5 |
+| `0f1906e` | 35,075.1 | 16,809.5 | 5,229.9 |
+| Forward candidate `d3538ff0c6` | 30,604.0 | 11,473.5 | 7,257.2 |
+
+The adjacent parent/child identifies `153a2cf63f`, the selected-road-tiles
+default change, as Road's first bad commit. Keep that default (G674).
+Home is already slow in its parent: continue `afe90e0..61f0961dc4` over
+48 relevant runtime commits, next midpoint `a05007be26`. No Home first-bad
+claim from source inspection.
+
+Capture serially waits for each tile's durable archive operation.
+`d3538ff0c6` retains current geometry encoding and full SHA; an existing
+body avoids a redundant write only after its entire SHA matches. Every
+miss, corrupt/truncated body and optional-read failure retains the original
+write/refusal. Retirement fences late writes and releases its pin once.
+All 16 cases/four suites, root types and typed lint pass. **The candidate
+does not meet the tens-of-ms Road target.** Road overlaps Home; the row
+redistribution proves neither an isolated saving nor the remaining cause.
+A warm CPU/cache-operation diagnostic is prepared, no further cut inferred.
+
+All warm native unpaused control witnesses and request accounting qualify.
+Original static-preview telemetry HTTP405 errors remain; CLI exit1 is
+retained, not a blanket benchmark pass. Candidate cold additionally retains
+its navigated-away-body accounting refusal. No fixture/filter/cap change.
+Evidence: `tmp/sp-x8-warm-regression/*-local-summary.json`, their raw JSON
+paths and `home-interval.json`.
+
+Earlier HEAD 6x CI10 proxy `47392c5322` is **before only**: Home8424.8 ms,
+scenes library1051.4 ms, product.read879.5 ms. Library/read are disjoint;
+nested assembly/yield envelopes overlap and cannot be added. Resume that
+same-HEAD exact-cut pair after the urgent warm regression.
+
+
 ### CI9 Nalati uncached author (2026-10-31, sp-x8 hourly batch)
 
 `c7922b4c42` indexes the original grass-coverage neighbourhood without
