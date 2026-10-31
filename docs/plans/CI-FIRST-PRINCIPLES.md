@@ -322,6 +322,13 @@ lookup/storage decisions and five Float32/64, refusal, signed-zero,
 collision/fallback and JavaScript-coercion cases pass, with root types
 and typed lint. This is a component gain; whole-author/Linux impact
 remains unmeasured.
+The tuple-bucket A/B is already the `add()` cut in `50b426db88`, not
+the earlier channel-copy cut. It pays only when a changed product invokes
+its author: the ordinary `60e` prepare reuses all **24 products** and
+authors none cold. Its **14.8 s Nalati / 12.3 s Nine / 12.2 s Pine** reuse
+validation walls are not author CPU. That run invokes none of the nested
+AS/Zstd/generation caches, so no reused-prepare gain is assigned to these
+author cuts. Retained evidence: `tmp/sp-x6-ci9-60e-end-to-end/`.
 The complete local counter report records **30 AS disk hits / 650,174
 payload bytes**, **30 Zstd disk hits / 29,876,317 bytes**, and **32 generation
 misses/populations / 96,647,273 bytes computed**, plus **15 memory hits /
