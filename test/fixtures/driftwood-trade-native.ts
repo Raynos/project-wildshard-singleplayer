@@ -1,3 +1,4 @@
+import {retainRestoredWalkBodies} from './headless/ropeBodies';
 import { prepareNativeCoinRecipe } from './native-coin-recipe';
 import * as v from 'valibot';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
@@ -16,6 +17,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async preparation 
     await preparation.product.json('quests/stall.json'));
   return { ...plan, install: (host, context) => {
     plan.install(host, context);
+    if(context.restoring)retainRestoredWalkBodies(host);
     installCoinModel(coinGeometry);
     const population = mixedPopulation(host, payload.constants.nativeQuest.acquisition.population);
     installNativeEconomy(host, preparation.product, population.bodies, payload.constants.nativeQuest.step, trader.view.closeDistance);
