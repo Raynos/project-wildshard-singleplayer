@@ -69,6 +69,7 @@ try {
     assert.deepEqual(omitSaved(negativeEconomy.state),omitSaved(positiveEconomy.state));
     assert.equal(bad.purse.coins,good.purse.coins+(good.owned.owned.includes('cape')?price:0));
     assert.equal(bad.durable,good.durable+(good.owned.owned.includes('cape')?price:0));
+    trace(`checked-${segment.id}`);
   });stopReplay=pipeline.stop;
   const flush=async(id:string)=>{
     if(frames.length===0)return;
@@ -121,4 +122,4 @@ try {
   for(const reply of replies){if(reply.status==='rejected')throw reply.reason;assert.deepEqual(reply.value.report.observations,[suffixWanted]);const {physics,...actual}=decodeSimSnapshot(reply.value.commit.snapshot),{physics:expectedPhysics,...expected}=wanted;assert.deepEqual(actual,expected);comparePhysics(physics,expectedPhysics);}
   assert.equal(restored.quarantined,false);trace('fresh-purchased-suffix');
   console.info(JSON.stringify({restoredSuffix:suffixTicks,price,earned:before,spent:price,story:'driftwood-trade',ticks,commands:commandsCount,parts:parts.length,coins:economy.purse().coins,owned:economy.owned().all,omitted,identicalPhysics,canonicalPhysics,milliseconds:performance.now()-started}));
-} finally {await stopReplay?.();releaseRopes();resident?.dispose();await Promise.all([session.ready().then(sim=>sim.dispose()),negativeSession?.ready().then(sim=>sim.dispose()),restoredSession?.ready().then(sim=>sim.dispose())]);}
+} finally {trace('dispose-start');await stopReplay?.();releaseRopes();resident?.dispose();await Promise.all([session.ready().then(sim=>sim.dispose()),negativeSession?.ready().then(sim=>sim.dispose()),restoredSession?.ready().then(sim=>sim.dispose())]);trace('disposed');}
