@@ -90,6 +90,16 @@ test('post-generation cache lookup preserves admitted bytes and every legacy res
   expect(save).toContain(`key: \${{ steps.preparation-save.outputs.key }}`);
   expect(restore).toContain(`preparation-v4-\${{ runner.os }}-\${{ runner.arch }}-node24-`);
   expect(restore).toContain(`preparation-v3-\${{ runner.os }}-\${{ runner.arch }}-node24-`);
+  // Fixtures run beside prepare, so their read-only restore must find the
+  // same admitted cache families rather than silently rebuilding from cold.
+  const fixtures = workflow.split('\n  fixtures:\n')[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0];
+  const fixtureRestore = fixtures?.split('      - uses: actions/cache/restore@v4\n')[1]?.split('\n      - ')[0];
+  const prefixes = (step: string | undefined): string[] | undefined => /^ {10}restore-keys: \|\n((?: {12}[^\n]+(?:\n|$))+)/mu.exec(step ?? '')?.[1]
+    ?.trim().split('\n').map(key => key.trim());
+  expect(paths(fixtureRestore)).toEqual(paths(restore));
+  expect(prefixes(restore)).toBeDefined();
+  expect(prefixes(fixtureRestore)).toEqual(prefixes(restore));
+  expect(fixtures).not.toContain('uses: actions/cache@v4');
   const binding = prepare.split('      - name: Bind preparation save to admitted inputs\n')[1]?.split('\n      - ')[0];
   expect(binding).toContain('id: preparation-save');
   expect(binding).toContain(`WS_PREPARATION_PRUNE_STATUS: \${{ steps.generation-cache.outputs.status }}`);

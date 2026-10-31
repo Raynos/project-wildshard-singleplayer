@@ -1750,3 +1750,72 @@ the existing action path, not a debf after-figure.
 Raw and bounded audit:
 `tmp/sp-x6-ci9-all4-after/prepare-124610228528.log` and
 `1dae-audit.json`. No cloud speedup is inferred from this changed payload.
+
+## CI9: restore current preparation caches in fixtures
+
+**2026-10-31, sp-x6/x2.** Exact source `82b90bae0529700c6b71c29447850dbe21b229d5`
+/ run `41222236176` has an **807 s** post-prepare required wave. Prepare
+finishes **17:10:34Z**; fixtures finishes **17:15:26**, a **292 s**
+barrier before behaviour jobs are created. B22 `124603137096` then
+waits **185 s**, starts **17:18:31**, spends **142 s** setting up,
+**175 s** in its Vitest step and **13 s** publishing/finishing. Its
+actual runner reports **100 files /445 cases PASS**, Duration 171.96 s.
+
+The two exact completed job logs were read once: B22 above and fixtures
+`124599036248`. No artifact, dispatch, rerun or status watch was added.
+They are retained under `tmp/sp-x6-ci9-wave/`.
+
+### Fixture dependency and the safe cut
+
+Fixture snapshots are **optional acceleration**, not test authority:
+missing files run the normal computation, while wrong-commit or invalid
+snapshots refuse. The existing SHA/run and complete generated-tree
+comparison remain. B22 does benefit from snapshots: its
+`pine-product-reads.test.ts` calls `readPineProject`, which uses the
+`pine-project` snapshot. Its log confirms the complete fixture manifest
+matched and the `.v8` files were available. Removing the barrier could
+therefore repeat expensive work across isolated test files; this change
+keeps the dependency and all 24 shards /two workers unchanged.
+
+The fixture job's read-only cache restore searched **only v3**, while
+prepare saves qualified entries under **v4**. On this exact source,
+fixtures logs a v3 miss, **builds all 24 products** and spends **389 s**
+in `gen --reuse`. Prepare restores v4 `4d6a48eb…cdcae2`, **reuses all 24**
+and spends **59 s** in the same generation step. Fixtures then spends
+**188 s** writing/packing its snapshots (11 writer cases, Vitest
+183.99 s), and uploads **269,299,171 B** in about 4 s. The archive holds
+about **1016 MiB** before compression /257 MiB after compression.
+
+**Landed change:** fixture restore now tries the same **v4 prefix before
+legacy v3** as prepare. All five paths, v3 exact key, read-only ownership,
+generation input validation, complete-tree match, snapshot clone checks,
+fallback computation and strict wrong-source refusals remain. There is
+no new cache or worker, no dropped test, no cap/group/admission change.
+The existing control fails before the fix because the fixture consumer
+cannot find prepare's current prefix; it also checks equal restored path
+families and absence of a fixture cache save.
+
+The **330 s** generation difference is an observed same-source cache
+state difference, not a measured isolated after-gain. Cloud after-seconds
+belong to the next ordinary containing run; none is dispatched here.
+
+### B22 setup and admission
+
+The **142 s** setup is: job start 4, checkout 46, pnpm setup 1, Node/store
+setup 8, install 3, Basis restore 3, transform restore 4, native witness
+restore 1, prepared-products download 46, strict unpack 6, plan download
+1, fixture download 16 and fixture extraction/tree check 3 seconds.
+The large prepared artifact is **567,835,656 B**; fixture artifact is
+**269,299,171 B**. B22 does **not** repeat generation, Vite, packaging,
+typecheck or prepare's source/host validation. Independent runner setup
+and strict restoration are still needed; no setup guard is removed.
+
+The **185 s** occurs after job creation and before any runner step.
+There is no extra behaviour concurrency group or explicit matrix cap.
+Retained account work is active during the wait: 20 known jobs for 58 s,
+19 for 120 s, 18 for 4 s and early dispatch handoffs below that for 3 s.
+The next source's prepare/fixtures/phone work overlaps this source's
+native/SIX and behaviour jobs. This supports runner admission contention,
+not executing cache work or a hidden needs edge; it is not an exhaustive
+account-quota measurement. The five-leg cap model remains closed as no
+robust win. No cap model is extended or production group weakened.

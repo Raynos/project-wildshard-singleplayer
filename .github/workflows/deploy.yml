@@ -873,7 +873,9 @@ jobs:
             ~/.cache/wildshard/shardfiles
             ~/.cache/wildshard/basis
           key: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
-          restore-keys: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-
+          restore-keys: |
+            preparation-v4-${{ runner.os }}-${{ runner.arch }}-node24-
+            preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-
       - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --reuse
         if: steps.admission.outputs.run == 'true'
       - name: Write exact-run fixture snapshots
