@@ -9,25 +9,28 @@ import {prepareHeadlessRuntime} from '../nalati-chapter-native';
 import {loadRapier} from '../../../src/engine/physics/rapier';
 import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
 import {parseCarriedQuest} from '../../../src/format/questSteps';
+import {parseHeldSlots} from '../../../src/format/heldArms';
+import {HeldBowFileSchema} from '../../../src/format/weaponProfiles';
+import {heldBowBase} from '../../../src/game/weapons/heldBowBase';
 import {decodeSimSnapshot,snapshotSimHostBytes,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
 import {physicsState,sameBytes} from '../../fake/simState';
 import {chapterCampInputs,chapterApproachInputs,chapterBondInputs,chapterGoatInputs,chapterReturnInputs,chapterHomeInputs} from '../../proof/nalati-grasslands/chapterOne';
-import {chapterCarvingRoadInputs,chapterCarvingArrivalInputs} from '../../proof/nalati-grasslands/chapterTwo';
+import {chapterCarvingRoadInputs,chapterCarvingArrivalInputs,chapterCarvingInputs} from '../../proof/nalati-grasslands/chapterTwo';
 import {checkedReplayPipeline} from './checkedReplayPipeline';
 import {ChapterHandoffSchema,chapterObserved,chapterTwoObserved,chapterWire,chapterRead,chapterWireHash,chapterSnapshotDigest,
   chapterInputHash,checkChapterLedger,type ChapterPart,type ChapterHandoff} from './chapterHandoff';
 import type {HeadlessCommand,HeadlessEffect,HeadlessTickCommit} from '../../../src/sdk/tickProtocol';
 import type {HeadlessTapeObservation} from '../../../src/sdk/headlessTape';
-
 import {PACKED_CHAPTER_TAMING,unpackChapterTaming} from './chapterObservation';
 
-const [stage,outputPath,inputPath,inputHash]=process.argv.slice(2);assert.ok(stage==='plains'||stage==='approach'||stage==='bond'||stage==='goat'||stage==='return'||stage==='home'||stage==='carving-road'||stage==='carving-arrival');assert.ok(outputPath);
-const observed=stage==='carving-road'||stage==='carving-arrival'?chapterTwoObserved:chapterObserved;
+const [stage,outputPath,inputPath,inputHash]=process.argv.slice(2);assert.ok(stage==='plains'||stage==='approach'||stage==='bond'||stage==='goat'||stage==='return'||stage==='home'||stage==='carving-road'||stage==='carving-arrival'||stage==='carvings');assert.ok(outputPath);
+const observed=stage==='carving-road'||stage==='carving-arrival'||stage==='carvings'?chapterTwoObserved:chapterObserved;
 let inherited:ChapterHandoff|undefined;
 if(stage!=='plains'){
   assert.ok(inputPath);assert.ok(inputHash);assert.ok(statSync(inputPath).size<=32_000_000);
   const wire=readFileSync(inputPath,'utf8');assert.equal(chapterWireHash(wire),inputHash);
-  inherited=v.parse(ChapterHandoffSchema,chapterRead(wire));assert.equal(inherited.stage,stage==='approach'?'plains':stage==='bond'?'approach':stage==='goat'?'bond':stage==='return'?'goat':stage==='home'?'return':stage==='carving-road'?'home':'carving-road');checkChapterLedger(inherited.parts,inherited.tick);
+  inherited=v.parse(ChapterHandoffSchema,chapterRead(wire));assert.equal(inherited.stage,
+    stage==='approach'?'plains':stage==='bond'?'approach':stage==='goat'?'bond':stage==='return'?'goat':stage==='home'?'return':stage==='carving-road'?'home':stage==='carving-arrival'?'carving-road':'carving-arrival');checkChapterLedger(inherited.parts,inherited.tick);
 }
 const started=performance.now(),session=await beginProductSession('nalati-grasslands','nalati-chapter',inherited?.snapshot),{product,assets}=session;
 const descriptor=outputDescriptor(product.shardfile);assert.ok(descriptor?.indexHash);
@@ -77,8 +80,14 @@ try{
   };
   let bondTicks=0;
   if(stage==='bond'){assert.ok(inherited?.bondStart!==undefined);bondTicks=host.state.tick-inherited.bondStart;}
+  const carvingInputs=async():Promise<Generator<readonly HeadlessCommand[]>>=>{
+    const slots=parseHeldSlots(await product.json('held/slots.json')),slot=slots.slots.find(row=>row.kind==='bow');assert.ok(slot);
+    const definition=v.parse(HeldBowFileSchema,await product.json(slot.file));
+    return chapterCarvingInputs(host,slots,heldBowBase({bow:definition.bow,base:definition.base}));
+  };
   const inputs=stage==='plains'?chapterCampInputs(host,product.shardfile.spawn):stage==='approach'?chapterApproachInputs(host):stage==='bond'?chapterBondInputs(host,bondTicks)
-    :stage==='goat'?chapterGoatInputs(host,parseCarriedQuest(await product.json('quests/carried.json'))):stage==='return'?chapterReturnInputs(host):stage==='home'?chapterHomeInputs(host,true):stage==='carving-road'?chapterCarvingRoadInputs(host):chapterCarvingArrivalInputs(host,true);
+    :stage==='goat'?chapterGoatInputs(host,parseCarriedQuest(await product.json('quests/carried.json'))):stage==='return'?chapterReturnInputs(host):stage==='home'?chapterHomeInputs(host,true)
+      :stage==='carving-road'?chapterCarvingRoadInputs(host):stage==='carving-arrival'?chapterCarvingArrivalInputs(host,true):await carvingInputs();
   for(const commands of inputs){
     checked.check();commandsCount+=commands.length;assert.ok(commandsCount<=60_000&&host.state.tick<60_000);
     frames.push(structuredClone([...commands]));active.step(commands);effects.push(...structuredClone(active.effects));
@@ -92,11 +101,12 @@ try{
   assert.equal((await ready).quarantined,false);checkChapterLedger(history,host.state.tick);
   if(inheritedPartsHash!==undefined)assert.equal(chapterWireHash(chapterWire(history.slice(0,inheritedParts))),inheritedPartsHash,
     'the checked prefix retains every original input, observation, effect and native digest');
-  const secondChapter=stage==='carving-road'||stage==='carving-arrival',firstComplete=stage==='home'||secondChapter;
-  assert.equal(host.flags.has('tamed:horse'),stage!=='plains'&&stage!=='approach');assert.equal(host.flags.has('won:kokpar'),stage==='goat'||stage==='return'||firstComplete);
+  const secondChapter=stage==='carving-road'||stage==='carving-arrival'||stage==='carvings',firstComplete=stage==='home'||secondChapter;
+  assert.equal(host.flags.has('tamed:horse'),stage!=='plains'&&stage!=='approach');assert.equal(host.flags.has('won:kokpar'),stage!=='plains'&&stage!=='approach'&&stage!=='bond');
   assert.equal(host.flags.has('told:tulpar'),firstComplete);assert.equal(host.flags.has('quest:tulpar'),firstComplete);
   assert.equal(host.flags.has('talked:elder:2'),secondChapter);
-  for(const flag of ['clue:1','clue:2','clue:3','quest:golden-king','quest:father-wind','entered:kurgan','dead:golden-king','dead:jel-ata'])assert.equal(host.flags.has(flag),false,flag);
+  for(const flag of ['quest:golden-king','quest:father-wind','entered:kurgan','dead:golden-king','dead:jel-ata'])assert.equal(host.flags.has(flag),false,flag);
+  for(const flag of ['clue:1','clue:2','clue:3'])assert.equal(host.flags.has(flag),stage==='carvings',flag);
   const quest=product.shardfile.quests.quests.find(row=>row.id==='tulpar');assert.ok(quest?.onComplete?.fact);
   const fact=quest.onComplete.fact,earned=history.flatMap(part=>part.expected.observations.flatMap(row=>row.effects));
   const completionFacts=earned.filter(effect=>effect.kind==='fact'&&effect.name===fact&&effect.actorId===quest.id).length;

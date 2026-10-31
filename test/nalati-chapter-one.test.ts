@@ -11,10 +11,11 @@ import {chapterWireHash} from './fixtures/headless/chapterHandoff';
 
 mkdirSync(resolve('tmp'),{recursive:true});
 const directory=mkdtempSync(resolve('tmp/nalati-chapter-one-')),plains=resolve(directory,'plains.json'),approach=resolve(directory,'approach.json'),bond=resolve(directory,'bond.json'),goat=resolve(directory,'goat.json'),returning=resolve(directory,'return.json'),home=resolve(directory,'home.json');
-const rim=resolve(directory,'carving-road.json'),arrival=resolve(directory,'carving-arrival.json');
-let plainsHash:string|undefined,approachHash:string|undefined,bondHash:string|undefined,goatHash:string|undefined,returnHash:string|undefined,homeHash:string|undefined,rimHash:string|undefined;
+const rim=resolve(directory,'carving-road.json');
+const arrival=resolve(directory,'carving-arrival.json'),carvings=resolve(directory,'carvings.json');
+let plainsHash:string|undefined,approachHash:string|undefined,bondHash:string|undefined,goatHash:string|undefined,returnHash:string|undefined,homeHash:string|undefined,rimHash:string|undefined,arrivalHash:string|undefined;
 afterAll(()=>{rmSync(directory,{recursive:true});});
-function run(stage:'plains'|'approach'|'bond'|'goat'|'return'|'home'|'carving-road'|'carving-arrival',output:string,input?:string,hash?:string):string {
+function run(stage:'plains'|'approach'|'bond'|'goat'|'return'|'home'|'carving-road'|'carving-arrival'|'carvings',output:string,input?:string,hash?:string):string {
   const started=performance.now();
   const child=spawnSync(process.execPath,['--experimental-transform-types','--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
     resolve('test/fixtures/headless/nalati-chapter-one-run.ts'),stage,output,...(input===undefined?[]:[input]),...(hash===undefined?[]:[hash])],{encoding:'utf8',timeout:150_000});
@@ -67,5 +68,11 @@ test('the earned rim continuation rides to the real balbal field and dismounts',
   expect(rimHash,'the preceding case must earn the real road rim').toBeDefined();
   if(rimHash===undefined)throw new Error('Missing earned graded-road rim');
   expect(chapterWireHash(readFileSync(rim,'utf8'))).toBe(rimHash);
-  run('carving-arrival',arrival,rim,rimHash);
+  arrivalHash=run('carving-arrival',arrival,rim,rimHash);
+},180_000);
+test('three real balbal deaths earn and exactly replay all three chapter carvings',()=>{
+  expect(arrivalHash,'the preceding case must actually arrive at the admitted carving field').toBeDefined();
+  if(arrivalHash===undefined)throw new Error('Missing earned carving-field arrival');
+  expect(chapterWireHash(readFileSync(arrival,'utf8'))).toBe(arrivalHash);
+  run('carvings',carvings,arrival,arrivalHash);
 },180_000);
