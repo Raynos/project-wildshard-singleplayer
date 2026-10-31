@@ -1,4 +1,4 @@
-const switches = new Set(['help', 'worker', 'draw-budget', 'draw-budget-report-only', 'quiet', 'devserver', 'chromium-phone', 'entry-settle', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket', 'wasm-memory-probe', 'pause-ablation', 'buffer-ablation']);
+const switches = new Set(['help', 'worker', 'draw-budget', 'draw-budget-report-only', 'software-draw-census', 'quiet', 'devserver', 'chromium-phone', 'entry-settle', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket', 'wasm-memory-probe', 'pause-ablation', 'buffer-ablation']);
 const values = new Set(['base', 'chromium-cpu', 'chromium-angle', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
   'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile', 'safari-steady', 'safari-drive', 'safari-prefix', 'safari-window',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir',
@@ -41,12 +41,29 @@ export function frameFloorChromiumAngle(args, platform = process.platform) {
   return { angle: selected ?? (platform === 'darwin' ? 'metal' : 'swiftshader'), explicit: selected !== undefined };
 }
 
+/** Bounded software delivery census, never the phone/floor measurement.
+ * @param {readonly string[]} args
+ * @param {string} platform
+ * @returns {{viewport:{width:201,height:437},frames:4,scope:'spawn-only'}|null} */
+export function frameFloorSoftwareCensus(args, platform = process.platform) {
+  if (!args.includes('--software-draw-census')) return null;
+  const backend = frameFloorChromiumAngle(args, platform);
+  if (platform !== 'linux' || backend.angle !== 'swiftshader' || !backend.explicit || !args.includes('--draw-budget-report-only')
+    || args.includes('--draw-budget') || !args.includes('--surface=desktop') || !args.includes('--chromium-phone')
+    || frameFloorChromiumCpuRate(args) !== 4 || args.filter(arg => arg.startsWith('--frames=')).length !== 1 || !args.includes('--frames=4')
+    || args.some(arg => arg.startsWith('--standing-poses=') && arg !== '--standing-poses=' || arg.startsWith('--grid-scenario=') && arg !== '--grid-scenario=baseline'
+      || arg.startsWith('--shards=') && arg.slice(9).split(',').includes('grid')))
+    throw new Error('Software census requires explicit Linux report-only SwiftShader, four spawn-only frames');
+  return {viewport: {width: 201, height: 437}, frames: 4, scope: 'spawn-only'};
+}
+
 /** Refuse misspelled or incomplete floor commands before a build, browser or Simulator lease is acquired.
  * @param {readonly string[]} args
  */
 export function validateFrameFloorArgs(args) {
   frameFloorDrawBudgetMode(args);
   frameFloorChromiumAngle(args);
+  frameFloorSoftwareCensus(args);
   const cpuRate = frameFloorChromiumCpuRate(args);
   if (drawBudgetSelected(args) && (cpuRate !== 4 || !args.includes('--chromium-phone') || !args.includes('--surface=desktop')))
     throw new Error('Draw budget requires phone Chromium at exactly 4x CPU');

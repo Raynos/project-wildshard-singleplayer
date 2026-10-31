@@ -11,6 +11,8 @@
 // --surface=sim --quiet: the official worker holds bounded quiet only while reading, after the build.
 // EP10 CI reporting: --surface=desktop --chromium-phone --chromium-cpu=4 --draw-budget-report-only
 // On Linux add explicit --chromium-angle=swiftshader (report-only, never official floor credit).
+// Bounded Linux delivery: --software-draw-census --frames=4 uses CSS201x437 at 2x,
+// native spawn only, with no phone-budget credit. Full phone/floor rows remain unchanged.
 // --shards=nine-dragon-stack,pine-hollow,driftwood-isle --serve-base=<same-SHA prepare server> --rev=<SHA>
 // keeps existing floor verdicts; budget misses/coverage remain in paired raw rows plus sibling
 // *-draw-budget.json / .md and GITHUB_STEP_SUMMARY. No new blocking CI gate or official floor credit.
@@ -27,7 +29,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { fixtureStorageCode, saveFixtureCode } from './debug-settings.mjs';
 import { frameFloorSettingsCode } from './frame-floor-settings.mjs';
 import { startFloorNative } from './frame-floor-native.mjs';
-import { validateFrameFloorArgs, parseSafariWindow, frameFloorChromiumCpuRate, frameFloorDrawBudgetMode, frameFloorChromiumAngle } from './frame-floor-args.mjs';
+import { validateFrameFloorArgs, parseSafariWindow, frameFloorChromiumCpuRate, frameFloorDrawBudgetMode, frameFloorChromiumAngle, frameFloorSoftwareCensus } from './frame-floor-args.mjs';
 import { frameFloorCpuPhase, assertFrameFloorRenderer } from './frame-floor-report-phase.mjs';
 import { frameFloorShards } from './frame-floor-inventory.mjs';
 import { handoffFloorGridNavigation, FLOOR_GRID_TAP } from './frame-floor-navigation.mjs';
@@ -55,6 +57,7 @@ const ALL = frameFloorShards(ROOT);
 const args = process.argv.slice(2);
 validateFrameFloorArgs(args);
 const drawBudgetMode = frameFloorDrawBudgetMode(args);
+const softwareCensus = frameFloorSoftwareCensus(args);
 const flag = (name, fallback) => args.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const shards = flag('shards', ALL.join(',')).split(',');
 const surface = flag('surface', 'both');
@@ -171,7 +174,7 @@ if (args.includes('--help')) {
   console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--standing-poses=name,...] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--textures=ktx2|img] [--ktx2-probe=skip] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|reentry|outer-road|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket] [--rising-islet=north|east|south|west]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--chromium-phone --chromium-cpu=4 --draw-budget|--draw-budget-report-only --chromium-angle=metal|swiftshader] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--safari-steady=<grid-interior-pose>] [--safari-drive=<grid-route>] [--safari-prefix=<grid-route>] [--safari-window=<route:start:end seconds>] [--gl-time] [--frame-timeline] [--wasm-constructors=<scratch dir>] [--wasm-memory-probe] [--task-clock] [--gpu-bisect] [--scratch-dir=<owned workspace>] [--serve-shard=<slug>] [--serve-base=<served preview url of --rev>]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
-if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
+if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || (softwareCensus === null ? frames < 30 || frames > 600 : frames !== softwareCensus.frames) || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600; software census exactly 4) or settle (1–10 seconds)');
 
 const ERROR_SCRIPT = `window.__frameFloorErrors=[];window.addEventListener('error',e=>window.__frameFloorErrors.push(String(e.message).slice(0,240)));window.addEventListener('unhandledrejection',e=>window.__frameFloorErrors.push(String(e.reason).slice(0,240)));`;
 const CONSOLE_SCRIPT = `window.__frameFloorConsole=[];for(const level of ['log','info','warn','error']){const original=console[level].bind(console);console[level]=(...args)=>{window.__frameFloorConsole.push({level,text:args.map(value=>String(value)).join(' ').slice(0,1000)});if(window.__frameFloorConsole.length>100)window.__frameFloorConsole.shift();original(...args);};}`;
@@ -229,7 +232,7 @@ function assess(result, measuredOn, drawContext) {
   const cpuLimitMs = 1000 / floorFps / 4;
   const cpuPass = result.cpu?.enabled === true && result.cpu.frames === result.frames && result.cpu.owners.length > 0 && result.cpu.owners.every(owner => Number.isFinite(owner.p95Ms) && owner.p95Ms <= cpuLimitMs);
   const valid = result.skipped === 0 && result.contextLost === false;
-  const drawBudget = assessDrawBudget(result.drawSamples, result.frames, context);
+  const drawBudget = assessDrawBudget(result.drawSamples, result.frames, softwareCensus === null ? context : {...context, tier: 'software-diagnostic'});
   const drawPass = context.drawBudgetMode === 'report-only' || drawBudget.pass;
   const pass = drawPass && valid && cpuPass && maxFramePass && medianFpsRounded >= floorFps && result.p95Ms <= limitMs;
   const strictP95Pass = result.p95Ms <= strictMs;
@@ -238,9 +241,9 @@ function assess(result, measuredOn, drawContext) {
   return { drawBudget, floorFps, medianFpsRounded, strictMs, limitMs, cpuLimitMs, cpuPass, maxFrameLimitMs, maxFramePass, pass, strictP95Pass, strictPass, miss };
 }
 function grade(record) {
-  record.criteria = { medianFps: 'Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained', p95Ms: '<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period', strictP95Ms: '<= 16.7 desktop / <= 33.3 Simulator', drawBudget: `${record.drawBudgetMode === 'report-only' ? 'Report-only' : 'Enforced'}. Phone: every observed frame <=150 draws including shadow/post/held; paired render CPU <=30 us/draw only at measured Chromium 4x; no extrapolation`, cpu: 'Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded', maxFrameMs: 'Every observed row: max <= 100 ms desktop / <= 200 ms Simulator' };
+  record.criteria = { medianFps: 'Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained', p95Ms: '<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period', strictP95Ms: '<= 16.7 desktop / <= 33.3 Simulator', drawBudget: record.softwareCensus === undefined ? `${record.drawBudgetMode === 'report-only' ? 'Report-only' : 'Enforced'}. Phone: every observed frame <=150 draws including shadow/post/held; paired render CPU <=30 us/draw only at measured Chromium 4x; no extrapolation` : 'Software diagnostic spawn census only: no phone-budget or official timing credit; actual resolution and paired samples retained', cpu: 'Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded', maxFrameMs: 'Every observed row: max <= 100 ms desktop / <= 200 ms Simulator' };
   for (const result of record.results) for (const shard of result.rows) {
-    for (const row of shard.rows ?? []) Object.assign(row, assess(row, result.surface, { tier: shard.metadata?.settings?.tier ?? record.settings?.tier ?? (result.surface === 'sim' ? 'phone' : 'desktop'), cpuRate: result.surface === 'desktop' ? record.chromiumCpuRate ?? 1 : 1, drawBudgetMode: record.drawBudgetMode ?? 'enforce' }));
+    for (const row of shard.rows ?? []) Object.assign(row, assess(row, result.surface, { tier: record.softwareCensus === undefined ? shard.metadata?.settings?.tier ?? record.settings?.tier ?? (result.surface === 'sim' ? 'phone' : 'desktop') : 'software-diagnostic', cpuRate: result.surface === 'desktop' ? record.chromiumCpuRate ?? 1 : 1, drawBudgetMode: record.drawBudgetMode ?? 'enforce' }));
     if (shard.complete) shard.pass = !shard.runtimeFailure && (shard.rows ?? []).every((row) => row.pass) && shard.errors.length === 0;
   }
   record.complete = record.results.every((result) => result.rows.every((shard) => shard.complete));
@@ -480,6 +483,7 @@ async function saveSafariProfile(name, profile, pageRange, file = join(safariPro
 async function measureShard(driver, shard, deadline) {
   const start = Date.now(), floorMs = surface === 'sim' ? 33.3 : 16.7;
   const rows = [], scenarios = [];
+  let meta;
   try {
     await driver.load(shard);
     if (shard === 'grid') await enterGrid(driver);
@@ -488,7 +492,7 @@ async function measureShard(driver, shard, deadline) {
     const documentOrigin = await driver.evaluate(`(${gridFloorDocumentIdentity.toString()})()`);
     if (shard === 'grid' && gridScenario !== 'baseline') await driver.evaluate(`(${installFloorGridProgress.toString()})()`);
     await sleep(settleMs);
-    const meta = await driver.evaluate(`(${metadata.toString()})()`);
+    meta = await driver.evaluate(`(${metadata.toString()})()`);
     if (meta.developer !== (developer === 'on') || meta.deviceSaves.devMode !== (developer === 'on') || meta.clock !== 'live' || meta.renderScale !== 2 || meta.settings.tier !== settings.tier || meta.settings.fps !== 'auto' || Object.entries(picks).some(([key, value]) => meta.settings[key] !== value) || Object.entries(deviceSaves).some(([key, value]) => meta.deviceSaves[key] !== value)) throw new Error(`Invalid measurement configuration: ${JSON.stringify(meta)}`);
     for (const expected of expectedSystems.filter((row) => row.shard === shard)) if (meta.systems.includes(expected.id) !== expected.present) throw new Error(`Activation witness failed: ${expected.id} expected ${expected.present ? 'on' : 'off'}; installed ${meta.systems.join(', ')}`);
     if (surface === 'sim' && (meta.viewport[0] >= meta.viewport[1] || !meta.userAgent.includes('iPhone'))) throw new Error('Simulator must be portrait iPhone Safari');
@@ -505,6 +509,15 @@ async function measureShard(driver, shard, deadline) {
     const spawnRow = await standingSample(driver, meta.spawn); rows.push(spawnRow);
     console.log(`${surface} ${shard} spawn: ${spawnRow.medianFps} fps, p95 ${spawnRow.p95Ms} ms, p99 ${spawnRow.p99Ms} ms — ${spawnRow.pass ? 'PASS' : 'FAIL'}`);
     if (drawBudgetOn) console.log(frameFloorDrawConsole(shard, 'spawn', spawnRow.frames, spawnRow.drawBudget, meta.renderer));
+    if (softwareCensus !== null) {
+      if (meta.viewport[0] !== 201 || meta.viewport[1] !== 437 || meta.canvas[0] !== 402 || meta.canvas[1] !== 874)
+        throw new Error('Software census diagnostic resolution differs');
+      console.log(`Software census ${shard}: CSS ${meta.viewport.join('x')}; canvas ${meta.canvas.join('x')}; ${frames} native spawn frames; no phone-budget or official timing credit`);
+      const errors = await driver.errors();
+      return {shard, complete: true, pass: rows.every(row => row.pass) && errors.length === 0, seconds: (Date.now() - start) / 1000,
+        floorMs, evaluationOriginDriftMaxMs, cpuPhase: driver.cpuPhase?.() ?? null, metadata: meta,
+        cameraSource: 'software diagnostic native spawn only', scan: [], rows, scenarios, lastRoute: driver.progress(), errors};
+    }
     // O11: the outer road starts with no inner cell admitted; deck-east stands on Nine's boulevard and admits it. O17: a
     // cold entry likewise approaches its cell with no standing pose beside it first
     const gridPoses = shard === 'grid' && !['outer-road', 'cold', 'nine-return', 'sky-cycle'].includes(gridScenario)
@@ -762,7 +775,7 @@ async function measureShard(driver, shard, deadline) {
     const diagnostic = await driver.evaluate(`(() => { const app = window.__wildshard?.world?.game?.app; const saved = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}'); return { documentOrigin: performance.timeOrigin, lastEnd: saved.keys?.['life.lastEnd']?.data, lastUnload: saved.keys?.['life.lastUnload']?.data, url: location.href, readyState: document.readyState, state: app?.state, modal: document.querySelector('#wserr .msg')?.textContent, stack: document.querySelector('#wserr pre')?.textContent, loading: document.querySelector('.ws-load')?.textContent?.slice(-3000), bootTrace: saved.keys?.['boot.trace']?.data, systems: app ? Object.values(app.systemsByPhase()).flat().map(system => system.id) : [], console: window.__frameFloorConsole ?? [], resources: performance.getEntriesByType('resource').slice(-20).map(row => ({ name: row.name, duration: row.duration })) }; })()`).catch(() => null);
     const lastRoute = driver.progress(), runtimeFailure = gridFloorRuntimeFailure(lastRoute, diagnostic ?? { documentOrigin: error?.documentOrigin });
     return { shard, complete: runtimeFailure !== null, pass: false, seconds: (Date.now() - start) / 1000, error: errorText(error),
-      evaluationOriginDriftMaxMs, cpuPhase: driver.cpuPhase?.() ?? null, errors: await driver.errors().catch(() => []), rows, scenarios, lastRoute, runtimeFailure, diagnostic };
+      evaluationOriginDriftMaxMs, cpuPhase: driver.cpuPhase?.() ?? null, ...(meta === undefined ? {} : {metadata: meta}), errors: await driver.errors().catch(() => []), rows, scenarios, lastRoute, runtimeFailure, diagnostic };
   } finally { await driver.unload(); }
 }
 
@@ -975,7 +988,7 @@ async function worker() {
     if (surface === 'desktop') {
       const { chromium } = await import('playwright');
       browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', `--use-angle=${chromiumAngle}`, '--ignore-gpu-blocklist'] });
-      context = await browser.newContext({ ...(chromiumPhone ? { viewport: { width: 402, height: 874 }, deviceScaleFactor: 3 } : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 }), serviceWorkers: 'block' });
+      context = await browser.newContext({ ...(chromiumPhone ? { viewport: softwareCensus?.viewport ?? { width: 402, height: 874 }, deviceScaleFactor: 3 } : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 }), serviceWorkers: 'block' });
       await context.addInitScript({ content: `${fixture(settings.tier)};window.__wildshardHarness=${HARNESS_PINS};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${LONGTASK_SCRIPT}${GL_TIME_SCRIPT}${TASK_CLOCK}${travelGl}` });
       let errors = [], profiler = null, throttle = null, cpuPhase = null;
       driver = {
@@ -1181,6 +1194,7 @@ async function main() {
       const workerArgs = [SCRIPT, '--worker', ...(devserverBuild ? ['--devserver'] : []), `--surface=${s}`, `--developer=${developer}`, `--standing-poses=${standingPoses.join(',')}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(roadApproach ? ['--road-approach'] : []), ...(entrySocket ? ['--entry-socket'] : []), ...(risingIslet === '' ? [] : [`--rising-islet=${risingIslet}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(texturesPin === '' ? [] : [`--textures=${texturesPin}`]), ...(ktx2ProbePin === '' ? [] : [`--ktx2-probe=${ktx2ProbePin}`]), ...(glTime ? ['--gl-time'] : []), ...(gpuBisectOn ? ['--gpu-bisect'] : []), ...(frameTimeline ? ['--frame-timeline'] : []), ...(taskClock ? ['--task-clock'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(safariProfileDir === '' ? [] : [`--safari-profile=${safariProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       if (chromiumPhone) workerArgs.push('--chromium-phone');
       if (drawBudgetOn) workerArgs.push(drawBudgetMode === 'report-only' ? '--draw-budget-report-only' : '--draw-budget');
+      if (softwareCensus !== null) workerArgs.push('--software-draw-census');
       if (chromiumCpuRate !== 1) workerArgs.push(`--chromium-cpu=${chromiumCpuRate}`);
       if (chromiumBackend.explicit) workerArgs.push(`--chromium-angle=${chromiumAngle}`);
       if (entrySettle) workerArgs.push('--entry-settle');
@@ -1217,11 +1231,11 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      drawBudgetOn, drawBudgetMode, chromiumAngle, chromiumAngleExplicit: chromiumBackend.explicit, ...(postReadyCpu ? {cpuPhaseMode: 'after-ready', bootCpuRate: 1} : {}), ...(chromiumCpuRate === 1 ? {} : {chromiumCpuRate, diagnostic: 'cpu-throttled-chromium', floorTimingCredit: false}),
+      drawBudgetOn, drawBudgetMode, chromiumAngle, chromiumAngleExplicit: chromiumBackend.explicit, ...(softwareCensus === null ? {} : {softwareCensus}), ...(postReadyCpu ? {cpuPhaseMode: 'after-ready', bootCpuRate: 1} : {}), ...(chromiumCpuRate === 1 ? {} : {chromiumCpuRate, diagnostic: 'cpu-throttled-chromium', floorTimingCredit: false}),
       frames, settleMs, standingPoses, shards, surface, developer, quiet: quietSample, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, gpuBisect: gpuBisectOn, safariProfile: safariProfileDir !== '', ...(safariSteadyPose === '' ? {} : {safariSteady: {pose: safariSteadyPose, seconds: 20}}), ...(safariDrive === '' ? {} : {safariDrive: {route: safariDrive, ...(safariSteadyPose === '' ? {earlyPlaySeconds: 20} : {separateSteady: true})}}), ...(safariPrefix === '' ? {} : {safariPrefix: {route: safariPrefix, seconds: 20}}), ...(safariWindow === null ? {} : {safariWindow}), webkitTimeline: webkitTimelineDir !== '', ...(webkitSteadyPose === '' ? {} : {webkitSteady: {poses: webkitSteadyPoses, seconds: 20}}), pauseAblation, bufferAblation, nativeJscGcLog: jscGcDirectory !== '', ...(jscRamSize === 0 ? {} : {diagnosticJscRamSizeBytes: jscRamSize}), wasmConstructors: wasmConstructorsDir !== '', nativePressure: nativePressureDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: `${chromiumCpuRate === 1 ? '' : postReadyCpu ? `Diagnostic boot CPU 1x; requested measurement CPU ${chromiumCpuRate}x only after ready and an acknowledged new-draw fence (actual per-shard cpuPhase retained); no official floor timing credit. ` : `Diagnostic page CPU ${chromiumCpuRate}x; no official floor timing credit. `}Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass or capture clock.${chromiumCpuRate === 1 ? ' No CPU throttling.' : ''}`,
-      limitations: [standingPoses.length === 0 ? 'Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.' : 'Stationary spawn and explicitly pinned authored standing cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim.'], results });
+      limitations: [softwareCensus !== null ? 'Software-only CSS201x437 / canvas402x874 at 2x, four native spawn frames; no phone-budget or official timing credit.' : standingPoses.length === 0 ? 'Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.' : 'Stationary spawn and explicitly pinned authored standing cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim.'], results });
     const directory = resolvePath(ROOT, flag('output-dir', 'progress/frame-floor')); mkdirSync(directory, { recursive: true });
     const output = join(directory, `${sha.slice(0, 9)}-${runId}.json`);
     writeFileSync(output, `${JSON.stringify(record, null, 2)}\n`);

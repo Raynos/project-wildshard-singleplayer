@@ -10,3 +10,5 @@ export function frameFloorDrawBudgetMode(args: readonly string[]): 'enforce' | '
 
 /** Software rendering requires an explicit Linux report-only declaration. */
 export function frameFloorChromiumAngle(args: readonly string[], platform?: string): { angle: 'metal' | 'swiftshader'; explicit: boolean };
+/** Small software-only diagnostic; official phone/floor commands return null unchanged. */
+export function frameFloorSoftwareCensus(args: readonly string[], platform?: string): { viewport: {width:201;height:437}; frames:4; scope:'spawn-only' } | null;

@@ -72,6 +72,10 @@ unresident clone without upload data. Cache presence alone does not prove GPU re
   new completed draws before settling/sampling. Raw paired frame ids must follow that fence. Linux software reporting
   requires explicit `--chromium-angle=swiftshader`; its backend and boot/measured rates stay labelled diagnostic, with
   no official timing credit. Enforcing/profile runs retain their original boot throttle and Metal requirement.
+- G872's explicit Linux `--software-draw-census --frames=4` is a delivery diagnostic: CSS 201×437, canvas 402×874
+  at 2×, native spawn only, with every shadow/post/held pass retained. It records actual resolution, four paired
+  draw/CPU samples and the SwiftShader renderer; phone budgets stay **NOT MEASURED**, with no official or physical
+  timing credit. Ordinary phone 2× / 120-sample / all-pose Metal readings and all readiness/sample/run caps stay intact.
 - Every whole-drive row lists its long frames (`longFrames.at`: start, ms) and `longFrameHooks`: which runtime hook
   (`<instance>:<hook>`, or `between hooks`) each overlapped. `--gl-time` (both surfaces, diagnostic only: it wraps the
   heavy WebGL calls) adds each long frame's GL split, so a Simulator long frame says upload, link or first draw.
