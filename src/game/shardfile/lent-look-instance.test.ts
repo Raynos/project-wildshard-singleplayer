@@ -1,7 +1,31 @@
 import { expect, test } from 'vitest';
 import { MeshBasicMaterial } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
-import { lendLooks, lentLookInstance } from './lentLooks';
+import { lendLooks, lentLookInstance, isLent, lentLook } from './lentLooks';
+
+test('a compiled book remains live until its last independent loan retires', () => {
+  const book = {materials:new Map([['shared-book',new MeshBasicMaterial()]]),setParam:()=>undefined,setTexture:()=>undefined,bindMeshMap:()=>new MeshBasicMaterial()};
+  const cleanup: (()=>void)[] = [], owner={onDispose:(run:()=>void)=>{cleanup.push(run);}};
+  expect(isLent(book)).toBe(false);
+  lendLooks(owner,book);lendLooks(owner,book);
+  expect(isLent(book)).toBe(true);
+  cleanup[0]?.();cleanup[0]?.();
+  expect(isLent(book)).toBe(true);
+  expect(lentLook('shared-book')).toBe(book.materials.get('shared-book'));
+  cleanup[1]?.();
+  expect(isLent(book)).toBe(false);
+  expect(()=>lentLook('shared-book')).toThrow('No lent look');
+  // A retired identity may be lent again; a same-shaped new identity is distinct.
+  lendLooks(owner,book);expect(isLent(book)).toBe(true);
+  expect(isLent({...book})).toBe(false);
+  cleanup[2]?.();expect(isLent(book)).toBe(false);
+});
+
+test('an immediately retired loan never leaves a live membership', () => {
+  const book = {materials:new Map(),setParam:()=>undefined,setTexture:()=>undefined,bindMeshMap:()=>new MeshBasicMaterial()};
+  lendLooks({onDispose:run=>{run();run();}},book);
+  expect(isLent(book)).toBe(false);
+});
 
 test('a lent graph look gives independent copies, and refuses an unlent look or a lend that makes none', () => {
   const scope = new Scope('copies'), made: Map<string, unknown>[] = [];

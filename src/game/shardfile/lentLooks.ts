@@ -41,6 +41,7 @@ export interface LookInstance {
 }
 
 const lends: { readonly looks: LentLooks; readonly scope: Scope | null }[] = [];
+const liveLends = new WeakSet<LentLooks>();
 /** bumped whenever a lend starts or ends: the param writers below are cached per lend set */
 let lendGeneration = 0;
 const sceneMaterials = new WeakMap<Scope, Map<string, ReadonlyMap<string, Material>>>();
@@ -63,8 +64,13 @@ export function sceneMaterial(scope: Scope, slug: string, id: string): Material 
 /** Lend a compile pass's looks until `scope` ends. */
 export function lendLooks(scope: { onDispose: (run: () => void) => unknown }, looks: LentLooks): void {
   const lend = { looks, scope: 'belongsTo' in scope && typeof scope.belongsTo === 'function' ? scope as Scope : null };
-  lends.push(lend); lendGeneration++;
-  scope.onDispose(() => { const at = lends.indexOf(lend); if (at !== -1) { lends.splice(at, 1); lendGeneration++; } });
+  lends.push(lend); liveLends.add(looks); lendGeneration++;
+  scope.onDispose(() => { const at = lends.indexOf(lend); if (at !== -1) {
+    lends.splice(at, 1); lendGeneration++;
+    // One compiled book may be lent more than once. Retirement, unlike each
+    // frame's parameter writes, can scan for its remaining loan.
+    if (!lends.some(row => row.looks === looks)) liveLends.delete(looks);
+  } });
 }
 
 /** the newest lend that compiled `id` within the caller's owner, else the newest that compiled it, or null */
@@ -100,7 +106,7 @@ export async function prepareLentLooks(ids: readonly string[]): Promise<void> {
 }
 
 /** Whether `looks` is still lent (its scope has not ended): a holder kept across visits must not write a retired lend. */
-export function isLent(looks: LentLooks): boolean { return lends.some(lend => lend.looks === looks); }
+export function isLent(looks: LentLooks): boolean { return liveLends.has(looks); }
 
 /** Whether a compiled look `id` is lent (a module that may build outside its world draws nothing without it). */
 export function hasLentLook(id: string): boolean { return holder(id) !== null; }
