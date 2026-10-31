@@ -11,7 +11,9 @@ import { builtProduct } from './fixtures/builtProduct';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { readCreatureStrikes } from '../src/format/creatures';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
-import { headlessSections } from '../src/sdk/headlessSections';
+import { headlessSections, productHeadlessSections } from '../src/sdk/headlessSections';
+import { HeadlessSimulation } from '../src/sdk/headless';
+import { OBSERVATION_TICKS } from '../src/sdk/headlessObservation';
 import { runtimeAccountedBytes } from '../src/format/runtimeCost';
 import { clientHomeBytes } from '../src/game/shardfile/clientResidency';
 import { expect, it } from 'vitest';
@@ -157,4 +159,35 @@ it('native page entries retain their sampled collider and structure-floor polici
       expect(() => clientPageGround(source, new Map())).toThrow('Missing admitted terrain');
     }
   }
+});
+
+it('native offline observation retains all ticks and the complete restored continuation', async () => {
+  const directory = builtProduct('far-reach'), product = await loadHeadlessProduct(directory), shard = product.shardfile;
+  const descriptor = outputDescriptor(shard);
+  if (descriptor === undefined) throw new Error('Missing native product descriptor');
+  const assets = new Map(await Promise.all(descriptor.index.files.map(async file =>
+    [file.commons === true ? `commons:${file.hash}` : file.hash, Uint8Array.from(await readFile(`${directory}/${file.path}`))] as const)));
+  const options = { deadline: 'advisory' as const, sections: productHeadlessSections(product) };
+  const observed = await HeadlessSimulation.create(shard, assets, undefined, options);
+  const control = await HeadlessSimulation.create(shard, assets, undefined, options);
+  try {
+    const initial = observed.checkpoint;
+    expect(initial?.snapshot).toBe(control.checkpoint?.snapshot);
+    const report = await observed.observe();
+    let last = control.checkpoint;
+    for (let tick = 0; tick < OBSERVATION_TICKS; tick++) {
+      last = await control.step();
+      const sample = report.samples[tick];
+      expect(sample?.tick).toBe(last.tick);
+      expect(sample?.scriptMicros).toBe(last.scriptMicros ?? 0);
+      expect(sample?.fuelUsed).toBe(last.fuelUsed ?? 0);
+    }
+    expect(report.commit).toEqual(last);
+    expect(observed.checkpoint).toEqual(last);
+    const restored = await HeadlessSimulation.create(shard, assets, report.commit.snapshot, options);
+    try {
+      for (let tick = 0; tick < 10; tick++) expect(await restored.step()).toEqual(await control.step());
+    } finally { await restored.dispose(); }
+    await expect(observed.step()).rejects.toThrow('finished');
+  } finally { await observed.dispose(); await control.dispose(); }
 });

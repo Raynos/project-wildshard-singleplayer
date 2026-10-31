@@ -108,8 +108,8 @@ function summarizeObservations(measured: number[], fuel: number[], scripts: numb
 /** Build warms up, then samples three fixed windows; it never runs the expensive entry walk reserved for validate. */
 export async function measureSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, start?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>) => Promise<Pick<HeadlessSimulation, 'step' | 'lastTickMicros' | 'dispose'>>, sections?: ReadonlyMap<string, unknown>): Promise<SimulationObservations> {
   const supplied = headlessSections(sections ?? outputDescriptor(shard)?.sections);
-  if (start !== undefined || supplied.has('sim/runtime-plan')) {
-    const sim = await (start === undefined ? HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory', sections: supplied }) : start(shard, assets));
+  if (start !== undefined) {
+    const sim = await start(shard, assets);
     try { return await observeSteps(sim); } finally { await sim.dispose(); }
   }
   const sim = await HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory', sections: supplied });

@@ -10,10 +10,10 @@ import { installCableModes } from '@wildshard/engine/player/modes';
 import { createNativeCombatFrame, readNativeRangedItem, type NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
 import { prepareRuntimePlan, ledgerPorts, pickCommands, type NativeSweptMeleeInput } from '@wildshard/game/plugin/simulation';
 import { createSimHost, type SimHost, type SimHostPorts, type SimLevel } from '@wildshard/engine/sim';
-import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
+import { checkSimSnapshotWire, decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import type { Shardfile } from './shardfile';
-import { simPlayerCommand, TickCommandSchema, type HeadlessCommand, type HeadlessEffect } from './tickProtocol';
+import { MAX_TICK_SNAPSHOT_CHARS, simPlayerCommand, TickCommandSchema, type HeadlessCommand, type HeadlessEffect } from './tickProtocol';
 import type { TickWorkerAdapter } from './tickWorkerLoop';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { prepareProductRuntimePlan } from '@wildshard/game/shardfile/nativePlan';
@@ -201,6 +201,10 @@ export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeI
   const tape=createTrustedHeadlessTape(host,input=>resident.step(input),()=>resident.effects);
   return {
     step: input => { resident.step(input); },
+    observe: () => {
+      checkSimSnapshotWire(snapshotSimHostBytes(host), MAX_TICK_SNAPSHOT_CHARS);
+      return { tick: host.state.tick, effects: [...resident.effects] };
+    },
     verbTape:tape,
     journey: plan => runHeadlessJourney(host,input=>resident.step(input),plan),
     commit: () => ({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(host)), effects: [...resident.effects] }),
