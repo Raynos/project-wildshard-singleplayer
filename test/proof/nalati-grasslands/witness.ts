@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import source from '../../fixtures/nalati-product-source';
 import { nalatiNativeAssets } from './nativeAssets';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
-import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '../../../src/engine/sim/snapshot';
+import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '../../../src/engine/sim/snapshot';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { createNativeBakeReader } from '../../../src/game/population/nativeBake';
 import { prepareHeadlessRuntime } from '../../fixtures/nalati-headless';
@@ -38,7 +38,7 @@ export async function nalatiNativeWitness(replay: boolean, gameplay = true): Pro
     for (let tick = 0; tick < 120; tick++) step(first);
     assert.ok(first.player.position.z < startZ);
     assert.ok([...first.entities.values()].every(actor => [actor.position.x, actor.position.y, actor.position.z].every(Number.isFinite)));
-    const checkpoint = snapshotSimHost(first), checkpointHash = canonicalSimDigest(checkpoint);
+    const checkpoint = snapshotSimHostBytes(first), checkpointHash = canonicalSimDigest(checkpoint);
     let suffixHash: string | undefined;
     if (replay) {
       const saved: SimSnapshot = decodeSimSnapshot(serializeSimSnapshot(checkpoint, basis), basis);
@@ -49,10 +49,10 @@ export async function nalatiNativeWitness(replay: boolean, gameplay = true): Pro
         if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt);
         plan.install(fresh, { restoring: true, snapshot: saved, ...effects });
       });
-      assert.equal(canonicalSimDigest(snapshotSimHost(restored)), checkpointHash);
+      assert.equal(canonicalSimDigest(snapshotSimHostBytes(restored)), checkpointHash);
       for (let tick = 0; tick < 60; tick++) { step(first); step(restored); }
-      suffixHash = canonicalSimDigest(snapshotSimHost(first));
-      assert.equal(canonicalSimDigest(snapshotSimHost(restored)), suffixHash, 'Complete native suffix must match exactly');
+      suffixHash = canonicalSimDigest(snapshotSimHostBytes(first));
+      assert.equal(canonicalSimDigest(snapshotSimHostBytes(restored)), suffixHash, 'Complete native suffix must match exactly');
     }
     const ticksExecuted = first.state.tick;
     if (!gameplay) return { scope: 'native-boot-codec-suffix', entry: 'data/headlessAssembly.json', compatible: false, missing: NALATI_WITNESS_GAPS,

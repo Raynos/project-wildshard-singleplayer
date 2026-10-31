@@ -6,7 +6,7 @@ import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness refuses incomplete native gameplay rather than report a passing flag.
 import assert from 'node:assert/strict';
 import type { SimHost } from '../../../src/engine/sim';
-import { snapshotSimHost, serializeSimSnapshot } from '../../../src/engine/sim/snapshot';
+import { snapshotSimHostBytes, serializeSimSnapshot } from '../../../src/engine/sim/snapshot';
 import type { Rapier } from '../../../src/engine/physics/rapier';
 import { createNativeProofResident } from '../../fixtures/headless-native';
 import {nalatiTamingPilot} from './tamingPilot';
@@ -59,9 +59,9 @@ export async function nalatiTamingWitness(rapier: Rapier, assets: ReadonlyMap<st
       if (taming.phase === 'breaking') breakingTicks++;
       first.step(pilot.commands); restored?.step(pilot.commands);
       if (replay && restored === undefined && taming.phase === 'breaking' && breakingTicks === 250) {
-        const snapshot = snapshotSimHost(first.host), wire = serializeSimSnapshot(snapshot); checkpointTick = first.host.state.tick;
+        const snapshot = snapshotSimHostBytes(first.host), wire = serializeSimSnapshot(snapshot); checkpointTick = first.host.state.tick;
         restored = await createNativeProofResident(preparation, entry, wire);
-        assert.equal(canonicalSimDigest(snapshotSimHost(restored.host)), canonicalSimDigest(snapshot), 'Mid-round reinstall must be quiet and exact');
+        assert.equal(canonicalSimDigest(snapshotSimHostBytes(restored.host)), canonicalSimDigest(snapshot), 'Mid-round reinstall must be quiet and exact');
       }
       assert.deepEqual(first.effects, [], 'Taming must not invent quest facts');
     }
@@ -73,7 +73,7 @@ export async function nalatiTamingWitness(rapier: Rapier, assets: ReadonlyMap<st
     assert.equal(original.position.y, -1e4); assert.equal(original.motor, null);
     if (replay) {
       assert.ok(restored !== undefined);
-      assert.equal(canonicalSimDigest(snapshotSimHost(restored.host)), canonicalSimDigest(snapshotSimHost(first.host)), 'The whole remaining bucking suffix must stay exact through adoption');
+      assert.equal(canonicalSimDigest(snapshotSimHostBytes(restored.host)), canonicalSimDigest(snapshotSimHostBytes(first.host)), 'The whole remaining bucking suffix must stay exact through adoption');
     }
     return { status: 'partial', fixture: 'one spawn beside the authored living stallion; no later placement or trust writes',
       livePrompt: prompt, rounds: 5, ticksExecuted: first.host.state.tick, originalHiddenAlive: true, tulparAdopted: true,

@@ -5,7 +5,7 @@ import * as v from 'valibot';
 import { nalatiNativeWitness, nalatiTamingNativeWitness } from './proof/nalati-grasslands/witness';
 import source from './fixtures/nalati-product-source';
 import { createSimHost, type SimHost } from '../src/engine/sim';
-import { snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot, restoreSimHost } from '../src/engine/sim/snapshot';
+import { snapshotSimHostBytes, serializeSimSnapshot, decodeSimSnapshot, restoreSimHost } from '../src/engine/sim/snapshot';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
@@ -23,13 +23,13 @@ test('Nalati declared assembly retains its native 100 + 30 tick continuation', a
   try {
     plan.install(host, { restoring: false, ...effects });
     for (let tick = 0; tick < 100; tick++) step(host);
-    const saved = snapshotSimHost(host);
+    const saved = snapshotSimHostBytes(host);
     const decoded = decodeSimSnapshot(serializeSimSnapshot(saved));
     restored = restoreSimHost(plan.level, ports, decoded, fresh => { plan.install(fresh, { restoring: true, snapshot: decoded, ...effects }); });
-    expect(canonicalSimDigest(snapshotSimHost(restored))).toBe(canonicalSimDigest(saved));
+    expect(canonicalSimDigest(snapshotSimHostBytes(restored))).toBe(canonicalSimDigest(saved));
     for (let tick = 0; tick < 30; tick++) { step(host); step(restored); }
-    const continued = canonicalSimDigest(snapshotSimHost(restored));
-    expect(continued).toBe(canonicalSimDigest(snapshotSimHost(host)));
+    const continued = canonicalSimDigest(snapshotSimHostBytes(restored));
+    expect(continued).toBe(canonicalSimDigest(snapshotSimHostBytes(host)));
   } finally {
     restored?.dispose(); host.dispose();
     expect(Object.values(host.scope.census).every(count => count === 0)).toBe(true);
