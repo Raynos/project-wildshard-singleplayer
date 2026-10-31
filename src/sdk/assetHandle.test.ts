@@ -81,3 +81,51 @@ it('keeps unscoped config-safe copies private across public mutations', () => {
   expect(next.bytes).toEqual(source);
   expect(next.bytes).not.toBe(source);
 });
+
+it('keeps exact owner-port bytes across word tails and view alignments', () => {
+  const key = Symbol.for('wildshard.sdk.asset-owner.v1'), previous = Object.getOwnPropertyDescriptor(globalThis, key);
+  let issued: Uint8Array = new Uint8Array();
+  Object.defineProperty(globalThis, key, { configurable: true, value: {
+    current: () => (input: Uint8Array) => ({ bytes: issued, hash: hashImmutableBytes(input) }),
+  } });
+  try {
+    for (const length of [0, 1, 3, 4, 31, 32, 33, 64, 65]) for (const a of [0, 1, 2, 3]) for (const b of [0, 1, 2, 3]) {
+      const source = new Uint8Array(new ArrayBuffer(length + a), a, length);
+      issued = new Uint8Array(new ArrayBuffer(length + b), b, length);
+      for (let i = 0; i < length; i++) source[i] = issued[i] = (i * 71 + length) % 256;
+      expect(ownAssetBytes(source).bytes).toEqual(source);
+      for (const index of new Set([0, Math.floor(length / 2), length - 1])) {
+        if (index < 0 || index >= length) continue;
+        const byte = issued[index]; if (byte === undefined) throw new Error('Missing test byte');
+        issued[index] = byte ^ 1;
+        expect(() => ownAssetBytes(source)).toThrow('did not preserve its input bytes');
+        issued[index] = byte;
+      }
+    }
+  } finally {
+    if (previous === undefined) Reflect.deleteProperty(globalThis, key); else Object.defineProperty(globalThis, key, previous);
+  }
+});
+
+it('uses intrinsic byte slots while retaining authored, shared and resizable fallbacks', () => {
+  class AuthoredBytes extends Uint8Array { override *[Symbol.iterator](): ArrayIterator<number> { yield 99; } }
+  const ordinary = new Uint8Array(65).fill(7), authored = new AuthoredBytes(65).fill(7);
+  let reads = 0;
+  for (const input of [ordinary, authored]) for (const name of ['buffer', 'byteOffset', 'byteLength']) Object.defineProperty(input, name, {
+    get: () => { reads++; throw new Error('Authored byte slot read'); },
+  });
+  expect(ownAssetBytes(ordinary).bytes).toEqual(new Uint8Array(65).fill(7));
+  expect(ownAssetBytes(authored).bytes).toEqual(new Uint8Array(65).fill(7));
+  expect(reads).toBe(0);
+  const resizable: unknown = Reflect.construct(ArrayBuffer, [65, { maxByteLength: 128 }]);
+  if (!(resizable instanceof ArrayBuffer)) throw new Error('Native resizable buffer required');
+  const resize: unknown = Reflect.get(resizable, 'resize');
+  if (typeof resize !== 'function') throw new Error('Native resize method required');
+  const view = new Uint8Array(resizable).fill(3), first = ownAssetBytes(view);
+  Reflect.apply(resize, resizable, [33]);
+  expect(first.bytes).toEqual(new Uint8Array(65).fill(3));
+  expect(ownAssetBytes(view).bytes).toEqual(new Uint8Array(33).fill(3));
+  const shared = new Uint8Array(new SharedArrayBuffer(65)).fill(5), old = ownAssetBytes(shared);
+  shared[64] = 6;
+  expect(old.bytes).toEqual(new Uint8Array(65).fill(5)); expect(ownAssetBytes(shared).bytes[64]).toBe(6);
+});

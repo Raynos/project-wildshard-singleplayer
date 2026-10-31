@@ -5,7 +5,7 @@ export interface OwnedAsset { readonly bytes: Uint8Array; readonly hash: string 
 interface Snapshot { readonly bytes: Uint8Array<ArrayBuffer>; readonly hash: string }
 const aliases = new WeakMap<Uint8Array, Snapshot>();
 const slot = Symbol.for('wildshard.sdk.asset-owner.v1');
-function accessor(name: 'byteLength' | 'buffer'): (input: Uint8Array) => unknown {
+function accessor(name: 'byteLength' | 'buffer' | 'byteOffset'): (input: Uint8Array) => unknown {
   const prototype: object | null = Object.getPrototypeOf(Uint8Array.prototype);
   if (prototype === null) throw new Error('Missing native typed array prototype');
   const descriptor = Object.getOwnPropertyDescriptor(prototype, name);
@@ -13,7 +13,13 @@ function accessor(name: 'byteLength' | 'buffer'): (input: Uint8Array) => unknown
   if (typeof getter !== 'function') throw new Error('Missing native typed array accessor');
   return (input: Uint8Array): unknown => Reflect.apply(getter, input, []);
 }
-const byteLength = accessor('byteLength'), buffer = accessor('buffer');
+const byteLength = accessor('byteLength'), buffer = accessor('buffer'), byteOffset = accessor('byteOffset');
+const resizableDescriptor = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, 'resizable');
+const resizableGetter: unknown = resizableDescriptor === undefined ? undefined : Reflect.get(resizableDescriptor, 'get');
+function fixed(input: unknown): input is ArrayBuffer {
+  return input instanceof ArrayBuffer && Object.getPrototypeOf(input) === ArrayBuffer.prototype
+    && (typeof resizableGetter !== 'function' || Reflect.apply(resizableGetter, input, []) === false);
+}
 function copy(input: Uint8Array): Uint8Array<ArrayBuffer> {
   const length = byteLength(input);
   if (typeof length !== 'number') throw new Error('Invalid native byte length');
@@ -22,6 +28,18 @@ function copy(input: Uint8Array): Uint8Array<ArrayBuffer> {
 function equal(a: Uint8Array, b: Uint8Array): boolean {
   const length = byteLength(a);
   if (typeof length !== 'number' || length !== byteLength(b)) return false;
+  if (length >= 32 && Object.getPrototypeOf(a) === Uint8Array.prototype && Object.getPrototypeOf(b) === Uint8Array.prototype) {
+    const left = buffer(a), right = buffer(b);
+    if (fixed(left) && fixed(right)) {
+      const aOffset = byteOffset(a), bOffset = byteOffset(b);
+      if (typeof aOffset === 'number' && typeof bOffset === 'number' && aOffset % 4 === 0 && bOffset % 4 === 0) {
+        const count = Math.floor(length / 4), aWords = new Uint32Array(left, aOffset, count), bWords = new Uint32Array(right, bOffset, count);
+        for (let at = 0; at < count; at++) if (aWords[at] !== bWords[at]) return false;
+        for (let at = count * 4; at < length; at++) if (a[at] !== b[at]) return false;
+        return true;
+      }
+    }
+  }
   for (let at = 0; at < length; at++) if (a[at] !== b[at]) return false;
   return true;
 }
