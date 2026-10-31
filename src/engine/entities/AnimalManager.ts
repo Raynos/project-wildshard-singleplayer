@@ -1,5 +1,6 @@
 import { clearBody as clearNativeBody } from './bodyClear';
 import { poseEvery } from './poseCadence';
+import { publishShellLevels } from './animalShells';
 import { EntityIds } from './ids';
 import { app } from '../app/runtime';
 import { emitFault } from '../core/faults';
@@ -703,11 +704,7 @@ export class AnimalManager {
     if (frameCost.on) frameCost.sub('pose', poseT0);
     if (farD > 0) this.farHerd.end();
     if (herdShadows) this.shadowHerd.end();
-    for (let i = 0; i < n; i++) {
-      let level = 0;
-      for (let k = 0; k < SHELL_MAX; k++) if (si[k] === i) { const d = Math.sqrt(sd[k] ?? Infinity); level = d < 6 ? 8 : d < 11 ? 6 : 4; }
-      this.animals[i]?.setShellLevel(level);
-    }
+    publishShellLevels(this.animals, si, sd, n);
     this.blood.update(worldTime.realDt || dt); // blood keeps flying through a hit-stop (worldTime, Game.hitStop)
     if (this.debug) this.updateDebug();
   }
