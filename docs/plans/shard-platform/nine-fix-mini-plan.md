@@ -63,7 +63,7 @@ No decision or damage-list row approves any of the cuts above, so every one is r
 | NF17e | **Far Reach frame cost**: close the measured NF17 miss | **open**: golden P1 Chromium 4x work p50 ≤ 11.85 ms (TSL 15.8; current 13.8). Current main/shadow total 154 draws; 9 remaining basic-node draws are sky dressing/sea/sun, not the compiled lit graphs. Profile before an exact cut; retain look and gameplay. | unassigned | S–M |
 | NF17f | **Sunscar frame cost**: close the measured NF17 miss | **open**: golden P1 Chromium 4x work p50 ≤ 4.35 ms (TSL 5.8; current 5.6), 61 native draws in both revisions. Profile before an exact cut; retain look and gameplay. | unassigned | S–M |
 | NF18 | **Delete the TSL runtime** after Jake's fps QA (G933): `EngineNodesHandler` (1,514 lines), `render/nodes/*` (~2.2k), the TSL half of `graph/compile.ts`, the `three/webgpu` chunk, the node halves of fog / mask / precompile / shadow depth, NF2 and the Debug row. Build-time authoring may keep TSL as a DSL. | No runtime chunk imports `three/webgpu` or `three/tsl`; boot download ≥ 100 KB gzip smaller; NF15 / NF17 numbers still hold on HEAD; frame-floor and golden checks green on every shard. | Opus | M |
-| NF19 | *(Optional)* **Half-float slab channels** (`_AMISC`, `_ASPILL`, `_AOFF`). | Nine L0 GPU ≤ 56 MB (today 81.6); no visible change at the five poses. | **open, Opus handoff (2026-10-30; G958)**: Codex half-float prototype is not landed. P4 control A/A = 0 changed pixels; half = 24,841 (max channel delta 232). The prior tile-layout rebake needs 64,803,396 GPU B, above 56 MB; slab-only served bytes 14,407,894 → 9,547,020 B. Packed `_AMISC` integers lose up to 15 on a half conversion. A visible change needs Opus; the cell re-chunk's separate G941 B ruling does not approve this loss. | S |
+| NF19 | *(Optional)* **Half-float slab channels** (`_AMISC`, `_ASPILL`, `_AOFF`). | Nine L0 GPU ≤ 56 MB; no visible change at the five poses. | **closed, measured / not viable within scope (2026-10-30, sp-x8; G872)**: read-only immutable `a2dc011b0c` census verifies all eight slab blob hashes. Native channel/index storage is **82,099,948 B**; halving only true-float `aOff` / `aSpill` saves **10,359,220 B**, leaving **71,740,728 B**, already above 56 MB before other L0 geometry. `aFace` / `aPat` are already half. `aMisc` mixes fractional emission/line-width/wet values with packed flags, so whole-channel integer/half conversion requires a new layout; the earlier half prototype lost flags and changed 24,841 pixels. No production edit, preview or guard change. Census: `tmp/sp-x8-nf19/a2dc-storage-census.json`. | S |
 | NF20 | **The loading card counts wire bytes**: "Spawn view 81.2 MB" is the decoded size; the wire is ~18 MB. | Nine's cold card reads encoded wire bytes, equal to the network log at the card's precision. **Measured 00e6dd0ea7:** cold card **15.5 MB**, matching **15,480,918 encoded body B** across all 690 spawn URLs (0 missing / duplicate / incomplete); the 18 MB was a research estimate. Build representation facts 15,473,256 B also round to 15.5; decoded admission remains **81,262,108 B**. HTTP headers add 245,332 B and are separate. Phone-tier Chromium pinned preview; no layout/read/scheduling change. | **done** 00e6dd0ea7 (sp-x9) | S |
 | NF21 | **One per-draw hook, not six** (low-hanging fruit L1 from the [engine performance draft](engine-performance-mini-plan.md) §7, E515): six engine bookkeeping wrappers plus two `properties.get` hooks run around every draw, in legacy too (0.9–2.0 ms + 0.2–1.1 ms a frame at Chromium 4x). Fold them into one hook. Shared with [pine-fps](pine-fps-mini-plan.md) PF14. | Nine P4 work p50 −1.0 ms or more at Chromium 4x against the parent build, same draws, pixel-identical at P1–P5. | **in flight** (2026-10-30, sp-x2), shared EP2. `5503829cf5`/`0bf8fcb9c2`: Nine P4 LG/SF work p50 6.7/7.7 -> 7.0/6.6 ms, same draw medians 153/139. All five poses have exact fresh A/A and A/B in both modes, with no pixel exceptions; 22 native components are exact. Child wrapper/property costs LG 0.334/0.107, SF 0.370/0.157 ms. SF improves in this cohort; LG does not earn the parent -1 ms. Robust parent gain and absolute 0.3/0.1 ms bars remain open. Both cohorts and preceding results remain in code bodies. | S |
 | NF22 | **Opaque draws sorted by program** (L2, E515): opaque objects sort by material id, not by program. Measure first. Shared with pine-fps PF15. | Nine P4 program switches a frame ≤ legacy's 52, work p50 not worse; pixel-identical. | **closed: measured on GLSL (2026-10-30, sp-o5, G872)**: Nine cam 1 55 switches = opaque 19 (18 programs), transparent 31 (25), Jiehua 2, effect 2, shadow 1; a sort keyed on each draw's actual program gives 55 → 54, pixel-identical (the material's `currentProgram` was the wrong key). NF15's ≤ 55 is met without it; not built (EP3). Earlier, on TSL **measured, folds into NF13–NF15** (sp-o5, `8b5c3d946d`, golden cams 1 / 5 / 14, Chromium phone 2x): switches a frame SHARDFILE / LEGACY Nine 62 (53 distinct programs) / 52 (47); Pine 61–65 (55–58) / 53–60 (47–52); Driftwood 48–66 (38–54). A program-first `setOpaqueSort` prototype at 4x made it worse: Nine 62 → 77–79 switches and 0.3–1.3 ms slower, Pine 65 → 60 but slower, Driftwood 71 → 77, because the node handler picks a program per material × object variant, so a material's last program is the wrong key and the sort splits runs already grouped. Not built; the per-draw program key comes with the GLSL back-end. | S |
@@ -94,3 +94,127 @@ Also:
 2. **Replace the node-material runtime with compiled GLSL (NF13–NF18)?** The graph format stays, every shard gets cheaper draws, and ~3.7k lines and 117 KB of download go away. It is the biggest engine change in the plan, behind a Debug row until it matches. *Recommend yes; Nine first.*
 3. **Restore every missing piece to legacy parity (NF3, NF4, NF7, NF8)?** You said yes ("any dressing that's missing has to be added back"); the only cost is NF7's extra copies, held at ≤ 150 draws. *Recommend yes; confirm.*
 4. **Bake tile slabs (NF10–NF12) even with NF1 holding the whole cell?** NF1 hides the hitch on Nine; slabs remove the cause for any shard that streams refine tiles later. *Recommend yes, after wave 1.*
+
+
+## G1 / PF11 GPU census (2026-10-30, sp-x8; E518)
+
+**Measured, diagnostic scope.** Maintained `scripts/pine-hollow-gpu.mjs` uses native loading cards,
+Chromium ANGLE Metal, iPhone 16 Pro, CSS 402×874 / buffer 804×1748, phone tier, night/rain,
+acknowledged CPU rate 1, seeded frozen native frames, five paired 16-frame batches per skip.
+Tool: `da36bcdc7d`, `67c1661ef3`; coverage: `f14504f650`. All twenty rows completed on one immutable
+`a2dc011b0c` build. Whole-frame throughput includes CPU submission and the fresh-write/readPixels
+synchronization; it is not an independent GPU clock or official phone budget reading.
+
+G872 restates the additive-sum bar: overlapping skips, occlusion and tile flushes prevent a sum.
+Segmented EXT queries inflated 5.1 ms whole to 21.7 ms pass / 45.6 ms group sums. Raw paired
+skips, no-op and drift are retained instead. Shared-host overlap and projection differences are
+spelled out below; small deltas are not attributed as performance gains.
+
+Raw: `tmp/sp-x8-g1/nine-a2dc-corrected/reading.json`,
+`tmp/sp-x8-g1/pine-a2dc/reading.json`; first classified-gap run remains separate.
+
+### nine-dragon-stack — source a2dc011-mvvu4ju0
+
+| Pose | Mode | Whole throughput ms | CPU submit ms | Shadow skip | Depth-copy skip | Silhouette skip | Jiehua skip | Display skip | FXAA skip | No-op | End-start drift ms |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| cam-1 | legacy | 1.488 | 0.856 | -0.044 | 0.050 | fused | fused | — | 0.006 | -0.050 | 0.187 |
+| cam-5 | legacy | 1.456 | 0.788 | 0.044 | 0.025 | fused | fused | — | 0.000 | -0.012 | 0.306 |
+| cam-14 | legacy | 1.525 | 0.631 | 0.019 | -0.006 | fused | fused | — | 0.025 | -0.025 | 0.188 |
+| cam-27 | legacy | 1.169 | 0.756 | -0.019 | -0.019 | fused | fused | — | 0.000 | -0.031 | 0.144 |
+| approx-a | legacy | 1.425 | 1.119 | 0.012 | 0.031 | fused | fused | — | -0.050 | 0.000 | 0.287 |
+| approx-b | legacy | 1.525 | 0.963 | -0.006 | 0.000 | fused | fused | — | -0.000 | 0.013 | 0.544 |
+| cam-1 | shardfile | 2.200 | 0.950 | -0.006 | -0.037 | 0.256 | 0.069 | -0.031 | -0.000 | 0.012 | 0.819 |
+| cam-5 | shardfile | 2.212 | 1.287 | -0.031 | 0.112 | 0.469 | 0.219 | -0.063 | 0.063 | -0.088 | 0.644 |
+| cam-14 | shardfile | 2.256 | 1.088 | 0.025 | 0.019 | 0.256 | 0.081 | 0.019 | 0.013 | -0.025 | 0.819 |
+| cam-27 | shardfile | 1.563 | 1.113 | 0.000 | 0.012 | 0.156 | 0.113 | -0.012 | 0.031 | -0.006 | 0.537 |
+| approx-a | shardfile | 2.025 | 1.175 | 0.025 | -0.050 | 0.325 | 0.112 | 0.037 | -0.031 | 0.000 | 0.431 |
+| approx-b | shardfile | 2.238 | 1.081 | -0.031 | 0.031 | 0.400 | 0.131 | 0.025 | 0.006 | 0.006 | 0.356 |
+
+| Pose | Mode | Rain | Canopy | Crowd / umbrellas | Facades / slabs | Neon / signs | Lanterns | Wet reflection | Movers | Viewmodel |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| cam-1 | legacy | 0.262 | -0.025 | 0.012 | 0.625 | -0.050 | -0.038 | — | -0.037 | 0.156 |
+| cam-5 | legacy | 0.144 | 0.006 | -0.031 | 0.431 | 0.000 | -0.006 | — | 0.031 | 0.069 |
+| cam-14 | legacy | 0.119 | — | 0.050 | 0.600 | 0.025 | -0.025 | — | -0.006 | 0.094 |
+| cam-27 | legacy | 0.006 | — | 0.031 | 0.400 | 0.038 | 0.012 | — | — | 0.137 |
+| approx-a | legacy | 0.056 | -0.019 | 0.119 | 0.663 | -0.056 | -0.012 | — | -0.031 | 0.244 |
+| approx-b | legacy | 0.056 | 0.025 | 0.119 | 0.544 | -0.056 | -0.006 | — | 0.019 | 0.138 |
+| cam-1 | shardfile | 0.106 | 0.006 | 0.106 | 1.063 | -0.025 | -0.019 | — | — | 0.162 |
+| cam-5 | shardfile | 0.269 | 0.106 | -0.012 | 1.069 | -0.069 | 0.087 | — | — | 0.269 |
+| cam-14 | shardfile | 0.169 | — | 0.038 | 1.100 | -0.012 | 0.031 | — | 0.050 | 0.206 |
+| cam-27 | shardfile | -0.025 | — | 0.037 | 0.694 | -0.025 | -0.006 | — | — | 0.269 |
+| approx-a | shardfile | 0.019 | 0.000 | 0.175 | 1.087 | 0.006 | -0.025 | — | 0.006 | 0.244 |
+| approx-b | shardfile | 0.100 | -0.019 | 0.194 | 1.281 | -0.019 | 0.031 | — | — | 0.212 |
+
+| Pose | SHARDFILE − LEGACY whole ms | SHARDFILE − LEGACY CPU ms | Largest five SHARDFILE skip savings (overlapping) |
+|---|---:|---:|---|
+| cam-1 | 0.712 | 0.094 | group:facades-slabs: 1.063; pass:2: 0.531; silhouette: 0.256; group:other: 0.188; group:viewmodel: 0.162 |
+| cam-5 | 0.756 | 0.500 | group:facades-slabs: 1.069; silhouette: 0.469; pass:2: 0.456; group:rain-streaks: 0.269; group:viewmodel: 0.269 |
+| cam-14 | 0.731 | 0.456 | group:facades-slabs: 1.100; pass:2: 0.594; silhouette: 0.256; group:viewmodel: 0.206; group:rain-streaks: 0.169 |
+| cam-27 | 0.394 | 0.356 | group:facades-slabs: 0.694; pass:2: 0.425; group:viewmodel: 0.269; group:other: 0.200; silhouette: 0.156 |
+| approx-a | 0.600 | 0.056 | group:facades-slabs: 1.087; pass:2: 0.444; silhouette: 0.325; group:viewmodel: 0.244; group:crowd-umbrellas: 0.175 |
+| approx-b | 0.712 | 0.119 | group:facades-slabs: 1.281; pass:2: 0.469; silhouette: 0.400; group:viewmodel: 0.212; group:crowd-umbrellas: 0.194 |
+
+### pine-hollow — source a2dc011-mvvu4ju0
+
+| Pose | Mode | Whole throughput ms | CPU submit ms | Shadow skip | Depth-copy skip | Silhouette skip | Jiehua skip | Display skip | FXAA skip | No-op | End-start drift ms |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| P1 | legacy | 1.450 | 1.344 | 0.044 | -0.031 | — | — | — | — | 0.000 | 0.469 |
+| P2 | legacy | 1.625 | 1.506 | 0.188 | -0.050 | — | — | — | — | 0.069 | 1.100 |
+| P3 | legacy | 1.956 | 1.775 | 0.262 | -0.025 | — | — | — | — | -0.025 | -0.300 |
+| P4 | legacy | 2.744 | 2.025 | 0.519 | 0.263 | — | — | — | — | -0.100 | 0.706 |
+| P1 | shardfile | 1.431 | 1.131 | 0.100 | 0.038 | — | — | — | — | -0.013 | -0.169 |
+| P2 | shardfile | 1.700 | 1.381 | -0.044 | -0.025 | — | — | — | — | 0.012 | -0.225 |
+| P3 | shardfile | 1.594 | 1.269 | -0.094 | 0.019 | — | — | — | — | -0.044 | -0.063 |
+| P4 | shardfile | 2.000 | 1.644 | -0.050 | -0.012 | — | — | — | — | 0.031 | -0.375 |
+
+| Pose | Mode | Rain | Canopy | Crowd / umbrellas | Facades / slabs | Neon / signs | Lanterns | Wet reflection | Movers | Viewmodel |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| P1 | legacy | 0.019 | -0.075 | — | — | — | — | -0.012 | — | 0.106 |
+| P2 | legacy | 0.006 | -0.094 | — | — | — | — | 0.075 | — | 0.169 |
+| P3 | legacy | 0.031 | -0.063 | — | — | — | — | -0.037 | — | 0.131 |
+| P4 | legacy | 0.181 | -0.256 | — | — | — | 0.094 | 0.056 | — | 0.488 |
+| P1 | shardfile | 0.006 | 0.031 | — | — | — | — | 0.044 | — | 0.144 |
+| P2 | shardfile | -0.038 | 0.038 | — | — | — | — | -0.019 | — | 0.200 |
+| P3 | shardfile | -0.000 | -0.012 | — | — | — | — | 0.063 | — | 0.138 |
+| P4 | shardfile | 0.063 | -0.006 | — | — | — | 0.081 | 0.063 | — | 0.137 |
+
+| Pose | SHARDFILE − LEGACY whole ms | SHARDFILE − LEGACY CPU ms | Largest five SHARDFILE skip savings (overlapping) |
+|---|---:|---:|---|
+| P1 | -0.019 | -0.212 | group:other: 0.225; alpha-tested: 0.194; group:viewmodel: 0.144; shadow: 0.100; effect:1:7: 0.075 |
+| P2 | 0.075 | -0.125 | group:other: 0.394; alpha-tested: 0.281; group:viewmodel: 0.200; group:canopy-cards: 0.038; group:sky: 0.038 |
+| P3 | -0.363 | -0.506 | group:other: 0.394; alpha-tested: 0.206; group:viewmodel: 0.138; effect:1:7: 0.069; group:wet-reflection: 0.063 |
+| P4 | -0.744 | -0.381 | group:other: 0.519; alpha-tested: 0.206; group:viewmodel: 0.137; group:lanterns: 0.081; group:wet-reflection: 0.063 |
+
+### Approximate (a): five named components, matched skip deltas
+
+| Component | LEGACY ms | SHARDFILE ms | SF − legacy ms |
+|---|---:|---:|---:|
+| Facades / slabs | 0.663 | 1.087 | 0.425 |
+| Full Jiehua composite (fused effect / two draws) | 0.013 | 0.444 | 0.431 |
+| Silhouette (legacy fused) | — | 0.325 | — |
+| Viewmodel | 0.244 | 0.244 | 0.000 |
+| Crowd / umbrellas | 0.119 | 0.175 | 0.056 |
+
+Calibration model only: 79 ms / 2.225 ms = 35.506 from approximate (a), pre-G2 source 587a960-mvvsn4rn. The newer table is not renormalized to 79 ms. No physical phone GPU, fps or official timing credit.
+
+G872: skip values are non-additive (overlap, occlusion, CPU submission floor). Per-span EXT queries changed a 5.1 ms whole into 21.7 ms pass / 45.6 ms group sums; the 10% sum bar is not measurable. Signed no-op and drift rows are retained.
+
+Shared-machine diagnostics: o5 PF12/PF5 Chromium 4x measurements overlapped; the short root Sky entry near 03:40 UTC overlapped early corrected Nine rows. The later 7400 entry ran between Nine and Pine. Maximum absolute no-op delta was 0.100 ms, maximum whole-frame end/start drift 1.100 ms. These descriptive mode gaps are not an isolated performance acceptance reading; small differences are not attributed as gains.
+
+Approximate (a)/(b) are by-eye phone screenshot matches, not exact phone coordinates. Golden XYZ/angles are reference poses; actual native FOV was 100.107 degrees, rather than overriding it with the historical 93.01-degree catalogue projection. Raw JSON records actual camera matrices/FOV/eye, shader identities and submitted draw counts. A dash means no observed matching submitted group/effect; raw noise is retained, not a hidden GPU cost. Unclassified submitted meshes remain in other rather than being assigned to an invented owner.
+
+The optional `--coverage=1 --subtract=0 --rounds=1 --frames=1` colour diagnostic retains native
+vertex transforms, discard and depth order, replacing final colour with additive counters.
+Approximate (a): architecture **2,252,169 depth-passing samples / 1,395,036 covered pixels**,
+steam 399,639, streaks 152,662, zero saturation. Full native RGBA restoration: **0 pixels**.
+These are not shader-invocation counts; exact fragment hashes join the admitted G3 programs.
+Raw: `tmp/sp-x8-g1/coverage-pilot/nine-dragon-stack-shardfile-approx-a.json`. Remaining five Nine
+and four Pine coverage views belong to sp-x6; no global pixel-weighted ranking is claimed here.
+
+**Held-palette follow-up done:** `587a960cb5` + `c0680975dd`, matched `a9601a481f` parent.
+At each of P1–P5 over 120 frames, texture calls **1,920 → 1,200**, bytes
+**1,413,120 → 1,228,800**; only six unchanged one-bone palettes stop uploading.
+All ten animated palettes remain live. Held-inclusive M3: five A/A + five A/B, **0 RGBA pixels**,
+24 actual viewmodel draws per pose. World-only P1/P2 differences are the accepted G941 parent-repeat
+coordinates (569,1139) / (591,715); P3–P5 exact. Twenty controls include native parent-motion
+vertex equivalence over 36 poses. This is upload traffic, not a measured FPS improvement.
