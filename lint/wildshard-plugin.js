@@ -1,4 +1,5 @@
 import { noGeneratedImportRule, noGeneratedJsonImportRule } from './no-generated-import.mjs';
+import { execMaxBufferRule } from './exec-max-buffer.mjs';
 import { BASE64_POLICY, noBase64Rule } from './no-base64.mjs';
 import { clientPlanSchemaViolations } from './client-plan-boundary.mjs';
 import { explicitSchemaTypes } from './schema-types.mjs';
@@ -1169,6 +1170,7 @@ const noProductionTestImport = rule('Production cannot import a test module (G64
 const plugin = {
   meta: { name: 'wildshard' },
   rules: {
+    'exec-max-buffer': execMaxBufferRule,
     'no-production-test-import': noProductionTestImport,
     'no-client-plan-reflection': clientPlanReflection,
     'explicit-schema-types': explicitSchemaTypes(shardfileDebt,pathOf),

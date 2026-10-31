@@ -7,6 +7,13 @@ import { parseSync } from 'vite';
 import { runCommitJobs } from './precommit-jobs.mjs';
 import { readLintConfig } from './guard-counts.mjs';
 
+/** Read Git's complete inventory without Node's implicit 1 MiB capture limit.
+ * This helper never writes the index or materializes a source snapshot.
+ * @param {string} root @param {string[]} args @returns {string} */
+export function precommitGit(root,args) {
+  return execFileSync('git',args,{cwd:root,encoding:'utf8',maxBuffer:32*1024*1024});
+}
+
 /** Only exact declared generated imports may be absent from a cold sealed
  * snapshot. Ordinary missing modules remain failures of the selected guard.
  * @param {string} root @param {string} guard @returns {string[]} */
@@ -29,7 +36,7 @@ export function missingInventoryGeneration(root, guard) {
  * @param {string} [root] @param {string} [executable] */
 export async function precommitInputs(root = resolve(import.meta.dirname, '..'), executable = resolve(root, 'node_modules/.bin/oxlint')) {
   const deadline = performance.now() + 5_000;
-  const git = (/** @type {string[]} */ args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' });
+  const git = (/** @type {string[]} */ args) => precommitGit(root,args);
   const files = git(['diff', '--cached', '--name-only', '-z', '--diff-filter=ACMR']).split('\0')
     .filter(file => /\.[cm]?[jt]sx?$/u.test(file));
   const config = resolve(root, '.oxlintrc.json');

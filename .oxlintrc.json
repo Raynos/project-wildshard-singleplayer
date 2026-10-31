@@ -164,6 +164,11 @@
       "rules": { "wildshard/no-shard-branch": "error" }
     },
     {
+      // H2: guard the live hook family; bounded Git control calls need no inventory buffer.
+      "files": ["scripts/precommit*.mjs"],
+      "rules": { "wildshard/exec-max-buffer": "error" }
+    },
+    {
       "files": ["lint/**"],
       "rules": { "import/no-default-export": "off" } // oxlint loads a JS plugin from its default export
     },

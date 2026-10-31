@@ -165,7 +165,7 @@ or is deleted;** no tooling commit breaks every commit unnoticed. 8. No wait ove
 | Row | What | Expected win | Size | Done when |
 |---|---|---|---|---|
 | H1 | Pre-commit materialises only staged files and the inputs a selected job reads; no snapshot when nothing under `src/ scripts/ test/ lint/` is staged; closed / ratchet only when `src/` or `lint/ratchet.json` is staged | docs-only commit 3.0 s measured at load ~30 (over 5 s at peaks) → < 1 s; source commits −2–4 s | S | a docs-only commit < 1.5 s and a 3-file commit < 3 s at load ≥ 25 |
-| H2 | **Tooling self-test on the real repo:** the gate runs `precommit-inputs` (dry run) and `push-loop --check` against the real index when `.githooks/`, `scripts/precommit*`, `push-*`, `live-prepush.py` or `commit.sh` change; lint rule `wildshard/exec-max-buffer` for `scripts/` | the c2ff69dd04 class stops at the gate | S | a fixture reintroducing the 1 MB buffer goes red in the gate |
+| H2 | **Done (2026-10-31, sp-x6; G964 live-gap scope):** the live `precommitGit` helper captures with an explicit 32 MiB bound. The real index is read without mutation; `wildshard/exec-max-buffer` rejects captured Git inventories/dynamic lists without a bound in `scripts/precommit*.mjs`. Existing whole-source fast lint enforces it. Retired snapshots and `push-loop --check` stay retired. | stops the live default-buffer breakage class | S | direct real-index ENOBUFS reproduction, live-source omission mutant red, original hook controls green |
 | H3 | Deferral is never silent: a staged ratchet or closed check that times out is recorded for the gate like typed lint (fix the early `return` in `defer()`) | closes d7255f9638's hole | XS | a timed-out ratchet with no source staged runs at the next tick |
 | H4 | commit-msg drops `check-lock.mjs` and `.github/lock.json` | one dead process per commit | XS | files gone |
 
@@ -266,3 +266,36 @@ one-page AGENTS.md, 5.3 receipts, 5.4 budget estimate kept as written; 5.2 lint 
 fix. 3. CI time: K1 → S1 → C1 → C2, C3, C5, C6; K3. 4. Commit and gate time: H1, P4; K2 (after the gen plan) → P2 (after
 TypeScript T5). 5. Hygiene: X2 → X1, L2–L4. 6. Release: B1, R2, V3, V4. 7. Shape and machine: S2 with TypeScript T3, S4;
 M1 → M2, M3, M4 if triggered; K4; BUILD-SPEED 4–5 last.
+
+## H2: live hook capture boundary (G964)
+
+The old H2 wording described the retired full-source snapshot and push-loop
+self-test. G964 narrows this landing to the current helper and a focused
+rule. `precommit-inputs` now uses one exported internal Git reader with
+an explicit **32 MiB** capture limit, retaining the same commands, index,
+staged selection, storage checks, typed lint and five-second wall budget.
+No dry-run interface or new hook worker is introduced.
+
+The regression reads the **real current index**, not a toy substitute:
+**2,948,712 bytes /29,381 entries** at measurement. The original Node
+default fails with `ENOBUFS`; the helper captures the complete NUL-ended
+output. This is read-only Git inventory, with no staging, snapshot or
+source materialization. A future smaller index remains valid.
+
+The syntax-only rule recognizes imported Node synchronous Git captures,
+including named aliases, namespace calls and shell inventory commands.
+It accepts explicit bounds and noncapturing stdio, and does not require
+a large buffer for bounded control queries such as `rev-parse`. Activation
+is deliberately the **live precommit helper family**, rather than a new
+whole-tooling migration or debt allowance. The existing push fast-lint
+phase sees the same configured rule; no push-loop recursion or extra
+required test batch is added.
+
+Controls run the installed oxlint/plugin: **11** default/invalid/captured
+forms refuse, **9** bounded/control/noncapturing forms pass, and the
+actual live helper passes while removing its `maxBuffer` property refuses.
+The existing source-selection/named-export and docs/test-only hook cases
+remain green: **6 tests /2 files**, direct Vitest **5.91 s**. Root and
+scripts types and named typed lint pass. The linked archived TypeScript,
+oxlint, binary-JSON and generator plans remain done; this change does not
+reopen them or promise an unmeasured hook speedup.
