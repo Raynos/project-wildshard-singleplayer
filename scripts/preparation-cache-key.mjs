@@ -14,6 +14,11 @@ const hash=v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u));
 const Phase=v.object({inputs:v.record(v.string(),hash),outputs:v.record(v.string(),hash)});
 const Receipt=v.object({buildKey:hash,indexHash:hash});
 const digest=/** @param {Uint8Array|string} value */ value=>createHash('sha256').update(value).digest('hex');
+// These two standalone Simulator/fixture programs never populate the five
+// transported roots. Keep their raw bytes in the full phase admission below,
+// but not in the transport identity. If an author ever reads either, its sealed
+// product buildKey still binds that read. All other inputs remain conservative.
+const nonGenerating=new Set(['scripts/sim-safari-ready.py','scripts/test_sim_lane.py']);
 
 /** Select only complete current products and the verified compiler/generator inputs.
  * Missing, crossed or incomplete evidence retains the old save, never a false hit.
@@ -48,8 +53,8 @@ export function preparationCacheKey(sourceRoot,fallback,{cacheRoot=shardfileCach
         throw new Error(`Product receipt differs ${slug}`);
       return [slug,receipt.buildKey,receipt.indexHash];
     });
-    const key=digest(JSON.stringify({schema:'preparation-inputs/1',node:process.version,platform:process.platform,arch:process.arch,
-      products:admitted,inputs:inputs.map(path=>[path,phase.inputs[path]])}));
+    const key=digest(JSON.stringify({schema:'preparation-inputs/2',node:process.version,platform:process.platform,arch:process.arch,
+      products:admitted,inputs:inputs.filter(path=>!nonGenerating.has(path)).map(path=>[path,phase.inputs[path]])}));
     return {key:`${fallback.replace('preparation-v3-','preparation-v4-').slice(0,-40)}${key}`,qualified:true,products:products.length,reason:'admitted-receipts-and-generating-inputs'};
   } catch(error) {
     return {key:fallback,qualified:false,products:0,reason:error instanceof Error?error.message:'Unknown preparation identity'};

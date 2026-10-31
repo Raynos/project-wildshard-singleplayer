@@ -1516,3 +1516,44 @@ becoming accepted on the second release.
 The reproducible retained-input arithmetic and source/run/job bindings
 are in `tmp/sp-x6-ci9-all4-after/audit.json`; root proof is
 `tmp/sp-ci-deploy-qa-refresh/qa-82b9-complete-proof.json`.
+
+### Save-key false miss: reviewed Simulator inputs
+
+The follow-up makes one bounded exact predecessor-log read, prepare
+`124596012646` on `0f1906ec37` / run `41221226717`. It **qualifies
+`4d6a48eb…cdcae2` and skips its save on an exact primary hit**. That is
+the exact key later restored by 82b9; this binds a qualified source to
+the restored identity without guessing from run chronology.
+
+Both jobs use Node **v24.22.1** and reuse all 24 products. The only raw
+identity inputs changed between their commits are
+`scripts/sim-safari-ready.py` and `scripts/test_sim_lane.py`. The third
+changed path is plan STATE, already excluded. There is no commit SHA,
+timestamp, build version or unordered input traversal in this key. The
+bug is overly broad raw source selection: every tracked scripts file
+entered the transport key, including these two standalone Simulator and
+Python fixture programs. Their caller is `sim-lane.sh`, not generation.
+
+The transport key now excludes **only these two reviewed non-generating
+files**, with a versioned identity body. The complete source-phase
+inventory and verification still include both. Every other source,
+compiler, generator, lock, Node/platform/architecture and admitted
+product key/index remains. If an author ever reads either file, that
+real dependency still changes its sealed product build key. Unknown or
+incomplete evidence still selects the legacy save; the five roots,
+restore flow, lookup-only exact-hit skip and protected groups are intact.
+No cache contents or generated outputs are removed by this repair.
+
+Controls: the original 12 plus two regressions **14/14 pass**. A changed
+Simulator file refuses before the phase is current, then retains the
+transport key; an actual product read of that same file refuses until
+re-admitted and then changes the key. Compiler/generator/lock/source
+addition, cross-root/seal/output corruption and prune refusal controls
+remain green. Scripts types and named typed lint pass. The complete
+working-tree type check exposes only the separately owned untracked
+section-inventory CS1 draft, not a diagnostic in this packet.
+
+The new identity body will populate once; no new cloud skip is claimed
+before its ordinary containing run. Other unrelated scripts remain
+conservative inputs rather than introducing an unproven broad exclusion.
+The H2 tooling task resumes after this fix. No dispatch or native proof.

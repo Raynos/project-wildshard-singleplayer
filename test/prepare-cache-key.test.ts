@@ -22,6 +22,7 @@ async function fixture() {
   mkdirSync('tmp',{recursive:true});const root=realpathSync(mkdtempSync(resolve('tmp/preparation-key-')));owned.push(root);
   const cacheRoot=resolve(root,'cache'),products=['alpha','beta'];
   const sourceFiles=['package.json','pnpm-lock.yaml','pnpm-workspace.yaml','scripts/source-generation-outputs.json','scripts/compiler.mjs',
+    'scripts/sim-safari-ready.py','scripts/test_sim_lane.py',
     ...products.flatMap(slug=>[`src/shards/${slug}/manifest.json`,`src/shards/${slug}/shard.config.ts`])].sort();
   for(const path of sourceFiles)write(root,path,'{}');
   write(root,'scripts/compiler.mjs','export const version=1;');
@@ -39,11 +40,11 @@ async function fixture() {
     const identity=sourceSnapshotIdentity({node:process.version,platform:process.platform,arch:process.arch,products,inputs:[...sourceFiles].sort()});
     publishSourceSnapshot(phase,identity,memo,{'src/output.generated.ts':memo.hash('src/output.generated.ts',true)});
   };
-  const admit=async(slug:string)=>{
+  const admit=async(slug:string,extraInput?:string)=>{
     const source=`src/shards/${slug}/shard.config.ts`,memo=new InputHashMemo(root);
     const recipe=[slug,'--copy-runtime',`${productToolchainKey(root,memo)}:${shardfileValidationRevision(root)}`];
     const raw=resolve(root,`${slug}.receipt.json`);
-    await captureProductInputs(root,raw,async()=>{readFileSync(resolve(root,source));recordBundle({output:[]});await Promise.resolve();});
+    await captureProductInputs(root,raw,async()=>{readFileSync(resolve(root,source));if(extraInput!==undefined)readFileSync(resolve(root,extraInput));recordBundle({output:[]});await Promise.resolve();});
     const key=productInputKey(root,raw,recipe,memo);if(key===undefined)throw new Error('Fixture input receipt missing');
     const receipts=resolve(cacheRoot,'.inputs-v2',slug,digest(JSON.stringify(recipe)));
     publishProductInputs(receipts,raw,key);
@@ -76,6 +77,24 @@ test('compiler and generator input changes require a current phase and then a ne
   write(f.root,'scripts/compiler.mjs','export const version=2;');
   expect(f.read()).toMatchObject({qualified:false,key:fallback});
   f.publish();const next=f.read();expect(next.qualified,next.reason).toBe(true);expect(next.key).not.toBe(first.key);
+});
+
+test('Simulator-only changes retain transport identity only after full current source admission',async()=>{
+  const f=await fixture(),first=f.read();expect(first.qualified,first.reason).toBe(true);
+  for(const path of ['scripts/sim-safari-ready.py','scripts/test_sim_lane.py']) {
+    write(f.root,path,'changed Simulator behavior');
+    expect(f.read()).toMatchObject({qualified:false,key:fallback});
+    f.publish();expect(f.read()).toEqual(first);
+  }
+});
+
+test('a product that reads a Simulator file still invalidates its admitted build key',async()=>{
+  const f=await fixture(),path='scripts/sim-safari-ready.py';
+  await f.admit('alpha',path);const first=f.read();expect(first.qualified,first.reason).toBe(true);
+  write(f.root,path,'changed real author input');f.publish();
+  expect(f.read()).toMatchObject({qualified:false,key:fallback});
+  await f.admit('alpha',path);const next=f.read();expect(next.qualified,next.reason).toBe(true);
+  expect(next.key).not.toBe(first.key);
 });
 
 test('identical receipts on independent runner roots derive the same transport key',async()=>{
