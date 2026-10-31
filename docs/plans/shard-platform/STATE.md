@@ -11,9 +11,9 @@ table qa-2026-10-30 (2508e90724).
 
 **21:50 E518 (Jake): finish every row of the 4 fps plans tonight**, schedule = finish-fps-2026-10-30-mini-spike.md.
 Nine was GPU-bound on his phone (13 fps, gpu 45.7 ms vs CPU 10).
-**13:45:** warm load 35 -> 30.6 s (road d353; Home bisect afe..61f, x8). No Simulator.app here: PR5 = Jake's playtest (G872).
+**14:45:** 359b red fixed (660bfcad6a lint; 360b323dda + 07a fixtures); 35ee (PWA) in CI. Warm Home first-bad 039d78823e (x8 + x9 fix).
 **wildshard-v (G963/G964):** PWA PR1-PR5 sp-x9 (12:30). CI3 met (G872: 21/21 since 93bd); CI2 open; CI9 x6, CI10 x2 + x8.
-CS2 sp-x1 (2 slices exact), CS5-CS6 sp-x2, TOOLING-PERF sp-x6 (H2 / L1 / C4), DAT T3-T4 inventoried.
+CS2 x1, CS5 + CS6 x2 (payloads exact), TOOLING-PERF list audited (x6), DAT T3-T4 inventoried.
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
 (f33d642372) G4 fusion closed measured (precision frontiers). Pine GPU ok.
