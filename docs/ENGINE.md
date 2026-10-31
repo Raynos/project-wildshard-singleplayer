@@ -3709,10 +3709,10 @@ VIEW call (`views`: `arena.lid.open`, `arena.shaft`, `arena.shield`, `adds.spot`
 `hazard.ring`, `hazard.pour.fall`, `hazard.sweep`, `victory.heap`, …), numbers only, world space; the shard's
 `BossViewBinding` must bind exactly the declared names. The ports lend the arena (floor heights, drift pile / clear /
 drain, the threshold, the seal), the bodies (spawn, retire, bind the species brain, ready), the adds' spawn, the player,
-the hit resolvers (`cut`, `hazard` by strike name), the rng and the feed. It returns the engine's `BossScript`, the body's
-`brain` (think / act / damageMul the species forwards), the bodies and `snapshot()`. Nalati's Golden King is the first
-(`combat/goldenKingRow.ts`, views `combat/goldenKingViews.ts`), replayed tick for tick against the shipped fight
-(`test/fixtures/species-oracle/goldenKing.ts`).
+the hit resolvers (`cut`, `hazard` by strike name), RNG and feed. The returned script, brain and scalar `snapshot()`
+are unchanged. `continuation(identify)` / `restore(saved, find)` retain all clocks, King/add ids, niches and retirement
+clocks. Quiet restore validates state and distinct bodies before rebinding; no reset, spawn, retirement, views or RNG.
+Native owners separately restore body memory, HP, attacks, physics and random streams.
 
 The same installer accepts a `RoamingBossRow` (`kind: 'roaming'`) for a pursuing boss: named mode policies,
 phase HP/reset checkpoints, authored strike clips, expanding rings, falling/burning hazards, lane chains and roaming

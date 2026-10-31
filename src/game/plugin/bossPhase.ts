@@ -266,6 +266,24 @@ export interface PhasedBossState {
   beamOn: boolean; beamA: number; beamDir: number; beamHitCd: number; beamKingCd: number; beamK: number; victoryT: number;
 }
 
+/** Complete fixed-arena continuation. Bodies retain their native owner's
+ * identities; restoring never resets an encounter or manufactures an actor. */
+export interface PhasedBossContinuation {
+  readonly version: 1; readonly state: PhasedBossState; readonly king: string | null;
+  readonly adds: readonly { readonly id: string; readonly niche: number; readonly deadT: number }[];
+}
+const phaseFinite = v.pipe(v.number(), v.finite());
+const phaseCount = v.pipe(phaseFinite, v.integer(), v.minValue(0));
+const phaseIdentity = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
+const PhasedContinuationSchema = v.strictObject({version:v.literal(1),king:v.nullable(phaseIdentity),
+  adds:v.array(v.strictObject({id:phaseIdentity,niche:phaseCount,deadT:v.pipe(phaseFinite,v.minValue(0))})),
+  state:v.strictObject({mode:phaseIdentity,phase:phaseCount,invuln:v.boolean(),lockHp:phaseFinite,modeT:phaseFinite,
+    comboLeft:phaseCount,comboCd:phaseFinite,burstCd:phaseFinite,glow:phaseFinite,glint:phaseFinite,plaques:phaseCount,
+    chestOpen:v.boolean(),headHp:phaseFinite,lastHp:phaseFinite,lastHeadHit:v.boolean(),waves:phaseCount,waveT:phaseFinite,
+    rings:v.array(v.strictObject({r:phaseFinite,delay:phaseFinite,active:v.boolean(),hit:v.boolean(),cx:phaseFinite,cz:phaseFinite})),
+    streams:v.array(v.strictObject({st:v.picklist([0,1,2]),t:phaseFinite})),streamT:phaseFinite,beamOn:v.boolean(),beamA:phaseFinite,
+    beamDir:v.picklist([-1,1]),beamHitCd:phaseFinite,beamKingCd:phaseFinite,beamK:phaseFinite,victoryT:phaseFinite})});
+
 /** A phased boss fight: the engine's `BossScript`, the body's brain, its bodies and its continuation. */
 export interface PhasedBossFight<A extends PhasedBossBody> {
   readonly script: BossScript;
@@ -279,6 +297,10 @@ export interface PhasedBossFight<A extends PhasedBossBody> {
   /** The armour is broken (melee tore it). */
   readonly armourBroken: () => boolean;
   readonly snapshot: () => PhasedBossState;
+  /** Detached scalar state plus the host's original body identities. */
+  readonly continuation: (identify: (body: A) => string) => PhasedBossContinuation;
+  /** Quietly adopt already restored native bodies, after complete validation. */
+  readonly restore: (saved: unknown, find: (id: string) => A | null) => void;
   /** Debug: kill the boss now. */
   readonly kill: () => void;
 }
@@ -707,6 +729,26 @@ function fixedPhasedBossFight<A extends PhasedBossBody>(row: PhasedBossRow, port
   return {
     script, brain, body: () => king, adds: () => adds.map((b) => b.a), mode: () => s.mode, phase: () => s.phase, armourBroken: () => s.chestOpen,
     snapshot: () => structuredClone(s),
+    continuation: identify => ({version:1,state:structuredClone(s),king:king===null?null:identify(king),
+      adds:adds.map(({a,niche,deadT})=>({id:identify(a),niche,deadT}))}),
+    restore: (input,find) => {
+      const saved=v.parse(PhasedContinuationSchema,input),state=saved.state;
+      if(row.modes[state.mode]===undefined||state.phase>=row.phases.length||state.rings.length!==s.rings.length
+        ||state.streams.length!==s.streams.length||saved.adds.some(add=>add.niche>=row.adds.spots.length))
+        throw new Error('Incompatible phased boss continuation');
+      const ids=[...(saved.king===null?[]:[saved.king]),...saved.adds.map(add=>add.id)];
+      if(new Set(ids).size!==ids.length)throw new Error('Duplicate phased boss body');
+      const bodies=new Map(ids.map(id=>{const body=find(id);if(body===null)throw new Error('Missing phased boss body');return [id,body] as const;}));
+      if(new Set(bodies.values()).size!==bodies.size)throw new Error('Aliased phased boss body');
+      const restoredKing=saved.king===null?null:bodies.get(saved.king);
+      if(restoredKing===undefined)throw new Error('Missing phased boss king');
+      const restoredAdds=saved.adds.map(add=>{const a=bodies.get(add.id);if(a===undefined)throw new Error('Missing phased boss add');
+        return {a,niche:add.niche,deadT:add.deadT};});
+      // Actor memory, hp, attacks and physics were restored by their owner.
+      // Do not replay reset/intro/view calls, retire actors or consume RNG.
+      if(restoredKing!==null)ports.body.bind(restoredKing,brain);
+      Object.assign(s,structuredClone(state));king=restoredKing;adds=restoredAdds;
+    },
     kill: () => { const k = king; if (k?.alive === true) { s.invuln = false; s.mode = names.fight; k.headWorld(_h); k.applyDamage(k.hp + 10, _h, _w.set(0, 0, -1)); } },
   };
 }
