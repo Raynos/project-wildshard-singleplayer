@@ -43,6 +43,8 @@ test('defining validation preserves the owned value and original semantic refusa
   expect(() => validateRegisteredJson(name, { ...good, actions: [...good.actions, ...good.actions] })).toThrow('must be unique');
   expect(() => validateRegisteredJson('quests/achievements.json', {})).toThrow();
   expect(() => validateRegisteredJson('quests/page-composition.json', {})).toThrow();
+  for (const key of ['people/catalogue.json', 'quests/chapter-director.json', 'quests/story.json', 'quests/stall.json'] as const)
+    expect(() => validateRegisteredJson(key, [])).toThrow();
 });
 
 test('a registered read refuses missing or foreign metadata before reading any bytes', async () => {

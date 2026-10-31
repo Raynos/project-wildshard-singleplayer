@@ -399,6 +399,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'nativePhysics.NativeGroundFile': NativeGroundFileSchema,
   'worldAssembly.WorldAssembly': WorldAssemblySchema,
   'binarySource.BinarySource': BinarySourceSchema,
+  'namedJsonContracts.QuestTrader': QuestTraderSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();
