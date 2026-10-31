@@ -236,3 +236,23 @@ All ten animated palettes remain live. Held-inclusive M3: five A/A + five A/B, *
 24 actual viewmodel draws per pose. World-only P1/P2 differences are the accepted G941 parent-repeat
 coordinates (569,1139) / (591,715); P3–P5 exact. Twenty controls include native parent-motion
 vertex equivalence over 36 poses. This is upload traffic, not a measured FPS improvement.
+
+### G963: Nalati grass upload proof
+
+**2026-10-31, sp-x2 — open.** Normal sealed `6b9dbd3f40`, Chromium
+Metal / iPhone 16 Pro DPR2: 120 stationary and 120 pan frames each
+transfer **24,576 B/frame**. Four actual ring/flower meshes each upload
+complete 2,048 B `aTile` and 4,096 B `aHole` arrays; all 960 transfers
+per window are full. This measures bytes, not GPU/FPS or phone speed.
+
+An off-tree prefix-range candidate passes 240 original-fill/installed
+Three.js buffer comparisons, including zero counts and pending tails.
+The private response-patch experiment refused before entry: 128,310
+response bytes differ from the unchanged sealed spawn row's 128,253 B.
+The manifest mismatch is concrete; the observed browser result is an
+entry timeout, not a captured rendering failure. No candidate upload or
+pixel result exists; production is unchanged. Next: normal sealed
+before/after builds, native upload bytes and exact fresh-context A/A
+and A/B world pixels. Retain every spawn size/hash check; do not reuse
+the response override.
+

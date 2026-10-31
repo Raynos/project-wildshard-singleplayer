@@ -385,3 +385,28 @@ source review. Counts are scoped to these seven products, not the entire
 24-product inventory. CS3 implementation requires identical captures,
 including tier/shadow variants and complete scene resources. No drawing
 path changes or capture credit are claimed here.
+
+## CS7: next existing audio and people contracts
+
+**2026-10-31, sp-x2 — off-tree qualification, open.** Nalati's
+`audio/scene.json` already uses complete `AudioSceneSchema` and its
+native director. Driftwood's `people/cards.json` already uses
+`KitFigureCardsSchema` and the cold Explorer reader. Proposed
+registration retains both names, canonical payload expressions and
+native parsers; it adds the audio schema's defining SDK wire root.
+Driftwood's existing named-file wrapper supplies registered metadata.
+
+Three controls pass against actual admitted raw documents: exact
+defining schema and canonical bytes, unchanged input objects, native
+malformed-data refusal, and missing/foreign metadata refusal before a
+body read. The original audio consumer suite passes with its positive
+fixture carrying exact native metadata and the real checker. No
+producer or registry bytes are activated. An unchanged HEAD check also
+found CS9's island-book test still expecting removed `nativeEncounter`;
+its owner has the narrow same-defining-payload assertion correction.
+
+Acceptance remains a normal payload-identity build, strict admission
+and original consumer checks. Pine's weather program and Nalati's
+`{weather,reactions}` envelope remain an explicit CS7 exit; these two
+registrations do not unify those different wire shapes.
+
