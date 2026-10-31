@@ -6,6 +6,7 @@ import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { decodeSimSnapshot, decodeSimSnapshotBytes, snapshotSimHostBytes, serializeSimSnapshot,
   prepareSimHostRestore, restoreSimHost, SnapshotBasisMismatchError } from '../src/engine/sim/snapshot';
+import { canonicalSimDigest } from './fake/simState';
 import { SIM_LEVEL, fightCommand } from './fixtures/sim-level/level';
 
 const rapier = loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
@@ -65,6 +66,7 @@ test.each(['checksum', 'metadata', 'identity', 'framing', 'missing-basis', 'wron
 
 test('typed offset-view restore preserves DB1 transaction, detached native world and exact legacy replay', async () => {
   const R = await rapier, legacy = decodeSimSnapshot(checkpoint), typed = decodeSimSnapshotBytes(checkpoint);
+  expect(canonicalSimDigest(typed)).toBe(canonicalSimDigest(legacy));
   const backing = new Uint8Array(typed.physics.length + 19).fill(42), offset = backing.subarray(7, 7 + typed.physics.length);
   offset.set(typed.physics); typed.physics = offset;
   const target = prepareSimHostRestore(SIM_LEVEL, { rapier: R }), expected = restoreSimHost(SIM_LEVEL, { rapier: R }, legacy);

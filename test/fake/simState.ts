@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto';
 import RAPIER, { RigidBodyType, type Collider, type World } from '@dimforge/rapier3d-simd';
 import { Physics } from '../../src/engine/physics/Physics';
-import { decodeSimSnapshot, type SimSnapshot } from '../../src/engine/sim/snapshot';
+import { decodeSimSnapshot, type SimSnapshot, type SimSnapshotBytes } from '../../src/engine/sim/snapshot';
 
 /**
  * A sim snapshot's native physics as restored world state, the one canonical form of "the same world" (SF72, E435).
@@ -86,7 +86,7 @@ export function physicsDifference(a: PhysicsState, b: PhysicsState): string | nu
  * The sha256 of a snapshot in canonical form, a witness's continuation hash: every field but the physics bytes as JSON,
  * then the physics as restored world state, each value's exact float64 bits (so -0, NaN payloads and 1 ULP all count).
  */
-export function canonicalSimDigest(snapshot: SimSnapshot | string): string {
+export function canonicalSimDigest(snapshot: SimSnapshot | SimSnapshotBytes | string): string {
   const { physics, ...rest } = typeof snapshot === 'string' ? decodeSimSnapshot(snapshot) : snapshot;
   return createHash('sha256').update(JSON.stringify(rest)).update('\0').update(new Uint8Array(Float64Array.from(physicsState(physics).values).buffer)).digest('hex');
 }

@@ -6,17 +6,26 @@ import {builtProduct} from '../builtProduct';
 import {loadHeadlessProduct} from '../../../src/sdk/headlessProduct';
 import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
 import {loadRapier} from '../../../src/engine/physics/rapier';
-import {snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
+import {snapshotSimHostBytes,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
 import {canonicalSimDigest} from '../../fake/simState';
 import {createNativeProofResident} from '../headless-native';
 import {prepareHeadlessRuntime,nalatiPatrolOf} from '../nalati-patrol-native';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 
-const directory=builtProduct('nalati-grasslands'),product=await loadHeadlessProduct(directory),shard=product.shardfile;
+let priorPhase = 0;
+const phase = (name: string, tick?: number): void => {
+  const at = performance.now();
+  console.info(JSON.stringify({diagnostic: 'nalati-night-patrol-phase', phase: name, atMs: Math.round(at), phaseMs: Math.round(at - priorPhase), ...(tick === undefined ? {} : {tick})}));
+  priorPhase = at;
+};
+phase('imports-ready');
+const directory=builtProduct('nalati-grasslands'); phase('product-selected');
+const product=await loadHeadlessProduct(directory),shard=product.shardfile; phase('product-loaded');
 const descriptor=outputDescriptor(shard);assert.ok(descriptor);
 const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
-const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm')),input={shard,assets,rapier,product};
-const first=await createNativeProofResident(input,prepareHeadlessRuntime);
+phase('assets-loaded');
+const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm')),input={shard,assets,rapier,product}; phase('physics-loaded');
+const first=await createNativeProofResident(input,prepareHeadlessRuntime); phase('resident-created');
 let restored:Awaited<ReturnType<typeof createNativeProofResident>>|undefined;
 try{
   const owner=nalatiPatrolOf(first.host);assert.ok(owner);
@@ -29,16 +38,17 @@ try{
     first.step(commands);assert.equal(first.host.player.health.alive,true);
     assert.equal(owner.readiness.eligible,false);
     for(const effect of first.effects)assert.equal(effect.kind,'hint','waiting cannot grant quest completion or rewards');
+    if(first.host.state.tick%6000===0)phase('waiting-for-natural-night',first.host.state.tick);
   }
   assert.ok(owner.law.riders.length>0,'the original night cycle must select its own riders');
   assert.equal(first.host.dayClock?.dayPhase,'night');
   assert.equal(owner.law.killsTonight,0,'materializing actual riders cannot substitute for killing five');
   assert.ok(owner.law.riders.every(row=>row.a.alive));
-  const spawnTick=first.host.state.tick;
+  const spawnTick=first.host.state.tick; phase('night-earned',spawnTick);
   for(let tick=0;tick<120;tick++)first.step(commands);
-  const saved=snapshotSimHost(first.host),digest=canonicalSimDigest(saved);
+  const saved=snapshotSimHostBytes(first.host),digest=canonicalSimDigest(saved); phase('checkpoint-created',first.host.state.tick);
   restored=await createNativeProofResident(input,prepareHeadlessRuntime,serializeSimSnapshot(saved));
-  assert.equal(canonicalSimDigest(snapshotSimHost(restored.host)),digest,'an earned populated checkpoint restores quietly');
+  assert.equal(canonicalSimDigest(snapshotSimHostBytes(restored.host)),digest,'an earned populated checkpoint restores quietly'); phase('checkpoint-restored',restored.host.state.tick);
   const continued=nalatiPatrolOf(restored.host);assert.ok(continued);
   const observation=(resident:typeof first):unknown=>({
     patrol:resident.host.adapters.get('nalati.patrol')?.snapshot(),
@@ -49,7 +59,7 @@ try{
     first.step(commands);restored.step(commands);
     assert.deepEqual(observation(restored),observation(first),'every native rider, pose, arrow, guest clock and RNG continues exactly');
   }
-  assert.equal(canonicalSimDigest(snapshotSimHost(restored.host)),canonicalSimDigest(snapshotSimHost(first.host)),'the complete native world retains the same continuation');
+  assert.equal(canonicalSimDigest(snapshotSimHostBytes(restored.host)),canonicalSimDigest(snapshotSimHostBytes(first.host)),'the complete native world retains the same continuation'); phase('suffix-compared',first.host.state.tick);
   assert.equal(owner.readiness.eligible,false);assert.equal(continued.readiness.eligible,false);
   assert.equal(owner.law.killsTonight,0);assert.equal(continued.law.killsTonight,0);
   assert.equal(first.host.player.health.alive,true);
