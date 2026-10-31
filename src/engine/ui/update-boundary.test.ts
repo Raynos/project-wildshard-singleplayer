@@ -15,7 +15,7 @@ test('RL2 / QC3: one tap on the title adopts a waiting worker and loads a fresh 
   const replace = vi.fn<(url: string) => void>(), reload = vi.fn(), activate = vi.fn(() => Promise.resolve(true));
   const adopt = vi.fn((to?: string) => { if (to !== undefined) replace(to); return Promise.resolve(true); });
   vi.stubGlobal('location', Object.assign(new URL('https://example.com/?chunk=canal-reserve&v=old'), { replace, reload }));
-  Object.defineProperty(window, '__ws_sw', { configurable: true, value: { waiting: { state: 'installed' }, activate, adopt } });
+  Object.defineProperty(window, '__ws_sw', { configurable: true, value: { waiting: null, activate, adopt } });
   document.body.innerHTML = '<div id="hud" class="intro"><div class="ws-menu"></div></div>';
   await import('./Update');
   await vi.advanceTimersByTimeAsync(100);

@@ -50,7 +50,7 @@ function reload(): void {
     if (title) { markReload('update at title'); location.replace('/'); }
     else { markReload('update tapped'); location.reload(); }
   };
-  if (sw === undefined || !sw.waiting || sw.waiting.state === 'redundant') { plain(); return; }
+  if (sw === undefined) { plain(); return; }
   void sw.adopt(title ? '/' : undefined, title ? 'update at title' : 'update tapped')
     .then(sent => { if (!sent) plain(); return undefined; }, plain);
 }

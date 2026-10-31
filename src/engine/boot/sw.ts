@@ -6,7 +6,7 @@ import { pageScope } from '../app/resources';
  * Loaded as its own `<script type="module">` in index.html, ahead of main.ts, so the worker is registered
  * at the very first line of boot. Two jobs, both before the first big fetch:
  *
- *  1. A controlled document registers at once (update discovery) and is ready immediately. A first visit's
+ *  1. A controlled document watches its existing registration and is ready immediately. A first visit's
  *     install precaches the whole build (~330 files, ~20 MB), so an uncontrolled document is ready at once and
  *     registers only when its world first has control (`ws:control-ready`): the title tap and the boot's own
  *     downloads never wait on or race that install (MF21: waiting for first activation took the phone profile's
@@ -131,12 +131,15 @@ async function adopt(to?: string, why = 'new build adopted'): Promise<boolean> {
 }
 
 /** A completed activation serves the next document without claiming this one. */
-function activateWaiting(): Promise<boolean> {
-  const w = api.waiting;
-  // An announcement can outlive its worker (another tab already adopted it,
+async function activateWaiting(): Promise<boolean> {
+  if (!sw || !swAllowed()) return false;
+  let registration: ServiceWorkerRegistration | undefined;
+  try { registration = await sw.getRegistration(); } catch { return false; }
+  const w = registration?.waiting;
+  // A registration read can outlive its worker (another tab already adopted it,
   // or a later install replaced it). None of those states needs a hand-over.
-  if (!sw || !w || pageScope.disposed || pageScope.disposing || sw.controller === w
-    || (w.state !== 'installed' && w.state !== 'activating')) return Promise.resolve(false);
+  if (!w || pageScope.disposed || pageScope.disposing || sw.controller === w
+    || (w.state !== 'installed' && w.state !== 'activating')) return false;
   return new Promise<boolean>((resolve) => {
     const attempt = pageScope.child('worker-adoption');
     const finish = (claimed: boolean): void => { resolve(claimed); attempt.dispose(); };
@@ -233,7 +236,13 @@ async function register(s: ServiceWorkerContainer): Promise<void> {
   let reg: ServiceWorkerRegistration;
   // The host's no-cache still revalidates every update. Consult its ETag:
   // WebKit's default imports mode bypasses that conditional HTTP cache.
-  try { reg = await s.register(url, { scope: '/', updateViaCache: 'all' }); } catch { return; }
+  try {
+    const existing = await s.getRegistration();
+    reg = existing ?? await s.register(url, { scope: '/', updateViaCache: 'all' });
+    // register() is an update job and may remain pending behind an install on
+    // WebKit. Reading an existing registration never joins that queue.
+    if (existing !== undefined) void reg.update().catch(() => undefined);
+  } catch { return; }
   // A host that blocks worker installation can resolve without a registration.
   // Treat that as unavailable support, just like a rejected registration.
   if (reg === undefined) return;

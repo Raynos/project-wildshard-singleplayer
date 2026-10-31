@@ -6,7 +6,7 @@ test('a host-blocked worker registration settles without installing watchers', a
   vi.stubGlobal('__BUILD_ID__', 'blocked-worker');
   vi.stubGlobal('location', new URL('https://example.com/?sw=1'));
   const register = vi.fn(() => Promise.resolve(undefined));
-  const container = Object.assign(new EventTarget(), { controller: null, register });
+  const container = Object.assign(new EventTarget(), { controller: null, register, getRegistration: () => Promise.resolve(undefined) });
   const listeners = vi.spyOn(container, 'addEventListener');
   Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: container });
   try {

@@ -31,7 +31,7 @@ test('QC3: the lit pill activates the waiting worker before it reloads, so the n
   const active = new Worker(), waiting = new Worker();
   active.state = 'activated';
   const registration = Object.assign(new EventTarget(), { installing: null, waiting, active, update: () => Promise.resolve() });
-  const container = Object.assign(new EventTarget(), { controller: active, register: () => Promise.resolve(registration) });
+  const container = Object.assign(new EventTarget(), { controller: active, getRegistration: () => Promise.resolve(registration), register: () => Promise.resolve(registration) });
   Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: container });
   document.body.innerHTML = '<div id="hud" class="intro"><div class="ws-menu"></div></div>';
   const lit = new Promise(resolve => { window.addEventListener('ws-sw-waiting', resolve, { once: true }); });
@@ -42,7 +42,7 @@ test('QC3: the lit pill activates the waiting worker before it reloads, so the n
   if (!(pill instanceof HTMLButtonElement)) throw new Error('Missing update pill');
   expect(pill.classList.contains('newer')).toBe(true);
   pill.dispatchEvent(new Event('pointerup')); pill.click();
-  expect(waiting.messages).toContainEqual({ type: 'SKIP_WAITING' });
+  await vi.waitFor(() => { expect(waiting.messages).toContainEqual({ type: 'SKIP_WAITING' }); });
   // RL2 navigated here, in the tap's own turn: the old worker served the next document and the new one stayed waiting
   await Promise.resolve(); expect(replace).not.toHaveBeenCalled(); expect(reload).not.toHaveBeenCalled();
   waiting.state = 'activated'; waiting.dispatchEvent(new Event('statechange'));

@@ -8,7 +8,7 @@ test('without a controller, readiness is immediate and the worker registers only
   const worker = Object.assign(new EventTarget(), { state: 'installing', postMessage: vi.fn() });
   const registration = Object.assign(new EventTarget(), {active: null, installing: worker, waiting: null, update: vi.fn(() => Promise.resolve())});
   const register = vi.fn(() => Promise.resolve(registration));
-  const container = Object.assign(new EventTarget(), {controller: null, register});
+  const container = Object.assign(new EventTarget(), {controller: null, register, getRegistration: () => Promise.resolve(undefined)});
   Object.defineProperty(navigator, 'serviceWorker', {configurable: true, value: container});
   try {
     await import('./lastEnd');
