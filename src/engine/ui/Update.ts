@@ -104,18 +104,31 @@ const lightUp = (label: string): void => {
   paint();
   sync();
 };
+function dim(): void { newer = false; newLabel = ''; el.classList.remove('newer'); paint(); sync(); }
 paint();
 // the worker found a new build (installed, waiting) — same pill, no toast
-scope.listen(window, 'ws-sw-waiting', () => { lightUp(engineString('s_44575cf5b285')); });
+scope.listen(window, 'ws-sw-waiting', event => {
+  if (!(event instanceof CustomEvent)) return;
+  const value: unknown = event.detail;
+  if (typeof value !== 'object' || value === null || !('waiting' in value)) return;
+  if (value.waiting === null) dim();
+  else if ('build' in value && typeof value.build === 'string') lightUp(shortBuild(value.build));
+});
 
+let discovery = 0;
 async function check(): Promise<void> {
-  if (newer || !navigator.onLine) return; // offline (the PWA plays from its cache): no request that can only fail
+  if (!navigator.onLine) return; // offline (the PWA plays from its cache): no request that can only fail
+  const started = ++discovery;
   try {
     const r = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
     if (!r.ok) return;
     const j: unknown = await r.json();
-    if (typeof j === 'object' && j !== null && 'build' in j && typeof j.build === 'string' && j.build !== '' && j.build !== __BUILD_ID__) {
-      requestInstall(); lightUp(shortBuild(j.build));
+    if (started !== discovery) return;
+    if (typeof j === 'object' && j !== null && 'build' in j && typeof j.build === 'string' && j.build !== '') {
+      if (navigator.serviceWorker?.controller && window.__ws_sw?.enabled !== false) {
+        window.dispatchEvent(new CustomEvent('ws-sw-discovered', { detail: { build: j.build } }));
+      } else if (j.build !== __BUILD_ID__) { requestInstall(); lightUp(shortBuild(j.build)); }
+      else dim();
     }
   } catch { /* offline — keep the plain reload pill */ }
 }

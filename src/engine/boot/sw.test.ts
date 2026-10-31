@@ -11,7 +11,7 @@ class WorkerHandle extends EventTarget implements ServiceWorker {
   state:ServiceWorkerState='installed';
   readonly messages:unknown[]=[];
   refuse=false;
-  build:string|undefined;
+  build:string|undefined='after-build-stamp';
   postMessage(message:unknown,transfer?:Transferable[]|StructuredSerializeOptions):void{
     if(this.refuse)throw new Error('Worker retired');this.messages.push(message);
     const port=Array.isArray(transfer)?transfer[0]:undefined;
@@ -27,6 +27,7 @@ afterEach(async()=>{
 
 test('adoption skips stale workers, fences its controller and retires unavailable navigation callbacks',async()=>{
   vi.useFakeTimers();vi.stubGlobal('__BUILD_ID__','before-build');
+  vi.stubGlobal('fetch',()=>Promise.resolve(Response.json({build:'after-build'})));
   const reload=vi.fn<()=>void>(),replace=vi.fn<(url:string)=>void>();
   vi.stubGlobal('location',Object.assign(new URL('https://example.com/?sw=1'),{reload,replace}));
   const original=new WorkerHandle();original.state='activated';
@@ -44,22 +45,22 @@ test('adoption skips stale workers, fences its controller and retires unavailabl
   wsSw.waiting=registration.waiting=original;await swAdopt();expect(original.messages).toEqual(originalMessages);
   // Discovery can be blocked or stale; a tap must read the registration itself.
   const announced=new WorkerHandle();wsSw.waiting=null;registration.waiting=announced;
-  const adoption=swAdopt('/resume','fixture');await Promise.resolve();
-  expect(announced.messages).toEqual([{type:'SKIP_WAITING'}]);
+  const adoption=swAdopt('/resume','fixture');
+  await vi.waitFor(()=>{expect(announced.messages).toContainEqual({type:'SKIP_WAITING'});});
   container.controller=new WorkerHandle();container.dispatchEvent(new Event('controllerchange'));
   expect(replace).not.toHaveBeenCalled();expect(reload).not.toHaveBeenCalled();
   container.controller=announced;container.dispatchEvent(new Event('controllerchange'));await adoption;
   expect(replace).toHaveBeenCalledExactlyOnceWith('/resume');
   const boundary=new WorkerHandle();wsSw.waiting=registration.waiting=boundary;
   const boundaryAttempt=wsSw.activate();await vi.advanceTimersByTimeAsync(999);
-  expect(boundary.messages).toEqual([{type:'SKIP_WAITING'}]);
+  expect(boundary.messages).toEqual([{type:'BUILD'},{type:'SKIP_WAITING'}]);
   let boundaryFinished = false;
   void boundaryAttempt.then(() => { boundaryFinished = true; return undefined; });
   await vi.advanceTimersByTimeAsync(180_000); expect(boundaryFinished).toBe(false);
   boundary.state='redundant'; boundary.dispatchEvent(new Event('statechange')); expect(await boundaryAttempt).toBe(false);
   container.controller=boundary;container.dispatchEvent(new Event('controllerchange'));
   expect(replace).toHaveBeenCalledTimes(1);
-  const claimed=new WorkerHandle();wsSw.waiting=registration.waiting=claimed;const claim=wsSw.activate();await Promise.resolve();
+  const claimed=new WorkerHandle();wsSw.waiting=registration.waiting=claimed;const claim=wsSw.activate();await vi.waitFor(()=>{expect(claimed.messages).toContainEqual({type:'SKIP_WAITING'});});
   container.controller=claimed;container.dispatchEvent(new Event('controllerchange'));
   expect(await claim).toBe(true);expect(wsSw.waiting).toBeNull();
   expect(replace).toHaveBeenCalledTimes(1);
@@ -70,13 +71,13 @@ test('adoption skips stale workers, fences its controller and retires unavailabl
   container.controller=expired;container.dispatchEvent(new Event('controllerchange'));
   expect(replace).toHaveBeenCalledTimes(1);
   const retired=new WorkerHandle();wsSw.waiting=registration.waiting=retired;
-  const refused=swAdopt('/retired');await Promise.resolve();retired.state='redundant';retired.dispatchEvent(new Event('statechange'));await refused;
+  const refused=swAdopt('/retired');await vi.waitFor(()=>{expect(retired.messages).toContainEqual({type:'SKIP_WAITING'});});retired.state='redundant';retired.dispatchEvent(new Event('statechange'));await refused;
   await vi.advanceTimersByTimeAsync(2500);
   expect(replace).toHaveBeenCalledTimes(1);expect(reload).not.toHaveBeenCalled();
   const unavailable=new WorkerHandle();unavailable.refuse=true;wsSw.waiting=registration.waiting=unavailable;
   await swAdopt('/unavailable');expect(vi.getTimerCount()).toBe(initial);
   const nextDocument=new WorkerHandle();wsSw.waiting=registration.waiting=nextDocument;
-  const nextAdoption=swAdopt('/title','next document');await Promise.resolve();
+  const nextAdoption=swAdopt('/title','next document');await vi.waitFor(()=>{expect(nextDocument.messages).toContainEqual({type:'SKIP_WAITING'});});
   nextDocument.state='activated';nextDocument.dispatchEvent(new Event('statechange'));
   expect(await nextAdoption).toBe(true);expect(replace).toHaveBeenLastCalledWith('/title');
   expect(container.controller).not.toBe(nextDocument);

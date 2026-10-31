@@ -25,7 +25,7 @@ afterEach(async () => {
 
 test('QC3: the lit pill activates the waiting worker before it reloads, so the next document has nothing waiting', async () => {
   vi.stubGlobal('__BUILD_ID__', 'fixture-before');
-  vi.stubGlobal('fetch', () => Promise.resolve(Response.json({ build: 'fixture-before' })));
+  vi.stubGlobal('fetch', () => Promise.resolve(Response.json({ build: 'fixture-after' })));
   const replace = vi.fn<(url: string) => void>(), reload = vi.fn();
   vi.stubGlobal('location', Object.assign(new URL('https://example.com/?sw=1'), { replace, reload }));
   const active = new Worker(), waiting = new Worker();

@@ -19,15 +19,15 @@ import { pageScope } from '../app/resources';
  *
  *   ready: Promise<void>        resolves at once: a controlled document, an uncontrolled one (it registers at control), or
  *                               service workers off (`?sw=0`, dev without `?sw=1`, no SW support).
- *   waiting: ServiceWorker|null a newer build is installed and waiting to activate; null otherwise.
+ *   waiting: ServiceWorker|null the newest discovered build is installed and waiting; null otherwise.
  *   activate(): Promise<boolean> activate an installed update at a natural boundary; never navigates.
  *   adopt(to?): Promise<boolean> explicit recovery: activate, then reload/replace once; true if sent.
  *                               False means unavailable or retired; recovery retains its ordinary fallback.
  *   version(): Promise<SwVersion|null>  what the controlling worker holds ({ build, entries, bytes, caches }),
  *                               null when nothing controls the page.
  *
- *   window event `ws-sw-waiting` (CustomEvent<{ waiting: ServiceWorker }>) fires whenever a newer worker
- *   reaches `installed` while this page is controlled — the pill listens and lights up.
+ *   window event `ws-sw-waiting` carries { waiting, build } for an installed newest build, or { waiting: null }
+ *   when it can no longer deliver it. The UI's `ws-sw-discovered` event carries a fresh version.json build.
  *
  * Opt-outs: `?sw=0` unregisters any worker and registers none (the bench measures the network). In dev the
  * worker is only registered with `?sw=1` (a stale worker would serve yesterday's bundle over HMR).
@@ -35,6 +35,7 @@ import { pageScope } from '../app/resources';
 
 import { markReload } from './lastEnd'; // E179: the page's "why did it reload" record — imported first, so its beat is the page's
 
+declare const __BUILD_ID__: string;
 
 
 export interface SwVersion {
@@ -62,6 +63,9 @@ export interface WsSw {
 // the page's service-worker handle is declared in ./swGlobal.d.ts (an ambient file every layer's project sees)
 
 const sw = typeof navigator === 'undefined' ? null : navigator.serviceWorker;
+let watched: ServiceWorkerRegistration | null = null;
+let newestBuild: string | null = null;
+let discovery = 0;
 // declared ahead of the functions that read it (they only run after registration; `boot()` is hoisted)
 const api: WsSw = { ready: boot(), enabled: swAllowed(), waiting: null, activate: () => activateWaiting(), adopt, version };
 
@@ -76,13 +80,50 @@ function swAllowed(): boolean {
  * Announce an installed worker without adopting it. Pagehide may only be an
  * app switch; G898 permits adoption at a fresh document or title visit only.
  */
+function unavailable(): void {
+  if (api.waiting === null) return;
+  api.waiting = null;
+  window.dispatchEvent(new CustomEvent('ws-sw-waiting', { detail: { waiting: null } }));
+}
+
+async function newest(): Promise<string | null> {
+  if (newestBuild !== null) return newestBuild;
+  const started = discovery;
+  try {
+    const response = await fetch('/version.json', { cache: 'no-store' });
+    if (!response.ok) return newestBuild;
+    const value: unknown = await response.json();
+    if (started === discovery && typeof value === 'object' && value !== null
+      && 'build' in value && typeof value.build === 'string' && value.build !== '') {
+      newestBuild = value.build; discovery++;
+    }
+  } catch { /* Offline discovery cannot offer an unverified worker. */ }
+  return newestBuild;
+}
+
+function matchesNewest(build: string | null, target: string | null): boolean {
+  return build !== null && target !== null && target !== __BUILD_ID__
+    && build.startsWith(`${target}-`) && !build.startsWith(`${__BUILD_ID__}-`);
+}
+function adoptable(worker: ServiceWorker): boolean { return worker.state === 'installed' || worker.state === 'activating'; }
+
 function announce(w: ServiceWorker): void {
   void (async () => {
-    await buildOf(w);
-    if (w.state === 'redundant') return;
+    const [build, target] = await Promise.all([buildOf(w), newest()]);
+    if (pageScope.disposed || pageScope.disposing || watched?.waiting !== w
+      || w.state !== 'installed' || target !== newestBuild || !matchesNewest(build, target)) return;
     api.waiting = w;
-    window.dispatchEvent(new CustomEvent('ws-sw-waiting', { detail: { waiting: w } }));
+    window.dispatchEvent(new CustomEvent('ws-sw-waiting', { detail: { waiting: w, build: target } }));
   })();
+}
+
+function discovered(build: string): void {
+  if (newestBuild !== build) { newestBuild = build; discovery++; unavailable(); }
+  const reg = watched;
+  if (reg === null) return;
+  if (api.waiting !== reg.waiting) unavailable();
+  if (reg.waiting !== null) announce(reg.waiting);
+  if (build !== __BUILD_ID__) void reg.update().catch(() => undefined);
 }
 
 /** A worker reply or a real retirement/error ends a request; elapsed time never does. */
@@ -109,14 +150,24 @@ function buildOf(worker: ServiceWorker): Promise<string | null> {
 }
 
 function watch(reg: ServiceWorkerRegistration): void {
+  watched = reg;
+  pageScope.listen(window, 'ws-sw-discovered', event => {
+    if (!(event instanceof CustomEvent)) return;
+    const value: unknown = event.detail;
+    if (typeof value === 'object' && value !== null && 'build' in value
+      && typeof value.build === 'string' && value.build !== '') discovered(value.build);
+  });
+  const tracked = new WeakSet<ServiceWorker>();
   const track = (w: ServiceWorker | null): void => {
-    if (!w) return;
-    if (w.state === 'installed') { announce(w); return; }
+    if (!w || tracked.has(w)) return;
+    tracked.add(w);
     pageScope.listen(w, 'statechange', () => {
       if (w.state === 'installed' && sw?.controller) announce(w);
+      else if (api.waiting === w && w.state !== 'installed') unavailable();
     });
+    if (w.state === 'installed') announce(w);
   };
-  if (reg.waiting) announce(reg.waiting);
+  track(reg.waiting);
   track(reg.installing);
   pageScope.listen(reg, 'updatefound', () => track(reg.installing));
 }
@@ -139,7 +190,10 @@ async function activateWaiting(): Promise<boolean> {
   // A registration read can outlive its worker (another tab already adopted it,
   // or a later install replaced it). None of those states needs a hand-over.
   if (!w || pageScope.disposed || pageScope.disposing || sw.controller === w
-    || (w.state !== 'installed' && w.state !== 'activating')) return false;
+    || !adoptable(w)) return false;
+  const [build, target] = await Promise.all([buildOf(w), newest()]);
+  if (pageScope.disposed || pageScope.disposing || registration?.waiting !== w
+    || !adoptable(w) || target !== newestBuild || !matchesNewest(build, target)) return false;
   return new Promise<boolean>((resolve) => {
     const attempt = pageScope.child('worker-adoption');
     const finish = (claimed: boolean): void => { resolve(claimed); attempt.dispose(); };
