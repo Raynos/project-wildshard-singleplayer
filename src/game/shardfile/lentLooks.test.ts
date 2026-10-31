@@ -56,3 +56,55 @@ test('a param write reaches every compile on the owner line, never another world
     stranger.dispose();
   } finally { level.dispose(); other.dispose(); material.dispose(); }
 });
+
+test('warm owner books retain every write and refresh after a lend starts or retires', () => {
+  const level = new Scope('writer-level'), other = new Scope('writer-other'), material = new Material();
+  const writes: string[] = [];
+  const lend = (scope: Scope, label: string): void => {
+    lendLooks(scope, { materials: new Map([['warm', material]]),
+      setParam: (_id, name, value) => { writes.push(`${label}:${name}:${JSON.stringify(value)}`); },
+      setTexture: () => undefined, bindMeshMap: () => material });
+  };
+  lend(level, 'level'); lend(other, 'other');
+  const put = (scope: Scope | null): void => { withOwner(scope, () => { setLentParam('warm', 'fade', 0); setLentParam('warm', 'fade', 0); }); };
+  const page = new Scope('writer-page', level);
+  try {
+    put(level); put(level); put(other); put(null); put(level);
+    expect(writes.splice(0)).toEqual([
+      'level:fade:0', 'level:fade:0', 'level:fade:0', 'level:fade:0',
+      'other:fade:0', 'other:fade:0', 'other:fade:0', 'other:fade:0', 'level:fade:0', 'level:fade:0',
+    ]);
+    lend(page, 'page');
+    put(level);
+    expect(writes.splice(0)).toEqual(['page:fade:0', 'level:fade:0', 'page:fade:0', 'level:fade:0']);
+    page.dispose(); put(level);
+    expect(writes.splice(0)).toEqual(['level:fade:0', 'level:fade:0']);
+    level.dispose(); other.dispose(); put(null);
+    expect(writes).toEqual([]);
+  } finally { level.dispose(); other.dispose(); material.dispose(); }
+});
+
+test('a reentrant catalogue read cannot publish a cold book under another owner', () => {
+  const level = new Scope('reentrant-level'), other = new Scope('reentrant-other'), material = new Material();
+  const writes: string[] = [];
+  let entered = false;
+  class ReentrantMaterials extends Map<string, Material> {
+    override has(id: string): boolean {
+      if (id === 'outer' && !entered) {
+        entered = true;
+        withOwner(other, () => { setLentParam('inner', 'fade', 1); });
+      }
+      return super.has(id);
+    }
+  }
+  lendLooks(level, { materials: new ReentrantMaterials([['outer', material]]),
+    setParam: id => { writes.push(`level:${id}`); }, setTexture: () => undefined, bindMeshMap: () => material });
+  lendLooks(other, { materials: new Map([['outer', material], ['inner', material]]),
+    setParam: id => { writes.push(`other:${id}`); }, setTexture: () => undefined, bindMeshMap: () => material });
+  try {
+    withOwner(level, () => { setLentParam('outer', 'fade', 1); });
+    withOwner(other, () => { setLentParam('outer', 'fade', 1); });
+    withOwner(level, () => { setLentParam('outer', 'fade', 1); });
+    expect(writes).toEqual(['other:inner', 'level:outer', 'other:outer', 'level:outer']);
+  } finally { level.dispose(); other.dispose(); material.dispose(); }
+});

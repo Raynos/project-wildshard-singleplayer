@@ -135,11 +135,19 @@ export function setLentParam(id: string, name: string, value: GraphLiteral): voi
 // materials are compiled before it is lent), so they are found once per owner until a lend starts or ends.
 const writerCache = new Map<Scope | null, Map<string, readonly LentLooks[]>>();
 let writerGeneration = -1;
+// Consecutive world writes usually share one owner. Keep that book without
+// repeating its outer lookup; generation changes still invalidate every book.
+let writerOwner: Scope | null | undefined;
+let ownerWriters = new Map<string, readonly LentLooks[]>();
 function paramWriters(id: string): readonly LentLooks[] {
-  if (writerGeneration !== lendGeneration) { writerCache.clear(); writerGeneration = lendGeneration; }
+  if (writerGeneration !== lendGeneration) { writerCache.clear(); writerGeneration = lendGeneration; writerOwner = undefined; }
   const owner = enteredOwner();
-  let byId = writerCache.get(owner);
-  if (byId === undefined) { byId = new Map(); writerCache.set(owner, byId); }
+  if (owner !== writerOwner) {
+    let byId = writerCache.get(owner);
+    if (byId === undefined) { byId = new Map(); writerCache.set(owner, byId); }
+    writerOwner = owner; ownerWriters = byId;
+  }
+  const byId = ownerWriters;
   const cached = byId.get(id);
   if (cached !== undefined) return cached;
   const writers: LentLooks[] = [];
