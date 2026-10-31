@@ -7,6 +7,7 @@ export const CI_NATIVE_GROUPS = {
     'test/driftwood-optional-verbs.test.ts',
     'test/nalati-patrol-verbs.test.ts',
     'test/physics-nalati-headless.test.ts',
+    'test/nalati-chapter-binding.test.ts',
   ],
   'stories-qara': [
     'test/pine-quest-verbs.test.ts',
