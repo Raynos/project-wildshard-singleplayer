@@ -3,6 +3,7 @@
 // Optional --candidate-draw-hooks=PATH is an explicit isolated source fixture;
 // --candidate-upload-ownership=PATH isolates the upload observer, or pairs it
 // with the draw fixture for an ownership continuation change.
+// --candidate-compressed-mipmaps=PATH isolates scalar sampler admission.
 // Whole-world proof still uses ordinary exact-revision previews.
 import { chromium, devices } from 'playwright';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -16,11 +17,13 @@ if (!control || !candidate || !output) throw new Error('Requires --control=REV -
 const out = resolve(output);
 if (!out.startsWith(`${resolve('tmp')}/`)) throw new Error('Components require repository tmp output');
 mkdirSync(out, { recursive: true });
-const drawFixture = arg('candidate-draw-hooks'), uploadFixture = arg('candidate-upload-ownership');
-const candidateSourceFixture = drawFixture ?? uploadFixture ?? null;
-const candidateModule = !drawFixture && uploadFixture ? 'src/engine/render/uploadOwnership.ts' : 'src/engine/render/drawHooks.ts';
-const revisions = await buildComponents(control, candidate, out, candidateSourceFixture ?? undefined, drawFixture ? uploadFixture : undefined, candidateModule);
-const result = { revisions, candidateSourceFixture, additionalUploadFixture: drawFixture ? uploadFixture ?? null : null, candidateModule, protocol: 'Metal WebGL2, iPhone 16 Pro PWA 402x874, DPR2, seeded static components, no post; exact RGBA and native counts', rows: [], comparisons: [] };
+const drawFixture = arg('candidate-draw-hooks'), uploadFixture = arg('candidate-upload-ownership'), mipFixture = arg('candidate-compressed-mipmaps');
+const candidateSourceFixture = drawFixture ?? uploadFixture ?? mipFixture ?? null;
+const candidateModule = drawFixture ? 'src/engine/render/drawHooks.ts'
+  : uploadFixture ? 'src/engine/render/uploadOwnership.ts' : mipFixture ? 'src/engine/render/compressedMipmaps.ts' : 'src/engine/render/drawHooks.ts';
+const fixtures = Object.fromEntries([['src/engine/render/drawHooks.ts', drawFixture], ['src/engine/render/uploadOwnership.ts', uploadFixture], ['src/engine/render/compressedMipmaps.ts', mipFixture]].filter(([, file]) => file !== undefined));
+const revisions = await buildComponents(control, candidate, out, fixtures);
+const result = { revisions, sourceFixtures: fixtures, candidateSourceFixture, additionalUploadFixture: drawFixture ? uploadFixture ?? null : null, candidateModule, protocol: 'Metal WebGL2, iPhone 16 Pro PWA 402x874, DPR2, seeded static components, no post; exact RGBA and native counts', rows: [], comparisons: [] };
 const save = () => writeFileSync(resolve(out, 'reading.json'), JSON.stringify(result, null, 2));
 const browser = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-angle=metal'] });
 try {

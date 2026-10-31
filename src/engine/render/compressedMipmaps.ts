@@ -20,12 +20,14 @@ const retired = new WeakMap<Texture, { sampler: readonly unknown[]; version: num
 export function assertCompressedMipmapsUnchanged(texture: Texture): void {
   const previous = retired.get(texture);
   if (previous === undefined) return;
-  let changed = previous.version !== texture.version || previous.sourceVersion !== texture.source.version;
-  // Property access is a draw hot path: compare scalar fields without building arrays or keys.
-  for (let index = 0; !changed && index < SAMPLER_FIELDS.length; index++) {
-    const field = SAMPLER_FIELDS[index];
-    if (field !== undefined && Reflect.get(texture, field) !== previous.sampler[index]) changed = true;
-  }
+  const sampler = previous.sampler;
+  // Keep the native sampler order and short circuit, using typed scalar loads.
+  const changed = previous.version !== texture.version || previous.sourceVersion !== texture.source.version
+    || texture.wrapS !== sampler[0] || texture.wrapT !== sampler[1] || Reflect.get(texture, 'wrapR') !== sampler[2]
+    || texture.magFilter !== sampler[3] || texture.minFilter !== sampler[4] || texture.anisotropy !== sampler[5]
+    || texture.internalFormat !== sampler[6] || texture.format !== sampler[7] || texture.type !== sampler[8]
+    || texture.generateMipmaps !== sampler[9] || texture.premultiplyAlpha !== sampler[10]
+    || texture.flipY !== sampler[11] || texture.unpackAlignment !== sampler[12] || texture.colorSpace !== sampler[13];
   if (changed) throw new Error(`Compressed texture ${texture.name || texture.id} changed after mip retirement; configure its sampler before first draw`);
 }
 

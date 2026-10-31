@@ -1,5 +1,7 @@
 import { expect, test, vi } from 'vitest';
-import { DataTexture, PerspectiveCamera, Scene } from 'three';
+import { BufferGeometry, DataTexture, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene } from 'three';
+import { installFrameCounter } from './frameCounter';
+import { propertyHooks } from './drawHooks';
 import { gpuOnlyTexture } from '../core/gpuOnly';
 import { installTextureUploadEvents, onceTextureUploaded, type TextureUploadRenderer } from './textureUploadEvents';
 
@@ -76,4 +78,21 @@ test('throwing callbacks and source version changes defer release until a later 
   texture.onUpdate = () => { texture.needsUpdate = true; };
   renderer.initTexture(texture); expect(texture.image.data).toBe(original);
   texture.onUpdate = null; renderer.initTexture(texture); expect(texture.image.data?.length).toBe(0); texture.dispose();
+});
+
+
+test('an upload registered by ownership after the texture callback is observed on the next same-frame lookup', () => {
+  const texture=new DataTexture(),geometry=new BufferGeometry(),material=new MeshBasicMaterial(),mesh=new Mesh(geometry,material);
+  const camera=new PerspectiveCamera(),scene=new Scene(),rows=new WeakMap<object,{__version:number}>();
+  let registered=false,completed=0;
+  const renderer={properties:{get:(value:unknown)=>typeof value==='object'&&value!==null?rows.get(value):undefined},
+    initTexture:()=>undefined,render:()=>{renderer.renderBufferDirect(camera,scene,geometry,material,mesh,{start:0,count:0,materialIndex:0});},
+    renderBufferDirect:(..._args:unknown[])=>{
+      renderer.properties.get(texture);renderer.properties.get(texture);
+      rows.set(texture,{__version:texture.version});rows.set(texture.source,{__version:texture.source.version});
+    }};
+  installFrameCounter(renderer);installTextureUploadEvents(renderer);
+  propertyHooks(renderer).ownership=value=>{if(value===texture&&!registered){registered=true;onceTextureUploaded(texture,()=>{completed++;});}};
+  try {renderer.render();expect(completed).toBe(1);}
+  finally{texture.dispose();geometry.dispose();material.dispose();}
 });

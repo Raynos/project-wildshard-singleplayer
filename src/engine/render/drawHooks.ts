@@ -117,13 +117,14 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
   const get = renderer.properties.get.bind(renderer.properties);
   let counter = renderCounter(renderer);
   interface Observation { kind: ResourceKind; frame: number; metadata: boolean; owner: symbol | null; revision: number; labels: number | undefined; value: unknown }
-  let observed = new WeakMap<object, Observation>();
+  let observed = new WeakMap<object, Observation>(), texturesSeen = new WeakSet();
+  let textureFrame = -1, textureRevision = observationRevision;
   const remove = renderer.properties.remove?.bind(renderer.properties), dispose = renderer.properties.dispose?.bind(renderer.properties);
   if (remove !== undefined) renderer.properties.remove = resource => {
-    if (typeof resource === 'object' && resource !== null) observed.delete(resource);
+    if (typeof resource === 'object' && resource !== null) { observed.delete(resource); texturesSeen.delete(resource); }
     remove(resource);
   };
-  if (dispose !== undefined) renderer.properties.dispose = () => { observed = new WeakMap(); dispose(); };
+  if (dispose !== undefined) renderer.properties.dispose = () => { observed = new WeakMap(); texturesSeen = new WeakSet(); dispose(); };
   renderer.properties.get = (resource: unknown) => {
     if (typeof resource !== 'object' || resource === null) return get(resource);
     if (counter === undefined) {
@@ -132,7 +133,7 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
         counter = frameCounter;
         // The real renderer installs upload observation before its render
         // counter. Its first counted render must not reuse a per-draw epoch.
-        observed = new WeakMap();
+        observed = new WeakMap(); texturesSeen = new WeakSet(); textureFrame = -1;
       }
     }
     const prior = observed.get(resource);
@@ -152,9 +153,22 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
     const labelable = kind.texture !== null || kind.target;
     const labels = hooks.labels === undefined || !labelable ? 0 : hooks.labelsVersion?.();
     if (active && prior !== undefined && prior.frame === frame && prior.owner === owner
-      && prior.revision === observationRevision && labels !== undefined && prior.labels === labels) return prior.value;
+      && prior.revision === observationRevision && labels !== undefined && prior.labels === labels
+      && (kind.texture === null || textureRevision === observationRevision)) return prior.value;
     const texture = kind.texture, compressed = kind.compressed;
-    if (texture !== undefined && texture !== null) { hooks.texture?.(texture); hooks.uploaded?.(texture); }
+    // Enrollment is per texture/render; consuming-owner residency and
+    // compressed sampler/allocation checks keep their original stamps below.
+    // A late upload listener invalidates this weak set through the revision.
+    if (texture !== null) {
+      const currentFrame = counter?.n ?? pipeline.epoch;
+      if (active && (textureFrame !== currentFrame || textureRevision !== observationRevision)) {
+        texturesSeen = new WeakSet(); textureFrame = currentFrame; textureRevision = observationRevision;
+      }
+      if (!active || !texturesSeen.has(texture)) {
+        hooks.texture?.(texture); hooks.uploaded?.(texture);
+        if (active) texturesSeen.add(texture);
+      }
+    }
     if (compressed !== undefined && compressed !== null) hooks.compressed?.before(compressed);
     // Native Source/camera/object metadata is not a disposable upload. The
     // ownership consumer previously repeated six class checks to ignore it.

@@ -195,5 +195,20 @@ test('new render, consuming owner, label policy and upload registrations invalid
     invalidatePropertyObservation(); renderer.properties.get(resource);
   });
   renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
-  expect(uploaded).toHaveBeenCalledTimes(5);
+  expect(uploaded).toHaveBeenCalledTimes(3);
+});
+
+test('texture callbacks run once a render while compressed admission still runs once a draw', () => {
+  const f = fixture(), texture = new CompressedTexture([], 1, 1), native = {};
+  const renderer = {...f.renderer, properties:{get:(_value:unknown)=>native}, render:()=>{
+    for(let draw=0;draw<2;draw++)renderer.renderBufferDirect(f.camera,f.scene,f.geometry,f.material,f.object,f.group);
+  }};
+  installFrameCounter(renderer);const hooks=propertyHooks(renderer);
+  const watch=vi.fn<(value:Texture)=>void>(), before=vi.fn<(value:CompressedTexture)=>void>(), after=vi.fn<(value:CompressedTexture,row:unknown)=>void>();
+  hooks.texture=watch;hooks.compressed={before,after};drawHooks(renderer);
+  f.stock.mockImplementation(()=>{renderer.properties.get(texture);renderer.properties.get(texture);});
+  try {
+    renderer.render();expect(watch).toHaveBeenCalledTimes(1);expect(before).toHaveBeenCalledTimes(2);expect(after).toHaveBeenCalledTimes(2);
+    renderer.render();expect(watch).toHaveBeenCalledTimes(2);expect(before).toHaveBeenCalledTimes(4);expect(after).toHaveBeenCalledTimes(4);
+  }finally{texture.dispose();f.geometry.dispose();f.material.dispose();}
 });
