@@ -85,8 +85,8 @@ return parseShardfile({ ...base, plumbing, budgets, navigation: navigation.navig
   // NR12: the props family draws only the coarse L1 parents (the whole libraries draw the L0 and library pieces), so it is
   // the coarse graph: the towers past the ring read as walls and lit rooms, not flat pbr slabs
   props: { ...nineSlabProps(world.props, inputs.scenes.NINE_WORLD_SCENES.libraries, inputs.scenes.NINE_REFINEMENT_SOURCE), family: 'nine-coarse-facade', wholeLibrary: worldLibrary, colliders: portalFloors,
-    // EP12: the props GLB materials by look (scene.ts names them): L0 and the coarse L1 copy draw with the city's own graphs,
-    // the shells with the coarse facade look made for them (the full nine-facade graph drew coarse shells dark, windowless)
-    materials: { shape: { id: 'nine-coarse-facade' }, kit: { id: 'nine-architecture' }, 'kit-cut': { id: 'nine-architecture-cut' }, 'kit-ground': { id: GROUND_LOOK }, facade: { id: 'nine-coarse-facade' } } } });
+    // EP12: the props GLB materials by look (scene.ts names them): L0 and the coarse L1 copy draw with the city's own graphs
+    // (shells too: on the coarse facade look they measured further from L0 at cams 17 / 18 / 22 than the full graph's dark ones)
+    materials: { shape: { id: 'nine-coarse-facade' }, kit: { id: 'nine-architecture' }, 'kit-cut': { id: 'nine-architecture-cut' }, 'kit-ground': { id: GROUND_LOOK }, facade: { id: 'nine-facade' } } } });
 }
 
