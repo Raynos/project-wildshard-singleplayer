@@ -61,6 +61,14 @@ sources and callback policy retain native invalidation. Typed completion runs
 after successful native draws and is unarmed when no upload listener is pending.
 No prototype/GL patch, new Source/UUID, sampler or lifetime policy change.
 
+`Game.warmSceneRoots(..., { drawGeometry: true })` explicitly first-draws
+connected hidden streamed roots through the existing one-pixel parked warmer.
+The caller retains the native parent frame and stages the root out of live
+visibility until completion. Keys share one publication cursor. Loading uses
+owned task yields; live preparation waits for completed game draws. Missing
+composer state or incomplete native drawing refuses readiness. The ordinary
+shader/texture-only callers keep their original behavior.
+
 ## The frame floor (`scripts/frame-floor.mjs`)
 
 - Jake's rule: **60–120 fps on desktop and 30–60 fps on the iOS Simulator at all moments.** Each row grades the

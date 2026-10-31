@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real Game method without constructing a GPU renderer.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Strip only the actual method's types for the controlled renderer fixture.
@@ -9,6 +9,8 @@ import { DataTexture, Group, Scene, Vector3, type Object3D } from 'three';
 import { Scope } from '../app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
 import { boundEntryWarmup } from '../render/entryWarmupBound';
+import type { warmParkedDraws } from '../render/parkedDraws';
+import { yieldTask } from './workSlice';
 
 const original = scopeEnvironment();
 afterEach(() => { installScopeEnvironment(original); });
@@ -289,4 +291,46 @@ test('page preparation uses final program inputs without drawing and fences a ch
     game._composer = composer; owner.dispose();
     expect(Reflect.apply(current, undefined, [])).toBe(false);
   } finally {owner.dispose(); environment.dispose();}
+});
+
+function streamedGeometry(draw: typeof warmParkedDraws) {
+  const source = readFileSync(new URL('Game.ts', import.meta.url), 'utf8');
+  const start = source.indexOf('  async warmSceneRoots('), end = source.indexOf('\n  private postPreparation', start);
+  if (start === -1 || end < start) throw new Error('Streamed preparation method missing');
+  const owner = new Scope('streamed-geometry'), scene = new Scene(), root = new Group(); root.visible = false; scene.add(root);
+  const prepare = vi.fn<() => Promise<void>>().mockResolvedValue(undefined), pause = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+  const game = { _composer: { inputBuffer: {} }, frameCount: 0, levelScope: owner, rootScene: scene, camera: {}, renderer: {} };
+  const body = source.slice(start, end).replace("await import('../render/precompile')", 'programs').replace("await import('../render/parkedDraws')", 'nativeDraws');
+  const method: unknown = runInNewContext(stripTypeScriptTypes(`class Harness { ${body} }\nHarness.prototype.warmSceneRoots`), {
+    programs: { prepareSceneRoots: prepare, waitForDrawnFrame: pause, LIVE_UPLOAD_BUDGET: {} }, nativeDraws: { warmParkedDraws: draw }, boundEntryWarmup, yieldTask,
+  });
+  if (typeof method !== 'function') throw new Error('Streamed preparation method is not callable');
+  return { owner, root, scene, game, prepare, pause,
+    run: (): Promise<unknown> => Promise.resolve(Reflect.apply(method, game, [[root], () => !owner.disposed, undefined, { drawGeometry: true }])),
+  };
+}
+
+test('opted-in streamed geometry first-draws its actual hidden root before boot exposure', async () => {
+  const native = deferred(), draw = vi.fn<typeof warmParkedDraws>().mockImplementation(async (_renderer, scene, _camera, _target, root, _current, _pause, options) => {
+    expect(root.parent).toBe(scene); expect(root.visible).toBe(false);
+    options?.onProgress?.(0, 1); await native.promise; options?.onProgress?.(1, 1); return 1;
+  });
+  const f = streamedGeometry(draw); let ready = false;
+  const pending = f.run().then(() => { ready = true; return undefined; });
+  try {
+    await vi.waitFor(() => { expect(draw).toHaveBeenCalledOnce(); });
+    expect(f.prepare).toHaveBeenCalledOnce(); expect(ready).toBe(false);
+    expect(draw.mock.calls[0]?.[4]).toBe(f.root);
+    native.resolve(); await pending;
+    expect(ready).toBe(true); expect(f.root.visible).toBe(false); expect(f.root.parent).toBe(f.scene);
+  } finally { native.resolve(); await pending; f.owner.dispose(); }
+});
+
+test('an incomplete native warm cannot publish streamed geometry as ready', async () => {
+  const draw = vi.fn<typeof warmParkedDraws>().mockImplementation((_renderer, _scene, _camera, _target, _root, _current, _pause, options) => {
+    options?.onProgress?.(0, 1); return Promise.resolve(0);
+  });
+  const f = streamedGeometry(draw);
+  try { await expect(f.run()).rejects.toThrow('Streamed geometry preparation did not complete'); }
+  finally { f.owner.dispose(); }
 });

@@ -79,7 +79,7 @@ export class SlabLibrary {
   private publication: Promise<void> = Promise.resolve();
   constructor(owner: Scope, product: ShardProduct, private readonly whole: WholeLibrary, private readonly row: WorldSceneSlabLibrary,
     private readonly queue: ControlRefinement, private readonly cover: (tile: number) => Promise<void>,
-    private readonly prepare?: (part: InstancedMesh, owner: Scope) => Promise<void>) {
+    private readonly prepare?: (part: InstancedMesh, owner: Scope, anchor: Mesh) => Promise<void>) {
     if (row.of !== whole.id) throw new Error('Slab library covers another library');
     for (const key of row.keys) {
       if (key.castFrom !== undefined) throw new Error('Slab key casting from a band has no run-time draw');
@@ -183,7 +183,7 @@ export class SlabLibrary {
         await prior;
         try {
           if (lifetime.disposed || lifetime.disposing || scope.disposed || scope.disposing) return drawn;
-          if (this.prepare !== undefined) await this.prepare(part, scope);
+          if (this.prepare !== undefined) await this.prepare(part, scope, mesh);
           if (lifetime.disposed || lifetime.disposing || scope.disposed || scope.disposing) return drawn;
           if (!laid) lay();
           mesh.add(part);

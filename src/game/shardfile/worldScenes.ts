@@ -12,7 +12,7 @@ import { admitWorldSceneStepSources, worldSceneStepSources } from './worldSceneS
 import { TIER } from '@wildshard/engine/core/tier';
 import { SceneHandles } from './sceneHandles';
 import { assertSceneProfile } from './sceneProfile';
-import { BufferAttribute, BufferGeometry, InstancedBufferAttribute, InstancedMesh, type Material, type Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D, Sphere, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, InstancedBufferAttribute, InstancedMesh, type Material, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D, Sphere, Vector3 } from 'three';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import { defineSpecimenCatalogue,prepareSpecimenCatalogue } from '../models/specimenCatalogue';
@@ -34,7 +34,6 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { buildYield, workSlice } from '@wildshard/engine/core/workSlice';
 import { presenting } from '@wildshard/engine/core/framePacing';
-import { waitForDrawnFrame } from '@wildshard/engine/render/precompile';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ControlRefinement } from './controlRefinement';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -408,14 +407,18 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
               // reconstructing a union during play.
               const slabs = section.libraries.find(entry => entry.kind === 'slabs' && entry.of === row.id);
               if (slabs?.kind !== 'slabs') throw new Error(`Fine refinement requires baked slabs: ${row.id}`);
-              const whole = new SlabLibrary(owner, product, row, slabs, refinementQueue(), coarse.ensure, async (part, scope) => {
+              const whole = new SlabLibrary(owner, product, row, slabs, refinementQueue(), coarse.ensure, async (part, scope, anchor) => {
                 const game = ctx.game.runtime?.world?.game;
-                // Headless/early boot retains ordinary whole-world preparation.
-                if (game === undefined || game === null || game.frameCount === 0) return;
+                if (game === undefined || game === null) return;
                 const live = (): boolean => !owner.disposed && !owner.disposing && !scope.disposed && !scope.disposing;
-                await game.warmSceneRoots([part], live);
-                if (!live()) return;
-                await waitForDrawnFrame(scope, () => game.frameCount, live);
+                // The native warmer draws connected hidden roots. Borrow the
+                // key's actual world frame, without exposing a partial anchor.
+                anchor.updateWorldMatrix(true, false);
+                const stage = new Group(); stage.visible = false; stage.matrixAutoUpdate = false; stage.matrix.copy(game.rootScene.matrixWorld).invert().multiply(anchor.matrixWorld);
+                stage.add(part); game.rootScene.add(stage);
+                const forget = scope.capture('disposers', () => { stage.removeFromParent(); });
+                try { await game.warmSceneRoots([stage], live, undefined, { drawGeometry: true }); }
+                finally { forget(); part.removeFromParent(); stage.removeFromParent(); }
               });
               refining.set(row.id, whole);
               libraries.set(row.id, { geometry: id => whole.geometry(id) }); return;

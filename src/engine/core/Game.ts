@@ -46,6 +46,7 @@ import { noteDrawnEnvironment } from '../render/drawnEnvironment';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
 import { frameCost } from './frameCost';
 import { diagnosticNow } from './clock';
+import { yieldTask } from './workSlice';
 import { buildHeld, heldDrawDeferred, noteFrameDrawn } from './framePacing';
 import { isDev } from './devMode';
 import { boundEntryWarmup } from '../render/entryWarmupBound';
@@ -871,12 +872,18 @@ export class Game {
 
   /** Prepare newly streamed roots before exposure, using the allocated composer target.
    * Early boot retains ordinary whole-world preparation. Streamed views share the entered-frame
-   * owner lifetime, so retirement fences every pending draw and link. */
-  async warmSceneRoots(roots: readonly THREE.Object3D[], current: () => boolean, futureLighting?: THREE.Object3D): Promise<void> {
+   * owner lifetime, so retirement fences every pending draw and link. Opt-in geometry preparation
+   * also first-draws connected, hidden roots through the native parked-draw path before exposure. */
+  async warmSceneRoots(roots: readonly THREE.Object3D[], current: () => boolean, futureLighting?: THREE.Object3D,
+    options?: { readonly drawGeometry: true }): Promise<void> {
     const composer = this._composer;
-    // An early boot composer lends its target only to the explicit world census.
-    // Streaming/equipment retain their original whole-world first-frame step.
-    if (composer === null || this.frameCount === 0) return;
+    // Ordinary streaming/equipment keeps its whole-world boot preparation.
+    // Explicit geometry preparation may borrow an already allocated target.
+    if (composer === null) {
+      if (options?.drawGeometry === true) throw new Error('Streamed geometry needs a prepared composer');
+      return;
+    }
+    if (this.frameCount === 0 && options?.drawGeometry !== true) return;
     const { prepareSceneRoots, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
     await boundEntryWarmup(this.levelScope, async withinBound => {
       const live = (): boolean => withinBound() && current() && this._composer === composer;
@@ -884,7 +891,21 @@ export class Game {
       // before play (no frame drawn yet) the boot's Shaders step builds what the first frame draws and the rest is warmed
       // in play: a region's own warm-up here keeps only its resources then
       await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, live, pause,
-        LIVE_UPLOAD_BUDGET, this.frameCount > 0, futureLighting);
+        LIVE_UPLOAD_BUDGET, this.frameCount > 0 || options?.drawGeometry === true, futureLighting);
+      if (options?.drawGeometry === true) {
+        const { warmParkedDraws } = await import('../render/parkedDraws');
+        // Before the first game draw the loading card owns task-paced work.
+        // In play each native geometry draw crosses the completed-draw fence.
+        const drawnPause = pause ?? ((): Promise<void> => yieldTask(this.levelScope));
+        for (const root of roots) {
+          let complete = false;
+          await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, root, live, drawnPause,
+            { budget: { drawables: 1, newMaterials: 1, bufferBytes: 4_000_000 }, onProgress: (done, total) => { complete = done === total; } });
+          // The general parked warmer may leave failed draws to live entry.
+          // A strict streamed publication cannot call that prepared.
+          if (!complete) throw new Error('Streamed geometry preparation did not complete');
+        }
+      }
     });
   }
 
