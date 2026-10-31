@@ -19,6 +19,7 @@ import type { ShardContext } from '@wildshard/game/plugin/context';
 import { Filament, Rope } from './ribbon';
 import { effectField } from '@wildshard/engine/fx/effectField';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
+import { prepareGrappleFonts } from './fontPreparation';
 
 type GrappleAimRow = GrappleRows['aim'];
 const hintRow = v.object({ label: v.string(), icon: v.exactOptional(v.string()), tone: v.exactOptional(v.picklist(['rest', 'ready', 'active'])), accent: v.exactOptional(v.string()) });
@@ -121,6 +122,7 @@ function installGrappleAim(ctx: EquipmentHost, shard: ShardContext, scope: Scope
   const { min: MIN_RANGE, max: MAX_RANGE, winX: WIN_X, winY: WIN_Y } = rules.reach;
   const { fire: FIRE_TIME, reel: REEL_TIME } = rules.timing;
   const MARKS = row.marks, H = v.parse(hints, row.hints);
+  prepareGrappleFonts(row);
   let hooks = fragment.hooks;
   // the camera as the aim (read live, as the Tool always did)
   const view: GrappleView = {
