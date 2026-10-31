@@ -34,6 +34,8 @@ def selected_simctl():
 # One selection, charged to the existing import/admission interval.
 SIMCTL_COMMAND = selected_simctl()
 PREPARED_SCREENSHOTS = None
+# Internal deadline refusal is not an observed native exit 124.
+LAUNCH_DEADLINE = object()
 
 
 @contextmanager
@@ -483,6 +485,11 @@ def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=N
     attempts, accepted, pending_delivery, pending_before_launch = 0, False, False, False
     ownership = launch_state if launch_state is not None else lambda: 0
 
+    def failed_launch(status):
+        # Keep a settled URL error when only the app proof's clock expires.
+        # Actual native launch errors, including native 124, still take priority.
+        return (124 if code == 0 else code) if status is LAUNCH_DEADLINE else status
+
     def stamp(record, phase):
         if record is not None:
             record[phase] = round(time.monotonic() - started, 3)
@@ -492,7 +499,7 @@ def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=N
             screenshots.poll()
         launch_code = ownership()
         if launch_code is not None and launch_code != 0:
-            return launch_code
+            return failed_launch(launch_code)
         if ready.is_set() and launch_code == 0:
             print(f'sim-lane: Safari readiness page reached two animation frames in {time.monotonic() - started:.3f}s; '
                   'owned launch and owned two-frame callback confirmed', file=sys.stderr)
@@ -574,11 +581,11 @@ def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=N
                   f'client exit {code}; ownedFrames={ready.is_set()}; {detail[-2048:]}', file=sys.stderr)
         stamp(record, 'exitedAt')
         if launch_code is not None and launch_code != 0:
-            return launch_code
+            return failed_launch(launch_code)
         if not ready.is_set() and not accepted and not pending_delivery:
             current_launch = ownership()
             if current_launch is not None and current_launch != 0:
-                return current_launch
+                return failed_launch(current_launch)
             if launch_pending and current_launch == 0:
                 # The failed request raced app initialization. Its prerequisite
                 # has now changed; no arbitrary backoff is needed for that edge.
@@ -643,7 +650,7 @@ def wait_for_safari(udid):
                             detail = native_text(stream).strip()
                             print(f'sim-lane: Safari timed-out launch {label}: {detail[-2048:] or "<empty>"}', file=sys.stderr)
                         report_receipt_evidence()
-                        return 124
+                        return LAUNCH_DEADLINE
                     if status == 0:
                         stamp_launch('ownedAt')
                         admitted = True
@@ -665,7 +672,7 @@ def wait_for_safari(udid):
                         if time.monotonic() >= deadline:
                             print('sim-lane: Safari launch receipt read crossed the readiness deadline', file=sys.stderr)
                             report_receipt_evidence()
-                            return 124
+                            return LAUNCH_DEADLINE
                         if pid is not None:
                             stamp_launch('ownedAt')
                             admitted = True

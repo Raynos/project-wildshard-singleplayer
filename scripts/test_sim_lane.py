@@ -1106,6 +1106,64 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
                 refused.exception.close()
                 self.assertFalse(ready.is_set())
 
+    def test_retained_url_error_survives_only_a_synthetic_launch_deadline(self):
+        for url_code, late_launch, frames, expected in [
+                (60, 0, False, 60), (60, None, False, 60),
+                (60, 23, False, 23), (60, 124, False, 124),
+                (0, 0, False, 124), (0, 0, True, 124)]:
+            with self.subTest(url=url_code, launch=late_launch, frames=frames):
+                clock = SimpleNamespace(now=0, frames=False)
+                clock.monotonic = lambda: clock.now
+                offers, receipts = [], []
+                class Ready:
+                    def is_set(self): return clock.frames
+                    def wait(self, seconds): clock.now += seconds; return self.is_set()
+                class Launch:
+                    returncode = None
+                    def __enter__(self): return self
+                    def __exit__(self, *_args): pass
+                    def poll(self):
+                        if self.returncode is None and clock.now >= 1:
+                            self.returncode = late_launch
+                        return self.returncode
+                    def kill(self): self.returncode = -9
+                    def wait(self): return self.returncode
+                class Client:
+                    returncode = url_code
+                    def __enter__(self): clock.now = .004; clock.frames = frames; return self
+                    def __exit__(self, *_args): pass
+                    def poll(self): return self.returncode
+                launch = Launch()
+                def process(args, **_kwargs):
+                    if args[2] == 'launch': return launch
+                    self.assertEqual(args[2], 'openurl'); offers.append(args); return Client()
+                @contextmanager
+                def page(*_args): yield 'http://127.0.0.1/owned', Ready()
+                @contextmanager
+                def transcript(): yield SimpleNamespace(fileno=lambda: 0)
+                def diagnostic(*args, **_kwargs):
+                    if args[0].startswith('sim-lane: Safari lifecycle receipt '):
+                        receipts.append(json.loads(args[0].split('receipt ', 1)[1]))
+                screenshot = SimpleNamespace(records=[], preparation={}, poll=lambda: None,
+                    start=lambda *_args: None, finish=lambda: None)
+                native = READY['wait_for_safari']
+                ports = {**native.__globals__, 'time': clock, 'readiness_page': page,
+                    'native_transcript': transcript, 'native_text': lambda _: '', 'print': diagnostic,
+                    'threading': SimpleNamespace(Event=Ready),
+                    'SafariScreenshots': lambda *_args: screenshot,
+                    'os': SimpleNamespace(environ={'SIM_SAFARI_READY_TIMEOUT': '1'}, pread=lambda *_args: b''),
+                    'subprocess': SimpleNamespace(Popen=process, DEVNULL=subprocess.DEVNULL)}
+                opening = READY['open_ready_page']
+                ports['open_ready_page'] = FunctionType(opening.__code__, ports, argdefs=opening.__defaults__)
+                helper = FunctionType(native.__code__, ports)
+                self.assertEqual(helper(UDID), expected)
+                self.assertEqual(clock.now, 1)
+                self.assertEqual(len(offers), 1)
+                self.assertEqual(receipts[-1]['result'], expected)
+                self.assertFalse(receipts[-1]['ownedLaunch'])
+                self.assertEqual(receipts[-1]['ownedFrames'], frames)
+        self.assert_not_handed_over()
+
     def test_url_failure_is_bounded_and_lease_is_not_published(self):
         self.immediate_url_failure_fixture()
         started = time.monotonic()
