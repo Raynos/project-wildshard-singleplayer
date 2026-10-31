@@ -44,3 +44,35 @@ test('an owner without a version keeps comparing every pass, as before', () => {
   group.updateMatrixWorld();
   expect(group.last).toEqual({ skipped: 0, updated: 1 });
 });
+
+test('pose records retain exact native matrices as topology and matrix ownership change', () => {
+  const group = new AnimalGroup(), baseline = new Group(), next = animal(), before = animal();
+  for (const [id, node] of [next.owner.mesh, next.hip, next.knee].entries()) node.name = `node-${id}`;
+  for (const [id, node] of [before.owner.mesh, before.hip, before.knee].entries()) node.name = `node-${id}`;
+  group.add(next.owner.mesh); group.own(next.owner); baseline.add(before.owner.mesh);
+  const afterExtra = new Bone(), beforeExtra = new Bone();
+  afterExtra.name = beforeExtra.name = 'extra';
+  for (let tick = 0; tick < 360; tick++) {
+    for (const entry of [next, before]) {
+      entry.hip.rotation.x = Math.sin(tick / 10);
+      entry.knee.position.y = -1 - Math.cos(tick / 7) / 10;
+      if (tick === 90) entry.knee.matrixAutoUpdate = false;
+      if (tick >= 90 && tick < 120) entry.knee.matrix.makeRotationY(tick / 20).setPosition(0, -1, .2);
+      if (tick === 120) entry.knee.matrixAutoUpdate = true;
+    }
+    if (tick === 60) { next.knee.add(afterExtra); before.knee.add(beforeExtra); }
+    if (tick === 150) { next.knee.remove(afterExtra); before.knee.remove(beforeExtra); }
+    if (tick === 180) { next.knee.add(afterExtra); before.knee.add(beforeExtra); }
+    group.position.x = baseline.position.x = tick % 5;
+    next.owner.poseVersion++;
+    group.updateMatrixWorld(); baseline.updateMatrixWorld();
+    next.owner.mesh.traverse(node => {
+      const expected = before.owner.mesh.getObjectByName(node.name);
+      if (expected === undefined) throw new Error('Missing native counterpart');
+      expect(node.matrixWorld.elements).toEqual(expected.matrixWorld.elements);
+    });
+  }
+  next.owner.poseVersion++;
+  group.updateMatrixWorld();
+  expect(group.last).toEqual({ skipped: 1, updated: 0 });
+});

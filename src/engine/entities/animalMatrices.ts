@@ -61,7 +61,7 @@ function writePose(o: THREE.Object3D, out: Float64Array): void {
       out[cursor + 4] = c.quaternion.x; out[cursor + 5] = c.quaternion.y; out[cursor + 6] = c.quaternion.z; out[cursor + 7] = c.quaternion.w;
       out[cursor + 8] = c.scale.x; out[cursor + 9] = c.scale.y; out[cursor + 10] = c.scale.z;
       cursor += 11;
-    } else { out[cursor] = 2; out.set(c.matrix.elements, cursor + 1); cursor += 17; }
+    } else { out[cursor] = 2; if (cursor + 17 <= out.length) out.set(c.matrix.elements, cursor + 1); cursor += 17; }
     writePose(c, out);
   }
 }
@@ -86,9 +86,13 @@ function samePose(o: THREE.Object3D, rec: Float64Array): boolean {
 }
 function poseUnchanged(root: THREE.Object3D, rec: Float64Array): boolean { cursor = 0; return samePose(root, rec) && cursor === rec.length; }
 function recordPose(root: THREE.Object3D, k: Keep): void {
-  const n = poseSize(root);
-  if (k.pose.length !== n) k.pose = new Float64Array(n);
+  if (k.pose.length === 0) k.pose = new Float64Array(poseSize(root));
   cursor = 0; writePose(root, k.pose);
+  // The write already counted the stable hierarchy. Only a changed layout needs a second walk.
+  if (cursor !== k.pose.length) {
+    k.pose = new Float64Array(cursor);
+    cursor = 0; writePose(root, k.pose);
+  }
 }
 
 const isBone = (o: THREE.Object3D): boolean => (o as Partial<THREE.Bone>).isBone === true;
