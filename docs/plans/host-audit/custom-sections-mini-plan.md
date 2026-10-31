@@ -1,7 +1,7 @@
 # Custom sections to one generic platform (E498)
 
-**State:** `draft` 2026-10-24 — part of [HOST-AUDIT](../HOST-AUDIT.md) and parked with it (G679) unless Jake pulls it
-forward. Direction is G696 ([decisions](../shard-platform/decisions.md)). Read-only audit by the plan agent's subagent
+**State:** `planned` 2026-10-24; **non-graphics rows unparked for the Codex lanes 2026-10-31 (G963):** CS1, CS2, CS4, CS5, CS6, CS7 (audio / weather / people), CS9; CS3 only with identical captures; graphics rows stay Opus. — phase HA7 of [HOST-AUDIT](../HOST-AUDIT.md) (G697). **CS0 lands now** (G698); CS1–CS10
+start with HOST-AUDIT (G679), **quests (CS5) first** (G702), no exceptions at the end (G699), WASM-HOST H6 / H8 / H17 only (G701). Direction is G696 ([decisions](../shard-platform/decisions.md)). Read-only audit by the plan agent's subagent
 at HEAD `6b7dd7ebd6` (~15:45 Cancun): source greps of every non-legacy shard's generators, the built products in
 `out/` (Pine Hollow, Far Reach) and the push gate's latest exact measure
 (`.git/custom-section-measures/dcff0904cd….json`). No builds. Counts for Driftwood, Nalati and Nine are split by kind
