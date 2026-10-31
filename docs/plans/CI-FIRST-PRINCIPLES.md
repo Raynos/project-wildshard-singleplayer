@@ -2436,3 +2436,29 @@ Primary references: [staged production deploy](https://vercel.com/docs/cli/deplo
 [production promotion without rebuilding](https://vercel.com/docs/deployments/promoting-a-deployment),
 and [Vercel Authentication](https://vercel.com/docs/deployment-protection/methods-to-protect-deployments/vercel-authentication).
 
+### CI10 Road bounded-archive reading (2026-10-31, sp-x8)
+
+**Road bar remains open.** The uninstrumented original phone preset on
+`5596fde41e` (containing `4b2e47dc51` and FIFO guard `eaa05d10bc`)
+measures cold52.8607s / warm27.1902s. Native Road is16.5ms cold and
+2584.7ms warm, versus the earlier accepted Home pair's6418.5ms warm
+Road. This is an improvement, not the requested tens-of-ms warm result.
+Both native control receipts qualify and both request-accounting reports
+are complete. The raw CLI exit1 retains static-preview telemetry405;
+it is not a whole-command PASS. The browser and normal preview stopped
+at the whole-pair boundary before the next required fixture proof.
+
+An equal-key cold-cache regression was caught before this reading:
+concurrent fine/coarse bodies can have the same content hash. The FIFO
+guard preserves the original lookup-after-publication order per store
+and hash, without retaining bodies or skipping any digest. A later equal
+key still reads and verifies its own stored body. Clean duplicates write
+once; poisoned duplicates repair, and repair quota refusal still refuses.
+The exact control failed before the fix and passed afterward. All43
+focused cases/eight suites, root types and typed lint pass. Independent
+hashes retain the bounded six-job overlap and authored-order drain.
+
+Raw matched pair:
+`tmp/phone-loading/2026-10-31T21-40-15-876Z-5596fde-mvwxad35/`.
+The next remaining-pole diagnostic is separate; no repeated unchanged
+uninstrumented reading or warm-bar waiver is claimed.
