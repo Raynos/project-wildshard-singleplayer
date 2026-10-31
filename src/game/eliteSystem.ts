@@ -50,7 +50,7 @@ export interface EliteCoreScript<A extends EliteCoreActor = EliteCoreActor> {
   despawn: () => void;
   /** per frame while it is out: its AI glue. `engaged` = the fight is on; `leashing` = walking home */
   tick: (dt: number, t: number, engaged: boolean, leashing: boolean) => void;
-  /** PF5: before each tick, whether it idles far from the player (beyond 1.5 x `awareR`, unhit): it may pause its steps */
+  /** PF5: before each tick, whether it idles out of the player's reach (beyond `awareR`, unhit): it may pause its steps */
   cadence?: (far: boolean) => void;
   enterPhase2: () => void;
   /** the fight reset (leash): back to phase 1 */
@@ -122,8 +122,9 @@ export function memoryElitePersistence(): EliteCorePersistence & { records: Reco
 }
 
 const DISCOVER_R = 60, BANNER_R = 80, REARM_T = 60, LEASH_HOME_T = 12;
-/** PF5: an idle elite this many times its awareness radius away pauses its fixed steps (`cadence`) */
-const FAR_IDLE_AWARE = 1.5;
+/** PF5: an idle elite this many times its awareness radius away pauses its fixed steps (`cadence`): idle elites live only
+ *  beyond it (inside, the rules make them aware the same frame), so every idle elite holds until it notices or is hit */
+const FAR_IDLE_AWARE = 1;
 
 /** The named elite system's rules over any host (see the module doc). */
 export class EliteCore<S extends EliteCoreScript> {
@@ -251,7 +252,7 @@ export class EliteCore<S extends EliteCoreScript> {
         this.hooks.phase2?.(e);
       }
       if (e.beatT > 0) { e.beatT -= dt; if (a.hp < e.lockHp) a.hp = e.lockHp; }
-      // PF5: an idle elite beyond 1.5 x its awareness, not just hit, may pause; anything else wakes it before its tick
+      // PF5: an idle elite beyond its awareness, not just hit, may pause; anything else wakes it before its tick
       e.script.cadence?.(e.state === 'idle' && !hit && d > def.awareR * FAR_IDLE_AWARE);
       e.script.tick(dt, t, e.state === 'engaged', e.state === 'leash');
       if ((e.state === 'aware' || e.state === 'engaged') && d < bestD) { best = e; bestD = d; }
