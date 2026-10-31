@@ -62,7 +62,7 @@ const isGrade = (value: unknown): value is Grade => typeof value === 'function';
 function grade(samples: DrawSample[], surface = 'desktop', cpuRate = 4, mode: 'enforce' | 'report-only' = 'enforce', maxMs = 34): Graded {
   const source = readFileSync('scripts/frame-floor.mjs', 'utf8');
   const start = source.indexOf('function assess('), end = source.indexOf('\nfunction printVerdict(', start);
-  const loaded: unknown = runInNewContext(`${source.slice(start, end)};grade`, { chromiumPhone: false, chromiumCpuRate: 1, assessDrawBudget });
+  const loaded: unknown = runInNewContext(`${source.slice(start, end)};grade`, { chromiumPhone: false, chromiumCpuRate: 1, softwareCensus: null, assessDrawBudget });
   if (!isGrade(loaded)) throw new Error('Missing real frame-floor grader');
   return loaded({ underTenMinutes: true, chromiumCpuRate: cpuRate, drawBudgetMode: mode, settings: { tier: 'phone' }, results: [{ surface,
     rows: [{ complete: true, errors: [], metadata: { settings: { tier: 'phone' } }, rows: [{ frames: samples.length, skipped: 0, contextLost: false,
