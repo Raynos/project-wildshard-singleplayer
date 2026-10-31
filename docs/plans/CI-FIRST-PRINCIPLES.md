@@ -241,3 +241,21 @@ these local components do not establish an isolated CI gain.
   evidence, not whole-wave acceptance. Earlier direct `c698` prepare was
   cancelled. Root retains the ordinary containing watch; no new dispatch
   or watcher was added.
+
+- `9e0d28410a`: Pine's admitted-blob merge uses native full-byte comparison
+  only for ordinary fixed byte views, retaining the original scalar path
+  for proxies, accessors, custom methods and shared storage. Six alternating
+  fresh-process legs preserve all 980 output assets / 153,544,204 bytes and
+  complete shard/cost/name JSON; medians **1,100.548 -> 502.638 ms**.
+- `b7510b639f`: direct float-storage scans in phone geometry retain all
+  390 complete comparisons over 65 actual Pine GLBs and kept-input identity.
+  Each leg emits **3,681,340 identical bytes**; six fresh-process batch
+  medians **239.783 -> 222.965 ms**. Normalized channels keep the original
+  accessor decoder; grid math and every output/admission choice stay intact.
+  These are shared-host component measurements, with no author/CI claim.
+- First completed raw-AS-containing prepare: `57b183d277`, run
+  `41189102073`, job `124501997415`, **SUCCESS**, **24 built / zero reused**.
+  Pine/Nalati/Nine project-read is **118.836 / 257.733 / 171.789 s**;
+  fallback cache restore **4,979,888,476 bytes**. This source predates the
+  per-content report counters, so none of these wall times establishes a
+  raw-AS or encoder hit rate or isolated gain. CI9 remains open at 900 s.
