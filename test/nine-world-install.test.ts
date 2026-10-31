@@ -1,4 +1,5 @@
-// @vitest-environment happy-dom
+// @vitest-environment node
+// Numeric collider/LOD/packet laws use the exact-run source fixture without a DOM realm.
 import { layout as sourceLayout, scenes } from './fixtures/nine-product-inputs';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
