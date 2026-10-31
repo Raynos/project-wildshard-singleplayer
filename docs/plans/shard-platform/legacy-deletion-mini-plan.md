@@ -1,5 +1,12 @@
 # Legacy folders: what depends on them, and the deletion rows (G604)
 
+**Current — G966 (2026-10-31): Pine retirement done.** Jake: *"We can delete pine legacy tbh"*.
+Pine alone is now approved and retired: `5abfc53bb9` removes its 239 frozen files and sealed row;
+`153d6b5689` plus reference correction `a9bdb20119` remove ten exclusive engine/game/SDK modules.
+Pine has one ENTER WORLD. Nine's frozen tree, the shared LEGACY Debug row (LD5), and the TSL runtime
+(NF18) stay for Jake's Nine QA. Earlier blanket holds and pair ordering below are historical;
+G966 supersedes them for Pine only. No Nine deletion or global LD5/LD8 completion is claimed.
+
 **2026-10-27:** LD4 is a Node list compare, built now; it deletes nothing (G795). LD5–LD8 (and custom-code-freeze
 A1–A2) still wait for Jake's word after his QA and stay in the plan % (G779); nobody touches them before that.
 
@@ -49,9 +56,9 @@ Rows LD1–LD4 delete nothing and need no QA; LD5–LD8 wait for Jake's word (G6
 | **LD4 — done audit with explicit gaps (`cfa1930bb0`, `8da86fa78c`)** (G795) | Explorer parity in Node, built now, no browser lane (G795; was once per shard at a milestone in a browser): the LEGACY and SHARDFILE model / set / world / arena lists compared; deletes nothing | S | each diff empty, or every gap is a row in that shard's zero plan |
 | **LD4b — done (2026-10-28, sp-x9)** (G843; before LD5) | Capture LEGACY goldens for every shard before anything is deleted: the board cameras plus a few more, phone portrait, labelled, into `art/legacy-goldens/`. Reference only, not a release check | S | every shard has a labelled LEGACY golden sheet committed under `art/legacy-goldens/` (24 goldens, G851); then tag `legacy-final` on the last commit that still has legacy, before LD5 starts (G851)  Six inspected sheets /36 real LEGACY captures: [goldens index](../../../art/legacy-goldens/round-1-2026-10-28/README.md), source `dfe3573258`, actual six LEGACY entries, errors0, four CO6 cameras plus two standing turns each; every JPEG≤500000B. Reference only, no look change or deletion approval. |
 | **LD5** | Remove the LEGACY button: Debug row, dual buttons, legacy entry mode and loading path, `shard/legacy.ts`, `entries.legacy` | S | SHARD SELECT shows one ENTER WORLD everywhere |
-| **LD6 — Sky + Signal done (`3be88b3081`, fixture repair `198bb1ede3`); Nalati done (`b592b94008`, lint repair `2af92c2c9a`); Driftwood code done (G891, this commit); two remain** | **G882 (10-29 ~14:00): Sky Reach approved, delete `far-reach-legacy` now; **G883 (~14:07): Signal Dunes approved, delete `sunscar-dunes-legacy` now** (the planned first pair, Sky + Signal); **G885 (~14:18): Nalati approved, delete `nalati-grasslands-legacy` now**; **G891 (~14:35): Driftwood approved, delete `driftwood-isle-legacy` now; Pine Hollow and Nine Dragon: leave them alone, they go only on Jake's word after his final QA (G908)**; shard by shard from here on Jake's word; the rest of this row's all-at-once (G840) is superseded.** Delete the folders (G840, Jake 10-28: ALL AT ONCE on his word, LD5-LD10 one chain, not per shard; the order below is only the commit order inside that chain), three pair commits: Sky + Signal (already unreachable), then Driftwood + Pine, then Nalati + Nine; each drops its list entry, regenerates `slugs.generated.json`, prunes lint entries | M | gates green per commit |
-| **LD7 — 18 modules done (7 in `3be88b3081`, 7 in `b592b94008`, 4 with Driftwood G891); 15 remain** | Delete legacy-only engine/game code with each LD6 commit (33 modules: 7 / 12 / 14, exports, frozen exceptions) | M | nothing left whose only importer was legacy |
-| **LD8** | Retire the legacy tooling: `legacy-shards.json`/`.mjs`, lint/script exemptions, `LEGACY_SHARDS`, synthetic legacy tests | S | `git grep legacy-shards` finds nothing |
+| **LD6 — Sky + Signal done (`3be88b3081`, fixture repair `198bb1ede3`); Nalati done (`b592b94008`, lint repair `2af92c2c9a`); Driftwood code done (G891, this commit); Pine done (`5abfc53bb9`, G966); Nine remains** | **G882 (10-29 ~14:00): Sky Reach approved, delete `far-reach-legacy` now; **G883 (~14:07): Signal Dunes approved, delete `sunscar-dunes-legacy` now** (the planned first pair, Sky + Signal); **G885 (~14:18): Nalati approved, delete `nalati-grasslands-legacy` now**; **G891 (~14:35): Driftwood approved, delete `driftwood-isle-legacy` now; Pine Hollow and Nine Dragon were held under G908; G966 now retires Pine only, while Nine remains held for Jake's QA**; shard by shard from here on Jake's word; the rest of this row's all-at-once (G840) is superseded.** Delete the folders (G840, Jake 10-28: ALL AT ONCE on his word, LD5-LD10 one chain, not per shard; the order below is only the commit order inside that chain), three pair commits: Sky + Signal (already unreachable), then Driftwood + Pine, then Nalati + Nine; each drops its list entry, regenerates `slugs.generated.json`, prunes lint entries | M | gates green per commit |
+| **LD7 — Pine share done (`153d6b5689`, `a9bdb20119`, G966); Nine share retained** | Delete legacy-only engine/game code with each LD6 commit (33 modules: 7 / 12 / 14, exports, frozen exceptions) | M | nothing left whose only importer was legacy |
+| **LD8 — Pine share done (`5abfc53bb9`, `a9bdb20119`); shared/Nine tooling retained** | Retire the legacy tooling: `legacy-shards.json`/`.mjs`, lint/script exemptions, `LEGACY_SHARDS`, synthetic legacy tests | S | `git grep legacy-shards` finds nothing |
 | **LD9** (was custom-code-freeze A1, G838; after LD8) | Collapse the internal plugin plumbing to one client-plan boot: generated `load` thunk → a platform constant, `declaredClientPlanEntry` + empty `ShardPlugin` + `standaloneHybridEntry` + `prepareStandaloneHybrid` → one path; `retainHomeRuntime` / `stagesOwner` policy flags settled per shard as data or removed; `game/shard/plugin.ts`, `scopedRuntime.ts`, the hybrid-only parts of `hybrid.ts` (539). ~700 lines; Codex | L | no `ShardPlugin` subclass outside the game; boot smoke + one Chromium walk per shard |
 | **LD10** (was custom-code-freeze A2, G838; after LD9) | Regraph and sweep the second wave: modules whose only importers were LD7 or LD9 deletions, `sdk/runtime/**` and the `sdk-no-facade` ratchet, `ShardContext` methods with no caller (export- and member-level), stale ENGINE.md sections. ~500 lines (measured then); Codex | M | the graph lists no orphan or test-only module except the kept tools |
 
@@ -82,7 +89,7 @@ they remain here because no live per-shard zero-plan files remain:
 | Gap | Shard | Remaining work | State |
 |---|---|---|---|
 | LD4-DW | Driftwood | Capture world-placed models and qualify conditional Set membership; declared rosters and nine literal Sets match. | open |
-| LD4-PH | Pine | Qualify runtime-placed models, late map registrations and the conditional mill-hamlet Set. The phone Node catalogue now admits all 19 declared models exactly (recorded-cache capture below). | open |
+| LD4-PH | Pine | Historical model/set coverage gap superseded by G966 retirement (`5abfc53bb9`); no parity pass is inferred. The adapter reports retired legacy admission as unavailable rather than an empty matching list. | superseded by G966 |
 | LD4-NG | Nalati | Qualify runtime-placed models, late map registrations and conditional Sets. Product-only species admission now resolves the complete 27-model declared catalogue exactly (recorded-cache capture below). | open |
 | LD4-ND | Nine | Enumerate native assembly registrations: fp-arms and six literal Sets are absent from the declaration-only adapter. Account for eight added POIs. This is a coverage gap, not proof the runtime lost them. | open |
 | LD4-FR | Far Reach | Qualify world-placed models; account for four added POIs. Declared eight-model rosters and arena lists match. | open |
@@ -618,3 +625,38 @@ The only change made by this preparation is this ordered list. It neither create
 nor claims any of the implementation checks or boot smoke has run. The implementation owners refresh this pinned
 inventory against their actual commit parents, keep exact decreases with their deletions, and report the final pair-3
 SHA directly to LD8 so the chain has one unambiguous boundary.
+
+
+## G966 Pine-only retirement (2026-10-31, sp-x2)
+
+`a7123b8af0` first moves the complete frozen-format/state fixture controls to the retained Nine
+configuration, preserving the explicit five-versus-twenty field migration, save-byte ownership,
+disposal and reentry assertions. `5abfc53bb9` then deletes all 239 tracked Pine legacy files,
+its sealed list row, Pine-only debt/pins/ceilings and two frozen-only test files. Generic entry,
+title, smoke and lint fixtures use the retained Nine tree. Modern Pine night/journal tests stay.
+The actual `c18337ffe3` card test now expects Pine legacy false and retains the other five card
+guards. The primary AS/ruler line basis stays: it is historical measurement data, not a loader.
+
+The basename importer audit covers source, tests and tools before removing these ten leaves in
+`153d6b5689`: engine model GLB/hull helpers, BakedCards, fauna layout, water surface/private view,
+the old game creature facade and quest helper, and the SDK effects/Weapon facades. Defining package
+and publish exports, facade debt, frozen water exceptions, C6 component mapping, and API manual
+rows retire with them. The support-point fixture keeps the exact original independent numerical
+oracle; the shared WaterView type moves unchanged to the actual water body owner. Shared species
+installation, pond/ripples, the real Blender reader, Nine legacy and TSL remain actual users.
+
+`a9bdb20119` removes stale normalization inputs/moves and unnecessary invented retirement receipts
+(the real pending ledger has no entries for these ten modules). Five modern Explorer provenance
+labels now name their actual defining host, `src/game/models/explorerCatalogue.ts`: Driftwood boar
+and bear, Pine deer/boar/bear. Every other source byte in those two catalogues is unchanged; IDs,
+pipelines, order, spawn-only flags and specimen construction remain. This is an explicit metadata
+delta in X1's already queued six-product comparison, not a repinned or byte-identical payload claim.
+
+The necessary normal primary refresh exited 0 in 18.60 s and independent strict six-product
+admission was current at the folder-retirement boundary. The real card file passed after correcting
+the authored manifest flag. Ten-module retirement passed eight focused suites in 6.8 s; its
+reference correction passed four chargeback/component suites in 1.5 s. Root/scripts TypeScript,
+named typed lint and the exact committed deleted-path check pass; `node scripts/typecheck-root.mjs`
+also passes after landing. The catalogue suite's later stale Far/Sun precollection refusal is
+retained; X1's queued required six-product refresh owns that original focused check. No new
+browser capture, frame/physics performance claim or general path exemption was introduced.
