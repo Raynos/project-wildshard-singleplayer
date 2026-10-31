@@ -21,14 +21,28 @@ export interface TickWorkerAdapter {
   authorProof?: (plan: AuthorProofPlan) => Promise<AuthorProofReport>;
   dispose: () => void;
 }
-export const WorkerEnvelopeSchema: v.ObjectSchema<{ readonly clock: v.InstanceSchema<SharedArrayBufferConstructor, undefined>; readonly tickMicros: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 1, undefined>, v.MaxValueAction<number, 16666, undefined>]>; readonly commandsPerTick: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>, v.MaxValueAction<number, 1024, undefined>]>; readonly enforceTickDeadline: v.OptionalSchema<v.BooleanSchema<undefined>, true>; readonly payload: v.UnknownSchema; }, undefined> = v.object({ clock: v.instance(SharedArrayBuffer), tickMicros: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16_666)), commandsPerTick: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1024)), enforceTickDeadline: v.optional(v.boolean(), true), payload: v.unknown() });
+export const WorkerEnvelopeSchema: v.ObjectSchema<{ readonly clock: v.InstanceSchema<SharedArrayBufferConstructor, undefined>; readonly tickMicros: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 1, undefined>, v.MaxValueAction<number, 16666, undefined>]>; readonly commandsPerTick: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>, v.MaxValueAction<number, 1024, undefined>]>; readonly deferredPayload: v.OptionalSchema<v.BooleanSchema<undefined>, false>; readonly enforceTickDeadline: v.OptionalSchema<v.BooleanSchema<undefined>, true>; readonly payload: v.UnknownSchema; }, undefined> = v.object({ clock: v.instance(SharedArrayBuffer), tickMicros: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16_666)), commandsPerTick: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1024)), deferredPayload: v.optional(v.boolean(), false), enforceTickDeadline: v.optional(v.boolean(), true), payload: v.unknown() });
 /** Internal trusted worker adapter. Author modules are admitted WASM, never a configurable JS module URL. */
 export async function runTickWorker(create: (payload: unknown) => Promise<TickWorkerAdapter>): Promise<void> {
   const port = parentPort; if (port === null) throw new Error('Tick worker requires a parent');
   const envelope = v.parse(WorkerEnvelopeSchema, workerData), clock = new BigInt64Array(envelope.clock);
   const sendError = (error: unknown): void => { Atomics.store(clock, 0, 3n); port.postMessage({ error: error instanceof Error ? error.message : String(error) }); port.close(); };
   let adapter: TickWorkerAdapter;
-  try { adapter = await create(envelope.payload); port.postMessage({ commit: v.parse(TickCommitSchema, adapter.commit()) }); }
+  try {
+    if (envelope.deferredPayload && envelope.payload !== undefined) throw new Error('Deferred worker payload must have one owner');
+    // Only imports may run before parent admission. No adapter, payload assets
+    // or initial checkpoint exists until the single initialization message.
+    const payload = envelope.deferredPayload ? await new Promise<unknown>((resolve, reject) => {
+      const closed = (): void => { reject(new Error('Worker closed before payload admission')); };
+      port.once('close', closed);
+      port.once('message', (raw: unknown) => {
+        port.off('close', closed);
+        try { resolve(v.parse(v.strictObject({initialize: v.unknown()}), raw).initialize); }
+        catch (error) { reject(error instanceof Error ? error : new Error('Invalid deferred worker payload', {cause: error})); }
+      });
+    }) : envelope.payload;
+    adapter = await create(payload); port.postMessage({ commit: v.parse(TickCommitSchema, adapter.commit()) });
+  }
   catch (error) { sendError(error); return; }
   port.on('close', () => { adapter.dispose(); });
   let cold = true;

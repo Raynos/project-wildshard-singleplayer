@@ -9267,7 +9267,7 @@ The public SDK worker accepts admitted `sim/runtime-plan` data or the ordinary
 shardfile simulation. It has no caller-selected module URL, executable export
 catalogue or JSON expression interpreter. Missing plans never fall back to
 shard source. Product identity, asset admission, native installation and strict
-continuation restore remain mandatory.
+continuation restore remain mandatory. [Worker startup](engine/worker-startup.md).
 
 `HeadlessRuntimePreparation`, `HeadlessRuntimeInstallation`,
 `HeadlessRuntimePlan` and `PrepareHeadlessRuntime` retain their existing typed

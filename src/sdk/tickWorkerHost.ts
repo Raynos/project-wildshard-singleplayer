@@ -39,12 +39,16 @@ export class TickWorkerHost {
   private readonly ready: Promise<Reply>;
   private readonly budget: { tickMicros: number; commandsPerTick: number };
   private readonly deadline: 'runtime' | 'advisory';
-  constructor(url: URL, payload: unknown, budget: { tickMicros: number; commandsPerTick: number }, execArgv: string[] = [], deadline: 'runtime' | 'advisory' = 'runtime') {
+  /** preparePayload overlaps trusted module imports with parent admission. The
+   * worker receives no payload until it succeeds; the original request clock
+   * starts before both operations and is never reset by payload delivery. */
+  constructor(url: URL, payload: unknown, budget: { tickMicros: number; commandsPerTick: number }, execArgv: string[] = [], deadline: 'runtime' | 'advisory' = 'runtime', preparePayload?: () => Promise<unknown>) {
     this.budget = budget; this.deadline = deadline;
     if (!Number.isInteger(budget.tickMicros) || budget.tickMicros < 1 || budget.tickMicros > 16_666 || !Number.isInteger(budget.commandsPerTick) || budget.commandsPerTick < 0 || budget.commandsPerTick > 1024) throw new Error('Invalid headless budget');
+    if (preparePayload !== undefined && payload !== undefined) throw new Error('Deferred worker payload must have one owner');
     this.tickBudgetMicros = budget.tickMicros;
     this.ready = this.wait();
-    this.worker = new Worker(url, { workerData: { payload, ...budget, clock: this.clock.buffer, enforceTickDeadline: deadline === 'runtime' }, execArgv });
+    this.worker = new Worker(url, { workerData: { payload, ...budget, clock: this.clock.buffer, enforceTickDeadline: deadline === 'runtime', ...(preparePayload === undefined ? {} : {deferredPayload: true}) }, execArgv });
     this.worker.on('message', (raw: unknown) => {
       try {
         const message = v.parse(v.union([v.strictObject({observation:HeadlessObservationReportSchema}), v.strictObject({verbTape:HeadlessTapeReportSchema}), v.strictObject({verbTapePart:HeadlessTapePartReportSchema}), v.strictObject({ commit: TickCommitSchema }), v.strictObject({ proof: proofSchema }), v.strictObject({ journey: HeadlessJourneyReportSchema }), v.strictObject({walk:v.strictObject({report:HeadlessJourneyReportSchema,commit:TickCommitSchema})}), v.strictObject({ authorProof: AuthorProofReportSchema }), v.strictObject({ error: v.string() })]), raw);
@@ -63,6 +67,17 @@ export class TickWorkerHost {
       if (this.deadline === 'runtime' && Atomics.load(this.clock, 0) === 1n && now - Atomics.load(this.clock, 1) > BigInt(this.tickBudgetMicros) * 1000n) this.fail(new HeadlessDeadlineError(this.last, Number(now - Atomics.load(this.clock, 1)) / 1000));
       else if ((this.streamStarted!==0n&&now-this.streamStarted>30_000_000_000n)||(this.pending !== undefined && now - this.requestStarted > 30_000_000_000n)) this.fail(new Error('Headless worker request deadline exceeded; quarantined'));
     });
+    if (preparePayload !== undefined) {
+      const worker = this.worker;
+      // Observe admission immediately, including synchronous factory refusal.
+      void (async () => {
+        try {
+          const admitted = await preparePayload();
+          // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node Worker messages have no browser target origin.
+          if (!this.closed) worker.postMessage({initialize: admitted});
+        } catch (error) { this.fail(error instanceof Error ? error : new Error('Worker payload preparation refused', {cause: error})); }
+      })();
+    }
   }
   private wait(): Promise<Reply> {
     this.requestStarted = hrtime.bigint();
