@@ -12,10 +12,10 @@ import {chapterWireHash} from './fixtures/headless/chapterHandoff';
 mkdirSync(resolve('tmp'),{recursive:true});
 const directory=mkdtempSync(resolve('tmp/nalati-chapter-one-')),plains=resolve(directory,'plains.json'),approach=resolve(directory,'approach.json'),bond=resolve(directory,'bond.json'),goat=resolve(directory,'goat.json'),returning=resolve(directory,'return.json'),home=resolve(directory,'home.json');
 const rim=resolve(directory,'carving-road.json');
-const arrival=resolve(directory,'carving-arrival.json'),carvings=resolve(directory,'carvings.json'),kingEntry=resolve(directory,'king-entry.json');
-let plainsHash:string|undefined,approachHash:string|undefined,bondHash:string|undefined,goatHash:string|undefined,returnHash:string|undefined,homeHash:string|undefined,rimHash:string|undefined,arrivalHash:string|undefined,carvingsHash:string|undefined;
+const arrival=resolve(directory,'carving-arrival.json'),carvings=resolve(directory,'carvings.json'),kingEntry=resolve(directory,'king-entry.json'),kingOne=resolve(directory,'king-one.json');
+let plainsHash:string|undefined,approachHash:string|undefined,bondHash:string|undefined,goatHash:string|undefined,returnHash:string|undefined,homeHash:string|undefined,rimHash:string|undefined,arrivalHash:string|undefined,carvingsHash:string|undefined,kingEntryHash:string|undefined;
 afterAll(()=>{rmSync(directory,{recursive:true});});
-function run(stage:'plains'|'approach'|'bond'|'goat'|'return'|'home'|'carving-road'|'carving-arrival'|'carvings'|'king-entry',output:string,input?:string,hash?:string):string {
+function run(stage:'plains'|'approach'|'bond'|'goat'|'return'|'home'|'carving-road'|'carving-arrival'|'carvings'|'king-entry'|'king-phase-one',output:string,input?:string,hash?:string):string {
   const started=performance.now();
   const child=spawnSync(process.execPath,['--experimental-transform-types','--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
     resolve('test/fixtures/headless/nalati-chapter-one-run.ts'),stage,output,...(input===undefined?[]:[input]),...(hash===undefined?[]:[hash])],{encoding:'utf8',timeout:150_000});
@@ -81,5 +81,12 @@ test('the earned three carvings enter and replay the actual King portal and intr
   expect(carvingsHash,'the preceding case must earn all three real balbal clues').toBeDefined();
   if(carvingsHash===undefined)throw new Error('Missing earned three-carving continuation');
   expect(chapterWireHash(readFileSync(carvings,'utf8'))).toBe(carvingsHash);
-  run('king-entry',kingEntry,carvings,carvingsHash);
+  kingEntryHash=run('king-entry',kingEntry,carvings,carvingsHash);
+},180_000);
+
+test('the entered King earns and exactly replays its first real health checkpoint',()=>{
+  expect(kingEntryHash,'the preceding case must enter the real King fight').toBeDefined();
+  if(kingEntryHash===undefined)throw new Error('Missing earned King entry');
+  expect(chapterWireHash(readFileSync(kingEntry,'utf8'))).toBe(kingEntryHash);
+  run('king-phase-one',kingOne,kingEntry,kingEntryHash);
 },180_000);

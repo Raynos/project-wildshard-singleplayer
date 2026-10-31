@@ -75,6 +75,9 @@ export function* kingPhaseInputs(host:SimHost,read:()=>KingObservation,rows:Nala
   const final=read();
   if(through==='victory'){
     assert.equal(final.state,'victory','only the actual encounter may publish victory');
+    // The original chapter poll owns this fact; give its real clock time to
+    // observe the newly persisted victory rather than feeding the flag.
+    for(let tick=0;tick<120&&!host.flags.has('dead:golden-king');tick++)yield [];
     assert.ok(host.flags.has('dead:golden-king'),'the real saved record must publish the King outcome');
   }else assert.ok(final.phase>=through,'the original health threshold must earn the next phase');
 }
