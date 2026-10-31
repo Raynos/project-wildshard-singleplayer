@@ -35,7 +35,7 @@ export async function generate(ctx: ProjectGenerationContext): Promise<Generated
   const scheduled = new Set(output.late?.map(row => row.hash));
   const late = [...output.late ?? [], ...[...journal.late, ...pineLateMaterialFiles(output.namedFiles, timberWorld(sources).landmarks)]
     .filter(row => { if (scheduled.has(row.hash)) return false; scheduled.add(row.hash); return true; })];
-  return { shard, output: { ...output, late }, map: { pixels: await pineMapPixels(sources), name: 'ui/images/map' },
+  return { shard, output: { ...output, late }, map: { pixels: await pineMapPixels(sources, ctx), name: 'ui/images/map' },
     discovery: { 'ground.rows': geography.ground, 'forestQueries.rows': geography.forestQueries, 'pondClip.rows': geography.pondClip,
       ...await pineBootProgram(ctx) } };
 }

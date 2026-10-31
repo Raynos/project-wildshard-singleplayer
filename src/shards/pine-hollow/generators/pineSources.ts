@@ -78,6 +78,17 @@ export function sourcesOf(files: ReadonlyMap<string, Uint8Array>): PineSources {
   } };
 }
 
+const snapshots = new WeakSet<PineSources>();
+/** An owned program snapshot keeps its identity across in-memory bakes. */
+export function frozenSourcesOf(files: ReadonlyMap<string, Uint8Array>): PineSources {
+  const owned = new Map([...files].map(([name, bytes]) => [name, new Uint8Array(bytes)]));
+  const sources = Object.freeze(sourcesOf(owned));
+  snapshots.add(sources);
+  return sources;
+}
+/** Shape, readonly typing and Object.freeze alone cannot certify byte ownership. */
+export function isFrozenSources(sources: PineSources): boolean { return snapshots.has(sources); }
+
 /** GR8 (D65, G37): every committed Pine source, read through `ctx.cached`: the fixed inputs, the hero GLBs and the hero
  *  material payloads the declared folders hold, and the timber world's material payloads and cabin prop scans (listed).
  *  programSources.ts adds the timber world the program bakes over them. */

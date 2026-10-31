@@ -1,5 +1,5 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { readFileSources, sourcesOf, type PineSources } from './pineSources';
+import { readFileSources, sourcesOf, frozenSourcesOf, type PineSources } from './pineSources';
 import { bakeTimberWorldFiles } from './bake-timber-world.mjs';
 
 /** One read per build context (the program and its output share it). */
@@ -8,7 +8,9 @@ const reads = new WeakMap<object, Promise<PineSources>>();
 async function readSources(ctx: Pick<ProjectGenerationContext, 'cached' | 'inputFiles'>): Promise<PineSources> {
   const files = await readFileSources(ctx);
   const timber = await ctx.cached({ id: 'pine-timber-world', inputs: [...files.keys()] }, () => bakeTimberWorldFiles(sourcesOf(files)));
-  return sourcesOf(new Map([...files, ...timber]));
+  // Both maps are private detached ctx.cached results. Keep the same source
+  // identity for perSources bakes while exposing only fresh byte copies.
+  return frozenSourcesOf(new Map([...files, ...timber]));
 }
 
 /** GR8 (D65, G37): Pine's program sources: every committed input (pineSources.ts `readFileSources`), then the timber world
