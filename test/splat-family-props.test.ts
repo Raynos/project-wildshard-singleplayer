@@ -68,3 +68,23 @@ test('a trusted runtime streams its bound splat ground: primary files only', asy
     expect([...splatGroundFiles(drawn)].sort()).toEqual([h(99), ...splatTextureRefs(SPLAT)].sort());
   }
 });
+
+// GLSL parity (Sky Reach): a named surface bound to a graph look draws that graph as it is, on either back-end. A classic
+// GLSL graph material went through the family-variant path and took the GLB's vertex colours on top of the graph's own.
+test('a GLSL graph look draws as itself, never as a vertex-coloured family variant', async () => {
+  const g = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 0, 1], 3)).setIndex([0, 2, 1]);
+  g.setAttribute('color', new THREE.Float32BufferAttribute([1, 0, 0, 0, 1, 0, 0, 0, 1], 3));
+  const source = new THREE.MeshStandardMaterial(); source.name = 'isle-paint';
+  const glb = staticGlb([{ geometry: g, material: source, castShadow: false }], 'tile');
+  const scope = new Scope('test.graph-props'), scene = new THREE.Group(), family = new THREE.MeshStandardMaterial();
+  const graph = Object.assign(new THREE.ShaderMaterial(), { isGraphShaderMaterial: true });
+  const maps = { colour: null, normal: null, normalScale: 1, metallicRoughness: null, occlusion: null, occlusionStrength: 1, emissive: null };
+  try {
+    const installed = await installDeclaredProps({ family: 'pbr', tiles: [{ lod: 0, x: 0, z: 0, file: h(98) }], panels: [], models: [], far: null, textures: [] }, {
+      scene, scope, assets: new Map([[h(98), glb]]), materials: new Map([['pbr', family]]),
+      surfaces: name => name === 'isle-paint' ? { material: graph, maps } : null,
+    });
+    const drawn: unknown[] = []; installed.tiles.get('0/0/0')?.traverse(o => { if (o instanceof THREE.Mesh) { const material: unknown = o.material; drawn.push(material); } });
+    expect(drawn).toEqual([graph]); expect(graph.vertexColors).toBe(false);
+  } finally { scope.dispose(); graph.dispose(); }
+});

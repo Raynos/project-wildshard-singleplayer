@@ -55,8 +55,9 @@ const mapsKey = (n: NonNullable<Surface['named']>): string =>
   `|${[n.maps.colour, n.maps.normal, n.maps.metallicRoughness, n.maps.occlusion, n.maps.emissive].map((t) => t?.uuid ?? '-').join(',')}|${n.maps.normalScale}|${n.maps.occlusionStrength}|${n.emissive?.getHexString() ?? '-'}`;
 const surfaceKey = (s: Surface): string =>
   `${s.colour?.getHexString() ?? '-'}|${s.roughness ?? '-'}|${s.metalness ?? '-'}|${s.map?.uuid ?? '-'}|${s.vertexColours ? 'v' : ''}${s.flat ? 'f' : ''}|${s.side}|${s.transparent ? 't' : ''}|${s.opacity}${s.named === undefined ? '' : mapsKey(s.named)}`;
-/** a graph's node material (three/webgpu) is drawn as compiled: its textures are its own params */
-const isNodeMaterial = (m: Material): boolean => Reflect.get(m, 'isNodeMaterial') === true;
+/** a graph look (an SF59 node material, or its classic GLSL program): it reads its own channels and colours, so it binds
+ *  its mesh map and nothing else (GLSL parity: as a family variant it took the GLB's vertex colours on top) */
+const isGraphMaterial = (m: Material): boolean => Reflect.get(m, 'isNodeMaterial') === true || Reflect.get(m, 'isGraphShaderMaterial') === true;
 /** bind a named surface's slots (glTF's unflipped UV convention: the normal map's green runs the other way, as GLTFLoader sets it) */
 function applyMaps(m: Material, named: NonNullable<Surface['named']>): void {
   const { maps } = named;
@@ -175,7 +176,7 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
         const binding = named(source?.name ?? '');
         if (binding === null) return familyConvert(source);
         if (binding.channels !== undefined) adoptChannels(o.geometry, binding.channels, source?.name ?? '');
-        if (binding.compiled === true || isNodeMaterial(binding.material)) {
+        if (binding.compiled === true || isGraphMaterial(binding.material)) {
           const mapped: unknown = source === undefined ? undefined : Reflect.get(source, 'map');
           const map = binding.maps.colour ?? texture ?? (mapped instanceof Texture ? mapped : undefined);
           const material = bindGraphMeshMap(binding.material, map, scope);
