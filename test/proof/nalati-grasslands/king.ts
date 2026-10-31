@@ -52,15 +52,17 @@ export function* kingPhaseInputs(host:SimHost,read:()=>KingObservation,rows:Nala
     const king=seen.body;assert.ok(king);
     const adds=seen.adds.filter(body=>body.alive).sort((a,b)=>distance(a)-distance(b));
     const target=seen.shielded&&adds.length>0?adds[0]:king;assert.ok(target);
-    const at=point(target),p=host.player.position,dx=at.x-p.x,dz=at.z-p.z,d=Math.hypot(dx,dz);
+    const at=point(target),p=host.player.position,dx=at.x-p.x,dz=at.z-p.z,d=Math.hypot(dx,dz),
+      gazeX=target.head[0]-p.x,gazeZ=target.head[2]-p.z,pitch=Math.atan2(target.head[1]-p.y-1.68,Math.hypot(gazeX,gazeZ));
     const windup=target.attackPhase>=.35&&target.attackPhase<.68,dodge=windup&&d<rows.profile.fight.attacks.combo.reach+1
       &&host.state.tick-dodged>=60;
     if(dodge)dodged=host.state.tick;
     const jump=target===king&&king.act===rows.profile.fight.attacks.burst.act&&king.attackPhase>=.65&&king.attackPhase<.78;
     const heavy=tick%75<45&&d<3.5&&seen.state==='fight';
-    yield [{kind:'player',moveX:0,moveZ:0,yaw:Math.atan2(-dx,-dz),commandVersion:1,
+    yield [{kind:'player',moveX:0,moveZ:0,yaw:Math.atan2(-gazeX,-gazeZ),commandVersion:1,
       steer:{keyX:0,keyY:0,stickX:dodge?(tick%2===0?.8:-.8):.2,stickY:d>2.1?.65:d<1.3?-.45:0},
-      ...(heavy?{heavy:{}}:{}),...(dodge?{dodge:true}:{}),...(jump?{jump:true}:{})}];
+      ...(heavy?{heavy:{}}:{}),...(dodge?{dodge:true}:{}),...(jump?{jump:true}:{})},
+      ...(tick%12===0?[{kind:'script' as const,actorId:'nalati.weapon.pitch',value:pitch}]:[])];
   }
   const final=read();
   if(through==='victory'){

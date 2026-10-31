@@ -9,7 +9,7 @@ import {prepareHeadlessRuntime} from '../nalati-chapter-native';
 import {prepareHeadlessRuntime as prepareKing} from '../nalati-king-native';
 import {nativeKingOf} from '../nalati-king-host';
 import {readNalatiKingData} from '../nalati-king-data';
-import {kingEntryInputs} from '../../proof/nalati-grasslands/king';
+import {kingEntryInputs,kingPhaseInputs} from '../../proof/nalati-grasslands/king';
 import {loadRapier} from '../../../src/engine/physics/rapier';
 import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
 import {parseCarriedQuest} from '../../../src/format/questSteps';
@@ -27,16 +27,17 @@ import type {HeadlessCommand,HeadlessEffect,HeadlessTickCommit} from '../../../s
 import type {HeadlessTapeObservation} from '../../../src/sdk/headlessTape';
 import {PACKED_CHAPTER_TAMING,unpackChapterTaming} from './chapterObservation';
 
-const [stage,outputPath,inputPath,inputHash]=process.argv.slice(2);assert.ok(stage==='plains'||stage==='approach'||stage==='bond'||stage==='goat'||stage==='return'||stage==='home'||stage==='carving-road'||stage==='carving-arrival'||stage==='carvings'||stage==='king-entry');assert.ok(outputPath);
-const observed=stage==='carving-road'||stage==='carving-arrival'||stage==='carvings'||stage==='king-entry'?chapterTwoObserved:chapterObserved;
+const [stage,outputPath,inputPath,inputHash]=process.argv.slice(2);assert.ok(stage==='plains'||stage==='approach'||stage==='bond'||stage==='goat'||stage==='return'||stage==='home'||stage==='carving-road'||stage==='carving-arrival'||stage==='carvings'||stage==='king-entry'||stage==='king-phase-one'||stage==='king-phase-two'||stage==='king-victory');
+const kingStage=stage==='king-entry'||stage==='king-phase-one'||stage==='king-phase-two'||stage==='king-victory';assert.ok(outputPath);
+const observed=stage==='carving-road'||stage==='carving-arrival'||stage==='carvings'||kingStage?chapterTwoObserved:chapterObserved;
 let inherited:ChapterHandoff|undefined;
 if(stage!=='plains'){
   assert.ok(inputPath);assert.ok(inputHash);assert.ok(statSync(inputPath).size<=32_000_000);
   const wire=readFileSync(inputPath,'utf8');assert.equal(chapterWireHash(wire),inputHash);
   inherited=v.parse(ChapterHandoffSchema,chapterRead(wire));assert.equal(inherited.stage,
-    stage==='approach'?'plains':stage==='bond'?'approach':stage==='goat'?'bond':stage==='return'?'goat':stage==='home'?'return':stage==='carving-road'?'home':stage==='carving-arrival'?'carving-road':stage==='carvings'?'carving-arrival':'carvings');checkChapterLedger(inherited.parts,inherited.tick);
+    stage==='approach'?'plains':stage==='bond'?'approach':stage==='goat'?'bond':stage==='return'?'goat':stage==='home'?'return':stage==='carving-road'?'home':stage==='carving-arrival'?'carving-road':stage==='carvings'?'carving-arrival':stage==='king-entry'?'carvings':stage==='king-phase-one'?'king-entry':stage==='king-phase-two'?'king-phase-one':'king-phase-two');checkChapterLedger(inherited.parts,inherited.tick);
 }
-const started=performance.now(),session=await beginProductSession('nalati-grasslands',stage==='king-entry'?'nalati-king':'nalati-chapter',inherited?.snapshot),{product,assets}=session;
+const started=performance.now(),session=await beginProductSession('nalati-grasslands',kingStage?'nalati-king':'nalati-chapter',inherited?.snapshot),{product,assets}=session;
 const descriptor=outputDescriptor(product.shardfile);assert.ok(descriptor?.indexHash);
 if(inherited!==undefined)assert.equal(inherited.source,descriptor.indexHash);
 const inheritedParts=inherited?.parts.length??0,inheritedPartsHash=inherited===undefined?undefined:chapterWireHash(chapterWire(inherited.parts));
@@ -44,7 +45,7 @@ let resident:Awaited<ReturnType<typeof createNativeProofResident>>|undefined;
 let pipeline:ReturnType<typeof checkedReplayPipeline<ChapterPart>>|undefined;
 try{
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-  resident=await createNativeProofResident({shard:product.shardfile,assets,product,rapier},stage==='king-entry'?prepareKing:prepareHeadlessRuntime,inherited?.snapshot);
+  resident=await createNativeProofResident({shard:product.shardfile,assets,product,rapier},kingStage?prepareKing:prepareHeadlessRuntime,inherited?.snapshot);
   const active=resident,{host}=active,ready=session.ready(),history:ChapterPart[]=inherited?.parts??[],firstTick=host.state.tick;
   let commandsCount=history.reduce((sum,part)=>sum+(part.plan.segments[0]?.frames??[]).reduce((count,frame)=>count+frame.length,0),0);
   if(inherited!==undefined)assert.equal(chapterSnapshotDigest(snapshotSimHostBytes(host)),inherited.digest,'the recorder quietly restores the earned arrival');
@@ -90,7 +91,9 @@ try{
     return chapterCarvingInputs(host,slots,heldBowBase({bow:definition.bow,base:definition.base}));
   };
   const kingInputs=async():Promise<Generator<readonly HeadlessCommand[]>>=>{
-    const king=nativeKingOf(host);assert.ok(king);return kingEntryInputs(host,king.observe,await readNalatiKingData(product));
+    const king=nativeKingOf(host);assert.ok(king);const rows=await readNalatiKingData(product);
+    return stage==='king-entry'?kingEntryInputs(host,king.observe,rows):kingPhaseInputs(host,king.observe,rows,
+      parseHeldSlots(await product.json('held/slots.json')),stage==='king-phase-one'?1:stage==='king-phase-two'?2:'victory');
   };
   const inputs=stage==='plains'?chapterCampInputs(host,product.shardfile.spawn):stage==='approach'?chapterApproachInputs(host):stage==='bond'?chapterBondInputs(host,bondTicks)
     :stage==='goat'?chapterGoatInputs(host,parseCarriedQuest(await product.json('quests/carried.json'))):stage==='return'?chapterReturnInputs(host):stage==='home'?chapterHomeInputs(host,true)
@@ -108,13 +111,14 @@ try{
   assert.equal((await ready).quarantined,false);checkChapterLedger(history,host.state.tick);
   if(inheritedPartsHash!==undefined)assert.equal(chapterWireHash(chapterWire(history.slice(0,inheritedParts))),inheritedPartsHash,
     'the checked prefix retains every original input, observation, effect and native digest');
-  const secondChapter=stage==='carving-road'||stage==='carving-arrival'||stage==='carvings'||stage==='king-entry',firstComplete=stage==='home'||secondChapter;
+  const secondChapter=stage==='carving-road'||stage==='carving-arrival'||stage==='carvings'||kingStage,firstComplete=stage==='home'||secondChapter;
   assert.equal(host.flags.has('tamed:horse'),stage!=='plains'&&stage!=='approach');assert.equal(host.flags.has('won:kokpar'),stage!=='plains'&&stage!=='approach'&&stage!=='bond');
   assert.equal(host.flags.has('told:tulpar'),firstComplete);assert.equal(host.flags.has('quest:tulpar'),firstComplete);
   assert.equal(host.flags.has('talked:elder:2'),secondChapter);
-  assert.equal(host.flags.has('entered:kurgan'),stage==='king-entry');
-  for(const flag of ['quest:golden-king','quest:father-wind','dead:golden-king','dead:jel-ata'])assert.equal(host.flags.has(flag),false,flag);
-  for(const flag of ['clue:1','clue:2','clue:3'])assert.equal(host.flags.has(flag),stage==='carvings'||stage==='king-entry',flag);
+  assert.equal(host.flags.has('entered:kurgan'),kingStage);
+  for(const flag of ['quest:golden-king','quest:father-wind','dead:jel-ata'])assert.equal(host.flags.has(flag),false,flag);
+  assert.equal(host.flags.has('dead:golden-king'),stage==='king-victory');
+  for(const flag of ['clue:1','clue:2','clue:3'])assert.equal(host.flags.has(flag),stage==='carvings'||kingStage,flag);
   const quest=product.shardfile.quests.quests.find(row=>row.id==='tulpar');assert.ok(quest?.onComplete?.fact);
   const fact=quest.onComplete.fact,earned=history.flatMap(part=>part.expected.observations.flatMap(row=>row.effects));
   const completionFacts=earned.filter(effect=>effect.kind==='fact'&&effect.name===fact&&effect.actorId===quest.id).length;
