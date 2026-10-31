@@ -128,7 +128,11 @@ export function writeSpawnManifests(outDir: string, input: unknown,
         if (inventory.length !== extra[1] || createHash('sha256').update(inventory).digest('hex') !== extra[3]) throw new Error('Spawn public inventory differs');
         for (const [url, bytes] of v.parse(files, JSON.parse(new TextDecoder().decode(inventory)))) add(asset(url, bytes));
       }
-      const rows = [...selected.values()], totalBytes = rows.reduce((sum, row) => sum + row.bytes, 0), wire = rows.reduce((sum, row) => {if (row.wireBytes === undefined) throw new Error('Missing spawn wire size'); return sum + row.wireBytes;}, 0);
+      // Required code can resolve while bulk content downloads. Keep each
+      // partition's original order, every row and the full download barrier.
+      const original = [...selected.values()], code = (row: SpawnFile): boolean => /\.(?:js|wasm)(?:\?|$)/u.test(row.url);
+      const rows = [...original.filter(code), ...original.filter(row => !code(row))];
+      const totalBytes = rows.reduce((sum, row) => sum + row.bytes, 0), wire = rows.reduce((sum, row) => {if (row.wireBytes === undefined) throw new Error('Missing spawn wire size'); return sum + row.wireBytes;}, 0);
       const manifest = readSpawnManifest({version: 1, shard: directory, tier, flow, files: rows, totalBytes, wireBytes: wire});
       const text = JSON.stringify(manifest), hash = createHash('sha256').update(text).digest('hex'), name = `assets/spawn/${directory}-${flow}-${tier}-${hash.slice(0, 16)}.json`;
       writeFileSync(join(output, name), text); return {url: `/${name}`, bytes: Buffer.byteLength(text), totalBytes, files: rows.length, wireBytes: wire};

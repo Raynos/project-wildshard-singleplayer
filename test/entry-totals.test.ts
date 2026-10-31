@@ -11,8 +11,9 @@ import {createHash} from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Match the deployed precompressed native representation exactly.
 import {brotliCompressSync, constants} from 'node:zlib';
 import {readSpawnManifest} from '../src/format/spawnManifest';
+import {downloadSpawnManifest} from '../src/game/boot/spawnDownload';
 
-test('spawn manifests union code once, keep grid selection and content identity stable', () => {
+test('spawn manifests prioritize code stably without changing bytes or the complete download barrier', async () => {
   mkdirSync('tmp/entry-totals', {recursive: true});
   const root = mkdtempSync(resolve('tmp/entry-totals/fixture-'));
   try {
@@ -57,6 +58,41 @@ test('spawn manifests union code once, keep grid selection and content identity 
     const row=nativeManifest.files.find(file=>file.url.startsWith('/assets/physics/rapier.wasm?'));
     expect(row?.bytes).toBe(physics.length);
     expect(row?.wireBytes).toBe(brotliCompressSync(physics,{params:{[constants.BROTLI_PARAM_QUALITY]:11}}).length);
+    const original = readSpawnManifest(JSON.parse(text));
+    // Adding native code changes no existing URL, hash, size or relative order.
+    expect(nativeManifest.files.filter(file => file !== row)).toEqual(original.files);
+    const code = nativeManifest.files.filter(file => /\.(?:js|wasm)(?:\?|$)/u.test(file.url));
+    expect(code.map(file => new URL(file.url, 'https://example.test').pathname)).toEqual([
+      '/assets/physics/rapier.wasm', '/assets/shared.js', '/assets/client.js', '/assets/example.js', '/assets/model.js',
+    ]);
+    expect(nativeManifest.files.slice(0, code.length)).toEqual(code);
+    const content = nativeManifest.files.slice(code.length);
+    expect(content.map(file => new URL(file.url, 'https://example.test').pathname)).toEqual([
+      '/shardfiles/example/shard.json', ...sections.map(section => `/shardfiles/example/${section.path}`),
+    ]);
+    let release = (): void => {throw new Error('Missing content release');};
+    const held = new Promise<void>(_resolve => {release = _resolve;});
+    let codeReady = (): void => {throw new Error('Missing code observation');};
+    const codeDone = new Promise<void>(_resolve => {codeReady = _resolve;});
+    const reads: string[] = [], nativeText = JSON.stringify(nativeManifest);
+    const download = downloadSpawnManifest(nativeAddress, {cached: () => Promise.resolve(undefined), fetch: async url => {
+      if (new URL(url).pathname === nativeAddress.url) return new Response(nativeText);
+      const file = nativeManifest.files.find(candidate => new URL(candidate.url, 'https://example.test').href === url);
+      if (file === undefined) throw new Error('Unexpected spawn file');
+      reads.push(file.url);
+      if (content.includes(file)) await held;
+      return new Response(new Uint8Array(file.bytes));
+    }}, 'https://example.test');
+    download.subscribe(snapshot => {if (snapshot.filesDone === code.length) codeReady();});
+    let complete = false;
+    void download.ready.then(() => {complete = true; return undefined;});
+    await codeDone;
+    expect(reads.slice(0, code.length)).toEqual(code.map(file => file.url));
+    expect(complete).toBe(false);
+    expect(download.snapshot()).toMatchObject({complete: false, filesDone: code.length, totalBytes: nativeAddress.totalBytes});
+    release(); await download.ready;
+    expect(download.snapshot()).toMatchObject({complete: true, filesDone: nativeAddress.files, completedBytes: nativeAddress.totalBytes});
+    expect([...reads].sort()).toEqual(nativeManifest.files.map(file => file.url).sort());
     expect(writeSpawnManifests(output,input,strips,root)).toEqual(native);
   } finally {rmSync(root, {recursive: true, force: true});}
 });
