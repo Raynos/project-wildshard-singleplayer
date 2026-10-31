@@ -109,8 +109,8 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 | Row | What | Effort |
 |---|---|---|
 | **CS0** | **done (2026-10-24, sp-x6):** measured ceilings 387 / 33,613,009 B; shrink-only existing-name inventory, new custom sections refused, new named JSON requires an exact defining format schema. **Ceilings to actuals and a schema freeze** (free, can land now): set every `custom-sections/<slug>` ceiling to the measured value (549 → 387, 62 MB → 33.6 MB); refuse a new `custom/` section and any new named JSON whose schema is defined in a shard folder | 0.5 day, Codex |
-| **CS1** | **Generated section inventory** inside HA1's ruler mode: every section and named JSON blob with shard, bytes, schema module, the schema's shard users, reading host (H-group). Lands in HA2's one table | 0.5–1 day, Codex |
-| **CS2** | **Platform names for blobs**: `product.json` admits only names whose schema is registered platform-wide; the ~345 format-schema blobs get platform names (`world/scenes/<id>`), shard-local schemas listed for CS3–CS9 | 2–3 days, Codex + Opus review |
+| **CS1** | **done (2026-10-31, sp-x1):** plain hash-bound section inventory in `9a616b4b82`; exclusive test-project ownership fixed in `b13ad77350`. Records sections/named JSON, shard, bytes, defining bindings, source emitters and reading-host evidence; unresolved evidence remains explicit. No ruler, scores or progress tool. | 0.5–1 day, Codex |
+| **CS2** | **open (2026-10-31, sp-x1):** bounded registrations and exact payload proofs are landed; full shared-name coverage is not yet demonstrated. The explicit CS3–CS9 remainder table below stays open. **Platform names for blobs**: `product.json` admits only names whose schema is registered platform-wide; the ~345 format-schema blobs get platform names (`world/scenes/<id>`), shard-local schemas listed for CS3–CS9 | 2–3 days, Codex + Opus review |
 | **CS3** | **K1 scenes**: one streamed `world/scenes` family and `models/library`; Pine's 112 placement files become one indexed section; tier copies derived. Pine first, then Sky / Signal / Nine / Driftwood / Nalati | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **K2 ground and physics**: Pine physics into `world/physics`; floor, crag cave, Sky fields, Signal embers into a streamed `world/fields` | 2–3 days, Codex (Opus memory reading) |
 | **CS5** | **K3 quests**: one `quest/*` family across Pine, Driftwood, Nalati (and Sky's quest rows); Pine `questRuntime` program to AS | 4–6 days, Opus design + Codex port |
@@ -267,6 +267,8 @@ remaining documents; an inventory shape match alone proves no contract.
 | Held kits/weapons, collections/appearance/sky/audio/weather/water, people/places and raw jian geometry | **CS7**: unify complete wire shapes and retain native consumers. Pine `world/weather.json` is a program; Nalati's same name is `{weather,reactions}`, so it is not yet one contract. Raw geometry exits through the model library. |
 | Room/boss/encounter/fight/riding documents | **CS8**: retain closed encounter/riding owners; executable fights use the approved host. |
 | Headless assembly/boot/constants, native views and runtime graphs | **CS9**: derive assemblies from platform sections and use approved view hosts; permissive assembly envelopes are not CS2 registrations. |
+
+CS2 is not marked done: the landed registry covers the named slices and bounded families recorded above, while the remaining scene/source, ground, quest, actor, held/look/audio/people, encounter and headless names still require their complete defining contracts through these exits. An existing shared schema or a family-level exit label alone does not demonstrate that every remaining logical name has passed the CS2 bar.
 
 These exits remain open work, not completed platform contracts. CS10
 removes the checked private path only after they land. Missing provenance,
