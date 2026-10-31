@@ -80,9 +80,9 @@ export async function createReloadProxy(base) {
     const forward=()=>{
       const headers={...req.headers,host:origin.host};delete headers.connection;
       const stream=request(new URL(req.url??'/',origin),{method:req.method,headers},reply=>{res.writeHead(reply.statusCode??502,reply.headers);reply.pipe(res);});
-      upstream.add(stream);stream.on('close',()=>upstream.delete(stream));
+      upstream.add(stream);stream.on('close',()=>{upstream.delete(stream);});
       stream.on('error',()=>{if(!res.headersSent)res.writeHead(502);res.end();});
-      res.on('close',()=>stream.destroy());req.pipe(stream);
+      res.on('close',()=>{stream.destroy();});req.pipe(stream);
     };
     if(delayMs===0)forward();else{
       const timer=setTimeout(()=>{timers.delete(timer);if(!res.destroyed)forward();},delayMs);timers.add(timer);
