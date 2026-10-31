@@ -80,9 +80,9 @@ test('binary preview transport keeps exact quality-3 bytes, headers, ranges and 
     expect(br.headers['content-encoding']).toBe('br');
     expect(br.headers['content-type']).toBe('application/octet-stream');
     expect(br.headers['cache-control']).toBe('public, max-age=31536000, immutable');
-    expect(br.headers['access-control-allow-origin']).toBe(origin);
+    expect(br.headers['access-control-allow-origin']).toBe('*');
     expect(br.headers['accept-ranges']).toBe('bytes');
-    expect(br.headers.vary).toBe('Origin, Accept-Encoding');
+    expect(br.headers.vary).toBe('Accept-Encoding');
     expect(br.headers['content-length']).toBeUndefined();
     expect(Buffer.compare(br.bytes, brotliCompressSync(body, { params: {
       [constants.BROTLI_PARAM_QUALITY]: 3, [constants.BROTLI_PARAM_SIZE_HINT]: body.length,
