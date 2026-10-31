@@ -278,6 +278,10 @@
     "far-reach",
     "sunscar-dunes"
   ],
+  "test/native-runtime-observation.test.ts": [
+    "far-reach",
+    "sunscar-dunes"
+  ],
   "test/legacy-seal.test.ts": [],
   "test/sampled-ambience.test.ts": [],
   "test/quest-story.test.ts": ["driftwood-isle", "pine-hollow"],

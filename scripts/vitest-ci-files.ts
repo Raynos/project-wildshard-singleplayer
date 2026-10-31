@@ -8,6 +8,7 @@ export const CI_NATIVE_GROUPS = {
   'stories-qara': [
     'test/pine-quest-verbs.test.ts',
     'test/pine-door-continuation.test.ts',
+    'test/native-runtime-observation.test.ts',
     'test/driftwood-story-verbs.test.ts',
     'test/nalati-discovery-verbs.test.ts',
     'test/nalati-qara-verbs.test.ts',
