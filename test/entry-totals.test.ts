@@ -8,6 +8,9 @@ import {emptyShardfile} from '@wildshard/sdk/author';
 import {outputSectionPayloads} from '../src/format/outputFields';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin this compiler fixture's original bytes.
 import {createHash} from 'node:crypto';
+// oxlint-disable-next-line import/no-nodejs-modules -- Match the deployed precompressed native representation exactly.
+import {brotliCompressSync, constants} from 'node:zlib';
+import {readSpawnManifest} from '../src/format/spawnManifest';
 
 test('spawn manifests union code once, keep grid selection and content identity stable', () => {
   mkdirSync('tmp/entry-totals', {recursive: true});
@@ -46,5 +49,14 @@ test('spawn manifests union code once, keep grid selection and content identity 
     expect(text).not.toContain('code/pack.pack'); expect(text).not.toContain('/assets/other.js');
     expect(() => writeSpawnManifests(output, {...input, products: {'/shardfiles/example/': [3, -1]}}, {}, root)).toThrow();
     expect(() => writeSpawnManifests(output, {...input, optional: {...input.optional, groups: {'home:/shardfiles/example/': [9]}}}, {}, root)).toThrow('module index');
+    const physics=Uint8Array.from({length:4096},(_byte,i)=>(i*77+i%7)%251),physicsPath=resolve(root,'public/assets/physics/rapier.wasm');
+    mkdirSync(resolve(physicsPath,'..'),{recursive:true});writeFileSync(physicsPath,physics);
+    const native=writeSpawnManifests(output,input,strips,root),nativeAddress=native.client['example']?.phone;
+    if(nativeAddress===undefined)throw new Error('Missing native manifest');
+    const nativeManifest=readSpawnManifest(JSON.parse(readFileSync(resolve(output,nativeAddress.url.slice(1)),'utf8')));
+    const row=nativeManifest.files.find(file=>file.url.startsWith('/assets/physics/rapier.wasm?'));
+    expect(row?.bytes).toBe(physics.length);
+    expect(row?.wireBytes).toBe(brotliCompressSync(physics,{params:{[constants.BROTLI_PARAM_QUALITY]:11}}).length);
+    expect(writeSpawnManifests(output,input,strips,root)).toEqual(native);
   } finally {rmSync(root, {recursive: true, force: true});}
 });

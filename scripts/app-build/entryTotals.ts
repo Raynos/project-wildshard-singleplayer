@@ -11,7 +11,6 @@ import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifestAddress} from '../../src/format/spawnManifest';
 import {contentNamed} from './assetHashes';
 import {homedir} from 'node:os';
-import {brotliCompressSync, constants} from 'node:zlib';
 import {BrotliSizeCache} from '../brotli-size-cache.mjs';
 import {ASSET_CACHE_NAME} from '../../src/engine/pwa/cacheNames';
 
@@ -36,12 +35,13 @@ export function writeSpawnManifests(outDir: string, input: unknown,
   strips: Readonly<Record<string, Readonly<Record<string, readonly Address[]>>>>, root: string): SpawnManifestBook {
   const bank = v.parse(schema, input), publicRoot = resolve(root, 'public'), output = resolve(outDir), assets = new Map<string, SpawnFile>();
   const encoded = new BrotliSizeCache(process.env['WILDSHARD_WIRE_SIZE_CACHE'] ?? resolve(homedir(), '.cache/wildshard/gen/served-bytes/1'));
+  const precompressed = new BrotliSizeCache(process.env['WILDSHARD_WIRE_SIZE_CACHE'] ?? resolve(homedir(), '.cache/wildshard/gen/served-bytes/1'), 'precompressed');
   const wireSizes = new Map<string, number>();
   const wireBytes = (url: string, bytes: Uint8Array, hash: string): number => {
     const key = `${hash}:${url}`, previous = wireSizes.get(key); if (previous !== undefined) return previous;
     // Match the deployed/preview representation; Rapier retains its precompressed native body.
     const length = bytes.length < 1024 || /\.(?:png|jpe?g|webp|avif|gif|ico|woff2?|ttf|mp4|webm|mp3|ogg|m4a|wav)$/iu.test(url) ? bytes.length
-      : url === '/assets/physics/rapier.wasm' ? brotliCompressSync(bytes, {params: {[constants.BROTLI_PARAM_QUALITY]: 11}}).length : encoded.bytes(bytes);
+      : url === '/assets/physics/rapier.wasm' ? precompressed.bytes(bytes) : encoded.bytes(bytes);
     wireSizes.set(key, length); return length;
   };
   const bytesFor = (url: string): Uint8Array => {

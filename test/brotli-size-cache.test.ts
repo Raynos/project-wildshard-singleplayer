@@ -41,3 +41,24 @@ test('corrupt, transplanted or unwritable cache state falls back to actual compr
     expect(new BrotliSizeCache(blocked).bytes(bytes)).toBe(expected(bytes));
   }finally{rmSync(directory,{recursive:true,force:true});}
 });
+
+test('precompressed sizes retain exact q11 output and never borrow a served-size result',()=>{
+  const directory=scratch();
+  const native=(bytes:Uint8Array):number=>brotliCompressSync(bytes,{params:{[constants.BROTLI_PARAM_QUALITY]:11}}).byteLength;
+  try{
+    const source=new Uint8Array(8192).fill(19),changed=Uint8Array.from(source,(_byte,index)=>(index*31+Math.floor(index/13))%256);
+    for(const bytes of [new Uint8Array(),source,changed]){
+      expect(new BrotliSizeCache(directory).bytes(bytes)).toBe(expected(bytes));
+      const cache=new BrotliSizeCache(directory,'precompressed');
+      expect(cache.bytes(bytes)).toBe(native(bytes));
+      expect(cache.bytes(Uint8Array.from(bytes))).toBe(native(bytes));
+      expect(new BrotliSizeCache(directory,'precompressed').bytes(bytes)).toBe(native(bytes));
+      expect(new BrotliSizeCache(directory).bytes(bytes)).toBe(expected(bytes));
+    }
+    expect(new BrotliSizeCache(directory,'precompressed').bytes(new Uint8Array())).toBeGreaterThan(0);
+    for(const file of readdirSync(directory).filter(name=>name.endsWith('.json')))writeFileSync(resolve(directory,file),'{');
+    expect(new BrotliSizeCache(directory,'precompressed').bytes(changed)).toBe(native(changed));
+    const blocked=resolve(directory,'ordinary-file');writeFileSync(blocked,'not a directory');
+    expect(new BrotliSizeCache(blocked,'precompressed').bytes(source)).toBe(native(source));
+  }finally{rmSync(directory,{recursive:true,force:true});}
+});
