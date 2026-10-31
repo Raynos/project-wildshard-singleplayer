@@ -165,9 +165,9 @@ or is deleted;** no tooling commit breaks every commit unnoticed. 8. No wait ove
 | Row | What | Expected win | Size | Done when |
 |---|---|---|---|---|
 | H1 | Pre-commit materialises only staged files and the inputs a selected job reads; no snapshot when nothing under `src/ scripts/ test/ lint/` is staged; closed / ratchet only when `src/` or `lint/ratchet.json` is staged | docs-only commit 3.0 s measured at load ~30 (over 5 s at peaks) → < 1 s; source commits −2–4 s | S | a docs-only commit < 1.5 s and a 3-file commit < 3 s at load ≥ 25 |
-| H2 | **Done (2026-10-31, sp-x6; G964 live-gap scope):** the live `precommitGit` helper captures with an explicit 32 MiB bound. The real index is read without mutation; `wildshard/exec-max-buffer` rejects captured Git inventories/dynamic lists without a bound in `scripts/precommit*.mjs`. Existing whole-source fast lint enforces it. Retired snapshots and `push-loop --check` stay retired. | stops the live default-buffer breakage class | S | direct real-index ENOBUFS reproduction, live-source omission mutant red, original hook controls green |
-| H3 | Deferral is never silent: a staged ratchet or closed check that times out is recorded for the gate like typed lint (fix the early `return` in `defer()`) | closes d7255f9638's hole | XS | a timed-out ratchet with no source staged runs at the next tick |
-| H4 | commit-msg drops `check-lock.mjs` and `.github/lock.json` | one dead process per commit | XS | files gone |
+| H2 | **Done (2026-10-31, sp-x6; G964 live-gap scope):** the live `precommitGit` helper captures with an explicit 32 MiB bound. The real index is read without mutation; `wildshard/exec-max-buffer` rejects captured Git inventories/dynamic lists without a bound in `scripts/precommit*.mjs`. Ordinary lint configuration enforces it. Retired snapshots and `push-loop --check` stay retired. | stops the live default-buffer breakage class | S | direct real-index ENOBUFS reproduction, live-source omission mutant red, original hook controls green |
+| H3 | **Superseded by G769/DL3 (2026-10-31 audit):** old `defer()` and staged ratchet/closed jobs are retired; current storage/typed timeouts explicitly name CI ownership. No retired gate handoff is revived. | closes the obsolete silent-deferral row | XS | 10 current deadline/refusal/cleanup controls pass; see hourly reconciliation |
+| H4 | **Done (`5fc27d4e6e`, rechecked 2026-10-31):** commit-msg no longer invokes `check-lock`; helper/declaration and `.github/lock.json` are absent. Conventions, tile debt and legacy checks remain. | dead process already removed | XS | files and caller gone |
 
 ### C — CI critical path
 
@@ -176,7 +176,7 @@ or is deleted;** no tooling commit breaks every commit unnoticed. 8. No wait ove
 | C1 | **Minute-0 jobs:** tests needing no generated inputs or products (S1's list) run from checkout beside `generated-inputs`; only product tests wait for `products` | −3–4 min of tail | M | most test files finish before `products` |
 | C2 | Rebalance behaviour from fresh durations (prune the 1,483 stale rows, add the 46 missing); as few shards as keep the slowest ≤ 2.5 min | ~−1 min; fewer pickups | S | slowest shard ≤ 1.3 × median |
 | C3 | One setup composite (sparse checkout, pnpm store, artifacts); merge jobs that fit one runner (typecheck-lint 5 → 2) | ~−0.5 min per job | S | setup ≤ 30 s per job |
-| C4 | Fail fast: a red `generated-inputs` / `products` / first shard cancels the rest and names the file | red verdict ~7 min, not ~18 | S | red verdict median ≤ 8 min |
+| C4 | **Done for live cause reporting (`9da5b1a773`, 2026-10-31); cancellation superseded by G678:** jobs retain independent verdicts, and a bounded primary-path set survives verbose output beyond the 2000-line tail. Producer dependencies and every case remain. | retains the actual red cause; no claimed eight-minute verdict | S | two red-before real-child regressions, 20 Python controls and the maintained wrapper pass; see hourly reconciliation |
 | C5 | Boot smoke called from deploy (`workflow_call` or a job) instead of `workflow_run` | 1,138 skipped runs a week gone | XS | no skipped boot-smoke runs |
 | C6 | Push builds `build:native` only when its inputs change | −2.8 min of runner per push | XS | path filter landed |
 
@@ -211,7 +211,7 @@ or is deleted;** no tooling commit breaks every commit unnoticed. 8. No wait ove
 
 | Row | What | Expected win | Size | Done when |
 |---|---|---|---|---|
-| L1 | The whole-repo ratchet runs in CI again (a `typecheck-lint` shard), from verified inputs; first run in a check slot to see today's state | the 5 ratchet-only rules and the counted debt are enforced again | S | CI job green on main |
+| L1 | **Done (`8da7f94de2`, 2026-10-31):** seven remaining debt rules enforce existing per-file ceilings in the same ordinary lint pass; raw census stays available unchanged. No extra scan, CI job or heavy gate. | restores missing nonzero-debt enforcement | S | 14 related controls, 4560 selected sources/zero growth, types and typed lint pass; ordinary CI owns its containing verdict |
 | L2 | Ratchet-only rules with zero debt become plain `error` in `.oxlintrc.json` (then fast lint checks them at commit) | 2 AGENTS.md guards back at pre-commit | XS each | each rule moved or its debt listed |
 | L3 | Policy JSON hygiene: delete the empty / unread files; each policy names its reader and its guard test | fewer stale guards | XS | every `lint/*.json` has a live reader |
 | L4 | Pin the oxlint version and keep `nursery` rules off main until they graduate (or `warn` in a weekly report) | no upgrade-only reds | XS | config changed |
@@ -299,3 +299,76 @@ remain green: **6 tests /2 files**, direct Vitest **5.91 s**. Root and
 scripts types and named typed lint pass. The linked archived TypeScript,
 oxlint, binary-JSON and generator plans remain done; this change does not
 reopen them or promise an unmeasured hook speedup.
+
+## Hourly reconciliation: H3 / H4 / L1 / C4 (2026-10-31)
+
+This is one batch of the current code evidence, rather than one plan
+commit per row. Historical G651 timings and snapshots above describe the
+old system; they are not fresh measurements of the current pipeline.
+
+- **H3 — superseded by G769/DL3.** `.githooks/pre-commit` invokes the
+  current `precommit-inputs.mjs`, which runs storage and eligible staged
+  typed lint within one five-second deadline. The old `defer()` and
+  precommit ratchet/closed-component jobs are absent. Every unfinished
+  current result prints its named `unfinished; CI owns it` verdict.
+  `test/precommit-checks.test.ts` passes **10 cases /1.21 s**, including
+  deadline/refusal retention, spawn errors and owned descendant cleanup.
+  No retired source snapshot, gate handoff or timeout retry is revived.
+- **H4 — done by `5fc27d4e6e`.** `check-lock.mjs`, its declaration and
+  `.github/lock.json` are gone. The live commit-message hook runs message
+  conventions, tile-debt policy and the legacy message check. There is no
+  lock process left to delete; no new speed claim or code change follows.
+- **L1 — done in `8da7f94de2`.** The **seven** remaining nonzero migration
+  rules enforce their recorded per-file ceilings in the existing ordinary
+  lint AST pass: raw randomness/time, shard sandbox, game imports, game
+  plugins, generator imports, engine imports and SDK facades. The former
+  five-rule inventory was stale; public-index and shard-services are
+  already hard. No second lint pass, job or heavy gate is added. Raw
+  census visitors, hard rules, exact frozen/test scope, policy bytes and
+  global budget checks remain unchanged. No persistent coverage receipt
+  substitutes for actual lint execution.
+
+L1's seven real rules each accept their recorded first site and refuse a
+second, while raw census mode still reports the first. Missing file rows
+allow zero; malformed counts refuse. The selected **4,560** actual source
+files produce zero growth. The related **14 controls /3 files** pass in
+**8.90 s**, with a final **8-case** touched-rule run passing in 5.08 s;
+root types and named typed lint pass. Its normal publication gate passes
+in **9.85 s**. These local results qualify the code boundary, not a new
+ordinary containing CI verdict or isolated CI timing improvement.
+
+### C4: independent verdicts retain their actual cause
+
+**G678 supersedes the original cross-job cancellation design.** Running
+push jobs finish and list every red; a failed producer blocks dependents
+through the existing job dependencies. Matrices keep `fail-fast: false`
+and cases retain `--bail=0`. The wrapper never queries peer status or
+cancels another job. The old median-eight-minute cancellation target is
+not claimed and is not restored as an implementation requirement.
+
+The remaining live reporting gap is fixed in **`9da5b1a773`**. The
+wrapper's 2,000-line output tail could discard an early actual `FAIL`
+path after verbose draining, then incorrectly attribute an informational
+path in the tail. It now retains at most **16 primary failure paths**
+while continuing to drain and print all command output. Later primary
+messages cannot evict that first bounded set. Warning/informational
+mentions cannot replace it; a successful command still emits no failure
+annotations. The original exit code, paths-only metadata, exact path
+normalization/escaping and owned process-group cleanup remain.
+
+Two real-child regressions fail before the fix: an actual failure followed
+by **2,500** drain lines, and more than 16 early failures followed by a
+later primary failure. The maintained Vitest wrapper then passes both
+tests, including all **20 Python controls**, in **2.86 s**. Python compile
+and root types pass. The existing owned sibling cleanup check is inside
+one command's process ownership; it does not cancel peer CI jobs.
+
+C4's live cause-reporting contract is done. Its former timing target is
+superseded by the independent-job policy; the separate CI9 end-to-end bar
+remains open. No workflow, admission group, deadline, coverage or worker
+count changes; no dispatch, CI fetch, app build or native proof was run.
+
+The H2 configured-rule test remains valid. Clarification: its installed
+linter refuses the actual buffer-omission mutant, and ordinary CI lint
+uses that configuration. The current local push gate can mark fast lint
+as `CI`; no claim is made that every local push ran that optional phase.
