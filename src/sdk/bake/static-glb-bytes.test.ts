@@ -112,3 +112,40 @@ test.each([0x7c00,0xfc00,0x7e01])('rejects non-finite decoded half storage %s',b
  try{expect(()=>staticGlb([{geometry,material,customAttributes:{_HALF:'half'}}])).toThrow('Invalid GLB attribute');}
  finally{geometry.dispose();material.dispose();}
 });
+
+test.each([false,true])('packed quantized channels preserve subview bytes and zero stride padding (aligned=%s)',aligned=>{
+ const positionBank=new Int16Array([999,999,999,-32768,0,32767,1,-1,2,3,4,-5,999,999,999]);
+ const normalBank=new Int8Array([99,99,99,-128,0,127,1,-1,2,3,4,-5,99,99,99]);
+ const colourBank=new Uint16Array([999,999,999,0,65535,1234,1,2,3,4,5,6,999,999,999]);
+ const positions=positionBank.subarray(3,12),normals=normalBank.subarray(3,12),colours=colourBank.subarray(3,12);
+ const banks=[new Uint8Array(positionBank.buffer).slice(),new Uint8Array(normalBank.buffer).slice(),new Uint8Array(colourBank.buffer).slice()];
+ const geometry=new BufferGeometry().setAttribute('position',new BufferAttribute(positions,3))
+  .setAttribute('normal',new BufferAttribute(normals,3,true)).setAttribute('color',new BufferAttribute(colours,3,true));
+ const material=new MeshStandardMaterial({vertexColors:true});
+ try{
+  // Int16 positions require the aligned meshopt path; the other channels also cover tightly packed views.
+  if(!aligned)geometry.setAttribute('position',new BufferAttribute(Float32Array.from(positions),3));
+  const flags:Pick<GlbPrimitive,'meshoptReady'>=aligned?{meshoptReady:true}:{};
+  const bytes=staticGlb([{geometry,material,quantizedChannels:true,...flags,transform:new Matrix4()}]);
+  const header=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),jsonLength=header.getUint32(12,true);
+  const doc=v.parse(v.object({meshes:v.array(v.object({primitives:v.array(v.object({attributes:v.record(v.string(),v.number())}))})),
+   accessors:v.array(v.object({bufferView:v.number(),min:v.optional(v.array(v.number())),max:v.optional(v.array(v.number()))})),
+   bufferViews:v.array(v.object({byteOffset:v.number(),byteLength:v.number(),byteStride:v.optional(v.number())}))}),
+   JSON.parse(new TextDecoder().decode(bytes.subarray(20,20+jsonLength))));
+  const checks:[string,Int16Array|Int8Array|Uint16Array][]=[['NORMAL',normals],['COLOR_0',colours]];
+  if(aligned)checks.unshift(['POSITION',positions]);
+  for(const [semantic,source] of checks){
+   const id=doc.meshes[0]?.primitives[0]?.attributes[semantic],accessor=id===undefined?undefined:doc.accessors[id];
+   const view=accessor===undefined?undefined:doc.bufferViews[accessor.bufferView];
+   if(view===undefined)throw new Error(`Missing ${semantic}`);
+   const width=3*source.BYTES_PER_ELEMENT,stride=aligned?Math.ceil(width/4)*4:width;
+   const expected=new Uint8Array(3*stride),raw=new Uint8Array(source.buffer,source.byteOffset,source.byteLength);
+   for(let vertex=0;vertex<3;vertex++)expected.set(raw.slice(vertex*width,(vertex+1)*width),vertex*stride);
+   expect(view.byteLength).toBe(expected.byteLength);
+   expect(view.byteStride).toBe(stride===width?undefined:stride);
+   expect(bytes.slice(28+jsonLength+view.byteOffset,28+jsonLength+view.byteOffset+view.byteLength)).toEqual(expected);
+   if(semantic==='POSITION'){expect(accessor?.min).toEqual([-32768,-1,-5]);expect(accessor?.max).toEqual([3,4,32767]);}
+  }
+  expect(new Uint8Array(positionBank.buffer)).toEqual(banks[0]);expect(new Uint8Array(normalBank.buffer)).toEqual(banks[1]);expect(new Uint8Array(colourBank.buffer)).toEqual(banks[2]);
+ }finally{geometry.dispose();material.dispose();}
+});

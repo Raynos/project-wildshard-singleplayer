@@ -210,7 +210,11 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     const element = attribute.itemSize * array.BYTES_PER_ELEMENT, stride = aligned ? Math.ceil(element / 4) * 4 : element;
     const length = attribute.count * stride, bytes = new Uint8Array(Math.ceil(length / 4) * 4), source = new Uint8Array(array.buffer, array.byteOffset, attribute.count * element);
     if (stride === element) bytes.set(source);
-    else for (let i = 0; i < attribute.count; i++) bytes.set(source.subarray(i * element, (i + 1) * element), i * stride);
+    // Copy raw components without allocating a typed view for every padded
+    // vertex. The fresh target retains the same zero stride/tail padding.
+    else for (let i = 0, from = 0, to = 0; i < attribute.count; i++, from += element, to += stride) {
+      for (let component = 0; component < element; component++) bytes[to + component] = source[from + component] ?? 0;
+    }
     const view = views.length; views.push({ buffer: 0, byteOffset: offset, byteLength: length, ...(stride === element ? {} : { byteStride: stride }) }); chunks.push(bytes); offset += bytes.length;
     const a: Record<string, Json> = { bufferView: view, componentType, ...(position ? {} : { normalized: true }), count: attribute.count, type: `VEC${attribute.itemSize}` };
     if (position) {
