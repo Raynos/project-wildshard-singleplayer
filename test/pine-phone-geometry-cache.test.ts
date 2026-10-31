@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+import { WebIO } from '@gltf-transform/core';
 import { MeshStandardMaterial, SphereGeometry } from 'three';
 import { compactPhoneGlb, compactClearGlb } from '@wildshard/sdk/bake/compactGlb';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
@@ -64,4 +65,21 @@ it('binds ground selection to every entryway and retains kept-input identity', a
   expect(new Set(ids).size).toBe(4);
   const already = await compactClearGlb(input, []);
   expect(await cachedGroundTile(ctx, already, [])).toBe(already);
+});
+
+it('retains normalized float accessor decoding beside the raw-storage scan', async () => {
+  const input = pool(3.125), io = new WebIO(), document = await io.readBinary(input);
+  const floats = document.getRoot().listMeshes().flatMap(mesh => mesh.listPrimitives())
+    .flatMap(primitive => ['POSITION', 'NORMAL'].flatMap(name => {
+      const accessor = primitive.getAttribute(name);
+      return accessor?.getComponentType() === 5126 ? [accessor] : [];
+    }));
+  expect(floats.length).toBeGreaterThan(0);
+  // Float normalization is an identity in the native accessor decoder. Marking
+  // these equivalent channels exercises its fallback without a byte/hash pin.
+  for (const accessor of floats) accessor.setNormalized(true);
+  const normalized = await io.writeBinary(document);
+  const ordinary = await compactPhoneGlb(input), fallback = await compactPhoneGlb(normalized);
+  expect(ordinary === input).toBe(false); expect(fallback === normalized).toBe(false);
+  expect(fallback).toEqual(ordinary);
 });

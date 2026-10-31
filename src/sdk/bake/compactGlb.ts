@@ -57,9 +57,11 @@ function gridNode(doc: Document, node: Node, mesh: Mesh, contain: boolean): bool
   for (const primitive of primitives) {
     const position = primitive.getAttribute('POSITION');
     if (position === null || position.getComponentType() !== 5126 || position.getElementSize() !== 3) return false;
-    for (let i = 0; i < position.getCount(); i++) {
-      position.getElement(i, point);
-      for (let axis = 0; axis < 3; axis++) { const value = point[axis] ?? 0; min[axis] = Math.min(min[axis] ?? 0, value); max[axis] = Math.max(max[axis] ?? 0, value); }
+    // Unnormalized float storage is already decoded; normalized channels keep getElement.
+    const values = position.getNormalized() ? null : position.getArray(), count = position.getCount();
+    for (let i = 0; i < count; i++) {
+      if (values === null) position.getElement(i, point);
+      for (let axis = 0; axis < 3; axis++) { const value = (values === null ? point[axis] : values[i * 3 + axis]) ?? 0; min[axis] = Math.min(min[axis] ?? 0, value); max[axis] = Math.max(max[axis] ?? 0, value); }
     }
   }
   const mid = (axis: number): number => ((min[axis] ?? 0) + (max[axis] ?? 0)) / 2;
@@ -71,11 +73,12 @@ function gridNode(doc: Document, node: Node, mesh: Mesh, contain: boolean): bool
   for (const primitive of primitives) {
     const position = primitive.getAttribute('POSITION'), normal = primitive.getAttribute('NORMAL'), colour = primitive.getAttribute('COLOR_0');
     if (position !== null && !done.has(position)) {
-      const out = new Int16Array(position.getCount() * 3);
-      for (let i = 0; i < position.getCount(); i++) {
-        position.getElement(i, point);
+      const count = position.getCount(), values = position.getNormalized() ? null : position.getArray();
+      const out = new Int16Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        if (values === null) position.getElement(i, point);
         for (let axis = 0; axis < 3; axis++) {
-          let q = Math.round(((point[axis] ?? 0) - (centre[axis] ?? 0)) / half * 32767);
+          let q = Math.round((((values === null ? point[axis] : values[i * 3 + axis]) ?? 0) - (centre[axis] ?? 0)) / half * 32767);
           // `contain`: a grid step never carries a vertex past the mesh's own bounds (a placed tile's cell edge, ±250 m)
           if (contain) {
             const at = (step: number): number => step / 32767 * half + (centre[axis] ?? 0);
@@ -88,8 +91,12 @@ function gridNode(doc: Document, node: Node, mesh: Mesh, contain: boolean): bool
       quantized(position, out); done.add(position);
     }
     if (normal !== null && !done.has(normal) && normal.getComponentType() === 5126 && normal.getElementSize() === 3) {
-      const out = new Int8Array(normal.getCount() * 3);
-      for (let i = 0; i < normal.getCount(); i++) { normal.getElement(i, point); for (let c = 0; c < 3; c++) out[i * 3 + c] = Math.round(Math.max(-1, Math.min(1, point[c] ?? 0)) * 127); }
+      const count = normal.getCount(), values = normal.getNormalized() ? null : normal.getArray();
+      const out = new Int8Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        if (values === null) normal.getElement(i, point);
+        for (let c = 0; c < 3; c++) out[i * 3 + c] = Math.round(Math.max(-1, Math.min(1, (values === null ? point[c] : values[i * 3 + c]) ?? 0)) * 127);
+      }
       quantized(normal, out); done.add(normal);
     }
     if (colour !== null && !done.has(colour) && colour.getComponentType() === 5126) {
