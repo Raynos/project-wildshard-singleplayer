@@ -139,7 +139,7 @@ function composite(s: Ctx, line: Layer): Layer {
 
 /** The frame's last colour step: the learned LUT in sRGB, the grain, back to linear. */
 function grade(s: Ctx, frame: Layer): GraphIr {
-  const { g, sw, add, sub, mul, div, mix, clamp, choose, gt, time, frag } = s;
+  const { g, sw, add, sub, mul, div, mix, clamp, choose, gt, lt, time, frag } = s;
   const look = g.v3('uGrade'), lutAmt = g.scalar('uLutAmt');
   const toSRGB = (x: GraphRef): string => { const k = clamp(x); return mix(mul(k, 12.92), sub(mul(1.055, g.pow(k, 1 / 2.4)), 0.055), g.op('step', [0.0031308, k])); };
   const fromSRGB = (x: GraphRef): string => { const k = clamp(x); return mix(div(k, 12.92), g.pow(div(add(k, 0.055), 1.055), 2.4), g.op('step', [0.04045, k])); };
@@ -148,7 +148,10 @@ function grade(s: Ctx, frame: Layer): GraphIr {
   const lut = sw(g.tex('uLut', add(mul(clamp(srgb), lutTransform.scale), lutTransform.offset), true), 'xyz');
   let o: GraphRef = choose(gt(lutAmt, 0), mix(srgb, lut, lutAmt), srgb);
   o = add(o, div(mul(sub(g.hash(add(frag, mul(g.fract(mul(time, 7.13)), 91))), 0.5), sw(look, 'y')), 255));
-  return g.finishScreen(fromSRGB(o), frame.alpha);
+  // G4: a display-colour pixel (the scene marked its alpha < 0: engine displayColour.ts) keeps the scene's own colour, alpha 1,
+  // as the engine's colour pass restores it after every grade; done here, the frame needs no display copy for it
+  const scene = g.tex('tSrc', s.uv), marked = lt(sw(scene, 'w'), 0);
+  return g.finishScreen(choose(marked, sw(scene, 'xyz'), fromSRGB(o)), choose(marked, 1, frame.alpha));
 }
 
 /** The composite on the scaled post host: the silhouette into its line target (alone: its silk fog march is ~4,000 of a
