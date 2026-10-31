@@ -1,7 +1,7 @@
 import { compactPhoneGlb, compactClearGlb } from '@wildshard/sdk/bake/compactGlb';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import type { ShardEntryways } from '@wildshard/format/entryways';
+import type { Shardfile } from '@wildshard/sdk/shardfile';
 
 function owned(input: Uint8Array): Uint8Array {
   if (!(input instanceof Uint8Array) || input.byteLength > 256_000_000) throw new Error('Invalid Pine phone geometry input');
@@ -28,7 +28,7 @@ export function cachedTreeRest(ctx: Pick<ProjectGenerationContext, 'cached'>, in
  * selection against the owned GLB and every edge/width. Downstream geometry
  * admission is unchanged. Preserve the original identity when bytes were kept. */
 export async function cachedGroundTile(ctx: Pick<ProjectGenerationContext, 'cached'>, input: Uint8Array,
-  entryways: readonly Pick<ShardEntryways[number], 'edge' | 'width'>[]): Promise<Uint8Array> {
+  entryways: readonly Pick<Shardfile['entryways'][number], 'edge' | 'width'>[]): Promise<Uint8Array> {
   const bytes = owned(input), hash = hashImmutableBytes(bytes), entries = entryways.map(row => ({ edge: row.edge, width: row.width }));
   if (entries.some(row => !['north', 'east', 'south', 'west'].includes(row.edge) || !Number.isFinite(row.width) || row.width <= 0)) throw new Error('Invalid Pine ground entryway');
   const key = hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson({ input: hash, entries })));
