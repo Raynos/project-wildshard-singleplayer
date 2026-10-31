@@ -1,10 +1,21 @@
 import { ASSET_CACHE_NAME } from '@wildshard/engine/pwa/cacheNames';
 import { readContentResponse } from '@wildshard/engine/boot/readContentResponse';
 
+type ReadStorage = Pick<CacheStorage, 'open'> & Partial<Pick<CacheStorage, 'match'>>;
+/** Query exactly the original cache in one native operation. Older/injected
+ * hosts and a refused direct query retain the original open/match path. */
+async function matchAsset(storage: ReadStorage, url: string): Promise<Response | undefined> {
+  if (storage.match !== undefined) {
+    try { return await storage.match(url, { cacheName: ASSET_CACHE_NAME, ignoreVary: true }); }
+    catch { /* The existing read port may still be available. */ }
+  }
+  return (await storage.open(ASSET_CACHE_NAME)).match(url, { ignoreVary: true });
+}
+
 /** Shared service-worker URL storage, without a page index, queue or leases. */
-export async function cachedAsset(storage: Pick<CacheStorage, 'open'>, url: string, bytes: number): Promise<Uint8Array | null> {
+export async function cachedAsset(storage: ReadStorage, url: string, bytes: number): Promise<Uint8Array | null> {
   try {
-    const response = await (await storage.open(ASSET_CACHE_NAME)).match(url, { ignoreVary: true });
+    const response = await matchAsset(storage, url);
     if (response?.status !== 200) { void response?.body?.cancel().catch(() => undefined); return null; }
     const result = await readContentResponse(response, bytes);
     return result.length === bytes ? result : null;
@@ -12,9 +23,9 @@ export async function cachedAsset(storage: Pick<CacheStorage, 'open'>, url: stri
 }
 
 /** Presence is native complete-response metadata; actual reads compare length. */
-export async function hasCachedAsset(storage: Pick<CacheStorage, 'open'>, url: string): Promise<boolean> {
+export async function hasCachedAsset(storage: ReadStorage, url: string): Promise<boolean> {
   try {
-    const response = await (await storage.open(ASSET_CACHE_NAME)).match(url, { ignoreVary: true });
+    const response = await matchAsset(storage, url);
     const present = response?.status === 200; void response?.body?.cancel().catch(() => undefined); return present;
   }
   catch { return false; }
