@@ -1112,6 +1112,7 @@ types and named typed lint pass. The earlier incomplete run stopped at
 an owned clock-fixture syntax error after Vite; its refusal is retained.
 These are local work-elimination/output proofs, **not a measured CI
 improvement**. CI9's 15-minute bar remains open.
+
 ## CI9 Nine author audit — retained top five
 
 **Measured close (2026-10-31, sp-x2; G872):** the next exact cut landed
@@ -1217,4 +1218,3 @@ dispatch or manual deployment. Preserve the actual **34–54 s** combined
 cloud interval without inventing its download/extraction split. Evidence:
 `tmp/sp-x6-ci9-ship-artifact/{readers,comparison}.json`. This experiment is
 closed; CI9's overall 15-minute bar remains open.
-
