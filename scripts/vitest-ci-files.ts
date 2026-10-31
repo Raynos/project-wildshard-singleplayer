@@ -16,6 +16,7 @@ export const CI_NATIVE_GROUPS = {
     'test/driftwood-story-verbs.test.ts',
     'test/sky-progression-verbs.test.ts',
     'test/nalati-discovery-verbs.test.ts',
+    'test/nalati-chapter-one.test.ts',
     'test/nalati-qara-verbs.test.ts',
   ],
 } as const;
