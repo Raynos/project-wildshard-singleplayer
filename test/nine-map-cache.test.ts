@@ -8,6 +8,7 @@ import { afterAll, expect, test } from 'vitest';
 import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { nineCastsProgram } from '../src/shards/nine-dragon-stack/generators/castsProgram';
 import { nineMap, nineMapPixels, NINE_MAP_INPUTS } from '../src/shards/nine-dragon-stack/generators/mapProgram';
 
 mkdirSync('tmp', { recursive: true });
@@ -21,8 +22,10 @@ let paints = 0;
 // inside their unchanged 30-second test deadlines.
 const ctx = context(), cold = await nineMap({ cached: (step, generate) => ctx.cached(step, inputs => {
   paints++; expect(step).toEqual({ id: 'world-map', native: true, inputs: NINE_MAP_INPUTS });
-  return generate(inputs);
+  return Promise.resolve(generate(inputs));
 }) });
+
+const preparedCasts = (await nineCastsProgram(context())).raw;
 
 test('persistent hit reuses the paint while returning independent complete pixels', async () => {
   expect(cold.length).toBe(4_000_000);
@@ -60,4 +63,36 @@ test('the actual map producer bundles without file, module or compiler services'
   if (output === undefined || !('output' in output)) throw new Error('Missing Nine map program bundle');
   const chunks = output.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
   for (const chunk of chunks) assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
+});
+
+
+test('lent casts preserve pixels and snapshot bytes before the paint callback',async()=>{
+ const source=new Map([...preparedCasts].map(([name,bytes])=>[name,new Uint8Array(bytes)]));
+ const inputs=new Map(NINE_MAP_INPUTS.map(name=>[name,new Uint8Array(readFileSync(resolve(`public${name}`)))]));
+ const pixels=await nineMap({cached:(step,generate)=>{
+  expect(step.native).toBe(true);expect(step.inputs).toEqual(NINE_MAP_INPUTS);
+  expect(step.id).toMatch(/^world-map-[a-f0-9]{64}$/u);
+  for(const bytes of source.values())bytes.fill(0);
+  source.clear();
+  return Promise.resolve(generate(inputs));
+ }},source);
+ expect(pixelHash(pixels)).toBe(pixelHash(cold));
+});
+
+test('every lent cast byte and name participates in admission and cache identity',async()=>{
+ const ids:string[]=[],hit={cached:(step:Parameters<typeof ctx.cached>[0])=>{
+  ids.push(step.id);return Promise.resolve(new Map([['map.rgba',new Uint8Array(cold)]]));
+ }};
+ await nineMap(hit,preparedCasts);
+ await nineMap(hit,new Map([...preparedCasts].reverse()));
+ expect(ids[1]).toBe(ids[0]);
+ const changed=new Map(preparedCasts),other=changed.get('lion');
+ if(other===undefined)throw new Error('Missing admitted lion source');
+ changed.set('guard',new Uint8Array(other));
+ await nineMap(hit,changed);expect(ids[2]).not.toBe(ids[0]);
+ await expect(nineMap(hit,new Map())).rejects.toThrow('Nine map cast inventory differs');
+ const malformed=new Map(preparedCasts);malformed.set('guard',new Uint8Array([1]));
+ await expect(nineMap(hit,malformed)).rejects.toThrow();
+ await expect(nineMap(createProjectGeneration(resolve('src/shards/nine-dragon-stack'),'7'.repeat(64),new Map(),cache),preparedCasts))
+  .rejects.toThrow('Generation input needs exactly one declared root');
 });
