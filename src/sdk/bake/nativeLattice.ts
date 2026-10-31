@@ -14,8 +14,13 @@ export interface NativeLatticeTile {
   attributes: Record<string, { itemSize: number; values: Float64Array }>;
   bounds: { min: [number, number, number]; max: [number, number, number] };
 }
-interface Vertex { values: number[] }
-interface Chunk { positions: number[]; indices: number[]; attributes: number[][]; vertices: Map<string, number> }
+interface Vertex { readonly values: readonly number[] }
+interface Chunk {
+  positions: number[]; indices: number[]; attributes: number[][]; vertices: Map<string, number>;
+  // Vertex tuples are owned here and never changed after construction.
+  heads: Map<number, number>; links: number[]; tuples: (readonly number[])[]; strings: boolean;
+  sample: Float64Array; words: Uint32Array;
+}
 const HALF = 250;
 const nativeResolution = (value: number): boolean => value === 256 || value === 257;
 const tileLod = (value: number): boolean => value === 0 || value === 1;
@@ -70,12 +75,58 @@ function areaSquared(a: Vertex, b: Vertex, c: Vertex): number {
   const vx = component(c, 0) - component(a, 0), vy = component(c, 1) - component(a, 1), vz = component(c, 2) - component(a, 2);
   return (uy * vz - uz * vy) ** 2 + (uz * vx - ux * vz) ** 2 + (ux * vy - uy * vx) ** 2;
 }
+function vertexKey(values: readonly number[]): string { return values.map(n => Object.is(n, -0) ? '-0' : String(n)).join('/'); }
+function vertexHash(chunk: Chunk, values: readonly number[]): number | undefined {
+  if (values.length < 3) return undefined;
+  const { sample, words } = chunk;
+  let hash = 2166136261;
+  for (const value of values) {
+    if (typeof value !== 'number') return undefined;
+    if (value === (value | 0) && !Object.is(value, -0)) hash = Math.imul(hash ^ value, 16777619);
+    else if (Number.isNaN(value)) { hash = Math.imul(hash, 16777619); hash = Math.imul(hash ^ 0x7ff80000, 16777619); }
+    else {
+      sample[0] = value;
+      hash = Math.imul(hash ^ (words[0] ?? 0), 16777619);
+      hash = Math.imul(hash ^ (words[1] ?? 0), 16777619);
+    }
+  }
+  hash = Math.imul(hash ^ (hash >>> 16), 0x85ebca6b);
+  hash = Math.imul(hash ^ (hash >>> 13), 0xc2b2ae35);
+  return (hash ^ (hash >>> 16)) >>> 0;
+}
+function sameVertex(previous: readonly number[] | undefined, values: readonly number[]): boolean {
+  if (previous === undefined || previous.length !== values.length) return false;
+  for (let k = 0; k < values.length; k++) if (!Object.is(previous[k], values[k])) return false;
+  return true;
+}
+function stringVertices(chunk: Chunk): void {
+  chunk.strings = true; chunk.heads.clear(); chunk.links.length = 0;
+  for (let index = 0; index < chunk.tuples.length; index++) chunk.vertices.set(vertexKey(chunk.tuples[index] ?? []), index);
+  chunk.tuples.length = 0;
+}
+
 function add(chunk: Chunk, value: Vertex, entries: readonly [string, NativeLatticeAttribute][]): number {
-  const key = value.values.map(n => Object.is(n, -0) ? '-0' : String(n)).join('/');
-  const existing = chunk.vertices.get(key);
+  let existing: number | undefined, hash = 0, key = '';
+  if (!chunk.strings) {
+    const found = vertexHash(chunk, value.values);
+    if (found === undefined) stringVertices(chunk);
+    else {
+      hash = found;
+      let candidate = chunk.heads.get(hash), visited = 0;
+      while (candidate !== undefined && candidate >= 0) {
+        if (sameVertex(chunk.tuples[candidate], value.values)) { existing = candidate; break; }
+        // Keep adversarial lookup bounded by returning to the complete original map.
+        if (++visited >= 16) { stringVertices(chunk); break; }
+        candidate = chunk.links[candidate];
+      }
+    }
+  }
+  if (chunk.strings) { key = vertexKey(value.values); existing = chunk.vertices.get(key); }
   if (existing !== undefined) return existing;
   const index = chunk.positions.length / 3;
-  chunk.vertices.set(key, index); chunk.positions.push(...value.values.slice(0, 3));
+  if (chunk.strings) chunk.vertices.set(key, index);
+  else { chunk.tuples[index] = value.values; chunk.links[index] = chunk.heads.get(hash) ?? -1; chunk.heads.set(hash, index); }
+  chunk.positions.push(...value.values.slice(0, 3));
   let offset = 3;
   entries.forEach(([, channel], i) => {
     const target = chunk.attributes[i];
@@ -93,7 +144,8 @@ function add(chunk: Chunk, value: Vertex, entries: readonly [string, NativeLatti
 export function sliceNativeLattice(source: NativeLatticeSource, lod: 0 | 1): NativeLatticeTile[] {
   if (!tileLod(lod)) throw new Error('Native lattice LOD must be 0 or 1');
   const entries = channels(source), count = lod === 0 ? 8 : 4, size = lod === 0 ? 62.5 : 125;
-  const chunks: Chunk[] = Array.from({ length: count ** 2 }, () => ({ positions: [], indices: [], attributes: entries.map(() => []), vertices: new Map() }));
+  const sample = new Float64Array(1), words = new Uint32Array(sample.buffer);
+  const chunks: Chunk[] = Array.from({ length: count ** 2 }, () => ({ positions: [], indices: [], attributes: entries.map(() => []), vertices: new Map(), heads: new Map<number, number>(), links: [], tuples: [], strings: false, sample, words }));
   const address = (value: number): number => Math.min(count - 1, Math.floor((value + HALF) / size));
   for (let i = 0; i < source.indices.length; i += 3) {
     const ia = source.indices[i], ib = source.indices[i + 1], ic = source.indices[i + 2];
