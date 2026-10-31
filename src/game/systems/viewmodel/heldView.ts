@@ -6,7 +6,7 @@
  * admitted before any rig, look or texture is borrowed; Model Explorer cards settle the same rigs. Client-only.
  */
 import { BackSide, type BufferGeometry, BufferGeometryLoader, ClampToEdgeWrapping, DataTexture, DoubleSide, LinearMipmapLinearFilter, type Material, Mesh, NoColorSpace,
-  type Object3D, type PerspectiveCamera, Quaternion, RedFormat, RepeatWrapping, Texture, UnsignedByteType, Vector2, Vector3 } from 'three';
+  type Object3D, type PerspectiveCamera, Quaternion, RedFormat, RepeatWrapping, SkinnedMesh, Texture, UnsignedByteType, Vector2, Vector3 } from 'three';
 import type { RigBake, RigContract } from '@wildshard/engine/anim/rig';
 import { retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
@@ -32,7 +32,7 @@ import { BLEND_ADD_KEEP_ALPHA } from '../../plugin/shaderFamily';
 import type { ShardSword } from '../../shard/manifest';
 import type { ShardContext } from '../../plugin/context';
 import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './armClips';
-import { RigArms, swordArmsOf, vmScale, type RigState } from './rigArms';
+import { RigArms, skinRigid, swordArmsOf, vmScale, type RigState } from './rigArms';
 
 type Looks = Awaited<ReturnType<typeof runtimeLookMaterials>>;
 type Toon = Extract<HeldViewRow, { kind: 'toon' }>;
@@ -55,6 +55,13 @@ function rigOf(row: HeldViewRow): { readonly contract: RigContract; readonly bak
   const joints = j === null ? row.kind === 'graph' ? row.rig.joints : [] : [j.sides.flatMap(side => [...j.arm].concat(
     j.fingers.flatMap(finger => Array.from({ length: j.phalanges }, (_, i) => i + 1).map(i => `${finger}${i}`))).map(name => `${side}_${name}`))];
   return { contract: { skeleton, clips: armClipNames(clips), sockets: [...row.kind === 'graph' ? row.rig.sockets : row.sockets] }, bake: { skeleton, clips, joints } };
+}
+
+/** a rigid mesh drawn in one of `hulls` (NF15: it draws skinned, `skinRigid`) */
+function rigidHull(node: Object3D, hulls: ReadonlySet<unknown>): node is Mesh {
+  if (!(node instanceof Mesh) || node instanceof SkinnedMesh) return false;
+  const material: unknown = node.material;
+  return (Array.isArray(material) ? material : [material]).some((entry: unknown) => hulls.has(entry));
 }
 
 /** The looks a row's meshes are dressed in, borrowed for the context's scope; every id must be in the product's catalogue. */
@@ -378,7 +385,12 @@ export class HeldView {
     }
     const socket = rig.nodes.get(row.pendants.socket);
     if (socket === undefined) throw new Error(`Held pendant socket ${row.pendants.socket} is missing`);
-    socket.add(createClientScene(row.pendants.scene, { geometry, materials: looks.materials }).root);
+    const pendants = createClientScene(row.pendants.scene, { geometry, materials: looks.materials }).root;
+    socket.add(pendants);
+    // NF15: the pendants' rigid ink hulls (the knot's) draw through the skinned hulls' program too (skinRigid)
+    const hulls = new Set<unknown>(row.back.map(id => looks.materials.get(id))), rigidHulls: Mesh[] = [];
+    pendants.traverse(node => { if (rigidHull(node, hulls)) rigidHulls.push(node); });
+    for (const mesh of rigidHulls) skinRigid(mesh);
     result.bindProjection();
     owner.own(result.trail.mesh.geometry);
     return result;
