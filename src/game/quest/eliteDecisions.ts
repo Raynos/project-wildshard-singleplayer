@@ -9,8 +9,6 @@ import { eliteStream } from './eliteStreams';
 import type { SpawnScript } from '../population/spawnScript';
 
 type Fight = EliteFeatureRows['fights'][number];
-/** PF5: a far idle elite's decisions at a fifth of its declared rate (Pine's 10 Hz ai band to 2 Hz) */
-const FAR_IDLE_SCALE = 5;
 /** Internal lifecycle adapter. Only built-in page/native feature factories supply an already bound script owner. */
 export class EliteDecisions implements EliteCoreScript<AnimalSim> {
   readonly def: { id: string; name: string; epithet: string; lair: { x: number; z: number; r: number; }; awareR: number; engageR: number; leashR: number; rule: "always" | "dusk" | "night" | "storm"; respawnMin: number; once?: boolean; signature: string; phase2: string; drop: { skin: (string) | null; skinName: string; weapon: string; blurb: string; trophyName?: string; }; };
@@ -20,7 +18,7 @@ export class EliteDecisions implements EliteCoreScript<AnimalSim> {
   private readonly frameValues: Record<string, number>;
   private readonly tickValues: Record<string, number>;
   private phase2 = false;
-  /** PF5: on the slow band (`cadence`) */
+  /** PF5: idle far from the player (`cadence`): its fixed steps pause */
   private far = false;
   constructor(readonly row: Fight, readonly program: SpawnScript, feature: EliteFeatureRows, seed: number) {
     this.def = row.def;
@@ -45,12 +43,15 @@ export class EliteDecisions implements EliteCoreScript<AnimalSim> {
     for (const row of this.frameRows) this.frameValues[row.field] = row.source === 'dusk' ? dusk : row.source === 'night' ? night : Number(god);
     this.program.frame(point, night, this.frameValues, yaw);
   }
-  /** PF5: an idle elite far from the player decides at a fifth of its rate (its 10 Hz ai band to 2 Hz); near, full rate */
+  /** PF5 (G941): an idle elite far from the player pauses its program's fixed steps (decisions, steering, strikes) and holds
+   *  where it stands, its steering stopped so it never walks on unsteered; nearer, aware, engaged or hit, it steps again */
   cadence(far: boolean): void {
     if (far === this.far) return;
-    this.far = far; this.program.throttle(far ? FAR_IDLE_SCALE : 1);
+    this.far = far;
+    const body = this.animal; if (far && body !== null) body.setMotion(body.yaw, 0);
   }
   tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
+    if (this.far) return;
     for (const row of this.tickRows) this.tickValues[row.field] = row.source === 'engaged' ? Number(engaged)
       : row.source === 'leashing' ? Number(leashing) : row.source === 'phase2' ? Number(this.phase2) : t;
     this.program.observe(this.tickValues);

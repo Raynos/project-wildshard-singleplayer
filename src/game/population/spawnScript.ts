@@ -661,8 +661,6 @@ export class SpawnScript {
     return this.prepareRestore(JSON.stringify({ version: 2, contract: this.contract, decision: { ...decision, bindings, staged: [] },
       actors, fields, channels: [], strikes: legacy.strikes, force: 0, elapsed: 0, moves: [] }));
   }
-  /** PF5: every binding's periodic decisions at 1 / `scale` of their declared rate (1 restores it; `DecisionHost.throttle`) */
-  throttle(scale: number): void { for (const binding of new Set(this.bindings.values())) this.host.throttle(binding, scale); }
   /** Debug force is a bounded input; normal decision cadence and spawn quotas still apply. */
   force(): void { this.forced = Math.min(8, this.maximum || this.rows.maximum); }
   channel(id: number): number { return this.channels.get(id) ?? 0; }

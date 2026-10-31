@@ -126,8 +126,6 @@ interface BindingState {
   pool: Command[]; commands: Command[]; external: DecisionExternalCommand[] | null; staged: DecisionCommit | null;
   rng: number; nextRng: number; lastCall: number | null; nextLastCall: number;
   failures: number; disabled: boolean; enabled?: boolean; metric: DecisionMetrics;
-  /** periodic ticks at 1 / this of the declared rate (`throttle`; absent = 1) */
-  tickScale?: number;
 }
 
 /** Event-driven, renderer-free decision scheduler. Module memory is scratch, never save state. */
@@ -231,13 +229,6 @@ export class DecisionHost {
     this.revision++; row.enabled = enabled;
     if (!enabled) { row.staged = null; row.timers.fill(0); }
   }
-  /** PF5: an idle actor far from what it watches decides less often: its binding's periodic ticks at 1 / `scale` of the
-   *  declared rate (1 restores it). Timers and inbox events are unchanged. Not saved: the platform sets it from the live
-   *  world each frame. */
-  throttle(binding: number, scale: number): void {
-    check(!this.busy && integer(scale, 1, 60), 'tick scale');
-    this.row(binding).tickScale = scale;
-  }
   /** Reset a replaced actor's durable slots and stream without executing or resetting its module. */
   restart(binding: number): void {
     check(!this.busy, 'reentrant restart');
@@ -306,7 +297,7 @@ export class DecisionHost {
       let calls = 0;
       for (const row of this.rows) {
         if (row.disabled) continue;
-        if (row.enabled !== false && row.script.tick !== null && tick % ((60 / row.script.tick) * (row.tickScale ?? 1)) === 0) row.queue.push(2, 0, 0, 0, 0, 0);
+        if (row.enabled !== false && row.script.tick !== null && tick % (60 / row.script.tick) === 0) row.queue.push(2, 0, 0, 0, 0, 0);
         if (external) continue;
         if (row.queue.size > 0 && calls < 64 && this.remainingFuel > 0) { calls++; this.call(row); }
         row.metric.carried = row.queue.size;
