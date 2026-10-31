@@ -11,14 +11,14 @@ export const CI_NATIVE_GROUPS = {
     'test/nalati-patrol-verbs.test.ts',
     'test/physics-nalati-headless.test.ts',
     'test/nalati-chapter-binding.test.ts',
+    'test/nalati-discovery-verbs.test.ts',
+    'test/native-runtime-observation.test.ts',
   ],
   'stories-qara': [
     'test/pine-quest-verbs.test.ts',
     'test/pine-door-continuation.test.ts',
-    'test/native-runtime-observation.test.ts',
     'test/driftwood-story-verbs.test.ts',
     'test/sky-progression-verbs.test.ts',
-    'test/nalati-discovery-verbs.test.ts',
     'test/nalati-qara-verbs.test.ts',
   ],
   'chapter-one': [

@@ -2141,3 +2141,45 @@ Raw and rank: `tmp/sp-x6-ci9-chapter/plains-profile-current/` contains
 `stage.log`, `reading.json`, both CPU profiles and `ranked.json`. This is
 one local instrumented stage, not a new CI job time or a 710 s whole-tape
 speedup. The original pre-worker refusal remains separately retained.
+
+
+### CI9 stories allocation audit — 2026-10-31, sp-x9
+
+The retained 60e run `41207842709` measures stories **430 s** and
+native-routes **128 s** (completed step walls, not CPU). The cdb reading
+retains 449 / 170 s. These describe capacity, not an isolated scheduling gain.
+No new CI/log query or dispatch was made for this cut.
+
+The green source `eb94988ca4492b5572f2083ab0a114c8170e3a46`, native stories
+job `124417332624`, provides the following per-story attribution. Overlapped
+capture/replay intervals are not added together; uninstrumented boot/check
+work is left unassigned rather than invented.
+
+| Whole story file | Boot / restore | Capture, replay and checks |
+|---|---|---|
+| Qara, 182.631 s | Each child admits its own native source and earned handoff; boot has no separate phase clock | Earned night / patrol / bow / victory children: 19.097 / 102.733 / 40.898 / 19.720 s. They are a hash-bound serial chain, not four independent stories. |
+| Pine quest, 17.123 s | Product 1.275 + resident 0.410 + controller 0.073 + replay readiness 2.182 s | Capture/replay pipeline about 12.15 s; final replay tail 0.001 s. No independent extra 12 s replay to remove. |
+| Pine door, 12.581 s | Original ready 4.260 s; fresh restore 4.309 s | Walk/open 2.192, continued suffix 0.596, checks 1.066, disposal 0.157 s. Original 30 s case cap remains. |
+| Driftwood story, 14.995 s | Product at 0.955, resident ready at 1.303, independent replay ready at 3.373 s (cumulative) | Capture ends 14.134, replay ends 14.147 s; checking/disposal ends about 14.17 s. The replay already overlaps capture. |
+| Nalati discovery, 66.295 s | Boot/import/check remainder is not separately instrumented | Actual capture work 34.496 s, capture wall 59.450 s including 24.954 s backpressure; overlapping replay window 60.881 s, 16 checked parts. All arrivals, notices, native state and final feet checks stay. |
+| Far / Sun observation, 35.549 s combined | Initial observed+reference owners ready at 4.173 / 1.970 s; fresh restore adds 1.931 / 1.052 s | Offline observe 5.057 / 3.015 s; full 240-step references 8.482 / 7.948 s; full ten-step continuation 0.766 / 0.703 s; disposal 0.425 / 0.022 s. All saves/ticks/assertions and 30 s cases stay. |
+| Sky progression (added after this retained source) | No retained per-phase clock | Kept whole in stories, unchanged. No synthetic phase estimate. |
+
+**Cut:** move the whole discovery and native-observation files from
+stories-qara to the existing native-routes group, with x2's workflow-hunk
+agreement and the deploy owner's defining-block review. The two files total
+101.844 s on the cited source. This is a relocation of independent fresh
+owners, not a shared warm worker or a skipped validation. Qara's temporary
+hash-bound night/unlock/bow/victory files never cross jobs. Discovery starts
+its own `beginProductSession`; observation starts independent Far/Sun owners
+and fresh restores, with no Qara state or mutable process handoff.
+
+The four native groups, 37 required jobs, 24 parallel shards, 15-file native
+union, one Vitest worker, bail=0, existing source/product guards, 20-minute
+job bound and every original per-case/child cap remain. Exactly-once
+inventory controls compare the workflow commands to `CI_NATIVE_GROUPS` and
+independent Vitest discovery. The deploy verifier must consume the new
+reviewed native-job defining source before it admits that topology's source.
+**Containing Linux qualification and any wave-time gain remain open.** The
+chapter job is still the measured first pole; this cut does not establish the
+15-minute CI9 bar.
