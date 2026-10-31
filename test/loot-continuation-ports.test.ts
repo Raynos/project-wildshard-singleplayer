@@ -84,3 +84,33 @@ test('bounty continuation storage keeps the original paid slots and late-kind ca
     expect(new Bounty(id, Bounty.census(targets), { read: () => durable, write: () => true }).claim(targets[0] ?? { kind: 'crab', herd: 2 })).toBe(false);
   } finally { bountySave.write(original, id); }
 });
+
+test('an in-flight pool restores every word and award group silently before an exact suffix', () => {
+  installCoinModel(coinGeometry);
+  const rng = new RngService(810), afterRng = new RngService(810), at = new Vector3(3, 4, 5), target = new Vector3(1, 2, 3);
+  const first = new CoinBurst(new Scene(), () => rng.stream('cosmetic').next());
+  const restored = new CoinBurst(new Scene(), () => afterRng.stream('cosmetic').next());
+  const paid: number[] = [], resumed: number[] = [];
+  let done = 0, resumedDone = 0;
+  const original = { onCoin: (n: number) => { paid.push(n); }, onDone: () => { done++; } };
+  const continuation = { onCoin: (n: number) => { resumed.push(n); }, onDone: () => { resumedDone++; } };
+  try {
+    first.spawn(at, 25, original.onCoin, original.onDone);
+    first.update(.2, target);
+    first.spawn(at, 7, original.onCoin, original.onDone);
+    const saved = first.snapshot(), random = rng.snapshot();
+    restored.restore(saved, () => continuation); afterRng.restore(random);
+    expect(restored.snapshot()).toEqual(saved); expect(resumed).toEqual([]); expect(resumedDone).toBe(0);
+    expect(afterRng.snapshot()).toEqual(random);
+    for (let i = 0; i < 200; i++) {
+      first.update(1 / 60, target); restored.update(1 / 60, target);
+      expect(restored.snapshot()).toEqual(first.snapshot());
+      expect(resumed).toEqual(paid); expect(resumedDone).toBe(done);
+    }
+    expect(paid.reduce((sum, n) => sum + n, 0)).toBe(32); expect(done).toBe(2);
+    expect(() => restored.restore({ ...saved, groups: [1, 1] }, () => continuation)).toThrow('counts');
+    expect(restored.inFlight).toBe(0);
+    expect(() => restored.restore(saved, () => { throw new Error('Missing award owner'); })).toThrow('Missing award owner');
+    expect(restored.inFlight).toBe(0);
+  } finally { first.dispose(); restored.dispose(); }
+});

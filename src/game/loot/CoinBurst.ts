@@ -13,6 +13,7 @@ import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
 import { coinModel } from './coinModel';
 import { burstCount, coinShare } from './coins';
+import { readCoinBurstState, type CoinBurstState } from './coinBurstState';
 
 const POOL = 48;                 // coins in flight at once (a captain = 12; a crab melee = a few)
 const SCALE = 2.6;               // coinModel is a 7 cm coin: in flight it has to read at 6 m on a phone
@@ -123,6 +124,46 @@ export class CoinBurst {
     }
     this.mesh.count = n;
     if (n > 0) this.mesh.instanceMatrix.needsUpdate = true;
+  }
+
+  /** Numeric continuation only. The caller owns the meaning of each award sink. */
+  snapshot(): CoinBurstState {
+    const groups: Burst[] = [];
+    const coins = this.coins.map(c => {
+      if (!c.live) return null;
+      let group = groups.indexOf(c.burst);
+      if (group < 0) { group = groups.length; groups.push(c.burst); }
+      return { age: c.age, pos: [c.pos.x, c.pos.y, c.pos.z] as [number, number, number],
+        vel: [c.vel.x, c.vel.y, c.vel.z] as [number, number, number], spin: c.spin, spinRate: c.spinRate, value: c.value, group };
+    });
+    const a = this.mesh.instanceMatrix.array;
+    return { version: 1, coins, groups: groups.map(group => group.left),
+      matrix: Array.from(new Uint32Array(a.buffer, a.byteOffset, a.length)), count: this.mesh.count };
+  }
+
+  /** Restore silently after validating the whole pool, then borrow the original
+   * award callbacks from the continuation owner. No random draw or payout runs. */
+  restore(input: unknown, resolve: (group: number) => { onCoin: (n: number) => void; onDone?: () => void }): void {
+    const saved = readCoinBurstState(input);
+    const groups = saved.groups.map((left, index): Burst => {
+      const callbacks = resolve(index);
+      if (typeof callbacks.onCoin !== 'function' || callbacks.onDone !== undefined && typeof callbacks.onDone !== 'function')
+        throw new TypeError('Coin burst continuation requires its original award callbacks');
+      return { left, onCoin: callbacks.onCoin, onDone: callbacks.onDone };
+    });
+    this.live = 0;
+    for (const [i, c] of this.coins.entries()) {
+      const row = saved.coins[i];
+      c.live = row !== null && row !== undefined;
+      if (row === null || row === undefined) continue;
+      const group = groups[row.group];
+      if (group === undefined) throw new Error('Validated coin group is missing');
+      c.age = row.age; c.pos.fromArray(row.pos); c.vel.fromArray(row.vel);
+      c.spin = row.spin; c.spinRate = row.spinRate; c.value = row.value; c.burst = group; this.live++;
+    }
+    const a = this.mesh.instanceMatrix.array;
+    new Uint32Array(a.buffer, a.byteOffset, a.length).set(saved.matrix);
+    this.mesh.count = saved.count; this.mesh.instanceMatrix.needsUpdate = true;
   }
 
   private land(c: Coin): void {
