@@ -44,6 +44,16 @@ function sameStrips(actual: readonly GeneratedStrip[], expected: readonly Genera
   }
 }
 
+test('native certification keeps optional JSON fields and refuses dropped feature facts', async () => {
+  const original = native(), source = await platformGeometrySource(original.cells, original.empty);
+  const first = original.strips.find(strip => strip.features.length > 0), feature = first?.features[0];
+  if (feature === undefined) throw new Error('Missing native feature');
+  Object.defineProperty(feature, 'optionalNote', { value: undefined, enumerable: true, configurable: true });
+  expect(() => encodeGridStripPage(source, 'probe', 'fixture', original.strips)).not.toThrow();
+  Object.defineProperty(feature, 'optionalNote', { value: 'must survive', enumerable: true });
+  expect(() => encodeGridStripPage(source, 'probe', 'fixture', original.strips)).toThrow('physical placement or features');
+});
+
 test.each([256, 257])('shipped typed triangles match native construction word for word (%s samples)', async count => {
   const original = native(count), source = await platformGeometrySource(original.cells, original.empty);
   const page = encodeGridStripPage(source, 'probe', 'fixture', original.strips), header: unknown = JSON.parse(new TextDecoder().decode(page.header.bytes));

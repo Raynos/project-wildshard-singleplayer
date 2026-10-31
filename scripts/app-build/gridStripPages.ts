@@ -127,9 +127,14 @@ export function encodeGridStripPage(source: string, home: string, slug: string, 
       const a = original.mesh[field], b = copy.mesh[field];
       if (!Buffer.from(a.buffer, a.byteOffset, a.byteLength).equals(Buffer.from(b.buffer, b.byteOffset, b.byteLength))) throw new Error('Grid strip bake changed native words');
     }
-    const facts = (strip: GeneratedStrip): unknown => JSON.parse(new TextDecoder().decode(json({ origin: strip.mesh.origin, features: strip.features,
-      turnIn: strip.turnIn ?? null, duplicates: strip.duplicates.map(row => ({ instance: row.instance, origin: row.mesh.origin })) })));
-    if (!isDeepStrictEqual(facts(original), facts(copy))) throw new Error('Grid strip bake changed physical placement or features');
+    const facts = (strip: GeneratedStrip): unknown => ({ origin: strip.mesh.origin, features: strip.features,
+      turnIn: strip.turnIn ?? null, duplicates: strip.duplicates.map(row => ({ instance: row.instance, origin: row.mesh.origin })) });
+    const before = facts(original), after = facts(copy);
+    // Header/shape serialization above already exercises these JSON inputs.
+    // Equal native fields need no extra UTF-8/JSON copies. Different optional
+    // field representations retain the original canonical comparison.
+    if (!isDeepStrictEqual(before, after) && !isDeepStrictEqual(JSON.parse(new TextDecoder().decode(json(before))),
+      JSON.parse(new TextDecoder().decode(json(after))))) throw new Error('Grid strip bake changed physical placement or features');
   }
   return { slug, owner: home, phase, page: { source, home: keyHome, header: header.address, body: body.address }, header, body };
 }
