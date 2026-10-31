@@ -10,9 +10,9 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 table qa-2026-10-30 (2508e90724); MF13 dither; QB17 video.
 
 **21:50 E518 (Jake): finish every row of the 4 fps plans tonight**, schedule = finish-fps-2026-10-30-mini-spike.md.
-Nine is GPU-bound on his phone (13 fps, gpu 45.7 ms vs CPU 10). Opus off (95 %): every Opus-shaped row closed or measured; open rows are Codex-exact.
-**04:05:** CI fixes all on origin (G571 b4c320cda1, imports 23b42c4d9c, floor b21f4b3ccb, gh paging a8cd4879b3);
-release recovery next; live 0fefa8b green (G917 held). Opus off (95 %).
+Nine was GPU-bound on his phone (13 fps, gpu 45.7 ms vs CPU 10).
+**07:05:** releases wait on the Driftwood trade test (30 s on CI even with decoder 2c6fe25db9; x8 splitting at
+earned checkpoints). Fixed: Titan fixture 1977c408ec, chapter 1 split + own CI job (2c10f562e7, 36 jobs). Opus off (95 %).
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
 (f33d642372) G4 fusion closed measured (precision frontiers). Pine GPU ok.
