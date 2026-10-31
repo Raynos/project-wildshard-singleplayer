@@ -323,7 +323,10 @@ export class GrassPresentation {
       if (prev) { hole[n * 4] = prev.cx; hole[n * 4 + 1] = prev.cz; hole[n * 4 + 2] = prev.half; hole[n * 4 + 3] = 1; } else hole[n * 4 + 3] = 0;
       n++;
     }
-    tileAttr.needsUpdate = true; holeAttr.needsUpdate = true;
+    if (n > 0) {
+      tileAttr.addUpdateRange(0, n * 2); holeAttr.addUpdateRange(0, n * 4);
+      tileAttr.needsUpdate = true; holeAttr.needsUpdate = true;
+    }
     R.geo.instanceCount = n;
     return { cx: ox + (G / 2) * T, cz: oz + (G / 2) * T, half: (G / 2) * T };
   }
