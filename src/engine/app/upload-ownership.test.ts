@@ -61,7 +61,7 @@ test('a nested draw restores its consumer and stable ownership still pulses resi
   } finally { page.dispose(); assets.evictCached('shared'); geometry.dispose(); material.dispose(); }
 });
 
-test('a failed native draw releases its consumer before unrelated property reads', () => {
+test.each(['ownership', 'native'] as const)('a failed %s draw releases its consumer before unrelated property reads', (phase) => {
   const page = new Scope('page'), first = page.child('first'), second = page.child('second'), assets = new AssetService();
   const texture = new Texture(), detached = new Texture(), geometry = new BufferGeometry(), material = new MeshBasicMaterial();
   const camera = new PerspectiveCamera(), scene = new Scene(), a = new Mesh(geometry, material), b = new Mesh(geometry, material);
@@ -70,12 +70,13 @@ test('a failed native draw releases its consumer before unrelated property reads
   let fail = true;
   renderer.renderBufferDirect = () => {
     renderer.properties.get(texture);
-    if (fail) { fail = false; throw new Error('native draw failed'); }
+    if (phase === 'native' && fail) { fail = false; throw new Error('native draw failed'); }
   };
   observer.attach(renderer);
+  if (phase === 'ownership') vi.spyOn(assets, 'observeResidency').mockImplementationOnce(() => { throw new Error('ownership draw failed'); });
   const draw = (mesh: Mesh): void => { renderer.renderBufferDirect(camera, scene, geometry, material, mesh, { start: 0, count: 0, materialIndex: 0 }); };
   try {
-    expect(() => { draw(a); }).toThrow('native draw failed');
+    expect(() => { draw(a); }).toThrow(`${phase} draw failed`);
     renderer.properties.get(detached);
     expect(observer.has(detached)).toBe(true); expect(sceneResourceOwner(detached)).toBeNull();
     draw(b);

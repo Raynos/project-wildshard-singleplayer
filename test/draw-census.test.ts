@@ -1,4 +1,5 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
+import { drawFrames } from '../scripts/perf/draw-census-page.mjs';
 import { nativeSummary, attributionSummary, sampledCpu } from '../scripts/perf/draw-census-report.mjs';
 
 test('render cost stays paired with its completed frame and zero draws stay unknown', () => {
@@ -58,4 +59,69 @@ test('function rankings retain source positions and count recursive inclusive sa
   expect(result.functions).toEqual([{ ...frame, selfMs: 2, inclusiveMs: 6, selfMsPerFrame: 1, inclusiveMsPerFrame: 3 }]);
   expect(sampledCpu(profile, value => value, 0).functions[0]?.selfMsPerFrame).toBeNull();
   expect(sampledCpu(profile, () => ({ source: '', name: '' }), 2).functions).toEqual([]);
+});
+
+
+test('property totals require complete, internally consistent frame coverage', () => {
+  const frame = {draws:[], useProgram:0, uniforms:0};
+  expect(attributionSummary([frame]).propertyReads).toBeNull();
+  const first = {...frame, propertyReads:{total:3, byKind:{texture:2, material:1}}};
+  expect(attributionSummary([first, frame]).propertyReads).toBeNull();
+  expect(attributionSummary([first, {...frame, propertyReads:{total:1, byKind:{texture:1}}}]).propertyReads)
+    .toEqual({totalPerFrame:2, byKind:{texture:1.5, material:.5}});
+  expect(() => attributionSummary([{...frame, propertyReads:{total:3, byKind:{texture:2}}}])).toThrow('Invalid property read census');
+});
+
+function propertyFixture() {
+  const native = {}, get = vi.fn((_resource:unknown) => native);
+  const texture = {isTexture:true}, source = {isSource:true}, callbacks:{frame?:()=>void} = {};
+  const gl = {CURRENT_PROGRAM:1, getParameter:()=>null, getExtension:()=>null,
+    useProgram:()=>undefined, drawElements:()=>undefined, drawArrays:()=>undefined,
+    drawElementsInstanced:()=>undefined, drawArraysInstanced:()=>undefined, drawRangeElements:()=>undefined};
+  const renderer = {properties:{get}, shadowMap:{render:()=>undefined}, getRenderTarget:()=>null, getContext:()=>gl,
+    renderBufferDirect:(..._args:unknown[]) => {renderer.properties.get(texture);renderer.properties.get(texture);renderer.properties.get(source);gl.drawArrays();}};
+  const originalDraw = renderer.renderBufferDirect;
+  const game = {renderer, composer:{passes:[]}, frameGate:()=>true, frameCount:0, frameI:0, frameMs:[1], workMs:[1], renderMs:[1],
+    lastFrame:{calls:1,triangles:1},watchFrames:(observeFrame:()=>void) => {callbacks.frame=observeFrame;return()=>{delete callbacks.frame;};}};
+  const world = {game,hud:{entered:true,paused:false}};
+  const mesh = {name:'fixture',type:'Mesh',parent:null};
+  const draw = () => {renderer.renderBufferDirect({}, {}, {uuid:'g'}, {uuid:'m'}, mesh, null);};
+  return {native,get,renderer,originalDraw,game,world,callbacks,draw};
+}
+
+function browserFixture(world:object):()=>void {
+  const values={window:{__wildshard:{world}},document:{hidden:false}};
+  const descriptors=new Map(Object.keys(values).map(name=>[name,Object.getOwnPropertyDescriptor(globalThis,name)]));
+  for(const [name,value] of Object.entries(values))Object.defineProperty(globalThis,name,{value,configurable:true,writable:true});
+  return()=>{for(const [name,descriptor] of descriptors){if(descriptor)Object.defineProperty(globalThis,name,descriptor);else Reflect.deleteProperty(globalThis,name);}};
+}
+
+test('property census calls the real getter and restores it after success and refusal', async () => {
+  for (const fail of [false,true]) {
+    const f=propertyFixture();
+    const restore=browserFixture(f.world);
+    try {
+      const capture=drawFrames({frames:1,attribution:true,propertyCalls:true});
+      expect(f.renderer.properties.get).not.toBe(f.get);
+      f.callbacks.frame?.();
+      if(fail){f.world.hud.paused=true;f.callbacks.frame?.();await expect(capture).rejects.toThrow('presentation changed');}
+      else {
+        f.draw();f.game.frameCount++;f.callbacks.frame?.();
+        const rows=await capture;
+        expect(rows[0]?.propertyReads).toEqual({total:3,byKind:{texture:2,source:1}});
+        expect(f.get).toHaveBeenCalledTimes(3);
+      }
+      expect(f.renderer.properties.get).toBe(f.get);expect(f.renderer.renderBufferDirect).toBe(f.originalDraw);
+    }finally{restore();}
+  }
+});
+
+test('native baseline never installs a property observer', async () => {
+  const f=propertyFixture(),restore=browserFixture(f.world);
+  try {
+    const capture=drawFrames({frames:1,attribution:false,propertyCalls:true});
+    expect(f.renderer.properties.get).toBe(f.get);
+    f.callbacks.frame?.();f.game.frameCount++;f.callbacks.frame?.();
+    expect((await capture)[0]?.propertyReads).toBeUndefined();
+  }finally{restore();}
 });

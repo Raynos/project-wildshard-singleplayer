@@ -71,6 +71,7 @@ const result = { build: version.build, url: base, protocol: { device: 'iPhone 16
   surface, viewport, slug: requestedSlug === '' ? null : requestedSlug, pinePose,
   baseline: 'native completed Game renderMs/workMs and whole-frame calls, before any census hooks or profiler',
   attribution: 'separate GL submission observation, including shadow/post/held; no GPU synchronization',
+  propertyCounts: 'separate attribution window; native getter and descriptors restored before profile',
   profile: 'separate CDP sampled stacks mapped through the matching private dist; diagnostic, not a floor' }, rows: [] };
 const browser = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
@@ -108,7 +109,7 @@ try {
       row.pose = await page.evaluate(() => { const world = window.__wildshard.world; return { at: world.player.position.toArray(), yaw: world.player.yaw, pitch: world.player.pitch }; });
       row.baselineFrames = await page.evaluate(drawFrames, { frames, attribution: false });
       row.native = nativeSummary(row.baselineFrames); persist();
-      row.attributionFrames = await page.evaluate(drawFrames, { frames, attribution: true });
+      row.attributionFrames = await page.evaluate(drawFrames, { frames, attribution: true, propertyCalls: true });
       row.attribution = attributionSummary(row.attributionFrames); persist();
       await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 200 }); await cdp.send('Profiler.start');
       let profileWindow;

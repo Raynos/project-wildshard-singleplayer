@@ -66,8 +66,19 @@ export function attributionSummary(frames) {
     if (row.nodeMaterial) nodeDraws += row.count;
     if (row.pass !== 'shadow' && row.instances === 1 && !row.skinned) singleCopyMain += row.count;
   }
+  const propertyKinds = new Map();
+  let propertyTotal = 0;
+  const countedProperties = frames.length > 0 && frames.every(frame => frame.propertyReads !== undefined && frame.propertyReads !== null);
+  if (countedProperties) for (const frame of frames) {
+    const { total, byKind } = frame.propertyReads;
+    const counts = Object.values(byKind);
+    if (!Number.isSafeInteger(total) || total < 0 || counts.some(value => !Number.isSafeInteger(value) || value < 0)
+      || counts.reduce((sum, value) => sum + value, 0) !== total) throw new Error('Invalid property read census');
+    propertyTotal += total;
+    for (const [kind, count] of Object.entries(byKind)) propertyKinds.set(kind, (propertyKinds.get(kind) ?? 0) + count);
+  }
   const mean = value => value / frames.length;
-  return { frames: frames.length, draws: mean(draws), passes: Object.fromEntries([...passes].map(([key, value]) => [key, mean(value)])),
+  return { frames: frames.length, propertyReads: countedProperties ? { totalPerFrame: mean(propertyTotal), byKind: Object.fromEntries([...propertyKinds].map(([kind, count]) => [kind, mean(count)])) } : null, draws: mean(draws), passes: Object.fromEntries([...passes].map(([key, value]) => [key, mean(value)])),
     byOwner: [...owners].map(([owner, count]) => ({ owner, drawsPerFrame: mean(count) })).sort((a, b) => b.drawsPerFrame - a.drawsPerFrame),
     programs: programs.size, programsPerFrame: mean(frames.reduce((sum, frame) => sum + new Set(frame.draws.map(row => row.program).filter(program => program !== null)).size, 0)),
     treeDraws: Object.fromEntries(['shadow', 'main'].map(pass => [pass, mean(frames.reduce((sum, frame) => sum + frame.draws.filter(row => row.owner.includes('/forest-tree') && (pass === 'shadow' ? row.pass === 'shadow' : row.pass !== 'shadow')).reduce((count, row) => count + row.count, 0), 0))])), materials: materials.size, geometries: geometries.size, nodeDraws: mean(nodeDraws), singleCopyMain: mean(singleCopyMain),

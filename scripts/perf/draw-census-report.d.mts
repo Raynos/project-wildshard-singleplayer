@@ -8,8 +8,9 @@ export interface Draw {
   owner: string; pass: string; count: number; program: number | null;
   materialId?: string; geometryId?: string; nodeMaterial?: boolean; instances?: number; skinned?: boolean;
 }
-export interface AttributionFrame { draws: Draw[]; useProgram: number; uniforms: number }
+export interface AttributionFrame { draws: Draw[]; useProgram: number; uniforms: number; propertyReads?: {total: number; byKind: Record<string, number>} | null }
 export interface AttributionSummary {
+  propertyReads: {totalPerFrame: number; byKind: Record<string, number>} | null;
   frames: number; draws: number; passes: Record<string, number>;
   byOwner: {owner: string; drawsPerFrame: number}[];
   programs: number; programsPerFrame: number; treeDraws: Record<string, number>; materials: number; geometries: number; nodeDraws: number; singleCopyMain: number;

@@ -1,7 +1,7 @@
 /** Browser-serialized census. Baseline reads native completed-frame counters;
- * attribution wraps submissions only in a separate diagnostic window.
- * @param {{frames: number, attribution: boolean}} options */
-export function drawFrames({ frames, attribution }) {
+ * attribution wraps submissions and optional property counts only in a separate diagnostic window.
+ * @param {{frames: number, attribution: boolean, propertyCalls?: boolean}} options */
+export function drawFrames({ frames, attribution, propertyCalls = false }) {
   const api = window.__wildshard, world = api?.world, game = world?.game;
   if (!game || !world.hud.entered || world.hud.paused || !game.frameGate()) throw new Error('Census requires uncovered, entered controls');
   const renderer = game.renderer, gl = renderer.getContext();
@@ -14,7 +14,7 @@ export function drawFrames({ frames, attribution }) {
     if (!programs.has(program)) programs.set(program, ++nextProgram);
     return programs.get(program);
   };
-  const fresh = () => ({ draws: [], useProgram: 0, uniforms: 0, glCalls: 0 });
+  const fresh = () => ({ draws: [], useProgram: 0, uniforms: 0, glCalls: 0, propertyReads: propertyCalls ? { total: 0, byKind: {} } : null });
   const replace = (object, name, wrap) => {
     const original = Reflect.get(object, name), descriptor = Object.getOwnPropertyDescriptor(object, name);
     if (typeof original !== 'function') throw new Error(`Missing census port ${name}`);
@@ -31,6 +31,16 @@ export function drawFrames({ frames, attribution }) {
   };
   if (attribution) {
     try {
+      if (propertyCalls) replace(renderer.properties, 'get', original => function censusProperties(resource) {
+        if (bucket?.propertyReads) {
+          const kind = resource?.isTexture ? 'texture' : resource?.isMaterial ? 'material'
+            : resource?.isBufferGeometry ? 'geometry' : resource?.isSource ? 'source'
+              : resource?.isRenderTarget ? 'target' : resource?.isObject3D ? 'object' : 'other';
+          bucket.propertyReads.total++;
+          bucket.propertyReads.byKind[kind] = (bucket.propertyReads.byKind[kind] ?? 0) + 1;
+        }
+        return Reflect.apply(original, this, [resource]);
+      });
       replace(renderer, 'renderBufferDirect', original => function censusCall(...args) {
         const previous = current, geometry = args[2], material = args[3], object = args[4], chain = [];
         for (let node = object; node; node = node.parent) chain.push(node.name === '' ? node.type : node.name);
