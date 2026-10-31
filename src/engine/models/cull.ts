@@ -127,6 +127,26 @@ function poseVersion(camera: THREE.Camera): number {
   pose.pass = passStamp;
   return pose.version;
 }
+/**
+ * The eye and turn of `camera` at pose `version`, derived once a pass however many cullers ask (Nine P5, phone 4x: the
+ * standing camera's sway bumps the version every frame, and each placed culler re-derived both from the same matrix,
+ * ~0.1 ms). `version` -1 (outside a pass): derived for the caller alone.
+ */
+const derivedEye = new THREE.Vector3(), derivedTurn = new THREE.Quaternion(), _eyeScratch = new THREE.Vector3();
+let derivedCamera: THREE.Camera | null = null, derivedVersion = -1, derivedTurned = false;
+function eyeAt(camera: THREE.Camera, version: number, out: THREE.Vector3): THREE.Vector3 {
+  if (version === -1 || camera !== derivedCamera || version !== derivedVersion) {
+    derivedCamera = version === -1 ? null : camera; derivedVersion = version; derivedTurned = false;
+    derivedEye.setFromMatrixPosition(camera.matrixWorld);
+  }
+  return out.copy(derivedEye);
+}
+function turnAt(camera: THREE.Camera, version: number, out: THREE.Quaternion): THREE.Quaternion {
+  eyeAt(camera, version, _eyeScratch);
+  if (!derivedTurned || version === -1) { derivedTurn.setFromRotationMatrix(camera.matrixWorld); derivedTurned = version !== -1; }
+  return out.copy(derivedTurn);
+}
+
 /** the two world matrices' rotation-and-scale parts are exactly equal */
 function sameTurn(a: ArrayLike<number>, b: ArrayLike<number>): boolean {
   return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[4] === b[4] && a[5] === b[5] && a[6] === b[6] && a[8] === b[8] && a[9] === b[9] && a[10] === b[10];
@@ -168,7 +188,7 @@ class View {
     if (version !== -1 && this.primed && camera === this.seen && version === this.seenVersion) return false;
     this.seen = version === -1 ? null : camera; this.seenVersion = version;
     if (this.step > 0) {
-      this.eye.setFromMatrixPosition(camera.matrixWorld);
+      eyeAt(camera, version, this.eye);
       if (this.primed && this.eye.distanceToSquared(this.lastEye) <= this.step * this.step) return false;
       this.primed = true;
       this.lastEye.copy(this.eye);
@@ -179,8 +199,8 @@ class View {
     const padded = this.buffered && camera instanceof THREE.PerspectiveCamera && camera.view === null
       && camera.projectionMatrix.elements[8] === 0 && camera.projectionMatrix.elements[9] === 0;
     if (padded) {
-      this.eye.setFromMatrixPosition(camera.matrixWorld);
-      this.turn.setFromRotationMatrix(camera.matrixWorld);
+      eyeAt(camera, version, this.eye);
+      turnAt(camera, version, this.turn);
       if (this.primed && this.projection.equals(camera.projectionMatrix)
         && this.eye.distanceToSquared(this.lastEye) <= VIEW_MOVE * VIEW_MOVE
         && Math.abs(this.turn.dot(this.lastTurn)) >= VIEW_TURN) return false;
