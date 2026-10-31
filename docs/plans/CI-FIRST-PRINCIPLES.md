@@ -364,46 +364,75 @@ change ships from either rejected trial. Current evidence:
 
 ### CI10 warm Home / Road regression (2026-10-31, sp-x8)
 
-**Open; Road first-bad identified, neither regression closed.** Original
-phone preset: Chromium iPhone 16 Pro, 10x page CPU, 10 Mbps down /2 Mbps
-up, 100 ms latency, grid entry, 3 s title dwell and 4 s post-control dwell.
-Each revision owns one normal immutable preview, stopped after its pair.
+**Home first bad identified and forward fix landed; Road still open.**
+The original phone preset is Chromium iPhone 16 Pro, 10x page CPU,
+10 Mbps down /2 Mbps up, 100 ms latency, grid entry, 3 s title dwell and
+4 s post-control dwell. Each revision owns one normal immutable preview,
+stopped after its cold/warm pair. No telemetry fixture or timing change.
 
-| Revision | Warm total (ms) | Home (ms) | Road system (ms) |
-|---|---:|---:|---:|
-| `afe90e0` | 26,638.9 | 13,654.2 | 15.9 |
-| `61f0961dc4` | 33,772.9 | 18,922.0 | 17.6 |
-| `153a2cf63f` | 39,666.1 | 21,006.4 | 4,485.5 |
-| `0f1906e` | 35,075.1 | 16,809.5 | 5,229.9 |
-| Forward candidate `d3538ff0c6` | 30,604.0 | 11,473.5 | 7,257.2 |
+| Revision | Cold total (ms) | Warm total (ms) | Warm Home (ms) | Warm Road (ms) |
+|---|---:|---:|---:|---:|
+| `afe90e0` | — | 26,638.9 | 13,654.2 | 15.9 |
+| `61f0961dc4` | — | 33,772.9 | 18,922.0 | 17.6 |
+| `153a2cf63f` | — | 39,666.1 | 21,006.4 | 4,485.5 |
+| Home parent `e2dfc879b5` | 74,876.9 | 26,669.6 | 13,842.8 | 17.1 |
+| Home first bad `039d78823e` | 51,650.9 | 35,032.6 | 19,617.1 | 21.7 |
+| Forward fix `4ef7467733` | 52,536.0 | 27,561.3 | 9,168.7 | 6,418.5 |
 
-The adjacent parent/child identifies `153a2cf63f`, the selected-road-tiles
-default change, as Road's first bad commit. Keep that default (G674).
-Home is already slow in its parent: continue `afe90e0..61f0961dc4` over
-48 relevant runtime commits, next midpoint `a05007be26`. No Home first-bad
-claim from source inspection.
+The 48-commit Home search is closed by the adjacent `039d78823e` pair.
+MF21 delayed first registration until control: at the bad cold visit's
+end there was no active worker and installation was still pending. The
+warm document began uncontrolled, with 697 network /1 service-worker
+response rows. Parent warm began controlled and used 35 network /667
+service-worker rows. The bad change saved 23.226 s cold but cost 8.363 s
+warm. A separate user-directed short Node ledger probe overlapped that
+bad run; its retained clock bounds are not an isolated hardware result.
+The source/control boundary is explicit, and no repeat or error filtering
+was used to erase that overlap.
 
-Capture serially waits for each tile's durable archive operation.
-`d3538ff0c6` retains current geometry encoding and full SHA; an existing
-body avoids a redundant write only after its entire SHA matches. Every
-miss, corrupt/truncated body and optional-read failure retains the original
-write/refusal. Retirement fences late writes and releases its pin once.
-All 16 cases/four suites, root types and typed lint pass. **The candidate
-does not meet the tens-of-ms Road target.** Road overlaps Home; the row
-redistribution proves neither an isolated saving nor the remaining cause.
-A warm CPU/cache-operation diagnostic is prepared, no further cut inferred.
+Jake approved an early, nonblocking first registration, retaining both
+approximately 52 s cold and 27 s warm, with a worker-served warm document.
+`4ef7467733` starts the existing registration helper immediately and
+returns ready without waiting for registration, installation or activation.
+X9 released only `boot()`; PR2/PR3 discovery, existing-registration watch,
+newest-worker choice and explicit adoption remain byte-identical to
+`35ee78401a`. There is no claim, activation wait or old blocking-ready path.
+Nine boot/update suites pass, with root types and typed lint clean.
 
-All warm native unpaused control witnesses and request accounting qualify.
-Original static-preview telemetry HTTP405 errors remain; CLI exit1 is
-retained, not a blanket benchmark pass. Candidate cold additionally retains
-its navigated-away-body accounting refusal. No fixture/filter/cap change.
-Evidence: `tmp/sp-x8-warm-regression/*-local-summary.json`, their raw JSON
-paths and `home-interval.json`.
+The single matched candidate pair measures **52.536 s cold /27.561 s
+warm**. Cold-end registration is active; warm document-start controller
+is activated, and its actual document response is service-worker sourced.
+Warm again has 35 network /667 service-worker rows. Both original native
+unpaused-control witnesses qualify. Cold request accounting is complete;
+warm retains one navigated-away telemetry-body accounting refusal, plus
+the original static-preview HTTP405 errors. CLI exit1 remains, so these
+are native timings and control evidence, not a blanket benchmark PASS or
+physical-phone claim. The unchanged post-control dwell was not extended.
 
-Earlier HEAD 6x CI10 proxy `47392c5322` is **before only**: Home8424.8 ms,
-scenes library1051.4 ms, product.read879.5 ms. Library/read are disjoint;
-nested assembly/yield envelopes overlap and cannot be added. Resume that
-same-HEAD exact-cut pair after the urgent warm regression.
+Road's separate first bad remains `153a2cf63f`, the selected-road-tiles
+default. Keep that default (G674). Capture serially awaits durable archives.
+`d3538ff0c6` still freshly encodes/hashes each tile, reusing a body only
+when its entire hash matches; missing, corrupt and failed reads keep the
+original write/refusal. The warm diagnostic records **1,956 verified
+road hits /zero puts**, so rewriting is no longer the cause. Native cache
+query cuts `5eefd16398` /`20bce27290` preserve exact namespace, length,
+bounded body and caller hash checks, with the original open/match fallback.
+They do not cure Road: **6.419 s still misses the tens-of-ms target**.
+Road overlaps Home, so row redistribution is not an isolated gain.
+
+Evidence: `tmp/sp-x8-warm-regression/*-local-summary.json` and original
+JSON paths; candidate folder
+`tmp/phone-loading/2026-10-31T19-50-58-716Z-4ef7467-mvwtaylf/` includes
+read-only document-start/end-registration sidecars. Queries occur after
+the original measured visit and neither register nor wait for a worker.
+The separate diagnostic CPU source maps were unavailable; no mapped
+hotspot attribution is invented from that profile.
+
+Earlier HEAD 6x CI10 proxy `47392c5322` remains **before only**:
+Home8424.8 ms, scenes library1051.4 ms, product.read879.5 ms. Library and
+read are disjoint; nested assembly/yield envelopes overlap and cannot be
+added. Resume one current same-HEAD exact-cut pair after the urgent warm
+regression; the stale proxy is not its after comparison.
 
 
 ### CI9 Nalati uncached author (2026-10-31, sp-x8 hourly batch)
