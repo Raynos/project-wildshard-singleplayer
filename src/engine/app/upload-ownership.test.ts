@@ -8,7 +8,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 import { Scope } from './scope';
 import { AssetService } from './assets';
-import { ownSceneResource, ownSceneTree } from './sceneOwnership';
+import { ownSceneResource, ownSceneTree, sceneResourceOwner } from './sceneOwnership';
 import { UploadOwnership } from '../render/uploadOwnership';
 import type { Renderer } from '../render/renderer';
 import { installFrameCounter } from '../render/frameCounter';
@@ -59,6 +59,29 @@ test('a nested draw restores its consumer and stable ownership still pulses resi
     texture.dispose(); draw(firstMesh);
     expect(observed.mock.calls.filter(([resource]) => resource === texture)).toHaveLength(5);
   } finally { page.dispose(); assets.evictCached('shared'); geometry.dispose(); material.dispose(); }
+});
+
+test('a failed native draw releases its consumer before unrelated property reads', () => {
+  const page = new Scope('page'), first = page.child('first'), second = page.child('second'), assets = new AssetService();
+  const texture = new Texture(), detached = new Texture(), geometry = new BufferGeometry(), material = new MeshBasicMaterial();
+  const camera = new PerspectiveCamera(), scene = new Scene(), a = new Mesh(geometry, material), b = new Mesh(geometry, material);
+  ownSceneTree(new Group().add(a), first, assets); ownSceneTree(new Group().add(b), second, assets);
+  const renderer = rendererFor(texture), observer = new UploadOwnership(page, assets);
+  let fail = true;
+  renderer.renderBufferDirect = () => {
+    renderer.properties.get(texture);
+    if (fail) { fail = false; throw new Error('native draw failed'); }
+  };
+  observer.attach(renderer);
+  const draw = (mesh: Mesh): void => { renderer.renderBufferDirect(camera, scene, geometry, material, mesh, { start: 0, count: 0, materialIndex: 0 }); };
+  try {
+    expect(() => { draw(a); }).toThrow('native draw failed');
+    renderer.properties.get(detached);
+    expect(observer.has(detached)).toBe(true); expect(sceneResourceOwner(detached)).toBeNull();
+    draw(b);
+    first.dispose(); expect(sceneResourceOwner(detached)).toBeNull();
+    expect(second.disposed).toBe(false);
+  } finally { page.dispose(); texture.dispose(); detached.dispose(); geometry.dispose(); material.dispose(); }
 });
 
 function drawRetiredOwner(page: Scope, assets: AssetService, renderer: ReturnType<typeof rendererFor>): WeakRef<Scope> {

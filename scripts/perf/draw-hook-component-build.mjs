@@ -6,15 +6,17 @@ import { readFileSync, writeFileSync } from 'node:fs';
 
 /** Build only an isolated native component, reading engine modules directly
  * from landed main revisions. This never exports or modifies a repository. */
-export async function buildComponents(control, candidate, out, candidateDrawHooks, candidateModule = 'src/engine/render/drawHooks.ts') {
+export async function buildComponents(control, candidate, out, candidateDrawHooks, additionalFixture, candidateModule = 'src/engine/render/drawHooks.ts') {
   if (!['src/engine/render/drawHooks.ts', 'src/engine/render/uploadOwnership.ts'].includes(candidateModule)) throw new Error('Unknown isolated component module');
   const root = resolve('.');
   if (!resolve(out).startsWith(`${resolve(root, 'tmp')}/`)) throw new Error('Components require repository tmp output');
   const git = args => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 });
   const revisions = {};
-  // An explicit one-file fixture lets a cut earn component parity before it
+  const additional = additionalFixture === undefined ? undefined : readFileSync(additionalFixture, 'utf8');
+  // Explicit draw/ownership fixtures let a cut earn component parity before it
   // lands. Every other engine module still comes from the pinned revision.
   const overlay = candidateDrawHooks === undefined ? undefined : readFileSync(candidateDrawHooks, 'utf8');
+  if (additional !== undefined && (candidateModule !== 'src/engine/render/drawHooks.ts' || overlay === undefined)) throw new Error('Additional upload fixture requires draw hook fixture');
   for (const [side, input] of Object.entries({ control, candidate })) {
     const revision = git(['rev-parse', '--verify', `${input}^{commit}`]).trim();
     execFileSync('git', ['merge-base', '--is-ancestor', revision, 'main']);
@@ -33,8 +35,9 @@ export async function buildComponents(control, candidate, out, candidateDrawHook
       load(id) {
         const path = relative(root, id.split('?')[0]);
         if (!path.startsWith('src/engine/') || !/\.(ts|mjs)$/u.test(path)) return null;
-        const source = side === 'candidate' && path === candidateModule && overlay !== undefined
-          ? overlay : git(['show', `${revision}:${path}`]);
+        const source = side === 'candidate' && path === candidateModule && overlay !== undefined ? overlay
+          : side === 'candidate' && path === 'src/engine/render/uploadOwnership.ts' && additional !== undefined ? additional
+          : git(['show', `${revision}:${path}`]);
         sources.set(path, createHash('sha256').update(source).digest('hex'));
         return source;
       },
@@ -43,7 +46,9 @@ export async function buildComponents(control, candidate, out, candidateDrawHook
       lib: { entry: 'scripts/perf/draw-hook-component-scene.mjs', formats: ['es'], fileName: 'entry' },
       rolldownOptions: { output: { codeSplitting: false } } } });
     writeFileSync(resolve(out, `${side}-sources.json`), JSON.stringify({ revision, sources: Object.fromEntries(sources),
-      overlay: side === 'candidate' && overlay !== undefined ? {path:candidateModule,sha256:createHash('sha256').update(overlay).digest('hex')} : null }, null, 2));
+      overlay: side === 'candidate' && overlay !== undefined ? {path:candidateModule,sha256:createHash('sha256').update(overlay).digest('hex')} : null,
+      additionalOverlay: side === 'candidate' && additional !== undefined
+        ? {path:'src/engine/render/uploadOwnership.ts',sha256:createHash('sha256').update(additional).digest('hex')} : null }, null, 2));
   }
   return revisions;
 }

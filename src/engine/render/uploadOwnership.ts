@@ -301,24 +301,21 @@ export class UploadOwnership {
       if (this.drawOwner !== null || typeof object !== 'object' || object === null || !this.releasing.has(object)) this.observe(object);
     };
     const counted = renders(renderer) ? renderer : null;
-    // Reuse one slot per nested draw, clearing the Scope as soon as it returns.
-    const owners: (Scope | null)[] = [], ids: (symbol | null | undefined)[] = [], generations: number[] = [];
     const hooks = drawHooks(renderer);
-    hooks.ownership = {
-      begin: (_camera, _scene, geometry, material, object) => {
-        owners[this.drawDepth] = this.drawOwner; ids[this.drawDepth] = this.drawOwnerId; generations[this.drawDepth] = this.drawGen;
-        this.drawOwner = sceneObjectOwner(object); this.drawOwnerId = this.ownerId(this.drawOwner);
-        hooks.ownerToken = this.drawOwnerId;
-        this.drawDepth++; this.drawGen = counted === null ? ++this.drawGens : renderCount(counted);
-        // A batch must claim its private aggregate geometry/textures before renderer property reads observe them.
+    hooks.ownership = (draw, camera, scene, geometry, material, object, group) => {
+      const priorOwner = this.drawOwner, priorId = this.drawOwnerId, priorGeneration = this.drawGen;
+      this.drawOwner = sceneObjectOwner(object); this.drawOwnerId = this.ownerId(this.drawOwner);
+      hooks.ownerToken = this.drawOwnerId;
+      this.drawDepth++; this.drawGen = counted === null ? ++this.drawGens : renderCount(counted);
+      try {
+        // A batch claims private aggregate allocations before native property reads.
         if (object instanceof InstancedMesh || object instanceof BatchedMesh) this.observeResource(object);
         this.observeResource(geometry); this.observeResource(material);
-      },
-      end: () => {
-        this.drawDepth--; this.drawOwner = owners[this.drawDepth] ?? null; this.drawOwnerId = ids[this.drawDepth];
-        hooks.ownerToken = this.drawOwnerId ?? null;
-        this.drawGen = generations[this.drawDepth] ?? 0; owners[this.drawDepth] = null;
-      },
+        draw(camera, scene, geometry, material, object, group);
+      } finally {
+        this.drawDepth--; this.drawOwner = priorOwner; this.drawOwnerId = priorId; this.drawGen = priorGeneration;
+        hooks.ownerToken = priorId ?? null;
+      }
     };
     // Test doubles carry only the draw path.
     if (renderer.compile !== undefined) {

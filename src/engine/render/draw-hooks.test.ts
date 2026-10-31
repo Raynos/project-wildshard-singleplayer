@@ -23,7 +23,10 @@ test('late registration keeps one renderer hook and shadow state encloses every 
   };
   hooks.retire = complete => { expect(complete).toBe(true); events.push('retire'); };
   hooks.material = (_camera, _scene, _geometry, material) => { expect(material).toBe(depth); events.push('admit'); return material; };
-  hooks.ownership = { begin: (_camera, _scene, _geometry, material) => { expect(material).toBe(depth); events.push('owner'); }, end: () => { events.push('release'); } };
+  hooks.ownership = (draw, camera, scene, geometry, material, object, group) => {
+    expect(material).toBe(depth); events.push('owner');
+    try { draw(camera, scene, geometry, material, object, group); } finally { events.push('release'); }
+  };
   hooks.memory = () => { expect(shadow).toBe(true); events.push('memory'); };
   expect(drawHooks(f.renderer)).toBe(hooks); expect(f.renderer.renderBufferDirect).toBe(installed);
   f.draw(); expect(f.stock).toHaveBeenCalledExactlyOnceWith(f.camera, f.scene, f.geometry, depth, f.object, f.group);
@@ -34,7 +37,7 @@ test('late registration keeps one renderer hook and shadow state encloses every 
 test('failed submission restores ownership, refuses retirement and never queues memory release', () => {
   const f = fixture(), hooks = drawHooks(f.renderer);
   const leave = vi.fn<() => void>(), memory = vi.fn<Renderer['renderBufferDirect']>(), retire = vi.fn<(complete: boolean) => void>();
-  hooks.ownership = { begin: () => { hooks.retire = retire; }, end: leave }; hooks.memory = memory;
+  hooks.ownership = (draw, ...args) => { hooks.retire = retire; try { draw(...args); } finally { leave(); } }; hooks.memory = memory;
   f.stock.mockImplementationOnce(() => { throw new Error('native draw failed'); });
   expect(f.draw).toThrow('native draw failed');
   expect(leave).toHaveBeenCalledOnce(); expect(retire).toHaveBeenCalledWith(false); expect(memory).not.toHaveBeenCalled();
@@ -59,7 +62,7 @@ test('ordinary draws bypass shadow dispatch and nested casts retain their own su
 
 test('an ownership failure unwinds its entered state and admission refusal never enters it', () => {
   const f = fixture(), hooks = drawHooks(f.renderer), leave = vi.fn<() => void>();
-  hooks.ownership = { begin: () => { throw new Error('owner failed'); }, end: leave };
+  hooks.ownership = () => { try { throw new Error('owner failed'); } finally { leave(); } };
   expect(f.draw).toThrow('owner failed'); expect(leave).toHaveBeenCalledOnce(); expect(f.stock).not.toHaveBeenCalled();
   hooks.material = () => null; f.draw(); expect(leave).toHaveBeenCalledOnce(); expect(f.stock).not.toHaveBeenCalled();
 });

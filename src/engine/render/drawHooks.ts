@@ -19,7 +19,7 @@ interface DrawHooks {
   retire?: ((complete: boolean) => void) | undefined;
   labels?: Draw | undefined;
   material?: (...args: Parameters<Draw>) => Parameters<Draw>[3] | null;
-  ownership?: { begin: Draw; end: () => void };
+  ownership?: (draw: Draw, ...args: Parameters<Draw>) => void;
   memory?: Draw;
 }
 
@@ -62,10 +62,8 @@ export function drawHooks(renderer: DrawTarget): DrawHooks {
       hooks.labels?.(camera, scene, geometry, material, object, group);
       const selected = hooks.material === undefined ? material : hooks.material(camera, scene, geometry, material, object, group);
       if (selected !== null) {
-        try {
-          hooks.ownership?.begin(camera, scene, geometry, selected, object, group);
-          draw(camera, scene, geometry, selected, object, group);
-        } finally { hooks.ownership?.end(); }
+        if (hooks.ownership === undefined) draw(camera, scene, geometry, selected, object, group);
+        else hooks.ownership(draw, camera, scene, geometry, selected, object, group);
       }
       complete = true;
     } finally {
