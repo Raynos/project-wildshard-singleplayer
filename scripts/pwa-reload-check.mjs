@@ -4,7 +4,7 @@
 // same checked preview. Never register a worker from an observation probe.
 import {createServer,request} from 'node:http';
 import {createHash} from 'node:crypto';
-import {mkdirSync,writeFileSync} from 'node:fs';
+import {mkdirSync,mkdtempSync,rmSync,writeFileSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {chromium,webkit,devices,errors as playwrightErrors} from 'playwright';
@@ -122,6 +122,12 @@ function state(page) {
 
 /** @param {Page} page */
 async function foreground(page){await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));}
+/** Observe the mounted title pill and two real paints before a manual action.
+ * @param {Page} page */
+async function titleReady(page){
+  await page.locator('.ws-update.visible').waitFor({state:'visible',timeout:45000});
+  await page.evaluate(()=>new Promise(/** @param {(value:unknown)=>void} _resolve */_resolve=>{requestAnimationFrame(()=>{requestAnimationFrame(()=>_resolve(undefined));});}));
+}
 /** @param {Page} page @param {string} target */
 async function waitingFor(page,target){
   const ready=await page.evaluate(async expected=>{
@@ -159,7 +165,7 @@ async function waitingFor(page,target){
 /** @param {Page} page */
 async function tap(page){
   const navigation=page.waitForEvent('load',{timeout:8000}).then(()=>true,()=>false);
-  await page.locator('.ws-update').tap();return navigation;
+  await page.locator('.ws-update').tap();const loaded=await navigation;if(loaded)await titleReady(page);return loaded;
 }
 
 /** @param {string} base @param {'webkit'|'chromium'} engine @param {string[]} scenarios @param {boolean} fixed */
@@ -176,7 +182,7 @@ export async function checkReloads(base,engine,scenarios,fixed) {
       const page=await context.newPage();
       /** @type {string[]} */const errors=[];
       /** @type {{url:string,status:number,method:string,body:string|null}[]} */const httpErrors=[];
-      page.on('pageerror',error=>errors.push(error.message));page.on('console',message=>{if(message.type()==='error')errors.push(`${message.text()} ${JSON.stringify(message.location())}`);});
+      page.on('pageerror',error=>errors.push(error.stack??error.message));page.on('console',message=>{if(message.type()==='error')errors.push(`${message.text()} ${JSON.stringify(message.location())}`);});
       page.on('response',response=>{if(response.status()>=400)httpErrors.push({url:response.url(),status:response.status(),method:response.request().method(),body:response.request().postData()});});
       const started=performance.now(),requestStart=proxy.requests.length;let taps=0,manualReloads=0,timeout=null;
       /** @type {Awaited<ReturnType<typeof state>>[]} */const observations=[];
@@ -186,9 +192,10 @@ export async function checkReloads(base,engine,scenarios,fixed) {
         await page.evaluate(()=>navigator.serviceWorker.ready);
         await page.reload({waitUntil:'load'});
         await page.waitForFunction(()=>navigator.serviceWorker.controller!==null&&document.querySelector('#hud.intro .ws-menu:not(.hide), #hud.intro .ws-main:not(.hide)')!==null,null,{timeout:45000});
+        await titleReady(page);
         observations.push(await state(page));
         if(scenario==='no-deploy'){
-          for(let index=0;index<3;index++){await page.reload({waitUntil:'load'});manualReloads++;await foreground(page);observations.push(await state(page));}
+          for(let index=0;index<3;index++){await page.reload({waitUntil:'load'});await titleReady(page);manualReloads++;await foreground(page);observations.push(await state(page));}
         }else{
           if(scenario==='abc-mid-install'){
             proxy.deploy('B');await foreground(page);await waitingFor(page,proxy.builds.B);
@@ -203,7 +210,10 @@ export async function checkReloads(base,engine,scenarios,fixed) {
             if(fixed&&offered.waiting?.startsWith(`${target}-`)!==true)throw new Error('Pill offered a worker that cannot deliver the newest build');
             await tap(page);taps++;observations.push(await state(page));
             const current=observations.at(-1);if(current?.doc===target&&!current.lit)break;
-            if(index===0)await waitingFor(page,target);
+            if(index===0){
+              await waitingFor(page,target);const installed=await state(page);observations.push(installed);
+              if(installed.waiting?.startsWith(`${target}-`)!==true)throw new Error('Install wait returned before the exact worker was waiting');
+            }
           }}catch(error){if(fixed||!(error instanceof playwrightErrors.TimeoutError))throw error;timeout=error.message;}
         }
         if((scenario==='ab-delayed'||scenario==='abc-mid-install')&&!proxy.requests.slice(requestStart).some(row=>row.delayMs===25000))throw new Error('Delayed install did not request its delayed shell asset');
@@ -211,12 +221,61 @@ export async function checkReloads(base,engine,scenarios,fixed) {
         const aligned=observations.every(row=>row.doc!==null&&row.controller?.startsWith(`${row.doc}-`)===true);
         const passed=aligned&&final.doc===target&&!final.lit&&(scenario==='no-deploy'?taps===0:taps===1)&&final.controller?.startsWith(`${target}-`)===true;
         const result={engine,scenario,sourceBuild:proxy.sourceBuild,target,taps,manualReloads,passed,aligned,timeout,elapsedMs:performance.now()-started,final,observations,errors,httpErrors};results.push(result);console.log(JSON.stringify(result));
-        if(errors.length>0||httpErrors.length>0)throw new Error(`Unexpected browser errors: ${errors.join('; ')} ${JSON.stringify(httpErrors)}`);
-        if(fixed&&!passed)throw new Error(`One-tap contract failed: ${engine}/${scenario}`);
+        if(errors.length>0||httpErrors.length>0)throw new Error(`Unexpected browser errors: ${errors.join('; ')} ${JSON.stringify(httpErrors)}`,{cause:result});
+        if(fixed&&!passed)throw new Error(`One-tap contract failed: ${engine}/${scenario}`,{cause:result});
       }finally{await context.close();}
     }
     await proxy.verifySource();return {engine,sourceBuild:proxy.sourceBuild,results,requests:proxy.requests,telemetry:proxy.telemetry};
   }finally{await browser?.close();await proxy.close();}
+}
+
+/** G872: whole-process close/relaunch stand-in for the unavailable Simulator GUI.
+ * The SAME profile and origin survive; no registration or cache is cleared.
+ * @param {string} base */
+export async function checkRestart(base){
+  const proxy=await createReloadProxy(base);mkdirSync(resolve('tmp'),{recursive:true});
+  const profile=mkdtempSync(resolve('tmp/pwa-reload-profile-'));
+  /** @type {import('playwright').BrowserContext|undefined} */let context;
+  /** @type {string[]} */const errors=[];
+  const launch=async()=>{
+    const owner=await webkit.launchPersistentContext(profile,{...devices['iPhone 16 Pro']});
+    await owner.addInitScript(()=>{if(location.protocol==='http:'){const url=new URL(location.href);url.searchParams.set('mute','1');history.replaceState(history.state,'',url);}});
+    const page=owner.pages()[0]??await owner.newPage();
+    page.on('pageerror',error=>errors.push(error.message));page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
+    page.on('response',response=>{if(response.status()>=400)errors.push(`HTTP${response.status()} ${response.url()}`);});
+    return {owner,page};
+  };
+  try{
+    let opened=await launch();context=opened.owner;let page=opened.page;
+    await page.goto(proxy.url,{waitUntil:'load'});
+    await page.evaluate(()=>document.dispatchEvent(new Event('ws:control-ready')));
+    await page.evaluate(()=>navigator.serviceWorker.ready);await page.reload({waitUntil:'load'});
+    await page.waitForSelector('#hud.intro .ws-menu:not(.hide), #hud.intro .ws-main:not(.hide)',{timeout:45000});await titleReady(page);
+    proxy.deploy('B',25000);await foreground(page);
+    await page.waitForFunction(()=>document.querySelector('.ws-update')?.classList.contains('newer')===true);
+    await tap(page);await waitingFor(page,proxy.builds.B);await tap(page);
+    const wedged=await state(page),cacheBefore=await page.evaluate(()=>caches.keys());
+    if(wedged.doc!==proxy.builds.A||wedged.waiting?.startsWith(`${proxy.builds.B}-`)!==true||!wedged.lit)throw new Error('Baseline did not wedge before whole-process close');
+    await context.close();context=undefined;
+    opened=await launch();context=opened.owner;page=opened.page;
+    await page.goto(proxy.url,{waitUntil:'load'});
+    await page.waitForSelector('#hud.intro .ws-menu:not(.hide), #hud.intro .ws-main:not(.hide)',{timeout:45000});await titleReady(page);
+    const afterRestart=await state(page),cacheAfter=await page.evaluate(()=>caches.keys());
+    const profileRetained=afterRestart.controller!==null&&cacheAfter.some(key=>cacheBefore.includes(key));
+    let tapsAfterRestart=0;
+    if(profileRetained&&afterRestart.doc===proxy.builds.A){
+      try{
+        await page.waitForFunction(()=>{/** @type {unknown} */const api=Reflect.get(globalThis,'__ws_sw');return typeof api==='object'&&api!==null&&'waiting' in api&&api.waiting!==null;},null,{timeout:8000});
+        await tap(page);tapsAfterRestart++;
+      }catch(error){if(!(error instanceof playwrightErrors.TimeoutError))throw error;}
+    }
+    const final=await state(page),survived=profileRetained?final.doc!==proxy.builds.B||final.controller?.startsWith(`${proxy.builds.B}-`)!==true||final.lit:null;
+    const result={scenario:'kill-mid-install',engine:'webkit',sourceBuild:proxy.sourceBuild,profileRetained,tapsBeforeClose:2,tapsAfterRestart,survived,wedged,afterRestart,final,cacheBefore,cacheAfter,errors};
+    console.log(JSON.stringify(result));await proxy.verifySource();
+    if(errors.length>0)throw new Error(`Unexpected browser errors: ${errors.join('; ')}`,{cause:result});
+    if(!profileRetained)throw new Error('Persistent WebKit did not retain its worker/cache profile; kill finding is unavailable',{cause:result});
+    return result;
+  }finally{await context?.close();await proxy.close();rmSync(profile,{recursive:true,force:true});}
 }
 
 async function main(){
@@ -224,10 +283,16 @@ async function main(){
   const base=value('base'),engine=value('engine')??'webkit',out=value('out')??'tmp/pwa-reload/reading.json',fixed=value('expect')==='one';
   if(base===undefined||!['webkit','chromium','both'].includes(engine))throw new Error('browser-lane.sh node scripts/pwa-reload-check.mjs --base=http://127.0.0.1:PORT --engine=webkit|chromium|both [--expect=one] [--out=tmp/...json]');
   const scenarios=value('scenario')?.split(',')??['no-deploy','ab-immediate','ab-delayed','abc-mid-install'];
-  if(scenarios.some(name=>!['no-deploy','ab-immediate','ab-delayed','abc-mid-install'].includes(name)))throw new Error('Unknown reload scenario');
-  const results=[];for(const selected of engine==='both'?['webkit','chromium']:[engine]){
-    if(selected!=='webkit'&&selected!=='chromium')throw new Error('Unknown browser');results.push(await checkReloads(base,selected,scenarios,fixed));
-  }
-  mkdirSync(dirname(resolve(out)),{recursive:true});writeFileSync(out,JSON.stringify(results,null,2));
+  if(scenarios.some(name=>!['no-deploy','ab-immediate','ab-delayed','abc-mid-install','kill-mid-install'].includes(name))||(scenarios.includes('kill-mid-install')&&scenarios.length!==1))throw new Error('Unknown reload scenario');
+  const results=[];
+  try{
+    if(scenarios.length===1&&scenarios[0]==='kill-mid-install')results.push(await checkRestart(base));
+    else for(const selected of engine==='both'?['webkit','chromium']:[engine]){
+      if(selected!=='webkit'&&selected!=='chromium')throw new Error('Unknown browser');results.push(await checkReloads(base,selected,scenarios,fixed));
+    }
+  }catch(error){
+    if(error instanceof Error&&error.cause!==undefined)results.push({refused:true,message:error.message,reading:error.cause});
+    throw error;
+  }finally{mkdirSync(dirname(resolve(out)),{recursive:true});writeFileSync(out,JSON.stringify(results,null,2));}
 }
 if(process.argv[1]!==undefined&&pathToFileURL(resolve(process.argv[1])).href===import.meta.url)await main();
