@@ -1,15 +1,12 @@
+import { installNalatiSpeciesFixture } from './nalati-species-world';
 /** Explicit opt-in for tests exercising installed world content. Pure tests never import this fixture. */
-import { originalSpeciesJson, originalSpeciesFile } from './nalati-original-species';
 import * as v from 'valibot';
-import { SpeciesPresentationSchema } from '@wildshard/format/speciesBookRows';
-import { HullLookBookSchema } from '@wildshard/format/speciesLooks';
 import perchRows from '../../src/shards/driftwood-isle/data/mixedPopulation.json' with { type: 'json' };
 import { Scope } from '../../src/engine/app/scope';
 import { prepareNativeScalarBlocks } from '../../scripts/bake/nativeWorld.mjs';
 import { nalatiNativeGeography } from './nalati-native-program';
 import { pineDensityBlob } from '../../src/shards/pine-hollow/generators/forestRows';
 import pineManifest from '../../src/shards/pine-hollow/manifest.json' with { type: 'json' };
-import { vi } from 'vitest';
 import { installAssetFixture, installCatalogueFixture } from './bootSetup';
 // oxlint-disable-next-line import/no-nodejs-modules -- The shared pickup fixture reads its explicitly declared public assets.
 import { readFileSync } from 'node:fs';
@@ -77,29 +74,7 @@ async function prepareWorld(): Promise<void> {
     const row = DRIFTWOOD_SPECIES[i], look = DRIFTWOOD_LOOKS[i];
     if (row !== undefined && look !== undefined) registerSpecies(speciesWithLook(row, look.kind === 'monkey' ? { ...look, animate: monkeyAnimate } : look));
   }
-  const { nalatiSpeciesCatalogue, prepareNalatiSpecies } = await import('../fake/nalatiSpecies');
-  // Admit the complete original envelope; its looks retain their defining
-  // packed-look admission inside productSpeciesCatalogue.
-  const speciesPresentation = v.parse(v.object({
-    hullBook: HullLookBookSchema, presentation: SpeciesPresentationSchema, looks: v.unknown(),
-    crackBytes: v.array(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(255))),
-    packedBodies: v.object({ file: v.string() }),
-  }), originalSpeciesJson('species.json'));
-  const { productSpeciesCatalogue } = await import('../../src/game/looks/speciesBook');
-  prepareNalatiSpecies(productSpeciesCatalogue({section:()=>speciesPresentation.hullBook,
-    file: name => name === 'actors/balbal-cracks.bin' ? Promise.resolve(Uint8Array.from(speciesPresentation.crackBytes)) : Promise.reject(new Error(`Unexpected product file ${name}`)) },speciesPresentation.presentation,speciesPresentation.looks));
-  for(const row of nalatiSpeciesCatalogue().rows){
-    const look=nalatiSpeciesCatalogue().looks.find(candidate=>candidate.kind===row.kind);
-    if(look===undefined)throw new Error('Missing species look');
-    registerSpecies(speciesWithLook(row,look));
-  }
-  // Production uses the packed-body host; preload its exact binary through its normal fetch port.
-  const speciesBodies = speciesPresentation.packedBodies;
-  const bodyFetch = vi.spyOn(globalThis, 'fetch').mockImplementation(input => {
-    if (input !== speciesBodies.file) throw new Error('Unexpected packed-body preload');
-    return Promise.resolve(new Response(originalSpeciesFile('bodies.bin')));
-  });
-  try { await nalatiSpeciesCatalogue().preload(); } finally { bodyFetch.mockRestore(); }
+  await installNalatiSpeciesFixture();
   const { unshuffleLanes: unshuffleBodyLanes } = await import('../../src/engine/core/deflate');
   // and its camps' and bridge's places bake (world/placeBake.ts)
   const { SHAPES, SHAPE_BYTES } = await import('./nalatiShapes');

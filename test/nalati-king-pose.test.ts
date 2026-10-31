@@ -1,6 +1,6 @@
 import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import { Scope } from '../src/engine/app/scope';
-import { lendNalatiHeld } from './fixtures/nalati-return-modules';
+import { lendNalatiHeld } from './fixtures/nalati-held-loan';
 import { object, parse, record, string } from 'valibot';
 import { NumericPoseSchema } from '../src/format/clientChannels';
 import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
@@ -16,9 +16,9 @@ import { animateKing } from './fixtures/nalati-king-pose';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { RigAnimCtx } from '../src/engine/entities/species/registry';
-import { installWorldFixture } from './fixtures/worldSetup';
+import { installNalatiSpeciesFixture } from './fixtures/nalati-species-world';
 
-await installWorldFixture();
+await installNalatiSpeciesFixture();
 
 const speciesRows=parse(object({poses:record(string(),NumericPoseSchema),program:ReturnProgramSchema}),
   originalSpeciesJson('species.json'));
