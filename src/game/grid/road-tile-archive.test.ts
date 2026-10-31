@@ -60,6 +60,24 @@ test('quota refusal releases the provisional pin and preserves original geometry
   scope.dispose(); expect(releases).toBe(1); original.geometry.dispose();
 });
 
+test('reload refuses changed scalar bytes even when every archive shape remains valid', async () => {
+  const scope = new Scope('road digest'), original = fixture();
+  let stored: Uint8Array | undefined;
+  const store: RoadTileStore = {
+    get: () => Promise.resolve(stored?.slice() ?? null),
+    put: (_hash, bytes) => { stored = bytes.slice(); return Promise.resolve(true); },
+  };
+  const ref = await persistRoadTile(scope, store, original);
+  if (stored === undefined) throw new Error('Missing stored road tile');
+  const headerBytes = new DataView(stored.buffer, stored.byteOffset, stored.byteLength).getUint32(0, true);
+  new DataView(stored.buffer, stored.byteOffset, stored.byteLength).setFloat32(4 + headerBytes, 0.5, true);
+  const valid = decodeRoadTile(stored);
+  expect(valid.geometry.getAttribute('position').getX(0)).toBe(0.5);
+  valid.geometry.dispose();
+  await expect(loadRoadTile(scope, store, ref)).rejects.toThrow('archive unavailable');
+  scope.dispose(); original.geometry.dispose();
+});
+
 test('warm archives reuse only the complete freshly encoded content and retain each owner pin', async () => {
   const cold = new Scope('cold road'), warm = new Scope('warm road'), original = fixture();
   const bodies = new Map<string, Uint8Array>(); let writes = 0, released = 0;

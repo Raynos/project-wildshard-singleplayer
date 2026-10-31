@@ -191,11 +191,11 @@ export async function persistRoadTile(scope: Scope, store: RoadTileStore, tile: 
     return { hash, wireBytes: bytes.length, ...reference };
   } catch (error) { cancel(); release(); throw error; }
 }
-/** Existing cache reads are verified; the explicit reference also fences identity,
- * length and decoded admission bytes before its geometry can be published. */
+/** Verify the full restored content address before decoding. The explicit
+ * reference also fences identity, length and decoded admission bytes. */
 export async function loadRoadTile(scope: Scope, store: RoadTileStore, reference: RoadTileReference): Promise<RoadTileGeometry> {
   live(scope); const bytes = await store.get(reference.hash, reference.wireBytes); live(scope);
-  if (bytes === null || bytes.length !== reference.wireBytes) throw new Error('Road tile archive unavailable');
+  if (bytes === null || bytes.length !== reference.wireBytes || await contentHash(bytes) !== reference.hash) throw new Error('Road tile archive unavailable');
   live(scope);
   let tile: RoadTileGeometry;
   try { tile = decodeRoadTile(bytes); }
