@@ -1,9 +1,14 @@
 import {afterAll,expect,test} from 'vitest';
 import {manifestFolders,shardProducts} from '../scripts/shard-outputs.mjs';
+import {legacyInventory} from '../scripts/legacy-shards.mjs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Use the same buildable-folder rule as the normal product writer.
+import {existsSync} from 'node:fs';
 import {builtProduct} from './fixtures/builtProduct';
 import {shippedGraphCosts,type ShippedGraphCost} from './fixtures/shipped-graph-costs';
 
-const products=shardProducts(process.cwd(),manifestFolders(process.cwd())),reports:ShippedGraphCost[]=[];
+const frozen=legacyInventory(process.cwd());
+const folders=manifestFolders(process.cwd()).filter(folder=>!Object.hasOwn(frozen.shards,folder)&&existsSync(`src/shards/${folder}/shard.config.ts`));
+const products=shardProducts(process.cwd(),folders),reports:ShippedGraphCost[]=[];
 for(const {slug} of products)test(`emitted shader work for every admitted graph in ${slug}`,async()=>{
  const rows=await shippedGraphCosts(builtProduct(slug));
  expect(new Set(rows.map(row=>row.graphHash)).size).toBe(rows.length);
