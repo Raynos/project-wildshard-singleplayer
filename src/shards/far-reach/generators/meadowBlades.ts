@@ -107,7 +107,10 @@ export function bakeMeadowBlades(hash: (x: number, y: number) => number = meadow
         const d = Math.hypot(px - hx, pz - hz), o = smooth(hr, hr + 0.6, d);
         clear = Math.min(clear, hw > 0.5 ? mix(0.3, 1, o) : o); holeRoom = Math.min(holeRoom, d - hr);
       }
-      for (const [ax, az, bx, bz] of paths) worn = Math.min(worn, smooth(0.15, 0.7, segDist(px, pz, ax, az, bx, bz) + 0.3 * mn(px * 1.7, pz * 1.7)));
+      // Every path samples the same point. Reuse the built-in pure noise,
+      // while injected hashes retain their original calls and order.
+      const pathNoise = hash === meadowHash && paths.length > 0 ? 0.3 * mn(px * 1.7, pz * 1.7) : undefined;
+      for (const [ax, az, bx, bz] of paths) worn = Math.min(worn, smooth(0.15, 0.7, segDist(px, pz, ax, az, bx, bz) + (pathNoise ?? 0.3 * mn(px * 1.7, pz * 1.7))));
       const pt = mfbm(px * 0.23, pz * 0.23);
       const kdx = (knoll(px + 0.4, pz) - knoll(px - 0.4, pz)) / 0.8, kdz = (knoll(px, pz + 0.4) - knoll(px, pz - 0.4)) / 0.8, slope = Math.hypot(kdx, kdz);
       // three grasses by a noise field: the lawn on the rises' slopes and the worn ground, the wild grass toward the rims

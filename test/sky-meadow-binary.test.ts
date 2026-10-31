@@ -10,6 +10,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { prepareSceneDrawRows, drawSceneRows } from '../src/game/shardfile/sceneDraws';
 import { SKY_MEADOW_BLOB, SKY_MEADOW_BLOBS, SKY_MEADOW_FILE, SKY_MEADOW_DATA_FILE, skyMeadowBlobs } from '../src/shards/far-reach/generators/meadowScene';
 import { bakeMeadowBlades } from '../src/shards/far-reach/generators/meadowBlades';
+import { meadowHash } from '../src/shards/far-reach/generators/meadowHash';
 import { predecessorMeadowHash } from './fixtures/sky-meadow-hash';
 import { originalSkyScenes } from './fixtures/sky-scene-source';
 
@@ -21,6 +22,16 @@ const emitted = emitNamedBlobs(SKY_MEADOW_BLOBS);
 const binary = SKY_MEADOW_BLOBS.find(row => row.file.kind === 'bin');
 if (binary === undefined) throw new Error('Missing packed meadow');
 const packed = binary;
+
+test('reusing pure path noise preserves complete meadow and scene bytes', () => {
+  // An injected wrapper follows the original per-path calls, including every
+  // single-precision hash operation, rather than the built-in pure shortcut.
+  const reference = skyMeadowBlobs(bakeMeadowBlades((x, y) => meadowHash(x, y)));
+  expect(reference.binary.bytes.byteLength).toBe(packed.bytes.byteLength);
+  expect(reference.binary.bytes.every((byte, index) => byte === packed.bytes[index])).toBe(true);
+  expect(reference.scene.bytes.byteLength).toBe(SKY_MEADOW_BLOB.bytes.byteLength);
+  expect(reference.scene.bytes.every((byte, index) => byte === SKY_MEADOW_BLOB.bytes[index])).toBe(true);
+});
 
 test('packed meadow retains bounded channels and current scene ownership', () => {
   // Rebuild the independent predecessor encoding to check bounded channel storage.
