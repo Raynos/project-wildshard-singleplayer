@@ -1819,3 +1819,80 @@ native/SIX and behaviour jobs. This supports runner admission contention,
 not executing cache work or a hidden needs edge; it is not an exhaustive
 account-quota measurement. The five-leg cap model remains closed as no
 robust win. No cap model is extended or production group weakened.
+
+## CI9: short-job merge model — no clear net win
+
+**2026-10-31, sp-x6; retained 82b9 and 1dae only.** The requested
+comparison counts setup as job start to its first actual check, execution
+as the sum of the original check steps, and cleanup/publication separately.
+No admission wait is counted as setup. These are workflow step seconds,
+not Vitest body-only durations.
+
+| Job with execution below its own setup | 82b9 setup /execution (s) | 1dae setup /execution (s) |
+|---|---:|---:|
+| derived-docs | **59 /12** | **45 /18** |
+| journeys (hover-chromium) | **168 /135** | **115 /84** |
+| journeys (hover-webkit) | 111 /113, not below | **92 /89** |
+| behaviour (19) | **136 /107** | 63 /122, not below |
+
+These are the only required checking jobs meeting that test in either
+retained cohort. No other behaviour shard meets it: in particular B22
+is **142 /175** on 82b9 and **80 /126** on 1dae. The optional fixtures
+producer has **428 /188** and **402 /165** before/writing-and-packing
+its snapshots; that pre-writer work includes cold generation, not just
+runner setup. Its v3-only restore defect is fixed separately by
+`e9c199a929`. Prepare, ship and report-only phone/draw work are not
+classified as short required test jobs.
+
+### Counterfactual merges
+
+The model folds complete original commands into one runner, serially,
+with every command retained exactly once. It preserves both full check
+durations and both reporting/cleanup tails, uses the slower observed
+setup, and adds 0 /15 s of merged-step overhead as a sensitivity. A paired
+behaviour job retains both original `--shard=N/24` selections, fresh
+workers and private per-shard cache restores; it does not repack files or
+increase the two-worker count. The model checks that every original job's
+command membership survives once, with no duplicate or lost member.
+
+Conditional replay keeps **20 total slots**, **five macOS slots**, SIX's
+unchanged per-run cap5, protected prepare/ship serialization, observed
+executed arrivals and all dependencies. FIFO-ready and observed-admission
+rank each run with 0 /2 s handoffs. Both focal-run-only and all-retained
+rollouts are modeled; unknown/different historical hosts are not merged.
+No new cancellation/coalescing behavior or extra runner is invented.
+
+Negative deltas are earlier. Ranges below include all 16 sensitivities per
+release; they are **models, not observed after-seconds**.
+
+| Merge | 82b9 wave delta (s) | 1dae wave delta (s) | 82b9 ship-start delta (s) | 1dae ship-start delta (s) |
+|---|---:|---:|---:|---:|
+| docs into typecheck-lint | -4 to 0 | -4 to 0 | -5 to 0 | -4 to 0 |
+| both HOVER jobs | **+64 to +103** | -11 to 0 | -36 to +51 | -11 to 0 |
+| grid plus Chromium HOVER | -28 to 0 | **-12 to +20** | -18 to +5 | -12 to +20 |
+| behaviour 9 plus 19 | **+89 to +119** | -6 to +2 | -8 to +51 | -6 to +2 |
+| docs plus both HOVER | **+64 to +102** | -11 to 0 | -36 to +37 | -11 to 0 |
+| docs plus grid/Chromium HOVER | -28 to 0 | **-19 to +19** | -18 to +5 | -19 to +19 |
+
+Sharing setup saves runner service but does not guarantee an earlier
+required verdict. Docs/typecheck saves **29–44 /30–45 runner-seconds** on
+82b9 /1dae, yet the modeled wave gain is only zero to four seconds. The
+serial HOVER or paired-shard tail can become slower than the original
+overlapping work. The model baseline itself differs from observed wave
+end by **0–32 s /11–34 s early**; its 1dae ship starts **695–719 s early**,
+so retained account arrivals/holders are insufficient to reproduce that
+admission wait. A claimed ship gain from those missing slots is unsound.
+
+**Accepted: no merge recommended.** The tiny docs gain is below model
+uncertainty; larger candidates can regress the wave. Keep every current
+job, native4, all six logical journeys, source-bound proof/status and
+historical admission layouts. Any future actual merge needs one reviewed
+producer/controller/root-verifier migration with the true new job count,
+not an inaccurate all37 claim. No workflow, cap, artifact or source policy
+is changed; no new CI/API/log read, dispatch or experiment was run.
+
+Reproduction and conditional rows:
+`tmp/sp-x6-ci9-job-merges/{model.py,model.json,model.txt}`. Inputs are the
+retained root `qa-{82b9,1dae}-attempt-jobs.json` plus surrounding retained
+job intervals; this is a separate merge study, not an extension of the
+closed five-leg cap model.
