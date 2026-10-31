@@ -1,6 +1,6 @@
 # Wildshard deployment asset trim
 
-**State:** `in progress` 2026-10-31 — G963 item 6, sp-x2: T3 re-audited on `8da7f94de2` (144 texture files retained; no deletion qualified), T4 inventory below (five unselected HDR candidates await HEAD boot/offline/exact-pixel proof). T1 and T2 / DA1 remain done. T5 is closed as measured (G872): no external migration at the documented one-day retention; reopen near 30 days of actual retention. T6 is superseded by immediate exact-green shipping (`419a077b21`) and the current CI3 cohort.
+**State:** `in progress` 2026-10-31 — T4 source `50ea8a75f9` removes five unselected HDRs; exact capture/offline qualification remains open after a preview-only CORS cache failure. Narrow parity fix `1aeb76658b` is checked and awaits native offline confirmation. T3 retains all 144 originals (no deletion qualified). T1/T2 remain done; T5 is closed as measured (G872), no external migration at one-day retention; T6 is superseded by immediate exact-green shipping and CI3.
 
 **Historical clean-export baseline (2026-10-29):** 1,375 static files / 524.5 MiB.
 The current retained-output measurement is in T5 below.
@@ -14,7 +14,7 @@ The Vercel build also creates four API functions. Two are test files under
 | T1 — done | Move `api/*.test.ts` out of Vercel's function discovery path | 619 tests pass; clean prebuilt output has two real functions; production `/api/inbox` and `/api/errors` each return 401 without credentials | Removed two unnecessary functions from every deployment |
 | T2 — done (2026-10-29, sp-x9; G874 / DA1) | Source `97ec95cb7e` / `20f3bfd384` keeps local/CI maps and copies the standalone filter before pin checkout. **Live `dcc2153ac-mvtsyqc1`**, app `dcc2153ac62655a07ecdc7a17e3242c2493dcf50`, is qualified by deployment controller `42a37e95ff9e01b5c12b6133dbe708c3dca6e318` ([release 40914981125](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40914981125)). | Remote Vercel strip receipt: **268 maps / 52,104,870 bytes**. Download-verified private artifact **12917412136** holds **270 files** (268 maps + exact live version/chunk report), ZIP SHA-256 `dc85faeb67b7fa00f9eb8ca1c1033a58b2bbf87f3f5b019c87ea4333e8f09b6e`, 12,987,948 bytes. Three actual map URLs return **404**; live version and SW core/build/hash match. Exact app [CI 40899627232](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40899627232) and [SIX 40903043898](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40903043898) are green. Evidence: `tmp/sp-ci-deploy-hourly-409149-{map-proof,live,artifacts}.json` and completed release log; no duplicate capture. | **52,104,870 fewer public bytes** on the qualified live build; original diagnostic maps remain private and intact |
 | T3 — audited, verification open | HEAD `8da7f94de2`: 144 `assets/tex/` files / 86,727,002 bytes; 90 are GPU-source keys, 142 participate in exact tier-generation jobs. Retain all 144; detailed map below. | Reference search includes authored generators and image/phone fallback policy. HEAD desktop/phone boot and offline proof remains pending; **zero assets removed**. | No verified duplicate-original deletion yet |
-| T4 — inventoried, verification open | The historical “26 HDRIs” are **26 files: 8 HDR originals + 18 key/gain-map planes**, 40,753,919 bytes. Two MP4s add 10,084,454 bytes. Five unselected raw HDR candidates total 24,173,718 bytes. | Keep all selected skies, all seven Pine time keys, raw selected/bake fallbacks, and both user-facing videos. Omit nothing until the HEAD boot/offline and byte-identical capture gates pass. | Candidate only; no removal or public-byte saving claimed |
+| T4 — source landed, verification open | `50ea8a75f9` removes five unselected raw HDRs / 24,173,718 bytes and their download recipes. All 25 selected HDR/key-plane/video/T3-twig bodies remain SHA-256 exact. | Retained `629` baseline: 36 captures / 18 strict A/A comparisons, all zero pixels. `ad2` after: first seven phone Pine sky A/B comparisons are zero; offline entry then refused. The preview CORS fix `1aeb` needs native confirmation before completing the remaining gates. | Source bytes removed; no qualified whole-output or observed production-byte saving claimed |
 | T5 — closed as measured (2026-10-31, G872) | No migration now: 1.700 GB of immutable bulk per output, 99.90% unchanged against retained original app builds | At 24 deploys/day, documented one-day retention models $4.08/month versus $122.41 near 30 days; preserve same-origin precache/offline behavior | No code/hosting change. Reopen if actual retention approaches 30 days; detailed cost and update analysis below |
 | T6 — superseded | `419a077b21` (G920) removed the hourly slot, cooldown and local backstop; exact successful proof releases immediately. The later boot/ship merge (`93bd`) makes the successful required verdict the automatic ship trigger. | CI3 closes on its **21/21 automatic post-merge releases within 300 s**; all eight old misses predate the merge. BA78 was manual dispatch, not a queue miss. See [CI-FIRST-PRINCIPLES](CI-FIRST-PRINCIPLES.md), CI3 / retained 32-release classification. | Original hourly-lag work is obsolete; CI2 artifact download/restore remains a separate open row |
 
@@ -84,14 +84,14 @@ inputs. The current audit again finds no qualified original deletion.
 
 | Member / group | Files | Bytes | Disposition |
 | --- | ---: | ---: | --- |
-| `belfast_sunset_puresky_2k.hdr` | 1 | 4,563,204 | Unselected candidate: fetch recipe + generated presence catalogues only; proof pending |
-| `kloofendal_28d_misty_puresky_2k.hdr` | 1 | 4,467,957 | Unselected candidate: fetch recipe + generated presence catalogues only; proof pending |
+| `belfast_sunset_puresky_2k.hdr` | 1 | 4,563,204 | Removed by `50ea8a75f9`: no authored runtime/test/selected bake input; verification open |
+| `kloofendal_28d_misty_puresky_2k.hdr` | 1 | 4,467,957 | Removed by `50ea8a75f9`: no authored runtime/test/selected bake input; verification open |
 | `kloofendal_48d_partly_cloudy_puresky_2k.hdr` | 1 | 5,451,493 | Keep: Nalati/Nine declared sky and two Blender weapon inputs; retain raw fallback |
-| `kloppenheim_06_puresky_2k.hdr` | 1 | 4,434,394 | Unselected candidate: fetch recipe + generated presence catalogues only; proof pending |
+| `kloppenheim_06_puresky_2k.hdr` | 1 | 4,434,394 | Removed by `50ea8a75f9`: no authored runtime/test/selected bake input; verification open |
 | `qwantani_late_afternoon_puresky_2k.hdr` | 1 | 4,429,634 | Keep: Pine golden-hour key bake input |
 | `qwantani_sunset_puresky_2k.hdr` | 1 | 4,171,959 | Keep: Pine selected sky and raw fallback after pair decode failure |
-| `rosendal_park_sunset_puresky_2k.hdr` | 1 | 5,049,451 | Unselected candidate: fetch recipe + generated presence catalogues only; proof pending |
-| `sunflowers_puresky_2k.hdr` | 1 | 5,658,712 | Unselected candidate: fetch recipe + generated presence catalogues only; proof pending |
+| `rosendal_park_sunset_puresky_2k.hdr` | 1 | 5,049,451 | Removed by `50ea8a75f9`: no authored runtime/test/selected bake input; verification open |
+| `sunflowers_puresky_2k.hdr` | 1 | 5,658,712 | Removed by `50ea8a75f9`: no authored runtime/test/selected bake input; verification open |
 | Two selected sky color/gain pairs + seven Pine key pairs | 18 | 2,527,115 | Keep every plane: selected sky / dawn, sunrise, day, golden, sunset, dusk, night |
 | `trailer-15.mp4` | 1 | 3,532,948 | Keep: historical public trailer URL; the 30 s copy also remains a Native Apps store-preview input |
 | `trailer-30.mp4` | 1 | 6,551,506 | Keep: historical public trailer URL; the 30 s copy also remains a Native Apps store-preview input |
@@ -110,6 +110,64 @@ before/after any accepted removal; complete emitted-byte comparison; and
 root-owned production URL verification after ordinary shipping. A failed or
 unavailable preview is not a pass. No new source-mapping, preload, texture,
 sky selection, time-of-day or video behavior is authorized by this audit.
+
+### T4: retained qualification and offline refusal (2026-10-31)
+
+The bare-basename search includes `test/`, authored generators, manifests and
+selected bake inputs. The five removed names occur only in the download output
+recipe, generated presence catalogues and history. `bake-sky` uses selected
+`SHARDS[].sky.hdri`; Pine's baker uses its seven authored sky keys, not a raw
+HDR directory scan. All selected raw fallbacks, 18 color/gain planes, two
+trailers and the two unproved T3 twigs stay. Audit:
+`tmp/sp-x9-t4-hdr/reference-audit.json` (source `02ad71d020`).
+
+The real before preview is pinned `62941932c9` / `6294193-mvwytp54`, not
+current HEAD. Two fresh visits per world and tier cover all seven Pine times,
+Nalati and the conservatively retained Nine declaration: **36 full-RGBA
+captures, 18 A/A comparisons, every pixel exact**. Each boot has an admitted
+original frame gate, completed native frame and positive geometry. No removed
+HDR is requested. The maintained fixed-world renderer excludes post/held passes;
+this is sky/world parity, not whole-HUD or frame-cost qualification.
+
+One normal HEAD preview `ad2fc61765` / `ad2fc61-mvx0o231` contains the trim.
+All 25 protected files are exact; all five HDR bodies are absent. Complete
+emitted inventories are **9,403 / 2,255,597,280 bytes** before and
+**9,398 / 2,231,764,878 bytes** after. Exactly **8,985 files /
+2,170,395,764 bytes** match at the same path; later shared source/build IDs
+also change chunks, maps and product metadata (59 source paths differ).
+The HDR family differs only by the five removed bodies; the unrelated net
+change is +341,316 bytes. This is not a sole-leaf or whole-output byte claim.
+The original preview SPA fallback returns exact index HTML/200 for a generic
+missing-HDR request; explicit HDR Accept returns 404. Both results are retained,
+with no server rewrite, HTTP fixture or ignored pixel.
+
+The first **seven phone-tier Pine A/B captures are exact**, then a real
+offline reload refuses main/runtime code and entry times out at its original
+240-second bound. Remaining worlds, desktop A/B and offline gates are unrun,
+not passed. The observer's async `waitForFunction` predicate did not prove
+activation; that concrete observer error is retained separately from the
+actual network failure.
+
+The approved direct pre-`35ee` parent `e9c199a929` reproduces the runtime
+failure **after** genuine awaited activation, a completed install book and
+cache-body inspection. Its SW serves the offline document and main chunk;
+the cached 244-byte runtime has `Vary: Origin` under an Origin-less key, while
+the module request carries Origin. This is the preview's reflected CORS
+header, not evidence against `35ee` document ownership, `4ef` early registration
+or the HDR removal. Root's two actual production requests return the exact
+same runtime SHA-256 with wildcard CORS and no Vary header.
+
+Checked `1aeb76658b` makes only public GET/HEAD preview headers Origin-invariant;
+API/POST/OPTIONS restrictions, the telemetry sink, compression Vary, worker,
+registration and all warm-control policy remain unchanged. The real HTTP
+regression fails before it; 35 focused HTTP/encoding/worker controls, root
+types and typed lint pass. Native offline after confirmation is **open**.
+Raw: `tmp/sp-x9-t4-hdr/{before-gated,after}/reading.json`, complete inventories
+and `emitted-comparison.json`; old witness/source audit:
+`tmp/sp-x9-pwa-offline/{pre35/reading.json,source-audit.json}`. Root retains
+`production-runtime-origin-parity.json` under `tmp/sp-ci-deploy-qa-refresh/`.
+No new tolerance, cache-policy relaxation, activation wait in production,
+ignored request, blind retry or production cure is claimed.
 
 ### T5: immutable deployment bodies — closed as measured (G872)
 
