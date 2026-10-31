@@ -199,8 +199,8 @@ Codex does the workflow engineering (non-visual). Ordered to unstick the deploy 
 | Row | What | Done when | Lane | Size |
 |---|---|---|---|---|
 | CI1 | Pin wave 1 (G919): delete tonight's red Nalati pins and the 2-day repeat offenders (§2); each commit lists the test and what it pinned | **done** (see lane) — Push CI green on main again | Codex sp-ci-deploy · done 143b3edd27, 5b54b7d044, ba70969be3 | S |
-| CI2 | Ship the tested build (G920): push CI uploads `.vercel/output`; the release runs `vercel deploy --prebuilt` on it, with no native or vercel rebuild | Release ≤ 3 min; live `version.json` = the tested SHA | **in flight (2026-10-31, sp-ci-deploy):** tested-artifact identity delivered on all 32 retained verified releases; 26/32 complete ship jobs meet 180 s. Six misses remain, worst ordinary 203 s / manual recovery 348 s. Full timing census below; acceptance stays open. | M |
-| CI3 | Deploy as soon as green (G920): drop the hourly slot; a green exact-SHA proof deploys at once if newer than live | Live = the newest green SHA within 5 min of its verdict | **in flight (2026-10-31, sp-ci-deploy):** 23/32 retained releases meet 300 s from exact-SHA success status to matching live version; BA78 recovery takes 3020.439 s. Delayed publisher time is reported separately from last required-job completion. Global newest-green-at-verdict census is incomplete; acceptance stays open. | S |
+| CI2 | Ship the tested build (G920): push CI uploads `.vercel/output`; the release runs `vercel deploy --prebuilt` on it, with no native or vercel rebuild | Release ≤ 3 min; live `version.json` = the tested SHA | **in flight (2026-10-31, sp-x2 retained audit):** 26/32 complete ship jobs meet 180 s. All six misses are dominated by artifact download plus strict restore, **69.532–214.302 s**, with no historical network/decode split. CLI install, deployment and verifier are measured separately; two misses have 20 s verifier waits. `f15555814f` checkout is already landed; no unsupported extra transport cut or retry ships. [Each miss and limits](#ci2--ci3-miss-classification-and-current-acceptance). | M |
+| CI3 | Deploy as soon as green (G920): drop the hourly slot; a green exact-SHA proof deploys at once if newer than live | Live = the newest green SHA within 5 min of its verdict | **done (2026-10-31, G872 ruling):** since `93bd4ce2ba` merged boot verdict and shipping, **21/21 automatic releases** in the retained cohort reach the matching live build within 300 s of the exact-SHA success status (107.685–196.017 s). All eight automatic misses predate that merge and are superseded; BA78 is a later manual recovery, not a 2,676 s runner-queue miss. Earlier required-job completion remains a separate CI9 clock. [Source-bound cohort and exclusions](#ci2--ci3-miss-classification-and-current-acceptance). | S |
 | CI4 | Delete `test-quarantine.yml` (G923); fix DEPLOY.md's gpu-gate text | **done** (see lane) — Workflow gone; DEPLOY.md matches | Codex sp-ci-deploy · done 87baf789f5 | S |
 | CI5 | Lazy `test/setup.ts`: world installs move to opt-in fixtures | **done, measured bar (G872):** setup < 10%; ordinary green containing run. Original shards −40% is not measurable; shard balance belongs to CI7. | **done (2026-10-31, sp-x9).** `72aad6c49d`: same local 12-file cohort 24.85 → 10.42 s (−58.1%), setup 52% → 1%; not a CI shard comparison. Retained Linux `60c0084758` / run `41154960690`: 24 timing artifacts, 2340 files exactly once, setup 46.613 / 7609.665 module-phase s = **0.61255%**. Ordinary containing green `6a84ecffe6` / run `41201418097` passes all 36 required jobs, native3 and SIX, verified live `6a84ecf-mvwe2b6c`; ancestry to `72aad` checked. No pre-`72aad` ordinary shard baseline is retained, and CI7 has since rebalanced allocation: the original −40% half is **not measurable**, not a claimed gain. CI7 owns that axis (60c0 max 199 s / mean 167.667 s = 1.186879x). G872 closes CI5 on the measured setup/ordinary-run bar. | M |
 | CI6 | One prepare job: merge `generated-inputs` + `products` + vite / vercel build; gen once; every job reads one artifact | Prepare ≤ 6 min; no job rebuilds | **done (2026-10-30, sp-x1 + sp-x2 + sp-x9)**: ordinary run **41123682086**, source `5f41cc9623`, prepare job `124296598406` succeeds in **349 s**, with **24 distinct products reused / 0 rebuilt** through the unchanged source/content and admission guards. Gen 68 s, parallel checks/app 76 s (app 67.80), exact web/release packaging 44.813 s (boot encoder 22.613), uploads 54 s, cache post 11 s. This is the first retained applicable warm reading under 360 s; prior f7 / 41118506049 was 444 s with all 24 rebuilt. The qualifying source contains independent packaging overlap `f8db260657`, but predates streamed prebuilt tar `430cb9f706` and verified phone/world archive sharing `32b0aa1ab9`; no isolated causal saving or whole-CI/deploy success is inferred. Those later cuts retain every archive/source/run/hash/extent/transport guard and the separate phone artifact when shard sets differ. Full product generation or proof of identical inputs remains mandatory (G918). Local parity and phase evidence for the earlier product/app/cache cuts stays in their defining commits (`65609ab320`, `589b702280`, `c93a7ac9b1`, `eb312d69da`, `ba60585eb3`, `b39b50ed63`); neutral verify-in-place and compiler-URI prototypes were withdrawn. | M |
@@ -499,7 +499,7 @@ over**. BA78 spends **228 s** restoring the exact artifact; its native and
 Vercel rebuild steps are skipped. These observations do not establish why
 that artifact transfer was slow.
 
-**CI3 stays open.** The published exact-SHA `boot-smoke` success timestamp
+**Original mixed-cohort CI3 reading (superseded for acceptance by the G872 ruling below).** The published exact-SHA `boot-smoke` success timestamp
 is the recorded verdict; the endpoint is the first deploy-log read saying
 `Production <build>; target <SHA>; match true`. The later agent receipt,
 optional phone/draw results and aggregate workflow completion are not the
@@ -519,7 +519,7 @@ status**, then **146.641 s after**, **392.641 s total**. Neither clock is
 silently substituted for the other. A complete simultaneous inventory of
 all other green main candidates at each verdict is also absent, so this
 release census alone cannot prove the global **newest**-green condition.
-CI3 needs both bounded verdict-to-live latency and that candidate evidence.
+This was the unresolved evidence at `557d180b03`; G872 now accepts the current merged automatic cohort below. The earlier clock remains recorded for CI9 rather than silently replacing the CI3 status clock.
 
 All seconds below come from retained completed job metadata and actual
 production-match log lines. The run link identifies the release controller;
@@ -1308,3 +1308,119 @@ prototype, full app rebuild or production/cache change was made. This
 does not claim that grid baking is free or that future structural cuts
 are impossible. The current costs remain in CI9's bill; the overall
 15-minute push-to-live row stays open.
+
+## CI2 / CI3 miss classification and current acceptance
+
+**G872 ruling (2026-10-31): CI3 is done; CI2 remains open.** This is an
+offline classification of the same **32** fully verified releases used
+by `557d180b03`, not an expanded acceptance sample or a new run. No API,
+artifact download, browser, Simulator visit or dispatch was performed.
+All numbers bind the retained full source SHA/run, actual ship job and
+first matching production version; optional phone failures are separate.
+
+### CI3: current merged automatic pipeline meets the bar
+
+Ancestry of the defining `93bd4ce2ba` merge separates the original sample:
+
+| Source/controller cohort | Releases | Status → matching live ≤300 s |
+|---|---:|---:|
+| Pre-merge automatic | 10 | 2 |
+| Merged automatic | 21 | **21** |
+| BA78 manual recovery | 1 | 0; excluded from current automatic acceptance |
+
+The **21/21 merged automatic** releases take **107.685–196.017 s** from
+exact-SHA success status to the first matching live version. G872 accepts
+CI3 on that current pipeline. The mixed **23/32** statistic is retained
+as history, with all eight automatic misses explicitly superseded below.
+
+| Superseded automatic miss | Status → ship start (s) | Ship start → matching live (s) | Status → live (s) | Classification |
+|---|---:|---:|---:|---|
+| `f7ee6c3c17` | 533.000 | 127.191 | 660.191 | GitHub pre-ship admission |
+| `4b49fb00fd` | 557.000 | 163.103 | 720.103 | GitHub pre-ship admission |
+| `4fe6619330` | 622.000 | 130.505 | 752.505 | GitHub pre-ship admission |
+| `cc9336974a` | 655.000 | 132.337 | 787.337 | GitHub pre-ship admission |
+| `f95804ace2` | 702.000 | 185.524 | 887.524 | GitHub pre-ship admission |
+| `9bfd8ce0aa` | 658.000 | 186.930 | 844.930 | GitHub pre-ship admission |
+| `9164439da4` | 119.000 | 191.390 | 310.390 | GitHub pre-ship admission |
+| `307686a2e4` | 492.000 | 141.082 | 633.082 | GitHub pre-ship admission |
+
+These eight spend **4,338.000 /5,596.062 s (77.5%)** before ship execution,
+not downloading artifacts or running Vercel/verifier code. Retained queued
+job snapshots for 4b49, 4fe6, cc93, f958 and 9bfd have **runner_id 0** and
+no executing steps. They do not prove an account quota or separate runner
+scarcity from the protected `production-release` concurrency group.
+Overlapping prior ships cover only part of some waits (for example 134 s
+of f958 and 146 s of 9bfd); do not assign the full delay to a prior ship.
+No cancellation, priority assumption or concurrency relaxation follows.
+
+BA78 is a distinct **manual recovery**, not a 2,676 s GitHub queue:
+its source publishes green at **08:14:38Z**; the original ship job
+`124485704925` fails at the production-floor comparison with HTTP404.
+The later recovery request is **08:59:09.805728Z**, run creation
+**08:59:11Z**, ship start **08:59:14Z** and first match
+**09:04:58.4386667Z**. Thus **2,671.806 s precedes dispatch**, while
+dispatch → ship start is only **4.194 s** (created → start **3 s**).
+The recovered source/controller binds `41181584310` / `41186784311`.
+Commit-typed floor resolution `b21f4b3ccb` and paginated-reader correction
+`a8cd4879b3` are already landed; no new recovery controller is dispatched.
+
+The original **last required job → live** result remains **12/32** within
+300 s. Publishing the verdict inside shipping is not evidence that the
+preceding admission wait disappeared; that earlier clock belongs in CI9.
+The historical absence of a simultaneous global newest-green inventory
+is also retained, rather than fabricating one. Neither is a reopened CI3
+gate after Jake’s explicit current-pipeline acceptance ruling.
+
+### CI2: all six misses are dominated by artifact intake
+
+CI2 measures the **complete ship job**, not just `vercel deploy` or the
+first match. Its 180 s bar stays open at **26/32**. Raw log boundaries
+separate artifact intake from the pinned CLI installation that happens
+after restore, avoiding the misleading combined workflow-step duration.
+
+| Miss | Full job / over180 (s) | Download + strict restore (s) | CLI install/setup (s) | Vercel deploy path (s) | Verifier → match (s) |
+|---|---:|---:|---:|---:|---:|
+| `f95804ace2` | 188 / +8 | 97.128 | 13.856 | 37.822 | 0.353 |
+| `9bfd8ce0aa` | 190 / +10 | 100.557 | 14.046 | 38.180 | 0.443 |
+| `ab792cd85f` | 183 / +3 | 69.532 | 15.508 | 39.040 | 20.562 |
+| `9164439da4` | 194 / +14 | 104.156 | 11.878 | 45.194 | 0.343 |
+| `2da77f5cb9` | 203 / +23 | 83.786 | 15.128 | 40.587 | 20.864 |
+| `ba78100f9a` | 348 / +168 | 214.302 | 13.392 | 40.597 | 0.287 |
+
+Artifact download plus strict restore is the largest block in **every**
+miss: **669.461 /1,306.000 s (51.3%)** across all six jobs. The current
+roughly **1.54 GB** prebuilt payload explains the transport scale, not a
+per-historical-row byte count. Those logs do **not** expose separate
+network, ZIP extraction, zstd decode, hash or filesystem clocks. Vercel
+deployment includes remote prebuilt file materialization, not another
+game build. It cannot be relabeled as local CLI CPU.
+
+Only ab79 and 2da7 have **two stale-version reads and 20 s of verifier
+sleeps** before the third read matches; the other four match on their
+first read. The exact visibility time between reads is unknown. Polling
+faster has no demonstrated saving here; retain the exact-match barrier.
+
+The old checkouts cost **24–30 s** (plus the manual pin checkout for
+BA78). The existing `f15555814f` push-only sparse checkout already targets
+materialization without weakening manual/recovery or source/artifact
+proof. None of these historical misses contains that cut, so no actual
+after-seconds or new CI2 acceptance is claimed. The representative
+byte-preserving artifact-dedup experiment saved only **0.287053 s** of
+local restore against a **5 s** bar; it was rejected and is not revived.
+CLI installation is **11.878–15.508 s** and is not the dominant class.
+
+**Decision:** keep CI2 open and record the dominant artifact-intake class
+and its unresolved network/decode split. Retained data supplies no
+evidence-supported additional local cut beyond the already-landed
+checkout. Do not invent transfer parallelism, drop bytes, change limits,
+waive validation or add retries. Normal containing releases own the
+next f155 measurement; no new watch or dispatch is created.
+
+Checks: the original 32/26/23 totals reproduce; all 11 distinct miss
+releases bind their actual successful ship job and full SHA/run; restored
+archive inventories and first-match targets agree; source ancestry
+reconciles 10 +21 +1; exact raw boundaries produce every table cell.
+The original raw line references and classifications are in
+`tmp/sp-x2-ci23-misses/audit.json`. The first ordinary app-reaching
+phone artifact containing `fb3ae019a4` remains higher priority than more
+CI2/CI3 investigation; sp-ci-deploy retains sole artifact/query ownership.
