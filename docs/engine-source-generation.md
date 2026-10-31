@@ -30,6 +30,14 @@ author module bundles. Programs may decode freshly and include the measured
 pixel/dimension identity in a cached packing step, preserving invalidation
 when decoded pixels change without adding a source-tree handoff.
 
+The optional `encodeZstdBytes(bytes, level=19)` capability returns the original
+native build codec's owned bytes. Its host memo includes every input byte,
+level, encoder implementation, Node/Zstd version and platform. Missing or
+damaged optional storage recomputes; author filesystem access is never lent.
+`bakeRawColourPixels(image, options, encode?)` may use this encoder while
+retaining its complete raster checks, original KTX2 assembly and KTX2 admission.
+Older contexts and omitted encoders use the original uncached path.
+
 `bakeForestPlacements(source, variants)` from `@wildshard/sdk/bake/forest`
 uses the engine's defining forest algorithm with explicit seed, count, policy
 and native terrain queries. It returns owned numeric tree records (RGB tuples,
