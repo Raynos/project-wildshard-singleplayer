@@ -8,7 +8,8 @@ interface Vertex { u: number; v: number; row: number; values: readonly number[] 
 function readVertex(field: SeamFloorField, index: number, column: number): Vertex {
   const row = Math.floor(index / field.columns), at = index * 3;
   return { row, u: index % field.columns - column, v: Math.fround(field.along[row] ?? 0),
-    values: [Math.fround(field.positions[at + 1] ?? 0), ...Array.from({ length: 3 }, (_unused, channel) => Math.fround(field.colours[at + channel] ?? 0))] };
+    values: [Math.fround(field.positions[at + 1] ?? 0), Math.fround(field.colours[at] ?? 0),
+      Math.fround(field.colours[at + 1] ?? 0), Math.fround(field.colours[at + 2] ?? 0)] };
 }
 
 /** Reuse native vertex reads only during one immutable field certification; no cache survives a generation. */
@@ -44,12 +45,20 @@ function triangleError(field: SeamFloorField, indices: readonly [number, number,
   if (constant) return { height: 0, colour: 0 }; // A plane with an affine colour ramp.
   let height = 0;
   const minimum = [Infinity, Infinity, Infinity], difference = [0, 0, 0];
-  const mix = (p: Vertex, q: Vertex, t: number): readonly number[] => p.values.map((value, channel) => value + ((q.values[channel] ?? 0) - value) * t);
+  // Overlay samples are consumed synchronously; scratch never leaves this triangle.
+  const interpolated = [0, 0, 0, 0], actual = [0, 0, 0, 0];
+  const mix = (p: Vertex, q: Vertex, t: number): readonly number[] => {
+    for (let channel = 0; channel < 4; channel++) {
+      const value = p.values[channel] ?? 0;
+      interpolated[channel] = value + ((q.values[channel] ?? 0) - value) * t;
+    }
+    return interpolated;
+  };
   const record = (u: number, v: number, reference: readonly number[]): void => {
     const wa = ((b.v - c.v) * (u - c.u) + (c.u - b.u) * (v - c.v)) / denominator;
     const wb = ((c.v - a.v) * (u - c.u) + (a.u - c.u) * (v - c.v)) / denominator, wc = 1 - wa - wb;
     if (Math.min(wa, wb, wc) < -1e-9) return;
-    const actual = a.values.map((value, channel) => value * wa + (b.values[channel] ?? 0) * wb + (c.values[channel] ?? 0) * wc);
+    for (let channel = 0; channel < 4; channel++) actual[channel] = (a.values[channel] ?? 0) * wa + (b.values[channel] ?? 0) * wb + (c.values[channel] ?? 0) * wc;
     height = Math.max(height, Math.abs((actual[0] ?? 0) - (reference[0] ?? 0)));
     for (let axis = 0; axis < 3; axis++) {
       const matrix = xyz[axis]; if (matrix === undefined) throw new Error('Missing colour transform');
