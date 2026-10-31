@@ -230,7 +230,7 @@ const CARD_BLOBS = [...cardFiles].map(([text, file]) => {
   return nameBlob(file, 'json', new TextEncoder().encode(text), { dependencies });
 });
 const portalLook = portalLookRows();
-const NINE_SCENE_BLOBS: NamedBlob[] = [...castBlobs(), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
+const NINE_SCENE_BLOBS: NamedBlob[] = [...castBlobs(), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue), { jsonSchema: registeredJsonSchema('models/world-scenes.json') }), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
   nameBlob('world/scenes/cards.json', 'json', json(empty)), ...SHAPE_BLOBS, ...cardBuffers.values(), ...CARD_BLOBS];
 const KIT_GRAPHS = { ...architectureGraphs(), ...kitKindGraphs(), [CROWD_LOOK]: crowdGraph() };
 // the painted surfaces' texture array (data/paint.json), the canopy's leaf atlas and the scroll screen, lent to their looks

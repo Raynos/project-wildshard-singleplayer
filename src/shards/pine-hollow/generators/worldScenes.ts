@@ -58,7 +58,7 @@ export const worldScenes: (sources: PineSources) => Promise<WorldScenes> = perSo
   const SCENE_BLOBS: NamedBlobType[] = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS)), nameBlob('world/cave-interior.json', 'json', encode(CAVE_INTERIOR)), nameBlob('scenes/streams.json', 'json', encode(recipe)), nameBlob('scenes/pool.json', 'json', encode(poolRecipe)),
     nameBlob(SPRAY, 'bin', new Uint8Array(Float32Array.from([...matrices, ...spray.seed, ...spray.size]).buffer)),
     ...CABIN_JSON_BLOBS, ...QUEST_RIDE_BLOBS,
-    nameBlob('models/world-scenes.json', 'json', encode(SCENE_MODELS)),
+    nameBlob('models/world-scenes.json', 'json', encode(SCENE_MODELS), { jsonSchema: registeredJsonSchema('models/world-scenes.json') }),
     ...SCENE_PLACEMENTS.map(row => nameBlob(`scenes/placements/${row.id}.json`, 'json', encode(row), { jsonSchema: registeredJsonSchema(`scenes/placements/${row.id}.json`) }))];
   // GR8 G27: the stream water and quad and the pool's still and trickle, built here (no scheduler job, no stored files):
   // raw for the map assembly, meshopt-named for the output as their `meshopt: true` sources were.
