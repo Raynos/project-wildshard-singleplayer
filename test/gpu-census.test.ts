@@ -1,6 +1,9 @@
 import {afterEach, expect, test, vi} from 'vitest';
 import {installGpuProbe, type GpuCensusPort} from '../scripts/perf/gpu-census-page.mjs';
 import {gpuPairs,gpuPhoneModel} from '../scripts/perf/gpu-census-report.mjs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Validate real CLI refusals before any browser or output is opened.
+import process from 'node:process';
+import {runGpuCensus} from '../scripts/perf/gpu-census.mjs';
 
 const windowDescriptor=Object.getOwnPropertyDescriptor(globalThis,'window');
 function fixture() {
@@ -33,6 +36,16 @@ function fixture() {
   return {port,environment,renderer,pass,draw,gl,rect,originalRect,material,originalBlit,object,effect};
 }
 afterEach(()=>{if(windowDescriptor===undefined)Reflect.deleteProperty(globalThis,'window');else Object.defineProperty(globalThis,'window',windowDescriptor);});
+
+test('the real CLI refuses an unobserved requested pose and undeclared coverage capability before opening a browser',async()=>{
+ const original=process.argv;
+ try{
+  process.argv=['node','gpu-census','--poses=cam-1,missing'];
+  await expect(runGpuCensus()).rejects.toThrow('Unknown requested census pose');
+  process.argv=['node','gpu-census','--coverage=maybe'];
+  await expect(runGpuCensus()).rejects.toThrow('Invalid coverage capability');
+ }finally{process.argv=original;}
+});
 
 test('paired subtraction retains negative savings, no-op noise and the model label',()=>{
  const pairs=[{baseline:3,off:4,baselineCpu:1,offCpu:1},{baseline:10,off:9,baselineCpu:2,offCpu:2},{baseline:5,off:7,baselineCpu:1,offCpu:2}];

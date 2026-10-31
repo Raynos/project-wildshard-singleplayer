@@ -8,6 +8,7 @@ import {loadingCardIndex} from '../loading-benchmark/catalogue.mjs';
 import {installGpuProbe} from './gpu-census-page.mjs';
 import {overdraw} from './gpu-census-overdraw.mjs';
 import {gpuPairs,gpuPhoneModel} from './gpu-census-report.mjs';
+import {graphCoverage} from './gpu-census-coverage.mjs';
 /** Modern GPU census entry: native loading cards, immutable preview, explicit modes. */
 export async function runGpuCensus(){
 const arg=(key,fallback)=>process.argv.find(s=>s.startsWith(`--${key}=`))?.slice(key.length+3)??fallback;
@@ -20,6 +21,8 @@ const nine=[...catalog['nine-dragon-stack'].filter(x=>[1,5,14].includes(x.n)).ma
 const pine=[{id:'P1',x:0,z:-235,yaw:Math.PI,pitch:0},{id:'P2',x:0,z:-200,yaw:Math.PI,pitch:0},{id:'P3',x:0,z:-28,yaw:Math.PI,pitch:0},{id:'P4',x:0,z:-28,yaw:Math.PI/2,pitch:-4*D}];
 const selected=arg('poses','').split(','),poses=(slug==='nine-dragon-stack'?nine:pine).filter(x=>!selected[0]||selected.includes(x.id));
 if(poses.length === 0||!modes.every(x=>['legacy','shardfile'].includes(x)))throw new Error('Invalid pose/mode selection');
+if(selected[0]&&selected.some(id=>!poses.some(p=>p.id===id)))throw new Error('Unknown requested census pose');
+if(!['0','1'].includes(arg('coverage','0')))throw new Error('Invalid coverage capability');
 if(!url||!['nine-dragon-stack','pine-hollow'].includes(slug)||!Number.isSafeInteger(rounds)||rounds<1||rounds>20||!Number.isSafeInteger(K)||K<1||K>64)throw new Error('Requires URL, supported shard and bounded rounds/frames');
 mkdirSync(out,{recursive:true});const version=await(await fetch(new URL('version.json',url))).json();
 const readings=[],saveAll=()=>writeFileSync(`${out}/reading.json`,JSON.stringify({rows:readings,requested:{slug,modes,poses:poses.map(p=>p.id)},method:'paired frozen-frame throughput, includes CPU submission; no official timing credit',partitionStatus:'NOT_MEASURABLE (G872): overlapping subtraction, occlusion and tile flushes'},null,2));
@@ -51,6 +54,15 @@ try{for(const mode of modes)for(const pose of poses){
   for(const variant of variants){const pairs=[];for(let i=0;i<rounds;i++){const baseline=await page.evaluate(k=>window.__gpuCensus.batch('throughput',k),K),off=await page.evaluate(([k,v])=>window.__gpuCensus.batch('throughput',k,v),[K,variant]);pairs.push({baseline:baseline.whole,off:off.whole,baselineCpu:baseline.cpu,offCpu:off.cpu});}const submittedDraws=variant.startsWith('group:')?inventory.materials.filter(m=>m.groups.includes(variant)).reduce((n,m)=>n+m.draws,0):null;row.subtract.push({variant,submittedDraws,...gpuPairs(pairs)});save();}
   row.baselineEnd=await page.evaluate(k=>window.__gpuCensus.batch('throughput',k),K);
   if(arg('overdraw','0')==='1')row.overdraw=await page.evaluate(overdraw,false);
+  if(arg('coverage','0')==='1'){
+   const before=await page.evaluateHandle(()=>{const g=window.__wildshard.requireWorld().game,r=g.renderer,gl=r.getContext();g.composer.render(0);const bytes=new Uint8Array(gl.drawingBufferWidth*gl.drawingBufferHeight*4);gl.readPixels(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight,gl.RGBA,gl.UNSIGNED_BYTE,bytes);return bytes;});
+   try{
+    row.graphCoverage=await page.evaluate(graphCoverage);
+    for(const fact of row.graphCoverage.rows)fact.fragmentShaderHashes=[...new Set(inventory.materials.filter(m=>m.name===fact.alias).map(m=>m.fragmentShaderHash).filter(Boolean))];
+    row.coverageRestoration=await page.evaluate(beforePixels=>{const g=window.__wildshard.requireWorld().game,r=g.renderer,gl=r.getContext();g.composer.render(0);const bytes=new Uint8Array(gl.drawingBufferWidth*gl.drawingBufferHeight*4);gl.readPixels(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight,gl.RGBA,gl.UNSIGNED_BYTE,bytes);const first=[];let pixels=0,max=0;for(let i=0;i<bytes.length;i+=4){let bad=false;for(let c=0;c<4;c++){const d=Math.abs(bytes[i+c]-beforePixels[i+c]);if(d>0)bad=true;max=Math.max(max,d);}if(bad){pixels++;if(first.length<20)first.push([i/4%gl.drawingBufferWidth,Math.floor(i/4/gl.drawingBufferWidth)]);}}return{pixels,max,first};},before);
+    if(row.coverageRestoration.pixels>0)throw new Error('Coverage material restoration changed native pixels');
+   }finally{await before.dispose();}
+  }
   row.top5=[...row.subtract].sort((a,b)=>b.saved-a.saved).slice(0,5);row.complete=row.errors.length===0;row.calibration=slug==='nine-dragon-stack'&&mode==='shardfile'&&pose.id==='approx-a'?gpuPhoneModel(row.whole,79):null;row.partitionStatus='NOT_MEASURABLE (G872): overlapping subtraction, occlusion and tile flushes; no additive sum credit';save();console.log(JSON.stringify({pose:pose.id,mode,throughputMs:row.whole,cpuMs:row.cpu,top5:row.top5.map(x=>[x.variant,x.saved])}));
   await page.evaluate(()=>window.__gpuCensus.restore());
  }catch(e){row.error=e.stack;row.complete=false;save();console.error(pose.id,mode,e.message);throw e;}finally{await context.close();}
