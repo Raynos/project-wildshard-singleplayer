@@ -1196,7 +1196,7 @@ jobs:
       matrix:
         # Longest measured macOS work is created first. This is a scheduling
         # hint, not a guaranteed runner priority or a change to the SIX guards.
-        part: [explorer, boot-public, boot-developer, hover-webkit, hover-chromium, boot-grid]
+        part: [explorer, boot-public, boot-developer, hover-webkit, boot-grid, hover-chromium]
     runs-on: macos-15
     timeout-minutes: 20
     steps:
