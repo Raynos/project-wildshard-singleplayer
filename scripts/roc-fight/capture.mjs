@@ -49,7 +49,7 @@ function stage() {
   fr.stage('quest-crown');
   probe.combat.equip('far-fan');
   w.player.spawn(CROWN.x, CROWN.z + 14, 0, CROWN.y + 0.5); w.player.pitch = 0;
-  const log = [], state = { frame: 0, on: true, error: '' }, health = () => Number(probe.state().player.health);
+  const log = [], state = { frame: 0, on: true, error: '' }, health = () => probe.state().player.health;
   const read = () => {
     const roc = fr.roc, boss = fr.boss, p = w.player;
     return [state.frame, roc ? Math.round(roc.hp * 100) / 100 : -1, boss ? String(boss.state) : '', boss ? Number(boss.phase) : -1, boss ? Number(boss.attempts) : -1,

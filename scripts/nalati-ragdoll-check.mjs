@@ -51,7 +51,7 @@ try {
         return a;
       });
       window.__victims = [...(window.__victims ?? []), ...out];
-      return { killed: out.map((a) => `${a.kind}`) };
+      return { killed: out.map((a) => a.kind) };
     }, n);
     const read = () => page.evaluate(() => (window.__victims ?? []).map((a) => ({ kind: a.kind, ragdoll: a.ragdoll === null ? 'keyframed' : a.ragdoll.state, bodies: a.ragdoll?.bodies ?? 0 })));
     const r = { tier, before: await probe() };

@@ -175,7 +175,7 @@ export function report(top) {
   const inScene = rows.filter((r) => r.where !== '(not in scene)').reduce((s, r) => s + r.mb, 0);
   const mem = performance.memory ? performance.memory.usedJSHeapSize : 0;
   const info = g ? g.renderer.info.memory : {};
-  const ext = g ? g.renderer.getContext().getSupportedExtensions().filter((e) => /compressed/.test(e)) : [];
+  const ext = g ? g.renderer.getContext().getSupportedExtensions().filter((e) => e.includes('compressed')) : [];
   return {
     textureMB: mb(texBytes), compressedMB: mb(compressedBytes), textures: n, compressedTextures: nComp,
     inSceneMB: Number(inScene.toFixed(1)), renderTargetMB: mb(rtBytes), renderbufferMB: mb(rbBytes),

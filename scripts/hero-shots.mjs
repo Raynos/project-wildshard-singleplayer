@@ -142,7 +142,7 @@ try {
       await sleep(8000);
       for (const v of views) {
         const ground = (p) => page.evaluate(async ([x, dy, z]) => {
-          window.__wildshard.pose({ x, z, yaw: 0, pitch: 0 });
+          await window.__wildshard.pose({ x, z, yaw: 0, pitch: 0 });
           await new Promise((resolve) => { setTimeout(resolve, 1500); });
           return window.__wildshard.world.player.position.y + dy; // the player's feet
         }, p);

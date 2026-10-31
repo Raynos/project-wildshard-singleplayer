@@ -91,12 +91,12 @@ export async function settleTrace(frames) {
     const f = gl[n]; if (typeof f !== 'function') continue;
     gl[n] = function traced(...a) { cur[n] = (cur[n] ?? 0) + 1; if (n === 'bufferData' && a[1] && typeof a[1] === 'object' && 'byteLength' in a[1]) bytes += a[1].byteLength; return f.apply(this, a); };
   }
-  const rows = [], r = g.renderer, ownRender = Object.hasOwn(r, 'renderBufferDirect') ? r.renderBufferDirect : null, ownMain = Object.hasOwn(r, 'render') ? r.render : null;
+  const rows = [], r = g.renderer, ownRender = Object.getOwnPropertyDescriptor(r, 'renderBufferDirect'), ownMain = Object.getOwnPropertyDescriptor(r, 'render');
   let owners = new Map(), passes = [];
   const owner = (o) => { const path = []; for (let c = o; c && path.length < 3; c = c.parent) if (c.name) path.unshift(c.name); return path.join('/') || o.type; };
-  const draw = r.renderBufferDirect, main = r.render;
-  r.renderBufferDirect = function renderBufferDirect(camera, scene, geometry, material, object, group) { const k = `${owner(object)} [${camera.type === 'OrthographicCamera' ? 'shadow' : 'view'}]`; owners.set(k, (owners.get(k) ?? 0) + 1); return draw.call(this, camera, scene, geometry, material, object, group); };
-  r.render = function render(scene, camera) { const t = r.getRenderTarget(); passes.push(`${scene.name === '' ? scene.type : scene.name}:${camera.name === '' ? camera.type : camera.name} to ${t ? `${t.width}x${t.height}` : 'screen'}`); return main.call(this, scene, camera); };
+  const draw = r.renderBufferDirect.bind(r), main = r.render.bind(r);
+  r.renderBufferDirect = function renderBufferDirect(camera, scene, geometry, material, object, group) { const k = `${owner(object)} [${camera.type === 'OrthographicCamera' ? 'shadow' : 'view'}]`; owners.set(k, (owners.get(k) ?? 0) + 1); draw(camera, scene, geometry, material, object, group); };
+  r.render = function render(scene, camera) { const t = r.getRenderTarget(); passes.push(`${scene.name === '' ? scene.type : scene.name}:${camera.name === '' ? camera.type : camera.name} to ${t ? `${t.width}x${t.height}` : 'screen'}`); main(scene, camera); };
   try {
     await new Promise((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error('settle trace stalled')), 60000);
@@ -113,8 +113,8 @@ export async function settleTrace(frames) {
     });
   } finally {
     for (const n of heavy) delete gl[n];
-    if (ownRender === null) delete r.renderBufferDirect; else r.renderBufferDirect = ownRender;
-    if (ownMain === null) delete r.render; else r.render = ownMain;
+    if (ownRender === undefined) Reflect.deleteProperty(r, 'renderBufferDirect'); else Object.defineProperty(r, 'renderBufferDirect', ownRender);
+    if (ownMain === undefined) Reflect.deleteProperty(r, 'render'); else Object.defineProperty(r, 'render', ownMain);
   }
   return rows;
 }

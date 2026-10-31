@@ -22,7 +22,7 @@ export const shot = {
     const w = window.__wildshard.world, p = w.player, s = window.__wildshard.shard.sunscar, o = window.__takeOpt;
     if (f === 0 && o.prey !== 'strider') { const sp = o.spot ?? [-10, -88]; p.spawn(sp[0], sp[1], 0); p.pitch = 0.25; }
     if (o.prey === 'strider' && f === 0) {
-      const st = w.animals.animals.filter((a) => a.kind === 'duneStrider' && a.alive !== false)
+      const st = w.animals.animals.filter((a) => a.kind === 'duneStrider' && a.alive)
         .sort((a, c) => a.position.distanceTo(p.position) - c.position.distanceTo(p.position))[0];
       if (st) { window.__prey = st; p.spawn(st.position.x + 5.5, st.position.z + 2.5, 0); p.pitch = -0.05; }
     }

@@ -156,7 +156,7 @@ try {
     if (s.god) {
       await page.evaluate((g) => { window.__prog = g; }, { fov: 72, ...s.god }); await hud(false);
     } else {
-      await page.evaluate((p) => { window.__prog = null; const pl = window.__wildshard.world.player; try { pl.health = pl.maxHealth ?? 100; } catch { /* */ } window.__wildshard.pose(p); },
+      await page.evaluate(async (p) => { window.__prog = null; const pl = window.__wildshard.world.player; try { pl.health = pl.maxHealth ?? 100; } catch { /* */ } await window.__wildshard.pose(p); },
         { x: s.x, z: s.z, yaw: s.yaw * D, pitch: (s.pitch ?? -4) * D, ...(s.y === undefined ? {} : { y: s.y }) });
       await hud(true);
     }

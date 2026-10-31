@@ -93,15 +93,15 @@ function installHooks() {
   const animalOf = new Map((w.animals?.animals ?? []).map((a) => [a.mesh, a]));
   const dc = { frames: [], cur: new Map(), last: [], labels }; // last[0]: the draw renderBufferDirect is making
   window.__dc = dc;
-  const origRBD = r.renderBufferDirect;
+  const origRBD = r.renderBufferDirect.bind(r);
   r.renderBufferDirect = function renderBufferDirect(camera, scene, geometry, material, object, group) {
     dc.last[0] = { scene, material, object };
-    return origRBD.call(this, camera, scene, geometry, material, object, group);
+    origRBD(camera, scene, geometry, material, object, group);
   };
-  const origUpdate = info.update;
+  const origUpdate = info.update.bind(info);
   info.update = function update(count, mode, inst) {
     const t0 = info.render.triangles;
-    origUpdate.call(this, count, mode, inst);
+    origUpdate(count, mode, inst);
     const d = dc.last[0];
     let pass = 'post', label;
     if (d === undefined) label = 'post:?';
@@ -124,12 +124,12 @@ function installHooks() {
     e.calls++; e.tris += info.render.triangles - t0;
     dc.cur.set(key, e);
   };
-  const origReset = info.reset;
+  const origReset = info.reset.bind(info);
   info.reset = function reset() {
     if (dc.cur.size > 0) dc.frames.push([...dc.cur.values()]);
     if (dc.frames.length > 60) dc.frames.shift();
     dc.cur = new Map();
-    origReset.call(this);
+    origReset();
   };
 }
 

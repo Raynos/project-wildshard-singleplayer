@@ -120,8 +120,9 @@ try {
       const lists = [g.inputs, g.updaters, g.lates].filter(Boolean);
       const restore = [];
       for (const list of lists) for (const s of list) { const fn = s.fn; restore.push([s, fn]); s.fn = (...a) => { const t0 = performance.now(); try { return fn(...a); } finally { const d = performance.now() - t0; sys.set(s.label, (sys.get(s.label) ?? 0) + d); } }; }
-      const fixedFn = g.runFixed; let fixedMs = 0;
-      if (typeof fixedFn === 'function') g.runFixed = (...a) => { const t0 = performance.now(); try { return fixedFn.apply(g, a); } finally { fixedMs += performance.now() - t0; } };
+      const fixedOwn = Object.getOwnPropertyDescriptor(g, 'runFixed');
+      const fixedFn = typeof g.runFixed === 'function' ? g.runFixed.bind(g) : undefined; let fixedMs = 0;
+      if (typeof fixedFn === 'function') g.runFixed = (...a) => { const t0 = performance.now(); try { fixedFn(...a); } finally { fixedMs += performance.now() - t0; } };
       const frames = [], pending = [];
       const composer = g.composer, orig = composer.render.bind(composer);
       let lastEnd = performance.now(), prev = { ...C }, prevNear = cover?.nearRefillMs ?? 0, prevFarCount = cover?.farCount ?? 0, prevFarCells = cover?.farCells ?? 0, prevFarFrames = cover?.farJobFrames ?? 0;
@@ -179,7 +180,10 @@ try {
       pl.keys.clear();
       composer.render = orig;
       for (const [s, fn] of restore) s.fn = fn;
-      if (typeof fixedFn === 'function') g.runFixed = fixedFn;
+      if (typeof fixedFn === 'function') {
+        if (fixedOwn === undefined) Reflect.deleteProperty(g, 'runFixed');
+        else Object.defineProperty(g, 'runFixed', fixedOwn);
+      }
       const long = W.__e186long.filter(([s]) => s >= t0 - 100);
       return { frames: frames.slice(1), long, wi };
     }, [PATH, SECS, WALK]);
