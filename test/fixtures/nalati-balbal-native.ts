@@ -23,14 +23,16 @@ import {NalatiCreatureView} from './nalati-creature-view-native';
 import {nalatiSlotColliders} from './nalati-slot-colliders';
 import {readNalatiWeaponObservation} from './nalati-weapon-observation';
 import {restoreEncounterBrains} from './restoreEncounterBrains';
+import type {NalatiEncounterIntake} from './nalati-headless';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 
 const finite=v.pipe(v.number(),v.finite()),natural=v.pipe(finite,v.integer(),v.minValue(0));
 const Saved=v.strictObject({version:v.literal(1),law:v.unknown(),sites:v.array(v.boolean()),view:v.unknown(),
   poses:v.pipe(v.array(v.tuple([v.string(),v.string()])),v.maxLength(16)),
   cues:v.pipe(v.array(v.strictObject({id:v.string(),point:v.tuple([finite,finite,finite]),normal:v.tuple([finite,finite,finite])})),v.maxLength(256)),
-  tells:v.pipe(v.array(v.array(finite)),v.maxLength(8)),contacts:natural});
-export interface NativeNalatiBalbals {readonly law:SlotEncounterLaw<HuntBody,SlotTell>;readonly contacts:()=>number}
+  tells:v.pipe(v.array(v.array(finite)),v.maxLength(8)),contacts:natural,arenaAdds:v.exactOptional(v.pipe(v.array(v.string()),v.maxLength(16)))});
+export interface NativeNalatiBalbals {readonly law:SlotEncounterLaw<HuntBody,SlotTell>;readonly contacts:()=>number;readonly adoptAdd:(body:HuntBody)=>void}
+export interface NalatiBalbalPreparation {readonly intake:NalatiEncounterIntake;readonly bindings:(host:SimHost,bindings:NativeEliteBindings)=>void}
 const owners=new WeakMap<SimHost,NativeNalatiBalbals>();
 export function nalatiBalbalsOf(host:SimHost):NativeNalatiBalbals|undefined{return owners.get(host);}
 function actualContext(input:unknown):input is ActorProjectionContext<HuntBody> {
@@ -41,7 +43,7 @@ function actualContext(input:unknown):input is ActorProjectionContext<HuntBody> 
 
 /** Original timed slots and H4 actor decisions, on their admitted native
  * species, real weapons, contact poses and retained statue colliders. */
-export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
+export async function prepareNalatiBalbals(preparation:Parameters<PrepareHeadlessRuntime>[0],extra?:NalatiBalbalPreparation):Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>>{
   const product=preparation.product,plan=parseClientPlan(product.section('client/plan'));
   const timed=plan.features.find(row=>row.kind==='timed.encounters'),view=plan.features.find(row=>row.kind==='view.program'&&row.id==='creature-views');
   if(timed?.kind!=='timed.encounters'||view?.kind!=='view.program')throw new Error('Balbals require their original timed encounter and creature view');
@@ -59,12 +61,14 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
   if(damage===undefined||projected.step===undefined)throw new Error('Balbals require all original think and damage requests');
   const bindings=new WeakMap<SimHost,NativeEliteBindings>(),updates=new WeakMap<SimHost,(dt:number)=>void>(),
     poseUpdates=new WeakMap<SimHost,(dt:number)=>void>();
-  const base=await prepareNalatiTitan(preparation,{intake,beforePatrol:(host,dt)=>{
+  const combined=extra===undefined?intake:{species:[...intake.species,...extra.intake.species],recipes:[...intake.recipes,...extra.intake.recipes]};
+  const base=await prepareNalatiTitan(preparation,{intake:combined,beforePatrol:(host,dt)=>{
     const run=updates.get(host);if(run===undefined)throw new Error('Timed slots did not bind before their original patrol slot');run(dt);
   },bindings:(host,owner)=>{
     bindings.set(host,owner);
     host.onStep('nalati.balbal-poses',dt=>{const run=poseUpdates.get(host);
       if(run===undefined)throw new Error('Balbal contacts did not bind before the body publication slot');run(dt);},undefined,'afterBodies');
+    extra?.bindings(host,owner);
   }});
   return {...base,install:(host,context)=>{
     base.install(host,context);
@@ -74,7 +78,7 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
     const projection=new ActorProjectionV2(entry.metadata.kind,projected),brain=ReturnProgram.native(host,projected.program);
     const ownedBrains=new Map<AnimalSim,NonNullable<ReturnType<NativeEliteBindings['brains']['get']>>>();
     const columns=damage.requests.map(row=>new ObservationColumnsV2(row.columns,host.scope));
-    let contacts=0;
+    const arenaAdds=new Set<string>();let contacts=0;
     const bind=(body:HuntBody):void=>{
       const recipe=poseRows.find(row=>row.kind===body.kind&&row.variant===body.variant),animate=animations.get(body.kind);
       if(recipe===undefined||animate===undefined||presented.has(body.entityId))throw new Error('Balbal body lost its actual contact recipe');
@@ -116,7 +120,7 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
     };
     updates.set(host,update);
     host.onStep('nalati.balbals',()=>undefined,{snapshot:()=>JSON.stringify({version:1,law:law.snapshot(body=>body.entityId),sites:standing.snapshot(),view:viewOwner.snapshot(),
-      poses:[...presented].map(([id,pose])=>[id,pose.snapshot()]),cues,tells,contacts}),restore:value=>{
+      poses:[...presented].map(([id,pose])=>[id,pose.snapshot()]),cues,tells,contacts,...(arenaAdds.size===0?{}:{arenaAdds:[...arenaAdds]})}),restore:value=>{
       if(typeof value!=='string')throw new Error('Balbal continuation requires its original string envelope');
       const parsed:unknown=JSON.parse(value),saved=v.parse(Saved,parsed);
       if(saved.tells.length!==tells.length||saved.poses.length!==population.bodies.filter(body=>body.kind===entry.metadata.kind).length
@@ -124,6 +128,8 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
       for(const [id,wire]of saved.poses){const pose=presented.get(id);if(pose===undefined)throw new Error('Missing restored balbal pose');pose.restore(wire);}
       const body=(id:string):HuntBody|null=>population.bodies.find(actor=>actor.entityId===id&&actor.kind===entry.metadata.kind)??null;
       law.restore(saved.law,body);standing.restore(saved.sites);viewOwner.restore(saved.view);
+      const additions=saved.arenaAdds??[];if(new Set(additions).size!==additions.length||additions.some(id=>body(id)===null||law.awake.some(row=>row.a.entityId===id)))throw new Error('Foreign arena add identity');
+      arenaAdds.clear();for(const id of additions)arenaAdds.add(id);
       cues.splice(0,cues.length,...saved.cues);saved.tells.forEach((values,index)=>{tells[index]?.splice(0,tells[index]?.length??0,...values);});contacts=saved.contacts;
     },physicsRestored:standing.physicsRestored});
     poseUpdates.set(host,dt=>{
@@ -131,6 +137,11 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
       for(const [id,pose]of presented){const body=host.entities.get(id),step=host.bodyDt(id);if(body===undefined)throw new Error('Balbal contact owner retired unexpectedly');
         if(step<=0)continue;pose.advance(step,host.clock.now,body.position.distanceToSquared(host.player.position)<140*140);pose.publish();}
     });
-    owners.set(host,{law,contacts:()=>contacts});host.scope.onDispose(()=>{owners.delete(host);bindings.delete(host);updates.delete(host);poseUpdates.delete(host);presented.clear();ownedBrains.clear();});
+    owners.set(host,{law,contacts:()=>contacts,adoptAdd:body=>{
+      if(host.scope.disposed||host.scope.disposing||body.kind!==entry.metadata.kind||host.entities.get(body.entityId)!==body
+        ||!population.bodies.includes(body)||law.awake.some(row=>row.a===body)||arenaAdds.size>=16||arenaAdds.has(body.entityId))throw new Error('Foreign or retired native arena add');
+      bind(body);arenaAdds.add(body.entityId);
+    }});host.scope.onDispose(()=>{owners.delete(host);bindings.delete(host);updates.delete(host);poseUpdates.delete(host);presented.clear();ownedBrains.clear();arenaAdds.clear();});
   }};
-};
+}
+export const prepareHeadlessRuntime:PrepareHeadlessRuntime=preparation=>prepareNalatiBalbals(preparation);

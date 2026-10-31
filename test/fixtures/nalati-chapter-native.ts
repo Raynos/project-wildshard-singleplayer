@@ -10,7 +10,11 @@ import {questObservation} from '../../src/game/quest/questObservation';
 import {commitQuestEffects} from '../../src/game/quest/effects';
 import {nativeTamingOf} from '../../src/game/riding/nativeTaming';
 import {nalatiTitanOf} from './nalati-titan-native';
-import {prepareHeadlessRuntime as prepareBalbals} from './nalati-balbal-native';
+import {prepareNalatiBalbals} from './nalati-balbal-native';
+import type {NativeEliteBindings} from '../../src/engine/ai/eliteRoster';
+import {readNalatiKingData} from './nalati-king-data';
+import {installNativeKing} from './nalati-king-host';
+import {chapterWire,chapterRead} from './headless/chapterHandoff';
 import {installNalatiReadings} from './nalati-verbs';
 import {installNalatiMountInputs} from './nalati-mount-inputs';
 import {installNalatiKokpar} from './nalati-kokpar-native';
@@ -65,11 +69,13 @@ export function installNalatiChapterPoll(host:SimHost,content:ChapterViewRows,st
     {snapshot:()=>{live();const saved=presentation.snapshot();return {now,slowT,pulseT,...(saved===undefined?{}:{presentation:saved})};},restore:value=>{const saved=v.parse(clock,value);live();if(saved.now!==host.clock.now||saved.slowT>saved.now||saved.pulseT>saved.now)throw new Error('Chapter clock differs from its restored host');now=saved.now;slowT=saved.slowT;pulseT=saved.pulseT;presentation.restore(saved.presentation);}});
 }
 
-/** Chapter one borrows the actual open-arena/records owner. The King loan is
- * explicitly closed: neither its doorway region nor interior can be entered
- * by this consumer. A later King tape must replace it with the entered room. */
-export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
-  const base=await prepareBalbals(preparation),product=preparation.product;
+/** Chapter one keeps its closed King loan. The opt-in continuation borrows
+ * the actual room, population and original boss clocks after earned clues. */
+export async function prepareNalatiChapter(preparation:Parameters<PrepareHeadlessRuntime>[0],enterKing=false):Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>>{
+  const product=preparation.product,kingData=enterKing?await readNalatiKingData(product):undefined;
+  const kingBindings=new WeakMap<SimHost,NativeEliteBindings>();
+  const base=await prepareNalatiBalbals(preparation,kingData===undefined?undefined:{intake:kingData.intake,
+    bindings:(host,bindings)=>{kingBindings.set(host,bindings);}});
   const content=v.parse(ChapterViewSchema,await product.json('quests/content.json'));
   const story=parseChapterStoryPresentation(await product.json('quests/chapters.json'));
   const carried=parseCarriedQuest(await product.json('quests/carried.json'));
@@ -82,6 +88,15 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
     installNalatiReadings(host,context,product.shardfile.quests,content,story);
     installNalatiKokpar(host,context,carried);installNalatiChapterObservation(host,story);
     const titan=nalatiTitanOf(host);if(titan===undefined)throw new Error('Chapter requires its entered Titan and saved records');
+    if(kingData!==undefined){
+      const bindings=kingBindings.get(host);if(bindings===undefined)throw new Error('King lost its original elite bindings');
+      const kingOwner=installNativeKing(host,context,kingData,bindings,titan.records);
+      host.onStep('nalati.king-closed',dt=>{kingOwner.update(dt);},{snapshot:()=>{
+        const value=kingOwner.snapshot();return v.safeParse(v.strictObject({kind:v.literal('closed')}),value).success?{kind:'closed'}:chapterWire(value);
+      },restore:value=>{kingOwner.restore(typeof value==='string'?chapterRead(value):value);},physicsRestored:kingOwner.physicsRestored});
+      installNalatiChapterPoll(host,content,story,{check:()=>{kingOwner.observe();},inside:()=>kingOwner.observe().inside,tied:()=>titan.fight.tied,records:titan.records},context);
+      installPackedChapterTaming(host);return;
+    }
     const closed=Object.freeze({kind:'closed' as const});
     const check=():void=>{
       if(nalatiTitanOf(host)!==titan||host.scope.disposed||host.scope.disposing)throw new Error('Chapter encounter loan retired');
@@ -95,4 +110,5 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
     installNalatiChapterPoll(host,content,story,{check,inside:()=>{check();return closed.kind!=='closed';},tied:()=>titan.fight.tied,records:titan.records},context);
     installPackedChapterTaming(host);
   }};
-};
+}
+export const prepareHeadlessRuntime:PrepareHeadlessRuntime=preparation=>prepareNalatiChapter(preparation);
