@@ -149,18 +149,20 @@ export async function openExplorerSession(browser,base){
   return {sweep:async(/** @type {string} */slug,/** @type {string} */out)=>{
     if(closed)throw new Error('Explorer session is closed');
     if(busy)throw new Error('Explorer session already owns a catalogue');
-    busy=true;
+    busy=true;const started=Date.now();
     try{
       if(used===CONTEXT_CATALOGUES){
-        await retire();if(closed)throw new Error('Explorer session is closed');
-        generation++;
-        /** @type {Awaited<ReturnType<typeof openExplorerContext>>} */ let next;
-        try{next=await openExplorerContext(browser,base,faults,lifetime,generation);}catch(error){closed=true;throw error;}
-        if(closed){await next.close();throw new Error('Explorer session is closed');}
-        active=next;used=0;
+        const replace=async()=>{
+          await retire();if(closed)throw new Error('Explorer session is closed');
+          generation++;
+          const next=await openExplorerContext(browser,base,faults,lifetime,generation);
+          if(closed){await next.close();throw new Error('Explorer session is closed');}
+          active=next;used=0;
+        };
+        try{await withinProgressBudget(replace(),180000-(Date.now()-started));}catch(error){closed=true;throw error;}
       }
       const context=active;if(context===undefined)throw new Error('Explorer context has ended');
-      used++;await context.sweep(slug,out,used);
+      used++;await context.sweep(slug,out,used,started);
     }finally{busy=false;}
   },close:async()=>{if(closed)return;closed=true;await retire();}};
 }
@@ -190,8 +192,8 @@ async function openExplorerContext(browser,base,faults,lifetime,generation){
     page.on('crash',()=>faults.push('Page crashed'));
     page.on('console',message=>{if(message.type()==='error')faults.push(message.text());});
     page.on('response',response=>{if(response.status()>=400)faults.push(`HTTP ${response.status()}: ${response.url()}`);});
-    return {sweep:async(/** @type {string} */slug,/** @type {string} */out,/** @type {number} */catalogue)=>{
-      await sweepPage(page,faults,base,slug,out,lifetime,reset,{generation,catalogue,maxCatalogues:CONTEXT_CATALOGUES});
+    return {sweep:async(/** @type {string} */slug,/** @type {string} */out,/** @type {number} */catalogue,/** @type {number} */started)=>{
+      await sweepPage(page,faults,base,slug,out,lifetime,reset,{generation,catalogue,maxCatalogues:CONTEXT_CATALOGUES},started);
     },close:()=>context.close()};
   }catch(error){await context.close();throw error;}
 }
@@ -205,9 +207,9 @@ export async function sweepExplorer(browser,base,slug,out){
 
 /** @param {import('playwright').Page} page @param {string[]} faults @param {string} base @param {string} slug
  * @param {string} out @param {{previous:number|undefined}} lifetime @param {()=>Promise<void>} reset
- * @param {{generation:number,catalogue:number,maxCatalogues:number}} session */
-async function sweepPage(page,faults,base,slug,out,lifetime,reset,session){
-  const started=Date.now(),hangMs=180000;
+ * @param {{generation:number,catalogue:number,maxCatalogues:number}} session @param {number} started */
+async function sweepPage(page,faults,base,slug,out,lifetime,reset,session,started){
+  const hangMs=180000;
   let progressAt=started;
   /** @type {Map<string,number>} */ const firstReady=new Map();
   /** @type {ReturnType<typeof explorerCards>} */ let cards=[];

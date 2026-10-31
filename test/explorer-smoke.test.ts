@@ -219,7 +219,7 @@ function sessionFixture(stale=false){
   const newCDPSession=vi.fn<BrowserContext['newCDPSession']>().mockResolvedValue({...storage});
   const context=legacyDouble<BrowserContext>({newPage,route,close,newCDPSession,addInitScript:vi.fn<BrowserContext['addInitScript']>().mockResolvedValue(disposable)});
   const newContext=vi.fn<Browser['newContext']>().mockResolvedValue({...context});
-  return {browser:legacyDouble<Browser>({newContext}),newContext,newPage,route,close,listeners,send,goto,freezeDocument:()=>{frozen=true;}};
+  return {browser:legacyDouble<Browser>({newContext}),context:{...context},newContext,newPage,route,close,listeners,send,goto,evaluate,freezeDocument:()=>{frozen=true;}};
 }
 
 test('native context retirement bounds each group while every catalogue still draws',async()=>{
@@ -280,6 +280,53 @@ test('closing during retirement cannot publish a replacement native context',asy
     await session.close();if(finish===undefined)throw new Error('Missing retirement completion');finish();await fifth;
     expect(f.newContext).toHaveBeenCalledOnce();expect(f.send).toHaveBeenCalledTimes(4);
   }finally{finish?.();await session.close();rmSync(out,{recursive:true,force:true});}
+});
+
+test('stalled retirement consumes the original case budget and cannot open a late replacement',async()=>{
+  mkdirSync('tmp/sp-x9-explorer',{recursive:true});const out=mkdtempSync('tmp/sp-x9-explorer/retire-stalled-');
+  const f=sessionFixture(),session=await openExplorerSession(f.browser,'https://test.example/');
+  let finish:(()=>void)|undefined;
+  try{
+    for(const slug of ['first','second','third','fourth'])await session.sweep(slug,out);
+    f.close.mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));vi.useFakeTimers();
+    const fifth=expect(session.sweep('fifth',out)).rejects.toThrow('stalled for 180 seconds without progress');
+    await vi.advanceTimersByTimeAsync(180001);await fifth;
+    if(finish===undefined)throw new Error('Missing retirement completion');finish();
+    await expect(session.sweep('sixth',out)).rejects.toThrow('session is closed');
+    expect(f.newContext).toHaveBeenCalledOnce();expect(f.send).toHaveBeenCalledTimes(4);
+  }finally{finish?.();vi.useRealTimers();await session.close();rmSync(out,{recursive:true,force:true});}
+});
+
+test('a context created after the progress timeout is retired without booting a catalogue',async()=>{
+  mkdirSync('tmp/sp-x9-explorer',{recursive:true});const out=mkdtempSync('tmp/sp-x9-explorer/create-stalled-');
+  const f=sessionFixture(),session=await openExplorerSession(f.browser,'https://test.example/');
+  let finish:((context:BrowserContext)=>void)|undefined,start:(()=>void)|undefined;
+  const entered=new Promise<void>(resolve=>{start=resolve;});
+  let retired:(()=>void)|undefined;const cleanup=new Promise<void>(resolve=>{retired=resolve;});
+  try{
+    for(const slug of ['first','second','third','fourth'])await session.sweep(slug,out);
+    f.newContext.mockImplementationOnce(()=>{start?.();return new Promise(resolve=>{finish=resolve;});});
+    f.close.mockImplementation(()=>{if(f.close.mock.calls.length===2)retired?.();return Promise.resolve();});
+    vi.useFakeTimers();const fifth=expect(session.sweep('fifth',out)).rejects.toThrow('stalled for 180 seconds without progress');
+    await entered;await vi.advanceTimersByTimeAsync(180001);await fifth;
+    if(finish===undefined)throw new Error('Missing context creation completion');finish(f.context);await cleanup;
+    expect(f.send).toHaveBeenCalledTimes(4);
+    await expect(session.sweep('sixth',out)).rejects.toThrow('session is closed');
+  }finally{finish?.(f.context);vi.useRealTimers();await session.close();rmSync(out,{recursive:true,force:true});}
+});
+
+test('retirement time is not added back to the following renderer read budget',async()=>{
+  mkdirSync('tmp/sp-x9-explorer',{recursive:true});const out=mkdtempSync('tmp/sp-x9-explorer/retire-charged-');
+  const f=sessionFixture(),session=await openExplorerSession(f.browser,'https://test.example/');
+  try{
+    for(const slug of ['first','second','third','fourth'])await session.sweep(slug,out);
+    f.close.mockImplementationOnce(()=>new Promise(resolve=>{setTimeout(resolve,120000);}));
+    f.evaluate.mockImplementationOnce(()=>new Promise(resolve=>{setTimeout(()=>{resolve(undefined);},70000);}));
+    vi.useFakeTimers();const fifth=expect(session.sweep('fifth',out)).rejects.toThrow('stalled for 180 seconds without progress');
+    await vi.advanceTimersByTimeAsync(180001);await fifth;
+    const result:unknown=JSON.parse(readFileSync(`${out}/fifth-failure.json`,'utf8'));
+    expect(result).toMatchObject({elapsedMs:180000,hangMs:180000,session:{generation:2,catalogue:1}});
+  }finally{vi.useRealTimers();await session.close();rmSync(out,{recursive:true,force:true});}
 });
 
 test('one context and page retain native caches while every catalogue has new document and pixel checks',async()=>{
