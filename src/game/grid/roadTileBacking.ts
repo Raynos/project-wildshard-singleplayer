@@ -1,13 +1,13 @@
 /** S3 handoff: archive each detached material before its first GPU upload, then
  * retire whole-road native buffers only after the admitted road ring is ready. */
-import { BufferGeometry, type Mesh } from 'three';
+import { BufferAttribute, BufferGeometry, type Mesh } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import type { RingCamera, TileRequirement, TileStreamBudget, TileStreamer } from '@wildshard/engine/world/tileStreamer';
 import type { CullPlan, RoadCuller } from './roadCull';
 import { coarseRoadTileSteps } from './roadTileCoarse';
 import { compactRoadTileSteps, type RoadTileGeometry } from './roadTileGeometry';
-import { persistRoadTile, type RoadTileReference, type RoadTileStore } from './roadTileArchive';
+import { persistRoadTile, ROAD_TILE_ARCHIVE_BYTES, ROAD_TILE_HEADER_BYTES, type RoadTileReference, type RoadTileStore } from './roadTileArchive';
 import { RoadTilePool } from './roadTilePool';
 import { roadCellKey, roadTileStream, type PreparedRoadTile, type RoadTileSource } from './roadTileStream';
 import type { RoadLayout } from './roadLayout';
@@ -16,9 +16,41 @@ interface Source {
   readonly mesh: Mesh; readonly scope: Scope; readonly references: RoadTileReference[]; readonly coarseReferences: RoadTileReference[];
   retire: (() => void) | null; pool: RoadTilePool | null;
 }
+type ArchiveResult = { readonly ok: true; readonly reference: RoadTileReference } | { readonly ok: false; readonly error: unknown };
+interface PendingArchive { readonly owner: Scope; readonly references: RoadTileReference[]; readonly ready: Promise<ArchiveResult> }
+const ARCHIVE_WINDOW = 6;
+
+/** Conservative scratch bound: compacted attributes/indices, number tables,
+ * coarse child/merge copies, encoded bodies and native read/hash/write copies.
+ * Unsupported or large sources retain the original single-operation path. */
+function archiveScratch(mesh: Mesh, indices: number): number {
+  if (!Number.isSafeInteger(indices) || indices < 0) return Infinity;
+  let stride = 0;
+  for (const attribute of Object.values(mesh.geometry.attributes)) {
+    if (!(attribute instanceof BufferAttribute)) return Infinity;
+    const size: unknown = Object.getOwnPropertyDescriptor(attribute, 'itemSize')?.value;
+    const array: unknown = Object.getOwnPropertyDescriptor(attribute, 'array')?.value;
+    if (typeof size !== 'number' || !Number.isSafeInteger(size) || size <= 0) return Infinity;
+    const bytes = array instanceof Float64Array ? 8
+      : array instanceof Float32Array || array instanceof Uint32Array || array instanceof Int32Array ? 4
+        : array instanceof Uint16Array || array instanceof Int16Array ? 2
+          : array instanceof Uint8Array || array instanceof Uint8ClampedArray || array instanceof Int8Array ? 1 : 0;
+    if (bytes === 0) return Infinity;
+    stride += size * bytes;
+  }
+  const header = ROAD_TILE_HEADER_BYTES + 4;
+  const bytes = 4 * (indices * (stride + 8) + header) + 2 * (indices * (stride + 64) + header);
+  return Number.isSafeInteger(bytes) ? bytes : Infinity;
+}
 export class RoadTileBacking {
   private readonly sources = new Map<Mesh, Source>();
-  private pending: Promise<void> | null = null;
+  private readonly pending: PendingArchive[] = [];
+  private pendingBytes = 0;
+  private flushRequested = false;
+  private failureSeen = false;
+  private flushing: Promise<void> | null = null;
+  private settling: Promise<void> | null = null;
+  private capturing = false;
   private stream: TileStreamer<PreparedRoadTile> | null = null;
   private committed = false;
   private primed = false;
@@ -31,42 +63,95 @@ export class RoadTileBacking {
     if (scope.disposed || scope.disposing) throw new Error('Road backing owner retired');
     scope.onDispose(() => {
       for (const pin of this.initialPins) pin.release(); this.initialPins = [];
-      this.initialFine = []; this.initialCoarse = []; this.sources.clear(); this.stream = null; this.pending = null;
+      this.initialFine = []; this.initialCoarse = []; this.sources.clear(); this.stream = null;
+      void this.settlePending();
     });
   }
-  /** Yield after starting exactly one durable write. The async construction
-   * runner must flush before advancing this generator; no full-road byte queue. */
+  /** Independent archives overlap in a six-job, byte-bounded window. Every
+   * source still drains in authored order before its mesh can be published. */
   *capture(mesh: Mesh, plan: CullPlan): Generator<void, void> {
-    if (this.stream !== null || this.sources.has(mesh) || this.scope.disposed || this.scope.disposing) throw new Error('Road backing is not accepting sources');
+    if (this.stream !== null || this.capturing || this.flushing !== null || this.settling !== null || this.pending.length > 0
+      || this.sources.has(mesh) || this.scope.disposed || this.scope.disposing) throw new Error('Road backing is not accepting sources');
     const source: Source = { mesh, scope: this.scope.child(`source:${String(this.sources.size)}`), references: [], coarseReferences: [], retire: null, pool: null };
-    this.sources.set(mesh, source); let completed = false;
+    this.sources.set(mesh, source); this.capturing = true; let completed = false;
     try {
       const parents = new Map<string, { x: number; z: number }>();
       for (const bin of plan.bins) {
         const tile = bin.tile; if (tile === undefined) throw new Error('Road backing requires the tile lattice');
+        const budget = archiveScratch(mesh, bin.count + bin.levels.reduce((sum, run) => sum + run.count, 0));
+        yield* this.room(source, budget);
         const data = yield* compactRoadTileSteps(mesh.geometry, plan, tile.x, tile.z);
-        yield* this.write(source, data, source.references);
+        yield* this.write(source, data, source.references, budget);
         const x = Math.floor(tile.x / 2), z = Math.floor(tile.z / 2); parents.set([x, z].join(','), { x, z });
       }
       for (const { x, z } of parents.values()) {
+        const count = plan.bins.reduce((sum, bin) => bin.tile !== undefined && Math.floor(bin.tile.x / 2) === x
+          && Math.floor(bin.tile.z / 2) === z ? sum + (bin.levels[0] ?? bin).count : sum, 0);
+        const budget = archiveScratch(mesh, count);
+        yield* this.room(source, budget);
         const data = yield* coarseRoadTileSteps(mesh.geometry, plan, x, z);
         if (data.plan.source.length === 0) { data.geometry.dispose(); continue; }
-        yield* this.write(source, data, source.coarseReferences);
+        yield* this.write(source, data, source.coarseReferences, budget);
       }
+      if (this.pending.length > 0) { this.flushRequested = true; yield; }
+      if (source.scope.disposed || source.scope.disposing) throw new Error('Road backing owner retired');
+      if (this.pending.length > 0 || this.flushing !== null) throw new Error('Road construction must await its backing writes');
       completed = true;
-    } finally { if (!completed) { this.sources.delete(mesh); source.scope.dispose(); } }
+    } finally { this.capturing = false; if (!completed) { this.sources.delete(mesh); source.scope.dispose(); } }
   }
-  private *write(source: Source, data: RoadTileGeometry, references: RoadTileReference[]): Generator<void, void> {
-    if (this.pending !== null) { data.geometry.dispose(); throw new Error('Road construction must await its backing write'); }
-    this.pending = (async (): Promise<void> => {
-      try { references.push(await persistRoadTile(source.scope, this.store, data)); }
-      finally { data.geometry.dispose(); }
-    })();
+  private *room(source: Source, budget: number): Generator<void, void> {
+    if (this.pending.length > 0 && (this.failureSeen || this.pendingBytes + budget > ROAD_TILE_ARCHIVE_BYTES)) {
+      this.flushRequested = true; yield;
+    }
+    if (source.scope.disposed || source.scope.disposing) throw new Error('Road backing owner retired');
+    if (this.flushing !== null || this.settling !== null || this.pending.length >= ARCHIVE_WINDOW) throw new Error('Road construction must await its backing writes');
+  }
+  private *write(source: Source, data: RoadTileGeometry, references: RoadTileReference[], budget: number): Generator<void, void> {
+    try {
+      const ready = this.archiveResult(persistRoadTile(source.scope, this.store, data));
+      this.pending.push({ owner: source.scope, references, ready }); this.pendingBytes += budget;
+    } finally { data.geometry.dispose(); }
     yield;
     if (source.scope.disposed || source.scope.disposing) throw new Error('Road backing owner retired');
   }
-  /** Called at every yielded construction step, before any original mesh attaches. */
-  flush(): Promise<void> | null { const pending = this.pending; this.pending = null; return pending; }
+  private async archiveResult(pending: Promise<RoadTileReference>): Promise<ArchiveResult> {
+    try { return { ok: true, reference: await pending }; }
+    catch (error) { this.failureSeen = true; return { ok: false, error }; }
+  }
+  /** Called at every yielded construction step. A full window, byte boundary,
+   * failure or source end drains before the caller advances/publicizes it. */
+  flush(): Promise<void> | null {
+    if (this.flushing !== null) return this.flushing;
+    if (this.pending.length === 0) { this.flushRequested = false; this.failureSeen = false; return null; }
+    if (!this.flushRequested && !this.failureSeen && this.pending.length < ARCHIVE_WINDOW && this.pendingBytes < ROAD_TILE_ARCHIVE_BYTES) return null;
+    const jobs = this.pending.splice(0); this.pendingBytes = 0; this.flushRequested = false;
+    const pending = (async (): Promise<void> => {
+      try {
+        const results = await Promise.all(jobs.map(job => job.ready));
+        for (const [index, job] of jobs.entries()) {
+          const result = results[index]; if (result === undefined) throw new Error('Missing road archive result');
+          if (!result.ok) throw result.error;
+          if (job.owner.disposed || job.owner.disposing) throw new Error('Road backing owner retired');
+          job.references.push(result.reference);
+        }
+      } finally { this.failureSeen = false; }
+    })();
+    this.flushing = pending;
+    return pending.finally(() => { if (this.flushing === pending) this.flushing = null; });
+  }
+  /** Cancellation still joins every started immutable operation; retired owners
+   * cannot publish references or write after their original live fence. */
+  settlePending(): Promise<void> {
+    if (this.settling !== null) return this.settling;
+    if (this.capturing && !this.scope.disposed && !this.scope.disposing) return Promise.reject(new Error('Road capture must close before cancellation drain'));
+    const pending = (async (): Promise<void> => {
+      if (this.flushing !== null) await this.flushing.catch(() => undefined);
+      const jobs = this.pending.splice(0); this.pendingBytes = 0; this.flushRequested = false;
+      await Promise.all(jobs.map(job => job.ready)); this.failureSeen = false;
+    })();
+    this.settling = pending;
+    return pending.finally(() => { if (this.settling === pending) this.settling = null; });
+  }
   /** Bind the original allocation's shrink-only callback, never a new allowance. */
   retirement(mesh: Mesh, retire: () => void): void {
     const source = this.sources.get(mesh);
@@ -77,7 +162,8 @@ export class RoadTileBacking {
   /** Seal after both initially needed and outer road construction finish. All
    * material roots stay hidden until publication covers the initial road ring. */
   start(origin: { readonly x: number; readonly z: number }, layout: Pick<RoadLayout, 'junctions'>, budget: TileStreamBudget, id: string): void {
-    if (this.stream !== null || this.pending !== null || this.scope.disposed || this.scope.disposing) throw new Error('Road backing is not ready to seal');
+    if (this.stream !== null || this.capturing || this.pending.length > 0 || this.flushing !== null || this.settling !== null
+      || this.scope.disposed || this.scope.disposing) throw new Error('Road backing is not ready to seal');
     const sources: RoadTileSource[] = [];
     for (const source of this.sources.values()) {
       if (source.retire === null || Array.isArray(source.mesh.material)) throw new Error('Road backing lacks an admitted material');

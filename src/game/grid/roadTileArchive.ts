@@ -7,7 +7,9 @@ import { contentHash } from '../shardfile/contentHash';
 import { cachedAsset, cacheAsset } from '../shardfile/assetCache';
 import type { RoadTileGeometry } from './roadTileGeometry';
 
-const MAX_BYTES = 25_000_000, MAX_HEADER = 65_536;
+/** Existing per-archive bounds, also used to bound construction's in-flight scratch. */
+export const ROAD_TILE_ARCHIVE_BYTES = 25_000_000, ROAD_TILE_HEADER_BYTES = 65_536;
+const MAX_BYTES = ROAD_TILE_ARCHIVE_BYTES, MAX_HEADER = ROAD_TILE_HEADER_BYTES;
 const scalar = v.picklist(['f32', 'f64', 'u8', 'u8c', 'i8', 'u16', 'i16', 'u32', 'i32']);
 type Scalar = v.InferOutput<typeof scalar>;
 const natural = v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(MAX_BYTES));
@@ -174,12 +176,20 @@ async function storedRoadTile(store: RoadTileStore, hash: string, length: number
 }
 /** Pin before durable publication. A refusal leaves the caller's original geometry
  * owned and usable; only the caller may retire it after this reference returns. */
-export async function persistRoadTile(scope: Scope, store: RoadTileStore, tile: RoadTileGeometry): Promise<RoadTileReference> {
-  live(scope);
-  const identity = tile.identity ?? tile.plan.bins[0]?.tile;
-  if (identity === undefined) throw new Error('Missing road tile identity');
-  const reference = { x: identity.x, z: identity.z, jsBytes: tile.bytes.jsBytes, gpuBytes: tile.bytes.gpuBytes };
-  const bytes = encodeRoadTile(tile), hash = await contentHash(bytes); live(scope);
+export function persistRoadTile(scope: Scope, store: RoadTileStore, tile: RoadTileGeometry): Promise<RoadTileReference> {
+  // Synchronous packet creation retains the original rejected-promise API.
+  // Only the encoded writer suspends; it never captures scratch geometry.
+  return new Promise(resolve => {
+    live(scope);
+    const identity = tile.identity ?? tile.plan.bins[0]?.tile;
+    if (identity === undefined) throw new Error('Missing road tile identity');
+    const reference = { x: identity.x, z: identity.z, jsBytes: tile.bytes.jsBytes, gpuBytes: tile.bytes.gpuBytes };
+    resolve(persistEncodedRoadTile(scope, store, encodeRoadTile(tile), reference));
+  });
+}
+async function persistEncodedRoadTile(scope: Scope, store: RoadTileStore, bytes: Uint8Array,
+  reference: Omit<RoadTileReference, 'hash' | 'wireBytes'>): Promise<RoadTileReference> {
+  const hash = await contentHash(bytes); live(scope);
   const unpin = store.pin?.([hash]) ?? (() => undefined); let pinned = true;
   const release = (): void => { if (pinned) { pinned = false; unpin(); } };
   const cancel = scope.capture('disposers', release);

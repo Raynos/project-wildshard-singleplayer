@@ -96,7 +96,12 @@ export async function installPlatformRoadSliced(input: PlatformRoadInput, pause:
       }
       if (now() - start >= budget) { await pause(); start = now(); }
     }
-  } finally { if (!completed) steps.return(undefined); }
+  } finally {
+    if (!completed) {
+      try { steps.return(undefined); }
+      finally { await input.tileBacking?.settlePending(); }
+    }
+  }
 }
 
 /** the layout's pieces standing at points `within` accepts (the rail stays: it belongs to the void floor) */
