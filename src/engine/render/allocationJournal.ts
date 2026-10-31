@@ -3,6 +3,14 @@ import { memoryAttribution, memoryCreationLabel, type MemoryAttribution } from '
 import { pageScope } from '../app/resources';
 
 interface Context { readonly canvas: EventTarget }
+/** PF3 / P4: a storage call reads the binding it targets from WebGL's own binding state (`getParameter`, the context's
+ *  client-side record, no GPU round trip) instead of every bind being wrapped: the bind wrappers ran on every draw, 0.55 ms
+ *  a frame of Pine's Developer view at Chromium 4x. Texture target → its binding (a cube face → the cube's). */
+const TEXTURE_BINDINGS: ReadonlyMap<number, number> = new Map([[0x0de1, 0x8069], [0x8513, 0x8514], [0x806f, 0x806a], [0x8c1a, 0x8c1d]]);
+/** buffer target → its binding (the element array binding follows the bound vertex array, as WebGL keeps it) */
+const BUFFER_BINDINGS: ReadonlyMap<number, number> = new Map([[0x8892, 0x8894], [0x8893, 0x8895], [0x8f36, 0x8f36], [0x8f37, 0x8f37],
+  [0x88eb, 0x88ed], [0x88ec, 0x88ef], [0x8c8e, 0x8c8f], [0x8a11, 0x8a28]]);
+const RENDERBUFFER_BINDING = 0x8ca7;
 interface Level { width: number; height: number; depth: number; format: number; external: number; type: number }
 interface TextureStorage { levels: Map<number, Level> }
 const installed = new WeakMap<object, () => void>();
@@ -14,20 +22,26 @@ function dimensions(value: unknown): [number, number] {
     number(Reflect.get(value, 'naturalHeight')) || number(Reflect.get(value, 'videoHeight')) || number(Reflect.get(value, 'height'))];
 }
 
-/** Observe storage operations on this context only, without querying GL, reading pixels or retaining source arrays.
+/** Observe storage operations on this context only: a storage call reads the binding it targets (WebGL's client-side binding
+ * state, never a GPU query); no bind is wrapped, no pixels read, no source arrays retained.
  * Uses the same native identities gpuLabels sends to the external census. Subuploads do not allocate storage. */
 export function installAllocationJournal(context: Context, ledger: MemoryAttribution = memoryAttribution): () => void {
   const previous = installed.get(context); if (previous !== undefined) return previous;
   const scope = pageScope.child('memory.context');
-  let unit = 0, renderbuffer: object | null = null, closed = false;
-  let vertexArray: object | null = null, defaultElements: object | null = null;
-  const elements = new WeakMap<object, object>();
-  const textures = new WeakMap<object, TextureStorage>(), bindings = new Map<string, object>(), buffers = new Map<number, object>();
+  let closed = false;
+  const textures = new WeakMap<object, TextureStorage>();
   const handles = new Set<WeakRef<object>>(), originals: (() => void)[] = [];
-  const key = (target: number): string => `${unit}:${target >= 0x8515 && target <= 0x851a ? 0x8513 : target}`;
+  const getParameter: unknown = Reflect.get(context, 'getParameter');
+  const bound = (pname: number | undefined): object | undefined => {
+    if (pname === undefined || typeof getParameter !== 'function') return undefined;
+    const value: unknown = Reflect.apply(getParameter, context, [pname]);
+    return object(value) ? value : undefined;
+  };
+  const boundTexture = (target: number): object | undefined => bound(TEXTURE_BINDINGS.get(target >= 0x8515 && target <= 0x851a ? 0x8513 : target));
+  const boundBuffer = (target: number): object | undefined => bound(BUFFER_BINDINGS.get(target));
   const track = (resource: object, kind: string, bytes: number): void => { ledger.allocation(resource, 'gpu', kind, Math.ceil(bytes)); };
   const setLevel = (target: number, index: number, level: Level): void => {
-    const resource = bindings.get(key(target)); if (resource === undefined) return;
+    const resource = boundTexture(target); if (resource === undefined) return;
     let storage = textures.get(resource);
     if (storage === undefined) { storage = { levels: new Map() }; textures.set(resource, storage); }
     storage.levels.set((target >= 0x8515 && target <= 0x851a ? target - 0x8515 : 0) * 64 + index, level);
@@ -52,24 +66,8 @@ export function installAllocationJournal(context: Context, ledger: MemoryAttribu
   const source = (value: unknown, resource?: object): void => { if (ArrayBuffer.isView(value)) { ledger.buffer(value); if (resource !== undefined) ledger.source(resource, value); } };
   for (const [method, kind] of [['createTexture', 'texture'], ['createBuffer', 'buffer'], ['createRenderbuffer', 'renderbuffer']] as const)
     wrap(method, (_args, result) => { if (object(result)) { handles.add(new WeakRef(result)); track(result, kind, 0); const label = memoryCreationLabel(); if (label !== null) ledger.label(result, label); } });
-  wrap('activeTexture', args => { unit = number(args[0]) - 0x84c0; });
-  wrap('bindTexture', args => { const target = key(number(args[0])); if (object(args[1])) bindings.set(target, args[1]); else bindings.delete(target); });
-  const bindBuffer = (target: number, value: unknown): void => {
-    if (object(value)) buffers.set(target, value); else buffers.delete(target);
-    if (target !== 0x8893) return;
-    if (vertexArray === null) defaultElements = object(value) ? value : null;
-    else if (object(value)) elements.set(vertexArray, value); else elements.delete(vertexArray);
-  };
-  wrap('bindBuffer', args => { bindBuffer(number(args[0]), args[1]); });
-  for (const method of ['bindBufferBase', 'bindBufferRange']) wrap(method, args => { bindBuffer(number(args[0]), args[2]); });
-  wrap('bindVertexArray', args => {
-    vertexArray = object(args[0]) ? args[0] : null;
-    const buffer = vertexArray === null ? defaultElements : elements.get(vertexArray);
-    if (buffer === undefined || buffer === null) buffers.delete(0x8893); else buffers.set(0x8893, buffer);
-  });
-  wrap('bindRenderbuffer', args => { renderbuffer = object(args[1]) ? args[1] : null; });
   wrap('bufferData', args => {
-    const resource = buffers.get(number(args[0])); if (resource === undefined) return;
+    const resource = boundBuffer(number(args[0])); if (resource === undefined) return;
     const value = args[1], elementBytes = object(value) ? number(Reflect.get(value, 'BYTES_PER_ELEMENT')) || 1 : 1;
     const bytes = typeof value === 'number' ? value : ArrayBuffer.isView(value) || value instanceof ArrayBuffer ? value.byteLength : 0;
     const offset = number(args[3]) * elementBytes, length = number(args[4]) * elementBytes;
@@ -81,7 +79,7 @@ export function installAllocationJournal(context: Context, ledger: MemoryAttribu
     const [width, height] = explicit ? [number(args[3]), number(args[4])] : dimensions(args[5]);
     const depth = is3d ? number(args[5]) : 1;
     setLevel(target, index, { width, height, depth, format, external: compressed ? format : number(args[is3d ? 7 : explicit ? 6 : 3]), type: compressed ? 0x1401 : number(args[is3d ? 8 : explicit ? 7 : 4]) });
-    source(args[compressed ? is3d ? 7 : 6 : is3d ? 9 : explicit ? 8 : 5], bindings.get(key(target)));
+    source(args[compressed ? is3d ? 7 : 6 : is3d ? 9 : explicit ? 8 : 5], boundTexture(target));
   };
   wrap('texImage2D', args => { image(args, false, false); });
   wrap('texImage3D', args => { image(args, true, false); });
@@ -96,7 +94,7 @@ export function installAllocationJournal(context: Context, ledger: MemoryAttribu
   };
   wrap('texStorage2D', args => { storage(args, false); }); wrap('texStorage3D', args => { storage(args, true); });
   wrap('generateMipmap', args => {
-    const target = number(args[0]), resource = bindings.get(key(target));
+    const target = number(args[0]), resource = boundTexture(target);
     const levels = resource === undefined ? undefined : textures.get(resource)?.levels;
     if (levels === undefined) return;
     for (const [index, row] of levels) {
@@ -111,18 +109,15 @@ export function installAllocationJournal(context: Context, ledger: MemoryAttribu
   });
   for (const [name, samples] of [['renderbufferStorage', false], ['renderbufferStorageMultisample', true]] as const)
     wrap(name, args => {
-      if (renderbuffer === null) return;
+      const renderbuffer = bound(RENDERBUFFER_BINDING); if (renderbuffer === undefined) return;
       const shift = samples ? 1 : 0;
       track(renderbuffer, 'renderbuffer', allocationImageBytes(number(args[1 + shift]), number(args[2 + shift]), number(args[3 + shift])) * Math.max(1, samples ? number(args[1]) : 1));
     });
   for (const name of ['deleteTexture', 'deleteBuffer', 'deleteRenderbuffer']) wrap(name, args => {
     const resource = args[0]; if (!object(resource)) return;
     ledger.release(resource, 'gpu'); textures.delete(resource);
-    for (const [binding, value] of bindings) if (value === resource) bindings.delete(binding);
-    for (const [binding, value] of buffers) if (value === resource) buffers.delete(binding);
-    if (renderbuffer === resource) renderbuffer = null;
   });
-  const retire = (): void => { for (const weak of handles) { const resource = weak.deref(); if (resource !== undefined) ledger.release(resource, 'gpu'); } handles.clear(); bindings.clear(); buffers.clear(); renderbuffer = null; vertexArray = null; defaultElements = null; };
+  const retire = (): void => { for (const weak of handles) { const resource = weak.deref(); if (resource !== undefined) ledger.release(resource, 'gpu'); } handles.clear(); };
   scope.listen(context.canvas, 'webglcontextlost', retire);
   const dispose = (): void => { if (closed) return; closed = true; retire(); for (const restore of originals.reverse()) restore(); installed.delete(context); scope.dispose(); };
   scope.onDispose(dispose);
