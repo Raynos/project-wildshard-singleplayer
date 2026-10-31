@@ -93,11 +93,14 @@ export class ScaledPostPass extends Pass {
   constructor(private readonly row: ScaledPostRow, private readonly ctx: { readonly renderer: Renderer; readonly camera: PerspectiveCamera; readonly links?: UniformMap; readonly params?: UniformMap
     /** G924: the output this pass may draw straight to the screen when it is the composer's last pass (its target is
      *  then never drawn: nothing else reads it), instead of into its target for a copy pass to display */
-    readonly screen?: string }) {
+    readonly screen?: string
+    /** G4: the output this pass draws into the composer's output buffer (a swap: the next pass reads it as its input), instead
+     *  of into its target for a copy pass to display; its target is then never drawn */
+    readonly buffer?: string }) {
     super(row.name);
     const compiler = compilers.get(ctx.renderer);
     if (compiler === undefined) throw new Error('Scaled post backend was not prepared during world loading');
-    this.settings = { ...row.settings }; this.needsSwap = false;
+    this.settings = { ...row.settings }; this.needsSwap = ctx.buffer !== undefined;
     this.needsDepthTexture = Object.values(row.programs).some(p => p.depth !== undefined);
     const known = new Set(['input']);
     for (const [key, target] of Object.entries(row.targets)) {
@@ -183,7 +186,7 @@ export class ScaledPostPass extends Pass {
       }
     }
   }
-  override render(renderer: Renderer, input: WebGLRenderTarget | null): void {
+  override render(renderer: Renderer, input: WebGLRenderTarget | null, output: WebGLRenderTarget | null = null): void {
     if (this.row.drawnOnly === true) for (const key of Object.keys(this.row.outputs)) this.outs.set(key, null);
     if (input === null || this.rts.size === 0 || this.row.when !== undefined && (this.settings[this.row.when] ?? 0) <= 0) return;
     this.frame();
@@ -193,7 +196,8 @@ export class ScaledPostPass extends Pass {
       for (const [key, target] of Object.entries(draw.textures ?? {})) graph.setTexture(key, source(target).texture);
       if (draw.texel !== undefined) { const target = source(draw.texel.of); graph.setParam(draw.texel.uniform, [1 / target.width, 1 / target.height]); }
       const toScreen = this.renderToScreen && this.ctx.screen !== undefined && this.row.outputs[this.ctx.screen] === draw.to;
-      this.fullscreenMaterial = graph.material; renderer.setRenderTarget(toScreen ? null : source(draw.to)); renderer.render(this.scene, this.camera);
+      const toBuffer = !toScreen && output !== null && this.ctx.buffer !== undefined && this.row.outputs[this.ctx.buffer] === draw.to;
+      this.fullscreenMaterial = graph.material; renderer.setRenderTarget(toScreen ? null : toBuffer ? output : source(draw.to)); renderer.render(this.scene, this.camera);
     }
     if (this.row.drawnOnly === true) this.publish();
   }

@@ -548,7 +548,9 @@ export class Game {
     // is not the frame the player sees, and a merged FXAA left Nine's wires stair-stepped (art/frame-cost/round-3-fc9-fxaa)
     const pass = (effects: Effect[]): { pass: EffectPass; merged: boolean } => {
       const C = this.composition, shardPasses = C !== null && [C.beforeScene, C.afterScene, C.beforeChain, C.afterChain].some(passes => (passes?.length ?? 0) > 0);
-      const merged = aa !== null && !shardPasses && effects.every(effect => (effect.getAttributes() & EffectAttribute.CONVOLUTION) === 0 && !/\bmainUv\b/u.test(effect.getFragmentShader()));
+      // G4: an empty chain (a shard's composite drew the frame into the composer's buffer) makes the FXAA pass the colour pass:
+      // FXAA alone in it, on that frame, as its own pass would run
+      const merged = aa !== null && (effects.length === 0 || !shardPasses && effects.every(effect => (effect.getAttributes() & EffectAttribute.CONVOLUTION) === 0 && !/\bmainUv\b/u.test(effect.getFragmentShader())));
       return { pass: new EffectPass(this.camera, ...(merged && aa !== null ? [aa, ...effects] : effects)), merged };
     };
     const R = this.lookStrategy;
