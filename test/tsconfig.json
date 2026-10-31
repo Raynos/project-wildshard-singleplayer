@@ -71,6 +71,7 @@
     "fixtures/quest-step-legacy-saves.json"
   ],
   "files": [
+    "../scripts/section-inventory.ts",
     "../scripts/app-build/bootProducts.ts",
     "../scripts/app-build/bootProductTiers.ts",
     "../scripts/app-build/bootExtras.ts",

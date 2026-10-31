@@ -26,6 +26,9 @@
     },
     {
       "path": "../tsconfig.engine.json"
+    },
+    {
+      "path": "../tsconfig.sdk.json"
     }
   ],
   "include": [
@@ -40,6 +43,7 @@
     "budget-ceilings.mjs"
   ],
   "files": [
+    "section-inventory.ts",
     "bake-loader.mjs",
     "perf/exact-world-capture.mjs",
     "preparation-cache-key.mjs",
