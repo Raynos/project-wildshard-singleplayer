@@ -42,8 +42,8 @@ export interface ClientChannelLane {
 const OPS = ['constant', 'clock', 'read', 'local', 'neg', 'sin', 'cos', 'sqrt', 'abs', 'add', 'sub', 'mul', 'pow', 'div', 'mod', 'min', 'max',
   'atan2', 'hypot', 'hypot3', 'sample', 'gt', 'select'] as const;
 const frozenData = (value: object): boolean => Object.isFrozen(value) && Object.values(Object.getOwnPropertyDescriptors(value)).every(field => 'value' in field);
-const operandTables = new WeakMap<object, { readonly a: Int32Array; readonly b: Int32Array; readonly codes: Uint8Array; readonly dynamic: readonly number[] }>();
-function operandsOf(nodes: ClientChannelProgram['nodes'], privateNodes: boolean): { readonly a: Int32Array; readonly b: Int32Array; readonly codes: Uint8Array; readonly dynamic: readonly number[] } {
+const operandTables = new WeakMap<object, { readonly a: Int32Array; readonly b: Int32Array; readonly codes: Uint8Array; readonly sources: Float64Array; readonly dynamic: readonly number[] }>();
+function operandsOf(nodes: ClientChannelProgram['nodes'], privateNodes: boolean): { readonly a: Int32Array; readonly b: Int32Array; readonly codes: Uint8Array; readonly sources: Float64Array; readonly dynamic: readonly number[] } {
   const known = operandTables.get(nodes); if (known !== undefined) return known;
   // Only immutable expressions can keep a result across observations. Private
   // copies qualify; a caller's shallow-frozen table may still contain live rows.
@@ -59,8 +59,18 @@ function operandsOf(nodes: ClientChannelProgram['nodes'], privateNodes: boolean)
     invariant.push(fixed); if (!fixed) dynamic.push(i);
   }
   const ops: readonly string[] = OPS;
-  const made = { dynamic, a: Int32Array.from(nodes, node => 'a' in node ? node.a : -1), b: Int32Array.from(nodes, node => 'b' in node ? node.b : -1),
-    codes: Uint8Array.from(nodes, node => { const code = ops.indexOf(node.op);
+  const sources = new Float64Array(privateNodes ? nodes.length : 0);
+  const made = { dynamic, sources, a: Int32Array.from(nodes, node => 'a' in node ? node.a : -1), b: Int32Array.from(nodes, node => 'b' in node ? node.b : -1),
+    codes: Uint8Array.from(nodes, (node, index) => { const code = ops.indexOf(node.op);
+      // Only a lane's detached data specializes a source. Borrowed frozen
+      // rows retain their original opcode, field reads and 255 fallback.
+      if (privateNodes) {
+        if (node.op === 'constant' && typeof node.value === 'number') { sources[index] = node.value; return 24; }
+        if (node.op === 'clock') { sources[index] = Number(node.value !== 'time'); return 25; }
+        if ((node.op === 'read' || node.op === 'local') && typeof node.index === 'number') {
+          sources[index] = node.index; return node.op === 'read' ? 26 : 27;
+        }
+      }
       // Simple mutable/accessor rows retain rowValue's single live opcode read.
       return code === -1 || code < 4 && !privateNodes && !frozenData(node) ? 255 : code; }) };
   if (Object.isFrozen(nodes)) operandTables.set(nodes, made);
@@ -79,7 +89,7 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
   const repeatable = slots.length === 0 && nodes.every(node => node.op !== 'clock') && (nodes !== program.nodes
     || nodes.every(node => frozenData(node) && (node.op !== 'sample' || frozenData(node.keys) && node.keys.every(frozenData))));
   // each expression's operand slots, read once (-1: none), so the evaluator never asks a node which fields it has
-  const { a: operandA, b: operandB, codes, dynamic } = operandsOf(nodes, nodes !== program.nodes);
+  const { a: operandA, b: operandB, codes, sources, dynamic } = operandsOf(nodes, nodes !== program.nodes);
   const frame: Partial<Record<ClientChannelProperty, number>> = {}, index = new Map<ClientChannelProperty, number>();
   for (const channel of program.channels) { Object.defineProperty(frame, channel.property, { enumerable: true, get: () => published[channel.value] }); index.set(channel.property, channel.value); }
   Object.freeze(frame);
@@ -159,33 +169,43 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
     const count = initialized ? dynamic.length : nodes.length;
     for (let j = 0; j < count; j++) {
       const i = initialized ? dynamic[j] ?? -1 : j;
-      const node = nodes[i]; if (node === undefined) throw new Error('Missing client expression');
-      const ai = operandA[i] ?? -1, bi = operandB[i] ?? -1;
-      const a = ai >= 0 ? scratch[ai] ?? Number.NaN : 0, b = bi >= 0 ? scratch[bi] ?? Number.NaN : 0;
       let value: number;
-      // G639: the arithmetic ops by their small opcode (one per node, shared like the operands), the rest by their row
-      switch (codes[i] ?? 255) {
-        case 0: value = node.op === 'constant' ? node.value : rowValue(node, a, b, time, delta); break;
-        case 1: value = node.op === 'clock' ? node.value === 'time' ? time : delta : rowValue(node, a, b, time, delta); break;
-        case 2: value = node.op === 'read' ? reads[node.index] ?? Number.NaN : rowValue(node, a, b, time, delta); break;
-        case 3: value = node.op === 'local' ? previous[node.index] ?? Number.NaN : rowValue(node, a, b, time, delta); break;
-        case 4: value = -a; break;
-        case 5: value = Math.sin(a); break;
-        case 6: value = Math.cos(a); break;
-        case 7: value = Math.sqrt(a); break;
-        case 8: value = Math.abs(a); break;
-        case 9: value = a + b; break;
-        case 10: value = a - b; break;
-        case 11: value = a * b; break;
-        case 12: value = a ** b; break;
-        case 13: value = a / b; break;
-        case 14: value = a % b; break;
-        case 15: value = Math.min(a, b); break;
-        case 16: value = Math.max(a, b); break;
-        case 17: value = Math.atan2(a, b); break;
-        case 18: value = Math.hypot(a, b); break;
-        case 21: value = Number(a > b); break;
-        default: value = rowValue(node, a, b, time, delta); break;
+      const code = codes[i] ?? 255;
+      switch (code) {
+        case 24: value = sources[i] ?? Number.NaN; break;
+        case 25: value = sources[i] === 0 ? time : delta; break;
+        case 26: value = reads[sources[i] ?? -1] ?? Number.NaN; break;
+        case 27: value = previous[sources[i] ?? -1] ?? Number.NaN; break;
+        default: {
+          const node = nodes[i]; if (node === undefined) throw new Error('Missing client expression');
+          const ai = operandA[i] ?? -1, bi = operandB[i] ?? -1;
+          const a = ai >= 0 ? scratch[ai] ?? Number.NaN : 0, b = bi >= 0 ? scratch[bi] ?? Number.NaN : 0;
+          // G639: the arithmetic ops by their small opcode (one per node, shared like the operands), the rest by their row
+          switch (code) {
+            case 0: value = node.op === 'constant' ? node.value : rowValue(node, a, b, time, delta); break;
+            case 1: value = node.op === 'clock' ? node.value === 'time' ? time : delta : rowValue(node, a, b, time, delta); break;
+            case 2: value = node.op === 'read' ? reads[node.index] ?? Number.NaN : rowValue(node, a, b, time, delta); break;
+            case 3: value = node.op === 'local' ? previous[node.index] ?? Number.NaN : rowValue(node, a, b, time, delta); break;
+            case 4: value = -a; break;
+            case 5: value = Math.sin(a); break;
+            case 6: value = Math.cos(a); break;
+            case 7: value = Math.sqrt(a); break;
+            case 8: value = Math.abs(a); break;
+            case 9: value = a + b; break;
+            case 10: value = a - b; break;
+            case 11: value = a * b; break;
+            case 12: value = a ** b; break;
+            case 13: value = a / b; break;
+            case 14: value = a % b; break;
+            case 15: value = Math.min(a, b); break;
+            case 16: value = Math.max(a, b); break;
+            case 17: value = Math.atan2(a, b); break;
+            case 18: value = Math.hypot(a, b); break;
+            case 21: value = Number(a > b); break;
+            default: value = rowValue(node, a, b, time, delta); break;
+          }
+          break;
+        }
       }
       if (!Number.isFinite(value) || Math.abs(value) > 1e12) throw new NumericInputError(String(i), 'Non-finite or excessive client expression');
       scratch[i] = value;
