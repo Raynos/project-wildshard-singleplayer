@@ -160,3 +160,32 @@ test('King walking supplies both observed feet and destination to the physical c
   expect(cursor.complete).toBe(false);expect(cursor.stuck).toEqual([]);
   expect([command.moveX,command.moveZ,command.yaw].every(Number.isFinite)).toBe(true);
 });
+
+test.each([1,2,'victory'] as const)('the later King boundary %s restores without replaying its effects',boundary=>{
+  const a=world(),b=world();try{
+    a.enter();
+    // Unit-only damage drives the real kernels; no native tape or checkpoint
+    // receives these bodies or their damage ports.
+    for(let tick=0;tick<1200;tick++){
+      const seen=a.owner.observe();
+      if(boundary==='victory'?seen.state==='victory':seen.phase>=boundary)break;
+      for(const add of seen.adds)if(add.alive)a.bodies.get(add.id)?.applyDamage(add.hp);
+      if(seen.state==='fight'&&!seen.shielded){
+        const body=seen.body===null?undefined:a.bodies.get(seen.body.id);
+        if(body===undefined)throw new Error('Missing unplayed King body');
+        body.applyDamage(100);
+      }
+      a.step();
+    }
+    const saved=a.owner.snapshot();
+    if(boundary==='victory'){
+      expect(saved.boss.state).toBe('victory');
+      expect(saved.boss.saved).toEqual({defeated:true,rewardTaken:false,kills:1});
+    }else expect(saved.boss.phase).toBe(boundary);
+    b.copyOwners(saved,a);const random=b.rng.snapshot();b.events.length=0;
+    b.owner.restore(saved);
+    expect(b.owner.snapshot()).toEqual(saved);expect(b.rng.snapshot()).toEqual(random);
+    expect(b.events.every(event=>event[0]==='bind')).toBe(true);
+    expect(b.events.some(event=>event[0]==='reward'||event[0]==='save')).toBe(false);
+  }finally{a.scope.dispose();b.scope.dispose();}
+});
