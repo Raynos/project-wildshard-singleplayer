@@ -372,3 +372,30 @@ The H2 configured-rule test remains valid. Clarification: its installed
 linter refuses the actual buffer-omission mutant, and ordinary CI lint
 uses that configuration. The current local push gate can mark fast lint
 as `CI`; no claim is made that every local push ran that optional phase.
+
+
+## G964: live B2 JSON writer boundary
+
+The zoomed-in TypeScript, oxlint, binary-JSON and generator plans are
+archived with their operative rows complete. Their historical partials,
+folded GR12 work and explicitly dropped full-check push gate are not
+reopened. This maintenance fixes a reproduced gap in the **current B2
+writer contract**, separate from sp-x6's ordered S3 work.
+
+`assertJsonRows` used realm-local `instanceof` checks for raw ArrayBuffer
+and SharedArrayBuffer. Native values returned by an isolated Node VM
+passed those checks and `jsonBytes` silently serialized them as `{}`.
+The host guard now also uses Node's native `isAnyArrayBuffer` brand
+check. Existing realm, typed-view and explicit Buffer-JSON refusals
+remain; ordinary numeric rows, serialization, exact-path debt and the
+binary sibling publication path are unchanged. No compiler, scheduler,
+policy allowance, JSON type erasure or retired gate is introduced.
+
+The real VM regression is red before this change. It refuses raw and
+shared buffers, Uint8/Uint8Clamped/Float64 views and DataView before an
+output can exist; ordinary foreign authored rows still publish identical
+JSON bytes. **33 controls /2 focused suites pass in 11.10 s**, including
+original writer, path/debt and generator publication refusals. Script
+project types, named typed lint and whitespace checks pass. This is a
+correctness fix; no isolated tooling or CI speedup is claimed. No app
+build, browser, native proof, full suite or heavy gate was run.

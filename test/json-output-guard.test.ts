@@ -8,6 +8,8 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 // oxlint-disable-next-line import/no-nodejs-modules -- Use the same Node executable as the parent test.
 import { execPath } from 'node:process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Native VM values exercise the serializer's cross-realm byte boundary.
+import { runInNewContext } from 'node:vm';
 import { expect, test } from 'vitest';
 import { jsonOutputGuard, jsonOutputPolicy, assertJsonRows } from '../scripts/json-output-guard.mjs';
 import { byteWriter, jsonBytes } from '../scripts/bake-output.mjs';
@@ -49,6 +51,22 @@ test('an isolated policy retains only declared allowances and still validates th
   }
   expect(JSON.parse(jsonBytes({ position: [1, 2, 3], source: 'rows' }).toString())).toEqual({ position: [1, 2, 3], source: 'rows' });
 });
+
+test('shared JSON serialization refuses foreign native buffers before publishing an output', () => fixture(root => {
+  const writer = byteWriter(false, 'foreign-byte-fixture', root);
+  const target = resolve(root, output);
+  for (const source of ['new ArrayBuffer(3)', 'new SharedArrayBuffer(3)',
+    'new Uint8Array([1,2,3])', 'new Uint8ClampedArray([1,2,3])',
+    'new Float64Array([1,2,3])', 'new DataView(new ArrayBuffer(3))']) {
+    const value: unknown = runInNewContext(source);
+    expect(() => assertJsonRows({ nested: [value] })).toThrow('byte values');
+    expect(() => writer.put(target, jsonBytes({ nested: [value] }))).toThrow('byte values');
+    expect(existsSync(target)).toBe(false);
+  }
+  const rows: unknown = runInNewContext('({position:[1,2,3],label:"authored rows"})');
+  writer.put(target, jsonBytes(rows));
+  expect(readFileSync(target, 'utf8')).toBe('{\n  "position": [\n    1,\n    2,\n    3\n  ],\n  "label": "authored rows"\n}\n');
+}));
 
 test('shared writer admits exact existing debt, refuses new paths and never skips checking unchanged bytes', () => fixture(root => {
   debt(root, { [output]: { base64Chars: 1024, dataUris: 0 } });

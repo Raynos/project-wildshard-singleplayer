@@ -1,17 +1,19 @@
 // G649 B2: every shared JSON write enforces the same exact-path policy as the gates.
 import { existsSync, readFileSync } from 'node:fs';
 import { isAbsolute, relative, resolve } from 'node:path';
+import { isAnyArrayBuffer } from 'node:util/types';
 import { BINARY_JSON_POLICY, binaryJsonPolicy, binaryJsonValue, binaryJsonValueFailures } from './no-binary-json.mjs';
 
 /** Reject byte views before JSON.stringify silently turns them into numeric objects.
  * Ordinary authored numeric rows keep their meaning; explicit Buffer JSON is binary too.
+ * Native buffer brands also cover values returned from an isolated VM realm.
  * @param {unknown} value @param {string} [path] */
 export function assertJsonRows(value, path = '<JSON value>') {
   const pending = [value], seen = new WeakSet();
   while (pending.length > 0) {
     const row = pending.pop();
     if (row === null || typeof row !== 'object') continue;
-    if (row instanceof ArrayBuffer || row instanceof SharedArrayBuffer || ArrayBuffer.isView(row)
+    if (row instanceof ArrayBuffer || row instanceof SharedArrayBuffer || isAnyArrayBuffer(row) || ArrayBuffer.isView(row)
       || (Reflect.get(row, 'type') === 'Buffer' && Array.isArray(Reflect.get(row, 'data'))))
       throw new Error(`BINARY-JSON ${path}: byte values require a separate binary file`);
     if (seen.has(row)) continue; seen.add(row);
