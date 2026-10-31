@@ -59,3 +59,57 @@ test('quota refusal releases the provisional pin and preserves original geometry
   expect(releases).toBe(1); expect(original.geometry.getAttribute('position').count).toBe(3);
   scope.dispose(); expect(releases).toBe(1); original.geometry.dispose();
 });
+
+test('warm archives reuse only the complete freshly encoded content and retain each owner pin', async () => {
+  const cold = new Scope('cold road'), warm = new Scope('warm road'), original = fixture();
+  const bodies = new Map<string, Uint8Array>(); let writes = 0, released = 0;
+  const store: RoadTileStore = {
+    get: hash => Promise.resolve(bodies.get(hash)?.slice() ?? null),
+    put: (hash, bytes) => { writes++; bodies.set(hash, bytes.slice()); return Promise.resolve(true); },
+    pin: () => () => { released++; },
+  };
+  const before = encodeRoadTile(original), first = await persistRoadTile(cold, store, original);
+  expect(await persistRoadTile(warm, store, original)).toEqual(first);
+  expect(bodies.get(first.hash)).toEqual(before); expect(writes).toBe(1); expect(released).toBe(0);
+  cold.dispose(); expect(released).toBe(1); warm.dispose(); expect(released).toBe(2);
+  original.geometry.dispose();
+});
+
+test('same-length poisoned, truncated and unreadable archives keep the original write and quota refusal', async () => {
+  const original = fixture(), bytes = encodeRoadTile(original), poisoned = bytes.slice();
+  poisoned.set([1], poisoned.length - 1);
+  for (const read of [() => Promise.resolve(poisoned), () => Promise.resolve(bytes.subarray(0, -1)),
+    () => Promise.reject(new Error('Unavailable cache'))]) {
+    for (const accepted of [true, false]) {
+      const scope = new Scope('road repair'); let writes = 0, releases = 0;
+      const store: RoadTileStore = { get: read,
+        put: (_hash, body) => { writes++; expect(body).toEqual(bytes); return Promise.resolve(accepted); },
+        pin: () => () => { releases++; },
+      };
+      const result = persistRoadTile(scope, store, original);
+      await (accepted ? expect(result).resolves.toMatchObject({ wireBytes: bytes.length })
+        : expect(result).rejects.toThrow('storage refused'));
+      expect(writes).toBe(1); scope.dispose(); expect(releases).toBe(1);
+    }
+  }
+  original.geometry.dispose();
+});
+
+test('retirement during a warm read prevents writing and releases its pin exactly once', async () => {
+  const scope = new Scope('retired warm road'), original = fixture(); let writes = 0, releases = 0;
+  const store: RoadTileStore = {
+    get: () => { scope.dispose(); return Promise.resolve(null); },
+    put: () => { writes++; return Promise.resolve(true); }, pin: () => () => { releases++; },
+  };
+  await expect(persistRoadTile(scope, store, original)).rejects.toThrow('owner retired');
+  expect(writes).toBe(0); expect(releases).toBe(1);
+  expect(original.geometry.getAttribute('position').count).toBe(3); original.geometry.dispose();
+});
+
+test('invalid current geometry cannot borrow a valid archive', async () => {
+  const scope = new Scope('invalid current road'), original = fixture(); let reads = 0, writes = 0;
+  const store: RoadTileStore = { get: () => { reads++; return Promise.resolve(encodeRoadTile(original)); },
+    put: () => { writes++; return Promise.resolve(true); } };
+  await expect(persistRoadTile(scope, store, { ...original, bytes: { jsBytes: 0, gpuBytes: 0 } })).rejects.toThrow('byte plan mismatch');
+  expect(reads).toBe(0); expect(writes).toBe(0); scope.dispose(); original.geometry.dispose();
+});

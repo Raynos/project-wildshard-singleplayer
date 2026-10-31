@@ -164,6 +164,14 @@ export function decodeRoadTile(input: Uint8Array): RoadTileGeometry {
       bytes: { jsBytes: vertexBytes + index.byteLength * 2, gpuBytes: vertexBytes + index.byteLength } };
   } catch (error) { geometry.dispose(); throw error; }
 }
+/** A warm body is reusable only against the freshly encoded tile's full hash.
+ * A failed optional lookup still takes the original durable-write path. */
+async function storedRoadTile(store: RoadTileStore, hash: string, length: number): Promise<boolean> {
+  try {
+    const bytes = await store.get(hash, length);
+    return bytes !== null && bytes.length === length && await contentHash(bytes) === hash;
+  } catch { return false; }
+}
 /** Pin before durable publication. A refusal leaves the caller's original geometry
  * owned and usable; only the caller may retire it after this reference returns. */
 export async function persistRoadTile(scope: Scope, store: RoadTileStore, tile: RoadTileGeometry): Promise<RoadTileReference> {
@@ -172,10 +180,13 @@ export async function persistRoadTile(scope: Scope, store: RoadTileStore, tile: 
   if (identity === undefined) throw new Error('Missing road tile identity');
   const reference = { x: identity.x, z: identity.z, jsBytes: tile.bytes.jsBytes, gpuBytes: tile.bytes.gpuBytes };
   const bytes = encodeRoadTile(tile), hash = await contentHash(bytes); live(scope);
-  const release = store.pin?.([hash]) ?? (() => undefined), cancel = scope.capture('disposers', release);
+  const unpin = store.pin?.([hash]) ?? (() => undefined); let pinned = true;
+  const release = (): void => { if (pinned) { pinned = false; unpin(); } };
+  const cancel = scope.capture('disposers', release);
   try {
     live(scope);
-    if (!await store.put(hash, bytes)) throw new Error('Road tile archive storage refused');
+    const stored = await storedRoadTile(store, hash, bytes.length); live(scope);
+    if (!stored && !await store.put(hash, bytes)) throw new Error('Road tile archive storage refused');
     live(scope);
     return { hash, wireBytes: bytes.length, ...reference };
   } catch (error) { cancel(); release(); throw error; }
