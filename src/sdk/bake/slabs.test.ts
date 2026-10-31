@@ -19,9 +19,9 @@ function triangle(x: number, y: number, z: number, height = 1): BufferGeometry {
     .setAttribute('aFace', new Float16BufferAttribute(new Uint16Array([0x8000, 0x3c00, 0x3800]), 1))
     .setAttribute('aOff', new BufferAttribute(new Float32Array([-0, 0.5, 1]), 1)).setIndex([0, 1, 2]);
 }
-function fixture(shaderNormal = false, acrossTiles = false) {
+function fixture(shaderNormal = false, acrossTiles = false, large?: BufferGeometry) {
   const material = new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 });
-  const shapes = [triangle(3, 10, 3), triangle(5, 75, 5), triangle(acrossTiles ? -220 : 40, 20, 40)];
+  const shapes = large === undefined ? [triangle(3, 10, 3), triangle(5, 75, 5), triangle(acrossTiles ? -220 : 40, 20, 40)] : [large];
   if (shaderNormal) for (const shape of shapes) shape.setAttribute('normal', new Float32BufferAttribute([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 4));
   const baked = bakeProps({ static: new Group(), whole: shapes.map((geometry, index) => ({ id: `part${index}`, mesh: new Mesh(geometry, material),
     transform: new Matrix4(), partition: 'runs', nativeAttributes: true, compact: true })) });
@@ -234,4 +234,32 @@ test('resident-cell byte splits preserve source triangle order across spatial ba
     expect(chunks.every(chunk => chunk.bytes <= 100)).toBe(true);
     expect(chunks.flatMap(chunk => triangles(chunk.geometry)).sort()).toEqual(triangles(geometry));
   } finally { geometry.dispose(); for (const chunk of chunks) chunk.geometry.dispose(); }
+});
+
+test('a near-cap slab leaves upload room for its native instance matrix and colour', async () => {
+  const count = 47_619, vertices = count * 3;
+  const positions = new Float32Array(vertices * 3), normals = new Int8Array(vertices * 3), colours = new Uint8Array(vertices * 3);
+  const faces = new Uint16Array(vertices), offsets = new Float32Array(vertices);
+  for (let vertex = 0; vertex < vertices; vertex++) {
+    const corner = vertex % 3, x = 3 + Math.floor(vertex / 3) / count;
+    positions.set([x + (corner === 1 ? 0.00001 : 0), 10 + (corner === 2 ? 1 : 0), 3 + (corner === 2 ? 1 : 0)], vertex * 3);
+    normals.set([0, 127, 0], vertex * 3); colours.set([1, 2, 3], vertex * 3); faces[vertex] = 0x3c00; offsets[vertex] = vertex;
+  }
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(positions, 3))
+    .setAttribute('normal', new BufferAttribute(normals, 3, true)).setAttribute('color', new BufferAttribute(colours, 3, true))
+    .setAttribute('aFace', new Float16BufferAttribute(faces, 1)).setAttribute('aOff', new BufferAttribute(offsets, 1))
+    .setIndex(new BufferAttribute(Uint32Array.from({ length: vertices }, (_value, index) => index), 1));
+  // The former geometry-only cap accepts this exact native layout as one
+  // chunk, but that chunk's real instance attributes cross the upload cap.
+  const geometryOnly = partitionSlabGeometry(geometry, 36, new Matrix4());
+  try {
+    expect(geometryOnly).toHaveLength(1);
+    expect((geometryOnly[0]?.bytes ?? 0) + (16 + 3) * Float32Array.BYTES_PER_ELEMENT).toBeGreaterThan(4_000_000);
+  } finally { for (const chunk of geometryOnly) chunk.geometry.dispose(); }
+  const result = await bakeWholeSlabs(fixture(false, false, geometry));
+  const chunks = result.library.tiles.flatMap(tile => tile.files.flatMap(file => file.chunks));
+  expect(chunks.length).toBeGreaterThan(1);
+  expect(Math.max(...chunks.map(chunk => chunk.bytes))).toBeGreaterThan(3_900_000);
+  for (const chunk of chunks) expect(chunk.bytes + (16 + 3) * Float32Array.BYTES_PER_ELEMENT).toBeLessThanOrEqual(4_000_000);
+  expect(result.report.reduce((sum, row) => sum + row.triangles, 0)).toBe(count);
 });

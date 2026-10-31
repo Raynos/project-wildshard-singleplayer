@@ -18,6 +18,11 @@ import { readSourceModel } from './skinned';
 import { positionErrorScale } from './geometryError';
 import { partitionSlabGeometry, type SlabGeometryChunk } from './slabChunks';
 
+// Every native slab mounts as one identity instance with a white RGB colour.
+// Its first draw uploads those two native attributes as well as the geometry.
+const INSTANCE_UPLOAD_BYTES = (16 + 3) * Float32Array.BYTES_PER_ELEMENT;
+const GEOMETRY_UPLOAD_BYTES = 4_000_000 - INSTANCE_UPLOAD_BYTES;
+
 type WholeLibrary = Exclude<Extract<WorldScenesSection['libraries'][number], { kind: 'whole' }>, { storage: 'slabs' }>;
 type Draw = Extract<WorldSceneWeldNode, { kind: 'mesh' }>;
 interface Source { node: Draw; model: WholeLibrary['models'][number]; forceIdentity: boolean; frame: Matrix4; owners: readonly string[] }
@@ -242,7 +247,7 @@ export async function bakeWholeSlabs(input: {
       for (const group of groups.values()) {
         const geometry = concatenate(group.geometries);
         try {
-          for (const part of partitionSlabGeometry(geometry, tile.z * 8 + tile.x, group.frame, 4_000_000, cell)) chunks.push({ key: group.key, part, custom: group.custom, error: group.error });
+          for (const part of partitionSlabGeometry(geometry, tile.z * 8 + tile.x, group.frame, GEOMETRY_UPLOAD_BYTES, cell)) chunks.push({ key: group.key, part, custom: group.custom, error: group.error });
         } finally { geometry.dispose(); }
       }
       if (chunks.length === 0 || chunks.length > 64) throw new Error('Slab tile exceeds its chunk budget');
