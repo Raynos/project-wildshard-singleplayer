@@ -115,7 +115,7 @@ export function drawFrames({ frames, attribution, propertyCalls = false, systemI
             if (game.frameCount !== last + 1) throw new Error('Census missed a completed frame');
             const index = (game.frameI + game.frameMs.length - 1) % game.frameMs.length;
             const row = { frame: game.frameCount, calls: game.lastFrame.calls, triangles: game.lastFrame.triangles,
-              workMs: game.workMs[index], renderMs: game.renderMs[index], ...bucket };
+              frameMs: game.frameMs[index], workMs: game.workMs[index], renderMs: game.renderMs[index], ...bucket };
             if (systemIds !== undefined) row.systems = systemBucket;
             if (attribution && row.draws.reduce((sum, draw) => sum + draw.count, 0) !== row.calls) throw new Error('Native draw submissions disagree with whole-frame calls');
             results.push(row);

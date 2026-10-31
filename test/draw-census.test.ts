@@ -220,3 +220,15 @@ test('Nine P5 is explicit and retains the default P4 pair', () => {
   expect(censusSelection('nine-dragon-stack')[0]?.poseName).toBe('P4');
   expect(()=>censusSelection('nine-dragon-stack','Q4','both',{},'missing')).toThrow('Unknown Nine census pose');
 });
+
+
+test('raw frame interval, game work and render cost refer to the same completed ring slot',async()=>{
+ const f=propertyFixture(),restore=browserFixture(f.world);
+ f.game.frameMs=[4,31,9];f.game.workMs=[5,6,7];f.game.renderMs=[8,9,10];f.game.frameI=2;
+ try{
+  const capture=drawFrames({frames:1,attribution:false});
+  f.callbacks.frame?.();f.game.frameCount++;f.callbacks.frame?.();
+  expect((await capture)[0]).toMatchObject({frame:1,frameMs:31,workMs:6,renderMs:9,calls:1,triangles:1});
+  expect(f.renderer.properties.get).toBe(f.get);expect(f.renderer.renderBufferDirect).toBe(f.originalDraw);
+ }finally{restore();}
+});
