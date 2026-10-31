@@ -1,7 +1,8 @@
 /** A fixed M3 world render, with no composer or camera-child viewmodel.
  * Keep the native posed camera: its view already selected the live instances.
  * Runs in the native page; every temporary clock/visibility change is restored.
- * @param {{yaw:number,pitch:number}} pose */
+ * Opting into includeViewmodel retains and verifies actual camera-child draws.
+ * @param {{yaw:number,pitch:number,includeViewmodel?:boolean}} pose */
 export function fixedWorldFrame(pose) {
   const w = window.__wildshard.requireWorld(), g = w.game, r = g.renderer;
   const gl = r.getContext(), scene = g.rootScene, cam = g.camera;
@@ -10,7 +11,8 @@ export function fixedWorldFrame(pose) {
   const at = w.player.position;
   cam.updateMatrixWorld(true);
   const elapsed = g.clock.elapsedTime, target = r.getRenderTarget(), scissor = r.getScissorTest();
-  const hidden = cam.children.filter(child => child.visible);
+  const hidden = pose.includeViewmodel === true ? [] : cam.children.filter(child => child.visible);
+  let viewmodelDraws = 0;
   const dither = gl.isEnabled(gl.DITHER);
   /** @type {(()=>void)[]} */
   const restore = [];
@@ -20,7 +22,14 @@ export function fixedWorldFrame(pose) {
   // Capture command submission is serial; this is an image proof, never a frame-cost reading.
   // oxlint-disable-next-line typescript/unbound-method -- Preserve and restore the exact renderer method identity.
   const direct = r.renderBufferDirect;
-  r.renderBufferDirect = (...args) => { Reflect.apply(direct, r, args); gl.finish(); };
+  r.renderBufferDirect = (...args) => {
+    Reflect.apply(direct, r, args); gl.finish();
+    if (pose.includeViewmodel === true) {
+      /** @type {import('three').Object3D|null} */
+      let node = args[4];
+      while (node !== null) { if (node === cam) { viewmodelDraws++; break; } node = node.parent; }
+    }
+  };
   try {
     gl.disable(gl.DITHER);
     g.clock.elapsedTime = 10; g.shardFrame();
@@ -49,13 +58,15 @@ export function fixedWorldFrame(pose) {
     r.setRenderTarget(null); r.setScissorTest(false);
     const ratio = r.getPixelRatio(); r.setViewport(0, 0, gl.drawingBufferWidth / ratio, gl.drawingBufferHeight / ratio);
     r.clear(true, true, true); r.render(scene, cam);
-    r.info.reset(); r.clear(true, true, true); r.render(scene, cam);
+    r.info.reset(); viewmodelDraws = 0; r.clear(true, true, true); r.render(scene, cam);
     const calls = r.info.render.calls, triangles = r.info.render.triangles;
     const data = new Uint8Array(gl.drawingBufferWidth * gl.drawingBufferHeight * 4);
     gl.readPixels(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight, gl.RGBA, gl.UNSIGNED_BYTE, data);
     if (gl.getError() !== gl.NO_ERROR || calls <= 0 || triangles <= 0 || gl.isContextLost()) throw new Error('Invalid native world readback');
+    if (pose.includeViewmodel === true && viewmodelDraws === 0) throw new Error('Missing native viewmodel draws');
     return { width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, data, calls, triangles, pinned: pinned.sort(), at: at.toArray(), frame: g.frameCount, clock: g.app.clock.snapshot(),
-      requested: {yaw:pose.yaw,pitch:pose.pitch}, camera: {world:cam.matrixWorld.toArray(),projection:cam.projectionMatrix.toArray()} };
+      requested: {yaw:pose.yaw,pitch:pose.pitch}, viewmodel: {included:pose.includeViewmodel === true,draws:viewmodelDraws},
+      camera: {world:cam.matrixWorld.toArray(),projection:cam.projectionMatrix.toArray()} };
   } finally {
     r.renderBufferDirect = direct;
     if (dither) gl.enable(gl.DITHER); else gl.disable(gl.DITHER);

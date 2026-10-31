@@ -14,6 +14,9 @@ import { loadingCardIndex } from '../loading-benchmark/catalogue.mjs';
 /** @param {string} name */
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const url = arg('url'), candidate = arg('candidate'), mode = arg('mode') ?? 'shardfile';
+const held = arg('include-viewmodel');
+if (held !== undefined && held !== '1' && held !== '0') throw new Error('Requires --include-viewmodel=0|1');
+const includeViewmodel = held === '1';
 if (mode !== 'legacy' && mode !== 'shardfile') throw new Error('Requires --mode=legacy|shardfile');
 if (!url) throw new Error('Requires --url=URL [--candidate=URL --slug=SLUG --pose=P1 --out=tmp/...]');
 /** @type {typeof readParityFrame<ReturnType<typeof fixedWorldFrame>>} */
@@ -45,7 +48,10 @@ const rows = [];
 const differences = [];
 /** @type {{repeat:number,url:string,build:string}[]} */
 const builds = [];
-const result = { mode, builds, protocol: 'M3 world/native posed camera; no post/viewmodel; Metal iPhone 16 Pro DPR2; fixed uniform time10; fresh-context seeded A/A; GL_DITHER off; serial GPU draw completion; full RGBA exact', build: version.build, candidate: candidate ?? null, rows, differences };
+const protocol = includeViewmodel
+  ? 'M3 world/native posed camera; no post; viewmodel included/actual draws required; Metal iPhone 16 Pro DPR2; fixed uniform time10; fresh-context seeded A/A; GL_DITHER off; serial GPU draw completion; full RGBA exact'
+  : 'M3 world/native posed camera; no post/viewmodel; Metal iPhone 16 Pro DPR2; fixed uniform time10; fresh-context seeded A/A; GL_DITHER off; serial GPU draw completion; full RGBA exact';
+const result = { mode, builds, protocol, build: version.build, candidate: candidate ?? null, rows, differences };
 const save = () => writeFileSync(join(out, 'reading.json'), JSON.stringify(result, null, 2));
 const device = devices['iPhone 16 Pro'];
 if (device === undefined) throw new Error('Missing maintained phone preset');
@@ -88,7 +94,7 @@ try {
       for (const pose of poses) {
         await bounded(`${slug}/${pose.name}/pose`, async () => { await poseAt(page, pose); await advance(page, 90); });
         const file = join(out, `${repeat}-${slug}-${pose.name}.rgba`);
-        const frame = await bounded(`${slug}/${pose.name}/readback`, async () => readWorldFrame(page, await page.evaluateHandle(fixedWorldFrame, pose), file));
+        const frame = await bounded(`${slug}/${pose.name}/readback`, async () => readWorldFrame(page, await page.evaluateHandle(fixedWorldFrame, {...pose,includeViewmodel}), file));
         const bytes = readFileSync(file);
         let lit = 0; for (let at = 0; at < bytes.length; at += 4) if (bytes[at] + bytes[at+1] + bytes[at+2] > 0) lit++;
         if (lit === 0) throw new Error('Empty world image');

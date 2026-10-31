@@ -3,6 +3,7 @@ import { AnimMachine } from '@wildshard/engine/anim/machine';
 import { loadRigFile, bindRig, type ClipName, type RigContract, type RigBake } from '@wildshard/engine/anim/rig';
 import { memoUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { app } from '@wildshard/engine/app/runtime';
+import { trackSkeletonTextureUploads } from '@wildshard/engine/render/changedTextureUploads';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './armClips';
 // rigArms — the first-person arm player shared by the skinned viewmodel rigs (E334).
@@ -87,7 +88,7 @@ export function skinRigid(mesh: Mesh): SkinnedMesh {
   skinned.position.copy(mesh.position); skinned.quaternion.copy(mesh.quaternion); skinned.scale.copy(mesh.scale);
   skinned.visible = mesh.visible; skinned.renderOrder = mesh.renderOrder; skinned.layers.mask = mesh.layers.mask; skinned.frustumCulled = mesh.frustumCulled;
   skinned.castShadow = mesh.castShadow; skinned.receiveShadow = mesh.receiveShadow;
-  skinned.bindMode = DetachedBindMode; skinned.bind(new Skeleton([new Bone()]), new Matrix4());
+  skinned.bindMode = DetachedBindMode; skinned.bind(trackSkeletonTextureUploads(new Skeleton([new Bone()])), new Matrix4());
   while (mesh.children.length > 0) { const child = mesh.children[0]; if (child !== undefined) skinned.add(child); }
   const parent = mesh.parent;
   if (parent !== null) { parent.add(skinned); parent.remove(mesh); }
