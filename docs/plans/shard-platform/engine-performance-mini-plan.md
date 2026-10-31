@@ -226,7 +226,7 @@ Every look-changing commit carries a before / after capture (G844).
 | EP7 | **Families with parameters, texture arrays per family**: materials differing only in constants share a program; textures packed per family at bake | Distinct programs drawn: Nine ≤ 40 (63), Pine ≤ 59 at P1–P4 (66 originally; old 45 not met, G872); KTX2 arrays on iOS Simulator with no upload errors; parity per golden still (≥ 40 dB PSNR, < 1 % of pixels > 8 off) **First piece landed (2026-10-30, sp-o5, PF7b)**: `render/layeredMaps.ts` builds a family's same-format KTX2 textures into one compressed array and patches a classic material to read `map` at a per-vertex layer; Pine's creature coats use it (`08e2f62a2a`), per-slot constants on data bones (`farHerd.ts`). **Nine bar restated (G872, 2026-10-30): ≤ 43 programs** once NF16's post merge (sp-o3) and the fabric kit / facade-shell instancing land; the last 3 to 40 are look changes on unrelated one-offs (sky planet body vs ring, MeshBasic one-offs). Nine GLSL programs drawn 53 → 49 at golden cams 1/5/14: held graphs one shape `2164737243` + `30d2059416`, colourless instances share the coloured program `5c84e5ee0f`. Pine’s forecast is superseded by the measured close-out below. **Nine at 48 (2026-10-30)**: `15a9322a19` slab chunks as one identity instance, `8950f3c90e` slab anchors draw nothing, `4fe6619330` fixed the black diners (white instance colours set inside onBeforeRender stayed unbound in three's cached vertex array; now handed over after the frame). With NF16 → 44, the accepted bar. **Pine closed as measured (2026-10-31, sp-x9; G872)**: `32142e8928` removes unused map/alphaMap from opaque native depth, sharing eligible kinds and removing one unused warm-up variant. Actual submitted programs remain **53 / 54 / 55 / 59 at P1–P4**; the **old 45 bar is not met**, restated at **≤ 59 across these four poses**. Native shader/active-input census `bbc01a75b5` confirms `USE_MAP` and active UV input disappear in 2 / 3 / 3 / 4 depth programs, but BackSide / DoubleSide and plain / batched / instanced / skinned layouts retain separate linked states. There are no drawn HAS_NORMAL-only twins; P4’s USE_COLOR pair has a real non-white active color input (RGB 0.671 / 0.604 / 0.455), so it stays. Immutable parent `e88dda7f5c` → `32142e8928`, Pine P1–P4 in both modes: **16 A/A + 16 A/B full-RGBA comparisons, all 0 differing pixels**, no tolerance / G941 exception; camera / clock / frame / calls / triangles and all thirty-frame native call / triangle sequences match. No FPS or isolated timing gain claimed. | Opus; Pine closed (sp-x9) | M |
 | EP8 | **Repeats merged by part, colourways as instance colour** (B5): one instance table per (LOD, family) | Pine boulders, barrels, crates: one draw per LOD; Nine crowd ≤ 8 draws (22); captures match **in flight (2026-10-30, sp-o5)**: Nine crowd dye merge `42a294a34f` + fix `c95ce392e0` (the kit read aDye as a constant 0, so dyed umbrellas drew near black): crowd draws 24–26 → 14, frame calls 146–150 → 135–137 at cams 1/5/14, board `3eea4b0b67` (`art/nine-dragon/ep8-crowd-dye/`). **≤ 8 needs a crowd re-bake**: the 14 left are one table per walker / sitter family per LOD, so fewer draws means baking the families into shared tables. **Driftwood measured, no cheap part merge left** (HEAD `f11d022a01`, cams 1/5/14): the palms (15 draws at cam 1) and cover families (≈ 25 at cam 14) are one table per shape proto × LOD on one material (instancing cannot merge shapes; cover is cell-culled, so FC12's `merge` would draw every copy); the coarse props tiles `props1xy` (12–14) are tile streaming; `mesh-shadow-pieces` are E153's shadow-only chunks. What is left is ≈ 13 static view draws sharing `kit-still` / `kit-rock` / `kit` across separate world-scene steps (pier, hut, shrine, rocks, zipline, plaques), plus their cascade draws: a runtime still merge across scenes, ≈ 16 MB of duplicated vertices unless the originals are dropped, so default-off behind a Debug row. Coordinator's call; PF7 next. | sp-o5 | M |
 | EP9 | **Cluster culling engine-wide** (NF5 generalized): copies bucketed by cell, legacy's thresholds (7° / 3.5° / 1 m), delta upload | Pine, Driftwood and Nine 360° pan at 4x: moving-frame work within 0.5 ms of still; buffer calls a moving frame ≤ legacy's | **done** (G941, wildshard-new) `e43772077d` (sp-x6; capture sp-x9, native cameras bit-identical): Pine P1–P4 A/A + A/B exact, Driftwood P1 exact; Nine A/B 4 / 210 / 0 / 0 / 0 px kept (board `6c23d7d7a6`: P2 restores a copy pre-EP9 culled, as legacy; P1 a 4 px cull edge). Pan bars met: NF5 / PF16 (Nine 11.4 vs 12.2 still, Pine 17.8 vs 18.9; `d60f431cc9`) | S |
-| EP10 | **Draw budget as a gate**: ≤ 150 draws and ≤ 30 µs render CPU per draw at 4x on the phone tier, in the frame-floor rows and a Developer counter | **in flight (2026-10-30, sp-x6)**: gate/counter `e084a14dfa` delivered. Official Nine 4x phone readings correctly miss CPU (spawn 150 calls / 89.33 µs max per draw; stair-street 129 / 105.43); Nine/Pine/DW official budget acceptance remains open. Distinct Linux software census `209f16500f` + caller `d4773f04c3` + phase refusal `0d74e1a6c7` delivered on `60c0084758` / run `41154960690`: all three shards **4/4 paired samples**, actual SwiftShader, CSS 201×437 / canvas 402×874, boot 1x / acknowledged sample 4x. Nine/Pine/DW max draws **144 / 94 / 186**, software µs per draw **454.861 / 758.824 / 400.806**. Phone limits are **NOT MEASURED**, no official or physical-phone timing credit. Exit 2 retains the actual inherited software FPS/content-CPU floor miss (0.169 / 0.496 / 0.632 fps); it is not an incomplete census. Official Metal / 120 samples / all poses / 90–30–600 s limits stay unchanged. Required official-mode VM correspondence fixed separately in `3453b58fae` (23 focused controls); first containing remote closure remains CI-owned. **Current mean acceptance (10-30, sp-x6):** pooled paired-frame reader `93db94eb65`; exact `bb68a5376f` Metal phone CSS402×874/canvas804×1748, 1× boot then acknowledged 4× samples, 480/480 pairs for each shard. Nine/Pine max draws **133/145** meet 150; pooled mean render CPU/draw **49.854/99.705 µs** both miss 30; worst-frame ratios **65.414/144.211 µs** also miss. Initial Nine display-name/probe-name mismatch was retained as incomplete; corrected actual authored probes plus spawn are complete. Numbers/protocol are in `c14a822129`; both CPU bars remain open, with no limit change or physical-device credit. | sp-x6 | S |
+| EP10 | **Draw budget as a gate**: ≤ 150 draws and ≤ 30 µs render CPU per draw at 4x on the phone tier, in the frame-floor rows and a Developer counter | **closed as measured miss (2026-10-31, sp-x8; G872)**. Gate/counter `e084a14dfa`, pooled mean reader `93db94eb65` and explicit Linux software delivery are retained; no cap/guard change. Historical all-pose Nine/Pine `bb68a5376f` mean 49.854/99.705 µs remains a miss. Fresh immutable `4fb407395b` Pine P1, 180 native pairs per mode, Metal phone 2×/4× CPU: LEGACY/SHARDFILE pooled **78.897/79.328 µs**, draw medians 85/91, maxima 87/93. Separate source-mapped SHARDFILE sampled CPU: stock remainder 2.948 ms/frame, hooks 0.985, setProgram remainder 0.861, uniform handling 0.746, onBeforeRender 0.498, texture bind/update 0.200. Hooks are ~11.175 µs/profile draw; removing all would not reach 30. Earned stock work has no further exact skip authority. The full method, CPU-overlap caveat and function table are in §9 below; the bar is missed, not waived. Linux SwiftShader remains NOT MEASURED for phone budgets with no official credit. | sp-x8 | S |
 | EP11 | **Spike: cluster instancing** (Nanite-lite): one instanced draw per family pulls vertices from a data texture by cluster id; no multi-draw | A throwaway in `tmp/` draws Nine's kit fabric in ≤ 5 draws on Chromium and the Simulator; reports vertex cost and memory; a go / no-go for Jake, nothing landed | **spiked: no-go (2026-10-30, sp-o1; E518)**: throwaway page experiment on HEAD 4f68386 (Nine, Chromium 4x, phone 2x): the 21 `nine-architecture` slab meshes (643,210 tris) as ONE instanced draw of 5,026 128-triangle clusters pulling world-space positions / normals from RGBA32F textures by (cluster id, gl_VertexID), stand-in shading. P4 / P1 work p50: slabs 8.4 / 8.6 ms (repeat 8.2 / 7.7), cluster draw with a per-frame JS cluster cull 10.0 / 10.2 ms (the cull alone 3.4-4.2 ms a call; 88 % / 55 % of clusters visible), cluster draw with no cull 7.8 / 8.2 ms; draws 139 -> 120 / 134 -> 119. Memory: 61.8 MB of float textures vs 75.9 MB of slab buffers. Verdict: ~19 draws for at most a few tenths of a ms of CPU (within run-to-run noise), a JS cull that costs more than it saves, unmeasured GPU vertex-fetch cost (headless has no GPU timer; the Simulator harness cannot inject the experiment), and shipping it means the graph looks fetching every channel from textures. NF11 / NT3 slab chunking already took the draws; no go. | M |
 | EP12 | **HLOD with the full look** (NF4 / DP4 for every shard with coarse copies) | Grid neighbours and Nine's decks match the legacy goldens (cams 17 / 18 / 21 / 22) **Nine landed (2026-10-30, sp-o5, G872 tile-bake raise)**: `1ac6638c5b` each coarse set keeps its L0 look (kit / kit-cut / kit-ground / facade by name through `props.materials`; +1 draw in 4 L1 tiles), `9d6aed8b15` (after `a90ccdca53` measured the coarse facade look on shells worse everywhere). Forced L1 vs L0 (worst channel mean): cam 17 14.2 → 8.6, cam 18 12.5 → 6.9, cam 22 36.7 → 28.5; board [ep12-coarse-look](../../../art/nine-dragon/ep12-coarse-look/board.jpg). **Done (G941, wildshard-new, from the board's D column)**: kits on their L0 graphs, shells on `nine-coarse-facade`, the only column that keeps Nine's character (window dots on the far shells at 17 / 18, lit block windows at 22); scores stay over the bar (12.6 / 10.7 / 39.3) but L1 is seen only from ≥ 250 m. | Opus | M |
 
@@ -375,3 +375,92 @@ own number.
    - **After the GLSL back-end lands (NF13–NF15), with Opus lanes; EP1–EP3 and EP9 start now** *(recommended: merging
      classic programs is simpler than merging node materials, and the cheap fixes are safe under every answer)*
    - Now, in parallel with NF13
+
+## 9. EP10 / PF19: per-draw reading after EP2 (2026-10-31)
+
+**Closed as measured misses, G872 (wildshard-new).** The 30 µs EP10 bar and
+48 µs PF19 bar were not achieved. No additional runtime cut or relaxed guard
+ships from this reading. EP2's final `61e4935b2f` and the terrain merge are
+included in immutable source `4fb407395b6082e7b851a353e93c9c01bc90b799`,
+build `4fb4073-mvw56rkz`.
+
+Pine P1 uses the maintained spawn pose (x 0, z −235, yaw π), Chromium ANGLE
+Metal, iPhone 16 Pro portrait PWA, 2× rendering, phone tier, 4× CPU,
+midday/clear and Developer on, matching the diagnostic budget contract.
+Actors remain alive. Each mode has 180 completed native paired frames before
+observers/profiling, then separate 180-frame GL-count and sampled CPU windows.
+A peer's 6.95 s functional native probe overlapped the cohort: these are shared
+host readings, not an isolated before/after gain or physical-phone timing.
+
+| Native P1 reading | LEGACY | SHARDFILE |
+|---|---:|---:|
+| Completed paired frames | 180 | 180 |
+| Draws median / maximum | 85 / 87 | 91 / 93 |
+| Render CPU mean, ms | 6.732 | 6.965 |
+| Pooled render CPU, µs/draw | **78.897** | **79.328** |
+| Render CPU median, ms | 6.6 | 6.9 |
+| Work median, ms | 9.4 | 11.1 |
+| Zero-draw frames | 0 | 0 |
+
+The requested call split below is from the separate CDP sample window mapped
+through the exact private build maps. Categories are exclusive: nested uniform,
+texture and engine work is removed from `setProgram`; stock work enclosed by
+our draw wrapper is not charged to the wrapper. Function-level inclusive rows
+below overlap and must not be added. Both raw profiles pass the non-negative
+delta/duration checks. CPU sampling is diagnostic and does not replace the
+native ratios above or earn floor/Simulator credit.
+
+| Sampled CPU category, ms/frame | LEGACY | SHARDFILE |
+|---|---:|---:|
+| `setProgram` remainder | 0.620 | 0.861 |
+| Uniform upload/cache, including native float setters | 1.367 | 0.746 |
+| Texture bind/update | 0.285 | 0.200 |
+| `onBeforeRender` | 0.478 | 0.498 |
+| Our render hooks, excluding enclosed stock work | 0.730 | 0.985 |
+| Other stock render work | 3.056 | 2.948 |
+| Total sampled renderer work | 6.535 | 6.237 |
+
+The profile windows contain 15,360 / 15,864 actual draws (85.333 / 88.133 per
+frame), distinct from the earlier native windows. Own-hook samples are
+8.550 / **11.175 µs per profile draw**. This is not a subtraction oracle for
+the native window, but even removing the whole hook share would not bridge
+about 79 µs to 30. The 2.95 ms stock remainder is visible work, not missing
+symbols silently attributed to a custom hook.
+
+| SHARDFILE function | Self ms/frame | Inclusive ms/frame |
+|---|---:|---:|
+| Three `renderBufferDirect` | 0.749 | 3.393 |
+| `Object3D.updateMatrixWorld` | 0.476 | 0.895 |
+| Three `setProgram` | 0.437 | 2.301 |
+| Our `properties.get` | 0.377 | 0.530 |
+| `BatchedMesh.onBeforeRender` | 0.360 | 0.487 |
+| Three `projectObject` | 0.324 | 0.643 |
+| `Matrix4.multiplyMatrices` | 0.269 | 0.269 |
+| Our draw `submit` | 0.165 | 3.740 |
+
+Separate GL observation counts 58.17 / 54.66 `useProgram` calls, 663.28 /
+601.90 uniform calls and 574.22 / 564.67 property reads per frame in
+LEGACY / SHARDFILE; texture property reads are 394.32 / 399.31. These counts
+are not CPU durations.
+
+The source audit found no further exact skip authority in the largest item:
+`renderBufferDirect` selects the actual geometry range, primitive and instance
+submission; `setProgram` observes camera/material, skin/morph/instance and
+lighting state; uniform caches must inspect mutable values before deciding
+not to upload; texture state already caches native binds. The batch callback
+performs camera-dependent culling/sorting. Public/moving matrix roots cannot
+be frozen (PF8's safe descendant trial already measured no gain). The remaining
+engine hooks enforce consuming-owner residency, upload completion, retirement
+and allocation/refusal laws. Removing those checks would change behavior.
+
+Historical all-pose `bb68a5376f` remains a separate cohort: Nine/Pine pooled
+49.854 / 99.705 µs, both above 30. Nine was not re-read by this Pine P1 visit.
+The report-only Linux software census remains a delivery diagnostic with no
+phone-budget or official timing credit.
+
+Raw paired frames, GL rows, profiles and mapped function table:
+`tmp/sp-x8-ep10/head-p1/{census.json,census-remapped.json,*.cpuprofile}`.
+The 23 exact private maps (28,363,099 B) and source/build/hash manifest are
+retained under `tmp/sp-x8-ep10/maps/`; the driver and exclusive attribution
+logic are `profile.mjs` / `call-profile.mjs` in that task directory. All owned
+browsers and the immutable preview were closed after the reading.
