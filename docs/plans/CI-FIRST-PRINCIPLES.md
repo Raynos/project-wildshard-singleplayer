@@ -1557,3 +1557,34 @@ The new identity body will populate once; no new cloud skip is claimed
 before its ordinary containing run. Other unrelated scripts remain
 conservative inputs rather than introducing an unproven broad exclusion.
 The H2 tooling task resumes after this fix. No dispatch or native proof.
+
+
+## CI2 — passive ship artifact phase clocks (G872)
+
+The exact successful-artifact restore step now opts into a report-only
+`ci2-prebuilt-restore` JSON row bound to its existing full source SHA/run.
+The original `gh run download` is timed with Bash's one-second step clock:
+this includes GitHub ZIP materialization, **not pure network time**. A
+previously provided archive reports `downloadMode: provided` and a null
+download duration; its earlier transfer is not invented as zero seconds.
+
+The existing controller separately marks compressed transport admission
+and checksum, zstd decoding with bounded temporary tar writes/archive
+checksum, and complete member validation/extraction/required-output checks.
+Those durations use a monotonic clock. It reports compressed bytes,
+uncompressed tar bytes and declared member bytes/file count beside them.
+A completed row is diagnostic, never another deployment receipt. Missing,
+backward or unavailable clocks remain null. Diagnostic output failure
+preserves both successful restoration and the original refusal/exception.
+
+No source, archive, member, function/link, map or required-output check is
+relaxed; download count, decoder, extraction and failure propagation stay
+the same. Focused controls execute the actual workflow shell with absolute
+owned `gh`/`npm` bindings, perform a real archive restoration, verify exact
+output bytes, cover provided-archive/no-download and native download23,
+and exercise backward/broken clocks and diagnostic-sink failures.
+Actionlint and the existing prebuilt/pack/checkout controls qualify the
+local packet. This is **instrumentation only, no CI2 speedup claim**.
+The first ordinary containing releases must identify whether GitHub
+artifact intake or strict restoration dominates before proposing a cut;
+sp-ci-deploy retains the sole retained-log/artifact read ownership.

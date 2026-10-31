@@ -9,6 +9,8 @@ import re
 import subprocess
 import tempfile
 import tarfile
+import time
+import math
 
 
 def digest(stream):
@@ -236,7 +238,79 @@ def pack(root, directory, sha, run):
     (directory / 'proof.json').write_text(json.dumps(proof) + '\n')
 
 
-def restore(root, directory, sha, run):
+class RestoreTimings:
+    """Best-effort observation only; never a source verdict or an error owner."""
+    def __init__(self, sha, run):
+        self.sha, self.run = sha, run
+        self.started = self.clock()
+        self.points = {}
+        self.proof = None
+        self.complete = False
+
+    @staticmethod
+    def clock():
+        try:
+            return time.monotonic()
+        except Exception:
+            return None  # A diagnostic clock cannot change restoration.
+
+    def mark(self, name):
+        self.points[name] = self.clock()
+
+    @staticmethod
+    def elapsed(start, end):
+        if start is None or end is None or not math.isfinite(end - start) or end < start:
+            return None
+        return end - start
+
+    def report(self):
+        try:
+            end = self.clock()
+            transport = self.points.get('transport')
+            decoded = self.points.get('decoded')
+            extracted = self.points.get('extracted')
+            download_mode = os.environ.get('PREBUILT_DOWNLOAD_MODE', 'unknown')
+            download = None
+            if download_mode == 'gh-run-download':
+                try:
+                    seconds = int(os.environ.get('PREBUILT_DOWNLOAD_SECONDS', ''))
+                    download = seconds if seconds >= 0 else None
+                except ValueError:
+                    pass
+            proof = self.proof
+            print(json.dumps({
+                'report': 'ci2-prebuilt-restore', 'sha': self.sha, 'run': self.run,
+                'complete': self.complete,
+                'downloadMode': download_mode, 'downloadSeconds': download,
+                'downloadResolutionSeconds': 1,
+                'downloadScope': 'gh run download including GitHub ZIP materialization; not pure network',
+                'transportCheckSeconds': self.elapsed(self.started, transport),
+                'decodeSeconds': self.elapsed(transport, decoded),
+                'decodeScope': 'zstd, bounded temporary tar writes and archive checksum',
+                'extractSeconds': self.elapsed(decoded, extracted),
+                'extractScope': 'full member validation, file/link writes and required-output checks',
+                'restoreSeconds': self.elapsed(self.started, end),
+                'compressedBytes': None if proof is None else proof['transport']['bytes'],
+                'archiveBytes': None if proof is None else proof['archiveBytes'],
+                'memberBytes': None if proof is None else sum(row['bytes'] for row in proof['files']),
+                'files': None if proof is None else len(proof['files']),
+            }))
+        except Exception:
+            pass  # Clock, metadata and diagnostic I/O never replace the native outcome.
+
+
+def restore(root, directory, sha, run, *, timings=False):
+    observation = RestoreTimings(sha, run) if timings else None
+    try:
+        _restore(root, directory, sha, run, observation)
+        if observation is not None:
+            observation.complete = True
+    finally:
+        if observation is not None:
+            observation.report()
+
+
+def _restore(root, directory, sha, run, observation):
     identity(sha, run)
     proof = json.loads((directory / 'proof.json').read_text())
     if proof['version'] != 1 or proof['sha'] != sha or proof['run'] != run:
@@ -247,6 +321,9 @@ def restore(root, directory, sha, run):
     limit = proof['archiveBytes']
     if type(limit) is not int or limit <= 0:
         raise ValueError('Invalid prebuilt archive extent')
+    if observation is not None:
+        observation.proof = proof
+        observation.mark('transport')
     with tempfile.TemporaryFile(dir=directory) as archive:
         decoder = subprocess.Popen(['zstd', '-q', '-dc', str(compressed)], stdout=subprocess.PIPE)
         size, value = 0, hashlib.sha256()
@@ -264,8 +341,12 @@ def restore(root, directory, sha, run):
             if decoder.poll() is None:
                 decoder.kill()
             decoder.wait()
+        if observation is not None:
+            observation.mark('decoded')
         archive.seek(0)
         extract(root, archive, proof, sha)
+        if observation is not None:
+            observation.mark('extracted')
 
 
 def extract(root, archive, proof, sha):
@@ -325,8 +406,12 @@ def main():
     parser.add_argument('--run', required=True)
     parser.add_argument('--root', type=Path, default=Path('.'))
     parser.add_argument('--directory', type=Path, default=Path('prebuilt-output'))
+    parser.add_argument('--timings', action='store_true', help='Report-only restore phase clocks and extents')
     args = parser.parse_args()
-    globals()[args.command](args.root, args.directory, args.sha, args.run)
+    if args.command == 'restore':
+        restore(args.root, args.directory, args.sha, args.run, timings=args.timings)
+    else:
+        pack(args.root, args.directory, args.sha, args.run)
 
 
 if __name__ == '__main__':

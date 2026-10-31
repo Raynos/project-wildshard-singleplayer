@@ -3,6 +3,7 @@ import hashlib
 import io
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import shutil
@@ -57,6 +58,126 @@ class PrebuiltTests(unittest.TestCase):
         prebuilt.restore(self.target, self.packet, SHA, '123')
         self.assertEqual({p.relative_to(self.target).as_posix(): p.read_text()
                           for p in self.target.rglob('*') if p.is_file()}, self.files)
+
+    def test_report_only_clocks_split_real_restore_and_keep_exact_bytes(self):
+        output = io.StringIO()
+        with patch.object(prebuilt.time, 'monotonic', side_effect=[10, 12, 15, 20, 21]), \
+                patch.dict(os.environ, {'PREBUILT_DOWNLOAD_MODE': 'gh-run-download',
+                                        'PREBUILT_DOWNLOAD_SECONDS': '73'}), \
+                patch('sys.stdout', output):
+            prebuilt.restore(self.target, self.packet, SHA, '123', timings=True)
+        proof = json.loads((self.packet / 'proof.json').read_text())
+        receipt, timing = map(json.loads, output.getvalue().splitlines())
+        self.assertEqual(receipt['archiveHash'], proof['archiveHash'])
+        self.assertEqual((timing['downloadSeconds'], timing['transportCheckSeconds'],
+                          timing['decodeSeconds'], timing['extractSeconds'], timing['restoreSeconds']),
+                         (73, 2, 3, 5, 11))
+        self.assertEqual(timing['compressedBytes'], (self.packet / 'prebuilt.tar.zst').stat().st_size)
+        self.assertEqual(timing['archiveBytes'], len(subprocess.check_output(
+            ['zstd', '-q', '-dc', str(self.packet / 'prebuilt.tar.zst')])))
+        self.assertEqual(timing['memberBytes'], sum(row['bytes'] for row in proof['files']))
+        self.assertTrue(timing['complete'])
+        self.assertEqual({p.relative_to(self.target).as_posix(): p.read_text()
+                          for p in self.target.rglob('*') if p.is_file()}, self.files)
+
+    def test_absent_backward_or_broken_clocks_cannot_claim_elapsed_time(self):
+        for name, clocks in [('backward', [10, 9, 8, 7, 6]),
+                             ('unavailable', OSError('clock unavailable'))]:
+            output = io.StringIO()
+            with patch.object(prebuilt.time, 'monotonic', side_effect=clocks), \
+                    patch.dict(os.environ, {'PREBUILT_DOWNLOAD_MODE': 'provided',
+                                            'PREBUILT_DOWNLOAD_SECONDS': 'untrusted'}), \
+                    patch('sys.stdout', output):
+                prebuilt.restore(self.root / name, self.packet, SHA, '123', timings=True)
+            row = json.loads(output.getvalue().splitlines()[-1])
+            self.assertTrue(row['complete'])
+            for field in ('downloadSeconds', 'transportCheckSeconds', 'decodeSeconds',
+                          'extractSeconds', 'restoreSeconds'):
+                self.assertIsNone(row[field])
+
+    def test_failed_diagnostic_sink_preserves_success_and_original_refusal(self):
+        original_print = print
+        def sink(value):
+            if json.loads(value).get('report') == 'ci2-prebuilt-restore':
+                raise OSError('diagnostic output unavailable')
+            return original_print(value)
+        with patch('builtins.print', sink):
+            self.assertIsNone(prebuilt.restore(self.target, self.packet, SHA, '123', timings=True))
+            with self.assertRaisesRegex(ValueError, 'source SHA/run'):
+                prebuilt.restore(self.root / 'foreign', self.packet, 'b' * 40, '123', timings=True)
+        self.assertFalse((self.root / 'foreign').exists())
+
+    def workflow_restore(self, mode='download', failure='0'):
+        workflow = Path('.github/workflows/deploy.yml').read_text()
+        step = workflow.split('      - name: Restore the exact successful push artifact\n', 1)[1]
+        script = re.search(r'        run: \|\n((?:          .*\n|\n)+)', step).group(1)
+        script = '\n'.join(line[10:] if line.startswith('          ') else line
+                           for line in script.splitlines())
+        runner = self.root / ('runner with spaces ' + mode + failure)
+        runner.mkdir()
+        binary = runner / 'bin'
+        binary.mkdir()
+        controller = runner / 'controller'
+        controller.mkdir()
+        shutil.copyfile(Path('scripts/prebuilt-output.py'), controller / 'prebuilt-output.py')
+        gh = binary / 'gh'
+        gh.write_text('#!' + shutil.which('python3') + '\n' +
+            'import json,os,pathlib,shutil,sys\n' +
+            'log=pathlib.Path("download-call.json")\n' +
+            'calls=json.loads(log.read_text()) if log.exists() else []\n' +
+            'calls.append(sys.argv[1:]);log.write_text(json.dumps(calls))\n' +
+            'code=int(os.environ["DOWNLOAD_EXIT"])\n' +
+            'if code: sys.exit(code)\n' +
+            'shutil.copytree(os.environ["FIXTURE_PACKET"],sys.argv[sys.argv.index("--dir")+1])\n')
+        gh.chmod(0o755)
+        npm = binary / 'npm'
+        npm.write_text('#!/bin/sh\ntouch npm-called\n')
+        npm.chmod(0o755)
+        env = {**os.environ, 'PATH': str(binary.resolve()) + os.pathsep + os.environ['PATH'],
+               'SOURCE_RUN': '123', 'DEPLOY_SHA': SHA, 'GITHUB_REPOSITORY': 'owner/repo',
+               'PREBUILT_ARCHIVE': str(self.packet.resolve()) if mode == 'provided' else '',
+               'RUNNER_TEMP': str(controller.resolve()), 'VERCEL_PROJECT_ID': 'fixture-project',
+               'VERCEL_ORG_ID': 'fixture-org', 'FIXTURE_PACKET': str(self.packet.resolve()),
+               'DOWNLOAD_EXIT': failure}
+        binding = subprocess.run(['bash', '-e', '-c', 'command -v gh; command -v npm'],
+                                 cwd=runner, env=env, capture_output=True, text=True)
+        self.assertEqual(binding.returncode, 0, binding.stderr)
+        self.assertEqual(binding.stdout.splitlines(), [str(gh.resolve()), str(npm.resolve())])
+        result = subprocess.run(['bash', '-e', '-o', 'pipefail', '-c', script], cwd=runner,
+                                env=env, capture_output=True, text=True)
+        return result, runner
+
+    def test_real_workflow_glue_downloads_once_and_reports_the_native_restore(self):
+        result, runner = self.workflow_restore()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(json.loads((runner / 'download-call.json').read_text()),
+            [['run', 'download', '123', '--repo', 'owner/repo', '--name', 'vercel-prebuilt',
+              '--dir', 'prebuilt-output']])
+        row = json.loads(result.stdout.splitlines()[-1])
+        self.assertEqual(row['report'], 'ci2-prebuilt-restore')
+        self.assertEqual(row['downloadMode'], 'gh-run-download')
+        self.assertGreaterEqual(row['downloadSeconds'], 0)
+        self.assertTrue(row['complete'])
+        for name, body in self.files.items():
+            self.assertEqual((runner / name).read_text(), body)
+        self.assertTrue((runner / 'npm-called').exists())
+
+    def test_provided_archive_has_no_download_call_or_invented_network_seconds(self):
+        result, runner = self.workflow_restore(mode='provided')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertFalse((runner / 'download-call.json').exists())
+        row = json.loads(result.stdout.splitlines()[-1])
+        self.assertEqual(row['downloadMode'], 'provided')
+        self.assertIsNone(row['downloadSeconds'])
+        self.assertTrue(row['complete'])
+
+    def test_real_download_error_still_stops_before_restore_or_install(self):
+        result, runner = self.workflow_restore(failure='23')
+        self.assertEqual(result.returncode, 23, result.stdout + result.stderr)
+        self.assertEqual(len(json.loads((runner / 'download-call.json').read_text())), 1)
+        self.assertFalse((runner / 'npm-called').exists())
+        self.assertFalse((runner / '.vercel').exists())
+        self.assertNotIn('ci2-prebuilt-restore', result.stdout)
 
     def test_stream_retains_the_original_tar_headers_order_and_padding(self):
         (self.source / '.vercel/output/functions/api/errors.func/alias.cjs').symlink_to('index.cjs')
