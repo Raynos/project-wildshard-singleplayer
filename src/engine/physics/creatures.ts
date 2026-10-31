@@ -48,7 +48,9 @@ interface Boxes { head: Collider; body: Collider; fore: Collider | null; bodyHal
   /** the creature was live and asleep at the last sync (`sync`'s `asleep`): its bones have not moved since */
   slept: boolean;
   /** what sync last wrote: head xyz, body xyz + rotation xyzw, fore xyz + rotation xyzw (NaN: nothing yet) */
-  readonly pose: Float64Array }
+  readonly pose: Float64Array;
+  /** Exact pre-normalization body / fore segment directions at the last projection. */
+  readonly directions: Float64Array }
 /**
  * FC16: a hitbox is written only when its pose differs from the one sync last wrote. Most of a shard's creatures stand still
  * or hold a frozen far pose, and every write was a wasm call that Rapier also counts as a moved collider for its next step
@@ -63,6 +65,16 @@ function turnTo(collider: Collider, pose: Float64Array, at: number, q: THREE.Qua
   if (pose[at] === q.x && pose[at + 1] === q.y && pose[at + 2] === q.z && pose[at + 3] === q.w) return;
   pose[at] = q.x; pose[at + 1] = q.y; pose[at + 2] = q.z; pose[at + 3] = q.w;
   collider.setRotation(q);
+}
+
+/** Repeated segment directions have the identical length/rotation, including the short-segment refusal. */
+function turnAlong(collider: Collider, pose: Float64Array, at: number, directions: Float64Array, offset: number): void {
+  const x = _d.x, y = _d.y, z = _d.z;
+  if (Object.is(directions[offset], x) && Object.is(directions[offset + 1], y) && Object.is(directions[offset + 2], z)) return;
+  const length = _d.length();
+  if (Number.isFinite(length)) { directions[offset] = x; directions[offset + 1] = y; directions[offset + 2] = z; }
+  else { directions[offset] = Number.NaN; directions[offset + 1] = Number.NaN; directions[offset + 2] = Number.NaN; }
+  if (length > 1e-4) { _q.setFromUnitVectors(_up, _d.multiplyScalar(1 / length)); turnTo(collider, pose, at, _q); }
 }
 
 export class CreatureBodies<C extends Creature = Creature> {
@@ -110,7 +122,7 @@ export class CreatureBodies<C extends Creature = Creature> {
           fore = world.createCollider(R.ColliderDesc.capsule(Math.max(0.01, d.fore.halfLen * s), d.fore.radius * s).setCollisionGroups(groups('HITBOX')));
           tagCollider(fore, 'flesh', bodyOwner); this.owners.set(fore.handle, bodyOwner);
         }
-        b = { head, body, fore, bodyHalf, on: true, slept: false, pose: new Float64Array(17).fill(Number.NaN) };
+        b = { head, body, fore, bodyHalf, on: true, slept: false, pose: new Float64Array(17).fill(Number.NaN), directions: new Float64Array(6).fill(Number.NaN) };
         this.boxes.set(c, b);
       }
       const wasLive = b.on, sleeping = live && asleep?.(c) === true;
@@ -123,13 +135,11 @@ export class CreatureBodies<C extends Creature = Creature> {
         moveTo(b.head, pose, 0, _a.x, _a.y, _a.z);
         c.bodyCapsule(_a, _b);
         _d.subVectors(_b, _a);
-        const len = _d.length();
-        if (len > 1e-4) { _q.setFromUnitVectors(_up, _d.multiplyScalar(1 / len)); turnTo(b.body, pose, 6, _q); }
+        turnAlong(b.body, pose, 6, b.directions, 0);
         moveTo(b.body, pose, 3, (_a.x + _b.x) / 2, (_a.y + _b.y) / 2, (_a.z + _b.z) / 2);
         if (b.fore !== null && c.foreCapsule?.(_a, _b) === true) {
           _d.subVectors(_b, _a);
-          const fl = _d.length();
-          if (fl > 1e-4) { _q.setFromUnitVectors(_up, _d.multiplyScalar(1 / fl)); turnTo(b.fore, pose, 13, _q); }
+          turnAlong(b.fore, pose, 13, b.directions, 3);
           moveTo(b.fore, pose, 10, (_a.x + _b.x) / 2, (_a.y + _b.y) / 2, (_a.z + _b.z) / 2);
         }
       }
