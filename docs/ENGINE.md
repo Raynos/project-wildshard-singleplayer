@@ -4604,7 +4604,7 @@ DS1.1: numeric world rows, inert sketches, mover/entry declarations, native-grou
 
 DS1.1: local checkpoint, lift rider, runtime measurements/declarations, skin rows and script-species/elite/weapon-hook declarations live in `@wildshard/format`. Native runtime admission, allocations, script hosts and playback remain in game. The wire calibration and weapon phase table are checked against the native owners; the skin clip narrowing is identity-only and grants no bridge to an unfamiliar author transform. Material and post graph contracts remain in game pending DS1.4.
 
-DS1.1: `@wildshard/format/shardSections` defines root identity, requirements, budgets, simulation, author/server limits, file/tile inventories, library/critical roots, far proxy and spawn. Root composition retains every original default and native reference check. Material-dependent props/splats and look/post graphs remain in game for DS1.4. Native tile sizes and fixed wire cell bounds are equality-tested.
+DS1.1: `@wildshard/format/shardSections` owns identity, requirements, budgets, simulation, author/server limits, files/tiles, library/critical roots, far proxy and spawn; native defaults/reference checks stay. DS1.4 keeps material props/splats/look/post in game. Tile sizes/wire bounds are equality-tested. `props.splat.merge='cell'`: 500 m ground groups; default `'quadrant'`: 250 m. Scopes, channels and masks stay exact.
 
 ### Node authoring: retained rig and raster readers (DS1.3 / G320)
 

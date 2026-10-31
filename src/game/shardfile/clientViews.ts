@@ -117,13 +117,13 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
             const g = mesh.geometry, splat = g.getAttribute('_splat'), canopy = g.getAttribute('_canopy');
             if (g.hasAttribute('_splat') && g.hasAttribute('_canopy')) {
               g.setAttribute('splat', splat); g.setAttribute('canopy', canopy); g.deleteAttribute('_splat'); g.deleteAttribute('_canopy');
-              return [groundMerge(parent, ground, 'ground.fine').add(mesh, scope, { x: row.x, z: row.z })];
+              return [groundMerge(parent, ground, 'ground.fine', props.splat?.merge ?? 'quadrant').add(mesh, scope, { x: row.x, z: row.z })];
             }
             const drawn: unknown = mesh.material; return isMaterial(drawn) ? [groundMerge(parent, drawn, 'ground.coarse').add(mesh, scope, { x: row.x, z: row.z })] : [];
           });
           return { mask: (excluded) => { for (const set of hide) set(excluded); }, shadow: () => undefined };
         }
-        for (const mesh of meshes) if (mesh.material === ground) groundMerge(parent, ground, 'ground.fine').add(mesh, scope);
+        for (const mesh of meshes) if (mesh.material === ground) groundMerge(parent, ground, 'ground.fine', props.splat?.merge ?? 'quadrant').add(mesh, scope);
       }
       if (row.lod !== 1) outlineProps(root, ports, ports.materials.get(props.family), scope);
       // what each mesh was baked to do (a GLB node's castShadow flag); the shadow disc only ever turns it off. An additive

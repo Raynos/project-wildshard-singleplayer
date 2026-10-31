@@ -5,6 +5,8 @@
  */
 import type { SplatGroundOptions } from '@wildshard/sdk/bake/splatGround';
 import { groundRgb } from './farLook';
+import { parse } from 'valibot';
+import { SplatTerrainSchema } from '@wildshard/format/splatTerrain';
 
 /** The material name the ground primitives carry; Pine's `props.splat` row binds it. */
 export const PINE_GROUND_MATERIAL = 'pine.ground';
@@ -52,7 +54,7 @@ export function withPineGround<P extends { tiles: readonly PropsTile[] }, S exte
       files: [file.hash, ...content?.files ?? []], compressed: sum('compressed'), decoded: sum('decoded'), gpu: sum('gpu'), triangles: sum('triangles'), draws: sum('draws') };
     return { propsTile, tile };
   });
-  return { props: { ...props, splat: ground.splat, tiles: tiles.map(row => row.propsTile) },
+  return { props: { ...props, splat: { ...parse(SplatTerrainSchema, ground.splat), merge: 'cell' as const }, tiles: tiles.map(row => row.propsTile) },
     shardfile: { ...shardfile, tiles: tiles.map(row => row.tile), files: [...shardfile.files, ...ground.tiles.map(row => row.file), ...ground.textures],
       library: [...shardfile.library, ...ground.textures.map(file => file.hash)] } };
 }

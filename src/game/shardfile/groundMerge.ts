@@ -39,7 +39,9 @@ interface Block { readonly members: Map<Mesh, Member>; merged: Mesh | null; queu
 export class GroundMerge {
   private readonly blocks = new Map<string, Block>();
   /** `onRebuild`: each new merged mesh, before it draws (its shadow flags, render order or a terrain's mesh slot) */
-  constructor(private readonly parent: Object3D, private readonly material: Material, private readonly name: string, private readonly onRebuild?: (mesh: Mesh) => void) {}
+  constructor(private readonly parent: Object3D, private readonly material: Material, private readonly name: string, private readonly onRebuild?: (mesh: Mesh) => void, readonly grouping: 'quadrant' | 'cell' = 'quadrant') {
+    if (grouping !== 'quadrant' && grouping !== 'cell') throw new Error('Unknown ground merge grouping');
+  }
 
   /** The tile's ground `mesh` joins (hidden itself) until `scope` ends. Detached meshes are already parent-local;
    * attached meshes keep their scene transform. `coarse` returns the quadrant setter.
@@ -95,7 +97,12 @@ export class GroundMerge {
       centre.applyMatrix4(member.mesh.parent === null ? member.mesh.matrix : new Matrix4().copy(this.parent.matrixWorld).invert().multiply(member.mesh.matrixWorld));
       x = centre.x; z = centre.z;
     }
-    return `${String(Math.floor((x + HALF) / BLOCK))},${String(Math.floor((z + HALF) / BLOCK))}`;
+    const size = this.grouping === 'cell' ? HALF * 2 : BLOCK;
+    const cell = `${String(Math.floor((x + HALF) / size))},${String(Math.floor((z + HALF) / size))}`;
+    if (this.grouping === 'quadrant') return cell;
+    // A cell merge never drops a channel supplied by another quadrant.
+    const layout = Object.entries(member.mesh.geometry.attributes).map(([name, attribute]) => `${name}:${String(attribute.itemSize)}:${String(attribute.normalized)}`).sort().join('|');
+    return `${cell}|${layout}`;
   }
 
   private queue(block: Block): void {
@@ -215,10 +222,11 @@ export class GroundMerge {
 
 const merges = new WeakMap<Object3D, Map<Material, GroundMerge>>();
 /** The one merge of `material` under `parent` (made on first use; each block empties itself as its last member leaves). */
-export function groundMerge(parent: Object3D, material: Material, name: string): GroundMerge {
+export function groundMerge(parent: Object3D, material: Material, name: string, grouping: 'quadrant' | 'cell' = 'quadrant'): GroundMerge {
   let byMaterial = merges.get(parent);
   if (byMaterial === undefined) { byMaterial = new Map(); merges.set(parent, byMaterial); }
   let merge = byMaterial.get(material);
-  if (merge === undefined) { merge = new GroundMerge(parent, material, name); byMaterial.set(material, merge); }
+  if (merge === undefined) { merge = new GroundMerge(parent, material, name, undefined, grouping); byMaterial.set(material, merge); }
+  if (merge.grouping !== grouping) throw new Error('Ground merge grouping changed for its material');
   return merge;
 }

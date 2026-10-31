@@ -168,3 +168,48 @@ test('T10: merged attributes read as three reads them, plain, interleaved, norma
   }
   scope.dispose();
 });
+
+// PF19: grouping changes submissions, never the carried triangle/channel words.
+test('opted-in cell ground merges four quadrants with exact channels and scoped retirement', async () => {
+  const parent = new THREE.Group(), oldParent = new THREE.Group(), material = new THREE.MeshBasicMaterial();
+  const cell = new GroundMerge(parent, material, 'ground.fine', undefined, 'cell');
+  const quarters = new GroundMerge(oldParent, material, 'ground.fine');
+  const scopes = Array.from({length:4}, (_, i) => new Scope(`cell-ground-${String(i)}`));
+  const points = [[-250,-250],[0,-250],[-250,0],[0,0]] as const;
+  for (const [i, [x,z]] of points.entries()) {
+    const scope = scopes[i]; if (scope === undefined) throw new Error('Missing tile scope');
+    cell.add(tile(x,z), scope); quarters.add(tile(x,z), scope);
+  }
+  await settle();
+  const words = (meshes: readonly THREE.Mesh[]): string[] => {
+    const rows: string[] = [];
+    for (const mesh of meshes) {
+      const geometry = mesh.geometry, index = geometry.getIndex(); if (index === null) throw new Error('Ground needs indexed triangles');
+      const attributes = Object.entries(geometry.attributes).sort(([a],[b]) => a.localeCompare(b));
+      for (let at = 0; at < index.count; at += 3) {
+        const values: number[] = [];
+        for (let corner = 0; corner < 3; corner++) for (const [, attribute] of attributes) for (let component = 0; component < attribute.itemSize; component++)
+          values.push(attribute.getComponent(index.getX(at+corner), component));
+        const floats = Float32Array.from(values); rows.push([...new Uint32Array(floats.buffer)].join(','));
+      }
+    }
+    return rows.sort();
+  };
+  expect(quarters.meshes).toHaveLength(4); expect(cell.meshes).toHaveLength(1);
+  expect(words(cell.meshes)).toEqual(words(quarters.meshes));
+  const bounds = new THREE.Box3();
+  for (const mesh of quarters.meshes) { if (mesh.geometry.boundingBox === null) throw new Error('Missing kept bounds'); bounds.union(mesh.geometry.boundingBox); }
+  expect(cell.mesh?.geometry.boundingBox).toEqual(bounds);
+  scopes[1]?.dispose(); await settle(); expect(words(cell.meshes)).toEqual(words(quarters.meshes));
+  for (const scope of scopes) scope.dispose(); await settle();
+  expect(cell.meshes).toHaveLength(0); expect(parent.children).toHaveLength(0);
+});
+
+test('cell ground keeps differing vertex channel layouts in separate submissions', async () => {
+  const parent = new THREE.Group(), merge = new GroundMerge(parent, new THREE.MeshBasicMaterial(), 'ground.fine', undefined, 'cell');
+  const a = new Scope('splat'), b = new Scope('splat-colour'), first = tile(-250,-250), second = tile(0,-250);
+  second.geometry.setAttribute('color', new THREE.Float32BufferAttribute(Array.from({length:18}, () => .5),3));
+  merge.add(first,a); merge.add(second,b); await settle();
+  expect(merge.meshes).toHaveLength(2); expect(merge.meshes.filter(mesh => mesh.geometry.hasAttribute('color'))).toHaveLength(1);
+  a.dispose(); b.dispose(); await settle(); expect(parent.children).toHaveLength(0);
+});

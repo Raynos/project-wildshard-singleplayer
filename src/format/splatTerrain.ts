@@ -39,6 +39,8 @@ export const SPLAT_CHANNELS = { _SPLAT: { attribute: 'splat', itemSize: 4 }, _CA
 export const SplatTerrainSchema: v.GenericSchema<SplatTerrainInput, SplatTerrain> = v.strictObject({
   /** the baked GLB material name every terrain primitive carries */
   material: glbName,
+  /** Merge the admitted fine ground over a whole cell; absent keeps 250 m quadrants. */
+  merge: v.exactOptional(v.picklist(['quadrant', 'cell'])),
   /** per role, layer i's KTX2 file (the unflipped `#layer` twin); layer i is splat channel i */
   layers: v.strictObject({ colour: four(ref), normal: four(ref), arm: four(ref) }),
   /** the phone tier's own layer files, as `layers` (a shard's phone transcodes, Pine's ASTC 6x6); absent: the phone draws `layers` */
@@ -108,6 +110,7 @@ export function checkTileMaterialNames(materials: PropMaterials | undefined, spl
 /** Admitted data contracts, independent of validator implementation metadata. */
 export type SplatTerrainInput = SplatTerrain;
 interface SplatTerrainFields {
+    merge?: 'quadrant' | 'cell';
     material: string;
     layers: {
         colour: [

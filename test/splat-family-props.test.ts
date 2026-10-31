@@ -88,3 +88,10 @@ test('a GLSL graph look draws as itself, never as a vertex-coloured family varia
     expect(drawn).toEqual([graph]); expect(graph.vertexColors).toBe(false);
   } finally { scope.dispose(); graph.dispose(); }
 });
+
+test('splat terrain admits an explicit cell merge without changing layer loans', () => {
+  const cell = v.parse(SplatTerrainSchema, {...SPLAT, merge:'cell'});
+  expect(cell.merge).toBe('cell'); expect(splatTextureRefs(cell)).toEqual(splatTextureRefs(SPLAT));
+  expect(v.parse(SplatTerrainSchema,SPLAT).merge).toBeUndefined();
+  expect(()=>v.parse(SplatTerrainSchema,{...SPLAT,merge:'all-worlds'})).toThrow();
+});
