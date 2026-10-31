@@ -35,6 +35,20 @@ export interface RoadTileStore {
   put: (hash: string, bytes: Uint8Array) => Promise<boolean>;
   pin?: (hashes: Iterable<string>) => () => void;
 }
+const hashTurns = new WeakMap<RoadTileStore, Map<string, Promise<void>>>();
+/** Equal content keys retain the original lookup-after-publication ordering.
+ * A turn holds no bytes/result and always releases, including failed owners. */
+function hashTurn(store: RoadTileStore, hash: string): { readonly before: Promise<void> | undefined; readonly release: () => void } {
+  const turns = hashTurns.get(store) ?? new Map<string, Promise<void>>();
+  hashTurns.set(store, turns);
+  const before = turns.get(hash); let finish = (): void => undefined;
+  const turn = new Promise<void>(resolve => { finish = resolve; }); turns.set(hash, turn);
+  return { before, release: () => {
+    finish();
+    if (turns.get(hash) === turn) turns.delete(hash);
+    if (turns.size === 0) hashTurns.delete(store);
+  } };
+}
 /** Runtime-authored road bytes share the worker's store; no page LRU exists. */
 export function roadTileCache(storage: Pick<CacheStorage, 'open'>, origin: string): RoadTileStore {
   const url = (hash: string): string => {
@@ -193,13 +207,17 @@ async function persistEncodedRoadTile(scope: Scope, store: RoadTileStore, bytes:
   const unpin = store.pin?.([hash]) ?? (() => undefined); let pinned = true;
   const release = (): void => { if (pinned) { pinned = false; unpin(); } };
   const cancel = scope.capture('disposers', release);
+  let finishHash = (): void => undefined;
   try {
+    const turn = hashTurn(store, hash); finishHash = turn.release;
+    if (turn.before !== undefined) await turn.before;
     live(scope);
     const stored = await storedRoadTile(store, hash, bytes.length); live(scope);
     if (!stored && !await store.put(hash, bytes)) throw new Error('Road tile archive storage refused');
     live(scope);
     return { hash, wireBytes: bytes.length, ...reference };
   } catch (error) { cancel(); release(); throw error; }
+  finally { finishHash(); }
 }
 /** Verify the full restored content address before decoding. The explicit
  * reference also fences identity, length and decoded admission bytes. */

@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, Sphere } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
 import { contentHash } from '../shardfile/contentHash';
@@ -134,4 +134,44 @@ test('out-of-order failures retain the first authored refusal after all started 
   expect(store.counts.reads).toBe(6); expect(store.counts.active).toBe(0);
   expect(store.counts.releases).toBe(store.counts.pins); expect(backing.state().materials).toBe(0);
   scope.dispose(); f.close();
+});
+
+test.each(['clean', 'repair', 'quota'] as const)('equal cold hashes preserve later body verification and %s semantics', async mode => {
+  const f = fixture(1), scope = new Scope('equal road hashes');
+  const plan: CullPlan = { ...f.plan, source: f.plan.source.subarray(0, 3), lod: [],
+    bins: f.plan.bins.map(bin => ({ ...bin, levels: [] })) };
+  const expected = await serialBodies(f.mesh, plan); expect(expected.size).toBe(1);
+  const bodies = new Map<string, Uint8Array>(); let reads = 0, writes = 0, hashes = 0;
+  let release = (): void => undefined, hashed = (): void => undefined;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const bothHashed = new Promise<void>(resolve => { hashed = resolve; });
+  const digest = crypto.subtle.digest.bind(crypto.subtle);
+  const spy = vi.spyOn(crypto.subtle, 'digest').mockImplementation(async (algorithm, data) => {
+    const result = await digest(algorithm, data); hashes++; if (hashes === 2) hashed(); return result;
+  });
+  const backing = new RoadTileBacking(scope, {
+    get: async hash => { reads++; const bytes = bodies.get(hash)?.slice() ?? null; if (reads === 1) await gate; return bytes; },
+    put: (hash, bytes) => {
+      writes++; if (writes > 1 && mode !== 'repair') return Promise.resolve(false);
+      const copy = bytes.slice(), last = copy.length - 1;
+      if (writes === 1 && mode !== 'clean') copy[last] = (copy[last] ?? 0) ^ 1;
+      bodies.set(hash, copy); return Promise.resolve(true);
+    },
+  }, { pitch: 125, plans: new Map() });
+  const work = capture(backing, f.mesh, plan);
+  const result = (async () => {
+    try { await work; return { ok: true }; }
+    catch (error) { return { ok: false, error }; }
+  })();
+  try {
+    await bothHashed; await Promise.resolve(); await Promise.resolve();
+    const beforeRelease = reads; release(); const completed = await result;
+    expect(beforeRelease).toBe(1); expect(reads).toBe(2); expect(hashes).toBe(3);
+    expect(writes).toBe(mode === 'clean' ? 1 : 2);
+    if (mode === 'quota') expect(completed).toEqual({ ok: false, error: new Error('Road tile archive storage refused') });
+    else {
+      expect(completed).toEqual({ ok: true });
+      for (const [hash, bytes] of expected) expect(bodies.get(hash)).toEqual(bytes);
+    }
+  } finally { release(); await result; spy.mockRestore(); scope.dispose(); f.close(); }
 });
