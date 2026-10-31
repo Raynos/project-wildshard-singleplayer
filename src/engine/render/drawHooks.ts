@@ -114,7 +114,7 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
   const hooks: PropertyHooks = {};
   pipeline.properties = hooks;
   const get = renderer.properties.get.bind(renderer.properties);
-  const counter = renderCounter(renderer);
+  let counter = renderCounter(renderer);
   interface Observation { kind: ResourceKind; frame: number; metadata: boolean; owner: symbol | null; revision: number; labels: number | undefined; value: unknown }
   let observed = new WeakMap<object, Observation>();
   const remove = renderer.properties.remove?.bind(renderer.properties), dispose = renderer.properties.dispose?.bind(renderer.properties);
@@ -125,6 +125,15 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
   if (dispose !== undefined) renderer.properties.dispose = () => { observed = new WeakMap(); dispose(); };
   renderer.properties.get = (resource: unknown) => {
     if (typeof resource !== 'object' || resource === null) return get(resource);
+    if (counter === undefined) {
+      const frameCounter = renderCounter(renderer);
+      if (frameCounter !== undefined) {
+        counter = frameCounter;
+        // The real renderer installs upload observation before its render
+        // counter. Its first counted render must not reuse a per-draw epoch.
+        observed = new WeakMap();
+      }
+    }
     const prior = observed.get(resource);
     // Native metadata has no upload, owner or label observer. Its mutable row
     // keeps one identity until the native remove/dispose paths above reset it.

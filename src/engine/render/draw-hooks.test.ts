@@ -148,6 +148,25 @@ test('metadata without native invalidation methods keeps consulting the native p
   row = { version: 2 }; expect(renderer.properties.get(source)).toBe(row);
 });
 
+test('a later frame counter shares ownership observation across draws but not renders', () => {
+  const f = fixture(), native = {}, get = vi.fn((_value: unknown) => native);
+  const renderer = { ...f.renderer, properties: { get },
+    render: (_scene: Scene, _camera: Camera) => {
+      renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+      renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+    } };
+  drawHooks(renderer); const hooks = propertyHooks(renderer), observe = vi.fn<(resource: unknown) => void>(); hooks.ownership = observe;
+  f.stock.mockImplementation(() => {
+    expect(renderer.properties.get(f.material)).toBe(native);
+    expect(renderer.properties.get(f.material)).toBe(native);
+  });
+  // Uncounted test renderers retain the conservative per-draw observations.
+  renderer.render(f.scene, f.camera); expect(observe).toHaveBeenCalledTimes(2);
+  installFrameCounter(renderer);
+  renderer.render(f.scene, f.camera); expect(observe).toHaveBeenCalledTimes(3);
+  renderer.render(f.scene, f.camera); expect(observe).toHaveBeenCalledTimes(4);
+});
+
 test('new render, consuming owner, label policy and upload registrations invalidate reuse', () => {
   const f = fixture(), resource = new Texture(), native = {}, proxies = [{}, {}];
   const renderer = { ...f.renderer, properties: { get: (_value: unknown) => native },
