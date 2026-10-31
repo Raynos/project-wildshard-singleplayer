@@ -33,7 +33,8 @@ export default defineConfig(({ mode, command }) => {
       ? { target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: false, outDir: 'dist-native', rolldownOptions: { input: { index: join(process.cwd(), 'native.html') } } }
       // one stylesheet: src/entry.ts splits three.js from the game's graph, and code-split CSS would add a request
       : {
-        target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false, manifest: true,
+        // The mandatory chunk report measures and gates gzip bytes after this web build.
+        target: 'es2022', reportCompressedSize: false, chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false, manifest: true,
         // G221: standalone CLI calibration, never a game-entry or Developer switch.
         rolldownOptions: {
           input: { main: join(process.cwd(), 'index.html'), calibration: join(process.cwd(), 'calibration/index.html') },
