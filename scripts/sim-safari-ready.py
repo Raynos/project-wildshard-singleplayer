@@ -250,6 +250,25 @@ class SafariScreenshots:
     def reap(self):
         self.poll(reap_only=True)
 
+    def kill_owned(self, pid, slot, fallback=False):
+        # Diagnostic cleanup cannot replace the owned native result. Keep a
+        # refused signal pending and never retry it or broaden its target.
+        if slot.get('cleanupRefused'):
+            return
+        try:
+            try: os.killpg(pid, 9)
+            except ProcessLookupError:
+                if fallback: os.kill(pid, 9)
+        except OSError as error:
+            slot['cleanupRefused'] = True
+            record = slot['record']
+            if record is not None:
+                record.update(status='cleanup-refused', cleanupPending=True,
+                              cleanupRefusedAt=round(time.monotonic() - self.started, 3),
+                              cleanupErrorType=type(error).__name__, cleanupErrno=error.errno)
+            else:
+                self.preparation['errors'].append(f'cleanup:{type(error).__name__}:{error.errno}')
+
     def messages(self, slot):
         record = slot['record']
         try: chunk = os.read(slot['receive'], 4096)
@@ -287,8 +306,7 @@ class SafariScreenshots:
                     del self.active[pid]
                 elif not reap_only and record is not None and time.monotonic() >= slot['deadline'] and record['killAt'] is None:
                     record.update(status='timeout', killAt=round(time.monotonic() - self.started, 3))
-                    try: os.killpg(pid, 9)
-                    except ProcessLookupError: os.kill(pid, 9)
+                    self.kill_owned(pid, slot, fallback=True)
             except (OSError, ValueError) as error:
                 if record is not None: record.update(status='cleanup-error', errorType=type(error).__name__)
 
@@ -302,9 +320,8 @@ class SafariScreenshots:
             self.poll()
             remaining = end - time.monotonic()
             if remaining <= 0:
-                for pid in self.active:
-                    try: os.killpg(pid, 9)
-                    except ProcessLookupError: pass
+                for pid, slot in self.active.items():
+                    self.kill_owned(pid, slot)
                 self.reap()
                 break
             threading.Event().wait(min(.01, remaining))

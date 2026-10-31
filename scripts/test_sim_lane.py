@@ -3,6 +3,7 @@ import json
 import ast
 import io
 import builtins
+import errno
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from types import FunctionType, SimpleNamespace
@@ -792,6 +793,73 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
             ports['subprocess'] = SimpleNamespace(Popen=refuse)
             with self.assertRaises(PermissionError) as caught: helper(UDID)
             self.assertIs(caught.exception, original)
+        self.assert_not_handed_over()
+
+    def test_cleanup_permission_refusal_preserves_native_results_exception_and_receipt(self):
+        native = READY['wait_for_safari']
+        for code, frames, late in [(23, False, False), (0, True, False), (0, False, True)]:
+            clock = SimpleNamespace(now=0)
+            clock.monotonic = lambda: clock.now
+            controller = self.screenshot_controller(lambda *_args: self.fail('No native screenshot'), clock, prepare=False)
+            signals, receipts = [], []
+            def denied(pid, sig):
+                signals.append((pid, sig))
+                raise PermissionError(errno.EPERM, 'Owned diagnostic signal refused')
+            owned_os = controller.finish.__func__.__globals__['os']
+            owned_os.killpg = denied
+            owned_os.kill = lambda *_args: self.fail('Permission refusal must not change signal target')
+            owned_os.waitpid = lambda *_args: (0, 0)
+            controller.messages = lambda _slot: None
+            record = {'status': 'running', 'killAt': None, 'reapedAt': None,
+                      'supervisorExit': None, 'nativeReturnCode': None}
+            controller.records.append(record)
+            controller.active[12345] = {'record': record, 'send': None, 'receive': None, 'deadline': 0}
+            controller.finish_deadline = 0
+            class Launch:
+                returncode = code
+                def __enter__(self): clock.now = 2 if late else 0; return self
+                def __exit__(self, *_args): pass
+                def poll(self): return self.returncode
+            @contextmanager
+            def page(*_args): yield 'http://127.0.0.1/owned', SimpleNamespace(is_set=lambda: frames)
+            @contextmanager
+            def transcript(): yield object()
+            def diagnostic(*args, **_kwargs):
+                if args[0].startswith('sim-lane: Safari lifecycle receipt '):
+                    receipts.append(json.loads(args[0].split('receipt ', 1)[1]))
+            ports = {**native.__globals__, 'time': clock, 'SafariScreenshots': lambda *_args: controller,
+                     'os': SimpleNamespace(environ={'SIM_SAFARI_READY_TIMEOUT': '1'}),
+                     'readiness_page': page, 'native_transcript': transcript, 'native_text': lambda _: '',
+                     'subprocess': SimpleNamespace(Popen=lambda *_args, **_kwargs: Launch()), 'print': diagnostic}
+            opening = READY['open_ready_page']
+            ports['open_ready_page'] = FunctionType(opening.__code__, ports, argdefs=opening.__defaults__)
+            helper = FunctionType(native.__code__, ports)
+            expected = 124 if late else code
+            self.assertEqual(helper(UDID), expected)
+            self.assertEqual(receipts[-1]['result'], expected)
+            self.assertEqual(record['status'], 'cleanup-refused')
+            self.assertEqual(record['cleanupErrno'], errno.EPERM)
+            self.assertTrue(record['cleanupPending'])
+            self.assertIsNone(record['reapedAt']); self.assertIsNone(record['supervisorExit'])
+            self.assertIsNone(record['nativeReturnCode'])
+            controller.finish(); self.assertEqual(signals, [(12345, 9)])
+            original = PermissionError('Original owned launch refusal')
+            def refuse(*_args, **_kwargs): raise original
+            ports['subprocess'] = SimpleNamespace(Popen=refuse)
+            with self.assertRaises(PermissionError) as caught: helper(UDID)
+            self.assertIs(caught.exception, original)
+            self.assertIsNone(receipts[-1]['result'])
+            self.assertEqual(signals, [(12345, 9)])
+            # Reaping only this supervisor cannot establish whole-group death
+            # after its cleanup signal was refused.
+            owned_os.waitpid = lambda pid, _flags: (pid, 9)
+            owned_os.close = lambda _fd: None
+            controller.reap()
+            self.assertFalse(controller.active)
+            self.assertIsNotNone(record['reapedAt'])
+            self.assertEqual(record['supervisorExit'], -9)
+            self.assertTrue(record['cleanupPending'])
+            self.assertIsNone(record['nativeReturnCode'])
         self.assert_not_handed_over()
 
     def test_probe_flushes_the_owned_document_before_a_blocked_progress_sink(self):
