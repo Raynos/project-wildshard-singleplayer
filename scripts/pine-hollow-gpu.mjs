@@ -33,7 +33,7 @@
 //   node scripts/pine-hollow-gpu.mjs --url=… --poses=stones --subtract=shadow,vol,group:forest-cards --overdraw=0
 //   node scripts/pine-hollow-gpu.mjs --url=… --heat=/path/to/dir      # + a heat map JPEG per pose
 //
-// Serve a clean `git archive HEAD` export with `vite preview` (never the shared dev server). One headless Chromium on
+// Serve an immutable `scripts/serve-build.sh --rev SHA` preview. One headless Chromium on
 // Metal (`--use-angle=metal`), muted, closed at the end. Writes progress/pine-hollow-gpu-<tag>.json, prints tables.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
@@ -63,6 +63,12 @@ const [VW, VH] = flag('size', TIER === 'phone' ? '402x874' : '1600x900').split('
 const DPR = Number(flag('dpr', TIER === 'phone' ? '3' : '1'));
 /** the shard (E189: `--chunk=driftwood-isle` times Driftwood's phone frame with its own poses) */
 const CHUNK = flag('chunk', 'pine-hollow');
+// G1/PF11 uses real entry cards and source-bound raw rows in tmp.
+if (CHUNK === 'nine-dragon-stack' || argv.some(value => value.startsWith('--mode='))) {
+  const {runGpuCensus} = await import('./perf/gpu-census.mjs');
+  await runGpuCensus();
+  process.exit(0);
+}
 /** yaw faces (-sin yaw, -cos yaw); +z is north, +x is west on the map */
 const DRIFTWOOD_POSES = [
   // the spawn on the pier, facing the island (E189: Jake's standing-still reading, 111 calls · 395 k tris)
