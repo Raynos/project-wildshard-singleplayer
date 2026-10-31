@@ -174,16 +174,15 @@ rewrite still needs Jake's approval.
   command wrapper never stop a job for a peer failure; the wrapper does not query peer jobs. An interruption
   still cleans up only the owned command's process group. Per-command bail and dependency gates remain.
   Failure annotations name the source/test file, and short-lived `ci-failures-*` artifacts contain only paths,
-  revision and job identity for the push gate's recently-red selection. No raw logs or secrets are published.
-- **Recently red first (G671 P1):** the existing push loop observes one newest unseen failed push CI run per tick,
-  using exact run/SHA failure artifacts or older failed-job logs. Cache only safe test paths for 24 hours;
-  unavailable reads are named, not silently counted as green. Within the same 45-second ceiling, run eligible
-  recently-red tests after mandatory guards and before related tests, then omit successful repeats. Missing
-  verified inputs still defer to CI. No new watcher or schedule is installed.
+  revision and job identity. The current push tick does not consume them for test selection. No raw logs or secrets
+  are published.
+- **Recently red first (G671 P1) is retired under G768/G769/DL3.** The current committed-only push tick does not
+  fetch recent CI failures or run test selection. Dormant helper controls do not prove a live observation.
+  Ordinary full CI and required smoke verdicts remain; do not reinstall the old CF1 gate.
 - **Gate timings (G671 P3):** every checked push records per-step seconds and outcomes in `.git/push.log`,
-  with the exact candidate SHA for prefix rechecks. Source preparation and cleanup are separate from policy
-  guards, recent/related tests, selection and typed lint. Skipped rows name budget exhaustion, missing verified
-  inputs or absent work; a timeout never becomes a passing check. Upload time and remaining gate overhead
+  with the exact candidate SHA for prefix rechecks. Current phases are binary JSON, checker inputs, storage,
+  deleted paths, ratchet, guards and fast lint; retired source preparation and test-selection phases do not execute.
+  Skipped rows name their reason; a timeout never becomes a passing check. Upload time and remaining gate overhead
   are recorded separately. This is measurement, not a new preparation cache or budget policy.
 - **Source checks:** pre-commit checks the pathspec's named files and refuses if they change during the check.
   The scheduled push gate checks immutable committed candidates in disposable source snapshots, preserving the

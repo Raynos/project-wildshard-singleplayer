@@ -195,23 +195,23 @@ or is deleted;** no tooling commit breaks every commit unnoticed. 8. No wait ove
 |---|---|---|---|---|
 | S1 | Classify every test file: unit / integration / regression / end-to-end / scenario, and needs-generated / needs-products / spawns (table in the commit message) | enables C1, S2, P1 | S | every file classed |
 | S2 | vitest projects follow the layers (colocated unit + integration under T3) plus one `scenario` project; CI shards by project | minute-0 shards; per-layer `vitest related` | M–L | no unit test under `test/` |
-| S3 | **Repeat reds:** the 22 files red in ≥ 3 runs are fixed or deleted (G416) | the bulk of behaviour-only reds | M | no file red in 3+ runs in a week |
+| S3 | **In flight (2026-10-31, sp-x6), bounded audit accepted:** historical causes have defining fixes; no current unowned reproduction. No further work needed now. | keeps valid tests and every cap | M | weekly no-3-red bar remains open until a complete week is evidenced |
 | S4 | Any file over 20 s gets faster or moves to `scenario` (15 today) | shorter shards and gate runs | S | none over 20 s in unit/integration |
 
 ### P — Push gate (G627/G628 landed; what they do not build)
 
 | Row | What | Expected win | Size | Done when |
 |---|---|---|---|---|
-| P1 | **Recently red first:** files CI failed on in the last 24 h run in the gate before related tests | repeat reds stop at the gate | S | no CI red on a file the gate ran green for that push |
+| P1 | **Superseded by G768/G769/DL3 (2026-10-31 audit):** the live committed-only tick does not call dormant recent-CI collection or test selection. | preserves current fast-publication policy | S | four current policy controls pass; no retired CF1 gate revived |
 | P2 | Full typed check in the gate once TypeScript T5 lands; test files join the typed importer set | type reds stop reaching CI (12 runs this week) | S after T5 | typecheck-lint reds < 1 a day |
-| P3 | Each `push.log` line records seconds per gate step and what was skipped for budget | shows where the 45 s goes | XS | `push.log` has the steps |
+| P3 | **Done (`e675bc2db6`, audited 2026-10-31):** checked ticks record candidate, per-phase seconds/outcome/reason, upload seconds and residual overhead. | shows where the 45 s goes | XS | 40 retained checked pushes reconcile; current prefix/budget/refusal controls pass |
 | P4 | One materialised snapshot per tip, reused by prefix rechecks and the next tick (or a sparse one: changed files + importers) | ~5–15 s of the 45 s back for checks (est.) | S | snapshot ≤ 3 s in P3's numbers |
 
 ### L — Lint rules and policies (new; speed stays the oxlint plan's)
 
 | Row | What | Expected win | Size | Done when |
 |---|---|---|---|---|
-| L1 | **Done (`8da7f94de2`, 2026-10-31):** seven remaining debt rules enforce existing per-file ceilings in the same ordinary lint pass; raw census stays available unchanged. No extra scan, CI job or heavy gate. | restores missing nonzero-debt enforcement | S | 14 related controls, 4560 selected sources/zero growth, types and typed lint pass; ordinary CI owns its containing verdict |
+| L1 | **Done (`8da7f94de2`; scope fix `b962e7fee7`, 2026-10-31):** seven debt rules enforce existing ceilings under real `src/**/*`; raw census and hard classification stay unchanged. | restores missing enforcement without another pass | S | 15 current controls, draft typed lint and root types pass; ordinary containing scope-fix qualification remains open |
 | L2 | Ratchet-only rules with zero debt become plain `error` in `.oxlintrc.json` (then fast lint checks them at commit) | 2 AGENTS.md guards back at pre-commit | XS each | each rule moved or its debt listed |
 | L3 | Policy JSON hygiene: delete the empty / unread files; each policy names its reader and its guard test | fewer stale guards | XS | every `lint/*.json` has a live reader |
 | L4 | Pin the oxlint version and keep `nursery` rules off main until they graduate (or `warn` in a weekly report) | no upgrade-only reds | XS | config changed |
@@ -241,7 +241,7 @@ or is deleted;** no tooling commit breaks every commit unnoticed. 8. No wait ove
 | M3 | Quiet vs not measured once, then one path kept (BUILD-SPEED 3.4/3.5) | 90 of 483 ticks held on 10-22 | S | numbers in the commit |
 | M4 | Linux container for CPU work only if the Mac still drops under 10 % idle (BUILD-SPEED 3.2) | — | M | triggered or struck |
 | B1 | `vercel build` stops rerunning gen, tsc and shardfiles: the release builds from the push run's verified products | release 18.6 → ~4 min | M | release job ≤ 5 min |
-| R1 | Boot smoke starts on `build-and-deploy`'s `boot-dist` (minute ~15) beside behaviour; release needs both green | **~−10 min to deployable**; smoke even on red-test days | S–M | smoke verdict ≤ 2 min after the run's |
+| R1 | **Done (2026-10-31, accepted):** exact-run prepared inputs feed SIX beside behaviour; merged ship requires both. `fa13b9fce6` / `93bd4ce2ba`; no retired workflow revived. | parallel smoke wiring implemented; no isolated speed claim | S–M | original 44 controls pass; SIX finishes before the required wave on 6a84 /60e /82b9 |
 | R2 | Release cadence per D3; delete the uninstalled backstop | push → live ≤ 30 min | XS | measured over a day |
 
 ### Absorbed from BUILD-SPEED Waves 4–5 (not yet ruled)
@@ -399,3 +399,40 @@ original writer, path/debt and generator publication refusals. Script
 project types, named typed lint and whitespace checks pass. This is a
 correctness fix; no isolated tooling or CI speedup is claimed. No app
 build, browser, native proof, full suite or heavy gate was run.
+
+
+## Hourly reconciliation: R1 / S3 / P1 / P3 and L1 scope
+
+**2026-10-31, sp-x6.** This batch preserves the B2 maintenance above.
+R1's original 44 controls pass in 3.04 s. Retained SIX finishes
+222 /56 /75 s before the required wave on 6a84 /60e /82b9; the late
+82b9 status is merged-ship admission, not a serial smoke build.
+
+S3's scratch 122-run census reconstructs 17 repeated files, not the
+original 147-run /22-file cohort. Immutable `881a0731df` records a later
+202-failed-run recount with 31 repeated files. All 31 remain present
+and their test bytes equal fully green `1dae75e945`; this does not prove
+unchanged dependencies or a clean rolling week at HEAD. Defining fixes
+include `881a0731df` (presenting clock/unrelated night pins), `c53cc17b9f`
+(practice course frame) and `17dcca7241` (complete native compiler inputs,
+original module bound/deadline). Current focused 12 files /95 cases pass:
+3 /14 in 19.80 s and 9 /81 in 48.87 s. No tests or valid assertions are
+deleted. Current required failures remain with their actual owners:
+project ownership (`b13ad77350`), L1 scope (`b962e7fee7`) and x2's boot
+transport investigation. Local checks and containing green qualification
+are distinct. S3 is accepted as bounded; the weekly bar stays open.
+
+P1's helper survives only in dormant CF1 tooling and its tests. The live
+push tick has no caller; four current G768 policy controls pass in
+0.940 s. P3 is live: 40 checked ticks from 10:55:33–13:43:51 local time
+have complete step/candidate/status fields, explicit skip reasons,
+separate upload time and reconciled overhead. Four current prefix,
+budget, guard and no-subset controls pass in 1.150 s. No old test gate,
+CI collector, source snapshot or dormant phase is revived.
+
+L1's global activation wrongly reached `drafts/src/walk.ts`. Scope fix
+`b962e7fee7` confines the seven ceilings to `src/**/*`, preserving the
+separate hard `src/**` classification and every policy count. Actual
+config controls reject top-level/nested real-source clocks and preserve
+the prior draft/admin/site scope. Fifteen controls, actual draft typed
+lint and root types pass; ordinary containing qualification stays open.
