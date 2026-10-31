@@ -71,8 +71,8 @@ test('the ratchet refuses stale paths even with zero counts or an empty measurem
 test('hard service imports preserve only registered legacy files, never a legacy suffix', () => {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp/service-freeze-')), config = resolve(root, 'lint.json');
-  const files = ['src/shards/pine-hollow-legacy/loadout/loadout.ts',
-    'src/shards/pine-hollow-legacy/unregistered.ts', 'src/shards/pine-hollow/loadout/loadout.ts'];
+  const files = ['src/shards/nine-dragon-stack-legacy/plugin.ts',
+    'src/shards/nine-dragon-stack-legacy/unregistered.ts', 'src/shards/pine-hollow/loadout/loadout.ts'];
   try {
     for (const file of files) {
       mkdirSync(resolve(root, file, '..'), { recursive: true });

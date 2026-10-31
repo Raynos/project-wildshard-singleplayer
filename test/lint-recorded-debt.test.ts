@@ -57,8 +57,8 @@ test('ordinary lint enforces exact recorded file counts while raw census still r
     expect(run('scripts/tool.mjs','Math.random();').status).toBe(0);
     // Exact registered frozen source retains the original census exemption;
     // merely appending -legacy to an unregistered source never grants it.
-    expect(run('src/shards/pine-hollow-legacy/loadout/loadout.ts','Math.random();').status).toBe(0);
-    expect(run('src/shards/pine-hollow-legacy/unregistered.ts','Math.random();').status).toBe(1);
+    expect(run('src/shards/nine-dragon-stack-legacy/plugin.ts','Math.random();').status).toBe(0);
+    expect(run('src/shards/nine-dragon-stack-legacy/unregistered.ts','Math.random();').status).toBe(1);
     for(const invalid of [-1,1.5,'1',null])expect(run(file,'Math.random();',true,invalid).status).not.toBe(0);
     const configData=v.parse(v.object({rules:v.record(v.string(),v.unknown()),overrides:v.array(v.object({files:v.optional(v.array(v.string())),rules:v.optional(v.record(v.string(),v.unknown()))}))}),
       readLintConfig(resolve('.oxlintrc.json'))),hard=hardRules(resolve('.oxlintrc.json'));

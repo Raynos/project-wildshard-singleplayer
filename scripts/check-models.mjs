@@ -86,16 +86,7 @@ export const DONE = {
     'src/shards/nine-dragon-stack-legacy/vm/geo.ts': { why: "the viewmodel's geometry library (`Geo`, merged per rigid group): the fp arms' knot, the jian's parts and the facade kit's pieces build with it; it draws nothing of its own — the arms are the Gear model nine-dragon-stack/fp-arms (models/gear.ts, M5)", counts: { mergeGeometries: 1 } },
   },
   'pine-hollow': {
-    'src/shards/pine-hollow-legacy/world/treeFactory.ts': { why: "the frozen copy keeps its own tree geometry (the primary's forest is the manifest's declared tree set, game models/treeSet.ts)", counts: { mergeGeometries: 1 } },
-    'src/shards/pine-hollow-legacy/world/trophyWall.ts': { why: "the frozen copy keeps its own trophy wall mounts (a creature's head built from its rig); the primary wall moved to @wildshard/game/compendium/trophyWall", counts: { mergeGeometries: 2 } },
-    'src/shards/pine-hollow-legacy/world/crags.ts': { why: 'the ONE batch the crag models are placed into, sized for the face skin and the cave (world, welded to the ground)', counts: { BatchedMesh: 1 } },
-    'src/shards/pine-hollow-legacy/world/landmarks.ts': { why: "the landmarks' lights — the waystones' glow and anchors, the cave's shaft and drips — added as world, without colliders", counts: { 'registry add with object': 1 } },
-    'src/shards/pine-hollow-legacy/world/streams.ts': { why: "the frozen legacy copy's creek, waterfall and plunge foam (the primary moved to runtime/world/streams.ts; this entry covers pine-hollow-legacy)", counts: { InstancedMesh: 1 } },
-    'src/shards/pine-hollow-legacy/weapons/longbowView.ts': { why: "the frozen legacy copy's held longbow build (the primary moved to runtime/weapons/longbowView.ts; this entry covers pine-hollow-legacy)", counts: { mergeGeometries: 2 } },
     // 2d0e3fcb7 removed the primary gun builds; immutable hashes remain in legacy-shards.json:391-392.
-    'src/shards/pine-hollow-legacy/runtime/weapons/LeverRifle.ts': { why: 'Frozen held rifle: original rigid-group geometry and display merges (LeverRifle.ts:121,557,811,813,822,827,828,840); primary uses held firearm rows', counts: { mergeGeometries: 8 } },
-    'src/shards/pine-hollow-legacy/runtime/weapons/crossbow/Crossbow.ts': { why: 'Frozen held crossbow: original display, stock, brass and iron merges (Crossbow.ts:178,356,375,404); primary uses held launcher rows', counts: { mergeGeometries: 4 } },
-    'src/shards/pine-hollow-legacy/weapons/hunterHands.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
   },
   // M6: the code every shard shares — systems, effects, gear, the fields that scatter — declared, so a new thing drawn or
   // registered by hand here fails too
@@ -320,11 +311,7 @@ export function checkModels(files) {
     if (inShardModels && calls === 0) violations.push(`${file}: a file in a models folder that defines no model`);
     for (const id of defines) {
       const want = inShardModels ? `${inShardModels[1]}/` : 'shared/';
-      // Pine's unchanged deer specialization retains the defining shared model
-      // identity and source; only its prepared species differs (a888b0ac1).
-      const sharedDeer = id === 'shared/deer' && ['src/shards/pine-hollow-legacy/models/creatures.ts'].includes(file)
-        && /defineModel(?:<[^(]*>)?\(\s*\{\s*id:\s*'shared\/deer',\s*file:\s*'src\/game\/models\/creatures.ts'/.test(code);
-      if ((inShardModels || inShared) && !id.startsWith(want) && !sharedDeer) violations.push(`${file}: model id '${id}' must start with '${want}'`);
+      if ((inShardModels || inShared) && !id.startsWith(want)) violations.push(`${file}: model id '${id}' must start with '${want}'`);
     }
     const shard = SHARD_FILE.exec(file)?.[1];
     for (const spec of importsOf(file, code)) {

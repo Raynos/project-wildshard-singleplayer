@@ -20,5 +20,5 @@ test.each(['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-st
 
 test('a navigation failure preserves its original error instead of pretending the old session was disposed', () => {
   const failure = new Error('Navigation unavailable');
-  expect(() => exitSessionToTitle({url: 'https://wildshard.io/?chunk=pine-hollow-legacy', replace: () => {throw failure;}})).toThrow(failure);
+  expect(() => exitSessionToTitle({url: 'https://wildshard.io/?chunk=nine-dragon-stack-legacy', replace: () => {throw failure;}})).toThrow(failure);
 });

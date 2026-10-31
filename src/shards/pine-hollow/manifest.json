@@ -1,7 +1,7 @@
 {
   "gridShardfile": "/shardfiles/pine-hollow/shard.json",
   "entries": {
-    "legacy": true,
+    "legacy": false,
     "shardfile": true
   },
   "uses": [

@@ -8,18 +8,7 @@ describe('model contract after client relocation', () => {
       .toEqual([expect.stringContaining('2 × mergeGeometries')]);
   });
 
-  it.each([
-    ['src/shards/pine-hollow-legacy/runtime/weapons/LeverRifle.ts', 8],
-    ['src/shards/pine-hollow-legacy/runtime/weapons/crossbow/Crossbow.ts', 4],
-  ] as const)('retains only the exact frozen merge ceiling at %s', (file, ceiling) => {
-    const merge = 'mergeGeometries(parts);';
-    expect(checkModels({ [file]: merge.repeat(ceiling) }).violations).toEqual([]);
-    expect(checkModels({ [file]: merge.repeat(ceiling + 1) }).violations)
-      .toEqual([expect.stringContaining(`${ceiling + 1} × mergeGeometries`)]);
-    const primary = file.replace('-legacy/', '/');
-    expect(checkModels({ [primary]: merge }).violations)
-      .toEqual([expect.stringContaining('1 × mergeGeometries')]);
-  });
+
 
   it('keeps non-model runtime modules and other shard paths restricted', () => {
     const files = {
@@ -52,13 +41,7 @@ describe('model contract after client relocation', () => {
     expect(checkModels({ 'src/shards/far-reach/models/gear.ts': 'modelCatalogue(rows, owners);' }).violations).toEqual([]);
   });
 
-  it.each(['src/shards/pine-hollow-legacy/models/creatures.ts'])('keeps the exact shared deer specialization at %s', (file) => {
-    expect(checkModels({ [file]: "defineModel({ id: 'shared/deer', file: 'src/game/models/creatures.ts' });" }).violations).toEqual([]);
-    expect(checkModels({ [file]: "defineModel({ id: 'shared/deer', file: 'other.ts' });" }).violations)
-      .toEqual([expect.stringContaining("must start with 'pine-hollow/'")]);
-    expect(checkModels({ [file]: "defineModel({ id: 'shared/bear', file: 'src/game/models/creatures.ts' });" }).violations)
-      .toEqual([expect.stringContaining("must start with 'pine-hollow/'")]);
-  });
+
 
   it('keeps the retired native roster outside the model-definition contract', () => {
     const file = 'src/shards/pine-hollow/roster.ts';

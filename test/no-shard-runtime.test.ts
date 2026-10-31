@@ -19,11 +19,11 @@ test('primary authoring law refuses runtime, executable configs and runtime impo
     'sample/generators/type.ts': "type Host = import('../../../sdk/runtime/sim').Host;",
     'sample/generators/late.ts': "export const run = () => import('@wildshard/sdk/runtime/sim');",
     'sample-legacy/runtime/index.ts': 'export default {};',
-    'pine-hollow-legacy/unregistered.ts': 'export default {};',
+    'nine-dragon-stack-legacy/unregistered.ts': 'export default {};',
     'sample/blender/unregistered.mjs': 'export const author = () => 1;',
     'sample/runtime/index.mjs': 'export const run = () => 1;',
     // Exact inventoried legacy identity keeps its original import/layout path.
-    'pine-hollow-legacy/runtime/index.ts': "import { run } from '@wildshard/sdk/runtime/sim'; export default run;",
+    'nine-dragon-stack-legacy/runtime/index.ts': "import { run } from '@wildshard/sdk/runtime/sim'; export default run;",
     'sample/generators/output.ts': 'export const build = () => 1;',
     'sample/data/row.d.json.ts': 'declare const row: { readonly x: number }; export default row;',
     'sample/data/row.d.ts': 'export interface Row { readonly x: number }',

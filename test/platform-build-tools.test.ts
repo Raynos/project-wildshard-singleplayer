@@ -45,9 +45,6 @@ it.each([0,1])('reports AS excess without enforcing it while checking %i custom 
  try{
   platformOutput(root,'pine-hollow',{'runtime/index.ts':custom===0?'':'export const LIVE=1;'});
   put('src/shards/pine-hollow/behaviour/brain.as','export function step(): i32 {\n return 1;\n}');
-  put('src/shards/pine-hollow-legacy/manifest.ts','export default {};');
-  put('src/shards/pine-hollow-legacy/plugin.ts',Array.from({length:9},(_,i)=>`export const V${i}=${i};`).join('\n'));
-  put('lint/legacy-shards.json',JSON.stringify({version:1,sealed:true,shards:{'pine-hollow-legacy':{primary:'pine-hollow',source:'a'.repeat(40),files:{'manifest.ts':'b'.repeat(64),'plugin.ts':'c'.repeat(64)}}}}));
   legacyLineBasis(root,'pine-hollow',{'manifest.ts':'export default {};','plugin.ts':Array.from({length:9},(_,i)=>`export const V${i}=${i};`).join('\n')});
   const row=shardLines(root)['pine-hollow'];
   if(row===undefined)throw new Error('Missing fixture measure');

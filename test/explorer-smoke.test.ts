@@ -12,7 +12,7 @@ const catalogue = [
   {slug:'nine-dragon-stack',status:'experimental',legacy:false},
   {slug:'_template',status:'hidden',legacy:false},
   {slug:'open-plot-alien-plain',status:'hidden',legacy:false,shardSelect:false},
-  {slug:'pine-hollow-legacy',status:'live',legacy:true},
+  {slug:'nine-dragon-stack-legacy',status:'live',legacy:true},
 ];
 const currentDocument={url:'https://test.example/?chunk=fixture',timeOrigin:1,slug:'fixture'};
 const diagnostics={document:currentDocument,timingBufferFull:false,navigation:null,resources:[],measures:[]};

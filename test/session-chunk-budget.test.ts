@@ -14,6 +14,6 @@ test('the session closure counts its static imports against both ceilings', () =
   expect(sessionClosureBudgetErrors(fixture('src/game/shardfile/client.ts'), { ...caps, 'js/session/gzip': 59 })).toContain('session gzip 60 exceeds 59');
   expect(sessionClosureBudgetErrors(fixture('src/game/shardfile/client.ts'), { 'js/session/raw': 120 })).toContain('missing session gzip ceiling');
 });
-test.each(['src/shards/pine-hollow-legacy/runtime/index.ts', 'src/shards/driftwood-isle/runtime/views.ts'])('the session closure refuses shard code %s', module => {
+test.each(['src/shards/nine-dragon-stack-legacy/runtime/index.ts', 'src/shards/driftwood-isle/runtime/views.ts'])('the session closure refuses shard code %s', module => {
   expect(sessionClosureBudgetErrors(fixture(module), caps)).toContain(`forbidden session module ${module} (shared.js)`);
 });

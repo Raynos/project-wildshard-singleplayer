@@ -14,7 +14,7 @@ import plots from '../src/shards/open-plots/outputs.json' with { type: 'json' };
 // G531: SHARD SELECT shows one entry per shard, its shardfile; the Developer-tools row Legacy shard buttons brings LEGACY back.
 const card = (slug: TitleCard['slug'], legacy: boolean): TitleCard => ({ slug, name: slug, label: slug, thumbnail: '', heroPortrait: '', heroLandscape: '',
   entries: { legacy, shardfile: true } });
-const CARDS = [card('nine-dragon-stack', true), card('pine-hollow', true), card('far-reach', false)];
+const CARDS = [card('nine-dragon-stack', true), card('pine-hollow', false), card('far-reach', false)];
 const decks: ReturnType<typeof buildTitleDeck>[] = [];
 const paintFrames = (): Promise<void> => new Promise(resolve => { requestAnimationFrame(() => { requestAnimationFrame(() => { resolve(); }); }); });
 
@@ -84,16 +84,16 @@ test('the public build ignores the row: one button, the shardfile', () => {
 
 test('the boot honours a LEGACY pick only with the legacy buttons on', () => {
   const choices: ShardEntryChoices = { choose: () => undefined, read: () => 'legacy' };
-  const pine = { slug: 'pine-hollow', entries: { legacy: true, shardfile: true } } as const;
-  expect(shardEntry(pine, false, () => choices)).toBe('shardfile');
-  expect(shardEntry(pine, true, () => choices)).toBe('legacy');
-  expect(shardEntry({ slug: 'pine-hollow-legacy', entries: { legacy: true, shardfile: false, public: 'legacy' } }, false, () => choices)).toBe('legacy');
+  const nine = { slug: 'nine-dragon-stack', entries: { legacy: true, shardfile: true } } as const;
+  expect(shardEntry(nine, false, () => choices)).toBe('shardfile');
+  expect(shardEntry(nine, true, () => choices)).toBe('legacy');
+  expect(shardEntry({ slug: 'nine-dragon-stack-legacy', entries: { legacy: true, shardfile: false, public: 'legacy' } }, false, () => choices)).toBe('legacy');
 });
 
 test.each([
   ['driftwood-isle', false], ['nalati-grasslands', false],
   ['sunscar-dunes', false], ['far-reach', false],
-  ['nine-dragon-stack', true], ['pine-hollow', true],
+  ['nine-dragon-stack', true], ['pine-hollow', false],
 ] as const)('%s card offers legacy only while its frozen copy remains', async (slug, legacy) => {
   const manifests = [...SHARDS, ...LEGACY_SHARDS];
   installShards(manifests); setDev(true);
