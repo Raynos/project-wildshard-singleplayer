@@ -120,15 +120,16 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
   pipeline.properties = hooks;
   const get = renderer.properties.get.bind(renderer.properties);
   let counter = renderCounter(renderer);
-  interface Observation { textureVersion: number; kind: ResourceKind; frame: number; metadata: boolean; owner: symbol | null; revision: number; labels: number | undefined; value: unknown }
+  interface Observation { native: unknown; textureVersion: number; kind: ResourceKind; frame: number; metadata: boolean; owner: symbol | null; revision: number; labels: number | undefined; value: unknown }
   let observed = new WeakMap<object, Observation>(), texturesSeen = new WeakMap<object, number>();
-  let textureFrame = -1, textureRevision = observationRevision;
+  let textureFrame = -1, textureRevision = observationRevision, nativeEpoch = 0;
   const remove = renderer.properties.remove?.bind(renderer.properties), dispose = renderer.properties.dispose?.bind(renderer.properties);
   if (remove !== undefined) renderer.properties.remove = resource => {
+    nativeEpoch++;
     if (typeof resource === 'object' && resource !== null) { observed.delete(resource); texturesSeen.delete(resource); }
     remove(resource);
   };
-  if (dispose !== undefined) renderer.properties.dispose = () => { observed = new WeakMap(); texturesSeen = new WeakMap<object, number>(); dispose(); };
+  if (dispose !== undefined) renderer.properties.dispose = () => { nativeEpoch++; observed = new WeakMap(); texturesSeen = new WeakMap<object, number>(); dispose(); };
   renderer.properties.get = (resource: unknown) => {
     if (typeof resource !== 'object' || resource === null) return get(resource);
     if (counter === undefined) {
@@ -159,6 +160,7 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
     if (active && prior !== undefined && prior.frame === frame && prior.owner === owner
       && prior.revision === observationRevision && labels !== undefined && prior.labels === labels
       && (kind.texture === null || (textureRevision === observationRevision && prior.textureVersion === kind.uploadRevision))) return prior.value;
+    const epoch = nativeEpoch;
     const texture = kind.texture, compressed = kind.compressed, textureVersion = kind.uploadRevision;
     // Enrollment is per texture/render; consuming-owner residency and
     // compressed sampler/allocation checks keep their original stamps below.
@@ -179,13 +181,21 @@ export function propertyHooks(renderer: PropertyTarget): PropertyHooks {
     // ownership consumer previously repeated six class checks to ignore it.
     if (kind.owned) hooks.ownership?.(resource);
     const revision = observationRevision;
-    const native: unknown = get(resource);
+    // Three keeps a texture's mutable native row until remove/dispose. Keep
+    // allocation and consuming-owner observations above on their original
+    // cadence; reuse only that row identity, including its live upload fields.
+    // An observer can invalidate it synchronously, so check the epoch after
+    // every observer and fall back to the native producer on that path.
+    const native: unknown = texture !== null && prior !== undefined && remove !== undefined && dispose !== undefined && epoch === nativeEpoch
+      && prior.native !== null && typeof prior.native === 'object' ? prior.native : get(resource);
+    const nativeAt = nativeEpoch;
     if (compressed !== undefined && compressed !== null) hooks.compressed?.after(compressed, native);
     const value = hooks.labels === undefined || !labelable ? native : hooks.labels(resource, native);
+    if (nativeAt !== nativeEpoch) { observed.delete(resource); return value; }
     const metadata = !kind.owned && remove !== undefined && dispose !== undefined
       && native !== null && typeof native === 'object';
-    if (prior === undefined) observed.set(resource, { textureVersion, kind, frame: active ? frame : -1, metadata, owner, revision, labels, value });
-    else { prior.textureVersion = textureVersion; prior.frame = active ? frame : -1; prior.metadata = metadata; prior.owner = owner; prior.revision = revision; prior.labels = labels; prior.value = value; }
+    if (prior === undefined) observed.set(resource, { native, textureVersion, kind, frame: active ? frame : -1, metadata, owner, revision, labels, value });
+    else { prior.native = native; prior.textureVersion = textureVersion; prior.frame = active ? frame : -1; prior.metadata = metadata; prior.owner = owner; prior.revision = revision; prior.labels = labels; prior.value = value; }
     return value;
   };
   return hooks;

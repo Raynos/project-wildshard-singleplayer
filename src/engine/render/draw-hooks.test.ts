@@ -3,6 +3,8 @@ import { BufferGeometry, Camera, CompressedTexture, Mesh, MeshBasicMaterial, Mes
 import type { Renderer } from './renderer';
 import { drawHooks, invalidatePropertyObservation, propertyHooks } from './drawHooks';
 import { installFrameCounter } from './frameCounter';
+import { installCompressedTextureRetirement } from './compressedTextureRetirement';
+import { registerCompressedMipmaps } from './compressedMipmaps';
 
 function fixture(material: MeshBasicMaterial | MeshDepthMaterial = new MeshBasicMaterial()) {
   const geometry = new BufferGeometry(), object = new Mesh(geometry, material);
@@ -149,6 +151,98 @@ test('metadata without native invalidation methods keeps consulting the native p
   const renderer = { properties: { get: (_resource: unknown) => row } };
   propertyHooks(renderer); expect(renderer.properties.get(source)).toBe(row);
   row = { version: 2 }; expect(renderer.properties.get(source)).toBe(row);
+});
+
+test('texture rows stay live while allocation and owner checks retain each draw', () => {
+  const f = fixture(), texture = new CompressedTexture([], 1, 1);
+  let rows = new WeakMap<object, { version: number }>();
+  const get = vi.fn((resource: unknown) => {
+    if (typeof resource !== 'object' || resource === null) throw new Error('Missing native resource');
+    let row = rows.get(resource);
+    if (row === undefined) { row = { version: 1 }; rows.set(resource, row); }
+    return row;
+  });
+  const renderer = { ...f.renderer, properties: { get,
+    remove: (resource: unknown) => { if (typeof resource === 'object' && resource !== null) rows.delete(resource); },
+    dispose: () => { rows = new WeakMap(); } } };
+  const draw = drawHooks(renderer), hooks = propertyHooks(renderer), before = vi.fn<() => void>(), after = vi.fn<() => void>(), owner = vi.fn<() => void>();
+  hooks.compressed = { before, after }; hooks.ownership = owner;
+  let first: { version: number } | undefined;
+  f.stock.mockImplementation(() => {
+    const current = renderer.properties.get(texture);
+    first ??= current;
+    expect(current).toBe(first); expect(renderer.properties.get(texture)).toBe(current);
+    current.version++;
+  });
+  for (let index = 0; index < 4; index++) { draw.ownerToken = Symbol('consumer'); renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group); }
+  expect(first?.version).toBe(5); expect(get).toHaveBeenCalledOnce();
+  expect(before).toHaveBeenCalledTimes(4); expect(after).toHaveBeenCalledTimes(4); expect(owner).toHaveBeenCalledTimes(4);
+  renderer.properties.remove(texture); first = undefined;
+  renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+  expect(get).toHaveBeenCalledTimes(2); expect(first).toEqual({ version: 2 });
+  renderer.properties.dispose(); first = undefined;
+  renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+  expect(get).toHaveBeenCalledTimes(3); expect(first).toEqual({ version: 2 });
+});
+
+test('textures without both native invalidation ports retain their producer reads', () => {
+  const f = fixture(), texture = new CompressedTexture([], 1, 1); let native = { revision: 0 };
+  const renderer = { ...f.renderer, properties: { get: (_resource: unknown) => native } };
+  drawHooks(renderer); propertyHooks(renderer); const seen: object[] = [];
+  f.stock.mockImplementation(() => { seen.push(renderer.properties.get(texture)); });
+  renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+  native = { revision: 1 };
+  renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+  expect(seen[1]).toBe(native); expect(seen[1]).not.toBe(seen[0]);
+});
+
+test('an observer invalidating a texture row cannot resurrect its old native identity', () => {
+  for (const phase of ['ownership', 'after'] as const) {
+    const f = fixture(), texture = new CompressedTexture([], 1, 1);
+    let native = { revision: 0 }, invalidate = false;
+    const renderer = { ...f.renderer, properties: { get: (_resource: unknown) => native,
+      remove: (_resource: unknown) => { native = { revision: native.revision + 1 }; },
+      dispose: () => { native = { revision: native.revision + 1 }; } } };
+    drawHooks(renderer); const hooks = propertyHooks(renderer);
+    const observe = (): void => { if (invalidate) { invalidate = false; renderer.properties.remove(texture); } };
+    if (phase === 'ownership') hooks.ownership = observe;
+    else hooks.compressed = { before: () => undefined, after: observe };
+    const seen: object[] = [];
+    f.stock.mockImplementation(() => { seen.push(renderer.properties.get(texture)); });
+    renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+    invalidate = true;
+    renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+    renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+    expect(seen[2]).toBe(native); expect(seen[2]).not.toBe(seen[0]);
+  }
+});
+
+test('native row reuse retains retired allocation and sampler refusals', () => {
+  const f = fixture(), texture = new CompressedTexture([{ data: new Uint8Array(16), width: 4, height: 4 }], 4, 4);
+  let rows = new WeakMap<object, Record<string, unknown>>();
+  const get = (resource: unknown): Record<string, unknown> => {
+    if (typeof resource !== 'object' || resource === null) throw new Error('Missing native resource');
+    let row = rows.get(resource);
+    if (row === undefined) { row = { __webglTexture: {} }; rows.set(resource, row); }
+    return row;
+  };
+  const renderer = { ...f.renderer, properties: { get,
+    remove: (resource: unknown) => { if (typeof resource === 'object' && resource !== null) rows.delete(resource); },
+    dispose: () => { rows = new WeakMap(); } } };
+  const nativeRenderer = { ...renderer, properties: { ...renderer.properties,
+    has: (resource: unknown) => typeof resource === 'object' && resource !== null && rows.has(resource),
+    update: (resource: unknown, key: unknown, value: unknown) => {
+      if (typeof key !== 'string') throw new Error('Expected native property name');
+      get(resource)[key] = value;
+    } } };
+  const final = installCompressedTextureRetirement(nativeRenderer); registerCompressedMipmaps(texture); final.add(texture);
+  f.stock.mockImplementation(() => { nativeRenderer.properties.get(texture); });
+  const draw = (): void => { nativeRenderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group); };
+  draw(); expect(texture.mipmaps).toHaveLength(0);
+  const allocation = get(texture)['__webglTexture']; get(texture)['__webglTexture'] = undefined;
+  expect(draw).toThrow('lost its allocation after mip retirement');
+  get(texture)['__webglTexture'] = allocation; texture.flipY = !texture.flipY;
+  expect(draw).toThrow('changed after mip retirement');
 });
 
 test('a later frame counter shares ownership observation across draws but not renders', () => {
