@@ -19,7 +19,7 @@ export function installGpuProbe(){
   const key=material.name.includes('NdJiehuaGraph.')?`post:${material.name}`:`group:${group(object,material)}`;
   if(skip&&skip({key,object,material,pass:passName}))return;
   if(mode==='inventory'){
-   let row=materials.get(material);if(!row){row={name:material.name,type:material.type,uuid:material.uuid,passes:[],groups:[],objects:[],draws:0,viewportPixelUpperBound:0,fullscreenPixels:0,fragmentShader:typeof material.fragmentShader==='string'?material.fragmentShader:null};materials.set(material,row);}
+   let row=materials.get(material);if(!row){row={name:material.name,type:material.type,uuid:material.uuid,alphaTest:material.alphaTest,transparent:material.transparent,depthTest:material.depthTest,depthWrite:material.depthWrite,passes:[],groups:[],objects:[],draws:0,viewportPixelUpperBound:0,fullscreenPixels:0,fragmentShader:typeof material.fragmentShader==='string'?material.fragmentShader:null};materials.set(material,row);}
    row.draws++;const vp=gl.getParameter(gl.VIEWPORT);row.viewportPixelUpperBound+=vp[2]*vp[3];
    if(material.name.includes('NdJiehuaGraph.'))row.fullscreenPixels+=vp[2]*vp[3];
    if(!row.passes.includes(passName))row.passes.push(passName);if(!row.groups.includes(key))row.groups.push(key);if(row.objects.length<8&&!row.objects.includes(object.name))row.objects.push(object.name);
@@ -32,9 +32,9 @@ export function installGpuProbe(){
  const P={names,groupOf:object=>group(object,Array.isArray(object.material)?object.material[0]:object.material),meshes:()=>{const rows=[];root.traverseVisible(o=>{if(o.isMesh||o.isPoints||o.isLine)rows.push(o);});return rows;},passes:passes.map(x=>({index:x.index,name:x.name,effects:(x.pass.effects??[]).map(e=>e.name === '' ? e.constructor.name : e.name)})),
   batch(want,k=16,variant='none'){
    if(!['inventory','throughput'].includes(want)||!Number.isSafeInteger(k)||k<1||k>64)throw new Error('Invalid GPU census batch');
-   const shadow={auto:r.shadowMap.autoUpdate,needs:r.shadowMap.needsUpdate},disabled=[];skip=null;skipDepth=variant.split('|').includes('depthcopy');
    const variants=new Set(variant.split('|')), groups=new Set([...variants].filter(v=>v.startsWith('group:')));
    for(const v of variants)if(v.startsWith('pass:')&&!passes[Number(v.slice(5))])throw new Error('Unknown pass');
+   const shadow={auto:r.shadowMap.autoUpdate,needs:r.shadowMap.needsUpdate},disabled=[];skip=null;skipDepth=variants.has('depthcopy');
    if(variants.has('shadow')){r.shadowMap.autoUpdate=false;r.shadowMap.needsUpdate=false;}
    for(const v of variants)if(v.startsWith('pass:')){const index=Number(v.slice(5)),row=passes[index];if(!row)throw new Error('Unknown pass');disabled.push([row.pass,row.pass.enabled]);row.pass.enabled=false;}
    skip=x=>groups.has(x.key)||variants.has(`material:${x.material.name}`)||(variants.has('alpha-tested')&&x.material.alphaTest>0)||(variants.has('silhouette')&&/NdJiehuaGraph\.silhouette/.test(x.material.name))||(variants.has('jiehua')&&/NdJiehuaGraph\.jiehua/.test(x.material.name));

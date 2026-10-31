@@ -66,5 +66,8 @@ test('invalid batch sizes and compound unknown passes refuse before changing nat
  const f=fixture();
  for(const n of [0,-1,65,1.5,Number.NaN])expect(()=>f.port.batch('throughput',n)).toThrow('Invalid GPU census batch');
  expect(()=>f.port.batch('throughput',1,'pass:0|pass:30')).toThrow('Unknown pass');
+ expect(()=>f.port.batch('throughput',1,'depthcopy|pass:30')).toThrow('Unknown pass');
+ f.gl.blitFramebuffer(0,0,1,1,0,0,1,1,256,9728);
+ expect(f.originalBlit).toHaveBeenCalledOnce();
  expect(f.pass.enabled).toBe(true);expect(f.draw).not.toHaveBeenCalled();f.port.restore();
 });
