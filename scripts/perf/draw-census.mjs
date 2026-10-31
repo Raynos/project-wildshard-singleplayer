@@ -13,7 +13,7 @@ import { developerSettings, saveFixture, hideDeveloperOverlays } from '../debug-
 import { loadingCardIndex } from '../loading-benchmark/catalogue.mjs';
 import { drawFrames } from './draw-census-page.mjs';
 import { nativeSummary, attributionSummary, sampledCpu } from './draw-census-report.mjs';
-import { censusSelection } from './draw-census-poses.mjs';
+import { censusSelection, censusEntry } from './draw-census-poses.mjs';
 
 const arg = (name, fallback = '') => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const base = arg('url'), dist = resolve(arg('dist', 'dist')), frames = Number(arg('frames', '60'));
@@ -98,8 +98,8 @@ try {
       await page.goto(base, { waitUntil: 'load' }); await page.locator('.ws-main-select').click();
       const names = await page.locator('.ws-menu-card b').allTextContents();
       await page.locator(`.ws-menu-dots i[data-i="${loadingCardIndex(names, slug)}"]`).click();
-      if (!await page.locator('.ws-menu-shardfile').isVisible()) throw new Error('Matched LEGACY / SHARDFILE selectors unavailable');
-      await page.locator(mode === 'legacy' ? '.ws-menu-play' : '.ws-menu-shardfile').click();
+      row.pairedEntry = await page.locator('.ws-menu-shardfile').isVisible();
+      await page.locator(censusEntry(mode, row.pairedEntry, await page.locator('.ws-menu-play b').textContent() ?? '')).click();
       await page.waitForFunction(() => window.__wildshard?.world?.hud?.entered && !document.querySelector('.ws-load') && window.__wildshard.world.game.frameGate(), undefined, { timeout: 240000 });
       row.level = await page.evaluate(() => window.__wildshard.world.game.level.id);
       if (!row.level.includes(slug)) throw new Error('Census entered another shard');

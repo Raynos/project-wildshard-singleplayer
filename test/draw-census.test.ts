@@ -1,7 +1,15 @@
 import { expect, test, vi } from 'vitest';
 import { drawFrames } from '../scripts/perf/draw-census-page.mjs';
 import { nativeSummary, attributionSummary, sampledCpu } from '../scripts/perf/draw-census-report.mjs';
-import { censusSelection } from '../scripts/perf/draw-census-poses.mjs';
+import { censusSelection, censusEntry } from '../scripts/perf/draw-census-poses.mjs';
+
+test('single shardfile entry does not silently become a legacy leg', () => {
+  expect(censusEntry('shardfile', false, 'Enter world')).toBe('.ws-menu-play');
+  expect(censusEntry('shardfile', true, 'LEGACY')).toBe('.ws-menu-shardfile');
+  expect(censusEntry('legacy', true, 'LEGACY')).toBe('.ws-menu-play');
+  expect(()=>censusEntry('legacy', false, 'Enter world')).toThrow('unavailable');
+  expect(()=>censusEntry('shardfile', false, 'Coming soon')).toThrow('unavailable');
+});
 
 test('census preserves the paired defaults and selects standing golden P1 cameras', () => {
   expect(censusSelection().map(row => [row.slug, row.poseName, row.modes])).toEqual([

@@ -2,6 +2,16 @@ import cameras from '../../art/legacy-goldens/compare/cameras24.json' with { typ
 
 const goldenShards = ['driftwood-isle', 'nalati-grasslands', 'far-reach', 'sunscar-dunes'];
 
+/** Retired legacy cards have one Enter world button; never route a requested
+ * legacy leg through it. @param {string} mode @param {boolean} paired
+ * @param {string} primary */
+export function censusEntry(mode, paired, primary) {
+  if (mode !== 'legacy' && mode !== 'shardfile') throw new Error('Unknown census mode');
+  if (paired) return mode === 'legacy' ? '.ws-menu-play' : '.ws-menu-shardfile';
+  if (mode === 'shardfile' && primary.trim() === 'Enter world') return '.ws-menu-play';
+  throw new Error('Requested census entry is unavailable');
+}
+
 /** Keep the original Nine/Pine defaults; the other shards use golden camera 1.
  * @param {string} slug @param {string} pinePose @param {string} mode */
 export function censusSelection(slug = '', pinePose = 'Q4', mode = 'both') {
