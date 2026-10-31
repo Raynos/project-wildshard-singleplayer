@@ -288,25 +288,40 @@ geometries / 4,777,893 corners** retain every layout, block boundary and
 nine geometry/dressing cases, root types and typed lint pass. These are
 component gains; neither is a measured whole-author or Linux prepare gain.
 
-Before the next copy cut, the fresh current-source profile after both cuts (`37040678af`) passes
-normal author validation in **22.912 s instrumented** with **zero negative
-clock deltas**. It uses an empty private generation cache, the ordinary
-prepare texture/AS/Zstd memos and the normal sealed input receipt. Captured
-source files are written after profiling stops. Shared generated/export and
-type-only import ordering is retained, not restored for this measurement.
-The largest sampled self costs before the copy cut are:
+The profile after grass/weld, before channel copying (`37040678af`),
+passes normal author validation in **22.912 s instrumented**. The fresh
+profile after `e92ee03200` and MapRaster `cdb524d86d` (`60e20e1e73`) passes
+in **22.844 s instrumented**, with zero negative clock deltas and matching
+profile-window/delta totals. These are independent diagnostic profiles,
+not a paired whole-author gain. Both use an empty private generation
+cache, the ordinary prepare texture/AS/Zstd memos and the normal sealed
+input receipt. Captured source files are written after profiling stops;
+shared generated/export/type-only ordering is retained rather than
+restored. The latest top five sampled self costs, before tuple lookup:
 
 | Item | Sampled self ms |
 | --- | ---: |
-| Native lattice vertex copying | 643.291 |
-| Native lattice vertex deduplication | 615.998 |
-| Map triangle rasterization | 547.545 |
-| SDK noise sampling | 531.083 |
-| Voxel ambient occlusion | 478.576 |
-| Nalati geometry writer | 478.539 |
-| Smooth-geometry position merging | 454.086 |
-| Map geometry projection | 408.585 |
+| Native lattice vertex deduplication | 645.921 |
+| SDK noise sampling | 567.413 |
+| Voxel ambient occlusion | 526.587 |
+| Nalati geometry writer | 487.664 |
+| Smooth-geometry position merging | 422.494 |
 
+The top item exceeds Jake's **300 ms** sweep threshold; this is not a
+spread-thin closure. A string-append counterfactual retains every byte
+but regresses slicing **959.274 -> 1066.078 ms (+11.13%)**, so it is
+rejected without a production hunk. `50b426db88` instead hashes owned
+vertex tuples and compares their complete values, preserving signed
+zero/NaN identity and the first occurrence. Unsupported tuples or long
+collision chains return to the complete original string map; every
+entry remains, and no input cap, cache policy or clipping math changes.
+Six fresh alternating actual Nalati L0/L1 legs retain all **80 tiles /
+560 buffers / 25,212,288 bytes**, signed-zero-aware bounds and metadata:
+**912.652 -> 460.149 ms (-49.58%)** median slicing. All **4,061** private
+lookup/storage decisions and five Float32/64, refusal, signed-zero,
+collision/fallback and JavaScript-coercion cases pass, with root types
+and typed lint. This is a component gain; whole-author/Linux impact
+remains unmeasured.
 The complete local counter report records **30 AS disk hits / 650,174
 payload bytes**, **30 Zstd disk hits / 29,876,317 bytes**, and **32 generation
 misses/populations / 96,647,273 bytes computed**, plus **15 memory hits /
