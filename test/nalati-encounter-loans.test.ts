@@ -2,7 +2,7 @@ import {expect,test} from 'vitest';
 import type {SpeciesData,SpeciesVariantData} from '../src/format/speciesPrograms';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
 import type {NalatiEncounterIntake} from './fixtures/nalati-headless';
-import {validateNalatiEncounterLoans} from './fixtures/nalati-encounter-loans';
+import {validateNalatiEncounterLoans,nalatiEncounterDriver} from './fixtures/nalati-encounter-loans';
 
 const variant:SpeciesVariantData={id:'king',label:'King',rarity:'legendary',weight:1,scale:[1.22,1.22],hp:2400};
 const species:SpeciesData={id:'test.king',kind:'king',label:'King',tick:'always',variants:[variant]};
@@ -31,4 +31,10 @@ test('always cadence is an explicit admitted species loan',()=>{
 test('even an otherwise admitted body recipe cannot be overwritten',()=>{
   const recipe=SIM_LEVEL.entities[0]?.spec;if(recipe===undefined)throw new Error('Missing unplayed recipe');
   expect(()=>validateNalatiEncounterLoans({...boot,recipes:[recipe]},{species:[],recipes:[recipe]})).toThrow('replace');
+});
+
+test('ordinary always metadata cannot change the preceding chapter driver',()=>{
+  const driver={dispatch:'original'};
+  expect(nalatiEncounterDriver(driver,{species:[species],recipes:[]})).toBe(driver);
+  expect(nalatiEncounterDriver(driver,intake)).toEqual({...driver,alwaysKinds:['king']});
 });

@@ -48,7 +48,7 @@ import { nativeEliteBindings, type NativeEliteBindings } from '@wildshard/engine
 import { trustedLevel } from '../../src/game/plugin/simulation';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 import { need, readJson, prepareReturns } from './headless-plan';
-import {validateNalatiEncounterLoans} from './nalati-encounter-loans';
+import {validateNalatiEncounterLoans,nalatiEncounterDriver} from './nalati-encounter-loans';
 
 const physicsRows = originalNalatiPhysics();
 /** Optional encounter intake comes from the same admitted species/body book;
@@ -140,8 +140,7 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
         ...constants.nativePopulation,
         eliteKinds: [...constants.nativePopulation.eliteKinds,...encounters.species.map(row=>row.kind)],
         motorKinds: [...constants.nativePopulation.motorKinds,...encounters.species.map(row=>row.kind)],
-        ...((encounters.alwaysKinds?.length??0)>0?{driver:{...constants.nativePopulation.driver,
-          alwaysKinds:[...constants.nativePopulation.driver.alwaysKinds??[],...encounters.alwaysKinds??[]]}}:{}),
+        driver:nalatiEncounterDriver(constants.nativePopulation.driver,encounters),
     };
     const grid = await ((decodeNativeTerrain)(((need(shard.terrain, "Missing terrain")["sampling"] === undefined) ? undefined : (assets["get"])(need(need(shard.terrain, "Missing terrain").sampling, "Missing sampling").file)), { "resolution": 256, "size": 500, "seed": shard["identity"]["seed"] }));
     const samplers = await ((bakedSamplers)(grid));

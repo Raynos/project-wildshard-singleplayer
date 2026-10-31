@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type {NativePopulationBootRows} from '../../src/game/riding/nativePopulation';
+import type {NativePopulationBootRows,NativePopulationConfig} from '../../src/game/riding/nativePopulation';
 import type {NalatiEncounterIntake} from './nalati-headless';
 
 const kinds=v.pipe(v.array(v.pipe(v.string(),v.minLength(1))),v.maxLength(16));
@@ -24,4 +24,10 @@ export function validateNalatiEncounterLoans(boot:Pick<NativePopulationBootRows,
   for(const kind of always)if(!intake.species.some(row=>row.kind===kind&&row.tick==='always'))throw new Error('Native always loan differs from its admitted cadence');
   if(intake.recipes.some(row=>boot.recipes.some(admitted=>admitted.kind===row.kind&&admitted.variant===row.variant)))
     throw new Error('Native encounter cannot replace an admitted body recipe');
+}
+
+/** Ordinary encounter fixtures keep their exact original driver object. */
+export function nalatiEncounterDriver(driver:NativePopulationConfig['driver'],intake:NalatiEncounterIntake):NativePopulationConfig['driver'] {
+  if((intake.alwaysKinds?.length??0)===0)return driver;
+  return {...driver,alwaysKinds:[...driver.alwaysKinds??[],...intake.alwaysKinds??[]]};
 }
