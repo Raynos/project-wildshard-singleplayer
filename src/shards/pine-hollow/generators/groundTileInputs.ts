@@ -11,7 +11,7 @@ import { pineForestRows } from './forestRows';
 import { pineGeographyRows } from './geographyRows';
 import { PINE_GROUND, type PineGroundRows } from './groundTiles';
 import * as LAYOUT from './layout';
-import { compactClearGlb } from '@wildshard/sdk/bake/compactGlb';
+import { cachedGroundTile } from './phoneGeometryCache';
 import { emptyShardfile } from '@wildshard/sdk/author';
 
 /** The retained terrain's URL (its public path under `/assets/`). */
@@ -96,7 +96,7 @@ export async function pineGroundTiles(ctx: Pick<ProjectGenerationContext, 'cache
   // tiles stay exact: the ground merge hides their quadrants under fine tiles by their stored (tile-space) positions
   const rows: PineGroundRows['tiles'][number][] = [], entryways = emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 'Wildshard', revision: 1, seed: 1 }).entryways;
   for (const { tile, bytes: built, cost, geometricError } of tiles) {
-    const bytes = tile.lod === 0 ? await compactClearGlb(built, entryways) : built;
+    const bytes = tile.lod === 0 ? await cachedGroundTile(ctx, built, entryways) : built;
     assets.push(bytes);
     rows.push({ lod: tile.lod, x: tile.x, z: tile.z, bounds: tile.bounds, geometricError,
       file: { hash: hashImmutableBytes(bytes), kind: 'glb', compressed: bytes.length, ...bytes === built ? cost : assetCost('glb', bytes), dependencies: tile.lod === 0 ? dependencies : [], critical: false } });
