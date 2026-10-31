@@ -32,7 +32,8 @@ export function frameFloorDrawReport(record) {
       const cpuRate = surface === 'desktop' ? phased ? reading?.cpuPhase?.measuredRate ?? 1 : record.chromiumCpuRate ?? 1 : 1;
       const rows = (reading?.rows ?? []).map((row, index) => {
         const budget = assessDrawBudget(row.drawSamples, row.frames, { tier: software ? 'software-diagnostic' : tier, cpuRate });
-        const softwareValid = !software || record.drawBudgetMode === 'report-only' && record.chromiumAngle === 'swiftshader' && surface === 'desktop'
+        const softwareValid = !software || phased && record.chromiumCpuRate === 4 && record.chromiumAngleExplicit === true
+          && record.drawBudgetMode === 'report-only' && record.chromiumAngle === 'swiftshader' && surface === 'desktop'
           && record.softwareCensus?.scope === 'spawn-only' && record.softwareCensus.frames === 4
           && record.softwareCensus.viewport.width === 201 && record.softwareCensus.viewport.height === 437
           && reading?.metadata?.renderer?.startsWith('ANGLE (') === true && reading.metadata.renderer.includes('SwiftShader')

@@ -5,7 +5,7 @@ export interface FloorDrawRecord {
   sha?: string; runId?: string; when?: string; complete?: boolean;
   cpuPhaseMode?: 'after-ready'; bootCpuRate?: number;
   softwareCensus?: {viewport:{width:201;height:437};frames:4;scope:'spawn-only'};
-  drawBudgetMode?: 'enforce' | 'report-only'; chromiumCpuRate?: number; chromiumAngle?: string;
+  drawBudgetMode?: 'enforce' | 'report-only'; chromiumCpuRate?: number; chromiumAngle?: string; chromiumAngleExplicit?: boolean;
   shards?: readonly string[]; surface?: string; settings?: { tier?: string };
   results: readonly { surface: string; rows: readonly {
     shard: string; complete?: boolean; cpuPhase?: FloorCpuPhaseReading | null; metadata?: { renderer?: string; viewport?: number[]; canvas?: number[]; renderScale?: number; settings?: { tier?: string } };

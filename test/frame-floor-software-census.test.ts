@@ -23,7 +23,7 @@ test('small software census is explicit and cannot change official/full phone co
 });
 
 function reading(): FloorDrawRecord {
-  return {sha: 'c'.repeat(40), runId: 'software', complete: true, drawBudgetMode: 'report-only', chromiumAngle: 'swiftshader', chromiumCpuRate: 4,
+  return {sha: 'c'.repeat(40), runId: 'software', complete: true, drawBudgetMode: 'report-only', chromiumAngle: 'swiftshader', chromiumAngleExplicit: true, chromiumCpuRate: 4,
     cpuPhaseMode: 'after-ready', bootCpuRate: 1, surface: 'desktop', shards: ['nine-dragon-stack', 'pine-hollow', 'driftwood-isle'],
     softwareCensus: {viewport: {width: 201, height: 437}, frames: 4, scope: 'spawn-only'},
     results: [{surface: 'desktop', rows: ['nine-dragon-stack', 'pine-hollow', 'driftwood-isle'].map(shard => ({shard, complete: true,
@@ -45,7 +45,7 @@ test('software counts retain actual resolution and paired cost but no phone budg
 });
 
 test('wrong backend/resolution, missing pairs, foreign pose and pre-throttle frames cannot claim a complete census', () => {
-  for (const kind of ['backend','viewport','canvas','scale','pose','count','cpu','fence','enforce']) {
+  for (const kind of ['backend','viewport','canvas','scale','pose','count','cpu','fence','enforce','unphased','all-phase-evidence','implicit','non4','no-fence']) {
     const record = reading(), world = record.results[0]?.rows[0], row = world?.rows?.[0];
     if (world?.metadata === undefined || row === undefined) throw new Error('Missing software fixture');
     if (kind === 'backend') world.metadata.renderer = 'ANGLE Metal Renderer: Apple';
@@ -57,6 +57,18 @@ test('wrong backend/resolution, missing pairs, foreign pose and pre-throttle fra
     if (kind === 'cpu') row.drawSamples = [{drawnFrame: 13, draws: 999, renderMs: Number.NaN}];
     if (kind === 'fence') row.drawSamples = [11,12,13,14].map(drawnFrame => ({drawnFrame, draws: 999, renderMs: 999}));
     if (kind === 'enforce') record.drawBudgetMode = 'enforce';
+    if (kind === 'unphased') delete record.cpuPhaseMode;
+    if (kind === 'implicit') delete record.chromiumAngleExplicit;
+    if (kind === 'all-phase-evidence') {
+      delete record.cpuPhaseMode; delete world.cpuPhase; delete row.sampleRange;
+    }
+    if (kind === 'no-fence' && world.cpuPhase !== undefined && world.cpuPhase !== null) world.cpuPhase.fence = null;
+    if (kind === 'non4') {
+      record.chromiumCpuRate = 3;
+      for (const target of record.results[0]?.rows ?? []) if (target.cpuPhase !== undefined && target.cpuPhase !== null) {
+        target.cpuPhase.requestedRate = 3; target.cpuPhase.measuredRate = 3;
+      }
+    }
     expect(frameFloorDrawReport(record).complete, kind).toBe(false);
   }
 });
