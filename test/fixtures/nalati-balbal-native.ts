@@ -3,6 +3,8 @@ import {Vector3} from 'three';
 import type {SimHost} from '../../src/engine/sim';
 import type {HuntBody} from '../../src/engine/ai/hunt';
 import type {NativeEliteBindings} from '../../src/engine/ai/eliteRoster';
+import type {AnimalSim} from '../../src/engine/entities/AnimalSim';
+import {onSimHostRestored} from '../../src/engine/sim/snapshot';
 import {ObservationColumnsV2} from '../../src/engine/script/observationColumnsV2';
 import {parseActorProjectionV2} from '../../src/format/actorProjectionV2';
 import {SpeciesActorsFileSchema} from '../../src/format/speciesBookRows';
@@ -20,6 +22,7 @@ import {readNalatiArenaPoses} from './nalati-arena-poses';
 import {NalatiCreatureView} from './nalati-creature-view-native';
 import {nalatiSlotColliders} from './nalati-slot-colliders';
 import {readNalatiWeaponObservation} from './nalati-weapon-observation';
+import {restoreEncounterBrains} from './restoreEncounterBrains';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 
 const finite=v.pipe(v.number(),v.finite()),natural=v.pipe(finite,v.integer(),v.minValue(0));
@@ -69,16 +72,17 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
     if(population===undefined||elite===undefined||clock===undefined||owners.has(host))throw new Error('Balbal owner lacks its original population and day clock');
     const poseRows=poses.rows,animations=poses.animations((x,z)=>host.groundHeightAt(x,z)),presented=new Map<string,NativeCreaturePose>();
     const projection=new ActorProjectionV2(entry.metadata.kind,projected),brain=ReturnProgram.native(host,projected.program);
+    const ownedBrains=new Map<AnimalSim,NonNullable<ReturnType<NativeEliteBindings['brains']['get']>>>();
     const columns=damage.requests.map(row=>new ObservationColumnsV2(row.columns,host.scope));
     let contacts=0;
     const bind=(body:HuntBody):void=>{
       const recipe=poseRows.find(row=>row.kind===body.kind&&row.variant===body.variant),animate=animations.get(body.kind);
       if(recipe===undefined||animate===undefined||presented.has(body.entityId))throw new Error('Balbal body lost its actual contact recipe');
       const attached=attachNativeCreaturePose(body,recipe.pose,animate);presented.set(body.entityId,attached.pose);
-      elite.brains.set(body,{think:(actor,c)=>{
+      const bound:NonNullable<ReturnType<NativeEliteBindings['brains']['get']>>={think:(actor,c)=>{
         if(actor!==body||!actualContext(c))throw new Error('Balbal decision lost its actual native observations');
         projection.step(body,c,{scope:host.scope,group:entry.metadata.kind,slot:0,identity:body.entityId});
-      },act:()=>undefined});
+      },act:()=>undefined};ownedBrains.set(body,bound);elite.brains.set(body,bound);
       body.combatActor().damageMul=request=>{
         const weapon=host.adapters.get('nalati.weapons');if(weapon===undefined)throw new Error('Balbal damage requires its actual held owner');
         const equipment=readNalatiWeaponObservation(weapon);
@@ -101,8 +105,10 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
       cues:{cue:(id,point,normal)=>{cues.push({id,point:point.toArray(),normal:normal.toArray()});if(cues.length>256)cues.shift();}}});
     law.attachActors({factory:{model:(kind,variant)=>{population.validateSpawn(kind,variant);return kind;}},
       spawn:(kind,x,z,yaw,variant)=>{const body=population.spawnElite(kind,x,z,yaw,variant);bind(body);return body;},
-      retire:body=>{population.retireElite(body);elite.brains.delete(body);presented.delete(body.entityId);}});
+      retire:body=>{population.retireElite(body);elite.brains.delete(body);ownedBrains.delete(body);presented.delete(body.entityId);}});
     for(const body of population.bodies)if(body.kind===entry.metadata.kind)bind(body);
+    if(context.restoring)onSimHostRestored(host,()=>{restoreEncounterBrains(ownedBrains,elite.brains,
+      body=>!host.scope.disposed&&!host.scope.disposing&&host.entities.get(body.entityId)===body&&body.kind===entry.metadata.kind&&presented.has(body.entityId));});
     const viewOwner=new NalatiCreatureView(module,view.rows,host.scope,()=>population.bodies,(x,z)=>host.groundHeightAt(x,z));
     host.events.on('damage.dealt',event=>{if(event.req.target===host.player.health)contacts++;},host.scope);
     const update=(dt:number):void=>{
@@ -125,6 +131,6 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
       for(const [id,pose]of presented){const body=host.entities.get(id),step=host.bodyDt(id);if(body===undefined)throw new Error('Balbal contact owner retired unexpectedly');
         if(step<=0)continue;pose.advance(step,host.clock.now,body.position.distanceToSquared(host.player.position)<140*140);pose.publish();}
     });
-    owners.set(host,{law,contacts:()=>contacts});host.scope.onDispose(()=>{owners.delete(host);bindings.delete(host);updates.delete(host);poseUpdates.delete(host);presented.clear();});
+    owners.set(host,{law,contacts:()=>contacts});host.scope.onDispose(()=>{owners.delete(host);bindings.delete(host);updates.delete(host);poseUpdates.delete(host);presented.clear();ownedBrains.clear();});
   }};
 };
