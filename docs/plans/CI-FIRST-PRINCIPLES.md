@@ -364,7 +364,7 @@ change ships from either rejected trial. Current evidence:
 
 ### CI10 warm Home / Road regression (2026-10-31, sp-x8)
 
-**Home first bad identified and forward fix landed; Road still open.**
+**Home and Road bars met by published forward fixes.**
 The original phone preset is Chromium iPhone 16 Pro, 10x page CPU,
 10 Mbps down /2 Mbps up, 100 ms latency, grid entry, 3 s title dwell and
 4 s post-control dwell. Each revision owns one normal immutable preview,
@@ -378,6 +378,7 @@ stopped after its cold/warm pair. No telemetry fixture or timing change.
 | Home parent `e2dfc879b5` | 74,876.9 | 26,669.6 | 13,842.8 | 17.1 |
 | Home first bad `039d78823e` | 51,650.9 | 35,032.6 | 19,617.1 | 21.7 |
 | Forward fix `4ef7467733` | 52,536.0 | 27,561.3 | 9,168.7 | 6,418.5 |
+| Road window `9cca053447` | 51,444.7 | 26,326.7 | 14,510.4 | 18.1 |
 
 The 48-commit Home search is closed by the adjacent `039d78823e` pair.
 MF21 delayed first registration until control: at the bad cold visit's
@@ -417,8 +418,10 @@ original write/refusal. The warm diagnostic records **1,956 verified
 road hits /zero puts**, so rewriting is no longer the cause. Native cache
 query cuts `5eefd16398` /`20bce27290` preserve exact namespace, length,
 bounded body and caller hash checks, with the original open/match fallback.
-They do not cure Road: **6.419 s still misses the tens-of-ms target**.
-Road overlaps Home, so row redistribution is not an isolated gain.
+Those cuts alone did not cure Road: their 6.419 s result missed the bar.
+The archive-window row below closes it at 18.1 ms without changing the
+default or skipping validation. Road overlaps Home, so row redistribution
+is not an isolated gain.
 
 Evidence: `tmp/sp-x8-warm-regression/*-local-summary.json` and original
 JSON paths; candidate folder
@@ -428,65 +431,77 @@ the original measured visit and neither register nor wait for a worker.
 The separate diagnostic CPU source maps were unavailable; no mapped
 hotspot attribution is invented from that profile.
 
-### CI10 warm Road serial archive cut (2026-10-31, sp-x8)
+### CI10 warm Road archive wait (2026-10-31, sp-x8)
 
-**Timing bar open; checked candidate `4b2e47dc51` is on origin.** Home's
-accepted `4ef7467733` two-sided result remains closed. The next Road
-diagnostic uses the unchanged original phone preset and dwell/entry
-protocol, with warm page CPU sampling and observers of original cache,
-body-reader and SHA promises. No extra lookup/body read or substituted
-response is made. Its 6,851 ms Road interval is instrumented, not an
-uninstrumented after result or isolated speedup.
+**Done: the original-preset warm Road bar is met on published
+`9cca053447` /`b5abba2c6d`.** The selected-tiles default stays enabled
+(G674). The final uninstrumented matched pair is 51.4447 s cold /26.3267 s
+warm, with native Road 15.1 ms /18.1 ms. The warm document is actually
+service-worker served (status 200, transfer 0, decoded 200,997 bytes).
+Both native unpaused-control witnesses qualify. Warm request accounting
+is complete; cold retains two navigated-away accounting refusals for
+the startup JS body and telemetry. Static telemetry405 remains in both
+legs and the original CLI exit1 is retained. This is a native protocol
+bar verdict, not a blanket command PASS or physical-phone claim.
 
-Warm native control and request accounting qualify; CPU clocks align
-within 0.5 ms. All 1,725 direct cache queries intersecting Road hit,
-with zero writes/repairs. The serial chain is
-`RoadTileBacking.write -> installPlatformRoadSliced.flush -> persist`:
-one archive's fresh SHA, lookup, body read and verification precede the
-next archive. The selected-tiles default remains required (G674).
+| Uninstrumented revision | Cold total (ms) | Warm total (ms) | Warm Home (ms) | Warm Road (ms) |
+|---|---:|---:|---:|---:|
+| Accepted Home fix `4ef7467733` | 52536.0 | 27561.3 | 9168.7 | 6418.5 |
+| Batches of six + FIFO `5596fde41e` | 52860.7 | 27190.2 | 12502.3 | 2584.7 |
+| Rolling oldest `f832e02799` | 54256.1 | 28279.3 | 12818.5 | 2468.2 |
+| Any completion `19c9b94da8` | 54874.0 | 29698.8 | 13165.8 | 3074.5 |
+| Loading byte window `9cca053447` | **51444.7** | **26326.7** | **14510.4** | **18.1** |
 
-| Road operation | Count | Clipped union ms |
-|---|---:|---:|
-| Named-cache lookup | 1,725 | 1,351.0 |
-| Full body read | 1,726 | 1,539.5 |
-| SHA joined to exact Road content keys | 3,451 | 380.0 |
-| Combined promise spans | — | 3,270.5 |
+The `19c9` pair overlaps an already-started peer preview builder; its raw
+reading is retained without an isolated regression claim. Earlier small
+differences are not overall gains. Road already starts beside Home: its
+row is the remaining join, not all archive CPU time. The final window
+lets the same checks complete during Home; no progress clock, readiness
+barrier, dwell, preset, residency limit or selected-tile default moves.
 
-Boundary-crossing operations explain counts that differ by one. Body
-reads cover 31,132,528 bytes. These spans include callback execution;
-sampled CPU must not be added to them. Road's sampled self costs include
-compaction532.0 ms, native reader382.6, native digest296.8, cull planning
-174.5, bounded body reader151.1, backing capture145.7, clipping135.3,
-resident merge132.7 and encoding121.9. Idle/program frames contribute
-1,278.2 /1,037.4 ms without an isolated internal-browser attribution.
-The exact served maps cover 50 of 52 requests; main/runtime maps remain
-missing. Retained possible brief peer CPU overlap forbids an isolated
-timing claim; the larger reported 14.1 s peer gate predates this profile.
+The serial pole was `Backing.write -> sliced.flush -> persist`: each
+fresh SHA, named-cache lookup, bounded full-body read and stored SHA
+preceded the next archive. The first mapped diagnostic has 6,851 ms Road,
+1,725 intersecting native hits/zero writes and 3,270.5 ms clipped union of
+Road promises. A second six-job diagnostic still has 2,769.2 ms Road,
+1,153 hits/zero writes and 2,452.8 ms union. Promise spans include callback
+CPU and cannot be added to CPU samples. Both diagnostics contain the
+same complete set of 1,956 content keys; no digest or byte change earns the
+result. Main/runtime maps remain absent, explicitly, from both profiles.
 
-`4b2e47dc51` overlaps at most six independent archives under a conservative
-25 MB aggregate scratch estimate. Unsupported/large estimates use the
-original serial path. Encoded writers retain only bytes and detached
-reference fields; scratch geometry retires immediately after encoding.
-Every fresh/stored/restored SHA, miss repair, quota/corruption refusal
-and live-owner fence remains. Completed references commit in authored
-order; every source drains before the original publication barrier.
-Failure/cancellation joins all started work and forbids late writes.
-No render/physics math, selected-tile default or residency cap changes.
+`4b2e47dc51` bounds independent operations; `eaa05d10bc` serializes equal
+keys per store so the second cold duplicate reads after the first write.
+The equal-key control fails before that fix and passes after: clean
+duplicates write once, poison repairs and repair quota refusal refuses.
+`19c9b94da8` refills any completed slot but commits only the ready authored
+prefix. Completed out-of-order entries keep their full scratch charge.
+`b5abba2c6d` fills up to 32 loading jobs under the unchanged 25 MB batching
+threshold; medium/large/unknown estimates still drain earlier or use the
+original single-operation fallback. `9cca053447` keeps six beside live
+draws. Every fresh/stored/restored SHA, miss, corruption and quota check,
+owner fence, final publication barrier and full failure/cancellation
+drain remains. Geometry, material, layout and physics arithmetic do not
+change. Async encoded writers do not retain disposed scratch geometry.
 
-All 40 focused cases/eight suites, root types and typed lint pass. The
-tests compare all serial/pipelined fine/coarse archive bytes, hold six
-reads simultaneously, verify the large-job serial fallback, warm reuse,
-quota failure, late retirement and first-authored refusal after reverse
-completion. The original-preset candidate cold/warm reading is pending
-the next machine turn; **no tens-of-ms Road verdict yet**.
+All 48 focused cases/eight suites, root types and typed lint pass. The
+controls compare every serial fine/coarse archive byte; hold 32 small
+reads; refill after the last slot completes while 31 earlier reads stay
+held; keep references authored; prove six medium jobs hit the unchanged
+byte threshold; keep unknown/large and live-draw serial/six-job policies;
+and retain reverse refusal, poison/quota, retirement and pin controls.
+Source commits are verified on origin with normal gates green. The
+final pair follows explicit whole producer/strict/test closures. Its
+browser closed and normal 4400 borrow released immediately; X6 retained
+the shared exact preview for its following independent Pine cohort.
 
-Raw diagnostic:
-`tmp/phone-loading/2026-10-31T20-41-25-844Z-6324eee-mvwv7aw5/`.
-Its warm JSON/profile/cache trace and `warm-ranked.json` retain the
-numbers; `tmp/sp-x8-road-serial/window.json` retains host clock caveats.
-CLI exit1 keeps static telemetry405 and the cold navigated-away startup
-body-accounting refusal. Neither is filtered into a whole-command PASS.
-
+Final original pair:
+`tmp/phone-loading/2026-10-31T22-29-08-575Z-9cca053-mvwypfyc/`.
+Diagnostic profiles/cache promises and mapped ranks:
+`tmp/phone-loading/2026-10-31T20-41-25-844Z-6324eee-mvwv7aw5/` and
+`tmp/phone-loading/2026-10-31T21-44-26-484Z-5596fde-mvwxi2cc/`.
+Intermediate original pairs and refusal labels are retained in
+`tmp/sp-x8-road-serial/uninstrumented-comparison.json`; no unchanged
+uninstrumented timing retry, telemetry substitution or accounting filter is used.
 
 ### CI10 current-HEAD Home proxy (2026-10-31, sp-x8)
 
@@ -2436,33 +2451,6 @@ Primary references: [staged production deploy](https://vercel.com/docs/cli/deplo
 [production promotion without rebuilding](https://vercel.com/docs/deployments/promoting-a-deployment),
 and [Vercel Authentication](https://vercel.com/docs/deployment-protection/methods-to-protect-deployments/vercel-authentication).
 
-### CI10 Road bounded-archive reading (2026-10-31, sp-x8)
-
-**Road bar remains open.** The uninstrumented original phone preset on
-`5596fde41e` (containing `4b2e47dc51` and FIFO guard `eaa05d10bc`)
-measures cold52.8607s / warm27.1902s. Native Road is16.5ms cold and
-2584.7ms warm, versus the earlier accepted Home pair's6418.5ms warm
-Road. This is an improvement, not the requested tens-of-ms warm result.
-Both native control receipts qualify and both request-accounting reports
-are complete. The raw CLI exit1 retains static-preview telemetry405;
-it is not a whole-command PASS. The browser and normal preview stopped
-at the whole-pair boundary before the next required fixture proof.
-
-An equal-key cold-cache regression was caught before this reading:
-concurrent fine/coarse bodies can have the same content hash. The FIFO
-guard preserves the original lookup-after-publication order per store
-and hash, without retaining bodies or skipping any digest. A later equal
-key still reads and verifies its own stored body. Clean duplicates write
-once; poisoned duplicates repair, and repair quota refusal still refuses.
-The exact control failed before the fix and passed afterward. All43
-focused cases/eight suites, root types and typed lint pass. Independent
-hashes retain the bounded six-job overlap and authored-order drain.
-
-Raw matched pair:
-`tmp/phone-loading/2026-10-31T21-40-15-876Z-5596fde-mvwxad35/`.
-The next remaining-pole diagnostic is separate; no repeated unchanged
-uninstrumented reading or warm-bar waiver is claimed.
-
 ### CI10: latest 20 ordinary phone jobs, pre-app census
 
 2026-10-31, sp-x9. CI10 remains **open**. The latest 20 terminal
@@ -2581,39 +2569,3 @@ driver is removed. CI10 stays open; root retains sole ordinary-run reads
 and the first actual app-reaching artifact handoff. No new Simulator,
 screenshot, workflow dispatch or readiness budget was used.
 
-### CI10 Road refill follow-up (2026-10-31, sp-x8)
-
-**Warm Road still misses its tens-of-ms bar.** The checked rolling-oldest
-candidate `f832e02799` measures cold54.2561s / warm28.2793s on the
-uninstrumented original phone preset. Native Road is17.8ms /2468.2ms.
-The preceding `5596fde41e` reading was16.5ms /2584.7ms; the small warm
-Road difference is not an overall loading gain. Both native receipts
-qualify; warm request accounting is complete. Cold retains one
-navigated-away body-accounting refusal and static telemetry405 keeps
-the original CLI exit1. Browser and preview both closed normally.
-
-The separate same-source CPU/cache diagnostic has2769.2ms Road, with
-1153 native cache hits, zero writes/misses/errors and2452.8ms union of
-observed Road promises. Those spans include callback CPU and must not
-be added to sampled CPU. Road compaction is420.6ms self; capture149.3,
-merge97.0, coarse88.6 and encoding87.2. Main/runtime maps remain absent.
-These instrumented numbers diagnose the remaining wait, not an after
-bar or isolated speedup. Both the full batch and rolling-oldest source
-still wait for the oldest archive before refilling.
-
-Checked `19c9b94da8` instead admits the next archive after any completed
-slot, while committing only the ready authored prefix. It retains six
-active archives and the25MB scratch bound: completed out-of-order jobs
-keep their full conservative charge until committed. Byte/source-end,
-failure and cancellation barriers still drain all started work; every
-fresh/cached/restored SHA and the equal-key FIFO remain.46 cases/eight
-suites and typed lint pass, including completion of the sixth slot
-while the first five remain held and zero out-of-order references.
-Root types at that boundary report only the peer's active Pine-legacy
-deletion frontier. Its original-preset reading is still pending; no
-bar closure or skipped-check claim.
-
-Raw uninstrumented pair:
-`tmp/phone-loading/2026-10-31T21-50-52-164Z-f832e02-mvwxpxhx/`.
-Raw diagnostic/profile/cache promises:
-`tmp/phone-loading/2026-10-31T21-44-26-484Z-5596fde-mvwxi2cc/`.
