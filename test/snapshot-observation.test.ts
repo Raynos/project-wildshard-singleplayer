@@ -53,3 +53,25 @@ test('native offset views keep their bytes and ownership through the fast fence'
   checkSimSnapshotWire({ ...initial, physics }, MAX_TICK_SNAPSHOT_CHARS);
   expect(backing.every((byte, index) => byte === before[index])).toBe(true);
 });
+
+
+test('recursive metadata stays isolated after failed validation', () => {
+  const saved = structuredClone(initial);
+  saved.adapters.push({ id: 'recursive', state: { values: [null, true, false, 0, -0, Infinity, -Infinity, 'é😀', [], {}], nested: { list: [{ value: 3 }] } } });
+  saved.events.queue.push({ name: 'fault', payload: { kind: 'record', entries: [['nested', { kind: 'array', items: [
+    { kind: 'value', value: null }, { kind: 'value', value: true }, { kind: 'value', value: -0 }, { kind: 'value', value: 'é😀' },
+    { kind: 'undefined' }, { kind: 'number', value: 'infinity' }, { kind: 'number', value: '-infinity' }, { kind: 'number', value: 'nan' },
+    { kind: 'vector', value: [1, 2, 3] }, { kind: 'player' },
+  ] }]] } });
+  const wire = serializeSimSnapshot(saved), scalar = structuredClone(saved), payload = structuredClone(saved);
+  scalar.adapters.push({ id: 'invalid', state: { nested: [Number.NaN] } });
+  payload.events.queue.push({ name: 'fault', payload: { kind: 'record', entries: [
+    ['duplicate', { kind: 'value', value: 1 }], ['duplicate', { kind: 'value', value: 2 }],
+  ] } });
+  for (const invalid of [scalar, payload]) {
+    expect(() => serializeSimSnapshot(invalid)).toThrow();
+    expect(() => checkSimSnapshotWire(invalid, MAX_TICK_SNAPSHOT_CHARS)).toThrow();
+    expect(serializeSimSnapshot(saved)).toBe(wire);
+    expect(() => checkSimSnapshotWire(saved, wire.length)).not.toThrow();
+  }
+});

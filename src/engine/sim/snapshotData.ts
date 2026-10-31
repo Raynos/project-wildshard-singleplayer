@@ -31,21 +31,22 @@ const motor = v.strictObject({
   result: v.strictObject({ grounded: v.boolean(), groundNormalY: finite, downhillX: finite, downhillZ: finite,
     horizontalFreedom: finite, groundColliderHandle: v.nullable(nonnegative) }),
 });
-const simValue: v.GenericSchema<SimValue> = v.lazy(() => v.union([
-  v.null(), v.boolean(), scalar, v.string(), v.array(simValue), v.record(v.string(), simValue),
-]));
+// Keep recursive traversal lazy, while building its value-independent rules once.
+const simValue: v.GenericSchema<SimValue> = v.union([
+  v.null(), v.boolean(), scalar, v.string(), v.array(v.lazy(() => simValue)), v.record(v.string(), v.lazy(() => simValue)),
+]);
 type EventValue = SimSnapshot['player']['health'];
-const eventValue: v.GenericSchema<EventValue> = v.lazy(() => v.variant('kind', [
+const eventValue: v.GenericSchema<EventValue> = v.variant('kind', [
   v.strictObject({ kind: v.literal('value'), value: v.union([v.null(), v.boolean(), finite, v.string()]) }),
   v.strictObject({ kind: v.literal('undefined') }),
   v.strictObject({ kind: v.literal('number'), value: v.picklist(['infinity', '-infinity', 'nan']) }),
   v.strictObject({ kind: v.literal('vector'), value: vector }),
   v.strictObject({ kind: v.literal('actor'), id }), v.strictObject({ kind: v.literal('entity'), id }),
   v.strictObject({ kind: v.literal('position'), id }), v.strictObject({ kind: v.literal('player') }),
-  v.strictObject({ kind: v.literal('array'), items: v.array(eventValue) }),
-  v.strictObject({ kind: v.literal('record'), entries: v.pipe(v.array(v.tuple([v.string(), eventValue])),
+  v.strictObject({ kind: v.literal('array'), items: v.array(v.lazy(() => eventValue)) }),
+  v.strictObject({ kind: v.literal('record'), entries: v.pipe(v.array(v.tuple([v.string(), v.lazy(() => eventValue)])),
     v.check((entries) => new Set(entries.map(([key]) => key)).size === entries.length, 'Duplicate payload key')) }),
-]));
+]);
 const animal = v.strictObject({
   version, id,
   motion: v.strictObject({ hp: finite, maxHp: finite, yaw: finite, speed: finite, herd: finite, desiredYaw: finite,
