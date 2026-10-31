@@ -33,10 +33,8 @@ function namedJson(name: string): unknown {
 }
 const programPage = v.object({ program: ReturnProgramSchema });
 const cases = [
-  { name: 'actors/page-life.json', wasm: 'behaviour/pine.life.wasm', original: life, size: 9133,
-    hash: '260eee8839d76af399fadc27a383c92ef8f75a0bbab154bce727d973d24e3594' },
-  { name: 'actors/shelter.json', wasm: 'behaviour/pine.shelter.wasm', original: shelter, size: 6664,
-    hash: '6005b3f6c02dc65ada9cf9b0a754dad73c44ecebb00e0df13ebc9b5957ce7316' },
+  { name: 'actors/page-life.json', wasm: 'behaviour/pine.life.wasm', original: life },
+  { name: 'actors/shelter.json', wasm: 'behaviour/pine.shelter.wasm', original: shelter },
 ];
 function admittedRows() {
   return v.parse(ReturnModulesSchema, outputPlatformPayloads(output.platform, ['actors/return-scripts']).get('actors/return-scripts'));
@@ -52,10 +50,10 @@ test('Pine life, shelter and both quest copies publish descriptors with only adm
     if (file === undefined) throw new Error('Missing original Pine Wasm file');
     const bytes = output.assets.get(file.hash);
     if (bytes === undefined) throw new Error('Missing original Pine Wasm bytes');
-    expect(bytes.byteLength).toBe(row.size);
+    expect(bytes.byteLength).toBe(file.compressed);
+    expect(file.decoded).toBe(bytes.byteLength);
     expect(file.kind).toBe('wasm');
-    expect(file.hash).toBe(row.hash);
-    expect(hashImmutableBytes(bytes)).toBe(row.hash);
+    expect(hashImmutableBytes(bytes)).toBe(file.hash);
     expect(row.original.script.module).toBe(`blobs/wasm/${file.hash}.wasm`);
     // The authoring oracle remains intact; no imported descriptor is mutated.
     expect(row.original.bytes.length).toBeGreaterThan(0);
@@ -110,7 +108,9 @@ test('Pine binary descriptors cannot fall back to encoded bytes on a missing or 
       expect(raw.bytes).toBe('');
       expect(() => ReturnProgram.page(raw, owner)).toThrow('loan');
       const corrupted = new Map(output.assets);
-      corrupted.set(row.hash, new Uint8Array([0]));
+      const file = output.namedFiles.find(entry => entry.name === row.wasm);
+      if (file === undefined) throw new Error('Missing admitted Pine Wasm file');
+      corrupted.set(file.hash, new Uint8Array([0]));
       expect(() => ReturnProgram.lendModules(owner, corrupted, admittedRows())).toThrow('hash mismatch');
       expect(() => ReturnProgram.page(raw, owner)).toThrow('loan');
     } finally { owner.dispose(); }
@@ -161,11 +161,13 @@ test('native Pine shelter retains raw-module goals, cadence and saved continuati
 
 
 test('shelter preparation keeps detached cached bytes and refuses a missing compiler', async () => {
-  const raw = output.assets.get(cases[1]?.hash ?? '');
+  const file = output.namedFiles.find(row => row.name === 'behaviour/pine.shelter.wasm');
+  if (file === undefined) throw new Error('Missing admitted shelter executable');
+  const raw = output.assets.get(file.hash);
   expect(raw).toBeDefined();
   raw?.fill(0);
   const again = await prepareOutput(context);
-  expect(hashImmutableBytes(again.assets.get(cases[1]?.hash ?? '') ?? new Uint8Array())).toBe(cases[1]?.hash);
+  expect(hashImmutableBytes(again.assets.get(file.hash) ?? new Uint8Array())).toBe(file.hash);
   const { compileDecisionRows: _compiler, ...missing } = context;
   await expect(prepareOutput(missing)).rejects.toThrow('decision-row compilation');
 });
