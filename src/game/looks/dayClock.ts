@@ -99,12 +99,13 @@ export function dayClock<S extends DayLookSchema, T extends DayClockStyle<S>>(sc
     if (a && b) kit.lerp(duskScratch, a[1], b[1], smooth(p, a[0], b[0]));
     return valueOf(duskScratch, duskField);
   };
-  // lamps: the presets' lamps (keyed like the light) over the night
-  const lampClock = new DayCycle(base), lampScratch = kit.clone(first);
+  // lamps: the presets' lamps (keyed like the light) over the night; PF13: only the lamps field is blended (kit.lerp's
+  // number rule on the key's own segment), not the whole preset, so the value is the one key() would give
+  const lampClock = new DayCycle(base);
   const lamps = (p: number): number => {
     if (lampsField === undefined) return nightAt(p);
-    lampClock.phase = p; lampClock.key(lampScratch);
-    return Math.max(valueOf(lampScratch, lampsField), nightAt(p));
+    lampClock.phase = p; const [a, b, t] = lampClock.segment(), x = valueOf(a[1], lampsField);
+    return Math.max(x + (valueOf(b[1], lampsField) - x) * t, nightAt(p));
   };
   const spec: DayClock<S, T>['spec'] = { ...base, curves: { night: nightAt, dusk, dawn: dawnAt, lamps } };
   return { style, spec, presets, clone: kit.clone, sunAt, moonAt, nightAt, dawnAt, fadeAt };
