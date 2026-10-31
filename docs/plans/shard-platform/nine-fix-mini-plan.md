@@ -73,8 +73,10 @@ Order: wave 1 in parallel now, with NF21 / NF22 (E515's low-hanging fruit, about
 visible and frame wins. Then NF10 → NF11 → NF12 and NF13 → NF14 → NF15 → NF16 in parallel, NF17 after NF15, and NF18
 last, after Jake's phone QA.
 
-Found on the way, not Nine's (needs an owner): Nalati's grass re-uploads the full `aTile` / `aHole` arrays at 82 MB/s
-on camera turns (`grassPresentation.ts:305-327`).
+Found on the way, not Nine's: Nalati's full `aTile` / `aHole` uploads are **done** under G963
+(`0569ec5f5a`): native upload bytes fall 92.87% stationary / 90.76% panning, with strict A/A and A/B
+pixel identity at three Nalati poses. The historical 82 MB/s observation is not the current byte reading;
+[the sealed qualification below](#g963-nalati-grass-upload-proof) records its scope.
 
 ## Done when (the whole plan)
 
@@ -239,20 +241,50 @@ vertex equivalence over 36 poses. This is upload traffic, not a measured FPS imp
 
 ### G963: Nalati grass upload proof
 
-**2026-10-31, sp-x2 — open.** Normal sealed `6b9dbd3f40`, Chromium
-Metal / iPhone 16 Pro DPR2: 120 stationary and 120 pan frames each
-transfer **24,576 B/frame**. Four actual ring/flower meshes each upload
-complete 2,048 B `aTile` and 4,096 B `aHole` arrays; all 960 transfers
-per window are full. This measures bytes, not GPU/FPS or phone speed.
+**Done (2026-10-31, sp-x2), source `0569ec5f5a`.** Two ordinary sealed
+builds, `ad2fc61765` / `ad2fc61-mvx0o231` and `1aeb76658b` /
+`1aeb766-mvx1c5vm`, retain every spawn size/hash and native entry check.
+The only application-source difference is the one grass fill hunk;
+X1's unlanded metadata work is excluded. The after build also contains
+the independently checked local static-header parity fix, not a SW edit.
 
-An off-tree prefix-range candidate passes 240 original-fill/installed
-Three.js buffer comparisons, including zero counts and pending tails.
-The private response-patch experiment refused before entry: 128,310
-response bytes differ from the unchanged sealed spawn row's 128,253 B.
-The manifest mismatch is concrete; the observed browser result is an
-entry timeout, not a captured rendering failure. No candidate upload or
-pixel result exists; production is unchanged. Next: normal sealed
-before/after builds, native upload bytes and exact fresh-context A/A
-and A/B world pixels. Retain every spawn size/hash check; do not reuse
-the response override.
+Chromium Metal / iPhone 16 Pro, 402×874 at DPR2; 120 drawn frames per
+window, with native GL calls recorded after ordinary entry/warm-up:
+
+| Window | Before B/frame | After B/frame | Reduction |
+| --- | ---: | ---: | ---: |
+| Stationary | 24,576 | 1,752 | 92.8711% |
+| Camera pan | 24,576 | 2,271.4 | 90.7576% |
+
+Each window still has 960 transfers. Every after transfer starts at
+component zero and covers exactly its native active instance count ×
+item size; no page or GL errors. The byte-window player position,
+yaw/pitch and FOV match; camera smoothing differs by less than 0.000001 m
+and remains in the raw record. No GPU-time, FPS or physical-phone gain
+is inferred from these byte counts.
+
+The native Three updater control compares 240 original/candidate fills:
+all attribute words and modeled GPU buffer bytes match, including zero
+counts and a pending disjoint tail. Original native grass/channel suites
+pass in 4.5 s, root types and typed lint pass. The active prefixes are
+added without dropping pending ranges; zero-length uploads are skipped.
+
+Strict normal full-world capture at Nalati P1/P2/P3 gives **zero A/A
+and zero A/B differing pixels** at every pose, with no whitelist or
+tolerance: all nine RGBA hashes match their pose counterpart. Draws /
+triangles are unchanged (73/1,061,236; 73/1,192,327; 62/1,013,390).
+The actual after image was inspected. No material/source loan or HTTP
+response substitution is used. Both browsers close; both own preview
+leases release normally, retaining the after server for declared peers.
+
+The earlier private response-patch refusal stays a refusal, not a pixel
+result: it changed a declared 128,253-byte script to 128,310 bytes. This
+qualification uses newly generated, admitted normal sealed builds.
+Raw readings and hashes: `tmp/sp-x2-g963-sealed/{before,after}/bytes.json`,
+`pixels/reading.json`, `immutable-provenance.json`, and `summary.json`.
+The observer's legacy `previewSource` field denotes its comparison
+parent on AFTER; the actual served build and every observed subject hash
+are independently bound to full sealed `1aeb76658b` without rewriting
+the raw record. Runtime schema, collider, shader/math and buffer sizes
+remain unchanged. No remaining G963 upload or pixel gate is open.
 

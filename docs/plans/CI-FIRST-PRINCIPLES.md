@@ -199,7 +199,7 @@ Codex does the workflow engineering (non-visual). Ordered to unstick the deploy 
 | Row | What | Done when | Lane | Size |
 |---|---|---|---|---|
 | CI1 | Pin wave 1 (G919): delete tonight's red Nalati pins and the 2-day repeat offenders (§2); each commit lists the test and what it pinned | **done** (see lane) — Push CI green on main again | Codex sp-ci-deploy · done 143b3edd27, 5b54b7d044, ba70969be3 | S |
-| CI2 | Ship the tested build (G920): push CI uploads `.vercel/output`; the release runs `vercel deploy --prebuilt` on it, with no native or vercel rebuild | Release ≤ 3 min; live `version.json` = the tested SHA | **in flight (2026-10-31, sp-x2 retained audit):** 26/32 complete ship jobs meet 180 s. All six misses are dominated by artifact download plus strict restore, **69.532–214.302 s**, with no historical network/decode split. CLI install, deployment and verifier are measured separately; two misses have 20 s verifier waits. `f15555814f` checkout is already landed; no unsupported extra transport cut or retry ships. [Each miss and limits](#ci2--ci3-miss-classification-and-current-acceptance). | M |
+| CI2 | Ship the tested build (G920): push CI stages tested prebuilt output beside the wave; after all 37 green, ship promotes that exact protected deployment, with the original strict prebuilt fallback | Release ≤ 3 min; live `version.json` = the tested SHA | **in flight (2026-10-31, sp-x2 retained audit):** 26/32 complete ship jobs meet 180 s. All six misses are dominated by artifact download plus strict restore, **69.532–214.302 s**, with no historical network/decode split. CLI install, deployment and verifier are measured separately; two misses have 20 s verifier waits. `f15555814f` checkout and protected staging `1f56a01a53` are landed. First normal fast-path release `19c9b94da8` ships in **49 s**; select/promote cost **2.240 / 4.110 s**, with no ship artifact download/restore. This one after reading does not close the whole acceptance bar. [Each miss and limits](#ci2--ci3-miss-classification-and-current-acceptance). | M |
 | CI3 | Deploy as soon as green (G920): drop the hourly slot; a green exact-SHA proof deploys at once if newer than live | Live = the newest green SHA within 5 min of its verdict | **done (2026-10-31, G872 ruling):** since `93bd4ce2ba` merged boot verdict and shipping, **21/21 automatic releases** in the retained cohort reach the matching live build within 300 s of the exact-SHA success status (107.685–196.017 s). All eight automatic misses predate that merge and are superseded; BA78 is a later manual recovery, not a 2,676 s runner-queue miss. Earlier required-job completion remains a separate CI9 clock. [Source-bound cohort and exclusions](#ci2--ci3-miss-classification-and-current-acceptance). | S |
 | CI4 | Delete `test-quarantine.yml` (G923); fix DEPLOY.md's gpu-gate text | **done** (see lane) — Workflow gone; DEPLOY.md matches | Codex sp-ci-deploy · done 87baf789f5 | S |
 | CI5 | Lazy `test/setup.ts`: world installs move to opt-in fixtures | **done, measured bar (G872):** setup < 10%; ordinary green containing run. Original shards −40% is not measurable; shard balance belongs to CI7. | **done (2026-10-31, sp-x9).** `72aad6c49d`: same local 12-file cohort 24.85 → 10.42 s (−58.1%), setup 52% → 1%; not a CI shard comparison. Retained Linux `60c0084758` / run `41154960690`: 24 timing artifacts, 2340 files exactly once, setup 46.613 / 7609.665 module-phase s = **0.61255%**. Ordinary containing green `6a84ecffe6` / run `41201418097` passes all 36 required jobs, native3 and SIX, verified live `6a84ecf-mvwe2b6c`; ancestry to `72aad` checked. No pre-`72aad` ordinary shard baseline is retained, and CI7 has since rebalanced allocation: the original −40% half is **not measurable**, not a claimed gain. CI7 owns that axis (60c0 max 199 s / mean 167.667 s = 1.186879x). G872 closes CI5 on the measured setup/ordinary-run bar. | M |
@@ -2488,10 +2488,36 @@ failure remains an actual failure, with no retry or blind redeployment.
 Historical 35/36/37 source inventories retain their original authority;
 only the reviewed new lineage admits the one optional stage job.
 
-**Acceptance remains in flight.** The first ordinary containing release
-must report actual stage, ship and first-live clocks against these
-retained baselines. Moving work beside the wave is not itself proof of
-an end-to-end gain or either CI2/CI3 bar.
+**First ordinary fast-path release observed (2026-10-31).** Exact source
+`19c9b94da8d26d38d0e88cc48af5b8067081a5da`, run `41246013775`, selects
+the protected staged deployment and promotes exactly
+`dpl_4ZvmMi81cxFZsg2XfmsjhREtWMGE` / BUILD `19c9b94-mvwyg0uh`.
+Native select takes **2.239531 s**, promotion **4.109785 s**. This actual
+ship log contains no prebuilt download/restore report or branch; the
+transport/upload work was staged beside the wave. Exact production
+BUILD, all 37/SIX and the complete maps/API checks pass in root's retained
+source-bound proof. The earlier red `1f56` wave's successful protected
+stage never promoted; its actual ship steps were skipped.
+
+| Source | Actual ship job | Start → completion | Start → first matching production |
+| --- | --- | ---: | ---: |
+| `35ee78401a4c` | `124637576112` | 131 s | 127.533 s |
+| `7de65890f185` | `124639446255` | 94 s | 91.678 s |
+| `19c9b94da8d2` | `124676518361` | 49 s | 44.668 s |
+
+These are official retained job clocks, not queue estimates. First-log
+→ MATCH for the after run is separately 43.579125 s; that starts after
+the official job start. The 35ee / 7de intake components above are
+69.456 / 28.093 s, on different normal sources/runners and similar
+1.537 GB archives. The observed ship spans are 131 / 94 → 49 s; this
+is not an isolated source-speed or future reliability claim. No archive,
+map, version, failure, forward-floor or protection guard is relaxed.
+CI2 acceptance stays **open**; CI3 keeps its existing G872 ruling.
+No new protocol/CLI experiment, dispatch, API fetch or local deployment
+was used for this read. Exact existing logs/attempt metadata are
+`tmp/sp-ci-deploy-qa-refresh/qa-{35ee,7de6,19c9}-{deploy.log,attempt-jobs.json}`;
+the compact clock extraction is `tmp/sp-x2-ci2-staged-after/reading.json`.
+
 
 Primary references: [staged production deploy](https://vercel.com/docs/cli/deploying-from-cli),
 [production promotion without rebuilding](https://vercel.com/docs/deployments/promoting-a-deployment),
