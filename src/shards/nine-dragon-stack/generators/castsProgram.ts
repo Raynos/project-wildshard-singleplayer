@@ -18,9 +18,11 @@ const INPUTS = ['/assets/nine-dragon/lab/walker.glb', '/assets/nine-dragon/lab/s
 const json = (value: unknown, suffix = ''): Uint8Array => new TextEncoder().encode(`${JSON.stringify(value)}${suffix}`);
 
 /** Exact predecessor native files, returned as bytes without publishing into source or public folders. */
-export async function nineCastFiles(read: (url: string) => Uint8Array): Promise<Map<string, Uint8Array>> {
-  const layout = nineLayoutData(), lods = await bakeLods(read);
-  const fixed = bakeFixedKits(readFixedSlots(layout)), casts = await bakeCasts(read);
+export async function nineCastFiles(read: (url: string) => Uint8Array, prepared?: ReturnType<typeof readFixedSlots>): Promise<Map<string, Uint8Array>> {
+  const layout = prepared === undefined ? nineLayoutData() : undefined;
+  const slots = prepared === undefined ? undefined : readFixedSlots({ rows: { slots: prepared } });
+  const lods = await bakeLods(read);
+  const fixed = bakeFixedKits(slots ?? readFixedSlots(layout)), casts = await bakeCasts(read);
   const packs = new Map([...casts, ...fixed.packs, ...lods]), hook = await hookProduct(read);
   const files = new Map<string, Uint8Array>();
   for (const [name, bytes] of packs) { files.set(`raw/${name}.glb`, bytes); files.set(`packed/${name}.glb`, compressGlb(bytes)); }
@@ -57,11 +59,18 @@ export interface NineSourceCasts {
 }
 
 /** A cache hit re-admits and publishes every live cast; public paths are authored inputs only. */
-export async function nineCastsProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'asset'>): Promise<NineSourceCasts> {
-  const files = await ctx.cached({ id: 'casts', inputs: INPUTS }, async inputs => {
+export async function nineCastsProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'asset'>, prepared?: ReturnType<typeof readFixedSlots>): Promise<NineSourceCasts> {
+  // Strict admission detaches every consumed tuple before a cache callback or
+  // native input reader can mutate the caller's already-admitted world rows.
+  const slots = prepared === undefined ? undefined : readFixedSlots({ rows: { slots: prepared } });
+  const identity = slots === undefined ? 'casts' : `casts-slots-${hashImmutableBytes(new TextEncoder().encode(JSON.stringify([
+    ['early', slots.early], ['late', slots.late],
+  ], (_key, value: unknown) => typeof value === 'number' && Object.is(value, -0) ? '-0'
+    : value === Infinity ? 'Infinity' : value === -Infinity ? '-Infinity' : value)))}`;
+  const files = await ctx.cached({ id: identity, inputs: INPUTS }, async inputs => {
     const made = await nineCastFiles(url => {
       const bytes = inputs.get(url); if (bytes === undefined) throw new Error(`Missing authored Nine cast ${url}`); return bytes;
-    });
+    }, slots);
     // iPhone downloads I3c: each shipped cast with 16-bit grid positions, 8-bit normals / colours (+ meshopt) when that is
     // smaller under brotli (compactPhoneGlb); the world scenes' rest pools and owned intake read it back as identity-space
     // Float32 (identitySpaceGeometry / createOwnedGeometry)

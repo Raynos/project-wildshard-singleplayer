@@ -22,7 +22,7 @@ function copyRow(row) {return {...row};}
 function label(event) {
   if(event.cache!=='generation-step')return event.cache;
   if(event.project==='pine-hollow'&&/^pine-map-[a-f0-9]{64}$/u.test(event.step??''))return 'pine-map';
-  if(event.project==='nine-dragon-stack'&&event.step==='casts')return 'nine-casts';
+  if(event.project==='nine-dragon-stack'&&/^casts(?:-slots-[a-f0-9]{64})?$/u.test(event.step??''))return 'nine-casts';
   if(event.project==='nine-dragon-stack'&&/^world-map(?:-[a-f0-9]{64})?$/u.test(event.step??''))return 'nine-map';
   return 'other-generation';
 }

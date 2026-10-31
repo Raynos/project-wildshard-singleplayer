@@ -14,7 +14,7 @@ import { compactPhoneGlb } from '../src/sdk/bake/compactGlb';
 import { Ctx } from '../src/shards/nine-dragon-stack/generators/ctx';
 import { SignRecorder } from '../src/shards/nine-dragon-stack/generators/layout';
 import { buildEntryDecks } from '../src/shards/nine-dragon-stack/generators/entries';
-import { packGeometry } from '../src/shards/nine-dragon-stack/generators/casts';
+import { readFixedSlots, packGeometry } from '../src/shards/nine-dragon-stack/generators/casts';
 import { nineCastsProgram } from '../src/shards/nine-dragon-stack/generators/castsProgram';
 
 async function coldCastsFixture() {
@@ -96,4 +96,46 @@ test('casts cache bundles without filesystem or compiler services', async () => 
   if (built === undefined || !('output' in built)) throw new Error('Missing cast program bundle');
   const chunks = built.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
   for (const chunk of chunks) assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
+});
+
+test('slot loans key every ordered consumed value and detach before cache admission', async () => {
+  const ctx = fixture.context();
+  const slots = () => readFixedSlots({ rows: { slots: {
+    early: [{ at: [-0, 2, 3], normal: [1, 0, 0], size: 0.7, color: 0x123456, blade: false }],
+    late: [{ at: [4, 5, 6], normal: [0, 0, 1], size: 1.1, color: 0x654321, blade: true }],
+  } } });
+  const identity = async (prepared?: ReturnType<typeof readFixedSlots>) => {
+    let id: string | undefined, inputs: readonly string[] | undefined;
+    await nineCastsProgram({ ...ctx, cached: step => { id = step.id; inputs = step.inputs; return Promise.resolve(fixture.captured); } }, prepared);
+    return { id, inputs };
+  };
+  const original = await identity(), first = await identity(slots());
+  expect(original.id).toBe('casts'); expect(first.id).toMatch(/^casts-slots-[a-f0-9]{64}$/u);
+  expect(first.inputs).toStrictEqual(original.inputs);
+  expect(await identity(slots())).toStrictEqual(first);
+  const changes: ((value: ReturnType<typeof readFixedSlots>) => void)[] = [
+    value => { const row = value.early[0]; if (row === undefined) throw new Error('Missing slot'); row.at[0] = 0; },
+    value => { const row = value.early[0]; if (row === undefined) throw new Error('Missing slot'); row.normal[2] = 1; },
+    value => { const row = value.early[0]; if (row === undefined) throw new Error('Missing slot'); row.size = Infinity; },
+    value => { const row = value.early[0]; if (row === undefined) throw new Error('Missing slot'); row.size = -Infinity; },
+    value => { const row = value.early[0]; if (row === undefined) throw new Error('Missing slot'); row.color++; },
+    value => { const row = value.early[0]; if (row === undefined) throw new Error('Missing slot'); row.blade = true; },
+    value => { const early = value.early; value.early = value.late; value.late = early; },
+  ];
+  for (const change of changes) { const value = slots(); change(value); expect((await identity(value)).id).not.toBe(first.id); }
+  const supplied = slots(); let admitted: string | undefined;
+  await nineCastsProgram({ ...ctx, cached: step => {
+    admitted = step.id; supplied.early.splice(0); supplied.late.splice(0); return Promise.resolve(fixture.captured);
+  } }, supplied);
+  expect(admitted).toBe(first.id);
+  expect((await identity(supplied)).id).not.toBe(first.id);
+  const invalid = slots(), row = invalid.early[0]; if (row === undefined) throw new Error('Missing slot');
+  Reflect.set(row, 'size', 'not a number');
+  await expect(identity(invalid)).rejects.toThrow();
+  const nan = slots(), nanRow = nan.early[0]; if (nanRow === undefined) throw new Error('Missing slot');
+  Reflect.set(nanRow, 'size', Number.NaN);
+  await expect(identity(nan)).rejects.toThrow();
+  const extra = slots(), extraRow = extra.late[0]; if (extraRow === undefined) throw new Error('Missing slot');
+  Reflect.set(extraRow, 'unknown', 1);
+  await expect(identity(extra)).rejects.toThrow();
 });

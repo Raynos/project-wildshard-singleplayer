@@ -92,3 +92,18 @@ test('missing or duplicate author reports and partial product failures stay expl
   expect(partial.snapshot(true).products).toEqual({built:1,reused:0,failed:1});
   expect(partial.snapshot(true).complete).toBe(false);
 });
+
+
+test('cast slot identities share only the exact reviewed cast report family',()=>{
+  const counters=createBuildCacheCounters(),stop=observeBuildCache(counters);
+  try{for(const [project,step]of [
+    ['nine-dragon-stack','casts'],['nine-dragon-stack',`casts-slots-${'c'.repeat(64)}`],
+    ['nine-dragon-stack',`casts-slots-${'c'.repeat(63)}`],['nine-dragon-stack',`casts-slots-${'g'.repeat(64)}`],
+    ['pine-hollow',`casts-slots-${'c'.repeat(64)}`],
+  ] as const)reportBuildCache({cache:'generation-step',project,step,event:'lookup',bytes:0});
+  }finally{stop();}
+  const report=counters.snapshot(true);
+  expect(report.caches.find(row=>row.cache==='nine-casts')?.lookups).toBe(2);
+  expect(report.caches.find(row=>row.cache==='other-generation')?.lookups).toBe(3);
+  expect(report.invalidReports).toBe(0);
+});
