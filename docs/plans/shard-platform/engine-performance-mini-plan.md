@@ -218,7 +218,7 @@ Every look-changing commit carries a before / after capture (G844).
 | Row | What | Done when (measured) | Lane | Size |
 |---|---|---|---|---|
 | EP1 | **The draw census as a script** (`scripts/perf/draw-census.mjs`, from `tmp/wildshard-v-engine-perf/census.js`): per frame, draws by pass and owner, µs per draw, programs, `useProgram`, uniform calls, wrapper overhead | Prints this draft's §2.1 table for Nine P4 and Pine Q4 in both modes in one run; no Debug row and no URL switch | **done** `b6907b9d7e` (sp-x1): five behavior controls; private-map, four-mode phone 4x census on `2db7659-mvv9uizu`, 60 frames per window. Native draw medians Nine LG/SF 153/152, Pine 140/213; every attributed frame reconciles. Native paired render CPU is separate from hooks and sampled wrapper overhead; zero/unmapped costs stay null. | S |
-| EP2 | **One draw hook** (low-hanging fruit L1): fold the six wrappers into one; ownership and upload observation once per resource; labels only on Developer census frames | Wrapper overhead (outer − three `renderBufferDirect`) ≤ 0.3 ms a frame at Nine P4 and Pine Q4, both modes (today 0.9–2.0); `properties.get` hooks ≤ 0.1 ms; memory and ownership tests green | **in flight** (2026-10-31, sp-x2). `3da9099562` re-arms only the changed texture; global disposal still invalidates all observations. All 18 poses are G941-qualified M3 A/A and A/B (only the two ruled Nine coordinates), and 22 native component comparisons are exact. The counterbalanced 67c166 -> 3da909 180-frame 4x cohort remains mixed: Nine P4 child wrapper/property LG .309/.213, SF .511/.249 ms; Pine Q4 .857/.648 LG, .754/.829 SF. **0.3/0.1 ms remain open.** Changed draw medians and a possible late P1 P0 overlap earn no matched-draw or isolated timing acceptance. Full numbers and image hashes are in `9ae0b15fdd`/`d4af0e31f8` bodies; ownership and native-failure controls pass.| EP3 The next checked native-row memo is undergoing its source-controlled whole-world G958 proof; it is not yet landed and earns no native bar credit. | S |
+| EP2 | **One draw hook** (low-hanging fruit L1): fold the six wrappers into one; ownership and upload observation once per resource; labels only on Developer census frames | Wrapper overhead (outer − three `renderBufferDirect`) ≤ 0.3 ms a frame at Nine P4 and Pine Q4, both modes (today 0.9–2.0); `properties.get` hooks ≤ 0.1 ms; memory and ownership tests green | **done — measured close** (2026-10-31, sp-x2; G872), shared NF21/PF14. Final exact cut `61e4935b2f` is on origin with local gates green. Final Q4 child wrapper/property .532/.497 LG and .641/.585 SF ms; original .3/.1 ms and matched-draw −1 ms targets are **not met**. Every retained exact cut, both latest cohorts and the known G941 pixel are listed in [the close-out](#ep2-measured-close-out-2026-10-31). No further hook prototype tonight; CI10 follows. | S |
 | EP3 | **Program-sorted opaque list** (L2) | Pine Q4 shardfile: `useProgram` ≤ distinct programs + 10 (98 → ≤ 76); uniform calls −20 %; captures pixel-identical at Q1–Q4 and P1–P5 | **closed: measured** (2026-10-30, sp-o5 on GLSL, golden cams 1 / 5 / 14): a program-first sort on each draw's actual program saves ~1 switch on Nine (55 → 54; opaque 19 switches / 18 programs, already near-optimal; transparent 31 stays back-to-front) and ~4 on Pine (59 total); pixel-identical. Bars met without it: Nine 55 ≤ NF15's 55, Pine 59 ≤ PF15's 70. Not built (G872, wildshard-new; NF22 / PF15 close with it). Earlier TSL prototype: `8b5c3d946d` | S |
 | EP4 | **GLSL graph back-end** = NF13–NF18 (nine-fix), shared with pine-fps | As NF15 / NF17: Nine work ≤ legacy + 0.5 ms; 0 `beforeDraw` a frame on every shard | Opus | L |
 | EP5 | **Graph looks back on the batched path**: Pine's forest and crags on `BatchedMesh` as legacy (stopgap L3, until EP4 makes the looks classic); facades stay instanced | Pine Q4: tree draws ≤ 9 (main + shadow); boulders ≤ 2; total draws ≤ 140; work ≤ legacy + 1 ms; behind a Debug row until Jake's Pine QA | **done** = PF1 / PF2 (`8a59427b63`, `5326499f61`): graph looks ride the batched path by default; Pine spawn 165 → 109 draws | S |
@@ -237,6 +237,72 @@ grill except EP5, which waits on question 2.
 **Plan done when:** at every matched pose, Nine and Pine shardfile have main-thread work **below** legacy's on Chromium
 4x and WebKit, ≤ 150 draws and ≤ 30 µs per draw, and the iOS Simulator holds 30 fps with max frame ≤ 50 ms. Jake's phone
 QA (G933) is the final check.
+
+## EP2 measured close-out (2026-10-31)
+
+**Done as measured (G872, wildshard-new's final one-cut timebox), not a pass
+of the original CPU limits.** `61e4935b2f` is on origin with its normal local
+gate green (12.02 s). EP2, NF21 and PF14 close together; no more hook
+prototype is queued tonight. CI10 runner readiness is next for this lane.
+
+The retained exact cuts are:
+
+- `ace8409509` unifies the draw phases; `a98f0ec0e1` uses typed completion;
+  `db9f3638e9` observes each submission once.
+- `14c307b438` / `a62c1451d6` classify resources once;
+  `a1a062bdf9` dispatches shadow hooks only for casts.
+- `fc21972812` memoizes scene-owner paths; `91279bb52f` avoids settled
+  release-clock reads; `4b49fb00fd` retains settled consumer leases;
+  `cea4824e3f` observes typed draw resources; `5503829cf5` encloses upload
+  ownership once.
+- `8eee16feea` shares live native rows; `74f9e94d0f` skips nontexture label
+  policy; `a024233704` retains native metadata; `11653dd401` adopts a late
+  render counter without reusing an old observation.
+- `279c29fa16` enrolls textures once per frame; `3da9099562` rearms only
+  the changed texture; `4ecb6b961e` reuses live native texture rows;
+  `61e4935b2f` keeps enrollment stamps beside those weak native observations.
+
+All measurements below are Chromium Metal, phone tier, DPR2 and CPU 4x.
+The latest cohorts have 180 completed native frames per mode, before the
+separate GL/property observers and sampled profiler. Sampled wrapper and
+property costs are diagnostic milliseconds per frame, not native floors.
+
+| Cohort / pose | Legacy parent → child | Shardfile parent → child | Qualification |
+|---|---|---|---|
+| Earlier Nine P4 | work 7.3 → 8.0 ms, 153 draws | work 7.4 → 8.7 ms, 142 draws | Child wrapper/property .309/.213 and .511/.249 ms; no −1 ms gain |
+| Earlier Pine Q4 (`3da9099562`) | work 20.3 → 16.6 ms, 127 → 130 draws | work 16.6 → 17.7 ms, 134 → 133 draws | Child wrapper/property .857/.648 and .754/.829 ms; possible late P1 P0 overlap retained as shared-host |
+| Earlier Pine P1 | work 10.7 → 10.0 ms, 85 draws | work 12.4 → 12.5 ms, 92 draws | Matched-draw −1 ms not met |
+| Native-row Q4 (`4ecb6b961e`) | work 12.9 → 12.7; render 9.3 → 8.9 ms; draws 128 → 129 | work 14.6 → 14.6; render 9.8 → 10.0 ms; draws 133 | Wrapper/property .500/.550 → .532/.532 and .505/.577 → .458/.642 ms |
+| Final enrollment Q4 (`61e4935b2f`) | work 12.8 → 12.9; render 9.1 → 9.0 ms; draws 129 | work 15.0 → 14.6; render 10.0 → 9.8 ms; draws 133 | Wrapper/property .480/.542 → .532/.497 and .580/.642 → .641/.585 ms |
+
+**The .3 ms wrapper, .1 ms property and −1 ms matched-draw targets are
+not met.** SF final triangles remain 1,134,239; live LG triangle medians
+1,176,348 → 1,176,421, so no stronger matched-scene claim is made. The final
+Node-only nine-pair synthetic median is 8.723 → 8.019 ms, with all 262,144
+compressed-before / compressed-after / ownership calls retained. It earns
+no GPU or physical-phone credit. Failed admission and late-listener
+controls join the original lifetime/refusal checks: 76 tests in ten suites,
+engine/root-test types and typed lint pass.
+
+Final causal publications pass both ordinary source fences: only
+`drawHooks.ts` differs among 6,991 inputs. Fresh Nine P1–P5 and Pine P1–P4
+in both modes give 18 A/A and 18 A/B world comparisons. Thirty-four are
+raw zero; Nine SF P2 has the existing ruled G941 canopy pixel in A/A and
+A/B at `(591,715)` bottom, `[25,30,22,1]` → `[26,30,22,1]`. The child equals
+parent repeat one; both full hashes are in the code body. Cameras, clocks,
+frames, dimensions, draws and triangles are exact. Eight touched texture
+components give 16 raw-zero A/A+A/B comparisons with exact native state.
+The preceding `4ecb6b961e` separately retained 36 raw-zero world comparisons
+and 22 exact components. No capture tolerance or memory/ownership guard
+was changed. Raw cohorts and matching private maps are retained under
+`tmp/sp-x2-ep2/{native-row,enrollment-row}`; both preview pairs are stopped.
+
+The remaining lever is to specialize the hot property/ownership dispatch
+away from cold observer policy while preserving live allocation, disposal,
+consumer and late-listener authority. That is recorded as the measured
+limit of this completed row, not another tonight prototype or a claim of
+physical-device acceptance.
+
 
 ## Approved Debug retirements (G944–G947)
 
