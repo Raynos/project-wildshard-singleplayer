@@ -93,6 +93,9 @@ test('lowering is byte-stable, and every op wraps into a classic program', () =>
   for (const graph of [...Object.keys(GRAPH_OPS).map(validGraphOf), toon]) {
     const once = emitClassicGraph(graph, { toonLook: look }), twice = emitClassicGraph(structuredClone(graph), { toonLook: look });
     expect(JSON.stringify(twice)).toBe(JSON.stringify(once));
+    const { executionCost, ...census } = emitClassicGraph(graph, { toonLook: look, reportExecutionCost: true });
+    expect(executionCost).toBeDefined();
+    expect(census).toEqual(once);
     if (once.program === null) continue;
     const shaders = graphShaders(once, { toonLook: look }), again = graphShaders(twice, { toonLook: look });
     expect(again.vertexShader).toBe(shaders.vertexShader);

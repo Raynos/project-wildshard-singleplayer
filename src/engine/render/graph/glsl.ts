@@ -71,10 +71,23 @@ export interface GraphGlslProgram {
   readonly lighting: { readonly sun: boolean; readonly specular: boolean; readonly ambient: boolean; readonly ownsEnvironment: boolean; readonly grade: boolean } | null;
   readonly selects: { readonly light: number; readonly branch: number };
 }
+/** Estimated graph-op work at its actual emitted location, per invocation.
+ * Fixed-count loop bodies are multiplied. Conditional is the sum of all
+ * emitted arms, not a measured branch frequency or a hardware instruction count.
+ * Vertex work is per vertex; sun/ambient/grade/fog work is per function call. */
+export interface GraphGlslExecutionWork {
+  readonly unconditional: number;
+  readonly conditional: number;
+  readonly unconditionalLoops: number;
+  readonly conditionalLoops: number;
+}
+export type GraphGlslExecutionCost = Readonly<Record<'vertex' | 'fragment' | 'sun' | 'ambient' | 'grade' | 'fog', GraphGlslExecutionWork>>;
 /** a graph lowered to GLSL */
 export interface GraphGlsl {
   readonly ir: GraphIr;
   readonly cost: GraphCost;
+  /** Optional offline report. Reporting never changes shader text or admission. */
+  readonly executionCost?: { readonly main: GraphGlslExecutionCost | null; readonly outline: GraphGlslExecutionCost | null; readonly fog: GraphGlslExecutionCost | null };
   readonly bindings: readonly { readonly param: string; readonly bind: GraphBinding }[];
   /** the material's draw, or a post graph's pass; null for a fog graph */
   readonly program: GraphGlslProgram | null;
@@ -98,12 +111,14 @@ export interface EmitGraphGlslOptions extends GraphValidationOptions {
   readonly replaceEnvironmentDiffuse?: boolean;
   /** the caller's own passing `validateGraph` of this very graph under these options */
   readonly validated?: Extract<GraphValidation, { ok: true }>;
+  /** Offline compiler census only; no per-node report work on normal compilation. */
+  readonly reportExecutionCost?: boolean;
 }
 
 /** one value: its IR type and a GLSL expression (an identifier, a literal or a parenthesised term) */
 interface V { readonly t: GraphValueType; readonly e: string }
 /** a block of statements; its values are visible to it and its children only */
-interface Block { readonly lines: string[]; readonly memo: Map<string, V>; readonly parent: Block | null; readonly depth: number }
+interface Block { readonly lines: string[]; readonly memo: Map<string, V>; readonly parent: Block | null; readonly depth: number; readonly conditional: boolean; readonly iterations: number }
 /** a scope of graph nodes: the graph's own, a loop body's, or the toon preset's */
 interface Scope {
   readonly path: string;
@@ -255,8 +270,10 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
   }
 
   /** one program's emission (the main draw or the outline), sharing the graph's uniforms and attributes */
-  function emitProgram(which: 'main' | 'outline' | 'fog'): { program: GraphGlslProgram; fogFunction: string | null } {
-    const block = (parent: Block | null): Block => ({ lines: [], memo: new Map(), parent, depth: parent === null ? 1 : parent.depth + 1 });
+  function emitProgram(which: 'main' | 'outline' | 'fog'): { program: GraphGlslProgram; fogFunction: string | null; execution: GraphGlslExecutionCost | null } {
+    const work = (): { -readonly [K in keyof GraphGlslExecutionWork]: GraphGlslExecutionWork[K] } => ({ unconditional: 0, conditional: 0, unconditionalLoops: 0, conditionalLoops: 0 });
+    const execution = opts.reportExecutionCost === true ? { vertex: work(), fragment: work(), sun: work(), ambient: work(), grade: work(), fog: work() } : null;
+    const block = (parent: Block | null, conditional = parent?.conditional ?? false, iterations = parent?.iterations ?? 1): Block => ({ lines: [], memo: new Map(), parent, depth: parent === null ? 1 : parent.depth + 1, conditional, iterations });
     const vertexRoot = block(null), fragmentRoot = block(null);
     const vertexStart: string[] = [], vertexEnd: string[] = [];
     const varyings: string[] = [];
@@ -435,6 +452,12 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
       const node = s.nodes[r];
       if (node === undefined) throw new Error(`material graph: unknown node ${r}`);
       const v = build(node, r, s, target, ctx);
+      if (execution !== null) {
+        const spec = GRAPH_OPS[node.op], tally = execution[ctx];
+        const lanes = spec?.rule === 'same' || spec?.rule === 'unary' ? LEN[v.t] : 1;
+        tally[target.conditional ? 'conditional' : 'unconditional'] += (spec?.cost ?? 0) * lanes * target.iterations;
+        if (node.op === 'loop') tally[target.conditional ? 'conditionalLoops' : 'unconditionalLoops']++;
+      }
       target.memo.set(key, v);
       return v;
     }
@@ -733,11 +756,11 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
       const cond = ref(rc, scope, b, ctx), name = temp(id);
       emit(b, `${t} ${name};`);
       emit(b, `if (${cond.e}) {`);
-      const yes = block(b), x = ref(rx, scope, yes, ctx);
+      const yes = block(b, true), x = ref(rx, scope, yes, ctx);
       emit(yes, `${name} = ${bool ? x.e : widen(x, t)};`);
       b.lines.push(...yes.lines);
       emit(b, '} else {');
-      const no = block(b), y = ref(ry, scope, no, ctx);
+      const no = block(b, true), y = ref(ry, scope, no, ctx);
       emit(no, `${name} = ${bool ? y.e : widen(y, t)};`);
       b.lines.push(...no.lines);
       emit(b, '}');
@@ -749,7 +772,7 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
       if (body === undefined) throw new Error('material graph: a loop without a body');
       const init = ref(n.in?.[0] ?? 0, scope, b, ctx);
       const acc = temp(id), i = `i${String(serial++)}`, index = `x${String(serial++)}`;
-      const inner = block(b);
+      const inner = block(b, b.conditional, b.iterations * count);
       const bodyScope: Scope = { path: `${scope.path}.${id}.body`, nodes: body.nodes, parent: scope, home: b, acc: { t: init.t, e: acc }, index: { t: 'float', e: index }, types: scope.types,
         ...(scope.params === undefined ? {} : { params: scope.params }), ...(scope.seeds === undefined ? {} : { seeds: scope.seeds }) };
       emit(inner, `float ${index} = float(${i});`);
@@ -844,14 +867,16 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
       fragment: { head: fragmentHead, body: fragmentRoot.lines.join('\n'), end: '' },
       outputs, lighting, selects,
     };
-    return { program, fogFunction };
+    return { program, fogFunction, execution };
   }
 
   const main = ir.kind === 'fog' ? null : emitProgram('main');
-  const outline = ir.kind === 'material' && ir.stages.outline !== undefined ? emitProgram('outline').program : null;
-  const fog = ir.kind === 'fog' ? emitProgram('fog').fogFunction : null;
+  const outlined = ir.kind === 'material' && ir.stages.outline !== undefined ? emitProgram('outline') : null;
+  const fogged = ir.kind === 'fog' ? emitProgram('fog') : null;
   return {
-    ir, cost, bindings, program: main?.program ?? null, outline, fog, libraries: (['hash', 'noise'] as const).filter(name => libraries.has(name)),
+    ir, cost, bindings, program: main?.program ?? null, outline: outlined?.program ?? null, fog: fogged?.fogFunction ?? null,
+    ...(opts.reportExecutionCost === true ? { executionCost: { main: main?.execution ?? null, outline: outlined?.execution ?? null, fog: fogged?.execution ?? null } } : {}),
+    libraries: (['hash', 'noise'] as const).filter(name => libraries.has(name)),
     uniforms: [...uniforms.values()], attributes: [...attributes.values()],
   };
 }

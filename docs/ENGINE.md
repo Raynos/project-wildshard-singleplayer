@@ -6346,19 +6346,19 @@ material ownership remain with the existing scene ports.
 
 ### Trusted material graph ceilings
 
-A `GraphIr.budget` declares `{ nodes, samplers, instructions }` for one
-program. The default remains `DEFAULT_GRAPH_BUDGET`. Declared values are
-positive integers bounded by `MAX_GRAPH_BUDGET` (4096 nodes, 16 samplers,
-8192 estimated instructions); loop trips still contribute their full cost.
-The existing JSON byte/depth and uniform-list limits also apply.
+`GraphIr.budget` declares positive integer `{ nodes, samplers,
+instructions }`, bounded by `MAX_GRAPH_BUDGET` (4096 / 16 / 8192).
+Defaults remain `DEFAULT_GRAPH_BUDGET`; loop trips, JSON byte/depth
+and uniform-list limits still count. Only admitted runtime authority
+sets `trustedBudget: true` through `clientMaterials.trustedGraphs`.
+JSON cannot grant it. Missing authority or an exceeded budget refuses,
+never substitutes emissive. Legacy and explicit Debug family presets stay.
 
-Format admission validates the declaration. Only an admitted trusted runtime
-passes `trustedBudget: true` to graph validation/compilation through
-`clientMaterials`' host-owned `trustedGraphs` option. Authored JSON cannot
-set that authority. A declared graph that exceeds its own budget or lacks
-host authority refuses; it never silently substitutes an emissive material.
-Legacy graphs and the explicit graph-materials Debug choice retain their
-existing family-preset behavior.
+`emitGraphGlsl(ir, { reportExecutionCost: true }).executionCost` reports
+emitted estimates per program/stage, unconditional versus conditional.
+It counts fixed loop trips and actual hoisting. Conditional sums arms,
+not branch frequency. Shader text/admission stay identical; pixel-weighted
+work needs measured draw coverage. Lighting/fog costs are per call.
 
 `prepareClientWorld(ctx, source, rows)` in `game/shardfile/runtimeProduct`
 compiles the requested admitted graph materials for resident emitters and
