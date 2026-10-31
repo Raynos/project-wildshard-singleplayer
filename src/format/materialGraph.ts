@@ -470,7 +470,7 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   step: { arity: [2, 2], rule: 'same', cost: 1 },
   abs: { arity: [1, 1], rule: 'unary', cost: 1 },
   floor: { arity: [1, 1], rule: 'unary', cost: 1 },
-  // Preserve an intermediate RGBA16F post target's rounding when its next pass is fused.
+  // Quantize numeric post values with native half packing; render-target store rounding may differ.
   float16: { arity: [1, 1], rule: 'unary', cost: 4, places: ['post'] },
   fract: { arity: [1, 1], rule: 'unary', cost: 1 },
   sin: { arity: [1, 1], rule: 'unary', cost: 4 },

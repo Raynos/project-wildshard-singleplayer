@@ -36,8 +36,10 @@ compiler refuses this feature explicitly before creating its nodes.
 ## Preserve intermediate target precision
 
 A post-only `float16` node takes one numeric scalar or vector and keeps
-its width. Native half packing/unpacking rounds each component to the
-precision of an RGBA16F intermediate target. It is available in the
+its width. Native half packing/unpacking quantizes each component to
+half-float precision. This does not promise the same rounding as storing
+to an RGBA16F render target: Metal calibration observed toward-zero
+target stores and nearest native packing for the same values. It is available in the
 classic and legacy node compilers and spends four estimated arithmetic
 units per component under the existing graph budget.
 
@@ -52,6 +54,6 @@ still precompile during loading.
 
 A composer format change rebuilds opted-in target ownership at the same
 size. Ordinary rows retain their existing draw/feed order. These ports
-allow a fused half-float path to preserve intermediate rounding while
+allow an independently qualified fused half-float path while
 retaining the original two-pass byte-target fallback; they do not by
 themselves activate fusion or establish a pixel/performance result.
