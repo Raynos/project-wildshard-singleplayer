@@ -1,9 +1,10 @@
 /** Browser-serialized census. Baseline reads native completed-frame counters;
  * attribution wraps submissions and optional property counts only in a separate diagnostic window.
- * @param {{frames: number, attribution: boolean, propertyCalls?: boolean, systemIds?: string[]}} options */
-export function drawFrames({ frames, attribution, propertyCalls = false, systemIds }) {
+ * @param {{frames: number, attribution: boolean, propertyCalls?: boolean, programSources?: boolean, systemIds?: string[]}} options */
+export function drawFrames({ frames, attribution, propertyCalls = false, programSources = false, systemIds }) {
   const api = window.__wildshard, world = api?.world, game = world?.game;
   if (!game || !world.hud.entered || world.hud.paused || !game.frameGate()) throw new Error('Census requires uncovered, entered controls');
+  if (programSources && !attribution) throw new Error('Program sources require the separate attribution window');
   const renderer = game.renderer, gl = renderer.getContext();
   const restores = [], results = [];
   const selectedSystems = new Set(systemIds), presentSystems = new Set();
@@ -12,7 +13,10 @@ export function drawFrames({ frames, attribution, propertyCalls = false, systemI
   let program = gl.getParameter(gl.CURRENT_PROGRAM), nextProgram = 0;
   const programs = new Map();
   const programId = () => {
-    if (program === null) return null;
+    if (program === null) {
+      if (programSources) throw new Error('Native submission has no linked program');
+      return null;
+    }
     if (!programs.has(program)) programs.set(program, ++nextProgram);
     return programs.get(program);
   };
@@ -102,7 +106,35 @@ export function drawFrames({ frames, attribution, propertyCalls = false, systemI
     const finish = error => {
       if (finished) return; finished = true; stop?.(); clearTimeout(deadline);
       for (const restore of restores.reverse()) restore();
-      if (error) reject(error instanceof Error ? error : new Error(String(error))); else resolve(results);
+      if (error) reject(error instanceof Error ? error : new Error(String(error)));
+      else try {
+        const tail = results.at(-1);
+        if (programSources) {
+          if (tail === undefined) throw new Error('Program source window has no completed frames');
+          // Only actual submissions enter this map, never renderer.info's
+          // compiled cache. Query after the window and observer restoration.
+          tail.programSources = [...programs].map(([linked, id]) => {
+            const shaders = gl.getAttachedShaders(linked);
+            if (shaders === null || shaders.length === 0) throw new Error('Drawn program has no attached shaders');
+            const attributes = gl.getProgramParameter(linked, gl.ACTIVE_ATTRIBUTES), uniforms = gl.getProgramParameter(linked, gl.ACTIVE_UNIFORMS);
+            if (!Number.isSafeInteger(attributes) || attributes < 0 || !Number.isSafeInteger(uniforms) || uniforms < 0) throw new Error('Invalid native program interface');
+            return { id, shaders: shaders.map(shader => {
+              const source = gl.getShaderSource(shader), type = gl.getShaderParameter(shader, gl.SHADER_TYPE);
+              if (typeof source !== 'string' || source.length === 0 || type !== gl.VERTEX_SHADER && type !== gl.FRAGMENT_SHADER) throw new Error('Drawn program has no shader source');
+              return { type, source };
+            }), attributes: Array.from({length: attributes}, (_, index) => {
+              const row = gl.getActiveAttrib(linked, index);
+              if (row === null) throw new Error('Missing native active attribute');
+              return {name: row.name, type: row.type, size: row.size, location: gl.getAttribLocation(linked, row.name)};
+            }), uniforms: Array.from({length: uniforms}, (_, index) => {
+              const row = gl.getActiveUniform(linked, index);
+              if (row === null) throw new Error('Missing native active uniform');
+              return {name: row.name, type: row.type, size: row.size};
+            }) };
+          });
+        }
+        resolve(results);
+      } catch (failure) { reject(failure instanceof Error ? failure : new Error(String(failure))); }
     };
     deadline = setTimeout(() => finish(new Error('Census frame window exceeded 30 seconds')), 30000);
     try {

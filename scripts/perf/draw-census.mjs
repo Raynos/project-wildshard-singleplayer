@@ -23,6 +23,9 @@ const surface = arg('surface', 'pwa'), requestedSlug = arg('slug'), pinePose = a
 const selections = censusSelection(requestedSlug, pinePose, arg('mode', 'both'), cameras.cameras, arg('nine-pose', 'P4'));
 const environment = arg('environment', 'live');
 if (!['live', 'golden'].includes(environment)) throw new Error('Unknown census environment');
+const programSourceOption = arg('program-sources', '0');
+if (programSourceOption !== '0' && programSourceOption !== '1') throw new Error('Requires --program-sources=0|1');
+const programSources = programSourceOption === '1';
 const systemIds = arg('systems') === '' ? undefined : arg('systems').split(',');
 if (!['pwa', 'browser'].includes(surface)) throw new Error('Unknown phone surface');
 const device = devices['iPhone 16 Pro'], viewport = surface === 'pwa' ? device.screen : device.viewport;
@@ -77,6 +80,7 @@ if (arg('reprocess') !== '') {
 const result = { build: version.build, url: base, protocol: { device: 'iPhone 16 Pro', tier: 'phone', dpr: 2, cpuRate: 4, frames,
   surface, viewport, slug: requestedSlug === '' ? null : requestedSlug, pinePose, environment,
   systems: systemIds ?? null,
+  ...(programSources ? {programSources: 'actually submitted linked shaders and active interfaces; separate attribution only'} : {}),
   baseline: 'native completed Game renderMs/workMs and whole-frame calls, before any census hooks or profiler',
   attribution: 'separate GL submission observation, including shadow/post/held; no GPU synchronization',
   propertyCounts: 'separate attribution window; native getter and descriptors restored before profile',
@@ -113,7 +117,7 @@ try {
         camera: world.game.camera.position.toArray(), fov: world.game.camera.fov }; });
       row.baselineFrames = await page.evaluate(drawFrames, { frames, attribution: false });
       row.native = nativeSummary(row.baselineFrames); persist();
-      row.attributionFrames = await page.evaluate(drawFrames, { frames, attribution: true, propertyCalls: true });
+      row.attributionFrames = await page.evaluate(drawFrames, { frames, attribution: true, propertyCalls: true, programSources });
       row.attribution = attributionSummary(row.attributionFrames); persist();
       if (systemIds !== undefined) { row.systemFrames = await page.evaluate(drawFrames, { frames, attribution: false, systemIds }); persist(); }
       await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 200 }); await cdp.send('Profiler.start');

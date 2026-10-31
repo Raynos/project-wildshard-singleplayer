@@ -160,6 +160,91 @@ test('native baseline never installs a property observer', async () => {
   }finally{restore();}
 });
 
+function programFixture(fault: 'source' | 'attribute' | 'count' | null = null) {
+  const f = propertyFixture(), program = {}, cachedOnly = {}, vertex = {}, fragment = {};
+  const attached = vi.fn((drawn: object) => {
+    expect(drawn).toBe(program);
+    expect(f.renderer.renderBufferDirect).toBe(f.originalDraw);
+    expect(f.renderer.properties.get).toBe(f.get);
+    return [vertex, fragment];
+  });
+  const source = vi.fn((shader: object) => fault === 'source' ? null : shader === vertex ? 'vertex source' : 'fragment source');
+  Object.assign(f.renderer, {info: {programs: [program, cachedOnly]}});
+  Object.assign(f.renderer.getContext(), {
+    SHADER_TYPE: 2, ACTIVE_ATTRIBUTES: 3, ACTIVE_UNIFORMS: 4, VERTEX_SHADER: 35633, FRAGMENT_SHADER: 35632,
+    getParameter: () => program, getAttachedShaders: attached, getShaderSource: source,
+    getShaderParameter: (shader: object) => shader === vertex ? 35633 : 35632,
+    getProgramParameter: () => fault === 'count' ? Number.NaN : 1,
+    getActiveAttrib: () => fault === 'attribute' ? null : {name: 'position', type: 35665, size: 1},
+    getAttribLocation: () => 0,
+    getActiveUniform: () => ({name: 'modelViewMatrix', type: 35676, size: 1}),
+  });
+  return {...f, program, attached, source};
+}
+
+test('program sources describe submitted links, not the compiled cache, after observer restoration', async () => {
+  const f = programFixture(), restore = browserFixture(f.world);
+  try {
+    const capture = drawFrames({frames: 1, attribution: true, programSources: true});
+    f.callbacks.frame?.(); f.draw(); f.draw(); f.game.lastFrame.calls = 2; f.game.frameCount++; f.callbacks.frame?.();
+    const rows = await capture;
+    expect(rows[0]?.programSources).toEqual([{id: 1,
+      shaders: [{type: 35633, source: 'vertex source'}, {type: 35632, source: 'fragment source'}],
+      attributes: [{name: 'position', type: 35665, size: 1, location: 0}],
+      uniforms: [{name: 'modelViewMatrix', type: 35676, size: 1}],
+    }]);
+    expect(rows[0]?.draws?.map(draw => draw.program)).toEqual([1, 1]);
+    expect(f.attached).toHaveBeenCalledExactlyOnceWith(f.program); expect(f.source).toHaveBeenCalledTimes(2);
+  } finally {restore();}
+});
+
+test('each submitted link keeps its own shaders and active interface', async () => {
+  const f = programFixture(), second = {}, restore = browserFixture(f.world);
+  const a = [{type: 35633, source: 'vertex A'}, {type: 35632, source: 'fragment A'}];
+  const b = [{type: 35633, source: 'vertex B'}, {type: 35632, source: 'fragment B'}];
+  const gl = f.renderer.getContext();
+  Object.assign(gl, {
+    getAttachedShaders: (linked: object) => linked === f.program ? a : b,
+    getShaderParameter: (shader: {type: number}) => shader.type,
+    getShaderSource: (shader: {source: string}) => shader.source,
+    getActiveAttrib: (linked: object) => ({name: linked === f.program ? 'position' : 'normal', type: 35665, size: 1}),
+    getAttribLocation: (linked: object) => linked === f.program ? 0 : 1,
+    getActiveUniform: (linked: object) => ({name: linked === f.program ? 'matrixA' : 'matrixB', type: 35676, size: 1}),
+  });
+  try {
+    const capture = drawFrames({frames: 1, attribution: true, programSources: true});
+    f.callbacks.frame?.(); f.draw(); Reflect.apply(gl.useProgram, gl, [second]); f.draw();
+    f.game.lastFrame.calls = 2; f.game.frameCount++; f.callbacks.frame?.();
+    const sources = (await capture)[0]?.programSources;
+    expect(sources?.map(row => [row.id, row.shaders, row.attributes[0]?.name, row.attributes[0]?.location, row.uniforms[0]?.name])).toEqual([
+      [1, a, 'position', 0, 'matrixA'], [2, b, 'normal', 1, 'matrixB'],
+    ]);
+    expect(f.renderer.renderBufferDirect).toBe(f.originalDraw);
+  } finally {restore();}
+});
+
+test.each(['source', 'attribute', 'count'] as const)('program introspection %s failure refuses after restoring native hooks', async fault => {
+  const f = programFixture(fault), restore = browserFixture(f.world);
+  try {
+    const capture = drawFrames({frames: 1, attribution: true, programSources: true});
+    f.callbacks.frame?.(); f.draw(); f.game.frameCount++; f.callbacks.frame?.();
+    await expect(capture).rejects.toThrow(fault === 'source' ? 'shader source' : fault === 'attribute' ? 'active attribute' : 'program interface');
+    expect(f.renderer.renderBufferDirect).toBe(f.originalDraw); expect(f.renderer.properties.get).toBe(f.get);
+    expect(f.callbacks.frame).toBeUndefined();
+  } finally {restore();}
+});
+
+test.each([false, true])('default native/attribution window never queries shader sources (attribution=%s)', async attribution => {
+  const f = programFixture(), restore = browserFixture(f.world);
+  try {
+    const capture = drawFrames({frames: 1, attribution});
+    f.callbacks.frame?.(); f.draw(); f.game.frameCount++; f.callbacks.frame?.();
+    expect((await capture)[0]?.programSources).toBeUndefined(); expect(f.attached).not.toHaveBeenCalled(); expect(f.source).not.toHaveBeenCalled();
+    expect(() => drawFrames({frames: 1, attribution: false, programSources: true})).toThrow('separate attribution');
+    expect(f.renderer.renderBufferDirect).toBe(f.originalDraw);
+  } finally {restore();}
+});
+
 test('system attribution keeps native calls, frame buckets and descriptor restoration', async () => {
   for (const fail of [false, true]) {
     const f = propertyFixture(), calls: unknown[][] = [];
