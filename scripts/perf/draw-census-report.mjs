@@ -28,7 +28,7 @@ export function sampledCpu(profile, locate, frames) {
     while (id !== undefined) {
       const node = nodes.get(id); if (!node) throw new Error('CPU profile references a missing node');
       const location = locations.get(id), { source, name } = location; if (source) mapped.add(source);
-      if (source.includes('/src/engine/')) {
+      if (source.includes('/src/engine/') || source.includes('/src/game/')) {
         const line = location.line ?? null, column = location.column ?? null;
         const key = JSON.stringify([source, name, line, column]);
         let row = functions.get(key);
