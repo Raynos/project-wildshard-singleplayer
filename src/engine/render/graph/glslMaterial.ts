@@ -320,18 +320,21 @@ export function compileClassicGraph(input: unknown, opts: ClassicGraphOptions = 
   if (typeof selected === 'string' && fog === undefined) throw new Error(`material graph: fog ${selected} needs a fog resolver`);
   const shared = new Map<string, THREE.IUniform>();
   const shaderOpts: GraphShaderOptions = { shared, ...(toon === undefined ? {} : { toonLook: toon }), ...(textures === undefined ? {} : { textures }), ...(fog === undefined ? {} : { fog }) };
+  const postFog = glsl.postFog === undefined ? undefined : { glsl: glsl.postFog, uniforms: graphUniformValues(glsl.postFog, shaderOpts) };
+  const drawOpts = postFog === undefined ? shaderOpts : { ...shaderOpts, fog: postFog };
   // a fog graph draws nothing itself: its uniforms are made once here and lent to every program selecting it
   const fogOwn = ir.kind === 'fog' ? graphUniformValues(glsl, shaderOpts) : null;
-  const material = ir.kind === 'fog' ? carrier() : shaderMaterial(glsl, shaderOpts);
+  const material = ir.kind === 'fog' ? carrier() : shaderMaterial(glsl, drawOpts);
   const outline = glsl.outline === null ? null : shaderMaterial(glsl, { ...shaderOpts, outline: true });
   const casts = ir.stages['vertex.offset']?.shadow === true || ir.stages['vertex.position']?.shadow === true;
   const depth = casts ? depthMaterial(glsl, shaderOpts) : null;
   if (depth !== null) {
     material.shadowDepth = depth; material.userData['graphShadowDepth'] = true; depthOwners.add(material);
   }
-  const uniformsOf = (name: string): THREE.IUniform | undefined => fogOwn?.get(name) ?? shared.get(name);
+  const uniformsOf = (name: string): THREE.IUniform | undefined => fogOwn?.get(name) ?? shared.get(name) ?? postFog?.uniforms.get(name);
   // the runtime feeds write params every frame (NF15 P4: a scan per write cost 0.18 ms a frame): by name, once
-  const paramNames = new Map(glsl.uniforms.flatMap(u => (u.from === 'param' || u.from === 'texture' || u.from === 'array' ? [[u.param, u.name] as const] : [])));
+  const ownUniforms = postFog === undefined ? glsl.uniforms : [...glsl.uniforms, ...postFog.glsl.uniforms];
+  const paramNames = new Map(ownUniforms.flatMap(u => (u.from === 'param' || u.from === 'texture' || u.from === 'array' ? [[u.param, u.name] as const] : [])));
   const param = (name: string): string | undefined => paramNames.get(name);
   const inRange = (name: string, n: number, min: number | undefined, max: number | undefined): void => {
     if (!Number.isFinite(n)) throw new Error(`material graph: param ${name} must be finite`);
@@ -341,7 +344,7 @@ export function compileClassicGraph(input: unknown, opts: ClassicGraphOptions = 
   // (a held value was checked when written), so those return before the range check.
   const setters = new Map<string, (value: GraphLiteral) => void>();
   const setterOf = (name: string): ((value: GraphLiteral) => void) => {
-    const p = ir.params?.[name];
+    const p = ir.params?.[name] ?? postFog?.glsl.ir.params?.[name];
     if (p === undefined || p.type === 'texture') throw new Error(`material graph: no param ${name}`);
     const length = p.type === 'vec2' ? 2 : p.type === 'vec4' ? 4 : 3;
     const mismatch = (): Error => new Error(`material graph: param ${name} type mismatch`);
@@ -372,22 +375,22 @@ export function compileClassicGraph(input: unknown, opts: ClassicGraphOptions = 
     return set;
   };
   return {
-    material, glsl, cost: glsl.cost, bindings: glsl.bindings, selects: glsl.program?.selects ?? { light: 0, branch: 0 }, outline, depth,
+    material, glsl, cost: glsl.cost, bindings: postFog === undefined ? glsl.bindings : [...glsl.bindings, ...postFog.glsl.bindings], selects: glsl.program?.selects ?? { light: 0, branch: 0 }, outline, depth,
     fog: fogOwn === null ? null : { glsl, uniforms: fogOwn },
     setParam(name, value) {
       const set = setters.get(name) ?? setterOf(name);
       set(value);
     },
     setTexture(name, texture) {
-      if (ir.params?.[name]?.role !== 'lent') throw new Error(`material graph: no sampled lent texture ${name}`);
-      const sampler = glsl.uniforms.find(u => u.from === 'texture' && u.param === name);
+      if ((ir.params?.[name] ?? postFog?.glsl.ir.params?.[name])?.role !== 'lent') throw new Error(`material graph: no sampled lent texture ${name}`);
+      const sampler = ownUniforms.find(u => u.from === 'texture' && u.param === name);
       if (sampler?.type === 'sampler2DArray' && !(texture instanceof THREE.DataArrayTexture) && !(texture instanceof THREE.CompressedArrayTexture)) throw new Error(`material graph: ${name} requires a 2D texture array`);
       if (sampler?.type === 'sampler3D' && !(texture instanceof THREE.Data3DTexture)) throw new Error(`material graph: ${name} requires a 3D texture`);
       const uniform = sampler === undefined ? undefined : uniformsOf(sampler.name);
       if (uniform !== undefined) uniform.value = texture;
     },
     setArrayParam(name, value) {
-      const row = ir.arrays?.[name], uniform = uniformsOf(param(name) ?? '');
+      const row = ir.arrays?.[name] ?? postFog?.glsl.ir.arrays?.[name], uniform = uniformsOf(param(name) ?? '');
       if (row === undefined || value.length !== row.value.length) throw new Error(`material graph: uniform list ${name} has fixed capacity`);
       const width = row.type === 'float' ? 1 : row.type === 'vec2' ? 2 : row.type === 'vec3' ? 3 : 4;
       for (const v of value) if ((typeof v === 'number' ? width !== 1 : v.length !== width) || !(typeof v === 'number' ? [v] : v).every(Number.isFinite)) throw new Error(`material graph: array element must be a finite ${row.type}`);

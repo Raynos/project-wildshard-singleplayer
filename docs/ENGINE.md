@@ -1785,6 +1785,8 @@ epilogue is unchanged. `toonGraph` refuses caustics and `painterlyGraph` a wind 
 today's families stay hand-written GLSL.
 
 
+[Post fog](POST-FOG.md).
+
 Node builds scope `render/nodes/nodeChildren.ts` child snapshots to one synchronous build. Immediate children
 retain stock order, duplicates and eager snapshot semantics without property/index descriptor allocations; custom
 collectors retain the original traversal. Success and failure restore the previous method, including nested builds.

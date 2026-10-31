@@ -87,7 +87,7 @@ export interface GraphGlsl {
   readonly ir: GraphIr;
   readonly cost: GraphCost;
   /** Optional offline report. Reporting never changes shader text or admission. */
-  readonly executionCost?: { readonly main: GraphGlslExecutionCost | null; readonly outline: GraphGlslExecutionCost | null; readonly fog: GraphGlslExecutionCost | null };
+  readonly executionCost?: { readonly main: GraphGlslExecutionCost | null; readonly outline: GraphGlslExecutionCost | null; readonly fog: GraphGlslExecutionCost | null; readonly fogSample?: GraphGlslExecutionCost };
   readonly bindings: readonly { readonly param: string; readonly bind: GraphBinding }[];
   /** the material's draw, or a post graph's pass; null for a fog graph */
   readonly program: GraphGlslProgram | null;
@@ -95,6 +95,10 @@ export interface GraphGlsl {
   readonly outline: GraphGlslProgram | null;
   /** a fog graph's function (file scope: `vec3 wsGraphFog(...)`; its libraries are in `libraries`) */
   readonly fog: string | null;
+  /** Optional colour/transmission function. Its w reads the admitted scalar directly, never two subtracted fog calls. */
+  readonly fogSample?: string;
+  /** One admitted post dependency, lowered once and called by fogSample nodes. */
+  readonly postFog?: GraphGlsl;
   /** the shared GLSL libraries the code calls (MaterialX noise, three's hash), for the program to define once a stage */
   readonly libraries: readonly string[];
   readonly uniforms: readonly GraphGlslUniform[];
@@ -221,6 +225,9 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
   const checked = opts.validated ?? validateGraph(input, opts);
   if (!checked.ok) throw new Error(`material graph refused:\n  ${checked.errors.join('\n  ')}`);
   const ir = checked.graph, rootTypes = checked.types, cost = checked.cost;
+  const { validated: _validated, ...dependencyOpts } = opts; void _validated;
+  const postFog = ir.postFog === undefined ? undefined : emitGraphGlsl(ir.postFog.graph, dependencyOpts);
+  if (postFog !== undefined && postFog.fogSample === undefined) throw new Error('material graph: post fog needs explicit transmission');
   if (ir.model === 'toon' && opts.toon === undefined) throw new Error('material graph: a toon graph needs the family preset ({ toon })');
   const uniforms = new Map<string, GraphGlslUniform>();
   const uniform = (u: GraphGlslUniform): string => { if (!uniforms.has(u.name)) uniforms.set(u.name, u); return u.name; };
@@ -270,7 +277,7 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
   }
 
   /** one program's emission (the main draw or the outline), sharing the graph's uniforms and attributes */
-  function emitProgram(which: 'main' | 'outline' | 'fog'): { program: GraphGlslProgram; fogFunction: string | null; execution: GraphGlslExecutionCost | null } {
+  function emitProgram(which: 'main' | 'outline' | 'fog' | 'fogSample'): { program: GraphGlslProgram; fogFunction: string | null; fogSample: string | null; execution: GraphGlslExecutionCost | null } {
     const work = (): { -readonly [K in keyof GraphGlslExecutionWork]: GraphGlslExecutionWork[K] } => ({ unconditional: 0, conditional: 0, unconditionalLoops: 0, conditionalLoops: 0 });
     const execution = opts.reportExecutionCost === true ? { vertex: work(), fragment: work(), sun: work(), ambient: work(), grade: work(), fog: work() } : null;
     const block = (parent: Block | null, conditional = parent?.conditional ?? false, iterations = parent?.iterations ?? 1): Block => ({ lines: [], memo: new Map(), parent, depth: parent === null ? 1 : parent.depth + 1, conditional, iterations });
@@ -349,7 +356,7 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
         case 'select': { const [, x = 'float', y = 'float'] = ins(); return x === 'bool' && y === 'bool' ? 'bool' : vecOf(Math.max(LEN[x], LEN[y])); }
         case 'swizzle': return vecOf((n.mask ?? 'x').length);
         case 'combine': return vecOf(ins().reduce((sum, t) => sum + LEN[t], 0));
-        case 'texture': return 'vec4';
+        case 'texture': case 'fogSample': return 'vec4';
         case 'loop': return typeOfRef(n.in?.[0] ?? 0, scope);
         case 'acc': return scope.acc?.t ?? 'float';
         case 'attribute': return n.type ?? 'float';
@@ -375,15 +382,38 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
       known = counts; readersOf.set(scope.nodes, known);
       return known;
     };
+    // A named call can feed multiple fields inside one select arm. Retain its
+    // full cost through that private DAG; branchShared still hoists a genuine
+    // outside reader. Existing graphs keep their original branch policy.
+    const callReach = postFog === undefined ? undefined : new WeakMap<Scope, Map<string, boolean>>();
+    function callsPostFog(r: GraphRef, scope: Scope): boolean {
+      if (typeof r !== 'string' || callReach === undefined) return false;
+      let found: Scope | null = scope;
+      while (found !== null && !Object.hasOwn(found.nodes, r)) found = found.parent;
+      if (found === null) return false;
+      const own = found, node = own.nodes[r]; if (node === undefined) return false;
+      let memo = callReach.get(own);
+      if (memo === undefined) { memo = new Map(); callReach.set(own, memo); }
+      const known = memo.get(r); if (known !== undefined) return known;
+      memo.set(r, false);
+      const body = node.body;
+      const result = node.op === 'fogSample' || (node.in ?? []).some(argument => callsPostFog(argument, own))
+        || (body !== undefined && callsPostFog(body.out, { ...own, path: `${own.path}.${r}.body`, nodes: body.nodes, parent: own, home: null }));
+      memo.set(r, result); return result;
+    }
     /** the instructions only this side of a select would run (`compile.ts`'s ownCost) */
     const ownCost = (r: GraphRef | undefined, scope: Scope, seen = new Set<string>()): number => {
-      if (typeof r !== 'string' || seen.has(r) || (readers(scope).get(r) ?? 0) > 1) return 0;
+      if (typeof r !== 'string' || seen.has(r) || ((readers(scope).get(r) ?? 0) > 1 && (postFog === undefined || !callsPostFog(r, scope)))) return 0;
       seen.add(r);
       const n = scope.nodes[r];
       if (n === undefined) return 0;
       const spec = GRAPH_OPS[n.op];
-      const body = n.op === 'loop' && n.body !== undefined ? Object.keys(n.body.nodes).length * (n.count ?? 1) * 2 : 0;
-      return (spec?.cost ?? 0) + body + (n.in ?? []).reduce<number>((sum, x) => sum + ownCost(x, scope, seen), 0);
+      let body = n.op === 'loop' && n.body !== undefined ? Object.keys(n.body.nodes).length * (n.count ?? 1) * 2 : 0;
+      if (postFog !== undefined && n.op === 'loop' && n.body !== undefined
+        && callsPostFog(n.body.out, { ...scope, path: `${scope.path}.${r}.body`, nodes: n.body.nodes, parent: scope, home: null })) {
+        body += postFog.cost.instructions * (n.count ?? 1);
+      }
+      return (spec?.cost ?? 0) + (n.op === 'fogSample' ? postFog?.cost.instructions ?? 0 : 0) + body + (n.in ?? []).reduce<number>((sum, x) => sum + ownCost(x, scope, seen), 0);
     };
     /** whether a reference samples a texture (implicit derivatives), through its inputs and a loop's output */
     const samples = (r: GraphRef | undefined, scope: Scope, seen = new Set<GraphNode>()): boolean => {
@@ -393,7 +423,7 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
         if (node === undefined) continue;
         if (seen.has(node)) return false;
         seen.add(node);
-        if (SAMPLE_OPS.has(node.op)) return true;
+        if (SAMPLE_OPS.has(node.op) || (node.op === 'fogSample' && (postFog?.cost.samplers ?? 0) > 0)) return true;
         const inner = s;
         if ((node.in ?? []).some(argument => samples(argument, inner, seen))) return true;
         if (node.body !== undefined) return samples(node.body.out, { ...inner, path: `${inner.path}.${r}.body`, nodes: node.body.nodes, parent: inner, home: null }, seen);
@@ -457,6 +487,14 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
         const lanes = spec?.rule === 'same' || spec?.rule === 'unary' ? LEN[v.t] : 1;
         tally[target.conditional ? 'conditional' : 'unconditional'] += (spec?.cost ?? 0) * lanes * target.iterations;
         if (node.op === 'loop') tally[target.conditional ? 'conditionalLoops' : 'unconditionalLoops']++;
+        if (node.op === 'fogSample') {
+          const called = postFog?.executionCost?.fogSample?.fog;
+          if (called === undefined) throw new Error('material graph: missing post fog execution report');
+          tally[target.conditional ? 'conditional' : 'unconditional'] += called.unconditional * target.iterations;
+          tally.conditional += called.conditional * target.iterations;
+          tally[target.conditional ? 'conditionalLoops' : 'unconditionalLoops'] += called.unconditionalLoops;
+          tally.conditionalLoops += called.conditionalLoops;
+        }
       }
       target.memo.set(key, v);
       return v;
@@ -481,6 +519,10 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
       const two = (): [V, V] => { if (a === undefined || c1 === undefined) throw new Error(`material graph: ${n.op} lacks inputs`); return [a, c1]; };
       const three = (): [V, V, V] => { if (a === undefined || c1 === undefined || c2 === undefined) throw new Error(`material graph: ${n.op} lacks inputs`); return [a, c1, c2]; };
       const out = (t: GraphValueType, e: string): V => bind(b, id, t, e);
+      if (n.op === 'fogSample') {
+        if (postFog === undefined || n.name !== ir.postFog?.name) throw new Error('material graph: missing named post fog');
+        return out('vec4', `wsGraphFogSample(${ins.map((value, index) => index === 4 ? asFloat(value) : widen(value, 'vec3')).join(', ')})`);
+      }
       const same = (f: (...xs: string[]) => string, vals: readonly V[]): V => { const t = widest(vals); return out(t, f(...vals.map(v => widen(v, t)))); };
       /** a divisor kept off zero unless a non-zero literal: y + step(|y|, ε)·ε */
       const divisor = (y: V, t: GraphValueType, raw: GraphRef | undefined): string => {
@@ -804,12 +846,17 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
       targetAlpha: null, emissive: null, roughness: null, metalness: null, occlusion: null, discard: null, shadingNormal: null, shadowOffset: null,
     };
     let lighting: GraphGlslProgram['lighting'] = null;
-    let fogFunction: string | null = null;
-    if (which === 'fog') {
+    let fogFunction: string | null = null, fogSample: string | null = null;
+    if (which === 'fog' || which === 'fogSample') {
       const fog = st.fog;
       if (fog === undefined) throw new Error('material graph: a fog graph without a fog stage');
       const own = block(null), colour = ref(fog.colour, root, own, 'fog');
-      fogFunction = `vec3 wsGraphFog(vec3 wsFogInput, vec3 wsEngineFogged, vec3 wsFogPosition, vec3 wsFogCamera, float wsFogScaleIn) {\n${own.lines.join('\n')}\n  return ${widen(colour, 'vec3')};\n}`;
+      if (which === 'fog') fogFunction = `vec3 wsGraphFog(vec3 wsFogInput, vec3 wsEngineFogged, vec3 wsFogPosition, vec3 wsFogCamera, float wsFogScaleIn) {\n${own.lines.join('\n')}\n  return ${widen(colour, 'vec3')};\n}`;
+      if (which === 'fogSample') {
+        if (fog.transmission === undefined) throw new Error('material graph: a fog sample needs admitted transmission');
+        const transmission = ref(fog.transmission, root, own, 'fog');
+        fogSample = `vec4 wsGraphFogSample(vec3 wsFogInput, vec3 wsEngineFogged, vec3 wsFogPosition, vec3 wsFogCamera, float wsFogScaleIn) {\n${own.lines.join('\n')}\n  return vec4(${widen(colour, 'vec3')}, ${asFloat(transmission)});\n}`;
+      }
     } else if (which === 'outline') {
       const o = st.outline;
       if (o === undefined) throw new Error('material graph: no outline stage');
@@ -867,15 +914,17 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
       fragment: { head: fragmentHead, body: fragmentRoot.lines.join('\n'), end: '' },
       outputs, lighting, selects,
     };
-    return { program, fogFunction, execution };
+    return { program, fogFunction, fogSample, execution };
   }
 
   const main = ir.kind === 'fog' ? null : emitProgram('main');
   const outlined = ir.kind === 'material' && ir.stages.outline !== undefined ? emitProgram('outline') : null;
   const fogged = ir.kind === 'fog' ? emitProgram('fog') : null;
+  const sampledFog = ir.kind === 'fog' && ir.stages.fog?.transmission !== undefined ? emitProgram('fogSample') : null;
   return {
-    ir, cost, bindings, program: main?.program ?? null, outline: outlined?.program ?? null, fog: fogged?.fogFunction ?? null,
-    ...(opts.reportExecutionCost === true ? { executionCost: { main: main?.execution ?? null, outline: outlined?.execution ?? null, fog: fogged?.execution ?? null } } : {}),
+    ir, cost, bindings, ...(postFog === undefined ? {} : { postFog }), program: main?.program ?? null, outline: outlined?.program ?? null, fog: fogged?.fogFunction ?? null,
+    ...(sampledFog?.fogSample === null || sampledFog?.fogSample === undefined ? {} : { fogSample: sampledFog.fogSample }),
+    ...(opts.reportExecutionCost === true ? { executionCost: { main: main?.execution ?? null, outline: outlined?.execution ?? null, fog: fogged?.execution ?? null, ...(sampledFog?.execution === null || sampledFog?.execution === undefined ? {} : { fogSample: sampledFog.execution }) } } : {}),
     libraries: (['hash', 'noise'] as const).filter(name => libraries.has(name)),
     uniforms: [...uniforms.values()], attributes: [...attributes.values()],
   };

@@ -801,6 +801,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
   const checked = opts.validated ?? validateGraph(input, opts);
   if (!checked.ok) throw new Error(`material graph refused:\n  ${checked.errors.join('\n  ')}`);
   const ir: GraphIr = checked.graph;
+  if (ir.postFog !== undefined) throw new Error('material graph: named post fog requires the classic post compiler');
   const selects = { light: 0, branch: 0 };
   // D204: three's normalWorldGeometry, normalView and positionViewDirection are `toVar`s, assigned where they are first
   // built. A graph whose first read of one sits in a select's branch left the assignment in that branch, and every read

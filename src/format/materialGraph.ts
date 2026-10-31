@@ -213,7 +213,7 @@ export interface GraphStages {
   readonly outline?: GraphOutline;
   readonly post?: { readonly colour: GraphRef; readonly alpha?: GraphRef };
   /** a fog graph's only stage: the fogged colour (vec3) from `fogInput` / `engineFogged`; alpha passes through */
-  readonly fog?: { readonly colour: GraphRef };
+  readonly fog?: { readonly colour: GraphRef; readonly transmission?: GraphRef };
 }
 /** a graph */
 export interface GraphIr {
@@ -228,6 +228,8 @@ export interface GraphIr {
   readonly primitive?: 'mesh' | 'points';
   /** Optional material-only effect state; omission preserves every prior render default. */
   readonly effectState?: GraphEffectState;
+  /** One named, admitted fog function for post-only fogSample nodes. Functions keep their own node ceiling; calls spend their full instruction cost. */
+  readonly postFog?: { readonly name: string; readonly graph: GraphIr };
   readonly doubleSided?: boolean;
   /** false: retain the front-face normal basis on back faces; culling is unchanged. */
   readonly flipBackfaceNormals?: boolean;
@@ -335,7 +337,7 @@ type GraphPlace = 'vertex' | 'fragment' | 'post' | 'sun' | 'ambient' | 'grade' |
 type TypeRule =
   | 'input' | 'const' | 'param' | 'same' | 'unary' | 'vecUnary' | 'length' | 'dot' | 'mix' | 'compare' | 'logic' | 'not'
   | 'cross' | 'gerstner' | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index' | 'point3' | 'pointPair' | 'dir3' | 'sceneTap'
-  | 'instanceTransform' | 'windField' | 'varying' | 'attribute' | 'arrayElement' | 'cameraBillboard';
+  | 'fogSample' | 'instanceTransform' | 'windField' | 'varying' | 'attribute' | 'arrayElement' | 'cameraBillboard';
 /** one op of the vocabulary */
 export interface GraphOpSpec {
   /** the number of inputs (min, max) */
@@ -403,6 +405,7 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   // per-animal tint, its hit flash), read live like three's own material colour
   materialColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: FRAG },
   materialEmissive: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: FRAG },
+  fogSample: { arity: [5, 5], rule: 'fogSample', cost: 1, type: 'vec4', places: ['post'] },
   screenUV: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec2', places: ['post'] },
   // the pixel's window coordinate in pixels (`gl_FragCoord.xy`, from the top left as three's node back-end gives it): a
   // screen-space dither or clip on a mesh, never a full-screen pass (that is `screenUV`)
@@ -634,6 +637,24 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   const kind = input.kind, primitive = input.primitive;
   if (kind !== 'material' && kind !== 'post' && kind !== 'fog') fail(`graph: kind ${String(kind)} (material, post or fog)`);
   if (kind === 'fog') for (const k of ['model', 'primitive', 'effectState', 'doubleSided', 'flipBackfaceNormals', 'toonCaustics', 'flatShading'] as const) if (input[k] !== undefined) fail(`graph: a fog graph has no ${k}`);
+  let postFog: GraphIr['postFog'], postFogCost: GraphCost | undefined;
+  const dependency = input['postFog'];
+  if (dependency !== undefined) {
+    if (kind !== 'post') fail('graph: postFog belongs to a post graph only');
+    else if (!isRecord(dependency) || Object.keys(dependency).some(key => key !== 'name' && key !== 'graph')
+      || typeof dependency.name !== 'string' || !GRAPH_FOG_ID.test(dependency.name)
+      || !isRecord(dependency['graph']) || dependency['graph'].kind !== 'fog') fail('graph: postFog needs a named fog graph');
+    else {
+      const checked = validateGraph(dependency['graph'], opts);
+      if (!checked.ok) for (const error of checked.errors) fail(`postFog: ${error}`);
+      else if (checked.graph.stages.fog?.transmission === undefined) fail('postFog: explicit transmission is required');
+      else {
+        postFog = { name: dependency.name, graph: checked.graph }; postFogCost = checked.cost;
+        const own = new Set([...Object.keys(isRecord(input.params) ? input.params : {}), ...Object.keys(isRecord(input.arrays) ? input.arrays : {})]);
+        for (const name of [...Object.keys(checked.graph.params ?? {}), ...Object.keys(checked.graph.arrays ?? {})]) if (own.has(name)) fail(`postFog: duplicate parameter ${name}`);
+      }
+    }
+  }
   if (input.model !== undefined && input.model !== 'standard' && input.model !== 'unlit' && input.model !== 'toon') fail(`graph: model ${JSON.stringify(input.model)} (standard, unlit or toon)`);
   if (input.model === 'toon' && input.kind !== 'material') fail('graph: toon is a material lighting model');
   if (input.doubleSided !== undefined && typeof input.doubleSided !== 'boolean') fail('graph: doubleSided is not a boolean');
@@ -642,7 +663,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   if (input.toonCaustics !== undefined && typeof input.toonCaustics !== 'boolean') fail('graph: toonCaustics is not a boolean');
   if (input.toonCaustics !== undefined && input.model !== 'toon') fail('graph: toonCaustics requires the toon model');
   if (input.flatShading !== undefined && typeof input.flatShading !== 'boolean') fail('graph: flatShading is not a boolean');
-  for (const k of Object.keys(input)) if (!['version', 'kind', 'model', 'primitive', 'effectState', 'doubleSided', 'flipBackfaceNormals', 'toonCaustics', 'flatShading', 'budget', 'params', 'arrays', 'nodes', 'stages'].includes(k)) fail(`graph: unknown field ${k}`);
+  for (const k of Object.keys(input)) if (!['version', 'kind', 'model', 'primitive', 'effectState', 'doubleSided', 'flipBackfaceNormals', 'toonCaustics', 'flatShading', 'budget', 'params', 'arrays', 'nodes', 'stages', 'postFog'].includes(k)) fail(`graph: unknown field ${k}`);
 
   if (input.primitive !== undefined && input.primitive !== 'mesh' && input.primitive !== 'points') fail('graph: primitive must be mesh or points');
   if (kind === 'post' && (input.primitive !== undefined || input.effectState !== undefined)) fail('graph: post graphs have no effect state or primitive');
@@ -685,6 +706,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     }
     arrayTypes.set(name, type);
   }
+  arraySlots += Object.values(postFog?.graph.arrays ?? {}).reduce((sum, row) => sum + row.value.length, 0);
   if (arraySlots > GRAPH_ARRAY_SLOTS_MAX) fail(`arrays: exceeds ${GRAPH_ARRAY_SLOTS_MAX} padded vector slots`);
 
   // params
@@ -787,7 +809,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
         nodeCount += mult;
         // a component-wise op costs once per component; a light-dependent node of the sun sub-graph once per cascade
         const lanes = spec.rule === 'same' || spec.rule === 'unary' ? VEC_LEN[t] : 1;
-        instructions += spec.cost * mult * lanes * (place === 'sun' && dep ? cascades : 1);
+        instructions += (spec.cost + (op === 'fogSample' ? postFogCost?.instructions ?? 0 : 0)) * mult * lanes * (place === 'sun' && dep ? cascades : 1);
       }
     }
     return t;
@@ -795,6 +817,9 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
 
   function resolve(op: string, spec: GraphOpSpec, raw: Raw, ins: readonly GraphValueType[], scope: Scope, place: GraphPlace, at: string, rawIns: readonly unknown[], mult: number): GraphValueType | null {
     switch (spec.rule) {
+      case 'fogSample':
+        if (postFog === undefined || raw.name !== postFog.name) return fail(`${at}: fogSample needs its declared postFog name`);
+        return ins.length === 5 && ins.slice(0, 4).every(type => type === 'vec3') && ins[4] === 'float' ? 'vec4' : fail(`${at}: fogSample takes four vec3 values and a float`);
       case 'input':
         if (op === 'sceneColour') sampled.scene = true;
         if (op === 'meshMap') {
@@ -1040,11 +1065,14 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   } else if (kind === 'fog') {
     for (const k of Object.keys(stages)) if (k !== 'fog') fail(`stages.${k}: a fog graph has only a fog stage`);
     const f = stages.fog;
-    if (!isRecord(f) || Object.keys(f).some((k) => k !== 'colour')) fail('stages.fog: a fog graph needs { colour }');
-    else want(f.colour, 'fog', 'vec3', 'stages.fog.colour');
+    if (!isRecord(f) || Object.keys(f).some((k) => k !== 'colour' && k !== 'transmission')) fail('stages.fog: a fog graph needs { colour, transmission? }');
+    else {
+      want(f.colour, 'fog', 'vec3', 'stages.fog.colour');
+      if (f['transmission'] !== undefined) want(f['transmission'], 'fog', 'float', 'stages.fog.transmission');
+    }
   }
 
-  const cost: GraphCost = { nodes: nodeCount, samplers: textures.size + [sampled.scene, sampled.depth, sampled.normal, sampled.mesh].filter(Boolean).length, instructions };
+  const cost: GraphCost = { nodes: nodeCount, samplers: textures.size + [sampled.scene, sampled.depth, sampled.normal, sampled.mesh].filter(Boolean).length + (postFogCost?.samplers ?? 0), instructions };
   if (cost.nodes > budget.nodes) fail(`budget: ${cost.nodes} nodes (at most ${budget.nodes})`);
   if (cost.samplers > budget.samplers) fail(`budget: ${cost.samplers} samplers (at most ${budget.samplers})`);
   if (cost.instructions > budget.instructions) fail(`budget: ≈ ${cost.instructions} instructions (at most ${budget.instructions})`);
@@ -1052,13 +1080,14 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   const rootTypes = new Map<string, GraphValueType>();
   for (const [key, t] of types) if (key.startsWith('nodes/')) rootTypes.set(key.slice(6), t);
   // the shape has been checked field by field above, so the input is the graph
-  return { ok: true, graph: asGraph(input), cost, types: rootTypes, inputs: { colour: sampled.scene, depth: sampled.depth, normal: sampled.normal } };
+  return { ok: true, graph: asGraph(input, postFog), cost, types: rootTypes, inputs: { colour: sampled.scene, depth: sampled.depth, normal: sampled.normal } };
 }
 
 /** a checked record as the typed graph (called only once validateGraph found no error) */
-function asGraph(input: Raw): GraphIr {
+function asGraph(input: Raw, postFog?: GraphIr['postFog']): GraphIr {
   const graph: GraphIr = {
     version: GRAPH_IR_VERSION,
+    ...(postFog === undefined ? {} : { postFog }),
     ...(isRecord(input.budget) ? { budget: { nodes: Number(input.budget.nodes), samplers: Number(input.budget['samplers']), instructions: Number(input.budget['instructions']) } } : {}),
     kind: input.kind === 'post' ? 'post' : input.kind === 'fog' ? 'fog' : 'material',
     nodes: isRecord(input.nodes) ? toNodes(input.nodes) : {},
@@ -1124,7 +1153,7 @@ function toStages(raw: Raw): GraphStages {
     ...(isRecord(vo) ? { 'vertex.offset': { offset: toRef(vo.offset), ...(typeof vo.shadow === 'boolean' ? { shadow: vo.shadow } : {}) } } : {}),
     ...(isRecord(s) ? { surface } : {}),
     ...(isRecord(p) ? { post: { colour: toRef(p.colour), ...(p['alpha'] === undefined ? {} : { alpha: toRef(p['alpha']) }) } } : {}),
-    ...(isRecord(raw.fog) ? { fog: { colour: toRef(raw.fog.colour) } } : {}),
+    ...(isRecord(raw.fog) ? { fog: { colour: toRef(raw.fog.colour), ...(raw.fog['transmission'] === undefined ? {} : { transmission: toRef(raw.fog['transmission']) }) } } : {}),
     ...(isRecord(o) ? { outline: { offset: toRef(o.offset), colour: toRef(o.colour) } } : {}),
     ...(isRecord(l) ? { lighting: {
       sun: toRef(l.sun),

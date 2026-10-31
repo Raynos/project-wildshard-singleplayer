@@ -470,7 +470,7 @@ ${fogged ? fogEpilogue(program, fog) : ''}
 
 /** a post graph's pass: a fullscreen triangle writing the graph's colour, as the TSL compile does with no scene bound (a
  *  scaled post lends its inputs as textures; a graph that reads the scene samples `wsScene` itself) */
-function postShaders(program: GraphGlslProgram, uniforms: string): { vertexShader: string; fragmentShader: string } {
+function postShaders(program: GraphGlslProgram, uniforms: string, fogFunction?: string): { vertexShader: string; fragmentShader: string } {
   const colour = program.outputs.colour ?? 'vec3( 0.0 )';
   const varyingUv = program.vertex.body.includes('wsVUv') ? '' : 'varying vec2 wsVUv;';
   return {
@@ -490,7 +490,7 @@ ${varyingUv === '' ? '' : '  wsVUv = uv;'}
 ${uniforms}
 ${varyingUv}
 ${FRAGMENT_CAMERA}
-${program.fragment.head}
+${fogFunction === undefined ? '' : `${fogFunction}\n`}${program.fragment.head}
 void main() {
 ${program.fragment.body}
   gl_FragColor = vec4( ${colour}, ${program.outputs.alpha ?? '1.0'} );
@@ -605,7 +605,7 @@ export function graphUniformValues(glsl: GraphGlsl, opts: GraphShaderOptions = {
 export function graphShaders(glsl: GraphGlsl, opts: GraphShaderOptions = {}): GraphShaders {
   const program = opts.outline === true ? glsl.outline : glsl.program;
   if (program === null) throw new Error(opts.outline === true ? 'material graph: no outline stage' : 'material graph: a fog graph has no program of its own');
-  const fog = opts.fog;
+  const fog = opts.fog ?? (glsl.postFog === undefined ? undefined : { glsl: glsl.postFog, uniforms: graphUniformValues(glsl.postFog, opts) });
   const seen = new Set<string>(), own: GraphGlslUniform[] = [], from = new Map<string, 'graph' | 'fog'>();
   for (const [source, list] of [['graph', glsl.uniforms], ['fog', fog?.glsl.uniforms ?? []]] as const) {
     for (const u of list) if (!seen.has(u.name)) { seen.add(u.name); own.push(u); from.set(u.name, source); }
@@ -625,7 +625,11 @@ export function graphShaders(glsl: GraphGlsl, opts: GraphShaderOptions = {}): Gr
   }
   const libraries = graphGlslLibraries([...glsl.libraries, ...(fog?.glsl.libraries ?? [])]);
   const text = [...own.filter(u => u.name !== 'wsCodecStep').map(decl), libraries].join('\n'), ir = glsl.ir;
-  if (ir.kind === 'post') return { ...postShaders(program, text), uniforms, lights: false, fog: false };
+  if (ir.kind === 'post') {
+    const sample = glsl.postFog === undefined ? undefined : fog?.glsl.fogSample;
+    if (glsl.postFog !== undefined && sample === undefined) throw new Error('material graph: post fog needs explicit transmission');
+    return { ...postShaders(program, text, sample), uniforms, lights: false, fog: false };
+  }
   const outline = opts.outline === true, depth = opts.depth === true, lit = !outline && !depth && ir.model !== 'unlit';
   const fogged = !depth && (outline || ir.effectState?.fog !== false);
   // the material's own ports a node material reads from its properties: `alphaTest` (the graph's cutoff until a row sets

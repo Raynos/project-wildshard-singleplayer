@@ -5,6 +5,7 @@ What each file and folder here is. The rules for agents are in [AGENTS.md](../AG
 ## Engine, SDK and shards
 
 - [ENGINE.md](ENGINE.md): the engine API (`@wildshard/engine`, `@wildshard/game`, `@wildshard/sdk`), the layers and their public modules
+- [POST-FOG.md](POST-FOG.md): named fog functions in classic post graphs
 - [SHARDS.md](SHARDS.md): how to write a shard
 - [SHARDFILE.md](SHARDFILE.md): Shardfile 0.x, the format a shard declares itself in
 - [SDK-DEV.md](SDK-DEV.md): build and preview an author project

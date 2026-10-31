@@ -22,9 +22,9 @@ interface PostFeed {
 function postFeeds(row: ScaledPostRow): readonly PostFeed[] {
   return Object.entries(row.programs).map(([name, p]) => ({
     name,
-    links: (p.links ?? []).filter(key => key in (p.graph.params ?? {})),
+    links: (p.links ?? []).filter(key => key in (p.graph.params ?? {}) || key in (p.graph.postFog?.graph.params ?? {})),
     camera: Object.entries(p.camera ?? {}),
-    pack: Object.entries(p.pack ?? {}).map(([key, terms]) => ({ key, terms, initial: p.graph.params?.[key]?.value, value: terms.map(() => 0) })),
+    pack: Object.entries(p.pack ?? {}).map(([key, terms]) => ({ key, terms, initial: (p.graph.params?.[key] ?? p.graph.postFog?.graph.params?.[key])?.value, value: terms.map(() => 0) })),
   }));
 }
 const SCRATCH2 = [0, 0], SCRATCH3 = [0, 0, 0], SCRATCH4 = [0, 0, 0, 0];
