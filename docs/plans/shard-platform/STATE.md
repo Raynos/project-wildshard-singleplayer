@@ -5,14 +5,15 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE b237d2e-mvw8klr2 = GLSL** (05:44 Cancun; + NF17e, CI fixes; all 35 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
+**LIVE 5590ee0-mvwc93d7 = GLSL** (07:35 Cancun; Ch2 carvings; all 36 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
 (G2, kinds 0 + 3, copy cut, Boundary, facade), EP8 crowd, NF11 4 MB cap, Pine uploads -70 %, Sky look. **For Jake:** QC
-table qa-2026-10-30 (2508e90724); MF13 dither; QB17 video.
+table qa-2026-10-30 (2508e90724).
 
 **21:50 E518 (Jake): finish every row of the 4 fps plans tonight**, schedule = finish-fps-2026-10-30-mini-spike.md.
 Nine was GPU-bound on his phone (13 fps, gpu 45.7 ms vs CPU 10).
-**07:05:** releases wait on the Driftwood trade test (30 s on CI even with decoder 2c6fe25db9; x8 splitting at
-earned checkpoints). Fixed: Titan fixture 1977c408ec, chapter 1 split + own CI job (2c10f562e7, 36 jobs). Opus off (95 %).
+**09:05:** 9fbd red on a NUL-byte pnpm install (x2: clean private store); 6a84 (Simulator.app opened) in CI, entry ready. Opus 0.
+**wildshard-v (CI plan):** CI2 (26/32 <= 180 s) / CI3 (23/32 <= 300 s) measured, stay open (557d180b03); CI5 by x9; CI9 (x6 / x9 / x2 /
+x8 prepare cuts) and CI10 (x2, Simulator.app opened 6a84ecffe6) stay on Codex today.
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
 (f33d642372) G4 fusion closed measured (precision frontiers). Pine GPU ok.
@@ -25,12 +26,11 @@ NF18 (QA). PF12 closed measured.
   (keeps haze TSL dropped, closer to legacy; board 9557e1dc93). Nalati 7/8 at 52-63 dB; grid +170 far crag facets
   41 dB / 1.29 % accepted (slight tone shift 140 m out). Sunscar pass. Sky Reach fixed to the TSL look (c9354ebb83,
   df7b76d110, 62f2e8590a): 7/8; windmill-isle 39.6 dB accepted. TSL deletion is NF18 (after QA).
-- Toon gloss gate stays off (shipped look).
 - EP12 / NT4 look D (board 6b0ac1f989): coarse shells keep lit windows (C scored better by washing them out).
 - GLSL programs accepted: Nine 72 (bar 70), Pine 111 (bar 100; distinct states). EP3 / NF22 / PF15 closed (sort ~1-4).
 - PF4 closes at the leather-grip merge (skins). PF6 holstered bow freezes (lever trade rejected). PF5 far idle elites
   pause (bca6ac13c7; ~4 m drift at 132 m removed, wake identical).
 - Not built: cabin merge, Rapier skip, EP11, PF17. Nine flake pixels (569,1139) / (591,715) ruled exact.
-- EP9 kept (board 6c23d7d7a6); cell re-chunk ships (board 4152abcd85).
+- EP9 kept, cell re-chunk ships (boards 6c23d7d7a6, 4152abcd85); toon gloss gate stays off.
 
 **Rules:** G844, G848, G941, G952, G958, G960; no reverts; never herdr wildshard-v.
