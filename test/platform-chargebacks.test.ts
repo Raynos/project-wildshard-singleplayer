@@ -408,9 +408,9 @@ test('G667 credits the crowd prey joins and keeps the original Pine ray consumer
 });
 
 
-test('G615 encounter views include only their eight named concrete helper types', () => {
+test('G615 encounter helpers follow the extracted slot owner without approving siblings', () => {
   const path = 'src/game/boss/encounterView.ts', shared = new Set(['nalati-grasslands', 'pine-hollow']);
-  const names = ['SlotViewActor', 'SlotSiteChange', 'Awake', 'PatrolViewActor', 'PatrolHit', 'Rider', 'PatrolActor', 'PatrolActorRoster'];
+  const names = ['SlotViewActor', 'SlotSiteChange', 'PatrolViewActor', 'PatrolHit', 'Rider', 'PatrolActor', 'PatrolActorRoster'];
   const modules = new Map([[path, shared]]), bindings = new Map(names.map(name => [`${path}\0${name}`, shared]));
   chargePlatformUsers(modules, bindings);
   const approvals = g571HostApprovals('.');
@@ -424,6 +424,16 @@ test('G615 encounter views include only their eight named concrete helper types'
   expect(platformChargeback(path, 'SlotEncounterView')).toBe('C4');
   expect(platformChargeback(path, 'PatrolEncounterView')).toBe('C4');
   expect(modules.get(path)).toEqual(shared);
+  const law='src/game/boss/slotLaw.ts';
+  expect(approvedG571Host(approvals,path,'Awake')).toBe(false);
+  expect(approvedG571Host(approvals,law,'Awake')).toBe(true);
+  expect(approvedG571Host(approvals,law,'SlotEncounterLaw')).toBe(true);
+  expect(platformChargeback(law,'SlotEncounterLaw')).toBe('C4');
+  expect(approvedG571Host(approvals,law)).toBe(false);
+  for(const name of ['SlotContinuation','SlotActor','SlotTell','SlotActorRoster','SlotSiteChange','continuation'])
+    expect(approvedG571Host(approvals,law,name)).toBe(false);
+  expect(readFileSync(law,'utf8')).toContain('interface Awake<A, Tell>');
+  expect(readFileSync(law,'utf8')).toContain('export class SlotEncounterLaw');
 });
 
 
