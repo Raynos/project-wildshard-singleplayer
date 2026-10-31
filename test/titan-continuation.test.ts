@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
 import { installWorldFixture } from './fixtures/worldSetup';
 import { lendNalatiPasture } from './fixtures/nalati-return-modules';
@@ -80,17 +80,25 @@ test('the native pose view runs the page slot\'s equations, and a restored fight
   const restoreTerrain = bindFlatTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 }), random = app.rng.stream('ai'), start = random.snapshot();
   const page: OpenArenaFightSnapshot[] = [], native: OpenArenaFightSnapshot[] = [];
   let mid: { fight: OpenArenaFightSnapshot; random: ReturnType<typeof random.snapshot> } | null = null;
+  // Compare equations at equal frame cadence. The page's adaptive lane may
+  // otherwise skip after three CPU overruns while the native lane runs every
+  // frame. Observer clock reads must not spend a simulated CPU budget; the
+  // ViewLane controls separately cover halving and recovery under real costs.
+  let elapsed = 0;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => elapsed);
   try {
     for (const [view, out] of [['page', page], ['native', native]] as const) {
       random.restore(start);
       const scope = new Scope(`titan-${view}`), run = fight(scope, view);
       try {
         for (let i = 0; i < STEPS; i++) {
+          elapsed = i * 1000 / 30;
           if (view === 'native' && i === AT) mid = { fight: structuredClone(run.fight.snapshot()), random: random.snapshot() };
           step(run, i); out.push(structuredClone(run.fight.snapshot()));
         }
       } finally { scope.dispose(); }
     }
+    for (let i = 0; i < STEPS; i++) expect(native[i], `Titan pose frame ${i}`).toEqual(page[i]);
     expect(native).toEqual(page);
     // the scripted fight moves every part the continuation carries
     const first = native[0], last = native.at(-1);
@@ -106,7 +114,7 @@ test('the native pose view runs the page slot\'s equations, and a restored fight
     try {
       run.fight.restore(mid.fight, () => null);
       expect(run.fight.snapshot()).toEqual(mid.fight);
-      for (let i = AT; i < STEPS; i++) { step(run, i); expect(run.fight.snapshot()).toEqual(native[i]); }
+      for (let i = AT; i < STEPS; i++) { elapsed = i * 1000 / 30; step(run, i); expect(run.fight.snapshot()).toEqual(native[i]); }
     } finally { scope.dispose(); }
-  } finally { random.restore(start); restoreTerrain(); }
+  } finally { clock.mockRestore(); random.restore(start); restoreTerrain(); }
 });
