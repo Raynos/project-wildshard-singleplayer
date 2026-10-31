@@ -29,8 +29,18 @@ const trace=(phase:string):void=>{console.info(JSON.stringify({stage,phase,ms:pe
 const session=await beginProductSession('driftwood-isle','driftwood'),{product,assets}=session;
 trace('product-started');
 let stopReplay:(()=>Promise<void>)|undefined;
+let negativeSession:Awaited<ReturnType<typeof beginProductSession>>|undefined;
 let resident:Awaited<ReturnType<typeof createNativeProofResident>>|undefined,releaseRopes=()=>{ /* No rope owner before installation. */ };
 try{
+  // Admit the independent counterfactual before recording, rather than after
+  // the entire checked positive route has consumed the child budget.
+  negativeSession=await beginProductSession('driftwood-isle','driftwood');trace('negative-product-started');
+  // Admission failure is observed even while the recorder is initializing.
+  const negativeOwner=negativeSession;
+  const negativeOutcome=(async()=>{
+    try{const sim=await negativeOwner.ready();trace('negative-ready');return {ok:true as const,sim};}
+    catch(error){return {ok:false as const,error};}
+  })();
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   resident=await createNativeProofResident({shard:product.shardfile,assets,product,rapier},prepareHeadlessRuntime);
   const active=resident,{host}=active,sim=await session.ready();releaseRopes=installWalkRopeBodies(host,product);installNativeWalkBounds(host);
@@ -41,14 +51,34 @@ try{
   const counts=()=>v.parse(schema,host.adapters.get(policy.step)?.snapshot()).counts;
   const parts:HeadlessTapeSegment[]=[],observations:HeadlessTapeObservation[]=[],encoder=new TextEncoder();
   let frames:HeadlessCommand[][]=[],effects:HeadlessEffect[]=[],peakY=host.player.position.y,ticks=0,commandsCount=0,bytes=0,divingTicks=0,boardTicks=0,identicalPhysics=0,canonicalPhysics=0;
-  let captureMs=0,replayMs=0,backpressureMs=0,negativeMs=0;
+  let captureMs=0,replayMs=0,backpressureMs=0,negativeMs=0,omitted=0;
   const pipeline=checkedReplayPipeline<{segment:HeadlessTapeSegment;wanted:HeadlessTapeObservation;snapshot:ReturnType<typeof snapshotSimHostBytes>}>(async({segment,wanted,snapshot})=>{
-    const replayStarted=performance.now(),replay=await sim.verbTapePart({version:1,observe:[],segments:[segment]});replayMs+=performance.now()-replayStarted;
-    assert.deepEqual(replay.report.observations,[wanted],'fresh inputs preserve every boundary observation and effect');
-    const {physics:actualPhysics,...actual}=decodeSimSnapshot(replay.commit.snapshot),{physics:expectedPhysics,...expected}=snapshot;
-    assert.deepEqual(actual,expected,'every native continuation field is exact');
-    if(sameBytes(actualPhysics,expectedPhysics))identicalPhysics++;
-    else{canonicalPhysics++;assert.deepEqual(physicsState(actualPhysics),physicsState(expectedPhysics),'every native physics value is exact');}
+    const positive=async():Promise<void>=>{
+      const replayStarted=performance.now(),replay=await sim.verbTapePart({version:1,observe:[],segments:[segment]});replayMs+=performance.now()-replayStarted;
+      assert.deepEqual(replay.report.observations,[wanted],'fresh inputs preserve every boundary observation and effect');
+      const {physics:actualPhysics,...actual}=decodeSimSnapshot(replay.commit.snapshot),{physics:expectedPhysics,...expected}=snapshot;
+      assert.deepEqual(actual,expected,'every native continuation field is exact');
+      if(sameBytes(actualPhysics,expectedPhysics))identicalPhysics++;
+      else{canonicalPhysics++;assert.deepEqual(physicsState(actualPhysics),physicsState(expectedPhysics),'every native physics value is exact');}
+    };
+    const counterfactual=async():Promise<void>=>{
+      const ready=await negativeOutcome;if(!ready.ok)throw ready.error;
+      const unarmed=segment.frames?.map(frame=>frame.flatMap(command=>{
+        if(stage==='bench'&&command.kind==='script'&&command.actorId===use.actorId&&command.value===use.value){omitted++;return [];}
+        if(stage==='reef'&&command.kind==='player'&&command.dive===true){const rest={...command};delete rest.dive;omitted++;return [rest];}
+        return [command];
+      }));assert.ok(unarmed);
+      const negativeStarted=performance.now(),replay=await ready.sim.verbTapePart({version:1,observe:[],segments:[{...segment,frames:unarmed}]});
+      negativeMs+=performance.now()-negativeStarted;
+      const actual=replay.report.observations[0];assert.ok(actual);assert.equal(actual.flags.includes(earned),false);
+      if(stage==='reef')assert.equal(actual.flags.includes('found:reef-treasure'),false);
+      assert.equal(actual.effects.some(effect=>effect.kind==='fact'&&effect.name===(stage==='bench'?'driftwood.vista':'driftwood.treasure')),false);
+      for(const flag of ['glass:1','glass:2'])assert.equal(actual.flags.includes(flag),wanted.flags.includes(flag),'only movement picks up sea glass');
+    };
+    // Drain BOTH independently owned replies before accepting the next part or
+    // disposing either owner, including when one comparison refuses.
+    const results=await Promise.allSettled([positive(),counterfactual()]);
+    for(const result of results)if(result.status==='rejected')throw result.reason;
   });stopReplay=pipeline.stop;
   const flush=async(id:string):Promise<void>=>{
     if(frames.length===0)return;
@@ -126,23 +156,7 @@ try{
     assert.equal(sim.quarantined,false);
   }
   await pipeline.finish();assert.equal(sim.quarantined,false);trace('positive-complete');
-  const negativeSession=await beginProductSession('driftwood-isle','driftwood');
-  try{
-    const negative=await negativeSession.ready();trace('negative-ready');const negativeStarted=performance.now();let omitted=0;
-    for(const part of parts){
-      const unarmed=part.frames?.map(frame=>frame.flatMap(command=>{
-        if(stage==='bench'&&command.kind==='script'&&command.actorId===use.actorId&&command.value===use.value){omitted++;return [];}
-        if(stage==='reef'&&command.kind==='player'&&command.dive===true){const rest={...command};delete rest.dive;omitted++;return [rest];}
-        return [command];
-      }));assert.ok(unarmed);
-      const replay=await negative.verbTapePart({version:1,observe:[],segments:[{...part,frames:unarmed}]});
-      const actual=replay.report.observations[0];assert.ok(actual);assert.equal(actual.flags.includes(earned),false);
-      if(stage==='reef')assert.equal(actual.flags.includes('found:reef-treasure'),false);
-      assert.equal(actual.effects.some(effect=>effect.kind==='fact'&&effect.name===(stage==='bench'?'driftwood.vista':'driftwood.treasure')),false);
-      const wanted=observations.find(row=>row.id===part.id);assert.ok(wanted);
-      for(const flag of ['glass:1','glass:2'])assert.equal(actual.flags.includes(flag),wanted.flags.includes(flag),'only movement picks up sea glass');
-    }
-    assert.ok(omitted>0);assert.equal(negative.quarantined,false);negativeMs=performance.now()-negativeStarted;trace('negative-complete');
-  }finally{await(await negativeSession.ready()).dispose();}
+  const negative=await negativeOutcome;if(!negative.ok)throw negative.error;
+  assert.ok(omitted>0);assert.equal(negative.sim.quarantined,false);trace('negative-complete');
   console.info(JSON.stringify({story:stage==='bench'?'driftwood-optional':'driftwood-reef',ticks,commands:commandsCount,parts:parts.length,glass:counts()['glass'],vista:counts()['vista'],doubloons:v.parse(v.object({pack:v.object({counts:v.record(v.string(),v.number())})}),host.adapters.get(policy.step)?.snapshot()).pack.counts['doubloon']??0,divingTicks,boardTicks,identicalPhysics,canonicalPhysics,captureMs,replayMs,backpressureMs,negativeMs,milliseconds:performance.now()-started}));
-}finally{await stopReplay?.();releaseRopes();resident?.dispose();await(await session.ready()).dispose();}
+}finally{await stopReplay?.();releaseRopes();resident?.dispose();await Promise.all([session.ready().then(sim=>sim.dispose()),negativeSession?.ready().then(sim=>sim.dispose())]);}
