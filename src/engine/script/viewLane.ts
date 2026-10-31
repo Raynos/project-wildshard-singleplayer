@@ -201,29 +201,31 @@ export class ViewLane {
     v.setUint32(io + HEADER + (CHANNELS - 1) * ENTRY + 16, 0, true);
     // arrays: each lent array's current values, f32, in declared order (a short or absent array is zero-filled)
     let word = 0;
-    const lengths = this.rows.arrays;
+    // Region addresses are host-owned and fixed for this lane, including
+    // host buffer replacement. Resolve once before each populated loop.
+    const lengths = this.rows.arrays, arrayBase = (lengths?.length ?? 0) === 0 ? 0 : this.region(ARRAYS);
     for (let i = 0; i < (lengths?.length ?? 0); i++) {
       const length = lengths?.[i]; if (length === undefined) throw new Error('Missing view array length');
       const values = arrays[i];
-      for (let k = 0; k < length; k++) v.setFloat32(this.region(ARRAYS) + (word + k) * 4, values?.[k] ?? 0, true);
+      for (let k = 0; k < length; k++) v.setFloat32(arrayBase + (word + k) * 4, values?.[k] ?? 0, true);
       word += length;
     }
     // batches: each record starts as its last landed total and no change (a frame that writes nothing keeps its draw)
     word = 0;
-    const batches = this.rows.batches;
+    const batches = this.rows.batches, batchBase = (batches?.length ?? 0) === 0 ? 0 : this.region(BATCHES);
     for (let i = 0; i < (batches?.length ?? 0); i++) {
       const row = batches?.[i]; if (row === undefined) throw new Error('Missing view batch');
-      const at = this.region(BATCHES) + word * 4;
+      const at = batchBase + word * 4;
       v.setUint32(at, this.totals[i] ?? 0, true); v.setUint32(at + 4, 0, true); v.setUint32(at + 8, 0, true); v.setUint32(at + 12, 0, true);
       word += batchWords(row);
     }
     let column = this.region(SAMPLE_COLUMNS) / 8;
     const columns = this.columns, stamps = this.region(SAMPLE_DIRECTORY);
-    const bindings = this.rows.bindings;
+    const bindings = this.rows.bindings, bindingBase = bindings.length === 0 ? 0 : this.region(BINDINGS);
     for (let i = 0; i < bindings.length; i++) {
       const row = bindings[i]; if (row === undefined) throw new Error('Missing view binding');
       const sample = samples[i], at = stamps + i * 32, n = row.columns;
-      const binding = this.region(BINDINGS) + i * 64;
+      const binding = bindingBase + i * 64;
       v.setUint32(binding + 12, this.frozen.has(i) ? 0 : 3, true);
       v.setUint32(at, i, true); v.setUint32(at + 24, n, true);
       if (sample === undefined || sample.values.length !== 2 * n) { v.setUint32(at + 4, 0, true); column += 2 * n; continue; }
@@ -255,7 +257,8 @@ export class ViewLane {
     if (seen !== changed) return false;
     const channels = v.getUint32(io + HEADER + (CHANNELS - 1) * ENTRY + 16, true), dirty = v.getUint32(io + 76, true);
     if (channels !== dirty || (channels !== 0 && channels !== this.rows.channels)) return false;
-    for (let i = 0; i < channels; i++) if (!Number.isFinite(v.getFloat64(this.region(CHANNELS) + i * 8, true))) return false;
+    const channelBase = channels === 0 ? 0 : this.region(CHANNELS);
+    for (let i = 0; i < channels; i++) if (!Number.isFinite(v.getFloat64(channelBase + i * 8, true))) return false;
     // each batch: a total inside its instances, a changed range inside the total and the capacity, every written matrix
     // bounded and every written attribute value finite
     let word = 0;

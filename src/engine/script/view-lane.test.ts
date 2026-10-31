@@ -79,6 +79,27 @@ test('private view banks survive host buffer replacement without changing frame 
   expect(other.lane.isFrozen).toBe(false);
 });
 
+test('lent arrays retain scalar getter order, f32 words and freshness after buffer replacement', () => {
+  const { lane: view, uploads } = lane({ arrays: [4, 2, 0] });
+  const reads: number[] = [];
+  let shift = 0;
+  const values = { length: 3,
+    get 0(): number { reads.push(0); return -0; },
+    get 1(): number { reads.push(1); return 1 / 3 + shift; },
+    get 2(): number { reads.push(2); return 1e-40; } };
+  for (let frame = 0; frame < 3; frame++) {
+    shift = frame;
+    if (frame === 1) view.memory.grow(0);
+    expect(view.frame(1 / 60, .25, 20 + frame, [sample], 60, clock(.1), [values, [7 + frame]])).toBe(true);
+    const wire = new DataView(view.memory.buffer), base = IO + wire.getUint32(DIR + 22 * 24 + 4, true);
+    const expected = Float32Array.of(-0, 1 / 3 + frame, 1e-40, 0, 7 + frame, 0);
+    expect(new Uint32Array(view.memory.buffer, base, 6)).toEqual(new Uint32Array(expected.buffer));
+  }
+  expect(reads).toEqual([0, 1, 2, 0, 1, 2, 0, 1, 2]);
+  expect(uploads).toEqual([1, 1, 1]);
+  expect(view.isFrozen).toBe(false);
+});
+
 test('three overruns halve the rate down to the 15 Hz floor; healthy calls recover one level', () => {
   const { lane: view } = lane();
   const slow = clock(5);
