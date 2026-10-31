@@ -32,3 +32,26 @@ A private colour/transmission DAG stays inside its select branch, while
 an outside reader keeps the call outside. This extends the existing
 post-graph platform as classic client-only presentation. The legacy node
 compiler refuses this feature explicitly before creating its nodes.
+
+## Preserve intermediate target precision
+
+A post-only `float16` node takes one numeric scalar or vector and keeps
+its width. Native half packing/unpacking rounds each component to the
+precision of an RGBA16F intermediate target. It is available in the
+classic and legacy node compilers and spends four estimated arithmetic
+units per component under the existing graph budget.
+
+A scaled post target or draw may declare `storage: 'float16'` or
+`storage: 'unorm8'`. Omitted storage runs on both. The executor selects
+from its actual composer target type and colour-buffer capabilities;
+this is data admission, not a user setting. Both format paths must have
+valid target dependencies. An active draw cannot read or size from an
+inactive target. Inactive targets allocate nothing, and only programs
+used by active draws receive frame feeds in opted-in rows. All programs
+still precompile during loading.
+
+A composer format change rebuilds opted-in target ownership at the same
+size. Ordinary rows retain their existing draw/feed order. These ports
+allow a fused half-float path to preserve intermediate rounding while
+retaining the original two-pass byte-target fallback; they do not by
+themselves activate fusion or establish a pixel/performance result.

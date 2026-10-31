@@ -42,7 +42,7 @@ import {
 import {
   Fn, Loop, Var, and, attribute, cameraNear, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, frontFacing, hash,
   instanceIndex, isolate, max, materialEnvIntensity, materialNormal, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
-  mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, pmremTexture, property, reference, positionGeometry, positionLocal,
+  mx_noise_float, packHalf2x16, unpackHalf2x16, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, pmremTexture, property, reference, positionGeometry, positionLocal,
   positionView, positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uniformArray, uv, varying, vec2, vec3, vec4, vertexColor,
   BRDF_GGX, BRDF_Lambert, F_Schlick, diffuseColor, mat3, metalness as metalnessProperty, mix, roughness as roughnessProperty, specularColor, specularColorBlended, specularF90,
 } from 'three/tsl';
@@ -1225,6 +1225,11 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
       case 'abs': case 'floor': case 'fract': case 'sin': case 'cos': case 'exp': case 'negate': case 'fwidth': case 'dFdx': case 'dFdy': case 'normalize': {
         const v = one();
         return { t: v.t, n: new MathNode(n.op, v.n) };
+      }
+      case 'float16': {
+        const v = one(), wide = widen(v, 'vec4');
+        const rounded = new JoinNode([unpackHalf2x16(packHalf2x16(new SplitNode(wide, 'xy'))), unpackHalf2x16(packHalf2x16(new SplitNode(wide, 'zw')))]);
+        return { t: v.t, n: new ConvertNode(rounded, v.t) };
       }
       case 'oneMinus': { const v = one(); return { t: v.t, n: new OperatorNode('-', widen({ t: 'float', n: float(1) }, v.t), v.n) }; }
       case 'saturate': { const v = one(); return { t: v.t, n: new MathNode('clamp', v.n, float(0), float(1)) }; }

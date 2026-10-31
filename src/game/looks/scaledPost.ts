@@ -3,7 +3,7 @@ import { Pass } from 'postprocessing';
 import { loadPostGraphCompiler, type PostGraph, type PostGraphCompiler } from '@wildshard/engine/render/graphBackend';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { validateGraph } from '@wildshard/format/materialGraph';
-import type { PostPackTerm, ScaledPostRow } from '@wildshard/format/scaledPost';
+import type { PostPackTerm, PostStorage, ScaledPostRow } from '@wildshard/format/scaledPost';
 import { BLEND_ADD_KEEP_ALPHA, type UniformMap } from '../plugin/shaderFamily';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -19,13 +19,28 @@ interface PostFeed {
   /** a packed param's terms, its declared value and the array the frame fills */
   readonly pack: readonly { readonly key: string; readonly terms: readonly PostPackTerm[]; readonly initial: unknown; readonly value: number[] }[];
 }
-function postFeeds(row: ScaledPostRow): readonly PostFeed[] {
-  return Object.entries(row.programs).map(([name, p]) => ({
+function postFeeds(row: ScaledPostRow, active?: ReadonlySet<string>): readonly PostFeed[] {
+  return Object.entries(row.programs).filter(([name]) => active === undefined || active.has(name)).map(([name, p]) => ({
     name,
     links: (p.links ?? []).filter(key => key in (p.graph.params ?? {}) || key in (p.graph.postFog?.graph.params ?? {})),
     camera: Object.entries(p.camera ?? {}),
     pack: Object.entries(p.pack ?? {}).map(([key, terms]) => ({ key, terms, initial: (p.graph.params?.[key] ?? p.graph.postFog?.graph.params?.[key])?.value, value: terms.map(() => 0) })),
   }));
+}
+/** Both formats are admitted before any material/target is made: an inactive target cannot feed an active draw. */
+function validateStorage(row: ScaledPostRow): void {
+  for (const item of [...Object.values(row.targets), ...row.draws]) {
+    if (item.storage !== undefined && item.storage !== 'float16' && item.storage !== 'unorm8') throw new Error('Invalid post storage');
+  }
+  for (const storage of ['float16', 'unorm8']) {
+    const active = new Set(['input']);
+    for (const [name, target] of Object.entries(row.targets)) if (target.storage === undefined || target.storage === storage) {
+      if (!active.has(target.of)) throw new Error('Post storage target needs an active size source');
+      active.add(name);
+    }
+    for (const draw of row.draws) if ((draw.storage === undefined || draw.storage === storage)
+      && (!active.has(draw.to) || Object.values(draw.textures ?? {}).some(source => !active.has(source)) || draw.texel !== undefined && !active.has(draw.texel.of))) throw new Error('Post storage draw needs active targets');
+  }
 }
 const SCRATCH2 = [0, 0], SCRATCH3 = [0, 0, 0], SCRATCH4 = [0, 0, 0, 0];
 const MATRIX_ROWS = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
@@ -85,6 +100,8 @@ export class ScaledPostPass extends Pass {
   private readonly overrides = new Map<string, string>();
   private readonly outs = new Map<string, Texture | null>();
   private type: TextureDataType = HalfFloatType;
+  private readonly selective: boolean;
+  private selected: ScaledPostRow['draws'] | null = null;
   private w = 0;
   private plan: readonly PostFeed[] | null = null;
   private h = 0;
@@ -98,6 +115,8 @@ export class ScaledPostPass extends Pass {
      *  of into its target for a copy pass to display; its target is then never drawn */
     readonly buffer?: string }) {
     super(row.name);
+    this.selective = [...Object.values(row.targets), ...row.draws].some(item => item.storage !== undefined);
+    if (this.selective) validateStorage(row);
     const compiler = compilers.get(ctx.renderer);
     if (compiler === undefined) throw new Error('Scaled post backend was not prepared during world loading');
     this.settings = { ...row.settings }; this.needsSwap = ctx.buffer !== undefined;
@@ -128,8 +147,15 @@ export class ScaledPostPass extends Pass {
   output(name: string): Texture | null { return this.outs.get(name) ?? null; }
   debugView(output: string, target: string | null): void { if (target === null) this.overrides.delete(output); else this.overrides.set(output, target); }
   private publish(): void { for (const [out, key] of Object.entries(this.row.outputs)) this.outs.set(out, this.rts.get(this.overrides.get(out) ?? key)?.texture ?? null); }
+  private active(storage: PostStorage | undefined): boolean { return storage === undefined || storage === (this.type === HalfFloatType ? 'float16' : 'unorm8'); }
+  private draws(): ScaledPostRow['draws'] { return (this.selected ??= this.selective ? this.row.draws.filter(draw => this.active(draw.storage)) : this.row.draws); }
   override initialize(renderer: Renderer, _alpha: boolean, frameBufferType: number): void {
-    this.type = frameBufferType === UnsignedByteType || !(renderer.extensions.has('EXT_color_buffer_float') || renderer.extensions.has('EXT_color_buffer_half_float')) ? UnsignedByteType : HalfFloatType;
+    const type = frameBufferType === UnsignedByteType || !(renderer.extensions.has('EXT_color_buffer_float') || renderer.extensions.has('EXT_color_buffer_half_float')) ? UnsignedByteType : HalfFloatType;
+    const changed = type !== this.type; this.type = type;
+    if (changed && this.selective) {
+      this.plan = null; this.selected = null;
+      if (this.w > 0 && this.h > 0) { const width = this.w, height = this.h; this.w = 0; this.h = 0; this.setSize(width, height); }
+    }
   }
   override setDepthTexture(texture: Texture): void {
     for (const [name, p] of Object.entries(this.row.programs)) if (p.depth !== undefined) this.graphs.get(name)?.setTexture(p.depth, texture);
@@ -143,6 +169,7 @@ export class ScaledPostPass extends Pass {
       const source = sizes.get(row.of); if (source === undefined) throw new Error('Missing post target size');
       const w = Math.max(1, Math.round(source[0] * row.scale)), h = Math.max(1, Math.round(source[1] * row.scale));
       sizes.set(key, [w, h]);
+      if (!this.active(row.storage)) continue;
       const rt = new WebGLRenderTarget(w, h, { type: this.type, depthBuffer: false });
       rt.texture.minFilter = rt.texture.magFilter = row.filter === 'nearest' ? NearestFilter : LinearFilter;
       rt.texture.name = row.name; this.rts.set(key, rt);
@@ -159,7 +186,7 @@ export class ScaledPostPass extends Pass {
     const camera = this.ctx.camera;
     // NF15: the feeds come from the static row, read once; each frame fills the same scratch arrays (every back-end copies
     // a written value), so a frame allocates nothing
-    this.plan ??= postFeeds(this.row);
+    this.plan ??= postFeeds(this.row, this.selective ? new Set(this.draws().map(draw => draw.program)) : undefined);
     for (const feed of this.plan) {
       const graph = this.graphs.get(feed.name); if (graph === undefined) continue;
       for (const key of feed.links) {
@@ -191,7 +218,7 @@ export class ScaledPostPass extends Pass {
     if (input === null || this.rts.size === 0 || this.row.when !== undefined && (this.settings[this.row.when] ?? 0) <= 0) return;
     this.frame();
     const source = (key: string): WebGLRenderTarget => { const target = key === 'input' ? input : this.rts.get(key); if (target === undefined) throw new Error('Missing post target'); return target; };
-    for (const draw of this.row.draws) {
+    for (const draw of this.draws()) {
       const graph = this.graphs.get(draw.program); if (graph === undefined) throw new Error('Missing post program');
       for (const [key, target] of Object.entries(draw.textures ?? {})) graph.setTexture(key, source(target).texture);
       if (draw.texel !== undefined) { const target = source(draw.texel.of); graph.setParam(draw.texel.uniform, [1 / target.width, 1 / target.height]); }

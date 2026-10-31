@@ -693,6 +693,13 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
         case 'abs': case 'floor': case 'fract': case 'sin': case 'cos': case 'exp': case 'fwidth': case 'dFdx': case 'dFdy': case 'normalize': {
           const v = one(); return out(v.t, `${n.op}(${v.e})`);
         }
+        case 'float16': {
+          const v = one(), half = (e: string): string => `unpackHalf2x16(packHalf2x16(${e}))`;
+          if (v.t === 'float') return out(v.t, `${half(`vec2(${v.e}, 0.0)`)}.x`);
+          if (v.t === 'vec2') return out(v.t, half(v.e));
+          if (v.t === 'vec3') return out(v.t, `vec3(${half(`${v.e}.xy`)}, ${half(`vec2(${v.e}.z, 0.0)`)}.x)`);
+          return out(v.t, `vec4(${half(`${v.e}.xy`)}, ${half(`${v.e}.zw`)})`);
+        }
         case 'negate': { const v = one(); return out(v.t, `- ${v.e}`); }
         case 'oneMinus': { const v = one(); return out(v.t, `1.0 - ${v.e}`); }
         case 'saturate': { const v = one(); return out(v.t, `clamp(${v.e}, 0.0, 1.0)`); }
