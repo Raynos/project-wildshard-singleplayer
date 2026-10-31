@@ -1,8 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Every transition requires an earned original owner.
 import assert from 'node:assert/strict';
-import type {SimHost} from '../../../src/engine/sim';
+import type {SimHost,SimStateAdapter} from '../../../src/engine/sim';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
-import type {parseHeldSlots} from '../../../src/format/heldArms';
 import type {NalatiKingData} from '../../fixtures/nalati-king-data';
 import {readNalatiWeaponObservation} from '../../fixtures/nalati-weapon-observation';
 import {chapterWalkInputs} from './chapterOne';
@@ -40,8 +39,16 @@ export function* kingEntryInputs(host:SimHost,read:()=>KingObservation,rows:Nala
 
 /** A new child can stop only at the King's actually earned next phase or
  * victory. The enclosing tape retains its original combined ledger/caps. */
-export function* kingPhaseInputs(host:SimHost,read:()=>KingObservation,rows:NalatiKingData,
-  slots:ReturnType<typeof parseHeldSlots>,through:1|2|'victory'):Generator<readonly HeadlessCommand[]> {
+export interface KingFightRead {
+  readonly flags:{readonly has:(name:string)=>boolean};
+  readonly player:{readonly position:{readonly x:number;readonly y:number;readonly z:number;readonly toArray:()=>number[]};
+    readonly health:{readonly attributes:{readonly health:number}}};
+  readonly state:{readonly tick:number};
+  readonly adapters:{readonly get:(id:string)=>Pick<SimStateAdapter,'snapshot'>|undefined};
+}
+export interface KingFightSlots {readonly slots:readonly {readonly kind:string;readonly id:string}[];readonly registration:readonly string[]}
+export function* kingPhaseInputs(host:KingFightRead,read:()=>KingObservation,rows:Pick<NalatiKingData,'profile'>,
+  slots:KingFightSlots,through:1|2|'victory'):Generator<readonly HeadlessCommand[]> {
   for(const flag of ['clue:1','clue:2','clue:3'])assert.ok(host.flags.has(flag),flag);
   assert.equal(read().inside,true);assert.ok(read().body);
   const blade=slots.slots.find(slot=>slot.kind==='blade');assert.ok(blade);
@@ -59,16 +66,21 @@ export function* kingPhaseInputs(host:SimHost,read:()=>KingObservation,rows:Nala
       mode:seen.mode,shielded:seen.shielded,armour:seen.armourBroken,hp:king.hp,player:host.player.health.attributes.health,
       at:host.player.position.toArray(),target:king.position,head:king.head,adds:seen.adds.filter(body=>body.alive).length}));
     const adds=seen.adds.filter(body=>body.alive).sort((a,b)=>distance(a)-distance(b));
+    // Invulnerable contacts still stagger in the original weapon law. Let
+    // the actual goto finish and spawn its adds instead of shoving the King
+    // away from his coffin while no damage can be earned.
+    const waiting=seen.shielded&&adds.length===0;
     const target=seen.shielded&&adds.length>0?adds[0]:king;assert.ok(target);
     const at=point(target),p=host.player.position,dx=at.x-p.x,dz=at.z-p.z,d=Math.hypot(dx,dz),
       gazeX=target.head[0]-p.x,gazeZ=target.head[2]-p.z,pitch=Math.atan2(target.head[1]-p.y-1.68,Math.hypot(gazeX,gazeZ));
-    const windup=target.attackPhase>=.35&&target.attackPhase<.68,dodge=windup&&d<rows.profile.fight.attacks.combo.reach+1
+    const windup=target.attackPhase>=.35&&target.attackPhase<.68,dodge=!waiting&&windup&&d<rows.profile.fight.attacks.combo.reach+1
       &&host.state.tick-dodged>=60;
     if(dodge)dodged=host.state.tick;
-    const jump=target===king&&king.act===rows.profile.fight.attacks.burst.act&&king.attackPhase>=.65&&king.attackPhase<.78;
-    const heavy=tick%75<45&&d<3.5&&seen.state==='fight';
+    const jump=!waiting&&target===king&&king.act===rows.profile.fight.attacks.burst.act&&king.attackPhase>=.65&&king.attackPhase<.78;
+    const heavy=!waiting&&tick%75<45&&d<3.5&&seen.state==='fight';
     yield [{kind:'player',moveX:0,moveZ:0,yaw:Math.atan2(-gazeX,-gazeZ),commandVersion:1,
-      steer:{keyX:0,keyY:0,stickX:dodge?(tick%2===0?.8:-.8):.2,stickY:d>2.1?.65:d<1.3?-.45:0},
+      steer:{keyX:0,keyY:0,stickX:waiting?0:dodge?(tick%2===0?.8:-.8):.2,
+        stickY:waiting?(d<rows.profile.fight.attacks.combo.reach+1?-.65:0):d>2.1?.65:d<1.3?-.45:0},
       ...(heavy?{heavy:{}}:{}),...(dodge?{dodge:true}:{}),...(jump?{jump:true}:{})},
       ...(tick%12===0?[{kind:'script' as const,actorId:'nalati.weapon.pitch',value:pitch}]:[])];
   }

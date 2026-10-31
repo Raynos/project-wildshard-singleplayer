@@ -12,7 +12,7 @@ import {titanPrograms} from './fixtures/titanInlineWitness';
 import king from './fixtures/nalati-goldenKing-original.json' with {type:'json'};
 import room from '../src/shards/nalati-grasslands/data/bossArenaRoom.json' with {type:'json'};
 import {KingContinuation,type KingContinuationRows} from './fixtures/nalati-king-continuation';
-import {kingEntryPoint,kingWalkingRoute} from './proof/nalati-grasslands/king';
+import {kingEntryPoint,kingWalkingRoute,kingPhaseInputs,type KingFightRead} from './proof/nalati-grasslands/king';
 
 const profile=(()=>{const p=parseBossProfile(king.page.profile);if(p.pattern!=='arena')throw new Error('Missing original King');return p;})();
 const row=profile.fight;
@@ -204,4 +204,33 @@ test('the restored King owns sand slowdown and equipment eligibility without cha
     expect(()=>b.owner.checkInputs(true)).toThrow('King input lock');
     expect(b.owner.snapshot()).toEqual(saved);expect(b.events).toEqual([]);
   }finally{a.scope.dispose();b.scope.dispose();}
+});
+
+test('combat inputs release attacks while the original shield approach spawns its adds',()=>{
+  const a=world();let tick=33877;
+  try{
+    a.enter();const body=a.owner.observe().body;
+    if(body===null)throw new Error('Missing unplayed King');
+    a.player.position.set(body.position[0],body.position[1],body.position[2]+1.5);
+    a.bodies.get(body.id)?.applyDamage(450);a.step();
+    expect(a.owner.observe().mode).toBe('toCoffin');expect(a.owner.observe().phase).toBe(1);
+    // These detached unplayed reads have no damage, flag, reset or pose
+    // setter. They never enter a native tape or an earned continuation.
+    const read:KingFightRead={flags:{has:name=>['clue:1','clue:2','clue:3'].includes(name)},
+      player:{position:a.player.position,health:{attributes:{health:100}}},state:{get tick(){return tick;}},
+      adapters:{get:id=>id==='nalati.weapons'?{snapshot:()=>JSON.stringify({version:1,slot:'blade',bolts:17})}:undefined}};
+    const inputs=kingPhaseInputs(read,()=>a.owner.observe(),rows,{slots:[{kind:'blade',id:'blade'}],registration:['blade']},2);
+    let waited=0;
+    for(;waited<600&&a.owner.observe().adds.length===0;waited++){
+      const commands=inputs.next();expect(commands.done).toBe(false);
+      if(commands.done)throw new Error('Unplayed shield controller ended early');
+      for(const command of commands.value)if(command.kind==='player'){
+        expect(command.heavy).toBeUndefined();expect(Object.keys(command)).not.toContain('attack');expect(command.dodge).toBeUndefined();
+        expect(command.steer?.stickX).toBe(0);expect(command.steer?.stickY).toBeLessThanOrEqual(0);
+      }
+      a.step();tick++;
+    }
+    expect(waited).toBeLessThan(600);expect(a.owner.observe().mode).toBe('shield');
+    expect(a.owner.observe().adds.filter(actor=>actor.alive)).toHaveLength(2);inputs.return(undefined);
+  }finally{a.scope.dispose();}
 });
