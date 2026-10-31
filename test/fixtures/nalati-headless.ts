@@ -81,9 +81,9 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
             nativeTaming: Omit<NativeTamingRows, "programs" | "poses" | "poseProgram" | "rest">;
         };
     }>('sim/headless-assembly.json');
+    const lendReturns = await prepareReturns(preparation);
     const nativeField = v.parse(PopulationFieldSchema, await product.json('world/meadow.json'));
     const constants = { ...assemblyConstants, nativeField };
-    const lendReturns = await prepareReturns(preparation);
     const tamingPoses = await (readJson<{
         poses: NativeTamingRows["poses"];
         horse: unknown;

@@ -55,9 +55,9 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation
             nativeCounters: NativeQuestCompositionInput["counters"];
         };
     }>('sim/headless-assembly.json');
+    const lendReturns = await prepareReturns(preparation);
     const chapterDirector = parseChapterDirector(await product.json('quests/chapter-director.json'));
     const wake = parseChapterWake(await product.json('quests/wake-boss.json'));
-    const lendReturns = await prepareReturns(preparation);
     const countersJson = await (readJson(product, "quests/achievements.json"));
     const counters = await ((parseAchievementCounterData)(countersJson));
     const species = await ((product["section"])("actors/species-programs"));
