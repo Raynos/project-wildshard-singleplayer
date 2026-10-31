@@ -283,9 +283,44 @@ def wait_for_safari(udid):
                     launch.wait()
 
 
+def wait_for_bootstatus(udid, remaining):
+    # The shell supplies the remaining original admission budget. Importing
+    # this one helper spends that budget; it cannot start a second full wait.
+    deadline = IMPORT_STARTED + remaining
+    budget = deadline - time.monotonic()
+    if budget <= 0:
+        print('sim-lane: bootstatus admission expired during Python imports', file=sys.stderr, flush=True)
+        return 75
+    started = time.monotonic()
+    print('sim-lane: device bootstatus started', file=sys.stderr, flush=True)
+    try:
+        result = subprocess.run(['xcrun', 'simctl', 'bootstatus', udid, '-b', '-d'],
+                                stdout=sys.stderr, timeout=budget, check=False)
+        code = result.returncode if result.returncode >= 0 else 128 - result.returncode
+    except subprocess.TimeoutExpired:
+        print(f'sim-lane: bootstatus admission timed out; owned helper {os.getpid()}, parent {os.getppid()}, device {udid}',
+              file=sys.stderr, flush=True)
+        code = 75
+    print(f'sim-lane: device bootstatus finished in {time.monotonic() - started:.3f}s (exit {code})',
+          file=sys.stderr, flush=True)
+    return code
+
+
 if __name__ == '__main__':
     print(f'sim-lane: Safari readiness Python imports finished in {time.monotonic() - IMPORT_STARTED:.3f}s', file=sys.stderr, flush=True)
-    if sys.argv[2:] == ['--await-bootstatus']:
+    if len(sys.argv) == 4 and sys.argv[2] == '--bootstatus':
+        try:
+            remaining = float(sys.argv[3])
+        except ValueError:
+            remaining = 0
+        if not math.isfinite(remaining) or not 0 < remaining <= 300:
+            print('sim-lane: invalid remaining bootstatus admission budget', file=sys.stderr)
+            sys.exit(64)
+        code = wait_for_bootstatus(sys.argv[1], remaining)
+        if code != 0:
+            sys.exit(code)
+        print(f'sim-lane: bootstatus prerequisite accepted after {time.monotonic() - IMPORT_STARTED:.3f}s; starting original Safari proof deadline', file=sys.stderr)
+    elif sys.argv[2:] == ['--await-bootstatus']:
         status = sys.stdin.readline().strip()
         if not status.isdecimal() or not 0 <= int(status) <= 255:
             print('sim-lane: missing or invalid bootstatus prerequisite', file=sys.stderr)

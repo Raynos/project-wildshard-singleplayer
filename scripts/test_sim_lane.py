@@ -53,7 +53,10 @@ elif args[1]=='boot':
     code=int(os.environ.get('SIM_BOOT_RC','0'))
     if code==0: booted.touch()
     sys.exit(code)
-elif args[1]=='bootstatus': sys.exit(int(os.environ.get('SIM_STATUS_RC','0')))
+elif args[1]=='bootstatus':
+    print('Finished',flush=True)
+    if os.environ.get('SIM_STATUS_HANG'): time.sleep(30)
+    sys.exit(int(os.environ.get('SIM_STATUS_RC','0')))
 elif args[1]=='launch':
     if os.environ.get('SIM_LAUNCH_NEEDS_DOCUMENT'):
         (root/'safari-launched').touch()
@@ -180,9 +183,41 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
     def test_bootstatus_failure_propagates_and_releases_new_device(self):
         result = self.lane(SIM_STATUS_RC='23')
         self.assertEqual(result.returncode, 23, result.stderr)
+        self.assertIn('Finished', result.stderr)
         self.assert_not_handed_over()
         self.assertFalse((self.root / 'booted').exists())
         self.assertFalse(any(row[1] == 'openurl' for row in self.calls()))
+
+    def test_hung_bootstatus_keeps_the_admission_limit_and_never_launches_safari(self):
+        started = time.monotonic()
+        result = self.lane(SIM_STATUS_HANG='1', SIM_LANE_WAIT_SECONDS='1')
+        self.assertEqual(result.returncode, 75, result.stderr)
+        self.assertLess(time.monotonic() - started, 5)
+        self.assertFalse((self.root / 'safari-launched').exists())
+        self.assertFalse((self.root / 'safari-rendered').exists())
+        self.assert_not_handed_over()
+
+    def test_helper_imports_spend_the_original_bootstatus_budget(self):
+        native = READY['wait_for_bootstatus']
+        helper = FunctionType(native.__code__, {**native.__globals__,
+            'IMPORT_STARTED': time.monotonic() - 2,
+            'subprocess': SimpleNamespace(run=lambda *_args, **_kwargs: self.fail('Expired admission started a native RPC'))})
+        self.assertEqual(helper(UDID, 1), 75)
+        for budget in ['0', '301', 'nan']:
+            result = subprocess.run([sys.executable, str(ROOT / 'scripts/sim-safari-ready.py'),
+                                    UDID, '--bootstatus', budget], env=self.env,
+                                    capture_output=True, text=True, timeout=5)
+            self.assertEqual(result.returncode, 64, result.stderr)
+        self.assertFalse((self.root / 'calls').exists())
+        self.assert_not_handed_over()
+
+    def test_native_bootstatus_75_is_not_reported_as_a_queue_timeout(self):
+        result = self.lane(SIM_STATUS_RC='75')
+        self.assertEqual(result.returncode, 75, result.stderr)
+        self.assertIn('Finished', result.stderr)
+        self.assertNotIn('admission timed out', result.stderr)
+        self.assertFalse((self.root / 'safari-launched').exists())
+        self.assert_not_handed_over()
 
     def test_boot_failure_propagates(self):
         result = self.lane(SIM_BOOT_RC='17')

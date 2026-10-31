@@ -213,13 +213,12 @@ boot() {
   fi
   # Preserve migration/system-app progress in the native failure artifact.
   # Lease stdout still contains only the exact device identifier.
-  # Import the readiness server while bootstatus waits for migrations. Only
-  # its explicit exit status crosses this pipe; Safari cannot launch earlier.
-  # The helper still starts the original 120 s proof after successful status.
-  {
-    native_stage 'device bootstatus' xcrun simctl bootstatus "$1" -b -d >&2
-    printf '%s\n' "$?"
-  } | python3 "$(dirname "$SELF")/sim-safari-ready.py" "$1" --await-bootstatus
+  # One imported helper owns bootstatus and Safari. Its imports spend the
+  # remaining admission budget; only a real successful native exit starts
+  # the separate original 120 s Safari proof. No status-text interpretation.
+  local remaining
+  remaining=$(wait_remaining) || return "$?"
+  python3 "$(dirname "$SELF")/sim-safari-ready.py" "$1" --bootstatus "$remaining"
   rc=$?
   # A failed startup owns no lease. Release only the device this call booted.
   if [ "$rc" -ne 0 ] && [ "$started" -eq 1 ]; then shutdown_dev "$1"; fi
