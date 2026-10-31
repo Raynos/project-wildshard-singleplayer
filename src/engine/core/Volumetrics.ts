@@ -117,8 +117,8 @@ export class VolumetricsEffect extends Effect {
       uFrame: new Uniform(0),
     };
     if (separate) {
-      this.rt = new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter });
-      scatter.value = this.rt.texture;
+      this.renderTarget = new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter });
+      scatter.value = this.renderTarget.texture;
       this.marchMat = new ShaderMaterial({
         uniforms: { ...this.marchUniforms, depthBuffer: this.depthU, cameraNear: this.nearU, cameraFar: this.farU },
         defines: { DEPTH_PACKING: '0' },
@@ -155,7 +155,9 @@ export class VolumetricsEffect extends Effect {
   private nearU: Uniform<number>;
   private farU: Uniform<number>;
   private depthPacking = '0';
-  private rt: WebGLRenderTarget | null = null;
+  /** the separate march's target; named `renderTarget` so the post warm-up (`postJobs`) compiles the march into it, as
+   *  `update` draws it, and not into the composer's screen target (a second, never-drawn sRGB program) */
+  private renderTarget: WebGLRenderTarget | null = null;
   private marchMat: ShaderMaterial | null = null;
   private quad: Mesh | null = null;
   private marchScene: Scene | null = null;
@@ -197,7 +199,7 @@ export class VolumetricsEffect extends Effect {
   override setSize(width: number, height: number): void {
     this.size.width = width; this.size.height = height;
     if (this.parked) return;
-    this.rt?.setSize(Math.max(1, Math.round(width * this.scale)), Math.max(1, Math.round(height * this.scale)));
+    this.renderTarget?.setSize(Math.max(1, Math.round(width * this.scale)), Math.max(1, Math.round(height * this.scale)));
   }
 
   /**
@@ -205,20 +207,20 @@ export class VolumetricsEffect extends Effect {
    * target whose size changes); false sizes it to the last `setSize` again. Nothing recompiles either way.
    */
   setParked(parked: boolean): void {
-    if (this.rt === null || this.parked === parked) return;
+    if (this.renderTarget === null || this.parked === parked) return;
     this.parked = parked;
-    if (parked) this.rt.setSize(1, 1);
+    if (parked) this.renderTarget.setSize(1, 1);
     else this.setSize(this.size.width, this.size.height);
   }
   /** the separate march's target size (null: the march runs in place) */
-  targetSize(): readonly [number, number] | null { return this.rt === null ? null : [this.rt.width, this.rt.height]; }
+  targetSize(): readonly [number, number] | null { return this.renderTarget === null ? null : [this.renderTarget.width, this.renderTarget.height]; }
   /** Compile the separate march's program now (a page that adds this effect late warms it at install, not at first use). */
   warm(renderer: Renderer): void {
-    if (this.marchScene === null || this.rt === null) return;
+    if (this.marchScene === null || this.renderTarget === null) return;
     // Output colour space / tone mapping participate in the key even for a raw ShaderMaterial.
     // Compile in the march's real target, as update() draws it, rather than the current canvas.
     const previous = renderer.getRenderTarget();
-    try { renderer.setRenderTarget(this.rt); renderer.compile(this.marchScene, this.marchCam); }
+    try { renderer.setRenderTarget(this.renderTarget); renderer.compile(this.marchScene, this.marchCam); }
     finally { renderer.setRenderTarget(previous); }
   }
 
@@ -235,10 +237,10 @@ export class VolumetricsEffect extends Effect {
     u.uFalloff.value = volumetricFog.falloff ?? fogUniforms.fogHeightFalloff.value;
     u.uDensity.value = DENSITY;
     u.uFrame.value = (this.frame++ % 64);
-    if (this.rt && this.marchMat && this.marchScene && !this.parked) {
+    if (this.renderTarget && this.marchMat && this.marchScene && !this.parked) {
       this.nearU.value = cam.near; this.farU.value = cam.far;
       const prev = renderer.getRenderTarget();
-      renderer.setRenderTarget(this.rt);
+      renderer.setRenderTarget(this.renderTarget);
       renderer.render(this.marchScene, this.marchCam);
       renderer.setRenderTarget(prev);
     }

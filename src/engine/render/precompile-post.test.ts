@@ -1,8 +1,9 @@
 import { expect, test } from 'vitest';
 import { N8AOPostPass } from 'n8ao';
 import { BloomEffect, EffectPass, Pass, ToneMappingEffect, ToneMappingMode } from 'postprocessing';
-import { DepthTexture, Mesh, OrthographicCamera, PerspectiveCamera, Scene, ShaderMaterial, WebGLRenderTarget, type Camera, type Object3D } from 'three';
+import { DataTexture, DepthTexture, Mesh, OrthographicCamera, PerspectiveCamera, Scene, ShaderMaterial, WebGLRenderTarget, type Camera, type Object3D } from 'three';
 import { postJobs, warmPostJobs, type CompileJob } from './precompile';
+import { VolumetricsEffect } from '../core/Volumetrics';
 
 function preparedMaterials(jobs: readonly CompileJob[]): ShaderMaterial[] {
   return jobs.flatMap(job => job.root.children.flatMap(child => {
@@ -138,4 +139,19 @@ test('desktop AO sample arrays stay with the real pass until it binds them', asy
     expect(unbound.every(job => preparedMaterials([job]).some(material =>
       Object.values(material.uniforms).some(uniform => Array.isArray(uniform.value) && uniform.value.length === 0)))).toBe(true);
   } finally { for (const job of jobs) job.dispose?.(); pass.dispose(); target.dispose(); f.dispose(); }
+});
+
+// PF10: a separate volumetric march draws into its own target; warming it into the screen pass's target linked a second,
+// never-drawn program (its output colour space is part of the key)
+test('an effect that draws into its own target warms its material there, not on the screen', () => {
+  const effect = new VolumetricsEffect(new PerspectiveCamera(), new DataTexture(new Uint8Array(4), 1, 1), 14, 0.5);
+  const colour = new EffectPass(new PerspectiveCamera(), effect);
+  colour.renderToScreen = true;
+  const jobs = postJobs({ passes: [colour] }, new WebGLRenderTarget(8, 8), 1);
+  const own: unknown = Reflect.get(effect, 'renderTarget'), march: unknown = Reflect.get(effect, 'marchMat');
+  expect(own).toBeInstanceOf(WebGLRenderTarget); expect(march).toBeInstanceOf(ShaderMaterial);
+  expect(jobs.find(job => job.root.children.some(child => Reflect.get(child, 'material') === march))?.rt).toBe(own);
+  expect(jobs.find(job => preparedMaterials([job]).includes(colour.fullscreenMaterial))?.rt).toBeNull();
+  for (const job of jobs) job.dispose?.();
+  colour.dispose();
 });
