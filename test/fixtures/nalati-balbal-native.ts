@@ -32,7 +32,8 @@ const Saved=v.strictObject({version:v.literal(1),law:v.unknown(),sites:v.array(v
   cues:v.pipe(v.array(v.strictObject({id:v.string(),point:v.tuple([finite,finite,finite]),normal:v.tuple([finite,finite,finite])})),v.maxLength(256)),
   tells:v.pipe(v.array(v.array(finite)),v.maxLength(8)),contacts:natural,arenaAdds:v.exactOptional(v.pipe(v.array(v.string()),v.maxLength(16)))});
 export interface NativeNalatiBalbals {readonly law:SlotEncounterLaw<HuntBody,SlotTell>;readonly contacts:()=>number;readonly adoptAdd:(body:HuntBody)=>void}
-export interface NalatiBalbalPreparation {readonly intake:NalatiEncounterIntake;readonly bindings:(host:SimHost,bindings:NativeEliteBindings)=>void}
+export interface NalatiBalbalPreparation {readonly intake:NalatiEncounterIntake;readonly bindings:(host:SimHost,bindings:NativeEliteBindings)=>void;
+  readonly closedInputOwner?:(host:SimHost)=>void}
 const owners=new WeakMap<SimHost,NativeNalatiBalbals>();
 export function nalatiBalbalsOf(host:SimHost):NativeNalatiBalbals|undefined{return owners.get(host);}
 function actualContext(input:unknown):input is ActorProjectionContext<HuntBody> {
@@ -62,7 +63,7 @@ export async function prepareNalatiBalbals(preparation:Parameters<PrepareHeadles
   const bindings=new WeakMap<SimHost,NativeEliteBindings>(),updates=new WeakMap<SimHost,(dt:number)=>void>(),
     poseUpdates=new WeakMap<SimHost,(dt:number)=>void>();
   const combined=extra===undefined?intake:{...extra.intake,species:[...intake.species,...extra.intake.species],recipes:[...intake.recipes,...extra.intake.recipes]};
-  const base=await prepareNalatiTitan(preparation,{intake:combined,beforePatrol:(host,dt)=>{
+  const base=await prepareNalatiTitan(preparation,{intake:combined,...(extra?.closedInputOwner===undefined?{}:{closedInputOwner:extra.closedInputOwner}),beforePatrol:(host,dt)=>{
     const run=updates.get(host);if(run===undefined)throw new Error('Timed slots did not bind before their original patrol slot');run(dt);
   },bindings:(host,owner)=>{
     bindings.set(host,owner);

@@ -7,6 +7,7 @@ import {canReach} from '../../src/engine/ai/reach';
 import {pickPrompt} from '../../src/engine/world/interact/prompts';
 import {itemPickupFloor,ITEM_PICKUP_HOVER} from '../../src/engine/world/interact/pickup';
 import type {SimHost} from '../../src/engine/sim';
+import {onSimHostRestored} from '../../src/engine/sim/snapshot';
 import type {HuntBody} from '../../src/engine/ai/hunt';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {parseClientPlan} from '../../src/format/clientPlan';
@@ -31,9 +32,15 @@ export interface NativeNalatiTitan {readonly fight:OpenArenaFight;readonly boss:
 const owners=new WeakMap<SimHost,NativeNalatiTitan>();
 export function nalatiTitanOf(host:SimHost):NativeNalatiTitan|undefined{return owners.get(host);}
 
+export interface NalatiTitanPreparation extends NalatiPatrolExtras {
+  /** A genuinely unopened Titan may lend input validation to the other
+   * entered encounter, after every primary adapter has restored. */
+  readonly closedInputOwner?:(host:SimHost)=>void;
+}
+
 /** The real open-arena owner over native weather, mounted inputs, patrol
  * actors, heart contacts and declared saves. No command arms or damages it. */
-export async function prepareNalatiTitan(preparation:Parameters<PrepareHeadlessRuntime>[0],extras?:NalatiPatrolExtras):Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>>{
+export async function prepareNalatiTitan(preparation:Parameters<PrepareHeadlessRuntime>[0],extras?:NalatiTitanPreparation):Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>>{
   const product=preparation.product,data=await readArenaScriptData(product,{fight:'combat/titan-fight.json',geometry:'combat/titan-geometry.json'});
   const plan=parseClientPlan(product.section('client/plan'));
   const view=plan.features.find(row=>row.kind==='view.program'&&row.id==='titan-view');
@@ -125,6 +132,15 @@ export async function prepareNalatiTitan(preparation:Parameters<PrepareHeadlessR
         weather:()=>({state:actual.storm.weather.state,left:actual.storm.weather.phaseLeft}),
         rewardPrompt:()=>rewardPoint===null?null:{position:rewardPoint.clone(),radius:2.6,label:data.reward.prompt}});
       host.scope.onDispose(()=>{owners.delete(host);updates.delete(host);shares.delete(host);weather.delete(host);});
+      if(context.restoring&&extras?.closedInputOwner!==undefined){
+        const check=extras.closedInputOwner;
+        onSimHostRestored(host,()=>{
+          const saved=boss.snapshot().saved;
+          if(owners.get(host)?.boss!==boss||owners.get(host)?.fight!==fight||locked||boss.state!=='dormant'||fight.tied||reward||saved.defeated||saved.rewardTaken||saved.kills!==0)
+            throw new Error('Only a closed Titan may lend its input restore check');
+          check(host);
+        });
+      }
       host.onStep('nalati.titan',()=>undefined,{snapshot:()=>{
         const state=fight.snapshot();
         return JSON.stringify({version:1,fight:state,boss:boss.snapshot(),locked,reward,...(rewardPoint===null?{}:{rewardPoint:rewardPoint.toArray()}),bar,prompt:{radius:prompt.radius,label:prompt.label},
@@ -137,8 +153,10 @@ export async function prepareNalatiTitan(preparation:Parameters<PrepareHeadlessR
             if(body===undefined)throw new Error('Titan continuation lost its actual support actor');return [site,body] as const;}));
           fight.restore(saved.fight,site=>{const body=restored.get(site);return body===undefined?null:rider(body);});boss.restore(saved.boss);
           support.clear();for(const [site,body]of restored)support.set(site,body);locked=saved.locked;reward=saved.reward;rewardPoint=saved.rewardPoint===null?null:new Vector3().fromArray(saved.rewardPoint);bar=saved.bar;
-          if(host.playerMoveScale!==(locked?0:1))throw new Error('Titan input lock differs from the restored native motor owner');
-          weapons().setEnabled(!locked);
+          if(extras?.closedInputOwner===undefined){
+            if(host.playerMoveScale!==(locked?0:1))throw new Error('Titan input lock differs from the restored native motor owner');
+            weapons().setEnabled(!locked);
+          }
           prompt.radius=saved.prompt.radius;prompt.label=saved.prompt.label;toasts.splice(0,toasts.length,...saved.toasts);feeds.splice(0,feeds.length,...saved.feeds);totalContacts=saved.contacts;
         }});
     }};

@@ -22,6 +22,7 @@ import {restoreEncounterBrains} from './restoreEncounterBrains';
 import {NativeArenaSand} from './nalati-room-sand-native';
 import {KingContinuation,type KingObservation} from './nalati-king-continuation';
 import {nativeKingSeal} from './nalati-king-seal';
+import {readNalatiWeaponObservation} from './nalati-weapon-observation';
 
 const finite=v.pipe(v.number(),v.finite()),text=v.pipe(v.string(),v.maxLength(4096));
 const UI=v.strictObject({bar:v.boolean(),hp:finite,shield:v.boolean(),phase:finite,skip:finite,name:text,title:text,
@@ -45,6 +46,7 @@ function nativeBody(body:AnimalSim):KingBody {
 interface NativeKingOwner {
   readonly update:(dt:number)=>void;readonly observe:()=>KingObservation;
   readonly snapshot:()=>unknown;readonly restore:(input:unknown)=>void;readonly physicsRestored:()=>void;
+  readonly checkInputs:()=>void;
 }
 const observers=new WeakMap<SimHost,Pick<NativeKingOwner,'observe'>>();
 export function nativeKingOf(host:SimHost):Pick<NativeKingOwner,'observe'>|undefined{return observers.get(host);}
@@ -162,6 +164,9 @@ export function installNativeKing(host:SimHost,context:Pick<HeadlessRuntimeInsta
       for(const id of [...poses.keys(),...ownedCore.observe().adds.map(body=>body.id)]){
         const body=host.entities.get(id);if(body===undefined)throw new Error('Restored King presence lost its body');nativeBody(body).hidden=!present||retired.has(id);
       }active=true;
+    },checkInputs:()=>{live();const adapter=host.adapters.get('nalati.weapons');
+      if(adapter===undefined)throw new Error('King input loan lost its original equipment');
+      ownedCore.checkInputs(readNalatiWeaponObservation(adapter).enabled);
     },physicsRestored:()=>{live();seal.physicsRestored();sand.physicsRestored();}};
   observers.set(host,{observe:owner.observe});host.scope.onDispose(()=>{
     observers.delete(host);for(const [body,brain]of owned)if(bindings.brains.get(body)===brain)bindings.brains.delete(body);

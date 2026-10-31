@@ -110,6 +110,12 @@ export class KingContinuation<B extends PhasedBossBody> {
     this.phased.script.reset(0);this.ports.present(false);
   }
   onPlayerDeath():boolean {this.live();return this.boss.onPlayerDeath();}
+  /** Validate the restored primary motor/equipment against this actual
+   * portal and intro owner, without writing either borrowed owner. */
+  checkInputs(enabled:boolean):void {
+    this.live();if(this.ports.moveScale.read()!==(this.locked?0:this.slow?this.rows.encounter.portal.slow:1)||enabled===this.locked)
+      throw new Error('King input lock differs from its restored native owners');
+  }
   takeReward():boolean {this.live();return this.boss.takeReward();}
   snapshot():KingSaved {this.live();return {version:1 as const,recipe:this.recipe,boss:this.boss.snapshot(),fight:this.phased.continuation(this.ports.identify),
     portal:this.portal.snapshot(),calmWas:this.calmWas,locked:this.locked,slow:this.slow,sealed:this.seal};}

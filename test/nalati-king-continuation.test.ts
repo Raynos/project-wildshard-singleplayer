@@ -189,3 +189,19 @@ test.each([1,2,'victory'] as const)('the later King boundary %s restores without
     expect(b.events.some(event=>event[0]==='reward'||event[0]==='save')).toBe(false);
   }finally{a.scope.dispose();b.scope.dispose();}
 });
+
+test('the restored King owns sand slowdown and equipment eligibility without changing either',()=>{
+  const a=world(),b=world();try{
+    a.enter();const p=a.player.position;
+    a.ground.addSand(p.x-room.origin.x,p.z-room.origin.z,3,2,3);
+    for(let tick=0;tick<12;tick++)a.step();
+    const saved=a.owner.snapshot();expect(saved.slow).toBe(true);expect(saved.locked).toBe(false);
+    b.copyOwners(saved,a);b.owner.restore(saved);b.events.length=0;
+    b.owner.checkInputs(true);expect(()=>b.owner.checkInputs(false)).toThrow('King input lock');
+    expect(b.owner.snapshot()).toEqual(saved);expect(b.events).toEqual([]);
+    // Alter only the unplayed external motor owner, never an earned tape.
+    b.copyOwners({...saved,slow:false},a);
+    expect(()=>b.owner.checkInputs(true)).toThrow('King input lock');
+    expect(b.owner.snapshot()).toEqual(saved);expect(b.events).toEqual([]);
+  }finally{a.scope.dispose();b.scope.dispose();}
+});

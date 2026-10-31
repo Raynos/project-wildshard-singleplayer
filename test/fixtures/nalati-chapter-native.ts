@@ -74,8 +74,11 @@ export function installNalatiChapterPoll(host:SimHost,content:ChapterViewRows,st
 export async function prepareNalatiChapter(preparation:Parameters<PrepareHeadlessRuntime>[0],enterKing=false):Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>>{
   const product=preparation.product,kingData=enterKing?await readNalatiKingData(product):undefined;
   const kingBindings=new WeakMap<SimHost,NativeEliteBindings>();
+  const kingInputs=new WeakMap<SimHost,()=>void>();
   const base=await prepareNalatiBalbals(preparation,kingData===undefined?undefined:{intake:{...kingData.intake,borrowedKinds:[kingData.declared.kind],alwaysKinds:[kingData.declared.kind]},
-    bindings:(host,bindings)=>{kingBindings.set(host,bindings);}});
+    bindings:(host,bindings)=>{kingBindings.set(host,bindings);},closedInputOwner:host=>{
+      const check=kingInputs.get(host);if(check===undefined)throw new Error('King input loan lost its entered owner');check();
+    }});
   const content=v.parse(ChapterViewSchema,await product.json('quests/content.json'));
   const story=parseChapterStoryPresentation(await product.json('quests/chapters.json'));
   const carried=parseCarriedQuest(await product.json('quests/carried.json'));
@@ -91,6 +94,7 @@ export async function prepareNalatiChapter(preparation:Parameters<PrepareHeadles
     if(kingData!==undefined){
       const bindings=kingBindings.get(host);if(bindings===undefined)throw new Error('King lost its original elite bindings');
       const kingOwner=installNativeKing(host,context,kingData,bindings,titan.records);
+      kingInputs.set(host,kingOwner.checkInputs);host.scope.onDispose(()=>{kingInputs.delete(host);});
       host.onStep('nalati.king-closed',dt=>{kingOwner.update(dt);},{snapshot:()=>{
         const value=kingOwner.snapshot();return v.safeParse(v.strictObject({kind:v.literal('closed')}),value).success?{kind:'closed'}:chapterWire(value);
       },restore:value=>{kingOwner.restore(typeof value==='string'?chapterRead(value):value);},physicsRestored:kingOwner.physicsRestored});
