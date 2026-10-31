@@ -223,6 +223,18 @@ boot() {
     native_stage 'device boot' xcrun simctl boot "$1" >/dev/null || return "$?"
     started=1
   fi
+  # A cold CI runner has no presentation host yet. Activate only the same
+  # explicitly selected Xcode after this startup booted its owned device.
+  # This is not foreground/Safari/frame authority and spends the existing
+  # admission budget. No GUI device argument becomes a stale driver marker.
+  local developer="${DEVELOPER_DIR:-}" presenter
+  if [ "$started" -eq 1 ] && [[ "$developer" = /* ]] && [ -f "$developer/usr/bin/simctl" ] && [ -x "$developer/usr/bin/simctl" ]; then
+    presenter="$developer/Applications/Simulator.app"
+    printf 'sim-lane: requesting selected Simulator presentation host %s\n' "$presenter" >&2
+    native_stage 'selected Simulator presentation request' open -a "$presenter" >&2
+    rc=$?
+    if [ "$rc" -ne 0 ]; then shutdown_dev "$1"; return "$rc"; fi
+  fi
   # Preserve migration/system-app progress in the native failure artifact.
   # Lease stdout still contains only the exact device identifier.
   # One imported helper owns bootstatus and Safari. Its imports spend the

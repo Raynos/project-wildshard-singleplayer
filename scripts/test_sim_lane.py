@@ -118,6 +118,16 @@ elif args[1]=='shutdown': booted.unlink(missing_ok=True)
 else: raise RuntimeError('Unexpected fixture command '+repr(args))
 ''')
         # No test touches real devices, Simulator.app or machine admission locks.
+        self.command('open', """import json,os,pathlib,sys,time
+root=pathlib.Path(os.environ['SIM_FIXTURE']);args=sys.argv[1:]
+expected=pathlib.Path(os.environ['DEVELOPER_DIR'])/'Applications/Simulator.app'
+assert args==['-a',str(expected)] and expected.is_dir()
+assert (root/'booted').exists()
+calls=[json.loads(row) for row in (root/'calls').read_text().splitlines()]
+(root/'presentation-request').write_text(json.dumps({'args':args,'commands':[row[1] for row in calls]}))
+time.sleep(float(os.environ.get('SIM_PRESENTATION_DELAY','0')))
+sys.exit(int(os.environ.get('SIM_PRESENTATION_RC','0')))
+""")
         self.command('lockf', 'pass\n')
         self.command('pgrep', 'import sys\nsys.exit(1)\n')
         self.command('osascript', "raise RuntimeError('No app should be touched')\n")
@@ -144,6 +154,7 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         developer = self.root / 'developer'
         executable = developer / 'usr/bin/simctl'
         executable.parent.mkdir(parents=True, exist_ok=True)
+        (developer / 'Applications/Simulator.app').mkdir(parents=True, exist_ok=True)
         source = (self.bin / 'xcrun').read_text()
         self.assertEqual(source.count('args=sys.argv[1:]'), 1)
         executable.write_text(source.replace('args=sys.argv[1:]', "args=['simctl',*sys.argv[1:]]", 1))
@@ -189,6 +200,13 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         line = next(line for line in result.stderr.splitlines() if 'Safari lifecycle receipt ' in line)
         receipt = json.loads(line.split('Safari lifecycle receipt ', 1)[1])
         self.assertEqual(receipt['simctlCommand'], [str(developer / 'usr/bin/simctl')])
+        presentation = json.loads((self.root / 'presentation-request').read_text())
+        self.assertEqual(presentation['args'], ['-a', str(developer / 'Applications/Simulator.app')])
+        self.assertIn('boot', presentation['commands'])
+        self.assertNotIn('bootstatus', presentation['commands'])
+        self.assertNotIn('launch', presentation['commands'])
+        self.assertNotIn('openurl', presentation['commands'])
+        self.assertNotIn(UDID, presentation['args'])
         calls = self.calls()
         caches = [row for row in calls if row[1] == 'runtime']
         self.assertEqual(caches, [['simctl', 'runtime', 'dyld_shared_cache', 'update', RUNTIME]])
@@ -200,6 +218,28 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         self.assertIn(f'preparing runtime {RUNTIME} for owned device {UDID}', result.stderr)
         self.assertIn('Owned runtime cache readiness', result.stderr)
         self.assertIn('owned launch and owned two-frame callback confirmed', result.stderr)
+
+    def test_presentation_failure_and_timeout_preserve_admission_and_owned_cleanup(self):
+        source = (ROOT / 'scripts/sim-lane.sh').read_text()
+        stages = source.split('native_stage() {', 1)[1].split('boot_in_lane() {', 1)[0]
+        startup = source.split('startup() {', 1)[1].split('case "${1:-}" in', 1)[0]
+        program = ('DIR="$SIM_LANE_DIR"\n'
+                   'is_booted() { return 1; }\n'
+                   'wait_remaining() { echo 1; }\n'
+                   'wait_failed() { echo "original admission exhausted" >&2; return 75; }\n'
+                   'shutdown_dev() { printf "%s\\n" "$1" >> "$SIM_FIXTURE/presentation-retired"; }\n'
+                   'native_stage() {' + stages + '\nstartup() {' + startup + '\nboot "$1" "$2"')
+        developer = self.developer_simctl()
+        for env, expected in [({'SIM_PRESENTATION_RC': '23'}, 23), ({'SIM_PRESENTATION_DELAY': '30'}, 75)]:
+            result = subprocess.run(['/bin/bash', '-c', program, 'owned-presentation', UDID, RUNTIME],
+                env={**self.env, 'DEVELOPER_DIR': str(developer), **env}, text=True,
+                capture_output=True, timeout=5, check=False)
+            self.assertEqual(result.returncode, expected, result.stderr)
+            self.assertIn('selected Simulator presentation request', result.stderr)
+            self.assertNotIn('Safari readiness Python imports', result.stderr)
+            self.assertEqual((self.root / 'presentation-retired').read_text().splitlines()[-1], UDID)
+            self.assertFalse(any(row[1] in ('bootstatus', 'launch', 'openurl') for row in self.calls()))
+            self.assert_not_handed_over()
 
     def test_runtime_cache_error_cannot_boot_or_publish_a_lease(self):
         result = self.lane(SIM_CACHE_RC='23')
@@ -629,7 +669,7 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
 
     def test_live_owned_safari_can_render_before_its_launch_client_replies(self):
         started = time.monotonic()
-        result = self.lane(SIM_LAUNCH_RECEIPT_STALL='1', SIM_REQUIRES_LAUNCH='1', SIM_SAFARI_READY_TIMEOUT='2')
+        result = self.lane(DEVELOPER_DIR=str(self.developer_simctl()), SIM_LAUNCH_RECEIPT_STALL='1', SIM_REQUIRES_LAUNCH='1', SIM_SAFARI_READY_TIMEOUT='2')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertLess(time.monotonic() - started, 5)
         self.assertTrue((self.root/'child-ran').exists())
@@ -844,11 +884,12 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
 
     def test_already_booted_still_checks_status_without_shutting_foreign_device(self):
         (self.root / 'booted').touch()
-        result = self.lane(SIM_STATUS_RC='23')
+        result = self.lane(DEVELOPER_DIR=str(self.developer_simctl()), SIM_STATUS_RC='23')
         self.assertEqual(result.returncode, 23, result.stderr)
         self.assert_not_handed_over()
         self.assertTrue((self.root / 'booted').exists())
         self.assertFalse(any(row[1] in ('boot', 'shutdown') for row in self.calls()))
+        self.assertFalse((self.root / 'presentation-request').exists())
 
     def test_lease_waits_then_renewal_preserves_current_page(self):
         result = self.lane('lease')
