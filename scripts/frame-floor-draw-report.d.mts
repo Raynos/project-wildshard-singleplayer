@@ -7,7 +7,7 @@ export interface FloorDrawRecord {
   drawBudgetMode?: 'enforce' | 'report-only'; chromiumCpuRate?: number; chromiumAngle?: string;
   shards?: readonly string[]; surface?: string; settings?: { tier?: string };
   results: readonly { surface: string; rows: readonly {
-    shard: string; complete?: boolean; cpuPhase?: FloorCpuPhaseReading | null; metadata?: { settings?: { tier?: string } };
+    shard: string; complete?: boolean; cpuPhase?: FloorCpuPhaseReading | null; metadata?: { renderer?: string; settings?: { tier?: string } };
     rows?: readonly { pose?: { name?: string }; frames: number; sampleRange?: {startMs:number;endMs:number}; drawSamples?: readonly (DrawSample & {drawnFrame?:number})[] }[];
   }[] }[];
 }
@@ -17,15 +17,19 @@ export interface FloorDrawPose {
   frames: number; status: DrawReportStatus; budget: DrawBudgetAssessment;
 }
 export interface FloorDrawShard {
+  renderer: string | null;
   surface: string; shard: string; bootCpuRate: number; measuredCpuRate: number | null; poses: number; samples: number; frames: number;
   validDrawSamples: number; validCpuSamples: number; status: DrawReportStatus;
   maxDraws: number | null; maxRenderCpuUsPerDraw: number | null;
 }
 export interface FloorDrawReport {
+  officialTimingCredit: false;
   schema: 1; sha: string | null; runId: string | null; when: string | null;
   blocking: boolean; complete: boolean; drawLimit: number; cpuLimitUs: number; chromiumAngle: string | null;
   measurement: string; shards: FloorDrawShard[]; poses: FloorDrawPose[];
 }
 export function frameFloorDrawReport(record: FloorDrawRecord): FloorDrawReport;
 export function frameFloorDrawMarkdown(report: FloorDrawReport): string;
+/** Print only actually collected paired samples, retaining missing values as n/a. */
+export function frameFloorDrawConsole(shard: string, pose: string, frames: number, budget: DrawBudgetAssessment, renderer: string): string;
 export function writeFrameFloorDrawReport(record: FloorDrawRecord, output: string, summary?: string): { json: string; markdown: string };

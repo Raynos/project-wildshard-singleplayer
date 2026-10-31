@@ -5,7 +5,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- The maintained Vitest scratch adapter owns this root.
 import { tmpdir } from 'node:os';
-import { frameFloorDrawReport, frameFloorDrawMarkdown, writeFrameFloorDrawReport, type FloorDrawRecord } from '../scripts/frame-floor-draw-report.mjs';
+import { frameFloorDrawReport, frameFloorDrawMarkdown, frameFloorDrawConsole, writeFrameFloorDrawReport, type FloorDrawRecord } from '../scripts/frame-floor-draw-report.mjs';
 
 const slugs = ['nine-dragon-stack', 'pine-hollow', 'driftwood-isle'];
 function phasedRecord(): FloorDrawRecord {
@@ -97,4 +97,26 @@ test('post-ready CPU credit requires every paired frame after the acknowledged t
     const report = frameFloorDrawReport(input);
     expect(report.complete, invalid).toBe(false); expect(report.poses[0]?.status, invalid).toBe('INCOMPLETE');
   }
+});
+
+test('three-world software reports print actual paired numbers and never claim official timing credit', () => {
+  const input = phasedRecord(), reading = input.results[0]?.rows[0];
+  if (reading === undefined) throw new Error('Missing post-ready fixture');
+  const renderer = 'ANGLE (Google, Vulkan 1.3 (SwiftShader Device), SwiftShader driver)';
+  input.chromiumAngle = 'swiftshader'; input.shards = slugs;
+  input.results = [{surface: 'desktop', rows: slugs.map(shard => ({...reading, shard, metadata: {renderer, settings: {tier: 'phone'}}}))}];
+  const report = frameFloorDrawReport(input), markdown = frameFloorDrawMarkdown(report);
+  expect(report).toMatchObject({complete: true, blocking: false, officialTimingCredit: false});
+  expect(report.shards.map(row => [row.shard, row.renderer, row.maxDraws, row.maxRenderCpuUsPerDraw])).toEqual(slugs.map(shard => [shard, renderer, 150, 30]));
+  expect(markdown).toContain('SwiftShader software-renderer diagnostic');
+  expect(markdown).toContain('No official floor or physical-device timing credit');
+  for (const pose of report.poses) {
+    const line = frameFloorDrawConsole(pose.shard, pose.pose, pose.frames, pose.budget, renderer);
+    expect(line).toContain(pose.shard); expect(line).toContain('150 max draws; 30 max us/draw');
+    expect(line).toContain('paired samples 2/2 draws, 2/2 CPU');
+    expect(line).toContain(renderer); expect(line).toContain('no official timing credit');
+  }
+  const absent = frameFloorDrawReport({...input, results: [{surface: 'desktop', rows: [{...reading, rows: [{frames: 2}]}]}]}).poses[0];
+  if (absent === undefined) throw new Error('Missing incomplete row');
+  expect(frameFloorDrawConsole(absent.shard, absent.pose, absent.frames, absent.budget, renderer)).toContain('n/a max draws; n/a max us/draw; paired samples 0/2 draws, 0/2 CPU');
 });

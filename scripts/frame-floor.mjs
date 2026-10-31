@@ -39,7 +39,7 @@ import { startScriptProfile, startPrefixScriptProfile, startDriveWindowScriptPro
 import { TimelineRecordingError, timelineLongFrames } from './frame-floor-webkit-timeline.mjs';
 import { createWebKitTimelineSession } from './frame-floor-timeline-session.ts';
 import { assessDrawBudget } from '../src/engine/core/drawBudget.ts';
-import { frameFloorDrawReport, frameFloorDrawMarkdown, writeFrameFloorDrawReport } from './frame-floor-draw-report.mjs';
+import { frameFloorDrawReport, frameFloorDrawMarkdown, frameFloorDrawConsole, writeFrameFloorDrawReport } from './frame-floor-draw-report.mjs';
 import { BUFFER_PRESSURE_SCRIPT } from './frame-floor-buffer-pressure.mjs';
 import { ABLATION_NORMAL, ablationPhases, refreshAblationInspector } from './frame-floor-pause-ablation.mjs';
 import { startJscGcLog, jscGcProcessIds } from './frame-floor-jsc-gc.mjs';
@@ -504,6 +504,7 @@ async function measureShard(driver, shard, deadline) {
     await sleep(settleMs);
     const spawnRow = await standingSample(driver, meta.spawn); rows.push(spawnRow);
     console.log(`${surface} ${shard} spawn: ${spawnRow.medianFps} fps, p95 ${spawnRow.p95Ms} ms, p99 ${spawnRow.p99Ms} ms — ${spawnRow.pass ? 'PASS' : 'FAIL'}`);
+    if (drawBudgetOn) console.log(frameFloorDrawConsole(shard, 'spawn', spawnRow.frames, spawnRow.drawBudget, meta.renderer));
     // O11: the outer road starts with no inner cell admitted; deck-east stands on Nine's boulevard and admits it. O17: a
     // cold entry likewise approaches its cell with no standing pose beside it first
     const gridPoses = shard === 'grid' && !['outer-road', 'cold', 'nine-return', 'sky-cycle'].includes(gridScenario)
@@ -528,6 +529,7 @@ async function measureShard(driver, shard, deadline) {
       const result = await standingSample(driver, pose);
       rows.push(result);
       console.log(`${surface} ${shard} ${pose.name}: ${result.medianFps} fps, p95 ${result.p95Ms} ms, p99 ${result.p99Ms} ms — ${rows.at(-1).pass ? 'PASS' : 'FAIL'}`);
+      if (drawBudgetOn) console.log(frameFloorDrawConsole(shard, pose.name, result.frames, result.drawBudget, meta.renderer));
     }
     if (gpuBisectOn && shard !== 'grid') {
       const worst = [...rows].sort((a, b) => b.p95Ms - a.p95Ms)[0];
