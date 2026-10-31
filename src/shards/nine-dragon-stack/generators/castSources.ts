@@ -43,7 +43,7 @@ type CastMaterialRows = [
 export function castMaterials(material: HookProduct['material']): CastMaterialRows { return [{ id: 'hook-source', kind: 'source', url: '/assets/nine-dragon/lab/grapple/dragon-hook.glb', anisotropyMaps: [], gpuOnlyMaps: true },
   { id: 'casts.hook-brass', kind: 'mapped', material: { kind: 'standard', source: { material: 'hook-source', maps: ['map', 'normalMap'] }, properties: material } }]; }
 /** a cast the world-scenes catalogue draws (the guardian lion, the crowd, the Fei Zhua hook), with its prepared levels */
-const migrated = (name: string): boolean => name === 'lion' || name.startsWith('lion-') || name.startsWith('dragon-hook-') || crowd.some(key => name === key || name.startsWith(`${key}-`));
+const migrated = (name: string): boolean => castRows.CROWD_TABLES.includes(name) || name === 'lion' || name.startsWith('lion-') || name.startsWith('dragon-hook-') || crowd.some(key => name === key || name.startsWith(`${key}-`));
 /** Cast and layout resources share one existing admitted scene file. */
 export function castBlobs(extraResources: WorldSceneWeld['resources'] = []): NamedBlob[] {
   return [nameBlob('world/casts.json', 'json', json(parseWorldSceneWeld({ id: 'casts', root: 'dressing.root', nodes: [],

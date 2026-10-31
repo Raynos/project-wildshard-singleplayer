@@ -20,9 +20,10 @@ const CAST_BLOBS=await nineCastBlobs();
 
 const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
 /** The channels the phone casts quantize (sdk/bake/compactGlb.ts `compactPhoneGlb`): their stored type and its normalized
- *  maximum; every other channel stays exact. */
+ *  maximum, including the paired copy of phone COLOR_0; every other channel stays exact. */
 const PHONE_CHANNELS: Readonly<Record<string, { readonly type: Int16ArrayConstructor | Int8ArrayConstructor | Uint8ArrayConstructor; readonly max: number }>> = {
-  position: { type: Int16Array, max: 32767 }, normal: { type: Int8Array, max: 127 }, color: { type: Uint8Array, max: 255 } };
+  position: { type: Int16Array, max: 32767 }, normal: { type: Int8Array, max: 127 }, color: { type: Uint8Array, max: 255 },
+  _light_color: { type: Uint8Array, max: 255 } };
 
 test('cast resource rows publish exact channels and preserve middle-LOD sharing without mutating source templates', async () => {
   const named = (name: string): Uint8Array => {

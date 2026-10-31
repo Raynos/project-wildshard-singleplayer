@@ -31,9 +31,13 @@ export async function nineCastFiles(read: (url: string) => Uint8Array): Promise<
     if (primary === undefined || alternate === undefined) throw new Error('Missing crowd palette source');
     const name = `${kind}-table${suffix}`;
     if (!castRows.CROWD_TABLES.includes(name)) throw new Error('Missing crowd table declaration');
-    const bytes = await pairedChannelGlb(await compactPhoneGlb(primary), await compactPhoneGlb(alternate), name,
-      [{ from: 'COLOR_0', to: '_LIGHT_COLOR' }, ...kind === 'walker' ? [{ from: '_DYE', to: '_LIGHT_DYE' }] : []]);
-    files.set(`raw/${name}.glb`, bytes); files.set(`packed/${name}.glb`, bytes);
+    const channels = [{ from: 'COLOR_0', to: '_LIGHT_COLOR' }, ...kind === 'walker' ? [{ from: '_DYE', to: '_LIGHT_DYE' }] : []];
+    const rawPrimary = files.get(`raw/${kind}-dark${suffix}.glb`), rawAlternate = files.get(`raw/${kind}-light${suffix}.glb`);
+    if (rawPrimary === undefined || rawAlternate === undefined) throw new Error('Missing raw crowd palette source');
+    // The raw source contract stays Float32; the independent phone table keeps
+    // the exact existing quantized palettes and never passes through a new grid.
+    files.set(`raw/${name}.glb`, await pairedChannelGlb(rawPrimary, rawAlternate, name, channels));
+    files.set(`packed/${name}.glb`, await pairedChannelGlb(await compactPhoneGlb(primary), await compactPhoneGlb(alternate), name, channels));
   }
   files.set('hook.glb', hook.glb);
   files.set('hook.json', json({ glb: 'castHook.generated.glb', material: hook.material,
