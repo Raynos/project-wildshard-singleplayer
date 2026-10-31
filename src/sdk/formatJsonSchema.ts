@@ -40,6 +40,7 @@ import { HeldFinishesSchema } from '@wildshard/format/heldFinishes';
 import { FigureCatalogueSchema, FigureGroupSchema } from '@wildshard/format/figures';
 import { QuestStorySchema } from '@wildshard/format/questStory';
 import { WeatherProgramSchema } from '@wildshard/format/weatherProgram';
+import { ForestWeatherSchema } from '@wildshard/format/forestWeather';
 import { NativePopulationRowsSchema } from '@wildshard/format/populationRoster';
 import { ChapterDirectorSchema, ChapterWakeSchema } from '@wildshard/format/chapterDirector';
 import { EliteFeatureSchema } from '@wildshard/format/eliteFeature';
@@ -233,6 +234,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'figures.FigureGroup': FigureGroupSchema,
   'questStory.QuestStory': QuestStorySchema,
   'weatherProgram.WeatherProgram': WeatherProgramSchema,
+  'forestWeather.ForestWeather': ForestWeatherSchema,
   'populationRoster.NativePopulationRows': NativePopulationRowsSchema,
   'chapterDirector.ChapterDirector': ChapterDirectorSchema,
   'eliteFeature.EliteFeature': EliteFeatureSchema,

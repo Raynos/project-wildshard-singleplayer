@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import {ForestWeatherSchema} from './forestWeather';
 import {WorldSceneModelsSchema,parseWorldSceneModels} from './worldSceneModels';
 import { AchievementCounterDataSchema,parseAchievementCounterData } from './achievementCounters';
 import { QuestPageCompositionSchema } from './questPageComposition';
@@ -15,6 +16,7 @@ import { PackedCreatureLooksSchema } from './speciesLooks';
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'world/forest-weather.json':{readonly schema:typeof ForestWeatherSchema;readonly source:'@wildshard/format/forestWeather#ForestWeatherSchema'};
   readonly 'models/world-scenes.json':{readonly schema:typeof WorldSceneModelsSchema;readonly source:'@wildshard/format/worldSceneModels#WorldSceneModelsSchema'};
   readonly 'actors/page-life.json':{readonly schema:typeof PageLifeSchema;readonly source:'@wildshard/format/pageLife#PageLifeSchema'};
   readonly 'look/creature-looks.json':{readonly schema:typeof PackedCreatureLooksSchema;readonly source:'@wildshard/format/speciesLooks#PackedCreatureLooksSchema'};
@@ -31,6 +33,7 @@ export interface RegisteredJsonContracts {
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'world/forest-weather.json':{schema:ForestWeatherSchema,source:'@wildshard/format/forestWeather#ForestWeatherSchema'},
   'models/world-scenes.json':{schema:WorldSceneModelsSchema,source:'@wildshard/format/worldSceneModels#WorldSceneModelsSchema'},
   'actors/page-life.json': {schema:PageLifeSchema,source:'@wildshard/format/pageLife#PageLifeSchema'},
   'look/creature-looks.json': {schema:PackedCreatureLooksSchema,source:'@wildshard/format/speciesLooks#PackedCreatureLooksSchema'},
@@ -82,6 +85,7 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'world/forest-weather.json':v.parse(ForestWeatherSchema,value);break;
     case 'models/world-scenes.json':parseWorldSceneModels(value);break;
     case 'actors/page-life.json':parsePageLife(value);break;
     case 'look/creature-looks.json':

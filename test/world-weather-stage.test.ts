@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
+import {fixtureProductFile,fixtureJsonCheck} from './fixtures/productFile';
 import * as v from 'valibot';
 import { Group, Scene, Mesh, MeshBasicMaterial, BufferGeometry } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -34,7 +35,7 @@ function fixture(parent?: Scope) {
   const result = new Promise<unknown>(resolve => { settle = resolve; });
   const source = emptyShardfile({ slug: 'weather-fixture', name: 'Weather fixture', author: 'Fixture', revision: 1, seed: 1 });
   const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map(),
-    files: new Map([[row.file, { hash: 'weather', url: 'weather' }]]), read: async () => { trace.push('read weather'); return new TextEncoder().encode(JSON.stringify(await result)); } });
+    files: new Map([[row.file, fixtureProductFile(row.file, { hash: 'weather', url: 'weather' })]]), jsonCheck: fixtureJsonCheck, read: async () => { trace.push('read weather'); return new TextEncoder().encode(JSON.stringify(await result)); } });
   const ctx = legacyDouble<ShardContext>({ scope, product, game: legacyDouble<ShardContext['game']>({ runtime }) });
   return { scope, ctx, runtime, world, product, trace, settle };
 }
@@ -153,7 +154,7 @@ function clockedFixture(hold?: 'sky' | 'program', parent?: Scope, nativeOwner?: 
   const reading = new Promise<void>(resolve => { reached = resolve; });
   const gate = new Promise<void>(resolve => { release = resolve; }), heldFile = hold === 'sky' ? skyRows.file : hold === 'program' ? policy.files.program : null;
   const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map(),
-    files: new Map([...values.keys()].map(file => [file, { hash: file, url: file }])), read: async url => {
+    files: new Map([...values.keys()].map(file => [file, fixtureProductFile(file, { hash: file, url: file })])), jsonCheck: fixtureJsonCheck, read: async url => {
       trace.push(`read ${url}`); if (url === heldFile) { reached(); await gate; }
       return new TextEncoder().encode(JSON.stringify(values.get(url)));
     } });
