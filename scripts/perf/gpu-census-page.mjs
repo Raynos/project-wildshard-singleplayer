@@ -13,7 +13,7 @@ export function installGpuProbe(){
   if(/canopy|awning|needle|foliage|leaf-card/.test(s))return 'canopy-cards';if(/train|gondola|drone|mover/.test(s))return 'movers';
   if(/lantern|lamp|cage/.test(s))return 'lanterns';if(/wet|reflection|water|pool/.test(s))return 'wet-reflection';
   if(/neon|sign|glyph|screen/.test(s))return 'neon-signs-glyphs';if(/architecture|facade|slab|whole|building/.test(s))return 'facades-slabs';
-  if(/terrain|ground|floor/.test(s))return 'terrain';if(/sky|cloud|horizon/.test(s))return 'sky';return 'other';
+  if(s.includes('kit:'))return 'facades-slabs';if(/terrain|ground|floor/.test(s))return 'terrain';if(/sky|cloud|horizon/.test(s))return 'sky';return 'other';
  }
  r.renderBufferDirect=function renderBufferDirect(camera,scene,geometry,material,object,range){
   const key=material.name.includes('NdJiehuaGraph.')?`post:${material.name}`:`group:${group(object,material)}`;
@@ -34,16 +34,18 @@ export function installGpuProbe(){
    if(!['inventory','throughput'].includes(want)||!Number.isSafeInteger(k)||k<1||k>64)throw new Error('Invalid GPU census batch');
    const variants=new Set(variant.split('|')), groups=new Set([...variants].filter(v=>v.startsWith('group:')));
    for(const v of variants)if(v.startsWith('pass:')&&!passes[Number(v.slice(5))])throw new Error('Unknown pass');
-   const shadow={auto:r.shadowMap.autoUpdate,needs:r.shadowMap.needsUpdate},disabled=[];skip=null;skipDepth=variants.has('depthcopy');
+   for(const v of variants)if(v.startsWith('effect:')){const[,passIndex,effectIndex]=v.split(':');if(!passes[Number(passIndex)]?.pass.effects?.[Number(effectIndex)]?.blendMode)throw new Error('Unknown effect');}
+   const shadow={auto:r.shadowMap.autoUpdate,needs:r.shadowMap.needsUpdate},disabled=[],disabledEffects=[];skip=null;skipDepth=variants.has('depthcopy');
+   try{
    if(variants.has('shadow')){r.shadowMap.autoUpdate=false;r.shadowMap.needsUpdate=false;}
    for(const v of variants)if(v.startsWith('pass:')){const index=Number(v.slice(5)),row=passes[index];if(!row)throw new Error('Unknown pass');disabled.push([row.pass,row.pass.enabled]);row.pass.enabled=false;}
+   for(const v of variants)if(v.startsWith('effect:')){const[,passIndex,effectIndex]=v.split(':'),effect=passes[Number(passIndex)].pass.effects[Number(effectIndex)];disabledEffects.push([effect,effect.blendMode.blendFunction,Object.getOwnPropertyDescriptor(effect,'update')]);effect.update=()=>{ /* DST omits this effect; its inputs need no update. */ };effect.blendMode.blendFunction=1;}
    skip=x=>groups.has(x.key)||variants.has(`material:${x.material.name}`)||(variants.has('alpha-tested')&&x.material.alphaTest>0)||(variants.has('silhouette')&&/NdJiehuaGraph\.silhouette/.test(x.material.name))||(variants.has('jiehua')&&/NdJiehuaGraph\.jiehua/.test(x.material.name));
-   try{
     mode='off';for(let i=0;i<4;i++)composer.render(0);
     if(want==='inventory'){materials.clear();r.info.reset();mode='inventory';composer.render(0);mode='off';sync();return {materials:[...materials.values()],calls:r.info.render.calls,triangles:r.info.render.triangles};}
     if(want==='throughput'){sync();const start=performance.now();for(let i=0;i<k;i++)composer.render(0);const submitted=performance.now();sync();return {whole:(performance.now()-start)/k,cpu:(submitted-start)/k};}
     throw new Error('Unknown GPU census mode');
-   }finally{mode='off';skip=null;skipDepth=false;r.shadowMap.autoUpdate=shadow.auto;r.shadowMap.needsUpdate=shadow.needs;for(const[p,v]of disabled)p.enabled=v;}
+   }finally{mode='off';skip=null;skipDepth=false;r.shadowMap.autoUpdate=shadow.auto;r.shadowMap.needsUpdate=shadow.needs;for(const[p,v]of disabled)p.enabled=v;for(const[e,blend,descriptor]of disabledEffects){e.blendMode.blendFunction=blend;if(descriptor===undefined)Reflect.deleteProperty(e,'update');else Object.defineProperty(e,'update',descriptor);}}
   },
   restore(){mode='off';for(const row of passes)row.pass.render=row.render;r.renderBufferDirect=rawDraw;gl.blitFramebuffer=rawBlit;},
   environment(){const dbg=gl.getExtension('WEBGL_debug_renderer_info');return{renderer:dbg?gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER),buffer:[gl.drawingBufferWidth,gl.drawingBufferHeight],timer:'synchronized whole-frame throughput including CPU submission',camera:{world:g.camera.matrixWorld.toArray(),projection:g.camera.projectionMatrix.toArray(),fov:g.camera.fov,aspect:g.camera.aspect},player:w.player.position.toArray(),programs:r.info.programs?.length,frame:g.frameCount,passes:P.passes};}

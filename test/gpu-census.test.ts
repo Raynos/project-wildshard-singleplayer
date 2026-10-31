@@ -18,10 +18,11 @@ function fixture() {
     getScissor:(target:{copy:(value:typeof rect)=>unknown})=>target.copy(rect),
     setScissor:(x:number,y:number,z:number,w:number)=>{Object.assign(rect,{x,y,z,w});},clear:vi.fn(),
     shadowMap:{autoUpdate:true,needsUpdate:true},info:{reset:vi.fn(),render:{calls:1,triangles:2},programs:[]}};
-  const pass={name:'RenderPass',enabled:true,effects:[],render:()=>{renderer.renderBufferDirect();}};
+  const effect={name:'FXAAEffect',blendMode:{blendFunction:30},update:vi.fn()};
+  const pass={name:'RenderPass',enabled:true,effects:[effect],render:()=>{renderer.renderBufferDirect();}};
   const composer={passes:[pass],render:()=>{if(pass.enabled) Reflect.apply(pass.render,pass,[camera,null,null,material,object,null]);}};
   // The fixture drives the real serialized probe with native-shaped, explicit ports.
-  pass.render=()=>{Reflect.apply(renderer.renderBufferDirect,renderer,[camera,null,null,material,object,null]);};
+  pass.render=()=>{for(const e of pass.effects)e.update();Reflect.apply(renderer.renderBufferDirect,renderer,[camera,null,null,material,object,null]);};
   const game={renderer,composer,rootScene:{traverseVisible:vi.fn()},camera,frameCount:10};
   const world={game,player:{position:{toArray:()=>[1,2,3]}}};
   const fakeWindow={__wildshard:{requireWorld:()=>world}};
@@ -29,7 +30,7 @@ function fixture() {
   Object.defineProperty(globalThis,'window',{configurable:true,value:fakeWindow});
   const environment=installGpuProbe();
   if(port===undefined)throw new Error('Missing installed probe');
-  return {port,environment,renderer,pass,draw,gl,rect,originalRect,material,originalBlit};
+  return {port,environment,renderer,pass,draw,gl,rect,originalRect,material,originalBlit,object,effect};
 }
 afterEach(()=>{if(windowDescriptor===undefined)Reflect.deleteProperty(globalThis,'window');else Object.defineProperty(globalThis,'window',windowDescriptor);});
 
@@ -70,4 +71,14 @@ test('invalid batch sizes and compound unknown passes refuse before changing nat
  f.gl.blitFramebuffer(0,0,1,1,0,0,1,1,256,9728);
  expect(f.originalBlit).toHaveBeenCalledOnce();
  expect(f.pass.enabled).toBe(true);expect(f.draw).not.toHaveBeenCalled();f.port.restore();
+});
+
+test('legacy kit owners retain the facade label and fused effects are isolated then restored',()=>{
+ const f=fixture();f.material.name='';f.object.name='kit:bridges';
+ expect(f.port.batch('inventory',1).materials[0]?.groups).toEqual(['group:facades-slabs']);
+ const update=f.effect.update;update.mockClear();
+ f.port.batch('throughput',2,'effect:0:0');
+ expect(update).not.toHaveBeenCalled();expect(f.effect.update).toBe(update);expect(f.effect.blendMode.blendFunction).toBe(30);
+ f.port.batch('throughput',1);expect(update).toHaveBeenCalled();
+ expect(()=>f.port.batch('throughput',1,'effect:0:7')).toThrow('Unknown effect');f.port.restore();
 });
