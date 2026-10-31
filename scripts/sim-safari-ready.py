@@ -145,7 +145,7 @@ def readiness_page(deadline, started=None):
 
 def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=None):
     code, detail = 124, 'URL service did not respond'
-    attempts, accepted = 0, False
+    attempts, accepted, pending_delivery, pending_before_launch = 0, False, False, False
     ownership = launch_state if launch_state is not None else lambda: 0
     while True:
         launch_code = ownership()
@@ -159,9 +159,16 @@ def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=N
         if remaining <= 0:
             print(f'sim-lane: Safari URL readiness timed out after {timeout:g}s: {detail}', file=sys.stderr)
             return 124 if code == 0 else code
-        if ready.is_set() or accepted:
-            # The URL was delivered. Do not issue another request or let an
-            # early document bypass the still-pending owned launch receipt.
+        if pending_delivery and pending_before_launch and launch_code == 0:
+            # The app prerequisite changed after a request made during launch.
+            # Permit its first launched-state delivery, never a timed replay
+            # while that prerequisite remains unchanged.
+            pending_delivery = False
+            print('sim-lane: owned app launch confirmed; delivering its probe once in the launched state', file=sys.stderr)
+        if ready.is_set() or accepted or pending_delivery:
+            # A completed delivery or a stopped unresponsive client can leave
+            # this exact URL queued in native services. Await its owned page
+            # instead of issuing duplicates under the same launch state.
             threading.Event().wait(min(.05, remaining))
             continue
         attempts += 1
@@ -180,7 +187,8 @@ def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=N
                 child.kill()
                 child.wait()
                 code = 124
-                detail = 'openurl client stopped after frame proof' if ready.is_set() else 'openurl did not respond before its deadline'
+                pending_delivery, pending_before_launch = not ready.is_set(), launch_pending
+                detail = 'openurl client stopped after frame proof' if ready.is_set() else 'openurl did not respond before its deadline; awaiting the same owned page'
                 partial_error = native_text(errors).strip()
                 if partial_error:
                     detail += f'; native stderr: {partial_error[-2048:]}'
@@ -196,7 +204,7 @@ def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=N
                   f'client exit {code}; ownedFrames={ready.is_set()}; {detail[-2048:]}', file=sys.stderr)
         if launch_code is not None and launch_code != 0:
             return launch_code
-        if not ready.is_set() and not accepted:
+        if not ready.is_set() and not accepted and not pending_delivery:
             current_launch = ownership()
             if current_launch is not None and current_launch != 0:
                 return current_launch

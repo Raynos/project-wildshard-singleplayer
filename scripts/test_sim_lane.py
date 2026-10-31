@@ -283,6 +283,63 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
         self.assertNotIn('readiness timed out', result.stderr)
         self.assertTrue((self.root / 'child-ran').exists())
 
+    def test_timed_out_delivery_waits_for_its_page_or_a_real_launch_transition(self):
+        native = READY['open_ready_page']
+        cases = [(0, 11.5, 12, None, 0, 1), (0, 99, 12, None, 124, 1),
+                 (11, 23, 24, None, 0, 2), (99, 11.5, 12, None, 124, 1),
+                 (0, 11.5, 12, 11, 61, 1)]
+        for launch_at, frame_at, deadline, fail_at, expected, count in cases:
+            clock = SimpleNamespace(now=0)
+            requests = []
+
+            class Ready:
+                def is_set(self):
+                    return clock.now >= frame_at
+
+                def wait(self, seconds):
+                    clock.now += max(.001, seconds)
+                    return self.is_set()
+
+            class Wait:
+                def wait(self, seconds):
+                    clock.now += max(.001, seconds)
+
+            class Client:
+                def __init__(self, args):
+                    self.returncode = None
+                    requests.append((clock.now, args))
+
+                def __enter__(self):
+                    return self
+
+                def __exit__(self, *_args):
+                    pass
+
+                def poll(self):
+                    return self.returncode
+
+                def kill(self):
+                    self.returncode = -9
+
+                def wait(self):
+                    return self.returncode
+
+            def owned():
+                if fail_at is not None and clock.now >= fail_at:
+                    return 61
+                return 0 if clock.now >= launch_at else None
+
+            ports = {**native.__globals__, 'time': SimpleNamespace(monotonic=lambda: clock.now),
+                'threading': SimpleNamespace(Event=Wait),
+                'subprocess': SimpleNamespace(Popen=lambda args, **_kwargs: Client(args), DEVNULL=subprocess.DEVNULL)}
+            helper = FunctionType(native.__code__, ports, argdefs=native.__defaults__)
+            self.assertEqual(helper(UDID, 'http://127.0.0.1/owned', Ready(), deadline, deadline, 0, owned), expected)
+            self.assertEqual(len(requests), count)
+            self.assertTrue(all(args == ['xcrun', 'simctl', 'openurl', UDID, 'http://127.0.0.1/owned'] for _, args in requests))
+            if count == 2:
+                self.assertGreaterEqual(requests[1][0], launch_at)
+        self.assert_not_handed_over()
+
     def test_completed_launch_does_not_wait_for_a_services_inherited_output(self):
         result = self.lane(SIM_HELD_NATIVE_OUTPUT='launch')
         self.assertEqual(result.returncode, 0, result.stderr)
