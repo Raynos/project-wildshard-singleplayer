@@ -171,12 +171,12 @@ function packState(owner:Owner,state:string,before:string|undefined,compact:bool
   if(!compact||before===undefined||Buffer.byteLength(state)>LIMIT||Buffer.byteLength(before)>LIMIT)return patch;
   let best=patch;
   const wire=JSON.stringify({'chapter.report':1,owner,codec:'brotli-state',basis:hash(before),result:hash(state),bytes:Buffer.byteLength(state),
-    data:brotliCompressSync(Buffer.from(state),{params:{[constants.BROTLI_PARAM_QUALITY]:11}}).toString('base64')});
+    data:brotliCompressSync(Buffer.from(state),{params:{[constants.BROTLI_PARAM_QUALITY]:5}}).toString('base64')});
   if(Buffer.byteLength(wire)<Buffer.byteLength(best))best=wire;
   if(encoded(patch)){
     const legacy=v.parse(Wire,JSON.parse(patch)),payload=floatPatch(v.parse(Operations,read(inflateSync(Buffer.from(legacy.data,'base64'),{maxOutputLength:LIMIT}).toString('utf8'))));
     if(payload!==undefined){
-      const candidate=JSON.stringify({...legacy,codec:'brotli-f64-patch',data:brotliCompressSync(payload,{params:{[constants.BROTLI_PARAM_QUALITY]:11}}).toString('base64')});
+      const candidate=JSON.stringify({...legacy,codec:'brotli-f64-patch',data:brotliCompressSync(payload,{params:{[constants.BROTLI_PARAM_QUALITY]:5}}).toString('base64')});
       if(Buffer.byteLength(candidate)<Buffer.byteLength(best))best=candidate;
     }
   }

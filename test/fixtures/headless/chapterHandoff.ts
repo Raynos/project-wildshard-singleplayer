@@ -13,14 +13,13 @@ export const chapterObserved:readonly string[]=Object.freeze(['nalati.taming','n
 export const chapterTwoObserved:readonly string[]=Object.freeze([PACKED_CHAPTER_TAMING,...chapterObserved.slice(1)]);
 export const ChapterPartSchema=v.strictObject({plan:HeadlessTapePlanSchema,expected:HeadlessTapeReportSchema,digest});
 export type ChapterPart=v.InferOutput<typeof ChapterPartSchema>;
-export const ChapterHandoffSchema=v.pipe(v.strictObject({version:v.literal(1),stage:v.picklist(['plains','approach','bond','goat','return','home','carving-road','carving-arrival','carvings','king-entry','king-phase-one','king-phase-two','king-victory','king-road','king-home']),source:digest,
+export const ChapterHandoffSchema=v.pipe(v.strictObject({version:v.literal(1),stage:v.picklist(['plains','approach','bond','goat','return','home','carving-road','carving-arrival','carvings','king-entry','king-phase-one','king-phase-two','king-victory','king-home']),source:digest,
   tick:natural,bondStart:v.optional(natural),reportStart:v.optional(natural),snapshot:v.pipe(v.string(),v.maxLength(24_000_000)),digest,parts:v.pipe(v.array(ChapterPartSchema),v.minLength(1),v.maxLength(128))}),
   v.check(row=>row.stage==='approach'?row.bondStart!==undefined&&row.bondStart<row.tick
     &&row.parts.some(part=>part.expected.observations[0]?.tick===row.bondStart):row.bondStart===undefined,
   'Only an earned approach carries its original bond input budget'),
-  v.check(row=>row.reportStart===undefined||(row.stage==='king-victory'||row.stage==='king-road'||row.stage==='king-home')&&row.reportStart>0&&row.reportStart<row.parts.length,
-  'Only a victory or elder continuation carries its earned report boundary'),
-  v.check(row=>row.stage!=='king-road'||row.reportStart!==undefined,'An earned King road retains its original report boundary'));
+  v.check(row=>row.reportStart===undefined||(row.stage==='king-victory'||row.stage==='king-home')&&row.reportStart>0&&row.reportStart<row.parts.length,
+  'Only a victory or elder continuation carries its earned report boundary'));
 export type ChapterHandoff=v.InferOutput<typeof ChapterHandoffSchema>;
 
 /** Unlike ordinary JSON, preserve every original signed-zero input and

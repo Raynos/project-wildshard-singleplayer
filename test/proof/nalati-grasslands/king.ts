@@ -130,8 +130,9 @@ export function* kingPhaseInputs(host:KingFightRead,read:()=>KingObservation,row
   }else assert.ok(final.phase>=through,'the original health threshold must earn the next phase');
 }
 
-/** Earn the real exit, companion remount and graded-road arrival. */
-export function* kingRoadInputs(host:SimHost,read:()=>KingObservation,rows:NalatiKingData):Generator<readonly HeadlessCommand[]> {
+/** Unactivated return controller. Victory must first be earned by its own
+ * checked child; this yields only walking, reins, mount and dialogue inputs. */
+export function* kingHomeInputs(host:SimHost,read:()=>KingObservation,rows:NalatiKingData):Generator<readonly HeadlessCommand[]> {
   assert.ok(host.flags.has('dead:golden-king'));assert.equal(host.flags.has('told:king'),false);
   assert.equal(host.flags.has('quest:golden-king'),false);assert.equal(read().state,'victory');assert.equal(read().inside,true);
   const trace=(phase:string):void=>{console.info(JSON.stringify({story:'king-home-input',phase,tick:host.state.tick,at:host.player.position.toArray()}));};
@@ -159,17 +160,6 @@ export function* kingRoadInputs(host:SimHost,read:()=>KingObservation,rows:Nalat
   trace('companion-mounted');
   for(const [x,z]of kingHomeRoad())yield* chapterRideInputs(host,x,z);
   trace('graded-road');
-  assert.equal(read().inside,false);assert.equal(mount.mounted,true);
-  assert.ok(Math.hypot(host.player.position.x-12,host.player.position.z-96)<2.5);
-  assert.equal(host.flags.has('told:king'),false);assert.equal(host.flags.has('quest:golden-king'),false);
-}
-
-/** Continue only the actually earned graded-road checkpoint to the elder. */
-export function* kingHomeInputs(host:SimHost,read:()=>KingObservation,rows:NalatiKingData,fromRoad=false):Generator<readonly HeadlessCommand[]> {
-  if(!fromRoad)yield* kingRoadInputs(host,read,rows);
-  assert.ok(host.flags.has('dead:golden-king'));assert.equal(read().inside,false);
-  assert.equal(host.flags.has('told:king'),false);assert.equal(host.flags.has('quest:golden-king'),false);
-  const trace=(phase:string):void=>{console.info(JSON.stringify({story:'king-home-input',phase,tick:host.state.tick,at:host.player.position.toArray()}));};
   yield* chapterCampReturnInputs(host);
   trace('elder-arrival');
   yield* kingElderReadingInputs(()=>({dead:host.flags.has('dead:golden-king'),told:host.flags.has('told:king'),
