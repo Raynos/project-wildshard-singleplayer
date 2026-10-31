@@ -606,7 +606,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        group: [escape-titan, stories-qara]
+        group: [escape-titan, stories-qara, chapter-one]
     env:
       WS_VITEST_MAX_WORKERS: '1'
       VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
@@ -648,7 +648,10 @@ jobs:
         run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run test/nalati-titan-verbs.test.ts test/driftwood-optional-verbs.test.ts test/driftwood-trade-verbs.test.ts test/nalati-patrol-verbs.test.ts test/physics-nalati-headless.test.ts test/nalati-chapter-binding.test.ts --config scripts/vitest-native-escape.config.ts --maxWorkers=1 --bail=0 --reporter=default --reporter=json --outputFile=tmp/ci-native-escape/sim-results.json
       - name: Run native story tapes without sibling workers
         if: ${{ !cancelled() && steps.native-inputs.outcome == 'success' && matrix.group == 'stories-qara' }}
-        run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run test/pine-quest-verbs.test.ts test/pine-door-continuation.test.ts test/native-runtime-observation.test.ts test/driftwood-story-verbs.test.ts test/sky-progression-verbs.test.ts test/nalati-discovery-verbs.test.ts test/nalati-chapter-one.test.ts test/nalati-qara-verbs.test.ts --config scripts/vitest-native-escape.config.ts --maxWorkers=1 --bail=0 --reporter=default --reporter=json --outputFile=tmp/ci-native-escape/sim-results.json
+        run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run test/pine-quest-verbs.test.ts test/pine-door-continuation.test.ts test/native-runtime-observation.test.ts test/driftwood-story-verbs.test.ts test/sky-progression-verbs.test.ts test/nalati-discovery-verbs.test.ts test/nalati-qara-verbs.test.ts --config scripts/vitest-native-escape.config.ts --maxWorkers=1 --bail=0 --reporter=default --reporter=json --outputFile=tmp/ci-native-escape/sim-results.json
+      - name: Run the complete earned chapter-one tape alone
+        if: ${{ !cancelled() && steps.native-inputs.outcome == 'success' && matrix.group == 'chapter-one' }}
+        run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run test/nalati-chapter-one.test.ts --config scripts/vitest-native-escape.config.ts --maxWorkers=1 --bail=0 --reporter=default --reporter=json --outputFile=tmp/ci-native-escape/sim-results.json
       - name: Publish exact failure paths
         if: failure()
         uses: actions/upload-artifact@v4

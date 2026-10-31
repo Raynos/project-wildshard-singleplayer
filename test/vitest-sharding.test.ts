@@ -122,6 +122,10 @@ test('parallel and dedicated native CI discover every existing file exactly once
  expect(nativeRuns[0]).toEqual(['test/tooling/parity/browser-escape.test.mjs']);
  expect(nativeRuns.slice(0,2).flat()).toEqual([...CI_NATIVE_GROUPS['escape-titan']]);
  expect(nativeRuns[2]).toEqual([...CI_NATIVE_GROUPS['stories-qara']]);
+ expect(nativeRuns[3]).toEqual([...CI_NATIVE_GROUPS['chapter-one']]);
+ expect(CI_NATIVE_GROUPS['chapter-one']).toEqual(['test/nalati-chapter-one.test.ts']);
+ expect(CI_NATIVE_GROUPS['stories-qara']).not.toContain('test/nalati-chapter-one.test.ts');
+ expect(nativeJob).toContain('timeout-minutes: 20');
  const groups=/group: \[([^\]]+)\]/u.exec(nativeJob)?.[1]?.split(',').map(group=>group.trim());
  expect(groups).toHaveLength(Object.keys(CI_NATIVE_GROUPS).length);
  expect(new Set(groups)).toEqual(new Set(Object.keys(CI_NATIVE_GROUPS)));

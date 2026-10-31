@@ -356,8 +356,9 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
   let nativeJobs = native === undefined ? [] : ['native-escape'];
   if (native?.includes('matrix:')) {
     const groups = /^\s+group: \[([^\]]+)\]/mu.exec(native)?.[1]?.split(',').map(group => group.trim());
-    if (groups?.length !== 2 || new Set(groups).size !== 2
-      || !groups.every(group => ['escape-titan','stories-qara'].includes(group)))
+    const reviewed = groups?.length === 3 ? ['escape-titan','stories-qara','chapter-one'] : ['escape-titan','stories-qara'];
+    if (groups?.length !== reviewed.length || new Set(groups).size !== reviewed.length
+      || !groups.every(group => reviewed.includes(group)))
       throw new Error('Recovery source has an unreviewed native topology');
     nativeJobs = groups.map(group => `native-escape (${group})`);
   }
@@ -373,7 +374,7 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     || !source.includes(`node scripts/vitest-plan.ts --shards ${matrix.length} --workers 2`)
     || !behaviour?.includes(`--config scripts/vitest-ci.config.ts --shard=\${{ matrix.shard }}/${matrix.length} --bail=0`))
     throw new Error('Recovery source has an unreviewed behavior topology');
-  if (merged && (matrix.length !== 24 || nativeJobs.length !== 2))
+  if (merged && (matrix.length !== 24 || ![2,3].includes(nativeJobs.length)))
     throw new Error('Merged source requires the reviewed full behavior and native topology');
   const required = new Set(['prepare','typecheck-lint','derived-docs',...(merged ? [] : ['boot-verdict']),
     ...matrix.map(index=>`behaviour (${index})`),

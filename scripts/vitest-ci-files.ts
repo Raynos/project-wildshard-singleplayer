@@ -17,8 +17,10 @@ export const CI_NATIVE_GROUPS = {
     'test/driftwood-story-verbs.test.ts',
     'test/sky-progression-verbs.test.ts',
     'test/nalati-discovery-verbs.test.ts',
-    'test/nalati-chapter-one.test.ts',
     'test/nalati-qara-verbs.test.ts',
+  ],
+  'chapter-one': [
+    'test/nalati-chapter-one.test.ts',
   ],
 } as const;
 export const CI_SERIAL_TESTS = Object.values(CI_NATIVE_GROUPS).flat();

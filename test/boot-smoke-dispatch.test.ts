@@ -244,13 +244,12 @@ test('recovery keeps historical twelve and current twenty-four source jobs exhau
   expect(()=>recoverySource('123',recoveryFixture(true,true,1).query)).toThrow('topology');
 });
 
-function splitNativeRecoveryFixture() {
+function splitNativeRecoveryFixture(groups: readonly string[] = ['escape-titan', 'stories-qara']) {
   const fixture=recoveryFixture(true,true,24);
   fixture.source=fixture.source.replace('\n  native-escape:\n',
-    '\n  native-escape:\n    strategy:\n      matrix:\n        group: [escape-titan, stories-qara]\n');
+    `\n  native-escape:\n    strategy:\n      matrix:\n        group: [${groups.join(', ')}]\n`);
   fixture.rows=fixture.rows.filter(row=>row[0]!=='native-escape');
-  fixture.rows.push(['native-escape (escape-titan)','completed','success'],
-    ['native-escape (stories-qara)','completed','success']);
+  fixture.rows.push(...groups.map(group=>[`native-escape (${group})`,'completed','success']));
   return fixture;
 }
 
@@ -767,6 +766,39 @@ test('recovery requires both exact-source native groups and preserves historical
     const malformed=splitNativeRecoveryFixture();malformed.source=malformed.source.replace('escape-titan, stories-qara',matrix);
     expect(()=>recoverySource('123',malformed.query)).toThrow('native topology');
   }
+});
+
+test('the dedicated chapter source requires all three native groups exactly once',()=>{
+  const groups=['escape-titan','stories-qara','chapter-one'];
+  const fixture=splitNativeRecoveryFixture(groups);
+  expect(recoverySource('123',fixture.query)).toEqual({sha,run:'123'});
+  for(const group of groups){
+    const name=`native-escape (${group})`;
+    for(const verdict of ['failure','cancelled','skipped','timed_out']){
+      const broken=splitNativeRecoveryFixture(groups),row=broken.rows.find(candidate=>candidate[0]===name);
+      if(row===undefined)throw new Error('Missing native group fixture');
+      row[2]=verdict;expect(()=>recoverySource('123',broken.query)).toThrow();
+    }
+    const missing=splitNativeRecoveryFixture(groups);missing.rows=missing.rows.filter(row=>row[0]!==name);
+    expect(()=>recoverySource('123',missing.query)).toThrow();
+    const pending=splitNativeRecoveryFixture(groups),row=pending.rows.find(candidate=>candidate[0]===name);
+    if(row===undefined)throw new Error('Missing pending native group fixture');
+    row[1]='in_progress';row[2]='';expect(()=>recoverySource('123',pending.query)).toThrow();
+    const duplicate=splitNativeRecoveryFixture(groups);duplicate.rows.push([name,'completed','success']);
+    expect(()=>recoverySource('123',duplicate.query)).toThrow();
+  }
+  for(const matrix of [['escape-titan','chapter-one'],['escape-titan','stories-qara','stories-qara'],['escape-titan','stories-qara','foreign']]){
+    const malformed=splitNativeRecoveryFixture(matrix);
+    expect(()=>recoverySource('123',malformed.query)).toThrow('native topology');
+  }
+  const ready=mergedReadyFixture();
+  ready.state.source=ready.state.source.replace('group: [escape-titan, stories-qara]','group: [escape-titan, stories-qara, chapter-one]');
+  const model=ready.details.find(row=>row.name==='native-escape (stories-qara)');
+  if(model===undefined)throw new Error('Missing ready native fixture');
+  ready.details.push({...model,name:'native-escape (chapter-one)',steps:[]});
+  expect(readySource('123',liveBuild,ready.state.query,readyNow).bootPublishRequired).toBe(true);
+  ready.details.pop();
+  expect(()=>readySource('123',liveBuild,ready.state.query,readyNow)).toThrow('inventory');
 });
 
 test('recovery refuses partial, duplicated, foreign, divergent and stale proofs',()=>{
