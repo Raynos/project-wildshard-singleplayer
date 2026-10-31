@@ -151,7 +151,7 @@ test('an effect that draws into its own target warms its material there, not on 
   const own: unknown = Reflect.get(effect, 'renderTarget'), march: unknown = Reflect.get(effect, 'marchMat');
   expect(own).toBeInstanceOf(WebGLRenderTarget); expect(march).toBeInstanceOf(ShaderMaterial);
   expect(jobs.find(job => job.root.children.some(child => Reflect.get(child, 'material') === march))?.rt).toBe(own);
-  expect(jobs.find(job => preparedMaterials([job]).includes(colour.fullscreenMaterial))?.rt).toBeNull();
+  expect(jobs.find(job => preparedMaterials([job]).some(material => material === colour.fullscreenMaterial))?.rt).toBeNull();
   for (const job of jobs) job.dispose?.();
   colour.dispose();
 });
