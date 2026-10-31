@@ -5,14 +5,14 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE bc888b8-mvwtsk7g = GLSL** (15:36 Cancun; CS2; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
+**LIVE 6802b12-mvwusq3b = GLSL** (16:05 Cancun; CS4; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
 (G2, kinds 0 + 3, copy cut, Boundary, facade), EP8 crowd, NF11 4 MB cap, Pine uploads -70 %, Sky look. **For Jake:** QC
 table qa-2026-10-30 (2508e90724).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
-**15:40:** PWA PR1-PR4 done (1 tap WebKit + Chromium, d775). Warm Home fixed 4ef7467733 (cold 52.5 / warm 27.6 s); road warm 6.4 s open.
-**wildshard-v (G963/G964):** PWA PR5 = Jake's playtest. CI3 met (G872: 21/21 since 93bd); CI2 open; CI9 x6, CI10 x2 + x8.
-CS2 x1, CS5 + CS6 x2 (payloads exact), TOOLING-PERF list audited (x6), DAT T3-T4 inventoried.
+**16:40:** LEGACY bug fixed c18337ffe3 (kept: Nine + Pine). G965 Pine update gap -> sp-x6. Pine physics 5596fde41e (75/75 walk).
+**wildshard-v (16:30):** PR5: no Simulator.app here, so Jake's playtest (G872). 6324 red is pre-f9caf76f31.
+CS1/CS2/CS4/CS5/CS6/CS9 slices landed; DAT T5 no (G872, $4/mo), T6 superseded; CI9 x6, CI10 x9 + x8.
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
 (f33d642372); G4 closed measured. Pine GPU ok.
