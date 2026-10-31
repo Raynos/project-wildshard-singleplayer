@@ -45,7 +45,7 @@ test('actual wrapped fragments include selected fog once without multiplying ver
   const result=emitGraphGlsl(input,{reportExecutionCost:true});
   if(result.executionCost===undefined)throw new Error('Missing actual execution report');return result.executionCost;
  };
- const surface=report({version:1,kind:'material',model:'standard',nodes:{noise:{op:'noise',in:[[.2,.3]]},vary:{op:'varying',in:['noise']},sun:{op:'sunColour'},lit:{op:'mul',in:['sun','vary']},grade:{op:'mul',in:[[.4,.5,.6],'vary']}},stages:{surface:{colour:[1,1,1]},lighting:{sun:'lit',grade:'grade'}}});
+ const surface=report({version:1,kind:'material',model:'standard',nodes:{noise:{op:'noise',in:[[.2,.3]]},vary:{op:'varying',in:['noise']},sun:{op:'sunColour'},lit:{op:'mul',in:['sun','vary']},litColour:{op:'litColour'},grade:{op:'mul',in:['litColour','vary']}},stages:{surface:{colour:[1,1,1]},lighting:{sun:'lit',grade:'grade'}}});
  const fog=report({version:1,kind:'fog',nodes:{noise:{op:'noise',in:[[.3,.4]]},colour:{op:'mul',in:[[1,1,1],'noise']}},stages:{fog:{colour:'colour'}}});
  const material={slug:'proof',graphHash:'surface',kind:'material' as const,fragmentShaderHashes:{main:shader,outline:null},selectedFogGraphHash:'fog',execution:surface};
  const dependency={slug:'proof',graphHash:'fog',kind:'fog' as const,fragmentShaderHashes:{main:null,outline:null},selectedFogGraphHash:null,execution:fog};
