@@ -5,6 +5,8 @@ import {createModelLibrary} from '../src/game/plugin/geometry';
 import {readSourceModel} from '../src/sdk/bake/skinned';
 import {castChannels} from '../src/shards/nine-dragon-stack/generators/castSources';
 import {crowdPaletteColor,CROWD_LIGHT_DYE} from '../src/shards/nine-dragon-stack/generators/crowdPalette';
+import {emitGraphGlsl} from '../src/engine/render/graph/glsl';
+import {architectureGraphs,crowdGraph} from '../src/shards/nine-dragon-stack/generators/architectureGraphs';
 import {WALKER_DYES} from '../src/shards/nine-dragon-stack/generators/casts';
 
 async function geometry(name:string):Promise<BufferGeometry>{
@@ -30,6 +32,12 @@ test('every table LOD retains original primary geometry and both phone colourway
       const actual=table.getAttribute(name);equal(attribute,actual,`${kind}${suffix}/${name}`);
       expect(actual.array.constructor).toBe(attribute.array.constructor);expect(actual.normalized).toBe(attribute.normalized);
     }
+    // The table shader substitutes only these authored exact-zero channels.
+    // Check every actual phone LOD, including clustered far geometry.
+    for(const name of ['aOff','aSpill']){
+      const channel=table.getAttribute(name);
+      expect(Array.from(bits(channel)).every(word=>word===0),`${kind}${suffix}/${name} exact zero`).toBe(true);
+    }
     expect(table.index?.array).toEqual(dark.index?.array);
     equal(light.getAttribute('color'),table.getAttribute('aLightColor'),`${kind}${suffix}/light color`);
     if(kind==='walker')equal(light.getAttribute('aDye'),table.getAttribute('aLightDye'),`${kind}${suffix}/light dye`);
@@ -45,3 +53,15 @@ test('only the explicit own-light key changes; every real dye keeps its original
   expect(()=>crowdPaletteColor('sitters','paper')).toThrow();expect(()=>crowdPaletteColor('walkers','unknown')).toThrow();
 });
 
+
+test('ordinary kit shaders never reserve palette inputs and the crowd fits native vertex slots',()=>{
+  for(const graph of Object.values(architectureGraphs())){
+    const attributes=emitGraphGlsl(graph,{trustedBudget:true}).attributes.map(row=>row.name);
+    expect(attributes).not.toContain('aLightColor');expect(attributes).not.toContain('aLightDye');
+  }
+  const graph=crowdGraph(),attributes=emitGraphGlsl(graph,{trustedBudget:true}).attributes.map(row=>row.name);
+  expect(attributes).toContain('aLightColor');expect(attributes).toContain('aLightDye');
+  expect(attributes).not.toContain('aOff');expect(attributes).not.toContain('aSpill');
+  // position, normal, vertex colour + mat4 instance transform + instance colour.
+  expect(attributes.length+3+4+1).toBeLessThanOrEqual(16);
+});

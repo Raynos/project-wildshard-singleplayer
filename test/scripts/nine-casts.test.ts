@@ -251,7 +251,7 @@ test('the placed palette tables need at most eight plain draws and keep every pu
       await library.preload();const g=library.geometry(name,{borrow:true});if(g===null)throw new Error('Missing native table');
       geometry.set(JSON.stringify([castLibrary(name),name]),g);
     }
-    const ctx=modelContext(null);bindWorldSceneModelSources(ctx,catalogue.product,{catalogue,materials:new Map([['kit',material]]),geometries:geometry},scope);
+    const ctx=modelContext(null);bindWorldSceneModelSources(ctx,catalogue.product,{catalogue,materials:new Map([['kit',material],['crowd',material]]),geometries:geometry},scope);
     const models=defineWorldSceneCatalogue(catalogue);let draws=0;
     for(const [group,key,original] of [['walkers','umbrellaWalker',crowdRows.walker],['sitters','mahjongSitter',crowdRows.sitter]] as const){
       const authored=scenes.LAYOUT_PLACEMENTS.find(row=>row.id===`nds-crowd-${group}`);if(authored===undefined)throw new Error('Missing placed crowd');

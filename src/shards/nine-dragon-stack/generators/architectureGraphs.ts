@@ -327,6 +327,9 @@ function windows(): GraphIr {
 /** G5: the kit's flagstone program (kind 3 only), shipped as a material file (groundGraph.ts) */
 export function groundGraph(): GraphIr { return architecture(false, true, 3); }
 
+/** The crowd alone owns paired palette attributes; its authored offset and spill channels are exact zero. */
+export function crowdGraph(): GraphIr { return architecture(false, true, undefined, true); }
+
 /** `nr13: false` builds the kit graphs as before NR13 and NR16 (no tread glints, every face painted at full strength, a
  *  bare window grid for kind 1): the declaration oracle's predecessor. */
 export function architectureGraphs(options: { readonly nr13?: boolean } = {}): Readonly<Record<string, GraphIr>> {
@@ -412,9 +415,9 @@ function facadeCell(g: Surface, q: Ref, gu: Ref, gv: Ref, wpx: Ref, rowP: Ref, c
 
 /** The world kit retains its encoded kinds, explicit surfaces and edge masks. `only`: the program for faces of that one kind
  *  (G5: the kit's flagstones draw apart, kind 3, so their program carries none of the other kinds' registers). */
-function architecture(cut: boolean, nr13: boolean, only?: number): GraphIr {
+function architecture(cut: boolean, nr13: boolean, only?: number, paired = false): GraphIr {
   const g = new Surface(), sw = g.sw.bind(g), mul = g.mul.bind(g), add = g.add.bind(g), sub = g.sub.bind(g), div = g.div.bind(g), max = g.max.bind(g), min = g.min.bind(g), mix = g.mix.bind(g), choose = g.choose.bind(g);
-  const face = g.attr('aFace', 'vec4'), pat = g.attr('aPat', 'vec4', true), misc = g.attr('aMisc', 'vec4', true), off = g.attr('aOff', 'vec2'), spill = g.attr('aSpill', 'vec3');
+  const face = g.attr('aFace', 'vec4'), pat = g.attr('aPat', 'vec4', true), misc = g.attr('aMisc', 'vec4', true), off = paired ? [0, 0] : g.attr('aOff', 'vec2'), spill = paired ? [0, 0, 0] : g.attr('aSpill', 'vec3');
   const kind = only ?? g.floor(add(sw(pat, 'x'), 0.5)), flags = g.floor(add(sw(misc, 'w'), 0.5)), surf = g.floor(div(flags, 4096));
   // EP8 (B5): a dyed walker draws as its base walker's instance, the dye its instance colour: its umbrella (aDye > 0) takes
   // the dye x the factor the cast carries, its other vertices (aDye < 0) their own colour; geometry without the channel
@@ -423,20 +426,19 @@ function architecture(cut: boolean, nr13: boolean, only?: number): GraphIr {
   // channel otherwise baked it in as a constant 0, so every dyed umbrella drew its base walker's dark cloth x the dye
   const dye = g.v(g.a('aDye', 'float', 0)), white = g.op('and', [g.eq(sw(g.tint, 'x'), 1), g.op('and', [g.eq(sw(g.tint, 'y'), 1), g.eq(sw(g.tint, 'z'), 1)])]);
   let coloured = choose(g.eq(dye, 0), g.colour, choose(g.op('and', [g.gt(dye, 0), g.op('not', [white])]), mul(g.tint, dye), g.op('vertexColour')));
-  if (!cut && only === undefined) {
+  if (paired) {
     // Classify the explicit palette key at the Float32 vertex input, never on
-    // an interpolated RGB value. Non-table geometry takes the original branch.
+    // an interpolated RGB value. Only the table material reads these channels.
     const lightColor = g.a('aLightColor', 'vec3', [-1, -1, -1]), tint = g.op('instanceColour');
     const equal = (value: Ref, rgb: readonly [number, number, number]): string => g.op('and', [g.eq(sw(value, 'x'), rgb[0]),
       g.op('and', [g.eq(sw(value, 'y'), rgb[1]), g.eq(sw(value, 'z'), rgb[2])])]);
     const light = g.op('or', [equal(tint, [0, 0, 0]), equal(tint, CROWD_LIGHT_DYE)]);
-    const table = g.gt(g.flat(choose(g.op('gte', [sw(lightColor, 'x'), 0]), 1, 0)), .5);
     const lightPalette = g.gt(g.flat(choose(light, 1, 0)), .5);
     const ownPalette = g.gt(g.flat(choose(g.op('or', [equal(tint, [1, 1, 1]), equal(tint, [0, 0, 0])]), 1, 0)), .5);
     const color = choose(lightPalette, g.v(lightColor), g.op('vertexColour'));
     const factor = choose(lightPalette, g.v(g.a('aLightDye', 'float', 0)), dye);
-    const paired = choose(g.op('and', [g.gt(factor, 0), g.op('not', [ownPalette])]), mul(g.tint, factor), color);
-    coloured = choose(table, paired, coloured);
+    const paletteColour = choose(g.op('and', [g.gt(factor, 0), g.op('not', [ownPalette])]), mul(g.tint, factor), color);
+    coloured = paletteColour;
   }
   const accent = g.bit(flags, 16), gloss = g.bit(flags, 32), gold = g.bit(flags, 64), base = mul(coloured, mix(g.u('uWashTint'), [1, 1, 1], accent));
   const uv = sw(face, 'xy'), sz = sw(face, 'zw'), q = add(uv, off), x = sw(uv, 'x'), y = sw(uv, 'y'), w = sw(sz, 'x'), h = sw(sz, 'y');

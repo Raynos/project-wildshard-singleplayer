@@ -32,8 +32,9 @@ import type { NineSourceWorld } from './worldProgram';
 import rawProfiles from '../data/specimenProfiles.json' with { type: 'json' };
 import plan from '../data/layoutPlan.json' with { type: 'json' };
 import { presentationData } from './presentation';
-import { architectureGraphs, groundGraph } from './architectureGraphs';
+import { architectureGraphs, groundGraph, crowdGraph } from './architectureGraphs';
 import { GROUND_LOOK } from './groundGraph';
+import { CROWD_LOOK } from './crowdGraph';
 import { lightVolumeRows } from './lightVolumes';
 import paint from '../data/paint.json' with { type: 'json' };
 import canopy from '../data/canopy.json' with { type: 'json' };
@@ -131,6 +132,7 @@ models.push(
 // the guardian lion and the TRELLIS crowd from their casts (castSources.ts): each middle level a simplified index over the
 // full cast's attributes, the crowd's clustered far copy its own, and nothing past the crowd's far cutoff
 const cast = (name: string) => ({ id: 'main', library: castLibrary(name), model: name, material: 'kit', castShadow: false, receiveShadow: false, renderOrder: 0 });
+const crowdCast = (name: string) => ({ ...cast(name), material: 'crowd' });
 const sharing = (name: string, full: string) => ({ ...cast(name), attributes: { library: castLibrary(full), model: full } });
 models.push({ ...one('guardianLion', 'guardian-lion', 'Guardian lion', 'props', [cast('lion')]), pipeline: 'trellis',
   choices: [choice('0', [cast('lion')], {}, [], [10, 30].map(from => ({ from, draws: [sharing(`lion-mid${String(from)}`, 'lion')] })))] });
@@ -149,9 +151,9 @@ for (const [key, row] of Object.entries(crowdRows)) {
     choices: [...row.variants.map(variant => { const full = `${key}-${variant.id}`;
       return choice(variant.id, [cast(full)], variant.params, [], [...lodRows.MID_FROM.map(from => ({ from, draws: [sharing(`${full}-mid${String(from)}`, full)] })),
         { from: lodRows.LOD_NEAR, draws: [cast(`${full}-far`)] }, { from: lodRows.LOD_FAR, draws: [] }]); }),
-    choice('table', [cast(`${key}-table`)], { pick: 'table' }, [], [
-      ...lodRows.MID_FROM.map(from => ({ from, draws: [sharing(`${key}-table-mid${String(from)}`, `${key}-table`)] })),
-      { from: lodRows.LOD_NEAR, draws: [cast(`${key}-table-far`)] }, { from: lodRows.LOD_FAR, draws: [] }]) ] });
+    choice('table', [crowdCast(`${key}-table`)], { pick: 'table' }, [], [
+      ...lodRows.MID_FROM.map(from => ({ from, draws: [{ ...sharing(`${key}-table-mid${String(from)}`, `${key}-table`), material: 'crowd' }] })),
+      { from: lodRows.LOD_NEAR, draws: [crowdCast(`${key}-table-far`)] }, { from: lodRows.LOD_FAR, draws: [] }]) ] });
 }
 // the sign (E306 / E315): every shop sign, plaque, paper strip and banner the fragment hangs, one model, its variants the
 // styles; a variant draws its prepared atlas cells (hand-bent neon calligraphy: a dark plank board under its tubes; a
@@ -228,7 +230,7 @@ const CARD_BLOBS = [...cardFiles].map(([text, file]) => {
 const portalLook = portalLookRows();
 const NINE_SCENE_BLOBS: NamedBlob[] = [...castBlobs(), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
   nameBlob('world/scenes/cards.json', 'json', json(empty)), ...SHAPE_BLOBS, ...cardBuffers.values(), ...CARD_BLOBS];
-const KIT_GRAPHS = { ...architectureGraphs(), [GROUND_LOOK]: groundGraph() };
+const KIT_GRAPHS = { ...architectureGraphs(), [GROUND_LOOK]: groundGraph(), [CROWD_LOOK]: crowdGraph() };
 // the painted surfaces' texture array (data/paint.json), the canopy's leaf atlas and the scroll screen, lent to their looks
 const painted = Object.entries(KIT_GRAPHS).flatMap(([id, graph]) => graph.params !== undefined && 'uPaint' in graph.params ? [id] : []);
 // the light pools' two baked volumes (generators/lightVolumes.ts) per tier and deck ending, lent to every look that reads them
@@ -411,7 +413,7 @@ const FIXED_RECIPE = parseWorldScene({ imports: [], scene: { version: 1, root: '
 const FIXED_STEPS = (['open', 'capped'] as const).map(caps => ({ id: `fixed-${caps}`, cube: caps === 'open' ? 'cell' : 'standalone', scene: 'world/scenes/fixed.json',
   geometry: { entries: { library: castLibrary(`entries-${caps}`), model: `entries-${caps}` }, signs: { library: castLibrary('facade-signs'), model: 'facade-signs' } }, materials: { kit: 'kit' } }));
 const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, uniforms: [NINE_SHARED], welds: [CAST_WELD, { id: 'fabric', file: 'world/fabric.json' }], placements: [...SET_PLACEMENTS, ...MOVER_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-refine'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
-  materials: [...castMaterials(hookMaterial), ...portalLook.scenes.materials, ...NINE_MATERIAL_LOOKS.map(([id, name]) => look(id, name))],
+  materials: [look('crowd', CROWD_LOOK), ...castMaterials(hookMaterial), ...portalLook.scenes.materials, ...NINE_MATERIAL_LOOKS.map(([id, name]) => look(id, name))],
   steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? signLibrary.get(model) ?? 'shapes', model }])), ...windowStep([0, 1], layout).geometry },
     instanceAttributes: windowStep([0, 1], layout).instanceAttributes,
     materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: { ...windowStep([0, 1], layout).publish, ...Object.fromEntries(['crown-core', 'crown-cards', 'signs', 'neon-boards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) } }, ...cardSteps, ...FIXED_STEPS, ...portalLook.scenes.steps] });

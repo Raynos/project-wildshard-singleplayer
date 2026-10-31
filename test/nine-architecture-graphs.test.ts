@@ -20,6 +20,7 @@ import { GRAPH_ADMISSION_LIMITS, validateGraph, type GraphIr } from '../src/form
 import { viewmodelGraphs } from '../src/shards/nine-dragon-stack/generators/viewmodelGraphs';
 import { architectureGraphs, groundGraph } from '../src/shards/nine-dragon-stack/generators/architectureGraphs';
 import { groundGraphFile } from '../src/shards/nine-dragon-stack/generators/groundGraph';
+import { crowdGraphFile } from '../src/shards/nine-dragon-stack/generators/crowdGraph';
 import fog from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 
 import { lendUniforms as lendGrade } from '../src/game/shardfile/lentLooks';
@@ -75,8 +76,8 @@ function build(graph: GraphIr, instanced: boolean, skinned = false): { vertex: s
 const graphs = architectureGraphs();
 test('held material files declare their admitted texture dependencies', () => {
   // the SDK lowers the inline graphs to files before admission (D74), so a file's fog names a file too
-  const ground = groundGraphFile(), lowered = lowerMaterialGraphs(product), built = parseShardfile(lowered.declaration);
-  expect(graphFileRules(built, hash => heldGraphFiles.assets.get(hash) ?? lowered.assets.get(hash) ?? (hash === ground.file.hash ? ground.bytes : undefined))).toEqual([]);
+  const ground = groundGraphFile(), crowd = crowdGraphFile(), lowered = lowerMaterialGraphs(product), built = parseShardfile(lowered.declaration);
+  expect(graphFileRules(built, hash => heldGraphFiles.assets.get(hash) ?? lowered.assets.get(hash) ?? (hash === ground.file.hash ? ground.bytes : hash === crowd.file.hash ? crowd.bytes : undefined))).toEqual([]);
 });
 /** the reads in `main` of a variable no enclosing block (nor both arms of an if / else in one) has assigned */
 function undominatedReads(shader: string): string[] {
