@@ -104,10 +104,12 @@ const server = createServer((req, res) => {
   let pathname;
   try { pathname = decodeURIComponent(url.pathname); } catch { res.statusCode = 400; res.end(); return; }
   const worker = pathname === '/sw.js' || pathname.startsWith('/sw-core/');
-  // localhost CORS, as the preview server reflected it; the public worker is identical for every Origin, like
-  // production (a Vary: Origin would split WebKit's HTTP cache between a navigation update and reg.update())
+  // Public files have identical bytes for every Origin. CacheStorage precache keys do not carry the module
+  // request's Origin; reflecting it with Vary makes native cache routes miss an already installed entry offline.
+  // Keep API and preflight reflection restricted to localhost, independently of public GET/HEAD responses.
   const origin = req.headers.origin;
-  if (worker) res.setHeader('Access-Control-Allow-Origin', '*');
+  const publicRead = (req.method === 'GET' || req.method === 'HEAD') && !pathname.startsWith('/api/');
+  if (worker || publicRead) res.setHeader('Access-Control-Allow-Origin', '*');
   else if (origin !== undefined && LOCAL_ORIGIN.test(origin)) { res.setHeader('Access-Control-Allow-Origin', origin); res.setHeader('Vary', 'Origin'); }
   if (req.method === 'OPTIONS') { res.statusCode = 204; res.end(); return; }
   for (const rule of rules) if (rule.re.test(pathname)) for (const header of rule.headers) res.setHeader(header.key, header.value);

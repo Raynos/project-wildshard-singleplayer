@@ -55,3 +55,40 @@ test('an unwritable telemetry target is an HTTP500, never a silent acknowledgeme
     expect(response.status).toBe(500); expect(await response.json()).toEqual({error: 'telemetry recording failed'});
   } finally {server.close(); rmSync(root, {recursive: true, force: true});}
 }, 15_000);
+
+test('public static cache entries are Origin-invariant without changing API or preflight CORS', async () => {
+  mkdirSync('tmp', {recursive: true}); const root = mkdtempSync(resolve('tmp/preview-static-cors-'));
+  mkdirSync(join(root, 'dist/assets'), {recursive: true});
+  const small = 'export const ready = true;', large = `${small}\n`.repeat(100);
+  writeFileSync(join(root, 'dist/index.html'), 'fixture');
+  writeFileSync(join(root, 'dist/assets/runtime-01234567.js'), small);
+  writeFileSync(join(root, 'dist/assets/large-01234567.js'), large);
+  const server = await previewServer(root, join(root, 'records'));
+  const local = new URL(server.base).origin, foreign = 'https://foreign.test';
+  try {
+    for (const origin of [undefined, local, 'http://localhost:4400', foreign]) {
+      const headers: Record<string, string> = {'accept-encoding': 'identity'};
+      if (origin !== undefined) headers['origin'] = origin;
+      for (const method of ['GET', 'HEAD']) {
+        const response = await fetch(new URL('assets/runtime-01234567.js', server.base), {method, headers});
+        expect(response.status).toBe(200); expect(response.headers.get('access-control-allow-origin')).toBe('*');
+        expect(response.headers.get('vary')).toBeNull(); expect(response.headers.get('content-length')).toBe(String(Buffer.byteLength(small)));
+        expect(await response.text()).toBe(method === 'HEAD' ? '' : small);
+      }
+      const compressed = await fetch(new URL('assets/large-01234567.js', server.base), {headers: {...headers, 'accept-encoding': 'gzip'}});
+      expect(compressed.headers.get('vary')).toBe('Accept-Encoding'); expect(compressed.headers.get('content-encoding')).toBe('gzip');
+      expect(await compressed.text()).toBe(large);
+    }
+    for (const origin of [local, foreign]) {
+      for (const method of ['OPTIONS', 'POST']) {
+        const response = await fetch(new URL('assets/runtime-01234567.js', server.base), {method, headers: {origin}});
+        expect(response.status).toBe(method === 'OPTIONS' ? 204 : 405);
+        expect(response.headers.get('access-control-allow-origin')).toBe(origin === local ? local : null);
+        expect(response.headers.get('vary')).toBe(origin === local ? 'Origin' : null);
+      }
+      const api = await fetch(new URL('api/telemetry', server.base), {headers: {origin}});
+      expect(api.status).toBe(405); expect(api.headers.get('access-control-allow-origin')).toBe(origin === local ? local : null);
+      expect(api.headers.get('vary')).toBe(origin === local ? 'Origin' : null);
+    }
+  } finally {server.close(); rmSync(root, {recursive: true, force: true});}
+}, 15_000);
