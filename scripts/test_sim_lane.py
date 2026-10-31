@@ -1,5 +1,6 @@
 """Real Bash startup/handover against an isolated simctl fixture."""
 import json
+import builtins
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from types import FunctionType, SimpleNamespace
@@ -21,6 +22,7 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parent.parent
 UDID = '00000000-0000-0000-0000-000000000016'
+RUNTIME = 'com.apple.CoreSimulator.SimRuntime.iOS-26-2'
 READY = runpy.run_path(str(ROOT / 'scripts/sim-safari-ready.py'))
 
 
@@ -48,7 +50,14 @@ booted=root/'booted'
 if args[:3]==['simctl','list','devices']:
     time.sleep(float(os.environ.get('SIM_LIST_DELAY','0')))
     rows=[{'udid':''' + repr(UDID) + ''','name':'wildshard-iphone'}]
-    print(json.dumps({'devices':{'iOS':rows if 'booted' not in args or booted.exists() else []}}))
+    runtime=os.environ.get('SIM_DEVICE_RUNTIME', ''' + repr(RUNTIME) + ''')
+    print(json.dumps({'devices':{runtime:rows if 'booted' not in args or booted.exists() else [],
+        'com.apple.CoreSimulator.SimRuntime.tvOS-26-1':[] if 'booted' in args else [{'udid':'foreign-device','name':'foreign-tv'}]}}))
+elif args[1]=='runtime':
+    assert args==['simctl','runtime','dyld_shared_cache','update',os.environ.get('SIM_DEVICE_RUNTIME', ''' + repr(RUNTIME) + ''')]
+    print('Owned runtime cache readiness',flush=True)
+    time.sleep(float(os.environ.get('SIM_CACHE_DELAY','0')))
+    sys.exit(int(os.environ.get('SIM_CACHE_RC','0')))
 elif args[1]=='boot':
     code=int(os.environ.get('SIM_BOOT_RC','0'))
     if code==0: booted.touch()
@@ -131,6 +140,122 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
     def assert_not_handed_over(self):
         self.assertFalse((self.root / 'child-ran').exists())
         self.assertFalse((self.root / 'lane' / f'{UDID}.lease').exists())
+
+    def test_cold_boot_prepares_only_the_owned_runtime_before_native_boot(self):
+        result = self.lane()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        calls = self.calls()
+        caches = [row for row in calls if row[1] == 'runtime']
+        self.assertEqual(caches, [['simctl', 'runtime', 'dyld_shared_cache', 'update', RUNTIME]])
+        order = [row[1] for row in calls]
+        self.assertLess(order.index('runtime'), order.index('boot'))
+        self.assertLess(order.index('boot'), order.index('bootstatus'))
+        self.assertLess(order.index('bootstatus'), order.index('launch'))
+        self.assertIn('selected runtime dyld cache readiness finished', result.stderr)
+        self.assertIn(f'preparing runtime {RUNTIME} for owned device {UDID}', result.stderr)
+        self.assertIn('Owned runtime cache readiness', result.stderr)
+        self.assertIn('owned launch and owned two-frame callback confirmed', result.stderr)
+
+    def test_runtime_cache_error_cannot_boot_or_publish_a_lease(self):
+        result = self.lane(SIM_CACHE_RC='23')
+        self.assertEqual(result.returncode, 23, result.stderr)
+        self.assertFalse(any(row[1] in ('boot', 'bootstatus', 'launch', 'openurl') for row in self.calls()))
+        self.assert_not_handed_over()
+
+    def test_runtime_cache_wait_consumes_original_admission(self):
+        source = (ROOT / 'scripts/sim-lane.sh').read_text()
+        stages = source.split('native_stage() {', 1)[1].split('boot_in_lane() {', 1)[0]
+        startup = source.split('startup() {', 1)[1].split('case "${1:-}" in', 1)[0]
+        # Exercise the actual boot/stage/startup bodies. Supply the remaining
+        # admission at their native port, without spending a one-second unit
+        # budget on several unrelated fake Python inventory processes first.
+        program = ('DIR="$SIM_LANE_DIR"\n'
+                   'is_booted() { return 1; }\n'
+                   'wait_remaining() { echo 1; }\n'
+                   'wait_failed() { echo "admission timed out after 1s" >&2; return 75; }\n'
+                   'native_stage() {' + stages + '\nstartup() {' + startup
+                   + '\nboot "$1" "$2"')
+        result = subprocess.run(['/bin/bash', '-c', program, 'owned-runtime', UDID, RUNTIME],
+            env={**self.env, 'SIM_CACHE_DELAY': '30'}, text=True,
+            capture_output=True, timeout=5, check=False)
+        self.assertEqual(result.returncode, 75, result.stderr)
+        self.assertIn('selected runtime dyld cache readiness', result.stderr)
+        self.assertIn('admission timed out after 1s', result.stderr)
+        self.assertFalse(any(row[1] in ('boot', 'bootstatus', 'launch', 'openurl') for row in self.calls()))
+        self.assert_not_handed_over()
+
+    def test_unbound_or_foreign_runtime_cannot_be_warmed(self):
+        result = self.lane(SIM_DEVICE_RUNTIME='com.apple.CoreSimulator.SimRuntime.tvOS-26-2')
+        self.assertEqual(result.returncode, 64, result.stderr)
+        self.assertIn('missing exact iOS runtime binding', result.stderr)
+        self.assertFalse(any(row[1] in ('runtime', 'boot', 'launch', 'openurl') for row in self.calls()))
+        self.assert_not_handed_over()
+
+    def test_release_does_not_require_cache_preparation_or_a_supported_runtime(self):
+        (self.root / 'booted').touch()
+        result = self.lane(mode='release', SIM_DEVICE_RUNTIME='unavailable-runtime')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(any(row[1] in ('runtime', 'boot', 'bootstatus', 'launch', 'openurl') for row in self.calls()))
+        self.assertFalse((self.root / 'booted').exists())
+        self.assert_not_handed_over()
+
+    def test_already_booted_device_does_not_prepare_other_runtime_caches(self):
+        (self.root / 'booted').touch()
+        result = self.lane()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(any(row[1] == 'runtime' for row in self.calls()))
+        self.assertIn('owned launch and owned two-frame callback confirmed', result.stderr)
+
+    def test_actual_startup_program_counts_imports_and_refuses_late_success(self):
+        source = (ROOT / 'scripts/sim-lane.sh').read_text()
+        prefix = "python3 -c 'import sys,time\n"
+        program = 'import sys,time\n' + source.split(prefix, 1)[1].split("\n' \"$remaining\" \"$@\"", 1)[0]
+        cases = [([0, 2], 0, 75, False), ([0, 0, 2], 0, 75, True),
+                 ([0, 0], 23, 23, True), ([0, 0, .5], 0, 0, True)]
+        for times, native, expected, ran in cases:
+            with self.subTest(times=times, native=native):
+                ticks = iter(times)
+                calls = []
+
+                def run(args, **options):
+                    calls.append((args, options))
+                    return SimpleNamespace(returncode=native)
+
+                def exit_status(code):
+                    raise SystemExit(code)
+
+                ports = {'sys': SimpleNamespace(argv=['-c', '1', 'owned-native'], exit=exit_status),
+                         'time': SimpleNamespace(monotonic=lambda: next(ticks)),
+                         'subprocess': SimpleNamespace(run=run, TimeoutExpired=subprocess.TimeoutExpired)}
+
+                def import_port(name, *_args, **_kwargs):
+                    return ports[name]
+
+                with self.assertRaises(SystemExit) as stopped:
+                    exec(program, {'__builtins__': {**vars(builtins), '__import__': import_port}})
+                self.assertEqual(stopped.exception.code, expected)
+                self.assertEqual(bool(calls), ran)
+                if ran:
+                    self.assertEqual(calls, [(['owned-native'], {'timeout': 1, 'check': False})])
+
+    def test_interpreter_entry_delay_spends_global_admission_without_hiding_native_errors(self):
+        source = (ROOT / 'scripts/sim-lane.sh').read_text()
+        remaining = source.split('wait_remaining() {', 1)[1].split('startup() {', 1)[0]
+        startup = source.split('startup() {', 1)[1].split('case "${1:-}" in', 1)[0]
+        self.command('python3', '''import os,sys,time
+time.sleep(2.1)
+os.execv(sys.executable,[sys.executable,*sys.argv[1:]])
+''')
+        program = ('WAIT_SECONDS=1\nWAIT_DEADLINE=$((SECONDS+WAIT_SECONDS))\n'
+                   'wait_failed() { echo "global admission expired" >&2; return 75; }\n'
+                   'wait_remaining() {' + remaining + '\nstartup() {' + startup
+                   + '\nstartup /bin/sh -c "exit $1"')
+        for native, expected in [('0', 75), ('23', 23)]:
+            with self.subTest(native=native):
+                result = subprocess.run(['/bin/bash', '-c', program, 'owned-startup', native],
+                    env=self.env, text=True, capture_output=True, timeout=5, check=False)
+                self.assertEqual(result.returncode, expected, result.stderr)
+                self.assertEqual('global admission expired' in result.stderr, native == '0')
 
     def immediate_url_failure_fixture(self):
         """Inject the service error without two unrelated Python cold starts.

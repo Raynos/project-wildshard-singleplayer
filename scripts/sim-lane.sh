@@ -72,10 +72,10 @@ lease_valid() {
 # G563 (Jake): the machine keeps three named devices; a lane never makes another (each new name was a 2-4 GB device).
 DEFAULT_DEVICE=wildshard-iphone
 DEVICES="frame-floor-iphone-17-pro wildshard-loading $DEFAULT_DEVICE"
-resolve() {  # name or UDID of one of $DEVICES → UDID (only the default is created, when missing)
-  local want="${1:-$DEFAULT_DEVICE}" u row name
-  row="$(xcrun simctl list devices -j | jq -r --arg w "$want" '.devices[][] | select(.udid == $w or .name == $w) | "\(.udid)\t\(.name)"' | head -1)"
-  u="${row%%$'\t'*}" name="${row#*$'\t'}"
+resolve() {  # named device → UDID/runtime pair (only the default is created, when missing)
+  local want="${1:-$DEFAULT_DEVICE}" u row name rt
+  row="$(xcrun simctl list devices -j | jq -r --arg w "$want" '.devices | to_entries[] | .key as $runtime | .value[] | select(.udid == $w or .name == $w) | "\(.udid)\t\(.name)\t\($runtime)"' | head -1)"
+  IFS=$'\t' read -r u name rt <<< "$row"
   case " $DEVICES " in *" ${name:-$want} "*) ;; *)
     echo "sim-lane: refusing device '$want': use one of $DEVICES (default $DEFAULT_DEVICE); lanes never create devices" >&2; exit 1;;
   esac
@@ -83,14 +83,15 @@ resolve() {  # name or UDID of one of $DEVICES → UDID (only the default is cre
     echo "sim-lane: device '$want' does not exist on this Mac; use $DEFAULT_DEVICE" >&2; exit 1
   fi
   if [ -z "$u" ]; then
-    local rt dt
+    local dt
     rt="$(xcrun simctl list runtimes -j | jq -r '[.runtimes[] | select(.platform == "iOS" and .isAvailable)] | last | .identifier')"
     dt="$(xcrun simctl list devicetypes -j | jq -r '[.devicetypes[] | select(.name | test("^iPhone 17 Pro$"))] | first | .identifier')"
     [ "$dt" = "null" ] && dt="$(xcrun simctl list devicetypes -j | jq -r '[.devicetypes[] | select(.name | test("^iPhone"))] | last | .identifier')"
     u="$(xcrun simctl create "$want" "$dt" "$rt")" || { echo "sim-lane: could not create $want" >&2; exit 1; }
     echo "sim-lane: created $want ($u)" >&2
   fi
-  echo "$u"
+  # Carry the pair from this locked inventory read; no sidecar can go stale.
+  printf '%s\t%s\n' "$u" "$rt"
 }
 
 # FD locks keep a stable inode and live until the owning shell closes the descriptor. Resolve/create and boot
@@ -208,6 +209,17 @@ native_stage() {
 boot() {
   local started=0 rc
   if ! is_booted "$1"; then
+    local runtime="${2:-}"
+    if [[ "$runtime" != com.apple.CoreSimulator.SimRuntime.iOS-* ]]; then
+      echo 'sim-lane: missing exact iOS runtime binding for the owned device' >&2
+      return 64
+    fi
+    # Apple documents this prerequisite for slow first boots in Xcode 26.x.
+    # No --force, purge or all-runtime work. It spends the same admission
+    # clock; native success is not a boot, launch or frame-readiness proof.
+    printf 'sim-lane: preparing runtime %s for owned device %s\n' "$runtime" "$1" >&2
+    native_stage 'selected runtime dyld cache readiness' xcrun simctl runtime dyld_shared_cache update "$runtime" >&2 || return "$?"
+    wait_remaining >/dev/null || return "$?"
     native_stage 'device boot' xcrun simctl boot "$1" >/dev/null || return "$?"
     started=1
   fi
@@ -233,7 +245,7 @@ boot_in_lane() {
     remaining=$(wait_remaining) || { exec 9>&-; return 75; }
     lockf -s -t "$remaining" 9 || { exec 9>&-; wait_failed; return 75; }
     if is_booted "$1" || [ "$(booted_count)" -lt "$LANES" ]; then
-      boot "$1"; rc=$?; exec 9>&-; return "$rc"
+      boot "$1" "${2:-}"; rc=$?; exec 9>&-; return "$rc"
     fi
     exec 9>&- # someone admitted another device between the capacity check and the lock
   done
@@ -256,14 +268,24 @@ wait_remaining() {
 startup() {
   local remaining rc
   remaining=$(wait_remaining) || return "$?"
-  python3 -c 'import subprocess,sys
+  python3 -c 'import sys,time
+started=time.monotonic()
+import subprocess
 try:
-    result=subprocess.run(sys.argv[2:],timeout=int(sys.argv[1]),check=False)
-    sys.exit(result.returncode if result.returncode >= 0 else 128-result.returncode)
+    limit=int(sys.argv[1])
+    remaining=limit-(time.monotonic()-started)
+    if remaining<=0: sys.exit(75)
+    result=subprocess.run(sys.argv[2:],timeout=remaining,check=False)
+    code=result.returncode if result.returncode >= 0 else 128-result.returncode
+    if code==0 and time.monotonic()-started>=limit: code=75
+    sys.exit(code)
 except subprocess.TimeoutExpired:
     sys.exit(75)
 ' "$remaining" "$@"
   rc=$?
+  # Interpreter loading precedes its first monotonic sample. The original
+  # shell admission clock also covers that gap, including live renewal.
+  if [ "$rc" -eq 0 ]; then wait_remaining >/dev/null || return "$?"; fi
   [ "$rc" -ne 75 ] || wait_failed
   return "$rc"
 }
@@ -274,18 +296,20 @@ case "${1:-}" in
   wait) wait_room "";;
   lease)
     dev="${2:?lease <device> [min]}"; min="${3:-30}"
-    udid="$(locked_resolve "$dev")" || exit "$?"
+    resolved="$(locked_resolve "$dev")" || exit "$?"
+    IFS=$'\t' read -r udid device_runtime <<< "$resolved"
     lock_device "$udid" || exit "$?"
     if is_booted "$udid" && lease_valid "$udid"; then
       # Renewing a live manual lease must not navigate its Safari page away.
       startup xcrun simctl bootstatus "$udid" -b >/dev/null || exit "$?"
     else
-      boot_in_lane "$udid" || exit "$?"
+      boot_in_lane "$udid" "$device_runtime" || exit "$?"
     fi
     echo "$(( $(now) + min * 60 )) 0" > "$(lease_file "$udid")"
     echo "$udid"; echo "sim-lane: $dev leased for $min min — renew with the same command, end with: scripts/sim-lane.sh release $dev" >&2;;
   release)
-    udid="$(locked_resolve "${2:?release <device>}")" || exit "$?"
+    resolved="$(locked_resolve "${2:?release <device>}")" || exit "$?"
+    udid="${resolved%%$'\t'*}"
     lock_device "$udid" || exit "$?"
     shutdown_dev "$udid"; log "released $udid"; echo "released $2";;
   run)
@@ -293,9 +317,10 @@ case "${1:-}" in
     while :; do case "${1:-}" in --max) max="$2"; shift 2;; --keep) keep=1; shift;; *) break;; esac; done
     dev="${1:?run <device> <cmd …>}"; shift
     [ $# -gt 0 ] || { echo "usage: sim-lane.sh run [--max <min>] [--keep] <device> <cmd …>" >&2; exit 64; }
-    udid="$(locked_resolve "$dev")" || exit "$?"
+    resolved="$(locked_resolve "$dev")" || exit "$?"
+    IFS=$'\t' read -r udid device_runtime <<< "$resolved"
     lock_device "$udid" || exit "$?"
-    boot_in_lane "$udid" || exit "$?"
+    boot_in_lane "$udid" "$device_runtime" || exit "$?"
     echo "$(( $(now) + max * 60 )) $$" > "$(lease_file "$udid")"
     SIM_UDID="$udid" "$@" 8>&- 9>&- & child=$!
     # The watchdog must not inherit a caller's output pipe: Node awaits close after all pipe holders exit.
