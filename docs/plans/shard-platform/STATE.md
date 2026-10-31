@@ -5,13 +5,13 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 21976c1-mvwf2ge2 = GLSL** (09:50 Cancun; King source; all 36 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
+**LIVE 60e20e1-mvwh9sri = GLSL** (09:28 Cancun; native4; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
 (G2, kinds 0 + 3, copy cut, Boundary, facade), EP8 crowd, NF11 4 MB cap, Pine uploads -70 %, Sky look. **For Jake:** QC
 table qa-2026-10-30 (2508e90724).
 
 **21:50 E518 (Jake): finish every row of the 4 fps plans tonight**, schedule = finish-fps-2026-10-30-mini-spike.md.
 Nine was GPU-bound on his phone (13 fps, gpu 45.7 ms vs CPU 10).
-**10:05:** native4 = 37 jobs (c5521a2841, G872: routes split, model 593 -> 429 s); 0cc4 B17 sim-lane reap race (x2). Opus 0.
+**09:50:** native4 live (Titan 427 + routes 170 vs 593 s). CI9 60e 31m23s; cache re-saves 6.6 GB unchanged (x6). 6feb B8 red (x8).
 **wildshard-v (CI plan):** CI2 (26/32 <= 180 s) / CI3 (23/32 <= 300 s) measured, stay open (557d180b03); CI5 by x9; CI9 (x6 / x9 / x2 /
 x8 prepare cuts) and CI10 (x2, Simulator.app opened 6a84ecffe6) stay on Codex today.
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
