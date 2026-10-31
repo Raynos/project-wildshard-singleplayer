@@ -436,3 +436,28 @@ and original consumer checks. Pine's weather program and Nalati's
 `{weather,reactions}` envelope remain an explicit CS7 exit; these two
 registrations do not unify those different wire shapes.
 
+
+
+## CS4: floor and cave defining contracts
+
+**2026-10-31, sp-x1 — source landed; payload proof pending.** Three
+existing modern Pine names now carry their existing defining contracts:
+world/floor.json uses ForestGroundLayoutSchema; world/crag-cave.json
+uses CaveFileSchema; world/cave-interior.json uses CaveInteriorSchema.
+These are the already approved G571 forest-page feature inputs, with its
+original one-user waiver; no second shard user or new host credit is
+claimed. The original payload encoders, paced floor admission, cave
+collider admission, file identities and runtime readers stay unchanged.
+
+The patch adds only these three registry entries, defining SDK wire
+roots and modern emitter metadata. It excludes all parked CS7 entries.
+Focused registration/native format suites, root types and named typed
+lint pass. Missing or foreign defining metadata still refuses before the
+file read, and native count, tuple and shaft bounds remain authoritative.
+
+The complete emitted payload-identity proof is explicitly queued for a
+machine turn. No fresh-product, emitted-byte, capture or collider proof
+is claimed by this source landing. Since this slice moves no collider
+data or installation, it does not repeat the already qualified native
+walk. CS4 remains open for this proof and its remaining ground/streaming
+exits; CS2 remains open as stated above.

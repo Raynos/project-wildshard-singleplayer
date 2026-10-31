@@ -1,3 +1,5 @@
+import { ForestGroundLayoutSchema } from './forestPage';
+import { CaveFileSchema, CaveInteriorSchema } from './caveInterior';
 import * as v from 'valibot';
 import {SceneBuffersSchema,parseSceneBuffers} from './sceneBuffers';
 import {ForestWeatherSchema} from './forestWeather';
@@ -19,6 +21,9 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'world/floor.json':{readonly schema:typeof ForestGroundLayoutSchema;readonly source:'@wildshard/format/forestPage#ForestGroundLayoutSchema'};
+  readonly 'world/crag-cave.json':{readonly schema:typeof CaveFileSchema;readonly source:'@wildshard/format/caveInterior#CaveFileSchema'};
+  readonly 'world/cave-interior.json':{readonly schema:typeof CaveInteriorSchema;readonly source:'@wildshard/format/caveInterior#CaveInteriorSchema'};
   readonly 'actors/creature-install.json':{readonly schema:typeof CreatureInstallSchema;readonly source:'@wildshard/format/speciesLooks#CreatureInstallSchema'};
   readonly 'actors/projection.json':{readonly schema:typeof PopulationProjectionSchema;readonly source:'@wildshard/format/populationProjection#PopulationProjectionSchema'};
   readonly 'actors/shelter.json':{readonly schema:typeof PopulationShelterSchema;readonly source:'@wildshard/format/herdShelter#PopulationShelterSchema'};
@@ -39,6 +44,9 @@ export interface RegisteredJsonContracts {
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'world/floor.json':{schema:ForestGroundLayoutSchema,source:'@wildshard/format/forestPage#ForestGroundLayoutSchema'},
+  'world/crag-cave.json':{schema:CaveFileSchema,source:'@wildshard/format/caveInterior#CaveFileSchema'},
+  'world/cave-interior.json':{schema:CaveInteriorSchema,source:'@wildshard/format/caveInterior#CaveInteriorSchema'},
   'actors/creature-install.json': {schema:CreatureInstallSchema,source:'@wildshard/format/speciesLooks#CreatureInstallSchema'},
   'actors/projection.json': {schema:PopulationProjectionSchema,source:'@wildshard/format/populationProjection#PopulationProjectionSchema'},
   'actors/shelter.json': {schema:PopulationShelterSchema,source:'@wildshard/format/herdShelter#PopulationShelterSchema'},
@@ -105,6 +113,9 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'world/floor.json':v.parse(ForestGroundLayoutSchema,value);break;
+    case 'world/crag-cave.json':v.parse(CaveFileSchema,value);break;
+    case 'world/cave-interior.json':v.parse(CaveInteriorSchema,value);break;
     case 'actors/creature-install.json':v.parse(CreatureInstallSchema,value);break;
     case 'actors/projection.json':v.parse(PopulationProjectionSchema,value);break;
     case 'actors/shelter.json':parsePopulationShelter(value);break;
