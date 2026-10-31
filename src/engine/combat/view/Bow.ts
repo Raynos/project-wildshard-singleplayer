@@ -298,8 +298,10 @@ export class Bow<Style extends string = string> extends Weapon {
     }
     pl.yaw += sy - this.swayYaw; pl.pitch += sp - this.swayPitch; this.swayYaw = sy; this.swayPitch = sp;
 
-    // ── the viewmodel ──
-    this.poseViewmodel(dt, t);
+    // ── the viewmodel ── PF6: a stowed bow (its model hidden) holds its springs, as a stowed held weapon holds its views,
+    // and resumes from them when drawn; only the look it lags behind keeps up, so a turn made while stowed is no kick
+    if (this.model.visible) this.poseViewmodel(dt, t);
+    else { this.lastYaw = pl.yaw; this.lastPitch = pl.pitch; }
 
     // ── the drop arc ──
     const arcOn = this.arcAllowed && this.mountArc && (this.profile.arcMode === 'aim' ? this.aimOn : getSetting('huntersEye')) && this.p > this.profile.arcFrom && this.model.visible && this.holster < 0.01;
