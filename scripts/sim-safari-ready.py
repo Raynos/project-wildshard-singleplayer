@@ -66,6 +66,145 @@ def owned_launch_pid(text):
     return None
 
 
+def safari_screenshot_child(udid, directory, deadline):
+    """Run only inside an owned diagnostic process group, including its I/O."""
+    directory.mkdir()
+    image = directory / 'screen.png'
+    record = {'nativeReturnCode': None, 'result': None, 'status': 'no-budget'}
+    remaining = deadline - time.monotonic()
+    if remaining > 0:
+        with native_transcript() as errors:
+            try:
+                command = [*SIMCTL_COMMAND, 'io', udid, 'screenshot', str(image)]
+                code = subprocess.run(command, stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL, stderr=errors, timeout=remaining).returncode
+                record.update(nativeReturnCode=code, result=code if code >= 0 else 128 - code,
+                              status='completed')
+                if code == 0 and time.monotonic() >= deadline:
+                    record.update(result=124, status='late')
+            except subprocess.TimeoutExpired:
+                record.update(result=124, status='timeout')
+            record['stderr'] = native_text(errors)[-2048:]
+    record['bytes'] = image.stat().st_size if image.is_file() else 0
+    (directory / 'capture.json').write_text(json.dumps(record))
+
+
+def safari_screenshot_supervisor(udid, directory, deadline):
+    # The independent watchdog performs no executable construction or file I/O.
+    # Its subordinate worker and any native client share this owned group.
+    worker = os.fork()
+    if worker == 0:
+        try:
+            safari_screenshot_child(udid, directory, deadline)
+        except BaseException as error:
+            try:
+                directory.mkdir(exist_ok=True)
+                (directory / 'capture-error.json').write_text(json.dumps({'errorType': type(error).__name__}))
+            except BaseException:
+                pass
+            os._exit(1)
+        os._exit(0)
+    while True:
+        done, _ = os.waitpid(worker, os.WNOHANG)
+        remaining = deadline - time.monotonic()
+        if done or remaining <= 0:
+            # Retire the whole owned group, including this watchdog. The native
+            # result is in capture.json, never inferred from this SIGKILL.
+            os.killpg(os.getpid(), 9)
+            os._exit(1)
+        time.sleep(min(.01, remaining))
+
+
+class SafariScreenshots:
+    """Bound two diagnostic groups without waiting for exec or file I/O.
+
+    No screenshot client, constructor or receipt sink runs on the proof path.
+    Only our forked children/groups are polled, killed and nonblocking-reaped.
+    """
+    def __init__(self, udid, started):
+        self.udid, self.started = udid, started
+        self.receipt = os.environ.get('PHONE_SIMULATOR_PREPARATION', '')
+        self.records, self.active, self.seen = [], {}, set()
+
+    def start(self, phase, deadline=None):
+        if phase in self.seen or phase not in ('after-second-url', 'readiness-timeout'):
+            return
+        self.seen.add(phase)
+        requested = time.monotonic()
+        end = min(requested + 1, deadline) if deadline is not None else requested + 1
+        record = {'phase': phase, 'requestedAt': round(requested - self.started, 3),
+                  'deadlineAt': round(end - self.started, 3), 'forkedAt': None,
+                  'killAt': None, 'reapedAt': None, 'supervisorExit': None,
+                  'path': None, 'receipt': None, 'status': 'unconfigured'}
+        self.records.append(record)
+        if not self.receipt or not Path(self.receipt).is_absolute():
+            return
+        if requested >= end:
+            record['status'] = 'no-budget'
+            return
+        source = Path(self.receipt)
+        directory = source.parent / f'{source.stem}-safari-{os.getpid()}-{int(self.started * 1e9)}-{phase}'
+        record.update(path=str(directory / 'screen.png'), receipt=str(directory / 'capture.json'))
+        try:
+            pid = os.fork()
+        except OSError as error:
+            record.update(status='error', errorType=type(error).__name__)
+            return
+        if pid == 0:
+            # Bind the group before any possible native spawn. Parent cleanup
+            # may also bind it, closing the fork-to-setpgid cancellation race.
+            try:
+                os.setpgid(0, 0)
+                safari_screenshot_supervisor(self.udid, directory, end)
+            except BaseException:
+                try:
+                    os.killpg(os.getpid(), 9)
+                except OSError:
+                    pass
+                os._exit(1)
+            os._exit(0)
+        try:
+            os.setpgid(pid, pid)
+        except OSError:
+            # Child may already have established the group or completed.
+            pass
+        record.update(status='running', forkedAt=round(time.monotonic() - self.started, 3))
+        self.active[pid] = (record, end)
+        self.poll()
+
+    def poll(self):
+        for pid, (record, end) in list(self.active.items()):
+            try:
+                done, status = os.waitpid(pid, os.WNOHANG)
+                if done:
+                    record.update(reapedAt=round(time.monotonic() - self.started, 3),
+                                  supervisorExit=os.waitstatus_to_exitcode(status))
+                    if record['status'] == 'running':
+                        record['status'] = 'stopped' if record['supervisorExit'] == -9 else 'failed'
+                    del self.active[pid]
+                elif time.monotonic() >= end and record['killAt'] is None:
+                    record.update(status='timeout', killAt=round(time.monotonic() - self.started, 3))
+                    try:
+                        os.killpg(pid, 9)
+                    except ProcessLookupError:
+                        os.kill(pid, 9)
+            except OSError as error:
+                record.update(status='cleanup-error', errorType=type(error).__name__)
+                del self.active[pid]
+
+    def finish(self):
+        # Called only after the original proof result/exception is fixed.
+        # A stalled constructor or file write cannot extend this cleanup bound.
+        end = max((end for _, end in self.active.values()), default=time.monotonic())
+        while self.active:
+            self.poll()
+            remaining = end - time.monotonic()
+            if remaining <= 0:
+                self.poll()
+                break
+            threading.Event().wait(min(.01, remaining))
+
+
 @contextmanager
 def readiness_page(deadline, started=None, lifecycle=None):
     # Port 9 is a Fetch bad port, not a usable Safari warm-up document.
@@ -215,7 +354,7 @@ def readiness_page(deadline, started=None, lifecycle=None):
                     lifecycle['listener'] = dict(listener)
 
 
-def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=None, lifecycle=None):
+def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=None, lifecycle=None, screenshots=None):
     code, detail = 124, 'URL service did not respond'
     if lifecycle is not None:
         lifecycle['destination'] = url
@@ -227,6 +366,8 @@ def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=N
             record[phase] = round(time.monotonic() - started, 3)
 
     while True:
+        if screenshots is not None:
+            screenshots.poll()
         launch_code = ownership()
         if launch_code is not None and launch_code != 0:
             return launch_code
@@ -271,7 +412,14 @@ def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=N
         with native_transcript() as errors, subprocess.Popen([*SIMCTL_COMMAND, 'openurl', udid, url],
                               stdout=subprocess.DEVNULL, stderr=errors, text=True) as child:
             stamp(record, 'spawnedAt')
+            if attempts == 2 and screenshots is not None:
+                # Observe the launched-state offer only after its client starts.
+                # This image spends the same URL/global remainder, never a new
+                # ten-second window or another URL offer.
+                screenshots.start('after-second-url', attempt_deadline)
             while child.poll() is None and not ready.is_set() and time.monotonic() < attempt_deadline:
+                if screenshots is not None:
+                    screenshots.poll()
                 launch_code = ownership()
                 if launch_code is not None and launch_code != 0:
                     break
@@ -336,9 +484,11 @@ def wait_for_safari(udid):
         print(f'sim-lane: Safari launch receipt evidence {json.dumps(evidence)}', file=sys.stderr)
     lifecycle = {'simctlCommand': list(SIMCTL_COMMAND), 'launch': {phase: None for phase in ('spawnRequestedAt', 'spawnedAt',
                  'ownedAt', 'completedAt', 'killAt', 'reapRequestedAt', 'reapedAt')},
-                 'url': {'count': 0, 'omitted': 0, 'samples': []}, 'http': None}
+                 'url': {'count': 0, 'omitted': 0, 'samples': []}, 'http': None, 'screenshots': []}
     lifecycle['launch']['nativeReturnCode'] = None
     result, ready = None, None
+    screenshots = SafariScreenshots(udid, started)
+    lifecycle['screenshots'] = screenshots.records
 
     def stamp_launch(phase):
         lifecycle['launch'][phase] = round(time.monotonic() - started, 3)
@@ -401,7 +551,7 @@ def wait_for_safari(udid):
                             return 0
                     return None
                 try:
-                    result = open_ready_page(udid, url, ready, deadline, timeout, started, launch_state, lifecycle['url'])
+                    result = open_ready_page(udid, url, ready, deadline, timeout, started, launch_state, lifecycle['url'], screenshots)
                     return result
                 finally:
                     # Retire only our launch RPC, never the observed Safari app.
@@ -413,6 +563,11 @@ def wait_for_safari(udid):
                     stamp_launch('reapedAt')
                     lifecycle['launch']['nativeReturnCode'] = getattr(launch, 'returncode', lifecycle['launch']['nativeReturnCode'])
     finally:
+        if result is not None and result != 0 and time.monotonic() >= deadline:
+            # Readiness has already refused. One bounded cleanup diagnostic
+            # cannot reopen its deadline, alter its error or supply frame proof.
+            screenshots.start('readiness-timeout')
+        screenshots.finish()
         lifecycle.update(result=result, ownedLaunch=admitted,
                          ownedFrames=ready.is_set() if ready is not None else None,
                          recordedAt=round(time.monotonic() - started, 3), limitSeconds=timeout)

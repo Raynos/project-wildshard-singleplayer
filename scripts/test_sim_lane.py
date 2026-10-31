@@ -48,6 +48,7 @@ class SimulatorReadinessTests(unittest.TestCase):
             'SIM_LANE_DIR': str(self.root / 'lane'), 'SIM_FIXTURE': str(self.root),
             'SIM_SAFARI_READY_TIMEOUT': '5',
             'DEVELOPER_DIR': str(self.root / 'unavailable-developer')}
+        self.env.pop('PHONE_SIMULATOR_PREPARATION', None)
         self.command('xcrun', '''import json,os,pathlib,sys,time
 root=pathlib.Path(os.environ['SIM_FIXTURE']);args=sys.argv[1:]
 if args[1]=='launch' and os.environ.get('SIM_REVERSE_CHILD_LOGS'):
@@ -513,7 +514,7 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
                  (0, 11.5, 12, 11, 61, 1)]
         for launch_at, frame_at, deadline, fail_at, expected, count in cases:
             clock = SimpleNamespace(now=0)
-            requests = []
+            requests, screenshots = [], []
 
             class Ready:
                 def is_set(self):
@@ -556,11 +557,150 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
                 'threading': SimpleNamespace(Event=Wait),
                 'subprocess': SimpleNamespace(Popen=lambda args, **_kwargs: Client(args), DEVNULL=subprocess.DEVNULL)}
             helper = FunctionType(native.__code__, ports, argdefs=native.__defaults__)
-            self.assertEqual(helper(UDID, 'http://127.0.0.1/owned', Ready(), deadline, deadline, 0, owned), expected)
+            diagnostic = SimpleNamespace(poll=lambda: None,
+                start=lambda phase, end: screenshots.append((phase, end, len(requests))))
+            self.assertEqual(helper(UDID, 'http://127.0.0.1/owned', Ready(), deadline, deadline, 0, owned,
+                                    screenshots=diagnostic), expected)
             self.assertEqual(len(requests), count)
             self.assertTrue(all(args == ['xcrun', 'simctl', 'openurl', UDID, 'http://127.0.0.1/owned'] for _, args in requests))
             if count == 2:
                 self.assertGreaterEqual(requests[1][0], launch_at)
+                self.assertEqual(screenshots, [('after-second-url', min(deadline, requests[1][0] + 10), 2)])
+            else:
+                self.assertEqual(screenshots, [])
+        self.assert_not_handed_over()
+
+    def screenshot_controller(self, worker, clock=time):
+        source = ast.parse((ROOT / 'scripts/sim-safari-ready.py').read_text())
+        node = next(node for node in source.body if isinstance(node, ast.ClassDef) and node.name == 'SafariScreenshots')
+        self.screenshot_count = getattr(self, 'screenshot_count', 0) + 1
+        owned_os = SimpleNamespace(**{name: getattr(os, name) for name in
+            ('getpid', 'fork', 'setpgid', 'waitpid', 'waitstatus_to_exitcode', 'killpg', 'kill', '_exit', 'WNOHANG')},
+            environ={'PHONE_SIMULATOR_PREPARATION': str(self.root / f'prepare-{self.screenshot_count}.json')})
+        supervisor = READY['safari_screenshot_supervisor']
+        isolated = FunctionType(supervisor.__code__, {**supervisor.__globals__, 'safari_screenshot_child': worker})
+        ports = {**READY, 'os': owned_os, 'time': clock, 'safari_screenshot_supervisor': isolated}
+        exec(compile(ast.Module(body=[node], type_ignores=[]), 'actual-safari-screenshots', 'exec'), ports)
+        return ports['SafariScreenshots'](UDID, clock.monotonic())
+
+    def test_screenshot_constructor_and_file_stalls_are_killed_outside_the_proof(self):
+        native = READY['safari_screenshot_child']
+        pipes = {phase: os.pipe() for phase in ('after-second-url', 'readiness-timeout')}
+        def worker(udid, directory, end):
+            phase = 'after-second-url' if str(directory).endswith('after-second-url') else 'readiness-timeout'
+            _, write = pipes[phase]
+            def blocked(*_args, **_kwargs):
+                # Popen can already have created its client before waiting on
+                # the exec handshake. Keep that descendant in our group too.
+                descendant = os.fork()
+                if descendant == 0:
+                    time.sleep(30)
+                    os._exit(0)
+                os.write(write, b'blocked')
+                time.sleep(30)
+            class Directory:
+                def __init__(self, path): self.path = path
+                def mkdir(self): self.path.mkdir()
+                def __truediv__(self, name):
+                    return SimpleNamespace(write_text=blocked) if name == 'capture.json' else self.path / name
+            ports = {**native.__globals__, 'time': SimpleNamespace(monotonic=lambda: 0),
+                'subprocess': SimpleNamespace(run=blocked if phase == 'after-second-url' else lambda *_a, **_k: SimpleNamespace(returncode=0),
+                    DEVNULL=subprocess.DEVNULL, TimeoutExpired=subprocess.TimeoutExpired)}
+            capture = FunctionType(native.__code__, ports)
+            capture(udid, Directory(directory) if phase == 'readiness-timeout' else directory, end)
+        controller = self.screenshot_controller(worker)
+        try:
+            controller.start('after-second-url', time.monotonic() + 10)
+            controller.start('readiness-timeout')
+            for read, write in pipes.values():
+                os.close(write)
+                self.assertTrue(select.select([read], [], [], 2)[0], 'diagnostic child did not reach its isolated stall')
+                self.assertEqual(os.read(read, 7), b'blocked')
+            # Withhold BOTH parent.poll and parent.finish beyond the bound.
+            # EOF requires watchdog, blocked worker and its client descendant
+            # to close every inherited writer independently of the proof loop.
+            for read, _ in pipes.values():
+                self.assertTrue(select.select([read], [], [], 2)[0])
+                self.assertEqual(os.read(read, 1), b'')
+            controller.poll()
+            self.assertFalse(controller.active)
+            for record in controller.records:
+                self.assertLessEqual(record['deadlineAt'] - record['requestedAt'], 1.001)
+                self.assertIsNone(record['killAt'], 'parent must not be responsible for stopping the group')
+                self.assertEqual(record['supervisorExit'], -9)
+        finally:
+            for read, _ in pipes.values():
+                os.close(read)
+            for pid in list(controller.active):
+                try: os.killpg(pid, 9)
+                except ProcessLookupError: pass
+                try: os.waitpid(pid, 0)
+                except ChildProcessError: pass
+
+    def test_screenshot_child_keeps_exact_udid_native_errors_and_original_one_second_budget(self):
+        native = READY['safari_screenshot_child']
+        for index, (native_code, completed, expected) in enumerate([(0, .5, 0), (0, 2, 124), (23, 2, 23), (None, 1, 124)]):
+            clock, calls = SimpleNamespace(now=0), []
+            def run(command, **kwargs):
+                calls.append((command, kwargs['timeout']))
+                clock.now = completed
+                if native_code is None: raise subprocess.TimeoutExpired(command, kwargs['timeout'])
+                return SimpleNamespace(returncode=native_code)
+            ports = {**native.__globals__, 'time': SimpleNamespace(monotonic=lambda: clock.now),
+                'subprocess': SimpleNamespace(run=run, DEVNULL=subprocess.DEVNULL, TimeoutExpired=subprocess.TimeoutExpired)}
+            directory = self.root / f'screenshot-{index}'
+            FunctionType(native.__code__, ports)(UDID, directory, 1)
+            record = json.loads((directory / 'capture.json').read_text())
+            self.assertEqual(record['nativeReturnCode'], native_code)
+            self.assertEqual(record['result'], expected)
+            self.assertEqual(calls, [(['xcrun', 'simctl', 'io', UDID, 'screenshot', str(directory / 'screen.png')], 1)])
+
+    def test_screenshot_phases_are_single_shot_and_have_no_budget_extension(self):
+        clock = SimpleNamespace(now=5)
+        clock.monotonic = lambda: clock.now
+        def forbidden(*_args): raise AssertionError('expired screenshot must not fork')
+        controller = self.screenshot_controller(forbidden, clock)
+        controller.start('after-second-url', 5)
+        controller.start('after-second-url', 100)
+        controller.start('foreign-phase')
+        self.assertEqual(len(controller.records), 1)
+        self.assertEqual(controller.records[0]['status'], 'no-budget')
+        self.assertFalse(controller.active)
+
+    def test_screenshot_write_failure_cannot_replace_native_result_or_exception(self):
+        native = READY['wait_for_safari']
+        for code in (23, 0):
+            clock = SimpleNamespace(now=0)
+            clock.monotonic = lambda: clock.now
+            class Launch:
+                returncode = code
+                def __enter__(self): clock.now = 2; return self
+                def __exit__(self, *_args): pass
+                def poll(self): return self.returncode
+            @contextmanager
+            def page(*_args): yield 'http://127.0.0.1/owned', SimpleNamespace(is_set=lambda: False)
+            @contextmanager
+            def transcript(): yield object()
+            def refused(*_args): raise PermissionError('diagnostic output refused')
+            controller = self.screenshot_controller(refused)
+            ports = {**native.__globals__, 'time': clock, 'readiness_page': page,
+                'native_transcript': transcript, 'native_text': lambda _: '',
+                'SafariScreenshots': lambda *_args: controller,
+                'os': SimpleNamespace(environ={'SIM_SAFARI_READY_TIMEOUT': '1'}),
+                'subprocess': SimpleNamespace(Popen=lambda *_a, **_k: Launch())}
+            opening = READY['open_ready_page']
+            ports['open_ready_page'] = FunctionType(opening.__code__, ports, argdefs=opening.__defaults__)
+            helper = FunctionType(native.__code__, ports)
+            self.assertEqual(helper(UDID), 23 if code == 23 else 124)
+            self.assertEqual(controller.records[0]['phase'], 'readiness-timeout')
+            self.assertEqual(controller.records[0]['supervisorExit'], -9)
+            error_file = Path(controller.records[0]['receipt']).with_name('capture-error.json')
+            self.assertEqual(json.loads(error_file.read_text())['errorType'], 'PermissionError')
+            original = PermissionError('owned launch refused')
+            def fail(*_args, **_kwargs): raise original
+            ports['subprocess'] = SimpleNamespace(Popen=fail)
+            with self.assertRaises(PermissionError) as caught: helper(UDID)
+            self.assertIs(caught.exception, original)
         self.assert_not_handed_over()
 
     def test_url_process_creation_spends_its_original_budget_and_receipt_is_bounded(self):
