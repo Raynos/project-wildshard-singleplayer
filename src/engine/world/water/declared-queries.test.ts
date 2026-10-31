@@ -1,6 +1,7 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { declaredWaterBody, dryEntryContains, setLiveWaterLevel, type DryEntryEdge } from './declared';
 import { CHUNK_HALF } from '../../core/config';
+import * as polygon from '../yawFrame';
 
 test('stream queries retain exact interpolation, tie order and live levels', () => {
   const name = 'test/fc11-stream';
@@ -63,4 +64,21 @@ test('dry sockets retain ordered exclusions and skip sparse declaration holes', 
   const other = declaredWaterBody({ id: 'sparse', kind: 'pool', level: 3,
     shape: { kind: 'circle', x: 0, z: 0, radius: 1000 }, dryEntries: sparse });
   expect(other.restAt(0, CHUNK_HALF)).toBeNull(); expect(other.restAt(0, 0)).toBe(3);
+});
+
+test('polygon Z bands skip dry scans while preserving the native concave edge decisions', () => {
+  const points: [number, number][] = [[-8, 12], [9, 12], [9, 30], [3, 22], [-8, 30]];
+  const original = polygon.insidePolygon, body = declaredWaterBody({ id: 'bounded-pool', kind: 'pool', level: -2,
+    shape: { kind: 'polygon', points } });
+  const query = vi.spyOn(polygon, 'insidePolygon');
+  try {
+    expect(body.restAt(0, 0)).toBeNull(); expect(body.restAt(0, 40)).toBeNull();
+    expect(query).not.toHaveBeenCalled();
+    for (let x = -10; x <= 11; x += .25) for (let z = 10; z <= 32; z += .25) {
+      expect(body.restAt(x, z)).toBe(original(points, x, z) ? -2 : null);
+    }
+    expect(query).toHaveBeenCalled();
+    points[0] = [0, 0]; // The compiled declaration retains its owned geometry.
+    expect(body.restAt(0, 0)).toBeNull();
+  } finally { query.mockRestore(); }
 });

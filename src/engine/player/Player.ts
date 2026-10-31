@@ -621,11 +621,13 @@ export class Player {
       const plat = platformAt();
       if (plat !== undefined && this.position.y - plat <= 0.05 && this.velocity.y <= 0) { this.position.y = plat; grounded = true; this.onPlatform = true; }
 
-      const g = groundAt();
       const ws = this.waterSurfaceAt(this.position.x, this.position.z);
-      const groundDepth = ws === null ? 0 : ws - g;
+      // The motor already resolved dry grounding. This extra terrain/platform
+      // and floor query only decides water depth, entry and landing cushion.
+      const g = ws === null ? null : groundAt();
+      const groundDepth = ws === null || g === null ? 0 : ws - g;
       const wet = ws !== null && this.position.y < ws;
-      if (swimEntry(this.position.y, ws, g)) {
+      if (g !== null && swimEntry(this.position.y, ws, g)) {
         // deep enough to float: hand over to the swim branch (this step's fall speed is mostly eaten by the splash)
         this.setSwimming(true);
         this.entryKeep = entryKeep(this.velocity.y); // a hard plunge keeps enough speed to dip the head under for a beat

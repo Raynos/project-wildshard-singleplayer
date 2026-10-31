@@ -47,9 +47,20 @@ export function declaredWaterBody(input: WaterDeclaration): WaterBody {
   // farther than that from the segment, which can then never be the answer: skipped without its distance (the player's and
   // every animal's dry-ground test asked every segment of Pine's creek)
   const reach = data.kind === 'stream' ? data.width / 2 : 0, boxes = new Float64Array(data.kind === 'stream' ? Math.max(0, data.points.length - 1) * 4 : 0);
+  let left = Infinity, right = -Infinity, back = Infinity, front = -Infinity;
   if (data.kind === 'stream') for (let i = 1; i < data.points.length; i++) {
     const a = data.points[i - 1], b = data.points[i]; if (a === undefined || b === undefined) continue;
-    boxes.set([Math.min(a.x, b.x) - reach, Math.max(a.x, b.x) + reach, Math.min(a.z, b.z) - reach, Math.max(a.z, b.z) + reach], (i - 1) * 4);
+    const x0 = Math.min(a.x, b.x) - reach, x1 = Math.max(a.x, b.x) + reach;
+    const z0 = Math.min(a.z, b.z) - reach, z1 = Math.max(a.z, b.z) + reach;
+    boxes.set([x0, x1, z0, z1], (i - 1) * 4);
+    left = Math.min(left, x0); right = Math.max(right, x1);
+    back = Math.min(back, z0); front = Math.max(front, z1);
+  }
+  // Outside this Z band no polygon edge can cross the query ray. Retain the
+  // original X/intersection arithmetic, including its exact edge decisions.
+  if (data.kind === 'pool' && data.shape.kind === 'polygon') for (const point of data.shape.points) {
+    if (point === undefined) continue;
+    back = Math.min(back, point[1]); front = Math.max(front, point[1]);
   }
   const restAt = (x: number, z: number): number | null => {
     if (!Number.isFinite(x) || !Number.isFinite(z) || Math.abs(x) > 250 || Math.abs(z) > 250) return null;
@@ -64,8 +75,12 @@ export function declaredWaterBody(input: WaterDeclaration): WaterBody {
     if (data.kind === 'pool') {
       const shape = data.shape;
       if (shape.kind === 'circle') return Math.hypot(x - shape.x, z - shape.z) < shape.radius ? data.level : null;
+      if (z < back || z > front) return null;
       return insidePolygon(shape.points, x, z) ? data.level : null;
     }
+    // A point outside the union's bounds fails every existing segment-box
+    // check below. Live heights, nearest ties and interpolation stay unchanged.
+    if (x < left || x > right || z < back || z > front) return null;
     let distance = Infinity, height = level;
     for (let i = 1; i < data.points.length; i++) {
       const a = data.points[i - 1], b = data.points[i]; if (a === undefined || b === undefined) continue;
