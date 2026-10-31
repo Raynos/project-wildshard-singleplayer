@@ -510,6 +510,7 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
             self.assertEqual(clock.now, limit)
             self.assertEqual(len(offers), expected_offers)
             self.assertTrue(all(args == ['xcrun', 'simctl', 'openurl', UDID, 'http://127.0.0.1/owned'] for args in offers))
+            self.assertEqual(receipt['destination'], 'http://127.0.0.1/owned')
             self.assertEqual(receipt['count'], expected_offers)
             self.assertEqual(len(receipt['samples']), min(4, expected_offers))
             self.assertEqual(receipt['omitted'], max(0, expected_offers - 4))
@@ -750,6 +751,15 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
             self.assertEqual(lifecycle['http'][flushed]['count'], 1)
             self.assertLessEqual(lifecycle['http'][request]['firstSeconds'], lifecycle['http'][flushed]['firstSeconds'])
         self.assertGreaterEqual(lifecycle['http']['accept']['count'], 3)
+        listener = lifecycle['listener']
+        self.assertEqual(listener['boundAddress'], {'host': urlsplit(url).hostname, 'port': urlsplit(url).port})
+        self.assertEqual(listener['boundAddress']['host'], '127.0.0.1')
+        self.assertGreater(listener['cycles'], 0)
+        self.assertLessEqual(listener['startedAt'], listener['firstCycleAt'])
+        self.assertLessEqual(listener['firstCycleAt'], listener['lastCycleAt'])
+        self.assertLessEqual(listener['lastCycleAt'], listener['stoppedAt'])
+        self.assertIs(listener['aliveBeforeShutdown'], True)
+        self.assertIsNone(listener['errorType'])
         with READY['readiness_page'](time.monotonic() - 1) as (url, ready):
             with urlopen(url, timeout=1) as response:
                 callback = response.headers['X-Safari-Ready']

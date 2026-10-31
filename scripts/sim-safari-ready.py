@@ -62,6 +62,9 @@ def readiness_page(deadline, started=None, lifecycle=None):
     phases = {name: {'count': 0, 'firstSeconds': None, 'lastSeconds': None}
               for name in ('accept', 'request', 'flush', 'callbackRequest', 'callbackFlush')}
     phase_lock = threading.Lock()
+    listener = {'boundAddress': None, 'startedAt': None, 'cycles': 0,
+                'firstCycleAt': None, 'lastCycleAt': None, 'stoppedAt': None,
+                'aliveBeforeShutdown': None, 'errorType': None}
 
     def record_http(name):
         with phase_lock:
@@ -132,6 +135,17 @@ def readiness_page(deadline, started=None, lifecycle=None):
                 print(f'sim-lane: Safari owned frame callback received in {time.monotonic() - started:.3f}s', file=sys.stderr)
 
     class ReadinessServer(ThreadingTCPServer):
+        def service_actions(self):
+            # Observe the existing selector cycle, without adding a poll, a
+            # connection, or a readiness condition of our own.
+            super().service_actions()
+            with phase_lock:
+                when = round(time.monotonic() - started, 3)
+                listener['cycles'] += 1
+                if listener['firstCycleAt'] is None:
+                    listener['firstCycleAt'] = when
+                listener['lastCycleAt'] = when
+
         def get_request(self):
             connection = super().get_request()
             record_http('accept')
@@ -157,20 +171,36 @@ def readiness_page(deadline, started=None, lifecycle=None):
     # TCPServer binds the fixed loopback address without reverse-DNS work.
     with ReadinessServer(('127.0.0.1', 0), Handler) as server:
         server.daemon_threads = True
-        thread = threading.Thread(target=lambda: server.serve_forever(poll_interval=.02), daemon=True)
+        listener['boundAddress'] = {'host': server.server_address[0], 'port': server.server_address[1]}
+
+        def serve():
+            listener['startedAt'] = round(time.monotonic() - started, 3)
+            try:
+                server.serve_forever(poll_interval=.02)
+            except BaseException as error:
+                listener['errorType'] = type(error).__name__
+                raise
+            finally:
+                listener['stoppedAt'] = round(time.monotonic() - started, 3)
+
+        thread = threading.Thread(target=serve, daemon=True)
         thread.start()
         try:
             yield f'http://127.0.0.1:{server.server_address[1]}{page}', ready
         finally:
+            listener['aliveBeforeShutdown'] = thread.is_alive()
             server.shutdown()
             thread.join()
             if lifecycle is not None:
                 with phase_lock:
                     lifecycle['http'] = {name: dict(phase) for name, phase in phases.items()}
+                    lifecycle['listener'] = dict(listener)
 
 
 def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=None, lifecycle=None):
     code, detail = 124, 'URL service did not respond'
+    if lifecycle is not None:
+        lifecycle['destination'] = url
     attempts, accepted, pending_delivery, pending_before_launch = 0, False, False, False
     ownership = launch_state if launch_state is not None else lambda: 0
 
