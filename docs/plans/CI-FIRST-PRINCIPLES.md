@@ -503,6 +503,52 @@ Intermediate original pairs and refusal labels are retained in
 `tmp/sp-x8-road-serial/uninstrumented-comparison.json`; no unchanged
 uninstrumented timing retry, telemetry substitution or accounting filter is used.
 
+### CI10 local loading CLI acceptance (2026-10-31, sp-x8)
+
+**Done locally:** original phone/grid/Chromium preset exits **0** on
+committed HEAD snapshot `1aeb76658b` / `1aeb766-mvx1c5vm`. No timeout,
+dwell, CPU/network preset, native control or error filter changed. Cold
+is **50.9833 s**, warm **26.6213 s**; both native qualifications and the
+original four-second post-control windows pass, with `errors: []`.
+Warm document is SW-served, HTTP200, zero transferred bytes. Road remains
+15.2 ms cold / 12.9 ms warm. These are local protocol readings, not phone
+or CI performance credit.
+
+`ad2fc61765` replaces the preview's blanket telemetry POST405 with an
+actual local sink. It shares production's unchanged validator, records
+the original bytes plus cleaned record outside served files, then sends
+204. Invalid/oversized payloads and write failures still return 400/413/500;
+other POST routes still refuse. Five actual run records (1,288 raw bytes)
+match their recorded payloads byte-for-byte. No browser HTTP fixture or
+production API submission is used.
+
+The two earlier cold body refusals are classified: the startup prefetch
+was cancelled by document navigation, and the exit POST reached a static
+server that rejected it. The real observer bug was a false native-record
+miss when independent CDP starts differed by more than 1 ms, followed by
+a read of a retired response body. `578c36fb03` retains observed partial
+bytes via a unique overlapping completed lifetime and exact response
+validators/status/representation headers; ambiguous, foreign and unknown
+records still refuse. Queued passive completion events get one event
+turn, within the unchanged five-second deadline and late-result seal.
+The POST's navigation abort remains visible; HTTP204 proves its empty
+response without reading a retired body. Earlier raw refusals remain.
+
+All finished request accounting is complete: zero incomplete rows and
+zero accounting timeouts in both legs. Two still-in-flight title/font
+requests per capture remain explicitly pending/unknown under the existing
+protocol; no zero-byte body was invented. Ten sink/API controls plus 34
+accounting/loading controls, root/API/caller types and typed lint pass.
+X9's independent static-header P0 `1aeb76658b` is included; no SW behavior
+change is attributed to this task. Normal shared HEAD preview borrow was
+released immediately after the one CLI pair; all own browsers closed.
+
+Official JSONs:
+`tmp/phone-loading/2026-10-31T23-35-59-662Z-1aeb766-mvx1c5vm/`.
+Command/exit/normal release: `tmp/sp-x8-phone-clean/official*`.
+Exact local records: `tmp/preview-telemetry/12399-1793489499669/`.
+
+
 ### CI10 current-HEAD Home proxy (2026-10-31, sp-x8)
 
 The stale `47392c5322` capture is before-only and is not an after
