@@ -211,3 +211,12 @@ test('game gather functions remain visible without inflating draw-wrapper attrib
   expect(result.msPerFrame['drawWrappers']).toBeNull();
   expect(result.msPerFrame['propertyHooks']).toBeNull();
 });
+
+
+test('Nine P5 is explicit and retains the default P4 pair', () => {
+  expect(censusSelection('nine-dragon-stack','Q4','shardfile',{},'P5')).toEqual([
+    {slug:'nine-dragon-stack',poseName:'P5',pose:{x:76,y:146,z:6,yaw:-90*(Math.PI/180),pitch:4*(Math.PI/180)},modes:['shardfile']},
+  ]);
+  expect(censusSelection('nine-dragon-stack')[0]?.poseName).toBe('P4');
+  expect(()=>censusSelection('nine-dragon-stack','Q4','both',{},'missing')).toThrow('Unknown Nine census pose');
+});

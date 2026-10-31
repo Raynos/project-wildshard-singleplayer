@@ -9,6 +9,6 @@ export interface CensusCamera {
 }
 
 export function censusSelection(slug?: string, pinePose?: string, mode?: string,
-  cameras?: Readonly<Record<string, readonly CensusCamera[]>>): {
+  cameras?: Readonly<Record<string, readonly CensusCamera[]>>, ninePose?: string): {
   slug: string; poseName: string; pose: ProbePose; modes: string[];
 }[];

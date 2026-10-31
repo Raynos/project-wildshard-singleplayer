@@ -58,3 +58,15 @@ test('zero-read lanes keep exact empty-vector admission',()=>{
  host.evaluate({time:0,delta:0,values:[]});expect(root.x).toBe(8);
  expect(()=>host.evaluate({time:0,delta:0,values:[1]})).toThrow('vector differs');
 });
+
+test('getter reentry keeps the existing shared snapshot and first-read order',()=>{
+ let reenter=false,a=0;const reads:string[]=[];
+ const nested:{run?:()=>void}={};
+ const root={get a():number{reads.push('a');return ++a;},get b():number{
+  reads.push('b');if(reenter){reenter=false;nested.run?.();}return 2;
+ },x:0,y:0,z:0};
+ const host=installChannelPrograms([row('first','b','x','b'),row('second','a','y','a'),row('third','alias','z','b')],'gather',new Map([['root',root]]));
+ nested.run=()=>host.evaluate({time:0,delta:.1,values:{}});
+ reads.length=0;a=0;reenter=true;host.evaluate({time:0,delta:.1,values:{}});
+ expect(reads).toEqual(['b','b','a']);expect([root.x,root.y,root.z]).toEqual([2,1,2]);
+});

@@ -92,7 +92,10 @@ function buildChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<stri
     for(let index=0;index<gathers.length;index++){
      const gather=gathers[index];if(gather===undefined)throw new Error('Missing bound channel input');
      // The bound reader still validates this field and its cap every call.
-     const value=gather.read();
+     // A getter may synchronously evaluate this same group. Reuse the
+     // nested call's completed read exactly as the original lane path does.
+     const value=sharedCall[index]===call?(sharedValues[index]??Number.NaN):gather.read();
+     sharedCall[index]=call;
      if(Object.is(value,sharedValues[index]))continue;
      sharedValues[index]=value;
      for(const {values,slot}of gather.writes)values[slot]=value;

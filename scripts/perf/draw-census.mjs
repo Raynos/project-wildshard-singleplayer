@@ -2,6 +2,7 @@
 // scripts/browser-lane.sh node scripts/perf/draw-census.mjs --url=http://127.0.0.1:4400/ --dist=tmp/serve/.../dist
 // Default: Nine P4 and Pine Q4, LEGACY then SHARDFILE.
 // --slug=pine-hollow --pine-pose=P1 measures the PF14 spawn bar separately.
+// --nine-pose=P5 selects the maintained M3 frame-group cost pose.
 // Other public shards select golden camera 1. --environment=golden pins midday/clear;
 // --mode=shardfile measures the graph back-end without an unrelated legacy leg.
 import { chromium, devices } from 'playwright';
@@ -19,7 +20,7 @@ import { censusSelection, censusEntry } from './draw-census-poses.mjs';
 const arg = (name, fallback = '') => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const base = arg('url'), dist = resolve(arg('dist', 'dist')), frames = Number(arg('frames', '60'));
 const surface = arg('surface', 'pwa'), requestedSlug = arg('slug'), pinePose = arg('pine-pose', 'Q4');
-const selections = censusSelection(requestedSlug, pinePose, arg('mode', 'both'), cameras.cameras);
+const selections = censusSelection(requestedSlug, pinePose, arg('mode', 'both'), cameras.cameras, arg('nine-pose', 'P4'));
 const environment = arg('environment', 'live');
 if (!['live', 'golden'].includes(environment)) throw new Error('Unknown census environment');
 const systemIds = arg('systems') === '' ? undefined : arg('systems').split(',');
