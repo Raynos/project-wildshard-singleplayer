@@ -682,8 +682,15 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
           const name = temp(id), at = fragmentUv().e;
           const bump = n.name === 'bump', sampler = host(bump ? 'bumpMap' : 'meshMap', 'sampler2D');
           const fallback = n.name === 'colourOrVertex' ? `vec4(${fromVertex('Colour', 'vec4', () => 'wsVertexColour()', 'start').e}.rgb, 1.0)` : 'vec4(1.0)';
+          // a lit program samples at three's own uv for the lent slot (its transform and uv channel, as the node path's
+          // texture reads it: Sky Reach's mill bump is on uv1); WS_THREE_UV marks a program that carries those varyings
+          const slotUv = bump ? 'vBumpMapUv' : 'vMapUv', slotDefine = bump ? 'USE_BUMPMAP' : 'USE_MAP';
           emit(b, `#ifdef ${bump ? 'WS_BUMP_MAP' : 'WS_MESH_MAP'}`);
+          emit(b, `#if defined( WS_THREE_UV ) && defined( ${slotDefine} )`);
+          emit(b, `vec4 ${name} = texture(${sampler}, ${slotUv});`);
+          emit(b, '#else');
           emit(b, `vec4 ${name} = texture(${sampler}, ${at});`);
+          emit(b, '#endif');
           emit(b, '#else');
           emit(b, `vec4 ${name} = ${fallback};`);
           emit(b, '#endif');

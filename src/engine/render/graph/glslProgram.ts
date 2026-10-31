@@ -179,7 +179,7 @@ function vertexShader(glsl: GraphGlsl, program: GraphGlslProgram, uniforms: stri
 #include <fog_pars_vertex>
 #include <morphtarget_pars_vertex>
 #include <skinning_pars_vertex>
-${lit ? '#include <uv_pars_vertex>\n#include <normal_pars_vertex>\n#include <shadowmap_pars_vertex>\nvarying vec3 vViewPosition;' : ''}
+${lit ? '#include <uv_pars_vertex>\n#define WS_THREE_UV\n#include <normal_pars_vertex>\n#include <shadowmap_pars_vertex>\nvarying vec3 vViewPosition;' : ''}
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>
 uniform float wsCodecStep;
@@ -405,6 +405,7 @@ varying vec3 vViewPosition;
 #include <fog_pars_fragment>
 #include <lights_pars_begin>
 #include <uv_pars_fragment>
+#define WS_THREE_UV
 #include <normal_pars_fragment>
 #include <normalmap_pars_fragment>
 #include <roughnessmap_pars_fragment>
