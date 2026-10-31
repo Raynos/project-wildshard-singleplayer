@@ -19,6 +19,7 @@ import {readNalatiArenaIntake} from './nalati-arena-intake';
 import {readNalatiArenaPoses} from './nalati-arena-poses';
 import {NalatiCreatureView} from './nalati-creature-view-native';
 import {nalatiSlotColliders} from './nalati-slot-colliders';
+import {readNalatiWeaponObservation} from './nalati-weapon-observation';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 
 const finite=v.pipe(v.number(),v.finite()),natural=v.pipe(finite,v.integer(),v.minValue(0));
@@ -80,7 +81,7 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
       },act:()=>undefined});
       body.combatActor().damageMul=request=>{
         const weapon=host.adapters.get('nalati.weapons');if(weapon===undefined)throw new Error('Balbal damage requires its actual held owner');
-        const equipment=v.parse(v.object({slot:v.string(),enabled:v.optional(v.boolean(),true)}),weapon.snapshot());
+        const equipment=readNalatiWeaponObservation(weapon);
         const results:Record<string,number>={};
         for(const [index,query]of damage.requests.entries()){
           const table=columns[index];if(table===undefined)throw new Error('Missing balbal damage columns');
