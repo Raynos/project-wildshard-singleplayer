@@ -203,6 +203,39 @@ test('orchard native manager drives the admitted roster at ten Hz across body fr
   } finally { host.dispose(); }
 });
 
+test('an admitted always species retains every original fixed decision without a ten-Hz clock',async()=>{
+  const {fixtureNativeRoster}=await import('./fixtures/native-roster');
+  const {NativeManager,NativePopulationDriver}=await import('@wildshard/game/population/nativeManager');
+  const {createNativeCreatureRoster}=await import('@wildshard/game/shardfile/homeKeeper');
+  const {nativeEliteBindings}=await import('@wildshard/engine/ai/eliteRoster');
+  const rapier=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const host=createSimHost({...SIM_LEVEL,entities:[],quests:[]},{rapier}),random=new FixtureRandom(71),sample=SIM_LEVEL.entities[0];
+  if(sample===undefined)throw new Error('Missing actual native recipe');
+  try{
+    lendNalatiAdmission(host.scope);const {hunt,services}=fixtureNativeRoster(host,random);
+    const roster=createNativeCreatureRoster(host,{specs:[sample.spec],variants:new Map(),rng:random,services,hunted:'every',spawnY:10});
+    const slot=roster.body('orchard.always',sample.spec.kind,sample.spec.variant,-1,{x:2,z:3},0,[1,1]),actor=roster.arrive(slot);roster.remember(slot);
+    const manager=new NativeManager(host,hunt,random,{limit:64,sightSlots:1,initialSight:false}),bindings=nativeEliteBindings();
+    const decisions:{dt:number;t:number}[]=[];
+    bindings.brains.set(actor,{think:(_body,context)=>{decisions.push({dt:context.dt,t:host.clock.now});},act:()=>undefined});
+    // A real body owner selects the existing always band; the decision port
+    // must preserve that band's actual fixed dt rather than add a 10 Hz cap.
+    actor.driven=true;
+    const groups=herdService(host,'unused.always.herds','fixture.always',{id:'orchard.always.tokens',owners:new WeakMap()});
+    const always=[sample.spec.kind],driverRows={tokens:'orchard.always.tokens',program:admission,packKind:'unused',dogKind:'unused.dog',
+      eliteKinds:[sample.spec.kind],dispatch:'dispatch',alwaysKinds:always};
+    expect(()=>new NativePopulationDriver(host,manager,hunt,random,[actor],new Map(),new Map(),bindings,[],[],{...driverRows,alwaysKinds:['foreign']},groups)).toThrow('always species');
+    expect(()=>new NativePopulationDriver(host,manager,hunt,random,[actor],new Map(),new Map(),bindings,[],[],{...driverRows,alwaysKinds:[...always,...always]},groups)).toThrow('always species');
+    const driver=new NativePopulationDriver(host,manager,hunt,random,[actor],new Map(),new Map(),bindings,[],[],driverRows,groups);always.splice(0);
+    host.onStep('orchard.always.population',dt=>{driver.update(dt);});
+    const times:number[]=[];
+    for(let tick=0;tick<60;tick++){host.step({moveX:0,moveZ:0,yaw:0});times.push(host.clock.now);}
+    expect(decisions.map(row=>row.t)).toStrictEqual(times);
+    expect(decisions.map(row=>row.dt)).toStrictEqual(times.map((time,index)=>time-(times[index-1]??0)));
+    expect(Object.hasOwn(actor.mem,'groupThinkAt')).toBe(false);
+  }finally{host.dispose();}
+});
+
 test('orchard deferred actors share allocator, stream and native retirement ownership', async () => {
   const { fixtureNativeRoster } = await import('./fixtures/native-roster');
   const { Rng } = await import('@wildshard/engine/core/rng');

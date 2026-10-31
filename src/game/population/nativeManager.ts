@@ -104,6 +104,8 @@ export class NativeManager {
  * actor, group, hunt, token and elite owners belong to the game. */
 export interface NativeDriverRows {
   tokens: string; program: unknown; packKind: string; dogKind: string; eliteKinds: readonly string[]; dispatch: string; projection?:unknown;
+  /** Admitted self-thinking species whose page metadata declares tick: always. */
+  readonly alwaysKinds?:readonly string[];
 }
 /** Manager decisions and native body continuation. Contexts allocate only when
  * a concrete actor joins; restored and newly bonded actors keep the same owner. */
@@ -115,6 +117,7 @@ export class NativePopulationDriver {
   private readonly projection:ActorProjectionV2|undefined;
   private readonly route = { elite: 0, wolf: 0, dog: 0, held: 0 };
   private readonly missing = new Error('Missing native population context');
+  private readonly always:ReadonlySet<string>;
   private dodgeCd = 0;
   /** CI12: kinds that decide through their own directed law (Nalati's ghost riders), as the page's self-thinking species */
   private readonly directed = new Map<string, NativeDirected>();
@@ -126,6 +129,9 @@ export class NativePopulationDriver {
     private readonly flocks: readonly FlockBrain[], private readonly wolves: readonly FlockThreat[], private readonly rows: NativeDriverRows, groups: NativeGroupCollection) {
     const tokens = groups.tokens; if (!groups.owns(host) || tokens === undefined || tokens.id !== rows.tokens || !(tokens.owners instanceof WeakMap)) throw new Error('Missing native manager tokens'); this.tokens = tokens.owners;
     if (bodies.length > 64 || flocks.length > 4) throw new Error('Native population driver capacity exceeded');
+    const always=v.parse(v.pipe(v.array(v.pipe(v.string(),v.minLength(1))),v.maxLength(16)),rows.alwaysKinds??[]);
+    if(new Set(always).size!==always.length||always.some(kind=>!rows.eliteKinds.includes(kind)))throw new Error('Invalid native always species');
+    this.always=new Set(always);
     this.author = ReturnProgram.native(host, rows.program);
     this.projection=rows.projection===undefined?undefined:new ActorProjectionV2(rows.dogKind,{program:rows.program,step:rows.projection});
     for (const actor of bodies) this.admit(actor);
@@ -217,7 +223,9 @@ export class NativePopulationDriver {
   }
   private takeStep(id: string, urgent: boolean): number {
     const actor = this.host.entities.get(id); if (actor === undefined) throw this.missing;
-    const dt = this.host.brainDt(id, urgent), last = actor.mem['groupThinkAt'];
+    const dt = this.host.brainDt(id, urgent);
+    if(this.always.has(actor.kind))return dt;
+    const last = actor.mem['groupThinkAt'];
     if (dt <= 0 || (last !== undefined && this.host.clock.now-last < .1-1e-9)) return 0;
     actor.mem['groupThinkAt'] = this.host.clock.now; return last === undefined ? dt : this.host.clock.now-last;
   }

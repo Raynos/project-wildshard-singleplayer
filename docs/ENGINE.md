@@ -6011,22 +6011,23 @@ create neither a host nor a clock and consume no random values.
 
 ### Declared page and native populations
 
-`HybridRuntimeRows.species` accepts a population program instead of a private
-callback: `program` contains the species, strict strike rows and hash-keyed
-base64 modules; `page` retains registration order, `looks` the existing catalogue,
-and optional `homes` and `shove` lend the existing actual-body authorities.
-The hybrid host admits it during kit, retains its catalogue and witness, and
-binds the player's shove port in the original entered lifetime before audio.
-The callback form retains existing behavior for other consumers.
+`HybridRuntimeRows.species` accepts a data program: species, strict strike
+rows and hash-keyed base64 modules. `page` keeps registration order,
+`looks` the catalogue; optional `homes` / `shove` lend actual authorities.
+The hybrid host admits it during kit, retains catalogue and witness, and
+binds shove in the entered lifetime before audio. Callback behavior stays.
 
-`prepareNativePopulation` in `game/shardfile/bossRow` resolves the same baked
-body recipes once. Its authored homes may select `late: 'ground'`, unlimited
-attackers use `null`, and `think: 'legacy'` selects the existing decision band.
-`admission` preserves preparation or per-host catalogue construction. Its
-`install` binds the existing population and encounter in the caller's phase;
-the caller still owns settle timing. Preparation allocates no actor or tick.
-Both page and native programs use the SDK's unchanged strict strike schema,
-now defined by `CreatureStrikeSchema` in `format/creatures`.
+`prepareNativePopulation` (`game/shardfile/bossRow`) preflights baked
+recipes without actors or ticks. Homes accept `late: ground`; unlimited
+attackers use `null`; `think: legacy` keeps the decision band. `admission`
+keeps preparation or per-host catalogue construction; `install` binds
+population and encounter in the caller's phase and settle timing.
+Both hosts use unchanged `format/creatures.CreatureStrikeSchema`.
+
+`NativeDriverRows.alwaysKinds` keeps actual fixed decision dt for up to
+16 distinct admitted elite kinds declaring `tick: always`. The caller
+binds the real always-band bodies. Defaults retain ten-Hz clocks and
+memory; this port creates no body, clock, RNG or continuation.
 
 ### Admitted private held models (C6, G405)
 
