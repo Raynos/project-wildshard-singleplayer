@@ -72,8 +72,8 @@ export function installNativeKing(host:SimHost,context:Pick<HeadlessRuntimeInsta
     const recipe=data.poses.rows.find(row=>row.kind===body.kind&&row.variant===body.variant);
     if(recipe===undefined)throw new Error('King has no original contact joints');
     poses.set(body.entityId,attachNativeCreaturePose(body,recipe.pose,animate).pose);
-    body.levelGround=true;body.groundHeight=(x,z)=>sand.ground.floorAt(x,z)??host.groundHeightAt(x,z);
-    const actor=nativeBody(body);actor.driven=true;bindings.pinned.add(actor);if(!present)actor.hidden=true;if(sample)actor.sampleTerrain();return actor;
+    body.levelGround=true;
+    const actor=nativeBody(body);bindings.pinned.add(actor);if(!present)actor.hidden=true;if(sample)actor.sampleTerrain();return actor;
   };
   const bind=(body:KingBody,brain:PhasedBossBrain<KingBody>):void=>{
     if(!poses.has(body.entityId))attach(body);
@@ -107,10 +107,11 @@ export function installNativeKing(host:SimHost,context:Pick<HeadlessRuntimeInsta
   const core=new KingContinuation<KingBody>(data,{scope:host.scope,ground:sand.ground,player,population,moveScale:{read:()=>host.playerMoveScale,write:value=>{host.playerMoveScale=value;}},
     fight:{arena:{floorAt:(x,z)=>sand.ground.floorAt(x,z),pile:(...args)=>{sand.ground.addSand(...args);},clear:()=>{sand.ground.clearSand();},
       drain:(dt,rate)=>{sand.ground.drainSand(dt,rate);},inArena:p=>sand.ground.inChamber(p)&&p.z<data.encounter.page.maxZ,seal:on=>{seal.set(on);}},
-      body:{spawn:()=>attach(population.spawnElite(data.declared.kind,data.declared.at[0],data.declared.at[1],data.declared.yaw,data.declared.look),true),bind,retire:body=>{
+      body:{spawn:()=>{const body=population.spawnElite(data.declared.kind,data.declared.at[0],data.declared.at[1],data.declared.yaw,data.declared.look);
+        body.herd=-1;return attach(body,true);},bind,retire:body=>{
         body.hidden=true;body.position.y=-9999;retired.add(body.entityId);},ready:(body,y)=>{body.yOffset=y-body.position.y;}},
       spawnAdd:(_index,x,z,yaw)=>{const row=data.encounter.page.add,body=population.spawnElite(row.kind,x,z,yaw,row.variant);
-        body.herd=-1;body.levelGround=true;body.groundHeight=(px,pz)=>sand.ground.floorAt(px,pz)??host.groundHeightAt(px,pz);
+        body.herd=-1;body.levelGround=true;
         balbals.adoptAdd(body);nativeBody(body).sampleTerrain();Object.assign(body.mem,row.memory);body.yOffset=data.room.origin.y-body.position.y;return nativeBody(body);},
       player:{position:host.player.position,dash:(x,z,seconds)=>{host.dashPlayer(x,z,seconds);}},hurt,
       cut:(index,body,onHit)=>{const row=cuts[index]??cuts[0];return row!==undefined&&strike.contact(row,{actor:body,target:host.player.position,hit:onHit,
