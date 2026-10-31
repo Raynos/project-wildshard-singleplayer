@@ -276,6 +276,41 @@ now prints aggregate cache counts; per-product elapsed attribution remains
 unproved. Payload reuse is not elapsed-time savings, so none
 of the earlier prepare reductions is assigned to these memos.
 
+### CI9 full-reuse validation (2026-10-31, sp-x8)
+
+The retained `60e` prepare already runs independent strict validators in
+**six processes**; its 14.8 / 12.3 / 12.2 s Nalati / Nine / Pine walls are
+not cold author costs. Every product still re-admits current bytes,
+schemas, budgets and actual script execution; saved build evidence is no
+substitute. The compiler is rechecked in every child.
+
+A phase-owned stable CLI import URL was tested to share Node code parsing
+without sharing module state or bypassing any validator. Independent
+normal populations preceded each fresh strict prepare; both timed legs
+reused **24/24 products**, authored none, validated all 24 and emitted the
+same **25** compiler-use marks with `local-prepare:1`.
+
+| Fresh full prepare | Baseline | Counterfactual |
+| --- | ---: | ---: |
+| Wall seconds | 18.112545 | 18.153146 |
+| CLI import median seconds | 0.561 | 0.526 |
+| Compiler preparation seconds | 0.205 | 0.466 |
+
+**Neutral (+0.22% wall), rejected.** The small child import improvement
+was offset by serial preparation. All **6,570 payload files /
+919,593,028 bytes** compare directly against pinned ordinary cache
+entries. All 24 validation receipts agree apart from their expected
+control-source `buildKey`; no other byte or admission check is omitted.
+Eighteen lifecycle, identity, source-inspection, corruption and refusal
+controls, root/scripts types and typed lint pass. No runtime/tool cut was
+committed. One necessary normal HEAD restoration passes in 18.40 s;
+independent strict admission confirms all 24 physical output folders are
+current. Evidence: `tmp/sp-x8-ci9-reuse-validation/prepare-pair.json`.
+
+The remaining phone-wire report reads and validates products serially;
+bounded independent reads are the next source-only candidate. CI9 and
+whole-prepare timing remain open; this trial grants no Linux/CI gain.
+
 ### CI9 Nalati uncached author (2026-10-31, sp-x8 hourly batch)
 
 `c7922b4c42` indexes the original grass-coverage neighbourhood without
