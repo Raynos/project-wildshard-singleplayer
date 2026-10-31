@@ -84,6 +84,38 @@ test('existing upload callbacks and allocation-only sources retain native invali
   } finally { d.dispose(); texture.dispose(); }
 });
 
+test('adding a callback after a cached upload retains each native copy before the callback mutates data', () => {
+  const texture = new DataTexture(new Uint32Array(4), 2, 2), d = driver(texture);
+  const callback = vi.fn((actual: Texture) => {
+    expect(actual).toBe(texture); words(texture)[0] = (words(texture)[0] ?? 0) + 1;
+  });
+  try {
+    trackPaletteTexture(texture); texture.needsUpdate = true; d.draw();
+    texture.onUpdate = callback;
+    for (let frame = 0; frame < 3; frame++) {
+      const before = words(texture).slice(); texture.needsUpdate = true; d.draw();
+      expect(d.gpu.get(texture.source)).toEqual(before);
+    }
+    expect(texture.onUpdate).toBe(callback); expect(callback).toHaveBeenCalledTimes(3); expect(d.state.uploads).toBe(4);
+    texture.onUpdate = null; texture.needsUpdate = true; d.draw();
+    const uploads = d.state.uploads; texture.needsUpdate = true; d.draw(); expect(d.state.uploads).toBe(uploads);
+  } finally { d.dispose(); texture.dispose(); }
+});
+
+test('a source with its own revision policy keeps that exact setter and every original request', () => {
+  const texture = new DataTexture(new Uint32Array(4), 2, 2), d = driver(texture), source = texture.source;
+  Object.defineProperty(source, 'needsUpdate', { configurable: true, get(): undefined { return undefined; }, set(value: unknown): void {
+    if (value === true) source.version += 2;
+  } });
+  const descriptor = Object.getOwnPropertyDescriptor(source, 'needsUpdate');
+  try {
+    trackPaletteTexture(texture);
+    expect(Object.getOwnPropertyDescriptor(source, 'needsUpdate')).toEqual(descriptor);
+    for (let frame = 0; frame < 3; frame++) { texture.needsUpdate = true; d.draw(); }
+    expect(source.version).toBe(6); expect(d.state.uploads).toBe(3);
+  } finally { d.dispose(); texture.dispose(); }
+});
+
 function indirect(batch: BatchedMesh): DataTexture {
   const texture: unknown = Reflect.get(batch, '_indirectTexture');
   if (!(texture instanceof DataTexture)) throw new Error('Missing native indirect table');
