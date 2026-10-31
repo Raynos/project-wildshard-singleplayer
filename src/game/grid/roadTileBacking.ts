@@ -3,6 +3,7 @@
 import { BufferAttribute, BufferGeometry, type Mesh } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
+import { presenting } from '@wildshard/engine/core/framePacing';
 import type { RingCamera, TileRequirement, TileStreamBudget, TileStreamer } from '@wildshard/engine/world/tileStreamer';
 import type { CullPlan, RoadCuller } from './roadCull';
 import { coarseRoadTileSteps } from './roadTileCoarse';
@@ -24,6 +25,9 @@ interface PendingArchive {
 // Limit native jobs as well as retained scratch. The unchanged byte bound
 // remains authoritative and drains earlier for larger/unknown archives.
 const ARCHIVE_WINDOW = 32;
+// Keep the original six-job policy beside live draws. Only loading fills the
+// wider byte window; no additional callback burst is introduced in play.
+const archiveWindow = (): number => presenting() ? 6 : ARCHIVE_WINDOW;
 
 /** Conservative scratch bound: compacted attributes/indices, number tables,
  * coarse child/merge copies, encoded bodies and native read/hash/write copies.
@@ -110,7 +114,7 @@ export class RoadTileBacking {
       this.flushRequested = true; yield;
     }
     if (source.scope.disposed || source.scope.disposing) throw new Error('Road backing owner retired');
-    if (this.flushing !== null || this.settling !== null || this.activeArchives >= ARCHIVE_WINDOW) throw new Error('Road construction must await its backing writes');
+    if (this.flushing !== null || this.settling !== null || this.activeArchives >= archiveWindow()) throw new Error('Road construction must await its backing writes');
   }
   private *write(source: Source, data: RoadTileGeometry, references: RoadTileReference[], budget: number): Generator<void, void> {
     try {
@@ -134,7 +138,7 @@ export class RoadTileBacking {
   flush(): Promise<void> | null {
     if (this.flushing !== null) return this.flushing;
     if (this.pending.length === 0) { this.flushRequested = false; this.failureSeen = false; return null; }
-    if (!this.flushRequested && !this.failureSeen && this.activeArchives < ARCHIVE_WINDOW && this.pendingBytes < ROAD_TILE_ARCHIVE_BYTES) return null;
+    if (!this.flushRequested && !this.failureSeen && this.activeArchives < archiveWindow() && this.pendingBytes < ROAD_TILE_ARCHIVE_BYTES) return null;
     const all = this.flushRequested || this.failureSeen || this.pendingBytes >= ROAD_TILE_ARCHIVE_BYTES;
     this.flushRequested = false;
     const takeRemaining = (): PendingArchive[] => {

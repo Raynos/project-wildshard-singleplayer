@@ -1,6 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, Sphere } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
+import { noteFrameDrawn } from '@wildshard/engine/core/framePacing';
 import { contentHash } from '../shardfile/contentHash';
 import { finishRoadSteps, type CullPlan } from './roadCull';
 import { decodeRoadTile, encodeRoadTile, type RoadTileStore } from './roadTileArchive';
@@ -222,4 +223,19 @@ test('the unchanged 25 MB scratch bound limits medium archives before the job-co
   expect(store.counts.active).toBe(0);
   expect([...store.bodies.keys()].sort()).toEqual([...expected.keys()].sort());
   for (const [hash, bytes] of expected) expect(store.bodies.get(hash)).toEqual(bytes);
+});
+
+test('presenting pages keep the original six active archives', async () => {
+  const f = fixture(), scope = new Scope('live road window'), store = gatedStore(6);
+  const clock = vi.spyOn(performance, 'now').mockReturnValue(1000); noteFrameDrawn(1000);
+  const backing = new RoadTileBacking(scope, store.store, { pitch: 125, plans: new Map() });
+  const work = capture(backing, f.mesh, f.plan);
+  try {
+    await store.started; expect(store.counts.reads).toBe(6); expect(store.counts.active).toBe(6);
+  } finally {
+    store.release();
+    try { await work; }
+    finally { scope.dispose(); f.close(); noteFrameDrawn(Number.NEGATIVE_INFINITY); clock.mockRestore(); }
+  }
+  expect(store.counts.peak).toBe(6); expect(store.counts.active).toBe(0); expect(store.counts.reads).toBe(16);
 });
