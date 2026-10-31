@@ -1,5 +1,7 @@
 """Real Bash startup/handover against an isolated simctl fixture."""
 import json
+import ast
+import io
 import builtins
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
@@ -383,6 +385,19 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
                 self.assertGreater(url.port, 1024)
                 self.assertTrue(url.path.startswith('/safari/'))
         self.assertIn('readiness page reached two animation frames', result.stderr)
+        line = next(line for line in result.stderr.splitlines() if 'Safari lifecycle receipt ' in line)
+        receipt = json.loads(line.split('Safari lifecycle receipt ', 1)[1])
+        self.assertEqual(receipt['result'], 0)
+        self.assertTrue(receipt['ownedLaunch']); self.assertTrue(receipt['ownedFrames'])
+        self.assertEqual(receipt['url']['count'], sum(row[1] == 'openurl' for row in self.calls()))
+        self.assertEqual(receipt['url']['omitted'], 0)
+        self.assertLessEqual(len(receipt['url']['samples']), 4)
+        self.assertLessEqual(receipt['launch']['spawnRequestedAt'], receipt['launch']['spawnedAt'])
+        self.assertIsNotNone(receipt['launch']['reapedAt'])
+        for sample in receipt['url']['samples']:
+            self.assertLessEqual(sample['spawnRequestedAt'], sample['spawnedAt'])
+            self.assertLessEqual(sample['spawnedAt'], sample['reapedAt'])
+            self.assertLessEqual(sample['reapedAt'], sample['exitedAt'])
 
     def test_no_frame_never_hands_over_regardless_of_url_rpc_phase(self):
         result = self.lane(SIM_OPEN_NO_FRAME='1', SIM_SAFARI_READY_TIMEOUT='.3')
@@ -465,6 +480,102 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
                 self.assertGreaterEqual(requests[1][0], launch_at)
         self.assert_not_handed_over()
 
+    def test_url_process_creation_spends_its_original_budget_and_receipt_is_bounded(self):
+        native = READY['open_ready_page']
+        for delay, returned, limit, expected_kill, expected_code, expected_offers in [
+                (15, None, 120, 15, 124, 1), (0, 60, 6, None, 60, 6)]:
+            clock = SimpleNamespace(now=0.0, killed=None)
+            offers = []
+            class Event:
+                def is_set(self): return False
+                def wait(self, seconds): clock.now += seconds
+            class Client:
+                def __init__(self, args, **_kwargs):
+                    offers.append(args); clock.now += delay; self.returncode = returned
+                def __enter__(self): return self
+                def __exit__(self, *_args): pass
+                def poll(self): return self.returncode
+                def kill(self): clock.killed = clock.now; self.returncode = -9
+                def wait(self): return self.returncode
+            @contextmanager
+            def transcript(): yield object()
+            ports = {**native.__globals__, 'time': SimpleNamespace(monotonic=lambda: clock.now),
+                     'threading': SimpleNamespace(Event=Event), 'native_transcript': transcript,
+                     'native_text': lambda _: '',
+                     'subprocess': SimpleNamespace(Popen=Client, DEVNULL=subprocess.DEVNULL)}
+            helper = FunctionType(native.__code__, ports, argdefs=native.__defaults__)
+            receipt = {'count': 0, 'omitted': 0, 'samples': []}
+            self.assertEqual(helper(UDID, 'http://127.0.0.1/owned', Event(), limit, limit, 0, lambda: 0, receipt), expected_code)
+            self.assertEqual(clock.killed, expected_kill)
+            self.assertEqual(clock.now, limit)
+            self.assertEqual(len(offers), expected_offers)
+            self.assertTrue(all(args == ['xcrun', 'simctl', 'openurl', UDID, 'http://127.0.0.1/owned'] for args in offers))
+            self.assertEqual(receipt['count'], expected_offers)
+            self.assertEqual(len(receipt['samples']), min(4, expected_offers))
+            self.assertEqual(receipt['omitted'], max(0, expected_offers - 4))
+            self.assertTrue(all(row['nativeReturnCode'] == (-9 if returned is None else returned) for row in receipt['samples']))
+            if delay:
+                row = receipt['samples'][0]
+                self.assertEqual(row['deadlineAt'], 10)
+                self.assertEqual(row['spawnedAt'], 15)
+                self.assertEqual(row['killAt'], 15)
+                self.assertEqual(row['reapedAt'], 15)
+        self.assert_not_handed_over()
+
+    def test_terminal_receipt_io_failure_preserves_native_result_and_exception(self):
+        native = READY['wait_for_safari']
+        for code, frames in [(23, False), (0, True)]:
+            class Launch:
+                returncode = code
+                def __enter__(self): return self
+                def __exit__(self, *_args): pass
+                def poll(self): return self.returncode
+            ready = SimpleNamespace(is_set=lambda: frames)
+            @contextmanager
+            def page(_deadline, _started, _lifecycle=None): yield 'http://127.0.0.1/owned', ready
+            @contextmanager
+            def transcript(): yield object()
+            def diagnostic(*args, **_kwargs):
+                if args[0].startswith('sim-lane: Safari lifecycle receipt '): raise OSError('Diagnostic sink unavailable')
+            ports = {**native.__globals__, 'time': SimpleNamespace(monotonic=lambda: 0),
+                     'os': SimpleNamespace(environ={'SIM_SAFARI_READY_TIMEOUT': '1'}),
+                     'readiness_page': page, 'native_transcript': transcript, 'native_text': lambda _: '',
+                     'subprocess': SimpleNamespace(Popen=lambda *_args, **_kwargs: Launch()), 'print': diagnostic}
+            opening = READY['open_ready_page']
+            ports['open_ready_page'] = FunctionType(opening.__code__, ports, argdefs=opening.__defaults__)
+            helper = FunctionType(native.__code__, ports)
+            self.assertEqual(helper(UDID), code)
+            original = PermissionError('Owned native operation refused')
+            def refuse(*_args, **_kwargs): raise original
+            ports['subprocess'] = SimpleNamespace(Popen=refuse)
+            with self.assertRaises(PermissionError) as caught: helper(UDID)
+            self.assertIs(caught.exception, original)
+        self.assert_not_handed_over()
+
+    def test_probe_flushes_the_owned_document_before_a_blocked_progress_sink(self):
+        source = ast.parse((ROOT / 'scripts/sim-safari-ready.py').read_text())
+        page = next(node for node in source.body if isinstance(node, ast.FunctionDef) and node.name == 'readiness_page')
+        handler = next(node for node in page.body if isinstance(node, ast.ClassDef) and node.name == 'Handler')
+        class Event:
+            def __init__(self): self.value = False
+            def is_set(self): return self.value
+            def set(self): self.value = True
+        ready, requested, phases = Event(), Event(), []
+        def blocked(*_args, **_kwargs): raise BlockingIOError('Progress sink cannot complete')
+        ports = {**READY, 'page': '/safari/owned', 'callback': '/ready/owned',
+                 'document': b'owned document', 'started': 0, 'deadline': 120,
+                 'ready': ready, 'requested': requested, 'record_http': phases.append, 'print': blocked}
+        exec(compile(ast.Module(body=[handler], type_ignores=[]), 'actual-readiness-handler', 'exec'), ports)
+        instance = ports['Handler'].__new__(ports['Handler'])
+        instance.rfile = io.BytesIO(b'GET /safari/owned HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n')
+        instance.wfile = io.BytesIO()
+        with self.assertRaises(BlockingIOError): instance.handle()
+        self.assertTrue(instance.wfile.getvalue().startswith(b'HTTP/1.0 200 OK'))
+        self.assertTrue(instance.wfile.getvalue().endswith(b'owned document'))
+        self.assertEqual(phases, ['request', 'flush'])
+        self.assertTrue(requested.is_set()); self.assertFalse(ready.is_set())
+        self.assert_not_handed_over()
+
     def test_completed_launch_does_not_wait_for_a_services_inherited_output(self):
         result = self.lane(SIM_HELD_NATIVE_OUTPUT='launch')
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -506,7 +617,7 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
         clock.monotonic = lambda: clock.now
         ready = SimpleNamespace(is_set=lambda: True)
         @contextmanager
-        def page(_deadline, _started):
+        def page(_deadline, _started, _lifecycle=None):
             yield 'http://127.0.0.1/owned', ready
         class Launch:
             def __enter__(self):
@@ -535,7 +646,7 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
         clock.monotonic = lambda: clock.now
         ready = SimpleNamespace(is_set=lambda: clock.frames)
         @contextmanager
-        def page(_deadline, _started):
+        def page(_deadline, _started, _lifecycle=None):
             yield 'http://127.0.0.1/owned', ready
         def read(_fd, _size, _offset):
             clock.reads += 1
@@ -611,7 +722,8 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
         self.assert_not_handed_over()
 
     def test_probe_requires_two_frames_and_only_its_own_timely_callback(self):
-        with READY['readiness_page'](time.monotonic() + 5) as (url, ready):
+        lifecycle = {}
+        with READY['readiness_page'](time.monotonic() + 5, lifecycle=lifecycle) as (url, ready):
             with urlopen(url, timeout=1) as response:
                 callback = response.headers['X-Safari-Ready']
                 script = response.read().decode().split('<script>', 1)[1].split('</script>', 1)[0]
@@ -633,6 +745,11 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
             with urlopen(urljoin(url, callback), timeout=1) as response:
                 self.assertEqual(response.read(), b'ready')
             self.assertTrue(ready.wait(1))
+        for request, flushed in [('request', 'flush'), ('callbackRequest', 'callbackFlush')]:
+            self.assertEqual(lifecycle['http'][request]['count'], 1)
+            self.assertEqual(lifecycle['http'][flushed]['count'], 1)
+            self.assertLessEqual(lifecycle['http'][request]['firstSeconds'], lifecycle['http'][flushed]['firstSeconds'])
+        self.assertGreaterEqual(lifecycle['http']['accept']['count'], 3)
         with READY['readiness_page'](time.monotonic() - 1) as (url, ready):
             with urlopen(url, timeout=1) as response:
                 callback = response.headers['X-Safari-Ready']

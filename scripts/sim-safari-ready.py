@@ -49,7 +49,7 @@ def owned_launch_pid(text):
 
 
 @contextmanager
-def readiness_page(deadline, started=None):
+def readiness_page(deadline, started=None, lifecycle=None):
     # Port 9 is a Fetch bad port, not a usable Safari warm-up document.
     # An unpredictable local page proves two real frames, without app assets,
     # external networking, an error page or a LaunchServices exit-code guess.
@@ -58,6 +58,20 @@ def readiness_page(deadline, started=None):
     ready = threading.Event()
     requested = threading.Event()
     started = time.monotonic() if started is None else started
+    # Transport milestones are diagnostic; only the owned callback grants frames.
+    phases = {name: {'count': 0, 'firstSeconds': None, 'lastSeconds': None}
+              for name in ('accept', 'request', 'flush', 'callbackRequest', 'callbackFlush')}
+    phase_lock = threading.Lock()
+
+    def record_http(name):
+        with phase_lock:
+            when = round(time.monotonic() - started, 3)
+            phase = phases[name]
+            phase['count'] += 1
+            if phase['firstSeconds'] is None:
+                phase['firstSeconds'] = when
+            phase['lastSeconds'] = when
+
     document = ('<!doctype html><meta name="viewport" content="width=device-width">'
                 '<script>requestAnimationFrame(()=>requestAnimationFrame(()=>'
                 f'fetch("{callback}",{{cache:"no-store"}})));</script>').encode()
@@ -105,15 +119,24 @@ def readiness_page(deadline, started=None):
                 self.reply(404, b'Not found')
                 return
             probe = path == page.encode()
-            if probe and not requested.is_set():
+            record_http('request' if probe else 'callbackRequest')
+            first_probe = probe and not requested.is_set()
+            if first_probe:
                 requested.set()
-                print(f'sim-lane: Safari readiness document requested in {time.monotonic() - started:.3f}s', file=sys.stderr)
             self.reply(200, document if probe else b'ready', probe)
+            record_http('flush' if probe else 'callbackFlush')
+            if first_probe:
+                print(f'sim-lane: Safari readiness document requested in {time.monotonic() - started:.3f}s', file=sys.stderr)
             if not probe and time.monotonic() <= deadline:
                 ready.set()
                 print(f'sim-lane: Safari owned frame callback received in {time.monotonic() - started:.3f}s', file=sys.stderr)
 
     class ReadinessServer(ThreadingTCPServer):
+        def get_request(self):
+            connection = super().get_request()
+            record_http('accept')
+            return connection
+
         def handle_error(self, request, client_address):
             # socketserver's default logger imports traceback after printing
             # its heading. Keep the actual exception/phase in one flushed
@@ -141,12 +164,20 @@ def readiness_page(deadline, started=None):
         finally:
             server.shutdown()
             thread.join()
+            if lifecycle is not None:
+                with phase_lock:
+                    lifecycle['http'] = {name: dict(phase) for name, phase in phases.items()}
 
 
-def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=None):
+def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=None, lifecycle=None):
     code, detail = 124, 'URL service did not respond'
     attempts, accepted, pending_delivery, pending_before_launch = 0, False, False, False
     ownership = launch_state if launch_state is not None else lambda: 0
+
+    def stamp(record, phase):
+        if record is not None:
+            record[phase] = round(time.monotonic() - started, 3)
+
     while True:
         launch_code = ownership()
         if launch_code is not None and launch_code != 0:
@@ -174,18 +205,35 @@ def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=N
         attempts += 1
         launch_pending = launch_code is None
         attempt_started = time.monotonic()
+        attempt_deadline = min(deadline, attempt_started + 10)
+        record = None
+        if lifecycle is not None:
+            record = {'attempt': attempts, 'offeredAt': round(attempt_started - started, 3),
+                      'deadlineAt': round(attempt_deadline - started, 3),
+                      **{phase: None for phase in ('spawnRequestedAt', 'spawnedAt', 'killAt',
+                         'reapRequestedAt', 'reapedAt', 'settledAt', 'exitedAt')},
+                      'nativeReturnCode': None, 'result': None}
+            lifecycle['count'] += 1
+            if len(lifecycle['samples']) == 4:
+                lifecycle['samples'].pop(0)
+                lifecycle['omitted'] += 1
+            lifecycle['samples'].append(record)
         print(f'sim-lane: Safari openurl attempt {attempts} started at {attempt_started - started:.3f}s', file=sys.stderr)
+        stamp(record, 'spawnRequestedAt')
         with native_transcript() as errors, subprocess.Popen(['xcrun', 'simctl', 'openurl', udid, url],
                               stdout=subprocess.DEVNULL, stderr=errors, text=True) as child:
-            attempt_deadline = min(deadline, time.monotonic() + 10)
+            stamp(record, 'spawnedAt')
             while child.poll() is None and not ready.is_set() and time.monotonic() < attempt_deadline:
                 launch_code = ownership()
                 if launch_code is not None and launch_code != 0:
                     break
                 ready.wait(min(.05, max(0, attempt_deadline - time.monotonic())))
             if child.poll() is None:
+                stamp(record, 'killAt')
                 child.kill()
+                stamp(record, 'reapRequestedAt')
                 child.wait()
+                stamp(record, 'reapedAt')
                 code = 124
                 pending_delivery, pending_before_launch = not ready.is_set(), launch_pending
                 detail = 'openurl client stopped after frame proof' if ready.is_set() else 'openurl did not respond before its deadline; awaiting the same owned page'
@@ -193,6 +241,7 @@ def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=N
                 if partial_error:
                     detail += f'; native stderr: {partial_error[-2048:]}'
             else:
+                stamp(record, 'reapedAt')
                 error = native_text(errors)
                 code = child.returncode if child.returncode >= 0 else 128 - child.returncode
                 detail = error.strip() or f'openurl exited {code}'
@@ -200,8 +249,12 @@ def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=N
                     accepted = True
                     print(f'sim-lane: Safari URL accepted in {time.monotonic() - started:.3f}s; awaiting owned frame callback', file=sys.stderr)
                     detail = 'URL accepted; owned two-frame callback pending'
+            if record is not None:
+                record['nativeReturnCode'], record['result'] = child.returncode, code
+            stamp(record, 'settledAt')
             print(f'sim-lane: Safari openurl attempt {attempts} settled in {time.monotonic() - attempt_started:.3f}s; '
                   f'client exit {code}; ownedFrames={ready.is_set()}; {detail[-2048:]}', file=sys.stderr)
+        stamp(record, 'exitedAt')
         if launch_code is not None and launch_code != 0:
             return launch_code
         if not ready.is_set() and not accepted and not pending_delivery:
@@ -233,62 +286,94 @@ def wait_for_safari(udid):
     next_receipt_check, admitted = started, False
     def report_receipt_evidence():
         print(f'sim-lane: Safari launch receipt evidence {json.dumps(evidence)}', file=sys.stderr)
-    with native_transcript() as output, native_transcript() as errors, readiness_page(deadline, started) as (url, ready):
-        with subprocess.Popen(['xcrun', 'simctl', 'launch', udid, 'com.apple.mobilesafari'],
-                              stdout=output, stderr=errors, text=True) as launch:
-            def launch_state():
-                nonlocal next_receipt_check, admitted
-                status = launch.poll()
-                if status is not None and status != 0:
-                    print(f'sim-lane: Safari app launch failed in {time.monotonic() - started:.3f}s: '
-                          f'{native_text(errors).strip()}', file=sys.stderr)
-                    report_receipt_evidence()
-                    return status if status > 0 else 128 - status
-                if admitted:
-                    return 0
-                if time.monotonic() >= deadline:
-                    print(f'sim-lane: Safari app launch timed out within {timeout:g}s readiness deadline; '
-                          f'observed wall {time.monotonic() - started:.3f}s', file=sys.stderr)
-                    for label, stream in (('stdout', output), ('stderr', errors)):
-                        detail = native_text(stream).strip()
-                        print(f'sim-lane: Safari timed-out launch {label}: {detail[-2048:] or "<empty>"}', file=sys.stderr)
-                    report_receipt_evidence()
-                    return 124
-                if status == 0:
-                    admitted = True
-                    print(f'sim-lane: Safari app launched in {time.monotonic() - started:.3f}s: '
-                          f'{native_text(output).strip()}', file=sys.stderr)
-                    report_receipt_evidence()
-                    return 0
-                if time.monotonic() >= next_receipt_check:
-                    sample = time.monotonic()
-                    # Snapshot our exact launch output, never a process census.
-                    pid = owned_launch_pid(os.pread(output.fileno(), 4096, 0).decode(errors='replace'))
-                    cost = (time.monotonic() - sample) * 1000
-                    evidence['checks'] += 1
-                    evidence['totalMs'] = round(evidence['totalMs'] + cost, 3)
-                    evidence['maxMs'] = round(max(evidence['maxMs'], cost), 3)
-                    next_receipt_check = time.monotonic() + .25
-                    # The native read itself can cross the wall deadline. An
-                    # earlier document cannot make that late launch proof valid.
+    lifecycle = {'launch': {phase: None for phase in ('spawnRequestedAt', 'spawnedAt',
+                 'ownedAt', 'completedAt', 'killAt', 'reapRequestedAt', 'reapedAt')},
+                 'url': {'count': 0, 'omitted': 0, 'samples': []}, 'http': None}
+    lifecycle['launch']['nativeReturnCode'] = None
+    result, ready = None, None
+
+    def stamp_launch(phase):
+        lifecycle['launch'][phase] = round(time.monotonic() - started, 3)
+
+    try:
+        with native_transcript() as output, native_transcript() as errors, readiness_page(deadline, started, lifecycle) as (url, ready):
+            stamp_launch('spawnRequestedAt')
+            with subprocess.Popen(['xcrun', 'simctl', 'launch', udid, 'com.apple.mobilesafari'],
+                                  stdout=output, stderr=errors, text=True) as launch:
+                stamp_launch('spawnedAt')
+                def launch_state():
+                    nonlocal next_receipt_check, admitted
+                    status = launch.poll()
+                    if status is not None and lifecycle['launch']['completedAt'] is None:
+                        stamp_launch('completedAt')
+                        lifecycle['launch']['nativeReturnCode'] = status
+                    if status is not None and status != 0:
+                        print(f'sim-lane: Safari app launch failed in {time.monotonic() - started:.3f}s: '
+                              f'{native_text(errors).strip()}', file=sys.stderr)
+                        report_receipt_evidence()
+                        return status if status > 0 else 128 - status
+                    if admitted:
+                        return 0
                     if time.monotonic() >= deadline:
-                        print('sim-lane: Safari launch receipt read crossed the readiness deadline', file=sys.stderr)
+                        print(f'sim-lane: Safari app launch timed out within {timeout:g}s readiness deadline; '
+                              f'observed wall {time.monotonic() - started:.3f}s', file=sys.stderr)
+                        for label, stream in (('stdout', output), ('stderr', errors)):
+                            detail = native_text(stream).strip()
+                            print(f'sim-lane: Safari timed-out launch {label}: {detail[-2048:] or "<empty>"}', file=sys.stderr)
                         report_receipt_evidence()
                         return 124
-                    if pid is not None:
+                    if status == 0:
+                        stamp_launch('ownedAt')
                         admitted = True
-                        print(f'sim-lane: owned Safari launch receipt {pid} in {time.monotonic() - started:.3f}s before launch client replied; '
-                              'requiring owned frame proof', file=sys.stderr)
+                        print(f'sim-lane: Safari app launched in {time.monotonic() - started:.3f}s: '
+                              f'{native_text(output).strip()}', file=sys.stderr)
                         report_receipt_evidence()
                         return 0
-                return None
-            try:
-                return open_ready_page(udid, url, ready, deadline, timeout, started, launch_state)
-            finally:
-                # Retire only our launch RPC, never the observed Safari app.
-                if launch.poll() is None:
-                    launch.kill()
-                    launch.wait()
+                    if time.monotonic() >= next_receipt_check:
+                        sample = time.monotonic()
+                        # Snapshot our exact launch output, never a process census.
+                        pid = owned_launch_pid(os.pread(output.fileno(), 4096, 0).decode(errors='replace'))
+                        cost = (time.monotonic() - sample) * 1000
+                        evidence['checks'] += 1
+                        evidence['totalMs'] = round(evidence['totalMs'] + cost, 3)
+                        evidence['maxMs'] = round(max(evidence['maxMs'], cost), 3)
+                        next_receipt_check = time.monotonic() + .25
+                        # The native read itself can cross the wall deadline. An
+                        # earlier document cannot make that late launch proof valid.
+                        if time.monotonic() >= deadline:
+                            print('sim-lane: Safari launch receipt read crossed the readiness deadline', file=sys.stderr)
+                            report_receipt_evidence()
+                            return 124
+                        if pid is not None:
+                            stamp_launch('ownedAt')
+                            admitted = True
+                            print(f'sim-lane: owned Safari launch receipt {pid} in {time.monotonic() - started:.3f}s before launch client replied; '
+                                  'requiring owned frame proof', file=sys.stderr)
+                            report_receipt_evidence()
+                            return 0
+                    return None
+                try:
+                    result = open_ready_page(udid, url, ready, deadline, timeout, started, launch_state, lifecycle['url'])
+                    return result
+                finally:
+                    # Retire only our launch RPC, never the observed Safari app.
+                    if launch.poll() is None:
+                        stamp_launch('killAt')
+                        launch.kill()
+                        stamp_launch('reapRequestedAt')
+                        launch.wait()
+                    stamp_launch('reapedAt')
+                    lifecycle['launch']['nativeReturnCode'] = getattr(launch, 'returncode', lifecycle['launch']['nativeReturnCode'])
+    finally:
+        lifecycle.update(result=result, ownedLaunch=admitted,
+                         ownedFrames=ready.is_set() if ready is not None else None,
+                         recordedAt=round(time.monotonic() - started, 3), limitSeconds=timeout)
+        try:
+            print('sim-lane: Safari lifecycle receipt ' + json.dumps(lifecycle), file=sys.stderr, flush=True)
+        except OSError:
+            # A broken diagnostic sink cannot replace the native result or
+            # an exception already propagating from the owned operation.
+            pass
 
 
 def wait_for_bootstatus(udid, remaining):
