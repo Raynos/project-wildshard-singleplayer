@@ -5,7 +5,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE cccdad8-mvw6ubu8 = GLSL** (04:38 Cancun; + NF17e, CI fixes; all 35 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
+**LIVE b237d2e-mvw8klr2 = GLSL** (05:44 Cancun; + NF17e, CI fixes; all 35 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
 (G2, kinds 0 + 3, copy cut, Boundary, facade), EP8 crowd, NF11 4 MB cap, Pine uploads -70 %, Sky look. **For Jake:** QC
 table qa-2026-10-30 (2508e90724); MF13 dither; QB17 video.
 
