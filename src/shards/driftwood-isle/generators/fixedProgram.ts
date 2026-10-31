@@ -3,7 +3,7 @@ import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { bakeQueryTerrain, readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { assetCost } from '@wildshard/sdk/assets';
-import { hashImmutableBytes } from '@wildshard/sdk/immutable';
+import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import type { Shardfile } from '@wildshard/sdk/shardfile';
@@ -92,11 +92,48 @@ export async function driftwoodFixedBytes(inputs: ReadonlyMap<string, Uint8Array
   }
 }
 
-/** The one native fixed-model step stores only owned files in the injected cache outside src. */
-export async function driftwoodFixedFiles(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<ReadonlyMap<string, Uint8Array>> {
-  const files = await ctx.cached({ id: 'fixed-models', native: true, inputs: DRIFTWOOD_FIXED_INPUTS }, driftwoodFixedBytes);
-  if (files.size === 0 || !files.has('data/fixedTiles.generated.json') || !files.has('data/fixedBlobs.generated.json')) {
-    throw new Error('Driftwood fixed cache inventory differs');
-  }
+// Cache-only source binding; never exposed as a product or scene source.
+const FIXED_NATIVE_RECEIPT = 'cache/fixed-native-inputs.json';
+
+function nativeReceipt(inputs: ReadonlyMap<string, Uint8Array>): Uint8Array {
+  return text.encode(encodeCanonicalJson(DRIFTWOOD_FIXED_INPUTS.map(name => {
+    const bytes = inputs.get(name);
+    if (bytes === undefined || bytes.byteLength === 0) throw new Error(`Missing Driftwood fixed input ${name}`);
+    return [name, hashImmutableBytes(bytes)];
+  })));
+}
+
+async function fixedStep(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<ReadonlyMap<string, Uint8Array>> {
+  const files = await ctx.cached({ id: 'fixed-models-inputs-v1', native: true, inputs: DRIFTWOOD_FIXED_INPUTS }, async inputs => {
+    const built = await driftwoodFixedBytes(inputs);
+    if (built.has(FIXED_NATIVE_RECEIPT)) throw new Error('Driftwood fixed receipt path is reserved');
+    built.set(FIXED_NATIVE_RECEIPT, nativeReceipt(inputs));
+    return built;
+  });
+  if (!files.has('data/fixedTiles.generated.json') || !files.has('data/fixedBlobs.generated.json')
+    || (files.get(FIXED_NATIVE_RECEIPT)?.byteLength ?? 0) === 0) throw new Error('Driftwood fixed cache inventory differs');
   return files;
+}
+
+function productFiles(files: ReadonlyMap<string, Uint8Array>): ReadonlyMap<string, Uint8Array> {
+  return new Map([...files].filter(([name]) => name !== FIXED_NATIVE_RECEIPT));
+}
+
+/** The native fixed-model step stores owned files and its native-input binding
+ * outside src. Callers receive the same original file bank without its receipt. */
+export async function driftwoodFixedFiles(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<ReadonlyMap<string, Uint8Array>> {
+  return productFiles(await fixedStep(ctx));
+}
+
+/** Reuse an admitted fixed bank only for the map's identical input snapshot.
+ * Every file still crosses ctx.cached hash/length admission; the map's original
+ * readers admit the same models and rows. A changing native source refuses. */
+export async function driftwoodMapFixedFiles(ctx: Pick<ProjectGenerationContext, 'cached'>,
+  inputs: ReadonlyMap<string, Uint8Array>): Promise<ReadonlyMap<string, Uint8Array>> {
+  const expected = nativeReceipt(inputs), files = await fixedStep(ctx), receipt = files.get(FIXED_NATIVE_RECEIPT);
+  const matches = (bytes: Uint8Array): boolean => bytes.byteLength === expected.byteLength && bytes.every((value, index) => value === expected[index]);
+  if (receipt === undefined || !matches(receipt) || !matches(nativeReceipt(inputs))) {
+    throw new Error('Driftwood map fixed inputs changed');
+  }
+  return productFiles(files);
 }

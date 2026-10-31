@@ -74,10 +74,10 @@ async function coverRest(assembly, bytes, fixed, read) {
   return matrices.map(list => list.length);
 }
 
-export async function driftwoodMapAssembly(source) {
+export async function driftwoodMapAssembly(source, preparedFixed) {
   const read = file => mapJson(source(`${SHARD}${file}`));
   const assembly = new MapAssembly(), piers = driftwoodPierScenes();
-  const fixedFiles = await driftwoodFixedBytes(new Map(DRIFTWOOD_FIXED_INPUTS.map(name => [name, source(`public${name}`)])));
+  const fixedFiles = preparedFixed ?? await driftwoodFixedBytes(new Map(DRIFTWOOD_FIXED_INPUTS.map(name => [name, source(`public${name}`)])));
   const banks = await driftwoodSceneBanksFrom(url => source(`public${url}`), fixedFiles), catalogue = siteCatalogue(banks), WORLD_SCENES = worldScenes(banks);
   const fixedBlobs = Object.entries(FIXED_MODEL_NAMES).map(([url, name]) => {
     const bytes = fixedFiles.get(`baked/fixed-models/${url.slice(url.lastIndexOf('/') + 1)}`);
@@ -143,8 +143,8 @@ export async function driftwoodMapAssembly(source) {
 
 /** The map painter's files (data/map.json): the assembly's ordered scene and its geometry block, deflated as the retired
  *  driftwood-map-assembly job wrote them. */
-export async function driftwoodMapFiles(source) {
-  const { assembly } = await driftwoodMapAssembly(source);
+export async function driftwoodMapFiles(source, preparedFixed) {
+  const { assembly } = await driftwoodMapAssembly(source, preparedFixed);
   try {
     const { json, binary } = assembly.pack();
     return new Map([['map/assembly.json', json], ['map/geometry.bin', encodeBuildBytes(binary, 'deflate', 6, 'native')]]);
