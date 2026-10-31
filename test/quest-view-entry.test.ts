@@ -2,19 +2,22 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { installEntryQuestViews } from '../src/game/shardfile/clientQuestComposition';
 import { admitClientPlan, CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
 import { QuestPageViews } from '../src/game/quest/questPageViews';
 import type { ShardContext } from '../src/game/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
-const row={kind:'quest.views',file:'quests/story.json'} as const;
+// This partial input exercises entry ordering before the mocked view host.
+// It is not a registered QuestStory document.
+const row={kind:'quest.views',file:'fixture/quest-views.json'} as const;
 afterEach(()=>vi.restoreAllMocks());
 function fixture(scope=new Scope('quest-entry'),read?:()=>Promise<Uint8Array>){
   const input={quest:'actual-owner',spawns:'actual-spawns'},bytes=new TextEncoder().encode(JSON.stringify(input));
-  const files=new Map([[row.file,{hash:'view',url:'https://fixture.invalid/view.json'}]]);
+  const files=new Map([[row.file,fixtureProductFile(row.file,{hash:'view',url:'https://fixture.invalid/view.json'})]]);
   const source=emptyShardfile({slug:'quest-entry',name:'Quest entry',author:'Fixture',revision:1,seed:1});
-  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,
+  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,jsonCheck:fixtureJsonCheck,
     sections:new Map([['world/scenes',{version:1,libraries:[],materials:[],steps:[]}]]),files,read:read??(()=>Promise.resolve(bytes))});
   return {scope,input,bytes,files,ctx:legacyDouble<ShardContext>({scope,product})};
 }
@@ -48,4 +51,12 @@ test('a child of a retiring construction refuses before even reading view data',
     await expect(installEntryQuestViews(f.ctx,row)).rejects.toThrow('Entry left');
     expect(read).not.toHaveBeenCalled();expect(install).not.toHaveBeenCalled();
   }finally{for(const step of retirement)void step;construction.dispose();}
+});
+
+test('partial view input cannot claim the registered story contract',async()=>{
+  const f=fixture(),name='quests/story.json',source=emptyShardfile({slug:'view-contract',name:'View',author:'Fixture',revision:1,seed:1});
+  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,jsonCheck:fixtureJsonCheck,sections:new Map(),
+    files:new Map([[name,fixtureProductFile(name,{hash:'view',url:'https://fixture.invalid/view.json'})]]),read:()=>Promise.resolve(f.bytes)});
+  try{await expect(product.json(name)).rejects.toThrow('refuses its schema');}
+  finally{f.scope.dispose();}
 });
