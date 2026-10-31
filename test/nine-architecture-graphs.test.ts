@@ -18,7 +18,7 @@ import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
 import { GRAPH_ADMISSION_LIMITS, validateGraph, type GraphIr } from '../src/format/materialGraph';
 import { viewmodelGraphs } from '../src/shards/nine-dragon-stack/generators/viewmodelGraphs';
-import { architectureGraphs, groundGraph } from '../src/shards/nine-dragon-stack/generators/architectureGraphs';
+import { architectureGraphs, groundGraph, crowdGraph } from '../src/shards/nine-dragon-stack/generators/architectureGraphs';
 import { groundGraphFile } from '../src/shards/nine-dragon-stack/generators/groundGraph';
 import { crowdGraphFile } from '../src/shards/nine-dragon-stack/generators/crowdGraph';
 import fog from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
@@ -293,12 +293,19 @@ test('the look channel rows give each lent look its shared params every frame, t
   for (const [key, value] of depths) expect(value, key).toBeCloseTo(1, 6);
   shade.setRGB(0.8, 0.9, 1); linePx.value = 3; frame();
   close('nine-architecture:uShade', [0.8, 0.9, 1]);
+  close('nine-crowd-table:uShade', [0.8, 0.9, 1]);
+  // Paired tables get the same live frame values as ordinary kit casts.
+  const pairedParams = crowdGraph().params ?? {};
+  for (const [key, value] of writes) if (key.startsWith('nine-architecture:')) {
+    const param = key.slice('nine-architecture:'.length);
+    if (param in pairedParams) expect(writes.get(`nine-crowd-table:${param}`), param).toEqual(value);
+  }
   expect(writes.get('nine-facade:uLinePx')).toBe(3);
   // each write is a param its own look declares (the fog's colour only the silk fog's)
   for (const key of writes.keys()) {
     const [id = '', param = ''] = key.split(':'), entry: unknown = product.look.materials[id];
     // the kit's flagstone graph ships as a file (groundGraph.ts)
-    const graph: unknown = typeof entry === 'object' && entry !== null ? Reflect.get(entry, 'file') === groundGraphFile().file.hash ? groundGraph() : Reflect.get(entry, 'graph') : null;
+    const graph: unknown = typeof entry === 'object' && entry !== null ? Reflect.get(entry, 'file') === groundGraphFile().file.hash ? groundGraph() : id === 'nine-crowd-table' ? crowdGraph() : Reflect.get(entry, 'graph') : null;
     const params: unknown = typeof graph === 'object' && graph !== null ? Reflect.get(graph, 'params') : null;
     expect(typeof params === 'object' && params !== null ? Object.keys(params) : [], key).toContain(param);
   }
