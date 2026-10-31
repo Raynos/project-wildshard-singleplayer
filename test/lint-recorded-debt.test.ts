@@ -60,13 +60,35 @@ test('ordinary lint enforces exact recorded file counts while raw census still r
     expect(run('src/shards/pine-hollow-legacy/loadout/loadout.ts','Math.random();').status).toBe(0);
     expect(run('src/shards/pine-hollow-legacy/unregistered.ts','Math.random();').status).toBe(1);
     for(const invalid of [-1,1.5,'1',null])expect(run(file,'Math.random();',true,invalid).status).not.toBe(0);
-    const configData=v.parse(v.object({rules:v.record(v.string(),v.unknown()),overrides:v.array(v.object({rules:v.optional(v.record(v.string(),v.unknown()))}))}),
+    const configData=v.parse(v.object({rules:v.record(v.string(),v.unknown()),overrides:v.array(v.object({files:v.optional(v.array(v.string())),rules:v.optional(v.record(v.string(),v.unknown()))}))}),
       readLintConfig(resolve('.oxlintrc.json'))),hard=hardRules(resolve('.oxlintrc.json'));
     for(const name of ['no-raw-random-time','shard-sandbox','shard-game-imports','shard-game-plugins','generator-imports','shard-engine-imports','sdk-no-facade']) {
       const rule=`wildshard/${name}`;
-      expect(configData.rules?.[rule]).toEqual(['error',{ratchet:true}]);expect(hard.has(rule)).toBe(false);
+      expect(configData.overrides.find(row=>row.files?.includes('src/**/*'))?.rules?.[rule]).toEqual(['error',{ratchet:true}]);
+      expect(configData.rules[rule]).toBeUndefined();expect(hard.has(rule)).toBe(false);
       expect(configData.overrides?.some(row=>row.rules?.[rule]==='off')).toBe(false);
     }
     expect(readFileSync('scripts/typecheck-lint.sh','utf8')).not.toContain('lint:ratchet');
+  } finally {rmSync(root,{recursive:true,force:true});}
+});
+
+test('the actual lint configuration applies source debt only to the primary source tree',()=>{
+  mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/lint-debt-scope-'));
+  const config=resolve(root,'lint.json');
+  const original=v.parse(v.object({jsPlugins:v.array(v.string()),options:v.record(v.string(),v.unknown())}),readLintConfig(resolve('.oxlintrc.json')));
+  // Same real rules/overrides and plugin, with fast syntax execution for these
+  // owned JS fixtures, which have no TypeScript project. No rule is disabled.
+  writeFileSync(config,JSON.stringify({...readLintConfig(resolve('.oxlintrc.json')),
+    jsPlugins:original.jsPlugins.map(file=>resolve(file)),options:{...original.options,typeAware:false}}));
+  try {
+    for(const folder of ['src','src/game','drafts/src','admin/src','site/src']) {
+      const file=resolve(root,folder,'clock.js');mkdirSync(dirname(file),{recursive:true});
+      writeFileSync(file,'export const measured = performance.now();\n');
+      const result=spawnSync(resolve('node_modules/.bin/oxlint'),['-c',config,'--threads=1',file],
+        {encoding:'utf8',timeout:10_000,maxBuffer:8*1024*1024});
+      const primary=folder==='src'||folder.startsWith('src/');
+      expect(result.status,folder+result.stdout+result.stderr).toBe(primary?1:0);
+      expect(result.stdout.includes('recorded debt')).toBe(primary);
+    }
   } finally {rmSync(root,{recursive:true,force:true});}
 });

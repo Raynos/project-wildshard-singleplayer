@@ -22,15 +22,6 @@
     "nursery": "off"
   },
   "rules": {
-    // L1: existing nonzero migration debt is enforced in this same lint pass.
-    // Keep outside the hard src override: the raw census still counts every site.
-    "wildshard/no-raw-random-time": ["error", {"ratchet": true}],
-    "wildshard/shard-sandbox": ["error", {"ratchet": true}],
-    "wildshard/shard-game-imports": ["error", {"ratchet": true}],
-    "wildshard/shard-game-plugins": ["error", {"ratchet": true}],
-    "wildshard/generator-imports": ["error", {"ratchet": true}],
-    "wildshard/shard-engine-imports": ["error", {"ratchet": true}],
-    "wildshard/sdk-no-facade": ["error", {"ratchet": true}],
     "wildshard/no-generated-import": "error",
     "wildshard/no-generated-json-import": "error",
     "wildshard/no-base64": "error",
@@ -185,6 +176,20 @@
       // E422: tests drive real modules through their seams; no module mocks or reloads (lint/wildshard-plugin.js)
       "files": ["src/**/*.test.ts", "test/**", "api-tests/**", "drafts/test/**", "admin/test/**"],
       "rules": { "wildshard/no-module-mock": "error" }
+    },
+    {
+      // L1: recorded ceilings cover the primary source tree only, as in the
+      // raw census. This is separate from the hard-rule src/** override below.
+      "files": ["src/**/*"],
+      "rules": {
+        "wildshard/no-raw-random-time": ["error", {"ratchet": true}],
+        "wildshard/shard-sandbox": ["error", {"ratchet": true}],
+        "wildshard/shard-game-imports": ["error", {"ratchet": true}],
+        "wildshard/shard-game-plugins": ["error", {"ratchet": true}],
+        "wildshard/generator-imports": ["error", {"ratchet": true}],
+        "wildshard/shard-engine-imports": ["error", {"ratchet": true}],
+        "wildshard/sdk-no-facade": ["error", {"ratchet": true}]
+      }
     },
     {
       // No URL switches, ever (Jake, 2026-09-25): the game reads only the query params on the fixed allowlist in
