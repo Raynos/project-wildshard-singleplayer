@@ -1,4 +1,6 @@
 import { expect, test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Feed the real cache producer its declared committed input bytes.
+import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { Material, Mesh, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -7,6 +9,7 @@ import { tierLibrarySteps } from '../src/format/tierSelection';
 import { fixedDraws } from '../src/game/models/fixedDraws';
 import { assembleWholeGeometryViews } from '../src/game/plugin/geometry';
 import { driftwoodFixedModelOutput } from '../src/shards/driftwood-isle/generators/fixedModels';
+import { DRIFTWOOD_FIXED_INPUTS } from '../src/shards/driftwood-isle/generators/fixedProgram';
 import { FIXED_MODEL_NAMES } from '../src/shards/driftwood-isle/generators/modelFiles';
 import { GULL_DRAW } from '../src/shards/driftwood-isle/generators/gullDraw';
 import { FISH_DRAW } from '../src/shards/driftwood-isle/generators/fishDraw';
@@ -46,8 +49,11 @@ test('the original L0 partitions and whole templates cover every individual fixe
 });
 
 test('whole-covered fixed files leave phone play but stay available to posed and no-owner readers', async () => {
-  const native = await driftwoodFixedFiles();
-  const emitted = await driftwoodFixedModelOutput({ cached: () => Promise.resolve(native) });
+  const emitted = await driftwoodFixedModelOutput({ cached: (step, generate) => {
+    expect(step.native).toBe(true); expect(step.inputs).toEqual(DRIFTWOOD_FIXED_INPUTS);
+    const inputs = new Map(DRIFTWOOD_FIXED_INPUTS.map(name => [name, new Uint8Array(readFileSync(`public${name}`))]));
+    return Promise.resolve(generate(inputs));
+  } });
   const independent = new Set([GULL_DRAW, FISH_DRAW].map(row => row.tiers.phone.geometry));
   const source = { identity: { slug: 'fixed-selection' }, files: emitted.files,
     library: emitted.files.map(file => file.hash), critical: [] };
