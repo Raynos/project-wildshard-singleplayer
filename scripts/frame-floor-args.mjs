@@ -1,5 +1,5 @@
 const switches = new Set(['help', 'worker', 'draw-budget', 'draw-budget-report-only', 'quiet', 'devserver', 'chromium-phone', 'entry-settle', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket', 'wasm-memory-probe', 'pause-ablation', 'buffer-ablation']);
-const values = new Set(['base', 'chromium-cpu', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
+const values = new Set(['base', 'chromium-cpu', 'chromium-angle', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
   'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile', 'safari-steady', 'safari-drive', 'safari-prefix', 'safari-window',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir',
   'textures', 'ktx2-probe', 'serve-shard', 'serve-base', 'standing-poses', 'native-memory', 'webkit-timeline', 'webkit-steady', 'native-pressure', 'wasm-constructors', 'jsc-gc-log', 'jsc-ram-size']);
@@ -29,11 +29,24 @@ export function frameFloorChromiumCpuRate(args) {
   return rate;
 }
 
+/** An explicit software renderer is confined to Linux report-only phone rows.
+ * @param {readonly string[]} args
+ * @param {string} platform */
+export function frameFloorChromiumAngle(args, platform = process.platform) {
+  const selections = args.filter(arg => arg.startsWith('--chromium-angle=')), selected = selections[0]?.slice('--chromium-angle='.length);
+  if (selections.length > 1 || selected !== undefined && selected !== 'metal' && selected !== 'swiftshader') throw new Error('Unknown Chromium measurement backend');
+  if (selected === 'swiftshader' && (platform !== 'linux' || !args.includes('--draw-budget-report-only')
+    || !args.includes('--surface=desktop') || !args.includes('--chromium-phone') || frameFloorChromiumCpuRate(args) !== 4))
+    throw new Error('SwiftShader requires explicit Linux report-only phone 4x');
+  return { angle: selected ?? (platform === 'darwin' ? 'metal' : 'swiftshader'), explicit: selected !== undefined };
+}
+
 /** Refuse misspelled or incomplete floor commands before a build, browser or Simulator lease is acquired.
  * @param {readonly string[]} args
  */
 export function validateFrameFloorArgs(args) {
   frameFloorDrawBudgetMode(args);
+  frameFloorChromiumAngle(args);
   const cpuRate = frameFloorChromiumCpuRate(args);
   if (drawBudgetSelected(args) && (cpuRate !== 4 || !args.includes('--chromium-phone') || !args.includes('--surface=desktop')))
     throw new Error('Draw budget requires phone Chromium at exactly 4x CPU');

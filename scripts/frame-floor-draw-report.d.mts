@@ -1,12 +1,14 @@
 import type { DrawBudgetAssessment, DrawSample } from '../src/engine/core/drawBudget';
+import type { FloorCpuPhaseReading } from './frame-floor-report-phase.mjs';
 
 export interface FloorDrawRecord {
   sha?: string; runId?: string; when?: string; complete?: boolean;
+  cpuPhaseMode?: 'after-ready'; bootCpuRate?: number;
   drawBudgetMode?: 'enforce' | 'report-only'; chromiumCpuRate?: number; chromiumAngle?: string;
   shards?: readonly string[]; surface?: string; settings?: { tier?: string };
   results: readonly { surface: string; rows: readonly {
-    shard: string; complete?: boolean; metadata?: { settings?: { tier?: string } };
-    rows?: readonly { pose?: { name?: string }; frames: number; drawSamples?: readonly DrawSample[] }[];
+    shard: string; complete?: boolean; cpuPhase?: FloorCpuPhaseReading | null; metadata?: { settings?: { tier?: string } };
+    rows?: readonly { pose?: { name?: string }; frames: number; sampleRange?: {startMs:number;endMs:number}; drawSamples?: readonly (DrawSample & {drawnFrame?:number})[] }[];
   }[] }[];
 }
 export type DrawReportStatus = 'PASS' | 'MISS' | 'INCOMPLETE' | 'NOT MEASURED';
@@ -15,7 +17,7 @@ export interface FloorDrawPose {
   frames: number; status: DrawReportStatus; budget: DrawBudgetAssessment;
 }
 export interface FloorDrawShard {
-  surface: string; shard: string; poses: number; samples: number; frames: number;
+  surface: string; shard: string; bootCpuRate: number; measuredCpuRate: number | null; poses: number; samples: number; frames: number;
   validDrawSamples: number; validCpuSamples: number; status: DrawReportStatus;
   maxDraws: number | null; maxRenderCpuUsPerDraw: number | null;
 }

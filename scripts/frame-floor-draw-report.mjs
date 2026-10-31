@@ -27,10 +27,19 @@ export function frameFloorDrawReport(record) {
     for (const shard of selected) {
       const matches = readings.filter(row => row.shard === shard), reading = matches[0];
       const tier = reading?.metadata?.settings?.tier ?? record.settings?.tier ?? (surface === 'sim' ? 'phone' : 'desktop');
-      const cpuRate = surface === 'desktop' ? record.chromiumCpuRate ?? 1 : 1;
+      const phased = surface === 'desktop' && record.cpuPhaseMode === 'after-ready';
+      const cpuRate = surface === 'desktop' ? phased ? reading?.cpuPhase?.measuredRate ?? 1 : record.chromiumCpuRate ?? 1 : 1;
       const rows = (reading?.rows ?? []).map((row, index) => {
         const budget = assessDrawBudget(row.drawSamples, row.frames, { tier, cpuRate });
-        const coverage = Number.isSafeInteger(row.frames) && row.frames > 0 && budget.samples === row.frames
+        const phase = reading?.cpuPhase, fence = phase?.fence;
+        const phaseValid = !phased || record.bootCpuRate === 1 && phase?.bootRate === 1
+          && phase.requestedRate === record.chromiumCpuRate && phase.measuredRate === record.chromiumCpuRate
+          && fence !== null && fence !== undefined && Number.isSafeInteger(fence.frame) && fence.frame >= 0
+          && Number.isSafeInteger(fence.firstCompletedFrame) && fence.firstCompletedFrame >= fence.frame + 2
+          && Number.isFinite(fence.atMs) && fence.atMs >= 0 && Number.isFinite(fence.documentOrigin) && fence.documentOrigin > 0
+          && row.sampleRange !== undefined && row.sampleRange.startMs >= fence.atMs
+          && row.drawSamples !== undefined && row.drawSamples.every(sample => Number.isSafeInteger(sample.drawnFrame) && (sample.drawnFrame ?? -1) > fence.firstCompletedFrame);
+        const coverage = phaseValid && Number.isSafeInteger(row.frames) && row.frames > 0 && budget.samples === row.frames
           && budget.validDrawSamples === row.frames && (!budget.cpuApplied || budget.validCpuSamples === row.frames);
         /** @type {import('./frame-floor-draw-report.mjs').DrawReportStatus} */
         const status = !coverage ? 'INCOMPLETE' : budget.drawsPass === false || budget.cpuPass === false ? 'MISS'
@@ -39,7 +48,8 @@ export function frameFloorDrawReport(record) {
       });
       poses.push(...rows);
       const status = matches.length !== 1 || reading?.complete !== true ? 'INCOMPLETE' : statusOf(rows.map(row => row.status));
-      shards.push({ surface, shard, poses: rows.length, samples: rows.reduce((sum, row) => sum + row.budget.samples, 0),
+      shards.push({ surface, shard, bootCpuRate: phased ? reading?.cpuPhase?.bootRate ?? record.bootCpuRate ?? 1 : cpuRate,
+        measuredCpuRate: phased ? reading?.cpuPhase?.measuredRate ?? null : cpuRate, poses: rows.length, samples: rows.reduce((sum, row) => sum + row.budget.samples, 0),
         frames: rows.reduce((sum, row) => sum + row.frames, 0), validDrawSamples: rows.reduce((sum, row) => sum + row.budget.validDrawSamples, 0),
         validCpuSamples: rows.reduce((sum, row) => sum + row.budget.validCpuSamples, 0), status,
         maxDraws: maximum(rows.map(row => row.budget.maxDraws)), maxRenderCpuUsPerDraw: maximum(rows.map(row => row.budget.maxRenderCpuUsPerDraw)) });
@@ -62,9 +72,9 @@ const verdict = value => value === null ? 'NOT MEASURED' : value ? 'PASS' : 'MIS
 export function frameFloorDrawMarkdown(report) {
   const lines = ['## Phone draw budget', '', `${report.blocking ? 'Enforced' : 'Report-only'}; source ${cell(report.sha ?? 'unbound')}; reading ${cell(report.runId ?? 'unbound')}.`,
     '', `Reading ${report.complete ? 'complete' : 'INCOMPLETE'}; Chromium renderer ${cell(report.chromiumAngle ?? 'unrecorded')}. Limits: <= ${report.drawLimit} draws; <= ${report.cpuLimitUs} us/render draw at measured Chromium phone 4x.`, '',
-    '| Surface / shard | Poses | Draw samples | CPU samples | Max draws | Max us/draw | Budget |',
-    '| --- | ---: | ---: | ---: | ---: | ---: | --- |'];
-  for (const row of report.shards) lines.push(`| ${cell(`${row.surface} / ${row.shard}`)} | ${row.poses} | ${row.validDrawSamples}/${row.frames} | ${row.validCpuSamples}/${row.frames} | ${number(row.maxDraws)} | ${number(row.maxRenderCpuUsPerDraw)} | ${row.status} |`);
+    '| Surface / shard | Boot / measured CPU | Poses | Draw samples | CPU samples | Max draws | Max us/draw | Budget |',
+    '| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |'];
+  for (const row of report.shards) lines.push(`| ${cell(`${row.surface} / ${row.shard}`)} | ${row.bootCpuRate}x / ${row.measuredCpuRate === null ? 'not applied' : `${row.measuredCpuRate}x`} | ${row.poses} | ${row.validDrawSamples}/${row.frames} | ${row.validCpuSamples}/${row.frames} | ${number(row.maxDraws)} | ${number(row.maxRenderCpuUsPerDraw)} | ${row.status} |`);
   lines.push('', '| Shard / pose | Clock | Samples | Max draws | Draws | Max us/draw | CPU | Budget |', '| --- | --- | ---: | ---: | --- | ---: | --- | --- |');
   for (const row of report.poses) lines.push(`| ${cell(`${row.shard} / ${row.pose}`)} | ${cell(row.surface)} ${cell(row.tier)} ${row.cpuRate}x | ${row.budget.samples}/${row.frames} | ${number(row.budget.maxDraws)} | ${verdict(row.budget.drawsPass)} | ${number(row.budget.maxRenderCpuUsPerDraw)} | ${verdict(row.budget.cpuPass)} | ${row.status} |`);
   lines.push('', report.measurement, '');

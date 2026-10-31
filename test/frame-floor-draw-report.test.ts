@@ -8,6 +8,13 @@ import { tmpdir } from 'node:os';
 import { frameFloorDrawReport, frameFloorDrawMarkdown, writeFrameFloorDrawReport, type FloorDrawRecord } from '../scripts/frame-floor-draw-report.mjs';
 
 const slugs = ['nine-dragon-stack', 'pine-hollow', 'driftwood-isle'];
+function phasedRecord(): FloorDrawRecord {
+  return {sha: 'b'.repeat(40), runId: 'post-ready', complete: true, drawBudgetMode: 'report-only', cpuPhaseMode: 'after-ready', bootCpuRate: 1,
+    surface: 'desktop', chromiumCpuRate: 4, settings: {tier: 'phone'}, shards: ['nine-dragon-stack'],
+    results: [{surface: 'desktop', rows: [{shard: 'nine-dragon-stack', complete: true,
+      cpuPhase: {bootRate: 1, requestedRate: 4, measuredRate: 4, fence: {frame: 10, atMs: 100, firstCompletedFrame: 12, documentOrigin: 1000}},
+      rows: [{frames: 2, sampleRange: {startMs: 110, endMs: 150}, drawSamples: [{drawnFrame: 13, draws: 150, renderMs: 4.5}, {drawnFrame: 14, draws: 100, renderMs: 3}]}]}]}]};
+}
 function record(): FloorDrawRecord {
   return { sha: 'a'.repeat(40), runId: 'draw-reading-1', when: '2026-10-30T21:00:00Z', complete: true, drawBudgetMode: 'report-only',
     surface: 'desktop', chromiumCpuRate: 4, settings: { tier: 'phone' }, shards: slugs,
@@ -70,4 +77,24 @@ test('writes sibling JSON/Markdown and appends CI summary without overwriting th
     expect(readFileSync(summary, 'utf8')).toBe(`prior CI summary\n${readFileSync(paths.markdown, 'utf8')}`);
     expect(() => writeFrameFloorDrawReport(record(), join(root, 'unsafe'))).toThrow('main floor JSON');
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('post-ready CPU credit requires every paired frame after the acknowledged throttle fence', () => {
+  expect(frameFloorDrawReport(phasedRecord())).toMatchObject({complete: true, poses: [{status: 'PASS', cpuRate: 4}]});
+  for (const invalid of ['phase', 'rate', 'time', 'frame', 'identity', 'fence', 'boot', 'new-draws']) {
+    const input = phasedRecord(), reading = input.results[0]?.rows[0], row = reading?.rows?.[0], phase = reading?.cpuPhase;
+    const fence = phase?.fence, sample = row?.drawSamples?.[0];
+    if (reading === undefined || row === undefined || phase === null || phase === undefined || fence === null || fence === undefined || sample === undefined || row.sampleRange === undefined)
+      throw new Error('Missing post-ready fixture');
+    if (invalid === 'phase') reading.cpuPhase = null;
+    if (invalid === 'rate') phase.measuredRate = null;
+    if (invalid === 'time') row.sampleRange.startMs = 99;
+    if (invalid === 'frame') sample.drawnFrame = 12;
+    if (invalid === 'identity') delete sample.drawnFrame;
+    if (invalid === 'fence') phase.fence = null;
+    if (invalid === 'boot') phase.bootRate = 4;
+    if (invalid === 'new-draws') fence.firstCompletedFrame = 10;
+    const report = frameFloorDrawReport(input);
+    expect(report.complete, invalid).toBe(false); expect(report.poses[0]?.status, invalid).toBe('INCOMPLETE');
+  }
 });

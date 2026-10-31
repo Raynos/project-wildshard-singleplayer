@@ -117,7 +117,7 @@ test('whole-drive samples retain upload banks beside GL time while short samples
   const result = await whole;
   expect(result).toMatchObject({frames: 30, p95Ms: 33});
   if (typeof result !== 'object' || result === null) throw new Error('Sampler result missing');
-  expect(Reflect.get(result, 'drawSamples')).toEqual(Array.from({length: 30}, () => ({draws: 1, renderMs: 0.25})));
+  expect(Reflect.get(result, 'drawSamples')).toEqual(Array.from({length: 30}, (_, i) => ({drawnFrame: i + 2, draws: 1, renderMs: 0.25})));
   expect(Reflect.get(result, 'glUploadFrames')).toEqual(Array.from({length: 30}, (_, i) => [133 + i * 33,
     {bufferData: {calls: 1, sourceBytes: 16, allocationBytes: 0, imagePixels: 0, unknownCalls: 0}}]));
   expect(callbacks).toHaveLength(0);

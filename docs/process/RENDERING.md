@@ -68,6 +68,10 @@ unresident clone without upload data. Cache presence alone does not prove GPU re
   GL wrappers, defaults the GL observer off, and earns no official Simulator cadence credit. No 1x or Simulator cost
   is extrapolated to 4x. Missing samples refuse the applicable budget. The existing Developer perf panel shows the
   actual unscaled cost and the 4x reference; it adds no setting or render hook.
+- EP10's report-only reader boots at 1× under the same 90 s readiness limit, then acknowledges 4× CPU and waits for two
+  new completed draws before settling/sampling. Raw paired frame ids must follow that fence. Linux software reporting
+  requires explicit `--chromium-angle=swiftshader`; its backend and boot/measured rates stay labelled diagnostic, with
+  no official timing credit. Enforcing/profile runs retain their original boot throttle and Metal requirement.
 - Every whole-drive row lists its long frames (`longFrames.at`: start, ms) and `longFrameHooks`: which runtime hook
   (`<instance>:<hook>`, or `between hooks`) each overlapped. `--gl-time` (both surfaces, diagnostic only: it wraps the
   heavy WebGL calls) adds each long frame's GL split, so a Simulator long frame says upload, link or first draw.

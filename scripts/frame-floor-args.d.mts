@@ -7,3 +7,6 @@ export function parseSafariWindow(value: string): { route: string; fromMs: numbe
 
 /** Report-only mode is explicit; ordinary floor enforcement is unchanged. */
 export function frameFloorDrawBudgetMode(args: readonly string[]): 'enforce' | 'report-only';
+
+/** Software rendering requires an explicit Linux report-only declaration. */
+export function frameFloorChromiumAngle(args: readonly string[], platform?: string): { angle: 'metal' | 'swiftshader'; explicit: boolean };
