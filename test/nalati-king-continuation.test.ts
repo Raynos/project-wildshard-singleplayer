@@ -12,7 +12,8 @@ import {titanPrograms} from './fixtures/titanInlineWitness';
 import king from './fixtures/nalati-goldenKing-original.json' with {type:'json'};
 import room from '../src/shards/nalati-grasslands/data/bossArenaRoom.json' with {type:'json'};
 import {KingContinuation,type KingContinuationRows} from './fixtures/nalati-king-continuation';
-import {kingEntryPoint,kingWalkingRoute,kingPhaseInputs,type KingFightRead} from './proof/nalati-grasslands/king';
+import {kingEntryPoint,kingWalkingRoute,kingPhaseInputs,kingExitPoint,kingHomeRoad,kingElderReadingInputs,type KingFightRead} from './proof/nalati-grasslands/king';
+import {SKY_ROAD} from '../src/shards/nalati-grasslands/generators/layout';
 
 const profile=(()=>{const p=parseBossProfile(king.page.profile);if(p.pattern!=='arena')throw new Error('Missing original King');return p;})();
 const row=profile.fight;
@@ -233,4 +234,62 @@ test('combat inputs release attacks while the original shield approach spawns it
     expect(waited).toBeLessThan(600);expect(a.owner.observe().mode).toBe('shield');
     expect(a.owner.observe().adds.filter(actor=>actor.alive)).toHaveLength(2);inputs.return(undefined);
   }finally{a.scope.dispose();}
+});
+
+test('the return point satisfies the original room exit decision',()=>{
+  const point=kingExitPoint(room,rows.encounter.portal.end),ground=new ArenaRoomGround(room),program=ReturnProgram.page(titanPrograms.rules);
+  const feet=new Vector3(point.x,room.origin.y,point.z-.79),cursor=new PhysicsRouteCursor(kingWalkingRoute(feet,point),{once:true});
+  cursor.command(feet.toArray(),0);expect(cursor.complete).toBe(true);
+  for(const z of [point.z,feet.z]){
+    expect(ground.floorAt(point.x,z)).toBeDefined();
+    const answer=program.project(rows.encounter.portal.signal,{px:point.x,pz:z,y:room.origin.y,
+      ex:rows.entrance.x,ey:rows.entrance.y,ez:rows.entrance.z,facing:rows.entrance.facing,
+      volume:Number(ground.inVolume(new Vector3(point.x,room.origin.y,z))),inside:1,corridor:z-room.origin.z,
+      land:rows.encounter.portal.end,engaged:0,sand:0,floor:ground.floorAt(point.x,z)??room.origin.y,cy:room.origin.y});
+    expect(answer['exit']).toBe(2);
+  }
+  expect(()=>kingExitPoint(room,Infinity)).toThrow();
+});
+
+test('the return road reaches the original lower graded segment without lending its points',()=>{
+  const road=kingHomeRoad(),lower=road.at(-2);if(lower===undefined)throw new Error('Missing graded road');
+  expect(road.slice(-2)).toEqual([SKY_ROAD[9],SKY_ROAD[8]]);
+  Reflect.set(lower,0,999);expect(SKY_ROAD[9]).toEqual([10,88]);
+});
+
+test.each([{dead:false,told:false,complete:false,nextTalk:false},{dead:true,told:true,complete:false,nextTalk:false},
+  {dead:true,told:false,complete:true,nextTalk:false},{dead:true,told:false,complete:false,nextTalk:true}])(
+  'the elder return refuses an unearned or already consumed story (%j)',state=>{
+    const inputs=kingElderReadingInputs(()=>state);expect(()=>inputs.next()).toThrow();
+  });
+
+test('elder inputs wait for the actual reading and poll, then stop before the next chapter',()=>{
+  let told=false,complete=false;
+  const inputs=kingElderReadingInputs(()=>({dead:true,told,complete,nextTalk:false}));
+  expect(inputs.next()).toEqual({done:false,value:[{kind:'script',actorId:'nalati.talk',value:0}]});
+  told=true;expect(inputs.next()).toEqual({done:false,value:[]});
+  complete=true;expect(inputs.next()).toEqual({done:true,value:undefined});
+});
+
+test('an omitted eligible reading cannot manufacture the return fact',()=>{
+  const inputs=kingElderReadingInputs(()=>({dead:true,told:false,complete:false,nextTalk:false}));
+  for(let tick=0;tick<360;tick++){
+    const next=inputs.next();if(next.done)throw new Error('Reading controller ended without its outcome');
+    expect(next.value).toEqual(tick%16===0?[{kind:'script',actorId:'nalati.talk',value:0}]:[]);
+  }
+  expect(()=>inputs.next()).toThrow('eligible elder reading');
+});
+
+test('an omitted quest poll cannot manufacture chapter completion',()=>{
+  let told=false;
+  const inputs=kingElderReadingInputs(()=>({dead:true,told,complete:false,nextTalk:false}));
+  inputs.next();told=true;
+  for(let tick=0;tick<60;tick++)expect(inputs.next()).toEqual({done:false,value:[]});
+  expect(()=>inputs.next()).toThrow('original chapter poll');
+});
+
+test('a next-chapter observation refuses the return completion',()=>{
+  let told=false;
+  const inputs=kingElderReadingInputs(()=>({dead:true,told,complete:told,nextTalk:told}));
+  inputs.next();told=true;expect(()=>inputs.next()).toThrow('next chapter');
 });

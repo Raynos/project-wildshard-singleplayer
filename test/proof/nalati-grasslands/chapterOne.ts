@@ -180,6 +180,20 @@ export function* chapterHomeInputs(host:SimHost,fromReturn=false):Generator<read
   const mount=mountedPlayerOf(host),taming=nativeTamingOf(host);assert.ok(mount);assert.ok(taming?.companion);
   assert.equal(mount.horse,taming.companion);assert.equal(mount.mounted,true);assert.ok(host.flags.has('won:kokpar'));
   assert.ok(Math.hypot(host.player.position.x-12,host.player.position.z-96)<2.5);
+  yield* chapterCampReturnInputs(host);
+  for(let tick=0;tick<360&&!host.flags.has('told:tulpar');tick++)yield tick%16===0?[{kind:'script',actorId:'nalati.talk',value:0}]:[];
+  assert.ok(host.flags.has('told:tulpar'));
+  for(let tick=0;tick<60&&!host.flags.has('quest:tulpar');tick++)yield [];
+  assert.ok(host.flags.has('quest:tulpar'));assert.equal(host.quests.find(quest=>quest.def.id==='tulpar')?.isComplete,true);
+  for(const flag of ['talked:elder:2','quest:golden-king','quest:father-wind'])assert.equal(host.flags.has(flag),false,flag);
+}
+
+/** The original graded descent, bridge, dismount and camp footpath.
+ * Callers retain their own eligible elder reading and completion checks. */
+export function* chapterCampReturnInputs(host:SimHost):Generator<readonly HeadlessCommand[]> {
+  const mount=mountedPlayerOf(host),taming=nativeTamingOf(host);assert.ok(mount);assert.ok(taming?.companion);
+  assert.equal(mount.horse,taming.companion);assert.equal(mount.mounted,true);
+  assert.ok(Math.hypot(host.player.position.x-12,host.player.position.z-96)<2.5);
   const road:readonly (readonly [number,number])[]=[...SKY_ROAD.slice(4,8).reverse(),[40,133],[57,134],[57,136],[53,139],[39,141],[27,142],[23,146],[1,146],
     [0,147],[0,158],[0,170],[0,183],[0,190],[0,200],[0,205],[0,216],[20,216],[40,218],[60,214]];
   for(const [x,z] of road)yield* drive(host,x,z);
@@ -197,9 +211,4 @@ export function* chapterHomeInputs(host:SimHost,fromReturn=false):Generator<read
     {x:66,z:209.5},{x:73,z:206.1},{x:83,z:206},{x:84.8,z:203.8},{x:88,z:204.5},{x:95,z:204},
     {x:94,z:210},{x:91,z:216},{x:86.6,z:219.5},
   ]}]});
-  for(let tick=0;tick<360&&!host.flags.has('told:tulpar');tick++)yield tick%16===0?[{kind:'script',actorId:'nalati.talk',value:0}]:[];
-  assert.ok(host.flags.has('told:tulpar'));
-  for(let tick=0;tick<60&&!host.flags.has('quest:tulpar');tick++)yield [];
-  assert.ok(host.flags.has('quest:tulpar'));assert.equal(host.quests.find(quest=>quest.def.id==='tulpar')?.isComplete,true);
-  for(const flag of ['talked:elder:2','quest:golden-king','quest:father-wind'])assert.equal(host.flags.has(flag),false,flag);
 }

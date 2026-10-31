@@ -4,7 +4,10 @@ import type {SimHost,SimStateAdapter} from '../../../src/engine/sim';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import type {NalatiKingData} from '../../fixtures/nalati-king-data';
 import {readNalatiWeaponObservation} from '../../fixtures/nalati-weapon-observation';
-import {chapterWalkInputs} from './chapterOne';
+import {chapterWalkInputs,chapterRideInputs,chapterCampReturnInputs} from './chapterOne';
+import {mountedPlayerOf} from '../../../src/game/riding/native';
+import {nativeTamingOf} from '../../../src/game/riding/nativeTaming';
+import {SKY_ROAD} from '../../../src/shards/nalati-grasslands/generators/layout';
 import type {KingObservation,KingBodyObservation} from '../../fixtures/nalati-king-continuation';
 
 /** A walking destination inside the actual door program's observed strip. */
@@ -15,6 +18,33 @@ export function kingEntryPoint(e:Pick<NalatiKingData['entrance'],'x'|'z'|'facing
 /** The maintained physical cursor requires a real start and destination. */
 export function kingWalkingRoute(from:{readonly x:number;readonly z:number},to:{readonly x:number;readonly z:number}):[{x:number;z:number},{x:number;z:number}] {
   return [{x:from.x,z:from.z},{x:to.x,z:to.z}];
+}
+
+/** Stay on the real corridor's walkable extension. Even the route cursor's
+ * arrival radius must leave the feet beyond the original exit threshold. */
+export function kingExitPoint(room:Pick<NalatiKingData['room'],'origin'|'corridorEnd'>,end:number):{x:number;z:number} {
+  assert.ok([room.origin.x,room.origin.z,room.corridorEnd,end].every(Number.isFinite));
+  const target=room.corridorEnd+.5;assert.ok(target-.8>end-.7,'the real corridor must reach its exit decision');
+  return {x:room.origin.x,z:room.origin.z+target};
+}
+
+/** Approach the lower graded road from the actual balbal field. The final
+ * two points are copies of the authored road, not an arrival placement. */
+export function kingHomeRoad():readonly (readonly[number,number])[] {
+  const lower=SKY_ROAD[9],rim=SKY_ROAD[8];assert.ok(lower);assert.ok(rim);
+  return [[-83,81],[-60,70],[-20,54],[20,40],[12,78],[lower[0],lower[1]],[rim[0],rim[1]]];
+}
+
+export interface KingElderObservation {readonly dead:boolean;readonly told:boolean;readonly complete:boolean;readonly nextTalk:boolean}
+/** Read-only story observations; only real dialogue inputs may earn the
+ * elder's outcome, followed by neutral time for the original quest poll. */
+export function* kingElderReadingInputs(read:()=>KingElderObservation):Generator<readonly HeadlessCommand[],void> {
+  const first=read();assert.ok(first.dead);assert.equal(first.told,false);assert.equal(first.complete,false);assert.equal(first.nextTalk,false);
+  for(let tick=0;tick<360&&!read().told;tick++)yield tick%16===0?[{kind:'script',actorId:'nalati.talk',value:0}]:[];
+  assert.ok(read().told,'only the eligible elder reading may publish the return');
+  for(let tick=0;tick<60&&!read().complete;tick++)yield [];
+  const last=read();assert.ok(last.dead);assert.ok(last.told);assert.ok(last.complete,'the original chapter poll must complete');
+  assert.equal(last.nextTalk,false,'do not accept the next chapter');
 }
 
 /** Commands only. The caller lends detached observations, not the encounter,
@@ -92,4 +122,30 @@ export function* kingPhaseInputs(host:KingFightRead,read:()=>KingObservation,row
     for(let tick=0;tick<120&&!host.flags.has('dead:golden-king');tick++)yield [];
     assert.ok(host.flags.has('dead:golden-king'),'the real saved record must publish the King outcome');
   }else assert.ok(final.phase>=through,'the original health threshold must earn the next phase');
+}
+
+/** Unactivated return controller. Victory must first be earned by its own
+ * checked child; this yields only walking, reins, mount and dialogue inputs. */
+export function* kingHomeInputs(host:SimHost,read:()=>KingObservation,rows:NalatiKingData):Generator<readonly HeadlessCommand[]> {
+  assert.ok(host.flags.has('dead:golden-king'));assert.equal(host.flags.has('told:king'),false);
+  assert.equal(host.flags.has('quest:golden-king'),false);assert.equal(read().state,'victory');assert.equal(read().inside,true);
+  for(const commands of chapterWalkInputs(host,'earned-king-exit',kingWalkingRoute(host.player.position,kingExitPoint(rows.room,rows.encounter.portal.end)),2400)){
+    if(!read().inside)break;yield commands;
+  }
+  for(let tick=0;tick<120&&read().inside;tick++)yield [];
+  assert.equal(read().inside,false,'the real exit program must return the player');
+  const taming=nativeTamingOf(host),mount=mountedPlayerOf(host);assert.ok(taming?.companion);assert.ok(mount);
+  const horse=taming.companion;
+  yield* chapterWalkInputs(host,'return-to-field-horse',kingWalkingRoute(host.player.position,horse.position),2400);
+  for(let tick=0;tick<600&&!mount.mounted;tick++){
+    const p=host.player.position,dx=horse.position.x-p.x,dz=horse.position.z-p.z,d=Math.hypot(dx,dz);
+    yield [{kind:'player',moveX:d>2.5?dx/d:0,moveZ:d>2.5?dz/d:0,yaw:Math.atan2(-dx,-dz)},
+      ...(d<3.2&&tick%20===0?[{kind:'script' as const,actorId:'nalati.ride',value:1}]:[])];
+  }
+  assert.equal(mount.mounted,true);assert.equal(mount.horse,horse);
+  for(const [x,z]of kingHomeRoad())yield* chapterRideInputs(host,x,z);
+  yield* chapterCampReturnInputs(host);
+  yield* kingElderReadingInputs(()=>({dead:host.flags.has('dead:golden-king'),told:host.flags.has('told:king'),
+    complete:host.flags.has('quest:golden-king')&&host.quests.find(quest=>quest.def.id==='golden-king')?.isComplete===true,
+    nextTalk:host.flags.has('talked:elder:3')}));
 }
