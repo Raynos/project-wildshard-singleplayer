@@ -5,24 +5,23 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE ab792cd-mvvnrzgu = GLSL** (19:54 Cancun; all 36 green; Nine + Pine + Driftwood phone entry PASS). Next release
-adds NF12 stage 2 (Nine wire 30.15 MB, 29d0a382ac) and the Developer journal cut (10ef1e8893).
-**wildshard-v: f7 table for Jake at qa-2026-10-30-mini-plan.md:22.** For Jake: MF13 dither phone check (Sim longest
-loader frame 110 ms, was 2.25 s); QB17 tmp/sp-o3-mf15/qb17-zip-before-after.mp4. **Open:** MF7, QB20 (phone), CI7/9/12/14.
+**LIVE 55eaf50-mvvpag2a = GLSL** (20:32 Cancun; all 36 green; 3-shard entry PASS): NF12 (Nine wire 30.15 MB),
+Developer journal cut, lever fix. Next: 34220aeca1 (Sky Reach TSL look 62f2e8590a + B4 fix 3453b58fae + Pine door
+fix); 60c0 failed B4 / B18. **For Jake:** QC table qa-2026-10-30 (o1 2508e90724); MF13 dither phone check; QB17 video.
 
-**20:05 Claude 86 % -> G960 3 Opus:** o1 Pine first-hold spike (41-54 ms after entry); o2 visual regression walk
-of Nine + Pine on the GLSL build; o5 Sky Reach GLSL fix (30 dB, custom ambient too bright; TSL look kept), then
-Sunscar. Codex: x1 uniform array cache (109 duplicate uploads / frame at Pine P4); x2 EP2; x6 CI7 (Basis tool cache);
-x8 EP10 Linux diagnostic report, then CI14; x9 CI9 (fixture skip 3b2a56007b; boot + ship one runner next).
-Done: NF12 (29d0a382ac), NT3 closed measured (490 chunks, no gain), PF6 / PF3 / PF10 closed. **P0 19:15:** 94e03bbbdf
-broke Nine entry (fp rig), fixed ab792cd85f. **QC on ab792 (o1, 2508e90724):** Nine at legacy (7.4 vs 7.4 ms P1, walk
-7.8 vs 7.8; f7 was 10.9-12.2); Pine 10-19 % under f7, over legacy (P1 12.6 vs 9.3); Simulator 30 fps both.
+**21:05 Opus: all 5 stood down** (rows left wait for QA: EP12, PF17, NF18; NF16 rest measured: -1 program, needs a
+post capture). Codex: x1 CI12 tapes (Sky, DW bench / reef done; DW trade needs a coin / save port, open); x2 EP2 +
+CI10; x6 CI7 -> CI9; x8 Pine unchanged texture uploads (trample f77b6e3926: -33 % upload bytes); x9 CI9 prepare.
+**CI7 bars PASS** on 60c0 (max 199 s, 1.187x). **CI9:** 55ea ship wait 62 s (was 512). **Finding:** the Roc can die
+falling into the kill plane during its own dive (sp-x1, 46cbeac27d). **QC on ab792:** Nine at legacy (P1 7.4 vs 7.4,
+walk 7.8 vs 7.8; f7 10.9-12.2); Pine 10-19 % under f7, over legacy (P1 12.6 vs 9.3); Simulator 30 fps both.
 
 **Autonomous decisions (for Jake's review):**
 - GLSL is the global default (public too): Pine 44-55 dB, Driftwood 45.7, Nine 41-75; banyan canopy ruled B = GLSL
   (keeps haze TSL dropped, closer to legacy; board 9557e1dc93). Nalati 7/8 at 52-63 dB; grid +170 far crag facets
-  41 dB / 1.29 % accepted (slight tone shift 140 m out). TSL deletion stays NF18 (after QA).
-- Toon gloss gate stays off (shipped look: sun glint on every toon surface); restoring it makes rough toon matte.
+  41 dB / 1.29 % accepted (slight tone shift 140 m out). Sunscar pass. Sky Reach fixed to the TSL look (c9354ebb83,
+  df7b76d110, 62f2e8590a): 7/8; windmill-isle 39.6 dB / 1.13 % (mill tower texel detail) accepted. TSL deletion stays NF18 (after QA).
+- Toon gloss gate stays off (shipped look: sun glint on all toon surfaces).
 - EP12 parked till after QA: L1 look fix ready, no fps; neighbours see L1 only from >= 250 m.
 - EP7 Nine at 44 programs (bar 43); GLSL programs accepted: Nine 72 (bar 70), Pine 111 (bar 100; rest is distinct states, warm-up). EP3 / NF22 / PF15 closed: program sort worth ~1-4 switches, bars met.
 - PF4 closes at the leather-grip merge (skins). PF6 ~0.3 equipment / ~0.09 weather; holstered weapon freezes (clip).
