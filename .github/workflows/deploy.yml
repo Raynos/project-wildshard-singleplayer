@@ -925,10 +925,11 @@ jobs:
           if-no-files-found: warn
 
 
-  # Paired CPU/draw evidence is diagnostic. It never joins the source/SIX wave.
+  # Diagnostics wait for the required wave instead of occupying its runners.
+  # They still run after a required failure and never gate source/SIX/shipping.
   draw-budget:
-    needs: prepare
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    needs: [prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys]
+    if: ${{ always() && !cancelled() && needs.prepare.result == 'success' && (github.event_name == 'push' || github.event_name == 'pull_request') }}
     continue-on-error: true
     runs-on: ubuntu-latest
     timeout-minutes: 20

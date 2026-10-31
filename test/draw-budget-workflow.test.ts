@@ -2,15 +2,22 @@
 import { spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the maintained workflow as the executable source under test.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Execute the maintained Actions condition in a fresh isolated context.
+import { runInNewContext } from 'node:vm';
 import { expect, test } from 'vitest';
 
 const workflow=readFileSync('.github/workflows/deploy.yml','utf8');
 const section=(name:string)=>workflow.split(`\n  ${name}:\n`)[1]?.split(/\n {2}[a-z][a-z0-9-]*:\n/u)[0]??'';
+const dependencies=(source:string):string[]=>{
+  const value=/^ {4}needs: (.+)$/mu.exec(source)?.[1];
+  if(value===undefined)return [];
+  return value.startsWith('[')?value.slice(1,-1).split(',').map(name=>name.trim()):[value];
+};
 
 test('draw diagnostics read exact prepared worlds and never join source, boot or ship prerequisites',()=>{
   const diagnostic=section('draw-budget');
   expect(diagnostic).toContain('continue-on-error: true');
-  expect(diagnostic).toContain('needs: prepare');
+  expect(dependencies(diagnostic)).toContain('prepare');
   expect(diagnostic).toContain('runs-on: ubuntu-latest');
   expect(diagnostic).toContain('timeout-minutes: 20');
   for(const name of ['build-and-deploy','journeys']) {
@@ -30,6 +37,31 @@ test('draw diagnostics read exact prepared worlds and never join source, boot or
   const upload=diagnostic.split('- name: Retain paired draw budget evidence')[1];
   expect(upload).toContain('if: always()');
   expect(upload).toContain('path: tmp/ci-draw-budget/');
+});
+
+test('diagnostics consume no required-wave runner and still report required failures',()=>{
+  const diagnostic=section('draw-budget'),required=dependencies(section('build-and-deploy'));
+  expect(required.length).toBeGreaterThan(0);
+  expect(new Set(dependencies(diagnostic))).toEqual(new Set(required));
+  expect(dependencies(diagnostic)).not.toContain('build-and-deploy');
+  for(const name of required)expect(dependencies(section(name))).not.toContain('draw-budget');
+  const expression=/^ {4}if: \$\{\{ (.+) \}\}$/mu.exec(diagnostic)?.[1];
+  if(expression===undefined)throw new Error('Missing actual diagnostic admission');
+  const states:Record<string,{result:string}>={};
+  for(const name of required)states[name]={result:'success'};
+  const evaluate=(event:string,needs:typeof states,cancelled=false):unknown=>runInNewContext(expression,
+    {github:{event_name:event},needs,always:()=>true,cancelled:()=>cancelled},{timeout:100});
+  for(const event of ['push','pull_request']){
+    expect(evaluate(event,states)).toBe(true);
+    for(const name of required.filter(dependency=>dependency!=='prepare'))for(const result of ['failure','cancelled','skipped']){
+      expect(evaluate(event,{...states,[name]:{result}})).toBe(true);
+    }
+    for(const result of ['failure','cancelled','skipped','pending']){
+      expect(evaluate(event,{...states,prepare:{result}})).toBe(false);
+    }
+    expect(evaluate(event,states,true)).toBe(false);
+  }
+  for(const event of ['workflow_dispatch','schedule'])expect(evaluate(event,states)).toBe(false);
 });
 
 const executor=String.raw`
