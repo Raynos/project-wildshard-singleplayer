@@ -428,11 +428,75 @@ the original measured visit and neither register nor wait for a worker.
 The separate diagnostic CPU source maps were unavailable; no mapped
 hotspot attribution is invented from that profile.
 
-Earlier HEAD 6x CI10 proxy `47392c5322` remains **before only**:
-Home8424.8 ms, scenes library1051.4 ms, product.read879.5 ms. Library and
-read are disjoint; nested assembly/yield envelopes overlap and cannot be
-added. Resume one current same-HEAD exact-cut pair after the urgent warm
-regression; the stale proxy is not its after comparison.
+### CI10 current-HEAD Home proxy (2026-10-31, sp-x8)
+
+The stale `47392c5322` capture is before-only and is not an after
+comparison. The fresh pair uses **one exact `4490a4e-mvwu7cqr` preview**,
+Chromium iPhone 16 Pro 402x681 /screen402x874 /DPR3, 6x page CPU, the
+maintained phone bootstrap and the original 60 s Home-ready bound.
+Two fresh contexts run serially with identical build and provider hashes.
+The before port performs the old `open(ws-assets-v1) -> match` operation
+only for `assetCache.ts`'s exact named-cache query. After uses the landed
+native query (`20bce27290`); every other lookup is passed through.
+Body/status/length/hash checks, ownership and Home barriers remain.
+
+| Native phase | Original lookup port (ms) | Native query (ms) |
+|---|---:|---:|
+| Home | 7,435.1 | 7,289.0 |
+| Scenes library intake | 873.5 | 838.4 |
+| product.read | 726.3 | 731.5 |
+
+Both original Home-ready witnesses pass with 1,038 colliders /zero forest
+records and no captured page faults. The API ports report 412 /414
+lookups at Home completion and zero refusals: asynchronous Road progress
+differs, not the admitted Home. All 249 other resource URL/decoded-byte
+observations match; the remaining request is the ordinary `version.json`
+timestamp nonce, with the same 62-byte response and identical build data.
+The 146.1 ms Home difference is **one small, order-confounded local pair**,
+not an isolated gain, physical-phone result or CI timeout cure.
+product.read is neutral; the library difference is only 35.1 ms.
+
+Mapped sampled self costs in the current after profile:
+
+| Phase | Item | Self ms |
+|---|---|---:|
+| product.read | Native/program frame | 326.4 |
+| product.read | Cache.put /fetch | 45.3 /40.3 |
+| product.read | Bounded body reader | 25.0 |
+| product.read | Tier string traversal | 20.6 |
+| Library | Native/program frame | 200.8 |
+| Library | Cache.put | 70.1 |
+| Library | Position dequantization | 41.5 |
+| Library | Wasm decoder | 22.9 |
+| Library | Home snapshot write | 15.0 |
+
+These native/program samples do not isolate an internal browser cost.
+Nested preparation envelopes overlap and cannot be summed. Retained
+private maps now join the exact served build; no old missing map is
+substituted. No remaining sampled JavaScript item explains the CI
+19.1 s Home envelope by itself. Simulator loading acceptance stays open.
+The exact cache-query cut is delivered, but this pair does not justify
+a broader cache, lifetime or admission change.
+
+After both timing records and profiles were written, an optional
+read-only Road-body extraction failed to settle. Its private caller
+bounded the Road-ready wait but omitted a bound on the subsequent
+evaluation; the existing four-minute browser lease expired (exit143).
+Raw refusal is retained; **no archive input fixture or whole-command
+PASS is claimed**, and neither timed leg was repeated. Any future
+capture must bound that evaluation and record its stage first. The
+unmeasured full-byte comparison draft remains unshipped. All browsers
+closed and the sole preview was normally stopped.
+
+The Road audit separately found a concrete admission gap:
+`b5bace4479` verifies the full restored reference hash before decoding,
+so a valid same-length scalar mutation refuses. All 14 archive/tile/
+coarse controls, root types and typed lint pass. This is a correctness
+fix with no Road timing claim; the tens-of-ms Road target remains open.
+
+Evidence: `tmp/sp-x8-ci10-home-head/{before,after}.json`, their CPU
+profiles and mapped `*-ranked.json`, the exact private maps, closure log
+and `road-archives-refusal.json`. X2 has the code SHA and retained paths.
 
 
 ### CI9 Nalati uncached author (2026-10-31, sp-x8 hourly batch)
