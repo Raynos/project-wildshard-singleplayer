@@ -56,7 +56,9 @@ Shared named documents use `registeredJsonSchema(name)` from
 `@wildshard/sdk/formatJsonSchema`. The exact names and defining contracts are
 registered in `@wildshard/format/registeredJson`; `product.json(name)` infers
 their types, checks their provenance and retains the original consumer
-validation without rewriting decoded values. Existing unported private JSON
+validation without rewriting decoded values. The inferred type is the wire
+input; defaults and frozen parsed outputs belong to the defining consumer.
+Existing unported private JSON
 uses its checked bridge until its custom-section exit row is complete.
 Streamed placement JSON under `world/placements/`, `scenes/placements/`,
 `world/foliage/` and `world/piers/` shares `WorldScenePlacementSchema`.

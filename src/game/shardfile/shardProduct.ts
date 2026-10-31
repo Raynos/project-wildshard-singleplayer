@@ -40,7 +40,8 @@ export interface ShardProduct {
   readonly url: (name: string) => string;
 }
 
-/** Registered names infer their existing format value; remaining private JSON
+/** Registered names infer their wire input; defining consumers apply defaults.
+ * Remaining private JSON
  * retains the checked compatibility path while its CS3-CS9 exits are open. */
 export interface JsonReader {
   <Name extends RegisteredJsonName>(name:Name):Promise<RegisteredJsonValues[Name]>;

@@ -8,10 +8,13 @@ import { FigureCatalogueSchema } from './figures';
 import { QuestTraderSchema } from './namedJsonContracts';
 import { WorldScenePlacementSchema,parseWorldScenePlacement } from './worldScenePlacement';
 import { QuestPageInteractionsSchema,parseQuestPageInteractions } from './questInteractions';
+import { PackedCreatureLooksSchema } from './speciesLooks';
 
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'look/creature-looks.json':{readonly schema:typeof PackedCreatureLooksSchema;readonly source:'@wildshard/format/speciesLooks#PackedCreatureLooksSchema'};
+  readonly 'actors/species-looks.json':{readonly schema:typeof PackedCreatureLooksSchema;readonly source:'@wildshard/format/speciesLooks#PackedCreatureLooksSchema'};
   readonly 'people/catalogue.json':{readonly schema:typeof FigureCatalogueSchema;readonly source:'@wildshard/format/figures#FigureCatalogueSchema'};
   readonly 'quests/chapter-director.json':{readonly schema:typeof ChapterDirectorSchema;readonly source:'@wildshard/format/chapterDirector#ChapterDirectorSchema'};
   readonly 'quests/story.json':{readonly schema:typeof QuestStorySchema;readonly source:'@wildshard/format/questStory#QuestStorySchema'};
@@ -24,6 +27,8 @@ export interface RegisteredJsonContracts {
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'look/creature-looks.json': {schema:PackedCreatureLooksSchema,source:'@wildshard/format/speciesLooks#PackedCreatureLooksSchema'},
+  'actors/species-looks.json': {schema:PackedCreatureLooksSchema,source:'@wildshard/format/speciesLooks#PackedCreatureLooksSchema'},
   'people/catalogue.json': {schema:FigureCatalogueSchema,source:'@wildshard/format/figures#FigureCatalogueSchema'},
   'quests/chapter-director.json': {schema:ChapterDirectorSchema,source:'@wildshard/format/chapterDirector#ChapterDirectorSchema'},
   'quests/story.json': {schema:QuestStorySchema,source:'@wildshard/format/questStory#QuestStorySchema'},
@@ -36,7 +41,8 @@ export const REGISTERED_JSON:RegisteredJsonContracts = {
   'quests/lanterns.json': {schema:QuestPageInteractionsSchema,source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'},
 };
 export type RegisteredJsonName=keyof typeof REGISTERED_JSON;
-export type RegisteredJsonValues={readonly[Name in RegisteredJsonName]:v.InferOutput<(typeof REGISTERED_JSON)[Name]['schema']>};
+/** JSON decoding preserves the wire input; defaults belong to its consumer. */
+export type RegisteredJsonValues={readonly[Name in RegisteredJsonName]:v.InferInput<(typeof REGISTERED_JSON)[Name]['schema']>};
 
 /** Existing streamed placement names; no shard identity or draw policy. */
 export type RegisteredPlacementJsonName = `world/placements/${string}.json`|`scenes/placements/${string}.json`
@@ -70,6 +76,8 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'look/creature-looks.json':
+    case 'actors/species-looks.json':v.parse(PackedCreatureLooksSchema,value);break;
     case 'people/catalogue.json':v.parse(FigureCatalogueSchema,value);break;
     case 'quests/chapter-director.json':parseChapterDirector(value);break;
     case 'quests/story.json':parseQuestStory(value);break;
