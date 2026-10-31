@@ -1,3 +1,4 @@
+import {registeredJsonSchema} from '@wildshard/sdk/formatJsonSchema';
 
 import { nameBlob, nameMeshoptBlob, type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { worldSceneRecipe as parseWorldScene, type AuthorWorldScenes as WorldScenesSection } from '@wildshard/sdk/worldScenes';
@@ -21,7 +22,7 @@ const scene = parseWorldScene({ scene: { version: 1, root: 'root', nodes: [
   ...models.map(row => ({ kind: 'mesh', id: row.id, geometry: row.id, material: 'body', missing: 'empty',
     name: row.part, castShadow: true, visible: row.id !== 'canoe' })),
 ], materials: [{ kind: 'port', id: 'body', source: 'body' }] }, imports: [] });
-export const QUEST_RIDE_BLOBS: NamedBlobType[] = [nameBlob('scenes/quest-rides.json', 'json', new TextEncoder().encode(JSON.stringify(scene)))];
+export const QUEST_RIDE_BLOBS: NamedBlobType[] = [nameBlob('scenes/quest-rides.json', 'json', new TextEncoder().encode(JSON.stringify(scene)), {jsonSchema:registeredJsonSchema('scenes/quest-rides.json')})];
 export const QUEST_RIDE_LIBRARY: WorldScenesSection['libraries'][number] = {
   id: 'quest-rides', kind: 'owned', models: models.map(row => ({ id: row.id, file: row.file, attributes: {} })),
 };

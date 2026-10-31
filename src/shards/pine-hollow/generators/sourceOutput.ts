@@ -339,7 +339,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Pine
     return nameBlob(name, 'bin', sources.bytes(name), { variantOf: materialVariantOf(url), ...(tier === undefined ? {} : { tier }) });
   }));
   const peopleFile = emitNamedBlobs([nameBlob('people/catalogue.json', 'json', new TextEncoder().encode(encodeCanonicalJson(pineFigureCatalogue(people.rows))), { jsonSchema: registeredJsonSchema('people/catalogue.json') })]);
-  const drawFile = emitNamedBlobs([nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(wildlifeDraw(flock.ranges))))]);
+  const drawFile = emitNamedBlobs([nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(wildlifeDraw(flock.ranges))), {jsonSchema:registeredJsonSchema('look/wildlife-draw.json')})]);
   const lifeProgram = { script: life.script, bytes: '' };
   // D97: the quest page's chapter runs the compiled lead as the quest runtime does (the static page names its unset module)
   const page = emitNamedBlobs([questPageBlob(questPage(sources).PINE_QUEST_PAGE, lifeProgram)]), stale = output.namedFiles.find(file => file.name === 'quests/page-composition.json');

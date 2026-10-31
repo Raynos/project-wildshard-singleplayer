@@ -10,6 +10,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { emitNamedBlobs } from '../src/sdk/blobs';
 import { portalLookRows } from '../src/shards/nine-dragon-stack/generators/portalLook';
 import { portalPlanRows } from '../src/shards/nine-dragon-stack/generators/portalEntries';
+import { fixtureJsonCheck, fixtureProductFile } from './fixtures/productFile';
 
 const isPoints = (node: Object3D | undefined): node is Points => node instanceof Points;
 
@@ -100,7 +101,8 @@ test('real portal binary dependencies retain all deterministic float32 words', a
   expect(row.buffers.every(buffer => buffer.bytes === undefined)).toBe(true);
   const product = (missing: boolean) => createShardProduct({ slug: 'binary-portals', revision: 1,
     shardfile: emptyShardfile({ slug: 'binary-portals', name: 'Portals', author: 'Fixture', revision: 1, seed: 1 }), sections: new Map(),
-    files: new Map(emitted.files.flatMap(file => file.name === undefined || missing && file.kind === 'bin' ? [] : [[file.name, { hash: file.hash, url: file.hash }]])),
+    files: new Map(emitted.files.flatMap(file => file.name === undefined || missing && file.kind === 'bin' ? [] : [[file.name, fixtureProductFile(file.name, { hash: file.hash, url: file.hash, ...(file.jsonSchema === undefined ? {} : {jsonSchema:file.jsonSchema}) })]])),
+    jsonCheck: fixtureJsonCheck,
     read: hash => { const bytes = emitted.assets.get(hash); if (bytes === undefined) throw new Error('Missing verified blob'); return Promise.resolve(bytes); } });
   const draws = [{ kind: 'buffered', file: 'world/portals/sparks.json', material: 'paint' }];
   await expect(prepareSceneDrawRows(product(true), draws)).rejects.toThrow('Missing scene buffer binary file');

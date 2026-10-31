@@ -1,3 +1,4 @@
+import {registeredJsonSchema} from '@wildshard/sdk/formatJsonSchema';
 import { CircleGeometry, Matrix4, MeshBasicMaterial, TorusGeometry } from 'three';
 import { worldSceneBuffers as parseSceneBuffers, worldSceneRecipe as parseWorldScene, worldSceneRows as parseWorldScenes } from '@wildshard/sdk/worldScenes';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
@@ -34,7 +35,7 @@ export function portalLookRows(): { blobs: NamedBlob[]; scenes: WorldScenesSecti
   const shapes = [['ring', new TorusGeometry(plan.ring.r, plan.ring.tube, 8, 48)], ['disc', new CircleGeometry(plan.ring.r - plan.ring.tube * .5, 40)]] as const;
   const blobs = shapes.map(([id, geometry]) => nameBlob(`world/portals/${id}.glb`, 'glb', compressGlb(staticGlb([{ geometry, material, nativeAttributes: true, compactIndex: true }], id))));
   for (const [, geometry] of shapes) geometry.dispose(); material.dispose();
-  return { blobs: [...blobs, ...binary, nameBlob('world/portals/scene.json', 'json', json(scene)), nameBlob('world/portals/sparks.json', 'json', json(sparks), { dependencies: binary.map(row => row.file.hash) })],
+  return { blobs: [...blobs, ...binary, nameBlob('world/portals/scene.json', 'json', json(scene), {jsonSchema:registeredJsonSchema('world/portals/scene.json')}), nameBlob('world/portals/sparks.json', 'json', json(sparks), { jsonSchema:registeredJsonSchema('world/portals/sparks.json'), dependencies: binary.map(row => row.file.hash) })],
     scenes: parseWorldScenes({ version: 1, libraries: [{ id: 'portals', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/portals/${id}.glb` })) }],
     materials: ['ring', 'disc', 'sparks'].map(id => ({ id: `portal-${id}`, kind: 'look', look: `nine-portal-${id}` })),
     steps: [{ id: 'portals', scene: 'world/portals/scene.json', geometry: { ring: { library: 'portals', model: 'ring' }, disc: { library: 'portals', model: 'disc' } },

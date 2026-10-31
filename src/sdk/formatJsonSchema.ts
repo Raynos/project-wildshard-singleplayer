@@ -1,5 +1,5 @@
 import { AudioSceneSchema } from '@wildshard/format/audioScene';
-import { ForestGroundLayoutSchema } from '@wildshard/format/forestPage';
+import { ForestGroundLayoutSchema, ForestPageSchema } from '@wildshard/format/forestPage';
 import { CaveFileSchema, CaveInteriorSchema } from '@wildshard/format/caveInterior';
 import { SceneBuffersSchema } from '@wildshard/format/sceneBuffers';
 import { BakedTilesSchema } from '@wildshard/format/bakedTiles';
@@ -192,6 +192,7 @@ const finiteNumbers = new Set<object>([
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'audioScene.AudioScene': AudioSceneSchema,
+  'forestPage.ForestPage': ForestPageSchema,
   'forestPage.ForestGroundLayout': ForestGroundLayoutSchema,
   'caveInterior.CaveFile': CaveFileSchema,
   'caveInterior.CaveInterior': CaveInteriorSchema,
@@ -412,6 +413,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'binarySource.BinarySource': BinarySourceSchema,
   'namedJsonContracts.QuestTrader': QuestTraderSchema,
   'namedJsonContracts.AdventurePersistence': AdventurePersistenceSchema,
+  'namedJsonContracts.PosedLibrary': PosedLibrarySchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

@@ -1,4 +1,4 @@
-import { ForestGroundLayoutSchema } from './forestPage';
+import { ForestGroundLayoutSchema, ForestPageSchema } from './forestPage';
 import { CaveFileSchema, CaveInteriorSchema } from './caveInterior';
 import * as v from 'valibot';
 import { AudioSceneSchema } from './audioScene';
@@ -13,7 +13,7 @@ import { QuestServiceActionsSchema,parseQuestServiceActions } from './questSteps
 import { QuestStorySchema,parseQuestStory } from './questStory';
 import { ChapterDirectorSchema,parseChapterDirector } from './chapterDirector';
 import { FigureCatalogueSchema } from './figures';
-import { AdventurePersistenceSchema,QuestTraderSchema } from './namedJsonContracts';
+import { AdventurePersistenceSchema,PosedLibrarySchema,QuestTraderSchema } from './namedJsonContracts';
 import { WorldScenePlacementSchema,parseWorldScenePlacement } from './worldScenePlacement';
 import { QuestPageInteractionsSchema,parseQuestPageInteractions } from './questInteractions';
 import { PageLifeSchema,parsePageLife } from './pageLife';
@@ -24,9 +24,32 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'scenes/cascade.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
+  readonly 'scenes/cove.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
+  readonly 'scenes/hibiscus.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
+  readonly 'scenes/logs.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
+  readonly 'scenes/moorings.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
+  readonly 'scenes/palms.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
+  readonly 'scenes/pool.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
+  readonly 'scenes/quest-rides.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
+  readonly 'scenes/reef.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
+  readonly 'scenes/rocks.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
+  readonly 'scenes/streams.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
+  readonly 'scenes/trail.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
+  readonly 'scenes/wreck.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
+  readonly 'scenes/zipline.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
+  readonly 'world/portals/scene.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
+  readonly 'world/cards/capped-halos.json':{readonly schema:typeof SceneBuffersSchema;readonly source:'@wildshard/format/sceneBuffers#SceneBuffersSchema'};
+  readonly 'world/cards/open-halos.json':{readonly schema:typeof SceneBuffersSchema;readonly source:'@wildshard/format/sceneBuffers#SceneBuffersSchema'};
+  readonly 'world/cards/open-streaks.json':{readonly schema:typeof SceneBuffersSchema;readonly source:'@wildshard/format/sceneBuffers#SceneBuffersSchema'};
+  readonly 'world/portals/sparks.json':{readonly schema:typeof SceneBuffersSchema;readonly source:'@wildshard/format/sceneBuffers#SceneBuffersSchema'};
+  readonly 'look/fish-draw.json':{readonly schema:typeof PosedLibrarySchema;readonly source:'@wildshard/format/namedJsonContracts#PosedLibrarySchema'};
+  readonly 'look/gull-draw.json':{readonly schema:typeof PosedLibrarySchema;readonly source:'@wildshard/format/namedJsonContracts#PosedLibrarySchema'};
+  readonly 'look/wildlife-draw.json':{readonly schema:typeof PosedLibrarySchema;readonly source:'@wildshard/format/namedJsonContracts#PosedLibrarySchema'};
   readonly 'audio/scene.json':{readonly schema:typeof AudioSceneSchema;readonly source:'@wildshard/format/audioScene#AudioSceneSchema'};
   readonly 'people/cards.json':{readonly schema:typeof KitFigureCardsSchema;readonly source:'@wildshard/format/questFigures#KitFigureCardsSchema'};
   readonly 'quests/persistence.json':{readonly schema:typeof AdventurePersistenceSchema;readonly source:'@wildshard/format/namedJsonContracts#AdventurePersistenceSchema'};
+  readonly 'world/forest-page.json':{readonly schema:typeof ForestPageSchema;readonly source:'@wildshard/format/forestPage#ForestPageSchema'};
   readonly 'world/floor.json':{readonly schema:typeof ForestGroundLayoutSchema;readonly source:'@wildshard/format/forestPage#ForestGroundLayoutSchema'};
   readonly 'world/crag-cave.json':{readonly schema:typeof CaveFileSchema;readonly source:'@wildshard/format/caveInterior#CaveFileSchema'};
   readonly 'world/cave-interior.json':{readonly schema:typeof CaveInteriorSchema;readonly source:'@wildshard/format/caveInterior#CaveInteriorSchema'};
@@ -50,9 +73,32 @@ export interface RegisteredJsonContracts {
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'scenes/cascade.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
+  'scenes/cove.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
+  'scenes/hibiscus.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
+  'scenes/logs.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
+  'scenes/moorings.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
+  'scenes/palms.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
+  'scenes/pool.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
+  'scenes/quest-rides.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
+  'scenes/reef.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
+  'scenes/rocks.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
+  'scenes/streams.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
+  'scenes/trail.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
+  'scenes/wreck.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
+  'scenes/zipline.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
+  'world/portals/scene.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
+  'world/cards/capped-halos.json':{schema:SceneBuffersSchema,source:'@wildshard/format/sceneBuffers#SceneBuffersSchema'},
+  'world/cards/open-halos.json':{schema:SceneBuffersSchema,source:'@wildshard/format/sceneBuffers#SceneBuffersSchema'},
+  'world/cards/open-streaks.json':{schema:SceneBuffersSchema,source:'@wildshard/format/sceneBuffers#SceneBuffersSchema'},
+  'world/portals/sparks.json':{schema:SceneBuffersSchema,source:'@wildshard/format/sceneBuffers#SceneBuffersSchema'},
+  'look/fish-draw.json':{schema:PosedLibrarySchema,source:'@wildshard/format/namedJsonContracts#PosedLibrarySchema'},
+  'look/gull-draw.json':{schema:PosedLibrarySchema,source:'@wildshard/format/namedJsonContracts#PosedLibrarySchema'},
+  'look/wildlife-draw.json':{schema:PosedLibrarySchema,source:'@wildshard/format/namedJsonContracts#PosedLibrarySchema'},
   'audio/scene.json':{schema:AudioSceneSchema,source:'@wildshard/format/audioScene#AudioSceneSchema'},
   'people/cards.json':{schema:KitFigureCardsSchema,source:'@wildshard/format/questFigures#KitFigureCardsSchema'},
   'quests/persistence.json':{schema:AdventurePersistenceSchema,source:'@wildshard/format/namedJsonContracts#AdventurePersistenceSchema'},
+  'world/forest-page.json':{schema:ForestPageSchema,source:'@wildshard/format/forestPage#ForestPageSchema'},
   'world/floor.json':{schema:ForestGroundLayoutSchema,source:'@wildshard/format/forestPage#ForestGroundLayoutSchema'},
   'world/crag-cave.json':{schema:CaveFileSchema,source:'@wildshard/format/caveInterior#CaveFileSchema'},
   'world/cave-interior.json':{schema:CaveInteriorSchema,source:'@wildshard/format/caveInterior#CaveInteriorSchema'},
@@ -133,9 +179,32 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'scenes/cascade.json':
+    case 'scenes/cove.json':
+    case 'scenes/hibiscus.json':
+    case 'scenes/logs.json':
+    case 'scenes/moorings.json':
+    case 'scenes/palms.json':
+    case 'scenes/pool.json':
+    case 'scenes/quest-rides.json':
+    case 'scenes/reef.json':
+    case 'scenes/rocks.json':
+    case 'scenes/streams.json':
+    case 'scenes/trail.json':
+    case 'scenes/wreck.json':
+    case 'scenes/zipline.json':
+    case 'world/portals/scene.json':parseWorldScene(value);break;
+    case 'world/cards/capped-halos.json':
+    case 'world/cards/open-halos.json':
+    case 'world/cards/open-streaks.json':
+    case 'world/portals/sparks.json':parseSceneBuffers(value);break;
+    case 'look/fish-draw.json':
+    case 'look/gull-draw.json':
+    case 'look/wildlife-draw.json':v.parse(PosedLibrarySchema,value);break;
     case 'audio/scene.json':v.parse(AudioSceneSchema,value);break;
     case 'people/cards.json':v.parse(KitFigureCardsSchema,value);break;
     case 'quests/persistence.json':v.parse(AdventurePersistenceSchema,value);break;
+    case 'world/forest-page.json':v.parse(ForestPageSchema,value);break;
     case 'world/floor.json':v.parse(ForestGroundLayoutSchema,value);break;
     case 'world/crag-cave.json':v.parse(CaveFileSchema,value);break;
     case 'world/cave-interior.json':v.parse(CaveInteriorSchema,value);break;

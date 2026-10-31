@@ -227,7 +227,8 @@ const cardSteps = (['open', 'capped'] as const).map(caps => {
 const CARD_BLOBS = [...cardFiles].map(([text, file]) => {
   const dependencies = cardDependencies.get(file);
   if (dependencies === undefined) throw new Error('Missing presentation dependencies');
-  return nameBlob(file, 'json', new TextEncoder().encode(text), { dependencies });
+  const jsonSchema=registeredJsonSchema(file);
+  return nameBlob(file, 'json', new TextEncoder().encode(text), { dependencies, ...(jsonSchema===undefined?{}:{jsonSchema}) });
 });
 const portalLook = portalLookRows();
 const NINE_SCENE_BLOBS: NamedBlob[] = [...castBlobs(), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue), { jsonSchema: registeredJsonSchema('models/world-scenes.json') }), nameBlob('world/scenes/dressing.json', 'json', json(recipe), {jsonSchema:registeredJsonSchema('world/scenes/dressing.json')}),

@@ -594,3 +594,61 @@ the original index cap, defining provenance and native checks. It is not
 a registration pass or permission to retry a subset of the withdrawn
 slice. Other known cross-name native contracts remain source-first work;
 CS2 cannot yet be marked done.
+
+### CS2: native scene aliases and the admitted forest page
+
+**2026-10-31, sp-x1.** Source-first registration keeps 23 existing
+logical names: 15 `WorldSceneSchema` recipes across modern Driftwood,
+Pine and Nine, four Nine `SceneBuffersSchema` documents, three
+`PosedLibrarySchema` draw libraries across Driftwood and Pine, and
+Pine's existing `ForestPageSchema` under its explicit G571 waiver.
+The original whole-document native parsers remain authoritative.
+Only defining metadata is added; encoding expressions, dependencies,
+consumers, resources and collider data retain their original values.
+Neither legacy tree nor the withdrawn 62 weld documents is registered.
+
+The SDK names the two existing PosedLibrary and ForestPage wire roots
+so metadata resolves the actual defining native schemas. The original
+portal and inner-fish fixtures use the real file metadata helper;
+original geometry, ownership, retirement and teardown assertions stay.
+Five focused suites / 48 controls pass in 11.46 s; the final inner-fish
+fixture audit independently passes its original seven controls. Root
+and test types and touched typed lint pass.
+
+One normal AFTER publisher completes in 44.09 s (six products reported
+built); the three audited products independently pass ordinary strict
+admission and all 23 registered documents pass native validation. Actual
+index sizes equal the unchanged-canonical-serializer projections:
+Driftwood 994,362 to 995,193 B, Pine 1,703,170 to 1,757,786 B, and Nine
+1,032,432 to 1,061,329 B, all under the unchanged 2,000,000 B cap. The
+five original portal/buffer, Driftwood named-file, ambient-owner, Pine
+runtime-mirror and Nine world-scene suites pass all 25 cases in 25.7 s.
+
+Of **2,215 indexed payload paths / 352,445,954 B**, 2,214 are
+byte-identical. Precisely 23 defining metadata records change in the
+three indexes. Custom schemas and all other index fields are exact,
+apart from normally refreshed source/validator build receipts. Both
+ordered pack inventories and offsets are exact; every original and
+current pack hash reconstructs from its actual member bytes.
+
+The original raw comparator fails on exactly Nine's 164-byte
+`look/map` record, and that failure is retained. Its only changed field
+is `map.tilesHash`: `c68ef3ed…17216` to `3020b0de…131a5`, equal to
+current `mapTilesHash`. Reconstructing the full old source fingerprint
+identifies only `generators/worldScenes.ts` and `generators/portalLook.ts`
+metadata options among map inputs. The image remains exactly
+`ce62e427…9fefd`; Driftwood and Pine stamps remain unchanged. Jake's
+G872 ruling accepts this exact case only: no tolerance, stamp freeze or
+weaker freshness check. All 62 weld registrations stay withdrawn.
+
+The source-only six-primary remainder scan verifies each physical body
+hash before filtering registered names. It reports 169 distinct names
+after this candidate, not full-24 or current-product admission: CS3
+scenes/sources 42, CS4 other ground 3, CS5 quests 14, CS6 actors and
+programs 9, CS7 appearance/held/weather 25, CS8 encounters/riding 9,
+CS9 headless/views 5, and the unchanged 62-name index-footprint exit.
+Those family assignments are open ownership, not completed defining
+contracts. For example, Driftwood keeper/return/quest row roots already
+exist but still need complete source and approved-owner qualification;
+Nalati's specimen/dressing roots still need their one-user/genericity
+exit. **CS2 remains open** with these concrete remainders.

@@ -1,5 +1,6 @@
 
 
+import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { forestPageRows } from '@wildshard/sdk/worldScenes';
 import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { CABIN_LIFE } from './cabinLook';
@@ -58,6 +59,6 @@ export const forestPage: (sources: PineSources) => ForestPage = perSources((sour
       ...(['phone', 'desktop'] as const).flatMap(tier => ['crag-cliff', 'crag-boulder', 'scree'].map((kind): { place: string; tier: string } | { object: string; tier: string } => ({ place: `crags.${tier}.${kind}`, tier }))
         .concat([{ object: `crags.${tier}`, tier }]))],
   });
-  const FOREST_PAGE_BLOB: NamedBlobType = nameBlob('world/forest-page.json', 'json', new TextEncoder().encode(JSON.stringify(FOREST_PAGE)));
+  const FOREST_PAGE_BLOB: NamedBlobType = nameBlob('world/forest-page.json', 'json', new TextEncoder().encode(JSON.stringify(FOREST_PAGE)), { jsonSchema: registeredJsonSchema('world/forest-page.json') });
   return { FOREST_PAGE, FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB };
 });
