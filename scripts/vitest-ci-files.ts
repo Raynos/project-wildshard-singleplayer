@@ -4,6 +4,8 @@ export const CI_NATIVE_GROUPS = {
   'escape-titan': [
     'test/tooling/parity/browser-escape.test.mjs',
     'test/nalati-titan-verbs.test.ts',
+  ],
+  'native-routes': [
     'test/driftwood-optional-verbs.test.ts',
     'test/driftwood-trade-verbs.test.ts',
     'test/nalati-patrol-verbs.test.ts',

@@ -101,7 +101,8 @@ test('parallel and dedicated native CI discover every existing file exactly once
  expect(nativeJob).toContain("WS_VITEST_MAX_WORKERS: '1'");
  for(const file of ['test/pine-quest-verbs.test.ts','test/pine-door-continuation.test.ts','test/native-runtime-observation.test.ts','test/driftwood-story-verbs.test.ts','test/sky-progression-verbs.test.ts','test/nalati-discovery-verbs.test.ts','test/nalati-chapter-one.test.ts','test/nalati-titan-verbs.test.ts','test/driftwood-optional-verbs.test.ts','test/driftwood-trade-verbs.test.ts','test/nalati-patrol-verbs.test.ts','test/physics-nalati-headless.test.ts','test/nalati-chapter-binding.test.ts','test/nalati-qara-verbs.test.ts'])
   expect(serial).toContain(file);
- expect(CI_NATIVE_GROUPS['escape-titan']).toContain('test/driftwood-trade-verbs.test.ts');
+ expect(CI_NATIVE_GROUPS['native-routes']).toContain('test/driftwood-trade-verbs.test.ts');
+ expect(CI_NATIVE_GROUPS['escape-titan']).not.toContain('test/driftwood-trade-verbs.test.ts');
  expect(CI_NATIVE_GROUPS['stories-qara']).not.toContain('test/driftwood-trade-verbs.test.ts');
  expect(nativeJob).toContain('needs: prepare');
  expect(nativeJob).toContain('name: test-products');
@@ -119,10 +120,16 @@ test('parallel and dedicated native CI discover every existing file exactly once
  expect(nativeJob).toContain('tmp/ci-native-escape/warm-read.json');
  const nativeRuns=[...nativeJob.matchAll(/pnpm exec vitest run (.+?) --config scripts\/vitest-native-escape\.config.ts/gu)]
   .map(match=>match[1]?.split(/\s+/u)??[]);
- expect(nativeRuns[0]).toEqual(['test/tooling/parity/browser-escape.test.mjs']);
- expect(nativeRuns.slice(0,2).flat()).toEqual([...CI_NATIVE_GROUPS['escape-titan']]);
- expect(nativeRuns[2]).toEqual([...CI_NATIVE_GROUPS['stories-qara']]);
- expect(nativeRuns[3]).toEqual([...CI_NATIVE_GROUPS['chapter-one']]);
+ const runsByGroup=new Map<string,string[]>();
+ for(const step of nativeJob.split('\n      - ')){
+  const files=/pnpm exec vitest run (.+?) --config scripts\/vitest-native-escape\.config\.ts/u.exec(step)?.[1];
+  if(files===undefined)continue;
+  const group=/matrix.group == '([^']+)'/u.exec(step)?.[1];
+  if(group===undefined)throw new Error('Native command must belong to an explicit runner group');
+  runsByGroup.set(group,[...(runsByGroup.get(group)??[]),...files.split(/\s+/u)]);
+ }
+ expect(new Set(runsByGroup.keys())).toEqual(new Set(Object.keys(CI_NATIVE_GROUPS)));
+ for(const [group,files] of Object.entries(CI_NATIVE_GROUPS))expect(runsByGroup.get(group)).toEqual([...files]);
  expect(CI_NATIVE_GROUPS['chapter-one']).toEqual(['test/nalati-chapter-one.test.ts']);
  expect(CI_NATIVE_GROUPS['stories-qara']).not.toContain('test/nalati-chapter-one.test.ts');
  expect(nativeJob).toContain('timeout-minutes: 20');

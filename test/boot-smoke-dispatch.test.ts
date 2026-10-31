@@ -768,10 +768,14 @@ test('recovery requires both exact-source native groups and preserves historical
   }
 });
 
-test('the dedicated chapter source requires all three native groups exactly once',()=>{
-  const groups=['escape-titan','stories-qara','chapter-one'];
+test('chapter and independent routes require every reviewed native group exactly once',()=>{
+ for(const groups of [
+  ['escape-titan','stories-qara','chapter-one'],
+  ['escape-titan','stories-qara','chapter-one','native-routes'],
+ ]){
   const fixture=splitNativeRecoveryFixture(groups);
-  expect(recoverySource('123',fixture.query)).toEqual({sha,run:'123'});
+  if(groups.length===4)expect(()=>recoverySource('123',fixture.query)).toThrow('merged topology');
+  else expect(recoverySource('123',fixture.query)).toEqual({sha,run:'123'});
   for(const group of groups){
     const name=`native-escape (${group})`;
     for(const verdict of ['failure','cancelled','skipped','timed_out']){
@@ -787,18 +791,45 @@ test('the dedicated chapter source requires all three native groups exactly once
     const duplicate=splitNativeRecoveryFixture(groups);duplicate.rows.push([name,'completed','success']);
     expect(()=>recoverySource('123',duplicate.query)).toThrow();
   }
-  for(const matrix of [['escape-titan','chapter-one'],['escape-titan','stories-qara','stories-qara'],['escape-titan','stories-qara','foreign']]){
+  for(const matrix of [['escape-titan','chapter-one'],['escape-titan','stories-qara','stories-qara'],['escape-titan','stories-qara','foreign'],
+    ['escape-titan','stories-qara','chapter-one','foreign'],['escape-titan','stories-qara','native-routes','native-routes']]){
     const malformed=splitNativeRecoveryFixture(matrix);
     expect(()=>recoverySource('123',malformed.query)).toThrow('native topology');
   }
-  const ready=mergedReadyFixture();
-  ready.state.source=ready.state.source.replace('group: [escape-titan, stories-qara]','group: [escape-titan, stories-qara, chapter-one]');
-  const model=ready.details.find(row=>row.name==='native-escape (stories-qara)');
-  if(model===undefined)throw new Error('Missing ready native fixture');
-  ready.details.push({...model,name:'native-escape (chapter-one)',steps:[]});
-  expect(readySource('123',liveBuild,ready.state.query,readyNow).bootPublishRequired).toBe(true);
-  ready.details.pop();
-  expect(()=>readySource('123',liveBuild,ready.state.query,readyNow)).toThrow('inventory');
+  const makeReady=()=>{
+    const ready=mergedReadyFixture();
+    ready.state.source=ready.state.source.replace('group: [escape-titan, stories-qara]',`group: [${groups.join(', ')}]`);
+    const model=ready.details.find(row=>row.name==='native-escape (stories-qara)');
+    if(model===undefined)throw new Error('Missing ready native fixture');
+    for(const group of groups.slice(2))ready.details.push({...model,name:`native-escape (${group})`,steps:[]});
+    return ready;
+  };
+  const ready=makeReady(),proof=readySource('123',liveBuild,ready.state.query,readyNow);
+  expect(proof.bootPublishRequired).toBe(true);
+  expect(proof.jobs.filter(row=>!['build-and-deploy','phone-route'].includes(row.name))).toHaveLength(33+groups.length);
+  const completed=makeReady();
+  completed.state.run.status='completed';completed.state.run.conclusion='success';
+  completed.ship.status='completed';completed.ship.conclusion='success';
+  completed.ship.completed_at='2026-10-30T21:31:00Z';
+  completed.ship.steps.push({name:'Publish exact-SHA proof outcome',status:'completed',conclusion:'success',number:2});
+  completed.state.boot='success\thttps://github.com/Raynos/project-wildshard-singleplayer/actions/runs/123';
+  expect(recoverySource('123',completed.state.query)).toEqual({sha,run:'123'});
+  for(const group of groups){
+    const name=`native-escape (${group})`;
+    for(const verdict of ['failure','cancelled','skipped','timed_out',null]){
+      const broken=makeReady(),row=broken.details.find(candidate=>candidate.name===name);
+      if(row===undefined)throw new Error('Missing ready route group');
+      row.status=verdict===null?'in_progress':'completed';row.conclusion=verdict;
+      expect(()=>readySource('123',liveBuild,broken.state.query,readyNow)).toThrow();
+    }
+    const missing=makeReady();missing.state.details=missing.details.filter(row=>row.name!==name);
+    expect(()=>readySource('123',liveBuild,missing.state.query,readyNow)).toThrow('inventory');
+    const duplicate=makeReady(),row=duplicate.details.find(candidate=>candidate.name===name);
+    if(row===undefined)throw new Error('Missing duplicate route group');
+    duplicate.details.push({...row});
+    expect(()=>readySource('123',liveBuild,duplicate.state.query,readyNow)).toThrow('inventory');
+  }
+ }
 });
 
 test('recovery refuses partial, duplicated, foreign, divergent and stale proofs',()=>{
