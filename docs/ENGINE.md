@@ -10057,18 +10057,16 @@ original event phase. Evaluation itself never calls shard code, opens a
 panel, grants an item or installs another scheduler or save slot.
 
 `game/quest/effects.commitQuestEffects(ctx, questId, effects)` commits
-flag, item and take rows against the original bound quest and play pack.
-Its framework lookup borrows the `QuestState` already created by
-`bindRuntimeQuest`; it creates no flags, listener or continuation.
-`commitQuestEffects(host, inventoryId, effects)` applies the same
-ordered effects to the native host's flags and registered pack. Both run
-at the caller's existing event phase. Commands and notices still require
-an admitted lane and refuse here. Pine's page/native payment and follow
-signals and Driftwood's native kill flags use this data-only dispatch.
+ordered flags, items and takes against the bound quest/play pack, without
+creating state. The native `(host, inventoryId, effects, presentation?)`
+form uses the registered pack and the same event phase. Commands and
+notices still require an admitted lane and refuse here.
 
-Client-only `toast` and `sting` effects use the actual play HUD and music.
-A toast may count its original flags by an admitted prefix and goal; it
-creates no counter. Native dispatch refuses these presentation effects.
+`quest/effectPresentation.presentQuestEffect` shares the original toast
+conditions, progress/counter text, sting names and full reading rows.
+Pages keep their HUD/music/dialogue owners. Native dispatch still refuses
+presentation unless lent explicit `QuestPresentationPorts`; these ports
+observe and present only, never grant flags, items or outcomes.
 `readQuestServiceActions(ctx, questId, file)` admits a named product's
 bounded action rows and returns `run(actionId)`. Rows accept only these
 closed services, with no owner map, callback, method path, delayed job or

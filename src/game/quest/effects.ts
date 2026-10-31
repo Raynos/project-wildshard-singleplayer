@@ -7,6 +7,7 @@ import { creditNativeInventory, debitNativeInventory } from '../inventoryLaw';
 import { boundQuestState } from './boundState';
 import { boundChapter, readQuestObservation } from './chapterBindings';
 import type { QuestStepEffect } from './steps';
+import {presentQuestEffect,type QuestPresentationPorts} from './effectPresentation';
 
 /** Framework-internal dispatch; shard APIs supply effect rows and owner ids only. */
 function commit(effects: readonly QuestStepEffect[], flags: Flags,
@@ -25,7 +26,7 @@ function commit(effects: readonly QuestStepEffect[], flags: Flags,
 
 /** Apply ordered rows at the existing event phase. Page contexts borrow the bound quest/play pack;
  * native hosts borrow their registered pack and flags. The page branch is client-only presentation. */
-export function commitQuestEffects(context: Pick<ShardContext, 'scope' | 'game'> | SimHost, owner: string, effects: readonly QuestStepEffect[]): void {
+export function commitQuestEffects(context: Pick<ShardContext, 'scope' | 'game'> | SimHost, owner: string, effects: readonly QuestStepEffect[], nativePresentation?:QuestPresentationPorts): void {
   if ('game' in context) {
     const state = boundQuestState(context.scope, owner), play = context.game.runtime?.play;
     if (play === undefined || play === null) throw new Error('Quest effects require the play host');
@@ -35,18 +36,11 @@ export function commitQuestEffects(context: Pick<ShardContext, 'scope' | 'game'>
     }, (item, count) => {
       if (!isItemId(item)) throw new Error('Unknown quest inventory item');
       return play.inventory.take(item, count);
-    }, effect => {
-      if (effect.kind === 'toast' && effect.when !== undefined && readQuestObservation(context, owner, effect.when) === 0) return;
-      if (effect.kind === 'reading') boundChapter(context.scope, owner).reading(effect);
-      else if (effect.kind === 'sting') play.music.sting(effect.name);
-      else if (effect.progress !== undefined) {
-        const progress = effect.progress, count = progress.flags.filter(flag => state.flags.has(flag)).length;
-        play.hud.toast(count === progress.flags.length ? progress.complete : `${effect.text} · ${String(count)}/${String(progress.flags.length)}`);
-      } else play.hud.toast(effect.counter === undefined ? effect.text
-        : `${effect.text} · ${String(state.flags.count(effect.counter.prefix))} / ${String(effect.counter.of)}`);
-    });
+    }, effect => {presentQuestEffect(effect,state.flags,{observe:source=>readQuestObservation(context,owner,source),
+      reading:row=>boundChapter(context.scope,owner).reading(row),sting:name=>play.music.sting(name),toast:text=>play.hud.toast(text)});});
   } else commit(effects, context.flags, (item, count) => { creditNativeInventory(context, owner, { item, count }); },
-    (item, count) => debitNativeInventory(context, owner, { item, count }));
+    (item, count) => debitNativeInventory(context, owner, { item, count }),
+    nativePresentation===undefined?undefined:effect=>{presentQuestEffect(effect,context.flags,nativePresentation);});
 }
 
 /** Client-only named actions borrow existing services; parsing creates no state, listener or save owner. */

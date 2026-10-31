@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type {SimHost} from '../../src/engine/sim';
-import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
+import type {PrepareHeadlessRuntime,HeadlessRuntimeInstallation} from '../../src/sdk/headlessRuntime';
 import {ChapterViewSchema,type ChapterViewRows} from '../../src/format/questPageComposition';
 import {parseChapterStoryPresentation} from '../../src/format/questStory';
 import {parseCarriedQuest} from '../../src/format/questSteps';
@@ -17,6 +17,7 @@ import {installNalatiKokpar} from './nalati-kokpar-native';
 import {installNalatiChapterObservation} from './nalati-chapter-observation';
 import type {NalatiChapterRecords} from './nalati-chapter-records';
 import {installPackedChapterTaming} from './headless/chapterObservation';
+import {createNalatiChapterPresentation} from './nalati-chapter-presentation';
 
 interface ChapterLoans {
   /** These methods must read their original entered encounters, or an explicit
@@ -24,11 +25,11 @@ interface ChapterLoans {
   readonly check:()=>void;readonly inside:()=>boolean;readonly tied:()=>boolean;
   readonly records:NalatiChapterRecords;
 }
-const clock=v.strictObject({now:v.pipe(v.number(),v.finite(),v.minValue(0)),slowT:v.pipe(v.number(),v.finite()),pulseT:v.pipe(v.number(),v.finite())});
+const clock=v.strictObject({now:v.pipe(v.number(),v.finite(),v.minValue(0)),slowT:v.pipe(v.number(),v.finite()),pulseT:v.pipe(v.number(),v.finite()),presentation:v.optional(v.unknown())});
 
 /** The page's poll/project/commit order and clocks, over native owners. A
  * missing observation is an error; no unbound arena or save becomes zero. */
-export function installNalatiChapterPoll(host:SimHost,content:ChapterViewRows,story:ReturnType<typeof parseChapterStoryPresentation>,loans:ChapterLoans):void {
+export function installNalatiChapterPoll(host:SimHost,content:ChapterViewRows,story:ReturnType<typeof parseChapterStoryPresentation>,loans:ChapterLoans,context:Pick<HeadlessRuntimeInstallation,'commands'|'emit'>):void {
   const taming=nativeTamingOf(host),quest=host.quests.find(row=>row.def.id===story.chapters[0]);
   if(taming===undefined||quest===undefined||host.hasStep('nalati.chapter-poll'))throw new Error('Native chapter requires unique entered owners');
   const brain=ReturnProgram.native(host,content.program),rows=content.view;
@@ -37,11 +38,13 @@ export function installNalatiChapterPoll(host:SimHost,content:ChapterViewRows,st
     if(host.scope.disposed||host.scope.disposing||nativeTamingOf(host)!==taming||!host.quests.includes(quest))throw new Error('Native chapter owners retired');
     loans.check();
   };
+  const observe=(ref:Parameters<typeof questObservation>[0]):number=>questObservation(ref,{
+    flags:()=>host.flags,quest:id=>{const state=host.quests.find(row=>row.def.id===id);if(state===undefined)throw new Error('Missing declared chapter');return state;},
+    active:()=>host.quests.find(row=>!row.isComplete)??null,saved:()=>loans.records,
+  });
+  const presentation=createNalatiChapterPresentation(host,context,observe);
   const project=(signal:string,values:Readonly<Record<string,number>>):void=>{
-    live();chapterDecide(brain,story.decision,signal,values,ref=>questObservation(ref,{
-      flags:()=>host.flags,quest:id=>{const state=host.quests.find(row=>row.def.id===id);if(state===undefined)throw new Error('Missing declared chapter');return state;},
-      active:()=>host.quests.find(row=>!row.isComplete)??null,saved:()=>loans.records,
-    }),effects=>{commitQuestEffects(host,quest.def.id,effects);});
+    live();chapterDecide(brain,story.decision,signal,values,observe,effects=>{commitQuestEffects(host,quest.def.id,effects,presentation.ports);});
   };
   // The entered page projects a carving only for the actual body's death.
   // Reuse its record-before-projection order, never an interaction grant.
@@ -59,7 +62,7 @@ export function installNalatiChapterPoll(host:SimHost,content:ChapterViewRows,st
   };
   poll();
   host.onStep('nalati.chapter-poll',dt=>{live();now+=dt;if(now-slowT>rows.interval){slowT=now;poll();}},
-    {snapshot:()=>{live();return {now,slowT,pulseT};},restore:value=>{const saved=v.parse(clock,value);live();if(saved.now!==host.clock.now||saved.slowT>saved.now||saved.pulseT>saved.now)throw new Error('Chapter clock differs from its restored host');now=saved.now;slowT=saved.slowT;pulseT=saved.pulseT;}});
+    {snapshot:()=>{live();const saved=presentation.snapshot();return {now,slowT,pulseT,...(saved===undefined?{}:{presentation:saved})};},restore:value=>{const saved=v.parse(clock,value);live();if(saved.now!==host.clock.now||saved.slowT>saved.now||saved.pulseT>saved.now)throw new Error('Chapter clock differs from its restored host');now=saved.now;slowT=saved.slowT;pulseT=saved.pulseT;presentation.restore(saved.presentation);}});
 }
 
 /** Chapter one borrows the actual open-arena/records owner. The King loan is
@@ -89,7 +92,7 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
       if(saved!==undefined&&(saved.defeated||saved.rewardTaken||saved.kills!==0))throw new Error('Closed King loan cannot restore an encounter outcome');
     };
     host.onStep('nalati.king-closed',check,{snapshot:()=>{check();return {...closed};},restore:value=>{v.parse(v.strictObject({kind:v.literal('closed')}),value);check();}});
-    installNalatiChapterPoll(host,content,story,{check,inside:()=>{check();return closed.kind!=='closed';},tied:()=>titan.fight.tied,records:titan.records});
+    installNalatiChapterPoll(host,content,story,{check,inside:()=>{check();return closed.kind!=='closed';},tied:()=>titan.fight.tied,records:titan.records},context);
     installPackedChapterTaming(host);
   }};
 };
