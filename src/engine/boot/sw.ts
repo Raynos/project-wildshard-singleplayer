@@ -20,7 +20,6 @@ import { pageScope } from '../app/resources';
  *   ready: Promise<void>        resolves at once: a controlled document, an uncontrolled one (it registers at control), or
  *                               service workers off (`?sw=0`, dev without `?sw=1`, no SW support).
  *   waiting: ServiceWorker|null the newest discovered build is installed and waiting; null otherwise.
- *   activate(): Promise<boolean> activate an installed update at a natural boundary; never navigates.
  *   adopt(to?): Promise<boolean> explicit recovery: activate, then reload/replace once; true if sent.
  *                               False means unavailable or retired; recovery retains its ordinary fallback.
  *   version(): Promise<SwVersion|null>  what the controlling worker holds ({ build, entries, bytes, caches }),
@@ -53,8 +52,6 @@ export interface WsSw {
   /** Explicit network-only opt-outs also disable optional code transports. */
   readonly enabled?: boolean;
   waiting: ServiceWorker | null;
-  /** Activate an already-installed update before a natural navigation; never navigates itself. */
-  activate: () => Promise<boolean>;
   /** `why`: what asked for it, recorded for the next boot (src/engine/boot/lastEnd.ts) */
   adopt: (to?: string, why?: string) => Promise<boolean>;
   version: () => Promise<SwVersion | null>;
@@ -67,7 +64,7 @@ let watched: ServiceWorkerRegistration | null = null;
 let newestBuild: string | null = null;
 let discovery = 0;
 // declared ahead of the functions that read it (they only run after registration; `boot()` is hoisted)
-const api: WsSw = { ready: boot(), enabled: swAllowed(), waiting: null, activate: () => activateWaiting(), adopt, version };
+const api: WsSw = { ready: boot(), enabled: swAllowed(), waiting: null, adopt, version };
 
 function swAllowed(): boolean {
   if (!sw) return false;

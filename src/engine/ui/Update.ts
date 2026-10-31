@@ -85,11 +85,6 @@ let newLabel = '';
 function titleBoundary(): boolean {
   return document.querySelector('#hud.intro .ws-menu:not(.hide), #hud.intro .ws-main:not(.hide)') !== null;
 }
-function requestInstall(): void {
-  void navigator.serviceWorker?.getRegistration().then(registration => registration?.update()).catch(() => undefined);
-  const text = el.querySelector('[data-el="text"]');
-  if (text !== null) text.textContent = engineString('s_update_next_boundary');
-}
 /** the pill's words: a player reads "New version", a developer the build ids */
 function paint(): void {
   const text = el.querySelector('[data-el="text"]');
@@ -127,7 +122,7 @@ async function check(): Promise<void> {
     if (typeof j === 'object' && j !== null && 'build' in j && typeof j.build === 'string' && j.build !== '') {
       if (navigator.serviceWorker?.controller && window.__ws_sw?.enabled !== false) {
         window.dispatchEvent(new CustomEvent('ws-sw-discovered', { detail: { build: j.build } }));
-      } else if (j.build !== __BUILD_ID__) { requestInstall(); lightUp(shortBuild(j.build)); }
+      } else if (j.build !== __BUILD_ID__) lightUp(shortBuild(j.build));
       else dim();
     }
   } catch { /* offline — keep the plain reload pill */ }

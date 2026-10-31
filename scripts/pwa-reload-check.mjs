@@ -43,6 +43,7 @@ export async function createReloadProxy(base) {
    * @type {unknown[]} */const telemetry=[];
   /** @type {Set<ReturnType<typeof setTimeout>>} */const timers=new Set();
   /** @type {Set<import('node:http').ClientRequest>} */const upstream=new Set();
+  /** @type {Set<import('node:net').Socket>} */const sockets=new Set();let closedWireBytes=0;
   const server=createServer((req,res)=>{
     const path=new URL(req.url??'/',origin).pathname,current=variants[latest];
     if(current===undefined){res.writeHead(500);res.end();return;}
@@ -89,10 +90,14 @@ export async function createReloadProxy(base) {
       res.on('close',()=>{clearTimeout(timer);timers.delete(timer);});
     }
   });
+  server.on('connection',socket=>{
+    sockets.add(socket);socket.on('close',()=>{closedWireBytes+=socket.bytesWritten;sockets.delete(socket);});
+  });
   await new Promise(/** @param {(value:unknown)=>void} _resolve */_resolve=>{server.listen(0,'127.0.0.1',()=>_resolve(undefined));});
   const address=server.address();if(address===null||typeof address==='string')throw new Error('Missing reload proxy address');
   return {
     url:`http://127.0.0.1:${address.port}/`,sourceBuild,builds,requests,telemetry,
+    wireBytes(){let total=closedWireBytes;for(const socket of sockets)total+=socket.bytesWritten;return total;},
     /** @param {Stage} stage @param {number} [delay] */
     deploy(stage,delay=0){latest=stage;installDelay=delay;},
     async verifySource(){/** @type {unknown} */const final=JSON.parse(await read('/version.json'));if(typeof final!=='object'||final===null||!('build' in final)||final.build!==sourceBuild)throw new Error('Served source changed during reload check');},
@@ -194,6 +199,7 @@ export async function checkReloads(base,engine,scenarios,fixed) {
         await page.waitForFunction(()=>navigator.serviceWorker.controller!==null&&document.querySelector('#hud.intro .ws-menu:not(.hide), #hud.intro .ws-main:not(.hide)')!==null,null,{timeout:45000});
         await titleReady(page);
         observations.push(await state(page));
+        const warmStart=proxy.requests.length,wireStart=proxy.wireBytes();
         if(scenario==='no-deploy'){
           for(let index=0;index<3;index++){await page.reload({waitUntil:'load'});await titleReady(page);manualReloads++;await foreground(page);observations.push(await state(page));}
         }else{
@@ -219,8 +225,10 @@ export async function checkReloads(base,engine,scenarios,fixed) {
         if((scenario==='ab-delayed'||scenario==='abc-mid-install')&&!proxy.requests.slice(requestStart).some(row=>row.delayMs===25000))throw new Error('Delayed install did not request its delayed shell asset');
         const final=await state(page),target=scenario==='no-deploy'?proxy.builds.A:scenario==='abc-mid-install'?proxy.builds.C:proxy.builds.B;
         const aligned=observations.every(row=>row.doc!==null&&row.controller?.startsWith(`${row.doc}-`)===true);
-        const passed=aligned&&final.doc===target&&!final.lit&&(scenario==='no-deploy'?taps===0:taps===1)&&final.controller?.startsWith(`${target}-`)===true;
-        const result={engine,scenario,sourceBuild:proxy.sourceBuild,target,taps,manualReloads,passed,aligned,timeout,elapsedMs:performance.now()-started,final,observations,errors,httpErrors};results.push(result);console.log(JSON.stringify(result));
+        const networkDocuments=proxy.requests.slice(warmStart).filter(row=>row.path==='/'||row.path==='/index.html').length;
+        const warmWireBytes=scenario==='no-deploy'?proxy.wireBytes()-wireStart:null;
+        const passed=aligned&&networkDocuments===0&&(warmWireBytes===null||warmWireBytes<100000)&&final.doc===target&&!final.lit&&(scenario==='no-deploy'?taps===0:taps===1)&&final.controller?.startsWith(`${target}-`)===true;
+        const result={engine,scenario,sourceBuild:proxy.sourceBuild,target,taps,manualReloads,passed,aligned,networkDocuments,warmWireBytes,timeout,elapsedMs:performance.now()-started,final,observations,errors,httpErrors};results.push(result);console.log(JSON.stringify(result));
         if(errors.length>0||httpErrors.length>0)throw new Error(`Unexpected browser errors: ${errors.join('; ')} ${JSON.stringify(httpErrors)}`,{cause:result});
         if(fixed&&!passed)throw new Error(`One-tap contract failed: ${engine}/${scenario}`,{cause:result});
       }finally{await context.close();}

@@ -86,7 +86,6 @@ test('native title routes use exact same-origin bare GETs and the existing cache
   await worker.dispatch('install'); await worker.dispatch('activate');
   const pattern = (pathname: string): object => ({protocol: 'https', hostname: 'worker.test', port: '', pathname, search: ''});
   expect(worker.routes).toHaveBeenCalledExactlyOnceWith([
-    ...['/', '/index.html'].map(pathname => ({condition: {urlPattern: pattern(pathname), requestMode: 'navigate', requestMethod: 'GET'}, source: 'race-network-and-fetch-handler'})),
     ...['script', 'style'].map(requestDestination => ({condition: {urlPattern: pattern('/assets/*'), requestDestination, requestMethod: 'GET'}, source: {cacheName: ASSET_CACHE_NAME}})),
     {condition: {urlPattern: pattern('/assets/title/*'), requestDestination: 'image', requestMethod: 'GET'}, source: {cacheName: ASSET_CACHE_NAME}},
     {condition: {urlPattern: pattern('/fonts/*'), requestDestination: 'font', requestMethod: 'GET'}, source: {cacheName: 'ws-shell-v3-A'}},
@@ -98,6 +97,7 @@ test('native URL patterns leave queries, foreign origins and ordinary retry fetc
   const worker = fixture(undefined, true).load('A', [shared]); await worker.dispatch('install');
   const routes = worker.routes.mock.calls[0]?.[0];
   if (routes === undefined) throw new Error('Missing installed native routes');
+  for (const path of ['/', '/index.html']) expect(routes.some(route => new URLPattern(route.condition.urlPattern).test(url(path)))).toBe(false);
   for (const route of routes) {
     const pattern = new URLPattern(route.condition.urlPattern);
     const path = route.condition.urlPattern.pathname?.replace('*', 'file-01234567.js');
@@ -108,9 +108,8 @@ test('native URL patterns leave queries, foreign origins and ordinary retry fetc
     expect(pattern.test(new URL(path, 'https://foreign.test').href)).toBe(false);
     expect(pattern.test(new URL(path, 'http://worker.test').href)).toBe(false);
     expect(pattern.test(new URL(path, 'https://worker.test:444').href)).toBe(false);
-    // A content retry is a fetch with no destination and no navigate mode;
-    // only native navigation routes omit the destination restriction.
-    expect(route.condition.requestDestination !== undefined || route.condition.requestMode === 'navigate').toBe(true);
+    // Only immutable content destinations bypass the worker; documents never do.
+    expect(route.condition.requestDestination).toBeDefined();
   }
 });
 
