@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./registeredJson": "./registeredJson.ts",
     "./sourceResidency": "./sourceResidency.ts",
     "./spawnManifest": "./spawnManifest.ts",
     "./colourLut": "./colourLut.ts",

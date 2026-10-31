@@ -3,6 +3,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { CustomSectionName, PlatformSectionName, PlatformSections, SectionName } from '@wildshard/format/sections';
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
 import { parseNamedJson } from '@wildshard/format/json';
+import { REGISTERED_JSON,isRegisteredJsonName,validateRegisteredJson,type RegisteredJsonName,type RegisteredJsonValues } from '@wildshard/format/registeredJson';
 import { readCheckedNamedJson, type NamedJsonCheck } from './namedJsonChecks';
 
 /**
@@ -34,9 +35,16 @@ export interface ShardProduct {
   /** A blob's verified bytes by logical name (cached by the shard's asset reader). */
   readonly file: (name: string) => Promise<Uint8Array>;
   /** Build-validated named JSON, typed by a generated declaration and decoded from verified bytes. */
-  readonly json: <T>(name: string) => Promise<T>;
+  readonly json: JsonReader;
   /** A blob's content-addressed URL by logical name, for loaders that only take a URL. Prefer `file()`. */
   readonly url: (name: string) => string;
+}
+
+/** Registered names infer their existing format value; remaining private JSON
+ * retains the checked compatibility path while its CS3-CS9 exits are open. */
+export interface JsonReader {
+  <Name extends RegisteredJsonName>(name:Name):Promise<RegisteredJsonValues[Name]>;
+  <T>(name:string):Promise<T>;
 }
 
 /** `ShardProduct.section`. Values are shared between readers: treat them as read-only. */
@@ -146,6 +154,7 @@ export function createShardProduct(input: ShardProductInput): ShardProduct {
     parsed.set(name, deepFreeze(result.output));
     return result.output;
   }
+  function json<Name extends RegisteredJsonName>(name:Name):Promise<RegisteredJsonValues[Name]>;
   function json<T>(name: string): Promise<T>;
   async function json(name: string): Promise<unknown> {
     const file = named(name);
@@ -154,10 +163,16 @@ export function createShardProduct(input: ShardProductInput): ShardProduct {
     if (!(import.meta.env?.SSR ?? true) && input.builtJson !== true && input.jsonCheck === undefined && file.jsonSchema !== undefined) {
       throw new Error('Shardfile needs server validation before client admission');
     }
+    if(isRegisteredJsonName(name)&&file.jsonSchema?.['$comment']!==REGISTERED_JSON[name].source)
+      throw new ProductError(slug,name,'schema','registered JSON requires its exact defining format contract');
     const bytes = await input.read(file.hash);
     // a read in play lets a due frame through between its parse, schema compile and validation (pacedResolve)
     const decoded: unknown = file.jsonSchema === undefined ? JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes))
       : input.builtJson === true ? parseNamedJson(bytes) : await (input.jsonCheck ?? readCheckedNamedJson)(file.jsonSchema, bytes, () => pacedResolve(undefined));
+    if(input.builtJson!==true&&isRegisteredJsonName(name)){
+      try{validateRegisteredJson(name,decoded);}
+      catch(error){throw new ProductError(slug,name,'schema',`registered JSON refuses its defining contract: ${String(error)}`);}
+    }
     return input.check === true ? deepFreeze(decoded) : decoded;
   }
   const product: ShardProduct = {
@@ -198,7 +213,7 @@ export function absentShardProduct(slug: string): ShardProduct {
     has: () => false, hasFile: () => false,
     strings: keys => absent(keys.join(',')),
     file: name => Promise.reject(new ProductError(slug, name, 'absent', `no built shard was loaded for this entry (run \`wildshard build ${slug}\`)`)),
-    json: name => Promise.reject(new ProductError(slug, name, 'absent', `no built shard was loaded for this entry (run \`wildshard build ${slug}\`)`)),
+    json: (name:string) => Promise.reject(new ProductError(slug, name, 'absent', `no built shard was loaded for this entry (run \`wildshard build ${slug}\`)`)),
     url: name => absent(name),
   };
 }

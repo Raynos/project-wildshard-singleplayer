@@ -1,4 +1,4 @@
-import { defineNamedRows, type NamedJsonComposition, authorFormatSchema, namedFormatJsonSchema, composeNamedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { defineNamedRows, type NamedJsonComposition, authorFormatSchema, namedFormatJsonSchema, composeNamedJsonSchema, registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { EnemyPlacementsSchema, FixedGeometryGroupsSchema } from './sections';
 import type { DriftwoodFixedLayouts } from './fixedLayouts';
@@ -92,8 +92,8 @@ export function driftwoodJsonBlob(name: string, kind: 'json', bytes: Uint8Array)
         const contract = name.startsWith('scenes/') ? 'clientChannels.WorldScene'
             : name.startsWith('world/piers/') || name.startsWith('world/foliage/') ? 'worldScenePlacement.WorldScenePlacement' : sharedContracts[name];
         const schema = schemas[name];
-        const jsonSchema = name === 'sim/headless-assembly.json' ? nativeAssemblySchema
-            : contract !== undefined ? namedFormatJsonSchema(contract) : composedSchemas[name] ?? (schema === undefined ? undefined : defineNamedRows(schema).jsonSchema);
+        const jsonSchema = registeredJsonSchema(name)??(name === 'sim/headless-assembly.json' ? nativeAssemblySchema
+            : contract !== undefined ? namedFormatJsonSchema(contract) : composedSchemas[name] ?? (schema === undefined ? undefined : defineNamedRows(schema).jsonSchema));
         if (jsonSchema === undefined)
             throw new Error(`Missing Driftwood named JSON schema: ${name}`);
         return nameBlob(name, kind, bytes, { jsonSchema });

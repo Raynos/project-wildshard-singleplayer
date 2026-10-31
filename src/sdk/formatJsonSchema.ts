@@ -70,6 +70,7 @@ import { WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
 import { WorldScenePlacementSchema } from '@wildshard/format/worldScenePlacement';
 import { CommonsCostsSchema } from '@wildshard/format/commonsCosts';
 import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
+import { REGISTERED_JSON,isRegisteredJsonName,type RegisteredJsonName } from '@wildshard/format/registeredJson';
 
 import { StalkerSchema, GuardianPatternsSchema, SkirmisherSchema, ScriptBrainSchema, GuardianSchema, PerchHunterSchema } from '@wildshard/format/brains';
 import { DiverSchema, OrbitDiverSchema, PatrolDiverSchema, BurstFlyerSchema } from '@wildshard/format/flyers';
@@ -541,6 +542,17 @@ export function namedFormatJsonSchemas(): Readonly<Record<string, Readonly<Recor
     const document = namedJsonSchema(schema, { provenance: true });
     return [String(document['$comment']), document];
   }));
+}
+
+/** Publish the exact defining schema of a registered logical JSON name.
+ * Only metadata changes; the caller retains the original document bytes. */
+export function registeredJsonSchema(name:RegisteredJsonName):Readonly<Record<string,unknown>>;
+export function registeredJsonSchema(name:string):Readonly<Record<string,unknown>>|undefined;
+export function registeredJsonSchema(name:string):Readonly<Record<string,unknown>>|undefined {
+  if(!isRegisteredJsonName(name))return undefined;
+  const contract=REGISTERED_JSON[name],document=namedJsonSchema(contract.schema,{provenance:true});
+  if(document['$comment']!==contract.source)throw new Error(`Registered JSON defining binding differs: ${name}`);
+  return document;
 }
 
 /** The migrated wire roots, generated from their defining Valibot schemas; whole-shard extraction remains open. */

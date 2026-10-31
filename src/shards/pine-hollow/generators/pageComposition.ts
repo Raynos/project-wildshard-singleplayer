@@ -6,7 +6,7 @@ import { perSources, type PineSources } from './pineSources';
 import { PINE_QUEST_RUNTIME } from './questRuntime';
 import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import { namedFormatJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 
 type QuestPageRowsType = ReturnType<typeof questPageCompositionRows>;
 
@@ -59,5 +59,5 @@ export const questPage: (sources: PineSources) => QuestPage = perSources((source
  *  `program`: D97, `prepareOutput` passes the lead's compiled program (the static rows name the lead's unset module). */
 export function questPageBlob(page: QuestPageRowsType, program: unknown): NamedBlobType {
   const rows = questPageCompositionRows({ ...page, chapter: { ...page.chapter, program } });
-  return nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(rows)), { jsonSchema: namedFormatJsonSchema('questPageComposition.QuestPage') });
+  return nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(rows)), { jsonSchema: registeredJsonSchema('quests/page-composition.json') });
 }

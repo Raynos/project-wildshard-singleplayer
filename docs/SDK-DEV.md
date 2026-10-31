@@ -52,6 +52,12 @@ before ordinary shardfile admission. `ProjectGenerationContext` is defined in
 content-addressed bytes, and `ctx.cached({id, inputs?, native?}, generate)`
 returns named byte files. The step receives detached declared input bytes;
 JSON metadata is encoded as a file alongside binary outputs, never as base64.
+Shared named documents use `registeredJsonSchema(name)` from
+`@wildshard/sdk/formatJsonSchema`. The exact names and defining contracts are
+registered in `@wildshard/format/registeredJson`; `product.json(name)` infers
+their types, checks their provenance and retains the original consumer
+validation without rewriting decoded values. Existing unported private JSON
+uses its checked bridge until its custom-section exit row is complete.
 Inputs must resolve within the author project. Generators use these
 capabilities for I/O rather than importing filesystem modules into the entry.
 

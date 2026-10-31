@@ -1,9 +1,11 @@
 import * as v from 'valibot';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
 import Ajv from 'ajv';
+import { isRegisteredJsonName, validateRegisteredJson } from '@wildshard/format/registeredJson';
 import { isJsonData } from '@wildshard/format/json';
 import { encodeCanonicalJson } from './immutable';
 import { ownAssetBytes } from './assetOwner';
+import { registeredJsonSchema } from './formatJsonSchema';
 import { validateDefinedSchema, validateNamedJson } from './schemaValidation';
 
 /** Build-only custom content. Neither the Valibot parser nor author code enters the emitted product. */
@@ -44,9 +46,16 @@ export function validateDefinedSection(schemaBytes: Uint8Array, value: unknown):
 
 /** Validate serialized named JSON under its existing producer/reader byte bound.
  * The defining schema is independently bounded; no custom-section node cap is
- * imposed on a payload that was already emitted as a named file. */
-export function validateDefinedJson(schemaBytes: Uint8Array, bytes: Uint8Array): unknown {
-  return validateNamedJson(schemaBytes, bytes, Ajv);
+ * imposed on a payload that was already emitted as a named file. Registered
+ * names also retain their original defining semantic parser before publication. */
+export function validateDefinedJson(schemaBytes: Uint8Array, bytes: Uint8Array, name?: string): unknown {
+  const value = validateNamedJson(schemaBytes, bytes, Ajv);
+  if (name !== undefined && isRegisteredJsonName(name)) {
+    if (new TextDecoder('utf-8', { fatal: true }).decode(schemaBytes) !== encodeCanonicalJson(registeredJsonSchema(name)))
+      throw new Error('Registered JSON requires its exact defining format contract');
+    validateRegisteredJson(name, value);
+  }
+  return value;
 }
 
 /** Parse authored section values with their defining native grammar. Use when
