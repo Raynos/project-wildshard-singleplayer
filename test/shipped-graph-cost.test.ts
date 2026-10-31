@@ -14,6 +14,8 @@ for(const {slug} of products)test(`emitted shader work for every admitted graph 
  expect(new Set(rows.map(row=>row.graphHash)).size).toBe(rows.length);
  for(const row of rows){
   expect(row.slug).toBe(slug);expect(row.aliases.length).toBeGreaterThan(0);
+  if(row.kind==='post')expect(row.postFragmentShaderHash).toMatch(/^[a-f0-9]{64}$/u);
+  else expect(row.postFragmentShaderHash).toBeNull();
   for(const program of Object.values(row.execution))if(program!==null)for(const stage of Object.values(program))for(const value of Object.values(stage)){
    expect(Number.isSafeInteger(value)).toBe(true);expect(value).toBeGreaterThanOrEqual(0);
   }

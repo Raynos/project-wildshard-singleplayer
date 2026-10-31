@@ -6,7 +6,7 @@ import {resolve,sep} from 'node:path';
 import {createHash} from 'node:crypto';
 import {loadHeadlessProduct} from '../../src/sdk/headlessProduct';
 import {outputDescriptor} from '../../src/game/shardfile/outputDescriptor';
-import {emitClassicGraph} from '../../src/engine/render/graph/glslProgram';
+import {emitClassicGraph,graphShaders} from '../../src/engine/render/graph/glslProgram';
 import {ToonLook} from '../../src/engine/render/families/toon';
 import {familyPresetGraph,PRESET_GRAPH_BUDGET} from '../../src/engine/render/graph/presets';
 import {presetLooks} from '../../src/format/materials';
@@ -17,6 +17,8 @@ export interface ShippedGraphCost {
  readonly slug:string;
  readonly graphHash:string;
  readonly codeHash:string;
+ /** Exact live ShaderMaterial source identity for the fullscreen post program. */
+ readonly postFragmentShaderHash:string|null;
  readonly aliases:readonly string[];
  readonly kind:GraphGlsl['ir']['kind'];
  readonly admission:GraphGlsl['cost'];
@@ -44,7 +46,7 @@ export async function shippedGraphCosts(directory:string):Promise<readonly Shipp
   const options={toonLook,trustedBudget:true,...(budget===undefined?{}:{budget})};
   const plain=emitClassicGraph(input,options),{executionCost,...emitted}=emitClassicGraph(input,{...options,reportExecutionCost:true});
   if(executionCost===undefined||JSON.stringify(emitted)!==JSON.stringify(plain))throw new Error('Graph reporting changed emitted code or admission');
-  rows.set(key,{slug:product.slug,graphHash:key,codeHash:hash(JSON.stringify({program:plain.program,outline:plain.outline,fog:plain.fog,libraries:plain.libraries,uniforms:plain.uniforms,attributes:plain.attributes})),aliases:[...new Set(names)],kind:plain.ir.kind,admission:plain.cost,execution:executionCost,selects:{main:plain.program?.selects??null,outline:plain.outline?.selects??null}});
+  rows.set(key,{slug:product.slug,graphHash:key,codeHash:hash(JSON.stringify({program:plain.program,outline:plain.outline,fog:plain.fog,libraries:plain.libraries,uniforms:plain.uniforms,attributes:plain.attributes})),postFragmentShaderHash:plain.ir.kind==='post'?hash(graphShaders(plain,{toonLook}).fragmentShader):null,aliases:[...new Set(names)],kind:plain.ir.kind,admission:plain.cost,execution:executionCost,selects:{main:plain.program?.selects??null,outline:plain.outline?.selects??null}});
  };
  const visit=(value:unknown,name:string,key?:string):void=>{
   if(graphLike(value)){add(value,key??hash(JSON.stringify(value)),[...(key===undefined?[]:aliases.get(key)??[]),name]);return;}
