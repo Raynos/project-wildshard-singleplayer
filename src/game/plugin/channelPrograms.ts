@@ -62,6 +62,13 @@ function buildChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<stri
   return {lane,inputs,readers,ports,restoreOnly,values,indices,observation:{time:0,delta:0,values}};
  });
  const ids=Object.freeze(selected.map(row=>row.id));
+ // A fully borrowed group snapshots its canonical inputs in first-use order,
+ // then fans each scalar into the lanes' existing private observation arrays.
+ const borrowed=copiedNames===undefined&&lanes.every(row=>row.readers.every(read=>read>=0));
+ const gathers:{read:()=>number;writes:{values:number[];slot:number}[]}[]=borrowed?shared.map(read=>({read,writes:[]})):[];
+ if(borrowed)for(const {readers,values}of lanes)for(const [slot,index]of readers.entries()){
+  const gather=gathers[index];if(gather===undefined)throw new Error('Missing bound channel input');gather.writes.push({values,slot});
+ }
  // DW story margin: a rig's pose programs share most expressions (Driftwood's rows: 68 % of their dynamic nodes), so a
  // copied pose evaluates them once as one merged lane and publishes each lane's channels; a refused merged frame runs the
  // lanes themselves, which refuse exactly as before
@@ -80,6 +87,16 @@ function buildChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<stri
     if(merge!==null&&merged!==null&&isVector){try{merged.evaluate({time:observation.time,delta:observation.delta,values:external});publishMergedChannels(merge,merged,laneList);published=true;}catch{/* the lanes below refuse as before */}}
     if(published){for(const {lane,ports} of lanes)ports.apply(lane.frame);return;}
     for(const {indices,values}of lanes){if(indices===undefined)throw new Error('Missing copied pose indices');for(let index=0;index<indices.length;index++)values[index]=external[indices[index]??-1]??Number.NaN;}
+   }else if(borrowed){
+    if(isVector&&(shared.length>0||external.length!==shared.length))throw new Error('Numeric channel vector differs from its declared reads');
+    for(let index=0;index<gathers.length;index++){
+     const gather=gathers[index];if(gather===undefined)throw new Error('Missing bound channel input');
+     // The bound reader still validates this field and its cap every call.
+     const value=gather.read();
+     if(Object.is(value,sharedValues[index]))continue;
+     sharedValues[index]=value;
+     for(const {values,slot}of gather.writes)values[slot]=value;
+    }
    }else for(const {lane,inputs,readers,values} of lanes){
     if(isVector&&(inputs.size>0||external.length!==values.length))throw new Error('Numeric channel vector differs from its declared reads');
     const reads=lane.reads;
