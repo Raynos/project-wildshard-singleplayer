@@ -2524,7 +2524,8 @@ overlap restores delivery: record the first TCP accept and owned frame
 proof, or retain the same zero-accept refusal. Local behavior controls
 must prove no offer before ownership, native launch errors still win,
 and late ownership/frames cannot pass the original deadline. This
-check is **unimplemented and unqualified** in this audit.
+check was subsequently tried off-tree and **rejected** below; production
+offer ordering is unchanged.
 
 Historical `60e` already reached the same loopback page after a timed-out
 pre-launch offer and a successful launched-state offer (cold readiness
@@ -2532,4 +2533,51 @@ pre-launch offer and a successful launched-state offer (cold readiness
 explain every failure, and neither a universal loopback prohibition nor
 an onboarding cause is established. The constructor cut stays unguessed;
 app attribution waits for an actual app-reaching containing artifact.
+
+### CI10: launch-first ordering discriminator rejected
+
+2026-10-31, sp-x9, after X2 explicitly released the readiness Python and
+original semantic-control hunks. One off-tree candidate added only a
+wait while the existing owned-launch result was pending, before the
+first URL offer. Neither production file was edited. Eleven fake-port,
+controlled-clock before/candidate cases retained the original global
+clock, 10 s offer bound capped by remaining time, actual native 23/124
+priority, absent/late frame refusal and owned client kill/reap balance.
+This was protocol evidence only, with no Simulator or OS timing claim.
+
+The candidate is **rejected**:
+
+- A launch that completes when its document renders changes from success
+  with one offer to timeout 124 with zero offers. Waiting for launch
+  proof before delivering its prerequisite creates a cycle.
+- A real URL error 60 followed by only a synthetic launch deadline changes
+  from 60 to 124 because the candidate never makes the original offer.
+- The existing pending-to-owned transition changes two offers to one.
+  It therefore does not preserve the requested offer-count semantics.
+
+Six unchanged original semantic test methods pass on the original
+helper. Against the candidate, four pass and two contain seven failed
+assertions (including the native-60 and exact-offer-count subcases).
+No assertions were rewritten to accept the candidate. The standalone
+11-case matrix also checks the document/launch cycle explicitly. Its
+whole cause-corrected driver exits in 0.046 s; an initial driver assertion
+incorrectly counted subtest failures as two rather than seven, so that
+raw refusal is not called a candidate pass. Runtime and test source stay
+byte-identical; there is no native qualification or deadline change.
+
+The retained actual `60e` lifecycle is rechecked against its source/run/job:
+`60e20e1e733b52cbd25691769831f30202e6c94b` /
+`41207842709` / `124556481553`. Its cold first offer starts at 2.615 s,
+before owned launch at 85.585 s, and times out; its launched-state offer
+succeeds and both owned frames qualify at 111.737 s. The overall job later
+cancelled, so this is readiness-only evidence. It remains a counterexample
+to treating overlap as a sufficient cause of every stall. No onboarding,
+network-sandbox or OS cause is diagnosed.
+
+Local result and unchanged original assertion traces:
+`tmp/sp-x9-ci10-entry/offer-order-result.json` and
+`tmp/sp-x9-ci10-entry/offer-order-trial.log`. The disposable candidate
+driver is removed. CI10 stays open; root retains sole ordinary-run reads
+and the first actual app-reaching artifact handoff. No new Simulator,
+screenshot, workflow dispatch or readiness budget was used.
 
