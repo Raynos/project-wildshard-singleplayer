@@ -5,7 +5,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 0fefa8b-mvw3fp98 = GLSL** (03:15 Cancun; + NF17e; all 35 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
+**LIVE cccdad8-mvw6ubu8 = GLSL** (04:38 Cancun; + NF17e, CI fixes; all 35 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
 (G2, kinds 0 + 3, copy cut, Boundary, facade), EP8 crowd, NF11 4 MB cap, Pine uploads -70 %, Sky look. **For Jake:** QC
 table qa-2026-10-30 (2508e90724); MF13 dither; QB17 video.
 
@@ -15,10 +15,10 @@ Nine is GPU-bound on his phone (13 fps, gpu 45.7 ms vs CPU 10). Opus off (95 %):
 release recovery next; live 0fefa8b green (G917 held). Opus off (95 %).
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
-(f33d642372) G4 fog fn open (x6). Pine GPU ok.
+(f33d642372) G4 fusion closed measured (precision frontiers). Pine GPU ok.
 **Closed:** PF7, NT5, NF19, EP6, EP11, PF17, PF5, PF9 (met), PF18 + PF13 (measured; Sim PASS), EP12 / NT4 (look D), NF23 (met), EP8, EP7 Pine (53-59), EP2 / NF21 / PF14 (measured), NF17e (met:
 Far P1 12.2 -> 10.7), NF11 (font warm e853b2f8e8; native max 36 / 47 ms). EP10 + PF19 (measured: 79 us / draw, hooks 11). Open:
-G4 (x6), PF12, NF18 (QA).
+NF18 (QA). PF12 closed measured.
 
 **Autonomous decisions (for Jake's review):**
 - GLSL is the global default (public too): Pine 44-55 dB, Driftwood 45.7, Nine 41-75; banyan canopy ruled B = GLSL
