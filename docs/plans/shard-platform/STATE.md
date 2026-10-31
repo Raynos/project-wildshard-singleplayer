@@ -5,12 +5,12 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 6802b12-mvwusq3b = GLSL** (16:05 Cancun; CS4; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
+**LIVE 6294193-mvwz750r = GLSL** (18:11 Cancun; staged; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
 (G2, kinds 0 + 3, copy cut, Boundary, facade), EP8 crowd, NF11 4 MB cap, Pine uploads -70 %, Sky look. **For Jake:** QC
 table qa-2026-10-30 (2508e90724).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
-**17:40:** warm-load regression closed: road 18 ms (9cca), cold 51.4 / warm 26.3 s. Pine legacy retired (5abfc53bb9..02ad71d020). 19c9 in CI.
+**18:30:** x6 on CS6. 50ea B19 fixed by 6bfd5d5601 (in CI). T4 offline = preview Vary header (x9). Staged ship 49 s vs 94-131.
 **wildshard-v (16:30):** PR5: no Simulator.app here, so Jake's playtest (G872). 6324 red is pre-f9caf76f31.
 CS1/CS2/CS4/CS5/CS6/CS9 slices landed; DAT T5 no (G872, $4/mo), T6 superseded; CI9 x6, CI10 x9 + x8.
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
