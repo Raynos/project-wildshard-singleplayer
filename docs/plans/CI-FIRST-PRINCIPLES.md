@@ -1896,3 +1896,71 @@ Reproduction and conditional rows:
 retained root `qa-{82b9,1dae}-attempt-jobs.json` plus surrounding retained
 job intervals; this is a separate merge study, not an extension of the
 closed five-leg cap model.
+
+## CI9: chapter tape breakdown and bounded ledger cost
+
+**2026-10-31, sp-x6; agreed with tape owner sp-x1.** Retained job
+metadata binds 82b9 /run41222236176 /job124601957785: admission **2 s**,
+job **774 s**, setup before the tape **60 s**, complete earned tape
+**710 s**, and publication/cleanup after it **4 s**. The later 1dae
+job124612597270 records 2 s admission, 951 s job, 45 s before the tape,
+903 s tape and 3 s afterward. These are step boundaries, not a profile
+or an attribution of the growth. Neither exact job's per-stage raw log
+is retained; no new CI log was fetched.
+
+The original 13 child cases retain their earned order: plains, approach,
+bond, goat, return, home, carving-road, carving-arrival, carvings,
+king-entry, king-phase-one, king-phase-two and king-victory. A child
+checks its predecessor's complete handoff before using it. Each child
+boots a recorder and one independent native worker. The checked
+single-flight pipeline already overlaps recording the next 512-tick
+part with independent replay of the previous part. Replay is ordered;
+no earned dependency or worker can be discarded as duplicate setup.
+
+Retained local phase logs provide these narrower bounds. They are not
+from the 82b9 job and must not be summed into its 710 s:
+
+| Earned stage | Parts | First replay request (s) | Sum of replay-request to checked brackets (s) | Story clock (s) |
+|---|---:|---:|---:|---:|
+| plains | 13 | 2.567 | 29.517 | 33.388 |
+| approach | 9 | 3.662 | 28.694 | 33.674 |
+| bond | 3 | 3.630 | 7.420 | 12.365 |
+| goat | 6 | 3.681 | 20.085 | 25.169 |
+| return | 7 | 4.393 | 19.483 | 25.325 |
+| home | 10 | 4.227 | 19.409 | 25.135 |
+| carving-road | 12 | 3.319 | 30.151 | 35.119 |
+| carving-arrival | 5 | 4.717 | 15.320 | 21.645 |
+| carvings | 4 | 5.928 | 13.650 | 21.182 |
+| king-victory | 4 | 3.039 | 5.100 | 9.761 |
+
+Imports and inherited-handoff admission precede the runner's story
+clock. Its first-request interval combines product/owner setup, first
+recorded part and worker readiness; it is not an isolated boot timer.
+Each replay bracket combines independent execution, full report/effect
+equality and canonical native/physics digest checking, while recording
+can overlap it. The final interval combines assertions, ledger scans,
+snapshot encoding and handoff writing; it does not isolate encoding or
+include later disposal. Incomplete King-entry and refused elder logs
+supply no successful stage time. Thus these logs cannot honestly split
+boot, replay, verification and report encoding into separate totals.
+
+The user-authorized pure Node probe parses the original strict earned
+victory schema, source `cc3dddee…bf6d5fe`, tick37204, 86 parts and earned
+report boundary82. It clones and freezes only its owned ledger, then
+runs the unchanged checker over every original prefix. **All 86 prefix
+scans total 0.929843 s**; initial/final full scans cost 47.298 /40.640 ms.
+Strict schema admission is 47.166 ms; full ledger encoding/input hashing
+is 34.293 /59.856 ms. The 27,810,355-byte input and 14,312,743-byte ledger
+retain every input, numeric bit, effect, observation and budget. No
+native world or product is created. Against the 710 s tape, rescanning
+is negligible: **accepted, no incremental ledger cache**. Initial,
+per-part, cumulative and final scans plus original failure order stay.
+
+Reproduction: `tmp/sp-x6-ci9-chapter/{measure.mjs,measure.log,window.json}`;
+local stage evidence remains in `tmp/sp-x1-chapter2/king-correct-*-earned-full.log`
+and the settled-victory requalification log. Next is one queued original
+plains-stage CPU profile after independent strict current Nalati intake,
+to distinguish replay from canonical physics. It is not yet executed;
+no replay/physics shortcut or timing gain is claimed. All original
+150 s child /180 s case /30 s request and 128-part /60k tick/command /
+8 MB observation allowances remain unchanged.

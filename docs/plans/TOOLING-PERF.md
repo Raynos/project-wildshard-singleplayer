@@ -436,3 +436,36 @@ separate hard `src/**` classification and every policy count. Actual
 config controls reject top-level/nested real-source clocks and preserve
 the prior draft/admin/site scope. Fifteen controls, actual draft typed
 lint and root types pass; ordinary containing qualification stays open.
+
+## Hourly reconciliation: remaining ordered main-list findings
+
+**2026-10-31, sp-x6; accepted G964 audit.** No live implementation gap
+remains in this plan's main list. V1 is done at `11dab8826d`: the original
+composited-phone black-frame predicate refuses its real fixture; 20
+controls in three suites pass in 430 ms. V2 folds into T1's Driftwood /
+Sky retirement milestone, retaining all five measured returns and native
+memory/ghost checks. G710's settled R4-to-R5 growth is 10,616,832 B with
+zero ghosts; its old warm-baseline failure remains a failure. Nine
+current controls pass in 137 ms. This does not add a per-push journey.
+
+K1's nested producer input caches exist; its literal per-producer CI
+transport proposal is superseded by CI9's approved aggregate admitted
+input identity. All24-reused observations do not establish its daily
+90% hit bar, and an exact-hit save skip after the latest key repair
+remains separately qualified. S1 folds into completed T3 classification
+and the existing source-colocated, root tooling/regression/scenario and
+cross-layer ownership contracts. No scheduler is revived.
+
+C1 is superseded by G918/G920's one prepare followed by one complete
+product/product-free wave. C2 folds into CI7's measured complete-module
+planner, retaining 24x2 and exact inventory; remote timing bars remain
+source-specific. C3 folds into LS8's single complete forced type/lint
+job (`8d0c752b02`), shared prepare artifacts and merged publisher; no
+30 s setup result is asserted. C4 retains its completed live-cause
+reporting; G678 supersedes cross-job cancellation. C5 is implemented by
+`fa13b9fce6` /`93bd4ce2ba`, with six ordinary journeys and no old
+boot-smoke workflow_run chain. C6's native-input detector and conditional
+build already exist. K3's transform cache remains, and **the full forced
+type solution keeps --force as designed**. No warm-typecache timing bar
+is claimed. Archived or dropped experiments stay retired; CI9 owns the
+next work, while timing and weekly acceptance bars stay explicit.
