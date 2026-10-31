@@ -34,6 +34,13 @@ export function assertNativeWalkResult(report,expected){
     throw new Error(`Incomplete native physics proof: expected ${expected} passing route legs`);
 }
 
+/** Select each resident test module once; keep all routes of a shard together.
+ * @param {readonly string[]} slugs */
+export function nativeWalkTestFiles(slugs){
+  return [...new Set(slugs.map(slug=>slug==='driftwood-isle'?'test/physics-headless.test.ts'
+    :slug==='nalati-grasslands'?'test/physics-nalati-headless.test.ts':'test/physics-shards-headless.test.ts'))];
+}
+
 /** The normal checked-product tests own every physical assertion and resident lifetime.
  * @param {string} root @param {readonly string[]} args */
 export function runNativePhysicsWalk(root,args){
@@ -44,8 +51,7 @@ export function runNativePhysicsWalk(root,args){
     throw new Error('Browser variants require the browser pose, grid or trail diagnostic');
   const route=resolve(root,flag(args,'route','scripts/physics-route.json'));
   const selection=nativeWalkSelection(JSON.parse(readFileSync(route,'utf8')),args);
-  const files=[...(selection.slugs.includes('driftwood-isle')?['test/physics-headless.test.ts']:[]),
-    ...(selection.slugs.some(slug=>slug!=='driftwood-isle')?['test/physics-shards-headless.test.ts']:[])];
+  const files=nativeWalkTestFiles(selection.slugs);
   if(!args.includes('--no-build')){
     const products=JSON.parse(readFileSync(join(root,'scripts/test-products.json'),'utf8'));
     const slugs=[...new Set(files.flatMap(file=>products[file]??[]))];

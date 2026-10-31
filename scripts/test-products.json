@@ -148,7 +148,8 @@
     "nalati-grasslands"
   ],
   "test/physics-headless.test.ts": ["driftwood-isle"],
-  "test/physics-shards-headless.test.ts": ["pine-hollow", "nalati-grasslands", "nine-dragon-stack", "sunscar-dunes", "far-reach", "blender-template"],
+  "test/physics-shards-headless.test.ts": ["pine-hollow", "nine-dragon-stack", "sunscar-dunes", "far-reach", "blender-template"],
+  "test/physics-nalati-headless.test.ts": ["nalati-grasslands"],
   "test/shard-headless.test.ts": [
     "_template",
     "pastel-plain",

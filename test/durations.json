@@ -484,6 +484,7 @@
  "src/game/shard/declared-biome-queries.test.ts": 0,
  "src/game/shard/gltf-ktx2-bridge.test.ts": 0,
  "src/game/shard/page-mode-boot.test.ts": 0,
+ "test/physics-nalati-headless.test.ts": 25.396533559,
  "test/shard-registry.test.ts": 0,
  "src/game/shardfile/baked-lightmap-lifetime.test.ts": 4.4,
  "src/game/shardfile/baked-tile-contents.test.ts": 0,

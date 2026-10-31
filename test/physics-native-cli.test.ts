@@ -1,5 +1,5 @@
 import {expect,test} from 'vitest';
-import {assertNativeWalkResult,nativeWalkSelection,runNativePhysicsWalk} from '../scripts/physics-native.mjs';
+import {assertNativeWalkResult,nativeWalkSelection,nativeWalkTestFiles,runNativePhysicsWalk} from '../scripts/physics-native.mjs';
 
 test('native route selection preserves explicit leg repetitions and refuses no work',()=>{
   const routes={$doc:'metadata',first:[{name:'bridge'},{name:'stairs'}],second:[{name:'bridge'}]};
@@ -27,4 +27,14 @@ test('a native proof cannot silently claim a remote preview or browser variant',
   expect(()=>runNativePhysicsWalk('.', ['--video'])).toThrow('has no video');
   expect(()=>runNativePhysicsWalk('.', ['--settings=gravity=low'])).toThrow('Browser variants');
   expect(()=>runNativePhysicsWalk('.', ['--tier=desktop'])).toThrow('Browser variants');
+});
+
+test('CLI route selections use each complete resident module once after the physics split',()=>{
+  const others=['pine-hollow','nine-dragon-stack','sunscar-dunes','far-reach','blender-template'];
+  expect(nativeWalkTestFiles(['nalati-grasslands'])).toEqual(['test/physics-nalati-headless.test.ts']);
+  expect(nativeWalkTestFiles(others)).toEqual(['test/physics-shards-headless.test.ts']);
+  expect(nativeWalkTestFiles(['driftwood-isle','nalati-grasslands',...others])).toEqual([
+    'test/physics-headless.test.ts','test/physics-nalati-headless.test.ts','test/physics-shards-headless.test.ts',
+  ]);
+  expect(nativeWalkTestFiles(['nalati-grasslands','nalati-grasslands',...others,...others])).toHaveLength(2);
 });
