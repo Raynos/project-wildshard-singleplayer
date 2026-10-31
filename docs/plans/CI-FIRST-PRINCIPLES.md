@@ -2462,3 +2462,74 @@ Raw matched pair:
 `tmp/phone-loading/2026-10-31T21-40-15-876Z-5596fde-mvwxad35/`.
 The next remaining-pole diagnostic is separate; no repeated unchanged
 uninstrumented reading or warm-bar waiver is claimed.
+
+### CI10: latest 20 ordinary phone jobs, pre-app census
+
+2026-10-31, sp-x9. CI10 remains **open**. The latest 20 terminal
+ordinary main/push phone jobs, selected chronologically across all
+conclusions, contain **10 zero-step cancellations and 10 executed
+failures**. **0/10 executed jobs reached the app**; all ten skipped the
+cold phone-route step. Cancellations are not counted as Safari failures.
+No constructor or Home cost can be attributed from this cohort, even
+when the source contains `fb3ae019a4`, `0191c8667d` and `f61be50e6b`.
+
+Root owns the one ordinary-run intake. The retained inventory is
+`tmp/sp-ci-deploy-qa-refresh/phone-cohort-latest20.json`; local parsing
+and per-raw-log SHA256 bindings are in
+`tmp/sp-x9-ci10-entry/cohort-analysis.json`. All ten executed raw logs
+are present; this audit made no GitHub reads or Simulator visits.
+
+| Source | Source run | Phone job | Bootstatus seconds / exit | Safari readiness |
+|---|---|---|---|---|
+| a6459db | 41235215127 | 124637439194 | 155.670 / 0 | 124, two URL offers |
+| bc888b8 | 41235835772 | 124639314317 | 129.851 / 0 | 124, two URL offers |
+| b5bace4 | 41236776231 | 124642120979 | 146.860 / 0 | 124, two URL offers |
+| 4490a4e | 41237311557 | 124643676509 | 228.461 / 75 | Not started |
+| bb782c4 | 41238297375 | 124646612307 | 229.311 / 0 | 124, two URL offers |
+| 7d3009d | 41238649569 | 124647659139 | 102.163 / 0 | 124, two URL offers |
+| 6324eee | 41239381400 | 124649864690 | 130.151 / 0 | 124, two URL offers |
+| 5326a8d | 41240737251 | 124653912888 | 211.989 / 75 | Not started |
+| 4b2e47d | 41242221157 | 124658282587 | 124.240 / 0 | 124, two URL offers |
+| 1f56a01 | 41243158558 | 124661032169 | 180.835 / 75 | Not started |
+
+Every executed job created a fresh named device and used runner image
+`macos-15` / `20260824.0482.1`, macOS 15.7.9 (24G830), and selected
+Xcode 26.2. Bootstatus spans 102.163–229.311 s, median 151.265 s; the
+seven successful boots have median 130.151 s. Three jobs exhaust the
+remaining original boot admission and return 75 before Safari starts.
+There is no image variation here to establish an image regression.
+
+All seven Safari cases have an owned launch with native exit 0. Every
+first URL offer precedes owned-launch proof; every second offer follows
+it. All fourteen offers end at the existing watchdog with result 124
+(native client killed), not a native explanation of the failure. The
+second offer in `6324eee` has only about 0.93 s left on the original
+global clock. All seven listeners remain alive with selector progress
+and no listener error, but record **zero TCP accepts, zero HTTP requests
+and zero two-frame callbacks**. The actual destination is the literal
+`http://127.0.0.1:<port>/safari/<owned nonce>`: no localhost DNS lookup is
+involved. Zero accepts puts the observed failure before this listener's
+HTTP parsing or page/frame callback; it does not distinguish native URL
+delivery, Safari first-launch UI or a Simulator networking failure.
+
+**One proposed causal check, not a diagnosed fix:** serialize only the
+first URL offer behind the existing exact owned-launch receipt (or
+successful owned launch RPC), rather than issuing `openurl` while that
+launch is pending. Keep the same listener, literal URL, nonce and two
+animation-frame callback, original 120 s clock starting before launch,
+10 s offer bound capped by its remainder, native error priority and
+owned-process cleanup. Add no retry, boot, screenshot or deadline. A
+controlled ordinary containing run would test whether avoiding that
+overlap restores delivery: record the first TCP accept and owned frame
+proof, or retain the same zero-accept refusal. Local behavior controls
+must prove no offer before ownership, native launch errors still win,
+and late ownership/frames cannot pass the original deadline. This
+check is **unimplemented and unqualified** in this audit.
+
+Historical `60e` already reached the same loopback page after a timed-out
+pre-launch offer and a successful launched-state offer (cold readiness
+111.737 s, warm 8.184 s). Thus overlapping calls are not sufficient to
+explain every failure, and neither a universal loopback prohibition nor
+an onboarding cause is established. The constructor cut stays unguessed;
+app attribution waits for an actual app-reaching containing artifact.
+
