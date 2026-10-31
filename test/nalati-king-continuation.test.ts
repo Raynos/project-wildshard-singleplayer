@@ -142,3 +142,12 @@ test('only the original health threshold earns the retry checkpoint and its owne
     expect(a.events).toContainEqual(['respawn']);expect(a.events.some(event=>event[0]==='save')).toBe(false);
   }finally{a.scope.dispose();}
 });
+
+test('the owned room constructs its real hidden body once before portal arm',()=>{
+  const a=world();try{
+    const before=a.rng.snapshot();a.owner.open();expect(a.bodies.size).toBe(1);expect(a.owner.observe().state).toBe('dormant');
+    expect(a.events).toContainEqual(['present',false]);expect(a.rng.snapshot()).not.toEqual(before);
+    expect(()=>a.owner.open()).toThrow('already opened');
+    a.enter();expect(a.bodies.size).toBe(1);expect(a.owner.observe().state).toBe('fight');
+  }finally{a.scope.dispose();}
+});

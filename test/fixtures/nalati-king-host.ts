@@ -144,7 +144,7 @@ export function installNativeKing(host:SimHost,context:Pick<HeadlessRuntimeInsta
   const owner:NativeKingOwner={update:dt=>{live();for(const command of context.commands())if(command.kind==='script'&&command.actorId==='nalati.king.use')
       {if(command.value!==1)throw new Error('Invalid King use input');if(uiState.reward&&ownedCore.observe().state==='victory')
         throw new Error('King reward equipment loan remains closed');}
-      if(!active){for(const flag of ['clue:1','clue:2','clue:3'])if(!host.flags.has(flag))throw new Error('King stage requires actual three carvings');active=true;}
+      if(!active){for(const flag of ['clue:1','clue:2','clue:3'])if(!host.flags.has(flag))throw new Error('King stage requires actual three carvings');ownedCore.open();active=true;}
       ownedCore.update(dt,host.clock.now);
     },observe:()=>{live();return ownedCore.observe();},snapshot:()=>{
       live();if(!active)return {kind:'closed'};

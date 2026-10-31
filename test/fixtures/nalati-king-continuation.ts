@@ -103,6 +103,12 @@ export class KingContinuation<B extends PhasedBossBody> {
     if(floor!==undefined&&p.y<floor-limits.tolerance&&p.y>floor-limits.depth){p.y=floor;if(player.velocity.y<0)player.velocity.y=0;this.ports.publishPlayer();}
     this.boss.update(dt,time);this.ports.advanceRoom(dt,time);
   }
+  /** Open the original room owner once: its page constructs/reset(0) while
+   * hidden, before the later real portal arm/reset. Closed loans do neither. */
+  open():void {
+    this.live();if(this.boss.state!=='dormant'||this.phased.body()!==null)throw new Error('King room owner already opened');
+    this.phased.script.reset(0);this.ports.present(false);
+  }
   onPlayerDeath():boolean {this.live();return this.boss.onPlayerDeath();}
   takeReward():boolean {this.live();return this.boss.takeReward();}
   snapshot():KingSaved {this.live();return {version:1 as const,recipe:this.recipe,boss:this.boss.snapshot(),fight:this.phased.continuation(this.ports.identify),
