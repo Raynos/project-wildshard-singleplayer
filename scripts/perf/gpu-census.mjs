@@ -7,6 +7,7 @@ import {developerSettings,saveFixture} from '../debug-settings.mjs';
 import {loadingCardIndex} from '../loading-benchmark/catalogue.mjs';
 import {installGpuProbe} from './gpu-census-page.mjs';
 import {overdraw} from './gpu-census-overdraw.mjs';
+import {gpuPairs,gpuPhoneModel} from './gpu-census-report.mjs';
 /** Modern GPU census entry: native loading cards, immutable preview, explicit modes. */
 export async function runGpuCensus(){
 const arg=(key,fallback)=>process.argv.find(s=>s.startsWith(`--${key}=`))?.slice(key.length+3)??fallback;
@@ -21,12 +22,13 @@ const selected=arg('poses','').split(','),poses=(slug==='nine-dragon-stack'?nine
 if(poses.length === 0||!modes.every(x=>['legacy','shardfile'].includes(x)))throw new Error('Invalid pose/mode selection');
 if(!url||!['nine-dragon-stack','pine-hollow'].includes(slug)||!Number.isSafeInteger(rounds)||rounds<1||rounds>20||!Number.isSafeInteger(K)||K<1||K>64)throw new Error('Requires URL, supported shard and bounded rounds/frames');
 mkdirSync(out,{recursive:true});const version=await(await fetch(new URL('version.json',url))).json();
+const readings=[],saveAll=()=>writeFileSync(`${out}/reading.json`,JSON.stringify({rows:readings,requested:{slug,modes,poses:poses.map(p=>p.id)},method:'paired frozen-frame throughput, includes CPU submission; no official timing credit',partitionStatus:'NOT_MEASURABLE (G872): overlapping subtraction, occlusion and tile flushes'},null,2));
 const browser=await chromium.launch({headless:true,args:['--mute-audio','--use-angle=metal','--ignore-gpu-blocklist']});
 const median=xs=>{const a=[...xs].sort((x,y)=>x-y);return a[Math.floor(a.length/2)];};
 try{for(const mode of modes)for(const pose of poses){
  const context=await browser.newContext({...devices['iPhone 16 Pro'],viewport:{width:402,height:874},deviceScaleFactor:2});
  const row={build:version.build,slug,mode,pose,when:new Date().toISOString(),K,rounds,source:'frozen-frame throughput including CPU submission; fresh-write readPixels sync; no official phone GPU timing credit',errors:[]};
- const file=`${out}/${slug}-${mode}-${pose.id}.json`,save=()=>writeFileSync(file,JSON.stringify(row,null,2));
+ readings.push(row);const file=`${out}/${slug}-${mode}-${pose.id}.json`,save=()=>{writeFileSync(file,JSON.stringify(row,null,2));saveAll();};
  try{
   await installInit(context,{lane:'sp-x8-g1',sha:version.build,browser:'chromium',capture:30,tier:'phone'});
   await developerSettings(context,{tier:'phone',volume:0,time:'night',weather:'rain'});
@@ -46,10 +48,10 @@ try{for(const mode of modes)for(const pose of poses){
   row.samples=samples;row.whole=median(samples.map(x=>x.whole));row.cpu=median(samples.map(x=>x.cpu));
   row.subtract=[];
   const variants=arg('subtract','1')==='0'?[]:['none','shadow','depthcopy','silhouette','jiehua','alpha-tested',...inventory.materials.flatMap(m=>m.groups).filter((x,i,a)=>x.startsWith('group:')&&a.indexOf(x)===i),...row.environment.passes.filter(p=>p.index>0).map(p=>`pass:${p.index}`)];
-  for(const variant of variants){const pairs=[];for(let i=0;i<rounds;i++){const baseline=await page.evaluate(k=>window.__gpuCensus.batch('throughput',k),K),off=await page.evaluate(([k,v])=>window.__gpuCensus.batch('throughput',k,v),[K,variant]);pairs.push({baseline:baseline.whole,off:off.whole,saved:baseline.whole-off.whole});}row.subtract.push({variant,baseline:median(pairs.map(x=>x.baseline)),off:median(pairs.map(x=>x.off)),saved:median(pairs.map(x=>x.saved)),pairs});save();}
+  for(const variant of variants){const pairs=[];for(let i=0;i<rounds;i++){const baseline=await page.evaluate(k=>window.__gpuCensus.batch('throughput',k),K),off=await page.evaluate(([k,v])=>window.__gpuCensus.batch('throughput',k,v),[K,variant]);pairs.push({baseline:baseline.whole,off:off.whole,baselineCpu:baseline.cpu,offCpu:off.cpu});}row.subtract.push({variant,...gpuPairs(pairs)});save();}
   row.baselineEnd=await page.evaluate(k=>window.__gpuCensus.batch('throughput',k),K);
   if(arg('overdraw','0')==='1')row.overdraw=await page.evaluate(overdraw,false);
-  row.top5=[...row.subtract].sort((a,b)=>b.saved-a.saved).slice(0,5);row.complete=row.errors.length===0;row.calibration=slug==='nine-dragon-stack'&&pose.id==='approx-a'?{kind:'phone-frame-to-Mac-throughput MODEL',phoneFrameAnchorMs:79,factor:79/row.whole,officialTimingCredit:false}:null;row.partitionStatus='NOT_MEASURABLE (G872): overlapping subtraction, occlusion and tile flushes; no additive sum credit';save();console.log(JSON.stringify({pose:pose.id,mode,gpuMs:row.whole,reconciliation:row.reconciliation,top5:row.top5.map(x=>[x.variant,x.saved])}));
+  row.top5=[...row.subtract].sort((a,b)=>b.saved-a.saved).slice(0,5);row.complete=row.errors.length===0;row.calibration=slug==='nine-dragon-stack'&&mode==='shardfile'&&pose.id==='approx-a'?gpuPhoneModel(row.whole,79):null;row.partitionStatus='NOT_MEASURABLE (G872): overlapping subtraction, occlusion and tile flushes; no additive sum credit';save();console.log(JSON.stringify({pose:pose.id,mode,throughputMs:row.whole,cpuMs:row.cpu,top5:row.top5.map(x=>[x.variant,x.saved])}));
   await page.evaluate(()=>window.__gpuCensus.restore());
  }catch(e){row.error=e.stack;row.complete=false;save();console.error(pose.id,mode,e.message);throw e;}finally{await context.close();}
 }}finally{await browser.close();}

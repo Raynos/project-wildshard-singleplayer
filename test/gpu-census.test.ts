@@ -1,5 +1,6 @@
 import {afterEach, expect, test, vi} from 'vitest';
 import {installGpuProbe, type GpuCensusPort} from '../scripts/perf/gpu-census-page.mjs';
+import {gpuPairs,gpuPhoneModel} from '../scripts/perf/gpu-census-report.mjs';
 
 const windowDescriptor=Object.getOwnPropertyDescriptor(globalThis,'window');
 function fixture() {
@@ -31,6 +32,16 @@ function fixture() {
   return {port,environment,renderer,pass,draw,gl,rect,originalRect,material,originalBlit};
 }
 afterEach(()=>{if(windowDescriptor===undefined)Reflect.deleteProperty(globalThis,'window');else Object.defineProperty(globalThis,'window',windowDescriptor);});
+
+test('paired subtraction retains negative savings, no-op noise and the model label',()=>{
+ const pairs=[{baseline:3,off:4,baselineCpu:1,offCpu:1},{baseline:10,off:9,baselineCpu:2,offCpu:2},{baseline:5,off:7,baselineCpu:1,offCpu:2}];
+ expect(gpuPairs(pairs)).toMatchObject({baseline:5,off:7,saved:-1,pairs});
+ expect(()=>gpuPairs([])).toThrow('Missing paired');
+ expect(()=>gpuPairs([{baseline:0,off:1,baselineCpu:1,offCpu:1}])).toThrow('Invalid paired');
+ expect(()=>gpuPairs([{baseline:1,off:Number.NaN,baselineCpu:1,offCpu:1}])).toThrow('Invalid paired');
+ expect(gpuPhoneModel(2,79)).toEqual({kind:'phone-frame / Mac-throughput MODEL',macThroughputMs:2,phoneFrameMs:79,factor:39.5,officialTimingCredit:false});
+ expect(()=>gpuPhoneModel(0,79)).toThrow('Invalid GPU calibration');
+});
 
 test('the real probe inventories submitted aliases and restores native methods and scissor rectangle',()=>{
  const f=fixture(),originalDraw=f.draw,originalBlit=f.originalBlit;
