@@ -152,24 +152,28 @@ export class TrampleField {
     const a = this.amount, g = this.angle, out = this.texels(), list = this.active, listed = this.listed, full = this.full;
     if (full) { list.length = 0; listed.fill(0); this.full = false; }
     const count = full ? SIZE * SIZE : list.length;
-    let kept = 0;
+    let kept = 0, changed = false;
     for (let n = 0; n < count; n++) {
       const i = full ? n : list[n] ?? 0;
       const v = a[i] ?? 0;
-      if (v <= 0) { if (out !== null) { out[i * 2] = 128; out[i * 2 + 1] = 128; } if (!full) listed[i] = 0; continue; }
+      if (v <= 0) { if (out !== null) { changed ||= out[i * 2] !== 128 || out[i * 2 + 1] !== 128; out[i * 2] = 128; out[i * 2 + 1] = 128; } if (!full) listed[i] = 0; continue; }
       const nv = v - step;
-      if (nv <= 0) { a[i] = 0; if (out !== null) { out[i * 2] = 128; out[i * 2 + 1] = 128; } if (!full) listed[i] = 0; continue; }
+      if (nv <= 0) { a[i] = 0; if (out !== null) { changed ||= out[i * 2] !== 128 || out[i * 2 + 1] !== 128; out[i * 2] = 128; out[i * 2 + 1] = 128; } if (!full) listed[i] = 0; continue; }
       a[i] = nv; any = true;
       if (full) { listed[i] = 1; list.push(i); } else list[kept++] = i;
       if (out === null) continue;
       const ang = g[i] ?? 0;
-      out[i * 2] = Math.round(127.5 + 127 * Math.cos(ang) * nv);
-      out[i * 2 + 1] = Math.round(127.5 + 127 * Math.sin(ang) * nv);
+      const r = Math.round(127.5 + 127 * Math.cos(ang) * nv), b = Math.round(127.5 + 127 * Math.sin(ang) * nv);
+      changed ||= out[i * 2] !== r || out[i * 2 + 1] !== b;
+      out[i * 2] = r;
+      out[i * 2 + 1] = b;
     }
     if (!full) list.length = kept;
     this.anyFlat = any;
     this.dirty = false;
-    this.uploaded();
+    // Float recovery can leave the quantized RG8 image identical. Keep the
+    // native field/clock advancing without submitting those same bytes again.
+    if (changed) this.uploaded();
   }
 
   /** The map's continuation (TrampleState). A tracked mover is a callback, not state: a field tracking one refuses. */
@@ -203,7 +207,7 @@ export class TrampleField {
   protected frame(): void { /* a renderer-free field draws nothing */ }
   /** the RG8 texels the recovery rewrites (the page's texture data), or null */
   protected texels(): Uint8Array | null { return null; }
-  /** the recovery rewrote the texels */
+  /** the recovery changed at least one encoded texel */
   protected uploaded(): void { /* nothing to upload */ }
 
   private idx(ix: number, iz: number): number {
