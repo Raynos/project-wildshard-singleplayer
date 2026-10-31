@@ -1424,3 +1424,95 @@ The original raw line references and classifications are in
 `tmp/sp-x2-ci23-misses/audit.json`. The first ordinary app-reaching
 phone artifact containing `fb3ae019a4` remains higher priority than more
 CI2/CI3 investigation; sp-ci-deploy retains sole artifact/query ownership.
+
+## CI9: second all-four ordinary release after-figures
+
+**2026-10-31, `82b90bae05` / run `41222236176`:** the second ordinary
+fully required-green release containing `0eafc1d8b7`, `e2dc2c25ed`,
+`a6e6105c8d` and `f15555814f`. The first is `0f1906ec37` /
+`41221226717`. Root's exact-source proof verifies all **37** required
+jobs, all SIX journeys, the native4 roster, production maps and API.
+The optional phone/draw outcomes are separate. This is a completed
+required release, not a claim that every optional job has finished.
+
+Only one authorized prepare-log read was made, for job `124599036470`;
+the ship log and job/run metadata were already retained. Run-created
+time remains the available push proxy, not a newly measured Git upload.
+
+| Additive segment | 60e baseline (s) | 82b9 after (s) |
+|---|---:|---:|
+| Run created → prepare start | 384 | 394 |
+| Prepare start → completion | 679 | 323 |
+| Prepare complete → last required job | 694 | **807** |
+| Last required → ship start, including job creation/admission | 2 | 339 |
+| Ship start → first matching live version | 123.675078 | 116.901537 |
+| **Run created → matching live** | **1882.675078** | **1979.901537** |
+
+82b9 starts at **16:58:37Z**, prepare runs **17:05:11–17:10:34**,
+the last required job completes **17:24:01**, ship starts **17:29:40**,
+and the first exact production match is **17:31:36.9015369**. Its
+**32m59.902s** misses the 900 s bar by **1079.902 s**. That is
+97.226 s longer than 60e, 333.186 s longer than 6a84's
+1646.715811 s and 133.075 s longer than 3422's 1846.826622 s.
+The later deep-proof completion at 17:34:12 is not propagation time.
+
+### Actual cache and checkout acceptance
+
+| Measurement | 60e before | 82b9 after |
+|---|---:|---:|
+| Main cache restore payload | 6,576,926,772 B | **1,008,661,985 B** |
+| Main restore workflow step | 160 s | **12 s** |
+| Main save payload | 6,577,274,485 B | **1,008,672,753 B** |
+| Main post-save workflow step | 161 s | **5 s** |
+| Exact save-key hit / save skipped | No | **No** |
+| Push ship checkout | 25 s | **1 s** |
+
+Raw restore hit → restored is **11.774353 s**; tar start → saved is
+**5.680291 s**. These raw intervals differ from whole-second workflow
+step boundaries. `ZSTD_CLEVEL=1` is present. All **24 products reuse**;
+no shard author or nested memo is invoked. The strict CI generation
+scan qualifies in 7.155 s and retains exactly **198 entries /2516 files
+/798,627,121 B**, with zero history or unknown entries and zero deletion
+in this run. The remaining `.gen` family totals 872,003,741 B/7707 files;
+shardfiles totals 966,560,841 B/6683 files. These are metadata censuses,
+not content hashes or proof that global memo families may be deleted.
+
+The restored v4 key ends `4d6a48eb…cdcae2`, while the qualified admitted
+save identity ends `c1a8e527…5dd78`. Its exact lookup **misses**, then
+saves the full five-root cache. Therefore this run qualifies the bounded
+cache/checkout behavior but **does not demonstrate the exact-hit save
+skip**, even though all products reuse. Compiler/generator input changes
+are part of the key; the raw log does not explain which identity input
+differs. No key weakening or isolated compression/prune speedup is
+inferred from the changed payload and shared cloud conditions.
+
+### Remaining largest segment
+
+The **807 s required wave** is now largest. Its last job is behaviour22
+`124603137096`, not Titan: **292 s** waiting for the existing fixtures
+dependency after prepare, then **185 s** job admission, **142 s** setup
+and exact-input restores before Vitest, **175 s** tests and **13 s**
+publication/cleanup. These add to 807 s. The chapter job finishes 31 s
+earlier: 774 s execution, including a **710 s** earned-tape step; Titan,
+stories and routes finish earlier still. This does not authorize dropping
+fixtures, changing inventory, increasing caps or relaxing tape checks.
+
+The separate **339 s** ship admission has no executing ship steps; the
+retained packet does not distinguish protected-group contention from
+runner allocation. Ship's combined artifact/CLI step is **71 s**:
+download plus strict restore reaches its receipt in **55.820507 s**,
+followed by approximately 14.5 s CLI setup. The earlier dedup experiment
+remains rejected; no new tar protocol or polling change follows.
+
+**CI9 stays open.** The wave's fixture gate/admission is the next
+attribution target from this sample; clocks alone do not establish a
+safe source cut. Per G964 this short acceptance interrupt ends here and
+the lane returns to TOOLING-PERF H2. The chapter audit remains parked;
+its owner keeps the earned dependency and every full verification.
+No dispatch, additional watch, timing artifact fetch or hardware proof
+was created. The exact-key skip remains unqualified rather than silently
+becoming accepted on the second release.
+
+The reproducible retained-input arithmetic and source/run/job bindings
+are in `tmp/sp-x6-ci9-all4-after/audit.json`; root proof is
+`tmp/sp-ci-deploy-qa-refresh/qa-82b9-complete-proof.json`.
