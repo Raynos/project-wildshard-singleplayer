@@ -8,6 +8,7 @@ import { Owned, isOwnedId, isCosmetic } from '../../../../src/game/loot/Owned';
 import { Purse } from '../../../../src/game/loot/Purse';
 import { Bounty } from '../../../../src/game/loot/Bounty';
 import { Exchange } from '../../../../src/game/loot/exchange';
+import { DEATH_ORDER } from '../../../../src/game/loot/deaths';
 import { coinValue } from '../../../../src/game/loot/coinAmounts';
 import { WeightedTable } from '@wildshard/engine/ai/weighted';
 import { readLootTables } from '../../../../src/game/loot/tableRows';
@@ -62,7 +63,7 @@ export function installNativeEconomy(host: SimHost, product: ShardProduct, roste
     if (body === undefined || body.actor === null) return;
     const amount = coinValue(coinTable?.roll({ kind: body.kind }, () => 0) ?? []);
     if (amount > 0 && bounty.claim(body)) burst.spawn(body.actor.position, amount, callbacks.onCoin, callbacks.onDone);
-  }, host.scope);
+  }, host.scope, { order: DEATH_ORDER.loot });
   host.onStep(NATIVE_TRADE, dt => {
     if (exchange.active && host.player.position.distanceTo(original.position) > closeDistance) exchange.close();
     for (const command of input.scripts()) if (command.actorId === NATIVE_TRADE) {
