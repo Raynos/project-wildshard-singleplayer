@@ -16,6 +16,24 @@ import tempfile
 import threading
 
 
+def selected_simctl():
+    # The runner already pins this Xcode. Avoid PATH and xcrun tool resolution
+    # without another discovery RPC; unavailable installations keep the old CLI.
+    developer = os.environ.get('DEVELOPER_DIR', '')
+    if os.path.isabs(developer):
+        executable = Path(developer) / 'usr/bin/simctl'
+        try:
+            if executable.is_file() and os.access(executable, os.X_OK):
+                return (str(executable),)
+        except OSError:
+            pass
+    return ('xcrun', 'simctl')
+
+
+# One selection, charged to the existing import/admission interval.
+SIMCTL_COMMAND = selected_simctl()
+
+
 @contextmanager
 def native_transcript():
     # A native service may inherit simctl's output handle. Pipe EOF then
@@ -250,7 +268,7 @@ def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=N
             lifecycle['samples'].append(record)
         print(f'sim-lane: Safari openurl attempt {attempts} started at {attempt_started - started:.3f}s', file=sys.stderr)
         stamp(record, 'spawnRequestedAt')
-        with native_transcript() as errors, subprocess.Popen(['xcrun', 'simctl', 'openurl', udid, url],
+        with native_transcript() as errors, subprocess.Popen([*SIMCTL_COMMAND, 'openurl', udid, url],
                               stdout=subprocess.DEVNULL, stderr=errors, text=True) as child:
             stamp(record, 'spawnedAt')
             while child.poll() is None and not ready.is_set() and time.monotonic() < attempt_deadline:
@@ -316,7 +334,7 @@ def wait_for_safari(udid):
     next_receipt_check, admitted = started, False
     def report_receipt_evidence():
         print(f'sim-lane: Safari launch receipt evidence {json.dumps(evidence)}', file=sys.stderr)
-    lifecycle = {'launch': {phase: None for phase in ('spawnRequestedAt', 'spawnedAt',
+    lifecycle = {'simctlCommand': list(SIMCTL_COMMAND), 'launch': {phase: None for phase in ('spawnRequestedAt', 'spawnedAt',
                  'ownedAt', 'completedAt', 'killAt', 'reapRequestedAt', 'reapedAt')},
                  'url': {'count': 0, 'omitted': 0, 'samples': []}, 'http': None}
     lifecycle['launch']['nativeReturnCode'] = None
@@ -328,7 +346,7 @@ def wait_for_safari(udid):
     try:
         with native_transcript() as output, native_transcript() as errors, readiness_page(deadline, started, lifecycle) as (url, ready):
             stamp_launch('spawnRequestedAt')
-            with subprocess.Popen(['xcrun', 'simctl', 'launch', udid, 'com.apple.mobilesafari'],
+            with subprocess.Popen([*SIMCTL_COMMAND, 'launch', udid, 'com.apple.mobilesafari'],
                                   stdout=output, stderr=errors, text=True) as launch:
                 stamp_launch('spawnedAt')
                 def launch_state():
@@ -417,7 +435,7 @@ def wait_for_bootstatus(udid, remaining):
     started = time.monotonic()
     print('sim-lane: device bootstatus started', file=sys.stderr, flush=True)
     try:
-        result = subprocess.run(['xcrun', 'simctl', 'bootstatus', udid, '-b', '-d'],
+        result = subprocess.run([*SIMCTL_COMMAND, 'bootstatus', udid, '-b', '-d'],
                                 stdout=sys.stderr, timeout=budget, check=False)
         code = result.returncode if result.returncode >= 0 else 128 - result.returncode
         if code == 0 and time.monotonic() >= deadline:

@@ -17,15 +17,23 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
 from urllib.parse import urlsplit
 from urllib.error import HTTPError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parent.parent
+# Apple developer launchers consult DEVELOPER_DIR; fixtures need the already
+# loaded interpreter itself, independent of the fake selected toolchain.
+PYTHON = str(Path(sys.executable).resolve())
 UDID = '00000000-0000-0000-0000-000000000016'
 RUNTIME = 'com.apple.CoreSimulator.SimRuntime.iOS-26-2'
-READY = runpy.run_path(str(ROOT / 'scripts/sim-safari-ready.py'))
+with patch.dict(os.environ):
+    # Pure cloned controls use the fallback command; actual direct dispatch is
+    # covered by the existing isolated CLI cases below. Never borrow host Xcode.
+    os.environ.pop('DEVELOPER_DIR', None)
+    READY = runpy.run_path(str(ROOT / 'scripts/sim-safari-ready.py'))
 
 
 class SimulatorReadinessTests(unittest.TestCase):
@@ -35,9 +43,11 @@ class SimulatorReadinessTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.bin = self.root / 'bin'
         self.bin.mkdir()
+        (self.bin / 'python3').symlink_to(PYTHON)
         self.env = {**os.environ, 'PATH': f'{self.bin}:{os.environ["PATH"]}',
             'SIM_LANE_DIR': str(self.root / 'lane'), 'SIM_FIXTURE': str(self.root),
-            'SIM_SAFARI_READY_TIMEOUT': '5'}
+            'SIM_SAFARI_READY_TIMEOUT': '5',
+            'DEVELOPER_DIR': str(self.root / 'unavailable-developer')}
         self.command('xcrun', '''import json,os,pathlib,sys,time
 root=pathlib.Path(os.environ['SIM_FIXTURE']);args=sys.argv[1:]
 if args[1]=='launch' and os.environ.get('SIM_REVERSE_CHILD_LOGS'):
@@ -126,13 +136,42 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
 
     def command(self, name, code):
         path = self.bin / name
-        path.write_text(f'#!{sys.executable}\n' + code)
+        if path.is_symlink(): path.unlink()
+        path.write_text(f'#!{PYTHON}\n' + code)
         path.chmod(0o755)
+
+    def developer_simctl(self):
+        developer = self.root / 'developer'
+        executable = developer / 'usr/bin/simctl'
+        executable.parent.mkdir(parents=True, exist_ok=True)
+        source = (self.bin / 'xcrun').read_text()
+        self.assertEqual(source.count('args=sys.argv[1:]'), 1)
+        executable.write_text(source.replace('args=sys.argv[1:]', "args=['simctl',*sys.argv[1:]]", 1))
+        executable.chmod(0o755)
+        return developer
+
+    def test_simctl_selection_requires_an_absolute_executable_and_keeps_fallback(self):
+        native = READY['selected_simctl']
+        developer = self.developer_simctl()
+        executable = developer / 'usr/bin/simctl'
+        def selected(value):
+            ports = {**native.__globals__, 'os': SimpleNamespace(environ={'DEVELOPER_DIR': value},
+                path=os.path, access=os.access, X_OK=os.X_OK)}
+            return FunctionType(native.__code__, ports)()
+        fallback = ('xcrun', 'simctl')
+        self.assertEqual(selected(''), fallback)
+        self.assertEqual(selected('relative-developer'), fallback)
+        self.assertEqual(selected(str(self.root / 'missing')), fallback)
+        self.assertEqual(selected(str(developer)), (str(executable),))
+        executable.chmod(0o644)
+        self.assertEqual(selected(str(developer)), fallback)
+        self.assertFalse((self.root / 'calls').exists())
+        self.assert_not_handed_over()
 
     def lane(self, mode='run', device='wildshard-iphone', **extra):
         args = ['/bin/bash', str(ROOT / 'scripts/sim-lane.sh'), mode, device]
         if mode == 'run':
-            args.extend([sys.executable, str(self.child)])
+            args.extend([PYTHON, str(self.child)])
         return subprocess.run(args, env={**self.env, **extra}, text=True,
             capture_output=True, timeout=10, check=False)
 
@@ -144,8 +183,12 @@ else: raise RuntimeError('Unexpected fixture command '+repr(args))
         self.assertFalse((self.root / 'lane' / f'{UDID}.lease').exists())
 
     def test_cold_boot_prepares_only_the_owned_runtime_before_native_boot(self):
-        result = self.lane()
+        developer = self.developer_simctl()
+        result = self.lane(DEVELOPER_DIR=str(developer))
         self.assertEqual(result.returncode, 0, result.stderr)
+        line = next(line for line in result.stderr.splitlines() if 'Safari lifecycle receipt ' in line)
+        receipt = json.loads(line.split('Safari lifecycle receipt ', 1)[1])
+        self.assertEqual(receipt['simctlCommand'], [str(developer / 'usr/bin/simctl')])
         calls = self.calls()
         caches = [row for row in calls if row[1] == 'runtime']
         self.assertEqual(caches, [['simctl', 'runtime', 'dyld_shared_cache', 'update', RUNTIME]])
@@ -331,7 +374,7 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
             'subprocess': SimpleNamespace(run=lambda *_args, **_kwargs: self.fail('Expired admission started a native RPC'))})
         self.assertEqual(helper(UDID, 1), 75)
         for budget in ['0', '301', 'nan']:
-            result = subprocess.run([sys.executable, str(ROOT / 'scripts/sim-safari-ready.py'),
+            result = subprocess.run([PYTHON, str(ROOT / 'scripts/sim-safari-ready.py'),
                                     UDID, '--bootstatus', budget], env=self.env,
                                     capture_output=True, text=True, timeout=5)
             self.assertEqual(result.returncode, 64, result.stderr)
@@ -817,7 +860,7 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
         self.assertEqual(sum(row[1] == 'bootstatus' for row in self.calls()), 2)
 
     def test_readiness_imports_can_finish_before_bootstatus_without_launching(self):
-        with subprocess.Popen([sys.executable, str(ROOT / 'scripts/sim-safari-ready.py'),
+        with subprocess.Popen([PYTHON, str(ROOT / 'scripts/sim-safari-ready.py'),
                                UDID, '--await-bootstatus'], env=self.env, text=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as child:
             try:
@@ -839,7 +882,7 @@ print('201 200 /runtime/Applications/MobileSafari.app/MobileSafari')
 
     def test_failed_or_missing_bootstatus_never_launches_safari(self):
         for status, expected in [('23\n', 23), ('', 64), ('999\n', 64)]:
-            result = subprocess.run([sys.executable, str(ROOT / 'scripts/sim-safari-ready.py'),
+            result = subprocess.run([PYTHON, str(ROOT / 'scripts/sim-safari-ready.py'),
                                      UDID, '--await-bootstatus'], env=self.env,
                                     text=True, input=status, capture_output=True, timeout=5)
             self.assertEqual(result.returncode, expected, result.stderr)
@@ -875,7 +918,7 @@ sys.addaudithook(request)
         self.assertEqual((self.root / 'child-ran').read_text(), '1')
 
     def test_failed_app_launch_cannot_publish_or_retry_a_lease(self):
-        result = self.lane(SIM_LAUNCH_RC='61')
+        result = self.lane(DEVELOPER_DIR=str(self.developer_simctl()), SIM_LAUNCH_RC='61')
         self.assertEqual(result.returncode, 61, result.stderr)
         self.assertIn('Safari app launch failed', result.stderr)
         self.assert_not_handed_over()
