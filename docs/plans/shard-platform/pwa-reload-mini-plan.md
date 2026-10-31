@@ -79,7 +79,8 @@ controls the page. Then a lit pill always means "one tap lands it", the tap can 
 wedge has nothing to trigger it. Concretely:
 
 - A controlled page reads its registration with `getRegistration()` (not a job, so it can't hang). It calls `register()`
-  only when there is no registration yet (a first visit at `ws:control-ready`, as MF21 has it now).
+  only when there is no registration yet. The warm-load followup `4ef7467733` starts that first registration
+  early and nonblocking on an uncontrolled document too; readiness stays immediate, with no activation wait or claim.
 - Lit = `reg.waiting` exists, its build (`BUILD` message) is not the document's, and it matches the newest
   `/version.json` (prefix match, as `refreshWorkerForChunkRecovery` already does). If `/version.json` is newer than the
   waiting worker, stay dark and `update()`. C replaces B in the waiting slot, and the pill lights once, for C. The poll
@@ -100,9 +101,9 @@ apart from the deleted route.
 | Row | What | Done when (measured) | Lane | Size |
 |---|---|---|---|---|
 | PR1 | **done (2026-10-31, sp-x9)** — **The reload counter as a check**: commit this session's `repro.mjs` / `proxy.mjs` / `make-variant.mjs` as `scripts/pwa-reload-check.mjs`, run through `browser-lane.sh` on one served build. Scenarios: no deploy; A→B tapped the moment the pill lights; A→B with a 25 s install; A→B→C with C mid-install. It prints taps-to-clear. | On today's HEAD it reproduces the table above (8 / never, 2 on Chromium); under 3 min a run. | Codex | S |
-| PR2 | **in flight (2026-10-31, sp-x9)** — **Never wait on `register()` in a controlled page** (`sw.ts` `boot` / `register` / `watch`): watch `getRegistration()`, register only when there is none, `update()` stays fire-and-forget. The tap reads `reg.waiting` fresh (`adopt`). | PR1's wedged case (one tap mid-install, then wait): the next tap lands B in **1** reload; `sw`, `sw-ready-*`, `sw-registration-blocked`, `update-*` tests pass. | Codex | S |
-| PR3 | **in flight (2026-10-31, sp-x9)** — **Light only for a deliverable newest build** (`Update.ts` `check` / `lightUp`, `sw.ts` `announce`): `/version.json` only discovers while a worker controls; `announce` compares the waiting worker's build against the document and the newest `/version.json`; the poll keeps running while lit. | WebKit **A→B = 1** tap even when tapped the moment anything lights (25 s install: dark until installed); **A→B→C = 1** tap landing C, with B already waiting and with C mid-install; no deploy: dark through 3 reloads; Chromium the same. | Codex | S |
-| PR4 | **in flight (2026-10-31, sp-x9)** — **Delete what disagrees**: the document race route in `sw.js`, `requestInstall`'s text swap, `WsSw.activate()` and the tests that pin them (G416). | Chromium A→B: the page never runs a newer build than its controller (doc = ctrl after every tap in PR1); WebKit warm title unchanged (MF1's ≤ 0.1 MB warm network). | Codex | S |
+| PR2 | **done (2026-10-31, sp-x9)** — **Never wait on `register()` in a controlled page** (`sw.ts` `boot` / `register` / `watch`): watch `getRegistration()`, register only when there is none, `update()` stays fire-and-forget. The tap reads `reg.waiting` fresh (`adopt`). | PR1's wedged case (one tap mid-install, then wait): the next tap lands B in **1** reload; `sw`, `sw-ready-*`, `sw-registration-blocked`, `update-*` tests pass. | Codex | S |
+| PR3 | **done (2026-10-31, sp-x9)** — **Light only for a deliverable newest build** (`Update.ts` `check` / `lightUp`, `sw.ts` `announce`): `/version.json` only discovers while a worker controls; `announce` compares the waiting worker's build against the document and the newest `/version.json`; the poll keeps running while lit. | WebKit **A→B = 1** tap even when tapped the moment anything lights (25 s install: dark until installed); **A→B→C = 1** tap landing C, with B already waiting and with C mid-install; no deploy: dark through 3 reloads; Chromium the same. | Codex | S |
+| PR4 | **done (2026-10-31, sp-x9)** — **Delete what disagrees**: the document race route in `sw.js`, `requestInstall`'s text swap, `WsSw.activate()` and the tests that pin them (G416). | Chromium A→B: the page never runs a newer build than its controller (doc = ctrl after every tap in PR1); WebKit warm title unchanged (MF1's ≤ 0.1 MB warm network). | Codex | S |
 | PR5 | **open — real home-screen pass not proved here (G872, 10-31).** Simulator.app is absent; do not reinstall Xcode. The pre-PR2/3 kill check uses persistent WebKit process-close / same-profile relaunch (finding below). Jake's next ordinary home-screen PWA playtest supplies the real check; no chore is assigned to him. | A→B and A→B→C each take one tap during ordinary home-screen play. **Not proved here.** | Codex | S |
 
 PR1 baseline is complete on source-checked 131
@@ -117,6 +118,41 @@ Receipts: `tmp/sp-x9-pwa/pr1-webkit-{nodeploy-ready,delayed-corrected,ab-abc}.js
 and `pr1-chromium.json`. An earlier premature async wait and a pre-mount reload
 `Context is stopped` refusal remain raw failures; neither is acceptance evidence.
 Clean-session telemetry gets local receipts; all error guards remain strict.
+
+PR2–PR4 are qualified on immutable source
+`4490a4eb449228206c85e2765e38502548f95d93`, build
+`4490a4e-mvwu7cqr`, with the checked ruler `2a6d3ae383`. WebKit and Chromium
+both pass **0 / 1 / 1 / 1 taps** in the same four-scenario order above. The
+25 s install stays dark until its worker is deliverable; B already waiting
+then C mid-install collapses to one tap landing C. All eight legs have aligned
+document/controller identities, zero network-served navigation documents and
+zero page/HTTP errors. The unchanged title pill goes dark after each adoption.
+WebKit's three warm reloads transfer **68,264 / 34,359 / 68,264 bytes**;
+Chromium **714 / 714 / 714 bytes**. Every reload is below MF1's 100,000-byte
+bar; the three-reload total is diagnostic, not that bar's unit. Each engine's
+four scenarios finish in about 60 s, under the three-minute lane cap.
+Receipts: `tmp/sp-x9-pwa/final-activation-{webkit,chromium}.json` (both EXIT0).
+
+The source sequence is PR2 `26fb7e3655`, PR3 `d2f212da52`, PR4 `35ee78401a`,
+then activation guard `4490a4eb44`: a controllerchange for a worker still
+installing/activating cannot finish adoption. Its new unit fails before the
+fix. The ruler explicitly installs initial A, waits for its activated state
+and lets ordinary title prefetch settle. This is an installed, warm update
+fixture, **not** the original cold phone-loading preset. It preserves the
+source core's immutable cache policy/compression and positively detects an
+uncontrolled origin document before checking controlled reloads. Earlier
+proxy-policy, prefetch-unit and premature-activation refusals remain retained;
+none is counted as acceptance or filtered away.
+
+Warm-control coordination is separate: X8's adjacent 039/parent proof found
+first installation still in progress when the warm document began. Its
+boot-only early nonblocking kickoff `4ef7467733` preserves the PR2/3 helpers.
+The matched original-preset reading is cold **52.536 s**, warm **27.561 s**,
+with the warm document SW-controlled (667 SW / 35 network rows). The raw CLI
+still exits 1 for telemetry/accounting refusals; it is not a clean whole-tool
+pass. This source is included in the final one-tap matrix above; no activation
+wait, clients.claim, automatic navigation or pill appearance change was added.
+PR5 remains open for ordinary home-screen play under G872.
 
 **G872, 10-31: no Simulator.app exists on this Mac; do not reinstall Xcode.**
 The pre-PR2/3 kill check therefore uses persistent Playwright WebKit. Two taps
