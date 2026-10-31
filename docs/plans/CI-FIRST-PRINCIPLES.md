@@ -259,3 +259,40 @@ these local components do not establish an isolated CI gain.
   fallback cache restore **4,979,888,476 bytes**. This source predates the
   per-content report counters, so none of these wall times establishes a
   raw-AS or encoder hit rate or isolated gain. CI9 remains open at 900 s.
+
+
+### CI9 app-stage measurements (2026-10-31, sp-x6 hourly batch)
+
+The retained 3422 / 396e / 57b checks groups took **94 / 87 / 94 s**:
+strict prepared unpack **6 / 6 / 10 s**, then app **88 / 81 / 84 s** in
+parallel with source-graph checks **5 / 4 / 4 s**. The app, rather than
+that graph check, is the critical member. Current local app profiling
+was **32.381 s**, including **14.250 s** seam bake, **4.415 s** across
+two generators and **3.158 s** bundle process. These are distinct scopes.
+
+- `2df201a704`: private four-scalar seam-certification scratch replaces
+  per-sample allocations. Matched full component **13.759033 ->
+  12.206427 s**; all **39 artifacts / 183,461,866 B** and complete plans
+  are byte-identical. Original/current comparisons cover **69,632**
+  Object.is-exact error pairs and **128** identical refusals; all 31
+  existing cases remain. No arithmetic, geometry, cap or guard changed.
+- `d630550e2f`: invocation-local syntax and resolution reuse preserves
+  all **26 closures / 784 paths** in six alternating legs. Component
+  medians **367.691333 -> 75.753083 ms**; all nine original cases plus
+  shared-cycle/product/alias-refresh coverage pass. This is not a
+  measured reduction of the entire 4.415 s generator bill.
+- `fe54bfb2a2`: omit console-only web gzip reporting; mandatory chunk
+  gzip measurements and title/session refusals still run. Twenty existing
+  cases pass; native config and raw-size warnings stay. Private reporter
+  asset/CSS-plus-one-entry replay: **13.719417 -> 12.081458 ms**, all
+  **206** output files exact. It does not measure full app-chunk gzip cost.
+
+Negative prefix-hash, metadata-walk and shared-membership prototypes
+were removed. The membership normal-publisher pair passed both original
+source fences with one intended input difference and **7,007** unchanged
+other inputs, but bundle **1.21 -> 1.23 s** / app **26 -> 26 s** showed
+no gain. X1 functional overlap stays shared-host evidence. Two hidden
+asset maps had internal Rolldown URL-token changes; dynamic build-identity
+files differed as expected. Raw comparison refusal remains; no tolerance
+or all-file-exact claim was added. All local numbers remain separate from
+ordinary containing CI acceptance; **CI9 stays open at 900 s push-to-live**.
