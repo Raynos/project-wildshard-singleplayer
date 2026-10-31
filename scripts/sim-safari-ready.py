@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import select
 from socketserver import StreamRequestHandler, ThreadingTCPServer
 import subprocess
 import tempfile
@@ -32,6 +33,7 @@ def selected_simctl():
 
 # One selection, charged to the existing import/admission interval.
 SIMCTL_COMMAND = selected_simctl()
+PREPARED_SCREENSHOTS = None
 
 
 @contextmanager
@@ -66,146 +68,244 @@ def owned_launch_pid(text):
     return None
 
 
+def screenshot_status(fd, event, **fields):
+    """One bounded nonblocking control message; never a proof or file sink."""
+    try:
+        message = (json.dumps({'event': event, **fields}) + '\n').encode()
+        return len(message) <= 2048 and os.write(fd, message) == len(message)
+    except OSError:
+        return False
+
+
+def screenshot_close_fds(keep):
+    # A diagnostic worker must not inherit the Simulator lease or another
+    # diagnostic slot's writer. All descriptor setup happens during admission.
+    start = 3
+    for fd in sorted(set(keep)):
+        if fd >= start:
+            os.closerange(start, fd)
+            start = fd + 1
+    os.closerange(start, os.sysconf('SC_OPEN_MAX'))
+
+
 def safari_screenshot_child(udid, directory, deadline):
-    """Run only inside an owned diagnostic process group, including its I/O."""
-    directory.mkdir()
-    image = directory / 'screen.png'
-    record = {'nativeReturnCode': None, 'result': None, 'status': 'no-budget'}
-    remaining = deadline - time.monotonic()
-    if remaining > 0:
-        with native_transcript() as errors:
-            try:
-                command = [*SIMCTL_COMMAND, 'io', udid, 'screenshot', str(image)]
-                code = subprocess.run(command, stdin=subprocess.DEVNULL,
-                    stdout=subprocess.DEVNULL, stderr=errors, timeout=remaining).returncode
-                record.update(nativeReturnCode=code, result=code if code >= 0 else 128 - code,
-                              status='completed')
-                if code == 0 and time.monotonic() >= deadline:
-                    record.update(result=124, status='late')
-            except subprocess.TimeoutExpired:
-                record.update(result=124, status='timeout')
-            record['stderr'] = native_text(errors)[-2048:]
-    record['bytes'] = image.stat().st_size if image.is_file() else 0
-    (directory / 'capture.json').write_text(json.dumps(record))
+    """Replace an already-prepared worker, without creating a process."""
+    if time.monotonic() >= deadline:
+        return 124
+    command = [*SIMCTL_COMMAND, 'io', udid, 'screenshot', str(directory / 'screen.png')]
+    if os.path.isabs(command[0]):
+        return os.execv(command[0], command)
+    return os.execvp(command[0], command)
 
 
-def safari_screenshot_supervisor(udid, directory, deadline):
-    # The independent watchdog performs no executable construction or file I/O.
-    # Its subordinate worker and any native client share this owned group.
+def safari_screenshot_supervisor(udid, directory, request, status, errors, null, admission_deadline):
+    commands, offer = os.pipe()
+    os.set_blocking(offer, False)
     worker = os.fork()
     if worker == 0:
         try:
-            safari_screenshot_child(udid, directory, deadline)
+            os.close(offer)
+            os.dup2(null, 0); os.dup2(null, 1); os.dup2(errors, 2)
+            screenshot_close_fds([commands, status])
+            screenshot_status(status, 'worker-ready', worker=os.getpid())
+            message = os.read(commands, 2048)
+            if not message:
+                os._exit(0)
+            deadline = json.loads(message)['deadline']
+            if not isinstance(deadline, (int, float)) or not math.isfinite(deadline):
+                os._exit(64)
+            if time.monotonic() >= deadline:
+                screenshot_status(status, 'no-budget')
+                os._exit(124)
+            screenshot_status(status, 'exec-requested', at=time.monotonic())
+            result = safari_screenshot_child(udid, directory, deadline)
+            screenshot_status(status, 'no-budget' if result == 124 else 'exec-error', errorType='ExecReturned')
+            os._exit(result if isinstance(result, int) and 0 <= result <= 255 else 127)
         except BaseException as error:
-            try:
-                directory.mkdir(exist_ok=True)
-                (directory / 'capture-error.json').write_text(json.dumps({'errorType': type(error).__name__}))
-            except BaseException:
-                pass
-            os._exit(1)
-        os._exit(0)
+            screenshot_status(status, 'exec-error', errorType=type(error).__name__)
+            os._exit(127)
+    os.close(commands)
+    os.dup2(null, 0); os.dup2(null, 1); os.dup2(null, 2)
+    screenshot_close_fds([request, status, offer])
+    screenshot_status(status, 'supervisor-ready')
+    # A parent exit closes the sole request writer. The idle ceiling is only
+    # leak cleanup; it cannot grant admission or a Safari frame.
+    idle_end = admission_deadline + 601
     while True:
-        done, _ = os.waitpid(worker, os.WNOHANG)
-        remaining = deadline - time.monotonic()
-        if done or remaining <= 0:
-            # Retire the whole owned group, including this watchdog. The native
-            # result is in capture.json, never inferred from this SIGKILL.
+        remaining = idle_end - time.monotonic()
+        if remaining <= 0:
             os.killpg(os.getpid(), 9)
-            os._exit(1)
+        if select.select([request], [], [], min(.05, remaining))[0]:
+            message = os.read(request, 2048)
+            if not message:
+                os.killpg(os.getpid(), 9)
+            job = json.loads(message)
+            deadline = job['deadline']
+            if not isinstance(deadline, (int, float)) or not math.isfinite(deadline):
+                os.killpg(os.getpid(), 9)
+            # Only one command reaches this pre-created worker, even if its
+            # parent was descheduled past the original one-second bound.
+            if time.monotonic() < deadline:
+                os.write(offer, message)
+            else:
+                screenshot_status(status, 'no-budget')
+                os.killpg(os.getpid(), 9)
+            break
+    while True:
+        done, result = os.waitpid(worker, os.WNOHANG)
+        remaining = deadline - time.monotonic()
+        if done:
+            screenshot_status(status, 'client-exit', clientReturnCode=os.waitstatus_to_exitcode(result), late=remaining <= 0)
+        elif remaining <= 0:
+            screenshot_status(status, 'expired')
+        if done or remaining <= 0:
+            os.killpg(os.getpid(), 9)
         time.sleep(min(.01, remaining))
 
 
 class SafariScreenshots:
-    """Bound two diagnostic groups without waiting for exec or file I/O.
+    """Prepare both groups during admission; active proof only writes pipes."""
+    phases = ('after-second-url', 'readiness-timeout')
 
-    No screenshot client, constructor or receipt sink runs on the proof path.
-    Only our forked children/groups are polled, killed and nonblocking-reaped.
-    """
     def __init__(self, udid, started):
         self.udid, self.started = udid, started
         self.receipt = os.environ.get('PHONE_SIMULATOR_PREPARATION', '')
-        self.records, self.active, self.seen = [], {}, set()
+        self.records, self.active, self.seen, self.slots = [], {}, set(), {}
+        self.finish_deadline = None
+        self.preparation = {'startedAt': None, 'completedAt': None, 'ready': 0, 'errors': []}
+
+    def prepare(self, deadline):
+        if not self.receipt or not Path(self.receipt).is_absolute():
+            return
+        self.preparation['startedAt'] = round(time.monotonic() - IMPORT_STARTED, 3)
+        for phase in self.phases:
+            if time.monotonic() >= deadline:
+                break
+            descriptors = []
+            try:
+                directory = Path(tempfile.mkdtemp(prefix=f'{Path(self.receipt).stem}-safari-{phase}-', dir=Path(self.receipt).parent))
+                errors = os.open(directory / 'native.err', os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                descriptors.append(errors)
+                null = os.open(os.devnull, os.O_RDWR); descriptors.append(null)
+                request, send = os.pipe(); descriptors.extend((request, send))
+                receive, status = os.pipe(); descriptors.extend((receive, status))
+                for fd in (send, receive, status): os.set_blocking(fd, False)
+                pid = os.fork()
+                if pid == 0:
+                    try:
+                        os.setpgid(0, 0)
+                        safari_screenshot_supervisor(self.udid, directory, request, status, errors, null, deadline)
+                    except BaseException:
+                        try: os.killpg(os.getpid(), 9)
+                        except OSError: pass
+                    os._exit(1)
+                try: os.setpgid(pid, pid)
+                except OSError: pass
+                slot = {'pid': pid, 'send': send, 'receive': receive, 'buffer': b'', 'ready': set(),
+                        'directory': directory, 'record': None, 'deadline': None, 'forkedAt': time.monotonic()}
+                self.slots[phase] = slot; self.active[pid] = slot
+                descriptors.remove(send); descriptors.remove(receive)
+            except (OSError, ValueError) as error:
+                self.preparation['errors'].append(type(error).__name__)
+            finally:
+                for fd in descriptors: os.close(fd)
+        while self.active and time.monotonic() < deadline:
+            self.reap()
+            if all(len(slot['ready']) == 2 for slot in self.active.values()): break
+            threading.Event().wait(min(.01, max(0, deadline - time.monotonic())))
+        self.preparation.update(completedAt=round(time.monotonic() - IMPORT_STARTED, 3),
+                                ready=sum(len(slot['ready']) == 2 for slot in self.active.values()))
 
     def start(self, phase, deadline=None):
-        if phase in self.seen or phase not in ('after-second-url', 'readiness-timeout'):
+        if phase in self.seen or phase not in self.phases:
             return
         self.seen.add(phase)
         requested = time.monotonic()
         end = min(requested + 1, deadline) if deadline is not None else requested + 1
         record = {'phase': phase, 'requestedAt': round(requested - self.started, 3),
-                  'deadlineAt': round(end - self.started, 3), 'forkedAt': None,
-                  'killAt': None, 'reapedAt': None, 'supervisorExit': None,
-                  'path': None, 'receipt': None, 'status': 'unconfigured'}
+                  'deadlineAt': round(end - self.started, 3), 'dispatchFinishedAt': None,
+                  'forkedAt': None, 'killAt': None, 'reapedAt': None, 'supervisorExit': None,
+                  'path': None, 'stderr': None, 'nativeReturnCode': None, 'status': 'not-prepared'}
         self.records.append(record)
-        if not self.receipt or not Path(self.receipt).is_absolute():
-            return
         if requested >= end:
             record['status'] = 'no-budget'
             return
-        source = Path(self.receipt)
-        directory = source.parent / f'{source.stem}-safari-{os.getpid()}-{int(self.started * 1e9)}-{phase}'
-        record.update(path=str(directory / 'screen.png'), receipt=str(directory / 'capture.json'))
-        try:
-            pid = os.fork()
-        except OSError as error:
-            record.update(status='error', errorType=type(error).__name__)
+        slot = self.slots.get(phase)
+        if slot is None or slot['pid'] not in self.active or len(slot['ready']) != 2:
             return
-        if pid == 0:
-            # Bind the group before any possible native spawn. Parent cleanup
-            # may also bind it, closing the fork-to-setpgid cancellation race.
-            try:
-                os.setpgid(0, 0)
-                safari_screenshot_supervisor(self.udid, directory, end)
-            except BaseException:
-                try:
-                    os.killpg(os.getpid(), 9)
-                except OSError:
-                    pass
-                os._exit(1)
-            os._exit(0)
+        record.update(path=str(slot['directory'] / 'screen.png'), stderr=str(slot['directory'] / 'native.err'),
+                      forkedAt=round(slot['forkedAt'] - self.started, 3), precreated=True)
+        slot['record'], slot['deadline'] = record, end
+        if requested >= end:
+            record['status'] = 'no-budget'
+            return
         try:
-            os.setpgid(pid, pid)
-        except OSError:
-            # Child may already have established the group or completed.
-            pass
-        record.update(status='running', forkedAt=round(time.monotonic() - self.started, 3))
-        self.active[pid] = (record, end)
-        self.poll()
+            message = (json.dumps({'deadline': end}) + '\n').encode()
+            if os.write(slot['send'], message) != len(message):
+                raise OSError('Incomplete screenshot command')
+            record.update(status='running', dispatchFinishedAt=round(time.monotonic() - self.started, 3))
+        except OSError as error:
+            record.update(status='dispatch-error', errorType=type(error).__name__)
 
     def reap(self):
-        # EOF/group death can precede waitpid terminal availability. Observe
-        # reap without issuing the fallback kill from an expired parent tick.
         self.poll(reap_only=True)
 
+    def messages(self, slot):
+        record = slot['record']
+        try: chunk = os.read(slot['receive'], 4096)
+        except BlockingIOError: chunk = b''
+        slot['buffer'] += chunk
+        while b'\n' in slot['buffer']:
+            line, slot['buffer'] = slot['buffer'].split(b'\n', 1)
+            event = json.loads(line)
+            kind = event['event']
+            if kind in ('worker-ready', 'supervisor-ready'): slot['ready'].add(kind)
+            elif record is not None:
+                if kind == 'exec-requested': record['execRequestedAt'] = round(event['at'] - self.started, 3)
+                elif kind == 'exec-error': record.update(status='exec-error', errorType=event['errorType'])
+                elif kind == 'client-exit':
+                    record['clientReturnCode'] = event['clientReturnCode']
+                    if record['status'] not in ('exec-error', 'no-budget'):
+                        code = event['clientReturnCode']
+                        record.update(status='late' if code == 0 and event['late'] else 'client-exit',
+                                      nativeReturnCode=code, result=124 if code == 0 and event['late'] else code)
+                elif kind in ('expired', 'no-budget'): record['status'] = kind
+
     def poll(self, reap_only=False):
-        for pid, (record, end) in list(self.active.items()):
+        for pid, slot in list(self.active.items()):
+            record = slot['record']
             try:
+                self.messages(slot)
                 done, status = os.waitpid(pid, os.WNOHANG)
                 if done:
-                    record.update(reapedAt=round(time.monotonic() - self.started, 3),
-                                  supervisorExit=os.waitstatus_to_exitcode(status))
-                    if record['status'] == 'running':
-                        record['status'] = 'stopped' if record['supervisorExit'] == -9 else 'failed'
+                    self.messages(slot)
+                    if record is not None:
+                        record.update(reapedAt=round(time.monotonic() - self.started, 3), supervisorExit=os.waitstatus_to_exitcode(status))
+                        if record['status'] == 'running': record['status'] = 'stopped'
+                    os.close(slot['receive'])
+                    if slot['send'] is not None: os.close(slot['send']); slot['send'] = None
                     del self.active[pid]
-                elif not reap_only and time.monotonic() >= end and record['killAt'] is None:
+                elif not reap_only and record is not None and time.monotonic() >= slot['deadline'] and record['killAt'] is None:
                     record.update(status='timeout', killAt=round(time.monotonic() - self.started, 3))
-                    try:
-                        os.killpg(pid, 9)
-                    except ProcessLookupError:
-                        os.kill(pid, 9)
-            except OSError as error:
-                record.update(status='cleanup-error', errorType=type(error).__name__)
-                del self.active[pid]
+                    try: os.killpg(pid, 9)
+                    except ProcessLookupError: os.kill(pid, 9)
+            except (OSError, ValueError) as error:
+                if record is not None: record.update(status='cleanup-error', errorType=type(error).__name__)
 
     def finish(self):
-        # Called only after the original proof result/exception is fixed.
-        # A stalled constructor or file write cannot extend this cleanup bound.
-        end = max((end for _, end in self.active.values()), default=time.monotonic())
+        for slot in self.active.values():
+            if slot['record'] is None and slot['send'] is not None:
+                os.close(slot['send']); slot['send'] = None
+        if self.finish_deadline is None: self.finish_deadline = time.monotonic() + 1
+        end = self.finish_deadline
         while self.active:
             self.poll()
             remaining = end - time.monotonic()
             if remaining <= 0:
-                self.poll()
+                for pid in self.active:
+                    try: os.killpg(pid, 9)
+                    except ProcessLookupError: pass
+                self.reap()
                 break
             threading.Event().wait(min(.01, remaining))
 
@@ -492,7 +592,9 @@ def wait_for_safari(udid):
                  'url': {'count': 0, 'omitted': 0, 'samples': []}, 'http': None, 'screenshots': []}
     lifecycle['launch']['nativeReturnCode'] = None
     result, ready = None, None
-    screenshots = SafariScreenshots(udid, started)
+    screenshots = PREPARED_SCREENSHOTS or SafariScreenshots(udid, started)
+    screenshots.started = started
+    lifecycle['screenshotPreparation'] = screenshots.preparation
     lifecycle['screenshots'] = screenshots.records
 
     def stamp_launch(phase):
@@ -620,8 +722,11 @@ if __name__ == '__main__':
         if not math.isfinite(remaining) or not 0 < remaining <= 300:
             print('sim-lane: invalid remaining bootstatus admission budget', file=sys.stderr)
             sys.exit(64)
+        PREPARED_SCREENSHOTS = SafariScreenshots(sys.argv[1], 0)
+        PREPARED_SCREENSHOTS.prepare(IMPORT_STARTED + remaining)
         code = wait_for_bootstatus(sys.argv[1], remaining)
         if code != 0:
+            PREPARED_SCREENSHOTS.finish()
             sys.exit(code)
         print(f'sim-lane: bootstatus prerequisite accepted after {time.monotonic() - IMPORT_STARTED:.3f}s; starting original Safari proof deadline', file=sys.stderr)
     elif sys.argv[2:] == ['--await-bootstatus']:
@@ -635,4 +740,9 @@ if __name__ == '__main__':
     elif sys.argv[2:]:
         print('sim-lane: invalid Safari readiness arguments', file=sys.stderr)
         sys.exit(64)
-    sys.exit(wait_for_safari(sys.argv[1]))
+    try:
+        result = wait_for_safari(sys.argv[1])
+    finally:
+        if PREPARED_SCREENSHOTS is not None:
+            PREPARED_SCREENSHOTS.finish()
+    sys.exit(result)

@@ -115,6 +115,10 @@ elif args[1]=='openurl':
         with urllib.request.urlopen(urllib.parse.urljoin(args[-1],callback),timeout=2) as response:
             assert response.read()==b'ready'
     if os.environ.get('SIM_OPEN_HANG_AFTER_FRAME'): time.sleep(30)
+elif args[1]=='io':
+    assert args[2]==''' + repr(UDID) + ''' and args[3]=='screenshot' and len(args)==5
+    pathlib.Path(args[-1]).write_bytes(b'unit-only screenshot stub')
+    sys.exit(int(os.environ.get('SIM_SCREEN_RC','0')))
 elif args[1]=='shutdown': booted.unlink(missing_ok=True)
 else: raise RuntimeError('Unexpected fixture command '+repr(args))
 ''')
@@ -570,24 +574,31 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
                 self.assertEqual(screenshots, [])
         self.assert_not_handed_over()
 
-    def screenshot_controller(self, worker, clock=time):
+    def screenshot_controller(self, worker, clock=time, prepare=True, keep=()):
         source = ast.parse((ROOT / 'scripts/sim-safari-ready.py').read_text())
         node = next(node for node in source.body if isinstance(node, ast.ClassDef) and node.name == 'SafariScreenshots')
         self.screenshot_count = getattr(self, 'screenshot_count', 0) + 1
-        owned_os = SimpleNamespace(**{name: getattr(os, name) for name in
-            ('getpid', 'fork', 'setpgid', 'waitpid', 'waitstatus_to_exitcode', 'killpg', 'kill', '_exit', 'WNOHANG')},
+        owned_os = SimpleNamespace(**{name: getattr(os, name) for name in dir(os) if name != 'environ'},
             environ={'PHONE_SIMULATOR_PREPARATION': str(self.root / f'prepare-{self.screenshot_count}.json')})
         supervisor = READY['safari_screenshot_supervisor']
-        isolated = FunctionType(supervisor.__code__, {**supervisor.__globals__, 'safari_screenshot_child': worker})
+        close_fds = READY['screenshot_close_fds']
+        isolated = FunctionType(supervisor.__code__, {**supervisor.__globals__, 'safari_screenshot_child': worker,
+            'screenshot_close_fds': lambda descriptors: close_fds([*descriptors, *keep])})
         ports = {**READY, 'os': owned_os, 'time': clock, 'safari_screenshot_supervisor': isolated}
         exec(compile(ast.Module(body=[node], type_ignores=[]), 'actual-safari-screenshots', 'exec'), ports)
-        return ports['SafariScreenshots'](UDID, clock.monotonic())
+        controller = ports['SafariScreenshots'](UDID, clock.monotonic())
+        if prepare:
+            controller.prepare(time.monotonic() + 5)
+            self.assertEqual(controller.preparation['ready'], 2)
+            def forbidden(): raise AssertionError('diagnostic process creation after admission')
+            owned_os.fork = forbidden
+        return controller
 
     def test_screenshot_constructor_and_file_stalls_are_killed_outside_the_proof(self):
         native = READY['safari_screenshot_child']
         pipes = {phase: os.pipe() for phase in ('after-second-url', 'readiness-timeout')}
         def worker(udid, directory, end):
-            phase = 'after-second-url' if str(directory).endswith('after-second-url') else 'readiness-timeout'
+            phase = 'after-second-url' if 'after-second-url' in directory.name else 'readiness-timeout'
             _, write = pipes[phase]
             def blocked(*_args, **_kwargs):
                 # Popen can already have created its client before waiting on
@@ -598,17 +609,13 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
                     os._exit(0)
                 os.write(write, b'blocked')
                 time.sleep(30)
-            class Directory:
-                def __init__(self, path): self.path = path
-                def mkdir(self): self.path.mkdir()
-                def __truediv__(self, name):
-                    return SimpleNamespace(write_text=blocked) if name == 'capture.json' else self.path / name
-            ports = {**native.__globals__, 'time': SimpleNamespace(monotonic=lambda: 0),
-                'subprocess': SimpleNamespace(run=blocked if phase == 'after-second-url' else lambda *_a, **_k: SimpleNamespace(returncode=0),
-                    DEVNULL=subprocess.DEVNULL, TimeoutExpired=subprocess.TimeoutExpired)}
+            def stalled_exec(_executable, command):
+                if phase == 'readiness-timeout': Path(command[-1]).write_bytes(b'unit-only partial image')
+                blocked()
+            ports = {**native.__globals__, 'os': SimpleNamespace(path=os.path, execv=stalled_exec, execvp=stalled_exec)}
             capture = FunctionType(native.__code__, ports)
-            capture(udid, Directory(directory) if phase == 'readiness-timeout' else directory, end)
-        controller = self.screenshot_controller(worker)
+            capture(udid, directory, end)
+        controller = self.screenshot_controller(worker, keep=[write for _, write in pipes.values()])
         try:
             controller.start('after-second-url', time.monotonic() + 10)
             controller.start('readiness-timeout')
@@ -651,29 +658,27 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
                 try: os.waitpid(pid, 0)
                 except ChildProcessError: pass
 
-    def test_screenshot_child_keeps_exact_udid_native_errors_and_original_one_second_budget(self):
+    def test_screenshot_child_execs_exact_udid_without_process_creation_or_late_exec(self):
         native = READY['safari_screenshot_child']
-        for index, (native_code, completed, expected) in enumerate([(0, .5, 0), (0, 2, 124), (23, 2, 23), (None, 1, 124)]):
+        for prefix in [('xcrun', 'simctl'), ('/owned/Xcode/usr/bin/simctl',)]:
             clock, calls = SimpleNamespace(now=0), []
-            def run(command, **kwargs):
-                calls.append((command, kwargs['timeout']))
-                clock.now = completed
-                if native_code is None: raise subprocess.TimeoutExpired(command, kwargs['timeout'])
-                return SimpleNamespace(returncode=native_code)
+            def execute(executable, command):
+                calls.append((executable, command)); return 23
             ports = {**native.__globals__, 'time': SimpleNamespace(monotonic=lambda: clock.now),
-                'subprocess': SimpleNamespace(run=run, DEVNULL=subprocess.DEVNULL, TimeoutExpired=subprocess.TimeoutExpired)}
-            directory = self.root / f'screenshot-{index}'
-            FunctionType(native.__code__, ports)(UDID, directory, 1)
-            record = json.loads((directory / 'capture.json').read_text())
-            self.assertEqual(record['nativeReturnCode'], native_code)
-            self.assertEqual(record['result'], expected)
-            self.assertEqual(calls, [(['xcrun', 'simctl', 'io', UDID, 'screenshot', str(directory / 'screen.png')], 1)])
+                'SIMCTL_COMMAND': prefix, 'os': SimpleNamespace(path=os.path, execv=execute, execvp=execute)}
+            directory = self.root / 'screenshot'
+            child = FunctionType(native.__code__, ports)
+            self.assertEqual(child(UDID, directory, 1), 23)
+            self.assertEqual(calls, [(prefix[0], [*prefix, 'io', UDID, 'screenshot', str(directory / 'screen.png')])])
+            clock.now = 2
+            self.assertEqual(child(UDID, directory, 1), 124)
+            self.assertEqual(len(calls), 1)
 
     def test_screenshot_phases_are_single_shot_and_have_no_budget_extension(self):
         clock = SimpleNamespace(now=5)
         clock.monotonic = lambda: clock.now
         def forbidden(*_args): raise AssertionError('expired screenshot must not fork')
-        controller = self.screenshot_controller(forbidden, clock)
+        controller = self.screenshot_controller(forbidden, clock, prepare=False)
         controller.start('after-second-url', 5)
         controller.start('after-second-url', 100)
         controller.start('foreign-phase')
@@ -708,8 +713,7 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
             self.assertEqual(helper(UDID), 23 if code == 23 else 124)
             self.assertEqual(controller.records[0]['phase'], 'readiness-timeout')
             self.assertEqual(controller.records[0]['supervisorExit'], -9)
-            error_file = Path(controller.records[0]['receipt']).with_name('capture-error.json')
-            self.assertEqual(json.loads(error_file.read_text())['errorType'], 'PermissionError')
+            self.assertEqual(controller.records[0]['errorType'], 'PermissionError')
             original = PermissionError('owned launch refused')
             def fail(*_args, **_kwargs): raise original
             ports['subprocess'] = SimpleNamespace(Popen=fail)
@@ -875,9 +879,24 @@ exec "$SIM_FIXTURE/bin/xcrun-python" "$@"
 
     def test_owned_pid_receipt_without_frames_cannot_substitute_for_readiness(self):
         result = self.lane(SIM_LAUNCH_RECEIPT_STALL='1', SIM_REQUIRES_LAUNCH='1',
-                           SIM_OPEN_NO_FRAME='1', SIM_SAFARI_READY_TIMEOUT='2')
+                           SIM_OPEN_NO_FRAME='1', SIM_SAFARI_READY_TIMEOUT='2',
+                           PHONE_SIMULATOR_PREPARATION=str(self.root / 'prepare.json'))
         self.assertEqual(result.returncode, 124, result.stderr)
         self.assert_not_handed_over()
+        line = next(line for line in result.stderr.splitlines() if 'Safari lifecycle receipt ' in line)
+        receipt = json.loads(line.split('Safari lifecycle receipt ', 1)[1])
+        self.assertEqual(receipt['screenshotPreparation']['ready'], 2)
+        self.assertFalse(receipt['ownedFrames'])
+        self.assertLessEqual(len(receipt['screenshots']), 2)
+        captures = [row for row in receipt['screenshots'] if row['phase'] == 'readiness-timeout']
+        self.assertEqual(len(captures), 1)
+        capture = captures[0]
+        self.assertEqual(capture['nativeReturnCode'], 0)
+        self.assertLess(capture['forkedAt'], 0, 'all process creation precedes the Safari proof')
+        self.assertEqual(Path(capture['path']).read_bytes(), b'unit-only screenshot stub')
+        calls = [row for row in self.calls() if row[1] == 'io']
+        self.assertLessEqual(len(calls), 2)
+        self.assertTrue(all(row[2] == UDID for row in calls))
 
     def test_owned_pid_read_crossing_deadline_cannot_use_earlier_frames(self):
         clock = SimpleNamespace(now=0, frames=False, reads=0)
