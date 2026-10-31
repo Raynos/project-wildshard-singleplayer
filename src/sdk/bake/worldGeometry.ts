@@ -138,14 +138,64 @@ export function compactTileGeometry(source: BufferGeometry, grid?: TileGrid): Bu
     return { key, width, quantize, read: (vertex: number, component: number) => attribute.getComponent(vertex, component), out: [] as number[] };
   });
   const seen = new Map<string, number>(), order: number[] = [];
-  let next = 0;
+  const heads = new Map<number, number>(), links: number[] = [];
+  const sample = new Float64Array(1), words = new Uint32Array(sample.buffer);
+  let numeric = rows.every(row => Number.isSafeInteger(row.width) && row.width > 0), next = 0;
+  const hashValues = (values: readonly number[]): number | undefined => {
+    let hash = 2166136261;
+    for (const value of values) {
+      if (typeof value !== 'number') return undefined;
+      // String keys equate both zeros and every NaN payload.
+      if (value === (value | 0)) hash = Math.imul(hash ^ value, 16777619);
+      else if (Number.isNaN(value)) { hash = Math.imul(hash, 16777619); hash = Math.imul(hash ^ 0x7ff80000, 16777619); }
+      else {
+        sample[0] = value === 0 ? 0 : value;
+        hash = Math.imul(hash ^ (words[0] ?? 0), 16777619);
+        hash = Math.imul(hash ^ (words[1] ?? 0), 16777619);
+      }
+    }
+    hash = Math.imul(hash ^ (hash >>> 16), 0x85ebca6b);
+    hash = Math.imul(hash ^ (hash >>> 13), 0xc2b2ae35);
+    return (hash ^ (hash >>> 16)) >>> 0;
+  };
+  const sameValues = (vertex: number, values: readonly number[]): boolean => {
+    let offset = 0;
+    for (const row of rows) for (let component = 0; component < row.width; component++) {
+      const value = values[offset++], previous = row.out[vertex * row.width + component];
+      if (value !== previous && !(typeof value === 'number' && typeof previous === 'number' && Number.isNaN(value) && Number.isNaN(previous))) return false;
+    }
+    return true;
+  };
+  const useStrings = (): void => {
+    numeric = false; heads.clear(); links.length = 0;
+    for (let vertex = 0; vertex < next; vertex++) {
+      const values = rows.flatMap(row => row.out.slice(vertex * row.width, (vertex + 1) * row.width));
+      seen.set(values.join(','), vertex);
+    }
+  };
   for (let corner = 0; corner < count; corner++) {
     const vertex = index === null ? corner : index.getX(corner), values: number[] = [];
     for (const row of rows) for (let c = 0; c < row.width; c++) { const v = row.read(vertex, c); values.push(row.quantize === null ? v : row.quantize(v, c)); }
-    const key = values.join(',');
-    let at = seen.get(key);
+    let at: number | undefined, hash = 0, key = '';
+    if (numeric) {
+      const found = hashValues(values);
+      if (found === undefined) useStrings();
+      else {
+        hash = found;
+        let candidate = heads.get(hash), visited = 0;
+        while (candidate !== undefined && candidate >= 0) {
+          if (sameValues(candidate, values)) { at = candidate; break; }
+          // Preserve bounded lookup cost for adversarial buckets via the original map.
+          if (++visited >= 16) { useStrings(); break; }
+          candidate = links[candidate];
+        }
+      }
+    }
+    if (!numeric) { key = values.join(','); at = seen.get(key); }
     if (at === undefined) {
-      at = next++; seen.set(key, at);
+      at = next++;
+      if (numeric) { links[at] = heads.get(hash) ?? -1; heads.set(hash, at); }
+      else seen.set(key, at);
       let offset = 0;
       for (const row of rows) { row.out.push(...values.slice(offset, offset + row.width)); offset += row.width; }
     }

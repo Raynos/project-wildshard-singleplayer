@@ -1,5 +1,5 @@
 import { Box3, BufferGeometry, Float32BufferAttribute, MeshStandardMaterial, Vector3 } from 'three';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { parseGlbData } from '@wildshard/format/glbCost';
 import { staticGlb } from './glb';
 import { compressGlb } from './glbCompression';
@@ -76,4 +76,65 @@ test('a model-space primitive gets a grid pinned at its model origin (RM8.1e)', 
   expect(near).toEqual({ origin: [0, 0, 0], step: 1 / 512 });
   expect(modelGrid(new Box3(new Vector3(-100, 0, 0), new Vector3(10, 10, 10))).step).toBe(1 / 256);
   expect(() => modelGrid(new Box3(new Vector3(0, 0, 0), new Vector3(40000, 1, 1)))).toThrow('too far from its model origin');
+});
+
+
+test.each([false, true])('channel copies preserve short input values and signed zero with grid=%s', gridded => {
+  const source = new BufferGeometry();
+  source.setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 0, 1], 3));
+  source.setAttribute('uv', new Float32BufferAttribute([-0, 0.5], 2));
+  source.setAttribute('tangent', new Float32BufferAttribute([-0, 0.1, 0.2, 1, 1, 0.3, 0.4, -1, 0, 0.5, 0.6, 1], 4));
+  source.setAttribute('weight', new Float32BufferAttribute([0.2, 0.3, 0.4], 1));
+  source.setIndex([0, 1, 2, 0, 1, 2]);
+  const compact = compactTileGeometry(source, gridded ? { origin: [0, 0, 0], step: 1 } : undefined);
+  try {
+    const position = compact.getAttribute('position'), uv = compact.getAttribute('uv');
+    expect(compact.getIndex()?.count).toBe(source.getIndex()?.count);
+    expect(uv.count).toBe(position.count);
+    for (let vertex = 0; vertex < position.count; vertex++) {
+      const original = position.getX(vertex) === 1 ? 1 : position.getZ(vertex) === 1 ? 2 : 0;
+      expect(compact.getAttribute('weight').getX(vertex)).toBe(source.getAttribute('weight').getX(original));
+      for (let component = 0; component < 4; component++)
+        expect(Object.is(compact.getAttribute('tangent').getComponent(vertex, component), source.getAttribute('tangent').getComponent(original, component))).toBe(true);
+      if (position.getX(vertex) === 0 && position.getZ(vertex) === 0) {
+        expect(Object.is(uv.getX(vertex), -0)).toBe(true); expect(uv.getY(vertex)).toBe(0.5);
+      } else if (gridded) {
+        expect(uv.getX(vertex)).toBe(0); expect(uv.getY(vertex)).toBe(0);
+      } else {
+        expect(Number.isNaN(uv.getX(vertex))).toBe(true); expect(Number.isNaN(uv.getY(vertex))).toBe(true);
+      }
+    }
+    expect(source.getAttribute('uv').count).toBe(1);
+    expect(Object.is(source.getAttribute('uv').getX(0), -0)).toBe(true);
+  } finally { compact.dispose(); source.dispose(); }
+});
+
+
+test.each([false, true])('weld buckets keep string identity and first-use ordering with forced collision=%s', collide => {
+  const source = new BufferGeometry(), positions: number[] = [], uv: number[] = [];
+  for (let vertex = 0; vertex < 48; vertex++) {
+    positions.push(vertex % 24, 0, 0); uv.push(Number.NaN, vertex < 24 ? -0 : 0);
+  }
+  source.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  source.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+  const expected = new Map<string, number>(), order: number[] = [], first: number[][] = [];
+  for (let vertex = 0; vertex < 48; vertex++) {
+    const values = [source.getAttribute('position').getX(vertex), 0, 0, source.getAttribute('uv').getX(vertex), source.getAttribute('uv').getY(vertex)];
+    const key = values.join(','); let at = expected.get(key);
+    if (at === undefined) { at = first.length; first.push(values); expected.set(key, at); }
+    order.push(at);
+  }
+  const compact = (() => {
+    const hash = collide ? vi.spyOn(Math, 'imul').mockReturnValue(0) : undefined;
+    try { return compactTileGeometry(source); } finally { hash?.mockRestore(); }
+  })();
+  try {
+    const index = compact.getIndex(); if (index === null) throw new Error('Missing welded index');
+    expect(Array.from(index.array)).toEqual(order);
+    expect(compact.getAttribute('position').count).toBe(first.length);
+    for (const [vertex, values] of first.entries()) {
+      const actual = [compact.getAttribute('position').getX(vertex), compact.getAttribute('position').getY(vertex), compact.getAttribute('position').getZ(vertex), compact.getAttribute('uv').getX(vertex), compact.getAttribute('uv').getY(vertex)];
+      expect(actual.every((value, component) => Object.is(value, values[component]))).toBe(true);
+    }
+  } finally { compact.dispose(); source.dispose(); }
 });
