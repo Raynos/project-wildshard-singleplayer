@@ -5,13 +5,14 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 55eaf50-mvvpag2a = GLSL** (20:32 Cancun; all 36 green; 3-shard entry PASS): NF12 (Nine wire 30.15 MB),
-Developer journal cut, lever fix. Next: 34220aeca1 (Sky Reach TSL look 62f2e8590a + B4 fix 3453b58fae + Pine door
-fix); 60c0 failed B4 / B18. **For Jake:** QC table qa-2026-10-30 (o1 2508e90724); MF13 dither phone check; QB17 video.
+**LIVE eb94988-mvvsdrbi = GLSL** (22:00 Cancun; all 36 + 4-shard entry PASS; Pine uploads -70 %), Sky look, NF12,
+Developer journal cut, lever fix, B4 + Pine door test fixes; first release through the merged boot + ship job. Far
+Reach native timeout fixed forward 0f0d1ecc9e (x9). Pine uploads -70 % bytes (x8, 0c99d920f6). **For Jake:** QC table qa-2026-10-30 (o1 2508e90724); MF13 dither phone check; QB17 video.
 
-**21:05 Opus: all 5 stood down** (rows left wait for QA: EP12, PF17, NF18; NF16 rest measured: -1 program, needs a
-post capture). Codex: x1 CI12 tapes (Sky, DW bench / reef done; DW trade needs a coin / save port, open); x2 EP2 +
-CI10; x6 CI7 -> CI9; x8 Pine unchanged texture uploads (trample f77b6e3926: -33 % upload bytes); x9 CI9 prepare.
+**21:50 E518 (Jake): finish every row of the 4 fps plans tonight**, schedule = finish-fps-2026-10-30-mini-spike.md.
+Nine is GPU-bound on his phone (13 fps, gpu 45.7 ms vs CPU 10). Opus o2 G2 -> G4 -> EP6; o1 PF17 -> G5 -> EP11; o5 PF5
+-> PF12 / 13 -> EP12 + NT4; o3 / o4 stood down (cap 3). Codex x8 G1 -> NF11 -> NF19; x2 EP2 -> NF23 -> EP7; x6 G3
+-> EP10; x9 NF17 -> PF18 -> PF9; x1 PF19 -> EP8. PF7 done, NT5 closed measured. CI9 / CI10 / CI12 wait behind.
 **CI7 bars PASS** on 60c0 (max 199 s, 1.187x). **CI9:** 55ea ship wait 62 s (was 512). **Finding:** the Roc can die
 falling into the kill plane during its own dive (sp-x1, 46cbeac27d). **QC on ab792:** Nine at legacy (P1 7.4 vs 7.4,
 walk 7.8 vs 7.8; f7 10.9-12.2); Pine 10-19 % under f7, over legacy (P1 12.6 vs 9.3); Simulator 30 fps both.
