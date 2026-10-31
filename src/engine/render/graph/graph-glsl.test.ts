@@ -2,7 +2,7 @@
 // family's preset, the lowering is byte-stable, and its selects branch only where compile.ts branches.
 import { expect, test } from 'vitest';
 import { GRAPH_OPS, validateGraph, type GraphNode, type GraphRef } from '@wildshard/format/materialGraph';
-import { emitGraphGlsl } from './glsl';
+import { emitGraphGlsl, type GraphGlsl } from './glsl';
 import { emitClassicGraph, graphShaders } from './glslProgram';
 import { ToonLook } from '../families/toon';
 
@@ -13,6 +13,7 @@ function inputsOf(op: string): readonly GraphRef[] {
   switch (rule) {
     case 'same': return min === 3 ? [0.5, 0, 1] : [0.5, 0.25];
     case 'unary': return [0.5];
+    case 'fogSample': return [[0.2, 0.3, 0.4], [0.1, 0.2, 0.3], [1, 2, 3], [0, 0, 0], 1];
     case 'vecUnary': case 'length': case 'point3': case 'dir3': return [[0.2, 0.9, 0.1]];
     case 'dot': case 'cross': case 'pointPair': return [[1, 0, 0], [0, 1, 0]];
     case 'mix': return [0, 1, 0.5];
@@ -38,6 +39,7 @@ function nodeOf(op: string): GraphNode {
   const node: GraphNode = { op, in: inputsOf(op) };
   if (op === 'acc' || op === 'index') return { op: 'loop', in: [0], count: 3, body: { nodes: { s: { op: 'add', in: [op === 'acc' ? 'a' : 'i', 1] }, a: { op: 'acc' }, i: { op: 'index' } }, out: 's' } };
   if (op === 'loop') return { ...node, count: 3, body: { nodes: { s: { op: 'add', in: ['a', 'i'] }, a: { op: 'acc' }, i: { op: 'index' } }, out: 's' } };
+  if (op === 'fogSample') return { ...node, name: 'fixture.haze' };
   if (op === 'swizzle') return { ...node, mask: 'xz' };
   if (op === 'const') return { op, value: [1, 0, 0] };
   if (op === 'param') return { op, param: 'p' };
@@ -57,7 +59,9 @@ function graphOf(op: string, adapt: 'vec3' | 'float' | 'vec2' | 'vec4' | 'bool')
   const nodes = { b: { op: 'lt', in: [0.1, 0.2] }, x: nodeOf(op), ...adapter };
   const params = { p: { type: 'float', value: 1 }, map: { type: 'texture', value: 'map', role: 'lent' }, layers: { type: 'texture', value: 'layers', role: 'lent' },
     volume: { type: 'texture', value: 'volume', role: 'lent' } };
-  const base = { version: 1, params, arrays: { list: { type: 'float', value: [1, 2, 3] } }, nodes };
+  const postFog = op === 'fogSample' ? { name: 'fixture.haze', graph: { version: 1, kind: 'fog',
+    nodes: { input: { op: 'fogInput' }, colour: { op: 'mul', in: ['input', 0.5] } }, stages: { fog: { colour: 'colour', transmission: 0.5 } } } } : undefined;
+  const base = { version: 1, params, arrays: { list: { type: 'float', value: [1, 2, 3] } }, nodes, ...(postFog === undefined ? {} : { postFog }) };
   const at = (place: string): boolean => places === undefined || places.some(p => p === place);
   if (op === 'pointCoord') return { ...base, kind: 'material', model: 'unlit', primitive: 'points', stages: { points: { size: 4 }, surface: { colour: out } } };
   if (at('fragment')) return { ...base, kind: 'material', model: 'unlit', stages: { surface: { colour: out } } };
@@ -82,10 +86,20 @@ test('every op of the vocabulary lowers to GLSL in a stage it may run in', () =>
     const glsl = emitGraphGlsl(validGraphOf(op));
     const code = [glsl.program?.vertex.body, glsl.program?.fragment.body, glsl.program?.fragment.head, glsl.fog].join('\n');
     expect(code.length, op).toBeGreaterThan(0);
+    if (op === 'fogSample') {
+      expect(glsl.postFog?.fogSample).toContain('vec4 wsGraphFogSample(');
+      expect(glsl.program?.fragment.body).toContain('wsGraphFogSample(');
+    }
     lowered.push(op);
   }
   expect(lowered).toEqual(Object.keys(GRAPH_OPS));
 });
+
+/** Reports are optional at both the caller and its named dependency; all executable output remains identical. */
+function withoutReports(graph: GraphGlsl): unknown {
+  const { executionCost, postFog, ...rest } = graph; void executionCost;
+  return { ...rest, ...(postFog === undefined ? {} : { postFog: withoutReports(postFog) }) };
+}
 
 test('lowering is byte-stable, and every op wraps into a classic program', () => {
   const look = new ToonLook();
@@ -95,7 +109,8 @@ test('lowering is byte-stable, and every op wraps into a classic program', () =>
     expect(JSON.stringify(twice)).toBe(JSON.stringify(once));
     const { executionCost, ...census } = emitClassicGraph(graph, { toonLook: look, reportExecutionCost: true });
     expect(executionCost).toBeDefined();
-    expect(census).toEqual(once);
+    expect(withoutReports(census)).toEqual(once);
+    if (census.postFog !== undefined) expect(census.postFog.executionCost).toBeDefined();
     if (once.program === null) continue;
     const shaders = graphShaders(once, { toonLook: look }), again = graphShaders(twice, { toonLook: look });
     expect(again.vertexShader).toBe(shaders.vertexShader);
