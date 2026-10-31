@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Check the native tool producer/consumer wiring without starting CI.
+import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { prepareTestBuildTools, selectTestBuildTools } from '../scripts/test-build-tools';
 import registry from './build-tools.json' with { type: 'json' };
@@ -39,4 +41,27 @@ test('a refused native installation remains a run failure without a cached-byte 
   await expect(prepareTestBuildTools(['test/native-a.test.ts'], fixture,
     { basis: () => Promise.reject(new Error('Pinned Basis executable identity differs')) }))
     .rejects.toThrow('Pinned Basis executable identity differs');
+});
+
+test('behaviour restores the exact native tool cache published before its matrix starts', () => {
+  const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
+  const job = (name: string): string => workflow.split(`\n  ${name}:\n`)[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0] ?? '';
+  const step = (source: string, name: string): string => source.split(`      - name: ${name}\n`)[1]?.split(/\n {6}- /u)[0] ?? '';
+  const prepare = job('prepare'), behaviour = job('behaviour');
+  const producer = step(prepare, 'Cache the checked Basis compiler');
+  const consumer = step(behaviour, 'Restore the checked Basis compiler');
+  expect(producer).toContain('uses: actions/cache@v4');
+  expect(consumer).toContain('uses: actions/cache/restore@v4');
+  const key = (source: string): string | undefined => /^ {10}key: (.+)$/mu.exec(source)?.[1];
+  expect(key(producer)).toBeDefined(); expect(key(consumer)).toBe(key(producer));
+  for (const source of [producer, consumer]) {
+    expect(source).toContain('path: ~/.cache/wildshard/basis');
+    expect(source).not.toContain('restore-keys:');
+    expect(source).not.toContain('continue-on-error:');
+    for (const input of ['runner.os', 'runner.arch', 'src/sdk/bake/basisTool.ts', 'src/sdk/bake/basisToolInputs.ts'])
+      expect(key(source)).toContain(input);
+  }
+  expect(prepare.indexOf('Cache the checked Basis compiler')).toBeLessThan(prepare.indexOf('node scripts/gen.mjs --reuse'));
+  expect(behaviour).toMatch(/^ {4}needs: .*prepare/mu);
+  expect(behaviour.indexOf('Restore the checked Basis compiler')).toBeLessThan(behaviour.indexOf('pnpm exec vitest run'));
 });

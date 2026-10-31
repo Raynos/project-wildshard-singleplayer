@@ -408,6 +408,13 @@ jobs:
             ~/.cache/wildshard/basis
           key: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
           restore-keys: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-
+      # Reuse only the pinned native tool. Consumers still verify its recipe
+      # and executable digest before any encode; cold misses build normally.
+      - name: Cache the checked Basis compiler
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/wildshard/basis
+          key: basis-tool-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/sdk/bake/basisTool.ts', 'src/sdk/bake/basisToolInputs.ts') }}
       # Full generation builds every product once, then publishes its dependent
       # discovery/boot tables. Inputs-only would build six providers and force
       # the later product phase to admit those same products a second time.
@@ -800,6 +807,13 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: 24, cache: pnpm}
       - run: pnpm install --frozen-lockfile
+      # Prepare publishes this small tool cache before the dependent matrix.
+      # Do not restore the full product cache or share mutable build owners.
+      - name: Restore the checked Basis compiler
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/wildshard/basis
+          key: basis-tool-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/sdk/bake/basisTool.ts', 'src/sdk/bake/basisToolInputs.ts') }}
       # Transform bytes only: Vitest keys file contents, resolve/config and
       # coverage, and checks the lockfile. Test bodies and setup still run.
       - name: Restore Vitest transformed modules
