@@ -110,6 +110,29 @@ class FailFastTests(unittest.TestCase):
             self.assertEqual(API['run']([sys.executable,'-c','print("FAIL test/real.test.ts > actual");raise SystemExit(7)'],record=False),7)
         self.assertIn('::error file=test/real.test.ts',out.getvalue())
 
+    def test_early_failure_path_survives_verbose_output_without_promoting_warnings(self):
+        command='print("warn: src/engine/warning.ts");print("FAIL test/first-red.test.ts > actual");'+\
+                'print("\\n".join("ordinary drain line "+str(i) for i in range(2500)));'+\
+                'print("informational src/engine/not-a-failure.ts");raise SystemExit(7)'
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(API['run']([sys.executable,'-c',command],record=False),7)
+        text=out.getvalue()
+        self.assertIn('ordinary drain line 2499',text)
+        self.assertTrue('::error file=test/first-red.test.ts' in text,'early primary failure path was lost')
+        self.assertNotIn('::error file=src/engine/warning.ts',text)
+        self.assertNotIn('::error file=src/engine/not-a-failure.ts',text)
+
+    def test_streamed_cause_memory_retains_only_sixteen_paths_and_success_stays_success(self):
+        command='print("\\n".join("FAIL test/early-%02d.test.ts > actual"%i for i in range(20)));'+\
+                'print("\\n".join("drain" for _ in range(2500)));print("FAIL test/aaa-late.test.ts > late");raise SystemExit(1)'
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(API['run']([sys.executable,'-c',command],record=False),1)
+        files=re.findall(r'::error file=([^:]+)::',out.getvalue())
+        self.assertEqual(files,['test/early-%02d.test.ts'%i for i in range(16)])
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(API['run']([sys.executable,'-c',command.replace('SystemExit(1)','SystemExit(0)')],record=False),0)
+        self.assertNotIn('::error',out.getvalue())
+
     def test_source_publication_red_uses_existing_reporter(self):
         source=Path('.github/workflows/deploy.yml').read_text()
         step=source.split('      - name: Verify committed source tables after generation\n',1)[1].split('\n      - ',1)[0]

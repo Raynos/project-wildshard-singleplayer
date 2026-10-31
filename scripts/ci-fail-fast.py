@@ -26,7 +26,7 @@ def repository_file(file):
     return relative if '..' not in relative.split('/') and re.match(ROOT,relative) else None
 
 
-def failure_files(output):
+def failure_files(output, primary_only=False):
     plain = ANSI.sub('', output)
     annotated, lines = [], []
     for line in plain.splitlines():
@@ -44,7 +44,7 @@ def failure_files(output):
     def extract(text):
         return re.findall(QUOTED_FILE, text) + re.findall(FILE, text)
     found = sorted(set(annotated + extract('\n'.join(primary))))
-    paths=(repository_file(file) for file in (found or extract('\n'.join(lines))))
+    paths=(repository_file(file) for file in (found if found or primary_only else extract('\n'.join(lines))))
     return sorted({file for file in paths if file is not None})[:16]
 
 
@@ -86,8 +86,10 @@ def print_culprits(files):
             '; original check remains red; no retry',flush=True)
 
 
-def diagnose(output, code, record=True):
-    files = failure_files(output)
+def diagnose(output, code, record=True, observed=()):
+    # A completed primary failure outranks unrelated file mentions in the tail.
+    # Preserve the first bounded cause set even after its raw lines roll out.
+    files = sorted(list(dict.fromkeys([*observed,*failure_files(output,primary_only=bool(observed))]))[:16])
     label = 'Check exited '+str(code)
     for file in files:
         print('::error file=%s::%s: %s' % (escape(file), escape(label), escape(file)), flush=True)
@@ -120,6 +122,17 @@ def stop(child):
 def run(command, record=True):
     """Drain output live and retain the command's original failure."""
     output=deque(maxlen=2000)
+    observed=[]
+    def remember(lines):
+        output.extend(lines)
+        for line in lines:
+            if len(observed)>=16:
+                break
+            for file in failure_files(line,primary_only=True):
+                if file not in observed:
+                    observed.append(file)
+                    if len(observed)>=16:
+                        break
     with subprocess.Popen(command,stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,start_new_session=True,bufsize=0) as child:
         selector=selectors.DefaultSelector()
@@ -135,9 +148,9 @@ def run(command, record=True):
                     text=chunk.decode('utf8',errors='replace')
                     print(text,end='',flush=True)
                     lines=(pending+text).split('\n');pending=lines.pop()
-                    output.extend(lines)
+                    remember(lines)
             if pending:
-                output.append(pending)
+                remember([pending])
             code=child.wait()
         except BaseException:
             stop(child)
@@ -145,7 +158,7 @@ def run(command, record=True):
         finally:
             selector.close()
     if code:
-        diagnose('\n'.join(output),code,record)
+        diagnose('\n'.join(output),code,record,observed)
         return code if code > 0 else 1
     return 0
 
