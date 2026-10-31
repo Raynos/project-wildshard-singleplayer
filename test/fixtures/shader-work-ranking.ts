@@ -1,5 +1,24 @@
+import type {ShippedGraphCost} from './shipped-graph-costs';
+
 /** Cost and coverage meet only at the exact compiled fragment-source identity. */
 export interface ShaderWorkCost {readonly id:string;readonly fragmentShaderHash:string;readonly unconditional:number}
+/** Mandatory graph work in an actual wrapped fragment program. The material
+ * wrapper calls grade and its selected fog once. Vertex work and per-light
+ * sun/ambient functions have different invocation counts and stay separate. */
+export function emittedFragmentWork(rows:readonly Pick<ShippedGraphCost,'slug'|'graphHash'|'kind'|'fragmentShaderHashes'|'selectedFogGraphHash'|'execution'>[]):readonly ShaderWorkCost[]{
+ const costs:ShaderWorkCost[]=[];
+ for(const row of rows){
+  const fog=row.selectedFogGraphHash===null?undefined:rows.find(candidate=>candidate.slug===row.slug&&candidate.graphHash===row.selectedFogGraphHash);
+  if(row.selectedFogGraphHash!==null&&(fog?.kind!=='fog'||fog.execution.fog===null))throw new Error('Emitted fragment work requires its admitted fog');
+  for(const stage of ['main','outline'] as const){
+   const fragmentShaderHash=row.fragmentShaderHashes[stage];if(fragmentShaderHash===null)continue;
+   const program=row.execution[stage];if(program===null)throw new Error('Emitted fragment identity has no execution report');
+   costs.push({id:`${row.slug}:${stage}:${row.graphHash}`,fragmentShaderHash,
+    unconditional:program.fragment.unconditional+program.grade.unconditional+(fog?.execution.fog?.fog.unconditional??0)});
+  }
+ }
+ return costs;
+}
 export interface ShaderPixelFact {
  readonly id:string;readonly capture:string;readonly name:string;readonly fragmentShaderHash:string;
  readonly pixels:number;readonly kind:'fullscreen'|'colour-sample-proxy';readonly saturatedPixels:number;
