@@ -293,12 +293,28 @@ function rimEdges(assembly: GridAssembly, home: Readonly<{ origin: Readonly<{ x:
   ];
 }
 
+type ConstructorPhase = 'fields' | 'lights' | 'home' | 'frame' | 'road' | 'presentation' | 'physics' | 'roots' | 'streaming';
+/** Report wall intervals only; diagnostic failures cannot change construction. */
+function constructorPreparation(): ((phase: ConstructorPhase) => void) | undefined {
+  try {
+    const timing = clientPreparationBatch<ConstructorPhase>('grid', 'session.constructor',
+      ['fields', 'lights', 'home', 'frame', 'road', 'presentation', 'physics', 'roots', 'streaming']);
+    if (timing === undefined) return undefined;
+    return phase => {
+      try { timing.mark(phase); if (phase === 'streaming') timing.finish(); }
+      catch { /* Timing is never a construction or readiness barrier. */ }
+    };
+  } catch { return undefined; }
+}
+
 /** The live grid session. Installed only in grid page mode; disposed with the level scope. */
 export class GridSession {
   readonly assembly: GridAssembly;
   readonly home: GridCell;
   readonly allocator: ResidencyAllocator;
   private readonly rings: TileStreamer<LevelPrepared<FarPrepared, PreparedRingTile>>;
+  // Start before the original initialized fields, not only the constructor body.
+  private readonly constructorTiming = constructorPreparation();
   private readonly tileGhosts = new GhostWorlds();
   private readonly neighbours: readonly GridCell[];
   private readonly clientTiles: ClientTileRegistration;
@@ -530,6 +546,7 @@ export class GridSession {
   }
 
   constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad | Promise<PlatformRoad>; readonly outer?: () => Promise<PlatformRoad>; readonly outerStrips?: (scope: Scope) => Promise<readonly GeneratedStrip[]>; readonly publishStrips?: (strips: readonly GeneratedStrip[]) => void; readonly plans: Map<Mesh, CullPlan>; readonly collidersInstalled?: true }) {
+    this.constructorTiming?.('fields');
     this.host = host;
     this.roadPlans = preparedRoad?.plans ?? new Map<Mesh, CullPlan>();
     // before the page's first render: the lights a region's own pool shows through (regionalWorld `mirrorInto`)
@@ -540,6 +557,7 @@ export class GridSession {
       // unused 5-light programs of a Driftwood visit, linked again after control)
       LightPool.for(host.scene).spare(GRID_HOME_SPARE_POINT_LIGHTS);
     }
+    this.constructorTiming?.('lights');
     const mapReads = new AbortController(); host.scope.onDispose(() => { mapReads.abort(); });
     this.mapImages = new CellMinimaps(host.scope, async slug => {
       const owner = { allocator: this.allocator, scope: host.scope };
@@ -579,6 +597,7 @@ export class GridSession {
       for (const cell of this.neighbours) if (!initialRing.has(cell.instance)) void declare(cell);
     };
     for (const cell of this.assembly.cells) { const manifest = findShard(cell.slug); this.names.set(cell.slug, manifest?.name ?? cell.slug); }
+    this.constructorTiming?.('home');
     // the deck: one generator run (`create` runs it sliced and hands it over), one draw, the same vertices as the platform colliders
     const strips = prebuilt ?? platformStripsNow(this.assembly, edges);
     // SF19a / G158 (on for everyone since Jake's G175 pick, E450): the shard the player stands in owns the whole frame, the
@@ -587,6 +606,7 @@ export class GridSession {
     this.frame = frameHost !== undefined ? new GridFrame({ host: frameHost, scope: host.scope, home, homeIsFrame: false, half: CHUNK_HALF, feet: () => this.world(),
       cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, origin: { x: cell.origin.x, z: cell.origin.z } })) }) : null;
     const frame = this.frame;
+    this.constructorTiming?.('frame');
     // SF17b look: the boulevard over the deck's road band (G80 / G81 / G93) and the VR void past the outer road (G89)
     const layout = roadLayout(this.assembly, (slug) => findShard(slug)?.name ?? slug);
     // G112: every grid admits exact CPU/GPU byte plans on its early home/region/ring allocator.
@@ -641,6 +661,7 @@ export class GridSession {
     // SF17b's per-view road budget (§3.2, G101): what the view camera draws of the road system, and what stays resident
     this.roadBudget = { view: () => { const camera = host.frame?.camera; return camera === undefined ? null : roadViewCost(this.roadRoots, camera, this.roadPlans); }, resident: () => roadResident(this.roadRoots, this.roadPlans) };
     // G85: a closed neighbour edge shows as a cyan hex shimmer
+    this.constructorTiming?.('road');
     this.softWalls = installSoftWallLook({ scene: host.scene, scope: host.scope, time: () => app.clock.now,
       edges: this.neighbours.flatMap((cell) => neighbourEdges(cell, home).map((edge) => {
         const look = { instance: cell.instance, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength };
@@ -665,6 +686,7 @@ export class GridSession {
       ports: { feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; },
         status: () => { if (++polled % 4 === 0) status = crossingSaveStatus(this.live?.state().crossing); return status; },
         text: (shown) => (shown === 'saving' ? GAME_STRINGS.grid.saving : GAME_STRINGS.grid.saveFailed) } });
+    this.constructorTiming?.('presentation');
     const nativeOrigin = { origin: { x: 0, z: 0 } };
     if (preparedRoad?.collidersInstalled !== true) for (const { mesh } of this.strips) installStripCollider(host.physics, mesh, host.scope);
     // The normal world stage owns the home's sockets; this scope adds only rebased neighbours.
@@ -677,6 +699,7 @@ export class GridSession {
     waterExtent.uWaterHalf.value = CHUNK_HALF;
     host.scope.onDispose(() => { waterExtent.uWaterHalf.value = WATER_UNBOUNDED; });
     // neighbours: the far ring through the one allocator; each cell's root sits at its render origin
+    this.constructorTiming?.('physics');
     const roots = this.viewRoots;
     for (const cell of this.neighbours) {
       // G164: a shard whose whole world is shifted vertically at runtime (its terrain field's `datum`, Driftwood's hybrid row)
@@ -690,6 +713,7 @@ export class GridSession {
       const marks = copyMarks(cell.instance, cell.identity);
       if (marks !== null) { root.add(marks.object); marks.object.updateMatrixWorld(true); host.scope.onDispose(marks.dispose); }
     }
+    this.constructorTiming?.('roots');
     // G223: an entered regional runtime draws its own cell; its coarse root (far proxy, tiles) hides until it leaves, once
     // its coarse replacement is ready (H3.2). A world outside the tile registration keeps its root (Pine's ground is those
     // tiles, D189) unless its manifest says it draws its whole ground itself (`cellGround: 'world'`: Nalati, G784)
@@ -853,6 +877,7 @@ export class GridSession {
       current: () => (this.live === null ? null : this.live.live.current()),
       ...(harnessPins() === undefined ? {} : { simulation: (instanceId: string) => this.live?.simulation(instanceId) }),
     }));
+    this.constructorTiming?.('streaming');
   }
 
   /**
