@@ -864,7 +864,7 @@ jobs:
           const server = await serve(process.cwd(), sha, true);
           try {
             const args = ['scripts/frame-floor.mjs', '--surface=desktop', '--chromium-phone', '--chromium-cpu=4',
-              '--draw-budget-report-only', '--shards=nine-dragon-stack,pine-hollow,driftwood-isle',
+              '--chromium-angle=swiftshader', '--draw-budget-report-only', '--shards=nine-dragon-stack,pine-hollow,driftwood-isle',
               `--rev=${sha}`, `--serve-base=${server.url}`, '--frames=120', '--settle=2',
               '--output-dir=tmp/ci-draw-budget', '--scratch-dir=tmp/ci-draw-budget/work'];
             const outcome = await new Promise((resolve, reject) => {
