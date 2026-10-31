@@ -108,12 +108,13 @@ export function bootGreen(sha, query = ghApi) {
 }
 
 /** Automatic releases may keep or advance production, never replace it with an older or divergent tree.
- * Resolve the live build's abbreviated SHA through GitHub's immutable comparison, not run completion order.
+ * Resolve the live build's commit-typed SHA through GitHub's immutable
+ * comparison; a tree/blob sharing its prefix is not a production commit.
  * @param {string} build @param {string} candidate @param {(args:string[])=>string} [query] @returns {string} */
 export function productionFloor(build, candidate, query = ghApi) {
   const short = build.split('-')[0] ?? '';
   if (!/^[0-9a-f]{7,40}$/.test(short) || !/^[0-9a-f]{40}$/.test(candidate)) throw new Error('Invalid production floor identity');
-  const comparison = JSON.parse(query([`repos/${REPO}/compare/${short}...${candidate}`, '--jq', '{status,base_commit:{sha:.base_commit.sha}}']));
+  const comparison = JSON.parse(query([`repos/${REPO}/compare/${short}~0...${candidate}`, '--jq', '{status,base_commit:{sha:.base_commit.sha}}']));
   const live = comparison.base_commit?.sha;
   if (typeof live !== 'string' || !/^[0-9a-f]{40}$/.test(live) || !live.startsWith(short)) throw new Error('Unreadable production floor comparison');
   if (comparison.status !== 'ahead' && comparison.status !== 'identical') {

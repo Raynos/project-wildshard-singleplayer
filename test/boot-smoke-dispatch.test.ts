@@ -276,7 +276,7 @@ function readyFixture(runId='123') {
       if(path.includes('/contents/'))return state.source;
       if(path.endsWith('/status'))return args.includes('[.statuses[] | select(.context == "production-live")][0].state // ""')
         ?state.released?'success':'':state.boot;
-      if(path.includes('/compare/bbbbbbb...'))return JSON.stringify({status:state.floorStatus,base_commit:{sha:state.liveSha}});
+      if(path.includes('/compare/bbbbbbb~0...'))return JSON.stringify({status:state.floorStatus,base_commit:{sha:state.liveSha}});
       if(path.includes(`/compare/${state.run.head_sha}...main`))return JSON.stringify({status:'ahead',base_commit:{sha:state.run.head_sha}});
       return base.query(args);
     },

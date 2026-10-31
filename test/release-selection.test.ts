@@ -12,7 +12,7 @@ test('the live floor permits only an identical or descendant automatic release',
   for (const candidate of [newer, proven]) {
     const status = candidate === proven ? 'identical' : 'ahead';
     const query = (args: string[]): string => {
-      expect(args[0]).toBe(`repos/Raynos/project-wildshard-singleplayer/compare/${proven.slice(0, 9)}...${candidate}`);
+      expect(args[0]).toBe(`repos/Raynos/project-wildshard-singleplayer/compare/${proven.slice(0, 9)}~0...${candidate}`);
       expect(args.slice(1)).toEqual(['--jq', '{status,base_commit:{sha:.base_commit.sha}}']);
       return JSON.stringify({ status, base_commit: { sha: proven } });
     };
@@ -22,6 +22,23 @@ test('the live floor permits only an identical or descendant automatic release',
     expect(() => productionFloor(`${proven.slice(0, 9)}-build`, oldest,
       () => JSON.stringify({ status, base_commit: { sha: proven } }))).toThrow('does not advance production');
   }
+});
+
+test('the live prefix resolves as a commit despite a colliding tree, without guessing between commits', () => {
+  const live = '0fefa8bf2d1243b5f2dbc29af0f6f37caf6b54e8';
+  const tree = '0fefa8b06bf66f81a99e6b770d4b805e7d2e38b3', paths: string[] = [];
+  const query = (args: string[]): string => {
+    const path = args[0] ?? ''; paths.push(path);
+    if (path.includes('/compare/0fefa8b...')) throw new Error('GitHub HTTP 404: ambiguous object');
+    expect(path).toBe(`repos/Raynos/project-wildshard-singleplayer/compare/0fefa8b~0...${newer}`);
+    return JSON.stringify({ status: 'ahead', base_commit: { sha: live } });
+  };
+  expect(productionFloor('0fefa8b-live', newer, query)).toBe(live);
+  expect(paths).toHaveLength(1);
+  expect(() => productionFloor('0fefa8b-live', newer, () => { throw new Error('GitHub HTTP 404: ambiguous commit'); }))
+    .toThrow('ambiguous commit');
+  expect(() => productionFloor('0fefa8b-live', newer, () => JSON.stringify({ status: 'ahead', base_commit: { sha: tree.slice(0, 9) } })))
+    .toThrow('Unreadable production floor');
 });
 
 test('automatic releases check the live floor immediately before stripping and uploading', () => {
