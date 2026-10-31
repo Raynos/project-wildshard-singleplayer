@@ -230,8 +230,8 @@ const CARD_BLOBS = [...cardFiles].map(([text, file]) => {
   return nameBlob(file, 'json', new TextEncoder().encode(text), { dependencies });
 });
 const portalLook = portalLookRows();
-const NINE_SCENE_BLOBS: NamedBlob[] = [...castBlobs(), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue), { jsonSchema: registeredJsonSchema('models/world-scenes.json') }), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
-  nameBlob('world/scenes/cards.json', 'json', json(empty)), ...SHAPE_BLOBS, ...cardBuffers.values(), ...CARD_BLOBS];
+const NINE_SCENE_BLOBS: NamedBlob[] = [...castBlobs(), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue), { jsonSchema: registeredJsonSchema('models/world-scenes.json') }), nameBlob('world/scenes/dressing.json', 'json', json(recipe), {jsonSchema:registeredJsonSchema('world/scenes/dressing.json')}),
+  nameBlob('world/scenes/cards.json', 'json', json(empty), {jsonSchema:registeredJsonSchema('world/scenes/cards.json')}), ...SHAPE_BLOBS, ...cardBuffers.values(), ...CARD_BLOBS];
 const KIT_GRAPHS = { ...architectureGraphs(), ...kitKindGraphs(), [CROWD_LOOK]: crowdGraph() };
 // the painted surfaces' texture array (data/paint.json), the canopy's leaf atlas and the scroll screen, lent to their looks
 const painted = Object.entries(KIT_GRAPHS).flatMap(([id, graph]) => graph.params !== undefined && 'uPaint' in graph.params ? [id] : []);
@@ -421,7 +421,7 @@ const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/worl
     materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: { ...windowStep([0, 1], layout).publish, ...Object.fromEntries(['crown-core', 'crown-cards', 'signs', 'neon-boards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) } }, ...cardSteps, ...FIXED_STEPS, ...portalLook.scenes.steps] });
 /** the layout placements' files (LAYOUT_PLACEMENTS) */
 const LAYOUT_PLACEMENT_BLOBS: NamedBlob[] = [...LAYOUT_PLACEMENTS.map(row => nameBlob(layoutPlacementFile(row.id), 'json', new TextEncoder().encode(JSON.stringify(row)), { jsonSchema: registeredJsonSchema(layoutPlacementFile(row.id)) })),
-  nameBlob('world/fabric.json', 'json', json(FABRIC)), nameBlob('world/scenes/fixed.json', 'json', json(FIXED_RECIPE))];
+  nameBlob('world/fabric.json', 'json', json(FABRIC)), nameBlob('world/scenes/fixed.json', 'json', json(FIXED_RECIPE), {jsonSchema:registeredJsonSchema('world/scenes/fixed.json')})];
 
 return { worldRows, SET_TILES, NINE_SCENE_BLOBS, SET_PLACEMENTS, LION_PLACEMENTS, LAYOUT_PLACEMENTS, NINE_WORLD_SCENES, LAYOUT_PLACEMENT_BLOBS };
 }

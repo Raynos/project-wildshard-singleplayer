@@ -2,6 +2,7 @@ import { ForestGroundLayoutSchema } from './forestPage';
 import { CaveFileSchema, CaveInteriorSchema } from './caveInterior';
 import * as v from 'valibot';
 import {SceneBuffersSchema,parseSceneBuffers} from './sceneBuffers';
+import {WorldSceneSchema,parseWorldScene} from './clientChannels';
 import {ForestWeatherSchema} from './forestWeather';
 import {WorldSceneModelsSchema,parseWorldSceneModels} from './worldSceneModels';
 import { AchievementCounterDataSchema,parseAchievementCounterData } from './achievementCounters';
@@ -10,7 +11,7 @@ import { QuestServiceActionsSchema,parseQuestServiceActions } from './questSteps
 import { QuestStorySchema,parseQuestStory } from './questStory';
 import { ChapterDirectorSchema,parseChapterDirector } from './chapterDirector';
 import { FigureCatalogueSchema } from './figures';
-import { QuestTraderSchema } from './namedJsonContracts';
+import { AdventurePersistenceSchema,QuestTraderSchema } from './namedJsonContracts';
 import { WorldScenePlacementSchema,parseWorldScenePlacement } from './worldScenePlacement';
 import { QuestPageInteractionsSchema,parseQuestPageInteractions } from './questInteractions';
 import { PageLifeSchema,parsePageLife } from './pageLife';
@@ -21,6 +22,7 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'quests/persistence.json':{readonly schema:typeof AdventurePersistenceSchema;readonly source:'@wildshard/format/namedJsonContracts#AdventurePersistenceSchema'};
   readonly 'world/floor.json':{readonly schema:typeof ForestGroundLayoutSchema;readonly source:'@wildshard/format/forestPage#ForestGroundLayoutSchema'};
   readonly 'world/crag-cave.json':{readonly schema:typeof CaveFileSchema;readonly source:'@wildshard/format/caveInterior#CaveFileSchema'};
   readonly 'world/cave-interior.json':{readonly schema:typeof CaveInteriorSchema;readonly source:'@wildshard/format/caveInterior#CaveInteriorSchema'};
@@ -44,6 +46,7 @@ export interface RegisteredJsonContracts {
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'quests/persistence.json':{schema:AdventurePersistenceSchema,source:'@wildshard/format/namedJsonContracts#AdventurePersistenceSchema'},
   'world/floor.json':{schema:ForestGroundLayoutSchema,source:'@wildshard/format/forestPage#ForestGroundLayoutSchema'},
   'world/crag-cave.json':{schema:CaveFileSchema,source:'@wildshard/format/caveInterior#CaveFileSchema'},
   'world/cave-interior.json':{schema:CaveInteriorSchema,source:'@wildshard/format/caveInterior#CaveInteriorSchema'},
@@ -74,7 +77,8 @@ export type RegisteredJsonValues={readonly[Name in RegisteredJsonName]:v.InferIn
 export type RegisteredPlacementJsonName = `world/placements/${string}.json`|`scenes/placements/${string}.json`
   |`world/foliage/${string}.json`|`world/piers/${string}.json`;
 export type RegisteredFieldJsonName=`world/fields/${string}.json`;
-export type RegisteredSchemaJsonName=RegisteredJsonName|RegisteredPlacementJsonName|RegisteredFieldJsonName;
+export type RegisteredWorldSceneJsonName=`world/scenes/${string}.json`;
+export type RegisteredSchemaJsonName=RegisteredJsonName|RegisteredPlacementJsonName|RegisteredFieldJsonName|RegisteredWorldSceneJsonName;
 export interface RegisteredPlacementContract {
   readonly schema:typeof WorldScenePlacementSchema;
   readonly source:'@wildshard/format/worldScenePlacement#WorldScenePlacementSchema';
@@ -83,7 +87,12 @@ export interface RegisteredFieldContract {
   readonly schema:typeof SceneBuffersSchema;
   readonly source:'@wildshard/format/sceneBuffers#SceneBuffersSchema';
 }
-export type RegisteredJsonContract=RegisteredJsonContracts[RegisteredJsonName]|RegisteredPlacementContract|RegisteredFieldContract;
+export interface RegisteredWorldSceneContract {
+  readonly schema:typeof WorldSceneSchema;
+  readonly source:'@wildshard/format/clientChannels#WorldSceneSchema';
+}
+export type RegisteredJsonContract=RegisteredJsonContracts[RegisteredJsonName]|RegisteredPlacementContract|RegisteredFieldContract|RegisteredWorldSceneContract;
+const worldSceneContract:RegisteredWorldSceneContract={schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'};
 const fieldContract:RegisteredFieldContract={schema:SceneBuffersSchema,source:'@wildshard/format/sceneBuffers#SceneBuffersSchema'};
 const placementContract:RegisteredPlacementContract={schema:WorldScenePlacementSchema,source:'@wildshard/format/worldScenePlacement#WorldScenePlacementSchema'};
 const placementPrefixes=['world/placements/','scenes/placements/','world/foliage/','world/piers/'];
@@ -93,6 +102,11 @@ export function registeredJsonContract(name:RegisteredSchemaJsonName):Registered
 export function registeredJsonContract(name:string):RegisteredJsonContract|undefined;
 export function registeredJsonContract(name:string):RegisteredJsonContract|undefined{
   if(isRegisteredJsonName(name))return REGISTERED_JSON[name];
+  if(name.endsWith('.json')&&name.startsWith('world/scenes/')){
+    if(!/^world\/scenes\/[A-Za-z0-9_-][A-Za-z0-9_.-]{0,179}\.json$/u.test(name))
+      throw new Error('World scene JSON requires one bounded platform id');
+    return worldSceneContract;
+  }
   if(name.endsWith('.json')&&name.startsWith('world/fields/')){
     if(!/^world\/fields\/[A-Za-z0-9_-][A-Za-z0-9_.-]{0,179}\.json$/u.test(name))
       throw new Error('Field JSON requires one bounded platform id');
@@ -113,6 +127,7 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'quests/persistence.json':v.parse(AdventurePersistenceSchema,value);break;
     case 'world/floor.json':v.parse(ForestGroundLayoutSchema,value);break;
     case 'world/crag-cave.json':v.parse(CaveFileSchema,value);break;
     case 'world/cave-interior.json':v.parse(CaveInteriorSchema,value);break;
@@ -135,6 +150,7 @@ export function validateRegisteredJson(name:string,value:unknown):void {
     case 'quests/mill-door.json':
     case 'quests/lanterns.json':parseQuestPageInteractions(value);break;
     default:
+      if(registeredJsonContract(name)===worldSceneContract){parseWorldScene(value);break;}
       if(registeredJsonContract(name)===fieldContract){parseSceneBuffers(value);break;}
       if(registeredJsonContract(name)===placementContract){parseWorldScenePlacement(value);break;}
       throw new Error(`Unregistered JSON name: ${name}`);

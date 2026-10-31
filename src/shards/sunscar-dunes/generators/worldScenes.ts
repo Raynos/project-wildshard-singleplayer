@@ -1,3 +1,4 @@
+import {registeredJsonSchema} from '@wildshard/sdk/formatJsonSchema';
 import type { placeBindings } from './restScene';
 import { worldSceneBindings as parseWorldSceneBindings, worldSceneRecipe as parseWorldScene, worldSceneRows as parseWorldScenes } from '@wildshard/sdk/worldScenes';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
@@ -7,7 +8,10 @@ import { SIGNAL_SKIRT_BLOBS, SIGNAL_SKIRT_LIBRARY, SIGNAL_SKIRT_STEPS } from './
 import { SIGNAL_EMBER_BLOBS } from './emberBuffers';
 import { SIGNAL_EMITTERS } from './lightEmitters';
 
-const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
+const json = (name: string, value: unknown) => {
+  const jsonSchema=registeredJsonSchema(name);
+  return nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)), jsonSchema===undefined?{}:{jsonSchema});
+};
 const emitterFiles = new Set(SIGNAL_EMITTERS.rows.flatMap(row => row.draws.flatMap(draw => draw.kind === 'buffered' ? [draw.file] : [])));
 const emitterDependencies = new Set(SIGNAL_EMBER_BLOBS.filter(blob => emitterFiles.has(blob.file.name ?? '')).flatMap(blob => blob.file.dependencies));
 /** One owned assembly result; every call creates its scene arrays anew. */

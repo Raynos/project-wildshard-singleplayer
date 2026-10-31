@@ -110,7 +110,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 |---|---|---|
 | **CS0** | **done (2026-10-24, sp-x6):** measured ceilings 387 / 33,613,009 B; shrink-only existing-name inventory, new custom sections refused, new named JSON requires an exact defining format schema. **Ceilings to actuals and a schema freeze** (free, can land now): set every `custom-sections/<slug>` ceiling to the measured value (549 → 387, 62 MB → 33.6 MB); refuse a new `custom/` section and any new named JSON whose schema is defined in a shard folder | 0.5 day, Codex |
 | **CS1** | **done (2026-10-31, sp-x1):** plain hash-bound section inventory in `9a616b4b82`; exclusive test-project ownership fixed in `b13ad77350`. Records sections/named JSON, shard, bytes, defining bindings, source emitters and reading-host evidence; unresolved evidence remains explicit. No ruler, scores or progress tool. | 0.5–1 day, Codex |
-| **CS2** | **open (2026-10-31, sp-x1):** bounded registrations and exact payload proofs are landed; full shared-name coverage is not yet demonstrated. The explicit CS3–CS9 remainder table below stays open. **Platform names for blobs**: `product.json` admits only names whose schema is registered platform-wide; the ~345 format-schema blobs get platform names (`world/scenes/<id>`), shard-local schemas listed for CS3–CS9 | 2–3 days, Codex + Opus review |
+| **CS2** | **open (2026-10-31, sp-x1):** persistence and 27 native world-scene recipes join the qualified registrations. The next known shared native root is `WorldSceneWeldSchema` across Pine cabin and Nine cast/fabric documents; CS7 audio/cards are owned separately. These remain real registration work, so the five repeated-name inline/collision exits below do not justify marking CS2 done. **Platform names for blobs**: `product.json` admits only names whose schema is registered platform-wide; shard-local schemas retain explicit CS3–CS9 exits. | 2–3 days, Codex + Opus review |
 | **CS3** | **K1 scenes**: one streamed `world/scenes` family and `models/library`; Pine's 112 placement files become one indexed section; tier copies derived. Pine first, then Sky / Signal / Nine / Driftwood / Nalati | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **K2 ground and physics**: Pine physics into `world/physics`; floor, crag cave, Sky fields, Signal embers into a streamed `world/fields` | 2–3 days, Codex (Opus memory reading) |
 | **CS5** | **K3 quests**: one `quest/*` family across Pine, Driftwood, Nalati (and Sky's quest rows); Pine `questRuntime` program to AS | 4–6 days, Opus design + Codex port |
@@ -262,7 +262,7 @@ remaining documents; an inventory shape match alone proves no contract.
 |---|---|
 | Scene/source families, cabin tier/shadow copies, fixed model geometry, dressing and model libraries | **CS3**: streamed scenes/models and derived copies; retain geometry/resource/ownership checks. Placement-name registration alone does not collapse the 194 placement documents. |
 | Fields, Pine floor/cave and `data/physics.generated.json`, Nalati meadow and other ground bakes | **CS4**: streamed fields and the existing physics section; retain Pine profile/notice/King-hit/tree/shelter/piece owners, not just the ground subset. |
-| Remaining quest/story/step/panel/persistence/carried/runtime documents | **CS5**: complete shared quest schemas and approved WASM programs. Persistence and panel-catalogue registration remain explicit work in that row. |
+| Remaining quest/story/step/panel/carried/runtime documents | **CS5**: complete shared quest schemas and approved WASM programs. Persistence registration is qualified below; the complete panel catalogue still has an inline record contract. |
 | `directors/main.json`, population/keeper/return/install/roster/shelter documents and remaining creature custom sections | **CS6**: retain complete native controller/module/ownership rows; executable behaviour belongs on the approved sim host. |
 | Held kits/weapons, collections/appearance/sky/audio/weather/water, people/places and raw jian geometry | **CS7**: unify complete wire shapes and retain native consumers. Pine `world/weather.json` is a program; Nalati's same name is `{weather,reactions}`, so it is not yet one contract. Raw geometry exits through the model library. |
 | Room/boss/encounter/fight/riding documents | **CS8**: retain closed encounter/riding owners; executable fights use the approved host. |
@@ -440,7 +440,7 @@ registrations do not unify those different wire shapes.
 
 ## CS4: floor and cave defining contracts
 
-**2026-10-31, sp-x1 — source landed; payload proof pending.** Three
+**2026-10-31, sp-x1 — defining-contract slice qualified.** Three
 existing modern Pine names now carry their existing defining contracts:
 world/floor.json uses ForestGroundLayoutSchema; world/crag-cave.json
 uses CaveFileSchema; world/cave-interior.json uses CaveInteriorSchema.
@@ -455,9 +455,92 @@ Focused registration/native format suites, root types and named typed
 lint pass. Missing or foreign defining metadata still refuses before the
 file read, and native count, tuple and shaft bounds remain authoritative.
 
-The complete emitted payload-identity proof is explicitly queued for a
-machine turn. No fresh-product, emitted-byte, capture or collider proof
-is claimed by this source landing. Since this slice moves no collider
+The coalesced six-product proof below binds all three documents to the
+immutable pre-`b5a7dc391d` baseline: every Pine floor, cave and other
+existing payload byte is unchanged, except the separately classified
+G966 Explorer source labels. Original floor and runtime mirror suites
+pass alongside registration controls. Since this slice moves no collider
 data or installation, it does not repeat the already qualified native
-walk. CS4 remains open for this proof and its remaining ground/streaming
-exits; CS2 remains open as stated above.
+walk. CS4 remains open for its ground/streaming exits; CS2 remains open.
+
+## CS2: persistence and native world-scene recipes
+
+**2026-10-31, sp-x1.** Pine and Nalati's existing
+`quests/persistence.json` now names the original
+`namedJsonContracts#AdventurePersistenceSchema`. Both already use
+`game/quest/persistence#bindAdventurePersistence`; saved records,
+defaults, legacy adoption, completion facts and refusal order stay with
+that owner. Both canonical serialization expressions remain unchanged.
+
+The bounded `world/scenes/<id>.json` family names the original
+`clientChannels#WorldSceneSchema` and `parseWorldScene`: three existing
+Nine, 15 Far Reach and nine Sunscar documents. Its 27 payloads retain
+their original hierarchy, imports, resource ownership and encoding.
+The family refuses nested/empty/oversized ids and does not capture
+`world/sources/*` or Pine's mixed `scenes/cabins*` namespace. The original
+Sky ground metadata equality adds only the actual defining schema; its
+complete content hash, costs and geometry assertions remain intact.
+
+Four focused suites / 18 controls pass in 22.7 s, with root and test
+types plus touched typed lint clean. One normal six-product AFTER build
+takes 46.20 s under ordinary shared-host admission. Independent ordinary
+strict admission accepts all six products and all **32** affected native
+documents: the preceding three floor/cave records, two persistence
+records and 27 recipe records. Five original suites / **31 cases** pass
+in 37.2 s: Pine floor, Pine runtime mirrors, Sky ground, Nine world scenes
+and Explorer catalogue. No runtime reader, collider, renderer or native
+input changes; no extra walk, live capture or timing claim is made.
+
+The immutable baseline contains **3,009 payload paths / 484,714,581 B**;
+**3,003 payloads are byte-identical**. Names, order, resource costs and
+all custom schemas stay exact apart from the following classified
+records. Every old/current pack member, offset and complete pack hash
+reconstructs; the old baseline is never replaced.
+
+| Exact map-source case | Old stamp → current stamp | Identical image |
+|---|---|---|
+| Nalati, only `output.ts` defining metadata | `1fbc0931…eabd59bd` → `9a4ae5ff…41aa33ce` | `80afaa55…aff2d6` |
+| Nine, only `worldScenes.ts` defining metadata | `0579007a…f86603a8` → `c68ef3ed…4c17216` | `ce62e427…9fefd` |
+| Far Reach, only `worldScenes.ts` defining metadata | `aa064ca3…6b97e5ec` → `1fd7fc6b…58e23c12` | `a4d2c580…a704728d` |
+| Sunscar, only world/skirt scene defining metadata | `75b09cfc…0923c87` → `f3202b34…31cad69c` | `bac93934…bd5cb399` |
+
+Each 164-byte map record differs only in `map.tilesHash`, equal to the
+current complete source fingerprint. Each old full fingerprint is also
+independently reconstructed, including Far's existing untracked source
+input. The other two changed payloads are x2's intended G966 provenance
+retarget in `a9bdb20119`: only `entries[].file` for Driftwood
+`shared/boar`, `shared/bear` and Pine `shared/deer`, `shared/boar`,
+`shared/bear` changes from `src/game/models/creatures.ts` to
+`src/game/models/explorerCatalogue.ts`. Replacing exactly those five
+labels reconstructs the original catalogues; IDs, species, order,
+pipelines, construction and every other field remain exact.
+
+**The strict raw comparator remains FAIL on those six payloads.** G872
+accepts these four exact source-stamp cases, the five intended Explorer
+labels and exactly the 32 defining-schema records, per case only.
+No tolerance, frozen old stamp or weaker freshness/admission check is
+introduced.
+
+### Source-first remainder, without inferred registrations
+
+The current seven modern product bodies are hash-verified for candidate
+selection, independently of current-source admission. After these
+registrations, 194 distinct named JSON identities remain unregistered.
+Only five names repeat across shards; their complete contracts are:
+
+| Remaining repeated name | Exact source evidence and exit |
+|---|---|
+| `directors/main.json` (DW/Pine) | Inline `{declaration,module,stages,bindings,seed}` composites in the two output emitters; `DirectorSchema` and `DirectorStagesSchema` are children, not a defining root for the envelope. **CS6**, retain complete program/owner admission. |
+| `quests/panels.json` (Pine/Nalati) | Pine emits `v.record(v.string(), PanelDefinitionSchema)`; Nalati emits `{name: parsePanelDefinition(namePanel)}`. The record wrapper is inline. **CS5**, complete catalogue root before registration. |
+| `sim/headless-assembly.json` (DW/Pine/Nalati/Nine) | Different unique constants and retired declaration scaffolding; CS9 already derives duplicated chapter/encounter/field inputs. **CS9**, finish derivation and approved view/program exits. |
+| `world/sources/bakes.json` (Far/Sun) | `sdk/worldScenes#bakedSceneSourceFile` uses the existing `SceneBakeSource` interface, bounds and downstream native resource admission; there is no exported complete native format root for that envelope. **CS3**, establish its complete contract without inferring one from the bytes. |
+| `world/weather.json` (Pine/Nalati) | Pine emits a plain parsed weather program, Nalati `{weather,reactions}`. **CS7**, a real shape collision; no alias, union or wrapper added. |
+
+Repeated literal names are not the whole CS2 bar. Cross-name shared
+native roots still require source-first coverage: Pine cabin shell and
+specimen documents and Nine cast/fabric documents already use
+`WorldSceneWeldSchema`. That is the next bounded CS2 slice; the mixed
+living-cabin `{graph,life}` wrapper remains a separate CS3 exit. The
+CS3–CS9 family table continues to own remaining single-user, inline,
+unknown and collision cases; neither a shape match nor this inventory
+grants a new host or one-user waiver. **CS2 stays open.**

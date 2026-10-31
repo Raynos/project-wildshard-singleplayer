@@ -1,3 +1,4 @@
+import {registeredJsonSchema} from '@wildshard/sdk/formatJsonSchema';
 import { MeshBasicMaterial } from 'three';
 import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
@@ -24,7 +25,7 @@ for (const [index, cube] of (['standalone', 'cell'] as const).entries()) {
     // private scene; its legacy mesh policy is unreachable for missing inputs.
     { id: 'skirt', kind: 'mesh', geometry: 'skirt', material: 'sand', receiveShadow: false, castShadow: false, renderOrder: -1, missing: 'empty' },
   ], materials: [{ id: 'sand', kind: 'port', source: 'sand' }] }, imports: [] });
-  if (index === 0) SIGNAL_SKIRT_BLOBS.push(nameBlob(scene, 'json', new TextEncoder().encode(JSON.stringify(recipe))));
+  if (index === 0) SIGNAL_SKIRT_BLOBS.push(nameBlob(scene, 'json', new TextEncoder().encode(JSON.stringify(recipe)), {jsonSchema:registeredJsonSchema(scene)}));
   steps.push({ id, cube, scene, geometry: { skirt: { library: 'skirt', model: id } }, materials: { sand: 'sand' },
     registry: [], publish: {}, instanceAttributes: [], bounds: [] });
 }

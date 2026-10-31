@@ -1,3 +1,4 @@
+import {registeredJsonSchema} from '@wildshard/sdk/formatJsonSchema';
 import { worldSceneRecipe as parseWorldScene, worldSceneBindings as parseWorldSceneBindings, worldSceneRows as parseWorldScenes } from '@wildshard/sdk/worldScenes';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import type { SkyRouteValues } from './routeScene';
@@ -33,7 +34,10 @@ const world = skyWorldRows();
 
 interface Reference { readonly library: string; readonly model: string }
 type WorldSceneRecipe = ReturnType<typeof parseWorldScene>;
-const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
+const json = (name: string, value: unknown) => {
+  const jsonSchema=registeredJsonSchema(name);
+  return nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)), jsonSchema===undefined?{}:{jsonSchema});
+};
 /** Complete scene declarations and file bytes, freshly owned by each constructor call. */
 export interface SkyWorldSceneValues {
   readonly blobs: readonly ReturnType<typeof nameBlob>[];

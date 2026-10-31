@@ -4,7 +4,7 @@ import { SceneBuffersSchema } from '@wildshard/format/sceneBuffers';
 import { BakedTilesSchema } from '@wildshard/format/bakedTiles';
 import { ClientRidingSessionSchema } from '@wildshard/format/riding';
 import { ManifestMetadataSchema } from '@wildshard/format/minimap';
-import { HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema, PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
+import { AdventurePersistenceSchema, HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema, PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
 import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestComposition';
 import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
 import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
@@ -409,6 +409,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'worldAssembly.WorldAssembly': WorldAssemblySchema,
   'binarySource.BinarySource': BinarySourceSchema,
   'namedJsonContracts.QuestTrader': QuestTraderSchema,
+  'namedJsonContracts.AdventurePersistence': AdventurePersistenceSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();
