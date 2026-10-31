@@ -13677,15 +13677,15 @@ remain in the original `elite.entry` play binding. Its world rank is 75,
 between declared assembly (70) and timed encounters (80); native entry selects both constructor
 features after its original assembly.
 
-The G677 `timed.encounters` constructor names its original fixed draws,
-species programme, optional dressing sites, figure slots and weather loan.
-It copies rider and captain once on the original level scope and aliases
-one for storm riders. The existing `TimedEncounters` host borrows its cue
-presentation and resolves the original clock only on update. Named-file
-admission checks both entered and level lifetimes before construction;
-clock/sky replacement and retirement refuse before publication or update.
-The native manifest selects this world-phase constructor after its original
-assembly and elite construction; no extra watcher or clock is installed.
+`timed.encounters` names fixed draws, species programme, optional dressing
+sites, figures and weather. Scoped rider/captain copies retain the storm
+alias. `TimedEncounters` borrows cues and samples its clock on update;
+entered/level, clock/sky and retirement fences remain. Native construction
+follows assembly/elites without another watcher or clock.
+`boss/slotLaw.SlotEncounterLaw` keeps AS wake/member/retire order;
+page tells/cues, terrain and cosmetic RNG are borrowed. Checked
+`snapshot(identify)` / `restore(saved, find)` retain all clocks, body/site
+ids, retired sites, tell slots and hit latches, with no restore effects.
 
 The `taming.entry` feature publishes the original prepared riding view's
 taming authority and interactable, optionally lending that same view to a

@@ -24,6 +24,7 @@ import { LightningStrip } from '../weapons/arcPower';
 import { nearestJointHit, type JointPorts } from './jointTargets';
 import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
 import { PatrolLaw, type PatrolRider } from './patrolLaw';
+import { SlotEncounterLaw } from './slotLaw';
 import { createClientScene } from '../plugin/scene';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { lentLook, lentLookInstance, setLentParam, type LookInstance } from '../shardfile/lentLooks';
@@ -101,104 +102,20 @@ export class EncounterSites {
 }
 /** A site whose actor woke (`awake` 1: hide it) or is home again (0: stand it back up), for the caller's own sites. */
 export interface SlotSiteChange { readonly index: number; readonly awake: number }
-interface Awake<A> { readonly a: A; readonly site: number; readonly law:ProjectedState; lastHp: number; readonly wedge: GroundTell }
-const point = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);
+const UP = new THREE.Vector3(0, 1, 0);
 
-/** A slot encounter keeps one native body roster; existing AS owns its cycle and members; the
- * sites' own show and hide is the caller's, from the changes `update` returns. */
-export class SlotEncounterView<A extends SlotViewActor = Animal> {
-  private readonly cycle:ProjectedState;
-  private readonly retired:number[]=[];
-  private roster:PatrolActorRoster<A>|null=null;
-  readonly awake: Awake<A>[] = [];
-  private readonly changes: SlotSiteChange[] = [];
-  private readonly rows: SlotViewRows;
-  private readonly wedges: GroundTell[] = [];
-  private trailT = 0;
-  constructor(private readonly slots:EncounterSlotsRows, view: SlotViewRows, private readonly program:ReturnProgram, private readonly ports: { readonly scene: THREE.Scene; readonly cues: CueDirector;
-    readonly sites: readonly Pick<EncounterSite,'x'|'z'|'yaw'|'variant'>[] | null; readonly guest: ReturnProgram }) {
-    this.cycle=new ProjectedState({...slots.cycle,signals:{step:slots.cycle.signal}},program);this.rows=view;
-    const tell = this.rows.tell;
-    for (let i = 0; i < tell.pool; i++) {
-      const look = lentLookInstance(tell.look);
-      this.wedges.push(new GroundTell(ports.scene, 'wedge', 0, { cone: tell.cone, material: look.material, fill: lookParam(look, 'fill'), alpha: lookParam(look, 'alpha') }));
+/** Presentation over the same renderer-free slot owner used by native tapes. */
+export class SlotEncounterView<A extends SlotViewActor = Animal> extends SlotEncounterLaw<A,GroundTell> {
+  constructor(slots:EncounterSlotsRows,view:SlotViewRows,program:ReturnProgram,ports:{readonly scene:THREE.Scene;readonly cues:CueDirector;
+    readonly sites:readonly Pick<EncounterSite,'x'|'z'|'yaw'|'variant'>[]|null;readonly guest:ReturnProgram}) {
+    // Keep original metadata refusal before allocating the tell look copies.
+    ProjectedState.preflight({...slots.cycle,signals:{step:slots.cycle.signal}});
+    const tell=view.tell,wedges:GroundTell[]=[];
+    for(let i=0;i<tell.pool;i++){
+      const look=lentLookInstance(tell.look);
+      wedges.push(new GroundTell(ports.scene,'wedge',0,{cone:tell.cone,material:look.material,fill:lookParam(look,'fill'),alpha:lookParam(look,'alpha')}));
     }
-  }
-  attachActors(roster:PatrolActorRoster<A>):void {
-    const rows=this.slots.actors;if(rows===undefined)throw new Error('Missing slot actor rows');
-    for(const variant of new Set([rows.variant,...Object.values(rows.variants)]))roster.factory.model(rows.kind,variant);
-    this.roster=roster;
-  }
-  /** Wake the chosen sites (the cycle's own choice when `which` is omitted); the changes until the next `update`. */
-  wake(which?: readonly number[]): readonly SlotSiteChange[] {
-    const sites=this.ports.sites,rows=this.slots.actors,roster=this.roster;if(sites===null||rows===undefined||roster===null)return this.changes;
-    const selected=new Set<number>();
-    if(which!==undefined)for(const index of which)selected.add(index);
-    else for(let slot=0;slot<this.slots.select.count;slot++){
-      const out=this.program.project(this.slots.select.signal,{...this.cycle.state,count:sites.length,night:this.cycle.state['t']??0,slot}),index=out['index'];
-      if(index!==undefined){if(!Number.isSafeInteger(index)||index<0)throw new Error('Invalid encounter slot selection');selected.add(index);}
-    }
-    for(const index of selected){
-      if(this.awake.length>=8||this.awake.some(row=>row.site===index))continue;
-      const site=sites[index],wedge=this.wedges[this.awake.length%this.wedges.length];if(site===undefined||wedge===undefined)continue;
-      const yaw=site.yaw+rows.yaw,a=roster.spawn(rows.kind,site.x,site.z,yaw,rows.variants[String(site.variant)]??rows.variant);
-      a.herd=rows.herd;Object.assign(a.mem,rows.memory);a.mem[rows.home.x]=site.x;a.mem[rows.home.z]=site.z;a.mem[rows.home.yaw]=yaw;a.yOffset=rows.sink*a.scale;
-      this.changes.push({index,awake:1});this.awake.push({a,site:index,lastHp:a.hp,wedge,law:new ProjectedState(this.slots.member,this.program)});
-      this.ports.cues.cue(this.rows.cues.wake, point.set(site.x, heightAt(site.x, site.z) + this.rows.lift.wake, site.z), UP);
-    }
-    return this.changes;
-  }
-  /** Send every actor home; a site whose actor is already gone stands again. */
-  dawn():readonly SlotSiteChange[]{
-    const rows=this.slots.actors;if(rows===undefined)throw new Error('Missing slot actor rows');
-    for(const {a,site}of this.awake){if(a.alive)a.mem[rows.dawn]=1;else if(a.hidden)this.changes.push({index:site,awake:0});}return this.changes;
-  }
-  private retire(index:number,delayed:boolean):void {
-    const member=this.awake[index];if(member===undefined)return;
-    this.roster?.retire(member.a);if(delayed)this.retired.push(member.site);this.awake.splice(index,1);
-  }
-  /** Step the roster and draw it; the sites to hide or show since the last call. */
-  update(dt: number, frame: Readonly<Record<string, number>>): readonly SlotSiteChange[] {
-    this.changes.length = 0;
-    const rows=this.rows,cues=this.ports.cues,actors=this.slots.actors;if(actors===undefined)throw new Error('Missing slot actor rows');
-    const step=this.cycle.step(this.roster===null?0:dt,frame),members=new Map<Awake<A>,Readonly<Record<string,number>>>();
-    if(step.dt>0)for(const member of this.awake)members.set(member,member.law.project({dt:step.dt,alive:Number(member.a.alive),gone:member.a.mem[actors.gone]??0}));
-    if(step.values[rows.cycle.wake]===1)this.wake();
-    if(step.values[rows.cycle.dawn]===1)this.dawn();
-    if(step.values[this.slots.release]===1){for(const index of this.retired)this.changes.push({index,awake:0});this.retired.length=0;}
-    this.trailT += dt; const trail = this.trailT > rows.every; if (trail) this.trailT = 0;
-    for (let i = this.awake.length - 1; i >= 0; i--) {
-      const w = this.awake[i]; if (w === undefined) continue;
-      const a = w.a, sc = a.scale, state = members.get(w) ?? {};
-      if (a.hp < w.lastHp) {
-        point.set(a.position.x, a.position.y + rows.lift.hit * sc, a.position.z);
-        const weak=this.ports.guest.project('weakPoint',{x:a.position.x,ay:a.position.y,z:a.position.z,cos:Math.cos(-a.yaw),sin:Math.sin(-a.yaw),scale:a.scale,yOffset:a.yOffset,hitX:point.x,hitY:point.y,hitZ:point.z})['weakPoint']===1;
-        cues.cue(weak ? rows.cues.weak : a.hp < w.lastHp - rows.cues.hard.drop ? rows.cues.hard.cue : rows.cues.hit, point, UP);
-        w.lastHp = a.hp;
-      }
-      if (!a.alive) {
-        w.wedge.hide();
-        if (state[rows.states.broken] === 1) cues.cue(rows.cues.broken, point.set(a.position.x, a.position.y + rows.lift.broken * sc, a.position.z), UP);
-        if (state[rows.states.retire] === 1) { this.retire(i,true); }
-        continue;
-      }
-      if (state[rows.states.home] === 1) { this.retire(i,false); this.changes.push({ index: w.site, awake: 0 }); continue; }
-      if (trail) for (const row of rows.trails) {
-        const value = a.mem[row.field] ?? 0;
-        if (value < row.min || value >= row.max || (row.chance < 1 && app.rng.stream('cosmetic').next() >= row.chance)) continue;
-        cues.cue(row.cue, point.set(a.position.x, row.at === 'ground' ? heightAt(a.position.x, a.position.z) + row.lift : a.position.y + row.lift * sc, a.position.z), UP);
-      }
-      const p = a.attackPhase, tell = rows.tell, reach = tell.reach * sc;
-      if (p < 0) { w.wedge.hide(); continue; }
-      if (p < tell.strike + tell.hold) w.wedge.wedge(a.position.x, a.position.z, a.yaw, reach, Math.min(1, p / tell.wind), p < tell.strike ? tell.alpha[0] + tell.alpha[1] * (p / tell.wind) : tell.alpha[2]);
-      else w.wedge.hide();
-      if (a.mem[rows.strike.field] === 1) {
-        a.mem[rows.strike.field] = 2;
-        point.set(a.position.x + Math.sin(a.yaw) * reach * rows.strike.ahead, 0, a.position.z + Math.cos(a.yaw) * reach * rows.strike.ahead);
-        cues.cue(rows.cues.strike, point.setY(heightAt(point.x, point.z) + rows.lift.strike), UP);
-      }
-    }
-    return this.changes;
+    super(slots,view,program,{sites:ports.sites,cues:ports.cues,guest:ports.guest,wedges,ground:heightAt,cosmetic:()=>app.rng.stream('cosmetic').next()});
   }
 }
 

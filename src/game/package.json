@@ -100,6 +100,7 @@
     "./boss/wake": "./boss/wake.ts",
     "./boss/presentation": "./boss/presentation.ts",
     "./boss/encounterView": "./boss/encounterView.ts",
+    "./boss/slotLaw": "./boss/slotLaw.ts",
     "./boss/timedEncounters": "./boss/timedEncounters.ts",
     "./proof/entryways": "./bake/entryways.ts",
     "./bake/entryways": "./bake/entryways.ts",
