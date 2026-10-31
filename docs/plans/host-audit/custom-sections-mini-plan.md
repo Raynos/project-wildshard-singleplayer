@@ -412,30 +412,45 @@ source review. Counts are scoped to these seven products, not the entire
 including tier/shadow variants and complete scene resources. No drawing
 path changes or capture credit are claimed here.
 
-## CS7: next existing audio and people contracts
+## CS7: existing audio and people contracts
 
-**2026-10-31, sp-x2 — off-tree qualification, open.** Nalati's
-`audio/scene.json` already uses complete `AudioSceneSchema` and its
-native director. Driftwood's `people/cards.json` already uses
-`KitFigureCardsSchema` and the cold Explorer reader. Proposed
-registration retains both names, canonical payload expressions and
-native parsers; it adds the audio schema's defining SDK wire root.
-Driftwood's existing named-file wrapper supplies registered metadata.
+**Done for these two documents (2026-10-31, sp-x2): `2c5aa6386d`.**
+Nalati's `audio/scene.json` uses the existing complete `AudioSceneSchema`
+and native director. Driftwood's `people/cards.json` uses the existing
+`KitFigureCardsSchema` and cold Explorer reader. Their names, canonical
+payload expressions, parsers, ownership and critical audio admission
+remain unchanged. Registration adds exact defining provenance and the
+audio schema's SDK wire root. The positive audio fixture supplies actual
+metadata and the real checker; every consumer assertion remains.
 
-Three controls pass against actual admitted raw documents: exact
-defining schema and canonical bytes, unchanged input objects, native
-malformed-data refusal, and missing/foreign metadata refusal before a
-body read. The original audio consumer suite passes with its positive
-fixture carrying exact native metadata and the real checker. No
-producer or registry bytes are activated. An unchanged HEAD check also
-found CS9's island-book test still expecting removed `nativeEncounter`;
-its owner has the narrow same-defining-payload assertion correction.
+Six focused controls pass for native identity, complete canonical bytes,
+unchanged input objects, malformed-data refusal, pre-read metadata
+refusal and valid product reads. The five original audio, island-book,
+Pine cabin, Nine cast and Nine Explorer suites pass in 28.7 s. Root/test
+types and named typed lint pass. One cause-fixed normal six-product
+AFTER build and independent strict admission pass; post-landing root
+types and strict six-product admission also pass. No BEFORE build,
+browser, pixel or isolated author-speed reading is claimed.
 
-Acceptance remains a normal payload-identity build, strict admission
-and original consumer checks. Pine's weather program and Nalati's
-`{weather,reactions}` envelope remain an explicit CS7 exit; these two
-registrations do not unify those different wire shapes.
+The complete comparison covers **2,994 unique payload paths and
+484,565,055 bytes**. Exactly 2,993 other bodies are byte-identical, with
+two intended `jsonSchema` metadata changes. The raw strict comparison
+retains FAIL for the remaining 164-byte Nalati `look/map` document.
+G872 accepts only its exact source stamp `9a4ae5ff…` → `ed7a40e2…`:
+the current `mapTilesHash` changed solely with the audio metadata option
+and unused import. Image `80afaa55…` is identical; the old source stamp
+is independently reconstructed and the current stamp recomputed.
+Pine and Nine maps are fully unchanged. This is one classified case,
+with no guard or general tolerance change. Full hashes are in the
+source commit message.
 
+The proposed 62-document weld registration was entirely withdrawn:
+Pine's index reached 3,120,670 bytes against the unchanged 2,000,000-byte
+cap. Its source/test activation is absent; Pine's index is 1,703,170
+bytes again. The original baseline was retained for the cause-fixed
+CS7-only build. Its explicit CS2 footprint exit remains recorded below.
+Pine's weather program and Nalati's `{weather,reactions}` envelope remain
+an explicit CS7 exit; these two registrations do not unify those shapes.
 
 
 ## CS4: floor and cave defining contracts
