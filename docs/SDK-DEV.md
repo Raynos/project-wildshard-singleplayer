@@ -61,6 +61,10 @@ uses its checked bridge until its custom-section exit row is complete.
 Streamed placement JSON under `world/placements/`, `scenes/placements/`,
 `world/foliage/` and `world/piers/` shares `WorldScenePlacementSchema`.
 Each file keeps its original poses, draw policy and native consumer parser.
+The ordinary map `tilesHash` fingerprints generator source, including
+metadata-only edits. A schema migration can therefore change that stamp
+while the map image and all authored payload bytes remain identical; keep
+the fresh source stamp and compare the image separately.
 Inputs must resolve within the author project. Generators use these
 capabilities for I/O rather than importing filesystem modules into the entry.
 
