@@ -1,4 +1,4 @@
-import { isRegisteredJsonName } from '@wildshard/format/registeredJson';
+import { registeredJsonContract } from '@wildshard/format/registeredJson';
 import type { ScriptContract } from '@wildshard/format/scriptContract';
 import type { JsonSchema } from '@valibot/to-json-schema';
 import type { AssetCost } from '@wildshard/format/product';
@@ -29,7 +29,7 @@ export interface EmittedBlobs { readonly files: readonly OutputFile[]; readonly 
 /** Admit actual bytes, hash their owned copy and attach a stable logical name. No author-provided hash or path is used.
  * Binary channel-specific and cross-reference admission still belongs to the section's defining reader/product build. */
 export function nameBlob(name: string, kind: NamedBlobKind, input: Uint8Array, options: BlobOptions = {}): NamedBlob {
-  if (isRegisteredJsonName(name)) {
+  if (registeredJsonContract(name) !== undefined) {
     if (kind !== 'json' || options.jsonSchema === undefined) throw new Error('Registered JSON requires its defining schema');
     return nameBlobBytes(name, kind, input, options, (schema, bytes) => validateDefinedJson(schema, bytes, name));
   }

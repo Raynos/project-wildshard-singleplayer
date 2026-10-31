@@ -58,6 +58,9 @@ registered in `@wildshard/format/registeredJson`; `product.json(name)` infers
 their types, checks their provenance and retains the original consumer
 validation without rewriting decoded values. Existing unported private JSON
 uses its checked bridge until its custom-section exit row is complete.
+Streamed placement JSON under `world/placements/`, `scenes/placements/`,
+`world/foliage/` and `world/piers/` shares `WorldScenePlacementSchema`.
+Each file keeps its original poses, draw policy and native consumer parser.
 Inputs must resolve within the author project. Generators use these
 capabilities for I/O rather than importing filesystem modules into the entry.
 

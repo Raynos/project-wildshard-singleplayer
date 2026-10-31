@@ -1,3 +1,4 @@
+import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { NINE_MATERIAL_LOOKS, NINE_WHOLE_DRESSING } from './wholeDressing';
 import { addWindowNodes, windowStep } from './facadeWindowRecipe';
 import { moverPlacements } from './moversView';
@@ -268,7 +269,7 @@ const SET_PLACEMENTS = worldRows.rows.sets.map(({ name, frames }) => {
 });
 const projection = bakedLayoutProjection(layout);
 /** a layout placement's own file (world/build.ts reads the lanterns' poses from theirs) */
-const layoutPlacementFile = (id: string): string => `world/placements/${id.replaceAll('@', '.')}.json`; // a blob name has no '@'
+const layoutPlacementFile = (id: string): `world/placements/${string}.json` => `world/placements/${id.replaceAll('@', '.')}.json`; // a blob name has no '@'
 const frame = (offset: number): number[] => Array.from({ length: 16 }, (_, k) => record(offset + k));
 // plain JSON numbers: a signed zero (three's matrix maths) is written as 0
 const posed = (words: readonly number[], color?: readonly number[]) => { const matrix = words.map(value => value + 0);
@@ -419,7 +420,7 @@ const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/worl
     instanceAttributes: windowStep([0, 1], layout).instanceAttributes,
     materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: { ...windowStep([0, 1], layout).publish, ...Object.fromEntries(['crown-core', 'crown-cards', 'signs', 'neon-boards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) } }, ...cardSteps, ...FIXED_STEPS, ...portalLook.scenes.steps] });
 /** the layout placements' files (LAYOUT_PLACEMENTS) */
-const LAYOUT_PLACEMENT_BLOBS: NamedBlob[] = [...LAYOUT_PLACEMENTS.map(row => nameBlob(layoutPlacementFile(row.id), 'json', new TextEncoder().encode(JSON.stringify(row)))),
+const LAYOUT_PLACEMENT_BLOBS: NamedBlob[] = [...LAYOUT_PLACEMENTS.map(row => nameBlob(layoutPlacementFile(row.id), 'json', new TextEncoder().encode(JSON.stringify(row)), { jsonSchema: registeredJsonSchema(layoutPlacementFile(row.id)) })),
   nameBlob('world/fabric.json', 'json', json(FABRIC)), nameBlob('world/scenes/fixed.json', 'json', json(FIXED_RECIPE))];
 
 return { worldRows, SET_TILES, NINE_SCENE_BLOBS, SET_PLACEMENTS, LION_PLACEMENTS, LAYOUT_PLACEMENTS, NINE_WORLD_SCENES, LAYOUT_PLACEMENT_BLOBS };

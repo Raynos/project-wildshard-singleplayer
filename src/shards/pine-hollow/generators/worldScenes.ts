@@ -1,3 +1,4 @@
+import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 
 import codeParts from '../data/codeParts.json' with { type: 'json' };
 import { parseSectionValue } from '@wildshard/sdk/sections';
@@ -58,7 +59,7 @@ export const worldScenes: (sources: PineSources) => Promise<WorldScenes> = perSo
     nameBlob(SPRAY, 'bin', new Uint8Array(Float32Array.from([...matrices, ...spray.seed, ...spray.size]).buffer)),
     ...CABIN_JSON_BLOBS, ...QUEST_RIDE_BLOBS,
     nameBlob('models/world-scenes.json', 'json', encode(SCENE_MODELS)),
-    ...SCENE_PLACEMENTS.map(row => nameBlob(`scenes/placements/${row.id}.json`, 'json', encode(row)))];
+    ...SCENE_PLACEMENTS.map(row => nameBlob(`scenes/placements/${row.id}.json`, 'json', encode(row), { jsonSchema: registeredJsonSchema(`scenes/placements/${row.id}.json`) }))];
   // GR8 G27: the stream water and quad and the pool's still and trickle, built here (no scheduler job, no stored files):
   // raw for the map assembly, meshopt-named for the output as their `meshopt: true` sources were.
   const rawModels = [...pineWorldSceneModels(sources)];

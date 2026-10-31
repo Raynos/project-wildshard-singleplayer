@@ -6,6 +6,7 @@ import { QuestStorySchema,parseQuestStory } from './questStory';
 import { ChapterDirectorSchema,parseChapterDirector } from './chapterDirector';
 import { FigureCatalogueSchema } from './figures';
 import { QuestTraderSchema } from './namedJsonContracts';
+import { WorldScenePlacementSchema,parseWorldScenePlacement } from './worldScenePlacement';
 
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
@@ -30,12 +31,37 @@ export const REGISTERED_JSON:RegisteredJsonContracts = {
 export type RegisteredJsonName=keyof typeof REGISTERED_JSON;
 export type RegisteredJsonValues={readonly[Name in RegisteredJsonName]:v.InferOutput<(typeof REGISTERED_JSON)[Name]['schema']>};
 
+/** Existing streamed placement names; no shard identity or draw policy. */
+export type RegisteredPlacementJsonName = `world/placements/${string}.json`|`scenes/placements/${string}.json`
+  |`world/foliage/${string}.json`|`world/piers/${string}.json`;
+export type RegisteredSchemaJsonName=RegisteredJsonName|RegisteredPlacementJsonName;
+export interface RegisteredPlacementContract {
+  readonly schema:typeof WorldScenePlacementSchema;
+  readonly source:'@wildshard/format/worldScenePlacement#WorldScenePlacementSchema';
+}
+export type RegisteredJsonContract=RegisteredJsonContracts[RegisteredJsonName]|RegisteredPlacementContract;
+const placementContract:RegisteredPlacementContract={schema:WorldScenePlacementSchema,source:'@wildshard/format/worldScenePlacement#WorldScenePlacementSchema'};
+const placementPrefixes=['world/placements/','scenes/placements/','world/foliage/','world/piers/'];
+/** Shared families use the existing defining parser, not an inferred schema.
+ * Binary members keep their original independent admission. */
+export function registeredJsonContract(name:RegisteredSchemaJsonName):RegisteredJsonContract;
+export function registeredJsonContract(name:string):RegisteredJsonContract|undefined;
+export function registeredJsonContract(name:string):RegisteredJsonContract|undefined{
+  if(isRegisteredJsonName(name))return REGISTERED_JSON[name];
+  if(name.endsWith('.json')&&placementPrefixes.some(prefix=>name.startsWith(prefix))){
+    if(!/^(?:world\/placements|scenes\/placements|world\/foliage|world\/piers)\/[A-Za-z0-9_-][A-Za-z0-9_.-]{0,179}\.json$/u.test(name))
+      throw new Error('Placement JSON requires one bounded platform id');
+    return placementContract;
+  }
+  return undefined;
+}
+
 /** Exact registered names, with no suffix, shard or inferred alias policy. */
 export function isRegisteredJsonName(name:string):name is RegisteredJsonName {return Object.hasOwn(REGISTERED_JSON,name);}
 
 /** Verify the original consumer contracts without replacing or rewriting the
  * caller's decoded document. Existing semantic checks remain authoritative. */
-export function validateRegisteredJson(name:RegisteredJsonName,value:unknown):void {
+export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
     case 'people/catalogue.json':v.parse(FigureCatalogueSchema,value);break;
     case 'quests/chapter-director.json':parseChapterDirector(value);break;
@@ -44,6 +70,8 @@ export function validateRegisteredJson(name:RegisteredJsonName,value:unknown):vo
     case 'quests/achievements.json':parseAchievementCounterData(value);break;
     case 'quests/page-composition.json':v.parse(QuestPageCompositionSchema,value);break;
     case 'quests/services.json':parseQuestServiceActions(value);break;
-    default:throw new Error(`Unregistered JSON name: ${String(name)}`);
+    default:
+      if(registeredJsonContract(name)===placementContract){parseWorldScenePlacement(value);break;}
+      throw new Error(`Unregistered JSON name: ${name}`);
   }
 }

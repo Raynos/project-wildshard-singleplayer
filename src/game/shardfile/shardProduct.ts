@@ -3,7 +3,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { CustomSectionName, PlatformSectionName, PlatformSections, SectionName } from '@wildshard/format/sections';
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
 import { parseNamedJson } from '@wildshard/format/json';
-import { REGISTERED_JSON,isRegisteredJsonName,validateRegisteredJson,type RegisteredJsonName,type RegisteredJsonValues } from '@wildshard/format/registeredJson';
+import { registeredJsonContract,validateRegisteredJson,type RegisteredJsonName,type RegisteredJsonValues } from '@wildshard/format/registeredJson';
 import { readCheckedNamedJson, type NamedJsonCheck } from './namedJsonChecks';
 
 /**
@@ -163,13 +163,14 @@ export function createShardProduct(input: ShardProductInput): ShardProduct {
     if (!(import.meta.env?.SSR ?? true) && input.builtJson !== true && input.jsonCheck === undefined && file.jsonSchema !== undefined) {
       throw new Error('Shardfile needs server validation before client admission');
     }
-    if(isRegisteredJsonName(name)&&file.jsonSchema?.['$comment']!==REGISTERED_JSON[name].source)
+    const contract=registeredJsonContract(name);
+    if(contract!==undefined&&file.jsonSchema?.['$comment']!==contract.source)
       throw new ProductError(slug,name,'schema','registered JSON requires its exact defining format contract');
     const bytes = await input.read(file.hash);
     // a read in play lets a due frame through between its parse, schema compile and validation (pacedResolve)
     const decoded: unknown = file.jsonSchema === undefined ? JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes))
       : input.builtJson === true ? parseNamedJson(bytes) : await (input.jsonCheck ?? readCheckedNamedJson)(file.jsonSchema, bytes, () => pacedResolve(undefined));
-    if(input.builtJson!==true&&isRegisteredJsonName(name)){
+    if(input.builtJson!==true&&contract!==undefined){
       try{validateRegisteredJson(name,decoded);}
       catch(error){throw new ProductError(slug,name,'schema',`registered JSON refuses its defining contract: ${String(error)}`);}
     }

@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
 import Ajv from 'ajv';
-import { isRegisteredJsonName, validateRegisteredJson } from '@wildshard/format/registeredJson';
+import { registeredJsonContract, validateRegisteredJson } from '@wildshard/format/registeredJson';
 import { isJsonData } from '@wildshard/format/json';
 import { encodeCanonicalJson } from './immutable';
 import { ownAssetBytes } from './assetOwner';
@@ -50,7 +50,7 @@ export function validateDefinedSection(schemaBytes: Uint8Array, value: unknown):
  * names also retain their original defining semantic parser before publication. */
 export function validateDefinedJson(schemaBytes: Uint8Array, bytes: Uint8Array, name?: string): unknown {
   const value = validateNamedJson(schemaBytes, bytes, Ajv);
-  if (name !== undefined && isRegisteredJsonName(name)) {
+  if (name !== undefined && registeredJsonContract(name) !== undefined) {
     if (new TextDecoder('utf-8', { fatal: true }).decode(schemaBytes) !== encodeCanonicalJson(registeredJsonSchema(name)))
       throw new Error('Registered JSON requires its exact defining format contract');
     validateRegisteredJson(name, value);
