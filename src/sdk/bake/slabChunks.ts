@@ -18,6 +18,25 @@ export function slabGeometryBytes(geometry: BufferGeometry): number {
   return bytes;
 }
 
+/** Compare the same raw bits in native words when both owned views align.
+ * Shared, empty and unaligned views retain the original byte read order. */
+function verifySlabChannelCopy(before: Uint8Array, after: Uint8Array, selected: readonly number[], bytes: number): void {
+  if (bytes > 0 && bytes % 4 === 0 && selected.length > 0
+    && before.buffer instanceof ArrayBuffer && after.buffer instanceof ArrayBuffer
+    && before.byteLength > 0 && after.byteLength > 0
+    && before.byteOffset % 4 === 0 && after.byteOffset % 4 === 0
+    && before.byteLength % 4 === 0 && after.byteLength % 4 === 0) {
+    const input = new Uint32Array(before.buffer, before.byteOffset, before.byteLength / 4);
+    const output = new Uint32Array(after.buffer, after.byteOffset, after.byteLength / 4);
+    const words = bytes / 4;
+    selected.forEach((vertex, at) => { for (let word = 0; word < words; word++)
+      if (input[vertex * words + word] !== output[at * words + word]) throw new Error('Slab channel copy differs'); });
+    return;
+  }
+  selected.forEach((vertex, at) => { for (let byte = 0; byte < bytes; byte++)
+    if (before[vertex * bytes + byte] !== after[at * bytes + byte]) throw new Error('Slab channel copy differs'); });
+}
+
 function subset(source: BufferGeometry, selected: readonly number[], indices: readonly number[]): BufferGeometry {
   const output = new BufferGeometry();
   try {
@@ -33,8 +52,7 @@ function subset(source: BufferGeometry, selected: readonly number[], indices: re
       const before = new Uint8Array(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength);
       const after = new Uint8Array(copied.array.buffer, copied.array.byteOffset, copied.array.byteLength);
       const bytes = attribute.itemSize * attribute.array.BYTES_PER_ELEMENT;
-      selected.forEach((vertex, at) => { for (let byte = 0; byte < bytes; byte++)
-        if (before[vertex * bytes + byte] !== after[at * bytes + byte]) throw new Error('Slab channel copy differs'); });
+      verifySlabChannelCopy(before, after, selected, bytes);
       output.setAttribute(name, copied);
     }
     output.setIndex(new BufferAttribute(selected.length > 65535 ? Uint32Array.from(indices) : Uint16Array.from(indices), 1));

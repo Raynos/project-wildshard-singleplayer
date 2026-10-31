@@ -263,3 +263,40 @@ test('a near-cap slab leaves upload room for its native instance matrix and colo
   for (const chunk of chunks) expect(chunk.bytes + (16 + 3) * Float32Array.BYTES_PER_ELEMENT).toBeLessThanOrEqual(4_000_000);
   expect(result.report.reduce((sum, row) => sum + row.triangles, 0)).toBe(count);
 });
+
+
+test('slab raw-copy verification preserves Float64 payloads and shared source bytes', () => {
+  for (const shared of [false, true]) {
+    const geometry = triangle(5, 0, 5);
+    const payload = new Uint32Array([0, 0x80000000, 0x12345678, 0x7ff80001, 1, 0]);
+    geometry.setAttribute('raw64', new BufferAttribute(new Float64Array(payload.buffer), 1));
+    if (shared) {
+      const position = geometry.getAttribute('position');
+      const values = new Float32Array(new SharedArrayBuffer(position.array.byteLength));
+      values.set(position.array);
+      geometry.setAttribute('position', new BufferAttribute(values, 3));
+    }
+    const chunks = partitionSlabGeometry(geometry, 36, new Matrix4(), 1000);
+    try {
+      expect(chunks).toHaveLength(1);
+      const actual = chunks[0]?.geometry.getAttribute('raw64').array;
+      if (actual === undefined) throw new Error('Missing raw slab payload');
+      expect(new Uint8Array(actual.buffer, actual.byteOffset, actual.byteLength))
+        .toEqual(new Uint8Array(payload.buffer));
+    } finally { geometry.dispose(); for (const chunk of chunks) chunk.geometry.dispose(); }
+  }
+});
+
+test.each([0, 1, 2, 3])('slab verification still refuses corruption in aligned word byte %s', byte => {
+  class CorruptFloat32Array extends Float32Array {
+    override set(input: ArrayLike<number>, offset = 0): void {
+      super.set(input, offset);
+      const bytes = new Uint8Array(this.buffer, this.byteOffset, this.byteLength);
+      bytes[byte] = (bytes[byte] ?? 0) ^ 1;
+    }
+  }
+  const geometry = triangle(5, 0, 5), position = geometry.getAttribute('position');
+  geometry.setAttribute('position', new BufferAttribute(new CorruptFloat32Array(position.array), 3));
+  try { expect(() => partitionSlabGeometry(geometry, 36, new Matrix4(), 1000)).toThrow('Slab channel copy differs'); }
+  finally { geometry.dispose(); }
+});
