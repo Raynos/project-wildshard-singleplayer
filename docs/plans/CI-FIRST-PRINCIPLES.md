@@ -1588,3 +1588,121 @@ local packet. This is **instrumentation only, no CI2 speedup claim**.
 The first ordinary containing releases must identify whether GitHub
 artifact intake or strict restoration dominates before proposing a cut;
 sp-ci-deploy retains the sole retained-log/artifact read ownership.
+
+## CI9: 82b9 ship admission and conditional cap model
+
+**Recorded from retained data only, 2026-10-31.** Source `82b90bae05` /
+run `41222236176` finishes its last required job at **17:24:01Z**.
+Ship `124605244569` is created at that same second, starts at
+**17:29:40**, then runs its first boot-status step **17:29:42–43**.
+The **339 s** wait is before execution. The custom status is not a
+separate dependency job that made shipping wait; it is the first step
+of the already merged `93bd4ce2ba` job. Its 342 s publication lag is an
+effect of admission, with only three seconds from job start to step end.
+
+The retained union reconstructs **117 distinct occupied job intervals**
+around the wait. There are **20 known active jobs for 285 s**, 19 for
+48 s and 18 for 6 s, including short handoffs. The next source's wave,
+`13123182d4` / `41223197130`, already created all 24 behaviour jobs at
+**17:21:38**. Sixteen of those jobs and one of its SIX legs are admitted
+during 82b9's wait. Another prepare/fixtures pair and macOS work occupy
+the remaining known slots. These are actual retained intervals, not an
+API measurement of the account quota or an exhaustive cross-repository
+inventory.
+
+The ungrouped report-only draw job is also created at **17:24:01** and
+starts **17:29:15**, a **314 s** wait despite having no production group.
+No overlapping release-lock holder appears in the retained records;
+the preceding known 0f19 ship ends at **17:11:42**, more than twelve
+minutes before 82b9 becomes ready. The evidence identifies shared runner
+admission contention. It supplies no repository work, cache extraction,
+extra needs edge or separate boot job accounting for the 339 seconds.
+It does not prove a universal quota or exclude unretained account work.
+
+### Cap candidate: no robust win
+
+The current behaviour matrix has **no explicit `max-parallel`**; a cap
+of 24 is the replay baseline. The requested model uses a **conditional
+20-slot shared pool**, actual retained whole-job service times (setup,
+restores, tests and cleanup), fixed executed job/source inventory,
+nonpreemptive work, retained dependency edges, SIX's unchanged cap5,
+and serialized prepares and production work. It changes no shard body,
+case, worker, deadline or source authority. Earlier diagnostic topology
+is retained where the job was created before the required wave finished.
+
+Five fully verified merged releases are replayed: **3422, 6a84, 60e,
+0f19 and 82b9**. Two queue assumptions, FIFO-ready and observed admission
+rank, each run with 0 s and 2 s handoff costs. A live-time delta below
+assumes the shipping/propagation duration itself is unchanged. These
+are conditional models, **not observed after-seconds**.
+
+| Behaviour cap | Sum of five modeled live deltas across sensitivities (s) |
+|---|---:|
+| 18 | 0 to +28 |
+| 16 | 0 to +44 |
+| 14 | **-22 to +17** |
+| 12 | **-62 to +59** |
+| 10 | +27 to +232 |
+| 8 | +534 to +747 |
+
+Positive means slower. The five-sample sums score per-release replay
+windows; they are not an additive saving on one physical calendar trace.
+For example, FIFO/0 s at cap14 buys 82b9 **56 s** but costs 0f19
+**73 s**, a net **17 s loss** across the five. At cap12 it buys 82b9
+**80 s**, while 0f19 loses **132 s**, 6a84 loses 14 s, 3422 loses 3 s
+and 60e gains 10 s: **59 s net loss**. Lower caps generally leave the
+individual shard service unchanged but extend the matrix tail; they do
+not create a globally reserved release slot while other job families run.
+
+The baseline does not reproduce GitHub scheduling exactly: 82b9 is
+predicted **25–77 s early**, and other samples range from 257 s early
+to 25 s late. Missing historical arrival/runner information and future
+coalescing effects are not fabricated. In particular, the small cap14
+and cap12 apparent wins depend on queue assumptions and are below those
+uncertainties. **No exact cap is proposed.** The model is closed as no
+robust end-to-end win; do not extend it or weaken the protected groups,
+coalescing, merged publisher or full 37-gate inventory to manufacture one.
+
+R1's requested parallel smoke wiring is implemented by `fa13b9fce6` and
+`93bd4ce2ba`: all SIX legs depend only on prepare and use its exact-SHA,
+exact-run artifacts, while shipping requires the complete required wave.
+SIX finishes **222 /56 /75 s before** the last required job on
+6a84 /60e /82b9. The custom status ends **5 /12 /342 s after** it.
+The last late post belongs to the admission diagnosis above, not a
+reintroduced serial smoke build. The original **44 controls /3 suites**
+pass in **3.04 s**; no retired workflow, publisher job or dispatch chain
+is revived. R1 implementation is accepted; CI9's overall bar stays open.
+
+Reproducible retained evidence is under
+`tmp/sp-x6-ci9-82b9-admission/` (`retained-intervals.json`,
+`occupancy.json`, `cap-model.json` and the private replay script).
+The five-case model is frozen here. No workflow change or dispatch.
+
+## CI9: authorized debf-containing 1dae acceptance read
+
+Exactly one completed prepare log was read for source
+**`1dae75e945a2c0980425ca047bdbd2e9d295763d`** /
+run **`41226021250`**, job **`124610228528`**. Root's retained deep proof
+already verifies its complete ordinary release. This read checks cache
+behavior; it is not another status watch or release qualification fetch.
+
+All **24 products reuse**, zero build, and retention qualifies the same
+**198 entries /2516 files /798,627,121 B**, with no history or unknown
+entry removed in that run. Main restore is **1,014,369,857 B /7 s** by
+workflow boundaries (**7.533615 s** hit → restored). The qualified save
+key ends **`018f19a1…4c8e6b0`**; restore used **`4e1a119c…0b04f57`**.
+The exact lookup **misses** and main save uploads **1,014,125,161 B /6 s**
+(**6.005440 s** tar start → saved). Full prepare is **353 s**.
+
+**Save skip remains unqualified in this after-read.** A containing commit
+and all-reused outputs do not imply an identical input identity. The
+versioned identity body changed in debf and may require its first
+population, but the source/identity of this restored entry is not retained
+here; no unsupported first-population explanation or new defect is claimed.
+There is no second log read, archive download or key weakening to force
+a hit. The original 0f19 exact-hit skip remains historical evidence of
+the existing action path, not a debf after-figure.
+
+Raw and bounded audit:
+`tmp/sp-x6-ci9-all4-after/prepare-124610228528.log` and
+`1dae-audit.json`. No cloud speedup is inferred from this changed payload.
