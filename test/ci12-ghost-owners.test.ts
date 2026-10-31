@@ -17,12 +17,10 @@ import { DirectedSpecies } from '../src/game/population/directedSpecies';
 import { DirectedLaw } from '../src/game/population/directedLaw';
 import { PatrolLaw } from '../src/game/boss/patrolLaw';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import { lendNalatiAdmission, admission } from './fixtures/nalati-return-modules';
+import { lendNalatiAdmission, admission } from './fixtures/nalati-admission-loan';
 import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import { withWeatherWitness } from './fixtures/weatherInlineWitness';
-import { installWorldFixture } from './fixtures/worldSetup';
 
-await installWorldFixture();
 const scopes: Scope[] = [];
 let unbind = (): void => undefined;
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); unbind(); });
