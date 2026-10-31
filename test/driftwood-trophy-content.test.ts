@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { WeightedTable } from '../src/engine/ai/weighted';
-import { readLootTables, type LootContext } from '../src/game/loot/tables';
+import { readLootTables, type LootContext } from '../src/game/loot/tableRows';
 import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 
 const trophy = readLootTables(LOOT.economy.tables).find(row => row.domain === 'trophies');

@@ -3,7 +3,8 @@ import { WeightedTable, type TableSpec } from '../src/engine/ai/weighted';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import { parseLootEconomy, parseLootTables } from '../src/format/lootEconomy';
-import { getLootTable, readLootTables, registerLootTable, rollLoot, type LootContext } from '../src/game/loot/tables';
+import { getLootTable, registerLootTable, rollLoot } from '../src/game/loot/tables';
+import { readLootTables, type LootContext } from '../src/game/loot/tableRows';
 import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 
 test('emitted coin and trophy selectors preserve old order, ownership and RNG continuation', () => {

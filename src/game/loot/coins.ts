@@ -8,6 +8,7 @@
  *   burstCount(n)             → how many coin meshes fly (a big purse is split over fewer coins)
  */
 import { rollLoot } from './tables';
+import { coinValue } from './coinAmounts';
 
 /** the ShardManifest part the coins read (kept structural so tests and node-side code need no full def) */
 export interface LootGate { loot?: { coins?: boolean } | undefined }
@@ -16,16 +17,5 @@ export const coinsOn = (def: LootGate): boolean => def.loot?.coins === true;
 
 export function coinsFor(def: LootGate, kind: string): number {
   if (!coinsOn(def)) return 0;
-  return rollLoot('coins', { kind }, () => 0).reduce((total, drop) => total + (drop.item === 'coin' ? drop.count : 0), 0);
-}
-
-/** the most coin meshes one kill throws: the captain's 25 fly as 12 heavier coins */
-export const MAX_BURST = 12;
-export const burstCount = (n: number): number => Math.max(0, Math.min(MAX_BURST, Math.floor(n)));
-
-/** coin i's share of a burst of `count` worth `total` (the remainder rides the first coins); the shares add up to `total` */
-export function coinShare(total: number, count: number, i: number): number {
-  if (count <= 0) return 0;
-  const base = Math.floor(total / count), extra = total - base * count;
-  return base + (i < extra ? 1 : 0);
+  return coinValue(rollLoot('coins', { kind }, () => 0));
 }

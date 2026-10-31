@@ -26,7 +26,8 @@ import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import type { ShardContext } from '../plugin/context';
 import { finishForestPageAudio } from '../audio/forestPage';
 import { declaredLootEconomy } from '../shard/declaredRows';
-import { readLootTables, registerLootTable, rollLoot } from '../loot/tables';
+import { registerLootTable, rollLoot } from '../loot/tables';
+import { readLootTables } from '../loot/tableRows';
 import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 
 export interface RangedPage {

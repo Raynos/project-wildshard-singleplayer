@@ -1,3 +1,4 @@
+import { prepareNativeCoinRecipe } from './native-coin-recipe';
 import * as v from 'valibot';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 
@@ -8,7 +9,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async preparation 
   const { installNativeEconomy } = await import('./native-hosts/loot/nativeEconomy');
   const { mixedPopulation } = await import('./native-hosts/population/mixedRoster');
   const { installCoinModel } = await import('../../src/game/loot/coinModel');
-  const { coinGeometry } = await import('../../src/game/generators/pickups');
+  const coinGeometry = await prepareNativeCoinRecipe();
   const payload = v.parse(v.object({ constants: v.object({ nativeQuest: v.object({ step: v.string(), acquisition: v.object({ population: v.string() }) }) }) }),
     await preparation.product.json('sim/headless-assembly.json'));
   const trader = v.parse(v.object({ view: v.object({ closeDistance: v.pipe(v.number(), v.finite(), v.minValue(Number.MIN_VALUE)) }) }),

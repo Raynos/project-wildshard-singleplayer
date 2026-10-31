@@ -1,9 +1,13 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the native loader's real renderer refusal.
+import { execFileSync } from 'node:child_process';
+import { prepareNativeCoinRecipe } from './fixtures/native-coin-recipe';
 import { expect, test } from 'vitest';
 import { Scene, Vector3 } from 'three';
 import { app } from '../src/engine/app/runtime';
 import { RngService } from '../src/engine/core/rng';
 import { installCoinModel } from '../src/game/loot/coinModel';
 import { coinGeometry } from '../src/game/generators/pickups';
+import { CoinMotion } from '../src/game/loot/CoinMotion';
 import { CoinBurst } from '../src/game/loot/CoinBurst';
 import { Purse } from '../src/game/loot/Purse';
 import { Owned } from '../src/game/loot/Owned';
@@ -23,11 +27,23 @@ function play(burst: CoinBurst) {
   return { events, frames };
 }
 
-test('a native cosmetic stream matches every page burst word, draw and callback through pool overflow', () => {
+test('a native cosmetic stream matches every page burst word, draw and callback through pool overflow', async () => {
   installCoinModel(coinGeometry);
   const saved = app.rng.snapshot(), local = new RngService(710);
   const page = new CoinBurst(new Scene()); let calls = 0;
-  const native = new CoinBurst(new Scene(), () => { calls++; return local.stream('cosmetic').next(); });
+  const geometry = await prepareNativeCoinRecipe();
+  const original = coinGeometry(0xc01), decoded = geometry(0xc01);
+  try {
+    expect(Object.keys(decoded.attributes)).toEqual(Object.keys(original.attributes));
+    for (const key of Object.keys(original.attributes)) {
+      const expected = original.getAttribute(key), actual = decoded.getAttribute(key);
+      expect(actual.itemSize).toBe(expected.itemSize); expect(actual.normalized).toBe(expected.normalized);
+      expect(actual.array).toEqual(expected.array);
+    }
+    expect(decoded.index?.array).toEqual(original.index?.array);
+  } finally { original.dispose(); decoded.dispose(); }
+  installCoinModel(geometry);
+  const native = new CoinMotion(new Scene(), () => { calls++; return local.stream('cosmetic').next(); });
   try {
     expect(calls).toBe(0); expect(local.snapshot().streams).toEqual([]);
     app.rng.seed(710);
@@ -127,4 +143,9 @@ test('purse restore retains unflushed earned coins without a write or listener c
   expect(events).toEqual(['save:3']); expect(durable).toBe(3);
   expect(() => restored.restore({ coins: -1, unsaved: false })).toThrow();
   expect(restored.coins).toBe(3); expect(restored.unsaved).toBe(false);
+});
+
+test('the actual native economy and coin preparation import under the unchanged renderer guard', () => {
+  const code = "await import('./test/fixtures/driftwood-trade-native.ts'); await import('./test/fixtures/native-hosts/loot/nativeEconomy.ts'); const {prepareNativeCoinRecipe} = await import('./test/fixtures/native-coin-recipe.ts'); const build = await prepareNativeCoinRecipe(); const geometry = build(0xc01); if (geometry.getAttribute('position').count === 0) throw Error('Empty original coin bake'); geometry.dispose();";
+  expect(() => execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e', code], { timeout: 10_000, stdio: 'pipe' })).not.toThrow();
 });

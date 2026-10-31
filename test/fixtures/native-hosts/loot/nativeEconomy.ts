@@ -2,14 +2,15 @@ import * as v from 'valibot';
 import { Scene } from 'three';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { ShardProduct } from '../../../../src/game/shardfile/shardProduct';
-import { CoinBurst } from '../../../../src/game/loot/CoinBurst';
+import { CoinMotion } from '../../../../src/game/loot/CoinMotion';
 import { readCoinBurstState } from '../../../../src/game/loot/coinBurstState';
 import { Owned, isOwnedId, isCosmetic } from '../../../../src/game/loot/Owned';
 import { Purse } from '../../../../src/game/loot/Purse';
 import { Bounty } from '../../../../src/game/loot/Bounty';
 import { Exchange } from '../../../../src/game/loot/exchange';
-import { coinsFor } from '../../../../src/game/loot/coins';
-import { readLootTables, registerLootTable } from '../../../../src/game/loot/tables';
+import { coinValue } from '../../../../src/game/loot/coinAmounts';
+import { WeightedTable } from '@wildshard/engine/ai/weighted';
+import { readLootTables } from '../../../../src/game/loot/tableRows';
 import { declaredLootEconomy } from '../../../../src/game/shard/declaredRows';
 import { createHeadlessPromptPicker, type HeadlessPrompt } from '../../../../src/game/quest/interactionRows';
 import { nativeQuestInputs } from '../../../../src/game/quest/nativeInputs';
@@ -32,10 +33,11 @@ export function nativeEconomy(host: SimHost): ReturnType<typeof installNativeEco
 /** The page's actual purse, bounty, coin pool, ownership and exchange; only the
  * storage/RNG and command delivery belong to this fixed native fixture. */
 export function installNativeEconomy(host: SimHost, product: ShardProduct, roster: () => readonly MixedPopulationBody[],
-  questStep: string, closeDistance: number): { readonly purse: () => Purse; readonly owned: () => Owned; readonly exchange: Exchange; readonly coins: CoinBurst } {
+  questStep: string, closeDistance: number): { readonly purse: () => Purse; readonly owned: () => Owned; readonly exchange: Exchange; readonly coins: CoinMotion } {
   if (economies.has(host)) throw new Error('Native economy already installed');
   const rows = declaredLootEconomy(product.section('economy/loot').rows.loot);
-  for (const table of readLootTables(rows.tables)) registerLootTable(table);
+  const coinRow = readLootTables(rows.tables).reverse().find(row => row.id === 'coins' || row.domain === 'coins');
+  const coinTable = coinRow === undefined ? undefined : new WeightedTable(coinRow.table);
   let durable = 0, ownedSaved = { owned: [] as string[], worn: [] as string[] }, paid: Record<string, number> = {};
   let caps = Bounty.census(roster().map(body => ({ kind: body.kind, herd: body.herd, alive: body.actor?.alive ?? false })));
   const shard = product.shardfile.identity.slug;
@@ -43,7 +45,7 @@ export function installNativeEconomy(host: SimHost, product: ShardProduct, roste
   const ownedSlot = { read: () => structuredClone(ownedSaved), write: (value: typeof ownedSaved) => { ownedSaved = structuredClone(value); return true; } };
   const bountySlot = { read: () => ({ ...paid }), write: (value: Record<string, number>) => { paid = { ...value }; return true; } };
   let purse = new Purse(shard, purseSlot), owned = new Owned(shard, ownedSlot), bounty = new Bounty(shard, caps, bountySlot);
-  const burst = new CoinBurst(new Scene(), () => host.rng.stream('cosmetic').next());
+  const burst = new CoinMotion(new Scene(), () => host.rng.stream('cosmetic').next());
   const callbacks = { onCoin: (n: number) => { purse.add(n, false); }, onDone: () => { purse.flush(); } };
   const exchange = new Exchange(rows.exchange, new Map<string, unknown>([
     ['owned', { has: (id: string) => owned.has(id), grant: (id: string) => owned.grant(id) }],
@@ -58,7 +60,7 @@ export function installNativeEconomy(host: SimHost, product: ShardProduct, roste
   host.events.on('actor.died', ({ actor }) => {
     const body = roster().find(candidate => candidate.actor?.combatActor() === actor);
     if (body === undefined || body.actor === null) return;
-    const amount = coinsFor({ loot: { coins: true } }, body.kind);
+    const amount = coinValue(coinTable?.roll({ kind: body.kind }, () => 0) ?? []);
     if (amount > 0 && bounty.claim(body)) burst.spawn(body.actor.position, amount, callbacks.onCoin, callbacks.onDone);
   }, host.scope);
   host.onStep(NATIVE_TRADE, dt => {

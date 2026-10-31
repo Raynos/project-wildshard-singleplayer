@@ -1,7 +1,8 @@
+import { readPickupCatalogue } from './pickupRows';
 import { prepareBinarySources,binarySourceBytes,type BinaryFileReader } from './binarySource';
 import { decodeLaneBytes } from '@wildshard/engine/core/deflate';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { SpecimenCatalogueSchema, SpecimenAssetSchema, PackedSpecimenSchema, SpecimenMaterialSchema, PickupCatalogueSchema, assertSpecimenJson as jsonData, type SpecimenLocationRows, type SpecimenAtlasRows } from '@wildshard/format/specimenCatalogue';
+import { SpecimenCatalogueSchema, SpecimenAssetSchema, PackedSpecimenSchema, SpecimenMaterialSchema, assertSpecimenJson as jsonData, type SpecimenLocationRows, type SpecimenAtlasRows } from '@wildshard/format/specimenCatalogue';
 import { parseKtx2 } from '@wildshard/format/ktx2Cost';
 import { parseKtx2Bytes } from '@wildshard/engine/core/ktx2';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
@@ -24,15 +25,6 @@ import { interactParts } from '@wildshard/engine/world/interact/kit';
 import { registerPickupLook, type PickupPart } from '@wildshard/engine/world/interact/types';
 import { installCoinModel } from '../loot/coinModel';
 
-function readPickupCatalogue(input:unknown):v.InferOutput<typeof PickupCatalogueSchema> {
-  jsonData(input);
-  const rows = v.parse(PickupCatalogueSchema, input);
-  const keys = rows.geometries.map(row => `${row.key}:${row.seed}`);
-  if (new Set(keys).size !== keys.length || new Set(rows.looks.map(row => row.id)).size !== rows.looks.length
-    || new Set(rows.looks.map(row => row.model)).size !== rows.looks.length) throw new Error('Duplicate pickup declaration');
-  if (rows.looks.some(row => row.parts.some(part => !keys.includes(`${part.key}:${rows.seed}`)))) throw new Error('Missing pickup specimen geometry');
-  return rows;
-}
 /** Prepare the shared pickup catalogue's raw files before registering any look or coin factory. */
 export function preparePickupCatalogue(product:BinaryFileReader,input:unknown,scope?:Scope):Promise<ReadonlyMap<string,Uint8Array>> {
   const rows=readPickupCatalogue(input);
