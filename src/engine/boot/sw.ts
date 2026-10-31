@@ -6,18 +6,17 @@ import { pageScope } from '../app/resources';
  * Loaded as its own `<script type="module">` in index.html, ahead of main.ts, so the worker is registered
  * at the very first line of boot. Two jobs, both before the first big fetch:
  *
- *  1. A controlled document watches its existing registration and is ready immediately. A first visit's
- *     install precaches the whole build (~330 files, ~20 MB), so an uncontrolled document is ready at once and
- *     registers only when its world first has control (`ws:control-ready`): the title tap and the boot's own
- *     downloads never wait on or race that install (MF21: waiting for first activation took the phone profile's
- *     cold tap from 0.1 s to 30.9 s). No document is ever claimed; the next visit is the first controlled one.
+ *  1. Every document is ready immediately. Boot watches an existing registration without joining a register job;
+ *     the first registration starts in the background so its full precache can finish during cold entry, before
+ *     a quick return. Neither registration nor activation gates navigation. Deferring the first install until
+ *     control left the next document uncontrolled (039d: warm Home 13.84 -> 19.62 s). No document is claimed.
  *
  *  2. Announce updates without replacing gameplay. Adoption is explicit on the
  *     title or a fresh document; a running world never changes its controller.
  *
  * CONTRACT — `window.__ws_sw` (also the module's exports):
  *
- *   ready: Promise<void>        resolves at once: a controlled document, an uncontrolled one (it registers at control), or
+ *   ready: Promise<void>        resolves at once: a controlled document, an uncontrolled one (registration is background work), or
  *                               service workers off (`?sw=0`, dev without `?sw=1`, no SW support).
  *   waiting: ServiceWorker|null the newest discovered build is installed and waiting; null otherwise.
  *   adopt(to?): Promise<boolean> explicit recovery: activate, then reload/replace once; true if sent.
@@ -274,11 +273,10 @@ function boot(): Promise<void> {
     return Promise.resolve();
   }
   const s = sw;
-  // A controlling worker already owns this document's fetches. Registration
-  // still discovers updates, but its network/update check cannot gate boot.
-  if (s.controller) void register(s);
-  // MF21: the first install's precache runs behind play, not before the title tap or under the boot's downloads.
-  else pageScope.listen(document, 'ws:control-ready', () => { void register(s); }, { once: true });
+  // Start first-install work early enough for the next visit, without returning
+  // to the old activation-blocked readiness. Existing registrations still take
+  // PR2's non-job lookup/watch path; no document is claimed.
+  void register(s);
   return Promise.resolve();
 }
 
