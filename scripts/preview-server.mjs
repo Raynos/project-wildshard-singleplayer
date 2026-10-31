@@ -11,8 +11,10 @@ import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve, sep } from 'node:path';
 import { pipeline } from 'node:stream/promises';
+import { fileURLToPath } from 'node:url';
 import { brotliCompressSync, constants as zlib, createBrotliCompress, createGzip } from 'node:zlib';
 import { createEncodedFileCache } from './preview-encoded-cache.mjs';
+import { createPreviewTelemetrySink } from './preview-telemetry.mjs';
 
 const args = process.argv.slice(2);
 /** a `--name value` or `--name=value` argument's value */
@@ -24,6 +26,11 @@ const option = (name, fallback) => {
 const root = resolve(option('root', process.cwd())), outDir = resolve(root, option('outDir', 'dist'));
 const port = Number(option('port', '4173')), host = option('host', '127.0.0.1');
 if (!existsSync(outDir)) throw new Error(`preview-server: no build in ${outDir}`);
+// Local anonymous telemetry is recorded outside every public build, never sent
+// to production or silently acknowledged by a browser fixture.
+const telemetryDirectory = resolve(option('telemetry-dir', fileURLToPath(new URL(`../tmp/preview-telemetry/${process.pid}-${Date.now()}/`, import.meta.url))));
+if (telemetryDirectory === outDir || telemetryDirectory.startsWith(outDir + sep)) throw new Error('preview-server: telemetry must be outside the served build');
+const receiveTelemetry = await createPreviewTelemetrySink(telemetryDirectory);
 
 /** `vercel.json` `source` → RegExp. Only the forms the file uses: literal paths and `(.*)` groups (Vercel's
  *  path-to-regexp escapes everything else, `.` included). The rules replay in order; the last match wins per header. */
@@ -104,6 +111,7 @@ const server = createServer((req, res) => {
   else if (origin !== undefined && LOCAL_ORIGIN.test(origin)) { res.setHeader('Access-Control-Allow-Origin', origin); res.setHeader('Vary', 'Origin'); }
   if (req.method === 'OPTIONS') { res.statusCode = 204; res.end(); return; }
   for (const rule of rules) if (rule.re.test(pathname)) for (const header of rule.headers) res.setHeader(header.key, header.value);
+  if (pathname === '/api/telemetry') { void receiveTelemetry(req, res); return; }
   if (req.method !== 'GET' && req.method !== 'HEAD') { res.statusCode = 405; res.end(); return; }
 
   const acceptEncoding = req.headers['accept-encoding'] ?? '';
@@ -157,6 +165,7 @@ const server = createServer((req, res) => {
 server.on('error', error => { console.error(`preview-server: ${error.message}`); process.exit(1); });
 server.listen(port, host, () => {
   const address = server.address(), bound = typeof address === 'object' && address !== null ? address.port : port;
+  console.log(`preview-server: local telemetry records ${telemetryDirectory}`);
   console.log(`  ➜  Local:   http://${host}:${bound}/`);
 });
 process.on('SIGTERM', () => { server.close(); process.exit(0); });
