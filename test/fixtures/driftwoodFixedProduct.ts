@@ -17,6 +17,7 @@ import { createProjectGeneration } from '../../src/sdk/projectGeneration';
 import { driftwoodFixedModelOutput } from '../../src/shards/driftwood-isle/generators/fixedModels';
 import { nameMeshoptBlob } from '../../src/sdk/blobs';
 import { driftwoodSceneBanks } from './driftwoodSceneBanks';
+import { fixtureProductFile, fixtureJsonCheck } from './productFile';
 
 // The fixed producer owns these logical files since GR7; the static asset table
 // intentionally omits them. Admit its real native outputs into this fixture too.
@@ -52,9 +53,9 @@ export async function driftwoodFixedProduct(legacy = false): Promise<ReturnType<
   const figures = new TextEncoder().encode(encodeCanonicalJson(FIGURE_CATALOGUE));
   blobs.push({ name: 'people/catalogue.json', source: 'generators/figureCatalogue.ts', bytes: figures, hash: createHash('sha256').update(figures).digest('hex') });
   const assets = new Map(blobs.map(row => [row.hash, row.bytes]));
-  return createShardProduct({slug: 'driftwood-isle', revision: 1,
+  return createShardProduct({slug: 'driftwood-isle', revision: 1, jsonCheck: fixtureJsonCheck,
     shardfile: { ...emptyShardfile({slug: 'driftwood-isle', name: 'Test', author: 'Test', revision: 1, seed: 1}), clientChannels: NPC_FOCUS_PROGRAMS },
     sections: new Map<string, unknown>((legacy ? LEGACY_SECTIONS : DRIFTWOOD_CLIENT_SECTIONS).map(row => [row.name, row.value] as const)),
-    files: new Map(blobs.map(row => [row.name, {hash: row.hash, url: `/${row.source}`} ])),
+    files: new Map(blobs.map(row => [row.name, fixtureProductFile(row.name, {hash: row.hash, url: `/${row.source}`}) ])),
     read: hash => { const bytes = assets.get(hash); return bytes === undefined ? Promise.reject(new Error('Missing fixed bytes')) : Promise.resolve(bytes); }, check: true});
 }

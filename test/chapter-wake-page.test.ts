@@ -11,6 +11,8 @@ import { speciesWithLook } from '@wildshard/engine/entities/species/look';
 import { BOAR } from '../src/game/systems/species/boar';
 import { BOAR_LOOK } from '../src/game/systems/species/view/boar';
 import { nameBlob } from '../src/sdk/blobs';
+import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { manager } from '@wildshard/engine/test/manager';
 import { publishBoundQuest } from '../src/game/quest/boundState';
@@ -32,12 +34,12 @@ test('salt-marsh chapter binds cue effects and the baseline boss bar through dat
   if (runtime === null || spawns === undefined || original === undefined) throw new Error('Missing declared fixture spawn');
   const blobs = [nameBlob('behaviour/director.wasm','wasm',module.bytes,{script:{abi:0}}),nameBlob('directors/main.json', 'json', new TextEncoder().encode(JSON.stringify({
     declaration, module: { module: module.module, bytes: '',file:'behaviour/director.wasm' }, stages, bindings, seed: 357,
-  }))), nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(JSON.stringify(CHAPTER_DIRECTOR)))];
+  }))), nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(JSON.stringify(CHAPTER_DIRECTOR)), { jsonSchema: registeredJsonSchema('quests/chapter-director.json') })];
   const bytes = new Map(blobs.map(blob => [blob.file.hash, blob.bytes]));
-  const product = createShardProduct({ slug: 'salt-marsh', revision: 1,
+  const product = createShardProduct({ slug: 'salt-marsh', revision: 1, jsonCheck: fixtureJsonCheck,
     shardfile: { ...source, identity: { ...source.identity, slug: 'salt-marsh' },
       runtime: { ...runtime, spawns: { ...spawns, bosses: [{ ...original, id: 'marsh.sentry', kind: 'boar', look: 'boar', at: [4, -3] }] } } },
-    sections: new Map(), files: new Map(blobs.map(blob => [blob.file.name ?? '', { hash: blob.file.hash, url: `/${blob.file.path}` }])),
+    sections: new Map(), files: new Map(blobs.map(blob => [blob.file.name ?? '', fixtureProductFile(blob.file.name ?? '', { hash: blob.file.hash, url: `/${blob.file.path}` })])),
     read: hash => { const value = bytes.get(hash); return value === undefined ? Promise.reject(new Error('Missing fixture bytes')) : Promise.resolve(value); }, check: false });
   const scope = new Scope('marsh-chapter'), app = new App(), flags = new Flags('marsh-chapter', false);
   const definition = product.shardfile.quests.quests[0]; if (definition === undefined) throw new Error('Missing fixture quest');

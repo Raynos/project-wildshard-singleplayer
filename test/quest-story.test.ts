@@ -13,6 +13,7 @@ import { prepareQuestEntry } from '../src/game/quest/chapter';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { parseQuestStory } from '../src/format/questStory';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import type { Progress } from '../src/game/Progress';
 import { progressSave } from '../src/game/saves';
 import { bindStoryAchievements } from '../src/game/quest/story';
@@ -51,8 +52,8 @@ function product(source: typeof drift, story: typeof driftStory, counters: typeo
   const policy = { ...counters, feats: counters.feats.map(({ id, count, ...row }) => ({ id, count,
     ...('kind' in row ? { kind: row.kind } : {}), ...('event' in row ? { event: row.event } : {}), ...('variant' in row ? { variant: row.variant } : {}) })) };
   const values = new Map<string, unknown>([['quests/story.json', story], ['quests/achievements.json', policy], ['quests/services.json', { version: 1, actions: [] }]]);
-  return createShardProduct({ slug: source.identity.slug, revision: source.identity.revision, shardfile: source, sections: new Map(),
-    files: new Map([...values.keys()].map(name => [name, { hash: name, url: name }])),
+  return createShardProduct({ slug: source.identity.slug, revision: source.identity.revision, shardfile: source, sections: new Map(), jsonCheck: fixtureJsonCheck,
+    files: new Map([...values.keys()].map(name => [name, fixtureProductFile(name, { hash: name, url: name })])),
     read: name => Promise.resolve(new TextEncoder().encode(JSON.stringify(values.get(name)))) });
 }
 

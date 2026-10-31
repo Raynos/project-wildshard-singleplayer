@@ -10,6 +10,7 @@ import { prepareQuestEntry } from '../src/game/quest/chapter';
 import { shardContext } from '../src/game/plugin/context';
 import { parseShardSlug } from '../src/game/shard/slug';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { installWorldScenes } from '../src/game/shardfile/worldScenes';
 import { parseWorldScenes } from '../src/format/worldScenes';
 import { staticGlb } from '../src/sdk/bake/glb';
@@ -38,8 +39,8 @@ test('quest cable intake borrows the installed mode, trolley and scene lifetime'
     const files = new Map([['quests/story.json', encode(story)], ['quests/services.json', encode({ version: 1, actions: [] })],
       ['scene.json', encode(recipe)], ['catalogue.json', encode({ product: drift.identity.slug, models: [{ key: 'line', id: `${drift.identity.slug}/line`, name: 'Cable line', category: 'props', pipeline: 'code', file: 'catalogue.json', defaults: {}, choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'carriage', library: 'cable', model: 'carriage', material: 'body' }] }] }] })], ['carriage.glb', staticGlb([{ geometry: shape, material }])]]);
     shape.dispose(); material.dispose();
-    const product = createShardProduct({ slug: drift.identity.slug, revision: 1, shardfile: drift,
-      sections: new Map([['world/scenes', section]]), files: new Map([...files.keys()].map(name => [name, { hash: name, url: name }])),
+    const product = createShardProduct({ slug: drift.identity.slug, revision: 1, shardfile: drift, jsonCheck: fixtureJsonCheck,
+      sections: new Map([['world/scenes', section]]), files: new Map([...files.keys()].map(name => [name, fixtureProductFile(name, { hash: name, url: name })])),
       read: name => { const value = files.get(name); return value === undefined ? Promise.reject(new Error('Missing fixture file')) : Promise.resolve(value); } });
     const level = createLevelInstallation(host, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
     const ctx = shardContext(level.context, { ...TEMPLATE, slug: parseShardSlug(drift.identity.slug) },

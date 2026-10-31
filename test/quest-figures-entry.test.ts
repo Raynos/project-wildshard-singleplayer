@@ -11,6 +11,7 @@ import { fixedDraws } from '../src/game/models/fixedDraws';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { publishEntryOwner, lendEntryOwner, entryOwner } from '../src/game/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { installEntryQuestComposition, installEntryQuestReference } from '../src/game/shardfile/clientQuestComposition';
 import * as composition from '../src/game/quest/pageComposition';
 import * as enteredFigures from '../src/game/quest/figures';
@@ -30,8 +31,8 @@ function deferred<T>() {
 function fixture(readOverride?: (name: string) => Promise<Uint8Array>) {
   const resident = new Scope('orchard-resident'), scope = resident.child('orchard-entered'), reads: string[] = [];
   const shardfile = emptyShardfile({ slug: 'orchard', name: 'Orchard', author: 'Fixture', revision: 1, seed: 1 });
-  const files = new Map(['quest.json', 'figures.json', 'people/catalogue.json', 'models/world-scenes.json'].map(name => [name, { hash: name, url: name }]));
-  const product = createShardProduct({ slug: 'orchard', revision: 1, shardfile, sections: new Map([['world/scenes', {}]]), files,
+  const files = new Map(['quest.json', 'figures.json', 'people/catalogue.json', 'models/world-scenes.json'].map(name => [name, fixtureProductFile(name, { hash: name, url: name })]));
+  const product = createShardProduct({ slug: 'orchard', revision: 1, shardfile, sections: new Map([['world/scenes', {}]]), files, jsonCheck: fixtureJsonCheck,
     read: name => { reads.push(name); if (readOverride !== undefined) return readOverride(name);
       return Promise.resolve(bytes(name === 'quest.json' ? { id: row.id } : name === 'models/world-scenes.json' ? { product: 'orchard', models: [] } : { figures: [] })); } });
   const draws = fixedDraws(product, [{ slot: 'original', file: 'original.glb', channels: [] }]);
