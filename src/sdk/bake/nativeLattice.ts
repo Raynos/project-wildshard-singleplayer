@@ -35,7 +35,7 @@ function channels(source: NativeLatticeSource): [string, NativeLatticeAttribute]
 }
 function vertex(source: NativeLatticeSource, entries: readonly [string, NativeLatticeAttribute][], index: number): Vertex {
   const values: number[] = Array.from(source.positions.subarray(index * 3, index * 3 + 3));
-  for (const [, channel] of entries) values.push(...channel.values.subarray(index * channel.itemSize, (index + 1) * channel.itemSize));
+  for (const [, channel] of entries) for (const value of channel.values.subarray(index * channel.itemSize, (index + 1) * channel.itemSize)) values.push(value);
   return { values };
 }
 function component(point: Vertex, axis: number): number {
