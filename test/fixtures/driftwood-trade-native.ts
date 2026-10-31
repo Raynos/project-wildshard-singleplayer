@@ -13,7 +13,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async preparation 
   const payload = v.parse(v.object({ constants: v.object({ nativeQuest: v.object({ step: v.string(), acquisition: v.object({ population: v.string() }) }) }) }),
     await preparation.product.json('sim/headless-assembly.json'));
   const trader = v.parse(v.object({ view: v.object({ closeDistance: v.pipe(v.number(), v.finite(), v.minValue(Number.MIN_VALUE)) }) }),
-    await preparation.product.json('quests/trader.json'));
+    await preparation.product.json('quests/stall.json'));
   return { ...plan, install: (host, context) => {
     plan.install(host, context);
     installCoinModel(coinGeometry);

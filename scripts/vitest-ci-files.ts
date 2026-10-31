@@ -5,6 +5,7 @@ export const CI_NATIVE_GROUPS = {
     'test/tooling/parity/browser-escape.test.mjs',
     'test/nalati-titan-verbs.test.ts',
     'test/driftwood-optional-verbs.test.ts',
+    'test/driftwood-trade-verbs.test.ts',
     'test/nalati-patrol-verbs.test.ts',
     'test/physics-nalati-headless.test.ts',
     'test/nalati-chapter-binding.test.ts',

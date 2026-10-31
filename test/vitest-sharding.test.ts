@@ -99,8 +99,10 @@ test('parallel and dedicated native CI discover every existing file exactly once
  expect(nativeJob).toContain('--config scripts/vitest-native-escape.config.ts');
  expect(nativeJob).not.toContain('--shard=');
  expect(nativeJob).toContain("WS_VITEST_MAX_WORKERS: '1'");
- for(const file of ['test/pine-quest-verbs.test.ts','test/pine-door-continuation.test.ts','test/native-runtime-observation.test.ts','test/driftwood-story-verbs.test.ts','test/sky-progression-verbs.test.ts','test/nalati-discovery-verbs.test.ts','test/nalati-chapter-one.test.ts','test/nalati-titan-verbs.test.ts','test/driftwood-optional-verbs.test.ts','test/nalati-patrol-verbs.test.ts','test/physics-nalati-headless.test.ts','test/nalati-chapter-binding.test.ts','test/nalati-qara-verbs.test.ts'])
+ for(const file of ['test/pine-quest-verbs.test.ts','test/pine-door-continuation.test.ts','test/native-runtime-observation.test.ts','test/driftwood-story-verbs.test.ts','test/sky-progression-verbs.test.ts','test/nalati-discovery-verbs.test.ts','test/nalati-chapter-one.test.ts','test/nalati-titan-verbs.test.ts','test/driftwood-optional-verbs.test.ts','test/driftwood-trade-verbs.test.ts','test/nalati-patrol-verbs.test.ts','test/physics-nalati-headless.test.ts','test/nalati-chapter-binding.test.ts','test/nalati-qara-verbs.test.ts'])
   expect(serial).toContain(file);
+ expect(CI_NATIVE_GROUPS['escape-titan']).toContain('test/driftwood-trade-verbs.test.ts');
+ expect(CI_NATIVE_GROUPS['stories-qara']).not.toContain('test/driftwood-trade-verbs.test.ts');
  expect(nativeJob).toContain('needs: prepare');
  expect(nativeJob).toContain('name: test-products');
  expect(nativeJob).toContain('python3 scripts/ci-products.py unpack');
