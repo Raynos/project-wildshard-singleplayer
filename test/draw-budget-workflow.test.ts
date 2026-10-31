@@ -83,7 +83,8 @@ test('the real report step preserves floor exit codes and closes its built-only 
     expect(args).toContain('--draw-budget-report-only');expect(args).not.toContain('--draw-budget');
     expect(args).toContain('--chromium-cpu=4');expect(args).toContain('--chromium-phone');
     expect(args).toContain('--chromium-angle=swiftshader');
-    expect(args).toContain('--frames=120');expect(args).toContain('--settle=2');
+    expect(args).toContain('--software-draw-census');
+    expect(args).toContain('--frames=4');expect(args).toContain('--settle=2');
     expect(args).toContain('--serve-base=http://127.0.0.1:4173/');
     expect(args).toContain(`--rev=${'a'.repeat(40)}`);
     const shards=args.find(arg=>arg.startsWith('--shards='))?.slice(9).split(',');
