@@ -14,8 +14,9 @@ type ProductSimulation=Pick<HeadlessSimulation,'verbTape'|'verbTapePart'|'stream
 
 /** Start the independent replay owner while its caller records native input.
  * Readiness still awaits the same worker admission and initial checkpoint. */
-export async function beginProductSession(slug:string,variant?:ProductSessionVariant,snapshot?:string):Promise<{ready:()=>Promise<ProductSimulation>;assets:ReadonlyMap<string,Uint8Array>;product:Awaited<ReturnType<typeof loadHeadlessProduct>>}> {
+export async function beginProductSession(slug:string,variant?:ProductSessionVariant,snapshot?:string,transferSnapshots=false):Promise<{ready:()=>Promise<ProductSimulation>;assets:ReadonlyMap<string,Uint8Array>;product:Awaited<ReturnType<typeof loadHeadlessProduct>>}> {
   if(variant!==undefined&&variantHosts[variant]!==slug)throw new Error('Native proof variant does not match product');
+  if(transferSnapshots&&variant!=='nalati-chapter'&&variant!=='nalati-king')throw new Error('Transient snapshots require the chapter proof owner');
   const directory=builtProduct(slug),product=await loadHeadlessProduct(directory),source=product.shardfile;
   const descriptor=outputDescriptor(source);if(descriptor===undefined)throw new Error('Missing admitted headless inventory');
   const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,
@@ -24,7 +25,7 @@ export async function beginProductSession(slug:string,variant?:ProductSessionVar
   const nativeKinds={'driftwood-isle':'driftwood','pine-hollow':'pine','nine-dragon-stack':'nine','nalati-grasslands':'nalati'} as const;
   const nativeKind=variant??(!sections.has('sim/runtime-plan')&&(slug==='driftwood-isle'||slug==='pine-hollow'||slug==='nine-dragon-stack'||slug==='nalati-grasslands')?nativeKinds[slug]:undefined);
   const pending=nativeKind===undefined?HeadlessSimulation.create(source,assets,snapshot,{deadline:'advisory',sections})
-    :createNativeProofWorker(source,assets,nativeKind,snapshot,sections,directory);
+    :createNativeProofWorker(source,assets,nativeKind,snapshot,sections,directory,transferSnapshots);
   // Observe failure immediately even while the caller is preparing its owner.
   const outcome=(async()=>{try{return {ok:true as const,sim:await pending};}catch(error){return {ok:false as const,error};}})();
   return {product,assets,ready:async()=>{const result=await outcome;if(!result.ok)throw result.error;return result.sim;}};

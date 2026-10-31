@@ -149,13 +149,13 @@ Missing entries generate; corrupt declared files refuse.
 motor transfers. See [GRID-SIMULATION.md](GRID-SIMULATION.md) for readiness, snapshot and client integration ports.
 `grid/session.GridSession` offers `startInitialHomeMetadata` and `waitInitialHomeMetadata`: prefetch, then entry fence.
 
-`sim/snapshot.decodeSimSnapshotBytes` checks the same continuation as
-`decodeSimSnapshot` and returns detached `Uint8Array` bytes. Both restore entries
-accept `SimSnapshotBytes`, without boxing/range-scanning native views; replacement
-physics still detaches. Regional durability uses it; legacy/packed bytes,
-metadata, basis, checksum, registration and final restore checks stay strict.
-`checkSimSnapshotWire` retains writer/size guards; `HeadlessSimulation.observe()`
-is terminal data-only sampling: 240 real ticks and full initial/final saves.
+`sim/snapshot.decodeSimSnapshotBytes` keeps all `decodeSimSnapshot` checks
+and returns detached bytes. Both restores accept `SimSnapshotBytes` without
+boxing native views; replacement physics detaches. Regional durability uses it.
+`checkSimSnapshotWire` keeps writer/size guards; terminal
+`HeadlessSimulation.observe()` keeps 240 ticks and full initial/final saves.
+`serializeSimSnapshotForTransfer(saved, bound)` selects raw base64 if it fits,
+else the stored codec. Caller admission and stored/staged bytes stay unchanged.
 
 `@wildshard/game/shardfile/skinLayers` declares independent numeric pose clocks in skin bindings.
 Each clock has a period, monotonic sample times and joint-local translation, Euler rotation, scale

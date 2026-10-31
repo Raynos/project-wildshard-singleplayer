@@ -28,7 +28,9 @@ import type {HeadlessTapeObservation,HeadlessTapeReport} from '../../../src/sdk/
 import {packChapterReport,unpackChapterReport} from './chapterReportCodec';
 import {PACKED_CHAPTER_TAMING,unpackChapterTaming} from './chapterObservation';
 
-const [stage,outputPath,inputPath,inputHash]=process.argv.slice(2);assert.ok(stage==='plains'||stage==='approach'||stage==='bond'||stage==='goat'||stage==='return'||stage==='home'||stage==='carving-road'||stage==='carving-arrival'||stage==='carvings'||stage==='king-entry'||stage==='king-phase-one'||stage==='king-phase-two'||stage==='king-victory'||stage==='king-home');
+const args=process.argv.slice(2),transferSnapshots=args.at(-1)==='--transient-snapshots';
+if(transferSnapshots)args.pop();
+const [stage,outputPath,inputPath,inputHash]=args;assert.ok(stage==='plains'||stage==='approach'||stage==='bond'||stage==='goat'||stage==='return'||stage==='home'||stage==='carving-road'||stage==='carving-arrival'||stage==='carvings'||stage==='king-entry'||stage==='king-phase-one'||stage==='king-phase-two'||stage==='king-victory'||stage==='king-home');
 const kingStage=stage==='king-entry'||stage==='king-phase-one'||stage==='king-phase-two'||stage==='king-victory'||stage==='king-home';assert.ok(outputPath);
 const observed=stage==='carving-road'||stage==='carving-arrival'||stage==='carvings'||kingStage?chapterTwoObserved:chapterObserved;
 let inherited:ChapterHandoff|undefined;
@@ -38,7 +40,7 @@ if(stage!=='plains'){
   inherited=v.parse(ChapterHandoffSchema,chapterRead(wire));assert.equal(inherited.stage,
     stage==='approach'?'plains':stage==='bond'?'approach':stage==='goat'?'bond':stage==='return'?'goat':stage==='home'?'return':stage==='carving-road'?'home':stage==='carving-arrival'?'carving-road':stage==='carvings'?'carving-arrival':stage==='king-entry'?'carvings':stage==='king-phase-one'?'king-entry':stage==='king-phase-two'?'king-phase-one':stage==='king-victory'?'king-phase-two':'king-victory');checkChapterLedger(inherited.parts,inherited.tick,inherited.reportStart);
 }
-const started=performance.now(),session=await beginProductSession('nalati-grasslands',kingStage?'nalati-king':'nalati-chapter',inherited?.snapshot),{product,assets}=session;
+const started=performance.now(),session=await beginProductSession('nalati-grasslands',kingStage?'nalati-king':'nalati-chapter',inherited?.snapshot,transferSnapshots),{product,assets}=session;
 const descriptor=outputDescriptor(product.shardfile);assert.ok(descriptor?.indexHash);
 if(inherited!==undefined)assert.equal(inherited.source,descriptor.indexHash);
 const inheritedParts=inherited?.parts.length??0,inheritedPartsHash=inherited===undefined?undefined:chapterWireHash(chapterWire(inherited.parts));
@@ -87,7 +89,7 @@ try{
     }
     assert.equal(chapterSnapshotDigest(repeated.commit.snapshot),part.digest,'every boundary retains the complete numeric native continuation');
     final=repeated.commit;replayedTicks+=repeated.report.ticks;
-    console.info(JSON.stringify({stage,phase:'replay-checked',tick:repeated.commit.tick,ms:performance.now()-started}));
+    console.info(JSON.stringify({stage,phase:'replay-checked',tick:repeated.commit.tick,wireChars:repeated.commit.snapshot.length,ms:performance.now()-started}));
   });
   const checked=pipeline;
   const flush=async():Promise<void>=>{

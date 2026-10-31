@@ -1,6 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixed native worker reads the admitted product and repository physics binary.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
+import { serializeSimSnapshotForTransfer } from '../../../src/engine/sim/snapshot';
+import { MAX_TICK_SNAPSHOT_CHARS } from '../../../src/sdk/tickProtocol';
 import { runTickWorker } from '../../../src/sdk/tickWorkerLoop';
 import { parseShardfile } from '../../../src/sdk/shardfile';
 import { loadRapier } from '../../../src/engine/physics/rapier';
@@ -16,7 +18,9 @@ import type { PrepareHeadlessRuntime } from '../../../src/sdk/headlessRuntime';
 await runTickWorker(async raw => {
   const payload = v.parse(v.strictObject({ shard: v.unknown(), assets: v.map(v.string(), v.instance(Uint8Array)),
     kind: v.picklist(['driftwood', 'driftwood-trade', 'sky-verbs', 'pine', 'pine-verbs', 'nine', 'nine-flat', 'nalati', 'nalati-companions', 'nalati-weapons', 'nalati-predators', 'nalati-world', 'nalati-stealth', 'nalati-verbs', 'nalati-kokpar', 'nalati-chapter', 'nalati-king', 'nalati-qara', 'nalati-titan', 'nalati-practice', 'trusted', 'deferred']), directory: v.string(), binary: v.string(),
-    sections: v.map(v.string(), v.unknown()), snapshot: v.exactOptional(v.string()) }), raw);
+    sections: v.map(v.string(), v.unknown()), snapshot: v.exactOptional(v.string()), snapshotTransfer: v.exactOptional(v.literal('bounded-base64')) }), raw);
+  if (payload.snapshotTransfer !== undefined && payload.kind !== 'nalati-chapter' && payload.kind !== 'nalati-king')
+    throw new Error('Transient snapshots require the chapter proof owner');
   const shard = parseShardfile(payload.shard), rapier = await loadRapier(readFileSync(payload.binary));
   await prepareAssetDecoders();
   validateShardfileAssets(shard, payload.assets, hashImmutableBytes, offlineMemoryAdmission('refuse'), undefined, scriptAdmissionRows(payload.sections));
@@ -49,5 +53,6 @@ await runTickWorker(async raw => {
     ? createShardProduct({ slug: shard.identity.slug, revision: shard.identity.revision, shardfile: shard, sections: payload.sections,
       files: new Map(), read: () => Promise.reject(new Error('Direct native fixture has no named files')) })
     : await loadHeadlessProduct(payload.directory);
-  return createNativeProofAdapter({ shard, assets, rapier, product }, prepare, payload.snapshot);
+  return createNativeProofAdapter({ shard, assets, rapier, product }, prepare, payload.snapshot, payload.snapshotTransfer === undefined
+    ? undefined : saved => serializeSimSnapshotForTransfer(saved, MAX_TICK_SNAPSHOT_CHARS));
 });
