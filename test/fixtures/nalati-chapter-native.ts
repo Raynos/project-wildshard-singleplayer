@@ -6,20 +6,23 @@ import {parseChapterStoryPresentation} from '../../src/format/questStory';
 import {parseCarriedQuest} from '../../src/format/questSteps';
 import {ReturnProgram} from '../../src/game/population/returnProgram';
 import {chapterDecide} from '../../src/game/quest/chapterDecision';
-import {questObservation,type ObservedRecords} from '../../src/game/quest/questObservation';
+import {questObservation} from '../../src/game/quest/questObservation';
 import {commitQuestEffects} from '../../src/game/quest/effects';
 import {nativeTamingOf} from '../../src/game/riding/nativeTaming';
-import {prepareHeadlessRuntime as prepareTitan,nalatiTitanOf} from './nalati-titan-native';
+import {nalatiTitanOf} from './nalati-titan-native';
+import {prepareHeadlessRuntime as prepareBalbals} from './nalati-balbal-native';
 import {installNalatiReadings} from './nalati-verbs';
 import {installNalatiMountInputs} from './nalati-mount-inputs';
 import {installNalatiKokpar} from './nalati-kokpar-native';
 import {installNalatiChapterObservation} from './nalati-chapter-observation';
+import type {NalatiChapterRecords} from './nalati-chapter-records';
+import {installPackedChapterTaming} from './headless/chapterObservation';
 
 interface ChapterLoans {
   /** These methods must read their original entered encounters, or an explicit
    * closed loan which refuses entry before returning its closed observation. */
   readonly check:()=>void;readonly inside:()=>boolean;readonly tied:()=>boolean;
-  readonly records:ObservedRecords;
+  readonly records:NalatiChapterRecords;
 }
 const clock=v.strictObject({now:v.pipe(v.number(),v.finite(),v.minValue(0)),slowT:v.pipe(v.number(),v.finite()),pulseT:v.pipe(v.number(),v.finite())});
 
@@ -40,6 +43,14 @@ export function installNalatiChapterPoll(host:SimHost,content:ChapterViewRows,st
       active:()=>host.quests.find(row=>!row.isComplete)??null,saved:()=>loans.records,
     }),effects=>{commitQuestEffects(host,quest.def.id,effects);});
   };
+  // The entered page projects a carving only for the actual body's death.
+  // Reuse its record-before-projection order, never an interaction grant.
+  host.events.on('actor.died',({actor})=>{
+    live();const body=[...host.entities.values()].find(candidate=>candidate.combatActor()===actor);
+    if(body===undefined)return;
+    loans.records.outcomes.kill(body.kind,body.variant);
+    if(body.kind===rows.death.kind)project(rows.death.signal,{[rows.timeField]:now});
+  },host.scope);
   const poll=():void=>{
     live();const observed={'taming.bonded':Number(taming.phase==='bonded'),'taming.upgraded':Number(taming.upgraded),
       'arena.inside':Number(loans.inside()),'arena.tied':Number(loans.tied())};
@@ -55,7 +66,7 @@ export function installNalatiChapterPoll(host:SimHost,content:ChapterViewRows,st
  * explicitly closed: neither its doorway region nor interior can be entered
  * by this consumer. A later King tape must replace it with the entered room. */
 export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
-  const base=await prepareTitan(preparation),product=preparation.product;
+  const base=await prepareBalbals(preparation),product=preparation.product;
   const content=v.parse(ChapterViewSchema,await product.json('quests/content.json'));
   const story=parseChapterStoryPresentation(await product.json('quests/chapters.json'));
   const carried=parseCarriedQuest(await product.json('quests/carried.json'));
@@ -79,5 +90,6 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
     };
     host.onStep('nalati.king-closed',check,{snapshot:()=>{check();return {...closed};},restore:value=>{v.parse(v.strictObject({kind:v.literal('closed')}),value);check();}});
     installNalatiChapterPoll(host,content,story,{check,inside:()=>{check();return closed.kind!=='closed';},tied:()=>titan.fight.tied,records:titan.records});
+    installPackedChapterTaming(host);
   }};
 };

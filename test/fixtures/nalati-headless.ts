@@ -44,7 +44,7 @@ import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { EliteCore } from '@wildshard/game/eliteSystem';
 import { memoryElitePersistence } from '@wildshard/game/eliteSystem';
 import { NativeEliteRoster } from '@wildshard/engine/ai/eliteRoster';
-import { nativeEliteBindings } from '@wildshard/engine/ai/eliteRoster';
+import { nativeEliteBindings, type NativeEliteBindings } from '@wildshard/engine/ai/eliteRoster';
 import { trustedLevel } from '../../src/game/plugin/simulation';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 import { need, readJson, prepareReturns } from './headless-plan';
@@ -58,7 +58,8 @@ export interface NalatiEncounterIntake {
     readonly recipes: readonly AnimalSimSpec[];
 }
 export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHeadlessRuntime>[0], decodeNativeTerrain: (bytes:Uint8Array|undefined,row:{resolution:number;size:number;seed:number})=>BakedGrid = decodeTerrainTile, encounters?:NalatiEncounterIntake, pastureCues?:PastureCues,
-    observeWeather?:(host:SimHost,weather:{wind:Wind;storm:WeatherReactions})=>void): Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>> => {
+    observeWeather?:(host:SimHost,weather:{wind:Wind;storm:WeatherReactions})=>void,
+    observeBindings?:(host:SimHost,bindings:NativeEliteBindings)=>void): Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>> => {
     const { product, assets } = preparation, shard = product.shardfile;
     const { constants } = await product.json<{
         constants: Omit<NalatiHeadlessAssembly['constants'], 'nativePopulation' | 'nativeRide' | 'nativeTaming' | 'pageWildlife' | 'pageGroups' | 'groupAdmission'> & {
@@ -169,6 +170,7 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
             population.installMounted(host, Object.assign({}, constants["nativeRide"], { "world": constants["nativeField"]["world"], "mountable": (boot["mountable"]["concat"])((creatures["bondedHorseIds"])()), "program": boot["riding"]["riding"] }));
             const taming = (installNativeTaming)(host, { commands: () => context.commands().map(command => command.kind === "script" ? command : command.kind === "player" ? { kind: "player", ...(command.steer === undefined ? {} : { steer: command.steer }) } : { kind: "action" }) }, Object.assign({}, constants["nativeTaming"], { "programs": boot["riding"], "rest": boot["rest"], "poses": tamingPoses["poses"], "poseProgram": tamingPoses["horse"] }));
             initializeNalatiElites(elites,creatures,taming,context);
+            observeBindings?.(host,bindings);
         } };
 };
 /** The original native condition composition, shared with its direct contract proof. */

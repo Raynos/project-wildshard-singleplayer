@@ -19,22 +19,21 @@ import {nativeGroupCollection} from '../../src/game/shardfile/groupRuntime';
 import {applyWeatherCover,type WeatherReactions} from '../../src/game/weather/reactions';
 import type {Wind} from '../../src/engine/world/steppeWind';
 import {ledgerPorts} from '../../src/game/plugin/simulation';
-import type {ObservedRecords} from '../../src/game/quest/questObservation';
-import {prepareNalatiPatrol,nalatiPatrolOf} from './nalati-patrol-native';
+import {prepareNalatiPatrol,nalatiPatrolOf,type NalatiPatrolExtras} from './nalati-patrol-native';
 import {withNalatiCompanions} from './nalati-companions-native';
 import {withNalatiWeapons,nalatiWeaponsOf} from './nalati-weapons-native';
-import {prepareNalatiChapterRecords} from './nalati-chapter-records';
+import {prepareNalatiChapterRecords,type NalatiChapterRecords} from './nalati-chapter-records';
 import {titanNativeViews} from './nalati-titan-views';
 import {TitanSaved} from './nalati-titan-state';
 
 export interface NativeNalatiTitan {readonly fight:OpenArenaFight;readonly boss:BossBrain;readonly locked:()=>boolean;readonly reward:()=>boolean;readonly storm:()=>boolean;
-  readonly records:ObservedRecords;readonly weather:()=>{state:string;left:number};readonly rewardPrompt:()=>{position:Vector3;radius:number;label:string}|null}
+  readonly records:NalatiChapterRecords;readonly weather:()=>{state:string;left:number};readonly rewardPrompt:()=>{position:Vector3;radius:number;label:string}|null}
 const owners=new WeakMap<SimHost,NativeNalatiTitan>();
 export function nalatiTitanOf(host:SimHost):NativeNalatiTitan|undefined{return owners.get(host);}
 
 /** The real open-arena owner over native weather, mounted inputs, patrol
  * actors, heart contacts and declared saves. No command arms or damages it. */
-export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
+export async function prepareNalatiTitan(preparation:Parameters<PrepareHeadlessRuntime>[0],extras?:NalatiPatrolExtras):Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>>{
   const product=preparation.product,data=await readArenaScriptData(product,{fight:'combat/titan-fight.json',geometry:'combat/titan-geometry.json'});
   const plan=parseClientPlan(product.section('client/plan'));
   const view=plan.features.find(row=>row.kind==='view.program'&&row.id==='titan-view');
@@ -47,7 +46,7 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
   const patrol:PrepareHeadlessRuntime=input=>prepareNalatiPatrol(input,
     (host,actor,request)=>shares.get(host)?.get(actor)?.(actor.scale,request.point.x,request.point.z)??1,
     (host,dt)=>{const run=updates.get(host);if(run===undefined)throw new Error('Titan owner was not installed before patrol advance');run(dt);},
-    (host,actual)=>{weather.set(host,actual);});
+    (host,actual)=>{weather.set(host,actual);},extras);
   const composed=withNalatiWeapons(withNalatiCompanions(async input=>{
     const base=await patrol(input);
     return {...base,install:(host,context)=>{
@@ -149,4 +148,6 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
     resolve:(host,id)=>id==='encounter:storm-titan:heart'?owners.get(host)?.fight.combatTarget??null:null,
   });
   return composed(preparation);
-};
+}
+
+export const prepareHeadlessRuntime:PrepareHeadlessRuntime=preparation=>prepareNalatiTitan(preparation);

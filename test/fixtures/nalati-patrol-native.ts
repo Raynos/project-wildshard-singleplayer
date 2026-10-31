@@ -26,7 +26,7 @@ import {CHUNK_HALF} from '../../src/format/contentBounds';
 import {pinBrain} from '../../src/engine/ai/pinning';
 import {readNalatiPatrolIntake} from './nalati-patrol-intake';
 import {readNalatiPatrolPoses} from './nalati-patrol-poses';
-import {prepareHeadlessRuntime as prepareNalati} from './nalati-headless';
+import {prepareHeadlessRuntime as prepareNalati,type NalatiEncounterIntake} from './nalati-headless';
 
 const finite=v.pipe(v.number(),v.finite()),natural=v.pipe(finite,v.integer(),v.minValue(0));
 const vector=v.tuple([finite,finite,finite]);
@@ -53,12 +53,21 @@ export interface NativeNalatiPatrol {
 const owners=new WeakMap<SimHost,NativeNalatiPatrol>();
 export function nalatiPatrolOf(host:SimHost):NativeNalatiPatrol|undefined{return owners.get(host);}
 
+/** A later entered arena may add recipes and borrow the same native body
+ * scheduler. Defaults preserve the original patrol preparation exactly. */
+export interface NalatiPatrolExtras {
+  readonly intake:NalatiEncounterIntake;
+  readonly bindings:NonNullable<Parameters<typeof prepareNalati>[5]>;
+  /** TimedEncounters updates its original slot owner immediately before patrol. */
+  readonly beforePatrol?:(host:SimHost,dt:number)=>void;
+}
+
 /** Bind the same night cycle, directed riders, numeric contact joints and
  * covered projectile hits. Inputs cannot request a spawn, night, kill or gate. */
 export async function prepareNalatiPatrol(preparation:Parameters<PrepareHeadlessRuntime>[0],
   eliteDamage?:(host:SimHost,actor:HuntBody,request:DamageRequest)=>number,
   afterPatrol?:(host:SimHost,dt:number)=>void,
-  observeWeather?:Parameters<typeof prepareNalati>[4]):Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>>{
+  observeWeather?:Parameters<typeof prepareNalati>[4],extras?:NalatiPatrolExtras):Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>>{
   const product=preparation.product;
   const [intake,poseRows,rows,actors,assembly]=await Promise.all([
     readNalatiPatrolIntake(product),readNalatiPatrolPoses(product),
@@ -71,12 +80,13 @@ export async function prepareNalatiPatrol(preparation:Parameters<PrepareHeadless
   const directed=metadata.directed,programRows=actors.species.lookBook.program;
   const external=assembly.constants.pageElites.borrowed.map(parseExternalElite).find(row=>row.mode==='script'&&row.spawn.variant===declared.leader);
   if(external===undefined)throw new Error('Patrol requires its actual script-elite readiness owner');
-  const base=await prepareNalati(preparation,decodeTerrainTile,intake,undefined,observeWeather);
+  const combined=extras===undefined?intake:{species:[...intake.species,...extras.intake.species],recipes:[...intake.recipes,...extras.intake.recipes]};
+  const base=await prepareNalati(preparation,decodeTerrainTile,combined,undefined,observeWeather,extras?.bindings);
   return {...base,install:(host,context)=>{
     // The page advances timed encounters before native population movement.
     // Register that phase now, but restore its state only after body owners.
     let advance:(dt:number)=>void=()=>{throw new Error('Patrol installed incompletely');};
-    host.onStep('nalati.patrol.advance',dt=>{advance(dt);afterPatrol?.(host,dt);});
+    host.onStep('nalati.patrol.advance',dt=>{extras?.beforePatrol?.(host,dt);advance(dt);afterPatrol?.(host,dt);});
     base.install(host,context);
     const population=nativePopulationOf(host),clock=host.dayClock;
     if(population===undefined||clock===undefined||owners.has(host))throw new Error('Native patrol requires its original population and day clock');
