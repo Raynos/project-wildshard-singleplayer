@@ -20,7 +20,8 @@ import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './armClips';
 //   RigArmsOptions  the rig's clip aliases (default ARM_CLIPS + SWIM_CLIPS), held moves, walk rate, look lag and blade; Driftwood's
 //                   castaway arms use the defaults, Nine's ink rig (G441, W3) its own row
 import {
-  type AnimationAction, type AnimationClip, Group, Matrix4, type Mesh, type Object3D, type Vector2, Vector3,
+  type AnimationAction, type AnimationClip, Bone, DetachedBindMode, Float32BufferAttribute, Group, Matrix4, type Mesh, type Object3D, Skeleton,
+  SkinnedMesh, Uint16BufferAttribute, type Vector2, Vector3,
 } from 'three';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { SwordArms, Move } from '@wildshard/engine/combat/view/melee';
@@ -62,8 +63,36 @@ export interface RigArmsOptions {
   readonly lag?: { readonly max: number; readonly pitch: number; readonly yaw: number };
   /** the blade row: its socket and base / tip along the socket's +Y (absent: R_weapon and the shown weapon's `swords` extras) */
   readonly blade?: { readonly socket: string; readonly base: number; readonly tip: number };
+  /** the rigid meshes (by name) drawn as skinned meshes on one identity bone (`skinRigid`) */
+  readonly skinRigid?: (name: string) => boolean;
 }
-const DEFAULTS = { aliases: { ...ARM_CLIPS, ...SWIM_CLIPS }, holdRight: ['charge', 'sheathe', 'sheathed'], holdLeft: [], walkRate: 6, lag: { max: 0.05, pitch: 0.01, yaw: 0.012 }, blade: { socket: 'R_weapon', base: 0.012, tip: 0.53 } };
+const DEFAULTS = { aliases: { ...ARM_CLIPS, ...SWIM_CLIPS }, holdRight: ['charge', 'sheathe', 'sheathed'], holdLeft: [], walkRate: 6, lag: { max: 0.05, pitch: 0.01, yaw: 0.012 }, blade: { socket: 'R_weapon', base: 0.012, tip: 0.53 }, skinRigid: (): boolean => false };
+
+/**
+ * NF15: `mesh`, a rigid part, as a skinned mesh in its place on one identity bone that no scene holds (detached, identity
+ * bind): skinning multiplies by identity, the same pixels, drawn through the skinned meshes' program instead of one of its
+ * own (Nine's sword hulls shared nothing with the arm hulls but the skinning). Its geometry (shared by the rig's clones)
+ * takes the single-bone channels once.
+ */
+export function skinRigid(mesh: Mesh): SkinnedMesh {
+  const geometry = mesh.geometry, count = geometry.getAttribute('position').count;
+  if (!geometry.hasAttribute('skinIndex')) {
+    const weights = new Float32Array(count * 4);
+    for (let i = 0; i < count; i++) weights[i * 4] = 1;
+    geometry.setAttribute('skinIndex', new Uint16BufferAttribute(new Uint16Array(count * 4), 4));
+    geometry.setAttribute('skinWeight', new Float32BufferAttribute(weights, 4));
+  }
+  const skinned = new SkinnedMesh(geometry, mesh.material);
+  skinned.name = mesh.name; skinned.userData = mesh.userData;
+  skinned.position.copy(mesh.position); skinned.quaternion.copy(mesh.quaternion); skinned.scale.copy(mesh.scale);
+  skinned.visible = mesh.visible; skinned.renderOrder = mesh.renderOrder; skinned.layers.mask = mesh.layers.mask;
+  skinned.castShadow = mesh.castShadow; skinned.receiveShadow = mesh.receiveShadow;
+  skinned.bindMode = DetachedBindMode; skinned.bind(new Skeleton([new Bone()]), new Matrix4());
+  while (mesh.children.length > 0) { const child = mesh.children[0]; if (child !== undefined) skinned.add(child); }
+  const parent = mesh.parent;
+  if (parent !== null) { parent.add(skinned); parent.remove(mesh); }
+  return skinned;
+}
 
 export interface RigState {
   /** 0 standing … 1 full walk */
@@ -100,6 +129,10 @@ export class RigArms {
     if (vm.userData['rig'] !== contract.skeleton) throw new Error(`[anim] arm rig skeleton mismatch: ${String(vm.userData['rig'])}`);
     this.meta = vm.userData as RigMeta;
     while (vm.children.length > 0) { const c = vm.children[0]; if (c !== undefined) this.root.add(c); }
+    // before the nodes and the clips bind, so both find the skinned stand-in
+    const rigid: Mesh[] = [];
+    this.root.traverse((o) => { if (isMesh(o) && !(o instanceof SkinnedMesh) && this.o.skinRigid(o.name)) rigid.push(o); });
+    for (const mesh of rigid) skinRigid(mesh);
     this.root.traverse((o) => {
       if (o.name !== '') this.nodes.set(o.name, o);
       if (isMesh(o)) o.frustumCulled = false;

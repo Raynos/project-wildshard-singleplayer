@@ -337,7 +337,9 @@ export class HeldView {
     const ids = [...new Set([...row.meshes.map(mesh => mesh.look), ...row.pendants.materials, row.trail.look])];
     const looks = await lookMaterials({ scope: owner, renderer: render.renderer }, product, ids);
     const rig = await RigArms.load(R.url, this.contract, this.bake, false,
-      { aliases: ARM_CLIPS, holdRight: R.holdRight, holdLeft: R.holdLeft, walkRate: R.walkRate, lag: R.lag, blade: row.blade });
+      { aliases: ARM_CLIPS, holdRight: R.holdRight, holdLeft: R.holdLeft, walkRate: R.walkRate, lag: R.lag, blade: row.blade,
+        // NF15: a rigid ink hull (a weapon's) draws through the skinned hulls' program
+        skinRigid: name => row.meshes.some(mesh => mesh.name === name && mesh.hull) });
     const silk = owner.own(weave(await product.file(row.weave.file), row.weave.size));
     const key = product.url(row.decal.files[tier]);
     let decal = atlases.get(key);
