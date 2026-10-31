@@ -11,15 +11,33 @@ import NALATI_GRASS_LAYOUT from '../data/grassFieldLayout.json' with { type: 'js
 import { TERRAIN, SEED, RIVER, groundColor } from './terrainRecipe.ts';
 import { grassRows } from './grassRows.ts';
 
+/** Index the original keep-outs numerically, retaining x/z/row traversal and every distance/falloff operation.
+ * @param {ReadonlyMap<string, Uint8Array>} placements @returns {(x:number,z:number)=>number} */
+export function nalatiGrassCoverage(placements) {
+  const cover = new Map();
+  for (const [name,scale] of [['boulder',.9],['slab',1.1],['juniper',.85],['rose',.5],['willow',.4]]) {
+    const bytes = placements.get(`dressing-${name}.json`);
+    if (bytes === undefined) throw new Error(`Missing native grass keep-outs: ${name}`);
+    for (const row of JSON.parse(new TextDecoder().decode(bytes))) {
+      const x=Math.floor(row.x/4),z=Math.floor(row.z/4),column=cover.get(x)??new Map(),bucket=column.get(z)??[];
+      bucket.push([row.x,row.z,Math.max(row.sx,row.sz)*scale]);column.set(z,bucket);cover.set(x,column);
+    }
+  }
+  return function covered(x,z) {
+    let best=0;const cellX=Math.floor(x/4),cellZ=Math.floor(z/4);
+    for(let a=cellX-1;a<=cellX+1;a++) {
+      const column=cover.get(a);if(column===undefined)continue;
+      for(let b=cellZ-1;b<=cellZ+1;b++)for(const [cx,cz,r] of column.get(b)??[]) {
+        const d=Math.hypot(x-cx,z-cz);if(d<r)best=Math.max(best,Math.min(1,(r-d)/(r*.25)));
+      }
+    }
+    return best;
+  };
+}
+
 /** @param {Uint8Array} terrain the native lattice @param {ReadonlyMap<string, Uint8Array>} placements the dressing placements */
 export function nalatiGrassBake(terrain, placements) {
-const cover = new Map();
-for (const [name,scale] of [['boulder',.9],['slab',1.1],['juniper',.85],['rose',.5],['willow',.4]]) {
-  const bytes = placements.get(`dressing-${name}.json`);
-  if (bytes === undefined) throw new Error(`Missing native grass keep-outs: ${name}`);
-  for (const row of JSON.parse(new TextDecoder().decode(bytes))) { const key = `${Math.floor(row.x/4)},${Math.floor(row.z/4)}`, bucket = cover.get(key) ?? []; bucket.push([row.x,row.z,Math.max(row.sx,row.sz)*scale]);cover.set(key,bucket); }
-}
-function covered(x,z) { let best=0;for(let a=Math.floor(x/4)-1;a<=Math.floor(x/4)+1;a++)for(let b=Math.floor(z/4)-1;b<=Math.floor(z/4)+1;b++)for(const [cx,cz,r] of cover.get(`${a},${b}`)??[]) { const d=Math.hypot(x-cx,z-cz);if(d<r)best=Math.max(best,Math.min(1,(r-d)/(r*.25))); }return best; }
+const covered=nalatiGrassCoverage(placements);
 const native = readNativeTerrain(terrain);
 const field = bakeMeadowField({ seed: SEED, half: 250, ...native, trailDistance: TERRAIN.trailDistance,
   cabinMask: TERRAIN.cabinMask, pondMask: TERRAIN.pondMask, waterLevel: TERRAIN.waterLevel,
