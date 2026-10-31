@@ -46,6 +46,6 @@ export function installGpuProbe(){
    }finally{mode='off';skip=null;skipDepth=false;r.shadowMap.autoUpdate=shadow.auto;r.shadowMap.needsUpdate=shadow.needs;for(const[p,v]of disabled)p.enabled=v;}
   },
   restore(){mode='off';for(const row of passes)row.pass.render=row.render;r.renderBufferDirect=rawDraw;gl.blitFramebuffer=rawBlit;},
-  environment(){const dbg=gl.getExtension('WEBGL_debug_renderer_info');return{renderer:dbg?gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER),buffer:[gl.drawingBufferWidth,gl.drawingBufferHeight],timer:'synchronized whole-frame throughput including CPU submission',camera:{world:g.camera.matrixWorld.toArray(),projection:g.camera.projectionMatrix.toArray()},player:w.player.position.toArray(),programs:r.info.programs?.length,frame:g.frameCount,passes:P.passes};}
+  environment(){const dbg=gl.getExtension('WEBGL_debug_renderer_info');return{renderer:dbg?gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER),buffer:[gl.drawingBufferWidth,gl.drawingBufferHeight],timer:'synchronized whole-frame throughput including CPU submission',camera:{world:g.camera.matrixWorld.toArray(),projection:g.camera.projectionMatrix.toArray(),fov:g.camera.fov,aspect:g.camera.aspect},player:w.player.position.toArray(),programs:r.info.programs?.length,frame:g.frameCount,passes:P.passes};}
  };window.__gpuCensus=P;return P.environment();
 }

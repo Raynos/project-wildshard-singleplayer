@@ -10,7 +10,7 @@ function fixture() {
     readPixels:vi.fn(),blitFramebuffer:vi.fn(),getExtension:()=>null,getParameter:(key:number)=>key===2978?[0,0,804,1748]:'Metal fixture'};
   const originalBlit=gl.blitFramebuffer;
   const rect={x:4,y:5,z:6,w:7},originalRect={...rect};
-  const draw=vi.fn(),camera={matrixWorld:{toArray:()=>[]},projectionMatrix:{toArray:()=>[]}};
+  const draw=vi.fn(),camera={fov:93,aspect:402/874,matrixWorld:{toArray:()=>[]},projectionMatrix:{toArray:()=>[]}};
   const material={name:'graph:material:nine-architecture',type:'ShaderMaterial',uuid:'material',alphaTest:0,fragmentShader:'void main() {}'};
   const object={name:'slab',parent:null,material};
   const renderer={getContext:()=>gl,renderBufferDirect:draw,getRenderTarget:()=>null,

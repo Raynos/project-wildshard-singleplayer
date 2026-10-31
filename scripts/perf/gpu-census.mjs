@@ -34,7 +34,7 @@ try{for(const mode of modes)for(const pose of poses){
   await developerSettings(context,{tier:'phone',volume:0,time:'night',weather:'rain'});
   await saveFixture(context,{scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}});
   await saveFixture(context,{scope:'device',key:'debug.global.legacyShardButtons',data:'on'});
-  const page=await context.newPage();page.on('pageerror',e=>row.errors.push(e.message));
+  const page=await context.newPage();const cdp=await context.newCDPSession(page);await cdp.send('Emulation.setCPUThrottlingRate',{rate:1});row.cpuRate=1;page.on('pageerror',e=>row.errors.push(e.message));
   await page.goto(url,{waitUntil:'load'});await page.locator('.ws-main-select').click();const names=await page.locator('.ws-menu-card b').allTextContents();await page.locator(`.ws-menu-dots i[data-i="${loadingCardIndex(names,slug)}"]`).click();
   const dual=await page.locator('.ws-menu-shardfile').isVisible();if(mode==='legacy'&&!dual)throw new Error('Legacy entry unavailable');await page.locator(mode==='shardfile'&&dual?'.ws-menu-shardfile':'.ws-menu-play').click();
   await page.waitForFunction(()=>window.__wildshard?.world?.hud?.entered&&!document.querySelector('.ws-load'),undefined,{timeout:240000});
