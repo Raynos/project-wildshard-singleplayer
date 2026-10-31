@@ -110,10 +110,10 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
   }
   /** a borrowed colour map (`meshMap`): sampled where the graph reads it, else its fallback */
   get map(): THREE.Texture | null { return this.texture('wsMeshMap'); }
-  set map(texture: THREE.Texture | null) { this.lend('wsMeshMap', 'WS_MESH_MAP', texture); }
+  set map(texture: THREE.Texture | null) { this.lend('wsMeshMap', 'WS_MESH_MAP', texture, 'mapTransform'); }
   /** a borrowed bump map (`meshMap` named `bump`) */
   get bumpMap(): THREE.Texture | null { return this.texture('wsBumpMap'); }
-  set bumpMap(texture: THREE.Texture | null) { this.lend('wsBumpMap', 'WS_BUMP_MAP', texture); }
+  set bumpMap(texture: THREE.Texture | null) { this.lend('wsBumpMap', 'WS_BUMP_MAP', texture, 'bumpMapTransform'); }
   /** a lit graph's borrowed PBR maps (`bindGraphMeshMap`'s `graphPbrMaps` loan), as a node material's slots: three switches
    *  their defines from these properties, the lit program samples them with its stock chunks */
   readonly normalMapType: THREE.NormalMapTypes = THREE.TangentSpaceNormalMap;
@@ -189,9 +189,12 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
   private texture(name: string): THREE.Texture | null { const value: unknown = this.uniforms[name]?.value; return value instanceof THREE.Texture ? value : null; }
   /** set an own uniform's value in place (its program already reads that object) */
   private own(name: string, value: unknown): void { const known = this.uniforms[name]; if (known === undefined) this.uniforms[name] = { value }; else known.value = value; }
-  private lend(name: string, define: string, texture: THREE.Texture | null): void {
+  /** a borrowed map and its uv transform: a lit program reads it at three's slot uv (`WS_THREE_UV`), whose transform three
+   *  never uploads for a shader material */
+  private lend(name: string, define: string, texture: THREE.Texture | null, transform: string): void {
     const had = this.texture(name) !== null;
     this.own(name, texture);
+    if (texture !== null) this.transform(transform, texture);
     if (had === (texture !== null)) return;
     const defines: Record<string, unknown> = { ...this.defines };
     if (texture === null) Reflect.deleteProperty(defines, define); else defines[define] = '';
@@ -201,12 +204,14 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
   private slot(name: string, transform: string, texture: THREE.Texture | null): void {
     const had = this.texture(name) !== null;
     this.own(name, texture);
-    if (texture !== null) {
-      if (texture.matrixAutoUpdate) texture.updateMatrix();
-      const known: unknown = this.uniforms[transform]?.value;
-      if (known instanceof THREE.Matrix3) known.copy(texture.matrix); else this.uniforms[transform] = { value: texture.matrix.clone() };
-    }
+    if (texture !== null) this.transform(transform, texture);
     if (had !== (texture !== null)) this.needsUpdate = true;
+  }
+  /** `texture`'s uv transform into the program's own uniform (its matrix, refreshed when it updates itself) */
+  private transform(name: string, texture: THREE.Texture): void {
+    if (texture.matrixAutoUpdate) texture.updateMatrix();
+    const known: unknown = this.uniforms[name]?.value;
+    if (known instanceof THREE.Matrix3) known.copy(texture.matrix); else this.uniforms[name] = { value: texture.matrix.clone() };
   }
 }
 
