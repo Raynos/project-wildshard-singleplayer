@@ -150,10 +150,10 @@ test('metadata without native invalidation methods keeps consulting the native p
 
 test('a later frame counter shares ownership observation across draws but not renders', () => {
   const f = fixture(), native = {}, get = vi.fn((_value: unknown) => native);
+  let drawsPerRender = 1;
   const renderer = { ...f.renderer, properties: { get },
     render: (_scene: Scene, _camera: Camera) => {
-      renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
-      renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
+      for (let draw = 0; draw < drawsPerRender; draw++) renderer.renderBufferDirect(f.camera, f.scene, f.geometry, f.material, f.object, f.group);
     } };
   drawHooks(renderer); const hooks = propertyHooks(renderer), observe = vi.fn<(resource: unknown) => void>(); hooks.ownership = observe;
   f.stock.mockImplementation(() => {
@@ -161,10 +161,12 @@ test('a later frame counter shares ownership observation across draws but not re
     expect(renderer.properties.get(f.material)).toBe(native);
   });
   // Uncounted test renderers retain the conservative per-draw observations.
+  renderer.render(f.scene, f.camera); expect(observe).toHaveBeenCalledTimes(1);
+  // Epoch 1 and counted render 1 coincide: adopting the new clock must
+  // discard the old stamp rather than suppress this render's residency.
+  drawsPerRender = 2; installFrameCounter(renderer);
   renderer.render(f.scene, f.camera); expect(observe).toHaveBeenCalledTimes(2);
-  installFrameCounter(renderer);
   renderer.render(f.scene, f.camera); expect(observe).toHaveBeenCalledTimes(3);
-  renderer.render(f.scene, f.camera); expect(observe).toHaveBeenCalledTimes(4);
 });
 
 test('new render, consuming owner, label policy and upload registrations invalidate reuse', () => {
