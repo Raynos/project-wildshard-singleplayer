@@ -9,7 +9,7 @@ export const EXPLORER_CATALOGUE: ReturnType<typeof parseExplorerCatalogue> = par
       "kind": "species",
       "species": "boar",
       "id": "shared/boar",
-      "file": "src/game/models/creatures.ts",
+      "file": "src/game/models/explorerCatalogue.ts",
       "pipeline": "code",
       "spawnOnly": true
     },
@@ -17,7 +17,7 @@ export const EXPLORER_CATALOGUE: ReturnType<typeof parseExplorerCatalogue> = par
       "kind": "species",
       "species": "bear",
       "id": "shared/bear",
-      "file": "src/game/models/creatures.ts",
+      "file": "src/game/models/explorerCatalogue.ts",
       "pipeline": "code"
     },
     {

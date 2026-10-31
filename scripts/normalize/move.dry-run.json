@@ -655,9 +655,7 @@
     "src/engine/models/creatures.ts",
     "src/engine/models/cull.ts",
     "src/engine/models/gear.ts",
-    "src/engine/models/glb.ts",
     "src/engine/models/hoverboard.ts",
-    "src/engine/models/hull.ts",
     "src/engine/models/interact.ts",
     "src/engine/models/live.ts",
     "src/engine/models/model.ts",
@@ -807,7 +805,6 @@
     "src/engine/ui/WeaponStrip.ts",
     "src/engine/ui/WindupWarn.ts",
     "src/engine/world/Atmosphere.ts",
-    "src/engine/world/BakedCards.ts",
     "src/engine/world/BakedSky.ts",
     "src/engine/world/BakedTerrain.ts",
     "src/engine/world/blenderArea.ts",
@@ -817,7 +814,6 @@
     "src/engine/world/DayClock.ts",
     "src/engine/world/DayNight.ts",
     "src/engine/world/faceHeads.ts",
-    "src/engine/world/faunaLayout.ts",
     "src/engine/world/forest/Forest.ts",
     "src/engine/world/forest/placement.ts",
     "src/engine/world/forest/treeSet.ts",
@@ -850,7 +846,6 @@
     "src/engine/world/Terrain.ts",
     "src/engine/world/terrainField.ts",
     "src/engine/world/TreeFactory.ts",
-    "src/engine/world/waterSurface.ts",
     "src/engine/world/waves.ts",
     "src/engine/world/wind.ts",
     "src/engine/world/WorldClock.ts",
@@ -2351,10 +2346,6 @@
     {
       "from": "src/chunks/driftwood-isle/world/places.ts",
       "to": "src/shards/driftwood-isle/world/places.ts"
-    },
-    {
-      "from": "src/chunks/fauna-layout.ts",
-      "to": "src/engine/world/faunaLayout.ts"
     },
     {
       "from": "src/chunks/nalati-grasslands.ts",
@@ -3861,16 +3852,8 @@
       "to": "src/engine/models/gear.ts"
     },
     {
-      "from": "src/models/glb.ts",
-      "to": "src/engine/models/glb.ts"
-    },
-    {
       "from": "src/models/hoverboard.ts",
       "to": "src/engine/models/hoverboard.ts"
-    },
-    {
-      "from": "src/models/hull.ts",
-      "to": "src/engine/models/hull.ts"
     },
     {
       "from": "src/models/interact.ts",
@@ -4909,10 +4892,6 @@
       "to": "src/engine/world/Atmosphere.ts"
     },
     {
-      "from": "src/world/BakedCards.ts",
-      "to": "src/engine/world/BakedCards.ts"
-    },
-    {
       "from": "src/world/BakedSky.ts",
       "to": "src/engine/world/BakedSky.ts"
     },
@@ -5367,10 +5346,6 @@
     {
       "from": "src/world/treeSpecies.ts",
       "to": "src/engine/world/forest/treeSpecies.ts"
-    },
-    {
-      "from": "src/world/waterSurface.ts",
-      "to": "src/engine/world/waterSurface.ts"
     },
     {
       "from": "src/world/waves.ts",
