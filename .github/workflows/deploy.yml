@@ -646,7 +646,77 @@ jobs:
     env:
       NODE_COMPILE_CACHE: ${{ github.workspace }}/.cache/node-compile
     steps:
+      - name: Admit optional fixtures for this prepare
+        id: admission
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import subprocess
+          import sys
+
+          def admit(data, run, attempt, sha):
+              if not isinstance(data, dict) or not isinstance(data.get('jobs'), list):
+                  raise ValueError('Missing job inventory')
+              jobs = data['jobs']
+              if type(data.get('total_count')) is not int or data['total_count'] != len(jobs):
+                  raise ValueError('Incomplete job inventory')
+              if any(not isinstance(job, dict) for job in jobs):
+                  raise ValueError('Malformed job inventory')
+              prepares = [job for job in jobs if job.get('name') == 'prepare']
+              if len(prepares) != 1:
+                  raise ValueError('Ambiguous prepare identity')
+              job = prepares[0]
+              if (type(job.get('run_id')) is not int or job['run_id'] != run
+                      or type(job.get('run_attempt')) is not int or job['run_attempt'] != attempt
+                      or job.get('head_sha') != sha):
+                  raise ValueError('Foreign prepare identity')
+              status, conclusion = job.get('status'), job.get('conclusion')
+              if status == 'completed' and conclusion in ('failure', 'cancelled', 'skipped'):
+                  return False, status, conclusion
+              if ((status == 'completed' and conclusion == 'success')
+                      or (status in ('queued', 'pending', 'waiting', 'in_progress') and conclusion is None)):
+                  return True, status, conclusion
+              raise ValueError('Uncertain prepare verdict')
+
+          try:
+              repo = os.environ['GITHUB_REPOSITORY']
+              run, attempt, sha = (os.environ[name] for name in
+                  ('GITHUB_RUN_ID', 'GITHUB_RUN_ATTEMPT', 'GITHUB_SHA'))
+              if (repo != 'Raynos/project-wildshard-singleplayer'
+                      or re.fullmatch(r'[1-9][0-9]*', run) is None
+                      or re.fullmatch(r'[1-9][0-9]*', attempt) is None
+                      or re.fullmatch(r'[a-f0-9]{40}', sha) is None):
+                  raise ValueError('Invalid fixture run identity')
+              event = os.environ['GITHUB_EVENT_NAME']
+              if event == 'pull_request':
+                  # Preserve the existing PR path: its checkout may be a merge
+                  # commit while the jobs API names the pull request's head.
+                  allowed, status, conclusion = True, 'pull_request', None
+              elif event == 'push':
+                  response = subprocess.run(['gh', 'api',
+                      f'repos/{repo}/actions/runs/{run}/attempts/{attempt}/jobs?per_page=100'],
+                      check=True, capture_output=True, text=True, timeout=30)
+                  allowed, status, conclusion = admit(json.loads(response.stdout), int(run), int(attempt), sha)
+              else:
+                  raise ValueError('Unknown fixture event')
+              decision = 'true' if allowed else 'false'
+              receipt = f'Optional fixtures: run {run} attempt {attempt}; prepare {status}/{conclusion}; run={decision}'
+              print(receipt)
+              with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a') as output:
+                  output.write(receipt + '\n')
+              with Path(os.environ['GITHUB_OUTPUT']).open('a') as output:
+                  output.write('run=' + decision + '\n')
+          except (KeyError, OSError, ValueError, subprocess.SubprocessError) as error:
+              print('::error::Optional fixture admission unavailable: ' + type(error).__name__, file=sys.stderr)
+              sys.exit(1)
+          PY
+
       - uses: actions/checkout@v4
+        if: steps.admission.outputs.run == 'true'
         with:
           filter: blob:none
           sparse-checkout: |
@@ -656,15 +726,20 @@ jobs:
             !/sources/
           sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
+        if: steps.admission.outputs.run == 'true'
         with: {version: 10}
       - uses: actions/setup-node@v4
+        if: steps.admission.outputs.run == 'true'
         with: {node-version: 24, cache: pnpm}
       - run: pnpm install --frozen-lockfile
+        if: steps.admission.outputs.run == 'true'
       - name: Bind cache snapshot to source inputs
+        if: steps.admission.outputs.run == 'true'
         id: inputs
         run: echo "tree=$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_OUTPUT"
       # Read-only: prepare alone saves this snapshot.
       - uses: actions/cache/restore@v4
+        if: steps.admission.outputs.run == 'true'
         with:
           path: |
             ~/.cache/wildshard/generate
@@ -675,7 +750,9 @@ jobs:
           key: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
           restore-keys: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-
       - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --reuse
+        if: steps.admission.outputs.run == 'true'
       - name: Write exact-run fixture snapshots
+        if: steps.admission.outputs.run == 'true'
         env:
           WS_TEST_PRODUCTS_SHA: ${{ github.sha }}
           VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
@@ -689,6 +766,7 @@ jobs:
           cp tmp/ci-generated.sha256 tmp/ci-fixtures/generated.sha256
           tar -C tmp/ci-fixtures -cf - --exclude='*.partial' . | zstd --long=30 -3 -T0 -o test-fixtures.tar.zst
       - uses: actions/upload-artifact@v4
+        if: steps.admission.outputs.run == 'true'
         with:
           name: test-fixtures
           path: test-fixtures.tar.zst
