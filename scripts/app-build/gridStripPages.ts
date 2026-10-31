@@ -19,6 +19,24 @@ export interface CompiledGridBuild {
 }
 const hash = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value, (_key, item: unknown) => typeof item === 'number' && Object.is(item, -0) ? '-0' : item));
+/** Plain acyclic data has the same equality before and after JSON transport.
+ * Accessors, JSON hooks and other values retain the original codec comparison. */
+function plainFacts(value: unknown, parents: Set<object>): boolean {
+  if (value === null || typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean') return true;
+  if (typeof value !== 'object' || parents.has(value) || 'toJSON' in value) return false;
+  const prototype: unknown = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && (!Array.isArray(value) || prototype !== Array.prototype)) return false;
+  parents.add(value);
+  try {
+    for (const key of Object.keys(value)) {
+      const field = Object.getOwnPropertyDescriptor(value, key);
+      if (field === undefined || !('value' in field)) return false;
+      const child: unknown = field.value;
+      if (!plainFacts(child, parents)) return false;
+    }
+    return true;
+  } finally { parents.delete(value); }
+}
 /** Optional outer pages over the original transport cap retain native construction. */
 export class GridStripTransportLimitError extends Error {
   constructor(message: string) { super(message); this.name = 'GridStripTransportLimitError'; }
@@ -133,7 +151,8 @@ export function encodeGridStripPage(source: string, home: string, slug: string, 
     // Header/shape serialization above already exercises these JSON inputs.
     // Equal native fields need no extra UTF-8/JSON copies. Different optional
     // field representations retain the original canonical comparison.
-    if (!isDeepStrictEqual(before, after) && !isDeepStrictEqual(JSON.parse(new TextDecoder().decode(json(before))),
+    const direct = plainFacts(before, new Set()) && plainFacts(after, new Set()) && isDeepStrictEqual(before, after);
+    if (!direct && !isDeepStrictEqual(JSON.parse(new TextDecoder().decode(json(before))),
       JSON.parse(new TextDecoder().decode(json(after))))) throw new Error('Grid strip bake changed physical placement or features');
   }
   return { slug, owner: home, phase, page: { source, home: keyHome, header: header.address, body: body.address }, header, body };
