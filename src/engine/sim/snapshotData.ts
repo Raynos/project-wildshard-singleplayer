@@ -1,3 +1,4 @@
+import { unpackSnapshotBase64 as unpack } from './snapshotBase64';
 import * as v from 'valibot';
 import { deflateSync, inflateSync } from 'fflate';
 import { MAX_PHYSICS_BYTES, MAX_REFERENCE_BYTES, byteArray, encodePhysicsReferences, decodePhysicsReferences, validatePhysicsReferences } from './snapshotPhysics';
@@ -172,19 +173,6 @@ function pack(bytes: ArrayLike<number>): string {
   }
   chunks.push(chunk);
   return chunks.join('');
-}
-function unpack(data: string): number[] {
-  if (data.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/.test(data)) throw new RangeError('Invalid snapshot base64');
-  const bytes: number[] = [];
-  for (let index = 0; index < data.length; index += 4) {
-    const a = alphabet.indexOf(data.charAt(index)), b = alphabet.indexOf(data.charAt(index + 1));
-    const c = alphabet.indexOf(data.charAt(index + 2)), d = alphabet.indexOf(data.charAt(index + 3));
-    bytes.push((a << 2) | (b >>> 4));
-    if (c !== -1) bytes.push(((b & 15) << 4) | (c >>> 2));
-    if (d !== -1) bytes.push(((c & 3) << 6) | d);
-  }
-  if (pack(bytes) !== data) throw new RangeError('Noncanonical snapshot base64');
-  return bytes;
 }
 function* packedPhysics(raw: Uint8Array, basis?: Uint8Array): Generator<undefined, v.InferOutput<typeof packedSnapshot>['physics']> {
   const references = encodePhysicsReferences(raw, basis), chunks: string[] = [];
