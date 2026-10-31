@@ -13,10 +13,12 @@ test('draw diagnostics read exact prepared worlds and never join source, boot or
   expect(diagnostic).toContain('needs: prepare');
   expect(diagnostic).toContain('runs-on: ubuntu-latest');
   expect(diagnostic).toContain('timeout-minutes: 20');
-  for(const name of ['build-and-deploy','boot-verdict','journeys']) {
+  for(const name of ['build-and-deploy','journeys']) {
     const needs=/^\s+needs: (.+)$/mu.exec(section(name))?.[1];
     expect(needs).toBeDefined();expect(needs).not.toContain('draw-budget');
   }
+  expect(workflow).not.toContain('\n  boot-verdict:\n');
+  expect(section('build-and-deploy')).toContain('name: Publish exact-SHA proof outcome');
   expect(diagnostic).toContain('name: boot-dist-worlds');
   expect(diagnostic).toContain('name: boot-dist-manifest');
   const readers=diagnostic.split(/\n {6}- /u).filter(step=>step.includes('actions/download-artifact@'));

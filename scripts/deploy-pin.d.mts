@@ -22,7 +22,12 @@ export function readySource(runId:string,liveBuild:string,query?:(args:string[])
   aggregate:{status:string;conclusion:string|null};
   jobs:{name:string;status:string;conclusion:string}[];
   failures:{name:string;status:string;conclusion:string}[];
+  bootPublishRequired:boolean;bootAlreadyPublished:boolean;sixCompletedAt:string|null;runAttempt:number|null;
 };
+/** Explicit manual publisher after exact archive restore and re-admission; never emits deployment outputs itself. */
+export function completeReadySource(selected:ReturnType<typeof readySource>,restore:(proof:ReturnType<typeof readySource>)=>string,recheck:()=>ReturnType<typeof readySource>,query?:(args:string[])=>string):ReturnType<typeof readySource>&{prebuiltArchive:string|null;bootPublished:boolean};
+/** Validate the exact prebuilt archive in a controller-owned directory that survives selected-source checkout. */
+export function stageReadyArchive(proof:{sha:string;run:string},runnerTemp:string,run?:(command:string,args:string[])=>void):string;
 /** G917 manual deadline exception, retaining every actual completed verdict. */
 export function deadlineRecoverySource(runId:string,query?:(args:string[])=>string,now?:number):{
   sha:string;run:string;
@@ -33,7 +38,7 @@ export function deadlineRecoverySource(runId:string,query?:(args:string[])=>stri
 export function ciRunGreen(sha: string, runId: string, query?: (args: string[]) => string): boolean;
 
 /** Bind trusted same-run wave results before that run's own ship job completes. */
-export function waveSource(input: {mode:string;event:string;ref:string;repository:string;sha:string;run:string;head:string;needs:unknown}): {skip:boolean;sha:string;run:string};
+export function waveSource(input: {mode:string;event:string;ref:string;repository:string;sha:string;run:string;head:string;needs:unknown;bootOutcome?:string|undefined}): {skip:boolean;sha:string;run:string};
 
 
 /** No CI-green candidate has a successful exact-SHA smoke yet. */

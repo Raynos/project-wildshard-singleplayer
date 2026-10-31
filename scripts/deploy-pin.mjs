@@ -17,8 +17,9 @@
 // `gh workflow run deploy`.
 
 import { execFileSync } from 'node:child_process';
-import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
+import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { isAbsolute, join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const FILE = '.github/deploy-pin.json';
 const REPO = 'Raynos/project-wildshard-singleplayer';
@@ -241,6 +242,80 @@ export function deadlineRecoverySource(runId, query = ghApi, now = Date.now()) {
 
 class SourceGateError extends Error { name = 'SourceGateError'; }
 
+/** @typedef {{name:string,status:string,conclusion:string|null,number?:number}} SourceStep */
+/** @typedef {{name:string,status:string,conclusion:string|null,created_at:string|null,started_at:string|null,completed_at:string|null,
+ * run_id?:number,run_attempt?:number,head_sha?:string,steps?:SourceStep[]}} SourceJob */
+
+/** Recognize only the reviewed merged publisher; historical source keeps its
+ * separate boot-verdict job and unchanged proof requirements. @param {string} source */
+function mergedBootSource(source) {
+  const ship = /\n {2}build-and-deploy:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1] ?? '';
+  if (!/^ {6}MERGED_BOOT_PROOF: 'v1'$/mu.test(ship)) return false;
+  const needs = /^ {4}needs: \[([^\]]+)\]$/mu.exec(ship)?.[1]?.split(',').map(name => name.trim());
+  const required = ['prepare','typecheck-lint','derived-docs','behaviour','native-escape','journeys'];
+  const release = `(github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && ${required.map(name => `needs.${name}.result == 'success'`).join(' && ')}))`;
+  const group = `\${{ ${release} && 'production-release' || format('boot-verdict-{0}', github.run_id) }}`;
+  if (needs?.length !== required.length || new Set(needs).size !== required.length
+    || !required.every(name => needs.includes(name)) || /\n {2}boot-verdict:\n/u.test(source)
+    || /^ {6}group: (.+)$/mu.exec(ship)?.[1] !== group
+    || !/^ {6}cancel-in-progress: false$/mu.test(ship)
+    || !/^ {4}steps:\n {6}- name: Publish exact-SHA proof outcome\n {8}id: boot\n/mu.test(ship)
+    || !ship.includes(`CI_WAVE_BOOT_OUTCOME: \${{ steps.boot.outcome }}`))
+    throw new Error('Source merged boot publisher topology differs');
+  return true;
+}
+
+/** No asynchronous work or synthetic verdict can stand in for the real first
+ * publisher step. @param {SourceJob[]} details @param {number} run @param {number} attempt @param {string} sha */
+function mergedBootJob(details, run, attempt, sha) {
+  for (const job of details) {
+    if (job.run_id !== run || job.run_attempt !== attempt || job.head_sha !== sha)
+      throw new Error('Merged source job identity differs');
+  }
+  const ships = details.filter(job => job.name === 'build-and-deploy');
+  if (ships.length !== 1 || ships[0] === undefined || !Array.isArray(ships[0].steps))
+    throw new Error('Merged source publisher inventory differs');
+  const ship = ships[0];
+  const steps = ship.steps ?? [];
+  const unstarted = ((ship.status === 'queued' && ship.conclusion === null)
+    || (ship.status === 'completed' && ship.conclusion === 'cancelled'))
+    && steps.every(step => ['queued','pending'].includes(step.status) && step.conclusion === null);
+  const publishers = steps.filter(step => step.name === 'Publish exact-SHA proof outcome');
+  const published = publishers.length === 1 && publishers[0]?.status === 'completed'
+    && publishers[0].conclusion === 'success';
+  return { ship, unstarted, published };
+}
+
+/** @typedef {{state:string,target_url:string,description:string,created_at:string}} BootStatus */
+/** @param {string} sha @param {(args:string[])=>string} query @returns {BootStatus|null} */
+function mergedBootStatus(sha, query) {
+  /** @type {unknown} */
+  const status = JSON.parse(query([`repos/${REPO}/commits/${sha}/status`, '--paginate', '--slurp', '--jq',
+    '[.[].statuses[] | select(.context == "boot-smoke") | {state,target_url,description,created_at}][0] // null']));
+  if (status === null) return null;
+  if (typeof status !== 'object' || !('state' in status) || typeof status.state !== 'string'
+    || !('target_url' in status) || typeof status.target_url !== 'string'
+    || !('description' in status) || typeof status.description !== 'string'
+    || !('created_at' in status) || typeof status.created_at !== 'string')
+    throw new SourceGateError('Merged source boot status is unreadable');
+  return {state:status.state,target_url:status.target_url,description:status.description,created_at:status.created_at};
+}
+
+/** @param {string} run @param {number} attempt @param {string} six */
+function manualBootDescription(run, attempt, six) {
+  return `Manual merged-v1 SIX: source ${run}/${attempt}; through ${six}`;
+}
+
+/** A POST whose readback failed can be resumed only by its same real source
+ * proof, not by an unrelated success or a changed SIX/attempt.
+ * @param {BootStatus|null} status @param {string} run @param {number} attempt @param {string} six */
+function manualBootMatches(status, run, attempt, six) {
+  return status !== null && status.state === 'success'
+    && status.target_url === `https://github.com/${REPO}/actions/runs/${run}`
+    && status.description === manualBootDescription(run, attempt, six)
+    && Number.isFinite(Date.parse(status.created_at)) && Date.parse(status.created_at) >= Date.parse(six);
+}
+
 /** @param {string} runId @param {(args:string[])=>string} query @param {boolean} deadline @param {boolean} [ready] */
 function recoveryEvidence(runId, query, deadline, ready = false) {
   if (!/^[1-9][0-9]*$/u.test(runId)) throw new Error('Recovery requires a numeric source run');
@@ -260,6 +335,9 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     throw new Error('Recovery source is outside main ancestry');
   const source = query([`repos/${REPO}/contents/.github/workflows/deploy.yml?ref=${sha}`,
     '-H','Accept: application/vnd.github.raw+json']);
+  const merged = mergedBootSource(source);
+  if (merged && (!Number.isSafeInteger(run.run_attempt) || run.run_attempt < 1))
+    throw new Error('Merged source attempt identity is unreadable');
   // The complete behavior wave owned the native file before its dedicated job.
   const native = /\n {2}native-escape:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
   let nativeJobs = native === undefined ? [] : ['native-escape'];
@@ -282,14 +360,19 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     || !source.includes(`node scripts/vitest-plan.ts --shards ${matrix.length} --workers 2`)
     || !behaviour?.includes(`--config scripts/vitest-ci.config.ts --shard=\${{ matrix.shard }}/${matrix.length} --bail=0`))
     throw new Error('Recovery source has an unreviewed behavior topology');
-  const required = new Set(['prepare','typecheck-lint','derived-docs','boot-verdict',
+  if (merged && (matrix.length !== 24 || nativeJobs.length !== 2))
+    throw new Error('Merged source requires the reviewed full behavior and native topology');
+  const required = new Set(['prepare','typecheck-lint','derived-docs',...(merged ? [] : ['boot-verdict']),
     ...matrix.map(index=>`behaviour (${index})`),
     ...['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'].map(name=>`journeys (${name})`),
     ...nativeJobs]);
-  /** @type {null|{name:string,status:string,conclusion:string|null,created_at:string|null,started_at:string|null,completed_at:string|null}[]} */
-  const details = ready ? JSON.parse(query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--slurp', '--jq',
-    '[.[].jobs[] | {name,status,conclusion,created_at,started_at,completed_at}]'])) : null;
-  if (ready && !Array.isArray(details)) throw new Error('Ready source job inventory is unreadable');
+  const jobsPath = merged ? `repos/${REPO}/actions/runs/${runId}/attempts/${run.run_attempt}/jobs?per_page=100`
+    : `repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`;
+  /** @type {SourceJob[]|null} */
+  const details = ready || merged ? JSON.parse(query([jobsPath, '--paginate', '--slurp', '--jq', merged
+    ? '[.[].jobs[] | {name,status,conclusion,created_at,started_at,completed_at,run_id,run_attempt,head_sha,steps:[.steps[]|{name,status,conclusion,number}]}]'
+    : '[.[].jobs[] | {name,status,conclusion,created_at,started_at,completed_at}]'])) : null;
+  if ((ready || merged) && !Array.isArray(details)) throw new Error('Ready source job inventory is unreadable');
   const rows = details !== null ? details.map(job => [job.name, job.status, job.conclusion ?? ''].join('\t'))
     : query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--jq',
       '.jobs[] | [.name, .status, .conclusion] | @tsv']).split(/\r?\n/u).filter(Boolean);
@@ -302,13 +385,13 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
   }
   // Fixture snapshots only accelerate a source whose successful behaviour
   // jobs already prove their fallback. Preserve the selected ship's policy.
-  if (ready && /\n {2}fixtures:\n/u.test(source)) {
+  if ((ready || merged) && /\n {2}fixtures:\n/u.test(source)) {
     const ship = /\n {2}build-and-deploy:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
     const needs = /^\s+needs: \[([^\]]+)\]/mu.exec(ship ?? '')?.[1]?.split(',').map(name => name.trim());
     if (needs === undefined) throw new Error('Ready source ship has no reviewed prerequisite list');
     (needs.includes('fixtures') ? required : optional).add('fixtures');
   }
-  const essential = new Set(['prepare','boot-verdict',
+  const essential = new Set(['prepare',...(merged ? [] : ['boot-verdict']),
     ...['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'].map(name=>`journeys (${name})`)]);
   /** @type {{name:string,status:string,conclusion:string}[]} */
   const jobs = [];
@@ -335,12 +418,34 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     jobs.push({name,status,conclusion});
   }
   if (required.size > 0 || optional.size > 0) throw new SourceGateError('Recovery job inventory differs');
-  const boot = query([`repos/${REPO}/commits/${sha}/status`, '--paginate', '--jq',
-    '.statuses[] | select(.context == "boot-smoke") | [.state, .target_url] | @tsv']).trim().split('\n')[0];
-  if (boot !== `success\thttps://github.com/${REPO}/actions/runs/${runId}`)
-    throw new SourceGateError('Recovery requires the latest successful same-run boot status');
+  const publisher = merged && details !== null ? mergedBootJob(details, Number(runId), run.run_attempt, sha) : null;
+  let bootPublishRequired = false, bootAlreadyPublished = false;
+  /** @type {string|null} */
+  let sixCompletedAt = null;
+  if (publisher !== null && details !== null) {
+    const six = details.filter(job => job.name.startsWith('journeys (') && job.name !== 'journeys (phone-route)');
+    const completed = six.map(job => Date.parse(job.completed_at ?? ''));
+    if (completed.length !== 6 || completed.some(at => !Number.isFinite(at)))
+      throw new SourceGateError('Merged source SIX completion times are unreadable');
+    sixCompletedAt = new Date(Math.max(...completed)).toISOString();
+    const boot = mergedBootStatus(sha, query);
+    if (!publisher.published) {
+      // A manual release can evict a pending source from the same lock. Its
+      // unstarted cancellation keeps the original thirty-minute age check.
+      bootAlreadyPublished = manualBootMatches(boot, runId, run.run_attempt, sixCompletedAt);
+      bootPublishRequired = ready && publisher.unstarted && (boot === null || bootAlreadyPublished);
+      if (!bootPublishRequired) throw new SourceGateError('Recovery requires the actual successful boot publisher step');
+    } else if (boot?.state !== 'success' || boot.target_url !== `https://github.com/${REPO}/actions/runs/${runId}`)
+      throw new SourceGateError('Recovery requires the latest successful same-run boot status');
+  } else {
+    const boot = query([`repos/${REPO}/commits/${sha}/status`, '--paginate', '--jq',
+      '.statuses[] | select(.context == "boot-smoke") | [.state, .target_url] | @tsv']).trim().split('\n')[0];
+    if (boot !== `success\thttps://github.com/${REPO}/actions/runs/${runId}`)
+      throw new SourceGateError('Recovery requires the latest successful same-run boot status');
+  }
   return {sha,run:runId,jobs,failures:jobs.filter(job=>['failure','timed_out','cancelled'].includes(job.conclusion)),
-    aggregate:{status:run.status,conclusion:run.conclusion},ship:details?.find(job=>job.name === 'build-and-deploy')};
+    aggregate:{status:run.status,conclusion:run.conclusion},ship:details?.find(job=>job.name === 'build-and-deploy'),
+    bootPublishRequired,bootAlreadyPublished,sixCompletedAt,runAttempt:merged ? Number(run.run_attempt) : null};
 }
 
 /** An explicit manual backstop reuses a proven source's existing prebuilt
@@ -353,6 +458,8 @@ export function readySource(runId, liveBuild, query = ghApi, now = Date.now()) {
   const queued = ship?.status === 'queued' && ship.conclusion === null
     && Number.isFinite(queuedAt) && now - queuedAt >= 30 * 60 * 1000;
   const terminal = ship?.status === 'completed' && ship.conclusion !== null && ['failure','cancelled'].includes(ship.conclusion);
+  if (selected.bootPublishRequired && (!Number.isFinite(queuedAt) || now - queuedAt < 30 * 60 * 1000))
+    throw new Error('Unstarted merged source requires at least 30 minutes queued');
   if (!queued && !terminal) throw new Error('Ready source requires failed/cancelled shipping or at least 30 minutes queued');
   if (productionFloor(liveBuild, selected.sha, query) === selected.sha)
     throw new Error('Ready source is already live');
@@ -372,12 +479,67 @@ export function readySource(runId, liveBuild, query = ghApi, now = Date.now()) {
     catch (error) { if (error instanceof SourceGateError) continue; throw error; }
     throw new Error(`Use newer proven source run ${run.id} instead`);
   }
-  return {...selected,authority:'ready-source',reason:queued?'queued-30m':'terminal-ship',verifiedAt:new Date(now).toISOString(),liveBuild};
+  return {...selected,authority:'ready-source',reason:queued?'queued-30m':selected.bootPublishRequired?'cancelled-before-start-30m':'terminal-ship',verifiedAt:new Date(now).toISOString(),liveBuild};
+}
+
+/** A POST can have succeeded even when its response was lost. Leave it to the
+ * verified manual-receipt resume instead of retrying a write over a new status.
+ * Existing GET retry policy remains unchanged. @param {string[]} args */
+function readyPublisherApi(args) {
+  return args.includes('POST')
+    ? execFileSync('gh', ['api','-H','Cache-Control: no-cache',...args], {encoding:'utf8'})
+    : ghApi(args);
+}
+
+/** Finish only an explicit manual backstop's missing publisher. Archive restore
+ * and re-admission precede the POST; its successful exact-run readback precedes
+ * any caller's deployment outputs. Selection itself stays read-only.
+ * @param {ReturnType<typeof readySource>} selected
+ * @param {(proof:ReturnType<typeof readySource>)=>string} restore
+ * @param {()=>ReturnType<typeof readySource>} recheck
+ * @param {(args:string[])=>string} [query] */
+export function completeReadySource(selected, restore, recheck, query = readyPublisherApi) {
+  if (!selected.bootPublishRequired) return {...selected,prebuiltArchive:null,bootPublished:false};
+  const archive = restore(selected);
+  const fresh = recheck();
+  if (fresh.sha !== selected.sha || fresh.run !== selected.run || fresh.runAttempt !== selected.runAttempt
+    || fresh.sixCompletedAt !== selected.sixCompletedAt)
+    throw new Error('Restored ready source identity or attempt changed');
+  if (!fresh.bootPublishRequired) return {...fresh,prebuiltArchive:archive,bootPublished:false};
+  if (fresh.runAttempt === null || fresh.sixCompletedAt === null) throw new Error('Missing merged publisher identity');
+  if (!fresh.bootAlreadyPublished) query([`repos/${REPO}/statuses/${fresh.sha}`, '--method','POST',
+    '-f','context=boot-smoke','-f','state=success',
+    '-f',`description=${manualBootDescription(fresh.run, fresh.runAttempt, fresh.sixCompletedAt)}`,
+    '-f',`target_url=https://github.com/${REPO}/actions/runs/${fresh.run}`]);
+  if (!manualBootMatches(mergedBootStatus(fresh.sha, query), fresh.run, fresh.runAttempt, fresh.sixCompletedAt))
+    throw new Error('Ready source boot publication readback differs');
+  return {...fresh,prebuiltArchive:archive,bootPublished:!fresh.bootAlreadyPublished};
+}
+
+/** Verify a manual publisher's complete archive outside the checkout. The
+ * selected-source checkout can remove its workspace, so the later release
+ * restores and revalidates this same cached archive after checkout again.
+ * @param {{sha:string,run:string}} proof @param {string} runnerTemp
+ * @param {(command:string,args:string[])=>void} [run] */
+export function stageReadyArchive(proof, runnerTemp, run = (command, args) => { execFileSync(command, args, {stdio:'inherit'}); }) {
+  if (!isAbsolute(runnerTemp) || !/^[a-f0-9]{40}$/u.test(proof.sha) || !/^[1-9][0-9]*$/u.test(proof.run))
+    throw new Error('Invalid ready archive staging identity');
+  const stage = mkdtempSync(join(runnerTemp, 'ready-source-'));
+  const archive = join(stage, 'prebuilt-output'), verified = join(stage, 'verified-root');
+  mkdirSync(verified);
+  try {
+    run('gh', ['run','download',proof.run,'--repo',REPO,'--name','vercel-prebuilt','--dir',archive]);
+    run('python3', [fileURLToPath(new URL('prebuilt-output.py', import.meta.url)),
+      'restore','--root',verified,'--directory',archive,'--sha',proof.sha,'--run',proof.run]);
+    return archive;
+  } finally { rmSync(verified, {recursive:true,force:true}); }
 }
 
 /** Bind the current push's successful wave before its own ship job completes.
  * GitHub supplies needs from this exact run; no neighbouring aggregate grants proof.
- * @param {{mode:string,event:string,ref:string,repository:string,sha:string,run:string,head:string,needs:unknown}} input
+ * The merged publisher supplies its actual successful step outcome; historical
+ * callers retain the separate completed boot-verdict job instead.
+ * @param {{mode:string,event:string,ref:string,repository:string,sha:string,run:string,head:string,needs:unknown,bootOutcome?:string|undefined}} input
  * @returns {{skip:boolean,sha:string,run:string}} */
 export function waveSource(input) {
   if (input.event !== 'push' || input.ref !== 'refs/heads/main' || input.repository !== REPO
@@ -385,7 +547,10 @@ export function waveSource(input) {
     throw new Error('Wave source is not the exact main push checkout');
   if (typeof input.needs !== 'object' || input.needs === null || Array.isArray(input.needs))
     throw new Error('Missing exact-run wave verdicts');
-  const required = ['prepare','typecheck-lint','derived-docs','behaviour','native-escape','journeys','boot-verdict'];
+  const merged = input.bootOutcome !== undefined;
+  if (merged && input.bootOutcome !== 'success') throw new Error('Wave boot publisher did not succeed');
+  const required = ['prepare','typecheck-lint','derived-docs','behaviour','native-escape','journeys',
+    ...(merged ? [] : ['boot-verdict'])];
   /** @type {Map<string, unknown>} */
   const rows = new Map(Object.entries(input.needs));
   if (rows.size !== required.length) throw new Error('Wave verdict inventory differs');
@@ -508,10 +673,12 @@ async function main() {
     if (!response.ok) throw new Error(`Ready source production floor returned HTTP ${response.status}`);
     const version = await response.json();
     if (typeof version?.build !== 'string') throw new Error('Ready source production floor has no build ID');
-    const selected = readySource(a1 ?? '', version.build);
+    const selected = completeReadySource(readySource(a1 ?? '', version.build),
+      candidate => stageReadyArchive(candidate, process.env.RUNNER_TEMP ?? ''),
+      () => readySource(a1 ?? '', version.build));
     writeFileSync(proof, `${JSON.stringify({requestRun:process.env.GITHUB_RUN_ID,actor:process.env.GITHUB_ACTOR??null,...selected},null,2)}\n`);
     if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT,
-      `sha=${selected.sha}\nmode=ready-source\ngate=required\nsource_run=${selected.run}\nrecovery=false\nskip=false\n`);
+      `sha=${selected.sha}\nmode=ready-source\ngate=required\nsource_run=${selected.run}\nrecovery=false\nskip=false\nprebuilt_archive=${selected.prebuiltArchive ?? ''}\n`);
     console.info(`Explicit prebuilt source ${selected.run}: ${selected.sha}; all source gates/SIX verified, actual aggregate ${selected.aggregate.status}/${selected.aggregate.conclusion}`);
     return 0;
   }
@@ -551,7 +718,7 @@ async function main() {
     const needs = JSON.parse(process.env.CI_WAVE_NEEDS ?? 'null');
     const selected = waveSource({mode:pin.mode,event:process.env.GITHUB_EVENT_NAME??'',ref:process.env.GITHUB_REF??'',
       repository:process.env.GITHUB_REPOSITORY??'',sha:process.env.GITHUB_SHA??'',run:process.env.GITHUB_RUN_ID??'',
-      head:git('rev-parse','HEAD'),needs});
+      head:git('rev-parse','HEAD'),needs,bootOutcome:process.env.CI_WAVE_BOOT_OUTCOME});
     if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT,
       `sha=${selected.sha}\nmode=${pin.mode}\ngate=${pin.gate}\nci_green=true\nsource_run=${selected.run}\nskip=${selected.skip}\n`);
     console.log(`Exact push wave ${selected.run}: ${selected.sha}; automatic mode ${!selected.skip}`);

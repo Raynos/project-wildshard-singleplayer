@@ -91,7 +91,8 @@ test('parallel and dedicated native CI discover every existing file exactly once
  const registry=v.parse(v.record(v.string(),v.array(v.string())),JSON.parse(readFileSync('scripts/test-products.json','utf8')));
  for(const [file,products] of Object.entries(registry))if(products.length>0)expect(paths).toContain(file);
  const ship=workflow.split('\n  build-and-deploy:\n')[1]?.split('\n  typecheck-lint:\n')[0];
- expect(ship).toContain('prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys, boot-verdict]');
+ expect(ship).toContain('prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys]');
+ expect(ship).toContain(`CI_WAVE_BOOT_OUTCOME: \${{ steps.boot.outcome }}`);
  const nativeJob=workflow.split('\n  native-escape:\n')[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0];
  expect(nativeJob).toBeDefined();
  expect(nativeJob).toContain('runs-on: ubuntu-latest');

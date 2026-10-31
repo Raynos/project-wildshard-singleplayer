@@ -73,17 +73,38 @@ env:
 
 jobs:
   build-and-deploy:
-    needs: [prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys, boot-verdict]
-    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && needs.prepare.result == 'success' && needs.typecheck-lint.result == 'success' && needs.derived-docs.result == 'success' && needs.behaviour.result == 'success' && needs.native-escape.result == 'success' && needs.journeys.result == 'success' && needs.boot-verdict.result == 'success')) }}
+    needs: [prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys]
+    if: ${{ always() && (github.event_name == 'workflow_dispatch' || ((github.event_name == 'push' || github.event_name == 'pull_request') && needs.prepare.result != 'skipped')) }}
     concurrency:
-      group: production-release
+      group: ${{ (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && needs.prepare.result == 'success' && needs.typecheck-lint.result == 'success' && needs.derived-docs.result == 'success' && needs.behaviour.result == 'success' && needs.native-escape.result == 'success' && needs.journeys.result == 'success')) && 'production-release' || format('boot-verdict-{0}', github.run_id) }}
       cancel-in-progress: false
     env:
       DEPLOY: 'true'
+      MERGED_BOOT_PROOF: 'v1'
+      RELEASE_ALLOWED: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && needs.prepare.result == 'success' && needs.typecheck-lint.result == 'success' && needs.derived-docs.result == 'success' && needs.behaviour.result == 'success' && needs.native-escape.result == 'success' && needs.journeys.result == 'success') }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
+      - name: Publish exact-SHA proof outcome
+        id: boot
+        if: always() && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TESTED_SHA: ${{ github.sha }}
+          BUILD: ${{ needs.prepare.result }}
+          LEGS: ${{ needs.journeys.result }}
+        run: |
+          case "$BUILD:$LEGS" in
+            success:success) state=success; description='Real built-dist title and gameplay proof' ;;
+            *cancelled*) state=error; description='Cancelled before all smoke legs completed' ;;
+            *) state=failure; description='Real built-dist title and gameplay proof' ;;
+          esac
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$TESTED_SHA" \
+            -f context=boot-smoke -f state="$state" -f description="$description" \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
       - uses: actions/checkout@v4
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' }}
         with:
           # Progress captures and art sources are not used by this build.
           filter: blob:none
@@ -97,10 +118,12 @@ jobs:
       # Resolve the current pin policy, including newest CI + exact-SHA smoke for newest-ci-green.
       # main's reader runs from $RUNNER_TEMP because the selected tree may predate it.
       - name: Read the deploy pin
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' }}
         id: pin
         env:
           GH_TOKEN: ${{ github.token }}
           CI_WAVE_NEEDS: ${{ toJSON(needs) }}
+          CI_WAVE_BOOT_OUTCOME: ${{ steps.boot.outcome }}
           RECOVERY_SOURCE_RUN: ${{ inputs.recovery_source_run }}
           READY_SOURCE_RUN: ${{ inputs.ready_source_run }}
           READY_SOURCE_PROOF: ${{ runner.temp }}/ready-source.json
@@ -129,7 +152,7 @@ jobs:
           fi
 
       - name: Retain explicit prebuilt source verdicts
-        if: always() && inputs.ready_source_run != ''
+        if: ${{ !cancelled() && env.RELEASE_ALLOWED == 'true' && (always() && inputs.ready_source_run != '') }}
         uses: actions/upload-artifact@v4
         with:
           name: ready-source
@@ -138,7 +161,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Retain explicit deadline source verdicts
-        if: always() && inputs.deadline_recovery_source_run != ''
+        if: ${{ !cancelled() && env.RELEASE_ALLOWED == 'true' && (always() && inputs.deadline_recovery_source_run != '') }}
         uses: actions/upload-artifact@v4
         with:
           name: deadline-recovery-source
@@ -147,21 +170,21 @@ jobs:
           if-no-files-found: ignore
 
       - name: Check out the pin
-        if: github.event_name == 'workflow_dispatch'
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (github.event_name == 'workflow_dispatch') }}
         run: |
           git fetch --no-tags --filter=blob:none origin "${{ steps.pin.outputs.sha }}"
           git checkout --detach "${{ steps.pin.outputs.sha }}"
 
       - name: Check live commit
         id: live
-        if: steps.pin.outputs.skip != 'true'
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.skip != 'true') }}
         env:
           DEPLOY_FORCE: ${{ inputs.force }}
           DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
         run: node "$RUNNER_TEMP/deploy-version.mjs" check
 
       - name: Require deployment credentials
-        if: steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true'
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true') }}
         env:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
         run: |
@@ -169,19 +192,23 @@ jobs:
           test -n "$VERCEL_ORG_ID" && test -n "$VERCEL_PROJECT_ID" || { echo '::error::Vercel project IDs are missing'; exit 1; }
 
       - uses: actions/setup-node@v4
-        if: steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true'
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true') }}
         with:
           node-version: 24
 
       - name: Restore the exact successful push artifact
-        if: steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true' && steps.pin.outputs.recovery != 'true'
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true' && steps.pin.outputs.recovery != 'true') }}
         env:
           SOURCE_RUN: ${{ steps.pin.outputs.source_run }}
           DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
+          PREBUILT_ARCHIVE: ${{ steps.pin.outputs.prebuilt_archive }}
         run: |
           test -n "$SOURCE_RUN"
-          gh run download "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --name vercel-prebuilt --dir prebuilt-output
-          python3 "$RUNNER_TEMP/prebuilt-output.py" restore --sha "$DEPLOY_SHA" --run "$SOURCE_RUN"
+          if [ -z "$PREBUILT_ARCHIVE" ]; then
+            PREBUILT_ARCHIVE=prebuilt-output
+            gh run download "$SOURCE_RUN" --repo "$GITHUB_REPOSITORY" --name vercel-prebuilt --dir "$PREBUILT_ARCHIVE"
+          fi
+          python3 "$RUNNER_TEMP/prebuilt-output.py" restore --sha "$DEPLOY_SHA" --run "$SOURCE_RUN" --directory "$PREBUILT_ARCHIVE"
           npm install --global vercel@59.11.2
           mkdir -p .vercel
           printf '{"projectId":"%s","orgId":"%s"}' "$VERCEL_PROJECT_ID" "$VERCEL_ORG_ID" > .vercel/project.json
@@ -189,14 +216,14 @@ jobs:
       # Explicit recovery alone uses the historical build controller on the
       # exact proven source. Automatic shipping still restores its tested output.
       - uses: pnpm/action-setup@v4
-        if: steps.pin.outputs.recovery == 'true' && steps.live.outputs.skip != 'true'
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.recovery == 'true' && steps.live.outputs.skip != 'true') }}
         with:
           version: 10
       - name: Install exact recovery source dependencies
-        if: steps.pin.outputs.recovery == 'true' && steps.live.outputs.skip != 'true'
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.recovery == 'true' && steps.live.outputs.skip != 'true') }}
         run: pnpm install --frozen-lockfile
       - name: Build proven recovery source with the pre-CI2 controller
-        if: steps.pin.outputs.recovery == 'true' && steps.live.outputs.skip != 'true'
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.recovery == 'true' && steps.live.outputs.skip != 'true') }}
         env:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
           VERCEL_GIT_COMMIT_SHA: ${{ steps.pin.outputs.sha }}
@@ -225,7 +252,7 @@ jobs:
       # Hidden maps remain in dist for build checks, local profiles and stack
       # decoding. Keep the release's copies off the public CDN.
       - name: Retain production source maps privately
-        if: steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true'
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true') }}
         uses: actions/upload-artifact@v4
         with:
           name: production-source-maps-${{ steps.pin.outputs.sha }}
@@ -240,7 +267,7 @@ jobs:
           if-no-files-found: error
 
       - name: Deploy prebuilt output
-        if: steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true'
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true') }}
         env:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
           DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
@@ -253,7 +280,7 @@ jobs:
           echo "### Deployed \`$DEPLOY_SHA\` (the deploy pin) to $url" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify production
-        if: steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true'
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true') }}
         env:
           DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
         run: |
@@ -262,7 +289,7 @@ jobs:
           test "$code" = 401 || { echo "::error::/api/inbox returned HTTP $code, expected 401"; exit 1; }
 
       - name: Record verified production history
-        if: steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true'
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true') }}
         env:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
@@ -272,7 +299,7 @@ jobs:
             -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
       - name: Publish exact failure paths
-        if: failure()
+        if: ${{ !cancelled() && env.RELEASE_ALLOWED == 'true' && (failure()) }}
         uses: actions/upload-artifact@v4
         with:
           name: ci-failures-web
@@ -1297,29 +1324,3 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
-  boot-verdict:
-    # G745 dry run: six required legs plus one report-only phone route.
-    # Remove only its continue-on-error after the first ordinary report.
-    # A replaced required leg leaves this SHA unproven:
-    # it gets `error` so a pending status never lingers; the newer SHA carries the proof.
-    needs: [prepare, journeys]
-    if: always() && (github.event_name == 'push' || github.event_name == 'pull_request') && needs.prepare.result != 'skipped'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Publish exact-SHA proof outcome
-        if: github.event_name == 'push'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TESTED_SHA: ${{ github.sha }}
-          BUILD: ${{ needs.prepare.result }}
-          LEGS: ${{ needs.journeys.result }}
-        run: |
-          case "$BUILD:$LEGS" in
-            success:success) state=success; description='Real built-dist title and gameplay proof' ;;
-            *cancelled*) state=error; description='Cancelled before all smoke legs completed' ;;
-            *) state=failure; description='Real built-dist title and gameplay proof' ;;
-          esac
-          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$TESTED_SHA" \
-            -f context=boot-smoke -f state="$state" -f description="$description" \
-            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"

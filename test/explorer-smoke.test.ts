@@ -123,7 +123,7 @@ test('the Explorer leg retains every primary, including Signal and Developer-onl
   expect(phone).toContain('run: node scripts/parity/phone-route-runner.mjs --route=entry');
   expect(workflow).toContain("if: matrix.part == 'explorer'");
   expect(workflow).toContain('run: node scripts/parity/explorer-smoke.mjs');
-  expect(workflow).toContain('needs: [prepare, journeys]');
+  expect(workflow).toContain('needs: [prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys]');
 });
 
 test('missing, failed, duplicate and black card frames refuse with their real model identity', () => {
