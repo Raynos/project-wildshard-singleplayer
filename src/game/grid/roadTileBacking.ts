@@ -21,7 +21,9 @@ interface PendingArchive {
   readonly owner: Scope; readonly references: RoadTileReference[]; readonly ready: Promise<ArchiveResult>; readonly budget: number;
   readonly settled: { result: ArchiveResult | undefined };
 }
-const ARCHIVE_WINDOW = 6;
+// Limit native jobs as well as retained scratch. The unchanged byte bound
+// remains authoritative and drains earlier for larger/unknown archives.
+const ARCHIVE_WINDOW = 32;
 
 /** Conservative scratch bound: compacted attributes/indices, number tables,
  * coarse child/merge copies, encoded bodies and native read/hash/write copies.
@@ -71,7 +73,7 @@ export class RoadTileBacking {
       void this.settlePending();
     });
   }
-  /** Independent archives overlap in a six-job, byte-bounded window. Every
+  /** Independent archives overlap in a byte-bounded window of at most 32 jobs. Every
    * source still drains in authored order before its mesh can be published. */
   *capture(mesh: Mesh, plan: CullPlan): Generator<void, void> {
     if (this.stream !== null || this.capturing || this.flushing !== null || this.settling !== null || this.pending.length > 0

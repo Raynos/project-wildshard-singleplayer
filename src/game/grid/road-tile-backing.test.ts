@@ -73,20 +73,20 @@ function gatedStore(first: number, quota = true): {
 }
 
 test('bounded independent archives drain before capture returns and retain every serial byte', async () => {
-  const f = fixture(), scope = new Scope('road pipeline'), store = gatedStore(6), expected = await serialBodies(f.mesh, f.plan);
+  const f = fixture(40), scope = new Scope('road pipeline'), store = gatedStore(32), expected = await serialBodies(f.mesh, f.plan);
   const backing = new RoadTileBacking(scope, store.store, { pitch: 125, plans: new Map() });
   const work = capture(backing, f.mesh, f.plan);
   await store.started;
-  expect(store.counts.reads).toBe(6); expect(backing.state().backedTiles).toBe(0);
+  expect(store.counts.reads).toBe(32); expect(backing.state().backedTiles).toBe(0);
   await expect(backing.settlePending()).rejects.toThrow('capture must close');
   store.release(); await work;
-  expect(store.counts.peak).toBe(6); expect(store.counts.active).toBe(0);
-  expect(store.counts.reads).toBe(16); expect(backing.state().backedTiles).toBe(16);
+  expect(store.counts.peak).toBe(32); expect(store.counts.active).toBe(0);
+  expect(store.counts.reads).toBe(80); expect(backing.state().backedTiles).toBe(80);
   expect([...store.bodies.keys()].sort()).toEqual([...expected.keys()].sort());
   for (const [hash, bytes] of expected) expect(store.bodies.get(hash)).toEqual(bytes);
-  const warm = fixture(), writes = store.counts.writes;
+  const warm = fixture(40), writes = store.counts.writes;
   await capture(backing, warm.mesh, warm.plan);
-  expect(store.counts.writes).toBe(writes); expect(backing.state().backedTiles).toBe(32);
+  expect(store.counts.writes).toBe(writes); expect(backing.state().backedTiles).toBe(160);
   scope.dispose(); expect(store.counts.releases).toBe(store.counts.pins); warm.close(); f.close();
 });
 
@@ -103,19 +103,19 @@ test.each(['large', 'unknown'] as const)('%s scratch estimates retain the origin
   scope.dispose(); expect(store.counts.releases).toBe(store.counts.pins); f.close();
 });
 
-test.each([0, 5])('a completed slot %i refills while five reads remain held; references stay authored', async completed => {
-  const f = fixture(12), scope = new Scope('rolling road archives');
+test.each([0, 31])('a completed slot %i refills while 31 reads remain held; references stay authored', async completed => {
+  const f = fixture(40), scope = new Scope('rolling road archives');
   const expected = await serialBodies(f.mesh, f.plan), bodies = new Map<string, Uint8Array>();
   const release: (() => void)[] = []; let reads = 0, active = 0, peak = 0;
-  let six = (): void => undefined, seven = (): void => undefined;
-  const firstWindow = new Promise<void>(resolve => { six = resolve; });
-  const refilled = new Promise<void>(resolve => { seven = resolve; });
+  let windowReady = (): void => undefined, nextAdmitted = (): void => undefined;
+  const firstWindow = new Promise<void>(resolve => { windowReady = resolve; });
+  const refilled = new Promise<void>(resolve => { nextAdmitted = resolve; });
   const backing = new RoadTileBacking(scope, {
     get: async hash => {
       reads++; active++; peak = Math.max(peak, active);
       try {
-        if (reads <= 6) await new Promise<void>(resolve => { release.push(resolve); if (release.length === 6) six(); });
-        else if (reads === 7) seven();
+        if (reads <= 32) await new Promise<void>(resolve => { release.push(resolve); if (release.length === 32) windowReady(); });
+        else if (reads === 33) nextAdmitted();
         return bodies.get(hash)?.slice() ?? null;
       } finally { active--; }
     },
@@ -124,38 +124,38 @@ test.each([0, 5])('a completed slot %i refills while five reads remain held; ref
   const work = capture(backing, f.mesh, f.plan);
   try {
     await firstWindow; release[completed]?.(); await refilled;
-    expect(reads).toBe(7); expect(active).toBe(5); expect(peak).toBe(6);
-    if (completed === 5) expect(backing.state().backedTiles).toBe(0);
+    expect(reads).toBe(33); expect(active).toBe(31); expect(peak).toBe(32);
+    if (completed === 31) expect(backing.state().backedTiles).toBe(0);
   } finally { for (const done of release) done(); await work; scope.dispose(); f.close(); }
-  expect(reads).toBe(24); expect(active).toBe(0);
+  expect(reads).toBe(80); expect(active).toBe(0);
   expect([...bodies.keys()].sort()).toEqual([...expected.keys()].sort());
   for (const [hash, bytes] of expected) expect(bodies.get(hash)).toEqual(bytes);
 });
 
 test('quota failure drains every started operation and publishes no failed source', async () => {
-  const f = fixture(), scope = new Scope('road pipeline quota'), store = gatedStore(6, false);
+  const f = fixture(40), scope = new Scope('road pipeline quota'), store = gatedStore(32, false);
   const backing = new RoadTileBacking(scope, store.store, { pitch: 125, plans: new Map() });
   const work = capture(backing, f.mesh, f.plan), refused = expect(work).rejects.toThrow('storage refused');
   await store.started; store.release(); await refused;
-  expect(store.counts.reads).toBe(6); expect(store.counts.active).toBe(0);
+  expect(store.counts.reads).toBe(32); expect(store.counts.active).toBe(0);
   expect(backing.state().materials).toBe(0); expect(backing.state().backedTiles).toBe(0);
   expect(store.counts.releases).toBe(store.counts.pins); scope.dispose(); f.close();
 });
 
 test('retirement joins late reads, refuses late writes and releases each pin once', async () => {
-  const f = fixture(), scope = new Scope('road pipeline retirement'), store = gatedStore(6);
+  const f = fixture(40), scope = new Scope('road pipeline retirement'), store = gatedStore(32);
   const backing = new RoadTileBacking(scope, store.store, { pitch: 125, plans: new Map() });
   const work = capture(backing, f.mesh, f.plan), refused = expect(work).rejects.toThrow('owner retired');
   await store.started; scope.dispose();
   let settled = false; const joining = (async () => { await backing.settlePending(); settled = true; })();
   await Promise.resolve(); expect(settled).toBe(false);
   store.release(); await refused; await joining;
-  expect(store.counts.active).toBe(0); expect(store.counts.reads).toBe(6); expect(store.counts.writes).toBe(0);
+  expect(store.counts.active).toBe(0); expect(store.counts.reads).toBe(32); expect(store.counts.writes).toBe(0);
   expect(store.counts.releases).toBe(store.counts.pins); expect(backing.state().materials).toBe(0); f.close();
 });
 
 test('out-of-order failures retain the first authored refusal after all started work drains', async () => {
-  const f = fixture(), scope = new Scope('road authored refusal'), store = gatedStore(6);
+  const f = fixture(40), scope = new Scope('road authored refusal'), store = gatedStore(32);
   const first = new Error('first road write'), later = new Error('later road write');
   store.store.put = (_hash, bytes) => {
     const data = decodeRoadTile(bytes), x = data.plan.bins[0]?.tile?.x; data.geometry.dispose();
@@ -164,7 +164,7 @@ test('out-of-order failures retain the first authored refusal after all started 
   const backing = new RoadTileBacking(scope, store.store, { pitch: 125, plans: new Map() });
   const work = capture(backing, f.mesh, f.plan), refused = expect(work).rejects.toBe(first);
   await store.started; store.release(); await refused;
-  expect(store.counts.reads).toBe(6); expect(store.counts.active).toBe(0);
+  expect(store.counts.reads).toBe(32); expect(store.counts.active).toBe(0);
   expect(store.counts.releases).toBe(store.counts.pins); expect(backing.state().materials).toBe(0);
   scope.dispose(); f.close();
 });
@@ -207,4 +207,19 @@ test.each(['clean', 'repair', 'quota'] as const)('equal cold hashes preserve lat
       for (const [hash, bytes] of expected) expect(bodies.get(hash)).toEqual(bytes);
     }
   } finally { release(); await result; spy.mockRestore(); scope.dispose(); f.close(); }
+});
+
+test('the unchanged 25 MB scratch bound limits medium archives before the job-count window', async () => {
+  // For these original float3 sources, each fine archive charges 4,105,704
+  // bytes: six fit in 25 MB, the seventh does not. This is below 32 jobs.
+  const f = fixture(8, 8001), scope = new Scope('road byte window'), store = gatedStore(6);
+  const expected = await serialBodies(f.mesh, f.plan);
+  const backing = new RoadTileBacking(scope, store.store, { pitch: 125, plans: new Map() });
+  const work = capture(backing, f.mesh, f.plan);
+  try {
+    await store.started; expect(store.counts.reads).toBe(6); expect(store.counts.active).toBe(6);
+  } finally { store.release(); await work; scope.dispose(); f.close(); }
+  expect(store.counts.active).toBe(0);
+  expect([...store.bodies.keys()].sort()).toEqual([...expected.keys()].sort());
+  for (const [hash, bytes] of expected) expect(store.bodies.get(hash)).toEqual(bytes);
 });
