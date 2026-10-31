@@ -1,7 +1,8 @@
 // Browser-lane required. First prove exact A/A, then compare native components.
 // --control=<landed revision> --candidate=<landed revision> --out=tmp/<owned dir>
 // Optional --candidate-draw-hooks=PATH is an explicit isolated source fixture;
-// whole-world proof still uses ordinary exact-revision previews.
+// --candidate-upload-ownership=PATH isolates the upload observer instead.
+// Whole-world proof still uses ordinary exact-revision previews.
 import { chromium, devices } from 'playwright';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -14,9 +15,12 @@ if (!control || !candidate || !output) throw new Error('Requires --control=REV -
 const out = resolve(output);
 if (!out.startsWith(`${resolve('tmp')}/`)) throw new Error('Components require repository tmp output');
 mkdirSync(out, { recursive: true });
-const candidateSourceFixture = arg('candidate-draw-hooks') ?? null;
-const revisions = await buildComponents(control, candidate, out, candidateSourceFixture ?? undefined);
-const result = { revisions, candidateSourceFixture, protocol: 'Metal WebGL2, iPhone 16 Pro PWA 402x874, DPR2, seeded static components, no post; exact RGBA and native counts', rows: [], comparisons: [] };
+const drawFixture = arg('candidate-draw-hooks'), uploadFixture = arg('candidate-upload-ownership');
+if (drawFixture && uploadFixture) throw new Error('Components isolate one source fixture at a time');
+const candidateSourceFixture = drawFixture ?? uploadFixture ?? null;
+const candidateModule = uploadFixture ? 'src/engine/render/uploadOwnership.ts' : 'src/engine/render/drawHooks.ts';
+const revisions = await buildComponents(control, candidate, out, candidateSourceFixture ?? undefined, candidateModule);
+const result = { revisions, candidateSourceFixture, candidateModule, protocol: 'Metal WebGL2, iPhone 16 Pro PWA 402x874, DPR2, seeded static components, no post; exact RGBA and native counts', rows: [], comparisons: [] };
 const save = () => writeFileSync(resolve(out, 'reading.json'), JSON.stringify(result, null, 2));
 const browser = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-angle=metal'] });
 try {

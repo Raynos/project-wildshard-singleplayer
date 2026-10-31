@@ -124,7 +124,12 @@ export class UploadOwnership {
       if (seen !== undefined && seen.render === this.drawGen && seen.owner === this.drawOwnerId) return;
     }
     if (this.level.disposed || !isResource(value)) return;
-    const resource = value;
+    this.observeResource(value);
+  }
+  /** Draw arguments are already typed resources; avoid repeating runtime
+   * classification and its first cache lookup on every submission. */
+  private observeResource(resource: Resource): void {
+    if (this.level.disposed) return;
     if (this.drawDepth > 0) {
       const owner = this.drawOwnerId ?? null;
       const seen = this.observedIn.get(resource);
@@ -306,8 +311,8 @@ export class UploadOwnership {
         hooks.ownerToken = this.drawOwnerId;
         this.drawDepth++; this.drawGen = counted === null ? ++this.drawGens : renderCount(counted);
         // A batch must claim its private aggregate geometry/textures before renderer property reads observe them.
-        if (object instanceof InstancedMesh || object instanceof BatchedMesh) this.observe(object);
-        this.observe(geometry); this.observe(material);
+        if (object instanceof InstancedMesh || object instanceof BatchedMesh) this.observeResource(object);
+        this.observeResource(geometry); this.observeResource(material);
       },
       end: () => {
         this.drawDepth--; this.drawOwner = owners[this.drawDepth] ?? null; this.drawOwnerId = ids[this.drawDepth];
