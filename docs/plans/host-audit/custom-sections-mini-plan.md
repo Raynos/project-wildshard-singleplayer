@@ -316,3 +316,54 @@ solids, 164 actors, three parked bodies and 52 herds through the existing
 `WorldPhysicsSchema` without changing their values. Its separate profile,
 notice, King-hit, tree, shelter-tree and piece owners must survive the
 actual migration; no projection or native-world completion is claimed.
+
+
+## CS9: source-first assembly derivation
+
+**2026-10-31, sp-x1 — open.** The four modern products still emit
+`sim/headless-assembly.json`: Driftwood 932,863 B, Pine 64,873 B,
+Nalati 135,522 B and Nine 731 B. All four source declarations have empty
+`modules`, `prepare` and `install` collections; their legacy expression
+scaffolding and unique native constants are not yet retired. Registering
+that scaffold under a new name would not satisfy CS9.
+
+A bounded derivation candidate is prepared off-tree. Driftwood's
+`chapterDirector` exactly duplicates `quests/chapter-director.json`, and
+`nativeEncounter` duplicates `quests/wake-boss.json#encounter`; Nalati's
+`nativeField` exactly duplicates `world/meadow.json`. The existing defining
+native parsers admit all three payloads. Reconstructing each original full
+assembly from the proposed remaining constants and these real payloads
+produces byte-identical canonical JSON. The projected assembly sizes are
+931,426 B and 113,878 B respectively. These are offline feasibility facts,
+not qualified producer outputs or a native behavior result. The producer,
+reader and original product-test patches remain off-tree through the
+already reserved earned-chain and physics-walk turns. CS9 stays open
+until actual emission, full unrelated-payload identity and native controls
+qualify; all other constants and the view/graph AS exits remain explicit.
+
+## CS3: modern scene inventory before captures
+
+**2026-10-31, sp-x1 — source-only inventory.** This bounded inventory reads
+only the seven existing modern products and their source-project configs.
+Each selected member is hash-verified; no legacy folder or legacy-final
+pin is read or modified. Names below describe existing payloads, not a
+new registration, consolidation, reader adoption or pixel qualification.
+
+| Modern product | Root world/scenes | Placement family | Model catalogue | Scene/source candidates |
+|---|---:|---:|---:|---:|
+| Driftwood | 1 / 689,373 B | 12 / 688,231 B | 1 / 98,139 B | 11 / 5,066 B |
+| Pine | 1 / 353,324 B | 112 / 566,608 B | 1 / 233,857 B | 72 / 1,735,138 B |
+| Nalati | 1 / 208 B | 0 | 0 | 0 |
+| Nine | 1 / 481,022 B | 70 / 6,328,079 B | 1 / 53,009 B | 3 / 3,397 B |
+| Far Reach | 1 / 313,596 B | 0 | 0 | 18 / 480,683 B |
+| Sunscar | 1 / 22,431 B | 0 | 0 | 11 / 60,231 B |
+| Blender template | 0 | 0 | 0 | 0 |
+
+The placement names are the four already registered placement families;
+the model catalogue is the existing shared schema. Scene/source
+candidates include literal scene paths and existing WorldScene defining
+contracts; dynamic references and shared resource lifetimes still need
+source review. Counts are scoped to these seven products, not the entire
+24-product inventory. CS3 implementation requires identical captures,
+including tier/shadow variants and complete scene resources. No drawing
+path changes or capture credit are claimed here.
