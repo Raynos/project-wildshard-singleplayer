@@ -7,6 +7,7 @@ import { ChapterDirectorSchema,parseChapterDirector } from './chapterDirector';
 import { FigureCatalogueSchema } from './figures';
 import { QuestTraderSchema } from './namedJsonContracts';
 import { WorldScenePlacementSchema,parseWorldScenePlacement } from './worldScenePlacement';
+import { QuestPageInteractionsSchema,parseQuestPageInteractions } from './questInteractions';
 
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
@@ -18,6 +19,9 @@ export interface RegisteredJsonContracts {
   readonly 'quests/achievements.json':{readonly schema:typeof AchievementCounterDataSchema;readonly source:'@wildshard/format/achievementCounters#AchievementCounterDataSchema'};
   readonly 'quests/page-composition.json':{readonly schema:typeof QuestPageCompositionSchema;readonly source:'@wildshard/format/questPageComposition#QuestPageCompositionSchema'};
   readonly 'quests/services.json':{readonly schema:typeof QuestServiceActionsSchema;readonly source:'@wildshard/format/questSteps#QuestServiceActionsSchema'};
+  readonly 'quests/trader.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
+  readonly 'quests/mill-door.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
+  readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
   'people/catalogue.json': {schema:FigureCatalogueSchema,source:'@wildshard/format/figures#FigureCatalogueSchema'},
@@ -27,6 +31,9 @@ export const REGISTERED_JSON:RegisteredJsonContracts = {
   'quests/achievements.json': {schema:AchievementCounterDataSchema,source:'@wildshard/format/achievementCounters#AchievementCounterDataSchema'},
   'quests/page-composition.json': {schema:QuestPageCompositionSchema,source:'@wildshard/format/questPageComposition#QuestPageCompositionSchema'},
   'quests/services.json': {schema:QuestServiceActionsSchema,source:'@wildshard/format/questSteps#QuestServiceActionsSchema'},
+  'quests/trader.json': {schema:QuestPageInteractionsSchema,source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'},
+  'quests/mill-door.json': {schema:QuestPageInteractionsSchema,source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'},
+  'quests/lanterns.json': {schema:QuestPageInteractionsSchema,source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'},
 };
 export type RegisteredJsonName=keyof typeof REGISTERED_JSON;
 export type RegisteredJsonValues={readonly[Name in RegisteredJsonName]:v.InferOutput<(typeof REGISTERED_JSON)[Name]['schema']>};
@@ -70,6 +77,9 @@ export function validateRegisteredJson(name:string,value:unknown):void {
     case 'quests/achievements.json':parseAchievementCounterData(value);break;
     case 'quests/page-composition.json':v.parse(QuestPageCompositionSchema,value);break;
     case 'quests/services.json':parseQuestServiceActions(value);break;
+    case 'quests/trader.json':
+    case 'quests/mill-door.json':
+    case 'quests/lanterns.json':parseQuestPageInteractions(value);break;
     default:
       if(registeredJsonContract(name)===placementContract){parseWorldScenePlacement(value);break;}
       throw new Error(`Unregistered JSON name: ${name}`);
