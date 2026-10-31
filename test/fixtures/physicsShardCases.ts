@@ -1,7 +1,7 @@
 import {afterAll,beforeAll,describe,expect,it} from 'vitest';
 import * as v from 'valibot';
 import {HeadlessJourneyPlanSchema} from '../../src/sdk/headlessJourney';
-import {openProductSession} from './headless/productSession';
+import {beginProductSession,type openProductSession} from './headless/productSession';
 import {physicsRoutes} from './headless/physicsRoutes';
 
 // The original browser ruler keeps one world alive for each shard. In Nine,
@@ -9,7 +9,12 @@ import {physicsRoutes} from './headless/physicsRoutes';
 export function physicsShardCases(include:(slug:string)=>boolean):void {
 for(const slug of new Set(physicsRoutes.map(row=>row.slug).filter(candidate=>candidate!=='driftwood-isle'&&include(candidate))))describe(slug,{concurrent:false,shuffle:false},()=>{
   let session:Awaited<ReturnType<typeof openProductSession>>|undefined;
-  beforeAll(async()=>{session=await openProductSession(slug);});
+  beforeAll(async()=>{
+    const start=performance.now(),phase=(name:string):void=>{console.info(JSON.stringify({diagnostic:'native-physics-setup',slug,phase:name,elapsedMs:Math.round(performance.now()-start)}));};
+    phase('start');
+    const pending=await beginProductSession(slug);phase('product-and-worker-started');
+    session={sim:await pending.ready(),product:pending.product};phase('worker-ready');
+  });
   afterAll(async()=>{
     if(session===undefined)return;
     const {sim}=session;await sim.dispose();
