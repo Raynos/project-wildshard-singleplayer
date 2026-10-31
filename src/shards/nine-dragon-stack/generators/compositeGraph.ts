@@ -70,8 +70,10 @@ function silhouette(s: Ctx): Layer {
   // the nearest lines (under 1.6 m) skip the fog: its scale 0 there
   const fogged = silkFog(g, wp, g.v3('uCam'), ink), lineC = choose(near, ink, fogged.colour), transmission = choose(near, 1, fogged.transmission);
   const lineOn = g.and(g.and(gt(wc, 1e-5), gt(g.scalar('uLines', 1), 0.5)), gt(e, 0.002));
-  const edge = choose(lineOn, mul(e, g.pow(max(transmission, 1e-4), sub(g.scalar('uLineFog', 1), 1))), 0);
-  return { colour: choose(lineOn, lineC, [0, 0, 0]), alpha: edge };
+  // the line's colour and coverage in one select, so the silk fog march sits in its branch: only line pixels run it
+  // (the colour and the coverage read the fog apart, which hoisted the march over every pixel: the iPhone's GPU cost)
+  const line = choose(lineOn, g.vec(lineC, mul(e, g.pow(max(transmission, 1e-4), sub(g.scalar('uLineFog', 1), 1)))), [0, 0, 0, 0]);
+  return { colour: sw(line, 'xyz'), alpha: sw(line, 'w') };
 }
 
 /** The rest of the Jiehua frame over the scene colour and the silhouette's line, before its grade. */
