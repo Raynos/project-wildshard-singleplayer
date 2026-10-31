@@ -472,8 +472,9 @@ Mapped sampled self costs in the current after profile:
 
 These native/program samples do not isolate an internal browser cost.
 Nested preparation envelopes overlap and cannot be summed. Retained
-private maps now join the exact served build; no old missing map is
-substituted. No remaining sampled JavaScript item explains the CI
+private maps now join the exact served build: 42 of 44 requested maps
+are retained. The main and bundler-runtime map files are missing and
+remain unmapped; no other map is substituted. No remaining sampled JavaScript item explains the CI
 19.1 s Home envelope by itself. Simulator loading acceptance stays open.
 The exact cache-query cut is delivered, but this pair does not justify
 a broader cache, lifetime or admission change.
