@@ -3,6 +3,7 @@
 // SF66 (G247): a shard whose baked map (look/map.baked.json) no longer matches its world is refused in CI and on Vercel,
 // so a stale map never deploys; a local build only warns, since the rebake itself needs a served build of that world
 // (node scripts/bake-maps.mjs --url=<scripts/serve-build.sh --head> --shards=<slug>). test/baked-maps.test.ts is the gate's check.
+import { createBuildCacheCounters, observeBuildCache, formatBuildCacheReport } from './build-cache-report.mjs';
 import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -38,7 +39,7 @@ export function readBuiltShardfile(root, name, options = {}) { return selectBuil
 // that product's current receipt, so it cannot be left stale (unchanged inputs reuse it at once).
 /** Pack every first-party map through the existing charged SDK row; missing maps keep the old no-map build path.
  * @param {string} root @param {{strict?:boolean, build?:typeof runWildshard, reuse?:boolean, only?:string[], scope?:string[], copyRuntime?:boolean|'closed',onFailure?:(slug:string,error:unknown)=>void}} options */
-export async function buildShardfiles(root, { strict = [process.env.CI, process.env.VERCEL].some(flag => flag !== undefined && flag !== '' && flag !== 'false'), build = runWildshard, reuse = false, only, scope, copyRuntime = 'closed',onFailure } = {}) {
+async function buildShardfilesWork(root, { strict = [process.env.CI, process.env.VERCEL].some(flag => flag !== undefined && flag !== '' && flag !== 'false'), build = runWildshard, reuse = false, only, scope, copyRuntime = 'closed',onFailure } = {}, counters = createBuildCacheCounters()) {
   if(onFailure!==undefined&&strict)throw new Error('Product failure collection is report-only; strict builds must fail');
   if (scope !== undefined && only !== undefined) throw new Error('Product phase scope and CLI only filter cannot be combined');
   const outputRoot = resolve(root, 'out');
@@ -95,7 +96,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   try {
   await runShardBuildPool(ordered, async ({ name, folder, output }, signal) => {
     if (scope !== undefined && !scope.includes(name)) return;
-    const buildOne = args => build === runWildshard ? runShardBuild(args, signal) : build(args);
+    const buildOne = args => build === runWildshard ? runShardBuild(args, signal, report=>{counters.merge(report);}) : build(args);
     const project = resolve(projects, folder);
     try {
     const started = performance.now();
@@ -147,10 +148,12 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     console.info(`tile bake: ${name} ${tiles.l0} L0/${tiles.l1} L1, 16 full 5x5 windows checked, ${Object.keys(tiles.debt).length} existing debt metrics`);
     console.info(`wildshard build: ${name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
     count++;
+    counters.product(how==='built');
     measured.push(name);
     if(how==='built')buildTimes.set(name,performance.now()-started);
     else if(strict)validationTimes.set(name,performance.now()-started);
     } catch(error) {
+      counters.failure();
       if(onFailure===undefined)throw error;
       // A previous product cannot vouch for a failed rebuild or grant a census user.
       rmSync(resolve(outputRoot,name),{recursive:true,force:true});
@@ -160,7 +163,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     await prepareProductBuildTools(products.filter(row => selected === undefined || selected.includes(row.name)).map(row => row.name));
     // Keep the compiler receipt independent of modules loaded by generation's
     // parent. Otherwise unrelated table generators become every product's input.
-    await runShardBuild(['--prepare-compiler'],new AbortController().signal);
+    await runShardBuild(['--prepare-compiler'],new AbortController().signal,report=>{counters.merge(report);});
   } : undefined);
   } finally { inputHashes.flush(); }
   runtimeReport.sort((a,b)=>a.slug.localeCompare(b.slug));
@@ -180,6 +183,18 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   }
   if(recorded)recordProductBuildTimes(shardfileCacheRoot(),buildTimes,validationTimes);
   return count;
+}
+
+/** The phase report is observational: payload bytes, not time saved. Zero
+ * lookups means not invoked, including whole-product reuse. All failures and
+ * strict admission still belong to the unchanged build path.
+ * @param {string} root
+ * @param {Parameters<typeof buildShardfilesWork>[1]} [options] */
+export async function buildShardfiles(root,options={}) {
+  const counters=createBuildCacheCounters(),stop=observeBuildCache(counters);
+  let complete=false;
+  try {const result=await buildShardfilesWork(root,options,counters);complete=true;return result;}
+  finally {stop();console.info(formatBuildCacheReport(counters.snapshot(complete)));}
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

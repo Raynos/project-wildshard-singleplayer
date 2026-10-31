@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Execute the workspace's author CLI without requiring a previously packed SDK or a Vite dev server.
 import { build } from 'vite';
+import { createBuildCacheCounters, observeBuildCache, formatBuildCacheReport } from './build-cache-report.mjs';
 import { captureProductInputs, recordBundle, inputRecorderPlugin } from './shardfile-inputs.mjs';
 import { basename, relative, resolve, sep } from 'node:path';
 import { existsSync } from 'node:fs';
@@ -64,6 +65,8 @@ export async function runWildshard(args) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  const counters=createBuildCacheCounters(),stop=observeBuildCache(counters);
+  let complete=false;
   try {
     const args=process.argv.slice(2);
     if(args[0]==='--prepare-compiler') {
@@ -71,6 +74,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
       const started=performance.now(),compiler=await prepareWildshard();
       console.info(`Author compiler ${compiler.reused?'reused':'built'} in ${((performance.now()-started)/1000).toFixed(3)}s (before product workers)`);
     } else await runWildshard(args);
+    complete=true;
   }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
+  finally {stop();console.error(`\n${formatBuildCacheReport(counters.snapshot(complete))}`);}
 }

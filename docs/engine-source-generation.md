@@ -14,6 +14,18 @@ installed compiler dependency. It never caches source-budget/import checks,
 ABI/IO admission, finite/fuel instrumentation or witnesses. Pure compiler
 callers without the optional host `compileMemo` callback keep the uncached
 path, with no filesystem capability imported by those compilers.
+
+The prepare CLI prints one `wildshard cache counters:` JSON batch with
+validated disk/in-process hits, misses, successful populations and payload
+bytes for Pine maps, Nine casts/maps, raw AssemblyScript, Zstd and other
+cached steps. `bytesReused` counts validated payload bytes per use;
+`bytesStored` counts successful population payloads, excluding manifests.
+These are byte/use counts, not elapsed-time or physical-storage savings.
+Whole-product reuse is separate from author cache reuse. Zero lookups means
+not invoked, and missing/invalid child reports or failed products mark the
+batch incomplete. Cache keys, admission and optional-storage fallbacks are
+unchanged; diagnostics never grant product readiness.
+
 An output sidecar may export `prepareOutput(ctx)` alongside `output`; its
 result crosses product admission, keyed by config and sidecar source. It may
 also export `prepareMap(ctx)`, returning `{ pixels, name? }` (a 1000 × 1000

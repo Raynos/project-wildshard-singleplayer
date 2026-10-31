@@ -66,3 +66,22 @@ test('retains a bounded failing child stderr tail with its product identity', as
   expect(failure.message.length).toBeLessThan(8500);
   expect(forwarded.mock.calls.map(call=>String(call[0])).join('')).toContain('discarded prefix');
 });
+
+test('real child transport aggregates one bounded cache report and preserves stderr and status', async () => {
+  mkdirSync('tmp',{recursive:true});
+  const root=mkdtempSync(resolvePath('tmp/shard-pool-cache-'));owned.push(root);
+  const hook=resolvePath(root,'child.mjs');
+  const {createBuildCacheCounters,formatBuildCacheReport}=await import('../scripts/build-cache-report.mjs');
+  const counters=createBuildCacheCounters();
+  counters.record({version:1,cache:'zstd-bytes',event:'lookup',bytes:0});
+  counters.record({version:1,cache:'zstd-bytes',event:'disk-hit',bytes:17});
+  const report=formatBuildCacheReport(counters.snapshot(true));
+  const source=`process.stderr.write('before without newline');process.stderr.write('\\n'+${JSON.stringify(report.slice(0,31))});process.stderr.write(${JSON.stringify(report.slice(31))}+'\\nafter\\n');`;
+  writeFileSync(hook,`import {registerHooks} from 'node:module';registerHooks({load(url,context,next){if(url.endsWith('/scripts/wildshard.mjs'))return {format:'module',shortCircuit:true,source:${JSON.stringify(source)}};return next(url,context);}});`);
+  vi.stubEnv('NODE_OPTIONS',`${process.env['NODE_OPTIONS']??''} --import ${hook}`);
+  const forwarded=vi.spyOn(process.stderr,'write').mockImplementation(()=>true),parent=createBuildCacheCounters();
+  await runShardBuild(['build','fixture/project','fixture/out'],new AbortController().signal,reading=>{parent.merge(reading);});
+  expect(forwarded.mock.calls.map(call=>String(call[0])).join('')).toBe('before without newline\nafter\n');
+  expect(parent.snapshot(true).complete).toBe(true);
+  expect(parent.snapshot(true).caches.find(row=>row.cache==='zstd-bytes')).toMatchObject({hits:1,bytesReused:17});
+});
