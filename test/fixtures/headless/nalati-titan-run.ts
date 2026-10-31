@@ -8,7 +8,7 @@ import {loadHeadlessProduct} from '../../../src/sdk/headlessProduct';
 import {productHeadlessSections} from '../../../src/sdk/headlessSections';
 import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
 import {loadRapier} from '../../../src/engine/physics/rapier';
-import {snapshotSimHost,serializeSimSnapshot,decodeSimSnapshot} from '../../../src/engine/sim/snapshot';
+import {snapshotSimHostBytes,serializeSimSnapshot,decodeSimSnapshotBytes} from '../../../src/engine/sim/snapshot';
 import {canonicalSimDigest} from '../../fake/simState';
 import {createNativeProofResident} from '../headless-native';
 import {createNativeProofWorker} from '../headless-worker';
@@ -49,7 +49,7 @@ try{
   const {host}=resident,titan=nalatiTitanOf(host);assert.ok(titan);
   const rows=await readArenaScriptData(product,{fight:'combat/titan-fight.json',geometry:'combat/titan-geometry.json'});
   const initial=titan.records.bosses.read()[rows.definition.id],initialKills=inherited?.initialKills??initial?.kills??0;
-  if(inherited!==undefined){assert.equal(canonicalSimDigest(snapshotSimHost(host)),inherited.digest,'the capture resident restores the exact earned checkpoint');
+  if(inherited!==undefined){assert.equal(canonicalSimDigest(snapshotSimHostBytes(host)),inherited.digest,'the capture resident restores the exact earned checkpoint');
     assert.equal(host.state.tick,inherited.captureTicks);assert.equal(historyTick(inherited.parts)??inherited.checkpointTick,host.state.tick);
     assert.equal(titan.fight.phase,inherited.stage==='storm'?0:2);
     if(inherited.stage!=='retry')assert.equal(titan.fight.tied,inherited.stage==='fire');
@@ -74,7 +74,7 @@ try{
       flags:[...host.flags.all],quests:host.quests.map(quest=>({id:quest.def.id,currentId:quest.current?.id??null,started:quest.snapshot().started,complete:quest.isComplete})),effects,
       adapters:observed.map(identity=>{const owner=host.adapters.get(identity);assert.ok(owner);const state=owner.snapshot();assert.equal(typeof state,'string');
         if(typeof state!=='string')throw new Error('Missing native Titan observation');return {id:identity,state};})};
-    const beforeDigest=performance.now(),digest=canonicalSimDigest(snapshotSimHost(host));captureDigestMs+=performance.now()-beforeDigest;
+    const beforeDigest=performance.now(),digest=canonicalSimDigest(snapshotSimHostBytes(host));captureDigestMs+=performance.now()-beforeDigest;
     const part:Part={plan:{version:1,observe:observed,segments:[{id,ticks:frames.length,commands:[],frames}]},expected:{version:1,ticks:frames.length,observations:[expected]},digest};
     history.push(part);checkTitanLedger(history,checkpointTick);
     frames=[];effects=[];peakY=p.y;await pipeline.offer(part);
@@ -95,7 +95,7 @@ try{
     assert.equal(deaths.length,0,'the entry and borrowed-horse route must be earned without a checkpoint teleport');
     checkpointTick=host.state.tick;
   }
-  const checkpoint=snapshotSimHost(host),checkpointDigest=canonicalSimDigest(checkpoint);peakY=host.player.position.y;
+  const checkpoint=snapshotSimHostBytes(host),checkpointDigest=canonicalSimDigest(checkpoint);peakY=host.player.position.y;
   pending=(async()=>{try{return {ok:true as const,worker:await createNativeProofWorker(shard,assets,'nalati-titan',serializeSimSnapshot(checkpoint),productHeadlessSections(product),directory)};}
     catch(error){return {ok:false as const,error};}})();
   const ready=pending;
@@ -106,7 +106,7 @@ try{
     return replay;
   };
   const publish=(next:'storm'|'fire'|'retry',path:string,cursor?:NonNullable<Awaited<ReturnType<typeof titanBowPilot>>>):void=>{
-    const snapshot=snapshotSimHost(host),digest=canonicalSimDigest(snapshot);
+    const snapshot=snapshotSimHostBytes(host),digest=canonicalSimDigest(snapshot);
     assert.equal(next==='storm'?checkpointDigest:history.at(-1)?.digest,digest,'handoff is the checked commit, with no intervening tick');
     const handoff=v.parse(TitanHandoffSchema,{version:1,source,stage:next,snapshot:serializeSimSnapshot(snapshot),digest,checkpointTick,captureTicks,initialKills,parts:history,deaths,...(cursor===undefined?{}:{cursor,fireTick})});
     const wire=JSON.stringify(handoff);assert.ok(Buffer.byteLength(wire)<=32_000_000);
@@ -121,7 +121,7 @@ try{
       const worker=await checkedWorker();
       const then=performance.now(),actual=await worker.verbTapePart(part.plan);replayMs+=performance.now()-then;
       const beforeCheck=performance.now();assert.deepEqual(actual.report,part.expected,'every real input part reproduces all ordered outcomes');
-      assert.equal(canonicalSimDigest(decodeSimSnapshot(actual.commit.snapshot)),part.digest,'every checked part reproduces the complete current native save');
+      assert.equal(canonicalSimDigest(decodeSimSnapshotBytes(actual.commit.snapshot)),part.digest,'every checked part reproduces the complete current native save');
       replayCheckMs+=performance.now()-beforeCheck;replayedTicks+=actual.report.ticks;
     });
     if(stage==='opening'){
