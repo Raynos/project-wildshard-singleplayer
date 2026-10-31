@@ -119,7 +119,8 @@ class PrebuiltTests(unittest.TestCase):
         binary.mkdir()
         controller = runner / 'controller'
         controller.mkdir()
-        shutil.copyfile(Path('scripts/prebuilt-output.py'), controller / 'prebuilt-output.py')
+        for name in ('prebuilt-output.py', 'staged-deployment.py'):
+            shutil.copyfile(Path('scripts') / name, controller / name)
         gh = binary / 'gh'
         gh.write_text('#!' + shutil.which('python3') + '\n' +
             'import json,os,pathlib,shutil,sys\n' +
@@ -131,13 +132,18 @@ class PrebuiltTests(unittest.TestCase):
             'shutil.copytree(os.environ["FIXTURE_PACKET"],sys.argv[sys.argv.index("--dir")+1])\n')
         gh.chmod(0o755)
         npm = binary / 'npm'
-        npm.write_text('#!/bin/sh\ntouch npm-called\n')
+        npm.write_text('#!' + shutil.which('python3') + '\n' +
+            'import json,pathlib,sys\n' +
+            'log=pathlib.Path("install-call.json")\n' +
+            'calls=json.loads(log.read_text()) if log.exists() else []\n' +
+            'calls.append(sys.argv[1:]);log.write_text(json.dumps(calls))\n' +
+            'pathlib.Path("npm-called").touch()\n')
         npm.chmod(0o755)
         env = {**os.environ, 'PATH': str(binary.resolve()) + os.pathsep + os.environ['PATH'],
-               'SOURCE_RUN': '123', 'DEPLOY_SHA': SHA, 'GITHUB_REPOSITORY': 'owner/repo',
+               'SOURCE_RUN': '123', 'SOURCE_ATTEMPT': '1', 'DEPLOY_SHA': SHA, 'GITHUB_REPOSITORY': 'owner/repo',
                'PREBUILT_ARCHIVE': str(self.packet.resolve()) if mode == 'provided' else '',
-               'RUNNER_TEMP': str(controller.resolve()), 'VERCEL_PROJECT_ID': 'fixture-project',
-               'VERCEL_ORG_ID': 'fixture-org', 'FIXTURE_PACKET': str(self.packet.resolve()),
+               'RUNNER_TEMP': str(controller.resolve()), 'VERCEL_PROJECT_ID': 'prj_FIXTURE',
+               'VERCEL_ORG_ID': 'team_FIXTURE', 'VERCEL_BUILD_TOKEN': '', 'FIXTURE_PACKET': str(self.packet.resolve()),
                'DOWNLOAD_EXIT': failure}
         binding = subprocess.run(['bash', '-e', '-c', 'command -v gh; command -v npm'],
                                  cwd=runner, env=env, capture_output=True, text=True)
@@ -147,13 +153,23 @@ class PrebuiltTests(unittest.TestCase):
                                 env=env, capture_output=True, text=True)
         return result, runner
 
+    def restore_report(self, result):
+        reports = [json.loads(line) for line in result.stdout.splitlines()]
+        restore = [row for row in reports if row.get('report') == 'ci2-prebuilt-restore']
+        self.assertEqual(len(restore), 1, result.stdout)
+        return restore[0]
+
+    def assert_single_owned_install(self, runner):
+        self.assertEqual(json.loads((runner / 'install-call.json').read_text()),
+                         [['install', '--global', 'vercel@59.11.2']])
+
     def test_real_workflow_glue_downloads_once_and_reports_the_native_restore(self):
         result, runner = self.workflow_restore()
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(json.loads((runner / 'download-call.json').read_text()),
             [['run', 'download', '123', '--repo', 'owner/repo', '--name', 'vercel-prebuilt',
               '--dir', 'prebuilt-output']])
-        row = json.loads(result.stdout.splitlines()[-1])
+        row = self.restore_report(result)
         self.assertEqual(row['report'], 'ci2-prebuilt-restore')
         self.assertEqual(row['downloadMode'], 'gh-run-download')
         self.assertGreaterEqual(row['downloadSeconds'], 0)
@@ -161,21 +177,23 @@ class PrebuiltTests(unittest.TestCase):
         for name, body in self.files.items():
             self.assertEqual((runner / name).read_text(), body)
         self.assertTrue((runner / 'npm-called').exists())
+        self.assert_single_owned_install(runner)
 
     def test_provided_archive_has_no_download_call_or_invented_network_seconds(self):
         result, runner = self.workflow_restore(mode='provided')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertFalse((runner / 'download-call.json').exists())
-        row = json.loads(result.stdout.splitlines()[-1])
+        row = self.restore_report(result)
         self.assertEqual(row['downloadMode'], 'provided')
         self.assertIsNone(row['downloadSeconds'])
         self.assertTrue(row['complete'])
+        self.assert_single_owned_install(runner)
 
-    def test_real_download_error_still_stops_before_restore_or_install(self):
+    def test_real_download_error_refuses_restore_and_preserves_native_code(self):
         result, runner = self.workflow_restore(failure='23')
         self.assertEqual(result.returncode, 23, result.stdout + result.stderr)
         self.assertEqual(len(json.loads((runner / 'download-call.json').read_text())), 1)
-        self.assertFalse((runner / 'npm-called').exists())
+        self.assert_single_owned_install(runner)
         self.assertFalse((runner / '.vercel').exists())
         self.assertNotIn('ci2-prebuilt-restore', result.stdout)
 
