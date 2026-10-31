@@ -25,18 +25,18 @@ function geometryOf(part: unknown): BufferGeometry {
   return geometry;
 }
 
-function fixture(indexed = false, covers?: number[]) {
+function fixture(indexed = false, covers?: number[], prepare?: (part: InstancedMesh, owner: Scope) => Promise<void>, separateKeys = false) {
   const owner = new Scope('slab-resident'), source = emptyShardfile({ slug: 'slab-fixture', name: 'Slabs', author: 'Fixture', revision: 1, seed: 1 });
   const bakeMaterial = new MeshBasicMaterial(), assets = new Map<string, Uint8Array>(), shapes = [triangle(0), triangle(5), triangle(40)];
   if (indexed) for (const shape of shapes) shape.setIndex([0, 1, 2]);
   // tile 0 holds two chunks of k0 in one file; tile 1 one chunk
   const files = [{ tile: 0, shapes: [shapes[0], shapes[1]] }, { tile: 1, shapes: [shapes[2]] }].map(({ tile, shapes: parts }) => {
     const bytes = staticGlb(parts.map((geometry, chunk) => ({ name: `k0-chunk_${String(chunk)}`, geometry: geometry ?? triangle(0), material: bakeMaterial, transform: new Matrix4(),
-      nativeAttributes: true, compactIndex: true, extras: { slab: { key: 'k0', tile, chunk } } })), `slab_tile_${String(tile)}`), hash = hashImmutableBytes(bytes);
+      nativeAttributes: true, compactIndex: true, extras: { slab: { key: separateKeys && tile === 1 ? 'k1' : 'k0', tile, chunk } } })), `slab_tile_${String(tile)}`), hash = hashImmutableBytes(bytes);
     assets.set(hash, bytes);
     source.files.push({ hash, kind: 'glb', compressed: bytes.length, decoded: 72, gpu: 0, triangles: parts.length, draws: parts.length, dependencies: [], critical: false });
     source.tiles.push({ lod: 0, x: tile, z: 0, geometricError: 0, bounds: { min: [-250 + tile * 62.5, -1, -250], max: [-250 + (tile + 1) * 62.5, 1, -187.5] }, files: [hash], compressed: bytes.length, decoded: 72, gpu: 0, triangles: 1, draws: 1 });
-    return { tile, files: [{ file: hash, chunks: parts.map(() => ({ key: 'k0', bytes: 72, geometricError: 0, box: [0, 0, 0, 1, 1, 1], sphere: [0.5, 0.5, 0.5, 1] })) }] };
+    return { tile, files: [{ file: hash, chunks: parts.map(() => ({ key: separateKeys && tile === 1 ? 'k1' : 'k0', bytes: 72, geometricError: 0, box: [0, 0, 0, 1, 1, 1], sphere: [0.5, 0.5, 0.5, 1] })) }] };
   });
   provideRuntimeProduct({ source, assets, cached: false }, owner, { base: 'https://test.example/shardfiles/slab-fixture/', offline: false, firstParty: true,
     cache: { product: () => Promise.resolve(null), asset: () => Promise.resolve(null), verifiedAsset: hash => Promise.resolve(assets.get(hash)?.slice() ?? null),
@@ -48,11 +48,13 @@ function fixture(indexed = false, covers?: number[]) {
   const [whole, slabs] = parseWorldScenes({ version: 1, materials: [], steps: [], libraries: [
     { id: 'fine', kind: 'whole', load: 'refine', models: [{ id: 'fabric', part: 'fabric', files: [...assets.keys()] }, { id: 'alias', part: 'alias', files: [...assets.keys()] }] },
     { id: 'fine-slabs', kind: 'slabs', of: 'fine', keys: [{ id: 'k0', node: 'fabric.node', material: 'kit', castShadow: true, receiveShadow: true, renderOrder: 2, layers: 1,
-      frustumCulled: true, visible: true, sources: ['fabric', 'alias'] }],
+      frustumCulled: true, visible: true, sources: separateKeys ? ['fabric'] : ['fabric', 'alias'] },
+      ...(separateKeys ? [{ id: 'k1', node: 'alias.node', material: 'kit', castShadow: true, receiveShadow: true, renderOrder: 2, layers: 1,
+        frustumCulled: true, visible: true, sources: ['alias'] }] : [])],
     tiles: covered }] }).libraries;
   if (whole?.kind !== 'whole' || slabs?.kind !== 'slabs') throw new Error('Missing fixture libraries');
   const queue = new ControlRefinement(owner, undefined, () => ({ x: -230, z: -230 }), () => Promise.resolve()), cover = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
-  const library = new SlabLibrary(owner, product, whole, slabs, queue, cover), material = new MeshBasicMaterial();
+  const library = new SlabLibrary(owner, product, whole, slabs, queue, cover, prepare), material = new MeshBasicMaterial();
   const anchor = new Mesh(library.geometry('fabric') ?? new BufferGeometry(), material), alias = new Mesh(library.geometry('alias') ?? new BufferGeometry(), material);
   const read = vi.spyOn(runtimeProduct(source).assets, 'read');
   const content = library.bind('fabric', anchor, owner), aliasContent = library.bind('alias', alias, owner);
@@ -225,4 +227,47 @@ test('fine identities require complete explicit coverage and refuse cold reconst
     }
     expect(() => new SlabLibrary(f.owner, f.product, row, { ...slabs, tiles: [{ ...slabs.tiles[0], tile: 0, covers: [0, 2], files: slabs.tiles[0]?.files ?? [] }] }, f.queue, f.cover)).toThrow('declared fine tile');
   } finally { f.close(); }
+});
+
+test('different keys await one shared preparation fence before exposing their native chunks', async () => {
+  const pending: (() => void)[] = [];
+  const prepare = vi.fn<(part: InstancedMesh, owner: Scope) => Promise<void>>().mockImplementation(() => new Promise(resolve => { pending.push(resolve); }));
+  const f = fixture(false, undefined, prepare, true), first = f.owner.child('first-key'), second = f.owner.child('second-key');
+  const next = async (): Promise<void> => { await vi.waitFor(() => { expect(pending.length).toBeGreaterThan(0); }); };
+  const release = (): void => { const finish = pending.shift(); if (finish === undefined) throw new Error('No pending preparation'); finish(); };
+  try {
+    const left = f.content.attach(0, first);
+    await next();
+    const right = f.aliasContent.attach(1, second);
+    await Promise.resolve();
+    expect(prepare).toHaveBeenCalledTimes(1);
+    expect(f.anchor.children).toEqual([]); expect(f.alias.children).toEqual([]);
+    const firstPart = prepare.mock.calls[0]?.[0];
+    expect(firstPart?.parent).toBeNull(); expect(f.anchor.visible).toBe(false);
+    release(); await next();
+    expect(prepare).toHaveBeenCalledTimes(2);
+    expect(f.anchor.children).toEqual([firstPart]);
+    release(); await next(); release();
+    await Promise.all([left, right]);
+    expect(prepare).toHaveBeenCalledTimes(3);
+    expect(f.anchor.children).toHaveLength(2); expect(f.alias.children).toHaveLength(1);
+    for (const [part] of prepare.mock.calls) expect(part.parent === f.anchor || part.parent === f.alias).toBe(true);
+  } finally { for (const finish of pending) finish(); f.close(); }
+});
+
+test('retirement during native preparation leaves no exposed or leaked instance', async () => {
+  let finish = (): void => undefined;
+  const prepare = vi.fn<(part: InstancedMesh, owner: Scope) => Promise<void>>().mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+  const f = fixture(false, undefined, prepare), holder = f.owner.child('preparing');
+  try {
+    const pending = f.content.attach(0, holder);
+    await vi.waitFor(() => { expect(prepare).toHaveBeenCalledOnce(); });
+    const part = prepare.mock.calls[0]?.[0];
+    if (part === undefined) throw new Error('Missing native chunk');
+    const disposed = vi.fn<() => void>(); part.addEventListener('dispose', disposed);
+    holder.dispose(); expect(disposed).toHaveBeenCalledOnce();
+    finish(); await pending;
+    expect(part.parent).toBeNull(); expect(f.anchor.children).toEqual([]);
+    expect(f.anchor.visible).toBe(false); expect(prepare).toHaveBeenCalledOnce();
+  } finally { finish(); f.close(); }
 });

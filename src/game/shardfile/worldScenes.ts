@@ -34,6 +34,7 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { buildYield, workSlice } from '@wildshard/engine/core/workSlice';
 import { presenting } from '@wildshard/engine/core/framePacing';
+import { waitForDrawnFrame } from '@wildshard/engine/render/precompile';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ControlRefinement } from './controlRefinement';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -407,7 +408,15 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
               // reconstructing a union during play.
               const slabs = section.libraries.find(entry => entry.kind === 'slabs' && entry.of === row.id);
               if (slabs?.kind !== 'slabs') throw new Error(`Fine refinement requires baked slabs: ${row.id}`);
-              const whole = new SlabLibrary(owner, product, row, slabs, refinementQueue(), coarse.ensure);
+              const whole = new SlabLibrary(owner, product, row, slabs, refinementQueue(), coarse.ensure, async (part, scope) => {
+                const game = ctx.game.runtime?.world?.game;
+                // Headless/early boot retains ordinary whole-world preparation.
+                if (game === undefined || game === null || game.frameCount === 0) return;
+                const live = (): boolean => !owner.disposed && !owner.disposing && !scope.disposed && !scope.disposing;
+                await game.warmSceneRoots([part], live);
+                if (!live()) return;
+                await waitForDrawnFrame(scope, () => game.frameCount, live);
+              });
               refining.set(row.id, whole);
               libraries.set(row.id, { geometry: id => whole.geometry(id) }); return;
             }

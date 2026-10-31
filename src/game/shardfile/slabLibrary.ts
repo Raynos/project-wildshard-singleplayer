@@ -66,7 +66,8 @@ async function readSlabChunks(owner: Scope, product: ShardProduct, tile: number,
  * NF11: a refine library's fine geometry as its baked slabs (`kind: 'slabs'`, NF10), in place of the run-time join. Each
  * draw key draws under its original anchor (`key.node`, the key's first source): attaching a tile adds that key's chunks
  * as plain meshes, one a frame, children of the anchor in its own frame, so its band (`until`) and its parent's
- * visibility hold them as they held the anchor; retiring removes them. No join, clone or CPU transform. The anchor itself
+ * visibility hold them as they held the anchor; retiring removes them. The optional native preparation port completes
+ * before exposure, serialized across every key and tile in this library. No join, clone or CPU transform. The anchor itself
  * keeps its channel-less stand-in and draws nothing; an anchor merged into another
  * key draws nothing at all.
  */
@@ -75,8 +76,10 @@ export class SlabLibrary {
   private readonly entries = new Map<number, SlabTile>();
   private readonly keys = new Map<string, WorldSceneSlabKey>();
   private serial = 0;
+  private publication: Promise<void> = Promise.resolve();
   constructor(owner: Scope, product: ShardProduct, private readonly whole: WholeLibrary, private readonly row: WorldSceneSlabLibrary,
-    private readonly queue: ControlRefinement, private readonly cover: (tile: number) => Promise<void>) {
+    private readonly queue: ControlRefinement, private readonly cover: (tile: number) => Promise<void>,
+    private readonly prepare?: (part: InstancedMesh, owner: Scope) => Promise<void>) {
     if (row.of !== whole.id) throw new Error('Slab library covers another library');
     for (const key of row.keys) {
       if (key.castFrom !== undefined) throw new Error('Slab key casting from a band has no run-time draw');
@@ -162,7 +165,6 @@ export class SlabLibrary {
         if (chunk.key !== key.id) continue;
         if (lifetime.disposed || lifetime.disposing || scope.disposed || scope.disposing) return drawn;
         const geometry = geometries[index]; if (geometry === undefined) throw new Error('Missing slab chunk');
-        if (!laid) lay();
         // Keep the same one-instance channel layout, identity matrix, white
         // colours and draw flags as the admitted storage chunk.
         const part = new InstancedMesh(geometry, mesh.material, 1);
@@ -170,8 +172,23 @@ export class SlabLibrary {
         part.name = `${mesh.name}:slab:${String(tile)}:${String(index)}`; part.matrixAutoUpdate = false;
         part.castShadow = key.castShadow; part.receiveShadow = key.receiveShadow; part.renderOrder = key.renderOrder;
         part.layers.mask = key.layers; part.frustumCulled = key.frustumCulled;
-        mesh.add(part); drawn.push(part);
-        await slice.yield();
+        // All keys share one publication cursor. A CPU-budget yield alone can
+        // mount several still-culled chunks before a turn first uploads them.
+        // Preparation lends the actual native geometry to the existing warmer;
+        // it must finish its completed-draw fence before another key enters.
+        drawn.push(part);
+        const prior = this.publication;
+        let release = (): void => undefined;
+        this.publication = new Promise<void>(resolve => { release = resolve; });
+        await prior;
+        try {
+          if (lifetime.disposed || lifetime.disposing || scope.disposed || scope.disposing) return drawn;
+          if (this.prepare !== undefined) await this.prepare(part, scope);
+          if (lifetime.disposed || lifetime.disposing || scope.disposed || scope.disposing) return drawn;
+          if (!laid) lay();
+          mesh.add(part);
+          await slice.yield();
+        } finally { release(); }
       }
       return drawn;
     });
