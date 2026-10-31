@@ -55,6 +55,9 @@ export function* kingPhaseInputs(host:SimHost,read:()=>KingObservation,rows:Nala
     const seen=read();assert.equal(seen.inside,true,'combat inputs cannot leave their actual encounter');
     if(through==='victory'?seen.state==='victory':seen.phase>=through)break;
     const king=seen.body;assert.ok(king);
+    if(tick%300===0)console.info(JSON.stringify({story:'king-input',tick:host.state.tick,through,state:seen.state,phase:seen.phase,
+      mode:seen.mode,shielded:seen.shielded,armour:seen.armourBroken,hp:king.hp,player:host.player.health.attributes.health,
+      at:host.player.position.toArray(),target:king.position,head:king.head,adds:seen.adds.filter(body=>body.alive).length}));
     const adds=seen.adds.filter(body=>body.alive).sort((a,b)=>distance(a)-distance(b));
     const target=seen.shielded&&adds.length>0?adds[0]:king;assert.ok(target);
     const at=point(target),p=host.player.position,dx=at.x-p.x,dz=at.z-p.z,d=Math.hypot(dx,dz),
