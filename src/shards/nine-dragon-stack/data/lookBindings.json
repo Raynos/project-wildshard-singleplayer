@@ -1,5 +1,5 @@
 {
-  "graphs": ["nine-crowd-table", "nine-architecture", "nine-architecture-cut", "nine-architecture-ground", "nine-facade", "nine-facade-small", "nine-windows", "nine-halo", "nine-silk-fog", "nine-canopy-cards", "nine-canopy-inner", "nine-streaks", "nine-scroll"],
+  "graphs": ["nine-crowd-table", "nine-architecture", "nine-architecture-cut", "nine-architecture-ground", "nine-architecture-plain", "nine-facade", "nine-facade-small", "nine-windows", "nine-halo", "nine-silk-fog", "nine-canopy-cards", "nine-canopy-inner", "nine-streaks", "nine-scroll"],
   "facade": { "uSky": 12371154, "uFacadeWash": 14738415 },
   "cardOn": 0.6,
   "lines": { "authored": 3, "below": 2.5, "heavier": 1.2 },

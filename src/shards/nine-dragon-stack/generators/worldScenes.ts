@@ -32,8 +32,9 @@ import type { NineSourceWorld } from './worldProgram';
 import rawProfiles from '../data/specimenProfiles.json' with { type: 'json' };
 import plan from '../data/layoutPlan.json' with { type: 'json' };
 import { presentationData } from './presentation';
-import { architectureGraphs, groundGraph, crowdGraph } from './architectureGraphs';
-import { GROUND_LOOK } from './groundGraph';
+import { architectureGraphs, crowdGraph } from './architectureGraphs';
+import { kitKind } from './kitKinds';
+import { kitKindGraphs } from './kitKindGraphs';
 import { CROWD_LOOK } from './crowdGraph';
 import { lightVolumeRows } from './lightVolumes';
 import paint from '../data/paint.json' with { type: 'json' };
@@ -86,7 +87,7 @@ function alias(id: string, key: string, matrix?: readonly number[]): void {
 // The original layout partitions are native resources; the scene owner reads each tile once.
 const layoutRows = parseSectionValue(LayoutRowsSchema, JSON.parse(JSON.stringify(layout.rows), (_key, value: unknown) =>
   value === '-0' ? -0 : value === 'Infinity' ? Infinity : value === '-Infinity' ? -Infinity : value));
-const layoutIds = [...new Set([...layoutRows.kits.flatMap(row => row.geo === null ? [] : [row.geo]), ...layoutRows.alphaKits.map(row => row.geo), ...layoutRows.groundKits.map(row => row.geo), ...layoutRows.shell === null ? [] : [layoutRows.shell]])];
+const layoutIds = [...new Set([...layoutRows.kits.flatMap(row => row.geo === null ? [] : [row.geo]), ...layoutRows.alphaKits.map(row => row.geo), ...layoutRows.kindKits.map(row => row.geo), ...layoutRows.shell === null ? [] : [layoutRows.shell]])];
 for (const id of layoutIds) alias(`layout-${id}`, `layout_${id}`);
 for (const row of explorer.sources) if (!('resident' in row) || !row.resident.startsWith('lion')) alias(row.id, 'resident' in row ? row.resident : row.key, 'transform' in row ? row.transform : undefined);
 const draw = (id: string, model: string, material: string, renderOrder?: number): Draw => {
@@ -230,7 +231,7 @@ const CARD_BLOBS = [...cardFiles].map(([text, file]) => {
 const portalLook = portalLookRows();
 const NINE_SCENE_BLOBS: NamedBlob[] = [...castBlobs(), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
   nameBlob('world/scenes/cards.json', 'json', json(empty)), ...SHAPE_BLOBS, ...cardBuffers.values(), ...CARD_BLOBS];
-const KIT_GRAPHS = { ...architectureGraphs(), [GROUND_LOOK]: groundGraph(), [CROWD_LOOK]: crowdGraph() };
+const KIT_GRAPHS = { ...architectureGraphs(), ...kitKindGraphs(), [CROWD_LOOK]: crowdGraph() };
 // the painted surfaces' texture array (data/paint.json), the canopy's leaf atlas and the scroll screen, lent to their looks
 const painted = Object.entries(KIT_GRAPHS).flatMap(([id, graph]) => graph.params !== undefined && 'uPaint' in graph.params ? [id] : []);
 // the light pools' two baked volumes (generators/lightVolumes.ts) per tier and deck ending, lent to every look that reads them
@@ -394,10 +395,10 @@ const FABRIC = parseWorldSceneWeld({ id: 'fabric', root: 'dressing.root', resour
   { id: 'fabric.root', parent: 'dressing.root', name: 'fabric', kind: 'group' },
   ...projection.kits.flatMap(([name, geo]) => geo === null ? [] : [kitNode(`fabric.kit.${name}`, 'fabric.root', `kit:${name}`, geo, 'kit', farOf.get(name))]),
   ...projection.alphaKits.map(([name, geo]) => kitNode(`fabric.kit.${name}`, 'fabric.root', `kit:${name}`, geo, 'kit-cut', farOf.get(name))),
-  // G5: each kit's flagstones, drawn by the kind-3 program as a child of their kit (its cull and band hold them too)
-  ...projection.groundKits.map(([name, geo]) => projection.kits.some(([kit, at]) => kit === name && at !== null)
-    ? kitNode(`fabric.kit.${name}.ground`, `fabric.kit.${name}`, `kit:${name}:ground`, geo, 'kit-ground')
-    : kitNode(`fabric.kit.${name}.ground`, 'fabric.root', `kit:${name}:ground`, geo, 'kit-ground', farOf.get(name))),
+  // G5: each kit's split kinds, drawn by their own programs as children of their kit (its cull and band hold them too)
+  ...projection.kindKits.map(([name, geo, kind]) => projection.kits.some(([kit, at]) => kit === name && at !== null)
+    ? kitNode(`fabric.kit.${name}.k${kind}`, `fabric.kit.${name}`, `kit:${name}:k${kind}`, geo, kitKind(kind).material)
+    : kitNode(`fabric.kit.${name}.k${kind}`, 'fabric.root', `kit:${name}:k${kind}`, geo, kitKind(kind).material, farOf.get(name))),
   ...shell === null ? [] : [{ id: 'fabric.facade', parent: 'fabric.root', name: 'facade', kind: 'group' }, kitNode('fabric.shell', 'fabric.facade', 'facade-shell', shell, 'facade')],
 ], culls: farKits.length === 0 ? [] : [{ roots: farKits.map(row => row.id), origins: farKits.flatMap(row => row.at), units: [], details: [], hosted: [] }],
 sets: [...market.length === 0 ? [] : [{ id: 'nine-dragon-stack/night-market', name: 'Lantern Square night market', file: 'src/shards/nine-dragon-stack/generators/stalls.ts', place: 'nine-dragon-stack/night-market', members: market }],

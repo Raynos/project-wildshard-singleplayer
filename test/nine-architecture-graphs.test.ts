@@ -18,8 +18,8 @@ import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
 import { GRAPH_ADMISSION_LIMITS, validateGraph, type GraphIr } from '../src/format/materialGraph';
 import { viewmodelGraphs } from '../src/shards/nine-dragon-stack/generators/viewmodelGraphs';
-import { architectureGraphs, groundGraph, crowdGraph } from '../src/shards/nine-dragon-stack/generators/architectureGraphs';
-import { groundGraphFile } from '../src/shards/nine-dragon-stack/generators/groundGraph';
+import { architectureGraphs, crowdGraph } from '../src/shards/nine-dragon-stack/generators/architectureGraphs';
+import { kitKindFiles, kitKindGraphs } from '../src/shards/nine-dragon-stack/generators/kitKindGraphs';
 import { crowdGraphFile } from '../src/shards/nine-dragon-stack/generators/crowdGraph';
 import fog from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 
@@ -76,8 +76,8 @@ function build(graph: GraphIr, instanced: boolean, skinned = false): { vertex: s
 const graphs = architectureGraphs();
 test('held material files declare their admitted texture dependencies', () => {
   // the SDK lowers the inline graphs to files before admission (D74), so a file's fog names a file too
-  const ground = groundGraphFile(), crowd = crowdGraphFile(), lowered = lowerMaterialGraphs(product), built = parseShardfile(lowered.declaration);
-  expect(graphFileRules(built, hash => heldGraphFiles.assets.get(hash) ?? lowered.assets.get(hash) ?? (hash === ground.file.hash ? ground.bytes : hash === crowd.file.hash ? crowd.bytes : undefined))).toEqual([]);
+  const kinds = new Map(kitKindFiles().map(row => [row.file.hash, row.bytes])), crowd = crowdGraphFile(), lowered = lowerMaterialGraphs(product), built = parseShardfile(lowered.declaration);
+  expect(graphFileRules(built, hash => heldGraphFiles.assets.get(hash) ?? lowered.assets.get(hash) ?? kinds.get(hash) ?? (hash === crowd.file.hash ? crowd.bytes : undefined))).toEqual([]);
 });
 /** the reads in `main` of a variable no enclosing block (nor both arms of an if / else in one) has assigned */
 function undominatedReads(shader: string): string[] {
@@ -304,8 +304,8 @@ test('the look channel rows give each lent look its shared params every frame, t
   // each write is a param its own look declares (the fog's colour only the silk fog's)
   for (const key of writes.keys()) {
     const [id = '', param = ''] = key.split(':'), entry: unknown = product.look.materials[id];
-    // the kit's flagstone graph ships as a file (groundGraph.ts)
-    const graph: unknown = typeof entry === 'object' && entry !== null ? Reflect.get(entry, 'file') === groundGraphFile().file.hash ? groundGraph() : id === 'nine-crowd-table' ? crowdGraph() : Reflect.get(entry, 'graph') : null;
+    // the kit's split-kind graphs ship as files (kitKindGraphs.ts)
+    const graph: unknown = typeof entry === 'object' && entry !== null ? kitKindGraphs()[id] ?? (id === 'nine-crowd-table' ? crowdGraph() : Reflect.get(entry, 'graph')) : null;
     const params: unknown = typeof graph === 'object' && graph !== null ? Reflect.get(graph, 'params') : null;
     expect(typeof params === 'object' && params !== null ? Object.keys(params) : [], key).toContain(param);
   }

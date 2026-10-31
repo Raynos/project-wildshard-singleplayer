@@ -17,6 +17,7 @@ import { banyanOut } from './banyanPlan';
 import type { SignPlace, SignSink, SignBoardKit } from './contracts/signPlacement';
 import { signBoard, signSize, neonSize } from './signMath';
 import { geometryWriter } from './bakeWrite';
+import { KIT_KINDS } from './kitKinds';
 import type { AuthoredPlacement as Placement } from './contracts/modelPlacement';
 import { type BakedPlace, type LayoutRows, LayoutRowsSchema, type SignCallRow } from './sections';
 import { parseSectionValue } from '@wildshard/sdk/sections';
@@ -78,18 +79,18 @@ function bakedAt(model: string, at: Placement<object>): LayoutRows['inKit'][numb
   return { x, y, z, ...(yaw === undefined ? {} : { yaw }), ...(variant === undefined ? {} : { variant }), ...(params === undefined ? {} : { params: plain }) };
 }
 
-/** G5: a kit's flagstone faces (aPat.x kind 3) apart from its other faces, each with only the vertices it indexes (raw words
- *  copied, the half-float class kept). The flagstones draw through the kind-3 program (architectureGraphs `only`), which
- *  at the phone's street pose (a) is 72 % of the frame's pixels at about a quarter less GPU time than the kit's program. */
-function splitKind(geometry: BufferGeometry, kind: number): { rest: BufferGeometry | null; only: BufferGeometry | null; maps: readonly [Int32Array, Int32Array] } {
+/** G5: a kit's faces of each of `kinds` (aPat.x) apart from its other faces: `parts[0]` the rest, `parts[1 + k]` kinds[k], each
+ *  with only the vertices it indexes (raw words copied, the half-float class kept), and `maps[s]` each source vertex's index
+ *  in part s (or -1). Each kind draws through its own program (kitKindGraphs.ts). */
+function splitKinds(geometry: BufferGeometry, kinds: readonly number[]): { parts: readonly (BufferGeometry | null)[]; maps: readonly Int32Array[] } {
   const pat = geometry.getAttribute('aPat'), index = geometry.index, count = geometry.getAttribute('position').count;
   if (pat === undefined || index === null) throw new Error('Nine kit split needs an indexed aPat');
-  const of = (vertex: number): number => Math.floor(pat.getX(vertex) + 0.5), sides: [number[], number[]] = [[], []];
+  const of = (vertex: number): number => Math.floor(pat.getX(vertex) + 0.5), sides: number[][] = [[], ...kinds.map(() => [])];
   for (let i = 0; i < index.count; i += 3) {
-    const a = index.getX(i), b = index.getX(i + 1), c = index.getX(i + 2);
-    sides[of(a) === kind && of(b) === kind && of(c) === kind ? 1 : 0].push(a, b, c);
+    const a = index.getX(i), b = index.getX(i + 1), c = index.getX(i + 2), kind = of(a);
+    sides[of(b) === kind && of(c) === kind ? kinds.indexOf(kind) + 1 : 0]?.push(a, b, c);
   }
-  const maps: [Int32Array, Int32Array] = [new Int32Array(count).fill(-1), new Int32Array(count).fill(-1)];
+  const maps = sides.map(() => new Int32Array(count).fill(-1));
   const part = (triangles: readonly number[], map: Int32Array): BufferGeometry | null => {
     if (triangles.length === 0) return null;
     const order: number[] = [];
@@ -104,12 +105,14 @@ function splitKind(geometry: BufferGeometry, kind: number): { rest: BufferGeomet
     out.setIndex(new Uint32BufferAttribute(indices, 1)); out.computeBoundingSphere();
     return out;
   };
-  return { rest: part(sides[0], maps[0]), only: part(sides[1], maps[1]), maps };
+  return { parts: sides.map((triangles, at) => part(triangles, maps[at] ?? new Int32Array(0))), maps };
 }
 
 /** A split kit as it was before the split: its coarse copy simplifies it whole (scene.ts), its spill gathered back from
- *  the two sides' (each vertex's spill is its own: lightSpill.ts) through `maps` (a source vertex's index in each side, or -1). */
-export interface WholeKit { readonly name: string; readonly geometry: BufferGeometry; readonly maps: readonly [Int32Array, Int32Array] }
+ *  its parts' (each vertex's spill is its own: lightSpill.ts) through `maps`, aligned with [the rest, ...SPLIT_KINDS]. */
+export interface WholeKit { readonly name: string; readonly geometry: BufferGeometry; readonly maps: readonly Int32Array[] }
+/** the kit kinds that draw apart, in kitKindGraphs.ts's order */
+export const SPLIT_KINDS: readonly number[] = KIT_KINDS.map(row => row.kind);
 
 /** the layout, run and written as the bake's binary (inflated) */
 export function nineLayoutSource(): { bin: Uint8Array; rows: LayoutRows; records: number[]; geometries: BufferGeometry[]; wholes: ReadonlyMap<number, WholeKit> } {
@@ -125,17 +128,20 @@ export function nineLayoutSource(): { bin: Uint8Array; rows: LayoutRows; records
   }
   // Native boot used to merge solid and swept builders by name. Emit those final
   // streams in the same order, including swept-only names after the solid names.
-  // the flagstones' geometries follow every other layout geometry, so the others keep their ids
-  const grounds: [string, BufferGeometry][] = [], wholes = new Map<number, WholeKit>();
+  // the split kinds' geometries follow every other layout geometry, so the others keep their ids
+  const apart: [string, number, BufferGeometry][] = [], wholes = new Map<number, WholeKit>();
   const kits = [...ctx.kits].map(([name, k]) => {
     const extra = ctx.kitxs.get(name), base = k.vertexCount > 0 ? k.build() : null;
     const swept = extra !== undefined && extra.vertexCount > 0 ? extra.build() : null;
     const merged = base === null ? swept : swept === null ? base : mergeKits([base, swept]);
-    const split = merged === null ? null : splitKind(merged, 3), geometry = split === null ? null : split.rest;
-    if (split !== null && split.only !== null) grounds.push([name, split.only]);
+    // a kit all of one split kind stays whole (the skyline crown keeps its local geometry, scene.ts)
+    const cut = merged === null ? null : splitKinds(merged, SPLIT_KINDS), split = cut === null || cut.parts[0] === null || cut.parts[0] === undefined ? null : cut;
+    const geometry = split === null ? merged : split.parts[0] ?? null;
+    const parts = split === null ? [] : SPLIT_KINDS.flatMap((kind, at) => { const part = split.parts[at + 1]; return part === null || part === undefined ? [] : [[name, kind, part] as [string, number, BufferGeometry]]; });
+    apart.push(...parts);
     geometry?.computeBoundingSphere();
     const geo = geometry === null ? null : addGeometry(geometry);
-    if (geo !== null && merged !== null && split !== null && split.only !== null) wholes.set(geo, { name, geometry: merged, maps: split.maps });
+    if (geo !== null && merged !== null && split !== null && parts.length > 0) wholes.set(geo, { name, geometry: merged, maps: split.maps });
     return { name, geo, compact: k.compact };
   });
   for (const [name, k] of ctx.kitxs) if (!ctx.kits.has(name) && k.vertexCount > 0) {
@@ -159,10 +165,10 @@ export function nineLayoutSource(): { bin: Uint8Array; rows: LayoutRows; records
   for (const [, s] of queued.sets) s.at.forEach(m4);
   const sets = queued.sets.map(([name, s]) => ({ name, geo: addGeometry(s.geo), count: s.at.length }));
   const shell = ctx.fd.shell.vertexCount > 0 ? addGeometry(ctx.fd.shell.build()) : null;
-  const groundKits = grounds.map(([name, geometry]) => ({ name, geo: addGeometry(geometry) }));
+  const kindKits = apart.map(([name, kind, geometry]) => ({ name, geo: addGeometry(geometry), kind }));
   const plan = banyanOut.plan;
   const draft: LayoutRows = {
-    version: 1, geometries, kits, alphaKits, groundKits, kitxs: [],
+    version: 1, geometries, kits, alphaKits, kindKits, kitxs: [],
     reflective: [...ctx.reflective], farOf: [...ctx.farOf],
     counts: { walkers: ctx.walkers.length, sitters: ctx.sitters.length, lanterns: ctx.lanterns.length, acs: ctx.acs.length, hooks: ctx.hooks.length, hookMounts: ctx.hookMounts.length, steam: ctx.steam.length, pieces: ctx.fd.pieces.length, windows: ctx.fd.windows.length, lions: queued.lions.length },
     inKit: ctx.inKit.map((c) => {

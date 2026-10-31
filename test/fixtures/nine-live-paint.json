@@ -7,7 +7,9 @@
         "nine-architecture-cut",
         "nine-facade",
         "nine-facade-small",
-        "nine-architecture-ground"
+        "nine-architecture-ground",
+        "nine-architecture-plain",
+        "nine-crowd-table"
       ],
       "param": "uPaint",
       "base": "/assets/nine-dragon/paint",

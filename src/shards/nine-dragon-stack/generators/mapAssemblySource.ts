@@ -64,7 +64,7 @@ export async function nineMapAssemblyFrom(inputs: NineMapAssemblyInputs, assembl
   const specimen = (key: string): BufferGeometry => { const build = recipes.get(key); if (build === undefined) throw new Error(`Missing map specimen ${key}`); return build(); };
   const local = (index: number): BufferGeometry => { const geometry = layout.geometries.at(index); if (geometry === undefined) throw new Error(`Missing map layout ${index}`); return geometry; };
   for (const row of [...rows.kits, ...rows.alphaKits]) if (row.geo !== null) assembly.add(`kit:${row.name}`, local(row.geo).clone());
-  for (const row of rows.groundKits) assembly.add(`kit:${row.name}:ground`, local(row.geo).clone());
+  for (const row of rows.kindKits) assembly.add(`kit:${row.name}:k${row.kind}`, local(row.geo).clone());
   for (const row of canopy.draws) if (recipes.has(`canopy:${row.geometry}`) && !('transparent' in row.state && row.state.transparent === true && row.state.depthWrite === false))
     assembly.add(`canopy:${row.geometry}`, specimen(`canopy:${row.geometry}`));
   if (rows.shell !== null) assembly.add('facade-shell', local(rows.shell).clone());

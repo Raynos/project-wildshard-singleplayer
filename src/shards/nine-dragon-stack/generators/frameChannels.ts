@@ -1,7 +1,7 @@
 import { Color } from 'three';
 import { numericChannelPrograms, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
 import { checkAuthorGraph, type AuthorGraph as GraphIr } from '@wildshard/sdk/bake/materialGraph';
-import { architectureGraphs, groundGraph, crowdGraph } from './architectureGraphs';
+import { architectureGraphs, crowdGraph } from './architectureGraphs';
 import { streakGraph } from './streakGraph';
 import { haloGraph } from './haloGraph';
 import sharedUniforms from '../data/sharedUniforms.json' with { type: 'json' };
@@ -9,7 +9,7 @@ import paint from '../data/paint.json' with { type: 'json' };
 import light from '../data/light.json' with { type: 'json' };
 import layout from '../data/layoutPlan.json' with { type: 'json' };
 import bindings from '../data/lookBindings.json' with { type: 'json' };
-import { GROUND_LOOK } from './groundGraph';
+import { kitKindGraphs } from './kitKindGraphs';
 import { CROWD_LOOK } from './crowdGraph';
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import scrollGraph from '../data/scrollGraph.json' with { type: 'json' };
@@ -75,7 +75,7 @@ function admitted(rows: Readonly<Record<string, unknown>>): Record<string, Graph
     return [id, graph.graph];
   }));
 }
-const GRAPHS: Readonly<Record<string, GraphIr>> = { ...admitted(lookGraphs), ...admitted(scrollGraph), ...architectureGraphs(), [GROUND_LOOK]: groundGraph(), [CROWD_LOOK]: crowdGraph(), 'nine-streaks': streakGraph(), 'nine-halo': haloGraph() };
+const GRAPHS: Readonly<Record<string, GraphIr>> = { ...admitted(lookGraphs), ...admitted(scrollGraph), ...architectureGraphs(), ...kitKindGraphs(), [CROWD_LOOK]: crowdGraph(), 'nine-streaks': streakGraph(), 'nine-halo': haloGraph() };
 const SIZE = { float: 1, vec2: 2, vec3: 3, vec4: 4, colour: 3 } as const;
 
 function lookBindings(): NumericChannelOutput[] {

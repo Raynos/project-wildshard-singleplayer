@@ -9,7 +9,8 @@ import type { NineHeldInputs } from './heldGraphFiles';
 import { filamentGraph } from './filamentGraph';
 import { haloGraph } from './haloGraph';
 import { architectureGraphs } from './architectureGraphs';
-import { GROUND_LOOK, groundGraphFile } from './groundGraph';
+import { KIT_KINDS } from './kitKinds';
+import { kitKindFiles } from './kitKindGraphs';
 import { CROWD_LOOK, crowdGraphFile } from './crowdGraph';
 import { burstGraphs } from './burstGraphs';
 import { streakGraph } from './streakGraph';
@@ -65,8 +66,8 @@ const fine = nineSlabSourceFiles(inputs.scenes.NINE_WORLD_SCENES.libraries, inpu
 const worldFiles = world.shardfile.files.filter(file => !fine.has(file.hash));
 const worldLibrary = world.shardfile.library.filter(hash => !fine.has(hash));
 const base = emptyShardfile({ slug: 'nine-dragon-stack', name: 'Nine Dragon Stack', author: 'Wildshard', revision: 1, seed: 0x9d2a });
-const ground = groundGraphFile(), crowd = crowdGraphFile();
-const library = new Set([...worldLibrary, ...heldGraphFiles.library, ground.file.hash, crowd.file.hash]), charged = [...world.shardfile.files.filter(file => library.has(file.hash)), ...heldGraphFiles.files, ground.file, crowd.file];
+const kinds = kitKindFiles(), crowd = crowdGraphFile();
+const library = new Set([...worldLibrary, ...heldGraphFiles.library, ...kinds.map(row => row.file.hash), crowd.file.hash]), charged = [...world.shardfile.files.filter(file => library.has(file.hash)), ...heldGraphFiles.files, ...kinds.map(row => row.file), crowd.file];
 const courseBytes=courseProgram.blob.bytes.byteLength, courseMemory=courseBytes+courseProgram.script.pages*65536*2;
 const navigationResident = navigation.files.reduce((sum, file) => sum + file.decoded, 0);
 // the movers view module's memory (behaviour/movers.as, its pages twice: the client lane's image and its rewind copy)
@@ -75,19 +76,19 @@ const budgets = { ...base.budgets, sim: { resident: navigationResident+courseMem
 // parseShardfile admits each link against the format's PortalLink schema (strict nodes, bound links, the walked route)
 return parseShardfile({ ...base, plumbing, budgets, navigation: navigation.navigation, critical: navigation.critical,
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigationResident+courseMemory },
-  files: [...worldFiles, ...navigation.files, ...heldGraphFiles.files, ground.file, crowd.file].sort((a, b) => a.hash.localeCompare(b.hash)), tiles: nineSlabTransport(world.shardfile.tiles, world.shardfile.files, inputs.scenes.NINE_WORLD_SCENES.libraries, inputs.scenes.NINE_REFINEMENT_SOURCE), library: [...library],
+  files: [...worldFiles, ...navigation.files, ...heldGraphFiles.files, ...kinds.map(row => row.file), crowd.file].sort((a, b) => a.hash.localeCompare(b.hash)), tiles: nineSlabTransport(world.shardfile.tiles, world.shardfile.files, inputs.scenes.NINE_WORLD_SCENES.libraries, inputs.scenes.NINE_REFINEMENT_SOURCE), library: [...library],
   accent: 'iris', runtime: { kind: 'client-plan', binds: ['props', 'items', 'ledger', 'modes'], cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
   entryways: portalEntries, directors: [portalStages],
   // QC1 (E510): the city is in view from everywhere and its whole L0 is 81.6 MB of GPU, so the whole cell stays resident
   // as Far Reach's does: no tile retires in play, and no retire re-joins a held refine union mid-walk
   ring: 'cell',
   // the look.materials graphs (data/lookGraphs.json: the sky, the Well's silk sheets, the steam), lent by plugin.ts
-  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, ...architectureGraphs(), 'nine-streaks': streakGraph(), 'nine-halo': haloGraph(), 'nine-filament': filamentGraph(), ...burstGraphs() }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])), ...heldGraphFiles.materials, [GROUND_LOOK]: ground.material, [CROWD_LOOK]: crowd.material } },
+  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, ...architectureGraphs(), 'nine-streaks': streakGraph(), 'nine-halo': haloGraph(), 'nine-filament': filamentGraph(), ...burstGraphs() }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])), ...heldGraphFiles.materials, ...Object.fromEntries(kinds.map(row => [row.look, row.material])), [CROWD_LOOK]: crowd.material } },
   // NR12: the props family draws only the coarse L1 parents (the whole libraries draw the L0 and library pieces), so it is
   // the coarse graph: the towers past the ring read as walls and lit rooms, not flat pbr slabs
   props: { ...nineSlabProps(world.props, inputs.scenes.NINE_WORLD_SCENES.libraries, inputs.scenes.NINE_REFINEMENT_SOURCE), family: 'nine-coarse-facade', wholeLibrary: worldLibrary, colliders: portalFloors,
     // EP12: the props GLB materials by look (scene.ts names them): L0 and the coarse L1 copy draw with the city's own graphs; the
     // shells keep the coarse facade look, whose lit block windows read as Nine at night (G941 board ruling, D)
-    materials: { shape: { id: 'nine-coarse-facade' }, kit: { id: 'nine-architecture' }, 'kit-cut': { id: 'nine-architecture-cut' }, 'kit-ground': { id: GROUND_LOOK }, facade: { id: 'nine-coarse-facade' } } } });
+    materials: { shape: { id: 'nine-coarse-facade' }, kit: { id: 'nine-architecture' }, 'kit-cut': { id: 'nine-architecture-cut' }, ...Object.fromEntries(KIT_KINDS.map(row => [row.material, { id: row.look }])), facade: { id: 'nine-coarse-facade' } } } });
 }
 

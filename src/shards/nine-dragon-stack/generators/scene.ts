@@ -6,7 +6,8 @@ import { compactWholeChannels, gridPositions, objectSpaceLooks, partitionWholeGe
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import { NINE_MATERIAL_LOOKS, NINE_WHOLE_DRESSING } from './wholeDressing';
 import { measuredCoarseGeometry } from '@wildshard/sdk/bake/coarseCopy';
-import { nineLayoutSource } from './layout';
+import { nineLayoutSource, SPLIT_KINDS } from './layout';
+import { kitKind } from './kitKinds';
 import { bootSpecimen, specimenRecipes } from './specimens';
 import { mistSheetsGeometry, steamPuffsGeometry } from './mistGeometry';
 import worldDressingRows from '../data/worldDressing.json' with { type: 'json' };
@@ -132,10 +133,10 @@ function buildNineScene(atlas: NineSpillAtlas): { baked: BakedScene; layout: Ret
     if (geometry === undefined) throw new Error(`Nine scene: missing kit geometry ${name}`);
     if (geometry !== null) withSpill(geometry, spill, name);
   }
-  for (const { name, geo } of layout.rows.groundKits) {
+  for (const { name, geo, kind } of layout.rows.kindKits) {
     const geometry = layout.geometries[geo];
-    if (geometry === undefined) throw new Error(`Nine scene: missing ground geometry ${name}`);
-    withSpill(geometry, spill, `${name}:ground`);
+    if (geometry === undefined) throw new Error(`Nine scene: missing kind ${kind} geometry ${name}`);
+    withSpill(geometry, spill, `${name}:k${kind}`);
   }
   const local = new Set(layout.rows.sets.map(set => set.geo));
   // The skyline crown reaches +273.5 m: retain that out-of-cube backdrop as an unchanged library geometry.
@@ -143,10 +144,10 @@ function buildNineScene(atlas: NineSpillAtlas): { baked: BakedScene; layout: Ret
   if (crown !== undefined && crown !== null) local.add(crown);
   // G748 / tile streaming T8: the city's coarse L1 copy keeps every Nine channel (its night look). Each L1 parent's pieces
   // merge into one draw per channel set, simplified until the parent fits the L1 tile caps (CONTENT_CAPS.l1)
-  // EP12: each layout geometry's look (its slab key's material: kit / kit-cut / kit-ground / facade) names its L0 and coarse
+  // EP12: each layout geometry's look (its slab key's material: kit / kit-cut / a split kind's / facade) names its L0 and coarse
   // material, so the coarse copy draws with the city's own graphs (props.materials) instead of one stand-in look
   const lookOf = new Map<number, string>([...layout.rows.kits.flatMap(row => row.geo === null ? [] : [[row.geo, 'kit'] as const]),
-    ...layout.rows.alphaKits.map(row => [row.geo, 'kit-cut'] as const), ...layout.rows.groundKits.map(row => [row.geo, 'kit-ground'] as const),
+    ...layout.rows.alphaKits.map(row => [row.geo, 'kit-cut'] as const), ...layout.rows.kindKits.map(row => [row.geo, kitKind(row.kind).material] as const),
     ...(layout.rows.shell === null ? [] : [[layout.rows.shell, 'facade'] as const])]);
   const looked = new Map<string, MeshStandardMaterial>();
   const materialOf = (i: number): MeshStandardMaterial => {
@@ -157,19 +158,19 @@ function buildNineScene(atlas: NineSpillAtlas): { baked: BakedScene; layout: Ret
   };
   const coarseWhole: PropWhole[] = [];
   const parents = new Map<number, CoarsePiece[]>(), errors = new WeakMap<BufferGeometry, number>();
-  // G5: a kit's flagstones draw apart (layout.ts `splitKind`), but its coarse copy simplifies the kit whole, as before
-  const grounds = new Map(layout.rows.groundKits.flatMap(({ name, geo }) => {
-    const kit = layout.rows.kits.find(row => row.name === name)?.geo;
-    return kit === undefined || kit === null ? [] : [[kit, geo] as const];
-  })), merged = new Set(grounds.values());
+  // G5: a kit's split kinds draw apart (layout.ts `splitKinds`), but its coarse copy simplifies the kit whole, as before
+  const kitGeo = (name: string): number | null => layout.rows.kits.find(row => row.name === name)?.geo ?? null;
+  const merged = new Set(layout.rows.kindKits.filter(row => kitGeo(row.name) !== null).map(row => row.geo));
   const whole = (i: number, geometry: BufferGeometry): BufferGeometry => {
-    const kit = layout.wholes.get(i), ground = grounds.get(i), only = ground === undefined ? undefined : layout.geometries[ground];
-    if (kit === undefined || only === undefined) return geometry;
-    const [restSpill, onlySpill] = [geometry.getAttribute('aSpill'), only.getAttribute('aSpill')], [restMap, onlyMap] = kit.maps;
+    const kit = layout.wholes.get(i); if (kit === undefined) return geometry;
+    // the parts aligned with kit.maps: the rest, then each split kind's (absent where the kit has none of it)
+    const parts = [geometry, ...SPLIT_KINDS.map(kind => { const row = layout.rows.kindKits.find(entry => entry.name === kit.name && entry.kind === kind); return row === undefined ? undefined : layout.geometries[row.geo]; })];
     const words = new Float32Array(kit.geometry.getAttribute('position').count * 3);
-    for (let v = 0; v < words.length / 3; v++) {
-      const r = restMap[v] ?? -1, o = onlyMap[v] ?? -1, from = r !== -1 ? restSpill : onlySpill, at = r !== -1 ? r : o;
-      if (at !== -1) for (let k = 0; k < 3; k++) words[v * 3 + k] = from.array[at * 3 + k] ?? 0;
+    for (let v = 0; v < words.length / 3; v++) for (const [s, part] of parts.entries()) {
+      const at = kit.maps[s]?.[v] ?? -1; if (at === -1 || part === undefined) continue;
+      const from = part.getAttribute('aSpill').array;
+      for (let k = 0; k < 3; k++) words[v * 3 + k] = from[at * 3 + k] ?? 0;
+      break;
     }
     return kit.geometry.setAttribute('aSpill', new BufferAttribute(words, 3));
   };
