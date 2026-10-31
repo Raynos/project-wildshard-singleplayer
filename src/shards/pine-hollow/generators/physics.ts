@@ -1,6 +1,7 @@
 import { authorFormatSchema, nativeColliderSourceRows } from '@wildshard/sdk/formatJsonSchema';
 import { parseSectionValue } from '@wildshard/sdk/sections';
-import { PinePhysicsSchema } from './sections';
+import { PinePhysicsSchema, PinePhysicsOwnersSchema } from './sections';
+import { worldPhysicsSection } from '@wildshard/sdk/platformSections';
 import PINE_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import rows from '../data/physicsRows.json' with { type: 'json' };
 
@@ -39,6 +40,20 @@ function physicsRows(): PinePhysicsRows {
 export const pinePhysics: () => ReturnType<typeof physicsRows> = physicsRows;
 /** The `data/physics.generated.json` product file's bytes, as the retired job wrote them. */
 export function pinePhysicsBytes(): Uint8Array { return new TextEncoder().encode(`${JSON.stringify(pinePhysics())}\n`); }
+
+
+/** The unchanged common native rows through the existing platform section. */
+export function pineWorldPhysics(): ReturnType<typeof worldPhysicsSection> {
+  return worldPhysicsSection(pinePhysics(), {rig:'segments',provenance:'piece'});
+}
+/** Keep every original encounter, shelter, piece and authoring-owner row separate. */
+export function pinePhysicsOwners(): Pick<PinePhysicsRows,'version'|'profile'|'notice'|'kingHit'|'trees'|'shelterTrees'|'pieces'> {
+  const {version,profile,notice,kingHit,trees,shelterTrees,pieces}=pinePhysics();
+  const owners={version,profile,notice,kingHit,trees,shelterTrees,pieces};
+  parseSectionValue(PinePhysicsOwnersSchema,owners);return owners;
+}
+/** The existing named file now transports only its retained owners. */
+export function pinePhysicsOwnersBytes(): Uint8Array { return new TextEncoder().encode(`${JSON.stringify(pinePhysicsOwners())}\n`); }
 
 /** Original floor and hull buffers through the existing named binary intake. */
 export function pinePhysicsSources(): { name: string; kind: 'bin'; source: string; options: { decoded: number } }[] {

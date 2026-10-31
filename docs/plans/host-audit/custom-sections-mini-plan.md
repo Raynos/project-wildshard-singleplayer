@@ -312,12 +312,38 @@ pre-existing untracked `generators/rows/islets.generated.ts` contributes
 hash-bound bytes matching the old aggregate; its local/CI divergence is
 an open BURN-DAMAGE-LIST finding, and the file is left intact.
 
-**CS4 stays open** for Pine floor/cave and physics owners, Nalati meadow
-and other ground bakes. The read-only Pine projection accepts all 2,078
-solids, 164 actors, three parked bodies and 52 herds through the existing
-`WorldPhysicsSchema` without changing their values. Its separate profile,
-notice, King-hit, tree, shelter-tree and piece owners must survive the
-actual migration; no projection or native-world completion is claimed.
+## CS4: Pine native collision transport
+
+The existing `world/physics` section now carries Pine's common ground,
+solid, actor, parked-body and herd rows. The original
+`data/physics.generated.json` name remains for version, profile, notice,
+King-hit, tree, shelter-tree and piece owners. Its original full authoring
+oracle remains available for comparison. The native fixture reads both
+admitted transports through the same native bake reader; no host,
+collider, controller, tick or rendering logic changes.
+
+The final needed seven-product refresh completes in 25.91 s, followed by
+independent strict admission of all seven modern physics products. All
+1,046 unrelated Pine payloads / 153,570,019 B, all original names, other
+sections and custom schemas remain exact. The original 873,873-byte full
+JSON reconstructs exactly from the 152,494-byte owner file and
+721,431-byte common section. The same native reader produces deeply and
+string-exact results; all 644 typed buffers / 890,236 B are byte-identical,
+retaining 2,078 solids, 164 actors, three parked bodies and 52 herds.
+Map-source stamp and all drawn payloads are unchanged; no capture credit
+is claimed.
+
+The required maintained command, `node scripts/physics-baseline.mjs
+--no-build --mode=walk`, passes the complete unfiltered HEAD catalog:
+**75/75 route legs, zero stuck, zero bounds failures, zero pending**.
+The prior 85-leg queue shorthand was corrected before execution; no
+route, assertion or cap changed. Focused transport/native-reader controls,
+root types and touched typed lint pass. Neither Pine nor Nine legacy is
+modified or used for this proof.
+
+**CS4 remains open** for Pine floor/cave, Nalati meadow and other ground
+bakes. Retained encounter and authoring-owner data are explicit owner-data
+exits, not a new platform host or a discarded projection remainder.
 
 
 ## CS9: source-first assembly derivation
