@@ -1,4 +1,5 @@
 import { nativeProgramFixture } from './native-program';
+import { runTextSnapshot } from './runSnapshot';
 import * as v from 'valibot';
 
 /** Every executable/declaration layer the native compiler/scalar helpers can
@@ -12,7 +13,8 @@ const inputs = ['src/engine', 'src/format', 'src/game', 'src/sdk', 'src/commons'
 
 /** One source/host-keyed construction per helper, shared across isolated suites. */
 export function nalatiNativeProgram(name: 'kokpar' | 'titan' | 'riding' | 'charge' | 'geography' | 'view'): Promise<string> {
-  return nativeProgramFixture({ id: `nalati-${name}`, script: `test/fixtures/nalati-${name}-compile.mjs`, inputs });
+  return runTextSnapshot(`nalati-native-${name}`, () =>
+    nativeProgramFixture({ id: `nalati-${name}`, script: `test/fixtures/nalati-${name}-compile.mjs`, inputs }));
 }
 
 /** Fresh owned current scalar loans for isolated setup; no cached game state. */

@@ -141,3 +141,23 @@ export async function runSnapshot<T>(name: string, compute: () => Promise<T>): P
   // The same commit's `compute` wrote this value and the writer proved its clone equal, so it is that T.
   return readValue(readFileSync(file), name, sha) as T;
 }
+
+/** Compiler envelopes are primitive text: unlike objects and views, they have
+ * no realm-specific prototype. Their consumers still parse and admit them in
+ * their own realm. Keep the general object snapshot's DOM refusal unchanged. */
+export async function runTextSnapshot(name: string, compute: () => Promise<string>): Promise<string> {
+  const text = (value: unknown): string => {
+    if (typeof value !== 'string') throw new Error(`Fixture snapshot ${name} is not primitive text`);
+    return value;
+  };
+  const { WS_FIXTURE_SNAPSHOTS: read = '', WS_FIXTURE_SNAPSHOT_WRITE: write = '', WS_TEST_PRODUCTS_SHA: sha = '' } = process.env;
+  if (!SHA.test(sha) || !/^[a-z0-9-]+$/u.test(name)) return text(await compute());
+  if (write !== '') {
+    const value = text(await compute());
+    writeSnapshot(resolve(write, `${name}.v8`), name, sha, value);
+    return value;
+  }
+  const file = resolve(read, `${name}.v8`);
+  if (read === '' || !existsSync(file)) return text(await compute());
+  return text(readValue(readFileSync(file), name, sha));
+}

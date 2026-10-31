@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The snapshot directory lives under the repo's tmp root.
 import { resolve } from 'node:path';
 import { afterEach, expect, test, vi } from 'vitest';
-import { runSnapshot } from './fixtures/runSnapshot';
+import { runSnapshot, runTextSnapshot } from './fixtures/runSnapshot';
 
 const SHA = 'a'.repeat(40);
 const directories: string[] = [];
@@ -66,4 +66,36 @@ test('the writer refuses values a structured clone would not return exactly', as
   ];
   for (const [name, value] of refused) await expect(runSnapshot(`refused-${name}`, () => Promise.resolve(value)), name).rejects.toThrow('would not clone exactly');
   expect(readdirSync(dir)).toEqual([]);
+});
+
+test('primitive compiler text crosses a DOM realm without granting object snapshot reuse', async () => {
+  const dir = directory(), value = JSON.stringify({ code: ['raw', '\u0000', 'λ'], stamp: -0 });
+  vi.stubEnv('WS_TEST_PRODUCTS_SHA', SHA); vi.stubEnv('WS_FIXTURE_SNAPSHOT_WRITE', dir);
+  await runTextSnapshot('compiler', () => Promise.resolve(value));
+  vi.stubEnv('WS_FIXTURE_SNAPSHOT_WRITE', ''); vi.stubEnv('WS_FIXTURE_SNAPSHOTS', dir);
+  const compute = vi.fn(() => Promise.resolve('unexpected compiler call'));
+  Object.defineProperty(globalThis, 'document', { value: {}, configurable: true });
+  try {
+    await expect(runTextSnapshot('compiler', compute)).resolves.toBe(value);
+    expect(compute).not.toHaveBeenCalled();
+    const objects = vi.fn(() => Promise.resolve({ ownRealm: true }));
+    await expect(runSnapshot('compiler', objects)).resolves.toEqual({ ownRealm: true });
+    expect(objects).toHaveBeenCalledOnce();
+  } finally { Reflect.deleteProperty(globalThis, 'document'); }
+});
+
+test('text readers refuse nontext or wrong-commit artifacts and compute only missing entries', async () => {
+  const dir = directory();
+  vi.stubEnv('WS_TEST_PRODUCTS_SHA', SHA); vi.stubEnv('WS_FIXTURE_SNAPSHOT_WRITE', dir);
+  await runSnapshot('object', () => Promise.resolve({ code: 'not a string' }));
+  await runTextSnapshot('compiler', () => Promise.resolve('complete original envelope'));
+  vi.stubEnv('WS_FIXTURE_SNAPSHOT_WRITE', ''); vi.stubEnv('WS_FIXTURE_SNAPSHOTS', dir);
+  const compute = vi.fn(() => Promise.resolve('fresh envelope'));
+  await expect(runTextSnapshot('object', compute)).rejects.toThrow('not primitive text');
+  vi.stubEnv('WS_TEST_PRODUCTS_SHA', 'b'.repeat(40));
+  await expect(runTextSnapshot('compiler', compute)).rejects.toThrow('belongs to another fixture or commit');
+  expect(compute).not.toHaveBeenCalled();
+  vi.stubEnv('WS_TEST_PRODUCTS_SHA', SHA);
+  await expect(runTextSnapshot('missing', compute)).resolves.toBe('fresh envelope');
+  expect(compute).toHaveBeenCalledOnce();
 });
