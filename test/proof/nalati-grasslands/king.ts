@@ -19,11 +19,15 @@ export function* kingEntryInputs(host:SimHost,read:()=>KingObservation,rows:Nala
   for(const flag of ['clue:1','clue:2','clue:3'])assert.ok(host.flags.has(flag),flag);
   assert.equal(host.flags.has('dead:golden-king'),false);
   const e=rows.entrance;
-  yield* chapterWalkInputs(host,'earned-king-door',[kingEntryPoint(e)],2400);
+  for(const commands of chapterWalkInputs(host,'earned-king-door',[kingEntryPoint(e)],2400)){
+    if(read().inside)break;yield commands;
+  }
   for(let tick=0;tick<120&&!read().inside;tick++)yield [{kind:'player',moveX:0,moveZ:0,yaw:e.facing,commandVersion:1,steer:{keyX:0,keyY:0,stickX:0,stickY:0}}];
   assert.equal(read().inside,true,'the original door program must actually enter');
   const p=rows.profile.fight.origin;
-  yield* chapterWalkInputs(host,'entered-king-corridor',[{x:p.x,z:p.z+rows.room.halfWidth-2}],1800);
+  for(const commands of chapterWalkInputs(host,'entered-king-corridor',[{x:p.x,z:p.z+rows.room.halfWidth-2}],1800)){
+    if(read().state!=='armed')break;yield commands;
+  }
   for(let tick=0;tick<600&&read().state!=='fight';tick++)yield [];
   const entered=read();assert.equal(entered.inside,true);assert.equal(entered.state,'fight');assert.equal(entered.phase,0);
   assert.ok(entered.body?.alive);assert.equal(host.flags.has('dead:golden-king'),false);
