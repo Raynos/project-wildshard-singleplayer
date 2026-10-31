@@ -103,7 +103,7 @@ test.each(['large', 'unknown'] as const)('%s scratch estimates retain the origin
   scope.dispose(); expect(store.counts.releases).toBe(store.counts.pins); f.close();
 });
 
-test('the next archive refills one completed authored slot while five reads remain held', async () => {
+test.each([0, 5])('a completed slot %i refills while five reads remain held; references stay authored', async completed => {
   const f = fixture(12), scope = new Scope('rolling road archives');
   const expected = await serialBodies(f.mesh, f.plan), bodies = new Map<string, Uint8Array>();
   const release: (() => void)[] = []; let reads = 0, active = 0, peak = 0;
@@ -123,8 +123,9 @@ test('the next archive refills one completed authored slot while five reads rema
   }, { pitch: 125, plans: new Map() });
   const work = capture(backing, f.mesh, f.plan);
   try {
-    await firstWindow; release[0]?.(); await refilled;
+    await firstWindow; release[completed]?.(); await refilled;
     expect(reads).toBe(7); expect(active).toBe(5); expect(peak).toBe(6);
+    if (completed === 5) expect(backing.state().backedTiles).toBe(0);
   } finally { for (const done of release) done(); await work; scope.dispose(); f.close(); }
   expect(reads).toBe(24); expect(active).toBe(0);
   expect([...bodies.keys()].sort()).toEqual([...expected.keys()].sort());

@@ -17,7 +17,10 @@ interface Source {
   retire: (() => void) | null; pool: RoadTilePool | null;
 }
 type ArchiveResult = { readonly ok: true; readonly reference: RoadTileReference } | { readonly ok: false; readonly error: unknown };
-interface PendingArchive { readonly owner: Scope; readonly references: RoadTileReference[]; readonly ready: Promise<ArchiveResult>; readonly budget: number }
+interface PendingArchive {
+  readonly owner: Scope; readonly references: RoadTileReference[]; readonly ready: Promise<ArchiveResult>; readonly budget: number;
+  readonly settled: { result: ArchiveResult | undefined };
+}
 const ARCHIVE_WINDOW = 6;
 
 /** Conservative scratch bound: compacted attributes/indices, number tables,
@@ -46,6 +49,7 @@ export class RoadTileBacking {
   private readonly sources = new Map<Mesh, Source>();
   private readonly pending: PendingArchive[] = [];
   private pendingBytes = 0;
+  private activeArchives = 0;
   private flushRequested = false;
   private failureSeen = false;
   private flushing: Promise<void> | null = null;
@@ -104,12 +108,16 @@ export class RoadTileBacking {
       this.flushRequested = true; yield;
     }
     if (source.scope.disposed || source.scope.disposing) throw new Error('Road backing owner retired');
-    if (this.flushing !== null || this.settling !== null || this.pending.length >= ARCHIVE_WINDOW) throw new Error('Road construction must await its backing writes');
+    if (this.flushing !== null || this.settling !== null || this.activeArchives >= ARCHIVE_WINDOW) throw new Error('Road construction must await its backing writes');
   }
   private *write(source: Source, data: RoadTileGeometry, references: RoadTileReference[], budget: number): Generator<void, void> {
     try {
-      const ready = this.archiveResult(persistRoadTile(source.scope, this.store, data));
-      this.pending.push({ owner: source.scope, references, ready, budget }); this.pendingBytes += budget;
+      const settled: PendingArchive['settled'] = { result: undefined };
+      const ready = this.archiveResult(persistRoadTile(source.scope, this.store, data)).then(result => {
+        settled.result = result; this.activeArchives--; return result;
+      });
+      this.activeArchives++;
+      this.pending.push({ owner: source.scope, references, ready, budget, settled }); this.pendingBytes += budget;
     } finally { data.geometry.dispose(); }
     yield;
     if (source.scope.disposed || source.scope.disposing) throw new Error('Road backing owner retired');
@@ -118,36 +126,33 @@ export class RoadTileBacking {
     try { return { ok: true, reference: await pending }; }
     catch (error) { this.failureSeen = true; return { ok: false, error }; }
   }
-  /** Refill one authored slot at a full window instead of waiting for all six.
-   * Byte boundaries, failures and source publication still drain the full set. */
+  /** Refill any completed slot while committing only the ready authored prefix.
+   * Even completed out-of-order entries retain their full scratch charge until
+   * committed. Byte boundaries, failures and publication drain the full set. */
   flush(): Promise<void> | null {
     if (this.flushing !== null) return this.flushing;
     if (this.pending.length === 0) { this.flushRequested = false; this.failureSeen = false; return null; }
-    if (!this.flushRequested && !this.failureSeen && this.pending.length < ARCHIVE_WINDOW && this.pendingBytes < ROAD_TILE_ARCHIVE_BYTES) return null;
-    const jobs = this.pending.splice(0, this.flushRequested || this.failureSeen ? this.pending.length : 1);
-    for (const job of jobs) this.pendingBytes -= job.budget;
-    // Unsupported estimates use Infinity to force the serial fallback. Its
-    // completed single job must reset the budget rather than retain NaN.
-    if (this.pending.length === 0) this.pendingBytes = 0;
+    if (!this.flushRequested && !this.failureSeen && this.activeArchives < ARCHIVE_WINDOW && this.pendingBytes < ROAD_TILE_ARCHIVE_BYTES) return null;
+    const all = this.flushRequested || this.failureSeen || this.pendingBytes >= ROAD_TILE_ARCHIVE_BYTES;
     this.flushRequested = false;
     const takeRemaining = (): PendingArchive[] => {
       const remaining = this.pending.splice(0); this.pendingBytes = 0; return remaining;
     };
     const pending = (async (): Promise<void> => {
       try {
-        const results = await Promise.all(jobs.map(job => job.ready));
-        // A later authored job can fail while the oldest slot is awaited. Join
-        // every started job before reporting the first authored refusal.
-        if (this.failureSeen) {
-          const remaining = takeRemaining(); jobs.push(...remaining);
-          results.push(...await Promise.all(remaining.map(job => job.ready)));
-        }
-        for (const [index, job] of jobs.entries()) {
-          const result = results[index]; if (result === undefined) throw new Error('Missing road archive result');
+        const waiting = this.pending.filter(job => job.settled.result === undefined).map(job => job.ready);
+        await (all ? Promise.all(waiting) : Promise.race(waiting));
+        if (this.failureSeen) await Promise.all(this.pending.map(job => job.ready));
+        for (;;) {
+          const job = this.pending[0], result = job?.settled.result;
+          if (job === undefined || result === undefined) break;
           if (!result.ok) throw result.error;
           if (job.owner.disposed || job.owner.disposing) throw new Error('Road backing owner retired');
           job.references.push(result.reference);
+          this.pending.shift(); this.pendingBytes -= job.budget;
         }
+        // Infinity is the unsupported-size serial fallback, not a retained NaN.
+        if (this.pending.length === 0) this.pendingBytes = 0;
       } catch (error) {
         await Promise.all(takeRemaining().map(job => job.ready)); throw error;
       } finally { if (this.pending.length === 0) this.failureSeen = false; }
