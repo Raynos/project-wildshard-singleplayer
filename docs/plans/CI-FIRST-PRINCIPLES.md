@@ -2581,3 +2581,39 @@ driver is removed. CI10 stays open; root retains sole ordinary-run reads
 and the first actual app-reaching artifact handoff. No new Simulator,
 screenshot, workflow dispatch or readiness budget was used.
 
+### CI10 Road refill follow-up (2026-10-31, sp-x8)
+
+**Warm Road still misses its tens-of-ms bar.** The checked rolling-oldest
+candidate `f832e02799` measures cold54.2561s / warm28.2793s on the
+uninstrumented original phone preset. Native Road is17.8ms /2468.2ms.
+The preceding `5596fde41e` reading was16.5ms /2584.7ms; the small warm
+Road difference is not an overall loading gain. Both native receipts
+qualify; warm request accounting is complete. Cold retains one
+navigated-away body-accounting refusal and static telemetry405 keeps
+the original CLI exit1. Browser and preview both closed normally.
+
+The separate same-source CPU/cache diagnostic has2769.2ms Road, with
+1153 native cache hits, zero writes/misses/errors and2452.8ms union of
+observed Road promises. Those spans include callback CPU and must not
+be added to sampled CPU. Road compaction is420.6ms self; capture149.3,
+merge97.0, coarse88.6 and encoding87.2. Main/runtime maps remain absent.
+These instrumented numbers diagnose the remaining wait, not an after
+bar or isolated speedup. Both the full batch and rolling-oldest source
+still wait for the oldest archive before refilling.
+
+Checked `19c9b94da8` instead admits the next archive after any completed
+slot, while committing only the ready authored prefix. It retains six
+active archives and the25MB scratch bound: completed out-of-order jobs
+keep their full conservative charge until committed. Byte/source-end,
+failure and cancellation barriers still drain all started work; every
+fresh/cached/restored SHA and the equal-key FIFO remain.46 cases/eight
+suites and typed lint pass, including completion of the sixth slot
+while the first five remain held and zero out-of-order references.
+Root types at that boundary report only the peer's active Pine-legacy
+deletion frontier. Its original-preset reading is still pending; no
+bar closure or skipped-check claim.
+
+Raw uninstrumented pair:
+`tmp/phone-loading/2026-10-31T21-50-52-164Z-f832e02-mvwxpxhx/`.
+Raw diagnostic/profile/cache promises:
+`tmp/phone-loading/2026-10-31T21-44-26-484Z-5596fde-mvwxi2cc/`.
