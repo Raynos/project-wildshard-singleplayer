@@ -12,8 +12,6 @@ const CELL = 2;
 // Array lengths/counts are safe integers. This finite bound preserves every input
 // element; this generator runs before any playable frame exists.
 const MAX_ITEMS = 9007199254740991;
-/** a cell's packed light (sp-o116: one flat read per light): x, y, z, 9 r² (the cutoff), 1 / r², r, g, b, spill */
-const LIGHT = 9;
 
 /** Bakes the per-vertex light spill offline in the original light accumulation order. */
 export function bakeSpill(geos: readonly BufferGeometry[], emitters: readonly Emitter[]): void {
@@ -131,45 +129,36 @@ export function bakeSpill(geos: readonly BufferGeometry[], emitters: readonly Em
       }
     }
   }
-  // sp-o116: each cell's lights packed flat, in the emitters' order (the order they are summed in)
-  const packed: Float64Array[] = [];
-  for (let ci = 0; ci < Math.min(cells.length, MAX_ITEMS); ci++) {
-    const lights = cells[ci]?.lights ?? [], flat = new Float64Array(lights.length * LIGHT);
-    for (let li = 0; li < Math.min(lights.length, MAX_ITEMS); li++) {
-      const e = lights[li], b = li * LIGHT;
-      if (e === undefined) continue;
-      flat[b] = e.x; flat[b + 1] = e.y; flat[b + 2] = e.z; flat[b + 3] = 9 * e.r2; flat[b + 4] = e.invR2;
-      flat[b + 5] = e.r; flat[b + 6] = e.g; flat[b + 7] = e.b; flat[b + 8] = e.spill;
-    }
-    packed.push(flat);
-  }
   for (let gi = 0; gi < Math.min(geos.length, MAX_ITEMS); gi++) {
     const g = geos[gi], index = cellOf[gi];
     if (g === undefined || index === undefined) continue;
     const pos = g.getAttribute('position');
     const nor = g.getAttribute('normal');
     if (!(pos instanceof BufferAttribute) || !(nor instanceof BufferAttribute)) continue;
+    // Read the same private light records in emitter order; no packed copy
+    // or per-component optional lookup is needed for these complete records.
     const pa = pos.array, na = nor.array;
     const out = new Float32Array(pos.count * 3);
     for (let i = 0; i < Math.min(pos.count, MAX_ITEMS); i++) {
       const o = i * 3;
       const px = pa[o] ?? 0, py = pa[o + 1] ?? 0, pz = pa[o + 2] ?? 0;
       const nx = na[o] ?? 0, ny = na[o + 1] ?? 0, nz = na[o + 2] ?? 0;
-      const flat = packed[index[i] ?? -1];
+      const lights = cells[index[i] ?? -1]?.lights;
       let r = 0, gg = 0, b = 0;
-      const count = flat === undefined ? 0 : flat.length / LIGHT;
-      if (flat !== undefined) for (let li = 0; li < Math.min(count, MAX_ITEMS); li++) {
-        const at = li * LIGHT;
-        const dx = (flat[at] ?? 0) - px, dy = (flat[at + 1] ?? 0) - py, dz = (flat[at + 2] ?? 0) - pz;
+      const count = lights === undefined ? 0 : lights.length;
+      if (lights !== undefined) for (let li = 0; li < Math.min(count, MAX_ITEMS); li++) {
+        const light = lights[li];
+        if (light === undefined) continue;
+        const dx = light.x - px, dy = light.y - py, dz = light.z - pz;
         const d2 = dx * dx + dy * dy + dz * dz;
-        if (d2 > (flat[at + 3] ?? 0)) continue;
+        if (d2 > 9 * light.r2) continue;
         const dot = nx * dx + ny * dy + nz * dz;
         // facing away (dot ≤ 0): max(dot / |d|, 0) is 0, so the facing is exactly 0.25 without the root
         const facing = dot > 0 ? Math.max(dot / Math.sqrt(Math.max(d2, 1e-4)), 0) * 0.75 + 0.25 : 0.25;
-        const k = ((flat[at + 8] ?? 0) * facing) / (1 + d2 * (flat[at + 4] ?? 0));
-        r += (flat[at + 5] ?? 0) * k;
-        gg += (flat[at + 6] ?? 0) * k;
-        b += (flat[at + 7] ?? 0) * k;
+        const k = (light.spill * facing) / (1 + d2 * light.invR2);
+        r += light.r * k;
+        gg += light.g * k;
+        b += light.b * k;
       }
       out[o] = r;
       out[o + 1] = gg;
