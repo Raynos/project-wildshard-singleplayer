@@ -16,10 +16,21 @@ test('census preserves the paired defaults and selects standing golden P1 camera
     ['nine-dragon-stack', 'P4', ['legacy', 'shardfile']], ['pine-hollow', 'Q4', ['legacy', 'shardfile']],
   ]);
   expect(censusSelection('pine-hollow', 'P1', 'legacy')[0]?.pose).toEqual({x:0,z:-235,yaw:Math.PI,pitch:0});
-  expect(censusSelection('driftwood-isle', 'Q4', 'shardfile')[0]).toMatchObject({poseName:'P1:pier',pose:{x:0,z:-194,yaw:Math.PI,pitch:0},modes:['shardfile']});
-  expect(censusSelection('nalati-grasslands')[0]?.pose).toMatchObject({x:60,z:214,yaw:-Math.PI/2,pitch:0});
-  expect(censusSelection('far-reach')[0]?.pose).toMatchObject({x:0,y:30,z:-5.5,yaw:-0,pitch:0});
-  expect(censusSelection('sunscar-dunes')[0]?.pose).toMatchObject({x:0,z:70,yaw:-0,pitch:2*Math.PI/180});
+  // Input fixtures exercise both authored representations; the CLI lends its
+  // actual camera table instead of making this pure module import art/.
+  const cameras = {
+    'driftwood-isle': [{n:1,name:'pier',yaw:-180,pitch:0,probe:{x:0,z:-194,yaw:Math.PI,pitch:0}}],
+    'nalati-grasslands': [{n:1,name:'camp',yaw:90,pitch:0,probe:{x:60,z:214,yaw:-Math.PI/2,pitch:0}}],
+    'far-reach': [{n:1,name:'spawn',yaw:0,pitch:0,feet:[0,30,-5.5]}],
+    'sunscar-dunes': [{n:1,name:'spawn',yaw:0,pitch:2,feet:[0,21.363867328746412,70]}],
+  };
+  expect(censusSelection('driftwood-isle', 'Q4', 'shardfile', cameras)[0]).toMatchObject({poseName:'P1:pier',pose:{x:0,z:-194,yaw:Math.PI,pitch:0},modes:['shardfile']});
+  expect(censusSelection('nalati-grasslands', 'Q4', 'both', cameras)[0]?.pose).toMatchObject({x:60,z:214,yaw:-Math.PI/2,pitch:0});
+  expect(censusSelection('far-reach', 'Q4', 'both', cameras)[0]?.pose).toMatchObject({x:0,y:30,z:-5.5,yaw:-0,pitch:0});
+  expect(censusSelection('sunscar-dunes', 'Q4', 'both', cameras)[0]?.pose).toMatchObject({x:0,z:70,yaw:-0,pitch:2*Math.PI/180});
+  expect(() => censusSelection('far-reach')).toThrow('Missing golden census camera 1');
+  expect(() => censusSelection('far-reach','Q4','both',{'far-reach':[{n:2,name:'wrong',yaw:0,pitch:0,feet:[0,0,0]}]})).toThrow('Missing golden census camera 1');
+  expect(() => censusSelection('far-reach','Q4','both',{'far-reach':[{n:1,name:'invalid',yaw:0,pitch:0,feet:[Number.NaN,0,0]}]})).toThrow('not a standing pose');
   expect(() => censusSelection('missing')).toThrow('Unknown census shard');
   expect(() => censusSelection('', 'missing')).toThrow('Unknown Pine census pose');
   expect(() => censusSelection('', 'P1', 'missing')).toThrow('Unknown census mode');

@@ -5,6 +5,7 @@
 // Other public shards select golden camera 1. --environment=golden pins midday/clear;
 // --mode=shardfile measures the graph back-end without an unrelated legacy leg.
 import { chromium, devices } from 'playwright';
+import cameras from '../../art/legacy-goldens/compare/cameras24.json' with { type: 'json' };
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { createRequire } from 'node:module';
@@ -18,7 +19,7 @@ import { censusSelection, censusEntry } from './draw-census-poses.mjs';
 const arg = (name, fallback = '') => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const base = arg('url'), dist = resolve(arg('dist', 'dist')), frames = Number(arg('frames', '60'));
 const surface = arg('surface', 'pwa'), requestedSlug = arg('slug'), pinePose = arg('pine-pose', 'Q4');
-const selections = censusSelection(requestedSlug, pinePose, arg('mode', 'both'));
+const selections = censusSelection(requestedSlug, pinePose, arg('mode', 'both'), cameras.cameras);
 const environment = arg('environment', 'live');
 if (!['live', 'golden'].includes(environment)) throw new Error('Unknown census environment');
 const systemIds = arg('systems') === '' ? undefined : arg('systems').split(',');
