@@ -161,8 +161,8 @@ it('native page entries retain their sampled collider and structure-floor polici
   }
 });
 
-it('native offline observation retains all ticks and the complete restored continuation', async () => {
-  const directory = builtProduct('far-reach'), product = await loadHeadlessProduct(directory), shard = product.shardfile;
+it.each(['far-reach', 'sunscar-dunes'])('%s offline observation retains all ticks and the complete restored continuation', async slug => {
+  const directory = builtProduct(slug), product = await loadHeadlessProduct(directory), shard = product.shardfile;
   const descriptor = outputDescriptor(shard);
   if (descriptor === undefined) throw new Error('Missing native product descriptor');
   const assets = new Map(await Promise.all(descriptor.index.files.map(async file =>
