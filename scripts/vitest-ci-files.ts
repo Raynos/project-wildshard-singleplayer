@@ -1,4 +1,4 @@
-/** Each native file already occupies both cores with capture and replay.
+/** Native integration keeps its original deadlines without sibling Vitest workers.
  * Groups run files sequentially; parallel discovery excludes their exact union. */
 export const CI_NATIVE_GROUPS = {
   'escape-titan': [
@@ -7,6 +7,7 @@ export const CI_NATIVE_GROUPS = {
   ],
   'stories-qara': [
     'test/pine-quest-verbs.test.ts',
+    'test/pine-door-continuation.test.ts',
     'test/driftwood-story-verbs.test.ts',
     'test/nalati-discovery-verbs.test.ts',
     'test/nalati-qara-verbs.test.ts',
