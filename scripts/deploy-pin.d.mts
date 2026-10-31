@@ -38,7 +38,7 @@ export function deadlineRecoverySource(runId:string,query?:(args:string[])=>stri
 export function ciRunGreen(sha: string, runId: string, query?: (args: string[]) => string): boolean;
 
 /** Bind trusted same-run wave results before that run's own ship job completes. */
-export function waveSource(input: {mode:string;event:string;ref:string;repository:string;sha:string;run:string;head:string;needs:unknown;bootOutcome?:string|undefined}): {skip:boolean;sha:string;run:string};
+export function waveSource(input: {mode:string;event:string;ref:string;repository:string;sha:string;run:string;head:string;needs:unknown;bootOutcome?:string|undefined;staged?:boolean|undefined}): {skip:boolean;sha:string;run:string};
 
 
 /** No CI-green candidate has a successful exact-SHA smoke yet. */

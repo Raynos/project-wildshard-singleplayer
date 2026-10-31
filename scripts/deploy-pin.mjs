@@ -259,6 +259,35 @@ class SourceGateError extends Error { name = 'SourceGateError'; }
 /** @typedef {{name:string,status:string,conclusion:string|null,created_at:string|null,started_at:string|null,completed_at:string|null,
  * run_id?:number,run_attempt?:number,head_sha?:string,steps?:SourceStep[]}} SourceJob */
 
+/** The optional stage cannot replace any gate or authorize historical sources.
+ * @param {string} source */
+function stagedBootSource(source) {
+  const ship = /\n {2}build-and-deploy:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1] ?? '';
+  const stage = /\n {2}stage-prebuilt:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
+  const marked = /^ {6}STAGED_RELEASE_PROOF: 'v1'$/mu.test(ship);
+  if (!marked && stage === undefined) return false;
+  const native = /\n {2}native-escape:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
+  const groups = /^\s+group: \[([^\]]+)\]/mu.exec(native ?? '')?.[1]?.split(',').map(name => name.trim());
+  const reviewed = new Set(['escape-titan','stories-qara','chapter-one','native-routes']);
+  const behaviour = /\n {2}behaviour:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
+  const matrix = /^\s+shard: \[([\d, ]+)\]/mu.exec(behaviour ?? '')?.[1]?.split(',').map(Number);
+  if (!marked || stage === undefined
+    || groups?.length !== 4 || new Set(groups).size !== 4 || !groups.every(name => reviewed.has(name))
+    || matrix?.length !== 24 || matrix.some((index, i) => index !== i + 1)
+    || !source.includes('node scripts/vitest-plan.ts --shards 24 --workers 2')
+    || !behaviour?.includes(`--config scripts/vitest-ci.config.ts --shard=\${{ matrix.shard }}/24 --bail=0`)
+    || !/^ {6}MERGED_BOOT_PROOF: 'v1'$/mu.test(ship)
+    || !/^ {4}needs: prepare$/mu.test(stage)
+    || !/^ {4}if: \$\{\{ github.event_name == 'push' && needs.prepare.result == 'success' \}\}$/mu.test(stage)
+    || !/^ {4}continue-on-error: true$/mu.test(stage)
+    || !stage.includes(`receipt: \${{ steps.complete.outputs.receipt }}`)
+    || !stage.includes('run: python3 scripts/staged-deployment.py stage --sha "$DEPLOY_SHA" --run "$SOURCE_RUN" --attempt "$SOURCE_ATTEMPT"')
+    || !stage.includes('run: python3 scripts/staged-deployment.py complete --sha "$DEPLOY_SHA" --run "$SOURCE_RUN" --attempt "$SOURCE_ATTEMPT"')
+    || !ship.includes('CI_WAVE_STAGE: v1'))
+    throw new Error('Source optional stage topology differs');
+  return true;
+}
+
 /** Recognize only the reviewed merged publisher; historical source keeps its
  * separate boot-verdict job and unchanged proof requirements. @param {string} source */
 function mergedBootSource(source) {
@@ -266,9 +295,12 @@ function mergedBootSource(source) {
   if (!/^ {6}MERGED_BOOT_PROOF: 'v1'$/mu.test(ship)) return false;
   const needs = /^ {4}needs: \[([^\]]+)\]$/mu.exec(ship)?.[1]?.split(',').map(name => name.trim());
   const required = ['prepare','typecheck-lint','derived-docs','behaviour','native-escape','journeys'];
+  const staged = stagedBootSource(source);
+  const prerequisiteCount = required.length + (staged ? 1 : 0);
   const release = `(github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && ${required.map(name => `needs.${name}.result == 'success'`).join(' && ')}))`;
   const group = `\${{ ${release} && 'production-release' || format('boot-verdict-{0}', github.run_id) }}`;
-  if (needs?.length !== required.length || new Set(needs).size !== required.length
+  if (needs?.length !== prerequisiteCount || new Set(needs).size !== prerequisiteCount
+    || (staged && !needs.includes('stage-prebuilt'))
     || !required.every(name => needs.includes(name)) || /\n {2}boot-verdict:\n/u.test(source)
     || /^ {6}group: (.+)$/mu.exec(ship)?.[1] !== group
     || !/^ {6}cancel-in-progress: false$/mu.test(ship)
@@ -408,6 +440,7 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     if (needs === undefined) throw new Error('Ready source ship has no reviewed prerequisite list');
     (needs.includes('fixtures') ? required : optional).add('fixtures');
   }
+  if (stagedBootSource(source)) optional.add('stage-prebuilt');
   const essential = new Set(['prepare',...(merged ? [] : ['boot-verdict']),
     ...['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'].map(name=>`journeys (${name})`)]);
   /** @type {{name:string,status:string,conclusion:string}[]} */
@@ -417,7 +450,9 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     if (row.split('\t').length !== 3 || conclusion === undefined)
       throw new Error(`Recovery job has an unreadable verdict: ${name}`);
     if (!required.has(name) && !optional.has(name)) throw new Error('Recovery job inventory differs');
-    if ((ready || name === 'draw-budget') && optional.delete(name)) {
+    if ((ready || name === 'draw-budget' || name === 'stage-prebuilt') && optional.delete(name)) {
+      if (name === 'stage-prebuilt' && status !== 'completed')
+        throw new SourceGateError('Optional stage must be terminal before fallback');
       if (!['completed','queued','in_progress'].includes(status)
         || (status !== 'completed' && conclusion !== '')
         || (status === 'completed' && !['success','failure','cancelled','timed_out','skipped'].includes(conclusion)))
@@ -556,7 +591,7 @@ export function stageReadyArchive(proof, runnerTemp, run = (command, args) => { 
  * GitHub supplies needs from this exact run; no neighbouring aggregate grants proof.
  * The merged publisher supplies its actual successful step outcome; historical
  * callers retain the separate completed boot-verdict job instead.
- * @param {{mode:string,event:string,ref:string,repository:string,sha:string,run:string,head:string,needs:unknown,bootOutcome?:string|undefined}} input
+ * @param {{mode:string,event:string,ref:string,repository:string,sha:string,run:string,head:string,needs:unknown,bootOutcome?:string|undefined,staged?:boolean|undefined}} input
  * @returns {{skip:boolean,sha:string,run:string}} */
 export function waveSource(input) {
   if (input.event !== 'push' || input.ref !== 'refs/heads/main' || input.repository !== REPO
@@ -570,6 +605,14 @@ export function waveSource(input) {
     ...(merged ? [] : ['boot-verdict'])];
   /** @type {Map<string, unknown>} */
   const rows = new Map(Object.entries(input.needs));
+  if (input.staged === true) {
+    if (!merged) throw new Error('Optional stage requires the merged publisher');
+    const stage = rows.get('stage-prebuilt');
+    if (typeof stage !== 'object' || stage === null || !('result' in stage)
+      || !['success','failure','cancelled','skipped'].includes(String(stage.result)))
+      throw new Error('Wave optional stage verdict is unreadable');
+    rows.delete('stage-prebuilt');
+  }
   if (rows.size !== required.length) throw new Error('Wave verdict inventory differs');
   for (const name of required) {
     const row = rows.get(name);
@@ -735,7 +778,7 @@ async function main() {
     const needs = JSON.parse(process.env.CI_WAVE_NEEDS ?? 'null');
     const selected = waveSource({mode:pin.mode,event:process.env.GITHUB_EVENT_NAME??'',ref:process.env.GITHUB_REF??'',
       repository:process.env.GITHUB_REPOSITORY??'',sha:process.env.GITHUB_SHA??'',run:process.env.GITHUB_RUN_ID??'',
-      head:git('rev-parse','HEAD'),needs,bootOutcome:process.env.CI_WAVE_BOOT_OUTCOME});
+      head:git('rev-parse','HEAD'),needs,staged:process.env.CI_WAVE_STAGE === 'v1',bootOutcome:process.env.CI_WAVE_BOOT_OUTCOME});
     if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT,
       `sha=${selected.sha}\nmode=${pin.mode}\ngate=${pin.gate}\nci_green=true\nsource_run=${selected.run}\nskip=${selected.skip}\n`);
     console.log(`Exact push wave ${selected.run}: ${selected.sha}; automatic mode ${!selected.skip}`);

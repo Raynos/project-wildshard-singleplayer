@@ -2361,3 +2361,78 @@ stage logs /CPU profiles /resource reports, and `strict.json` /`intake.log`
 in the parent task directory. Before UTC20:34:38.369–20:35:10.365;
 after20:35:11.319–20:35:50.995. No CI read, dispatch, cap change or stored
 tape codec change accompanies this measured rejection.
+
+### CI2: protected staging ahead of the ship path
+
+**2026-10-31, sp-x2, G872.** Passive `35092bff7c` observations now split
+the existing source-bound prebuilt transport. These are three independent
+ordinary release observations, not a controlled performance comparison:
+
+| Exact source / ordinary run | Download + GitHub ZIP materialization | Transport check | Decode + bounded tar writes/checksum | Validate/extract/write | Total strict restore | Download + restore |
+|---|---:|---:|---:|---:|---:|---:|
+| `35ee78401a4c` / `41232972487` | 51 s | 0.937 s | 6.852 s | 10.577 s | 18.456 s | 69.456 s |
+| `7de65890f185` / `41233733751` | 16 s | 1.123 s | 3.565 s | 6.908 s | 12.093 s | 28.093 s |
+| `bc888b89deb2` / `41235835772` | 36 s | 1.078 s | 3.445 s | 6.455 s | 12.399 s | 48.399 s |
+
+The archives are 1.537 GB compressed / 10,905 members. Download time is
+**not pure network**; it includes `gh run download` and ZIP
+materialization. Outer artifact compression is already zero. The
+rejected v2 body-reference prototype remains rejected (only 0.287 s
+local restore saving). The first source's original pinned CLI install
+takes another 12.712 s after restore; overlapping that same installation
+with restore/download is a conditional ceiling, not a measured gain.
+
+The approved structural change adds one optional `stage-prebuilt` job
+after prepare, beside the unchanged 37-required-job wave. It strictly
+restores the same existing prebuilt artifact, installs the same pinned
+CLI and strips public maps with the original controller. A production
+deployment uses `--prebuilt --target=production --skip-domain`; its exact
+deployment/source/run/attempt/BUILD/archive/map identity is retained.
+Actual project and owner are checked against trusted job environment
+values; raw secret-sourced IDs never enter cross-job outputs. It cannot
+assign production domains or promote anything.
+
+The empirical unique production URL of source `7de65890f185` is
+`wildshard-singleplayer-qdf9g8en1-raynos-projects.vercel.app`. At the
+observation, unauthenticated, unfollowed GETs for `/` and the private
+`/sw-core/2b9c7c54830f8b63f45df10e92331117be2f98fe10d02c0c9bfba3beaee1718a.js.map`
+both return **302 to `https://vercel.com/sso-api`**. They do not return
+200 or 401. The invalid local CLI credential's earlier project-settings
+and inventory requests returned 403; it was not refreshed. No local
+deployment, promotion, domain or protection setting was changed.
+
+Every actual stage must independently pass the same fail-closed gate:
+only 401/403 or a 302 to the exact HTTPS Vercel SSO endpoint is accepted,
+with no cookies, bypass, response body or followed redirects. Its
+canonical private maps artifact must finalize before a usable receipt
+exists. Artifact ID/digest, full source/run, version hash, manifest hash,
+count and bytes remain bound to the exact deployment. A fresh ship
+selection verifies the immutable deployment metadata and existing
+unexpired artifact, and probes both paths again. It checks the actual
+completed same-attempt stage job too: a report-only success context may
+not override a failed, pending, foreign or duplicated raw job verdict.
+
+All 37 required jobs, SIX, boot publication, the forward floor and the
+production lock remain authoritative. A red wave never reaches
+promotion. Only that exact admitted deployment ID is promoted; the
+original version response must also equal its exact staged BUILD, within
+the original polling budget. Existing public-map stripping, API check,
+production status and root's full BUILD/maps/API verification remain.
+
+Missing, failed, incomplete, foreign or refused staging selects today's
+strict restore/deploy fallback. It restores the same complete original
+maps and may overwrite a partial stage artifact only after the stage is
+terminal; the canonical artifact remains unique. Native promotion
+failure remains an actual failure, with no retry or blind redeployment.
+Historical 35/36/37 source inventories retain their original authority;
+only the reviewed new lineage admits the one optional stage job.
+
+**Acceptance remains in flight.** The first ordinary containing release
+must report actual stage, ship and first-live clocks against these
+retained baselines. Moving work beside the wave is not itself proof of
+an end-to-end gain or either CI2/CI3 bar.
+
+Primary references: [staged production deploy](https://vercel.com/docs/cli/deploying-from-cli),
+[production promotion without rebuilding](https://vercel.com/docs/deployments/promoting-a-deployment),
+and [Vercel Authentication](https://vercel.com/docs/deployment-protection/methods-to-protect-deployments/vercel-authentication).
+

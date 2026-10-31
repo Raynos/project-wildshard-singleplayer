@@ -12,6 +12,8 @@ import { phoneBootstrap } from '../scripts/parity/phone-route-browser.mjs';
 import { completeReadySource, deadlineRecoverySource, readySource, recoverySource, stageReadyArchive, waveSource } from '../scripts/deploy-pin.mjs';
 import deploy from '../.github/workflows/deploy.yml?raw';
 
+const stagedController=readFileSync(process.env['STAGED_HELPER'] ?? 'scripts/staged-deployment.py','utf8');
+
 const sha = 'a'.repeat(40);
 const jobs = ['prepare','typecheck-lint','derived-docs','behaviour','native-escape','journeys','boot-verdict'];
 const needs = Object.fromEntries(jobs.map(name => [name,{result:'success'}]));
@@ -116,7 +118,7 @@ test('one push wave keeps all six browser guards and serialized exact-artifact s
   const ship=deploy.split('\n  build-and-deploy:\n')[1]?.split('\n  typecheck-lint:\n')[0];
   const journeys=deploy.split('\n  journeys:\n')[1]?.split('\n  boot-verdict:\n')[0];
   if(ship===undefined||journeys===undefined)throw new Error('Missing push-wave proof or ship');
-  expect(ship).toContain('needs: [prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys]');
+  expect(ship).toContain('needs: [prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys, stage-prebuilt]');
   expect(deploy).not.toContain('\n  boot-verdict:\n');
   expect(ship).toContain('MERGED_BOOT_PROOF:');
   expect(ship).toContain(`CI_WAVE_BOOT_OUTCOME: \${{ steps.boot.outcome }}`);
@@ -603,10 +605,13 @@ finally: case.tearDown()
     expect(corrupt.status).not.toBe(0); expect(corrupt.stderr).toContain('source SHA/run differs');
     const restore = deploy.split('- name: Restore the exact successful push artifact')[1]?.split('# Explicit recovery')[0];
     expect(restore).toContain('PREBUILT_ARCHIVE:');
-    expect(restore).toContain('if [ -z "$PREBUILT_ARCHIVE" ]; then');
-    const afterDownload = restore?.split('\n          fi\n')[1];
-    expect(afterDownload).toContain('prebuilt-output.py" restore --sha "$DEPLOY_SHA" --run "$SOURCE_RUN" --directory "$PREBUILT_ARCHIVE"');
-    expect(afterDownload).toContain('npm install --global vercel@59.11.2');
+    expect(restore).toContain('staged-deployment.py" restore-install --sha "$DEPLOY_SHA" --run "$SOURCE_RUN"');
+    expect(stagedController).toContain("directory = os.environ.get('PREBUILT_ARCHIVE', '')");
+    expect(stagedController).toContain('if not directory:');
+    const afterDownload = stagedController.split('env = dict(os.environ, PREBUILT_DOWNLOAD_MODE=mode,')[1];
+    expect(afterDownload).toContain("'restore',");
+    expect(afterDownload).toContain("'--sha', args.sha, '--run', args.run, '--directory', directory, '--timings'");
+    expect(afterDownload).toContain("['npm', 'install', '--global', 'vercel@59.11.2']");
   } finally { rmSync(owned, { recursive: true, force: true }); }
 });
 
@@ -907,7 +912,7 @@ test('deadline recovery remains explicit and uses the exact tested prebuilt rele
   expect(deploy).toContain('read-deadline-recovery "$DEADLINE_RECOVERY_SOURCE_RUN"');
   expect(deploy).toContain('Select exactly one explicit recovery authority');
   expect(deploy).toContain('name: deadline-recovery-source');
-  expect(deploy).toContain('prebuilt-output.py" restore --sha "$DEPLOY_SHA" --run "$SOURCE_RUN"');
+  expect(deploy).toContain('staged-deployment.py" restore-install --sha "$DEPLOY_SHA" --run "$SOURCE_RUN"');
   expect(deploy).toContain('read-wave');
 });
 
@@ -942,4 +947,87 @@ test('first-entry observation never takes the maintained driver slot or rewrites
   const result=spawnSync(process.execPath,['--input-type=module','-e',script],{encoding:'utf8',timeout:5000});
   expect(result.status,result.stderr).toBe(0);
   expect(result.stdout).toContain('first-entry retained');
+});
+
+test('staged shipping keeps every original green aggregate and only ignores a terminal optional stage verdict',()=>{
+  const {'boot-verdict':_boot,...gates}=needs;
+  for(const result of ['success','failure','cancelled','skipped']){
+    const staged={...current,needs:{...gates,'stage-prebuilt':{result}},bootOutcome:'success',staged:true};
+    expect(waveSource(staged)).toEqual({skip:false,sha,run:'123'});
+    for(const name of Object.keys(gates))for(const red of ['failure','cancelled','skipped','in_progress'])
+      expect(()=>waveSource({...staged,needs:{...staged.needs,[name]:{result:red}}})).toThrow('Wave prerequisite');
+    expect(()=>waveSource({...staged,staged:false})).toThrow('inventory');
+  }
+  expect(()=>waveSource({...current,needs:gates,bootOutcome:'success',staged:true})).toThrow('stage');
+  expect(()=>waveSource({...current,needs:{...gates,'stage-prebuilt':{result:'in_progress'}},bootOutcome:'success',staged:true})).toThrow('stage');
+});
+
+function stagedReadyFixture(){
+  const f=mergedReadyFixture();
+  const stage=/\n {2}stage-prebuilt:\n[\s\S]*?(?=\n {2}build-and-deploy:\n)/u.exec(deploy)?.[0];
+  if(stage===undefined)throw new Error('Missing reviewed stage job');
+  f.state.source=f.state.source.replace('needs: [prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys]',
+    'needs: [prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys, stage-prebuilt]')
+    .replace("      MERGED_BOOT_PROOF: 'v1'","      MERGED_BOOT_PROOF: 'v1'\n      STAGED_RELEASE_PROOF: 'v1'")
+    .replace('          CI_WAVE_BOOT_OUTCOME:', '          CI_WAVE_STAGE: v1\n          CI_WAVE_BOOT_OUTCOME:');
+  f.state.source=stage+f.state.source;
+  f.state.source=f.state.source.replace('group: [escape-titan, stories-qara]',
+    'group: [escape-titan, stories-qara, chapter-one, native-routes]');
+  const model=f.details.find(row=>row.name==='native-escape (stories-qara)');
+  if(model===undefined)throw new Error('Missing reviewed native model');
+  for(const group of ['chapter-one','native-routes'])f.details.push({...model,name:`native-escape (${group})`,steps:[]});
+  const stageRow={...model,name:'stage-prebuilt',steps:[],conclusion:'failure' as string|null};
+  f.details.push(stageRow);
+  return{...f,stageRow};
+}
+
+test('four-native recovery keeps source37 and a terminal optional stage, preserving all historical rosters',()=>{
+  for(const verdict of ['success','failure','cancelled','timed_out','skipped']){
+    const f=stagedReadyFixture();f.stageRow.conclusion=verdict;
+    const proof=readySource('123',liveBuild,f.state.query,readyNow);
+    expect(proof.jobs.find(row=>row.name==='stage-prebuilt')?.conclusion).toBe(verdict);
+    expect(proof.jobs.filter(row=>row.name.startsWith('native-escape ('))).toHaveLength(4);
+    for(const group of ['escape-titan','stories-qara','chapter-one','native-routes']){
+      const broken=stagedReadyFixture(),row=broken.details.find(item=>item.name===`native-escape (${group})`);
+      if(row===undefined)throw new Error('Missing original required native group');
+      row.conclusion='failure';
+      expect(()=>readySource('123',liveBuild,broken.state.query,readyNow)).toThrow();
+    }
+  }
+  const pending=stagedReadyFixture();pending.stageRow.status='in_progress';pending.stageRow.conclusion=null;
+  expect(()=>readySource('123',liveBuild,pending.state.query,readyNow)).toThrow('terminal');
+  const missing=stagedReadyFixture();missing.state.details=missing.details.filter(row=>row.name!=='stage-prebuilt');
+  expect(()=>readySource('123',liveBuild,missing.state.query,readyNow)).toThrow('inventory');
+  const duplicate=stagedReadyFixture();duplicate.details.push({...duplicate.stageRow});
+  expect(()=>readySource('123',liveBuild,duplicate.state.query,readyNow)).toThrow('inventory');
+  const wrong=stagedReadyFixture();wrong.state.source=wrong.state.source.replace('    needs: prepare','    needs: foreign');
+  expect(()=>readySource('123',liveBuild,wrong.state.query,readyNow)).toThrow('stage topology');
+});
+
+test('completed historical35 and36 stay valid while completed36 plus staging is refused',()=>{
+  const complete=(f:ReturnType<typeof stagedReadyFixture>)=>{
+    f.state.run.status='completed';f.state.run.conclusion='success';
+    f.ship.status='completed';f.ship.conclusion='success';f.ship.completed_at='2026-10-30T21:31:00Z';
+    f.ship.steps.push({name:'Publish exact-SHA proof outcome',status:'completed',conclusion:'success',number:2});
+    f.state.boot='success\thttps://github.com/Raynos/project-wildshard-singleplayer/actions/runs/123';
+  };
+  const all='escape-titan, stories-qara, chapter-one, native-routes';
+  for(const groups of [['escape-titan','stories-qara'],['escape-titan','stories-qara','chapter-one']]){
+    const f=stagedReadyFixture();complete(f);
+    f.state.source=f.state.source.replace(`group: [${all}]`,`group: [${groups.join(', ')}]`)
+      .replace(/\n {2}stage-prebuilt:\n[\s\S]*?(?=\n {2}(?:prepare|behaviour|phone-route):\n)/u,'')
+      .replace(", stage-prebuilt]",']')
+      .replace("      STAGED_RELEASE_PROOF: 'v1'\n",'')
+      .replace('          CI_WAVE_STAGE: v1\n','');
+    f.state.details=f.details.filter(row=>row.name!=='stage-prebuilt'&&(!row.name.startsWith('native-escape (')
+      ||groups.some(group=>row.name===`native-escape (${group})`)));
+    expect(recoverySource('123',f.state.query)).toEqual({sha,run:'123'});
+  }
+  const hybrid=stagedReadyFixture();complete(hybrid);
+  hybrid.state.source=hybrid.state.source.replace(`group: [${all}]`,'group: [escape-titan, stories-qara, chapter-one]');
+  hybrid.state.details=hybrid.details.filter(row=>row.name!=='native-escape (native-routes)');
+  expect(()=>recoverySource('123',hybrid.state.query)).toThrow('stage topology');
+  const twelve=stagedReadyFixture();complete(twelve);
+  twelve.state.source=twelve.state.source.replace('vitest-plan.ts --shards 24','vitest-plan.ts --shards 12');
+  expect(()=>recoverySource('123',twelve.state.query)).toThrow('stage topology');
 });

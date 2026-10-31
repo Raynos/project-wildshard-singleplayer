@@ -18,6 +18,13 @@ export function matchesCommit(build, commit = fullSha) {
   return /^[0-9a-f]{7,40}$/.test(short) && /^[0-9a-f]{7,40}$/.test(commit) && (commit.length >= short.length ? commit.startsWith(short) : short.startsWith(commit));
 }
 
+/** Preserve historical SHA matching and require the exact staged BUILD when
+ * provided, on the same original response and polling budget.
+ * @param {unknown} build @param {string} commit @param {string|undefined} expected */
+export function matchesDeployment(build, commit, expected) {
+  return matchesCommit(build, commit) && (expected === undefined || build === expected);
+}
+
 async function liveBuild() {
   const url = `${versionUrl}?deployment-check=${Date.now()}`;
   const response = await fetch(url, { headers: { 'Cache-Control': 'no-store' }, signal: AbortSignal.timeout(12_000) });
@@ -35,7 +42,8 @@ async function main() {
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
       const build = await liveBuild();
-      const match = matchesCommit(build);
+      const expected = mode === 'verify' ? set(process.env.DEPLOY_EXPECTED_BUILD) : undefined;
+      const match = matchesDeployment(build, fullSha, expected);
       console.log(`Production ${build}; target ${sha}; match ${match}`);
       if (mode === 'check') {
         const skip = match && !force;
