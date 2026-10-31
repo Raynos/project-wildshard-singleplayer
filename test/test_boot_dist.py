@@ -1,4 +1,5 @@
 import importlib.util
+import hashlib
 import io
 import json
 import subprocess
@@ -120,6 +121,48 @@ class Transfer(unittest.TestCase):
         (self.output / 'boot-public/boot-dist.tar.zst').unlink()
         with self.assertRaises(FileNotFoundError):
             self.restore()
+
+    def test_encoding_refusal_names_the_field_without_reading_or_decoding_transport(self):
+        path = self.output / 'boot-public/boot-dist-proof.json'
+        proof = json.loads(path.read_text())
+        proof['transport']['encoding'] = 'gzip'
+        path.write_text(json.dumps(proof))
+        self.manifest['legs']['boot-public']['transport'] = proof['transport']
+        with patch.object(boot, 'digest') as hashed, patch.object(boot.subprocess, 'Popen') as decoded:
+            with self.assertRaisesRegex(ValueError, "Dist transport checksum differs: encoding expected 'zstd', observed 'gzip'"):
+                self.restore()
+        hashed.assert_not_called()
+        decoded.assert_not_called()
+        self.assertFalse((self.root / 'restored').exists())
+
+    def test_size_refusal_names_actual_extent_without_hashing_or_decoding(self):
+        path = self.output / 'boot-public/boot-dist.tar.zst'
+        expected = path.stat().st_size
+        path.write_bytes(path.read_bytes()[:-1])
+        with patch.object(boot, 'digest') as hashed, patch.object(boot.subprocess, 'Popen') as decoded:
+            with self.assertRaisesRegex(ValueError,
+                    f'Dist transport checksum differs: bytes expected {expected}, observed {expected - 1}'):
+                self.restore()
+        hashed.assert_not_called()
+        decoded.assert_not_called()
+        self.assertFalse((self.root / 'restored').exists())
+
+    def test_same_size_corruption_reports_both_hashes_before_any_decode_or_write(self):
+        directory = self.output / 'boot-public'
+        path = directory / 'boot-dist.tar.zst'
+        content = path.read_bytes()
+        changed = content[:-1] + bytes([content[-1] ^ 1])
+        path.write_bytes(changed)
+        expected = json.loads((directory / 'boot-dist-proof.json').read_text())['transport']['hash']
+        observed = hashlib.sha256(changed).hexdigest()
+        with patch.object(boot, 'digest', wraps=boot.digest) as hashed, \
+                patch.object(boot.subprocess, 'Popen') as decoded:
+            with self.assertRaisesRegex(ValueError,
+                    f'Dist transport checksum differs: sha256 expected {expected}, observed {observed}'):
+                self.restore()
+        hashed.assert_called_once_with(path)
+        decoded.assert_not_called()
+        self.assertFalse((self.root / 'restored').exists())
 
     def test_matching_transport_checksum_cannot_authorize_invalid_compression(self):
         directory = self.output / 'boot-public'

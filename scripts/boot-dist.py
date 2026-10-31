@@ -66,9 +66,14 @@ def stream_archive(dist, selected, directory):
 def verified_archive(directory, proof):
     compressed = directory / 'boot-dist.tar.zst'
     transport = proof['transport']
-    if (transport['encoding'] != 'zstd' or compressed.stat().st_size != transport['bytes']
-            or digest(compressed) != transport['hash']):
-        raise ValueError('Dist transport checksum differs')
+    if transport['encoding'] != 'zstd':
+        raise ValueError(f"Dist transport checksum differs: encoding expected 'zstd', observed {transport['encoding']!r}")
+    observed_bytes = compressed.stat().st_size
+    if observed_bytes != transport['bytes']:
+        raise ValueError(f"Dist transport checksum differs: bytes expected {transport['bytes']}, observed {observed_bytes}")
+    observed_hash = digest(compressed)
+    if observed_hash != transport['hash']:
+        raise ValueError(f"Dist transport checksum differs: sha256 expected {transport['hash']}, observed {observed_hash}")
     limit = proof['archiveBytes']
     if type(limit) is not int or limit <= 0:
         raise ValueError('Invalid dist archive extent')
