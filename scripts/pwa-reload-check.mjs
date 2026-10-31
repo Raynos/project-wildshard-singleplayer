@@ -4,6 +4,7 @@
 // same checked preview. Never register a worker from an observation probe.
 import {createServer,request} from 'node:http';
 import {createHash} from 'node:crypto';
+import {gzipSync} from 'node:zlib';
 import {mkdirSync,mkdtempSync,rmSync,writeFileSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {pathToFileURL} from 'node:url';
@@ -28,7 +29,10 @@ export async function createReloadProxy(base) {
   const sourceBuild=version.build,html=await read('/index.html'),bootstrap=await read('/sw.js');
   const corePath=/importScripts\(["'](\/sw-core\/[a-f0-9]{64}\.js)["']\)/u.exec(bootstrap)?.[1];
   if(corePath===undefined)throw new Error('Unexpected source worker bootstrap');
-  const core=await read(corePath);
+  const coreResponse=await fetch(new URL(corePath,origin));
+  if(!coreResponse.ok)throw new Error(`Missing preview ${corePath}: ${coreResponse.status}`);
+  const core=await coreResponse.text(),coreCache=coreResponse.headers.get('cache-control');
+  if(coreCache===null)throw new Error('Source worker core has no cache policy');
   if(!corePath.includes(digest(core))||!core.includes(sourceBuild)||!html.includes(sourceBuild))throw new Error('Mixed source document/worker');
   const stamp=sourceBuild.slice(sourceBuild.indexOf('-')+1);
   const builds={A:sourceBuild,B:`bbbbbbb-${stamp}`,C:`ccccccc-${stamp}`};
@@ -72,10 +76,14 @@ export async function createReloadProxy(base) {
     const knownCore=Object.values(variants).find(row=>row.path===path);
     const body=path==='/'||path==='/index.html'?current.html:path==='/version.json'?current.version:path==='/sw.js'?current.bootstrap:knownCore?.core;
     if(body!==undefined){
-      const etag=`"${digest(body)}"`;
+      const etag=`W/"${digest(body)}"`;
       res.setHeader('Content-Type',path==='/version.json'?'application/json':path==='/'||path==='/index.html'?'text/html; charset=utf-8':'text/javascript; charset=utf-8');
-      res.setHeader('Cache-Control',path==='/version.json'?'no-store':'no-cache');res.setHeader('ETag',etag);
-      if(req.headers['if-none-match']===etag){res.writeHead(304);res.end();}else res.end(body);
+      res.setHeader('Cache-Control',knownCore===undefined?path==='/version.json'?'no-store':'no-cache':coreCache);res.setHeader('ETag',etag);
+      if(req.headers['if-none-match']===etag){res.writeHead(304);res.end();}
+      else if(knownCore!==undefined&&coreResponse.headers.get('content-encoding')==='gzip'
+        &&req.headers['accept-encoding']?.split(',').some(value=>value.trim()==='gzip')){
+        res.setHeader('Content-Encoding','gzip');res.setHeader('Vary','Accept-Encoding');res.end(gzipSync(body));
+      }else res.end(body);
       return;
     }
     const forward=()=>{
@@ -228,7 +236,8 @@ export async function checkReloads(base,engine,scenarios,fixed) {
         const networkDocuments=proxy.requests.slice(warmStart).filter(row=>row.path==='/'||row.path==='/index.html').length;
         const warmWireBytes=scenario==='no-deploy'?proxy.wireBytes()-wireStart:null;
         const passed=aligned&&networkDocuments===0&&(warmWireBytes===null||warmWireBytes<100000)&&final.doc===target&&!final.lit&&(scenario==='no-deploy'?taps===0:taps===1)&&final.controller?.startsWith(`${target}-`)===true;
-        const result={engine,scenario,sourceBuild:proxy.sourceBuild,target,taps,manualReloads,passed,aligned,networkDocuments,warmWireBytes,timeout,elapsedMs:performance.now()-started,final,observations,errors,httpErrors};results.push(result);console.log(JSON.stringify(result));
+        const warmRequests=scenario==='no-deploy'?proxy.requests.slice(warmStart):null;
+        const result={engine,scenario,sourceBuild:proxy.sourceBuild,target,taps,manualReloads,passed,aligned,networkDocuments,warmWireBytes,warmRequests,timeout,elapsedMs:performance.now()-started,final,observations,errors,httpErrors};results.push(result);console.log(JSON.stringify(result));
         if(errors.length>0||httpErrors.length>0)throw new Error(`Unexpected browser errors: ${errors.join('; ')} ${JSON.stringify(httpErrors)}`,{cause:result});
         if(fixed&&!passed)throw new Error(`One-tap contract failed: ${engine}/${scenario}`,{cause:result});
       }finally{await context.close();}
