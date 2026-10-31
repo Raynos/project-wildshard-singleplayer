@@ -10,10 +10,10 @@ import {afterAll,expect,test} from 'vitest';
 import {chapterWireHash} from './fixtures/headless/chapterHandoff';
 
 mkdirSync(resolve('tmp'),{recursive:true});
-const directory=mkdtempSync(resolve('tmp/nalati-chapter-one-')),plains=resolve(directory,'plains.json'),bond=resolve(directory,'bond.json');
-let plainsHash:string|undefined;
+const directory=mkdtempSync(resolve('tmp/nalati-chapter-one-')),plains=resolve(directory,'plains.json'),bond=resolve(directory,'bond.json'),goat=resolve(directory,'goat.json'),home=resolve(directory,'home.json');
+let plainsHash:string|undefined,bondHash:string|undefined,goatHash:string|undefined;
 afterAll(()=>{rmSync(directory,{recursive:true});});
-function run(stage:'plains'|'bond',output:string,input?:string,hash?:string):string {
+function run(stage:'plains'|'bond'|'goat'|'home',output:string,input?:string,hash?:string):string {
   const started=performance.now();
   const child=spawnSync(process.execPath,['--experimental-transform-types','--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
     resolve('test/fixtures/headless/nalati-chapter-one-run.ts'),stage,output,...(input===undefined?[]:[input]),...(hash===undefined?[]:[hash])],{encoding:'utf8',timeout:150_000});
@@ -30,5 +30,17 @@ test('the earned plains continuation tames its stallion through real gaze and al
   expect(plainsHash,'the first case must earn and fully replay the actual arrival').toBeDefined();
   if(plainsHash===undefined)throw new Error('Missing earned horse-plains continuation');
   expect(chapterWireHash(readFileSync(plains,'utf8'))).toBe(plainsHash);
-  run('bond',bond,plains,plainsHash);
+  bondHash=run('bond',bond,plains,plainsHash);
+},180_000);
+test('the earned horse wins and exactly replays the actual Kokpar pickup and delivery',()=>{
+  expect(bondHash,'the preceding case must earn its real companion').toBeDefined();
+  if(bondHash===undefined)throw new Error('Missing earned chapter horse');
+  expect(chapterWireHash(readFileSync(bond,'utf8'))).toBe(bondHash);
+  goatHash=run('goat',goat,bond,bondHash);
+},180_000);
+test('the earned Kokpar winner rides home and finishes the real elder reading once',()=>{
+  expect(goatHash,'the preceding case must earn its actual delivery').toBeDefined();
+  if(goatHash===undefined)throw new Error('Missing earned Kokpar continuation');
+  expect(chapterWireHash(readFileSync(goat,'utf8'))).toBe(goatHash);
+  run('home',home,goat,goatHash);
 },180_000);

@@ -9,7 +9,7 @@ const natural=v.pipe(v.number(),v.safeInteger(),v.minValue(0)),digest=v.pipe(v.s
 export const chapterObserved:readonly string[]=Object.freeze(['nalati.taming','nalati.chapter','nalati.kokpar','nalati.talk','nalati.king-closed']);
 export const ChapterPartSchema=v.strictObject({plan:HeadlessTapePlanSchema,expected:HeadlessTapeReportSchema,digest});
 export type ChapterPart=v.InferOutput<typeof ChapterPartSchema>;
-export const ChapterHandoffSchema=v.strictObject({version:v.literal(1),stage:v.picklist(['plains','bond']),source:digest,
+export const ChapterHandoffSchema=v.strictObject({version:v.literal(1),stage:v.picklist(['plains','bond','goat','home']),source:digest,
   tick:natural,snapshot:v.pipe(v.string(),v.maxLength(24_000_000)),digest,parts:v.pipe(v.array(ChapterPartSchema),v.minLength(1),v.maxLength(128))});
 export type ChapterHandoff=v.InferOutput<typeof ChapterHandoffSchema>;
 
