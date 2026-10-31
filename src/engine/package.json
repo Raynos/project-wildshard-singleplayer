@@ -302,6 +302,7 @@
     "./render/precompile": "./render/precompile.ts",
     "./render/renderer": "./render/renderer.ts",
     "./render/textureUploadEvents": "./render/textureUploadEvents.ts",
+    "./render/changedTextureUploads": "./render/changedTextureUploads.ts",
     "./render/shaderPatches": "./render/shaderPatches.ts",
     "./render/instancedTwin": "./render/instancedTwin.ts",
     "./render/displayColour": "./render/displayColour.ts",

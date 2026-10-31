@@ -23,6 +23,7 @@ import { engineString } from '../../strings';
  * every frame); so does the collision (moving boxes, the barrel's body).
  */
 import * as THREE from 'three';
+import { ChangedBatchedMesh } from '../../render/changedTextureUploads';
 import { app } from '../../app/runtime';
 import { lowPolyLookMaterial } from '../lowpolyKit';
 import type { SkyRig as Sky } from '../skyRig';
@@ -192,7 +193,7 @@ export class Interactables {
     // A lent graph look never draws on a multi-draw batch (E271 / E272; on the grid its shader did not compile): instanced
     const batch = (b: BatchId, material: THREE.Material): THREE.BatchedMesh | InstancedBatch => {
       if (graphLook(material)) return new InstancedBatch(material, { name: `interact-${b}`, castShadow: b === 'lit', receiveShadow: b === 'lit', ownsGeometry: true });
-      const bm = new THREE.BatchedMesh(Math.max(1, this.instCount[b]), Math.max(3, size(b)), Math.max(3, size(b)), material);
+      const bm = new ChangedBatchedMesh(Math.max(1, this.instCount[b]), Math.max(3, size(b)), Math.max(3, size(b)), material);
       bm.name = `interact-${b}`; bm.sortObjects = false; bm.perObjectFrustumCulled = true; bm.frustumCulled = false; // the batch's own sphere is stale (instances move); three culls each instance instead
       bm.castShadow = b === 'lit'; bm.receiveShadow = b === 'lit';
       return bm;

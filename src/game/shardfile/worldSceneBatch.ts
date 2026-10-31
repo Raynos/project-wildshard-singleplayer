@@ -1,4 +1,5 @@
 import { BatchedMesh, Matrix4, type BufferGeometry, type Camera, type Material } from 'three';
+import { ChangedBatchedMesh } from '@wildshard/engine/render/changedTextureUploads';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { BatchedCull } from '@wildshard/engine/models/cull';
 import { InstancedBatch } from '@wildshard/engine/models/instancedBatch';
@@ -71,7 +72,7 @@ export class WorldSceneBatch {
   private batchedMesh(all: readonly BufferGeometry[], instances: number): BatchedMesh {
     const row = this.row;
     const vertices = all.reduce((n, g) => n + g.getAttribute('position').count, 0), indices = all.reduce((n, g) => n + (g.index?.count ?? 0), 0);
-    const mesh = withOwner(this.owner, () => new BatchedMesh(Math.max(1, instances), vertices, indices, this.material));
+    const mesh = withOwner(this.owner, () => new ChangedBatchedMesh(Math.max(1, instances), vertices, indices, this.material));
     mesh.name = row.name; mesh.sortObjects = row.sortObjects; mesh.perObjectFrustumCulled = row.perObjectFrustumCulled;
     mesh.castShadow = row.castShadow; mesh.receiveShadow = row.receiveShadow;
     return mesh;

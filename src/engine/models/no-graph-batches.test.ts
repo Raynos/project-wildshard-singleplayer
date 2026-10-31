@@ -103,15 +103,16 @@ test('an instanced batch packs only visible copies per geometry, keeps their mat
 
 // Match the test domain in lint/wildshard-plugin.js; production lookalikes remain guarded.
 const batchedDraw = (path: string, source: string): boolean =>
-  !path.endsWith('.test.ts') && !path.startsWith('src/engine/test/') && path.endsWith('.ts') && /new\s+(?:THREE\.)?BatchedMesh\s*\(/u.test(source);
+  !path.endsWith('.test.ts') && !path.startsWith('src/engine/test/') && path.endsWith('.ts') && /new\s+(?:THREE\.)?(?:BatchedMesh|ChangedBatchedMesh)\s*\(/u.test(source);
 
 test('the draw census excludes only canonical test-domain sources', () => {
-  const source = 'new THREE.BatchedMesh(1, 2, 3)';
+  for (const source of ['new THREE.BatchedMesh(1, 2, 3)', 'new ChangedBatchedMesh(1, 2, 3)']) {
   for (const path of ['src/engine/render/draw.ts', 'src/game/test/draw.ts', 'src/engine/render/draw.test.ts/draw.ts']) {
     expect(batchedDraw(path, source), path).toBe(true);
   }
   for (const path of ['src/engine/render/draw.test.ts', 'src/engine/test/draw.ts', 'src/game/draw.test.ts']) {
     expect(batchedDraw(path, source), path).toBe(false);
+  }
   }
 });
 

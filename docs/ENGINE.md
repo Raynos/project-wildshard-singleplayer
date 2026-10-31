@@ -109,8 +109,8 @@ releases stable-depth textures even if their targets were never initialized,
 without double cleanup. Uniforms, passes, draw order and pixels stay exact.
 
 `core/gpuOnly.gpuOnlyTexture` releases immutable image/pixel/mip backing after upload (compressed2D/array: native draw). Cubes retain backing; sizes/formats/samplers stay. CPU readers/redraws/clones are ineligible; context loss reloads.
-`render/textureUploadEvents.onceTextureUploaded` observes completed native
-texture/source versions and preserves `Texture.onUpdate`.
+`render/textureUploadEvents.onceTextureUploaded`: native completion; keeps
+`Texture.onUpdate`. Changed palettes: [render manual](process/RENDERING.md).
 `render/compressedTextureRetirement.installCompressedTextureRetirement`
 observes direct draws; provisional loaders keep their preparation fence.
 `render/drawHooks` orders shadow, ownership and successful-draw retirement in one dispatch.

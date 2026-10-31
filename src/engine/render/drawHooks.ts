@@ -21,6 +21,7 @@ interface DrawHooks {
   material?: (...args: Parameters<Draw>) => Parameters<Draw>[3] | null;
   ownership?: (draw: Draw, ...args: Parameters<Draw>) => void;
   memory?: Draw;
+  uploads?: (() => void) | undefined;
 }
 
 interface Pipeline { draw: DrawHooks | undefined; properties: PropertyHooks | undefined; epoch: number }
@@ -57,13 +58,14 @@ export function drawHooks(renderer: DrawTarget): DrawHooks {
     }
     if (hooks.depth === 0) hooks.generation++;
     hooks.depth++; pipeline.epoch++;
-    let complete = false;
+    let complete = false, submitted = false;
     try {
       hooks.labels?.(camera, scene, geometry, material, object, group);
       const selected = hooks.material === undefined ? material : hooks.material(camera, scene, geometry, material, object, group);
       if (selected !== null) {
         if (hooks.ownership === undefined) draw(camera, scene, geometry, selected, object, group);
         else hooks.ownership(draw, camera, scene, geometry, selected, object, group);
+        submitted = true;
       }
       complete = true;
     } finally {
@@ -73,6 +75,7 @@ export function drawHooks(renderer: DrawTarget): DrawHooks {
       }
     }
     hooks.memory?.(camera, scene, geometry, material, object, group);
+    if (submitted) hooks.uploads?.();
   }
   renderer.renderBufferDirect = submit;
   return hooks;

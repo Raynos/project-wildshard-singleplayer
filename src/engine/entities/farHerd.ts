@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { SHADOW_LAYER } from '../core/shadowLayer';
 import { markGpuOnly } from '../core/gpuOnly';
 import { presenting } from '../core/framePacing';
+import { trackSkeletonTextureUploads } from '../render/changedTextureUploads';
 
 /**
  * The far herd: every animal past TIER_CONFIG.animalFarBatchDist drawn in ONE draw per model (a kind:variant: its own
@@ -276,7 +277,7 @@ class FarBatch {
     if (this.slotted) for (let s = 0; s < cap; s++) { const d = new THREE.Bone(); d.matrixAutoUpdate = false; d.matrixWorldAutoUpdate = false; bones.push(d); inverses.push(new THREE.Matrix4()); }
     const old = this.mesh.geometry, oldSkeleton = this.cap > 0 ? this.mesh.skeleton : null;
     this.mesh.geometry = g;
-    this.mesh.bind(new THREE.Skeleton(bones, inverses), _ident);
+    this.mesh.bind(trackSkeletonTextureUploads(new THREE.Skeleton(bones, inverses)), _ident);
     old.dispose();
     oldSkeleton?.dispose();
     const owners = this.owners;

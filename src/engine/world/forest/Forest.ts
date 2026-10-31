@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { ChangedBatchedMesh } from '../../render/changedTextureUploads';
 import type { ColliderDesc } from '../registry';
 import { canopyMapOf, placeForestSteps, TreeGrid, treeGridOf, type TreeInstance } from './placement';
 import { type TreeFactory, forestFade } from '../TreeFactory';
@@ -192,7 +193,7 @@ export class Forest {
     const size = (geos: THREE.BufferGeometry[]) => geos.reduce((a, g) => ({ v: a.v + g.getAttribute('position').count, i: a.i + (g.index ? g.index.count : g.getAttribute('position').count) }), { v: 0, i: 0 });
     const mk = (geos: THREE.BufferGeometry[], mat: THREE.Material, shadow: boolean, depth?: THREE.Material) => {
       const { v, i } = size(geos);
-      const bm = new THREE.BatchedMesh(n, v, i, mat);
+      const bm = new ChangedBatchedMesh(n, v, i, mat);
       bm.castShadow = shadow; bm.receiveShadow = true;
       bm.sortObjects = false; bm.perObjectFrustumCulled = true;
       if (depth) bm.customDepthMaterial = depth;

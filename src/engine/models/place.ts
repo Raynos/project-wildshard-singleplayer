@@ -25,6 +25,7 @@ import { graphLook } from './instancedBatch';
 import { frameBudgetSpent, paceYield, presenting } from '../core/framePacing';
 import { WORK_SLICE_MS, yieldTask } from '../core/workSlice';
 import * as THREE from 'three';
+import { ChangedBatchedMesh } from '../render/changedTextureUploads';
 import { setInstanceEnvelope } from '../render/instancedGeometry';
 import { cullCopiesPerCascade } from '../world/cascadeCull';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -839,7 +840,7 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
   const batches = [...byMat.values()].map(({ part, geos }) => {
     const verts = geos.reduce((s, x) => s + count(x.g), 0), idx = geos.reduce((s, x) => s + (x.g.index?.count ?? 0), 0);
     const own = shared === undefined || shared.material !== part.material;
-    const bm = own ? new THREE.BatchedMesh(n, verts, idx, part.material) : shared;
+    const bm = own ? new ChangedBatchedMesh(n, verts, idx, part.material) : shared;
     if (own) {
       bm.castShadow = part.castShadow ?? false; bm.receiveShadow = part.receiveShadow ?? false;
       if (part.customDepthMaterial) bm.customDepthMaterial = part.customDepthMaterial;

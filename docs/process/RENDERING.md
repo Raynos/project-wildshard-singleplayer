@@ -52,6 +52,15 @@ still applies where no tier policy selects a mode. Configure final samplers befo
 upload, retain compressed mips until the first successful real draw, and reject an
 unresident clone without upload data. Cache presence alone does not prove GPU residency.
 
+`@wildshard/engine/render/changedTextureUploads` supplies `ChangedBatchedMesh`
+and `trackSkeletonTextureUploads` for engine-owned numeric palettes. Native
+writers, matrix math, culling, sorting, shadow order and texture identities stay
+intact. A source skips revisions only when every 32-bit word equals its last
+actual uploaded image. Pending/changed images, replacement storage, custom
+sources and callback policy retain native invalidation. Typed completion runs
+after successful native draws and is unarmed when no upload listener is pending.
+No prototype/GL patch, new Source/UUID, sampler or lifetime policy change.
+
 ## The frame floor (`scripts/frame-floor.mjs`)
 
 - Jake's rule: **60–120 fps on desktop and 30–60 fps on the iOS Simulator at all moments.** Each row grades the
