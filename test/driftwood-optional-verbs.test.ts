@@ -7,14 +7,18 @@ import {pathToFileURL} from 'node:url';
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 
-const result=v.object({story:v.literal('driftwood-optional'),ticks:v.number(),commands:v.number(),parts:v.number(),glass:v.number(),vista:v.number()});
-test('Driftwood walk-in glass and bench USE earn their real counters exactly once',()=>{
+const result=v.object({story:v.picklist(['driftwood-optional','driftwood-reef']),ticks:v.number(),commands:v.number(),parts:v.number(),glass:v.number(),vista:v.number(),doubloons:v.number(),divingTicks:v.number(),boardTicks:v.number()});
+for(const stage of ['bench','reef'] as const)test(stage==='bench'
+  ?'Driftwood walk-in glass and bench USE earn their real counters exactly once'
+  :'Driftwood reaches the reef through real HOVER, swim and DIVE before opening its treasure',()=>{
   const child=spawnSync(process.execPath,['--experimental-transform-types','--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
-    resolve('test/fixtures/headless/driftwood-optional-run.ts')],{encoding:'utf8',timeout:30_000});
+    resolve('test/fixtures/headless/driftwood-optional-run.ts'),stage],{encoding:'utf8',timeout:30_000});
   expect(child.status,child.stdout+child.stderr).toBe(0);
-  const line=child.stdout.split('\n').find(row=>row.includes('"story":"driftwood-optional"'));
+  const line=child.stdout.split('\n').find(row=>row.includes('"story":"driftwood-'));
   if(line===undefined)throw new Error('Missing actual optional Driftwood replay');
   const observed=v.parse(result,JSON.parse(line));
   expect(observed.ticks).toBeGreaterThan(0);expect(observed.commands).toBeGreaterThan(0);expect(observed.parts).toBeGreaterThan(1);
-  expect(observed.glass).toBe(2);expect(observed.vista).toBe(1);console.info(line);
+  if(stage==='bench'){expect(observed.glass).toBe(2);expect(observed.vista).toBe(1);}
+  else{expect(observed.doubloons).toBe(8);expect(observed.divingTicks).toBeGreaterThan(0);expect(observed.boardTicks).toBeGreaterThan(0);}
+  console.info(line);
 },35_000);
