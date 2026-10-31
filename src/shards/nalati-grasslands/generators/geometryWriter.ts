@@ -47,12 +47,30 @@ export function writeGeometry(g: THREE.BufferGeometry, blocks: Uint8Array[], wha
   }
   // weld: a vertex is its attributes' exact bits
   const words = arrays.map((a) => new Uint32Array(a.buffer, a.byteOffset, a.length));
-  const seen = new Map<string, number>(), order: number[] = [], idx = new Int32Array(n);
+  const seen = new Map<number, number[]>(), order: number[] = [], idx = new Int32Array(n);
   for (let v = 0; v < n; v++) {
-    let key = '';
-    for (const [k, w] of words.entries()) { const s = sizes[k] ?? 0; for (let c = 0; c < s; c++) key += `${String(w[v * s + c] ?? 0)},`; }
-    let at = seen.get(key);
-    if (at === undefined) { at = order.length; seen.set(key, at); order.push(v); }
+    let key = 2166136261;
+    for (let k = 0; k < words.length; k++) {
+      const w = words[k], s = sizes[k] ?? 0;
+      for (let c = 0; c < s; c++) key = Math.imul(key ^ (w?.[v * s + c] ?? 0), 16777619);
+    }
+    const bucket = seen.get(key);
+    let at: number | undefined;
+    // A hash only chooses candidates. Every attribute bit still decides a weld.
+    for (const candidate of bucket ?? []) {
+      const previous = order[candidate] ?? 0;
+      let same = true;
+      for (let k = 0; k < words.length && same; k++) {
+        const w = words[k], s = sizes[k] ?? 0;
+        for (let c = 0; c < s; c++) if ((w?.[v * s + c] ?? 0) !== (w?.[previous * s + c] ?? 0)) { same = false; break; }
+      }
+      if (same) { at = candidate; break; }
+    }
+    if (at === undefined) {
+      at = order.length;
+      if (bucket === undefined) seen.set(key, [at]); else bucket.push(at);
+      order.push(v);
+    }
     idx[v] = at;
   }
   for (const [k, a] of arrays.entries()) {
