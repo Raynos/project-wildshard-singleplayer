@@ -160,8 +160,10 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
         if (!(trees instanceof TreeSetFactory && trees.setLookParam(id, name, value))) setLentParam(id, name, value); };
       for (const binding of rows.treeLooks) { const fade = trees.fade[binding.band].value; treeParam(binding.look, binding.fade, [fade.x, fade.y]); treeParam(binding.look, binding.viewer, [viewer.x, viewer.y, viewer.z]); }
       carpet.grass.update(dt, viewer); carpet.under.update(dt, viewer); carpet.particles.update(dt, viewer, game.camera);
-      sky.viewCamera.getWorldPosition(eye); cabins.life.tick(dt, time, eye, sky.lamps); lanterns.present(time, eye, sky.lamps); sun[0] = sky.sunColor.r; sun[1] = sky.sunColor.g; sun[2] = sky.sunColor.b;
-      setLentParam(row.hearth, row.sunParam, sun); setLentParam(row.hearth, row.lampsParam, sky.lamps); setLentParam(row.hearth, row.shadeParam, 1 - row.nightShade * sky.night); } };
+      // PF5: the night lights' level is a clock curve evaluated per read: once a frame
+      const lamps = sky.lamps;
+      sky.viewCamera.getWorldPosition(eye); cabins.life.tick(dt, time, eye, lamps); lanterns.present(time, eye, lamps); sun[0] = sky.sunColor.r; sun[1] = sky.sunColor.g; sun[2] = sky.sunColor.b;
+      setLentParam(row.hearth, row.sunParam, sun); setLentParam(row.hearth, row.lampsParam, lamps); setLentParam(row.hearth, row.shadeParam, 1 - row.nightShade * sky.night); } };
   const book = pages.get(ctx.scope) ?? new Map<string, ForestPage>(); book.set(rows.id, page); pages.set(ctx.scope, book); ctx.scope.onDispose(() => { book.delete(rows.id); });
   Object.assign(runtime.objects, { cabins, streams, ...carpet }); return page;
 }
