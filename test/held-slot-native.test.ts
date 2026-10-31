@@ -1,4 +1,4 @@
-import {lendNalatiKokpar} from './fixtures/nalati-return-modules';
+import {lendNalatiKokpar} from './fixtures/nalati-kokpar-loan';
 import { afterEach, expect, test, vi } from 'vitest';
 import { HeldClaims } from '../src/game/loadout/claims';
 import { parse } from 'valibot';
