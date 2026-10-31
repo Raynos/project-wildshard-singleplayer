@@ -199,8 +199,8 @@ Codex does the workflow engineering (non-visual). Ordered to unstick the deploy 
 | Row | What | Done when | Lane | Size |
 |---|---|---|---|---|
 | CI1 | Pin wave 1 (G919): delete tonight's red Nalati pins and the 2-day repeat offenders (§2); each commit lists the test and what it pinned | **done** (see lane) — Push CI green on main again | Codex sp-ci-deploy · done 143b3edd27, 5b54b7d044, ba70969be3 | S |
-| CI2 | Ship the tested build (G920): push CI uploads `.vercel/output`; the release runs `vercel deploy --prebuilt` on it, with no native or vercel rebuild | Release ≤ 3 min; live `version.json` = the tested SHA | Codex sp-ci-deploy · 94c85866ef + 8e893e31a5; first remote package qualified (083d3c1c83 prebuilt artifact 1.54 GB); <= 3 min live acceptance open | M |
-| CI3 | Deploy as soon as green (G920): drop the hourly slot; a green exact-SHA proof deploys at once if newer than live | Live = the newest green SHA within 5 min of its verdict | Codex sp-ci-deploy · landed 419a077b21 (hourly slot gone, 07:00 one-off kept) | S |
+| CI2 | Ship the tested build (G920): push CI uploads `.vercel/output`; the release runs `vercel deploy --prebuilt` on it, with no native or vercel rebuild | Release ≤ 3 min; live `version.json` = the tested SHA | **in flight (2026-10-31, sp-ci-deploy):** tested-artifact identity delivered on all 32 retained verified releases; 26/32 complete ship jobs meet 180 s. Six misses remain, worst ordinary 203 s / manual recovery 348 s. Full timing census below; acceptance stays open. | M |
+| CI3 | Deploy as soon as green (G920): drop the hourly slot; a green exact-SHA proof deploys at once if newer than live | Live = the newest green SHA within 5 min of its verdict | **in flight (2026-10-31, sp-ci-deploy):** 23/32 retained releases meet 300 s from exact-SHA success status to matching live version; BA78 recovery takes 3020.439 s. Delayed publisher time is reported separately from last required-job completion. Global newest-green-at-verdict census is incomplete; acceptance stays open. | S |
 | CI4 | Delete `test-quarantine.yml` (G923); fix DEPLOY.md's gpu-gate text | **done** (see lane) — Workflow gone; DEPLOY.md matches | Codex sp-ci-deploy · done 87baf789f5 | S |
 | CI5 | Lazy `test/setup.ts`: world installs move to opt-in fixtures | Setup < 10 % of vitest Duration; shards −40 % | Codex sp-x9 · landed 72aad6c49d (cohort 24.85 → 10.42 s, setup 52 % → 1 %); sealed Linux 6e0 / 41002964368: all 2221 planned files ran once, setup 40.477 / 10694.371 module-phase s = 0.37849%, 10898 pass / 2 story watchdog failures / 14 pre-existing draft cases unexecuted; setup bar met; ordinary containing Linux 4a41 / 41027244389 qualifies Pine 26.314 s and Driftwood 23.306 s with serial allocation dd2cc42999 + compile-cache publication 1b619096db, original 30/35 s limits unchanged; native job red only on separately owned Nalati discovery, no full-wave green claim | M |
 | CI6 | One prepare job: merge `generated-inputs` + `products` + vite / vercel build; gen once; every job reads one artifact | Prepare ≤ 6 min; no job rebuilds | **done (2026-10-30, sp-x1 + sp-x2 + sp-x9)**: ordinary run **41123682086**, source `5f41cc9623`, prepare job `124296598406` succeeds in **349 s**, with **24 distinct products reused / 0 rebuilt** through the unchanged source/content and admission guards. Gen 68 s, parallel checks/app 76 s (app 67.80), exact web/release packaging 44.813 s (boot encoder 22.613), uploads 54 s, cache post 11 s. This is the first retained applicable warm reading under 360 s; prior f7 / 41118506049 was 444 s with all 24 rebuilt. The qualifying source contains independent packaging overlap `f8db260657`, but predates streamed prebuilt tar `430cb9f706` and verified phone/world archive sharing `32b0aa1ab9`; no isolated causal saving or whole-CI/deploy success is inferred. Those later cuts retain every archive/source/run/hash/extent/transport guard and the separate phone artifact when shard sets differ. Full product generation or proof of identical inputs remains mandatory (G918). Local parity and phase evidence for the earlier product/app/cache cuts stays in their defining commits (`65609ab320`, `589b702280`, `c93a7ac9b1`, `eb312d69da`, `ba60585eb3`, `b39b50ed63`); neutral verify-in-place and compiler-URI prototypes were withdrawn. | M |
@@ -310,3 +310,88 @@ asset maps had internal Rolldown URL-token changes; dynamic build-identity
 files differed as expected. Raw comparison refusal remains; no tolerance
 or all-file-exact claim was added. All local numbers remain separate from
 ordinary containing CI acceptance; **CI9 stays open at 900 s push-to-live**.
+
+
+### CI2 / CI3 retained-release acceptance (2026-10-31)
+
+This is an offline census of all **32 fully verified release receipts** retained
+by sp-ci-deploy, from 2026-10-30 20:33 UTC through 2026-10-31 12:15 UTC.
+No workflow, browser, deploy or remote read was started for this measurement.
+The 1977 release is excluded: its actual deployment succeeded, but 5590
+superseded it before an independent fresh-live proof was made.
+
+**CI2 stays open.** Every retained receipt binds the tested full SHA/run and
+prebuilt artifact to the matching live build, with independent version, SW
+and private-map verification. The release uses `vercel deploy --prebuilt`;
+this measures the complete ship job, including artifact intake and cleanup,
+not just the deployment command. **26/32 are within 180 s.** The six misses
+are f958 **188 s**, 9bfd **190 s**, ab79 **183 s**, 9164 **194 s**, 2da7
+**203 s**, and BA78 manual recovery **348 s**. Even excluding recovery,
+**26/31** pass. CI2 needs a release path that meets 180 s consistently;
+the worst ordinary observed job is **23 s over**, and recovery is **168 s
+over**. BA78 spends **228 s** restoring the exact artifact; its native and
+Vercel rebuild steps are skipped. These observations do not establish why
+that artifact transfer was slow.
+
+**CI3 stays open.** The published exact-SHA `boot-smoke` success timestamp
+is the recorded verdict; the endpoint is the first deploy-log read saying
+`Production <build>; target <SHA>; match true`. The later agent receipt,
+optional phone/draw results and aggregate workflow completion are not the
+clock. **23/32 meet 300 s** from that status to live. BA78's source run
+41181584310 publishes success at **08:14:38 UTC**; recovery controller run
+41186784311 first verifies the same tested source live at **09:04:58.439**:
+**3020.439 s**, or **2720.439 s over**. This is a measured recovery gap,
+not proof that the source controller shipped it within five minutes.
+
+Merged publishing happens inside the ship job, so its status can hide queue
+time. The last column also reports the last successful required-source job
+(including all SIX, and the verdict job where that older topology has one)
+to first matching live version. Only **12/32** meet 300 s on that earlier
+clock. For 5590, required jobs finish **12:09:07**, the publisher posts at
+**12:13:13**, and live matches at **12:15:39.641**: **246 s before the
+status**, then **146.641 s after**, **392.641 s total**. Neither clock is
+silently substituted for the other. A complete simultaneous inventory of
+all other green main candidates at each verdict is also absent, so this
+release census alone cannot prove the global **newest**-green condition.
+CI3 needs both bounded verdict-to-live latency and that candidate evidence.
+
+All seconds below come from retained completed job metadata and actual
+production-match log lines. The run link identifies the release controller;
+BA78 uses source run 41181584310, controller 41186784311. Other rows use
+the same source and controller run. Full tested SHA/build bindings remain
+in the retained complete proofs; the short SHA here is a table label.
+
+| Tested SHA | Release run | Ship job (s) | Green status → live (s) | Last required job → live (s) |
+|---|---|---:|---:|---:|
+| `f7ee6c3c17` | [41118506049](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41118506049) | 130 | 660.191 | 658.191 |
+| `4b49fb00fd` | [41127873671](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41127873671) | 166 | 720.103 | 718.103 |
+| `4fe6619330` | [41138893609](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41138893609) | 134 | 752.505 | 750.505 |
+| `cc9336974a` | [41141400538](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41141400538) | 134 | 787.337 | 785.337 |
+| `f95804ace2` | [41142749386](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41142749386) | 188 | 887.524 | 885.524 |
+| `9bfd8ce0aa` | [41143731699](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41143731699) | 190 | 844.930 | 843.930 |
+| `ab792cd85f` | [41149186669](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41149186669) | 183 | 194.189 | 192.189 |
+| `9164439da4` | [41150077471](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41150077471) | 194 | 310.390 | 308.390 |
+| `307686a2e4` | [41152220514](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41152220514) | 145 | 633.082 | 630.082 |
+| `55eaf50cb4` | [41152839062](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41152839062) | 110 | 171.327 | 169.327 |
+| `34220aeca1` | [41157920287](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41157920287) | 173 | 166.827 | 400.827 |
+| `eb94988ca4` | [41160176917](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41160176917) | 161 | 154.417 | 568.417 |
+| `2da77f5cb9` | [41166045016](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41166045016) | 203 | 196.017 | 422.017 |
+| `fd1d0af320` | [41172338698](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41172338698) | 134 | 128.434 | 256.434 |
+| `ef7e5eaf78` | [41173366345](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41173366345) | 119 | 113.266 | 214.266 |
+| `e88dda7f5c` | [41173740678](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41173740678) | 137 | 130.934 | 135.934 |
+| `396e6f9294` | [41174317244](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41174317244) | 115 | 109.591 | 114.591 |
+| `a7cced9287` | [41176819074](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41176819074) | 119 | 115.115 | 388.115 |
+| `4ecb6b961e` | [41177266985](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41177266985) | 169 | 162.226 | 462.226 |
+| `bbc01a75b5` | [41177911840](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41177911840) | 133 | 128.141 | 275.141 |
+| `4d230be328` | [41178053403](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41178053403) | 175 | 169.119 | 174.119 |
+| `edde3f265f` | [41179475862](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41179475862) | 126 | 122.526 | 126.526 |
+| `d7d4dae8f8` | [41180817087](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41180817087) | 120 | 116.127 | 278.127 |
+| `0fefa8bf2d` | [41180852379](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41180852379) | 112 | 107.685 | 444.685 |
+| `ba78100f9a` | [41186784311](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41186784311) | 348 | 3020.439 | 3238.439 |
+| `b21f4b3ccb` | [41185180660](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41185180660) | 115 | 109.043 | 396.043 |
+| `a8cd4879b3` | [41186070669](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41186070669) | 123 | 119.193 | 429.193 |
+| `8791037fe7` | [41186205550](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41186205550) | 132 | 126.551 | 259.551 |
+| `cccdad8431` | [41187460898](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41187460898) | 130 | 125.499 | 130.499 |
+| `72dc76ac7d` | [41187700947](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41187700947) | 172 | 165.908 | 335.908 |
+| `b237d2e5e0` | [41190593031](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41190593031) | 143 | 138.027 | 313.027 |
+| `5590ee087a` | [41197892764](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41197892764) | 153 | 146.641 | 392.641 |
