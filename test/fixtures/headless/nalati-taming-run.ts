@@ -7,7 +7,7 @@ import {builtProduct} from '../builtProduct';
 import {loadHeadlessProduct} from '../../../src/sdk/headlessProduct';
 import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
 import {loadRapier} from '../../../src/engine/physics/rapier';
-import {snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
+import {snapshotSimHostBytes,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
 import {nativeTamingOf} from '../../../src/game/riding/nativeTaming';
 import {mountedPlayerOf} from '../../../src/game/riding/native';
 import {createNativeProofResident} from '../headless-native';
@@ -63,19 +63,19 @@ export async function runNalatiFieldTaming(options:TamingProofOptions={}):Promis
       if(taming.phase==='breaking'){breakingTicks++;rounds=Math.max(rounds,taming.view.round??0);}
       step(commands);restored?.step(commands);
       if(restored===undefined&&taming.phase==='breaking'&&breakingTicks===250){
-        const saved=snapshotSimHost(first.host);checkpointTick=first.host.state.tick;
+        const saved=snapshotSimHostBytes(first.host);checkpointTick=first.host.state.tick;
         restored=await createNativeProofResident(preparation,prepare,serializeSimSnapshot(saved));
-        assert.equal(canonicalSimDigest(snapshotSimHost(restored.host)),canonicalSimDigest(saved),'the earned mid-round checkpoint restores quietly');
+        assert.equal(canonicalSimDigest(snapshotSimHostBytes(restored.host)),canonicalSimDigest(saved),'the earned mid-round checkpoint restores quietly');
       }
     }
     assert.equal(prompt,true);assert.equal(rounds,5);assert.equal(taming.phase,'bonded');assert.ok(restored);
     assert.equal(taming.companion?.variant,'tulpar');assert.equal(mounted.horse,taming.companion);
     assert.equal(original.alive,true);assert.equal(first.host.entities.get(original.entityId),original);
     assert.equal(original.position.y,-1e4);assert.equal(original.motor,null);
-    assert.equal(canonicalSimDigest(snapshotSimHost(restored.host)),canonicalSimDigest(snapshotSimHost(first.host)),
+    assert.equal(canonicalSimDigest(snapshotSimHostBytes(restored.host)),canonicalSimDigest(snapshotSimHostBytes(first.host)),
       'the complete actual bucking/adoption suffix survives reinstall');
     for(const commands of after){step(commands);restored.step(commands);}
-    assert.equal(canonicalSimDigest(snapshotSimHost(restored.host)),canonicalSimDigest(snapshotSimHost(first.host)),
+    assert.equal(canonicalSimDigest(snapshotSimHostBytes(restored.host)),canonicalSimDigest(snapshotSimHostBytes(first.host)),
       'the same real post-bond inputs retain the restored continuation');
     const observe=(owner:typeof first):BondedObservation=>{
       const state=nativeTamingOf(owner.host);assert.ok(state);
