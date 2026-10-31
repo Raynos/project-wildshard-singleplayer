@@ -85,6 +85,8 @@ test('report codec metadata cannot authorize an earlier stage or a missing King 
   const value={version:1,stage:'king-victory',source:chapterWireHash('unplayed'),tick:3,snapshot:'unplayed',digest:chapterWireHash('unplayed'),reportStart:2,parts};
   expect(v.safeParse(ChapterHandoffSchema,value).success).toBe(true);
   expect(v.safeParse(ChapterHandoffSchema,{...value,stage:'king-home'}).success).toBe(true);
+  expect(v.safeParse(ChapterHandoffSchema,{...value,stage:'king-road'}).success).toBe(true);
+  expect(v.safeParse(ChapterHandoffSchema,{...value,stage:'king-road',reportStart:undefined}).success).toBe(false);
   for(const stage of ['home','carvings','king-entry','king-phase-one','king-phase-two'])expect(v.safeParse(ChapterHandoffSchema,{...value,stage}).success).toBe(false);
   const before=parts[1]?.expected.observations[0];if(before===undefined)throw new Error('Missing unplayed boundary');
   before.flags=before.flags.filter(flag=>flag!=='clue:3');expect(()=>checkChapterLedger(parts,3,2)).toThrow('earned King checkpoint');
