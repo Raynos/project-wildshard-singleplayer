@@ -46,16 +46,18 @@ function widenHalves(piece: BufferGeometry): void {
   }
 }
 
-/** A parent's pieces merged by channel set (names, widths and storage alike), one geometry per set. */
-function coarseSets(pieces: readonly BufferGeometry[], errors: WeakMap<BufferGeometry, number>): BufferGeometry[] {
-  const bySet = new Map<string, BufferGeometry[]>();
-  for (const piece of pieces) {
+/** A parent's pieces merged by look and channel set (names, widths and storage alike), one geometry per pair (EP12: a set
+ *  never mixes looks, so it draws with its L0 graph). */
+function coarseSets(pieces: readonly CoarsePiece[], errors: WeakMap<BufferGeometry, number>): CoarsePiece[] {
+  const bySet = new Map<string, { material: MeshStandardMaterial; list: BufferGeometry[] }>();
+  for (const { geometry: piece, material } of pieces) {
     widenHalves(piece);
-    const signature = Object.entries(piece.attributes).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
+    const channels = Object.entries(piece.attributes).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
       .map(([name, attribute]) => `${name}:${attribute.itemSize}:${attribute.array.constructor.name}:${String(attribute.normalized)}`).join('|');
-    const list = bySet.get(signature) ?? []; list.push(piece); bySet.set(signature, list);
+    const signature = `${material.name}|${channels}`;
+    const row = bySet.get(signature) ?? { material, list: [] }; row.list.push(piece); bySet.set(signature, row);
   }
-  return [...bySet.values()].map(list => {
+  return [...bySet.values()].map(({ material, list }) => {
     const merged = new BufferGeometry(), first = list[0];
     if (first === undefined) throw new Error('Nine coarse set is empty');
     const counts = list.map(piece => piece.getAttribute('position').count);
@@ -70,9 +72,11 @@ function coarseSets(pieces: readonly BufferGeometry[], errors: WeakMap<BufferGeo
     for (const [p, piece] of list.entries()) { for (const corner of piece.getIndex()?.array ?? []) indices.push(corner + base); base += counts[p] ?? 0; piece.dispose(); }
     merged.setIndex(indices);
     errors.set(merged, Math.max(0, ...list.map(piece => errors.get(piece) ?? 0)));
-    return merged;
+    return { geometry: merged, material };
   });
 }
+/** a coarse piece and the named material of the L0 look it came from */
+interface CoarsePiece { readonly geometry: BufferGeometry; readonly material: MeshStandardMaterial }
 
 /** A copy keeping only the vertices its triangles use (the simplifier leaves the rest in place), every channel in its
  *  own storage. */
@@ -119,7 +123,8 @@ function fitCoarse(input: readonly BufferGeometry[], parent: string, triangles: 
 /** Static fabric is drawn from whole L0 nodes; local specimens are standard instanced-kind library GLBs. */
 function buildNineScene(atlas: NineSpillAtlas): { baked: BakedScene; layout: ReturnType<typeof nineLayoutSource>; keys: { boot: string[]; explorer: string[] }; boxes: Record<string, boolean> } {
   const layout = nineLayoutSource(), scene = new Scene(); scene.name = 'nine-dragon-stack';
-  const material = new MeshStandardMaterial({ vertexColors: true });
+  // EP12: props.materials names every props GLB material; the shared shapes keep the family look they drew with
+  const material = new MeshStandardMaterial({ vertexColors: true }); material.name = 'shape';
   // each kit's neon spill rides in its tiles as the aSpill channel (generators/spillBake.ts `drawSpill`)
   const spill = drawSpill(atlas);
   for (const { name, geo } of layout.rows.kits) {
@@ -138,8 +143,20 @@ function buildNineScene(atlas: NineSpillAtlas): { baked: BakedScene; layout: Ret
   if (crown !== undefined && crown !== null) local.add(crown);
   // G748 / tile streaming T8: the city's coarse L1 copy keeps every Nine channel (its night look). Each L1 parent's pieces
   // merge into one draw per channel set, simplified until the parent fits the L1 tile caps (CONTENT_CAPS.l1)
-  const coarseWhite = new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 1, metalness: 0 }), coarseWhole: PropWhole[] = [];
-  const parents = new Map<number, BufferGeometry[]>(), errors = new WeakMap<BufferGeometry, number>();
+  // EP12: each layout geometry's look (its slab key's material: kit / kit-cut / kit-ground / facade) names its L0 and coarse
+  // material, so the coarse copy draws with the city's own graphs (props.materials) instead of one stand-in look
+  const lookOf = new Map<number, string>([...layout.rows.kits.flatMap(row => row.geo === null ? [] : [[row.geo, 'kit'] as const]),
+    ...layout.rows.alphaKits.map(row => [row.geo, 'kit-cut'] as const), ...layout.rows.groundKits.map(row => [row.geo, 'kit-ground'] as const),
+    ...(layout.rows.shell === null ? [] : [[layout.rows.shell, 'facade'] as const])]);
+  const looked = new Map<string, MeshStandardMaterial>();
+  const materialOf = (i: number): MeshStandardMaterial => {
+    const look = lookOf.get(i); if (look === undefined) throw new Error(`Nine layout geometry ${String(i)} has no look`);
+    let known = looked.get(look);
+    if (known === undefined) { known = new MeshStandardMaterial({ vertexColors: true }); known.name = look; looked.set(look, known); }
+    return known;
+  };
+  const coarseWhole: PropWhole[] = [];
+  const parents = new Map<number, CoarsePiece[]>(), errors = new WeakMap<BufferGeometry, number>();
   // G5: a kit's flagstones draw apart (layout.ts `splitKind`), but its coarse copy simplifies the kit whole, as before
   const grounds = new Map(layout.rows.groundKits.flatMap(({ name, geo }) => {
     const kit = layout.rows.kits.find(row => row.name === name)?.geo;
@@ -158,23 +175,23 @@ function buildNineScene(atlas: NineSpillAtlas): { baked: BakedScene; layout: Ret
   };
   for (const [i, geometry] of layout.geometries.entries()) {
     if (local.has(i)) continue;
-    const mesh = new Mesh(geometry, material); mesh.name = `layout_${i}`;
-    scene.add(new WholeShape(mesh.name, mesh, { customAttributes: nineChannels(geometry), nativeAttributes: true, partition: 'runs', compact: true }));
+    const mesh = new Mesh(geometry, materialOf(i)); mesh.name = `layout_${i}`;
+    scene.add(new WholeShape(mesh.name, mesh, { customAttributes: nineChannels(geometry), nativeAttributes: true, partition: 'runs', compact: true, materialName: materialOf(i).name }));
     if (merged.has(i)) continue;
     const result = measuredCoarseGeometry(whole(i, geometry), COARSE_START, 3, { sloppy: true }), coarse = result.geometry;
     errors.set(coarse, result.errorMetres);
-    for (const piece of coarseParents(coarse, errors)) { const key = piece.z * 4 + piece.x, list = parents.get(key) ?? []; list.push(piece.geometry); parents.set(key, list); }
+    for (const piece of coarseParents(coarse, errors)) { const key = piece.z * 4 + piece.x, list = parents.get(key) ?? []; list.push({ geometry: piece.geometry, material: materialOf(i) }); parents.set(key, list); }
     coarse.dispose();
   }
   // each parent's share of the cell budget follows its share of the city's simplified triangles
-  const mass = new Map([...parents].map(([key, pieces]) => [key, pieces.reduce((sum, piece) => sum + triangleCount(piece), 0)] as const));
+  const mass = new Map([...parents].map(([key, pieces]) => [key, pieces.reduce((sum, piece) => sum + triangleCount(piece.geometry), 0)] as const));
   const total = [...mass.values()].reduce((sum, n) => sum + n, 0);
   for (const [key, pieces] of parents) {
     const x = key % 4, z = Math.floor(key / 4), transform = new Matrix4().makeTranslation(-250 + (x + 0.5) * 125, 0, -250 + (z + 0.5) * 125);
     const sets = coarseSets(pieces, errors), share = total === 0 ? 0 : (mass.get(key) ?? 0) / total;
     if (sets.length > COARSE_DRAWS) throw new Error(`Nine coarse parent ${x}/${z} needs ${sets.length} channel sets`);
-    for (const [s, fitted] of fitCoarse(sets, `${x}/${z}`, Math.max(COARSE_FLOOR.triangles, Math.floor(CELL_COARSE_TRIANGLES * share)), Math.max(COARSE_FLOOR.bytes, Math.floor(CELL_COARSE_BYTES * share)), errors).entries()) {
-      coarseWhole.push({ id: `coarse_${x}_${z}_${s}`, mesh: new Mesh(fitted, coarseWhite), transform, geometricError: errors.get(fitted) ?? 0, customAttributes: nineChannels(fitted), nativeAttributes: true, compact: true });
+    for (const [s, fitted] of fitCoarse(sets.map(set => set.geometry), `${x}/${z}`, Math.max(COARSE_FLOOR.triangles, Math.floor(CELL_COARSE_TRIANGLES * share)), Math.max(COARSE_FLOOR.bytes, Math.floor(CELL_COARSE_BYTES * share)), errors).entries()) {
+      coarseWhole.push({ id: `coarse_${x}_${z}_${s}`, mesh: new Mesh(fitted, sets[s]?.material ?? materialOf(-1)), materialName: sets[s]?.material.name ?? '', transform, geometricError: errors.get(fitted) ?? 0, customAttributes: nineChannels(fitted), nativeAttributes: true, compact: true });
     }
   }
   const keys: { boot: string[]; explorer: string[] } = { boot: [], explorer: [] };
@@ -221,7 +238,7 @@ function buildNineScene(atlas: NineSpillAtlas): { baked: BakedScene; layout: Ret
   }
   const baked = bakeOwned(scene, { slug: 'nine-dragon-stack', name: 'Nine Dragon Stack' }, { props: { coarseWhole } });
   for (const entry of coarseWhole) entry.mesh.geometry.dispose();
-  coarseWhite.dispose();
+  for (const named of looked.values()) named.dispose();
   return { baked, layout, keys, boxes };
 }
 

@@ -138,7 +138,9 @@ function options(chunk: Chunk, tile: number, index: number): GlbPrimitive {
   const geometry = chunk.part.geometry, normal = geometry.getAttribute('normal'), colour = geometry.getAttribute('color');
   const quantized = (normal === undefined || normal instanceof BufferAttribute && normal.itemSize === 3 && normal.array instanceof Int8Array && normal.normalized)
     && (colour === undefined || colour instanceof BufferAttribute && (colour.array instanceof Uint8Array || colour.array instanceof Uint16Array) && colour.normalized);
-  const material = new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 1, metalness: 0 });
+  // named as its key's material: a product with props.materials admits only named GLB materials (the runtime draws a chunk with
+  // its anchor's material, never this one)
+  const material = new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 1, metalness: 0 }); material.name = chunk.key.material;
   return { geometry, material, name: `${chunk.key.id}-chunk_${index}`, castShadow: chunk.key.castShadow, customAttributes: chunk.custom,
     nativeAttributes: true, nativeOnce: true, compactIndex: true, ...(quantized ? { quantizedChannels: true } : {}),
     extras: { slab: { key: chunk.key.id, tile, chunk: index } } };
