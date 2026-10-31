@@ -40,10 +40,16 @@ test('draw diagnostics read exact prepared worlds and never join source, boot or
 });
 
 test('diagnostics consume no required-wave runner and still report required failures',()=>{
-  const diagnostic=section('draw-budget'),required=dependencies(section('build-and-deploy'));
+  const diagnostic=section('draw-budget'),shipNeeds=dependencies(section('build-and-deploy'));
+  const optionalStage='stage-prebuilt',required=shipNeeds.filter(name=>name!==optionalStage);
   expect(required.length).toBeGreaterThan(0);
+  expect(new Set(required)).toEqual(new Set(['prepare','typecheck-lint','derived-docs','behaviour','native-escape','journeys']));
+  expect(shipNeeds).toContain(optionalStage);
+  expect(dependencies(section(optionalStage))).toEqual(['prepare']);
+  expect(section(optionalStage)).toContain('continue-on-error: true');
   expect(new Set(dependencies(diagnostic))).toEqual(new Set(required));
   expect(dependencies(diagnostic)).not.toContain('build-and-deploy');
+  expect(dependencies(diagnostic)).not.toContain(optionalStage);
   for(const name of required)expect(dependencies(section(name))).not.toContain('draw-budget');
   const expression=/^ {4}if: \$\{\{ (.+) \}\}$/mu.exec(diagnostic)?.[1];
   if(expression===undefined)throw new Error('Missing actual diagnostic admission');
@@ -53,6 +59,9 @@ test('diagnostics consume no required-wave runner and still report required fail
     {github:{event_name:event},needs,always:()=>true,cancelled:()=>cancelled},{timeout:100});
   for(const event of ['push','pull_request']){
     expect(evaluate(event,states)).toBe(true);
+    for(const result of ['success','failure','cancelled','skipped','pending']){
+      expect(evaluate(event,{...states,[optionalStage]:{result}})).toBe(true);
+    }
     for(const name of required.filter(dependency=>dependency!=='prepare'))for(const result of ['failure','cancelled','skipped']){
       expect(evaluate(event,{...states,[name]:{result}})).toBe(true);
     }
