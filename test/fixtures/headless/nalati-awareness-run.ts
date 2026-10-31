@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import * as v from 'valibot';
 import {loadRapier} from '../../../src/engine/physics/rapier';
-import {snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
+import {snapshotSimHostBytes,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
 import {runTrustedHeadlessTape,type HeadlessTapeObservation} from '../../../src/sdk/headlessTape';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {createNativeProofResident} from '../headless-native';
@@ -70,7 +70,7 @@ try{
       if(state.law.state==='noticed'){
         assert.equal(state.label,'Noticed');assert.ok(state.law.threat>0&&state.law.threat<1);
         assert.ok(state.law.observation.threats.some(threat=>threat.awareness>0),'live animals supply the actual rising awareness');
-        checkpoint=serializeSimSnapshot(snapshotSimHost(resident.host));checkpointTick=frames.length;
+        checkpoint=serializeSimSnapshot(snapshotSimHostBytes(resident.host));checkpointTick=frames.length;
       }
       if(state.law.state==='detected'){assert.equal(state.label,'Detected');assert.equal(state.law.threat,1);}
       await flush(`awareness-${state.law.state}`);
