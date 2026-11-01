@@ -3180,8 +3180,17 @@ message's mistaken 8 + 6 count. They exercise matching reuse, all four
 identity differences, legacy fallback, foreign-source refusal and native
 error propagation without retry. Root types and named typed lint pass.
 The normal committed push gate passes in **8.91 s**, upload **1.3801 s**,
-with no bad commit. Ordinary containing Linux qualification remains open;
-local success is not a whole-wave verdict or a future reliability claim.
+with no bad commit. The first containing ordinary source `0f0248e9f4`,
+run `41259584971`, subsequently passes all 37 required jobs. The exact
+run plan artifact `13064437926` assigns the original failing file to
+**behaviour20**, actual job `124711225946`; its retained log explicitly
+reports **all original seven tests PASS / 20,506 ms**. The old B9 label
+moved under duration balancing: this is not a claim that the file ran
+in the new B9. Root's full proof `qa-0f02-complete-proof.json` independently
+verifies live build **0f0248e-mvx4uf2w**, native4/SIX/latest status,
+private maps/APIs and the exact-source Sky/P1 entry. The source is now
+qualified in its ordinary required Linux wave and live release. No
+remote per-case clock, isolated speedup or future reliability is claimed.
 
 Evidence is `tmp/sp-x2-nalati-cache-p0/{controlled-snapshot-evidence,
 tagged-snapshot-binding,source-final}.json`, original/foreign-before,

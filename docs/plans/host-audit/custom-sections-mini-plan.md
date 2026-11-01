@@ -111,7 +111,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 | **CS0** | **done (2026-10-24, sp-x6):** measured ceilings 387 / 33,613,009 B; shrink-only existing-name inventory, new custom sections refused, new named JSON requires an exact defining format schema. **Ceilings to actuals and a schema freeze** (free, can land now): set every `custom-sections/<slug>` ceiling to the measured value (549 → 387, 62 MB → 33.6 MB); refuse a new `custom/` section and any new named JSON whose schema is defined in a shard folder | 0.5 day, Codex |
 | **CS1** | **done (2026-10-31, sp-x1):** `9a616b4b82` inventories all 24 products in 4.56 s: 1,406 rows / 11 source projects; six inventory controls pass. `b13ad77350` fixes exclusive compiler ownership, with the original owner assertion, six controls and root/scripts types passing. Hash-bound source/reader evidence stays explicit; no ruler or inferred host credit. | 0.5–1 day, Codex |
 | **CS2** | **open (2026-10-31, sp-x1):** persistence, 27 native world-scene recipes, the 23 aliases/forest-page documents in `31bffc86fb`, and building-sites/shape-book are qualified. The 62 welds remain withdrawn; eight separate living-cabin envelopes are also an explicit index-footprint exit under the approximately 1.9 MB Pine headroom rule. Ground-family source review is next. Remaining names need the concrete family exits below; the five repeated-name exits alone do not close CS2. | 2–3 days, Codex + Opus review |
-| **CS3** | **open (2026-10-31, sp-x2):** first exact phone-dressing slice `1fadd8e67a` passes full body proof and strict P1–P3 A/A + A/B (all six comparisons 0 pixels). Desktop and wider scene migration remain open; see [the scoped reading](#cs3-first-phone-dressing-slice). **K1 scenes**: one streamed `world/scenes` family and `models/library`; Pine's 112 placement files become one indexed section; tier copies derived. | 3–4 days, Codex (Opus memory reading on Pine) |
+| **CS3** | **open (2026-10-31, sp-x2):** phone `1fadd8e67a` and desktop `d83676a5d4` dressing counterparts pass their full body proofs and strict P1–P3 A/A + A/B, all twelve scoped comparisons 0 pixels. Wider scene migration remains open; see [phone](#cs3-first-phone-dressing-slice) and [desktop](#cs3-desktop-dressing-counterpart). **K1 scenes**: one streamed `world/scenes` family and `models/library`; Pine's 112 placement files become one indexed section; tier copies derived. | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **Qualified slices done; row remains open for its explicit owner/host exits.** Pine common physics `5596fde41e`: strict7 and original unfiltered walk **75/75, 0 stuck/bounds/pending**. Floor/cave defining contracts `b5a7dc391d` are qualified by the recorded coalesced proof; fields and complete ground aliases `d0c35248f3` retain original payload/pack/native checks. See the completion ledger below. Pine owner-only physics and G667 tests 2–6 are not closed by metadata. | 2–3 days, Codex (Opus memory reading) |
 | **CS5** | **K3 quests**: one `quest/*` family across Pine, Driftwood, Nalati (and Sky's quest rows); Pine `questRuntime` program to AS | 4–6 days, Opus design + Codex port |
 | **CS6** | **K4 creatures**: `actors/species` + `actors/populations`; behaviour rows to AS on WASM-HOST H6 / H8 | 4–6 days, Opus + Codex |
@@ -715,7 +715,7 @@ index-compaction row; neither the hard cap nor freshness is relaxed.
 | Nine `signs/atlas-{phone,desktop}.json` (2) | `signAtlasOutput.ts` uses the shard-local `sections.ts#SignAtlasSchema`, with its exact glyph, light, pool and channel bindings. | **CS3:** shared atlas/native-resource contract or existing approved shader/model exit; retain the original complete sign parser. |
 | DW `world/building-life.json` (1) | `namedSchemas.ts` composes `{look: BuildingLifeLook, life: BuildingLifeRows, initialDusk: number}` inline. The two native child roots do not define the whole envelope. | **CS3:** complete life-document root and original site owner; no child-only registration. |
 | Nalati `world/dressing-{boulder,slab,juniper,rose,willow,lupin,reed,logs,stumps,ovoos,poles,fences,gates,drifts,colliders,clutter}.json` (16) | `dressingSchemas.ts#DRESSING_SCHEMAS` declares local instance, spot, log, fence, gate, drift, collider and clutter array grammars and re-encodes through their existing parsers. | **CS3**, with **CS4** for collider ownership: adopt complete native shared rows without changing doubles, resources or collision; no permissive array wrapper. |
-| Nalati `world/dressing-{phone,desktop}.json` (2) | `dressingScene.ts` emits the complete `SceneDressingSchema`; `output.ts` then binds the original painted books without changing that metadata. G483 explicitly approves `game/shardfile/sceneDressing` and `sceneInstances` with unrelated orchard coverage (HOST-BAR); no new host score is claimed. | **CS3:** X2 owns the first phone-only defining-metadata slice, with full native/refusal/resource checks, payload identity and strict affected-pose AA/AB. Desktop remains a separate exact-pixel adoption step. |
+| Nalati `world/dressing-{phone,desktop}.json` (2) | `dressingScene.ts` emits the complete `SceneDressingSchema`; `output.ts` then binds the original painted books without changing that metadata. G483 explicitly approves `game/shardfile/sceneDressing` and `sceneInstances` with unrelated orchard coverage (HOST-BAR); no new host score is claimed. | **CS3 scoped adoption done:** phone `1fadd8e67a` and desktop `d83676a5d4` retain their complete native root and original owners/resources; each passes its payload proof and strict affected-pose AA/AB at zero pixels. This closes these two names, not the wider CS3 row or a new host score. |
 | DW `world/island/plan-{phone,desktop}.json` (2) | `productPageFiles.ts#driftwoodPlanBytes` encodes `islandCover.ts#bakeIslandPlan`; `IslandPlacementPlan` is a local interface with sets, families, small rocks and unclaimed boxes, not an exported complete native schema. | **CS3:** complete placement-plan contract and exact native collider/resource checks; do not infer a format root from the interface or bytes. |
 | Far/Sun `world/sources/bakes.json`; Far `world/sources/{heroes,sky}.json`; Sun `world/sources/models.json` (4 distinct names) | `sdk/worldScenes#bakedSceneSourceFile` and `modelSceneSourceFile` emit `SceneBakeSource` / `SceneModelSource` interfaces with kind/inventory limits; downstream `game/shardfile/sceneSources` retains full resource/owner admission. X2's bakes audit finds the actual 321,049 B Far / 23,984 B Sun envelopes also carry GLB, hull, rig, rail, disc, anchor and other author leftovers outside the typed runtime subset. | **CS3 complete-contract exit:** no complete native format root admits that whole envelope. Do not register only the runtime fields, unknown extensions or an inferred shape. Model-source interfaces likewise remain a complete-root/resource-contract exit. |
 
@@ -1352,3 +1352,79 @@ and `originals-after.log`; independent
 `tmp/sp-x1-cs5-dw/{audit,strict,map-source-audit}.json`. The initial
 maintained-suite stale-product refusal remains in `physical-controls.log`.
 CS6 stays open for roster/elites and the documented whole-contract exits.
+
+
+### CS3 desktop dressing counterpart
+
+**2026-10-31, sp-x2; source `d83676a5d4092d1a073bd0e89def590ec8024b6f`.**
+Bind the existing `world/dressing-desktop.json` beside the qualified
+phone counterpart to the same complete `SceneDressingSchema` and G483
+owner. Preserve all previous registered roots, raw defaults, original
+geometry/contact files, materials, callbacks, ownership and native
+lifetime. No SDK root, new format, new host or renderer is introduced.
+The existing seven metadata/default/refusal controls now run for both
+exact names (14); the unknown-name negative still names a genuinely
+unregistered document, not a wildcard family.
+
+The actual desktop body is **951,455 B**, SHA `41334960…d206b4`.
+Its complete native grammar is unchanged; provenance adds exactly
+**65 B**, taking the selected Nalati index from 1,103,154 to
+**1,103,219 B**. No cap or approximately 1.9 MB Pine headroom is changed.
+One normal coalesced Pine/Nalati AFTER takes **48.352 s**. The independent
+Nalati scope is all **400 payload paths / 88,630,430 B**: 399 are exact,
+only one desktop provenance field changes, and ordered pack members,
+offsets and old/new pack hashes reconstruct. The independent Pine
+grazers retirement is not included in a global byte-purity claim.
+
+The raw comparison stays **FAIL** for exactly the 164-byte `look/map`
+body. Only `tilesHash` changes, `8b2d10bf…0d1648` to
+`e40e2211…57c520`, equal to current `mapTilesHash`. The full old source
+hash reconstructs; only `dressingScene.ts` import cleanup and the desktop
+metadata option change among declared map inputs. Image
+`80afaa55…aff2d6` is exact. G872 accepts this case only: no tolerance,
+stamp freeze or weaker freshness. Fourteen controls plus original
+owner/file/rows/bake focus pass in **12.2 s**; the original three product
+and grammar suites pass in **6.256 s**. Root types and typed lint pass.
+
+G612 lands these three paths HEAD-only, then measures normal immutable
+previews: BEFORE **d0c3524-mvx4urdp**, full
+`d0c35248f398670c64b42803b873df71e3093b06`, normally borrowed from root
+with no extra baseline builder; AFTER **d83676a-mvx5dbxt**, the full
+source SHA above. Both actual committed preview products are separately
+hash-verified: all 400 selected bodies, exactly the same single map
+case and desktop provenance difference, and the identical 951,455-byte
+desktop body. The native `world/scenes.dressing[TIER]` selector is intact.
+The complete intervening source/asset diff includes the separate Pine
+retirement and two unused twig-JPG removals; this is not a pure-leaf
+whole-release or timing comparison. No foreign working-tree renderer
+edit, response override or material-program loan enters either build.
+
+The capture guards actual **`game.tier === 'desktop'`** in every fresh
+world while retaining portrait **iPhone 16 Pro 402×874 / DPR 2**, the
+unchanged phone frame controller and native Metal (Apple M5 Max).
+Three fresh worlds produce nine **804×1748 RGBA** frames. At **P1, P2
+and P3, both A/A and A/B differ by exactly 0 pixels**, without a
+whitelist or comparator tolerance. Per-pose native draws/triangles
+also match across all three worlds: P1 **153 / 2,958,499**, P2
+**161 / 3,621,300**, P3 **112 / 2,159,729**. This is the same declared
+posed-world protocol (native shadows, no post or camera-child viewmodel),
+not phone-tier performance, frame cadence or physical Safari evidence.
+Both own preview leases and every browser close normally; all own
+hardware is returned before root's next required release entry.
+
+Evidence: `tmp/sp-x2-cs3-desktop/{payload-baseline,payload-after-audit,
+raw-comparison,before-binding,after-binding,physical-final,summary}.json`,
+`immutable-source-diff.txt`, the original-consumer logs, and
+`pixels/reading.json` with nine untouched raw RGBA frames. This closes
+only the two dressing names across phone and desktop. Remaining local
+placement grammars, complete-source-envelope gaps, index-footprint
+exits and unproved user scope remain open in the CS3 census.
+
+The next source read confirms that Nalati's two cover books have a real
+complete `SpecimenBookSchema` and native Explorer, held and forager
+consumers. These three consumer modules still demonstrate only Nalati
+as a complete named-book source. DW's four inline specimen rows drive
+the shared catalogue child, not that complete book document. No second
+book source or exact one-user root approval has yet been established;
+the existing owner/genericity exit remains explicit. Shape equality,
+an unknown wrapper or a manufactured second user cannot close it.
