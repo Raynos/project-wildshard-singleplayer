@@ -1,9 +1,9 @@
 # Clean PWA reload: one tap on NEW BUILD lands the newest build
 
-**State:** `open` (grilled 10-31 ~08:20: G961 the pill lights only when one tap lands the newest build, G962 a fresh open offers it, no auto-switch); was `draft` 2026-10-31 for Jake's grill. Written by wildshard-v's planning subagent; after the grill, wildshard-new
+**State:** `done`, archived 2026-10-31 after the headless home-screen PR5 pass below. All five rows are done. Originally grilled 10-31 ~08:20: G961 the pill lights only when one tap lands the newest build, G962 a fresh open offers it, no auto-switch); was `draft` 2026-10-31 for Jake's grill. Written by wildshard-v's planning subagent; after the grill, wildshard-new
 hands out the rows and marks them. Ask E519. Jake: *"Have a subagent make a mini plan about how to reload cleanly in game
 for a PWA. I think we might have problems it smells to me. I definitely have to reload multiple times to get the 'new
-build' pill to go away."* It follows [QC3](../../../project/archive/2026-10-30-qa-2026-10-30.md) (e2dfc879b5: the tap
+build' pill to go away."* It follows [QC3](2026-10-30-qa-2026-10-30.md) (e2dfc879b5: the tap
 adopts a waiting worker), whose fix was checked with behaviour tests only, never with an installed-PWA visit. Nothing here
 changes pixels, so every row is Codex (G848 / G958). The pill's look stays the same; only *when* it lights changes.
 
@@ -11,7 +11,7 @@ Measured 2026-10-31 on HEAD `a4024eb`, Playwright WebKit and Chromium, iPhone 16
 cloned into A, then into B and C, which differ only in build id and worker bytes (a deploy with no code change). They were
 served behind a proxy that can delay the worker's install, to stand in for the phone's ~20 MB precache. Script, proxy and
 log: `tmp/wildshard-v-pwa-reload/` (`repro.mjs`, `proxy.mjs`, `make-variant.mjs`, `results.log`). There was no Simulator
-pass in this session; G872 below leaves PR5 unproved here.
+pass in this session; the later headless PR5 pass below closes that gap.
 
 ## What happens today
 
@@ -104,7 +104,7 @@ apart from the deleted route.
 | PR2 | **done (2026-10-31, sp-x9)** — **Never wait on `register()` in a controlled page** (`sw.ts` `boot` / `register` / `watch`): watch `getRegistration()`, register only when there is none, `update()` stays fire-and-forget. The tap reads `reg.waiting` fresh (`adopt`). | PR1's wedged case (one tap mid-install, then wait): the next tap lands B in **1** reload; `sw`, `sw-ready-*`, `sw-registration-blocked`, `update-*` tests pass. | Codex | S |
 | PR3 | **done (2026-10-31, sp-x9)** — **Light only for a deliverable newest build** (`Update.ts` `check` / `lightUp`, `sw.ts` `announce`): `/version.json` only discovers while a worker controls; `announce` compares the waiting worker's build against the document and the newest `/version.json`; the poll keeps running while lit. | WebKit **A→B = 1** tap even when tapped the moment anything lights (25 s install: dark until installed); **A→B→C = 1** tap landing C, with B already waiting and with C mid-install; no deploy: dark through 3 reloads; Chromium the same. | Codex | S |
 | PR4 | **done (2026-10-31, sp-x9)** — **Delete what disagrees**: the document race route in `sw.js`, `requestInstall`'s text swap, `WsSw.activate()` and the tests that pin them (G416). | Chromium A→B: the page never runs a newer build than its controller (doc = ctrl after every tap in PR1); WebKit warm title unchanged (MF1's ≤ 0.1 MB warm network). | Codex | S |
-| PR5 | **open — real home-screen pass not proved here (G872, 10-31).** Simulator.app is absent; do not reinstall Xcode. The pre-PR2/3 kill check uses persistent WebKit process-close / same-profile relaunch (finding below). Jake's next ordinary home-screen PWA playtest supplies the real check; no chore is assigned to him. | A→B and A→B→C each take one tap during ordinary home-screen play. **Not proved here.** | Codex | S |
+| PR5 | **done (2026-10-31, sp-x9)** — Headless iOS 26.5 Apple Web.app, launched by simctl, reusing an existing installed fullscreen Web Clip within its original loopback origin. Exact source `48a9181c2d`; no Simulator.app or Xcode reinstall. | Native A→B and A→B→C each take **one pill tap**, land the newest document/controller and leave the pill dark. Final fullscreen capture has no browser controls; `navigator.standalone=true`. | Codex | S |
 
 PR1 baseline is complete on source-checked 131
 (`13123182d4b35067a6bafaaa7b320315ab5d5561`), using the ruler first landed in
@@ -152,7 +152,7 @@ with the warm document SW-controlled (667 SW / 35 network rows). The raw CLI
 still exits 1 for telemetry/accounting refusals; it is not a clean whole-tool
 pass. This source is included in the final one-tap matrix above; no activation
 wait, clients.claim, automatic navigation or pill appearance change was added.
-PR5 remains open for ordinary home-screen play under G872.
+PR5 subsequently passed in the native headless Web.app container below.
 
 **G872, 10-31: no Simulator.app exists on this Mac; do not reinstall Xcode.**
 The pre-PR2/3 kill check therefore uses persistent Playwright WebKit. Two taps
@@ -165,8 +165,37 @@ browser-guard pass. Raw and faithful rc1 receipt:
 `tmp/sp-x9-pwa/pr1-process-kill{.log,-reading.json}`. This is not a home-screen
 PWA result. Simulator startup itself passed, but no home-screen app was installed.
 
-Order: PR1 first (it's the ruler), then PR2 → PR3 → PR4, then the PR5 real-device finding when ordinary play supplies it. Jake's next playtest on the phone is
-the final check (he does no phone chores); this plan closes when a deploy during his session takes one tap.
+**PR5 headless pass, 2026-10-31 (G872 bounded follow-up).** The try began
+00:26:23Z and native checks finished 00:47:05Z; the normal sim-lane lease was
+released at 00:47:37Z, inside the 30-minute bound. Simulator.app remains absent.
+The Simulator's real `com.apple.webapp` is installed and launches through simctl.
+Creating a new clip directory succeeded, but native placeholder registration
+failed with IXErrorDomain 3 (missing placeholder data promise); its URL launch
+failed with LSApplicationWorkspaceErrorDomain 115. The owned probe clip was
+removed. No existing clip was deleted and no Xcode install was attempted.
+
+The successful path reused the installed fullscreen `WS QC2 after` clip at its
+original `http://127.0.0.1:4401/` origin, with the maintained reload proxy against
+one ordinary pinned preview, source `48a9181c2dd7c7a0f101909cec103905a33e4b66`,
+build `48a9181-mvx3uejx`. Native Inspector drove the visible update pill with an
+emulated user gesture; no direct adoption, claim, forced activation or fabricated
+standalone property. Initial fixture setup adopted A separately (one setup tap
+per scenario, outside the measured transition). From controlled A, A→B needed
+one tap and ended document/controller B, no waiting worker, pill dark. With B
+waiting and C installing behind a delayed manifest, A→B→C needed one tap and
+ended document/controller C, no waiting worker, pill dark. Both title states and
+two real paints were observed. The in-scope final screenshot was read and has
+no Safari chrome. Native `navigator.standalone` is true; CSS display-mode reports
+false for this legacy fullscreen clip, retained as a distinction rather than
+changed. An earlier cross-origin reading opened browser chrome and is excluded
+from this pass. New icon installation and a physical iPhone visit are not claimed.
+
+Raw: `tmp/sp-x9-pr5-headless/native-inscope-reload.json`, native installer logs,
+`native-inscope-final.png`, and `release.log`. The native ruler preserves source
+identity and state observations; it is a functional home-screen transition
+reading, not a new performance or whole-network-accounting claim. PR1–PR4's
+separate WebKit/Chromium guard matrix remains the broader browser qualification.
+All five rows are done; no phone chore is assigned to Jake.
 
 ## Questions for Jake
 
