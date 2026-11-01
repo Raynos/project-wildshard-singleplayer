@@ -33,7 +33,7 @@ import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/led
 
 
 /**
- * Pine Hollow's whole-shard witness (E435 §C / SF72), on its trusted renderer-free entry `runtime/headless.ts`, composed as
+ * Pine Hollow's whole-shard witness (E435 §C / SF72), on its trusted renderer-free entry `test/fixtures/pine-headless.ts`, composed as
  * the platform's trusted adapter composes it (the plan's level and ports, one install, the tick's commands lent to the
  * runtime, its effects buffered per tick). The player's tape is tick commands only (`player` moves and `script` prompt
  * presses, `pine.interact`), chosen each tick from where the player stands: from the spawn on the south road to Hale on
@@ -42,7 +42,7 @@ import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/led
  * lantern. Nothing writes health, flags or positions: every outcome is gameplay. The night (the stag's walk, the Antler
  * King and dawn) are walked on the same tape, with the remaining systems listed in OPEN.
  */
-export const ENTRY = 'data/headlessAssembly.json';
+export const ENTRY = 'test/fixtures/pine-headless.ts';
 const ROOT = new URL('../../../', import.meta.url);
 let productDirectory: string | undefined;
 /** One pinned actual product for record, restored sessions and replay. */
