@@ -3267,3 +3267,64 @@ Evidence: `tmp/sp-x6-ci9-transient/level1-component.json` and
 actual stage logs/resource reports, `preflight-phase-refusal.log` and the
 original observer refusal. Prototype implementation drafts are withdrawn;
 no new native run, CI fetch or dispatch accompanies this closure.
+
+### CI10: retained environments do not identify a useful pin
+
+**2026-10-31, sp-x6; analysis only.** Five retained app-reaching sources
+are compared with X9's chronological latest20 sample: ten zero-step
+cancellations excluded, ten executed pre-app failures. App-reaching is
+not route acceptance: four sources later hit route/performance limits;
+60e later cancels. Source epochs and readiness protocols differ, so this
+is an environment comparison, not a matched runtime benchmark.
+
+| App-reaching source / phone job | Runner image version | Cold bootstatus (s) | Successful cold URL attempt / owned frames (s) |
+|---|---|---:|---|
+| fe0ca11 /123996802901 | macos-15-arm64 /20260907.0337.1 | 91 | 2 /109.953 |
+| 93e40e0 /124059873749 | macos-15 /20260824.0482.1 | 165 | 3 /117.680 |
+| f0b8a5e /124067128552 | same Intel image | 267 | 2 /107.210 |
+| 8b025a0 /124098372268 | same Intel image | 174 | 3 /90.122 |
+| 60e20e1 /124556481553 | same Intel image | 155.875 | 2 /111.737 |
+| Ten latest executed stalls | same Intel image | 102.163–229.311 | Seven finish boot then both URL offers return124/zero HTTP; three refuse in boot admission |
+
+All fifteen record **macOS15.7.9 /24G830**, **Xcode26.2 /17C52**.
+60e and all ten stalls also record the exact same runtime:
+**com.apple.CoreSimulator.SimRuntime.iOS-26-2 /23C54**. Their runner agent
+**2.338.2**, provisioner **20260819.586** and **westus** region also match.
+The older four use agent2.338.0, but successful60e disproves that update
+as an outcome separator. The older four selected runtime builds are not
+logged; SDK26.2 is not substituted for a selected runtime receipt.
+
+All selected sources request the same fresh named `wildshard-iphone`,
+choosing iPhone17Pro with the existing last-iPhone fallback. Created
+UDIDs are bound, but no exact SimDeviceTypeIdentifier is retained. The
+requested model is not proof of the actual selected model; device-type
+pinning therefore has no demonstrated discriminator here.
+
+Boot speed does not separate outcomes: successful60e **155.875 s** versus
+faileda6459db **155.670 s**, with several failed boots faster. Historical
+app-reaching cold boots span91–267s, overlapping the stalled sample.
+Warm successful bootstatus0–3s (60e2.890s) follows an already successful
+cold preparation; it is not an independent cold-readiness cure.
+
+60e cold offer1 times out; owned launch arrives85.585s and offer2 starts
+85.623s, exits0 at100.791s, receives HTTP100.804s and owned frames111.737s.
+Warm offer1 qualifies8.184s. Seven current stalls likewise offer before
+and after owned launch, but both clients return124 and the listener has
+zero accepts/HTTP. URL delivery is the observed outcome boundary, not a
+separately selected environment input. Historical successful attempt2/3
+counts do not authorize another retry or any deadline change.
+
+**No environment variable cleanly separates these retained outcomes; no
+fixed image or runtime pin is proposed.** The same observed image/OS/
+Xcode/runtime/agent/provisioner already produces both success and stalls.
+Neither an ARM requirement nor a faster-boot threshold follows. Exact
+device identity and older runtime builds remain missing evidence; no
+onboarding, networking or hypervisor cause is diagnosed. CI10 stays open.
+
+Evidence: `tmp/sp-x6-ci10-environment/comparison.json` binds each raw
+SHA256, source/run/job, all parsed environment/boot/URL rows and source
+device-selection policy hashes. The four historical `*-final.json`
+inventories and phone artifacts/summaries bind actual app work;60e has
+`phone-60e2-artifact-reading.json`. X9's existing latest20 inventory and
+cohort parser retain cancellation/selection scope. No new remote read,
+Simulator, browser, test run, workflow, cap or source-runtime edit.
