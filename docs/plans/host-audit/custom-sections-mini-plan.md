@@ -970,7 +970,7 @@ Pine `generators/sourceOutput.ts` / `forestStory.ts`, and DW
 |---|---|
 | Nalati `quests/carried.json` | `format/questSteps#CarriedQuestSchema` and `parseCarriedQuest`; G601 C8 covers the exact carried-prop/player/mount owner. Preserve the AS decisions, finite floors/goals/services and differential Kokpar controls; metadata proof remains CS5 work. |
 | Nalati `quests/chapters.json` | `format/questStory#parseChapterStoryPresentation` uses the private `ChapterPresentation` root. Explicit **CS5 public whole-presentation-contract exit**: do not register the optional child of QuestStorySchema or an inferred wrapper. |
-| Nalati `quests/content.json` | Existing complete `format/questPageComposition#ChapterViewSchema`, emitted by `chapterContentOf`. Retain strict JSON and native chapter-view ownership; approved-user and defining-metadata proof remains CS5 work. |
+| Nalati `quests/content.json` | `format/questPageComposition#ChapterViewSchema` admits the body but its nested figure parsers strip frame `file`/`height`/`radius` and child/cook `idleArm`/`idleHead` fields. Explicit **CS5 complete chapter/figure-envelope exit**: a successful outer parse is not a complete contract for the emitted body. Retain every original figure/view field; do not normalize or rewrite the payload. |
 | Pine `quests/contracts.json` | `format/contracts#ContractCatalogueSchema` / `parseContractCatalogue`; `sourceOutput.ts#contractModule` emits the original compiled script with empty embedded bytes. Retain module/program admission and full catalogue semantics, not merely its board rows. |
 | DW `quests/discovery.json` | Shard-local strict places/guide/glassCount/shardFlags grammar in `namedSchemas.ts`. Explicit **CS5 complete shared discovery/guide-contract exit**; no common root is demonstrated. |
 | Nalati `quests/finds.json` | `format/findsCatalogue#FindsCatalogueSchema` / `parseFindsCatalogue`, used by `sdk/finds` and `generators/finds.ts`. Retain flags/owned/counters and qualify the actual user scope; a single producer is not a second host. |
@@ -1049,7 +1049,7 @@ collision, script and view owners remain charged to their existing rows.
 | Nalati `combat/timed-encounters.json` | `format/encounterRows#TimedEncountersSchema` is deliberately loose to retain other source fields. Explicit **CS8 full source-binding envelope exit** beyond its native slot/patrol/view subset; preserve G601 C6's exact lifecycle and contact checks. |
 | Nalati `combat/titan-fight.json` | `format/arenaScriptRows#ArenaScriptFightFileSchema` validates arenaScript/programs/arenaFire while retaining extra King and room rows. Explicit **CS8 complete fight/King/room exit**; do not promote the loose subset as the whole grammar. |
 | Nalati `combat/titan-geometry.json` | `ArenaScriptGeometrySchema` retains loose body rows and unknown eyes/poses/flames. Explicit **CS8 complete geometry/pose contract exit**, preserving both tiers, native bounds and pose ordering. |
-| Nalati `models/cloud-specimen.json` | Existing complete `format/encounterRows#CloudSpecimenSchema` name/phone/desktop/pose/ports root. Preserve both native tiers, all ports and resource owners; metadata proof remains separate CS8 work. |
+| Nalati `models/cloud-specimen.json` | `format/encounterRows#CloudSpecimenSchema` names the whole outer document, but its `CloudBodySchema.poses` remains unknown. Explicit **CS8 complete pose/native-view contract exit** before calling that a complete payload contract. Preserve both native tiers, ports and resource owners; a successful outer parse alone is insufficient. |
 | Nalati `ride/rules.json` | `ridingWireOf` drops only `NalatiRidingPrograms.compiled` and emits the rest. Explicit **CS8 complete compiled riding-program wire/ABI exit**; NativeRidingSchema is only a child and cannot label this envelope. |
 | Nalati `riding/mounted-figure.json` | `format/mountedSpecimenRows#MountedSpecimenSeatSchema`, already attached by the producer. Preserve native seat/figure/resource admission and qualify its exact user scope. |
 | Nalati `riding/session.json` | `format/riding#ClientRidingSessionSchema`, authored through `nalatiRidingSession`: preset/programs/profile/roads/rest/taming/naming/figure. Retain the original closed ReturnProgram and riding-owner admission; a JSON root alone does not qualify executable code. |
@@ -1085,6 +1085,99 @@ index exits remain open work in their owning rows; they are not evidence
 that the private bridge can be removed. Pine stays at or below roughly
 1.9 MB, with the unchanged hard 2 MB cap. No new schema, runtime, guest,
 pixel path, collider or producer is activated by these tables.
+
+### CS2 quest-family slice preparation
+
+**2026-10-31, source-only/off-tree; no machine turn, build or native run.**
+The next family is now split into three bounded metadata candidates,
+using seven existing complete native roots. A private candidate adds the
+exact registry names and dispatches through the **full parser**, not just
+`v.parse`: step/guard identity, hint control uniqueness, wake identities,
+saved-role/dependency policy, native spot identities, contract references
+and carried continuation checks are all preserved. No new schema grammar
+or gameplay service is introduced. No common file or emitter is physically
+activated by this preparation; X2's desktop source turn is preserved.
+
+| Bounded future slice | Exact source delta prepared off-tree | Historical physical index projection, not current admission |
+|---|---|---|
+| DW `quests/steps.json`, `quests/hints.json`, `quests/wake-boss.json` | One additive registry hunk; existing `QuestStepRowsSchema`/`parseQuestStepRows`, `QuestHintRowsSchema`/`parseQuestHintRows`, `ChapterWakeSchema`/`parseChapterWake`. The SDK already exposes all three roots. The original registry-first `driftwoodJsonBlob` needs **no emitter or encoder edit**. | Defining metadata only: +62 / +62 / +65 B; DW 995,330 to **995,519 B** combined. |
+| Pine `quests/native-story.json`, `quests/native-spots.json`, `quests/contracts.json` | Additive registry entries using complete `parseNativeQuestComposition`, `parseNativeQuestServiceSpots`, `parseContractCatalogue`; append the first two defining SDK wire roots, retaining all existing check identities. Only three `sourceOutput.ts` metadata options change. Compiled modules and every serializer expression remain original. | +83 / +84 / +65 B; Pine 1,762,914 to **1,763,146 B** combined, below the roughly 1.9 MB rule. |
+| Nalati `quests/carried.json` | Exact `CarriedQuestSchema` plus `parseCarriedQuest`; append its defining SDK root and change only the original carried blob's metadata option. Existing G601 C8 player/mount/AS/resource and continuation ownership stays intact. | +61 B; Nalati 1,103,219 to **1,103,280 B**. |
+
+Nine actual documents pass their original native parsers without raw
+input mutation. The seven candidates also return exactly the complete
+wire value and retain their existing JSON grammar byte-for-structure;
+only defining provenance is added. Twenty-one off-tree controls pass
+in **1.5 s**: whole-root/body identity, native semantic refusals beyond
+the structural schema, and missing/foreign metadata before any payload
+read. The private registry/SDK/test candidate passes strict TypeScript
+against the repository's normal layer references. The actual emitted DW
+steps array is empty; its duplicate-step negative uses an explicitly
+unplayed, structurally valid two-step fixture rather than pretending the
+physical body contains a step. No native state or authored grant is used.
+
+The probe finds two concrete exclusions among the nine roots. Chapter
+content retains the complete-figure-envelope exit above: its parser
+accepts but strips the listed source fields. Nalati `quests/finds.json`
+passes `FindsCatalogueSchema` and projects +3,449 B, but its live owner is
+still the pending single-user `game/bag/findsCatalogue` G441 row. No exact
+root/user approval is established; keep an explicit **CS5/CS7 owner and
+genericity exit**, not a schema-shape credit. The other five quest names
+already have exact inline/private/partial-envelope exits in the CS5 table.
+Thus all 14 names have either a concrete prepared slice or an explicit
+remaining exit; none is silently counted as completed metadata work.
+
+Compact source preparation is
+`tmp/sp-x1-cs2-quest-ready/{source-base,feasibility}.json`, the additive
+registry/SDK/emitter patches, and `ready-final.log` / `types-final.log`.
+Each patch must rebase onto its owner's checked common-file handback;
+these physical-body projections do not certify a future source tuple.
+At the granted proof turn, snapshot the actual current baseline before
+activation, use one normal AFTER for the admitted slice, and retain the
+strict body/pack comparator and every original consumer assertion. The
+original step/hint runner and chapter-wake suites, Pine native quest and
+contract admission/product suites, and carried-host/Kokpar controls are
+the corresponding retained consumers. No source-stamp waiver, BEFORE
+generation, index compaction, cap increase or collider change is prepared.
+
+The combined 21 controls also pass with each of the three registry/SDK
+slices loaded **independently** (9 DW, 9 Pine and 3 carried controls;
+1.4 s per focus). This catches missing defining SDK roots as well as
+cross-slice check-identity changes; the Pine pair and carried root are
+appended rather than reordered among old roots. The three explicit
+`source.patch` files remain off-tree in the respective `dw`, `pine` and
+`carried` subdirectories. No code landing is implied by the docs receipt.
+
+### CS2 held/look and encounter feasibility follow-through
+
+**Source-only, no world or producer:** a second hash-bound probe admits
+14 actual held/look/weather/encounter/riding documents under their named
+native roots without input mutation. No parsed output loses wire fields
+in those 14 probes, but that is not proof of complete nested grammar or
+host ownership. Eleven roots convert; **three refuse honestly**. The
+plain probes and exact predicate paths are retained in
+`tmp/sp-x1-cs2-native-remainder/{feasibility,checks}.json`.
+
+| Exact next source group | Result and bounded action / exit |
+|---|---|
+| Pine `client/ranged-page.json`, `world/weather-observations.json`, `look/cover-appearance.json` | Native roots and complete actual wire values agree. Full defining metadata projects +5,842 / +403 / +1,857 B respectively; together Pine would be **1,771,016 B** on the 1,762,914 B historical index. Retain the existing ranged/cover owners and their original admission tests; source patch and native-resource controls are the next CS7 preparation, not a current-source or pixel claim. |
+| Pine `world/rain.json` | Native parse succeeds, but conversion refuses `water.transition`'s **ordered reveal band** check, `reveal[0] < reveal[1]`. Explicit **CS7 native-check bridge exit**; keep the predicate and original rain wire, with no permissive converter fallback. |
+| Nalati `held/slots.json`, `weapons/bow-page.json` | Existing native roots and wire grammar match exactly; provenance-only projections are +56 / +64 B. A future bounded slice must retain `parseHeldSlots`' complete reference/identity policy and all original baked bow dependencies; no new equipment or pose owner is introduced. |
+| Nine `models/held-cards.json` | Full `HeldGraphCardsSchema` admits the actual card envelope; +1,160 B defining metadata, projected index **1,062,489 B**. Preserve G601 C10's concrete cold-card/frame/resource limits; full native controls and source patch remain CS7 preparation. |
+| Nalati `look/post.json` | Conversion refuses Unicode regex flags before reaching further pass/uniform/input bounds, RGB triples and channel safety/identity predicates. Explicit **CS7 exact regex/native-check bridge exit**; do not strip flags or omit the later checks. No post graph or pixel change is prepared. |
+| Nalati `weapons/rifle-model.json`, `weapons/rifle-page.json` | Actual native parses retain all source fields; projections +8,842 / +68 B. Their playback group/input rows still contain unknown grammar and require the original closed playback/field-loan owner checks. Keep the **CS7 complete playback-envelope exit** until those exact checks and scope are demonstrated; no unknown-field wrapper is registered. |
+| Pine `combat/roaming.json` | Existing whole root parses and its attached grammar is exact; provenance projects +65 B. Retain the native combat/loadout/body/persistence loans and original encounter controls. This is a future CS8 metadata slice, not another host score. |
+| Nalati `models/cloud-specimen.json` | Outer native parse and attached grammar agree, but cloud-body poses remain unknown. Keep the **CS8 complete pose/native-view exit** above; the small +65 B projection does not override that missing contract. |
+| Nalati `riding/mounted-figure.json` | Native root and existing grammar agree, +77 B. Both actual shape rows use the admitted binary-file/baked-geometry branch with attrs/box/count/expand/index/indexCount, not the legacy loose inline geometry branch. Retain G603 L10's original mounted/figure/clip/resource checks for a future bounded slice; do not broaden that branch's approval. |
+| Nalati `riding/session.json` | Conversion refuses native checks in the existing controls/panel graph, including **distinct foot/mounted/breaking contexts** and safe action paths. Explicit **CS8 exact native-check bridge exit**; no dropped predicate or changed input context. |
+
+These source results refine the earlier root/exit matrix; they do not
+activate any of these 14 names. Together with X6's separate population
+check witnesses, they show why a successful schema parse or small index
+delta alone does not qualify a root. Only the seven quest aliases above
+have concrete tested off-tree source patches ready for their normal
+proof turn. CS2 remains open, and no machine reservation is needed to
+continue the remaining native-control/source preparation.
 
 ## CS6: retire the duplicate Pine grazers section
 
