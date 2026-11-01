@@ -405,6 +405,32 @@ remaining unique native constant and the view/graph AS exits. This slice
 establishes actual defining-payload derivation, not complete headless
 assembly retirement.
 
+## CS9: retire Pine's unused declaration shell
+
+**2026-10-31, sp-x9 — bounded slice done, `892e75d553`.** Delete
+Pine's inert `data/headlessAssembly.json` and its producer import. The
+existing `sim/headless-assembly.json` now carries only the same three
+constants: terrain, entries and environment. The typed native fixture
+continues to own level, ports, collision and installation. The proof
+names that actual fixture in `ENTRY` and its explicit source-input fence;
+the hashing algorithm and all other inputs remain unchanged. No old
+checkpoint is retagged. The sim-in-runtime inventory remains exact, so
+this deletion earns no new host or chargeback credit.
+
+The single coalesced publication with CS6 `9375c2c52f` qualifies the
+**64,873 → 64,095 B** assembly and exact reconstruction of its whole old
+canonical value, all **1,055 other bodies / 154,466,131 B**, all ordered
+packs and all nine maintained suites (**33.6 s**). The complete tuple,
+two exact actor-schema additions and retained scratch hash-label refusal
+are recorded in [the CS6 proof](#cs6-complete-pine-roster-and-elite-documents).
+Post-landing ordinary Pine admission remains CURRENT without rebuilding.
+
+**CS9 stays open:** Pine's unique constants still use the private native
+transport; the other three declaration shells and every remaining
+boot/constants/pose/view exit remain. In particular, an available
+population-environment schema does not approve its G571 owner/host exit.
+CS10 retains its live producers, readers, named validator and policies.
+
 ## CS3: modern scene inventory before captures
 
 **2026-10-31, sp-x1 — source-only inventory.** This bounded inventory reads
@@ -1084,7 +1110,7 @@ maintained replay, admission ordering and original negative stays intact.
 
 | Exact logical name / user | Native root or concrete exit |
 |---|---|
-| DW/Pine/Nalati/Nine `sim/headless-assembly.json` | Existing `HEADLESS_ASSEMBLY_JSON_SCHEMA` is the trusted assembly scaffold, with distinct constants and native closures in each producer. Explicit **CS9 platform-section derivation/closed assembly exit**, not a permissive constants registration or a union of samples. |
+| DW/Pine/Nalati/Nine `sim/headless-assembly.json` | DW/Nalati/Nine retain the trusted declaration scaffold. Pine `892e75d553` retires its unused shell and preserves its exact constants-only native transport. Distinct constants and native closures still require the **CS9 platform-section derivation/closed assembly exit**, not a permissive constants registration or a union of samples. |
 | Nalati `sim/headless-boot.json` | Compound headlessBoot/worldUpdates/combatTargets/hunt/admission/pasture/riding wire in `output.ts`. Explicit **CS9 typed boot-owner/derivation exit**; no complete shared root covers the whole compound body. |
 | Nine `sim/headless-constants.json` | `productOutput.ts` emits constants plus entryProof used by grapple and portal capabilities. Explicit **CS9 complete constants/entry-proof derivation exit**; no unknown record may replace native capabilities. |
 | Nalati `sim/taming-poses.json` | Shard-local `generators/tamingPoseRows.ts#NalatiTamingPoseRows`; construction checks at most 32 bones and parent-before-child order. Explicit **CS9 complete pose/joint contract exit**, preserving numeric bits, gait/pose defaults, hierarchy and original source bounds. |
@@ -1515,7 +1541,7 @@ admission or a full-24 census: both local `_template` and
 | `CustomSectionName`, `SectionReader` and `CustomSectionSchemas` | Real users include `game/quest/continuation.ts`, `game/models/collectionDisplay.ts`, `game/shardfile/islandBook.ts` and `islandLibrary.ts`, plus original SDK/product tests. `islandLibrary` encodes custom section references in its native draws contract. Neither custom read overload nor schema type is unused. |
 | Generic `ShardProduct.json<T>(name:string)` | Remains necessary for unresolved named-JSON families and shared dynamic-name readers. Registering exact names does not erase the checked compatibility path or prove those other readers converted. No untyped substitute or broad overload deletion. |
 | `game/shardfile/customSchema.ts` | The file serves **both** the 14 custom sections and normal named JSON. `namedJsonChecks.ts` lazily loads its paced named validator; `outputChecksNode.ts` uses custom and named admission. Registered-json and many original native/quest/resource tests import that same validator. Its 256-entry compiled-schema cache and strict Ajv/plain-JSON/refusal rules are live; the filename is not evidence of an unused module. |
-| `scripts/check-custom-section-growth.mjs` / `.d.mts` | `scripts/test_products.py` runs the checker; original `test/custom-section-growth.test.ts` verifies missing-output refusal and exact measurement. Its project enumeration intentionally refuses missing products. Do not delete because a partial local output directory is empty. |
+| `scripts/check-custom-section-growth.mjs` / `.d.mts` | Retained CLI plus maintained growth fixtures and a historical adapter: `scripts/test_products.py` defines `custom_section_growth_command`, whose only tracked invocation is `test/local-gate-scenarios.test.ts`. No current deploy/live-push execution of this checker is proved. Original `test/custom-section-growth.test.ts` verifies exact measurement and missing-output refusal. Keep it with the live users; a partial empty output directory is not a zero-user proof. |
 | `scripts/custom-section-policy.mjs` / `.d.mts`, `lint/custom-sections.json` | Called by growth/freeze, `check-platform-ratchets.mjs`, `check-staged-inputs.mjs`, `precommit-checks.mjs` and the committed fast-check chain; original policy/growth/freeze/committed-gate fixtures remain live. Freeze identity and defining-provenance admission still guard new names. |
 | `custom-sections/*` count/byte ceilings | Six nonzero pairs remain: DW **53 / 3,074,153 B**, Far **19 / 2,928,189**, Nalati **46 / 12,351,832**, Nine **19 / 4,552,493**, Pine **234 / 10,626,533**, Sun **16 / 79,809**. Total **387 / 33,613,009 B**. These are committed ceilings, not current measured use. |
 
