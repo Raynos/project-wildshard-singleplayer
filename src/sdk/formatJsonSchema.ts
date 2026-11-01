@@ -421,6 +421,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'namedJsonContracts.AdventurePersistence': AdventurePersistenceSchema,
   'namedJsonContracts.PosedLibrary': PosedLibrarySchema,
   'populationEnvironment.PopulationField': PopulationFieldSchema,
+  'namedJsonContracts.PageReturnRows': PageReturnRowsSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

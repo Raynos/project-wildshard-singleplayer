@@ -1251,3 +1251,52 @@ retains its complete native root but cannot yet cross the wire bridge:
 resume-value membership/uniqueness, notice-signal uniqueness and knockdown
 min/max checks must each be bridged intact. No unknown check, child root,
 or sibling G667 approval substitutes for these owners.
+
+### CS6: complete keeper and page-return documents
+
+**Done for these two metadata bindings (2026-10-31, sp-x6).** Driftwood
+`sim/keeper.json` now names the existing complete
+`PopulationKeeperRowsSchema`; `sim/returns.json` names
+`PageReturnRowsSchema`. The old logical names, bodies, field admission
+and native owners are unchanged. Keeper's traced native consumer is
+`test/fixtures/native-hosts/population/mixedRoster.ts#installMixedPopulation`,
+including its body/roster/practice-slot checks. This registration is not
+a claim of a new or completed production host. Page returns retain the
+existing `ReturnProgram.page` declaration/module/loan checks, native
+respawn queue, event order, eligibility, terrain retry and spawn RNG.
+The existing unknown program envelope is not replaced by an inferred
+schema or treated as admission of the guest.
+
+The SDK adds only the page-return wire root, appended after all previous
+roots so shared-check identities keep first-seen order. Nine off-tree
+native/wire/body controls pass; all **224** original wire contracts remain
+exact. Four maintained controls cover actual canonical bodies, complete
+native fields, malformed rows and refusal of missing/foreign defining
+provenance before reads. Original mixed-population and respawn/guest
+controls remain unchanged.
+
+One cause-directed normal coalesced DW/Nalati AFTER completes in
+**45.403 s** after ordinary current admission honestly refuses the new
+source tuple. No BEFORE product is generated and no refusal is bypassed.
+Independent strict readers then accept both current products and all
+five agreed DW logical documents. All **469 DW payloads / 79,885,949 B**
+and all ordered pack bodies, members, offsets and hashes are exact.
+Only five metadata records change across this slice and x1's separate
+steps/hints/wake slice; keeper/returns add **75 / 71 B**. The actual DW
+index is **995,665 B**. Map stamp `92629a77…2eae76` and image
+`c0c1482d…45b28f` remain exact: the raw audit passes without a G872 case.
+
+The independent Nalati comparison retains all **400 payloads /
+88,630,430 B**, metadata and ordered packs exactly against the qualified
+desktop corpus; index **1,103,219 B**. That corpus is reconstructed from
+its sealed earlier baseline and qualified exact-field audit, not claimed
+as a fresh current BEFORE. Pine remains **1,762,914 B**, below the
+about-1.9 MB target and unchanged 2 MB cap. Eight combined native/owner
+suites pass **36 controls / 17.046 s**; root types and named typed lint
+pass. No host, AS, tick, physics, legacy, rendering or frame-gain change.
+
+Evidence: `tmp/sp-x6-cs6-population/dw/{proof-exits,nalati-unchanged}.json`
+and `originals-after.log`; independent
+`tmp/sp-x1-cs5-dw/{audit,strict,map-source-audit}.json`. The initial
+maintained-suite stale-product refusal remains in `physical-controls.log`.
+CS6 stays open for roster/elites and the documented whole-contract exits.

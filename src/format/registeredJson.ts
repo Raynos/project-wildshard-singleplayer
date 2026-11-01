@@ -5,6 +5,7 @@ import { FixedDrawRowsSchema } from './fixedDraws';
 import { ForestGroundLayoutSchema, ForestPageSchema, LivingPageSitesSchema } from './forestPage';
 import { CaveFileSchema, CaveInteriorSchema } from './caveInterior';
 import * as v from 'valibot';
+import { PopulationKeeperRowsSchema } from './populationKeeper';
 import { DirectorProductSchema } from './directorProduct';
 import { AudioSceneSchema } from './audioScene';
 import { KitFigureCardsSchema } from './questFigures';
@@ -18,7 +19,7 @@ import { QuestServiceActionsSchema,parseQuestServiceActions } from './questSteps
 import { QuestStorySchema,parseQuestStory } from './questStory';
 import { ChapterDirectorSchema,parseChapterDirector } from './chapterDirector';
 import { FigureCatalogueSchema } from './figures';
-import { AdventurePersistenceSchema,PosedLibrarySchema,QuestTraderSchema } from './namedJsonContracts';
+import { AdventurePersistenceSchema,PageReturnRowsSchema,PosedLibrarySchema,QuestTraderSchema } from './namedJsonContracts';
 import { WorldScenePlacementSchema,parseWorldScenePlacement } from './worldScenePlacement';
 import { QuestPageInteractionsSchema,parseQuestPageInteractions } from './questInteractions';
 import { PageLifeSchema,parsePageLife } from './pageLife';
@@ -29,6 +30,8 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'sim/keeper.json':{readonly schema:typeof PopulationKeeperRowsSchema;readonly source:'@wildshard/format/populationKeeper#PopulationKeeperRowsSchema'};
+  readonly 'sim/returns.json':{readonly schema:typeof PageReturnRowsSchema;readonly source:'@wildshard/format/namedJsonContracts#PageReturnRowsSchema'};
   readonly 'world/cover-composition.json':{readonly schema:typeof CoverCompositionSchema;readonly source:'@wildshard/format/streamedCover#CoverCompositionSchema'};
   readonly 'world/meadow.json':{readonly schema:typeof PopulationFieldSchema;readonly source:'@wildshard/format/populationEnvironment#PopulationFieldSchema'};
   readonly 'world/dressing-desktop.json':{readonly schema:typeof SceneDressingSchema;readonly source:'@wildshard/format/sceneDressing#SceneDressingSchema'};
@@ -85,6 +88,8 @@ export interface RegisteredJsonContracts {
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'sim/keeper.json':{schema:PopulationKeeperRowsSchema,source:'@wildshard/format/populationKeeper#PopulationKeeperRowsSchema'},
+  'sim/returns.json':{schema:PageReturnRowsSchema,source:'@wildshard/format/namedJsonContracts#PageReturnRowsSchema'},
   'world/cover-composition.json':{schema:CoverCompositionSchema,source:'@wildshard/format/streamedCover#CoverCompositionSchema'},
   'world/meadow.json':{schema:PopulationFieldSchema,source:'@wildshard/format/populationEnvironment#PopulationFieldSchema'},
   'world/dressing-desktop.json':{schema:SceneDressingSchema,source:'@wildshard/format/sceneDressing#SceneDressingSchema'},
@@ -225,6 +230,8 @@ export function validateRegisteredJson(name:string,value:unknown):void {
     case 'audio/scene.json':v.parse(AudioSceneSchema,value);break;
     case 'people/cards.json':v.parse(KitFigureCardsSchema,value);break;
     case 'directors/main.json':v.parse(DirectorProductSchema,value);break;
+    case 'sim/keeper.json':v.parse(PopulationKeeperRowsSchema,value);break;
+    case 'sim/returns.json':v.parse(PageReturnRowsSchema,value);break;
     case 'quests/persistence.json':v.parse(AdventurePersistenceSchema,value);break;
     case 'world/building-sites.json':v.parse(LivingPageSitesSchema,value);break;
     case 'models/shape-book.json':v.parse(FixedDrawRowsSchema,value);break;

@@ -7,7 +7,6 @@ const MixedPopulationSchema: ReturnType<typeof authorFormatSchema<'mixedPopulati
 const NativeQuestCompositionSchema: ReturnType<typeof authorFormatSchema<'nativeQuestComposition.NativeQuestCompositionSchema'>> = authorFormatSchema('nativeQuestComposition.NativeQuestCompositionSchema');
 const HEADLESS_ASSEMBLY_JSON_SCHEMA: ReturnType<typeof authorFormatSchema<'namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA'>> = authorFormatSchema('namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA');
 const ReturnProgramSchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.ReturnProgramSchema'>> = authorFormatSchema('namedJsonContracts.ReturnProgramSchema');
-const PageReturnRowsSchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.PageReturnRowsSchema'>> = authorFormatSchema('namedJsonContracts.PageReturnRowsSchema');
 const QuestTraderSchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.QuestTraderSchema'>> = authorFormatSchema('namedJsonContracts.QuestTraderSchema');
 const PosedLibrarySchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.PosedLibrarySchema'>> = authorFormatSchema('namedJsonContracts.PosedLibrarySchema');
 const text = ({ kind: "string" } as const), number = ({ kind: "number" } as const);
@@ -39,7 +38,6 @@ const FixedLayoutsSchema = defineNamedRows(({ kind: "object", mode: "strict", en
 /** Typed source-bank metadata intake; original fields survive before each complete consumer's normal admission. */
 export function parseDriftwoodFixedLayouts(input: unknown): DriftwoodFixedLayouts { return defineNamedRows(FixedLayoutsSchema).parse(input); }
 const sharedContracts: Readonly<Record<string, string>> = {
-    'sim/keeper.json': 'populationKeeper.PopulationKeeperRows',
     'quests/page-composition.json': 'questPageComposition.QuestPageComposition',
     'world/cover-composition.json': 'streamedCover.CoverComposition',
     'look/creature-looks.json': 'speciesLooks.PackedCreatureLooks',
@@ -59,7 +57,6 @@ const sharedContracts: Readonly<Record<string, string>> = {
     'quests/achievements.json': 'achievementCounters.AchievementCounterData',
 };
 const schemas: Readonly<Record<string, NamedJsonComposition>> = {
-    'sim/returns.json': PageReturnRowsSchema,
     'models/fixed-geometry.json': FixedGeometryGroupsSchema,
     'look/gull-draw.json': PosedLibrarySchema,
     'look/fish-draw.json': PosedLibrarySchema,
