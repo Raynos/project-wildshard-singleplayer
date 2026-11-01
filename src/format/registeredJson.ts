@@ -1,3 +1,4 @@
+import { SceneDressingSchema } from './sceneDressing';
 import { FixedDrawRowsSchema } from './fixedDraws';
 import { ForestGroundLayoutSchema, ForestPageSchema, LivingPageSitesSchema } from './forestPage';
 import { CaveFileSchema, CaveInteriorSchema } from './caveInterior';
@@ -26,6 +27,7 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'world/dressing-phone.json':{readonly schema:typeof SceneDressingSchema;readonly source:'@wildshard/format/sceneDressing#SceneDressingSchema'};
   readonly 'world/building-sites.json':{readonly schema:typeof LivingPageSitesSchema;readonly source:'@wildshard/format/forestPage#LivingPageSitesSchema'};
   readonly 'models/shape-book.json':{readonly schema:typeof FixedDrawRowsSchema;readonly source:'@wildshard/format/fixedDraws#FixedDrawRowsSchema'};
   readonly 'directors/main.json':{readonly schema:typeof DirectorProductSchema;readonly source:'@wildshard/format/directorProduct#DirectorProductSchema'};
@@ -78,6 +80,7 @@ export interface RegisteredJsonContracts {
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'world/dressing-phone.json':{schema:SceneDressingSchema,source:'@wildshard/format/sceneDressing#SceneDressingSchema'},
   'world/building-sites.json':{schema:LivingPageSitesSchema,source:'@wildshard/format/forestPage#LivingPageSitesSchema'},
   'models/shape-book.json':{schema:FixedDrawRowsSchema,source:'@wildshard/format/fixedDraws#FixedDrawRowsSchema'},
   'directors/main.json':{schema:DirectorProductSchema,source:'@wildshard/format/directorProduct#DirectorProductSchema'},
@@ -187,6 +190,7 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'world/dressing-phone.json':v.parse(SceneDressingSchema,value);break;
     case 'scenes/cascade.json':
     case 'scenes/cove.json':
     case 'scenes/hibiscus.json':
