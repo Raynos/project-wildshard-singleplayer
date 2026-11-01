@@ -4,7 +4,8 @@ import { mkdtempSync, mkdirSync, readdirSync, statSync, readFileSync, writeFileS
 import { resolve, dirname } from 'node:path';
 import { createProjectGeneration, type ProjectGenerationContext } from '../../src/sdk/projectGeneration';
 import { prepareOutput } from '../../src/shards/nalati-grasslands/generators/output';
-import { runSnapshot } from './runSnapshot';
+import { projectCompilerIdentity } from '../../src/sdk/projectCompilerIdentity';
+import { runNativeCacheSnapshot } from './native-cache-snapshot';
 
 // One genuinely empty cache owns native compilation during fixture preparation.
 // The timed case still checks every complete cold/warm file and refusal below.
@@ -27,7 +28,9 @@ export const coldOutputFixture = await (async () => {
   };
   try {
     let computed = false;
-    const fixture = await runSnapshot('nalati-output-cache', async () => {
+    const fixture = await runNativeCacheSnapshot('nalati-output-cache', {
+      node: process.version, platform: process.platform, arch: process.arch, compiler: await projectCompilerIdentity(),
+    }, async () => {
       computed = true;
       const output = await prepareOutput(context());
       const beforeWarm = new Map(constructions), warm = await prepareOutput(context());
