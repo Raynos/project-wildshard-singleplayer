@@ -939,3 +939,149 @@ and lifetime semantics; no unknown or child-only schema can launder
 that envelope. CS3 remains open for a complete native contract and the
 remaining scene/tier/placement work. No withdrawn weld or living-cabin
 index-footprint candidate is reactivated here.
+
+### CS2 remaining native roots and explicit exits
+
+**2026-10-31, source audit after Ground2 `d0c35248f3`.** The following
+tables replace broad family labels for the other **61 logical names**:
+14 quest, 8 actor, 25 held/look/weather, 9 encounter/riding and 5
+headless/view names. Names shared by shards count once. These are source
+contracts and exit requirements, not another product build, current
+admission, pixel proof or completed host-bar score. Every native parser's
+additional checks and resource/guest ownership remain authoritative.
+An existing root is a bounded future metadata candidate only after its
+complete emitted envelope, approved user scope and index footprint pass;
+this table does not register it or credit sibling hosts.
+
+The six-primary historical inventory had 169 unregistered names after
+the 23-name slice. Director, the two scene facts, phone dressing and
+Ground2 remove six logical names, leaving **163** at this boundary:
+39 scene names, 1 Pine owner document, these 61 names and the withdrawn
+62 welds. The existing scene and ground tables account for the other
+40 non-weld names, including the eight living-envelope footprint exits.
+Desktop dressing and the cover books remain in the scene table; source
+readiness alone does not remove them from this count.
+
+**CS5 — all 14 quest names.** Source owners are Nalati `generators/output.ts`,
+Pine `generators/sourceOutput.ts` / `forestStory.ts`, and DW
+`generators/output.ts` / `namedSchemas.ts`, unless specified otherwise.
+
+| Exact logical name / user | Native root or concrete exit |
+|---|---|
+| Nalati `quests/carried.json` | `format/questSteps#CarriedQuestSchema` and `parseCarriedQuest`; G601 C8 covers the exact carried-prop/player/mount owner. Preserve the AS decisions, finite floors/goals/services and differential Kokpar controls; metadata proof remains CS5 work. |
+| Nalati `quests/chapters.json` | `format/questStory#parseChapterStoryPresentation` uses the private `ChapterPresentation` root. Explicit **CS5 public whole-presentation-contract exit**: do not register the optional child of QuestStorySchema or an inferred wrapper. |
+| Nalati `quests/content.json` | Existing complete `format/questPageComposition#ChapterViewSchema`, emitted by `chapterContentOf`. Retain strict JSON and native chapter-view ownership; approved-user and defining-metadata proof remains CS5 work. |
+| Pine `quests/contracts.json` | `format/contracts#ContractCatalogueSchema` / `parseContractCatalogue`; `sourceOutput.ts#contractModule` emits the original compiled script with empty embedded bytes. Retain module/program admission and full catalogue semantics, not merely its board rows. |
+| DW `quests/discovery.json` | Shard-local strict places/guide/glassCount/shardFlags grammar in `namedSchemas.ts`. Explicit **CS5 complete shared discovery/guide-contract exit**; no common root is demonstrated. |
+| Nalati `quests/finds.json` | `format/findsCatalogue#FindsCatalogueSchema` / `parseFindsCatalogue`, used by `sdk/finds` and `generators/finds.ts`. Retain flags/owned/counters and qualify the actual user scope; a single producer is not a second host. |
+| Pine `quests/forest-story.json` | `forestStory.ts#forestStoryContract` composes a partial board/store/talks schema while the body also owns world/map/pool/cable/mover rows. Explicit **CS5 whole-story-envelope / CS9 view exit**; native child roots do not cover the document. |
+| DW `quests/hints.json` | `format/questSteps#QuestHintRowsSchema` / `parseQuestHintRows`. G571's entered-hints/flag-binding scope is exact: preserve `installQuestHints`, `installQuestHintFile` and chapter flag publication; no module-wide waiver. |
+| DW `quests/interaction-source.json` | `output.ts` emits the inline `interactionWireSchema` over `constants.interact` and authored interaction spots through `nameGuestBlob`. Explicit **CS5/CS9 closed guest-input-envelope exit**, not a generic unknown-constants map. |
+| Pine `quests/native-spots.json` | `format/nativeQuestComposition#NativeQuestServiceSpotsSchema` / `parseNativeQuestServiceSpots`, including rows/people/board/pickup/cable/signals and native checks. Preserve referenced services and their existing loans; qualify this exact named root. |
+| Pine `quests/native-story.json` | `format/nativeQuestComposition#NativeQuestCompositionSchema` / `parseNativeQuestComposition`. Both Pine and DW `generators/nativeQuest.ts` use this root; DW embeds its rows in the assembly. G571 covers the exact quest-entry prefix/capabilities, not unrelated guide/director hosts. |
+| Pine and Nalati `quests/panels.json` | Inline record of `PanelDefinitionSchema` in Pine and `{name: parsePanelDefinition(...)}` in Nalati. Explicit **CS5 complete shared panel-catalogue root exit**; a panel child schema alone is insufficient. |
+| DW `quests/steps.json` | `format/questSteps#QuestStepRowsSchema` / `parseQuestStepRows`, already named in DW `namedSchemas.ts`. Preserve step/group/order checks. No second direct producer is established merely by Pine importing the type. |
+| DW `quests/wake-boss.json` | `format/chapterDirector#ChapterWakeSchema`, already named by the producer. Retain encounter/program ownership and the SDK's existing stable `WakeEncounterSchema` shared-check identity; no sibling director approval is inferred. |
+
+**CS6 — all 8 actor/population names.** X6's existing hash-bound actual-body
+audit covers keeper, returns, roster, elites, sheep and wildlife. Its
+native parses and conversion probes are feasibility evidence, not
+current admission or completed production hosts. No duplicate producer
+or implementation is started by this source table.
+
+| Exact logical name / user | Native root or concrete exit |
+|---|---|
+| Pine `actors/elites.json` | `format/eliteFeature#EliteFeatureSchema`, plus `parseEliteFeature` / catalogue `readEliteFeature` checks. Preserve the full feature/owner graph and catalogue admission; CS6 owns the bounded metadata slice. |
+| Pine `actors/roster.json` | `format/populationRoster#NativePopulationRowsSchema` plus `parseNativePopulationRows`. Preserve row identities and additional parser rules. The retained 250,356 B body's projected 9,471 B metadata addition is below the roughly 1.9 MB Pine rule, not a current-index proof. |
+| Nalati `actors/sheep.json` | `SpeciesActorsFileSchema` admits `page.world` and `page.specimen` as unknown. Their actual private grammar is `game/ambient/crowdPage#PageCrowdsSchema`. Explicit **CS6 complete crowd-envelope exit**; a successful outer parse cannot launder those unknown children. |
+| Nalati `actors/wildlife.json` | `format/wildlifePopulation#WildlifePopulationSchema` parses the actual body, but conversion refuses three unbridged checks: resume values zero/unique, notices unique, knockdown minimum no greater than maximum. Explicit **CS6 native-check bridge exit**; do not bypass any predicate. |
+| DW `sim/enemy-placement.json` | Shard-local `sections.ts#EnemyPlacementsSchema`. Explicit **CS6 complete native-placement-contract exit**; keeper/returns approval does not qualify this sibling. |
+| DW `sim/keeper.json` | `format/populationKeeper#PopulationKeeperRowsSchema`. The actual native consumer traced is `test/fixtures/native-hosts/population/mixedRoster.ts#installMixedPopulation`; production-host completion is not demonstrated. Retain that distinction in the CS6 slice. |
+| Nalati `sim/population-metadata.json` | `sdk/nativePopulationRows#namePopulationHabitat` builds a contextual schema: trees/tops exactly match `treeCount`, ledges obey `maxLedges`, marmots retain ForagerContinuation. Explicit **CS6 contextual habitat-contract exit**; replacing exact lengths with an unbounded shared array would weaken admission. |
+| DW `sim/returns.json` | `format/namedJsonContracts#PageReturnRowsSchema` with the original `installPageReturns`. ReturnProgram/script fields retain their separate closed guest admission; the JSON root does not validate executable code by itself. |
+
+The existing wildlife evidence is
+`tmp/sp-x6-cs6-audit/{family-feasibility,wildlife-checks}.json`; those
+checks remain refused rather than converted with a permissive fallback.
+
+**CS7 — all 25 held, look and weather names.** Existing source roots below
+do not authorize a pixel change or replace the original resource/owner
+checks. Pine source is `sourceOutput.ts` or `rangedPage.ts`; Nalati source
+is `output.ts` and its named generator; Nine source is `productOutput.ts`;
+DW's monkey envelope is in `namedSchemas.ts`.
+
+| Exact logical name / user | Native root or concrete exit |
+|---|---|
+| Pine `client/ranged-page.json` | `format/rangedPage#RangedPageSchema`, parsed through `sdk/rows`; qualify the whole entered page and original held/audio ownership, not just a projectile field. |
+| Nalati `held/slots.json` | `format/heldArms#HeldSlotsSchema` / `parseHeldSlots`, authored by `heldSlots.ts` through `sdk/rows`. Preserve slot references, distinct identities, blade sources and admission order. |
+| Pine `loadout/finishes.json` | Authored `WEAPON_FINISHES` in `weaponFinishes.ts`; no complete shared catalogue root is traced. Explicit **CS7 finishes-catalogue contract exit**. |
+| Pine `look/cover-appearance.json` | `format/coverAppearance#CoverAppearanceSchema` / `parseCoverAppearance`; the producer includes its original texture rows. Retain the full JSON and native texture/resource checks. |
+| Nalati `look/post.json` | `format/postGraphLook#PostGraphLookSchema`; `output.ts#postLook` merges the existing graph and painted fog/air/ground/tiles/capture/grass/world rows. Retain the whole strict post root and original look owner; no appearance change. |
+| Nalati `models/gear-book.json` | `format/specimenCatalogue#SpecimenBookSchema` through `nameSpecimenBook`. Explicit **CS3 complete specimen owner/genericity exit** shared with the cover books; one shard's repeated use alone does not establish the approved user scope. |
+| Nine `models/held-cards.json` | `format/heldArms#HeldGraphCardsSchema`, matching the complete authored `data/heldCards.json` kind/slug/file/cards envelope. G601 C10 covers the exact graph held-card framing; keep cold-entry resource, size and settle-frame limits. |
+| DW `poses/monkey.json` | Inline composed clips tuple/ReturnProgram/mixed-population perch wrapper. Explicit **CS7 complete pose/guest-envelope exit**; the child pose and return roots are insufficient. |
+| Nalati `weapons/bow-page.json` | `format/weaponProfiles#HeldBowFileSchema`: complete pool/bow/base envelope. Retain original baked pool bytes, strings and native dependency admission. |
+| Nine `weapons/jian-cloth.json` | Map of original Three geometry JSON with fixed UUIDs. Explicit **CS7 model-library/binary exit**, not a new inferred geometry-JSON schema. |
+| Nine `weapons/jian-halo.json` | Original geometry/material Three JSON pair with fixed UUIDs. Explicit **CS7 model-library/binary exit** retaining full material/resource semantics. |
+| Nine `weapons/jian-row.json` | Inline equipment/held-view/viewmodel/post envelope in `productOutput.ts`; native child roots cover only portions. Explicit **CS7 complete held/post contract exit**. |
+| Nalati `weapons/rifle-model.json` | `format/weaponProfiles#HeldFirearmRowsSchema` / `parseHeldFirearmRows`, authored by `rifleRows.ts`. Preserve native row/view constraints and all referenced model parts. |
+| Nalati `weapons/rifle-page.json` | Existing `format/weaponProfiles#HeldFirearmPageSchema`; retain its original view/profile/rows/resource admission, including the native semantics of the non-strict object parser. No stricter inferred envelope is introduced. |
+| Nalati `weapons/sabre.json` | Inline model rows plus blade program, power program and parts. Explicit **CS7 complete model/guest/power-envelope exit**; no child-only held-model registration. |
+| Nalati `weapons/spear.json` | Inline spear rows plus polearm program and presentation. Explicit **CS7 complete polearm/guest-envelope exit**, retaining executable ownership. |
+| Pine `world/ambience.json` | Shard-local `sections.ts#CabinAmbienceSchema`, parsed before emission. Explicit **CS7 complete shared ambience-contract exit**; do not alias the shard-local root. |
+| Sun `world/places-effects.json` | `worldScenes.ts` derives an array of lamp/fire effects with prefixed part IDs. Explicit **CS7 complete effect-catalogue exit**; individual source/lamp/fire children do not define the whole array. |
+| Pine `world/prop-shapes.json` | `sourceOutput.ts` serializes the `timberWorldRows` prop-shape projection. Explicit **CS7 complete prop-shape contract exit**; preserve native placement/collider owners if this later moves. |
+| Pine `world/props.json` | The same producer serializes the original props projection. Explicit **CS7 complete prop catalogue/owner exit**, not an arbitrary record wrapper. |
+| Pine `world/rain.json` | `format/rainPresentation#RainPresentationSchema` through `sdk/rows`, emitted by `rangedPage.ts`. Preserve entered emitter, material and lifetime ownership. |
+| Nalati `world/water.json` | Full body is surface/terrain/placeSets/practice; attached loose schema validates only `practice:RidingPracticeSchema`. Explicit **CS7 complete water-envelope exit**; the child grammar does not qualify the other fields. |
+| Nalati `world/weather-fx.json` | Inline presentation spread plus sky in `output.ts`. Explicit **CS7 complete weather-FX contract exit**; do not infer a wrapper from the emitted sample. |
+| Pine `world/weather-observations.json` | `format/rangedPage#ForestWeatherObservationSchema` through `sdk/rows`, emitted by `rangedPage.ts`; preserve exact page/audio/guide references. |
+| Pine and Nalati `world/weather.json` | Pine emits a plain parsed weather program, Nalati emits `{weather,reactions}`. Explicit **CS7 same-name contract collision**: no union, wrapper, renamed payload or byte change in CS2. |
+
+**CS8 — all 9 encounter/riding names.** Source is Nalati `output.ts`,
+except Pine `generators/roamingCombat.ts`. Closed encounter, rider,
+collision, script and view owners remain charged to their existing rows.
+
+| Exact logical name / user | Native root or concrete exit |
+|---|---|
+| Pine `combat/roaming.json` | `format/roamingCombat#RoamingCombatSchema` / `parseRoamingCombat`, already emitted with the named native schema. Qualify its exact root and retain original combat loans; no generic encounter score. |
+| Nalati `combat/room-entry.json` | Body contains room/view plus encounter/definition/program, but attached strict schema makes both children unknown. Explicit **CS8 complete room/King-envelope exit**; unknown children are not a complete native contract. |
+| Nalati `combat/timed-encounters.json` | `format/encounterRows#TimedEncountersSchema` is deliberately loose to retain other source fields. Explicit **CS8 full source-binding envelope exit** beyond its native slot/patrol/view subset; preserve G601 C6's exact lifecycle and contact checks. |
+| Nalati `combat/titan-fight.json` | `format/arenaScriptRows#ArenaScriptFightFileSchema` validates arenaScript/programs/arenaFire while retaining extra King and room rows. Explicit **CS8 complete fight/King/room exit**; do not promote the loose subset as the whole grammar. |
+| Nalati `combat/titan-geometry.json` | `ArenaScriptGeometrySchema` retains loose body rows and unknown eyes/poses/flames. Explicit **CS8 complete geometry/pose contract exit**, preserving both tiers, native bounds and pose ordering. |
+| Nalati `models/cloud-specimen.json` | Existing complete `format/encounterRows#CloudSpecimenSchema` name/phone/desktop/pose/ports root. Preserve both native tiers, all ports and resource owners; metadata proof remains separate CS8 work. |
+| Nalati `ride/rules.json` | `ridingWireOf` drops only `NalatiRidingPrograms.compiled` and emits the rest. Explicit **CS8 complete compiled riding-program wire/ABI exit**; NativeRidingSchema is only a child and cannot label this envelope. |
+| Nalati `riding/mounted-figure.json` | `format/mountedSpecimenRows#MountedSpecimenSeatSchema`, already attached by the producer. Preserve native seat/figure/resource admission and qualify its exact user scope. |
+| Nalati `riding/session.json` | `format/riding#ClientRidingSessionSchema`, authored through `nalatiRidingSession`: preset/programs/profile/roads/rest/taming/naming/figure. Retain the original closed ReturnProgram and riding-owner admission; a JSON root alone does not qualify executable code. |
+
+**CS9 — all 5 headless/view names.** Previous derivation slices removed
+duplicate fields, not the complete remaining envelopes below. Every
+maintained replay, admission ordering and original negative stays intact.
+
+| Exact logical name / user | Native root or concrete exit |
+|---|---|
+| DW/Pine/Nalati/Nine `sim/headless-assembly.json` | Existing `HEADLESS_ASSEMBLY_JSON_SCHEMA` is the trusted assembly scaffold, with distinct constants and native closures in each producer. Explicit **CS9 platform-section derivation/closed assembly exit**, not a permissive constants registration or a union of samples. |
+| Nalati `sim/headless-boot.json` | Compound headlessBoot/worldUpdates/combatTargets/hunt/admission/pasture/riding wire in `output.ts`. Explicit **CS9 typed boot-owner/derivation exit**; no complete shared root covers the whole compound body. |
+| Nine `sim/headless-constants.json` | `productOutput.ts` emits constants plus entryProof used by grapple and portal capabilities. Explicit **CS9 complete constants/entry-proof derivation exit**; no unknown record may replace native capabilities. |
+| Nalati `sim/taming-poses.json` | Shard-local `generators/tamingPoseRows.ts#NalatiTamingPoseRows`; construction checks at most 32 bones and parent-before-child order. Explicit **CS9 complete pose/joint contract exit**, preserving numeric bits, gait/pose defaults, hierarchy and original source bounds. |
+| Pine `world/landmark-view.json` | `forestPage.ts` serializes `timberWorldRows`' local landmark view/book projection. Explicit **CS9/CS3 complete native-view derivation exit**; no shared whole root is demonstrated. |
+
+The other **18 modern products** are checked in source without reading
+either legacy family: `_template/generators/productOutput.ts` emits a
+named Wasm blob and platform rows; `blender-template/generators/ground.ts`
+emits one GLB, two images and platform rows; pastel-plain and ink-cel-valley
+return empty ProjectOutput objects; open-plots' 14 declared programs in
+`generators/product.ts` return only their world and map pixels. None
+declares private named JSON through those output paths. This is a source
+census, not a successful full-output scan: the ordinary all-product
+inventory still honestly refuses absent `out/_template/shard.json`.
+No missing product is silently skipped, treated as zero or rebuilt here.
+
+**CS2 remains open.** This audit now names the native root or concrete
+CS3-CS9/index-footprint exit for every remaining six-primary name, but
+the ready native-root slices still need their ordinary defining-metadata
+and payload proofs. Complete-contract, user-scope, unbridged-check and
+index exits remain open work in their owning rows; they are not evidence
+that the private bridge can be removed. Pine stays at or below roughly
+1.9 MB, with the unchanged hard 2 MB cap. No new schema, runtime, guest,
+pixel path, collider or producer is activated by these tables.
