@@ -3126,3 +3126,67 @@ driver is removed. CI10 stays open; root retains sole ordinary-run reads
 and the first actual app-reaching artifact handoff. No new Simulator,
 screenshot, workflow dispatch or readiness budget was used.
 
+
+
+### Nalati native fixture-cache runtime boundary (2026-10-31)
+
+Fix-forward `0f0248e9f47506e3604a352dbb484b42b1d34f86` is test-only:
+`nalati-output-cache`, its scoped snapshot helper and seven new controls.
+The original `nalati-place-blob-program.test.ts` is byte-unchanged.
+Production generation keys, native compilers, output bodies, workflow,
+37-job/source authority and all case deadlines are unchanged.
+
+The retained 1fadd run `41256482461` has an executed fixture writer
+`124700623926` reporting **Node 24.22.1 / Linux X64** and failing B9 reader
+`124703561561` reporting **Node 24.22.0**. Both bind the same full source
+SHA; the writer explicitly sets `WS_FIXTURE_SNAPSHOT_WRITE` and that
+source identity. Real generation keys include `process.version`, native
+platform/architecture and the compiler closure hash; the old optional
+fixture transport admitted its restored cache corpus by source SHA alone.
+A runtime-key mismatch therefore makes that restored corpus miss the
+reader's real keys. No compiler-version difference is inferred.
+
+The first held-corruption control calls `prepareSpecies`, which itself
+reads the admission program. The raw next assertion shows **both**
+`admission-program` and `species` construction counts changing **1 to 2**.
+It is not just another phone-schema body read. The supplied-shelter case
+also reports its original **30,000 ms** timeout (40,822 ms observed case
+span); the log does not isolate that span's individual CPU contributors.
+The complete cache miss path is the cause-directed seam, not a widened
+counter expectation or frozen observation of an earlier warm result.
+
+The fixture now carries Node/platform/architecture/compiler identity and
+admits it **before writing any restored native cache files**. A foreign
+or old untagged optional snapshot takes the original actual cold/warm
+setup in the receiving context. Matching snapshots still restore their
+complete cache. Nothing rekeys foreign files, suppresses cache corruption,
+changes source/size/hash checks, retries a failed native source or grants
+a missing source SHA authority. Live construction counters remain live.
+
+Controlled local writer/reader pairs use the same declared SHA within
+each pair and simulate only a different keyed Node epoch in owned child
+processes. The actual Node binary and compiler are unchanged by this
+simulation. Before the fix the original seven-case suite reproduces
+**exactly both 1-to-2 deltas** (one failure, six passes); the Linux timeout
+is not reproduced on this faster local host. After the fix, all original
+seven cases pass in the matching mode (**9.6 s**) and the foreign mode
+(**22.9 s**). These modes and peer source frontiers are not an isolated
+speed comparison. Every original full-file/byte/cache/no-reconstruction
+assertion, negative control and 30 s case cap stays exact.
+
+The maintained totals are **7 new native-context controls + 5 original
+snapshot controls = 12**, PASS **0.7 s**. This corrects the source commit
+message's mistaken 8 + 6 count. They exercise matching reuse, all four
+identity differences, legacy fallback, foreign-source refusal and native
+error propagation without retry. Root types and named typed lint pass.
+The normal committed push gate passes in **8.91 s**, upload **1.3801 s**,
+with no bad commit. Ordinary containing Linux qualification remains open;
+local success is not a whole-wave verdict or a future reliability claim.
+
+Evidence is `tmp/sp-x2-nalati-cache-p0/{controlled-snapshot-evidence,
+tagged-snapshot-binding,source-final}.json`, original/foreign-before,
+matching/foreign-after logs and final type/lint/control logs. The two
+owned 255 MB V8 corpora are deleted after recording full hashes and
+successful mode results; no shared cache or retained root artifact is
+removed. Desktop CS3 source stays off-tree through the required P0 and
+next finite matched replay turn.
