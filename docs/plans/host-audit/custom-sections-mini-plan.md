@@ -1199,6 +1199,58 @@ have concrete tested off-tree source patches ready for their normal
 proof turn. CS2 remains open, and no machine reservation is needed to
 continue the remaining native-control/source preparation.
 
+### CS2: Driftwood step, hint and wake aliases
+
+**2026-10-31, qualified after the ordered keeper/returns landing
+`94cd0e375e`.** Register only `quests/steps.json`, `quests/hints.json`
+and `quests/wake-boss.json` on their existing defining roots. Dispatch
+through `parseQuestStepRows`, `parseQuestHintRows` and `parseChapterWake`,
+retaining duplicate step/guard/control/cue refusal, phase/event binding,
+native owner identities and every existing dependency. The SDK already
+exposes these three roots. The registry-first DW adapter needs no emitter
+or encoder edit; this slice adds no runtime, guest, clock or save owner.
+
+The positive held-hint fixture uses the real `fixtureProductFile` and
+paced `fixtureJsonCheck`, preserving every original replacement,
+retirement, held-read and exact feed/event/system assertion. The named
+producer expectation keeps its entire original native grammar and adds
+only the exact defining comment. Deliberate malformed metadata remains
+malformed; no synthetic payload, trusted bypass or relaxed guard is used.
+Ten new controls include a detached negative-zero fixture and original
+native semantic refusals; that fixture is never played or admitted to a
+native continuation. Root/test types and touched typed lint pass.
+
+The one coalesced DW/Nalati AFTER takes **45.403 s** and admits all five
+DW documents through ordinary strict readers. Both products are current.
+The combined **8 original/new suites / 36 cases pass in 17.046 s**,
+including the four keeper/returns controls, ten quest controls, original
+mixed-population/ecology queue, held-hint owners, named producers, chapter
+wake and quest presentation. The separate original step/hint runner
+already passes in the five-suite **6.3 s** functional focus. No extra
+generation, browser, walk or native tape is run for this slice.
+
+All **469 DW payloads / 79,885,949 B** are byte-identical. Precisely five
+defining metadata records change: these three plus the preceding peer
+keeper/returns pair. All other index fields and custom schemas, ordered
+pack members, offsets and reconstructed hashes are exact. The raw
+comparator exits **0**: DW map stamp `92629a77…2eae76` and image
+`c0c1482d…45b28f` are unchanged. **No G872 stamp exception or tolerance
+is needed.** Nalati's independently reconstructed qualified desktop
+corpus also retains all **400 payloads / 88,630,430 B**, every metadata
+record and all ordered packs exactly.
+
+Actual indexes are DW **995,665 B**, Nalati **1,103,219 B** and Pine
+**1,762,914 B**. Pine retains the roughly 1.9 MB rule and hard 2 MB cap.
+The shared registry's peer-owned two-name HEAD patch lands first; this
+three-name patch preserves those exact roots and the append-only return
+wire root. The seven qualified physical source hashes remain unchanged
+through the proof and ordered landings. Evidence is
+`tmp/sp-x1-cs5-dw/{source-final,strict,audit,map-source-audit}.json` and
+`tmp/sp-x6-cs6-population/dw/{proof-exits,nalati-unchanged}.json` plus the
+original-suite log. The four prepared Pine/carried aliases remain
+off-tree for a later source/proof boundary. CS2 and the remaining CS5
+contract/owner exits stay open; this metadata move completes no new host.
+
 ## CS6: retire the duplicate Pine grazers section
 
 The complete source audit finds no live reader of `custom/grazers`.

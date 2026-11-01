@@ -1,3 +1,4 @@
+import {PopulationKeeperRowsSchema} from './populationKeeper';
 import { CoverCompositionSchema } from './streamedCover';
 import { PopulationFieldSchema } from './populationEnvironment';
 import { SceneDressingSchema } from './sceneDressing';
@@ -5,7 +6,6 @@ import { FixedDrawRowsSchema } from './fixedDraws';
 import { ForestGroundLayoutSchema, ForestPageSchema, LivingPageSitesSchema } from './forestPage';
 import { CaveFileSchema, CaveInteriorSchema } from './caveInterior';
 import * as v from 'valibot';
-import { PopulationKeeperRowsSchema } from './populationKeeper';
 import { DirectorProductSchema } from './directorProduct';
 import { AudioSceneSchema } from './audioScene';
 import { KitFigureCardsSchema } from './questFigures';
@@ -15,9 +15,9 @@ import {ForestWeatherSchema} from './forestWeather';
 import {WorldSceneModelsSchema,parseWorldSceneModels} from './worldSceneModels';
 import { AchievementCounterDataSchema,parseAchievementCounterData } from './achievementCounters';
 import { QuestPageCompositionSchema } from './questPageComposition';
-import { QuestServiceActionsSchema,parseQuestServiceActions } from './questSteps';
+import { QuestServiceActionsSchema,parseQuestServiceActions,QuestStepRowsSchema,parseQuestStepRows,QuestHintRowsSchema,parseQuestHintRows } from './questSteps';
 import { QuestStorySchema,parseQuestStory } from './questStory';
-import { ChapterDirectorSchema,parseChapterDirector } from './chapterDirector';
+import { ChapterDirectorSchema,parseChapterDirector,ChapterWakeSchema,parseChapterWake } from './chapterDirector';
 import { FigureCatalogueSchema } from './figures';
 import { AdventurePersistenceSchema,PageReturnRowsSchema,PosedLibrarySchema,QuestTraderSchema } from './namedJsonContracts';
 import { WorldScenePlacementSchema,parseWorldScenePlacement } from './worldScenePlacement';
@@ -32,6 +32,9 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 export interface RegisteredJsonContracts {
   readonly 'sim/keeper.json':{readonly schema:typeof PopulationKeeperRowsSchema;readonly source:'@wildshard/format/populationKeeper#PopulationKeeperRowsSchema'};
   readonly 'sim/returns.json':{readonly schema:typeof PageReturnRowsSchema;readonly source:'@wildshard/format/namedJsonContracts#PageReturnRowsSchema'};
+  readonly 'quests/steps.json':{readonly schema:typeof QuestStepRowsSchema;readonly source:'@wildshard/format/questSteps#QuestStepRowsSchema'};
+  readonly 'quests/hints.json':{readonly schema:typeof QuestHintRowsSchema;readonly source:'@wildshard/format/questSteps#QuestHintRowsSchema'};
+  readonly 'quests/wake-boss.json':{readonly schema:typeof ChapterWakeSchema;readonly source:'@wildshard/format/chapterDirector#ChapterWakeSchema'};
   readonly 'world/cover-composition.json':{readonly schema:typeof CoverCompositionSchema;readonly source:'@wildshard/format/streamedCover#CoverCompositionSchema'};
   readonly 'world/meadow.json':{readonly schema:typeof PopulationFieldSchema;readonly source:'@wildshard/format/populationEnvironment#PopulationFieldSchema'};
   readonly 'world/dressing-desktop.json':{readonly schema:typeof SceneDressingSchema;readonly source:'@wildshard/format/sceneDressing#SceneDressingSchema'};
@@ -90,6 +93,9 @@ export interface RegisteredJsonContracts {
 export const REGISTERED_JSON:RegisteredJsonContracts = {
   'sim/keeper.json':{schema:PopulationKeeperRowsSchema,source:'@wildshard/format/populationKeeper#PopulationKeeperRowsSchema'},
   'sim/returns.json':{schema:PageReturnRowsSchema,source:'@wildshard/format/namedJsonContracts#PageReturnRowsSchema'},
+  'quests/steps.json':{schema:QuestStepRowsSchema,source:'@wildshard/format/questSteps#QuestStepRowsSchema'},
+  'quests/hints.json':{schema:QuestHintRowsSchema,source:'@wildshard/format/questSteps#QuestHintRowsSchema'},
+  'quests/wake-boss.json':{schema:ChapterWakeSchema,source:'@wildshard/format/chapterDirector#ChapterWakeSchema'},
   'world/cover-composition.json':{schema:CoverCompositionSchema,source:'@wildshard/format/streamedCover#CoverCompositionSchema'},
   'world/meadow.json':{schema:PopulationFieldSchema,source:'@wildshard/format/populationEnvironment#PopulationFieldSchema'},
   'world/dressing-desktop.json':{schema:SceneDressingSchema,source:'@wildshard/format/sceneDressing#SceneDressingSchema'},
@@ -203,6 +209,9 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'quests/steps.json':parseQuestStepRows(value);break;
+    case 'quests/hints.json':parseQuestHintRows(value);break;
+    case 'quests/wake-boss.json':parseChapterWake(value);break;
     case 'world/dressing-desktop.json':
     case 'world/dressing-phone.json':v.parse(SceneDressingSchema,value);break;
     case 'scenes/cascade.json':

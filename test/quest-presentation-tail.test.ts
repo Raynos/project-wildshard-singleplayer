@@ -8,6 +8,7 @@ import { installQuestHintFile } from '../src/game/quest/hints';
 import { requireQuestPageOwners } from '../src/game/quest/pageComposition';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import hintsRows from '../src/shards/driftwood-isle/data/questHints.json' with { type: 'json' };
+import {fixtureProductFile,fixtureJsonCheck} from './fixtures/productFile';
 
 type Runtime = NonNullable<ShardContext['game']['runtime']>;
 function fixture(parent?: Scope) {
@@ -23,8 +24,8 @@ function fixture(parent?: Scope) {
   const read = new Promise<unknown>(resolve => { settle = resolve; });
   const reads = vi.fn<(name: string) => void>();
   const source = emptyShardfile({ slug: 'presentation-tail', name: 'Presentation fixture', author: 'Fixture', revision: 1, seed: 1 });
-  const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map(),
-    files: new Map([['quests/hints.json', { hash: 'hints', url: 'hints' }]]), read: async () => {
+  const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map(),jsonCheck:fixtureJsonCheck,
+    files: new Map([['quests/hints.json', fixtureProductFile('quests/hints.json',{ hash: 'hints', url: 'hints' })]]), read: async () => {
       reads('quests/hints.json'); return new TextEncoder().encode(JSON.stringify(await read));
     } });
   const ctx = legacyDouble<ShardContext>({ scope, product, game: legacyDouble<ShardContext['game']>({ runtime: shell }),

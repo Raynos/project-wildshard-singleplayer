@@ -19,7 +19,7 @@ test('registered author contracts preserve the defining named documents', () => 
   ] as const) expect(namedFormatJsonSchema(key)).toEqual(namedJsonSchema(schema));
   const bytes = new TextEncoder().encode(JSON.stringify({ version: 1, steps: [], guards: [] }));
   expect(driftwoodJsonBlob('quests/steps.json', 'json', bytes).file.jsonSchema)
-    .toEqual(namedJsonSchema(QuestStepRowsSchema));
+    .toEqual({...namedJsonSchema(QuestStepRowsSchema),$comment:'@wildshard/format/questSteps#QuestStepRowsSchema'});
 });
 
 test('registered author contracts refuse missing and inherited names', () => {
