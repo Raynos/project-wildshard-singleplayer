@@ -31,6 +31,7 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 export interface RegisteredJsonContracts {
   readonly 'world/cover-composition.json':{readonly schema:typeof CoverCompositionSchema;readonly source:'@wildshard/format/streamedCover#CoverCompositionSchema'};
   readonly 'world/meadow.json':{readonly schema:typeof PopulationFieldSchema;readonly source:'@wildshard/format/populationEnvironment#PopulationFieldSchema'};
+  readonly 'world/dressing-desktop.json':{readonly schema:typeof SceneDressingSchema;readonly source:'@wildshard/format/sceneDressing#SceneDressingSchema'};
   readonly 'world/dressing-phone.json':{readonly schema:typeof SceneDressingSchema;readonly source:'@wildshard/format/sceneDressing#SceneDressingSchema'};
   readonly 'world/building-sites.json':{readonly schema:typeof LivingPageSitesSchema;readonly source:'@wildshard/format/forestPage#LivingPageSitesSchema'};
   readonly 'models/shape-book.json':{readonly schema:typeof FixedDrawRowsSchema;readonly source:'@wildshard/format/fixedDraws#FixedDrawRowsSchema'};
@@ -86,6 +87,7 @@ export interface RegisteredJsonContracts {
 export const REGISTERED_JSON:RegisteredJsonContracts = {
   'world/cover-composition.json':{schema:CoverCompositionSchema,source:'@wildshard/format/streamedCover#CoverCompositionSchema'},
   'world/meadow.json':{schema:PopulationFieldSchema,source:'@wildshard/format/populationEnvironment#PopulationFieldSchema'},
+  'world/dressing-desktop.json':{schema:SceneDressingSchema,source:'@wildshard/format/sceneDressing#SceneDressingSchema'},
   'world/dressing-phone.json':{schema:SceneDressingSchema,source:'@wildshard/format/sceneDressing#SceneDressingSchema'},
   'world/building-sites.json':{schema:LivingPageSitesSchema,source:'@wildshard/format/forestPage#LivingPageSitesSchema'},
   'models/shape-book.json':{schema:FixedDrawRowsSchema,source:'@wildshard/format/fixedDraws#FixedDrawRowsSchema'},
@@ -196,6 +198,7 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'world/dressing-desktop.json':
     case 'world/dressing-phone.json':v.parse(SceneDressingSchema,value);break;
     case 'scenes/cascade.json':
     case 'scenes/cove.json':

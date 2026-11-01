@@ -8,7 +8,7 @@ import { POI_CLEARINGS } from './clearings';
 import { KOKPAR, KURGANS, SUMMER_YURTS } from './layout';
 import * as THREE from 'three';
 import { encodePortableBytes } from '@wildshard/sdk/bake/portableBytes';
-import { authorFormatSchema, namedJsonSchema, registeredJsonSchema, defineNamedRows, type NamedRows, type NamedRowValue } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatSchema, registeredJsonSchema, defineNamedRows, type NamedRows, type NamedRowValue } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { writeGeometry, join } from './geometryWriter';
@@ -231,7 +231,7 @@ export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,
     if(!binaries.has(file))binaries.set(file,nameBlob(file,'bin',bytes,{decoded:raw.byteLength}));
     return{kind:'baked-file',file};
   };
-  const tiers=(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,parseSectionValue(balbalSchema, balbal),parseSectionValue(specimensSchema, specimens),parseSectionValue(paintSchema, paintRows),parseSectionValue(coverSchema, coverRows),cragRows,source,cloth,cragFiles?.[tier]);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:tier==='phone'?registeredJsonSchema('world/dressing-phone.json'):namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});
+  const tiers=(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,parseSectionValue(balbalSchema, balbal),parseSectionValue(specimensSchema, specimens),parseSectionValue(paintSchema, paintRows),parseSectionValue(coverSchema, coverRows),cragRows,source,cloth,cragFiles?.[tier]);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:registeredJsonSchema(tier==='phone'?'world/dressing-phone.json':'world/dressing-desktop.json')}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});
   return[...tiers,...binaries.values()];
 }
 
