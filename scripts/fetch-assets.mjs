@@ -29,7 +29,7 @@ const TEXTURES = {
 
 // model texture atlases pulled from heavy photoscans (we only take the maps)
 const MODEL_MAPS = {
-  pine_tree_01: { res: '1k', maps: ['twig_diff', 'twig_nor_gl', 'twig_arm', 'twig_alpha'] },
+  pine_tree_01: { res: '1k', maps: ['twig_nor_gl', 'twig_arm'] },
 };
 
 const MODELS = ['rock_moss_set_01', 'tree_stump_01', 'dead_tree_trunk', 'stone_fire_pit',
