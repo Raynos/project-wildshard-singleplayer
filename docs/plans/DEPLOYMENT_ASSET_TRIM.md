@@ -1,6 +1,6 @@
 # Wildshard deployment asset trim
 
-**State:** `in progress` 2026-10-31 — T4 source `50ea8a75f9` removes five unselected HDRs. All 18 A/A and 18 strict online A/B comparisons are zero-pixel; controlled-warm offline passes 6/6 as a diagnostic. First-uncontrolled-visit offline remains failed, so T4 stays open pending its scope ruling and root-owned production URL qualification. Preview CORS fix `1aeb76658b` and fixture `48a9181c2d` are pushed. T3 retains all 144 originals; T1/T2 done, T5 measured closed, T6 superseded.
+**State:** `in progress` 2026-10-31 — T4 is done under G872's scoped offline bar: five unselected HDRs / 24,173,718 bytes removed, 18 A/A and 18 strict online A/B comparisons exact, controlled-warm offline 6/6. The true pre-removal control also fails selected offline asset requests; native entry itself passes there, so the later 240-second timeout is not reproduced or attributed. D211 keeps that pre-existing first-uncontrolled asset failure. Production URL qualification is owned by sp-ci-deploy's next exact release proof. T3 retains all 144 originals and remains open; T1/T2 done, T5 measured closed, T6 superseded.
 
 **Historical clean-export baseline (2026-10-29):** 1,375 static files / 524.5 MiB.
 The current retained-output measurement is in T5 below.
@@ -14,7 +14,7 @@ The Vercel build also creates four API functions. Two are test files under
 | T1 — done | Move `api/*.test.ts` out of Vercel's function discovery path | 619 tests pass; clean prebuilt output has two real functions; production `/api/inbox` and `/api/errors` each return 401 without credentials | Removed two unnecessary functions from every deployment |
 | T2 — done (2026-10-29, sp-x9; G874 / DA1) | Source `97ec95cb7e` / `20f3bfd384` keeps local/CI maps and copies the standalone filter before pin checkout. **Live `dcc2153ac-mvtsyqc1`**, app `dcc2153ac62655a07ecdc7a17e3242c2493dcf50`, is qualified by deployment controller `42a37e95ff9e01b5c12b6133dbe708c3dca6e318` ([release 40914981125](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40914981125)). | Remote Vercel strip receipt: **268 maps / 52,104,870 bytes**. Download-verified private artifact **12917412136** holds **270 files** (268 maps + exact live version/chunk report), ZIP SHA-256 `dc85faeb67b7fa00f9eb8ca1c1033a58b2bbf87f3f5b019c87ea4333e8f09b6e`, 12,987,948 bytes. Three actual map URLs return **404**; live version and SW core/build/hash match. Exact app [CI 40899627232](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40899627232) and [SIX 40903043898](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40903043898) are green. Evidence: `tmp/sp-ci-deploy-hourly-409149-{map-proof,live,artifacts}.json` and completed release log; no duplicate capture. | **52,104,870 fewer public bytes** on the qualified live build; original diagnostic maps remain private and intact |
 | T3 — audited, verification open | HEAD `8da7f94de2`: 144 `assets/tex/` files / 86,727,002 bytes; 90 are GPU-source keys, 142 participate in exact tier-generation jobs. Retain all 144; detailed map below. | Reference search includes authored generators and image/phone fallback policy. HEAD desktop/phone boot and offline proof remains pending; **zero assets removed**. | No verified duplicate-original deletion yet |
-| T4 — source landed, verification open | `50ea8a75f9` removes five unselected raw HDRs / 24,173,718 bytes and their download recipes. All 25 selected HDR/key-plane/video/T3-twig bodies remain SHA-256 exact. | `629` before: 36 captures / 18 A/A comparisons, all zero pixels. `1aeb` after: all 18 online A/B comparisons zero; eight visitor boots. Controlled-warm offline is 6/6 diagnostic; first-uncontrolled-visit failure is retained. Scope ruling and production URL checks remain open. | Source bytes removed; no qualified whole-output or observed production-byte saving claimed |
+| T4 — done (2026-10-31, sp-x9; G872 scope) | `50ea8a75f9` removes five unselected raw HDRs / 24,173,718 bytes and their download recipes. All 25 protected selected HDR/key-plane/video/T3-twig bodies remain SHA-256 exact. | `629` before: 36 captures / 18 A/A, zero pixels; `1aeb` after: 18 strict online A/B, zero pixels and eight visitor boots. Controlled-warm offline 6/6. True pre-removal `929d759` has the same uncached selected-sky asset failures on a first uncontrolled visit, though native offline entry passes; D211 retains that distinction. | Five source bodies removed; root owns production URL/manifest qualification. No sole-leaf whole-output byte saving or first-visit offline cure claimed |
 | T5 — closed as measured (2026-10-31, G872) | No migration now: 1.700 GB of immutable bulk per output, 99.90% unchanged against retained original app builds | At 24 deploys/day, documented one-day retention models $4.08/month versus $122.41 near 30 days; preserve same-origin precache/offline behavior | No code/hosting change. Reopen if actual retention approaches 30 days; detailed cost and update analysis below |
 | T6 — superseded | `419a077b21` (G920) removed the hourly slot, cooldown and local backstop; exact successful proof releases immediately. The later boot/ship merge (`93bd`) makes the successful required verdict the automatic ship trigger. | CI3 closes on its **21/21 automatic post-merge releases within 300 s**; all eight old misses predate the merge. BA78 was manual dispatch, not a queue miss. See [CI-FIRST-PRINCIPLES](CI-FIRST-PRINCIPLES.md), CI3 / retained 32-release classification. | Original hourly-lag work is obsolete; CI2 artifact download/restore remains a separate open row |
 
@@ -84,14 +84,14 @@ inputs. The current audit again finds no qualified original deletion.
 
 | Member / group | Files | Bytes | Disposition |
 | --- | ---: | ---: | --- |
-| `belfast_sunset_puresky_2k.hdr` | 1 | 4,563,204 | Removed by `50ea8a75f9`: no authored runtime/test/selected bake input; verification open |
-| `kloofendal_28d_misty_puresky_2k.hdr` | 1 | 4,467,957 | Removed by `50ea8a75f9`: no authored runtime/test/selected bake input; verification open |
+| `belfast_sunset_puresky_2k.hdr` | 1 | 4,563,204 | Removed by `50ea8a75f9`: no authored runtime/test/selected bake input; T4 qualified under G872 |
+| `kloofendal_28d_misty_puresky_2k.hdr` | 1 | 4,467,957 | Removed by `50ea8a75f9`: no authored runtime/test/selected bake input; T4 qualified under G872 |
 | `kloofendal_48d_partly_cloudy_puresky_2k.hdr` | 1 | 5,451,493 | Keep: Nalati/Nine declared sky and two Blender weapon inputs; retain raw fallback |
-| `kloppenheim_06_puresky_2k.hdr` | 1 | 4,434,394 | Removed by `50ea8a75f9`: no authored runtime/test/selected bake input; verification open |
+| `kloppenheim_06_puresky_2k.hdr` | 1 | 4,434,394 | Removed by `50ea8a75f9`: no authored runtime/test/selected bake input; T4 qualified under G872 |
 | `qwantani_late_afternoon_puresky_2k.hdr` | 1 | 4,429,634 | Keep: Pine golden-hour key bake input |
 | `qwantani_sunset_puresky_2k.hdr` | 1 | 4,171,959 | Keep: Pine selected sky and raw fallback after pair decode failure |
-| `rosendal_park_sunset_puresky_2k.hdr` | 1 | 5,049,451 | Removed by `50ea8a75f9`: no authored runtime/test/selected bake input; verification open |
-| `sunflowers_puresky_2k.hdr` | 1 | 5,658,712 | Removed by `50ea8a75f9`: no authored runtime/test/selected bake input; verification open |
+| `rosendal_park_sunset_puresky_2k.hdr` | 1 | 5,049,451 | Removed by `50ea8a75f9`: no authored runtime/test/selected bake input; T4 qualified under G872 |
+| `sunflowers_puresky_2k.hdr` | 1 | 5,658,712 | Removed by `50ea8a75f9`: no authored runtime/test/selected bake input; T4 qualified under G872 |
 | Two selected sky color/gain pairs + seven Pine key pairs | 18 | 2,527,115 | Keep every plane: selected sky / dawn, sunrise, day, golden, sunset, dusk, night |
 | `trailer-15.mp4` | 1 | 3,532,948 | Keep: historical public trailer URL; the 30 s copy also remains a Native Apps store-preview input |
 | `trailer-30.mp4` | 1 | 6,551,506 | Keep: historical public trailer URL; the 30 s copy also remains a Native Apps store-preview input |
@@ -100,11 +100,11 @@ The five unselected candidates are Belfast sunset, Kloofendal misty,
 Kloppenheim, Rosendal sunset and Sunflowers. None has an authored selected
 sky, time key or Blender target reference on this source. Their fetch recipe
 is an output recipe; generated catalogues alone do not establish a runtime
-reader. Removal is still **unqualified** until normal HEAD boot/offline and
-before/after full-pixel checks complete. Both local public trailers remain;
+reader. The original audit required normal boot/offline and before/after full-pixel
+checks; the completed T4 scope and the retained first-visit asset failure are below. Both local public trailers remain;
 `site/media.json` separately selects newer Blob-hosted marketing videos.
 
-The required proof remains: one admitted HEAD source; desktop and phone
+The original proof scope was: one admitted HEAD source; desktop and phone
 visitor boot/offline checks for Driftwood, Nalati and Pine; exact captures
 before/after any accepted removal; complete emitted-byte comparison; and
 root-owned production URL verification after ordinary shipping. A failed or
@@ -207,8 +207,8 @@ tiers then reload and enter offline through activated controllers and
 SW-served documents, with positive native geometry. Both Pine tiers visit
 all seven keys offline; phone's controlled fetches cache 14 actual plane
 URLs. No synthetic cache put, clients.claim, policy or deadline change is
-used. The first-visit failure remains **FAIL**; **T4 remains open** until
-the coordinator rules on scope and root records production URL checks.
+used. The first-visit failure remains **FAIL**. The later G872 scope ruling
+and true pre-removal control below close T4 without calling this a first-visit cure.
 
 Raw online: `tmp/sp-x9-t4-hdr/after-online-1aeb/reading.json`; diagnostic:
 `controlled-offline-diagnostic/reading.json` in the same directory. The
@@ -218,6 +218,42 @@ source differences and checked counts are `final-inventory.json`,
 `counterpart-source-paths-final.txt` and `final-summary.json` in T4 scratch.
 Obsolete previews and this lane's final shared lease were normally released;
 all lane browsers and builders are closed.
+
+#### G872 first-visit control and scoped closure (2026-10-31)
+
+G872 excludes going offline before the page is worker-controlled from T4's
+bar, unless the removal caused it. The suggested `578c36fb03` is actually a
+descendant of the removal and cannot be a pre-removal control. The one normal
+control uses its true parent **`929d759689c3435adaee543658b8d83602fc715e`**,
+build `929d759-mvx46tv8`, with all five original HDR blobs present. The normal
+current preview helper supplies the already-reviewed production-like public
+CORS headers; there is no HTTP interception, fixture, cache put or claim.
+
+A fresh phone Pine visit boots with the original frame gate, 91 calls and
+918,591 triangles. Before offline, genuine state events establish an activated
+exact-BUILD worker, completed 307-file install book, zero missing code bodies,
+**no cached HDR planes**, and a still-uncontrolled first document. The native
+offline entry and all seven sky controls subsequently **pass**. This does
+**not** reproduce the later `1aeb` 240-second entry timeout. However, the raw
+reading retains **3,762 request failures**, including all **14 selected sky
+planes**. Its driver's `passed` status only covers native entry/control and
+does not reject the collected network errors. It is therefore **not a clean
+offline asset/visual pass**. The five deleted HDR names are never requested.
+
+The selected-asset failure thus predates the removal; it is D211, with the
+native-entry success explicitly retained. G872's scope closes T4 on the exact
+online captures and controlled-warm 6/6, without hiding that failure or claiming
+that the later timeout has the same cause. Only four unrelated source files
+differ between this control and `1aeb` (grass upload ranges and format/Nalati
+schema additions); no sky selection, fetch path or worker policy changed.
+Production URL/manifest qualification comes from sp-ci-deploy's next exact
+release proof, as ruled; it is not inferred from a local SPA response.
+
+Raw: `tmp/sp-x9-t4-hdr/pre-removal-first-visit/reading.json`; separate strict
+asset interpretation: `qualification.json` there. Revision/build/transport
+binding: `pre-removal-source.json`. All browsers/builders are closed; the
+historical first-visit refusals remain unedited. No timeout, pixel tolerance,
+sky, registration or cache policy was changed to close this row.
 
 ### T5: immutable deployment bodies — closed as measured (G872)
 
