@@ -109,16 +109,36 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 | Row | What | Effort |
 |---|---|---|
 | **CS0** | **done (2026-10-24, sp-x6):** measured ceilings 387 / 33,613,009 B; shrink-only existing-name inventory, new custom sections refused, new named JSON requires an exact defining format schema. **Ceilings to actuals and a schema freeze** (free, can land now): set every `custom-sections/<slug>` ceiling to the measured value (549 → 387, 62 MB → 33.6 MB); refuse a new `custom/` section and any new named JSON whose schema is defined in a shard folder | 0.5 day, Codex |
-| **CS1** | **done (2026-10-31, sp-x1):** plain hash-bound section inventory in `9a616b4b82`; exclusive test-project ownership fixed in `b13ad77350`. Records sections/named JSON, shard, bytes, defining bindings, source emitters and reading-host evidence; unresolved evidence remains explicit. No ruler, scores or progress tool. | 0.5–1 day, Codex |
+| **CS1** | **done (2026-10-31, sp-x1):** `9a616b4b82` inventories all 24 products in 4.56 s: 1,406 rows / 11 source projects; six inventory controls pass. `b13ad77350` fixes exclusive compiler ownership, with the original owner assertion, six controls and root/scripts types passing. Hash-bound source/reader evidence stays explicit; no ruler or inferred host credit. | 0.5–1 day, Codex |
 | **CS2** | **open (2026-10-31, sp-x1):** persistence, 27 native world-scene recipes, the 23 aliases/forest-page documents in `31bffc86fb`, and building-sites/shape-book are qualified. The 62 welds remain withdrawn; eight separate living-cabin envelopes are also an explicit index-footprint exit under the approximately 1.9 MB Pine headroom rule. Ground-family source review is next. Remaining names need the concrete family exits below; the five repeated-name exits alone do not close CS2. | 2–3 days, Codex + Opus review |
 | **CS3** | **open (2026-10-31, sp-x2):** first exact phone-dressing slice `1fadd8e67a` passes full body proof and strict P1–P3 A/A + A/B (all six comparisons 0 pixels). Desktop and wider scene migration remain open; see [the scoped reading](#cs3-first-phone-dressing-slice). **K1 scenes**: one streamed `world/scenes` family and `models/library`; Pine's 112 placement files become one indexed section; tier copies derived. | 3–4 days, Codex (Opus memory reading on Pine) |
-| **CS4** | **K2 ground and physics**: Pine physics into `world/physics`; floor, crag cave, Sky fields, Signal embers into a streamed `world/fields` | 2–3 days, Codex (Opus memory reading) |
+| **CS4** | **Qualified slices done; row remains open for its explicit owner/host exits.** Pine common physics `5596fde41e`: strict7 and original unfiltered walk **75/75, 0 stuck/bounds/pending**. Floor/cave defining contracts `b5a7dc391d` are qualified by the recorded coalesced proof; fields and complete ground aliases `d0c35248f3` retain original payload/pack/native checks. See the completion ledger below. Pine owner-only physics and G667 tests 2–6 are not closed by metadata. | 2–3 days, Codex (Opus memory reading) |
 | **CS5** | **K3 quests**: one `quest/*` family across Pine, Driftwood, Nalati (and Sky's quest rows); Pine `questRuntime` program to AS | 4–6 days, Opus design + Codex port |
 | **CS6** | **K4 creatures**: `actors/species` + `actors/populations`; behaviour rows to AS on WASM-HOST H6 / H8 | 4–6 days, Opus + Codex |
-| **CS7** | **K5–K8 small kinds**: held kits, looks / collections, weather / audio, people / places; Nine jian JSON to GLB | 4–5 days, Codex |
+| **CS7** | **Audio/cards slice done; row remains open for the 25-name held/look/weather exits.** `2c5aa6386d` / `515ffcac96` qualify Nalati audio and Driftwood people cards: strict6, six controls, original five suites **28.7 s**, 2,993 unchanged bodies of 2,994; only the exact G872-classified Nalati source stamp differs. No full-CS7 completion, geometry/binary exit or weather-envelope unification is inferred. | 4–5 days, Codex |
 | **CS8** | **K9 combat and riding**: room, encounter and riding-profile rows; Titan script to AS | 2–3 days, Opus |
 | **CS9** | **K10 headless and views**: derive the headless assembly from platform sections; `nativeView`, `runtimeGraphs`, jian effects on H9 / H17 | 2–3 days, Opus (after WASM-HOST H9, H17) |
 | **CS10** | **Delete the path, no exception**: `custom/` prefix, shard `SECTIONS` / `FILE_SCHEMAS`, `schemas/custom/` emit, `game/shardfile/customSchema.ts`, the `CustomSectionName` reader overload, `custom-sections/*` budgets, `lint/custom-sections.json`, `check-custom-section-growth.mjs`, `custom-section-policy.mjs` | 1 day, Codex |
+
+### Recorded completed bars: CS1 / CS4 / CS7
+
+This ledger marks the **qualified slices done**, not unimplemented family
+exits. CS2 remains open with sp-x1. CS4's remaining owner/host exits and
+CS7's complete-envelope/model-library exits remain in their source tables;
+they are not counted as deleted private paths or completed CS10 work.
+
+| Completed bar | Landed authority and recorded exit |
+|---|---|
+| **CS1 inventory — done** | `9a616b4b82`, exclusive ownership `b13ad77350`: all-24 scan 4.56 s, 1,406 rows (930 platform / 461 named / 15 custom), six controls and original ownership assertion; root/scripts/test types and typed lint pass. Unresolved provenance remains unresolved. |
+| **CS4 fields — done for the five existing descriptors** | `bb782c4930` (fixture repair `f9caf76f31`) retains 142,101 JSON B and 1,745,112 binary B. Four suites / 14 controls, normal six-product build 48.91 s, strict6; 2,991 / 2,993 bodies exact. The two exact Far/Sun map stamps remain raw FAIL with only their accepted G872 classifications; no general tolerance. |
+| **CS4 common physics — done** | `5596fde41e`: normal physics7 25.91 s / strict7; original 873,873 B full wire reconstructs, 644 typed buffers / 890,236 B exact and 1,046 unrelated bodies exact. Original walk 75/75, no stuck, bounds failure or pending leg; same colliders and owners. |
+| **CS4 floor/cave metadata — done** | `b5a7dc391d` with its later recorded coalesced six-product proof: original floor/runtime mirror and registration suites pass; the 32-document coalesced proof (normal6 46.20 s; original five suites / 31 cases 37.2 s) retains the existing payloads and the separately classified G966 Explorer labels. No collider movement, new walk or second-user credit. |
+| **CS4 existing ground aliases — done for the two roots** | `d0c35248f3`: 13 controls, normal AFTER 48.219 s, strict DW/Nalati and five originals 9.178 s; 868 / 869 payloads exact, whole packs reconstruct. Sole Nalati map stamp raw FAIL is retained with its exact G872 classification. The 99 B cover and 21,630 B meadow bodies stay unchanged. G667's host audit and Pine's owner document remain open. |
+| **CS7 audio/cards — done** | `2c5aa6386d`, recorded in `515ffcac96`: six controls, root/test types/lint and five original suites 28.7 s, normal6 / strict6. Of 2,994 paths / 484,565,055 B, 2,993 other bodies are exact; two defining metadata records change. Sole 164 B Nalati source stamp stays raw FAIL, accepted only under its existing exact G872 ruling. No weather collision, held/geometry migration or wider CS7 exit is closed. |
+
+No build, native worker, browser, stamp rewrite or requalification was run
+for this documentation update. The defining payload/pack proofs below
+remain the authority, including every recorded refusal and explicit exit.
 
 **Effort:** ~26–37 lane-days, about 60 % Codex (CS0–CS4, CS7, CS10: mechanical producer/reader moves) and 40 %
 Opus (schema unification in CS5 / CS6, WASM ports, memory readings). With 3 Opus + 3 Codex lanes: ~2–3 weeks
