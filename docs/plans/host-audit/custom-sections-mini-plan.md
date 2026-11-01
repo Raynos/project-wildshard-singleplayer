@@ -113,7 +113,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 | **CS2** | **done (2026-10-31, sp-x1, Jake's slice-or-explicit-exit ruling):** all remaining families have a qualified exact slice or a concrete named CS3–CS9 / index-footprint exit. The [completion evidence](#cs2-completion-evidence) binds every family to its per-name source table and landed proof. The 62 welds, eight living envelopes and Pine spray companion remain explicit exits; no cap, host, capture or CS10 deletion credit is inferred. | 2–3 days, Codex + Opus review |
 | **CS3** | **open (2026-10-31, sp-x2):** all 318 rows of `959c6f1503` and the expanded scene-family remainder are reconciled below. Placements, catalogues and recipes qualify on their exact render-input byte proofs under G872; phone/desktop dressing also have twelve actual zero-pixel comparisons. **Remaining implementation: streamed consolidation and tier/shadow-copy retirement**, with strict landed-SHA captures whenever render-consumed bytes change. Contract, genericity, binary-owner and index exits remain explicit. | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **Qualified slices done; row remains open for its explicit owner/host exits.** Pine common physics `5596fde41e`: strict7 and original unfiltered walk **75/75, 0 stuck/bounds/pending**. Floor/cave defining contracts `b5a7dc391d` are qualified by the recorded coalesced proof; fields and complete ground aliases `d0c35248f3` retain original payload/pack/native checks. See the completion ledger below. Pine owner-only physics and G667 tests 2–6 are not closed by metadata. | 2–3 days, Codex (Opus memory reading) |
-| **CS5** | **K3 quests**: one `quest/*` family across Pine, Driftwood, Nalati (and Sky's quest rows); Pine `questRuntime` program to AS | 4–6 days, Opus design + Codex port |
+| **CS5** | **open (2026-10-31, sp-x1):** all 14 remaining quest names are accounted for: three qualified aliases, four prepared native aliases, a tested off-tree whole-panel root and six concrete contract/owner exits. Pine's live `custom/questRuntime` remains a complete-envelope / AS-owner exit; Sky's existing shared quest sections are identified separately. See the [remainder evidence](#cs5-complete-remainder-disposition-and-next-slices). Source readiness does not close payload, host or CS10 deletion work. | 4–6 days, Opus design + Codex port |
 | **CS6** | **done (2026-10-31, sp-x6, Jake's slice-or-explicit-exit ruling):** the 55-row baseline and four additional actor names have qualified exact slices or concrete complete-contract/native-check/context exits. Directors, keeper/returns, roster/elites and the duplicate grazers retirement are recorded below. Existing native controller/AS owners stay authoritative; no host-score or CS10 bridge-deletion credit is inferred. See the [completion evidence](#cs6-completion-evidence). | 4–6 days, Opus + Codex |
 | **CS7** | **Audio/cards slice done; row remains open for the 25-name held/look/weather exits.** `2c5aa6386d` / `515ffcac96` qualify Nalati audio and Driftwood people cards: strict6, six controls, original five suites **28.7 s**, 2,993 unchanged bodies of 2,994; only the exact G872-classified Nalati source stamp differs. No full-CS7 completion, geometry/binary exit or weather-envelope unification is inferred. | 4–5 days, Codex |
 | **CS8** | **K9 combat and riding**: room, encounter and riding-profile rows; Titan script to AS | 2–3 days, Opus |
@@ -1711,3 +1711,98 @@ approvals; no admission check or AS behaviour is replaced. CS10 remains
 open while its private emitter/readers, validators and guards have live
 users. No zero-ceiling or bridge-deletion claim follows from CS6's done
 mark.
+
+## CS5: complete remainder disposition and next slices
+
+**2026-10-31, source-only follow-through after CS2 completion.** CS5 is
+still **open**. All 14 historical quest names have an exact disposition:
+three qualified aliases, four prepared aliases, and seven concrete
+remaining contract/owner exits. The panel exit now has a tested whole-root
+prototype, but no activation or product proof. Pine's separate live
+`custom/questRuntime` is also unfinished. This ledger assigns the work;
+it does not mark those implementations or the CS10 deletion bar done.
+
+| Exact name / user | Evidence and remaining acceptance |
+|---|---|
+| DW `quests/steps.json`, `quests/hints.json`, `quests/wake-boss.json` | **Qualified** by `cff6cc28ca` after `94cd0e375e`: complete existing schemas and full native parsers, ordinary strict/current products, all 469 DW bodies and ordered packs exact, original owner/step/hint/wake consumers retained. Five metadata records across the ordered two slices; no map-stamp exception. |
+| Pine `quests/native-story.json`, `quests/native-spots.json` | **Prepared off-tree** on `NativeQuestCompositionSchema` / `parseNativeQuestComposition` and `NativeQuestServiceSpotsSchema` / `parseNativeQuestServiceSpots`. Append the two SDK wire roots; change only the two metadata options. Preserve every service reference, saved-role/dependency check, native prop/entry owner and original input/continuation assertion. |
+| Pine `quests/contracts.json` | **Prepared off-tree** on `ContractCatalogueSchema` / `parseContractCatalogue`; SDK root already exists. Preserve compiled module, program admission, offers and catalogue references. Metadata only; no board-child substitute or program rewrite. |
+| Nalati `quests/carried.json` | **Prepared off-tree** on `CarriedQuestSchema` / `parseCarriedQuest`, with its defining SDK root appended. Existing G601 C8 scope stays exact: player/mount/resource loans, AS decisions and original carried-host/Kokpar differentials. |
+| Pine and Nalati `quests/panels.json` | **Whole-catalogue root exit, prototype ready below.** A `PanelDefinition` child alone is insufficient. The existing native reader's outer limit and per-panel recursion, action-path and lifetime rules must all survive before registration can qualify. |
+| Nalati `quests/chapters.json` | **Public whole-presentation-contract exit.** `parseChapterStoryPresentation` uses private `ChapterPresentation`; neither an optional `QuestStorySchema` child nor an inferred wrapper covers the public document. |
+| Nalati `quests/content.json` | **Complete chapter/figure-envelope exit.** `ChapterViewSchema` accepts but strips frame `file`/`height`/`radius` and child/cook `motion.idleArm`/`idleHead`. Retain the complete original fields and establish their exact owner; never normalize the emitted body to fit a partial root. |
+| DW `quests/discovery.json` | **Shared discovery/guide-contract exit.** The strict shard-local places/guide/glassCount/shardFlags grammar is complete locally, but no complete common root is established. |
+| Nalati `quests/finds.json` | **Owner/genericity exit (CS5/CS7).** Actual native admission under `FindsCatalogueSchema` / `parseFindsCatalogue` succeeds, but the pending single-user `game/bag/findsCatalogue` G441 owner is not approved merely by importing its schema. Retain flags/owned/counters and qualify the actual user scope. |
+| Pine `quests/forest-story.json` | **Whole-story-envelope / CS9 view exit.** Inline board/store/talks grammar leaves world/map/pool/cable/mover rows outside the demonstrated root. Preserve those fields and the live content reference. |
+| DW `quests/interaction-source.json` | **Closed guest-input-envelope exit (CS5/CS9).** The inline `interactionWireSchema` binds `constants.interact` plus authored spots through `nameGuestBlob`. Establish the complete ABI/input owner; do not register an unknown constants map. |
+
+The four pending aliases are rebased off-tree after the roster/scaffold
+source boundary. Their 21 native/root/provenance controls pass in
+**1.4 s** (including the nine landed-DW regressions), and private strict
+TypeScript covers the registry, SDK, both complete emitter candidates
+and controls. Unused schema imports are removed only from the private
+emitter copies. Every serialization expression stays original. The
+candidate is excluded from the peer's already-frozen Pine proof; it
+requires a later agreed common-file turn and fresh ordinary payload proof.
+
+### Whole quest-panel catalogue readiness
+
+`game/ui/dataPanels.ts#readDataPanels` already supplies the whole native
+contract for two actual users. The off-tree candidate names that existing
+catalogue in `format/panelTemplate`, delegates the original reader to it,
+and adds the exact registry/SDK root and two metadata options. It retains
+the original **16-panel** outer refusal before per-panel admission, the
+**8,192-node / 32-depth** recursion bound, safe action paths, and the
+transient/persistent shown-frame rule. Rendering, DOM installation,
+callbacks and owner lifetimes are unchanged.
+
+Eight off-tree controls pass in **1.6 s**, comparing both actual bodies
+(Pine **3,198 B**, Nalati **931 B**) against the original unmodified
+reader. Accepted values, raw inputs, serialization bytes and malformed
+error names/messages/order are exact. Missing/foreign defining metadata
+refuses before payload reads; all **225** old named wire contracts remain
+deep-exact with the new root appended. The six complete private source
+candidates and controls pass strict TypeScript. This is source readiness,
+not normal output admission, a visual capture or host-bar completion.
+
+Historical index projections add **90 B** to Pine and **5,604 B** to
+Nalati. These are individually hash-bound feasibility oracles, not a
+single current BEFORE tuple. A draft helper overwrote its local oracle:
+Pine's original **1,762,914 B** index was recovered and hash-verified from
+an independent captured corpus; Nalati's initial index tuple was not
+recovered and its retained later tuple is labelled as such. Native body
+parity is unaffected. The helper now preserves existing oracles. A future
+activation must capture a fresh ordinary baseline, keep Pine at or below
+about **1.9 MB** and the hard **2 MB** cap, then prove all bodies,
+descriptors and ordered packs with the original data-panel/lifecycle
+consumers. No source-stamp exception is assumed.
+
+### Live questRuntime and the already-shared quest sections
+
+Pine's hash-bound **29,289 B** `custom/questRuntime` remains live in
+`test/fixtures/pine-headless.ts` and `forestStory.ts`'s content reference.
+`sections.ts#PineQuestRowsSchema` types lead/page/steps/spawns/table and
+policy, but leaves `lead.program`, events, deaths, pageDeaths and content
+unknown. That is an explicit **complete content / closed guest / AS-owner
+exit**, not a whole native-root registration. The generator already emits
+the compiled life module and shared `actors/page-life` / return-scripts;
+this does not prove the rest of the custom envelope has moved to AS.
+Retain every live consumer, save/phase rule and owner assertion until the
+whole replacement and unchanged payload/behaviour proof are demonstrated.
+
+Sky's rows are not an unclassified private envelope. The source census
+finds the existing shared `quests/quests`, `quests/host` and
+`quests/directors` section contracts in `format/sections.ts` and
+`format/outputFields.ts`, including Far Reach's actual native quest-host
+rows. `QuestHostSchema` / `questHostRules` and the Shardfile binding rules
+retain routes, references and observations. Those existing platform roots
+do not imply that every guest decision is already AS or that another
+private quest document can borrow their approval.
+
+Evidence is `tmp/sp-x1-cs5-remainder/{reading,platform-and-runtime}.json`,
+`tmp/sp-x1-cs2-quest-ready/{source-base,feasibility}.json` and its private
+candidate patches, plus `complete-four-{controls,types}.log`.
+Panel evidence is `tmp/sp-x1-cs5-panels/{source-base,before,footprint,
+oracle-recovery}.json`, `controls-complete.log` and `types-rebased.log`.
+No build, browser, native simulation, registry activation, cap change or
+CS10 guard deletion is performed by this source-audit documentation.
