@@ -23,7 +23,7 @@ stops growing by ~240 MiB a day.
 - **The rewrite:** `git filter-repo` over all history, so the archive leaves the pack too. Destructive: new SHAs for
   every commit, a force-push, every checkout re-cloned.
 
-**Not in this plan:** `public/` runtime assets and deploy bytes ([DEPLOYMENT_ASSET_TRIM](DEPLOYMENT_ASSET_TRIM.md) T4,
+**Not in this plan:** `public/` runtime assets and deploy bytes ([DEPLOYMENT_ASSET_TRIM](../../project/archive/2026-10-31-deployment-asset-trim.md) T4,
 T5); shardfiles and where shard projects live ([SHARD-PLATFORM](SHARD-PLATFORM.md) §3.5: shardfiles are build products,
 git-ignored). This plan keeps both possible (§8).
 

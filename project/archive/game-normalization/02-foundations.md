@@ -70,7 +70,7 @@ the plan is archived, with each shard's folder reopening at its milestone (decis
    | `docs/plans/FINISH-LINE.md` | `blocked` — S1 (the gate), S3, S5, S6, S7 moved to GAME-NORMALIZATION (F2 / F3 / Z4, the plan, X1, F5, S1.6 / X7); its other rows wait for the E357 lock to end |
    | `docs/plans/PHYSICS-POLISH.md` | `blocked` — F3 moved to GAME-NORMALIZATION F11; F7 goes with `src/dev` (F7); F1, F2, F4, F5, F6 wait for the lock |
    | `docs/plans/ANIMATION-REMASTER.md` | `blocked` — its engine layer moved to GAME-NORMALIZATION X4; A3–A7 wait for X4's rig contract |
-   | `docs/plans/DEPLOYMENT_ASSET_TRIM.md` | `blocked` — T3 moved to GAME-NORMALIZATION X3; T2, T4, T5 wait for the lock |
+   | `project/archive/2026-10-31-deployment-asset-trim.md` | `blocked` — T3 moved to GAME-NORMALIZATION X3; T2, T4, T5 wait for the lock |
    | `docs/plans/NINE-DRAGON-STACK.md` | `blocked` — paused for E357 until M1, then re-planned for the new engine (decision 66) |
    | `docs/plans/DRIFTWOOD-REMASTER-V2.md`, `EXPLORE-V2.md`, `NATIVE-APPS.md`, `SHARD-CHECKPOINTS.md` | `blocked` — waits for the E357 lock (Driftwood: until M4; the others: until the plan is archived) |
 4. `herdr agent list`; send each live agent `"[from E357] The repo is locked for GAME-NORMALIZATION v2 from <sha>. Stop,

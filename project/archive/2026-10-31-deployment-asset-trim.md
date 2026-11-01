@@ -1,6 +1,6 @@
 # Wildshard deployment asset trim
 
-**State:** `in progress` 2026-10-31 — T4 is done under G872's scoped offline bar: five unselected HDRs / 24,173,718 bytes removed, 18 A/A and 18 strict online A/B comparisons exact, controlled-warm offline 6/6. The true pre-removal control also fails selected offline asset requests; native entry itself passes there, so the later 240-second timeout is not reproduced or attributed. D211 keeps that pre-existing first-uncontrolled asset failure. Production URL qualification is owned by sp-ci-deploy's next exact release proof. T3 retains all 144 originals and remains open; T1/T2 done, T5 measured closed, T6 superseded.
+**State:** `done`, archived 2026-10-31. T1/T2 done; T3 removes only two unused twig JPGs (706,138 B), with 8 fresh A/A and 8 A/B comparisons pixel-exact; T4 removes five unused HDRs (24,173,718 B), 18 A/B exact and controlled-warm offline 6/6. The pre-existing first-uncontrolled selected-asset failures remain D211. T4 production URL/manifest qualification passed on bound live `99d9ff2-mvx38gn3`. T5 is the measured **no migration** decision; T6 is superseded. No row remains open.
 
 **Historical clean-export baseline (2026-10-29):** 1,375 static files / 524.5 MiB.
 The current retained-output measurement is in T5 below.
@@ -13,10 +13,10 @@ The Vercel build also creates four API functions. Two are test files under
 | --- | --- | --- | --- |
 | T1 — done | Move `api/*.test.ts` out of Vercel's function discovery path | 619 tests pass; clean prebuilt output has two real functions; production `/api/inbox` and `/api/errors` each return 401 without credentials | Removed two unnecessary functions from every deployment |
 | T2 — done (2026-10-29, sp-x9; G874 / DA1) | Source `97ec95cb7e` / `20f3bfd384` keeps local/CI maps and copies the standalone filter before pin checkout. **Live `dcc2153ac-mvtsyqc1`**, app `dcc2153ac62655a07ecdc7a17e3242c2493dcf50`, is qualified by deployment controller `42a37e95ff9e01b5c12b6133dbe708c3dca6e318` ([release 40914981125](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40914981125)). | Remote Vercel strip receipt: **268 maps / 52,104,870 bytes**. Download-verified private artifact **12917412136** holds **270 files** (268 maps + exact live version/chunk report), ZIP SHA-256 `dc85faeb67b7fa00f9eb8ca1c1033a58b2bbf87f3f5b019c87ea4333e8f09b6e`, 12,987,948 bytes. Three actual map URLs return **404**; live version and SW core/build/hash match. Exact app [CI 40899627232](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40899627232) and [SIX 40903043898](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40903043898) are green. Evidence: `tmp/sp-ci-deploy-hourly-409149-{map-proof,live,artifacts}.json` and completed release log; no duplicate capture. | **52,104,870 fewer public bytes** on the qualified live build; original diagnostic maps remain private and intact |
-| T3 — audited, verification open | HEAD `8da7f94de2`: 144 `assets/tex/` files / 86,727,002 bytes; 90 are GPU-source keys, 142 participate in exact tier-generation jobs. Retain all 144; detailed map below. | Reference search includes authored generators and image/phone fallback policy. HEAD desktop/phone boot and offline proof remains pending; **zero assets removed**. | No verified duplicate-original deletion yet |
-| T4 — done (2026-10-31, sp-x9; G872 scope) | `50ea8a75f9` removes five unselected raw HDRs / 24,173,718 bytes and their download recipes. All 25 protected selected HDR/key-plane/video/T3-twig bodies remain SHA-256 exact. | `629` before: 36 captures / 18 A/A, zero pixels; `1aeb` after: 18 strict online A/B, zero pixels and eight visitor boots. Controlled-warm offline 6/6. True pre-removal `929d759` has the same uncached selected-sky asset failures on a first uncontrolled visit, though native offline entry passes; D211 retains that distinction. | Five source bodies removed; root owns production URL/manifest qualification. No sole-leaf whole-output byte saving or first-visit offline cure claimed |
+| T3 — done (2026-10-31, sp-x9) | `8fa1be30ec` removes only `pine_tree_01/twig_diff.jpg` and `twig_alpha.jpg` plus their two fetch-output keys: 706,138 bytes. Keep the other 142 textures / 86,020,864 bytes and all 12 tree model/atlas bodies exact. | Trace the exact Pine Blender reader (RGBA / normal / ARM, alpha from PNG), not its conservative folder input declaration. Full tier job plan unchanged. Phone/desktop Pine two forest views + Nalati/Nine P1: 8 fresh A/A and 8 A/B comparisons, every pixel exact, 18 guarded boots. | Two unused originals removed; every selected image and fallback retained. No KTX2-based original deletion or whole-output byte attribution |
+| T4 — done (2026-10-31, sp-x9; G872 scope) | `50ea8a75f9` removes five unselected raw HDRs / 24,173,718 bytes and their download recipes. All 25 protected bodies stayed exact through T4 (its two kept twigs are subsequently retired separately by T3). | `629` before: 36 captures / 18 A/A, zero pixels; `1aeb` after: 18 strict online A/B, zero pixels and eight visitor boots. Controlled-warm offline 6/6. True pre-removal `929d759` has the same uncached selected-sky asset failures on a first uncontrolled visit, though native offline entry passes; D211 retains that distinction. | Five source bodies removed; bound live `99d9ff2-mvx38gn3` qualifies their actual 404s and manifest absence. No sole-leaf whole-output byte saving or first-visit offline cure claimed |
 | T5 — closed as measured (2026-10-31, G872) | No migration now: 1.700 GB of immutable bulk per output, 99.90% unchanged against retained original app builds | At 24 deploys/day, documented one-day retention models $4.08/month versus $122.41 near 30 days; preserve same-origin precache/offline behavior | No code/hosting change. Reopen if actual retention approaches 30 days; detailed cost and update analysis below |
-| T6 — superseded | `419a077b21` (G920) removed the hourly slot, cooldown and local backstop; exact successful proof releases immediately. The later boot/ship merge (`93bd`) makes the successful required verdict the automatic ship trigger. | CI3 closes on its **21/21 automatic post-merge releases within 300 s**; all eight old misses predate the merge. BA78 was manual dispatch, not a queue miss. See [CI-FIRST-PRINCIPLES](CI-FIRST-PRINCIPLES.md), CI3 / retained 32-release classification. | Original hourly-lag work is obsolete; CI2 artifact download/restore remains a separate open row |
+| T6 — superseded | `419a077b21` (G920) removed the hourly slot, cooldown and local backstop; exact successful proof releases immediately. The later boot/ship merge (`93bd`) makes the successful required verdict the automatic ship trigger. | CI3 closes on its **21/21 automatic post-merge releases within 300 s**; all eight old misses predate the merge. BA78 was manual dispatch, not a queue miss. See [CI-FIRST-PRINCIPLES](../../docs/plans/CI-FIRST-PRINCIPLES.md), CI3 / retained 32-release classification. | Original hourly-lag work is obsolete; CI2 artifact download/restore remains a separate open row |
 
 The `public/assets/` tree is part of the offline PWA and has content-hash
 versioning. Do not blanket-ignore it or remove a raw texture merely because a
@@ -57,7 +57,7 @@ not a claim that the source and compressed bytes are interchangeable.
 | `metasequoia_bark` | 6 | 1,127,046 | 6 | 6 |
 | `mossy_rock` | 6 | 1,373,684 | 6 | 6 |
 | `pine_bark` | 9 | 3,865,841 | 6 | 9 |
-| `pine_tree_01` | 8 | 3,633,289 | 0 | 6 |
+| `pine_tree_01` | 6 | 2,927,151 | 0 | 6 |
 | `rock_ground` | 8 | 4,597,665 | 6 | 8 |
 | `roof_planks` | 8 | 1,525,119 | 0 | 8 |
 | `rough_pine_door` | 8 | 1,980,035 | 6 | 8 |
@@ -67,18 +67,54 @@ not a claim that the source and compressed bytes are interchangeable.
 | `wood_planks_grey` | 6 | 696,818 | 6 | 6 |
 | `wood_trunk_wall` | 9 | 8,009,424 | 6 | 9 |
 
-The exact `textureTierJobs` input/output plan covers 142 files. The remaining
-`pine_tree_01/twig_diff.jpg` and `twig_alpha.jpg` are still named by the
-Poly Haven fetch recipe and the authored tree folder is retained by Blender
-and manifests. That conservative folder match does **not** prove that those
-two individual files are current Blender reads (the current pine material
-reads `twig_rgba.png`). They remain kept until an independent derivation and
-fallback audit proves deletion safe. No “KTX2 exists, therefore delete JPG”
-rule is used.
+The earlier folder-match audit conservatively retained all 144 originals.
+Its two unselected candidates are now independently traced and qualified:
+`pine_tree_01/twig_diff.jpg` (510,932 B) and `twig_alpha.jpg` (195,206 B).
+The unchanged Blender producer's `build_cards` lines 435–437 read only
+`twig_rgba.png`, `twig_nor_gl.jpg`, and `twig_arm.jpg`. `cell_pine` passes
+`alpha_from_diff=True`, so the cutout comes from the committed RGBA PNG.
+Its similarly named `twig_diff` / `twig_alpha` reads at lines 438–439 fetch
+the separate **fir_tree_01** asset into the external Blender source cache.
+There is no directory enumeration in that producer; its post step consumes
+generated cards/impostors and four bark sets, not the retired Pine JPGs.
 
-This revisits the real earlier failure: `a7e021f0` deleted 54 originals,
-`217e5f8f` restored them, and `154071d0` / `66db342a` retained generator
-inputs. The current audit again finds no qualified original deletion.
+The exact original Pine lambda expressions were evaluated with a read-only
+byte/hash callback and their three actual paths recorded. This is an explicit
+reader trace, **not** a Blender render/rebuild claim. The Blender target's
+`inputs` names a conservative folder; `check-model-sources` checks its existence,
+not an obligation to decode every child. All 14 source targets / 24 GLBs pass.
+`fetch-assets.mjs` only downloads the named outputs; no compositing or local
+folder-read step derives the kept PNG from these JPGs. Remove only its two
+obsolete output keys. The historical test candidate inventory stays intact;
+no runtime/test code consumes that file. The entire 111-job tier plan is
+identical without these two paths. All 142 kept texture bodies and 12 tree
+GLB/atlas bodies (4,563,038 B) remain SHA-256 exact; phone/image fallbacks stay.
+All **154 protected bodies** also hash exactly in both actual emitted dist
+trees. The emitted asset manifest changes from 2,175 to 2,173 keys; both
+candidate paths are present before and absent afterward, as are the two files.
+
+Normal immutable BEFORE source **`0f0248e9f47506e3604a352dbb484b42b1d34f86`**,
+build `0f0248e-mvx4urdp`, and AFTER **`8fa1be30ec9b8a3448a2835b7248fa0ebc3a0c77`**,
+build `8fa1be3-mvx51n72`, have no `src/` delta. The source pair also includes three
+intervening chapter fixture files; the deletion commit itself has only the two
+JPGs and fetch recipe. Do not attribute unrelated emitted build/product changes
+to the trim. Both quality tiers at phone portrait / 2× cover two Pine forest
+views, Nalati P1 and Nine P1. All **16 before + 8 after full-RGBA captures**
+produce **8 A/A and 8 A/B comparisons with zero differing pixels**. All 18
+boots pass the original frame gate, completed native frame, actual entry and
+positive geometry controls. Neither retired URL is requested. Maintained
+`fixedWorldFrame` captures world materials, excluding post/held passes; this is
+texture/world parity, not a frame-cost or whole-HUD claim. No tolerance or HTTP
+fixture is used. T4's controlled-warm 6/6 and the retained D211 scope continue
+to apply; T3 introduces no cache/registration policy or new offline cure.
+
+Source `8fa1be30ec` is on origin/main. Reader/reference/tier/hash proof and the
+literal native pair are under `tmp/sp-x9-t3-twigs/` (`reader-trace.json`,
+`all-references.txt`, `protected-{before,after}.json`, `kept-models.json`,
+`before/reading.json`, `after/reading.json`). T3 closes on the requested exact
+reader + unchanged captures bar. All other originals remain, including their
+KTX2 and phone-source roles. The old 54-file deletion/restore incident is not
+repeated (`a7e021f0` / `217e5f8f` / `154071d0` / `66db342a`).
 
 ### T4: HDR and video disposition
 
@@ -254,6 +290,21 @@ asset interpretation: `qualification.json` there. Revision/build/transport
 binding: `pre-removal-source.json`. All browsers/builders are closed; the
 historical first-visit refusals remain unedited. No timeout, pixel tolerance,
 sky, registration or cache policy was changed to close this row.
+
+#### Completed T4 production URL qualifier
+
+Root's bounded actual live proof binds source
+`99d9ff28cc376b553c5d957c44c0415e971b6ad0` /
+`99d9ff2-mvx38gn3`, with unchanged fresh version before/after at
+2026-11-01 01:05:13Z. All five removed HDR URLs return actual **404**, without
+HTML fallback, and are absent from the actual 2,175-key asset manifest.
+All 25 protected source hashes stayed unchanged from T4 through that source.
+The 23 kept `/assets/` manifest hash8 values match the retained source full-SHA
+prefixes; two kept outside-assets videos are source-only. This does not claim
+25 full live body downloads. T3's later two twig removals are separately
+qualified above. Exact evidence:
+`tmp/sp-ci-deploy-qa-refresh/qa-99d9-t4-production-proof.json` and its log.
+No extra network/native visit was made by this lane.
 
 ### T5: immutable deployment bodies — closed as measured (G872)
 
