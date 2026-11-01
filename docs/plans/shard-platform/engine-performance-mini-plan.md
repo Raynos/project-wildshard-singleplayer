@@ -226,7 +226,7 @@ Every look-changing commit carries a before / after capture (G844).
 | EP7 | **closed, measured (G963; `ad3571fe2e`)**. Families with parameters, texture arrays per family: materials differing only in constants share a program; textures packed per family at bake | Distinct programs drawn: Nine ≤ 40 (63), Pine ≤ 59 at P1–P4 (66 originally; old 45 not met, G872); KTX2 arrays on iOS Simulator with no upload errors; parity per golden still (≥ 40 dB PSNR, < 1 % of pixels > 8 off) **First piece landed (2026-10-30, sp-o5, PF7b)**: `render/layeredMaps.ts` builds a family's same-format KTX2 textures into one compressed array and patches a classic material to read `map` at a per-vertex layer; Pine's creature coats use it (`08e2f62a2a`), per-slot constants on data bones (`farHerd.ts`). **Nine bar restated (G872, 2026-10-30): ≤ 43 programs** once NF16's post merge (sp-o3) and the fabric kit / facade-shell instancing land; the last 3 to 40 are look changes on unrelated one-offs (sky planet body vs ring, MeshBasic one-offs). Nine GLSL programs drawn 53 → 49 at golden cams 1/5/14: held graphs one shape `2164737243` + `30d2059416`, colourless instances share the coloured program `5c84e5ee0f`. Pine’s forecast is superseded by the measured close-out below. **Nine at 48 (2026-10-30)**: `15a9322a19` slab chunks as one identity instance, `8950f3c90e` slab anchors draw nothing, `4fe6619330` fixed the black diners (white instance colours set inside onBeforeRender stayed unbound in three's cached vertex array; now handed over after the frame). With NF16 → 44, the accepted bar. **Pine closed as measured (2026-10-31, sp-x9; G872)**: `32142e8928` removes unused map/alphaMap from opaque native depth, sharing eligible kinds and removing one unused warm-up variant. Actual submitted programs remain **53 / 54 / 55 / 59 at P1–P4**; the **old 45 bar is not met**, restated at **≤ 59 across these four poses**. Native shader/active-input census `bbc01a75b5` confirms `USE_MAP` and active UV input disappear in 2 / 3 / 3 / 4 depth programs, but BackSide / DoubleSide and plain / batched / instanced / skinned layouts retain separate linked states. There are no drawn HAS_NORMAL-only twins; P4’s USE_COLOR pair has a real non-white active color input (RGB 0.671 / 0.604 / 0.455), so it stays. Immutable parent `e88dda7f5c` → `32142e8928`, Pine P1–P4 in both modes: **16 A/A + 16 A/B full-RGBA comparisons, all 0 differing pixels**, no tolerance / G941 exception; camera / clock / frame / calls / triangles and all thirty-frame native call / triangle sequences match. No FPS or isolated timing gain claimed. | Opus; Pine closed (sp-x9) | M |
 | EP8 | **done (G963; `433030231b`)**. Repeats merged by part, colourways as instance colour (B5): one instance table per (LOD, family) | Pine boulders, barrels, crates: one draw per LOD; Nine crowd ≤ 8 draws (22); captures match. **Historical prototype (2026-10-30, sp-o5)**: Nine crowd dye merge `42a294a34f` + fix `c95ce392e0` (the kit read aDye as a constant 0, so dyed umbrellas drew near black): crowd draws 24–26 → 14, frame calls 146–150 → 135–137 at cams 1/5/14, board `3eea4b0b67` (`art/nine-dragon/ep8-crowd-dye/`). **≤ 8 needs a crowd re-bake**: the 14 left are one table per walker / sitter family per LOD, so fewer draws means baking the families into shared tables. **Driftwood measured, no cheap part merge left** (HEAD `f11d022a01`, cams 1/5/14): the palms (15 draws at cam 1) and cover families (≈ 25 at cam 14) are one table per shape proto × LOD on one material (instancing cannot merge shapes; cover is cell-culled, so FC12's `merge` would draw every copy); the coarse props tiles `props1xy` (12–14) are tile streaming; `mesh-shadow-pieces` are E153's shadow-only chunks. What is left is ≈ 13 static view draws sharing `kit-still` / `kit-rock` / `kit` across separate world-scene steps (pier, hut, shrine, rocks, zipline, plaques), plus their cascade draws: a runtime still merge across scenes, ≈ 16 MB of duplicated vertices unless the originals are dropped, so default-off behind a Debug row. Coordinator's call; PF7 next. **Final closure:** paired tables `4c5501a6ea` + vertex-slot/live-uniform fixes `7f50179cc2` / `3d493a97c1` enforce ≤8 plain crowd draws. Closing `433030231b` binds immutable P1–P5 A/A exact and A/B exact except one explicitly accepted P4 palette-edge pixel (695,1217), with unchanged cameras/triangles. `d7d292fb2d` retains Float32 raw sources and byte-identical packed payloads. The original 14-draw forecast above is superseded; no generic still-merge or GPU gain is claimed. | sp-x1 / sp-o5; closed | M |
 | EP9 | **Cluster culling engine-wide** (NF5 generalized): copies bucketed by cell, legacy's thresholds (7° / 3.5° / 1 m), delta upload | Pine, Driftwood and Nine 360° pan at 4x: moving-frame work within 0.5 ms of still; buffer calls a moving frame ≤ legacy's | **done** (G941, wildshard-new) `e43772077d` (sp-x6; capture sp-x9, native cameras bit-identical): Pine P1–P4 A/A + A/B exact, Driftwood P1 exact; Nine A/B 4 / 210 / 0 / 0 / 0 px kept (board `6c23d7d7a6`: P2 restores a copy pre-EP9 culled, as legacy; P1 a 4 px cull edge). Pan bars met: NF5 / PF16 (Nine 11.4 vs 12.2 still, Pine 17.8 vs 18.9; `d60f431cc9`) | S |
-| EP10 | **Draw budget as a gate**: ≤ 150 draws and ≤ 30 µs render CPU per draw at 4x on the phone tier, in the frame-floor rows and a Developer counter | **closed as measured miss (2026-10-31, sp-x8; G872)**. Gate/counter `e084a14dfa`, pooled mean reader `93db94eb65` and explicit Linux software delivery are retained; no cap/guard change. Historical all-pose Nine/Pine `bb68a5376f` mean 49.854/99.705 µs remains a miss. Fresh immutable `4fb407395b` Pine P1, 180 native pairs per mode, Metal phone 2×/4× CPU: LEGACY/SHARDFILE pooled **78.897/79.328 µs**, draw medians 85/91, maxima 87/93. Separate source-mapped SHARDFILE sampled CPU: stock remainder 2.948 ms/frame, hooks 0.985, setProgram remainder 0.861, uniform handling 0.746, onBeforeRender 0.498, texture bind/update 0.200. Hooks are ~11.175 µs/profile draw; removing all would not reach 30. Earned stock work has no further exact skip authority. The full method, CPU-overlap caveat and function table are in §9 below; the bar is missed, not waived. Linux SwiftShader remains NOT MEASURED for phone budgets with no official credit. | sp-x8 | S |
+| EP10 | **Draw budget as a gate**: ≤ 150 draws and ≤ 30 µs render CPU per draw at 4x on the phone tier, in the frame-floor rows and a Developer counter | **closed as measured miss (2026-10-31, sp-x8; G872)**. Gate/counter `e084a14dfa`, pooled mean reader `93db94eb65` and explicit Linux software delivery are retained; no cap/guard change. Historical all-pose Nine/Pine `bb68a5376f` mean 49.854/99.705 µs remains a miss. Fresh immutable `4fb407395b` Pine P1, 180 native pairs per mode, Metal phone 2×/4× CPU: LEGACY/SHARDFILE pooled **78.897/79.328 µs**, draw medians 85/91, maxima 87/93. Separate source-mapped SHARDFILE sampled CPU: stock remainder 2.948 ms/frame, hooks 0.985, setProgram remainder 0.861, uniform handling 0.746, onBeforeRender 0.498, texture bind/update 0.200. Hooks are ~11.175 µs/profile draw; removing all would not reach 30. Earned stock work has no further exact skip authority. The full method, CPU-overlap caveat and function table are in §9 below; the bar is missed, not waived. **Driftwood takeover (2026-10-31, sp-x8):** retained completed Metal native-spawn peak **186 = 80 shadow + 105 render-target + 1 screen**; no exact 36-call cut established. [Ranked families and Opus follow-up](#10-driftwood-native-spawn-draw-families-2026-10-31). No runtime change or new pixel-pass claim. Linux SwiftShader remains NOT MEASURED for phone budgets with no official credit. | sp-x8 | S |
 | EP11 | **Spike: cluster instancing** (Nanite-lite): one instanced draw per family pulls vertices from a data texture by cluster id; no multi-draw | A throwaway in `tmp/` draws Nine's kit fabric in ≤ 5 draws on Chromium and the Simulator; reports vertex cost and memory; a go / no-go for Jake, nothing landed | **spiked: no-go (2026-10-30, sp-o1; E518)**: throwaway page experiment on HEAD 4f68386 (Nine, Chromium 4x, phone 2x): the 21 `nine-architecture` slab meshes (643,210 tris) as ONE instanced draw of 5,026 128-triangle clusters pulling world-space positions / normals from RGBA32F textures by (cluster id, gl_VertexID), stand-in shading. P4 / P1 work p50: slabs 8.4 / 8.6 ms (repeat 8.2 / 7.7), cluster draw with a per-frame JS cluster cull 10.0 / 10.2 ms (the cull alone 3.4-4.2 ms a call; 88 % / 55 % of clusters visible), cluster draw with no cull 7.8 / 8.2 ms; draws 139 -> 120 / 134 -> 119. Memory: 61.8 MB of float textures vs 75.9 MB of slab buffers. Verdict: ~19 draws for at most a few tenths of a ms of CPU (within run-to-run noise), a JS cull that costs more than it saves, unmeasured GPU vertex-fetch cost (headless has no GPU timer; the Simulator harness cannot inject the experiment), and shipping it means the graph looks fetching every channel from textures. NF11 / NT3 slab chunking already took the draws; no go. | M |
 | EP12 | **HLOD with the full look** (NF4 / DP4 for every shard with coarse copies) | Grid neighbours and Nine's decks match the legacy goldens (cams 17 / 18 / 21 / 22) **Nine landed (2026-10-30, sp-o5, G872 tile-bake raise)**: `1ac6638c5b` each coarse set keeps its L0 look (kit / kit-cut / kit-ground / facade by name through `props.materials`; +1 draw in 4 L1 tiles), `9d6aed8b15` (after `a90ccdca53` measured the coarse facade look on shells worse everywhere). Forced L1 vs L0 (worst channel mean): cam 17 14.2 → 8.6, cam 18 12.5 → 6.9, cam 22 36.7 → 28.5; board [ep12-coarse-look](../../../art/nine-dragon/ep12-coarse-look/board.jpg). **Done (G941, wildshard-new, from the board's D column)**: kits on their L0 graphs, shells on `nine-coarse-facade`, the only column that keeps Nine's character (window dots on the far shells at 17 / 18, lit block windows at 22); scores stay over the bar (12.6 / 10.7 / 39.3) but L1 is seen only from ≥ 250 m. | Opus | M |
 
@@ -464,3 +464,94 @@ The 23 exact private maps (28,363,099 B) and source/build/hash manifest are
 retained under `tmp/sp-x8-ep10/maps/`; the driver and exclusive attribution
 logic are `profile.mjs` / `call-profile.mjs` in that task directory. All owned
 browsers and the immutable preview were closed after the reading.
+
+
+## 10. Driftwood native-spawn draw families (2026-10-31)
+
+**Measured miss retained: 186 > 150. No renderer/material/geometry change
+landed.** X6's handed-over draft had already completed its one queued
+Metal turn, so this takeover reuses that exact raw instead of repeating
+the census. The next work is Opus render/look work within EP6/EP8;
+EP10's budget stays missed, not waived. No safe 36-call patch or new
+before/after pixel-identical capture is claimed.
+
+Source **1aeb76658b38c5208272937857e18a9e852063dc**, build
+**1aeb766-mvx1c5vm**, November 1 **00:25:40.190–00:25:46.658 UTC**
+(October 31 locally). Native entered/unpaused spawn, live clock, seed357,
+Developer/phone/auto, Metal M5 Max; CSS **402×874**, actual canvas
+**804×1748**, render scale2. Player approximately `[0,1.2006,-194]`,
+yawπ/pitch0; no teleport to a different scene. Four clean calls are
+**146 / 186 / 146 / 124**, then four attributed calls
+**186 / 146 / 124 / 146**. Errors and HTTP refusals are both empty;
+the instrumentation restores its renderer hook in `finally`. All four
+attributed frames join each actual submission to its material, program
+and geometry. The native 186 peak has **80 shadow + 105 render-target
++ 1 screen** draws. Choosing the 124/146 frames would not satisfy an
+every-frame cap. This is not the Linux 201×437 SwiftShader census or a
+physical-phone/Simulator timing reading.
+
+| Peak family | Calls | Geometry / material evidence | Exact-cut finding |
+| --- | ---: | --- | --- |
+| Shared native depth | 60 | 45 geometries, one material, six linked layouts | Already shared; draws span caster pieces/lights/layouts |
+| Cove props | 18 | 18 geometries, one material; 15 calls already instanced | Distinct prototypes/LODs; three non-instanced calls are existing family merges |
+| Palm custom depth | 15 | 15 geometries, one program/material; all instanced | Same near/far instance tables must cast independently |
+| Small cover | 11 | 11 geometries, one material; all instanced | Per-shape cell culling/fade retained |
+| Large cover | 11 | 11 geometries, one material; all instanced | Shares program25 with small cover, not its full fade/uniform contract |
+| Kit-still family | 11 | Three materials / four layouts: eight plain draws, two instanced layouts and a skinned rope | Layout/owner differences remain; material naming is not merge authority |
+| Coarse PBR props tiles | 10 | Ten geometries/materials, shared program30 | Existing independently streamed tiles, not ten duplicate shapes |
+| Kit | 5 | Five geometries, shared material, two layouts | Wind/interaction and owner contracts remain |
+| Island terrain | 4 | Four geometries, shared material/program | Existing authored/streamed tiles |
+
+Rows are a ranking, not a forecast of savings. Shared-depth program1
+accounts for **51 calls / 39 geometries**: 35 identity-world and16
+nonidentity submissions. Shadow-piece owners account for27 calls in23
+groups. `shadowChunks.ts` deliberately retains each selected cell's
+triangle range, original shared attributes, transform and shadow callbacks.
+Collapsing across a light/frustum or restoring the whole island caster
+would lose that contract. Zero-intensity sun-fade ghosts are also not
+unused lights: their maps feed the real shadow crossfade. No ghost,
+shadow, tile, LOD, geometry, capture guard or frame was removed.
+
+The offline source audit decodes **EXT_meshopt_compression** before
+hashing accessor elements, excluding unrelated bufferView padding while
+binding index order, component type/normalization and node transform.
+All **72** prototype meshes have different complete signatures. The sole
+identical-except-colour pair is `proto_drift0` / `proto_drift3`, whose
+family is **already merged**, so it offers zero extra draw savings.
+This is exact representation evidence, not proof that different decoded
+shapes could never be consolidated by a future bake. Relevant shadow,
+render, look, cove-family/model and source-GLB providers have no committed
+diff from1aeb to the audited HEAD. This does not relabel the old native
+capture as a fresh HEAD visit.
+
+**Opus follow-up, not an automatic rendering change:**
+
+- **Shadow/caster and palm/cover families first.** A smaller family/LOD
+  vocabulary or a different caster look is art/bake work, with its own
+  variant decision. Keep every current light, selected triangle, culling
+  boundary, wind and callback until an exact alternative is proven.
+- **Static cross-scene kit next (EP6/EP8).** A new bake/runtime merge may
+  consolidate the eight plain kit-still submissions, but it must establish
+  identical transforms, attributes, uniforms, independent lifetime/culling
+  and memory; the existing EP8 audit already rejected calling this a cheap
+  part merge. It is not achieved by sharing a material that is already
+  shared. Any risky memory/batching change keeps the existing default-off
+  and physical-device bar.
+- **Coarse props tiles remain streaming work.** Do not silently increase
+  tile/cell coverage to lower draw counts or merge distinct materials on
+  program identity alone. Facade multi-draw remains prohibited everywhere.
+
+A future exact candidate needs original native-spawn coverage plus the
+maintained strict A/A and A/B capture controls, with zero differing RGBA
+pixels and no Driftwood allowlist. The maintained `exact-world-capture`
+Driftwood P1 is `[100,1]` / yaw−π/2 / pitch−.05, **not this spawn**;
+that pose alone cannot qualify the native-spawn budget change. No
+candidate means no invented A/B or duplicated GPU visit here.
+
+Retained raw: `tmp/sp-x6-driftwood-draws/native-ledger-corrected.json`,
+SHA256`d6876b84b2ae89c51744ca8d203fd27d70094b2781f2e4364e29d56ed624a9d8`;
+original driver `spawn-ledger.mjs` and hook `ledger-page.mjs` in that
+directory, all historical leases stopped. Independent asserting joins,
+current source/accessor audit and rank:
+`tmp/sp-x8-driftwood-draws/{audit.mjs,ranked.json,audit.log}`. These raws
+have diagnostic timing only; no FPS, phone-budget credit or CI cure.
