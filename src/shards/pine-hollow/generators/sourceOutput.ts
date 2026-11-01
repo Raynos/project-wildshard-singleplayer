@@ -176,7 +176,7 @@ nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCano
   nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ constants: { terrain: PINE_TERRAIN, entries: headlessEntries, environment: POPULATION_ENVIRONMENT } }))),
   nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(encodeCanonicalJson(CHAPTER_DIRECTOR)), { jsonSchema: registeredJsonSchema('quests/chapter-director.json') }),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorData.module, bytes: '', file: 'behaviour/director.wasm' }, stages: directorStages, bindings: null, seed: 357 })), { jsonSchema: registeredJsonSchema('directors/main.json') }),
-  nameBlob('actors/roster.json', 'json', new TextEncoder().encode(encodeCanonicalJson(POPULATION_ROSTER))),
+  nameBlob('actors/roster.json', 'json', new TextEncoder().encode(encodeCanonicalJson(POPULATION_ROSTER)), { jsonSchema: registeredJsonSchema('actors/roster.json') }),
   nameBlob('world/ambience.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(CabinAmbienceSchema, cabinAmbienceRows(sources))))),
   nameBlob('quests/panels.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_PANELS)), { jsonSchema: namedJsonSchema(v.record(v.string(), PanelDefinitionSchema)) }),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall)), { jsonSchema: registeredJsonSchema('quests/stall.json') }),
@@ -308,7 +308,7 @@ async function eliteModules(ctx: ProjectGenerationContext) {
     blobs.push(blob); fights.push({ ...fight, program: { ...fight.program, script, bytes: '' } });
   }
   const feature = parseEliteFeature({ ...ELITE_FEATURE_ROWS, fights });
-  blobs.push(nameBlob('actors/elites.json', 'json', new TextEncoder().encode(encodeCanonicalJson(feature))));
+  blobs.push(nameBlob('actors/elites.json', 'json', new TextEncoder().encode(encodeCanonicalJson(feature)), { jsonSchema: registeredJsonSchema('actors/elites.json') }));
   return { files: emitNamedBlobs(blobs), programs: feature.fights.map(fight => fight.program) };
 }
 

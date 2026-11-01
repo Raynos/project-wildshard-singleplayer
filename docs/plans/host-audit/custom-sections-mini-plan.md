@@ -1586,3 +1586,63 @@ browser, native run, capture, payload change or host-score adjustment is
 performed for this one documentation completion. CS5's remaining native
 slices and explicit quest/runtime exits are the next work; CS10 remains
 gated by the actual live-user ledger, regardless of CS2's done mark.
+
+## CS6: complete Pine roster and elite documents
+
+The exact names `actors/roster.json` and `actors/elites.json` bind the
+existing `NativePopulationRowsSchema` and `EliteFeatureSchema`. Registered
+admission calls their complete native parsers. Roster cross-row bounds,
+elite fight identities, bounds, slots and complete spawn programs retain
+the original refusals; catalogue module/owner checks remain with
+`readEliteFeature`. No host, AS program, tick, pose or legacy path changes.
+Both SDK wire roots already existed, so this slice adds no SDK root or
+changes to first-seen wire-check identities.
+
+The maintained five product controls cover complete actual bodies,
+structurally valid but natively invalid roster/elite values, and
+missing/foreign provenance refusing before any read. Root types and
+named typed lint pass. One normal Pine AFTER is shared with X9's separate
+CS9 scaffold removal; no BEFORE generator or second AFTER is run.
+
+The roster body is 250,356 B and the elite body is 26,501 B. Their defining
+metadata adds 9,471 / 7,194 B. The payload proof must retain both bodies,
+every unrelated file and section descriptor, and all ordered pack member
+bytes, offsets and hashes. The independent scaffold scope may remove
+only its 778 B of retired fields; its full old canonical reconstruction
+and constant bytes stay exact. These are separate ordered commits.
+
+The first scratch audit refused because this lane mislabeled a
+`SHA256(JSON.stringify(schema))` expectation as a canonical hash. The
+artifact and raw refusal stay retained. Corrected reporting distinguishes
+that declared digest from the independently computed sorted canonical
+hash and requires full source/artifact/index schema equality plus exact
+metadata deltas. No product edit, rebuild, schema tolerance or admission
+waiver follows from this diagnostic correction.
+
+The shared normal AFTER exits 0 in **45.42 s**, followed by independent
+ordinary Pine admission **CURRENT**. The completed audit verifies all
+**1,055 unrelated payloads / 154,466,131 B** exactly. The assembly alone
+changes **64,873 → 64,095 B** under the separate scaffold slice, with all
+constant bytes and the entire old canonical value reconstructed exactly.
+Both roster/elite bodies and all other metadata remain exact apart from
+the two defining schema additions. Every old/new ordered pack, member,
+offset and hash reconstructs. The actual index is **1,779,579 B**, below
+the roughly 1.9 MB headroom rule and unchanged hard 2 MB cap.
+
+All **nine original/maintained suites PASS (33.6 s)**, including the
+native population platform, elite/output originals, five defining-root
+controls and independent assembly/physics/source-admission controls.
+All seven combined source hashes remain frozen through the proof and
+ordered commits. There is no map-source exception, new pixel claim or
+G872 tolerance. Source/schema/body identity is the scope of this slice.
+Evidence: `tmp/sp-x9-cs9/pine-scaffold/{strict-after,payload-after}.json`,
+`qualified-originals.log`, and this lane's frozen expected metadata and
+native-parser witness in `tmp/sp-x6-cs6-population/`.
+
+The remaining CS6 actor names have explicit exits: Nalati sheep needs its
+complete crowd-page envelope; wildlife retains all three unbridged native
+checks; DW enemy placement needs its complete approved placement root;
+and Nalati habitat retains exact contextual tree counts, ledge bounds
+and forager continuation. The historical 55-row source inventory is not
+a new host score or an all-product admission claim. CS6's broader native
+controller/AS ownership and CS10's live bridge/guard users remain open.

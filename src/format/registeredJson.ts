@@ -6,6 +6,8 @@ import { FixedDrawRowsSchema } from './fixedDraws';
 import { ForestGroundLayoutSchema, ForestPageSchema, LivingPageSitesSchema } from './forestPage';
 import { CaveFileSchema, CaveInteriorSchema } from './caveInterior';
 import * as v from 'valibot';
+import { NativePopulationRowsSchema, parseNativePopulationRows } from './populationRoster';
+import { EliteFeatureSchema, parseEliteFeature } from './eliteFeature';
 import { DirectorProductSchema } from './directorProduct';
 import { AudioSceneSchema } from './audioScene';
 import { KitFigureCardsSchema } from './questFigures';
@@ -30,6 +32,8 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'actors/roster.json':{readonly schema:typeof NativePopulationRowsSchema;readonly source:'@wildshard/format/populationRoster#NativePopulationRowsSchema'};
+  readonly 'actors/elites.json':{readonly schema:typeof EliteFeatureSchema;readonly source:'@wildshard/format/eliteFeature#EliteFeatureSchema'};
   readonly 'sim/keeper.json':{readonly schema:typeof PopulationKeeperRowsSchema;readonly source:'@wildshard/format/populationKeeper#PopulationKeeperRowsSchema'};
   readonly 'sim/returns.json':{readonly schema:typeof PageReturnRowsSchema;readonly source:'@wildshard/format/namedJsonContracts#PageReturnRowsSchema'};
   readonly 'quests/steps.json':{readonly schema:typeof QuestStepRowsSchema;readonly source:'@wildshard/format/questSteps#QuestStepRowsSchema'};
@@ -91,6 +95,8 @@ export interface RegisteredJsonContracts {
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'actors/roster.json':{schema:NativePopulationRowsSchema,source:'@wildshard/format/populationRoster#NativePopulationRowsSchema'},
+  'actors/elites.json':{schema:EliteFeatureSchema,source:'@wildshard/format/eliteFeature#EliteFeatureSchema'},
   'sim/keeper.json':{schema:PopulationKeeperRowsSchema,source:'@wildshard/format/populationKeeper#PopulationKeeperRowsSchema'},
   'sim/returns.json':{schema:PageReturnRowsSchema,source:'@wildshard/format/namedJsonContracts#PageReturnRowsSchema'},
   'quests/steps.json':{schema:QuestStepRowsSchema,source:'@wildshard/format/questSteps#QuestStepRowsSchema'},
@@ -239,6 +245,8 @@ export function validateRegisteredJson(name:string,value:unknown):void {
     case 'audio/scene.json':v.parse(AudioSceneSchema,value);break;
     case 'people/cards.json':v.parse(KitFigureCardsSchema,value);break;
     case 'directors/main.json':v.parse(DirectorProductSchema,value);break;
+    case 'actors/roster.json':parseNativePopulationRows(value);break;
+    case 'actors/elites.json':parseEliteFeature(value);break;
     case 'sim/keeper.json':v.parse(PopulationKeeperRowsSchema,value);break;
     case 'sim/returns.json':v.parse(PageReturnRowsSchema,value);break;
     case 'quests/persistence.json':v.parse(AdventurePersistenceSchema,value);break;
