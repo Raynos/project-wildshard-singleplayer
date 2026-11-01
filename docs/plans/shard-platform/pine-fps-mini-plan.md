@@ -100,7 +100,7 @@ no board. Heavy proofs (Simulator, frame floor) run at the milestones only.
 | PF15 | **Opaque draws sorted by program** (L2, E515; shared with NF22): Pine switches programs 98 times a frame for 66 programs, with 1,629 uniform calls. Measure first. | Pine P1 program switches ≤ 70 a frame; work p50 ~−0.5 ms; pixel-identical. **Closed: measured (2026-10-30, sp-o5, G872)**: Pine P1 on GLSL draws 59 switches = opaque 27 (23 programs), transparent 22 (20), shadow 8 (7), effect 2, under the bar without a sort; a sort keyed on each draw's actual program saves ~4, pixel-identical; not built (EP3, NF22). | Opus | S |
 | PF16 | **Re-cull like legacy on Pine** (L5, E515; the Pine line of NF5): per-copy culling with legacy's thresholds and changed-only uploads. | Pine 360° pan at 4x: work p50 within 0.5 ms of the still hold; no instance missing at the frame edge. | Opus · **done** (2026-10-30, sp-x1, G958; EP9 on HEAD `b609e7179b`): Pine Q4 pan 17.8 ms vs 18.9 still (−1.1); buffer calls mean 9.6 / p50 9 / max 21; zero edge omissions, Forest full-turn frustum test `d60f431cc9` | S |
 | PF17 | **Cabin PBR set as one material** (after Jake's QA; pine-frame's estimate) | P4's main pass draws 125 vs P3's 86: the ranger cabin in view. Its 6 textured materials (1024² ASTC 4×4 map + normal, 512² ETC2 ORM; tint and roughness / metalness scalars differ, one on the slab program) draw one each. EP7's layered map covers only the diffuse: add layered normal and ORM, per-vertex tint and roughness / metalness (flat varyings, so the numbers stay bit-exact), and merge the parts per unit at author time (cabins are frozen there). Done: the cabin's textured parts in ≤ 2 draws, captures identical at P4 and a cabin close-up, P4 work −0.4 ms or more at Chromium 4x. ~3–4 h. Not worth it: the 3 untextured opaque parts (chink, iron, char: 3 → 1, ~0.1 ms) | **closed, measured (2026-10-30, sp-o1; E518 / G872)**: on HEAD 587a960 at P4 the cabin draws 5 textured standard parts (cabin-cluster): 4 share formats (ASTC 4x4 1024^2 map + normal, ETC2 512^2 ORM; roughness 1, metalness 0) but differ in tint (f3efe7 / f9f3ec / ffffff / ede7e1), normal scale (1 / 0.8) and draw band (two hide past 183.6 m, `until`); the fifth (end grain, 17.7k tris) is an uncompressed 256^2 map with 1x1 normal / ORM, which cannot join a compressed array. An exact merge (layered map / normal / ORM, flat per-vertex tint and normal scale) can only join the 3 band-free parts: 5 -> 3 draws, ~0.07 ms at 4x; <= 2 draws and -0.4 ms need the bands merged (a visible change at 183 m) and the end grain re-baked compressed. Not built: the gain is under the noise; the 6-material estimate assumed graph parts (roof / door / stone) that are separate looks. | M |
-| PF18 | **G965 exact update parity** | World / equipment / movers retain every state, pose and wake condition; each system targets recorded LEGACY + 0.05 ms. Landed 6c03a7825d / 62941932c9 improve only measured lookup/evaluator components. The three-pin native readings miss parity. Both cuts count as pixel-identical under G941: the raw strict reader failures reproduce as in-build held-view flicker. No comparator allowlist changes; full bounded G965 reading below. No native gain is claimed. | Codex (sp-x6 world/movers; sp-x9 equipment), in flight | S–M |
+| PF18 | **G965 exact update parity** | World / equipment / movers retain every state, pose and wake condition; each system targets recorded LEGACY + 0.05 ms. Landed 6c03a7825d / 62941932c9 improve only measured lookup/evaluator components. The three-pin native readings miss parity. Both cuts count as pixel-identical under G941: the raw strict reader failures reproduce as in-build held-view flicker. No comparator allowlist changes; full bounded G965 reading below. No native gain is claimed. | Codex (sp-x6 world; sp-x9 equipment; sp-x8 movers measured, neutral attempt rejected), parity open | S–M |
 | PF19 | **Per-draw parity after the terrain merge** | ≤ 48 µs a draw at P1; identical. | **closed as measured miss (2026-10-31, sp-x8; G872)**: immutable `4fb407395b` includes the ground merge and final EP2 cuts. Metal phone 2×/CPU4× P1, 180 native pairs per mode: LEGACY/SHARDFILE pooled **78.897/79.328 µs**, medians 85/91 draws, maxima 87/93. Separate exact-map profile shows 0.985 ms/frame own hooks (~11.175 µs/profile draw), 2.948 ms other stock work, 0.861 setProgram remainder, 0.746 uniform handling, 0.498 onBeforeRender and 0.200 texture handling. No safe new exact skip remains; no runtime change or bar waiver. Shared-host CPU overlap is retained. Full method/function table: [engine performance §9](engine-performance-mini-plan.md#9-ep10--pf19-per-draw-reading-after-ep2-2026-10-31). | S |
 | PF18 | **Update-system parity (E518)** | Each system at P1 targets LEGACY + 0.05 ms. **Closed as measured; parity not met (2026-10-31, sp-x9, G872 ruling)**: `b09eb3bda1`, shared-Mac Chromium Metal 4x / phone, world **0.372 vs 0.109 ms**, equipment **0.513 vs 0.228**, movers **0.091 vs absent**; HUD **0.142 vs 0.166 passes**. Exact partial cuts `693e0d2b12` and `b09eb3bda1` have four-pose M3 A/A and A/B all zero, without an isolated frame-gain claim. Six private variants rejected: publication-bank swap, entity-copy cache, flattened immutable leaves, effects-only mover math, duplicate numeric-read removal and single-port specialization. The final shared-read traversal attempt retains every live lookup/getter/lane order, but 12-leg warm actual HeldPlayback pairs were inconsistent: direct indexing CPU 380.191 -> 373.586 ms, prebound keys 417.857 -> 428.421 ms; 1,200-frame output digests equal. No structural candidate landed; mutable reads, private locals and partial-refusal publication remain unchanged. | **closed: measured, not met** (sp-x9; G872) | S–M |
 
@@ -186,7 +186,7 @@ session's.
 
 ### G965 exact update work (2026-10-31, sp-x6 / sp-x9)
 
-Jake reopened pixel-identical modern Pine CPU work. World and movers are sp-x6; equipment is sp-x9. Pine LEGACY is retired by G966: the legacy 0.11 ms world / 0.23 ms equipment numbers are recorded observations, not a current paired read. The original plan budget protocol stays Chromium Metal, phone 2x, CPU 4x, seed 357, P1-P4, without ablations.
+Jake reopened pixel-identical modern Pine CPU work. World is sp-x6, equipment is sp-x9; sp-x8 took over movers/canoe below. Pine LEGACY is retired by G966: the legacy 0.11 ms world / 0.23 ms equipment numbers are recorded observations, not a current paired read. The original plan budget protocol stays Chromium Metal, phone 2x, CPU 4x, seed 357, P1-P4, without ablations.
 
 The one committed pre-deletion HEAD probe (7b0c9131b6, build 7b0c913-mvwy7bvv) retained valid P1/P2 CDP profiles. It refused a negative CDP clock delta during P3; its earlier P3 budget window remains, P4 was never reached, and the failure was not retried. Browser and preview were closed; the earlier preview-builder overlap with the peer Road turn is retained. This is a partial diagnostic, not four-pose acceptance.
 
@@ -218,3 +218,80 @@ Both maintained held-inclusive M3 readers completed all four poses and retained 
 Offline comparison of those existing images found exact full RGBA at P1-P4 for 9cca repeat 0 versus 6c03 repeat 0, and for 6c03 repeat 2 versus 629 repeat 2. Camera/projection matrices, clock, frame, player position, draw/triangle counts and held-draw metadata all matched. Crucially, unchanged 6c03 repeat 2 versus repeat 0 reproduces the same three P4 pixels. This is source-counterpart and capture-order evidence; it does not turn either original strict reader into a pass or approve new flakes. The update-parity bars remain open. **G941 ruling (Jake via wildshard-new, 2026-10-31): both 6c03a7825d and 62941932c9 count as pixel-identical.** P4 reproduces within unchanged 6c03; P2 is an A/A difference. Record both as observed held-view flicker caused within a build, not by either cut. The raw strict EXIT1 results stay, and neither coordinate/value set enters any comparator allowlist. A recurrence elsewhere goes back to the coordinator.
 
 Retained data: tmp/sp-x6-g965-pine/raw/head-7b0c9131b6/{row.json,ranked.json,P1.cpuprofile,P2.cpuprofile,private-maps}; native-summary.json, native-pair.json, pixels-world/reading.json, pixels-equipment/reading.json and pixel-classification.json in the same task root. All owned preview leases were released at whole exit; only sp-x9's separately joined 629 baseline remains for T4. No second profile, unchanged retry, native gain, official Simulator or phone acceptance is claimed.
+
+
+#### G965 movers/canoe follow-up: neutral exact attempt (sp-x8)
+
+**Measured, no runtime cut landed.** Reused the valid 7b0 P1/P2 maps and
+samples first; no P3 clock retry or retired LEGACY build. All five mover,
+physics and canoe source leaves remained byte-identical from 7b0 through
+this probe. One necessary committed-HEAD preview pinned
+`22d77e85c091d1a8710b435ba8d9bf31e8aab335`, build
+`22d77e8-mvx6rocf`, supplied the fresh reading. Required release entries,
+X6's matched codec stage and the final Pine publisher closed before its
+browser started. The browser and own preview lease closed at
+2026-11-01 02:13:56Z; there was no concurrent builder or timing cohort.
+
+Original protocol: Chromium Metal, iPhone 16 Pro portrait, phone render
+2x, CPU 4x, Developer/seed357, P1/P2 only, no ablations. Each native
+budget window contains 90 frames; the separate valid CDP windows each
+contain 152 frames. These are single baseline readings, not an A/B frame
+or FPS improvement. The system means below are instrumented attribution,
+separate from the native work distribution.
+
+| Pose | physics.movers mean ms | pine.movers mean ms | Native work p50 / p95 ms |
+| --- | ---: | ---: | ---: |
+| P1 | 0.095 | 0.072 | 12.3 / 14.1 |
+| P2 | 0.076 | 0.053 | 11.4 / 13.6 |
+
+The canoe is the single admitted `pine.canoe` row inside `pine.movers`,
+including its command, motion/effect, view and carry publication. It has
+no separately measured retained clock; do not add an invented canoe cost
+on top. No individual mover LEGACY clock is retained either. The old
+world/equipment numbers above remain recorded observations only.
+
+P1 sampled self-time leaders (ms/frame, sparse samples rather than new
+per-function timers):
+
+| Lane | Top five self-time items |
+| --- | --- |
+| physics.movers, 18 samples | sync 0.01018; pose reader 0.00915; Three updateWorldMatrix 0.00757; native translation boundary 0.00547; decompose 0.00403 |
+| pine.movers, 23 samples | MoverRuntime.step 0.02656; ScriptWorld.entity 0.01394; effects.prepare 0.01040; MoverMechanic.step 0.00915; published pose 0.00407 |
+
+P2 shifts physics self-time toward Three quaternion extraction 0.01519,
+hierarchy update 0.01486 and matrix multiplication 0.00987 ms/frame;
+its 15 physics / 13 canoe-lane samples do not establish a new serial
+pole. Native pose writes, effects, carry and wake semantics remain work,
+not permission to freeze the canoe or skip fixed steps.
+
+**Exact matrix-cache candidate rejected.** A read-only 120-fixed-step
+capture at each pose found nine followed pieces: three NPC anchors and
+six cabin doors. Of 2,160 decompositions, 2,151 repeated identical input
+matrices. Float64 bit receipts retain signed zero. The private candidate
+still called every normal hierarchy update, active/collider check and
+native pose write; it reused only finite, exactly identical matrix
+outputs. All captured position/quaternion/scale bits matched. Separate
+original/candidate real-Rapier controls retained full snapshots across
+400 simulated frames and 880 ordinary pose writes, including independent
+interleaved readers, sleep/wake, parent/frame changes, negative scale,
+followRotation changes, enable/resize, plus singular/non-finite cases.
+
+One quiet six-fresh-process kernel comparison, paired order AB/BA/AB,
+replayed the actual 240-frame/nine-piece input set 100 times per leg:
+216,000 helper calls. Original medians **9.274375 ms -> 9.248584 ms
+(-0.278%)** are neutral. Input comparison and result copying consumed
+the saved decomposition work. This is kernel wall only, excluding live
+hierarchy propagation and native pose writes; it is not a system/frame
+saving. The 0.437-second cohort closed at 02:22:07Z. No cache was
+activated, no state/replay/pose/wake check was skipped, and the unused
+off-tree implementation was deleted. With no runtime cut, no new pixel
+A/B or pixel-pass claim is manufactured. G965 parity remains open.
+
+Retained diagnostic evidence:
+`tmp/sp-x8-g965-movers/raw/head-22d77e85c0/`
+(`row.json`, `ranked.json`, P1/P2 profiles, exact private maps and matrix
+inputs), `baseline-binding.json`, `probe-reading.json`,
+`controls-{before,after}.json`, `matrix-exact.json`, `component.json`
+and six `component-legs/` readings. All actual source/input/helper hashes
+are bound in those readings. All owned browser/build/native CPU and
+preview leases are closed; there is no next mover cohort attached.
