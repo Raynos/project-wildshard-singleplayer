@@ -1806,3 +1806,159 @@ Panel evidence is `tmp/sp-x1-cs5-panels/{source-base,before,footprint,
 oracle-recovery}.json`, `controls-complete.log` and `types-rebased.log`.
 No build, browser, native simulation, registry activation, cap change or
 CS10 guard deletion is performed by this source-audit documentation.
+
+## CS9: remaining fields and scaffold exits
+
+**2026-10-31, sp-x9 — source-first disposition, not a migration-complete
+mark.** The retained four-product read verifies each named JSON body
+against its actual index hash, then searches the other complete named
+payloads and admitted shardfile. It accounts for all **34 assembly
+constants**, every top-level field of the four other CS9 documents
+(**69 fields total**), and all three remaining declaration shells.
+The retained outputs pass native format admission; this census does not
+assert fresh current-source admission or a full-24 output scan.
+
+Eight exact derivations are prepared **off-tree, not landed**. Read-only
+feasibility with the original parsers reconstructs the entire old
+canonical Driftwood/Nalati assemblies and taming-pose document:
+Driftwood **931,426 → 920,377 B**, Nalati assembly
+**113,878 → 113,286 B**, taming poses **85,858 → 32,774 B**.
+The projected saving is **64,725 B**; it is not emitted AFTER proof.
+The single queued full-payload/pack proof must follow the separate
+placement and CS5 checked source/proof handbacks. No extra publisher,
+namespace retag, host promotion or permissive schema is authorized here.
+
+The other fields have the explicit exits below. An exact child match is
+reported where found; it never labels the whole compound body as a
+platform contract. Existing caps, native assertions, semantic parsers,
+return-before-derived-read ordering and actual proof-input identity stay.
+Evidence: `tmp/sp-x9-cs9/remainder/{inventory,shard-matches,related-matches,
+feasibility,dispositions}.json`; the read-only candidate type overlay
+has zero diagnostics. CS10's recorded live-user exits are unchanged.
+
+### driftwood-isle — `sim/headless-assembly.json`
+
+| Field | Disposition / defining payload or explicit exit |
+|---|---|
+| `dayStyle` | **Explicit exit.** CS9 toon-day/clock owner derivation: generators/toonPresentation.ts owns the full TOON_LOOK.sky.day, not an admitted whole defining document. Retain preset values and initial clock alignment. |
+| `entries` | **Explicit exit.** CS9 native entry-proof exit: data/entryWalk.json is an expected walk/count budget consumed by proveTerrainEntries; do not recompute expected proof facts from the geometry being checked. |
+| `interact` | **Queued exact derivation; emitted proof pending.** quests/interaction-source.json#/constants/interact; existing bounded named-JSON admission and original native interaction owner |
+| `interactSpots` | **Queued exact derivation; emitted proof pending.** quests/interaction-source.json#/constants/interactSpots; original page/native placement input |
+| `mixedPopulation` | **Explicit exit.** CS6/CS9 complete mixed-roster owner: combines practice placement/respawn, native attack cap and four pose banks. sim/keeper and sim/enemy-placement are partial inputs, not the whole native value. |
+| `nativeChapterCues` | **Queued exact derivation; emitted proof pending.** quests/wake-boss.json#/cues projected to id/operation by the original parseChapterWake |
+| `nativeCounters` | **Queued exact derivation; emitted proof pending.** quests/achievements.json through parseAchievementCounterData and the original native-feat/flag/write projection |
+| `nativeQuest` | **Explicit exit.** CS5/CS9 complete native quest-composition owner: generators/nativeQuest.ts joins save order, prompts, transitions, acquisition and reward. Preserve parseNativeQuestComposition and original native entry assertions. |
+| `nativeQuestSpots` | **Explicit exit.** CS5/CS9 complete native place/prompt/cable root: DRIFTWOOD_SPOTS contains more than the interaction-source row array. Keep readNativeQuestSpots, prompt-registration and cable bounds. |
+| `nativeSpecs` | **Explicit exit.** CS4/CS9 complete native figure-spec catalogue: driftwoodNativeRows owns exact native body/spec pairs. A species-name match or an actor subrecord does not reproduce the whole book. |
+| `physics` | **Explicit exit.** CS4 complete native-bake owner/typed binary derivation: preserve solid order, tagged provenance, actor/herd/habitat/captain and exact ground/collider bytes. The two existing binaries alone do not define this whole compound value. |
+| `questKillSteps` | **Explicit exit.** CS5 native kill-step/feat continuation: preserve kill fact identity, ordered native reward and original quest counter ownership; no whole admitted replacement was found. |
+| `questProps` | **Explicit exit.** CS5 complete native prop-owner exit: nativeQuestProps joins barrels, floors, plates and water with placements and owned save order; a scene/view payload is not the native owner. |
+| `sea` | **Queued exact derivation; emitted proof pending.** admitted shardfile.water row id=sea; declaredWaterBody unchanged |
+| `swords` | **Explicit exit.** CS7 complete native melee/loadout policy exit: data/nativeSwords.json has slot, source, tags, combo/contact/lunge rules not present as the same whole admitted item row. |
+
+### pine-hollow — `sim/headless-assembly.json`
+
+| Field | Disposition / defining payload or explicit exit |
+|---|---|
+| `entries` | **Explicit exit.** CS9 native entry-proof exit: data/entryWalk.json binds lanes/walk/start/maxTicks; preserve expected proof facts independently of actual geometry and original native entry guards. |
+| `environment` | **Explicit exit.** CS6/CS9 G571 population-environment owner/genericity exit. POPULATION_ENVIRONMENT is emitted only here; actors/shelter contains an id reference, not this 63,824-byte value. PopulationEnvironmentSchema is not host approval. |
+| `terrain` | **Explicit exit.** CS4/CS9 native terrain/navmesh binding exit: terrainBindings.json names the native terrain format, resolution/size/seed and original public asset paths. The admitted sampling tile is a different wire; no implicit conversion or path alias. |
+
+### nalati-grasslands — `sim/headless-assembly.json`
+
+| Field | Disposition / defining payload or explicit exit |
+|---|---|
+| `eliteDefs` | **Explicit exit.** CS8/CS9 complete native elite catalogue: selected ecology lair/rule/radius/respawn facts retain native identity and exact kernel admission; a profile child is not the complete owner. |
+| `eliteEntry` | **Explicit exit.** CS8/CS9 elite-construct capability/owner exit: preserve assembly/admission file identities, fight/model/program/weather/night bindings and ledge anchor; do not manufacture authority from matching strings. |
+| `groupRows` | **Explicit exit.** CS8/CS9 ordered native group/guest ABI exit: parseNativeGroupRows preserves member adoption, two guest-owned draws, delay/admission and group ordering. Page wildlife groups are not this whole native program. |
+| `nativeBake` | **Explicit exit.** CS4 native bake-admission configuration exit: retain the exact native label, axis/shape/storage/provenance bounds used by createNativeBakeReader. Existing collider bodies are not an independent config contract. |
+| `nativeDayClock` | **Queued exact derivation; emitted proof pending.** world/forest-weather.json#/sky/clock through ForestWeatherSchema |
+| `nativeKnockdown` | **Queued exact derivation; emitted proof pending.** sim/headless-boot.json#/riding through parsePopulationKnockdownSource |
+| `nativePopulation` | **Explicit exit.** CS6/CS9 complete native population/cadence/projection-driver exit: the riding population is extended with crowdNativeProjection; preserve encounter loan checks and original body/decision order. |
+| `nativeRide` | **Explicit exit.** CS8 native mounted controller exit: nativeRide joins riding speeds and original roads; its projection is not the full riding/session or boot owner. Preserve mounted command/save rules. |
+| `nativeShelters` | **Explicit exit.** CS4/CS9 native weather-shelter owner exit: original shelter circles and weather-world binding remain exact; rendered yurt geometry or ids alone do not define native hit/shelter queries. |
+| `nativeTaming` | **Explicit exit.** CS8 native taming/bond controller wire exit: keep herd/roster ids, bindings, prompts, acquisition/save order and limits; riding/session has related fields but no equal whole native envelope. |
+| `nativeWeather` | **Explicit exit.** CS9 native weather-world owner exit: world/weather.json supplies a program/reaction bundle, while this value owns native world query/binding rows. Preserve steppe wind, weather continuation and shelter semantics. |
+| `pageElites` | **Explicit exit.** CS8/CS9 complete elite entry/profile catalogue exit: buildEliteEntryPageRows joins profiles, native identity and kernel loans; no permissive profile union or child schema may label the whole body. |
+| `timedEntry` | **Explicit exit.** CS8/CS9 timed-encounter capability/guest exit: retain owner/source/species/guest/site/figure names and native activation semantics; matching a view does not prove the executable entry. |
+
+### nine-dragon-stack — `sim/headless-assembly.json`
+
+| Field | Disposition / defining payload or explicit exit |
+|---|---|
+| `portalStep` | **Explicit exit.** CS8/CS9 native portal adapter identity exit: preserve the restore adapter key and installHostPortalRide ownership. No admitted defining row carries this complete native binding. |
+| `jianStep` | **Explicit exit.** CS7/CS9 held-policy adapter identity exit: the value also equals jianPolicy.step, but the retained source witness reads this identity directly. Retire that source/wire reference together with the complete native policy proof, not by an unproved alias. |
+| `jianPolicy` | **Explicit exit.** CS7 complete native swept policy exit: retain source/slot/combo/heavy/contact/lunge values and nativeMeleeItem admission; no equal whole loadout/item payload was found. |
+
+### nalati-grasslands — `sim/headless-boot.json`
+
+| Field | Disposition / defining payload or explicit exit |
+|---|---|
+| `admission` | **Explicit exit.** Exact subvalue in actors/wildlife.json#/admission; CS8 boot/guest ownership exit until the original complete wildlife/native program parser and boot-source reconstruction are qualified together. |
+| `combatTargets` | **Explicit exit.** CS9 complete boot combat-target/native body owner exit; retain target identity and exact native body/shape authority. |
+| `hunt` | **Explicit exit.** CS6 native hunt/ecology owner exit; preserve encounter loan bounds and owner-selected native programs. |
+| `mountable` | **Explicit exit.** CS8 boot mounted-id owner exit; keep exact admitted body identities and the original bonded roster union. |
+| `pasture` | **Explicit exit.** Exact subvalue in actors/wildlife.json#/pasture; same CS8 boot/guest ABI exit, preserving guest-owned draws and original native compilation/admission. |
+| `phases` | **Explicit exit.** CS9 boot clock/population phase-order exit; phase names alone are not an independently admitted native lifecycle. |
+| `recipes` | **Explicit exit.** CS4/CS6 exact native body/variant recipe owner exit; preserve original body parsers, variant membership and bounded encounter loans. |
+| `rest` | **Explicit exit.** Exact subvalue in riding/session.json#/rest; CS8 whole boot/riding owner reconstruction exit, not a whole-envelope alias. |
+| `riding` | **Explicit exit.** Exact whole ride/rules.json value; CS8 original native riding-program wire/ABI exit before rebinding boot consumers. Retain compiled ReturnProgram/capability checks. |
+| `roads` | **Explicit exit.** Exact values in world/meadow.json#/trails and riding/session.json#/roads; CS8 boot/mounted owner reconstruction exit, preserving array order and original native roads. |
+| `roster` | **Explicit exit.** CS6 native boot roster/identity/RNG exit; preserve initial body/herd order, stream snapshots and native installation sequence. |
+| `species` | **Explicit exit.** CS6 complete native species/variant catalogue exit; preserve original SpeciesSchema and admitted recipe membership. |
+| `streamSeed` | **Explicit exit.** CS6 boot random-stream authority exit; no recomputed or newly granted seed. |
+| `worldUpdates` | **Explicit exit.** CS9 typed native boot update/scheduling owner exit; preserve world/control/weather cadence and ordering. |
+
+### nalati-grasslands — `sim/taming-poses.json`
+
+| Field | Disposition / defining payload or explicit exit |
+|---|---|
+| `horse` | **Queued exact derivation; emitted proof pending.** Queued exact derivation from registered actors/species-looks.json#/poses/horse through parsePackedCreatureLooks. Native pose compiler remains unchanged. |
+| `poses` | **Explicit exit.** CS9 complete owned native pose/joint exit: tamingPoseRows.ts checks <=32 bones and parent-before-child; preserve relative numeric coordinates, zero defaults, gait/pose fields and the extra Argymaq row. |
+
+### nine-dragon-stack — `sim/headless-constants.json`
+
+| Field | Disposition / defining payload or explicit exit |
+|---|---|
+| `spawnY` | **Explicit exit.** CS9 native entry/collision proof exit: preserve the original layout.Y0+0.1 rule and trusted spawn bound; no authoritative whole replacement was found. |
+| `hooks` | **Explicit exit.** CS9 grapple native point-book exit: recordedPhysicsPoints binds original ring centres; rendered hook nodes are not the native capture book. |
+| `grappleProfile` | **Explicit exit.** CS9 complete native grapple profile exit: preserve parseGrappleProfile, host/query limits and original rise/flat control; no identical admitted defining payload was found. |
+| `portalRide` | **Explicit exit.** CS9 native portal ride binding/landing exit: preserve director, triggers, fade/veil and exact landings with original native portal checks. |
+| `pieces` | **Explicit exit.** CS4/CS9 grid-collision owner exit: preserve original piece/filter/order, exact float32 hulls, standalone cap removal and native tread expansion; never infer it from the rendered kit. |
+| `entryProof` | **Explicit exit.** CS9 native capability proof exit: lanes/steps/transfers are the actual admitted entry result, not ordinary source constants to be retagged or recomputed as expected values. |
+
+### pine-hollow — `world/landmark-view.json`
+
+| Field | Disposition / defining payload or explicit exit |
+|---|---|
+| `contractBoardSite` | **Explicit exit.** The exact board point also appears in quests/page-composition.json#/board/at; CS9/CS3 whole landmark projection reconstruction remains the exit, retaining all other native view fields. |
+| `waystoneSites` | **Explicit exit.** CS9/CS3 complete native timber-view/book projection exit: forestPage.ts/timberWorldRows owns exact placed transforms, shapes and floor references; no whole admitted replacement was found. |
+| `stones` | **Explicit exit.** CS9/CS3 complete native timber-view/book projection exit: forestPage.ts/timberWorldRows owns exact placed transforms, shapes and floor references; no whole admitted replacement was found. |
+| `waystones` | **Explicit exit.** CS9/CS3 complete native timber-view/book projection exit: forestPage.ts/timberWorldRows owns exact placed transforms, shapes and floor references; no whole admitted replacement was found. |
+| `dam` | **Explicit exit.** CS9/CS3 complete native timber-view/book projection exit: forestPage.ts/timberWorldRows owns exact placed transforms, shapes and floor references; no whole admitted replacement was found. |
+| `canoe` | **Explicit exit.** CS9/CS3 complete native timber-view/book projection exit: forestPage.ts/timberWorldRows owns exact placed transforms, shapes and floor references; no whole admitted replacement was found. |
+| `board` | **Explicit exit.** CS9/CS3 complete native timber-view/book projection exit: forestPage.ts/timberWorldRows owns exact placed transforms, shapes and floor references; no whole admitted replacement was found. |
+| `arch` | **Explicit exit.** CS9/CS3 complete native timber-view/book projection exit: forestPage.ts/timberWorldRows owns exact placed transforms, shapes and floor references; no whole admitted replacement was found. |
+| `archGround` | **Explicit exit.** CS9/CS3 complete native timber-view/book projection exit: forestPage.ts/timberWorldRows owns exact placed transforms, shapes and floor references; no whole admitted replacement was found. |
+| `lamps` | **Explicit exit.** CS9/CS3 complete native timber-view/book projection exit: forestPage.ts/timberWorldRows owns exact placed transforms, shapes and floor references; no whole admitted replacement was found. |
+| `archShape` | **Explicit exit.** CS9/CS3 complete native timber-view/book projection exit: forestPage.ts/timberWorldRows owns exact placed transforms, shapes and floor references; no whole admitted replacement was found. |
+| `zip` | **Explicit exit.** CS9/CS3 complete native timber-view/book projection exit: forestPage.ts/timberWorldRows owns exact placed transforms, shapes and floor references; no whole admitted replacement was found. |
+| `timberFloors` | **Explicit exit.** CS9/CS3 complete native timber-view/book projection exit: forestPage.ts/timberWorldRows owns exact placed transforms, shapes and floor references; no whole admitted replacement was found. |
+
+### Retained declaration shells
+
+Each still has `version`, `modules`, `prepare`, `install`, `level`,
+`ports` and `entries` alongside its distinct constants. The original
+`modules`/`prepare`/`install` collections are empty. Pine’s qualified
+shell deletion `892e75d553` does not prove these three source, schema
+and witness contracts retired.
+
+| Product | Explicit deletion exit |
+|---|---|
+| driftwood-isle | CS9 closed native-input wire/DSL retirement exit: namedSchemas.ts still attaches HEADLESS_ASSEMBLY_JSON_SCHEMA plus the complete native-quest allOf; its original wire/refusal test is live. Retire the source shell, closed payload schema, explicit proof ENTRY/input and original schema test atomically after constants have defining owners. Never weaken the global grammar to an unknown constants record. |
+| nalati-grasslands | CS9 authored constant-book/typed native bootstrap separation exit: data/headlessAssembly.json is also a live source for nativeGroups.ts and clientRiding.ts. Preserve exact source constants and generated native type, return-first admission, runtime weather/ride references and native proof input identity when deleting the inert DSL fields. A wire rename alone is not retirement. |
+| nine-dragon-stack | CS9 authored native control-book/witness ABI exit: data/headlessAssembly.json supplies constants/type and source witness snapshot adapter ids; sim-in-runtime also validates its declared assembly form. Retire only inert DSL fields with all those source/fence references and original entry/collision/grapple/portal guards intact, without weakening the census or retagging proof. |
+
+**CS9 stays open** for these concrete owner/derivation/deletion exits.
+No live custom emitter, reader, named validator, policy or ceiling is
+removed or reclassified by this ledger.
