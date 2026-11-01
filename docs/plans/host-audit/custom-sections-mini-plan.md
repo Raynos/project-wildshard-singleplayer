@@ -111,7 +111,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 | **CS0** | **done (2026-10-24, sp-x6):** measured ceilings 387 / 33,613,009 B; shrink-only existing-name inventory, new custom sections refused, new named JSON requires an exact defining format schema. **Ceilings to actuals and a schema freeze** (free, can land now): set every `custom-sections/<slug>` ceiling to the measured value (549 → 387, 62 MB → 33.6 MB); refuse a new `custom/` section and any new named JSON whose schema is defined in a shard folder | 0.5 day, Codex |
 | **CS1** | **done (2026-10-31, sp-x1):** plain hash-bound section inventory in `9a616b4b82`; exclusive test-project ownership fixed in `b13ad77350`. Records sections/named JSON, shard, bytes, defining bindings, source emitters and reading-host evidence; unresolved evidence remains explicit. No ruler, scores or progress tool. | 0.5–1 day, Codex |
 | **CS2** | **open (2026-10-31, sp-x1):** persistence, 27 native world-scene recipes, the 23 aliases/forest-page documents in `31bffc86fb`, and building-sites/shape-book are qualified. The 62 welds remain withdrawn; eight separate living-cabin envelopes are also an explicit index-footprint exit under the approximately 1.9 MB Pine headroom rule. Ground-family source review is next. Remaining names need the concrete family exits below; the five repeated-name exits alone do not close CS2. | 2–3 days, Codex + Opus review |
-| **CS3** | **K1 scenes**: one streamed `world/scenes` family and `models/library`; Pine's 112 placement files become one indexed section; tier copies derived. Pine first, then Sky / Signal / Nine / Driftwood / Nalati | 3–4 days, Codex (Opus memory reading on Pine) |
+| **CS3** | **open (2026-10-31, sp-x2):** first exact phone-dressing slice `1fadd8e67a` passes full body proof and strict P1–P3 A/A + A/B (all six comparisons 0 pixels). Desktop and wider scene migration remain open; see [the scoped reading](#cs3-first-phone-dressing-slice). **K1 scenes**: one streamed `world/scenes` family and `models/library`; Pine's 112 placement files become one indexed section; tier copies derived. | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **K2 ground and physics**: Pine physics into `world/physics`; floor, crag cave, Sky fields, Signal embers into a streamed `world/fields` | 2–3 days, Codex (Opus memory reading) |
 | **CS5** | **K3 quests**: one `quest/*` family across Pine, Driftwood, Nalati (and Sky's quest rows); Pine `questRuntime` program to AS | 4–6 days, Opus design + Codex port |
 | **CS6** | **K4 creatures**: `actors/species` + `actors/populations`; behaviour rows to AS on WASM-HOST H6 / H8 | 4–6 days, Opus + Codex |
@@ -819,3 +819,89 @@ The projected additions use unchanged canonical index encoding on
 hash-verified physical indexes; they do not claim current-source
 admission. No ground schema, emitter, physics owner or collider is
 changed by this source audit.
+
+
+### CS3 first phone-dressing slice
+
+**2026-10-31, sp-x2; source `1fadd8e67ab58296d75fc5993cff71f9295f9a1b`.**
+Bind only Nalati's existing `world/dressing-phone.json` to the complete
+`format/sceneDressing#SceneDressingSchema`. The G483 world-scene-assembly
+approval is recorded in `docs/HOST-BAR.md` and the existing pending-user
+ledger; this is not a new host or a new six-test host-bar score. The SDK
+already exposes that exact defining root. The original installer keeps
+its full native reference/bounds parser, geometry/contact file admission,
+entered-owner identity, deferred catalogue reads, failure cleanup and
+lifetime. No resource name, binary word, draw/tier/shadow policy, schema
+or default changes. Desktop remains unregistered by this slice.
+
+The actual 872,825-byte phone document (`ce7d9916…9abd22`) parses under the
+full native root without mutating the wire input. The defining grammar
+is byte-identical; only its provenance comment is added. One ordinary
+six-product AFTER build passes in **44.52 s**, followed by independent
+strict-current admission for all six. The Nalati index grows by exactly
+**65 B**, from 1,100,052 to **1,100,117 B**; Pine stays **1,763,458 B**.
+The approximately 1.9 MB Pine headroom rule and hard 2 MB cap stay intact.
+
+The pre-activation snapshot covers **3,009 actual payload paths /
+484,714,621 B**. DW, Pine and Nalati were independently current after the
+preceding coalesced proof; the other three before outputs are labelled
+hash-verified historical oracles, not a fresh admission claim. No BEFORE
+generation is run. **3,008 payloads are exact**; every other index field,
+custom schema, ordered pack member, offset and reconstructed pack hash
+is checked independently. Precisely one file's provenance metadata changes.
+
+The raw body comparator remains **FAIL** on the sole 164-byte Nalati
+`look/map` record. The full old source stamp reconstructs;
+`map.tilesHash` changes from `9ace4b97…488234` to `f3f8719e…0e154e`,
+the exact current `mapTilesHash`. Only `generators/dressingScene.ts`'s
+import and phone metadata option changed among all declared map inputs.
+The image stays `80afaa55…aff2d6`; all five other maps are unchanged.
+G872 accepts this individual source-stamp case only: no tolerance,
+stamp freeze, freshness waiver or changed guard.
+
+Seven maintained admission controls and the original owner, file-only,
+row and baked-file focus pass in **9.0 s**. The original product and
+complete dressing-grammar consumers pass in **5.6 s**. Missing/foreign
+metadata refuses before reads; raw omitted defaults stay omitted. Root
+types and named typed lint pass; the source reaches `origin/main` with
+the committed push gate green (**11.46 s**, no bad commit).
+
+G612 explicitly authorizes **land, then measure** so the native preview
+excludes old foreign working-tree renderer edits. The sealed normal
+`--rev` pair is `578c36f-mvx25qtn` / full `578c36fb…abc5` before and
+`1fadd8e-mvx38av9` / the full source SHA above after. The before pin also
+predates the separately qualified grass range change, and the pair
+includes intervening peer format metadata; the full source diff is
+retained, not described as a pure-leaf or isolated timing experiment.
+Both served phone bodies are independently hash-bound and identical.
+No working-tree preview, mirror edit, response override or program loan
+is used. The rejected working-tree idea launches no builder or browser.
+
+Native Chromium/Metal (Apple M5 Max), iPhone 16 Pro **402×874 / DPR 2**,
+uses three fresh controlled worlds and nine **804×1748 RGBA** frames.
+At **P1, P2 and P3, both strict A/A and A/B differ by 0 pixels**:
+no tolerance, whitelist, crop, colour adjustment or comparator change.
+Per-pose native draws/triangles also match across all three worlds:
+P1 **73 / 1,061,236**, P2 **73 / 1,192,327**, P3 **62 / 1,013,390**.
+The maintained posed-world protocol retains native control and clocks,
+world shadows and resource admission; its declared scope excludes post
+and the camera-child viewmodel. This is pixel identity, not FPS,
+physical Safari or desktop-quality qualification. Both own preview
+leases and all browsers close normally; there is no attached cohort.
+
+Compact evidence is `tmp/sp-x2-cs3-bake-source/{summary,
+payload-after-audit,raw-comparison}.json`, `immutable-source-diff.txt`,
+`physical-final.json`, `original-product-focus.log`, and
+`pixels/reading.json` plus the nine untouched raw RGBA files. A malformed
+lane-wrapper invocation refuses before browser creation; the corrected
+invocation changes no capture policy. All six final comparisons pass.
+
+**Explicit complete-contract exit:** Far/Sun `world/sources/bakes.json`
+(321,049 / 23,984 B at this read) cannot be registered as the current
+partial `SceneBakeSource` interface. Their emitted rows also carry
+hulls/rigs/rails/discs or anchors/tip/along/braziers and other author
+fields outside that interface. Preserve full resource, URL, material
+and lifetime semantics; no unknown or child-only schema can launder
+that envelope. CS3 remains open for a complete native contract and the
+remaining scene/tier/placement work. No withdrawn weld or living-cabin
+index-footprint candidate is reactivated here.
