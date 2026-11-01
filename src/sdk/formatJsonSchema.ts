@@ -1,3 +1,4 @@
+import { PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
 import { FixedDrawRowsSchema } from '@wildshard/format/fixedDraws';
 import { AudioSceneSchema } from '@wildshard/format/audioScene';
 import { ForestGroundLayoutSchema, ForestPageSchema, LivingPageSitesSchema } from '@wildshard/format/forestPage';
@@ -419,6 +420,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'namedJsonContracts.QuestTrader': QuestTraderSchema,
   'namedJsonContracts.AdventurePersistence': AdventurePersistenceSchema,
   'namedJsonContracts.PosedLibrary': PosedLibrarySchema,
+  'populationEnvironment.PopulationField': PopulationFieldSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

@@ -811,14 +811,48 @@ AFTER proof or new host-bar credit.
 
 | Name | Complete source contract and owner evidence | Disposition |
 |---|---|---|
-| DW `world/cover-composition.json` | `generators/output.ts` emits `sdk/rows#coverCompositionRows`; `namedSchemas.ts` already names `streamedCover.CoverComposition`. `format/streamedCover#CoverCompositionSchema` is the whole root, consumed by the original streamed-cover stage in `game/shardfile/worldAssembly` under G602. | Next exact native metadata candidate after the current scene pair. The 99 B body/hash is unchanged; conversion succeeds and projects 68 B metadata growth. Preserve original stage loans and placement/object ownership; no collider movement. |
-| Nalati `world/meadow.json` | `generators/output.ts` emits the original nativeField; both `game/population/environment#NativePopulationField` and `test/fixtures/nalati-headless.ts` parse the complete `PopulationFieldSchema`. G667 explicitly approves that exact one-user native field/driver/roster host; its tests 2-6 remain HOST-AUDIT work. | Complete-root metadata candidate, not a new completed host audit. The 21,630 B body/hash is unchanged; conversion succeeds and projects 3,037 B metadata growth. Preserve the complete riding-world/river/meadow/trail fields and all existing query/canonical physics checks. |
+| DW `world/cover-composition.json` | `generators/output.ts` emits `sdk/rows#coverCompositionRows`; `namedSchemas.ts` already names `streamedCover.CoverComposition`. `format/streamedCover#CoverCompositionSchema` is the whole root, consumed by the original streamed-cover stage in `game/shardfile/worldAssembly` under G602. | Exact native metadata slice qualified below. The 99 B body/hash is unchanged; actual index metadata grows 68 B. Original stage loans and placement/object ownership remain; no collider movement. |
+| Nalati `world/meadow.json` | `generators/output.ts` emits the original nativeField; both `game/population/environment#NativePopulationField` and `test/fixtures/nalati-headless.ts` parse the complete `PopulationFieldSchema`. G667 explicitly approves that exact one-user native field/driver/roster host; its tests 2-6 remain HOST-AUDIT work. | Complete-root metadata slice qualified below, not a new completed host audit. The 21,630 B body/hash is unchanged; actual index metadata grows 3,037 B. The complete riding-world/river/meadow/trail fields and all existing query/canonical physics checks remain. |
 | Pine `data/physics.generated.json` | `sourceOutput.ts` emits `pinePhysicsOwnersBytes()` with shard-local `sections.ts#PinePhysicsOwnersSchema`, the exact `version`, `trees`, `kingHit`, `shelterTrees` subset of `PinePhysicsSchema`. `test/fixtures/pine-headless.ts` retains this separate owner document. | Explicit **CS4 complete-owner-contract exit**: the common `world/physics` move and its 75/75 walk do not make these remaining owner rows a shared format root. Preserve every profile/tree/King-hit/shelter owner check; no shard-local alias or ground-only wrapper. |
 
-The projected additions use unchanged canonical index encoding on
-hash-verified physical indexes; they do not claim current-source
-admission. No ground schema, emitter, physics owner or collider is
-changed by this source audit.
+The source projections used unchanged canonical index encoding on
+hash-verified physical indexes. The later qualification below supplies
+current-source admission; this source table alone supplied none.
+
+**Ground2 qualification, 2026-10-31:** register only those two existing
+native roots and add the Nalati emitter's defining metadata option. DW's
+existing registered-name adapter needs no emitter edit. The SDK appends
+the PopulationField wire root without changing earlier shared-check
+identities. Native schemas, encoders, payloads and consumers are unchanged.
+No collider, physics owner, runtime or legacy source changes.
+
+Thirteen new/original ground controls pass, as do root/test types and
+touched typed lint. One normal AFTER takes **48.219 s**; its declared
+DW/Nalati request rebuilds the six primary program-bound products through
+the existing discovery closure. Independent strict admission accepts DW
+and Nalati. The five original suites pass in **9.178 s**: world-cover
+stage, meadow data, native-ground assembly, Nalati page-roster product
+and direct headless admission, including the unchanged negative read
+ordering. No BEFORE generation, walk, browser or timing claim is added.
+
+The immutable DW/Nalati corpus covers **869 payload paths /
+168,516,379 B**; **868 bodies are exact**, including both target JSONs.
+Precisely the two defining metadata records change. Every other index
+field and custom schema, ordered pack member and offset is exact; all
+old/new pack hashes reconstruct. Actual indexes are DW **995,330 B**,
+Nalati **1,103,154 B** and Pine **1,763,458 B**, retaining the roughly
+1.9 MB Pine rule and unchanged hard 2 MB cap.
+
+The raw comparator deliberately remains **FAIL** on the sole 164-byte
+Nalati `look/map` source stamp, `f3f8719e…0e154e` to
+`8b2d10bf…0d1648`. The old full source reconstructs; only `output.ts`'s
+meadow metadata option changes among declared map inputs, and the new
+stamp equals current `mapTilesHash`. The image remains exactly
+`80afaa55…aff2d6`. G872 accepts this exact case only: no tolerance,
+stamp freeze or weaker freshness check. Compact evidence is
+`tmp/sp-x1-cs2-ground-audit/{strict,audit,map-source-audit}.json` and the
+original-suite log. The remaining Pine owner document still exits to
+CS4; no host-bar test or streaming work is credited by this metadata move.
 
 
 ### CS3 first phone-dressing slice

@@ -1,3 +1,5 @@
+import { CoverCompositionSchema } from './streamedCover';
+import { PopulationFieldSchema } from './populationEnvironment';
 import { SceneDressingSchema } from './sceneDressing';
 import { FixedDrawRowsSchema } from './fixedDraws';
 import { ForestGroundLayoutSchema, ForestPageSchema, LivingPageSitesSchema } from './forestPage';
@@ -27,6 +29,8 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'world/cover-composition.json':{readonly schema:typeof CoverCompositionSchema;readonly source:'@wildshard/format/streamedCover#CoverCompositionSchema'};
+  readonly 'world/meadow.json':{readonly schema:typeof PopulationFieldSchema;readonly source:'@wildshard/format/populationEnvironment#PopulationFieldSchema'};
   readonly 'world/dressing-phone.json':{readonly schema:typeof SceneDressingSchema;readonly source:'@wildshard/format/sceneDressing#SceneDressingSchema'};
   readonly 'world/building-sites.json':{readonly schema:typeof LivingPageSitesSchema;readonly source:'@wildshard/format/forestPage#LivingPageSitesSchema'};
   readonly 'models/shape-book.json':{readonly schema:typeof FixedDrawRowsSchema;readonly source:'@wildshard/format/fixedDraws#FixedDrawRowsSchema'};
@@ -80,6 +84,8 @@ export interface RegisteredJsonContracts {
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'world/cover-composition.json':{schema:CoverCompositionSchema,source:'@wildshard/format/streamedCover#CoverCompositionSchema'},
+  'world/meadow.json':{schema:PopulationFieldSchema,source:'@wildshard/format/populationEnvironment#PopulationFieldSchema'},
   'world/dressing-phone.json':{schema:SceneDressingSchema,source:'@wildshard/format/sceneDressing#SceneDressingSchema'},
   'world/building-sites.json':{schema:LivingPageSitesSchema,source:'@wildshard/format/forestPage#LivingPageSitesSchema'},
   'models/shape-book.json':{schema:FixedDrawRowsSchema,source:'@wildshard/format/fixedDraws#FixedDrawRowsSchema'},
@@ -219,6 +225,8 @@ export function validateRegisteredJson(name:string,value:unknown):void {
     case 'quests/persistence.json':v.parse(AdventurePersistenceSchema,value);break;
     case 'world/building-sites.json':v.parse(LivingPageSitesSchema,value);break;
     case 'models/shape-book.json':v.parse(FixedDrawRowsSchema,value);break;
+    case 'world/cover-composition.json':v.parse(CoverCompositionSchema,value);break;
+    case 'world/meadow.json':v.parse(PopulationFieldSchema,value);break;
     case 'world/forest-page.json':v.parse(ForestPageSchema,value);break;
     case 'world/floor.json':v.parse(ForestGroundLayoutSchema,value);break;
     case 'world/crag-cave.json':v.parse(CaveFileSchema,value);break;
