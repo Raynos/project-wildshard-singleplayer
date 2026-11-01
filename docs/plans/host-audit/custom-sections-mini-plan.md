@@ -114,7 +114,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 | **CS3** | **open (2026-10-31, sp-x2):** all 318 rows of `959c6f1503` and the expanded scene-family remainder are reconciled below. Placements, catalogues and recipes qualify on their exact render-input byte proofs under G872; phone/desktop dressing also have twelve actual zero-pixel comparisons. **Remaining implementation: streamed consolidation and tier/shadow-copy retirement**, with strict landed-SHA captures whenever render-consumed bytes change. Contract, genericity, binary-owner and index exits remain explicit. | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **Qualified slices done; row remains open for its explicit owner/host exits.** Pine common physics `5596fde41e`: strict7 and original unfiltered walk **75/75, 0 stuck/bounds/pending**. Floor/cave defining contracts `b5a7dc391d` are qualified by the recorded coalesced proof; fields and complete ground aliases `d0c35248f3` retain original payload/pack/native checks. See the completion ledger below. Pine owner-only physics and G667 tests 2–6 are not closed by metadata. | 2–3 days, Codex (Opus memory reading) |
 | **CS5** | **K3 quests**: one `quest/*` family across Pine, Driftwood, Nalati (and Sky's quest rows); Pine `questRuntime` program to AS | 4–6 days, Opus design + Codex port |
-| **CS6** | **K4 creatures**: `actors/species` + `actors/populations`; behaviour rows to AS on WASM-HOST H6 / H8 | 4–6 days, Opus + Codex |
+| **CS6** | **done (2026-10-31, sp-x6, Jake's slice-or-explicit-exit ruling):** the 55-row baseline and four additional actor names have qualified exact slices or concrete complete-contract/native-check/context exits. Directors, keeper/returns, roster/elites and the duplicate grazers retirement are recorded below. Existing native controller/AS owners stay authoritative; no host-score or CS10 bridge-deletion credit is inferred. See the [completion evidence](#cs6-completion-evidence). | 4–6 days, Opus + Codex |
 | **CS7** | **Audio/cards slice done; row remains open for the 25-name held/look/weather exits.** `2c5aa6386d` / `515ffcac96` qualify Nalati audio and Driftwood people cards: strict6, six controls, original five suites **28.7 s**, 2,993 unchanged bodies of 2,994; only the exact G872-classified Nalati source stamp differs. No full-CS7 completion, geometry/binary exit or weather-envelope unification is inferred. | 4–5 days, Codex |
 | **CS8** | **K9 combat and riding**: room, encounter and riding-profile rows; Titan script to AS | 2–3 days, Opus |
 | **CS9** | **K10 headless and views**: derive the headless assembly from platform sections; `nativeView`, `runtimeGraphs`, jian effects on H9 / H17 | 2–3 days, Opus (after WASM-HOST H9, H17) |
@@ -1672,3 +1672,42 @@ and Nalati habitat retains exact contextual tree counts, ledge bounds
 and forager continuation. The historical 55-row source inventory is not
 a new host score or an all-product admission claim. CS6's broader native
 controller/AS ownership and CS10's live bridge/guard users remain open.
+
+## CS6 completion evidence
+
+**2026-10-31, sp-x6; Jake accepts the slice-or-recorded-exit bar.**
+CS6 is done as a disposition of every family, not a claim that every
+private contract has become a new shared host or AS port. The retained
+55-row inventory is historical source evidence; re-auditing HEAD avoids
+reopening already registered names as missing work.
+
+| Exact baseline scope | Disposition |
+|---|---|
+| 42 existing platform rows | Existing complete platform section contracts and their native controller/AS owners remain. The hash-bound body/grammar audit is not a new host score or proof of changed executable behaviour. |
+| 10 named documents | Nalati species-looks (`7de65890f1`), DW/Pine page-life (`a6459dbebc`), DW creature-install/projection plus Pine shelter (`d066e8f046`), DW/Pine directors (`99d9ff28cc`), and Pine roster/elites (`9375c2c52f`) have exact defining-root slices and their recorded original/native/payload proofs. |
+| One duplicate custom section | Pine `custom/grazers` is retired by `2dcda69209`; only its duplicate body/schema are removed. The hull-book and species-program bytes and original live owners remain. |
+| Two named documents with explicit exits | Nalati sheep retains the complete private crowd-page envelope/owner exit; wildlife retains all three native-check bridge exits. Unknown children and unbridged predicates are not promoted. |
+
+Those dispositions account for **42 +10 +1 +2 =55** baseline rows.
+Four additional actor-family names outside that inventory are also
+explicit: DW keeper/returns are qualified by `94cd0e375e`; DW enemy
+placement retains its complete native-placement/genericity exit; Nalati
+population metadata retains its contextual exact tree/tops counts,
+maximum ledges and ForagerContinuation contract. Keeper's demonstrated
+native consumer remains the mixed-roster **test fixture**, without a
+production-host completion claim. Return-program guest admission stays
+with its original module, queue, owner and execution guards.
+
+The latest roster/elites proof has ordinary strict Pine CURRENT,
+**1,779,579 B** index, exact body/ordered-pack checks and nine passing
+original/maintained suites. No new generation, browser, Simulator,
+physics walk or payload change accompanies this completion mark. The
+complete per-name source anchors and refusals are retained in the CS6
+actor table and individual landed-slice sections above.
+
+Remaining implementation follows those concrete exit rows in this live
+plan. G571/G667 host ownership and WASM-HOST H6/H8 are not blanket
+approvals; no admission check or AS behaviour is replaced. CS10 remains
+open while its private emitter/readers, validators and guards have live
+users. No zero-ceiling or bridge-deletion claim follows from CS6's done
+mark.
