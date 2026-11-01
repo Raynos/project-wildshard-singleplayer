@@ -111,14 +111,14 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 | **CS0** | **done (2026-10-24, sp-x6):** measured ceilings 387 / 33,613,009 B; shrink-only existing-name inventory, new custom sections refused, new named JSON requires an exact defining format schema. **Ceilings to actuals and a schema freeze** (free, can land now): set every `custom-sections/<slug>` ceiling to the measured value (549 → 387, 62 MB → 33.6 MB); refuse a new `custom/` section and any new named JSON whose schema is defined in a shard folder | 0.5 day, Codex |
 | **CS1** | **done (2026-10-31, sp-x1):** `9a616b4b82` inventories all 24 products in 4.56 s: 1,406 rows / 11 source projects; six inventory controls pass. `b13ad77350` fixes exclusive compiler ownership, with the original owner assertion, six controls and root/scripts types passing. Hash-bound source/reader evidence stays explicit; no ruler or inferred host credit. | 0.5–1 day, Codex |
 | **CS2** | **open (2026-10-31, sp-x1):** persistence, 27 native world-scene recipes, the 23 aliases/forest-page documents in `31bffc86fb`, and building-sites/shape-book are qualified. The 62 welds remain withdrawn; eight separate living-cabin envelopes are also an explicit index-footprint exit under the approximately 1.9 MB Pine headroom rule. Ground-family source review is next. Remaining names need the concrete family exits below; the five repeated-name exits alone do not close CS2. | 2–3 days, Codex + Opus review |
-| **CS3** | **open (2026-10-31, sp-x2):** phone `1fadd8e67a` and desktop `d83676a5d4` dressing counterparts pass their full body proofs and strict P1–P3 A/A + A/B, all twelve scoped comparisons 0 pixels. Wider scene migration remains open; see [phone](#cs3-first-phone-dressing-slice) and [desktop](#cs3-desktop-dressing-counterpart). **K1 scenes**: one streamed `world/scenes` family and `models/library`; Pine's 112 placement files become one indexed section; tier copies derived. | 3–4 days, Codex (Opus memory reading on Pine) |
+| **CS3** | **open (2026-10-31, sp-x2):** all 318 rows of `959c6f1503` and the expanded scene-family remainder are reconciled below. Placements, catalogues and recipes qualify on their exact render-input byte proofs under G872; phone/desktop dressing also have twelve actual zero-pixel comparisons. **Remaining implementation: streamed consolidation and tier/shadow-copy retirement**, with strict landed-SHA captures whenever render-consumed bytes change. Contract, genericity, binary-owner and index exits remain explicit. | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **Qualified slices done; row remains open for its explicit owner/host exits.** Pine common physics `5596fde41e`: strict7 and original unfiltered walk **75/75, 0 stuck/bounds/pending**. Floor/cave defining contracts `b5a7dc391d` are qualified by the recorded coalesced proof; fields and complete ground aliases `d0c35248f3` retain original payload/pack/native checks. See the completion ledger below. Pine owner-only physics and G667 tests 2–6 are not closed by metadata. | 2–3 days, Codex (Opus memory reading) |
 | **CS5** | **K3 quests**: one `quest/*` family across Pine, Driftwood, Nalati (and Sky's quest rows); Pine `questRuntime` program to AS | 4–6 days, Opus design + Codex port |
 | **CS6** | **K4 creatures**: `actors/species` + `actors/populations`; behaviour rows to AS on WASM-HOST H6 / H8 | 4–6 days, Opus + Codex |
 | **CS7** | **Audio/cards slice done; row remains open for the 25-name held/look/weather exits.** `2c5aa6386d` / `515ffcac96` qualify Nalati audio and Driftwood people cards: strict6, six controls, original five suites **28.7 s**, 2,993 unchanged bodies of 2,994; only the exact G872-classified Nalati source stamp differs. No full-CS7 completion, geometry/binary exit or weather-envelope unification is inferred. | 4–5 days, Codex |
 | **CS8** | **K9 combat and riding**: room, encounter and riding-profile rows; Titan script to AS | 2–3 days, Opus |
 | **CS9** | **K10 headless and views**: derive the headless assembly from platform sections; `nativeView`, `runtimeGraphs`, jian effects on H9 / H17 | 2–3 days, Opus (after WASM-HOST H9, H17) |
-| **CS10** | **Delete the path, no exception**: `custom/` prefix, shard `SECTIONS` / `FILE_SCHEMAS`, `schemas/custom/` emit, `game/shardfile/customSchema.ts`, the `CustomSectionName` reader overload, `custom-sections/*` budgets, `lint/custom-sections.json`, `check-custom-section-growth.mjs`, `custom-section-policy.mjs` | 1 day, Codex |
+| **CS10** | **open (2026-10-31, sp-x2/sp-x9):** read-only census still finds 14 live `custom/*` sections and 461 named JSON files in six observed products, with nonzero ceilings and missing template outputs. The private emitter/reader, named-JSON validator and freeze/growth policy remain used; no guard deletion is justified. See the [tool/runtime census](#cs10-live-tool-and-runtime-users). | 1 day, Codex |
 
 ### Recorded completed bars: CS1 / CS4 / CS7
 
@@ -1428,3 +1428,106 @@ the shared catalogue child, not that complete book document. No second
 book source or exact one-user root approval has yet been established;
 the existing owner/genericity exit remains explicit. Shape equality,
 an unknown wrapper or a manufactured second user cannot close it.
+
+
+## CS3: complete inventory disposition and remaining bar
+
+**2026-10-31, sp-x2; G872 evidence ruling.** The exact source inventory
+landed in `959c6f1503` is `tmp/sp-x1-cs3/inventory.json`, SHA-256
+`b08f048f87336c0383d67839fd1328a329aa5f1e90be297d7d963e4338797768`.
+It contains **318 product/name rows** in seven historical modern products,
+not a current/all-24 inventory. Every row is assigned exactly once below;
+the empty Blender snapshot contributes no rows. The script and expanded
+42-name remainder map remain independently scoped historical evidence.
+
+**G872:** when a registration changes only defining index metadata and
+every render-consumed payload byte remains exact, that full-payload proof
+is the identical-capture evidence: identical render inputs give identical
+pixels. This applies to the recorded placement, catalogue and recipe
+slices. It is an evidence inference, not a claim that new GPU frames were
+captured for them. The separately accepted map-source fingerprints do
+not change the map image or other render inputs. Render-changing scene
+consolidation or tier-copy retirement still requires strict A/A and A/B
+on the landed SHA under G612, followed by a forward fix on any pixel.
+
+| Family in the exact 959c inventory | Rows | Landed evidence or explicit exit |
+|---|---:|---|
+| `world/scenes` in DW, Pine, Nalati, Nine, Far and Sun | 6 | Existing shared `WorldScenesSchema`/native assembly, introduced by `b133765b9e`. Already a platform section in the historical inventory. This is not proof that all referenced scene files have been consolidated or tier copies retired. Those integration changes remain the concrete CS3 implementation bar. |
+| DW `world/{foliage,piers}/*.json`; Pine `scenes/placements/*.json`; Nine `world/placements/*.json` | 194 (12/112/70) | `2e5f28e594`, exact placement proof in `e04c5ef4a6`: 2,198 other bodies / 352,297,731 total B, all 2,027 file entries and 194 defining schemas exact; only Nine's accepted 164 B map-source stamp changes, image `ce62e427…9fefd` exact. **G872 render-input proof qualifies identical pixels.** No streamed-file collapse is inferred from registration. |
+| DW/Pine/Nine `models/world-scenes.json` | 3 | `79b336bd52`, full coalesced body/pack proof in `bc888b89de`: all original catalogue bytes/defaults/geometry/resources exact; only defining metadata and separately accepted map-source stamps change. **G872 render-input proof qualifies identical pixels.** |
+| DW `scenes/{cascade,cove,hibiscus,logs,moorings,palms,reef,rocks,trail,wreck,zipline}.json`; Pine `scenes/{pool,quest-rides,streams}.json` | 14 | `31bffc86fb`: existing complete `WorldSceneSchema`, original native/consumer controls and normal strict AFTER; 2,214 of 2,215 bodies exact, sole accepted non-rendering map source stamp. **G872 render-input proof qualifies identical pixels.** |
+| Nine `world/scenes/{cards,dressing,fixed}.json`; Far and Sun bounded `world/scenes/*.json` recipes | 27 (3/15/9) | `929d759689`: complete existing native world-scene contracts, normal six-product AFTER/strict6 and full ordered pack reconstruction. All render inputs exact; the recorded six exceptional bodies are only four accepted map-source stamps and the five G966 source-label fields in two catalogues. **G872 render-input proof qualifies identical pixels.** |
+| Pine `scenes/cabins-{phone,desktop}-shadow-{false,true}.json` plus 56 `scenes/cabins/specimens/*.json` | 60 | **Index-footprint exit.** Together with Nine casts/fabric these form the whole withdrawn 62-name `WorldSceneWeldSchema` slice: Pine index 1,703,170 → 3,120,670 B exceeds the unchanged 2,000,000 B cap. All production/test activation was withdrawn. No subset retry or metadata registration supplies scene consolidation or shadow-copy derivation. |
+| Pine `scenes/cabins/living/{phone,desktop}-{false,true}-{false,true}.json` | 8 | **Index-footprint exit.** Existing whole `LivingPageInputSchema` is real, but 1,757,786 → 1,984,106 B leaves only 0.8% hard-cap headroom before pending metadata. G872 requires Pine at or below approximately 1.9 MB. No activation, cap raise or partial envelope. |
+| Pine `scenes/streams-spray.bin` | 1 | **Companion-binary/resource-owner exit.** Historical 1,012 B packet, SHA `56200b24…10502`. Existing source binds exact f32 matrix/seed/size offsets and native instance counts. Registering `scenes/streams.json` does not retire this binary or prove a wire conversion; retain its packet bounds and native owner. |
+| Far `world/sources/{bakes,heroes,sky}.json`; Sun `world/sources/{bakes,models}.json` | 5 | **Complete-envelope exit.** `SceneBakeSource`/`SceneModelSource` are runtime interfaces, not complete schemas for the actual author envelopes and leftover GLB/hull/rig/rail/disc/anchor data. No partial runtime-field root, unknown extension or inferred shape registration. |
+
+The total is **6 + 194 + 3 + 14 + 27 + 60 + 8 + 1 + 5 = 318**.
+The exact per-product names, body hashes and one-to-one dispositions are
+retained in `tmp/sp-x2-cs3-closeout/inventory-dispositions.json`; no
+historical inventory is silently replaced with today's output.
+
+The later expanded family census also has an explicit disposition for
+every additional CS3 name. These rows are not extra members of the 318:
+
+| Later scene family | Disposition |
+|---|---|
+| Nalati `world/dressing-{phone,desktop}.json` | **Done:** `1fadd8e67a` / `d83676a5d4`; byte/pack proofs plus actual strict P1–P3 A/A and A/B, all **12 comparisons zero pixels**, recorded in `35950f7c64` / `435c9d23b4`. Actual quality tiers are guarded; no broader renderer or timing claim. |
+| Nalati `models/cover-{phone,desktop}.json` and `models/gear-book.json` | **SpecimenBook genericity exit:** the complete native book root exists, but demonstrated named-book producer users are Nalati only. Explorer/held/forager modules are not a second shard; DW's four inline specimen rows use the catalogue child, not this whole document. Exact one-user approval or a real second whole-book source remains necessary. |
+| Nine `geometry/{fixed-kits,layout}.json`; DW `models/fixed-geometry.json` | **Shared complete-contract exit:** original shard-local practice/layout/geometry grammars are not a shared approved whole root. Preserve geometry/resource, negative-zero and native refusal checks. |
+| Nine `signs/atlas-{phone,desktop}.json` | **Complete atlas/resource-contract exit:** retain original glyph/light/pool/channel binding; do not promote the shard-local atlas schema by shape. |
+| DW `world/building-life.json` | **Whole-envelope exit:** the native look and life children do not define `{look,life,initialDusk}` and its original site ownership. |
+| Nalati `world/dressing-{boulder,slab,juniper,rose,willow,lupin,reed,logs,stumps,ovoos,poles,fences,gates,drifts,colliders,clutter}.json` | **Complete shared row/owner exit:** 16 shard-local array grammars; no permissive wrapper around a child pose schema. Collider ownership stays with CS4; preserve doubles and native resources. |
+| DW `world/island/plan-{phone,desktop}.json` | **Complete placement-plan exit:** local `IslandPlacementPlan` interface is not a whole native wire root; retain all family/set/rock/box and collider/resource checks. |
+| Nine `world/{casts,fabric}.json` | The other two members of the **whole withdrawn 62-name index-footprint exit**, not an approved smaller retry. |
+| Pine `world/landmark-view.json` | **CS9/CS3 complete native-view derivation exit:** the local landmark projection is not a shared whole root. |
+| Pine `world/building-sites.json`, Nalati `models/shape-book.json`, Pine `world/forest-page.json` | Existing complete native aliases are qualified in `d45c13a9ae` / `31bffc86fb` with exact full bodies (G571/G602); no duplicate migration, new host score or tier-copy retirement is inferred. |
+
+**CS3 therefore stays open for exactly the render-affecting consolidation
+and tier/shadow-copy retirement work.** Metadata adoption and the explicit
+contract/genericity/index/binary exits above are fully accounted; no
+unclassified source family remains. Next is a bounded existing-host
+consolidation design, not another registration of already admitted files.
+Do not close that implementation bar on provenance alone or count the
+withdrawn 62/8 names as migrated. A candidate must retain complete resource
+lifetimes, ownership and index caps, prove its payload change, land
+HEAD-only, then pass strict affected-pose A/A and A/B on its landed SHA.
+
+## CS10: live tool and runtime users
+
+**2026-10-31, sp-x2 with sp-x9; read-only.** No deletion is earned by
+recording a CS1–CS9 exit. The observed six primary output indexes still
+contain **14 hash-verified `custom/*` bodies / 81,124 B** plus **461
+named JSON files**. Index hashes and exact names are retained in
+`tmp/sp-x2-cs3-closeout/cs10-users.json`. This is not fresh current-source
+admission or a full-24 census: both local `_template` and
+`blender-template` outputs are absent, and neither absence counts as zero.
+
+| Machinery | Exact remaining live uses / decision |
+|---|---|
+| DW `generators/sections.ts#SECTIONS` and `output.ts` | Five sections: `collections`, `cumulusPuffs`, `enemyPlacements`, `fixedLayouts`, `gullFlock` (all under `custom/`). The original parsed emitter and native consumers remain live. |
+| Pine `generators/sections.ts#SECTIONS` and `sourceOutput.ts` | Nine sections: `cabinAmbience`, `cabinAppearance`, `kingKit`, `nativeView`, `paintedTextures`, `questRuntime`, `runtimeGraphs`, `thrallLook`, `trophyMounts`. Removing dead assembly scaffolding does not remove these payloads or their owners. |
+| `src/sdk/sections.ts` custom emitter; `src/format/outputIndex.ts`; `src/sdk/outputProduct.ts` | DW/Pine still emit `sections/custom/*` and `schemas/custom/*`; index admission requires the exact matching schema path, and native output admission validates their complete data. Keep the custom-name checks, emitted schema membership and native refusals. |
+| `CustomSectionName`, `SectionReader` and `CustomSectionSchemas` | Real users include `game/quest/continuation.ts`, `game/models/collectionDisplay.ts`, `game/shardfile/islandBook.ts` and `islandLibrary.ts`, plus original SDK/product tests. `islandLibrary` encodes custom section references in its native draws contract. Neither custom read overload nor schema type is unused. |
+| Generic `ShardProduct.json<T>(name:string)` | Remains necessary for unresolved named-JSON families and shared dynamic-name readers. Registering exact names does not erase the checked compatibility path or prove those other readers converted. No untyped substitute or broad overload deletion. |
+| `game/shardfile/customSchema.ts` | The file serves **both** the 14 custom sections and normal named JSON. `namedJsonChecks.ts` lazily loads its paced named validator; `outputChecksNode.ts` uses custom and named admission. Registered-json and many original native/quest/resource tests import that same validator. Its 256-entry compiled-schema cache and strict Ajv/plain-JSON/refusal rules are live; the filename is not evidence of an unused module. |
+| `scripts/check-custom-section-growth.mjs` / `.d.mts` | `scripts/test_products.py` runs the checker; original `test/custom-section-growth.test.ts` verifies missing-output refusal and exact measurement. Its project enumeration intentionally refuses missing products. Do not delete because a partial local output directory is empty. |
+| `scripts/custom-section-policy.mjs` / `.d.mts`, `lint/custom-sections.json` | Called by growth/freeze, `check-platform-ratchets.mjs`, `check-staged-inputs.mjs`, `precommit-checks.mjs` and the committed fast-check chain; original policy/growth/freeze/committed-gate fixtures remain live. Freeze identity and defining-provenance admission still guard new names. |
+| `custom-sections/*` count/byte ceilings | Six nonzero pairs remain: DW **53 / 3,074,153 B**, Far **19 / 2,928,189**, Nalati **46 / 12,351,832**, Nine **19 / 4,552,493**, Pine **234 / 10,626,533**, Sun **16 / 79,809**. Total **387 / 33,613,009 B**. These are committed ceilings, not current measured use. |
+
+`shard-platform-output.mjs#productSections` deliberately charges **all
+named JSON**, including registered names, alongside `custom/*` sections.
+Therefore a successful metadata registration does not imply a zero
+ceiling or an unused growth/freeze policy. The observed named counts are
+DW 55, Pine 224, Nalati 56, Nine 91, Far 19, Sun 16; these counts do not
+assert those 461 files are all private or all unresolved. SDK JSON-schema
+conversion's unrelated `customSchemas` map is not custom-section legacy.
+
+**CS10 remains open. No listed tool, guard, emitter or reader is currently
+proved to have zero users.** X9 owns its separate narrow dead Pine
+headless-scaffold retirement and full old-constant reconstruction. Any
+later deletion must demonstrate zero actual producers/readers, preserve
+named JSON admission, remove only retired charged spans and their exact
+tests together, and retain historical required-source guards. No build,
+native worker, browser, new artifact/API read, schema tweak or guard
+relaxation was run for this census.
