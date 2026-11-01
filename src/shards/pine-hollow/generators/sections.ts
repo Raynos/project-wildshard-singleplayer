@@ -1,5 +1,4 @@
 import { NativeGroundFileSchema } from '@wildshard/format/nativePhysics';
-import { HullSpeciesSchema } from '@wildshard/format/speciesLooks';
 import { RoamingBossProfileSchema } from '@wildshard/format/bossProfiles';
 import { BuildingLifeLookSchema } from '@wildshard/format/buildings';
 import { QuestStepRowsSchema, QuestSpawnPageSchema, QuestLeadPageSchema } from '@wildshard/format/questSteps';
@@ -109,7 +108,6 @@ export function parseTradeCatalogue(input: unknown): TradeCatalogue {
 export type PineTradeSkin = 'hollow-ash' | 'scarback-furnace';
 
 export const TradeItemSchema: typeof item = item;
-export const PineGrazersSchema: v.StrictObjectSchema<{ readonly deer: typeof HullSpeciesSchema; readonly elk: typeof HullSpeciesSchema; }, undefined> = v.strictObject({ deer: HullSpeciesSchema, elk: HullSpeciesSchema });
 
 export const ThrallLookSchema: v.StrictObjectSchema<{ readonly pose: v.UnknownSchema; readonly traits: v.RecordSchema<v.StringSchema<undefined>, typeof number, undefined>; readonly tint: v.RecordSchema<v.StringSchema<undefined>, typeof triple, undefined>; }, undefined> = v.strictObject({ pose: v.unknown(),
   traits: v.record(v.string(), v.number()),
@@ -203,11 +201,10 @@ export function parseFloorRows(input: unknown): v.InferOutput<typeof FloorRowsSc
 }
 
 
-export const SECTIONS: { readonly 'custom/nativeView': typeof NativeViewSchema; readonly 'custom/cabinAppearance': typeof CabinAppearanceSchema; readonly 'custom/questRuntime': typeof PineQuestRowsSchema; readonly 'custom/grazers': typeof PineGrazersSchema; readonly 'custom/thrallLook': typeof ThrallLookSchema; readonly 'custom/runtimeGraphs': typeof RuntimeGraphsSchema; readonly 'custom/cabinAmbience': typeof CabinAmbienceSchema; readonly 'custom/paintedTextures': v.StrictObjectSchema<{ readonly textures: v.StrictObjectSchema<{ readonly coatArm: typeof texture; readonly chalk: typeof texture; readonly coatMap: typeof texture; readonly coatNormal: typeof texture; }, undefined>; readonly chalk: typeof CollectionChalkSchema; }, undefined>; readonly 'custom/trophyMounts': typeof CollectionMountPackSchema; readonly 'custom/kingKit': v.StrictObjectSchema<{ readonly pool: typeof pool; readonly lanterns: v.SchemaWithPipe<readonly [v.ArraySchema<typeof triple, undefined>, v.MaxLengthAction<[number, number, number][], 8, undefined>]>; }, undefined>; } = {
+export const SECTIONS: { readonly 'custom/nativeView': typeof NativeViewSchema; readonly 'custom/cabinAppearance': typeof CabinAppearanceSchema; readonly 'custom/questRuntime': typeof PineQuestRowsSchema; readonly 'custom/thrallLook': typeof ThrallLookSchema; readonly 'custom/runtimeGraphs': typeof RuntimeGraphsSchema; readonly 'custom/cabinAmbience': typeof CabinAmbienceSchema; readonly 'custom/paintedTextures': v.StrictObjectSchema<{ readonly textures: v.StrictObjectSchema<{ readonly coatArm: typeof texture; readonly chalk: typeof texture; readonly coatMap: typeof texture; readonly coatNormal: typeof texture; }, undefined>; readonly chalk: typeof CollectionChalkSchema; }, undefined>; readonly 'custom/trophyMounts': typeof CollectionMountPackSchema; readonly 'custom/kingKit': v.StrictObjectSchema<{ readonly pool: typeof pool; readonly lanterns: v.SchemaWithPipe<readonly [v.ArraySchema<typeof triple, undefined>, v.MaxLengthAction<[number, number, number][], 8, undefined>]>; }, undefined>; } = {
   'custom/nativeView': NativeViewSchema,
   'custom/cabinAppearance': CabinAppearanceSchema,
   'custom/questRuntime': PineQuestRowsSchema,
-  'custom/grazers': PineGrazersSchema,
   'custom/thrallLook': ThrallLookSchema,
   'custom/runtimeGraphs': RuntimeGraphsSchema,
   'custom/cabinAmbience': CabinAmbienceSchema,

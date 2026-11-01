@@ -1085,3 +1085,56 @@ index exits remain open work in their owning rows; they are not evidence
 that the private bridge can be removed. Pine stays at or below roughly
 1.9 MB, with the unchanged hard 2 MB cap. No new schema, runtime, guest,
 pixel path, collider or producer is activated by these tables.
+
+## CS6: retire the duplicate Pine grazers section
+
+The complete source audit finds no live reader of `custom/grazers`.
+A bare-basename `git grep` across every tracked importer, including
+`test/`, separates Pine's two generator imports from unrelated platform
+`grazers` modules and historical records. `nativeView` remains the live
+Pine importer. `grazerRows()` and `hullBody()` construct fresh authored
+rows without RNG or generation counters; their existing species and body
+owners remain unchanged.
+
+The 8,015-byte custom value is exactly the deer/elk `definitions` already
+admitted in the 114,696-byte `look/hull-book` by
+`format/speciesLooks#HullLookBookSchema` and its reference-checking
+`game/looks/speciesBook#HullLookBook` owner. Both species retain their
+original native and page rows in the 16,847-byte
+`actors/species-programs`. This slice removes only the duplicate emission
+and its 19,817-byte defining custom schema. It keeps the authored grazer
+module, hull book, species programs, rigged bodies and native/page owners;
+there is no new host, AS, tick, rendering, physics or legacy path.
+
+The one normal coalesced Pine/Nalati AFTER publisher completes in
+**48.352 s**, with independent ordinary strict admission for both products.
+Pine removes exactly the one **8,015 B** document and its **19,817 B**
+defining schema. All **1,056** retained primary payloads /
+**154,531,004 B** and every other descriptor remain exact; all
+ordered pack bytes, members, offsets and hashes reconstruct from only
+those removals. The index changes **1,763,458 → 1,762,914 B**,
+retaining the about-1.9 MB headroom target and unchanged 2 MB admission.
+
+The new complete-owner/refusal controls and original hull/species suites
+pass. Root types and named typed lint pass. No pixel or frame-time gain
+is claimed. Evidence: `tmp/sp-x6-cs6-grazers/proof-exits.json` and
+`payload-after.json`; Nalati's separately owned metadata/source-stamp
+proof is not a Pine exemption.
+
+The remaining approved slices stay separate: Driftwood `sim/keeper.json`
+names `PopulationKeeperRowsSchema` (its traced native consumer is the
+mixed-roster **test fixture**, not production-host completion), and
+`sim/returns.json` names `PageReturnRowsSchema` while preserving the native
+return-program/queue owner. Pine `actors/roster.json` retains
+`parseNativePopulationRows`, including cross-row bounds; `actors/elites.json`
+retains `parseEliteFeature` and the existing spawn-catalogue owner checks.
+Their projected combined Pine index is 1,780,123 B before this retirement,
+below the approximately 1.9 MB headroom rule and unchanged 2 MB hard cap.
+Each requires its own full-payload and native-consumer proof.
+
+Nalati sheep remain an explicit whole-crowd-page-contract exit: the nominal
+species-actors root leaves `page.world` and `specimen` unknown. Wildlife
+retains its complete native root but cannot yet cross the wire bridge:
+resume-value membership/uniqueness, notice-signal uniqueness and knockdown
+min/max checks must each be bridged intact. No unknown check, child root,
+or sibling G667 approval substitutes for these owners.
