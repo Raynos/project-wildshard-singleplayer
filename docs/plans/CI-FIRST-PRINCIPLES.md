@@ -3199,3 +3199,71 @@ owned 255 MB V8 corpora are deleted after recording full hashes and
 successful mode results; no shared cache or retained root artifact is
 removed. Desktop CS3 source stays off-tree through the required P0 and
 next finite matched replay turn.
+
+## CI9: level-1 transient codec closed as measured
+
+**2026-10-31, sp-x6 — no activation.** The chapter/King-only prototype
+keeps the public/default and stored writers at deflate level 6. Its
+internal transient encoder uses level 1 after the same snapshot
+preparation, detachment, checksum and strict JSON checks; only a valid
+wire over the unchanged 32 M commit bound falls back to the original
+level-6 writer. No stored tape, 24 M handoff, 8 MB observation, input,
+assertion or native replay allowance changes.
+
+Six fresh-process codec legs (`6,1,1,6,6,1`) use the actual retained
+22,120,988-byte native continuation. Median encode wall is
+**531.903 → 453.358 ms (-14.77%)**, CPU **587.125 → 514.022 ms (-12.45%)**.
+Wire grows **13,237,323 → 13,742,299 characters (+3.81%)**, still below the
+same commit bound. Every decoded native byte/metadata field is exact;
+all default level-6 encodes retain the original wire bytes. These are
+codec-only component figures, not a stage or CI improvement.
+
+One maintained original plains stage per leg uses the same ordinary
+current Nalati product and `60bc75106c` replay code in both legs. The
+candidate is an explicit off-tree codec/adapter/worker source loan at the
+chapter/King commit boundary; all actual source, helper, generated-output,
+negative inventory and selected-product identities remain frozen.
+Both original full native admissions and the original **150 s child /
+30 s request** bounds remain. No product is repinned or rebuilt for the
+pair.
+
+| Measurement | Default transient level 6 | Candidate level 1 |
+|---|---:|---:|
+| Whole stage wall | 30.680520 s | 29.576843 s |
+| Process user + system CPU | 40.752353 s | 40.302108 s |
+| Process peak RSS | 1,963,056 KiB | 1,871,952 KiB |
+| Maximum transient wire | 13,237,323 chars | 13,742,299 chars |
+| Ending stored level-6 snapshot | 13,237,323 chars | 13,237,323 chars |
+| Original ticks / commands / parts | 6,609 / 7,845 / 13 | 6,609 / 7,845 / 13 |
+
+The **entire 15,819,695-byte ending handoff** is byte-identical (SHA-256
+`0bec4a420e04d9b8815a163612348bf41267f2ea8ff17a24f85013b26e5c6edf`),
+including all inputs, observations, effects, canonical native digests and
+stored snapshot. Full decoded native bytes and all other fields also
+match. The measured wall change is **-3.597%**, process CPU **-1.105%**.
+
+Two diagnostic refusals remain visible. The first caller incorrectly
+required a stale all-product/app phase; it refused before any worker or
+tick. The corrected caller retains the phase file only as immutable
+context and freezes current source/generated/negative inventories while
+the ordinary selected Nalati reader and both native children keep their
+real admission authority. The completed baseline then hit an observer
+assumption that two resource files implied two workers. Only the main
+process report was emitted; worker termination need not emit that exit
+hook. The baseline was **not repeated**: only the outside-stage
+postprocessing was corrected before the one candidate continuation.
+All original stage assertions and the actual runtime/source tuple stayed
+unchanged. The resulting gap and fixed ordering are retained confounds.
+
+The small whole-stage/CPU difference is **not a clear, robust stage win**
+under the activation bar, so the candidate is rejected without a pair
+repeat. No new codec API or selector lands. The earlier rejected raw
+transfer API was already removed by `f1491bf8c3`; public/default/stored
+encoding remains level 6. The 27% encoding attribution remains a measured
+lead, not a delivered whole-wave saving.
+
+Evidence: `tmp/sp-x6-ci9-transient/level1-component.json` and
+`level1-stage/{comparison,raw-handoff-identity,source-fence}.json`, both
+actual stage logs/resource reports, `preflight-phase-refusal.log` and the
+original observer refusal. Prototype implementation drafts are withdrawn;
+no new native run, CI fetch or dispatch accompanies this closure.
