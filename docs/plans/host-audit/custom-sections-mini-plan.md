@@ -111,7 +111,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 | **CS0** | **done (2026-10-24, sp-x6):** measured ceilings 387 / 33,613,009 B; shrink-only existing-name inventory, new custom sections refused, new named JSON requires an exact defining format schema. **Ceilings to actuals and a schema freeze** (free, can land now): set every `custom-sections/<slug>` ceiling to the measured value (549 → 387, 62 MB → 33.6 MB); refuse a new `custom/` section and any new named JSON whose schema is defined in a shard folder | 0.5 day, Codex |
 | **CS1** | **done (2026-10-31, sp-x1):** `9a616b4b82` inventories all 24 products in 4.56 s: 1,406 rows / 11 source projects; six inventory controls pass. `b13ad77350` fixes exclusive compiler ownership, with the original owner assertion, six controls and root/scripts types passing. Hash-bound source/reader evidence stays explicit; no ruler or inferred host credit. | 0.5–1 day, Codex |
 | **CS2** | **done (2026-10-31, sp-x1, Jake's slice-or-explicit-exit ruling):** all remaining families have a qualified exact slice or a concrete named CS3–CS9 / index-footprint exit. The [completion evidence](#cs2-completion-evidence) binds every family to its per-name source table and landed proof. The 62 welds, eight living envelopes and Pine spray companion remain explicit exits; no cap, host, capture or CS10 deletion credit is inferred. | 2–3 days, Codex + Opus review |
-| **CS3** | **open (2026-10-31, sp-x2):** all 318 rows of `959c6f1503` and the expanded scene-family remainder are reconciled below. Placements, catalogues and recipes qualify on their exact render-input byte proofs under G872; phone/desktop dressing also have twelve actual zero-pixel comparisons. **Remaining implementation: streamed consolidation and tier/shadow-copy retirement**, with strict landed-SHA captures whenever render-consumed bytes change. Contract, genericity, binary-owner and index exits remain explicit. | 3–4 days, Codex (Opus memory reading on Pine) |
+| **CS3** | **open (2026-10-31, sp-x2):** all 318 rows of `959c6f1503` and the expanded scene-family remainder are reconciled below. Placements, catalogues and recipes qualify on their exact render-input byte proofs under G872; phone/desktop dressing also have twelve actual zero-pixel comparisons. **Pine's 112-placement consolidation is qualified in `5c72cf6cf0` below; remaining implementation: other streamed consolidation and tier/shadow-copy retirement**, with strict landed-SHA captures whenever render-consumed bytes change. Contract, genericity, binary-owner and index exits remain explicit. | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **Qualified slices done; row remains open for its explicit owner/host exits.** Pine common physics `5596fde41e`: strict7 and original unfiltered walk **75/75, 0 stuck/bounds/pending**. Floor/cave defining contracts `b5a7dc391d` are qualified by the recorded coalesced proof; fields and complete ground aliases `d0c35248f3` retain original payload/pack/native checks. See the completion ledger below. Pine owner-only physics and G667 tests 2–6 are not closed by metadata. | 2–3 days, Codex (Opus memory reading) |
 | **CS5** | **open (2026-10-31, sp-x1):** all 14 remaining quest names are accounted for: three qualified aliases, four prepared native aliases, a tested off-tree whole-panel root and six concrete contract/owner exits. Pine's live `custom/questRuntime` remains a complete-envelope / AS-owner exit; Sky's existing shared quest sections are identified separately. See the [remainder evidence](#cs5-complete-remainder-disposition-and-next-slices). Source readiness does not close payload, host or CS10 deletion work. | 4–6 days, Opus design + Codex port |
 | **CS6** | **done (2026-10-31, sp-x6, Jake's slice-or-explicit-exit ruling):** the 55-row baseline and four additional actor names have qualified exact slices or concrete complete-contract/native-check/context exits. Directors, keeper/returns, roster/elites and the duplicate grazers retirement are recorded below. Existing native controller/AS owners stay authoritative; no host-score or CS10 bridge-deletion credit is inferred. See the [completion evidence](#cs6-completion-evidence). | 4–6 days, Opus + Codex |
@@ -1962,3 +1962,118 @@ and witness contracts retired.
 **CS9 stays open** for these concrete owner/derivation/deletion exits.
 No live custom emitter, reader, named validator, policy or ceiling is
 removed or reclassified by this ledger.
+
+
+## CS3: Pine bounded placement pages
+
+Source `5c72cf6cf03568412d53b9df6e8efe4d75964076` lands the
+G612 source-first consolidation. The normal AFTER producer, independent
+ordinary strict admission and original consumers qualify its payloads;
+the later immutable-preview checks below qualify the affected fixed poses.
+This closes the Pine **112-placement page slice**, not CS3's remaining
+scene families, tier/shadow-copy retirement, all-pose streaming or CS10.
+
+### Complete rows and unchanged limits
+
+The 112 original complete placement documents (566,608 B) reconstruct
+byte-for-byte, in original ID/order/tier membership, from nine native pages
+(566,918 B). Pages hold 1–16 complete rows and share device membership;
+the existing 128-placement ceiling, original resource/model/collider
+checks and owned reads remain. Missing members, foreign IDs, tier mismatch,
+malformed unselected rows and missing/foreign provenance refuse before
+publication. Admission still verifies the shared file, parses a page once
+per scene admission and drops its temporary page map afterward.
+
+The selected Pine normal AFTER verifies 953 bodies / 154,531,543 B;
+943 unrelated bodies and their records are exact. All 39 old and 39 new
+ordered packs independently reconstruct; the only retained body change is
+the placement references in `world/scenes`. All 112 native row words,
+other world-scene fields, map image, map body and map input stamps are
+exact. The index shrinks **1,779,579 → 1,188,985 B** (−590,594 B), below
+the unchanged 2 MB hard ceiling and approximately 1.9 MB Pine target.
+Transport headers add 310 B and the references add 1,007 B; these exact
+admission membership/cost deltas are accounted explicitly, not normalized
+away. The withdrawn 62 welds and eight living envelopes are not retried.
+
+The maintained focused controls pass 82 cases across four suites; the
+original world-scenes file also passes all 65 cases with its page
+negatives and two-member/one-read check. Original Pine cabin-documents,
+prop-product and prop-shapes suites pass four cases in 23.42 s. Root
+types and touched typed lint pass. Root independently qualifies the
+ordinary containing release: all 37 required/native4/SIX, exact-source
+live BUILD/version, maps/API and own Sky/P1 pass (`qa-5c72-complete-proof`).
+
+### Immutable pins and strict pixels
+
+BEFORE is `8b4d4eed6d5e9714d397ae39fe934c8e2ce0beb2`, build
+`8b4d4ee-mvx6qqw4`; AFTER is the landed `5c72cf6cf0`, build
+`5c72cf6-mvx8misk`. Both are normal `--rev` previews. The AFTER's
+953 bodies and 39 packs independently match the qualified normal output.
+Its only index difference is `build.validator`: the actual committed
+revision `2f738d5e…38a5` reconstructs from all 717 exact committed
+inputs, while the earlier working-tree producer used `f3a052b5…3d04`.
+The source hash and every other index field are exact. The raw whole-index
+refusal remains recorded; no production admission check is bypassed.
+
+The full 8b→5c72 source contrast is declared, rather than called a pure
+leaf comparison. Pine's intervening roster/elites changes add only schema
+metadata to exact bodies; scaffold `892e75d553` removes dead DSL fields
+from `sim/headless-assembly` (64,873 → 64,095 B), retaining all three
+constant bodies exactly. No working-tree renderer edits or response
+overrides enter either preview.
+
+The maintained native Metal fixed-world-frame protocol captures Pine P1
+and P2 at both real phone and desktop tiers, iPhone 16 Pro viewport
+402×874/DPR2 and full RGBA 804×1748. Four fresh-context **A/A** and four
+landed-SHA **A/B** comparisons all have **zero differing pixels** with
+the strict comparator; all six native boots/frame gates pass. Camera
+metadata is exact. P1 calls/triangles are 73/835,267 (phone) and
+133/4,739,135 (desktop); P2 is 30/454,916 and 50/2,743,815.
+The actual advanced P2 camera height is −104.011111 in both pins; this is
+the retained existing P2 protocol, not proof of additional surface views.
+Viewmodel is excluded by the original world-frame reader. No tolerance,
+forced shadow variant, all-pose claim or physical-iPhone FPS claim is added.
+
+### Clean Pine entry and bytes
+
+One serial before/after pair uses the maintained `phone-loading` caller:
+`--preset phone --flow select:pine-hollow --engine chromium`, default
+title/post-control dwells and 240 s deadline, CPU10 and 10 Mbps/100 ms.
+No CPU profile, response fixture or accounting filter is used. Both arms
+exit 0; all four native entered-control witnesses qualify, `errors=[]`
+and maintained request accounting is complete.
+
+| Measured field | BEFORE cold | AFTER cold | BEFORE warm | AFTER warm |
+| --- | ---: | ---: | ---: | ---: |
+| Entry to native control (s) | 138.235200 | 137.468800 | 30.129800 | 29.147600 |
+| All recorded request events | 1,690 | 1,390 | 1,226 | 1,018 |
+| Page-network known encoded body (B) | 120,022,292 | 121,195,678 | 62 | 62 |
+| Page-network known transfer incl. headers (B) | 120,465,519 | 121,578,510 | 953 | 953 |
+| Page-network known decoded body (B) | 217,359,266 | 219,564,118 | 14,435,318 | 14,435,318 |
+| Page-network unknown-size events | 5 | 5 | 2 | 2 |
+| SW decoded response body (B) | 576 | 576 | 119,337,537 | 117,320,294 |
+| Worker known transfer (B) | 0 | 0 | 1,792,275 | 1,792,275 |
+
+The entry-to-control clocks are no worse in this pair. This selected Pine
+flow has **no Home row** and its native witness has `gridHome=null`;
+there is no separately measured Home-ready clock. Native phase envelopes
+remain separate rather than being added or relabelled as Home.
+
+The cold known network transfer is **1,112,991 B higher**, so the whole
+visit is not claimed as a byte reduction. Exact raw decomposition is:
+unchanged retained bodies +1,332,917 B; app/other −89,948 B; index −15,570 B;
+placement transport **429,504 → 315,096 B** (−114,408 B). Among the
+unchanged-body observations, a 608,260 B bin is requested 11.1 ms before
+control only in AFTER and finishes 3 s later; other identical URLs have
+one versus two nonzero wire bodies despite the same three request events.
+These are observed delivery/cache-frontier differences, not changed
+render payloads or an isolated causal speedup. The selected placement
+request events are 327→24 cold and 218→16 warm; repeated receipts do not
+mean that many unique files. SW and worker sources stay separate to avoid
+double-counting; unknown or in-flight sizes remain unknown, not zero.
+
+Both preview leases release normally after the complete cohort, all
+browsers close, and X1 receives the next sole producer turn. Retained
+scratch is `tmp/sp-x2-cs3-placement-pages/`: full payload/pack audits,
+committed-validator inputs, immutable source contrast, four maintained
+loading records and all strict capture records. No unchanged run is repeated.
