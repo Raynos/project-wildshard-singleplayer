@@ -2,7 +2,7 @@
 import {createHash} from 'node:crypto';
 import * as v from 'valibot';
 import {HeadlessTapePlanSchema,HeadlessTapeReportSchema} from '../../../src/sdk/tickProtocol';
-import {decodeSimSnapshot,type SimSnapshot,type SimSnapshotBytes} from '../../../src/engine/sim/snapshot';
+import {decodeSimSnapshotBytes,type SimSnapshot,type SimSnapshotBytes} from '../../../src/engine/sim/snapshot';
 import {physicsState} from '../../fake/simState';
 import {PACKED_CHAPTER_TAMING,unpackChapterTaming} from './chapterObservation';
 import {chapterReportUsesCodec,unpackChapterReport} from './chapterReportCodec';
@@ -44,7 +44,7 @@ export const chapterInputHash=(parts:readonly ChapterPart[]):string=>createHash(
 /** Object key order is codec-independent; arrays and every numeric bit stay
  * exact, including signed zero outside physics. Physics uses its real world. */
 export function chapterSnapshotDigest(snapshot:SimSnapshot|SimSnapshotBytes|string):string {
-  const {physics,...rest}=typeof snapshot==='string'?decodeSimSnapshot(snapshot):snapshot;
+  const {physics,...rest}=typeof snapshot==='string'?decodeSimSnapshotBytes(snapshot):snapshot;
   return createHash('sha256').update(canonical(rest)).update('\0')
     .update(new Uint8Array(Float64Array.from(physicsState(physics).values).buffer)).digest('hex');
 }

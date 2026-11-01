@@ -16,7 +16,7 @@ import {parseCarriedQuest} from '../../../src/format/questSteps';
 import {parseHeldSlots} from '../../../src/format/heldArms';
 import {HeldBowFileSchema} from '../../../src/format/weaponProfiles';
 import {heldBowBase} from '../../../src/game/weapons/heldBowBase';
-import {decodeSimSnapshot,snapshotSimHostBytes,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
+import {decodeSimSnapshot,decodeSimSnapshotBytes,snapshotSimHostBytes,serializeSimSnapshot,type SimSnapshotBytes} from '../../../src/engine/sim/snapshot';
 import {physicsState,sameBytes} from '../../fake/simState';
 import {chapterCampInputs,chapterApproachInputs,chapterBondInputs,chapterGoatInputs,chapterReturnInputs,chapterHomeInputs} from '../../proof/nalati-grasslands/chapterOne';
 import {chapterCarvingRoadInputs,chapterCarvingArrivalInputs,chapterCarvingInputs} from '../../proof/nalati-grasslands/chapterTwo';
@@ -68,6 +68,8 @@ try{
     for(const part of inherited.parts.slice(inherited.reportStart))previousReport=unpackChapterReport(part.expected,previousReport);
   }
   let initialized=false;
+  // Private replay decode only; no recorder loan or mutable snapshot escapes.
+  let finalSnapshot:{wire:string;saved:SimSnapshotBytes}|undefined;
   let final:HeadlessTickCommit|undefined,replayedTicks=0,frames:HeadlessCommand[][]=[],effects:HeadlessEffect[]=[],peakY=host.player.position.y;
   pipeline=checkedReplayPipeline<ChapterPart>(async part=>{
     const worker=await ready;
@@ -85,7 +87,9 @@ try{
       if(packed!==undefined){const expectedTaming:HeadlessTapeObservation['adapters'][number]|undefined=raw.observations[index]?.adapters?.find(adapter=>adapter.id===PACKED_CHAPTER_TAMING);assert.ok(expectedTaming);
         assert.deepEqual(unpackChapterTaming(packed.state),unpackChapterTaming(expectedTaming.state),'every original taming field survives the lossless report codec');}
     }
-    assert.equal(chapterSnapshotDigest(repeated.commit.snapshot),part.digest,'every boundary retains the complete numeric native continuation');
+    const saved=decodeSimSnapshotBytes(repeated.commit.snapshot);
+    assert.equal(chapterSnapshotDigest(saved),part.digest,'every boundary retains the complete numeric native continuation');
+    finalSnapshot={wire:repeated.commit.snapshot,saved};
     final=repeated.commit;replayedTicks+=repeated.report.ticks;
     console.info(JSON.stringify({stage,phase:'replay-checked',tick:repeated.commit.tick,wireChars:repeated.commit.snapshot.length,ms:performance.now()-started}));
   });
@@ -138,7 +142,8 @@ try{
   }
   await checked.finish();assert.ok(final);
   assert.equal(replayedTicks,host.state.tick-firstTick);
-  const {physics:a,...actual}=decodeSimSnapshot(final.snapshot),{physics:b,...expected}=snapshotSimHostBytes(host);
+  assert.ok(finalSnapshot);assert.equal(finalSnapshot.wire,final.snapshot,'the final comparison owns the exact independently decoded replay wire');
+  const {physics:a,...actual}=finalSnapshot.saved,{physics:b,...expected}=snapshotSimHostBytes(host);
   assert.deepEqual(actual,expected);if(!sameBytes(a,b))assert.deepEqual(physicsState(a),physicsState(b));
   assert.equal((await ready).quarantined,false);checkChapterLedger(history,host.state.tick,reportStart);
   if(inheritedPartsHash!==undefined)assert.equal(chapterWireHash(chapterWire(history.slice(0,inheritedParts))),inheritedPartsHash,
