@@ -1,6 +1,7 @@
 import { ForestGroundLayoutSchema, ForestPageSchema } from './forestPage';
 import { CaveFileSchema, CaveInteriorSchema } from './caveInterior';
 import * as v from 'valibot';
+import { DirectorProductSchema } from './directorProduct';
 import { AudioSceneSchema } from './audioScene';
 import { KitFigureCardsSchema } from './questFigures';
 import {SceneBuffersSchema,parseSceneBuffers} from './sceneBuffers';
@@ -24,6 +25,7 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'directors/main.json':{readonly schema:typeof DirectorProductSchema;readonly source:'@wildshard/format/directorProduct#DirectorProductSchema'};
   readonly 'scenes/cascade.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
   readonly 'scenes/cove.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
   readonly 'scenes/hibiscus.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
@@ -73,6 +75,7 @@ export interface RegisteredJsonContracts {
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'directors/main.json':{schema:DirectorProductSchema,source:'@wildshard/format/directorProduct#DirectorProductSchema'},
   'scenes/cascade.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
   'scenes/cove.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
   'scenes/hibiscus.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
@@ -203,6 +206,7 @@ export function validateRegisteredJson(name:string,value:unknown):void {
     case 'look/wildlife-draw.json':v.parse(PosedLibrarySchema,value);break;
     case 'audio/scene.json':v.parse(AudioSceneSchema,value);break;
     case 'people/cards.json':v.parse(KitFigureCardsSchema,value);break;
+    case 'directors/main.json':v.parse(DirectorProductSchema,value);break;
     case 'quests/persistence.json':v.parse(AdventurePersistenceSchema,value);break;
     case 'world/forest-page.json':v.parse(ForestPageSchema,value);break;
     case 'world/floor.json':v.parse(ForestGroundLayoutSchema,value);break;

@@ -122,6 +122,7 @@
     "./audio": "./audio.ts",
     "./ledger": "./ledger.ts",
     "./director": "./director.ts",
+    "./directorProduct": "./directorProduct.ts",
     "./migrations": "./migrations.ts",
     "./traversal": "./traversal.ts",
     "./runtimeBinds": "./runtimeBinds.ts",

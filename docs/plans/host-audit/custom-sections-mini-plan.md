@@ -706,3 +706,54 @@ are still audited in plan order. The existing all-product inventory
 command currently refuses missing `out/_template/shard.json`; it is not
 treated as a zero or silently skipped, and no full-product coverage is
 claimed from the six-primary snapshot.
+
+### CS6: complete shared director documents
+
+**2026-10-31, sp-x6; agreed with sp-x1/sp-x2.** Driftwood and Pine now
+name one complete `DirectorProductSchema` for `directors/main.json`.
+The root retains declaration, module, stages, bindings and seed; its
+structural draft-07 grammar equals the complete former composition.
+Optional-file author admission and the native loader's named-file
+refusal remain distinct. This registers two existing AS users; binary
+hash agreement, stage bindings, owner retirement, fuel and fixed-step
+order remain with their unchanged hosts. No legacy or rendering source
+changes.
+
+One coalesced normal AFTER publisher completes in **45.312 s**. The
+requested DW/Pine/Nalati products and three program-bound discovery
+products are all built by the ordinary producer. Independent strict
+DW/Pine/Nalati readers accept current receipts. Exactly four defining
+metadata records change: the two directors plus x1's separately landed
+building-sites/shape-book pair. Both director JSON bodies (**2,828 /
+4,514 B**) and their complete Wasm hashes are exact. Actual coalesced
+indexes are DW **995,262 B**, Pine **1,763,458 B** and Nalati
+**1,100,052 B**: below the unchanged 2 MB cap and Pine's about-1.9 MB
+headroom target.
+
+The raw comparator retains its failure on Nalati's sole **164 B**
+`look/map` body change and the corresponding ordered-pack hash
+propagation. Only `tilesHash` changes `ed7a40e2…61d7f3` to
+`9ace4b97…488234`; the map image remains `80afaa55…aff2d6`. Full old/current
+source reconstruction binds that change to the shape-book producer's
+metadata expression. **G872 accepts this exact shared-proof case**;
+no tolerance, frozen stamp, comparator change or blind retry is added.
+The independent Pine/Nalati audit verifies all other **1,457 / 1,458**
+primary payloads and reconstructs ordered pack offsets and hashes.
+The three-product audit also reads all **2,001** listed payload/pack
+records (**535,667,572 B**, including packed duplicates).
+
+The combined original/new native suites first pass **66 / 67** controls.
+The remaining chapter-wake fixture still emitted an unregistered
+metadata shape and unused old bindings. It now supplies the exact
+registered metadata and the real authored `bindings: null` envelope;
+all original assertions remain unchanged, and its focused rerun passes
+(**6.3 s**) without regeneration. Root types and named typed lint pass;
+strict current readers pass again. The seven new controls retain full
+envelope bounds and refusal of missing/foreign provenance before reads.
+
+Evidence: `tmp/sp-x6-cs6-director/{proof-exits,audit-after}.json`,
+`originals-after.log`, `fixture-focus.log`, and the independent
+`tmp/sp-x1-cs2-next-scenes/{map-source-audit,audit}.json`. The latter
+remains a separate raw failure plus case ruling. CS6 stays open for its
+remaining population/keeper/return/roster/controller/custom families;
+this slice does not retire the private bridge or claim a frame gain.

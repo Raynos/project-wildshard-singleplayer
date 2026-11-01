@@ -73,11 +73,6 @@ const composedSchemas: Readonly<Record<string, Readonly<Record<string, unknown>>
     'world/building-life.json': composeNamedJsonSchema({ kind: 'object', entries: {
             look: 'buildings.BuildingLifeLook', life: 'buildings.BuildingLifeRows', initialDusk: number,
         } }),
-    'directors/main.json': composeNamedJsonSchema({ kind: 'object', entries: {
-            declaration: 'director.Director', module: ({ kind: "object", mode: "strict", entries: { module: text, bytes: text,
-                    file: ({ kind: "exact-optional", item: ({ ...({ kind: "string" } as const), min: 1, max: 240 } as const) } as const) } } as const),
-            stages: 'directorStages.DirectorStages', bindings: ({ kind: "null" } as const), seed: number,
-        } }),
     'poses/monkey.json': composeNamedJsonSchema({ kind: 'object', entries: {
             clips: { kind: 'tuple', items: ['clientChannels.NumericPose', 'clientChannels.NumericPose'] },
             program: ReturnProgramSchema, perch: MixedPopulationSchema.entries.perch,

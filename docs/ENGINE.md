@@ -194,6 +194,9 @@ limits and cross-field refusals. Trusted legacy views only project published pos
 `@wildshard/game/plugin/director` validates typed shard events and observations. Its bounded
 `DirectorLane` runs raw bytes under unchanged AS limits; memory, globals, quotas and queued input restore.
 `readDirectorProduct` requires a named binary file; embedded admission accepts raw bytes only.
+`DirectorProductSchema` (`@wildshard/format/directorProduct`) defines
+`directors/main.json`: declaration, module, stages, bindings and seed.
+It preserves the authored grammar; native executable admission stays separate.
 Shard subscriptions deliver declared payloads on the next fixed tick; grid subscriptions are reserved
 data and reject delivery in v1. `@wildshard/sdk/director` validates author declarations without installing code.
 Legacy entries keep their original native clocks and event recipes; their unshipped script comparison installer is retired.
