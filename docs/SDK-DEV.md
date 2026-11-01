@@ -63,6 +63,7 @@ uses its checked bridge until its custom-section exit row is complete.
 Streamed placement JSON under `world/placements/`, `scenes/placements/`,
 `world/foliage/` and `world/piers/` shares `WorldScenePlacementSchema`.
 Each file keeps its original poses, draw policy and native consumer parser.
+The optional [placement page helper](#streamed-placement-pages) groups complete rows.
 Streamed `world/fields/<id>.json` descriptors share `SceneBuffersSchema`;
 ids are bounded to one path component. Their named binary files retain
 independent content hashes and exact native alignment, length and finite
@@ -74,6 +75,26 @@ while the map image and all authored payload bytes remain identical; keep
 the fresh source stamp and compare the image separately.
 Inputs must resolve within the author project. Generators use these
 capabilities for I/O rather than importing filesystem modules into the entry.
+
+### Streamed placement pages
+
+`worldScenePlacementPages(id, rows)` from `@wildshard/sdk/worldScenes`
+groups up to 128 complete native placements into pages of at most 16
+rows under `world/placement-pages/`. Pages never mix device membership;
+the returned placement references retain the original order, ids and
+tier, adding a zero-based `member` within the verified named file.
+`WorldScenePlacementPageSchema` validates the complete versioned page and
+every original placement row. Individual placement files remain supported.
+
+At native world admission, `member` (0–15) selects an ordered page row.
+The existing verified pool reads each file once, and its complete native
+page parses once within that admission. Every cursor validates the
+original read owner and the selected member's identity/device membership
+before the existing model, batch, publication and resource checks.
+Decoded page containers are released after placement admission; complete
+rows retain the original resident model/collider owner. References
+without `member` preserve the individual-file path. No model, draw,
+collider or lifetime policy is introduced by grouping transport.
 
 The cache lives at `~/.cache/wildshard/gen/<folder>/<step>/<key>/`. Keys include
 the complete bundled entry (a conservative superset of each step's import

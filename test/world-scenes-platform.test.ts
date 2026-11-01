@@ -402,7 +402,7 @@ test('resident catalogue loans reach later world placements through the shared s
   } finally { vi.restoreAllMocks(); context.scope.dispose(); }
 });
 
-test('authored raw LODs and deferred named placements retain their native model contract', async () => {
+test.each(['individual', 'page'] as const)('authored raw LODs and deferred %s placements retain their native model contract', async mode => {
   const [{ defineWorldSceneCatalogue }, { sharedModelContext }, { Rng }, { SkyRig }, { parseWorldSceneModels }] = await Promise.all([
     import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/world/skyRig'), import('../src/format/worldSceneModels'),
   ]);
@@ -417,12 +417,34 @@ test('authored raw LODs and deferred named placements retain their native model 
     poses: [{ x: 7, y: 0, z: 9, matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 7, 0, 9, 1] }], piece: { id: 'marker-copy' },
     colliders: [{ kind: 'box', hx: 1, hy: 1, hz: 1, x: 7, y: 1, z: 9 }],
   };
+  let pageRows: unknown[] = [placement];
+  let placementFileReads = 0;
   const file = context.product.file.bind(context.product), has = context.product.hasFile.bind(context.product);
   vi.spyOn(context.product, 'hasFile').mockImplementation(name => ['models/catalogue.json', 'scenes/placement.json'].includes(name) || has(name));
-  vi.spyOn(context.product, 'file').mockImplementation(name => name === 'models/catalogue.json' || name === 'scenes/placement.json'
-    ? Promise.resolve(new TextEncoder().encode(JSON.stringify(name === 'models/catalogue.json' ? data : placement))) : file(name));
+  vi.spyOn(context.product, 'file').mockImplementation(name => {
+    if (name === 'scenes/placement.json') placementFileReads++;
+    return name === 'models/catalogue.json' || name === 'scenes/placement.json'
+      ? Promise.resolve(new TextEncoder().encode(JSON.stringify(name === 'models/catalogue.json' ? data : mode === 'page' ? { version: 1, rows: pageRows } : placement))) : file(name);
+  });
   try {
-    const handles = await installWorldScenes(context, parseWorldScenes({ ...rows, catalogue: 'models/catalogue.json', placements: [{ id: 'markers.placed', file: 'scenes/placement.json' }] }));
+    if (mode === 'page') {
+      const checked = { ...rows, catalogue: 'models/catalogue.json', placements: [{ id: 'markers.placed', file: 'scenes/placement.json', member: 0 }] };
+      await expect(installWorldScenes(context, parseWorldScenes({ ...checked, placements: [{ ...checked.placements[0], id: 'foreign' }] }))).rejects.toThrow('identity differs');
+      await expect(installWorldScenes(context, parseWorldScenes({ ...checked, placements: [{ ...checked.placements[0], member: 1 }] }))).rejects.toThrow('member differs');
+      pageRows = [{ ...placement, tier: 'desktop' }];
+      await expect(installWorldScenes(context, parseWorldScenes(checked))).rejects.toThrow('member differs');
+      pageRows = [placement, { ...placement, id: 'unselected', poses: [{ x: 0, y: 0, z: 0, matrix: [1] }] }];
+      await expect(installWorldScenes(context, parseWorldScenes(checked))).rejects.toThrow();
+      expect(context.app.registry.pieces).toHaveLength(0);
+      pageRows = [placement, { ...placement, id: 'markers.other', piece: { id: 'marker-other-copy' } }];
+    }
+    const beforeReads = placementFileReads;
+    const handles = await installWorldScenes(context, parseWorldScenes({ ...rows, catalogue: 'models/catalogue.json', placements: [
+      { id: 'markers.placed', file: 'scenes/placement.json', ...(mode === 'page' ? { member: 0 } : {}) },
+      ...(mode === 'page' ? [{ id: 'markers.other', file: 'scenes/placement.json', member: 1 }] : []),
+    ] }));
+    expect(placementFileReads - beforeReads).toBe(1);
+    if (mode === 'page') expect(handles.has('markers.other')).toBe(true);
     expect(handles.has('markers.placed')).toBe(true);
     expect(handles.has('markers.placed.root')).toBe(false);
     const catalogue = defineWorldSceneCatalogue(data), model = catalogue.model('marker'), ctx = sharedModelContext(sky);

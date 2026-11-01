@@ -4,7 +4,7 @@
 /** Final model/placement rows. All shape, rest-pose and contact work belongs to the offline producers. */
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { bakeModelPose as modelPoseMatrix } from '@wildshard/sdk/bake/placement';
-import { worldSceneModels as parseWorldSceneModels, worldSceneRows as parseWorldScenes, worldScenePlacement as parseWorldScenePlacement } from '@wildshard/sdk/worldScenes';
+import { worldSceneModels as parseWorldSceneModels, worldSceneRows as parseWorldScenes, worldScenePlacement as parseWorldScenePlacement,worldScenePlacementPages } from '@wildshard/sdk/worldScenes';
 import heroRows from '../data/heroRows.json' with { type: 'json' };
 import { timberWorld } from './timberWorldRows';
 
@@ -27,6 +27,7 @@ type WorldScenePlacementRowType = ReturnType<typeof parseWorldScenePlacement>;
 export interface SceneModelRows {
   readonly SCENE_MODELS: WorldSceneModelsType;
   readonly SCENE_PLACEMENTS: WorldScenePlacementRowType[];
+  readonly SCENE_PLACEMENT_PAGES: NamedBlobType[];
   readonly MODEL_SCENES: ParsedWorldScenesType;
   readonly PROP_RAW_MODELS: NamedBlobType[];
   readonly PROP_PACKED_MODELS: NamedBlobType[];
@@ -115,18 +116,16 @@ export const sceneModelRows: (sources: PineSources) => Promise<SceneModelRows> =
 
   const SCENE_MODELS: WorldSceneModelsType = parseWorldSceneModels({ product: 'pine-hollow', models });
   const SCENE_PLACEMENTS: WorldScenePlacementRowType[] = placements.map(parseWorldScenePlacement);
-  function placementReference(row: (typeof SCENE_PLACEMENTS)[number]) {
-    return { id: row.id, file: `scenes/placements/${row.id}.json`, ...(row.tier === undefined ? {} : { tier: row.tier }) };
-  }
+  const pages = worldScenePlacementPages('world', SCENE_PLACEMENTS);
   const MODEL_SCENES: ParsedWorldScenesType = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', batches: CRAG_BATCH_ROWS, welds: CABIN_WELDS, libraries: [CRAG_LIBRARY, TIMBER_LIBRARY, ...CABIN_LIBRARIES,
     { id: 'heroes', kind: 'owned', models: heroes.glbs.map(([name]) => ({ id: name.slice('models/heroes/'.length, -'.glb'.length), file: name })) },
     { id: 'props', kind: 'owned', models: props.geometry },
-  ], materials, placements: SCENE_PLACEMENTS.map(placementReference), steps: [] });
+  ], materials, placements: pages.placements, steps: [] });
   // GR8 G28 / G30 / G31 / cabins: the hero, prop, crag, timber and cabin shapes' GLBs, built in memory: raw for the map assembly, meshopt-named for the output.
   const shapes = [...heroes.glbs, ...props.models];
   /** The hero, prop, crag and timber shapes' raw GLBs. */
   const PROP_RAW_MODELS: NamedBlobType[] = [...shapes.map(([name, bytes]) => nameBlob(name, 'glb', bytes)), ...CRAG_RAW_MODELS, ...TIMBER_RAW_MODELS, ...CABIN_RAW_MODELS];
   /** The hero, prop, crag and timber shapes' GLBs, meshopt-named as their `meshopt: true` sources were. */
   const PROP_PACKED_MODELS: NamedBlobType[] = [...await Promise.all(shapes.map(([name, bytes]) => nameMeshoptBlob(name, bytes))), ...CRAG_PACKED_MODELS, ...TIMBER_PACKED_MODELS, ...CABIN_PACKED_MODELS];
-  return { SCENE_MODELS, SCENE_PLACEMENTS, MODEL_SCENES, PROP_RAW_MODELS, PROP_PACKED_MODELS };
+  return { SCENE_MODELS, SCENE_PLACEMENTS, SCENE_PLACEMENT_PAGES: pages.files, MODEL_SCENES, PROP_RAW_MODELS, PROP_PACKED_MODELS };
 });

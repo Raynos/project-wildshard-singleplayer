@@ -136,3 +136,16 @@ interface WorldScenePlacementRowFields {
     };
 }
 export type WorldScenePlacementRow = { [Key in keyof WorldScenePlacementRowFields]: WorldScenePlacementRowFields[Key] };
+
+
+/** One streamed page retains complete placements, not a projected pose subset.
+ * Sixteen rows bound one decode; the world's existing 128-placement cap stays. */
+export const WorldScenePlacementPageSchema: v.GenericSchema<unknown, WorldScenePlacementPage> = v.pipe(
+  v.unknown(), v.check(isJsonData, 'Placement pages require plain JSON'),
+  v.strictObject({ version: v.literal(1), rows: v.pipe(v.array(WorldScenePlacementSchema), v.minLength(1), v.maxLength(16)) }),
+  v.check(page => new Set(page.rows.map(row => row.id)).size === page.rows.length, 'Placement page identities must be unique'));
+export interface WorldScenePlacementPage { version: 1; rows: WorldScenePlacementRow[] }
+/** Admit every complete native row before a page supplies its first placement. */
+export function parseWorldScenePlacementPage(input: unknown): WorldScenePlacementPage {
+  return v.parse(WorldScenePlacementPageSchema, input);
+}

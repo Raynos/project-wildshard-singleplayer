@@ -6477,6 +6477,7 @@ inputs before publication; cold model views await verified input reads.
 (`worldSceneModels`), typed draw buffers (`worldSceneBuffers`), frozen
 welds (`worldSceneWeldRows`) and surface properties
 (`worldSceneSurfaceProperties`) through defining format parsers.
+`worldScenePlacementPages`: [SDK pages](SDK-DEV.md#streamed-placement-pages).
 `worldSceneWeldData` admits an author-owned mutable draft through the same
 grammar; runtime weld admission retains its immutable result.
 `caveInteriorRows` admits bounded packed cave roofs, frames and material ports.

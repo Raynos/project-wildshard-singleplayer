@@ -74,7 +74,7 @@ import { SpeciesSchema } from '@wildshard/format/speciesPrograms';
 import { BakedBuildingLookSchema, BuildingLifeLookSchema, BuildingLifeRowsSchema, BuildingCloudPoseSchema } from '@wildshard/format/buildings';
 import { WorldSceneWeldSchema } from '@wildshard/format/worldSceneWeld';
 import { WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
-import { WorldScenePlacementSchema } from '@wildshard/format/worldScenePlacement';
+import { WorldScenePlacementSchema, WorldScenePlacementPageSchema } from '@wildshard/format/worldScenePlacement';
 import { CommonsCostsSchema } from '@wildshard/format/commonsCosts';
 import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
 import { registeredJsonContract,type RegisteredSchemaJsonName } from '@wildshard/format/registeredJson';
@@ -422,6 +422,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'namedJsonContracts.PosedLibrary': PosedLibrarySchema,
   'populationEnvironment.PopulationField': PopulationFieldSchema,
   'namedJsonContracts.PageReturnRows': PageReturnRowsSchema,
+  'worldScenePlacement.WorldScenePlacementPage': WorldScenePlacementPageSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();
