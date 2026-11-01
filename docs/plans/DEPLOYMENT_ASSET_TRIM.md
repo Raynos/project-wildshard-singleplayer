@@ -1,6 +1,6 @@
 # Wildshard deployment asset trim
 
-**State:** `in progress` 2026-10-31 — T4 source `50ea8a75f9` removes five unselected HDRs; exact capture/offline qualification remains open after a preview-only CORS cache failure. Narrow parity fix `1aeb76658b` is checked and awaits native offline confirmation. T3 retains all 144 originals (no deletion qualified). T1/T2 remain done; T5 is closed as measured (G872), no external migration at one-day retention; T6 is superseded by immediate exact-green shipping and CI3.
+**State:** `in progress` 2026-10-31 — T4 source `50ea8a75f9` removes five unselected HDRs. All 18 A/A and 18 strict online A/B comparisons are zero-pixel; controlled-warm offline passes 6/6 as a diagnostic. First-uncontrolled-visit offline remains failed, so T4 stays open pending its scope ruling and root-owned production URL qualification. Preview CORS fix `1aeb76658b` and fixture `48a9181c2d` are pushed. T3 retains all 144 originals; T1/T2 done, T5 measured closed, T6 superseded.
 
 **Historical clean-export baseline (2026-10-29):** 1,375 static files / 524.5 MiB.
 The current retained-output measurement is in T5 below.
@@ -14,7 +14,7 @@ The Vercel build also creates four API functions. Two are test files under
 | T1 — done | Move `api/*.test.ts` out of Vercel's function discovery path | 619 tests pass; clean prebuilt output has two real functions; production `/api/inbox` and `/api/errors` each return 401 without credentials | Removed two unnecessary functions from every deployment |
 | T2 — done (2026-10-29, sp-x9; G874 / DA1) | Source `97ec95cb7e` / `20f3bfd384` keeps local/CI maps and copies the standalone filter before pin checkout. **Live `dcc2153ac-mvtsyqc1`**, app `dcc2153ac62655a07ecdc7a17e3242c2493dcf50`, is qualified by deployment controller `42a37e95ff9e01b5c12b6133dbe708c3dca6e318` ([release 40914981125](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40914981125)). | Remote Vercel strip receipt: **268 maps / 52,104,870 bytes**. Download-verified private artifact **12917412136** holds **270 files** (268 maps + exact live version/chunk report), ZIP SHA-256 `dc85faeb67b7fa00f9eb8ca1c1033a58b2bbf87f3f5b019c87ea4333e8f09b6e`, 12,987,948 bytes. Three actual map URLs return **404**; live version and SW core/build/hash match. Exact app [CI 40899627232](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40899627232) and [SIX 40903043898](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40903043898) are green. Evidence: `tmp/sp-ci-deploy-hourly-409149-{map-proof,live,artifacts}.json` and completed release log; no duplicate capture. | **52,104,870 fewer public bytes** on the qualified live build; original diagnostic maps remain private and intact |
 | T3 — audited, verification open | HEAD `8da7f94de2`: 144 `assets/tex/` files / 86,727,002 bytes; 90 are GPU-source keys, 142 participate in exact tier-generation jobs. Retain all 144; detailed map below. | Reference search includes authored generators and image/phone fallback policy. HEAD desktop/phone boot and offline proof remains pending; **zero assets removed**. | No verified duplicate-original deletion yet |
-| T4 — source landed, verification open | `50ea8a75f9` removes five unselected raw HDRs / 24,173,718 bytes and their download recipes. All 25 selected HDR/key-plane/video/T3-twig bodies remain SHA-256 exact. | Retained `629` baseline: 36 captures / 18 strict A/A comparisons, all zero pixels. `ad2` after: first seven phone Pine sky A/B comparisons are zero; offline entry then refused. The preview CORS fix `1aeb` needs native confirmation before completing the remaining gates. | Source bytes removed; no qualified whole-output or observed production-byte saving claimed |
+| T4 — source landed, verification open | `50ea8a75f9` removes five unselected raw HDRs / 24,173,718 bytes and their download recipes. All 25 selected HDR/key-plane/video/T3-twig bodies remain SHA-256 exact. | `629` before: 36 captures / 18 A/A comparisons, all zero pixels. `1aeb` after: all 18 online A/B comparisons zero; eight visitor boots. Controlled-warm offline is 6/6 diagnostic; first-uncontrolled-visit failure is retained. Scope ruling and production URL checks remain open. | Source bytes removed; no qualified whole-output or observed production-byte saving claimed |
 | T5 — closed as measured (2026-10-31, G872) | No migration now: 1.700 GB of immutable bulk per output, 99.90% unchanged against retained original app builds | At 24 deploys/day, documented one-day retention models $4.08/month versus $122.41 near 30 days; preserve same-origin precache/offline behavior | No code/hosting change. Reopen if actual retention approaches 30 days; detailed cost and update analysis below |
 | T6 — superseded | `419a077b21` (G920) removed the hourly slot, cooldown and local backstop; exact successful proof releases immediately. The later boot/ship merge (`93bd`) makes the successful required verdict the automatic ship trigger. | CI3 closes on its **21/21 automatic post-merge releases within 300 s**; all eight old misses predate the merge. BA78 was manual dispatch, not a queue miss. See [CI-FIRST-PRINCIPLES](CI-FIRST-PRINCIPLES.md), CI3 / retained 32-release classification. | Original hourly-lag work is obsolete; CI2 artifact download/restore remains a separate open row |
 
@@ -168,6 +168,56 @@ and `emitted-comparison.json`; old witness/source audit:
 `production-runtime-origin-parity.json` under `tmp/sp-ci-deploy-qa-refresh/`.
 No new tolerance, cache-policy relaxation, activation wait in production,
 ignored request, blind retry or production cure is claimed.
+
+#### Completed witness: exact pixels; offline scope still open
+
+The final shared after source is **`1aeb76658b` / `1aeb766-mvx1c5vm`**,
+not moving HEAD. All **18 strict online A/B comparisons are zero pixels**:
+phone and desktop Pine at all seven authored key frames, Nalati P1 and
+conservatively retained Nine P1. Eight visitor boots (including Driftwood)
+pass original native-frame/geometry controls. All saved RGBA hashes were
+rechecked. No G941 allowance is used.
+
+The final emitted inventory is **9,398 files / 2,231,765,108 bytes**;
+all 25 protected files remain exact. Against `629`, 8,985 files /
+2,170,395,764 bytes match at the same path. Only the five removed raw bodies
+differ within the HDR family; unrelated net changes are +341,546 bytes
+across 67 changed source paths. All five removed basenames are absent from
+the emitted asset index, manifest, document and SW bootstrap. Unrelated
+output changes are not attributed to this trim.
+
+After `1aeb`, the offline document, main and exact 244-byte runtime all
+return through the worker: the preview-only entry-code refusal is fixed.
+`48a9181c2d` aligns the original binary transport test's two old header
+expectations. All four maintained/focused files pass 38 cases; root types
+and typed lint pass. Production already had invariant headers: no production
+SW regression or early-registration rollback is claimed.
+
+The genuinely awaited first-visit test still fails full offline entry.
+Its active worker has a completed book (307 code bodies, zero missing),
+but its first document remains uncontrolled by design. Plain public sky
+fetches from it never enter the worker cache. Retained install snapshots
+contain no HDR URLs; the failed reload requests selected day/golden planes.
+This is not counted as an offline pass or blamed on removed HDRs.
+
+A separately granted **diagnostic** makes a genuine controlled online
+revisit, exercises sky keys and read-only checks actual cached HDR URLs
+before going offline. All **six** Pine/Nalati/Driftwood visits across both
+tiers then reload and enter offline through activated controllers and
+SW-served documents, with positive native geometry. Both Pine tiers visit
+all seven keys offline; phone's controlled fetches cache 14 actual plane
+URLs. No synthetic cache put, clients.claim, policy or deadline change is
+used. The first-visit failure remains **FAIL**; **T4 remains open** until
+the coordinator rules on scope and root records production URL checks.
+
+Raw online: `tmp/sp-x9-t4-hdr/after-online-1aeb/reading.json`; diagnostic:
+`controlled-offline-diagnostic/reading.json` in the same directory. The
+second first-visit refusal is `after-ready-1aeb/reading.json`; entry-code
+after is `tmp/sp-x9-pwa-offline/after-1aeb/reading.json`. Complete inventories,
+source differences and checked counts are `final-inventory.json`,
+`counterpart-source-paths-final.txt` and `final-summary.json` in T4 scratch.
+Obsolete previews and this lane's final shared lease were normally released;
+all lane browsers and builders are closed.
 
 ### T5: immutable deployment bodies — closed as measured (G872)
 
