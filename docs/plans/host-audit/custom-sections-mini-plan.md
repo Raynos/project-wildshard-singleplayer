@@ -110,7 +110,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 |---|---|---|
 | **CS0** | **done (2026-10-24, sp-x6):** measured ceilings 387 / 33,613,009 B; shrink-only existing-name inventory, new custom sections refused, new named JSON requires an exact defining format schema. **Ceilings to actuals and a schema freeze** (free, can land now): set every `custom-sections/<slug>` ceiling to the measured value (549 → 387, 62 MB → 33.6 MB); refuse a new `custom/` section and any new named JSON whose schema is defined in a shard folder | 0.5 day, Codex |
 | **CS1** | **done (2026-10-31, sp-x1):** `9a616b4b82` inventories all 24 products in 4.56 s: 1,406 rows / 11 source projects; six inventory controls pass. `b13ad77350` fixes exclusive compiler ownership, with the original owner assertion, six controls and root/scripts types passing. Hash-bound source/reader evidence stays explicit; no ruler or inferred host credit. | 0.5–1 day, Codex |
-| **CS2** | **open (2026-10-31, sp-x1):** persistence, 27 native world-scene recipes, the 23 aliases/forest-page documents in `31bffc86fb`, and building-sites/shape-book are qualified. The 62 welds remain withdrawn; eight separate living-cabin envelopes are also an explicit index-footprint exit under the approximately 1.9 MB Pine headroom rule. Ground-family source review is next. Remaining names need the concrete family exits below; the five repeated-name exits alone do not close CS2. | 2–3 days, Codex + Opus review |
+| **CS2** | **done (2026-10-31, sp-x1, Jake's slice-or-explicit-exit ruling):** all remaining families have a qualified exact slice or a concrete named CS3–CS9 / index-footprint exit. The [completion evidence](#cs2-completion-evidence) binds every family to its per-name source table and landed proof. The 62 welds, eight living envelopes and Pine spray companion remain explicit exits; no cap, host, capture or CS10 deletion credit is inferred. | 2–3 days, Codex + Opus review |
 | **CS3** | **open (2026-10-31, sp-x2):** all 318 rows of `959c6f1503` and the expanded scene-family remainder are reconciled below. Placements, catalogues and recipes qualify on their exact render-input byte proofs under G872; phone/desktop dressing also have twelve actual zero-pixel comparisons. **Remaining implementation: streamed consolidation and tier/shadow-copy retirement**, with strict landed-SHA captures whenever render-consumed bytes change. Contract, genericity, binary-owner and index exits remain explicit. | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **Qualified slices done; row remains open for its explicit owner/host exits.** Pine common physics `5596fde41e`: strict7 and original unfiltered walk **75/75, 0 stuck/bounds/pending**. Floor/cave defining contracts `b5a7dc391d` are qualified by the recorded coalesced proof; fields and complete ground aliases `d0c35248f3` retain original payload/pack/native checks. See the completion ledger below. Pine owner-only physics and G667 tests 2–6 are not closed by metadata. | 2–3 days, Codex (Opus memory reading) |
 | **CS5** | **K3 quests**: one `quest/*` family across Pine, Driftwood, Nalati (and Sky's quest rows); Pine `questRuntime` program to AS | 4–6 days, Opus design + Codex port |
@@ -123,7 +123,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 ### Recorded completed bars: CS1 / CS4 / CS7
 
 This ledger marks the **qualified slices done**, not unimplemented family
-exits. CS2 remains open with sp-x1. CS4's remaining owner/host exits and
+exits. CS2's family assignment is completed in its later evidence ledger. CS4's remaining owner/host exits and
 CS7's complete-envelope/model-library exits remain in their source tables;
 they are not counted as deleted private paths or completed CS10 work.
 
@@ -288,7 +288,7 @@ remaining documents; an inventory shape match alone proves no contract.
 | Room/boss/encounter/fight/riding documents | **CS8**: retain closed encounter/riding owners; executable fights use the approved host. |
 | Headless assembly/boot/constants, native views and runtime graphs | **CS9**: derive assemblies from platform sections and use approved view hosts; permissive assembly envelopes are not CS2 registrations. |
 
-CS2 is not marked done: the landed registry covers the named slices and bounded families recorded above, while the remaining scene/source, ground, quest, actor, held/look/audio/people, encounter and headless names still require their complete defining contracts through these exits. An existing shared schema or a family-level exit label alone does not demonstrate that every remaining logical name has passed the CS2 bar.
+At this intermediate slice CS2 was not marked done: broad family labels did not account for every remaining logical name. The later exact-name source tables and completion ledger supply that missing assignment. Their CS3–CS9 implementation exits remain open; neither an existing child schema nor a family label alone demonstrates a complete native contract.
 
 These exits remain open work, not completed platform contracts. CS10
 removes the checked private path only after they land. Missing provenance,
@@ -496,7 +496,8 @@ existing payload byte is unchanged, except the separately classified
 G966 Explorer source labels. Original floor and runtime mirror suites
 pass alongside registration controls. Since this slice moves no collider
 data or installation, it does not repeat the already qualified native
-walk. CS4 remains open for its ground/streaming exits; CS2 remains open.
+walk. CS4 remains open for its ground/streaming exits. CS2 was still open
+at this slice; its later per-name exit assignment is recorded below.
 
 ## CS2: persistence and native world-scene recipes
 
@@ -580,7 +581,8 @@ measured index-footprint exit below; the mixed living-cabin
 `{graph,life}` wrapper remains a separate CS3 exit. The
 CS3–CS9 family table continues to own remaining single-user, inline,
 unknown and collision cases; neither a shape match nor this inventory
-grants a new host or one-user waiver. **CS2 stays open.**
+grants a new host or one-user waiver. **CS2 was still open at this audit**;
+the later per-name completion ledger supersedes that intermediate status.
 
 ### CS2 explicit index-footprint exit: weld documents
 
@@ -608,12 +610,13 @@ serializer/reader change or cap waiver lands. The immutable before
 baseline and actual refusal remain unchanged; x2 owns one cause-directed
 CS7-only AFTER proof.
 
-This is an explicit **open index-footprint exit on CS2**. A later,
+This is an explicit **open CS3/index-compaction exit assigned by CS2**. A later,
 separately reviewed index-compaction row may revisit it while preserving
 the original index cap, defining provenance and native checks. It is not
 a registration pass or permission to retry a subset of the withdrawn
 slice. Other known cross-name native contracts remain source-first work;
-CS2 cannot yet be marked done.
+At this rejected slice CS2 could not yet be marked done. The later
+completion ledger records the whole footprint exit without retrying it.
 
 ### CS2: native scene aliases and the admitted forest page
 
@@ -671,7 +674,8 @@ Those family assignments are open ownership, not completed defining
 contracts. For example, Driftwood keeper/return/quest row roots already
 exist but still need complete source and approved-owner qualification;
 Nalati's specimen/dressing roots still need their one-user/genericity
-exit. **CS2 remains open** with these concrete remainders.
+exit. **CS2 was still open at this slice**; its later completion ledger
+assigns every concrete remainder without marking those migrations done.
 
 ### CS2 scene-family remainder: exact source traces
 
@@ -1097,7 +1101,7 @@ census, not a successful full-output scan: the ordinary all-product
 inventory still honestly refuses absent `out/_template/shard.json`.
 No missing product is silently skipped, treated as zero or rebuilt here.
 
-**CS2 remains open.** This audit now names the native root or concrete
+**Intermediate source audit.** This table names the native root or concrete
 CS3-CS9/index-footprint exit for every remaining six-primary name, but
 the ready native-root slices still need their ordinary defining-metadata
 and payload proofs. Complete-contract, user-scope, unbridged-check and
@@ -1196,7 +1200,7 @@ activate any of these 14 names. Together with X6's separate population
 check witnesses, they show why a successful schema parse or small index
 delta alone does not qualify a root. Only the seven quest aliases above
 have concrete tested off-tree source patches ready for their normal
-proof turn. CS2 remains open, and no machine reservation is needed to
+proof turn. Those implementation exits remain open, and no machine reservation is needed to
 continue the remaining native-control/source preparation.
 
 ### CS2: Driftwood step, hint and wake aliases
@@ -1248,7 +1252,7 @@ through the proof and ordered landings. Evidence is
 `tmp/sp-x1-cs5-dw/{source-final,strict,audit,map-source-audit}.json` and
 `tmp/sp-x6-cs6-population/dw/{proof-exits,nalati-unchanged}.json` plus the
 original-suite log. The four prepared Pine/carried aliases remain
-off-tree for a later source/proof boundary. CS2 and the remaining CS5
+off-tree for a later source/proof boundary. The remaining CS5
 contract/owner exits stay open; this metadata move completes no new host.
 
 ## CS6: retire the duplicate Pine grazers section
@@ -1531,3 +1535,54 @@ named JSON admission, remove only retired charged spans and their exact
 tests together, and retain historical required-source guards. No build,
 native worker, browser, new artifact/API read, schema tweak or guard
 relaxation was run for this census.
+
+## CS2 completion evidence
+
+**Done, 2026-10-31, sp-x1, on Jake's explicit landed-slice-or-exit bar.**
+Every remainder family now has a landed exact native slice or a concrete
+named exit below. The earlier CS2-open statements describe intermediate
+proofs; they do not override this completion ledger. This closes the
+contract assignment/alias stage. It does not call any unimplemented
+CS3–CS9 migration done, remove a live private reader, lower a ceiling,
+approve a host or earn CS10 deletion.
+
+The original all-24 CS1 scan is bound by `9a616b4b82` and its exclusive
+compiler-owner correction `b13ad77350`. Later source work uses explicitly
+scoped hash-bound oracles, not a fictitious new all-product admission.
+The exact historical 169-name remainder is reconciled against current
+registered roots: **12 now have landed exact aliases**, and the following
+**157 names have concrete assigned exits**. The plain read-only lookup
+checks exact names and preserves source hashes in
+`tmp/sp-x1-cs2-closeout/reading.json`; it builds and runs no world.
+
+| Family / exact remaining scope | Landed authority or explicit owning exit |
+|---|---|
+| Earlier shared foundation and bounded aliases | Placement families `e04c5ef4a6`, existing world-scene/model/weather/persistence contracts and `31bffc86fb`'s 23 aliases retain their original exact payload/pack/native proofs. No metadata alias is counted as scene consolidation, resource retirement or a new host. |
+| Scene facts and dressing counterparts — four of the historical names now landed | `d45c13a9ae` binds building-sites/shape-book; `1fadd8e67a` and `d83676a5d4` bind phone/desktop dressing. Their full bodies and native controls are qualified; both dressing tiers have strict P1–P3 A/A and A/B at zero pixels. Forest-page already belongs to `31bffc86fb`. |
+| Ground — two historical names landed, **1** exact owner exit | `d0c35248f3` binds DW cover composition and Nalati meadow on existing G602/G667 roots. Pine `data/physics.generated.json` stays a **CS4 complete owner-contract exit**, retaining profile/notice/King-hit/tree/shelter ownership; G667 tests 2–6 also remain open, with no collider/host credit from metadata. |
+| Directors/population — three historical names landed, **6** exact exits | `99d9ff28cc` binds directors; `94cd0e375e` binds keeper/returns with the original body/queue owners. Pine roster/elites retain their complete native-parser/catalogue proof exits; Nalati sheep needs the complete crowd envelope, wildlife retains three unbridged checks, DW enemy placement needs its shared whole root, and Nalati habitat retains its exact contextual tree/ledge bounds. These are **CS6** work, individually named in the 61-name matrix. |
+| Quests — three historical names landed, **11** exact exits | `cff6cc28ca` binds steps/hints/wake. Pine contracts/native-story/native-spots and Nalati carried have exact whole roots and tested off-tree slices, assigned to **CS5 defining-metadata/payload/owner qualification**. The other seven names retain concrete panel catalogue, private presentation, partial figure/story, discovery/guide, closed interaction guest or finds-owner exits in the CS5 table; they are not counted as implemented. |
+| Held/look/weather — **25** exact names | The CS7 table names every native root or complete catalogue/model/guest/appearance exit. Rain keeps its ordered-water predicate; post keeps exact regex and native safety checks; same-name Pine/Nalati weather remains a real collision. Cover/gear books keep the **CS3 owner/genericity exit**, not a manufactured second user. Small schema size or an outer parse supplies no host credit. |
+| Encounter/riding — **9** exact names | **CS8** retains full room/King/fight/geometry/pose/playback and riding-wire/ABI exits. Existing roaming/mounted roots still require their exact named payload/native-owner proofs. Unknown child fields, loose subsets and unbridged riding checks are never promoted as whole contracts. |
+| Headless/views — **5** exact names | **CS9** owns each remaining assembly/boot/constants/taming-pose/landmark-view derivation. `58050f2620`'s original assembly reconstruction, `103e484`'s defining encounter test and `c75f3f9a02`'s return-before-derived-read guard stay intact. Unique constants and retired scaffold do not become an unknown union or an automatically approved platform section. |
+| Other scene/source names — **38** exact names | All are enumerated in the scene-family table and X2's complete CS3 ledger: eight living envelopes, three local fixed-geometry roots, two cover books, two atlases, building-life, sixteen local dressing grammars, two island plans and four distinct Far/Sun source names. They have **CS3 complete-contract/resource/genericity/index exits**, with collider ownership retained by CS4. |
+| Whole withdrawn weld slice — **62** exact names | The full Pine60/Nine2 slice remains withdrawn: Pine index **1,703,170 → 3,120,670 B** exceeded the hard 2 MB cap. It is a **CS3/index-compaction exit**; no smaller retry, compact-schema API, cap movement or partial envelope is authorized by this ledger. |
+| Eight living envelopes, included in the 38 scene names | Their exact complete schema still projects **1,984,106 B**, above Jake's roughly **1.9 MB** Pine headroom rule. Keep this separate **index-footprint exit** beside the welds until a reviewed compaction row exists. They remain unregistered. |
+| Pine `scenes/streams-spray.bin`, outside the 169 JSON-name reconciliation | Explicit **CS3 companion-binary/resource-owner exit**, already accounted in X2's 318-entry inventory. The historical 1,012 B resource is not a missing JSON root, and recipe registration does not prove its wire conversion or retirement. Retain exact instance packets, offsets/counts and native resource lifetime. |
+| Other 18 modern products | The source census names all 14 open-plot declarations plus template, blender-template, pastel and ink outputs; those output paths declare no private named JSON. A later physical scan refusing missing template outputs stays refused, never zero. Neither legacy family is read or modified. |
+
+The exit count is **38 + 1 + 11 + 6 + 25 + 9 + 5 + 62 = 157**;
+the 12 landed names account for the rest of the bound 169-name snapshot.
+This count is source assignment, not a claim that 157 payloads were
+removed, migrated or freshly admitted. The companion binary and CS10's
+14 live custom-section bodies are deliberately separate scopes.
+
+The latest qualified tuple retains Pine **1,762,914 B**, Nalati
+**1,103,219 B** and DW **995,665 B**. All existing hard caps, the roughly
+1.9 MB Pine rule and native guards remain. Historical G872 stamp failures
+stay raw failures beside their individual accepted classifications; no
+general tolerance or freshness exemption is introduced. No build,
+browser, native run, capture, payload change or host-score adjustment is
+performed for this one documentation completion. CS5's remaining native
+slices and explicit quest/runtime exits are the next work; CS10 remains
+gated by the actual live-user ledger, regardless of CS2's done mark.
