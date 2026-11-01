@@ -1,0 +1,40 @@
+import {expect,test} from 'vitest';
+import {LivingPageSitesSchema} from '../src/format/forestPage';
+import {FixedDrawRowsSchema} from '../src/format/fixedDraws';
+import {registeredJsonContract,validateRegisteredJson} from '../src/format/registeredJson';
+import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
+import {nameBlob} from '../src/sdk/blobs';
+import {emptyShardfile} from '../src/sdk/author';
+import {createShardProduct} from '../src/game/shardfile/shardProduct';
+import {fixtureJsonCheck} from './fixtures/productFile';
+
+const sites={buildings:[{id:'cabin',index:0,root:'cabin.root',standalone:true}],roofs:[{x:0,z:0,rot:0,w:1,d:1}]};
+const draws=[{slot:'native.draw',channels:[['position','position']],file:'native.glb'}];
+const roots=[{name:'world/building-sites.json',schema:LivingPageSitesSchema,source:'@wildshard/format/forestPage#LivingPageSitesSchema',value:sites,
+ invalid:{...sites,buildings:[{...sites.buildings[0],index:-1}]}},
+ {name:'models/shape-book.json',schema:FixedDrawRowsSchema,source:'@wildshard/format/fixedDraws#FixedDrawRowsSchema',value:draws,invalid:[]} ] as const;
+for(const root of roots){
+ test(`${root.name} preserves its whole native root and encoded bytes`,()=>{
+  expect(registeredJsonContract(root.name).schema).toBe(root.schema);
+  const schema=registeredJsonSchema(root.name);expect(schema).toEqual({...namedJsonSchema(root.schema),$comment:root.source});
+  expect(namedJsonSchema(root.schema,{provenance:true})).toEqual(schema);
+  const value=structuredClone(root.value),bytes=new TextEncoder().encode(JSON.stringify(value));
+  validateRegisteredJson(root.name,value);expect(value).toEqual(root.value);
+  expect(nameBlob(root.name,'json',bytes,{jsonSchema:schema}).bytes).toEqual(bytes);
+  expect(()=>validateRegisteredJson(root.name,root.invalid)).toThrow();
+  expect(()=>nameBlob(root.name,'json',bytes)).toThrow('defining schema');
+ });
+ for(const kind of ['missing','foreign']as const)test(`${root.name} rejects ${kind} provenance before reading payload`,async()=>{
+  let reads=0;const identity={slug:'scene-facts',name:'Facts',author:'Fixture',revision:1,seed:1};
+  const schema=registeredJsonSchema(root.name),bytes=new TextEncoder().encode(JSON.stringify(root.value));
+  const product=createShardProduct({...identity,shardfile:emptyShardfile(identity),sections:new Map(),jsonCheck:fixtureJsonCheck,
+   files:new Map([[root.name,{hash:'a'.repeat(64),url:'/native',...(kind==='missing'?{}:{jsonSchema:{...schema,$comment:'foreign'}})}]]),
+   read:()=>{reads++;return Promise.resolve(bytes);}});
+  await expect(product.json(root.name)).rejects.toThrow('exact defining format contract');expect(reads).toBe(0);
+ });
+}
+test('neither the withheld living envelopes nor the withdrawn 62 welds are registered',()=>{
+ for(const name of ['scenes/cabins/living/phone-false-false.json','scenes/cabins-phone-shadow-false.json',
+  'scenes/cabins/specimens/log-cabin-east-phone-false.json','world/casts.json','world/fabric.json'])
+  expect(registeredJsonContract(name)).toBeUndefined();
+});

@@ -110,7 +110,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 |---|---|---|
 | **CS0** | **done (2026-10-24, sp-x6):** measured ceilings 387 / 33,613,009 B; shrink-only existing-name inventory, new custom sections refused, new named JSON requires an exact defining format schema. **Ceilings to actuals and a schema freeze** (free, can land now): set every `custom-sections/<slug>` ceiling to the measured value (549 → 387, 62 MB → 33.6 MB); refuse a new `custom/` section and any new named JSON whose schema is defined in a shard folder | 0.5 day, Codex |
 | **CS1** | **done (2026-10-31, sp-x1):** plain hash-bound section inventory in `9a616b4b82`; exclusive test-project ownership fixed in `b13ad77350`. Records sections/named JSON, shard, bytes, defining bindings, source emitters and reading-host evidence; unresolved evidence remains explicit. No ruler, scores or progress tool. | 0.5–1 day, Codex |
-| **CS2** | **open (2026-10-31, sp-x1):** persistence, 27 native world-scene recipes and the 23 aliases/forest-page documents in `31bffc86fb` are qualified. The 62 welds remain withdrawn; eight separate living-cabin envelopes are also an explicit index-footprint exit under the new approximately 1.9 MB Pine headroom rule. Building-sites and shape-book are the next two approved native roots, source-first. Remaining names need the concrete family exits below; the five repeated-name exits alone do not close CS2. | 2–3 days, Codex + Opus review |
+| **CS2** | **open (2026-10-31, sp-x1):** persistence, 27 native world-scene recipes, the 23 aliases/forest-page documents in `31bffc86fb`, and building-sites/shape-book are qualified. The 62 welds remain withdrawn; eight separate living-cabin envelopes are also an explicit index-footprint exit under the approximately 1.9 MB Pine headroom rule. Ground-family source review is next. Remaining names need the concrete family exits below; the five repeated-name exits alone do not close CS2. | 2–3 days, Codex + Opus review |
 | **CS3** | **K1 scenes**: one streamed `world/scenes` family and `models/library`; Pine's 112 placement files become one indexed section; tier copies derived. Pine first, then Sky / Signal / Nine / Driftwood / Nalati | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **K2 ground and physics**: Pine physics into `world/physics`; floor, crag cave, Sky fields, Signal embers into a streamed `world/fields` | 2–3 days, Codex (Opus memory reading) |
 | **CS5** | **K3 quests**: one `quest/*` family across Pine, Driftwood, Nalati (and Sky's quest rows); Pine `questRuntime` program to AS | 4–6 days, Opus design + Codex port |
@@ -663,7 +663,7 @@ split into two next native registrations, eight withheld living
 envelopes, and 32 explicit source/contract exits below. This is source
 evidence, not scene consolidation, host adoption or pixel qualification.
 
-The two approved next names are Pine `world/building-sites.json`, whose
+The two approved names, qualified below, are Pine `world/building-sites.json`, whose
 complete `LivingPageSitesSchema` is consumed by
 `game/shardfile/forestPage`, and Nalati `models/shape-book.json`, whose
 complete `FixedDrawRowsSchema` is consumed by `game/models/fixedDraws`.
@@ -672,7 +672,7 @@ Hash-verified bodies are 963 B and 12,854 B; native-root feasibility
 preserves them exactly. Seven off-tree controls pass, including missing
 and foreign provenance refusal before reads. Metadata-only physical-index
 projections add 790 B and 62 B respectively; these are not current-source
-admission or an AFTER payload qualification. The two-name source stays
+admission or an AFTER payload qualification. The two-name source stayed
 off-tree through the director owner's checked registry handback.
 
 **Eight living-cabin names are an explicit index-footprint exit.**
@@ -695,9 +695,9 @@ index-compaction row; neither the hard cap nor freshness is relaxed.
 | Nine `signs/atlas-{phone,desktop}.json` (2) | `signAtlasOutput.ts` uses the shard-local `sections.ts#SignAtlasSchema`, with its exact glyph, light, pool and channel bindings. | **CS3:** shared atlas/native-resource contract or existing approved shader/model exit; retain the original complete sign parser. |
 | DW `world/building-life.json` (1) | `namedSchemas.ts` composes `{look: BuildingLifeLook, life: BuildingLifeRows, initialDusk: number}` inline. The two native child roots do not define the whole envelope. | **CS3:** complete life-document root and original site owner; no child-only registration. |
 | Nalati `world/dressing-{boulder,slab,juniper,rose,willow,lupin,reed,logs,stumps,ovoos,poles,fences,gates,drifts,colliders,clutter}.json` (16) | `dressingSchemas.ts#DRESSING_SCHEMAS` declares local instance, spot, log, fence, gate, drift, collider and clutter array grammars and re-encodes through their existing parsers. | **CS3**, with **CS4** for collider ownership: adopt complete native shared rows without changing doubles, resources or collision; no permissive array wrapper. |
-| Nalati `world/dressing-{phone,desktop}.json` (2) | `dressingScene.ts` emits the complete `SceneDressingSchema`; `output.ts` then binds the original painted books without changing that metadata. Only Nalati emits this named root in the source trace. | **CS3:** complete shared/approved dressing-book adoption, including tier resources, ordered paint bindings and scope retirement. |
+| Nalati `world/dressing-{phone,desktop}.json` (2) | `dressingScene.ts` emits the complete `SceneDressingSchema`; `output.ts` then binds the original painted books without changing that metadata. G483 explicitly approves `game/shardfile/sceneDressing` and `sceneInstances` with unrelated orchard coverage (HOST-BAR); no new host score is claimed. | **CS3:** X2 owns the first phone-only defining-metadata slice, with full native/refusal/resource checks, payload identity and strict affected-pose AA/AB. Desktop remains a separate exact-pixel adoption step. |
 | DW `world/island/plan-{phone,desktop}.json` (2) | `productPageFiles.ts#driftwoodPlanBytes` encodes `islandCover.ts#bakeIslandPlan`; `IslandPlacementPlan` is a local interface with sets, families, small rocks and unclaimed boxes, not an exported complete native schema. | **CS3:** complete placement-plan contract and exact native collider/resource checks; do not infer a format root from the interface or bytes. |
-| Far/Sun `world/sources/bakes.json`; Far `world/sources/{heroes,sky}.json`; Sun `world/sources/models.json` (4 distinct names) | `sdk/worldScenes#bakedSceneSourceFile` and `modelSceneSourceFile` emit `SceneBakeSource` / `SceneModelSource` interfaces with kind/inventory limits; downstream `game/shardfile/sceneSources` retains full resource/owner admission. There is no complete defining native format root for these envelopes. | **CS3:** complete the shared source contracts before registration. X2 owns the first two-user bakes slice plus its original refusals, payload identity and affected-pose AA/AB proof; no unknown/child-only envelope or new host credit. |
+| Far/Sun `world/sources/bakes.json`; Far `world/sources/{heroes,sky}.json`; Sun `world/sources/models.json` (4 distinct names) | `sdk/worldScenes#bakedSceneSourceFile` and `modelSceneSourceFile` emit `SceneBakeSource` / `SceneModelSource` interfaces with kind/inventory limits; downstream `game/shardfile/sceneSources` retains full resource/owner admission. X2's bakes audit finds the actual 321,049 B Far / 23,984 B Sun envelopes also carry GLB, hull, rig, rail, disc, anchor and other author leftovers outside the typed runtime subset. | **CS3 complete-contract exit:** no complete native format root admits that whole envelope. Do not register only the runtime fields, unknown extensions or an inferred shape. Model-source interfaces likewise remain a complete-root/resource-contract exit. |
 
 The eight withheld living envelopes plus the table's 32 names account
 for every scene-family remainder beyond the two approved next names.
@@ -757,3 +757,65 @@ Evidence: `tmp/sp-x6-cs6-director/{proof-exits,audit-after}.json`,
 remains a separate raw failure plus case ruling. CS6 stays open for its
 remaining population/keeper/return/roster/controller/custom families;
 this slice does not retire the private bridge or claim a frame gain.
+
+### CS2: building sites and fixed shape book
+
+**2026-10-31, sp-x1.** Bind exactly Pine's existing
+`world/building-sites.json` to `forestPage#LivingPageSitesSchema` and
+Nalati's existing `models/shape-book.json` to
+`fixedDraws#FixedDrawRowsSchema`. The G571 forest-page and G602 fixed-draw
+approvals remain the authority. These are the original complete native
+roots, not a child-only envelope, new host or physics owner. The SDK
+names those two roots; only the existing emitter metadata options
+change. Their encoded bodies, resource names, ordering and dependencies
+remain unchanged. All eight living envelopes and all 62 welds remain
+unregistered under the explicit index-footprint exits.
+
+Seven native/provenance controls pass, including refusal of absent or
+foreign defining metadata before payload reads; root/test types and
+typed lint pass. Before emitter changes the ordinary Nalati read
+correctly refused the stale namespace. Its hash-verified physical body
+and immutable index were retained as historical before evidence, not
+current admission, and no BEFORE generation was run.
+
+One shared normal AFTER publisher takes 45.31 s for the director and
+these two documents. Ordinary strict admission accepts all three
+products and every new document. Actual indexes are Pine **1,763,458 B**
+and Nalati **1,100,052 B**, below the approximately 1.9 MB Pine headroom
+rule and unchanged 2 MB hard cap. The four original cabin-document,
+Nalati native-shape, forest-page-feature and fixed-draw suites pass.
+The director owner repairs its separate missing-metadata fixture before
+the agreed director-first, then scene-facts HEAD-only landings.
+
+The independent Pine/Nalati comparator covers **1,458 payload paths /
+243,189,266 B**: 1,457 are byte-identical. Precisely the two approved
+metadata records and the director owner's Pine metadata change in
+these two indexes. Every custom schema and other index field is exact,
+apart from ordinary refreshed build source/validator receipts. Ordered
+pack members and offsets are exact; old and new pack hashes reconstruct.
+
+The strict raw comparator still fails on exactly Nalati's 164-byte
+`look/map` record. Only `map.tilesHash` changes, from `ed7a40e2…61d7f3`
+to `9ace4b97…488234`, equal to current `mapTilesHash`. The full old source
+fingerprint reconstructs; the sole changed map input is the shape-book
+metadata option in `generators/output.ts`. The image remains exactly
+`80afaa55…aff2d6`, and Pine's map stamp remains unchanged. Jake's G872
+ruling accepts this exact case only, with no tolerance, stamp freeze or
+weaker freshness. The original raw failure remains a failure.
+
+### CS2 ground-family source remainder
+
+The three remaining names at the `31bffc86fb` six-primary boundary
+are traced separately; this is source/native feasibility, not emitted
+AFTER proof or new host-bar credit.
+
+| Name | Complete source contract and owner evidence | Disposition |
+|---|---|---|
+| DW `world/cover-composition.json` | `generators/output.ts` emits `sdk/rows#coverCompositionRows`; `namedSchemas.ts` already names `streamedCover.CoverComposition`. `format/streamedCover#CoverCompositionSchema` is the whole root, consumed by the original streamed-cover stage in `game/shardfile/worldAssembly` under G602. | Next exact native metadata candidate after the current scene pair. The 99 B body/hash is unchanged; conversion succeeds and projects 68 B metadata growth. Preserve original stage loans and placement/object ownership; no collider movement. |
+| Nalati `world/meadow.json` | `generators/output.ts` emits the original nativeField; both `game/population/environment#NativePopulationField` and `test/fixtures/nalati-headless.ts` parse the complete `PopulationFieldSchema`. G667 explicitly approves that exact one-user native field/driver/roster host; its tests 2-6 remain HOST-AUDIT work. | Complete-root metadata candidate, not a new completed host audit. The 21,630 B body/hash is unchanged; conversion succeeds and projects 3,037 B metadata growth. Preserve the complete riding-world/river/meadow/trail fields and all existing query/canonical physics checks. |
+| Pine `data/physics.generated.json` | `sourceOutput.ts` emits `pinePhysicsOwnersBytes()` with shard-local `sections.ts#PinePhysicsOwnersSchema`, the exact `version`, `trees`, `kingHit`, `shelterTrees` subset of `PinePhysicsSchema`. `test/fixtures/pine-headless.ts` retains this separate owner document. | Explicit **CS4 complete-owner-contract exit**: the common `world/physics` move and its 75/75 walk do not make these remaining owner rows a shared format root. Preserve every profile/tree/King-hit/shelter owner check; no shard-local alias or ground-only wrapper. |
+
+The projected additions use unchanged canonical index encoding on
+hash-verified physical indexes; they do not claim current-source
+admission. No ground schema, emitter, physics owner or collider is
+changed by this source audit.

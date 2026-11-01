@@ -370,7 +370,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   const ownedMetadata = emitNamedBlobs([nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({
     ...eliteAssembly, constants: { ...eliteAssembly.constants, nativeShelters },
   }))), nameBlob('models/shape-book.json', 'json', new TextEncoder().encode(encodeCanonicalJson(shapeDraws)),
-    { jsonSchema: namedJsonSchema(FixedDrawRowsSchema) })]);
+    { jsonSchema: registeredJsonSchema('models/shape-book.json') })]);
   const cragRows = await nalatiCragRockProgram(ctx), crags = await nalatiBakeBlob(ctx, 'crags', dressingCragDecoded(cragRows)), people = await nalatiPeopleBlobs(ctx);
   const phoneCragBytes=nalatiPhoneCragBank(crags.bytes,cragRows),phoneCrags=nameBlob(NALATI_PHONE_CRAG_FILE,'bin',phoneCragBytes.bytes,{decoded:phoneCragBytes.decoded});
   // GR6: the slab and the water mesh ship; the painted ground draws from its tiles, so its whole mesh feeds only the map

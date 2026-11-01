@@ -1,7 +1,7 @@
 /** Product rows over the completed cabin bake. The author-only graph book keeps
  * bundled declarations free of file I/O; the product still emits individual graphs. */
 import { Matrix4 } from 'three';
-import { defineNamedRows, type NamedRows } from '@wildshard/sdk/formatJsonSchema';
+import { registeredJsonSchema, defineNamedRows, type NamedRows } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { nameCompactBlobs } from '@wildshard/sdk/bake/compactGlb';
 import { worldSceneWeldRows as parseWorldSceneWeld, worldScenePlacement as parseWorldScenePlacement } from '@wildshard/sdk/worldScenes';
@@ -97,7 +97,7 @@ export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSour
   const cabins = pineCabins(sources).rows;
   const authored = timberWorld(sources);
   const CABIN_PLACEMENTS: ReturnType<typeof parseWorldScenePlacement>[] = [];
-  const CABIN_JSON_BLOBS: ReturnType<typeof nameBlob>[] = [...living.CABIN_LIVING_BLOBS, nameBlob('world/building-sites.json', 'json', new TextEncoder().encode(JSON.stringify(cabinSites(sources))))];
+  const CABIN_JSON_BLOBS: ReturnType<typeof nameBlob>[] = [...living.CABIN_LIVING_BLOBS, nameBlob('world/building-sites.json', 'json', new TextEncoder().encode(JSON.stringify(cabinSites(sources))), { jsonSchema: registeredJsonSchema('world/building-sites.json') })];
   const encode = (file: string, row: unknown) => nameBlob(file, 'json', new TextEncoder().encode(JSON.stringify(row)));
   for (const world of metadata.worlds) {
     const prefix = `cabins.${world.tier}.${String(world.shadow)}`, placements: string[] = [], hamlet: string[] = [];

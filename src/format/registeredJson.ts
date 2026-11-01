@@ -1,4 +1,5 @@
-import { ForestGroundLayoutSchema, ForestPageSchema } from './forestPage';
+import { FixedDrawRowsSchema } from './fixedDraws';
+import { ForestGroundLayoutSchema, ForestPageSchema, LivingPageSitesSchema } from './forestPage';
 import { CaveFileSchema, CaveInteriorSchema } from './caveInterior';
 import * as v from 'valibot';
 import { DirectorProductSchema } from './directorProduct';
@@ -25,6 +26,8 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'world/building-sites.json':{readonly schema:typeof LivingPageSitesSchema;readonly source:'@wildshard/format/forestPage#LivingPageSitesSchema'};
+  readonly 'models/shape-book.json':{readonly schema:typeof FixedDrawRowsSchema;readonly source:'@wildshard/format/fixedDraws#FixedDrawRowsSchema'};
   readonly 'directors/main.json':{readonly schema:typeof DirectorProductSchema;readonly source:'@wildshard/format/directorProduct#DirectorProductSchema'};
   readonly 'scenes/cascade.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
   readonly 'scenes/cove.json':{readonly schema:typeof WorldSceneSchema;readonly source:'@wildshard/format/clientChannels#WorldSceneSchema'};
@@ -75,6 +78,8 @@ export interface RegisteredJsonContracts {
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'world/building-sites.json':{schema:LivingPageSitesSchema,source:'@wildshard/format/forestPage#LivingPageSitesSchema'},
+  'models/shape-book.json':{schema:FixedDrawRowsSchema,source:'@wildshard/format/fixedDraws#FixedDrawRowsSchema'},
   'directors/main.json':{schema:DirectorProductSchema,source:'@wildshard/format/directorProduct#DirectorProductSchema'},
   'scenes/cascade.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
   'scenes/cove.json':{schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'},
@@ -208,6 +213,8 @@ export function validateRegisteredJson(name:string,value:unknown):void {
     case 'people/cards.json':v.parse(KitFigureCardsSchema,value);break;
     case 'directors/main.json':v.parse(DirectorProductSchema,value);break;
     case 'quests/persistence.json':v.parse(AdventurePersistenceSchema,value);break;
+    case 'world/building-sites.json':v.parse(LivingPageSitesSchema,value);break;
+    case 'models/shape-book.json':v.parse(FixedDrawRowsSchema,value);break;
     case 'world/forest-page.json':v.parse(ForestPageSchema,value);break;
     case 'world/floor.json':v.parse(ForestGroundLayoutSchema,value);break;
     case 'world/crag-cave.json':v.parse(CaveFileSchema,value);break;
