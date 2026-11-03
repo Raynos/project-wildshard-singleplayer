@@ -78,6 +78,9 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
 19h. **Six elites:** the 3 band-gate elites plus **3 night elites** (Jake 11-02, not one per band). **Grey kills pay
     nothing** (no XP, Scrip or parts). Packs respawn on a **timer per pack** (~90 s after you leave, never in view).
     **No mid-fight heals:** no patch kits; the bench makes ammo only.
+19i. **Quests:** 12, four per tier, from three tier givers; kinds are kill + collect, explore + elite hunt, set pieces.
+    **HUD:** a bottom XP bar with an LV chip; enemy nameplates within ~25 m in con colours. **No heal button or
+    potions.**
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
@@ -168,9 +171,9 @@ About 20–22 lane-days (estimate): Opus for everything the player sees (G848), 
 | [wave-1-hosts-mini-plan.md](kitchen-sink-v2/wave-1-hosts-mini-plan.md): every Wave 1 host row | written (draft) |
 | [map-layout-mini-plan.md](kitchen-sink-v2/map-layout-mini-plan.md): blockout rounds and the zone table | written |
 | enemies-bosses-mini-plan.md: the 6 enemy types, night variants, 3 mini-bosses, the Crate Titan, the cutscene intro | Jake ordered 11-02; to write |
-| quests-contracts-mini-plan.md: givers, freeform level-locked quests, grey/yellow "!", the kill-contract board, storm hour, checkpoint cards | Jake ordered 11-02; to write |
+| [quests-contracts-mini-plan.md](kitchen-sink-v2/quests-contracts-mini-plan.md): 12 quests (4 per tier), kinds, the kill-contract board, checkpoint cards | written |
 | audio-mini-plan.md: orchestral score, SFX, ambience, mini-boss and boss music | Jake ordered 11-02; to write |
-| hud-character-mini-plan.md: level, XP bar, nameplates, Character screen (E332 HUD coordination) | Jake ordered 11-02; to write |
+| [hud-character-mini-plan.md](kitchen-sink-v2/hud-character-mini-plan.md): bottom XP bar + LV chip, nameplates within 25 m, a read-only Character tab (E332) | written |
 
 ## 7. Pages for Jake
 
