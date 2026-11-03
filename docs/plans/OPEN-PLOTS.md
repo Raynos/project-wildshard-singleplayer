@@ -45,6 +45,26 @@ stays publication-only until sp-o1's real output/board/walk boundary;
 G999 parks that visual work during Nine release QA. Details and body
 comparison limits are in [the audio review](../reviews/open-plots-audio.md).
 
+**Wave B Codex stubs (2026-11-03, sp-x9): source preparation complete.**
+Fossil Badlands already has sp-o2's real OP3 source `d54dacb946` and
+maintained route `4e9530bc4b`; preserve its hand-owned theme layout and
+activation. Desert Ruin (OP12) and Sky Harbor (OP11) now have inert OP3
+recipes, generic-palette scaffold layouts/descriptors, and eight canonical
+TEMPLATE dome camera sets each. Their actual committed grid bindings are
+`open-plot-3-0` at **(1,-2)** and `open-plot-4-4` at **(2,2)** respectively;
+Fossil is `open-plot-1-0` at **(-1,-2)**. No historical plan coordinate is
+used to move an instance. Both descriptors remain `activated: false` and
+`shardSelect: false`; outputs, grid, live map, look and assets are untouched.
+The generic palette is scaffolding, never theme art approval (G848).
+
+The two provisional continuous south-entry/plaza-seam walk routes are
+maintained inputs, not completed walk readings. Opus must adapt them to
+final terrain before the maintained zero-stuck check. All three Wave B
+names are accepted by the G950 tiling-report selector; its ordinary CURRENT
+and non-empty-tile admission remains unchanged, so inert placeholders
+refuse rather than produce a fictitious report. Audio and post-board
+readings remain with sp-x6; all visible building/activation stays Opus-owned.
+
 Jake, 2026-10-28: *"You're approved to go and do the park plan, the draft park plan, how to build the rest of the open
 plots."* This plan replaces Night Market pilot R1–R3 and remaster-open-plots RP2–RP4 (G774, G824). Decisions stay in
 [shard-platform/decisions.md](shard-platform/decisions.md) until this plan has its own file. Read at HEAD 2f074203c9.
@@ -166,8 +186,8 @@ The same eight steps for every plot. One lane owns a plot until it is done (G804
 | OP8 | ~~Mushroom Hollow~~ **dropped (G977)**: Jungle Ziggurat (OP13) takes its cell (-2,2) | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
 | OP9 | **Inactive template stub `9361210b9d` (2026-11-03, sp-x6); visual build remains open.** Saltwind Lighthouse (wave 2; new) — look target [round 75](../../art/grid/round-75-new-plot-palettes/04-saltwind-lighthouse.jpg), cell (-2,1), G982, theme in §4b | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
 | OP10 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Coral Drift (wave 2; builds the shared palms and lagoon water) | Opus + Codex | 16 / 5 h | Steps 1–8 |
-| OP11 | Sky Harbor (wave 3) | Opus + Codex | 16 / 5 h | Steps 1–8 |
-| OP12 | Desert Ruin (wave 3; reuses the palms) | Opus + Codex | 16 / 5 h | Steps 1–8 |
+| OP11 | **Inert OP3 stub (2026-11-03, sp-x9); visual build remains open.** Sky Harbor: real instance `open-plot-4-4`, cell (2,2); generic palette, unactivated descriptor, eight TEMPLATE domes and provisional walk/report inputs | Opus + Codex | 16 / 5 h | Steps 1–8 |
+| OP12 | **Inert OP3 stub (2026-11-03, sp-x9); visual build remains open.** Desert Ruin: real instance `open-plot-3-0`, cell (1,-2); generic palette, unactivated descriptor, eight TEMPLATE domes and provisional walk/report inputs; final theme reuses the palms | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP13 | **Built (2026-11-03, sp-o1); audio, walk and readings with sp-x6.** Landmark `1e9ac5a848` (ziggurat.py, now 66 m), builders `58dba85134`, activation `6f3683f9c5` (approved debt: entry tiles ~633 KB, plaza L1 3 draws, wire 5,178,863 B), look round R1 `87d997316d` (pools uncovered, ziggurat 55 → 66 m, avenue egrets out, deeper sky). [Final board](../../art/jungle-ziggurat/round-2-final/board.jpg) and 8 goldens `90957ed671`: 5 7 7 8 7 7 6 6, mean 6.62, GOOD ENOUGH. In-engine card art `d2e077f684` + `b0642bd794` (card off, G991). Player-view draws 86–112, ≤ 253k triangles (Chromium phone 2×). Open: sp-x6 binds audio `add58749da` and runs the walk route, bar 7 life and OB8 readings on the final geometry. Jungle Ziggurat (wave 3; new; **takes (-2,2), G977**) — look target [round 75](../../art/grid/round-75-new-plot-palettes/02-jungle-ziggurat.jpg), cell (-2,2), G977, theme in §4b | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
 | OP14 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Ember Forge (wave 4; adds the lava water kind) | Opus + Codex | 16 / 5 h | Steps 1–8; frees a repeat cell |
 | OP15 | Starfall Observatory (wave 4) | Opus + Codex | 16 / 5 h | Steps 1–8 |

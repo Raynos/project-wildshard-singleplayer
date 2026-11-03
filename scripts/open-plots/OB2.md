@@ -181,14 +181,18 @@ does not make the "clearly better" taste verdict.
 
 ## Per-plot G950 tiling report
 
-Export the five reports together, or name one plot slug:
+Export the registered reports together, or name one plot slug:
 
 ```sh
 node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/open-plots/tiling.mjs --plot=all --out=tmp/open-plot-tiles
 ```
 
 `--plot=open-plot-ember-forge` and `--plot=ember-forge` select the same
-plot. The batch admits every selected CURRENT product before writing
+plot. Wave B selectors also include `fossil-badlands`, `desert-ruin` and
+`sky-harbor`. The last two start as inert OP3 source stubs, so selection
+refuses until their actual tiled products have ordinary CURRENT admission;
+a selector is not a measured report or an activation. The batch admits
+every selected CURRENT product before writing
 anything, then emits one JSON/Markdown pair per plot and an `index.json`
 with product index hashes and L0/L1 totals. The printed totals cover all
 tiles of a level, not a live view's draws or memory. Each detailed report

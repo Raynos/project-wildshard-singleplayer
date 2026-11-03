@@ -7,6 +7,11 @@
       "cameras": "art/open-plots/coral-drift/domes"
     },
     {
+      "slug": "open-plot-desert-ruin",
+      "instance": "open-plot-3-0",
+      "cameras": "art/open-plots/desert-ruin/domes"
+    },
+    {
       "slug": "open-plot-ember-forge",
       "instance": "open-plot-4-1",
       "cameras": "art/open-plots/ember-forge/domes"
@@ -55,6 +60,11 @@
       "slug": "open-plot-showcase-template",
       "instance": "open-plot-2-4",
       "cameras": "art/open-plots/showcase-template/domes"
+    },
+    {
+      "slug": "open-plot-sky-harbor",
+      "instance": "open-plot-4-4",
+      "cameras": "art/open-plots/sky-harbor/domes"
     }
   ]
 }

@@ -1,15 +1,15 @@
 #!/usr/bin/env node
-// G950: one verified report per plot, or the five-plot batch. No generation.
+// G950: one verified report per selected plot, or the registered batch. No generation.
 // node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/open-plots/tiling.mjs --plot=all --out=tmp/plot-tiles
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {parseArgs} from 'node:util';
 import {plotTilingReport} from './ob2.mjs';
 
-const ideas=['frostline-peaks','lantern-bayou','ember-forge','mosslight-ruins','coral-drift'];
+const ideas=['frostline-peaks','lantern-bayou','ember-forge','mosslight-ruins','coral-drift','fossil-badlands','desert-ruin','sky-harbor'];
 const {values}=parseArgs({options:{plot:{type:'string'},out:{type:'string'}}});
 const idea=values.plot?.replace(/^open-plot-/u,'');
-if(idea===undefined||values.out===undefined||idea!=='all'&&!ideas.includes(idea))throw new Error('Requires --plot=<one of five ideas|all> --out=NEW_DIR');
+if(idea===undefined||values.out===undefined||idea!=='all'&&!ideas.includes(idea))throw new Error('Requires --plot=<registered idea|all> --out=NEW_DIR');
 const selected=idea==='all'?ideas:[idea],reports=[];
 // Admit the full selection before publishing any output. Missing CURRENT refuses.
 for(const plot of selected)reports.push(await plotTilingReport(plot));
