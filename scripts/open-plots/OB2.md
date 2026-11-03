@@ -181,6 +181,19 @@ does not make the "clearly better" taste verdict.
 
 ## Per-plot G950 tiling report
 
+Export the five reports together, or name one plot slug:
+
+```sh
+node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/open-plots/tiling.mjs --plot=all --out=tmp/open-plot-tiles
+```
+
+`--plot=open-plot-ember-forge` and `--plot=ember-forge` select the same
+plot. The batch admits every selected CURRENT product before writing
+anything, then emits one JSON/Markdown pair per plot and an `index.json`
+with product index hashes and L0/L1 totals. The printed totals cover all
+tiles of a level, not a live view's draws or memory. Each detailed report
+keeps per-tile MB, triangles, draws, height and the existing NT7 advice.
+
 ```sh
 node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/open-plots/ob2.mjs tiling --plot=lantern-bayou --out=tmp/bayou-tiling
 ```
