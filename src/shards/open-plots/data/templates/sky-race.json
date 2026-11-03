@@ -85,124 +85,148 @@
       "shade": 0.3,
       "classes": [
         {
-          "match": "#baa8a7",
-          "fill": "#baa8a7"
+          "match": "#dcdfe6",
+          "fill": "#dcdfe6"
         },
         {
-          "match": "#c8b7b2",
-          "fill": "#c8b7b2"
+          "match": "#e8eaf0",
+          "fill": "#e8eaf0"
         },
         {
-          "match": "#a3959a",
-          "fill": "#a3959a"
+          "match": "#c8ccd6",
+          "fill": "#c8ccd6"
         },
         {
-          "match": "#b6a5a3",
-          "fill": "#b6a5a3"
+          "match": "#e0e3ea",
+          "fill": "#e0e3ea"
         },
         {
-          "match": "#d5c3be",
-          "fill": "#d5c3be"
+          "match": "#eceef2",
+          "fill": "#eceef2"
         },
         {
-          "match": "#c1b0af",
-          "fill": "#c1b0af"
+          "match": "#e4e6ec",
+          "fill": "#e4e6ec"
         },
         {
-          "match": "#e9d6b0",
-          "fill": "#e9d6b0"
+          "match": "#f4efe4",
+          "fill": "#f4efe4"
         },
         {
-          "match": "#24358c",
-          "fill": "#24358c"
+          "match": "#2e5ad8",
+          "fill": "#2e5ad8"
         },
         {
-          "match": "#5b3a24",
-          "fill": "#5b3a24"
+          "match": "#9a6a40",
+          "fill": "#9a6a40"
         },
         {
-          "match": "#c0222b",
-          "fill": "#c0222b"
+          "match": "#24468e",
+          "fill": "#24468e"
         },
         {
-          "match": "#7a1218",
-          "fill": "#7a1218"
+          "match": "#a87440",
+          "fill": "#a87440"
         },
         {
-          "match": "#8a5a34",
-          "fill": "#8a5a34"
+          "match": "#2ea8e8",
+          "fill": "#2ea8e8"
         },
         {
-          "match": "#3a9fc0",
-          "fill": "#3a9fc0"
+          "match": "#c8c6c0",
+          "fill": "#c8c6c0"
         },
         {
-          "match": "#8a8a94",
-          "fill": "#8a8a94"
+          "match": "#dcdad4",
+          "fill": "#dcdad4"
         },
         {
-          "match": "#a6a6b0",
-          "fill": "#a6a6b0"
+          "match": "#4aa840",
+          "fill": "#4aa840"
         },
         {
-          "match": "#5c9e3e",
-          "fill": "#5c9e3e"
+          "match": "#3a8a34",
+          "fill": "#3a8a34"
         },
         {
-          "match": "#457f34",
-          "fill": "#457f34"
+          "match": "#46a03c",
+          "fill": "#46a03c"
         },
         {
-          "match": "#4e9a3c",
-          "fill": "#4e9a3c"
+          "match": "#2e7a2a",
+          "fill": "#2e7a2a"
         },
         {
-          "match": "#387a30",
-          "fill": "#387a30"
+          "match": "#7a5634",
+          "fill": "#7a5634"
         },
         {
-          "match": "#5a4030",
-          "fill": "#5a4030"
+          "match": "#fff0c8",
+          "fill": "#fff0c8"
         },
         {
-          "match": "#ffb347",
-          "fill": "#ffb347"
+          "match": "#b8b6b0",
+          "fill": "#b8b6b0"
         },
         {
-          "match": "#ffc96a",
-          "fill": "#ffc96a"
+          "match": "#1a3a9a",
+          "fill": "#1a3a9a"
         },
         {
-          "match": "#918489",
-          "fill": "#918489"
+          "match": "#f0e8d0",
+          "fill": "#f0e8d0"
         },
         {
-          "match": "#14203f",
-          "fill": "#14203f"
+          "match": "#2e58c0",
+          "fill": "#2e58c0"
         },
         {
-          "match": "#9a4a14",
-          "fill": "#9a4a14"
+          "match": "#eef2ff",
+          "fill": "#eef2ff"
         },
         {
-          "match": "#ff7a2e",
-          "fill": "#ff7a2e"
+          "match": "#7ad0ff",
+          "fill": "#7ad0ff"
         },
         {
-          "match": "#ff4a3a",
-          "fill": "#ff4a3a"
+          "match": "#8a7050",
+          "fill": "#8a7050"
         },
         {
-          "match": "#c2361c",
-          "fill": "#c2361c"
+          "match": "#3a3e48",
+          "fill": "#3a3e48"
         },
         {
-          "match": "#1f7fff",
-          "fill": "#1f7fff"
+          "match": "#d8322e",
+          "fill": "#d8322e"
         },
         {
-          "match": "#2a1d14",
-          "fill": "#2a1d14"
+          "match": "#f4f4f4",
+          "fill": "#f4f4f4"
+        },
+        {
+          "match": "#26282e",
+          "fill": "#26282e"
+        },
+        {
+          "match": "#b8bec8",
+          "fill": "#b8bec8"
+        },
+        {
+          "match": "#22242a",
+          "fill": "#22242a"
+        },
+        {
+          "match": "#f2f2f4",
+          "fill": "#f2f2f4"
+        },
+        {
+          "match": "#3a3e4a",
+          "fill": "#3a3e4a"
+        },
+        {
+          "match": "#e8eaee",
+          "fill": "#e8eaee"
         }
       ]
     },
