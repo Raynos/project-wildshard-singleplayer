@@ -2382,3 +2382,27 @@ under G612, fix forward on a concrete cause, and leave loading/CS3 open.
 No further scene/tier-copy retirement is credited. Retained compact audit,
 hashes and readings: tmp/sp-x2-cs3-driftwood-pages/ and its two exact-source
 phone-loading folders; the source/qualification commits record the results.
+
+## CS3: non-Nine placement-page eligibility (2026-11-03)
+
+**Source-only exit for the requested existing-root paging slice.** Nine
+streaming is deferred until after Jake's morning QA. Re-auditing Nalati
+and Far Reach with x2 finds neither has individual
+`world/scenes.placements` documents to consolidate with Pine's existing
+`worldScenePlacementPages` helper. No emitter, reader or runtime changes.
+
+| Shard | Existing placement-page candidates | Other documents are a different complete format |
+|---|---:|---|
+| Nalati | 0 | `dressingPlacementProgram.ts` produces 18 scatter groups. `dressingSchemas.ts` emits 16 differently typed JSON arrays plus two numeric binary tables; the dressing reader consumes these, not `WorldScenePlacementRow`. |
+| Far Reach | 0 | `worldScenes.ts` emits scene recipes referenced by ordered scene steps, not placement rows. The physical inventory contains 15 recipe files/steps. |
+
+The defining emitter/helper sources were HEAD-clean at the audit. The
+physical `out/` snapshots independently contain zero placement references
+in both products, matching x2's retained inventory; those snapshots are
+hash-bound observations, **not CURRENT product admission**. Exact source
+and index hashes are retained in
+`tmp/sp-x6-cs3-non-nine-pages/audit.json`. Packing either other family
+would need a separately defined complete native transport and consumer
+audit; re-labelling those bodies as the existing placement-page grammar
+would weaken admission. No generation, loading pair, pixel capture or
+machine reservation was needed or claimed. CS3 as a whole remains open.
