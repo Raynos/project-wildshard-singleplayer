@@ -12,6 +12,8 @@ off its axis at (40, 55, 55). Captured in the engine on the phone tier at 2x, as
 | `board-r1.jpg` | R1's BEFORE · AFTER · TARGET for four of the angles |
 | `sheet-r2.jpg` | R2: after the second round |
 | `board-r2.jpg` | R2's BEFORE (R1) · AFTER · TARGET for four more angles |
+| `sheet-r3.jpg` | R3: after the third round |
+| `board-r3.jpg` | R3's BEFORE (R2) · AFTER · TARGET |
 
 ## R1 gap list (R0 against T0) and fixes
 
@@ -40,3 +42,20 @@ off its axis at (40, 55, 55). Captured in the engine on the phone tier at 2x, as
 
 **Ruling (G872): R2 ships.** The plaza tiles grow about 51 KB each, inside tonight's 100 KB a round; the phone wire stays
 under its ceiling.
+
+## R3: the layout against round 62 (the hero cameras)
+
+The four round-62 hero views, set beside the mockup on OB2's three-way board, showed a gap the nine angles could not.
+Round 62 hugs the plaza with an L of emerald pools at each corner, and flanks the road entries with ruins. R2's inner
+ring was Night Market gardens, and its entries were Night Market forecourts with kiosks. R3 re-rules the rows:
+
+- **Pools:** an L of pools at each plaza corner.
+- **Ruins:** ruin courts round the pools and flanking all four entries; gardens at the side entries and in the gaps.
+- **Water:** the pool's own glow is a darker green (`#0a7a32`), so the water reads emerald instead of mint-white.
+
+T0 was edited from R0's layout, so it shows gardens where the pools now are; the layout's reference is round 62.
+
+**Wire.** The new rows came to 9.21 MB against the approved 8.95 MB. The tower's texture was 1024 px; at 768 px it
+saves 382 KB on the phone, and the plot now serves 8.83 MB. The ceiling ratchets down to that (OB6b's trim, part way).
+
+**Ruling (G872): R3 ships.** Draws are 78–138 a view.
