@@ -238,14 +238,14 @@
   "patchwork-fairground": [
     {
       "id": "carousel-bells",
-      "x": -140,
-      "z": -140,
+      "x": -156.25,
+      "z": -156.25,
       "reach": 32
     },
     {
       "id": "band-organ",
-      "x": 140,
-      "z": -140,
+      "x": 156.25,
+      "z": -156.25,
       "reach": 45
     },
     {

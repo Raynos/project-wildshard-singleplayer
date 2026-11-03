@@ -1,5 +1,5 @@
 {
-  "_doc": "OB7: one ambience bed and five positional loops per plot; generate each with MOSS v2 and Stable Audio 3 Medium, then rank both with CLAP. No recording is qualified merely by these briefs.",
+  "_doc": "OB7: one ambience bed and declared positional loops per plot; generate each with MOSS v2 and Stable Audio 3 Medium, then rank both with CLAP. No recording is qualified merely by these briefs.",
   "families": {
     "bed.lantern-bayou.ambience": {
       "kind": "bed",
@@ -342,7 +342,7 @@
       "into": "patchwork-fairground",
       "duration": 10,
       "desc": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze",
-      "prompt": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion."
+      "prompt": "Close isolated foley of small woven cloth bunting flags stretched on a rope in a steady breeze. Distinct dry fabric flaps and crisp short snapping cracks as each little flag pulls taut, with pauses between bursts. Nearby cloth flexing and snapping is the only sound. No leafy tree rustle, no waves or running water, no engine, no music, no speech, no distortion. Ten seconds of clear flag-cloth detail."
     },
     "hum.patchwork-fairground.crowd-murmur": {
       "kind": "hum",
