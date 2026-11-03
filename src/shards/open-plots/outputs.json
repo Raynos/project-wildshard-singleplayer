@@ -1186,8 +1186,16 @@
         },
         "pois": [],
         "assetGlobs": [
-          "public/assets/open-plots/**"
-        ]
+          "public/assets/open-plots/**",
+          "public/assets/music/patchwork-fairground/**",
+          "public/assets/sfx/patchwork-fairground/**"
+        ],
+        "audio": {
+          "catalogue": true,
+          "ambience": "ambience.patchwork-fairground",
+          "score": "score.patchwork-fairground",
+          "bed": "none"
+        }
       }
     },
     {

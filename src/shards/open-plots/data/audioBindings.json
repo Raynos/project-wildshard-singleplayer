@@ -299,5 +299,54 @@
         "reach": 30
       }
     ]
+  },
+  "patchwork-fairground": {
+    "idea": "patchwork-fairground",
+    "source": {
+      "dir": "/assets/music/patchwork-fairground/",
+      "manifestKey": "patchwork-fairground"
+    },
+    "sfxDir": "/assets/sfx/patchwork-fairground/",
+    "files": {
+      "score": "take-b-0e7f6f396f9d.m4a",
+      "ambience": "ambience-0e6ee442383f.m4a",
+      "carousel-bells": "carousel-bells-b67cf7c6bdab.m4a",
+      "band-organ": "band-organ-22f79a450dc1.m4a",
+      "wheel-creak": "wheel-creak-f120165f01a9.m4a",
+      "crowd-murmur": "crowd-murmur-38a483e9e64c.m4a",
+      "big-top-drum": "big-top-drum-c03e0bf7299d.m4a"
+    },
+    "spots": [
+      {
+        "id": "carousel-bells",
+        "x": -156.25,
+        "z": -156.25,
+        "reach": 32
+      },
+      {
+        "id": "band-organ",
+        "x": 156.25,
+        "z": -156.25,
+        "reach": 45
+      },
+      {
+        "id": "wheel-creak",
+        "x": 0,
+        "z": 0,
+        "reach": 38
+      },
+      {
+        "id": "crowd-murmur",
+        "x": 0,
+        "z": -120,
+        "reach": 32
+      },
+      {
+        "id": "big-top-drum",
+        "x": -220,
+        "z": -220,
+        "reach": 45
+      }
+    ]
   }
 }
