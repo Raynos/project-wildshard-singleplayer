@@ -21,6 +21,7 @@ const MANIFEST = 'scripts/blender/targets.json';
 /** GLBs from other pipelines that share a folder with a Blender target's outputs: path → where they come from */
 const NOT_BLENDER = {
   'public/assets/nine-dragon/lab/grapple/dragon-hook.glb': 'TRELLIS.2 (lab P9 grapple, art/nine-dragon-stack/round-9-lab-grapple)',
+  'public/assets/open-plots/ember-forge/hologram.glb': 'the open plots\' hologram batch (scripts/open-plots/batch-holograms.sh), beside the furnace target',
 };
 /** files under scripts/blender/ that belong to no single target */
 const SHARED = new Set(['scripts/blender/build.sh', 'scripts/blender/targets.json']);

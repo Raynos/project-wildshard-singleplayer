@@ -20,7 +20,7 @@ about 35 m tall on a rock outcrop at the plaza, ivy-wrapped, its windows glowing
   wall is a smeared, unpainted slab.
 - **T · TRELLIS.2 on reference A:** the chunkiest facets and the best green, but black bake holes between the leaves and
   a torn far take stuck at 4.1k triangles (over the 2.5k bar, 0.89 MB together).
-- **C · Blender script** (`scripts/blender/open-plots/tower.py`): 3.4k near, 2.4k far. A faceted keep and turret on a
+- **C · Blender script** (`tower.py`, removed once A shipped; in git history at `eba2a44862`): 3.4k near, 2.4k far. A faceted keep and turret on a
   mossy crag in the kit idiom, its 22 slits as emerald Glow panes from its own hooks; plain next to A.
 
 ## The pick (G872: decided on the recommendation, logged for Jake's review)
@@ -28,5 +28,5 @@ about 35 m tall on a rock outcrop at the plaza, ivy-wrapped, its windows glowing
 **A, Hunyuan3D 2.1, ships** (`public/assets/open-plots/mosslight-ruins/landmark.glb`, `landmark-far.glb`), height 35 m,
 turn 0. Its 175 window triangles (the texels of its glowing panes, read off its texture) are the layout's
 `landmark.glow`: the plot draws them a little proud of the wall in the palette's `windowGlow` emerald
-(`src/shards/open-plots/generators/mosslight.mjs` `towerWindows`). C stays the fallback. Jake's pick steers it when
+(`src/shards/open-plots/generators/mosslight.mjs` `towerWindows`). Jake's pick steers it when
 it arrives (option 1 of the question is Skip).
