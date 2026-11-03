@@ -11,7 +11,7 @@ table qa-2026-10-30 (2508e90724).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**15:00:** waiting on Jake QD6. QD8 a9c15e13f2 (p95 39.4->36.6) ships next run. Plots: Jungle (walk red), Fossil, Saltwind, Sky, Starfall done; Clockwork, Thin Ice, Desert in work.
+**16:00:** waiting on Jake QD6. All 12 G990 plots built; audio/readings 0/10 queued. Zero: 67 = Jake batch, Z15 patch ready. Nine float fix (o3) in goldens.
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
 (f33d642372); G4 closed measured. Pine GPU ok.
