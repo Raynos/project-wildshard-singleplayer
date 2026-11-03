@@ -58,6 +58,7 @@ import strings from '../data/strings.json' with {type:'json'};
 import nativeRide from '../data/nativeRiding.json' with { type: 'json' };
 import skinFinishes from '../data/skinFinishes.json' with { type: 'json' };
 import { nalatiDressingPlacementBlobs } from './dressingSchemas';
+import { nalatiDressingPages, nalatiPagedDressingRows } from './dressingPages';
 import { nalatiDressingPlacementProgram } from './dressingPlacementProgram';
 import { nalatiNightRows } from './nightRows';
 import { nalatiRidingProgram, ridingModuleOptions, NALATI_RIDING_MODULE, NALATI_RIDING_WITNESS } from './ridingProgram';
@@ -288,7 +289,9 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   const speciesBank = nameBlob('actors/bodies.bin', 'bin', speciesFile('bodies.bin'), { decoded: speciesRows.packedBodies.bytes });
   // Validate independent producer inventories before rebuilding grass and
   // assembling the scene. Invalid inputs never need those unrelated outputs.
-  const placements = emitNamedBlobs(nalatiDressingPlacementBlobs(await nalatiDressingPlacementProgram(ctx)));
+  const placementRows=await nalatiDressingPlacementProgram(ctx);
+  const originalPlacementBlobs=nalatiDressingPlacementBlobs(placementRows);
+  const placements=emitNamedBlobs(nalatiDressingPages(placementRows,originalPlacementBlobs.filter(blob=>blob.file.kind==='bin')));
   const placeFiles = await nalatiPlacesProgram(ctx, 'i3');
   const decorativeFiles = await nalatiDecorativeProgram(ctx);
   const renderFiles = await nalatiRenderTileProgram(ctx);
@@ -413,6 +416,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     if (name === undefined) throw new Error('Missing named Nalati model book');
     let bound = nalatiPaintedBindings(rows, parts);
     if(name==='world/dressing-phone.json')bound=nalatiDeferredCatalogueScene(bound);
+    if(name==='world/dressing-phone.json'||name==='world/dressing-desktop.json')bound=nalatiPagedDressingRows(bound);
     boundBooks.set(name, bound);
     const owned = nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(bound)), {
       critical: blob.file.critical, dependencies: blob.file.dependencies,
