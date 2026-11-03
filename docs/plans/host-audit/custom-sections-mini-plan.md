@@ -112,20 +112,21 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 | **CS1** | **done (2026-10-31, sp-x1):** `9a616b4b82` inventories all 24 products in 4.56 s: 1,406 rows / 11 source projects; six inventory controls pass. `b13ad77350` fixes exclusive compiler ownership, with the original owner assertion, six controls and root/scripts types passing. Hash-bound source/reader evidence stays explicit; no ruler or inferred host credit. | 0.5–1 day, Codex |
 | **CS2** | **done (2026-10-31, sp-x1, Jake's slice-or-explicit-exit ruling):** all remaining families have a qualified exact slice or a concrete named CS3–CS9 / index-footprint exit. The [completion evidence](#cs2-completion-evidence) binds every family to its per-name source table and landed proof. The 62 welds, eight living envelopes and Pine spray companion remain explicit exits; no cap, host, capture or CS10 deletion credit is inferred. | 2–3 days, Codex + Opus review |
 | **CS3** | **open (2026-10-31, sp-x2):** all 318 rows of `959c6f1503` and the expanded scene-family remainder are reconciled below. Placements, catalogues and recipes qualify on their exact render-input byte proofs under G872; phone/desktop dressing also have twelve actual zero-pixel comparisons. **Pine's 112-placement consolidation is qualified in `5c72cf6cf0` below; remaining implementation: other streamed consolidation and tier/shadow-copy retirement**, with strict landed-SHA captures whenever render-consumed bytes change. Contract, genericity, binary-owner and index exits remain explicit. | 3–4 days, Codex (Opus memory reading on Pine) |
-| **CS4** | **Qualified slices done; row remains open for its explicit owner/host exits.** Pine common physics `5596fde41e`: strict7 and original unfiltered walk **75/75, 0 stuck/bounds/pending**. Floor/cave defining contracts `b5a7dc391d` are qualified by the recorded coalesced proof; fields and complete ground aliases `d0c35248f3` retain original payload/pack/native checks. See the completion ledger below. Pine owner-only physics and G667 tests 2–6 are not closed by metadata. | 2–3 days, Codex (Opus memory reading) |
+| **CS4** | **done (2026-11-02, sp-x1, landed-slice-or-recorded-exit bar):** the five field descriptors, common Pine physics, floor/cave contracts and two ground aliases have their recorded exact payload/native proofs; maintained Pine walk is **75/75, 0 stuck/bounds/pending**. Pine owner-only physics, G667 tests 2–6 and the named terrain/bake/shelter/recipe/grid-collision owner configurations remain explicit exits, without host or CS10 deletion credit. See the [completion bar](#cs4--cs7-completion-bar). | 2–3 days, Codex (Opus memory reading) |
 | **CS5** | **open (2026-11-02, sp-x1):** eight historical quest names now have qualified exact slices: the earlier DW three, Pine native-story/native-spots/contracts, Nalati carried and the shared whole-panel catalogue. The one fresh-baseline combined proof retains all target bodies, 226 old wire contracts and original owners; only the exact G872 Nalati source-stamp case differs (self-applied under the 2026-11-02 standing rule, with explicit concurrence). Six presentation/figure/discovery/finds/story/guest exits and live `custom/questRuntime` remain open. See the [qualified slice](#cs5-four-native-aliases-and-the-whole-panel-catalogue). | 4–6 days, Opus design + Codex port |
 | **CS6** | **done (2026-10-31, sp-x6, Jake's slice-or-explicit-exit ruling):** the 55-row baseline and four additional actor names have qualified exact slices or concrete complete-contract/native-check/context exits. Directors, keeper/returns, roster/elites and the duplicate grazers retirement are recorded below. Existing native controller/AS owners stay authoritative; no host-score or CS10 bridge-deletion credit is inferred. See the [completion evidence](#cs6-completion-evidence). | 4–6 days, Opus + Codex |
-| **CS7** | **Audio/cards slice done; row remains open for the 25-name held/look/weather exits.** `2c5aa6386d` / `515ffcac96` qualify Nalati audio and Driftwood people cards: strict6, six controls, original five suites **28.7 s**, 2,993 unchanged bodies of 2,994; only the exact G872-classified Nalati source stamp differs. No full-CS7 completion, geometry/binary exit or weather-envelope unification is inferred. | 4–5 days, Codex |
+| **CS7** | **done (2026-11-02, sp-x1, landed-slice-or-recorded-exit bar):** audio/cards `2c5aa6386d` / `515ffcac96` have normal/strict6 and exact original payload/owner proofs. Every remaining logical name is in the 25-row source table: ten native-root qualification exits and fifteen complete-contract/model/binary/owner/collision exits. No byte rewrite, host score, weather union or CS10 deletion follows. See the [completion bar](#cs4--cs7-completion-bar). | 4–5 days, Codex |
 | **CS8** | **K9 combat and riding**: room, encounter and riding-profile rows; Titan script to AS | 2–3 days, Opus |
 | **CS9** | **K10 headless and views**: derive the headless assembly from platform sections; `nativeView`, `runtimeGraphs`, jian effects on H9 / H17 | 2–3 days, Opus (after WASM-HOST H9, H17) |
 | **CS10** | **open (2026-10-31, sp-x2/sp-x9):** read-only census still finds 14 live `custom/*` sections and 461 named JSON files in six observed products, with nonzero ceilings and missing template outputs. The private emitter/reader, named-JSON validator and freeze/growth policy remain used; no guard deletion is justified. See the [tool/runtime census](#cs10-live-tool-and-runtime-users). | 1 day, Codex |
 
 ### Recorded completed bars: CS1 / CS4 / CS7
 
-This ledger marks the **qualified slices done**, not unimplemented family
-exits. CS2's family assignment is completed in its later evidence ledger. CS4's remaining owner/host exits and
-CS7's complete-envelope/model-library exits remain in their source tables;
-they are not counted as deleted private paths or completed CS10 work.
+This ledger originally marked only the **qualified slices done**. The
+2026-11-02 completion bar below also marks CS4 and CS7 done from those
+landed slices plus their exact recorded exits. Unimplemented owner,
+contract and qualification work remains assigned in the source tables;
+no deleted private path, higher host score or completed CS10 work follows.
 
 | Completed bar | Landed authority and recorded exit |
 |---|---|
@@ -361,8 +362,9 @@ route, assertion or cap changed. Focused transport/native-reader controls,
 root types and touched typed lint pass. Neither Pine nor Nine legacy is
 modified or used for this proof.
 
-**CS4 remains open** for Pine floor/cave, Nalati meadow and other ground
-bakes. Retained encounter and authoring-owner data are explicit owner-data
+At this intermediate slice CS4 remained open for Pine floor/cave,
+Nalati meadow and other ground bakes; the later completion bar records
+the qualified follow-through and explicit remaining owner exits. Retained encounter and authoring-owner data are explicit owner-data
 exits, not a new platform host or a discarded projection remainder.
 
 
@@ -522,7 +524,8 @@ existing payload byte is unchanged, except the separately classified
 G966 Explorer source labels. Original floor and runtime mirror suites
 pass alongside registration controls. Since this slice moves no collider
 data or installation, it does not repeat the already qualified native
-walk. CS4 remains open for its ground/streaming exits. CS2 was still open
+walk. CS4 was still open here; the later completion bar retains its
+remaining owner/streaming exits explicitly. CS2 was still open
 at this slice; its later per-name exit assignment is recorded below.
 
 ## CS2: persistence and native world-scene recipes
@@ -2150,3 +2153,33 @@ and record it as self-applied in the commit; report genuinely new classes
 with the recommendation, proceed and log the decision. Do not wait for
 coordinator availability. This changes decision routing, not comparators,
 source freshness, payload identity, caps or native assertions.
+
+## CS4 / CS7 completion bar
+
+**2026-11-02, sp-x1 — Jake's landed-slice-or-recorded-exit ruling.**
+The completed-bar ledger above already contains the exact source commits,
+original native/payload/pack checks and per-case source-stamp evidence.
+No second proof ledger or new run is needed. The two row marks now use
+the same explicit classification bar as CS2 and CS6.
+
+| Row | Why its classification bar is met | Obligations retained by its explicit exits |
+|---|---|---|
+| **CS4 — done** | Five field descriptors (`bb782c4930`, fixture `f9caf76f31`), common Pine physics (`5596fde41e`, maintained 75/75 walk with zero stuck/bounds/pending), three floor/cave contracts (`b5a7dc391d`) and the two complete ground aliases (`d0c35248f3`) have their recorded qualifying proofs. | Pine `data/physics.generated.json` remains a complete-owner-contract exit, not a ground-only registration. G667 tests 2–6 remain host work. The CS9 field ledger preserves terrain/navmesh bindings, native bake configuration, weather shelters, body/variant recipes and grid-collision piece/filter/order/hull/tread owners; rendered geometry or an admitted child is not a full replacement. |
+| **CS7 — done** | Shared audio/cards (`2c5aa6386d`, proof `515ffcac96`) are qualified. The exact 25-name source table accounts for every remainder once: ten existing native-root candidates with defining-metadata/native-owner qualification exits, plus fifteen complete-contract, binary, ownership or collision exits. | Keep every original resource, entered/cold lifetime, slot/part reference, native bound, non-strict parser semantic and approved user scope. Preserve the full envelope/model-library/specimen-user/water exits and Pine/Nalati weather collision; no child-only root, inferred wrapper, union, alias or changed payload is approved. |
+
+The ten existing-root candidates are the ranged page, held slots, cover
+appearance, post look, held cards, bow page, firearm rows/page, rain and
+weather observations named in the 25-row table. They remain **explicit
+qualification exits**, not silently implemented registrations. The other
+fifteen retain their already named complete-envelope/catalogue (seven),
+held/guest/power (three), geometry-library/binary (two), specimen
+owner/genericity (one), water-envelope (one) and weather-collision (one)
+exits: **10 + 7 + 3 + 2 + 1 + 1 + 1 = 25**.
+
+These done marks close the assigned slice-or-exit classification bar.
+Unimplemented migrations remain with their exact owners; no host score,
+second user, collider change, private-path deletion or tolerance is
+inferred. CS10's live emitters/readers, validators, policy and ceilings
+stay unchanged, as do the other open rows. Evidence reconciliation:
+`tmp/sp-x1-cs4-cs7-close/reading.json`. No build, test, native worker,
+browser, stamp rewrite or requalification is performed for this update.
