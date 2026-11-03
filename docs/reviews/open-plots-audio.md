@@ -358,9 +358,9 @@ memory or full OP15 close is claimed by this audio landing.
 
 The package is **1,226,129 B**, including the **220,893 B** canonical
 Night Market bed; **1,005,236 B** is newly published. All individual files
-stay below 1 MB. Eight active AAC bodies total **931,231 B**. Native
-activation, bar 10 and final readings remain open; this publication alone
-earns no playback, performance or memory clearance.
+stay below 1 MB. Eight active AAC bodies total **931,231 B**. Full native
+bar 10 passes in **17 s** before the local activation; final immutable
+readings remain open. This is no performance or memory clearance.
 
 Both MiniMax Music 3 candidates pass the original score checks. The
 measured recommendation is **A / seed 701**, 51.62 s and 6.09% separated
@@ -383,6 +383,31 @@ It measures 26.5 s, -23.8 LUFS, LRA 1.5 LU and peak -11.4 dBFS. Keep
 the explicit **no dry wind layer** gap. The rejected Frostline fallback
 is a near-tonal motor drone; it is not used. Source and comparison context
 are retained under `tmp/wave-a-audio/fossil-readings/`.
+
+Native candidate **7c9f46e0c2fae7fb697fe6a07704dc6ebbbae448** /
+`7c9f46e0c2-mw1brs9p` passes as muted iPhone 16 Pro, phone tier, 402×874
+and 2× render scale: own recorded A, seven decoded cue loops, sustained
+score and shared bed, native pause/resume, all six positive positional
+gains and heading pan flips, errors empty. The browser is closed.
+
+All **158 prior file bodies** and **32/34 old sections** stay exact.
+Only audio/audio and the 164 B look/map stamp differ; eight AAC bodies and
+the 242 B audio client plan join. All **201 served bodies** match the
+normal producer. Four packs, 200 entries and 7,615,459 B are fully checked,
+including retained entry order. The map image is the same **20,598 B**
+body, hash `6a9fd00954c686159ba3f9d42d905e947bd237407579a298d81461039f1347d8`.
+The baseline has exactly one image; its original strict MapSchema and
+product admission prove image identity. The old 164 B map body was not
+retained after preview release, so no literal old-map-byte claim is made.
+Only the other native map field, tilesHash, differs semantically (G872).
+
+The ordinary producer first refuses the old ceiling. Phone wire measures
+**2,927,540 → 3,838,831 B**; the coordinator approves only the exact
+**+911,291 B** audio change, retaining the **0 B** margin. The candidate
+then builds normally in 39 s, with no bypass. Activation remains local
+under the release push hold. The ensuing immutable source goes to X1 for
+matched Chromium/control, walk and eight goldens, and X8 for separate
+memory and the official Simulator. Those final scopes remain open.
 
 Thin Ice publication `68e91f6a7f` keeps both qualified MiniMax scores.
 **A, seed 701** ships: 47.21 s, zero measured vocal energy, clipping

@@ -630,5 +630,65 @@
         "reach": 50
       }
     ]
+  },
+  "fossil-badlands": {
+    "idea": "fossil-badlands",
+    "source": {
+      "dir": "/assets/music/fossil-badlands/",
+      "manifestKey": "fossil-badlands"
+    },
+    "sfxDir": "/assets/sfx/fossil-badlands/",
+    "files": {
+      "score": "take-a-2cd52113f593.m4a",
+      "ambience": {
+        "set": "night-market",
+        "file": "ambience-fc4acd723b85.m4a",
+        "dir": "/assets/sfx/night-market/"
+      },
+      "skeleton-rib-wind": "skeleton-rib-wind-8e0fc004fac3.m4a",
+      "sump-water-drips": "sump-water-drips-d3fafbb84f5e.m4a",
+      "tent-canvas-lantern": "tent-canvas-lantern-5fd405522b4c.m4a",
+      "mesa-wind": "mesa-wind-a77bd3e8aa69.m4a",
+      "sorting-brush-chisel": "sorting-brush-chisel-a561293e1f72.m4a",
+      "cart-rails-gravel": "cart-rails-gravel-e39b813a30ec.m4a"
+    },
+    "spots": [
+      {
+        "id": "skeleton-rib-wind",
+        "x": 0,
+        "z": 0,
+        "reach": 45
+      },
+      {
+        "id": "sump-water-drips",
+        "x": -156,
+        "z": 162,
+        "reach": 24
+      },
+      {
+        "id": "tent-canvas-lantern",
+        "x": 156,
+        "z": 31,
+        "reach": 28
+      },
+      {
+        "id": "mesa-wind",
+        "x": 219,
+        "z": 219,
+        "reach": 45
+      },
+      {
+        "id": "sorting-brush-chisel",
+        "x": -94,
+        "z": -94,
+        "reach": 24
+      },
+      {
+        "id": "cart-rails-gravel",
+        "x": 0,
+        "z": -230,
+        "reach": 32
+      }
+    ]
   }
 }

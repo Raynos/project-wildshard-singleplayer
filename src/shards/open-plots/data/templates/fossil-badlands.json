@@ -12,7 +12,19 @@
         "accent": "apricot"
       },
       "pois": [],
-      "shardSelect": false
+      "shardSelect": false,
+      "audio": {
+        "catalogue": true,
+        "ambience": "ambience.fossil-badlands",
+        "score": "score.fossil-badlands",
+        "bed": "none"
+      },
+      "assetGlobs": [
+        "public/assets/open-plots/**",
+        "public/assets/music/fossil-badlands/**",
+        "public/assets/sfx/fossil-badlands/**",
+        "public/assets/sfx/night-market/ambience-fc4acd723b85.m4a"
+      ]
     },
     "layout": "fossil-badlands",
     "scaffold": true,
