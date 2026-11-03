@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import {expect,it,vi} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small isolated Git fixture, no repository copy.
-import {execFileSync} from 'node:child_process';
+import {execFileSync,spawnSync} from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confined fixture files and cleanup.
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confined fixture paths.
@@ -11,6 +11,35 @@ import process from 'node:process';
 import {GRID_READY_LATCHES,GridReadyLatchesSchema,latchedGridEvidence} from '../scripts/grid-ready-latches.mjs';
 import {runtimeGridEvidence} from '../scripts/grid-runtime-evidence.mjs';
 import {latchGridEvidence} from '../scripts/latch-grid-evidence.mjs';
+
+it('refuses unknown pinned commits locally but fetches promised latch blobs for known commits',()=>{
+ const root=mkdtempSync(resolve('tmp','grid-latch-promisor-'));
+ const origin=resolve(root,'origin'),consumer=resolve(root,'consumer'),trace=resolve(root,'git-trace');
+ const env:NodeJS.ProcessEnv={...process.env,GIT_CONFIG_GLOBAL:'/dev/null',GIT_CONFIG_NOSYSTEM:'1',GIT_CEILING_DIRECTORIES:''};
+ delete env['GIT_DIR'];delete env['GIT_WORK_TREE'];delete env['GIT_INDEX_FILE'];
+ const git=(cwd:string,...args:string[])=>execFileSync('git',args,{cwd,env,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
+ try {
+  mkdirSync(origin);mkdirSync(consumer);
+  git(origin,'init','-q','-b','main');git(origin,'config','user.name','fixture');git(origin,'config','user.email','fixture@example.invalid');
+  git(origin,'config','core.hooksPath','/dev/null');git(origin,'config','commit.gpgSign','false');git(origin,'config','uploadpack.allowFilter','true');
+  const path=resolve(origin,GRID_READY_LATCHES);mkdirSync(dirname(path),{recursive:true});
+  writeFileSync(path,JSON.stringify({schema:'grid-ready-latches/1',entries:[{shard:'_template',criterion:'oneFrameLooks',source:'a'.repeat(40),
+   latchedAt:'2026-10-21T16:00:00Z',measurement:{when:'2026-10-21T15:00:00Z',surface:'chromium',metrics:{entryMaxMs:100}}}]}));
+  git(origin,'add','.');git(origin,'commit','-qm','fixture');
+  const revision=git(origin,'rev-parse','HEAD'),blob=git(origin,'rev-parse',`HEAD:${GRID_READY_LATCHES}`);
+  git(consumer,'init','-q');git(consumer,'remote','add','origin',origin);
+  git(consumer,'config','remote.origin.promisor','true');git(consumer,'config','remote.origin.partialclonefilter','blob:none');
+  git(consumer,'fetch','--filter=blob:none','--no-tags','origin','HEAD');
+  expect(spawnSync('git',['cat-file','-e',blob],{cwd:consumer,env:{...env,GIT_NO_LAZY_FETCH:'1'}}).status).not.toBe(0);
+  vi.stubEnv('GIT_TRACE',trace);
+  expect(latchedGridEvidence(consumer,'_template','a'.repeat(40))).toEqual({});
+  expect(readFileSync(trace,'utf8')).not.toContain('fetch origin');
+  expect(latchedGridEvidence(consumer,'_template',blob)).toEqual({});
+  expect(readFileSync(trace,'utf8')).not.toContain('fetch origin');
+  expect(latchedGridEvidence(consumer,'_template',revision).oneFrameLooks?.verdict).toBe('pass');
+  expect(readFileSync(trace,'utf8')).toContain('fetch origin');
+ } finally {vi.unstubAllEnvs();rmSync(root,{recursive:true,force:true});}
+});
 
 it('reads pinned latches from Git when the fenced mirror omits progress',()=>{
  const root=mkdtempSync(resolve('tmp','grid-latch-git-'));

@@ -28,6 +28,11 @@ export function latchedGridEvidence(root,slug,revision=null) {
   // HEAD. This command names only the caller's immutable tree and latch path.
   const env={...process.env,GIT_CEILING_DIRECTORIES:''};
   delete env.GIT_DIR;delete env.GIT_WORK_TREE;delete env.GIT_INDEX_FILE;
+  // Synthetic or unavailable revisions must not trigger a promisor fetch.
+  // Keep lazy fetching enabled below for a known commit's promised latch blob.
+  const commit=spawnSync('git',['-C',root,'cat-file','-e',`${revision}^{commit}`],{env:{...env,GIT_NO_LAZY_FETCH:'1'},encoding:'utf8'});
+  if(commit.error)throw commit.error;
+  if(commit.status!==0)return {};
   const result=spawnSync('git',['-C',root,'show',`${revision}:${GRID_READY_LATCHES}`],{env,encoding:'utf8',maxBuffer:5_000_000});
   if(result.error)throw result.error;
   if(result.status!==0)return {};
