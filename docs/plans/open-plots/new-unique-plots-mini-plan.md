@@ -190,7 +190,7 @@ they read as bespoke 500 m zones, not as a tile kit.
 
 | Row | What | Lane | Done when |
 |---|---|---|---|
-| NU1 | **One grid (G972).** Delete `grid.developer` (and `devserver` if it only repeats Nine Dragon); Nine Dragon's cell row at (1,-1) replaces the Lantern Bayou copy in `grid.cells`. Folded into G972's own row if the coordinator already queued one | Codex | Developer on and off load the same 25 cells; Nine Dragon at (1,-1) for everyone; push gate green |
+| NU1 | **done (2026-11-03, G972; `ffb6270346` + `913b810625`).** **One grid (G972).** Delete `grid.developer` (and `devserver` if it only repeats Nine Dragon); Nine Dragon's cell row at (1,-1) replaces the Lantern Bayou copy in `grid.cells`. Folded into G972's own row if the coordinator already queued one | Codex | Developer on and off load the same 25 cells; Nine Dragon at (1,-1) for everyone; push gate green |
 | NU2 | **Placeholder art for the four (Opus: the player sees it, G848).** `holo-subjects.tsv` rows from §3's landmarks; refs and Hunyuan3D-2 holograms (`gen-refs.sh`, `batch-holograms.sh`, `clay-review.mjs`) taking the round-75 board's road-entry panel as the reference; `billboard.webp`, `sign.webp` and `thumbs/<idea>.jpg` from the round-75 boards (`make-art.sh` given that source). Into `public/assets/open-plots/<idea>/` | Opus | Four holograms pass clay review; the art matches the other ideas' sizes (billboard ≤ 250 KB) |
 | NU3 | **Data and grid swap.** Four `outputs.json` rows (slug, idea, name, accent, manifest overrides like the others); the four `grid.cells` slug swaps of §2 (instances keep their names); regenerate discovery and the registries that list every open-plot product (`scripts/source-generation-outputs.json`, `scripts/test-products.json`, `budgets/ceiling-sources.json`, `lint/ratchet.json` wire and custom-sections rows, `lint/custom-sections.json`, `lint/tile-bake-debt.json`). A grid test refuses a repeated slug in `grid.cells` | Codex, after NU1 and NU2 | 25 distinct slugs in `grid.cells`; the four new outputs build; the new test fails on a repeat; push gate green |
 | NU4 | ~~**No twin holograms.**~~ **Dropped with Mushroom Hollow (G977):** Alien Plain's glowing-mushroom hologram no longer has a twin on the grid | — | — |
@@ -202,6 +202,8 @@ they read as bespoke 500 m zones, not as a tile kit.
 Order: NU1 ∥ NU2 → NU3; NU5–NU8 join the build-out plan's waves (look and models Opus, data and captures Codex, G848),
 about 6 Opus + 2 Codex lane-days for the four (G978; was about 14 + 5). NU5–NU8 replace OPEN-PLOTS rows OP7, OP9, OP13
 and OP21 for these ideas; OP8 (Mushroom Hollow) is dropped (G977).
+
+G972 qualification: all 25 cells and origins are identical in public and Developer modes; Nine occupies (1,-1). The four selected collider changes earned the maintained 75-route walk: 75/75 passed, zero stuck or bounds failures. Public Nine also passed the real native reserve/readiness fence, refused premature save, frozen-away ticks and durable restored continuation. The first raw Node caller refusal was retained; its corrected caller reads the ordinary current product, with every original assertion kept. Root types and focused typed lint passed. Self-applied G872 collider and fixture rulings; no walk waiver.
 
 ## 7. Questions for Jake
 
