@@ -2,7 +2,7 @@
 // (gardens, canals, forecourts, plaza, retinted by the layout's palette: sun-bleached boards, turquoise canals); three
 // theme tiles are the lagoon's own, each inset in a boardwalk border that meets any neighbour ('pppp'):
 //   B huts:  a turquoise lagoon with two stilt huts and a pier hut standing in it, their decks toward the north
-//            boardwalk, a reef cluster between them, palms on its sand corners;
+//            boardwalk, a reef cluster between them, gulls over it;
 //   M palms: a white-sand grove of the shared palms round a cabana, pale rocks among them (Desert Ruin reuses it);
 //   R reef:  a coral pool: staghorn clusters, brain-coral mounds and rock groups in a sand-banked lagoon.
 // Their models are the lagoon kit families (scripts/blender/open-plots/lagoon.py: `huts`, `palms`, `reef`), placed
@@ -21,6 +21,23 @@ const GROVE = [-INNER + 0.5, -INNER + 0.5, INNER - 0.5, INNER - 0.5];
 
 /** A stable variant (0 to count - 1) for a piece at tile-local (x, z), so neighbours differ and every bake repeats. */
 const pick = (x, z, count, salt = 0) => (((Math.round(x * 4) * 7 + Math.round(z * 4) * 13 + salt) % count) + count) % count;
+
+/** OB5 (bar 7): a gull, a 0.35 m mover in the glow graph's steady mode (red seed in [0.5, 1), no green: drifting slowly,
+ *  never blinking to black) at full blue, which the graph lights frost white (sp-o3's tint, frost.mjs `glint`). High
+ *  over the lagoons, so they are the noon plot's motion seen from the road entry with the lamps' flicker. */
+let seeds = 0;
+function gull(w, x, y, z) {
+  seeds++;
+  const c = [((seeds * 0.6180339887) % 1) * 0.5 + 0.5, 0, 1], s = 0.35;
+  const top = [x, y + s * 1.4, z], a = [x - s, y - s, z - s], b = [x + s, y - s, z - s], d = [x, y - s, z + s * 1.4];
+  w.tri('Glow', top, b, a, c); w.tri('Glow', top, d, b, c); w.tri('Glow', top, a, d, c); w.tri('Glow', a, b, d, c);
+}
+
+/** The shared builders' fireflies (Night Market's marked movers: Glow with no green or blue, red in [0, 0.5)) blink to
+ *  black, which reads as specks at noon: a lagoon tile's writer drops them and keeps everything else. */
+const noFireflies = (w) => new Proxy(w, { get: (target, key) => key === 'tri'
+  ? (part, a, b, c, colour, ...rest) => (part === 'Glow' && colour?.[1] === 0 && colour?.[2] === 0 && colour[0] < 0.5 ? undefined : target.tri(part, a, b, c, colour, ...rest))
+  : (typeof target[key] === 'function' ? target[key].bind(target) : target[key]) });
 
 /** A lagoon: recessed water, its sand banks walked with the water on their left so they face it, a collision skirt. */
 function lagoon(w, p, [x0, z0, x1, z1]) {
@@ -68,6 +85,7 @@ function huts(w, p, variant) {
     for (const [x, z, v] of [[-6, -14, 0], [12, -17, 1], [-22, -18, 2], [23, -20, 0]]) w.placeModel('reef', v, x, z, { yaw: pick(x, z, 4) * Math.PI / 2 });
   }
   for (const x of [-22, -6, 10, 24]) post(w, x, 14.5, p, Math.PI);
+  for (const [x, y, z] of variant === 0 ? [[-12, 11, -6], [9, 14, -14], [20, 12, 2]] : [[-19, 13, -12], [4, 11, -4], [14, 15, -18]]) gull(w, x, y, z);
 }
 
 /** The palm grove (M): white sand inside its border, palms in a loose ring, a cabana at its middle, pale rocks among
@@ -96,6 +114,7 @@ function reef(w, p, variant) {
     for (const [x, z, v] of spots) w.placeModel('reef', v, x, z, { yaw: pick(x, z, 4, v) * Math.PI / 2 });
   }
   for (const s of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) post(w, s[0] * 23.5, s[1] * 23.5, p, Math.atan2(-s[0], -s[1]));
+  for (const [x, y, z] of variant === 0 ? [[-8, 12, 6], [10, 15, -9]] : [[7, 13, 9], [-11, 10, -7]]) gull(w, x, y, z);
 }
 
 /** The far stand-ins (RM11): each lagoon's water, the huts' boxes and blue roofs, the palms as green crowns on posts. */
@@ -127,7 +146,9 @@ const THEME = {
 export function coralDriftBuilders(letters) {
   const shared = nightMarketBuilders(letters);
   for (const letter of Object.keys(THEME)) if (Object.hasOwn(shared.tiles, letter)) throw new Error(`coral-drift: letter ${letter} is a theme tile`);
-  return { tiles: { ...shared.tiles, ...THEME }, coarseFamilies: new Set([...shared.coarseFamilies, 'huts', 'palms']), seam: shared.seam };
+  const noon = Object.fromEntries(Object.entries(shared.tiles).map(([letter, tile]) => [letter, { ...tile, build: (w, ...rest) => tile.build(noFireflies(w), ...rest) }]));
+  const seam = shared.seam === undefined ? undefined : (w, ...rest) => shared.seam(noFireflies(w), ...rest);
+  return { tiles: { ...noon, ...THEME }, coarseFamilies: new Set([...shared.coarseFamilies, 'huts', 'palms']), seam };
 }
 
 /** Hooks at the generic construction points (tiledPlotCore.mjs): the arch stands alone over the plaza (no lanterns of
