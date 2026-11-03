@@ -87,6 +87,8 @@ export class SkyBackdropView {
   lut: LookupTexture | null = null;
   private level!: LevelSpec;
   private dressing: SkyDressing | null = null;
+  /** the HDRI rig's sky texture: the background (unless the world's own sky covers it) and the PMREM source */
+  private hdr: THREE.Texture | null = null;
   private readonly scene: THREE.Scene;
   private readonly renderer: Renderer;
   private readonly scope: Scope;
@@ -124,17 +126,21 @@ export class SkyBackdropView {
     const env = (await pmremOf(this.renderer, hdr, () => !this.scope.disposed)).texture;
     this.scene.environment = env;
     this.scene.environmentIntensity = S.envIntensity;
-    this.scene.background = hdr;
-    this.scene.backgroundIntensity = S.bgIntensity;
-    this.scene.backgroundBlurriness = 0.0;
+    this.hdr = hdr;
+    // EP6: a world whose own opaque sky covers every background pixel draws no background (one draw a frame)
+    if (this.dressing?.background !== false) {
+      this.scene.background = hdr;
+      this.scene.backgroundIntensity = S.bgIntensity;
+      this.scene.backgroundBlurriness = 0.0;
+    }
 
     // Fog colour = average of the sky just above the horizon in the view direction
     return baked ? new THREE.Color(...baked.horizon) : skyHorizonColor(hdr, true);
   }
 
   rebuildEnvironment(): void {
-    const hdr = this.scene.background;
-    if (!(hdr instanceof THREE.Texture)) return;
+    const hdr = this.hdr;
+    if (hdr === null) return;
     const pmrem = tierPmremGenerator(this.renderer);
     this.scene.environment = pmrem.fromEquirectangular(hdr).texture;
     pmrem.dispose();

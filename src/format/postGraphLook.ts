@@ -89,7 +89,7 @@ export const PostGraphLookSchema: v.GenericSchema<PostGraphLookRowInput, PostGra
   events: v.exactOptional(v.pipe(v.array(v.strictObject({ event: v.picklist(['practice.active', 'explore.studio']), on: effect, off: effect })), v.maxLength(8))),
   /** the engine's AO at the level's scale per tier, its colour, and the scene fog's near / far */
   ao: v.exactOptional(v.strictObject({ phone: v.record(name, v.union([finite, v.boolean()])), desktop: v.record(name, v.union([finite, v.boolean()])), color: tuple3, fog: tuple2 })),
-  sky: v.exactOptional(v.strictObject({ clouds: v.boolean(), planet: v.boolean(), ownSky: v.exactOptional(v.boolean()) })),
+  sky: v.exactOptional(v.strictObject({ clouds: v.boolean(), planet: v.boolean(), ownSky: v.exactOptional(v.boolean()), background: v.exactOptional(v.literal(false)) })),
   /** the whole chain in its own composer ('replace': the scene pass, then the sides and graphs); absent, the graphs stand in
    *  the engine's chain */
   scene: v.exactOptional(v.strictObject({})),
@@ -322,6 +322,7 @@ interface PostGraphLookRowInputFields {
         clouds: boolean;
         planet: boolean;
         ownSky?: boolean;
+        background?: false;
     };
     scene?: Record<never, never>;
     painted?: PaintedWorldRowInput;
@@ -455,6 +456,7 @@ interface PostGraphLookRowFields {
         clouds: boolean;
         planet: boolean;
         ownSky?: boolean;
+        background?: false;
     };
     scene?: Record<never, never>;
     painted?: PaintedWorldRow;

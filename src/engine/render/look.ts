@@ -137,6 +137,9 @@ export interface SkyDressing {
    * weight, as a `backdrop` does (SHARD-PLATFORM G321). Absent: the level's sky is the engine's or its `backdrop`.
    */
   ownSky?: boolean;
+  /** false: the world's own opaque sky covers every pixel the scene leaves empty, so the HDRI rig draws no background
+   *  (it stays the environment's source). Absent: the HDRI is the background too. */
+  background?: false;
   /**
    * Sun surface/corona visibility at build; each omitted flag defaults to true. Lighting is unchanged. `rays` (E398):
    * with the disc off (a level whose painted sky has the sun), keep the disc as the god rays' source only: it is never

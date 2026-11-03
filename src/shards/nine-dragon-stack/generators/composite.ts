@@ -71,5 +71,6 @@ export function postGraphRow(passes: ReturnType<typeof postRows>): PostGraphLook
       { event: 'explore.studio', on: { set: [rain(0)], hold: [{ param: 'uFogBase', value: 0 }, { param: 'uBands', index: 2, each: true, value: 0 }, ...specimenLight()] }, off: { set: [rain(B.rain)] } }],
     ao: { ...ao, color: [ao.color[0] ?? 0, ao.color[1] ?? 0, ao.color[2] ?? 0], fog: [ao.fog[0] ?? 0, ao.fog[1] ?? 0] },
     // E281: the engine cloud layer has no place in a blue-hour sky; the painted sky owns the horizon inside its cell (G321)
-    sky: { clouds: false, planet: true, ownSky: true } };
+    // and covers every empty pixel, so no background is drawn under it (EP6)
+    sky: { clouds: false, planet: true, ownSky: true, background: false } };
 }
