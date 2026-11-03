@@ -5,13 +5,13 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 2f1f8c4-mw0a28f2 = GLSL** (01:56 Cancun; staged, 38 jobs; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
+**LIVE 17e15e8-mw0gdtdj** (04:25 Cancun, 5 plots + grid; before it 2f1f8c4; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
 (G2, kinds 0 + 3, copy cut, Boundary, facade), EP8 crowd, NF11 4 MB cap, Pine uploads -70 %, Sky look. **For Jake:** QC
 table qa-2026-10-30 (2508e90724).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**04:10:** live 2f1f8c4; 17e15e8d42 staged (run 41605229499, B7 green, 38 jobs running). Final boards: Moss, Ember, Frost b07a842976, NM 21820aa947. OB8 Sim 30 fps on Coral/Moss/Ember. o1: Driftwood <=150 draws.
+**05:10:** final boards all 5 plots + NM, OB9 hero B 48b08331c0. OB8: plots + J1/J2 pass Sim 30 fps; CI9 43.8 min (open). Open: Nalati warm +52 %, DW home 181.
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
 (f33d642372); G4 closed measured. Pine GPU ok.
