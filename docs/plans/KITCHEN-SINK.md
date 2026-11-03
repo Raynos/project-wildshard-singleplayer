@@ -333,6 +333,11 @@ lanes in the same files (Z6, Z13 finish first, D31).
 - [Levels 1 to 20](https://claude.ai/artifact/P3ZQ7R8NdLrHxTTSWrqF3s) (`art/showcase-template/round-3-levels/`)
 - [Kitchen Sink v2 Mockups](https://claude.ai/artifact/9sKa3P19CfNdDi6ZrS3HUj): the 40 frames remastered from the round-4
   grey blockout in the polished look (`art/showcase-template/round-11-remaster/`; replaces `round-4-v2-layout/`)
+- [Kitchen Sink v2 UI Changes](https://claude.ai/artifact/MLXuWHJW9msEDh4Zg8YzsC): every HUD / UI / menu change as a 1:1
+  in-engine before/after pair, 38 changes (`art/showcase-template/round-12-ui/`); each still needs Jake's pick + the E332
+  notice before it lands. Found: the slot under the minimap is contested (quest chip, weather chip, toasts, the course
+  clock, wave / room counters, storm hour), so the toast stack order must be set first; levelled nameplates need ~120 px
+  (were 72); the XP bar and GUARD fit without moving anything.
 
 ## 7. Done when
 
