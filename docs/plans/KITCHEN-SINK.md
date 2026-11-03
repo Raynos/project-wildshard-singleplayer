@@ -135,6 +135,11 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     now: burn, shock, blast; magic later) · **LUK** (balanced, personal effects only: *"in an MMO luck has to balance and
     can't impact spawns"*; exact job in the LV design pass, e.g. crit chance and damage). CON is VIT, skill is DEX, speed
     is AGI; INT and WIS wait for magic combat. **Aptitude for seven: two 1.2, three 1.0, two 0.8.**
+19x. **Combat maths (Jake 11-03, in progress):** attributes grow on **different shapes** (not all like VIT); **AGI gives
+    no speed** (animation and attack speed fixed); **LUK = crit damage + lucky saves**, which turn a few % of enemy hits
+    on you AND a few % of your own failed hits into glances; if a subtractive formula is used, **the floor is 1 damage**.
+    The damage formula itself is open: Jake doubts raw addition/subtraction and asked for the best three options; an
+    interactive calculator and simulation are being built.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
