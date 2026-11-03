@@ -2313,3 +2313,72 @@ all seven removed-document reconstructions and the original native/product
 suites. No speculative old-prefix repin, guard deletion, new platform host,
 cap change, renderer change or source-stamp exception is assumed. The
 candidate remains entirely off-tree; OP4's actual captures remain queued.
+
+
+## CS3: Driftwood twelve-row pages (2026-11-03)
+
+**In flight: bytes and strict pixels qualify; loading remains open.**
+Source `f84fb23bf34cb88bb0624ce503a52184a77bd9b8` consolidates twelve
+existing pier/log/foliage rows into three bounded native pages. Original
+IDs, order, device membership, resource/collider values and JSON wire are
+exact; filenames do not invent tier filters. No format, host or cap changes.
+
+The sealed BEFORE has 469 bodies / 79,874,900 B and index 995,665 B.
+ONE normal AFTER exits 0 in 23.26 s, with independent strict CURRENT.
+All twelve old documents reconstruct byte-exact (688,231 → 688,309 B,
++78 B envelopes), as does the complete old world/scenes body after only
+restoring its references and object key order. All 455 unrelated bodies /
+78,497,132 B and thirteen ordered packs verify; map image/body/source
+aggregate are exact. Index is 944,607 B (−51,058); total body bytes rise
+391 B (78 envelope +313 references). Library accounting rises exactly
+78 B compressed/resident; authored/server limits are unchanged. The raw
+membership comparison remains a difference, not a waived exact result.
+Original two files pass 7.7 s, native page/sliced/footprint suites pass
+1.9 s, root types and touched typed lint pass.
+
+Self-applied G872 covers only the exact row reconstruction. G612 source
+landed before immutable captures: BEFORE `9981182077129c21edc8444503574d22f4ad44b4`
+/ `9981182-mw09nx61`, AFTER landed `f84fb23bf3` / `f84fb23-mw09uh3e`.
+The full source contrast adds only these three DW source files besides
+tests/docs; foreign renderer edits are excluded. Existing BEFORE was
+normally borrowed, with no new BEFORE producer or baseline repin.
+Both actual phone and desktop quality tiers pass **18 native Metal
+captures: six A/A and six A/B, every RGBA pixel identical** at committed
+pier/beach/wreck poses. Portrait iPhone16Pro 402×874/DPR2, actual tier,
+original frame gate/control, camera, authored held midday, GL/readback and
+page-error guards pass. No working-tree preview, override or tolerance.
+Only these affected poses qualify. Both browser phases closed; own AFTER
+stopped and only own BEFORE borrow released.
+
+### Clean loading: no-worse bar remains open
+
+The maintained b13fab phone preset ran once per immutable source, using
+the unchanged select:driftwood-isle Chromium defaults without profiles,
+filters or fixtures. Both commands exit 0, four native controls qualify,
+errors are empty and accounting is complete. There is no native Home-ready
+row; overlapping envelopes are not substituted or added.
+
+| Observed measure | BEFORE | AFTER |
+|---|---:|---:|
+| Cold tap → control | 45.2489 s | 46.7629 s |
+| Warm tap → control | 23.2231 s | 24.8974 s |
+| Cold recorded request rows | 1,178 | 1,157 |
+| Warm recorded request rows | 873 | 855 |
+| Cold network encoded / transfer B | 21,730,633 / 21,922,980 | 21,730,571 / 21,921,732 |
+| Cold network decoded B | 135,988,577 | 140,095,867 |
+
+Warm source rows stay separate: SW 852 → 833, network 11 → 12, worker
+10 → 10. Network encoded/transfer stays 62/953 B; SW/worker wire bytes are
+zero and are not summed into network savings. Native accounting retains
+two cold in-flight background rows per side and one → two warm rows.
+
+**Loading misses the bar:** +1.5140 s cold, +1.6743 s warm. O1's previously
+active Chromium/WebKit counts and ordinary correctness CPU overlapped;
+there is no isolated cause/gain claim or repeat. Passive native placement
+admission is 58.5 → 72.1 ms cold and 52.1 → 78.0 ms warm; library/modules/
+audio also move. Next is cause-directed native admission versus broader
+loading analysis before any earned follow-up pair. Keep source landed
+under G612, fix forward on a concrete cause, and leave loading/CS3 open.
+No further scene/tier-copy retirement is credited. Retained compact audit,
+hashes and readings: tmp/sp-x2-cs3-driftwood-pages/ and its two exact-source
+phone-loading folders; the source/qualification commits record the results.
