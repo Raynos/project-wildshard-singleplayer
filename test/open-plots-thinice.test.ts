@@ -12,7 +12,7 @@ import {buildLayout,parseLayout,Soup} from ${JSON.stringify(kit)};
 import {thinIceBuilders,thinIcePlot} from ${JSON.stringify(lake)};
 const layout=JSON.parse(readFileSync(new URL(${JSON.stringify(layout)}),'utf8')),builders=thinIceBuilders(layout.builders);
 assert.deepEqual(Object.keys(builders.tiles).sort(),['E','I','K','N','P']);
-assert.ok(builders.coarseFamilies.has('polar')&&builders.coarseFamilies.has('pines'));
+assert.ok(builders.coarseFamilies.has('polar')&&!builders.coarseFamilies.has('pines'));
 assert.throws(()=>thinIceBuilders({I:'garden'}),/theme tile/);
 // mirror-symmetric: every row reads the same letters from either end, the south half the north's
 const letters=row=>row.split(' ').map(t=>t[0]).join('');

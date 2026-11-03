@@ -7,7 +7,7 @@
 //   E bank:    the snowy shore: Frostline's pine clumps (the `pines` family) in drifts, a bench (polar variant 2) and a lamp;
 //   K igloos:  two igloos (polar variant 0) in the tile's north-west corner facing in, pines behind them, a bench (the plot's
 //              corners).
-// The avenues are lined with lamps. Every model is a kit family (polar, pines, lanterns), placed only when the layout's kit
+// The avenues are lined with lamps; no strings or banners cross the lake. Every model is a kit family (polar, pines, lanterns), placed only when the layout's kit
 // has it. A pale cyan noon: no fireflies, no lanterns lit by day; snow birds drift over the ice (bar 7).
 import { HALF, INNER, pool } from './kit.mjs';
 import { nightMarketBuilders } from './nightMarket.mjs';
@@ -114,12 +114,10 @@ function avenue(w, p, side, centre) {
   for (const u of at(LAMPS)) for (const off of [-5.5, 5.5]) { const [x, z] = along(u, off); lamp(w, p, x, z); }
 }
 
-/** A lane seam: the shared builders' strings and banners (no fireflies by day), and on the four avenues the lamps. */
-function lakeLane(shared) {
-  return (w, p, side, centre, ...rest) => {
-    shared?.(noFireflies(w), p, side, centre, ...rest);
-    if ((side === 0 ? centre[1] : centre[0]) + HALF === 0) avenue(noFireflies(w), p, side, centre);
-  };
+/** A lane seam: open snow (no strings or banners over the lake, which round 62 leaves clear), and on the four avenues the
+ *  lamps. */
+function lakeLane(w, p, side, centre) {
+  if ((side === 0 ? centre[1] : centre[0]) + HALF === 0) avenue(w, p, side, centre);
 }
 
 /** The far stand-ins (RM11): the ice and its holes, the snow banks with their pines as dark green blocks, the igloos. */
@@ -142,13 +140,13 @@ const THEME = {
 };
 
 /** The lake's builders: a layout's shared letters (Night Market's kinds, `layout.builders`) plus I, E and K, every one
- *  drawn without fireflies, and lane seams that line the avenues with lamps. */
+ *  drawn without fireflies, and lane seams that line the avenues with lamps (the pines draw only near, as Frostline's). */
 export function thinIceBuilders(letters) {
   const shared = nightMarketBuilders(letters);
   for (const letter of Object.keys(THEME)) if (Object.hasOwn(shared.tiles, letter)) throw new Error(`thin-ice: letter ${letter} is a theme tile`);
   const tiles = { ...shared.tiles, ...THEME };
   const day = Object.fromEntries(Object.entries(tiles).map(([letter, tile]) => [letter, { ...tile, build: (w, ...rest) => tile.build(noFireflies(w), ...rest) }]));
-  return { tiles: day, coarseFamilies: new Set([...shared.coarseFamilies, 'polar', 'pines']), seam: lakeLane(shared.seam) };
+  return { tiles: day, coarseFamilies: new Set([...shared.coarseFamilies, 'polar']), seam: lakeLane };
 }
 
 /** Hooks at the generic construction points (tiledPlotCore.mjs): the crystal stands alone on its plinth on the plaza, a
