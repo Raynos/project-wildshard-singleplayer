@@ -97,3 +97,11 @@ front of it).
    half size.
 3. The plaza billboard has a tree through it (Jake's shot) and the entries' posters are swamped. Fix: the poster
    keep-out (billboard review, fix 1).
+
+## Updates
+
+- 2026-11-03, Night Market 2, 3 and 8: refreshed from sp-x9's first plot end-to-end run on `b687d09b21`
+  (`../../golden-runs/open-plot-night-market/2026-11-03-b687d09b21-harness-board.jpg`). The plot matches in all three; only
+  the sky and the neighbours changed, both intended: 2 and 3 lose the sun disc and its halo (G992, `0d7a022fbb`, after
+  these frames were shot), 3's right-hand horizon and 8's left-hand horizon (a grey peak) show the plots G993's grid
+  moves (`109ef326d6`) put beside the Night Market.
