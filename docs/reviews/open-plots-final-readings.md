@@ -16,15 +16,15 @@ Every measurement binds one final admitted audio-containing SHA and actual
 build. The lanes share its normal all-product preview through separate owner
 leases. A visual-boundary walk or hero count is historical evidence; it does
 not qualify a later audio candidate. Saltwind's final admitted candidate is
-`f8a1406288`; Sky Harbor's is `a8593f8ac6`. The other eight await their
-audio handoff.
+`f8a1406288`; Sky Harbor's is `a8593f8ac6`, and Starfall's is
+`aa33a361f5`. The other seven await their audio handoff.
 
 | Plot | Actual instance / cell | Final candidate | Chromium/control, walk, goldens | Memory / Simulator |
 |---|---|---|---|---|
 | Fossil Badlands | `open-plot-1-0` / (-1,-2) | Awaiting audio handoff | Open | Open |
 | Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim + authorized fresh grid complete |
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
-| Starfall Observatory | `open-plot-3-4` / (1,2) | Awaiting audio handoff | Open | Open |
+| Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Open | Chromium memory complete; official Sim queued |
 | Thin Ice | `open-plot-1-4` / (-1,2) | Awaiting audio handoff | Open | Open |
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | Awaiting audio handoff | Open | Open |
 | Floating Island Race | `open-plot-2-0` / (0,-2) | Awaiting audio handoff | Open | Open |
@@ -479,3 +479,45 @@ owner retains bar 10/body/wire qualification and plan-row integration.
 Raw walk, eight capture rows, source bindings and classification stay in
 `tmp/sp-x1-open-plots/sky-final/`. All own browsers are closed and the own
 shared preview lease is released after reporting. No visual source changes.
+
+## Starfall Observatory — Memory (sp-x8)
+
+Final admitted audio source **aa33a361f526d9a82d280912014de6e451cff381**,
+normal shared immutable build **aa33a36-mw17vdnh** (:4400). The served raw
+index SHA-256 is
+`f1196b0de99f4bdb9123ef8c3392922b9461b5ae0d17b29d88a2f355b7688b35`.
+All **206 listed bodies** match the owner's final disk bytes and complete
+hashes: 166 files, 35 sections and five packs with 201 verified entries.
+
+X2's 17 s native bar 10 is bridged from `060198eb6c`, rather than rerun on
+the final SHA. All 166 files and 34/35 sections are exact to that native
+candidate; only the source map stamp changes. The original 158 pre-audio
+files, **9,173,791 B**, remain exact. Final wire cost is **5,911,520 B**;
+B, the canonical Bayou bed and six spots remain the audio owner's proof.
+No visual or runtime source change belongs to this reading.
+
+One separate maintained Chromium memory command uses phone 2×, its original
+20 s settle and three samples without forced GC. Each reports 57 draws,
+18 textures, 94 geometries and 26 programs; there are no page errors.
+The legacy `MB` fields are **MiB**. Chromium process figures are separate
+from native Simulator memory, and are not summed as a per-shard verdict.
+
+| Sample | Renderer MiB | GPU process MiB | JS heap MiB | FPS |
+|---|---:|---:|---:|---:|
+| 1 | 199 | 525 | 53 | 60.2 |
+| 2 | 167 | 524 | 50 | 60.1 |
+| 3 | 167 | 524 | 51 | 60.1 |
+
+The browser closed at the command's natural end. Official Simulator
+cadence, native memory and junction residency remain **unmeasured**;
+Chromium FPS earns no official timing credit. X1's control browser also
+closed, while X2's finite Pastel model turn is still active. Official quiet
+waits for its literal release; no model, quiet or Simulator lock is held
+by this lane. The own preview use stays retained for the queued window.
+
+The pinned source places Starfall in cell **(1,2)**. Its southwest
+intersection is **(281.25,1.7,843.75)**, with actual Pine, Template,
+Saltwind and Starfall neighbours. These are prepared source poses, not
+measured residency. The exact body admission, memory samples and source
+poses are retained at `tmp/sp-x8-plot-readings/starfall-final/`.
+The full row stays open for the independent remaining scopes.
