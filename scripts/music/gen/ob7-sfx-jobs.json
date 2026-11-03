@@ -421,21 +421,21 @@
       "into": "fossil-badlands",
       "duration": 30,
       "desc": "Dry wind and dusk insects over a quiet dig camp with faint canvas flap and distant timber crane creak",
-      "prompt": "Continuous dry desert wind across dusty open ground at dusk, with clearly audible small crickets chirping steadily through the entire recording. Wind and dusk insects dominate this quiet excavation camp ambience. Very faint canvas movement and a distant timber creak stay underneath, never rhythmic or foreground. Warm natural outdoor field recording, no alpine lift motor, no rain, no sea, no music, no speech."
+      "prompt": "Dry wind and dusk insects over a quiet dig camp with faint canvas flap and distant timber crane creak. A continuous soft dry breeze with clear irregular cricket chirps and small canvas flutters. Quiet natural field recording of an empty desert excavation at blue hour, no music, no voices, no rain, no waves, no machine motor."
     },
     "hum.fossil-badlands.skeleton-rib-wind": {
       "kind": "hum",
       "into": "fossil-badlands",
       "duration": 12,
       "desc": "Wind through huge dry hollow bones makes a deep airy whistle",
-      "prompt": "Dry wind blowing slowly through large hollow bone-like cavities and a high rib arch, making a deep soft airy whistle with uneven gusts. Spacious outdoor resonance, warm and natural rather than eerie. No voice, no music, no animal calls, no metallic tone."
+      "prompt": "Wind through huge dry hollow bones makes a deep airy whistle. Close field recording of air resonating inside a large dry hollow tube, a low hollow breathy whistle with slow uneven gusts. Unpitched natural wind resonance, no melody, no instrument, no animal voice, no music or speech."
     },
     "hum.fossil-badlands.crane-rope-pulley": {
       "kind": "hum",
       "into": "fossil-badlands",
       "duration": 10,
       "desc": "A timber hand crane creaks while a rope pulley turns slowly",
-      "prompt": "Close dry foley of a heavy timber lifting crane slowly straining under a suspended load: long rising wooden beam creaks and rough rope fibres rubbing through a squeaky pulley wheel. Alternate a sustained wood strain with a clearly textured rope-pulley scrape. Quiet outdoor excavation, sparse careful hand-powered movement, no hollow knocking, no dock, no boat, no water, no motor, no voices, no music."
+      "prompt": "A timber hand crane creaks while a rope pulley turns slowly. Close dry foley of long wooden beam creaks and rope rubbing through a slowly squeaking wooden pulley. Separate sparse straining creaks with silence between, no metal gears, no ticking, no ratchet, no water, no motor, no music or voices."
     },
     "hum.fossil-badlands.sump-water-drips": {
       "kind": "hum",
@@ -463,7 +463,7 @@
       "into": "fossil-badlands",
       "duration": 10,
       "desc": "Careful brushes sweep grit from fossils with a few gentle chisel taps",
-      "prompt": "Close careful excavation foley: soft bristle brushes sweep dry grit off stone and fossil surfaces, alternating with a few small delicate chisel taps. Restrained dry scratch and tiny stone clicks, no voices, no music, no industrial hammering."
+      "prompt": "Careful brushes sweep grit from fossils with a few gentle chisel taps. Very close dry bristle brushing and granular sandy scraping across rough stone, followed by two or three tiny delicate stone chisel clicks. Slow patient hand excavation, mostly soft bristles and grit, no hammer blows, no workshop machines, no water, no music or voices."
     },
     "hum.fossil-badlands.cart-rails-gravel": {
       "kind": "hum",

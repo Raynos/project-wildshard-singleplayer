@@ -596,5 +596,49 @@
       "z": -230,
       "reach": 50
     }
+  ],
+  "fossil-badlands": [
+    {
+      "id": "skeleton-rib-wind",
+      "x": 0,
+      "z": 0,
+      "reach": 45
+    },
+    {
+      "id": "crane-rope-pulley",
+      "x": -26,
+      "z": 88,
+      "reach": 30
+    },
+    {
+      "id": "sump-water-drips",
+      "x": -156,
+      "z": 162,
+      "reach": 24
+    },
+    {
+      "id": "tent-canvas-lantern",
+      "x": 156,
+      "z": 31,
+      "reach": 28
+    },
+    {
+      "id": "mesa-wind",
+      "x": 219,
+      "z": 219,
+      "reach": 45
+    },
+    {
+      "id": "sorting-brush-chisel",
+      "x": -94,
+      "z": -94,
+      "reach": 24
+    },
+    {
+      "id": "cart-rails-gravel",
+      "x": 0,
+      "z": -230,
+      "reach": 32
+    }
   ]
 }
