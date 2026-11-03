@@ -35,14 +35,18 @@ pending sources retained separately. No pre-cut/mixed cohort or modeled
 saving closes CI9. Archive the plan in the same commit that records its
 qualifying median; do not archive while this row is open.
 
-Retained cohort at15:19:39Z: qualified live0, median UNMEASURED. Source
-4567995448/run41662549840 prepare126009253741 actually started; this is
-not a qualified release. The sole watcher retains all18 source rows and
-failed/cancelled/pending denominators. No new fetch/dispatch from this lane.
-Grid fixture fix794edbb727 pins both packed grid/HOVER sibling guards;
-six focused cases1.3s and typed lint pass, workflow/caps unchanged.
+Latest qualified post-cut release: `0b5d27d384` / run41686984163,
+first production MATCH 2026-11-03T18:34:37.9597678Z. Required23,
+all7 cases, native4 and exact12-shard plan (2462 files) pass.
+Created17:43:28Z -> MATCH3069.960s. Cohort qualified live1; a working
+day is incomplete, so CI9 stays OPEN and the plan is not archived.
 
-Nalati fix`3d48aad462`: first ordinaryfd04/41643074332 exact plan assigns
-behaviour6/job125946422684. Shipping26.071s<unchanged30s, ownership13.831s;
-all4 pass40.550s combined. The unrelated historical phone-fixture failure
-keeps that whole wave red; no release pass is claimed.
+Retained8a1 grid refusal is shared90s budget exhaustion after Template
+entry/checkpoint pass and slow Signal preparation. No concrete source
+cause or G989 causality established; same route sources pass on0b5.
+Unchanged dispatch/install/quarantine controls52/52 pass in2.71s.
+No workflow/runtime change, retry, native rerun or cap/guard relaxation.
+
+Nalati fix 3d48aad462 first ordinary fd04/41643074332: exact B6
+shipping26.071s<30s, ownership13.831s; all4 pass40.550s. Whole wave
+retained unrelated phone red; no release pass inferred.

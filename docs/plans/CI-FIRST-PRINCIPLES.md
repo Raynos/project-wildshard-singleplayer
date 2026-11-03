@@ -4035,3 +4035,53 @@ gate, retry or deadline changes follow; CI9 remains open at the 15-minute bar.
 Phone retirement `005df4c4c3` (stale timing-row fix `1c133691ab`) preserves the local native route and removes its unused CI preparation adapter with its eight paired tests. Twelve behaviour jobs land in `4230b7d7c0`; four browser jobs in `f1cfa3a95d` retain all logical SIX cases plus WebKit rendering. The latter commit's body says “100-plus” controls in error: the exact result is **87/87 in 5.3 s**. Every source/run/archive/status/floor gate stays; all seven named case steps must pass inside the four green jobs. The software draw report is PR-only under its explicit source policy. No current/legacy roster is accepted by a blanket count allowance.
 
 The first ordinary Nalati codec-fix source `fd04f55d79` / run `41643074332` assigns the test to **behaviour (6)**, job `125946422684`, in its exact duration plan (not the earlier B4 guess). All four cases pass in 40.550 s combined; ownership 13.831 s, shipping full-byte codec **26.071 s < unchanged 30 s**. Prepare is 595 s; the source's unrelated historical phone-fixture failure remains a red whole wave, not a release pass. Evidence retained by the sole CI watcher includes `fd04-vitest-plan.json`, `nalati-fix-fd04-qualified.json` and the exact job raw; no retry or dispatch.
+
+
+## G989 first qualified release and retained grid refusal (2026-11-03)
+
+The sole CI/deploy verifier qualifies **0b5d27d38455b87d658cf665286513149372fe04**,
+run **41686984163**, build **0b5d27d-mw0zj8ty**. All 23 required jobs,
+all seven named cases including both HOVER engines, native4, the exact
+12-shard/2462-file plan, 13 ZIP digests, status, maps176, SW/HTML and
+four API204 probes pass. First production MATCH is
+**2026-11-03T18:34:37.9597678Z**; run-created push proxy is17:43:28Z:
+**3069.960 s (51m09.96s)**. This is one qualified post-cut source, not a
+working-day median. The old 15-minute bar remains retired; **CI9 stays
+OPEN**, and the plan is not archived. Authority:
+`tmp/sp-ci-deploy-qa-refresh/qa-0b5-complete-proof.json`.
+
+Bounded source-only follow-up reads the already retained failing grid
+job **126095769753**, run **41685079486**, source **8a1e7a5ee7**, and the
+hash-bound successful0b5 grid artifact13257278691. No remote re-fetch,
+CI dispatch/retry or native rerun. The old failure is not cured by the
+later green source, and cancelled5957 grid is not called a new failure.
+
+8a1 captured Template entry and checkpoint return, then exhausted the
+unchanged shared90s road budget during Signal entry. Its document-clock
+crossings request/ready/commit are Template20189ms prepare and Signal
+30456ms prepare; Signal commits at153724ms, failure diagnostics at
+155932ms. Native play is ready, currentSignal/settled, no fatal/page
+errors, observer present and owner alive, recent draw211ms ago; feet
+z250.56 remain5.56m short of the required245m waypoint. Background
+pending9 /327 file waits with oldest~2.3s are observations, not a proven
+blockade or permission to ignore pending work. Signal's completed hooks
+include world5787ms, play1802ms and afterPlay8773ms.
+
+On0b5 the same route sources pass: Template entry16.839s/exit3.800s;
+Signal route23.555s, with16914ms required preparation. Template prepare
+is9194ms; Signal world4709ms/play879ms/afterPlay6026ms. These are
+contrasts, not isolated measurements or a proven cause/fix. The exact
+boot-smoke/frame-floor route files are byte-identical8a1→0b5→HEAD.
+G989 changed workflow/pin/fixtures/docs, not those route files; grid
+executes before its grouped HOVER sibling, so that sibling supplies no
+prior page/cache work to this failure. Resource/cold-work cause and
+G989 causality remain **UNKNOWN**. No source change is justified by
+these receipts. Dispatch/install/quarantine controls pass **52/52 in
+2.71s**, retaining all named cases, failure propagation and original
+clocks/native guards. Root resumes open plots after the independently
+verified green/live release; the retained refusal is not relabelled green.
+
+Retained evidence: `8a1-grid-refusal-state.json`,
+`8a1-road-completion-state.json`, `8a1-grid-artifact/grid.json` and
+`0b5-grid-artifact/grid.json` with their source/archive bindings under
+`tmp/sp-ci-deploy-qa-refresh/`. No blind rebuild, extra fetch or watcher.
