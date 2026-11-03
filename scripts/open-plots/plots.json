@@ -68,13 +68,18 @@
     },
     {
       "slug": "open-plot-showcase-template",
-      "instance": "open-plot-2-4",
+      "instance": "open-plot-sw",
       "cameras": "art/open-plots/showcase-template/domes"
     },
     {
       "slug": "open-plot-sky-harbor",
       "instance": "open-plot-4-4",
       "cameras": "art/open-plots/sky-harbor/domes"
+    },
+    {
+      "slug": "open-plot-sky-race",
+      "instance": "open-plot-2-0",
+      "cameras": "art/open-plots/sky-race/domes"
     },
     {
       "slug": "open-plot-starfall-observatory",

@@ -4,12 +4,12 @@
     "slug": "open-plot-showcase-template",
     "idea": "showcase-template",
     "name": "Showcase Template",
-    "accent": "tangerine",
+    "accent": "teal",
     "manifest": {
       "name": "Open Plot · Showcase Template",
       "blurb": "Showcase Template: shared-kit template; landmark and theme dressing are unfinished.",
       "bindings": {
-        "accent": "tangerine"
+        "accent": "teal"
       },
       "card": {
         "thumb": "/src/shards/open-plots/thumbs/showcase-template.jpg",

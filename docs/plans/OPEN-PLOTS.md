@@ -113,6 +113,28 @@ and official Simulator readings stay open until the audio-containing
 candidate. Raw route and result remain in `tmp/sp-x9-op15/`; browser
 closed and the shared preview lease released normally.
 
+**Wave D Codex stubs (2026-11-03, sp-x9): historical source-preparation boundaries.**
+Pastel Alien Plain was prepared and handed to its Opus owner first in
+`f6d0bd6a01`: actual `open-plot-alien-plain` / `open-plot-4-0`, cell
+**(2,-2)**. Floating Island Race follows as `open-plot-sky-race` /
+`open-plot-2-0`, cell **(0,-2)**. Showcase Template was refreshed last:
+`open-plot-showcase-template` / `open-plot-sw`, cell **(-1,-1)**, correcting
+the capture registry's obsolete `open-plot-2-4` binding. Its recipe and
+inactive descriptor now use the existing output's teal accent and retain
+the generic palette; its eight existing canonical camera geometries stay
+unchanged. No grid cell is moved.
+
+Every stub is generic scaffold preparation, inactive and off SHARD SELECT
+at its boundary. Race adds eight canonical TEMPLATE domes; all three have
+provisional continuous south-entry/plaza-seam routes and G950 selectors.
+No theme, walk, capture or performance qualification is inherited by a
+later activation. Opus owns all visible source, final terrain/route
+adaptation and activation (G848); Showcase's visual work remains last.
+Live outputs, grid, map, audio and native assets are unchanged by these
+stub commits. The maintained template admission and ordinary CURRENT /
+non-empty tiled-report guards remain intact. The foreign loose Jungle
+route remains outside these HEAD-only patches.
+
 Jake, 2026-10-28: *"You're approved to go and do the park plan, the draft park plan, how to build the rest of the open
 plots."* This plan replaces Night Market pilot R1–R3 and remaster-open-plots RP2–RP4 (G774, G824). Decisions stay in
 [shard-platform/decisions.md](shard-platform/decisions.md) until this plan has its own file. Read at HEAD 2f074203c9.
@@ -228,7 +250,7 @@ The same eight steps for every plot. One lane owns a plot until it is done (G804
 | OP2 | **Shared-kit extraction — done (2026-11-02).** Split `kit.mjs` / `tiledPlot.mjs` into a plot-agnostic core (Soup, grid, sockets, writer, pools, posters, kerb, far, light bake, paving) and per-idea builder sets; Night Market's H/G/S/C/L/N/P move to its own set; letters map to builders per layout | Codex | 1 d | All 18 current world GLBs (99,931,412 B) and all 52 read inputs are SHA256/size exact before/after. Night Market stays 64,289,012 B; the real style-row test uses seven different letters, and all eight collision goldens plus the 5,500-emitter control remain unchanged. Core grid/writer/sockets/paving/GLB construction is separate from Night Market geometry, seams and lighting policy |
 | OP3 | **done (2026-11-03, sp-x8; G872 self-applied). Per-plot template generator.** One script: slug → layout stub, style row, `outputs.json` row, look key, map row, dome cameras from the round-62 sheet, cell swap for new ideas. Its first output is Showcase Template | Codex | 0.5 d | A new idea goes from nothing to a building plot (shared families, its palette) in one command |
 | OP4 | **Batching — done (2026-11-03, sp-x9). [24 sheets + junction](../../art/open-plots/op4-b616c06/README.md).** One dome-capture run and one board-maker over any list of plots; one Chromium reading at a ring junction with all built neighbours in view | Codex | 0.5 d | One command captures 3 plots × 8 domes and makes their labelled sheets |
-| OP5 | Showcase Template (wave 1; the template's proof) | Opus + Codex | 8 / 4 h | Pipeline steps 1–8 met (§3) |
+| OP5 | **Inert OP3 stub refreshed last (2026-11-03, sp-x9); visual build stays last per G971.** Showcase Template: actual instance `open-plot-sw`, cell (-1,-1); generic starter palette, inactive/off-card descriptor and eight existing TEMPLATE dome geometries retained. Capture registry corrected from obsolete `open-plot-2-4`; provisional walk/report inputs added | Opus + Codex | 8 / 4 h | Pipeline steps 1–8 met (§3) |
 | OP6 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Lantern Bayou (wave 1; reuses OP1's lantern and the strings) | Opus + Codex | 12 / 4 h | Steps 1–8; frees a repeat cell |
 | OP7 | **done (2026-11-03, sp-o2 + sp-x6).** Patchwork Fairground: final visual source `15efc85eee`, [final board](../../art/patchwork-fairground/round-3-final/board.jpg) `80ba3ebf58`; audio `02c7ca0db0` + activation `8bdf53f635`, full native bar 10 passes (B, bed + five qualified spots; failed flags stay unshipped). [OB8 readings](../reviews/open-plots-wave-a-readings.md): Chromium/control, separate memory, walk 0 stuck/out, official Simulator plot + four junction headings 30 fps / p95 34 ms; native+GPU caps hold. Existing matched CPU-target and home-grid strict misses retained, not waived. Actual committed instance `open-plot-0-0`, cell (-2,-2). Look target [round 75](../../art/grid/round-75-new-plot-palettes/03-patchwork-fairground.jpg), theme §4b | Opus + Codex | 12 / 4 h | Final board, audio and readings complete; OP23 all-plots-built reading remains open |
 | OP8 | ~~Mushroom Hollow~~ **dropped (G977)**: Jungle Ziggurat (OP13) takes its cell (-2,2) | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
@@ -245,7 +267,7 @@ The same eight steps for every plot. One lane owns a plot until it is done (G804
 | OP19 | **Built and on the grid (2026-11-03, sp-o3): clock tower `e45fc2a7de` (Blender script), clockwork kit `111dd6a283`, tiles and layout `7a672e59dc`, activation `9091bc1c56` (wire 5,503,249 B approved by wildshard-new), lamp-lined avenues `c40e60e600`, 8 golden views and final board `f1d64e700c` (road entry 115 draws, plaza 115), in-engine card art. Known gaps on the board: much sparser than round 62, no canyon walls or waterfalls. Open: walk and readings (sp-x9), audio (sp-x6), Jake plays it.** Inert OP3 stub (sp-x9). Clockwork Canyon: real instance `open-plot-4-3`, cell (2,1); generic palette, unactivated descriptor, eight TEMPLATE domes and provisional walk/report inputs | Opus + Codex | 22 / 6 h | Steps 1–8 |
 | OP20 | **Inert OP3 stub (2026-11-03, sp-x9); visual build remains open with sp-o3.** Pastel Alien Plain: actual slug `open-plot-alien-plain`, instance `open-plot-4-0`, cell (2,-2); generic starter palette, inactive/off-card descriptor, eight TEMPLATE domes and provisional walk/report inputs | Opus + Codex | 22 / 6 h | Steps 1–8 |
 | OP21 | **Visual work complete (2026-11-03, sp-o2); audio and Codex readings open.** Fossil Badlands geometry `1617441602`, [final board](../../art/fossil-badlands/round-3-final/board.jpg) and eight goldens `0d9824ebd5`. Opus's maintained route completes one leg, 0 stuck / 0 out. Reported phone 2× hero draws above/road/top/plaza 70/54/107/56; wire 2,927,540 B. These are visual-boundary numbers, not final audio-containing performance/memory clearance. Actual instance `open-plot-1-0`, cell (-1,-2). X9/X6 qualify the joint audio candidate before closing | Opus + Codex | 22 / 6 h | Final audio/native bar 10, matched readings and official Simulator remain open |
-| OP22 | Floating Island Race (wave 6) | Opus + Codex | 22 / 6 h | Steps 1–8 |
+| OP22 | **Inert OP3 stub (2026-11-03, sp-x9); visual build remains open.** Floating Island Race: actual slug `open-plot-sky-race`, instance `open-plot-2-0`, cell (0,-2); generic starter palette, inactive/off-card descriptor, eight TEMPLATE domes and provisional walk/report inputs | Opus + Codex | 22 / 6 h | Steps 1–8 |
 | OP23 | **Plan-end readings.** The official Simulator reading on the grid with every plot built: inside three plots and at a ring junction | Codex (Sim lane) + Opus fixes | 0.5 d | Every plot ≤ 1.2 GB, 30 fps floor; the page does not crash |
 | OP24 | **Delete the hologram path (RP4, R3).** `hologram.graph.json`, `beam.graph.json`, the hologram, sign and old billboard assets and code, `farMode: 'add'`, `batch-holograms.sh`, `holo_post.py`, the old look materials | Codex | 2 h | No hologram code or asset left; net lines negative; push gate green |
 | OP25 | **Placeholder art for the four new plots (was NU2) (Opus: the player sees it, G848).** `holo-subjects.tsv` rows from §4b's landmarks; refs and Hunyuan3D-2 holograms (`gen-refs.sh`, `batch-holograms.sh`, `clay-review.mjs`) taking the round-75 board's road-entry panel as the reference; `billboard.webp`, `sign.webp` and `thumbs/<idea>.jpg` from the round-75 boards (`make-art.sh` given that source). Into `public/assets/open-plots/<idea>/` | Opus | Four holograms pass clay review; the art matches the other ideas' sizes (billboard ≤ 250 KB) |

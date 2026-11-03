@@ -193,8 +193,8 @@ plot. Wave B selectors also include `fossil-badlands`, `desert-ruin` and
 refuses until their actual tiled products have ordinary CURRENT admission;
 a selector is not a measured report or an activation. Wave C adds
 `starfall-observatory`, `thin-ice` and `clockwork-canyon` under the same
-inert-source limits. Wave D starts with `alien-plain` under the same
-limits. The batch admits
+inert-source limits. Wave D includes `alien-plain`, `sky-race` and
+`showcase-template` under the same limits. The batch admits
 every selected CURRENT product before writing
 anything, then emits one JSON/Markdown pair per plot and an `index.json`
 with product index hashes and L0/L1 totals. The printed totals cover all

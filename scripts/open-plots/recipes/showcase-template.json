@@ -1,7 +1,7 @@
 {
   "slug": "open-plot-showcase-template",
   "name": "Showcase Template",
-  "accent": "tangerine",
+  "accent": "teal",
   "plot": "scaffold",
   "reference": "art/grid/round-62-open-plot-palettes/07-showcase-template.jpg",
   "palette": {
@@ -40,5 +40,9 @@
     "trees",
     "props",
     "lanterns"
+  ],
+  "cell": [
+    -1,
+    -1
   ]
 }
