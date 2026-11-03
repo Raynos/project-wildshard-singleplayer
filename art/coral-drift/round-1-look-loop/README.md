@@ -30,9 +30,19 @@ goes to Jake. The method and the 9 angles are Lantern Bayou's (`art/lantern-bayo
   swatches are what lack saturation); the bank palms read small (the young palm unscaled, 4 m); the water has no
   caustics or visible floor (the lagoon water kind).
 
+## Round 2: capture 3f18b9d190 (72 views; with the lagoon water kind 2dcaf72e22)
+
+- `sheet-r2-r0-r1-r2-target.jpg`: each angle as R0, R1, R2 and its target.
+- Moved: the arch reads saturated (9), the plaza sky bluer (8), and the caustic web shows on the lagoons (4).
+- Still open: the boardwalks read grey beside the targets' warm pale boards; the road views' sky is the grid's (out of
+  scope). Bar 7 (sp-o3's road-entry clip): lamps and black-blinking specks only, hence gulls and no fireflies
+  (3221e06306).
+
 ## Picks (G872, logged)
 
 - **R1** (sp-o2, 2026-11-03, b595178992): gaps 2 and 4, the sky key and fog of gap 1, and the water colour of gap 3.
   This is a light and palette round, and it trades nothing the old look had.
 - **R2** (sp-o2, 2026-11-03, a2de5f3227): more saturated coral swatches (peach, pink and lilac); a deeper, more
   saturated sky key and a bluer fog; the bank palms scaled to the trees they replace (the same model, no new bytes).
+- **R3** (sp-o2, 2026-11-03): warmer bleached boards (paving, lanes, plaza, forecourts, court, planks); the gulls and
+  firefly removal of 3221e06306. Coral's last round: the final board comes from its capture.

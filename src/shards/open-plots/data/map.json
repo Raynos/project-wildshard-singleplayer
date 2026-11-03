@@ -490,28 +490,28 @@
         "shade": 0.3,
         "classes": [
           {
-            "match": "#dccbb0",
-            "fill": "#dccbb0"
+            "match": "#e4cfa8",
+            "fill": "#e4cfa8"
           },
           {
-            "match": "#e8d8bc",
-            "fill": "#e8d8bc"
+            "match": "#eedcb8",
+            "fill": "#eedcb8"
           },
           {
             "match": "#c9bea6",
             "fill": "#c9bea6"
           },
           {
-            "match": "#e0cfb4",
-            "fill": "#e0cfb4"
+            "match": "#e6d2ae",
+            "fill": "#e6d2ae"
           },
           {
-            "match": "#eee0c8",
-            "fill": "#eee0c8"
+            "match": "#f2e4c8",
+            "fill": "#f2e4c8"
           },
           {
-            "match": "#e4d4b8",
-            "fill": "#e4d4b8"
+            "match": "#e8d6b2",
+            "fill": "#e8d6b2"
           },
           {
             "match": "#e8dcc4",
@@ -606,8 +606,8 @@
             "fill": "#8a7458"
           },
           {
-            "match": "#d8c8a8",
-            "fill": "#d8c8a8"
+            "match": "#e0caa0",
+            "fill": "#e0caa0"
           },
           {
             "match": "#6a9a48",
