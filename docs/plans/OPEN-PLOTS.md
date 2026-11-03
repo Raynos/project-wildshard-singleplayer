@@ -40,9 +40,17 @@ memory, maintained walk (0 stuck / 0 out), official quiet Simulator
 (plot and four junction headings report 30 fps, p95 34 ms; memory caps
 hold). The raw CPU-target and home-grid strict timing misses stay
 visible in [the readings](../reviews/open-plots-wave-a-readings.md).
-Jungle
-stays publication-only until sp-o1's real output/board/walk boundary;
-G999 parks that visual work during Nine release QA. Details and body
+Jungle audio activation `1c287c7c4b` now passes full native bar 10,
+after final geometry `87d997316d` / board `90957ed671`. The approved
+wire delta is +802,376 B, preserving 2,365 B margin. **OP13 remains
+open:** the maintained walk records four stuck sites (stair maximum
+height 2.418 m, not the expected ~42 m); O1 owns the visual/collider
+response. The fixed road-entry clip has only one semantically verified
+motion source (lamps); two changing rectangles do not establish a
+second distinct source. Raw failures stay retained; heavy final readings
+await the corrected final boundary. G999 lifted after verified Nine
+release `0b5d27d384`; Saltwind/Fossil model preparation continues under
+the single-model lock, skipping loads during official quiet. Details and body
 comparison limits are in [the audio review](../reviews/open-plots-audio.md).
 
 **Wave B Codex stubs (`8035bdf6ec`, 2026-11-03, sp-x9): historical source-preparation boundary.**

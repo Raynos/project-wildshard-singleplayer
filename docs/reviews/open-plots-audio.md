@@ -162,5 +162,34 @@ p95 34 ms; conservative native+GPU peaks are 263/491 MB playing/loading
 for Fairground and 863/832 MB for the grid visit. Matched Chromium
 30 µs/draw misses, strict timing flags and home-grid p95 35 ms remain
 visible. All owned browsers, Simulator, quiet and preview uses released.
-Jungle activation/bar 10/readings still await its real output/final
-board/walk boundary under G999. No placeholder activation is claimed.
+Jungle's real geometry `87d997316d` and final board `90957ed671` now
+precede native activation `1c287c7c4b`. Full bar 10 passes before landing
+on working candidate `c6d4f23295-mw12xkkz`: its own recorded B, seven
+decoded cues, sustained score/bed, native pause/resume, all six positive
+gains 0.389–0.398 and heading pan flips; no page errors. All 159 prior
+binary bodies and 32/34 old sections stay exact. Eight audio bodies
+and the native client audio.scene plan join; audio changes intentionally,
+and look/map retains its image with a source-only tilesHash change.
+Phone served bytes are 5,176,498 → 5,978,874 B; the explicitly approved
+5,981,239 B ceiling preserves the old 2,365 B margin. Seventeen focused
+native/template cases pass in 5.77 s. Package: 1,240,450 B, below 3 MB.
+
+Jungle **does not close** over the retained walk/life failures. The
+continuous 965 m horizontal route on sealed `0d9824ebd5` records four
+stuck sites: stair approach (-0.007,0.022,-44.862), stair return
+(0.009,2.418,-15.981), northwest plaza (-42.401,0.020,44.687), and
+east avenue (119.756,0.020,26.150). Maximum y is 2.418 m, not ~42 m.
+The harness's recorded stuck fallbacks reach the garden but cannot
+qualify the walk. Command 197 s; no unchanged rerun or omitted top.
+
+The maintained bar-7 road-entry clip on `c6d4f23295-mw12xkkz` retains
+11 lossless 0..5000 ms frames and the original 72° vertical lens.
+Its two-rectangle pixel check passes, but semantic bar 7 remains
+**unproven**: lamps visibly flicker; the predicted egret region changes
+only six fixed warm pixels at x378..379/y465..467 (channel delta ≤7),
+without an identifiable egret. Two changing regions are not two distinct
+life sources. Raw checker output is unchanged; independent source review
+refuses the broader claim. O1 has both failures for its visual/native
+response. No actor/camera change or visual-source edit by this lane.
+Raw records: `tmp/wave-a-audio/jungle-readings/`. The row and final
+performance milestone remain open until the corrected source boundary.
