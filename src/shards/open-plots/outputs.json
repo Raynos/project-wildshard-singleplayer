@@ -873,8 +873,8 @@
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/starfall-observatory.jpg",
-          "portrait": "/src/shards/open-plots/thumbs/starfall-observatory.jpg",
-          "landscape": "/src/shards/open-plots/thumbs/starfall-observatory.jpg"
+          "portrait": "/src/shards/open-plots/thumbs/starfall-observatory-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/starfall-observatory-landscape.jpg"
         },
         "explore": {
           "art": {

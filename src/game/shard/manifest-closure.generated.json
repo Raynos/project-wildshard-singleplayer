@@ -800,6 +800,8 @@
     "src/shards/open-plots/data/nightMarketBootFiles.json",
     "src/shards/open-plots/data/nightMarketBootSources.json",
     "src/shards/open-plots/discovery.open-plot-starfall-observatory.generated.ts",
+    "src/shards/open-plots/thumbs/starfall-observatory-landscape.jpg",
+    "src/shards/open-plots/thumbs/starfall-observatory-portrait.jpg",
     "src/shards/open-plots/thumbs/starfall-observatory.jpg"
   ],
   "open-plot-thin-ice": [
