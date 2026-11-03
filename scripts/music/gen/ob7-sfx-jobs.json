@@ -587,7 +587,12 @@
       "into": "thin-ice",
       "duration": 30,
       "desc": "Still cold air over a frozen lake with soft wind, deep ice creaks and distant birds",
-      "prompt": "Soft cold breeze on a frozen lake. Several distant deep resonant ice creaks and a few small sharp ice pings sound across the lake, with sparse faint winter bird chirps over still cold air. Quiet spacious natural winter ambience with long calm pauses. No music, no melody, no voices or speech."
+      "prompt": "Soft cold breeze on a frozen lake. Several distant deep resonant ice creaks and a few small sharp ice pings sound across the lake, with sparse faint winter bird chirps over still cold air. Quiet spacious natural winter ambience with long calm pauses. No music, no melody, no voices or speech.",
+      "reuse": {
+        "set": "mosslight-ruins",
+        "bed": "mosslight-ruins.ambience",
+        "gap": "G872 measured/descriptive fit accepted by Thin Ice owner O2, not an ear verdict: canonical Mosslight wind in leafy trees and distant small birds, -25.5 LUFS, LRA 4.9 LU, spectral flatness 0.30, irregular broadband 20 Hz to 11 kHz. Original paired ranks MOSS 4 and Stable Audio 1. Named mismatch: leaf rustle in an icy plot. No ice creaks or pings in the bed; the six local spots carry the ice details. Frostline bed was refused: 75% energy below 150 Hz, 21% at 150–500 Hz, under 2% above 500 Hz, flatness 0.001, -24.1 LUFS, LRA 0.5 LU and peak -9.1 dBFS form a near-tonal machinery drone; Thin Ice has no chairlift. All four own-bed paired takes failed the unchanged top-five bar and remain retained. The canonical source is referenced without copying, with its original loop and gain. Jake judges by ear on the listening page."
+      }
     },
     "hum.thin-ice.ice-crystal": {
       "kind": "hum",
