@@ -70,7 +70,7 @@ function lamp(w, p, x, z, yaw) {
     w.box('Glow', [x - 0.25, 3.0, z - 0.25], [x + 0.25, 3.7, z + 0.25], p.lantern, p.lantern);
   }
   w.solid([x - 0.15, 0, z - 0.15], [x + 0.15, 3.0, z + 0.15]);
-  pool(w, x, z, 4.5, p.pool);
+  pool(w, x, z, 3, p.pool);
 }
 
 /** Moss over the court: one up-facing rectangle a little proud of the paving. */
@@ -143,16 +143,63 @@ function farMoss(w, p, type, variant) {
   for (const [x, z, size] of [[-22, -16, 10], [22, -14, 9], [10, 10, 11]]) w.box('far', [m * x - size * 0.4, 1, z - size * 0.4], [m * x + size * 0.4, size, z + size * 0.4], p.foliage);
 }
 
+/** The plaza's ruin dressing (r1 look loop: the shared plaza read as bare grey paving round the tower): moss patches over
+ *  the paving and between its lantern rings, a rubble heap mid-quarter and column stumps toward its outer edges, clear of
+ *  the gate (its corner is (HALF, -HALF)), the rings (36 m, 52 m), the lane beds and the planter. */
+function mossPlaza(w, p) {
+  for (const [x, z, hx, hz] of [[2, 4, 5, 3], [-8, -12, 4, 6], [-20, 6, 6, 4], [12, 16, 4, 3], [-4, 26, 7, 2.5], [-26, -10, 2.5, 7],
+    [20, 26, 5, 2.5], [-26, 14, 2.5, 4], [6, -24, 3, 2], [-14, 18, 3, 3]]) moss(w, p, x - hx, z - hz, x + hx, z + hz);
+  ruin(w, 2, 0, 0, 0);
+  ruin(w, 3, 0, 22.4, 0);
+  ruin(w, 3, -22.4, 0, 1);
+  for (const [x, z] of [[-6, 10], [8, -6], [-18, -18]]) mote(w, x, 1.1 + pick(x, z, 3) * 0.5, z);
+}
+
+/** The gardens' ruin dressing: a rubble heap in two lawn corners, clear of its trees and its pond. */
+function mossGarden(w) {
+  ruin(w, 2, -22, 22, 0);
+  ruin(w, 2, 23, -23, 0);
+}
+
+/** A lane seam (in place of Night Market's string lights and banner posts): a ruined stone stump at each crossing corner
+ *  (3 m either side of the seam), moss at its foot, and motes low along the lane; the four road entries stay clear. */
+function mossLane(w, p, side, centre) {
+  const along = (u, off, y) => (side === 0 ? [u, y, HALF + off] : [HALF + off, y, -u]);
+  const clear = (x, z) => { const wx = centre[0] + x, wz = centre[1] + z, margin = 1.5;
+    return (Math.abs(wx) < 4 + margin && Math.abs(wz) > 235 - margin) || (Math.abs(wz) < 4 + margin && Math.abs(wx) > 235 - margin) || Math.hypot(wx, wz) < 30; };
+  for (const off of [-3, 3]) for (const u of [-HALF + 4, HALF - 4]) {
+    const [x, , z] = along(u, off, 0);
+    if (clear(x, z)) continue;
+    const h = 1.2 + 0.5 * pick(x, z, 3);
+    w.box('Kit', [x - 0.35, 0, z - 0.35], [x + 0.35, h, z + 0.35], p.stone, p.moss ?? p.lawn);
+    w.solid([x - 0.35, 0, z - 0.35], [x + 0.35, h, z + 0.35]);
+  }
+  for (const [u, off, y] of [[-HALF * 0.6, -2.6, 1.2], [HALF * 0.2, 2.6, 1.6], [HALF * 0.7, -2.6, 1.0]]) {
+    const [x, , z] = along(u, off, y);
+    if (!clear(x, z)) mote(w, x, y, z);
+  }
+}
+
+/** the shared kinds Mosslight dresses, and Night Market's own letters for them when a layout names none */
+const DRESS = { plaza: mossPlaza, garden: mossGarden };
+const SHARED_LETTERS = { G: 'garden', P: 'plaza' };
+
 const THEME = {
   R: { build: ruinCourt, far: (w, p, variant) => farMoss(w, p, 'R', variant), sockets: 'pppp' },
   E: { build: emeraldPool, far: (w, p, variant) => farMoss(w, p, 'E', variant), sockets: 'pppp', water: [POOL] },
 };
 
-/** Mosslight's builders: a layout's shared letters (Night Market's kinds, `layout.builders`) plus R and E. */
+/** Mosslight's builders: a layout's shared letters (Night Market's kinds, `layout.builders`, their plazas and gardens
+ *  dressed with ruins and moss) plus R and E, and its mossy lane seams. */
 export function mosslightBuilders(letters) {
   const shared = nightMarketBuilders(letters);
   for (const letter of Object.keys(THEME)) if (Object.hasOwn(shared.tiles, letter)) throw new Error(`mosslight-ruins: letter ${letter} is a theme tile`);
-  return { tiles: { ...shared.tiles, ...THEME }, coarseFamilies: new Set([...shared.coarseFamilies, 'ruins', 'rubble']), seam: shared.seam };
+  const tiles = { ...shared.tiles, ...THEME };
+  for (const [letter, kind] of Object.entries(letters ?? SHARED_LETTERS)) {
+    const dress = DRESS[kind], base = tiles[letter];
+    if (dress !== undefined && base !== undefined) tiles[letter] = { ...base, build: (w, p, variant) => { base.build(w, p, variant); dress(w, p, variant); } };
+  }
+  return { tiles, coarseFamilies: new Set([...shared.coarseFamilies, 'ruins', 'rubble']), seam: mossLane };
 }
 
 /** The tower's lit windows as emerald Glow: its slit rows (layout.landmark.windows: [x, y, z, nx, nz, width, height] in
