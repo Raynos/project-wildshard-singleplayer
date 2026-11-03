@@ -287,6 +287,18 @@
    "copy": [["lodges.glb", "public/assets/open-plots/kit/lodges.glb"], ["pines.glb", "public/assets/open-plots/kit/pines.glb"], ["lift.glb", "public/assets/open-plots/kit/lift.glb"]],
    "outputs": ["public/assets/open-plots/kit/lodges.glb", "public/assets/open-plots/kit/pines.glb", "public/assets/open-plots/kit/lift.glb"],
    "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
+  },
+  "open-plots/ruins": {
+   "about": "The shared ruin-stone kit families (open-plots build-out OB6, Mosslight Ruins; Desert Ruin reuses them, G978): ruins (a broken arch, an L of wall, a stepped terrace) and rubble (a rubble heap, column stumps) in mossy grey stone with opaque ivy strands and glowing moss, retinted by palette slot like open-plots/kit",
+   "script": "scripts/blender/open-plots/ruins.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/open-plots/kit.py", "scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/model_source.py", "scripts/blender/lib/glb.py"],
+   "inputs": ["src/shards/open-plots/data/trim.json"],
+   "lock": false,
+   "build": ["ruins.glb", "rubble.glb"],
+   "copy": [["ruins.glb", "public/assets/open-plots/kit/ruins.glb"], ["rubble.glb", "public/assets/open-plots/kit/rubble.glb"]],
+   "outputs": ["public/assets/open-plots/kit/ruins.glb", "public/assets/open-plots/kit/rubble.glb"],
+   "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
   }
  }
 }
