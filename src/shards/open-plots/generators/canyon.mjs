@@ -104,10 +104,23 @@ function wheeled(base) {
   };
 }
 
+/** where an avenue's lamps stand (plot metres from the plaza along it, either side of the lane), short of the plaza's
+ *  plinth and of the road entry's 15 m footprint */
+const AVENUE_LAMPS = [44, 68, 92, 116, 140, 164, 188, 212];
+
+/** A lane seam: on the four avenues (the seams on x = 0 and z = 0) a brass lamp post either side every 24 m; the other
+ *  seams are open paving (Night Market's string lights, drawn without their kit family, floated as bare bulbs). */
+function canyonLane(w, p, side, centre) {
+  if ((side === 0 ? centre[1] : centre[0]) + HALF !== 0) return;
+  const along = (u, off) => (side === 0 ? [u, HALF + off] : [HALF + off, -u]);
+  const at = list => list.flatMap(r => [r, -r]).map(r => (side === 0 ? r - centre[0] : centre[1] - r)).filter(u => u >= -HALF && u < HALF);
+  for (const u of at(AVENUE_LAMPS)) for (const off of [-4.2, 4.2]) { const [x, z] = along(u, off); lamp(w, p, x, z, 0); }
+}
+
 const THEME = { W: { build: worksTerrace, far: farWorks, sockets: 'pppp' } };
 
 /** The canyon's builders: a layout's shared letters (Night Market's kinds, `layout.builders`) plus W, every tile drawn
- *  without fireflies, the straight canals with their waterwheels, and Night Market's lane seams. */
+ *  without fireflies, the straight canals with their waterwheels, and lamp-lined avenues for the lane seams. */
 export function clockworkBuilders(letters) {
   const shared = nightMarketBuilders(letters);
   for (const letter of Object.keys(THEME)) if (Object.hasOwn(shared.tiles, letter)) throw new Error(`clockwork-canyon: letter ${letter} is a theme tile`);
@@ -116,7 +129,7 @@ export function clockworkBuilders(letters) {
     const build = letters?.[letter] === 'canal' ? wheeled(tile.build) : tile.build;
     return [letter, { ...tile, build: (w, ...rest) => build(noFireflies(w), ...rest) }];
   }));
-  return { tiles: day, coarseFamilies: new Set([...shared.coarseFamilies, 'clockwork']), seam: (w, ...rest) => shared.seam?.(noFireflies(w), ...rest) };
+  return { tiles: day, coarseFamilies: new Set([...shared.coarseFamilies, 'clockwork']), seam: canyonLane };
 }
 
 /** Hooks at the generic construction points (tiledPlotCore.mjs): the clock tower stands alone on the plaza; a warm pool
