@@ -18,20 +18,36 @@ await runTickWorker(async raw => {
     kind: v.picklist(['driftwood', 'driftwood-trade', 'sky-verbs', 'pine', 'pine-verbs', 'nine', 'nine-flat', 'nalati', 'nalati-companions', 'nalati-weapons', 'nalati-predators', 'nalati-world', 'nalati-stealth', 'nalati-verbs', 'nalati-kokpar', 'nalati-chapter', 'nalati-king', 'nalati-qara', 'nalati-titan', 'nalati-practice', 'trusted', 'deferred']), directory: v.string(), binary: v.string(),
     sections: v.map(v.string(), v.unknown()), snapshot: v.exactOptional(v.string()) }), raw);
   const shard = parseShardfile(payload.shard);
+  const started = performance.now();
+  const pinePhase = (phase: string): void => {
+    if (payload.kind === 'pine') console.info(JSON.stringify({diagnostic:'native-physics-worker',kind:payload.kind,
+      phase,atMs:Date.now(),elapsedMs:Math.round(performance.now()-started)}));
+  };
   // Source-only reconstruction overlaps independent worker admission. Observe
   // its rejection immediately; every guard and the complete initial commit
   // still finish inside the original request before a world becomes ready.
+  pinePhase('factory-import-start');
   const pine = payload.kind === 'pine' ? await import('../pine-headless') : undefined;
+  pinePhase('factory-import-ready');
   const pineSources = pine?.preparePineNativeSources().then(
-    prepare => ({ok: true as const, prepare}), (error: unknown) => ({ok: false as const, error}));
+    prepare => {pinePhase('sources-ready');return {ok: true as const, prepare};},
+    (error: unknown) => {pinePhase('sources-refused');return {ok: false as const, error};});
+  pinePhase('sources-started');
   const rapier = await loadRapier(readFileSync(payload.binary));
+  pinePhase('rapier-ready');
   await prepareAssetDecoders();
+  pinePhase('decoders-ready');
   validateShardfileAssets(shard, payload.assets, hashImmutableBytes, offlineMemoryAdmission('refuse'), undefined, scriptAdmissionRows(payload.sections));
+  pinePhase('assets-admitted');
   if (pine !== undefined && pineSources !== undefined) {
     const product = await loadHeadlessProduct(payload.directory);
+    pinePhase('product-ready');
     const sources = await pineSources;
     if (!sources.ok) throw sources.error;
-    return createNativeProofAdapter({shard, assets: pine.pineHeadlessAssets(payload.assets), rapier, product}, sources.prepare, payload.snapshot);
+    pinePhase('world-start');
+    const adapter = await createNativeProofAdapter({shard, assets: pine.pineHeadlessAssets(payload.assets), rapier, product}, sources.prepare, payload.snapshot);
+    pinePhase('world-ready');
+    return adapter;
   }
   let prepare: PrepareHeadlessRuntime, assets: ReadonlyMap<string, Uint8Array> = payload.assets;
   if (payload.kind === 'driftwood') prepare = (await import('../../proof/driftwood-isle/worker')).prepareHeadlessRuntime;
