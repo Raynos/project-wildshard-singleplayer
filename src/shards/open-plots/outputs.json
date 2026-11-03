@@ -643,6 +643,7 @@
       "name": "Mosslight Ruins",
       "accent": "moss",
       "layout": "mosslight-ruins",
+      "coarseLandmark": "lit",
       "lookKeys": [
         {
           "time": 0,
