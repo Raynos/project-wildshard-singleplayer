@@ -41,8 +41,19 @@ horizontal FOV, 402 x 603), each dome's hero view plus the plaza's look-up:
 | 5 | the sky is a dark, clouded teal dusk; the road views show the grid's pale lavender | 1, 3, 5 | sky (outside the plot) | out of scope (the grid's shared sky) |
 | 6 | more warm lantern light pools along the walks | 3, 4, 6 | lights | open |
 
+## Round 1: capture b616c06a02 (sp-x9's OP4 batch)
+
+- `sheet-r1-before-after-target.jpg`: each angle as R0 before, R1 after, and its target.
+- Closed: gap 1 (brown bark, green moss), gap 4 (no red banners). Gap 2 shows planks now.
+- Still open: the moss reads lime (too bright), the boardwalk reads grey-blue instead of the targets' warm brown, the
+  planks read as short brick courses, and the warm lantern pools on the ground are faint (gap 6).
+- Peak counts (whole frame, the neighbours too): 185 calls (C2), 466k triangles (B2), no page errors.
+
 ## Picks (G872, logged)
 
 - **R1** (sp-o2, 2026-11-03): land gaps 1, 2 and 4, and the water colour of 3, as one round. Each row is the targets'
   unanimous direction, and none trades away anything the old look had. The entry poster drops from 448 to 384 px, which
   frees 40 KB of phone wire for the later rounds (5.44 of 5.48 MB) and doesn't show on a 10 m board seen from the road.
+- **R2** (sp-o2, 2026-11-03, a0c12bb98a): darker olive moss; warm plank browns for the paving, lanes, plaza,
+  forecourts and ring; 4 x 0.3 m boards with softer joints and more per-board shade; brighter amber pools. The water's
+  reflections (gap 3) need a water kind of their own, and the sky (gap 5) is the grid's, so neither is in this round.
