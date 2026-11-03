@@ -1,0 +1,28 @@
+# Coral Drift: the G983 look loop
+
+G983 (Jake, 2026-11-03 00:35): every built open plot gets a finish step. Capture its hero views in the engine, have
+codex `image_gen` remaster each capture into the target look, then run the look loop (`docs/design/LOOK-LOOP.md`) over
+9 fixed angles until the gap closes. sp-o2 decides each round from the boards and logs the pick (G872); the last board
+goes to Jake. The method and the 9 angles are Lantern Bayou's (`art/lantern-bayou/round-2-look-loop/README.md`).
+
+## Round 0: capture 02f325dade, targets
+
+- `sheet-r0-capture-vs-target.jpg`: each angle's capture beside its target.
+- `target-1.jpg` … `target-9.jpg`: codex `image_gen`. Each run got the capture to edit, the round-62 board
+  `art/grid/round-62-open-plot-palettes/10-coral-drift.jpg` as a style reference, and one shared prompt. All 9 were
+  usable; 5 and 6 kept the capture's burned header strip, which is ignored.
+
+### Gap list
+
+| # | gap | frames | track | round 1 |
+|---|---|---|---|---|
+| 1 | a saturated cyan noon sky with white clouds, where the game draws a pale lavender haze | 2, 3, 5, 7, 8, 9 | look key | partly: a deeper sky key and a paler, further fog (b595178992); clouds are the sky's |
+| 2 | the arch bright and saturated (pink, peach, lilac), where the game dims it under the bayou's dusk light | 4, 7, 9 | landmark light | fixed: `landmarkNoon` (b595178992) |
+| 3 | vivid turquoise water with caustics over a pale sandy floor, where the game draws flat cyan | 1, 3, 4, 6 | water | partly: water #3ad6d0 (b595178992); caustics and a visible floor need the lagoon water kind |
+| 4 | pale bleached planks, where the game draws grey boards | 2, 7 | palette | partly: warmer bleached boards (b595178992) |
+| 5 | palms along the lagoons, where the plaza quarters plant Night Market's boxy trees | 4, 6, 7 | kit | open |
+
+## Picks (G872, logged)
+
+- **R1** (sp-o2, 2026-11-03, b595178992): gaps 2 and 4, the sky key and fog of gap 1, and the water colour of gap 3.
+  This is a light and palette round, and it trades nothing the old look had.
