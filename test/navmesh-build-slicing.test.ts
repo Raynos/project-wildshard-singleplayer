@@ -29,7 +29,7 @@ test('an unspent navigation slice builds every ordered tile before another micro
   const source = layer(), observations: number[] = [];
   let checks = 0;
   const slice: WorkSlice = { due: () => false, yield: () => Promise.reject(new Error('Unexpected yield')),
-    check: () => { checks++; } };
+    check: () => { checks++; return undefined; } };
   queueMicrotask(() => { observations.push(checks); });
   const nav = await buildNavmesh([source], 123, slice);
   expect(observations).toEqual([source.tiles.length]);
