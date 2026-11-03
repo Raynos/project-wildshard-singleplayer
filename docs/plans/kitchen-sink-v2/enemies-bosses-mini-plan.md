@@ -102,8 +102,9 @@ under 25 % a 360° rivet spray with one gap (1.2 s tell).
 | **Hot Mess** | 4, L13 | a Welder with two torches, leaking glowing slag | twin flame cones (0.8 s) → a slag trail that lights the dark, a 360° flare (1.2 s ring) |
 | **Riveting Rita** | 5, L16 | a Riveter with a lamp-plate and a nail-gun arm | lamp sweep (seen = rivet volley, 0.7 s laser) → plate charge, then a slam ring (1.0 s) |
 
-**The Crate Titan, L20** (the boss, on W11's path; the amphitheatre r 28 m, a 39 m approach; ~9 m of 1×1 to 4×8
-crates around a core; E13, E14). 9,230 HP; the core plate TGH 12, RES 10.
+**The Crate Titan, L20** (the boss, behind the Titan gate's portal in a hidden arena: ⌀104 m floor at y −150, stands to
+⌀140; **15 m tall** of crates and cargo containers around a core (blockout round 5, ruling 19ac; it was ~9 m in a
+surface amphitheatre r 28); E13, E14). 9,230 HP; the core plate TGH 12, RES 10.
 - P1 "Stacked" (100–66 %): fist **slam** (ring 1.2 s, then a shock ring to jump: arena `rings`), arm **sweep** (180°,
   0.9 s), **crate rain** on ringed spots (1.0 s: arena `pour`). Knees glow 2 s after a slam (×1.5).
 - P2 "Unpacked" (66–33 %): sheds shoulder crates as four Mite adds; the chest core shows (arena `crown`: break it for

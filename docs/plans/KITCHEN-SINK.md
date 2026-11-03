@@ -198,7 +198,23 @@ landscape HUD, loading screen, Explore tabs, bot playtest).
 
 Detail in [map-layout-mini-plan.md](kitchen-sink-v2/map-layout-mini-plan.md).
 
-**Round 4 blockout, the current layout** (`art/showcase-template/round-4-blockout/`, 4c06e22346; the east is round 3's):
+**Round 5 blockout, the current layout** (`art/showcase-template/round-5-blockout/`, 27a5b5d804; ruling 19ac): round 4
+with only the **SE bottom and the hidden layers** changed; it fits, **13.4 % free** (was 16.3). The Titan's surface
+footprint drops from 5,160 to a **2,496 m² Titan gate** (a 14 m lane into a 39 × 38 m plaza: the last checkpoint, the
+L20 plaque, the return pad and an 18 m portal arch). The **gauntlet grows 2.5× to 14,114 m²**: a forecourt (checkpoint,
+run board) and three sealed courts through three gates: **C1 Loading Yard** 82 × 42 (waves 1–2, +3 m entry terrace),
+**C2 The Pit** 82 × 44 (waves 3–4, the elite reveal lift), **C3 Foreman's Floor** ⌀84 (wave 5, terraces, the Foreman's
+balcony); spawn doors D1–D6 ~42 m out (~10 s for a wave to reach you); peak 9 robots live; dying restarts the court.
+**The Crate Titan fights in a hidden arena** at floor y −150 under the SE (x 80–220, z 95–235; its own sky to −80), 74 m
+below the surface and clear of the Training Vault (y −40…−30): a **⌀104 m floor**, an 8 m wall, stands to ⌀140, four
+rolling lanes for the 4 × 8 block, an edge-leap band, and an alcove with the inner checkpoint, the exit portal and the fog
+gate. **The Titan is 15 m tall** (9 m read as a big elite; 20 m broke the 0.9 s tells and needed a ⌀140 floor). The 12 s
+intro plays inside on arrival; retries respawn in the alcove; on a win a victory portal returns you to the gate for the
+shard-complete card. Platform: the same walk-in portal + interior host as the Training Vault; the two interiors never
+load together. Open: whether the Titan road unlocks as a shortcut after your first gauntlet clear, and the wave-3 elite's
+name. The threat sizes behind the court widths (8 m slam ring, 7 m lunge) are assumed until the enemy pass.
+
+**Round 4 blockout** (`art/showcase-template/round-4-blockout/`, 4c06e22346; the east is round 3's):
 the **town shrinks to 120 × 120 m** (5.8 % of the cell; 40 m gate plaza, 72 m Main Street with four shopfronts, all six
 NPCs inside, six gates, only the East Gate to combat) and **the west toys grow from 18 % to 27 % of the cell**, each
 laid out and labelled: weapon range 78 × 102 (dummies, bow/crossbow lanes 10–50 m, ammo practice, rifle to 75 m); a new

@@ -69,7 +69,14 @@ Titan only. Result: fits (19.0 % free); a 176 m walled town; the west rebalanced
 
 Jake 11-03: the town was too big; spend the space on the non-combat content and show it all. Result: a 120 m town, every
 west toy laid out and labelled (plus a new physics yard and climb yard), 16.3 % free; the east unchanged. The parent §3
-holds the census. Open for round 5 if wanted: taller hover-park ramps so it reads at eye height.
+holds the census. Still open: taller hover-park ramps so it reads at eye height.
+
+## Round 5 (done, 27a5b5d804: `art/showcase-template/round-5-blockout/`)
+
+Jake 11-03: the Titan's surface arena was too small for a huge boss; put it behind an Elden Ring-style boss portal into a
+hidden arena inside the 500 m footprint, and give the freed ground to the gauntlet. Result: a 2,496 m² Titan gate, a
+14,114 m² three-court gauntlet (was 5,542), the 15 m Titan in a ⌀104 m hidden arena at y −150, 13.4 % free; the west
+and bands 1–6 unchanged to the number. The parent §3 holds the numbers.
 
 ## Rows
 
