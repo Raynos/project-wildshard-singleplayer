@@ -1304,6 +1304,19 @@
             }
           }
         },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/jungle-ziggurat.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/jungle-ziggurat-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/jungle-ziggurat-landscape.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/jungle-ziggurat.jpg",
+            "models": "/src/shards/open-plots/thumbs/jungle-ziggurat.jpg",
+            "sets": "/src/shards/open-plots/thumbs/jungle-ziggurat.jpg",
+            "practice": "/src/shards/open-plots/thumbs/jungle-ziggurat.jpg"
+          }
+        },
         "pois": [],
         "assetGlobs": [
           "public/assets/open-plots/**"
