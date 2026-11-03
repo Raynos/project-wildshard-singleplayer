@@ -1,8 +1,9 @@
+import { driftwoodPierScenes } from '../src/shards/driftwood-isle/generators/pierScenesBank';
 import { DRIFTWOOD_GUEST_ROWS } from './fixtures/driftwood-guest-programs';
 import { expect, test } from 'vitest';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import * as v from 'valibot';
-import { parseWorldScenePlacement,WorldScenePlacementSchema } from '../src/format/worldScenePlacement';
+import { parseWorldScenePlacement,parseWorldScenePlacementPage,WorldScenePlacementSchema } from '../src/format/worldScenePlacement';
 import { driftwoodOutputRows } from '../src/shards/driftwood-isle/generators/output';
 import { driftwoodFoliageScenes } from '../src/shards/driftwood-isle/generators/foliageScenesBank';
 import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';
@@ -23,9 +24,12 @@ const authoredScenes=v.parse(v.object({placements:v.object({phone:foliageTier,de
   driftwoodFoliageScenes());
 
 function rows(tier:'phone'|'desktop',kind:'palms'|'hibiscus') {
-  const name=`world/foliage/${kind}-${tier}.json`,file=output.namedFiles.find(row=>row.name===name),bytes=file===undefined?undefined:output.assets.get(file.hash);
-  if(bytes===undefined)throw new Error('Missing published foliage');
-  const data:unknown=JSON.parse(new TextDecoder().decode(bytes));return parseWorldScenePlacement(data);
+  const name=`world/placement-pages/foliage-${tier}.shared.0.json`,file=output.namedFiles.find(row=>row.name===name),bytes=file===undefined?undefined:output.assets.get(file.hash);
+  if(bytes===undefined)throw new Error('Missing published placement page');
+  const data:unknown=JSON.parse(new TextDecoder().decode(bytes));
+  const row=parseWorldScenePlacementPage(data).rows.find(value=>value.id===`foliage.${kind==='palms'?'palms':'bushes'}.${tier}`);
+  if(row===undefined)throw new Error('Missing original foliage member');
+  return row;
 }
 test('published world-build data preserves both tiers of foliage in authored order', () => {
   for(const tier of ['phone','desktop']as const)for(const kind of ['palms','hibiscus']as const){
@@ -55,5 +59,21 @@ test('compiled deck floors preserve inclusive corners and adjacent floating-poin
       const expected = decks.rows.some(({ rect: r }) => x >= r.minX && x <= r.maxX && z >= r.minZ && z <= r.maxZ) ? 0 : undefined;
       expect(floorAtRects(floors, x, z, 'first'), `${x},${z}`).toBe(expected);
     }
+  }
+});
+
+test('bounded native pages retain every original pier and foliage member exactly once', () => {
+  const pages=output.namedFiles.filter(row=>row.name?.startsWith('world/placement-pages/'));
+  expect(pages).toHaveLength(3);
+  const members=pages.flatMap(file=>{
+    const bytes=output.assets.get(file.hash);if(bytes===undefined)throw new Error('Missing placement page body');
+    const input:unknown=JSON.parse(new TextDecoder().decode(bytes));return parseWorldScenePlacementPage(input).rows;
+  });
+  expect(members).toHaveLength(12);
+  expect(new Set(members.map(row=>row.id)).size).toBe(12);
+  expect(output.namedFiles.some(row=>(row.name?.startsWith('world/piers/')??false)||(row.name?.startsWith('world/foliage/')??false))).toBe(false);
+  for(const original of driftwoodPierScenes().placements){
+    const serialized=JSON.stringify(original),wire:unknown=JSON.parse(serialized);
+    expect(members.find(row=>row.id===original.id)).toEqual(parseWorldScenePlacement(wire));
   }
 });

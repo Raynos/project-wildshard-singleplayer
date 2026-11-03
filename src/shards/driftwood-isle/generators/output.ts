@@ -1,3 +1,4 @@
+import { driftwoodPlacementPages } from './placementPages';
 import { questPageCompositionRows, coverCompositionRows, questStepRows as parseQuestStepRows, questHintRows as parseQuestHintRows, questServiceRows as parseQuestServiceActions, questPageInteractionRows as parseQuestPageInteractions, achievementCounterRows as parseAchievementCounterData } from '@wildshard/sdk/rows';
 import { driftwoodFixedModelOutput } from './fixedModels';
 import { driftwoodSceneModelOutput } from './sceneModelProgram';
@@ -37,7 +38,7 @@ import { PAGE_LIFE } from './pageLife';
 import coverComposition from '../data/coverComposition.json' with { type: 'json' };
 import { worldSceneRecipe as parseWorldScene } from '@wildshard/sdk/worldScenes';
 import { driftwoodPierScenes } from './pierScenesBank';
-import { driftwoodFoliageScenes, driftwoodFoliageSceneOutput, foliageLogPlacements } from './foliageScenesBank';
+import { driftwoodFoliageSceneOutput } from './foliageScenesBank';
 import { FIGURE_CATALOGUE } from './figureCatalogue';
 import { driftwoodQuestFigures } from './questFigures';
 import { driftwoodBridgeSway } from './bridgeSway';
@@ -60,7 +61,6 @@ import buildingLife from '../data/buildingLife.json' with { type: 'json' };
 import coveScene from '../data/coveScene.json' with { type: 'json' };
 import { worldScenes } from './worldScenes';
 import { driftwoodSceneBankOutput, driftwoodSceneBanksCached, type DriftwoodSceneBanks } from './sceneBanks';
-import { uprightPoses } from './worldPlacements';
 import cascadeScene from '../data/cascadeScene.json' with { type: 'json' };
 import { driftwoodHeldArms } from './heldArms';
 import type { DriftwoodFixedLayouts } from './fixedLayouts';
@@ -139,7 +139,6 @@ const placements = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new
 
   nameBlob('scenes/zipline.json', 'json', sceneBytes(driftwoodPierScenes().zipScene)),
   nameBlob('scenes/moorings.json', 'json', sceneBytes({ scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: ['lines'] }, { kind: 'mesh', id: 'lines', geometry: 'lines', material: 'still', missing: 'empty', castShadow: true }], materials: [{ kind: 'port', id: 'still', source: 'still' }] }, imports: [] })),
-  ...driftwoodPierScenes().placements.map(row => nameBlob(`world/piers/${row.id}.json`, 'json', new TextEncoder().encode(JSON.stringify(row)))),
   ...['palms', 'hibiscus', 'reef', 'logs'].map(kind => nameBlob(`scenes/${kind}.json`, 'json', sceneBytes({ scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: ['mesh'] }, { kind: 'mesh', id: 'mesh', name: kind === 'reef' ? 'seabed' : kind === 'logs' ? 'ground-cover-driftwood' : kind, geometry: 'plant', material: 'plant', missing: 'empty', castShadow: kind !== 'reef', receiveShadow: true }], materials: [{ kind: 'port', id: 'plant', source: 'plant' }] }, imports: [] }))),
 
 
@@ -168,13 +167,6 @@ const placements = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new
   nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows)))),nameBlob('quests/discovery.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ places: DRIFTWOOD_PLACES, guide: GUIDE, glassCount: SEA_GLASS_COUNT, shardFlags: SHARD_FLAGS }))),
   nameBlob('sim/enemy-placement.json', 'json', new TextEncoder().encode(encodeCanonicalJson(placed))),
   ]);
-/** The drift-log, wreck-log and per-tier palm and bush placements (the foliage-scene bank, GR7). */
-function foliagePlacements(layouts: DriftwoodFixedLayouts) {
-  const foliage = { ...driftwoodFoliageScenes(), ...foliageLogPlacements(layouts) };
-  return [nameBlob('world/foliage/logs.json', 'json', new TextEncoder().encode(JSON.stringify(foliage.logPlacement))),
-  nameBlob('world/foliage/wreck-logs.json', 'json', new TextEncoder().encode(JSON.stringify(foliage.wreckLogPlacement))),
-  ...(['phone', 'desktop'] as const).flatMap(tier => (['palms', 'hibiscus'] as const).map(kind => nameBlob(`world/foliage/${kind}-${tier}.json`, 'json', new TextEncoder().encode(JSON.stringify({ ...foliage.placements[tier][kind], poses: uprightPoses(foliage.placements[tier][kind].poses), id: `foliage.${kind === 'palms' ? 'palms' : 'bushes'}.${tier}` }))))),];
-}
 function questComposition(layouts: DriftwoodFixedLayouts) {
   return nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(questPageCompositionRows({ ...pageComposition, frames: questFrames, events: questEvents, deaths: questDeaths.page, entryResources: { world: driftwoodQuestWorld(layouts), figures: driftwoodQuestFigures(), continuation: driftwoodQuestContinuation() } }))));
 }
@@ -206,7 +198,7 @@ export const output: { blobs: ({ name: string; kind: string; source: string; } |
 
 /** Complete layout-dependent rows from the owned fixed facts, before binary banks join. */
 export function driftwoodOutputRows(layouts: DriftwoodFixedLayouts, facts: DriftwoodIslandFacts, guests: DriftwoodGuestRows): typeof output {
-  const questFiles = emitNamedBlobs([questComposition(layouts), populationComposition(facts, guests), ...foliagePlacements(layouts)]);
+  const questFiles = emitNamedBlobs([questComposition(layouts), populationComposition(facts, guests), ...driftwoodPlacementPages(layouts).files]);
   const directorFiles = emitNamedBlobs([directorComposition(guests), ...returnComposition(guests)]);
   const placedFiles = [...output.namedFiles, ...directorFiles.files].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
   const placedAssets = new Map([...output.assets, ...directorFiles.assets].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
