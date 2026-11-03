@@ -223,6 +223,7 @@
       "tile/1/2/2/draws": 6
     },
     "open-plot-coral-drift": {
+      "tile/0/3/3/compressed": 310343,
       "tile/0/3/4/compressed": 1052489,
       "tile/0/3/4/draws": 11,
       "tile/0/4/3/resident": 4865920,

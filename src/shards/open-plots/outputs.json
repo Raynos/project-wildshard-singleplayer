@@ -439,11 +439,62 @@
       "idea": "coral-drift",
       "name": "Coral Drift",
       "accent": "coral",
+      "layout": "coral-drift",
+      "landmarkLight": "dusk",
+      "kitGround": "planks",
+      "lookKeys": [
+        {
+          "time": 0,
+          "sky": {
+            "zenith": [
+              0.18,
+              0.5,
+              0.95
+            ],
+            "horizon": [
+              0.7,
+              0.88,
+              0.98
+            ]
+          },
+          "fog": {
+            "colour": [
+              0.75,
+              0.88,
+              0.95
+            ],
+            "density": 0,
+            "near": 400,
+            "far": 1800
+          },
+          "sun": {
+            "colour": [
+              1,
+              0.97,
+              0.9
+            ],
+            "intensity": 2.0
+          },
+          "ambient": {
+            "sky": [
+              0.6,
+              0.75,
+              0.95
+            ],
+            "ground": [
+              0.9,
+              0.86,
+              0.78
+            ],
+            "intensity": 1.2
+          }
+        }
+      ],
       "manifest": {
         "name": "Open Plot · Coral Drift",
         "status": "earlyAccess",
         "shardSelect": true,
-        "blurb": "An open plot of the grid: walk round the Coral Drift hologram, a world still to be built.",
+        "blurb": "An open plot of the grid: a lagoon village at tropical noon, blue-roofed huts on stilts over turquoise pools, palms on white sand, round a giant faceted coral arch.",
         "bindings": {
           "accent": "coral",
           "boot": {
