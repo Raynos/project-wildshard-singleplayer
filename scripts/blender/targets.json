@@ -264,6 +264,30 @@
    "outputs": ["public/assets/open-plots/lantern-bayou/landmark.glb", "public/assets/open-plots/lantern-bayou/landmark-far.glb"],
    "feeds": ["src/shards/open-plots/generators/tiledPlot.mjs"]
   },
+  "open-plots/coral": {
+   "about": "Coral Drift's landmark (open-plots build-out OB5, G978): the giant faceted coral arch as a script, the provisional landmark until the image-to-3D takes join its pick board; 25 m, near ~15k and far 2.4k triangles on one swatch atlas",
+   "script": "scripts/blender/open-plots/coral.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/open-plots/kit.py", "scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/landmarklib.py"],
+   "inputs": [],
+   "lock": false,
+   "build": ["landmark.glb", "landmark-far.glb"],
+   "meshopt": [["landmark.glb", "public/assets/open-plots/coral-drift/landmark.glb"], ["landmark-far.glb", "public/assets/open-plots/coral-drift/landmark-far.glb"]],
+   "outputs": ["public/assets/open-plots/coral-drift/landmark.glb", "public/assets/open-plots/coral-drift/landmark-far.glb"],
+   "feeds": ["src/shards/open-plots/generators/tiledPlot.mjs"]
+  },
+  "open-plots/lagoon": {
+   "about": "Coral Drift's theme kit families (open-plots build-out OB5, G978): beach huts, the shared palms (Desert Ruin reuses them) and reef dressing in the kit's format, retinted by palette slot like open-plots/kit",
+   "script": "scripts/blender/open-plots/lagoon.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/open-plots/kit.py", "scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/bayou.py", "scripts/blender/open-plots/model_source.py", "scripts/blender/lib/glb.py"],
+   "inputs": ["src/shards/open-plots/data/trim.json"],
+   "lock": false,
+   "build": ["huts.glb", "palms.glb", "reef.glb"],
+   "copy": [["huts.glb", "public/assets/open-plots/kit/huts.glb"], ["palms.glb", "public/assets/open-plots/kit/palms.glb"], ["reef.glb", "public/assets/open-plots/kit/reef.glb"]],
+   "outputs": ["public/assets/open-plots/kit/huts.glb", "public/assets/open-plots/kit/palms.glb", "public/assets/open-plots/kit/reef.glb"],
+   "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
+  },
   "open-plots/hero": {
    "about": "The open plots' hero hanging lantern (OPEN-PLOTS OP1, G827; OB2): three takes as one kit family, each hung from its hook at the origin (A round paper, B drum, C iron-framed glass box), LOD0 `hero` and LOD1 `hero-lod1`, retinted by palette slot",
    "script": "scripts/blender/open-plots/hero.py",
