@@ -250,3 +250,73 @@ Raw source/version/pose/180-frame rows and separate profiles:
 and `<slug>/census.json`. Each raw census has its SHA-256 in `reading.json`.
 The G872 established measured-close class is self-applied: keep numerical
 misses explicit; do not waive the old limits or invent a pass.
+
+
+## Grid spawn draw ledger (2026-11-03, sp-x8)
+
+**Measured; the 150-draw cap remains open. No runtime change or exact
+cut is claimed.** Self-apply G872's measured-close class to this
+engineering census and assign the look-changing families to Opus.
+The historical Simulator miss remains 173 against 150 at
+`5c72cf6cf03568412d53b9df6e8efe4d75964076` / `5c72cf6-mvx8peek`.
+It had no material/program/geometry ledger. Current content differs;
+the new counts cannot establish a matched improvement or attribute
+the old miss to a specific family.
+
+One immutable preview at `b616c06a02dfcf6d49a333ec35ad6a24a471c1d0` /
+`b616c06-mw0dyp5q` supplied this native Metal reading. Browser interval:
+2026-11-03 07:48:50.637–07:49:06.920 UTC. Maintained title-button
+navigation entered the actual grid: Developer/phone/live/seed 357,
+spawn x≈0, z=−194, yaw π, pitch 0. iPhone 16 Pro context, 402×714 CSS /
+804×1428 canvas (2×), all shadows/post/held passes retained. This is
+Mac Metal attribution, not Simulator cadence or physical timing.
+
+The first 120 clean frames measured **156–163 calls**, with 94 at 157.
+The next 120 attributed frames measured 165–186; the four final clean
+frames each measured 186. Streaming continued at the unchanged spawn;
+these successive windows do not measure instrumentation overhead.
+The attributed peak needs 36 calls removed, independently of the old
+Simulator's 23-call gap.
+
+| One actual peak frame | Calls | Finding |
+|---|---:|---|
+| Shadows |42| Shared depth materials already cover 22 and 17 calls, plus three single calls. Preserve cascade-selected geometry/callbacks. |
+| Main scene |143| Ranked subsets below. |
+| Screen effect |1| No redundant screen copy identified. |
+| **Total** |**186**| Strict native material/program/geometry joins; 60 linked programs observed across the full attribution window. |
+
+These rows are subsets of the main scene, not additional passes:
+
+| Ranked family | Calls | Next work |
+|---|---:|---|
+| Driftwood grid L0/L1 ring draws |23| Preserve resident coverage, transition masks and frusta. Dropping a tier or reducing coverage is Opus look work. |
+| Driftwood small + large cover |22| Two already-shared materials, 11 calls each. Fewer variants/density is Opus work; one program does not prove mergeable vertex/wind state. |
+| Driftwood island props |20| Already one material over 20 geometries. Palm partitions have distinct instance populations/LOD contracts. Material sharing alone saves no calls; variant simplification is Opus work. |
+| Driftwood kit-still |9| Already one material over 9 geometries. Authored simplification is Opus work. |
+| Grid far proxies |7| No proved fully offscreen submission. Do not suppress visible neighbours. |
+| Boulevard asphalt/junctions/signs |6| Already material-merged geometry; no duplicate submission identified. |
+
+Driftwood's resident region owns 134 of 186 calls, including 42 shadows;
+the separate ring draws above own 23. Caster density/shadow distance
+reductions are also Opus look work, not exact culling.
+
+Of 170 observed geometries, 82 had a nonempty declared channel whose
+CPU array had already been released after upload. Empty-array hashes
+are **not** original channel equality. Complete instance palettes are
+also uncaptured. Apparent palm geometry matches cannot authorize exact
+instancing. Zero omissions passed the conservative offline culling
+check: changing camera matrices, moving/skinned objects and unavailable
+bounds were excluded. This limits the evidence; it does not prove no
+future exact implementation can help. No facade multi-draw, speculative
+renderer edit, LOD/cap change or unnecessary pixel A/A/B was made.
+
+Page/console/HTTP-response/GL errors and context losses were zero.
+Five title→grid `ERR_ABORTED` requests remain raw; no clean loading-CLI
+claim. All hooks restored, browser/context closed, own 4401 lease
+normally released; X9 retained its independent OP4 lease.
+
+Raw source/version/cells/helper hashes, native frame IDs and drawn
+shader/resource joins: `tmp/sp-x8-grid-draws/{native-ledger.json,
+summary.json,audit.json,census.log,preview.log,retained-audit.json}`.
+Keep the cap open until an exact landed implementation earns capture
+parity, or an explicitly approved Opus look change meets it.
