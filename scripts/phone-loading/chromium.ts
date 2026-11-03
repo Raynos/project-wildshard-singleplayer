@@ -5,14 +5,23 @@ import {chromium, type Browser, type Request, type Response} from 'playwright';
 import {nativeBodyBytes} from './native-body.ts';
 import {NativeSizeLedger, type NativeSizes} from './native-sizes.ts';
 import {record, type Profile} from './model.ts';
+import {startSharedLink, type SharedLink} from './link.ts';
 
-export interface ChromiumRun {browser: Browser; close: () => Promise<void>; workerNetwork: () => boolean; errors: string[]; nativeSizes: (request: Request, response?: Response | null) => Promise<NativeSizes | null>}
+export interface ChromiumRun {browser: Browser; close: () => Promise<void>; workerNetwork: () => boolean; errors: string[]; nativeSizes: (request: Request, response?: Response | null) => Promise<NativeSizes | null>;
+  /** The one downlink page and worker share; null when the preset is unthrottled. */
+  link: SharedLink | null;
+  /** CDP emulation for every target: its latency and upload, never its own download rate when the link carries that. */
+  conditions: {offline: false; latency: number; downloadThroughput: number; uploadThroughput: number}}
 /** Browser-level auto-attach catches the worker before its first network request. */
 export async function launchChromium(directory: string, profile: Profile): Promise<ChromiumRun> {
   await mkdir(directory, {recursive: true});
+  const link = profile.down > 0 ? await startSharedLink(profile.down) : null;
+  const conditions = {offline: false as const, latency: profile.latency, downloadThroughput: link === null ? profile.down : -1, uploadThroughput: profile.up};
+  // <-loopback> drops Chromium's implicit loopback bypass, so 127.0.0.1 previews take the link too.
   const child = spawn(chromium.executablePath(), ['--headless=new', '--remote-debugging-port=0',
     `--user-data-dir=${directory}`, '--no-first-run', '--no-default-browser-check', '--disable-extensions',
-    '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', 'about:blank'], {stdio: ['ignore', 'ignore', 'pipe']});
+    '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist',
+    ...link === null ? [] : [`--proxy-server=${link.proxy}`, '--proxy-bypass-list=<-loopback>'], 'about:blank'], {stdio: ['ignore', 'ignore', 'pipe']});
   let socket: WebSocket | undefined;
   try {
     const endpoint = await new Promise<string>((resolve, reject) => {
@@ -78,8 +87,7 @@ export async function launchChromium(directory: string, profile: Profile): Promi
           }
           if (['page', 'iframe', 'service_worker'].includes(String(info['type']))) await send('Network.enable', {}, sessionId);
           if (info['type'] === 'service_worker') {
-            await send('Network.emulateNetworkConditions', {offline: false, latency: profile.latency,
-              downloadThroughput: profile.down, uploadThroughput: profile.up}, sessionId);
+            await send('Network.emulateNetworkConditions', conditions, sessionId);
             workers++;
           }
         } catch (error) {if (sessions.has(sessionId)) errors.push(`Native network setup: ${String(error)}`);}
@@ -93,11 +101,12 @@ export async function launchChromium(directory: string, profile: Profile): Promi
       // native completion events arrive before asking for their bytes.
       await setImmediate();
       return native.read(request, response);
-    }, workerNetwork: () => workers > 0, close: async () => {
+    }, workerNetwork: () => workers > 0, link, conditions, close: async () => {
       try {await browser.close();} finally {
         ws.close(); child.kill();
         for (const command of pending.values()) {clearTimeout(command.timer); command.reject(new Error('CDP closed'));}
+        await link?.close();
       }
     }};
-  } catch (error) {socket?.close(); child.kill(); throw error;}
+  } catch (error) {socket?.close(); child.kill(); await link?.close(); throw error;}
 }

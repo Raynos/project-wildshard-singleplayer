@@ -111,7 +111,7 @@ try {
         if (chromium !== undefined) {
           const cdp = await context.newCDPSession(page);
           await cdp.send('Network.enable');
-          await cdp.send('Network.emulateNetworkConditions', {offline: false, latency: profile.latency, downloadThroughput: profile.down, uploadThroughput: profile.up});
+          await cdp.send('Network.emulateNetworkConditions', chromium.conditions);
           await cdp.send('Emulation.setCPUThrottlingRate', {rate: profile.cpu});
           if (values['cpu-profile'] && cache === 'cold') cpuSession = cdp;
         }
@@ -197,16 +197,22 @@ try {
           ...(chromium?.errors ?? []).map(message => ({message, source: 'CDP auto-attach', url, at: Date.now()}))];
         // Page-close and the next visit can finish still-running requests,
         // but cannot rewrite this visit's measured unknowns.
-        const requests = [];
+        const requests = [], titleRequests = [];
         for (const row of network.rows) if (row.start >= from && row.start <= to) requests.push({...row});
+        // The worker's precache starts during the title dwell, before the tap:
+        // still this visit's link, so it is kept beside the tap-to-control rows.
+        for (const row of network.rows) if (row.start >= visitStart && row.start < from) titleRequests.push({...row});
+        const link = chromium?.link ?? null;
         const run: Run = {...capture, schema: 1, at: new Date().toISOString(), build, url, engine, flow: values.flow,
           preset: values.preset, cache, profile, totalMs: capture.tap !== null && capture.control !== null ? capture.control - capture.tap : null,
           applied: {pageCPU: chromium !== undefined, pageNetwork: chromium !== undefined, workerNetwork: chromium?.workerNetwork() ?? false,
-            notes: [...(chromium === undefined ? ['Playwright WebKit has no CDP CPU/network emulation; unthrottled engine check, not phone-speed equivalence'] : ['Worker CPU throttling is unsupported by CDP']), `Title dwell ${titleDwell}ms; post-control dwell ${afterControl}ms (outside measured total)`, ...fixture === undefined ? [] : [`Save fixture ${JSON.stringify(fixture)}`], ...stopCpuProfile === undefined ? [] : ['Cold page CDP CPU sampling enabled; diagnostic timing']]},
+            notes: [...(chromium === undefined ? ['Playwright WebKit has no CDP CPU/network emulation; unthrottled engine check, not phone-speed equivalence'] : ['Worker CPU throttling is unsupported by CDP', ...link === null ? [] : ['Page and worker share one shaped downlink (link.ts); CDP adds only latency and upload']]), `Title dwell ${titleDwell}ms; post-control dwell ${afterControl}ms (outside measured total)`, ...fixture === undefined ? [] : [`Save fixture ${JSON.stringify(fixture)}`], ...stopCpuProfile === undefined ? [] : ['Cold page CDP CPU sampling enabled; diagnostic timing']]},
           rows: capture.rows, measures: capture.measures.filter(row => row.start >= from && row.start <= to),
           longTasks: capture.longTasks.filter(row => row.start >= from && row.start <= to),
           frameGaps: capture.frameGaps.filter(row => row.start >= from && row.start <= to),
-          requests, requestAccounting, postControl, errorDetails,
+          requests, titleRequests, requestAccounting, postControl, errorDetails,
+          link: link === null ? null : {shared: true, bytesPerSecond: link.bytesPerSecond, visitBytes: link.bytes(visitStart, to),
+            tapToControlBytes: capture.tap === null ? null : link.bytes(capture.tap, to), peakBytesPerSecond: link.peak(visitStart, to), errors: [...link.errors]},
           errors: errorDetails.map(error => error.message)};
         // Publish the measured/partial data before artifact APIs can fail.
         await writeFile(`${directory}/${name}.json`, JSON.stringify(run, null, 2));

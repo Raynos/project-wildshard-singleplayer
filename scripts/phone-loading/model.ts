@@ -60,7 +60,14 @@ export function controlQualification(capture: Capture, documentToken: string | n
   if (!first.valid || !last.valid) return last.blockers.join('; ') || 'Entered control is no longer uncovered';
   return null;
 }
-export interface Run extends Capture {schema: 1; build: string; engine: string; flow: string; cache: string; preset: string; at: string; url: string; profile: Profile; applied: {pageCPU: boolean; pageNetwork: boolean; workerNetwork: boolean; notes: string[]}; requests: RequestRow[]; requestAccounting?: RequestAccounting; totalMs: number | null; postControl?: PostControl | null; video?: string; contactSheet?: string}
+/** The shared downlink's own count of the transport bytes it delivered (scripts/phone-loading/link.ts: bodies on
+ * plain HTTP, whole TLS streams on CONNECT), from the visit's start (title dwell included) and from the tap, each up to
+ * control. It is not per target: the rows' native wire bytes say which target fetched what. */
+export interface LinkSummary {shared: true; bytesPerSecond: number; visitBytes: number; tapToControlBytes: number | null; peakBytesPerSecond: number; errors: string[]}
+export interface Run extends Capture {schema: 1; build: string; engine: string; flow: string; cache: string; preset: string; at: string; url: string; profile: Profile; applied: {pageCPU: boolean; pageNetwork: boolean; workerNetwork: boolean; notes: string[]}; requests: RequestRow[];
+  /** Requests begun during the title dwell, before the tap (the worker's precache starts there). */
+  titleRequests?: RequestRow[]; link?: LinkSummary | null;
+  requestAccounting?: RequestAccounting; totalMs: number | null; postControl?: PostControl | null; video?: string; contactSheet?: string}
 export function record(value: unknown): Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value) ? Object.fromEntries(Object.entries(value)) : {};
 }
@@ -82,16 +89,20 @@ export function comparisons(current: Run, previous: unknown): string[] {
   return warnings;
 }
 export function printRun(run: Run): void {
-  const summary = (source: RequestRow['source']) => {
-    const rows = run.requests.filter(row => row.source === source);
+  // Unknown sizes and requests still open at control are counted, never read as zero bytes.
+  const summary = (source: RequestRow['source'], from = run.requests) => {
+    const rows = from.filter(row => row.source === source);
     const wireUnknown = rows.filter(row => row.transferBytes === undefined).length;
     const bodyUnknown = rows.filter(row => row.decodedBytes === undefined).length;
-    return `${rows.length} / ${(rows.reduce((sum, row) => sum + (row.transferBytes ?? 0), 0) / 1e6).toFixed(3)} MB transferred / ${(rows.reduce((sum, row) => sum + (row.decodedBytes ?? 0), 0) / 1e6).toFixed(3)} MB body${wireUnknown + bodyUnknown === 0 ? '' : ` + pending sizes (${wireUnknown} wire/${bodyUnknown} body)`}`;
+    const open = run.control === null ? 0 : rows.filter(row => row.end === null || row.end > (run.control ?? 0)).length;
+    return `${rows.length} / ${(rows.reduce((sum, row) => sum + (row.transferBytes ?? 0), 0) / 1e6).toFixed(3)} MB transferred / ${(rows.reduce((sum, row) => sum + (row.decodedBytes ?? 0), 0) / 1e6).toFixed(3)} MB body${wireUnknown + bodyUnknown === 0 ? '' : ` + pending sizes (${wireUnknown} wire/${bodyUnknown} body)`}${open === 0 ? '' : `, ${open} open at control`}`;
   };
   console.log(`\n${run.engine} ${run.flow} ${run.cache} ${run.build} [${run.preset}]`);
   console.table([{seconds: run.totalMs === null ? 'INCOMPLETE' : (run.totalMs / 1000).toFixed(3),
     world: run.controlWitness?.gridHome?.slug ?? run.controlWitness?.shard ?? run.lastWitness?.shard ?? 'unqualified',
     'page network': summary('network'), 'worker network': summary('worker'), 'page via SW': summary('service-worker'),
+    'title worker': summary('worker', run.titleRequests ?? []), 'title page': summary('network', run.titleRequests ?? []),
+    link: run.link === undefined || run.link === null ? 'per-target CDP' : `shared ${(run.link.bytesPerSecond / 1e6).toFixed(2)} MB/s: ${(run.link.visitBytes / 1e6).toFixed(3)} MB visit, ${((run.link.tapToControlBytes ?? 0) / 1e6).toFixed(3)} MB tap-control, peak ${(run.link.peakBytesPerSecond / 1e6).toFixed(2)} MB/s`,
     accounting: run.requestAccounting?.complete === false ? `INCOMPLETE (${run.requestAccounting.incomplete} rows, ${run.requestAccounting.pending} timed out)`
       : `settled${run.requestAccounting?.inFlight === undefined ? '' : ` (${run.requestAccounting.inFlight} requests still in flight)`}`,
     longTasks: run.longTasks.length, frameGaps: run.frameGaps.length, errors: run.errors.length}]);
