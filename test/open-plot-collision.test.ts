@@ -5,13 +5,15 @@ import { expect, test } from 'vitest';
 
 test('all quarter-turns keep kit drawing exact and register lantern and stall posts', () => {
   const source = new URL('../src/shards/open-plots/generators/kit.mjs', import.meta.url).href;
+  const builders = new URL('../src/shards/open-plots/generators/nightMarket.mjs', import.meta.url).href;
   const program = `import { createHash } from 'node:crypto';
 import { buildLayout, Soup } from ${JSON.stringify(source)};
+import {nightMarketBuilders} from ${JSON.stringify(builders)};
 const palette = new Proxy({}, {get: () => [.4,.4,.4]});
 const results=[];
 for(const type of ['H','S']) for(let turns=0;turns<4;turns++) {
  const parts=Object.fromEntries(['Kit','Glow','Water','Pool','Mover','far','solid'].map(key=>[key,new Soup()]));
- buildLayout(Array.from({length:8},()=>Array.from({length:8},()=>({type,turns}))),parts,palette,()=>0);
+ buildLayout(Array.from({length:8},()=>Array.from({length:8},()=>({type,turns}))),parts,palette,()=>0,undefined,nightMarketBuilders());
  const positions=parts.solid.part('Solid').positions;
  let posts=0;
  for(let i=0;i<positions.length;i+=108){
