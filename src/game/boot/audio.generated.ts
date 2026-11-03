@@ -2396,6 +2396,234 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
     }
    }
   ]
+ },
+ "sky-harbor": {
+  "genre": "sky-harbor",
+  "model": "MiniMax Music 3",
+  "credit": "Music: MiniMax-Music3",
+  "licence": "MiniMax-Music3 Community License",
+  "slots": {
+   "score": {
+    "file": "take-a-0f10cfca8bab.m4a",
+    "loopStart": 3.25,
+    "loopEnd": 11.42,
+    "duration": 12.42,
+    "gain": 1,
+    "seamScore": 0.503,
+    "calm": "take-a-0f10cfca8bab.m4a",
+    "bpm": 117.5,
+    "beatsPerBar": 4
+   }
+  },
+  "stings": {},
+  "recommendation": "minimax3-701",
+  "takes": [
+   {
+    "id": "minimax3-701",
+    "recommendationScore": 0.2896735,
+    "metrics": {
+     "duration_s": 27.06,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -14.7,
+      "lra": 5.7,
+      "true_peak_dbfs": 0.3
+     },
+     "clipping": {
+      "clipped_samples": 111,
+      "clipped_frac": 0.00004650297619047619,
+      "peak": 1
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 4079.5,
+      "rolloff95_hz": 13449,
+      "flatness": 0.0101,
+      "hf_above_12k": 0.00287,
+      "sub_below_60": 0.0282,
+      "stereo_corr": 0.613
+     },
+     "tempo": {
+      "estimated_bpm": 117.5,
+      "brief_bpm": 96,
+      "rel_err": 0.223
+     },
+     "key": {
+      "best_key": "C minor",
+      "best_r": 0.728,
+      "d_major_r": -0.298,
+      "d_major_rank": 18,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 2,
+      "score": 0.503,
+      "similarity": 0.515,
+      "level_match": 0.922,
+      "start_s": 3.25,
+      "end_s": 11.42,
+      "bars": 4,
+      "loop_s": 8.17,
+      "beats_per_bar": 4,
+      "grid_bpm": 117.5
+     },
+     "vocals": {
+      "vocal_energy_share": 0,
+      "vocal_active_frac": 0,
+      "stem_share": {
+       "drums": 0.4535,
+       "bass": 0.016,
+       "other": 0.5305,
+       "vocals": 0
+      },
+      "groove_active_frac": 0.815,
+      "drums_active_frac": 0.815
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 4,
+     "p": 0.091947,
+     "best": "Instrumental video game score, 104 BPM, 4/4. Bright turquoise tropical noon, light steel drum melody and gently strummed ukulele with rounded acoustic bass and restrained hand percussion. Friendly sunlit lagoon village, airy joyful instrumental exploration. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no dialogue."
+    },
+    "encoded": {
+     "file": "take-a-0f10cfca8bab.m4a",
+     "loopStart": 3.25,
+     "loopEnd": 11.42,
+     "duration": 12.42,
+     "gain": 1,
+     "seamScore": 0.503
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "sky-harbor",
+     "seed": 701,
+     "prompt": "Instrumental video game score, 96 BPM, 4/4. A sunny high-sky harbour with cornflower blue skies, timber docks, small cranes and a moored airship. A warm concertina and accordion carry a short adventurous melody, answered by a clear wooden flute hook, buoyant pizzicato strings, rounded acoustic bass and restrained shaker and frame drum. Airy, welcoming and gently adventurous exploration, no brass fanfare. Clear memorable instrumental theme, consistent dynamics from the second bar to the end, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 90.1,
+     "model_load_s": 10.6,
+     "mps_driver_gb": 26.43
+    }
+   },
+   {
+    "id": "minimax3-702",
+    "recommendationScore": 0.53832,
+    "metrics": {
+     "duration_s": 20.77,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -12.2,
+      "lra": 8.3,
+      "true_peak_dbfs": 0.1
+     },
+     "clipping": {
+      "clipped_samples": 364,
+      "clipped_frac": 0.00019869689770821687,
+      "peak": 1
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 2798.8,
+      "rolloff95_hz": 11700.2,
+      "flatness": 0.0031,
+      "hf_above_12k": 0.00115,
+      "sub_below_60": 0.0817,
+      "stereo_corr": 0.461
+     },
+     "tempo": {
+      "estimated_bpm": 136,
+      "brief_bpm": 96,
+      "rel_err": 0.292
+     },
+     "key": {
+      "best_key": "A major",
+      "best_r": 0.48,
+      "d_major_r": 0.461,
+      "d_major_rank": 3,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 2,
+      "score": 0.433,
+      "similarity": 0.444,
+      "level_match": 0.915,
+      "start_s": 2.25,
+      "end_s": 14.6,
+      "bars": 7,
+      "loop_s": 12.35,
+      "beats_per_bar": 4,
+      "grid_bpm": 136
+     },
+     "vocals": {
+      "vocal_energy_share": 0,
+      "vocal_active_frac": 0,
+      "stem_share": {
+       "drums": 0.265,
+       "bass": 0.0244,
+       "other": 0.7105,
+       "vocals": 0
+      },
+      "groove_active_frac": 0.95,
+      "drums_active_frac": 0.85
+     }
+    },
+    "qualified": false,
+    "failedChecks": [
+     "duration below 25 seconds",
+     "clipping check"
+    ],
+    "clap": {
+     "rank": 1,
+     "p": 0.66969,
+     "best": "Instrumental video game score, 96 BPM, 4/4. A sunny high-sky harbour with cornflower blue skies, timber docks, small cranes and a moored airship. A warm concertina and accordion carry a short adventurous melody, answered by a clear wooden flute hook, buoyant pizzicato strings, rounded acoustic bass and restrained shaker and frame drum. Airy, welcoming and gently adventurous exploration, no brass fanfare. Clear memorable instrumental theme, consistent dynamics from the second bar to the end, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue."
+    },
+    "encoded": {
+     "file": "take-b-d1028fbfc8ef.m4a",
+     "loopStart": 2.25,
+     "loopEnd": 14.6,
+     "duration": 15.6,
+     "gain": 1,
+     "seamScore": 0.433
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "sky-harbor",
+     "seed": 702,
+     "prompt": "Instrumental video game score, 96 BPM, 4/4. A sunny high-sky harbour with cornflower blue skies, timber docks, small cranes and a moored airship. A warm concertina and accordion carry a short adventurous melody, answered by a clear wooden flute hook, buoyant pizzicato strings, rounded acoustic bass and restrained shaker and frame drum. Airy, welcoming and gently adventurous exploration, no brass fanfare. Clear memorable instrumental theme, consistent dynamics from the second bar to the end, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 66.1,
+     "model_load_s": 10.6,
+     "mps_driver_gb": 26.44
+    }
+   }
+  ]
  }
 };
 export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
@@ -5556,6 +5784,441 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
        "gen_time_s": 2.05,
        "model_load_s": 11.1,
        "mps_driver_gb": 11.45
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "sky-harbor": {
+  "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI; shared coastal bed from coral-drift",
+  "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
+  "beds": {
+   "sky-harbor.ambience": {
+    "file": {
+     "set": "coral-drift",
+     "file": "ambience-6243d1442260.m4a"
+    },
+    "loopStart": 7,
+    "loopEnd": 27,
+    "duration": 28,
+    "gain": 1,
+    "seamScore": 0.667
+   }
+  },
+  "hums": {
+   "sky-harbor.basin-water": {
+    "file": "basin-water-f02c555ed561.m4a",
+    "loopStart": 2,
+    "loopEnd": 5,
+    "duration": 6,
+    "gain": 1,
+    "seamScore": 0.567
+   },
+   "sky-harbor.dock-crane": {
+    "file": "dock-crane-6afae223008b.m4a",
+    "loopStart": 3,
+    "loopEnd": 5,
+    "duration": 6,
+    "gain": 1,
+    "seamScore": 0.626
+   },
+   "sky-harbor.wharf-gulls": {
+    "file": "wharf-gulls-cc38849616fe.m4a",
+    "loopStart": 4.75,
+    "loopEnd": 6.75,
+    "duration": 7.75,
+    "gain": 1,
+    "seamScore": 0.508
+   },
+   "sky-harbor.corner-cottages": {
+    "file": "corner-cottages-604677496f75.m4a",
+    "loopStart": 4.75,
+    "loopEnd": 6.75,
+    "duration": 7.75,
+    "gain": 1,
+    "seamScore": 0.604
+   },
+   "sky-harbor.road-entry": {
+    "file": "road-entry-d8754561c5d7.m4a",
+    "loopStart": 4.75,
+    "loopEnd": 6.75,
+    "duration": 7.75,
+    "gain": 1,
+    "seamScore": 0.386
+   }
+  },
+  "oneshots": {},
+  "rejected": [
+   {
+    "family": "bed.sky-harbor.ambience",
+    "reason": "Own bed failed; canonical qualified coastal bed reused",
+    "takes": [
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 25,
+       "p": 0.000558,
+       "best": "Steady alpine breeze and a distant smooth chair lift motor hum",
+       "seed": "701",
+       "sourceWaveSha256": "7c4ff5ab43a508206e2e7ba4857ae4a680d285c0b2e4d4690d0893ebd59517f1",
+       "sourceMetadataSha256": "97cadfd876dd002eed124e75cfcceb791a69efcf07c07adb97736f1da8a9dfda"
+      },
+      "sourceWaveSha256": "7c4ff5ab43a508206e2e7ba4857ae4a680d285c0b2e4d4690d0893ebd59517f1",
+      "sourceMetadataSha256": "97cadfd876dd002eed124e75cfcceb791a69efcf07c07adb97736f1da8a9dfda",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "bed.sky-harbor.ambience",
+       "kind": "bed",
+       "seed": 701,
+       "prompt": "A spacious sunny wooden quay atmosphere: gentle water lapping, occasional distant gull calls, light timber and rope creaks, soft wind and a faint faraway mechanical airship hum. Quiet natural layered ambience, no music, no melody, no voices or intelligible speech.",
+       "desc": "Gentle harbour water, distant gulls, timber and rope creaks in a soft sea breeze with a faint airship hum",
+       "duration_s": 30,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 41.51,
+       "model_load_s": 7.5,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 9,
+       "p": 0.003408,
+       "best": "Quiet canal water gently lapping against stone walls",
+       "seed": "702",
+       "sourceWaveSha256": "5be1597c78e7143b551a0eba6f3f9d8b5ae0a0303d705f3029f9ad8dc7f329b8",
+       "sourceMetadataSha256": "8fc2b508d43933780a2d68ff239c5bf78d1fba48061766767b82366b7a5a8e52"
+      },
+      "sourceWaveSha256": "5be1597c78e7143b551a0eba6f3f9d8b5ae0a0303d705f3029f9ad8dc7f329b8",
+      "sourceMetadataSha256": "8fc2b508d43933780a2d68ff239c5bf78d1fba48061766767b82366b7a5a8e52",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "bed.sky-harbor.ambience",
+       "kind": "bed",
+       "seed": 702,
+       "prompt": "A spacious sunny wooden quay atmosphere: gentle water lapping, occasional distant gull calls, light timber and rope creaks, soft wind and a faint faraway mechanical airship hum. Quiet natural layered ambience, no music, no melody, no voices or intelligible speech.",
+       "desc": "Gentle harbour water, distant gulls, timber and rope creaks in a soft sea breeze with a faint airship hum",
+       "duration_s": 30,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 45.06,
+       "model_load_s": 7.5,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 10,
+       "p": 0.00142,
+       "best": "Quiet canal water gently lapping against stone walls",
+       "seed": "703",
+       "sourceWaveSha256": "45b8774d6f3fd7929fd03458134b272a5c01ebcf96d6142465bf152333cd98a6",
+       "sourceMetadataSha256": "36e52532b2e598f2d8bbfd6e06e4f49975db7e8fb0ba604b368d79d531c8801b"
+      },
+      "sourceWaveSha256": "45b8774d6f3fd7929fd03458134b272a5c01ebcf96d6142465bf152333cd98a6",
+      "sourceMetadataSha256": "36e52532b2e598f2d8bbfd6e06e4f49975db7e8fb0ba604b368d79d531c8801b",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "bed.sky-harbor.ambience",
+       "kind": "bed",
+       "seed": 703,
+       "prompt": "Close field recording at a sunny wooden harbour pier: gentle seawater laps against timber quay walls, with clear distant seagull calls, intermittent squeaking mooring ropes and loose canvas rustling in a sea breeze. A very faint far-off moored airship motor hum. Quiet spacious waterfront ambience, no music, no melody, no voices or speech.",
+       "desc": "Gentle harbour water, distant gulls, timber and rope creaks in a soft sea breeze with a faint airship hum",
+       "duration_s": 30,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 40.95,
+       "model_load_s": 5.1,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 10,
+       "p": 0.002073,
+       "best": "Water softly sloshes in a small ice fishing hole with an occasional fishing line plink",
+       "seed": "701",
+       "sourceWaveSha256": "0b7a3e69bf67700f98f1dc0dcf11d877d2aeda9a2eaa424e92dcd377f92ffd93",
+       "sourceMetadataSha256": "2de2b9a4f26fc42be74f50f275a8dd234a6f05790d927e0777379318336e9d2a"
+      },
+      "sourceWaveSha256": "0b7a3e69bf67700f98f1dc0dcf11d877d2aeda9a2eaa424e92dcd377f92ffd93",
+      "sourceMetadataSha256": "2de2b9a4f26fc42be74f50f275a8dd234a6f05790d927e0777379318336e9d2a",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "bed.sky-harbor.ambience",
+       "kind": "bed",
+       "seed": 701,
+       "prompt": "A spacious sunny wooden quay atmosphere: gentle water lapping, occasional distant gull calls, light timber and rope creaks, soft wind and a faint faraway mechanical airship hum. Quiet natural layered ambience, no music, no melody, no voices or intelligible speech.",
+       "desc": "Gentle harbour water, distant gulls, timber and rope creaks in a soft sea breeze with a faint airship hum",
+       "duration_s": 30,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 5.54,
+       "model_load_s": 10.3,
+       "mps_driver_gb": 11.44
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 24,
+       "p": 0.000028,
+       "best": "Quiet canal water gently lapping against stone walls",
+       "seed": "702",
+       "sourceWaveSha256": "9f70346c6e7c48a28490fd19876e2f851c66a639118ec0e4c6470daf7c757ad5",
+       "sourceMetadataSha256": "edc3439a3519182aa3e1fabd4b9f79c290f89b744c4fc5f996d32688d77d668f"
+      },
+      "sourceWaveSha256": "9f70346c6e7c48a28490fd19876e2f851c66a639118ec0e4c6470daf7c757ad5",
+      "sourceMetadataSha256": "edc3439a3519182aa3e1fabd4b9f79c290f89b744c4fc5f996d32688d77d668f",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "bed.sky-harbor.ambience",
+       "kind": "bed",
+       "seed": 702,
+       "prompt": "A spacious sunny wooden quay atmosphere: gentle water lapping, occasional distant gull calls, light timber and rope creaks, soft wind and a faint faraway mechanical airship hum. Quiet natural layered ambience, no music, no melody, no voices or intelligible speech.",
+       "desc": "Gentle harbour water, distant gulls, timber and rope creaks in a soft sea breeze with a faint airship hum",
+       "duration_s": 30,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 3.32,
+       "model_load_s": 8.7,
+       "mps_driver_gb": 11.44
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 7,
+       "p": 0.007543,
+       "best": "A small distant group murmurs quietly near a garden kiosk with no intelligible words",
+       "seed": "703",
+       "sourceWaveSha256": "8f570eefd0e544e67033bfe94c74a489f2419deb5531a7eda90cc988543f0c6a",
+       "sourceMetadataSha256": "2efbbac250a2bf69a8c9d310eef622ea707f645dab6179c7498d6ce51836aad0"
+      },
+      "sourceWaveSha256": "8f570eefd0e544e67033bfe94c74a489f2419deb5531a7eda90cc988543f0c6a",
+      "sourceMetadataSha256": "2efbbac250a2bf69a8c9d310eef622ea707f645dab6179c7498d6ce51836aad0",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "bed.sky-harbor.ambience",
+       "kind": "bed",
+       "seed": 703,
+       "prompt": "Close field recording at a sunny wooden harbour pier: gentle seawater laps against timber quay walls, with clear distant seagull calls, intermittent squeaking mooring ropes and loose canvas rustling in a sea breeze. A very faint far-off moored airship motor hum. Quiet spacious waterfront ambience, no music, no melody, no voices or speech.",
+       "desc": "Gentle harbour water, distant gulls, timber and rope creaks in a soft sea breeze with a faint airship hum",
+       "duration_s": 30,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 3.93,
+       "model_load_s": 8.4,
+       "mps_driver_gb": 11.44
+      }
+     }
+    ]
+   },
+   {
+    "family": "hum.sky-harbor.airship-tower",
+    "reason": "G872 coordinator and Sky owner approve five qualified local spots. All three paired airship-tower attempts remain comparison-only and unshipped. Named gap: no airship hum, rigging or tower flag; no fabricated sixth cue.",
+    "takes": [
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 20,
+       "p": 0.006015,
+       "best": "A large observatory dome slowly rotates with a soft electric motor and a subdued gear whirr",
+       "seed": "701",
+       "sourceWaveSha256": "03527b1c0a1db574d9b919c24c72778dadfac63d8e327d2af543fa3bb4f4b772",
+       "sourceMetadataSha256": "afbb48c65a500d316136c49f09a8610add4449b309d2949845ec599ed001417b"
+      },
+      "sourceWaveSha256": "03527b1c0a1db574d9b919c24c72778dadfac63d8e327d2af543fa3bb4f4b772",
+      "sourceMetadataSha256": "afbb48c65a500d316136c49f09a8610add4449b309d2949845ec599ed001417b",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "hum.sky-harbor.airship-tower",
+       "kind": "hum",
+       "seed": 701,
+       "prompt": "Close harbour tower and moored airship foley: a soft steady low propeller machinery hum, occasional taut rope rigging creaks and gentle canvas flag flaps. Restrained continuous loop, no helicopter roar, no music, no speech.",
+       "desc": "A moored airship hums softly while its rigging creaks and a tower flag flutters",
+       "duration_s": 12,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 43.32,
+       "model_load_s": 7.5,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 26,
+       "p": 0.000894,
+       "best": "A harbour entrance breeze moves a flag with a distant dock bell",
+       "seed": "702",
+       "sourceWaveSha256": "fb9532d9e42223dacef00d39eb85f60bd3cb922f14ce2a4acaa6ab15411d8dc9",
+       "sourceMetadataSha256": "56dd5568e1cf57446fea6f0af2042cff627f440304e91540ec4d31ffaf6fec62"
+      },
+      "sourceWaveSha256": "fb9532d9e42223dacef00d39eb85f60bd3cb922f14ce2a4acaa6ab15411d8dc9",
+      "sourceMetadataSha256": "56dd5568e1cf57446fea6f0af2042cff627f440304e91540ec4d31ffaf6fec62",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "hum.sky-harbor.airship-tower",
+       "kind": "hum",
+       "seed": 702,
+       "prompt": "Close harbour tower and moored airship foley: a soft steady low propeller machinery hum, occasional taut rope rigging creaks and gentle canvas flag flaps. Restrained continuous loop, no helicopter roar, no music, no speech.",
+       "desc": "A moored airship hums softly while its rigging creaks and a tower flag flutters",
+       "duration_s": 12,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 47.12,
+       "model_load_s": 7.5,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 43,
+       "p": 0.0001,
+       "best": "A distant low two-tone lighthouse foghorn with long quiet gaps",
+       "seed": "703",
+       "sourceWaveSha256": "9fc595fd358f9f423bdebf37344d1a7c591ab7585e6a2aab80b6969c90a43bea",
+       "sourceMetadataSha256": "b39e46504b69ebceb10cf249dc4a7df9a5845aa8e54b4fbf61e07cd8f5a049ba"
+      },
+      "sourceWaveSha256": "9fc595fd358f9f423bdebf37344d1a7c591ab7585e6a2aab80b6969c90a43bea",
+      "sourceMetadataSha256": "b39e46504b69ebceb10cf249dc4a7df9a5845aa8e54b4fbf61e07cd8f5a049ba",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "hum.sky-harbor.airship-tower",
+       "kind": "hum",
+       "seed": 703,
+       "prompt": "A moored propeller airship at a harbour tower. Deep soft steady vibrating airship engine hum with a low fluttering propeller pulse, dry squeaks from suspended rigging ropes and distinct canvas flag flaps overhead. Close airy mechanical harbour sound, restrained continuous loop, no music, no melody, no voices or speech.",
+       "desc": "A moored airship hums softly while its rigging creaks and a tower flag flutters",
+       "duration_s": 12,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 45.84,
+       "model_load_s": 5.1,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 21,
+       "p": 0.001167,
+       "best": "Muffled soft wind outside snow shelters with occasional dry snow crunch",
+       "seed": "701",
+       "sourceWaveSha256": "08f18c1c19b7fce32184948b5fa8be5f6b73e6d7dcf2010bae539f6fb7a124d5",
+       "sourceMetadataSha256": "abe44384362fa96244d9b64d9dd4ec7224dea117bf0843f6b3f631fc77007610"
+      },
+      "sourceWaveSha256": "08f18c1c19b7fce32184948b5fa8be5f6b73e6d7dcf2010bae539f6fb7a124d5",
+      "sourceMetadataSha256": "abe44384362fa96244d9b64d9dd4ec7224dea117bf0843f6b3f631fc77007610",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "hum.sky-harbor.airship-tower",
+       "kind": "hum",
+       "seed": 701,
+       "prompt": "Close harbour tower and moored airship foley: a soft steady low propeller machinery hum, occasional taut rope rigging creaks and gentle canvas flag flaps. Restrained continuous loop, no helicopter roar, no music, no speech.",
+       "desc": "A moored airship hums softly while its rigging creaks and a tower flag flutters",
+       "duration_s": 12,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 1.5,
+       "model_load_s": 10.3,
+       "mps_driver_gb": 11.44
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 26,
+       "p": 0.00046,
+       "best": "Tent canvas flaps gently in dry wind beside a softly hissing lantern",
+       "seed": "702",
+       "sourceWaveSha256": "d0b313db1a40859398abfcc2d827e72b8bf2f5e1e1fa0a07e6c008db2aa6bc09",
+       "sourceMetadataSha256": "bf5b0841723d5d44741f6b1b3822fbbfc5adce770f722613bfa469d9deb9fb9d"
+      },
+      "sourceWaveSha256": "d0b313db1a40859398abfcc2d827e72b8bf2f5e1e1fa0a07e6c008db2aa6bc09",
+      "sourceMetadataSha256": "bf5b0841723d5d44741f6b1b3822fbbfc5adce770f722613bfa469d9deb9fb9d",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "hum.sky-harbor.airship-tower",
+       "kind": "hum",
+       "seed": 702,
+       "prompt": "Close harbour tower and moored airship foley: a soft steady low propeller machinery hum, occasional taut rope rigging creaks and gentle canvas flag flaps. Restrained continuous loop, no helicopter roar, no music, no speech.",
+       "desc": "A moored airship hums softly while its rigging creaks and a tower flag flutters",
+       "duration_s": 12,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 1.43,
+       "model_load_s": 8.7,
+       "mps_driver_gb": 11.44
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 11,
+       "p": 0.006523,
+       "best": "A harbour entrance breeze moves a flag with a distant dock bell",
+       "seed": "703",
+       "sourceWaveSha256": "70d08460ff0667188ff4634ffb5a1b804a217979fb6f32abd321df00e0ed203d",
+       "sourceMetadataSha256": "feb47fcd1c3d62ac4099bba16ad6e10b4cd793891a8e1e93f02d84325e9d5673"
+      },
+      "sourceWaveSha256": "70d08460ff0667188ff4634ffb5a1b804a217979fb6f32abd321df00e0ed203d",
+      "sourceMetadataSha256": "feb47fcd1c3d62ac4099bba16ad6e10b4cd793891a8e1e93f02d84325e9d5673",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "hum.sky-harbor.airship-tower",
+       "kind": "hum",
+       "seed": 703,
+       "prompt": "A moored propeller airship at a harbour tower. Deep soft steady vibrating airship engine hum with a low fluttering propeller pulse, dry squeaks from suspended rigging ropes and distinct canvas flag flaps overhead. Close airy mechanical harbour sound, restrained continuous loop, no music, no melody, no voices or speech.",
+       "desc": "A moored airship hums softly while its rigging creaks and a tower flag flutters",
+       "duration_s": 12,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 2.14,
+       "model_load_s": 8.4,
+       "mps_driver_gb": 11.44
       }
      }
     ]
