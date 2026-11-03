@@ -35,6 +35,13 @@ pending sources retained separately. No pre-cut/mixed cohort or modeled
 saving closes CI9. Archive the plan in the same commit that records its
 qualifying median; do not archive while this row is open.
 
+Retained cohort at15:19:39Z: qualified live0, median UNMEASURED. Source
+4567995448/run41662549840 prepare126009253741 actually started; this is
+not a qualified release. The sole watcher retains all18 source rows and
+failed/cancelled/pending denominators. No new fetch/dispatch from this lane.
+Grid fixture fix794edbb727 pins both packed grid/HOVER sibling guards;
+six focused cases1.3s and typed lint pass, workflow/caps unchanged.
+
 Nalati fix`3d48aad462`: first ordinaryfd04/41643074332 exact plan assigns
 behaviour6/job125946422684. Shipping26.071s<unchanged30s, ownership13.831s;
 all4 pass40.550s combined. The unrelated historical phone-fixture failure
