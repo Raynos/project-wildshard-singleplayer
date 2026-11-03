@@ -1,5 +1,12 @@
 import {expect,test} from 'vitest';
-import {refinementExports,observeRefinement} from '../scripts/goldens/native-residency.mjs';
+import {refinementExports,observeRefinement,workingGoldenPreviewFolder} from '../scripts/goldens/native-residency.mjs';
+
+test('working candidate binding uses its actual preview registry folder',()=>{
+  expect(workingGoldenPreviewFolder('2333 1793726377 /repo/tmp/serve/candidate agent candidate-name\n')).toBe('/repo/tmp/serve/candidate');
+  expect(workingGoldenPreviewFolder('2333 1793726377 /repo with spaces/tmp/candidate agent name')).toBe('/repo with spaces/tmp/candidate');
+  for(const value of ['','2333 1793726377 relative/path agent name','2333 /repo/tmp/candidate'])
+    expect(()=>workingGoldenPreviewFolder(value)).toThrow('Invalid working preview');
+});
 
 test('native binding follows compiler exports and refuses guessed or ambiguous identities',()=>{
   const source='function boot$(){return(1)};C$=class{view;waiting=new Map;known=new Set};export{boot$ as init,C$ as Queue}';

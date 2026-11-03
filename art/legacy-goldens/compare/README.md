@@ -60,8 +60,10 @@ Nine SHARDFILE capture also observes native `ControlRefinement.add` publication 
 before navigation, then imports and hooks the module at DOM readiness **in every document** (document-start imports
 fail in WebKit, and SHARD SELECT replaces the title document). The title also waits for the hook before menu actions.
 The fresh world must still record native jobs; an empty ledger refuses. Its binding
-is rebuilt from the actual local all-product `serve-build.sh` preview, with served chunk bytes checked against that
-exact dist and hashed again in the browser. The original receiver, arguments and returned promises stay intact.
+is rebuilt from the actual local `serve-build.sh` preview (a shared pinned lease or ordinary working-candidate port
+record). Dist version must match the served version and contain Nine's format-2 product; the receipt hashes its index.
+Served chunk bytes are checked against that exact dist and hashed again in the browser. The original receiver,
+arguments and returned promises stay intact.
 Before each image it holds the existing golden camera, waits for publication and refuses pending, failed or retired
 jobs; frame, clock, camera and player must remain unchanged. The golden camera, live-frame counts and two composer
 draws remain the existing protocol. Binding and settled state are recorded in the receipts.

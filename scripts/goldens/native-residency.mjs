@@ -1,7 +1,17 @@
 import {createHash} from 'node:crypto';
 import {readdirSync,readFileSync} from 'node:fs';
 import {homedir} from 'node:os';
-import {join} from 'node:path';
+import {join,dirname} from 'node:path';
+
+/** Working candidates use the ordinary port registry, not a committed-SHA
+ * shared lease. Its dist must still identify the actual served build.
+ * @param {string} record */
+export function workingGoldenPreviewFolder(record) {
+  const matched=/^\d+\s+\d+\s+(.+)\s+\S+\s+\S+\s*$/u.exec(record.trim());
+  const folder=matched?.[1];
+  if(folder===undefined||!folder.startsWith('/')) throw new Error('Invalid working preview registry record');
+  return folder;
+}
 
 /** SHARD SELECT replaces the document. Schedule this in every init-script
  * realm, after module-script bases exist and before the async world boot. */
@@ -18,15 +28,25 @@ export async function goldenRefinementBinding(base,source) {
   const registry=join(homedir(),'.dev-servers','.shared');
   const matches=readdirSync(registry).filter(file=>file.endsWith('.json')).map(file=>JSON.parse(readFileSync(join(registry,file),'utf8')))
     .filter(row=>row.status==='ready'&&String(row.port)===url.port&&row.sha.startsWith(source.sha)&&row.coverage==='all'&&row.mode==='production');
-  if (matches.length!==1) throw new Error('Nine settled reader needs one exact all-product preview binding');
-  const dist=join(matches[0].out,'dist','assets');
+  if (matches.length>1) throw new Error('Nine settled reader preview binding is ambiguous');
+  const pinned=matches[0],folder=pinned?.out??workingGoldenPreviewFolder(readFileSync(join(dirname(registry),url.port),'utf8'));
+  const root=join(folder,'dist'),version=JSON.parse(readFileSync(join(root,'version.json'),'utf8'));
+  if(version.build!==source.build)throw new Error('Native reader dist differs from served version');
+  const index=readFileSync(join(root,'shardfiles','nine-dragon-stack','shard.json'));
+  const product=JSON.parse(index.toString('utf8'));
+  if(product.format!=='wildshard.shardfile'||product.formatVersion!==2||product.identity?.slug!=='nine-dragon-stack')
+    throw new Error('Native reader requires the served Nine product');
+  const servedIndex=Buffer.from(await(await fetch(new URL('/shardfiles/nine-dragon-stack/shard.json',base))).arrayBuffer());
+  if(!servedIndex.equals(index))throw new Error('Served Nine index differs from exact preview');
+  const dist=join(root,'assets');
   const chunks=readdirSync(dist).filter(file=>file.endsWith('.js')).map(file=>({file,bytes:readFileSync(join(dist,file))}))
     .filter(row=>row.bytes.includes('Invalid or duplicate refinement job'));
   if (chunks.length!==1) throw new Error('Native refinement chunk is missing or ambiguous');
   const {file,bytes}=chunks[0],binding=refinementExports(bytes.toString('utf8'));
   const chunk=`/assets/${file}`,served=Buffer.from(await(await fetch(new URL(chunk,base))).arrayBuffer());
   if (!served.equals(bytes)) throw new Error('Served native refinement differs from exact preview');
-  return {...binding,sha:matches[0].sha,build:source.build,chunk,chunkSHA256:createHash('sha256').update(served).digest('hex')};
+  return {...binding,sha:pinned?.sha??source.sha,build:source.build,preview:pinned===undefined?'working-tree':'pinned',
+    nineIndexSHA256:createHash('sha256').update(index).digest('hex'),chunk,chunkSHA256:createHash('sha256').update(served).digest('hex')};
 }
 
 /** Fail closed when the compiler shape changes; no guessed export or copied release binding.
