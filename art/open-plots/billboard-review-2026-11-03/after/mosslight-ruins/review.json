@@ -1,0 +1,342 @@
+{
+  "source": "add58749dab8d20d3df8af657f1f5bc5389c14f1",
+  "build": "add5874-mw0y4kqk",
+  "baselineSource": "8d810f14d7",
+  "baselineImageSha256": "420483e0724f6639b1ad51ba2de5cadf014b4ae2978136bd0c95ec5326f19652",
+  "framing": "Reconstructed, not recovered exact cameras. Core coordinates remain fixed; supplementals explicitly separate.",
+  "coreViews": 45,
+  "frames": [
+    {
+      "billboard": "plaza",
+      "view": 1,
+      "imageSha256": "d30d5e0e9927ee41cc95f8cd81ba2069a8b84c97b4b2933df53d870f3adc7211",
+      "cameraSha256": "b86317f22a851ed9125fd62ca07d9a80a0fd6fe8f05b003026eb42018ad1155c"
+    },
+    {
+      "billboard": "plaza",
+      "view": 2,
+      "imageSha256": "d83de88da5bf52ec29e866d3d26dbd6763dcdf49efda511f42a1aa43e2cc1d8f",
+      "cameraSha256": "b86317f22a851ed9125fd62ca07d9a80a0fd6fe8f05b003026eb42018ad1155c"
+    },
+    {
+      "billboard": "plaza",
+      "view": 3,
+      "imageSha256": "44bc85d1a68e0a71ad98688b335baf548160d8abedcd5df310b7bed4dda3e160",
+      "cameraSha256": "b86317f22a851ed9125fd62ca07d9a80a0fd6fe8f05b003026eb42018ad1155c"
+    },
+    {
+      "billboard": "plaza",
+      "view": 4,
+      "imageSha256": "99129618aa7681fc2f868a42836e0777fd9961f989cca26c2cecbf0aee592cfd",
+      "cameraSha256": "b86317f22a851ed9125fd62ca07d9a80a0fd6fe8f05b003026eb42018ad1155c"
+    },
+    {
+      "billboard": "plaza",
+      "view": 5,
+      "imageSha256": "485fa1621e4d0c97ca334f61171fbaca8405ba62ccd416afe7324a54ae55a680",
+      "cameraSha256": "b86317f22a851ed9125fd62ca07d9a80a0fd6fe8f05b003026eb42018ad1155c"
+    },
+    {
+      "billboard": "plaza",
+      "view": 6,
+      "imageSha256": "163096f9f5542eec1f66ad9c11b6ee845b9d3776bc023bccc1219a6e708bc194",
+      "cameraSha256": "b86317f22a851ed9125fd62ca07d9a80a0fd6fe8f05b003026eb42018ad1155c"
+    },
+    {
+      "billboard": "plaza",
+      "view": 7,
+      "imageSha256": "488cf367e6f51958330af79df69609755275c3ecb5126509cd23ca9ec25285f2",
+      "cameraSha256": "b86317f22a851ed9125fd62ca07d9a80a0fd6fe8f05b003026eb42018ad1155c"
+    },
+    {
+      "billboard": "plaza",
+      "view": 8,
+      "imageSha256": "bf7f44ce4d3835b290622f72c9a3c733beee2fcae9cc889b05b8d8d2f0fbb76b",
+      "cameraSha256": "b86317f22a851ed9125fd62ca07d9a80a0fd6fe8f05b003026eb42018ad1155c"
+    },
+    {
+      "billboard": "plaza",
+      "view": 9,
+      "imageSha256": "4dfa42b254203f56d7cc064e9e1d8458ac8e56058b161efd614bbaa1f64eabc6",
+      "cameraSha256": "b86317f22a851ed9125fd62ca07d9a80a0fd6fe8f05b003026eb42018ad1155c"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 1,
+      "imageSha256": "59793f833053acb2d9f89b9811feb294c184cf6823c5d8494665f44a6ebf3a97",
+      "cameraSha256": "39776e6202f8916bc4a7adb0863790bb83edf8e34b6cb65368997fde985bb248"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 2,
+      "imageSha256": "d77a9062062f688a4c5ed819b8b1a3129ae6be57354be7b72c2d535d8cbc4b66",
+      "cameraSha256": "39776e6202f8916bc4a7adb0863790bb83edf8e34b6cb65368997fde985bb248"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 3,
+      "imageSha256": "cf349d37ab9ed340fa2bd831ff88e49002a72abdf6bea54c2f2d59f66be657d1",
+      "cameraSha256": "39776e6202f8916bc4a7adb0863790bb83edf8e34b6cb65368997fde985bb248"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 4,
+      "imageSha256": "bb0202636216e4cbb5865dcf82da766a85b2e337876750702b98ee16808c95f2",
+      "cameraSha256": "39776e6202f8916bc4a7adb0863790bb83edf8e34b6cb65368997fde985bb248"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 5,
+      "imageSha256": "869eba81c2b1f2fa96438e51e9db6c54f7759bfd2ab17a7faaa7f2a01fd64be3",
+      "cameraSha256": "39776e6202f8916bc4a7adb0863790bb83edf8e34b6cb65368997fde985bb248"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 6,
+      "imageSha256": "18e58a572299d068f7233b51bef9be5e85bbc15be90d12066afb564275f1d1b3",
+      "cameraSha256": "39776e6202f8916bc4a7adb0863790bb83edf8e34b6cb65368997fde985bb248"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 7,
+      "imageSha256": "8cf3971be9d06998c2f36cf26bacd5bf2c2e9e523a76c5dc8112658090d25f67",
+      "cameraSha256": "39776e6202f8916bc4a7adb0863790bb83edf8e34b6cb65368997fde985bb248"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 8,
+      "imageSha256": "e90b81e29711013848766589d8c229170c3f99d1a5499e643ede188c4b98472b",
+      "cameraSha256": "39776e6202f8916bc4a7adb0863790bb83edf8e34b6cb65368997fde985bb248"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 9,
+      "imageSha256": "fae3c7822fd9f847cd153aa6eea500e4939384c950b3b48f4050ce697857c84c",
+      "cameraSha256": "39776e6202f8916bc4a7adb0863790bb83edf8e34b6cb65368997fde985bb248"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 1,
+      "imageSha256": "ca7685ea1af6779026f2e49d7ecb533981691d83aac9de41a993a65d94efed8a",
+      "cameraSha256": "d6ab1130f03cd18453dc32a80b2396a703dc9871472a50f3c668dff90baec654"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 2,
+      "imageSha256": "bb39937d754721628ac84e7ff3a9010cb88a861134016342425d97a3b173838a",
+      "cameraSha256": "d6ab1130f03cd18453dc32a80b2396a703dc9871472a50f3c668dff90baec654"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 3,
+      "imageSha256": "c21f8a6a161f3b817d265f6cad0da1023257f4f1d0cc2d261bd24e9a3086490a",
+      "cameraSha256": "d6ab1130f03cd18453dc32a80b2396a703dc9871472a50f3c668dff90baec654"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 4,
+      "imageSha256": "bf80a0655cbc0a5b37bce6164a09e0783280100c0dd65e75d7337c07c169f27b",
+      "cameraSha256": "d6ab1130f03cd18453dc32a80b2396a703dc9871472a50f3c668dff90baec654"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 5,
+      "imageSha256": "c8f9e7c3257a39b8a7d721a40058e18a4e927dec4e66f1abdbfb76dd99125de7",
+      "cameraSha256": "d6ab1130f03cd18453dc32a80b2396a703dc9871472a50f3c668dff90baec654"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 6,
+      "imageSha256": "05b4c57b3718cce8578a0afd188a1da2441b4c642e82f007d8fe6b35424f8a56",
+      "cameraSha256": "d6ab1130f03cd18453dc32a80b2396a703dc9871472a50f3c668dff90baec654"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 7,
+      "imageSha256": "9b83cdadf82318abe2ae01112e303a8f37407ad7b03e8cec98c5b7d82f756b61",
+      "cameraSha256": "d6ab1130f03cd18453dc32a80b2396a703dc9871472a50f3c668dff90baec654"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 8,
+      "imageSha256": "cdd83ca76755280a300ba14ee0d635501a0c6b3bef8775aba960830b16ce23ae",
+      "cameraSha256": "d6ab1130f03cd18453dc32a80b2396a703dc9871472a50f3c668dff90baec654"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 9,
+      "imageSha256": "365a5216363014212d6d5c8e9ea60a17ec5a976fd76c6d27706bb5a2fe7e770b",
+      "cameraSha256": "d6ab1130f03cd18453dc32a80b2396a703dc9871472a50f3c668dff90baec654"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 1,
+      "imageSha256": "da64b1df88ebdbfdb6be61d27c7fccaa99a98b7f108c4e29c793bbe5395fae78",
+      "cameraSha256": "19de65e5b64af2af8ba946c30f2a96e12257bfe266a029e3496e03398ae2b8bf"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 2,
+      "imageSha256": "c45e5833402b156300fd163b1854f7d8ba92be55c38af4d4f062cf7b8a3f07f2",
+      "cameraSha256": "19de65e5b64af2af8ba946c30f2a96e12257bfe266a029e3496e03398ae2b8bf"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 3,
+      "imageSha256": "5551853506e45adee50562c9aea0b89e4c7bf8ab6c1c563986dda69bb2eaabd8",
+      "cameraSha256": "19de65e5b64af2af8ba946c30f2a96e12257bfe266a029e3496e03398ae2b8bf"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 4,
+      "imageSha256": "373ecc65d6faa3df96432d4812a490591d54026cbc202eaa464b9a6b3d315290",
+      "cameraSha256": "19de65e5b64af2af8ba946c30f2a96e12257bfe266a029e3496e03398ae2b8bf"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 5,
+      "imageSha256": "d5f6fcdcaa2b63d24add516ddfbd63fc852b119331668710016762eb9f545252",
+      "cameraSha256": "19de65e5b64af2af8ba946c30f2a96e12257bfe266a029e3496e03398ae2b8bf"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 6,
+      "imageSha256": "32953a46a52d91f4a78864d6aa955ce93cee2138d55fe51c5cf43cfe8c9d4a43",
+      "cameraSha256": "19de65e5b64af2af8ba946c30f2a96e12257bfe266a029e3496e03398ae2b8bf"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 7,
+      "imageSha256": "a7f752b3650dbd8b75552294406b91f028fe4540ede5eb829b30b41b8cba79c7",
+      "cameraSha256": "19de65e5b64af2af8ba946c30f2a96e12257bfe266a029e3496e03398ae2b8bf"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 8,
+      "imageSha256": "4edc490d826c0a570a7350a79d134ddc450391fad6d93390643fce5a4e381146",
+      "cameraSha256": "19de65e5b64af2af8ba946c30f2a96e12257bfe266a029e3496e03398ae2b8bf"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 9,
+      "imageSha256": "0a6295f40daedb37842b4ca04864efa3fb73cbba4c5b80adca50b0901d9b741f",
+      "cameraSha256": "19de65e5b64af2af8ba946c30f2a96e12257bfe266a029e3496e03398ae2b8bf"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 1,
+      "imageSha256": "510c13ca43cc1eaa62e077f21e1ec8479bc507cc4edf366d78654588431f2757",
+      "cameraSha256": "49b3123258bdaed3088fc2df81fcf9312d95b7e78ac01155117250bf9523c541"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 2,
+      "imageSha256": "4361ff8e0e328615b59e8a9c99114c90b8c39f202433ab44266cf094ef8f3ad0",
+      "cameraSha256": "49b3123258bdaed3088fc2df81fcf9312d95b7e78ac01155117250bf9523c541"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 3,
+      "imageSha256": "7be9977625bf116d72b2465527bc8e3848d6f0fa89bac660e5407164817cfa06",
+      "cameraSha256": "49b3123258bdaed3088fc2df81fcf9312d95b7e78ac01155117250bf9523c541"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 4,
+      "imageSha256": "36af07816cb22efc464724b53dbe32cf493ddc127460624d62735ad127768b5f",
+      "cameraSha256": "49b3123258bdaed3088fc2df81fcf9312d95b7e78ac01155117250bf9523c541"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 5,
+      "imageSha256": "0045283f9889631a995c6daf4e5e6feedef1099c095bf7913d1642e941ea5169",
+      "cameraSha256": "49b3123258bdaed3088fc2df81fcf9312d95b7e78ac01155117250bf9523c541"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 6,
+      "imageSha256": "f24b057c8e3e665e1daa8cc4ea23069edb99624a1766a2aa98b0f6a1fa7d0183",
+      "cameraSha256": "49b3123258bdaed3088fc2df81fcf9312d95b7e78ac01155117250bf9523c541"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 7,
+      "imageSha256": "61c16e329bd0ec50aa82bebbb170d4e6def62102b62007546dcaa1b89539ad47",
+      "cameraSha256": "49b3123258bdaed3088fc2df81fcf9312d95b7e78ac01155117250bf9523c541"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 8,
+      "imageSha256": "040d5e2a71fb04ee095ff9c0ac207d7dd00cf395e77c46f2bec0a64b69579871",
+      "cameraSha256": "49b3123258bdaed3088fc2df81fcf9312d95b7e78ac01155117250bf9523c541"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 9,
+      "imageSha256": "4ea3e2d2b37945f918b964f5973c0e9aa33c83e046b8233dcd11d0c612df041c",
+      "cameraSha256": "49b3123258bdaed3088fc2df81fcf9312d95b7e78ac01155117250bf9523c541"
+    }
+  ],
+  "board": "art/open-plots/billboard-review-2026-11-03/after/mosslight-ruins/before-after-board.jpg",
+  "boardSha256": "ca83f15d2f3b811544392aea1f4549a9c5a25aea91a5baa0d1408bffb4c9df12",
+  "jpegQuality": 40,
+  "verdicts": {
+    "plaza": {
+      "1": "clear: original tree/ruin/road obstruction absent from the picture and frame",
+      "2": "clear: original tree/ruin/road obstruction absent from the picture and frame",
+      "3": "clear: original tree/ruin/road obstruction absent from the picture and frame",
+      "4": "clear: original tree/ruin/road obstruction absent from the picture and frame",
+      "5": "clear: original tree/ruin/road obstruction absent from the picture and frame",
+      "6": "clear: original tree/ruin/road obstruction absent from the picture and frame",
+      "7": "clear: original tree/ruin/road obstruction absent from the picture and frame",
+      "8": "clear: original tree/ruin/road obstruction absent from the picture and frame",
+      "9": "clear: original tree/ruin/road obstruction absent from the picture and frame"
+    },
+    "entry-s": {
+      "1": "clear: observed picture/frame and approaches have no geometry intersection",
+      "2": "clear: observed picture/frame and approaches have no geometry intersection",
+      "3": "clear: observed picture/frame and approaches have no geometry intersection",
+      "4": "clear: observed picture/frame and approaches have no geometry intersection",
+      "5": "clear: observed picture/frame and approaches have no geometry intersection",
+      "6": "clear: observed picture/frame and approaches have no geometry intersection",
+      "7": "clear: observed picture/frame and approaches have no geometry intersection",
+      "8": "clear: observed picture/frame and approaches have no geometry intersection",
+      "9": "clear: observed picture/frame and approaches have no geometry intersection"
+    },
+    "entry-n": {
+      "1": "clear: observed picture/frame and approaches have no geometry intersection",
+      "2": "clear: observed picture/frame and approaches have no geometry intersection",
+      "3": "clear: observed picture/frame and approaches have no geometry intersection",
+      "4": "clear: observed picture/frame and approaches have no geometry intersection",
+      "5": "clear: observed picture/frame and approaches have no geometry intersection",
+      "6": "clear: observed picture/frame and approaches have no geometry intersection",
+      "7": "clear: observed picture/frame and approaches have no geometry intersection",
+      "8": "clear: observed picture/frame and approaches have no geometry intersection",
+      "9": "clear: observed picture/frame and approaches have no geometry intersection"
+    },
+    "entry-e": {
+      "1": "clear: observed picture/frame and approaches have no geometry intersection",
+      "2": "clear: observed picture/frame and approaches have no geometry intersection",
+      "3": "clear: observed picture/frame and approaches have no geometry intersection",
+      "4": "clear: observed picture/frame and approaches have no geometry intersection",
+      "5": "clear: observed picture/frame and approaches have no geometry intersection",
+      "6": "clear: observed picture/frame and approaches have no geometry intersection",
+      "7": "clear: observed picture/frame and approaches have no geometry intersection",
+      "8": "clear: observed picture/frame and approaches have no geometry intersection",
+      "9": "clear: observed picture/frame and approaches have no geometry intersection"
+    },
+    "entry-w": {
+      "1": "clear: observed picture/frame and approaches have no geometry intersection",
+      "2": "clear: observed picture/frame and approaches have no geometry intersection",
+      "3": "clear: observed picture/frame and approaches have no geometry intersection",
+      "4": "clear: observed picture/frame and approaches have no geometry intersection",
+      "5": "clear: observed picture/frame and approaches have no geometry intersection",
+      "6": "clear: observed picture/frame and approaches have no geometry intersection",
+      "7": "clear: observed picture/frame and approaches have no geometry intersection",
+      "8": "clear: observed picture/frame and approaches have no geometry intersection",
+      "9": "clear: observed picture/frame and approaches have no geometry intersection"
+    }
+  },
+  "supplemental": [],
+  "interruptedPrefixes": []
+}

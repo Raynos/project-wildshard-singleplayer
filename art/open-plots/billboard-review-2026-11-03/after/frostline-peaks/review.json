@@ -1,0 +1,415 @@
+{
+  "source": "add58749dab8d20d3df8af657f1f5bc5389c14f1",
+  "build": "add5874-mw0y4kqk",
+  "baselineSource": "8d810f14d7",
+  "baselineImageSha256": "4394c8cd18bd5d91b7612fc413c4e464e3545021bba51b18398240a13c69d322",
+  "framing": "Reconstructed, not recovered exact cameras. Core coordinates remain fixed; supplementals explicitly separate.",
+  "coreViews": 45,
+  "frames": [
+    {
+      "billboard": "plaza",
+      "view": 1,
+      "imageSha256": "7dd0ec8b8dcc0d327db89ac5349de4572357e19485f02f13736ae250e069cebd",
+      "cameraSha256": "5cb238721abf90469b064b1e09c31aa795c048b914aafbb951ac60bd5b6bcc96"
+    },
+    {
+      "billboard": "plaza",
+      "view": 2,
+      "imageSha256": "1b1a28155190a034a51d4c0f6685e4ba9df097aa2b86b1b587b4a666e5680f41",
+      "cameraSha256": "5cb238721abf90469b064b1e09c31aa795c048b914aafbb951ac60bd5b6bcc96"
+    },
+    {
+      "billboard": "plaza",
+      "view": 3,
+      "imageSha256": "7a7958f25c050cf6d5ac23e41c05c6099eaf092eec6d5247c213cfb4183747d6",
+      "cameraSha256": "5cb238721abf90469b064b1e09c31aa795c048b914aafbb951ac60bd5b6bcc96"
+    },
+    {
+      "billboard": "plaza",
+      "view": 4,
+      "imageSha256": "0aba4edd11262c2c67c24f46a3b8faefe6a54aef20ce09c1105c2ece3c324c29",
+      "cameraSha256": "5cb238721abf90469b064b1e09c31aa795c048b914aafbb951ac60bd5b6bcc96"
+    },
+    {
+      "billboard": "plaza",
+      "view": 5,
+      "imageSha256": "12c2d8582eb2b62f87d24685044352e65855dcf8c8491e3c6ecb3b742e085970",
+      "cameraSha256": "5cb238721abf90469b064b1e09c31aa795c048b914aafbb951ac60bd5b6bcc96"
+    },
+    {
+      "billboard": "plaza",
+      "view": 6,
+      "imageSha256": "9eddf0c080f015167ced4a1fbcf9d76c20c84ebb885ecd1ed1cd17ee2889f7b7",
+      "cameraSha256": "5cb238721abf90469b064b1e09c31aa795c048b914aafbb951ac60bd5b6bcc96"
+    },
+    {
+      "billboard": "plaza",
+      "view": 7,
+      "imageSha256": "91021248402d8bfd4895359c7cda88655f253b21e4eb808f9cf3f261ff57b335",
+      "cameraSha256": "5cb238721abf90469b064b1e09c31aa795c048b914aafbb951ac60bd5b6bcc96"
+    },
+    {
+      "billboard": "plaza",
+      "view": 8,
+      "imageSha256": "eb5eb4336d74470aa075f7f2bcc5df5f53728833a8e9dfaa1df9f75c24cf38e0",
+      "cameraSha256": "5cb238721abf90469b064b1e09c31aa795c048b914aafbb951ac60bd5b6bcc96"
+    },
+    {
+      "billboard": "plaza",
+      "view": 9,
+      "imageSha256": "5ea2875290c719bd185dab3f8fd032e1fa207e60d59394ffe685713a77e32f08",
+      "cameraSha256": "5cb238721abf90469b064b1e09c31aa795c048b914aafbb951ac60bd5b6bcc96"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 1,
+      "imageSha256": "6d7a2fd3f5391fd13660349032cc0dd3b1d5fab5e4e83ab663ae681751f372a4",
+      "cameraSha256": "14bfe5ff7a1134a451953f6d7ef219524240c89e3432ad81ac394edbfbadf364"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 2,
+      "imageSha256": "c0e2467a780633984d63d1eb1338f1927b5bbf28759168c74891d54b1bc71219",
+      "cameraSha256": "14bfe5ff7a1134a451953f6d7ef219524240c89e3432ad81ac394edbfbadf364"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 3,
+      "imageSha256": "fc5b8e782b619f1e0c9c242bc653222ac1b175e234e118ef16e0b1642d6a9931",
+      "cameraSha256": "14bfe5ff7a1134a451953f6d7ef219524240c89e3432ad81ac394edbfbadf364"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 4,
+      "imageSha256": "d977b1418916d931b66fb94962fcd663f7327aa4f248b9da103d616ede9bdd19",
+      "cameraSha256": "14bfe5ff7a1134a451953f6d7ef219524240c89e3432ad81ac394edbfbadf364"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 5,
+      "imageSha256": "b556cb976f43a3a6286880d13ec557d6ce2ef61cafb7c7d416b6351ef682862a",
+      "cameraSha256": "14bfe5ff7a1134a451953f6d7ef219524240c89e3432ad81ac394edbfbadf364"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 6,
+      "imageSha256": "90d3a024d15c2aa0f0f6a55abbf0b92f874f6354b3421aa39c1dc233f95b503b",
+      "cameraSha256": "14bfe5ff7a1134a451953f6d7ef219524240c89e3432ad81ac394edbfbadf364"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 7,
+      "imageSha256": "35cc8b59077f18a90258fdbbef3933448dfb9431c905f887a410fe0cf3f2c048",
+      "cameraSha256": "14bfe5ff7a1134a451953f6d7ef219524240c89e3432ad81ac394edbfbadf364"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 8,
+      "imageSha256": "113b36a46538089cbdc2f720bd970f0446638a7657fb7a43f1ebcdac993f74cb",
+      "cameraSha256": "14bfe5ff7a1134a451953f6d7ef219524240c89e3432ad81ac394edbfbadf364"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 9,
+      "imageSha256": "1eca79394a7304bd4a065e8078a9ba1bc1f606a7c68f4f62f4a43add8e795e52",
+      "cameraSha256": "14bfe5ff7a1134a451953f6d7ef219524240c89e3432ad81ac394edbfbadf364"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 1,
+      "imageSha256": "dfd626a74e8ec39dd68b957c1190adaa408750bbbcc44759a78e161926d31015",
+      "cameraSha256": "e257aa3735cc5a878707abe4512d9ae3dedbb5a1aa6dcdcc5774949ab082ac00"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 2,
+      "imageSha256": "7cef671b01ccc032462aa6f9344280eec51b94a24ab4e66a6bd316b4b701cf7c",
+      "cameraSha256": "e257aa3735cc5a878707abe4512d9ae3dedbb5a1aa6dcdcc5774949ab082ac00"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 3,
+      "imageSha256": "d53cdaf130f58e647a5ae3767639e07e1789de093b34bd82a49f4c1a609626ae",
+      "cameraSha256": "e257aa3735cc5a878707abe4512d9ae3dedbb5a1aa6dcdcc5774949ab082ac00"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 4,
+      "imageSha256": "f3609bb358209b83a4e3ee9b2eb649cbca6f0fab930e88135ddecbbd3a2f2f26",
+      "cameraSha256": "e257aa3735cc5a878707abe4512d9ae3dedbb5a1aa6dcdcc5774949ab082ac00"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 5,
+      "imageSha256": "86733d2348cde67cf0b8a98858e2b84c3d5f953b24ead29ed5300f02989c3350",
+      "cameraSha256": "e257aa3735cc5a878707abe4512d9ae3dedbb5a1aa6dcdcc5774949ab082ac00"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 6,
+      "imageSha256": "5952786637f05aa121b010e8908d3fec81dac7d40c67793ba5c533a4fa8408ea",
+      "cameraSha256": "e257aa3735cc5a878707abe4512d9ae3dedbb5a1aa6dcdcc5774949ab082ac00"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 7,
+      "imageSha256": "1a781e0f79a58907b50d3d365e9aa2bd3b8b430c4f5e7cfcacaa9c0f4c3410f1",
+      "cameraSha256": "e257aa3735cc5a878707abe4512d9ae3dedbb5a1aa6dcdcc5774949ab082ac00"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 8,
+      "imageSha256": "f1e56574d345a51b0fc59eed6d4c7a7e01e59e87b4d7678971573226a383b870",
+      "cameraSha256": "e257aa3735cc5a878707abe4512d9ae3dedbb5a1aa6dcdcc5774949ab082ac00"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 9,
+      "imageSha256": "9f5193993e53c40f4b26747596d49994762184c6d708ec0b410b8267f28693c4",
+      "cameraSha256": "e257aa3735cc5a878707abe4512d9ae3dedbb5a1aa6dcdcc5774949ab082ac00"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 1,
+      "imageSha256": "4cdc7e3b3e1e765f958211e1ef9b44fc61c1e6897574b6379508d63d699dac06",
+      "cameraSha256": "ec325c7753d534eae12413332592db3d078177655f376153bf0dce872b5a5501"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 2,
+      "imageSha256": "6d414736aacb301a962443064d213aea7c2685103828445b366383fc24f180d1",
+      "cameraSha256": "ec325c7753d534eae12413332592db3d078177655f376153bf0dce872b5a5501"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 3,
+      "imageSha256": "3ec111dbdc6b4a93cf966bea53c047be636a185d5386c92bbbd494fb207192a6",
+      "cameraSha256": "ec325c7753d534eae12413332592db3d078177655f376153bf0dce872b5a5501"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 4,
+      "imageSha256": "b16859d8cd1edcabe7c39499366f8996564ff729174f534c2ad0c7c901b43dca",
+      "cameraSha256": "ec325c7753d534eae12413332592db3d078177655f376153bf0dce872b5a5501"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 5,
+      "imageSha256": "de7ba3a720a305e83faf27ce494563763c00e33b7c9721feeb8ac97661091000",
+      "cameraSha256": "ec325c7753d534eae12413332592db3d078177655f376153bf0dce872b5a5501"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 6,
+      "imageSha256": "d9eb9399699aaf9afdf1b43a58c987eaa14699d8d115cad0ae7d0218e978053e",
+      "cameraSha256": "ec325c7753d534eae12413332592db3d078177655f376153bf0dce872b5a5501"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 7,
+      "imageSha256": "6798938b672da756b2e4a9b73a124713520af63e37ca7a79797427d1c2b5ba4b",
+      "cameraSha256": "ec325c7753d534eae12413332592db3d078177655f376153bf0dce872b5a5501"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 8,
+      "imageSha256": "1744da7d72e6e81da53bad40f88a525009560a27bf4d38e6ba4a8a17403457b0",
+      "cameraSha256": "ec325c7753d534eae12413332592db3d078177655f376153bf0dce872b5a5501"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 9,
+      "imageSha256": "46f6779b111e982169db879d2ac7bda8471645ba9c3b199cba37d7f5b6fd19e0",
+      "cameraSha256": "ec325c7753d534eae12413332592db3d078177655f376153bf0dce872b5a5501"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 1,
+      "imageSha256": "78899909cb153359328118a3c06321a9f5054807e6eece56cd47a385feea77e1",
+      "cameraSha256": "ecbd47e5e14f60df8f61622fbe6f2c5a4c3bdced10183c676c0c97d49f34a435"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 2,
+      "imageSha256": "4ef97665cfa188567a29b4b6f5074f355c8731f9dafcec653f1835ed8234126b",
+      "cameraSha256": "ecbd47e5e14f60df8f61622fbe6f2c5a4c3bdced10183c676c0c97d49f34a435"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 3,
+      "imageSha256": "877853ad2b68a35e0f3a8df4efc72fa92ec4262fc020622d5bd8418d2d25649f",
+      "cameraSha256": "ecbd47e5e14f60df8f61622fbe6f2c5a4c3bdced10183c676c0c97d49f34a435"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 4,
+      "imageSha256": "beeca259eaf569bb704d0ce1284c0a918e45166d11e38b1c1f8a9b0ef3781f57",
+      "cameraSha256": "ecbd47e5e14f60df8f61622fbe6f2c5a4c3bdced10183c676c0c97d49f34a435"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 5,
+      "imageSha256": "72a2a8f259292abc23c2a86494699c4b594ec84ae7659559e7f281acdd1d7c69",
+      "cameraSha256": "ecbd47e5e14f60df8f61622fbe6f2c5a4c3bdced10183c676c0c97d49f34a435"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 6,
+      "imageSha256": "f7a9d43ba15dba4bc24f273f29b5753671a9b35c92be54cc0ed41fe709dc1a47",
+      "cameraSha256": "ecbd47e5e14f60df8f61622fbe6f2c5a4c3bdced10183c676c0c97d49f34a435"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 7,
+      "imageSha256": "d4e652790c90e66e89875b08852803d1517878b3e3bc8bf411f8e1596f285a42",
+      "cameraSha256": "ecbd47e5e14f60df8f61622fbe6f2c5a4c3bdced10183c676c0c97d49f34a435"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 8,
+      "imageSha256": "1268c247a2baddce2e6ae90ece05fc770112efa4baada4b12ff0a912157ff3eb",
+      "cameraSha256": "ecbd47e5e14f60df8f61622fbe6f2c5a4c3bdced10183c676c0c97d49f34a435"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 9,
+      "imageSha256": "3c53ee0beca90b6f95ba018026a30c9ac27a4f987b39b9dcb7bb357298d929ff",
+      "cameraSha256": "ecbd47e5e14f60df8f61622fbe6f2c5a4c3bdced10183c676c0c97d49f34a435"
+    }
+  ],
+  "board": "art/open-plots/billboard-review-2026-11-03/after/frostline-peaks/before-after-board.jpg",
+  "boardSha256": "d5e02cc5922b5eada42542ffb9a1342bed4291e3197f1acd8078bc1605424b3f",
+  "jpegQuality": 24,
+  "verdicts": {
+    "plaza": {
+      "1": "FRAMING: intentional board relocation puts its plane under/outside fixed-original camera or changes view to oblique; cannot prove full clearance here; separate translated set retained",
+      "3": "FRAMING: intentional board relocation puts its plane under/outside fixed-original camera or changes view to oblique; cannot prove full clearance here; separate translated set retained",
+      "4": "FRAMING: intentional board relocation puts its plane under/outside fixed-original camera or changes view to oblique; cannot prove full clearance here; separate translated set retained",
+      "6": "FRAMING: intentional board relocation puts its plane under/outside fixed-original camera or changes view to oblique; cannot prove full clearance here; separate translated set retained",
+      "8": "FRAMING: intentional board relocation puts its plane under/outside fixed-original camera or changes view to oblique; cannot prove full clearance here; separate translated set retained",
+      "9": "clear: approach picture/frame has no geometry intersection; original pines absent",
+      "2": "OCCLUDED: fixed-original front25 view includes pine canopy; supplemental moved-board front25 is also pine-occluded; retained as inconclusive",
+      "5": "FRAMING: intentional board relocation puts its plane under/outside fixed-original camera or changes view to oblique; cannot prove full clearance here; separate translated set retained",
+      "7": "clear: moved rear face and support are unobstructed"
+    },
+    "entry-s": {
+      "1": "clear: observed picture/frame has no geometry intersection",
+      "2": "clear: observed picture/frame has no geometry intersection",
+      "3": "clear: observed picture/frame has no geometry intersection",
+      "4": "clear: observed picture/frame has no geometry intersection",
+      "5": "clear: observed picture/frame has no geometry intersection",
+      "6": "FOREGROUND POST: edge-on frame includes an unrelated road post; billboard edge remains separate, no plane intersection observed",
+      "7": "clear: observed picture/frame has no geometry intersection",
+      "8": "clear: observed picture/frame has no geometry intersection",
+      "9": "clear: observed picture/frame has no geometry intersection"
+    },
+    "entry-n": {
+      "1": "clear: observed picture/frame has no geometry intersection",
+      "2": "clear: observed picture/frame has no geometry intersection",
+      "3": "clear: observed picture/frame has no geometry intersection",
+      "4": "clear: observed picture/frame has no geometry intersection",
+      "5": "clear: observed picture/frame has no geometry intersection",
+      "6": "FOREGROUND POST: edge-on frame includes an unrelated road post; billboard edge remains separate, no plane intersection observed",
+      "7": "clear: observed picture/frame has no geometry intersection",
+      "8": "clear: observed picture/frame has no geometry intersection",
+      "9": "clear: observed picture/frame has no geometry intersection"
+    },
+    "entry-e": {
+      "1": "clear: observed picture/frame has no geometry intersection",
+      "2": "clear: observed picture/frame has no geometry intersection",
+      "3": "clear: observed picture/frame has no geometry intersection",
+      "4": "clear: observed picture/frame has no geometry intersection",
+      "5": "clear: observed picture/frame has no geometry intersection",
+      "6": "FOREGROUND POST: edge-on frame includes an unrelated road post; billboard edge remains separate, no plane intersection observed",
+      "7": "clear: observed picture/frame has no geometry intersection",
+      "8": "clear: observed picture/frame has no geometry intersection",
+      "9": "clear: observed picture/frame has no geometry intersection"
+    },
+    "entry-w": {
+      "1": "clear: observed picture/frame has no geometry intersection",
+      "2": "clear: observed picture/frame has no geometry intersection",
+      "3": "clear: observed picture/frame has no geometry intersection",
+      "4": "clear: observed picture/frame has no geometry intersection",
+      "5": "clear: observed picture/frame has no geometry intersection",
+      "6": "FOREGROUND POST: edge-on frame includes an unrelated road post; billboard edge remains separate, no plane intersection observed",
+      "7": "clear: observed picture/frame has no geometry intersection",
+      "8": "clear: observed picture/frame has no geometry intersection",
+      "9": "clear: observed picture/frame has no geometry intersection"
+    }
+  },
+  "supplemental": [
+    {
+      "view": 1,
+      "source": "1e65bfaf43ff815fe7f847aa5935c3ab4aca063f",
+      "build": "1e65bfa-mw0ywzkn",
+      "cameraSha256": "c0475c8d851c0cba80fe10145b88f4c6637fbf445135c0b4a4fa218b36ea2a0a",
+      "imageSha256": "5fb620df0314016a5a66d25b1ee60b7ea79fb83a67e701d84f789ca38a916d92",
+      "verdict": "clear of board-plane intersections; relocated board visible or edge-on as requested"
+    },
+    {
+      "view": 2,
+      "source": "1e65bfaf43ff815fe7f847aa5935c3ab4aca063f",
+      "build": "1e65bfa-mw0ywzkn",
+      "cameraSha256": "c0475c8d851c0cba80fe10145b88f4c6637fbf445135c0b4a4fa218b36ea2a0a",
+      "imageSha256": "bb0d9495fdfb85f9d79c8d4e40d5622f14603bc0a09e1e32eb4a3d79d78ca946",
+      "verdict": "OCCLUDED: camera in retained pine clump near(-21,-84), outside keep-out; original frame retained"
+    },
+    {
+      "view": 3,
+      "source": "1e65bfaf43ff815fe7f847aa5935c3ab4aca063f",
+      "build": "1e65bfa-mw0ywzkn",
+      "cameraSha256": "c0475c8d851c0cba80fe10145b88f4c6637fbf445135c0b4a4fa218b36ea2a0a",
+      "imageSha256": "de3cd78b26d71719cfbc022b02dc405548a49a8e3198710c1676f785602dfacb",
+      "verdict": "clear of board-plane intersections; relocated board visible or edge-on as requested"
+    },
+    {
+      "view": 4,
+      "source": "1e65bfaf43ff815fe7f847aa5935c3ab4aca063f",
+      "build": "1e65bfa-mw0ywzkn",
+      "cameraSha256": "c0475c8d851c0cba80fe10145b88f4c6637fbf445135c0b4a4fa218b36ea2a0a",
+      "imageSha256": "a74b3872224d51f675d9dbe2ad6d5af2df5ee45dcd81a48b203821c8e907e7b9",
+      "verdict": "clear of board-plane intersections; relocated board visible or edge-on as requested"
+    },
+    {
+      "view": 5,
+      "source": "1e65bfaf43ff815fe7f847aa5935c3ab4aca063f",
+      "build": "1e65bfa-mw0ywzkn",
+      "cameraSha256": "c0475c8d851c0cba80fe10145b88f4c6637fbf445135c0b4a4fa218b36ea2a0a",
+      "imageSha256": "5200ad8686cde6af70cfc2c67aee9a02f45917fce59d94728d094a36f628f8ae",
+      "verdict": "clear of board-plane intersections; relocated board visible or edge-on as requested"
+    },
+    {
+      "view": 6,
+      "source": "1e65bfaf43ff815fe7f847aa5935c3ab4aca063f",
+      "build": "1e65bfa-mw0ywzkn",
+      "cameraSha256": "c0475c8d851c0cba80fe10145b88f4c6637fbf445135c0b4a4fa218b36ea2a0a",
+      "imageSha256": "752384a469c99670d77124fdf8a0f5007851b6f4c618601a56aa1d09b411a113",
+      "verdict": "clear of board-plane intersections; relocated board visible or edge-on as requested"
+    },
+    {
+      "view": 7,
+      "source": "1e65bfaf43ff815fe7f847aa5935c3ab4aca063f",
+      "build": "1e65bfa-mw0ywzkn",
+      "cameraSha256": "c0475c8d851c0cba80fe10145b88f4c6637fbf445135c0b4a4fa218b36ea2a0a",
+      "imageSha256": "00552444525a6415fadaaa8ec60b6e4d8d188c27b87e69b13576da3b98edb3f9",
+      "verdict": "clear of board-plane intersections; relocated board visible or edge-on as requested"
+    },
+    {
+      "view": 8,
+      "source": "1e65bfaf43ff815fe7f847aa5935c3ab4aca063f",
+      "build": "1e65bfa-mw0ywzkn",
+      "cameraSha256": "c0475c8d851c0cba80fe10145b88f4c6637fbf445135c0b4a4fa218b36ea2a0a",
+      "imageSha256": "1587fb4bce14397555847ea359588ecf79c38162c423c3ee81b19d81a2a872b3",
+      "verdict": "clear of board-plane intersections; relocated board visible or edge-on as requested"
+    },
+    {
+      "view": 9,
+      "source": "1e65bfaf43ff815fe7f847aa5935c3ab4aca063f",
+      "build": "1e65bfa-mw0ywzkn",
+      "cameraSha256": "c0475c8d851c0cba80fe10145b88f4c6637fbf445135c0b4a4fa218b36ea2a0a",
+      "imageSha256": "177596966788bb1df1d98eb5690b73946d72b4cee9ffa50b86640fad1321ed4f",
+      "verdict": "clear of board-plane intersections; relocated board visible or edge-on as requested"
+    }
+  ],
+  "interruptedPrefixes": []
+}

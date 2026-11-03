@@ -1,0 +1,288 @@
+{
+  "source": "add58749dab8d20d3df8af657f1f5bc5389c14f1",
+  "build": "add5874-mw0y4kqk",
+  "baselineSource": "8d810f14d7",
+  "baselineImageSha256": "14c7b823a3d9706f125af79e09e451a2b5f64a487e96238e83333eb84dcd73fd",
+  "framing": "Reconstructed, not recovered exact cameras. Core coordinates remain fixed; supplementals explicitly separate.",
+  "coreViews": 36,
+  "frames": [
+    {
+      "billboard": "entry-s",
+      "view": 1,
+      "imageSha256": "0251117a44a037521619cf7bb92eab05d88da264d689bc3ecae4323b3d7e71c6",
+      "cameraSha256": "d2be83ccc297b3dd1ca5380bcec3bc177057012141aa89b6f197720a25d9c25d"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 2,
+      "imageSha256": "7c6cff6f1317c564c6f1d062a61c0686dbf1bf0e72a5a8e54d87d26404b74050",
+      "cameraSha256": "d2be83ccc297b3dd1ca5380bcec3bc177057012141aa89b6f197720a25d9c25d"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 3,
+      "imageSha256": "a338dc4f74c6c699b4198b4a74e53294449c60d828afc956268e163529b496e9",
+      "cameraSha256": "d2be83ccc297b3dd1ca5380bcec3bc177057012141aa89b6f197720a25d9c25d"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 4,
+      "imageSha256": "be05acec46bf06407b46eae97667b7f4af3ced9fe64b4c73e701dad2e74735c5",
+      "cameraSha256": "d2be83ccc297b3dd1ca5380bcec3bc177057012141aa89b6f197720a25d9c25d"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 5,
+      "imageSha256": "23716822632b5d71317f67993f62a415b987524b045a870486bdbe45c70cb3b1",
+      "cameraSha256": "d2be83ccc297b3dd1ca5380bcec3bc177057012141aa89b6f197720a25d9c25d"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 6,
+      "imageSha256": "fb866cd63921b4335b021f4a528f216221bf05b093d60bd69537e35db25fa736",
+      "cameraSha256": "d2be83ccc297b3dd1ca5380bcec3bc177057012141aa89b6f197720a25d9c25d"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 7,
+      "imageSha256": "3668835c38170f6e200e14601f48dcaefc1f09e75979212af3de9f40930f2430",
+      "cameraSha256": "d2be83ccc297b3dd1ca5380bcec3bc177057012141aa89b6f197720a25d9c25d"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 8,
+      "imageSha256": "effec098ff218f9bf39783293aa6401d5006f6d70d3d5c81b4506ba42bdf2aab",
+      "cameraSha256": "d2be83ccc297b3dd1ca5380bcec3bc177057012141aa89b6f197720a25d9c25d"
+    },
+    {
+      "billboard": "entry-s",
+      "view": 9,
+      "imageSha256": "1452f461a73849f0b09ad7f8dc6d7dfaffd0aa691d9fe1015cd5bf4fc442ae62",
+      "cameraSha256": "d2be83ccc297b3dd1ca5380bcec3bc177057012141aa89b6f197720a25d9c25d"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 1,
+      "imageSha256": "9e83d508ea62b94b22d13a8792a70aa4b33c682d7784b7298a9994d4ef482a61",
+      "cameraSha256": "41848e256ce603f1a54abf0b1d546cf456d0a6098db42b2089d48ca7706e1df6"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 2,
+      "imageSha256": "37bcd0b5c1ac81b661ada38727aa40cb421efb904072116bef1b750045f72316",
+      "cameraSha256": "41848e256ce603f1a54abf0b1d546cf456d0a6098db42b2089d48ca7706e1df6"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 3,
+      "imageSha256": "79602de2a4dc0b9950a215bd30cc10b78dacb652b186178a0f64b09d3683e403",
+      "cameraSha256": "41848e256ce603f1a54abf0b1d546cf456d0a6098db42b2089d48ca7706e1df6"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 4,
+      "imageSha256": "eb81b30d9cc96f6e7590d1891c44eca9664b24bb71794f6bbc97419c58acf70f",
+      "cameraSha256": "41848e256ce603f1a54abf0b1d546cf456d0a6098db42b2089d48ca7706e1df6"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 5,
+      "imageSha256": "72a287db53dd1b2b49aee2a25b484331cd96feb75e8d1a7262bf2701cb240fc5",
+      "cameraSha256": "41848e256ce603f1a54abf0b1d546cf456d0a6098db42b2089d48ca7706e1df6"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 6,
+      "imageSha256": "6a6cadf3b61da128db19bbcc1a1615f5bbc12dd19eaacb2b91e129b1d7f78465",
+      "cameraSha256": "41848e256ce603f1a54abf0b1d546cf456d0a6098db42b2089d48ca7706e1df6"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 7,
+      "imageSha256": "760e6dc984f5fdb82eaaf07d7f950c26db7ea009042dbbd0b9e3e25ce13f027e",
+      "cameraSha256": "41848e256ce603f1a54abf0b1d546cf456d0a6098db42b2089d48ca7706e1df6"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 8,
+      "imageSha256": "e622277ed2234c60efa9650fc586d52a2d52c4689dac144f282f9f5b85564b91",
+      "cameraSha256": "41848e256ce603f1a54abf0b1d546cf456d0a6098db42b2089d48ca7706e1df6"
+    },
+    {
+      "billboard": "entry-n",
+      "view": 9,
+      "imageSha256": "e0bbeed2a666be703e5d115a6fd3e336c409f476e8ee8ac489f4830694519103",
+      "cameraSha256": "41848e256ce603f1a54abf0b1d546cf456d0a6098db42b2089d48ca7706e1df6"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 1,
+      "imageSha256": "7ee1d80326b74bb8f028a24292be8f14ea20a1fafb12456aa0a721d35d3dcc89",
+      "cameraSha256": "07e91a0d253daaa36063b806be44d9d1906c140e2b3f6e3b7b1d450f85ab603f"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 2,
+      "imageSha256": "e40ff758f7103368503c26ef19952a201307a6a58222a91b8874afb7c7944bb6",
+      "cameraSha256": "07e91a0d253daaa36063b806be44d9d1906c140e2b3f6e3b7b1d450f85ab603f"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 3,
+      "imageSha256": "cef2ba4bbbed053c5bb36035fff9ef34abbfc487fe9ffd73a778a0e2eb7f82b6",
+      "cameraSha256": "07e91a0d253daaa36063b806be44d9d1906c140e2b3f6e3b7b1d450f85ab603f"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 4,
+      "imageSha256": "871ad1ae6929a6990f55c4e020efabc5879cce53034f4aa611b106d146fd8e47",
+      "cameraSha256": "07e91a0d253daaa36063b806be44d9d1906c140e2b3f6e3b7b1d450f85ab603f"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 5,
+      "imageSha256": "271038c9209cba21d9f5a13b152694623fd6298be0be02af5580cd01a0022a40",
+      "cameraSha256": "07e91a0d253daaa36063b806be44d9d1906c140e2b3f6e3b7b1d450f85ab603f"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 6,
+      "imageSha256": "e0cc5e43a6338f3bc595e1dee8dfd27d7b2686a755a1663dfdb9e853fb45c28d",
+      "cameraSha256": "07e91a0d253daaa36063b806be44d9d1906c140e2b3f6e3b7b1d450f85ab603f"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 7,
+      "imageSha256": "9c35849e2e77bb4fe437e73ff24eee1edc3f01513e98c5c979980927bed06498",
+      "cameraSha256": "07e91a0d253daaa36063b806be44d9d1906c140e2b3f6e3b7b1d450f85ab603f"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 8,
+      "imageSha256": "175e59ec248caf325e77039fd9993b4593a354891617c3069121068a0e6295e0",
+      "cameraSha256": "07e91a0d253daaa36063b806be44d9d1906c140e2b3f6e3b7b1d450f85ab603f"
+    },
+    {
+      "billboard": "entry-e",
+      "view": 9,
+      "imageSha256": "1db325dc99fc22918ba64dd67e82cc477a65bca02aa59fd635e3a7af67e8a33d",
+      "cameraSha256": "07e91a0d253daaa36063b806be44d9d1906c140e2b3f6e3b7b1d450f85ab603f"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 1,
+      "imageSha256": "2bf598ceb18f73ac19533c399aa5062ba98f2642fc357db284de4579359b8fc0",
+      "cameraSha256": "89b197d6e77a98fcc13373626a6b2b37acc672b66aaf9d17c2d03c33cb200b92"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 2,
+      "imageSha256": "7f0a0504d2990bf5f5381351325e2665aa1fcb9af99153f7fcc720860b22c81b",
+      "cameraSha256": "89b197d6e77a98fcc13373626a6b2b37acc672b66aaf9d17c2d03c33cb200b92"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 3,
+      "imageSha256": "274c880c0770448812cdcc1d37c0c2d1b2246d2b2cc9f63c81bb869b122ab697",
+      "cameraSha256": "89b197d6e77a98fcc13373626a6b2b37acc672b66aaf9d17c2d03c33cb200b92"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 4,
+      "imageSha256": "916bbffbe40b67dfe914d3eaf0b0981d0f49faab3c872857bc59ef36caebc404",
+      "cameraSha256": "89b197d6e77a98fcc13373626a6b2b37acc672b66aaf9d17c2d03c33cb200b92"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 5,
+      "imageSha256": "68ba5c058a66620917e06cbd6ced5acaa6a4e4630ab690e1d1d13187169d9c54",
+      "cameraSha256": "89b197d6e77a98fcc13373626a6b2b37acc672b66aaf9d17c2d03c33cb200b92"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 6,
+      "imageSha256": "da85361ec2b93dd561788611605c88f3721b4e3c41b73cefbd8a50a123546e80",
+      "cameraSha256": "89b197d6e77a98fcc13373626a6b2b37acc672b66aaf9d17c2d03c33cb200b92"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 7,
+      "imageSha256": "2823246fee7febcd457ebdb28ad42759f896a389a752f406c16ef0f080fad026",
+      "cameraSha256": "89b197d6e77a98fcc13373626a6b2b37acc672b66aaf9d17c2d03c33cb200b92"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 8,
+      "imageSha256": "567eaa203b5569ea41afd17d92445d49017832d093445c145af8a0d3fee561ae",
+      "cameraSha256": "89b197d6e77a98fcc13373626a6b2b37acc672b66aaf9d17c2d03c33cb200b92"
+    },
+    {
+      "billboard": "entry-w",
+      "view": 9,
+      "imageSha256": "cdb6df425884bbd0d858e9e90a5196c8a59d8c33541b56b4b1f07fce491fe4d8",
+      "cameraSha256": "89b197d6e77a98fcc13373626a6b2b37acc672b66aaf9d17c2d03c33cb200b92"
+    }
+  ],
+  "board": "art/open-plots/billboard-review-2026-11-03/after/coral-drift/before-after-board.jpg",
+  "boardSha256": "063cbfa259b786b7fbb20ba828c711be10684a25cfe3facdd659e894fb3ee81c",
+  "jpegQuality": 64,
+  "verdicts": {
+    "entry-s": {
+      "1": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "2": "clear: observed picture/frame has no geometry intersection",
+      "3": "clear: observed picture/frame has no geometry intersection",
+      "4": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "5": "clear: observed picture/frame has no geometry intersection",
+      "6": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "7": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "8": "clear: observed picture/frame has no geometry intersection",
+      "9": "clear: observed picture/frame has no geometry intersection"
+    },
+    "entry-n": {
+      "1": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "2": "clear: observed picture/frame has no geometry intersection",
+      "3": "clear: observed picture/frame has no geometry intersection",
+      "4": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "5": "clear: observed picture/frame has no geometry intersection",
+      "6": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "7": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "8": "clear: observed picture/frame has no geometry intersection",
+      "9": "clear: observed picture/frame has no geometry intersection"
+    },
+    "entry-e": {
+      "1": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "2": "clear: observed picture/frame has no geometry intersection",
+      "3": "clear: observed picture/frame has no geometry intersection",
+      "4": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "5": "clear: observed picture/frame has no geometry intersection",
+      "6": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "7": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "8": "clear: observed picture/frame has no geometry intersection",
+      "9": "clear: observed picture/frame has no geometry intersection"
+    },
+    "entry-w": {
+      "1": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "2": "clear: observed picture/frame has no geometry intersection",
+      "3": "clear: observed picture/frame has no geometry intersection",
+      "4": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "5": "clear: observed picture/frame has no geometry intersection",
+      "6": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "7": "PARTIAL FRAMING: original camera kept while entry offset moved 12.5 to 18 m; visible surface has no intersection, full clearance not proved by this frame alone",
+      "8": "clear: observed picture/frame has no geometry intersection",
+      "9": "clear: observed picture/frame has no geometry intersection"
+    }
+  },
+  "supplemental": [],
+  "interruptedPrefixes": [
+    {
+      "file": "tmp/op26-reshoot/captures/remaining-resume1/coral-drift/open-plot-coral-drift/capture.json",
+      "sha256": "80dbb4cf86a2b23ea92bc394c739c6117b5202c0030c9474f949aee0c434f73c",
+      "captureStatus": null,
+      "originalDomeErrors": {
+        "A1-entry-s": [
+          "Error: page.evaluate: Target page, context or browser has been closed"
+        ]
+      }
+    }
+  ]
+}
