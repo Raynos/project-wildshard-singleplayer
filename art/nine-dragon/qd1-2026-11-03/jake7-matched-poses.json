@@ -1,0 +1,61 @@
+{
+ "about": "QD1 redo (2026-11-03, wildshard-v's 11:30 read): Jake's 7 QA spots in Nine, posed to his shots. Position (x, z) by correlating each 1 m grid spot's minimap with his minimap (0.84-0.96); feet height y by the level he stood on; yaw / pitch in degrees (yaw 0 = north = -z, 90 = east = +x) matched by eye. Used by tmp-free reshoots through window.__wildshard.pose({x, z, y, yaw: -yaw rad, pitch: pitch rad}).",
+ "spots": [
+  {
+   "shot": "art/qa-2026-11-03/qd1-shaft-floating.jpg",
+   "x": -1,
+   "z": -6,
+   "feetY": 125,
+   "yaw": 325,
+   "pitch": -35
+  },
+  {
+   "shot": "art/qa-2026-11-03/qd1-shaft-void.jpg",
+   "x": 0,
+   "z": -6,
+   "feetY": 126.5,
+   "yaw": 305,
+   "pitch": -45
+  },
+  {
+   "shot": "art/qa-2026-11-03/qd1-shaft-ceilings.jpg",
+   "x": 1,
+   "z": -26,
+   "feetY": 135,
+   "yaw": 15,
+   "pitch": -58
+  },
+  {
+   "shot": "art/qa-2026-11-03/qd1-street-floor.jpg",
+   "x": 8,
+   "z": 19,
+   "feetY": 125,
+   "yaw": 210,
+   "pitch": -15
+  },
+  {
+   "shot": "art/qa-2026-11-03/qd1-street-walls.jpg",
+   "x": 10,
+   "z": 13,
+   "feetY": 125,
+   "yaw": 165,
+   "pitch": 4
+  },
+  {
+   "shot": "art/qa-2026-11-03/qd2-train-gate.jpg",
+   "x": 6,
+   "z": -8,
+   "feetY": 125,
+   "yaw": 340,
+   "pitch": 8
+  },
+  {
+   "shot": "art/qa-2026-11-03/qd3-stairs-neon.jpg",
+   "x": 34,
+   "z": 7,
+   "feetY": 134,
+   "yaw": 270,
+   "pitch": -22
+  }
+ ]
+}

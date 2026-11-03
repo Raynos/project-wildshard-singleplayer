@@ -53,3 +53,19 @@ this board shows the spots are whole after the fix, not the defect itself: cam 2
   `c9ae94288f` capture (sp-x2, before QD1) is pixel-for-pixel the same at cams 1 and 5, and sp-o2's WebKit SSIM matches
   its `c9ae` run: it predates both fixes. A slab-anchor visibility change cannot recolour a sky. Owner to find: a Nalati
   look / time-of-day change between the goldens (10-29) and `c9ae94288f`.
+
+## Jake's 7 spots, matched (QD1 redo, 11:30)
+
+wildshard-v's read: the first 7-spot boards above used approximate poses and prove nothing. [jake7-matched-board.jpg](jake7-matched-board.jpg)
+puts each spot at Jake's own pose ([jake7-matched-poses.json](jake7-matched-poses.json): position from his minimap,
+each 1 m grid spot's minimap correlated with his at 0.84-0.96; heading and pitch matched to his view), JAKE'S PHONE ·
+LIVE `8057f4f` · FIX `2d4405a` (both QD1 fixes + QD11), 60 s at each pose.
+
+- **Street floor (07:49) is the before / after:** LIVE reproduces his shot, a flat pale floor with walkers on it (the
+  flagstones were children of hidden kit anchors); FIX draws the flagstone street. Nearby (x 12-14) FIX also draws plain
+  walls where LIVE leaves see-through gaps.
+- **The other six** look the same on LIVE and FIX in Chromium, as his phone shots of them do: those spots were not where
+  the missing geometry showed.
+- **The pale plane** at the bottom of the earlier shaft boards is not a floor, a clear plane or a fog card: those
+  approximate poses stood 35-50 m above the square looking past the stack's open edge, and rays there hit no collider
+  within 400 m. It is the fog over the void under the stack, the same on both builds. Nothing to fix.
