@@ -20,6 +20,19 @@ test('native memory witnesses copy the actual runtime residents without inventin
   assert.deepEqual(Array.from(next.pending),['other']);assert.equal(next.phase,'loading');
 });
 
+test('standalone readiness uses the real entered unpaused frame gate', () => {
+  const hud={entered:false,paused:false}; let ready=true;
+  const context={window:{__wildshard:{memory:()=>({totals:{gpu:12},unattributed:{gpu:0},allocations:[]}),
+    shard:{},world:{hud,game:{frameGate:()=>ready}}}},performance:{timeOrigin:1}};
+  assert.equal(runInNewContext(floorNativeExpression,context).phase,'loading');
+  hud.entered=true;
+  assert.equal(runInNewContext(floorNativeExpression,context).phase,'playing');
+  hud.paused=true;
+  assert.equal(runInNewContext(floorNativeExpression,context).phase,'loading');
+  hud.paused=false;ready=false;
+  assert.equal(runInNewContext(floorNativeExpression,context).phase,'loading');
+});
+
 const native = Array.from({ length: 6 }, (_, index) => ({ type: 'sample', phase: 'measure',
   t: new Date(index * 100).toISOString(), interval: index < 3 ? 900 : 700,
   pids: { 7: [500, 600], 8: [10, 20] } }));

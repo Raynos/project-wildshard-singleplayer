@@ -24,6 +24,8 @@
 import { spawn, spawnSync, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
+import { createHash } from 'node:crypto';
+import { frameFloorStanding } from './frame-floor-standing.mjs';
 import { createServer } from 'node:http';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { fixtureStorageCode, saveFixtureCode } from './debug-settings.mjs';
@@ -68,6 +70,11 @@ if (nativeDirectory !== '' && (surface !== 'sim' || !existsSync(nativeDirectory)
 const frames = Number(flag('frames', '120'));
 const settleMs = Number(flag('settle', '2')) * 1000;
 const standingPoses = flag('standing-poses', '').split(',').filter(Boolean);
+const standingFile = flag('standing-file', '');
+const standingBytes = standingFile === '' ? null : readFileSync(resolvePath(ROOT, standingFile));
+const suppliedStanding = standingBytes === null ? null : frameFloorStanding(JSON.parse(standingBytes.toString('utf8')), shards);
+const standingSource = standingBytes === null ? null : {file: standingFile, sha256: createHash('sha256').update(standingBytes).digest('hex'), poses: suppliedStanding};
+if (suppliedStanding !== null && standingPoses.length > 0) throw new Error('Choose standing-file or standing-poses');
 if (standingPoses.length > 8 || new Set(standingPoses).size !== standingPoses.length || standingPoses.some(name => !/^[a-zA-Z0-9_.-]{1,128}$/u.test(name))) throw new Error('--standing-poses requires up to eight unique authored camera names');
 const device = flag('device', 'frame-floor-iphone-17-pro');
 const developer = flag('developer', 'on');
@@ -522,7 +529,7 @@ async function measureShard(driver, shard, deadline) {
     // cold entry likewise approaches its cell with no standing pose beside it first
     const gridPoses = shard === 'grid' && !['outer-road', 'cold', 'nine-return', 'sky-cycle'].includes(gridScenario)
       ? gridFloorPoses(await driver.evaluate('(() => { const pitch = window.__wildshard.shard.grid.state().pitch; return pitch === undefined ? 555 : pitch; })()')) : [];
-    const declared = [...await driver.evaluate(`(${cameras.toString()})()`), ...gridPoses];
+    const declared = suppliedStanding?.[shard] ?? [...await driver.evaluate(`(${cameras.toString()})()`), ...gridPoses];
     const candidates = declared.length > 0 ? declared : [{ ...meta.spawn, name: 'spawn-reverse', yaw: meta.spawn.yaw + Math.PI }];
     const scan = [];
     for (const pose of candidates) {
@@ -533,7 +540,7 @@ async function measureShard(driver, shard, deadline) {
       scan.push({ pose, p95Ms: result.p95Ms, workP95Ms: result.workP95Ms, calls: result.calls, triangles: result.triangles });
     }
     // Rank authored standing parity cameras on the surface itself; no shard-name camera table to go stale.
-    const heaviest = standingPoses.length === 0 ? [...scan].sort((a, b) => b.p95Ms - a.p95Ms || b.workP95Ms - a.workP95Ms || b.triangles - a.triangles).slice(0, 2)
+    const heaviest = suppliedStanding !== null ? scan : standingPoses.length === 0 ? [...scan].sort((a, b) => b.p95Ms - a.p95Ms || b.workP95Ms - a.workP95Ms || b.triangles - a.triangles).slice(0, 2)
       : standingPoses.map(name => { const row = scan.find(candidate => candidate.pose.name === name); if (row === undefined) throw new Error(`Missing authored standing pose: ${name}`); return row; });
     for (const pose of heaviest.map((r) => r.pose)) {
       if (Date.now() > deadline) throw new Error('Ten-minute run budget exhausted');
@@ -1193,6 +1200,7 @@ async function main() {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
       const workerArgs = [SCRIPT, '--worker', ...(devserverBuild ? ['--devserver'] : []), `--surface=${s}`, `--developer=${developer}`, `--standing-poses=${standingPoses.join(',')}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(roadApproach ? ['--road-approach'] : []), ...(entrySocket ? ['--entry-socket'] : []), ...(risingIslet === '' ? [] : [`--rising-islet=${risingIslet}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(texturesPin === '' ? [] : [`--textures=${texturesPin}`]), ...(ktx2ProbePin === '' ? [] : [`--ktx2-probe=${ktx2ProbePin}`]), ...(glTime ? ['--gl-time'] : []), ...(gpuBisectOn ? ['--gpu-bisect'] : []), ...(frameTimeline ? ['--frame-timeline'] : []), ...(taskClock ? ['--task-clock'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(safariProfileDir === '' ? [] : [`--safari-profile=${safariProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       if (chromiumPhone) workerArgs.push('--chromium-phone');
+      if (standingFile !== '') workerArgs.push(`--standing-file=${resolvePath(ROOT, standingFile)}`);
       if (drawBudgetOn) workerArgs.push(drawBudgetMode === 'report-only' ? '--draw-budget-report-only' : '--draw-budget');
       if (softwareCensus !== null) workerArgs.push('--software-draw-census');
       if (chromiumCpuRate !== 1) workerArgs.push(`--chromium-cpu=${chromiumCpuRate}`);
@@ -1230,7 +1238,7 @@ async function main() {
     }
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
-    const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
+    const record = grade({ schema: 2, sha, runId, device, standingSource, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
       drawBudgetOn, drawBudgetMode, chromiumAngle, chromiumAngleExplicit: chromiumBackend.explicit, ...(softwareCensus === null ? {} : {softwareCensus}), ...(postReadyCpu ? {cpuPhaseMode: 'after-ready', bootCpuRate: 1} : {}), ...(chromiumCpuRate === 1 ? {} : {chromiumCpuRate, diagnostic: 'cpu-throttled-chromium', floorTimingCredit: false}),
       frames, settleMs, standingPoses, shards, surface, developer, quiet: quietSample, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, gpuBisect: gpuBisectOn, safariProfile: safariProfileDir !== '', ...(safariSteadyPose === '' ? {} : {safariSteady: {pose: safariSteadyPose, seconds: 20}}), ...(safariDrive === '' ? {} : {safariDrive: {route: safariDrive, ...(safariSteadyPose === '' ? {earlyPlaySeconds: 20} : {separateSteady: true})}}), ...(safariPrefix === '' ? {} : {safariPrefix: {route: safariPrefix, seconds: 20}}), ...(safariWindow === null ? {} : {safariWindow}), webkitTimeline: webkitTimelineDir !== '', ...(webkitSteadyPose === '' ? {} : {webkitSteady: {poses: webkitSteadyPoses, seconds: 20}}), pauseAblation, bufferAblation, nativeJscGcLog: jscGcDirectory !== '', ...(jscRamSize === 0 ? {} : {diagnosticJscRamSizeBytes: jscRamSize}), wasmConstructors: wasmConstructorsDir !== '', nativePressure: nativePressureDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,

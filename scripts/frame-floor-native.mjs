@@ -11,7 +11,9 @@ export const floorNativeExpression = `(() => {
   const memory = read.call(api), grid = api.shard?.grid?.state(), live = grid?.live?.live;
   return { at: Date.now(), origin: performance.timeOrigin,
     memory: { totals: memory.totals, unattributed: memory.unattributed, allocations: memory.allocations.filter(row => row.domain === 'gpu') },
-    phase: live?.gameplayReady && live.pending.length === 0 && grid.live.crossing.phase === 'settled' ? 'playing' : 'loading',
+    phase: grid === undefined
+      ? api.world?.hud.entered && !api.world.hud.paused && api.world.game.frameGate() ? 'playing' : 'loading'
+      : live?.gameplayReady && live.pending.length === 0 && grid.live.crossing.phase === 'settled' ? 'playing' : 'loading',
     current: live?.current ?? null, residents: [...(live?.residents ?? [])],
     pending: [...(live?.pending ?? [])] };
 })()`;

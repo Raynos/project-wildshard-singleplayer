@@ -2,7 +2,7 @@ const switches = new Set(['help', 'worker', 'draw-budget', 'draw-budget-report-o
 const values = new Set(['base', 'chromium-cpu', 'chromium-angle', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
   'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile', 'safari-steady', 'safari-drive', 'safari-prefix', 'safari-window',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir',
-  'textures', 'ktx2-probe', 'serve-shard', 'serve-base', 'standing-poses', 'native-memory', 'webkit-timeline', 'webkit-steady', 'native-pressure', 'wasm-constructors', 'jsc-gc-log', 'jsc-ram-size']);
+  'textures', 'ktx2-probe', 'serve-shard', 'serve-base', 'standing-poses', 'standing-file', 'native-memory', 'webkit-timeline', 'webkit-steady', 'native-pressure', 'wasm-constructors', 'jsc-gc-log', 'jsc-ram-size']);
 
 /** Explicit EP10 policy; reporting retains every miss without changing the floor verdict.
  * @param {readonly string[]} args
