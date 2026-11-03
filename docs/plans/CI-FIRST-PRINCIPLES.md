@@ -199,7 +199,7 @@ Codex does the workflow engineering (non-visual). Ordered to unstick the deploy 
 | Row | What | Done when | Lane | Size |
 |---|---|---|---|---|
 | CI1 | Pin wave 1 (G919): delete tonight's red Nalati pins and the 2-day repeat offenders (§2); each commit lists the test and what it pinned | **done** (see lane) — Push CI green on main again | Codex sp-ci-deploy · done 143b3edd27, 5b54b7d044, ba70969be3 | S |
-| CI2 | Ship the tested build (G920): push CI stages tested prebuilt output beside the wave; after all 37 green, ship promotes that exact protected deployment, with the original strict prebuilt fallback | Release ≤ 3 min; live `version.json` = the tested SHA | **in flight (2026-10-31, sp-x2 retained audit):** 26/32 complete ship jobs meet 180 s. All six misses are dominated by artifact download plus strict restore, **69.532–214.302 s**, with no historical network/decode split. CLI install, deployment and verifier are measured separately; two misses have 20 s verifier waits. `f15555814f` checkout and protected staging `1f56a01a53` are landed. First normal fast-path release `19c9b94da8` ships in **49 s**; select/promote cost **2.240 / 4.110 s**, with no ship artifact download/restore. This one after reading does not close the whole acceptance bar. [Each miss and limits](#ci2--ci3-miss-classification-and-current-acceptance). | M |
+| CI2 | Ship the tested build (G920): push CI stages tested prebuilt output beside the wave; after all 37 green, ship promotes that exact protected deployment, with the original strict prebuilt fallback | **done, measured bar:** release ≤ 3 min; live BUILD/source = the tested SHA | **done (2026-11-02, sp-x9; G872 self-applied):** all **15/15** retained ordinary staged releases `19c9` through `5c72` complete the official ship job in **26–49 s** (median **32 s**), all below 180 s. Exact-SHA success-status → first matching production BUILD is **20.875–40.668 s** (median **24.690 s**). Same-attempt stage/source/run/BUILD, all 37/SIX and actual promotion are checked; ship restore/recovery branches are skipped. Historical six pre-stage intake misses remain below, superseded for current staged acceptance. [Every job, clock and scope limit](#ci2-staged-release-cohort-meets-the-bar). | M |
 | CI3 | Deploy as soon as green (G920): drop the hourly slot; a green exact-SHA proof deploys at once if newer than live | Live = the newest green SHA within 5 min of its verdict | **done (2026-10-31, G872 ruling):** since `93bd4ce2ba` merged boot verdict and shipping, **21/21 automatic releases** in the retained cohort reach the matching live build within 300 s of the exact-SHA success status (107.685–196.017 s). All eight automatic misses predate that merge and are superseded; BA78 is a later manual recovery, not a 2,676 s runner-queue miss. Earlier required-job completion remains a separate CI9 clock. [Source-bound cohort and exclusions](#ci2--ci3-miss-classification-and-current-acceptance). | S |
 | CI4 | Delete `test-quarantine.yml` (G923); fix DEPLOY.md's gpu-gate text | **done** (see lane) — Workflow gone; DEPLOY.md matches | Codex sp-ci-deploy · done 87baf789f5 | S |
 | CI5 | Lazy `test/setup.ts`: world installs move to opt-in fixtures | **done, measured bar (G872):** setup < 10%; ordinary green containing run. Original shards −40% is not measurable; shard balance belongs to CI7. | **done (2026-10-31, sp-x9).** `72aad6c49d`: same local 12-file cohort 24.85 → 10.42 s (−58.1%), setup 52% → 1%; not a CI shard comparison. Retained Linux `60c0084758` / run `41154960690`: 24 timing artifacts, 2340 files exactly once, setup 46.613 / 7609.665 module-phase s = **0.61255%**. Ordinary containing green `6a84ecffe6` / run `41201418097` passes all 36 required jobs, native3 and SIX, verified live `6a84ecf-mvwe2b6c`; ancestry to `72aad` checked. No pre-`72aad` ordinary shard baseline is retained, and CI7 has since rebalanced allocation: the original −40% half is **not measurable**, not a claimed gain. CI7 owns that axis (60c0 max 199 s / mean 167.667 s = 1.186879x). G872 closes CI5 on the measured setup/ordinary-run bar. | M |
@@ -1633,7 +1633,8 @@ gate after Jake’s explicit current-pipeline acceptance ruling.
 ### CI2: all six misses are dominated by artifact intake
 
 CI2 measures the **complete ship job**, not just `vercel deploy` or the
-first match. Its 180 s bar stays open at **26/32**. Raw log boundaries
+first match. At that pre-stage audit its 180 s bar remained open at **26/32**;
+the [current staged cohort](#ci2-staged-release-cohort-meets-the-bar) now meets it. Raw log boundaries
 separate artifact intake from the pinned CLI installation that happens
 after restore, avoiding the misleading combined workflow-step duration.
 
@@ -2997,7 +2998,8 @@ the official job start. The 35ee / 7de intake components above are
 1.537 GB archives. The observed ship spans are 131 / 94 → 49 s; this
 is not an isolated source-speed or future reliability claim. No archive,
 map, version, failure, forward-floor or protection guard is relaxed.
-CI2 acceptance stays **open**; CI3 keeps its existing G872 ruling.
+At this first-reading boundary CI2 acceptance stayed **open**; the later
+[15-release staged cohort](#ci2-staged-release-cohort-meets-the-bar) closes the current bar. CI3 keeps its existing G872 ruling.
 No new protocol/CLI experiment, dispatch, API fetch or local deployment
 was used for this read. Exact existing logs/attempt metadata are
 `tmp/sp-ci-deploy-qa-refresh/qa-{35ee,7de6,19c9}-{deploy.log,attempt-jobs.json}`;
@@ -3328,3 +3330,69 @@ inventories and phone artifacts/summaries bind actual app work;60e has
 `phone-60e2-artifact-reading.json`. X9's existing latest20 inventory and
 cohort parser retain cancellation/selection scope. No new remote read,
 Simulator, browser, test run, workflow, cap or source-runtime edit.
+
+
+### CI2: staged-release cohort meets the bar
+
+**2026-11-02, sp-x9; G969, G872 self-applied. CI2 is done on the measured current-path bar.** All **15/15**
+ordinary staged-promote releases named for this audit (`19c9`, `b5a7`, `6294`, `6bfd`, `578c`, `48a9`, `99d9`,
+`d0c3`, `0f02`, `e5de`, `2dc`, `8b4`, `cff6`, `36cd`, `5c72`) meet **180 s**. This is also the complete set of
+retained completed staged-release proofs, with no omitted staged release in that inventory. The first ship's
+**49 s** is the maximum, not the only acceptance reading. Median ship span is **32 s**; range **26–49 s**.
+Every ship and its exact staged production BUILD/source is successful. No current-cohort miss needs a new cut.
+
+**Clocks:** ship span uses official job `completed_at − started_at`, including setup, selection, the pinned CLI,
+promotion, production verification and job tail; it excludes runner admission before execution. Status → live uses
+the exact source's successful `boot-smoke` status `created_at` and the first `Production …; match true` BUILD poll in
+that same ship's retained log, as CI3's accepted clock does. The status timestamp lies inside that job's actual
+`Publish exact-SHA proof outcome` step in every row. First matching live is the first observed verifier match, not an
+inferred promotion instant or the later time root finishes maps/API/browser review. All timestamps below are UTC;
+the status/match columns use the date in their ship-span column. Job metadata has one-second precision; log match
+values are reported to milliseconds.
+
+| Exact source | Source/release run / ship job | Official ship start → completion (UTC) | Ship span (s) | Success status → first matching live (UTC) | Status → live (s) |
+|---|---|---|---:|---|---:|
+| [`19c9b94da8d2`](https://github.com/Raynos/project-wildshard-singleplayer/commit/19c9b94da8d26d38d0e88cc48af5b8067081a5da) | [41246013775 / 124676518361](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41246013775/job/124676518361) | 10-31 22:34:01 → 22:34:50 | 49 | 22:34:05 → 22:34:45.668 | 40.668 |
+| [`b5a7dc391dd1`](https://github.com/Raynos/project-wildshard-singleplayer/commit/b5a7dc391dd1668ab72aa4c7754306afd7d9dcb0) | [41246697308 / 124679218941](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41246697308/job/124679218941) | 10-31 22:44:03 → 22:44:34 | 31 | 22:44:06 → 22:44:30.130 | 24.130 |
+| [`62941932c97b`](https://github.com/Raynos/project-wildshard-singleplayer/commit/62941932c97bd2fbfc6da57e050df2454636649c) | [41247565372 / 124683284504](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41247565372/job/124683284504) | 10-31 23:00:30 → 23:01:01 | 31 | 23:00:33 → 23:00:57.814 | 24.814 |
+| [`6bfd5d5601de`](https://github.com/Raynos/project-wildshard-singleplayer/commit/6bfd5d5601deb16cc929f2288f97af5ef1844f99) | [41251531359 / 124691787216](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41251531359/job/124691787216) | 10-31 23:42:30 → 23:42:59 | 29 | 23:42:33 → 23:42:54.279 | 21.279 |
+| [`578c36fb03b6`](https://github.com/Raynos/project-wildshard-singleplayer/commit/578c36fb03b649d8d98ba0e630f2445ad047abc5) | [41252242707 / 124693846060](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41252242707/job/124693846060) | 10-31 23:51:08 → 23:51:46 | 38 | 23:51:11 → 23:51:43.275 | 32.275 |
+| [`48a9181c2dd7`](https://github.com/Raynos/project-wildshard-singleplayer/commit/48a9181c2dd7c7a0f101909cec103905a33e4b66) | [41254677998 / 124701325502](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41254677998/job/124701325502) | 11-01 00:25:57 → 00:26:39 | 42 | 00:26:00 → 00:26:34.963 | 34.963 |
+| [`99d9ff28cc37`](https://github.com/Raynos/project-wildshard-singleplayer/commit/99d9ff28cc376b553c5d957c44c0415e971b6ad0) | [41255716379 / 124704909714](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41255716379/job/124704909714) | 11-01 00:43:56 → 00:44:28 | 32 | 00:43:59 → 00:44:24.306 | 25.306 |
+| [`d0c35248f398`](https://github.com/Raynos/project-wildshard-singleplayer/commit/d0c35248f398670c64b42803b873df71e3093b06) | [41257876235 / 124710006088](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41257876235/job/124710006088) | 11-01 01:06:07 → 01:06:46 | 39 | 01:06:12 → 01:06:42.329 | 30.329 |
+| [`0f0248e9f475`](https://github.com/Raynos/project-wildshard-singleplayer/commit/0f0248e9f47506e3604a352dbb484b42b1d34f86) | [41259584971 / 124713575428](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41259584971/job/124713575428) | 11-01 01:27:42 → 01:28:14 | 32 | 01:27:45 → 01:28:09.690 | 24.690 |
+| [`e5deeb43ba78`](https://github.com/Raynos/project-wildshard-singleplayer/commit/e5deeb43ba78d4e8dcb66b78944051219fd0da14) | [41259937106 / 124716432487](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41259937106/job/124716432487) | 11-01 01:37:40 → 01:38:06 | 26 | 01:37:42 → 01:38:02.876 | 20.875 |
+| [`2dcda6920909`](https://github.com/Raynos/project-wildshard-singleplayer/commit/2dcda6920909ab3f828024abb714413e70e77f5e) | [41260414535 / 124718363199](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41260414535/job/124718363199) | 11-01 01:46:54 → 01:47:37 | 43 | 01:46:56 → 01:47:34.327 | 38.327 |
+| [`8b4d4eed6d5e`](https://github.com/Raynos/project-wildshard-singleplayer/commit/8b4d4eed6d5e9714d397ae39fe934c8e2ce0beb2) | [41260848147 / 124719902181](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41260848147/job/124719902181) | 11-01 01:54:35 → 01:55:13 | 38 | 01:54:38 → 01:54:59.702 | 21.702 |
+| [`cff6cc28ca1c`](https://github.com/Raynos/project-wildshard-singleplayer/commit/cff6cc28ca1c6b3850f31c4a33c8621e25abf1f3) | [41262437862 / 124724462762](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41262437862/job/124724462762) | 11-01 02:16:58 → 02:17:24 | 26 | 02:17:00 → 02:17:22.061 | 22.061 |
+| [`36cdb7d1ed0e`](https://github.com/Raynos/project-wildshard-singleplayer/commit/36cdb7d1ed0eb2ca6bbae593187b616f68ecef40) | [41264719301 / 124730076919](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41264719301/job/124730076919) | 11-01 02:44:43 → 02:45:14 | 31 | 02:44:46 → 02:45:10.092 | 24.092 |
+| [`5c72cf6cf035`](https://github.com/Raynos/project-wildshard-singleplayer/commit/5c72cf6cf03568412d53b9df6e8efe4d75964076) | [41266764830 / 124734778600](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41266764830/job/124734778600) | 11-01 03:09:30 → 03:10:01 | 31 | 03:09:33 → 03:09:56.503 | 23.503 |
+
+Status → live is **20.875–40.668 s**, median **24.690 s**, with all 15 also below CI3's unchanged 300 s bar.
+This does **not** replace the earlier wave/admission clock: for example last-required-job → live is **338.668 s**
+on `19c9` and **331.690 s** on `0f02`, despite ship spans of 49/32 s. Publishing the exact status inside shipping
+cannot prove that prior runner/concurrency waits disappeared. CI9's push-to-live target remains separate and open.
+
+For each row the local audit joins the retained **full SHA**, ordinary `main`/`push` source and release run,
+controller binding, successful same-attempt `stage-prebuilt` and `build-and-deploy` jobs, and all **37 distinct
+required jobs**, including native4 and every SIX leg. It requires one actual stage-controller `select` and one
+`promote` report with the same full source/run, the promoted deployment ID from the protected stage receipt, and an
+exact equality between staged BUILD, first matching production BUILD and the existing complete source-bound proof.
+The official metadata and simplified source-proof clocks must agree. The ship's artifact-restore and recovery-build
+steps are actually **skipped** in all 15, so these timings describe promotion of tested staged bytes, not a hidden
+rebuild or an abbreviated Vercel substep. All original source/artifact/maps/protection/live-floor checks remain.
+
+The earlier mixed **26/32** ship cohort and six **183–348 s** artifact-intake misses remain historical evidence in
+[the miss classification](#ci2--ci3-miss-classification-and-current-acceptance); they predate the current protected
+staging path. They are superseded for this current-path acceptance, not erased or reclassified as passes. The strict
+prebuilt fallback remains required when staging is unavailable; it was not exercised by this cohort and is not
+promised a future 180 s bound. These independent ordinary releases establish the bar, not an isolated causal speedup,
+future reliability guarantee or end-to-end prepare/wave improvement. CI3's earlier ruling is unchanged.
+
+**Provenance:** every row reuses only existing
+`tmp/sp-ci-deploy-qa-refresh/qa-<label>-{complete-proof.json,source-proof.json,binding.json,attempt-jobs.json,deploy.log}`;
+labels `2dcd` and `8b4d` correspond to `2dc` and `8b4` above. Full source/run/job/attempt/BUILD, timestamp fields and
+SHA-256 for all 75 retained inputs are in `tmp/sp-x9-ci2-staged-cohort/audit.json`; `audit.py` is the read-only extraction
+and `audit.log` retains all clock results. No GitHub/API read, artifact download, new run, workflow dispatch,
+deployment, browser, Simulator, runtime edit or guard change was needed. The historical job links above identify the
+official metadata being reused. This HEAD-only plan update preserves the shared working copy's unrelated edits.
