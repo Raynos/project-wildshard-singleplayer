@@ -52,7 +52,7 @@ const {constants} = await product.json<{constants:{terrain:typeof TERRAIN,entrie
 const lendReturns = await prepareReturns(preparation);
 const storyPolicy = await readJson<NativeQuestCompositionInput["rows"]>(product,"quests/native-story.json");
 const storySpots = await readJson<NativeQuestCompositionInput["spots"]>(product,"quests/native-spots.json");
-const bossView = await product.section<{BOSS_ENCOUNTER:{profile:unknown}}>("custom/nativeView");
+const bossView = await product.json<{projection:{encounter:{profile:unknown}}}>("combat/roaming.json");
 const bowRow = await (weaponRow(shard,"weapon.longbow"));
 await (parseWeaponProfile(bowRow.profile));
 const crossbowRow = await (weaponRow(shard,"weapon.crossbow"));
@@ -94,7 +94,7 @@ const population = product.section("actors/species-programs");
 const day = host.useDayClock(new DayCycle(keyedSkyDaySpec(product.section("look/keyed-sky"))));
 installNativeCollision(host,bake,{resolution: constants.terrain.res,provenance: {field: "pineWorldOwner",step: "pine.world-tags",fallback: "wood"}});
 const decisionProgram = need(population.program,"Pine requires its King decision programme");
-const king = installGroundBoss(host,bossView.BOSS_ENCOUNTER,bossView.BOSS_ENCOUNTER.profile,decisionProgram,{population: rosterRows.step,weakPoint: {radius: bake.kingHit.radius},reward: {inventory: "pack",grants: [{item: "amber-resin",count: 3}]}});
+const king = installGroundBoss(host,bossView.projection.encounter,bossView.projection.encounter.profile,decisionProgram,{population: rosterRows.step,weakPoint: {radius: bake.kingHit.radius},reward: {inventory: "pack",grants: [{item: "amber-resin",count: 3}]}});
 const policy = need(shard.items.loadout.native,"Missing native loadout");
 const equipmentInput = need(policy.input,"Missing native equipment input policy");
 let quest: ReturnType<typeof installNativeQuestComposition> | undefined;

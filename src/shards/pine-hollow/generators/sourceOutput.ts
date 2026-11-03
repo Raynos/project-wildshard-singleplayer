@@ -16,7 +16,6 @@ import { pineCoatPages } from './coatPages';
 import { pageLife } from './pageLife';
 import { pineAmbientPerches } from './perchInputs';
 import { returnGuest, returnRegistries } from './returnPrograms';
-import logKit from '../data/logKit.json' with { type: 'json' };
 import { PLACE_SETS } from './placeSets';
 import { parseCoverAppearance } from '@wildshard/format/coverAppearance';
 import coverAppearance from '../data/coverAppearance.json' with { type: 'json' };
@@ -130,7 +129,7 @@ const WIRE_SCHEMAS: Readonly<Record<string, Readonly<Record<string, unknown>>>> 
 }));
 /** The custom sections; `prepareOutput` passes the rows that name compiled modules (the quest runtime's lead). */
 function emitCustom(overrides: ReadonlyMap<string, unknown> = new Map()): ReturnType<typeof emitDefinedSections> { return emitDefinedSections(Object.entries(schemas).map(([name,schema])=>{
- const value=overrides.has(name)?overrides.get(name):name==='custom/nativeView'?{ ...NATIVE_VIEW, ...logKit }:name==='custom/questRuntime'?PINE_QUEST_PAYLOAD:name==='custom/heldToolPlayback'?{...toolPlayback,look:KNIFE_LOOK}:(PINE_OUTPUT.custom as Readonly<Record<string,unknown>>)[name],jsonSchema=WIRE_SCHEMAS[name];
+ const value=overrides.has(name)?overrides.get(name):name==='custom/questRuntime'?PINE_QUEST_PAYLOAD:name==='custom/heldToolPlayback'?{...toolPlayback,look:KNIFE_LOOK}:(PINE_OUTPUT.custom as Readonly<Record<string,unknown>>)[name],jsonSchema=WIRE_SCHEMAS[name];
  if(!isJsonData(value)||jsonSchema===undefined)throw new Error(`Missing generated Pine section: ${name}`);
  return {name,jsonSchema,value:v.parse(schema,value)};
 })); }

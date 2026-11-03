@@ -37,5 +37,5 @@ test('five retired Pine copies reconstruct complete canonical bodies from native
 });
 
 test('retirement leaves both live Pine native witness envelopes in the ordinary custom path', () => {
-  expect(output.custom.sections.map(row => row.name).sort()).toEqual(['custom/nativeView','custom/questRuntime']);
+  expect(output.custom.sections.map(row => row.name).sort()).toEqual(['custom/questRuntime']);
 });

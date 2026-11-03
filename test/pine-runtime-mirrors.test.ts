@@ -11,9 +11,8 @@ import * as v from 'valibot';
 import { ManifestMetadataSchema } from '../src/format/minimap';
 import { NATIVE_VIEW } from '../src/shards/pine-hollow/generators/nativeView';
 import { NativeViewSchema, CaveRowsSchema, PoolGroundSchema } from '../src/shards/pine-hollow/generators/sections';
+import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
 import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
 import { resolveBootSources } from '../src/engine/boot/filePolicy';
 import { PINE_BOOT_FILES, PINE_BOOT_SOURCES } from '../src/shards/pine-hollow/generators/bootFiles';
 import { GPU_FILES } from '../src/shards/pine-hollow/ktx2.generated';
@@ -38,15 +37,13 @@ const authored = timberWorld(PINE_SOURCES);
 
 const { CRAG_CAVE_ROWS } = await cragScene(PINE_SOURCES);
 
-test('world view rows come from the admitted section', () => {
-  const section = output.custom.sections.find(row => row.name === 'custom/nativeView');
-  const bytes = section === undefined ? undefined : output.custom.files.get(section.path);
-  if (section === undefined || bytes === undefined) throw new Error('Missing Pine native view');
+test('the unread native view is retired and combat keeps its encounter', () => {
+  expect(output.custom.sections.some(row => row.name === 'custom/nativeView')).toBe(false);
   expect(output.namedFiles.some(row => row.name === 'look/native-view.json')).toBe(false);
-  const product = createShardProduct({ slug:'pine-hollow', revision:1,
-    shardfile:emptyShardfile({ slug:'pine-hollow', name:'Pine', author:'Wildshard', revision:1, seed:1 }),
-    sections:new Map([['custom/nativeView', JSON.parse(new TextDecoder().decode(bytes))]]), files:new Map(), read:() => Promise.reject(new Error('Native view must use its section')) });
-  expect(product.section('custom/nativeView')).toEqual(v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit }));
+  const file = output.namedFiles.find(row => row.name === 'combat/roaming.json');
+  const bytes = file === undefined ? undefined : output.assets.get(file.hash);
+  if (bytes === undefined) throw new Error('Missing Pine roaming combat');
+  expect(v.parse(RoamingCombatSchema, JSON.parse(new TextDecoder().decode(bytes))).projection.encounter).toEqual(NATIVE_VIEW.BOSS_ENCOUNTER);
   expect(() => v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit, KING_ARENA_FOG:'31' })).toThrow();
   expect(() => v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit, BOSS_ENCOUNTER: { ...NATIVE_VIEW.BOSS_ENCOUNTER, profile: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile, fight: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile.fight, strike: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile.fight.strike, action: 'unknown' } } } } })).toThrow();
 });

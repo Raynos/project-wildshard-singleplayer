@@ -196,8 +196,7 @@ export function parseFloorRows(input: unknown): v.InferOutput<typeof FloorRowsSc
 }
 
 
-export const SECTIONS: {readonly 'custom/nativeView':typeof NativeViewSchema;readonly 'custom/questRuntime':typeof PineQuestRowsSchema} = {
-  'custom/nativeView': NativeViewSchema,
+export const SECTIONS: {readonly 'custom/questRuntime':typeof PineQuestRowsSchema} = {
   'custom/questRuntime': PineQuestRowsSchema,
 } as const;
 
