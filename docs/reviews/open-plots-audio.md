@@ -233,3 +233,24 @@ hashes, licence and credits are recorded. O3 accepts the calmer sea as a
 harbour fit; the named gap is **no squall rain or foghorn in the bed**.
 The foghorn stays a local 100 m spot, under the unchanged validator.
 Native bar 10 and body/wire proof remain required before activation.
+
+Activation **f8a1406288** follows the working candidate
+**27bccfb89e-mw15zf5m**, which passes full
+native bar 10 before landing, **15 s**: own recorded B, six decoded cue
+loops including Coral's shared bed, sustained score/bed, native pause and
+resume, all five gains **0.391958..0.399364**, and heading pan flips
+**-0.698112..+0.696140**; page errors[]. No synth or copied bed.
+
+The frozen `300a65548b` BEFORE has 158 files and 34 sections. All **158
+old binary bodies and 32/34 sections stay exact**, with no removals.
+Seven audio files and the 242 B native client plan join; audio/audio
+changes intentionally. The map image stays
+`350593f4b296abf5933bfaa7c1d5054bff550a7aae06c6ae8aab57ededcf1023`;
+only the 164 B section's defining-source tilesHash stamp changes (G872).
+All 200 served candidate body hashes match the normal producer in order.
+Phone served **1,171,486 → 2,175,528 B**; approved ceiling
+**1,171,496 → 2,175,538 B** adds only **1,004,042 B** audio and preserves
+the old **10 B** margin. The normal producer first refused the old cap;
+no admission bypass. Raw records: `tmp/wave-a-audio/saltwind-readings/`.
+X1/X8 final readings remain open on the ensuing immutable audio source;
+this is no official timing/memory or row-close claim.
