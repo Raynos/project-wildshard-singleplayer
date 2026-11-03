@@ -22,7 +22,7 @@ audio handoff.
 | Plot | Actual instance / cell | Final candidate | Chromium/control, walk, goldens | Memory / Simulator |
 |---|---|---|---|---|
 | Fossil Badlands | `open-plot-1-0` / (-1,-2) | Awaiting audio handoff | Open | Open |
-| Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim complete; grid refused |
+| Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim + authorized fresh grid complete |
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Open | Chromium memory complete; official Sim queued |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | Awaiting audio handoff | Open | Open |
 | Thin Ice | `open-plot-1-4` / (-1,2) | Awaiting audio handoff | Open | Open |
@@ -184,8 +184,9 @@ bounded read-only cause review. Quiet is removed, the Simulator is shut
 down and the model lock is free; X1/X2/X6 received literal release before
 parsing. No browser, model or Simulator lease remains with this reading.
 The own preview use is released after recording; X1 and X6 retain theirs.
-Saltwind's full cohort stays open for the grid refusal and remaining
-peer-owned walk/golden scopes. The other nine await final audio handoffs.
+At that original boundary the full cohort remained open. The authorized
+fresh grid reading below completes the missing scope while preserving
+the failed attempt. Sky Harbor is now admitted; eight await audio handoffs.
 
 ## Saltwind Lighthouse — walk and golden bridge (sp-x1)
 
@@ -227,6 +228,68 @@ Raw walk, capture, eight comparison rows and explicit classification stay in
 `tmp/sp-x1-open-plots/saltwind-final/`. All own browsers are closed; the own
 shared preview use is released normally after this report lands. No visual
 source, collider, controller, contract, cap or verification rule changes.
+
+### Saltwind — authorized fresh grid reading
+
+After the coordinator's explicit one-admission authorization, harness fix
+**060198eb6cee7d32cb7a1938ecd80497a1322ee6** preserves entry Inspector
+errors, diagnostics and native unload errors separately. It changes no
+original wait, evaluation call, deadline or game code. The one fresh
+**grid-only** admission uses the same immutable **f8a1406-mw167rcy** app,
+raw index and four original junction poses. The original 364.444 s refusal
+above remains retained; the lower Simulator/Inspector cause stays unproved.
+No renderer, gameplay, visual or memory-cap change belongs to this reading.
+
+The official command completed in **64.754 s, complete=true/pass=true**.
+All five windows have **120/120 frames, zero skips and no page errors**:
+the incidental grid spawn and all four Saltwind junction directions.
+Apple GPU, phone 2×, CSS 402×714 and canvas 804×1428 match the first visit.
+
+| Grid view | Median FPS | p95 / p99 / max ms | Max draws | Reported triangles |
+|---|---:|---:|---:|---:|
+| Spawn | 30.303 | 34 / 38 / 41 | 106 | 1,081,502 |
+| Junction −135° | 30.303 | 34 / 39 / 42 | 58 | 78,333 |
+| Junction −45° | 30.303 | 34 / 35 / 35 | 71 | 93,215 |
+| Junction 45° | 30.303 | 34 / 34 / 34 | 48 | 162,124 |
+| Junction 135° | 30.303 | 34 / 34 / 34 | 73 | 75,688 |
+
+The existing 30 FPS floor and draw controls pass; all strict 33.3 ms flags
+remain **false**. The recorded evaluation-origin drift maximum is 1 ms.
+All four authored junction windows independently show the actual Pine,
+Template, Saltwind and Starfall neighbours as **near**, with **pending=[]**
+and **crossing=settled**. Road current is null and residents are empty;
+near visibility is not claimed as four resident gameplay worlds. The
+incidental Driftwood spawn still has six pending neighbours; it is not a
+claim of whole-grid settled residency.
+
+Native memory has **362 playing / 122 loading samples and 76 GPU witnesses**.
+The conservative pooled-page envelopes are **909.987 MB playing**
+(743.232 native + 166.756 GPU ledger) and **1,322.639 MB loading**
+(1,155.883 + 166.756). The GPU ledger retains 2.768 MB unattributed and one
+Inspector-closed error, with complete phase coverage. These are separate
+maxima, excluding GPU-process footprint, and are Mac-backed Simulator
+regression evidence. G556 gives this pooled page no 1.2 GB cap; the
+standalone per-shard verdict above remains separate.
+
+Each junction's pool census is 40 available logical blocks,
+**2,752,512 B**, six virgin hits, zero recycled hits, zero misses and zero
+blocked blocks; 46 have been returned cumulatively. Spawn has five virgin
+hits and 45 cumulative returns. Logical reusable capacity is not added to
+the native resident envelope.
+
+Raw official result and checked compact summary are retained under
+`tmp/sp-x8-plot-readings/saltwind-grid-preserved/`, including
+`simulator/f8a140628-52682-1793741759735.json`, `summary.json`, original-pose
+and source admission bindings, and native/GPU logs. Quiet, the Simulator
+and shared model lock released normally before parsing; X1/X2/X6 received
+literal release. The own Saltwind preview use is released after recording.
+
+**Saltwind's final readings are complete**: audio/body/wire/native bar 10
+from X6, Chromium/control `d3cd116da4`, the complete 14-waypoint walk and
+reviewed 8/8 golden bridge `e909026e34`, standalone memory/Simulator
+`f868216858` and this authorized missing grid scope. X6 retains plan-row
+integration. Original CPU-target misses, strict-floor flags, neighbour
+visual evidence and the initial failed admission remain recorded.
 
 ## Sky Harbor — Memory (sp-x8)
 
