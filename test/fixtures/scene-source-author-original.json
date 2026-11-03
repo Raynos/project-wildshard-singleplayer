@@ -14,8 +14,8 @@
   {
     "shard": "sky",
     "name": "world/sources/sky.json",
-    "bytes": 28980,
-    "sha256": "eff5fd8a5edd319c6c0da79a7723edf132266edac0608d89e1f47909f1eb5e9c"
+    "bytes": 28341,
+    "sha256": "58c6ee2de42b7655f9d4ea09ee525d36934e26297078480d25c3f83df199da96"
   },
   {
     "shard": "sky",
@@ -32,7 +32,7 @@
   {
     "shard": "sky-owned",
     "name": "world/sources/sky.json",
-    "bytes": 28916,
-    "sha256": "9fe62e8d422d7ab948fa11d8aa193f0cb8b4c3cf0f66f7e54c283c697acfcc0f"
+    "bytes": 28277,
+    "sha256": "095bbff85c60b153d11c80c06fa4db40de4d6f7bfd39b76fdc7604c79fb38e0c"
   }
 ]
