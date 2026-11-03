@@ -151,7 +151,7 @@ does not close a Z row.
 | **Z1** | **done (2026-11-03, sp-x1; `890d8f05ce`, `4ac0585b6f`; G941 exact-pair capture ruling).** Nineteen shared grammars remove exactly 98 baseline files / 2459046 B. Fresh-seat sp-x8: 6/6; 52 focused cases and format/SDK types green. All 187 runtime JS/CSS assets and Pine/Nine payload/pack inventories exact (build metadata only). Pine 18 Metal frames / 12 raw-zero comparisons, both tiers. Nine canonical P1 uses only the existing approved (569,1139) RGBA pair; the extra-frame experiment at (627,1271) stays refused and grants no allowance. **Platform file families.** A registry in `@wildshard/format` beside `PLATFORM_DATA_SECTIONS`: name pattern → one format schema. The measure counts a named file only if its family is unregistered. The census follows emitted routing rows so every family has a known reader | 98 already on a shared schema: placement pages 12, scene recipes 42, scene buffers 9, world-scene models 3, quests 19, actors 9, people catalogue 2, forest weather 2 | Codex | 2 |
 | **Z2** | **Streamed scene pages: Nine.** `world/placements/*` onto `WorldScenePlacementPageSchema` (DW + Pine host `sdk/worldScenes.ts`) | 72: Nine placements 70, `world/casts`, `world/fabric` | Opus | 2.5 |
 | **Z3** | **Streamed scene pages: Pine cabins and DW island.** Specimens and living roots become pages; tier / shadow variants derived at load | 70: Pine specimens 56, living 8, tier/shadow copies 4; DW `world/island/plan-{phone,desktop}` | Opus | 4.5 |
-| **Z4** | **Populations.** `actors/species` + `actors/populations` (`game/population/*`); keeper, return and spawn programs as AS | 13: DW projection, creature-install, poses/monkey, keeper, returns, enemy-placement; Pine roster, elites, shelter; Nalati sheep, wildlife, population-metadata, taming-poses | Codex (+ Opus poses) | 3 |
+| **Z4** | **In flight (2026-11-03, sp-x9), 0/13 removed.** The complete-root census below names 13 single-user/envelope blockers for Jake’s one-user batch; no shared-family registration or AS rewrite is qualified. **Populations.** `actors/species` + `actors/populations` (`game/population/*`); keeper, return and spawn programs as AS | 13: DW projection, creature-install, poses/monkey, keeper, returns, enemy-placement; Pine roster, elites, shelter; Nalati sheep, wildlife, population-metadata, taming-poses | Codex (+ Opus poses) | 3 |
 | **Z5** | **Done (2026-11-03, sp-x2): `92f8a2e671`, `c9ae94288f`; strict proof and G872 acceptance below.** Complete bake/model envelopes shared by Far + Sun, native full-root admission before publication; fresh sp-x1 HOST-BAR 6/6 for each family. Delete the zero-reader Sun effects duplicate | **6 removed:** Far sources bakes/heroes/sky; Sun sources bakes/models, places-effects; custom counts 3→0 each | Codex | 1.5 |
 | **Z6** | **Held kits.** Weapon pages into the `held/*` platform sections; Jian cloth / halo ship as GLB | 10: Nalati bow-page, rifle-model, rifle-page, sabre, spear, held/slots; Nine jian-cloth, jian-halo, jian-row; Pine loadout/finishes | Opus | 3 |
 | **Z7** | **Model library.** One specimen / fixed-draw / collection book (`game/models/{islandLibrary,fixedDraws,collectionDisplay}.ts`, `SpecimenBookSchema`) and a generic atlas row over the KTX2 that ships | 14: DW **`custom/fixedLayouts`**, **`custom/collections`**, fixed-geometry; Nalati cover ×2, gear-book, shape-book, cloud-specimen; Nine fixed-kits, layout, held-cards, sign atlas ×2; Pine cover-appearance | Opus | 4.5 |
@@ -168,6 +168,65 @@ Kills: 1 + 98 + 72 + 70 + 13 + 6 + 10 + 14 + 14 + 9 + 3 + 8 + 9 + 6 + 9 = **342*
 ~9 lane-days. Rows are numbered in build order (most sections per lane-day first); Codex takes Z1, Z4, Z5, Z13 at
 once while Opus starts Z2.
 
+
+### Z4 complete-root preflight (2026-11-03, sp-x9)
+
+**0/13 removed; 13 remain charged.** G988 requires two real users of the
+complete registered type. The existing G571 native-host receipts and the
+CS6 defining-schema registrations do not establish a second emitter of
+these complete documents. Fixtures, nested shared schemas and an absent
+`jsonSchema` are not additional users. The source trace and six-product
+file census find no second complete-root emitter for any target below;
+none even has an identical top-level field set in another product. A
+union of these private envelopes would not be a shared population host.
+
+The ordinary `outputSections` census still counts all 13 targets:
+Driftwood **6 / 194,166 B**, Pine **3 / 278,434 B**, Nalati **4 / 261,050 B**;
+total **733,650 B**. Every body length and SHA-256 matches its existing
+product manifest. These are inspected on-disk products, not a fresh
+CURRENT build or a new native/pack/pixel parity qualification. No body,
+metadata, registry, host attribution, ceiling or guard changes accompany
+this preflight. G998 end-to-end qualification and any Z4 look-sensitive
+landing wait for the QD1 browser-priority hold to lift.
+
+| Target (whole file) | Bytes | Complete owner and exact-port blocker for the one-user batch |
+|---|---:|---|
+| DW `actors/projection.json` | 86,103 | `format/populationProjection#PopulationProjectionSchema` → `game/population/projection#PopulationProjection`. Only DW emits the whole page/practice/hold/volley/effects/light root. Preserve authored seed, hold-floor dimensions, stream order, native body loans and presentation allocation. |
+| DW `actors/creature-install.json` | 345 | `format/speciesLooks#CreatureInstallSchema` → `game/population/productCreatures#installProductCreatures`. Only DW emits the complete perch/practice/projection/packed/hulls/lent install root; preserve read order and every retiring-owner fence. |
+| DW `poses/monkey.json` | 81,562 | `generators/namedSchemas.ts` composes the exact two-clip tuple, ReturnProgram and mixed-population perch fields. `PerchBodyBinding` owns native/page guest admission and pose execution. Shared NumericPose children do not qualify this sole-user whole envelope. |
+| DW `sim/keeper.json` | 15,874 | `PopulationKeeperRowsSchema` retains environment, bodyPhase, volley, ecology, fauna, variants, herds and bodies. The demonstrated native consumer is still `test/fixtures/native-hosts/population/mixedRoster.ts#installMixedPopulation`, not a new production host. Preserve body/recipe joins, original native identities and RNG; a new keeper guest descriptor would change the required bytes. |
+| DW `sim/returns.json` | 1,710 | `PageReturnRowsSchema` → `game/population/pageReturns#installPageReturns`. Only DW emits this full rules/outOfSight/program/water/fixed/step root. Its `driftwood.returns` decision already compiles from `behaviour/returns.as`; retain module/loan identity, reverse queue order, eligibility, final land query and spawn draws. |
+| DW `sim/enemy-placement.json` | 8,572 | `generators/sections#EnemyPlacementsSchema` is the exact page + native placement root, with bounded native kinds, stream state and BodySlots. Projection and keeper each contain partial inputs, not this whole value or an honest second user. |
+| Pine `actors/roster.json` | 250,356 | `NativePopulationRowsSchema` plus `parseNativePopulationRows` → `game/population/roster#installPopulationRoster`. Only Pine emits the complete ordered fauna/reserves/homes/limb-pose root. Preserve bodyCount/limit checks, dormant recipe validation, seed, manager identity and boot/restore order. |
+| Pine `actors/elites.json` | 26,501 | `EliteFeatureSchema` plus `parseEliteFeature` is Pine's complete bounds/streams/ordinary/legacy/view/fights root. Nalati's ExternalElite rows are a different child contract, not user two. Original catalogue/kernel/module/resource checks remain required. |
+| Pine `actors/shelter.json` | 1,577 | `PopulationShelterSchema` → `game/population/shelter`. Only Pine emits the complete environment/roster/weather/step/herdLimit/look/program root. `pine.shelter` already compiles from `behaviour/shelter.as`; Nalati's native shelter observations are not this whole file. |
+| Nalati `actors/sheep.json` | 108,205 | `SpeciesActorsFileSchema` wraps species, page.world/specimen, exactly one fixed draw, pivots, parts and radius. It still has opaque page/pose/guest children. Only Nalati emits this whole crowd-page envelope; shared species/pose/fixed-draw children do not qualify it. |
+| Nalati `actors/wildlife.json` | 101,603 | `WildlifePopulationSchema` → `game/population/wildlife#PageWildlife` / `installClientWildlife`; sole whole-root emitter. No defining schema metadata ships on this file. Keep the three original native checks (power, hull-book id and native limb-pose reference) with their actual owners; generic schema admission does not replace them. Admission and pasture guests already ship as AS. |
+| Nalati `sim/population-metadata.json` | 18,468 | `sdk/nativePopulationRows#namePopulationHabitat` defines exact tree/tops lengths, maximum six ledges and ForagerContinuation. Native headless/elite loans consume it. A broad unbounded habitat schema would weaken the contextual contract, and no second complete emitter exists. |
+| Nalati `sim/taming-poses.json` | 32,774 | Sole `{poses: NativeTamingRows["poses"]}` envelope, emitted by `generators/output.ts#tamingOf` and read by `test/fixtures/nalati-headless.ts`. No defining schema metadata ships. The typed native taming/pose owner and complete guest/source contract must be supplied before registration; numeric-pose children are insufficient. |
+
+Seven targets already name a registered defining root; four carry private
+inline schemas; wildlife and taming poses carry none. Matching missing
+metadata across products was explicitly rejected as sharing evidence.
+No `actors/populations` catch-all, compatibility mapping or erased
+unknown root is introduced. Each whole-file one-user case goes to the
+coordinator's batch under G988; additional complete-contract/native-owner
+work remains explicit in the table, so this is **not a Z4 closeout**.
+
+The AS boundary is already concrete for DW returns/practice/perch,
+Pine shelter, and Nalati admission/pasture: the emitted declarations name
+existing raw module hashes and the native/page ReturnProgram loan guard
+owns module admission and lifetime. Keeper's author compiler emits immutable boot joins;
+its original native roster still owns physical actors and RNG. Rewriting
+that ownership into a new guest would require a separate exact contract
+and would change the current payload; no byte-identical port is claimed.
+
+Original non-browser checks: five suites passed **13 cases** (keeper
+rows, Pine shelter, Nalati page planner, return shared memory and native
+actor interfaces). Mixed-population and projection suites refused setup
+when a peer changed `src/format/worldScenePages.ts` during the native
+fixture recorder; no freshness retry, bypass or semantic pass is claimed.
+No golden, loading or collider evidence is inferred from these checks.
 
 ### Z5 complete-source qualification (2026-11-03, sp-x2)
 
