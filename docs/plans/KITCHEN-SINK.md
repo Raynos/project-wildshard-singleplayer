@@ -105,6 +105,14 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
 19p. **XP is RuneScape-steep:** enemies pay **10 × their level** (linear), drop-off below you, 0 at 6 under; the curve
     is exponential. Jake suggested ×2 or the golden ratio; ×2 is ~2,000 h to 20, the golden ratio (×1.618) is
     OSRS's 1–99 curve squeezed into 20 (~60 h). Proposed: golden ratio. This replaces the 2.5–3 h target.
+19q. **HP: 100 at level 1 to 300 at level 20, +6 % a level** (100, 126 L5, 168 L10, 225 L15, 300 L20). **VIT is the HP**
+    (Jake 11-02: *"the level curve should reverse engineer into the VIT"*): HP is a function of VIT, tuned so a character
+    with average VIT growth sits on that curve; a lucky VIT roll is tankier, an unlucky one frailer. **Enemies have their
+    own HP curves** (MMO-style, steeper than the player's).
+19r. **How a miss looks: option E** ([How a Miss Feels](https://claude.ai/artifact/R7BU7ErLT9Vi5wkYd3EsZR)). The dice stay
+    (12 % at equal level, 90 % at +8); a failed hit shows as a **DEFLECT** (silver sparks, clang, blade recoil, 0 damage),
+    a **DODGE** (the enemy slips aside) or a **PARRY** (enemies with one). MISS stays for aim misses only. Enemy failures
+    on you show as a silver hurt arc and a small word. Odds are never shown as a %.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 

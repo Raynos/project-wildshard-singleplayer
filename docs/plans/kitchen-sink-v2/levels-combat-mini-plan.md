@@ -233,3 +233,17 @@ whoosh, no stop; PARRY gold ring. Hits wordless: glance grey, clean white, crit 
 | LVF4 | Clang, whoosh, ring, thud, crack | `public/assets/sfx/best/` | 3 |
 | LVF5 | On you: silver arc, word | `engine/ui/HurtArc.ts` | 2 |
 | LVF6 | One-time DEFLECT hint | `engine/ui/FirstHints.ts` | 1 |
+
+## 10. Later rulings (Jake, 2026-11-02 late)
+
+These supersede the matching parts of §2–§4; the worked numbers there are to be redone in Wave 1's LV design pass.
+
+- **Growth is Fire Emblem's:** no hybrid, no points, no respec, a cap. Each shard rolls a new character (base values and
+  growth rates); each level-up rolls +1 per attribute at its growth chance. Proposed: pool 85/70/60/55/45/40/35/30 %
+  shuffled, cap 30, no blank-level protection. The fixed `min(40, 2L+4)` build in §2 is retired.
+- **XP:** enemies pay 10 × their level; drop-off below you, 0 at 6 under. The curve is exponential, RuneScape-steep;
+  proposed ×1.618 a level (OSRS 1–99 squeezed into 20; ~1.5 M XP, ~60 h to 20). The §2 curve and the 2.5–3 h target
+  are retired.
+- **HP:** 100 → 300 over levels 1–20 at +6 % a level. VIT is the HP: HP = f(VIT), tuned so average VIT growth lands on
+  the curve. Enemies have their own, steeper HP curves.
+- **Misses:** option E (deflect / dodge / parry), §9; no streak guard (row LV4's "streak guard" is dropped).
