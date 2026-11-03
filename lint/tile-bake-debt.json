@@ -264,6 +264,10 @@
       "tile/1/2/2/draws": 6
     },
     "open-plot-ember-forge": {
+      "tile/0/0/3/draws": 9,
+      "tile/0/3/7/draws": 9,
+      "tile/0/4/0/draws": 9,
+      "tile/0/7/4/draws": 9,
       "tile/0/3/4/compressed": 445741,
       "tile/0/4/3/compressed": 481161,
       "tile/0/4/4/compressed": 445197,
