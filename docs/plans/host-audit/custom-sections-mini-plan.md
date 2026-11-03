@@ -2238,3 +2238,29 @@ three explicit source/schema/proof-witness shell exits. This meets the
 requested exact-slice-or-explicit-exit completion bar. No remaining live
 owner is silently deleted or promoted, and CS10's emitters, readers,
 validators and ceilings retain their existing exit conditions.
+
+
+### CS3: Pine tier/shadow source derivation (2026-11-03)
+
+**Source-only audit complete; exact candidate off-tree.** The four complete
+`scenes/cabins-{phone,desktop}-shadow-{false,true}.json` bodies (339,196 B)
+reconstruct byte-for-byte from the existing phone/shadow-true root. The
+prototype selects whole native rows, preserves all numeric words/culls,
+rebinds explicit aliases and validates each complete target root/hash.
+All four SHA256/size checks and nine refusal controls pass; no provider,
+wire-format, runtime, registry or generated output is activated.
+
+| Choice | Decision | Exact native distinction retained |
+|---|---|---|
+| Phone/desktop, shadow false | Exact derivation prepared | 72 nodes/81 resources; every actual geometry body, attribute binding, numeric word, bound, material and cull is equal after aliases resolve. Placement/set IDs retain each original branch. |
+| Phone/desktop, shadow true | Exact derivation prepared | Same result over 75 nodes/93 resources. The apparent tier geometry differences were recorder aliases; physical file hashes are equal. |
+| Shadow false from the true canonical source | Exact bounded projection prepared | Select 72/75 nodes and 81/93 resources, remap original part/batch IDs and restore six exact casting rules. Full original roots reconstruct, including native external parent/cull anchors. |
+| Drop shadow-specific geometry or alias false to true | **Explicit exit / KEEP** | True needs three extra mesh nodes/four extra unique geometry bindings; six meshes also use different existing cast-distance rules. Preserve both authored modes. |
+| Delete the four files with today's transport grammar | **Explicit integration exit** | The native source accepts complete graph files and tier/knob file choices, with no projected-root port. A complete typed contract and all-branch/selected-owner integration remain necessary; the off-tree authoring prototype supplies no new runtime authority. |
+
+Current ordinary Pine index is 1,189,307 B. The source binding audit verified
+322 immutable model files / 20,553,212 B. Canonical root is 86,921 B;
+all four prototype recipes are 69,499 B (156,420 B raw-content sketch only,
+not a current product, archive or loading saving). Full payload/index proof,
+landed-SHA strict captures at both tiers/shadow choices and loading proof for
+changed streaming remain open. CS3 remains open; Driftwood has priority.
