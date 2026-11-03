@@ -14,7 +14,6 @@ function runOwnedPlaceCheck(checks: string): void {
     import { mkdtempSync,rmSync } from 'node:fs';
     import { resolve } from 'node:path';
     import { createProjectGeneration } from './src/sdk/projectGeneration.ts';
-    import { encodeBuildBytes } from './src/sdk/bake/byteCodec.ts';
     import { selectedLevel } from '@wildshard/engine/level/selection';
     import { nalatiPlacesProgram } from './src/shards/nalati-grasslands/generators/placesProgram.ts';
     assert.equal(selectedLevel(),null);
@@ -25,9 +24,9 @@ function runOwnedPlaceCheck(checks: string): void {
         [{prefix:'/assets/baked/nalati-grasslands/',directory:resolve('public/assets/baked/nalati-grasslands')}]);
       // the exact bake (the pins'), under its own step since cd955cd8d9 shipped the I3 one as 'places'
       return{...context,...(memo?{encodeZstdBytes:(bytes,level)=>{
-        assert.equal(level,19);compressions++;const result=encodeBuildBytes(bytes,'zstd',level);
-        const memoized=context.encodeZstdBytes(bytes,level);
-        assert.equal(Buffer.compare(result,memoized),0);return memoized;
+        // The independent fallback bake is the native-codec byte oracle.
+        // Compare its complete output below instead of encoding a third time.
+        assert.equal(level,19);compressions++;return context.encodeZstdBytes(bytes,level);
       }}:{encodeZstdBytes:undefined}),cached:(step,make)=>{
         // Only the codec variants need different place slots. Geography keeps
         // the same complete program/input key instead of being rebuilt.
@@ -65,8 +64,9 @@ test('shipping places preserve every byte with the original and memoized codecs'
       const shippingHit=await nalatiPlacesProgram(context(true),'i3');
       assert.equal(compressions,1);
       for(const [name,bytes] of shippingHit)assert.equal(Buffer.compare(bytes,shipping.get(name)),0);
+      assert.equal(shipping.size,8);assert.equal(fallback.size,8);
       assert.deepEqual([...shipping.keys()],[...fallback.keys()]);
-      for(const [name,bytes] of shipping)assert.equal(Buffer.compare(bytes,fallback.get(name)),0);
+      for(const [name,bytes] of shipping){assert.ok(bytes.length>0);assert.equal(Buffer.compare(bytes,fallback.get(name)),0);}
       assert.equal(geographies,1);assert.equal(shippingBakes,2);
   `);
 });
