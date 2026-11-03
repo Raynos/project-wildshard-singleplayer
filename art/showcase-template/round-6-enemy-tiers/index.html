@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elites vs Mini-Bosses</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Dev-map world, single theme: grey grid floor, orange stencil. A four-step ladder is the layout idea. */
+  --floor: #2b2d30;
+  --panel: #35383c;
+  --line: #4a4e54;
+  --ink: #eceae6;
+  --muted: #a7abb1;
+  --orange: #f08a24;
+  --good: #6fcf8a;
+  --t1: #9aa0a6; --t2: #5aa9e6; --t3: #c77dff; --t4: #ef6b5b;
+  --display: "Saira Stencil One", "Impact", sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background-color: var(--floor);
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 48px 48px; background-attachment: fixed;
+  color: var(--ink); font: 16px/1.55 var(--body);
+}
+main { max-width: 820px; margin: 0 auto; padding: 24px 16px 56px; display: grid; gap: 18px; }
+h1 { font: 38px/1.05 var(--display); color: var(--orange); margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); font: 13px var(--mono); }
+section { background: var(--panel); border: 1px solid var(--line); border-left: 6px solid var(--orange); padding: 16px 18px; display: grid; gap: 10px; }
+h2 { font: 22px/1.1 var(--display); color: var(--orange); margin: 0; }
+p, li { max-width: 68ch; } p { margin: 0; }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.ladder { display: grid; gap: 8px; }
+.rung { display: grid; grid-template-columns: 110px 1fr; gap: 12px; padding: 10px 12px; background: var(--floor); border: 1px solid var(--line); border-left: 6px solid var(--c); }
+.rung b.name { font: 18px/1.1 var(--display); color: var(--c); }
+.rung .ex { color: var(--muted); font: 13px/1.4 var(--mono); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 12px var(--mono); color: var(--muted); text-transform: uppercase; }
+.scroll { overflow-x: auto; }
+.rec { border-left-color: var(--good); }
+.rec h2 { color: var(--good); }
+code { font: 13px var(--mono); color: var(--muted); }
+@media (max-width: 420px) { .rung { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>ELITES VS MINI-BOSSES</h1>
+  <div class="sub">Kitchen Sink v2 · one-page explainer · 2026-11-02 · ask E523</div>
+</header>
+
+<section>
+  <h2>SHORT ANSWER</h2>
+  <p>In our engine they are <b>the same thing</b>. A "mini-boss" is the job a fight does in the level (a big named enemy that guards a step up). An "elite" is the system we already have that runs exactly that kind of fight. My recommendation: one tier called <b>elite</b>, and the kitchen sink's three mini-bosses are elites. Below them sit <b>rare variants</b>, above them the <b>boss</b>.</p>
+</section>
+
+<section>
+  <h2>THE FOUR RUNGS</h2>
+  <div class="ladder">
+    <div class="rung" style="--c: var(--t1)"><b class="name">COMMON</b><div>The pack enemy of a band. Respawns on a timer, no name, no bar of its own.<div class="ex">Kitchen sink: Crate Mite, Pallet Jack, Plumb Drone, Welder Unit, Riveter, Arc Sentry. Pine: deer, boar, elk, bear. Driftwood: crab, monkey, boar, bear.</div></div></div>
+    <div class="rung" style="--c: var(--t2)"><b class="name">RARE VARIANT</b><div>The same enemy type in a rarer, tougher form: a different look, more HP and damage, a better reward. It spawns by chance among the commons. Still no name and no lair.<div class="ex">Pine today: coat rarity (common, uncommon, rare, legendary) and lodge contracts for "a rare coat". Driftwood: the black bear beside the brown bear. Kitchen sink: each type rolls uncommon or rare (for example the Lamp-Eye Riveter), +1 or +2 levels, extra coins and a trophy.</div></div></div>
+    <div class="rung" style="--c: var(--t3)"><b class="name">ELITE = MINI-BOSS</b><div>One named enemy with a lair. It notices you, fights, then walks home and heals if you run (leash). Phase 2 at half HP with a signature move. A banner names it when you get close. It can appear only at dusk, at night or in storms, respawns after a while, and drops a skin or finish.<div class="ex">Engine: <code>src/game/eliteSystem.ts</code> + <code>Elite.ts</code>. Nalati: 5 (Aqbars, Kokbori, Qyran, Qara Batyr, Argymaq). Pine: 4 (Ironhide, the Ghost Stag, Blackpaw, the Imperial Bull). Kitchen sink: Big Pallet L6, the Vault Warden L12, Foreman Unit 7 L18.</div></div></div>
+    <div class="rung" style="--c: var(--t4)"><b class="name">BOSS</b><div>A scripted encounter in its own arena: an intro, several phases, telegraphs and hazards, its own music stems, the end of the story, a legendary reward.<div class="ex">Engine: <code>src/game/Boss.ts</code>, <code>src/game/boss/</code>. Driftwood: the Drowned Captain. Pine: the Antler King. Nalati: the Golden King, Jel Ata. Kitchen sink: the Crate Titan L20 with a cutscene intro and the Titan Cleaver.</div></div></div>
+  </div>
+</section>
+
+<section>
+  <h2>WHERE THE LINE IS</h2>
+  <div class="scroll"><table>
+    <tr><th></th><th>Rare variant</th><th>Elite / mini-boss</th><th>Boss</th></tr>
+    <tr><td>Name and banner</td><td>no</td><td>yes</td><td>yes, plus intro</td></tr>
+    <tr><td>Where</td><td>anywhere in its band</td><td>its lair (a pit at a band change)</td><td>its own arena</td></tr>
+    <tr><td>Phases</td><td>no</td><td>two (phase 2 at 50 %)</td><td>three or more, scripted</td></tr>
+    <tr><td>Leaves if you run</td><td>like commons</td><td>walks home, heals to full</td><td>arena holds you</td></tr>
+    <tr><td>Time / weather rule</td><td>no</td><td>optional (dusk, night, storm)</td><td>story-gated</td></tr>
+    <tr><td>Respawns</td><td>yes</td><td>yes, after a timer</td><td>no (replay)</td></tr>
+    <tr><td>Reward</td><td>more coins, a trophy</td><td>a skin or finish, a trophy</td><td>a legendary</td></tr>
+    <tr><td>Music</td><td>band layer</td><td>elite sting / theme</td><td>boss stems</td></tr>
+  </table></div>
+</section>
+
+<section class="rec">
+  <h2>RECOMMENDATION</h2>
+  <ul>
+    <li><b>One word, "elite".</b> The three mini-bosses are elites on the elite host. No separate mini-boss system, so no extra Wave 1 host.</li>
+    <li><b>Add rare variants</b> as a row on each enemy type (chance, look, +levels, reward), generalised from Pine's coat rarity so Driftwood and Pine can use the same row later.</li>
+    <li><b>Show off the elite rules:</b> one of the three elites (Foreman Unit 7) only comes out at night or in storm hour, so the time and weather rule is part of the showcase.</li>
+    <li><b>The boss stays separate:</b> the Crate Titan on the boss host, with the cutscene intro.</li>
+  </ul>
+</section>
+</main>
+</body>
+</html>

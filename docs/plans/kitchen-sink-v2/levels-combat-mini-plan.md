@@ -101,8 +101,13 @@ g = 4: miss **22 %**, glance 20 %, crit 9 %. 17 × 1.6 × 0.72 × (1 − 120/244
 | +3 / +4 | red | 1.3 / 1.4 | 20 / 24 | 15 / 20 | 6 / 8 | 0.79 / 0.72 | 0.62 / 0.52 |
 | +5 / +6 | skull | 1.5 | 28 / 32 | 25 / 30 | 10 / 12 | 0.65 / 0.58 | 0.43 / 0.36 |
 
-**Death.** Lose **10 % of the current level's span** (the Death −XP column), never below the level's first XP: L10 at
-7,000 XP drops to 6,845; at 6,300 to 6,250. Level 20 loses nothing; no item or coin loss.
+**Death.** Lose **25 % of the current level's span** (Jake 11-02, raised from the proposed 10 %; the Death −XP column
+×2.5), never below the level's first XP. Level 20 loses nothing; no item or coin loss.
+
+**Healing** (Jake 11-02): out-of-combat regen only. Fast regen starts after about 5 s without being hit; none
+mid-fight.
+
+**Enemies roll misses on you too** (Jake 11-02): the same dice both ways, shown as MISS over your head.
 Respawn at LastPlace, full HP; the killer heals; a boss resets its phase.
 
 ## 3. Roster
@@ -205,5 +210,7 @@ engine says `grade`, never "level" (its word for a map).
 
 1. **The eight attributes** (VIT STR DEX PRE AGI TGH RES POI)? Recommended: take them as proposed.
 2. **Miss bounds**? Recommended: hit chance 60–98 %, 8 % miss at equal level, streak guard after two misses.
-3. **Death cost**? Recommended: 10 % of the level's span, never below its start (about one kill at L1, four at L19).
-4. **Do enemies roll misses on you too**? Recommended: yes, the same dice both ways; dodging stays the main defence.
+3. ~~Death cost~~: decided 11-02, 25 % of the level's span.
+4. ~~Enemies roll misses~~: decided 11-02, yes.
+5. **Rare variants** (Jake 11-02: Pine and Driftwood have rarer, tougher variants of each enemy type): fold them in with
+   the elites-vs-mini-bosses page.

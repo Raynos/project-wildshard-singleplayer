@@ -61,6 +61,11 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
 19b. **Attributes are allocated automatically.** No choosing, no respec (*"really annoying to choose your attributes
     every single time as you go shard by shard"*). The attribute list itself waits on Jake.
 19c. Reaching level 20 takes about 2.5–3 hours. Kill contracts pay coins plus a trophy and a joke title the first time.
+19d. **Roster kept:** Crate Mite L1–3, Pallet Jack L4–6, Plumb Drone L7–9, Welder Unit L10–12, Riveter L13–15, Arc
+    Sentry L16–18; mini-bosses Big Pallet L6, Vault Warden L12, Foreman Unit 7 L18; the Crate Titan L20. **Night
+    enemies are night-shift variants**: each band's enemy swaps to a tougher variant at night (+1 level).
+19e. **Hub NPCs:** 4–5 dev-bot NPCs: a quest giver per level tier (1–6, 7–12, 13–20), the shop keeper, the stable
+    hand; their lines change as you level. **The legendary is the Titan Cleaver sword.**
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
