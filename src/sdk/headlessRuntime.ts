@@ -94,6 +94,18 @@ export interface HeadlessRuntimePlan {
 /** Direct typed legacy/proof factory contract; the public worker accepts only admitted data plans. */
 export type PrepareHeadlessRuntime = (context: HeadlessRuntimePreparation) => HeadlessRuntimePlan | Promise<HeadlessRuntimePlan>;
 
+/** Index already admitted native specs in first-seen order without copying their
+ * bodies. Repeated identities must retain the same complete wire value. */
+export function headlessSpecCatalogue<Spec extends { readonly kind: string; readonly variant: string }>(specs: Iterable<Spec>): ReadonlyMap<string, Spec> {
+  const catalogue = new Map<string, Spec>();
+  for (const spec of specs) {
+    const key = `${spec.kind}.${spec.variant}`, previous = catalogue.get(key);
+    if (previous !== undefined && JSON.stringify(previous) !== JSON.stringify(spec)) throw new Error(`Divergent native spec ${key}`);
+    catalogue.set(key, spec);
+  }
+  return catalogue;
+}
+
 /**
  * One owned, renderer-free native world: the admitted data plan installed into one native host. The worker's
  * tick adapter (`createTrustedHeadlessAdapter`) and the grid's server-side admission (a `GridSimulation` `load` port,

@@ -160,13 +160,52 @@ does not close a Z row.
 | **Z10** | **People and places.** Into `people/figures` / `world/places` | 3: DW people/cards, building-life, cover-composition | Codex | 1 |
 | **Z11** | **Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | 8: Nalati weather, weather-fx, audio/scene, look/post; Pine weather, rain, weather-observations, ambience | Opus fx, Codex audio | 3 |
 | **Z12** | **Ground pages.** `world/ground` family: layout, caves, collision; big grids as `.bin` with row headers, sharing the fields host with Far / Sun | 9: Pine floor, crag-cave, cave-interior, forest-page, building-sites, landmark-view, physics.generated; Nalati meadow, water | Opus | 3.5 |
-| **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
+| **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted. **In flight (2026-11-03, sp-x6): 0/6 files deleted; qualified Driftwood duplicate-field cut below. Nine held for sp-o1's live-wall RCA; prerequisite semantic owners recorded below.** | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
 | **Z14** | **Encounters and riding (was CS8).** Arena room, timed encounter and riding-profile rows (`game/boss/arenaRoom.ts`, `game/riding/*`); Titan fight to AS | 9: Nalati room-entry, timed-encounters, titan-fight, titan-geometry, ride/rules, riding/session, mounted-figure; Pine combat/roaming, client/ranged-page | Opus | 4.5 |
 | **Z15** | **Delete the custom path and lock it at 0.** Delete shard `SECTIONS` and both `runtime/productSections.d.ts`; the custom branches in `sdk/outputRuntime.ts`, `sdk/outputProduct.ts`, `game/shardfile/shardProduct.ts`, `clientPlan.ts`, `game/quest/{pageComposition,continuation,chapterDirector,questPageViews}.ts`, `game/models/{islandLibrary,kitFigureCard}.ts`; shard-built inline schemas; `scripts/custom-section-policy.mjs`, `scripts/check-custom-section-growth.mjs`, `lint/custom-sections.json` and the per-shard ceilings. Output admission refuses any `custom/` name and any unregistered named JSON; one ratchet row `custom-sections/total = 0` | the path itself; count stays 0 | Codex | 1.5 |
 
 Kills: 1 + 98 + 72 + 70 + 13 + 6 + 10 + 14 + 14 + 9 + 3 + 8 + 9 + 6 + 9 = **342**. Z0–Z3 remove 241 (70 %) in
 ~9 lane-days. Rows are numbered in build order (most sections per lane-day first); Codex takes Z1, Z4, Z5, Z13 at
 once while Opus starts Z2.
+
+### Z13: qualified cuts and retained semantic owners
+
+**2026-11-03, sp-x6:** Driftwood no longer duplicates `dayStyle` and
+`nativeSpecs` in its assembly. The native proof reads the entire day input
+from admitted `look/toon.sky.day` and derives the ordered spec catalogue
+from the same admitted physics actors and captain. Entry budgets and all
+native installation, clock and restore expectations stay unchanged.
+`headlessSpecCatalogue` refuses divergent bodies under one identity.
+
+The actual layout-dependent emitter retains all **41/41 other named
+payloads and 16/16 section payloads byte for byte**. The assembly changes
+only by deleting those two fields: **920,377 → 912,509 B (−7,868 B)**.
+All 15 focused cases pass; strict root types and touched typed lint pass.
+Before/after native replay is byte-identical over 240 ticks, including a
+120-tick restored continuation (6,495,613 serialized observation bytes,
+SHA-256 `53e93ae4fe3fe00c576be76504cf4bfb2c83713e287e69d53f2c265eef031efb`).
+That replay uses the same retained admitted product on both sides; the
+separate emitter comparison proves the removal. No browser or ordinary
+build proof is claimed. **Count reduction remains 0/6.**
+
+**Nine is untouched**, including its assembly, constants, portal ride and
+grapple readers, until sp-o1 identifies the live missing-wall cause.
+Its remaining predecessors are the native held policy (Z6), layout/spawn
+and hook defining data (Z7), and the retained Z13 portal/grapple and native
+grid-collision owners. Those owners must preserve standalone-cap removal,
+float32 tread/hull expansion, install/restore ids and the independently
+recorded entry proof; matching scene geometry is insufficient.
+
+Remaining Driftwood owners include native quest/population/specimen roots
+(Z4/Z7/Z8), native collision metadata and held policy (retained CS4/CS7
+exits). Pine still needs its sole-copy 63,824 B population environment
+(Z4), native terrain binding (Z12) and independent entry budget. Nalati
+still needs population/boot identities and RNG (Z4), weather/shelters
+(Z11), native collision binding (Z12), and riding/elite capabilities
+(Z14). Its browser weather and elite readers name the retained assembly
+and boot. Deleting those documents before these owners qualify would
+remove live data; no alias, source import or renamed private envelope
+counts as a deletion.
 
 ### Exits become host rows
 
@@ -1918,7 +1957,7 @@ has zero diagnostics. CS10's recorded live-user exits are unchanged.
 
 | Field | Disposition / defining payload or explicit exit |
 |---|---|
-| `dayStyle` | **Explicit exit.** CS9 toon-day/clock owner derivation: generators/toonPresentation.ts owns the full TOON_LOOK.sky.day, not an admitted whole defining document. Retain preset values and initial clock alignment. |
+| `dayStyle` | **Qualified Z13 derivation (2026-11-03).** Complete admitted look/toon.sky.day reproduces TOON_LOOK.sky.day byte for byte. Native preset values and initial clock alignment remain unchanged. |
 | `entries` | **Explicit exit.** CS9 native entry-proof exit: data/entryWalk.json is an expected walk/count budget consumed by proveTerrainEntries; do not recompute expected proof facts from the geometry being checked. |
 | `interact` | **Qualified exact derivation; full old canonical bytes reconstructed.** quests/interaction-source.json#/constants/interact; existing bounded named-JSON admission and original native interaction owner |
 | `interactSpots` | **Qualified exact derivation; full old canonical bytes reconstructed.** quests/interaction-source.json#/constants/interactSpots; original page/native placement input |
@@ -1927,7 +1966,7 @@ has zero diagnostics. CS10's recorded live-user exits are unchanged.
 | `nativeCounters` | **Qualified exact derivation; full old canonical bytes reconstructed.** quests/achievements.json through parseAchievementCounterData and the original native-feat/flag/write projection |
 | `nativeQuest` | **Explicit exit.** CS5/CS9 complete native quest-composition owner: generators/nativeQuest.ts joins save order, prompts, transitions, acquisition and reward. Preserve parseNativeQuestComposition and original native entry assertions. |
 | `nativeQuestSpots` | **Explicit exit.** CS5/CS9 complete native place/prompt/cable root: DRIFTWOOD_SPOTS contains more than the interaction-source row array. Keep readNativeQuestSpots, prompt-registration and cable bounds. |
-| `nativeSpecs` | **Explicit exit.** CS4/CS9 complete native figure-spec catalogue: driftwoodNativeRows owns exact native body/spec pairs. A species-name match or an actor subrecord does not reproduce the whole book. |
+| `nativeSpecs` | **Qualified Z13 derivation (2026-11-03).** Ordered catalogue over the full admitted physics actor specs plus captain spec reconstructs every original catalogue byte. Conflicting bodies under the same kind.variant are refused; no species-name inference. |
 | `physics` | **Explicit exit.** CS4 complete native-bake owner/typed binary derivation: preserve solid order, tagged provenance, actor/herd/habitat/captain and exact ground/collider bytes. The two existing binaries alone do not define this whole compound value. |
 | `questKillSteps` | **Explicit exit.** CS5 native kill-step/feat continuation: preserve kill fact identity, ordered native reward and original quest counter ownership; no whole admitted replacement was found. |
 | `questProps` | **Explicit exit.** CS5 complete native prop-owner exit: nativeQuestProps joins barrels, floors, plates and water with placements and owned save order; a scene/view payload is not the native owner. |

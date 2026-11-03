@@ -8491,16 +8491,16 @@ named W3 user is Nalati `species/balbal.ts#actBalbal`, replacing its numeric
 state/attackPhase/hit gate while preserving motion, slam flags, damage,
 contact, sound order and actor-memory continuation.
 
-**Trusted tick wiring (W2 C9).** `@wildshard/sdk/headlessRuntime` defines
-`bindHeadlessCommands(context)`: one installation binds the current admitted
-tape to native ports and the existing `ledgerPorts`/`pickCommands` owners.
-`shots` reads every attack in order; `heavy` reads the first held command;
-`melee` and `walk(speed)` use the last player command, including releases.
-`scripts(ids?)` creates a filtered reader; `lastScript(id, fallback)` keeps
-the last matching numeric value. Every read samples the current tape and
-refuses more than 1024 commands. Filtered arrays and melee input are borrowed
-scratch, never saved between ticks. Pine and Driftwood use this wiring
-without changing their controller install, restore, clock or effect order.
+**Trusted tick wiring (W2 C9).** `sdk/headlessRuntime.bindHeadlessCommands`
+binds the current admitted tape to `ledgerPorts`/`pickCommands`. `shots`
+keeps every attack; `heavy` takes the first held command; `melee` and
+`walk(speed)` take the last player command, including releases. `scripts(ids?)`
+filters; `lastScript(id, fallback)` takes the last matching numeric value.
+Reads resample the tape and refuse over 1024 commands. Returned arrays and
+melee scratch are borrowed, never saved. Pine/Driftwood retain controller
+install, restore, clock and effect order. `headlessSpecCatalogue(specs)`
+borrows admitted bodies indexed by kind.variant in first-seen order;
+conflicting complete wire values refuse. It adds no admission or capability.
 
 ### Hitscan effect presentation
 

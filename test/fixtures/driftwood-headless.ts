@@ -1,4 +1,3 @@
-import type { TOON_LOOK } from '../../src/shards/driftwood-isle/generators/toonPresentation';
 import type { driftwoodNativeRows } from '../../src/shards/driftwood-isle/generators/nativeBake';
 import type { NativeQuestCompositionInput } from './native-hosts/quest/nativeComposition';
 import type { MixedPopulationInput } from './native-hosts/population/mixedRoster';
@@ -16,7 +15,7 @@ import { parseChapterDirector, parseChapterWake } from '@wildshard/format/chapte
 import { readDirectorProduct } from '@wildshard/game/plugin/director';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { waveHeight } from '@wildshard/engine/world/waves';
-import { bindHeadlessCommands } from '@wildshard/sdk/headlessRuntime';
+import { bindHeadlessCommands, headlessSpecCatalogue } from '@wildshard/sdk/headlessRuntime';
 import { installNativeCollision } from '@wildshard/game/population/nativeBake';
 import { nativeBakeGround } from '@wildshard/game/population/nativeBake';
 import { createNativeBakeReader } from '@wildshard/game/population/nativeBake';
@@ -31,8 +30,7 @@ import { need, readJson, installBodyScripts, prepareReturns } from './headless-p
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation) => {
     const { product, assets } = preparation, shard = product.shardfile;
     const { constants } = await product.json<{
-        constants: ReturnType<typeof driftwoodNativeRows> & {
-            dayStyle: typeof TOON_LOOK.sky.day;
+        constants: Pick<ReturnType<typeof driftwoodNativeRows>, 'physics'> & {
             nativeQuest: NativeQuestCompositionInput['rows'] & {
                 reward: {
                     director: string;
@@ -51,6 +49,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation
         };
     }>('sim/headless-assembly.json');
     const lendReturns = await prepareReturns(preparation);
+    const dayStyle = product.section('look/toon').sky.day;
     const nativeSea = structuredClone(need(product.shardfile.water.find(row => row.id === "sea" && row.kind === "sea"), "Driftwood requires its admitted sea"));
     const interaction = await product.json<{ constants: { interact: NativeQuestCompositionInput["table"]; interactSpots: NativeQuestCompositionInput["spots"]["rows"] } }>("quests/interaction-source.json");
     const chapterDirector = parseChapterDirector(await product.json('quests/chapter-director.json'));
@@ -78,7 +77,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation
     const bakeReader = await ((createNativeBakeReader)(constants["physics"], { "label": "Driftwood", "resolution": 256, "size": 500, "parked": false, "rig": "axis", "shapes": [1, 2, 9], "provenance": "tagged" }, { "file": "data/physics-ground.generated.bin", "bytes": physicsGround }, [{ "file": "data/physics-colliders.bin", "bytes": physicsColliders }]));
     const ground = await ((nativeBakeGround)(constants["physics"]["ground"], 256, 500, "Driftwood", { "file": "data/physics-ground.generated.bin", "bytes": physicsGround }));
     const bake = await ({ "actors": constants["physics"]["actors"], "herds": constants["physics"]["herds"], "habitat": constants["physics"]["habitat"], "captain": constants["physics"]["captain"], "ground": ground, "solids": (constants["physics"]["solids"]["map"])((arg1_0) => ((bakeReader["solid"])(arg1_0))) });
-    const specs = await (new (Map)(constants["nativeSpecs"]));
+    const specs = headlessSpecCatalogue([...constants.physics.actors.map(actor => actor.spec), constants.physics.captain.spec]);
     const heightAt = await ((arg1_0: number, arg1_1: number) => ((terrainTileHeight)({ "resolution": 256, "x": -250, "z": -250, "size": 500, "heights": ground["heights"] }, arg1_0, arg1_1, { "layout": "column-major", "boundary": "clamp" })));
     const nav = await ((readNavmesh)(navigation, "Driftwood declared navigation does not parse", () => (0)));
     const spots = await ((readNativeQuestSpots)(constants["nativeQuestSpots"]));
@@ -87,7 +86,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation
     const ports = { ground: false as const, heightAt: heightAtEntry };
     return { level, ports, proveEntries: (arg1_0) => ((proveTerrainEntries)(arg1_0["physics"], shard["entryways"], heightAt, constants["entries"])), install: (host, context) => {
             lendReturns(host);
-            const dayLook = (dayClock)(TOON_DAY_PRESET, constants["dayStyle"], { "dusk": "dusk" });
+            const dayLook = (dayClock)(TOON_DAY_PRESET, dayStyle, { "dusk": "dusk" });
             const clock = new (DayCycle)(Object.assign({}, dayLook["spec"], { "start": 0.16666666666666669 }));
             (clock["cycle"] = 2880);
             (host["useDayClock"])(clock);
