@@ -2,6 +2,7 @@ import { WeatherDocumentSchema } from './weatherBundle';
 import { AudioSceneSchema } from './audioScene';
 import { PostGraphLookSchema } from './postGraphLook';
 import { WorldScenePageSchema } from './worldScenePages';
+import { FixedDrawRowsSchema } from './fixedDraws';
 import * as v from 'valibot';
 import { SceneModelSourceSchema, SceneBakeSourceSchema } from './sceneSources';
 import { WorldScenePlacementPageSchema } from './worldScenePlacement';
@@ -39,6 +40,8 @@ export interface PlatformFileFamily {
  * Names stay streamed and payloads stay verbatim. Private placement, cabin,
  * ground and encounter grammars remain outside this registry. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  { pattern: /^models\/shape-book\.json$/u, schema: FixedDrawRowsSchema,
+    source: '@wildshard/format/fixedDraws#FixedDrawRowsSchema', reader: 'src/game/models/fixedDraws.ts' },
   { pattern: /^quests\/chapters\.json$/u, schema: ChapterStoryPresentationSchema,
     source: '@wildshard/format/questStory#ChapterStoryPresentationSchema', reader: 'src/game/quest/story.ts' },
   { pattern: /^world\/weather\.json$/u, schema: WeatherDocumentSchema,

@@ -22,7 +22,6 @@ import course from '../data/grappleCourse.json' with { type: 'json' };
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import type { GrappleRows } from '../data/grappleTypes';
 import aim from '../data/grapple.json' with { type: 'json' };
-import { layoutBlobs } from './layoutBlobs';
 import { nameBlob, emitNamedBlobs, type BlobOptions, type NamedBlob } from '@wildshard/sdk/blobs';
 import { buildHalo } from './jianHalo';
 import { buildViewmodelParts, mergedPendantParts } from './viewmodelParts';
@@ -95,7 +94,7 @@ const decalSources = 'sources' in decals ? Object.entries(decals.sources).map(([
 const decalBlobs = 'blobs' in decals ? decals.blobs : [];
 if (rawMovers.some(row => row.file.hash !== movers.hash)) throw new Error('Nine movers bytes differ from module hash');
 const volumes = lightVolumeBlobs(inputs.ownedWorld.layout, inputs.signs.atlas);
-const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, volumes, layoutBlobs(inputs.ownedWorld, inputs.scenes), facadeWindowBlobs(inputs.ownedWorld.layout), [
+const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, volumes, facadeWindowBlobs(inputs.ownedWorld.layout), [
   nameBlob(NINE_HELD_CARDS, 'json', json(heldCards)),
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
@@ -104,7 +103,11 @@ const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, v
   nameBlob('sim/headless-constants.json', 'json', json({ ...headlessConstants, entryProof })),
   nameBlob('weapons/jian-row.json', 'json', json({ ...equipmentRows, view: heldView(inputs.held), look: { vm: viewmodelUniforms, post: { ...postGraphRow(postRows()), channels: { group: NINE_FRAME_GROUP, programs: NINE_FRAME_CHANNELS } } } }), { jsonSchema: { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', required: ['portraitFov', 'aim', 'bursts', 'look', 'view'], additionalProperties: false, properties: { view: inputs.graphArmsSchema, look: { type: 'object', required: ['vm', 'post'], additionalProperties: false, properties: { vm: { type: 'object' }, post: { type: 'object', required: ['passes', 'sides', 'composite', 'inputs', 'uniforms', 'sky'] } } }, portraitFov: { type: 'number' }, aim: { type: 'object' }, bursts: { type: 'object', required: ['muzzle', 'bite', 'dock', 'sparks'], additionalProperties: false, properties: Object.fromEntries(['muzzle', 'bite', 'dock', 'sparks'].map(id => [id, { type: 'object', required: ['name', 'shape', 'count', 'life'], additionalProperties: false, properties: { name: { type: 'string' }, shape: { enum: ['flake', 'streak'] }, count: { type: 'integer', minimum: 1, maximum: 24 }, life: { type: 'number', exclusiveMinimum: 0, maximum: 1 } } }])) } } } }),
   nameBlob('weapons/jian-halo.json', 'json', json({ geometry: { ...halo.geo.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000001' }, material: { ...halo.mat.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000002' } })),
-], rawMovers, decalBlobs, inputs.casts.blobs, inputs.signs.blobs, [inputs.courseProgram.blob]));
+], rawMovers, decalBlobs, inputs.casts.blobs,
+  // The source baker still admits these complete rows before compiling native
+  // sign pools; no runtime reads their duplicate JSON files.
+  inputs.signs.blobs.filter(row => row.file.name !== 'signs/atlas-phone.json' && row.file.name !== 'signs/atlas-desktop.json'),
+  [inputs.courseProgram.blob]));
 
 return { late: [...nineRefinementFiles(NINE_WORLD_SCENES.libraries), ...nineDemandFiles(emitted.files, [...volumes.map(volume => volume.file), ...NINE_SCENE_BLOBS.filter(blob => blob.file.name?.startsWith('world/slabs/')).map(blob => blob.file)])], blobs: [...moverSources,{name:"practice/card.webp",kind:"image",source:"explore/playground-grapple.webp"},...decalSources], namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets, ...kitKindFiles().map(row => [row.file.hash, row.bytes] as const), [crowdGraphFile().file.hash, crowdGraphFile().bytes], ...sourceAssets]),
   platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['explore/catalogue', explorer.catalogue], ['ui/strings', strings], ['world/scenes', { ...NINE_WORLD_SCENES, entry: nineWorldEntry(inputs.scenes) }], ['held/arms', heldPrimary], ['actors/return-scripts',[inputs.courseProgram.script]], ['view/modules', [{ id: 'nine.movers', module: `blobs/wasm/${movers.hash}.wasm`, side: 'view', ...MOVERS_OPTIONS.script }]], ['client/plan', {version:1,features:[explorer.sets, practiceCard, {kind:'strings.register'}, {kind:'world.assembly', rows: nineWorldAssembly(inputs.construction, inputs.scenes), entered: { root: 'nine.root', blocks: ['pieces'] }}, {kind:'view.program', id:'movers', rows: nineMoversView(), module: 'views/movers.wasm'}, {kind:'world.runtime-hooks',overhead:[],bounds:{x:[-250,250],z:[-250,250],outer:{maxAbsXZ:200,floor:-20}}}, {kind:'held.claims.prepare',id:'held.primary'}, {kind:'held.claims.install',claims:'held.primary'}, {kind:'held.claims.enter',claims:'held.primary',grapple:{item:'tool.fei-zhua',source:'sim/headless-constants.json',presentation:'weapons/jian-row.json'}}, {kind:'portal.ride',source:'sim/headless-constants.json'}]}]])) };

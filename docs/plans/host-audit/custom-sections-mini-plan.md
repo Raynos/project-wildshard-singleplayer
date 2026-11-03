@@ -9,7 +9,7 @@ count with identical pixels (Opus rows) or identical bytes (Codex rows). Jake ru
 counts). Non-graphics rows run on Codex (G963 / G969); graphics rows stay Opus (G848); no WASM-HOST work (G969).
 Phase HA7 of [HOST-AUDIT](../HOST-AUDIT.md) (G697); direction G696 ([decisions](../shard-platform/decisions.md)).
 
-**Reviews:** [One-user batch for Jake](../../reviews/custom-sections-one-user-batch.md) — `unread`, 58 unique retained files with per-file dispositions and the route to zero.
+**Reviews:** [One-user batch for Jake](../../reviews/custom-sections-one-user-batch.md) — `unread`, 67 unique retained files with per-file dispositions and the route to zero.
 
 **G988 (Jake, 2026-11-03 ~08:35):** zero = no `custom/` section and no named JSON outside a registered shared file type. **Codex lanes only**: every Z row marked Opus runs on Codex under a pixel-identical bar (G958); no Opus lane works this plan.
 
@@ -156,7 +156,7 @@ does not close a Z row.
 | **Z4** | **In flight (2026-11-03, sp-x9), 0/13 removed.** The complete-root census below names 13 single-user/envelope blockers for Jake’s one-user batch; no shared-family registration or AS rewrite is qualified. **Populations.** `actors/species` + `actors/populations` (`game/population/*`); keeper, return and spawn programs as AS | 13: DW projection, creature-install, poses/monkey, keeper, returns, enemy-placement; Pine roster, elites, shelter; Nalati sheep, wildlife, population-metadata, taming-poses | Codex (+ Opus poses) | 3 |
 | **Z5** | **Done (2026-11-03, sp-x2): `92f8a2e671`, `c9ae94288f`; strict proof and G872 acceptance below.** Complete bake/model envelopes shared by Far + Sun, native full-root admission before publication; fresh sp-x1 HOST-BAR 6/6 for each family. Delete the zero-reader Sun effects duplicate | **6 removed:** Far sources bakes/heroes/sky; Sun sources bakes/models, places-effects; custom counts 3→0 each | Codex | 1.5 |
 | **Z6** | **In flight (2026-11-03, sp-x8): exact native-type/user audit and byte-preserving transport.** Weapon pages into `held/*`; Jian cloth / halo ship as GLB. One-user complete contracts go to Jake's G988 batch; G958 parity, G998 goldens and held-view captures required | 10 targets: Nalati bow-page, rifle-model, rifle-page, sabre, spear, held/slots; Nine jian-cloth, jian-halo, jian-row; Pine loadout/finishes | Codex (G958) | 3 |
-| **Z7** | **In flight (2026-11-03, sp-x9), census first.** Two prior DW ports (`3c42144c50`) are already platform; 12 remaining / 3,625,429 B. Four exact candidates below: one existing two-shard fixed-draw family and three reader-less Nine copies; no new source landing yet. Eight live roots remain one-user, including cloud already in the batch. **Model library.** One specimen / fixed-draw / collection book (`game/models/{islandLibrary,fixedDraws,collectionDisplay}.ts`, `SpecimenBookSchema`) and a generic atlas row over the KTX2 that ships | 14: DW **`custom/fixedLayouts`**, **`custom/collections`**, fixed-geometry; Nalati cover ×2, gear-book, shape-book, cloud-specimen; Nine fixed-kits, layout, held-cards, sign atlas ×2; Pine cover-appearance | Opus | 4.5 |
+| **Z7** | **Eligible slice qualified (2026-11-03, sp-x9): four new removals; cumulative 6/14 including prior DW ports `3c42144c50`.** Exact existing FixedDrawRows family has real complete DW/Nalati users and fresh 6/6. Nine's unread layout and two atlas copies retire 2,347,716 physical bytes; original sign bake and native pools remain. Strict native qualification and all six shards' Chromium/WebKit goldens below. Eight live one-user roots / 1,264,859 B remain charged for Jake's batch | 14 original: two prior DW ports, one exact family, three dead copies; **8 retained** | Codex (G958) | 4.5 |
 | **Z8** | **Eligible slice done (2026-11-03, sp-x9), 2/14 removed.** Exact shared ChapterStoryPresentation family (6/6, real complete Nalati/DW/Pine users), plus the 149 B reader-less DW steps deletion `98bab03828`. Original native owners and all Pine bytes remain; all six shards qualify 24/24 Chromium + WebKit through the shared cohort, with Nalati re-shot after QD11. Twelve per-file blockers / 93,379 B below remain charged for the one-user batch; Pine lead already runs as AS. | 14: Pine **`custom/questRuntime`**, native-spots, native-story, contracts, forest-story; DW discovery, interaction-source, hints, steps, wake-boss; Nalati carried, chapters, content, finds | Opus design, Codex port | 4.5 |
 | **Z9** | **Five dead copies retired (2026-11-03, sp-x2); four live Nalati files remain charged for Jake’s one-user batch.** Pine’s two prop JSONs and Nalati support pages 2/3/4 have no reader or routing reference. G872 approved deletion removes 397,308 B; all unrelated 242,316,656 B and 122 ordered packs verify exactly, with only the independently reconstructed Nalati map source stamp attributed. Strict native 48 frames / 16 A/A + 16 A/B all zero. Pine and Nalati each 24/24 green in Chromium and WebKit; actual builds, four boards and per-file retained-root evidence [below](#z9-dead-copies-and-four-real-one-user-roots-2026-11-03-sp-x2). No fabricated Pine scatter user or new platform-family credit | **5 of 9 retired; 4 charged:** Nalati dressing-pages 0/1 and dressing-{phone,desktop} | Codex (G958) | 3 |
 | **Z10** | **Census complete (2026-11-03, sp-x9), 0/3 removed.** All three / 1,669 B have original live readers and only DW as a complete emitter; per-file evidence below. E9 building-life is already in Jake’s batch, not new credit. **People and places.** Into `people/figures` / `world/places` | 3: DW people/cards, building-life, cover-composition | Codex | 1 |
@@ -413,13 +413,91 @@ landing. No missing reader is invented to register a family.
 | DW `world/building-life.json` | 510 | E9’s complete initialDusk/life/look document and original native building-life parser remain live. Already charged as a one-user row in Jake’s batch; no new family credit or double count. |
 | DW `world/cover-composition.json` | 99 | Complete name/placement/mesh/userData `CoverCompositionSchema`; the live streamed-cover stage reads the exact declared file through its original product/owner/geometry/looks checks, then parses this root. Pine’s forest construction is a different whole grammar, not user two. |
 
-Projected new slice: **four removals**—one family registration plus three
-dead-copy cuts (**2,347,716 B** physically retired, **12,854 B** still
-transported identically on the platform family). Including the two earlier
-DW ports would make Z7 **6/14**, with **8 / 1,264,859 B** still charged;
-Z10 remains **0/3 / 1,669 B**. Those eleven retained live files include
-cloud and building-life already in the batch, so only nine new per-file
-batch blockers are proposed. These are candidates, not landed counts.
+**Qualified slice: four new removals**—one exact family registration plus
+three approved dead-copy cuts. Physical deletion is **2,347,716 B**;
+**12,854 B** remains byte-identical on the registered family, so the new
+custom deduction is **4 / 2,360,570 B**. Including the earlier two DW ports,
+Z7 is **6/14**, with **8 / 1,264,859 B** retained. Z10 is **0/3 / 1,669 B**.
+The eleven live files total **1,266,528 B**. Cloud and building-life already
+belong to the batch once; the nine additional per-file entries landed in
+`73fce5f9d3` (67 unique batch files). No sole-user family was registered.
+
+**Pinned byte and native proof.** BEFORE `add58749da-mw0y33kg`
+(parent `add58749dab8d20d3df8af657f1f5bc5389c14f1`) and AFTER
+`67c017f837-mw0yqfhu` (parent
+`67c017f83798f69332988a189d2c2cd47c2c5171`) are ordinary admitted six-main
+products. An earlier generation refused committed source-inventory churn;
+the next stable source boundary passed without a guard or cap change.
+Every indexed body and every ordered pack entry was hash-verified. Nine
+retains **622 bodies / 115,360,359 B** exactly, excluding its independently
+reconstructed 164 B map source stamp. Its **24 packs / 608 entries /
+67,391,560 B** become **21 / 605 / 65,043,844 B** by exactly the three named
+removals. All retained entries reconstruct in original order; no literal
+whole-pack identity is claimed across deletion.
+
+Across six products **2,728 other bodies / 480,836,827 B** are exact;
+**112 old / 109 new packs**, **2,663 / 2,660 ordered entries** reconstruct.
+The separate foreign Nalati assembly derivation (113,286 → 32,352 B,
+−80,934 B) is qualified and landed by sp-x1 in `0b5d27d384`; its map stamp
+is attributed separately. Four other products' bodies, sections and packs
+are unchanged. Nine's 288 source-input occurrences reconstruct the old
+map stamp from the inverse producer hunk; its raster remains exactly
+`ce62e4275dd9c205d4087e3043040b96f6655ec22e9510a149a545208199fefd`.
+Only that stamp reconstructs all 164 old descriptor bytes. Runtime source
+contents match apart from generated asset-wrapper identifiers; actual
+JS/CSS bundle identity or shared-capture equivalence is not claimed.
+
+The original sign-atlas author admission, source rows, native pools,
+glyph gains/picking and float64/signed-zero oracle remain. Only production
+layout emission and the two atlas JSON shipments are removed. The family
+uses the existing defining `FixedDrawRowsSchema`, exact metadata and
+original native readers: no new schema, wrapper, runtime or SDK root.
+Fresh six-test host qualification and three original native suites
+(**21 cases**) pass. Seven focused suites (including actual whole-root
+family/refusal tests and original glyph/cast guards) pass in **71.5 s**;
+root types and touched lint pass.
+
+Strict Metal iPhone 16 Pro portrait **804×1748**, both quality tiers,
+four world probes: **24 frames / 8 A/A + 8 A/B**. Frame, clock, camera,
+calls and triangles are deep-identical. Fourteen comparisons are raw zero;
+phone B A/B and desktop D A/A each retain raw **1**, solely the explicit
+G872 class at **(667,1168)**, **[20,25,20,1] ↔ [21,25,20,1]**. The ruling
+allows only those probes/pixel/values with matching metrics; the maintained
+comparator is unchanged and every other difference refuses. The two prior
+A/A refusals remain recorded. No generic pixel tolerance is introduced.
+
+**G998: six shards × 24 views × Chromium and WebKit; all 288 individual
+comparison rows read and qualified.** Every selected capture is settled,
+with `errors: []`, on the same AFTER artifact. The first lane's 45-minute
+limit ended after six whole Chromium sets and DW/Pine WebKit; its partial
+Nalati set is unused. A fresh bounded lane completed the four other whole
+WebKit sets. Pine's original foreground-obscured views were re-shot at
+unchanged poses: Chromium **22+2** (11/20), WebKit **23+1** (11). Far WebKit
+is **23+1** (14). Explicit compositions verify eye/rotation/FOV and preserve
+original raws. No actor hiding, pose change or protocol weakening.
+Nine Chromium 17/18/21 retain the known pre-existing QD1 old-golden
+discrepancy accepted by the coordinator, documented in
+`art/nine-dragon/qd1-2026-11-03/README.md`; the Opus refresh `0cc2158609`
+arrived during this run, so WebKit references already match. No golden
+was promoted by this lane. These are qualified visual comparisons, not a
+raw-zero assertion for dynamic golden frames.
+
+- [driftwood-isle chromium](../../../art/golden-runs/driftwood-isle/2026-11-03-67c017f837-z7-chromium-board.jpg)
+- [pine-hollow chromium](../../../art/golden-runs/pine-hollow/2026-11-03-67c017f837-z7-chromium-board.jpg)
+- [nalati-grasslands chromium](../../../art/golden-runs/nalati-grasslands/2026-11-03-67c017f837-z7-chromium-board.jpg)
+- [nine-dragon-stack chromium](../../../art/golden-runs/nine-dragon-stack/2026-11-03-67c017f837-z7-chromium-board.jpg)
+- [far-reach chromium](../../../art/golden-runs/far-reach/2026-11-03-67c017f837-z7-chromium-board.jpg)
+- [sunscar-dunes chromium](../../../art/golden-runs/sunscar-dunes/2026-11-03-67c017f837-z7-chromium-board.jpg)
+- [driftwood-isle webkit](../../../art/golden-runs/driftwood-isle/2026-11-03-67c017f837-z7-webkit-board.jpg)
+- [pine-hollow webkit](../../../art/golden-runs/pine-hollow/2026-11-03-67c017f837-z7-webkit-board.jpg)
+- [nalati-grasslands webkit](../../../art/golden-runs/nalati-grasslands/2026-11-03-67c017f837-z7-webkit-board.jpg)
+- [nine-dragon-stack webkit](../../../art/golden-runs/nine-dragon-stack/2026-11-03-67c017f837-z7-webkit-board.jpg)
+- [far-reach webkit](../../../art/golden-runs/far-reach/2026-11-03-67c017f837-z7-webkit-board.jpg)
+- [sunscar-dunes webkit](../../../art/golden-runs/sunscar-dunes/2026-11-03-67c017f837-z7-webkit-board.jpg)
+
+Raw body/pack/map comparisons, strict original refusals and final readings,
+all capture receipts, same-pose compositions and individual review rows
+remain under `tmp/sp-x9-z7-z10/`. All capture browsers are closed.
 
 ### Z8 whole-quest candidates and batch (2026-11-03, sp-x9)
 
