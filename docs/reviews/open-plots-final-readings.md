@@ -23,7 +23,7 @@ audio handoff.
 |---|---|---|---|---|
 | Fossil Badlands | `open-plot-1-0` / (-1,-2) | Awaiting audio handoff | Open | Open |
 | Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim + authorized fresh grid complete |
-| Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Open | Chromium memory complete; official Sim queued |
+| Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Chromium/control complete; walk/goldens open | Chromium memory complete; official Sim queued |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | Awaiting audio handoff | Open | Open |
 | Thin Ice | `open-plot-1-4` / (-1,2) | Awaiting audio handoff | Open | Open |
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | Awaiting audio handoff | Open | Open |
@@ -331,3 +331,51 @@ southwest intersection **(843.75,1.7,843.75)** and the actual neighbours
 Template, Clockwork, Starfall and Sky Harbor. This is not measured
 residency. Raw admission, memory and source-pose inputs are retained at
 `tmp/sp-x8-plot-readings/sky-final/`. The full cohort remains open.
+
+## Sky Harbor — Chromium/control (sp-x1)
+
+Exact admitted audio source **a8593f8ac61ad6906b3fec6c8e07fcf4ae0402c8**,
+shared immutable build **a8593f8-mw176ax3** (:4402). X2's body/native bridge
+and X8's independent served-body admission above bind this same candidate:
+165 files, 35 sections, four packs / 199 entries; all 204 served bodies exact.
+The native bar 10 remains the audio owner's separate earned proof.
+
+One maintained `frame-floor.mjs` command pairs Sky Harbor and Night Market
+on the same pin. Chromium Metal M5 Max, muted iPhone 16 Pro CSS 402×874,
+canvas 804×1748 / phone 2×, live clock, boot CPU 1× then acknowledged 4×
+CPU after readiness and a new completed draw. All six windows retain
+**120/120 paired draw and render-CPU samples**, zero skipped samples,
+page errors or context loss. The finite command completes in **52.046 s**;
+the existing floor reader reports complete/pass, without official Simulator
+or physical-device timing credit.
+
+| Plot / pose | Max draws | Median reported triangles | Mean / worst render CPU µs per draw |
+|---|---:|---:|---:|
+| Sky Harbor / spawn | 45 | 96,337 | 35.963 / 64.444 |
+| Sky Harbor / road | 51 | 92,094 | 33.301 / 62.745 |
+| Sky Harbor / plaza | 53 | 118,684 | 33.978 / 54.717 |
+| Night Market / spawn | 48 | 225,198 | 34.497 / 62.500 |
+| Night Market / road | 56 | 140,577 | 28.765 / 55.357 |
+| Night Market / plaza | 57 | 283,280 | 24.737 / 43.860 |
+
+All six windows report **30.03 fps / p95 33.4 ms**, maximum interval
+33.4–33.5 ms, and zero sampled intervals above 50 or 100 ms. Strict 33.3 ms
+flags stay **false**. All windows fit 150 draws; all miss the unchanged
+**30 µs/draw** CPU target. The maximum whole-frame ratio is the CPU gate,
+not the mean or a percentile ratio. These matched observations stay under
+the existing G908 / OB8-RENDER-CPU follow-up, with no isolated saving claim.
+
+The boot console reports all six SFX cues held outside the initial loading
+bar and the synth fallback retained. X2 confirms this is the first-control
+readiness boundary: the existing late-audio path subsequently fetches and
+decodes the held bank. This performance cohort does not observe that later
+bank and makes no generated-SFX playback claim; the separate native bar 10
+proves the six actual buffers after its own readiness boundary.
+
+Standing inputs retain the same real road `(0,1.7,-241,pi,0)` and plaza
+`(0,1.7,-62,pi,0)` as the control. Raw records are in
+`tmp/sp-x1-open-plots/sky-final/chromium/`; standing input SHA-256 is
+`54eccad82e6205bf8b2faec60179d1a3dc0980e8c2927795f63ad3b0079f8119`.
+The browser is closed. The own shared preview lease remains for the walk
+and eight-view golden bridge after X8's finite official Simulator window.
+Those scopes remain open. No visual source changes.
