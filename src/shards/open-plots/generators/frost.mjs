@@ -170,8 +170,22 @@ export function liftPlacements(lift, cable, colour) {
   return placements;
 }
 
+/** NM10's moving-light marking (nightMarket.mjs): a tetrahedron in Glow whose colour has no green, red in [0.5, 1) its seed
+ *  (the glow graph's steady mode: drifting slowly, never blinking to black) and full blue, which the graph lights frost
+ *  white: a glint of wind-blown snow. */
+let seeds = 0;
+function glint(w, x, y, z, s) {
+  seeds++;
+  const c = [((seeds * 0.6180339887) % 1) * 0.5 + 0.5, 0, 1];
+  const top = [x, y + s * 1.4, z], a = [x - s, y - s, z - s], b = [x + s, y - s, z - s], d = [x, y - s, z + s * 1.4];
+  w.tri('Glow', top, b, a, c); w.tri('Glow', top, d, b, c); w.tri('Glow', top, a, d, c); w.tri('Glow', a, b, d, c);
+}
+
 /** Hooks at the generic construction points (tiledPlotCore.mjs): the landmark's chair lift (`landmark.lift`) and
- *  lanterns (none by default: its lodge's windows are its light), and a cool pool of light round the peak's foot. */
+ *  lanterns (none by default: its lodge's windows are its light), and a cool pool of light round the peak's foot.
+ *  OB3 (bar 7): snow glints blowing off the summit (the layout's `landmark.glints`, plot metres for the 70 m peak at turn
+ *  0, before the lodge and the crown). They are Glow, which the coarse tiles keep, so with the lamps' flicker they are the
+ *  plot's motion seen from the road entry: 0.6 m glints up a 5 m column at each point. */
 export const frostlinePlot = {
   builders: layout => frostlineBuilders(layout.builders),
   lanternBake: { gain: 0.8, radius: 1.5, cut: 3 },
@@ -180,6 +194,10 @@ export const frostlinePlot = {
     placePlotModels(parts, kit, [...lift, ...(layout.landmark.lanterns ?? []).map(at =>
       ({ family: layout.landmark.lanternFamily ?? 'hero', variant: layout.landmark.lanternVariant ?? 2, at, scale: layout.landmark.lanternScale ?? 1 }))],
     new Set(['lodges', 'pines', 'lift']));
+    const writer = { tri: (part, a, b, c, colour) => parts[part].tri(part, a, b, c, colour) }, k = (layout.landmark.height ?? 70) / 70;
+    for (const [x, y, z] of layout.landmark.glints ?? []) {
+      for (let i = 0; i < 7; i++) glint(writer, (x + Math.sin(i * 2.4) * 1.5) * k, (y + i * 0.75) * k, (z + Math.cos(i * 2.4) * 1.5) * k, 0.6);
+    }
   },
   pools(parts, palette) {
     const lit = { Pool: parts.Pool }, plotWriter = { triColours: (part, a, b, c, colours) => lit[part].triColours(part, [a, b, c], colours) };

@@ -70,6 +70,7 @@
     "far": "public/assets/open-plots/mosslight-ruins/landmark-far.glb",
     "height": 35,
     "turn": 0,
+    "motes": [[0.5, 9, -11], [1.5, 15, -11], [3.5, 20, -8.5], [-2.5, 26, -4], [0, 33, -1]],
     "glow": [
       [
         -2.73,

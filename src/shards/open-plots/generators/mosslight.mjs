@@ -30,12 +30,13 @@ const RUIN_SOLIDS = [
 /** A stable variant (0 to count - 1) for a piece at tile-local (x, z), so neighbours differ and every bake repeats. */
 const pick = (x, z, count, salt = 0) => (((Math.round(x * 4) * 7 + Math.round(z * 4) * 13 + salt) % count) + count) % count;
 
-/** NM10's moving-light marking (nightMarket.mjs): a mote is a 12 cm tetrahedron in Glow whose colour has red alone, red
- *  in [0, 0.5) its seed; the glow graph wanders and blinks it (the layout's moving-light colour makes it emerald). */
+/** NM10's moving-light marking (nightMarket.mjs): a mote is a tetrahedron (12 cm by default) in Glow whose colour has no
+ *  green, red in [0.5, 1) its seed: the glow graph's steady mode, drifting slowly and never blinking to black (the firefly
+ *  mode, red in [0, 0.5), blinked them to black specks: OB6 bar 7). A little blue makes the graph light it emerald. */
 let seeds = 0;
-function mote(w, x, y, z) {
+function mote(w, x, y, z, s = 0.12) {
   seeds++;
-  const c = [((seeds * 0.6180339887) % 1) * 0.5, 0, 0], s = 0.12;
+  const c = [((seeds * 0.6180339887) % 1) * 0.5 + 0.5, 0, 0.01];
   const top = [x, y + s * 1.4, z], a = [x - s, y - s, z - s], b = [x + s, y - s, z - s], d = [x, y - s, z + s * 1.4];
   w.tri('Glow', top, b, a, c); w.tri('Glow', top, d, b, c); w.tri('Glow', top, a, d, c); w.tri('Glow', a, b, d, c);
 }
@@ -257,8 +258,15 @@ export function jointMoss(kit, green, lawn, reach = 62, outcrop = 17) {
 export const mosslightPlot = {
   builders: layout => mosslightBuilders(layout.builders),
   lanternBake: { gain: 0.8, radius: 1.5, cut: 3 },
+  // OB6 (bar 7): emerald motes drifting off the tower (the layout's `landmark.motes`, plot metres for a 35 m tower at
+  // turn 0: its south window rows and its crown). They are Glow, which the coarse tiles keep, so they are the tower's
+  // motion seen from the road entry: 0.5 m motes up a 5 m column at each point
   models(parts, _kit, layout) {
     towerWindows(parts.Glow, layout.landmark, linear(layout.palette.windowGlow ?? layout.palette.lantern));
+    const writer = { tri: (part, a, b, c, colour) => parts[part].tri(part, a, b, c, colour) }, k = (layout.landmark.height ?? 35) / 35;
+    for (const [x, y, z] of layout.landmark.motes ?? []) {
+      for (let i = 0; i < 7; i++) mote(writer, (x + Math.sin(i * 2.4) * 1.2) * k, (y + i * 0.75) * k, (z + Math.cos(i * 2.4) * 1.2) * k, 0.5);
+    }
     jointMoss(parts.Kit, linear(layout.palette.moss ?? layout.palette.lawn), linear(layout.palette.lawn));
   },
   pools(parts, palette) {

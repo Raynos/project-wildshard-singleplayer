@@ -67,6 +67,7 @@
     "far": "public/assets/open-plots/frostline-peaks/landmark-far.glb",
     "height": 70,
     "turn": 0,
+    "glints": [[8, 60, -34], [-5, 64, -32], [2, 70, -26], [14, 54, -30]],
     "lanterns": [],
     "lift": {
       "stations": [
