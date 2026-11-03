@@ -52,6 +52,7 @@ needs a mean of at least 6.5 and no view under 5.
 | [Patchwork Fairground](patchwork-fairground/) | 6 | 5 | 5 | 6 | 5 | 6 | 5 | 6 | **5.50** | NOT YET |
 | [Fossil Badlands](fossil-badlands/) (OP21) | 5 | 6 | 5 | 7 | 6 | 7 | 5 | 5 | **5.75** | NOT YET |
 | [Sky Harbor](sky-harbor/) (OP11) | 4 | 6 | 5 | 7 | 6 | 7 | 5 | 6 | **5.75** | NOT YET |
+| [Desert Ruin](desert-ruin/board.jpg) (OP12) | 5 | 6 | 5 | 7 | 6 | 6 | 5 | 6 | **5.75** | NOT YET |
 | [Thin Ice](thin-ice/) (OP18) | 5 | 6 | 5 | 7 | 6 | 7 | 6 | 5 | **5.88** | NOT YET |
 | [Floating Island Race](sky-race/) (OP22) | 5 | 6 | 6 | 7 | 6 | 7 | 5 | 6 | **6.00** | NOT YET |
 
@@ -143,6 +144,8 @@ front of it).
   stands and paddocks sit in the board's places and the tower and arch read from the plaza and under the arch; the road
   entry shows the poster before a small tower, and the build's four loops stand for the board's one long circuit
   (`../../sky-race/round-3-final/`).
+- 2026-11-03, Desert Ruin (OP12): first set, from `bf48edbf7c` (`--rev` preview `bf48edb-mw153fwp`, its activation `cad1dbd0a2` with the draw and wire rows `af4b65d614`, `d90343121c`); cameras are Jungle's eight moved to its cell (1, -2), view 5 at 60 m south of the gateway and view 6 under its lintel. Scored against round 62: the top-down's four oases, paved cross, tent rows and edge ruins match; at eye level the gateway is small from the road over wide paving, and Nine Dragon's far silhouette floats behind it (`../../nine-dragon/qa-far-silhouette/`) (`../../desert-ruin/round-2-final/`).
+- 2026-11-03, Jungle Ziggurat: re-shot on `9c82257231` (the four-stair ziggurat, G872), frames stored at the set's 402 x 603.
 - 2026-11-03, Starfall Observatory: first set, from its activation `d4d4b17674` (preview `d4d4b17-mw13gps7`), cameras
   Patchwork's plot-local set moved to Starfall's cell (1, 2) (instance `open-plot-3-4`); final board
   `../starfall-observatory/round-3-final/board.jpg` (its README lists the known gaps).

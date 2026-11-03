@@ -408,6 +408,8 @@
     "src/game/shard/manifest.ts",
     "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/discovery.open-plot-desert-ruin.generated.ts",
+    "src/shards/open-plots/thumbs/desert-ruin-landscape.jpg",
+    "src/shards/open-plots/thumbs/desert-ruin-portrait.jpg",
     "src/shards/open-plots/thumbs/desert-ruin.jpg"
   ],
   "open-plot-ember-forge": [

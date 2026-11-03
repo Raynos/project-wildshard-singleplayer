@@ -1227,8 +1227,8 @@
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/desert-ruin.jpg",
-          "portrait": "/src/shards/open-plots/thumbs/desert-ruin.jpg",
-          "landscape": "/src/shards/open-plots/thumbs/desert-ruin.jpg"
+          "portrait": "/src/shards/open-plots/thumbs/desert-ruin-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/desert-ruin-landscape.jpg"
         },
         "explore": {
           "art": {
