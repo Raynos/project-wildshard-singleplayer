@@ -21,6 +21,7 @@ def main() -> None:
     parser.add_argument("model", choices=["score", "moss", "medium"])
     parser.add_argument("plot")
     parser.add_argument("--out", required=True)
+    parser.add_argument("--seeds", default="701", help="SFX retake seeds; score always renders 701 and 702")
     args = parser.parse_args()
     score = json.loads((HERE / "ob7-score-jobs.json").read_text())
     if f"ob7/{args.plot}" not in score["jobs"]:
@@ -36,7 +37,7 @@ def main() -> None:
     families = json.loads((HERE / "ob7-sfx-jobs.json").read_text())["families"]
     keys = [key for key, row in families.items() if row["into"] == args.plot]
     sys.argv = ["gen_sfx", "--jobs", "ob7-sfx-jobs.json", "--families",
-                ",".join(keys), "--seeds", "701", "--out", args.out]
+                ",".join(keys), "--seeds", args.seeds, "--out", args.out]
     if args.model == "moss":
         import gen_sfx_moss
 

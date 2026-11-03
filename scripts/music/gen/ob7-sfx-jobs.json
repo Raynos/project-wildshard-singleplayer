@@ -15,7 +15,7 @@
       "desc": "An old damp wooden boardwalk gently creaking under weight",
       "prompt": "An old damp wooden boardwalk gently creaking under weight. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
     },
-    "hum.lantern-bayou.wind-chimes": {
+    "hum.lantern-bayou.house-wind-chimes": {
       "kind": "hum",
       "into": "lantern-bayou",
       "duration": 10,
@@ -29,7 +29,7 @@
       "desc": "A distant owl hooting across a quiet swamp",
       "prompt": "A distant owl hooting across a quiet swamp. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
     },
-    "hum.lantern-bayou.boat-bump": {
+    "hum.lantern-bayou.lantern-boat-bump": {
       "kind": "hum",
       "into": "lantern-bayou",
       "duration": 8,
@@ -50,14 +50,14 @@
       "desc": "Steady alpine breeze and a distant smooth chair lift motor hum",
       "prompt": "Steady alpine breeze and a distant smooth chair lift motor hum. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
     },
-    "hum.frostline-peaks.lift-wheel": {
+    "hum.frostline-peaks.lift-wheel-creak": {
       "kind": "hum",
       "into": "frostline-peaks",
       "duration": 10,
       "desc": "An alpine chairlift pulley wheel slowly creaking and gently rattling",
       "prompt": "An alpine chairlift pulley wheel slowly creaking and gently rattling. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
     },
-    "hum.frostline-peaks.hearth": {
+    "hum.frostline-peaks.hearth-crackle": {
       "kind": "hum",
       "into": "frostline-peaks",
       "duration": 10,
@@ -71,7 +71,7 @@
       "desc": "Gentle deep ice creaks beside a frozen alpine canal",
       "prompt": "Gentle deep ice creaks beside a frozen alpine canal. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
     },
-    "hum.frostline-peaks.wind-chimes": {
+    "hum.frostline-peaks.gate-wind-chimes": {
       "kind": "hum",
       "into": "frostline-peaks",
       "duration": 10,
@@ -92,7 +92,7 @@
       "desc": "Distant furnace roar and low thick bubbling molten lava",
       "prompt": "Distant furnace roar and low thick bubbling molten lava. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
     },
-    "hum.ember-forge.anvil": {
+    "hum.ember-forge.anvil-strikes": {
       "kind": "hum",
       "into": "ember-forge",
       "duration": 10,
@@ -148,7 +148,7 @@
       "desc": "Small birds chirping gently among ivy in a quiet stone courtyard",
       "prompt": "Small birds chirping gently among ivy in a quiet stone courtyard. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
     },
-    "hum.mosslight-ruins.arch-whistle": {
+    "hum.mosslight-ruins.arch-wind": {
       "kind": "hum",
       "into": "mosslight-ruins",
       "duration": 10,
@@ -197,7 +197,7 @@
       "desc": "A wooden seaside pier gently creaking as small waves move below",
       "prompt": "A wooden seaside pier gently creaking as small waves move below. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
     },
-    "hum.coral-drift.shell-chimes": {
+    "hum.coral-drift.hut-wind-chimes": {
       "kind": "hum",
       "into": "coral-drift",
       "duration": 10,

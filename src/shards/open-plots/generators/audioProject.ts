@@ -12,6 +12,7 @@ export interface PlotAudioBinding {
   readonly idea: string;
   readonly source: NonNullable<NonNullable<AudioData['music']>['source']>;
   readonly sfxDir: string;
+  readonly files: Readonly<Record<string, string>>;
   readonly spots: readonly PlotAudioSpot[];
 }
 
@@ -23,7 +24,13 @@ export async function generatePlotAudioProject<T extends Pick<Shardfile, 'identi
   const audio = plotAudioData(binding.idea, binding.spots, binding.source);
   if (shard.files.length > 0 || shard.library.length > 0 || shard.budgets.library.resident !== 0 || shard.budgets.library.compressed !== 0) throw new Error('Plot audio requires its unbaked world declaration');
   if (!/^\/assets\/sfx\/[a-z0-9]+(?:-[a-z0-9]+)*\/$/u.test(binding.sfxDir)) throw new Error('Invalid plot SFX directory');
-  const paths = [`${binding.source.dir}score.m4a`, `${binding.sfxDir}ambience.m4a`, ...binding.spots.map(row => `${binding.sfxDir}${row.id}.m4a`)];
+  const ids = ['score', 'ambience', ...binding.spots.map(row => row.id)];
+  if (Object.keys(binding.files).length !== ids.length) throw new Error('Plot audio requires exactly its recording filenames');
+  const paths = ids.map((id, index) => {
+    const file = binding.files[id];
+    if (file === undefined || !/^[a-z0-9][a-z0-9-]*\.m4a$/u.test(file)) throw new Error('Invalid plot recording filename');
+    return `${index === 0 ? binding.source.dir : binding.sfxDir}${file}`;
+  });
   const inputs = await ctx.cached({ id: `audio-${binding.idea}`, inputs: paths }, files => files);
   let total = 0;
   const blobs = paths.map((path, index) => {
@@ -31,7 +38,7 @@ export async function generatePlotAudioProject<T extends Pick<Shardfile, 'identi
     if (bytes === undefined) throw new Error(`Missing plot recording: ${path}`);
     total += bytes.byteLength;
     if (bytes.byteLength > 1_000_000) throw new Error('Plot recording exceeds its blob limit');
-    const name = index === 0 ? 'audio/score.m4a' : `audio/${path.slice(binding.sfxDir.length)}`;
+    const name = `audio/${ids[index]}.m4a`;
     return nameBlob(name, 'audio', bytes);
   });
   if (total > 3_000_000) throw new Error('Plot runtime audio exceeds 3 MB');

@@ -7,9 +7,9 @@ claims an in-game playback pass or an ear-reviewed taste decision.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import html
 import json
-import shutil
 import subprocess
 from pathlib import Path
 
@@ -32,10 +32,15 @@ def score_files(raw: Path, plot: str) -> list[Path]:
 
 
 def sfx_files(raw: Path, plot: str) -> list[Path]:
-    files = [raw / model / family / "701.wav" for family, row in SFX.items()
-             if row["into"] == plot for model in ("moss", "medium")]
-    if len(files) != 12 or any(not file.is_file() for file in files):
-        raise ValueError(f"{plot}: both engines for all six sounds are required")
+    files = []
+    for family, row in SFX.items():
+        if row["into"] != plot:
+            continue
+        for model in ("moss", "medium"):
+            takes = sorted((raw / model / family).glob("*.wav"))
+            if not takes:
+                raise ValueError(f"{plot}: both engines for all six sounds are required")
+            files.extend(takes)
     return files
 
 
@@ -94,7 +99,11 @@ def clap(raw: Path, plot: str) -> None:
     for wav in sfx_files(raw, plot):
         family = wav.parent.name
         model_name = wav.parent.parent.name
-        result["sfx"].setdefault(family, {})[model_name] = compare(wav, descriptions, families.index(family))
+        match = {**compare(wav, descriptions, families.index(family)), "seed": wav.stem}
+        family_rows = result["sfx"].setdefault(family, {})
+        old = family_rows.get(model_name)
+        if old is None or (match["rank"], -match["p"]) < (old["rank"], -old["p"]):
+            family_rows[model_name] = match
     for wav in score_files(raw, plot):
         result["score"][wav.stem] = compare(wav, music_texts, score_keys.index(f"ob7/{plot}"))
     write(raw / f"{plot}-clap.json", result)
@@ -127,7 +136,10 @@ def encode_loop(wav: Path, target: Path, lufs: float, kbps: int, scratch: Path, 
     if not 0 <= start + lag < end + lag <= duration:
         raise ValueError(f"{target}: loop is outside the decoded AAC")
     intermediate.unlink()
-    return {"file": target.name, "loopStart": round(start + lag, 6), "loopEnd": round(end + lag, 6),
+    digest = hashlib.sha256(target.read_bytes()).hexdigest()[:12]
+    addressed = target.with_name(f"{target.stem}-{digest}{target.suffix}")
+    target.rename(addressed)
+    return {"file": addressed.name, "loopStart": round(start + lag, 6), "loopEnd": round(end + lag, 6),
             "duration": round(duration, 6), "gain": 1, "seamScore": loop["score"]}
 
 
@@ -151,8 +163,7 @@ def publish(raw: Path, plot: str) -> None:
         candidates.append({"id": wav.stem, "recommendationScore": rank, "metrics": metrics,
                            "clap": match, "encoded": encoded, "provenance": json.loads(wav.with_suffix(".json").read_text())})
     winner = max(candidates, key=lambda row: row["recommendationScore"])
-    shutil.copyfile(music / winner["encoded"]["file"], music / "score.m4a")
-    slot = {**winner["encoded"], "calm": "score.m4a", "bpm": winner["metrics"]["loop"]["grid_bpm"], "beatsPerBar": 4}
+    slot = {**winner["encoded"], "calm": winner["encoded"]["file"], "bpm": winner["metrics"]["loop"]["grid_bpm"], "beatsPerBar": 4}
     write(music / "music.json", {"genre": plot, "model": "MiniMax Music 3", "credit": "Music: MiniMax-Music3",
                                  "licence": "MiniMax-Music3 Community License",
                                  "slots": {"score": slot}, "stings": {}, "recommendation": winner["id"], "takes": candidates})
@@ -166,7 +177,7 @@ def publish(raw: Path, plot: str) -> None:
         engine = min(pair, key=lambda key: (pair[key]["rank"], -pair[key]["p"]))
         if pair[engine]["rank"] > 5:
             raise ValueError(f"{family}: neither engine meets the existing CLAP top-five bar")
-        wav = raw / engine / family / "701.wav"
+        wav = raw / engine / family / f"{pair[engine]['seed']}.wav"
         ident = family.removeprefix("bed.").removeprefix("hum.")
         name = family.rsplit(".", 1)[1]
         entry = encode_loop(wav, sfx / f"{name}.m4a", -24 if row["kind"] == "bed" else -26, 64, scratch)

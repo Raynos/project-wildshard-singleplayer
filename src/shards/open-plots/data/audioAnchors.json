@@ -1,0 +1,162 @@
+{
+  "lantern-bayou": [
+    {
+      "id": "boardwalk-creak",
+      "x": 0,
+      "z": -220,
+      "reach": 28
+    },
+    {
+      "id": "house-wind-chimes",
+      "x": -156.25,
+      "z": -218.75,
+      "reach": 24
+    },
+    {
+      "id": "distant-owl",
+      "x": -218.75,
+      "z": -218.75,
+      "reach": 45
+    },
+    {
+      "id": "lantern-boat-bump",
+      "x": -156.25,
+      "z": -156.25,
+      "reach": 24
+    },
+    {
+      "id": "cypress-rustle",
+      "x": 0,
+      "z": 0,
+      "reach": 45
+    }
+  ],
+  "frostline-peaks": [
+    {
+      "id": "lift-wheel-creak",
+      "x": 48,
+      "z": 0,
+      "reach": 35
+    },
+    {
+      "id": "hearth-crackle",
+      "x": -156.25,
+      "z": -218.75,
+      "reach": 25
+    },
+    {
+      "id": "ice-creak",
+      "x": -31.25,
+      "z": -156.25,
+      "reach": 26
+    },
+    {
+      "id": "gate-wind-chimes",
+      "x": 0,
+      "z": -230,
+      "reach": 28
+    },
+    {
+      "id": "pine-rustle",
+      "x": -93.75,
+      "z": -218.75,
+      "reach": 28
+    }
+  ],
+  "ember-forge": [
+    {
+      "id": "anvil-strikes",
+      "x": -156.25,
+      "z": -218.75,
+      "reach": 30
+    },
+    {
+      "id": "bellows",
+      "x": -31.25,
+      "z": -218.75,
+      "reach": 25
+    },
+    {
+      "id": "crane-chain",
+      "x": -93.75,
+      "z": -218.75,
+      "reach": 25
+    },
+    {
+      "id": "steam-hiss",
+      "x": -31.25,
+      "z": -156.25,
+      "reach": 25
+    },
+    {
+      "id": "ember-crackle",
+      "x": 20,
+      "z": -20,
+      "reach": 30
+    }
+  ],
+  "mosslight-ruins": [
+    {
+      "id": "pool-hum",
+      "x": -93.75,
+      "z": -93.75,
+      "reach": 28
+    },
+    {
+      "id": "ivy-birds",
+      "x": -93.75,
+      "z": -218.75,
+      "reach": 35
+    },
+    {
+      "id": "arch-wind",
+      "x": -31.25,
+      "z": -218.75,
+      "reach": 28
+    },
+    {
+      "id": "falling-grit",
+      "x": 0,
+      "z": -20,
+      "reach": 30
+    },
+    {
+      "id": "pool-drip",
+      "x": -31.25,
+      "z": -93.75,
+      "reach": 25
+    }
+  ],
+  "coral-drift": [
+    {
+      "id": "gulls",
+      "x": -218.75,
+      "z": -218.75,
+      "reach": 55
+    },
+    {
+      "id": "palm-rustle",
+      "x": 218.75,
+      "z": -218.75,
+      "reach": 30
+    },
+    {
+      "id": "pier-creak",
+      "x": 0,
+      "z": -220,
+      "reach": 28
+    },
+    {
+      "id": "hut-wind-chimes",
+      "x": -156.25,
+      "z": -218.75,
+      "reach": 25
+    },
+    {
+      "id": "lagoon-lap",
+      "x": -31.25,
+      "z": -156.25,
+      "reach": 30
+    }
+  ]
+}
