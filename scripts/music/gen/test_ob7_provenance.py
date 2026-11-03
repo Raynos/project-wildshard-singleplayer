@@ -6,10 +6,19 @@ import tempfile
 import unittest
 import wave
 
-from ob7_build import REPO, read_compared_take, shared_bed
+from ob7_build import REPO, read_compared_take, shared_bed, replace_output_row
 
 
 class ComparedTakeTest(unittest.TestCase):
+    def test_activation_preserves_literal_peer_keys_and_only_changes_its_row(self) -> None:
+        before = '{\n  "outputs": [\n    {"idea":"peer","pois":[],"pois":[1]},\n    {"idea":"own","manifest":{}},\n    {"idea":"later","value":2}\n  ]\n}\n'
+        after = replace_output_row(before, 'own', {'idea': 'own', 'manifest': {'audio': True}})
+        self.assertIn('{"idea":"peer","pois":[],"pois":[1]}', after)
+        self.assertIn('{"idea":"later","value":2}', after)
+        self.assertEqual(json.loads(after)['outputs'][1], {'idea': 'own', 'manifest': {'audio': True}})
+        with self.assertRaisesRegex(ValueError, 'one literal output row'):
+            replace_output_row(before, 'missing', {})
+
     def test_shared_bed_keeps_the_canonical_file_and_qualified_provenance(self) -> None:
         source = REPO / 'public/assets/sfx/coral-drift/sfx.json'
         data = json.loads(source.read_text())

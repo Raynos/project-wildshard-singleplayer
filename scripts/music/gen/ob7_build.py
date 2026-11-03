@@ -71,6 +71,22 @@ def shared_bed(reference: dict) -> tuple[dict, dict, int]:
     }}, len(data)
 
 
+def replace_output_row(source: str, plot: str, row: dict) -> str:
+    """Keep every peer's literal JSON, including duplicate-key author WIP."""
+    matches = []
+    decoder = json.JSONDecoder()
+    for match in re.finditer(r'(?m)^    \{', source):
+        start = match.start() + 4
+        value, end = decoder.raw_decode(source, start)
+        if isinstance(value, dict) and value.get('idea') == plot:
+            matches.append((start, end))
+    if len(matches) != 1:
+        raise ValueError('Activation requires one literal output row')
+    start, end = matches[0]
+    rendered = json.dumps(row, indent=2, ensure_ascii=False).replace('\n', '\n    ')
+    return source[:start] + rendered + source[end:]
+
+
 def score_files(raw: Path, plot: str) -> list[Path]:
     files = [raw / f"ob7-{plot}" / f"minimax3-{seed}.wav" for seed in (701, 702)]
     if any(not file.is_file() for file in files):
@@ -366,7 +382,9 @@ def activation(raw: Path, plot: str) -> None:
         before = subprocess.run(["git", "show", f"HEAD:{name}"], cwd=REPO, check=True, capture_output=True, text=True).stdout
         data = json.loads(before)
         mutate(data)
-        after = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
+        after = (replace_output_row(before, plot, next(row for row in data['outputs'] if row['idea'] == plot))
+                 if name == 'src/shards/open-plots/outputs.json'
+                 else json.dumps(data, indent=2, ensure_ascii=False) + "\n")
         patches.append(f"diff --git a/{name} b/{name}\n" + ''.join(difflib.unified_diff(
             before.splitlines(keepends=True), after.splitlines(keepends=True), fromfile=f"a/{name}", tofile=f"b/{name}")))
 
