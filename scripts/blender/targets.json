@@ -275,6 +275,18 @@
    "copy": [["hero.glb", "public/assets/open-plots/kit/hero.glb"], ["hero-lod1.glb", "public/assets/open-plots/kit/hero-lod1.glb"]],
    "outputs": ["public/assets/open-plots/kit/hero.glb", "public/assets/open-plots/kit/hero-lod1.glb"],
    "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
+  },
+  "open-plots/frost": {
+   "about": "Frostline Peaks' theme kit families (open-plots build-out OB3, G978): snow-roofed timber lodges and the shared snow-dusted pine clumps in the kit's format, retinted by palette slot like open-plots/kit",
+   "script": "scripts/blender/open-plots/frost.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/open-plots/kit.py", "scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/bayou.py", "scripts/blender/open-plots/model_source.py", "scripts/blender/lib/glb.py"],
+   "inputs": ["src/shards/open-plots/data/trim.json"],
+   "lock": false,
+   "build": ["lodges.glb", "pines.glb"],
+   "copy": [["lodges.glb", "public/assets/open-plots/kit/lodges.glb"], ["pines.glb", "public/assets/open-plots/kit/pines.glb"]],
+   "outputs": ["public/assets/open-plots/kit/lodges.glb", "public/assets/open-plots/kit/pines.glb"],
+   "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
   }
  }
 }
