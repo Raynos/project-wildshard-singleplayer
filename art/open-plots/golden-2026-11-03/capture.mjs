@@ -23,6 +23,13 @@ if (folder===process.cwd() || !folder.startsWith(`${resolve('tmp')}/`) || exists
 const file=`art/open-plots/golden-2026-11-03/${plot}/cameras.json`,bytes=readFileSync(file),plan=parsePlotGoldens(JSON.parse(bytes.toString('utf8')));
 if (plan.slug!==`open-plot-${plot}`) throw new Error('Plot camera identity differs');
 const source=goldenPreviewIdentity(await(await fetch(new URL('/version.json',base))).json(),arg('sha'));
+// Grid entry reads its template as well as the target; shard-only previews can omit it.
+await Promise.all(['_template',plan.slug].map(async slug=>{
+  const url=new URL(`/shardfiles/${slug}/shard.json`,base),response=await fetch(url);
+  let product;try {product=await response.json();} catch {throw new Error(`Grid golden needs a complete preview: missing JSON product ${url.pathname}; use serve-build.sh --head`);}
+  if(!response.ok || !Array.isArray(product?.files) || !Array.isArray(product?.sections))
+    throw new Error(`Grid golden needs an admitted product at ${url.pathname}; use serve-build.sh --head`);
+}));
 // Check Python dependencies before launching or spending a capture lane.
 const python=arg('python','python3');execFileSync(python,['-c','from PIL import Image; import numpy'],{stdio:'inherit'});
 function noQuiet() {if (existsSync('.git/quiet')) throw new Error('Official Simulator quiet is active; capture refuses');}
@@ -34,15 +41,22 @@ const save=()=>writeFileSync(join(folder,'capture.json'),JSON.stringify(report,n
 const owner=await launchMemoryBrowser(['--mute-audio','--use-angle=metal','--ignore-gpu-blocklist']);
 try {
   const context=await owner.browser.newContext({...devices['iPhone 16 Pro'],viewport:{width:402,height:603}});
+  let page;
   try {
     await context.addInitScript({content:frameFloorSettingsCode({tier:'phone',fps:'auto',volume:0,time:'midday',weather:'clear'})});
     await developerSettings(context,{tier:'phone',volume:0,time:'midday',weather:'clear'});
     await saveFixture(context,{scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}});
     await harnessPins(context,{seed:357,browser:'Chromium / iPhone 16 Pro',lane:'open-plot-goldens'});
-    const page=await context.newPage();page.setDefaultTimeout(180000);
+    page=await context.newPage();page.setDefaultTimeout(180000);
     page.on('pageerror',error=>{report.errors.push(error.message);});
     await page.goto(floorGridBenchmarkUrl(base),{waitUntil:'load'});await page.locator('.ws-main-grid').click();
-    await page.waitForFunction(()=>window.__wildshard?.shard?.grid?.state().live.live.gameplayReady,undefined,{timeout:240000});
+    const ready=await page.waitForFunction(()=>{
+      const failure=document.querySelector('.ws-load-error,.ws-error-modal');
+      if(failure!==null)return {failure:failure.textContent};
+      return window.__wildshard?.shard?.grid?.state().live.live.gameplayReady?{ready:true}:false;
+    },undefined,{timeout:240000});
+    const admission=await ready.jsonValue();await ready.dispose();
+    if(admission.failure)throw new Error(`Grid entry refused: ${admission.failure}`);
     await page.evaluate(FLOOR_GRID_ENTER);
     await page.waitForFunction(()=>!document.querySelector('#hud')?.classList.contains('ws-grid-revealing'));
     const initial=await page.evaluate(()=>window.__wildshard.shard.grid.state()),placement=plotGoldenPlacement(plan,initial);
@@ -88,7 +102,14 @@ try {
       report.views.push({n:view.n,name:view.name,anchor,camera,sample,state,wait,imageSha256:createHash('sha256').update(readFileSync(image)).digest('hex')});save();
     }
     report.framesComplete=true;save();
-  } catch(error) {report.errors.push(String(error));save();throw error;}
+  } catch(error) {
+    report.errors.push(String(error));
+    if(page!==undefined) {
+      report.failure=await page.evaluate(()=>({url:location.href,body:document.body.innerText.slice(0,6000),grid:window.__wildshard?.shard?.grid?.state?.()})).catch(()=>null);
+      await page.screenshot({path:join(folder,'failure.jpg'),type:'jpeg',quality:74,scale:'css'}).catch(()=>{});
+    }
+    save();throw error;
+  }
   finally {await context.close();}
 } finally {await owner.close();}
 try {
