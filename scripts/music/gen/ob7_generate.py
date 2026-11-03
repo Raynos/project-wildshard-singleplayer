@@ -22,6 +22,7 @@ def main() -> None:
     parser.add_argument("plot")
     parser.add_argument("--out", required=True)
     parser.add_argument("--seeds", default="701", help="SFX retake seeds; score always renders 701 and 702")
+    parser.add_argument("--families", default="", help="Optional exact SFX families from this plot")
     args = parser.parse_args()
     if (HERE.parents[2] / '.git/quiet').exists():
         raise SystemExit('Official Simulator quiet window is open; no model loaded')
@@ -38,6 +39,11 @@ def main() -> None:
         return
     families = json.loads((HERE / "ob7-sfx-jobs.json").read_text())["families"]
     keys = [key for key, row in families.items() if row["into"] == args.plot]
+    if args.families:
+        selected = args.families.split(',')
+        if not set(selected) <= set(keys):
+            parser.error('retakes must name this plot\'s declared SFX families')
+        keys = selected
     sys.argv = ["gen_sfx", "--jobs", "ob7-sfx-jobs.json", "--families",
                 ",".join(keys), "--seeds", args.seeds, "--out", args.out]
     if args.model == "moss":

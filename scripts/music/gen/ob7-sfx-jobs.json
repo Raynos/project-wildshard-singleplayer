@@ -34,7 +34,7 @@
       "into": "lantern-bayou",
       "duration": 8,
       "desc": "A small wooden boat gently bumping a timber jetty and water lapping",
-      "prompt": "A small wooden boat gently bumping a timber jetty and water lapping. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+      "prompt": "Close field recording at a quiet swamp jetty: a small hollow wooden rowboat repeatedly knocks against the solid wooden dock with distinct soft low wooden thunks. A short hollow clonk, a pause, another woody thunk; a tiny splash of water after each bump. The resonant wooden impacts dominate. No engine, no voices, no music, no metal, no wind. Gentle believable foley, irregular quiet bumps suitable for a positional loop."
     },
     "hum.lantern-bayou.cypress-rustle": {
       "kind": "hum",

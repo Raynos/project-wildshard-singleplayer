@@ -156,14 +156,25 @@ def publish(raw: Path, plot: str) -> None:
         voice = metrics["vocals"]["vocal_energy_share"]
         # Mosslight explicitly calls for a wordless low choir pad.
         voice_limit = 0.6 if plot == "mosslight-ruins" else 0.1
-        if metrics["duration_s"] < 25 or voice > voice_limit or metrics["clipping"]["clipped_frac"] > 0.0001 or metrics["silence"]["longest_internal_gap_s"] > 2:
-            raise ValueError(f"{wav}: failed duration/voice/cleanliness gate")
+        failed = []
+        if metrics["duration_s"] < 25:
+            failed.append('duration below 25 seconds')
+        if voice > voice_limit:
+            failed.append(f'vocal check {voice:.1%} exceeds {voice_limit:.0%}')
+        if metrics["clipping"]["clipped_frac"] > 0.0001:
+            failed.append('clipping check')
+        if metrics["silence"]["longest_internal_gap_s"] > 2:
+            failed.append('internal silence check')
         match = comparisons["score"][wav.stem]
         rank = 0.5 * match["p"] + 0.35 * max(metrics["loop"]["score"], 0) + 0.15 * min(metrics["duration_s"] / 60, 1)
         encoded = encode_loop(wav, music / f"take-{'ab'[index]}.m4a", -20, 64, scratch, metrics)
         candidates.append({"id": wav.stem, "recommendationScore": rank, "metrics": metrics,
-                           "clap": match, "encoded": encoded, "provenance": json.loads(wav.with_suffix(".json").read_text())})
-    winner = max(candidates, key=lambda row: row["recommendationScore"])
+                           "qualified": not failed, "failedChecks": failed, "clap": match, "encoded": encoded,
+                           "provenance": json.loads(wav.with_suffix(".json").read_text())})
+    qualified = [row for row in candidates if row['qualified']]
+    if not qualified:
+        raise ValueError(f'{plot}: neither score take passes the shipping checks')
+    winner = max(qualified, key=lambda row: row["recommendationScore"])
     slot = {**winner["encoded"], "calm": winner["encoded"]["file"], "bpm": winner["metrics"]["loop"]["grid_bpm"], "beatsPerBar": 4}
     write(music / "music.json", {"genre": plot, "model": "MiniMax Music 3", "credit": "Music: MiniMax-Music3",
                                  "licence": "MiniMax-Music3 Community License",
@@ -206,6 +217,8 @@ def listening_list() -> None:
         for index, take in enumerate(manifest["takes"]):
             label = "AB"[index]
             recommendation = " · Recommended / shipping" if take["id"] == manifest["recommendation"] else ""
+            if not take['qualified']:
+                recommendation += ' · Comparison only: ' + html.escape('; '.join(take['failedChecks']))
             source = html.escape(f"{plot}/{take['encoded']['file']}", quote=True)
             takes.append(f'<p><strong>Take {label}{recommendation}</strong> · seed {take["provenance"]["seed"]}</p>'
                          f'<audio controls preload="none" src="{source}"></audio>')
@@ -229,6 +242,9 @@ def activation(raw: Path, plot: str) -> None:
     sfx = json.loads((sfx_dir / "sfx.json").read_text())
     if len(music["takes"]) != 2 or music["credit"] != "Music: MiniMax-Music3" or "Powered by Stability AI" not in sfx["credit"]:
         raise ValueError("Both score candidates and required credits must exist before activation")
+    selected = [row for row in music['takes'] if row['id'] == music['recommendation'] and row['qualified']]
+    if len(selected) != 1 or music['slots']['score']['calm'] != selected[0]['encoded']['file']:
+        raise ValueError('Only the qualified recommended score may be activated')
     if len(sfx["provenance"]) != 6 or any(set(row["comparison"]) != {"moss", "medium"} for row in sfx["provenance"]):
         raise ValueError("Both engines must be compared for all six sounds")
     anchors = json.loads((REPO / "src/shards/open-plots/data/audioAnchors.json").read_text())[plot]
