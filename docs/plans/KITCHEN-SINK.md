@@ -174,7 +174,15 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     files are still 500x500, you can't cheat"*). The surface keeps only a small Titan gate in the SE; the fight is in a
     hidden arena inside the cell's footprint at another height (like the Training Vault), sized for a huge Titan. The
     freed SE ground goes to the **gauntlet**, which gets the room a 5-wave arena needs. Blockout round 5
-    (`art/showcase-template/round-5-blockout/`) sizes both; its numbers fold in when it lands.
+    (`art/showcase-template/round-5-blockout/`) sizes both; its numbers are in §3.
+19ad. **Every shard is a 500 × 500 × 500 m cube, for every shard, not only the showcase** (Jake 11-03: *"you can take
+    the whole cube and everything that's underground and use that to implement more content. But it's not like you can
+    use teleports to implement an infinite amount of content. You can't cheat beyond your 500 by 500 by 500 cube. You
+    can try to pack content in there in a clever way"*). Any shard may add dungeons, hidden arenas and other interiors
+    reached by portals, as long as each sits inside its own cube (±250 m around the highway level, the engine's
+    `CELL_BELOW` / `CELL_ABOVE`) and no two volumes overlap; no portal leads to a parallel world outside the cube. A
+    shardfile validator enforces it and SHARDS.md documents it (Wave 1 row W15). The showcase is the first user: the
+    Training Vault at y −40 and the Titan arena at y −150.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 

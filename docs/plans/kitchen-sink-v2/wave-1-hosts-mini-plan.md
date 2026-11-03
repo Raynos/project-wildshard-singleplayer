@@ -44,14 +44,14 @@ G595) · SO = shard-only rows or AS · M = missing.
 | W12 | Cutscene intro | M | IN-GAME-CUTSCENES IC1–IC4: `engine/cinematic` timeline, `sdk/cutscenes`, a boss `intro` row; port `BossBrain`'s intro | `src/engine/cinematic/` (new), `engine/ai/BossBrain.ts` | 40 |
 | W13 | Weather, day/night | G, forest-named | Rename the `weather.forest` / `world.forest-page` kinds; unify Pine's and Nalati's weather envelopes (CS7); a storm-hour quest trigger | `format/forestWeather.ts`, `game/weather/forest.ts` | 14 |
 | W14 | Physics props, hoverboard, tricks, see-saw | props SO; board misplaced; tricks M; see-saw M | Dynamic-prop rows; move the board to game (HA4d); trick events → score rows + commons AS; a hinged-body row | `engine/physics/bodies.ts`, `engine/player/board.ts` | 32 |
-| W15 | Portal, interiors, caves | portal 1U; cave SO | A generic `world/interior` (cave is one kind) split from the forest page (H073) | `game/shardfile/walkInPortalRide.ts`, `caveInterior.ts`, `clientForestPage.ts` | 18 |
+| W15 | Portal, interiors, caves | portal 1U; cave SO | A generic `world/interior` (cave is one kind) split from the forest page (H073). **The shard cube** (Jake 11-03, ruling 19ad): every interior and every portal destination must lie inside the shard's own 500 × 500 × 500 m cell (`core/config` `CELL_BELOW` / `CELL_ABOVE`, ±250 m); a shardfile validator rule refuses an interior outside the cube, two volumes that overlap, or a portal to anywhere but its own cube; documented in SHARDS.md | `game/shardfile/walkInPortalRide.ts`, `caveInterior.ts`, `clientForestPage.ts`, `format/shardSchema.ts` | 24 |
 | W16 | Benches, secrets, perks, trophies, finishes | mixed | Flag → feat rows; finds `every: N` → perk rows; elite-drop finish grant row | `format/findsCatalogue.ts`, `game/models/collectionWall.ts`, `game/loadout/cosmeticFinishes.ts` | 18 |
 | W17 | Shard-complete card required | G, two users | Backfill `ui/completion` in every product, then a validator rule that requires it (Jake 11-02) | `format/shardSchema.ts`, `format/completion.ts` | 14 |
 | W18 | Ladders, scramble, rope bridge | ladders G; scramble M; rope bridge 1U | Build the `climb` mode for scramble surfaces; generalise the rope-deck site | `engine/player/modes.ts`, `engine/physics/ropeChain.ts`, `game/models/ropeDeckSite.ts` | 28 |
 | W19 | Audio | G | Check elite and boss music states and stem layers exist as rows; small schema addition if not | `format/audio.ts`, `engine/audio/score/score.ts` | 7 |
 | W20 | Breadcrumb guide | built twice | Merge the two | `engine/quest/view.ts`, `game/quest/chapterDirector.ts` | 6 |
 | W21 | Docs and template | — | A SHARDS.md section per feature; template example rows; Jake's approval sheet | `docs/SHARDS.md`, `src/shards/_template/` | 12 |
-| | **Subtotal** | | | | **~380** |
+| | **Subtotal** | | | | **~386** |
 | LV | Levels, XP, attributes, combat maths, hidden L1 parity, HUD | M | [levels-combat-mini-plan.md](levels-combat-mini-plan.md) | | tbd |
 | LE | Economy and loot | partial | [loot-economy-mini-plan.md](loot-economy-mini-plan.md) | | tbd |
 | DG | Shrine host | M (pieces exist) | [mini-dungeon-mini-plan.md](mini-dungeon-mini-plan.md) | | ~40 |
