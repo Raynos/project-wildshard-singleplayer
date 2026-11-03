@@ -711,6 +711,229 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
    }
   ]
  },
+ "mosslight-ruins": {
+  "genre": "mosslight-ruins",
+  "model": "MiniMax Music 3",
+  "credit": "Music: MiniMax-Music3",
+  "licence": "MiniMax-Music3 Community License",
+  "slots": {
+   "score": {
+    "file": "take-a-f27305fc5237.m4a",
+    "loopStart": 8.25,
+    "loopEnd": 20.14,
+    "duration": 21.14,
+    "gain": 1,
+    "seamScore": 0.669,
+    "calm": "take-a-f27305fc5237.m4a",
+    "bpm": 161.5,
+    "beatsPerBar": 4
+   }
+  },
+  "stings": {},
+  "recommendation": "minimax3-701",
+  "takes": [
+   {
+    "id": "minimax3-701",
+    "recommendationScore": 0.3675705,
+    "metrics": {
+     "duration_s": 52.01,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -15.4,
+      "lra": 11.4,
+      "true_peak_dbfs": -1.6
+     },
+     "clipping": {
+      "clipped_samples": 0,
+      "clipped_frac": 0,
+      "peak": 0.832
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 1983.6,
+      "rolloff95_hz": 8621,
+      "flatness": 0.0005,
+      "hf_above_12k": 0.00001,
+      "sub_below_60": 0.0068,
+      "stereo_corr": 0.337
+     },
+     "tempo": {
+      "estimated_bpm": 161.5,
+      "brief_bpm": 68,
+      "rel_err": 0.187
+     },
+     "key": {
+      "best_key": "C minor",
+      "best_r": 0.761,
+      "d_major_r": -0.123,
+      "d_major_rank": 14,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 8,
+      "score": 0.669,
+      "similarity": 0.718,
+      "level_match": 0.777,
+      "start_s": 8.25,
+      "end_s": 20.14,
+      "bars": 8,
+      "loop_s": 11.89,
+      "grid_bpm": 161.5
+     },
+     "vocals": {
+      "vocal_energy_share": 0.0509,
+      "vocal_active_frac": 0.173,
+      "stem_share": {
+       "drums": 0,
+       "bass": 0.0049,
+       "other": 0.9442,
+       "vocals": 0.0509
+      },
+      "groove_active_frac": 0.038,
+      "drums_active_frac": 0
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 2,
+     "p": 0.006791,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-a-f27305fc5237.m4a",
+     "loopStart": 8.25,
+     "loopEnd": 20.14,
+     "duration": 21.14,
+     "gain": 1,
+     "seamScore": 0.669
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "mosslight-ruins",
+     "seed": 701,
+     "prompt": "Instrumental video game score, 68 BPM, 4/4. Misty ancient ruined stone city, wordless low choir pad underneath delicate harp and widely spaced distant bronze bells. Green pools, ivy and quiet discovery, contemplative and mysterious without horror. No words or solo singer. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 172.5,
+     "model_load_s": 9.9,
+     "mps_driver_gb": 26.9
+    }
+   },
+   {
+    "id": "minimax3-702",
+    "recommendationScore": 0.319547,
+    "metrics": {
+     "duration_s": 58.63,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -15.9,
+      "lra": 12.7,
+      "true_peak_dbfs": -0.4
+     },
+     "clipping": {
+      "clipped_samples": 0,
+      "clipped_frac": 0,
+      "peak": 0.9531
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 1959.4,
+      "rolloff95_hz": 8709,
+      "flatness": 0.0009,
+      "hf_above_12k": 0.00017,
+      "sub_below_60": 0.0977,
+      "stereo_corr": 0.204
+     },
+     "tempo": {
+      "estimated_bpm": 172.3,
+      "brief_bpm": 68,
+      "rel_err": 0.267
+     },
+     "key": {
+      "best_key": "A minor",
+      "best_r": 0.701,
+      "d_major_r": 0.43,
+      "d_major_rank": 5,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 8,
+      "score": 0.407,
+      "similarity": 0.445,
+      "level_match": 0.711,
+      "start_s": 22.75,
+      "end_s": 45.04,
+      "bars": 16,
+      "loop_s": 22.29,
+      "grid_bpm": 172.3
+     },
+     "vocals": {
+      "vocal_energy_share": 0.0095,
+      "vocal_active_frac": 0.034,
+      "stem_share": {
+       "drums": 0.0095,
+       "bass": 0.1154,
+       "other": 0.8656,
+       "vocals": 0.0095
+      },
+      "groove_active_frac": 0.655,
+      "drums_active_frac": 0.172
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 3,
+     "p": 0.061044,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-b-d01b9cd833c9.m4a",
+     "loopStart": 22.75,
+     "loopEnd": 45.04,
+     "duration": 46.04,
+     "gain": 1,
+     "seamScore": 0.407
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "mosslight-ruins",
+     "seed": 702,
+     "prompt": "Instrumental video game score, 68 BPM, 4/4. Misty ancient ruined stone city, wordless low choir pad underneath delicate harp and widely spaced distant bronze bells. Green pools, ivy and quiet discovery, contemplative and mysterious without horror. No words or solo singer. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 202.3,
+     "model_load_s": 9.9,
+     "mps_driver_gb": 26.94
+    }
+   }
+  ]
+ },
  "nalati": {
   "style": "nalati",
   "model": "MiniMax-Music3",
@@ -1595,6 +1818,64 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     "duration": 6.25,
     "gain": 1,
     "seamScore": 0.484
+   }
+  },
+  "oneshots": {}
+ },
+ "mosslight-ruins": {
+  "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+  "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
+  "beds": {
+   "mosslight-ruins.ambience": {
+    "file": "ambience-f54e832bc4cf.m4a",
+    "loopStart": 3.5,
+    "loopEnd": 22.5,
+    "duration": 23.5,
+    "gain": 1,
+    "seamScore": 0.729
+   }
+  },
+  "hums": {
+   "mosslight-ruins.pool-hum": {
+    "file": "pool-hum-d7a67bb4f16c.m4a",
+    "loopStart": 4,
+    "loopEnd": 6,
+    "duration": 7,
+    "gain": 1,
+    "seamScore": 0.438
+   },
+   "mosslight-ruins.ivy-birds": {
+    "file": "ivy-birds-6320dcb8c3d0.m4a",
+    "loopStart": 3.75,
+    "loopEnd": 5.75,
+    "duration": 6.75,
+    "gain": 1,
+    "seamScore": 0.528
+   },
+   "mosslight-ruins.arch-wind": {
+    "file": "arch-wind-125671ebe3fd.m4a",
+    "loopStart": 4,
+    "loopEnd": 6,
+    "duration": 7,
+    "gain": 1,
+    "seamScore": 0.48
+   },
+   "mosslight-ruins.falling-grit": {
+    "file": "falling-grit-6591ea862ee1.m4a",
+    "loopStart": 2,
+    "loopEnd": 4,
+    "duration": 5,
+    "gain": 1,
+    "seamScore": 0.555
+   },
+   "mosslight-ruins.pool-drip": {
+    "file": "pool-drip-ada2f22d12a9.m4a",
+    "loopStart": 3.75,
+    "loopEnd": 7.75,
+    "duration": 8.75,
+    "gain": 1,
+    "seamScore": 0.445
    }
   },
   "oneshots": {}
