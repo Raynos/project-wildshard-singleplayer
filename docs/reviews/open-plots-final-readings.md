@@ -23,7 +23,7 @@ audio handoff.
 |---|---|---|---|---|
 | Fossil Badlands | `open-plot-1-0` / (-1,-2) | Awaiting audio handoff | Open | Open |
 | Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim + authorized fresh grid complete |
-| Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Chromium/control complete; walk/goldens open | Chromium memory complete; official Sim queued |
+| Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Chromium/control complete; walk/goldens open | Memory + standalone/grid official Sim complete |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | Awaiting audio handoff | Open | Open |
 | Thin Ice | `open-plot-1-4` / (-1,2) | Awaiting audio handoff | Open | Open |
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | Awaiting audio handoff | Open | Open |
@@ -292,7 +292,7 @@ reviewed 8/8 golden bridge `e909026e34`, standalone memory/Simulator
 integration. Original CPU-target misses, strict-floor flags, neighbour
 visual evidence and the initial failed admission remain recorded.
 
-## Sky Harbor — Memory (sp-x8)
+## Sky Harbor — Memory/Simulator (sp-x8)
 
 Final admitted audio source **a8593f8ac61ad6906b3fec6c8e07fcf4ae0402c8**,
 normal shared immutable build **a8593f8-mw176ax3** (:4402). The served raw
@@ -319,19 +319,80 @@ not summed into a per-shard verdict.
 | 2 | 166 | 515 | 51 | 60.0 |
 | 3 | 168 | 507 | 50 | 60.0 |
 
-The browser is closed. This command earns no official Simulator timing,
-native memory or grid-residency credit. Those values remain **unmeasured**.
-X2 released its finite model batch, but the official quiet window remains
-queued behind X1's required CI proof at its natural boundary; no quiet,
-model or Simulator lock is held by this lane. The own preview lease stays
-retained for that pending reading. No reading push is requested during the
-coordinator's release hold.
+The Chromium browser is closed. This command earns no official Simulator
+timing, native memory or grid-residency credit. The independent official
+results below supply those readings. Admission waited for X1's required
+CI proof, then its finite Chromium/control cohort and X2's literal model
+release. No model or peer proof was interrupted.
 
 Source-derived junction preparation uses Sky Harbor cell **(2,2)**,
 southwest intersection **(843.75,1.7,843.75)** and the actual neighbours
 Template, Clockwork, Starfall and Sky Harbor. This is not measured
 residency. Raw admission, memory and source-pose inputs are retained at
 `tmp/sp-x8-plot-readings/sky-final/`. The full cohort remains open.
+
+### Sky Harbor — official Simulator
+
+One official quiet `frame-floor.mjs` command measures the same admitted
+**a8593f8-mw176ax3** app, standalone plus the four original grid-junction
+poses. X1's Chromium/control browser and X2's finite model batch released
+before admission; the normal shared model lock spans this finite window.
+The command completes in **88.377 s, complete=true/pass=true**. Both shard
+rows have no page errors, and all **eight windows retain 120/120 frames**
+with zero skips. Apple GPU, phone 2×, CSS 402×714, canvas 804×1428.
+
+| Surface / view | Median FPS | p95 / p99 / max ms | Max draws | Reported triangles |
+|---|---:|---:|---:|---:|
+| Standalone spawn | 30.303 | 34 / 34 / 34 | 52 | 113,846 |
+| Standalone road | 30.303 | 34 / 34 / 34 | 53 | 94,178 |
+| Standalone plaza | 30.303 | 34 / 34 / 34 | 54 | 122,414 |
+| Grid spawn | 30.303 | 34 / 38 / 40 | 107 | 1,081,422 |
+| Junction −135° | 30.303 | 34 / 34 / 34 | 56 | 104,714 |
+| Junction −45° | 30.303 | 34 / 35 / 44 | 72 | 95,581 |
+| Junction 45° | 30.303 | 34 / 35 / 36 | 83 | 135,876 |
+| Junction 135° | 30.303 | 34 / 34 / 37 | 76 | 99,119 |
+
+The original 30 FPS floor and 150-draw controls pass. Every strict
+33.3 ms flag remains **false**. Evaluation-origin drift maximum is 1 ms
+standalone and zero in the grid. These are Mac-backed Mobile Safari
+readings, not physical-phone clearance; memory sampling itself earns no
+timing credit.
+
+Standalone native memory has **218 playing / 42 loading samples** and
+**46 GPU witnesses**. Conservative phase envelopes are **254.214 MB
+playing** (230.264 native + 23.950 GPU ledger) and **760.828 MB loading**
+(736.878 + 23.950). They fit the unchanged 1,200 / 1,800 MB per-shard
+limits. The GPU ledger retains 3.660 MB unattributed.
+
+Grid memory has **363 playing / 70 loading samples** and **76 GPU
+witnesses**. Its pooled-page envelopes are **897.578 MB playing**
+(764.629 native + 132.950 GPU ledger) and **840.485 MB loading**
+(707.535 + 132.950), with 2.059 MB GPU unattributed. G556 gives this
+whole pooled page no 1.2 GB cap. Both phase readings retain one
+Inspector-closed error with complete native/GPU coverage. Separate native
+and GPU maxima need not coincide; GPU-process footprint is excluded.
+
+Every authored junction independently shows Template, Clockwork, Starfall
+and Sky Harbor as **near**, with **pending=[]**, **crossing=settled**,
+current null and residents empty. This is honest road near visibility,
+not four resident gameplay worlds. The incidental Driftwood spawn retains
+six pending neighbours; no whole-grid settled claim is inferred.
+
+Standalone pool observations retain 45 available logical blocks,
+**3,080,192 B**, with zero hits/misses/blocked. Junction observations retain
+40 available blocks, **2,752,512 B**, six virgin hits, zero recycled hits,
+zero misses/blocked and 46 cumulative returns. Grid spawn has five virgin
+hits and 45 returns. Logical reusable capacity is not another resident-RAM
+charge and is never added to native memory.
+
+The official result is
+`tmp/sp-x8-plot-readings/sky-final/simulator/a8593f8ac-69434-1793742010633.json`;
+checked `summary.json`, native/GPU logs, admission and exact pose/source
+bindings share that root. Quiet, the Simulator and model lock released
+normally before parsing; X1/X2/X6 received literal release. The browser is
+closed and the own preview use is released after recording. Memory and
+official Simulator scope are complete; X1's maintained walk/eight golden
+views and the audio owner's row integration remain separate.
 
 ## Sky Harbor — Chromium/control (sp-x1)
 
