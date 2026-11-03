@@ -359,6 +359,111 @@
       "duration": 10,
       "desc": "A distant snare drum rolling briefly inside a canvas circus tent",
       "prompt": "A distant snare drum rolling briefly inside a canvas circus tent. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion."
+    },
+    "bed.saltwind-lighthouse.ambience": {
+      "kind": "bed",
+      "into": "saltwind-lighthouse",
+      "duration": 30,
+      "desc": "Steady squall rain on slate roofs and wet harbour stone, gusting wind and water slapping quay walls",
+      "prompt": "Steady rain pattering on slate roofs and wet stone in a northern fishing harbour. Cold gusts swell gently, with subdued water slapping a basalt quay wall beneath the rain. Continuous restrained storm field recording. No birdsong, no music, no voices, no thunder crashes."
+    },
+    "hum.saltwind-lighthouse.lighthouse-foghorn": {
+      "kind": "hum",
+      "into": "saltwind-lighthouse",
+      "duration": 30,
+      "desc": "A distant low two-tone lighthouse foghorn with long quiet gaps",
+      "prompt": "One distant low two-tone foghorn from a lighthouse over a stormy harbour: a long deep resonant note, a lower answering note, then a long quiet gap. Sparse slow signal, about one two-tone call per thirty seconds. Soft spacious outdoor decay, no music, no voices, no siren, no ship engine."
+    },
+    "hum.saltwind-lighthouse.nw-boat-rigging": {
+      "kind": "hum",
+      "into": "saltwind-lighthouse",
+      "duration": 10,
+      "desc": "A wooden fishing boat rigging creaks and its hull knocks softly against a quay",
+      "prompt": "Close field recording beside a small wooden fishing boat in a harbour basin. Weathered rigging creaks with low timber strain and loose ropes; several soft hollow hull knocks against quay fenders. Restrained irregular motion, no engine, no gulls, no music, no voices."
+    },
+    "hum.saltwind-lighthouse.se-boat-rigging": {
+      "kind": "hum",
+      "into": "saltwind-lighthouse",
+      "duration": 10,
+      "desc": "A moored wooden boat hull bumps gently while its taut rigging creaks in gusts",
+      "prompt": "A separate moored fishing boat sways slowly in gusts. Gentle hollow wooden hull knocks and softly creaking taut rope rigging alternate, spaced and irregular, with short natural decays. Quiet harbour foley, no engine, no birds, no music, no voices."
+    },
+    "hum.saltwind-lighthouse.basin-gulls": {
+      "kind": "hum",
+      "into": "saltwind-lighthouse",
+      "duration": 12,
+      "desc": "Sea gulls calling and wheeling above an exposed harbour basin",
+      "prompt": "A few distant sea gulls wheel over a northern fishing harbour, giving distinct rough gull cries with short quiet gaps and soft wind behind them. Sparse natural field recording, no songbirds, no music, no speech."
+    },
+    "hum.saltwind-lighthouse.slate-roof-rain": {
+      "kind": "hum",
+      "into": "saltwind-lighthouse",
+      "duration": 12,
+      "desc": "Rain drumming on a slate cottage roof during a squall",
+      "prompt": "Close detailed sound of steady rain drumming and ticking on a slate cottage roof, with small gutter drips and brief wind-driven swells. Continuous soft textured rain, no thunder, no birds, no music, no voices."
+    },
+    "hum.saltwind-lighthouse.quay-net-rope": {
+      "kind": "hum",
+      "into": "saltwind-lighthouse",
+      "duration": 10,
+      "desc": "Wet fishing nets and ropes flap in wind with occasional bollard chain clinks",
+      "prompt": "Close wet fishing nets and coarse ropes flapping softly in gusts on a harbour quay, with an occasional quiet metal bollard-chain clink. Irregular fibrous flap and rope strain, sparse restrained chain contact. No music, no voices, no engines."
+    },
+    "bed.fossil-badlands.ambience": {
+      "kind": "bed",
+      "into": "fossil-badlands",
+      "duration": 30,
+      "desc": "Dry wind and dusk insects over a quiet dig camp with faint canvas flap and distant timber crane creak",
+      "prompt": "Dry open-air wind at blue hour around a quiet palaeontology dig camp, with sparse dusk insects, faint tent canvas flaps and a very distant timber crane creak. Warm restrained natural field recording, steady spacious texture. No music, no human speech, no vehicles, no spooky sounds."
+    },
+    "hum.fossil-badlands.skeleton-rib-wind": {
+      "kind": "hum",
+      "into": "fossil-badlands",
+      "duration": 12,
+      "desc": "Wind through huge dry hollow bones makes a deep airy whistle",
+      "prompt": "Dry wind blowing slowly through large hollow bone-like cavities and a high rib arch, making a deep soft airy whistle with uneven gusts. Spacious outdoor resonance, warm and natural rather than eerie. No voice, no music, no animal calls, no metallic tone."
+    },
+    "hum.fossil-badlands.crane-rope-pulley": {
+      "kind": "hum",
+      "into": "fossil-badlands",
+      "duration": 10,
+      "desc": "A timber hand crane creaks while a rope pulley turns slowly",
+      "prompt": "Close slow timber hand-crane foley at a dig trench: wooden beams strain and creak, a rope pulley turns with soft friction and an occasional dry wooden knock. Sparse careful work, no motors, no voices, no music."
+    },
+    "hum.fossil-badlands.sump-water-drips": {
+      "kind": "hum",
+      "into": "fossil-badlands",
+      "duration": 10,
+      "desc": "Water drips into a shallow muddy trench sump",
+      "prompt": "Distinct small water drips falling into a shallow still trench sump, with soft ripples and tiny irregular splashes in a quiet outdoor excavation. Restrained close field recording, no stream rush, no birds, no music, no speech."
+    },
+    "hum.fossil-badlands.tent-canvas-lantern": {
+      "kind": "hum",
+      "into": "fossil-badlands",
+      "duration": 12,
+      "desc": "Tent canvas flaps gently in dry wind beside a softly hissing lantern",
+      "prompt": "A dig-camp tent canvas gently flaps and flexes in a dry dusk breeze beside a quiet pressure lantern hiss. Soft fabric movement, small rope strains and steady subdued hiss. No music, no human speech, no fire roar."
+    },
+    "hum.fossil-badlands.mesa-wind": {
+      "kind": "hum",
+      "into": "fossil-badlands",
+      "duration": 12,
+      "desc": "Dry wind gusts over a hollow layered rock mesa",
+      "prompt": "Low dry wind gusts over a rocky mesa edge, with a soft hollow airy resonance and light grit rustle. Sparse broad outdoor wind, natural and warm, no howling monster, no music, no voices."
+    },
+    "hum.fossil-badlands.sorting-brush-chisel": {
+      "kind": "hum",
+      "into": "fossil-badlands",
+      "duration": 10,
+      "desc": "Careful brushes sweep grit from fossils with a few gentle chisel taps",
+      "prompt": "Close careful excavation foley: soft bristle brushes sweep dry grit off stone and fossil surfaces, alternating with a few small delicate chisel taps. Restrained dry scratch and tiny stone clicks, no voices, no music, no industrial hammering."
+    },
+    "hum.fossil-badlands.cart-rails-gravel": {
+      "kind": "hum",
+      "into": "fossil-badlands",
+      "duration": 10,
+      "desc": "A small mine cart rolls slowly on rails with loose gravel crunch",
+      "prompt": "A small hand-pushed mine cart slowly rolls a short distance over old rails, with light wheel clicks, a soft metal rattle and dry gravel crunch beneath. Quiet restrained outdoor foley, no motor, no voices, no music."
     }
   }
 }

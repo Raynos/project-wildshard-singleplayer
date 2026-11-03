@@ -67,6 +67,22 @@
       "bpm": 120,
       "beatsPerBar": 3,
       "prompt": "Instrumental video game score, 120 BPM, 3/4 waltz time. Jaunty travelling fair in warm buttermilk morning light. Bright mechanical band organ carries a playful short waltz melody, light accordion answers over plucked upright bass on beat one and restrained brushes on beats two and three. Toy-box primaries, striped tents, a carousel and a giant Ferris wheel, friendly delighted exploration, never sinister or frantic. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no vocals, no dialogue."
+    },
+    "ob7/saltwind-lighthouse": {
+      "style": "ob7",
+      "slot": "saltwind-lighthouse",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 64,
+      "prompt": "Instrumental video game score, 64 BPM, 4/4. A cold northern fishing harbour on black basalt during a passing late-afternoon squall. Slow low fiddle over a held acoustic drone, sparse minor and modal phrases, long restrained bows and wide empty space. Weathered and exposed, storm rather than cosy, steady quiet exploration. No drums, no percussion, no music box. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue."
+    },
+    "ob7/fossil-badlands": {
+      "style": "ob7",
+      "slot": "fossil-badlands",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 72,
+      "prompt": "Instrumental video game score, 72 BPM, 4/4. Lavender blue hour at a quiet palaeontology dig in banded clay badlands, lanterns lit in the dry wind. Low marimba and kalimba answer a distant wooden flute over soft bowed strings. Slow, dusty, wondering and warmly curious, never spooky or threatening. Sparse acoustic motifs and gentle open harmonies for unhurried discovery. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue."
     }
   }
 }
