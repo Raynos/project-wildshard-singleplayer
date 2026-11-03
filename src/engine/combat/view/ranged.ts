@@ -410,6 +410,60 @@ export function weaponDisplay(parts: readonly { readonly geo: THREE.BufferGeomet
   return group;
 }
 
+const COLLAPSED = new THREE.Matrix4().makeScale(0, 0, 0);
+const BIND = new THREE.Matrix4();
+/**
+ * PF13: a held view's parts that share one material (the crossbow's two string legs, its serving and the nose whipping:
+ * 4 draws a frame) drawn as one rigid-skinned draw. Every part keeps its node, so whatever poses, shows or hides it (a
+ * playback row, a fade, a skin's paint on the shared material) works as before, but it no longer draws itself (its layers
+ * are off). The merged draw holds one copy of each part's geometry skinned to one bone, and the bone takes the part's
+ * world matrix at every matrix update (zero while the part or a node above it is hidden: its triangles collapse and draw
+ * nothing), so each vertex lands where the part's own draw put it. Only direct children of `root` that are plain
+ * single-material meshes merge; the merged draw is appended last, so its update follows theirs. Call before
+ * prepareWeaponView, which then treats it as one more part. Returns how many draws it saved.
+ */
+export function mergeHeldParts(root: THREE.Object3D, keep: readonly THREE.Object3D[] = []): number {
+  const byMaterial = new Map<THREE.Material, THREE.Mesh[]>();
+  for (const part of root.children) {
+    if (!isMesh(part) || Array.isArray(part.material) || part instanceof THREE.SkinnedMesh || keep.includes(part) || part.children.length > 0
+      || Object.keys(part.geometry.morphAttributes).length > 0 || part.geometry.drawRange.start !== 0 || part.geometry.drawRange.count !== Infinity) continue;
+    const list = byMaterial.get(part.material);
+    if (list === undefined) byMaterial.set(part.material, [part]); else list.push(part);
+  }
+  let saved = 0;
+  for (const [material, parts] of byMaterial) {
+    const first = parts[0];
+    if (first === undefined || parts.length < 2) continue;
+    const layout = (g: THREE.BufferGeometry): string => `${Object.keys(g.attributes).sort().join(',')}|${String(g.index === null)}`;
+    if (parts.some(part => layout(part.geometry) !== layout(first.geometry))) continue;
+    const pieces = parts.map((part, bone) => {
+      const g = part.geometry.clone(), n = g.getAttribute('position').count;
+      const index = new Uint16Array(n * 4), weight = new Float32Array(n * 4);
+      for (let v = 0; v < n; v++) { index[v * 4] = bone; weight[v * 4] = 1; }
+      g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(index, 4)); g.setAttribute('skinWeight', new THREE.Float32BufferAttribute(weight, 4));
+      g.clearGroups();
+      return g;
+    });
+    const geometry = mergeOrNull(pieces);
+    for (const g of pieces) g.dispose();
+    if (geometry === null) continue;
+    const bones = parts.map(() => new THREE.Bone());
+    const merged = new THREE.SkinnedMesh(geometry, material);
+    merged.name = `${material.name}:merged`; merged.userData['viewmodelOnly'] = true; merged.frustumCulled = false;
+    merged.bind(new THREE.Skeleton(bones, bones.map(() => new THREE.Matrix4())), BIND);
+    const shown = (part: THREE.Object3D): boolean => { for (let at: THREE.Object3D | null = part; at !== null && at !== root; at = at.parent) if (!at.visible) return false; return true; };
+    const update = merged.updateMatrixWorld.bind(merged);
+    merged.updateMatrixWorld = (force?: boolean): void => {
+      update(force);
+      parts.forEach((part, i) => { bones[i]?.matrixWorld.copy(shown(part) ? part.matrixWorld : COLLAPSED); });
+    };
+    for (const part of parts) part.layers.disableAll();
+    root.add(merged);
+    saved += parts.length - 1;
+  }
+  return saved;
+}
+
 /** Prepare an owned held tree for the existing transparent viewmodel queue.
  * Geometry/material identities stay borrowed; only missing vertex colours and
  * the shipping queue/shadow flags are written. Clearer and flash exceptions are

@@ -9,7 +9,7 @@ import { projectileFlightStep, ProjectileSlots, type FlightSlot } from '@wildsha
 import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 import type { TargetHit, Targets } from '@wildshard/engine/combat/types';
 import { ProjectilePresentation, type ProjectileKind } from '@wildshard/engine/combat/view/projectile';
-import { FOV_ADS, FOV_HIP, impactSurfaceOf, isMesh, prepareWeaponView, Puffs, viewmodelRowMaterial, weaponDisplay, whiteColors, worldHit, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
+import { FOV_ADS, FOV_HIP, impactSurfaceOf, isMesh, mergeHeldParts, prepareWeaponView, Puffs, viewmodelRowMaterial, weaponDisplay, whiteColors, worldHit, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import { quiverState, Weapon, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { HeldHandParts } from '@wildshard/engine/player/heldHandParts';
@@ -217,6 +217,7 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
     this.fadeMats = rows.fade.map(id => need(made.materials.get(id), `material ${id}`));
     const box = need(this.boltGeo.boundingBox, 'bolt bounds');
     this.tipLocal.set(0, 0, box.min.z); this.tipModel.copy(this.tipLocal).add(this.loadedBolt.position); this.nockZ = box.max.z;
+    mergeHeldParts(this.model, [this.loadedBolt, made.mesh(rows.nodes.sightPost)]); // PF13: the string's and whipping's 4 cord draws as 1
     prepareWeaponView(this.model); // the engine's shared depth clear at 999; the model at 1000 in the transparent queue
     this.model.scale.setScalar(view.hip.scale);
 
