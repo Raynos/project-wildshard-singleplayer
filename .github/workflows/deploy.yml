@@ -1244,16 +1244,24 @@ jobs:
           uname -m
           sysctl hw.memsize hw.ncpu vm.swapusage
           printf 'DEVELOPER_DIR=%s\n' "$DEVELOPER_DIR" >> "$GITHUB_ENV"
+      - name: Build the native transport diagnostic
+        timeout-minutes: 1
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/phone-preparation"
+          receipt="$RUNNER_TEMP/phone-preparation/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
+          "$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" \
+            -target "$(uname -m)-apple-ios18.0-simulator" \
+            -isysroot "$DEVELOPER_DIR/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk" \
+            -std=c11 -Wall -Wextra -Werror -O1 scripts/sim-transport.c -o "${receipt%.json}.transport"
+          echo "PHONE_SIMULATOR_PREPARATION=$receipt" >> "$GITHUB_ENV"
       # Cold native startup is isolated from installs and artifact extraction.
       # The Linux prepare job runs concurrently; Safari keeps its 120 s bound.
       - name: Prepare isolated Safari while the build runs
         id: phone
         shell: bash
         run: |
-          mkdir -p "$RUNNER_TEMP/phone-preparation"
-          receipt="$RUNNER_TEMP/phone-preparation/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
-          echo "PHONE_SIMULATOR_PREPARATION=$receipt" >> "$GITHUB_ENV"
-          PHONE_SIMULATOR_PREPARATION="$receipt" node scripts/parity/phone-route-runner.mjs --prepare-simulator 2>&1 | tee "$RUNNER_TEMP/phone-preparation/native.log"
+          node scripts/parity/phone-route-runner.mjs --prepare-simulator 2>&1 | tee "$RUNNER_TEMP/phone-preparation/native.log"
       - name: Require the native phone engine
         env:
           PHONE_NATIVE_ENGINE: ${{ steps.phone.outputs.engine }}

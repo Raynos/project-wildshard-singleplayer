@@ -517,40 +517,33 @@ def readiness_page(deadline, started=None, lifecycle=None):
 def native_transport_witness(udid, url, deadline, started):
     """Diagnostic only: one simctl-spawned TCP client, never Safari or frames."""
     record = {'status': 'unavailable', 'requestedAt': round(time.monotonic() - started, 3),
-              'completedAt': None, 'compileReturnCode': None, 'nativeReturnCode': None}
+              'completedAt': None, 'nativeReturnCode': None}
     try:
         preparation = os.environ.get('PHONE_SIMULATOR_PREPARATION', '')
-        developer = os.environ.get('DEVELOPER_DIR', '')
         prefix = 'http://127.0.0.1:'
         port, separator, token = url.removeprefix(prefix).partition('/safari/')
-        if (not preparation or not os.path.isabs(developer) or not url.startswith(prefix)
+        if (not os.path.isabs(preparation) or not url.startswith(prefix)
                 or not port.isdecimal() or not 1024 < int(port) <= 65535 or not separator
                 or len(token) != 24 or any(char not in '0123456789abcdef' for char in token)):
             return record
         binary = Path(preparation).with_suffix('.transport')
         log = Path(preparation).with_suffix('.transport.log')
-        record.update(destination=f'{prefix}{port}/transport/{token}', log=str(log))
-        compiler = str(Path(developer) / 'Toolchains/XcodeDefault.xctoolchain/usr/bin/clang')
-        sdk = str(Path(developer) / 'Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk')
-        commands = [
-            ('compileReturnCode', [compiler, '-target', f'{os.uname().machine}-apple-ios18.0-simulator',
-                '-isysroot', sdk, '-O1', str(Path(__file__).with_name('sim-transport.c')), '-o', str(binary)]),
-            ('nativeReturnCode', [*SIMCTL_COMMAND, 'spawn', udid, str(binary), port, token])]
-        # Compilation and the one RPC share one original URL-sized diagnostic
-        # slice inside the existing Safari wall; neither restarts a deadline.
+        record.update(destination=f'{prefix}{port}/transport/{token}', log=str(log), binary=str(binary))
+        if not binary.is_file() or not os.access(binary, os.X_OK):
+            record['status'] = 'missing-client'
+            return record
+        command = [*SIMCTL_COMMAND, 'spawn', udid, str(binary), port, token]
+        # The phone job builds this client before the Safari wall starts. Only
+        # its one RPC spends the original URL-sized slice; no deadline restarts.
         diagnostic_deadline = min(deadline, time.monotonic() + 10)
         with log.open('wb') as output:
-            for field, command in commands:
-                remaining = diagnostic_deadline - time.monotonic()
-                if remaining <= 0:
-                    record['status'] = 'expired'
-                    return record
-                record['command'] = command
-                result = subprocess.run(command, stdout=output, stderr=output, timeout=remaining, check=False)
-                record[field] = result.returncode
-                if result.returncode != 0:
-                    record['status'] = 'compile-failed' if field == 'compileReturnCode' else 'native-exit'
-                    return record
+            remaining = diagnostic_deadline - time.monotonic()
+            if remaining <= 0:
+                record['status'] = 'expired'
+                return record
+            record['command'] = command
+            result = subprocess.run(command, stdout=output, stderr=output, timeout=remaining, check=False)
+            record['nativeReturnCode'] = result.returncode
         record['status'] = 'native-exit' if time.monotonic() < diagnostic_deadline else 'expired'
     except subprocess.TimeoutExpired:
         record['status'] = 'expired'

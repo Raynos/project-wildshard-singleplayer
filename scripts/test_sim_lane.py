@@ -1501,39 +1501,61 @@ class SimulatorTransportTests(unittest.TestCase):
 
     def test_native_transport_rpc_uses_exact_device_and_one_shared_deadline(self):
         native = READY['native_transport_witness']
+        binary = self.root / 'prepare.transport'
+        binary.touch()
+        binary.chmod(0o700)
         url = 'http://127.0.0.1:12345/safari/' + 'a' * 24
-        for delays, codes, expected, count in [
-                ((.1, .1), (0, 0), 'native-exit', 2),
-                ((.6, .1), (0, 0), 'expired', 1),
-                ((.1, .6), (0, 0), 'expired', 2),
-                ((.1, .1), (None, 0), 'expired', 1),
-                ((.1, .1), (0, None), 'expired', 2),
-                ((.1, .1), (23, 0), 'compile-failed', 1),
-                ((.1, .1), (0, 23), 'native-exit', 2)]:
+        for delay, code, deadline, expected in [
+                (.1, 0, .5, 'native-exit'),
+                (.6, 0, .5, 'expired'),
+                (.1, None, .5, 'expired'),
+                (.1, 23, .5, 'native-exit'),
+                (.1, 0, 120, 'native-exit'),
+                (.1, 0, 0, 'expired')]:
             clock = SimpleNamespace(now=0)
             calls = []
             def run(command, **kwargs):
-                index = len(calls)
                 calls.append((command, kwargs['timeout']))
-                clock.now += delays[index]
-                if codes[index] is None:
+                clock.now += delay
+                if code is None:
                     raise subprocess.TimeoutExpired(command, kwargs['timeout'])
-                return SimpleNamespace(returncode=codes[index])
+                return SimpleNamespace(returncode=code)
             ports = {**native.__globals__,
                 'os': SimpleNamespace(environ={'PHONE_SIMULATOR_PREPARATION': str(self.root / 'prepare.json'),
-                    'DEVELOPER_DIR': str(self.root / 'developer')}, path=os.path, uname=os.uname),
+                    'DEVELOPER_DIR': str(self.root / 'developer')}, path=os.path, access=os.access, X_OK=os.X_OK),
                 'time': SimpleNamespace(monotonic=lambda: clock.now),
                 'subprocess': SimpleNamespace(run=run, TimeoutExpired=subprocess.TimeoutExpired)}
             helper = FunctionType(native.__code__, ports)
-            result = helper(UDID, url, .5, 0)
+            result = helper(UDID, url, deadline, 0)
             self.assertEqual(result['status'], expected)
-            self.assertEqual(len(calls), count)
-            self.assertEqual(calls[0][1], .5)
-            if count == 2:
-                self.assertAlmostEqual(calls[1][1], .4)
-                self.assertEqual(calls[1][0], ['xcrun', 'simctl', 'spawn', UDID,
-                    str(self.root / 'prepare.transport'), '12345', 'a' * 24])
+            self.assertEqual(len(calls), 1 if deadline else 0)
+            if calls:
+                self.assertEqual(calls[0][1], min(deadline, 10))
+                self.assertEqual(calls[0][0], ['xcrun', 'simctl', 'spawn', UDID,
+                    str(binary), '12345', 'a' * 24])
+                self.assertEqual(result['nativeReturnCode'], code)
             self.assertEqual(result['destination'], url.replace('/safari/', '/transport/'))
+        self.assert_not_handed_over()
+
+    def test_missing_prebuilt_transport_client_never_compiles_or_spawns(self):
+        native = READY['native_transport_witness']
+        calls = []
+        ports = {**native.__globals__,
+            'os': SimpleNamespace(environ={'PHONE_SIMULATOR_PREPARATION': str(self.root / 'prepare.json')},
+                path=os.path, access=os.access, X_OK=os.X_OK),
+            'subprocess': SimpleNamespace(run=lambda *args, **kwargs: calls.append(args),
+                TimeoutExpired=subprocess.TimeoutExpired)}
+        helper = FunctionType(native.__code__, ports)
+        url = 'http://127.0.0.1:12345/safari/' + 'a' * 24
+        for executable in (None, False):
+            if executable is False:
+                binary = self.root / 'prepare.transport'
+                binary.touch()
+                binary.chmod(0o600)
+            result = helper(UDID, url, time.monotonic() + 10, time.monotonic())
+            self.assertEqual(result['status'], 'missing-client')
+            self.assertIsNone(result['nativeReturnCode'])
+            self.assertEqual(calls, [])
         self.assert_not_handed_over()
 
     def test_transport_success_cannot_grant_frames_or_replay_the_safari_url(self):
