@@ -30,14 +30,28 @@ with round 62's `art/grid/round-62-open-plot-palettes/16-frostline-peaks.jpg` as
   blue ambient no longer turns it periwinkle. Re-encoded at WebP 80.
 - **Night Market's red banner posts and bulb strings on every lane** (round 62 has neither). Frostline's lanes are its
   own: one lantern post at each end of a seam, on alternate sides, none on the peak's foot or over the road entries.
-- **A grey cast over everything.** Ambient a little brighter and less blue (sky 0.72 / 0.80 / 0.95, ground
-  0.92 / 0.93 / 0.95, intensity 1.1 -> 1.3).
+- **A grey cast over everything.** R3 changed the ambient in the plot's template only; the runtime reads the look
+  keys from the plot's `outputs.json` row, so it did not take effect until R4.
 
 **Ruling (G872): R3 ships.** It closes the peak and lane gaps. Draws are unchanged (86-144 a view). The phone wire
 falls from 6.31 MB to 5.98 MB (the peak texture and the strings), and its ceiling ratchets down to that.
 
-## Still open (R4)
+## R4 gap list (R3 against T0) and fixes
 
-- **The ground reads mid-grey** (T0: bright white snow with long blue shadows): the biggest gap left.
-- **A pale sky** (T0: deep cobalt at eye level).
-- **Bare dark pines** (T0: snow on every tier): a kit model change.
+| File | What |
+|---|---|
+| `sheet-r4.jpg` | R4: after this round's light |
+| `board-r4.jpg` | R4's BEFORE (R3) · AFTER · TARGET for four of the angles |
+
+- **The ground reads mid-grey** (T0: bright white snow), the biggest gap. The look keys (recipe, template and the
+  `outputs.json` row together): sun 1.7 -> 2.2, ambient 1.1 -> 2.2 and whiter (sky 0.80 / 0.86 / 0.97, ground
+  0.92 / 0.93 / 0.95). The paving now reads pale snow-white; the peak's snow does not blow out.
+- **A pale sky** (T0: deep cobalt). Zenith 0.03 / 0.14 / 0.58, horizon 0.45 / 0.64 / 0.95, the fog matched to the
+  horizon. It reads blue at the top of a first-person frame, still lighter than T0.
+
+**Ruling (G872): R4 ships.** Light only: no bytes, no draws.
+
+## Still open
+
+- **Bare dark pines** (T0: snow on every tier): the kit's pine model, a mesh change.
+- **No long blue shadows on the snow** and the sky still lighter than T0's cobalt.
