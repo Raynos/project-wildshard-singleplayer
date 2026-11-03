@@ -2362,28 +2362,29 @@ admission records the resolved world files; scene intake refuses a different
 profile until fresh admission (quality switches reload the page). Other
 profiles remain metadata-only. No memory cap or multiplier changes.
 
-**Held arms (G474 / G475 / G477, G601 C10).** `@wildshard/game/systems/viewmodel/heldView`
-defines `HeldView`, the game host for first-person arms, sockets, material binding and
-swimming, by look kind over `@wildshard/format/heldView`'s `HeldViewSchema`. The `toon`
-kind (`HeldView.admit({ kind: 'toon', ...look })` or `new HeldView(row)`) admits
-`@wildshard/format/heldArms`'s `ToonArmsLookSchema` before loading anything: rig
-URL/skeleton/joint names, sockets, offset/frame, blade base, shadow lookup distance, swim
-plane and graph material identities. The `graph` kind (`await HeldView.fromProduct(slug,
-file)`) reads a product's `GraphArmsSchema` row: graph looks with maps, weave, decals,
-pendants, the swing trail and frame-row writes. The rig uses `RigArms`'s semantic `arms`,
-`sword_wood`, `sword_iron` meshes and arm/swim clips. `prepare(context)` resolves graph
-material identities under the platform scope and obtains shared day uniforms from the
-row's lighting id (`game/looks/toonLighting` reads them for the backdrop). Each scope
-releases its prepared catalogue independently; the newest live preparation wins.
-`sword()` returns the wooden/iron sword arms and swimming hands; `specimen({ sky, blade })`
-(toon) or `specimen({ settleFrames, renderer })` (graph) creates an independent Explorer
-skeleton with shared geometry.
-The host preserves blade quantization/glow, per-vertex metalness, shadow following
-and the camera-space swim plane. A shard supplies rows and the platform context.
-No rig or material catalogue is installed by importing the module. The host uses
-the native `RigArms` loader, without an injected loader port. The fixture
-`test/held-arms-platform.test.ts` drives invented harbour material/lighting rows
-on the native rig file path, including release, glow and swim behaviour.
+**Held arms (G474 / G475 / G477, G601 C10).**
+`@wildshard/game/systems/viewmodel/heldView` defines `HeldView` for arms,
+sockets, materials and swimming. `@wildshard/format/heldView.HeldViewSchema`
+selects the look. The `toon` kind (`HeldView.admit({kind:'toon',...look})`
+or `new HeldView(row)`) admits `heldArms.ToonArmsLookSchema` before loading:
+rig URL/skeleton/joints, sockets, offset/frame, blade base, shadow distance,
+swim plane and graph material ids. `await HeldView.fromProduct(slug,file)`
+reads `GraphArmsSchema`: looks/maps, weave, decals, pendants, trail and
+frame writes. `RigArms` loads semantic `arms`, `sword_wood`, `sword_iron`
+meshes and arm/swim clips; no loader port or import-time catalogue exists.
+`prepare(context)` resolves scoped materials and shared day uniforms by
+lighting id (`game/looks/toonLighting`). Each preparation releases its
+catalogue independently; the newest live preparation wins.
+`sword()` returns wooden/iron arms and swimming hands. Toon
+`specimen({sky,blade})` or graph `specimen({settleFrames,renderer})` creates
+an independent Explorer skeleton sharing geometry. Blade quantization/glow,
+per-vertex metalness, shadow following and camera-space swim plane remain.
+Graph pendant geometry uses complete `WorldScenePoolSchema` rows from
+`@wildshard/format/worldScenes`; the existing `worldScenePool` reader
+verifies GLBs and selects tiers, preserving channels/indices/groups/bounds.
+Private scene poses/materials stay in the held row; no geometry JSON adapter.
+Shards provide rows/context. `test/held-arms-platform.test.ts` drives native
+rig paths with harbour material/lighting rows, release, glow and swimming.
 
 **Item effects.** `game/loadout/effects` defines the client-only
 `installItemEffects(context)` installer. `combat/items.loadout.effects` selects

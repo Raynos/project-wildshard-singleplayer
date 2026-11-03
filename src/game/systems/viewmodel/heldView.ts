@@ -5,7 +5,7 @@
  * its own look and the frame rows that write time, buffer size, pixel ratio and projection into the looks. Rows are
  * admitted before any rig, look or texture is borrowed; Model Explorer cards settle the same rigs. Client-only.
  */
-import { BackSide, type BufferGeometry, BufferGeometryLoader, ClampToEdgeWrapping, DataTexture, DoubleSide, LinearMipmapLinearFilter, type Material, Mesh, NoColorSpace,
+import { BackSide, type BufferGeometry, ClampToEdgeWrapping, DataTexture, DoubleSide, LinearMipmapLinearFilter, type Material, Mesh, NoColorSpace,
   type Object3D, type PerspectiveCamera, Quaternion, RedFormat, RepeatWrapping, SkinnedMesh, Texture, UnsignedByteType, Vector2, Vector3 } from 'three';
 import type { RigBake, RigContract } from '@wildshard/engine/anim/rig';
 import { retainCachedResources } from '@wildshard/engine/app/cachedAssets';
@@ -28,6 +28,7 @@ import { toonLighting } from '../../looks/toonLighting';
 import { loadFirstPartyProduct, runtimeLookMaterials } from '../../shardfile/runtimeProduct';
 import type { ShardProduct } from '../../shardfile/shardProduct';
 import { createClientScene } from '../../plugin/scene';
+import { worldScenePool } from '../../shardfile/scenePools';
 import { BLEND_ADD_KEEP_ALPHA } from '../../plugin/shaderFamily';
 import type { ShardSword } from '../../shard/manifest';
 import type { ShardContext } from '../../plugin/context';
@@ -377,11 +378,17 @@ export class HeldView {
       if (normal !== undefined) looks.setTexture(entry.look, row.maps.kinds.nrm, normal);
     }
     const result = new GraphRig(rig, row, looks, ids);
-    const loader = new BufferGeometryLoader(), geometry = new Map<string, BufferGeometry>();
+    const geometry = new Map<string, BufferGeometry>();
     for (const source of row.pendants.geometry) {
-      const parts = await product.json<Record<string, unknown>>(source.file);
-      if ('field' in source) geometry.set(source.name, owner.own(loader.parse(parts[source.field])));
-      else for (const [name, value] of Object.entries(parts)) geometry.set(name, owner.own(loader.parse(value)));
+      const pool = { ...source, files: source.files.filter(file => file.tier === undefined || file.tier === tier) };
+      const library = worldScenePool(product, pool);
+      await library.preload();
+      for (const name of pool.files.flatMap(file => file.parts)) {
+        if (geometry.has(name)) throw new Error(`Repeated held rest geometry ${name}`);
+        const part = library.geometry(name);
+        if (part === null) throw new Error(`Missing held rest geometry ${name}`);
+        geometry.set(name, owner.own(part));
+      }
     }
     const socket = rig.nodes.get(row.pendants.socket);
     if (socket === undefined) throw new Error(`Held pendant socket ${row.pendants.socket} is missing`);

@@ -1,0 +1,397 @@
+{
+  "source": "54771bace42913012c86834d06343cbcb6e89b46 original Jian cloth JSON decoded by BufferGeometryLoader",
+  "cloth": {
+    "knot": {
+      "attributes": {
+        "position": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "82eb1b1f0fa648934d22d38b9aede619b5d8bbfea840e8ea991b25e5b695c922"
+        },
+        "normal": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "a090cd009c8f074cf066a5ef222962eff790fac647c0c831020dbb8d3df23d9e"
+        },
+        "uv": {
+          "type": "Float32Array",
+          "itemSize": 2,
+          "normalized": false,
+          "bytes": "b9d3458840bc6b7c0f43eb94948816c5dd6117f7d166bb23d17f41dc7d1dbcf6"
+        },
+        "color": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "57989b5aa718c992d4934ed935e9110aa006d669547877fb686fffd73192bdf9"
+        },
+        "aMat": {
+          "type": "Float32Array",
+          "itemSize": 4,
+          "normalized": false,
+          "bytes": "18ad14a75794a5d8b977183e86f0aa534e6f67c70c59cefdad227e48e68676b5"
+        },
+        "aFace": {
+          "type": "Float32Array",
+          "itemSize": 4,
+          "normalized": false,
+          "bytes": "5046c04fd802cbb94d39da8944eab3c6ab5e13beace6964d6b13e5365a4906a4"
+        },
+        "aNs": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "9befd6140f8ab23a23870456b88380832476801364065c006f81af5d8c55ac7e"
+        },
+        "aHullN": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "a090cd009c8f074cf066a5ef222962eff790fac647c0c831020dbb8d3df23d9e"
+        }
+      },
+      "index": {
+        "type": "Uint32Array",
+        "bytes": "035848291423d72454c55cdf780a3bbf2c12d5d8506e0c87fcb38000b33cd4f2"
+      },
+      "groups": [],
+      "drawRange": {
+        "start": 0,
+        "count": "all"
+      },
+      "boundingSphere": null,
+      "boundingBox": null
+    },
+    "tassel": {
+      "attributes": {
+        "position": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "8a3100fb393da9dda8367deb0f1afe417cf4e3c71cc5624965eaba74f8b810bb"
+        },
+        "normal": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "63b10bfd3eefb2caa676e13f532084fbe53d4c254bcfb690f52eb76a44071814"
+        },
+        "uv": {
+          "type": "Float32Array",
+          "itemSize": 2,
+          "normalized": false,
+          "bytes": "595cf09ced340624cf7e4b1c1c3f58cbc72d89d7f4fab55a0fc15f54676b5e8b"
+        },
+        "color": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "90d0ee48ab9839ab0b4f9076531e1857ae1089c027ff8fac8dddcac0881212cf"
+        },
+        "aMat": {
+          "type": "Float32Array",
+          "itemSize": 4,
+          "normalized": false,
+          "bytes": "1541be7fb53726abf9807219b2d50bb94f0b407932c0ddba9f0d2ba561a577fc"
+        },
+        "aFace": {
+          "type": "Float32Array",
+          "itemSize": 4,
+          "normalized": false,
+          "bytes": "6d0621c4b7cb83064294a5e5400f62b970ff83cec440c4e39dd8cf49f931b7bd"
+        },
+        "aNs": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "63b10bfd3eefb2caa676e13f532084fbe53d4c254bcfb690f52eb76a44071814"
+        },
+        "aHullN": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "63b10bfd3eefb2caa676e13f532084fbe53d4c254bcfb690f52eb76a44071814"
+        },
+        "aCloth": {
+          "type": "Float32Array",
+          "itemSize": 4,
+          "normalized": false,
+          "bytes": "daee881d00c7372230de9c8674567b77d18a36f3d5c7ef976a9b89d8dc6393c9"
+        },
+        "aClothPivot": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "fdf9ca3f53cf92bbcd3b887d3ab7483a7094fa78904bff91e091d9e06165455a"
+        }
+      },
+      "index": {
+        "type": "Uint32Array",
+        "bytes": "758627eb96a0460c764003b1c0a334306178a1151e1a0ebade72e19790c14c13"
+      },
+      "groups": [],
+      "drawRange": {
+        "start": 0,
+        "count": "all"
+      },
+      "boundingSphere": {
+        "radius": 0.12435954825906283,
+        "center": [
+          -0.07769899442791939,
+          -0.08757458813488483,
+          -0.09163546096533537
+        ]
+      },
+      "boundingBox": null
+    },
+    "sheet": {
+      "attributes": {
+        "position": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "625aafc700d9833e3c6464ada1bd5f2adabe332276ac28c39f3fae59408196c9"
+        },
+        "normal": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "b3a072fe5c3e20eb43eee079d3b1ddc98f6b5df6519bc880d4c3a242fce22526"
+        },
+        "uv": {
+          "type": "Float32Array",
+          "itemSize": 2,
+          "normalized": false,
+          "bytes": "5aad9cc20b484d17580520b6b87d13a43f0ce83a26f2105751ce77da1b8cf341"
+        },
+        "color": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "4cf4026416b72c1eb5d832112a5365a2bce87aae374c2f53c183c3d680d3cb31"
+        },
+        "aMat": {
+          "type": "Float32Array",
+          "itemSize": 4,
+          "normalized": false,
+          "bytes": "4adcce3dff1978bb4833bde10035e03eccf0a8dbf208e9bf852b7e686ebf0362"
+        },
+        "aFace": {
+          "type": "Float32Array",
+          "itemSize": 4,
+          "normalized": false,
+          "bytes": "9e132485d5107211de325a45e7917cbe3e4b5b9cde3e4ee91d7d2102317759ee"
+        },
+        "aNs": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "b3a072fe5c3e20eb43eee079d3b1ddc98f6b5df6519bc880d4c3a242fce22526"
+        },
+        "aHullN": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "b3a072fe5c3e20eb43eee079d3b1ddc98f6b5df6519bc880d4c3a242fce22526"
+        },
+        "aCloth": {
+          "type": "Float32Array",
+          "itemSize": 4,
+          "normalized": false,
+          "bytes": "54cc4a66acee917315b753de1fe6e9c64dd8c1e24d56826c829b8846b0137100"
+        },
+        "aClothPivot": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "ffac5d362e40616d70ef3a877c51d508a683ee8d615ffb71ec00714922abe205"
+        }
+      },
+      "index": {
+        "type": "Uint32Array",
+        "bytes": "b3d456201fcf8a75f3199acde71081b1bf061ec3b078369651ca86332b90004e"
+      },
+      "groups": [],
+      "drawRange": {
+        "start": 0,
+        "count": "all"
+      },
+      "boundingSphere": {
+        "radius": 0.0877069346782844,
+        "center": [
+          0.006760694086551666,
+          -0.06650952808558941,
+          -0.07864734949544072
+        ]
+      },
+      "boundingBox": null
+    },
+    "silk-strands": {
+      "attributes": {
+        "position": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "b2de0bb13300c50364c304597442de5e699c96d725945676192c2fea04041d88"
+        },
+        "normal": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "596dcb2b019eadc57fbdc816bb195df42378cfef2174781928a130f2b553bbd8"
+        },
+        "uv": {
+          "type": "Float32Array",
+          "itemSize": 2,
+          "normalized": false,
+          "bytes": "f3b1fe2eb88fb771995cf7cb51ffec13098ada7aebd70d9ca75c1469ed692a18"
+        },
+        "color": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "66d32ee108ccb8b28783583cfde6133f742afde1a7a564e2630c6e396e2cd8bf"
+        },
+        "aMat": {
+          "type": "Float32Array",
+          "itemSize": 4,
+          "normalized": false,
+          "bytes": "8dd557b0eec0e5faeb04a83d37bee6bf6825914f4aefb7226e69865b19888663"
+        },
+        "aFace": {
+          "type": "Float32Array",
+          "itemSize": 4,
+          "normalized": false,
+          "bytes": "f56407cc966836c39c38c98019c60fb4c4d9a317dfde8a7b8ab6eee96a940dc6"
+        },
+        "aNs": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "596dcb2b019eadc57fbdc816bb195df42378cfef2174781928a130f2b553bbd8"
+        },
+        "aHullN": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "596dcb2b019eadc57fbdc816bb195df42378cfef2174781928a130f2b553bbd8"
+        },
+        "aCloth": {
+          "type": "Float32Array",
+          "itemSize": 4,
+          "normalized": false,
+          "bytes": "5c760f6f5b80813ba77df3e67126c5e50113fc3ba9918c426aed39be60300ebe"
+        },
+        "aClothPivot": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "71805e2fcae445ce98cf8661136ea1259289a76abda746f56e2eb2af3f8d3c34"
+        }
+      },
+      "index": {
+        "type": "Uint16Array",
+        "bytes": "c7421887d3f300f44c3be6ee7ebc8e510bb8a16799b8934633db1fceb16f14b0"
+      },
+      "groups": [],
+      "drawRange": {
+        "start": 0,
+        "count": "all"
+      },
+      "boundingSphere": {
+        "radius": 0.15019481949400654,
+        "center": [
+          -0.04053239896893501,
+          -0.082374831661582,
+          -0.08800248615443707
+        ]
+      },
+      "boundingBox": null
+    },
+    "thin-hulls": {
+      "attributes": {
+        "position": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "40f59f33cb029f51bc792746e0a184ce78defd9a5808fd551763c6e9bfab1a4d"
+        },
+        "normal": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "41be71e3d4a2f9d4642c9690860ab1ed23ffb4d94e8f27fc213e5e9e8f7d7c67"
+        },
+        "uv": {
+          "type": "Float32Array",
+          "itemSize": 2,
+          "normalized": false,
+          "bytes": "7bed8daabcbff3decbec002112649e3031a515dd9285f21373ea2a22fc7128f3"
+        },
+        "color": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "f07bc5c40420967842a36e5aac259f2dfe5eac2fbeb5a7578af6bdaaf7c08ee9"
+        },
+        "aMat": {
+          "type": "Float32Array",
+          "itemSize": 4,
+          "normalized": false,
+          "bytes": "52021b0da84ab808c2ffa7e0f3e38a65bfcdd9a6d07b29fd27cb3cdfa8f9d74c"
+        },
+        "aFace": {
+          "type": "Float32Array",
+          "itemSize": 4,
+          "normalized": false,
+          "bytes": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+        },
+        "aNs": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "41be71e3d4a2f9d4642c9690860ab1ed23ffb4d94e8f27fc213e5e9e8f7d7c67"
+        },
+        "aHullN": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "41be71e3d4a2f9d4642c9690860ab1ed23ffb4d94e8f27fc213e5e9e8f7d7c67"
+        },
+        "aCloth": {
+          "type": "Float32Array",
+          "itemSize": 4,
+          "normalized": false,
+          "bytes": "fbdbdcdc3486b591881801e8057e7b1fe59d10e5fae1679507dd614213388be1"
+        },
+        "aClothPivot": {
+          "type": "Float32Array",
+          "itemSize": 3,
+          "normalized": false,
+          "bytes": "6c68bb6f208a8008038ae3b4d2573423b1ab6f346789a9fd97653698a416efa1"
+        }
+      },
+      "index": {
+        "type": "Uint16Array",
+        "bytes": "8aa7b6c50b5935def013bc6733b2a0803f769c7fc5fd2ff71c04e56472281187"
+      },
+      "groups": [],
+      "drawRange": {
+        "start": 0,
+        "count": "all"
+      },
+      "boundingSphere": {
+        "radius": 0.10515565170842718,
+        "center": [
+          0.006760694086551666,
+          -0.06331438384950161,
+          -0.0698105450719595
+        ]
+      },
+      "boundingBox": null
+    }
+  },
+  "nonGeometryRowSHA256": "64df442c16aa46af7b1abd8a2716a47527451e44a2f64995feb17a417d202ed6"
+}

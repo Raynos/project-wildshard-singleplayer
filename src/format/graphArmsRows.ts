@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { PrivateSceneSchema } from './clientChannels';
+import { WorldScenePoolSchema, type WorldScenePoolRowInput, type WorldScenePoolRow } from './worldScenes';
 
 const finite = v.pipe(v.number(), v.finite());
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
@@ -28,9 +29,9 @@ export const GraphArmsSchema: v.StrictObjectSchema<{ readonly rig: v.GenericSche
   weave: v.strictObject({ file: name, size: count, param: name }),
   decal: v.strictObject({ files: v.strictObject({ phone: name, desktop: name }), param: name }),
   back: bounded(name, 64), additive: bounded(name, 64),
-  /** the pendants: a private scene on a socket, its geometry read from product JSON (a file of named geometries, or one `field` as `name`) */
+  /** The pendants: the existing verified world-scene GLB pools and a private scene on its socket. */
   pendants: v.strictObject({ socket: name, scene: PrivateSceneSchema, materials: bounded(name, 64),
-    geometry: bounded(v.union([v.strictObject({ file: name }), v.strictObject({ file: name, field: name, name })]), 16) }),
+    geometry: bounded(WorldScenePoolSchema, 16) }),
   frame: bounded(v.strictObject({ look: v.exactOptional(name), param: name, source: v.picklist(['time', 'buffer', 'pixels', 'projection']),
     scale: v.exactOptional(finite), min: v.exactOptional(finite) }), 32),
 });
@@ -107,13 +108,7 @@ interface GraphArmsRowInputFields {
         socket: string;
         scene: v.InferInput<typeof PrivateSceneSchema>;
         materials: (string)[];
-        geometry: (({
-            file: string;
-        }) | ({
-            file: string;
-            field: string;
-            name: string;
-        }))[];
+        geometry: WorldScenePoolRowInput[];
     };
     frame: ({
         look?: string;
@@ -192,13 +187,7 @@ interface GraphArmsRowFields {
         socket: string;
         scene: v.InferOutput<typeof PrivateSceneSchema>;
         materials: (string)[];
-        geometry: (({
-            file: string;
-        }) | ({
-            file: string;
-            field: string;
-            name: string;
-        }))[];
+        geometry: WorldScenePoolRow[];
     };
     frame: ({
         look?: string;

@@ -20,6 +20,19 @@ test('held view admission preserves rows and refuses malformed named payloads', 
   const { emptyShardfile } = await import('../src/sdk/author');
   const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
   const row = parseGraphArms(heldView(inputs.held)), schema = namedJsonSchema(GraphArmsSchema);
+  const pool = row.pendants.geometry[0], file = pool?.files[0];
+  if (pool === undefined || file === undefined) throw new Error('Missing original native pendant pool');
+  const badPools = [
+    { ...pool, files: [{ ...file, parts: ['duplicate', 'duplicate'] }] },
+    { ...pool, files: [{ ...file, parts: Array.from({ length: 129 }, (_, i) => `part-${i}`) }] },
+    { ...pool, files: Array.from({ length: 17 }, (_, i) => ({ file: `part-${i}.glb`, parts: [`part-${i}`] })) },
+    { ...pool, files: [{ ...file, channels: [{ name: 'position', source: '_wind', width: 1 }] }] },
+    { ...pool, files: [{ ...file, channels: [{ name: 'wind', source: '_wind', width: 5 }] }] },
+    { ...pool, files: [{ ...file, channels: [{ name: 'wind', source: '_wind', width: 1, parts: ['missing'] }] }] },
+    { ...pool, files: [{ ...file, channels: [{ name: 'wind', source: '_wind', width: 1 }, { name: 'other', source: '_wind', width: 1 }] }] },
+    { ...pool, painted: [{ id: 'missing', file: 'missing.glb', geometry: 'missing' }] },
+  ];
+  for (const invalidPool of badPools) expect(() => parseGraphArms({ ...row, pendants: { ...row.pendants, geometry: [invalidPool] } })).toThrow();
   expect(heldViewSchema()).toEqual(schema);
   expect(JSON.stringify(heldViewSchema())).toBe(JSON.stringify(schema));
   const blob = nameBlob('weapons/held.json', 'json', encode(row), { jsonSchema: schema });
@@ -36,6 +49,7 @@ test('held view admission preserves rows and refuses malformed named payloads', 
     {...row, pendants:{...row.pendants,geometry:[{file:'parts.json',field:'part'}]}},
     {...row, decal:{...row.decal,files:{phone:row.decal.files.phone}}},
     {...row, decal:{...row.decal,files:{...row.decal.files,desktop:''}}},
+    { ...row, pendants: { ...row.pendants, geometry: [{ ...pool, files: [{ ...file, channels: [{ name: 'wind', source: '_wind', width: 5 }] }] }] } },
   ]) {
     expect(()=>parseGraphArms(bad)).toThrow();
     expect(()=>nameBlob('weapons/held.json','json',encode(bad),{jsonSchema:schema})).toThrow('refuses its schema');

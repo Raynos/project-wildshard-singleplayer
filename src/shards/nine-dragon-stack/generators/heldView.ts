@@ -1,4 +1,5 @@
 import type { NineHeldInputs } from './heldGraphFiles';
+import { JIAN_GEOMETRY } from './jianGeometry';
 import { privateSceneRows as parsePrivateScene } from '@wildshard/sdk/worldScenes';
 import { graphArmsRows as parseGraphArms } from '@wildshard/sdk/rows';
 import { namedFormatJsonSchema } from '@wildshard/sdk/formatJsonSchema';
@@ -29,7 +30,7 @@ export function heldView({ profile, files }: NineHeldInputs): Readonly<Record<st
     decal: { files: { phone: 'looks/jian-decal-phone.png', desktop: 'looks/jian-decal-desktop.png' }, param: 'uDecal' },
     back: looks.filter(id => id.includes('hull')), additive: [EDGE, TRAIL],
     pendants: { socket: ARMS.weapon, scene, materials,
-      geometry: [{ file: 'weapons/jian-cloth.json' }, { file: 'weapons/jian-halo.json', field: 'geometry', name: 'edge' }] },
+      geometry: [JIAN_GEOMETRY.pool] },
     // the look's clock, the drawing buffer, the line widths in buffer pixels and the held camera's projection
     frame: [{ param: 'uTime', source: 'time' }, { look: EDGE, param: 'time', source: 'time' },
       { param: 'uRes', source: 'buffer' }, { param: 'uLinePx', source: 'pixels', scale: 0.8, min: 1 }, { param: 'uHullPx', source: 'pixels', scale: 1.2, min: 1 },

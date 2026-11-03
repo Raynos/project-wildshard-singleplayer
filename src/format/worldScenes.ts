@@ -24,6 +24,10 @@ const packet = v.strictObject({ file: id, storage: v.literal('f32'), byteOffset:
 const instanceValues = { values: v.exactOptional(bounded(finite, 32768)), packet: v.exactOptional(packet) };
 /** Identity-only fine geometry is backed completely by its declared slab owner. */
 export interface WorldSceneFineLibrary { id: string; kind: 'whole'; load: 'refine'; storage: 'slabs'; models: { id: string }[] }
+const poolLibrary = v.strictObject({ id, kind: v.literal('pool'), publish: v.exactOptional(id), files: bounded(v.strictObject({ file: tierFile, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), parts: bounded(id, 128),
+    channels: v.exactOptional(bounded(v.strictObject({ name: v.pipe(id, v.regex(/^[A-Za-z][A-Za-z0-9_]{0,63}$/u), v.check(name => !['position', 'normal', 'color', 'uv', 'uv1', 'tangent', 'constructor', 'prototype', '__proto__'].includes(name))),
+      source: v.pipe(id, v.regex(/^_[a-z0-9_]{1,63}$/u), v.check(source => source !== '__proto__')), width: v.picklist([1, 2, 3, 4]), parts: v.exactOptional(v.pipe(bounded(id, 128), v.minLength(1))) }), 16)) }), 32),
+    painted: v.optional(bounded(v.strictObject({ id, file: id, geometry: id }), 32), []) });
 const library = v.union([v.variant('kind', [
   v.strictObject({ id, kind: v.literal('models'), file: id }),
   v.strictObject({ id, kind: v.literal('baked'), file: id }),
@@ -36,10 +40,7 @@ const library = v.union([v.variant('kind', [
     models: bounded(v.strictObject({ id, part: id, files: v.pipe(bounded(id, 64), v.minLength(1)), matrix: v.exactOptional(v.pipe(v.array(finite), v.length(16))) }), 256) }),
   // A rest pool per file (tier-selected by name or by `tier`), its Float32 application channels renamed on load;
   // `publish` names every part as an owned geometry handle `<publish>.<part>`.
-  v.strictObject({ id, kind: v.literal('pool'), publish: v.exactOptional(id), files: bounded(v.strictObject({ file: tierFile, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), parts: bounded(id, 128),
-    channels: v.exactOptional(bounded(v.strictObject({ name: v.pipe(id, v.regex(/^[A-Za-z][A-Za-z0-9_]{0,63}$/u), v.check(name => !['position', 'normal', 'color', 'uv', 'uv1', 'tangent', 'constructor', 'prototype', '__proto__'].includes(name))),
-      source: v.pipe(id, v.regex(/^_[a-z0-9_]{1,63}$/u), v.check(source => source !== '__proto__')), width: v.picklist([1, 2, 3, 4]), parts: v.exactOptional(v.pipe(bounded(id, 128), v.minLength(1))) }), 16)) }), 32),
-    painted: v.optional(bounded(v.strictObject({ id, file: id, geometry: id }), 32), []) }),
+  poolLibrary,
  ]), WorldSceneSlabsSchema, v.strictObject({ id, kind: v.literal('whole'), load: v.literal('refine'), storage: v.literal('slabs'),
   models: bounded(v.strictObject({ id }), 256) })]);
 const poolParts = (files: readonly { readonly tier?: 'phone' | 'desktop'; readonly parts: readonly string[] }[]): boolean => (['phone', 'desktop'] as const)
@@ -175,3 +176,9 @@ export function worldScenesForTier(section: WorldScenesSection, tier: 'phone' | 
     : entry.kind === 'pool' ? { ...entry, files: entry.files.filter(active) } : entry);
   return { ...section, libraries, batches: section.batches?.filter(active) ?? [], placements: section.placements?.filter(active) ?? [] };
 }
+
+/** The same complete rest-pool contract used by world scenes, also read by held scenes. */
+export type WorldScenePoolRow = Extract<ParsedWorldScenes['libraries'][number], { kind: 'pool' }>;
+export type WorldScenePoolRowInput = Omit<WorldScenePoolRow, 'painted'> & { painted?: WorldScenePoolRow['painted'] | undefined };
+export const WorldScenePoolSchema: v.GenericSchema<WorldScenePoolRowInput, WorldScenePoolRow> = v.pipe(poolLibrary,
+  v.check(row => v.safeParse(WorldScenesSchema, { version: 1, libraries: [row], materials: [], steps: [] }).success, 'Original complete world-scene pool admission'));
