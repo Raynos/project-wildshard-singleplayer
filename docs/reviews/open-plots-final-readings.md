@@ -26,9 +26,10 @@ not qualify a later audio candidate. No candidate has yet been handed off.
 | Floating Island Race | `open-plot-2-0` / (0,-2) | Awaiting audio handoff | Open | Open |
 | Desert Ruin | `open-plot-3-0` / (1,-2) | Awaiting audio handoff | Open | Open |
 
-All eight plots have eight committed golden cameras. Saltwind has no
-maintained walk route at this preparation boundary; its builder has the route
-request. The other seven have route inputs, with Desert's two legs retained.
+All eight plots have eight committed golden cameras and maintained route
+inputs. Saltwind's `db418c06d7` adds `road-avenue-plaza`: 14 waypoints with
+the original 180 s bound, awaiting qualification on the final audio candidate.
+Desert's two legs remain intact.
 Starfall's `d4d4b17674` walk (164.478 s) and Clockwork's `f1d64e700c` walk
 (164.421 s) each completed 14 waypoints with zero stuck/out; these remain
 geometry-only evidence in the plan until the final candidate is checked.

@@ -111,8 +111,9 @@ Thin Ice audio. All Jungle readings stay with sp-x6. Exact final SHA/build
 and shared preview leases arrive from the audio owner before any cohort.
 [The shared readings page](../reviews/open-plots-final-readings.md) records
 measured results; **0/8 final cohorts are measured at this boundary**.
-Saltwind's actual cell is **(0,2)** / `open-plot-2-4`; its missing maintained
-walk route is with the visual builder. No visual source or guard changes.
+Saltwind's actual cell is **(0,2)** / `open-plot-2-4`; `db418c06d7` now
+supplies its maintained 14-waypoint / 180 s route, awaiting the final audio
+candidate's walk qualification. No visual source or guard changes.
 
 **Starfall walk qualification (2026-11-03, sp-x9).** The ordinary maintained
 `scripts/open-plots/walk.mjs` ran under the browser lane on a shared lease
