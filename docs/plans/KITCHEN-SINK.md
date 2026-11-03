@@ -211,8 +211,8 @@ rolling lanes for the 4 × 8 block, an edge-leap band, and an alcove with the in
 gate. **The Titan is 15 m tall** (9 m read as a big elite; 20 m broke the 0.9 s tells and needed a ⌀140 floor). The 12 s
 intro plays inside on arrival; retries respawn in the alcove; on a win a victory portal returns you to the gate for the
 shard-complete card. Platform: the same walk-in portal + interior host as the Training Vault; the two interiors never
-load together. Open: whether the Titan road unlocks as a shortcut after your first gauntlet clear, and the wave-3 elite's
-name. The threat sizes behind the court widths (8 m slam ring, 7 m lunge) are assumed until the enemy pass.
+load together. Jake 11-03: **15 m** confirmed; **the Titan road stays locked until your first gauntlet clear**, then
+it is the shortcut for retries; the wave-3 elite is **Shift Supervisor**. The threat sizes behind the court widths (8 m slam ring, 7 m lunge) are assumed until the enemy pass.
 
 **Round 4 blockout** (`art/showcase-template/round-4-blockout/`, 4c06e22346; the east is round 3's):
 the **town shrinks to 120 × 120 m** (5.8 % of the cell; 40 m gate plaza, 72 m Main Street with four shopfronts, all six

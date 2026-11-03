@@ -12,5 +12,6 @@ three-court gauntlet; the 15 m Titan fights in a ⌀104 m hidden arena at y −1
 **Mockups:** all 40 remastered (`art/showcase-template/round-11-remaster/`, the gallery artifact). Five show the old SE
 and get redone on round 5: E11 (gauntlet), E13 / E14 / S06 (Titan arena), M03 (aerial from the east).
 
-**Open for Jake:** the Titan road as a shortcut after the first gauntlet clear; the wave-3 elite's name; loot may be
-revisited; taller hover-park ramps.
+**Decided 11-03:** Titan 15 m; the Titan road opens after the first gauntlet clear; wave-3 elite Shift Supervisor.
+
+**Open for Jake:** loot may be revisited; taller hover-park ramps.

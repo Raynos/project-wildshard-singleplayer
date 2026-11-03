@@ -94,6 +94,9 @@ bursts (laser 0.7 s; DEX, PRE 40); **the whistle**, a 1.5 s wind-up calling thre
 during it cancels the call. P2 "Overtime": a Pallet Jack and an Arc Sentry once; caution-tape zones (slowed 40 %);
 under 25 % a 360° rivet spray with one gap (1.2 s tell).
 
+**Shift Supervisor, L17** (the gauntlet's wave 3, up the reveal lift in court C2; Jake 11-03): an Arc Sentry with a
+lanyard and a lit badge; duels and parries; moves set in the Wave 2 elite pass.
+
 **Night elites** (rule `night`, so storm hour too; respawn at the next dusk; each drops a weapon finish and a trophy):
 
 | Elite | Band, L | Look | P1 → P2 |
