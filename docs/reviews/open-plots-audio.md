@@ -353,3 +353,33 @@ Raw records: `tmp/sp-x2-ob7/starfall-*`. X1/X8's final matched/control,
 walk, golden bridge, separate memory and official Simulator remain
 open on the ensuing immutable audio source. No final performance,
 memory or full OP15 close is claimed by this audio landing.
+
+## Fossil Badlands — offline publication
+
+The package is **1,226,129 B**, including the **220,893 B** canonical
+Night Market bed; **1,005,236 B** is newly published. All individual files
+stay below 1 MB. Eight active AAC bodies total **931,231 B**. Native
+activation, bar 10 and final readings remain open; this publication alone
+earns no playback, performance or memory clearance.
+
+Both MiniMax Music 3 candidates pass the original score checks. The
+measured recommendation is **A / seed 701**, 51.62 s and 6.09% separated
+vocal energy, below the unchanged 10% limit. B is 75.08 s with zero
+measured vocal energy and remains available for comparison. These are
+objective checks, not an agent ear verdict.
+
+Six local spots qualify against the unchanged **122 descriptions plus
+three foils**: rib-wind, sump drips, tent canvas, mesa wind, brushing and
+cart rails rank **1 / 1 / 2 / 4 / 1 / 1**. Every pair and retake retains
+its original wave and metadata hashes. All **28 comparisons** are kept.
+The six failed bed takes and six failed crane takes remain in the credit
+bundle. After the final authorized pair, generation stops. **Timber crane
+and rope pulley audio is a named gap**, with no rank waiver.
+
+Sp-o2 agrees to the measured/descriptive fit of Night Market's canonical
+cricket chorus at the dusk dig camp. The original recording, hash, credits,
+licence and 9.5–25.5 s loop are referenced directly; no bed copy is made.
+It measures 26.5 s, -23.8 LUFS, LRA 1.5 LU and peak -11.4 dBFS. Keep
+the explicit **no dry wind layer** gap. The rejected Frostline fallback
+is a near-tonal motor drone; it is not used. Source and comparison context
+are retained under `tmp/wave-a-audio/fossil-readings/`.

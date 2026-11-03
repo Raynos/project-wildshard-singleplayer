@@ -421,7 +421,12 @@
       "into": "fossil-badlands",
       "duration": 30,
       "desc": "Dry wind and dusk insects over a quiet dig camp with faint canvas flap and distant timber crane creak",
-      "prompt": "Dry wind and dusk insects over a quiet dig camp with faint canvas flap and distant timber crane creak. A continuous soft dry breeze with clear irregular cricket chirps and small canvas flutters. Quiet natural field recording of an empty desert excavation at blue hour, no music, no voices, no rain, no waves, no machine motor."
+      "prompt": "Dry wind and dusk insects over a quiet dig camp with faint canvas flap and distant timber crane creak. A continuous soft dry breeze with clear irregular cricket chirps and small canvas flutters. Quiet natural field recording of an empty desert excavation at blue hour, no music, no voices, no rain, no waves, no machine motor.",
+      "reuse": {
+        "set": "night-market",
+        "bed": "night-market.ambience",
+        "gap": "No dry wind layer; the qualified canonical recording supplies dusk crickets."
+      }
     },
     "hum.fossil-badlands.skeleton-rib-wind": {
       "kind": "hum",
@@ -435,7 +440,9 @@
       "into": "fossil-badlands",
       "duration": 10,
       "desc": "A timber hand crane creaks while a rope pulley turns slowly",
-      "prompt": "A timber hand crane creaks while a rope pulley turns slowly. Close dry foley of long wooden beam creaks and rope rubbing through a slowly squeaking wooden pulley. Separate sparse straining creaks with silence between, no metal gears, no ticking, no ratchet, no water, no motor, no music or voices."
+      "prompt": "A timber hand crane creaks while a rope pulley turns slowly. Close dry foley of long wooden beam creaks and rope rubbing through a slowly squeaking wooden pulley. Separate sparse straining creaks with silence between, no metal gears, no ticking, no ratchet, no water, no motor, no music or voices.",
+      "shipping": false,
+      "rejection": "Named gap: timber crane and rope pulley remain silent. All six paired takes fail the unchanged CLAP top-five bar; the final authorized retake is exhausted."
     },
     "hum.fossil-badlands.sump-water-drips": {
       "kind": "hum",

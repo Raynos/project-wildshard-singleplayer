@@ -605,12 +605,6 @@
       "reach": 45
     },
     {
-      "id": "crane-rope-pulley",
-      "x": -26,
-      "z": 88,
-      "reach": 30
-    },
-    {
       "id": "sump-water-drips",
       "x": -156,
       "z": 162,

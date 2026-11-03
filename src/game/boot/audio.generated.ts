@@ -486,6 +486,231 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
    "pickup": "sting-pickup-332f81db.m4a"
   }
  },
+ "fossil-badlands": {
+  "genre": "fossil-badlands",
+  "model": "MiniMax Music 3",
+  "credit": "Music: MiniMax-Music3",
+  "licence": "MiniMax-Music3 Community License",
+  "slots": {
+   "score": {
+    "file": "take-a-2cd52113f593.m4a",
+    "loopStart": 14.25,
+    "loopEnd": 40.72,
+    "duration": 41.72,
+    "gain": 1,
+    "seamScore": 0.433,
+    "calm": "take-a-2cd52113f593.m4a",
+    "bpm": 172.3,
+    "beatsPerBar": 4
+   }
+  },
+  "stings": {},
+  "recommendation": "minimax3-701",
+  "takes": [
+   {
+    "id": "minimax3-701",
+    "recommendationScore": 0.34985299999999997,
+    "metrics": {
+     "duration_s": 51.62,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -16,
+      "lra": 10.6,
+      "true_peak_dbfs": 0.2
+     },
+     "clipping": {
+      "clipped_samples": 57,
+      "clipped_frac": 0.000012520032051282051,
+      "peak": 1
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 2186.6,
+      "rolloff95_hz": 9562.7,
+      "flatness": 0.0013,
+      "hf_above_12k": 0.00023,
+      "sub_below_60": 0.1443,
+      "stereo_corr": 0.444
+     },
+     "tempo": {
+      "estimated_bpm": 172.3,
+      "brief_bpm": 72,
+      "rel_err": 0.196
+     },
+     "key": {
+      "best_key": "E minor",
+      "best_r": 0.671,
+      "d_major_r": 0.533,
+      "d_major_rank": 2,
+      "key_ok": true
+     },
+     "loop": {
+      "min_bars": 8,
+      "score": 0.433,
+      "similarity": 0.457,
+      "level_match": 0.822,
+      "start_s": 14.25,
+      "end_s": 40.72,
+      "bars": 19,
+      "loop_s": 26.47,
+      "beats_per_bar": 4,
+      "grid_bpm": 172.3
+     },
+     "vocals": {
+      "vocal_energy_share": 0.0609,
+      "vocal_active_frac": 0.078,
+      "stem_share": {
+       "drums": 0.2012,
+       "bass": 0.0731,
+       "other": 0.6647,
+       "vocals": 0.0609
+      },
+      "groove_active_frac": 0.451,
+      "drums_active_frac": 0.392
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 2,
+     "p": 0.138506,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-a-2cd52113f593.m4a",
+     "loopStart": 14.25,
+     "loopEnd": 40.72,
+     "duration": 41.72,
+     "gain": 1,
+     "seamScore": 0.433
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "fossil-badlands",
+     "seed": 701,
+     "prompt": "Instrumental video game score, 72 BPM, 4/4. Lavender blue hour at a quiet palaeontology dig in banded clay badlands, lanterns lit in the dry wind. Low marimba and kalimba answer a distant wooden flute over soft bowed strings. Slow, dusty, wondering and warmly curious, never spooky or threatening. Sparse acoustic motifs and gentle open harmonies for unhurried discovery. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 201.5,
+     "model_load_s": 8,
+     "mps_driver_gb": 26.92
+    }
+   },
+   {
+    "id": "minimax3-702",
+    "recommendationScore": 0.31454649999999995,
+    "metrics": {
+     "duration_s": 75.08,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -11.6,
+      "lra": 6.6,
+      "true_peak_dbfs": 0
+     },
+     "clipping": {
+      "clipped_samples": 49,
+      "clipped_frac": 0.0000073993447502706045,
+      "peak": 1
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 1672,
+      "rolloff95_hz": 5739.1,
+      "flatness": 0.0002,
+      "hf_above_12k": 0.00002,
+      "sub_below_60": 0.0207,
+      "stereo_corr": 0.309
+     },
+     "tempo": {
+      "estimated_bpm": 172.3,
+      "brief_bpm": 72,
+      "rel_err": 0.196
+     },
+     "key": {
+      "best_key": "A# major",
+      "best_r": 0.733,
+      "d_major_r": -0.543,
+      "d_major_rank": 21,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 16,
+      "score": 0.444,
+      "similarity": 0.444,
+      "level_match": 0.997,
+      "start_s": 5.75,
+      "end_s": 29.43,
+      "bars": 17,
+      "loop_s": 23.68,
+      "beats_per_bar": 4,
+      "grid_bpm": 172.3
+     },
+     "vocals": {
+      "vocal_energy_share": 0,
+      "vocal_active_frac": 0,
+      "stem_share": {
+       "drums": 0.0788,
+       "bass": 0,
+       "other": 0.9212,
+       "vocals": 0
+      },
+      "groove_active_frac": 0.2,
+      "drums_active_frac": 0.213
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 4,
+     "p": 0.018293,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-b-16cddecab2a6.m4a",
+     "loopStart": 5.75,
+     "loopEnd": 29.43,
+     "duration": 30.43,
+     "gain": 1,
+     "seamScore": 0.444
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "fossil-badlands",
+     "seed": 702,
+     "prompt": "Instrumental video game score, 72 BPM, 4/4. Lavender blue hour at a quiet palaeontology dig in banded clay badlands, lanterns lit in the dry wind. Low marimba and kalimba answer a distant wooden flute over soft bowed strings. Slow, dusty, wondering and warmly curious, never spooky or threatening. Sparse acoustic motifs and gentle open harmonies for unhurried discovery. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 262.7,
+     "model_load_s": 8,
+     "mps_driver_gb": 28.01
+    }
+   }
+  ]
+ },
  "frostline-peaks": {
   "genre": "frostline-peaks",
   "model": "MiniMax Music 3",
@@ -3347,6 +3572,449 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
    }
   },
   "oneshots": {}
+ },
+ "fossil-badlands": {
+  "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI; shared bed from night-market",
+  "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
+  "beds": {
+   "fossil-badlands.ambience": {
+    "file": {
+     "set": "night-market",
+     "file": "ambience-fc4acd723b85.m4a"
+    },
+    "loopStart": 9.5,
+    "loopEnd": 25.5,
+    "duration": 26.5,
+    "gain": 1,
+    "seamScore": 0.606
+   }
+  },
+  "hums": {
+   "fossil-badlands.skeleton-rib-wind": {
+    "file": "skeleton-rib-wind-8e0fc004fac3.m4a",
+    "loopStart": 4,
+    "loopEnd": 6,
+    "duration": 7,
+    "gain": 1,
+    "seamScore": 0.432
+   },
+   "fossil-badlands.sump-water-drips": {
+    "file": "sump-water-drips-d3fafbb84f5e.m4a",
+    "loopStart": 2,
+    "loopEnd": 7,
+    "duration": 8,
+    "gain": 1,
+    "seamScore": 0.557
+   },
+   "fossil-badlands.tent-canvas-lantern": {
+    "file": "tent-canvas-lantern-5fd405522b4c.m4a",
+    "loopStart": 3.25,
+    "loopEnd": 5.25,
+    "duration": 6.25,
+    "gain": 1,
+    "seamScore": 0.617
+   },
+   "fossil-badlands.mesa-wind": {
+    "file": "mesa-wind-a77bd3e8aa69.m4a",
+    "loopStart": 2.5,
+    "loopEnd": 8.5,
+    "duration": 9.5,
+    "gain": 1,
+    "seamScore": 0.543
+   },
+   "fossil-badlands.sorting-brush-chisel": {
+    "file": "sorting-brush-chisel-a561293e1f72.m4a",
+    "loopStart": 3,
+    "loopEnd": 5,
+    "duration": 6,
+    "gain": 1,
+    "seamScore": 0.458
+   },
+   "fossil-badlands.cart-rails-gravel": {
+    "file": "cart-rails-gravel-e39b813a30ec.m4a",
+    "loopStart": 4,
+    "loopEnd": 6,
+    "duration": 7,
+    "gain": 1,
+    "seamScore": 0.611
+   }
+  },
+  "oneshots": {},
+  "rejected": [
+   {
+    "family": "bed.fossil-badlands.ambience",
+    "reason": "Own bed failed; canonical qualified bed reused",
+    "takes": [
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 58,
+       "p": 0.000008,
+       "best": "Steady alpine breeze and a distant smooth chair lift motor hum",
+       "seed": "701",
+       "sourceWaveSha256": "15ff4c082fc9d6bbe7863a1a8511fc0d4047d5b1ba338d7c645bd6650fcf0354",
+       "sourceMetadataSha256": "8dba882c777203f7b8bf5ade68c05b21849055f87e24066d291ddb9b0d420cc5"
+      },
+      "sourceWaveSha256": "15ff4c082fc9d6bbe7863a1a8511fc0d4047d5b1ba338d7c645bd6650fcf0354",
+      "sourceMetadataSha256": "8dba882c777203f7b8bf5ade68c05b21849055f87e24066d291ddb9b0d420cc5",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "bed.fossil-badlands.ambience",
+       "kind": "bed",
+       "seed": 701,
+       "prompt": "Dry open-air wind at blue hour around a quiet palaeontology dig camp, with sparse dusk insects, faint tent canvas flaps and a very distant timber crane creak. Warm restrained natural field recording, steady spacious texture. No music, no human speech, no vehicles, no spooky sounds.",
+       "desc": "Dry wind and dusk insects over a quiet dig camp with faint canvas flap and distant timber crane creak",
+       "duration_s": 30,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 52.66,
+       "model_load_s": 10.8,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 54,
+       "p": 0.000003,
+       "best": "A tall alien monolith emits a low resonant hum and faint electrical crackles",
+       "seed": "702",
+       "sourceWaveSha256": "991bc90ffeb2c8872fce5ef49e614c0063cbecc60554bb2c90af48a4979536d2",
+       "sourceMetadataSha256": "fb26c622b876a6c4fc79a4120b5b23af4236af35616eb04d36a14648ce9f4139"
+      },
+      "sourceWaveSha256": "991bc90ffeb2c8872fce5ef49e614c0063cbecc60554bb2c90af48a4979536d2",
+      "sourceMetadataSha256": "fb26c622b876a6c4fc79a4120b5b23af4236af35616eb04d36a14648ce9f4139",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "bed.fossil-badlands.ambience",
+       "kind": "bed",
+       "seed": 702,
+       "prompt": "Continuous dry desert wind across dusty open ground at dusk, with clearly audible small crickets chirping steadily through the entire recording. Wind and dusk insects dominate this quiet excavation camp ambience. Very faint canvas movement and a distant timber creak stay underneath, never rhythmic or foreground. Warm natural outdoor field recording, no alpine lift motor, no rain, no sea, no music, no speech.",
+       "desc": "Dry wind and dusk insects over a quiet dig camp with faint canvas flap and distant timber crane creak",
+       "duration_s": 30,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 43.74,
+       "model_load_s": 8.9,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 41,
+       "p": 0.000027,
+       "best": "A gentle winter breeze rustles pine needles and small clumps of snow slide off branches",
+       "seed": "703",
+       "sourceWaveSha256": "901575b931ecabad23224de757789eafac64194998db1f0c40d538a982f62487",
+       "sourceMetadataSha256": "52a4aca1d44679b11001886f87c28a3ee6953ab4697770ec0259f24abecf1e04"
+      },
+      "sourceWaveSha256": "901575b931ecabad23224de757789eafac64194998db1f0c40d538a982f62487",
+      "sourceMetadataSha256": "52a4aca1d44679b11001886f87c28a3ee6953ab4697770ec0259f24abecf1e04",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "bed.fossil-badlands.ambience",
+       "kind": "bed",
+       "seed": 703,
+       "prompt": "Dry wind and dusk insects over a quiet dig camp with faint canvas flap and distant timber crane creak. A continuous soft dry breeze with clear irregular cricket chirps and small canvas flutters. Quiet natural field recording of an empty desert excavation at blue hour, no music, no voices, no rain, no waves, no machine motor.",
+       "desc": "Dry wind and dusk insects over a quiet dig camp with faint canvas flap and distant timber crane creak",
+       "duration_s": 30,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 41.48,
+       "model_load_s": 7.4,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 43,
+       "p": 0.000194,
+       "best": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze",
+       "seed": "701",
+       "sourceWaveSha256": "049eefd78d0e93ab61407a1f28b398fc77f7446eda5cdd75e3f1a6b44a189154",
+       "sourceMetadataSha256": "3eeea9087946004cfa21eedceea5da99eea138767c058847bd9266bfdb4489b9"
+      },
+      "sourceWaveSha256": "049eefd78d0e93ab61407a1f28b398fc77f7446eda5cdd75e3f1a6b44a189154",
+      "sourceMetadataSha256": "3eeea9087946004cfa21eedceea5da99eea138767c058847bd9266bfdb4489b9",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "bed.fossil-badlands.ambience",
+       "kind": "bed",
+       "seed": 701,
+       "prompt": "Dry open-air wind at blue hour around a quiet palaeontology dig camp, with sparse dusk insects, faint tent canvas flaps and a very distant timber crane creak. Warm restrained natural field recording, steady spacious texture. No music, no human speech, no vehicles, no spooky sounds.",
+       "desc": "Dry wind and dusk insects over a quiet dig camp with faint canvas flap and distant timber crane creak",
+       "duration_s": 30,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 5.48,
+       "model_load_s": 8.8,
+       "mps_driver_gb": 11.44
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 21,
+       "p": 0.000322,
+       "best": "Palm fronds rustle in a warm breeze beside a softly calling dove",
+       "seed": "702",
+       "sourceWaveSha256": "0654f08478698e1d994daa236f99fee66207ee91f238ae06059d593e56a12e05",
+       "sourceMetadataSha256": "6696972817a6a6b58a43a2f1ff320f20400d2464584014ae2e8e258a43560531"
+      },
+      "sourceWaveSha256": "0654f08478698e1d994daa236f99fee66207ee91f238ae06059d593e56a12e05",
+      "sourceMetadataSha256": "6696972817a6a6b58a43a2f1ff320f20400d2464584014ae2e8e258a43560531",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "bed.fossil-badlands.ambience",
+       "kind": "bed",
+       "seed": 702,
+       "prompt": "Continuous dry desert wind across dusty open ground at dusk, with clearly audible small crickets chirping steadily through the entire recording. Wind and dusk insects dominate this quiet excavation camp ambience. Very faint canvas movement and a distant timber creak stay underneath, never rhythmic or foreground. Warm natural outdoor field recording, no alpine lift motor, no rain, no sea, no music, no speech.",
+       "desc": "Dry wind and dusk insects over a quiet dig camp with faint canvas flap and distant timber crane creak",
+       "duration_s": 30,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 2.66,
+       "model_load_s": 5.5,
+       "mps_driver_gb": 11.44
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 46,
+       "p": 0.000076,
+       "best": "Quiet canal water gently lapping against stone walls",
+       "seed": "703",
+       "sourceWaveSha256": "5c6f7bcc6dacc15b15867aa9ad98f8cb0c5ebe9836e600e877e150538f89b2c8",
+       "sourceMetadataSha256": "54a40f2015a827f2432506f5f079be20c716de28133c215bb9d51138ba21f7a9"
+      },
+      "sourceWaveSha256": "5c6f7bcc6dacc15b15867aa9ad98f8cb0c5ebe9836e600e877e150538f89b2c8",
+      "sourceMetadataSha256": "54a40f2015a827f2432506f5f079be20c716de28133c215bb9d51138ba21f7a9",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "bed.fossil-badlands.ambience",
+       "kind": "bed",
+       "seed": 703,
+       "prompt": "Dry wind and dusk insects over a quiet dig camp with faint canvas flap and distant timber crane creak. A continuous soft dry breeze with clear irregular cricket chirps and small canvas flutters. Quiet natural field recording of an empty desert excavation at blue hour, no music, no voices, no rain, no waves, no machine motor.",
+       "desc": "Dry wind and dusk insects over a quiet dig camp with faint canvas flap and distant timber crane creak",
+       "duration_s": 30,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 3.92,
+       "model_load_s": 8.3,
+       "mps_driver_gb": 11.44
+      }
+     }
+    ]
+   },
+   {
+    "family": "hum.fossil-badlands.crane-rope-pulley",
+    "reason": "Named gap: timber crane and rope pulley remain silent. All six paired takes fail the unchanged CLAP top-five bar; the final authorized retake is exhausted.",
+    "takes": [
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 36,
+       "p": 0.000004,
+       "best": "A small hollow wooden boat knocking against a wooden dock",
+       "seed": "701",
+       "sourceWaveSha256": "f8c5a0db2d862de6d060274d78421e146b4d1b942571501f7c88d15c3afeb2ba",
+       "sourceMetadataSha256": "716221ed714580471ecf2c75ae755f09b27b1c4d2b26208058998a63d0f275f4"
+      },
+      "sourceWaveSha256": "f8c5a0db2d862de6d060274d78421e146b4d1b942571501f7c88d15c3afeb2ba",
+      "sourceMetadataSha256": "716221ed714580471ecf2c75ae755f09b27b1c4d2b26208058998a63d0f275f4",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "hum.fossil-badlands.crane-rope-pulley",
+       "kind": "hum",
+       "seed": 701,
+       "prompt": "Close slow timber hand-crane foley at a dig trench: wooden beams strain and creak, a rope pulley turns with soft friction and an occasional dry wooden knock. Sparse careful work, no motors, no voices, no music.",
+       "desc": "A timber hand crane creaks while a rope pulley turns slowly",
+       "duration_s": 10,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 46.93,
+       "model_load_s": 10.8,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 16,
+       "p": 0.008611,
+       "best": "An old damp wooden boardwalk gently creaking under weight",
+       "seed": "702",
+       "sourceWaveSha256": "2441f34ceda2aa361874657e14b82824a09cfa5aedbc2e7b563e6d6a43ffbf44",
+       "sourceMetadataSha256": "8f463a16339a097e58e8c6eb609782c55b85c98d0aa519bbe5686f2be4ef2a4d"
+      },
+      "sourceWaveSha256": "2441f34ceda2aa361874657e14b82824a09cfa5aedbc2e7b563e6d6a43ffbf44",
+      "sourceMetadataSha256": "8f463a16339a097e58e8c6eb609782c55b85c98d0aa519bbe5686f2be4ef2a4d",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "hum.fossil-badlands.crane-rope-pulley",
+       "kind": "hum",
+       "seed": 702,
+       "prompt": "Close dry foley of a heavy timber lifting crane slowly straining under a suspended load: long rising wooden beam creaks and rough rope fibres rubbing through a squeaky pulley wheel. Alternate a sustained wood strain with a clearly textured rope-pulley scrape. Quiet outdoor excavation, sparse careful hand-powered movement, no hollow knocking, no dock, no boat, no water, no motor, no voices, no music.",
+       "desc": "A timber hand crane creaks while a rope pulley turns slowly",
+       "duration_s": 10,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 44.37,
+       "model_load_s": 8.9,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 11,
+       "p": 0.000127,
+       "best": "An old damp wooden boardwalk gently creaking under weight",
+       "seed": "703",
+       "sourceWaveSha256": "6c8d17f2a8cefddeddb5de2c1e25da50ba0a6e6d4d1377dd73f6f14deb4be237",
+       "sourceMetadataSha256": "8c0dfc6ade7289976d13ead4bde8e303ff721f4c2cffbf0c3a06f761a9a3016e"
+      },
+      "sourceWaveSha256": "6c8d17f2a8cefddeddb5de2c1e25da50ba0a6e6d4d1377dd73f6f14deb4be237",
+      "sourceMetadataSha256": "8c0dfc6ade7289976d13ead4bde8e303ff721f4c2cffbf0c3a06f761a9a3016e",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "hum.fossil-badlands.crane-rope-pulley",
+       "kind": "hum",
+       "seed": 703,
+       "prompt": "A timber hand crane creaks while a rope pulley turns slowly. Close dry foley of long wooden beam creaks and rope rubbing through a slowly squeaking wooden pulley. Separate sparse straining creaks with silence between, no metal gears, no ticking, no ratchet, no water, no motor, no music or voices.",
+       "desc": "A timber hand crane creaks while a rope pulley turns slowly",
+       "duration_s": 10,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 43.11,
+       "model_load_s": 7.4,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 48,
+       "p": 0.000686,
+       "best": "A small hollow wooden boat knocking against a wooden dock",
+       "seed": "701",
+       "sourceWaveSha256": "e910d39cd1f80e9d5651b3b30e07818227948f9e73543ab86df199984eeff932",
+       "sourceMetadataSha256": "6eae8f0396a7924216bd4b2c52b20b8d9baa600da5ae97ee6a1526b57ffb9b84"
+      },
+      "sourceWaveSha256": "e910d39cd1f80e9d5651b3b30e07818227948f9e73543ab86df199984eeff932",
+      "sourceMetadataSha256": "6eae8f0396a7924216bd4b2c52b20b8d9baa600da5ae97ee6a1526b57ffb9b84",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "hum.fossil-badlands.crane-rope-pulley",
+       "kind": "hum",
+       "seed": 701,
+       "prompt": "Close slow timber hand-crane foley at a dig trench: wooden beams strain and creak, a rope pulley turns with soft friction and an occasional dry wooden knock. Sparse careful work, no motors, no voices, no music.",
+       "desc": "A timber hand crane creaks while a rope pulley turns slowly",
+       "duration_s": 10,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 1.32,
+       "model_load_s": 8.8,
+       "mps_driver_gb": 11.45
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 11,
+       "p": 0.005552,
+       "best": "A small dock crane winch turns with rope strain and timber creaks",
+       "seed": "702",
+       "sourceWaveSha256": "c0ef0cf945dc8e04dc4766d642cd0b54a8598a16e40100849012f1a7c7216100",
+       "sourceMetadataSha256": "cc0cf416e1a3c1f32421b0a8009815d7f05a7b60c2a928d7cb3b99aadb21b80a"
+      },
+      "sourceWaveSha256": "c0ef0cf945dc8e04dc4766d642cd0b54a8598a16e40100849012f1a7c7216100",
+      "sourceMetadataSha256": "cc0cf416e1a3c1f32421b0a8009815d7f05a7b60c2a928d7cb3b99aadb21b80a",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "hum.fossil-badlands.crane-rope-pulley",
+       "kind": "hum",
+       "seed": 702,
+       "prompt": "Close dry foley of a heavy timber lifting crane slowly straining under a suspended load: long rising wooden beam creaks and rough rope fibres rubbing through a squeaky pulley wheel. Alternate a sustained wood strain with a clearly textured rope-pulley scrape. Quiet outdoor excavation, sparse careful hand-powered movement, no hollow knocking, no dock, no boat, no water, no motor, no voices, no music.",
+       "desc": "A timber hand crane creaks while a rope pulley turns slowly",
+       "duration_s": 10,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 1.27,
+       "model_load_s": 5.5,
+       "mps_driver_gb": 11.45
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 7,
+       "p": 0.022184,
+       "best": "An alpine chairlift pulley wheel slowly creaking and gently rattling",
+       "seed": "703",
+       "sourceWaveSha256": "9e6b4914a45db0e971f328ad958658b0ac2e360a420cdfb5481807e5f88f4c70",
+       "sourceMetadataSha256": "51f5d99d1e38ccfa8837af888206c1bcddb13d3427a92f23b35c70044dd9b975"
+      },
+      "sourceWaveSha256": "9e6b4914a45db0e971f328ad958658b0ac2e360a420cdfb5481807e5f88f4c70",
+      "sourceMetadataSha256": "51f5d99d1e38ccfa8837af888206c1bcddb13d3427a92f23b35c70044dd9b975",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "hum.fossil-badlands.crane-rope-pulley",
+       "kind": "hum",
+       "seed": 703,
+       "prompt": "A timber hand crane creaks while a rope pulley turns slowly. Close dry foley of long wooden beam creaks and rope rubbing through a slowly squeaking wooden pulley. Separate sparse straining creaks with silence between, no metal gears, no ticking, no ratchet, no water, no motor, no music or voices.",
+       "desc": "A timber hand crane creaks while a rope pulley turns slowly",
+       "duration_s": 10,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 1.54,
+       "model_load_s": 8.3,
+       "mps_driver_gb": 11.45
+      }
+     }
+    ]
+   }
+  ]
  },
  "frostline-peaks": {
   "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
