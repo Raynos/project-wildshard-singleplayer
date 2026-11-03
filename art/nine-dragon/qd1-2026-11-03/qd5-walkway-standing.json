@@ -1,0 +1,36 @@
+{
+ "nine-dragon-stack": [
+  {
+   "name": "walkway-jake",
+   "x": 1,
+   "y": 125,
+   "z": -6,
+   "yaw": -5.759587,
+   "pitch": -0.610865
+  },
+  {
+   "name": "walkway-left",
+   "x": 1,
+   "y": 125,
+   "z": -6,
+   "yaw": -6.021386,
+   "pitch": -0.610865
+  },
+  {
+   "name": "walkway-right",
+   "x": 1,
+   "y": 125,
+   "z": -6,
+   "yaw": -5.497787,
+   "pitch": -0.610865
+  },
+  {
+   "name": "walkway-level",
+   "x": 1,
+   "y": 125,
+   "z": -6,
+   "yaw": -5.759587,
+   "pitch": -0.174533
+  }
+ ]
+}
