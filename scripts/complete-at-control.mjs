@@ -20,6 +20,7 @@ import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { chromium, webkit, devices } from 'playwright';
 import { developerSettings, saveFixture, harnessPins, hideDeveloperOverlays } from './debug-settings.mjs';
+import { floorGridBenchmarkUrl, FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
 
 const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach'].map(key => [key, { type: 'string' }])) });
 const base = values.base, rev = values.rev, flow = values.flow;
@@ -33,11 +34,11 @@ const out = resolve(values.out ?? `tmp/complete-at-control/${flow}-${rev.slice(0
 if (!out.startsWith(`${resolve('tmp')}/`)) { console.error('--out must be under ./tmp'); process.exit(2); }
 if (existsSync(resolve('.git/quiet'))) { console.error('Official Simulator quiet is active'); process.exit(2); }
 
-/** The level's own content: its shardfile files and its shard's assets. Other shards' precache and the app shell are not. */
+/** The level's own content: its shardfile files and its shard's assets. Other shards' precache and the app shell are not.
+ *  In the grid the level is every cell a boost lap from spawn can reach (filled in at control from the grid's state). */
 const levelSlugs = new Set(flow === 'grid' ? [] : [flow]);
 const isLevelContent = (url) => {
   const path = new URL(url).pathname;
-  if (flow === 'grid') return /^\/(shardfiles|assets\/(baked|open-plots|kit)|world|tiles)\//u.test(path) || /\.(glb|ktx2|bin|webp|png|jpg)$/u.test(path);
   for (const slug of levelSlugs) {
     if (path.startsWith(`/shardfiles/${slug}/`) || path.startsWith(`/assets/${slug}/`) || path.startsWith(`/assets/baked/${slug}/`)) return true;
     if (path.startsWith(`/assets/horizon/${slug}-`)) return true; // the level's sky panorama is on screen from the first frame
@@ -65,7 +66,8 @@ function snapshot() {
   if (grid !== undefined) {
     try {
       const s = grid.state();
-      gridState = { rings: s.rings, ringsReady: s.ringsReady, near: s.near, cells: (s.cells ?? []).map(c => ({ id: c.instance ?? c.id ?? c.slug, shows: c.shows, drawn: c.drawn })) };
+      gridState = { pitch: s.pitch, feet: s.feet, home: s.home, rings: s.rings, ringsReady: s.ringsReady, near: s.near,
+        cells: (s.cells ?? []).map(c => ({ id: c.instance, slug: c.slug, cell: c.cell, shows: c.shows, drawn: c.drawn })) };
     } catch (error) { gridState = { error: String(error) }; }
   }
   let fine = null, residency = null;
@@ -102,12 +104,16 @@ try {
   const version = await (await fetch(new URL('/version.json', base))).json();
   if (typeof version.build !== 'string' || !version.build.startsWith(rev.slice(0, 7))) throw new Error(`Served build ${version.build} is not ${rev}`);
   report.build = version.build;
-  const url = new URL('/', base);
-  if (flow !== 'grid') url.searchParams.set('chunk', flow);
-  for (const [key, value] of Object.entries({ tier: 'phone', skipintro: '1', nolock: '1', sw: '0', mute: '1' })) url.searchParams.set(key, value);
+  const url = new URL(flow === 'grid' ? floorGridBenchmarkUrl(base) : new URL('/', base).href);
+  if (flow !== 'grid') for (const [key, value] of Object.entries({ chunk: flow, tier: 'phone', skipintro: '1', nolock: '1', sw: '0', mute: '1' })) url.searchParams.set(key, value);
   const t0 = Date.now();
   await page.goto(url.href, { waitUntil: 'load' });
-  if (flow === 'grid') await page.locator('.ws-main-grid').click();
+  if (flow === 'grid') {
+    // the grid is entered the way a player does: the title's INFINITE WILDSHARD tap, then the HUD's own entry (the goldens' route)
+    await page.locator('.ws-main-grid').click();
+    await page.waitForFunction(() => window.__wildshard?.shard?.grid?.state().live.live.gameplayReady === true, undefined, { timeout: 240000 });
+    await page.evaluate(FLOOR_GRID_ENTER);
+  }
   await page.waitForFunction(() => window.__wildshard?.world?.hud?.entered === true, undefined, { timeout: 240000 });
   const deadline = Date.now() + 30000;
   while (control.at === null && Date.now() < deadline) await page.waitForTimeout(100);
@@ -115,6 +121,14 @@ try {
   controlAt = control.at;
   report.tapToControlMs = controlAt - t0;
   report.atControl = await page.evaluate(snapshot);
+  const gridAt = report.atControl.grid;
+  if (flow === 'grid' && gridAt && !gridAt.error) {
+    // the cells whose square meets the lap's box round spawn (a cell's centre is its index times the pitch)
+    const half = gridAt.pitch / 2, fx = gridAt.feet.x, fz = gridAt.feet.z;
+    const inReach = (gridAt.cells ?? []).filter(c => Math.abs(c.cell[0] * gridAt.pitch - fx) < half + reach && Math.abs(c.cell[1] * gridAt.pitch - fz) < half + reach);
+    for (const c of inReach) levelSlugs.add(c.slug);
+    report.reachCells = inReach.map(c => ({ id: c.id, slug: c.slug, shows: c.shows }));
+  }
 
   // the boost lap: hoverboard, Developer boost, a square of `reach` metres round spawn
   const lap = [];
@@ -144,7 +158,8 @@ try {
   if (g && !g.error) {
     const rings = g.rings ?? {};
     if ((rings.inFlight ?? 0) > 0 || (rings.queued ?? 0) > 0) report.violations.push(`grid rings at control: ${rings.inFlight ?? 0} in flight, ${rings.queued ?? 0} queued`);
-    const standIns = (g.cells ?? []).filter(c => ['far proxy', 'tiles', 'loading', 'near'].includes(c.shows));
+    const reachIds = new Set((report.reachCells ?? []).map(c => c.id));
+    const standIns = (g.cells ?? []).filter(c => reachIds.has(c.id) && ['far proxy', 'tiles', 'loading', 'near', 'frozen'].includes(c.shows));
     if (standIns.length > 0) report.violations.push(`cells standing in at control: ${standIns.map(c => `${c.id}=${c.shows}`).join(', ')}`);
   }
   const settled = report.atControl.marks.findLast(m => m.name === 'wildshard.spawn-view.settled')?.detail;
@@ -167,6 +182,18 @@ try {
   for (const sample of [report.atControl, ...lap, report.afterLap]) if (sample.scene) delete sample.scene.ids;
   if (speedMax < 45) report.errors.push(`the lap never reached boost speed (max ${speedMax.toFixed(1)} m/s < 45): no boost reading`);
   if (addedFine.size > 0) report.violations.push(`${addedFine.size} fine tiles became resident during the boost lap`);
+  // grid tiles join batched meshes, so a ring pop shows as a reach cell's drawn layers changing, not as a new mesh
+  const lapReach = new Set((report.reachCells ?? []).map(c => c.id)), drawnAt = new Map((report.atControl.grid?.cells ?? []).map(c => [c.id, c.drawn]));
+  const cellPops = new Map();
+  for (const sample of [...lap, report.afterLap]) for (const c of sample.grid?.cells ?? []) {
+    const before = drawnAt.get(c.id);
+    if (!lapReach.has(c.id) || before === undefined || c.drawn === undefined) continue;
+    if (c.drawn.l0 > before.l0 || c.drawn.l1 > before.l1 || c.drawn.far !== before.far || c.drawn.near !== before.near) {
+      cellPops.set(c.id, `${c.id}: l0 ${before.l0}->${c.drawn.l0}, l1 ${before.l1}->${c.drawn.l1}, far ${before.far}->${c.drawn.far}, near ${before.near}->${c.drawn.near}`);
+    }
+  }
+  report.lapAdds.cellPops = [...cellPops.values()];
+  if (cellPops.size > 0) report.violations.push(`${cellPops.size} reach cells changed what they draw during the boost lap: ${[...cellPops.values()].join('; ')}`);
   if (addedMeshes.size > 0) report.violations.push(`${addedMeshes.size} meshes added during the boost lap: ${[...addedMeshes.values()].slice(0, 6).join('; ')}`);
   report.pass = report.errors.length > 0 ? null : report.violations.length === 0;
 } catch (error) {
