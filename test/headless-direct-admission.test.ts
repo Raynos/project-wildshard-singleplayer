@@ -9,7 +9,12 @@ import type { Rapier } from '../src/engine/physics/rapier';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import assembly from '../src/shards/nine-dragon-stack/data/headlessAssembly.json' with { type: 'json' };
 
-test.each([prepareHeadlessRuntime, prepareNalati, preparePine, prepareDriftwood])('direct native proof refuses malformed return admission before payload or host preparation (%#)', async prepare => {
+test.each([
+  { prepare: prepareHeadlessRuntime, expectedReads: ['assembly'] },
+  { prepare: prepareNalati, expectedReads: ['assembly'] },
+  { prepare: preparePine, expectedReads: ['assembly'] },
+  { prepare: prepareDriftwood, expectedReads: ['assembly'] },
+])('direct native proof refuses malformed return admission before payload or host preparation (%#)', async ({ prepare, expectedReads }) => {
   const shard = emptyShardfile({ slug: 'native-proof', name: 'Native proof', author: 'Fixture', revision: 1, seed: 7 });
   const reads: string[] = [];
   const product = createShardProduct({ slug: shard.identity.slug, revision: 1, shardfile: shard,
@@ -18,5 +23,5 @@ test.each([prepareHeadlessRuntime, prepareNalati, preparePine, prepareDriftwood]
     read: hash => { reads.push(hash); return Promise.resolve(new TextEncoder().encode(JSON.stringify({constants:assembly.constants}))); } });
   await expect(prepare({ shard, product, assets: new Map(), rapier: legacyDouble<Rapier>({}) }))
     .rejects.toThrow(/Invalid (key|type)/u);
-  expect(reads).toEqual(['assembly']);
+  expect(reads).toEqual(expectedReads);
 });
