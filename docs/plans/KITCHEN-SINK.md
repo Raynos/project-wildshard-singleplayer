@@ -118,7 +118,9 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     is a balanced per-shard roll (exactly two 1.2s, four 1.0s, two 0.8s, shuffled across the 8 attributes), swing is per-level dice (0.4–1.6), so late levels can give +10 or more.
     Every attribute uses this model with its own curve and a cap ~10 % over its average.
 19t. **Attributes (Jake 11-03):** **VIT (HP), STR (melee damage) and DEX (ranged damage) are locked.** PRE, AGI and TGH
-    are in doubt; RES and POI are likely out. A 20-game attributes study is under way to settle the rest (at most 8).
+    are in doubt; RES and POI are likely out. **AGI is added** (Jake 11-03). The cross-links: STR → melee damage;
+    VIT → HP; DEX → ranged damage, hit chance for melee and ranged, and melee crit; AGI → dodge, and ranged crit. A
+    20-game attributes study settles whether anything else earns a place (at most 8).
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
