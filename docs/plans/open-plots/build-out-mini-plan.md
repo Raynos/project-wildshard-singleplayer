@@ -242,7 +242,7 @@ Prerequisites, owned by OPEN-PLOTS and run first if not yet done:
 | OB6 | **Mosslight Ruins** (first free Opus lane; builds the ruin-stone tile). **In flight (2026-11-03, sp-o3): activated `38b95ef7fd` + `3748dcc5b1`.** Ruin-stone kit `330bed66fc` (ruins: arch, L wall, terrace; rubble: heap, columns; Desert Ruin reuses them), plot `f5b29be288` (R ruin court, E emerald pool, tower windows as emerald Glow), landmark A Hunyuan3D 2.1 picked (G872, `eba2a44862`, art/mosslight-ruins/round-1-landmark). Chromium phone: road 110 draws / 249k tris, plaza 114 / 327k. G983 look loop R1 `d3f8c7cc97`, R2 `e164db2efb`, R3 `def30fc8f4` (art/mosslight-ruins/round-2-look-loop), final three-way board art/mosslight-ruins/round-3-final (G872). Open: life clip (bar 7), audio (OB7), the open-plot walk route (0 stuck), density toward round 62 | Opus 1.5 + Codex 0.5 | 2 (was 4.5) | As OB2 |
 | OB6b | **done (2026-11-03).** **Trim Mosslight's phone wire** toward Night Market's: 8,947,522 B against 8,225,190 (+9 %, approved G872 with this row). `def30fc8f4` brought it to 8,828,397 B (tower texture 768 px). It now serves **8,222,060 B**, and the ceiling is ratcheted to that: a 576 px poster in place of the 1024 px billboard, and the tower texture at 704 px. Before and after board: art/mosslight-ruins/round-4-wire-trim (hero views 0–0.5 % of pixels changed, same draws). Mosslight's tile debt shrinks to 26 rows | Opus | S | ≤ 8.23 MB, look unchanged |
 | OB7 | **Audio batch** under the model lock. Pilot first, then the four: 5 scores (two MiniMax Music 3 takes each, on one listening page in the morning batch; the lane ships its recommended take), 5 ambience beds, about 25 spot SFX (MOSS v2 vs Stable Audio 3, the better take ships). Files go in `public/assets/music/<slug>/` and `public/assets/sfx/<slug>/`, with credits | Codex | 1.5 | Every plot meets bar 10; the credits file is updated; the audio stays within its ≤ 3 MB budget |
-| OB8 | **In flight (2026-11-03, sp-x1).** Mosslight and Ember Chromium readings on joined HEAD preview `fd7f01690e`: road/plaza max draws 55/61 and 53/58; triangles 125k/174k and 104k/167k (medians). Spawn process peaks about 738.2/725.6 MB decimal. Both live walks 0 stuck/0 bounds. Matched Night Market control shows the same CPU-per-draw baseline; no plot-specific CPU ask routed. Coral official Simulator road/plaza: 63/71 draws, 30.303 fps, p95 34 ms, 236.4 MB playing envelope (accepted). Mosslight/Ember Sim pair, final Bayou/Frostline, Coral Chromium/walk and J1/J2 remain open. Exact readings below | Codex (Sim lane) + Opus 0.5 d fixes | 1.5 | Every plot meets bars 12–15 on the Simulator; the junctions hold; nothing crashes |
+| OB8 | **In flight (2026-11-03, sp-x1).** On accepted source `fd7f01690e`, Mosslight + Ember pass measured Chromium/Simulator bars at road/plaza and their full live walks (0 stuck/0 bounds). Simulator max draws 65/64, both 30.303 fps / p95 34 ms; playing envelopes 237.2/238.5 MB. Coral Simulator also passes: max 71 draws, same cadence, 236.4 MB. Night Market control explains the common Chromium CPU-per-draw baseline; no plot-specific miss routed. **Open:** Coral Chromium/walk; final Bayou/Frostline readings; J1/J2. Exact numbers and source limits below | Codex (Sim lane) + Opus 0.5 d fixes | 1.5 | Every plot meets bars 12–15 on the Simulator; the junctions hold; nothing crashes |
 | OB9 | **Title hero re-shoot board.** After G972 and OB2–OB6, the 5 × 5 hero shows three of these plots, plus Nine Dragon at (1,-1). One labelled A / B / C board of re-shoots of the same NW-b framing | Opus | 0.5 | Board sent. Jake's pick ships, or the current hero stays |
 | OB10 | **Night Market catch-up (G980)**: after OB2–OB6, bring the Night Market to the same tile-kit bar (landmark, dressing density, audio, phone perf). **In flight (2026-11-03, sp-o3).** R1, the gate (art/grid/round-77-night-market-ob10): the coarse gate is drawn in its landmark graph (`coarseLandmark: "lit"`), so it reads red and gold from the road entry instead of dark; near 12k → 18k triangles; road entry 116 draws (`a8f1f940c7`). R2, density: L0 max 17,886 → 14,852 triangles, mean 8,910; wire 7.94 MB. Top-down 624k triangles, mostly the neighbouring cells; road 282k, plaza 495k. Open: the look loop, the final board. Audio goes with OB7 | Opus + Codex | — | Same bar as OB2 |
 | — | Jake plays the plots on live | Jake | — | His word |
@@ -572,10 +572,10 @@ native quiet metadata. The native reader recognises standalone entered,
 unpaused, frame-ready play. Focused controls, scripts types and named lint
 pass. Raw readings stay in `tmp/sp-x1-ob8/`; the numbers above are durable.
 
-Still open: official Simulator road/plaza/native memory for Mosslight and
-Ember; final-board Coral, Bayou and Frostline; then the two junctions, at
-≤150 draws and a 30 fps Simulator floor. Each miss goes to the coordinator
-as a named request for its owning lane. Nothing here qualifies all of OB8.
+Remaining after the Simulator cohorts below: Coral Chromium/walk;
+final-board Bayou and Frostline; then the two junctions, at ≤150 draws
+and a 30 fps Simulator floor. Each miss goes to the coordinator as a named
+request for its owning lane. Nothing here qualifies all of OB8.
 
 
 **Coral official Simulator fallback, accepted by wildshard-new.** Same
@@ -605,7 +605,58 @@ The fallback started while other lanes had finite work in flight. sp-o2's
 capture refused at its Bayou D1 boundary and closed; he confirmed the
 Simulator reading was clean. All concurrency context stays visible. The
 reader released quiet and shut down the Simulator; the first preview use
-was released immediately. On the coordinator's next instruction, prepare
-Mosslight + Ember back to back in one quiet window, using per-shard native
-files/results (`9afed8e11b`). Bayou, Frostline and the junctions stay pending
-until their final boards.
+was released immediately. The coordinator then requested the Mosslight +
+Ember pair below, using per-shard native files/results (`9afed8e11b`).
+Bayou, Frostline and the junctions stay pending until their final boards.
+
+
+**Mosslight + Ember official Simulator pair: passed, one 76.2 s window.**
+Both final looks ran back to back through one `frame-floor.mjs` worker,
+one `sim-lane.sh` lease and one official `sim-quiet.py` window. Each load
+used a cold Safari process and independently retained native files/results.
+Same source `fd7f01690e`, player poses, 402 × 714 / 804 × 1428 and 2× profile
+as Coral; 120 actual drawn frames per pose, without forced GC or clock
+substitution. All rows have median **30.303 fps**, p5 **29.412 fps** and
+p95 **34 ms**.
+
+| Plot / pose | Maximum draws | Triangles (median) | Worst frame ms |
+|---|---:|---:|---:|
+| Mosslight spawn | 60 | 168,362 | 34 |
+| Mosslight road | 59 | 124,990 | 35 |
+| Mosslight plaza | 65 | 177,126 | 35 |
+| Ember spawn | 57 | 153,408 | 35 |
+| Ember road | 60 | 105,098 | 34 |
+| Ember plaza | 64 | 169,437 | 34 |
+
+| Plot | Playing envelope B | Loading envelope B | GPU ledger peak B | Native samples: playing / loading |
+|---|---:|---:|---:|---:|
+| Mosslight | 237,234,230 | 908,458,910 | 28,482,398 | 219 / 64 |
+| Ember | 238,477,762 | 903,443,562 | 24,712,402 | 215 / 42 |
+
+These are conservative kernel-WebContent-plus-GPU-ledger envelopes,
+about **237.2 / 238.5 MB playing** and **908.5 / 903.4 MB loading**. Both
+meet the 1.0 GB playing aim and 1.8 GB loading limit. GPU reads: 47 / 46;
+each retains one Inspector-closed navigation sample, with complete phase
+coverage. **0 page/runtime faults, context losses, crashes or sampled
+intervals over 100 ms.** The measured draw/frame/memory/triangle bars pass;
+the full maintained live walks also pass (above). No plot miss is routed.
+The finite Bayou score batch was already running when this window was
+requested; its natural boundary was preserved and no new model load began
+during quiet.
+
+The attempted newer HEAD `9dcf3e5f11` preview refused all six built open
+plots with `World GLB material LandmarkCoarse is unmapped or its output ID
+is not admitted`. Named request `OB8-COARSE-ADMISSION` went to the
+coordinator; sp-o3 identified `a8f1f940c7` as the cause and fixed forward in
+**`17e15e8d42`**, pushed, with a successful HEAD preview. No look fix was
+made by sp-x1. The pair reused the original accepted source so this batch
+keeps its matched-control source; it does not claim measurements of that
+newer fix. Only one preview of a source was active for this lane at a time.
+
+Quiet was released, the Simulator shut down (0 / 1 booted), and the second
+preview use released immediately after the pair. All measurement browsers
+are closed. **OB8 remains open:** Coral Chromium and full walk; Bayou and
+Frostline after final-board SHAs; J1 and J2 after those looks. Their verified
+lattice pitch is 562.5 m: J1 `(843.75, -281.25)`, Nine / Ember / Nalati /
+Mosslight; J2 `(-843.75, -843.75)`, Frostline / Bayou / Coral / Fossil
+Badlands. No junction result is implied. Pine and Nine source stay untouched.
