@@ -87,6 +87,10 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
 19k. **Night elites** keep their names: Sir Nibbles (band 1, L4), Hot Mess (band 4, L13), Riveting Rita (band 5, L16).
     **Storm hour counts as night** for spawns. **Robots are Blender scripts** (no image-to-3D). **New SFX go into the
     shared sound set** for every shard; robots chirp, no spoken lines.
+19l. **Overlap stays separate** (Jake 11-02): HOST-AUDIT (HA*, CS*) and SHARD-PLATFORM-NEXT (N2/N5) keep their rows;
+    Wave 1 cross-references them and sequences around them, never duplicating. **West toys save personal bests and
+    have feats** (no other reward). **The showcase stays behind Developer** until Jake's phone pass; the public build
+    keeps the hologram plot at (0,2).
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 

@@ -61,7 +61,10 @@ G595) · SO = shard-only rows or AS · M = missing.
 W1 → W2, W3 → W4 → W5–W19 in parallel (W11 needs W4; W12 needs W11) → LV, LE, DG (LV's damage stage needs W6 and
 W11) → W20, W21.
 
-## Cleanup folded in
+## Cleanup in other plans (cross-referenced, not absorbed)
+
+Jake, 2026-11-02: keep them separate. These rows stay owned by their plans; Wave 1 sequences around them and
+never duplicates them.
 
 - HOST-AUDIT: HA0, HA1, HA5 (W1); HA4b for the forest family (H073), `ropeDeckSite` (H026), `cosmeticFinishes` (H059),
   `sceneDressing`; HA4d for the hoverboard, `engine/player/nalatiArms.ts`, `engine/world/steppeWind.ts`, HUD item labels;
