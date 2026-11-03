@@ -1,6 +1,6 @@
 # Final readings for the ten remaining open plots
 
-**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **1/10 complete; Saltwind qualified with its original refusal retained**.
+**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **2/10 complete: Saltwind and Sky Harbor; original refusals retained**.
 **Plan:** [OPEN-PLOTS](../plans/OPEN-PLOTS.md).
 
 Sp-x1 owns matched Chromium plus Night Market control, the maintained walk,
@@ -23,7 +23,7 @@ audio handoff.
 |---|---|---|---|---|
 | Fossil Badlands | `open-plot-1-0` / (-1,-2) | Awaiting audio handoff | Open | Open |
 | Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim + authorized fresh grid complete |
-| Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Chromium/control complete; walk/goldens open | Memory + standalone/grid official Sim complete |
+| Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | Awaiting audio handoff | Open | Open |
 | Thin Ice | `open-plot-1-4` / (-1,2) | Awaiting audio handoff | Open | Open |
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | Awaiting audio handoff | Open | Open |
@@ -438,6 +438,44 @@ Standing inputs retain the same real road `(0,1.7,-241,pi,0)` and plaza
 `(0,1.7,-62,pi,0)` as the control. Raw records are in
 `tmp/sp-x1-open-plots/sky-final/chromium/`; standing input SHA-256 is
 `54eccad82e6205bf8b2faec60179d1a3dc0980e8c2927795f63ad3b0079f8119`.
-The browser is closed. The own shared preview lease remains for the walk
-and eight-view golden bridge after X8's finite official Simulator window.
-Those scopes remain open. No visual source changes.
+The browser closed before X8's finite official Simulator window. The later
+walk and golden completion is recorded below. No visual source changes.
+
+## Sky Harbor — walk and golden bridge (sp-x1)
+
+The same final audio-containing **a8593f8ac6 / a8593f8-mw176ax3** completes
+the maintained `road-avenue-plaza-scaffold` walk: **14/14 waypoints,
+0 stuck, 0 out, 164.0586 s**, endpoint **(0.001,0.020,-61.972)**,
+maximum Y **0.194 m**. The original 180 s allowance, continuous controller,
+all waypoint/endpoint checks and live clock remain unchanged. The last
+trace waypoint is 13. Its exact pin's `scripts/physics-route.json` hash is
+`f0f88e6a0ab42ce7f52380a79792dd3e64818f32b31337f15a5dd45a9b351fa9`.
+
+All **eight golden rows are read green for Sky**, with sp-o2's explicit
+owner classification of the neighbour changes. Every captured view is
+settled, pending empty, in-flight/queued zero, phone 2×, without page errors
+or context loss. The eight original cameras match SHA-256
+`58965047a4deb12171ec003a471e3d2584e7c7f951434b0187ec31aa1d76bffb`.
+The [reviewed final-audio board](../../art/golden-runs/open-plot-sky-harbor/2026-11-03-a8593f8ac6-final-audio-board.jpg)
+retains the automatic colour flags and adds the owner's classification;
+the original raw capture and unreviewed board remain unchanged.
+
+Views 3 and 4 flag colour because the south neighbour, **Clockwork Canyon
+at (2,1), instance `open-plot-4-3`**, was a blue stand-in when Sky's reference
+was captured on `32d153f7b1`. It is now built: red/tangerine ground fills
+the foreground and the south strip of the top-down view. Starfall west of
+Sky was also activated later. View 8 differs only in the distant built
+neighbour skyline. The owner confirms Sky's basins, wharves, cottages,
+airship and lanes hold in all three views. No fix or golden promotion is
+part of this reading. SSIM 0.851–0.992 is descriptive, not the look verdict.
+The published G994 small road-view airship, square basins, sparse cottages
+and decks, and no cumulus remain explicit.
+
+Together with the matched Chromium/control above and X8's committed
+`eb20276955` memory/official Simulator results, **Sky's final reading
+cohort is complete**. Strict timing and render-CPU target misses retain
+their original scope; this is not physical-phone clearance. The audio
+owner retains bar 10/body/wire qualification and plan-row integration.
+Raw walk, eight capture rows, source bindings and classification stay in
+`tmp/sp-x1-open-plots/sky-final/`. All own browsers are closed and the own
+shared preview lease is released after reporting. No visual source changes.

@@ -183,6 +183,20 @@ stub commits. The maintained template admission and ordinary CURRENT /
 non-empty tiled-report guards remain intact. The foreign loose Jungle
 route remains outside these HEAD-only patches.
 
+
+**Sky Harbor final audio readings (2026-11-03, sp-x1 + sp-x8).** Exact
+`a8593f8ac6` / build `a8593f8-mw176ax3`: six ×120 matched Chromium/control
+frames, Sky draws 45/51/53 and p95 33.4 ms; original CPU/strict misses retained.
+Maintained walk all 14 waypoints, 0 stuck/out in 164.0586 s; eight golden
+rows read green with sp-o2's explicit Clockwork/built-neighbour classification,
+no promotion. X8's `eb20276955` gives all eight official Simulator windows
+floor passes, standalone native envelopes 254.214/760.828 MB playing/loading,
+and pooled junction 897.578/840.485 MB; actual four-neighbour near visibility,
+pending empty and settled. Strict 33.3 ms flags remain false. [Full source-bound
+readings and reviewed board](../reviews/open-plots-final-readings.md#sky-harbor--walk-and-golden-bridge-sp-x1).
+The complete reading cohort is 2/10; the audio owner integrates OP11's other
+requirements separately. No visual source changes or new look claim.
+
 **Clockwork walk qualification (2026-11-03, sp-x9).** Ordinary pinned
 all-product admission passed for `f1d64e700c019186e175e15aa7c1442d7babc883`,
 actual build `f1d64e7-mw14grkc`. The maintained `walk.mjs` ran under the browser
