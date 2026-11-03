@@ -25,3 +25,7 @@ label strip naming the shard, the camera and the source.
   neon streaks sit at each light's own mirror point, only for lights on screen, as a short gloss fading from 15 m to
   nothing at 50 m; board `../nine-dragon-stack/round-51-qd3-streaks/`). Captured on `592dc655ea` + the QD3 change,
   Chromium; WebKit matched. Boards: `../golden-runs/nine-dragon-stack/2026-11-03-592dc655ea-qd3{,-webkit}-board.jpg`.
+- 2026-11-03, nine-dragon-stack 17, 18, 21: refreshed for QD1 (`cc40cad706`, `54771bace4`: walls and floors hung under kit
+  anchors draw again). The 10-29 goldens showed pale voids on the portal decks and a void under 21's awning; the new frames
+  show LEGACY's distant crowns and building columns. Captured on `c71f1f4e53`, Chromium; WebKit matched. Boards:
+  `../golden-runs/nine-dragon-stack/2026-11-03-c71f1f4e53-qd1-promote-{chromium,webkit}-board.jpg`.
