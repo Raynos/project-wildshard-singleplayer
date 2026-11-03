@@ -159,7 +159,7 @@ does not close a Z row.
 | **Z9** | **Five dead copies retired (2026-11-03, sp-x2); four live Nalati files remain charged for Jake’s one-user batch.** Pine’s two prop JSONs and Nalati support pages 2/3/4 have no reader or routing reference. G872 approved deletion removes 397,308 B; all unrelated 242,316,656 B and 122 ordered packs verify exactly, with only the independently reconstructed Nalati map source stamp attributed. Strict native 48 frames / 16 A/A + 16 A/B all zero. Pine and Nalati each 24/24 green in Chromium and WebKit; actual builds, four boards and per-file retained-root evidence [below](#z9-dead-copies-and-four-real-one-user-roots-2026-11-03-sp-x2). No fabricated Pine scatter user or new platform-family credit | **5 of 9 retired; 4 charged:** Nalati dressing-pages 0/1 and dressing-{phone,desktop} | Codex (G958) | 3 |
 | **Z10** | **People and places.** Into `people/figures` / `world/places` | 3: DW people/cards, building-life, cover-composition | Codex | 1 |
 | **Z11** | **In flight (2026-11-03, sp-x6): candidate reduction 5; three one-user roots stay charged. G998 qualification pending; evidence below. Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | **5 eligible:** dead Pine ambience, Pine + Nalati weather, Nalati audio/scene and look/post. **3 charged:** Nalati weather-fx; Pine rain and weather-observations | Opus fx, Codex audio | 3 |
-| **Z12** | **Ground pages.** `world/ground` family: layout, caves, collision; big grids as `.bin` with row headers, sharing the fields host with Far / Sun | 9: Pine floor, crag-cave, cave-interior, forest-page, building-sites, landmark-view, physics.generated; Nalati meadow, water | Opus | 3.5 |
+| **Z12** | **In flight (2026-11-03, sp-x2): census 1 dead / 8 live.** G872 approves deleting only unread Pine landmark-view (5,510 B); byte/pack/native/G998/physics-walk qualification pending. Eight complete live files remain charged with [per-file evidence](#z12-census-ground-roots-and-one-unread-copy-2026-11-03-sp-x2). Far/Sun SceneBuffers are real shared fields but a different whole root from Pine floor/cave/forest and Nalati geography/water; no fake field-root credit | **1 candidate; 8 charged:** Pine floor, crag-cave, cave-interior, forest-page, building-sites, physics.generated; Nalati meadow, water | Codex (G958) | 3.5 |
 | **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted. **In flight (2026-11-03, sp-x6): 0/6 files deleted; qualified Driftwood duplicate-field cut below. Nine held for sp-o1's live-wall RCA; prerequisite semantic owners recorded below.** | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
 | **Z14** | **Encounters and riding (was CS8).** Arena room, timed encounter and riding-profile rows (`game/boss/arenaRoom.ts`, `game/riding/*`); Titan fight to AS | 9: Nalati room-entry, timed-encounters, titan-fight, titan-geometry, ride/rules, riding/session, mounted-figure; Pine combat/roaming, client/ranged-page | Opus | 4.5 |
 | **Z15** | **Delete the custom path and lock it at 0.** Delete shard `SECTIONS` and both `runtime/productSections.d.ts`; the custom branches in `sdk/outputRuntime.ts`, `sdk/outputProduct.ts`, `game/shardfile/shardProduct.ts`, `clientPlan.ts`, `game/quest/{pageComposition,continuation,chapterDirector,questPageViews}.ts`, `game/models/{islandLibrary,kitFigureCard}.ts`; shard-built inline schemas; `scripts/custom-section-policy.mjs`, `scripts/check-custom-section-growth.mjs`, `lint/custom-sections.json` and the per-shard ceilings. Output admission refuses any `custom/` name and any unregistered named JSON; one ratchet row `custom-sections/total = 0` | the path itself; count stays 0 | Codex | 1.5 |
@@ -3432,3 +3432,48 @@ missing old A/B/loading pair remains history; Z9 qualifies only its
 current five-copy deletion, not that old missing proof. Remaining target
 count is **4**, explicitly pending Jake's one-user batch; no ceiling is
 edited here (sp-x1 owns the combined downward ratchet).
+
+### Z12 census: ground roots and one unread copy (2026-11-03, sp-x2)
+
+The nine-file census reads the actual served `5b5922e263-mw0vipws`
+products and walks every section and named JSON body in Pine, Nalati,
+Far Reach and Sunscar for exact routing references. Source reader and
+whole-root producer searches are separate. The current Z6 cuts do not
+alter these nine bodies. **No ground family is newly registered.**
+
+G872 authorizes retiring only Pine `world/landmark-view.json`, **5,510 B**,
+SHA-256 `50869a1b58b55e424f384b5592b4c7506ba95aed1727fe7423528ef5891ba7d9`.
+It has zero emitted references and zero source readers; its only source
+mentions are its generator and output. The original `timberWorld`
+landmarks still feed ForestPage's lamps/ordered landmark placements and
+the native scene models. Its board/site/stone/dam/canoe/view/book facts
+stay in those unchanged owners; no one-user wrapper replaces the copy.
+**Retirement is pending exact body/pack/native proof, G998 and walk.**
+
+Eight files remain live and charged for Jake's one-user batch:
+
+| Complete file / bytes / SHA-256 | Actual route and native owner; why it stays |
+|---|---|
+| Pine `world/floor.json`, **3,198,511 B**, `ac357d01b06c4a12e64f9f1a3ff43ec0a052400475f61f2d0d6a1261bfbeb028` | `forest-page.ground.layout` → `readForestGroundInputs` → `ForestGround.prepare` → `forestGroundLayoutSteps`. Whole `ForestGroundLayoutSchema` has ordered counts and six complete placement lists, 22,250 rows; only Pine emits/drives it. Native appearance, matrix composition, cell bounds, trample, shadows, resources and retirement checks remain. |
+| Pine `world/crag-cave.json`, **921,717 B**, `0e53e5357740394bfd288ddb3d2fc0959d3ef029132a3d0679d6763c1671aaab` | `cave-interior.file` → `CaveInterior.load`; whole `CaveFileSchema` then original `readColliderRows` admits the shell's trimesh/surface. Complete meta has holes/cuts/spots/inside/shaft/drips/floor/tris. One cave-file producer (Pine); a shared collider child is not a second complete cave root. |
+| Pine `world/cave-interior.json`, **2,617 B**, `0064dd817729ef5efd2118a5e2c430f7a9ae3cc4ce34b5fed9d37c13c6291f89` | `client/plan` world.forest-page cave.file → `installClientForestPage` → `CaveInterior.load`. Whole `CaveInteriorSchema` retains product/file/frame/roof/rock/look, native roof geometry, fills, drips, cut/roof colliders, textures and resource ownership. Only Pine calls `caveInteriorRows`; no second full root. |
+| Pine `world/forest-page.json`, **6,594 B**, `0c0e441cf71bcace7906a0ea0f2b6908b7429b5b5ed659c7959badd506ddaa71` | `client/plan` world.forest-page.file → `installClientForestPage` → `prepareForestPage`. Whole `ForestPageSchema` includes water/treeLooks/graphs/wildlife/streams/ground/buildings/props/lanterns/landmarks. Only Pine calls `forestPageRows`; shared native scene pages do not reconstruct this whole forest composition. |
+| Pine `world/building-sites.json`, **963 B**, `f579ded5e9ab2987b4b33401be2182019667d6b6ceaf739bf6aa57fa203923e6` | `forest-page.buildings.sites` → `prepareForestPage` parses `LivingPageSitesSchema` before native building hydration. The complete buildings/roofs root belongs only to Pine. Driftwood's Z3 graph page is a different whole root, not another sites producer. |
+| Pine `data/physics.generated.json`, **152,494 B**, `7f7381f716560f164806c0c50389acfb67fa37a4020246ea30616d475e8369d9` | No emitted route, but the maintained real native path `test/fixtures/pine-headless.ts:72–113` reads its owner data: kingHit supplies boss weak-point radius; shelterTrees supplies native herd shelter. `world/physics` and existing `.bin` floor/hull ranges already carry common collision. Retained owner root also includes version/profile/notice/trees/pieces; the common physics child is not its complete reconstruction or a second private-owner user. |
+| Nalati `world/meadow.json`, **21,630 B**, `7491afc9489511378d52c48fd98d0cd435e7521de8d7fc93c2f4a43b1ee05adb` | Actual `client/plan` feature names it; `configureGrassFieldData` admits whole `PopulationFieldSchema`, and native headless preparation uses the same geography in `NativePopulationField`. Whole seed/world/trails/river/meadow root is produced only by Nalati's `nativeGroups.ts`. Far Reach's blade buffers do not include or drive this semantic root. |
+| Nalati `world/water.json`, **86,396 B**, `1572cc613c2880ef68554379ac74cb1e808b86f9c5adc4e5a2c1f577ffd7731d` | Actual `client/plan` practice course reads practice; `look/post.painted.ground.recipe.file` reads terrain. Complete body retains placeSets/practice/surface/terrain, while its current emitted loose defining schema checks only practice. No exact complete water-world defining root with two real users exists; child terrain/water/practice schemas do not earn whole-envelope family credit. |
+
+All eight fail the actual two-whole-root-user requirement for new family
+credit (HOST-BAR test 1). No fixture user, optional superset or renamed
+private envelope is added. Unknown/malformed/resource/range/native-owner
+refusals remain intact; this census does not loosen their contracts.
+
+Far Reach `generators/meadowScene.ts` and Sunscar
+`generators/emberBuffers.ts` really drive the existing complete
+`SceneBuffersSchema`: typed GPU channels, attributes, geometries, draws
+and LOD bands backed by named `.bin` ranges. It supports f32/u16/u8, not
+GroundPlacement doubles or cave/native owner roots. In actual Pine floor
+rows, an f32 round-trip changes **240,975 of 244,750 numbers** (maximum
+7.626953134831638e-6). That is not an exact reconstruction; an opaque u8
+JSON payload or a fresh one-user decoder would not fix the whole-root
+bar. Existing binary ground and collider sources remain unchanged.
