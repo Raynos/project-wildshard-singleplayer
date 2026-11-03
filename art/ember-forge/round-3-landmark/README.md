@@ -27,5 +27,9 @@ The generations and posts are scratch in `~/ml/img2mesh/out/ember-furnace-*`.
 1024 cost 1.28 MB of phone wire, and 512 costs 0.60 MB. The dusk landmark graph lights its door and stack mouths
 through their warm texels. Credits: `public/assets/open-plots/CREDITS.md`.
 
-**Gap kept:** past 150 m it is the coarse stand-in, dark from the road entry. The Night Market fixed the same gap
-with `coarseLandmark: "lit"`, at one more L1 draw in each of the four plaza tiles.
+## From the road (`board-road.jpg`)
+
+Past 150 m the furnace drew as its coarse stand-in in the kit's standard material: a dark silhouette from the road entry,
+at 200 m and from above the neighbour (bar 1). The row's `coarseLandmark: "lit"` (as the Night Market's) draws it in its
+own dusk landmark graph with no texture, so its stone trim, stacks and lit door read from the road. The four plaza L1
+tiles draw 3 instead of 2 (approved, wildshard-new); road entry 106 to 114 draws; phone wire 4,291,954 to 4,284,102 B.

@@ -191,6 +191,7 @@
       "layout": "ember-forge",
       "water": "lava",
       "landmarkLight": "dusk",
+      "coarseLandmark": "lit",
       "lookKeys": [
         {
           "time": 0,
