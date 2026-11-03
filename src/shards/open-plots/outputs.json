@@ -198,11 +198,60 @@
       "idea": "lantern-bayou",
       "name": "Lantern Bayou",
       "accent": "marigold",
+      "layout": "lantern-bayou",
+      "lookKeys": [
+        {
+          "time": 0,
+          "sky": {
+            "zenith": [
+              0.05,
+              0.13,
+              0.17
+            ],
+            "horizon": [
+              0.2,
+              0.34,
+              0.36
+            ]
+          },
+          "fog": {
+            "colour": [
+              0.16,
+              0.3,
+              0.32
+            ],
+            "density": 0,
+            "near": 220,
+            "far": 1100
+          },
+          "sun": {
+            "colour": [
+              1,
+              0.84,
+              0.66
+            ],
+            "intensity": 0.9
+          },
+          "ambient": {
+            "sky": [
+              0.42,
+              0.6,
+              0.64
+            ],
+            "ground": [
+              0.22,
+              0.28,
+              0.24
+            ],
+            "intensity": 1.35
+          }
+        }
+      ],
       "manifest": {
         "name": "Open Plot · Lantern Bayou",
         "status": "earlyAccess",
         "shardSelect": true,
-        "blurb": "An open plot of the grid: walk round the Lantern Bayou hologram, a world still to be built.",
+        "blurb": "An open plot of the grid: a stilt-house village on a mirror-dark swamp at blue-green dusk, round a giant moss-draped cypress hung with lanterns.",
         "bindings": {
           "accent": "marigold",
           "boot": {
