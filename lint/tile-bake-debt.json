@@ -546,7 +546,11 @@
       "tile/0/0/3/compressed": 495787,
       "tile/0/3/7/compressed": 495723,
       "tile/0/4/0/compressed": 495787,
-      "tile/0/7/4/compressed": 495847
+      "tile/0/7/4/compressed": 495847,
+      "tile/1/1/1/draws": 3,
+      "tile/1/1/2/draws": 3,
+      "tile/1/2/1/draws": 3,
+      "tile/1/2/2/draws": 3
     }
   }
 }
