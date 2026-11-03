@@ -2785,3 +2785,45 @@ A later resumed turn needs the checked common runtime fix in both exact
 pins and the same complete-cut/non-cut equality. Failed logs, exact
 full-SHA bindings and protocols remain under
 `tmp/sp-x6-cs3-nalati-pages/paired-requalification/`.
+
+### Nalati fixed AFTER-only reading (2026-11-03)
+
+On the next explicit ruling, keep BEFORE
+`a5a8ec880eb093c750a6564fecd5cc3624cd6fd6` unchanged and run only
+AFTER containing the common runtime audio fixaf6f2f8eb3. Exact served
+pin **`af6f2f8eb3daf75a991d0ecf8946b78267a2baa5`**, build
+**`af6f2f8-mw0i9u28`**, retains all nine qualified61d894 scatter files
+byte-exact. Use one ordinary shared immutable preview; no overlay,
+new generator, allowance or before-side retry.
+
+| After-side original phone loading | Tap to qualified control | Errors | Request accounting |
+| --- | ---: | --- | --- |
+| Cold | **99.0555 s** | `[]` | complete |
+| Warm | **55.007900 s** | `[]` | complete |
+
+Both runs use the maintained Chromium phone preset:10× page CPU,
+10 Mbps down/100 ms latency, original240 s deadline,3 s title dwell and
+4 s post-control dwell. They are **shared-host absolute readings**:
+X2's already-started Frostline MOSS/audio-QA cohort overlaps, preserved
+naturally. No isolation, speedup, no-worse bar or phone/Safari equivalence
+is inferred. Original native control/document and actual-shard guards
+pass; there are no page or flow errors.
+
+Strict native Metal A/A uses two fresh contexts per tier, iPhone16Pro
+portrait804×1748/DPR2, fixed seeded world/time10, original P1/P2/P3
+and no comparator allowance. **Phone:0/0/0 differing pixels;
+desktop:0/0/0**, twelve full RGBA frames, six exact comparisons.
+World-only capture retains the original readiness/frame/error guards.
+The actual source/build/HTTP/disk identity is checked before and after
+each phase; all phase exits0. Actual whole09:50:07.548→09:54:45.101Z,
+2026-11-03, includes normal preview release0; every browser closes.
+
+**Comparative qualification remains OPEN.** The unchanged BEFORE has
+zero browser samples because entry was prohibited by the common audio
+P0. Therefore there is **no before/after no-worse loading result and no
+A/B pixel result**; A/A stability and successful after entry do not fill
+those missing cells. Keep the earlier raw misses and source/body proof.
+The next comparison requires an explicitly reviewed executable baseline,
+not a fabricated metric or silent repin. Numbers, all source/version
+checks, twelve frame hashes and raw paths are retained in
+`tmp/sp-x6-cs3-nalati-pages/paired-requalification/after-only/summary.json`.
