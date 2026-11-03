@@ -7,7 +7,8 @@
 //               side, lamps at its corners;
 //   T big top:  the striped big top (variant 1) on a lawn, its door toward the tile's north edge, hay bales and lamps round it.
 // The avenues are lined with striped booths (the kit's stalls), a helter-skelter (variant 2) either side at the road entry. Every model is a kit family (fair,
-// lanterns, trees, stalls), placed only when the layout's kit has it. A fresh morning: no fireflies, no lanterns lit by day.
+// lanterns, trees, stalls), placed only when the layout's kit has it. A fresh morning: no fireflies, no lanterns lit by day;
+// birds drift over the fields and carousels (bar 7).
 import { HALF, INNER, pool } from './kit.mjs';
 import { nightMarketBuilders } from './nightMarket.mjs';
 
@@ -16,6 +17,16 @@ import { nightMarketBuilders } from './nightMarket.mjs';
 const noFireflies = (w) => new Proxy(w, { get: (target, key) => key === 'tri'
   ? (part, a, b, c, colour, ...rest) => (part === 'Glow' && colour?.[1] === 0 && colour?.[2] === 0 && colour[0] < 0.5 ? undefined : target.tri(part, a, b, c, colour, ...rest))
   : (typeof target[key] === 'function' ? target[key].bind(target) : target[key]) });
+
+/** Life (bar 7): a bird, a 0.6 m mover in the glow graph's steady mode (red seed in [0.5, 1), no green: drifting slowly,
+ *  never blinking to black) at full blue, which the graph lights white (Coral's gull, coral.mjs), high over the fields */
+let seeds = 0;
+function bird(w, x, y, z) {
+  seeds++;
+  const c = [((seeds * 0.6180339887) % 1) * 0.5 + 0.5, 0, 1], s = 0.6;
+  const top = [x, y + s * 1.4, z], a = [x - s, y - s, z - s], b = [x + s, y - s, z - s], d = [x, y - s, z + s * 1.4];
+  w.tri('Glow', top, b, a, c); w.tri('Glow', top, d, b, c); w.tri('Glow', top, a, d, c); w.tri('Glow', a, b, d, c);
+}
 
 /** a quilt square's side, and the hedge strip between squares (three squares and two strips fill the inner tile) */
 const SQUARE = 16.5, HEDGE = 1.6;
@@ -65,6 +76,7 @@ function quilt(w, p, variant) {
     hedge(w, p, s, -INNER, s + HEDGE, s, 1.1); hedge(w, p, s, s + HEDGE, s + HEDGE, INNER, 1.1);
   }
   for (const [x, z, along] of variant % 2 === 0 ? [[-17, 17, 0], [-14, 19, 1], [17, -18, 0], [19, -15, 1], [15, -15, 0]] : [[-18, -17, 1], [-15, -19, 0], [17, 18, 1], [14, 16, 0]]) bale(w, p, x, z, along);
+  for (const [x, y, z] of variant % 2 === 0 ? [[-9, 13, 6], [11, 16, -10]] : [[8, 12, 9], [-12, 15, -7]]) bird(w, x, y, z);
 }
 
 /** the pools' water below their coping (the canal's level, kit.py BRIDGE['water']) */
@@ -99,6 +111,7 @@ function carousel(w, p, variant) {
   ride(w, 0, 0, 0, variant * Math.PI / 4, 6.6, 6.6, 9.8);
   for (const s of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) lamp(w, p, s[0] * 23.5, s[1] * 23.5, Math.atan2(-s[0], -s[1]));
   for (const [x, z, along] of [[-21, 4, 1], [21, -5, 1], [5, 21, 0]]) bale(w, p, x, z, along);
+  for (const [x, y, z] of [[-6, 14, -16], [9, 12, 15]]) bird(w, x, y, z);
 }
 
 /** T big top: the striped big top on a lawn, its door to the north (tile +z), hay bales and lamps round it. */
