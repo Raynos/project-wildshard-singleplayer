@@ -29,15 +29,16 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
     const hooks = {${source.slice(hookStart, hookEnd)}};
     return {start: () => hooks.afterWorld(null), kit: () => {if (typeof equipmentReady === 'function') equipmentReady();},
       content: () => {contentReady(); forgetContent();}, result: () => enteredWarm};
-  })`), {Promise});
+  })`), {Promise,timeClientPreparation:(_slug:string,_step:string,work:()=>unknown)=>Promise.resolve(work())});
   if (typeof factory !== 'function') throw new Error('Regional hook factory missing');
   const owner = new Scope('equipment-overlap'), root = new Group(), models = new Group();
   root.visible = false; models.visible = false; models.name = 'staged-equipment';
-  const calls: string[] = [], worldReady = deferred(), finalStarted = deferred();
+  const calls: string[] = [], worldReady = deferred(), finalStarted = deferred(), kitCensus = deferred();
+  let framePass = 0;
   // the arrival point (D188) is the runtime's own closure: a fixture with no crossing entry has none
   const ports = {owner, view: {root}, preparedModels: options.models === false ? null : models, preparing: options.enabled !== false, world: {}, arrivalAt: (): undefined => undefined,
     foundation: {precompileEnvironment: (): null => null, prepareWorldMaterials: (): void => {calls.push('look'); worldReady.resolve();}, ...(options.worldOnly === true ? {} : {beforeWarm: (): void => {calls.push('before-final'); worldReady.resolve();}})},
-    request: {page: {world: {game: {frameCount: options.boot === true ? 0 : 1, warmEnteredFrame: async (scope: Scope, lighting: Object3D,
+    request: {cell:{slug:'fixture'},page: {world: {game: {frameCount: options.boot === true ? 0 : 1, warmEnteredFrame: async (scope: Scope, lighting: Object3D,
       before: (prepare: (roots: readonly Object3D[], exteriorPrograms?: boolean) => Promise<void>, prepareFrame: () => Promise<void>) => Promise<void>): Promise<void> => {
       expect(scope).toBe(owner); expect(lighting).toBe(root);
       await before(async (roots, exteriorPrograms = true) => {
@@ -45,7 +46,7 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
         expect(object).toBe(root); expect(exteriorPrograms).toBe(false); calls.push('world');
         worldReady.resolve();
         await options.prepare?.(object);
-      }, async () => {calls.push('frame'); await options.prepare?.(models);});
+      }, async () => {calls.push('frame'); if (++framePass === 2) kitCensus.resolve(); await options.prepare?.(models);});
       calls.push('final'); finalStarted.resolve(); await options.prepare?.(models);
     }}}}},
   };
@@ -61,7 +62,7 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
     if (typeof value !== 'object' || value === null || typeof Reflect.get(value, 'then') !== 'function') throw new Error('Missing preparation task');
     return Promise.resolve(value).then(() => undefined);
   };
-  return {owner, root, models, calls, worldReady: worldReady.promise, finalStarted: finalStarted.promise, start: () => task('start'), kit: () => {invoke('kit');},
+  return {owner, root, models, calls, worldReady: worldReady.promise, kitCensus: kitCensus.promise, finalStarted: finalStarted.promise, start: () => task('start'), kit: () => {invoke('kit');},
     content: () => {invoke('content');}, result: () => task('result'), rawResult: () => invoke('result')};
 }
 
@@ -150,7 +151,7 @@ test('initial world programs overlap the kit but complete content still gates re
   try {
     await flush(); expect(f.calls).toEqual(['before-final', 'frame']);
     expect(ready).toBe(false);
-    f.kit(); census.resolve(); await flush();
+    f.kit(); census.resolve(); await f.kitCensus;
     // PL6: the kit's creatures and held view take the same census while play constructs
     expect(f.calls).toEqual(['before-final', 'frame', 'frame']); expect(ready).toBe(false);
     expect(f.root.visible).toBe(false); expect(f.models.visible).toBe(false);

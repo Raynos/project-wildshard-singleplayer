@@ -2,6 +2,7 @@ import { bindResidentTileEntry } from '../shardfile/tileEntry';
 import {bindEquipmentActors} from '../loadout/actors';
 import { freezeParkedMatrices } from '@wildshard/engine/render/precompile';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
+import { isDev } from '@wildshard/engine/core/devMode';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { clientHomeBytes } from '../shardfile/clientResidency';
 import { Object3D, Vector3, type Texture } from 'three';
@@ -319,23 +320,23 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                   // Initial boot lends the same completed world look to the
                   // existing census while kit/play build. Final whole-page
                   // preparation still follows both content rendezvous below.
-                  await (foundation.beforeWarm !== undefined ? foundation.beforeWarm() : foundation.prepareWorldMaterials?.());
+                  await timeClientPreparation(request.cell.slug, 'entry.initial-look', () => foundation.beforeWarm !== undefined ? foundation.beforeWarm() : foundation.prepareWorldMaterials?.());
                   if (owner.disposed) throw new Error('Regional runtime left before its world warm-up');
-                  await prepareWorldFrame(foundation.precompileEnvironment());
+                  await timeClientPreparation(request.cell.slug, 'entry.world-programs', () => prepareWorldFrame(foundation.precompileEnvironment?.()));
                 }
-                await equipment;
+                await timeClientPreparation(request.cell.slug, 'entry.wait-equipment', () => equipment);
                 if (owner.disposed) throw new Error('Regional runtime left before its equipment warm-up');
                 // PL6: the kit's creatures and the held view exist now; the same census takes them while play constructs
                 // (at phone CPU 10x they were ~0.37 s of the boot shader step)
                 if (request.page.world.game.frameCount === 0 && foundation.precompileEnvironment !== undefined) {
-                  await prepareWorldFrame(foundation.precompileEnvironment());
+                  await timeClientPreparation(request.cell.slug, 'entry.kit-programs', () => prepareWorldFrame(foundation.precompileEnvironment?.()));
                   if (owner.disposed) throw new Error('Regional runtime left during its equipment warm-up');
                 }
-                await content;
+                await timeClientPreparation(request.cell.slug, 'entry.wait-content', () => content);
                 if (owner.disposed) throw new Error('Regional runtime left before its final warm-up');
                 // Late content gets the same final look and complete inventory;
                 // an early census never publishes readiness or skips this fence.
-                await (foundation.beforeWarm !== undefined ? foundation.beforeWarm() : foundation.prepareWorldMaterials?.());
+                await timeClientPreparation(request.cell.slug, 'entry.final-look', () => foundation.beforeWarm !== undefined ? foundation.beforeWarm() : foundation.prepareWorldMaterials?.());
               }, arrivalAt());
               // Observe an early failure now; afterPlay still awaits the original rejection before readiness.
               void enteredWarm.catch(() => undefined);
@@ -413,7 +414,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               // Trusted play can install encounter creatures; validate the complete herd before publishing readiness.
               ports.continuation?.restore(localPlay.animals);
               const equipment = request.page.equipment, weapons = localPlay.weapons;
-              await weapons.settleSelection();
+              await timeClientPreparation(request.cell.slug, 'entry.selection', () => weapons.settleSelection());
               if(owner.disposed||owner.disposing)throw new Error('Regional runtime left while preparing selected equipment');
               if (equipment !== undefined) installEnteredRuntimeService(entered, entry => { equipment.bind(weapons, entry); });
               for (const animal of localPlay.animals.animals) animal.motionConstraint = hostConstraint(host, animal.dims.bodyRadius * animal.scale);
@@ -422,9 +423,17 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               // The region's own last preparation (its sky build, beforeWarm) runs inside the warm-up's time bound:
               // a stall there or in the warm-up is this admission's reported issue, never a silent hang (OP).
               contentReady(); forgetContent();
-              await (enteredWarm ?? request.page.world.game.warmEnteredFrame(owner, view.root, async () => {
+              await timeClientPreparation(request.cell.slug, 'entry.warm-tail', () => enteredWarm ?? request.page.world.game.warmEnteredFrame(owner, view.root, async () => {
                 await foundation.beforeWarm?.();
               }, arrivalAt()));
+              const trace = request.page.world.game.entryPreparation;
+              if (isDev() && trace?.root === view.root.uuid) for (const [index, stage] of trace.stages.entries()) {
+                // Existing completed spans explain the early compiler's tail
+                // even before the boot publishes its public world handle.
+                const name = `wildshard.prepare:${request.cell.slug}:entry.stage.${index}.${stage.phase}`;
+                performance.clearMeasures(name);
+                performance.measure(name, { start: stage.endAt - stage.elapsedMs, end: stage.endAt, detail: { units: stage.units } });
+              }
               restored = true;
               // js-heap H6 for a grid region, as the solo page's finish.ts does: the entry has built and warmed everything
               // its admitted transport fed, so keep none of it (Nalati's 45 MB of product files stayed in a Simulator
