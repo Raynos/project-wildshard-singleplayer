@@ -70,5 +70,15 @@
     "height": 30,
     "turn": 2
   },
-  "posters": null
+  "posters": {
+    "image": "public/assets/open-plots/showcase-template/poster.webp",
+    "plaza": null,
+    "entry": {
+      "inset": 247,
+      "width": 10,
+      "bottom": 3.0,
+      "posts": 4,
+      "offset": 12.5
+    }
+  }
 }

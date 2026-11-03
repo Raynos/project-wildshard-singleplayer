@@ -719,6 +719,8 @@
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
     "src/game/shardfile/fileInputs.ts",
+    "src/shards/open-plots/data/nightMarketBootFiles.json",
+    "src/shards/open-plots/data/nightMarketBootSources.json",
     "src/shards/open-plots/discovery.open-plot-showcase-template.generated.ts",
     "src/shards/open-plots/thumbs/showcase-template.jpg"
   ],
