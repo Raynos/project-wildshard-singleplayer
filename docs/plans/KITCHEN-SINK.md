@@ -169,6 +169,12 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     prompt block is `art/showcase-template/round-11-remaster/COMMON-v2.txt`. Jake, right after: *"a bunch of the mockups are
     good … 8 out of 10. Top-down stuff is good. The west side is looking pretty good. We just need to push it a bit
     harder. Especially the crate titan"*; the Training Vault shots are original mockups (no real blockout of it).
+19ac. **The Crate Titan fight is behind a boss portal** (Jake 11-03: *"like Elden Ring or Dark Souls, there needs to be a
+    boss portal … you enter a portal, and then you get taken to an absolutely massive boss arena. Remember that shard
+    files are still 500x500, you can't cheat"*). The surface keeps only a small Titan gate in the SE; the fight is in a
+    hidden arena inside the cell's footprint at another height (like the Training Vault), sized for a huge Titan. The
+    freed SE ground goes to the **gauntlet**, which gets the room a 5-wave arena needs. Blockout round 5
+    (`art/showcase-template/round-5-blockout/`) sizes both; its numbers fold in when it lands.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
