@@ -4,7 +4,7 @@
 import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
 import PLAN_FILES from '../data/islandPlanFiles.json' with { type: 'json' };
 import type { DriftwoodIslandFacts } from './islandFacts';
-import { COVE_MODELS } from './coveModels';
+import { COVE_MODELS, coveDrawnProto } from './coveModels';
 import { ISLAND_LOOKS } from './islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from './islandRows';
 import { DRIFTWOOD_PLAN_FILES, pageFile } from './productPageFiles';
@@ -34,7 +34,7 @@ export function driftwoodBakedCove(facts: DriftwoodIslandFacts): ReturnType<type
   sun: { param: 'bounce', referenceY: facts.bake.sunY, gain: facts.bake.bounceGain },
   instances: {
     table: at('placements.bin'), protos: { file: 'world/island/protos.glb' }, plan: { phone: plan('phone'), desktop: plan('desktop') },
-    names: facts.protos.map(proto => proto.name),
+    names: facts.protos.map(proto => coveDrawnProto(proto.name)),
     looks: {
       cast: { look: ISLAND_LOOKS.props, cull: { phone: { flat: true, casters: 4 }, desktop: { flat: true, casters: 4 } } },
       cover: { look: ISLAND_LOOKS.cover, cull: { phone: { far: ISLAND_TIERS.phone.cover.far + 1, cells }, desktop: { far: ISLAND_TIERS.desktop.cover.far + 1, cells } } },

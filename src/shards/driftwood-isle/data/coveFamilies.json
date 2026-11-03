@@ -14,7 +14,12 @@
       "blender"
     ],
     "look": "cast",
-    "far": true
+    "far": true,
+    "fold": {
+      "palm2": "palm0",
+      "palm3": "palm1",
+      "palm4": "palm0"
+    }
   },
   "bpalm": {
     "name": "Broad-frond palm",
@@ -26,7 +31,11 @@
     ],
     "pipeline": "blender",
     "look": "cast",
-    "far": true
+    "far": true,
+    "fold": {
+      "bpalm2": "bpalm0",
+      "bpalm3": "bpalm1"
+    }
   },
   "cliff": {
     "name": "Crag plate",
@@ -78,7 +87,12 @@
       "shell3"
     ],
     "pipeline": "blender",
-    "look": "cover"
+    "look": "cover",
+    "fold": {
+      "shell1": "shell0",
+      "shell2": "shell0",
+      "shell3": "shell0"
+    }
   },
   "star": {
     "name": "Starfish",
@@ -88,7 +102,11 @@
       "star2"
     ],
     "pipeline": "blender",
-    "look": "cover"
+    "look": "cover",
+    "fold": {
+      "star1": "star0",
+      "star2": "star0"
+    }
   },
   "pebble": {
     "name": "Pebbles",
@@ -99,7 +117,12 @@
       "pebble3"
     ],
     "pipeline": "blender",
-    "look": "cover"
+    "look": "cover",
+    "fold": {
+      "pebble1": "pebble0",
+      "pebble2": "pebble0",
+      "pebble3": "pebble0"
+    }
   },
   "beachgrass": {
     "name": "Beach grass",
@@ -109,7 +132,11 @@
       "beachgrass2"
     ],
     "pipeline": "blender",
-    "look": "cover"
+    "look": "cover",
+    "fold": {
+      "beachgrass1": "beachgrass0",
+      "beachgrass2": "beachgrass0"
+    }
   },
   "tuft": {
     "name": "Grass tuft",
@@ -120,7 +147,11 @@
       "tuft3"
     ],
     "pipeline": "blender",
-    "look": "cover"
+    "look": "cover",
+    "fold": {
+      "tuft2": "tuft0",
+      "tuft3": "tuft1"
+    }
   },
   "fern": {
     "name": "Cove fern",
@@ -130,7 +161,11 @@
       "fern2"
     ],
     "pipeline": "blender",
-    "look": "big"
+    "look": "big",
+    "fold": {
+      "fern1": "fern0",
+      "fern2": "fern0"
+    }
   },
   "hibiscus": {
     "name": "Hibiscus clump",
@@ -140,7 +175,11 @@
       "hibiscus2"
     ],
     "pipeline": "blender",
-    "look": "big"
+    "look": "big",
+    "fold": {
+      "hibiscus1": "hibiscus0",
+      "hibiscus2": "hibiscus0"
+    }
   },
   "yellow": {
     "name": "Yellow flowers",
@@ -149,7 +188,10 @@
       "yellow1"
     ],
     "pipeline": "blender",
-    "look": "cover"
+    "look": "cover",
+    "fold": {
+      "yellow1": "yellow0"
+    }
   },
   "white": {
     "name": "White flowers",
@@ -158,7 +200,10 @@
       "white1"
     ],
     "pipeline": "blender",
-    "look": "cover"
+    "look": "cover",
+    "fold": {
+      "white1": "white0"
+    }
   },
   "bush": {
     "name": "Cove bush",
@@ -168,7 +213,11 @@
       "bush2"
     ],
     "pipeline": "blender",
-    "look": "big"
+    "look": "big",
+    "fold": {
+      "bush1": "bush0",
+      "bush2": "bush0"
+    }
   },
   "flowerbush": {
     "name": "Flowering bush",
@@ -177,6 +226,9 @@
       "flowerbush1"
     ],
     "pipeline": "blender",
-    "look": "big"
+    "look": "big",
+    "fold": {
+      "flowerbush1": "flowerbush0"
+    }
   }
 }

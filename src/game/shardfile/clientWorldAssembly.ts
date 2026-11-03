@@ -109,8 +109,9 @@ export async function installClientWorldAssembly(ctx: ShardContext, row: Extract
   // of them for the whole cell) before controls, once per resident; then each entry's tiles follow the player
   const owner = resident ?? scope;
   // G748 (shipped G761): beyond the render ring a shard that declares it (its drawn world tiled)
-  // draws its own near view for its occupied tiles; once per resident (its scene handles survive a re-entry)
-  if (row.farStandIn === true && !scenes.tiled().some(content => content.id === 'whole.refinement.coarse' || content.id === `${product.slug}.far-stand-in`)) {
+  // draws its own near view for its occupied tiles; once per resident (its scene handles survive a re-entry). A grid cell's
+  // tile streamer already draws the entered cell's L1 parents (T8), so there a stand-in drew each one twice (G913: 10 draws)
+  if (row.farStandIn === true && cube === null && !scenes.tiled().some(content => content.id === 'whole.refinement.coarse' || content.id === `${product.slug}.far-stand-in`)) {
     // Runtime-bound props bypass the data renderer. Prefer their actual T8
     // parents to a second near-view proxy; both use the same fine-ring mask.
     const standIn = source.props?.tiles.some(tile => tile.lod === 1)

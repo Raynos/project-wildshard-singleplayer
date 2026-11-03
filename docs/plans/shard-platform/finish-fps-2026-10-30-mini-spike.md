@@ -320,3 +320,39 @@ shader/resource joins: `tmp/sp-x8-grid-draws/{native-ledger.json,
 summary.json,audit.json,census.log,preview.log,retained-audit.json}`.
 Keep the cap open until an exact landed implementation earns capture
 parity, or an explicitly approved Opus look change meets it.
+
+**Met (2026-11-03, Opus; G872 ruling, G844 board
+`art/driftwood-grid-draws/round-1-g913/before-after-board.jpg`).**
+Native draws a frame, Chromium ANGLE Metal, iPhone 16 Pro 402 × 714 at
+2×, phone tier, Developer, seed 357, 120 frames after 20 s settle per
+pose. HEAD `0c3e3ca` preview → the same tree with the cuts:
+
+| Pose | Before max (p50) | After max (p50) |
+|---|---:|---:|
+| Spawn (0, −194, yaw π) | 191 (191) | **150 (150)** |
+| Cove (spawn, yaw −2.2) | 199 (177) | 166 (144) |
+| Trail (−22, −90, yaw 0.75π) | 153 (153) | 128 (128) |
+
+The cove maximum is one streaming frame after the pose jump, in both
+builds. Three cuts, all Driftwood-only (Pine and Nine untouched, G908;
+no multi-draw, E271):
+- **Grid double L1 (exact in intent, ~10 draws):** Driftwood's
+  `farStandIn` assembly installed every coarse L1 props tile itself
+  (`wholeRefinementCover`) while the grid's T8 ring drew the same tiles
+  (same bounds and index counts, 0.8 m apart). In a grid cell the
+  stand-in is now skipped (`clientWorldAssembly.ts`); standalone keeps it.
+  No difference shows at the three poses.
+- **Cove variant folds (look trade, ruled):** `coveFamilies.json`
+  `fold` draws a folded prototype's copies as a kept one of its family.
+  Every copy, tint, scale and collider stays; only the shape repeats.
+  Palms 5 → 2 and broad palms 4 → 2 (each kept variant is 2 LODs × main +
+  shadow), shell / star / pebble / beach grass / yellow / white / fern /
+  hibiscus / bush / flowering bush → 1, tufts 4 → 2. Ruling: it hides
+  best of the listed trades. Low-poly toon copies differ by rotation,
+  scale and tint, so the trail close-up still reads as a varied grove;
+  cover density and the ground wear are unchanged. Kit-still merge and
+  ring coverage were not needed.
+- No margin at spawn (150). Next lever, if content grows: phone-only
+  far-LOD palm shadows (palms past 110 m are outside the phone's 80 m
+  cascade, −4 draws). It needs a per-tier LOD shadow field, because
+  desktop's cascade reaches 220 m.
