@@ -2,6 +2,11 @@
   "schema": "open-plot-captures/1",
   "plots": [
     {
+      "slug": "open-plot-alien-plain",
+      "instance": "open-plot-4-0",
+      "cameras": "art/open-plots/alien-plain/domes"
+    },
+    {
       "slug": "open-plot-clockwork-canyon",
       "instance": "open-plot-4-3",
       "cameras": "art/open-plots/clockwork-canyon/domes"

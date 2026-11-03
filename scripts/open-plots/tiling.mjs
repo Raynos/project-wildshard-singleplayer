@@ -6,7 +6,7 @@ import {join,resolve} from 'node:path';
 import {parseArgs} from 'node:util';
 import {plotTilingReport} from './ob2.mjs';
 
-const ideas=['frostline-peaks','lantern-bayou','ember-forge','mosslight-ruins','coral-drift','fossil-badlands','desert-ruin','sky-harbor','starfall-observatory','thin-ice','clockwork-canyon'];
+const ideas=['frostline-peaks','lantern-bayou','ember-forge','mosslight-ruins','coral-drift','fossil-badlands','desert-ruin','sky-harbor','starfall-observatory','thin-ice','clockwork-canyon','alien-plain'];
 const {values}=parseArgs({options:{plot:{type:'string'},out:{type:'string'}}});
 const idea=values.plot?.replace(/^open-plot-/u,'');
 if(idea===undefined||values.out===undefined||idea!=='all'&&!ideas.includes(idea))throw new Error('Requires --plot=<registered idea|all> --out=NEW_DIR');
