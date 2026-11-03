@@ -135,6 +135,27 @@ stub commits. The maintained template admission and ordinary CURRENT /
 non-empty tiled-report guards remain intact. The foreign loose Jungle
 route remains outside these HEAD-only patches.
 
+**Clockwork walk qualification (2026-11-03, sp-x9).** Ordinary pinned
+all-product admission passed for `f1d64e700c019186e175e15aa7c1442d7babc883`,
+actual build `f1d64e7-mw14grkc`. The maintained `walk.mjs` ran under the browser
+lane, muted Chromium as iPhone 16 Pro, phone tier / 2×, live clock.
+One continuous leg reaches all **14 waypoints**, **0 stuck**, **0 out**,
+complete: final trace waypoint **13**, endpoint **(0.001, 0.02, -61.975)**, max Y
+**2.283 m**, reported route time **164.421 s**. Route source is the
+exact pin's `scripts/physics-route.json`, SHA-256
+`f530eb8647b457a2ac242ad2b1dc59805ec7c3864945188dadbda2d843dfd079`. No route, collider, controller or gate changed;
+no hovering or per-waypoint teleport.
+
+The final labelled board and all eight committed Clockwork golden views
+were read. G994's sparse works terraces, missing canyon walls/waterfalls
+and omitted plaza billboard stay explicit. The walk qualifies geometry
+only; final audio, matched performance/memory and official Simulator
+readings remain open for sp-x6's audio-containing candidate. Raw result
+and route remain in `tmp/sp-x9-op19/`; the browser is closed and the owned
+preview is released normally. Thin Ice's published final board was also
+read; its retained walk and hero numbers above are credited to sp-o2,
+not a duplicate run or final audio clearance.
+
 Jake, 2026-10-28: *"You're approved to go and do the park plan, the draft park plan, how to build the rest of the open
 plots."* This plan replaces Night Market pilot R1–R3 and remaster-open-plots RP2–RP4 (G774, G824). Decisions stay in
 [shard-platform/decisions.md](shard-platform/decisions.md) until this plan has its own file. Read at HEAD 2f074203c9.
@@ -263,8 +284,8 @@ The same eight steps for every plot. One lane owns a plot until it is done (G804
 | OP15 | **Built and on the grid (2026-11-03, sp-o3): landmark `bfe58c53e7` (Blender script), stars kit `647d7e7532`, tiles and layout `b316849cdc`, activation `d4d4b17674` (wire 4,873,412 B approved by wildshard-new; plaza poster dropped for tile 0/3/3 draws), 8 golden views and final board `ef737e7295` (road entry 123 draws, plaza 97), in-engine card art `47e3c11f9a`. Known gaps on the board: a mid-blue sky without stars, no plaza billboard, canals ring the plaza.** **Walk qualified (sp-x9):** exact `d4d4b17674` / `d4d4b17-mw13gps7`, one continuous leg / all 14 waypoints, 0 stuck / 0 out, complete. **Open:** audio/native bar 10 (sp-x6), matched performance/memory and official Simulator readings on the audio-containing candidate. Original inert OP3 stub `b725870570` is historical; actual instance `open-plot-3-4`, cell (1,2) | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP16 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Frostline Peaks (wave 4; builds the shared pines and snow) | Opus + Codex | 22 / 6 h | Steps 1–8; frees a repeat cell |
 | OP17 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Mosslight Ruins (wave 5) | Opus + Codex | 16 / 5 h | Steps 1–8; frees a repeat cell |
-| OP18 | **Inert OP3 stub (2026-11-03, sp-x9); visual build remains open.** Thin Ice: real instance `open-plot-1-4`, cell (-1,2); generic palette, unactivated descriptor, eight TEMPLATE domes and provisional walk/report inputs | Opus + Codex | 20 / 6 h | Steps 1–8 |
-| OP19 | **Built and on the grid (2026-11-03, sp-o3): clock tower `e45fc2a7de` (Blender script), clockwork kit `111dd6a283`, tiles and layout `7a672e59dc`, activation `9091bc1c56` (wire 5,503,249 B approved by wildshard-new), lamp-lined avenues `c40e60e600`, 8 golden views and final board `f1d64e700c` (road entry 115 draws, plaza 115), in-engine card art. Known gaps on the board: much sparser than round 62, no canyon walls or waterfalls. Open: walk and readings (sp-x9), audio (sp-x6), Jake plays it.** Inert OP3 stub (sp-x9). Clockwork Canyon: real instance `open-plot-4-3`, cell (2,1); generic palette, unactivated descriptor, eight TEMPLATE domes and provisional walk/report inputs | Opus + Codex | 22 / 6 h | Steps 1–8 |
+| OP18 | **Visual work complete (2026-11-03, sp-o2); audio and Codex readings open.** Thin Ice final lane geometry `4ec90cdc5f`, [final board](../../art/thin-ice/round-3-final/board.jpg), eight goldens and cards `6801d341a4` (published). Opus reports one maintained walk leg, 0 stuck / 0 out, complete. Reported phone 2× hero draws above/road/top/plaza 61/46/93/47; wire tightened to 2,053,521 B. These are visual-boundary figures, not final audio-containing performance/memory clearance. Actual instance `open-plot-1-4`, cell (-1,2). Known final-board gaps remain documented; X9/X6 qualify the joint audio candidate before closing | Opus + Codex | 20 / 6 h | Final audio/native bar 10, matched readings and official Simulator remain open |
+| OP19 | **Built and on the grid (2026-11-03, sp-o3): clock tower `e45fc2a7de` (Blender script), clockwork kit `111dd6a283`, tiles and layout `7a672e59dc`, activation `9091bc1c56` (wire 5,503,249 B approved by wildshard-new), lamp-lined avenues `c40e60e600`, 8 golden views and final board `f1d64e700c` (road entry 115 draws, plaza 115), in-engine card art. Known gaps on the board: much sparser than round 62, no canyon walls or waterfalls.** **Walk qualified (sp-x9):** exact `f1d64e700c` / `f1d64e7-mw14grkc`, one continuous leg / all 14 waypoints, 0 stuck / 0 out, complete. **Open:** audio/native bar 10 (sp-x6), matched performance/memory and official Simulator readings on the audio-containing candidate. Actual instance `open-plot-4-3`, cell (2,1); original inert OP3 stub `b725870570` is historical | Opus + Codex | 22 / 6 h | Steps 1–8 |
 | OP20 | **Inert OP3 stub (2026-11-03, sp-x9); visual build remains open with sp-o3.** Pastel Alien Plain: actual slug `open-plot-alien-plain`, instance `open-plot-4-0`, cell (2,-2); generic starter palette, inactive/off-card descriptor, eight TEMPLATE domes and provisional walk/report inputs | Opus + Codex | 22 / 6 h | Steps 1–8 |
 | OP21 | **Visual work complete (2026-11-03, sp-o2); audio and Codex readings open.** Fossil Badlands geometry `1617441602`, [final board](../../art/fossil-badlands/round-3-final/board.jpg) and eight goldens `0d9824ebd5`. Opus's maintained route completes one leg, 0 stuck / 0 out. Reported phone 2× hero draws above/road/top/plaza 70/54/107/56; wire 2,927,540 B. These are visual-boundary numbers, not final audio-containing performance/memory clearance. Actual instance `open-plot-1-0`, cell (-1,-2). X9/X6 qualify the joint audio candidate before closing | Opus + Codex | 22 / 6 h | Final audio/native bar 10, matched readings and official Simulator remain open |
 | OP22 | **Inert OP3 stub (2026-11-03, sp-x9); visual build remains open.** Floating Island Race: actual slug `open-plot-sky-race`, instance `open-plot-2-0`, cell (0,-2); generic starter palette, inactive/off-card descriptor, eight TEMPLATE domes and provisional walk/report inputs | Opus + Codex | 22 / 6 h | Steps 1–8 |
