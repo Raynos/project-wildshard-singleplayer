@@ -11,6 +11,8 @@ import {nameBlob} from '../src/sdk/blobs';
 import {SCRIPT_V2_REVISIONS} from '../src/format/scriptAdmissionV2';
 import {ridingModuleOptions,NALATI_RIDING_MODULE,NALATI_RIDING_WITNESS} from '../src/shards/nalati-grasslands/generators/ridingProgram';
 import {nalatiRidingSession} from '../src/shards/nalati-grasslands/generators/clientRiding';
+import {ClientRidingSessionSchema} from '../src/format/riding';
+import {nalatiNativeBoot} from './fixtures/nalati-native-boot';
 
 test('mounted ABI2 replaces one executable in the complete return/spawn inventory and names its ABI1 witness',async()=>{
   const candidate=programs.approach.v2,bytes=ridingModuleBytes;
@@ -33,9 +35,13 @@ test('mounted ABI2 replaces one executable in the complete return/spawn inventor
   expect(actual.bytes).toEqual(bytes);expect(actual.file.path).toBe(file);
   const raw=nameBlob(NALATI_RIDING_WITNESS,'bin',NALATI_RIDING_WITNESS_BYTES,{critical:true});
   expect(raw.bytes).toEqual(ridingWitnessBytes);expect(actual.file.dependencies).toEqual([raw.file.hash]);
-  const entry=output.namedFiles.find(row=>row.name==='sim/headless-boot.json'),payload=entry===undefined?undefined:output.assets.get(entry.hash);
+  const entry=output.namedFiles.find(row=>row.name==='riding/session.json'),payload=entry===undefined?undefined:output.assets.get(entry.hash);
   if(payload===undefined)throw new Error('Missing actual riding payload');
-  const input:unknown=JSON.parse(new TextDecoder().decode(payload)),boot=v.parse(v.record(v.string(),v.unknown()),input);
-  expect(boot['riding']).toEqual(wire);
+  const input:unknown=JSON.parse(new TextDecoder().decode(payload)),session=v.parse(ClientRidingSessionSchema,input);
+  expect({approach:session.programs.approach,breaking:session.programs.breaking,riding:session.programs.riding,initial:session.programs.initial})
+    .toEqual({approach:wire.approach,breaking:wire.breaking,riding:wire.riding,initial:wire.initial});
+  expect(session.preset).toEqual(wire.client);
+  expect((await nalatiNativeBoot()).riding).toEqual(wire);
+  expect(output.namedFiles.some(row=>row.name==='sim/headless-boot.json')).toBe(false);
   expect(output.namedFiles.some(row=>row.name==='ride/rules.json')).toBe(false);
 });

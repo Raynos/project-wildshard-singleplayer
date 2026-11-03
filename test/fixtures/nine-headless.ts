@@ -6,8 +6,8 @@ import { installGrapple } from './native-hosts/grapple/headless';
 import { parseGrappleProfile } from '../../src/format/grapple';
 import { installHostPortalRide } from '../../src/game/shardfile/portalRideBinding';
 import { installNativeItems } from '../../src/game/plugin/nativeItems';
-import type assembly from '../../src/shards/nine-dragon-stack/data/headlessAssembly.json';
 import { prepareReturns } from './headless-plan';
+import { nineNativeOracle } from './nine-native-oracle';
 import manifest from '../../src/shards/nine-dragon-stack/manifest.json' with {type:'json'};
 import {registerNativeWalkBounds} from './headless/nativeBounds';
 
@@ -16,8 +16,8 @@ export function nineHeadlessRuntime(rise: boolean): PrepareHeadlessRuntime {
 return async preparation => {
   const { product } = preparation;
   const shard = product.shardfile;
-  const { constants } = await product.json<{ constants: typeof assembly.constants }>('sim/headless-assembly.json');
   const lendReturns = await prepareReturns(preparation);
+  const { constants } = await nineNativeOracle();
   const payload = await product.json<{
     spawnY: number; pieces: unknown; entryProof: { lanes: number; steps: number; portalTransfers: number };
     portalRide: Parameters<typeof installHostPortalRide>[3];

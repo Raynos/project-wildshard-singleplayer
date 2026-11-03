@@ -6,7 +6,7 @@
       "kind": "elite.construct",
       "owner": "nalati.elites",
       "file": "sim/headless-assembly.json",
-      "admission": "sim/headless-boot.json",
+      "admission": "actors/wildlife.json",
       "fight": "nalati.qara-charge",
       "models": "nalati.trophies",
       "program": "elite.rules",

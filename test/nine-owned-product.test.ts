@@ -25,6 +25,7 @@ test('supplied source inputs own their executable, decals and entry proof', asyn
     bursts: { muzzle: burst, bite: burst, dock: burst, sparks: burst }, entryProof: { lanes: 1, steps: 2, portalTransfers: 3 },
     decals: { sources: { phone: { width: 1, height: 1, png: 'phone.png' }, desktop: { width: 2, height: 2, png: 'desktop.png' } } } };
   const supplied = emitNineOutput({ hash, bytes }, suppliedInputs);
+  expect(supplied.namedFiles.some(row => row.name === 'sim/headless-assembly.json')).toBe(false);
   expect(supplied.blobs.filter(row => row.name.startsWith('looks/jian-decal-')).map(row => row.source)).toEqual(['phone.png', 'desktop.png']);
   const constants = supplied.namedFiles.find(row => row.name === 'sim/headless-constants.json');
   const constantsBytes = constants === undefined ? undefined : supplied.assets.get(constants.hash);

@@ -10,7 +10,7 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import assembly from '../src/shards/nine-dragon-stack/data/headlessAssembly.json' with { type: 'json' };
 
 test.each([
-  { prepare: prepareHeadlessRuntime, expectedReads: ['assembly'] },
+  { prepare: prepareHeadlessRuntime, expectedReads: [] },
   { prepare: prepareNalati, expectedReads: ['assembly'] },
   { prepare: preparePine, expectedReads: [] },
   { prepare: prepareDriftwood, expectedReads: [] },

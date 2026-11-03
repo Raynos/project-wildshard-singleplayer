@@ -53,6 +53,7 @@ import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 import { need, readJson, prepareReturns } from './headless-plan';
 import {validateNalatiEncounterLoans,nalatiEncounterDriver} from './nalati-encounter-loans';
 import { nalatiGroupInputs } from './nalati-group-inputs';
+import { nalatiNativeBoot } from './nalati-native-boot';
 
 const physicsRows = originalNalatiPhysics();
 /** Optional encounter intake comes from the same admitted species/body book;
@@ -115,13 +116,13 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
     const nativeBake=bakeReader.read();
     const {room}=await product.json<{room:ArenaSealDimensions & {sealId:string;origin:{x:number;y:number;z:number}}}>('combat/room-entry.json');
     const bake = {...bakeMetadata,...nativeBake,solids:nativeArenaSealSolids(physicsRows,nativeBake.solids,room)};
-    const originalBoot = await (readJson<NativePopulationBootRows & {
+    const originalBoot: NativePopulationBootRows & {
         riding: NativeTamingRows["programs"] & {
             riding: unknown;
         };
         rest: NativeTamingRows["rest"];
         mountable: readonly string[];
-    }>(product, "sim/headless-boot.json"));
+    } = await nalatiNativeBoot();
     const nativeKnockdown = parsePopulationKnockdownSource(originalBoot.riding);
     const boot = encounters === undefined ? originalBoot : {
         ...originalBoot,

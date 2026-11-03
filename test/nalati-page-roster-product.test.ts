@@ -3,6 +3,8 @@ import { expect,test } from 'vitest';
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { CombatTargetRowsSchema } from '../src/format/targets';
+import { parseClientPlan } from '../src/format/clientPlan';
+import { nalatiNativeBoot } from './fixtures/nalati-native-boot';
 import combatTargets from '../src/shards/nalati-grasslands/data/combatTargets.json' with { type: 'json' };
 import { outputScriptAdmissionRows } from '../src/sdk/outputProduct';
 import { decisionModuleContracts } from '../src/format/scriptContract';
@@ -57,13 +59,18 @@ test('proof-only native physics stays byte-exact and out of the entered warm', (
   }
 });
 
-test('the shared assembly document retains the complete page elite roster and its contact lookup', () => {
+test('the shared assembly document retains the complete page elite roster and its contact lookup', async () => {
   const product = nalatiEnvelope;
-  const bootFile = product.output.namedFiles?.find(row => row.name === 'sim/headless-boot.json');
-  const bootBytes = bootFile === undefined ? undefined : product.assets.get(bootFile.hash);
-  if (bootBytes === undefined) throw new Error('Missing admitted combat target rows');
-  const boot = v.parse(v.object({ combatTargets: CombatTargetRowsSchema }), JSON.parse(new TextDecoder().decode(bootBytes)));
-  expect(boot.combatTargets).toEqual(combatTargets);
+  const nativeBoot = await nalatiNativeBoot();
+  expect(v.parse(CombatTargetRowsSchema,nativeBoot.combatTargets)).toEqual(combatTargets);
+  const planBytes = product.output.platform?.files.get('sections/client/plan.json');
+  if (planBytes === undefined) throw new Error('Missing admitted client plan');
+  const plan = parseClientPlan(JSON.parse(new TextDecoder().decode(planBytes)));
+  const targets = plan.features.find(row => row.kind === 'combat.targets');
+  expect(targets?.kind === 'combat.targets' ? targets.rows : undefined).toEqual(combatTargets);
+  const elite = plan.features.find(row => row.kind === 'elite.construct');
+  expect(elite?.kind === 'elite.construct' ? elite.admission : undefined).toBe('actors/wildlife.json');
+  expect(product.output.namedFiles?.some(row => row.name === 'sim/headless-boot.json')).toBe(false);
   const scripts=outputScriptAdmissionRows(product.output.platform);
   const sim = scripts.filter(row=>row.side==='sim');
   // The original eight stay; GR6 publishes the formerly inline course as the ninth.

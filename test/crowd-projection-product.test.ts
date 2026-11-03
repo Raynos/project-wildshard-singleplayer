@@ -36,9 +36,9 @@ test('the raw admission file retains the exact complete inline descriptor and se
   expect(wire.v2?.bytes).toBe('');
   const {output}=await import('./fixtures/nalati-output-original');
   const owned = nalatiAdmissionBlobs(NALATI_ADMISSION_PROGRAM);
-  const bootFile=output.namedFiles.find(row=>row.name==='sim/headless-boot.json');
+  const bootFile=output.namedFiles.find(row=>row.name==='actors/wildlife.json');
   const bootBytes=bootFile===undefined?undefined:output.assets.get(bootFile.hash);
-  if(bootBytes===undefined)throw new Error('Missing emitted native boot');
+  if(bootBytes===undefined)throw new Error('Missing emitted wildlife admission');
   const payload:unknown=JSON.parse(new TextDecoder().decode(bootBytes));
   expect(v.parse(v.object({admission:ReturnProgramSchema}),payload).admission).toEqual(wire);
   expect(v.parse(v.object({admission:v.record(v.string(),v.unknown())}),payload).admission).not.toHaveProperty('compiled');
