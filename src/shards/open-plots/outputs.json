@@ -1182,8 +1182,8 @@
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/alien-plain.jpg",
-          "portrait": "/src/shards/open-plots/thumbs/alien-plain.jpg",
-          "landscape": "/src/shards/open-plots/thumbs/alien-plain.jpg"
+          "portrait": "/src/shards/open-plots/thumbs/alien-plain-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/alien-plain-landscape.jpg"
         },
         "explore": {
           "art": {

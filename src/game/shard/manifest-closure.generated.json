@@ -314,6 +314,8 @@
     "src/shards/open-plots/data/nightMarketBootFiles.json",
     "src/shards/open-plots/data/nightMarketBootSources.json",
     "src/shards/open-plots/discovery.open-plot-alien-plain.generated.ts",
+    "src/shards/open-plots/thumbs/alien-plain-landscape.jpg",
+    "src/shards/open-plots/thumbs/alien-plain-portrait.jpg",
     "src/shards/open-plots/thumbs/alien-plain.jpg"
   ],
   "open-plot-clockwork-canyon": [
