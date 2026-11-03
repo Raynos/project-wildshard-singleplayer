@@ -2317,7 +2317,8 @@ candidate remains entirely off-tree; OP4's actual captures remain queued.
 
 ## CS3: Driftwood twelve-row pages (2026-11-03)
 
-**In flight: bytes and strict pixels qualify; loading remains open.**
+**Initial f84 reading: bytes/pixels qualified; loading missed. The later
+fix-forward closure below resolves loading and separates inherited G5.**
 Source `f84fb23bf34cb88bb0624ce503a52184a77bd9b8` consolidates twelve
 existing pier/log/foliage rows into three bounded native pages. Original
 IDs, order, device membership, resource/collider values and JSON wire are
@@ -2406,3 +2407,97 @@ would need a separately defined complete native transport and consumer
 audit; re-labelling those bodies as the existing placement-page grammar
 would weaken admission. No generation, loading pair, pixel capture or
 machine reservation was needed or claimed. CS3 as a whole remains open.
+
+
+### Driftwood loading regression: fix-forward closure
+
+**2026-11-03: the loading regression is resolved, without restoring the
+twelve-document transport.** `61cacd3f5813ee4e81cd676a40f0e783705c9d9b`
+moves complete native page decoding into verified metadata read-ahead;
+`241f1d9cdbcee953241e19526574b93f508b0231` revalidates the original read
+owner immediately after awaiting a prepared page. Existing sixteen-read
+parallelism and file deduplication already existed: they were not replaced
+by serial fetches. Full-page parsing had instead waited at the ordered
+admission cursor. It now runs while other verified metadata is pending.
+Both successful and failed parse results stay retained until that original
+cursor. No partial row publication, early rejection, skipped malformed
+member, schema/JSON guard, lifetime check, transport count or cap change.
+
+Three new real-parser/cursor/refusal controls plus original native page,
+read-pool and platform suites pass (four files, 7.8 s); the additional
+post-await owner guard passes its three-file focus (8.3 s), root types and
+touched typed lint. Hash-bound actual-input CPU comparison finds twelve
+old parses 4.357 ms versus three page parses 5.856 ms (20 alternating Node
+samples after four warmups). That explains added page validation work, not
+the entire previous 1.5–1.7 s shared-host loading miss.
+
+The one cause-directed immutable AFTER is exact
+`53dd955063aca925db357a583c4101db03720aec` / `53dd955-mw0atk0y`, including
+the separately required OB0 boot-inventory repair. All 460 bodies /
+79,875,291 B, their complete declarations and thirteen packs match the
+qualified f84 output exactly; index remains 944,607 B. The old 998 source,
+payload baseline and initial timing readings were retained, not repinned.
+
+| Native tap → control | Original 998 before | Regressed f84 | Fresh matched 998 before | Fixed 53dd |
+|---|---:|---:|---:|---:|
+| Cold | 45.2489 s | 46.7629 s | 58.5952 s | **44.8011 s** |
+| Warm | 23.2231 s | 24.8974 s | 27.3668 s | **23.0956 s** |
+
+Both clean maintained preset commands exit 0; all four controls qualify,
+errors are empty and accounting is complete. The fixed values are no
+worse than **both** the fresh matched and original historical BEFORE.
+Fresh recorded request rows are 1,168 → 1,165 cold and 872 → 855 warm.
+Native placement-admission spans move 67.2 → 1.7 ms cold and 73.8 → 0.1 ms
+warm: complete validation has left the late ordered cursor, not vanished.
+O1's existing counts cohort and X8's finite pure-Node component overlapped;
+retain raw measurements without claiming an isolated speedup, entire-run
+RCA or additive costs from overlapping spans. No further loading retry.
+
+### Pixel/source classification remains exact, not a tolerance
+
+The original f84 page consolidation retains its six strict A/A and six
+strict A/B zero-pixel comparisons. A fresh 998 → 53dd source contrast also
+crosses G5 `e31e8f5672` and other explicitly listed commits. After correcting
+a reader-only double-offer bug, native zero-budget settlement strictly
+holds frame/app-clock/camera, and gate query plus advance share one browser
+JS turn with the unchanged exact +1 guard. Phone A/A is zero at all three
+poses; phone A/B pier and beach are zero, but wreck **strictly refuses one
+pixel**, `(46,764)` green 216 → 215. Desktop after that refusal is unstarted.
+This contrast is not reported as twelve passing comparisons or zero.
+
+A bounded cause-only reading, on both exact source pins, observes actual
+submitted draws at that pixel. All six final full-image hashes, frame,
+clock and camera match the retained old/refused-new images exactly; the
+observer changes no pixels. It skips shadow/offscreen targets and restores
+read-framebuffer/read-buffer state, with native GL errors forbidden. Sky
+then ground write identical colors and have identical submitted shaders.
+The final changing draw in both normal render passes is
+`graph:material:driftwood-ocean`: old RGBA [214,216,214,255], new
+[214,215,214,255]. Submitted ocean fragment hashes are:
+
+- old: bf10ccb962cc840352372cb807abddfe26117479a4eb492af9a59831fd3e978c
+- new: adadbf113475a091eea8d2f9540846b163b9d7b06d9ce6237a905a9189a43d16
+
+Actual old/new vertex and fragment sources contain the exact pre-G5/G5
+emitted ocean bodies. The independent 47-graph source audit finds only
+ocean and gulls changed; all 45 others are exact. G5 owner sp-o3 concurs
+that this ocean edge is within its already accepted e31 performance class.
+**Self-applied G872:** classify this inherited compiler edge separately;
+do not alter the comparator, introduce a new pixel allowance, claim a
+bit-exact current cross-G5 image, or attribute it to page payload changes.
+No compiler revert or shard branch is introduced. Original page pixel
+proof and current identical payload/ordered-publication proof remain scoped
+to the page change; the raw current cross-G5 refusal remains visible.
+
+The first new capture refused before AFTER pixels because the scratch
+reader armed remaining=1, crossed a CDP gap and then rearmed advance(1).
+An unchanged-helper controlled case proves old 2→4 versus atomic 2→3;
+there is no production frame-budget change. The first cause observer also
+refused before target reads on its wrong renderer accessor, then used the
+maintained game.renderer path in the earned continuation. Both refusals
+are retained. A lost 53dd lease caused one replacement same-SHA snapshot
+(unplanned correctness CPU overlap disclosed); its 460 bodies/packs are
+exact too. No known-bad G5 prefix, working-tree preview or response override.
+All browsers, builds and own leases are literally closed. Compact source,
+shader and cause evidence is under tmp/sp-x2-cs3-driftwood-pages/; no new
+scene family or tier-copy retirement is credited by this loading closure.
