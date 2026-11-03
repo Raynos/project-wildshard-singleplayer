@@ -48,6 +48,7 @@ needs a mean of at least 6.5 and no view under 5.
 | [Lantern Bayou](lantern-bayou/board.jpg) | 4 | 5 | 4 | 6 | 6 | 6 | 5 | 4 | **5.00** | NOT YET |
 | [Ember Forge](ember-forge/board.jpg) | 5 | 6 | 5 | 6 | 6 | 4 | 4 | 4 | **5.00** | NOT YET |
 | [Mosslight Ruins](mosslight-ruins/board.jpg) | 4 | 5 | 4 | 6 | 5 | 4 | 5 | 4 | **4.62** | NOT YET |
+| [Patchwork Fairground](patchwork-fairground/) | 6 | 5 | 5 | 6 | 5 | 6 | 5 | 6 | **5.50** | NOT YET |
 
 The common pattern: every plot's **top-down matches its mockup's layout** (6–7), and every plot loses points at eye
 level, where the mockups show one huge landmark framed by dense dressing and the builds show a small landmark over wide
@@ -112,3 +113,6 @@ front of it).
 - 2026-11-03, Coral Drift 1: refreshed from OP26's run on `12ca83e456`
   (`../../golden-runs/open-plot-coral-drift/2026-11-03-12ca83e456-op26-board.jpg`): the road and kerb in front are G993's
   grid move (`109ef326d6`, Coral to (-2, 0)); the entry board stands higher and further from the lane (OP26).
+- 2026-11-03, Patchwork Fairground (OP7): first set, shot on `15efc85eee` through `capture.mjs` (grid entry, its cell by
+  slug); cameras are Coral's eight plot-local views. Scored against round 75: the helter-skelter road entry and the
+  wheel read; the plaza is bare and the rides small from the air (`../../patchwork-fairground/round-3-final/`).

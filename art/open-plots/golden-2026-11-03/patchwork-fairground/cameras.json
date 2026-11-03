@@ -1,0 +1,293 @@
+{
+  "schema": "golden-cameras/1",
+  "slug": "open-plot-patchwork-fairground",
+  "instance": "open-plot-0-0",
+  "origin": {
+    "x": -1125,
+    "z": -1125
+  },
+  "pitch": 562.5,
+  "convention": "Plot-local metres (x east, y up, z north; south entry z=-250, landmark at origin); world = plot-local + origin. Horizontal FOV 62 deg, portrait 402x603 (2:3), iPhone 16 Pro, phone tier, 2x. player = plot-local ground pose (x,z) the streaming anchor stands on while the free camera shoots.",
+  "views": [
+    {
+      "n": 1,
+      "name": "road-entry",
+      "label": "road entry, eye level",
+      "player": [
+        0,
+        -238
+      ],
+      "eye": [
+        0,
+        1.7,
+        -292
+      ],
+      "look": [
+        0,
+        10,
+        0
+      ],
+      "hfov": 62,
+      "aspect": "2:3",
+      "world": {
+        "eye": [
+          -1125,
+          1.7,
+          -1417
+        ],
+        "look": [
+          -1125,
+          10,
+          -1125
+        ],
+        "fov": 84.05610156309032
+      },
+      "inside": "open-plot-0-0"
+    },
+    {
+      "n": 2,
+      "name": "road-40m",
+      "label": "40 m over the road",
+      "player": [
+        0,
+        -238
+      ],
+      "eye": [
+        -35,
+        41.7,
+        -297
+      ],
+      "look": [
+        0,
+        0,
+        -90
+      ],
+      "hfov": 62,
+      "aspect": "2:3",
+      "world": {
+        "eye": [
+          -1160,
+          41.7,
+          -1422
+        ],
+        "look": [
+          -1125,
+          0,
+          -1215
+        ],
+        "fov": 84.05610156309032
+      },
+      "inside": "open-plot-0-0"
+    },
+    {
+      "n": 3,
+      "name": "neighbour-100m",
+      "label": "100 m over the neighbour",
+      "player": [
+        0,
+        -238
+      ],
+      "eye": [
+        -150,
+        101.7,
+        -430
+      ],
+      "look": [
+        0,
+        0,
+        0
+      ],
+      "hfov": 62,
+      "aspect": "2:3",
+      "world": {
+        "eye": [
+          -1275,
+          101.7,
+          -1555
+        ],
+        "look": [
+          -1125,
+          0,
+          -1125
+        ],
+        "fov": 84.05610156309032
+      },
+      "inside": "open-plot-0-0"
+    },
+    {
+      "n": 4,
+      "name": "top-down",
+      "label": "top-down",
+      "player": [
+        0,
+        -35
+      ],
+      "eye": [
+        0,
+        430,
+        -1
+      ],
+      "look": [
+        0,
+        0,
+        0
+      ],
+      "hfov": 62,
+      "aspect": "2:3",
+      "world": {
+        "eye": [
+          -1125,
+          430,
+          -1126
+        ],
+        "look": [
+          -1125,
+          0,
+          -1125
+        ],
+        "fov": 84.05610156309032
+      },
+      "inside": "open-plot-0-0"
+    },
+    {
+      "n": 5,
+      "name": "plaza-landmark",
+      "label": "plaza facing landmark",
+      "player": [
+        0,
+        -62
+      ],
+      "eye": [
+        0,
+        1.7,
+        -62
+      ],
+      "look": [
+        0,
+        11.25,
+        0
+      ],
+      "hfov": 62,
+      "aspect": "2:3",
+      "world": {
+        "eye": [
+          -1125,
+          1.7,
+          -1187
+        ],
+        "look": [
+          -1125,
+          11.25,
+          -1125
+        ],
+        "fov": 84.05610156309032
+      },
+      "inside": "open-plot-0-0"
+    },
+    {
+      "n": 6,
+      "name": "landmark-up",
+      "label": "beside landmark looking up",
+      "player": [
+        0,
+        -24
+      ],
+      "eye": [
+        3,
+        1.7,
+        -24
+      ],
+      "look": [
+        0,
+        21.25,
+        0
+      ],
+      "hfov": 62,
+      "aspect": "2:3",
+      "world": {
+        "eye": [
+          -1122,
+          1.7,
+          -1149
+        ],
+        "look": [
+          -1125,
+          21.25,
+          -1125
+        ],
+        "fov": 84.05610156309032
+      },
+      "inside": "open-plot-0-0"
+    },
+    {
+      "n": 7,
+      "name": "side-avenue",
+      "label": "east avenue, eye level",
+      "player": [
+        175,
+        0
+      ],
+      "eye": [
+        175,
+        1.7,
+        -2
+      ],
+      "look": [
+        0,
+        8,
+        0
+      ],
+      "hfov": 62,
+      "aspect": "2:3",
+      "world": {
+        "eye": [
+          -950,
+          1.7,
+          -1127
+        ],
+        "look": [
+          -1125,
+          8,
+          -1125
+        ],
+        "fov": 84.05610156309032
+      },
+      "inside": "open-plot-0-0"
+    },
+    {
+      "n": 8,
+      "name": "far-corner",
+      "label": "far NE corner, 15 m, back to landmark",
+      "player": [
+        222,
+        222
+      ],
+      "eye": [
+        222,
+        15,
+        222
+      ],
+      "look": [
+        0,
+        11.25,
+        0
+      ],
+      "hfov": 62,
+      "aspect": "2:3",
+      "world": {
+        "eye": [
+          -903,
+          15,
+          -903
+        ],
+        "look": [
+          -1125,
+          11.25,
+          -1125
+        ],
+        "fov": 84.05610156309032
+      },
+      "inside": "open-plot-0-0"
+    }
+  ]
+}
