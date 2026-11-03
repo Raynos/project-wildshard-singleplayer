@@ -276,6 +276,18 @@
    "outputs": ["public/assets/open-plots/jungle-ziggurat/landmark.glb", "public/assets/open-plots/jungle-ziggurat/landmark-far.glb"],
    "feeds": ["src/shards/open-plots/generators/tiledPlot.mjs"]
   },
+  "open-plots/fair": {
+   "about": "Patchwork Fairground's theme kit family (OPEN-PLOTS OP7): a carousel, a striped big top and the helter-skelter (the entry gate's variant) in kit.py's format, retinted by palette slot like open-plots/kit",
+   "script": "scripts/blender/open-plots/fair.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/open-plots/kit.py", "scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/model_source.py", "scripts/blender/lib/glb.py"],
+   "inputs": ["src/shards/open-plots/data/trim.json"],
+   "lock": false,
+   "build": ["fair.glb"],
+   "copy": [["fair.glb", "public/assets/open-plots/kit/fair.glb"]],
+   "outputs": ["public/assets/open-plots/kit/fair.glb"],
+   "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
+  },
   "open-plots/ferris": {
    "about": "Patchwork Fairground's landmark (OPEN-PLOTS OP7): the giant Ferris wheel on its square plinth as a script (thin lattice and spokes smear in image-to-3D); 40 m, red A-frame legs, a white double rim with lattice and 16 spokes a side, 12 red / sunflower / blue gondolas, the stair up +Z; one swatch atlas",
    "script": "scripts/blender/open-plots/ferris.py",
