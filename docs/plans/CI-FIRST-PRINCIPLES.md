@@ -3679,4 +3679,3 @@ seconds and hit/population counts remain for the next ordinary run.
 Evidence: sole retained root prepare raw above;
 `tmp/sp-x6-ci9-nalati-cold/` contains the source-bound profile/reading,
 codec six-leg bytes/timing, original/refusal controls and source hashes.
-
