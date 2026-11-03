@@ -91,7 +91,7 @@ they remain here because no live per-shard zero-plan files remain:
 | LD4-DW | Driftwood | Capture world-placed models and qualify conditional Set membership; declared rosters and nine literal Sets match. | open |
 | LD4-PH | Pine | Historical model/set coverage gap superseded by G966 retirement (`5abfc53bb9`); no parity pass is inferred. The adapter reports retired legacy admission as unavailable rather than an empty matching list. | superseded by G966 |
 | LD4-NG | Nalati | Qualify runtime-placed models, late map registrations and conditional Sets. Product-only species admission now resolves the complete 27-model declared catalogue exactly (recorded-cache capture below). | open |
-| LD4-ND | Nine | Enumerate native assembly registrations: fp-arms and six literal Sets are absent from the declaration-only adapter. Account for eight added POIs. This is a coverage gap, not proof the runtime lost them. | open |
+| LD4-ND | Nine | QD9 rerun on `cc40cad706`: fp-arms 1/1, six Sets 6/6, arenas 2/2 exact; all eight added manifest POIs traced below. Complete declared Set rows match the native weld owner. Geometry/look belongs to QD4/D184. | done list reconciliation (2026-11-03, sp-x2; G872 coordinator acceptance) |
 | LD4-FR | Far Reach | Qualify world-placed models; account for four added POIs. Declared eight-model rosters and arena lists match. | open |
 | LD4-SD | Sunscar | Qualify world-placed models and conditional/computed Set registration. Declared ten-model rosters and arena lists match. | open |
 
@@ -100,6 +100,68 @@ refuses its missing generated Far Reach discovery input; no allowance changed.
 The source audit is built; unresolved coverage is retained rather than counted
 as empty. LD5-LD8 remain unauthorized and untouched.
 
+
+
+### LD4-ND: QD9 list reconciliation (2026-11-03, sp-x2)
+
+The historical 1/0 model and 6/0 Set rows above are superseded for Nine
+by a fresh Node run against QD1-fixed **`cc40cad706f488ea551d70dac528e6d25548d291`**,
+actual served build `cc40cad-mw0s5xmq`. Its immutable Nine index hash is
+`fb09f9e414db0d95aea1d8c07d5ff1c1a150190bb4427b04cf549e83e8d3ab1f`.
+Existing `legacy-explorer-lists.ts --legacy/--shardfile nine-dragon-stack`
+runs in separate processes with that revision, product directory and
+index hash pinned. Every section/payload read retains original hash and
+length checks. The adapter and compared authored declarations have no
+source delta from that revision. No producer, renderer or browser runs.
+
+**No missing/added model, Set or arena identifier:**
+
+- Model: `nine-dragon-stack/fp-arms`, 1/1. NF9 `0215806142` already
+  restored the declared held card. Original three Explorer cases pass
+  (24.3 s), including exact registered metadata, six-welded-Set identity,
+  original presentation/owner/item/ambiguity refusals and no second bind.
+- Sets: `nine-dragon-stack/{night-market,lantern-square,stair-street,
+  well-rim,crossings,well-galleries}`, 6/6. Actual product member counts
+  are respectively **3, 12, 4, 4, 9, 4**. Every full declared row’s
+  id/name/file/place/members equals the same product’s `world/fabric.json`
+  Set row; this is checked from the pinned bytes, beyond id-only matching.
+  `game/shardfile/worldSceneWeld.ts` places each member through the native
+  handles then publishes each Set with its existing owner and registry.
+  Legacy conditional `members.length > 0` registration remains visible in
+  `world/sets.ts` and `world/squareProps.ts`; these current six rows are
+  nonempty. This qualifies registration coverage, not legacy geometry or
+  per-member byte/visual equivalence.
+- Arenas: `grapple`, `practice`, 2/2, unchanged.
+
+**The eight manifest additions are metadata, all unchanged since the
+original LD4 inventory:**
+
+| Added POI | x | z | r | Source / meaning |
+|---|---:|---:|---:|---|
+| lantern-square | 11 | −3 | 16 | existing named Lantern Square |
+| night-market | 19 | −17 | 6 | existing named Night Market |
+| stair-street | 46 | 6 | 24 | existing named stair-street |
+| well-rim | −14 | −14 | 18 | existing named Well rim |
+| portal-north | 0 | 236 | 8 | north road pin |
+| portal-east | 236 | 0 | 8 | east road pin |
+| portal-south | 0 | −236 | 8 | south road pin |
+| portal-west | −236 | 0 | 8 | west road pin |
+
+`generators/manifestRows.ts:64–69` builds the first four from the existing
+named-place list and `data/manifest.json`’s `PLACE_AT`, then the four road
+pins from `ROAD_PORTAL_PINS`; actual `ui/level` rows match those complete
+coordinates/radii. Legacy’s manifest has no POIs, while `legacy/places.ts`
+names all six existing regions. Crossings and Well galleries remain Sets;
+no fabricated map point is inferred for them. No eight new structures or
+new world placements are implied by these metadata additions.
+
+G872 coordinator accepts **LD4-ND’s list gap closed**. The historical
+all-shard JSON stays an immutable record, not a claim of current Nine
+coverage. **QD9/D184 stays open for sp-o1’s named Opus read of QD1/QD4’s
+24-camera legacy/shardfile/current boards on `cc40cad706`**: walls,
+floors, ceilings, props, facade/neon colours, exposure, sky/fog and hands.
+No pre-I3 parity is claimed: that old parent cannot build and the old
+cache is pruned. No runtime change or legacy deletion in this audit.
 
 ### LD4 Node admission follow-up
 
