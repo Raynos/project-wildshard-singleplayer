@@ -17,15 +17,28 @@ await runTickWorker(async raw => {
   const payload = v.parse(v.strictObject({ shard: v.unknown(), assets: v.map(v.string(), v.instance(Uint8Array)),
     kind: v.picklist(['driftwood', 'driftwood-trade', 'sky-verbs', 'pine', 'pine-verbs', 'nine', 'nine-flat', 'nalati', 'nalati-companions', 'nalati-weapons', 'nalati-predators', 'nalati-world', 'nalati-stealth', 'nalati-verbs', 'nalati-kokpar', 'nalati-chapter', 'nalati-king', 'nalati-qara', 'nalati-titan', 'nalati-practice', 'trusted', 'deferred']), directory: v.string(), binary: v.string(),
     sections: v.map(v.string(), v.unknown()), snapshot: v.exactOptional(v.string()) }), raw);
-  const shard = parseShardfile(payload.shard), rapier = await loadRapier(readFileSync(payload.binary));
+  const shard = parseShardfile(payload.shard);
+  // Source-only reconstruction overlaps independent worker admission. Observe
+  // its rejection immediately; every guard and the complete initial commit
+  // still finish inside the original request before a world becomes ready.
+  const pine = payload.kind === 'pine' ? await import('../pine-headless') : undefined;
+  const pineSources = pine?.preparePineNativeSources().then(
+    prepare => ({ok: true as const, prepare}), (error: unknown) => ({ok: false as const, error}));
+  const rapier = await loadRapier(readFileSync(payload.binary));
   await prepareAssetDecoders();
   validateShardfileAssets(shard, payload.assets, hashImmutableBytes, offlineMemoryAdmission('refuse'), undefined, scriptAdmissionRows(payload.sections));
+  if (pine !== undefined && pineSources !== undefined) {
+    const product = await loadHeadlessProduct(payload.directory);
+    const sources = await pineSources;
+    if (!sources.ok) throw sources.error;
+    return createNativeProofAdapter({shard, assets: pine.pineHeadlessAssets(payload.assets), rapier, product}, sources.prepare, payload.snapshot);
+  }
   let prepare: PrepareHeadlessRuntime, assets: ReadonlyMap<string, Uint8Array> = payload.assets;
   if (payload.kind === 'driftwood') prepare = (await import('../../proof/driftwood-isle/worker')).prepareHeadlessRuntime;
   else if (payload.kind === 'driftwood-trade') prepare = (await import('../driftwood-trade-native')).prepareHeadlessRuntime;
-  else if (payload.kind === 'pine' || payload.kind === 'pine-verbs') {
+  else if (payload.kind === 'pine-verbs') {
     const native = await import('../pine-headless');
-    prepare = payload.kind === 'pine-verbs' ? (await import('../pine-verbs')).prepareHeadlessRuntime : native.prepareHeadlessRuntime; assets = native.pineHeadlessAssets(payload.assets);
+    prepare = (await import('../pine-verbs')).prepareHeadlessRuntime; assets = native.pineHeadlessAssets(payload.assets);
   }
   else if (payload.kind === 'sky-verbs') prepare = (await import('../sky-verbs')).prepareHeadlessRuntime;
   else if (payload.kind === 'nine-flat') prepare = (await import('../nine-headless')).nineHeadlessRuntime(false);

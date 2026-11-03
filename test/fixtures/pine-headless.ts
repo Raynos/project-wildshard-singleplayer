@@ -38,7 +38,7 @@ import { proveTerrainEntries } from '@wildshard/game/plugin/mover';
 import { installNativeEliteFeature } from '@wildshard/game/quest/eliteFeature';
 import { readEliteFeature } from '@wildshard/game/quest/eliteFeature';
 import { trustedLevel } from '../../src/game/plugin/simulation';
-import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
+import type { PrepareHeadlessRuntime, HeadlessRuntimePreparation, HeadlessRuntimePlan } from '../../src/sdk/headlessRuntime';
 import { need, readJson, fresh, installCombatMotion, coalesce, prepareReturns } from './headless-plan';
 /** Fresh source child and typed parent must agree before native installation. */
 export function readPineNativeOracle(): Promise<ReturnType<typeof pineNativeOracleInputs>> {
@@ -54,10 +54,10 @@ export function pineHeadlessAssets(assets: ReadonlyMap<string, Uint8Array>): Map
   return supplied;
 }
 /** Direct calls preserve the Pine gameplay recorder without executable JSON selectors. */
-export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async preparation => {
+async function preparePineRuntime(preparation: HeadlessRuntimePreparation, sources?: ReturnType<typeof pineNativeOracleInputs>): Promise<HeadlessRuntimePlan> {
 const { product, assets, rapier } = preparation, shard = product.shardfile;
 const lendReturns = await prepareReturns(preparation);
-const constants = await readPineNativeOracle();
+const constants = sources ?? await readPineNativeOracle();
 const storyPolicy = await readJson<NativeQuestCompositionInput["rows"]>(product,"quests/native-story.json");
 const storySpots = await readJson<NativeQuestCompositionInput["spots"]>(product,"quests/native-spots.json");
 const bossView = await product.json<{projection:{encounter:{profile:unknown}}}>("combat/roaming.json");
@@ -124,4 +124,15 @@ const elites = installNativeEliteFeature(host,day,eliteRows);
 installNativeSpawnScript(host,day,nightRows);
 elites.initialize();
 }};
-};
+}
+
+/** Direct callers retain return admission before constructing their oracle. */
+export const prepareHeadlessRuntime: PrepareHeadlessRuntime = preparation => preparePineRuntime(preparation);
+
+/** Start only source-owned fact reconstruction inside the worker request. No
+ * product input, physics world or installer is constructed until the returned
+ * preparation is called after the independent worker asset/product checks. */
+export async function preparePineNativeSources(): Promise<PrepareHeadlessRuntime> {
+  const sources = await readPineNativeOracle();
+  return preparation => preparePineRuntime(preparation, sources);
+}

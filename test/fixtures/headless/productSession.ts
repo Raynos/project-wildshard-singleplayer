@@ -18,8 +18,14 @@ export async function beginProductSession(slug:string,variant?:ProductSessionVar
   if(variant!==undefined&&variantHosts[variant]!==slug)throw new Error('Native proof variant does not match product');
   const directory=builtProduct(slug),product=await loadHeadlessProduct(directory),source=product.shardfile;
   const descriptor=outputDescriptor(source);if(descriptor===undefined)throw new Error('Missing admitted headless inventory');
-  const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,
-    Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
+  const assets=new Map(descriptor.index.files.map(file=>{
+    const buffer=readFileSync(`${directory}/${file.path}`);
+    // A complete native buffer already owns exactly these bytes. Pooled views
+    // still copy so every admitted asset retains offset zero and exact storage.
+    const bytes=buffer.byteOffset===0&&buffer.byteLength===buffer.buffer.byteLength
+      ?new Uint8Array(buffer.buffer):Uint8Array.from(buffer);
+    return [file.commons===true?`commons:${file.hash}`:file.hash,bytes] as const;
+  }));
   const sections=productHeadlessSections(product);
   const nativeKinds={'driftwood-isle':'driftwood','pine-hollow':'pine','nine-dragon-stack':'nine','nalati-grasslands':'nalati'} as const;
   const nativeKind=variant??(!sections.has('sim/runtime-plan')&&(slug==='driftwood-isle'||slug==='pine-hollow'||slug==='nine-dragon-stack'||slug==='nalati-grasslands')?nativeKinds[slug]:undefined);
