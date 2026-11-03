@@ -1,0 +1,250 @@
+{
+  "protocol": "open-plot-comparison/1",
+  "idea": "ember-forge",
+  "width": 1206,
+  "height": 2622,
+  "quality": 84,
+  "bytes": 288216,
+  "provenance": [
+    {
+      "view": "above-neighbour",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/17-ember-forge.jpg",
+      "sha256": "5e9d28a52ddad3bd4a414685e201f15d2a52988c2538c8416c433854bf75f3da",
+      "crop": {
+        "left": 4,
+        "top": 84,
+        "width": 431,
+        "height": 645
+      }
+    },
+    {
+      "view": "above-neighbour",
+      "column": 1,
+      "file": "tmp/sp-o3-ember/hero/ember/above.png",
+      "sha256": "085f9c7de3de7ea3deed7dc75c04a36efdf5ab72e3abc9af5c0da9278577a7e7",
+      "pin": "837135050dd5241982fe1becbecbe85bb5ff9265",
+      "camera": {
+        "eye": [
+          0,
+          137.4665206583351,
+          -430
+        ],
+        "look": [
+          -1.162478116391961e-15,
+          134.32085505217393,
+          -420.5076458191756
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    },
+    {
+      "view": "above-neighbour",
+      "column": 2,
+      "file": "tmp/sp-o3-ember/hero/nm/above.png",
+      "sha256": "23afef161cb107399ba79fc8dd7c941ff466725395a333e62c85fce9b1ef2201",
+      "pin": "837135050dd5241982fe1becbecbe85bb5ff9265",
+      "camera": {
+        "eye": [
+          0,
+          137.4665206583351,
+          -430
+        ],
+        "look": [
+          -1.162478116391961e-15,
+          134.32085505217393,
+          -420.5076458191756
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    },
+    {
+      "view": "road-entry",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/17-ember-forge.jpg",
+      "sha256": "5e9d28a52ddad3bd4a414685e201f15d2a52988c2538c8416c433854bf75f3da",
+      "crop": {
+        "left": 446,
+        "top": 84,
+        "width": 431,
+        "height": 645
+      }
+    },
+    {
+      "view": "road-entry",
+      "column": 1,
+      "file": "tmp/sp-o3-ember/hero/ember/road.png",
+      "sha256": "8f98c2e6f3767cb65194c8951a8ce76fad3d3f6af78865ffa85222d27570f54f",
+      "pin": "837135050dd5241982fe1becbecbe85bb5ff9265",
+      "camera": {
+        "eye": [
+          3.1851220059155235e-9,
+          1.699628488300637,
+          -241
+        ],
+        "look": [
+          3.1851207834724273e-9,
+          2.299268553095083,
+          -231.01799460064797
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    },
+    {
+      "view": "road-entry",
+      "column": 2,
+      "file": "tmp/sp-o3-ember/hero/nm/road.png",
+      "sha256": "613dc01bbf9d302f8aabc25b678a96f0d54a1549ac7e2789067b4311d7636590",
+      "pin": "837135050dd5241982fe1becbecbe85bb5ff9265",
+      "camera": {
+        "eye": [
+          3.1851220059155235e-9,
+          1.699628488300637,
+          -241
+        ],
+        "look": [
+          3.1851207834724273e-9,
+          2.299268553095083,
+          -231.01799460064797
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    },
+    {
+      "view": "top-down",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/17-ember-forge.jpg",
+      "sha256": "5e9d28a52ddad3bd4a414685e201f15d2a52988c2538c8416c433854bf75f3da",
+      "crop": {
+        "left": 4,
+        "top": 744,
+        "width": 431,
+        "height": 654
+      }
+    },
+    {
+      "view": "top-down",
+      "column": 1,
+      "file": "tmp/sp-o3-ember/hero/ember/top.png",
+      "sha256": "f2cf4a4a56f5a9e36a84cb3dc077f164947235d785025dba060fcfb8890e56b1",
+      "pin": "837135050dd5241982fe1becbecbe85bb5ff9265",
+      "camera": {
+        "eye": [
+          0,
+          467.46652065833507,
+          -2
+        ],
+        "look": [
+          -2.5466319307877645e-17,
+          457.4686830164415,
+          -1.792051721969075
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    },
+    {
+      "view": "top-down",
+      "column": 2,
+      "file": "tmp/sp-o3-ember/hero/nm/top.png",
+      "sha256": "b9485d6d0cc0d4c37aeacc59d6958dd4962a4248e70fad1e4bc74468a2704178",
+      "pin": "837135050dd5241982fe1becbecbe85bb5ff9265",
+      "camera": {
+        "eye": [
+          0,
+          467.46652065833507,
+          -2
+        ],
+        "look": [
+          -2.5466319307877645e-17,
+          457.4686830164415,
+          -1.792051721969075
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    },
+    {
+      "view": "plaza",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/17-ember-forge.jpg",
+      "sha256": "5e9d28a52ddad3bd4a414685e201f15d2a52988c2538c8416c433854bf75f3da",
+      "crop": {
+        "left": 446,
+        "top": 744,
+        "width": 431,
+        "height": 654
+      }
+    },
+    {
+      "view": "plaza",
+      "column": 1,
+      "file": "tmp/sp-o3-ember/hero/ember/plaza.png",
+      "sha256": "065376c016f3a20e76d36ca884a068acde325b1f3e8a546fbd33f7be69d35664",
+      "pin": "837135050dd5241982fe1becbecbe85bb5ff9265",
+      "camera": {
+        "eye": [
+          0,
+          1.6996354128586022,
+          -61.999996889556925
+        ],
+        "look": [
+          -1.2090047326168986e-15,
+          3.292817479001062,
+          -52.127724055800655
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    },
+    {
+      "view": "plaza",
+      "column": 2,
+      "file": "tmp/sp-o3-ember/hero/nm/plaza.png",
+      "sha256": "2a5f75c2bdac5a51f8a112633f3fc4df7146036adbebc3aa67a5e9cbb16758fe",
+      "pin": "837135050dd5241982fe1becbecbe85bb5ff9265",
+      "camera": {
+        "eye": [
+          0,
+          1.6996354128586022,
+          -61.999996889556925
+        ],
+        "look": [
+          -1.2090047326168986e-15,
+          3.292817479001062,
+          -52.127724055800655
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    }
+  ]
+}
