@@ -9,6 +9,8 @@ count with identical pixels (Opus rows) or identical bytes (Codex rows). Jake ru
 counts). Non-graphics rows run on Codex (G963 / G969); graphics rows stay Opus (G848); no WASM-HOST work (G969).
 Phase HA7 of [HOST-AUDIT](../HOST-AUDIT.md) (G697); direction G696 ([decisions](../shard-platform/decisions.md)).
 
+**Reviews:** [One-user batch for Jake](../../reviews/custom-sections-one-user-batch.md) — `unread`, 58 unique retained files with per-file dispositions and the route to zero.
+
 **G988 (Jake, 2026-11-03 ~08:35):** zero = no `custom/` section and no named JSON outside a registered shared file type. **Codex lanes only**: every Z row marked Opus runs on Codex under a pixel-identical bar (G958); no Opus lane works this plan.
 
 Jake, 2026-11-03: *"all the custom sections have to be removed … they all have to be generic, high-quality hosts in
