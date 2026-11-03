@@ -27,6 +27,10 @@ const RUIN_SOLIDS = [
   [[-4.5, 0, -2.1, 4.5, 0.6, 2.1], [-4.5, 0, -2.1, 4.5, 1.2, 0.7], [-4.5, 0, -2.1, 4.5, 1.8, -0.7], [-4.5, 0, -2.1, 4.5, 3, -1.5]], // terrace
 ];
 
+/** the ruin courts' pieces and trees at round 62's scale (density toward round 62: an arch stands 10 m, a court's trees
+ *  over its walls), and the arches over the avenues: wide enough that the lane's 8 m walks under them */
+const COURT_SCALE = 1.4, TREE_SCALE = 1.25, AVENUE_ARCH = 1.3;
+
 /** A stable variant (0 to count - 1) for a piece at tile-local (x, z), so neighbours differ and every bake repeats. */
 const pick = (x, z, count, salt = 0) => (((Math.round(x * 4) * 7 + Math.round(z * 4) * 13 + salt) % count) + count) % count;
 
@@ -41,14 +45,15 @@ function mote(w, x, y, z, s = 0.12) {
   w.tri('Glow', top, b, a, c); w.tri('Glow', top, d, b, c); w.tri('Glow', top, a, d, c); w.tri('Glow', a, b, d, c);
 }
 
-/** A ruin piece at tile-local (x, z), turned `turns` quarter turns (its front from +z toward +x), and its colliders. */
-function ruin(w, piece, x, z, turns) {
+/** A ruin piece at tile-local (x, z), turned `turns` quarter turns (its front from +z toward +x), scaled `scale`, and its
+ *  colliders. */
+function ruin(w, piece, x, z, turns, scale = 1) {
   const yaw = turns * Math.PI / 2, c = Math.round(Math.cos(yaw)), s = Math.round(Math.sin(yaw));
   const [family, variant] = RUIN_MODELS[piece] ?? ['ruins', 0];
-  if (w.hasModel(family)) w.placeModel(family, variant, x, z, { yaw });
+  if (w.hasModel(family)) w.placeModel(family, variant, x, z, { yaw, scale });
   for (const [x0, y0, z0, x1, y1, z1] of RUIN_SOLIDS[piece] ?? []) {
-    const ax = x0 * c + z0 * s, az = -x0 * s + z0 * c, bx = x1 * c + z1 * s, bz = -x1 * s + z1 * c;
-    w.solid([x + Math.min(ax, bx), y0, z + Math.min(az, bz)], [x + Math.max(ax, bx), y1, z + Math.max(az, bz)]);
+    const ax = (x0 * c + z0 * s) * scale, az = (-x0 * s + z0 * c) * scale, bx = (x1 * c + z1 * s) * scale, bz = (-x1 * s + z1 * c) * scale;
+    w.solid([x + Math.min(ax, bx), y0 * scale, z + Math.min(az, bz)], [x + Math.max(ax, bx), y1 * scale, z + Math.max(az, bz)]);
   }
 }
 
@@ -85,15 +90,20 @@ function moss(w, p, x0, z0, x1, z1) {
 function ruinCourt(w, p, variant) {
   const m = variant === 0 ? 1 : -1;
   moss(w, p, -INNER, -INNER + 6, INNER, INNER);
-  ruin(w, 0, 0, 21, 0);
-  ruin(w, 0, m * 6, 0, 1);
-  ruin(w, 1, m * -18, 18, variant === 0 ? 0 : 1);
-  ruin(w, 1, m * 18, 18, variant === 0 ? 1 : 0);
-  ruin(w, 4, m * -19, -6, 1);
-  ruin(w, 3, m * 19, -4, 3);
-  ruin(w, 3, m * -6, -14, 0);
-  for (const [x, z] of [[-10, 8], [12, 10], [-18, -18], [18, -18]]) ruin(w, 2, m * x, z, 0);
-  for (const [x, z, size] of [[-23, -22, 10], [23, -21, 9], [-8, 14, 8], [9, -8, 11], [24, 6, 8], [-24, 6, 9], [-2, -22, 7]]) tree(w, p, m * x, z, size, pick(x, z, 4) * 0.8);
+  const k = COURT_SCALE;
+  ruin(w, 0, 0, 21, 0, k);
+  ruin(w, 0, m * 6, 0, 1, k);
+  // the walls' L 2 m further in than at scale 1: a quarter-turned wall's model reaches 7.1 m (9.9 m scaled) off its centre,
+  // which at 18 m would cross the court's border into an entry lane's footprint
+  ruin(w, 1, m * -16, 18, variant === 0 ? 0 : 1, k);
+  ruin(w, 1, m * 16, 18, variant === 0 ? 1 : 0, k);
+  ruin(w, 4, m * -19, -6, 1, k);
+  ruin(w, 3, m * 19, -4, 3, k);
+  ruin(w, 3, m * -6, -14, 0, k);
+  for (const [x, z] of [[-10, 8], [12, 10], [-18, -18], [18, -18]]) ruin(w, 2, m * x, z, 0, k);
+  // the two corner trees keep their size: a bigger crown reaches an entry court's road entry footprint
+  for (const [x, z, size] of [[-23, -22, 10], [23, -21, 9]]) tree(w, p, m * x, z, size, pick(x, z, 4) * 0.8);
+  for (const [x, z, size] of [[-8, 14, 8], [9, -8, 11], [24, 6, 8], [-24, 6, 9], [-2, -22, 7]]) tree(w, p, m * x, z, size * TREE_SCALE, pick(x, z, 4) * 0.8);
   for (const [x, z] of [[-6, 4], [6, -4], [0, 14], [-14, -8], [14, -10], [-3, -6]]) mote(w, m * x, 1.0 + pick(x, z, 3) * 0.6, z);
   for (const x of [-5, 5]) lamp(w, p, x, -INNER + 3, 0);
 }
@@ -119,9 +129,9 @@ function emeraldPool(w, p, variant) {
   for (const [a, b] of [[[x0 - 1.2, z0 - 1.2], [x1 + 1.2, z0]], [[x0 - 1.2, z1], [x1 + 1.2, z1 + 1.2]]]) w.solid([a[0], 0, a[1]], [b[0], 0.6, b[1]]);
   for (const [a, b] of [[[x0 - 1.2, z0], [x0, z1]], [[x1, z0], [x1 + 1.2, z1]]]) w.solid([a[0], 0, a[1]], [b[0], 0.6, b[1]]);
   for (let k = 0; k < 3; k++) w.box('Kit', [-3.6, -DEPTH, z0 + k * 0.9], [3.6, -k * 0.2 - 0.05, z0 + (k + 1) * 0.9], p.stone, p.stoneTop);
-  ruin(w, 3, 0, z1 + 6, 2);
-  ruin(w, 2, variant === 0 ? 20 : -20, -20, 0);
-  for (const [x, z, size] of [[-22, 22, 10], [22, 21, 9]]) tree(w, p, x, z, size, pick(x, z, 4) * 0.8);
+  ruin(w, 3, 0, z1 + 6, 2, COURT_SCALE);
+  ruin(w, 2, variant === 0 ? 20 : -20, -20, 0, COURT_SCALE);
+  for (const [x, z, size] of [[-22, 22, 10], [22, 21, 9]]) tree(w, p, x, z, size * TREE_SCALE, pick(x, z, 4) * 0.8);
   // the pool's own glow on the water and on the coping, and motes over it
   pool(w, 0, 0, 20, p.poolGlow ?? p.pool, -DEPTH + 0.06);
   for (const [x, z] of [[-9, -6], [7, -10], [-4, 9], [11, 6], [0, -1], [-12, 11], [13, -13]]) mote(w, x, 0.6 + pick(x, z, 3) * 0.5, z);
@@ -134,24 +144,31 @@ function farMoss(w, p, type, variant) {
   if (type === 'E') {
     const [x0, z0, x1, z1] = POOL;
     w.floor('far', x0, z0, x1, z1, 0.04, p.water);
-    w.box('far', [-6, 0, z1 + 4.4], [6, 3, z1 + 7.6], p.stone);
+    w.box('far', [-8.4, 0, z1 + 3.8], [8.4, 4.2, z1 + 8.2], p.stone);
     return;
   }
   const m = variant === 0 ? 1 : -1;
   for (const [x, z, hx, hz, h] of [[0, 20, 4.8, 1, 9], [-17, 17, 5, 1, 6], [18, 19, 4.5, 2, 3], [-19, -2, 1.6, 6, 4], [18, 0, 2, 2, 1.6]]) {
-    w.box('far', [m * x - hx, 0, z - hz], [m * x + hx, h, z + hz], p.stone);
+    const k = COURT_SCALE;
+    w.box('far', [m * x - hx * k, 0, z - hz * k], [m * x + hx * k, h * k, z + hz * k], p.stone);
   }
-  for (const [x, z, size] of [[-22, -16, 10], [22, -14, 9], [10, 10, 11]]) w.box('far', [m * x - size * 0.4, 1, z - size * 0.4], [m * x + size * 0.4, size, z + size * 0.4], p.foliage);
+  for (const [x, z, crown] of [[-22, -16, 10], [22, -14, 9], [10, 10, 11]]) {
+    const size = crown * TREE_SCALE;
+    w.box('far', [m * x - size * 0.4, 1, z - size * 0.4], [m * x + size * 0.4, size, z + size * 0.4], p.foliage);
+  }
 }
 
 /** The plaza's ruin dressing (r1 look loop: the shared plaza read as bare grey paving round the tower): a rubble heap
  *  mid-quarter and column stumps toward its outer edges, clear of the gate (its corner is (HALF, -HALF)), the rings (36 m,
- *  52 m), the lane beds and the planter. The moss in its joints is `jointMoss`. */
-function mossPlaza(w) {
-  ruin(w, 2, 0, 0, 0);
+ *  52 m), the lane beds and the planter. The moss in its joints is `jointMoss`. Round 62's tower stands among trees: two
+ *  big ones a quarter, 22 to 40 m off the tower, between the rings' lanterns and outside the lane beds. */
+function mossPlaza(w, p) {
+  ruin(w, 2, 0, 0, 0, COURT_SCALE);
   ruin(w, 3, 0, 22.4, 0);
   ruin(w, 3, -22.4, 0, 1);
   for (const [x, z] of [[-6, 10], [8, -6], [-18, -18]]) mote(w, x, 1.1 + pick(x, z, 3) * 0.5, z);
+  // (a, b): metres from the tower along the tile's two lanes into it
+  for (const [a, b, size] of [[20, 40, 12], [40, 20, 11]]) tree(w, p, HALF - a, -HALF + b, size, pick(a, b, 4) * 0.8);
 }
 
 /** The gardens' ruin dressing: a rubble heap in two lawn corners, clear of its trees and its pond. */
@@ -164,6 +181,7 @@ function mossGarden(w) {
  *  (3 m either side of the seam), moss at its foot, and motes low along the lane; the four road entries stay clear. */
 function mossLane(w, p, side, centre) {
   const along = (u, off, y) => (side === 0 ? [u, y, HALF + off] : [HALF + off, y, -u]);
+  if ((side === 0 ? centre[1] : centre[0]) + HALF === 0) { avenue(w, p, side, centre, along); return; }
   const clear = (x, z) => { const wx = centre[0] + x, wz = centre[1] + z, margin = 1.5;
     return (Math.abs(wx) < 4 + margin && Math.abs(wz) > 235 - margin) || (Math.abs(wz) < 4 + margin && Math.abs(wx) > 235 - margin) || Math.hypot(wx, wz) < 30; };
   for (const off of [-3, 3]) for (const u of [-HALF + 4, HALF - 4]) {
@@ -176,6 +194,31 @@ function mossLane(w, p, side, centre) {
   for (const [u, off, y] of [[-HALF * 0.6, -2.6, 1.2], [HALF * 0.2, 2.6, 1.6], [HALF * 0.7, -2.6, 1.0]]) {
     const [x, , z] = along(u, off, y);
     if (!clear(x, z)) mote(w, x, y, z);
+  }
+}
+
+/** where an avenue's arches stand (plot metres along it: one framing the tower from the plaza's south edge, one over the
+ *  pools, one framing the road entry, short of its 15 m footprint, contentBounds ENTRY_ASPHALT, which must stay clear),
+ *  and its lamp posts */
+const ARCHES = [48, 160, 226], LAMPS = [70, 96, 122, 186, 206, 230];
+
+/** One of the four avenues from a road entry to the tower (the seams on x = 0 and z = 0), as round 62's entry and plaza
+ *  views frame it: an ivy arch across the lane at each of ARCHES, its piers just off the lane's 8 m so the walk passes
+ *  under, a green lamp post either side at each of LAMPS, and motes low along it. `along(u, off, y)` is the seam's
+ *  tile-local point. */
+function avenue(w, p, side, centre, along) {
+  const reach = u => Math.abs(side === 0 ? centre[0] + u : centre[1] - u);
+  // the seam's points (u) whose distance along the avenue is one of `list`, on either side of the plaza
+  const at = list => list.flatMap(r => [r, -r]).map(r => (side === 0 ? r - centre[0] : centre[1] - r)).filter(u => u >= -HALF && u < HALF);
+  // each arch's front (its ivy face) looks out along the avenue toward its road entry, as an arriving player sees it
+  for (const u of at(ARCHES)) {
+    const [x, , z] = along(u, 0, 0), outward = side === 0 ? centre[0] + u > 0 : centre[1] - u > 0;
+    ruin(w, 0, x, z, side === 0 ? (outward ? 1 : 3) : (outward ? 0 : 2), AVENUE_ARCH);
+  }
+  for (const u of at(LAMPS)) for (const off of [-3.6, 3.6]) { const [x, , z] = along(u, off, 0); lamp(w, p, x, z, 0); }
+  for (const [u, off, y] of [[-HALF * 0.6, -2.6, 1.2], [HALF * 0.2, 2.6, 1.6], [HALF * 0.7, -2.6, 1.0]]) {
+    const [x, , z] = along(u, off, y);
+    if (reach(u) > 30 && reach(u) < ARCHES[2]) mote(w, x, y, z);
   }
 }
 
