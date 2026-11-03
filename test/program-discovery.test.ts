@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Build fixtures own and remove only their temporary directories.
 import { closeSync, existsSync, mkdirSync, mkdtempSync, openSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve owned fixture paths.
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Evaluate the emitted literal, without executing imports or loaders.
 import { runInNewContext } from 'node:vm';
 import * as ts from '@typescript/typescript6';
@@ -13,8 +13,8 @@ import { writeOutputProduct } from '../src/sdk/outputProduct';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parseManifestMetadata } from '../src/format/minimap';
 import { readProgramDiscovery, usesProgramDiscovery } from '../scripts/program-discovery.mjs';
-import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
-import { refreshDiscovery } from '../scripts/gen-shards.mjs';
+import { authoredManifestSource, shardManifestPath } from '../scripts/authored-manifest.mjs';
+import { refreshDiscovery, relocateDiscoverySource } from '../scripts/gen-shards.mjs';
 import { registerGpuFiles, standIn } from '../src/engine/boot/gpuFiles';
 import { TIER } from '../src/engine/core/tier';
 
@@ -49,7 +49,9 @@ function providerFixture(): { readonly root: string; readonly directory: string;
   mkdirSync(directory, { recursive: true });
   writeFileSync(resolve(directory, 'manifest.json'), JSON.stringify({ slug, card: {}, sky: {}, minimap: {}, explore: {}, horizonStrips: [],
     bindings: { accent: '#123456', budgets: { program: true } } }));
-  return { root, directory, file: resolve(directory, 'discovery.generated.ts') };
+  const file = resolve(root, shardManifestPath(root, slug));
+  mkdirSync(resolve(root, 'out/.app'), { recursive: true });
+  return { root, directory, file };
 }
 
 test('discovery refresh retains the complete old module when its current receipt refuses', () => {
@@ -63,8 +65,8 @@ test('discovery refresh retains the complete old module when its current receipt
     expect(readFileSync(f.file, 'utf8')).toBe(old); expect(statSync(f.file).ino).toBe(inode);
     expect(() => readProgramDiscovery(f.root, slug, options)).toThrow('index receipt differs');
     putReceipt(f.root, original); refreshDiscovery(f.root);
-    expect(readFileSync(f.file, 'utf8')).toBe(authoredManifestSource(f.root, slug, { discovery }));
-    expect(readdirSync(f.directory).filter(file => file.endsWith('.tmp'))).toEqual([]);
+    expect(readFileSync(f.file, 'utf8')).toBe(relocateDiscoverySource(f.root, {slug,folder:slug,output:null}, authoredManifestSource(f.root, slug, { discovery })));
+    expect(readdirSync(dirname(f.file)).filter(file => file.endsWith('.tmp'))).toEqual([]);
   } finally { vi.unstubAllEnvs(); rmSync(f.root, { recursive: true, force: true }); }
 });
 
@@ -74,7 +76,7 @@ test('missing discovery stays absent on refusal and is initialized only from a v
     vi.stubEnv('WS_TEST_PRODUCTS_SHA', sha); vi.stubEnv('VERCEL_GIT_COMMIT_SHA', sha);
     refreshDiscovery(f.root); expect(existsSync(f.file)).toBe(false);
     build(f.root); refreshDiscovery(f.root);
-    expect(readFileSync(f.file, 'utf8')).toBe(authoredManifestSource(f.root, slug, { discovery }));
+    expect(readFileSync(f.file, 'utf8')).toBe(relocateDiscoverySource(f.root, {slug,folder:slug,output:null}, authoredManifestSource(f.root, slug, { discovery })));
     const inode = statSync(f.file).ino; refreshDiscovery(f.root);
     expect(statSync(f.file).ino).toBe(inode);
   } finally { vi.unstubAllEnvs(); rmSync(f.root, { recursive: true, force: true }); }
@@ -88,8 +90,8 @@ test('discovery replacement is atomic for an already-open reader and leaves no s
     build(f.root); writeFileSync(f.file, old); reader = openSync(f.file, 'r');
     refreshDiscovery(f.root);
     expect(readFileSync(reader, 'utf8')).toBe(old);
-    expect(readFileSync(f.file, 'utf8')).toBe(authoredManifestSource(f.root, slug, { discovery }));
-    expect(readdirSync(f.directory).filter(file => file.endsWith('.tmp'))).toEqual([]);
+    expect(readFileSync(f.file, 'utf8')).toBe(relocateDiscoverySource(f.root, {slug,folder:slug,output:null}, authoredManifestSource(f.root, slug, { discovery })));
+    expect(readdirSync(dirname(f.file)).filter(file => file.endsWith('.tmp'))).toEqual([]);
   } finally { if (reader !== undefined) closeSync(reader); vi.unstubAllEnvs(); rmSync(f.root, { recursive: true, force: true }); }
 });
 

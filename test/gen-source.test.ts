@@ -131,8 +131,8 @@ test('the committed composition table needs only declarations and preserves outp
     ];
     write('src/game/grid/singleplayer.json', { placements });
     const source = shardSource(root);
-    expect(source).toContain("import m0 from './shards/island/discovery.island-east.generated'");
-    expect(source).toContain("import m1 from './shards/island/discovery.island-west.generated'");
+    expect(source).toContain("import m0 from '../out/.app/discovery.island.island-east.generated'");
+    expect(source).toContain("import m1 from '../out/.app/discovery.island.island-west.generated'");
     expect(source).toContain('grid: [1,0], size: [500,500,500], instance: "east"');
     expect(source).toContain('export const LEGACY_SHARDS: ShardManifest[] = []');
     expect(source).toContain('placed.sort((a, b) => a.order - b.order)');
@@ -172,8 +172,8 @@ test('the committed closure follows authored static edges with no product or dis
     write('scripts/manifest-art-inputs.json', JSON.stringify({ island: [{ file: 'data/art.json', field: ['extra'] }] }));
     write('src/shards/island/data/art.json', JSON.stringify({ extra: ['/src/shards/island/extra.webp'] }));
     expect(manifestClosure(root)).toEqual({ island: [
-      'src/game/shard/manifest.ts', 'src/game/shard/visible.ts', 'src/shards/island/card.webp',
-      'src/shards/island/data/runtimeCost.json', 'src/shards/island/discovery.generated.ts',
+      'out/.app/discovery.island.generated.ts', 'src/game/shard/manifest.ts', 'src/game/shard/visible.ts', 'src/shards/island/card.webp',
+      'src/shards/island/data/runtimeCost.json',
       'src/shards/island/extra.webp', 'src/shards/island/manifest.json',
     ] });
     const emitted = authoredManifestSource(root, 'island', { metadataOnly: true, discovery: {

@@ -431,6 +431,7 @@
     "src/shards/open-plots/thumbs/ember-forge.jpg"
   ],
   "open-plot-fossil-badlands": [
+    "out/.app/discovery.open-plots.open-plot-fossil-badlands.generated.ts",
     "src/engine/core/config.ts",
     "src/engine/core/noise.ts",
     "src/engine/core/rng.ts",
@@ -455,7 +456,6 @@
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
     "src/game/shardfile/fileInputs.ts",
-    "src/shards/open-plots/discovery.open-plot-fossil-badlands.generated.ts",
     "src/shards/open-plots/thumbs/card.jpg"
   ],
   "open-plot-frostline-peaks": [
@@ -489,6 +489,7 @@
     "src/shards/open-plots/thumbs/frostline-peaks.jpg"
   ],
   "open-plot-jungle-ziggurat": [
+    "out/.app/discovery.open-plots.open-plot-jungle-ziggurat.generated.ts",
     "src/engine/core/config.ts",
     "src/engine/core/noise.ts",
     "src/engine/core/rng.ts",
@@ -513,7 +514,6 @@
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
     "src/game/shardfile/fileInputs.ts",
-    "src/shards/open-plots/discovery.open-plot-jungle-ziggurat.generated.ts",
     "src/shards/open-plots/thumbs/card.jpg"
   ],
   "open-plot-lantern-bayou": [
@@ -607,6 +607,7 @@
     "src/shards/open-plots/thumbs/night-market.jpg"
   ],
   "open-plot-patchwork-fairground": [
+    "out/.app/discovery.open-plots.open-plot-patchwork-fairground.generated.ts",
     "src/engine/core/config.ts",
     "src/engine/core/noise.ts",
     "src/engine/core/rng.ts",
@@ -631,10 +632,10 @@
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
     "src/game/shardfile/fileInputs.ts",
-    "src/shards/open-plots/discovery.open-plot-patchwork-fairground.generated.ts",
     "src/shards/open-plots/thumbs/card.jpg"
   ],
   "open-plot-saltwind-lighthouse": [
+    "out/.app/discovery.open-plots.open-plot-saltwind-lighthouse.generated.ts",
     "src/engine/core/config.ts",
     "src/engine/core/noise.ts",
     "src/engine/core/rng.ts",
@@ -659,7 +660,6 @@
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
     "src/game/shardfile/fileInputs.ts",
-    "src/shards/open-plots/discovery.open-plot-saltwind-lighthouse.generated.ts",
     "src/shards/open-plots/thumbs/card.jpg"
   ],
   "open-plot-showcase-template": [

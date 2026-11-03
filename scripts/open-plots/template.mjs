@@ -105,7 +105,7 @@ export function plotTemplate(root, raw, { activateExisting = false } = {}) {
     paths.set('src/shards/open-plots/outputs.json', json(declared));
     paths.set('src/game/grid/singleplayer.json', json(grid));
     paths.set('src/shards/open-plots/data/map.json', json(map));
-    registerProduct(paths, root, recipe.slug, before);
+    if (previous === undefined) registerProduct(paths, root, recipe.slug, before);
   }
   addPlotCameras(paths, root, { slug: recipe.slug, instance: cell.instance, reference: recipe.reference, layout: activate ? layoutPath : 'src/shards/open-plots/outputs.json', template: true }, before);
   for (const path of paths.keys()) if (!before.has(path)) before.set(path, existsSync(resolve(root, path)) ? readFileSync(resolve(root, path), 'utf8') : null);
@@ -115,13 +115,11 @@ export function plotTemplate(root, raw, { activateExisting = false } = {}) {
 /** Register a new declaration without granting wire or tile debt. Its first normal build measures its wire row.
  * @param {Map<string,string>} paths @param {string} root @param {string} slug */
 function registerProduct(paths, root, slug, before) {
-  const discovery = `src/shards/open-plots/discovery.${slug}.generated.ts`;
+  // gen-shards emits each new declaration into out/.app; never add generated source debt.
   const outputsPath = 'scripts/source-generation-outputs.json', outputs = read(root, outputsPath, before);
+  const discovery = `out/.app/discovery.open-plots.${slug}.generated.ts`;
   if (!outputs.producers['scripts/gen-shards.mjs'].includes(discovery)) outputs.producers['scripts/gen-shards.mjs'].push(discovery);
   paths.set(outputsPath, json(outputs));
-  if (!before.has('.gitignore')) before.set('.gitignore', readFileSync(resolve(root, '.gitignore'), 'utf8'));
-  const ignore = before.get('.gitignore');
-  paths.set('.gitignore', ignore.includes(`/${discovery}\n`) ? ignore : `${ignore}/${discovery}\n`);
   const testsPath = 'scripts/test-products.json', tests = read(root, testsPath, before);
   if (!tests['test/shipped-graph-cost.test.ts'].includes(slug)) tests['test/shipped-graph-cost.test.ts'].push(slug);
   tests['test/shipped-graph-cost.test.ts'].sort(); paths.set(testsPath, json(tests));

@@ -1,12 +1,13 @@
 // D8 exception: small source declarations only, never asset/product generation.
-import { existsSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { authoredManifestSource, productManifestPath } from './authored-manifest.mjs';
 import { manifestFolders, outputManifest, shardProducts } from '../scripts/shard-outputs.mjs';
 import { genStarterArmClips } from '../scripts/gen-starter-arm-clips.mjs';
 import { genStarterWeapons } from '../scripts/gen-starter-weapons.mjs';
 import { genStarterBag } from '../scripts/gen-starter-bag.mjs';
 import { genStarterEffects } from '../scripts/gen-starter-effects.mjs';
+import { relocateDiscoverySource } from './gen-shards.mjs';
 
 /** @param {string} root */
 export function pushTables(root) {
@@ -14,9 +15,11 @@ export function pushTables(root) {
   for (const product of shardProducts(root, manifestFolders(root))) {
     if (!existsSync(resolve(root, 'src/shards', product.folder, 'manifest.json'))) continue;
     const composed = product.output === null ? null : outputManifest(root, product.folder, product.output);
-    writeFileSync(resolve(root, productManifestPath(root, product)), authoredManifestSource(root, product.slug, {
+    const path = resolve(root, productManifestPath(root, product));
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, relocateDiscoverySource(root, product, authoredManifestSource(root, product.slug, {
       folder: product.folder, composed, generation: true, metadataOnly: true,
-    }));
+    })));
   }
 }
 

@@ -25,8 +25,10 @@ the template refuses to overwrite its modified content.
 
 A new slug needs a `cell: [x,z]` and an explicit `replaces` old plot slug when
 the selected cell is unique. The command keeps its instance and all 25 origins,
-checks uniqueness, adds a standalone placement and registers discovery, test
-coverage and zero custom-section/tile debt. It grants no guessed wire ceiling.
+checks uniqueness, adds a standalone placement and registers discovery under
+`out/.app` in the complete generated-input inventory, test coverage and zero
+custom-section/tile debt. It grants no guessed wire ceiling or generated-src
+allowance. Existing reviewed discovery locations stay unchanged.
 Run the ordinary producer and retain its actual admission, wire and physics
 results before calling that plot qualified.
 

@@ -1,3 +1,5 @@
+import type { ShardProduct } from './shard-outputs.mjs';
+
 export function shardFolders(root: string): string[];
 /** Every product slug (SF88g: a folder's declared outputs, else the folder itself). */
 export function shardSlugs(root: string): string[];
@@ -12,3 +14,5 @@ export function manifestContract(root: string, closure: Record<string, string[]>
 
 /** Refresh identities before any consumer imports cached discovery modules. */
 export function refreshDiscovery(root?: string): void;
+/** Preserve every physical static/lazy module target when a discovery output leaves src. */
+export function relocateDiscoverySource(root: string, product: Pick<ShardProduct, 'slug' | 'folder' | 'output'>, text: string): string;

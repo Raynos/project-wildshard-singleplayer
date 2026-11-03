@@ -78,6 +78,10 @@ test('an explicitly named new-idea swap writes complete declarations and keeps 2
  expect(new Set(after.grid.cells.map(row=>row.slug)).size).toBe(25);
  expect(after.grid.cells.find(row=>row.instance===cell.instance).slug).toBe('open-plot-new-idea');
  expect(proposal.paths.has('scripts/source-generation-outputs.json')).toBe(true);
+ const declared=JSON.parse(proposal.paths.get('scripts/source-generation-outputs.json')).producers['scripts/gen-shards.mjs'];
+ expect(declared).toContain('out/.app/discovery.open-plots.open-plot-new-idea.generated.ts');
+ expect(declared).not.toContain('src/shards/open-plots/discovery.open-plot-new-idea.generated.ts');
+ expect(proposal.paths.has('.gitignore')).toBe(false);
  expect(proposal.paths.has('lint/tile-bake-debt.json')).toBe(true);
  expect(proposal.paths.has('lint/custom-sections.json')).toBe(true);
  expect(()=>plotTemplate(root,{...recipe,slug:'open-plot-new-idea',cell:cell.cell,replaces:'open-plot-wrong'})).toThrow('replacement does not match');

@@ -218,3 +218,36 @@ ruled, so they are not asked.
 A skipped question stays `needs pick`; lanes build the recommended answer meanwhile (G872).
 
 NU3 qualification: all 25 shipped slugs are distinct in public and Developer modes. Four independent ordinary products build and admit with real survey-floor/kerb collision and four open entries; no new art or borrowed theme assets. Their new tile/custom-section policies carry zero grandfathered debt, wire ceilings are the actual measured phone bytes, and budget derivations use the existing calibration. The maintained 75-route walk passes with zero stuck/bounds failures. Existing instance names stay. Self-applied G872 placeholder/source-stamp rulings: full original source and ordered packs reconstruct exactly after replacing only the current map namespace stamp; the image and every other payload hash remain exact. Initial material-shape and stale-map refusals remain retained. NU2/NU4–NU8 and the art build-outs remain deferred; OP3 is next, OP4 is X9.
+
+
+### NU3 discovery placement P0 (2026-11-03, sp-x8)
+
+The first containing 53dd prepare refused the four new generated discovery
+wrappers under `src/` after all 28 products and normal packs passed. The
+existing GR0 guard was correct. New ungrandfathered discoveries now live in
+`out/.app`; both existing exact grandfathering sets retain their original
+source locations. No source-policy allowance or guard changed.
+
+Actual four-wrapper source/native composition is exact after resolving only
+module specifiers; each full closure retains all 25 original dependency
+targets and moves only its own wrapper (26 files before/after). Static/lazy
+imports, standalone selection and normal push/native-authoring writers use
+the same real targets. Normal metadata-only discovery and source-table
+refresh restored all 24 original source wrappers; no product rebuild ran.
+
+The four out-bank modules remain required entries in the complete generated
+input catalogue and source-phase output hashes. Exact SHA/run/archive
+transport includes only catalogue-owned discovery modules, retains both
+title tables, refuses omission/unlisted discovery/product injection, and
+restores exact bytes. Generated-input evidence still cannot grant product
+proof. OP3 registers future new plots in this bank without generated-src or
+ignore allowances.
+
+The unchanged original all-files CLI is RED4 -> GREEN0 on the bounded
+actual-wrapper artifact fixture with unchanged policies. The full shared
+working-tree scan remains separately RED693 on unrelated stale ignored
+artifacts; those files were preserved. Discovery freshness/atomic/open-reader,
+source guard, selection, metadata callers and transport controls pass, root
+types and named typed lint are zero. G872 placement and exact-source class
+self-applied. First-containing ordinary cloud prepare remains remote work;
+no extra native proof or repeated collider walk is implied by relocation.

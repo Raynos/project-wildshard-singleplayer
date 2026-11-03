@@ -2,13 +2,28 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 import { authoredManifestImports } from './manifest-static-imports.mjs';
+import { generatedSourcePolicy, GENERATED_SOURCE_POLICY } from './generated-source.mjs';
+
+/** Existing reviewed source outputs may remain there; every new discovery is a build product. */
+function discoveryPath(root, folder, file) {
+  const source = `src/shards/${folder}/${file}`, policy = resolve(root, GENERATED_SOURCE_POLICY);
+  if (existsSync(policy) && generatedSourcePolicy(JSON.parse(readFileSync(policy, 'utf8'))).files.includes(source)) return source;
+  const importPolicy = resolve(root, 'lint/generated-import-debt.json');
+  if (existsSync(importPolicy)) {
+    const value = JSON.parse(readFileSync(importPolicy, 'utf8'));
+    const sources = value.sources ?? [];
+    if (value.schema !== 'no-generated-import/1' || !Array.isArray(sources) || sources.some(path => typeof path !== 'string')) throw new Error('Invalid discovery source placement policy');
+    if (sources.includes(source)) return source;
+  }
+  return `out/.app/discovery.${folder}${file.slice('discovery'.length)}`;
+}
 
 export function shardManifestPath(root, slug) {
-  return `src/shards/${slug}/${existsSync(resolve(root, `src/shards/${slug}/manifest.json`)) ? 'discovery.generated.ts' : 'manifest.ts'}`;
+  return existsSync(resolve(root, `src/shards/${slug}/manifest.json`)) ? discoveryPath(root, slug, 'discovery.generated.ts') : `src/shards/${slug}/manifest.ts`;
 }
 /** A product's discovery module: its folder's, or one per declared output (SF88g, scripts/shard-outputs.mjs). */
 export function productManifestPath(root, product) {
-  return product.output === null ? shardManifestPath(root, product.slug) : `src/shards/${product.folder}/discovery.${product.slug}.generated.ts`;
+  return product.output === null ? shardManifestPath(root, product.slug) : discoveryPath(root, product.folder, `discovery.${product.slug}.generated.ts`);
 }
 /** Literal imports keep authored image strings inside the bundler's asset graph. An output of a source folder (SF88g) passes
  * its `composed` manifest (scripts/shard-outputs.mjs outputManifest), so this module, which generation jobs load from

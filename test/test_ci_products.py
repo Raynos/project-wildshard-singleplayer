@@ -545,7 +545,7 @@ class PreparedProducts(unittest.TestCase):
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(b'export const table=1;')
-        for poison in ['out/.app/extra.generated.ts', 'out/.app/shard.json', 'out/fictional/shard.json']:
+        for poison in ['out/.app/extra.generated.ts', 'out/.app/discovery.unregistered.generated.ts', 'out/.app/shard.json', 'out/fictional/shard.json']:
             products.pack(self.root, generated=True)
             archive_name, proof_name = products.archive_names(True)
             with tarfile.open(self.root / archive_name, 'a') as archive:
@@ -559,6 +559,36 @@ class PreparedProducts(unittest.TestCase):
                 products.unpack(self.root, generated=True)
             self.assertFalse((self.root / self.table).exists())
             (self.root / self.table).write_bytes(b'export const value=7;')
+
+    def test_catalogued_discovery_bank_transfers_complete_bytes_and_refuses_omission(self):
+        names = [f'out/.app/discovery.open-plots.open-plot-{name}.generated.ts'
+                 for name in ('fossil-badlands', 'jungle-ziggurat', 'patchwork-fairground', 'saltwind-lighthouse')]
+        self.catalogue['producers']['scripts/gen-shards.mjs'] = names
+        (self.root / 'scripts/source-generation-outputs.json').write_text(json.dumps(self.catalogue))
+        with self.assertRaisesRegex(ValueError, 'Missing prepared source outputs'):
+            products.pack(self.root, generated=True)
+        expected = {name: f'export const MANIFEST={{slug:{json.dumps(name)}}};'.encode() for name in names}
+        for name, content in expected.items():
+            path = self.root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(content)
+        poison = self.root / 'out/.app/discovery.unregistered.generated.ts'
+        poison.write_bytes(b'not a declared generated input')
+        products.pack(self.root, generated=True)
+        archive_name, proof_name = products.archive_names(True)
+        with tarfile.open(self.root / archive_name, 'r') as archive:
+            self.assertEqual({item.name for item in archive.getmembers() if item.name.startswith('out/')}, set(names))
+        for name in names:
+            (self.root / name).unlink()
+        poison.unlink()
+        products.unpack(self.root, generated=True)
+        for name, content in expected.items():
+            self.assertEqual((self.root / name).read_bytes(), content)
+        self.assertFalse(poison.exists())
+        (self.root / products.ARCHIVE).write_bytes((self.root / archive_name).read_bytes())
+        (self.root / products.PROOF).write_bytes((self.root / proof_name).read_bytes())
+        with self.assertRaisesRegex(ValueError, 'products are missing'):
+            products.unpack(self.root)
 
     def test_generated_inputs_refuse_foreign_run_and_product_members_before_writing(self):
         products.pack(self.root, generated=True)

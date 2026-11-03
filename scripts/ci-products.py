@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import re
 from pathlib import Path, PurePosixPath
 import shutil
 import subprocess
@@ -14,7 +15,8 @@ PROOF = 'test-products-proof.json'
 PHASE = '.cache/generation-phase.json'
 DERIVED_BUDGET = 'budgets/ceiling-sources.json'
 GENERATED_ROOTS = ['src', 'public', 'out', 'docs/api', 'lint']
-# These two app inputs share generation proof; no product or arbitrary out file does.
+# Fixed title inputs and explicitly catalogued discovery modules share generation proof.
+# No product or arbitrary out file does.
 APP_INPUTS = frozenset({'out/.app/titleCatalogue.generated.ts',
                         'out/.app/shardSelection.generated.ts'})
 EXCLUDED = {'.git', 'node_modules', '.cache', '__pycache__'}
@@ -110,6 +112,15 @@ def source_outputs(root):
     return declared, declared
 
 
+def app_inputs(root):
+    registry = json.loads((root / 'scripts/source-generation-outputs.json').read_text())['producers']
+    discovery = {name for name in registry.get('scripts/gen-shards.mjs', [])
+                 if PurePosixPath(name).parts[:2] == ('out', '.app')
+                 and len(PurePosixPath(name).parts) == 3
+                 and re.fullmatch(r'discovery\.[a-z0-9_.-]+\.generated\.ts', PurePosixPath(name).name)}
+    return APP_INPUTS | discovery
+
+
 def archive_names(generated):
     return ('generated-inputs.tar', 'generated-inputs-proof.json') if generated else (ARCHIVE, PROOF)
 
@@ -131,7 +142,8 @@ def pack(root, generated=False):
                    | {os.fsdecode(name) for name in (ignored + untracked + modified).split(b'\0') if name})
     files = [name for name in files if not any(part in EXCLUDED for part in PurePosixPath(name).parts)]
     if generated:
-        files = [name for name in files if not name.startswith('out/') or name in APP_INPUTS]
+        admitted_app = app_inputs(root)
+        files = [name for name in files if not name.startswith('out/') or name in admitted_app]
     if (root / PHASE).is_file():
         files.append(PHASE)
     if generated and PHASE not in files:
@@ -208,7 +220,7 @@ def unpack(root, generated=False):
             raise ValueError('Prepared catalogue outputs are missing from the archive')
         if generated and PHASE not in names:
             raise ValueError('Generated preparation is missing its verified phase receipt')
-        if generated and any(name.startswith('out/') and name not in APP_INPUTS for name in inventory):
+        if generated and any(name.startswith('out/') and name not in app_inputs(root) for name in inventory):
             raise ValueError('Generated-only preparation cannot contain products')
         if not generated and not any(name.startswith('out/') and name.endswith('/shard.json') for name in names):
             raise ValueError('Prepared products are missing')

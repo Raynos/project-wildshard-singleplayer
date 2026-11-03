@@ -55,10 +55,10 @@
       "src/shards/nalati-grasslands/discovery.generated.ts",
       "out/.app/titleCatalogue.generated.ts",
       "out/.app/shardSelection.generated.ts",
-      "src/shards/open-plots/discovery.open-plot-fossil-badlands.generated.ts",
-      "src/shards/open-plots/discovery.open-plot-patchwork-fairground.generated.ts",
-      "src/shards/open-plots/discovery.open-plot-saltwind-lighthouse.generated.ts",
-      "src/shards/open-plots/discovery.open-plot-jungle-ziggurat.generated.ts"
+      "out/.app/discovery.open-plots.open-plot-fossil-badlands.generated.ts",
+      "out/.app/discovery.open-plots.open-plot-patchwork-fairground.generated.ts",
+      "out/.app/discovery.open-plots.open-plot-saltwind-lighthouse.generated.ts",
+      "out/.app/discovery.open-plots.open-plot-jungle-ziggurat.generated.ts"
     ]
   }
 }
